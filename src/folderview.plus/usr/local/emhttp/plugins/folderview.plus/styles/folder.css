@@ -78,18 +78,28 @@ table.sortable td:last-child {
     gap: 0.5em;
 }
 
-.folder-status-colors-dd {
+.canvas form dd.folder-status-colors-dd {
     display: flex;
+    flex-direction: row !important;
+    justify-content: flex-start !important;
     flex-wrap: wrap;
     align-items: center;
+    text-align: left;
     gap: 0.5em;
 }
 
 .folder-status-colors {
     display: flex;
+    justify-content: flex-start;
     flex-wrap: wrap;
     align-items: center;
     gap: 0.75em;
+    width: auto;
+    flex: 0 1 auto;
+}
+
+.folder-status-colors-dd > button {
+    flex: 0 0 auto;
 }
 
 .folder-status-color-item {

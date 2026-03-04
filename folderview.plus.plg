@@ -6,12 +6,15 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.06.1">
-<!ENTITY md5 "98ff1b691d16c33d05a9c30d12e8c9c7">
+<!ENTITY version "2026.03.06.2">
+<!ENTITY md5 "e46f08d7df86526c083f2b4a5fe97452">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.06.2
+- Fix folder editor alignment for the status color controls so they line up with the rest of the settings form.
 
 ###2026.03.06.1
 - Release version bump to ensure Unraid update detection from `2026.03.05.10`.

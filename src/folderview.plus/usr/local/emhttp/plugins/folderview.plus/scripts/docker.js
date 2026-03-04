@@ -64,7 +64,52 @@ const escapeClassToken = (value) => {
     return input.replace(/[^a-zA-Z0-9_-]/g, '\\$&');
 };
 
-const applyFolderCellCentering = (cell) => {
+const getFolderIdFromRow = (row) => {
+    if (!row || !row.classList) {
+        return '';
+    }
+    for (const cls of row.classList) {
+        if (typeof cls === 'string' && cls.startsWith('folder-id-')) {
+            return cls.substring('folder-id-'.length);
+        }
+    }
+    return '';
+};
+
+const getRenderedRowHeight = (row) => {
+    if (!row) {
+        return 0;
+    }
+    const rect = row.getBoundingClientRect ? row.getBoundingClientRect() : null;
+    const rectHeight = rect && Number.isFinite(rect.height) ? rect.height : 0;
+    const offsetHeight = Number.isFinite(row.offsetHeight) ? row.offsetHeight : 0;
+    return Math.max(Math.round(rectHeight), Math.round(offsetHeight), 0);
+};
+
+const syncFolderRowsHeight = (rows) => {
+    if (!rows || !rows.length) {
+        return 0;
+    }
+    let maxHeight = 0;
+    rows.forEach((row) => {
+        maxHeight = Math.max(maxHeight, getRenderedRowHeight(row));
+    });
+    if (maxHeight <= 0) {
+        return 0;
+    }
+    rows.forEach((row) => {
+        row.style.setProperty('height', `${maxHeight}px`, 'important');
+        Array.from(row.children || []).forEach((td) => {
+            if (td && td.tagName === 'TD') {
+                td.style.setProperty('height', `${maxHeight}px`, 'important');
+                td.style.setProperty('vertical-align', 'middle', 'important');
+            }
+        });
+    });
+    return maxHeight;
+};
+
+const applyFolderCellCentering = (cell, rowHeight = 0) => {
     if (!cell) {
         return false;
     }
@@ -82,46 +127,78 @@ const applyFolderCellCentering = (cell) => {
         return false;
     }
 
-    const row = cell.parentElement;
-    if (row && row.tagName === 'TR') {
-        Array.from(row.children).forEach((td) => {
-            if (td && td.tagName === 'TD') {
-                td.style.setProperty('vertical-align', 'middle', 'important');
-            }
-        });
-    }
-
+    const height = Number.isFinite(rowHeight) && rowHeight > 0 ? Math.round(rowHeight) : getRenderedRowHeight(cell.parentElement);
     cell.style.setProperty('vertical-align', 'middle', 'important');
-    cell.style.setProperty('position', 'relative', 'important');
+    cell.style.setProperty('position', 'static', 'important');
+    cell.style.setProperty('display', 'table-cell', 'important');
     cell.style.setProperty('padding-top', '0px', 'important');
     cell.style.setProperty('padding-bottom', '0px', 'important');
+    if (height > 0) {
+        cell.style.setProperty('height', `${height}px`, 'important');
+    }
 
-    sub.style.setProperty('position', 'absolute', 'important');
-    sub.style.setProperty('top', '50%', 'important');
-    sub.style.setProperty('left', '8px', 'important');
-    sub.style.setProperty('right', '8px', 'important');
-    sub.style.setProperty('transform', 'translateY(-50%)', 'important');
+    sub.style.setProperty('position', 'relative', 'important');
+    sub.style.setProperty('top', 'auto', 'important');
+    sub.style.setProperty('left', 'auto', 'important');
+    sub.style.setProperty('right', 'auto', 'important');
+    sub.style.setProperty('transform', 'none', 'important');
     sub.style.setProperty('display', 'flex', 'important');
     sub.style.setProperty('align-items', 'center', 'important');
+    sub.style.setProperty('min-height', '48px', 'important');
+    sub.style.setProperty('width', '100%', 'important');
+    if (height > 0) {
+        sub.style.setProperty('height', `${Math.max(0, height - 2)}px`, 'important');
+    }
 
     return true;
 };
 
 const forceAllFolderRowsVerticalCenter = () => {
+    const rowsByFolderId = new Map();
+    const handledRows = new Set();
+
+    document.querySelectorAll('tr[class*="folder-id-"]').forEach((row) => {
+        const id = getFolderIdFromRow(row);
+        if (!id) {
+            return;
+        }
+        if (!rowsByFolderId.has(id)) {
+            rowsByFolderId.set(id, []);
+        }
+        rowsByFolderId.get(id).push(row);
+    });
+
+    rowsByFolderId.forEach((rows) => {
+        const syncedHeight = syncFolderRowsHeight(rows);
+        rows.forEach((row) => {
+            handledRows.add(row);
+            row.querySelectorAll('td.ct-name.folder-name').forEach((cell) => {
+                applyFolderCellCentering(cell, syncedHeight);
+            });
+        });
+    });
+
     document.querySelectorAll('td.ct-name.folder-name').forEach((cell) => {
-        applyFolderCellCentering(cell);
+        const parentRow = cell.parentElement;
+        if (!handledRows.has(parentRow)) {
+            applyFolderCellCentering(cell, getRenderedRowHeight(parentRow));
+        }
     });
 };
 
 const forceFolderRowVerticalCenter = (id) => {
     const escapedId = escapeClassToken(id);
-    let centered = false;
-    document.querySelectorAll(`tr.folder-id-${escapedId} td.ct-name.folder-name`).forEach((cell) => {
-        centered = applyFolderCellCentering(cell) || centered;
-    });
-    if (!centered) {
+    const rows = Array.from(document.querySelectorAll(`tr.folder-id-${escapedId}`));
+    if (!rows.length) {
         forceAllFolderRowsVerticalCenter();
+        return;
     }
+    const syncedHeight = syncFolderRowsHeight(rows);
+    rows.forEach((row) => {
+        row.querySelectorAll('td.ct-name.folder-name').forEach((cell) => {
+            applyFolderCellCentering(cell, syncedHeight);
+        });
+    });
 };
 
 let folderRowCenterObserver = null;

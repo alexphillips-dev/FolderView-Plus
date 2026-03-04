@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.07.9">
-<!ENTITY md5 "58513ecfa1d0ea947e4f9b76afef07af">
+<!ENTITY version "2026.03.08.1">
+<!ENTITY md5 "76df551e15cc106d3888dde47b74fdbc">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.08.1
+- Replace Docker folder left-column centering strategy with height-sync + flex alignment:
+  - remove absolute-position centering for folder name block,
+  - compute/sync row height across folder row clones and apply that height to folder cells,
+  - keep observer-driven re-apply for late fixed-column/table clone renders.
 
 ###2026.03.07.9
 - Harden Docker folder vertical centering for fixed-column render paths:

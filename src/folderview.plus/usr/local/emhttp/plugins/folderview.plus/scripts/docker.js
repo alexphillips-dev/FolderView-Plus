@@ -1,6 +1,11 @@
 const FOLDER_VIEW_DEBUG_MODE = false;
 const utils = window.FolderViewPlusUtils || {
-    normalizePrefs: () => ({ sortMode: 'created', manualOrder: [], autoRules: [] }),
+    normalizePrefs: () => ({
+        sortMode: 'created',
+        manualOrder: [],
+        autoRules: [],
+        badges: { running: true, stopped: false, updates: true }
+    }),
     getAutoRuleMatches: () => []
 };
 
@@ -1011,6 +1016,20 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
         $(`tr.folder-id-${id} span.folder-state`).text(`${started}/${Object.entries(folder.containers).length} ${$.i18n('started')}`);
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Set 'started' status. Count: ${started}/${Object.entries(folder.containers).length}.`);
     }
+    const badgePrefs = folderTypePrefs?.badges || {};
+    const showRunningBadge = badgePrefs.running !== false;
+    const showStoppedBadge = badgePrefs.stopped === true;
+    const showUpdateBadge = badgePrefs.updates !== false;
+    const folderIsRunning = started > 0;
+
+    if (!showUpdateBadge && !folder.settings.update_column) {
+        $(`tr.folder-id-${id} > td.updatecolumn`).next().attr('colspan', 6).end().remove();
+    }
+
+    if ((folderIsRunning && !showRunningBadge) || (!folderIsRunning && !showStoppedBadge)) {
+        $(`tr.folder-id-${id} i#load-folder-${id}, tr.folder-id-${id} span.folder-state`).hide();
+    }
+
     if (!managerTypes.has('dockerman')) {
         $(`tr.folder-id-${id} td.folder-autostart`).empty();
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): No dockerman containers — removed autostart toggle.`);

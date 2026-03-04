@@ -7,6 +7,20 @@ try {
     $type = ensureType((string)($_REQUEST['type'] ?? ''));
     $action = (string)($_REQUEST['action'] ?? 'list');
 
+    if ($action === 'download') {
+        $name = (string)($_REQUEST['name'] ?? '');
+        $path = getBackupSnapshotPath($type, $name);
+        if (!file_exists($path)) {
+            throw new RuntimeException('Backup file not found.');
+        }
+        header_remove('Content-Type');
+        header('Content-Type: application/json');
+        header('Content-Disposition: attachment; filename="' . basename($path) . '"');
+        header('Content-Length: ' . (string)filesize($path));
+        readfile($path);
+        exit;
+    }
+
     if ($action === 'create') {
         $reason = (string)($_REQUEST['reason'] ?? 'manual');
         echo json_encode([
@@ -36,6 +50,16 @@ try {
     if ($action === 'list') {
         echo json_encode([
             'ok' => true,
+            'backups' => listBackupSnapshots($type)
+        ]);
+        exit;
+    }
+
+    if ($action === 'delete') {
+        $name = (string)($_REQUEST['name'] ?? '');
+        echo json_encode([
+            'ok' => true,
+            'deleted' => deleteBackupSnapshot($type, $name),
             'backups' => listBackupSnapshots($type)
         ]);
         exit;

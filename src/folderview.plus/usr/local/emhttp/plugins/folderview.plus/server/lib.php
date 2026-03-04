@@ -128,7 +128,21 @@
         return [
             'sortMode' => 'created',
             'manualOrder' => [],
-            'autoRules' => []
+            'autoRules' => [],
+            'badges' => [
+                'running' => true,
+                'stopped' => false,
+                'updates' => true
+            ]
+        ];
+    }
+
+    function normalizeBadgePrefs($badges): array {
+        $incoming = is_array($badges) ? $badges : [];
+        return [
+            'running' => !array_key_exists('running', $incoming) ? true : (bool)$incoming['running'],
+            'stopped' => !array_key_exists('stopped', $incoming) ? false : (bool)$incoming['stopped'],
+            'updates' => !array_key_exists('updates', $incoming) ? true : (bool)$incoming['updates']
         ];
     }
 
@@ -172,6 +186,7 @@
             ];
         }
         $normalized['autoRules'] = $normalizedRules;
+        $normalized['badges'] = normalizeBadgePrefs($prefs['badges'] ?? []);
         return $normalized;
     }
 
@@ -306,6 +321,38 @@
         return "$configDir/backups";
     }
 
+    function getBackupSnapshotPath(string $type, string $name): string {
+        $type = ensureType($type);
+        $safeName = basename($name);
+        if ($safeName !== $name || !preg_match('/^' . preg_quote($type, '/') . '-.*\.json$/', $safeName)) {
+            throw new RuntimeException('Invalid backup file name.');
+        }
+        return getBackupsDirPath() . "/$safeName";
+    }
+
+    function pruneBackupSnapshots(string $type, int $keep = 25): array {
+        $type = ensureType($type);
+        $keep = max(1, $keep);
+        $snapshots = listBackupSnapshots($type);
+        $removed = [];
+        if (count($snapshots) <= $keep) {
+            return $removed;
+        }
+        $toRemove = array_slice($snapshots, $keep);
+        foreach ($toRemove as $snapshot) {
+            try {
+                $path = getBackupSnapshotPath($type, (string)$snapshot['name']);
+                if (file_exists($path)) {
+                    @unlink($path);
+                    $removed[] = (string)$snapshot['name'];
+                }
+            } catch (Throwable $err) {
+                continue;
+            }
+        }
+        return $removed;
+    }
+
     function createBackupSnapshot(string $type, string $reason = 'manual'): array {
         $type = ensureType($type);
         $folders = readRawFolderMap($type);
@@ -328,10 +375,12 @@
             'folders' => $folders
         ];
         @file_put_contents("$backupDir/$filename", json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
+        $pruned = pruneBackupSnapshots($type, 25);
         return [
             'name' => $filename,
             'createdAt' => gmdate('c'),
-            'count' => count($folders)
+            'count' => count($folders),
+            'pruned' => $pruned
         ];
     }
 
@@ -353,16 +402,41 @@
             if (!is_file($path)) {
                 continue;
             }
+            $decoded = @json_decode((string)@file_get_contents($path), true);
+            $reason = '';
+            $count = null;
+            if (is_array($decoded)) {
+                $reason = (string)($decoded['reason'] ?? '');
+                if (isset($decoded['folders']) && is_array($decoded['folders'])) {
+                    $count = count($decoded['folders']);
+                }
+            }
             $entries[] = [
                 'name' => $file,
                 'createdAt' => gmdate('c', (int)@filemtime($path)),
-                'size' => (int)@filesize($path)
+                'size' => (int)@filesize($path),
+                'reason' => $reason,
+                'count' => $count
             ];
         }
         usort($entries, function($a, $b) {
             return strcmp($b['createdAt'], $a['createdAt']);
         });
         return $entries;
+    }
+
+    function deleteBackupSnapshot(string $type, string $name): array {
+        $path = getBackupSnapshotPath($type, $name);
+        if (!file_exists($path)) {
+            throw new RuntimeException('Backup file not found.');
+        }
+        if (!@unlink($path)) {
+            throw new RuntimeException('Failed to delete backup file.');
+        }
+        return [
+            'name' => basename($path),
+            'deletedAt' => gmdate('c')
+        ];
     }
 
     function normalizeImportedFoldersPayload($decoded): array {
@@ -377,12 +451,8 @@
 
     function restoreBackupSnapshot(string $type, string $name): array {
         $type = ensureType($type);
-        $backupDir = getBackupsDirPath();
-        $safeName = basename($name);
-        if ($safeName !== $name || !preg_match('/^' . preg_quote($type, '/') . '-.*\.json$/', $safeName)) {
-            throw new RuntimeException('Invalid backup file name.');
-        }
-        $path = "$backupDir/$safeName";
+        $path = getBackupSnapshotPath($type, $name);
+        $safeName = basename($path);
         if (!file_exists($path)) {
             throw new RuntimeException('Backup file not found.');
         }
@@ -472,6 +542,132 @@
         if(!file_exists($prefsFilePath)) { return '[]'; }
         $parsedIni = @parse_ini_file($prefsFilePath);
         return json_encode(array_values($parsedIni ?: []));
+    }
+
+    function normalizeFolderMembers($members): array {
+        $raw = [];
+        if (is_array($members)) {
+            $isList = array_keys($members) === range(0, count($members) - 1);
+            if ($isList) {
+                $raw = $members;
+            } else {
+                $raw = array_keys($members);
+            }
+        }
+        $normalized = [];
+        foreach ($raw as $item) {
+            $name = trim((string)$item);
+            if ($name === '' || in_array($name, $normalized, true)) {
+                continue;
+            }
+            $normalized[] = $name;
+        }
+        return $normalized;
+    }
+
+    function bulkAssignItemsToFolder(string $type, string $folderId, array $items): array {
+        $type = ensureType($type);
+        $folderId = trim($folderId);
+        if ($folderId === '') {
+            throw new RuntimeException('Folder ID is required.');
+        }
+
+        $folders = readRawFolderMap($type);
+        if (!array_key_exists($folderId, $folders)) {
+            throw new RuntimeException('Target folder not found.');
+        }
+
+        $validNames = array_keys(readInfo($type));
+        $validSet = array_fill_keys($validNames, true);
+        $requested = [];
+        foreach ($items as $item) {
+            $name = trim((string)$item);
+            if ($name === '' || isset($requested[$name]) || !isset($validSet[$name])) {
+                continue;
+            }
+            $requested[$name] = true;
+        }
+        $itemNames = array_keys($requested);
+        if (empty($itemNames)) {
+            return [
+                'type' => $type,
+                'folderId' => $folderId,
+                'assigned' => [],
+                'removedFrom' => [],
+                'count' => 0
+            ];
+        }
+
+        $removedFrom = [];
+        foreach ($folders as $id => &$folder) {
+            $members = normalizeFolderMembers($folder['containers'] ?? []);
+            $nextMembers = [];
+            foreach ($members as $member) {
+                if (in_array($member, $itemNames, true)) {
+                    if (!isset($removedFrom[$member])) {
+                        $removedFrom[$member] = [];
+                    }
+                    $removedFrom[$member][] = $id;
+                    continue;
+                }
+                $nextMembers[] = $member;
+            }
+            $folder['containers'] = $nextMembers;
+        }
+        unset($folder);
+
+        $targetMembers = normalizeFolderMembers($folders[$folderId]['containers'] ?? []);
+        foreach ($itemNames as $name) {
+            if (!in_array($name, $targetMembers, true)) {
+                $targetMembers[] = $name;
+            }
+        }
+        $folders[$folderId]['containers'] = $targetMembers;
+
+        writeRawFolderMap($type, $folders);
+        syncManualOrderWithFolders($type, $folders);
+        if ($type === 'docker') {
+            syncContainerOrder('docker');
+        }
+
+        return [
+            'type' => $type,
+            'folderId' => $folderId,
+            'assigned' => $itemNames,
+            'removedFrom' => $removedFrom,
+            'count' => count($itemNames)
+        ];
+    }
+
+    function getDiagnosticsSnapshot(): array {
+        $types = ['docker', 'vm'];
+        $typesData = [];
+        foreach ($types as $type) {
+            $folderPath = getFolderFilePath($type);
+            $prefsPath = getTypePrefsPath($type);
+            $folders = readRawFolderMap($type);
+            $prefs = readTypePrefs($type);
+            $backups = listBackupSnapshots($type);
+            $typesData[$type] = [
+                'folderPath' => $folderPath,
+                'prefsPath' => $prefsPath,
+                'foldersExists' => file_exists($folderPath),
+                'prefsExists' => file_exists($prefsPath),
+                'folderCount' => count($folders),
+                'sortMode' => $prefs['sortMode'] ?? 'created',
+                'ruleCount' => count($prefs['autoRules'] ?? []),
+                'manualOrderCount' => count($prefs['manualOrder'] ?? []),
+                'lastBackup' => $backups[0] ?? null,
+                'backupCount' => count($backups)
+            ];
+        }
+
+        return [
+            'checkedAt' => gmdate('c'),
+            'pluginVersion' => readInstalledVersion(),
+            'update' => checkRemotePluginUpdate(),
+            'types' => $typesData
+        ];
     }
 
     function syncContainerOrder(string $type): void {

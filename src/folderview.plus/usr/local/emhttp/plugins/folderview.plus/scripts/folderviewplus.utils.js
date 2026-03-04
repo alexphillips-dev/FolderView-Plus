@@ -45,11 +45,18 @@
                 labelValue: typeof rule.labelValue === 'string' ? rule.labelValue : ''
             }))
             .filter((rule) => rule.folderId !== '');
+        const incomingBadges = isPlainObject(incoming.badges) ? incoming.badges : {};
+        const badges = {
+            running: !Object.prototype.hasOwnProperty.call(incomingBadges, 'running') ? true : incomingBadges.running !== false,
+            stopped: incomingBadges.stopped === true,
+            updates: !Object.prototype.hasOwnProperty.call(incomingBadges, 'updates') ? true : incomingBadges.updates !== false
+        };
 
         return {
             sortMode,
             manualOrder,
-            autoRules
+            autoRules,
+            badges
         };
     };
 
@@ -314,51 +321,67 @@
         return operations;
     };
 
+    const ruleMatchesItem = (rule, name, infos, type) => {
+        if (!isPlainObject(rule)) {
+            return false;
+        }
+        if (rule.kind === 'name_regex') {
+            if (!rule.pattern) {
+                return false;
+            }
+            try {
+                return new RegExp(rule.pattern).test(name);
+            } catch (err) {
+                return false;
+            }
+        }
+
+        if (rule.kind === 'label') {
+            if (type !== 'docker') {
+                return false;
+            }
+            const key = String(rule.labelKey || '');
+            if (!key) {
+                return false;
+            }
+            const labels = infos[name]?.Labels || infos[name]?.info?.Config?.Labels || {};
+            const labelValue = labels[key];
+            if (typeof labelValue === 'undefined') {
+                return false;
+            }
+            return rule.labelValue === '' || String(labelValue) === String(rule.labelValue);
+        }
+
+        return false;
+    };
+
+    const getAutoRuleFirstMatch = ({ rules, name, infoByName, type }) => {
+        const infos = isPlainObject(infoByName) ? infoByName : {};
+        for (const rule of (Array.isArray(rules) ? rules : [])) {
+            if (!isPlainObject(rule) || rule.enabled === false) {
+                continue;
+            }
+            if (ruleMatchesItem(rule, name, infos, type)) {
+                return rule;
+            }
+        }
+        return null;
+    };
+
     const getAutoRuleMatches = ({ rules, folderId, names, infoByName, type }) => {
         const allNames = Array.isArray(names) ? names : [];
-        const infos = isPlainObject(infoByName) ? infoByName : {};
-        const filteredRules = (Array.isArray(rules) ? rules : [])
-            .filter((rule) => isPlainObject(rule))
-            .filter((rule) => rule.enabled !== false)
-            .filter((rule) => String(rule.folderId || '') === String(folderId));
+        const targetFolderId = String(folderId || '');
 
         const matches = [];
         for (const name of allNames) {
-            for (const rule of filteredRules) {
-                if (rule.kind === 'name_regex') {
-                    if (!rule.pattern) {
-                        continue;
-                    }
-                    try {
-                        const regex = new RegExp(rule.pattern);
-                        if (regex.test(name)) {
-                            matches.push(name);
-                            break;
-                        }
-                    } catch (err) {
-                        continue;
-                    }
-                    continue;
-                }
-
-                if (rule.kind === 'label') {
-                    if (type !== 'docker') {
-                        continue;
-                    }
-                    const key = String(rule.labelKey || '');
-                    if (!key) {
-                        continue;
-                    }
-                    const labels = infos[name]?.Labels || infos[name]?.info?.Config?.Labels || {};
-                    const labelValue = labels[key];
-                    if (typeof labelValue === 'undefined') {
-                        continue;
-                    }
-                    if (rule.labelValue === '' || String(labelValue) === String(rule.labelValue)) {
-                        matches.push(name);
-                        break;
-                    }
-                }
+            const firstMatch = getAutoRuleFirstMatch({
+                rules,
+                name,
+                infoByName,
+                type
+            });
+            if (firstMatch && String(firstMatch.folderId || '') === targetFolderId) {
+                matches.push(name);
             }
         }
         return Array.from(new Set(matches));
@@ -374,6 +397,7 @@
         parseImportPayload,
         summarizeImport,
         buildImportOperations,
-        getAutoRuleMatches
+        getAutoRuleMatches,
+        getAutoRuleFirstMatch
     };
 }));

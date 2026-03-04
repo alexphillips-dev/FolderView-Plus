@@ -6,12 +6,21 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.05.5">
-<!ENTITY md5 "b4f90f1ec6b356adda4fc4b69aa9277c">
+<!ENTITY version "2026.03.05.6">
+<!ENTITY md5 "72678bc4e4c539d3fc904dfd40e69937">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.05.6
+- Add full Import Preview + selective apply with merge modes (replace/merge/skip) and schema metadata validation.
+- Add one-click Undo backups for risky operations (import, clear/delete, bulk assign, and restore actions).
+- Add rule priority controls with up/down ordering and a rule tester for Docker/VM matching.
+- Add bulk assignment workflows for Docker/VM with multi-select item targeting.
+- Add backup management UI for create/list/restore/download/delete operations.
+- Add diagnostics panel with health report, repair actions, and diagnostics JSON export.
+- Add folder badge preference handling in settings and runtime for running/stopped/update visibility.
 
 ###2026.03.05.5
 - Move VMs directly below Docker in settings for clearer top-to-bottom workflow.

@@ -40,6 +40,12 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
                 <option value="alpha">Name (A-Z)</option>
             </select>
             <div class="hint-line">Use manual mode and the up/down buttons in the first column to set custom order.</div>
+            <div class="badge-toggle-row">
+                <span class="badge-toggle-title">Folder badges</span>
+                <label><input id="docker-badge-running" type="checkbox" onchange="changeBadgePref('docker', 'running', this.checked)"> Running</label>
+                <label><input id="docker-badge-stopped" type="checkbox" onchange="changeBadgePref('docker', 'stopped', this.checked)"> Stopped</label>
+                <label><input id="docker-badge-updates" type="checkbox" onchange="changeBadgePref('docker', 'updates', this.checked)"> Updates</label>
+            </div>
         </div>
     </div>
     <div class="table-wrap">
@@ -83,6 +89,11 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
                 <option value="alpha">Name (A-Z)</option>
             </select>
             <div class="hint-line">Use manual mode and the up/down buttons in the first column to set custom order.</div>
+            <div class="badge-toggle-row">
+                <span class="badge-toggle-title">Folder badges</span>
+                <label><input id="vm-badge-running" type="checkbox" onchange="changeBadgePref('vm', 'running', this.checked)"> Running</label>
+                <label><input id="vm-badge-stopped" type="checkbox" onchange="changeBadgePref('vm', 'stopped', this.checked)"> Stopped</label>
+            </div>
         </div>
     </div>
     <div class="table-wrap">
@@ -127,9 +138,17 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
             <input id="docker-rule-label-value" type="text" placeholder="Label value (optional, blank means any value)" style="display:none;">
             <button class="rules-add-btn" onclick="addAutoRule('docker')"><i class="fa fa-plus"></i> Add rule</button>
         </div>
+        <div class="rule-tester">
+            <input id="docker-rule-test-name" type="text" placeholder="Test name (example: media-server)">
+            <input id="docker-rule-test-label-key" type="text" placeholder="Test label key (optional)">
+            <input id="docker-rule-test-label-value" type="text" placeholder="Test label value (optional)">
+            <button onclick="testAutoRule('docker')"><i class="fa fa-flask"></i> Test rule priority</button>
+            <div id="docker-rule-test-output" class="rule-test-output"></div>
+        </div>
         <table class="rules-table">
             <thead>
                 <tr>
+                    <th>Priority</th>
                     <th>Folder</th>
                     <th>Match</th>
                     <th>Action</th>
@@ -152,9 +171,15 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
             <input id="vm-rule-pattern" type="text" placeholder="Regex pattern (example: ^prod-)">
             <button class="rules-add-btn" onclick="addAutoRule('vm')"><i class="fa fa-plus"></i> Add rule</button>
         </div>
+        <div class="rule-tester">
+            <input id="vm-rule-test-name" type="text" placeholder="Test VM name (example: prod-db)">
+            <button onclick="testAutoRule('vm')"><i class="fa fa-flask"></i> Test rule priority</button>
+            <div id="vm-rule-test-output" class="rule-test-output"></div>
+        </div>
         <table class="rules-table">
             <thead>
                 <tr>
+                    <th>Priority</th>
                     <th>Folder</th>
                     <th>Match</th>
                     <th>Action</th>
@@ -163,6 +188,100 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
             <tbody id="vm-rules"></tbody>
         </table>
     </div>
+</div>
+<hr>
+
+<h2>Bulk assignment</h2>
+<div class="bulk-assign-grid">
+    <div class="rules-panel">
+        <div class="rules-header">
+            <h3>Docker bulk assignment</h3>
+            <span class="rules-help">Select multiple containers and assign them to one folder in a single action.</span>
+        </div>
+        <div class="bulk-row">
+            <select id="docker-bulk-folder"></select>
+            <button onclick="assignSelectedItems('docker')"><i class="fa fa-share-square-o"></i> Assign selected</button>
+        </div>
+        <select id="docker-bulk-items" multiple size="10"></select>
+    </div>
+
+    <div class="rules-panel">
+        <div class="rules-header">
+            <h3>VM bulk assignment</h3>
+            <span class="rules-help">Select multiple VMs and assign them to one folder in a single action.</span>
+        </div>
+        <div class="bulk-row">
+            <select id="vm-bulk-folder"></select>
+            <button onclick="assignSelectedItems('vm')"><i class="fa fa-share-square-o"></i> Assign selected</button>
+        </div>
+        <select id="vm-bulk-items" multiple size="10"></select>
+    </div>
+</div>
+<hr>
+
+<h2>Backups</h2>
+<div class="backup-grid">
+    <div class="rules-panel">
+        <div class="rules-header">
+            <h3>Docker backups</h3>
+            <span class="rules-help">Create, restore, download, or delete backup snapshots.</span>
+        </div>
+        <div class="backup-actions">
+            <button onclick="createManualBackup('docker')"><i class="fa fa-camera"></i> Create backup now</button>
+            <button onclick="restoreLatestBackup('docker')"><i class="fa fa-history"></i> Restore latest</button>
+            <button onclick="refreshBackups('docker')"><i class="fa fa-refresh"></i> Refresh list</button>
+        </div>
+        <table class="rules-table">
+            <thead>
+                <tr>
+                    <th>Created</th>
+                    <th>Reason</th>
+                    <th>Folders</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="docker-backups"></tbody>
+        </table>
+    </div>
+
+    <div class="rules-panel">
+        <div class="rules-header">
+            <h3>VM backups</h3>
+            <span class="rules-help">Create, restore, download, or delete backup snapshots.</span>
+        </div>
+        <div class="backup-actions">
+            <button onclick="createManualBackup('vm')"><i class="fa fa-camera"></i> Create backup now</button>
+            <button onclick="restoreLatestBackup('vm')"><i class="fa fa-history"></i> Restore latest</button>
+            <button onclick="refreshBackups('vm')"><i class="fa fa-refresh"></i> Refresh list</button>
+        </div>
+        <table class="rules-table">
+            <thead>
+                <tr>
+                    <th>Created</th>
+                    <th>Reason</th>
+                    <th>Folders</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="vm-backups"></tbody>
+        </table>
+    </div>
+</div>
+<hr>
+
+<h2>Diagnostics</h2>
+<div class="rules-panel">
+    <div class="rules-header">
+        <h3>Health checks and quick repair</h3>
+        <span class="rules-help">Check plugin health, then run one-click repair actions when needed.</span>
+    </div>
+    <div class="backup-actions">
+        <button onclick="runDiagnostics()"><i class="fa fa-stethoscope"></i> Run health check</button>
+        <button onclick="repairDiagnostics('sync_docker_order')"><i class="fa fa-sort"></i> Rebuild Docker order index</button>
+        <button onclick="repairDiagnostics('normalize_prefs')"><i class="fa fa-wrench"></i> Validate and normalize prefs</button>
+        <button onclick="exportDiagnostics()"><i class="fa fa-download"></i> Export diagnostics JSON</button>
+    </div>
+    <pre id="diagnostics-output" class="diagnostics-output">Run health check to view diagnostics.</pre>
 </div>
 
 <div id="import-preview-dialog" style="display:none;">
@@ -174,6 +293,7 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
         <option value="replace">Replace</option>
         <option value="skip">Skip existing</option>
     </select>
+    <div id="import-preview-selection" class="import-selection"></div>
     <textarea id="import-preview-text" readonly></textarea>
 </div>
 

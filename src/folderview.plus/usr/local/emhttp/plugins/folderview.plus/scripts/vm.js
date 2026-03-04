@@ -1,5 +1,10 @@
-const utils = window.FolderViewPlusUtils || {
-    normalizePrefs: () => ({ sortMode: 'created', manualOrder: [], autoRules: [] }),
+﻿const utils = window.FolderViewPlusUtils || {
+    normalizePrefs: () => ({
+        sortMode: 'created',
+        manualOrder: [],
+        autoRules: [],
+        badges: { running: true, stopped: false, updates: true }
+    }),
     getAutoRuleMatches: () => []
 };
 
@@ -351,8 +356,16 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone) => {
         $(`tr.folder-id-${id} i#load-folder-${id}`).attr('class', 'fa fa-play started green-text folder-load-status');
         $(`tr.folder-id-${id} span.folder-state`).text(`${started}/${Object.entries(folder.containers).length} ${$.i18n('started')}`);
     }
+    const badgePrefs = folderTypePrefs?.badges || {};
+    const showRunningBadge = badgePrefs.running !== false;
+    const showStoppedBadge = badgePrefs.stopped === true;
+    const folderIsRunning = started > 0;
+    if ((folderIsRunning && !showRunningBadge) || (!folderIsRunning && !showStoppedBadge)) {
+        $(`tr.folder-id-${id} i#load-folder-${id}, tr.folder-id-${id} span.folder-state`).hide();
+    }
 
-    // Initialize switchButton with the correct checked state directly — no click() needed.
+
+    // Initialize switchButton with the correct checked state directly â€” no click() needed.
     // This prevents the bug where checked:false + click() could fire a change event
     // that propagates to folderAutostart and resets VM autostart settings.
     const folderHasAutostart = autostart > 0;

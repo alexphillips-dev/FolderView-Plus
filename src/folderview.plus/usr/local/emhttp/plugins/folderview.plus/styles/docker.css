@@ -36,7 +36,7 @@ tr[class*="folder-id-"] > td {
 /* Unraid table styles can force top visual placement.
    Center the left folder block explicitly within the row height. */
 td.ct-name.folder-name {
-    position: static;
+    position: relative;
     display: table-cell;
     padding-top: 0 !important;
     padding-bottom: 0 !important;
@@ -44,11 +44,11 @@ td.ct-name.folder-name {
 }
 
 td.ct-name.folder-name > .folder-name-sub {
-    position: relative;
-    top: auto;
-    left: auto;
-    right: auto;
-    transform: none;
+    position: absolute;
+    top: 50%;
+    left: 8px;
+    right: 8px;
+    transform: translateY(-50%);
     min-height: 0;
     width: 100%;
 }

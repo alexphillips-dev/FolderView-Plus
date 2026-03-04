@@ -141,6 +141,8 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone) => {
 
     // default varibles
     let started = 0;
+    let paused = 0;
+    let stopped = 0;
     let autostart = 0;
     let autostartStarted = 0;
     let remBefore = 0;
@@ -312,7 +314,13 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone) => {
             }
 
             // set the status of the folder
-            started += ct.state!=="shutoff" ? 1 : 0;
+            if (ct.state === "running") {
+                started += 1;
+            } else if (ct.state === "paused" || ct.state === "pmsuspended" || ct.state === "unknown") {
+                paused += 1;
+            } else {
+                stopped += 1;
+            }
             autostart += ct.autostart ? 1 : 0;
             autostartStarted += (ct.autostart && ct.state!=="shutoff") ? 1 : 0;
 
@@ -352,21 +360,29 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone) => {
 
     //set tehe status of a folder
 
-    if (started) {
+    const total = Object.entries(folder.containers).length;
+    let folderStatusKind = 'stopped';
+    if (started > 0) {
+        folderStatusKind = 'running';
         $(`tr.folder-id-${id} i#load-folder-${id}`).attr('class', 'fa fa-play started green-text folder-load-status');
-        $(`tr.folder-id-${id} span.folder-state`).text(`${started}/${Object.entries(folder.containers).length} ${$.i18n('started')}`);
+        $(`tr.folder-id-${id} span.folder-state`).text(`${started}/${total} ${$.i18n('started')}`);
+    } else if (paused > 0) {
+        folderStatusKind = 'paused';
+        $(`tr.folder-id-${id} i#load-folder-${id}`).attr('class', 'fa fa-pause paused orange-text folder-load-status');
+        $(`tr.folder-id-${id} span.folder-state`).text(`${paused}/${total} ${$.i18n('paused')}`);
+    } else {
+        folderStatusKind = 'stopped';
+        $(`tr.folder-id-${id} i#load-folder-${id}`).attr('class', 'fa fa-square stopped red-text folder-load-status');
+        $(`tr.folder-id-${id} span.folder-state`).text(`${stopped}/${total} ${$.i18n('stopped')}`);
     }
     const badgePrefs = folderTypePrefs?.badges || {};
     const showRunningBadge = badgePrefs.running !== false;
     const showStoppedBadge = badgePrefs.stopped === true;
-    const folderIsRunning = started > 0;
-    if (folderIsRunning && !showRunningBadge) {
+    if (folderStatusKind === 'running' && !showRunningBadge) {
         $(`tr.folder-id-${id} i#load-folder-${id}`).hide();
     }
-    if (!folderIsRunning && !showStoppedBadge) {
-        const total = Object.entries(folder.containers).length;
+    if (folderStatusKind === 'stopped' && !showStoppedBadge) {
         $(`tr.folder-id-${id} i#load-folder-${id}`).hide();
-        $(`tr.folder-id-${id} span.folder-state`).text(`${started}/${total} ${$.i18n('started')}`);
     }
 
 
@@ -389,6 +405,8 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone) => {
     // set the status
     folder.status = {};
     folder.status.started = started;
+    folder.status.paused = paused;
+    folder.status.stopped = stopped;
     folder.status.autostart = autostart;
     folder.status.autostartStarted = autostartStarted;
     folder.status.expanded = false;

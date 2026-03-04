@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.05.7">
-<!ENTITY md5 "25a9ae78f4bb55c1283543a9f5d25d9f">
+<!ENTITY version "2026.03.05.8">
+<!ENTITY md5 "c4ca972ced30d8cab3c4ac07354a9b07">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.05.8
+- Improve folder status labels to show explicit state totals:
+  - `X/N started` when any items are running,
+  - `X/N paused` when none are running but one or more are paused/suspended,
+  - `X/N stopped` when all items are stopped.
+- Apply the same status logic to both Docker and VM folder views.
 
 ###2026.03.05.7
 - Fix folder status display so fully stopped folders still show `0/N started` instead of appearing blank when the stopped badge is disabled.

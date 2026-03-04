@@ -221,6 +221,8 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     // Default variables
     let upToDate = true;
     let started = 0;
+    let paused = 0;
+    let stopped = 0;
     let autostart = 0;
     let autostartStarted = 0;
     let managed = 0;
@@ -928,7 +930,15 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
             }
 
             upToDate = upToDate && !newFolder[container_name_in_folder].update;
-            started += newFolder[container_name_in_folder].state ? 1 : 0;
+            if (newFolder[container_name_in_folder].state) {
+                if (newFolder[container_name_in_folder].pause) {
+                    paused += 1;
+                } else {
+                    started += 1;
+                }
+            } else {
+                stopped += 1;
+            }
             const isDockerMan = ct.info.State.manager === 'dockerman';
             autostart += (isDockerMan && !(ct.info.State.Autostart === false)) ? 1 : 0;
             autostartStarted += (isDockerMan && !(ct.info.State.Autostart === false) && newFolder[container_name_in_folder].state) ? 1 : 0;
@@ -1011,28 +1021,35 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
         $(`tr.folder-id-${id} > td.updatecolumn`).append($(`<a class="exec" onclick="updateFolder('${id}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i> ${$.i18n('apply-update')}</span></a>`));
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Set 'update ready' status in update column.`);
     }
-    if (started) {
+    const total = Object.entries(folder.containers).length;
+    let folderStatusKind = 'stopped';
+    if (started > 0) {
+        folderStatusKind = 'running';
         $(`tr.folder-id-${id} i#load-folder-${id}`).attr('class', 'fa fa-play started green-text folder-load-status');
-        $(`tr.folder-id-${id} span.folder-state`).text(`${started}/${Object.entries(folder.containers).length} ${$.i18n('started')}`);
-        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Set 'started' status. Count: ${started}/${Object.entries(folder.containers).length}.`);
+        $(`tr.folder-id-${id} span.folder-state`).text(`${started}/${total} ${$.i18n('started')}`);
+    } else if (paused > 0) {
+        folderStatusKind = 'paused';
+        $(`tr.folder-id-${id} i#load-folder-${id}`).attr('class', 'fa fa-pause paused orange-text folder-load-status');
+        $(`tr.folder-id-${id} span.folder-state`).text(`${paused}/${total} ${$.i18n('paused')}`);
+    } else {
+        folderStatusKind = 'stopped';
+        $(`tr.folder-id-${id} i#load-folder-${id}`).attr('class', 'fa fa-square stopped red-text folder-load-status');
+        $(`tr.folder-id-${id} span.folder-state`).text(`${stopped}/${total} ${$.i18n('stopped')}`);
     }
     const badgePrefs = folderTypePrefs?.badges || {};
     const showRunningBadge = badgePrefs.running !== false;
     const showStoppedBadge = badgePrefs.stopped === true;
     const showUpdateBadge = badgePrefs.updates !== false;
-    const folderIsRunning = started > 0;
 
     if (!showUpdateBadge && !folder.settings.update_column) {
         $(`tr.folder-id-${id} > td.updatecolumn`).next().attr('colspan', 6).end().remove();
     }
 
-    if (folderIsRunning && !showRunningBadge) {
+    if (folderStatusKind === 'running' && !showRunningBadge) {
         $(`tr.folder-id-${id} i#load-folder-${id}`).hide();
     }
-    if (!folderIsRunning && !showStoppedBadge) {
-        const total = Object.entries(folder.containers).length;
+    if (folderStatusKind === 'stopped' && !showStoppedBadge) {
         $(`tr.folder-id-${id} i#load-folder-${id}`).hide();
-        $(`tr.folder-id-${id} span.folder-state`).text(`${started}/${total} ${$.i18n('started')}`);
     }
 
     if (!managerTypes.has('dockerman')) {
@@ -1057,7 +1074,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     else if (managed > 0 && managed === Object.values(folder.containers).length) { $(`tr.folder-id-${id}`).addClass('managed-full'); }
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Applied managed status class. Managed: ${managed}, Total: ${Object.values(folder.containers).length}.`);
 
-    folder.status = { upToDate, started, autostart, autostartStarted, managed, managerTypes: Array.from(managerTypes), expanded: false };
+    folder.status = { upToDate, started, paused, stopped, autostart, autostartStarted, managed, managerTypes: Array.from(managerTypes), expanded: false };
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Set final folder.status object:`, JSON.parse(JSON.stringify(folder.status)));
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Dispatching docker-post-folder-creation event.`);
     folderEvents.dispatchEvent(new CustomEvent('docker-post-folder-creation', {detail: {

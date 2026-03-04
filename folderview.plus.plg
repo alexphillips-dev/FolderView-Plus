@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.05.10">
+<!ENTITY version "2026.03.06.1">
 <!ENTITY md5 "98ff1b691d16c33d05a9c30d12e8c9c7">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.06.1
+- Release version bump to ensure Unraid update detection from `2026.03.05.10`.
+- No functional code changes from the prior build.
 
 ###2026.03.05.10
 - Add per-folder status color controls in the folder editor for `started`, `paused`, and `stopped`.

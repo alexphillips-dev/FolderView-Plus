@@ -6,12 +6,23 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.06.2">
-<!ENTITY md5 "e46f08d7df86526c083f2b4a5fe97452">
+<!ENTITY version "2026.03.06.3">
+<!ENTITY md5 "39ac8cf761703bbef75674f8105c8814">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.06.3
+- Expand diagnostics export to schema v2 with richer bug-fixing data:
+  - `integrityChecks` per type (duplicate names/assignments, orphaned members, invalid regex/rules, manual-order gaps),
+  - `stateSnapshot` per folder (computed started/paused/stopped totals, effective status text, badge visibility, status colors),
+  - `environment` block (Unraid/PHP/server/request context),
+  - key file SHA-256 hashes for folder/prefs JSON files.
+- Add diagnostics history tracking (`importExportHistory`) with persistent event log for import/export/clear/reorder/backup actions.
+- Add diagnostics privacy modes:
+  - default `sanitized` export (redacted paths and request-identifying details),
+  - optional `full` export from the UI for deep support cases.
 
 ###2026.03.06.2
 - Fix folder editor alignment for the status color controls so they line up with the rest of the settings form.

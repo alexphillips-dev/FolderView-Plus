@@ -73,6 +73,14 @@
     const FVPLUS_EXPORT_SCHEMA_VERSION = 1;
     const FVPLUS_REMOTE_MANIFEST_URL = "https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/main/folderview.plus.plg";
     const FVPLUS_ALLOWED_TYPES = ['docker', 'vm'];
+    const FVPLUS_DIAGNOSTICS_SCHEMA_VERSION = 2;
+    const FVPLUS_DIAGNOSTICS_HISTORY_MAX = 250;
+    const FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY = 'sanitized';
+    const FVPLUS_DEFAULT_FOLDER_STATUS_COLORS = [
+        'started' => '#ffffff',
+        'paused' => '#b8860b',
+        'stopped' => '#ff4d4d'
+    ];
 
     function ensureType(string $type): string {
         if (!in_array($type, FVPLUS_ALLOWED_TYPES, true)) {
@@ -254,6 +262,15 @@
             syncContainerOrder('docker');
         }
 
+        try {
+            appendDiagnosticsHistoryEvent('reorder', $type, [
+                'folderCount' => count($reordered),
+                'orderedIdsCount' => count($orderedIds)
+            ], 'ok', 'server');
+        } catch (Throwable $err) {
+            // Keep core behavior non-fatal if diagnostics logging fails.
+        }
+
         return $reordered;
     }
 
@@ -376,6 +393,16 @@
         ];
         @file_put_contents("$backupDir/$filename", json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
         $pruned = pruneBackupSnapshots($type, 25);
+        try {
+            appendDiagnosticsHistoryEvent('backup_create', $type, [
+                'reason' => $reason,
+                'name' => $filename,
+                'folderCount' => count($folders),
+                'prunedCount' => count($pruned)
+            ], 'ok', 'server');
+        } catch (Throwable $err) {
+            // Keep backup creation non-fatal.
+        }
         return [
             'name' => $filename,
             'createdAt' => gmdate('c'),
@@ -433,6 +460,13 @@
         if (!@unlink($path)) {
             throw new RuntimeException('Failed to delete backup file.');
         }
+        try {
+            appendDiagnosticsHistoryEvent('backup_delete', $type, [
+                'name' => basename($path)
+            ], 'ok', 'server');
+        } catch (Throwable $err) {
+            // Non-fatal.
+        }
         return [
             'name' => basename($path),
             'deletedAt' => gmdate('c')
@@ -462,6 +496,14 @@
         syncManualOrderWithFolders($type, is_array($folders) ? $folders : []);
         if ($type === 'docker') {
             syncContainerOrder('docker');
+        }
+        try {
+            appendDiagnosticsHistoryEvent('backup_restore', $type, [
+                'name' => $safeName,
+                'folderCount' => count(is_array($folders) ? $folders : [])
+            ], 'ok', 'server');
+        } catch (Throwable $err) {
+            // Non-fatal.
         }
         return [
             'name' => $safeName,
@@ -639,7 +681,604 @@
         ];
     }
 
-    function getDiagnosticsSnapshot(): array {
+    function normalizeDiagnosticsPrivacyMode(string $mode): string {
+        return strtolower(trim($mode)) === 'full' ? 'full' : FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY;
+    }
+
+    function diagnosticsHistoryPath(): string {
+        global $configDir;
+        return "$configDir/diagnostics.history.json";
+    }
+
+    function diagnosticsNormalizeEventDetails($value, int $depth = 0) {
+        if ($depth > 4) {
+            return null;
+        }
+        if (is_array($value)) {
+            $normalized = [];
+            $count = 0;
+            foreach ($value as $key => $item) {
+                if ($count >= 50) {
+                    break;
+                }
+                $normalized[(string)$key] = diagnosticsNormalizeEventDetails($item, $depth + 1);
+                $count++;
+            }
+            return $normalized;
+        }
+        if (is_string($value)) {
+            return substr($value, 0, 256);
+        }
+        if (is_bool($value) || is_int($value) || is_float($value) || is_null($value)) {
+            return $value;
+        }
+        return (string)$value;
+    }
+
+    function readDiagnosticsHistoryEvents(int $limit = 50): array {
+        $path = diagnosticsHistoryPath();
+        if (!file_exists($path)) {
+            return [];
+        }
+        $decoded = @json_decode((string)@file_get_contents($path), true);
+        if (!is_array($decoded)) {
+            return [];
+        }
+        $events = array_values(array_filter($decoded, function($row) {
+            return is_array($row) && !empty($row['timestamp']) && !empty($row['action']);
+        }));
+        usort($events, function($a, $b) {
+            return strcmp((string)($b['timestamp'] ?? ''), (string)($a['timestamp'] ?? ''));
+        });
+        return array_slice($events, 0, max(1, $limit));
+    }
+
+    function appendDiagnosticsHistoryEvent(string $action, ?string $type = null, array $details = [], string $status = 'ok', string $source = 'server'): array {
+        $action = trim($action);
+        if ($action === '') {
+            throw new RuntimeException('Diagnostics event action is required.');
+        }
+
+        global $configDir;
+        if (!is_dir($configDir)) {
+            @mkdir($configDir, 0770, true);
+        }
+
+        $path = diagnosticsHistoryPath();
+        $decoded = @json_decode((string)@file_get_contents($path), true);
+        $events = is_array($decoded) ? $decoded : [];
+
+        $event = [
+            'id' => generateId(16),
+            'timestamp' => gmdate('c'),
+            'action' => $action,
+            'type' => $type ? ensureType($type) : null,
+            'status' => trim($status) === '' ? 'ok' : substr(trim($status), 0, 32),
+            'source' => trim($source) === '' ? 'server' : substr(trim($source), 0, 64),
+            'details' => diagnosticsNormalizeEventDetails($details)
+        ];
+
+        $events[] = $event;
+        if (count($events) > FVPLUS_DIAGNOSTICS_HISTORY_MAX) {
+            $events = array_slice($events, -FVPLUS_DIAGNOSTICS_HISTORY_MAX);
+        }
+        @file_put_contents($path, json_encode(array_values($events), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
+        return $event;
+    }
+
+    function diagnosticsHashShort(string $value): string {
+        return substr(hash('sha256', $value), 0, 12);
+    }
+
+    function diagnosticsMaskIp(string $ip): string {
+        $ip = trim($ip);
+        if ($ip === '') {
+            return '';
+        }
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            $parts = explode('.', $ip);
+            if (count($parts) === 4) {
+                return $parts[0] . '.' . $parts[1] . '.x.x';
+            }
+        }
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+            $parts = explode(':', $ip);
+            $head = implode(':', array_slice($parts, 0, 2));
+            return $head . '::';
+        }
+        return '[redacted]';
+    }
+
+    function readUnraidVersionString(): ?string {
+        $candidates = [
+            '/etc/unraid-version',
+            '/etc/unraid-version.txt',
+            '/etc/version'
+        ];
+        foreach ($candidates as $path) {
+            if (!file_exists($path)) {
+                continue;
+            }
+            $raw = trim((string)@file_get_contents($path));
+            if ($raw === '') {
+                continue;
+            }
+            $lines = preg_split('/\R+/', $raw) ?: [];
+            foreach ($lines as $line) {
+                $line = trim((string)$line);
+                if ($line === '') {
+                    continue;
+                }
+                if (preg_match('/([0-9]+\.[0-9]+(?:\.[0-9]+)?(?:[-._a-zA-Z0-9]+)?)/', $line, $match)) {
+                    return (string)$match[1];
+                }
+                return $line;
+            }
+        }
+        return null;
+    }
+
+    function getEnvironmentSnapshot(string $privacyMode): array {
+        $mode = normalizeDiagnosticsPrivacyMode($privacyMode);
+        $userAgent = (string)($_SERVER['HTTP_USER_AGENT'] ?? '');
+        $clientIp = (string)($_SERVER['REMOTE_ADDR'] ?? '');
+        return [
+            'capturedAt' => gmdate('c'),
+            'timezone' => @date_default_timezone_get(),
+            'phpVersion' => PHP_VERSION,
+            'serverSoftware' => (string)($_SERVER['SERVER_SOFTWARE'] ?? ''),
+            'os' => php_uname('s') . ' ' . php_uname('r'),
+            'unraidVersion' => readUnraidVersionString(),
+            'request' => [
+                'privacyMode' => $mode,
+                'userAgent' => $mode === 'full' ? $userAgent : null,
+                'userAgentHash' => $userAgent !== '' ? diagnosticsHashShort($userAgent) : null,
+                'clientIp' => $mode === 'full' ? $clientIp : diagnosticsMaskIp($clientIp),
+                'clientIpHash' => $clientIp !== '' ? diagnosticsHashShort($clientIp) : null
+            ]
+        ];
+    }
+
+    function diagnosticsFileHashSnapshot(string $path, string $privacyMode): array {
+        $exists = file_exists($path);
+        $mode = normalizeDiagnosticsPrivacyMode($privacyMode);
+        $label = basename($path);
+        return [
+            'file' => $label,
+            'path' => $mode === 'full' ? $path : $label,
+            'exists' => $exists,
+            'size' => $exists ? (int)@filesize($path) : 0,
+            'modifiedAt' => $exists ? gmdate('c', (int)@filemtime($path)) : null,
+            'sha256' => $exists ? @hash_file('sha256', $path) : null
+        ];
+    }
+
+    function getDiagnosticsKeyFileHashes(string $privacyMode): array {
+        return [
+            'dockerFolders' => diagnosticsFileHashSnapshot(getFolderFilePath('docker'), $privacyMode),
+            'vmFolders' => diagnosticsFileHashSnapshot(getFolderFilePath('vm'), $privacyMode),
+            'dockerPrefs' => diagnosticsFileHashSnapshot(getTypePrefsPath('docker'), $privacyMode),
+            'vmPrefs' => diagnosticsFileHashSnapshot(getTypePrefsPath('vm'), $privacyMode)
+        ];
+    }
+
+    function diagnosticsNormalizeStatusColor($value, string $fallback): string {
+        $value = is_string($value) ? trim($value) : '';
+        if (!preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $value)) {
+            return $fallback;
+        }
+        if (strlen($value) === 4) {
+            return '#' . strtolower($value[1] . $value[1] . $value[2] . $value[2] . $value[3] . $value[3]);
+        }
+        return strtolower($value);
+    }
+
+    function diagnosticsFolderStatusColors(array $folder): array {
+        $settings = is_array($folder['settings'] ?? null) ? $folder['settings'] : [];
+        return [
+            'started' => diagnosticsNormalizeStatusColor($settings['status_color_started'] ?? null, FVPLUS_DEFAULT_FOLDER_STATUS_COLORS['started']),
+            'paused' => diagnosticsNormalizeStatusColor($settings['status_color_paused'] ?? null, FVPLUS_DEFAULT_FOLDER_STATUS_COLORS['paused']),
+            'stopped' => diagnosticsNormalizeStatusColor($settings['status_color_stopped'] ?? null, FVPLUS_DEFAULT_FOLDER_STATUS_COLORS['stopped'])
+        ];
+    }
+
+    function diagnosticsBuildRegex(string $pattern): string {
+        return '/' . str_replace('/', '\/', $pattern) . '/';
+    }
+
+    function diagnosticsRegexIsValid(string $pattern): bool {
+        if (trim($pattern) === '') {
+            return true;
+        }
+        return @preg_match(diagnosticsBuildRegex($pattern), '') !== false;
+    }
+
+    function diagnosticsRegexMatches(string $pattern, string $subject): bool {
+        if (trim($pattern) === '') {
+            return false;
+        }
+        if (!diagnosticsRegexIsValid($pattern)) {
+            return false;
+        }
+        return @preg_match(diagnosticsBuildRegex($pattern), $subject) === 1;
+    }
+
+    function diagnosticsDockerLabelsForItem($item): array {
+        if (!is_array($item)) {
+            return [];
+        }
+        if (isset($item['Labels']) && is_array($item['Labels'])) {
+            return $item['Labels'];
+        }
+        if (isset($item['info']['Config']['Labels']) && is_array($item['info']['Config']['Labels'])) {
+            return $item['info']['Config']['Labels'];
+        }
+        return [];
+    }
+
+    function diagnosticsAutoRuleMatches(array $rule, string $name, array $infoByName, string $type): bool {
+        $kind = (string)($rule['kind'] ?? 'name_regex');
+        if ($kind === 'name_regex') {
+            $pattern = (string)($rule['pattern'] ?? '');
+            return $pattern !== '' && diagnosticsRegexMatches($pattern, $name);
+        }
+        if ($kind === 'label' && $type === 'docker') {
+            $labelKey = (string)($rule['labelKey'] ?? '');
+            if ($labelKey === '') {
+                return false;
+            }
+            $labels = diagnosticsDockerLabelsForItem($infoByName[$name] ?? null);
+            if (!array_key_exists($labelKey, $labels)) {
+                return false;
+            }
+            $expected = (string)($rule['labelValue'] ?? '');
+            return $expected === '' || (string)$labels[$labelKey] === $expected;
+        }
+        return false;
+    }
+
+    function diagnosticsFirstMatchingRule(array $rules, string $name, array $infoByName, string $type): ?array {
+        foreach ($rules as $rule) {
+            if (!is_array($rule) || ($rule['enabled'] ?? true) === false) {
+                continue;
+            }
+            if (diagnosticsAutoRuleMatches($rule, $name, $infoByName, $type)) {
+                return $rule;
+            }
+        }
+        return null;
+    }
+
+    function diagnosticsFormatNames(array $names, string $privacyMode): array {
+        $names = array_values(array_unique(array_map('strval', $names)));
+        if (normalizeDiagnosticsPrivacyMode($privacyMode) === 'full') {
+            return array_slice($names, 0, 30);
+        }
+        return array_slice(array_map('diagnosticsHashShort', $names), 0, 30);
+    }
+
+    function diagnosticsBuildIntegrityChecks(string $type, array $folders, array $prefs, array $infoByName, string $privacyMode): array {
+        $validNames = array_keys($infoByName);
+        $validSet = array_fill_keys($validNames, true);
+        $nameBuckets = [];
+        $invalidRegexFolders = [];
+        $orphanedMembers = [];
+        $explicitAssignments = [];
+        $regexAssignments = [];
+        $effectiveAssignments = [];
+
+        foreach ($folders as $folderId => $folder) {
+            $folderName = trim((string)($folder['name'] ?? $folderId));
+            $bucketKey = strtolower($folderName);
+            if (!isset($nameBuckets[$bucketKey])) {
+                $nameBuckets[$bucketKey] = ['name' => $folderName, 'folderIds' => []];
+            }
+            $nameBuckets[$bucketKey]['folderIds'][] = (string)$folderId;
+
+            $members = normalizeFolderMembers($folder['containers'] ?? []);
+            foreach ($members as $member) {
+                $explicitAssignments[$member][] = (string)$folderId;
+                $effectiveAssignments[$member][] = (string)$folderId;
+                if (!isset($validSet[$member])) {
+                    if (!isset($orphanedMembers[$folderId])) {
+                        $orphanedMembers[$folderId] = [];
+                    }
+                    $orphanedMembers[$folderId][] = $member;
+                }
+            }
+
+            $regex = (string)($folder['regex'] ?? '');
+            if ($regex !== '') {
+                if (!diagnosticsRegexIsValid($regex)) {
+                    $invalidRegexFolders[] = (string)$folderId;
+                } else {
+                    foreach ($validNames as $name) {
+                        if (diagnosticsRegexMatches($regex, $name)) {
+                            $regexAssignments[$name][] = (string)$folderId;
+                            if (!in_array((string)$folderId, $effectiveAssignments[$name] ?? [], true)) {
+                                $effectiveAssignments[$name][] = (string)$folderId;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        $rules = is_array($prefs['autoRules'] ?? null) ? $prefs['autoRules'] : [];
+        $invalidRules = [];
+        foreach ($rules as $idx => $rule) {
+            if (!is_array($rule)) {
+                $invalidRules[] = ['index' => $idx, 'reason' => 'Rule entry is not an object.'];
+                continue;
+            }
+            $folderId = (string)($rule['folderId'] ?? '');
+            $kind = (string)($rule['kind'] ?? 'name_regex');
+            if ($folderId === '' || !array_key_exists($folderId, $folders)) {
+                $invalidRules[] = ['index' => $idx, 'id' => (string)($rule['id'] ?? ''), 'reason' => 'Rule folder target is missing or invalid.'];
+            }
+            if (!in_array($kind, ['name_regex', 'label'], true)) {
+                $invalidRules[] = ['index' => $idx, 'id' => (string)($rule['id'] ?? ''), 'reason' => 'Rule kind is invalid.'];
+                continue;
+            }
+            if ($kind === 'name_regex') {
+                $pattern = (string)($rule['pattern'] ?? '');
+                if ($pattern === '') {
+                    $invalidRules[] = ['index' => $idx, 'id' => (string)($rule['id'] ?? ''), 'reason' => 'Regex rule pattern is empty.'];
+                } elseif (!diagnosticsRegexIsValid($pattern)) {
+                    $invalidRules[] = ['index' => $idx, 'id' => (string)($rule['id'] ?? ''), 'reason' => 'Regex rule pattern is invalid.'];
+                }
+            }
+            if ($kind === 'label') {
+                if ($type !== 'docker') {
+                    $invalidRules[] = ['index' => $idx, 'id' => (string)($rule['id'] ?? ''), 'reason' => 'Label rules are only valid for docker.'];
+                }
+                $labelKey = (string)($rule['labelKey'] ?? '');
+                if ($labelKey === '') {
+                    $invalidRules[] = ['index' => $idx, 'id' => (string)($rule['id'] ?? ''), 'reason' => 'Label rule key is empty.'];
+                }
+            }
+        }
+
+        foreach ($validNames as $name) {
+            $rule = diagnosticsFirstMatchingRule($rules, $name, $infoByName, $type);
+            if (!$rule) {
+                continue;
+            }
+            $folderId = (string)($rule['folderId'] ?? '');
+            if ($folderId !== '' && array_key_exists($folderId, $folders)) {
+                if (!in_array($folderId, $effectiveAssignments[$name] ?? [], true)) {
+                    $effectiveAssignments[$name][] = $folderId;
+                }
+            }
+        }
+
+        $duplicateNames = [];
+        foreach ($nameBuckets as $bucket) {
+            $ids = array_values(array_unique(array_map('strval', $bucket['folderIds'] ?? [])));
+            if (count($ids) > 1) {
+                $duplicateNames[] = [
+                    'name' => normalizeDiagnosticsPrivacyMode($privacyMode) === 'full' ? (string)($bucket['name'] ?? '') : null,
+                    'nameHash' => diagnosticsHashShort((string)($bucket['name'] ?? '')),
+                    'folderIds' => $ids
+                ];
+            }
+        }
+
+        $buildConflicts = function(array $assignmentMap) use ($privacyMode): array {
+            $examples = [];
+            $count = 0;
+            foreach ($assignmentMap as $name => $folderIds) {
+                $ids = array_values(array_unique(array_map('strval', $folderIds)));
+                if (count($ids) <= 1) {
+                    continue;
+                }
+                $count++;
+                if (count($examples) < 30) {
+                    $examples[] = [
+                        'item' => normalizeDiagnosticsPrivacyMode($privacyMode) === 'full' ? (string)$name : null,
+                        'itemHash' => diagnosticsHashShort((string)$name),
+                        'folderIds' => $ids,
+                        'folderCount' => count($ids)
+                    ];
+                }
+            }
+            return ['count' => $count, 'examples' => $examples];
+        };
+
+        $missingManualOrderIds = [];
+        foreach (($prefs['manualOrder'] ?? []) as $manualId) {
+            $manualId = (string)$manualId;
+            if ($manualId !== '' && !array_key_exists($manualId, $folders)) {
+                $missingManualOrderIds[] = $manualId;
+            }
+        }
+
+        $orphanedCount = 0;
+        $orphanedByFolder = [];
+        foreach ($orphanedMembers as $folderId => $members) {
+            $members = array_values(array_unique(array_map('strval', $members)));
+            $orphanedCount += count($members);
+            $orphanedByFolder[] = [
+                'folderId' => (string)$folderId,
+                'count' => count($members),
+                'items' => diagnosticsFormatNames($members, $privacyMode)
+            ];
+        }
+
+        $issuesCount = count($duplicateNames)
+            + count($invalidRegexFolders)
+            + count($invalidRules)
+            + count($missingManualOrderIds)
+            + $orphanedCount
+            + $buildConflicts($effectiveAssignments)['count'];
+
+        return [
+            'ok' => $issuesCount === 0,
+            'issuesCount' => $issuesCount,
+            'duplicateFolderNames' => [
+                'count' => count($duplicateNames),
+                'examples' => array_slice($duplicateNames, 0, 30)
+            ],
+            'orphanedMembers' => [
+                'count' => $orphanedCount,
+                'folders' => $orphanedByFolder
+            ],
+            'invalidFolderRegex' => [
+                'count' => count($invalidRegexFolders),
+                'folderIds' => array_values(array_unique($invalidRegexFolders))
+            ],
+            'invalidAutoRules' => [
+                'count' => count($invalidRules),
+                'rules' => array_slice($invalidRules, 0, 40)
+            ],
+            'missingManualOrderIds' => [
+                'count' => count($missingManualOrderIds),
+                'ids' => array_values(array_unique($missingManualOrderIds))
+            ],
+            'duplicateAssignments' => [
+                'explicit' => $buildConflicts($explicitAssignments),
+                'regex' => $buildConflicts($regexAssignments),
+                'effective' => $buildConflicts($effectiveAssignments)
+            ]
+        ];
+    }
+
+    function diagnosticsStateKindForDockerItem(array $item): string {
+        $state = is_array($item['info']['State'] ?? null) ? $item['info']['State'] : [];
+        $running = (bool)($state['Running'] ?? false);
+        $paused = (bool)($state['Paused'] ?? false);
+        if ($running && !$paused) {
+            return 'started';
+        }
+        if ($running && $paused) {
+            return 'paused';
+        }
+        return 'stopped';
+    }
+
+    function diagnosticsStateKindForVmItem(array $item): string {
+        $state = strtolower(trim((string)($item['state'] ?? '')));
+        if ($state === 'running') {
+            return 'started';
+        }
+        if (in_array($state, ['paused', 'pmsuspended', 'unknown'], true)) {
+            return 'paused';
+        }
+        return 'stopped';
+    }
+
+    function diagnosticsBuildStateSnapshot(string $type, array $folders, array $prefs, array $infoByName, string $privacyMode): array {
+        $validNames = array_keys($infoByName);
+        $rules = is_array($prefs['autoRules'] ?? null) ? $prefs['autoRules'] : [];
+        $ruleTargetByName = [];
+        foreach ($validNames as $name) {
+            $rule = diagnosticsFirstMatchingRule($rules, $name, $infoByName, $type);
+            $ruleTargetByName[$name] = $rule ? (string)($rule['folderId'] ?? '') : '';
+        }
+
+        $badges = is_array($prefs['badges'] ?? null) ? $prefs['badges'] : [];
+        $showRunningBadge = !array_key_exists('running', $badges) ? true : (bool)$badges['running'];
+        $showStoppedBadge = array_key_exists('stopped', $badges) && (bool)$badges['stopped'];
+        $showUpdateBadge = !array_key_exists('updates', $badges) ? true : (bool)$badges['updates'];
+
+        $snapshotFolders = [];
+        $folderStatusTotals = ['running' => 0, 'paused' => 0, 'stopped' => 0];
+        $memberTotals = ['started' => 0, 'paused' => 0, 'stopped' => 0, 'total' => 0];
+
+        foreach ($folders as $folderId => $folder) {
+            $members = normalizeFolderMembers($folder['containers'] ?? []);
+            $regex = (string)($folder['regex'] ?? '');
+            if ($regex !== '' && diagnosticsRegexIsValid($regex)) {
+                foreach ($validNames as $name) {
+                    if (diagnosticsRegexMatches($regex, $name) && !in_array($name, $members, true)) {
+                        $members[] = $name;
+                    }
+                }
+            }
+            foreach ($validNames as $name) {
+                if (($ruleTargetByName[$name] ?? '') === (string)$folderId && !in_array($name, $members, true)) {
+                    $members[] = $name;
+                }
+            }
+
+            $started = 0;
+            $paused = 0;
+            $stopped = 0;
+            foreach ($members as $name) {
+                $item = $infoByName[$name] ?? null;
+                if (!is_array($item)) {
+                    continue;
+                }
+                $kind = $type === 'docker' ? diagnosticsStateKindForDockerItem($item) : diagnosticsStateKindForVmItem($item);
+                if ($kind === 'started') {
+                    $started++;
+                } elseif ($kind === 'paused') {
+                    $paused++;
+                } else {
+                    $stopped++;
+                }
+            }
+
+            $total = count($members);
+            $statusKind = 'stopped';
+            $statusCount = $stopped;
+            if ($started > 0) {
+                $statusKind = 'running';
+                $statusCount = $started;
+            } elseif ($paused > 0) {
+                $statusKind = 'paused';
+                $statusCount = $paused;
+            }
+            $statusText = sprintf('%d/%d %s', $statusCount, $total, $statusKind === 'running' ? 'started' : $statusKind);
+            $badgeVisible = true;
+            if ($statusKind === 'running') {
+                $badgeVisible = $showRunningBadge;
+            } elseif ($statusKind === 'stopped') {
+                $badgeVisible = $showStoppedBadge;
+            }
+
+            $folderStatusTotals[$statusKind]++;
+            $memberTotals['started'] += $started;
+            $memberTotals['paused'] += $paused;
+            $memberTotals['stopped'] += $stopped;
+            $memberTotals['total'] += $total;
+
+            $snapshotFolders[$folderId] = [
+                'folderId' => (string)$folderId,
+                'folderName' => normalizeDiagnosticsPrivacyMode($privacyMode) === 'full' ? (string)($folder['name'] ?? $folderId) : null,
+                'folderNameHash' => diagnosticsHashShort((string)($folder['name'] ?? $folderId)),
+                'members' => [
+                    'total' => $total,
+                    'started' => $started,
+                    'paused' => $paused,
+                    'stopped' => $stopped,
+                    'items' => normalizeDiagnosticsPrivacyMode($privacyMode) === 'full' ? array_slice($members, 0, 40) : []
+                ],
+                'status' => [
+                    'kind' => $statusKind,
+                    'text' => $statusText,
+                    'badgeVisible' => $badgeVisible,
+                    'colors' => diagnosticsFolderStatusColors(is_array($folder) ? $folder : [])
+                ]
+            ];
+        }
+
+        return [
+            'summary' => [
+                'folderTotalsByStatus' => $folderStatusTotals,
+                'memberTotals' => $memberTotals,
+                'badgePrefs' => [
+                    'running' => $showRunningBadge,
+                    'stopped' => $showStoppedBadge,
+                    'updates' => $showUpdateBadge
+                ]
+            ],
+            'folders' => $snapshotFolders
+        ];
+    }
+
+    function getDiagnosticsSnapshot(string $privacyMode = FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY): array {
+        $privacyMode = normalizeDiagnosticsPrivacyMode($privacyMode);
         $types = ['docker', 'vm'];
         $typesData = [];
         foreach ($types as $type) {
@@ -648,9 +1287,12 @@
             $folders = readRawFolderMap($type);
             $prefs = readTypePrefs($type);
             $backups = listBackupSnapshots($type);
+            $infoByName = readInfo($type);
+            $integrityChecks = diagnosticsBuildIntegrityChecks($type, $folders, $prefs, $infoByName, $privacyMode);
+            $stateSnapshot = diagnosticsBuildStateSnapshot($type, $folders, $prefs, $infoByName, $privacyMode);
             $typesData[$type] = [
-                'folderPath' => $folderPath,
-                'prefsPath' => $prefsPath,
+                'folderPath' => $privacyMode === 'full' ? $folderPath : basename($folderPath),
+                'prefsPath' => $privacyMode === 'full' ? $prefsPath : basename($prefsPath),
                 'foldersExists' => file_exists($folderPath),
                 'prefsExists' => file_exists($prefsPath),
                 'folderCount' => count($folders),
@@ -658,13 +1300,25 @@
                 'ruleCount' => count($prefs['autoRules'] ?? []),
                 'manualOrderCount' => count($prefs['manualOrder'] ?? []),
                 'lastBackup' => $backups[0] ?? null,
-                'backupCount' => count($backups)
+                'backupCount' => count($backups),
+                'integrityChecks' => $integrityChecks,
+                'stateSnapshot' => $stateSnapshot
             ];
         }
 
+        $historyEvents = readDiagnosticsHistoryEvents(80);
         return [
+            'schemaVersion' => FVPLUS_DIAGNOSTICS_SCHEMA_VERSION,
+            'privacyMode' => $privacyMode,
             'checkedAt' => gmdate('c'),
             'pluginVersion' => readInstalledVersion(),
+            'environment' => getEnvironmentSnapshot($privacyMode),
+            'hashes' => getDiagnosticsKeyFileHashes($privacyMode),
+            'importExportHistory' => [
+                'retained' => count(readDiagnosticsHistoryEvents(FVPLUS_DIAGNOSTICS_HISTORY_MAX)),
+                'returned' => count($historyEvents),
+                'events' => $historyEvents
+            ],
             'update' => checkRemotePluginUpdate(),
             'types' => $typesData
         ];
@@ -792,6 +1446,7 @@
 
     function updateFolder(string $type, string $content, string $id = '') : void {
         $type = ensureType($type);
+        $isCreate = empty($id);
         if (empty($id)) {
             $id = generateId();
         }
@@ -803,6 +1458,15 @@
         $fileData[$id] = $decodedContent;
         writeRawFolderMap($type, $fileData);
         syncManualOrderWithFolders($type, $fileData);
+        try {
+            appendDiagnosticsHistoryEvent($isCreate ? 'folder_create' : 'folder_update', $type, [
+                'folderId' => $id,
+                'folderCount' => count($fileData),
+                'sourceScript' => basename((string)($_SERVER['SCRIPT_NAME'] ?? ''))
+            ], 'ok', 'server');
+        } catch (Throwable $err) {
+            // Keep update flow non-fatal.
+        }
     }
 
     function deleteFolder(string $type, string $id) : void {
@@ -811,6 +1475,15 @@
         unset($fileData[$id]);
         writeRawFolderMap($type, $fileData);
         syncManualOrderWithFolders($type, $fileData);
+        try {
+            appendDiagnosticsHistoryEvent('folder_delete', $type, [
+                'folderId' => $id,
+                'folderCount' => count($fileData),
+                'sourceScript' => basename((string)($_SERVER['SCRIPT_NAME'] ?? ''))
+            ], 'ok', 'server');
+        } catch (Throwable $err) {
+            // Keep delete flow non-fatal.
+        }
     }
 
     function generateId(int $length = 20) : string {

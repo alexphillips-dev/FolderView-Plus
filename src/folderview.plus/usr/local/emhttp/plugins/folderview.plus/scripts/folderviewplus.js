@@ -106,24 +106,46 @@ const bulkAssign = async (type, folderId, items) => {
     return response.result;
 };
 
-const getDiagnostics = async () => {
-    const response = await apiGetJson('/plugins/folderview.plus/server/diagnostics.php?action=report');
+const getDiagnostics = async (privacy = 'sanitized') => {
+    const response = await apiGetJson(`/plugins/folderview.plus/server/diagnostics.php?action=report&privacy=${encodeURIComponent(privacy || 'sanitized')}`);
     if (!response.ok) {
         throw new Error(response.error || 'Diagnostics failed.');
     }
     return response.diagnostics || {};
 };
 
-const runDiagnosticAction = async (action, type) => {
+const runDiagnosticAction = async (action, type, privacy = 'sanitized') => {
     const payload = { action };
     if (type) {
         payload.type = type;
     }
+    payload.privacy = privacy || 'sanitized';
     const response = parseJsonResponse(await $.post('/plugins/folderview.plus/server/diagnostics.php', payload).promise());
     if (!response.ok) {
         throw new Error(response.error || 'Diagnostics action failed.');
     }
     return response.diagnostics || {};
+};
+
+const trackDiagnosticsEvent = async ({ eventType, type = null, status = 'ok', source = 'ui', details = {} }) => {
+    if (!eventType) {
+        return;
+    }
+    const payload = {
+        action: 'track_event',
+        eventType: String(eventType),
+        status: String(status || 'ok'),
+        source: String(source || 'ui'),
+        details: JSON.stringify(details || {})
+    };
+    if (type) {
+        payload.type = type;
+    }
+    try {
+        await $.post('/plugins/folderview.plus/server/diagnostics.php', payload).promise();
+    } catch (error) {
+        // Event tracking is best-effort and should never block UI actions.
+    }
 };
 
 const fetchPrefs = async (type) => {
@@ -690,6 +712,15 @@ const downloadType = (type, id) => {
             pluginVersion
         });
         downloadFile(`${folder.name}.json`, toPrettyJson(payload));
+        trackDiagnosticsEvent({
+            eventType: 'export',
+            type,
+            details: {
+                mode: 'single',
+                folderCount: 1,
+                schemaVersion: utils.EXPORT_SCHEMA_VERSION
+            }
+        });
         return;
     }
 
@@ -701,6 +732,15 @@ const downloadType = (type, id) => {
 
     const name = type === 'docker' ? `${EXPORT_BASENAME}.json` : `${EXPORT_BASENAME} VM.json`;
     downloadFile(name, toPrettyJson(payload));
+    trackDiagnosticsEvent({
+        eventType: 'export',
+        type,
+        details: {
+            mode: 'full',
+            folderCount: Object.keys(folders).length,
+            schemaVersion: utils.EXPORT_SCHEMA_VERSION
+        }
+    });
 };
 const importType = async (type) => {
     let selected;
@@ -756,6 +796,16 @@ const importType = async (type) => {
         const backup = await createBackup(type, `before-import-${dialogResult.mode}`);
         await applyImportOperations(type, operations);
         await Promise.all([refreshType(type), refreshBackups(type)]);
+        await trackDiagnosticsEvent({
+            eventType: 'import',
+            type,
+            details: {
+                mode: dialogResult.mode,
+                creates: operations.creates.length,
+                updates: operations.upserts.length,
+                deletes: operations.deletes.length
+            }
+        });
         await offerUndoAction(type, backup, 'Import');
     } catch (error) {
         showError('Import failed', error);
@@ -797,6 +847,14 @@ const clearType = (type, id) => {
             }
 
             await Promise.all([refreshType(type), refreshBackups(type)]);
+            await trackDiagnosticsEvent({
+                eventType: id ? 'delete_folder' : 'clear_folders',
+                type,
+                details: {
+                    deletedCount: id ? 1 : Object.keys(folders).length,
+                    singleFolder: Boolean(id)
+                }
+            });
             await offerUndoAction(type, backup, id ? 'Delete folder' : 'Clear folders');
         } catch (error) {
             showError('Delete failed', error);
@@ -1035,6 +1093,14 @@ const assignSelectedItems = async (type) => {
         const backup = await createBackup(type, 'before-bulk-assign');
         await bulkAssign(type, folderId, selected);
         await Promise.all([refreshType(type), refreshBackups(type)]);
+        await trackDiagnosticsEvent({
+            eventType: 'bulk_assign',
+            type,
+            details: {
+                folderId,
+                itemCount: selected.length
+            }
+        });
         await offerUndoAction(type, backup, 'Bulk assignment');
     } catch (error) {
         showError('Bulk assignment failed', error);
@@ -1171,15 +1237,30 @@ const repairDiagnostics = async (action) => {
 };
 
 const exportDiagnostics = async () => {
-    try {
-        if (!lastDiagnostics) {
-            const diagnostics = await getDiagnostics();
+    swal({
+        title: 'Export diagnostics',
+        text: 'Include full details (paths, names, and request metadata)?\nChoose Cancel for sanitized export.',
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Full export',
+        cancelButtonText: 'Sanitized export'
+    }, async (useFull) => {
+        const privacy = useFull ? 'full' : 'sanitized';
+        try {
+            const diagnostics = await getDiagnostics(privacy);
             renderDiagnostics(diagnostics);
+            downloadFile('FolderView Plus Diagnostics.json', toPrettyJson(diagnostics || {}));
+            await trackDiagnosticsEvent({
+                eventType: 'diagnostics_export',
+                details: {
+                    privacyMode: privacy,
+                    schemaVersion: diagnostics?.schemaVersion || null
+                }
+            });
+        } catch (error) {
+            showError('Diagnostics export failed', error);
         }
-        downloadFile('FolderView Plus Diagnostics.json', toPrettyJson(lastDiagnostics || {}));
-    } catch (error) {
-        showError('Diagnostics export failed', error);
-    }
+    });
 };
 
 const checkForUpdatesNow = async () => {

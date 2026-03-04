@@ -13,6 +13,13 @@ try {
         if (!file_exists($path)) {
             throw new RuntimeException('Backup file not found.');
         }
+        try {
+            appendDiagnosticsHistoryEvent('backup_download', $type, [
+                'name' => basename($path)
+            ], 'ok', 'server');
+        } catch (Throwable $err) {
+            // Non-fatal.
+        }
         header_remove('Content-Type');
         header('Content-Type: application/json');
         header('Content-Disposition: attachment; filename="' . basename($path) . '"');

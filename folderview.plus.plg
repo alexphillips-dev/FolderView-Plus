@@ -6,12 +6,15 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.07.3">
-<!ENTITY md5 "3856e22407ecf9a2fe079b7c00b5e855">
+<!ENTITY version "2026.03.07.4">
+<!ENTITY md5 "93b881669e9893f67ec1e30cf70c43cb">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.07.4
+- Fix Docker folder row alignment: folder cells are now vertically centered relative to the container preview row.
 
 ###2026.03.07.3
 - Update plugin metadata author to `alexphillips-dev` so Unraid displays the correct repository owner.

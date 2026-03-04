@@ -27,6 +27,11 @@
     box-sizing: border-box;
 }
 
+/* Keep folder labels vertically centered against the preview row content */
+#docker_list > tr.folder > td {
+    vertical-align: middle !important;
+}
+
 .folder-outer {
     overflow: hidden;
     text-overflow: ellipsis;

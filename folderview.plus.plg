@@ -6,12 +6,15 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.07.5">
-<!ENTITY md5 "7e7d27b52e5df84d2b9dfed30942793d">
+<!ENTITY version "2026.03.07.6">
+<!ENTITY md5 "d1e68142243a2b2e574d2ccb928dc34e">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.07.6
+- Rework Docker folder left-cell vertical centering using explicit in-cell absolute centering, avoiding inherited top alignment from Unraid table styles.
 
 ###2026.03.07.5
 - Tighten Docker folder row centering fix:

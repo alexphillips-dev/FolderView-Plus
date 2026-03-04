@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.06.9">
-<!ENTITY md5 "9ce8fe4b57d37666e27c4724d33cf056">
+<!ENTITY version "2026.03.07.1">
+<!ENTITY md5 "aa4b59a70cfe7fcc7f232c2cc439b4f6">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.07.1
+- Fix folder editor row alignment so settings blocks are left-anchored with section headers instead of centered.
+- Keep nested preview/advanced controls aligned to the same left column for consistent spacing.
 
 ###2026.03.06.9
 - Phase 1 folder editor overhaul:

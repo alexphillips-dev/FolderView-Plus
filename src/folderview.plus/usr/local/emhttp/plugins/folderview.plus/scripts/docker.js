@@ -148,9 +148,11 @@ const applyFolderCellCentering = (cell, rowHeight = 0) => {
         return false;
     }
 
+    const row = cell.parentElement;
+    const isPreviewRow = rowHasFolderPreview(row);
     const height = Number.isFinite(rowHeight) && rowHeight > 0 ? Math.round(rowHeight) : 0;
     cell.style.setProperty('vertical-align', 'middle', 'important');
-    cell.style.setProperty('position', 'static', 'important');
+    cell.style.setProperty('position', isPreviewRow ? 'static' : 'relative', 'important');
     cell.style.setProperty('display', 'table-cell', 'important');
     cell.style.setProperty('padding-top', '0px', 'important');
     cell.style.setProperty('padding-bottom', '0px', 'important');
@@ -160,11 +162,11 @@ const applyFolderCellCentering = (cell, rowHeight = 0) => {
         cell.style.removeProperty('height');
     }
 
-    sub.style.setProperty('position', 'relative', 'important');
-    sub.style.setProperty('top', 'auto', 'important');
-    sub.style.setProperty('left', 'auto', 'important');
-    sub.style.setProperty('right', 'auto', 'important');
-    sub.style.setProperty('transform', 'none', 'important');
+    sub.style.setProperty('position', isPreviewRow ? 'relative' : 'absolute', 'important');
+    sub.style.setProperty('top', isPreviewRow ? 'auto' : '50%', 'important');
+    sub.style.setProperty('left', isPreviewRow ? 'auto' : '8px', 'important');
+    sub.style.setProperty('right', isPreviewRow ? 'auto' : '8px', 'important');
+    sub.style.setProperty('transform', isPreviewRow ? 'none' : 'translateY(-50%)', 'important');
     sub.style.setProperty('display', 'flex', 'important');
     sub.style.setProperty('align-items', 'center', 'important');
     sub.style.setProperty('min-height', '0', 'important');

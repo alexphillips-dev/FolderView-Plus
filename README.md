@@ -123,7 +123,7 @@ bash pkg_build.sh
 
 ## Credits
 
-- Built on top of an upstream open-source foundation, with continued improvements focused on reliability, UX, and maintainability.
+- [chodeus](https://github.com/chodeus/folder.view3) - FolderView Plus is built on the strong foundation established in folder.view3. Sincere professional thanks for the original architecture, implementation groundwork, and prior iteration effort that made it possible to move quickly, focus on reliability, and deliver meaningful quality-of-life improvements.
 
 ## License
 

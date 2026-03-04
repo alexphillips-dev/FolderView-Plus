@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.05.6">
-<!ENTITY md5 "72678bc4e4c539d3fc904dfd40e69937">
+<!ENTITY version "2026.03.05.7">
+<!ENTITY md5 "25a9ae78f4bb55c1283543a9f5d25d9f">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.05.7
+- Fix folder status display so fully stopped folders still show `0/N started` instead of appearing blank when the stopped badge is disabled.
+- Keep badge toggles functional while preserving readable status text in Docker and VM views.
 
 ###2026.03.05.6
 - Add full Import Preview + selective apply with merge modes (replace/merge/skip) and schema metadata validation.

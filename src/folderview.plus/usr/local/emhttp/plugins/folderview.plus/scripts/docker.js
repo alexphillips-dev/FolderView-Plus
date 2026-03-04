@@ -56,6 +56,50 @@ if (FOLDER_VIEW_DEBUG_MODE) {
     console.log('[FV3_DEBUG] docker.js loaded. FOLDER_VIEW_DEBUG_MODE is ON.');
 }
 
+const escapeClassToken = (value) => {
+    const input = String(value);
+    if (window.CSS && typeof window.CSS.escape === 'function') {
+        return window.CSS.escape(input);
+    }
+    return input.replace(/[^a-zA-Z0-9_-]/g, '\\$&');
+};
+
+const forceFolderRowVerticalCenter = (id) => {
+    const escapedId = escapeClassToken(id);
+    const rows = Array.from(document.querySelectorAll(`tr.folder.folder-id-${escapedId}`));
+    if (!rows.length) {
+        return;
+    }
+
+    rows.forEach((row) => {
+        Array.from(row.children).forEach((td) => {
+            if (td && td.tagName === 'TD') {
+                td.style.setProperty('vertical-align', 'middle', 'important');
+            }
+        });
+
+        const cell = row.querySelector('td.ct-name.folder-name');
+        if (!cell) {
+            return;
+        }
+        cell.style.setProperty('position', 'relative', 'important');
+        cell.style.setProperty('padding-top', '0px', 'important');
+        cell.style.setProperty('padding-bottom', '0px', 'important');
+
+        const sub = cell.querySelector('.folder-name-sub');
+        if (!sub) {
+            return;
+        }
+        sub.style.setProperty('position', 'absolute', 'important');
+        sub.style.setProperty('top', '50%', 'important');
+        sub.style.setProperty('left', '8px', 'important');
+        sub.style.setProperty('right', '8px', 'important');
+        sub.style.setProperty('transform', 'translateY(-50%)', 'important');
+        sub.style.setProperty('display', 'flex', 'important');
+        sub.style.setProperty('align-items', 'center', 'important');
+    });
+};
+
 /**
  * Handles the creation of all folders
  */
@@ -224,6 +268,11 @@ const createFolders = async () => {
     globalFolders = foldersDone;
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Assigned foldersDone to globalFolders:', {...globalFolders});
 
+    Object.keys(globalFolders).forEach((folderId) => forceFolderRowVerticalCenter(folderId));
+    setTimeout(() => {
+        Object.keys(globalFolders).forEach((folderId) => forceFolderRowVerticalCenter(folderId));
+    }, 50);
+
     folderDebugMode = false; // Existing flag
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Set folderDebugMode (existing) to false.');
 
@@ -376,6 +425,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
              $('#docker_list').append($(fld));
         }
     }
+    forceFolderRowVerticalCenter(id);
 
     // NOTE: switchButton initialization is deferred until after autostart state is known (see below).
     // This avoids the bug where initializing with checked:false then clicking ON could

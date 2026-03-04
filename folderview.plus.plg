@@ -6,12 +6,23 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.07.6">
-<!ENTITY md5 "d1e68142243a2b2e574d2ccb928dc34e">
+<!ENTITY version "2026.03.07.8">
+<!ENTITY md5 "afea9c4354cc2b161a80161aecc791dd">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.07.8
+- Fix Docker folder row vertical alignment in fixed/clone table layouts:
+  - widen centering selectors to all folder rows instead of only `#docker_list`,
+  - apply runtime centering styles to every matching folder row copy after render.
+
+###2026.03.07.7
+- Add runtime-enforced Docker folder row alignment fallback in `docker.js`:
+  - apply inline `vertical-align: middle !important` to folder row cells after render,
+  - force left folder cell content block to centered positioning after insertion and after full folder build.
+- Keep CSS centering rules in place, with JS fallback overriding any theme/custom style collisions.
 
 ###2026.03.07.6
 - Rework Docker folder left-cell vertical centering using explicit in-cell absolute centering, avoiding inherited top alignment from Unraid table styles.

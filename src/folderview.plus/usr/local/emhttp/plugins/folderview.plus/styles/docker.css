@@ -28,19 +28,19 @@
 }
 
 /* Keep folder rows vertically centered against the preview row content */
-#docker_list > tr.sortable.folder > td {
+tr.folder > td {
     vertical-align: middle !important;
 }
 
 /* Unraid table styles can force top visual placement.
    Center the left folder block explicitly within the row height. */
-#docker_list > tr.sortable.folder > td.ct-name.folder-name {
+tr.folder > td.ct-name.folder-name {
     position: relative;
     padding-top: 0 !important;
     padding-bottom: 0 !important;
 }
 
-#docker_list > tr.sortable.folder > td.ct-name.folder-name > .folder-name-sub {
+tr.folder > td.ct-name.folder-name > .folder-name-sub {
     position: absolute;
     top: 50%;
     left: 8px;

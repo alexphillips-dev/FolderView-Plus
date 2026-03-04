@@ -180,11 +180,9 @@
             mkdir -p /boot/config/plugins/&name;/scripts
             rm -f $(ls /boot/config/plugins/&name;/&name;*.txz 2>/dev/null | grep -v '&version;')
             echo "&version;" > /boot/config/plugins/&name;/version
-            cat >/etc/cron.d/folderview.plus <<EOF
-*/5 * * * * root /usr/local/bin/php /usr/local/emhttp/plugins/folderview.plus/scripts/scheduled_backup.php >/dev/null 2>&1
-EOF
+            echo "*/5 * * * * root /usr/local/bin/php /usr/local/emhttp/plugins/folderview.plus/scripts/scheduled_backup.php >/dev/null 2>&amp;1" > /etc/cron.d/folderview.plus
             chmod 644 /etc/cron.d/folderview.plus
-            /etc/rc.d/rc.crond restart >/dev/null 2>&1 || true
+            /etc/rc.d/rc.crond restart >/dev/null 2>&amp;1 || true
             echo ""
             echo "----------------------------------------------------"
             echo " &name; has been installed."
@@ -198,7 +196,7 @@ EOF
         <INLINE>
             removepkg &name;-&version; || true
             rm -f /etc/cron.d/folderview.plus
-            /etc/rc.d/rc.crond restart >/dev/null 2>&1 || true
+            /etc/rc.d/rc.crond restart >/dev/null 2>&amp;1 || true
             rm -rf &plugdir;
             rm -rf /boot/config/plugins/&name;
         </INLINE>

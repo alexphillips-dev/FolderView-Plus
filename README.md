@@ -16,8 +16,15 @@ major quality-of-life, reliability, and UX improvements for Unraid users:
 - Safer import flow with preview dialog and merge modes (`Merge`, `Replace`, `Skip existing`)
 - Schema-aware import/export metadata: `schemaVersion`, `pluginVersion`, `exportedAt`
 - Automatic backup creation before import with one-click restore support
+- Cron-backed scheduled backups that run on time without opening plugin settings
 - Rule-based auto-assignment using name regex (Docker + VMs) and Docker label rules
+- Rule simulator for full-item assignment preview (assigned/blocked/unassigned)
+- Folder templates (save/apply/delete) for reusable folder configurations
+- Bulk actions for rules/templates (enable/disable/delete/export where applicable)
 - Sort modes per type: `created`, `manual`, `alpha`
+- Search filters in settings for folders, rules, backups, and templates
+- Diagnostics support bundle and copyable issue report text for faster issue filing
+- Runtime lazy preview controls for large libraries (`lazy preview` + threshold)
 - Better release/version metadata handling for more consistent update detection in Unraid
 - Continued folder-based views across Docker, VMs, and Dashboard pages
 
@@ -60,8 +67,13 @@ plugin remove folderview.plus
 - Import/export of folder definitions with schema metadata validation
 - Import preview with `Merge`, `Replace`, and `Skip existing` modes before applying changes
 - Automatic pre-import backups with one-click latest-backup restore
+- Scheduled backups via cron runner (`/usr/local/emhttp/plugins/folderview.plus/scripts/scheduled_backup.php`)
 - Docker label support for automatic folder assignment
 - Rule-based auto-assignment using name regex and Docker labels
+- Rule simulator to preview final assignment outcomes across all Docker/VM items
+- Bulk rule and template operations in settings
+- Search and filtering for settings tables (folders/rules/backups/templates)
+- Folder templates to copy folder settings/actions/regex between folders
 - Folder sort modes: `created`, `manual`, `alpha`
 - Reliable manual reorder controls (up/down) in settings
 - Cleaner settings layout for actions, sorting, tables, and rule editing

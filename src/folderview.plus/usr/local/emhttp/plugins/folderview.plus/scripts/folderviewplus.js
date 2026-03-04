@@ -20,6 +20,28 @@ let templatesByType = {
     docker: [],
     vm: []
 };
+let selectedRuleIdsByType = {
+    docker: new Set(),
+    vm: new Set()
+};
+let selectedTemplateIdsByType = {
+    docker: new Set(),
+    vm: new Set()
+};
+let filtersByType = {
+    docker: {
+        folders: '',
+        rules: '',
+        backups: '',
+        templates: ''
+    },
+    vm: {
+        folders: '',
+        rules: '',
+        backups: '',
+        templates: ''
+    }
+};
 let importSelectionState = null;
 let lastDiagnostics = null;
 
@@ -48,6 +70,29 @@ const getFolderMap = (type) => utils.normalizeFolderMap(typeFolders(type));
 const folderNameForId = (type, id) => {
     const folders = getFolderMap(type);
     return folders[id]?.name || id;
+};
+
+const normalizedFilter = (value) => String(value || '').trim().toLowerCase();
+const setFilterQuery = (section, type, value) => {
+    if (!filtersByType[type] || !Object.prototype.hasOwnProperty.call(filtersByType[type], section)) {
+        return;
+    }
+    filtersByType[type][section] = normalizedFilter(value);
+    if (section === 'folders') {
+        renderTable(type);
+        return;
+    }
+    if (section === 'rules') {
+        renderRulesTable(type);
+        return;
+    }
+    if (section === 'backups') {
+        renderBackupRows(type);
+        return;
+    }
+    if (section === 'templates') {
+        renderTemplateRows(type);
+    }
 };
 
 const apiGetJson = async (url) => parseJsonResponse(await $.get(url).promise());
@@ -255,6 +300,20 @@ const restoreLatest = async (type) => {
     return response.restore;
 };
 
+const runScheduledBackup = async (type) => {
+    const payload = {
+        action: 'run_schedule'
+    };
+    if (type) {
+        payload.type = type;
+    }
+    const response = parseJsonResponse(await $.post('/plugins/folderview.plus/server/backup.php', payload).promise());
+    if (!response.ok) {
+        throw new Error(response.error || 'Scheduled backup run failed.');
+    }
+    return response.schedules || {};
+};
+
 const syncDockerOrder = async () => {
     await $.post('/plugins/folderview.plus/server/sync_order.php', { type: 'docker' }).promise();
 };
@@ -343,6 +402,35 @@ const formatImportSummary = (summary) => [
     ...summary.notes
 ].join('\n');
 
+const renderImportDiffTable = (rows) => {
+    const container = $('#import-preview-diff');
+    if (!Array.isArray(rows) || !rows.length) {
+        container.html('<div class="hint-line">No row-level changes detected.</div>');
+        return;
+    }
+    const body = rows.map((row) => {
+        const action = String(row.action || '').toUpperCase();
+        const id = row.id ? escapeHtml(String(row.id)) : '-';
+        const name = escapeHtml(String(row.name || '-'));
+        const fields = Array.isArray(row.fields) ? row.fields.join(', ') : '';
+        return `<tr><td>${escapeHtml(action)}</td><td>${id}</td><td>${name}</td><td>${escapeHtml(fields || '-')}</td></tr>`;
+    }).join('');
+
+    container.html(`
+        <table>
+            <thead>
+                <tr>
+                    <th>Action</th>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Changed fields</th>
+                </tr>
+            </thead>
+            <tbody>${body}</tbody>
+        </table>
+    `);
+};
+
 const buildOperationSelectionState = (operations, existingFolders) => {
     const folders = utils.normalizeFolderMap(existingFolders);
     return {
@@ -429,8 +517,10 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         const mode = modeSelect.val();
         const summary = utils.summarizeImport(folders, parsed, mode);
         const operations = utils.buildImportOperations(folders, parsed, mode);
+        const diffRows = utils.buildImportDiffRows(folders, parsed, mode);
         importSelectionState = buildOperationSelectionState(operations, folders);
         renderOperationSelection();
+        renderImportDiffTable(diffRows);
         previewText.val(formatImportSummary(summary));
         result.text(`Selected operations: ${countImportOperations(filterOperationsBySelection(operations))} | Creates: ${operations.creates.length}, Updates: ${operations.upserts.length}, Deletes: ${operations.deletes.length}`);
 
@@ -537,7 +627,13 @@ const offerUndoAction = async (type, backup, actionLabel) => {
 
 const buildRowsHtml = (type, folders) => {
     const rows = [];
+    const filter = normalizedFilter(filtersByType[type]?.folders);
     for (const [id, folder] of Object.entries(folders)) {
+        const nameText = String(folder.name || '');
+        const haystack = `${String(id)} ${nameText}`.toLowerCase();
+        if (filter && !haystack.includes(filter)) {
+            continue;
+        }
         const safeName = escapeHtml(folder.name);
         const safeIcon = escapeHtml(folder.icon || '');
         rows.push(
@@ -644,6 +740,8 @@ const renderRuntimeControls = (type) => {
     $(`#${type}-live-refresh-enabled`).prop('checked', prefs.liveRefreshEnabled !== false);
     $(`#${type}-live-refresh-seconds`).val(String(prefs.liveRefreshSeconds || 20));
     $(`#${type}-performance-mode`).prop('checked', prefs.performanceMode === true);
+    $(`#${type}-lazy-preview-enabled`).prop('checked', prefs.lazyPreviewEnabled !== false);
+    $(`#${type}-lazy-preview-threshold`).val(String(prefs.lazyPreviewThreshold || 30));
 };
 
 const renderBackupScheduleControls = (type) => {
@@ -654,6 +752,14 @@ const renderBackupScheduleControls = (type) => {
     $(`#${type}-backup-retention`).val(String(schedule.retention || 25));
     const lastRunText = schedule.lastRunAt ? `Last scheduled run: ${formatTimestamp(schedule.lastRunAt)}` : 'Last scheduled run: never';
     $(`#${type}-backup-last-run`).text(lastRunText);
+};
+
+const renderFilterInputs = (type) => {
+    const filterState = filtersByType[type] || {};
+    $(`#${type}-folder-filter`).val(filterState.folders || '');
+    $(`#${type}-rules-filter`).val(filterState.rules || '');
+    $(`#${type}-backups-filter`).val(filterState.backups || '');
+    $(`#${type}-templates-filter`).val(filterState.templates || '');
 };
 
 const ruleDescription = (rule) => {
@@ -679,22 +785,38 @@ const ruleDescription = (rule) => {
 const renderRulesTable = (type) => {
     const rulesBody = $(`#${type}-rules`);
     const rules = prefsByType[type]?.autoRules || [];
+    const selected = selectedRuleIdsByType[type] || new Set();
+    const validSelected = new Set(Array.from(selected).filter((id) => rules.some((rule) => String(rule.id) === id)));
+    selectedRuleIdsByType[type] = validSelected;
+    const filter = normalizedFilter(filtersByType[type]?.rules);
 
-    if (!rules.length) {
-        rulesBody.html('<tr><td colspan="4">No rules defined.</td></tr>');
+    const filteredRules = rules.filter((rule) => {
+        const folderName = folderNameForId(type, rule.folderId);
+        const haystack = `${folderName} ${ruleDescription(rule)} ${rule.id || ''}`.toLowerCase();
+        return !filter || haystack.includes(filter);
+    });
+
+    if (!filteredRules.length) {
+        rulesBody.html('<tr><td colspan="5">No rules defined.</td></tr>');
+        $(`#${type}-rules-select-all`).prop('checked', false);
         return;
     }
 
-    const rows = rules.map((rule, index) => {
+    const rows = filteredRules.map((rule, index) => {
         const folderName = folderNameForId(type, rule.folderId);
         const stateLabel = rule.enabled ? 'Disable' : 'Enable';
         const stateIcon = rule.enabled ? 'fa-eye-slash' : 'fa-eye';
-        const upDisabled = index === 0 ? 'disabled' : '';
-        const downDisabled = index === rules.length - 1 ? 'disabled' : '';
+        const globalIndex = rules.findIndex((item) => item.id === rule.id);
+        const upDisabled = globalIndex === 0 ? 'disabled' : '';
+        const downDisabled = globalIndex === rules.length - 1 ? 'disabled' : '';
+        const checked = validSelected.has(String(rule.id || '')) ? 'checked' : '';
 
         return `<tr>
             <td>
-                <span>#${index + 1}</span>
+                <input type="checkbox" ${checked} onchange="toggleRuleSelection('${type}','${escapeHtml(rule.id)}', this.checked)">
+            </td>
+            <td>
+                <span>#${globalIndex + 1}</span>
                 <span class="rule-priority-actions">
                     <button ${upDisabled} title="Move up" onclick="moveAutoRule('${type}','${escapeHtml(rule.id)}',-1)"><i class="fa fa-chevron-up"></i></button>
                     <button ${downDisabled} title="Move down" onclick="moveAutoRule('${type}','${escapeHtml(rule.id)}',1)"><i class="fa fa-chevron-down"></i></button>
@@ -710,6 +832,8 @@ const renderRulesTable = (type) => {
     });
 
     rulesBody.html(rows.join(''));
+    const allSelected = filteredRules.every((rule) => validSelected.has(String(rule.id || '')));
+    $(`#${type}-rules-select-all`).prop('checked', allSelected);
 };
 
 const renderBulkItemOptions = (type) => {
@@ -721,7 +845,14 @@ const renderBulkItemOptions = (type) => {
 
 const renderBackupRows = (type) => {
     const rowsEl = $(`#${type}-backups`);
-    const backups = backupsByType[type] || [];
+    const filter = normalizedFilter(filtersByType[type]?.backups);
+    const backups = (backupsByType[type] || []).filter((backup) => {
+        if (!filter) {
+            return true;
+        }
+        const haystack = `${String(backup.name || '')} ${String(backup.reason || '')}`.toLowerCase();
+        return haystack.includes(filter);
+    });
     if (!backups.length) {
         rowsEl.html('<tr><td colspan="4">No backups found.</td></tr>');
         return;
@@ -748,14 +879,26 @@ const renderBackupRows = (type) => {
 
 const renderTemplateRows = (type) => {
     const rowsEl = $(`#${type}-templates`);
-    const templates = templatesByType[type] || [];
+    const allTemplates = templatesByType[type] || [];
+    const selected = selectedTemplateIdsByType[type] || new Set();
+    const validSelected = new Set(Array.from(selected).filter((id) => allTemplates.some((template) => String(template.id || '') === id)));
+    selectedTemplateIdsByType[type] = validSelected;
+    const filter = normalizedFilter(filtersByType[type]?.templates);
+    const templates = allTemplates.filter((template) => {
+        if (!filter) {
+            return true;
+        }
+        const haystack = `${String(template.name || '')} ${String(template.id || '')}`.toLowerCase();
+        return haystack.includes(filter);
+    });
     const folders = getFolderMap(type);
     const folderOptions = Object.entries(folders).map(([id, folder]) => (
         `<option value="${escapeHtml(id)}">${escapeHtml(folder.name || id)}</option>`
     )).join('');
 
     if (!templates.length) {
-        rowsEl.html('<tr><td colspan="3">No templates saved.</td></tr>');
+        rowsEl.html('<tr><td colspan="4">No templates saved.</td></tr>');
+        $(`#${type}-templates-select-all`).prop('checked', false);
         return;
     }
 
@@ -763,7 +906,9 @@ const renderTemplateRows = (type) => {
         const templateId = String(template.id || '');
         const templateName = String(template.name || templateId);
         const selectId = `${type}-template-target-${templateId}`;
+        const checked = validSelected.has(templateId) ? 'checked' : '';
         return `<tr>
+            <td><input type="checkbox" ${checked} onchange="toggleTemplateSelection('${type}','${escapeHtml(templateId)}', this.checked)"></td>
             <td>${escapeHtml(templateName)}</td>
             <td>${escapeHtml(formatTimestamp(template.updatedAt || template.createdAt))}</td>
             <td>
@@ -774,6 +919,8 @@ const renderTemplateRows = (type) => {
         </tr>`;
     });
     rowsEl.html(rows.join(''));
+    const allSelected = templates.every((template) => validSelected.has(String(template.id || '')));
+    $(`#${type}-templates-select-all`).prop('checked', allSelected);
 };
 
 const renderTable = (type) => {
@@ -790,6 +937,7 @@ const renderTable = (type) => {
     renderBadgeToggles(type);
     renderRuntimeControls(type);
     renderBackupScheduleControls(type);
+    renderFilterInputs(type);
     renderRulesTable(type);
     renderBulkItemOptions(type);
     renderTemplateRows(type);
@@ -1061,6 +1209,11 @@ const changeRuntimePref = async (type, key, value) => {
         next.liveRefreshSeconds = Number.isFinite(parsed) ? Math.min(300, Math.max(10, Math.round(parsed))) : current.liveRefreshSeconds;
     } else if (key === 'performanceMode') {
         next.performanceMode = value === true;
+    } else if (key === 'lazyPreviewEnabled') {
+        next.lazyPreviewEnabled = value === true;
+    } else if (key === 'lazyPreviewThreshold') {
+        const parsed = Number(value);
+        next.lazyPreviewThreshold = Number.isFinite(parsed) ? Math.min(200, Math.max(10, Math.round(parsed))) : current.lazyPreviewThreshold;
     } else {
         return;
     }
@@ -1529,6 +1682,319 @@ const deleteTemplateEntry = (type, templateId) => {
     });
 };
 
+const toggleRuleSelection = (type, ruleId, checked) => {
+    const selected = selectedRuleIdsByType[type] || new Set();
+    if (checked) {
+        selected.add(String(ruleId || ''));
+    } else {
+        selected.delete(String(ruleId || ''));
+    }
+    selectedRuleIdsByType[type] = selected;
+    renderRulesTable(type);
+};
+
+const toggleAllRuleSelections = (type, checked) => {
+    const rules = prefsByType[type]?.autoRules || [];
+    const selected = selectedRuleIdsByType[type] || new Set();
+    const filter = normalizedFilter(filtersByType[type]?.rules);
+    for (const rule of rules) {
+        const haystack = `${folderNameForId(type, rule.folderId)} ${ruleDescription(rule)} ${rule.id || ''}`.toLowerCase();
+        if (filter && !haystack.includes(filter)) {
+            continue;
+        }
+        if (checked) {
+            selected.add(String(rule.id || ''));
+        } else {
+            selected.delete(String(rule.id || ''));
+        }
+    }
+    selectedRuleIdsByType[type] = selected;
+    renderRulesTable(type);
+};
+
+const bulkRuleAction = async (type, action) => {
+    const rules = prefsByType[type]?.autoRules || [];
+    const selected = selectedRuleIdsByType[type] || new Set();
+    const selectedIds = Array.from(selected).filter((id) => rules.some((rule) => String(rule.id) === id));
+    if (!selectedIds.length) {
+        swal({ title: 'Nothing selected', text: 'Select at least one rule first.', type: 'warning' });
+        return;
+    }
+
+    if (action === 'export') {
+        const selectedRules = rules.filter((rule) => selectedIds.includes(String(rule.id)));
+        const payload = {
+            schemaVersion: 1,
+            exportedAt: new Date().toISOString(),
+            type,
+            mode: 'rules',
+            rules: selectedRules
+        };
+        downloadFile(`FolderView Plus ${type.toUpperCase()} Rules.json`, toPrettyJson(payload));
+        return;
+    }
+
+    if (action === 'delete') {
+        swal({
+            title: 'Delete selected rules?',
+            text: `Delete ${selectedIds.length} selected rule(s)?`,
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Delete',
+            cancelButtonText: 'Cancel',
+            showLoaderOnConfirm: true
+        }, async (confirmed) => {
+            if (!confirmed) {
+                return;
+            }
+            try {
+                const nextRules = rules.filter((rule) => !selectedIds.includes(String(rule.id)));
+                prefsByType[type] = await postPrefs(type, {
+                    ...prefsByType[type],
+                    autoRules: nextRules
+                });
+                selectedRuleIdsByType[type] = new Set();
+                renderRulesTable(type);
+            } catch (error) {
+                showError('Rule delete failed', error);
+            }
+        });
+        return;
+    }
+
+    const enabled = action === 'enable';
+    try {
+        const nextRules = rules.map((rule) => (
+            selectedIds.includes(String(rule.id))
+                ? { ...rule, enabled }
+                : rule
+        ));
+        prefsByType[type] = await postPrefs(type, {
+            ...prefsByType[type],
+            autoRules: nextRules
+        });
+        renderRulesTable(type);
+    } catch (error) {
+        showError('Rule bulk update failed', error);
+    }
+};
+
+const runRuleSimulator = async (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const rules = prefsByType[resolvedType]?.autoRules || [];
+    const info = infoByType[resolvedType] || {};
+    const names = Object.keys(info).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
+    const rows = names.map((name) => {
+        const decision = utils.getAutoRuleDecision({
+            rules,
+            name,
+            infoByName: info,
+            type: resolvedType
+        });
+        if (decision.blockedBy) {
+            return {
+                item: name,
+                result: 'blocked',
+                folder: folderNameForId(resolvedType, decision.blockedBy.folderId || ''),
+                rule: ruleDescription(decision.blockedBy)
+            };
+        }
+        if (decision.assignedRule) {
+            return {
+                item: name,
+                result: 'assigned',
+                folder: folderNameForId(resolvedType, decision.assignedRule.folderId || ''),
+                rule: ruleDescription(decision.assignedRule)
+            };
+        }
+        return {
+            item: name,
+            result: 'unassigned',
+            folder: '-',
+            rule: '-'
+        };
+    });
+    const summary = {
+        total: rows.length,
+        assigned: rows.filter((row) => row.result === 'assigned').length,
+        blocked: rows.filter((row) => row.result === 'blocked').length,
+        unassigned: rows.filter((row) => row.result === 'unassigned').length
+    };
+    $(`#${resolvedType}-rule-sim-output`).text(toPrettyJson({
+        type: resolvedType,
+        generatedAt: new Date().toISOString(),
+        summary,
+        rows
+    }));
+    await trackDiagnosticsEvent({
+        eventType: 'rule_simulator',
+        type: resolvedType,
+        details: summary
+    });
+};
+
+const toggleTemplateSelection = (type, templateId, checked) => {
+    const selected = selectedTemplateIdsByType[type] || new Set();
+    if (checked) {
+        selected.add(String(templateId || ''));
+    } else {
+        selected.delete(String(templateId || ''));
+    }
+    selectedTemplateIdsByType[type] = selected;
+    renderTemplateRows(type);
+};
+
+const toggleAllTemplateSelections = (type, checked) => {
+    const templates = templatesByType[type] || [];
+    const selected = selectedTemplateIdsByType[type] || new Set();
+    const filter = normalizedFilter(filtersByType[type]?.templates);
+    for (const template of templates) {
+        const templateId = String(template.id || '');
+        const haystack = `${String(template.name || '')} ${templateId}`.toLowerCase();
+        if (filter && !haystack.includes(filter)) {
+            continue;
+        }
+        if (checked) {
+            selected.add(templateId);
+        } else {
+            selected.delete(templateId);
+        }
+    }
+    selectedTemplateIdsByType[type] = selected;
+    renderTemplateRows(type);
+};
+
+const bulkTemplateAction = (type, action) => {
+    const templates = templatesByType[type] || [];
+    const selected = selectedTemplateIdsByType[type] || new Set();
+    const selectedTemplates = templates.filter((template) => selected.has(String(template.id || '')));
+    if (!selectedTemplates.length) {
+        swal({ title: 'Nothing selected', text: 'Select at least one template first.', type: 'warning' });
+        return;
+    }
+
+    if (action === 'export') {
+        const payload = {
+            schemaVersion: 1,
+            exportedAt: new Date().toISOString(),
+            type,
+            mode: 'templates',
+            templates: selectedTemplates
+        };
+        downloadFile(`FolderView Plus ${type.toUpperCase()} Templates.json`, toPrettyJson(payload));
+        return;
+    }
+
+    swal({
+        title: 'Delete selected templates?',
+        text: `Delete ${selectedTemplates.length} selected template(s)?`,
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Delete',
+        cancelButtonText: 'Cancel',
+        showLoaderOnConfirm: true
+    }, async (confirmed) => {
+        if (!confirmed) {
+            return;
+        }
+        try {
+            let nextTemplates = templates;
+            for (const template of selectedTemplates) {
+                nextTemplates = await deleteTemplate(type, String(template.id || ''));
+            }
+            templatesByType[type] = nextTemplates;
+            selectedTemplateIdsByType[type] = new Set();
+            renderTemplateRows(type);
+        } catch (error) {
+            showError('Template bulk delete failed', error);
+        }
+    });
+};
+
+const runScheduledBackupNow = async (type) => {
+    try {
+        await runScheduledBackup(type);
+        await Promise.all([refreshType(type), refreshBackups(type)]);
+        swal({
+            title: 'Scheduler run complete',
+            text: `Scheduled backup check executed for ${type.toUpperCase()}.`,
+            type: 'success'
+        });
+    } catch (error) {
+        showError('Scheduler run failed', error);
+    }
+};
+
+const issueReportFromDiagnostics = (diagnostics) => {
+    const report = diagnostics || {};
+    const lines = [];
+    lines.push('# FolderView Plus Issue Report');
+    lines.push(`Generated: ${report.checkedAt || new Date().toISOString()}`);
+    lines.push(`Plugin version: ${report.pluginVersion || 'unknown'}`);
+    lines.push(`Privacy mode: ${report.privacyMode || 'sanitized'}`);
+    lines.push('');
+
+    const env = report.environment || {};
+    lines.push('## Environment');
+    lines.push(`- Unraid: ${env.unraidVersion || 'unknown'}`);
+    lines.push(`- PHP: ${env.phpVersion || 'unknown'}`);
+    lines.push(`- OS: ${env.os || 'unknown'}`);
+    lines.push('');
+
+    lines.push('## Type Summary');
+    for (const type of ['docker', 'vm']) {
+        const typeData = report.types?.[type] || {};
+        const integrity = typeData.integrityChecks || {};
+        lines.push(`- ${type.toUpperCase()}: folders=${typeData.folderCount || 0}, rules=${typeData.ruleCount || 0}, backups=${typeData.backupCount || 0}, templates=${typeData.templateCount || 0}, issueCount=${integrity.issueCount || 0}`);
+    }
+    lines.push('');
+
+    const timeline = Array.isArray(report.recentTimeline) ? report.recentTimeline.slice(0, 15) : [];
+    lines.push('## Recent Timeline');
+    if (!timeline.length) {
+        lines.push('- No recent timeline events available.');
+    } else {
+        for (const row of timeline) {
+            lines.push(`- ${row.timestamp || ''} | ${row.action || ''} | ${row.type || '-'} | ${row.status || 'ok'}${row.summary ? ` | ${row.summary}` : ''}`);
+        }
+    }
+    lines.push('');
+    lines.push('## Notes');
+    lines.push('- Attach `FolderView Plus Diagnostics.json` and support bundle export if available.');
+    return lines.join('\n');
+};
+
+const copyIssueReport = async () => {
+    try {
+        let diagnostics = lastDiagnostics;
+        if (!diagnostics) {
+            diagnostics = await getDiagnostics('sanitized');
+            renderDiagnostics(diagnostics);
+        }
+        const text = issueReportFromDiagnostics(diagnostics);
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(text);
+        } else {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+        }
+        swal({
+            title: 'Copied',
+            text: 'Issue report copied to clipboard.',
+            type: 'success'
+        });
+    } catch (error) {
+        showError('Copy issue report failed', error);
+    }
+};
+
 const renderDiagnostics = (diagnostics) => {
     lastDiagnostics = diagnostics || null;
     if (!diagnostics) {
@@ -1740,15 +2206,21 @@ window.changeSortMode = changeSortMode;
 window.changeBadgePref = changeBadgePref;
 window.changeRuntimePref = changeRuntimePref;
 window.changeBackupSchedulePref = changeBackupSchedulePref;
+window.setFilterQuery = setFilterQuery;
 window.addAutoRule = addAutoRule;
 window.toggleAutoRule = toggleAutoRule;
 window.deleteAutoRule = deleteAutoRule;
 window.moveAutoRule = moveAutoRule;
+window.toggleRuleSelection = toggleRuleSelection;
+window.toggleAllRuleSelections = toggleAllRuleSelections;
+window.bulkRuleAction = bulkRuleAction;
+window.runRuleSimulator = runRuleSimulator;
 window.toggleRuleKindFields = toggleRuleKindFields;
 window.testAutoRule = testAutoRule;
 window.assignSelectedItems = assignSelectedItems;
 window.createManualBackup = createManualBackup;
 window.refreshBackups = refreshBackups;
+window.runScheduledBackupNow = runScheduledBackupNow;
 window.restoreLatestBackup = restoreLatestBackup;
 window.restoreBackupEntry = restoreBackupEntry;
 window.downloadBackupEntry = downloadBackupEntry;
@@ -1756,10 +2228,14 @@ window.deleteBackupEntry = deleteBackupEntry;
 window.createTemplateFromFolder = createTemplateFromFolder;
 window.applyTemplateToFolder = applyTemplateToFolder;
 window.deleteTemplateEntry = deleteTemplateEntry;
+window.toggleTemplateSelection = toggleTemplateSelection;
+window.toggleAllTemplateSelections = toggleAllTemplateSelections;
+window.bulkTemplateAction = bulkTemplateAction;
 window.runDiagnostics = runDiagnostics;
 window.repairDiagnostics = repairDiagnostics;
 window.exportDiagnostics = exportDiagnostics;
 window.exportSupportBundle = exportSupportBundle;
+window.copyIssueReport = copyIssueReport;
 window.runConflictInspector = runConflictInspector;
 window.checkForUpdatesNow = checkForUpdatesNow;
 window.moveFolderRow = moveFolderRow;

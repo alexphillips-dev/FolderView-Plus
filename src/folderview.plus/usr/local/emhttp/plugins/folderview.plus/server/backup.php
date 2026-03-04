@@ -4,8 +4,19 @@ require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php");
 header('Content-Type: application/json');
 
 try {
-    $type = ensureType((string)($_REQUEST['type'] ?? ''));
     $action = (string)($_REQUEST['action'] ?? 'list');
+
+    if ($action === 'run_schedule') {
+        $requestedType = (string)($_REQUEST['type'] ?? '');
+        $result = runScheduledBackups($requestedType !== '' ? $requestedType : null);
+        echo json_encode([
+            'ok' => true,
+            'schedules' => $result
+        ]);
+        exit;
+    }
+
+    $type = ensureType((string)($_REQUEST['type'] ?? ''));
 
     if ($action === 'download') {
         $name = (string)($_REQUEST['name'] ?? '');

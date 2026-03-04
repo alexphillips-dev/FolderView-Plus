@@ -21,7 +21,12 @@ const utils = window.FolderViewPlusUtils || {
         sortMode: 'created',
         manualOrder: [],
         autoRules: [],
-        badges: { running: true, stopped: false, updates: true }
+        badges: { running: true, stopped: false, updates: true },
+        liveRefreshEnabled: true,
+        liveRefreshSeconds: 20,
+        performanceMode: false,
+        lazyPreviewEnabled: true,
+        lazyPreviewThreshold: 30
     }),
     getAutoRuleMatches: () => [],
     DEFAULT_FOLDER_STATUS_COLORS: localDefaultFolderStatusColors,
@@ -207,6 +212,27 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone) => {
         type: 'vm'
     }).filter((vmName) => !folder.containers.includes(vmName));
     folder.containers = folder.containers.concat(ruleMatches);
+
+    const lazyPreviewEnabled = folderTypePrefs?.lazyPreviewEnabled !== false;
+    const lazyPreviewThreshold = Number(folderTypePrefs?.lazyPreviewThreshold || 30);
+    const isExpandedByDefault = folder?.settings?.expand_tab === true;
+    const lazyPreviewActive = lazyPreviewEnabled
+        && Number.isFinite(lazyPreviewThreshold)
+        && new Set(folder.containers).size >= Math.max(10, Math.min(200, Math.round(lazyPreviewThreshold)))
+        && !isExpandedByDefault;
+    if (lazyPreviewActive && folder && typeof folder === 'object') {
+        folder.settings = {
+            ...(folder.settings || {}),
+            preview: 0,
+            preview_hover: false,
+            preview_logs: false,
+            preview_console: false,
+            preview_webui: false,
+            preview_vertical_bars: false,
+            preview_update: false,
+            preview_grayscale: false
+        };
+    }
 
     // the HTML template for the folder
     const totalCols = document.querySelector("#kvm_table > thead > tr").childElementCount;

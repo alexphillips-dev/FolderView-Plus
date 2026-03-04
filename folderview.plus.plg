@@ -6,12 +6,26 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.06.7">
-<!ENTITY md5 "0592669b091cb38c3f2e394e138c9c2b">
+<!ENTITY version "2026.03.06.8">
+<!ENTITY md5 "67aea9090e46b4c414496f7edc9b95e5">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.06.8
+- Add full rules simulator for Docker/VM to preview assignment outcomes across all items.
+- Upgrade import preview with row-level diffs (action, id, name, changed fields).
+- Add cron-backed scheduled backup runner so backup schedules execute without opening the plugin settings page.
+- Add large-library performance controls:
+  - new lazy preview toggle + threshold in settings,
+  - runtime lazy preview behavior for Docker/VM/Dashboard when folders exceed the threshold.
+- Add bulk rule/template operations (enable/disable/delete/export for rules; delete/export for templates).
+- Add quick search filters for folders, rules, backups, and templates in settings.
+- Add diagnostics quality-of-life:
+  - copyable issue report text for GitHub issues,
+  - recent timeline data in diagnostics snapshots.
+- Expand CI test coverage with additional utility tests and settings binding smoke tests.
 
 ###2026.03.06.7
 - Complete the advanced settings update set:
@@ -166,6 +180,11 @@
             mkdir -p /boot/config/plugins/&name;/scripts
             rm -f $(ls /boot/config/plugins/&name;/&name;*.txz 2>/dev/null | grep -v '&version;')
             echo "&version;" > /boot/config/plugins/&name;/version
+            cat >/etc/cron.d/folderview.plus <<EOF
+*/5 * * * * root /usr/local/bin/php /usr/local/emhttp/plugins/folderview.plus/scripts/scheduled_backup.php >/dev/null 2>&1
+EOF
+            chmod 644 /etc/cron.d/folderview.plus
+            /etc/rc.d/rc.crond restart >/dev/null 2>&1 || true
             echo ""
             echo "----------------------------------------------------"
             echo " &name; has been installed."
@@ -178,6 +197,8 @@
     <FILE Run="/bin/bash" Method="remove">
         <INLINE>
             removepkg &name;-&version; || true
+            rm -f /etc/cron.d/folderview.plus
+            /etc/rc.d/rc.crond restart >/dev/null 2>&1 || true
             rm -rf &plugdir;
             rm -rf /boot/config/plugins/&name;
         </INLINE>

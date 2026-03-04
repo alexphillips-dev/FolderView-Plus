@@ -1,5 +1,16 @@
 # FolderView Plus Changelog
 
+## Version 2026.03.06.8
+
+- Add full rules simulator for Docker/VM to preview assignment outcomes across all items.
+- Upgrade import preview with row-level diffs (action, id, name, changed fields).
+- Add cron-backed scheduled backup runner so schedules execute on time without opening the UI.
+- Add performance-focused lazy preview controls (enable + threshold) and runtime handling for large folders.
+- Add bulk rule actions (enable/disable/delete/export) and bulk template actions (delete/export).
+- Add searchable filters for folder lists, rules, backups, and templates.
+- Add diagnostics issue-report copy action and include compact recent timeline in diagnostics data.
+- Expand CI test coverage with additional utility tests plus UI binding smoke tests.
+
 ## Version 2026.03.06.7
 
 - Add folder templates support (save/apply/delete) with server endpoint and settings UI.

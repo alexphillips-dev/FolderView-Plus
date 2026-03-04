@@ -39,4 +39,4 @@ jobs:
 
       - name: Run utility tests
         run: |
-          node --test tests/folderviewplus-utils.test.mjs
+          node --test tests/*.mjs

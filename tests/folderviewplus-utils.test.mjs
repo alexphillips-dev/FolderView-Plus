@@ -203,12 +203,66 @@ test('normalizePrefs includes live refresh, performance mode, and backup schedul
     assert.equal(prefs.liveRefreshEnabled, true);
     assert.equal(prefs.liveRefreshSeconds, 20);
     assert.equal(prefs.performanceMode, false);
+    assert.equal(prefs.lazyPreviewEnabled, true);
+    assert.equal(prefs.lazyPreviewThreshold, 30);
     assert.deepEqual(prefs.backupSchedule, {
         enabled: false,
         intervalHours: 24,
         retention: 25,
         lastRunAt: ''
     });
+});
+
+test('buildImportDiffRows reports row-level changed fields', () => {
+    const existing = {
+        apps: {
+            name: 'Apps',
+            icon: '/old.png',
+            regex: '^a',
+            settings: { preview: 1 },
+            actions: [{ name: 'Start' }],
+            containers: ['a', 'b']
+        }
+    };
+    const parsed = {
+        mode: 'full',
+        folders: {
+            apps: {
+                name: 'Apps',
+                icon: '/new.png',
+                regex: '^a',
+                settings: { preview: 2 },
+                actions: [{ name: 'Start all' }],
+                containers: ['a']
+            }
+        }
+    };
+
+    const rows = utils.buildImportDiffRows(existing, parsed, 'merge');
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0].action, 'update');
+    assert.deepEqual(rows[0].fields.sort(), ['actions', 'icon', 'members', 'settings']);
+});
+
+test('export/import roundtrip smoke works for full payload', () => {
+    const original = {
+        abc: { name: 'One', containers: ['x'] },
+        def: { name: 'Two', containers: [] }
+    };
+    const exported = utils.buildFullExportPayload({
+        type: 'docker',
+        folders: original,
+        pluginVersion: '9.9.9'
+    });
+    const parsed = utils.parseImportPayload(exported, 'docker');
+    assert.equal(parsed.ok, true);
+    assert.equal(parsed.mode, 'full');
+    assert.deepEqual(parsed.folders, original);
+
+    const ops = utils.buildImportOperations({}, parsed, 'merge');
+    assert.equal(ops.upserts.length, 2);
+    assert.equal(ops.creates.length, 0);
+    assert.equal(ops.deletes.length, 0);
 });
 
 test('getConflictReport detects multi-folder assignment conflicts', () => {

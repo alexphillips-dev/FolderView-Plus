@@ -291,6 +291,8 @@
             'liveRefreshEnabled' => true,
             'liveRefreshSeconds' => 20,
             'performanceMode' => false,
+            'lazyPreviewEnabled' => true,
+            'lazyPreviewThreshold' => 30,
             'backupSchedule' => [
                 'enabled' => false,
                 'intervalHours' => 24,
@@ -360,6 +362,10 @@
             : normalizeBool($prefs['liveRefreshEnabled'], true);
         $normalized['liveRefreshSeconds'] = normalizeIntInRange($prefs['liveRefreshSeconds'] ?? 20, 10, 300, 20);
         $normalized['performanceMode'] = normalizeBool($prefs['performanceMode'] ?? false, false);
+        $normalized['lazyPreviewEnabled'] = !array_key_exists('lazyPreviewEnabled', $prefs)
+            ? true
+            : normalizeBool($prefs['lazyPreviewEnabled'], true);
+        $normalized['lazyPreviewThreshold'] = normalizeIntInRange($prefs['lazyPreviewThreshold'] ?? 30, 10, 200, 30);
 
         $scheduleIncoming = is_array($prefs['backupSchedule'] ?? null) ? $prefs['backupSchedule'] : [];
         $normalized['backupSchedule'] = [
@@ -571,6 +577,21 @@
         } finally {
             unset($running[$type]);
         }
+    }
+
+    function runScheduledBackups(?string $type = null): array {
+        $results = [];
+        if ($type !== null && $type !== '') {
+            $resolvedType = ensureType($type);
+            maybeRunScheduledBackup($resolvedType);
+            $results[$resolvedType] = getTypeBackupSchedule($resolvedType);
+            return $results;
+        }
+        foreach (FVPLUS_ALLOWED_TYPES as $resolvedType) {
+            maybeRunScheduledBackup($resolvedType);
+            $results[$resolvedType] = getTypeBackupSchedule($resolvedType);
+        }
+        return $results;
     }
 
     function getBackupsDirPath(): string {
@@ -1309,6 +1330,33 @@
         return array_slice($events, 0, max(1, $limit));
     }
 
+    function buildDiagnosticsTimeline(array $events, int $limit = 25): array {
+        $rows = [];
+        $max = max(1, $limit);
+        $count = 0;
+        foreach ($events as $event) {
+            if (!is_array($event) || $count >= $max) {
+                continue;
+            }
+            $details = is_array($event['details'] ?? null) ? $event['details'] : [];
+            $summaryParts = [];
+            foreach (['reason', 'name', 'folderId', 'folderCount', 'itemCount'] as $key) {
+                if (array_key_exists($key, $details) && $details[$key] !== null && $details[$key] !== '') {
+                    $summaryParts[] = $key . '=' . (is_scalar($details[$key]) ? (string)$details[$key] : json_encode($details[$key]));
+                }
+            }
+            $rows[] = [
+                'timestamp' => (string)($event['timestamp'] ?? ''),
+                'action' => (string)($event['action'] ?? ''),
+                'type' => $event['type'] ?? null,
+                'status' => (string)($event['status'] ?? 'ok'),
+                'summary' => implode(', ', $summaryParts)
+            ];
+            $count++;
+        }
+        return $rows;
+    }
+
     function appendDiagnosticsHistoryEvent(string $action, ?string $type = null, array $details = [], string $status = 'ok', string $source = 'server'): array {
         $action = trim($action);
         if ($action === '') {
@@ -1973,6 +2021,8 @@
                 'liveRefreshEnabled' => normalizeBool($prefs['liveRefreshEnabled'] ?? true, true),
                 'liveRefreshSeconds' => normalizeIntInRange($prefs['liveRefreshSeconds'] ?? 20, 10, 300, 20),
                 'performanceMode' => normalizeBool($prefs['performanceMode'] ?? false, false),
+                'lazyPreviewEnabled' => normalizeBool($prefs['lazyPreviewEnabled'] ?? true, true),
+                'lazyPreviewThreshold' => normalizeIntInRange($prefs['lazyPreviewThreshold'] ?? 30, 10, 200, 30),
                 'backupSchedule' => getTypeBackupSchedule($type),
                 'lastBackup' => $backups[0] ?? null,
                 'backupCount' => count($backups),
@@ -1995,6 +2045,7 @@
                 'returned' => count($historyEvents),
                 'events' => $historyEvents
             ],
+            'recentTimeline' => buildDiagnosticsTimeline($historyEvents, 25),
             'update' => checkRemotePluginUpdate(),
             'types' => $typesData
         ];

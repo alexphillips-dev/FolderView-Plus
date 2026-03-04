@@ -17,7 +17,16 @@ const normalizeStatusHexColor = (value, fallback) => {
     return trimmed.toLowerCase();
 };
 const utils = window.FolderViewPlusUtils || {
-    normalizePrefs: () => ({ sortMode: 'created', manualOrder: [], autoRules: [] }),
+    normalizePrefs: () => ({
+        sortMode: 'created',
+        manualOrder: [],
+        autoRules: [],
+        liveRefreshEnabled: true,
+        liveRefreshSeconds: 20,
+        performanceMode: false,
+        lazyPreviewEnabled: true,
+        lazyPreviewThreshold: 30
+    }),
     getAutoRuleMatches: () => [],
     DEFAULT_FOLDER_STATUS_COLORS: localDefaultFolderStatusColors,
     getFolderStatusColors: (settings) => {
@@ -343,6 +352,27 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
         type: 'docker'
     }).filter((name) => !folder.containers.includes(name)));
 
+    const lazyPreviewEnabled = folderTypePrefs?.docker?.lazyPreviewEnabled !== false;
+    const lazyPreviewThreshold = Number(folderTypePrefs?.docker?.lazyPreviewThreshold || 30);
+    const isExpandedByDefault = folder?.settings?.expand_dashboard === true;
+    const lazyPreviewActive = lazyPreviewEnabled
+        && Number.isFinite(lazyPreviewThreshold)
+        && new Set(folder.containers).size >= Math.max(10, Math.min(200, Math.round(lazyPreviewThreshold)))
+        && !isExpandedByDefault;
+    if (lazyPreviewActive && folder && typeof folder === 'object') {
+        folder.settings = {
+            ...(folder.settings || {}),
+            preview: 0,
+            preview_hover: false,
+            preview_logs: false,
+            preview_console: false,
+            preview_webui: false,
+            preview_vertical_bars: false,
+            preview_update: false,
+            preview_grayscale: false
+        };
+    }
+
     // the HTML template for the folder
     const fld = `<div class="folder-showcase-outer-${id} folder-showcase-outer"><span class="outer solid apps stopped folder-docker"><span id="folder-id-${id}" onclick='addDockerFolderContext("${id}")' class="hand docker folder-hand-docker"><img src="${folder.icon}" class="img folder-img-docker" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"></span><span class="inner folder-inner-docker"><span class="folder-appname-docker">${folder.name}</span><br><i class="fa fa-square stopped folder-load-status-docker"></i><span class="state folder-state-docker">${$.i18n('stopped')}</span></span><div class="folder-storage"></div></span><div class="folder-showcase-${id} folder-showcase"></div></div>`;
 
@@ -570,6 +600,27 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone) => {
         infoByName: vmInfo,
         type: 'vm'
     }).filter((name) => !folder.containers.includes(name)));
+
+    const lazyPreviewEnabled = folderTypePrefs?.vm?.lazyPreviewEnabled !== false;
+    const lazyPreviewThreshold = Number(folderTypePrefs?.vm?.lazyPreviewThreshold || 30);
+    const isExpandedByDefault = folder?.settings?.expand_dashboard === true;
+    const lazyPreviewActive = lazyPreviewEnabled
+        && Number.isFinite(lazyPreviewThreshold)
+        && new Set(folder.containers).size >= Math.max(10, Math.min(200, Math.round(lazyPreviewThreshold)))
+        && !isExpandedByDefault;
+    if (lazyPreviewActive && folder && typeof folder === 'object') {
+        folder.settings = {
+            ...(folder.settings || {}),
+            preview: 0,
+            preview_hover: false,
+            preview_logs: false,
+            preview_console: false,
+            preview_webui: false,
+            preview_vertical_bars: false,
+            preview_update: false,
+            preview_grayscale: false
+        };
+    }
 
     // the HTML template for the folder
     const fld = `<div class="folder-showcase-outer-${id} folder-showcase-outer"><span class="outer solid vms stopped folder-vm"><span id="folder-id-${id}" onclick='addVMFolderContext("${id}")' class="hand vm folder-hand-vm"><img src="${folder.icon}" class="img folder-img-vm" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span><span class="inner folder-inner-vm"><span class="folder-appname-vm">${folder.name}</span><br><i class="fa fa-square stopped folder-load-status-vm"></i><span class="state folder-state-vm">${$.i18n('stopped')}</span></span><div class="folder-storage" style="display:none"></div></span><div class="folder-showcase-${id} folder-showcase"></div></div>`;

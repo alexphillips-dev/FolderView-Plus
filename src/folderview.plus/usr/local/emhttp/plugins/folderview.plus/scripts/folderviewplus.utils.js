@@ -129,6 +129,8 @@
         const liveRefreshEnabled = !Object.prototype.hasOwnProperty.call(incoming, 'liveRefreshEnabled') ? true : incoming.liveRefreshEnabled !== false;
         const liveRefreshSeconds = clampNumber(incoming.liveRefreshSeconds, 10, 300, 20);
         const performanceMode = incoming.performanceMode === true;
+        const lazyPreviewEnabled = !Object.prototype.hasOwnProperty.call(incoming, 'lazyPreviewEnabled') ? true : incoming.lazyPreviewEnabled !== false;
+        const lazyPreviewThreshold = clampNumber(incoming.lazyPreviewThreshold, 10, 200, 30);
 
         return {
             sortMode,
@@ -138,6 +140,8 @@
             liveRefreshEnabled,
             liveRefreshSeconds,
             performanceMode,
+            lazyPreviewEnabled,
+            lazyPreviewThreshold,
             backupSchedule
         };
     };
@@ -403,6 +407,97 @@
         return operations;
     };
 
+    const normalizeMemberList = (value) => {
+        if (Array.isArray(value)) {
+            return value.map((item) => String(item)).filter((item) => item !== '');
+        }
+        if (isPlainObject(value)) {
+            return Object.keys(value).map((item) => String(item)).filter((item) => item !== '');
+        }
+        return [];
+    };
+
+    const diffFolderFields = (existingFolder, incomingFolder) => {
+        const current = isPlainObject(existingFolder) ? existingFolder : {};
+        const next = isPlainObject(incomingFolder) ? incomingFolder : {};
+        const fields = [];
+
+        if (String(current.name || '') !== String(next.name || '')) {
+            fields.push('name');
+        }
+        if (String(current.icon || '') !== String(next.icon || '')) {
+            fields.push('icon');
+        }
+        if (String(current.regex || '') !== String(next.regex || '')) {
+            fields.push('regex');
+        }
+        if (JSON.stringify(current.settings || {}) !== JSON.stringify(next.settings || {})) {
+            fields.push('settings');
+        }
+        if (JSON.stringify(current.actions || []) !== JSON.stringify(next.actions || [])) {
+            fields.push('actions');
+        }
+
+        const currentMembers = normalizeMemberList(current.containers);
+        const nextMembers = normalizeMemberList(next.containers);
+        if (JSON.stringify(currentMembers) !== JSON.stringify(nextMembers)) {
+            fields.push('members');
+        }
+
+        return fields;
+    };
+
+    const buildImportDiffRows = (existingFolders, parsed, importMode) => {
+        const current = normalizeFolderMap(existingFolders);
+        const mode = ['replace', 'merge', 'skip'].includes(importMode) ? importMode : 'merge';
+        const operations = buildImportOperations(current, parsed, mode);
+        const rows = [];
+
+        for (const id of operations.deletes) {
+            rows.push({
+                action: 'delete',
+                id,
+                name: current[id]?.name || id,
+                fields: ['folder']
+            });
+        }
+
+        for (const item of operations.upserts) {
+            const id = String(item.id || '');
+            const incoming = isPlainObject(item.folder) ? item.folder : {};
+            const existing = current[id];
+            if (!existing) {
+                rows.push({
+                    action: 'create',
+                    id,
+                    name: incoming.name || id || 'New folder',
+                    fields: ['folder']
+                });
+                continue;
+            }
+
+            const fields = diffFolderFields(existing, incoming);
+            rows.push({
+                action: fields.length ? 'update' : 'unchanged',
+                id,
+                name: incoming.name || existing.name || id,
+                fields: fields.length ? fields : ['none']
+            });
+        }
+
+        for (const item of operations.creates) {
+            const incoming = isPlainObject(item.folder) ? item.folder : {};
+            rows.push({
+                action: 'create',
+                id: null,
+                name: incoming.name || 'New folder',
+                fields: ['folder']
+            });
+        }
+
+        return rows;
+    };
+
     const regexMatches = (pattern, input) => {
         if (!pattern) {
             return false;
@@ -650,6 +745,8 @@
         parseImportPayload,
         summarizeImport,
         buildImportOperations,
+        buildImportDiffRows,
+        diffFolderFields,
         ruleMatchesItem,
         getAutoRuleDecision,
         getAutoRuleMatches,

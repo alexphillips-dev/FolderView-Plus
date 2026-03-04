@@ -40,6 +40,7 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
                 <option value="alpha">Name (A-Z)</option>
             </select>
             <div class="hint-line">Use manual mode and the up/down buttons in the first column to set custom order.</div>
+            <input id="docker-folder-filter" type="text" placeholder="Search Docker folders" oninput="setFilterQuery('folders','docker',this.value)">
             <div class="badge-toggle-row">
                 <span class="badge-toggle-title">Folder badges</span>
                 <label><input id="docker-badge-running" type="checkbox" onchange="changeBadgePref('docker', 'running', this.checked)"> Running</label>
@@ -51,6 +52,8 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
                 <label><input id="docker-live-refresh-enabled" type="checkbox" onchange="changeRuntimePref('docker', 'liveRefreshEnabled', this.checked)"> Live auto-refresh</label>
                 <label>Interval (sec): <input id="docker-live-refresh-seconds" type="number" min="10" max="300" step="1" onchange="changeRuntimePref('docker', 'liveRefreshSeconds', this.value)"></label>
                 <label><input id="docker-performance-mode" type="checkbox" onchange="changeRuntimePref('docker', 'performanceMode', this.checked)"> Performance mode</label>
+                <label><input id="docker-lazy-preview-enabled" type="checkbox" onchange="changeRuntimePref('docker', 'lazyPreviewEnabled', this.checked)"> Lazy previews</label>
+                <label>Lazy threshold: <input id="docker-lazy-preview-threshold" type="number" min="10" max="200" step="1" onchange="changeRuntimePref('docker', 'lazyPreviewThreshold', this.value)"></label>
             </div>
         </div>
     </div>
@@ -95,6 +98,7 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
                 <option value="alpha">Name (A-Z)</option>
             </select>
             <div class="hint-line">Use manual mode and the up/down buttons in the first column to set custom order.</div>
+            <input id="vm-folder-filter" type="text" placeholder="Search VM folders" oninput="setFilterQuery('folders','vm',this.value)">
             <div class="badge-toggle-row">
                 <span class="badge-toggle-title">Folder badges</span>
                 <label><input id="vm-badge-running" type="checkbox" onchange="changeBadgePref('vm', 'running', this.checked)"> Running</label>
@@ -105,6 +109,8 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
                 <label><input id="vm-live-refresh-enabled" type="checkbox" onchange="changeRuntimePref('vm', 'liveRefreshEnabled', this.checked)"> Live auto-refresh</label>
                 <label>Interval (sec): <input id="vm-live-refresh-seconds" type="number" min="10" max="300" step="1" onchange="changeRuntimePref('vm', 'liveRefreshSeconds', this.value)"></label>
                 <label><input id="vm-performance-mode" type="checkbox" onchange="changeRuntimePref('vm', 'performanceMode', this.checked)"> Performance mode</label>
+                <label><input id="vm-lazy-preview-enabled" type="checkbox" onchange="changeRuntimePref('vm', 'lazyPreviewEnabled', this.checked)"> Lazy previews</label>
+                <label>Lazy threshold: <input id="vm-lazy-preview-threshold" type="number" min="10" max="200" step="1" onchange="changeRuntimePref('vm', 'lazyPreviewThreshold', this.value)"></label>
             </div>
         </div>
     </div>
@@ -165,11 +171,21 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
             <input id="docker-rule-test-image" type="text" placeholder="Test image (optional, example: linuxserver/sonarr)">
             <input id="docker-rule-test-compose" type="text" placeholder="Test compose project (optional)">
             <button onclick="testAutoRule('docker')"><i class="fa fa-flask"></i> Test rule priority</button>
+            <button onclick="runRuleSimulator('docker')"><i class="fa fa-list-alt"></i> Simulate all items</button>
             <div id="docker-rule-test-output" class="rule-test-output"></div>
         </div>
-        <table class="rules-table">
+        <input id="docker-rules-filter" type="text" placeholder="Search Docker rules" oninput="setFilterQuery('rules','docker',this.value)">
+        <div class="selection-actions">
+            <button onclick="bulkRuleAction('docker','enable')"><i class="fa fa-eye"></i> Enable selected</button>
+            <button onclick="bulkRuleAction('docker','disable')"><i class="fa fa-eye-slash"></i> Disable selected</button>
+            <button onclick="bulkRuleAction('docker','delete')"><i class="fa fa-trash"></i> Delete selected</button>
+            <button onclick="bulkRuleAction('docker','export')"><i class="fa fa-download"></i> Export selected</button>
+        </div>
+        <pre id="docker-rule-sim-output" class="diagnostics-output compact-output">Run simulator to preview assignment results for all Docker items.</pre>
+        <table class="rules-table auto-rules-table">
             <thead>
                 <tr>
+                    <th><input type="checkbox" id="docker-rules-select-all" onchange="toggleAllRuleSelections('docker', this.checked)"></th>
                     <th>Priority</th>
                     <th>Folder</th>
                     <th>Match</th>
@@ -200,11 +216,21 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
         <div class="rule-tester">
             <input id="vm-rule-test-name" type="text" placeholder="Test VM name (example: prod-db)">
             <button onclick="testAutoRule('vm')"><i class="fa fa-flask"></i> Test rule priority</button>
+            <button onclick="runRuleSimulator('vm')"><i class="fa fa-list-alt"></i> Simulate all items</button>
             <div id="vm-rule-test-output" class="rule-test-output"></div>
         </div>
-        <table class="rules-table">
+        <input id="vm-rules-filter" type="text" placeholder="Search VM rules" oninput="setFilterQuery('rules','vm',this.value)">
+        <div class="selection-actions">
+            <button onclick="bulkRuleAction('vm','enable')"><i class="fa fa-eye"></i> Enable selected</button>
+            <button onclick="bulkRuleAction('vm','disable')"><i class="fa fa-eye-slash"></i> Disable selected</button>
+            <button onclick="bulkRuleAction('vm','delete')"><i class="fa fa-trash"></i> Delete selected</button>
+            <button onclick="bulkRuleAction('vm','export')"><i class="fa fa-download"></i> Export selected</button>
+        </div>
+        <pre id="vm-rule-sim-output" class="diagnostics-output compact-output">Run simulator to preview assignment results for all VM items.</pre>
+        <table class="rules-table auto-rules-table">
             <thead>
                 <tr>
+                    <th><input type="checkbox" id="vm-rules-select-all" onchange="toggleAllRuleSelections('vm', this.checked)"></th>
                     <th>Priority</th>
                     <th>Folder</th>
                     <th>Match</th>
@@ -256,7 +282,9 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
             <button onclick="createManualBackup('docker')"><i class="fa fa-camera"></i> Create backup now</button>
             <button onclick="restoreLatestBackup('docker')"><i class="fa fa-history"></i> Restore latest</button>
             <button onclick="refreshBackups('docker')"><i class="fa fa-refresh"></i> Refresh list</button>
+            <button onclick="runScheduledBackupNow('docker')"><i class="fa fa-clock-o"></i> Run scheduler now</button>
         </div>
+        <input id="docker-backups-filter" type="text" placeholder="Search Docker backups" oninput="setFilterQuery('backups','docker',this.value)">
         <div class="schedule-row">
             <label><input id="docker-backup-schedule-enabled" type="checkbox" onchange="changeBackupSchedulePref('docker', 'enabled', this.checked)"> Scheduled backups</label>
             <label>Interval (hours): <input id="docker-backup-interval-hours" type="number" min="1" max="168" step="1" onchange="changeBackupSchedulePref('docker', 'intervalHours', this.value)"></label>
@@ -285,7 +313,9 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
             <button onclick="createManualBackup('vm')"><i class="fa fa-camera"></i> Create backup now</button>
             <button onclick="restoreLatestBackup('vm')"><i class="fa fa-history"></i> Restore latest</button>
             <button onclick="refreshBackups('vm')"><i class="fa fa-refresh"></i> Refresh list</button>
+            <button onclick="runScheduledBackupNow('vm')"><i class="fa fa-clock-o"></i> Run scheduler now</button>
         </div>
+        <input id="vm-backups-filter" type="text" placeholder="Search VM backups" oninput="setFilterQuery('backups','vm',this.value)">
         <div class="schedule-row">
             <label><input id="vm-backup-schedule-enabled" type="checkbox" onchange="changeBackupSchedulePref('vm', 'enabled', this.checked)"> Scheduled backups</label>
             <label>Interval (hours): <input id="vm-backup-interval-hours" type="number" min="1" max="168" step="1" onchange="changeBackupSchedulePref('vm', 'intervalHours', this.value)"></label>
@@ -319,9 +349,15 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
             <input id="docker-template-name" type="text" placeholder="Template name">
             <button onclick="createTemplateFromFolder('docker')"><i class="fa fa-save"></i> Save template from folder</button>
         </div>
+        <input id="docker-templates-filter" type="text" placeholder="Search Docker templates" oninput="setFilterQuery('templates','docker',this.value)">
+        <div class="selection-actions">
+            <button onclick="bulkTemplateAction('docker','delete')"><i class="fa fa-trash"></i> Delete selected</button>
+            <button onclick="bulkTemplateAction('docker','export')"><i class="fa fa-download"></i> Export selected</button>
+        </div>
         <table class="rules-table">
             <thead>
                 <tr>
+                    <th><input type="checkbox" id="docker-templates-select-all" onchange="toggleAllTemplateSelections('docker', this.checked)"></th>
                     <th>Name</th>
                     <th>Updated</th>
                     <th>Action</th>
@@ -341,9 +377,15 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
             <input id="vm-template-name" type="text" placeholder="Template name">
             <button onclick="createTemplateFromFolder('vm')"><i class="fa fa-save"></i> Save template from folder</button>
         </div>
+        <input id="vm-templates-filter" type="text" placeholder="Search VM templates" oninput="setFilterQuery('templates','vm',this.value)">
+        <div class="selection-actions">
+            <button onclick="bulkTemplateAction('vm','delete')"><i class="fa fa-trash"></i> Delete selected</button>
+            <button onclick="bulkTemplateAction('vm','export')"><i class="fa fa-download"></i> Export selected</button>
+        </div>
         <table class="rules-table">
             <thead>
                 <tr>
+                    <th><input type="checkbox" id="vm-templates-select-all" onchange="toggleAllTemplateSelections('vm', this.checked)"></th>
                     <th>Name</th>
                     <th>Updated</th>
                     <th>Action</th>
@@ -368,6 +410,7 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
         <button onclick="repairDiagnostics('repair_paths')"><i class="fa fa-folder-open"></i> Repair plugin paths</button>
         <button onclick="exportDiagnostics()"><i class="fa fa-download"></i> Export diagnostics JSON</button>
         <button onclick="exportSupportBundle()"><i class="fa fa-life-ring"></i> Export support bundle</button>
+        <button onclick="copyIssueReport()"><i class="fa fa-clipboard"></i> Copy issue report</button>
     </div>
     <pre id="diagnostics-output" class="diagnostics-output">Run health check to view diagnostics.</pre>
 </div>
@@ -390,6 +433,7 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
     <p><strong>Import summary</strong></p>
     <div id="import-preview-meta" class="preview-meta"></div>
     <div id="import-preview-result" class="preview-result"></div>
+    <div id="import-preview-diff"></div>
     <label for="import-mode-select">Import mode</label>
     <select id="import-mode-select">
         <option value="merge">Merge</option>

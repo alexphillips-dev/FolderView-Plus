@@ -22,7 +22,12 @@ const utils = window.FolderViewPlusUtils || {
         sortMode: 'created',
         manualOrder: [],
         autoRules: [],
-        badges: { running: true, stopped: false, updates: true }
+        badges: { running: true, stopped: false, updates: true },
+        liveRefreshEnabled: true,
+        liveRefreshSeconds: 20,
+        performanceMode: false,
+        lazyPreviewEnabled: true,
+        lazyPreviewThreshold: 30
     }),
     getAutoRuleMatches: () => [],
     DEFAULT_FOLDER_STATUS_COLORS: localDefaultFolderStatusColors,
@@ -322,6 +327,26 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
         console.log(`[FV3_DEBUG] createFolder (id: ${id}): Containers matched by folder label ('${folder.name}'):`, labelMatches);
         console.log(`[FV3_DEBUG] createFolder (id: ${id}): Containers matched by auto rules:`, ruleMatches);
         console.log(`[FV3_DEBUG] createFolder (id: ${id}): Final combined list of containers for folder processing (combinedContainers):`, [...combinedContainers]);
+    }
+    const lazyPreviewEnabled = folderTypePrefs?.lazyPreviewEnabled !== false;
+    const lazyPreviewThreshold = Number(folderTypePrefs?.lazyPreviewThreshold || 30);
+    const isExpandedByDefault = folder?.settings?.expand_tab === true;
+    const lazyPreviewActive = lazyPreviewEnabled
+        && Number.isFinite(lazyPreviewThreshold)
+        && combinedContainers.length >= Math.max(10, Math.min(200, Math.round(lazyPreviewThreshold)))
+        && !isExpandedByDefault;
+    if (lazyPreviewActive && folder && typeof folder === 'object') {
+        folder.settings = {
+            ...(folder.settings || {}),
+            preview: 0,
+            preview_hover: false,
+            preview_logs: false,
+            preview_console: false,
+            preview_webui: false,
+            preview_vertical_bars: false,
+            preview_update: false,
+            preview_grayscale: false
+        };
     }
     // --- End of combinedContainers build ---
 

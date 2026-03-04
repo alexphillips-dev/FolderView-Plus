@@ -85,6 +85,17 @@ const getFolderIdFromRow = (row) => {
     return '';
 };
 
+const getFolderNameFromRow = (row) => {
+    if (!row || !row.querySelector) {
+        return '';
+    }
+    const label = row.querySelector('td.ct-name.folder-name a.exec.folder-appname');
+    if (!label || typeof label.textContent !== 'string') {
+        return '';
+    }
+    return label.textContent.trim();
+};
+
 const getRenderedRowHeight = (row) => {
     if (!row) {
         return 0;
@@ -119,6 +130,37 @@ const applyRowHeight = (row, height = 0) => {
             td.style.setProperty('vertical-align', 'middle', 'important');
         }
     });
+};
+
+const buildMainFolderHeightLookup = () => {
+    const byId = new Map();
+    const byName = new Map();
+    const ordered = [];
+
+    const mainRows = Array.from(document.querySelectorAll('#docker_list tr')).filter((row) => {
+        return !!(row && row.querySelector && row.querySelector('td.ct-name.folder-name'));
+    });
+
+    mainRows.forEach((row) => {
+        const height = getRenderedRowHeight(row);
+        if (height <= 0) {
+            return;
+        }
+
+        ordered.push(height);
+
+        const folderId = getFolderIdFromRow(row);
+        if (folderId && !byId.has(folderId)) {
+            byId.set(folderId, height);
+        }
+
+        const folderName = getFolderNameFromRow(row);
+        if (folderName && !byName.has(folderName)) {
+            byName.set(folderName, height);
+        }
+    });
+
+    return { byId, byName, ordered };
 };
 
 const applyFolderCellCentering = (cell, rowHeight = 0) => {
@@ -171,31 +213,42 @@ const applyFolderCellCentering = (cell, rowHeight = 0) => {
 };
 
 const forceAllFolderRowsVerticalCenter = () => {
-    const mainRowHeightByFolderId = new Map();
-    document.querySelectorAll('#docker_list tr').forEach((row) => {
-        const id = getFolderIdFromRow(row);
-        if (!id) {
+    const lookup = buildMainFolderHeightLookup();
+
+    const cloneRows = [];
+    const cloneSeen = new Set();
+    document.querySelectorAll('td.ct-name.folder-name').forEach((cell) => {
+        const row = cell.parentElement;
+        if (!row || isMainDockerRow(row) || cloneSeen.has(row)) {
             return;
         }
-        const height = getRenderedRowHeight(row);
-        if (height > 0) {
-            mainRowHeightByFolderId.set(id, height);
-        }
+        cloneSeen.add(row);
+        cloneRows.push(row);
     });
 
-    const processedRows = new Set();
-    document.querySelectorAll('td.ct-name.folder-name').forEach((cell) => {
-        const parentRow = cell.parentElement;
-        if (!parentRow || processedRows.has(parentRow)) {
-            return;
-        }
-        processedRows.add(parentRow);
+    cloneRows.forEach((row, index) => {
+        const folderId = getFolderIdFromRow(row);
+        const folderName = getFolderNameFromRow(row);
+        let targetHeight = 0;
 
-        const folderId = getFolderIdFromRow(parentRow);
-        const mainHeight = folderId ? (mainRowHeightByFolderId.get(folderId) || 0) : 0;
-        const targetHeight = !isMainDockerRow(parentRow) && mainHeight > 0 ? mainHeight : 0;
-        applyRowHeight(parentRow, targetHeight);
-        applyFolderCellCentering(cell, targetHeight);
+        if (folderId && lookup.byId.has(folderId)) {
+            targetHeight = lookup.byId.get(folderId);
+        } else if (folderName && lookup.byName.has(folderName)) {
+            targetHeight = lookup.byName.get(folderName);
+        } else if (lookup.ordered.length > 0) {
+            targetHeight = lookup.ordered[Math.min(index, lookup.ordered.length - 1)];
+        }
+
+        applyRowHeight(row, targetHeight);
+        row.querySelectorAll('td.ct-name.folder-name').forEach((cell) => {
+            applyFolderCellCentering(cell, targetHeight);
+        });
+    });
+
+    document.querySelectorAll('#docker_list td.ct-name.folder-name').forEach((cell) => {
+        const row = cell.parentElement;
+        applyRowHeight(row, 0);
+        applyFolderCellCentering(cell, 0);
     });
 };
 

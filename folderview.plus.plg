@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.08.1">
-<!ENTITY md5 "76df551e15cc106d3888dde47b74fdbc">
+<!ENTITY version "2026.03.08.2">
+<!ENTITY md5 "69d5630da626645d1501eb5910717063">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.08.2
+- Tighten Docker row-height syncing to restore compact spacing:
+  - keep natural height on main folder rows (with preview content),
+  - only sync explicit height on fixed-column clone rows,
+  - clear prior forced main-row heights and remove extra minimum height on folder label wrapper.
 
 ###2026.03.08.1
 - Replace Docker folder left-column centering strategy with height-sync + flex alignment:

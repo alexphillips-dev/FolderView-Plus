@@ -86,27 +86,48 @@ const getRenderedRowHeight = (row) => {
     return Math.max(Math.round(rectHeight), Math.round(offsetHeight), 0);
 };
 
+const rowHasFolderPreview = (row) => {
+    return !!(row && row.querySelector && row.querySelector('div.folder-preview'));
+};
+
 const syncFolderRowsHeight = (rows) => {
     if (!rows || !rows.length) {
         return 0;
     }
-    let maxHeight = 0;
+    let baseHeight = 0;
     rows.forEach((row) => {
-        maxHeight = Math.max(maxHeight, getRenderedRowHeight(row));
+        if (rowHasFolderPreview(row)) {
+            baseHeight = Math.max(baseHeight, getRenderedRowHeight(row));
+        }
     });
-    if (maxHeight <= 0) {
+    if (baseHeight <= 0) {
+        rows.forEach((row) => {
+            baseHeight = Math.max(baseHeight, getRenderedRowHeight(row));
+        });
+    }
+    if (baseHeight <= 0) {
         return 0;
     }
+
     rows.forEach((row) => {
-        row.style.setProperty('height', `${maxHeight}px`, 'important');
+        const shouldSyncHeight = !rowHasFolderPreview(row);
+        if (shouldSyncHeight) {
+            row.style.setProperty('height', `${baseHeight}px`, 'important');
+        } else {
+            row.style.removeProperty('height');
+        }
         Array.from(row.children || []).forEach((td) => {
             if (td && td.tagName === 'TD') {
-                td.style.setProperty('height', `${maxHeight}px`, 'important');
+                if (shouldSyncHeight) {
+                    td.style.setProperty('height', `${baseHeight}px`, 'important');
+                } else {
+                    td.style.removeProperty('height');
+                }
                 td.style.setProperty('vertical-align', 'middle', 'important');
             }
         });
     });
-    return maxHeight;
+    return baseHeight;
 };
 
 const applyFolderCellCentering = (cell, rowHeight = 0) => {
@@ -127,7 +148,7 @@ const applyFolderCellCentering = (cell, rowHeight = 0) => {
         return false;
     }
 
-    const height = Number.isFinite(rowHeight) && rowHeight > 0 ? Math.round(rowHeight) : getRenderedRowHeight(cell.parentElement);
+    const height = Number.isFinite(rowHeight) && rowHeight > 0 ? Math.round(rowHeight) : 0;
     cell.style.setProperty('vertical-align', 'middle', 'important');
     cell.style.setProperty('position', 'static', 'important');
     cell.style.setProperty('display', 'table-cell', 'important');
@@ -135,6 +156,8 @@ const applyFolderCellCentering = (cell, rowHeight = 0) => {
     cell.style.setProperty('padding-bottom', '0px', 'important');
     if (height > 0) {
         cell.style.setProperty('height', `${height}px`, 'important');
+    } else {
+        cell.style.removeProperty('height');
     }
 
     sub.style.setProperty('position', 'relative', 'important');
@@ -144,10 +167,12 @@ const applyFolderCellCentering = (cell, rowHeight = 0) => {
     sub.style.setProperty('transform', 'none', 'important');
     sub.style.setProperty('display', 'flex', 'important');
     sub.style.setProperty('align-items', 'center', 'important');
-    sub.style.setProperty('min-height', '48px', 'important');
+    sub.style.setProperty('min-height', '0', 'important');
     sub.style.setProperty('width', '100%', 'important');
     if (height > 0) {
         sub.style.setProperty('height', `${Math.max(0, height - 2)}px`, 'important');
+    } else {
+        sub.style.removeProperty('height');
     }
 
     return true;
@@ -172,8 +197,9 @@ const forceAllFolderRowsVerticalCenter = () => {
         const syncedHeight = syncFolderRowsHeight(rows);
         rows.forEach((row) => {
             handledRows.add(row);
+            const rowHeight = rowHasFolderPreview(row) ? 0 : syncedHeight;
             row.querySelectorAll('td.ct-name.folder-name').forEach((cell) => {
-                applyFolderCellCentering(cell, syncedHeight);
+                applyFolderCellCentering(cell, rowHeight);
             });
         });
     });
@@ -181,7 +207,7 @@ const forceAllFolderRowsVerticalCenter = () => {
     document.querySelectorAll('td.ct-name.folder-name').forEach((cell) => {
         const parentRow = cell.parentElement;
         if (!handledRows.has(parentRow)) {
-            applyFolderCellCentering(cell, getRenderedRowHeight(parentRow));
+            applyFolderCellCentering(cell, rowHasFolderPreview(parentRow) ? 0 : getRenderedRowHeight(parentRow));
         }
     });
 };
@@ -195,8 +221,9 @@ const forceFolderRowVerticalCenter = (id) => {
     }
     const syncedHeight = syncFolderRowsHeight(rows);
     rows.forEach((row) => {
+        const rowHeight = rowHasFolderPreview(row) ? 0 : syncedHeight;
         row.querySelectorAll('td.ct-name.folder-name').forEach((cell) => {
-            applyFolderCellCentering(cell, syncedHeight);
+            applyFolderCellCentering(cell, rowHeight);
         });
     });
 };

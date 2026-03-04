@@ -29,6 +29,16 @@ const utils = window.FolderViewPlusUtils || {
         };
     }
 };
+const FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
+const getFolderLabelValue = (labels) => {
+    const source = labels && typeof labels === 'object' ? labels : {};
+    for (const key of FOLDER_LABEL_KEYS) {
+        if (typeof source[key] === 'string' && source[key].trim() !== '') {
+            return source[key].trim();
+        }
+    }
+    return '';
+};
 
 /**
  * Handles the creation of all folders
@@ -306,7 +316,7 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
 
     folder.containers = folder.containers.concat(order.filter(el => {
         const labels = containersInfo[el]?.Labels || {};
-        return labels['folderview.plus'] === folder.name;
+        return getFolderLabelValue(labels) === folder.name;
     }));
 
     folder.containers = folder.containers.concat(utils.getAutoRuleMatches({

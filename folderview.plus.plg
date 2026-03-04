@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.06.5">
-<!ENTITY md5 "b610c5da34656583f446a7868612784c">
+<!ENTITY version "2026.03.06.6">
+<!ENTITY md5 "94dfbc5312d0459896a9ef0b8787545d">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.06.6
+- Add compatibility migration for legacy Folder View installs:
+  - auto-import folder data from `/boot/config/plugins/folder.view3` and `/boot/config/plugins/folder.view2` when `folderview.plus` data is empty/missing,
+  - migrate legacy type prefs (`*.prefs.json`) when current prefs are still defaults.
+- Add legacy Docker label compatibility so folder assignment by label works with `folder.view3`, `folder.view2`, and `folder.view` labels in addition to `folderview.plus`.
+- Load custom override scripts/styles from legacy config directories so older customizations continue to apply after upgrade.
 
 ###2026.03.06.5
 - Restore diagnostics export mode popup so users can choose `Full` or `Sanitized` export at click time.
@@ -164,4 +171,3 @@
     </FILE>
 
 </PLUGIN>
-

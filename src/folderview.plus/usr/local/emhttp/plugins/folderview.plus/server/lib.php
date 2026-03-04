@@ -81,6 +81,11 @@
         'paused' => '#b8860b',
         'stopped' => '#ff4d4d'
     ];
+    const FVPLUS_LEGACY_CONFIG_DIRS = [
+        '/boot/config/plugins/folder.view3',
+        '/boot/config/plugins/folder.view2',
+        '/boot/config/plugins/folder.view'
+    ];
 
     function ensureType(string $type): string {
         if (!in_array($type, FVPLUS_ALLOWED_TYPES, true)) {
@@ -99,6 +104,110 @@
         return $version === '' ? '0.0.0' : $version;
     }
 
+    function getLegacyConfigDirCandidates(): array {
+        $candidates = [];
+        foreach (FVPLUS_LEGACY_CONFIG_DIRS as $dir) {
+            if (is_dir($dir)) {
+                $candidates[] = $dir;
+            }
+        }
+        return $candidates;
+    }
+
+    function readJsonObjectFile(string $path): ?array {
+        if (!file_exists($path)) {
+            return null;
+        }
+        $decoded = @json_decode((string)@file_get_contents($path), true);
+        return is_array($decoded) ? $decoded : null;
+    }
+
+    function getLegacyMigrationMarkerPath(string $type, string $kind): string {
+        global $configDir;
+        $safeType = ensureType($type);
+        $safeKind = $kind === 'prefs' ? 'prefs' : 'folders';
+        return "$configDir/.legacy-migrated-$safeType-$safeKind";
+    }
+
+    function hasLegacyMigrationMarker(string $type, string $kind): bool {
+        return file_exists(getLegacyMigrationMarkerPath($type, $kind));
+    }
+
+    function markLegacyMigrationComplete(string $type, string $kind): void {
+        global $configDir;
+        if (!is_dir($configDir)) {
+            @mkdir($configDir, 0770, true);
+        }
+        @file_put_contents(getLegacyMigrationMarkerPath($type, $kind), gmdate('c'));
+    }
+
+    function migrateLegacyTypeDataIfNeeded(string $type, string $kind): void {
+        $type = ensureType($type);
+        $safeKind = $kind === 'prefs' ? 'prefs' : 'folders';
+        if (hasLegacyMigrationMarker($type, $safeKind)) {
+            return;
+        }
+
+        $targetPath = $safeKind === 'prefs' ? getTypePrefsPath($type) : getFolderFilePath($type);
+        $targetData = readJsonObjectFile($targetPath);
+
+        // Keep existing non-empty data/prefs untouched.
+        if ($safeKind === 'prefs' && is_array($targetData)) {
+            if (normalizeTypePrefs($targetData) !== defaultTypePrefs()) {
+                return;
+            }
+        }
+        if ($safeKind === 'folders' && is_array($targetData) && count($targetData) > 0) {
+            return;
+        }
+
+        $legacyName = $safeKind === 'prefs' ? "$type.prefs.json" : "$type.json";
+        foreach (getLegacyConfigDirCandidates() as $legacyDir) {
+            $legacyPath = "$legacyDir/$legacyName";
+            $legacyData = readJsonObjectFile($legacyPath);
+            if (!is_array($legacyData)) {
+                continue;
+            }
+
+            if ($safeKind === 'prefs') {
+                $legacyData = normalizeTypePrefs($legacyData);
+                if ($legacyData === defaultTypePrefs()) {
+                    continue;
+                }
+            } elseif (count($legacyData) === 0) {
+                continue;
+            }
+
+            $parent = dirname($targetPath);
+            if (!is_dir($parent)) {
+                @mkdir($parent, 0770, true);
+            }
+            @file_put_contents($targetPath, json_encode($legacyData, JSON_UNESCAPED_SLASHES));
+            markLegacyMigrationComplete($type, $safeKind);
+            return;
+        }
+    }
+
+    function getCustomOverrideDirs(string $kind): array {
+        global $configDir;
+        $safeKind = $kind === 'styles' ? 'styles' : 'scripts';
+        $dirs = [];
+
+        $currentDir = "$configDir/$safeKind";
+        if (is_dir($currentDir)) {
+            $dirs[] = $currentDir;
+        }
+
+        foreach (getLegacyConfigDirCandidates() as $legacyDir) {
+            $path = "$legacyDir/$safeKind";
+            if (is_dir($path)) {
+                $dirs[] = $path;
+            }
+        }
+
+        return array_values(array_unique($dirs));
+    }
+
     function getFolderFilePath(string $type): string {
         global $configDir;
         return "$configDir/$type.json";
@@ -106,6 +215,7 @@
 
     function readRawFolderMap(string $type): array {
         $type = ensureType($type);
+        migrateLegacyTypeDataIfNeeded($type, 'folders');
         $path = getFolderFilePath($type);
         if (!file_exists($path)) {
             createFile($type);
@@ -200,6 +310,7 @@
 
     function readTypePrefs(string $type): array {
         $type = ensureType($type);
+        migrateLegacyTypeDataIfNeeded($type, 'prefs');
         $path = getTypePrefsPath($type);
         $parent = dirname($path);
         if (!is_dir($parent)) {

@@ -13,6 +13,17 @@ const DEFAULT_FOLDER_STATUS_COLORS = {
     paused: '#b8860b',
     stopped: '#ff4d4d'
 };
+const FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
+
+const getFolderLabelValue = (labels) => {
+    const source = labels && typeof labels === 'object' ? labels : {};
+    for (const key of FOLDER_LABEL_KEYS) {
+        if (typeof source[key] === 'string' && source[key].trim() !== '') {
+            return source[key].trim();
+        }
+    }
+    return '';
+};
 
 const rgbToHex = (rgb) => {
     rgb = rgb.slice(4, -1).split(', ');
@@ -56,10 +67,11 @@ resetStatusColorDefaults();
     let typeFilter;
     if (type === 'docker') {
         typeFilter = (e) => {
+            const labels = e?.info?.Config?.Labels || {};
             return {
                 'Name': e.info.Name,
-                'Icon': e.info.Config.Labels['net.unraid.docker.icon'],
-                'Label': e.info.Config.Labels['folderview.plus']
+                'Icon': labels['net.unraid.docker.icon'],
+                'Label': getFolderLabelValue(labels)
             }
         };
     } else if (type === 'vm') {

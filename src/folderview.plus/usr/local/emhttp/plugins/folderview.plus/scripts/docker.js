@@ -35,6 +35,16 @@ const utils = window.FolderViewPlusUtils || {
         };
     }
 };
+const FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
+const getFolderLabelValue = (labels) => {
+    const source = labels && typeof labels === 'object' ? labels : {};
+    for (const key of FOLDER_LABEL_KEYS) {
+        if (typeof source[key] === 'string' && source[key].trim() !== '') {
+            return source[key].trim();
+        }
+    }
+    return '';
+};
 
 if (FOLDER_VIEW_DEBUG_MODE) {
     console.log('[FV3_DEBUG] docker.js loaded. FOLDER_VIEW_DEBUG_MODE is ON.');
@@ -281,7 +291,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
 
     const labelMatches = orderSnapshotAtFolderStart.filter(el => {
         const labels = containersInfo[el]?.Labels || {};
-        return labels['folderview.plus'] === folder.name && !combinedContainers.includes(el);
+        return getFolderLabelValue(labels) === folder.name && !combinedContainers.includes(el);
     });
     labelMatches.forEach(match => combinedContainers.push(match));
 

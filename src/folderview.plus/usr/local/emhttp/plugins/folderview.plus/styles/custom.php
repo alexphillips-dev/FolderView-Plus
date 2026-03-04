@@ -1,9 +1,16 @@
 <?php
     require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php");
-    $styles = dirToArrayOfFiles(pathToMultiDimArray('/boot/config/plugins/folderview.plus/styles'), "/\..*{$type}.*\.css$/", "/.*\.disabled$/");
-    foreach ($styles as $style) {
-        echo "<link rel=\"stylesheet\" href=\"";
-        autov($style['path']);
-        echo  "\">";
+    $seen = [];
+    foreach (getCustomOverrideDirs('styles') as $stylesDir) {
+        $styles = dirToArrayOfFiles(pathToMultiDimArray($stylesDir), "/\..*{$type}.*\.css$/", "/.*\.disabled$/");
+        foreach ($styles as $style) {
+            if (!is_array($style) || empty($style['path']) || isset($seen[$style['path']])) {
+                continue;
+            }
+            $seen[$style['path']] = true;
+            echo "<link rel=\"stylesheet\" href=\"";
+            autov($style['path']);
+            echo  "\">";
+        }
     }
 ?>

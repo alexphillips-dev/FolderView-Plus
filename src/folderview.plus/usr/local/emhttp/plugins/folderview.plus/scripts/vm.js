@@ -360,8 +360,13 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone) => {
     const showRunningBadge = badgePrefs.running !== false;
     const showStoppedBadge = badgePrefs.stopped === true;
     const folderIsRunning = started > 0;
-    if ((folderIsRunning && !showRunningBadge) || (!folderIsRunning && !showStoppedBadge)) {
-        $(`tr.folder-id-${id} i#load-folder-${id}, tr.folder-id-${id} span.folder-state`).hide();
+    if (folderIsRunning && !showRunningBadge) {
+        $(`tr.folder-id-${id} i#load-folder-${id}`).hide();
+    }
+    if (!folderIsRunning && !showStoppedBadge) {
+        const total = Object.entries(folder.containers).length;
+        $(`tr.folder-id-${id} i#load-folder-${id}`).hide();
+        $(`tr.folder-id-${id} span.folder-state`).text(`${started}/${total} ${$.i18n('started')}`);
     }
 
 

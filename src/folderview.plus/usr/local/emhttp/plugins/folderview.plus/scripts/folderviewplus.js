@@ -1236,29 +1236,39 @@ const repairDiagnostics = async (action) => {
     }
 };
 
-const exportDiagnostics = async () => {
-    swal({
-        title: 'Export diagnostics',
-        text: 'Include full details (paths, names, and request metadata)?\nChoose Cancel for sanitized export.',
-        type: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Full export',
-        cancelButtonText: 'Sanitized export'
-    }, async (useFull) => {
-        const privacy = useFull ? 'full' : 'sanitized';
+const exportDiagnostics = async (privacy = 'sanitized') => {
+    const mode = privacy === 'full' ? 'full' : 'sanitized';
+    let diagnostics = null;
+
+    const cachedMode = (lastDiagnostics?.privacyMode || 'sanitized');
+    if (lastDiagnostics && cachedMode === mode) {
+        diagnostics = lastDiagnostics;
+    }
+
+    if (!diagnostics) {
         try {
-            const diagnostics = await getDiagnostics(privacy);
+            diagnostics = await getDiagnostics(mode);
             renderDiagnostics(diagnostics);
-            downloadFile('FolderView Plus Diagnostics.json', toPrettyJson(diagnostics || {}));
-            await trackDiagnosticsEvent({
-                eventType: 'diagnostics_export',
-                details: {
-                    privacyMode: privacy,
-                    schemaVersion: diagnostics?.schemaVersion || null
-                }
-            });
         } catch (error) {
-            showError('Diagnostics export failed', error);
+            if (lastDiagnostics) {
+                diagnostics = lastDiagnostics;
+            } else {
+                diagnostics = {
+                    schemaVersion: 2,
+                    privacyMode: mode,
+                    checkedAt: new Date().toISOString(),
+                    error: error?.message || String(error)
+                };
+            }
+        }
+    }
+
+    downloadFile('FolderView Plus Diagnostics.json', toPrettyJson(diagnostics || {}));
+    trackDiagnosticsEvent({
+        eventType: 'diagnostics_export',
+        details: {
+            privacyMode: mode,
+            schemaVersion: diagnostics?.schemaVersion || null
         }
     });
 };

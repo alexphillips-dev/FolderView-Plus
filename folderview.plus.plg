@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.06.3">
-<!ENTITY md5 "39ac8cf761703bbef75674f8105c8814">
+<!ENTITY version "2026.03.06.4">
+<!ENTITY md5 "e906454fc17b52f18e9f9e1530c1377b">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.06.4
+- Fix diagnostics export reliability by restoring direct-download behavior.
+- Export now defaults to sanitized diagnostics immediately and falls back to cached/latest data if live diagnostics refresh fails.
 
 ###2026.03.06.3
 - Expand diagnostics export to schema v2 with richer bug-fixing data:

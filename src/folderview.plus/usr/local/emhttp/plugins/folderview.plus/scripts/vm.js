@@ -361,19 +361,21 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone) => {
     //set tehe status of a folder
 
     const total = Object.entries(folder.containers).length;
+    const $folderState = $(`tr.folder-id-${id} span.folder-state`);
+    $folderState.removeClass('fv-folder-state-started fv-folder-state-paused fv-folder-state-stopped');
     let folderStatusKind = 'stopped';
     if (started > 0) {
         folderStatusKind = 'running';
         $(`tr.folder-id-${id} i#load-folder-${id}`).attr('class', 'fa fa-play started green-text folder-load-status');
-        $(`tr.folder-id-${id} span.folder-state`).text(`${started}/${total} ${$.i18n('started')}`);
+        $folderState.text(`${started}/${total} ${$.i18n('started')}`).addClass('fv-folder-state-started');
     } else if (paused > 0) {
         folderStatusKind = 'paused';
         $(`tr.folder-id-${id} i#load-folder-${id}`).attr('class', 'fa fa-pause paused orange-text folder-load-status');
-        $(`tr.folder-id-${id} span.folder-state`).text(`${paused}/${total} ${$.i18n('paused')}`);
+        $folderState.text(`${paused}/${total} ${$.i18n('paused')}`).addClass('fv-folder-state-paused');
     } else {
         folderStatusKind = 'stopped';
         $(`tr.folder-id-${id} i#load-folder-${id}`).attr('class', 'fa fa-square stopped red-text folder-load-status');
-        $(`tr.folder-id-${id} span.folder-state`).text(`${stopped}/${total} ${$.i18n('stopped')}`);
+        $folderState.text(`${stopped}/${total} ${$.i18n('stopped')}`).addClass('fv-folder-state-stopped');
     }
     const badgePrefs = folderTypePrefs?.badges || {};
     const showRunningBadge = badgePrefs.running !== false;

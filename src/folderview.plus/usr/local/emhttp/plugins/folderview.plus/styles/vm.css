@@ -39,6 +39,18 @@
     flex-shrink: 0;
 }
 
+span.folder-state.fv-folder-state-started {
+    color: #ffffff !important;
+}
+
+span.folder-state.fv-folder-state-paused {
+    color: #b8860b !important;
+}
+
+span.folder-state.fv-folder-state-stopped {
+    color: #ff4d4d !important;
+}
+
 .folder-storage {
     display: none;
 }

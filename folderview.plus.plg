@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.05.8">
-<!ENTITY md5 "c4ca972ced30d8cab3c4ac07354a9b07">
+<!ENTITY version "2026.03.05.9">
+<!ENTITY md5 "1d386e5f2c1a4a90a90f5155c5fb389a">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.05.9
+- Color-code folder state text for faster scanning:
+  - white for `started`,
+  - dark gold for `paused`,
+  - red for `stopped`.
+- Apply status text coloring to both Docker and VM folder views.
 
 ###2026.03.05.8
 - Improve folder status labels to show explicit state totals:

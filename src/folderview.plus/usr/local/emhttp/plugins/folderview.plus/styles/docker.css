@@ -27,9 +27,18 @@
     box-sizing: border-box;
 }
 
-/* Keep folder labels vertically centered against the preview row content */
-#docker_list > tr.folder > td {
+/* Keep folder rows vertically centered against the preview row content */
+#docker_list > tr.sortable.folder > td {
     vertical-align: middle !important;
+}
+
+#docker_list > tr.sortable.folder > td.ct-name.folder-name {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+#docker_list > tr.sortable.folder > td.ct-name.folder-name > .folder-name-sub {
+    min-height: 3.5em;
 }
 
 .folder-outer {

@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.07.4">
-<!ENTITY md5 "93b881669e9893f67ec1e30cf70c43cb">
+<!ENTITY version "2026.03.07.5">
+<!ENTITY md5 "7e7d27b52e5df84d2b9dfed30942793d">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.07.5
+- Tighten Docker folder row centering fix:
+  - force vertical middle alignment on all folder row cells,
+  - remove top/bottom padding from the folder name cell,
+  - enforce a minimum height on the left folder content block to match preview row height.
 
 ###2026.03.07.4
 - Fix Docker folder row alignment: folder cells are now vertically centered relative to the container preview row.

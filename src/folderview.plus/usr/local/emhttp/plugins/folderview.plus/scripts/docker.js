@@ -65,12 +65,21 @@ const escapeClassToken = (value) => {
 };
 
 const getFolderIdFromRow = (row) => {
-    if (!row || !row.classList) {
+    if (!row) {
         return '';
     }
-    for (const cls of row.classList) {
-        if (typeof cls === 'string' && cls.startsWith('folder-id-')) {
-            return cls.substring('folder-id-'.length);
+    if (row.classList) {
+        for (const cls of row.classList) {
+            if (typeof cls === 'string' && cls.startsWith('folder-id-')) {
+                return cls.substring('folder-id-'.length);
+            }
+        }
+    }
+    const label = row.querySelector && row.querySelector('td.ct-name.folder-name span.appname a');
+    if (label && typeof label.textContent === 'string') {
+        const text = label.textContent.trim();
+        if (text.startsWith('folder-') && text.length > 7) {
+            return text.substring(7);
         }
     }
     return '';
@@ -86,48 +95,30 @@ const getRenderedRowHeight = (row) => {
     return Math.max(Math.round(rectHeight), Math.round(offsetHeight), 0);
 };
 
-const rowHasFolderPreview = (row) => {
-    return !!(row && row.querySelector && row.querySelector('div.folder-preview'));
+const isMainDockerRow = (row) => {
+    return !!(row && row.closest && row.closest('#docker_list'));
 };
 
-const syncFolderRowsHeight = (rows) => {
-    if (!rows || !rows.length) {
-        return 0;
+const applyRowHeight = (row, height = 0) => {
+    if (!row || row.tagName !== 'TR') {
+        return;
     }
-    let baseHeight = 0;
-    rows.forEach((row) => {
-        if (rowHasFolderPreview(row)) {
-            baseHeight = Math.max(baseHeight, getRenderedRowHeight(row));
-        }
-    });
-    if (baseHeight <= 0) {
-        rows.forEach((row) => {
-            baseHeight = Math.max(baseHeight, getRenderedRowHeight(row));
-        });
+    const targetHeight = Number.isFinite(height) && height > 0 ? Math.round(height) : 0;
+    if (targetHeight > 0) {
+        row.style.setProperty('height', `${targetHeight}px`, 'important');
+    } else {
+        row.style.removeProperty('height');
     }
-    if (baseHeight <= 0) {
-        return 0;
-    }
-
-    rows.forEach((row) => {
-        const shouldSyncHeight = !rowHasFolderPreview(row);
-        if (shouldSyncHeight) {
-            row.style.setProperty('height', `${baseHeight}px`, 'important');
-        } else {
-            row.style.removeProperty('height');
-        }
-        Array.from(row.children || []).forEach((td) => {
-            if (td && td.tagName === 'TD') {
-                if (shouldSyncHeight) {
-                    td.style.setProperty('height', `${baseHeight}px`, 'important');
-                } else {
-                    td.style.removeProperty('height');
-                }
-                td.style.setProperty('vertical-align', 'middle', 'important');
+    Array.from(row.children || []).forEach((td) => {
+        if (td && td.tagName === 'TD') {
+            if (targetHeight > 0) {
+                td.style.setProperty('height', `${targetHeight}px`, 'important');
+            } else {
+                td.style.removeProperty('height');
             }
-        });
+            td.style.setProperty('vertical-align', 'middle', 'important');
+        }
     });
-    return baseHeight;
 };
 
 const applyFolderCellCentering = (cell, rowHeight = 0) => {
@@ -180,53 +171,40 @@ const applyFolderCellCentering = (cell, rowHeight = 0) => {
 };
 
 const forceAllFolderRowsVerticalCenter = () => {
-    const rowsByFolderId = new Map();
-    const handledRows = new Set();
-
-    document.querySelectorAll('tr[class*="folder-id-"]').forEach((row) => {
+    const mainRowHeightByFolderId = new Map();
+    document.querySelectorAll('#docker_list tr').forEach((row) => {
         const id = getFolderIdFromRow(row);
         if (!id) {
             return;
         }
-        if (!rowsByFolderId.has(id)) {
-            rowsByFolderId.set(id, []);
+        const height = getRenderedRowHeight(row);
+        if (height > 0) {
+            mainRowHeightByFolderId.set(id, height);
         }
-        rowsByFolderId.get(id).push(row);
     });
 
-    rowsByFolderId.forEach((rows) => {
-        const syncedHeight = syncFolderRowsHeight(rows);
-        rows.forEach((row) => {
-            handledRows.add(row);
-            const rowHeight = rowHasFolderPreview(row) ? 0 : syncedHeight;
-            row.querySelectorAll('td.ct-name.folder-name').forEach((cell) => {
-                applyFolderCellCentering(cell, rowHeight);
-            });
-        });
-    });
-
+    const processedRows = new Set();
     document.querySelectorAll('td.ct-name.folder-name').forEach((cell) => {
         const parentRow = cell.parentElement;
-        if (!handledRows.has(parentRow)) {
-            applyFolderCellCentering(cell, rowHasFolderPreview(parentRow) ? 0 : getRenderedRowHeight(parentRow));
+        if (!parentRow || processedRows.has(parentRow)) {
+            return;
         }
+        processedRows.add(parentRow);
+
+        const folderId = getFolderIdFromRow(parentRow);
+        const mainHeight = folderId ? (mainRowHeightByFolderId.get(folderId) || 0) : 0;
+        const targetHeight = !isMainDockerRow(parentRow) && mainHeight > 0 ? mainHeight : 0;
+        applyRowHeight(parentRow, targetHeight);
+        applyFolderCellCentering(cell, targetHeight);
     });
 };
 
 const forceFolderRowVerticalCenter = (id) => {
-    const escapedId = escapeClassToken(id);
-    const rows = Array.from(document.querySelectorAll(`tr.folder-id-${escapedId}`));
-    if (!rows.length) {
-        forceAllFolderRowsVerticalCenter();
+    const escapedId = escapeClassToken(id); // Keep id-specific call signature for existing call sites.
+    if (!escapedId) {
         return;
     }
-    const syncedHeight = syncFolderRowsHeight(rows);
-    rows.forEach((row) => {
-        const rowHeight = rowHasFolderPreview(row) ? 0 : syncedHeight;
-        row.querySelectorAll('td.ct-name.folder-name').forEach((cell) => {
-            applyFolderCellCentering(cell, rowHeight);
-        });
-    });
+    forceAllFolderRowsVerticalCenter();
 };
 
 let folderRowCenterObserver = null;

@@ -1,0 +1,81 @@
+name: Feature request
+description: Propose a new feature or improvement for FolderView Plus
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Share what you want to improve and why. Clear use-cases help prioritize work.
+
+  - type: checkboxes
+    id: precheck
+    attributes:
+      label: Pre-check
+      options:
+        - label: I searched existing issues and did not find an open duplicate request.
+          required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What is difficult today, and who is affected?
+      placeholder: "Describe the pain point this feature would solve."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the behavior or UX you want.
+      placeholder: "Describe the ideal behavior."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches you considered and why they are not enough.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      multiple: true
+      options:
+        - Docker tab
+        - VM tab
+        - Dashboard
+        - Settings page
+        - Import/Export
+        - Folder ordering
+        - Auto-assignment rules
+        - Update/Release process
+        - Docs/README
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: impact
+    attributes:
+      label: Expected impact
+      options:
+        - High
+        - Medium
+        - Low
+    validations:
+      required: true
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: Example workflow
+      description: Optional mockup, pseudo-steps, or concrete before/after example.
+    validations:
+      required: false

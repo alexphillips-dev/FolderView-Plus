@@ -1,0 +1,104 @@
+/* Container order table - responsive for all screen sizes */
+table.sortable {
+    width: 100%;
+    margin: 0 auto;
+    table-layout: fixed;
+}
+
+table.sortable th,
+table.sortable td {
+    padding: 0.5em;
+}
+
+table.sortable th:first-child,
+table.sortable td:first-child {
+    width: 75%;
+    text-align: left;
+}
+
+table.sortable th:last-child,
+table.sortable td:last-child {
+    width: 25%;
+    text-align: center;
+}
+
+.item {
+    height: 5em;
+    border-bottom: 1px solid;
+}
+
+.item img {
+    pointer-events: none;
+}
+
+.sortable > tbody > .item[draggable="true"] {
+    cursor: move;
+}
+
+.dragging {
+    opacity: 20%;
+}
+
+.custom-action-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+.multiselect-container {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Fix tooltip bullet points - remove list markers and align with headings */
+.canvas form > ul,
+.canvas form ul {
+    list-style: none;
+    padding-left: 0;
+    margin-left: 0;
+}
+
+.canvas form > ul > li,
+.canvas form ul > li {
+    list-style: none;
+    margin-left: 0;
+    padding-left: 0;
+}
+
+/* Nested ul for sub-options */
+.canvas form ul ul {
+    margin-left: 1em;
+}
+
+/* Keep color picker and reset button on same line.
+   Unraid 7 sets dd { flex-direction: column } on wide screens,
+   which stacks them vertically. Override to row. */
+.canvas form dd:has(> input[type="color"]) {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5em;
+}
+
+/* Order section - display label above full-width table */
+.canvas form > .basic.order-section {
+    width: 100%;
+    padding: 0 1em;
+    box-sizing: border-box;
+}
+
+.canvas form > .basic.order-section dl {
+    display: flex;
+    flex-direction: column;
+}
+
+.canvas form > .basic.order-section dt {
+    margin-bottom: 1em;
+    float: none;
+    width: auto;
+    text-align: left;
+}
+
+.canvas form > .basic.order-section dd {
+    margin-left: 0;
+    width: 100%;
+    float: none;
+}

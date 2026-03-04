@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - beta
+      - reset-main
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Lint JavaScript syntax
+        run: |
+          set -euo pipefail
+          mapfile -d '' files < <(find src -type f -name "*.js" ! -path "*/scripts/include/*" -print0)
+          for f in "${files[@]}"; do
+            node --check "$f"
+          done
+
+      - name: Lint PHP syntax
+        run: |
+          set -euo pipefail
+          mapfile -d '' files < <(find src -type f -name "*.php" -print0)
+          for f in "${files[@]}"; do
+            php -l "$f"
+          done
+
+      - name: Run utility tests
+        run: |
+          node --test tests/folderviewplus-utils.test.mjs

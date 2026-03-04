@@ -1,0 +1,110 @@
+name: Bug report
+description: Report a bug, regression, or unexpected behavior in FolderView Plus
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting this. Please fill out the details below so we can reproduce and fix it quickly.
+
+  - type: checkboxes
+    id: precheck
+    attributes:
+      label: Pre-check
+      options:
+        - label: I searched existing issues and did not find an open duplicate.
+          required: true
+        - label: I tested on the latest plugin version available from this repository.
+          required: true
+
+  - type: input
+    id: unraid_version
+    attributes:
+      label: Unraid version
+      placeholder: "e.g. 7.1.4"
+    validations:
+      required: true
+
+  - type: input
+    id: plugin_version
+    attributes:
+      label: FolderView Plus version
+      placeholder: "e.g. 2026.03.05.4"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install_method
+    attributes:
+      label: Install/update method
+      options:
+        - Community Applications
+        - plugin install (main URL)
+        - plugin install (commit-specific URL)
+        - Local file/manual
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: affected_area
+    attributes:
+      label: Affected area
+      multiple: true
+      options:
+        - Docker tab
+        - VM tab
+        - Dashboard
+        - Settings page
+        - Import/Export
+        - Folder ordering
+        - Auto-assignment rules
+        - Update check
+        - Installation/upgrade
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps_to_reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Provide exact steps from a clean page load.
+      placeholder: |
+        1. Go to ...
+        2. Click ...
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual_behavior
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: browser_console_or_logs
+    attributes:
+      label: Browser console / logs
+      description: Paste relevant output from browser devtools console or Unraid terminal.
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots or screen recording
+      description: Drag and drop images/videos here if helpful.
+    validations:
+      required: false

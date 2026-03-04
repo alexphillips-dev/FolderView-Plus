@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation and Install Guide
+    url: https://github.com/alexphillips-dev/FolderView-Plus#readme
+    about: Check install, update, and usage guidance before opening an issue.
+  - name: Unraid Community Forums
+    url: https://forums.unraid.net/
+    about: Best for broader Unraid platform questions not specific to this plugin.

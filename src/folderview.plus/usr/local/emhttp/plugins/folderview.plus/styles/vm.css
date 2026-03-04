@@ -1,0 +1,91 @@
+.hover:hover div.folder-preview div {
+    visibility: visible;
+}
+
+.hover div.folder-preview div {
+    visibility: hidden;
+}
+
+.folder-name {
+    width: 220px;
+    padding: 8px;
+    box-sizing: border-box;
+}
+
+.folder-name-sub {
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    gap: 4px;
+    box-sizing: border-box;
+}
+
+.folder-outer {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
+    width: calc(220px - 25px);
+}
+
+.folder-appname-id {
+    display: none;
+}
+
+.folder-dropdown {
+    padding: 6px;
+    min-width: 0;
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.folder-storage {
+    display: none;
+}
+
+.folder-preview {
+    border-radius: 4px;
+    height: 3.5em;
+    overflow: hidden;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.folder-preview-wrapper {
+    float: left;
+    height: 100%;
+    margin-left: 10px;
+    margin-top: 7px;
+}
+
+.folder-preview-wrapper .inner > a {
+    display: inline-block;
+    overflow: clip;
+    white-space: nowrap;
+    word-break: break-all;
+}
+
+.folder-preview-divider:not(:last-child) {
+    float: left;
+    height: 80%;
+    width: 0;
+    border-right: 1px solid;
+    margin-left: 5px;
+    margin-top: -7px;
+}
+
+.folder-element .ct-name {
+    padding-left: 30px !important;
+}
+
+div.folder-preview-4 span.outer{
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+    align-content: center;
+}
+
+.folder-element-custom-btn {
+    margin-left: 0.5em;
+}

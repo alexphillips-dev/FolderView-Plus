@@ -1,0 +1,104 @@
+<?xml version="1.0" standalone="yes"?>
+<!DOCTYPE PLUGIN [
+<!ENTITY name "folderview.plus">
+<!ENTITY author "folderview-plus-maintainers">
+<!ENTITY github "alexphillips-dev/FolderView-Plus">
+<!ENTITY launch "Settings/FolderViewPlus">
+<!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
+<!ENTITY version "2026.03.05.4">
+<!ENTITY md5 "689d0ab157bd57cdeb1f78c33aacb837">
+]>
+
+<PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
+    <CHANGES>
+
+###2026.03.05.4
+- Rework Docker/VM settings layout into clearer sections: actions, sort controls, folder table, and auto-assignment rules.
+- Replace stretched full-width controls with grouped, consistent button rows and responsive spacing.
+- Improve auto-assignment UX with clearer rule context text and tighter rule editor/table alignment.
+
+###2026.03.05.3
+- Improve Name column alignment with a centered fixed-width layout and left-aligned icon/text content.
+
+###2026.03.05.2
+- Always show settings reorder arrows.
+- Auto-switch to manual mode when a reorder arrow is used.
+
+###2026.03.05.1
+- Re-release of 2026.03.04.10 fixes using a version string that avoids Unraid comparison edge cases.
+- No functional changes from 2026.03.04.10.
+
+###2026.03.04.10
+- Remove drag-and-drop in settings ordering.
+- Use dedicated button-based ordering with server-side order persistence for higher reliability.
+
+###2026.03.04.9
+- Add move up/down controls for settings manual ordering so reordering works even where drag is unreliable.
+- Preserve drag reorder support while making manual ordering independent from browser drag event behavior.
+
+###2026.03.04.8
+- Fix plugin settings drag-and-drop reorder using jQuery UI sortable with non-blocking fallback.
+- Add stronger reorder save error handling and visual placeholder styling.
+
+###2026.03.04.7
+- Fix folder visibility regression by adding runtime `utils` fallback bindings on Docker/VM/Dashboard pages.
+- Make prefs loading non-blocking so folders still render if prefs request fails.
+
+###2026.03.04.6
+- Add schema-aware import/export metadata and import validation.
+- Add import preview with merge modes, automatic backups, restore action, sort controls, and auto-assignment rules.
+- Add update-check endpoint/action and CI guardrails with basic utility tests.
+
+###2026.03.04.5
+- Pretty-print exported JSON files for readable multi-line formatting.
+
+###2026.03.04.4
+- Change export filenames to use plugin branding (`FolderView Plus Export...`) instead of `Docker.json` / `VM.json`.
+
+###2026.03.04.3
+- Remove all legacy compatibility paths and manifests.
+- Enforce clean `folderview.plus` naming for plugin identity, paths, and labels.
+
+###2026.03.04.1
+- Hard rename runtime/config/plugin paths to `folderview.plus`.
+
+###2026.03.03.1
+- Fix Docker folder ordering by rebuilding placeholder order from folder definitions.
+- Sync Docker order immediately after deleting one/all folders.
+
+###2026.02.26.5
+- Improve release metadata handling for update detection.
+
+    </CHANGES>
+
+    <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
+        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
+        <MD5>&md5;</MD5>
+    </FILE>
+
+    <FILE Run="/bin/bash">
+        <INLINE>
+            mkdir -p /boot/config/plugins/&name;/styles
+            mkdir -p /boot/config/plugins/&name;/scripts
+            rm -f $(ls /boot/config/plugins/&name;/&name;*.txz 2>/dev/null | grep -v '&version;')
+            echo "&version;" > /boot/config/plugins/&name;/version
+            echo ""
+            echo "----------------------------------------------------"
+            echo " &name; has been installed."
+            echo " Version: &version;"
+            echo "----------------------------------------------------"
+            echo ""
+        </INLINE>
+    </FILE>
+
+    <FILE Run="/bin/bash" Method="remove">
+        <INLINE>
+            removepkg &name;-&version; || true
+            rm -rf &plugdir;
+            rm -rf /boot/config/plugins/&name;
+        </INLINE>
+    </FILE>
+
+</PLUGIN>
+

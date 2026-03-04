@@ -1,0 +1,96 @@
+name: Support / troubleshooting
+description: Get help with install, update visibility, configuration, or usage
+title: "[Support]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for setup/help questions. For confirmed bugs, use the Bug report form instead.
+
+  - type: dropdown
+    id: help_topic
+    attributes:
+      label: What do you need help with?
+      options:
+        - Plugin installation
+        - Plugin update not showing
+        - Folders not visible
+        - Import/Export behavior
+        - Folder ordering
+        - Auto-assignment rules
+        - UI/settings behavior
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: unraid_version
+    attributes:
+      label: Unraid version
+      placeholder: "e.g. 7.1.4"
+    validations:
+      required: true
+
+  - type: input
+    id: plugin_version
+    attributes:
+      label: FolderView Plus version
+      placeholder: "e.g. 2026.03.05.4 or unknown"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install_source
+    attributes:
+      label: Install source
+      options:
+        - Community Applications
+        - plugin install (main URL)
+        - plugin install (commit-specific URL)
+        - Local file/manual
+        - Unsure
+    validations:
+      required: true
+
+  - type: textarea
+    id: current_behavior
+    attributes:
+      label: Current behavior
+      description: What you see now.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: Expected behavior
+      description: What you expected to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: troubleshooting_tried
+    attributes:
+      label: What you already tried
+      description: Include exact commands/steps, page refresh, reinstall, import attempts, etc.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / console output
+      description: Optional terminal output, plugin install output, or browser console logs.
+      render: shell
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Confirmation
+      options:
+        - label: I reviewed the README install/update section before filing this support request.
+          required: true

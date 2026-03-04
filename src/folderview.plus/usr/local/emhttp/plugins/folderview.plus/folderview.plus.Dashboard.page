@@ -1,0 +1,20 @@
+Menu="Dashboard"
+Icon="folder-open-o"
+Type="xmenu"
+Tabs="true"
+Markdown="false"
+---
+<?php
+$type = 'dashboard';
+require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
+?>
+<script src="/plugins/folderview.plus/scripts/include/customEvents.js"></script>
+<?php
+require_once('/usr/local/emhttp/plugins/folderview.plus/scripts/custom.php');
+?>
+<script src="<?php autov('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>"></script>
+<script src="<?php autov('/plugins/folderview.plus/scripts/dashboard.js')?>"></script>
+<link rel="stylesheet" href="<?php autov('/plugins/folderview.plus/styles/dashboard.css')?>">
+<?php
+require_once('/usr/local/emhttp/plugins/folderview.plus/styles/custom.php');
+?>

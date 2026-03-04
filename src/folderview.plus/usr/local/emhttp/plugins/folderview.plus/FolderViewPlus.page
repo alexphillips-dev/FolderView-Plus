@@ -1,0 +1,176 @@
+Menu="Utilities"
+Title="FolderView Plus"
+Icon="folder-open-o"
+Type="xmenu"
+Tabs="true"
+Markdown="false"
+---
+
+<?php
+require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
+?>
+
+<script>
+    folderi18n = () => {
+        $('body').i18n();
+    }
+</script>
+<link rel="stylesheet" href="<?=autov('/plugins/folderview.plus/styles/folderviewplus.css')?>">
+
+<h2 data-i18n="customizations">Customizations</h2>
+<button data-i18n="file-manager" onclick="fileManager()">Open File Manager</button>
+<button onclick="checkForUpdatesNow()"><i class="fa fa-refresh" aria-hidden="true"></i> Check for updates now</button>
+<span id="update-check-status" class="status-line"></span>
+
+
+<h2 data-i18n="docker">Docker</h2>
+<div class="folder-table">
+    <div class="folder-toolbar">
+        <div class="toolbar-actions">
+            <button data-i18n="[html]export-all" onclick="downloadDocker()"><i class="fa fa-download" aria-hidden="true"></i> Export all</button>
+            <button data-i18n="[html]import-all" onclick="importDocker()"><i class="fa fa-upload" aria-hidden="true"></i> Import</button>
+            <button onclick="restoreLatestBackup('docker')"><i class="fa fa-history" aria-hidden="true"></i> Restore latest backup</button>
+            <button data-i18n="[html]clear-all" onclick="clearDocker()"><i class="fa fa-ban" aria-hidden="true"></i> Clear</button>
+        </div>
+        <div class="toolbar-sort">
+            <label class="sort-label" for="docker-sort-mode">Sort mode</label>
+            <select id="docker-sort-mode" onchange="changeSortMode('docker', this.value)">
+                <option value="created">Created order</option>
+                <option value="manual">Manual (buttons)</option>
+                <option value="alpha">Name (A-Z)</option>
+            </select>
+            <div class="hint-line">Use manual mode and the up/down buttons in the first column to set custom order.</div>
+        </div>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Order</th>
+                    <th data-i18n="el-id">
+                        ID
+                    </th>
+                    <th data-i18n="el-name">
+                        Name
+                    </th>
+                    <th data-i18n="el-actions">
+                        Actions
+                    </th>
+                </tr>
+            </thead>
+            <tbody id="docker">
+                
+            </tbody>
+        </table>
+    </div>
+    <div class="rules-panel">
+        <div class="rules-header">
+            <h3>Auto-assignment rules</h3>
+            <span class="rules-help">Automatically place new containers into folders.</span>
+        </div>
+        <div class="rules-editor">
+            <select id="docker-rule-folder"></select>
+            <select id="docker-rule-kind" onchange="toggleRuleKindFields('docker')">
+                <option value="name_regex">Name regex</option>
+                <option value="label">Docker label</option>
+            </select>
+            <input id="docker-rule-pattern" type="text" placeholder="Regex pattern (example: ^media-)">
+            <input id="docker-rule-label-key" type="text" placeholder="Label key (example: com.example.stack)" style="display:none;">
+            <input id="docker-rule-label-value" type="text" placeholder="Label value (optional, blank means any value)" style="display:none;">
+            <button class="rules-add-btn" onclick="addAutoRule('docker')"><i class="fa fa-plus"></i> Add rule</button>
+        </div>
+        <table class="rules-table">
+            <thead>
+                <tr>
+                    <th>Folder</th>
+                    <th>Match</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="docker-rules"></tbody>
+        </table>
+    </div>
+</div>
+<hr>
+
+<h2 data-i18n="vms">VMs</h2>
+<div class="folder-table">
+    <div class="folder-toolbar">
+        <div class="toolbar-actions">
+            <button data-i18n="[html]export-all" onclick="downloadVm()"><i class="fa fa-download" aria-hidden="true"></i> Export all</button>
+            <button data-i18n="[html]import-all" onclick="importVm()"><i class="fa fa-upload" aria-hidden="true"></i> Import</button>
+            <button onclick="restoreLatestBackup('vm')"><i class="fa fa-history" aria-hidden="true"></i> Restore latest backup</button>
+            <button data-i18n="[html]clear-all" onclick="clearVm()"><i class="fa fa-ban" aria-hidden="true"></i> Clear</button>
+        </div>
+        <div class="toolbar-sort">
+            <label class="sort-label" for="vm-sort-mode">Sort mode</label>
+            <select id="vm-sort-mode" onchange="changeSortMode('vm', this.value)">
+                <option value="created">Created order</option>
+                <option value="manual">Manual (buttons)</option>
+                <option value="alpha">Name (A-Z)</option>
+            </select>
+            <div class="hint-line">Use manual mode and the up/down buttons in the first column to set custom order.</div>
+        </div>
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Order</th>
+                    <th data-i18n="el-id">
+                        ID
+                    </th>
+                    <th data-i18n="el-name">
+                        Name
+                    </th>
+                    <th data-i18n="el-actions">
+                        Actions
+                    </th>
+                </tr>
+            </thead>
+            <tbody id="vms">
+        
+            </tbody>
+        </table>
+    </div>
+    <div class="rules-panel">
+        <div class="rules-header">
+            <h3>Auto-assignment rules</h3>
+            <span class="rules-help">Automatically place new VMs into folders.</span>
+        </div>
+        <div class="rules-editor">
+            <select id="vm-rule-folder"></select>
+            <select id="vm-rule-kind">
+                <option value="name_regex">Name regex</option>
+            </select>
+            <input id="vm-rule-pattern" type="text" placeholder="Regex pattern (example: ^prod-)">
+            <button class="rules-add-btn" onclick="addAutoRule('vm')"><i class="fa fa-plus"></i> Add rule</button>
+        </div>
+        <table class="rules-table">
+            <thead>
+                <tr>
+                    <th>Folder</th>
+                    <th>Match</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="vm-rules"></tbody>
+        </table>
+    </div>
+</div>
+<hr>
+
+<div id="import-preview-dialog" style="display:none;">
+    <p><strong>Import summary</strong></p>
+    <div id="import-preview-meta" class="preview-meta"></div>
+    <label for="import-mode-select">Import mode</label>
+    <select id="import-mode-select">
+        <option value="merge">Merge</option>
+        <option value="replace">Replace</option>
+        <option value="skip">Skip existing</option>
+    </select>
+    <textarea id="import-preview-text" readonly></textarea>
+</div>
+
+<script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>"></script>
+<script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.js')?>"></script>

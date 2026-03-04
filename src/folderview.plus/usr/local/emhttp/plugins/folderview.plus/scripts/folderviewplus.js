@@ -1236,7 +1236,7 @@ const repairDiagnostics = async (action) => {
     }
 };
 
-const exportDiagnostics = async (privacy = 'sanitized') => {
+const exportDiagnosticsByMode = async (privacy = 'sanitized') => {
     const mode = privacy === 'full' ? 'full' : 'sanitized';
     let diagnostics = null;
 
@@ -1270,6 +1270,21 @@ const exportDiagnostics = async (privacy = 'sanitized') => {
             privacyMode: mode,
             schemaVersion: diagnostics?.schemaVersion || null
         }
+    });
+};
+
+const exportDiagnostics = () => {
+    swal({
+        title: 'Export diagnostics',
+        text: 'Choose export mode.\nFull includes all details. Sanitized redacts sensitive fields.',
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Full export',
+        cancelButtonText: 'Sanitized export',
+        closeOnConfirm: true,
+        closeOnCancel: true
+    }, (useFull) => {
+        void exportDiagnosticsByMode(useFull ? 'full' : 'sanitized');
     });
 };
 

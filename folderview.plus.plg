@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.06.4">
-<!ENTITY md5 "e906454fc17b52f18e9f9e1530c1377b">
+<!ENTITY version "2026.03.06.5">
+<!ENTITY md5 "b610c5da34656583f446a7868612784c">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.06.5
+- Restore diagnostics export mode popup so users can choose `Full` or `Sanitized` export at click time.
+- Start diagnostics file download immediately based on the selected popup action.
 
 ###2026.03.06.4
 - Fix diagnostics export reliability by restoring direct-download behavior.

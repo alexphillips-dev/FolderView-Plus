@@ -64,6 +64,7 @@ const createFolders = async () => {
             prefsResponse = {};
         }
         folderTypePrefs.docker = utils.normalizePrefs(prefsResponse?.prefs || {});
+        applyDashboardRuntimePrefs();
     
         // Filter the order to get the container that aren't in the order, this happen when a new container is created
         let newOnes = order.filter(x => !unraidOrder.includes(x));
@@ -182,6 +183,7 @@ const createFolders = async () => {
             prefsResponse = {};
         }
         folderTypePrefs.vm = utils.normalizePrefs(prefsResponse?.prefs || {});
+        applyDashboardRuntimePrefs();
     
         // Filter the webui order to get the container that aren't in the order, this happen when a new container is created
         let newOnes = order.filter(x => !unraidOrder.includes(x));
@@ -276,6 +278,7 @@ const createFolders = async () => {
     }
 
     folderDebugMode  = false;
+    applyDashboardRuntimePrefs();
 };
 
 /**
@@ -289,6 +292,19 @@ const createFolders = async () => {
  * @returns the number of element removed before the folder
  */
 const createFolderDocker = (folder, id, position, order, containersInfo, foldersDone) => {
+    if (folderTypePrefs?.docker?.performanceMode === true && folder && typeof folder === 'object') {
+        folder.settings = {
+            ...(folder.settings || {}),
+            preview: 0,
+            preview_hover: false,
+            preview_logs: false,
+            preview_console: false,
+            preview_webui: false,
+            preview_vertical_bars: false,
+            preview_update: false,
+            preview_grayscale: false
+        };
+    }
 
     folderEvents.dispatchEvent(new CustomEvent('docker-pre-folder-creation', {detail: {
         folder: folder,
@@ -512,6 +528,19 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
  * @returns the number of element removed before the folder
  */
 const createFolderVM = (folder, id, position, order, vmInfo, foldersDone) => {
+    if (folderTypePrefs?.vm?.performanceMode === true && folder && typeof folder === 'object') {
+        folder.settings = {
+            ...(folder.settings || {}),
+            preview: 0,
+            preview_hover: false,
+            preview_logs: false,
+            preview_console: false,
+            preview_webui: false,
+            preview_vertical_bars: false,
+            preview_update: false,
+            preview_grayscale: false
+        };
+    }
 
     folderEvents.dispatchEvent(new CustomEvent('vm-pre-folder-creation', {detail: {
         folder: folder,
@@ -1406,6 +1435,57 @@ let folderTypePrefs = {
 let folderReq = {
     docker: [],
     vm: []
+};
+let liveRefreshTimer = null;
+let liveRefreshMs = 0;
+let liveRefreshInFlight = false;
+
+const clearLiveRefreshTimer = () => {
+    if (liveRefreshTimer) {
+        clearInterval(liveRefreshTimer);
+        liveRefreshTimer = null;
+    }
+    liveRefreshMs = 0;
+};
+
+const runLiveRefreshTick = () => {
+    if (liveRefreshInFlight || document.hidden) {
+        return;
+    }
+    liveRefreshInFlight = true;
+    try {
+        loadlist();
+    } finally {
+        setTimeout(() => {
+            liveRefreshInFlight = false;
+        }, 1000);
+    }
+};
+
+const applyDashboardRuntimePrefs = () => {
+    const dockerPrefs = utils.normalizePrefs(folderTypePrefs?.docker || {});
+    const vmPrefs = utils.normalizePrefs(folderTypePrefs?.vm || {});
+    const candidates = [];
+    if ($('tbody#docker_view').length > 0 && dockerPrefs.liveRefreshEnabled === true) {
+        candidates.push(Math.max(10, Math.min(300, Number(dockerPrefs.liveRefreshSeconds) || 20)));
+    }
+    if ($('tbody#vm_view').length > 0 && vmPrefs.liveRefreshEnabled === true) {
+        candidates.push(Math.max(10, Math.min(300, Number(vmPrefs.liveRefreshSeconds) || 20)));
+    }
+    const performanceMode = dockerPrefs.performanceMode === true || vmPrefs.performanceMode === true;
+    $('body').toggleClass('fvplus-performance-mode', performanceMode);
+
+    if (!candidates.length) {
+        clearLiveRefreshTimer();
+        return;
+    }
+    const intervalMs = Math.min(...candidates) * 1000;
+    if (liveRefreshTimer && liveRefreshMs === intervalMs) {
+        return;
+    }
+    clearLiveRefreshTimer();
+    liveRefreshMs = intervalMs;
+    liveRefreshTimer = setInterval(runLiveRefreshTick, intervalMs);
 };
 
 // Patching the original function to make sure the containers are rendered before insering the folder

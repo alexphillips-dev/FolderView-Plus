@@ -16,6 +16,10 @@ let backupsByType = {
     docker: [],
     vm: []
 };
+let templatesByType = {
+    docker: [],
+    vm: []
+};
 let importSelectionState = null;
 let lastDiagnostics = null;
 
@@ -94,6 +98,55 @@ const deleteBackupByName = async (type, name) => {
     return Array.isArray(response.backups) ? response.backups : [];
 };
 
+const fetchTemplates = async (type) => {
+    const response = parseJsonResponse(await $.get('/plugins/folderview.plus/server/templates.php', {
+        type,
+        action: 'list'
+    }).promise());
+    if (!response.ok) {
+        throw new Error(response.error || 'Failed to fetch templates.');
+    }
+    return Array.isArray(response.templates) ? response.templates : [];
+};
+
+const createTemplate = async (type, folderId, name) => {
+    const response = parseJsonResponse(await $.post('/plugins/folderview.plus/server/templates.php', {
+        type,
+        action: 'create',
+        folderId,
+        name
+    }).promise());
+    if (!response.ok) {
+        throw new Error(response.error || 'Template create failed.');
+    }
+    return Array.isArray(response.templates) ? response.templates : [];
+};
+
+const deleteTemplate = async (type, templateId) => {
+    const response = parseJsonResponse(await $.post('/plugins/folderview.plus/server/templates.php', {
+        type,
+        action: 'delete',
+        templateId
+    }).promise());
+    if (!response.ok) {
+        throw new Error(response.error || 'Template delete failed.');
+    }
+    return Array.isArray(response.templates) ? response.templates : [];
+};
+
+const applyTemplate = async (type, templateId, folderId) => {
+    const response = parseJsonResponse(await $.post('/plugins/folderview.plus/server/templates.php', {
+        type,
+        action: 'apply',
+        templateId,
+        folderId
+    }).promise());
+    if (!response.ok) {
+        throw new Error(response.error || 'Template apply failed.');
+    }
+    return response.apply || {};
+};
+
 const bulkAssign = async (type, folderId, items) => {
     const response = parseJsonResponse(await $.post('/plugins/folderview.plus/server/bulk_assign.php', {
         type,
@@ -112,6 +165,14 @@ const getDiagnostics = async (privacy = 'sanitized') => {
         throw new Error(response.error || 'Diagnostics failed.');
     }
     return response.diagnostics || {};
+};
+
+const getSupportBundle = async (privacy = 'sanitized') => {
+    const response = await apiGetJson(`/plugins/folderview.plus/server/diagnostics.php?action=support_bundle&privacy=${encodeURIComponent(privacy || 'sanitized')}`);
+    if (!response.ok) {
+        throw new Error(response.error || 'Support bundle failed.');
+    }
+    return response.bundle || {};
 };
 
 const runDiagnosticAction = async (action, type, privacy = 'sanitized') => {
@@ -360,6 +421,7 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     const modeSelect = $('#import-mode-select');
     const previewText = $('#import-preview-text');
     const meta = $('#import-preview-meta');
+    const result = $('#import-preview-result');
     const folders = getFolderMap(type);
     let dialogResult = null;
 
@@ -370,6 +432,7 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         importSelectionState = buildOperationSelectionState(operations, folders);
         renderOperationSelection();
         previewText.val(formatImportSummary(summary));
+        result.text(`Selected operations: ${countImportOperations(filterOperationsBySelection(operations))} | Creates: ${operations.creates.length}, Updates: ${operations.upserts.length}, Deletes: ${operations.deletes.length}`);
 
         const metaParts = [
             `Type: ${type}`,
@@ -564,6 +627,7 @@ const renderFolderSelectOptions = (type) => {
 
     $(`#${type}-rule-folder`).html(options);
     $(`#${type}-bulk-folder`).html(options);
+    $(`#${type}-template-source-folder`).html(options);
 };
 
 const renderBadgeToggles = (type) => {
@@ -575,11 +639,41 @@ const renderBadgeToggles = (type) => {
     }
 };
 
+const renderRuntimeControls = (type) => {
+    const prefs = utils.normalizePrefs(prefsByType[type]);
+    $(`#${type}-live-refresh-enabled`).prop('checked', prefs.liveRefreshEnabled !== false);
+    $(`#${type}-live-refresh-seconds`).val(String(prefs.liveRefreshSeconds || 20));
+    $(`#${type}-performance-mode`).prop('checked', prefs.performanceMode === true);
+};
+
+const renderBackupScheduleControls = (type) => {
+    const prefs = utils.normalizePrefs(prefsByType[type]);
+    const schedule = prefs.backupSchedule || {};
+    $(`#${type}-backup-schedule-enabled`).prop('checked', schedule.enabled === true);
+    $(`#${type}-backup-interval-hours`).val(String(schedule.intervalHours || 24));
+    $(`#${type}-backup-retention`).val(String(schedule.retention || 25));
+    const lastRunText = schedule.lastRunAt ? `Last scheduled run: ${formatTimestamp(schedule.lastRunAt)}` : 'Last scheduled run: never';
+    $(`#${type}-backup-last-run`).text(lastRunText);
+};
+
 const ruleDescription = (rule) => {
+    const effect = rule.effect === 'exclude' ? 'Exclude' : 'Include';
     if (rule.kind === 'label') {
-        return `Label: ${rule.labelKey || '(missing key)'}${rule.labelValue ? ` = ${rule.labelValue}` : ' (any value)'}`;
+        return `${effect} | Label equals: ${rule.labelKey || '(missing key)'}${rule.labelValue ? ` = ${rule.labelValue}` : ' (any value)'}`;
     }
-    return `Name regex: ${rule.pattern || '(empty)'}`;
+    if (rule.kind === 'label_contains') {
+        return `${effect} | Label contains: ${rule.labelKey || '(missing key)'} contains "${rule.labelValue || ''}"`;
+    }
+    if (rule.kind === 'label_starts_with') {
+        return `${effect} | Label starts with: ${rule.labelKey || '(missing key)'} starts "${rule.labelValue || ''}"`;
+    }
+    if (rule.kind === 'image_regex') {
+        return `${effect} | Image regex: ${rule.pattern || '(empty)'}`;
+    }
+    if (rule.kind === 'compose_project_regex') {
+        return `${effect} | Compose project regex: ${rule.pattern || '(empty)'}`;
+    }
+    return `${effect} | Name regex: ${rule.pattern || '(empty)'}`;
 };
 
 const renderRulesTable = (type) => {
@@ -652,6 +746,36 @@ const renderBackupRows = (type) => {
     rowsEl.html(rows.join(''));
 };
 
+const renderTemplateRows = (type) => {
+    const rowsEl = $(`#${type}-templates`);
+    const templates = templatesByType[type] || [];
+    const folders = getFolderMap(type);
+    const folderOptions = Object.entries(folders).map(([id, folder]) => (
+        `<option value="${escapeHtml(id)}">${escapeHtml(folder.name || id)}</option>`
+    )).join('');
+
+    if (!templates.length) {
+        rowsEl.html('<tr><td colspan="3">No templates saved.</td></tr>');
+        return;
+    }
+
+    const rows = templates.map((template) => {
+        const templateId = String(template.id || '');
+        const templateName = String(template.name || templateId);
+        const selectId = `${type}-template-target-${templateId}`;
+        return `<tr>
+            <td>${escapeHtml(templateName)}</td>
+            <td>${escapeHtml(formatTimestamp(template.updatedAt || template.createdAt))}</td>
+            <td>
+                <select id="${escapeHtml(selectId)}">${folderOptions}</select>
+                <button onclick="applyTemplateToFolder('${type}','${escapeHtml(templateId)}','${escapeHtml(selectId)}')"><i class="fa fa-clone"></i> Apply</button>
+                <button onclick="deleteTemplateEntry('${type}','${escapeHtml(templateId)}')"><i class="fa fa-trash"></i> Delete</button>
+            </td>
+        </tr>`;
+    });
+    rowsEl.html(rows.join(''));
+};
+
 const renderTable = (type) => {
     const folders = getFolderMap(type);
     const ordered = utils.orderFoldersByPrefs(folders, prefsByType[type]);
@@ -664,8 +788,11 @@ const renderTable = (type) => {
 
     renderFolderSelectOptions(type);
     renderBadgeToggles(type);
+    renderRuntimeControls(type);
+    renderBackupScheduleControls(type);
     renderRulesTable(type);
     renderBulkItemOptions(type);
+    renderTemplateRows(type);
 };
 
 const refreshType = async (type) => {
@@ -689,11 +816,23 @@ const refreshBackups = async (type) => {
         showError(`Failed to load ${type.toUpperCase()} backups`, error);
     }
     renderBackupRows(type);
+    renderBackupScheduleControls(type);
+};
+
+const refreshTemplates = async (type) => {
+    try {
+        templatesByType[type] = await fetchTemplates(type);
+    } catch (error) {
+        templatesByType[type] = [];
+        showError(`Failed to load ${type.toUpperCase()} templates`, error);
+    }
+    renderTemplateRows(type);
 };
 
 const refreshAll = async () => {
     await Promise.all([refreshType('docker'), refreshType('vm')]);
     await Promise.all([refreshBackups('docker'), refreshBackups('vm')]);
+    await Promise.all([refreshTemplates('docker'), refreshTemplates('vm')]);
     toggleRuleKindFields('docker');
 };
 
@@ -792,8 +931,9 @@ const importType = async (type) => {
         return;
     }
 
+    let transactionBackup = null;
     try {
-        const backup = await createBackup(type, `before-import-${dialogResult.mode}`);
+        transactionBackup = await createBackup(type, `before-import-transaction-${dialogResult.mode}`);
         await applyImportOperations(type, operations);
         await Promise.all([refreshType(type), refreshBackups(type)]);
         await trackDiagnosticsEvent({
@@ -806,9 +946,19 @@ const importType = async (type) => {
                 deletes: operations.deletes.length
             }
         });
-        await offerUndoAction(type, backup, 'Import');
+        await offerUndoAction(type, transactionBackup, 'Import');
     } catch (error) {
-        showError('Import failed', error);
+        let rollbackMessage = 'No rollback backup available.';
+        if (transactionBackup && transactionBackup.name) {
+            try {
+                await restoreBackupByName(type, transactionBackup.name);
+                await Promise.all([refreshType(type), refreshBackups(type)]);
+                rollbackMessage = `Automatic rollback restored backup: ${transactionBackup.name}`;
+            } catch (rollbackError) {
+                rollbackMessage = `Rollback failed: ${rollbackError?.message || rollbackError}`;
+            }
+        }
+        showError('Import failed', new Error(`${error?.message || error}\n${rollbackMessage}`));
     }
 };
 
@@ -899,19 +1049,75 @@ const changeBadgePref = async (type, badgeKey, checked) => {
     }
 };
 
+const changeRuntimePref = async (type, key, value) => {
+    const current = utils.normalizePrefs(prefsByType[type]);
+    const next = {
+        ...current
+    };
+    if (key === 'liveRefreshEnabled') {
+        next.liveRefreshEnabled = value === true;
+    } else if (key === 'liveRefreshSeconds') {
+        const parsed = Number(value);
+        next.liveRefreshSeconds = Number.isFinite(parsed) ? Math.min(300, Math.max(10, Math.round(parsed))) : current.liveRefreshSeconds;
+    } else if (key === 'performanceMode') {
+        next.performanceMode = value === true;
+    } else {
+        return;
+    }
+
+    try {
+        prefsByType[type] = await postPrefs(type, next);
+        renderRuntimeControls(type);
+    } catch (error) {
+        showError('Runtime preference save failed', error);
+    }
+};
+
+const changeBackupSchedulePref = async (type, key, value) => {
+    const current = utils.normalizePrefs(prefsByType[type]);
+    const schedule = {
+        ...(current.backupSchedule || {})
+    };
+
+    if (key === 'enabled') {
+        schedule.enabled = value === true;
+    } else if (key === 'intervalHours') {
+        const parsed = Number(value);
+        schedule.intervalHours = Number.isFinite(parsed) ? Math.min(168, Math.max(1, Math.round(parsed))) : schedule.intervalHours || 24;
+    } else if (key === 'retention') {
+        const parsed = Number(value);
+        schedule.retention = Number.isFinite(parsed) ? Math.min(200, Math.max(1, Math.round(parsed))) : schedule.retention || 25;
+    } else {
+        return;
+    }
+
+    try {
+        prefsByType[type] = await postPrefs(type, {
+            ...current,
+            backupSchedule: schedule
+        });
+        renderBackupScheduleControls(type);
+    } catch (error) {
+        showError('Backup schedule save failed', error);
+    }
+};
+
 const addAutoRule = async (type) => {
     const folderId = String($(`#${type}-rule-folder`).val() || '');
+    const effect = String($(`#${type}-rule-effect`).val() || 'include');
     const kind = String($(`#${type}-rule-kind`).val() || 'name_regex');
     const pattern = String($(`#${type}-rule-pattern`).val() || '').trim();
     const labelKey = String($(`#${type}-rule-label-key`).val() || '').trim();
     const labelValue = String($(`#${type}-rule-label-value`).val() || '').trim();
+    const regexKinds = ['name_regex', 'image_regex', 'compose_project_regex'];
+    const labelKinds = ['label', 'label_contains', 'label_starts_with'];
 
     if (!folderId) {
         swal({ title: 'Error', text: 'Select a folder before adding a rule.', type: 'error' });
         return;
     }
 
-    if (kind === 'name_regex') {
+    if (regexKinds.includes(kind)) {
         if (!pattern) {
             swal({ title: 'Error', text: 'Regex pattern cannot be empty.', type: 'error' });
             return;
@@ -924,8 +1130,12 @@ const addAutoRule = async (type) => {
         }
     }
 
-    if (kind === 'label' && !labelKey) {
+    if (labelKinds.includes(kind) && !labelKey) {
         swal({ title: 'Error', text: 'Label key cannot be empty for label rules.', type: 'error' });
+        return;
+    }
+    if ((kind === 'label_contains' || kind === 'label_starts_with') && !labelValue) {
+        swal({ title: 'Error', text: 'Label value cannot be empty for contains/starts-with rules.', type: 'error' });
         return;
     }
 
@@ -933,10 +1143,11 @@ const addAutoRule = async (type) => {
         id: `rule-${Date.now()}-${Math.floor(Math.random() * 100000)}`,
         enabled: true,
         folderId,
+        effect: effect === 'exclude' ? 'exclude' : 'include',
         kind,
-        pattern: kind === 'name_regex' ? pattern : '',
-        labelKey: kind === 'label' ? labelKey : '',
-        labelValue: kind === 'label' ? labelValue : ''
+        pattern: regexKinds.includes(kind) ? pattern : '',
+        labelKey: labelKinds.includes(kind) ? labelKey : '',
+        labelValue: labelKinds.includes(kind) ? labelValue : ''
     };
 
     try {
@@ -949,6 +1160,7 @@ const addAutoRule = async (type) => {
         $(`#${type}-rule-pattern`).val('');
         $(`#${type}-rule-label-key`).val('');
         $(`#${type}-rule-label-value`).val('');
+        $(`#${type}-rule-effect`).val('include');
         renderRulesTable(type);
     } catch (error) {
         showError('Rule save failed', error);
@@ -1023,10 +1235,16 @@ const toggleRuleKindFields = (type) => {
     }
 
     const kind = String($('#docker-rule-kind').val() || 'name_regex');
-    const showLabel = kind === 'label';
-    $('#docker-rule-pattern').toggle(!showLabel);
-    $('#docker-rule-label-key').toggle(showLabel);
-    $('#docker-rule-label-value').toggle(showLabel);
+    const regexKinds = ['name_regex', 'image_regex', 'compose_project_regex'];
+    const labelKinds = ['label', 'label_contains', 'label_starts_with'];
+    $('#docker-rule-pattern').attr('placeholder', kind === 'image_regex'
+        ? 'Regex pattern (example: linuxserver/)'
+        : kind === 'compose_project_regex'
+            ? 'Regex pattern (example: ^media$)'
+            : 'Regex pattern (example: ^media-)');
+    $('#docker-rule-pattern').toggle(regexKinds.includes(kind));
+    $('#docker-rule-label-key').toggle(labelKinds.includes(kind));
+    $('#docker-rule-label-value').toggle(labelKinds.includes(kind));
 };
 
 const testAutoRule = (type) => {
@@ -1046,6 +1264,8 @@ const testAutoRule = (type) => {
     if (type === 'docker') {
         const key = String($('#docker-rule-test-label-key').val() || '').trim();
         const value = String($('#docker-rule-test-label-value').val() || '').trim();
+        const image = String($('#docker-rule-test-image').val() || '').trim();
+        const compose = String($('#docker-rule-test-compose').val() || '').trim();
         if (key) {
             const existing = info[testName] || {};
             const existingLabels = existing.Labels || existing.info?.Config?.Labels || {};
@@ -1057,14 +1277,48 @@ const testAutoRule = (type) => {
                 }
             };
         }
+        if (image) {
+            const existing = info[testName] || {};
+            info[testName] = {
+                ...existing,
+                info: {
+                    ...(existing.info || {}),
+                    Config: {
+                        ...((existing.info || {}).Config || {}),
+                        Image: image,
+                        Labels: {
+                            ...(((existing.info || {}).Config || {}).Labels || existing.Labels || {}),
+                            ...(compose ? { 'com.docker.compose.project': compose } : {})
+                        }
+                    }
+                }
+            };
+        } else if (compose) {
+            const existing = info[testName] || {};
+            const existingLabels = existing.Labels || existing.info?.Config?.Labels || {};
+            info[testName] = {
+                ...existing,
+                Labels: {
+                    ...existingLabels,
+                    'com.docker.compose.project': compose
+                }
+            };
+        }
     }
 
-    const firstMatch = utils.getAutoRuleFirstMatch({
+    const decision = utils.getAutoRuleDecision({
         rules,
         name: testName,
         infoByName: info,
         type
     });
+    const firstMatch = decision.assignedRule;
+
+    if (decision.blockedBy) {
+        const blockedPriority = rules.findIndex((rule) => rule.id === decision.blockedBy.id) + 1;
+        output.text(`Blocked by exclude rule #${blockedPriority}: ${ruleDescription(decision.blockedBy)}`);
+        return;
+    }
 
     if (!firstMatch) {
         output.text('No matching rule. This item would remain unassigned.');
@@ -1203,6 +1457,78 @@ const deleteBackupEntry = (type, name) => {
     });
 };
 
+const createTemplateFromFolder = async (type) => {
+    const folderId = String($(`#${type}-template-source-folder`).val() || '');
+    const templateName = String($(`#${type}-template-name`).val() || '').trim();
+    if (!folderId) {
+        swal({ title: 'Error', text: 'Select a source folder first.', type: 'error' });
+        return;
+    }
+    if (!templateName) {
+        swal({ title: 'Error', text: 'Enter a template name.', type: 'error' });
+        return;
+    }
+    try {
+        templatesByType[type] = await createTemplate(type, folderId, templateName);
+        $(`#${type}-template-name`).val('');
+        renderTemplateRows(type);
+        swal({ title: 'Template saved', text: 'Template created successfully.', type: 'success' });
+    } catch (error) {
+        showError('Template create failed', error);
+    }
+};
+
+const applyTemplateToFolder = (type, templateId, selectId) => {
+    const folderId = String($(`#${selectId}`).val() || '');
+    if (!folderId) {
+        swal({ title: 'Error', text: 'Select a target folder.', type: 'error' });
+        return;
+    }
+    swal({
+        title: 'Apply template?',
+        text: 'This overwrites icon/settings/actions/regex on the target folder.',
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Apply',
+        cancelButtonText: 'Cancel',
+        showLoaderOnConfirm: true
+    }, async (confirmed) => {
+        if (!confirmed) {
+            return;
+        }
+        try {
+            const backup = await createBackup(type, 'before-template-apply');
+            await applyTemplate(type, templateId, folderId);
+            await Promise.all([refreshType(type), refreshBackups(type)]);
+            await offerUndoAction(type, backup, 'Template apply');
+        } catch (error) {
+            showError('Template apply failed', error);
+        }
+    });
+};
+
+const deleteTemplateEntry = (type, templateId) => {
+    swal({
+        title: 'Delete template?',
+        text: 'This cannot be undone.',
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Delete',
+        cancelButtonText: 'Cancel',
+        showLoaderOnConfirm: true
+    }, async (confirmed) => {
+        if (!confirmed) {
+            return;
+        }
+        try {
+            templatesByType[type] = await deleteTemplate(type, templateId);
+            renderTemplateRows(type);
+        } catch (error) {
+            showError('Template delete failed', error);
+        }
+    });
+};
+
 const renderDiagnostics = (diagnostics) => {
     lastDiagnostics = diagnostics || null;
     if (!diagnostics) {
@@ -1288,6 +1614,79 @@ const exportDiagnostics = () => {
     });
 };
 
+const exportSupportBundleByMode = async (privacy = 'sanitized') => {
+    const mode = privacy === 'full' ? 'full' : 'sanitized';
+    try {
+        const bundle = await getSupportBundle(mode);
+        const generatedAt = String(bundle.generatedAt || '').replace(/[:]/g, '-');
+        const suffix = generatedAt ? `-${generatedAt}` : '';
+        downloadFile(`FolderView Plus Support Bundle${suffix}.json`, toPrettyJson(bundle));
+        await trackDiagnosticsEvent({
+            eventType: 'support_bundle_export',
+            details: {
+                privacyMode: mode,
+                bundleVersion: bundle?.bundleVersion || null
+            }
+        });
+    } catch (error) {
+        showError('Support bundle export failed', error);
+    }
+};
+
+const exportSupportBundle = () => {
+    swal({
+        title: 'Export support bundle',
+        text: 'Choose export mode.\nFull includes all details. Sanitized redacts sensitive fields.',
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Full export',
+        cancelButtonText: 'Sanitized export',
+        closeOnConfirm: true,
+        closeOnCancel: true
+    }, (useFull) => {
+        void exportSupportBundleByMode(useFull ? 'full' : 'sanitized');
+    });
+};
+
+const runConflictInspector = async (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const folders = getFolderMap(resolvedType);
+    const prefs = prefsByType[resolvedType] || utils.normalizePrefs({});
+    const info = infoByType[resolvedType] || {};
+
+    const report = utils.getConflictReport({
+        type: resolvedType,
+        folders,
+        prefs,
+        infoByName: info
+    });
+
+    const conflicts = report.rows.filter((row) => row.hasConflict);
+    const blocked = report.rows.filter((row) => row.blockedByRule);
+    const output = {
+        type: resolvedType,
+        scannedAt: new Date().toISOString(),
+        summary: {
+            totalItems: report.totalItems,
+            conflictingItems: report.conflictingItems,
+            blockedByExcludeRules: blocked.length
+        },
+        conflictingRows: conflicts,
+        blockedRows: blocked
+    };
+
+    $('#conflict-output').text(toPrettyJson(output));
+    await trackDiagnosticsEvent({
+        eventType: 'conflict_scan',
+        type: resolvedType,
+        details: {
+            totalItems: report.totalItems,
+            conflictingItems: report.conflictingItems,
+            blockedByExcludeRules: blocked.length
+        }
+    });
+};
+
 const checkForUpdatesNow = async () => {
     setUpdateStatus('Checking for updates...');
 
@@ -1339,6 +1738,8 @@ window.clearVm = clearVm;
 window.fileManager = fileManager;
 window.changeSortMode = changeSortMode;
 window.changeBadgePref = changeBadgePref;
+window.changeRuntimePref = changeRuntimePref;
+window.changeBackupSchedulePref = changeBackupSchedulePref;
 window.addAutoRule = addAutoRule;
 window.toggleAutoRule = toggleAutoRule;
 window.deleteAutoRule = deleteAutoRule;
@@ -1352,9 +1753,14 @@ window.restoreLatestBackup = restoreLatestBackup;
 window.restoreBackupEntry = restoreBackupEntry;
 window.downloadBackupEntry = downloadBackupEntry;
 window.deleteBackupEntry = deleteBackupEntry;
+window.createTemplateFromFolder = createTemplateFromFolder;
+window.applyTemplateToFolder = applyTemplateToFolder;
+window.deleteTemplateEntry = deleteTemplateEntry;
 window.runDiagnostics = runDiagnostics;
 window.repairDiagnostics = repairDiagnostics;
 window.exportDiagnostics = exportDiagnostics;
+window.exportSupportBundle = exportSupportBundle;
+window.runConflictInspector = runConflictInspector;
 window.checkForUpdatesNow = checkForUpdatesNow;
 window.moveFolderRow = moveFolderRow;
 

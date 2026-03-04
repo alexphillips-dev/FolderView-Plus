@@ -6,6 +6,16 @@
     root.FolderViewPlusUtils = factory();
 }(typeof globalThis !== 'undefined' ? globalThis : this, function() {
     const EXPORT_SCHEMA_VERSION = 1;
+    const RULE_KINDS = [
+        'name_regex',
+        'label',
+        'label_contains',
+        'label_starts_with',
+        'image_regex',
+        'compose_project_regex'
+    ];
+    const RULE_EFFECTS = ['include', 'exclude'];
+    const LEGACY_FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
     const DEFAULT_FOLDER_STATUS_COLORS = {
         started: '#ffffff',
         paused: '#b8860b',
@@ -48,6 +58,20 @@
         };
     };
 
+    const clampNumber = (value, min, max, fallback) => {
+        const number = Number(value);
+        if (!Number.isFinite(number)) {
+            return fallback;
+        }
+        if (number < min) {
+            return min;
+        }
+        if (number > max) {
+            return max;
+        }
+        return number;
+    };
+
     const normalizeFolderMap = (value) => {
         if (!isPlainObject(value)) {
             return {};
@@ -70,13 +94,20 @@
         const sortMode = ['created', 'manual', 'alpha'].includes(incoming.sortMode) ? incoming.sortMode : 'created';
         const manualOrder = Array.isArray(incoming.manualOrder) ? incoming.manualOrder.filter((id) => typeof id === 'string' && id !== '') : [];
         const autoRulesRaw = Array.isArray(incoming.autoRules) ? incoming.autoRules : [];
+        const defaultSchedule = {
+            enabled: false,
+            intervalHours: 24,
+            retention: 25,
+            lastRunAt: ''
+        };
         const autoRules = autoRulesRaw
             .filter((rule) => isPlainObject(rule))
             .map((rule) => ({
                 id: typeof rule.id === 'string' && rule.id ? rule.id : '',
                 enabled: rule.enabled !== false,
                 folderId: typeof rule.folderId === 'string' ? rule.folderId : '',
-                kind: rule.kind === 'label' ? 'label' : 'name_regex',
+                kind: RULE_KINDS.includes(rule.kind) ? rule.kind : 'name_regex',
+                effect: RULE_EFFECTS.includes(rule.effect) ? rule.effect : 'include',
                 pattern: typeof rule.pattern === 'string' ? rule.pattern : '',
                 labelKey: typeof rule.labelKey === 'string' ? rule.labelKey : '',
                 labelValue: typeof rule.labelValue === 'string' ? rule.labelValue : ''
@@ -88,12 +119,26 @@
             stopped: incomingBadges.stopped === true,
             updates: !Object.prototype.hasOwnProperty.call(incomingBadges, 'updates') ? true : incomingBadges.updates !== false
         };
+        const backupScheduleRaw = isPlainObject(incoming.backupSchedule) ? incoming.backupSchedule : {};
+        const backupSchedule = {
+            enabled: backupScheduleRaw.enabled === true,
+            intervalHours: clampNumber(backupScheduleRaw.intervalHours, 1, 168, defaultSchedule.intervalHours),
+            retention: clampNumber(backupScheduleRaw.retention, 1, 200, defaultSchedule.retention),
+            lastRunAt: typeof backupScheduleRaw.lastRunAt === 'string' ? backupScheduleRaw.lastRunAt : ''
+        };
+        const liveRefreshEnabled = !Object.prototype.hasOwnProperty.call(incoming, 'liveRefreshEnabled') ? true : incoming.liveRefreshEnabled !== false;
+        const liveRefreshSeconds = clampNumber(incoming.liveRefreshSeconds, 10, 300, 20);
+        const performanceMode = incoming.performanceMode === true;
 
         return {
             sortMode,
             manualOrder,
             autoRules,
-            badges
+            badges,
+            liveRefreshEnabled,
+            liveRefreshSeconds,
+            performanceMode,
+            backupSchedule
         };
     };
 
@@ -358,19 +403,52 @@
         return operations;
     };
 
+    const regexMatches = (pattern, input) => {
+        if (!pattern) {
+            return false;
+        }
+        try {
+            return new RegExp(pattern).test(input);
+        } catch (err) {
+            return false;
+        }
+    };
+
+    const getDockerLabels = (infos, name) => {
+        const item = infos[name] || {};
+        return item.Labels || item.info?.Config?.Labels || {};
+    };
+
+    const getDockerImage = (infos, name) => {
+        const item = infos[name] || {};
+        return String(item.info?.Config?.Image || item.Image || '');
+    };
+
+    const getComposeProject = (infos, name) => {
+        const labels = getDockerLabels(infos, name);
+        return String(labels['com.docker.compose.project'] || labels['com.docker.compose.project.working_dir'] || '');
+    };
+
+    const getFolderLabelValue = (labels) => {
+        const source = isPlainObject(labels) ? labels : {};
+        for (const key of LEGACY_FOLDER_LABEL_KEYS) {
+            if (typeof source[key] === 'string' && source[key].trim() !== '') {
+                return source[key].trim();
+            }
+        }
+        return '';
+    };
+
     const ruleMatchesItem = (rule, name, infos, type) => {
         if (!isPlainObject(rule)) {
             return false;
         }
         if (rule.kind === 'name_regex') {
-            if (!rule.pattern) {
-                return false;
-            }
-            try {
-                return new RegExp(rule.pattern).test(name);
-            } catch (err) {
-                return false;
-            }
+            return regexMatches(String(rule.pattern || ''), name);
+        }
+
+        if (type !== 'docker') {
+            return false;
         }
 
         if (rule.kind === 'label') {
@@ -381,7 +459,7 @@
             if (!key) {
                 return false;
             }
-            const labels = infos[name]?.Labels || infos[name]?.info?.Config?.Labels || {};
+            const labels = getDockerLabels(infos, name);
             const labelValue = labels[key];
             if (typeof labelValue === 'undefined') {
                 return false;
@@ -389,20 +467,82 @@
             return rule.labelValue === '' || String(labelValue) === String(rule.labelValue);
         }
 
+        if (rule.kind === 'label_contains') {
+            const key = String(rule.labelKey || '');
+            const expected = String(rule.labelValue || '');
+            if (!key || expected === '') {
+                return false;
+            }
+            const labels = getDockerLabels(infos, name);
+            const labelValue = labels[key];
+            if (typeof labelValue === 'undefined') {
+                return false;
+            }
+            return String(labelValue).toLowerCase().includes(expected.toLowerCase());
+        }
+
+        if (rule.kind === 'label_starts_with') {
+            const key = String(rule.labelKey || '');
+            const expected = String(rule.labelValue || '');
+            if (!key || expected === '') {
+                return false;
+            }
+            const labels = getDockerLabels(infos, name);
+            const labelValue = labels[key];
+            if (typeof labelValue === 'undefined') {
+                return false;
+            }
+            return String(labelValue).toLowerCase().startsWith(expected.toLowerCase());
+        }
+
+        if (rule.kind === 'image_regex') {
+            return regexMatches(String(rule.pattern || ''), getDockerImage(infos, name));
+        }
+
+        if (rule.kind === 'compose_project_regex') {
+            return regexMatches(String(rule.pattern || ''), getComposeProject(infos, name));
+        }
+
         return false;
     };
 
-    const getAutoRuleFirstMatch = ({ rules, name, infoByName, type }) => {
+    const getAutoRuleDecision = ({ rules, name, infoByName, type }) => {
         const infos = isPlainObject(infoByName) ? infoByName : {};
+        let firstIncludeRule = null;
         for (const rule of (Array.isArray(rules) ? rules : [])) {
             if (!isPlainObject(rule) || rule.enabled === false) {
                 continue;
             }
             if (ruleMatchesItem(rule, name, infos, type)) {
-                return rule;
+                if (rule.effect === 'exclude') {
+                    return {
+                        assignedRule: null,
+                        blockedBy: rule,
+                        matchedRule: rule
+                    };
+                }
+                if (!firstIncludeRule) {
+                    firstIncludeRule = rule;
+                }
             }
         }
-        return null;
+        if (firstIncludeRule) {
+            return {
+                assignedRule: firstIncludeRule,
+                blockedBy: null,
+                matchedRule: firstIncludeRule
+            };
+        }
+        return {
+            assignedRule: null,
+            blockedBy: null,
+            matchedRule: null
+        };
+    };
+
+    const getAutoRuleFirstMatch = ({ rules, name, infoByName, type }) => {
+        const decision = getAutoRuleDecision({ rules, name, infoByName, type });
+        return decision.assignedRule;
     };
 
     const getAutoRuleMatches = ({ rules, folderId, names, infoByName, type }) => {
@@ -424,8 +564,82 @@
         return Array.from(new Set(matches));
     };
 
+    const getConflictReport = ({ type, folders, prefs, infoByName }) => {
+        const normalizedType = type === 'vm' ? 'vm' : 'docker';
+        const folderMap = normalizeFolderMap(folders);
+        const normalizedPrefs = normalizePrefs(prefs);
+        const infos = isPlainObject(infoByName) ? infoByName : {};
+        const names = Object.keys(infos).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
+
+        const rows = [];
+        let conflictCount = 0;
+
+        for (const name of names) {
+            const matchedFolders = [];
+            const labels = getDockerLabels(infos, name);
+            const legacyLabelTarget = normalizedType === 'docker' ? getFolderLabelValue(labels) : '';
+            const ruleDecision = getAutoRuleDecision({
+                rules: normalizedPrefs.autoRules,
+                name,
+                infoByName: infos,
+                type: normalizedType
+            });
+
+            for (const [folderId, folder] of Object.entries(folderMap)) {
+                const reasons = [];
+                const members = Array.isArray(folder.containers) ? folder.containers.map((item) => String(item)) : [];
+                if (members.includes(name)) {
+                    reasons.push('manual');
+                }
+                if (regexMatches(String(folder.regex || ''), name)) {
+                    reasons.push('regex');
+                }
+                if (normalizedType === 'docker' && legacyLabelTarget && legacyLabelTarget === String(folder.name || '')) {
+                    reasons.push('label');
+                }
+                if (ruleDecision.assignedRule && String(ruleDecision.assignedRule.folderId || '') === String(folderId)) {
+                    reasons.push('rule');
+                }
+                if (reasons.length) {
+                    matchedFolders.push({
+                        folderId,
+                        folderName: String(folder.name || folderId),
+                        reasons
+                    });
+                }
+            }
+
+            const hasConflict = matchedFolders.length > 1;
+            if (hasConflict) {
+                conflictCount += 1;
+            }
+
+            rows.push({
+                item: name,
+                type: normalizedType,
+                hasConflict,
+                matchedFolderCount: matchedFolders.length,
+                matchedFolders,
+                blockedByRule: ruleDecision.blockedBy ? {
+                    id: String(ruleDecision.blockedBy.id || ''),
+                    folderId: String(ruleDecision.blockedBy.folderId || ''),
+                    kind: String(ruleDecision.blockedBy.kind || 'name_regex')
+                } : null
+            });
+        }
+
+        return {
+            totalItems: names.length,
+            conflictingItems: conflictCount,
+            rows
+        };
+    };
+
     return {
         EXPORT_SCHEMA_VERSION,
+        RULE_KINDS,
+        RULE_EFFECTS,
+        LEGACY_FOLDER_LABEL_KEYS,
         DEFAULT_FOLDER_STATUS_COLORS,
         normalizeFolderMap,
         normalizePrefs,
@@ -436,7 +650,11 @@
         parseImportPayload,
         summarizeImport,
         buildImportOperations,
+        ruleMatchesItem,
+        getAutoRuleDecision,
         getAutoRuleMatches,
-        getAutoRuleFirstMatch
+        getAutoRuleFirstMatch,
+        getFolderLabelValue,
+        getConflictReport
     };
 }));

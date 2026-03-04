@@ -1,5 +1,14 @@
 # FolderView Plus Changelog
 
+## Version 2026.03.06.7
+
+- Add folder templates support (save/apply/delete) with server endpoint and settings UI.
+- Add conflict inspector report for Docker/VM assignment overlap and exclude-rule blocking visibility.
+- Add support bundle export flow with Full/Sanitized mode selection.
+- Add runtime live auto-refresh support (enable/disable + interval) for Docker/VM/Dashboard.
+- Add runtime performance mode behavior that disables heavy preview features at render time.
+- Improve rule engine consistency so matching exclude rules always block final assignment.
+
 ## Version 2026.03.05.5
 
 - Move VMs directly below Docker in settings for a cleaner reading order.

@@ -6,12 +6,25 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.06.6">
-<!ENTITY md5 "94dfbc5312d0459896a9ef0b8787545d">
+<!ENTITY version "2026.03.06.7">
+<!ENTITY md5 "0592669b091cb38c3f2e394e138c9c2b">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.06.7
+- Complete the advanced settings update set:
+  - add folder templates API/UI (save/apply/delete),
+  - add conflict inspector report UI,
+  - add support-bundle export flow with Full/Sanitized mode selection.
+- Expand runtime preferences support:
+  - add live auto-refresh timers honoring per-type interval and enable toggles,
+  - add performance mode behavior on Docker/VM/Dashboard by disabling heavy folder preview features at runtime.
+- Expand diagnostics and compatibility foundations:
+  - add path repair action endpoint integration,
+  - add advanced rule kinds/effects plus exclude precedence consistency in JS/PHP decision logic,
+  - add richer prefs schema normalization (runtime + backup schedule fields) and test coverage.
 
 ###2026.03.06.6
 - Add compatibility migration for legacy Folder View installs:

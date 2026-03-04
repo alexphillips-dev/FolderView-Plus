@@ -44,6 +44,22 @@ try {
         exit;
     }
 
+    if ($action === 'support_bundle') {
+        $diagnostics = getDiagnosticsSnapshot($privacyMode);
+        $bundle = [
+            'bundleType' => 'FolderViewPlusSupportBundle',
+            'bundleVersion' => 1,
+            'generatedAt' => gmdate('c'),
+            'privacyMode' => $privacyMode,
+            'diagnostics' => $diagnostics
+        ];
+        echo json_encode([
+            'ok' => true,
+            'bundle' => $bundle
+        ]);
+        exit;
+    }
+
     if ($action === 'sync_docker_order') {
         syncContainerOrder('docker');
         echo json_encode([
@@ -63,6 +79,17 @@ try {
         echo json_encode([
             'ok' => true,
             'message' => 'Preferences normalized and rewritten.',
+            'diagnostics' => getDiagnosticsSnapshot($privacyMode)
+        ]);
+        exit;
+    }
+
+    if ($action === 'repair_paths') {
+        $repair = repairPluginPaths();
+        echo json_encode([
+            'ok' => true,
+            'message' => 'Plugin paths repaired.',
+            'repair' => $repair,
             'diagnostics' => getDiagnosticsSnapshot($privacyMode)
         ]);
         exit;

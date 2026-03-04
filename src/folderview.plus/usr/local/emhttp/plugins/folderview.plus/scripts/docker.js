@@ -70,6 +70,7 @@ const createFolders = async () => {
         prefsResponse = {};
     }
     folderTypePrefs = utils.normalizePrefs(prefsResponse?.prefs || {});
+    applyRuntimePrefs(folderTypePrefs);
 
     if (FOLDER_VIEW_DEBUG_MODE) {
         console.log('[FV3_DEBUG] createFolders: --- INITIAL ORDERS ---');
@@ -235,6 +236,19 @@ const createFolders = async () => {
  */
 const createFolder = (folder, id, positionInMainOrder, liveOrderArray, containersInfo, foldersDone) => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Entry`, { folder: JSON.parse(JSON.stringify(folder)), id, positionInMainOrder, orderInitialSnapshot: [...liveOrderArray], containersInfoKeys: Object.keys(containersInfo).length, foldersDone: [...foldersDone] });
+    if (folderTypePrefs?.performanceMode === true && folder && typeof folder === 'object') {
+        folder.settings = {
+            ...(folder.settings || {}),
+            preview: 0,
+            preview_hover: false,
+            preview_logs: false,
+            preview_console: false,
+            preview_webui: false,
+            preview_vertical_bars: false,
+            preview_update: false,
+            preview_grayscale: false
+        };
+    }
 
     // --- Store a snapshot of the live order array AT THE START of this folder's processing ---
     // This snapshot is crucial for correctly calculating `remBefore` based on original positions.
@@ -1821,6 +1835,53 @@ let folderobserverConfig = {
 };
 let folderReq = [];
 let folderTypePrefs = utils.normalizePrefs({});
+let liveRefreshTimer = null;
+let liveRefreshMs = 0;
+let liveRefreshInFlight = false;
+
+const clearLiveRefreshTimer = () => {
+    if (liveRefreshTimer) {
+        clearInterval(liveRefreshTimer);
+        liveRefreshTimer = null;
+    }
+    liveRefreshMs = 0;
+};
+
+const runLiveRefreshTick = () => {
+    if (liveRefreshInFlight || document.hidden) {
+        return;
+    }
+    liveRefreshInFlight = true;
+    try {
+        loadlist();
+    } finally {
+        setTimeout(() => {
+            liveRefreshInFlight = false;
+        }, 1000);
+    }
+};
+
+const scheduleLiveRefresh = (prefs) => {
+    const normalized = utils.normalizePrefs(prefs || {});
+    if (normalized.liveRefreshEnabled !== true) {
+        clearLiveRefreshTimer();
+        return;
+    }
+    const seconds = Math.max(10, Math.min(300, Number(normalized.liveRefreshSeconds) || 20));
+    const ms = seconds * 1000;
+    if (liveRefreshTimer && liveRefreshMs === ms) {
+        return;
+    }
+    clearLiveRefreshTimer();
+    liveRefreshMs = ms;
+    liveRefreshTimer = setInterval(runLiveRefreshTick, ms);
+};
+
+const applyRuntimePrefs = (prefs) => {
+    const normalized = utils.normalizePrefs(prefs || {});
+    $('body').toggleClass('fvplus-performance-mode', normalized.performanceMode === true);
+    scheduleLiveRefresh(normalized);
+};
 
 function buildDockerFolderReq() {
     const safePrefsReq = $.get('/plugins/folderview.plus/server/prefs.php?type=docker')

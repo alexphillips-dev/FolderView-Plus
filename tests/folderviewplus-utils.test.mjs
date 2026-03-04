@@ -153,3 +153,92 @@ test('getAutoRuleMatches supports docker label and regex rules', () => {
 
     assert.deepEqual(matches.sort(), ['homeassistant', 'plex']);
 });
+
+test('getAutoRuleDecision supports exclude precedence and advanced docker kinds', () => {
+    const rules = [
+        {
+            id: 'inc1',
+            enabled: true,
+            folderId: 'apps',
+            kind: 'image_regex',
+            effect: 'include',
+            pattern: 'linuxserver/'
+        },
+        {
+            id: 'exc1',
+            enabled: true,
+            folderId: 'apps',
+            kind: 'label_contains',
+            effect: 'exclude',
+            labelKey: 'com.example.stack',
+            labelValue: 'private'
+        }
+    ];
+    const info = {
+        sonarr: {
+            info: {
+                Config: {
+                    Image: 'linuxserver/sonarr',
+                    Labels: {
+                        'com.example.stack': 'media-private'
+                    }
+                }
+            }
+        }
+    };
+
+    const decision = utils.getAutoRuleDecision({
+        rules,
+        name: 'sonarr',
+        infoByName: info,
+        type: 'docker'
+    });
+
+    assert.equal(decision.assignedRule, null);
+    assert.equal(decision.blockedBy?.id, 'exc1');
+});
+
+test('normalizePrefs includes live refresh, performance mode, and backup schedule defaults', () => {
+    const prefs = utils.normalizePrefs({});
+    assert.equal(prefs.liveRefreshEnabled, true);
+    assert.equal(prefs.liveRefreshSeconds, 20);
+    assert.equal(prefs.performanceMode, false);
+    assert.deepEqual(prefs.backupSchedule, {
+        enabled: false,
+        intervalHours: 24,
+        retention: 25,
+        lastRunAt: ''
+    });
+});
+
+test('getConflictReport detects multi-folder assignment conflicts', () => {
+    const report = utils.getConflictReport({
+        type: 'docker',
+        folders: {
+            a: { name: 'Media', containers: ['plex'], regex: '^son' },
+            b: { name: 'Other', containers: ['plex'], regex: '' }
+        },
+        prefs: {
+            autoRules: [
+                {
+                    id: 'r1',
+                    enabled: true,
+                    folderId: 'a',
+                    kind: 'name_regex',
+                    effect: 'include',
+                    pattern: '^plex$'
+                }
+            ]
+        },
+        infoByName: {
+            plex: { Labels: {} },
+            sonarr: { Labels: {} }
+        }
+    });
+
+    assert.equal(report.totalItems, 2);
+    assert.equal(report.conflictingItems, 1);
+    const plex = report.rows.find((row) => row.item === 'plex');
+    assert.equal(plex.hasConflict, true);
+    assert.equal(plex.matchedFolderCount, 2);
+});

@@ -254,7 +254,8 @@
 }
 
 .bulk-assign-grid,
-.backup-grid {
+.backup-grid,
+.template-grid {
     display: grid;
     grid-template-columns: 1fr;
     gap: 0.85rem;
@@ -272,6 +273,31 @@
 .bulk-row > select,
 .bulk-row > button {
     flex: 1 1 220px;
+}
+
+.schedule-row,
+.template-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+    align-items: center;
+    margin: 0.35rem 0 0.75rem 0;
+}
+
+.schedule-row label,
+.template-controls label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.schedule-row input[type="number"] {
+    width: 92px;
+}
+
+.schedule-hint {
+    font-size: 0.86rem;
+    opacity: 0.78;
 }
 
 #docker-bulk-items,
@@ -325,6 +351,12 @@
     opacity: 0.85;
 }
 
+#import-preview-dialog .preview-result {
+    margin-bottom: 0.45rem;
+    font-size: 0.88rem;
+    opacity: 0.9;
+}
+
 #import-preview-dialog select {
     width: 100%;
     min-height: 32px;
@@ -353,7 +385,8 @@
 
 @media (min-width: 1080px) {
     .bulk-assign-grid,
-    .backup-grid {
+    .backup-grid,
+    .template-grid {
         grid-template-columns: 1fr 1fr;
     }
 }

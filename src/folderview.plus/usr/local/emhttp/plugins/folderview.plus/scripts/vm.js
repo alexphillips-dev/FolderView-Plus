@@ -52,6 +52,7 @@ const createFolders = async () => {
         prefsResponse = {};
     }
     folderTypePrefs = utils.normalizePrefs(prefsResponse?.prefs || {});
+    applyRuntimePrefs(folderTypePrefs);
     
 
     
@@ -156,6 +157,19 @@ const createFolders = async () => {
  * @returns the number of element removed before the folder
  */
 const createFolder = (folder, id, position, order, vmInfo, foldersDone) => {
+    if (folderTypePrefs?.performanceMode === true && folder && typeof folder === 'object') {
+        folder.settings = {
+            ...(folder.settings || {}),
+            preview: 0,
+            preview_hover: false,
+            preview_logs: false,
+            preview_console: false,
+            preview_webui: false,
+            preview_vertical_bars: false,
+            preview_update: false,
+            preview_grayscale: false
+        };
+    }
 
     folderEvents.dispatchEvent(new CustomEvent('vm-pre-folder-creation', {detail: {
         folder: folder,
@@ -827,6 +841,53 @@ let folderDebugMode  = false;
 let folderDebugModeWindow = [];
 let folderReq = [];
 let folderTypePrefs = utils.normalizePrefs({});
+let liveRefreshTimer = null;
+let liveRefreshMs = 0;
+let liveRefreshInFlight = false;
+
+const clearLiveRefreshTimer = () => {
+    if (liveRefreshTimer) {
+        clearInterval(liveRefreshTimer);
+        liveRefreshTimer = null;
+    }
+    liveRefreshMs = 0;
+};
+
+const runLiveRefreshTick = () => {
+    if (liveRefreshInFlight || document.hidden) {
+        return;
+    }
+    liveRefreshInFlight = true;
+    try {
+        loadlist();
+    } finally {
+        setTimeout(() => {
+            liveRefreshInFlight = false;
+        }, 1000);
+    }
+};
+
+const scheduleLiveRefresh = (prefs) => {
+    const normalized = utils.normalizePrefs(prefs || {});
+    if (normalized.liveRefreshEnabled !== true) {
+        clearLiveRefreshTimer();
+        return;
+    }
+    const seconds = Math.max(10, Math.min(300, Number(normalized.liveRefreshSeconds) || 20));
+    const ms = seconds * 1000;
+    if (liveRefreshTimer && liveRefreshMs === ms) {
+        return;
+    }
+    clearLiveRefreshTimer();
+    liveRefreshMs = ms;
+    liveRefreshTimer = setInterval(runLiveRefreshTick, ms);
+};
+
+const applyRuntimePrefs = (prefs) => {
+    const normalized = utils.normalizePrefs(prefs || {});
+    $('body').toggleClass('fvplus-performance-mode', normalized.performanceMode === true);
+    scheduleLiveRefresh(normalized);
+};
 
 function buildVmFolderReq() {
     const safePrefsReq = $.get('/plugins/folderview.plus/server/prefs.php?type=vm')

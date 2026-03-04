@@ -200,10 +200,11 @@ test('getAutoRuleDecision supports exclude precedence and advanced docker kinds'
 
 test('normalizePrefs includes live refresh, performance mode, and backup schedule defaults', () => {
     const prefs = utils.normalizePrefs({});
-    assert.equal(prefs.liveRefreshEnabled, true);
+    assert.equal(prefs.runtimePrefsSchema, 2);
+    assert.equal(prefs.liveRefreshEnabled, false);
     assert.equal(prefs.liveRefreshSeconds, 20);
     assert.equal(prefs.performanceMode, false);
-    assert.equal(prefs.lazyPreviewEnabled, true);
+    assert.equal(prefs.lazyPreviewEnabled, false);
     assert.equal(prefs.lazyPreviewThreshold, 30);
     assert.deepEqual(prefs.backupSchedule, {
         enabled: false,
@@ -211,6 +212,34 @@ test('normalizePrefs includes live refresh, performance mode, and backup schedul
         retention: 25,
         lastRunAt: ''
     });
+});
+
+test('normalizePrefs disables legacy runtime toggles until schema is upgraded', () => {
+    const legacy = utils.normalizePrefs({
+        liveRefreshEnabled: true,
+        liveRefreshSeconds: 45,
+        performanceMode: true,
+        lazyPreviewEnabled: true,
+        lazyPreviewThreshold: 77
+    });
+    assert.equal(legacy.runtimePrefsSchema, 2);
+    assert.equal(legacy.liveRefreshEnabled, false);
+    assert.equal(legacy.performanceMode, false);
+    assert.equal(legacy.lazyPreviewEnabled, false);
+    assert.equal(legacy.liveRefreshSeconds, 45);
+    assert.equal(legacy.lazyPreviewThreshold, 77);
+
+    const upgraded = utils.normalizePrefs({
+        runtimePrefsSchema: 2,
+        liveRefreshEnabled: true,
+        liveRefreshSeconds: 45,
+        performanceMode: true,
+        lazyPreviewEnabled: true,
+        lazyPreviewThreshold: 77
+    });
+    assert.equal(upgraded.liveRefreshEnabled, true);
+    assert.equal(upgraded.performanceMode, true);
+    assert.equal(upgraded.lazyPreviewEnabled, true);
 });
 
 test('buildImportDiffRows reports row-level changed fields', () => {

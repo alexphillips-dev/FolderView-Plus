@@ -21,10 +21,11 @@ const utils = window.FolderViewPlusUtils || {
         sortMode: 'created',
         manualOrder: [],
         autoRules: [],
-        liveRefreshEnabled: true,
+        runtimePrefsSchema: 2,
+        liveRefreshEnabled: false,
         liveRefreshSeconds: 20,
         performanceMode: false,
-        lazyPreviewEnabled: true,
+        lazyPreviewEnabled: false,
         lazyPreviewThreshold: 30
     }),
     getAutoRuleMatches: () => [],
@@ -352,7 +353,7 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
         type: 'docker'
     }).filter((name) => !folder.containers.includes(name)));
 
-    const lazyPreviewEnabled = folderTypePrefs?.docker?.lazyPreviewEnabled !== false;
+    const lazyPreviewEnabled = folderTypePrefs?.docker?.lazyPreviewEnabled === true;
     const lazyPreviewThreshold = Number(folderTypePrefs?.docker?.lazyPreviewThreshold || 30);
     const isExpandedByDefault = folder?.settings?.expand_dashboard === true;
     const lazyPreviewActive = lazyPreviewEnabled
@@ -601,7 +602,7 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone) => {
         type: 'vm'
     }).filter((name) => !folder.containers.includes(name)));
 
-    const lazyPreviewEnabled = folderTypePrefs?.vm?.lazyPreviewEnabled !== false;
+    const lazyPreviewEnabled = folderTypePrefs?.vm?.lazyPreviewEnabled === true;
     const lazyPreviewThreshold = Number(folderTypePrefs?.vm?.lazyPreviewThreshold || 30);
     const isExpandedByDefault = folder?.settings?.expand_dashboard === true;
     const lazyPreviewActive = lazyPreviewEnabled

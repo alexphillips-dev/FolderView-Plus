@@ -16,6 +16,7 @@
     ];
     const RULE_EFFECTS = ['include', 'exclude'];
     const LEGACY_FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
+    const RUNTIME_PREFS_SCHEMA = 2;
     const DEFAULT_FOLDER_STATUS_COLORS = {
         started: '#ffffff',
         paused: '#b8860b',
@@ -126,10 +127,12 @@
             retention: clampNumber(backupScheduleRaw.retention, 1, 200, defaultSchedule.retention),
             lastRunAt: typeof backupScheduleRaw.lastRunAt === 'string' ? backupScheduleRaw.lastRunAt : ''
         };
-        const liveRefreshEnabled = !Object.prototype.hasOwnProperty.call(incoming, 'liveRefreshEnabled') ? true : incoming.liveRefreshEnabled !== false;
+        const runtimePrefsSchema = clampNumber(incoming.runtimePrefsSchema, 0, RUNTIME_PREFS_SCHEMA, 0);
+        const runtimePrefsReady = runtimePrefsSchema >= RUNTIME_PREFS_SCHEMA;
+        const liveRefreshEnabled = runtimePrefsReady ? incoming.liveRefreshEnabled === true : false;
         const liveRefreshSeconds = clampNumber(incoming.liveRefreshSeconds, 10, 300, 20);
-        const performanceMode = incoming.performanceMode === true;
-        const lazyPreviewEnabled = !Object.prototype.hasOwnProperty.call(incoming, 'lazyPreviewEnabled') ? true : incoming.lazyPreviewEnabled !== false;
+        const performanceMode = runtimePrefsReady ? incoming.performanceMode === true : false;
+        const lazyPreviewEnabled = runtimePrefsReady ? incoming.lazyPreviewEnabled === true : false;
         const lazyPreviewThreshold = clampNumber(incoming.lazyPreviewThreshold, 10, 200, 30);
 
         return {
@@ -137,6 +140,7 @@
             manualOrder,
             autoRules,
             badges,
+            runtimePrefsSchema: RUNTIME_PREFS_SCHEMA,
             liveRefreshEnabled,
             liveRefreshSeconds,
             performanceMode,
@@ -735,6 +739,7 @@
         RULE_KINDS,
         RULE_EFFECTS,
         LEGACY_FOLDER_LABEL_KEYS,
+        RUNTIME_PREFS_SCHEMA,
         DEFAULT_FOLDER_STATUS_COLORS,
         normalizeFolderMap,
         normalizePrefs,

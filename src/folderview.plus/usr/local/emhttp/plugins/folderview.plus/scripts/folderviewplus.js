@@ -737,10 +737,10 @@ const renderBadgeToggles = (type) => {
 
 const renderRuntimeControls = (type) => {
     const prefs = utils.normalizePrefs(prefsByType[type]);
-    $(`#${type}-live-refresh-enabled`).prop('checked', prefs.liveRefreshEnabled !== false);
+    $(`#${type}-live-refresh-enabled`).prop('checked', prefs.liveRefreshEnabled === true);
     $(`#${type}-live-refresh-seconds`).val(String(prefs.liveRefreshSeconds || 20));
     $(`#${type}-performance-mode`).prop('checked', prefs.performanceMode === true);
-    $(`#${type}-lazy-preview-enabled`).prop('checked', prefs.lazyPreviewEnabled !== false);
+    $(`#${type}-lazy-preview-enabled`).prop('checked', prefs.lazyPreviewEnabled === true);
     $(`#${type}-lazy-preview-threshold`).val(String(prefs.lazyPreviewThreshold || 30));
 };
 

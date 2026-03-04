@@ -22,10 +22,11 @@ const utils = window.FolderViewPlusUtils || {
         manualOrder: [],
         autoRules: [],
         badges: { running: true, stopped: false, updates: true },
-        liveRefreshEnabled: true,
+        runtimePrefsSchema: 2,
+        liveRefreshEnabled: false,
         liveRefreshSeconds: 20,
         performanceMode: false,
-        lazyPreviewEnabled: true,
+        lazyPreviewEnabled: false,
         lazyPreviewThreshold: 30
     }),
     getAutoRuleMatches: () => [],
@@ -213,7 +214,7 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone) => {
     }).filter((vmName) => !folder.containers.includes(vmName));
     folder.containers = folder.containers.concat(ruleMatches);
 
-    const lazyPreviewEnabled = folderTypePrefs?.lazyPreviewEnabled !== false;
+    const lazyPreviewEnabled = folderTypePrefs?.lazyPreviewEnabled === true;
     const lazyPreviewThreshold = Number(folderTypePrefs?.lazyPreviewThreshold || 30);
     const isExpandedByDefault = folder?.settings?.expand_tab === true;
     const lazyPreviewActive = lazyPreviewEnabled

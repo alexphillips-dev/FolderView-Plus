@@ -78,6 +78,7 @@
     const FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY = 'sanitized';
     const FVPLUS_RULE_KINDS = ['name_regex', 'label', 'label_contains', 'label_starts_with', 'image_regex', 'compose_project_regex'];
     const FVPLUS_RULE_EFFECTS = ['include', 'exclude'];
+    const FVPLUS_RUNTIME_PREFS_SCHEMA = 2;
     const FVPLUS_DOCKER_FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
     const FVPLUS_DEFAULT_FOLDER_STATUS_COLORS = [
         'started' => '#ffffff',
@@ -288,10 +289,11 @@
                 'stopped' => false,
                 'updates' => true
             ],
-            'liveRefreshEnabled' => true,
+            'runtimePrefsSchema' => FVPLUS_RUNTIME_PREFS_SCHEMA,
+            'liveRefreshEnabled' => false,
             'liveRefreshSeconds' => 20,
             'performanceMode' => false,
-            'lazyPreviewEnabled' => true,
+            'lazyPreviewEnabled' => false,
             'lazyPreviewThreshold' => 30,
             'backupSchedule' => [
                 'enabled' => false,
@@ -357,14 +359,19 @@
         }
         $normalized['autoRules'] = $normalizedRules;
         $normalized['badges'] = normalizeBadgePrefs($prefs['badges'] ?? []);
-        $normalized['liveRefreshEnabled'] = !array_key_exists('liveRefreshEnabled', $prefs)
-            ? true
-            : normalizeBool($prefs['liveRefreshEnabled'], true);
+        $runtimePrefsSchema = normalizeIntInRange($prefs['runtimePrefsSchema'] ?? 0, 0, FVPLUS_RUNTIME_PREFS_SCHEMA, 0);
+        $runtimePrefsReady = $runtimePrefsSchema >= FVPLUS_RUNTIME_PREFS_SCHEMA;
+        $normalized['runtimePrefsSchema'] = FVPLUS_RUNTIME_PREFS_SCHEMA;
+        $normalized['liveRefreshEnabled'] = $runtimePrefsReady
+            ? normalizeBool($prefs['liveRefreshEnabled'] ?? false, false)
+            : false;
         $normalized['liveRefreshSeconds'] = normalizeIntInRange($prefs['liveRefreshSeconds'] ?? 20, 10, 300, 20);
-        $normalized['performanceMode'] = normalizeBool($prefs['performanceMode'] ?? false, false);
-        $normalized['lazyPreviewEnabled'] = !array_key_exists('lazyPreviewEnabled', $prefs)
-            ? true
-            : normalizeBool($prefs['lazyPreviewEnabled'], true);
+        $normalized['performanceMode'] = $runtimePrefsReady
+            ? normalizeBool($prefs['performanceMode'] ?? false, false)
+            : false;
+        $normalized['lazyPreviewEnabled'] = $runtimePrefsReady
+            ? normalizeBool($prefs['lazyPreviewEnabled'] ?? false, false)
+            : false;
         $normalized['lazyPreviewThreshold'] = normalizeIntInRange($prefs['lazyPreviewThreshold'] ?? 30, 10, 200, 30);
 
         $scheduleIncoming = is_array($prefs['backupSchedule'] ?? null) ? $prefs['backupSchedule'] : [];
@@ -2018,10 +2025,11 @@
                 'sortMode' => $prefs['sortMode'] ?? 'created',
                 'ruleCount' => count($prefs['autoRules'] ?? []),
                 'manualOrderCount' => count($prefs['manualOrder'] ?? []),
-                'liveRefreshEnabled' => normalizeBool($prefs['liveRefreshEnabled'] ?? true, true),
+                'runtimePrefsSchema' => normalizeIntInRange($prefs['runtimePrefsSchema'] ?? FVPLUS_RUNTIME_PREFS_SCHEMA, 0, FVPLUS_RUNTIME_PREFS_SCHEMA, FVPLUS_RUNTIME_PREFS_SCHEMA),
+                'liveRefreshEnabled' => normalizeBool($prefs['liveRefreshEnabled'] ?? false, false),
                 'liveRefreshSeconds' => normalizeIntInRange($prefs['liveRefreshSeconds'] ?? 20, 10, 300, 20),
                 'performanceMode' => normalizeBool($prefs['performanceMode'] ?? false, false),
-                'lazyPreviewEnabled' => normalizeBool($prefs['lazyPreviewEnabled'] ?? true, true),
+                'lazyPreviewEnabled' => normalizeBool($prefs['lazyPreviewEnabled'] ?? false, false),
                 'lazyPreviewThreshold' => normalizeIntInRange($prefs['lazyPreviewThreshold'] ?? 30, 10, 200, 30),
                 'backupSchedule' => getTypeBackupSchedule($type),
                 'lastBackup' => $backups[0] ?? null,

@@ -6,12 +6,21 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.07.1">
-<!ENTITY md5 "aa4b59a70cfe7fcc7f232c2cc439b4f6">
+<!ENTITY version "2026.03.07.2">
+<!ENTITY md5 "3856e22407ecf9a2fe079b7c00b5e855">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.07.2
+- Runtime defaults hardening:
+  - set `Live auto-refresh` default to OFF,
+  - set `Performance mode` default to OFF,
+  - set `Lazy previews` default to OFF.
+- Add runtime preference schema guard so older installs are migrated to safe OFF defaults on update instead of auto-starting runtime features.
+- Tighten runtime checks so lazy-preview behavior only activates when explicitly enabled.
+- Update settings rendering to treat runtime toggles as opt-in (`true` only), not enabled-by-missing.
 
 ###2026.03.07.1
 - Fix folder editor row alignment so settings blocks are left-anchored with section headers instead of centered.

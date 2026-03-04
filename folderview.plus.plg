@@ -1,17 +1,20 @@
 <?xml version="1.0" standalone="yes"?>
 <!DOCTYPE PLUGIN [
 <!ENTITY name "folderview.plus">
-<!ENTITY author "folderview-plus-maintainers">
+<!ENTITY author "alexphillips-dev">
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.07.2">
+<!ENTITY version "2026.03.07.3">
 <!ENTITY md5 "3856e22407ecf9a2fe079b7c00b5e855">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.07.3
+- Update plugin metadata author to `alexphillips-dev` so Unraid displays the correct repository owner.
 
 ###2026.03.07.2
 - Runtime defaults hardening:

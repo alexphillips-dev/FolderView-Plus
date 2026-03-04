@@ -6,12 +6,25 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.06.8">
-<!ENTITY md5 "67aea9090e46b4c414496f7edc9b95e5">
+<!ENTITY version "2026.03.06.9">
+<!ENTITY md5 "9ce8fe4b57d37666e27c4724d33cf056">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.06.9
+- Phase 1 folder editor overhaul:
+  - add section navigation (General, Members, Preview, Actions, Automation, Advanced),
+  - add compact live summary panel with preview/context/member status insight.
+- Phase 2 usability/safety upgrades:
+  - replace drag-only member ordering with explicit up/down controls,
+  - add member search + filter controls (all/included/excluded/regex/manual),
+  - add inline validation for folder name, regex, WebUI URL, and graph time,
+  - add unsaved-changes indicator with unload/cancel protection and reset action.
+- Phase 3 live diagnostics inside editor:
+  - add regex simulator with single-name probe and match-count preview across current members.
+- Add `Save as copy` workflow in folder editor with automatic non-colliding copy names.
 
 ###2026.03.06.8
 - Add full rules simulator for Docker/VM to preview assignment outcomes across all items.

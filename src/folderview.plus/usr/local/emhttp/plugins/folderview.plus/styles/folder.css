@@ -1,4 +1,159 @@
-/* Container order table - responsive for all screen sizes */
+/* Editor chrome */
+#fvEditorChrome {
+    margin: 0 1em 1em;
+    padding: 0.75em 1em;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.fv-editor-nav-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75em;
+}
+
+.fv-section-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45em;
+}
+
+.fv-section-nav > button {
+    min-width: 108px;
+    padding: 0.35em 0.7em;
+}
+
+.fv-advanced-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    font-weight: 600;
+}
+
+.fv-editor-status-row {
+    margin-top: 0.55em;
+}
+
+.fv-validation-summary {
+    color: #a6d8ff;
+    font-size: 0.92em;
+}
+
+.fv-validation-summary.invalid {
+    color: #ff7f7f;
+}
+
+.fv-section-heading {
+    margin: 1.3em 1em 0.3em;
+    padding-bottom: 0.5em;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.fv-section-heading > h3 {
+    margin: 0;
+    font-size: 1.05em;
+}
+
+.fv-section-heading > p {
+    margin: 0.2em 0 0;
+    opacity: 0.8;
+    font-size: 0.9em;
+}
+
+#fvLivePanel {
+    margin: 0 1em 1.1em;
+    padding: 0.8em 1em;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.fv-live-grid {
+    display: grid;
+    gap: 0.4em 1em;
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+}
+
+.fv-live-swatches {
+    margin-top: 0.6em;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8em;
+}
+
+.fv-swatch-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+}
+
+.fv-swatch-item > em {
+    font-style: normal;
+    opacity: 0.85;
+}
+
+.fv-swatch-item > i {
+    width: 20px;
+    height: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 3px;
+    display: inline-block;
+}
+
+.fv-regex-simulator {
+    margin-top: 0.8em;
+    display: grid;
+    gap: 0.4em;
+}
+
+.fv-regex-simulator > input {
+    width: min(100%, 420px);
+}
+
+.fv-regex-result.match {
+    color: #8ce69b;
+}
+
+.fv-regex-result.no-match {
+    color: #ffbe76;
+}
+
+.fv-regex-result.error {
+    color: #ff7f7f;
+}
+
+.fv-regex-meta {
+    margin-top: 0.35em;
+    font-size: 0.9em;
+    opacity: 0.86;
+}
+
+/* Member tools + table */
+.fv-member-tools {
+    margin-bottom: 0.8em;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.fv-member-tools > input[type="text"] {
+    min-width: 220px;
+}
+
+.fv-member-tools > select {
+    min-width: 160px;
+}
+
+.fv-member-stats {
+    margin-left: auto;
+    font-weight: 600;
+    opacity: 0.9;
+}
+
 table.sortable {
     width: 100%;
     margin: 0 auto;
@@ -10,20 +165,26 @@ table.sortable td {
     padding: 0.5em;
 }
 
-table.sortable th:first-child,
-table.sortable td:first-child {
-    width: 75%;
+table.sortable th:nth-child(1),
+table.sortable td:nth-child(1) {
+    width: 92px;
+    text-align: center;
+}
+
+table.sortable th:nth-child(2),
+table.sortable td:nth-child(2) {
+    width: auto;
     text-align: left;
 }
 
-table.sortable th:last-child,
-table.sortable td:last-child {
-    width: 25%;
+table.sortable th:nth-child(3),
+table.sortable td:nth-child(3) {
+    width: 132px;
     text-align: center;
 }
 
 .item {
-    height: 5em;
+    height: 4.35em;
     border-bottom: 1px solid;
 }
 
@@ -31,12 +192,30 @@ table.sortable td:last-child {
     pointer-events: none;
 }
 
-.sortable > tbody > .item[draggable="true"] {
-    cursor: move;
+.order-buttons {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
 }
 
-.dragging {
-    opacity: 20%;
+.order-buttons > button {
+    min-width: 28px;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.order-lock {
+    opacity: 0.6;
+}
+
+.name-col {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .custom-action-wrapper {
@@ -64,14 +243,10 @@ table.sortable td:last-child {
     padding-left: 0;
 }
 
-/* Nested ul for sub-options */
 .canvas form ul ul {
     margin-left: 1em;
 }
 
-/* Keep color picker and reset button on same line.
-   Unraid 7 sets dd { flex-direction: column } on wide screens,
-   which stacks them vertically. Override to row. */
 .canvas form dd:has(> input[type="color"]) {
     flex-direction: row;
     align-items: center;
@@ -136,4 +311,42 @@ table.sortable td:last-child {
     margin-left: 0;
     width: 100%;
     float: none;
+}
+
+/* Validation + state */
+.fv-field-error {
+    margin-top: 0.25em;
+    color: #ff7f7f;
+    font-size: 0.84em;
+}
+
+.fv-input-error {
+    border-color: #ff7f7f !important;
+}
+
+.folder-unsaved-indicator {
+    display: inline-block;
+    margin-left: 0.5em;
+    color: #ffbe76;
+    font-weight: 600;
+}
+
+.fv-advanced-hidden {
+    display: none !important;
+}
+
+@media (max-width: 980px) {
+    .fv-live-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .fv-member-stats {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .fv-member-tools > input[type="text"],
+    .fv-member-tools > select {
+        min-width: 180px;
+    }
 }

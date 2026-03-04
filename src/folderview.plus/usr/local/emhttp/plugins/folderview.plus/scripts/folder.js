@@ -14,6 +14,33 @@ const DEFAULT_FOLDER_STATUS_COLORS = {
     stopped: '#ff4d4d'
 };
 const FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
+const PREVIEW_MODE_LABELS = {
+    0: 'None',
+    1: 'Icon and label',
+    2: 'Only icon',
+    3: 'Only label',
+    4: 'List'
+};
+const CONTEXT_MODE_LABELS = {
+    0: 'None',
+    1: 'Default',
+    2: 'Advanced'
+};
+const SECTION_META = {
+    general: { title: 'General', description: 'Folder identity, icon, and base behavior.' },
+    members: { title: 'Members', description: 'Assign containers or VMs to this folder.' },
+    preview: { title: 'Preview', description: 'Control how this folder is rendered in tab views.' },
+    actions: { title: 'Actions', description: 'Configure quick actions exposed by this folder.' },
+    automation: { title: 'Automation', description: 'Auto-assign items using name regex.' },
+    advanced: { title: 'Advanced', description: 'Optional defaults and tab behavior.' }
+};
+
+let existingFolderNames = new Set();
+let allFolderNames = new Set();
+let currentFolderName = '';
+let initialSnapshot = '';
+let isFormInitialized = false;
+let suppressUnloadPrompt = false;
 
 const getFolderLabelValue = (labels) => {
     const source = labels && typeof labels === 'object' ? labels : {};
@@ -44,6 +71,88 @@ const normalizeHexColor = (value, fallback) => {
     return trimmed.toLowerCase();
 };
 
+const getForm = () => $('div.canvas > form')[0];
+
+const escapeHtml = (value) => {
+    if (value === undefined || value === null) {
+        return '';
+    }
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+};
+
+const getAllMembers = () => {
+    const map = new Map();
+    [...selectedRegex, ...selected, ...choose].forEach((member) => {
+        if (!map.has(member.Name)) {
+            map.set(member.Name, member);
+        }
+    });
+    return [...map.values()];
+};
+
+const computeFormSnapshot = () => {
+    const form = getForm();
+    const state = {
+        fields: {},
+        members: [],
+        actions: $('input[name*="custom_action"]').map((_, el) => $(el).val()).get()
+    };
+
+    $(form).find(':input[name]').each((_, element) => {
+        if (!element.name) {
+            return;
+        }
+
+        const value = element.type === 'checkbox' ? element.checked : $(element).val();
+        if (Object.prototype.hasOwnProperty.call(state.fields, element.name)) {
+            if (!Array.isArray(state.fields[element.name])) {
+                state.fields[element.name] = [state.fields[element.name]];
+            }
+            state.fields[element.name].push(value);
+        } else {
+            state.fields[element.name] = value;
+        }
+    });
+
+    $('table.sortable > tbody > tr').each((_, row) => {
+        const input = $(row).find('input.container-switch');
+        state.members.push({
+            name: $(row).attr('data-name') || '',
+            included: input.prop('checked'),
+            locked: input.prop('disabled')
+        });
+    });
+
+    return JSON.stringify(state);
+};
+
+const updateUnsavedIndicator = () => {
+    const current = computeFormSnapshot();
+    const dirty = Boolean(initialSnapshot) && current !== initialSnapshot;
+    $('#unsavedIndicator').toggle(dirty);
+    return dirty;
+};
+
+const markCleanState = () => {
+    initialSnapshot = computeFormSnapshot();
+    updateUnsavedIndicator();
+};
+
+const registerBeforeUnloadGuard = () => {
+    window.addEventListener('beforeunload', (event) => {
+        if (suppressUnloadPrompt || !updateUnsavedIndicator()) {
+            return;
+        }
+        event.preventDefault();
+        event.returnValue = '';
+    });
+};
+
 const resetStatusColorDefaults = () => {
     const form = $('div.canvas > form')[0];
     form.status_color_started.value = DEFAULT_FOLDER_STATUS_COLORS.started;
@@ -52,17 +161,451 @@ const resetStatusColorDefaults = () => {
 };
 window.resetStatusColorDefaults = resetStatusColorDefaults;
 
-$('div.canvas > form')[0].preview_border_color.value = rgbToHex($('body').css('color'));
-$('div.canvas > form')[0].preview_vertical_bars_color.value = rgbToHex($('body').css('color'));
+const setFieldError = (fieldName, message) => {
+    const form = getForm();
+    const input = $(form?.elements?.[fieldName]);
+    if (!input.length) {
+        return;
+    }
+    const dd = input.closest('dd');
+    if (!dd.length) {
+        return;
+    }
+
+    let error = dd.find(`.fv-field-error[data-field="${fieldName}"]`);
+    if (!error.length) {
+        error = $(`<div class="fv-field-error" data-field="${fieldName}" style="display:none;"></div>`);
+        dd.append(error);
+    }
+
+    if (message) {
+        error.text(message).show();
+        input.addClass('fv-input-error');
+    } else {
+        error.hide().text('');
+        input.removeClass('fv-input-error');
+    }
+};
+
+const validateNameField = () => {
+    const form = getForm();
+    const value = (form.name.value || '').trim();
+    const lower = value.toLowerCase();
+
+    if (!value) {
+        setFieldError('name', 'Folder name is required.');
+        return false;
+    }
+
+    if (!/^[a-zA-Z0-9_. \-]+$/.test(value)) {
+        setFieldError('name', 'Use letters, numbers, spaces, ., _, and - only.');
+        return false;
+    }
+
+    if (existingFolderNames.has(lower) && lower !== currentFolderName.toLowerCase()) {
+        setFieldError('name', 'A folder with this name already exists.');
+        return false;
+    }
+
+    setFieldError('name', '');
+    return true;
+};
+
+const validateRegexField = () => {
+    const form = getForm();
+    const value = (form.regex.value || '').trim();
+    if (!value) {
+        setFieldError('regex', '');
+        return true;
+    }
+    try {
+        // eslint-disable-next-line no-new
+        new RegExp(value);
+        setFieldError('regex', '');
+        return true;
+    } catch (error) {
+        setFieldError('regex', `Invalid regex: ${error.message}`);
+        return false;
+    }
+};
+
+const validateFolderWebUiUrl = () => {
+    const form = getForm();
+    const enabled = form.folder_webui.checked;
+    const value = (form.folder_webui_url.value || '').trim();
+    if (!enabled || !value) {
+        setFieldError('folder_webui_url', '');
+        return true;
+    }
+    try {
+        const parsed = new URL(value);
+        if (!/^https?:$/i.test(parsed.protocol)) {
+            throw new Error('URL must start with http:// or https://');
+        }
+        setFieldError('folder_webui_url', '');
+        return true;
+    } catch (error) {
+        setFieldError('folder_webui_url', `Invalid URL: ${error.message}`);
+        return false;
+    }
+};
+
+const validateContextGraphTime = () => {
+    const form = getForm();
+    const contextIsAdvanced = form.context.value === '2';
+    const graphEnabled = form.context_graph.value !== '0';
+    const value = Number(form.context_graph_time.value || 0);
+    if (!contextIsAdvanced || !graphEnabled) {
+        setFieldError('context_graph_time', '');
+        return true;
+    }
+    if (!Number.isInteger(value) || value <= 0) {
+        setFieldError('context_graph_time', 'Time frame must be a positive integer.');
+        return false;
+    }
+    setFieldError('context_graph_time', '');
+    return true;
+};
+
+const validateForm = () => {
+    const valid = [
+        validateNameField(),
+        validateRegexField(),
+        validateFolderWebUiUrl(),
+        validateContextGraphTime()
+    ].every(Boolean);
+
+    const summary = $('#fvValidationSummary');
+    if (summary.length) {
+        summary.toggleClass('invalid', !valid).text(valid ? 'All checks passed.' : 'Fix highlighted fields before saving.');
+    }
+    $('.folder-btn-submit, .folder-btn-copy').prop('disabled', !valid);
+    return valid;
+};
+
+const updateMemberStats = () => {
+    const rows = $('table.sortable > tbody > tr');
+    const total = rows.length;
+    const included = rows.find('input.container-switch:checked').length;
+    const visible = rows.filter(':visible').length;
+    const text = `${included}/${total} included` + (visible !== total ? ` (${visible} shown)` : '');
+    $('#fvMemberStats').text(text);
+    $('#fvLiveMembers').text(text);
+};
+
+const applyMemberFilters = () => {
+    const query = ($('#fvMemberSearch').val() || '').trim().toLowerCase();
+    const filter = $('#fvMemberFilter').val() || 'all';
+
+    $('table.sortable > tbody > tr').each((_, row) => {
+        const $row = $(row);
+        const name = ($row.attr('data-name') || '').toLowerCase();
+        const membership = $row.attr('data-membership');
+        const included = $row.find('input.container-switch').prop('checked');
+        const matchesQuery = !query || name.includes(query);
+
+        let matchesFilter = true;
+        if (filter === 'included') {
+            matchesFilter = included;
+        } else if (filter === 'excluded') {
+            matchesFilter = !included;
+        } else if (filter === 'regex') {
+            matchesFilter = membership === 'regex';
+        } else if (filter === 'manual') {
+            matchesFilter = membership === 'manual';
+        }
+
+        $row.toggle(matchesQuery && matchesFilter);
+    });
+
+    updateMemberStats();
+};
+
+const syncMemberArraysFromTable = () => {
+    const rows = $('table.sortable > tbody > tr');
+    if (!rows.length) {
+        return;
+    }
+    const memberMap = new Map(getAllMembers().map((member) => [member.Name, member]));
+    const nextSelected = [];
+    const nextChoose = [];
+    const nextSelectedRegex = [];
+
+    rows.each((_, row) => {
+        const name = $(row).attr('data-name');
+        const member = memberMap.get(name);
+        if (!member) {
+            return;
+        }
+        const membership = $(row).attr('data-membership');
+        const checked = $(row).find('input.container-switch').prop('checked');
+        if (membership === 'regex') {
+            nextSelectedRegex.push(member);
+        } else if (checked) {
+            nextSelected.push(member);
+        } else {
+            nextChoose.push(member);
+        }
+    });
+
+    selected = nextSelected;
+    choose = nextChoose;
+    selectedRegex = nextSelectedRegex;
+};
+
+const moveMemberRow = (button, direction) => {
+    const row = $(button).closest('tr');
+    if (!row.length) {
+        return;
+    }
+    if (direction === 'up') {
+        const prev = row.prev('tr');
+        if (prev.length) {
+            prev.before(row);
+        }
+    } else {
+        const next = row.next('tr');
+        if (next.length) {
+            next.after(row);
+        }
+    }
+    if (isFormInitialized) {
+        updateUnsavedIndicator();
+    }
+};
+
+const applyAdvancedMode = () => {
+    const checkbox = $('#fvShowAdvanced');
+    if (!checkbox.length) {
+        return;
+    }
+    const showAdvanced = checkbox.prop('checked');
+    localStorage.setItem('fv.folder.editor.showAdvanced', showAdvanced ? '1' : '0');
+    $('.fv-advanced-setting').toggleClass('fv-advanced-hidden', !showAdvanced);
+};
+
+const updateLiveSummary = () => {
+    const form = getForm();
+    if (!form) {
+        return;
+    }
+    $('#fvLiveName').text((form.name.value || '').trim() || '(unnamed)');
+    $('#fvLivePreview').text(PREVIEW_MODE_LABELS[Number(form.preview.value)] || 'Unknown');
+    $('#fvLiveContext').text(CONTEXT_MODE_LABELS[Number(form.context.value)] || 'Unknown');
+    $('#fvSwatchStarted').css('background-color', normalizeHexColor(form.status_color_started.value, DEFAULT_FOLDER_STATUS_COLORS.started));
+    $('#fvSwatchPaused').css('background-color', normalizeHexColor(form.status_color_paused.value, DEFAULT_FOLDER_STATUS_COLORS.paused));
+    $('#fvSwatchStopped').css('background-color', normalizeHexColor(form.status_color_stopped.value, DEFAULT_FOLDER_STATUS_COLORS.stopped));
+    updateMemberStats();
+};
+
+const updateRegexSimulator = () => {
+    const form = getForm();
+    if (!form) {
+        return;
+    }
+
+    const regexSource = (form.regex.value || '').trim();
+    const probe = ($('#fvRegexSimulatorInput').val() || '').trim();
+    const result = $('#fvRegexSimulatorResult');
+    const meta = $('#fvRegexSimulatorMeta');
+
+    if (!regexSource) {
+        result.removeClass('match no-match error').text('No regex configured.');
+        meta.text('');
+        return;
+    }
+
+    let regex;
+    try {
+        regex = new RegExp(regexSource);
+    } catch (error) {
+        result.removeClass('match no-match').addClass('error').text(`Regex error: ${error.message}`);
+        meta.text('');
+        return;
+    }
+
+    const names = getAllMembers().map((member) => member.Name);
+    const matches = [];
+    names.forEach((name) => {
+        regex.lastIndex = 0;
+        if (regex.test(name)) {
+            matches.push(name);
+        }
+    });
+
+    if (probe) {
+        regex.lastIndex = 0;
+        const matched = regex.test(probe);
+        result
+            .removeClass('error')
+            .toggleClass('match', matched)
+            .toggleClass('no-match', !matched)
+            .text(matched ? `"${probe}" matches.` : `"${probe}" does not match.`);
+    } else {
+        result.removeClass('error no-match').addClass('match').text('Enter a name above to test one item.');
+    }
+
+    const preview = matches.slice(0, 6).join(', ');
+    meta.text(`${matches.length}/${names.length} members match.` + (preview ? ` Sample: ${preview}` : ''));
+};
+
+const applySectionTags = () => {
+    $('[data-editor-section]').removeAttr('data-editor-section');
+    $('.fv-advanced-setting').removeClass('fv-advanced-setting');
+
+    const markSection = (selector, section) => $(selector).attr('data-editor-section', section);
+    const markAdvanced = (selector) => $(selector).addClass('fv-advanced-setting');
+
+    markSection('div.basic:has([name="name"])', 'general');
+    markSection('div.basic:has([name="icon"])', 'general');
+    markSection('div.basic:has([name="folder_webui"])', 'general');
+    markSection('ul:has([name="folder_webui_url"])', 'general');
+
+    markSection('div.basic.order-section', 'members');
+
+    markSection('div.basic:has([name="preview"])', 'preview');
+    markSection('ul:has([name="preview_hover"])', 'preview');
+    markSection('div.basic:has([name="status_color_started"])', 'preview');
+
+    markSection('div.basic.custom-action-wrapper-parent', 'actions');
+    markSection('div.basic:has(a.custom-action)', 'actions');
+
+    markSection('div.basic:has([name="regex"])', 'automation');
+
+    markSection('div.basic:has([name="update_column"])', 'advanced');
+    markSection('div.basic:has([name="override_default_actions"])', 'advanced');
+    markSection('div.basic:has([name="default_action"])', 'advanced');
+    markSection('div.basic:has([name="expand_tab"])', 'advanced');
+    markSection('div.basic:has([name="expand_dashboard"])', 'advanced');
+
+    markAdvanced('ul:has([name="folder_webui_url"])');
+    markAdvanced('ul:has([name="preview_hover"])');
+    markAdvanced('div.basic:has([name="update_column"])');
+    markAdvanced('div.basic:has([name="override_default_actions"])');
+    markAdvanced('div.basic:has([name="default_action"])');
+    markAdvanced('div.basic:has([name="expand_tab"])');
+    markAdvanced('div.basic:has([name="expand_dashboard"])');
+    markAdvanced('div.basic.custom-action-wrapper-parent');
+    markAdvanced('div.basic:has(a.custom-action)');
+};
+
+const initEditorChrome = () => {
+    const form = $('div.canvas > form');
+    if (!form.length) {
+        return;
+    }
+
+    if (!$('#fvEditorChrome').length) {
+        const navButtons = Object.entries(SECTION_META)
+            .map(([key, section]) => `<button type="button" data-target="${key}">${section.title}</button>`)
+            .join('');
+        form.prepend(`
+            <div id="fvEditorChrome" class="fv-editor-chrome">
+                <div class="fv-editor-nav-row">
+                    <div class="fv-section-nav">${navButtons}</div>
+                    <label class="fv-advanced-toggle"><input type="checkbox" id="fvShowAdvanced">Show advanced</label>
+                </div>
+                <div class="fv-editor-status-row">
+                    <span id="fvValidationSummary" class="fv-validation-summary">All checks passed.</span>
+                </div>
+            </div>
+            <div id="fvLivePanel" class="fv-live-panel">
+                <div class="fv-live-grid">
+                    <span><strong>Name:</strong> <span id="fvLiveName">-</span></span>
+                    <span><strong>Preview:</strong> <span id="fvLivePreview">-</span></span>
+                    <span><strong>Context:</strong> <span id="fvLiveContext">-</span></span>
+                    <span><strong>Members:</strong> <span id="fvLiveMembers">0/0 included</span></span>
+                </div>
+                <div class="fv-live-swatches">
+                    <span class="fv-swatch-item"><em>Started</em><i id="fvSwatchStarted"></i></span>
+                    <span class="fv-swatch-item"><em>Paused</em><i id="fvSwatchPaused"></i></span>
+                    <span class="fv-swatch-item"><em>Stopped</em><i id="fvSwatchStopped"></i></span>
+                </div>
+                <div class="fv-regex-simulator">
+                    <label for="fvRegexSimulatorInput"><strong>Regex simulator</strong></label>
+                    <input type="text" id="fvRegexSimulatorInput" placeholder="Test a container or VM name">
+                    <span id="fvRegexSimulatorResult" class="fv-regex-result">No regex configured.</span>
+                </div>
+                <div id="fvRegexSimulatorMeta" class="fv-regex-meta"></div>
+            </div>
+        `);
+    }
+
+    if (!$('#fvMemberTools').length) {
+        $('.basic.order-section dd').prepend(`
+            <div id="fvMemberTools" class="fv-member-tools">
+                <input type="text" id="fvMemberSearch" placeholder="Search members">
+                <select id="fvMemberFilter">
+                    <option value="all">All</option>
+                    <option value="included">Included</option>
+                    <option value="excluded">Excluded</option>
+                    <option value="regex">Regex included</option>
+                    <option value="manual">Manually included</option>
+                </select>
+                <button type="button" id="fvMemberClear">Clear</button>
+                <span id="fvMemberStats" class="fv-member-stats">0/0 included</span>
+            </div>
+        `);
+    }
+
+    $('.fv-section-heading').remove();
+    Object.entries(SECTION_META).forEach(([key, section]) => {
+        const first = $(`[data-editor-section="${key}"]`).first();
+        if (!first.length) {
+            return;
+        }
+        first.before(`
+            <div class="fv-section-heading" id="fv-section-${key}">
+                <h3>${section.title}</h3>
+                <p>${section.description}</p>
+            </div>
+        `);
+    });
+
+    $('.fv-section-nav button').off('click').on('click', function onSectionClick() {
+        const target = $(this).data('target');
+        const heading = document.getElementById(`fv-section-${target}`);
+        if (!heading) {
+            return;
+        }
+        const offset = 72;
+        const top = heading.getBoundingClientRect().top + window.pageYOffset - offset;
+        window.scrollTo({ top, behavior: 'smooth' });
+    });
+
+    $('#fvMemberSearch').off('input').on('input', applyMemberFilters);
+    $('#fvMemberFilter').off('change').on('change', applyMemberFilters);
+    $('#fvMemberClear').off('click').on('click', () => {
+        $('#fvMemberSearch').val('');
+        $('#fvMemberFilter').val('all');
+        applyMemberFilters();
+    });
+
+    const advancedPref = localStorage.getItem('fv.folder.editor.showAdvanced');
+    $('#fvShowAdvanced').prop('checked', advancedPref === '1');
+    $('#fvShowAdvanced').off('change').on('change', () => {
+        updateForm();
+        applyAdvancedMode();
+        if (isFormInitialized) {
+            updateUnsavedIndicator();
+        }
+    });
+    $('#fvRegexSimulatorInput').off('input').on('input', updateRegexSimulator);
+};
+
+getForm().preview_border_color.value = rgbToHex($('body').css('color'));
+getForm().preview_vertical_bars_color.value = rgbToHex($('body').css('color'));
 resetStatusColorDefaults();
 
 (async () => {
+    registerBeforeUnloadGuard();
     // if editing a vm hide docker related settings
     if (type !== 'docker') {
         $('[constraint*="docker"]').hide();
     }
     // get folders
     let folders = JSON.parse(await $.get(`/plugins/folderview.plus/server/read.php?type=${type}`).promise());
+    allFolderNames = new Set(Object.values(folders).map((folder) => (folder.name || '').trim().toLowerCase()));
     // get the list of element docker/vm
     let typeFilter;
     if (type === 'docker') {
@@ -90,6 +633,7 @@ resetStatusColorDefaults();
     if (folderId) {
         // select the folder and delete it from the list
         const currFolder = folders[folderId];
+        currentFolderName = currFolder.name || '';
         delete folders[folderId];
 
         // set the value of the form
@@ -141,6 +685,8 @@ resetStatusColorDefaults();
         updateIcon(form.icon);
     }
 
+    existingFolderNames = new Set(Object.values(folders).map((folder) => (folder.name || '').trim().toLowerCase()));
+
     // create the *cool* unraid button for the autostart
     $('input.basic-switch').switchButton({ labels_placement: 'right', off_label: $.i18n('off'), on_label: $.i18n('on')});
 
@@ -150,6 +696,7 @@ resetStatusColorDefaults();
         if (value.regex) {
             const regex = new RegExp(value.regex);
             for (const container of choose) {
+                regex.lastIndex = 0;
                 if (regex.test(container.Name)) {
                     value.containers.push(container.Name);
                 }
@@ -168,6 +715,29 @@ resetStatusColorDefaults();
     choose.sort((a, b) => a.Name.localeCompare(b.Name));
 
     updateList();
+    applySectionTags();
+    initEditorChrome();
+    updateForm();
+    applyAdvancedMode();
+    validateForm();
+    updateLiveSummary();
+    updateRegexSimulator();
+    markCleanState();
+    isFormInitialized = true;
+
+    const form = getForm();
+    $(form).on('input change', ':input', (event) => {
+        if (!isFormInitialized) {
+            return;
+        }
+        if (event.target.name === 'name') {
+            updateRegex(form.regex);
+        }
+        validateForm();
+        updateLiveSummary();
+        updateRegexSimulator();
+        updateUnsavedIndicator();
+    });
 })();
 
 /**
@@ -175,7 +745,9 @@ resetStatusColorDefaults();
  * @param {*} e the element
  */
 const updateIcon = (e) => {
-    e.previousElementSibling.src = e.value;
+    if (e.previousElementSibling && e.previousElementSibling.tagName === 'IMG') {
+        e.previousElementSibling.src = e.value;
+    }
 };
 
 /**
@@ -183,12 +755,23 @@ const updateIcon = (e) => {
  * @param {*} e the element
  */
 const updateRegex = (e) => {
+    syncMemberArraysFromTable();
     choose = choose.concat(selectedRegex);
-    const fldName = $('[name="name"]')[0].value;
-    selectedRegex = choose.filter(el => el.Label === fldName);
-    choose = choose.filter(el => el.Label !== fldName);
+    const fldName = ($('[name="name"]')[0].value || '').trim();
+    if (fldName) {
+        selectedRegex = choose.filter(el => el.Label === fldName);
+        choose = choose.filter(el => el.Label !== fldName);
+    } else {
+        selectedRegex = [];
+    }
     if (e.value) {
-        const regex = new RegExp(e.value);
+        let regex;
+        try {
+            regex = new RegExp(e.value);
+        } catch (_error) {
+            updateList();
+            return false;
+        }
         for (let i = 0; i < choose.length; i++) {
             if (regex.test(choose[i].Name)) {
                 const tmpSel = choose.splice(i, 1)[0];
@@ -197,9 +780,12 @@ const updateRegex = (e) => {
                 }
                 i--;
             }
+            regex.lastIndex = 0;
         }
     }
     updateList();
+    updateRegexSimulator();
+    return true;
 };
 
 /**
@@ -212,6 +798,11 @@ const previewChange = (e) => {
     if (type !== 'docker') {
         $('[constraint*="docker"]').hide();
     }
+
+    applyAdvancedMode();
+    validateForm();
+    updateLiveSummary();
+    updateRegexSimulator();
 };
 
 /**
@@ -245,66 +836,88 @@ const updateForm = () => {
  * Create the element select table
  */
 const updateList = () => {
-    // select the table
     const table = $('.sortable > tbody');
-    // empty the table
     table.empty();
 
-    // append the selected elements
-    for (const el of selected) {
-        table.append($(`<tr class="item" draggable="true"><td><span style="cursor: pointer;" onclick="setIconAsContainer(this)"><img src="${el.Icon}" class="img" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"></span>${el.Name}</td><td><input class="container-switch" checked type="checkbox" name="containers[]" value="${el.Name}" style="display: none;"></td></tr>`));
-    }
+    const rows = [];
+    selectedRegex.forEach((member) => rows.push({ member, membership: 'regex', checked: true, locked: true }));
+    selected.forEach((member) => rows.push({ member, membership: 'manual', checked: true, locked: false }));
+    choose.forEach((member) => rows.push({ member, membership: 'available', checked: false, locked: false }));
 
-    // append the rest of the elements
-    for (const el of choose) {
-        table.append($(`<tr class="item" draggable="true"><td><span style="cursor: pointer;" onclick="setIconAsContainer(this)"><img src="${el.Icon}" class="img" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"></span>${el.Name}</td><td><input class="container-switch" type="checkbox" name="containers[]" value="${el.Name}" style="display: none;"></td></tr>`));
-    }
+    rows.forEach(({ member, membership, checked, locked }) => {
+        const icon = escapeHtml(member.Icon || '/plugins/dynamix.docker.manager/images/question.png');
+        const name = escapeHtml(member.Name);
+        const orderControls = locked
+            ? '<span class="order-lock" title="Auto-included by regex or label"><i class="fa fa-lock" aria-hidden="true"></i></span>'
+            : '<div class="order-buttons"><button type="button" class="member-move" data-direction="up" title="Move up"><i class="fa fa-chevron-up" aria-hidden="true"></i></button><button type="button" class="member-move" data-direction="down" title="Move down"><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div>';
 
-    // prepend the selected regex element
-    for (const el of selectedRegex) {
-        table.prepend($(`<tr class="item"><td><span style="cursor: pointer;" onclick="setIconAsContainer(this)"><img src="${el.Icon}" class="img" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"></span>${el.Name}</td><td><input class="container-switch" checked disabled type="checkbox" name="containers[]" value="${el.Name}" style="display: none;"></td></tr>`));
-    }
-
-    // create the *cool* unraid button for the autostart
-    $('table.sortable > tbody > tr > td > input.container-switch').switchButton({ show_labels: false });
-    $('table.sortable > tbody > tr > td > input.container-switch:disabled').parent().find('*').css('opacity', '0.5').css('cursor', 'default').off().end().end().each(function() { this.checked = !this.checked; });
-
-    // stuff for the sort table
-    $('.item').css('border-color', $('body').css('color'));
-
-    $('.sortable').on('dragover', sortTable).on('dragenter', (e) => { e.preventDefault(); });
-
-    $('.item').on('dragstart', (e) => { e.target.classList.add("dragging") }).on('dragend', (e) => { e.target.classList.remove("dragging") });
-};
-
-/**
- * i have no idea how this work, if it doesn't work you have to figure out yourself
- * @param {*} e who knows
- */
-const sortTable = (e) => {
-    e.preventDefault();
-
-    const sib = [...$('.item:not(.dragging)')];
-
-    const bound = e.delegateTarget.getBoundingClientRect();
-
-    const near = sib.find(el => {
-        return e.clientY - bound.top <= el.offsetTop + el.offsetHeight / 2;
+        table.append($(`
+            <tr class="item" data-name="${name}" data-membership="${membership}">
+                <td class="order-col">${orderControls}</td>
+                <td class="name-col"><span style="cursor: pointer;" onclick="setIconAsContainer(this)"><img src="${icon}" class="img" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"></span>${name}</td>
+                <td><input class="container-switch" ${checked ? 'checked' : ''} ${locked ? 'disabled' : ''} type="checkbox" name="containers[]" value="${name}" style="display: none;"></td>
+            </tr>
+        `));
     });
 
-    $(near).before($('.dragging'));
-}
+    $('table.sortable > tbody > tr > td > input.container-switch').switchButton({ show_labels: false });
+    $('table.sortable > tbody > tr > td > input.container-switch:disabled').each(function() {
+        const input = $(this);
+        input.closest('td').find('*').css('opacity', '0.5').css('cursor', 'default').off();
+        this.checked = true;
+    });
+
+    $('.item').css('border-color', $('body').css('color'));
+
+    $('.member-move').off('click').on('click', function() {
+        moveMemberRow(this, $(this).data('direction'));
+    });
+
+    $('input.container-switch').off('change').on('change', () => {
+        updateMemberStats();
+        updateLiveSummary();
+        if (isFormInitialized) {
+            validateForm();
+            updateUnsavedIndicator();
+        }
+    });
+
+    applyMemberFilters();
+    updateMemberStats();
+    updateLiveSummary();
+    updateRegexSimulator();
+
+    if (isFormInitialized) {
+        validateForm();
+        updateUnsavedIndicator();
+    }
+};
 
 /**
  * Handle sthe form submission
  * @param {*} e the form
  * @returns {bool} always false
  */
-const submitForm = async (e) => {
+const generateCopyName = (baseName) => {
+    const trimmed = (baseName || '').trim() || 'Folder';
+    let suffix = 1;
+    let candidate = `${trimmed} Copy`;
+    while (allFolderNames.has(candidate.toLowerCase())) {
+        suffix += 1;
+        candidate = `${trimmed} Copy ${suffix}`;
+    }
+    allFolderNames.add(candidate.toLowerCase());
+    return candidate;
+};
+
+const submitForm = async (e, saveAsCopy = false) => {
+    if (!validateForm()) {
+        return false;
+    }
     const actions = $('input[name*="custom_action"]').map((i, e) => JSON.parse(atob($(e).val()))).get();
     // this is easy, no need for a comment :)
     const folder = {
-        name: e.name.value.toString(),
+        name: e.name.value.toString().trim(),
         icon: e.icon.value.toString(),
         settings: {
             folder_webui: e.folder_webui.checked,
@@ -338,8 +951,15 @@ const submitForm = async (e) => {
         containers: [...$('input[name*="containers"]:checked').map((i, e) => $(e).val())],
         actions
     }
+    if (saveAsCopy) {
+        folder.name = generateCopyName(folder.name);
+    }
+    if (!folder.name) {
+        setFieldError('name', 'Folder name is required.');
+        return false;
+    }
     // send the data to the right endpoint
-    if (folderId) {
+    if (folderId && !saveAsCopy) {
         await $.post('/plugins/folderview.plus/server/update.php', { type: type, content: JSON.stringify(folder), id: folderId });
     } else {
         await $.post('/plugins/folderview.plus/server/create.php', { type: type, content: JSON.stringify(folder) });
@@ -350,6 +970,7 @@ const submitForm = async (e) => {
     }
 
     // return to the right tab
+    suppressUnloadPrompt = true;
     let loc = location.pathname.split('/');
     loc.pop();
     location.href = loc.join('/');
@@ -361,9 +982,28 @@ const submitForm = async (e) => {
  * Handles the button to return to the tab
  */
 const cancelBtn = () => {
+    if (updateUnsavedIndicator()) {
+        const confirmLeave = confirm('You have unsaved changes. Leave without saving?');
+        if (!confirmLeave) {
+            return;
+        }
+    }
+    suppressUnloadPrompt = true;
     let loc = location.pathname.split('/');
     loc.pop();
     location.href = loc.join('/');
+};
+
+const resetUnsavedChanges = () => {
+    if (!updateUnsavedIndicator()) {
+        return;
+    }
+    const confirmed = confirm('Discard all unsaved changes and reload this editor?');
+    if (!confirmed) {
+        return;
+    }
+    suppressUnloadPrompt = true;
+    location.reload();
 };
 
 /**
@@ -371,8 +1011,9 @@ const cancelBtn = () => {
  * @param {*} e the element
  */
 const setIconAsContainer = (e) => {
-    $('div.canvas > form')[0].icon.value = e.firstChild.src;
-    $($('div.canvas > form')[0].icon).trigger('input');
+    const form = getForm();
+    form.icon.value = e.firstChild.src;
+    $(form.icon).trigger('input');
 };
 
 /**
@@ -433,7 +1074,7 @@ const customAction = (action = undefined) => {
         dialog.find('[name="action_script_args"]').val(config.script_args || '');
     }
     dialog.find('[name="action_script_icon"]').val(config.script_icon);
-    buttons = {};
+    let buttons = {};
     buttons[(action !== undefined) ? $.i18n('action-edit-btn') : $.i18n('action-add-btn')] = function() {
         const that = $(this);
         let cfg = {
@@ -459,6 +1100,10 @@ const customAction = (action = undefined) => {
             $(`.custom-action-n-${action} > span`).text(cfg.name + ' ');
         } else {
             $('.custom-action-wrapper').append(`<div class="custom-action-n-${(action !== undefined) ? action : customNumber}"><span>${cfg.name} </span><button onclick="return customAction(${(action !== undefined) ? action : customNumber});"><i class="fa fa-pencil" aria-hidden="true"></i></button><button onclick="return rCcustomAction(${(action !== undefined) ? action : customNumber});"><i class="fa fa-trash" aria-hidden="true"></i></button><input type="hidden" name="custom_action[]" value="${btoa(JSON.stringify(cfg))}"></div>`);
+        }
+        if (isFormInitialized) {
+            validateForm();
+            updateUnsavedIndicator();
         }
         $(this).dialog("close");
     };
@@ -491,5 +1136,19 @@ const customAction = (action = undefined) => {
  */
 const rCcustomAction =  (action) => {
     $(`.custom-action-n-${action}`).remove();
+    if (isFormInitialized) {
+        validateForm();
+        updateUnsavedIndicator();
+    }
     return false;
 };
+
+window.updateIcon = updateIcon;
+window.updateRegex = updateRegex;
+window.updateForm = updateForm;
+window.submitForm = submitForm;
+window.cancelBtn = cancelBtn;
+window.resetUnsavedChanges = resetUnsavedChanges;
+window.setIconAsContainer = setIconAsContainer;
+window.customAction = customAction;
+window.rCcustomAction = rCcustomAction;

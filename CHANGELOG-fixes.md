@@ -1,5 +1,11 @@
 # FolderView Plus Changelog
 
+## Version 2026.03.05.5
+
+- Move VMs directly below Docker in settings for a cleaner reading order.
+- Move Docker and VM auto-assignment rule editors into one dedicated bottom section.
+- Preserve existing auto-assignment behavior while improving layout clarity.
+
 ## Version 2026.03.05.4
 
 - Rework Docker/VM settings layout into clearer sections for actions, sorting, tables, and auto-assignment rules.

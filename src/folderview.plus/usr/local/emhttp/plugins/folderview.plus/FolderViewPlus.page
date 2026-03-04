@@ -63,33 +63,6 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
             </tbody>
         </table>
     </div>
-    <div class="rules-panel">
-        <div class="rules-header">
-            <h3>Auto-assignment rules</h3>
-            <span class="rules-help">Automatically place new containers into folders.</span>
-        </div>
-        <div class="rules-editor">
-            <select id="docker-rule-folder"></select>
-            <select id="docker-rule-kind" onchange="toggleRuleKindFields('docker')">
-                <option value="name_regex">Name regex</option>
-                <option value="label">Docker label</option>
-            </select>
-            <input id="docker-rule-pattern" type="text" placeholder="Regex pattern (example: ^media-)">
-            <input id="docker-rule-label-key" type="text" placeholder="Label key (example: com.example.stack)" style="display:none;">
-            <input id="docker-rule-label-value" type="text" placeholder="Label value (optional, blank means any value)" style="display:none;">
-            <button class="rules-add-btn" onclick="addAutoRule('docker')"><i class="fa fa-plus"></i> Add rule</button>
-        </div>
-        <table class="rules-table">
-            <thead>
-                <tr>
-                    <th>Folder</th>
-                    <th>Match</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="docker-rules"></tbody>
-        </table>
-    </div>
 </div>
 <hr>
 
@@ -133,9 +106,42 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
             </tbody>
         </table>
     </div>
+</div>
+<hr>
+
+<h2>Auto-assignment rules</h2>
+<div class="rules-bottom-grid">
     <div class="rules-panel">
         <div class="rules-header">
-            <h3>Auto-assignment rules</h3>
+            <h3>Docker rules</h3>
+            <span class="rules-help">Automatically place new containers into folders.</span>
+        </div>
+        <div class="rules-editor">
+            <select id="docker-rule-folder"></select>
+            <select id="docker-rule-kind" onchange="toggleRuleKindFields('docker')">
+                <option value="name_regex">Name regex</option>
+                <option value="label">Docker label</option>
+            </select>
+            <input id="docker-rule-pattern" type="text" placeholder="Regex pattern (example: ^media-)">
+            <input id="docker-rule-label-key" type="text" placeholder="Label key (example: com.example.stack)" style="display:none;">
+            <input id="docker-rule-label-value" type="text" placeholder="Label value (optional, blank means any value)" style="display:none;">
+            <button class="rules-add-btn" onclick="addAutoRule('docker')"><i class="fa fa-plus"></i> Add rule</button>
+        </div>
+        <table class="rules-table">
+            <thead>
+                <tr>
+                    <th>Folder</th>
+                    <th>Match</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="docker-rules"></tbody>
+        </table>
+    </div>
+
+    <div class="rules-panel">
+        <div class="rules-header">
+            <h3>VM rules</h3>
             <span class="rules-help">Automatically place new VMs into folders.</span>
         </div>
         <div class="rules-editor">
@@ -158,7 +164,6 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
         </table>
     </div>
 </div>
-<hr>
 
 <div id="import-preview-dialog" style="display:none;">
     <p><strong>Import summary</strong></p>

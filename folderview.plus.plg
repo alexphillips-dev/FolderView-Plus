@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.05.4">
-<!ENTITY md5 "689d0ab157bd57cdeb1f78c33aacb837">
+<!ENTITY version "2026.03.05.5">
+<!ENTITY md5 "b4f90f1ec6b356adda4fc4b69aa9277c">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.05.5
+- Move VMs directly below Docker in settings for clearer top-to-bottom workflow.
+- Move Docker and VM auto-assignment rule editors into a single dedicated section at the bottom.
+- Keep existing rule behavior and IDs while improving visual grouping.
 
 ###2026.03.05.4
 - Rework Docker/VM settings layout into clearer sections: actions, sort controls, folder table, and auto-assignment rules.

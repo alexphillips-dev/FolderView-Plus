@@ -133,6 +133,13 @@
     background: rgba(255, 255, 255, 0.015);
 }
 
+.rules-bottom-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+    margin-bottom: 1rem;
+}
+
 .rules-header {
     display: flex;
     flex-wrap: wrap;
@@ -212,6 +219,12 @@
 @media (max-width: 1080px) {
     .folder-toolbar {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width: 1320px) {
+    .rules-bottom-grid {
+        grid-template-columns: 1fr 1fr;
     }
 }
 

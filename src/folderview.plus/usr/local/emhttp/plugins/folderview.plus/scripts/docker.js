@@ -106,8 +106,8 @@ const getRenderedRowHeight = (row) => {
     return Math.max(Math.round(rectHeight), Math.round(offsetHeight), 0);
 };
 
-const isMainDockerRow = (row) => {
-    return !!(row && row.closest && row.closest('#docker_list'));
+const rowHasFolderPreview = (row) => {
+    return !!(row && row.querySelector && row.querySelector('div.folder-preview'));
 };
 
 const applyRowHeight = (row, height = 0) => {
@@ -137,8 +137,8 @@ const buildMainFolderHeightLookup = () => {
     const byName = new Map();
     const ordered = [];
 
-    const mainRows = Array.from(document.querySelectorAll('#docker_list tr')).filter((row) => {
-        return !!(row && row.querySelector && row.querySelector('td.ct-name.folder-name'));
+    const mainRows = Array.from(document.querySelectorAll('tr')).filter((row) => {
+        return !!(row && rowHasFolderPreview(row) && row.querySelector && row.querySelector('td.ct-name.folder-name'));
     });
 
     mainRows.forEach((row) => {
@@ -219,7 +219,7 @@ const forceAllFolderRowsVerticalCenter = () => {
     const cloneSeen = new Set();
     document.querySelectorAll('td.ct-name.folder-name').forEach((cell) => {
         const row = cell.parentElement;
-        if (!row || isMainDockerRow(row) || cloneSeen.has(row)) {
+        if (!row || rowHasFolderPreview(row) || cloneSeen.has(row)) {
             return;
         }
         cloneSeen.add(row);
@@ -245,10 +245,20 @@ const forceAllFolderRowsVerticalCenter = () => {
         });
     });
 
-    document.querySelectorAll('#docker_list td.ct-name.folder-name').forEach((cell) => {
-        const row = cell.parentElement;
+    document.querySelectorAll('tr').forEach((row) => {
+        if (!rowHasFolderPreview(row)) {
+            return;
+        }
+        row.querySelectorAll('td.ct-name.folder-name').forEach((cell) => {
+            applyFolderCellCentering(cell, 0);
+        });
         applyRowHeight(row, 0);
-        applyFolderCellCentering(cell, 0);
+    });
+    document.querySelectorAll('tr td.ct-name.folder-name').forEach((cell) => {
+        const row = cell.parentElement;
+        if (row && !rowHasFolderPreview(row) && !cloneSeen.has(row)) {
+            applyFolderCellCentering(cell, 0);
+        }
     });
 };
 

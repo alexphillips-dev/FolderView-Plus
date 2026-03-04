@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.08.6">
-<!ENTITY md5 "0006d7b11b6eb358a9685ebee00735a7">
+<!ENTITY version "2026.03.08.7">
+<!ENTITY md5 "75eb1e22d1cc01b213b7ce34776088b6">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.08.7
+- Make Docker clone-row matching independent of table IDs/classes:
+  - treat rows with `folder-preview` as canonical source rows,
+  - treat rows without `folder-preview` as clone rows,
+  - sync clone heights by folder id, then folder name, then index fallback.
 
 ###2026.03.08.6
 - Improve clone-row height matching reliability for Docker folder left column:

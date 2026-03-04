@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.07.8">
-<!ENTITY md5 "afea9c4354cc2b161a80161aecc791dd">
+<!ENTITY version "2026.03.07.9">
+<!ENTITY md5 "58513ecfa1d0ea947e4f9b76afef07af">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.07.9
+- Harden Docker folder vertical centering for fixed-column render paths:
+  - center all folder name cells (`td.ct-name.folder-name`) regardless of table clone/source,
+  - add MutationObserver + deferred re-apply to catch late DOM/table clone rebuilds.
 
 ###2026.03.07.8
 - Fix Docker folder row vertical alignment in fixed/clone table layouts:

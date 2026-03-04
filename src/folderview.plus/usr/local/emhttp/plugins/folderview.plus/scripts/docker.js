@@ -64,40 +64,110 @@ const escapeClassToken = (value) => {
     return input.replace(/[^a-zA-Z0-9_-]/g, '\\$&');
 };
 
-const forceFolderRowVerticalCenter = (id) => {
-    const escapedId = escapeClassToken(id);
-    const rows = Array.from(document.querySelectorAll(`tr.folder.folder-id-${escapedId}`));
-    if (!rows.length) {
-        return;
+const applyFolderCellCentering = (cell) => {
+    if (!cell) {
+        return false;
     }
 
-    rows.forEach((row) => {
+    let sub = null;
+    Array.from(cell.children || []).forEach((child) => {
+        if (!sub && child && child.classList && child.classList.contains('folder-name-sub')) {
+            sub = child;
+        }
+    });
+    if (!sub) {
+        sub = cell.querySelector('.folder-name-sub');
+    }
+    if (!sub) {
+        return false;
+    }
+
+    const row = cell.parentElement;
+    if (row && row.tagName === 'TR') {
         Array.from(row.children).forEach((td) => {
             if (td && td.tagName === 'TD') {
                 td.style.setProperty('vertical-align', 'middle', 'important');
             }
         });
+    }
 
-        const cell = row.querySelector('td.ct-name.folder-name');
-        if (!cell) {
-            return;
-        }
-        cell.style.setProperty('position', 'relative', 'important');
-        cell.style.setProperty('padding-top', '0px', 'important');
-        cell.style.setProperty('padding-bottom', '0px', 'important');
+    cell.style.setProperty('vertical-align', 'middle', 'important');
+    cell.style.setProperty('position', 'relative', 'important');
+    cell.style.setProperty('padding-top', '0px', 'important');
+    cell.style.setProperty('padding-bottom', '0px', 'important');
 
-        const sub = cell.querySelector('.folder-name-sub');
-        if (!sub) {
-            return;
-        }
-        sub.style.setProperty('position', 'absolute', 'important');
-        sub.style.setProperty('top', '50%', 'important');
-        sub.style.setProperty('left', '8px', 'important');
-        sub.style.setProperty('right', '8px', 'important');
-        sub.style.setProperty('transform', 'translateY(-50%)', 'important');
-        sub.style.setProperty('display', 'flex', 'important');
-        sub.style.setProperty('align-items', 'center', 'important');
+    sub.style.setProperty('position', 'absolute', 'important');
+    sub.style.setProperty('top', '50%', 'important');
+    sub.style.setProperty('left', '8px', 'important');
+    sub.style.setProperty('right', '8px', 'important');
+    sub.style.setProperty('transform', 'translateY(-50%)', 'important');
+    sub.style.setProperty('display', 'flex', 'important');
+    sub.style.setProperty('align-items', 'center', 'important');
+
+    return true;
+};
+
+const forceAllFolderRowsVerticalCenter = () => {
+    document.querySelectorAll('td.ct-name.folder-name').forEach((cell) => {
+        applyFolderCellCentering(cell);
     });
+};
+
+const forceFolderRowVerticalCenter = (id) => {
+    const escapedId = escapeClassToken(id);
+    let centered = false;
+    document.querySelectorAll(`tr.folder-id-${escapedId} td.ct-name.folder-name`).forEach((cell) => {
+        centered = applyFolderCellCentering(cell) || centered;
+    });
+    if (!centered) {
+        forceAllFolderRowsVerticalCenter();
+    }
+};
+
+let folderRowCenterObserver = null;
+let folderRowCenterRaf = 0;
+
+const queueForceAllFolderRowsVerticalCenter = () => {
+    if (folderRowCenterRaf) {
+        return;
+    }
+    folderRowCenterRaf = window.requestAnimationFrame(() => {
+        folderRowCenterRaf = 0;
+        forceAllFolderRowsVerticalCenter();
+    });
+};
+
+const startFolderRowCenterObserver = () => {
+    if (folderRowCenterObserver || !document.body) {
+        return;
+    }
+
+    folderRowCenterObserver = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+            if (!mutation || !mutation.addedNodes || mutation.addedNodes.length === 0) {
+                continue;
+            }
+            for (const node of mutation.addedNodes) {
+                if (!node || node.nodeType !== 1) {
+                    continue;
+                }
+                const element = node;
+                if (
+                    (element.matches && element.matches('td.ct-name.folder-name, tr[class*="folder-id-"]'))
+                    || (element.querySelector && element.querySelector('td.ct-name.folder-name, tr[class*="folder-id-"]'))
+                ) {
+                    queueForceAllFolderRowsVerticalCenter();
+                    return;
+                }
+            }
+        }
+    });
+
+    folderRowCenterObserver.observe(document.body, { childList: true, subtree: true });
+    queueForceAllFolderRowsVerticalCenter();
+    setTimeout(queueForceAllFolderRowsVerticalCenter, 50);
+    setTimeout(queueForceAllFolderRowsVerticalCenter, 250);
+    setTimeout(queueForceAllFolderRowsVerticalCenter, 1000);
 };
 
 /**
@@ -268,9 +338,12 @@ const createFolders = async () => {
     globalFolders = foldersDone;
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Assigned foldersDone to globalFolders:', {...globalFolders});
 
+    startFolderRowCenterObserver();
     Object.keys(globalFolders).forEach((folderId) => forceFolderRowVerticalCenter(folderId));
+    queueForceAllFolderRowsVerticalCenter();
     setTimeout(() => {
         Object.keys(globalFolders).forEach((folderId) => forceFolderRowVerticalCenter(folderId));
+        queueForceAllFolderRowsVerticalCenter();
     }, 50);
 
     folderDebugMode = false; // Existing flag

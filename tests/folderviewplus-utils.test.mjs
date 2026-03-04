@@ -98,6 +98,26 @@ test('orderFoldersByPrefs supports manual and alpha sort modes', () => {
     assert.deepEqual(Object.keys(alpha), ['a', 'b', 'z']);
 });
 
+test('getFolderStatusColors normalizes and defaults values', () => {
+    const defaults = utils.getFolderStatusColors({});
+    assert.deepEqual(defaults, {
+        started: '#ffffff',
+        paused: '#b8860b',
+        stopped: '#ff4d4d'
+    });
+
+    const custom = utils.getFolderStatusColors({
+        status_color_started: '#AbC',
+        status_color_paused: '#123456',
+        status_color_stopped: 'bad-value'
+    });
+    assert.deepEqual(custom, {
+        started: '#aabbcc',
+        paused: '#123456',
+        stopped: '#ff4d4d'
+    });
+});
+
 test('getAutoRuleMatches supports docker label and regex rules', () => {
     const names = ['plex', 'qbittorrent', 'homeassistant'];
     const rules = [

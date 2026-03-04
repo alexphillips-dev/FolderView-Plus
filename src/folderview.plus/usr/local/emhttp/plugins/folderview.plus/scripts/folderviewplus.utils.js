@@ -6,10 +6,47 @@
     root.FolderViewPlusUtils = factory();
 }(typeof globalThis !== 'undefined' ? globalThis : this, function() {
     const EXPORT_SCHEMA_VERSION = 1;
+    const DEFAULT_FOLDER_STATUS_COLORS = {
+        started: '#ffffff',
+        paused: '#b8860b',
+        stopped: '#ff4d4d'
+    };
 
     const isPlainObject = (value) => !!value && typeof value === 'object' && !Array.isArray(value);
 
     const cloneJson = (value) => JSON.parse(JSON.stringify(value));
+
+    const normalizeHexColor = (value, fallback) => {
+        if (typeof value !== 'string') {
+            return fallback;
+        }
+        const trimmed = value.trim();
+        const hexMatch = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
+        if (!hexMatch.test(trimmed)) {
+            return fallback;
+        }
+        if (trimmed.length === 4) {
+            return (
+                '#' +
+                trimmed
+                    .slice(1)
+                    .split('')
+                    .map((ch) => ch + ch)
+                    .join('')
+                    .toLowerCase()
+            );
+        }
+        return trimmed.toLowerCase();
+    };
+
+    const getFolderStatusColors = (settings) => {
+        const source = isPlainObject(settings) ? settings : {};
+        return {
+            started: normalizeHexColor(source.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started),
+            paused: normalizeHexColor(source.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused),
+            stopped: normalizeHexColor(source.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped)
+        };
+    };
 
     const normalizeFolderMap = (value) => {
         if (!isPlainObject(value)) {
@@ -389,9 +426,11 @@
 
     return {
         EXPORT_SCHEMA_VERSION,
+        DEFAULT_FOLDER_STATUS_COLORS,
         normalizeFolderMap,
         normalizePrefs,
         orderFoldersByPrefs,
+        getFolderStatusColors,
         buildFullExportPayload,
         buildSingleExportPayload,
         parseImportPayload,

@@ -47,15 +47,15 @@
 }
 
 span.folder-state.fv-folder-state-started {
-    color: #ffffff !important;
+    color: #ffffff;
 }
 
 span.folder-state.fv-folder-state-paused {
-    color: #b8860b !important;
+    color: #b8860b;
 }
 
 span.folder-state.fv-folder-state-stopped {
-    color: #ff4d4d !important;
+    color: #ff4d4d;
 }
 
 .folder-storage {

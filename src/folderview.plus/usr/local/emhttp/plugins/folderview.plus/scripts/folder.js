@@ -8,14 +8,42 @@ let selected = [];
 const type = new URLSearchParams(location.search).get('type');
 //id of the folder if present
 const folderId = new URLSearchParams(location.search).get('id');
+const DEFAULT_FOLDER_STATUS_COLORS = {
+    started: '#ffffff',
+    paused: '#b8860b',
+    stopped: '#ff4d4d'
+};
 
 const rgbToHex = (rgb) => {
     rgb = rgb.slice(4, -1).split(', ');
     return "#" + (1 << 24 | rgb[0] << 16 | rgb[1] << 8 | rgb[2]).toString(16).slice(1);
 }
 
+const normalizeHexColor = (value, fallback) => {
+    if (typeof value !== 'string') {
+        return fallback;
+    }
+    const trimmed = value.trim();
+    if (!/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(trimmed)) {
+        return fallback;
+    }
+    if (trimmed.length === 4) {
+        return `#${trimmed[1]}${trimmed[1]}${trimmed[2]}${trimmed[2]}${trimmed[3]}${trimmed[3]}`.toLowerCase();
+    }
+    return trimmed.toLowerCase();
+};
+
+const resetStatusColorDefaults = () => {
+    const form = $('div.canvas > form')[0];
+    form.status_color_started.value = DEFAULT_FOLDER_STATUS_COLORS.started;
+    form.status_color_paused.value = DEFAULT_FOLDER_STATUS_COLORS.paused;
+    form.status_color_stopped.value = DEFAULT_FOLDER_STATUS_COLORS.stopped;
+};
+window.resetStatusColorDefaults = resetStatusColorDefaults;
+
 $('div.canvas > form')[0].preview_border_color.value = rgbToHex($('body').css('color'));
 $('div.canvas > form')[0].preview_vertical_bars_color.value = rgbToHex($('body').css('color'));
+resetStatusColorDefaults();
 
 (async () => {
     // if editing a vm hide docker related settings
@@ -74,6 +102,9 @@ $('div.canvas > form')[0].preview_vertical_bars_color.value = rgbToHex($('body')
         form.preview_border.checked = currFolder.settings.preview_border || false;
         form.preview_border_color.value = currFolder.settings.preview_border_color || rgbToHex($('body').css('color'));
         form.preview_vertical_bars_color.value = currFolder.settings.preview_vertical_bars_color || currFolder.settings.preview_border_color || rgbToHex($('body').css('color'));
+        form.status_color_started.value = normalizeHexColor(currFolder.settings.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started);
+        form.status_color_paused.value = normalizeHexColor(currFolder.settings.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused);
+        form.status_color_stopped.value = normalizeHexColor(currFolder.settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped);
         form.update_column.checked = currFolder.settings.update_column || false;
         form.default_action.checked = currFolder.settings.default_action || false;
         form.expand_tab.checked = currFolder.settings.expand_tab;
@@ -282,6 +313,9 @@ const submitForm = async (e) => {
             preview_border: e.preview_border.checked,
             preview_border_color: e.preview_border_color.value.toString(),
             preview_vertical_bars_color: e.preview_vertical_bars_color.value.toString(),
+            status_color_started: normalizeHexColor(e.status_color_started.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.started),
+            status_color_paused: normalizeHexColor(e.status_color_paused.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.paused),
+            status_color_stopped: normalizeHexColor(e.status_color_stopped.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.stopped),
             update_column: e.update_column.checked,
             default_action: e.default_action.checked,
             expand_tab: e.expand_tab.checked,

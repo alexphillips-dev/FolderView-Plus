@@ -1,11 +1,38 @@
-﻿const utils = window.FolderViewPlusUtils || {
+const localDefaultFolderStatusColors = {
+    started: '#ffffff',
+    paused: '#b8860b',
+    stopped: '#ff4d4d'
+};
+const normalizeStatusHexColor = (value, fallback) => {
+    if (typeof value !== 'string') {
+        return fallback;
+    }
+    const trimmed = value.trim();
+    if (!/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(trimmed)) {
+        return fallback;
+    }
+    if (trimmed.length === 4) {
+        return `#${trimmed[1]}${trimmed[1]}${trimmed[2]}${trimmed[2]}${trimmed[3]}${trimmed[3]}`.toLowerCase();
+    }
+    return trimmed.toLowerCase();
+};
+const utils = window.FolderViewPlusUtils || {
     normalizePrefs: () => ({
         sortMode: 'created',
         manualOrder: [],
         autoRules: [],
         badges: { running: true, stopped: false, updates: true }
     }),
-    getAutoRuleMatches: () => []
+    getAutoRuleMatches: () => [],
+    DEFAULT_FOLDER_STATUS_COLORS: localDefaultFolderStatusColors,
+    getFolderStatusColors: (settings) => {
+        const incoming = settings && typeof settings === 'object' ? settings : {};
+        return {
+            started: normalizeStatusHexColor(incoming.status_color_started, localDefaultFolderStatusColors.started),
+            paused: normalizeStatusHexColor(incoming.status_color_paused, localDefaultFolderStatusColors.paused),
+            stopped: normalizeStatusHexColor(incoming.status_color_stopped, localDefaultFolderStatusColors.stopped)
+        };
+    }
 };
 
 /**
@@ -361,21 +388,27 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone) => {
     //set tehe status of a folder
 
     const total = Object.entries(folder.containers).length;
+    const statusColors = typeof utils.getFolderStatusColors === 'function'
+        ? utils.getFolderStatusColors(folder.settings)
+        : localDefaultFolderStatusColors;
+    const $folderIcon = $(`tr.folder-id-${id} i#load-folder-${id}`);
     const $folderState = $(`tr.folder-id-${id} span.folder-state`);
     $folderState.removeClass('fv-folder-state-started fv-folder-state-paused fv-folder-state-stopped');
+    $folderState.css('color', '');
+    $folderIcon.show().css('color', '');
     let folderStatusKind = 'stopped';
     if (started > 0) {
         folderStatusKind = 'running';
-        $(`tr.folder-id-${id} i#load-folder-${id}`).attr('class', 'fa fa-play started green-text folder-load-status');
-        $folderState.text(`${started}/${total} ${$.i18n('started')}`).addClass('fv-folder-state-started');
+        $folderIcon.attr('class', 'fa fa-play started folder-load-status').css('color', statusColors.started);
+        $folderState.text(`${started}/${total} ${$.i18n('started')}`).addClass('fv-folder-state-started').css('color', statusColors.started);
     } else if (paused > 0) {
         folderStatusKind = 'paused';
-        $(`tr.folder-id-${id} i#load-folder-${id}`).attr('class', 'fa fa-pause paused orange-text folder-load-status');
-        $folderState.text(`${paused}/${total} ${$.i18n('paused')}`).addClass('fv-folder-state-paused');
+        $folderIcon.attr('class', 'fa fa-pause paused folder-load-status').css('color', statusColors.paused);
+        $folderState.text(`${paused}/${total} ${$.i18n('paused')}`).addClass('fv-folder-state-paused').css('color', statusColors.paused);
     } else {
         folderStatusKind = 'stopped';
-        $(`tr.folder-id-${id} i#load-folder-${id}`).attr('class', 'fa fa-square stopped red-text folder-load-status');
-        $folderState.text(`${stopped}/${total} ${$.i18n('stopped')}`).addClass('fv-folder-state-stopped');
+        $folderIcon.attr('class', 'fa fa-square stopped folder-load-status').css('color', statusColors.stopped);
+        $folderState.text(`${stopped}/${total} ${$.i18n('stopped')}`).addClass('fv-folder-state-stopped').css('color', statusColors.stopped);
     }
     const badgePrefs = folderTypePrefs?.badges || {};
     const showRunningBadge = badgePrefs.running !== false;

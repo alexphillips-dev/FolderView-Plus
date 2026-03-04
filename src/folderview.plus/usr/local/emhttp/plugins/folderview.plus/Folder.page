@@ -366,6 +366,38 @@ Markdown="false"
             </li>
         </ul>
 
+        <div class="basic">
+            <dl>
+                <dt>Folder status colors:</dt>
+                <dd class="folder-status-colors-dd">
+                    <div class="folder-status-colors">
+                        <label class="folder-status-color-item">
+                            <span>Started</span>
+                            <input type="color" name="status_color_started" style="height:28px;vertical-align:middle;">
+                        </label>
+                        <label class="folder-status-color-item">
+                            <span>Paused</span>
+                            <input type="color" name="status_color_paused" style="height:28px;vertical-align:middle;">
+                        </label>
+                        <label class="folder-status-color-item">
+                            <span>Stopped</span>
+                            <input type="color" name="status_color_stopped" style="height:28px;vertical-align:middle;">
+                        </label>
+                    </div>
+                    <button onclick="event.preventDefault(); resetStatusColorDefaults();" style="width:44px;height:28px;min-width:0;padding:0;margin:0;margin-left:0.5em;vertical-align:middle;">
+                        <i class="fa fa-repeat" aria-hidden="true"></i>
+                    </button>
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <p>
+                    Set custom colors for this folder's status icon and text across Docker, VMs, and Dashboard views.
+                    <br>
+                    The <i class="fa fa-repeat" aria-hidden="true"></i> button resets to defaults.
+                </p>
+            </blockquote>
+        </div>
+
         <div class="basic" constraint="docker">
             <dl>
                 <dt data-i18n="update-column">Hide update column:</dt>

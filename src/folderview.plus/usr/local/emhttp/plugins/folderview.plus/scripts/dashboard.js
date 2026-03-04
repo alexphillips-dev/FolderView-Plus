@@ -1,6 +1,33 @@
+const localDefaultFolderStatusColors = {
+    started: '#ffffff',
+    paused: '#b8860b',
+    stopped: '#ff4d4d'
+};
+const normalizeStatusHexColor = (value, fallback) => {
+    if (typeof value !== 'string') {
+        return fallback;
+    }
+    const trimmed = value.trim();
+    if (!/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(trimmed)) {
+        return fallback;
+    }
+    if (trimmed.length === 4) {
+        return `#${trimmed[1]}${trimmed[1]}${trimmed[2]}${trimmed[2]}${trimmed[3]}${trimmed[3]}`.toLowerCase();
+    }
+    return trimmed.toLowerCase();
+};
 const utils = window.FolderViewPlusUtils || {
     normalizePrefs: () => ({ sortMode: 'created', manualOrder: [], autoRules: [] }),
-    getAutoRuleMatches: () => []
+    getAutoRuleMatches: () => [],
+    DEFAULT_FOLDER_STATUS_COLORS: localDefaultFolderStatusColors,
+    getFolderStatusColors: (settings) => {
+        const incoming = settings && typeof settings === 'object' ? settings : {};
+        return {
+            started: normalizeStatusHexColor(incoming.status_color_started, localDefaultFolderStatusColors.started),
+            paused: normalizeStatusHexColor(incoming.status_color_paused, localDefaultFolderStatusColors.paused),
+            stopped: normalizeStatusHexColor(incoming.status_color_stopped, localDefaultFolderStatusColors.stopped)
+        };
+    }
 };
 
 /**
@@ -291,7 +318,7 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
     }).filter((name) => !folder.containers.includes(name)));
 
     // the HTML template for the folder
-    const fld = `<div class="folder-showcase-outer-${id} folder-showcase-outer"><span class="outer solid apps stopped folder-docker"><span id="folder-id-${id}" onclick='addDockerFolderContext("${id}")' class="hand docker folder-hand-docker"><img src="${folder.icon}" class="img folder-img-docker" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"></span><span class="inner folder-inner-docker"><span class="folder-appname-docker">${folder.name}</span><br><i class="fa fa-square stopped red-text folder-load-status-docker"></i><span class="state folder-state-docker">${$.i18n('stopped')}</span></span><div class="folder-storage"></div></span><div class="folder-showcase-${id} folder-showcase"></div></div>`;
+    const fld = `<div class="folder-showcase-outer-${id} folder-showcase-outer"><span class="outer solid apps stopped folder-docker"><span id="folder-id-${id}" onclick='addDockerFolderContext("${id}")' class="hand docker folder-hand-docker"><img src="${folder.icon}" class="img folder-img-docker" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"></span><span class="inner folder-inner-docker"><span class="folder-appname-docker">${folder.name}</span><br><i class="fa fa-square stopped folder-load-status-docker"></i><span class="state folder-state-docker">${$.i18n('stopped')}</span></span><div class="folder-storage"></div></span><div class="folder-showcase-${id} folder-showcase"></div></div>`;
 
     // insertion at position of the folder
     if (position === 0) {
@@ -403,7 +430,14 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
     folder.containers = newFolder;
 
     //temp var
-    const sel = $(`tbody#docker_view span#folder-id-${id}`)
+    const sel = $(`tbody#docker_view span#folder-id-${id}`);
+    const statusColors = typeof utils.getFolderStatusColors === 'function'
+        ? utils.getFolderStatusColors(folder.settings)
+        : localDefaultFolderStatusColors;
+    const $statusIcon = sel.next('span.inner').children('i');
+    const $statusText = sel.next('span.inner').children('span.state');
+    $statusIcon.css('color', statusColors.stopped);
+    $statusText.css('color', statusColors.stopped);
     
     //set the status of a folder
 
@@ -413,8 +447,8 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
 
     if (started) {
         sel.parent().removeClass('stopped').addClass('started');
-        sel.next('span.inner').children('i').replaceWith($('<i class="fa fa-play started green-text"></i>'));
-        sel.next('span.inner').children('span.state').text(`${started}/${Object.entries(folder.containers).length} ${$.i18n('started')}`);
+        $statusIcon.replaceWith($(`<i class="fa fa-play started folder-load-status-docker" style="color:${statusColors.started}"></i>`));
+        $statusText.text(`${started}/${Object.entries(folder.containers).length} ${$.i18n('started')}`).css('color', statusColors.started);
     }
 
     if(autostart === 0) {
@@ -499,7 +533,7 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone) => {
     }).filter((name) => !folder.containers.includes(name)));
 
     // the HTML template for the folder
-    const fld = `<div class="folder-showcase-outer-${id} folder-showcase-outer"><span class="outer solid vms stopped folder-vm"><span id="folder-id-${id}" onclick='addVMFolderContext("${id}")' class="hand vm folder-hand-vm"><img src="${folder.icon}" class="img folder-img-vm" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span><span class="inner folder-inner-vm"><span class="folder-appname-vm">${folder.name}</span><br><i class="fa fa-square stopped red-text folder-load-status-vm"></i><span class="state folder-state-vm">${$.i18n('stopped')}</span></span><div class="folder-storage" style="display:none"></div></span><div class="folder-showcase-${id} folder-showcase"></div></div>`;
+    const fld = `<div class="folder-showcase-outer-${id} folder-showcase-outer"><span class="outer solid vms stopped folder-vm"><span id="folder-id-${id}" onclick='addVMFolderContext("${id}")' class="hand vm folder-hand-vm"><img src="${folder.icon}" class="img folder-img-vm" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span><span class="inner folder-inner-vm"><span class="folder-appname-vm">${folder.name}</span><br><i class="fa fa-square stopped folder-load-status-vm"></i><span class="state folder-state-vm">${$.i18n('stopped')}</span></span><div class="folder-storage" style="display:none"></div></span><div class="folder-showcase-${id} folder-showcase"></div></div>`;
 
     // insertion at position of the folder
     if (position === 0) {
@@ -596,11 +630,18 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone) => {
 
     
     //set tehe status of a folder
+    const sel = $(`tbody#vm_view span#folder-id-${id}`);
+    const statusColors = typeof utils.getFolderStatusColors === 'function'
+        ? utils.getFolderStatusColors(folder.settings)
+        : localDefaultFolderStatusColors;
+    const $statusIcon = sel.next('span.inner').children('i');
+    const $statusText = sel.next('span.inner').children('span.state');
+    $statusIcon.css('color', statusColors.stopped);
+    $statusText.css('color', statusColors.stopped);
     if (started) {
-        const sel = $(`tbody#vm_view span#folder-id-${id}`);
         sel.parent().removeClass('stopped').addClass('started');
-        sel.next('span.inner').children('i').replaceWith($('<i class="fa fa-play started green-text"></i>'));
-        sel.next('span.inner').children('span.state').text(`${started}/${Object.entries(folder.containers).length} ${$.i18n('started')}`);
+        $statusIcon.replaceWith($(`<i class="fa fa-play started folder-load-status-vm" style="color:${statusColors.started}"></i>`));
+        $statusText.text(`${started}/${Object.entries(folder.containers).length} ${$.i18n('started')}`).css('color', statusColors.started);
     }
 
     if(autostart === 0) {

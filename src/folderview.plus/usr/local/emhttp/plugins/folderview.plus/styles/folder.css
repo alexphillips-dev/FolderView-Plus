@@ -78,6 +78,31 @@ table.sortable td:last-child {
     gap: 0.5em;
 }
 
+.folder-status-colors-dd {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.folder-status-colors {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75em;
+}
+
+.folder-status-color-item {
+    display: flex;
+    align-items: center;
+    gap: 0.35em;
+    margin: 0;
+}
+
+.folder-status-color-item > span {
+    min-width: 56px;
+}
+
 /* Order section - display label above full-width table */
 .canvas form > .basic.order-section {
     width: 100%;

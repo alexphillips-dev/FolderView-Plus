@@ -99,6 +99,49 @@ services:
       folderview.plus: "Media"
 ```
 
+## Settings Guide
+
+Open `Settings -> FolderView Plus` to manage all plugin behavior.
+
+Top controls:
+
+- `Search settings` filters visible sections by text
+- `Jump to` moves directly to a visible section
+- `Wizard` reruns guided setup at any time
+- `Basic / Advanced` switches between everyday controls and full power-user sections
+- `Save`, `Save & Close`, `Cancel`, and `Reset section` are available in the sticky bottom action bar
+
+Basic mode includes:
+
+- Core Customizations
+- Docker folders and runtime preferences
+- VM folders and runtime preferences
+- Everyday import/export/restore actions
+
+Advanced mode additionally unlocks:
+
+- Auto-assignment rules (regex and Docker labels)
+- Bulk assignment tools
+- Folder runtime action planner (`Start`, `Stop`, `Pause`, `Resume`)
+- Backups browser and scheduled backups
+- Folder templates
+- Change history and undo
+- Diagnostics and conflict inspector
+
+Settings workflow:
+
+1. Make changes in Docker, VMs, or any advanced section.
+2. Watch section health badges (`all good`, `N changed`, `N invalid`) to confirm state.
+3. Use `Save` to apply without leaving, or `Save & Close` to apply and return.
+4. Use `Reset section` to restore only the currently selected section back to the loaded baseline.
+
+Import/export workflow:
+
+1. Use `Export all` to generate a readable JSON backup.
+2. Use `Import` and review the preview dialog before applying.
+3. Choose `Merge`, `Replace`, or `Skip existing` based on desired behavior.
+4. Use `Restore latest backup` for fast rollback if needed.
+
 ## Import and Export
 
 - Full Docker export filename: `FolderView Plus Export.json`

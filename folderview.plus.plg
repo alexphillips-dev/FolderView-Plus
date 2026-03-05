@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.08.8">
-<!ENTITY md5 "8d2498345e54795abf0112335c888025">
+<!ENTITY version "2026.03.08.9">
+<!ENTITY md5 "67099f6404923957ab251e0a36316997">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.08.9
+- Full bugfix pass for regressions and stability:
+  - scope custom-action dialog styling to its own dialog widget (no global `.ui-dialog` side effects),
+  - fix delayed refresh calls by passing `loadlist` to `setTimeout` instead of invoking it immediately,
+  - harden Docker folder row centering logic to detect folder rows/cells even when clone markup differs,
+  - add input guards and JSON error responses for create/update/delete server endpoints.
 
 ###2026.03.08.8
 - Fix import preview dialog UI polish:

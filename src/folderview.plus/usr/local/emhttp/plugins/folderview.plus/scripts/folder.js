@@ -1122,11 +1122,12 @@ const customAction = (action = undefined) => {
             dialog.find('[name="action_elements"]').multiselect("destroy");
         }
     });
-    $(".ui-dialog .ui-dialog-titlebar").addClass('menu');
-    $('.ui-dialog .ui-dialog-titlebar-close').css({'display':'none'});
-    $(".ui-dialog .ui-dialog-title").css({'text-align':'center','width':'100%'});
-    $(".ui-dialog .ui-dialog-content").css({'padding-top':'15px','vertical-align':'bottom'});
-    $(".ui-button-text").css({'padding':'0px 5px'});
+    const dialogWidget = dialog.closest('.ui-dialog');
+    dialogWidget.find('.ui-dialog-titlebar').addClass('menu');
+    dialogWidget.find('.ui-dialog-titlebar-close').css({ display: 'none' });
+    dialogWidget.find('.ui-dialog-title').css({ 'text-align': 'center', width: '100%' });
+    dialogWidget.find('.ui-dialog-content').css({ 'padding-top': '15px', 'vertical-align': 'bottom' });
+    dialogWidget.find('.ui-button-text').css({ padding: '0px 5px' });
     return false;
 };
 

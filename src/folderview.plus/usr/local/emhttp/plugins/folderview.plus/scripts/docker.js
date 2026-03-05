@@ -64,6 +64,32 @@ const escapeClassToken = (value) => {
     return input.replace(/[^a-zA-Z0-9_-]/g, '\\$&');
 };
 
+const getFolderNameCell = (row) => {
+    if (!row || !row.querySelector) {
+        return null;
+    }
+    const direct = row.querySelector('td.ct-name.folder-name');
+    if (direct) {
+        return direct;
+    }
+    const sub = row.querySelector('.folder-name-sub');
+    return sub && sub.closest ? sub.closest('td') : null;
+};
+
+const getFolderRows = () => {
+    const rows = [];
+    const seen = new Set();
+    document.querySelectorAll('tr').forEach((row) => {
+        const cell = getFolderNameCell(row);
+        if (!cell || seen.has(row)) {
+            return;
+        }
+        seen.add(row);
+        rows.push(row);
+    });
+    return rows;
+};
+
 const getFolderIdFromRow = (row) => {
     if (!row) {
         return '';
@@ -75,7 +101,7 @@ const getFolderIdFromRow = (row) => {
             }
         }
     }
-    const label = row.querySelector && row.querySelector('td.ct-name.folder-name span.appname a');
+    const label = row.querySelector && row.querySelector('span.appname a');
     if (label && typeof label.textContent === 'string') {
         const text = label.textContent.trim();
         if (text.startsWith('folder-') && text.length > 7) {
@@ -89,7 +115,7 @@ const getFolderNameFromRow = (row) => {
     if (!row || !row.querySelector) {
         return '';
     }
-    const label = row.querySelector('td.ct-name.folder-name a.exec.folder-appname');
+    const label = row.querySelector('a.exec.folder-appname');
     if (!label || typeof label.textContent !== 'string') {
         return '';
     }
@@ -132,16 +158,16 @@ const applyRowHeight = (row, height = 0) => {
     });
 };
 
-const buildMainFolderHeightLookup = () => {
+const buildMainFolderHeightLookup = (mainRows = []) => {
     const byId = new Map();
     const byName = new Map();
     const ordered = [];
 
-    const mainRows = Array.from(document.querySelectorAll('tr')).filter((row) => {
-        return !!(row && rowHasFolderPreview(row) && row.querySelector && row.querySelector('td.ct-name.folder-name'));
-    });
+    const rows = Array.isArray(mainRows) && mainRows.length
+        ? mainRows
+        : getFolderRows().filter((row) => rowHasFolderPreview(row));
 
-    mainRows.forEach((row) => {
+    rows.forEach((row) => {
         const height = getRenderedRowHeight(row);
         if (height <= 0) {
             return;
@@ -213,18 +239,10 @@ const applyFolderCellCentering = (cell, rowHeight = 0) => {
 };
 
 const forceAllFolderRowsVerticalCenter = () => {
-    const lookup = buildMainFolderHeightLookup();
-
-    const cloneRows = [];
-    const cloneSeen = new Set();
-    document.querySelectorAll('td.ct-name.folder-name').forEach((cell) => {
-        const row = cell.parentElement;
-        if (!row || rowHasFolderPreview(row) || cloneSeen.has(row)) {
-            return;
-        }
-        cloneSeen.add(row);
-        cloneRows.push(row);
-    });
+    const rows = getFolderRows();
+    const sourceRows = rows.filter((row) => rowHasFolderPreview(row));
+    const cloneRows = rows.filter((row) => !rowHasFolderPreview(row));
+    const lookup = buildMainFolderHeightLookup(sourceRows);
 
     cloneRows.forEach((row, index) => {
         const folderId = getFolderIdFromRow(row);
@@ -240,23 +258,16 @@ const forceAllFolderRowsVerticalCenter = () => {
         }
 
         applyRowHeight(row, targetHeight);
-        row.querySelectorAll('td.ct-name.folder-name').forEach((cell) => {
+        const cell = getFolderNameCell(row);
+        if (cell) {
             applyFolderCellCentering(cell, targetHeight);
-        });
+        }
     });
 
-    document.querySelectorAll('tr').forEach((row) => {
-        if (!rowHasFolderPreview(row)) {
-            return;
-        }
-        row.querySelectorAll('td.ct-name.folder-name').forEach((cell) => {
-            applyFolderCellCentering(cell, 0);
-        });
+    sourceRows.forEach((row) => {
         applyRowHeight(row, 0);
-    });
-    document.querySelectorAll('tr td.ct-name.folder-name').forEach((cell) => {
-        const row = cell.parentElement;
-        if (row && !rowHasFolderPreview(row) && !cloneSeen.has(row)) {
+        const cell = getFolderNameCell(row);
+        if (cell) {
             applyFolderCellCentering(cell, 0);
         }
     });
@@ -299,8 +310,8 @@ const startFolderRowCenterObserver = () => {
                 }
                 const element = node;
                 if (
-                    (element.matches && element.matches('td.ct-name.folder-name, tr[class*="folder-id-"]'))
-                    || (element.querySelector && element.querySelector('td.ct-name.folder-name, tr[class*="folder-id-"]'))
+                    (element.matches && element.matches('td.ct-name.folder-name, tr[class*="folder-id-"], .folder-name-sub, .folder-appname'))
+                    || (element.querySelector && element.querySelector('td.ct-name.folder-name, tr[class*="folder-id-"], .folder-name-sub, .folder-appname'))
                 ) {
                     queueForceAllFolderRowsVerticalCenter();
                     return;

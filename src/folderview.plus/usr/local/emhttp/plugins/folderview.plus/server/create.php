@@ -1,4 +1,22 @@
 <?php
-    require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php");
-    updateFolder($_POST['type'], $_POST['content']);
+require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php");
+
+header('Content-Type: application/json');
+
+try {
+    $type = (string)($_REQUEST['type'] ?? '');
+    $content = (string)($_REQUEST['content'] ?? '');
+    if ($type === '' || $content === '') {
+        throw new RuntimeException('Missing required parameters.');
+    }
+
+    updateFolder($type, $content);
+    echo json_encode(['ok' => true]);
+} catch (Throwable $e) {
+    http_response_code(400);
+    echo json_encode([
+        'ok' => false,
+        'error' => $e->getMessage()
+    ]);
+}
 ?>

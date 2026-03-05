@@ -515,12 +515,11 @@ a:focus-visible {
     display: flex;
     flex-wrap: nowrap;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: 0.35rem 0.45rem;
     width: 100%;
 }
 
-.fv-settings-left,
 .fv-settings-right {
     display: inline-flex;
     align-items: center;
@@ -561,12 +560,6 @@ a:focus-visible {
 
 .fv-settings-right input[type="text"] {
     width: clamp(170px, 22vw, 280px);
-    min-height: 32px;
-}
-
-.fv-settings-left select {
-    min-width: 125px;
-    max-width: 220px;
     min-height: 32px;
 }
 
@@ -740,7 +733,6 @@ body {
         justify-content: flex-start;
     }
 
-    .fv-settings-left,
     .fv-settings-right {
         width: 100%;
         justify-content: flex-start;
@@ -750,11 +742,6 @@ body {
 
     .fv-settings-right input[type="text"] {
         width: 100%;
-    }
-
-    .fv-settings-left select {
-        max-width: none;
-        width: min(100%, 220px);
     }
 
     #fv-settings-action-bar {

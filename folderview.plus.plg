@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.10.5">
-<!ENTITY md5 "8b34faf534f0f075920afb71d5aaed76">
+<!ENTITY version "2026.03.10.6">
+<!ENTITY md5 "5acf9db91a52bfa10291da280f2ba272">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.10.6
+- Remove the `Jump to section` dropdown from Customizations as requested.
+- Keep `Reset section` functional by auto-targeting the first visible section in current mode/search.
+- Move clear-search (`X`) next to `Search settings` and simplify toolbar layout/docs.
 
 ###2026.03.10.5
 - Force version bump so Unraid installs latest package cleanly when `2026.03.10.4` is already cached/considered installed.

@@ -106,7 +106,6 @@ Open `Settings -> FolderView Plus` to manage all plugin behavior.
 Top controls:
 
 - `Search settings` filters visible sections by text
-- `Jump to` moves directly to a visible section
 - `Wizard` reruns guided setup at any time
 - `Basic / Advanced` switches between everyday controls and full power-user sections
 - `Save`, `Save & Close`, `Cancel`, and `Reset section` are available in the sticky bottom action bar

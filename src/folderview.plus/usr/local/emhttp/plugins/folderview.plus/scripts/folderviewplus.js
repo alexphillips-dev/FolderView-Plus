@@ -233,16 +233,8 @@ const applySettingsSectionVisibility = () => {
 };
 
 const syncSectionJumpOptions = () => {
-    const select = $('#fv-section-jump');
-    if (!select.length) {
-        return;
-    }
     const visibleSections = getVisibleSections();
-    const options = visibleSections.map((section) => (
-        `<option value="${escapeHtml(section.key)}">${escapeHtml(section.title)}</option>`
-    ));
-    select.html(options.join(''));
-    if (!options.length) {
+    if (!visibleSections.length) {
         settingsUiState.activeSectionKey = '';
         return;
     }
@@ -250,6 +242,15 @@ const syncSectionJumpOptions = () => {
     if (!keep) {
         settingsUiState.activeSectionKey = visibleSections[0]?.key || '';
     }
+
+    const select = $('#fv-section-jump');
+    if (!select.length) {
+        return;
+    }
+    const options = visibleSections.map((section) => (
+        `<option value="${escapeHtml(section.key)}">${escapeHtml(section.title)}</option>`
+    ));
+    select.html(options.join(''));
     if (settingsUiState.activeSectionKey) {
         select.val(settingsUiState.activeSectionKey);
     }
@@ -615,12 +616,9 @@ const initSettingsControls = () => {
 
     controls.html(`
         <div class="fv-settings-inline">
-            <div class="fv-settings-left">
-                <select id="fv-section-jump" aria-label="Jump to section"></select>
-                <button type="button" id="fv-settings-clear-search" title="Clear search" aria-label="Clear search"><i class="fa fa-times"></i></button>
-            </div>
             <div class="fv-settings-right">
                 <input type="text" id="fv-settings-search" placeholder="Search settings" aria-label="Search settings">
+                <button type="button" id="fv-settings-clear-search" title="Clear search" aria-label="Clear search"><i class="fa fa-times"></i></button>
                 <span class="fv-mode-toggle" title="Settings mode">
                     <button type="button" class="fv-mode-btn" data-mode="basic" aria-label="Use basic settings mode">Basic</button>
                     <button type="button" class="fv-mode-btn" data-mode="advanced" aria-label="Use advanced settings mode">Advanced</button>
@@ -650,12 +648,6 @@ const initSettingsControls = () => {
     $('#fv-settings-clear-search').off('click.fvui').on('click.fvui', () => {
         $('#fv-settings-search').val('');
         setSettingsSearchQuery('');
-    });
-    $('#fv-section-jump').off('change.fvui').on('change.fvui', (event) => {
-        const key = String($(event.currentTarget).val() || '');
-        if (key) {
-            scrollToSectionKey(key);
-        }
     });
     $('#fv-action-save').off('click.fvui').on('click.fvui', () => {
         void saveActionBarChanges(false);

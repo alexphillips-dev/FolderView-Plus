@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.09.8">
-<!ENTITY md5 "c7bd149e556d10c29df41dba29bf6dca">
+<!ENTITY version "2026.03.09.9">
+<!ENTITY md5 "c86a0d7c1795d087d2e8e27025ff1c07">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.09.9
+- Move settings quick controls inline with the `Customizations` header and right-align them on desktop.
+- Simplify and declutter the top controls layout:
+  - compact single-row mode/search/jump/wizard controls,
+  - cleaner spacing and responsive wrap behavior on smaller screens.
 
 ###2026.03.09.8
 - Phase-based settings UX overhaul:

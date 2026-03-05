@@ -159,10 +159,15 @@ const buildSettingsSections = () => {
         const key = String(heading.dataset.fvSection || slugifySectionKey(heading.textContent));
         const title = String(heading.textContent || '').trim();
         const advanced = heading.dataset.fvAdvanced === '1' || ADVANCED_SECTION_KEYS.has(key);
-        const nodes = [heading];
+        const sectionRow = heading.closest('[data-fv-section-row="1"]');
+        const sectionStartNode = sectionRow instanceof HTMLElement ? sectionRow : heading;
+        const nodes = [sectionStartNode];
 
-        let cursor = heading.nextElementSibling;
+        let cursor = sectionStartNode.nextElementSibling;
         while (cursor && cursor.tagName !== 'H2' && cursor.tagName !== 'SCRIPT') {
+            if (cursor.querySelector?.('h2[data-fv-section]')) {
+                break;
+            }
             if (cursor.id === 'fv-settings-action-bar') {
                 break;
             }
@@ -556,21 +561,16 @@ const initSettingsControls = () => {
     }
 
     controls.html(`
-        <div class="fv-settings-controls-row">
-            <span class="fv-settings-label">Mode</span>
-            <span class="fv-mode-toggle">
-                <button type="button" class="fv-mode-btn" data-mode="basic">Basic</button>
-                <button type="button" class="fv-mode-btn" data-mode="advanced">Advanced</button>
+        <div class="fv-settings-inline">
+            <span class="fv-mode-toggle" title="Settings mode">
+                <button type="button" class="fv-mode-btn" data-mode="basic" aria-label="Use basic settings mode">Basic</button>
+                <button type="button" class="fv-mode-btn" data-mode="advanced" aria-label="Use advanced settings mode">Advanced</button>
             </span>
+            <input type="text" id="fv-settings-search" placeholder="Search settings" aria-label="Search settings">
+            <select id="fv-section-jump" aria-label="Jump to section"></select>
+            <button type="button" id="fv-settings-clear-search" title="Clear search" aria-label="Clear search"><i class="fa fa-times"></i></button>
+            <button type="button" id="fv-run-wizard" title="Run quick setup wizard"><i class="fa fa-magic"></i> Wizard</button>
             <span id="fv-advanced-note" class="fv-advanced-note"></span>
-            <button type="button" id="fv-run-wizard"><i class="fa fa-magic"></i> Quick setup wizard</button>
-        </div>
-        <div class="fv-settings-controls-row">
-            <span class="fv-settings-label">Search</span>
-            <input type="text" id="fv-settings-search" placeholder="Find settings, rules, backups, diagnostics...">
-            <span class="fv-settings-label">Jump to</span>
-            <select id="fv-section-jump"></select>
-            <button type="button" id="fv-settings-clear-search"><i class="fa fa-times"></i> Clear</button>
         </div>
     `);
 

@@ -491,21 +491,33 @@ a:focus-visible {
     outline-offset: 2px;
 }
 
-#fv-settings-controls {
-    display: grid;
-    gap: 0.6rem;
-    margin: 0.2rem 0 0.9rem 0;
-    padding: 0.7rem 0.8rem;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.02);
-}
-
-.fv-settings-controls-row {
+.fv-customizations-header {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.45rem 0.75rem;
+    justify-content: space-between;
+    gap: 0.6rem 0.9rem;
+}
+
+.fv-customizations-header > h2[data-fv-section="customizations"] {
+    margin: 0;
+}
+
+#fv-settings-controls {
+    flex: 1 1 560px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    min-width: 320px;
+}
+
+.fv-settings-inline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.35rem 0.45rem;
+    width: 100%;
 }
 
 .fv-settings-label {
@@ -536,17 +548,32 @@ a:focus-visible {
     color: #d8ebff;
 }
 
-.fv-settings-controls-row input[type="text"] {
-    width: clamp(220px, 28vw, 420px);
+.fv-settings-inline input[type="text"] {
+    width: clamp(170px, 22vw, 280px);
+    min-height: 32px;
 }
 
-.fv-settings-controls-row select {
-    min-width: 170px;
+.fv-settings-inline select {
+    min-width: 125px;
+    max-width: 180px;
+    min-height: 32px;
 }
 
 .fv-advanced-note {
     font-size: 0.86rem;
     opacity: 0.78;
+    margin-left: 0.2rem;
+}
+
+#fv-settings-clear-search {
+    min-width: 32px;
+    width: 32px;
+    padding: 0;
+}
+
+#fv-run-wizard {
+    min-height: 32px;
+    padding: 0.3rem 0.55rem;
 }
 
 h2[data-fv-section] {
@@ -697,6 +724,25 @@ body {
 }
 
 @media (max-width: 760px) {
+    #fv-settings-controls {
+        flex: 1 1 100%;
+        min-width: 0;
+        justify-content: flex-start;
+    }
+
+    .fv-settings-inline {
+        justify-content: flex-start;
+    }
+
+    .fv-settings-inline input[type="text"] {
+        width: 100%;
+    }
+
+    .fv-settings-inline select {
+        max-width: none;
+        width: min(100%, 220px);
+    }
+
     #fv-settings-action-bar {
         align-items: stretch;
     }
@@ -707,10 +753,6 @@ body {
 
     .fv-action-buttons > button {
         flex: 1 1 calc(50% - 0.5rem);
-    }
-
-    .fv-settings-controls-row input[type="text"] {
-        width: 100%;
     }
 
     .toolbar-actions > button {

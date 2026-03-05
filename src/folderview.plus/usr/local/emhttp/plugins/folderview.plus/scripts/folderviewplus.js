@@ -157,7 +157,12 @@ const buildSettingsSections = () => {
 
     for (const heading of headings) {
         const key = String(heading.dataset.fvSection || slugifySectionKey(heading.textContent));
-        const title = String(heading.textContent || '').trim();
+        const title = Array.from(heading.childNodes)
+            .filter((node) => !(node instanceof HTMLElement && node.classList.contains('fv-section-badge')))
+            .map((node) => node.textContent || '')
+            .join(' ')
+            .replace(/\s+/g, ' ')
+            .trim();
         const advanced = heading.dataset.fvAdvanced === '1' || ADVANCED_SECTION_KEYS.has(key);
         const sectionRow = heading.closest('[data-fv-section-row="1"]');
         const sectionStartNode = sectionRow instanceof HTMLElement ? sectionRow : heading;

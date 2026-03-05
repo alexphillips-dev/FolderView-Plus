@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.10.3">
-<!ENTITY md5 "3eaa8dfa80fb8efc933f529e62ab0340">
+<!ENTITY version "2026.03.10.4">
+<!ENTITY md5 "8b34faf534f0f075920afb71d5aaed76">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.10.4
+- Fix `Jump to` section labels so they no longer include status badge text (`all good`, `N changed`, etc.).
+- Dropdown now shows clean section names only (for example: `Customizations`, `Docker`, `VMs`).
 
 ###2026.03.10.3
 - Reorder customization header controls for clearer right-side flow:

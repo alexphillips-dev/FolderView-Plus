@@ -6,12 +6,23 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.11.2">
-<!ENTITY md5 "16290a3a935dc2f895484171380627b3">
+<!ENTITY version "2026.03.11.3">
+<!ENTITY md5 "9008780ae2d8c904b6e4ba4b66d12a55">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.11.3
+- Reliability and release hardening:
+  - add install smoke test script and wire it into CI + release workflows,
+  - add release metadata helper and release-prep automation script,
+  - add optional local pre-push hook installer to block unsafe pushes.
+- Test coverage expansion:
+  - add Docker/VM end-to-end workflow tests covering create/edit/delete, import merge/skip/replace, backup/restore, and order persistence.
+- New rollback UX:
+  - add global rollback checkpoints for Docker + VM folders and preferences,
+  - add one-click rollback to previous snapshot in settings.
 
 ###2026.03.11.2
 - Fix release package layout for CI/installer parity:

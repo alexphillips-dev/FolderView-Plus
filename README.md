@@ -57,6 +57,7 @@ plugin remove folderview.plus
 - Automatic pre-import backups + restore latest
 - Scheduled backups via plugin cron runner
 - Change history and one-click undo to latest transaction backup
+- Global rollback checkpoints (Docker + VM folders and prefs)
 - Diagnostics bundle and issue-report output
 - Custom CSS/JS extension loading
 
@@ -75,6 +76,8 @@ Top controls in Customizations:
 - `Search settings` filters visible settings content
 - `Basic / Advanced` changes how many sections are shown
 - `Wizard` reruns quick setup anytime
+- `Create rollback checkpoint` snapshots Docker/VM folders and prefs
+- `Rollback to previous snapshot` restores previous global checkpoint in one click
 - Sticky action bar: `Save`, `Save & Close`, `Cancel`, `Reset section`
 
 `Basic` mode focuses on day-to-day tasks:
@@ -173,6 +176,18 @@ Package build script:
 
 ```bash
 bash pkg_build.sh
+```
+
+Release preparation (auto version bump/build, md5, CHANGES entry, release guard, install smoke, tests):
+
+```bash
+bash scripts/release_prepare.sh
+```
+
+Enable local push blocking when release checks fail:
+
+```bash
+bash scripts/install_git_hooks.sh
 ```
 
 ## Support

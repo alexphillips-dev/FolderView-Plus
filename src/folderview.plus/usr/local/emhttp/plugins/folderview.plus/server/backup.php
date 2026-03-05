@@ -5,9 +5,55 @@ header('Content-Type: application/json');
 
 try {
     $action = (string)($_REQUEST['action'] ?? 'list');
-    $mutatingActions = ['run_schedule', 'create', 'restore', 'restore_latest', 'restore_latest_undo', 'delete'];
+    $mutatingActions = [
+        'run_schedule',
+        'create',
+        'restore',
+        'restore_latest',
+        'restore_latest_undo',
+        'delete',
+        'rollback_checkpoint',
+        'rollback_restore_latest',
+        'rollback_restore_previous'
+    ];
     if (in_array($action, $mutatingActions, true)) {
         requireMutationRequestGuard();
+    }
+
+    if ($action === 'rollback_list') {
+        echo json_encode([
+            'ok' => true,
+            'snapshots' => listGlobalRollbackSnapshots()
+        ]);
+        exit;
+    }
+
+    if ($action === 'rollback_checkpoint') {
+        $reason = (string)($_POST['reason'] ?? 'manual');
+        echo json_encode([
+            'ok' => true,
+            'rollback' => createGlobalRollbackSnapshot($reason),
+            'snapshots' => listGlobalRollbackSnapshots()
+        ]);
+        exit;
+    }
+
+    if ($action === 'rollback_restore_latest') {
+        echo json_encode([
+            'ok' => true,
+            'restore' => restoreLatestGlobalRollbackSnapshot(),
+            'snapshots' => listGlobalRollbackSnapshots()
+        ]);
+        exit;
+    }
+
+    if ($action === 'rollback_restore_previous') {
+        echo json_encode([
+            'ok' => true,
+            'restore' => restorePreviousGlobalRollbackSnapshot(),
+            'snapshots' => listGlobalRollbackSnapshots()
+        ]);
+        exit;
     }
 
     if ($action === 'run_schedule') {

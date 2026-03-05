@@ -23,7 +23,10 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 </div>
 <button data-i18n="file-manager" onclick="fileManager()">Open File Manager</button>
 <button onclick="checkForUpdatesNow()"><i class="fa fa-refresh" aria-hidden="true"></i> Check for updates now</button>
+<button onclick="createRollbackCheckpoint()"><i class="fa fa-life-ring" aria-hidden="true"></i> Create rollback checkpoint</button>
+<button onclick="rollbackLatestCheckpoint()"><i class="fa fa-undo" aria-hidden="true"></i> Rollback to previous snapshot</button>
 <span id="update-check-status" class="status-line"></span>
+<span id="rollback-status" class="status-line"></span>
 
 
 <h2 data-i18n="docker" data-fv-section="docker">Docker</h2>

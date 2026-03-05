@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(git rev-parse --show-toplevel)"
+cd "${ROOT_DIR}"
+
+echo "[pre-push] Running release guard checks..."
+bash scripts/release_guard.sh
+
+echo "[pre-push] Running install smoke checks..."
+bash scripts/install_smoke.sh
+
+echo "[pre-push] Running automated tests..."
+node --test tests/*.mjs
+
+echo "[pre-push] All checks passed."

@@ -41,10 +41,20 @@ jobs:
           chmod +x pkg_build.sh
           bash pkg_build.sh
 
+      - name: Ensure CHANGES entry for release version
+        run: |
+          chmod +x scripts/ensure_plg_changes_entry.sh
+          bash scripts/ensure_plg_changes_entry.sh
+
       - name: Run release guard
         run: |
           chmod +x scripts/release_guard.sh
           bash scripts/release_guard.sh
+
+      - name: Run install smoke checks
+        run: |
+          chmod +x scripts/install_smoke.sh
+          bash scripts/install_smoke.sh
 
       - name: Extract stable version
         id: version

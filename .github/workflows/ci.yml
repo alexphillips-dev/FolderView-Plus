@@ -45,3 +45,8 @@ jobs:
         run: |
           chmod +x scripts/release_guard.sh
           bash scripts/release_guard.sh
+
+      - name: Install smoke checks
+        run: |
+          chmod +x scripts/install_smoke.sh
+          bash scripts/install_smoke.sh

@@ -1036,6 +1036,27 @@ const createBackup = async (type, reason) => {
     return response.backup;
 };
 
+const createGlobalRollbackCheckpointApi = async (reason = 'manual') => {
+    const response = parseJsonResponse(await $.post('/plugins/folderview.plus/server/backup.php', {
+        action: 'rollback_checkpoint',
+        reason
+    }).promise());
+    if (!response.ok) {
+        throw new Error(response.error || 'Rollback checkpoint failed.');
+    }
+    return response.rollback || {};
+};
+
+const restorePreviousGlobalRollbackCheckpointApi = async () => {
+    const response = parseJsonResponse(await $.post('/plugins/folderview.plus/server/backup.php', {
+        action: 'rollback_restore_previous'
+    }).promise());
+    if (!response.ok) {
+        throw new Error(response.error || 'Rollback restore failed.');
+    }
+    return response.restore || {};
+};
+
 const restoreLatest = async (type) => {
     const response = parseJsonResponse(await $.post('/plugins/folderview.plus/server/backup.php', {
         type,
@@ -1090,6 +1111,10 @@ const syncDockerOrder = async () => {
 
 const setUpdateStatus = (text) => {
     $('#update-check-status').text(text || '');
+};
+
+const setRollbackStatus = (text) => {
+    $('#rollback-status').text(text || '');
 };
 
 const formatTimestamp = (isoString) => {
@@ -3244,6 +3269,54 @@ const checkForUpdatesNow = async () => {
     }
 };
 
+const createRollbackCheckpoint = async () => {
+    try {
+        const checkpoint = await createGlobalRollbackCheckpointApi('manual');
+        const message = checkpoint?.name ? `Created: ${checkpoint.name}` : 'Rollback checkpoint created.';
+        setRollbackStatus(message);
+        swal({
+            title: 'Rollback checkpoint created',
+            text: message,
+            type: 'success'
+        });
+    } catch (error) {
+        setRollbackStatus('Rollback checkpoint failed.');
+        showError('Rollback checkpoint failed', error);
+    }
+};
+
+const rollbackLatestCheckpoint = () => {
+    swal({
+        title: 'Rollback plugin settings?',
+        text: 'This restores Docker + VM folders and settings from the previous rollback snapshot.',
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Rollback now',
+        cancelButtonText: 'Cancel',
+        showLoaderOnConfirm: true
+    }, async (confirmed) => {
+        if (!confirmed) {
+            return;
+        }
+        try {
+            const restore = await restorePreviousGlobalRollbackCheckpointApi();
+            await refreshAll();
+            const target = restore?.targetName || restore?.name || 'previous snapshot';
+            const undo = restore?.undoSnapshot ? `\nUndo snapshot created: ${restore.undoSnapshot}` : '';
+            const status = `Restored ${target}`;
+            setRollbackStatus(status);
+            swal({
+                title: 'Rollback complete',
+                text: `${status}${undo}`,
+                type: 'success'
+            });
+        } catch (error) {
+            setRollbackStatus('Rollback failed.');
+            showError('Rollback failed', error);
+        }
+    });
+};
+
 const fileManager = () => {
     location.href = `${location.pathname}/Browse?dir=/boot/config/plugins/folderview.plus`;
 };
@@ -3262,6 +3335,8 @@ window.importVm = importVm;
 window.clearDocker = clearDocker;
 window.clearVm = clearVm;
 window.fileManager = fileManager;
+window.createRollbackCheckpoint = createRollbackCheckpoint;
+window.rollbackLatestCheckpoint = rollbackLatestCheckpoint;
 window.changeSortMode = changeSortMode;
 window.changeBadgePref = changeBadgePref;
 window.changeVisibilityPref = changeVisibilityPref;

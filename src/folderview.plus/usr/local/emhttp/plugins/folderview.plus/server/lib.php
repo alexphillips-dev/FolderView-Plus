@@ -79,6 +79,8 @@
     const FVPLUS_RULE_KINDS = ['name_regex', 'label', 'label_contains', 'label_starts_with', 'image_regex', 'compose_project_regex'];
     const FVPLUS_RULE_EFFECTS = ['include', 'exclude'];
     const FVPLUS_RUNTIME_PREFS_SCHEMA = 2;
+    const FVPLUS_GLOBAL_ROLLBACK_SCHEMA_VERSION = 1;
+    const FVPLUS_GLOBAL_ROLLBACK_HISTORY_MAX = 20;
     const FVPLUS_MAX_FOLDER_CONTENT_BYTES = 131072;
     const FVPLUS_MAX_FOLDER_NESTED_DEPTH = 6;
     const FVPLUS_MAX_FOLDER_ARRAY_ITEMS = 250;
@@ -848,6 +850,206 @@
     function getBackupsDirPath(): string {
         global $configDir;
         return "$configDir/backups";
+    }
+
+    function getGlobalRollbackDirPath(): string {
+        global $configDir;
+        return "$configDir/rollback";
+    }
+
+    function getGlobalRollbackSnapshotPath(string $name): string {
+        $safeName = basename($name);
+        if ($safeName !== $name || !preg_match('/^global-[0-9]{8}-[0-9]{6}-[a-z0-9_-]+\.json$/', $safeName)) {
+            throw new RuntimeException('Invalid rollback snapshot file name.');
+        }
+        return getGlobalRollbackDirPath() . "/$safeName";
+    }
+
+    function listGlobalRollbackSnapshots(): array {
+        $rollbackDir = getGlobalRollbackDirPath();
+        if (!is_dir($rollbackDir)) {
+            return [];
+        }
+        $entries = [];
+        foreach ((array)@scandir($rollbackDir) as $file) {
+            if (!is_string($file) || $file === '.' || $file === '..') {
+                continue;
+            }
+            if (!preg_match('/^global-[0-9]{8}-[0-9]{6}-[a-z0-9_-]+\.json$/', $file)) {
+                continue;
+            }
+            $path = "$rollbackDir/$file";
+            if (!is_file($path)) {
+                continue;
+            }
+            $decoded = @json_decode((string)@file_get_contents($path), true);
+            $reason = '';
+            $pluginVersion = '';
+            $dockerCount = null;
+            $vmCount = null;
+            if (is_array($decoded)) {
+                $reason = (string)($decoded['reason'] ?? '');
+                $pluginVersion = (string)($decoded['pluginVersion'] ?? '');
+                $types = is_array($decoded['types'] ?? null) ? $decoded['types'] : [];
+                $dockerFolders = $types['docker']['folders'] ?? null;
+                $vmFolders = $types['vm']['folders'] ?? null;
+                if (is_array($dockerFolders)) {
+                    $dockerCount = count($dockerFolders);
+                }
+                if (is_array($vmFolders)) {
+                    $vmCount = count($vmFolders);
+                }
+            }
+            $entries[] = [
+                'name' => $file,
+                'createdAt' => gmdate('c', (int)@filemtime($path)),
+                'size' => (int)@filesize($path),
+                'reason' => $reason,
+                'pluginVersion' => $pluginVersion,
+                'dockerCount' => $dockerCount,
+                'vmCount' => $vmCount
+            ];
+        }
+        usort($entries, function($a, $b) {
+            return strcmp((string)$b['createdAt'], (string)$a['createdAt']);
+        });
+        return $entries;
+    }
+
+    function pruneGlobalRollbackSnapshots(int $keep = FVPLUS_GLOBAL_ROLLBACK_HISTORY_MAX): array {
+        $keep = max(1, $keep);
+        $snapshots = listGlobalRollbackSnapshots();
+        $removed = [];
+        if (count($snapshots) <= $keep) {
+            return $removed;
+        }
+        $toRemove = array_slice($snapshots, $keep);
+        foreach ($toRemove as $snapshot) {
+            try {
+                $path = getGlobalRollbackSnapshotPath((string)$snapshot['name']);
+                if (file_exists($path)) {
+                    @unlink($path);
+                    $removed[] = (string)$snapshot['name'];
+                }
+            } catch (Throwable $err) {
+                continue;
+            }
+        }
+        return $removed;
+    }
+
+    function createGlobalRollbackSnapshot(string $reason = 'manual'): array {
+        $rollbackDir = getGlobalRollbackDirPath();
+        if (!is_dir($rollbackDir)) {
+            @mkdir($rollbackDir, 0770, true);
+        }
+        $slugReason = trim((string)preg_replace('/[^a-zA-Z0-9_-]+/', '-', strtolower($reason)), '-');
+        if ($slugReason === '') {
+            $slugReason = 'manual';
+        }
+        $filename = sprintf('global-%s-%s.json', gmdate('Ymd-His'), $slugReason);
+        $payload = [
+            'rollbackSchemaVersion' => FVPLUS_GLOBAL_ROLLBACK_SCHEMA_VERSION,
+            'pluginVersion' => readInstalledVersion(),
+            'createdAt' => gmdate('c'),
+            'reason' => $reason,
+            'types' => [
+                'docker' => [
+                    'folders' => readRawFolderMap('docker'),
+                    'prefs' => readTypePrefs('docker')
+                ],
+                'vm' => [
+                    'folders' => readRawFolderMap('vm'),
+                    'prefs' => readTypePrefs('vm')
+                ]
+            ]
+        ];
+        @file_put_contents("$rollbackDir/$filename", json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
+        $pruned = pruneGlobalRollbackSnapshots(FVPLUS_GLOBAL_ROLLBACK_HISTORY_MAX);
+        try {
+            appendDiagnosticsHistoryEvent('rollback_create', null, [
+                'name' => $filename,
+                'reason' => $reason,
+                'dockerCount' => count($payload['types']['docker']['folders']),
+                'vmCount' => count($payload['types']['vm']['folders']),
+                'prunedCount' => count($pruned)
+            ], 'ok', 'server');
+        } catch (Throwable $err) {
+            // Keep rollback checkpoint creation non-fatal.
+        }
+        return [
+            'name' => $filename,
+            'createdAt' => gmdate('c'),
+            'reason' => $reason,
+            'pluginVersion' => $payload['pluginVersion'],
+            'dockerCount' => count($payload['types']['docker']['folders']),
+            'vmCount' => count($payload['types']['vm']['folders']),
+            'pruned' => $pruned
+        ];
+    }
+
+    function restoreGlobalRollbackSnapshot(string $name): array {
+        $path = getGlobalRollbackSnapshotPath($name);
+        $safeName = basename($path);
+        if (!file_exists($path)) {
+            throw new RuntimeException('Rollback snapshot file not found.');
+        }
+        $decoded = @json_decode((string)@file_get_contents($path), true);
+        if (!is_array($decoded)) {
+            throw new RuntimeException('Rollback snapshot is not valid JSON.');
+        }
+        $typesData = is_array($decoded['types'] ?? null) ? $decoded['types'] : [];
+        $counts = [];
+        foreach (FVPLUS_ALLOWED_TYPES as $type) {
+            $entry = is_array($typesData[$type] ?? null) ? $typesData[$type] : [];
+            $folders = is_array($entry['folders'] ?? null) ? $entry['folders'] : [];
+            $prefs = is_array($entry['prefs'] ?? null) ? $entry['prefs'] : readTypePrefs($type);
+
+            writeRawFolderMap($type, $folders);
+            syncManualOrderWithFolders($type, $folders);
+            writeTypePrefs($type, $prefs);
+            if ($type === 'docker') {
+                syncContainerOrder('docker');
+            }
+            $counts[$type] = count($folders);
+        }
+
+        try {
+            appendDiagnosticsHistoryEvent('rollback_restore', null, [
+                'name' => $safeName,
+                'dockerCount' => (int)($counts['docker'] ?? 0),
+                'vmCount' => (int)($counts['vm'] ?? 0)
+            ], 'ok', 'server');
+        } catch (Throwable $err) {
+            // Non-fatal.
+        }
+        return [
+            'name' => $safeName,
+            'restoredAt' => gmdate('c'),
+            'dockerCount' => (int)($counts['docker'] ?? 0),
+            'vmCount' => (int)($counts['vm'] ?? 0)
+        ];
+    }
+
+    function restoreLatestGlobalRollbackSnapshot(): array {
+        $snapshots = listGlobalRollbackSnapshots();
+        if (empty($snapshots)) {
+            throw new RuntimeException('No rollback snapshots available.');
+        }
+        return restoreGlobalRollbackSnapshot((string)$snapshots[0]['name']);
+    }
+
+    function restorePreviousGlobalRollbackSnapshot(): array {
+        $snapshots = listGlobalRollbackSnapshots();
+        if (count($snapshots) < 2) {
+            throw new RuntimeException('No previous rollback snapshot available.');
+        }
+        $target = (string)$snapshots[1]['name'];
+        $undo = createGlobalRollbackSnapshot('before-global-rollback');
+        $restored = restoreGlobalRollbackSnapshot($target);
+        $restored['targetName'] = $target;
+        $restored['undoSnapshot'] = (string)($undo['name'] ?? '');
+        return $restored;
     }
 
     function getBackupSnapshotPath(string $type, string $name): string {
@@ -2763,7 +2965,7 @@
             @mkdir($configDir, 0770, true);
             $created[] = $configDir;
         }
-        foreach (['styles', 'scripts', 'backups'] as $name) {
+        foreach (['styles', 'scripts', 'backups', 'rollback'] as $name) {
             $path = "$configDir/$name";
             if (!is_dir($path)) {
                 @mkdir($path, 0770, true);

@@ -135,6 +135,35 @@ Settings workflow:
 3. Use `Save` to apply without leaving, or `Save & Close` to apply and return.
 4. Use `Reset section` to restore only the currently selected section back to the loaded baseline.
 
+Auto-assignment rules workflow:
+
+1. Switch to `Advanced` mode, then open `Auto-assignment rules`.
+2. Pick `Docker rules` or `VM rules`.
+3. Select a target folder and rule `Action`:
+   - `Include` assigns matching items to that folder.
+   - `Exclude` blocks assignment for matching items.
+4. Choose rule type:
+   - Docker: `Name regex`, `Label equals`, `Label contains`, `Label starts with`, `Image regex`, `Compose project regex`
+   - VM: `Name regex`
+5. Enter match inputs:
+   - Regex rules require a valid regex pattern.
+   - Label rules require `Label key` (and for contains/starts-with, a `Label value`).
+6. Click `Add rule`, then `Save` or `Save & Close`.
+
+Rule priority and behavior:
+
+- Rules are evaluated by priority order (top to bottom).
+- First matching `Include` rule is used for folder assignment.
+- Any matching `Exclude` rule blocks assignment.
+- Disabled rules are ignored.
+
+Testing and validation:
+
+- Use `Test rule priority` to test one name/item quickly.
+- Use `Simulate all items` to preview assignment across your full Docker/VM list.
+- Use `Search ... rules` to filter large rule sets.
+- Use bulk actions to enable, disable, delete, or export selected rules.
+
 Import/export workflow:
 
 1. Use `Export all` to generate a readable JSON backup.

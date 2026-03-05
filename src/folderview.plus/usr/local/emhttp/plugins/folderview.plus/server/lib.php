@@ -178,20 +178,17 @@
     }
 
     function isTrustedMutationContext(): bool {
-        $ajaxHeader = strtolower(getRequestHeaderValue('X-Requested-With')) === 'xmlhttprequest';
-        $pluginHeader = getRequestHeaderValue('X-FV-Request') === '1';
-        if ($ajaxHeader || $pluginHeader) {
-            return true;
-        }
+        // Do not require client headers to exist; only block when a provided
+        // Origin/Referer explicitly points to a different host/port.
         $origin = getRequestHeaderValue('Origin');
-        if ($origin !== '' && isSameOriginHeaderValue($origin)) {
-            return true;
+        if ($origin !== '' && !isSameOriginHeaderValue($origin)) {
+            return false;
         }
         $referer = getRequestHeaderValue('Referer');
-        if ($referer !== '' && isSameOriginHeaderValue($referer)) {
-            return true;
+        if ($referer !== '' && !isSameOriginHeaderValue($referer)) {
+            return false;
         }
-        return false;
+        return true;
     }
 
     function getOptionalRequestTokenPath(): string {

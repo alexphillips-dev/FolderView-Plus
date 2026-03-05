@@ -74,15 +74,25 @@
 /* Align setting rows with section headers instead of centered card width */
 .canvas form.folder-editor-form > .basic:not(.order-section),
 .canvas form.folder-editor-form > ul {
-    width: min(1100px, calc(100% - 2em));
+    width: calc(100% - 2em) !important;
+    max-width: none !important;
     margin-left: 1em !important;
-    margin-right: auto !important;
+    margin-right: 0 !important;
     box-sizing: border-box;
 }
 
 .canvas form.folder-editor-form > ul > li > .basic,
 .canvas form.folder-editor-form > ul > li > ul > li > .basic {
     width: 100%;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+/* Dynamix styles center <dl> blocks by default; keep all folder fields in the same left column */
+.canvas form.folder-editor-form .basic > dl,
+.canvas form.folder-editor-form .basic > blockquote.inline_help {
+    width: 100% !important;
+    max-width: none !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
 }

@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.09.1">
-<!ENTITY md5 "0bf457b05dd00716c7bc7c90c3a38874">
+<!ENTITY version "2026.03.09.2">
+<!ENTITY md5 "26572c0fef432f36163db107348576f2">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.09.2
+- Fix folder editor field alignment:
+  - force all Docker/VM folder edit rows to anchor to the same left column,
+  - override centered Dynamix `dl` layout so Name/Icon/WebUI/Preview blocks align consistently.
 
 ###2026.03.09.1
 - Major feature expansion and quality pass:

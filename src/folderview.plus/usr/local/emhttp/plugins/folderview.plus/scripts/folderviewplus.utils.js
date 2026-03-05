@@ -22,6 +22,10 @@
         paused: '#b8860b',
         stopped: '#ff4d4d'
     };
+    const RUNTIME_ACTIONS_BY_TYPE = {
+        docker: ['start', 'stop', 'pause', 'resume'],
+        vm: ['start', 'stop', 'pause', 'resume']
+    };
 
     const isPlainObject = (value) => !!value && typeof value === 'object' && !Array.isArray(value);
 
@@ -71,6 +75,19 @@
             return max;
         }
         return number;
+    };
+
+    const normalizeStringIdList = (value) => {
+        if (!Array.isArray(value)) {
+            return [];
+        }
+        return Array.from(
+            new Set(
+                value
+                    .map((item) => String(item || '').trim())
+                    .filter((item) => item !== '')
+            )
+        );
     };
 
     const normalizeFolderMap = (value) => {
@@ -134,10 +151,14 @@
         const performanceMode = runtimePrefsReady ? incoming.performanceMode === true : false;
         const lazyPreviewEnabled = runtimePrefsReady ? incoming.lazyPreviewEnabled === true : false;
         const lazyPreviewThreshold = clampNumber(incoming.lazyPreviewThreshold, 10, 200, 30);
+        const pinnedFolderIds = normalizeStringIdList(incoming.pinnedFolderIds);
+        const hideEmptyFolders = incoming.hideEmptyFolders === true;
 
         return {
             sortMode,
             manualOrder,
+            pinnedFolderIds,
+            hideEmptyFolders,
             autoRules,
             badges,
             runtimePrefsSchema: RUNTIME_PREFS_SCHEMA,
@@ -153,6 +174,27 @@
     const orderFoldersByPrefs = (folders, prefs) => {
         const normalizedFolders = normalizeFolderMap(folders);
         const normalizedPrefs = normalizePrefs(prefs);
+        const applyPinnedOrder = (orderedMap) => {
+            const pinnedIds = normalizeStringIdList(normalizedPrefs.pinnedFolderIds);
+            if (!pinnedIds.length) {
+                return orderedMap;
+            }
+
+            const next = {};
+            const remaining = { ...orderedMap };
+
+            for (const id of pinnedIds) {
+                if (Object.prototype.hasOwnProperty.call(remaining, id)) {
+                    next[id] = remaining[id];
+                    delete remaining[id];
+                }
+            }
+
+            for (const [id, folder] of Object.entries(remaining)) {
+                next[id] = folder;
+            }
+            return next;
+        };
 
         if (normalizedPrefs.sortMode === 'alpha') {
             const keys = Object.keys(normalizedFolders).sort((a, b) => {
@@ -165,7 +207,7 @@
             for (const key of keys) {
                 ordered[key] = normalizedFolders[key];
             }
-            return ordered;
+            return applyPinnedOrder(ordered);
         }
 
         if (normalizedPrefs.sortMode === 'manual') {
@@ -179,10 +221,10 @@
             for (const [id, folder] of Object.entries(normalizedFolders)) {
                 ordered[id] = folder;
             }
-            return ordered;
+            return applyPinnedOrder(ordered);
         }
 
-        return normalizedFolders;
+        return applyPinnedOrder(normalizedFolders);
     };
 
     const buildFullExportPayload = ({ type, folders, pluginVersion }) => ({
@@ -663,6 +705,218 @@
         return Array.from(new Set(matches));
     };
 
+    const getEffectiveFolderMembers = ({ type, folderId, folder, names, infoByName, rules }) => {
+        const normalizedType = type === 'vm' ? 'vm' : 'docker';
+        const targetFolderId = String(folderId || '');
+        const targetFolder = isPlainObject(folder) ? folder : {};
+        const infos = isPlainObject(infoByName) ? infoByName : {};
+        const allNames = Array.isArray(names) && names.length
+            ? Array.from(new Set(names.map((name) => String(name || '')).filter((name) => name !== '')))
+            : Object.keys(infos);
+        const reasonsByName = {};
+        const addReason = (name, reason) => {
+            if (!name || !reason) {
+                return;
+            }
+            if (!reasonsByName[name]) {
+                reasonsByName[name] = [];
+            }
+            if (!reasonsByName[name].includes(reason)) {
+                reasonsByName[name].push(reason);
+            }
+        };
+
+        for (const member of normalizeMemberList(targetFolder.containers)) {
+            addReason(member, 'manual');
+        }
+
+        const regex = String(targetFolder.regex || '');
+        if (regex) {
+            for (const name of allNames) {
+                if (regexMatches(regex, name)) {
+                    addReason(name, 'regex');
+                }
+            }
+        }
+
+        if (normalizedType === 'docker') {
+            const folderName = String(targetFolder.name || '').trim();
+            if (folderName) {
+                for (const name of allNames) {
+                    const labels = getDockerLabels(infos, name);
+                    if (getFolderLabelValue(labels) === folderName) {
+                        addReason(name, 'label');
+                    }
+                }
+            }
+        }
+
+        if (targetFolderId !== '') {
+            for (const name of allNames) {
+                const decision = getAutoRuleDecision({
+                    rules,
+                    name,
+                    infoByName: infos,
+                    type: normalizedType
+                });
+                const assignedFolderId = String(decision?.assignedRule?.folderId || '');
+                if (assignedFolderId !== '' && assignedFolderId === targetFolderId) {
+                    addReason(name, 'rule');
+                }
+            }
+        }
+
+        const members = Object.keys(reasonsByName).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
+        return {
+            members,
+            reasonsByName
+        };
+    };
+
+    const dockerRuntimeStateKind = (item) => {
+        const source = isPlainObject(item) ? item : {};
+        const nestedState = isPlainObject(source.info?.State) ? source.info.State : {};
+        const running = Boolean(
+            nestedState.Running
+            ?? source.state
+            ?? source.running
+        );
+        const paused = Boolean(
+            nestedState.Paused
+            ?? source.pause
+            ?? source.paused
+        );
+        if (running && paused) {
+            return 'paused';
+        }
+        if (running) {
+            return 'started';
+        }
+        return 'stopped';
+    };
+
+    const vmRuntimeStateKind = (item) => {
+        const source = isPlainObject(item) ? item : {};
+        const raw = String(source.state || source.State || '').toLowerCase();
+        if (raw === 'running') {
+            return 'started';
+        }
+        if (raw === 'paused' || raw === 'unknown' || raw === 'pmsuspended') {
+            return 'paused';
+        }
+        return 'stopped';
+    };
+
+    const isRuntimeActionAllowed = (type, action, state) => {
+        const normalizedType = type === 'vm' ? 'vm' : 'docker';
+        const normalizedState = ['started', 'paused', 'stopped'].includes(state) ? state : 'stopped';
+        const normalizedAction = String(action || '').toLowerCase();
+
+        if (!RUNTIME_ACTIONS_BY_TYPE[normalizedType].includes(normalizedAction)) {
+            return false;
+        }
+
+        if (normalizedAction === 'start') {
+            return normalizedState === 'stopped';
+        }
+        if (normalizedAction === 'stop') {
+            return normalizedState === 'started' || normalizedState === 'paused';
+        }
+        if (normalizedAction === 'pause') {
+            return normalizedType === 'docker'
+                ? normalizedState === 'started'
+                : normalizedState === 'started';
+        }
+        if (normalizedAction === 'resume') {
+            return normalizedState === 'paused';
+        }
+        return false;
+    };
+
+    const skipReasonForAction = (action, state) => {
+        const normalizedAction = String(action || '').toLowerCase();
+        if (normalizedAction === 'start') {
+            return state === 'paused' ? 'Item is paused, resume instead.' : 'Item already started.';
+        }
+        if (normalizedAction === 'stop') {
+            return 'Item already stopped.';
+        }
+        if (normalizedAction === 'pause') {
+            return state === 'paused' ? 'Item already paused.' : 'Item must be started before pause.';
+        }
+        if (normalizedAction === 'resume') {
+            return state === 'started' ? 'Item already started.' : 'Item is stopped.';
+        }
+        return 'Action is not supported for this item.';
+    };
+
+    const planFolderRuntimeAction = ({ type, folderId, folder, names, infoByName, rules, action }) => {
+        const normalizedType = type === 'vm' ? 'vm' : 'docker';
+        const normalizedAction = String(action || '').toLowerCase();
+        const validActions = RUNTIME_ACTIONS_BY_TYPE[normalizedType] || [];
+        if (!validActions.includes(normalizedAction)) {
+            return {
+                type: normalizedType,
+                action: normalizedAction,
+                folderId: String(folderId || ''),
+                requestedCount: 0,
+                eligible: [],
+                skipped: [],
+                countsByState: { started: 0, paused: 0, stopped: 0 },
+                error: 'Unsupported action.'
+            };
+        }
+
+        const effectiveMembers = getEffectiveFolderMembers({
+            type: normalizedType,
+            folderId,
+            folder,
+            names,
+            infoByName,
+            rules
+        });
+        const infos = isPlainObject(infoByName) ? infoByName : {};
+        const countsByState = {
+            started: 0,
+            paused: 0,
+            stopped: 0
+        };
+        const eligible = [];
+        const skipped = [];
+
+        for (const name of effectiveMembers.members) {
+            const item = infos[name] || {};
+            const state = normalizedType === 'docker'
+                ? dockerRuntimeStateKind(item)
+                : vmRuntimeStateKind(item);
+            countsByState[state] = (countsByState[state] || 0) + 1;
+            const canRun = isRuntimeActionAllowed(normalizedType, normalizedAction, state);
+            if (canRun) {
+                eligible.push({
+                    name,
+                    state,
+                    reasons: effectiveMembers.reasonsByName[name] || []
+                });
+            } else {
+                skipped.push({
+                    name,
+                    state,
+                    reason: skipReasonForAction(normalizedAction, state)
+                });
+            }
+        }
+
+        return {
+            type: normalizedType,
+            action: normalizedAction,
+            folderId: String(folderId || ''),
+            requestedCount: effectiveMembers.members.length,
+            eligible,
+            skipped,
+            countsByState
+        };
+    };
+
     const getConflictReport = ({ type, folders, prefs, infoByName }) => {
         const normalizedType = type === 'vm' ? 'vm' : 'docker';
         const folderMap = normalizeFolderMap(folders);
@@ -756,6 +1010,8 @@
         getAutoRuleDecision,
         getAutoRuleMatches,
         getAutoRuleFirstMatch,
+        getEffectiveFolderMembers,
+        planFolderRuntimeAction,
         getFolderLabelValue,
         getConflictReport
     };

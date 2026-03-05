@@ -44,6 +44,10 @@ let filtersByType = {
 };
 let importSelectionState = null;
 let lastDiagnostics = null;
+let latestPrefsBackupByType = {
+    docker: null,
+    vm: null
+};
 
 const toPrettyJson = (value) => `${JSON.stringify(value, null, 2)}\n`;
 const tableIdByType = { docker: 'docker', vm: 'vms' };
@@ -70,6 +74,77 @@ const getFolderMap = (type) => utils.normalizeFolderMap(typeFolders(type));
 const folderNameForId = (type, id) => {
     const folders = getFolderMap(type);
     return folders[id]?.name || id;
+};
+
+const isFolderPinned = (type, folderId) => {
+    const pinned = Array.isArray(prefsByType[type]?.pinnedFolderIds) ? prefsByType[type].pinnedFolderIds : [];
+    return pinned.includes(String(folderId || ''));
+};
+
+const getEffectiveMemberSnapshot = (type, folders) => {
+    const info = infoByType[type] || {};
+    const names = Object.keys(info);
+    const rules = prefsByType[type]?.autoRules || [];
+    const snapshot = {};
+    for (const [folderId, folder] of Object.entries(folders || {})) {
+        const members = utils.getEffectiveFolderMembers({
+            type,
+            folderId,
+            folder,
+            names,
+            infoByName: info,
+            rules
+        });
+        snapshot[String(folderId)] = members;
+    }
+    return snapshot;
+};
+
+const getRuntimePlanForFolder = (type, folderId, action) => {
+    const folders = getFolderMap(type);
+    const folder = folders[folderId];
+    if (!folder) {
+        return null;
+    }
+    return utils.planFolderRuntimeAction({
+        type,
+        folderId,
+        folder,
+        names: Object.keys(infoByType[type] || {}),
+        infoByName: infoByType[type] || {},
+        rules: prefsByType[type]?.autoRules || [],
+        action
+    });
+};
+
+const runtimePreviewText = (type, folderId, action, plan) => {
+    if (!plan) {
+        return 'No plan available.';
+    }
+    const folderName = folderNameForId(type, folderId);
+    const lines = [];
+    lines.push(`Type: ${type}`);
+    lines.push(`Folder: ${folderName} (${folderId})`);
+    lines.push(`Action: ${action}`);
+    lines.push(`Requested: ${plan.requestedCount}`);
+    lines.push(`Eligible: ${plan.eligible.length}`);
+    lines.push(`Skipped: ${plan.skipped.length}`);
+    lines.push(`State counts: started=${plan.countsByState?.started || 0}, paused=${plan.countsByState?.paused || 0}, stopped=${plan.countsByState?.stopped || 0}`);
+    lines.push('');
+    if (plan.eligible.length) {
+        lines.push(`Eligible items (${plan.eligible.length}):`);
+        for (const row of plan.eligible) {
+            lines.push(`- ${row.name} [${row.state}]${row.reasons?.length ? ` via ${row.reasons.join(', ')}` : ''}`);
+        }
+        lines.push('');
+    }
+    if (plan.skipped.length) {
+        lines.push(`Skipped items (${plan.skipped.length}):`);
+        for (const row of plan.skipped) {
+            lines.push(`- ${row.name} [${row.state}] - ${row.reason}`);
+        }
+    }
+    return `${lines.join('\n')}\n`;
 };
 
 const normalizedFilter = (value) => String(value || '').trim().toLowerCase();
@@ -274,6 +349,7 @@ const postPrefs = async (type, prefs) => {
     if (!response.ok) {
         throw new Error(response.error || 'Failed to save preferences.');
     }
+    latestPrefsBackupByType[type] = response.backup || null;
     return utils.normalizePrefs(response.prefs || prefs);
 };
 
@@ -298,6 +374,29 @@ const restoreLatest = async (type) => {
         throw new Error(response.error || 'Restore failed.');
     }
     return response.restore;
+};
+
+const restoreLatestUndo = async (type) => {
+    const response = parseJsonResponse(await $.post('/plugins/folderview.plus/server/backup.php', {
+        type,
+        action: 'restore_latest_undo'
+    }).promise());
+    if (!response.ok) {
+        throw new Error(response.error || 'Undo restore failed.');
+    }
+    return response.restore;
+};
+
+const executeFolderRuntimeAction = async (type, runtimeAction, items) => {
+    const response = parseJsonResponse(await $.post('/plugins/folderview.plus/server/bulk_folder_action.php', {
+        type,
+        runtimeAction,
+        items: JSON.stringify(items || [])
+    }).promise());
+    if (!response.ok) {
+        throw new Error(response.error || 'Runtime action failed.');
+    }
+    return response.result || {};
 };
 
 const runScheduledBackup = async (type) => {
@@ -632,7 +731,7 @@ const offerUndoAction = async (type, backup, actionLabel) => {
     });
 };
 
-const buildRowsHtml = (type, folders) => {
+const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = false) => {
     const rows = [];
     const filter = normalizedFilter(filtersByType[type]?.folders);
     for (const [id, folder] of Object.entries(folders)) {
@@ -641,16 +740,25 @@ const buildRowsHtml = (type, folders) => {
         if (filter && !haystack.includes(filter)) {
             continue;
         }
+        const members = Array.isArray(memberSnapshot[id]?.members) ? memberSnapshot[id].members : [];
+        if (hideEmptyFolders && members.length === 0) {
+            continue;
+        }
+        const pinned = isFolderPinned(type, id);
+        const pinTitle = pinned ? 'Unpin folder' : 'Pin folder to top';
         const safeName = escapeHtml(folder.name);
         const safeIcon = escapeHtml(folder.icon || '');
         rows.push(
-            `<tr data-folder-id="${escapeHtml(id)}">`
-            + `<td><span class="row-order-actions"><button title="Move up" onclick="moveFolderRow('${type}','${escapeHtml(id)}',-1)"><i class="fa fa-chevron-up"></i></button><button title="Move down" onclick="moveFolderRow('${type}','${escapeHtml(id)}',1)"><i class="fa fa-chevron-down"></i></button></span></td>`
+            `<tr data-folder-id="${escapeHtml(id)}" tabindex="0" onkeydown="handleFolderRowKeydown('${type}','${escapeHtml(id)}',event)">`
+            + `<td><span class="row-order-actions"><button title="Move up" aria-label="Move ${safeName} up" onclick="moveFolderRow('${type}','${escapeHtml(id)}',-1)"><i class="fa fa-chevron-up"></i></button><button title="Move down" aria-label="Move ${safeName} down" onclick="moveFolderRow('${type}','${escapeHtml(id)}',1)"><i class="fa fa-chevron-down"></i></button></span></td>`
             + `<td>${escapeHtml(id)}</td>`
-            + `<td class="name-cell"><span class="name-cell-content"><img src="${safeIcon}" class="img" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"><span class="name-cell-text">${safeName}</span></span></td>`
-            + `<td><button title="Export" onclick="${type === 'docker' ? 'downloadDocker' : 'downloadVm'}('${escapeHtml(id)}')"><i class="fa fa-download"></i></button> <button title="Delete" onclick="${type === 'docker' ? 'clearDocker' : 'clearVm'}('${escapeHtml(id)}')"><i class="fa fa-trash"></i></button></td>`
+            + `<td class="name-cell"><span class="name-cell-content"><img src="${safeIcon}" class="img" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"><span class="name-cell-text">${safeName}</span></span><span class="folder-member-count">(${members.length})</span></td>`
+            + `<td><button class="folder-pin-btn ${pinned ? 'is-pinned' : ''}" title="${pinTitle}" aria-label="${pinTitle}" onclick="toggleFolderPin('${type}','${escapeHtml(id)}')"><i class="fa ${pinned ? 'fa-star' : 'fa-star-o'}"></i></button> <button title="Export" onclick="${type === 'docker' ? 'downloadDocker' : 'downloadVm'}('${escapeHtml(id)}')"><i class="fa fa-download"></i></button> <button title="Delete" onclick="${type === 'docker' ? 'clearDocker' : 'clearVm'}('${escapeHtml(id)}')"><i class="fa fa-trash"></i></button></td>`
             + '</tr>'
         );
+    }
+    if (rows.length === 0) {
+        return '<tr><td colspan="4">No folders match current filters.</td></tr>';
     }
     return rows.join('');
 };
@@ -723,6 +831,24 @@ const moveFolderRow = async (type, folderId, direction) => {
     }
 };
 
+const handleFolderRowKeydown = (type, folderId, event) => {
+    if (!event) {
+        return;
+    }
+    if (!event.altKey) {
+        return;
+    }
+    if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        void moveFolderRow(type, folderId, -1);
+        return;
+    }
+    if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        void moveFolderRow(type, folderId, 1);
+    }
+};
+
 const renderFolderSelectOptions = (type) => {
     const folders = getFolderMap(type);
     const entries = Object.entries(folders);
@@ -731,6 +857,7 @@ const renderFolderSelectOptions = (type) => {
     $(`#${type}-rule-folder`).html(options);
     $(`#${type}-bulk-folder`).html(options);
     $(`#${type}-template-source-folder`).html(options);
+    $(`#${type}-runtime-folder`).html(options);
 };
 
 const renderBadgeToggles = (type) => {
@@ -749,6 +876,11 @@ const renderRuntimeControls = (type) => {
     $(`#${type}-performance-mode`).prop('checked', prefs.performanceMode === true);
     $(`#${type}-lazy-preview-enabled`).prop('checked', prefs.lazyPreviewEnabled === true);
     $(`#${type}-lazy-preview-threshold`).val(String(prefs.lazyPreviewThreshold || 30));
+};
+
+const renderVisibilityControls = (type) => {
+    const prefs = utils.normalizePrefs(prefsByType[type]);
+    $(`#${type}-hide-empty-folders`).prop('checked', prefs.hideEmptyFolders === true);
 };
 
 const renderBackupScheduleControls = (type) => {
@@ -934,15 +1066,18 @@ const renderTable = (type) => {
     const folders = getFolderMap(type);
     const ordered = utils.orderFoldersByPrefs(folders, prefsByType[type]);
     setTypeFolders(type, ordered);
+    const memberSnapshot = getEffectiveMemberSnapshot(type, ordered);
+    const hideEmptyFolders = utils.normalizePrefs(prefsByType[type]).hideEmptyFolders === true;
 
     const sortMode = prefsByType[type]?.sortMode || 'created';
     $(`#${type}-sort-mode`).val(sortMode);
     const tbodyId = tableIdByType[type];
-    $(`tbody#${tbodyId}`).html(buildRowsHtml(type, ordered));
+    $(`tbody#${tbodyId}`).html(buildRowsHtml(type, ordered, memberSnapshot, hideEmptyFolders));
 
     renderFolderSelectOptions(type);
     renderBadgeToggles(type);
     renderRuntimeControls(type);
+    renderVisibilityControls(type);
     renderBackupScheduleControls(type);
     renderFilterInputs(type);
     renderRulesTable(type);
@@ -989,6 +1124,7 @@ const refreshAll = async () => {
     await Promise.all([refreshBackups('docker'), refreshBackups('vm')]);
     await Promise.all([refreshTemplates('docker'), refreshTemplates('vm')]);
     toggleRuleKindFields('docker');
+    await refreshChangeHistory();
 };
 
 const downloadType = (type, id) => {
@@ -1201,6 +1337,47 @@ const changeBadgePref = async (type, badgeKey, checked) => {
         renderBadgeToggles(type);
     } catch (error) {
         showError('Badge preferences save failed', error);
+    }
+};
+
+const changeVisibilityPref = async (type, key, checked) => {
+    if (key !== 'hideEmptyFolders') {
+        return;
+    }
+    const current = utils.normalizePrefs(prefsByType[type]);
+    const next = {
+        ...current,
+        hideEmptyFolders: checked === true
+    };
+    try {
+        prefsByType[type] = await postPrefs(type, next);
+        renderVisibilityControls(type);
+        renderTable(type);
+    } catch (error) {
+        showError('Visibility preference save failed', error);
+    }
+};
+
+const toggleFolderPin = async (type, folderId) => {
+    const id = String(folderId || '');
+    if (!id) {
+        return;
+    }
+    const current = utils.normalizePrefs(prefsByType[type]);
+    const pinned = Array.isArray(current.pinnedFolderIds) ? [...current.pinnedFolderIds] : [];
+    const exists = pinned.includes(id);
+    const nextPinned = exists
+        ? pinned.filter((item) => item !== id)
+        : [...pinned, id];
+    const next = {
+        ...current,
+        pinnedFolderIds: nextPinned
+    };
+    try {
+        prefsByType[type] = await postPrefs(type, next);
+        renderTable(type);
+    } catch (error) {
+        showError('Pin update failed', error);
     }
 };
 
@@ -1520,6 +1697,143 @@ const assignSelectedItems = async (type) => {
         showError('Bulk assignment failed', error);
     }
 };
+
+const previewFolderRuntimeAction = (type) => {
+    const folderId = String($(`#${type}-runtime-folder`).val() || '');
+    const action = String($(`#${type}-runtime-action`).val() || '');
+    const output = $(`#${type}-runtime-preview-output`);
+    if (!folderId || !action) {
+        output.text('Select a folder and action first.');
+        return;
+    }
+    const plan = getRuntimePlanForFolder(type, folderId, action);
+    output.text(runtimePreviewText(type, folderId, action, plan));
+};
+
+const applyFolderRuntimeAction = (type) => {
+    const folderId = String($(`#${type}-runtime-folder`).val() || '');
+    const action = String($(`#${type}-runtime-action`).val() || '');
+    const output = $(`#${type}-runtime-preview-output`);
+    if (!folderId || !action) {
+        output.text('Select a folder and action first.');
+        return;
+    }
+    const plan = getRuntimePlanForFolder(type, folderId, action);
+    if (!plan) {
+        output.text('No valid action plan was generated.');
+        return;
+    }
+    if (!plan.eligible.length) {
+        output.text(runtimePreviewText(type, folderId, action, plan));
+        swal({
+            title: 'Nothing to apply',
+            text: 'No eligible items were found for this action.',
+            type: 'info'
+        });
+        return;
+    }
+
+    const folderName = folderNameForId(type, folderId);
+    swal({
+        title: 'Apply folder action?',
+        text: `${action.toUpperCase()} on "${folderName}"\nEligible: ${plan.eligible.length}\nSkipped: ${plan.skipped.length}`,
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Apply',
+        cancelButtonText: 'Cancel',
+        showLoaderOnConfirm: true
+    }, async (confirmed) => {
+        if (!confirmed) {
+            return;
+        }
+        try {
+            const result = await executeFolderRuntimeAction(type, action, plan.eligible.map((row) => row.name));
+            await refreshType(type);
+            output.text(toPrettyJson({
+                preview: plan,
+                result
+            }));
+            await trackDiagnosticsEvent({
+                eventType: 'runtime_bulk_action',
+                type,
+                details: {
+                    action,
+                    folderId,
+                    requested: plan.requestedCount,
+                    eligible: plan.eligible.length,
+                    executed: result.executed || 0,
+                    failed: result.failed || 0
+                }
+            });
+            swal({
+                title: 'Action complete',
+                text: `Executed: ${result.executed || 0}, succeeded: ${result.succeeded || 0}, failed: ${result.failed || 0}, skipped: ${(result.skipped || []).length}`,
+                type: (result.failed || 0) > 0 ? 'warning' : 'success'
+            });
+        } catch (error) {
+            showError('Folder runtime action failed', error);
+        }
+    });
+};
+
+const renderChangeHistory = (diagnostics) => {
+    const timeline = Array.isArray(diagnostics?.recentTimeline) ? diagnostics.recentTimeline : [];
+    if (!timeline.length) {
+        $('#change-history-output').text('No recent changes found.');
+        return;
+    }
+    const lines = [];
+    lines.push(`Recent events: ${timeline.length}`);
+    lines.push('');
+    for (const row of timeline.slice(0, 40)) {
+        const ts = row.timestamp || '';
+        const action = row.action || '';
+        const type = row.type || '-';
+        const status = row.status || 'ok';
+        const summary = row.summary ? ` | ${row.summary}` : '';
+        lines.push(`${ts} | ${action} | ${type} | ${status}${summary}`);
+    }
+    $('#change-history-output').text(`${lines.join('\n')}\n`);
+};
+
+const refreshChangeHistory = async () => {
+    try {
+        const diagnostics = await getDiagnostics('sanitized');
+        renderDiagnostics(diagnostics);
+        renderChangeHistory(diagnostics);
+    } catch (error) {
+        showError('Change history refresh failed', error);
+    }
+};
+
+const undoLatestChange = (type) => {
+    swal({
+        title: 'Undo latest change?',
+        text: `Restore the latest undo-capable ${type.toUpperCase()} backup snapshot.`,
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Undo',
+        cancelButtonText: 'Cancel',
+        showLoaderOnConfirm: true
+    }, async (confirmed) => {
+        if (!confirmed) {
+            return;
+        }
+        try {
+            const restore = await restoreLatestUndo(type);
+            await Promise.all([refreshType(type), refreshBackups(type)]);
+            await refreshChangeHistory();
+            swal({
+                title: 'Undo complete',
+                text: `Restored ${restore.name || 'latest undo backup'}.`,
+                type: 'success'
+            });
+        } catch (error) {
+            showError('Undo failed', error);
+        }
+    });
+};
+
 const createManualBackup = async (type) => {
     try {
         const backup = await createBackup(type, 'manual');
@@ -1952,7 +2266,10 @@ const issueReportFromDiagnostics = (diagnostics) => {
     for (const type of ['docker', 'vm']) {
         const typeData = report.types?.[type] || {};
         const integrity = typeData.integrityChecks || {};
-        lines.push(`- ${type.toUpperCase()}: folders=${typeData.folderCount || 0}, rules=${typeData.ruleCount || 0}, backups=${typeData.backupCount || 0}, templates=${typeData.templateCount || 0}, issueCount=${integrity.issueCount || 0}`);
+        const issueCount = Number.isFinite(Number(integrity.issuesCount))
+            ? Number(integrity.issuesCount)
+            : Number(integrity.issueCount || 0);
+        lines.push(`- ${type.toUpperCase()}: folders=${typeData.folderCount || 0}, rules=${typeData.ruleCount || 0}, backups=${typeData.backupCount || 0}, templates=${typeData.templateCount || 0}, issueCount=${issueCount}`);
     }
     lines.push('');
 
@@ -2006,9 +2323,11 @@ const renderDiagnostics = (diagnostics) => {
     lastDiagnostics = diagnostics || null;
     if (!diagnostics) {
         $('#diagnostics-output').text('No diagnostics data.');
+        renderChangeHistory(null);
         return;
     }
     $('#diagnostics-output').text(toPrettyJson(diagnostics));
+    renderChangeHistory(diagnostics);
 };
 
 const runDiagnostics = async () => {
@@ -2179,10 +2498,11 @@ const checkForUpdatesNow = async () => {
             ? `Update available: ${response.currentVersion} -> ${response.remoteVersion}`
             : `Up to date: ${response.currentVersion}`;
 
+        const statusMeta = `${response.responseStatus || 'status unknown'} | ${response.durationMs ?? '?'}ms`;
         setUpdateStatus(`${message} (checked ${response.checkedAt})`);
         swal({
             title: response.updateAvailable ? 'Update available' : 'No update available',
-            text: `${message}\nSource: ${response.manifestUrl}`,
+            text: `${message}\nSource: ${response.manifestUrl}\nRequest: ${response.requestUrl || response.manifestUrl}\nNetwork: ${statusMeta}`,
             type: response.updateAvailable ? 'warning' : 'success'
         });
     } catch (error) {
@@ -2211,6 +2531,7 @@ window.clearVm = clearVm;
 window.fileManager = fileManager;
 window.changeSortMode = changeSortMode;
 window.changeBadgePref = changeBadgePref;
+window.changeVisibilityPref = changeVisibilityPref;
 window.changeRuntimePref = changeRuntimePref;
 window.changeBackupSchedulePref = changeBackupSchedulePref;
 window.setFilterQuery = setFilterQuery;
@@ -2232,6 +2553,10 @@ window.restoreLatestBackup = restoreLatestBackup;
 window.restoreBackupEntry = restoreBackupEntry;
 window.downloadBackupEntry = downloadBackupEntry;
 window.deleteBackupEntry = deleteBackupEntry;
+window.previewFolderRuntimeAction = previewFolderRuntimeAction;
+window.applyFolderRuntimeAction = applyFolderRuntimeAction;
+window.refreshChangeHistory = refreshChangeHistory;
+window.undoLatestChange = undoLatestChange;
 window.createTemplateFromFolder = createTemplateFromFolder;
 window.applyTemplateToFolder = applyTemplateToFolder;
 window.deleteTemplateEntry = deleteTemplateEntry;
@@ -2246,6 +2571,8 @@ window.copyIssueReport = copyIssueReport;
 window.runConflictInspector = runConflictInspector;
 window.checkForUpdatesNow = checkForUpdatesNow;
 window.moveFolderRow = moveFolderRow;
+window.handleFolderRowKeydown = handleFolderRowKeydown;
+window.toggleFolderPin = toggleFolderPin;
 
 (async () => {
     try {

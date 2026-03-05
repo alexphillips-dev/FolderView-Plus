@@ -42,6 +42,11 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
             <div class="hint-line">Use manual mode and the up/down buttons in the first column to set custom order.</div>
             <input id="docker-folder-filter" type="text" placeholder="Search Docker folders" oninput="setFilterQuery('folders','docker',this.value)">
             <div class="badge-toggle-row">
+                <span class="badge-toggle-title">Layout</span>
+                <label><input id="docker-hide-empty-folders" type="checkbox" onchange="changeVisibilityPref('docker', 'hideEmptyFolders', this.checked)"> Hide empty folders</label>
+                <span class="rules-help">Pin folders with the star button in the Actions column.</span>
+            </div>
+            <div class="badge-toggle-row">
                 <span class="badge-toggle-title">Folder badges</span>
                 <label><input id="docker-badge-running" type="checkbox" onchange="changeBadgePref('docker', 'running', this.checked)"> Running</label>
                 <label><input id="docker-badge-stopped" type="checkbox" onchange="changeBadgePref('docker', 'stopped', this.checked)"> Stopped</label>
@@ -99,6 +104,11 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
             </select>
             <div class="hint-line">Use manual mode and the up/down buttons in the first column to set custom order.</div>
             <input id="vm-folder-filter" type="text" placeholder="Search VM folders" oninput="setFilterQuery('folders','vm',this.value)">
+            <div class="badge-toggle-row">
+                <span class="badge-toggle-title">Layout</span>
+                <label><input id="vm-hide-empty-folders" type="checkbox" onchange="changeVisibilityPref('vm', 'hideEmptyFolders', this.checked)"> Hide empty folders</label>
+                <span class="rules-help">Pin folders with the star button in the Actions column.</span>
+            </div>
             <div class="badge-toggle-row">
                 <span class="badge-toggle-title">Folder badges</span>
                 <label><input id="vm-badge-running" type="checkbox" onchange="changeBadgePref('vm', 'running', this.checked)"> Running</label>
@@ -271,6 +281,48 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 </div>
 <hr>
 
+<h2>Folder runtime actions</h2>
+<div class="bulk-assign-grid">
+    <div class="rules-panel">
+        <div class="rules-header">
+            <h3>Docker folder actions</h3>
+            <span class="rules-help">Preview and apply Start/Stop/Pause/Resume for items currently in a folder.</span>
+        </div>
+        <div class="runtime-action-grid">
+            <select id="docker-runtime-folder"></select>
+            <select id="docker-runtime-action">
+                <option value="start">Start</option>
+                <option value="stop">Stop</option>
+                <option value="pause">Pause</option>
+                <option value="resume">Resume</option>
+            </select>
+            <button onclick="previewFolderRuntimeAction('docker')"><i class="fa fa-list-alt"></i> Preview</button>
+            <button onclick="applyFolderRuntimeAction('docker')"><i class="fa fa-play"></i> Apply action</button>
+        </div>
+        <pre id="docker-runtime-preview-output" class="diagnostics-output compact-output">Preview a runtime action to see exactly which containers will be changed.</pre>
+    </div>
+
+    <div class="rules-panel">
+        <div class="rules-header">
+            <h3>VM folder actions</h3>
+            <span class="rules-help">Preview and apply Start/Stop/Pause/Resume for VMs currently in a folder.</span>
+        </div>
+        <div class="runtime-action-grid">
+            <select id="vm-runtime-folder"></select>
+            <select id="vm-runtime-action">
+                <option value="start">Start</option>
+                <option value="stop">Stop</option>
+                <option value="pause">Pause</option>
+                <option value="resume">Resume</option>
+            </select>
+            <button onclick="previewFolderRuntimeAction('vm')"><i class="fa fa-list-alt"></i> Preview</button>
+            <button onclick="applyFolderRuntimeAction('vm')"><i class="fa fa-play"></i> Apply action</button>
+        </div>
+        <pre id="vm-runtime-preview-output" class="diagnostics-output compact-output">Preview a runtime action to see exactly which VMs will be changed.</pre>
+    </div>
+</div>
+<hr>
+
 <h2>Backups</h2>
 <div class="backup-grid">
     <div class="rules-panel">
@@ -394,6 +446,21 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
             <tbody id="vm-templates"></tbody>
         </table>
     </div>
+</div>
+<hr>
+
+<h2>Change history and undo</h2>
+<div class="rules-panel">
+    <div class="rules-header">
+        <h3>Recent changes</h3>
+        <span class="rules-help">Shows recent config actions from diagnostics history and allows one-click undo to the latest backup transaction.</span>
+    </div>
+    <div class="backup-actions">
+        <button onclick="refreshChangeHistory()"><i class="fa fa-refresh"></i> Refresh history</button>
+        <button onclick="undoLatestChange('docker')"><i class="fa fa-undo"></i> Undo latest Docker change</button>
+        <button onclick="undoLatestChange('vm')"><i class="fa fa-undo"></i> Undo latest VM change</button>
+    </div>
+    <pre id="change-history-output" class="diagnostics-output compact-output">Refresh history to view recent changes.</pre>
 </div>
 <hr>
 

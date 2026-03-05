@@ -131,6 +131,21 @@
         return $number;
     }
 
+    function normalizeStringIdList($value): array {
+        if (!is_array($value)) {
+            return [];
+        }
+        $out = [];
+        foreach ($value as $item) {
+            $id = trim((string)$item);
+            if ($id === '' || in_array($id, $out, true)) {
+                continue;
+            }
+            $out[] = $id;
+        }
+        return $out;
+    }
+
     function readInstalledVersion(): string {
         global $configDir;
         $versionPath = "$configDir/version";
@@ -283,6 +298,8 @@
         return [
             'sortMode' => 'created',
             'manualOrder' => [],
+            'pinnedFolderIds' => [],
+            'hideEmptyFolders' => false,
             'autoRules' => [],
             'badges' => [
                 'running' => true,
@@ -325,9 +342,9 @@
         if (!is_array($manualOrder)) {
             $manualOrder = [];
         }
-        $normalized['manualOrder'] = array_values(array_unique(array_filter(array_map('strval', $manualOrder), function($id) {
-            return $id !== '';
-        })));
+        $normalized['manualOrder'] = normalizeStringIdList($manualOrder);
+        $normalized['pinnedFolderIds'] = normalizeStringIdList($prefs['pinnedFolderIds'] ?? []);
+        $normalized['hideEmptyFolders'] = normalizeBool($prefs['hideEmptyFolders'] ?? false, false);
 
         $autoRules = $prefs['autoRules'] ?? [];
         if (!is_array($autoRules)) {
@@ -464,6 +481,23 @@
     function reorderFolderMapByPrefs(string $type, array $folders): array {
         $prefs = readTypePrefs($type);
         $sortMode = $prefs['sortMode'] ?? 'created';
+        $applyPinnedOrder = function(array $ordered) use ($prefs): array {
+            $pinnedIds = normalizeStringIdList($prefs['pinnedFolderIds'] ?? []);
+            if (count($pinnedIds) === 0) {
+                return $ordered;
+            }
+            $next = [];
+            foreach ($pinnedIds as $id) {
+                if (array_key_exists($id, $ordered)) {
+                    $next[$id] = $ordered[$id];
+                    unset($ordered[$id]);
+                }
+            }
+            foreach ($ordered as $id => $folder) {
+                $next[$id] = $folder;
+            }
+            return $next;
+        };
 
         if ($sortMode === 'alpha') {
             $keys = array_keys($folders);
@@ -477,7 +511,7 @@
             foreach ($keys as $key) {
                 $ordered[$key] = $folders[$key];
             }
-            return $ordered;
+            return $applyPinnedOrder($ordered);
         }
 
         if ($sortMode === 'manual') {
@@ -492,10 +526,10 @@
             foreach ($folders as $id => $folder) {
                 $ordered[$id] = $folder;
             }
-            return $ordered;
+            return $applyPinnedOrder($ordered);
         }
 
-        return $folders;
+        return $applyPinnedOrder($folders);
     }
 
     function syncManualOrderWithFolders(string $type, array $folders): void {
@@ -788,6 +822,200 @@
         return restoreBackupSnapshot($type, $snapshots[0]['name']);
     }
 
+    function isUndoBackupReason(string $reason): bool {
+        $normalized = strtolower(trim($reason));
+        if ($normalized === '') {
+            return false;
+        }
+        return strpos($normalized, 'before-') === 0
+            || strpos($normalized, 'pre-') === 0
+            || strpos($normalized, 'undo-') === 0
+            || strpos($normalized, 'transaction-') === 0;
+    }
+
+    function restoreLatestUndoBackupSnapshot(string $type): array {
+        $type = ensureType($type);
+        $snapshots = listBackupSnapshots($type);
+        foreach ($snapshots as $snapshot) {
+            $reason = (string)($snapshot['reason'] ?? '');
+            if (!isUndoBackupReason($reason)) {
+                continue;
+            }
+            return restoreBackupSnapshot($type, (string)$snapshot['name']);
+        }
+        throw new RuntimeException('No undo-capable backups found.');
+    }
+
+    function normalizeRuntimeItemNames($items): array {
+        if (!is_array($items)) {
+            return [];
+        }
+        $normalized = [];
+        foreach ($items as $item) {
+            $name = trim((string)$item);
+            if ($name === '' || in_array($name, $normalized, true)) {
+                continue;
+            }
+            $normalized[] = $name;
+        }
+        return $normalized;
+    }
+
+    function runtimeActionAllowed(string $type, string $action, string $stateKind): bool {
+        $type = ensureType($type);
+        $normalizedAction = strtolower(trim($action));
+        $normalizedState = in_array($stateKind, ['started', 'paused', 'stopped'], true) ? $stateKind : 'stopped';
+        if (!in_array($normalizedAction, ['start', 'stop', 'pause', 'resume'], true)) {
+            return false;
+        }
+        if ($normalizedAction === 'start') {
+            return $normalizedState === 'stopped';
+        }
+        if ($normalizedAction === 'stop') {
+            return $type === 'docker'
+                ? ($normalizedState === 'started' || $normalizedState === 'paused')
+                : ($normalizedState === 'started');
+        }
+        if ($normalizedAction === 'pause') {
+            return $normalizedState === 'started';
+        }
+        if ($normalizedAction === 'resume') {
+            return $normalizedState === 'paused';
+        }
+        return false;
+    }
+
+    function runShellActionCommand(string $command): array {
+        $output = [];
+        $exitCode = 0;
+        @exec($command . ' 2>&1', $output, $exitCode);
+        return [
+            'ok' => $exitCode === 0,
+            'exitCode' => (int)$exitCode,
+            'output' => array_slice(array_values($output), 0, 8)
+        ];
+    }
+
+    function executeFolderRuntimeAction(string $type, string $action, array $items): array {
+        $type = ensureType($type);
+        $normalizedAction = strtolower(trim($action));
+        if (!in_array($normalizedAction, ['start', 'stop', 'pause', 'resume'], true)) {
+            throw new RuntimeException('Unsupported runtime action.');
+        }
+
+        $names = normalizeRuntimeItemNames($items);
+        if (count($names) === 0) {
+            return [
+                'type' => $type,
+                'action' => $normalizedAction,
+                'requested' => 0,
+                'executed' => 0,
+                'succeeded' => 0,
+                'failed' => 0,
+                'skipped' => [],
+                'errors' => [],
+                'results' => [],
+                'executedAt' => gmdate('c')
+            ];
+        }
+
+        $info = readInfo($type);
+        $results = [];
+        $errors = [];
+        $skipped = [];
+        $succeeded = 0;
+        $failed = 0;
+        $executed = 0;
+
+        foreach ($names as $name) {
+            if (!array_key_exists($name, $info)) {
+                $failed++;
+                $errors[] = [
+                    'item' => $name,
+                    'reason' => 'Item was not found in current runtime info.'
+                ];
+                continue;
+            }
+
+            $item = is_array($info[$name]) ? $info[$name] : [];
+            $stateKind = $type === 'docker'
+                ? diagnosticsStateKindForDockerItem($item)
+                : diagnosticsStateKindForVmItem($item);
+            if (!runtimeActionAllowed($type, $normalizedAction, $stateKind)) {
+                $skipped[] = [
+                    'item' => $name,
+                    'state' => $stateKind,
+                    'reason' => 'Action is not applicable for current state.'
+                ];
+                continue;
+            }
+
+            if ($type === 'docker') {
+                $dockerAction = $normalizedAction === 'resume' ? 'unpause' : $normalizedAction;
+                $command = 'docker ' . $dockerAction . ' ' . escapeshellarg($name);
+            } else {
+                $vmAction = $normalizedAction;
+                if ($vmAction === 'start') {
+                    $command = 'virsh start ' . escapeshellarg($name);
+                } elseif ($vmAction === 'stop') {
+                    $command = 'virsh shutdown ' . escapeshellarg($name);
+                } elseif ($vmAction === 'pause') {
+                    $command = 'virsh suspend ' . escapeshellarg($name);
+                } else {
+                    $command = 'virsh resume ' . escapeshellarg($name);
+                }
+            }
+
+            $executed++;
+            $commandResult = runShellActionCommand($command);
+            if ($commandResult['ok']) {
+                $succeeded++;
+            } else {
+                $failed++;
+                $errors[] = [
+                    'item' => $name,
+                    'reason' => 'Command failed.',
+                    'exitCode' => $commandResult['exitCode'],
+                    'output' => $commandResult['output']
+                ];
+            }
+            $results[] = [
+                'item' => $name,
+                'state' => $stateKind,
+                'command' => $command,
+                'ok' => $commandResult['ok'],
+                'exitCode' => $commandResult['exitCode'],
+                'output' => $commandResult['output']
+            ];
+        }
+
+        try {
+            appendDiagnosticsHistoryEvent('runtime_bulk_action', $type, [
+                'action' => $normalizedAction,
+                'requested' => count($names),
+                'executed' => $executed,
+                'succeeded' => $succeeded,
+                'failed' => $failed,
+                'skipped' => count($skipped)
+            ], $failed > 0 ? 'warning' : 'ok', 'server');
+        } catch (Throwable $err) {
+            // Non-fatal.
+        }
+
+        return [
+            'type' => $type,
+            'action' => $normalizedAction,
+            'requested' => count($names),
+            'executed' => $executed,
+            'succeeded' => $succeeded,
+            'failed' => $failed,
+            'skipped' => $skipped,
+            'errors' => $errors,
+            'results' => $results,
+            'executedAt' => gmdate('c')
+        ];
+    }
+
     function getTemplatePath(string $type): string {
         global $configDir;
         $type = ensureType($type);
@@ -981,8 +1209,10 @@
 
     function checkRemotePluginUpdate(): array {
         $manifestUrl = FVPLUS_REMOTE_MANIFEST_URL;
+        $requestUrl = $manifestUrl . '?_=' . time();
         $checkedAt = gmdate('c');
         $currentVersion = readInstalledVersion();
+        $startedAt = microtime(true);
         $context = stream_context_create([
             'http' => [
                 'timeout' => 8,
@@ -990,7 +1220,12 @@
                 'header' => "Cache-Control: no-cache\r\nPragma: no-cache\r\nUser-Agent: FolderViewPlus/1.0\r\n"
             ]
         ]);
-        $content = @file_get_contents($manifestUrl . '?_=' . time(), false, $context);
+        $content = @file_get_contents($requestUrl, false, $context);
+        $durationMs = (int)round((microtime(true) - $startedAt) * 1000);
+        $statusLine = '';
+        if (isset($http_response_header) && is_array($http_response_header) && isset($http_response_header[0])) {
+            $statusLine = (string)$http_response_header[0];
+        }
         if ($content === false) {
             return [
                 'ok' => false,
@@ -999,6 +1234,9 @@
                 'remoteVersion' => null,
                 'updateAvailable' => false,
                 'manifestUrl' => $manifestUrl,
+                'requestUrl' => $requestUrl,
+                'responseStatus' => $statusLine,
+                'durationMs' => $durationMs,
                 'error' => 'Unable to fetch remote plugin manifest.'
             ];
         }
@@ -1010,6 +1248,9 @@
                 'remoteVersion' => null,
                 'updateAvailable' => false,
                 'manifestUrl' => $manifestUrl,
+                'requestUrl' => $requestUrl,
+                'responseStatus' => $statusLine,
+                'durationMs' => $durationMs,
                 'error' => 'Remote manifest did not include a version entity.'
             ];
         }
@@ -1022,6 +1263,9 @@
             'remoteVersion' => $remoteVersion,
             'updateAvailable' => $updateAvailable,
             'manifestUrl' => $manifestUrl,
+            'requestUrl' => $requestUrl,
+            'responseStatus' => $statusLine,
+            'durationMs' => $durationMs,
             'error' => null
         ];
     }
@@ -1649,6 +1893,7 @@
         $validSet = array_fill_keys($validNames, true);
         $nameBuckets = [];
         $invalidRegexFolders = [];
+        $invalidIconFolders = [];
         $orphanedMembers = [];
         $explicitAssignments = [];
         $regexAssignments = [];
@@ -1687,6 +1932,16 @@
                             }
                         }
                     }
+                }
+            }
+
+            $icon = trim((string)($folder['icon'] ?? ''));
+            if ($icon !== '') {
+                $isLocalPath = strpos($icon, '/') === 0;
+                $isHttpUrl = stripos($icon, 'http://') === 0 || stripos($icon, 'https://') === 0;
+                $isDataUri = stripos($icon, 'data:image/') === 0;
+                if (!$isLocalPath && !$isHttpUrl && !$isDataUri) {
+                    $invalidIconFolders[] = (string)$folderId;
                 }
             }
 
@@ -1801,6 +2056,13 @@
                 $missingManualOrderIds[] = $manualId;
             }
         }
+        $missingPinnedFolderIds = [];
+        foreach (($prefs['pinnedFolderIds'] ?? []) as $pinnedId) {
+            $pinnedId = (string)$pinnedId;
+            if ($pinnedId !== '' && !array_key_exists($pinnedId, $folders)) {
+                $missingPinnedFolderIds[] = $pinnedId;
+            }
+        }
 
         $pathHealth = diagnosticsBuildPathHealth($type, $privacyMode);
         $pathIssueCount = count($pathHealth['issues'] ?? []);
@@ -1819,8 +2081,10 @@
 
         $issuesCount = count($duplicateNames)
             + count($invalidRegexFolders)
+            + count($invalidIconFolders)
             + count($invalidRules)
             + count($missingManualOrderIds)
+            + count($missingPinnedFolderIds)
             + $orphanedCount
             + $buildConflicts($effectiveAssignments)['count']
             + $pathIssueCount;
@@ -1840,6 +2104,10 @@
                 'count' => count($invalidRegexFolders),
                 'folderIds' => array_values(array_unique($invalidRegexFolders))
             ],
+            'invalidFolderIconPaths' => [
+                'count' => count($invalidIconFolders),
+                'folderIds' => array_values(array_unique($invalidIconFolders))
+            ],
             'invalidAutoRules' => [
                 'count' => count($invalidRules),
                 'rules' => array_slice($invalidRules, 0, 40)
@@ -1847,6 +2115,10 @@
             'missingManualOrderIds' => [
                 'count' => count($missingManualOrderIds),
                 'ids' => array_values(array_unique($missingManualOrderIds))
+            ],
+            'missingPinnedFolderIds' => [
+                'count' => count($missingPinnedFolderIds),
+                'ids' => array_values(array_unique($missingPinnedFolderIds))
             ],
             'duplicateAssignments' => [
                 'explicit' => $buildConflicts($explicitAssignments),
@@ -2025,6 +2297,8 @@
                 'sortMode' => $prefs['sortMode'] ?? 'created',
                 'ruleCount' => count($prefs['autoRules'] ?? []),
                 'manualOrderCount' => count($prefs['manualOrder'] ?? []),
+                'pinnedFolderCount' => count($prefs['pinnedFolderIds'] ?? []),
+                'hideEmptyFolders' => normalizeBool($prefs['hideEmptyFolders'] ?? false, false),
                 'runtimePrefsSchema' => normalizeIntInRange($prefs['runtimePrefsSchema'] ?? FVPLUS_RUNTIME_PREFS_SCHEMA, 0, FVPLUS_RUNTIME_PREFS_SCHEMA, FVPLUS_RUNTIME_PREFS_SCHEMA),
                 'liveRefreshEnabled' => normalizeBool($prefs['liveRefreshEnabled'] ?? false, false),
                 'liveRefreshSeconds' => normalizeIntInRange($prefs['liveRefreshSeconds'] ?? 20, 10, 300, 20),

@@ -40,3 +40,8 @@ jobs:
       - name: Run utility tests
         run: |
           node --test tests/*.mjs
+
+      - name: Release guard checks
+        run: |
+          chmod +x scripts/release_guard.sh
+          bash scripts/release_guard.sh

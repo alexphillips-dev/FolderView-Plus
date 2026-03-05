@@ -65,6 +65,14 @@ try {
         exit;
     }
 
+    if ($action === 'restore_latest_undo') {
+        echo json_encode([
+            'ok' => true,
+            'restore' => restoreLatestUndoBackupSnapshot($type)
+        ]);
+        exit;
+    }
+
     if ($action === 'list') {
         echo json_encode([
             'ok' => true,

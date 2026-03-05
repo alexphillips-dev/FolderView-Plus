@@ -6,12 +6,21 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.08.9">
-<!ENTITY md5 "67099f6404923957ab251e0a36316997">
+<!ENTITY version "2026.03.09.1">
+<!ENTITY md5 "0bf457b05dd00716c7bc7c90c3a38874">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.09.1
+- Major feature expansion and quality pass:
+  - add folder pinning and optional hide-empty folder behavior in settings/runtime views,
+  - add runtime action planner (preview + apply) for folder-level Docker/VM start/stop/pause/resume,
+  - add change-history panel and one-click undo to latest transaction/undo backup,
+  - add stronger diagnostics integrity checks (pinned IDs, icon path format) and richer update-check telemetry,
+  - add release guardrails script and enforce guard checks in CI/release workflows,
+  - expand utility/settings tests for new prefs/runtime planning behavior.
 
 ###2026.03.08.9
 - Full bugfix pass for regressions and stability:

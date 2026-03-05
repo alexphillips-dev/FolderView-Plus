@@ -429,6 +429,11 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone) => {
     //set tehe status of a folder
 
     const total = Object.entries(folder.containers).length;
+    if (folderTypePrefs?.hideEmptyFolders === true && total === 0) {
+        $(`tr.folder-id-${id}`).remove();
+        $(`tr#name-${id}`).remove();
+        return remBefore;
+    }
     const statusColors = typeof utils.getFolderStatusColors === 'function'
         ? utils.getFolderStatusColors(folder.settings)
         : localDefaultFolderStatusColors;

@@ -485,6 +485,10 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
 
     // replace the old containers array with the newFolder object
     folder.containers = newFolder;
+    if (folderTypePrefs?.docker?.hideEmptyFolders === true && Object.keys(folder.containers).length === 0) {
+        $(`.folder-showcase-outer-${id}`).remove();
+        return remBefore;
+    }
 
     //temp var
     const sel = $(`tbody#docker_view span#folder-id-${id}`);
@@ -718,6 +722,10 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone) => {
 
     // replace the old containers array with the newFolder object
     folder.containers = newFolder;
+    if (folderTypePrefs?.vm?.hideEmptyFolders === true && Object.keys(folder.containers).length === 0) {
+        $(`.folder-showcase-outer-${id}`).remove();
+        return remBefore;
+    }
 
     
     //set tehe status of a folder

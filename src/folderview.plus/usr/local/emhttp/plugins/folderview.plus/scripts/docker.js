@@ -1379,6 +1379,12 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Set 'update ready' status in update column.`);
     }
     const total = Object.entries(folder.containers).length;
+    if (folderTypePrefs?.hideEmptyFolders === true && total === 0) {
+        $(`tr.folder-id-${id}`).remove();
+        $(`tr#name-${id}`).remove();
+        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): hideEmptyFolders enabled, removed empty folder row.`);
+        return remBefore;
+    }
     const statusColors = typeof utils.getFolderStatusColors === 'function'
         ? utils.getFolderStatusColors(folder.settings)
         : localDefaultFolderStatusColors;

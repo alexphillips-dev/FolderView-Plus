@@ -152,6 +152,21 @@
     padding: 2px 6px;
 }
 
+.folder-pin-btn {
+    min-width: 30px;
+}
+
+.folder-pin-btn.is-pinned {
+    color: #ffd24d;
+}
+
+.folder-member-count {
+    display: inline-block;
+    margin-left: 0.3rem;
+    opacity: 0.8;
+    font-size: 0.84rem;
+}
+
 .rules-panel {
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 6px;
@@ -304,6 +319,18 @@
     flex: 1 1 220px;
 }
 
+.runtime-action-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.5rem;
+    margin: 0.55rem 0 0.75rem 0;
+}
+
+.runtime-action-grid > select,
+.runtime-action-grid > button {
+    min-height: 34px;
+}
+
 .schedule-row,
 .template-controls {
     display: flex;
@@ -453,6 +480,15 @@
 
 .ui-dialog.fv-import-preview-modal .ui-dialog-titlebar-close {
     display: none !important;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+    outline: 2px solid #4da3ff;
+    outline-offset: 2px;
 }
 
 @media (max-width: 1080px) {

@@ -33,6 +33,11 @@ jobs:
           chmod +x pkg_build.sh
           bash pkg_build.sh
 
+      - name: Run release guard
+        run: |
+          chmod +x scripts/release_guard.sh
+          bash scripts/release_guard.sh
+
       - name: Extract stable version
         id: version
         run: |

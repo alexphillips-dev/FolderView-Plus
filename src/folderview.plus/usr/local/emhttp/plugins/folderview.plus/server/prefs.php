@@ -23,13 +23,31 @@ try {
     }
 
     $current = readTypePrefs($type);
-    $next = array_merge($current, $decoded);
+    $next = normalizeTypePrefs(array_merge($current, $decoded));
+    $backup = null;
+    $currentJson = json_encode(normalizeTypePrefs($current), JSON_UNESCAPED_SLASHES);
+    $nextJson = json_encode($next, JSON_UNESCAPED_SLASHES);
+    if ($currentJson !== $nextJson) {
+        $backup = createBackupSnapshot($type, 'before-prefs-update');
+    }
+
     $saved = writeTypePrefs($type, $next);
     syncManualOrderWithFolders($type, readRawFolderMap($type));
+    try {
+        appendDiagnosticsHistoryEvent('prefs_update', $type, [
+            'backupCreated' => is_array($backup),
+            'sortMode' => (string)($saved['sortMode'] ?? 'created'),
+            'ruleCount' => count($saved['autoRules'] ?? []),
+            'pinnedFolderCount' => count($saved['pinnedFolderIds'] ?? [])
+        ], 'ok', 'server');
+    } catch (Throwable $err) {
+        // Non-fatal.
+    }
 
     echo json_encode([
         'ok' => true,
-        'prefs' => $saved
+        'prefs' => $saved,
+        'backup' => $backup
     ]);
 } catch (Throwable $e) {
     http_response_code(400);

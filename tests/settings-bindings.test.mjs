@@ -27,4 +27,5 @@ test('settings page onclick handlers are exported on window', () => {
 test('backup endpoint supports scheduler trigger action', () => {
     assert.match(backupPhp, /action\s*===\s*'run_schedule'/);
     assert.match(backupPhp, /runScheduledBackups/);
+    assert.match(backupPhp, /action\s*===\s*'restore_latest_undo'/);
 });

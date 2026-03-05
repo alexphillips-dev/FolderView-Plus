@@ -21,11 +21,15 @@ major quality-of-life, reliability, and UX improvements for Unraid users:
 - Rule simulator for full-item assignment preview (assigned/blocked/unassigned)
 - Folder templates (save/apply/delete) for reusable folder configurations
 - Bulk actions for rules/templates (enable/disable/delete/export where applicable)
+- Folder pinning and optional hide-empty folder view in settings
+- Runtime action planner with preview + apply (`Start`, `Stop`, `Pause`, `Resume`) per folder
+- Change history panel with one-click undo to latest transaction backup
 - Sort modes per type: `created`, `manual`, `alpha`
 - Search filters in settings for folders, rules, backups, and templates
 - Diagnostics support bundle and copyable issue report text for faster issue filing
 - Runtime lazy preview controls for large libraries (`lazy preview` + threshold)
 - Better release/version metadata handling for more consistent update detection in Unraid
+- Release guardrails in CI/workflows for `.plg` validity, archive/version/md5 consistency
 - Continued folder-based views across Docker, VMs, and Dashboard pages
 
 ## Requirements
@@ -72,6 +76,9 @@ plugin remove folderview.plus
 - Rule-based auto-assignment using name regex and Docker labels
 - Rule simulator to preview final assignment outcomes across all Docker/VM items
 - Bulk rule and template operations in settings
+- Folder pin/unpin controls and hide-empty toggle
+- Runtime bulk folder action preview/apply workflow for Docker and VMs
+- Change history viewer and latest-change undo action
 - Search and filtering for settings tables (folders/rules/backups/templates)
 - Folder templates to copy folder settings/actions/regex between folders
 - Folder sort modes: `created`, `manual`, `alpha`

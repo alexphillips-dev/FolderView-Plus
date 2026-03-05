@@ -325,3 +325,86 @@ test('getConflictReport detects multi-folder assignment conflicts', () => {
     assert.equal(plex.hasConflict, true);
     assert.equal(plex.matchedFolderCount, 2);
 });
+
+test('normalizePrefs keeps pinned folders and hide-empty toggle', () => {
+    const prefs = utils.normalizePrefs({
+        pinnedFolderIds: ['a', 'b', 'a', '', 'c'],
+        hideEmptyFolders: true
+    });
+    assert.deepEqual(prefs.pinnedFolderIds, ['a', 'b', 'c']);
+    assert.equal(prefs.hideEmptyFolders, true);
+});
+
+test('orderFoldersByPrefs keeps pinned folders at top', () => {
+    const folders = {
+        one: { name: 'One' },
+        two: { name: 'Two' },
+        three: { name: 'Three' }
+    };
+    const ordered = utils.orderFoldersByPrefs(folders, {
+        sortMode: 'created',
+        pinnedFolderIds: ['three', 'one']
+    });
+    assert.deepEqual(Object.keys(ordered), ['three', 'one', 'two']);
+});
+
+test('getEffectiveFolderMembers combines manual regex rule and legacy label matches', () => {
+    const members = utils.getEffectiveFolderMembers({
+        type: 'docker',
+        folderId: 'media',
+        folder: {
+            name: 'Media',
+            containers: ['manual-one'],
+            regex: '^rx-'
+        },
+        names: ['manual-one', 'rx-app', 'rule-app', 'label-app'],
+        infoByName: {
+            'manual-one': { Labels: {} },
+            'rx-app': { Labels: {} },
+            'rule-app': { Labels: {} },
+            'label-app': { Labels: { 'folderview.plus': 'Media' } }
+        },
+        rules: [
+            {
+                id: 'r1',
+                enabled: true,
+                folderId: 'media',
+                kind: 'name_regex',
+                effect: 'include',
+                pattern: '^rule-'
+            }
+        ]
+    });
+    assert.deepEqual(members.members.sort(), ['label-app', 'manual-one', 'rule-app', 'rx-app']);
+    assert.deepEqual(members.reasonsByName['manual-one'], ['manual']);
+    assert.deepEqual(members.reasonsByName['rx-app'], ['regex']);
+    assert.deepEqual(members.reasonsByName['rule-app'], ['rule']);
+    assert.deepEqual(members.reasonsByName['label-app'], ['label']);
+});
+
+test('planFolderRuntimeAction filters eligible docker items by current state', () => {
+    const plan = utils.planFolderRuntimeAction({
+        type: 'docker',
+        folderId: 'apps',
+        folder: {
+            name: 'Apps',
+            containers: ['running', 'paused', 'stopped']
+        },
+        infoByName: {
+            running: { info: { State: { Running: true, Paused: false } } },
+            paused: { info: { State: { Running: true, Paused: true } } },
+            stopped: { info: { State: { Running: false, Paused: false } } }
+        },
+        rules: [],
+        action: 'resume'
+    });
+
+    assert.equal(plan.requestedCount, 3);
+    assert.deepEqual(plan.eligible.map((row) => row.name), ['paused']);
+    assert.equal(plan.skipped.length, 2);
+    assert.deepEqual(plan.countsByState, {
+        started: 1,
+        paused: 1,
+        stopped: 1
+    });
+});

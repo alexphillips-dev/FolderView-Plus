@@ -48,6 +48,63 @@ if [[ ! -f "${ARCHIVE_FILE}" ]]; then
   exit 1
 fi
 
+SOURCE_FOLDER_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js"
+SOURCE_FOLDER_CSS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folder.css"
+
+if [[ ! -f "${SOURCE_FOLDER_JS}" ]]; then
+  echo "ERROR: Missing source folder editor script: ${SOURCE_FOLDER_JS}" >&2
+  exit 1
+fi
+if [[ ! -f "${SOURCE_FOLDER_CSS}" ]]; then
+  echo "ERROR: Missing source folder editor stylesheet: ${SOURCE_FOLDER_CSS}" >&2
+  exit 1
+fi
+
+ARCHIVE_LIST="$(tar -tf "${ARCHIVE_FILE}")"
+
+if grep -q '^./local/' <<< "${ARCHIVE_LIST}"; then
+  echo "ERROR: Archive contains invalid top-level './local/' paths. Must install under './usr/local/'." >&2
+  exit 1
+fi
+
+REQUIRED_ARCHIVE_PATHS=(
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/folder.js"
+  "./usr/local/emhttp/plugins/folderview.plus/styles/folder.css"
+)
+
+for required_path in "${REQUIRED_ARCHIVE_PATHS[@]}"; do
+  if ! grep -Fxq "${required_path}" <<< "${ARCHIVE_LIST}"; then
+    echo "ERROR: Missing required archive entry: ${required_path}" >&2
+    exit 1
+  fi
+done
+
+if ! grep -q 'fv-force-left-v2 marker' "${SOURCE_FOLDER_JS}"; then
+  echo "ERROR: Source folder.js is missing the alignment regression marker comment." >&2
+  exit 1
+fi
+
+TMP_ARCHIVE_FOLDER_JS="$(mktemp)"
+TMP_ARCHIVE_FOLDER_CSS="$(mktemp)"
+trap 'rm -f "${TMP_ARCHIVE_FOLDER_JS}" "${TMP_ARCHIVE_FOLDER_CSS}"' EXIT
+tar -xOf "${ARCHIVE_FILE}" "./usr/local/emhttp/plugins/folderview.plus/scripts/folder.js" > "${TMP_ARCHIVE_FOLDER_JS}"
+tar -xOf "${ARCHIVE_FILE}" "./usr/local/emhttp/plugins/folderview.plus/styles/folder.css" > "${TMP_ARCHIVE_FOLDER_CSS}"
+
+if ! grep -q 'fv-force-left-v2 marker' "${TMP_ARCHIVE_FOLDER_JS}"; then
+  echo "ERROR: Packaged folder.js is missing the alignment regression marker comment." >&2
+  exit 1
+fi
+
+if ! cmp -s "${SOURCE_FOLDER_JS}" "${TMP_ARCHIVE_FOLDER_JS}"; then
+  echo "ERROR: Packaged folder.js does not match source folder.js." >&2
+  exit 1
+fi
+
+if ! cmp -s "${SOURCE_FOLDER_CSS}" "${TMP_ARCHIVE_FOLDER_CSS}"; then
+  echo "ERROR: Packaged folder.css does not match source folder.css." >&2
+  exit 1
+fi
+
 if ! grep -q "###${VERSION}" "${PLG_FILE}"; then
   echo "ERROR: CHANGES section does not contain an entry for ${VERSION}" >&2
   exit 1

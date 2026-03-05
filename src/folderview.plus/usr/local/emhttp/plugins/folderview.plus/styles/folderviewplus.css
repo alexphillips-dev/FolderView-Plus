@@ -353,14 +353,29 @@
 .import-selection {
     margin-bottom: 0.65rem;
     max-height: 260px;
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    width: 100%;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 5px;
     padding: 0.45rem 0.55rem;
+    box-sizing: border-box;
 }
 
 .import-selection-group {
+    display: block;
+    width: 100%;
+    min-width: 0;
     margin-bottom: 0.5rem;
+    padding: 0.35rem 0.45rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.12);
+    box-sizing: border-box;
+}
+
+.import-selection-group:last-child {
+    margin-bottom: 0;
 }
 
 .import-selection-group h4 {
@@ -368,10 +383,20 @@
     font-size: 0.93rem;
 }
 
+.import-selection-group h4 > label {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
 .import-selection-item {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    width: 100%;
     font-size: 0.9rem;
     margin: 0.2rem 0;
+    box-sizing: border-box;
 }
 
 #import-preview-dialog .preview-meta {
@@ -420,6 +445,14 @@
     resize: vertical;
     font-family: Consolas, "Courier New", monospace;
     font-size: 12px;
+}
+
+.ui-dialog.fv-import-preview-modal .ui-dialog-titlebar {
+    padding-right: 14px;
+}
+
+.ui-dialog.fv-import-preview-modal .ui-dialog-titlebar-close {
+    display: none !important;
 }
 
 @media (max-width: 1080px) {

@@ -462,6 +462,7 @@ const renderOperationSelection = () => {
         container.empty();
         return;
     }
+    const previousScrollTop = Number(container.scrollTop()) || 0;
 
     const sections = [
         { key: 'creates', title: 'Create', items: importSelectionState.creates },
@@ -479,6 +480,10 @@ const renderOperationSelection = () => {
     }).join('');
 
     container.html(html);
+    if (previousScrollTop > 0) {
+        const maxScroll = Math.max(0, container.prop('scrollHeight') - container.innerHeight());
+        container.scrollTop(Math.min(previousScrollTop, maxScroll));
+    }
 
     container.find('input[data-group-toggle]').off('change.fvimport').on('change.fvimport', (event) => {
         const group = String($(event.currentTarget).attr('data-group-toggle') || '');
@@ -546,6 +551,8 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         resizable: false,
         width: 760,
         modal: true,
+        dialogClass: 'fv-import-preview-modal',
+        closeText: '',
         show: { effect: 'fade', duration: 120 },
         hide: { effect: 'fade', duration: 120 },
         close: () => resolve(dialogResult),

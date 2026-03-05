@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.08.7">
-<!ENTITY md5 "75eb1e22d1cc01b213b7ce34776088b6">
+<!ENTITY version "2026.03.08.8">
+<!ENTITY md5 "8d2498345e54795abf0112335c888025">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.08.8
+- Fix import preview dialog UI polish:
+  - stabilize import-selection scroll position while toggling items,
+  - improve selection list layout/overflow styling in merge mode,
+  - remove conflicting titlebar close button on this dialog to prevent top-right overlap with action controls.
 
 ###2026.03.08.7
 - Make Docker clone-row matching independent of table IDs/classes:

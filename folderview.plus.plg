@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.09.5">
-<!ENTITY md5 "4a1d244d8971166a27e40d2983391a46">
+<!ENTITY version "2026.03.09.6">
+<!ENTITY md5 "3eafdffcd1fc84e2636faa9b66b53161">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.09.6
+- Replace folder editor alignment fallback with float-based forced left column:
+  - force `dt` label width and `dd` left margin directly inline (`!important`) for reliable legacy UI behavior,
+  - add runtime marker `fv-force-left-v2` for on-server verification.
 
 ###2026.03.09.5
 - Harden folder editor alignment fallback compatibility:

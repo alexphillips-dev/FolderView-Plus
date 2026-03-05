@@ -392,6 +392,9 @@ const enforceLeftAlignedSettingsLayout = () => {
             return;
         }
 
+        // fv-force-left-v2 marker: hard-force the legacy two-column left layout.
+        form.classList.add('fv-force-left-v2');
+
         const setImportant = (el, property, value) => {
             if (!el) {
                 return;
@@ -423,19 +426,15 @@ const enforceLeftAlignedSettingsLayout = () => {
         });
 
         form.querySelectorAll('.basic:not(.order-section) > dl').forEach((dl) => {
-            setImportant(dl, 'display', 'grid');
-            setImportant(dl, 'grid-template-columns', isMobile ? '1fr' : 'minmax(180px, 240px) minmax(0, 1fr)');
-            setImportant(dl, 'align-items', 'center');
-            setImportant(dl, 'column-gap', '1em');
-            setImportant(dl, 'row-gap', isMobile ? '0.4em' : '0');
+            setImportant(dl, 'display', 'block');
             setImportant(dl, 'width', '100%');
             setImportant(dl, 'max-width', 'none');
             setImportant(dl, 'margin-left', '0');
             setImportant(dl, 'margin-right', '0');
 
             const dt = dl.getElementsByTagName('dt')[0];
-            setImportant(dt, 'float', 'none');
-            setImportant(dt, 'width', 'auto');
+            setImportant(dt, 'float', isMobile ? 'none' : 'left');
+            setImportant(dt, 'width', isMobile ? 'auto' : '180px');
             setImportant(dt, 'text-align', 'left');
             setImportant(dt, 'margin', '0');
             setImportant(dt, 'padding', '0');
@@ -443,7 +442,7 @@ const enforceLeftAlignedSettingsLayout = () => {
             const dd = dl.getElementsByTagName('dd')[0];
             setImportant(dd, 'float', 'none');
             setImportant(dd, 'width', 'auto');
-            setImportant(dd, 'margin', '0');
+            setImportant(dd, 'margin', isMobile ? '0' : '0 0 0 180px');
             setImportant(dd, 'min-width', '0');
         });
 

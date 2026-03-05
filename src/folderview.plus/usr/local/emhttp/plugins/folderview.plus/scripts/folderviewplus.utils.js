@@ -153,12 +153,16 @@
         const lazyPreviewThreshold = clampNumber(incoming.lazyPreviewThreshold, 10, 200, 30);
         const pinnedFolderIds = normalizeStringIdList(incoming.pinnedFolderIds);
         const hideEmptyFolders = incoming.hideEmptyFolders === true;
+        const setupWizardCompleted = incoming.setupWizardCompleted === true;
+        const settingsMode = incoming.settingsMode === 'advanced' ? 'advanced' : 'basic';
 
         return {
             sortMode,
             manualOrder,
             pinnedFolderIds,
             hideEmptyFolders,
+            setupWizardCompleted,
+            settingsMode,
             autoRules,
             badges,
             runtimePrefsSchema: RUNTIME_PREFS_SCHEMA,

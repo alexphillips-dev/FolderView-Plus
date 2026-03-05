@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.09.9">
-<!ENTITY md5 "c86a0d7c1795d087d2e8e27025ff1c07">
+<!ENTITY version "2026.03.10.1">
+<!ENTITY md5 "f6128647d37c98807d6d2d0a52262641">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.10.1
+- Persist quick-setup completion and selected mode in server-side prefs (`setupWizardCompleted`, `settingsMode`) so updates do not re-trigger onboarding.
+- Auto-mark onboarding complete for existing installs with current folder/rule/pin data to avoid false first-run prompts.
+- Keep true first-run behavior for clean installs (prompt shown only when no saved setup state exists).
 
 ###2026.03.09.9
 - Move settings quick controls inline with the `Customizations` header and right-align them on desktop.

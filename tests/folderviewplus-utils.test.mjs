@@ -212,6 +212,8 @@ test('normalizePrefs includes live refresh, performance mode, and backup schedul
         retention: 25,
         lastRunAt: ''
     });
+    assert.equal(prefs.setupWizardCompleted, false);
+    assert.equal(prefs.settingsMode, 'basic');
 });
 
 test('normalizePrefs disables legacy runtime toggles until schema is upgraded', () => {
@@ -240,6 +242,13 @@ test('normalizePrefs disables legacy runtime toggles until schema is upgraded', 
     assert.equal(upgraded.liveRefreshEnabled, true);
     assert.equal(upgraded.performanceMode, true);
     assert.equal(upgraded.lazyPreviewEnabled, true);
+
+    const onboarding = utils.normalizePrefs({
+        setupWizardCompleted: true,
+        settingsMode: 'advanced'
+    });
+    assert.equal(onboarding.setupWizardCompleted, true);
+    assert.equal(onboarding.settingsMode, 'advanced');
 });
 
 test('buildImportDiffRows reports row-level changed fields', () => {

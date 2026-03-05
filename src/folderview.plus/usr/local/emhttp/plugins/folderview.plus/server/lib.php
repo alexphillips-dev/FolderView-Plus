@@ -300,6 +300,8 @@
             'manualOrder' => [],
             'pinnedFolderIds' => [],
             'hideEmptyFolders' => false,
+            'setupWizardCompleted' => false,
+            'settingsMode' => 'basic',
             'autoRules' => [],
             'badges' => [
                 'running' => true,
@@ -345,6 +347,9 @@
         $normalized['manualOrder'] = normalizeStringIdList($manualOrder);
         $normalized['pinnedFolderIds'] = normalizeStringIdList($prefs['pinnedFolderIds'] ?? []);
         $normalized['hideEmptyFolders'] = normalizeBool($prefs['hideEmptyFolders'] ?? false, false);
+        $normalized['setupWizardCompleted'] = normalizeBool($prefs['setupWizardCompleted'] ?? false, false);
+        $settingsMode = (string)($prefs['settingsMode'] ?? 'basic');
+        $normalized['settingsMode'] = $settingsMode === 'advanced' ? 'advanced' : 'basic';
 
         $autoRules = $prefs['autoRules'] ?? [];
         if (!is_array($autoRules)) {
@@ -2299,6 +2304,8 @@
                 'manualOrderCount' => count($prefs['manualOrder'] ?? []),
                 'pinnedFolderCount' => count($prefs['pinnedFolderIds'] ?? []),
                 'hideEmptyFolders' => normalizeBool($prefs['hideEmptyFolders'] ?? false, false),
+                'setupWizardCompleted' => normalizeBool($prefs['setupWizardCompleted'] ?? false, false),
+                'settingsMode' => (($prefs['settingsMode'] ?? 'basic') === 'advanced') ? 'advanced' : 'basic',
                 'runtimePrefsSchema' => normalizeIntInRange($prefs['runtimePrefsSchema'] ?? FVPLUS_RUNTIME_PREFS_SCHEMA, 0, FVPLUS_RUNTIME_PREFS_SCHEMA, FVPLUS_RUNTIME_PREFS_SCHEMA),
                 'liveRefreshEnabled' => normalizeBool($prefs['liveRefreshEnabled'] ?? false, false),
                 'liveRefreshSeconds' => normalizeIntInRange($prefs['liveRefreshSeconds'] ?? 20, 10, 300, 20),

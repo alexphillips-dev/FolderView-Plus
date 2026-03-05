@@ -278,6 +278,59 @@ const setSettingsMode = (mode) => {
     updateActionBarSaveState();
 };
 
+const getServerSettingsMode = () => {
+    const dockerMode = prefsByType?.docker?.settingsMode;
+    const vmMode = prefsByType?.vm?.settingsMode;
+    if (dockerMode === 'advanced' || dockerMode === 'basic') {
+        return dockerMode;
+    }
+    if (vmMode === 'advanced' || vmMode === 'basic') {
+        return vmMode;
+    }
+    return null;
+};
+
+const isWizardCompletedServerSide = () => (
+    prefsByType?.docker?.setupWizardCompleted === true
+    || prefsByType?.vm?.setupWizardCompleted === true
+);
+
+const hasExistingPluginData = () => {
+    const dockerFolders = Object.keys(dockers || {}).length;
+    const vmFolders = Object.keys(vms || {}).length;
+    if (dockerFolders > 0 || vmFolders > 0) {
+        return true;
+    }
+    const hasRules = ((prefsByType?.docker?.autoRules || []).length + (prefsByType?.vm?.autoRules || []).length) > 0;
+    const hasPinned = ((prefsByType?.docker?.pinnedFolderIds || []).length + (prefsByType?.vm?.pinnedFolderIds || []).length) > 0;
+    return hasRules || hasPinned;
+};
+
+const persistSetupPrefsToServer = async ({ mode = null, completed = null } = {}) => {
+    const nextMode = mode === 'advanced' ? 'advanced' : 'basic';
+    const completedValue = completed === true;
+    for (const type of ['docker', 'vm']) {
+        const current = utils.normalizePrefs(prefsByType[type] || {});
+        const next = {
+            ...current,
+            settingsMode: mode === null ? current.settingsMode : nextMode,
+            setupWizardCompleted: completed === null ? current.setupWizardCompleted : completedValue
+        };
+        const unchanged = (
+            current.settingsMode === next.settingsMode
+            && current.setupWizardCompleted === next.setupWizardCompleted
+        );
+        if (unchanged) {
+            continue;
+        }
+        try {
+            prefsByType[type] = await postPrefs(type, next);
+        } catch (_error) {
+            // Keep UX responsive even if this persistence call fails.
+        }
+    }
+};
+
 const setSettingsSearchQuery = (query) => {
     settingsUiState.query = String(query || '').trim().toLowerCase();
     applySettingsSectionVisibility();
@@ -516,7 +569,7 @@ const updateRuleLiveMatch = (type) => {
 };
 
 const runQuickSetupWizard = (force = false) => {
-    if (!force && localStorage.getItem(WIZARD_DONE_STORAGE_KEY) === '1') {
+    if (!force && (isWizardCompletedServerSide() || localStorage.getItem(WIZARD_DONE_STORAGE_KEY) === '1')) {
         return;
     }
     swal({
@@ -526,8 +579,14 @@ const runQuickSetupWizard = (force = false) => {
         showCancelButton: true,
         confirmButtonText: 'Use Basic',
         cancelButtonText: 'Use Advanced'
-    }, (useBasic) => {
+    }, async (useBasic) => {
         setSettingsMode(useBasic ? 'basic' : 'advanced');
+        localStorage.setItem(WIZARD_DONE_STORAGE_KEY, '1');
+        settingsUiState.wizardShown = true;
+        await persistSetupPrefsToServer({
+            mode: settingsUiState.mode,
+            completed: true
+        });
         swal({
             title: 'Import existing Docker folders now?',
             text: 'You can skip this and do it later from Docker > Import.',
@@ -544,8 +603,6 @@ const runQuickSetupWizard = (force = false) => {
                 text: 'Use search + jump at the top, and switch to Advanced for full controls.',
                 type: 'success'
             });
-            localStorage.setItem(WIZARD_DONE_STORAGE_KEY, '1');
-            settingsUiState.wizardShown = true;
         });
     });
 };
@@ -3230,12 +3287,24 @@ window.setSettingsMode = setSettingsMode;
         initSettingsControls();
         await fetchPluginVersion();
         await refreshAll();
+        const serverMode = getServerSettingsMode();
+        if (serverMode) {
+            settingsUiState.mode = serverMode;
+        }
         refreshSettingsUx();
         captureSettingsBaseline();
         if (settingsUiState.mode) {
             setSettingsMode(settingsUiState.mode);
         }
-        if (localStorage.getItem(WIZARD_DONE_STORAGE_KEY) !== '1') {
+        if (!isWizardCompletedServerSide() && hasExistingPluginData()) {
+            localStorage.setItem(WIZARD_DONE_STORAGE_KEY, '1');
+            await persistSetupPrefsToServer({
+                mode: settingsUiState.mode,
+                completed: true
+            });
+        }
+        const shouldRunWizard = !isWizardCompletedServerSide() && localStorage.getItem(WIZARD_DONE_STORAGE_KEY) !== '1';
+        if (shouldRunWizard) {
             runQuickSetupWizard(false);
         }
         settingsUiState.initialized = true;

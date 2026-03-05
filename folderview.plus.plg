@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.10.1">
-<!ENTITY md5 "f6128647d37c98807d6d2d0a52262641">
+<!ENTITY version "2026.03.10.2">
+<!ENTITY md5 "1509a0ebe222e16b6fc3e98d4bc0a065">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.10.2
+- Reorder top settings controls to improve flow:
+  - `Search settings` and `Jump to` are now left-side tools,
+  - `Wizard` + `Basic/Advanced` mode switch are grouped on the far right.
+- Remove the `X advanced sections hidden` helper text from the top control bar for a cleaner header.
+- Improve desktop/mobile spacing behavior so toolbar controls stay aligned without wrap regressions.
 
 ###2026.03.10.1
 - Persist quick-setup completion and selected mode in server-side prefs (`setupWizardCompleted`, `settingsMode`) so updates do not re-trigger onboarding.

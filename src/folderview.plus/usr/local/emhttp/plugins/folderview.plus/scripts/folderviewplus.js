@@ -213,8 +213,6 @@ const getVisibleSections = () => settingsUiState.sections.filter((section) => {
 
 const applySettingsSectionVisibility = () => {
     const visibleKeys = new Set(getVisibleSections().map((section) => section.key));
-    const hiddenAdvanced = settingsUiState.sections.filter((section) => section.advanced).length
-        - settingsUiState.sections.filter((section) => section.advanced && visibleKeys.has(section.key)).length;
 
     for (const section of settingsUiState.sections) {
         const visible = visibleKeys.has(section.key);
@@ -222,13 +220,6 @@ const applySettingsSectionVisibility = () => {
             node.classList.toggle('fv-section-hidden', !visible);
         }
         section.heading.classList.toggle('fv-search-match', visible && Boolean(settingsUiState.query));
-    }
-
-    const note = $('#fv-advanced-note');
-    if (settingsUiState.mode === 'basic') {
-        note.text(`${Math.max(0, hiddenAdvanced)} advanced section${hiddenAdvanced === 1 ? '' : 's'} hidden.`);
-    } else {
-        note.text('Advanced mode enabled.');
     }
 
     const modeButtons = $('.fv-mode-btn');
@@ -619,15 +610,14 @@ const initSettingsControls = () => {
 
     controls.html(`
         <div class="fv-settings-inline">
-            <span class="fv-mode-toggle" title="Settings mode">
-                <button type="button" class="fv-mode-btn" data-mode="basic" aria-label="Use basic settings mode">Basic</button>
-                <button type="button" class="fv-mode-btn" data-mode="advanced" aria-label="Use advanced settings mode">Advanced</button>
-            </span>
             <input type="text" id="fv-settings-search" placeholder="Search settings" aria-label="Search settings">
             <select id="fv-section-jump" aria-label="Jump to section"></select>
             <button type="button" id="fv-settings-clear-search" title="Clear search" aria-label="Clear search"><i class="fa fa-times"></i></button>
             <button type="button" id="fv-run-wizard" title="Run quick setup wizard"><i class="fa fa-magic"></i> Wizard</button>
-            <span id="fv-advanced-note" class="fv-advanced-note"></span>
+            <span class="fv-mode-toggle" title="Settings mode">
+                <button type="button" class="fv-mode-btn" data-mode="basic" aria-label="Use basic settings mode">Basic</button>
+                <button type="button" class="fv-mode-btn" data-mode="advanced" aria-label="Use advanced settings mode">Advanced</button>
+            </span>
         </div>
     `);
 

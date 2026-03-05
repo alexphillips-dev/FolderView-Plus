@@ -515,7 +515,7 @@ a:focus-visible {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: flex-start;
     gap: 0.35rem 0.45rem;
     width: 100%;
 }
@@ -559,12 +559,6 @@ a:focus-visible {
     min-height: 32px;
 }
 
-.fv-advanced-note {
-    font-size: 0.86rem;
-    opacity: 0.78;
-    margin-left: 0.2rem;
-}
-
 #fv-settings-clear-search {
     min-width: 32px;
     width: 32px;
@@ -574,6 +568,7 @@ a:focus-visible {
 #fv-run-wizard {
     min-height: 32px;
     padding: 0.3rem 0.55rem;
+    margin-left: auto;
 }
 
 h2[data-fv-section] {
@@ -741,6 +736,10 @@ body {
     .fv-settings-inline select {
         max-width: none;
         width: min(100%, 220px);
+    }
+
+    #fv-run-wizard {
+        margin-left: 0;
     }
 
     #fv-settings-action-bar {

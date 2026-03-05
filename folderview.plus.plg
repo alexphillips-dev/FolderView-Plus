@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.09.4">
-<!ENTITY md5 "e69125b618508cfca9957456f1e688d6">
+<!ENTITY version "2026.03.09.5">
+<!ENTITY md5 "4a1d244d8971166a27e40d2983391a46">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.09.5
+- Harden folder editor alignment fallback compatibility:
+  - remove `:scope`-based selectors from runtime layout enforcement,
+  - keep left-column inline layout forcing compatible with older browser engines used by Unraid.
 
 ###2026.03.09.4
 - Add JS-enforced left-alignment fallback for folder editor settings:

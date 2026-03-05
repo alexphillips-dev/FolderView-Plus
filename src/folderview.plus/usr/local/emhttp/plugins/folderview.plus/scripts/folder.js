@@ -385,66 +385,77 @@ const applyAdvancedMode = () => {
 };
 
 const enforceLeftAlignedSettingsLayout = () => {
-    const isMobile = window.innerWidth <= 980;
-    const form = document.querySelector('div.canvas > form.folder-editor-form');
-    if (!form) {
-        return;
+    try {
+        const isMobile = window.innerWidth <= 980;
+        const form = document.querySelector('div.canvas > form.folder-editor-form');
+        if (!form) {
+            return;
+        }
+
+        const setImportant = (el, property, value) => {
+            if (!el) {
+                return;
+            }
+            el.style.setProperty(property, value, 'important');
+        };
+
+        Array.from(form.children).forEach((row) => {
+            const isBasicRow = row.classList?.contains('basic') && !row.classList.contains('order-section');
+            const isListRow = row.tagName === 'UL';
+            if (!isBasicRow && !isListRow) {
+                return;
+            }
+            setImportant(row, 'width', 'calc(100% - 2em)');
+            setImportant(row, 'max-width', 'none');
+            setImportant(row, 'margin-left', '1em');
+            setImportant(row, 'margin-right', '0');
+            setImportant(row, 'box-sizing', 'border-box');
+        });
+
+        form.querySelectorAll('ul .basic').forEach((row) => {
+            if (row.classList.contains('order-section')) {
+                return;
+            }
+            setImportant(row, 'width', '100%');
+            setImportant(row, 'max-width', 'none');
+            setImportant(row, 'margin-left', '0');
+            setImportant(row, 'margin-right', '0');
+        });
+
+        form.querySelectorAll('.basic:not(.order-section) > dl').forEach((dl) => {
+            setImportant(dl, 'display', 'grid');
+            setImportant(dl, 'grid-template-columns', isMobile ? '1fr' : 'minmax(180px, 240px) minmax(0, 1fr)');
+            setImportant(dl, 'align-items', 'center');
+            setImportant(dl, 'column-gap', '1em');
+            setImportant(dl, 'row-gap', isMobile ? '0.4em' : '0');
+            setImportant(dl, 'width', '100%');
+            setImportant(dl, 'max-width', 'none');
+            setImportant(dl, 'margin-left', '0');
+            setImportant(dl, 'margin-right', '0');
+
+            const dt = dl.getElementsByTagName('dt')[0];
+            setImportant(dt, 'float', 'none');
+            setImportant(dt, 'width', 'auto');
+            setImportant(dt, 'text-align', 'left');
+            setImportant(dt, 'margin', '0');
+            setImportant(dt, 'padding', '0');
+
+            const dd = dl.getElementsByTagName('dd')[0];
+            setImportant(dd, 'float', 'none');
+            setImportant(dd, 'width', 'auto');
+            setImportant(dd, 'margin', '0');
+            setImportant(dd, 'min-width', '0');
+        });
+
+        form.querySelectorAll('.basic > blockquote.inline_help').forEach((help) => {
+            setImportant(help, 'width', '100%');
+            setImportant(help, 'max-width', 'none');
+            setImportant(help, 'margin-left', '0');
+            setImportant(help, 'margin-right', '0');
+        });
+    } catch (_error) {
+        // Do not block folder editor if layout overrides fail on older browsers.
     }
-
-    const topLevelRows = form.querySelectorAll(':scope > .basic:not(.order-section), :scope > ul');
-    topLevelRows.forEach((row) => {
-        row.style.setProperty('width', 'calc(100% - 2em)', 'important');
-        row.style.setProperty('max-width', 'none', 'important');
-        row.style.setProperty('margin-left', '1em', 'important');
-        row.style.setProperty('margin-right', '0', 'important');
-        row.style.setProperty('box-sizing', 'border-box', 'important');
-    });
-
-    const nestedRows = form.querySelectorAll(':scope > ul > li > .basic, :scope > ul > li > ul > li > .basic');
-    nestedRows.forEach((row) => {
-        row.style.setProperty('width', '100%', 'important');
-        row.style.setProperty('max-width', 'none', 'important');
-        row.style.setProperty('margin-left', '0', 'important');
-        row.style.setProperty('margin-right', '0', 'important');
-    });
-
-    const rows = form.querySelectorAll('.basic:not(.order-section) > dl');
-    rows.forEach((dl) => {
-        dl.style.setProperty('display', 'grid', 'important');
-        dl.style.setProperty('grid-template-columns', isMobile ? '1fr' : 'minmax(180px, 240px) minmax(0, 1fr)', 'important');
-        dl.style.setProperty('align-items', 'center', 'important');
-        dl.style.setProperty('column-gap', '1em', 'important');
-        dl.style.setProperty('row-gap', isMobile ? '0.4em' : '0', 'important');
-        dl.style.setProperty('width', '100%', 'important');
-        dl.style.setProperty('max-width', 'none', 'important');
-        dl.style.setProperty('margin-left', '0', 'important');
-        dl.style.setProperty('margin-right', '0', 'important');
-
-        const dt = dl.querySelector(':scope > dt');
-        if (dt) {
-            dt.style.setProperty('float', 'none', 'important');
-            dt.style.setProperty('width', 'auto', 'important');
-            dt.style.setProperty('text-align', 'left', 'important');
-            dt.style.setProperty('margin', '0', 'important');
-            dt.style.setProperty('padding', '0', 'important');
-        }
-
-        const dd = dl.querySelector(':scope > dd');
-        if (dd) {
-            dd.style.setProperty('float', 'none', 'important');
-            dd.style.setProperty('width', 'auto', 'important');
-            dd.style.setProperty('margin', '0', 'important');
-            dd.style.setProperty('min-width', '0', 'important');
-        }
-    });
-
-    const helpBlocks = form.querySelectorAll('.basic > blockquote.inline_help');
-    helpBlocks.forEach((help) => {
-        help.style.setProperty('width', '100%', 'important');
-        help.style.setProperty('max-width', 'none', 'important');
-        help.style.setProperty('margin-left', '0', 'important');
-        help.style.setProperty('margin-right', '0', 'important');
-    });
 };
 
 const updateLiveSummary = () => {

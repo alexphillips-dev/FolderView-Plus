@@ -1536,6 +1536,13 @@ const renderBadgeToggles = (type) => {
     }
 };
 
+const syncRuntimeDependentFields = (type) => {
+    const liveEnabled = $(`#${type}-live-refresh-enabled`).is(':checked');
+    const lazyEnabled = $(`#${type}-lazy-preview-enabled`).is(':checked');
+    $(`#${type}-live-refresh-seconds-row`).toggleClass('is-hidden', !liveEnabled);
+    $(`#${type}-lazy-preview-threshold-row`).toggleClass('is-hidden', !lazyEnabled);
+};
+
 const renderRuntimeControls = (type) => {
     const prefs = utils.normalizePrefs(prefsByType[type]);
     $(`#${type}-live-refresh-enabled`).prop('checked', prefs.liveRefreshEnabled === true);
@@ -1543,6 +1550,7 @@ const renderRuntimeControls = (type) => {
     $(`#${type}-performance-mode`).prop('checked', prefs.performanceMode === true);
     $(`#${type}-lazy-preview-enabled`).prop('checked', prefs.lazyPreviewEnabled === true);
     $(`#${type}-lazy-preview-threshold`).val(String(prefs.lazyPreviewThreshold || 30));
+    syncRuntimeDependentFields(type);
 };
 
 const renderVisibilityControls = (type) => {
@@ -2097,10 +2105,15 @@ const changeRuntimePref = async (type, key, value) => {
         return;
     }
 
+    if (key === 'liveRefreshEnabled' || key === 'lazyPreviewEnabled') {
+        syncRuntimeDependentFields(type);
+    }
+
     try {
         prefsByType[type] = await postPrefs(type, next);
         renderRuntimeControls(type);
     } catch (error) {
+        renderRuntimeControls(type);
         showError('Runtime preference save failed', error);
     }
 };

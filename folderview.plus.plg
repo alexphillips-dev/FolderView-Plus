@@ -6,12 +6,21 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.10.7">
-<!ENTITY md5 "5acf9db91a52bfa10291da280f2ba272">
+<!ENTITY version "2026.03.10.8">
+<!ENTITY md5 "421ad1fe0fd640c23d0d7a60d7e72158">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.10.8
+- Redesign Docker/VM settings cards for cleaner readability:
+  - split into `Layout`, `Folder badges`, and `Runtime` mini-panels,
+  - compact sort row with inline help chip,
+  - improved spacing/alignment for toggles and numeric controls.
+- Runtime quality-of-life:
+  - show `Interval (sec)` only when `Live auto-refresh` is enabled,
+  - show `Lazy threshold` only when `Lazy previews` is enabled.
 
 ###2026.03.10.7
 - Force another version bump to bypass stale cache paths that still deliver `2026.03.10.5` on some systems.

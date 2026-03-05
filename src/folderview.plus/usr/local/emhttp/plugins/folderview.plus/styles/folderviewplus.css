@@ -513,11 +513,22 @@ a:focus-visible {
 
 .fv-settings-inline {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: space-between;
     gap: 0.35rem 0.45rem;
     width: 100%;
+}
+
+.fv-settings-left,
+.fv-settings-right {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem 0.45rem;
+}
+
+.fv-settings-right {
+    margin-left: auto;
 }
 
 .fv-settings-label {
@@ -548,14 +559,14 @@ a:focus-visible {
     color: #d8ebff;
 }
 
-.fv-settings-inline input[type="text"] {
+.fv-settings-right input[type="text"] {
     width: clamp(170px, 22vw, 280px);
     min-height: 32px;
 }
 
-.fv-settings-inline select {
+.fv-settings-left select {
     min-width: 125px;
-    max-width: 180px;
+    max-width: 220px;
     min-height: 32px;
 }
 
@@ -568,7 +579,6 @@ a:focus-visible {
 #fv-run-wizard {
     min-height: 32px;
     padding: 0.3rem 0.55rem;
-    margin-left: auto;
 }
 
 h2[data-fv-section] {
@@ -726,20 +736,25 @@ body {
     }
 
     .fv-settings-inline {
+        flex-wrap: wrap;
         justify-content: flex-start;
     }
 
-    .fv-settings-inline input[type="text"] {
+    .fv-settings-left,
+    .fv-settings-right {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        margin-left: 0;
+    }
+
+    .fv-settings-right input[type="text"] {
         width: 100%;
     }
 
-    .fv-settings-inline select {
+    .fv-settings-left select {
         max-width: none;
         width: min(100%, 220px);
-    }
-
-    #fv-run-wizard {
-        margin-left: 0;
     }
 
     #fv-settings-action-bar {

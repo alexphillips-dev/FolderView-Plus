@@ -610,14 +610,18 @@ const initSettingsControls = () => {
 
     controls.html(`
         <div class="fv-settings-inline">
-            <input type="text" id="fv-settings-search" placeholder="Search settings" aria-label="Search settings">
-            <select id="fv-section-jump" aria-label="Jump to section"></select>
-            <button type="button" id="fv-settings-clear-search" title="Clear search" aria-label="Clear search"><i class="fa fa-times"></i></button>
-            <button type="button" id="fv-run-wizard" title="Run quick setup wizard"><i class="fa fa-magic"></i> Wizard</button>
-            <span class="fv-mode-toggle" title="Settings mode">
-                <button type="button" class="fv-mode-btn" data-mode="basic" aria-label="Use basic settings mode">Basic</button>
-                <button type="button" class="fv-mode-btn" data-mode="advanced" aria-label="Use advanced settings mode">Advanced</button>
-            </span>
+            <div class="fv-settings-left">
+                <select id="fv-section-jump" aria-label="Jump to section"></select>
+                <button type="button" id="fv-settings-clear-search" title="Clear search" aria-label="Clear search"><i class="fa fa-times"></i></button>
+            </div>
+            <div class="fv-settings-right">
+                <input type="text" id="fv-settings-search" placeholder="Search settings" aria-label="Search settings">
+                <span class="fv-mode-toggle" title="Settings mode">
+                    <button type="button" class="fv-mode-btn" data-mode="basic" aria-label="Use basic settings mode">Basic</button>
+                    <button type="button" class="fv-mode-btn" data-mode="advanced" aria-label="Use advanced settings mode">Advanced</button>
+                </span>
+                <button type="button" id="fv-run-wizard" title="Run quick setup wizard"><i class="fa fa-magic"></i> Wizard</button>
+            </div>
         </div>
     `);
 

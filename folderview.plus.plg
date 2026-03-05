@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.10.2">
-<!ENTITY md5 "1509a0ebe222e16b6fc3e98d4bc0a065">
+<!ENTITY version "2026.03.10.3">
+<!ENTITY md5 "3eaa8dfa80fb8efc933f529e62ab0340">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.10.3
+- Reorder customization header controls for clearer right-side flow:
+  - `Search settings` now sits directly to the left of `Basic/Advanced`,
+  - `Wizard` now sits to the right of `Basic/Advanced`.
+- Split toolbar controls into explicit left/right groups to prevent spacing drift and keep alignment stable.
 
 ###2026.03.10.2
 - Reorder top settings controls to improve flow:

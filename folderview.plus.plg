@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.09.2">
-<!ENTITY md5 "26572c0fef432f36163db107348576f2">
+<!ENTITY version "2026.03.09.3">
+<!ENTITY md5 "db332aadb6a6caff1348abc331e79c19">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.09.3
+- Enforce left-aligned folder edit layout with fixed label/value columns:
+  - replace inherited centered form-row behavior with explicit two-column grid rows,
+  - keep responsive single-column layout on small screens.
 
 ###2026.03.09.2
 - Fix folder editor field alignment:

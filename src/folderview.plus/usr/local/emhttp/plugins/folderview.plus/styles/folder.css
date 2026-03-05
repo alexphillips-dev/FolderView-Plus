@@ -97,6 +97,29 @@
     margin-right: 0 !important;
 }
 
+/* Force folder setting rows into a stable left-aligned two-column layout */
+.canvas form.folder-editor-form .basic:not(.order-section) > dl {
+    display: grid !important;
+    grid-template-columns: minmax(180px, 240px) minmax(0, 1fr) !important;
+    align-items: center;
+    column-gap: 1em;
+}
+
+.canvas form.folder-editor-form .basic:not(.order-section) > dl > dt {
+    float: none !important;
+    width: auto !important;
+    text-align: left !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.canvas form.folder-editor-form .basic:not(.order-section) > dl > dd {
+    float: none !important;
+    width: auto !important;
+    margin: 0 !important;
+    min-width: 0;
+}
+
 .fv-live-grid {
     display: grid;
     gap: 0.4em 1em;
@@ -362,6 +385,11 @@ table.sortable td:nth-child(3) {
 }
 
 @media (max-width: 980px) {
+    .canvas form.folder-editor-form .basic:not(.order-section) > dl {
+        grid-template-columns: 1fr !important;
+        row-gap: 0.4em;
+    }
+
     .fv-live-grid {
         grid-template-columns: 1fr;
     }

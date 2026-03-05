@@ -17,13 +17,15 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 </script>
 <link rel="stylesheet" href="<?=autov('/plugins/folderview.plus/styles/folderviewplus.css')?>">
 
-<h2 data-i18n="customizations">Customizations</h2>
+<div id="fv-settings-controls"></div>
+
+<h2 data-i18n="customizations" data-fv-section="customizations">Customizations</h2>
 <button data-i18n="file-manager" onclick="fileManager()">Open File Manager</button>
 <button onclick="checkForUpdatesNow()"><i class="fa fa-refresh" aria-hidden="true"></i> Check for updates now</button>
 <span id="update-check-status" class="status-line"></span>
 
 
-<h2 data-i18n="docker">Docker</h2>
+<h2 data-i18n="docker" data-fv-section="docker">Docker</h2>
 <div class="folder-table">
     <div class="folder-toolbar">
         <div class="toolbar-actions">
@@ -86,7 +88,7 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 </div>
 <hr>
 
-<h2 data-i18n="vms">VMs</h2>
+<h2 data-i18n="vms" data-fv-section="vms">VMs</h2>
 <div class="folder-table">
     <div class="folder-toolbar">
         <div class="toolbar-actions">
@@ -148,7 +150,7 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 </div>
 <hr>
 
-<h2>Auto-assignment rules</h2>
+<h2 data-fv-section="auto-assignment" data-fv-advanced="1">Auto-assignment rules</h2>
 <div class="rules-bottom-grid">
     <div class="rules-panel">
         <div class="rules-header">
@@ -253,7 +255,7 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 </div>
 <hr>
 
-<h2>Bulk assignment</h2>
+<h2 data-fv-section="bulk-assignment" data-fv-advanced="1">Bulk assignment</h2>
 <div class="bulk-assign-grid">
     <div class="rules-panel">
         <div class="rules-header">
@@ -281,7 +283,7 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 </div>
 <hr>
 
-<h2>Folder runtime actions</h2>
+<h2 data-fv-section="runtime-actions" data-fv-advanced="1">Folder runtime actions</h2>
 <div class="bulk-assign-grid">
     <div class="rules-panel">
         <div class="rules-header">
@@ -323,7 +325,7 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 </div>
 <hr>
 
-<h2>Backups</h2>
+<h2 data-fv-section="backups" data-fv-advanced="1">Backups</h2>
 <div class="backup-grid">
     <div class="rules-panel">
         <div class="rules-header">
@@ -389,7 +391,7 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 </div>
 <hr>
 
-<h2>Folder templates</h2>
+<h2 data-fv-section="folder-templates" data-fv-advanced="1">Folder templates</h2>
 <div class="template-grid">
     <div class="rules-panel">
         <div class="rules-header">
@@ -449,7 +451,7 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 </div>
 <hr>
 
-<h2>Change history and undo</h2>
+<h2 data-fv-section="change-history" data-fv-advanced="1">Change history and undo</h2>
 <div class="rules-panel">
     <div class="rules-header">
         <h3>Recent changes</h3>
@@ -464,7 +466,7 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 </div>
 <hr>
 
-<h2>Diagnostics</h2>
+<h2 data-fv-section="diagnostics" data-fv-advanced="1">Diagnostics</h2>
 <div class="rules-panel">
     <div class="rules-header">
         <h3>Health checks and quick repair</h3>
@@ -483,7 +485,7 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 </div>
 <hr>
 
-<h2>Conflict inspector</h2>
+<h2 data-fv-section="conflict-inspector" data-fv-advanced="1">Conflict inspector</h2>
 <div class="rules-panel">
     <div class="rules-header">
         <h3>Folder membership conflict report</h3>
@@ -510,6 +512,8 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
     <div id="import-preview-selection" class="import-selection"></div>
     <textarea id="import-preview-text" readonly></textarea>
 </div>
+
+<div id="fv-settings-action-bar"></div>
 
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.js')?>"></script>

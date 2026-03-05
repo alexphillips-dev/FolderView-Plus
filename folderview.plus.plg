@@ -6,12 +6,22 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.09.7">
-<!ENTITY md5 "ebd09c3beed61f33f0aaa78334f104cf">
+<!ENTITY version "2026.03.09.8">
+<!ENTITY md5 "c7bd149e556d10c29df41dba29bf6dca">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.09.8
+- Phase-based settings UX overhaul:
+  - add top-level `Basic / Advanced` mode switch (default: Basic) with persistent preference,
+  - add global settings search + section jump navigation,
+  - add section health badges (`all good`, `N changed`, `N invalid`) and invalid field highlighting,
+  - add sticky action bar (`Save`, `Save and Close`, `Cancel`, `Reset section`) for faster workflow control,
+  - add regex preset chips + live match counters for Docker/VM auto-assignment rule editors,
+  - improve import safety UX with dry-run default and clearer merge/replace/skip labeling,
+  - add first-run quick setup wizard and quick re-run button in settings.
 
 ###2026.03.09.7
 - Fix package archive path layout to install files under `/usr/local/...` (active Unraid plugin path).

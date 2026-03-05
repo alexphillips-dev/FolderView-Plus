@@ -49,6 +49,605 @@ let latestPrefsBackupByType = {
     vm: null
 };
 
+const UI_MODE_STORAGE_KEY = 'fv.settings.mode.v1';
+const WIZARD_DONE_STORAGE_KEY = 'fv.settings.wizard.v1.done';
+const ADVANCED_SECTION_KEYS = new Set([
+    'auto-assignment',
+    'bulk-assignment',
+    'runtime-actions',
+    'backups',
+    'folder-templates',
+    'change-history',
+    'diagnostics',
+    'conflict-inspector'
+]);
+const settingsUiState = {
+    initialized: false,
+    controlsInitialized: false,
+    mode: 'basic',
+    query: '',
+    sections: [],
+    baselineByInputId: new Map(),
+    activeSectionKey: '',
+    wizardShown: false
+};
+
+const slugifySectionKey = (text) => String(text || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+const getInputSerializedValue = (input) => {
+    if (!input) {
+        return '';
+    }
+    if (input.type === 'checkbox') {
+        return input.checked ? '1' : '0';
+    }
+    return String(input.value ?? '');
+};
+
+const getTrackedInputs = () => Array.from(document.querySelectorAll('input[id], select[id], textarea[id]'));
+
+const setActionBarStatus = (text) => {
+    $('#fv-action-status').text(text || '');
+};
+
+const updateActionBarSaveState = () => {
+    const changed = getTrackedInputs().filter((input) => (
+        settingsUiState.baselineByInputId.has(input.id)
+        && settingsUiState.baselineByInputId.get(input.id) !== getInputSerializedValue(input)
+    ));
+    const count = changed.length;
+    const saveButton = $('#fv-action-save');
+    const saveCloseButton = $('#fv-action-save-close');
+    saveButton.prop('disabled', count === 0);
+    saveCloseButton.prop('disabled', count === 0);
+    if (count === 0) {
+        setActionBarStatus('All changes are saved.');
+    } else {
+        setActionBarStatus(`${count} unsaved field change${count === 1 ? '' : 's'} in this session.`);
+    }
+};
+
+const captureSettingsBaseline = () => {
+    settingsUiState.baselineByInputId.clear();
+    for (const input of getTrackedInputs()) {
+        settingsUiState.baselineByInputId.set(input.id, getInputSerializedValue(input));
+    }
+    updateActionBarSaveState();
+};
+
+const isInputInvalidForUi = (input) => {
+    if (!input) {
+        return false;
+    }
+    if (input.type === 'number' && input.value !== '') {
+        const parsed = Number(input.value);
+        if (!Number.isFinite(parsed)) {
+            return true;
+        }
+        if (input.min !== '' && parsed < Number(input.min)) {
+            return true;
+        }
+        if (input.max !== '' && parsed > Number(input.max)) {
+            return true;
+        }
+    }
+    if ((input.id === 'docker-rule-pattern' || input.id === 'vm-rule-pattern') && String(input.value || '').trim()) {
+        try {
+            // eslint-disable-next-line no-new
+            new RegExp(String(input.value || '').trim());
+        } catch (_error) {
+            return true;
+        }
+    }
+    return false;
+};
+
+const refreshInputInvalidStyles = () => {
+    for (const input of getTrackedInputs()) {
+        input.classList.toggle('fv-input-invalid', isInputInvalidForUi(input));
+    }
+};
+
+const buildSettingsSections = () => {
+    const headings = Array.from(document.querySelectorAll('h2[data-fv-section]'));
+    const sections = [];
+
+    for (const heading of headings) {
+        const key = String(heading.dataset.fvSection || slugifySectionKey(heading.textContent));
+        const title = String(heading.textContent || '').trim();
+        const advanced = heading.dataset.fvAdvanced === '1' || ADVANCED_SECTION_KEYS.has(key);
+        const nodes = [heading];
+
+        let cursor = heading.nextElementSibling;
+        while (cursor && cursor.tagName !== 'H2' && cursor.tagName !== 'SCRIPT') {
+            if (cursor.id === 'fv-settings-action-bar') {
+                break;
+            }
+            nodes.push(cursor);
+            cursor = cursor.nextElementSibling;
+        }
+
+        heading.id = heading.id || `fv-section-${key}`;
+        heading.dataset.fvSection = key;
+
+        let badge = heading.querySelector('.fv-section-badge');
+        if (!badge) {
+            badge = document.createElement('span');
+            badge.className = 'fv-section-badge is-ok';
+            heading.appendChild(badge);
+        }
+
+        sections.push({
+            key,
+            title,
+            advanced,
+            heading,
+            badge,
+            nodes
+        });
+    }
+
+    settingsUiState.sections = sections;
+};
+
+const getVisibleSections = () => settingsUiState.sections.filter((section) => {
+    const modeVisible = settingsUiState.mode === 'advanced' || !section.advanced;
+    if (!modeVisible) {
+        return false;
+    }
+    const query = settingsUiState.query;
+    if (!query) {
+        return true;
+    }
+    const haystack = section.nodes.map((node) => node.textContent || '').join(' ').toLowerCase();
+    return haystack.includes(query);
+});
+
+const applySettingsSectionVisibility = () => {
+    const visibleKeys = new Set(getVisibleSections().map((section) => section.key));
+    const hiddenAdvanced = settingsUiState.sections.filter((section) => section.advanced).length
+        - settingsUiState.sections.filter((section) => section.advanced && visibleKeys.has(section.key)).length;
+
+    for (const section of settingsUiState.sections) {
+        const visible = visibleKeys.has(section.key);
+        for (const node of section.nodes) {
+            node.classList.toggle('fv-section-hidden', !visible);
+        }
+        section.heading.classList.toggle('fv-search-match', visible && Boolean(settingsUiState.query));
+    }
+
+    const note = $('#fv-advanced-note');
+    if (settingsUiState.mode === 'basic') {
+        note.text(`${Math.max(0, hiddenAdvanced)} advanced section${hiddenAdvanced === 1 ? '' : 's'} hidden.`);
+    } else {
+        note.text('Advanced mode enabled.');
+    }
+
+    const modeButtons = $('.fv-mode-btn');
+    modeButtons.removeClass('is-active');
+    modeButtons.filter(`[data-mode="${settingsUiState.mode}"]`).addClass('is-active');
+};
+
+const syncSectionJumpOptions = () => {
+    const select = $('#fv-section-jump');
+    if (!select.length) {
+        return;
+    }
+    const visibleSections = getVisibleSections();
+    const options = visibleSections.map((section) => (
+        `<option value="${escapeHtml(section.key)}">${escapeHtml(section.title)}</option>`
+    ));
+    select.html(options.join(''));
+    if (!options.length) {
+        settingsUiState.activeSectionKey = '';
+        return;
+    }
+    const keep = settingsUiState.activeSectionKey && visibleSections.some((section) => section.key === settingsUiState.activeSectionKey);
+    if (!keep) {
+        settingsUiState.activeSectionKey = visibleSections[0]?.key || '';
+    }
+    if (settingsUiState.activeSectionKey) {
+        select.val(settingsUiState.activeSectionKey);
+    }
+};
+
+const scrollToSectionKey = (key) => {
+    const section = settingsUiState.sections.find((entry) => entry.key === key);
+    if (!section) {
+        return;
+    }
+    settingsUiState.activeSectionKey = key;
+    syncSectionJumpOptions();
+    section.heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
+const setSettingsMode = (mode) => {
+    settingsUiState.mode = mode === 'advanced' ? 'advanced' : 'basic';
+    localStorage.setItem(UI_MODE_STORAGE_KEY, settingsUiState.mode);
+    applySettingsSectionVisibility();
+    syncSectionJumpOptions();
+    refreshSectionHealthBadges();
+    updateActionBarSaveState();
+};
+
+const setSettingsSearchQuery = (query) => {
+    settingsUiState.query = String(query || '').trim().toLowerCase();
+    applySettingsSectionVisibility();
+    syncSectionJumpOptions();
+    refreshSectionHealthBadges();
+    updateActionBarSaveState();
+};
+
+const refreshSectionHealthBadges = () => {
+    for (const section of settingsUiState.sections) {
+        const inputs = [];
+        for (const node of section.nodes) {
+            if (!(node instanceof HTMLElement)) {
+                continue;
+            }
+            inputs.push(...Array.from(node.querySelectorAll('input[id], select[id], textarea[id]')));
+        }
+
+        const uniqueInputs = Array.from(new Map(inputs.map((input) => [input.id, input])).values());
+        let changedCount = 0;
+        let invalidCount = 0;
+
+        for (const input of uniqueInputs) {
+            if (settingsUiState.baselineByInputId.has(input.id)) {
+                if (settingsUiState.baselineByInputId.get(input.id) !== getInputSerializedValue(input)) {
+                    changedCount += 1;
+                }
+            }
+            if (isInputInvalidForUi(input)) {
+                invalidCount += 1;
+            }
+        }
+
+        const badge = section.badge;
+        badge.classList.remove('is-ok', 'is-changed', 'is-invalid');
+        if (invalidCount > 0) {
+            badge.classList.add('is-invalid');
+            badge.textContent = `${invalidCount} invalid`;
+        } else if (changedCount > 0) {
+            badge.classList.add('is-changed');
+            badge.textContent = `${changedCount} changed`;
+        } else {
+            badge.classList.add('is-ok');
+            badge.textContent = 'all good';
+        }
+    }
+};
+
+const saveActionBarChanges = async (closeAfterSave = false) => {
+    const changedInputs = getTrackedInputs().filter((input) => (
+        settingsUiState.baselineByInputId.has(input.id)
+        && settingsUiState.baselineByInputId.get(input.id) !== getInputSerializedValue(input)
+    ));
+    changedInputs.forEach((input) => {
+        $(input).trigger('change');
+    });
+    captureSettingsBaseline();
+    refreshSectionHealthBadges();
+    setActionBarStatus('Saved current settings snapshot.');
+    if (closeAfterSave) {
+        setTimeout(() => {
+            window.history.back();
+        }, 180);
+    }
+};
+
+const resetCurrentSectionToBaseline = () => {
+    if (!settingsUiState.activeSectionKey) {
+        setActionBarStatus('Select a section first.');
+        return;
+    }
+    const section = settingsUiState.sections.find((entry) => entry.key === settingsUiState.activeSectionKey);
+    if (!section) {
+        return;
+    }
+    const seen = new Set();
+    for (const node of section.nodes) {
+        if (!(node instanceof HTMLElement)) {
+            continue;
+        }
+        const inputs = node.querySelectorAll('input[id], select[id], textarea[id]');
+        for (const input of inputs) {
+            if (seen.has(input.id) || !settingsUiState.baselineByInputId.has(input.id)) {
+                continue;
+            }
+            seen.add(input.id);
+            const baseline = settingsUiState.baselineByInputId.get(input.id);
+            if (input.type === 'checkbox') {
+                input.checked = baseline === '1';
+            } else {
+                input.value = baseline;
+            }
+            $(input).trigger('input');
+            $(input).trigger('change');
+        }
+    }
+    refreshInputInvalidStyles();
+    refreshSectionHealthBadges();
+    updateActionBarSaveState();
+    setActionBarStatus(`Reset section "${section.title}" to baseline snapshot.`);
+};
+
+const ensureRegexPresetUi = (type) => {
+    const patternInput = $(`#${type}-rule-pattern`);
+    if (!patternInput.length) {
+        return;
+    }
+    const presetId = `${type}-rule-presets`;
+    const hintId = `${type}-rule-live-match`;
+    if (!$(`#${presetId}`).length) {
+        patternInput.after(`
+            <div id="${presetId}" class="rule-presets">
+                <span>Regex presets:</span>
+                <button type="button" data-type="${type}" data-preset="starts_with">Starts with</button>
+                <button type="button" data-type="${type}" data-preset="contains">Contains</button>
+                <button type="button" data-type="${type}" data-preset="ends_with">Ends with</button>
+                <button type="button" data-type="${type}" data-preset="exact">Exact</button>
+            </div>
+        `);
+    }
+    if (!$(`#${hintId}`).length) {
+        $(`#${presetId}`).after(`<div id="${hintId}" class="rule-live-match">Live matches: 0</div>`);
+    }
+};
+
+const escapeRegexLiteral = (value) => String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const applyRegexPreset = (type, preset) => {
+    const input = $(`#${type}-rule-pattern`);
+    if (!input.length) {
+        return;
+    }
+    const plainText = window.prompt('Enter plain text for this preset:');
+    if (plainText === null) {
+        return;
+    }
+    const escaped = escapeRegexLiteral(plainText);
+    let pattern = escaped;
+    if (preset === 'starts_with') {
+        pattern = `^${escaped}`;
+    } else if (preset === 'contains') {
+        pattern = escaped;
+    } else if (preset === 'ends_with') {
+        pattern = `${escaped}$`;
+    } else if (preset === 'exact') {
+        pattern = `^${escaped}$`;
+    }
+
+    if (type === 'docker' && String($('#docker-rule-kind').val() || '') !== 'name_regex') {
+        $('#docker-rule-kind').val('name_regex');
+        toggleRuleKindFields('docker');
+    }
+    input.val(pattern);
+    input.trigger('input');
+    input.trigger('change');
+};
+
+const getDockerItemLabels = (itemInfo) => itemInfo?.Labels || itemInfo?.info?.Config?.Labels || {};
+
+const updateRuleLiveMatch = (type) => {
+    const output = $(`#${type}-rule-live-match`);
+    if (!output.length) {
+        return;
+    }
+    const names = Object.keys(infoByType[type] || {});
+    if (!names.length) {
+        output.removeClass('is-invalid is-ok').text('Live matches: no items available.');
+        return;
+    }
+
+    if (type === 'vm') {
+        const pattern = String($('#vm-rule-pattern').val() || '').trim();
+        if (!pattern) {
+            output.removeClass('is-invalid is-ok').text('Live matches: enter a regex pattern.');
+            return;
+        }
+        try {
+            const regex = new RegExp(pattern);
+            const count = names.filter((name) => regex.test(name)).length;
+            output.removeClass('is-invalid').addClass('is-ok').text(`Live matches: ${count}/${names.length} VMs`);
+        } catch (error) {
+            output.removeClass('is-ok').addClass('is-invalid').text(`Invalid regex: ${error.message}`);
+        }
+        return;
+    }
+
+    const kind = String($('#docker-rule-kind').val() || 'name_regex');
+    const pattern = String($('#docker-rule-pattern').val() || '').trim();
+    const labelKey = String($('#docker-rule-label-key').val() || '').trim();
+    const labelValue = String($('#docker-rule-label-value').val() || '').trim();
+    const info = infoByType.docker || {};
+
+    let count = 0;
+    try {
+        if (kind === 'name_regex' || kind === 'image_regex' || kind === 'compose_project_regex') {
+            if (!pattern) {
+                output.removeClass('is-invalid is-ok').text('Live matches: enter a regex pattern.');
+                return;
+            }
+            const regex = new RegExp(pattern);
+            for (const name of names) {
+                const row = info[name] || {};
+                const labels = getDockerItemLabels(row);
+                const image = row?.info?.Config?.Image || '';
+                const composeProject = labels['com.docker.compose.project'] || '';
+                const value = kind === 'image_regex' ? image : (kind === 'compose_project_regex' ? composeProject : name);
+                regex.lastIndex = 0;
+                if (regex.test(String(value || ''))) {
+                    count += 1;
+                }
+            }
+        } else if (kind === 'label' || kind === 'label_contains' || kind === 'label_starts_with') {
+            if (!labelKey) {
+                output.removeClass('is-invalid is-ok').text('Live matches: enter a label key.');
+                return;
+            }
+            for (const name of names) {
+                const row = info[name] || {};
+                const labels = getDockerItemLabels(row);
+                const value = String(labels[labelKey] || '');
+                if (kind === 'label' && (labelValue ? value === labelValue : Boolean(value))) {
+                    count += 1;
+                }
+                if (kind === 'label_contains' && labelValue && value.includes(labelValue)) {
+                    count += 1;
+                }
+                if (kind === 'label_starts_with' && labelValue && value.startsWith(labelValue)) {
+                    count += 1;
+                }
+            }
+        }
+        output.removeClass('is-invalid').addClass('is-ok').text(`Live matches: ${count}/${names.length} containers`);
+    } catch (error) {
+        output.removeClass('is-ok').addClass('is-invalid').text(`Invalid regex: ${error.message}`);
+    }
+};
+
+const runQuickSetupWizard = (force = false) => {
+    if (!force && localStorage.getItem(WIZARD_DONE_STORAGE_KEY) === '1') {
+        return;
+    }
+    swal({
+        title: 'FolderView Plus quick setup',
+        text: 'Choose your default settings mode.\nBasic is recommended for daily use.',
+        type: 'info',
+        showCancelButton: true,
+        confirmButtonText: 'Use Basic',
+        cancelButtonText: 'Use Advanced'
+    }, (useBasic) => {
+        setSettingsMode(useBasic ? 'basic' : 'advanced');
+        swal({
+            title: 'Import existing Docker folders now?',
+            text: 'You can skip this and do it later from Docker > Import.',
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Import Docker now',
+            cancelButtonText: 'Skip'
+        }, (importNow) => {
+            if (importNow) {
+                importDocker();
+            }
+            swal({
+                title: 'Quick setup complete',
+                text: 'Use search + jump at the top, and switch to Advanced for full controls.',
+                type: 'success'
+            });
+            localStorage.setItem(WIZARD_DONE_STORAGE_KEY, '1');
+            settingsUiState.wizardShown = true;
+        });
+    });
+};
+
+const initSettingsControls = () => {
+    if (settingsUiState.controlsInitialized) {
+        return;
+    }
+    const controls = $('#fv-settings-controls');
+    const actionBar = $('#fv-settings-action-bar');
+    if (!controls.length || !actionBar.length) {
+        return;
+    }
+
+    controls.html(`
+        <div class="fv-settings-controls-row">
+            <span class="fv-settings-label">Mode</span>
+            <span class="fv-mode-toggle">
+                <button type="button" class="fv-mode-btn" data-mode="basic">Basic</button>
+                <button type="button" class="fv-mode-btn" data-mode="advanced">Advanced</button>
+            </span>
+            <span id="fv-advanced-note" class="fv-advanced-note"></span>
+            <button type="button" id="fv-run-wizard"><i class="fa fa-magic"></i> Quick setup wizard</button>
+        </div>
+        <div class="fv-settings-controls-row">
+            <span class="fv-settings-label">Search</span>
+            <input type="text" id="fv-settings-search" placeholder="Find settings, rules, backups, diagnostics...">
+            <span class="fv-settings-label">Jump to</span>
+            <select id="fv-section-jump"></select>
+            <button type="button" id="fv-settings-clear-search"><i class="fa fa-times"></i> Clear</button>
+        </div>
+    `);
+
+    actionBar.html(`
+        <div class="fv-action-buttons">
+            <button type="button" id="fv-action-save"><i class="fa fa-save"></i> Save</button>
+            <button type="button" id="fv-action-save-close"><i class="fa fa-check"></i> Save &amp; Close</button>
+            <button type="button" id="fv-action-cancel"><i class="fa fa-undo"></i> Cancel</button>
+            <button type="button" id="fv-action-reset-section"><i class="fa fa-refresh"></i> Reset section</button>
+        </div>
+        <span id="fv-action-status" class="fv-action-status">All changes are saved.</span>
+    `);
+
+    $('.fv-mode-btn').off('click.fvui').on('click.fvui', (event) => {
+        const mode = String($(event.currentTarget).attr('data-mode') || 'basic');
+        setSettingsMode(mode);
+    });
+    $('#fv-settings-search').off('input.fvui').on('input.fvui', (event) => {
+        setSettingsSearchQuery($(event.currentTarget).val());
+    });
+    $('#fv-settings-clear-search').off('click.fvui').on('click.fvui', () => {
+        $('#fv-settings-search').val('');
+        setSettingsSearchQuery('');
+    });
+    $('#fv-section-jump').off('change.fvui').on('change.fvui', (event) => {
+        const key = String($(event.currentTarget).val() || '');
+        if (key) {
+            scrollToSectionKey(key);
+        }
+    });
+    $('#fv-action-save').off('click.fvui').on('click.fvui', () => {
+        void saveActionBarChanges(false);
+    });
+    $('#fv-action-save-close').off('click.fvui').on('click.fvui', () => {
+        void saveActionBarChanges(true);
+    });
+    $('#fv-action-cancel').off('click.fvui').on('click.fvui', () => {
+        location.reload();
+    });
+    $('#fv-action-reset-section').off('click.fvui').on('click.fvui', () => {
+        resetCurrentSectionToBaseline();
+    });
+    $('#fv-run-wizard').off('click.fvui').on('click.fvui', () => {
+        runQuickSetupWizard(true);
+    });
+
+    $(document).off('input.fvhealth change.fvhealth', 'input,select,textarea').on('input.fvhealth change.fvhealth', 'input,select,textarea', () => {
+        refreshInputInvalidStyles();
+        refreshSectionHealthBadges();
+        updateActionBarSaveState();
+    });
+
+    $(document).off('click.fvpreset', '.rule-presets button').on('click.fvpreset', '.rule-presets button', (event) => {
+        const type = String($(event.currentTarget).attr('data-type') || '');
+        const preset = String($(event.currentTarget).attr('data-preset') || '');
+        applyRegexPreset(type, preset);
+    });
+
+    $('#docker-rule-kind, #docker-rule-pattern, #docker-rule-label-key, #docker-rule-label-value')
+        .off('input.fvlivematch change.fvlivematch')
+        .on('input.fvlivematch change.fvlivematch', () => updateRuleLiveMatch('docker'));
+    $('#vm-rule-pattern')
+        .off('input.fvlivematch change.fvlivematch')
+        .on('input.fvlivematch change.fvlivematch', () => updateRuleLiveMatch('vm'));
+
+    settingsUiState.controlsInitialized = true;
+};
+
+const refreshSettingsUx = () => {
+    buildSettingsSections();
+    applySettingsSectionVisibility();
+    syncSectionJumpOptions();
+    refreshInputInvalidStyles();
+    refreshSectionHealthBadges();
+    updateActionBarSaveState();
+};
+
 const toPrettyJson = (value) => `${JSON.stringify(value, null, 2)}\n`;
 const tableIdByType = { docker: 'docker', vm: 'vms' };
 const parseJsonResponse = (value) => (typeof value === 'string' ? JSON.parse(value) : value);
@@ -617,28 +1216,47 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     const folders = getFolderMap(type);
     let dialogResult = null;
 
+    modeSelect.html(`
+        <option value="merge">Merge (add new + update existing)</option>
+        <option value="replace">Replace (sync exactly, delete missing)</option>
+        <option value="skip">Skip existing (only add new)</option>
+    `);
+
+    if (!$('#import-mode-help').length) {
+        modeSelect.after('<div id="import-mode-help">Safer default: dry run is enabled. Review summary and diff before applying.</div>');
+    }
+    if (!$('#import-dry-run-row').length) {
+        $('#import-mode-help').after('<label id="import-dry-run-row"><input id="import-dry-run-only" type="checkbox"> Dry run only (preview changes, do not modify folders)</label>');
+    }
+    $('#import-dry-run-only').prop('checked', true);
+
     const renderPreview = () => {
         const mode = modeSelect.val();
         const summary = utils.summarizeImport(folders, parsed, mode);
         const operations = utils.buildImportOperations(folders, parsed, mode);
         const diffRows = utils.buildImportDiffRows(folders, parsed, mode);
+        const dryRunOnly = $('#import-dry-run-only').prop('checked') === true;
         importSelectionState = buildOperationSelectionState(operations, folders);
         renderOperationSelection();
         renderImportDiffTable(diffRows);
         previewText.val(formatImportSummary(summary));
-        result.text(`Selected operations: ${countImportOperations(filterOperationsBySelection(operations))} | Creates: ${operations.creates.length}, Updates: ${operations.upserts.length}, Deletes: ${operations.deletes.length}`);
+        result.text(`Selected operations: ${countImportOperations(filterOperationsBySelection(operations))} | Creates: ${operations.creates.length}, Updates: ${operations.upserts.length}, Deletes: ${operations.deletes.length} | Dry run: ${dryRunOnly ? 'ON' : 'OFF'}`);
 
         const metaParts = [
             `Type: ${type}`,
             `Mode: ${parsed.mode}${parsed.legacy ? ' (legacy format)' : ''}`,
             parsed.schemaVersion !== null ? `Schema: v${parsed.schemaVersion}` : 'Schema: legacy',
             parsed.pluginVersion ? `Plugin: ${parsed.pluginVersion}` : null,
-            parsed.exportedAt ? `Exported: ${parsed.exportedAt}` : null
+            parsed.exportedAt ? `Exported: ${parsed.exportedAt}` : null,
+            'Safety: automatic pre-import backup'
         ].filter(Boolean);
         meta.text(metaParts.join(' | '));
     };
 
     modeSelect.off('change.fvimport').on('change.fvimport', () => {
+        renderPreview();
+    });
+    $('#import-dry-run-only').off('change.fvimport').on('change.fvimport', () => {
         renderPreview();
     });
 
@@ -659,7 +1277,8 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
             'Apply Import': function() {
                 const mode = modeSelect.val();
                 const operations = filterOperationsBySelection(utils.buildImportOperations(folders, parsed, mode));
-                dialogResult = { mode, operations };
+                const dryRunOnly = $('#import-dry-run-only').prop('checked') === true;
+                dialogResult = { mode, operations, dryRunOnly };
                 $(this).dialog('close');
             },
             Cancel: function() {
@@ -1083,6 +1702,8 @@ const renderTable = (type) => {
     renderRulesTable(type);
     renderBulkItemOptions(type);
     renderTemplateRows(type);
+    updateRuleLiveMatch(type);
+    refreshSettingsUx();
 };
 
 const refreshType = async (type) => {
@@ -1107,6 +1728,7 @@ const refreshBackups = async (type) => {
     }
     renderBackupRows(type);
     renderBackupScheduleControls(type);
+    refreshSettingsUx();
 };
 
 const refreshTemplates = async (type) => {
@@ -1117,14 +1739,20 @@ const refreshTemplates = async (type) => {
         showError(`Failed to load ${type.toUpperCase()} templates`, error);
     }
     renderTemplateRows(type);
+    refreshSettingsUx();
 };
 
 const refreshAll = async () => {
     await Promise.all([refreshType('docker'), refreshType('vm')]);
     await Promise.all([refreshBackups('docker'), refreshBackups('vm')]);
     await Promise.all([refreshTemplates('docker'), refreshTemplates('vm')]);
+    ensureRegexPresetUi('docker');
+    ensureRegexPresetUi('vm');
     toggleRuleKindFields('docker');
+    updateRuleLiveMatch('docker');
+    updateRuleLiveMatch('vm');
     await refreshChangeHistory();
+    refreshSettingsUx();
 };
 
 const downloadType = (type, id) => {
@@ -1218,6 +1846,25 @@ const importType = async (type) => {
             title: 'No changes selected',
             text: 'Nothing was selected to import.',
             type: 'info'
+        });
+        return;
+    }
+
+    if (dialogResult.dryRunOnly) {
+        await trackDiagnosticsEvent({
+            eventType: 'import_dry_run',
+            type,
+            details: {
+                mode: dialogResult.mode,
+                creates: operations.creates.length,
+                updates: operations.upserts.length,
+                deletes: operations.deletes.length
+            }
+        });
+        swal({
+            title: 'Dry run complete',
+            text: `No changes were applied.\nCreates: ${operations.creates.length}, Updates: ${operations.upserts.length}, Deletes: ${operations.deletes.length}`,
+            type: 'success'
         });
         return;
     }
@@ -1582,6 +2229,7 @@ const toggleRuleKindFields = (type) => {
     $('#docker-rule-pattern').toggle(regexKinds.includes(kind));
     $('#docker-rule-label-key').toggle(labelKinds.includes(kind));
     $('#docker-rule-label-value').toggle(labelKinds.includes(kind));
+    updateRuleLiveMatch('docker');
 };
 
 const testAutoRule = (type) => {
@@ -2573,11 +3221,24 @@ window.checkForUpdatesNow = checkForUpdatesNow;
 window.moveFolderRow = moveFolderRow;
 window.handleFolderRowKeydown = handleFolderRowKeydown;
 window.toggleFolderPin = toggleFolderPin;
+window.runQuickSetupWizard = runQuickSetupWizard;
+window.setSettingsMode = setSettingsMode;
 
 (async () => {
     try {
+        settingsUiState.mode = localStorage.getItem(UI_MODE_STORAGE_KEY) === 'advanced' ? 'advanced' : 'basic';
+        initSettingsControls();
         await fetchPluginVersion();
         await refreshAll();
+        refreshSettingsUx();
+        captureSettingsBaseline();
+        if (settingsUiState.mode) {
+            setSettingsMode(settingsUiState.mode);
+        }
+        if (localStorage.getItem(WIZARD_DONE_STORAGE_KEY) !== '1') {
+            runQuickSetupWizard(false);
+        }
+        settingsUiState.initialized = true;
     } catch (error) {
         showError('Initialization failed', error);
     }

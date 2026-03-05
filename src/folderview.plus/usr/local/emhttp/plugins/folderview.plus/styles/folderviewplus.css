@@ -491,6 +491,191 @@ a:focus-visible {
     outline-offset: 2px;
 }
 
+#fv-settings-controls {
+    display: grid;
+    gap: 0.6rem;
+    margin: 0.2rem 0 0.9rem 0;
+    padding: 0.7rem 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.fv-settings-controls-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem 0.75rem;
+}
+
+.fv-settings-label {
+    font-weight: 600;
+    opacity: 0.9;
+}
+
+.fv-mode-toggle {
+    display: inline-flex;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.fv-mode-toggle button {
+    min-width: 88px;
+    margin: 0;
+    border: 0;
+    border-right: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.fv-mode-toggle button:last-child {
+    border-right: 0;
+}
+
+.fv-mode-toggle button.is-active {
+    background: rgba(77, 163, 255, 0.18);
+    color: #d8ebff;
+}
+
+.fv-settings-controls-row input[type="text"] {
+    width: clamp(220px, 28vw, 420px);
+}
+
+.fv-settings-controls-row select {
+    min-width: 170px;
+}
+
+.fv-advanced-note {
+    font-size: 0.86rem;
+    opacity: 0.78;
+}
+
+h2[data-fv-section] {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    scroll-margin-top: 70px;
+}
+
+.fv-section-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.08rem 0.45rem;
+    border-radius: 999px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.fv-section-badge.is-ok {
+    border-color: rgba(147, 225, 159, 0.55);
+    color: #93e19f;
+}
+
+.fv-section-badge.is-changed {
+    border-color: rgba(255, 193, 94, 0.58);
+    color: #ffc15e;
+}
+
+.fv-section-badge.is-invalid {
+    border-color: rgba(255, 116, 116, 0.62);
+    color: #ff7474;
+}
+
+.fv-section-hidden {
+    display: none !important;
+}
+
+h2[data-fv-section].fv-search-match {
+    text-decoration: underline;
+    text-decoration-color: rgba(77, 163, 255, 0.55);
+}
+
+.rule-live-match {
+    margin: 0.1rem 0 0.6rem 0;
+    font-size: 0.87rem;
+    opacity: 0.86;
+}
+
+.rule-live-match.is-invalid {
+    color: #ff7474;
+}
+
+.rule-live-match.is-ok {
+    color: #93e19f;
+}
+
+.rule-presets {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0.1rem 0 0.3rem 0;
+}
+
+.rule-presets > span {
+    font-size: 0.84rem;
+    opacity: 0.78;
+}
+
+.rule-presets > button {
+    min-width: 0;
+    padding: 2px 7px;
+    font-size: 0.8rem;
+}
+
+.fv-input-invalid {
+    border-color: #ff7474 !important;
+}
+
+#import-mode-help {
+    margin: -0.25rem 0 0.45rem 0;
+    font-size: 0.86rem;
+    opacity: 0.82;
+    line-height: 1.35;
+}
+
+#import-dry-run-row {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0 0 0.55rem 0;
+    font-size: 0.9rem;
+}
+
+#fv-settings-action-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(11, 14, 18, 0.96);
+    backdrop-filter: blur(3px);
+    padding: 0.5rem 0.8rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.45rem 0.8rem;
+}
+
+.fv-action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.fv-action-status {
+    font-size: 0.86rem;
+    opacity: 0.82;
+}
+
+body {
+    padding-bottom: 64px;
+}
+
 @media (max-width: 1080px) {
     .folder-toolbar {
         grid-template-columns: 1fr;
@@ -512,6 +697,22 @@ a:focus-visible {
 }
 
 @media (max-width: 760px) {
+    #fv-settings-action-bar {
+        align-items: stretch;
+    }
+
+    .fv-action-buttons {
+        width: 100%;
+    }
+
+    .fv-action-buttons > button {
+        flex: 1 1 calc(50% - 0.5rem);
+    }
+
+    .fv-settings-controls-row input[type="text"] {
+        width: 100%;
+    }
+
     .toolbar-actions > button {
         flex: 1 1 calc(50% - 0.5rem);
         min-width: 0;

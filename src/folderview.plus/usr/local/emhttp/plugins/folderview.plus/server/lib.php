@@ -79,6 +79,10 @@
     const FVPLUS_RULE_KINDS = ['name_regex', 'label', 'label_contains', 'label_starts_with', 'image_regex', 'compose_project_regex'];
     const FVPLUS_RULE_EFFECTS = ['include', 'exclude'];
     const FVPLUS_RUNTIME_PREFS_SCHEMA = 2;
+    const FVPLUS_MAX_FOLDER_CONTENT_BYTES = 131072;
+    const FVPLUS_MAX_FOLDER_NESTED_DEPTH = 6;
+    const FVPLUS_MAX_FOLDER_ARRAY_ITEMS = 250;
+    const FVPLUS_MAX_FOLDER_STRING_BYTES = 2048;
     const FVPLUS_DOCKER_FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
     const FVPLUS_DEFAULT_FOLDER_STATUS_COLORS = [
         'started' => '#ffffff',
@@ -96,6 +100,139 @@
             throw new InvalidArgumentException("Invalid type: $type");
         }
         return $type;
+    }
+
+    function getRequestHeaderValue(string $name): string {
+        $key = 'HTTP_' . strtoupper(str_replace('-', '_', trim($name)));
+        return isset($_SERVER[$key]) ? trim((string)$_SERVER[$key]) : '';
+    }
+
+    function normalizeHostForCompare(string $host): string {
+        $host = strtolower(trim($host));
+        if ($host === '') {
+            return '';
+        }
+        if ($host[0] === '[' && substr($host, -1) === ']') {
+            return substr($host, 1, -1);
+        }
+        return $host;
+    }
+
+    function parseHostPortFromUrl(string $url): array {
+        $parts = @parse_url($url);
+        if (!is_array($parts)) {
+            return ['', null];
+        }
+        $host = normalizeHostForCompare((string)($parts['host'] ?? ''));
+        if ($host === '') {
+            return ['', null];
+        }
+        $port = isset($parts['port']) ? (int)$parts['port'] : null;
+        if ($port === null) {
+            $scheme = strtolower((string)($parts['scheme'] ?? ''));
+            if ($scheme === 'http') {
+                $port = 80;
+            } elseif ($scheme === 'https') {
+                $port = 443;
+            }
+        }
+        return [$host, $port];
+    }
+
+    function parseCurrentRequestHostPort(): array {
+        $hostHeader = trim((string)($_SERVER['HTTP_HOST'] ?? ''));
+        if ($hostHeader === '') {
+            return ['', null];
+        }
+        $isHttps = !empty($_SERVER['HTTPS']) && strtolower((string)$_SERVER['HTTPS']) !== 'off';
+        $probeUrl = ($isHttps ? 'https://' : 'http://') . $hostHeader;
+        [$host, $port] = parseHostPortFromUrl($probeUrl);
+        if ($host === '') {
+            return ['', null];
+        }
+        if ($port === null && isset($_SERVER['SERVER_PORT'])) {
+            $serverPort = (int)$_SERVER['SERVER_PORT'];
+            if ($serverPort > 0) {
+                $port = $serverPort;
+            }
+        }
+        return [$host, $port];
+    }
+
+    function isSameOriginHeaderValue(string $urlValue): bool {
+        if ($urlValue === '' || strtolower($urlValue) === 'null') {
+            return false;
+        }
+        [$requestHost, $requestPort] = parseCurrentRequestHostPort();
+        if ($requestHost === '') {
+            return false;
+        }
+        [$headerHost, $headerPort] = parseHostPortFromUrl($urlValue);
+        if ($headerHost === '' || $headerHost !== $requestHost) {
+            return false;
+        }
+        if ($headerPort !== null && $requestPort !== null && $headerPort !== $requestPort) {
+            return false;
+        }
+        return true;
+    }
+
+    function isTrustedMutationContext(): bool {
+        $ajaxHeader = strtolower(getRequestHeaderValue('X-Requested-With')) === 'xmlhttprequest';
+        $pluginHeader = getRequestHeaderValue('X-FV-Request') === '1';
+        if ($ajaxHeader || $pluginHeader) {
+            return true;
+        }
+        $origin = getRequestHeaderValue('Origin');
+        if ($origin !== '' && isSameOriginHeaderValue($origin)) {
+            return true;
+        }
+        $referer = getRequestHeaderValue('Referer');
+        if ($referer !== '' && isSameOriginHeaderValue($referer)) {
+            return true;
+        }
+        return false;
+    }
+
+    function getOptionalRequestTokenPath(): string {
+        global $configDir;
+        return "$configDir/request.token";
+    }
+
+    function getConfiguredRequestToken(): string {
+        $path = getOptionalRequestTokenPath();
+        if (!file_exists($path)) {
+            return '';
+        }
+        $token = trim((string)@file_get_contents($path));
+        if ($token === '') {
+            return '';
+        }
+        if (!preg_match('/^[A-Za-z0-9._~-]{16,128}$/', $token)) {
+            return '';
+        }
+        return $token;
+    }
+
+    function validateOptionalRequestToken(): void {
+        $expected = getConfiguredRequestToken();
+        if ($expected === '') {
+            return;
+        }
+        $provided = trim((string)($_POST['token'] ?? getRequestHeaderValue('X-FV-Token')));
+        if ($provided === '' || !hash_equals($expected, $provided)) {
+            throw new RuntimeException('Invalid request token.');
+        }
+    }
+
+    function requireMutationRequestGuard(): void {
+        if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) !== 'POST') {
+            throw new RuntimeException('Unsupported method.');
+        }
+        if (!isTrustedMutationContext()) {
+            throw new RuntimeException('Blocked by request guard.');
+        }
+        validateOptionalRequestToken();
     }
 
     function normalizeBool($value, bool $default = false): bool {
@@ -144,6 +281,77 @@
             $out[] = $id;
         }
         return $out;
+    }
+
+    function truncateUtf8String(string $value, int $maxBytes): string {
+        if ($maxBytes <= 0) {
+            return '';
+        }
+        if (strlen($value) <= $maxBytes) {
+            return $value;
+        }
+        return substr($value, 0, $maxBytes);
+    }
+
+    function normalizeFolderNestedValue($value, int $depth = 0) {
+        if ($depth > FVPLUS_MAX_FOLDER_NESTED_DEPTH) {
+            return null;
+        }
+        if (is_array($value)) {
+            $out = [];
+            $count = 0;
+            $isList = array_keys($value) === range(0, count($value) - 1);
+            foreach ($value as $key => $item) {
+                $count++;
+                if ($count > FVPLUS_MAX_FOLDER_ARRAY_ITEMS) {
+                    break;
+                }
+                $normalized = normalizeFolderNestedValue($item, $depth + 1);
+                if ($isList) {
+                    $out[] = $normalized;
+                    continue;
+                }
+                $safeKey = truncateUtf8String(trim((string)$key), 64);
+                if ($safeKey === '') {
+                    continue;
+                }
+                $out[$safeKey] = $normalized;
+            }
+            return $out;
+        }
+        if (is_string($value)) {
+            return truncateUtf8String($value, FVPLUS_MAX_FOLDER_STRING_BYTES);
+        }
+        if (is_int($value) || is_float($value) || is_bool($value) || $value === null) {
+            return $value;
+        }
+        return truncateUtf8String((string)$value, FVPLUS_MAX_FOLDER_STRING_BYTES);
+    }
+
+    function normalizeFolderContentPayload(array $content): array {
+        $normalized = normalizeFolderNestedValue($content);
+        if (!is_array($normalized)) {
+            $normalized = [];
+        }
+
+        $normalized['name'] = truncateUtf8String(trim((string)($normalized['name'] ?? '')), 160);
+        if ($normalized['name'] === '') {
+            $normalized['name'] = 'Folder';
+        }
+        $normalized['icon'] = truncateUtf8String(trim((string)($normalized['icon'] ?? '')), 2048);
+        $normalized['regex'] = truncateUtf8String((string)($normalized['regex'] ?? ''), 1024);
+        $normalized['containers'] = array_slice(normalizeFolderMembers($normalized['containers'] ?? []), 0, 5000);
+
+        if (!is_array($normalized['settings'] ?? null)) {
+            $normalized['settings'] = [];
+        }
+        if (!is_array($normalized['actions'] ?? null)) {
+            $normalized['actions'] = [];
+        } else {
+            $normalized['actions'] = array_values($normalized['actions']);
+        }
+
+        return $normalized;
     }
 
     function readInstalledVersion(): string {
@@ -2487,6 +2695,9 @@
 
     function updateFolder(string $type, string $content, string $id = '') : void {
         $type = ensureType($type);
+        if (strlen($content) > FVPLUS_MAX_FOLDER_CONTENT_BYTES) {
+            throw new RuntimeException('Folder payload too large.');
+        }
         $isCreate = empty($id);
         if (empty($id)) {
             $id = generateId();
@@ -2494,9 +2705,9 @@
         $fileData = readRawFolderMap($type);
         $decodedContent = json_decode($content, true);
         if (!is_array($decodedContent)) {
-            $decodedContent = [];
+            throw new RuntimeException('Invalid folder payload.');
         }
-        $fileData[$id] = $decodedContent;
+        $fileData[$id] = normalizeFolderContentPayload($decodedContent);
         writeRawFolderMap($type, $fileData);
         syncManualOrderWithFolders($type, $fileData);
         try {

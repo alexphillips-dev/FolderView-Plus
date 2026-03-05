@@ -4,6 +4,7 @@ require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php");
 header('Content-Type: application/json');
 
 try {
+    requireMutationRequestGuard();
     $type = ensureType((string)($_POST['type'] ?? ''));
     $orderRaw = (string)($_POST['order'] ?? '[]');
     $order = json_decode($orderRaw, true);

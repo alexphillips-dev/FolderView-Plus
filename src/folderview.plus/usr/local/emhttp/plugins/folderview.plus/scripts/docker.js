@@ -1578,7 +1578,7 @@ const rmFolder = (id) => {
         if (!c) { setTimeout(loadlist, 0); return; } // Use timeout 0 for consistency
         $('div.spinner.fixed').show('slow');
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] rmFolder (id: ${id}): Calling delete API.`);
-        await $.get('/plugins/folderview.plus/server/delete.php?type=docker&id=' + id).promise();
+        await $.post('/plugins/folderview.plus/server/delete.php', { type: 'docker', id: id }).promise();
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] rmFolder (id: ${id}): Delete API call finished. Reloading list.`);
         setTimeout(loadlist, 500);
     });

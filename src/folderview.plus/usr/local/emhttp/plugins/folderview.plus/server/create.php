@@ -4,8 +4,9 @@ require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php");
 header('Content-Type: application/json');
 
 try {
-    $type = (string)($_REQUEST['type'] ?? '');
-    $content = (string)($_REQUEST['content'] ?? '');
+    requireMutationRequestGuard();
+    $type = ensureType((string)($_POST['type'] ?? ''));
+    $content = (string)($_POST['content'] ?? '');
     if ($type === '' || $content === '') {
         throw new RuntimeException('Missing required parameters.');
     }

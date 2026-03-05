@@ -4,9 +4,10 @@ require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php");
 header('Content-Type: application/json');
 
 try {
-    $type = ensureType((string)($_REQUEST['type'] ?? ''));
-    $action = strtolower(trim((string)($_REQUEST['runtimeAction'] ?? $_REQUEST['actionName'] ?? '')));
-    $itemsRaw = $_REQUEST['items'] ?? '[]';
+    requireMutationRequestGuard();
+    $type = ensureType((string)($_POST['type'] ?? ''));
+    $action = strtolower(trim((string)($_POST['runtimeAction'] ?? $_POST['actionName'] ?? '')));
+    $itemsRaw = $_POST['items'] ?? '[]';
 
     $items = [];
     if (is_string($itemsRaw) && trim($itemsRaw) !== '') {

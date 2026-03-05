@@ -1,5 +1,6 @@
 ﻿const utils = window.FolderViewPlusUtils;
 const EXPORT_BASENAME = 'FolderView Plus Export';
+const REQUEST_TOKEN_STORAGE_KEY = 'fv.request.token';
 
 let dockers = {};
 let vms = {};
@@ -71,6 +72,29 @@ const settingsUiState = {
     activeSectionKey: '',
     wizardShown: false
 };
+
+const getOptionalRequestToken = () => {
+    const metaToken = document.querySelector('meta[name="fv-request-token"]');
+    if (metaToken instanceof HTMLMetaElement) {
+        return String(metaToken.content || '').trim();
+    }
+    try {
+        return String(localStorage.getItem(REQUEST_TOKEN_STORAGE_KEY) || '').trim();
+    } catch (_error) {
+        return '';
+    }
+};
+
+const setupAjaxSecurityHeaders = () => {
+    const headers = { 'X-FV-Request': '1' };
+    const token = getOptionalRequestToken();
+    if (token) {
+        headers['X-FV-Token'] = token;
+    }
+    $.ajaxSetup({ headers });
+};
+
+setupAjaxSecurityHeaders();
 
 const slugifySectionKey = (text) => String(text || '')
     .toLowerCase()
@@ -1342,7 +1366,7 @@ const countImportOperations = (operations) => (
 
 const applyImportOperations = async (type, operations) => {
     for (const id of operations.deletes) {
-        await $.get(`/plugins/folderview.plus/server/delete.php?type=${type}&id=${encodeURIComponent(id)}`).promise();
+        await $.post('/plugins/folderview.plus/server/delete.php', { type, id }).promise();
     }
 
     for (const item of operations.upserts) {
@@ -1979,10 +2003,10 @@ const clearType = (type, id) => {
             const backup = await createBackup(type, id ? `before-delete-${id}` : 'before-clear-all');
 
             if (id) {
-                await $.get(`/plugins/folderview.plus/server/delete.php?type=${type}&id=${encodeURIComponent(id)}`).promise();
+                await $.post('/plugins/folderview.plus/server/delete.php', { type, id }).promise();
             } else {
                 for (const currentId of Object.keys(folders)) {
-                    await $.get(`/plugins/folderview.plus/server/delete.php?type=${type}&id=${encodeURIComponent(currentId)}`).promise();
+                    await $.post('/plugins/folderview.plus/server/delete.php', { type, id: currentId }).promise();
                 }
             }
 

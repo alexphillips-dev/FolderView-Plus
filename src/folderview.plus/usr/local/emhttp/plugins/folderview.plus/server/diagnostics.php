@@ -6,19 +6,26 @@ header('Content-Type: application/json');
 try {
     $action = (string)($_REQUEST['action'] ?? 'report');
     $privacyMode = normalizeDiagnosticsPrivacyMode((string)($_REQUEST['privacy'] ?? FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY));
+    $mutatingActions = ['track_event', 'sync_docker_order', 'normalize_prefs', 'repair_paths', 'create_backup'];
+    if (in_array($action, $mutatingActions, true)) {
+        requireMutationRequestGuard();
+    }
 
     if ($action === 'track_event') {
-        $eventType = trim((string)($_REQUEST['eventType'] ?? ''));
+        $eventType = substr(trim((string)($_POST['eventType'] ?? '')), 0, 80);
         if ($eventType === '') {
             throw new RuntimeException('Event type is required.');
         }
         $type = null;
-        if (isset($_REQUEST['type']) && $_REQUEST['type'] !== '') {
-            $type = ensureType((string)$_REQUEST['type']);
+        if (isset($_POST['type']) && $_POST['type'] !== '') {
+            $type = ensureType((string)$_POST['type']);
         }
-        $status = (string)($_REQUEST['status'] ?? 'ok');
-        $source = (string)($_REQUEST['source'] ?? 'ui');
-        $detailsRaw = $_REQUEST['details'] ?? null;
+        $status = substr((string)($_POST['status'] ?? 'ok'), 0, 32);
+        $source = substr((string)($_POST['source'] ?? 'ui'), 0, 32);
+        $detailsRaw = $_POST['details'] ?? null;
+        if (is_string($detailsRaw) && strlen($detailsRaw) > 32768) {
+            throw new RuntimeException('Details payload is too large.');
+        }
         $details = [];
         if (is_string($detailsRaw) && $detailsRaw !== '') {
             $parsed = json_decode($detailsRaw, true);
@@ -96,7 +103,7 @@ try {
     }
 
     if ($action === 'create_backup') {
-        $type = ensureType((string)($_REQUEST['type'] ?? ''));
+        $type = ensureType((string)($_POST['type'] ?? ''));
         $backup = createBackupSnapshot($type, 'manual-diagnostics');
         echo json_encode([
             'ok' => true,

@@ -6,12 +6,24 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.10.8">
-<!ENTITY md5 "421ad1fe0fd640c23d0d7a60d7e72158">
+<!ENTITY version "2026.03.10.9">
+<!ENTITY md5 "56410d938140b9bf5b79a96afc0ee391">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.10.9
+- Security hardening pass:
+  - add centralized mutation request guard (POST-only + trusted request context + optional token support),
+  - move mutating endpoints from `$_REQUEST` to explicit `$_POST`,
+  - convert folder delete API usage in Docker/VM/Dashboard/settings flows from GET to POST.
+- Input safety improvements:
+  - add folder payload size limits and nested content normalization/sanitization before write,
+  - reject invalid folder payloads instead of silently storing malformed content.
+- Endpoint hardening:
+  - modernize read/sync endpoints with explicit JSON responses and structured error handling,
+  - replace `cpu.php` shell command usage with direct `/proc/cpuinfo` parsing.
 
 ###2026.03.10.8
 - Redesign Docker/VM settings cards for cleaner readability:

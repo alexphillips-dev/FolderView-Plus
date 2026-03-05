@@ -573,7 +573,7 @@ const rmFolder = (id) => {
     async (c) => {
         if (!c) { setTimeout(loadlist); return; }
         $('div.spinner.fixed').show('slow');
-        await $.get('/plugins/folderview.plus/server/delete.php?type=vm&id=' + id).promise();
+        await $.post('/plugins/folderview.plus/server/delete.php', { type: 'vm', id: id }).promise();
         loadedFolder = false;
         setTimeout(loadlist, 500)
     });

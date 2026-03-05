@@ -4,8 +4,8 @@ require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php");
 header('Content-Type: application/json');
 
 try {
-    $type = ensureType((string)($_REQUEST['type'] ?? ''));
     $action = (string)($_REQUEST['action'] ?? 'list');
+    $type = ensureType((string)($action === 'list' ? ($_GET['type'] ?? $_REQUEST['type'] ?? '') : ($_POST['type'] ?? '')));
 
     if ($action === 'list') {
         echo json_encode([
@@ -15,9 +15,11 @@ try {
         exit;
     }
 
+    requireMutationRequestGuard();
+
     if ($action === 'create') {
-        $folderId = (string)($_REQUEST['folderId'] ?? '');
-        $name = (string)($_REQUEST['name'] ?? '');
+        $folderId = (string)($_POST['folderId'] ?? '');
+        $name = (string)($_POST['name'] ?? '');
         $result = createFolderTemplateFromFolder($type, $folderId, $name);
         echo json_encode([
             'ok' => true,
@@ -28,7 +30,7 @@ try {
     }
 
     if ($action === 'delete') {
-        $templateId = (string)($_REQUEST['templateId'] ?? '');
+        $templateId = (string)($_POST['templateId'] ?? '');
         echo json_encode([
             'ok' => true,
             'templates' => deleteFolderTemplate($type, $templateId)
@@ -37,8 +39,8 @@ try {
     }
 
     if ($action === 'apply') {
-        $templateId = (string)($_REQUEST['templateId'] ?? '');
-        $folderId = (string)($_REQUEST['folderId'] ?? '');
+        $templateId = (string)($_POST['templateId'] ?? '');
+        $folderId = (string)($_POST['folderId'] ?? '');
         $apply = applyFolderTemplateToFolder($type, $templateId, $folderId);
         echo json_encode([
             'ok' => true,

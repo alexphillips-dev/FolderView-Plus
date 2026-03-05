@@ -4,14 +4,17 @@ require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php");
 header('Content-Type: application/json');
 
 try {
-    $type = ensureType((string)($_REQUEST['type'] ?? ''));
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        $type = ensureType((string)($_GET['type'] ?? $_REQUEST['type'] ?? ''));
         echo json_encode([
             'ok' => true,
             'prefs' => readTypePrefs($type)
         ]);
         exit;
     }
+
+    requireMutationRequestGuard();
+    $type = ensureType((string)($_POST['type'] ?? ''));
 
     $incoming = $_POST['prefs'] ?? null;
     $decoded = [];

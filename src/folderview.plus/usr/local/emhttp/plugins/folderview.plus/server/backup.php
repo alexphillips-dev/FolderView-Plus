@@ -5,9 +5,13 @@ header('Content-Type: application/json');
 
 try {
     $action = (string)($_REQUEST['action'] ?? 'list');
+    $mutatingActions = ['run_schedule', 'create', 'restore', 'restore_latest', 'restore_latest_undo', 'delete'];
+    if (in_array($action, $mutatingActions, true)) {
+        requireMutationRequestGuard();
+    }
 
     if ($action === 'run_schedule') {
-        $requestedType = (string)($_REQUEST['type'] ?? '');
+        $requestedType = (string)($_POST['type'] ?? '');
         $result = runScheduledBackups($requestedType !== '' ? $requestedType : null);
         echo json_encode([
             'ok' => true,
@@ -16,7 +20,7 @@ try {
         exit;
     }
 
-    $type = ensureType((string)($_REQUEST['type'] ?? ''));
+    $type = ensureType((string)(in_array($action, $mutatingActions, true) ? ($_POST['type'] ?? '') : ($_REQUEST['type'] ?? '')));
 
     if ($action === 'download') {
         $name = (string)($_REQUEST['name'] ?? '');
@@ -40,7 +44,7 @@ try {
     }
 
     if ($action === 'create') {
-        $reason = (string)($_REQUEST['reason'] ?? 'manual');
+        $reason = (string)($_POST['reason'] ?? 'manual');
         echo json_encode([
             'ok' => true,
             'backup' => createBackupSnapshot($type, $reason)
@@ -49,7 +53,7 @@ try {
     }
 
     if ($action === 'restore') {
-        $name = (string)($_REQUEST['name'] ?? '');
+        $name = (string)($_POST['name'] ?? '');
         echo json_encode([
             'ok' => true,
             'restore' => restoreBackupSnapshot($type, $name)
@@ -82,7 +86,7 @@ try {
     }
 
     if ($action === 'delete') {
-        $name = (string)($_REQUEST['name'] ?? '');
+        $name = (string)($_POST['name'] ?? '');
         echo json_encode([
             'ok' => true,
             'deleted' => deleteBackupSnapshot($type, $name),

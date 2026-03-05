@@ -4,9 +4,7 @@ require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php");
 header('Content-Type: application/json');
 
 try {
-    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        throw new RuntimeException('Unsupported method.');
-    }
+    requireMutationRequestGuard();
 
     $type = ensureType((string)($_POST['type'] ?? ''));
     $folderId = (string)($_POST['folderId'] ?? '');

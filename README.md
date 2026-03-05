@@ -113,8 +113,6 @@ Custom file naming:
 - JS: `name.dashboard.js`, `name.docker.js`, `name.vm.js`
 - Multi-tab examples: `name.dashboard-docker.css`, `name.dashboard-docker-vm.js`
 
-See the developer extension guide in `dev/README.md`.
-
 ## Development
 
 Source tree:

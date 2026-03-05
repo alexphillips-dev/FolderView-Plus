@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.09.6">
-<!ENTITY md5 "3eafdffcd1fc84e2636faa9b66b53161">
+<!ENTITY version "2026.03.09.7">
+<!ENTITY md5 "ebd09c3beed61f33f0aaa78334f104cf">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.09.7
+- Fix package archive path layout to install files under `/usr/local/...` (active Unraid plugin path).
+- Prior package variants wrote to `/local/...`, which updated plugin version but did not replace active runtime files.
 
 ###2026.03.09.6
 - Replace folder editor alignment fallback with float-based forced left column:

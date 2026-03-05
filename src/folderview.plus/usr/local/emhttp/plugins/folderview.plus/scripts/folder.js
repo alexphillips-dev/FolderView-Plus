@@ -384,6 +384,69 @@ const applyAdvancedMode = () => {
     $('.fv-advanced-setting').toggleClass('fv-advanced-hidden', !showAdvanced);
 };
 
+const enforceLeftAlignedSettingsLayout = () => {
+    const isMobile = window.innerWidth <= 980;
+    const form = document.querySelector('div.canvas > form.folder-editor-form');
+    if (!form) {
+        return;
+    }
+
+    const topLevelRows = form.querySelectorAll(':scope > .basic:not(.order-section), :scope > ul');
+    topLevelRows.forEach((row) => {
+        row.style.setProperty('width', 'calc(100% - 2em)', 'important');
+        row.style.setProperty('max-width', 'none', 'important');
+        row.style.setProperty('margin-left', '1em', 'important');
+        row.style.setProperty('margin-right', '0', 'important');
+        row.style.setProperty('box-sizing', 'border-box', 'important');
+    });
+
+    const nestedRows = form.querySelectorAll(':scope > ul > li > .basic, :scope > ul > li > ul > li > .basic');
+    nestedRows.forEach((row) => {
+        row.style.setProperty('width', '100%', 'important');
+        row.style.setProperty('max-width', 'none', 'important');
+        row.style.setProperty('margin-left', '0', 'important');
+        row.style.setProperty('margin-right', '0', 'important');
+    });
+
+    const rows = form.querySelectorAll('.basic:not(.order-section) > dl');
+    rows.forEach((dl) => {
+        dl.style.setProperty('display', 'grid', 'important');
+        dl.style.setProperty('grid-template-columns', isMobile ? '1fr' : 'minmax(180px, 240px) minmax(0, 1fr)', 'important');
+        dl.style.setProperty('align-items', 'center', 'important');
+        dl.style.setProperty('column-gap', '1em', 'important');
+        dl.style.setProperty('row-gap', isMobile ? '0.4em' : '0', 'important');
+        dl.style.setProperty('width', '100%', 'important');
+        dl.style.setProperty('max-width', 'none', 'important');
+        dl.style.setProperty('margin-left', '0', 'important');
+        dl.style.setProperty('margin-right', '0', 'important');
+
+        const dt = dl.querySelector(':scope > dt');
+        if (dt) {
+            dt.style.setProperty('float', 'none', 'important');
+            dt.style.setProperty('width', 'auto', 'important');
+            dt.style.setProperty('text-align', 'left', 'important');
+            dt.style.setProperty('margin', '0', 'important');
+            dt.style.setProperty('padding', '0', 'important');
+        }
+
+        const dd = dl.querySelector(':scope > dd');
+        if (dd) {
+            dd.style.setProperty('float', 'none', 'important');
+            dd.style.setProperty('width', 'auto', 'important');
+            dd.style.setProperty('margin', '0', 'important');
+            dd.style.setProperty('min-width', '0', 'important');
+        }
+    });
+
+    const helpBlocks = form.querySelectorAll('.basic > blockquote.inline_help');
+    helpBlocks.forEach((help) => {
+        help.style.setProperty('width', '100%', 'important');
+        help.style.setProperty('max-width', 'none', 'important');
+        help.style.setProperty('margin-left', '0', 'important');
+        help.style.setProperty('margin-right', '0', 'important');
+    });
+};
+
 const updateLiveSummary = () => {
     const form = getForm();
     if (!form) {
@@ -591,6 +654,10 @@ const initEditorChrome = () => {
         }
     });
     $('#fvRegexSimulatorInput').off('input').on('input', updateRegexSimulator);
+
+    enforceLeftAlignedSettingsLayout();
+    setTimeout(enforceLeftAlignedSettingsLayout, 50);
+    setTimeout(enforceLeftAlignedSettingsLayout, 250);
 };
 
 getForm().preview_border_color.value = rgbToHex($('body').css('color'));
@@ -719,6 +786,7 @@ resetStatusColorDefaults();
     initEditorChrome();
     updateForm();
     applyAdvancedMode();
+    enforceLeftAlignedSettingsLayout();
     validateForm();
     updateLiveSummary();
     updateRegexSimulator();
@@ -736,8 +804,11 @@ resetStatusColorDefaults();
         validateForm();
         updateLiveSummary();
         updateRegexSimulator();
+        enforceLeftAlignedSettingsLayout();
         updateUnsavedIndicator();
     });
+
+    window.addEventListener('resize', enforceLeftAlignedSettingsLayout);
 })();
 
 /**
@@ -830,6 +901,8 @@ const updateForm = () => {
     if (type !== 'docker') {
         $('[constraint*="docker"]').hide();
     }
+
+    enforceLeftAlignedSettingsLayout();
 };
 
 /**

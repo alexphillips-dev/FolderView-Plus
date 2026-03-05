@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.09.3">
-<!ENTITY md5 "db332aadb6a6caff1348abc331e79c19">
+<!ENTITY version "2026.03.09.4">
+<!ENTITY md5 "e69125b618508cfca9957456f1e688d6">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.09.4
+- Add JS-enforced left-alignment fallback for folder editor settings:
+  - apply inline left-column layout rules after form render and on setting changes,
+  - re-apply on resize and delayed passes to override late-loaded theme/Dynamix styles.
 
 ###2026.03.09.3
 - Enforce left-aligned folder edit layout with fixed label/value columns:

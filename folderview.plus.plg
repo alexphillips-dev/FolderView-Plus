@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.11.1">
-<!ENTITY md5 "dbf483e7e71ca0880957039ddb34199e">
+<!ENTITY version "2026.03.11.2">
+<!ENTITY md5 "16290a3a935dc2f895484171380627b3">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.11.2
+- Fix release package layout for CI/installer parity:
+  - rebuild archive with canonical `./usr/local/...` paths,
+  - keep request-guard compatibility fix from `2026.03.11.1` unchanged.
 
 ###2026.03.10.9
 - Security hardening pass:

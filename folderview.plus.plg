@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.10.6">
+<!ENTITY version "2026.03.10.7">
 <!ENTITY md5 "5acf9db91a52bfa10291da280f2ba272">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.10.7
+- Force another version bump to bypass stale cache paths that still deliver `2026.03.10.5` on some systems.
+- Contains the same payload as `2026.03.10.6` (including removal of `Jump to section`).
 
 ###2026.03.10.6
 - Remove the `Jump to section` dropdown from Customizations as requested.

@@ -272,6 +272,66 @@
     opacity: 0.78;
 }
 
+.fv-third-party-panel {
+    display: grid;
+    gap: 0.5em;
+}
+
+.fv-third-party-hint {
+    font-size: 0.82em;
+    opacity: 0.82;
+    line-height: 1.25;
+}
+
+#fv-third-party-refresh {
+    min-width: 30px;
+    width: 30px;
+    padding: 0;
+}
+
+.fv-third-party-folder-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3em;
+}
+
+.fv-third-party-folder {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 0.2em 0.55em;
+    min-height: 28px;
+}
+
+.fv-third-party-folder:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.fv-third-party-folder.is-active {
+    border-color: rgba(255, 140, 42, 0.88);
+    box-shadow: inset 0 0 0 1px rgba(255, 140, 42, 0.28);
+}
+
+.fv-third-party-folder-name {
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.fv-third-party-folder-count {
+    font-size: 0.78em;
+    opacity: 0.82;
+}
+
+.fv-third-party-current-folder {
+    font-size: 0.88em;
+    opacity: 0.88;
+}
+
 .fv-live-grid {
     display: grid;
     gap: 0.4em 1em;

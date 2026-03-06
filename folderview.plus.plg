@@ -6,12 +6,21 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.13.8">
-<!ENTITY md5 "1a280dd91517043d8048f32ebd45f0a7">
+<!ENTITY version "2026.03.13.9">
+<!ENTITY md5 "0ce446182ffa497ac0bb54a529bee998">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.13.9
+- Add `3rd Party icons` browser in Folder settings:
+  - new button next to `Built-in icons`,
+  - lists user folders from `/boot/config/plugins/folderview.plus/third-party-icons`,
+  - click a folder to reveal and pick icons within that folder.
+- Add secure server endpoint:
+  - `server/third_party_icons.php` supports folder listing, icon listing, and safe image serving,
+  - blocks path traversal and only allows common image extensions.
 
 ###2026.03.13.8
 - Tighten folder-editor left alignment again:

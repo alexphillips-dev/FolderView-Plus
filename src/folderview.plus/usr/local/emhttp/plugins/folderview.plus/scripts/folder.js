@@ -36,6 +36,7 @@ const SECTION_META = {
 };
 const DEFAULT_FOLDER_ICON_PATH = '/plugins/folderview.plus/images/folder-icon.png';
 const BUILT_IN_ICON_MANIFEST_PATH = '/plugins/folderview.plus/images/icons/icons.json';
+const THIRD_PARTY_ICON_API_PATH = '/plugins/folderview.plus/server/third_party_icons.php';
 const BUILT_IN_ICON_FALLBACK = [{
     id: 'default-folder',
     name: 'Default Folder',
@@ -51,6 +52,9 @@ let isFormInitialized = false;
 let suppressUnloadPrompt = false;
 let builtInIcons = [...BUILT_IN_ICON_FALLBACK];
 let builtInIconSearchQuery = '';
+let thirdPartyIconFolders = [];
+let thirdPartySelectedFolder = '';
+let thirdPartyIcons = [];
 
 const getFolderLabelValue = (labels) => {
     const source = labels && typeof labels === 'object' ? labels : {};
@@ -96,6 +100,13 @@ const escapeHtml = (value) => {
 };
 
 const asArray = (value) => (Array.isArray(value) ? value : []);
+
+const parseJsonPayload = (value) => {
+    if (typeof value === 'string') {
+        return JSON.parse(value.replace(/^\uFEFF/, ''));
+    }
+    return value;
+};
 
 const normalizeBuiltInIconEntry = (entry, basePath) => {
     if (!entry || typeof entry !== 'object') {
@@ -152,6 +163,16 @@ const setBuiltInIconPickerOpen = (open) => {
     toggle.attr('aria-expanded', open ? 'true' : 'false').toggleClass('is-open', open);
 };
 
+const setThirdPartyIconPickerOpen = (open) => {
+    const panel = $('#fv-third-party-icon-panel');
+    const toggle = $('#fv-icon-third-party-toggle');
+    if (!panel.length || !toggle.length) {
+        return;
+    }
+    panel.prop('hidden', !open);
+    toggle.attr('aria-expanded', open ? 'true' : 'false').toggleClass('is-open', open);
+};
+
 const renderBuiltInIconPicker = () => {
     const panel = $('#fv-icon-picker-panel');
     const grid = $('#fv-icon-picker-grid');
@@ -200,6 +221,137 @@ const renderBuiltInIconPicker = () => {
     });
 };
 
+const renderThirdPartyFolderList = () => {
+    const list = $('#fv-third-party-folder-list');
+    const status = $('#fv-third-party-icon-status');
+    if (!list.length || !status.length) {
+        return;
+    }
+    if (!thirdPartyIconFolders.length) {
+        list.html('<div class="fv-icon-picker-empty">No folders found. Add folders under /boot/config/plugins/folderview.plus/third-party-icons.</div>');
+        status.text('No third-party icon folders detected.');
+        return;
+    }
+    const rows = thirdPartyIconFolders.map((folder) => {
+        const name = escapeHtml(folder.name || '');
+        const count = Number(folder.iconCount || 0);
+        const active = folder.name === thirdPartySelectedFolder ? ' is-active' : '';
+        return `
+            <button type="button" class="fv-third-party-folder${active}" data-third-party-folder="${name}">
+                <span class="fv-third-party-folder-name">${name}</span>
+                <span class="fv-third-party-folder-count">${count}</span>
+            </button>
+        `;
+    }).join('');
+    list.html(rows);
+    list.find('.fv-third-party-folder').off('click').on('click', async (event) => {
+        event.preventDefault();
+        const folder = String($(event.currentTarget).attr('data-third-party-folder') || '').trim();
+        if (!folder) {
+            return;
+        }
+        await loadThirdPartyIcons(folder);
+    });
+};
+
+const renderThirdPartyIconGrid = () => {
+    const grid = $('#fv-third-party-icon-grid');
+    const header = $('#fv-third-party-current-folder');
+    const status = $('#fv-third-party-icon-status');
+    if (!grid.length || !header.length || !status.length) {
+        return;
+    }
+    if (!thirdPartySelectedFolder) {
+        header.text('Select a folder to browse icons.');
+        grid.empty();
+        return;
+    }
+    header.text(`Folder: ${thirdPartySelectedFolder}`);
+
+    if (!thirdPartyIcons.length) {
+        grid.html('<div class="fv-icon-picker-empty">No supported icon files found in this folder.</div>');
+        status.text(`Folder "${thirdPartySelectedFolder}" has 0 supported icon files.`);
+        return;
+    }
+
+    const currentValue = getCurrentIconValue();
+    const rows = thirdPartyIcons.map((icon) => {
+        const selected = currentValue === icon.url ? ' is-selected' : '';
+        const safeUrl = escapeHtml(icon.url);
+        const safeName = escapeHtml(icon.name);
+        return `
+            <button type="button" class="fv-icon-picker-item${selected}" data-icon-value="${safeUrl}" title="${safeName}">
+                <img src="${safeUrl}" alt="${safeName}" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';">
+                <span class="fv-icon-picker-item-name">${safeName}</span>
+            </button>
+        `;
+    }).join('');
+    grid.html(rows);
+    status.text(`Showing ${thirdPartyIcons.length} icon${thirdPartyIcons.length === 1 ? '' : 's'} in "${thirdPartySelectedFolder}".`);
+    grid.find('.fv-icon-picker-item').off('click').on('click', (event) => {
+        event.preventDefault();
+        const value = String($(event.currentTarget).attr('data-icon-value') || '').trim();
+        if (!value) {
+            return;
+        }
+        setIconInputValue(value);
+    });
+};
+
+const loadThirdPartyFolders = async () => {
+    const response = await $.get(THIRD_PARTY_ICON_API_PATH, { action: 'list_folders' }).promise();
+    const payload = parseJsonPayload(response);
+    if (!payload || payload.ok !== true) {
+        throw new Error(String(payload?.error || 'Failed to load third-party icon folders.'));
+    }
+    thirdPartyIconFolders = asArray(payload.folders).map((entry) => ({
+        name: String(entry?.name || '').trim(),
+        iconCount: Number(entry?.iconCount || 0)
+    })).filter((entry) => entry.name !== '');
+    if (thirdPartySelectedFolder && !thirdPartyIconFolders.some((entry) => entry.name === thirdPartySelectedFolder)) {
+        thirdPartySelectedFolder = '';
+        thirdPartyIcons = [];
+    }
+};
+
+const loadThirdPartyIcons = async (folderName) => {
+    const folder = String(folderName || '').trim();
+    if (!folder) {
+        return;
+    }
+    const response = await $.get(THIRD_PARTY_ICON_API_PATH, { action: 'list_icons', folder }).promise();
+    const payload = parseJsonPayload(response);
+    if (!payload || payload.ok !== true) {
+        throw new Error(String(payload?.error || 'Failed to load icons for selected folder.'));
+    }
+    thirdPartySelectedFolder = String(payload.folder || folder);
+    thirdPartyIcons = asArray(payload.icons).map((entry) => ({
+        name: String(entry?.name || '').trim(),
+        url: String(entry?.url || '').trim()
+    })).filter((entry) => entry.name !== '' && entry.url !== '');
+    renderThirdPartyFolderList();
+    renderThirdPartyIconGrid();
+};
+
+const refreshThirdPartyIconPicker = async () => {
+    const status = $('#fv-third-party-icon-status');
+    if (status.length) {
+        status.text('Refreshing third-party icon folders...');
+    }
+    try {
+        await loadThirdPartyFolders();
+        renderThirdPartyFolderList();
+        renderThirdPartyIconGrid();
+        if (!thirdPartySelectedFolder && thirdPartyIconFolders.length > 0) {
+            await loadThirdPartyIcons(thirdPartyIconFolders[0].name);
+        }
+    } catch (error) {
+        if (status.length) {
+            status.text(`Error: ${error.message}`);
+        }
+    }
+};
+
 const loadBuiltInIcons = async () => {
     try {
         const response = await $.get(BUILT_IN_ICON_MANIFEST_PATH).promise();
@@ -222,14 +374,29 @@ const initBuiltInIconPicker = async () => {
     $('#fv-icon-picker-toggle').off('click.fviconpicker').on('click.fviconpicker', (event) => {
         event.preventDefault();
         const isOpen = !panel.prop('hidden');
+        setThirdPartyIconPickerOpen(false);
         setBuiltInIconPickerOpen(!isOpen);
         if (!isOpen) {
             $('#fv-icon-picker-search').trigger('focus');
         }
     });
+    $('#fv-icon-third-party-toggle').off('click.fviconpicker').on('click.fviconpicker', async (event) => {
+        event.preventDefault();
+        const thirdPartyPanel = $('#fv-third-party-icon-panel');
+        const isOpen = !thirdPartyPanel.prop('hidden');
+        setBuiltInIconPickerOpen(false);
+        setThirdPartyIconPickerOpen(!isOpen);
+        if (!isOpen) {
+            await refreshThirdPartyIconPicker();
+        }
+    });
     $('#fv-icon-picker-default').off('click.fviconpicker').on('click.fviconpicker', (event) => {
         event.preventDefault();
         setIconInputValue(DEFAULT_FOLDER_ICON_PATH);
+    });
+    $('#fv-third-party-refresh').off('click.fviconpicker').on('click.fviconpicker', async (event) => {
+        event.preventDefault();
+        await refreshThirdPartyIconPicker();
     });
     $('#fv-icon-picker-search').off('input.fviconpicker').on('input.fviconpicker', (event) => {
         builtInIconSearchQuery = String($(event.currentTarget).val() || '').trim();
@@ -244,17 +411,23 @@ const initBuiltInIconPicker = async () => {
     });
     $(document).off('mousedown.fviconpicker').on('mousedown.fviconpicker', (event) => {
         const target = $(event.target);
-        if (!target.closest('#fv-icon-picker-panel, #fv-icon-picker-toggle').length) {
+        if (!target.closest('#fv-icon-picker-panel, #fv-icon-picker-toggle, #fv-third-party-icon-panel, #fv-icon-third-party-toggle').length) {
             setBuiltInIconPickerOpen(false);
+            setThirdPartyIconPickerOpen(false);
         }
     });
     getIconInput().off('input.fviconpicker change.fviconpicker').on('input.fviconpicker change.fviconpicker', () => {
         renderBuiltInIconPicker();
+        renderThirdPartyIconGrid();
     });
 
     $('#fv-icon-picker-toggle').attr('aria-expanded', 'false');
+    $('#fv-icon-third-party-toggle').attr('aria-expanded', 'false');
     setBuiltInIconPickerOpen(false);
+    setThirdPartyIconPickerOpen(false);
     renderBuiltInIconPicker();
+    renderThirdPartyFolderList();
+    renderThirdPartyIconGrid();
 };
 
 const getAllMembers = () => {

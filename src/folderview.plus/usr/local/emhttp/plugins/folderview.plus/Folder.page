@@ -45,6 +45,7 @@ Markdown="false"
                     <input type="text" name="icon" value=""  oninput="updateIcon(this)">
                     <div class="fv-icon-input-actions">
                         <button type="button" id="fv-icon-picker-toggle"><i class="fa fa-th-large" aria-hidden="true"></i> Built-in icons</button>
+                        <button type="button" id="fv-icon-third-party-toggle"><i class="fa fa-folder-open-o" aria-hidden="true"></i> 3rd Party icons</button>
                         <button type="button" id="fv-icon-picker-default"><i class="fa fa-folder-open-o" aria-hidden="true"></i> Use default icon</button>
                     </div>
                     <div id="fv-icon-picker-panel" class="fv-icon-picker-panel" hidden>
@@ -55,6 +56,16 @@ Markdown="false"
                         <div id="fv-icon-picker-grid" class="fv-icon-picker-grid"></div>
                         <div id="fv-icon-picker-status" class="fv-icon-picker-status"></div>
                     </div>
+                    <div id="fv-third-party-icon-panel" class="fv-icon-picker-panel fv-third-party-panel" hidden>
+                        <div class="fv-icon-picker-toolbar">
+                            <span class="fv-third-party-hint">Source: /boot/config/plugins/folderview.plus/third-party-icons</span>
+                            <button type="button" id="fv-third-party-refresh" title="Refresh folders and icons" aria-label="Refresh folders and icons"><i class="fa fa-refresh" aria-hidden="true"></i></button>
+                        </div>
+                        <div id="fv-third-party-folder-list" class="fv-third-party-folder-list"></div>
+                        <div id="fv-third-party-current-folder" class="fv-third-party-current-folder">Select a folder to browse icons.</div>
+                        <div id="fv-third-party-icon-grid" class="fv-icon-picker-grid"></div>
+                        <div id="fv-third-party-icon-status" class="fv-icon-picker-status"></div>
+                    </div>
                 </dd>
             </dl>
             <blockquote class="inline_help">
@@ -64,6 +75,8 @@ Markdown="false"
                     It also supports <b>data:image/{type};base64,</b> format (<a href="https://base64.guru/converter/encode/image" target="_blank">Convert image to data strings</a>)
                     <br>
                     <a href="https://forums.unraid.net/topic/92824-icon-collections-for-docker-folder-plugin/" target="_blank">Thread with some icons</a>.
+                    <br>
+                    For 3rd-party icon folders, place files under <b>/boot/config/plugins/folderview.plus/third-party-icons/&lt;folder-name&gt;/</b>.
                     <br>
                     You can click the icon of the Docker/VM to set the folder icon.
                 </p>

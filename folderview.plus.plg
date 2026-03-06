@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.13.7">
-<!ENTITY md5 "aebeb8e9bbbb09453f647429583f79ff">
+<!ENTITY version "2026.03.13.8">
+<!ENTITY md5 "1a280dd91517043d8048f32ebd45f0a7">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.13.8
+- Tighten folder-editor left alignment again:
+  - force all text/number/select controls to anchor left (no auto-centering margins),
+  - force switch-button wrappers to anchor left as well,
+  - apply the same rules in runtime JS guard for theme/plugin CSS overrides.
 
 ###2026.03.13.7
 - Re-harden folder editor left alignment after settings layout drift:

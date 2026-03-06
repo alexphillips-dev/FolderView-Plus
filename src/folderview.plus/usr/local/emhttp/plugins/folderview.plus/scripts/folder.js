@@ -623,6 +623,18 @@ const enforceLeftAlignedSettingsLayout = () => {
             setImportant(dd, 'margin', '0');
             setImportant(dd, 'min-width', '0');
             setImportant(dd, 'text-align', 'left');
+
+            if (dd) {
+                dd.querySelectorAll('input[type="text"], input[type="number"], select, textarea').forEach((field) => {
+                    setImportant(field, 'margin-left', '0');
+                    setImportant(field, 'margin-right', 'auto');
+                });
+                dd.querySelectorAll('.switch-button, .switch-button-background, .switch-button-button').forEach((toggle) => {
+                    setImportant(toggle, 'margin-left', '0');
+                    setImportant(toggle, 'margin-right', 'auto');
+                    setImportant(toggle, 'float', 'none');
+                });
+            }
         });
 
         form.querySelectorAll('.basic > blockquote.inline_help').forEach((help) => {

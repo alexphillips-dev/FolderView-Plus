@@ -210,14 +210,18 @@
 
 .table-wrap {
     width: 100%;
+    box-sizing: border-box;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 6px;
-    overflow-x: auto;
+    overflow-x: hidden;
 }
 
 .folder-table table {
     table-layout: fixed;
     width: 100%;
+    max-width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
     text-align: center;
 }
 

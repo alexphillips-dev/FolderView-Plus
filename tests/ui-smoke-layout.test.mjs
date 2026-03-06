@@ -56,6 +56,14 @@ test('sort toggle note has anti-clipping layout guards', () => {
     assert.match(settingsCss, /\.toolbar-sort-toggle-note\s*\{[\s\S]*flex:\s*0 0 auto/);
 });
 
+test('folder tables avoid unnecessary horizontal scrollbar in basic view', () => {
+    assert.match(settingsCss, /\.table-wrap\s*\{[\s\S]*box-sizing:\s*border-box/);
+    assert.match(settingsCss, /\.table-wrap\s*\{[\s\S]*overflow-x:\s*hidden/);
+    assert.match(settingsCss, /\.folder-table table\s*\{[\s\S]*max-width:\s*100%/);
+    assert.match(settingsCss, /\.folder-table table\s*\{[\s\S]*border-collapse:\s*collapse/);
+    assert.match(settingsCss, /\.folder-table table\s*\{[\s\S]*border-spacing:\s*0/);
+});
+
 test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderJs, /const enforceLeftAlignedSettingsLayout = \(\) =>/);
     assert.match(folderJs, /fv-force-left-v2 marker/);

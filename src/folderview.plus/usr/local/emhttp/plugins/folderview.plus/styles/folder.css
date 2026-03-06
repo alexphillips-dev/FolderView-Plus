@@ -120,6 +120,23 @@
     min-width: 0;
 }
 
+/* Runtime-enforced left alignment guard */
+.canvas form.folder-editor-form.fv-force-left-v3 .basic:not(.order-section) > dl {
+    display: grid !important;
+    grid-template-columns: minmax(150px, 200px) minmax(280px, 640px) !important;
+    align-items: center !important;
+    justify-content: start !important;
+    column-gap: 0.85em !important;
+}
+
+.canvas form.folder-editor-form.fv-force-left-v3 .basic:not(.order-section) > dl > dt,
+.canvas form.folder-editor-form.fv-force-left-v3 .basic:not(.order-section) > dl > dd {
+    float: none !important;
+    width: auto !important;
+    margin: 0 !important;
+    text-align: left !important;
+}
+
 .canvas form.folder-editor-form dd.fv-icon-dd {
     display: flex !important;
     flex-direction: column !important;
@@ -506,6 +523,11 @@ table.sortable td:nth-child(3) {
     .canvas form.folder-editor-form .basic:not(.order-section) > dl {
         grid-template-columns: 1fr !important;
         row-gap: 0.4em;
+    }
+
+    .canvas form.folder-editor-form.fv-force-left-v3 .basic:not(.order-section) > dl {
+        grid-template-columns: 1fr !important;
+        row-gap: 0.4em !important;
     }
 
     .fv-live-grid {

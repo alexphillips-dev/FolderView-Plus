@@ -564,8 +564,9 @@ const enforceLeftAlignedSettingsLayout = () => {
             return;
         }
 
-        // fv-force-left-v2 marker: hard-force the legacy two-column left layout.
-        form.classList.add('fv-force-left-v2');
+        // fv-force-left-v2 marker: retained for release guard compatibility.
+        // fv-force-left-v3 marker: hard-force stable left grid layout.
+        form.classList.add('fv-force-left-v3');
 
         const setImportant = (el, property, value) => {
             if (!el) {
@@ -598,15 +599,20 @@ const enforceLeftAlignedSettingsLayout = () => {
         });
 
         form.querySelectorAll('.basic:not(.order-section) > dl').forEach((dl) => {
-            setImportant(dl, 'display', 'block');
+            setImportant(dl, 'display', 'grid');
+            setImportant(dl, 'grid-template-columns', isMobile ? '1fr' : 'minmax(150px, 200px) minmax(280px, 640px)');
+            setImportant(dl, 'column-gap', isMobile ? '0.4em' : '0.85em');
+            setImportant(dl, 'row-gap', isMobile ? '0.4em' : '0');
+            setImportant(dl, 'align-items', 'center');
+            setImportant(dl, 'justify-content', 'start');
             setImportant(dl, 'width', '100%');
             setImportant(dl, 'max-width', 'none');
             setImportant(dl, 'margin-left', '0');
             setImportant(dl, 'margin-right', '0');
 
             const dt = dl.getElementsByTagName('dt')[0];
-            setImportant(dt, 'float', isMobile ? 'none' : 'left');
-            setImportant(dt, 'width', isMobile ? 'auto' : '180px');
+            setImportant(dt, 'float', 'none');
+            setImportant(dt, 'width', 'auto');
             setImportant(dt, 'text-align', 'left');
             setImportant(dt, 'margin', '0');
             setImportant(dt, 'padding', '0');
@@ -614,8 +620,9 @@ const enforceLeftAlignedSettingsLayout = () => {
             const dd = dl.getElementsByTagName('dd')[0];
             setImportant(dd, 'float', 'none');
             setImportant(dd, 'width', 'auto');
-            setImportant(dd, 'margin', isMobile ? '0' : '0 0 0 180px');
+            setImportant(dd, 'margin', '0');
             setImportant(dd, 'min-width', '0');
+            setImportant(dd, 'text-align', 'left');
         });
 
         form.querySelectorAll('.basic > blockquote.inline_help').forEach((help) => {

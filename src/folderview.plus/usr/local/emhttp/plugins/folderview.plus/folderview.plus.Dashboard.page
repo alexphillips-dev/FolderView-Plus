@@ -1,5 +1,5 @@
 Menu="Dashboard"
-Icon="folder-open-o"
+Icon="folder-icon.png"
 Type="xmenu"
 Tabs="true"
 Markdown="false"

@@ -1,6 +1,6 @@
 Menu="Utilities"
 Title="FolderView Plus"
-Icon="folder-open-o"
+Icon="folder-icon.png"
 Type="xmenu"
 Tabs="true"
 Markdown="false"

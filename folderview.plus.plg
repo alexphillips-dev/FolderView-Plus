@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.13.3">
-<!ENTITY md5 "92a4a3903ffb07f993deb3690a853c54">
+<!ENTITY version "2026.03.13.4">
+<!ENTITY md5 "7fa1f36969cee4c2748ca2eb8ce841a7">
 ]>
 
-<PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
+<PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.13.4
+- Use packaged image filename for plugin and page icons:
+  - set plugin manifest icon to `folder-icon.png`,
+  - set all settings/page `Icon` headers to `folder-icon.png`,
+  - continue shipping icon file under `/plugins/folderview.plus/images/folder-icon.png`.
+- Keeps icon sourcing inside plugin package instead of repository root `/img`.
 
 ###2026.03.13.3
 - Stabilize icon rendering in Unraid UI:

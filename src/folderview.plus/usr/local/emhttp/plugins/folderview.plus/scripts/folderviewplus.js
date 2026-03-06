@@ -53,6 +53,7 @@ let healthFilterByType = {
     docker: 'all',
     vm: 'all'
 };
+let dockerUpdatesOnlyFilter = false;
 let importSelectionState = null;
 let importDiffPagingState = {
     rows: [],
@@ -1784,6 +1785,24 @@ const setFilterQuery = (section, type, value) => {
     }
 };
 
+const toggleDockerUpdatesFilter = (hasUpdatesInRow = false) => {
+    if (dockerUpdatesOnlyFilter) {
+        dockerUpdatesOnlyFilter = false;
+        renderTable('docker');
+        return;
+    }
+    if (hasUpdatesInRow) {
+        dockerUpdatesOnlyFilter = true;
+        renderTable('docker');
+        return;
+    }
+    swal({
+        title: 'No updates in this folder',
+        text: 'Choose a folder with updates to enable the updates-only filter.',
+        type: 'info'
+    });
+};
+
 const apiGetText = async (url, options = {}) => {
     if (requestClient && typeof requestClient.getText === 'function') {
         return requestClient.getText(url, options);
@@ -2979,13 +2998,33 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         let typeSpecificColumns = '';
         if (isDockerType) {
             let updateCount = 0;
+            const updateNames = [];
             for (const member of members) {
                 if (isDockerUpdateAvailable(infoByName[member] || {})) {
                     updateCount += 1;
+                    updateNames.push(String(member));
                 }
             }
-            const updateText = `${updateCount}/${members.length}`;
-            const updateClass = updateCount > 0 ? 'is-warning' : 'is-ok';
+            if (dockerUpdatesOnlyFilter && updateCount === 0) {
+                continue;
+            }
+            let updateText = 'Up to date';
+            let updateClass = 'is-ok';
+            let updateIcon = 'fa-check-circle';
+            if (updateCount > 0 && updateCount <= 9) {
+                updateText = `${updateCount} update${updateCount === 1 ? '' : 's'}`;
+                updateClass = 'is-warning';
+                updateIcon = 'fa-exclamation-circle';
+            } else if (updateCount > 9) {
+                updateText = `${updateCount} updates`;
+                updateClass = 'is-danger';
+                updateIcon = 'fa-exclamation-triangle';
+            }
+            const updatePreview = updateNames.slice(0, 5).join(', ');
+            const updateExtra = updateNames.length > 5 ? ` (+${updateNames.length - 5} more)` : '';
+            const updateTitle = updateNames.length
+                ? `Containers with updates: ${updatePreview}${updateExtra}\nClick to ${dockerUpdatesOnlyFilter ? 'show all folders' : 'show folders with updates only'}`
+                : `${members.length > 0 ? 'No updates in this folder' : 'Folder has no members'}\nClick to ${dockerUpdatesOnlyFilter ? 'show all folders' : 'show folders with updates only'}`;
             const stoppedPercent = members.length > 0 ? Math.round((countsByState.stopped / members.length) * 100) : 0;
             const warnThreshold = Number(dockerHealthPrefs?.warnStoppedPercent) || 60;
             let healthText = 'Empty';
@@ -3006,7 +3045,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
                 }
             }
             typeSpecificColumns = ''
-                + `<td class="updates-cell"><span class="folder-metric-chip ${updateClass}">${escapeHtml(updateText)}</span></td>`
+                + `<td class="updates-cell"><button type="button" class="folder-metric-chip updates-chip ${updateClass} ${dockerUpdatesOnlyFilter ? 'is-filter-active' : ''}" title="${escapeHtml(updateTitle)}" aria-label="${escapeHtml(updateTitle)}" onclick="toggleDockerUpdatesFilter(${updateCount > 0 ? 'true' : 'false'})"><i class="fa ${updateIcon}" aria-hidden="true"></i><span>${escapeHtml(updateText)}</span></button></td>`
                 + `<td class="health-cell"><span class="folder-metric-chip ${healthClass}">${escapeHtml(healthText)}</span></td>`;
         } else {
             let autostartCount = 0;
@@ -3041,9 +3080,14 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         );
     }
     if (rows.length === 0) {
-        const filterSuffix = healthFilterMode !== 'all'
-            ? ` (${getHealthFilterLabel(healthFilterMode)} filter)`
-            : '';
+        const suffixes = [];
+        if (healthFilterMode !== 'all') {
+            suffixes.push(`${getHealthFilterLabel(healthFilterMode)} filter`);
+        }
+        if (isDockerType && dockerUpdatesOnlyFilter) {
+            suffixes.push('updates only');
+        }
+        const filterSuffix = suffixes.length ? ` (${suffixes.join(', ')})` : '';
         return `<tr><td colspan="${TABLE_COLUMN_COUNT}">No folders match current filters${filterSuffix}.</td></tr>`;
     }
     return rows.join('');
@@ -5755,6 +5799,7 @@ window.moveFolderRow = moveFolderRow;
 window.handleFolderRowKeydown = handleFolderRowKeydown;
 window.toggleFolderPin = toggleFolderPin;
 window.copyFolderId = copyFolderId;
+window.toggleDockerUpdatesFilter = toggleDockerUpdatesFilter;
 window.setHealthFolderFilter = setHealthFolderFilter;
 window.runQuickSetupWizard = runQuickSetupWizard;
 window.setSettingsMode = setSettingsMode;

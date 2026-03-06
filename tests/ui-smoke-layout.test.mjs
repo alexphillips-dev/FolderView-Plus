@@ -101,10 +101,13 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /initOverflowGuard\(\);/);
     assert.match(settingsJs, /window\.compareBackupSnapshots = compareBackupSnapshots;/);
     assert.match(settingsJs, /window\.copyFolderId = copyFolderId;/);
+    assert.match(settingsJs, /window\.toggleDockerUpdatesFilter = toggleDockerUpdatesFilter;/);
     assert.match(settingsJs, /const isDockerUpdateAvailable = \(itemInfo\) =>/);
     assert.match(settingsJs, /const formatGiBFromKiB = \(kibValue\) =>/);
     assert.match(settingsJs, /const persistImportPresetStoreTypeToServer = async/);
     assert.match(settingsCss, /\.folder-action-btn\s*\{/);
+    assert.match(settingsCss, /\.updates-chip\s*\{/);
+    assert.match(settingsCss, /\.folder-metric-chip\.is-danger\s*\{/);
     assert.match(settingsCss, /\.folder-metric-chip\s*\{/);
     assert.match(settingsCss, /\.folder-pin-state,\s*[\s\S]*\.folder-metric-chip\s*\{/);
     assert.match(settingsCss, /\.backup-compare-row\s*\{/);

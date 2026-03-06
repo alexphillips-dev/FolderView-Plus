@@ -377,6 +377,11 @@
     color: #ffc15e;
 }
 
+.folder-metric-chip.is-danger {
+    border-color: rgba(255, 116, 116, 0.62);
+    color: #ff7474;
+}
+
 .folder-metric-chip.is-paused {
     border-color: rgba(255, 193, 94, 0.58);
     color: #ffc15e;
@@ -385,6 +390,20 @@
 .folder-metric-chip.is-empty {
     border-color: rgba(192, 192, 192, 0.45);
     color: rgba(240, 240, 240, 0.86);
+}
+
+.updates-chip {
+    min-width: 126px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    cursor: pointer;
+    background: transparent;
+}
+
+.updates-chip.is-filter-active {
+    box-shadow: 0 0 0 1px rgba(77, 163, 255, 0.45) inset;
 }
 
 .folder-runtime-status {

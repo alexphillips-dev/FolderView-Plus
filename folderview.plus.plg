@@ -6,12 +6,23 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.06.31">
-<!ENTITY md5 "2a5c68da7b3a7b0f410edcc543c20ced">
+<!ENTITY version "2026.03.06.32">
+<!ENTITY md5 "e9abfd8c8e9cb55793fe177db396c4e6">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.06.32
+- Refined Docker `Updates` column UX:
+  - state-based chips (`Up to date`, warning, high-attention),
+  - clear icons per state and fixed chip width for visual stability.
+- Added update-details tooltip for quick context:
+  - shows containers with updates (with `+N more` when needed).
+- Added click-to-filter behavior on Docker update chips:
+  - click updated folder chip to show only folders with updates,
+  - click again to return to full folder list.
+- Added regression checks for new update-chip behavior hooks/styles.
 
 ###2026.03.06.31
 - Added new high-value Basic columns with type-aware rendering:

@@ -2820,50 +2820,83 @@ const refreshAll = async () => {
     refreshSettingsUx();
 };
 
-const downloadType = (type, id) => {
-    const folders = getFolderMap(type);
-
-    if (id) {
-        const folder = folders[id];
-        if (!folder) {
-            return;
-        }
-        const payload = utils.buildSingleExportPayload({
-            type,
-            folderId: id,
-            folder,
-            pluginVersion
-        });
-        downloadFile(`${folder.name}.json`, toPrettyJson(payload));
-        trackDiagnosticsEvent({
-            eventType: 'export',
-            type,
-            details: {
-                mode: 'single',
-                folderCount: 1,
-                schemaVersion: utils.EXPORT_SCHEMA_VERSION
-            }
-        });
+const downloadType = async (type, id) => {
+    let resolvedType;
+    try {
+        resolvedType = normalizeManagedType(type);
+    } catch (error) {
+        showError('Export failed', error);
         return;
     }
 
-    const payload = utils.buildFullExportPayload({
-        type,
-        folders,
-        pluginVersion
-    });
+    const folders = getFolderMap(resolvedType);
+    const progressTotal = 2;
+    let progressOpen = false;
+    const setProgress = (completed, label) => {
+        updateImportApplyProgressDialog({
+            completed: Math.max(0, Math.min(progressTotal, completed)),
+            total: progressTotal,
+            label
+        });
+    };
 
-    const name = type === 'docker' ? `${EXPORT_BASENAME}.json` : `${EXPORT_BASENAME} VM.json`;
-    downloadFile(name, toPrettyJson(payload));
-    trackDiagnosticsEvent({
-        eventType: 'export',
-        type,
-        details: {
-            mode: 'full',
-            folderCount: Object.keys(folders).length,
-            schemaVersion: utils.EXPORT_SCHEMA_VERSION
+    try {
+        openImportApplyProgressDialog(resolvedType, progressTotal);
+        progressOpen = true;
+        setProgress(0, `Preparing ${resolvedType === 'docker' ? 'Docker' : 'VM'} export...`);
+
+        if (id) {
+            const folder = folders[id];
+            if (!folder) {
+                throw new Error('Folder not found for export.');
+            }
+            const payload = utils.buildSingleExportPayload({
+                type: resolvedType,
+                folderId: id,
+                folder,
+                pluginVersion
+            });
+            downloadFile(`${folder.name}.json`, toPrettyJson(payload));
+            setProgress(progressTotal, 'Export download started.');
+            await trackDiagnosticsEvent({
+                eventType: 'export',
+                type: resolvedType,
+                details: {
+                    mode: 'single',
+                    folderCount: 1,
+                    schemaVersion: utils.EXPORT_SCHEMA_VERSION
+                }
+            });
+            await new Promise((resolve) => setTimeout(resolve, 140));
+            return;
         }
-    });
+
+        const payload = utils.buildFullExportPayload({
+            type: resolvedType,
+            folders,
+            pluginVersion
+        });
+
+        const name = resolvedType === 'docker' ? `${EXPORT_BASENAME}.json` : `${EXPORT_BASENAME} VM.json`;
+        downloadFile(name, toPrettyJson(payload));
+        setProgress(progressTotal, 'Export download started.');
+        await trackDiagnosticsEvent({
+            eventType: 'export',
+            type: resolvedType,
+            details: {
+                mode: 'full',
+                folderCount: Object.keys(folders).length,
+                schemaVersion: utils.EXPORT_SCHEMA_VERSION
+            }
+        });
+        await new Promise((resolve) => setTimeout(resolve, 140));
+    } catch (error) {
+        showError('Export failed', error);
+    } finally {
+        if (progressOpen) {
+            closeImportApplyProgressDialog();
+        }
+    }
 };
 const importType = async (type) => {
     let resolvedType;
@@ -3004,7 +3037,14 @@ const importType = async (type) => {
 };
 
 const clearType = (type, id) => {
-    const folders = getFolderMap(type);
+    let resolvedType;
+    try {
+        resolvedType = normalizeManagedType(type);
+    } catch (error) {
+        showError('Delete failed', error);
+        return;
+    }
+    const folders = getFolderMap(resolvedType);
     const folderName = id ? folders[id]?.name : null;
     const text = id ? `Remove folder: ${folderName || id}` : 'Remove ALL folders';
 
@@ -3022,32 +3062,60 @@ const clearType = (type, id) => {
             return;
         }
 
+        const deleteIds = id ? [id] : Object.keys(getFolderMap(resolvedType));
+        const syncStepCount = resolvedType === 'docker' ? 1 : 0;
+        const progressTotal = Math.max(3, deleteIds.length + syncStepCount + 2);
+        let progressOpen = false;
+        const setProgress = (completed, label) => {
+            updateImportApplyProgressDialog({
+                completed: Math.max(0, Math.min(progressTotal, completed)),
+                total: progressTotal,
+                label
+            });
+        };
         try {
-            const backup = await createBackup(type, id ? `before-delete-${id}` : 'before-clear-all');
+            openImportApplyProgressDialog(resolvedType, progressTotal);
+            progressOpen = true;
+            setProgress(0, 'Creating safety backup...');
 
-            if (id) {
-                await $.post('/plugins/folderview.plus/server/delete.php', { type, id }).promise();
-            } else {
-                for (const currentId of Object.keys(folders)) {
-                    await $.post('/plugins/folderview.plus/server/delete.php', { type, id: currentId }).promise();
-                }
+            const backup = await createBackup(resolvedType, id ? `before-delete-${id}` : 'before-clear-all');
+            setProgress(1, `Safety backup created: ${backup?.name || 'ready'}`);
+
+            let completed = 1;
+            const foldersBeforeDelete = getFolderMap(resolvedType);
+            for (const currentId of deleteIds) {
+                const currentName = foldersBeforeDelete[currentId]?.name || currentId;
+                await $.post('/plugins/folderview.plus/server/delete.php', { type: resolvedType, id: currentId }).promise();
+                completed += 1;
+                setProgress(completed, `Deleted ${currentName}`);
             }
 
-            if (type === 'docker') {
+            if (resolvedType === 'docker') {
                 await syncDockerOrder();
+                completed += 1;
+                setProgress(completed, 'Synced Docker folder order');
             }
 
-            await Promise.all([refreshType(type), refreshBackups(type)]);
+            setProgress(progressTotal - 1, `Refreshing ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders...`);
+            await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
+            setProgress(progressTotal, id ? 'Folder deleted.' : 'All folders cleared.');
+            await new Promise((resolve) => setTimeout(resolve, 180));
+            closeImportApplyProgressDialog();
+            progressOpen = false;
+
             await trackDiagnosticsEvent({
                 eventType: id ? 'delete_folder' : 'clear_folders',
-                type,
+                type: resolvedType,
                 details: {
-                    deletedCount: id ? 1 : Object.keys(folders).length,
+                    deletedCount: deleteIds.length,
                     singleFolder: Boolean(id)
                 }
             });
-            await offerUndoAction(type, backup, id ? 'Delete folder' : 'Clear folders');
+            await offerUndoAction(resolvedType, backup, id ? 'Delete folder' : 'Clear folders');
         } catch (error) {
+            if (progressOpen) {
+                closeImportApplyProgressDialog();
+            }
             showError('Delete failed', error);
         }
     });
@@ -3720,12 +3788,38 @@ const restoreLatestBackup = (type) => {
             return;
         }
 
+        const progressTotal = 4;
+        let progressOpen = false;
+        const setProgress = (completed, label) => {
+            updateImportApplyProgressDialog({
+                completed: Math.max(0, Math.min(progressTotal, completed)),
+                total: progressTotal,
+                label
+            });
+        };
         try {
+            openImportApplyProgressDialog(resolvedType, progressTotal);
+            progressOpen = true;
+            setProgress(0, 'Creating safety backup...');
+
             const undoBackup = await createBackup(resolvedType, 'before-restore-latest');
+            setProgress(1, `Safety backup created: ${undoBackup?.name || 'ready'}`);
+
             await restoreLatest(resolvedType);
+            setProgress(2, 'Restored latest backup snapshot.');
+
             await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
+            setProgress(3, `Refreshed ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders.`);
+            setProgress(progressTotal, 'Restore complete.');
+            await new Promise((resolve) => setTimeout(resolve, 180));
+            closeImportApplyProgressDialog();
+            progressOpen = false;
+
             await offerUndoAction(resolvedType, undoBackup, 'Restore latest backup');
         } catch (error) {
+            if (progressOpen) {
+                closeImportApplyProgressDialog();
+            }
             showError('Restore failed', error);
         }
     });

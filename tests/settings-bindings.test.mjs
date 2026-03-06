@@ -63,3 +63,11 @@ test('import apply flow includes a dedicated progress dialog', () => {
     assert.match(script, /overlay\.hide\(\);/);
     assert.match(script, /await applyImportOperations\(resolvedType, operations, \(\{ completed, label \}\) =>/);
 });
+
+test('basic toolbar actions reuse compact progress overlay for docker and vm flows', () => {
+    assert.match(script, /const downloadType = async \(type, id\) =>/);
+    assert.match(script, /const clearType = \(type, id\) =>/);
+    assert.match(script, /const restoreLatestBackup = \(type\) =>/);
+    assert.match(script, /openImportApplyProgressDialog\(resolvedType, progressTotal\);/);
+    assert.match(script, /setProgress\(0, 'Creating safety backup\.\.\.'\);/);
+});

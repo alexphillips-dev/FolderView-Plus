@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.11.9">
-<!ENTITY md5 "cdc8ecbcb24e5e415ff72a4f3559f19e">
+<!ENTITY version "2026.03.12.1">
+<!ENTITY md5 "b145ec4e2ce5a1313cf1e3c0ecbd7afd">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.12.1
+- Increase top-left settings title size again for stronger visual hierarchy and readability.
+- Keep subtitle and toolbar layout behavior unchanged.
 
 ###2026.03.11.9
 - Increase settings header visual prominence:

@@ -48,6 +48,14 @@ test('mobile action bar and import progress keep compact viewport guards', () =>
     assert.match(settingsCss, /@media \(max-width: 760px\)\s*\{[\s\S]*#import-apply-progress-dialog/);
 });
 
+test('sort toggle note has anti-clipping layout guards', () => {
+    assert.match(settingsCss, /\.toolbar-sort-toggle\s*\{[\s\S]*padding:\s*0 0\.45rem 0 0/);
+    assert.match(settingsCss, /\.toolbar-sort-toggle\s*\{[\s\S]*overflow:\s*visible/);
+    assert.match(settingsCss, /\.toolbar-sort-toggle-main\s*\{[\s\S]*flex:\s*1 1 auto/);
+    assert.match(settingsCss, /\.toolbar-sort-toggle-note\s*\{[\s\S]*margin-left:\s*auto/);
+    assert.match(settingsCss, /\.toolbar-sort-toggle-note\s*\{[\s\S]*flex:\s*0 0 auto/);
+});
+
 test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderJs, /const enforceLeftAlignedSettingsLayout = \(\) =>/);
     assert.match(folderJs, /fv-force-left-v2 marker/);

@@ -55,7 +55,8 @@
     cursor: pointer;
     list-style: none;
     margin: 0;
-    padding: 0;
+    padding: 0 0.45rem 0 0;
+    overflow: visible;
 }
 
 .toolbar-sort-toggle::-webkit-details-marker {
@@ -67,12 +68,17 @@
     align-items: center;
     gap: 0.4rem;
     font-weight: 600;
+    min-width: 0;
+    flex: 1 1 auto;
 }
 
 .toolbar-sort-toggle-note {
     font-size: 1.03rem;
     opacity: 0.72;
     white-space: nowrap;
+    margin-left: auto;
+    flex: 0 0 auto;
+    padding-right: 0.1rem;
 }
 
 .toolbar-sort-caret {

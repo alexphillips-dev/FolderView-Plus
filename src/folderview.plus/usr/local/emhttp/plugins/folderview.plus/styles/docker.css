@@ -12,7 +12,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    font-size: 0.82rem;
+    font-size: 1.03rem;
     opacity: 0.92;
     background: rgba(255, 255, 255, 0.04);
 }
@@ -333,7 +333,7 @@ div.folder-preview-4 span.outer {
     background-color: rgba(128, 128, 128, 0.1);
     border: 1px solid rgba(128, 128, 128, 0.3);
     padding: 5px;
-    font-size: 0.9em;
+    font-size: 1.03rem;
     word-break: break-all;
 }
 

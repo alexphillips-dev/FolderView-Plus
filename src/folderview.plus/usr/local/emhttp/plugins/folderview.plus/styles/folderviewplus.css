@@ -70,7 +70,7 @@
 }
 
 .toolbar-sort-toggle-note {
-    font-size: 0.8rem;
+    font-size: 1.03rem;
     opacity: 0.72;
     white-space: nowrap;
 }
@@ -113,7 +113,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    font-size: 0.82rem;
+    font-size: 1.03rem;
     opacity: 0.86;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 999px;
@@ -126,7 +126,7 @@
 }
 
 .hint-line {
-    font-size: 0.88rem;
+    font-size: 1.03rem;
     opacity: 0.82;
     line-height: 1.35;
 }
@@ -154,7 +154,7 @@
 }
 
 .settings-mini-title {
-    font-size: 0.82rem;
+    font-size: 1.03rem;
     text-transform: uppercase;
     letter-spacing: 0.04em;
     opacity: 0.8;
@@ -165,7 +165,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    font-size: 0.9rem;
+    font-size: 1.03rem;
     line-height: 1.25;
     white-space: nowrap;
 }
@@ -179,7 +179,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 0.45rem;
-    font-size: 0.88rem;
+    font-size: 1.03rem;
     line-height: 1.2;
 }
 
@@ -193,7 +193,7 @@
 }
 
 .setting-note {
-    font-size: 0.82rem;
+    font-size: 1.03rem;
     opacity: 0.74;
     line-height: 1.25;
 }
@@ -250,7 +250,7 @@
 .status-line {
     display: block;
     margin-top: 0.5rem;
-    font-size: 0.9rem;
+    font-size: 1.03rem;
     opacity: 0.85;
 }
 
@@ -277,7 +277,7 @@
     display: inline-block;
     margin-left: 0.3rem;
     opacity: 0.8;
-    font-size: 0.84rem;
+    font-size: 1.03rem;
 }
 
 .folder-health-grid {
@@ -320,7 +320,7 @@
 }
 
 .folder-health-state {
-    font-size: 0.8rem;
+    font-size: 1.03rem;
     opacity: 0.84;
     text-transform: uppercase;
     letter-spacing: 0.03em;
@@ -338,7 +338,7 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(120px, 1fr));
     gap: 0.35rem 0.7rem;
-    font-size: 0.86rem;
+    font-size: 1.03rem;
 }
 
 .folder-health-metric {
@@ -364,7 +364,7 @@
     border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.04);
-    font-size: 0.8rem;
+    font-size: 1.03rem;
 }
 
 .folder-health-filter.is-active {
@@ -388,7 +388,7 @@
     border-radius: 6px;
     padding: 0.7rem 0.75rem;
     opacity: 0.85;
-    font-size: 0.9rem;
+    font-size: 1.03rem;
 }
 
 .rules-panel {
@@ -418,7 +418,7 @@
 }
 
 .rules-help {
-    font-size: 0.9rem;
+    font-size: 1.03rem;
     opacity: 0.8;
 }
 
@@ -499,7 +499,7 @@
     border-radius: 4px;
     border: 1px solid rgba(255, 255, 255, 0.12);
     background: rgba(255, 255, 255, 0.03);
-    font-size: 0.9rem;
+    font-size: 1.03rem;
 }
 
 .selection-actions {
@@ -576,7 +576,7 @@
 }
 
 .schedule-hint {
-    font-size: 0.86rem;
+    font-size: 1.03rem;
     opacity: 0.78;
 }
 
@@ -597,7 +597,7 @@
     border: 1px solid rgba(255, 255, 255, 0.12);
     background: rgba(0, 0, 0, 0.2);
     font-family: Consolas, "Courier New", monospace;
-    font-size: 12px;
+    font-size: 1.03rem;
     line-height: 1.45;
 }
 
@@ -632,7 +632,7 @@
 
 .import-selection-group h4 {
     margin: 0 0 0.35rem 0;
-    font-size: 0.93rem;
+    font-size: 1.03rem;
 }
 
 .import-selection-group h4 > label {
@@ -646,7 +646,7 @@
     align-items: center;
     gap: 0.45rem;
     width: 100%;
-    font-size: 0.9rem;
+    font-size: 1.03rem;
     margin: 0.2rem 0;
     box-sizing: border-box;
 }
@@ -662,7 +662,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.28rem;
-    font-size: 0.82rem;
+    font-size: 1.03rem;
     border: 1px solid rgba(255, 255, 255, 0.14);
     border-radius: 999px;
     padding: 0.14rem 0.45rem;
@@ -676,7 +676,7 @@
 
 #import-preview-dialog .preview-result {
     margin-bottom: 0.5rem;
-    font-size: 0.92rem;
+    font-size: 1.03rem;
     font-weight: 600;
     line-height: 1.3;
 }
@@ -691,7 +691,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.32rem;
-    font-size: 0.8rem;
+    font-size: 1.03rem;
     border-radius: 999px;
     border: 1px solid rgba(255, 255, 255, 0.16);
     padding: 0.14rem 0.42rem;
@@ -734,7 +734,7 @@
 #import-preview-dialog #import-preview-diff table {
     width: 100%;
     table-layout: fixed;
-    font-size: 12px;
+    font-size: 1.03rem;
 }
 
 #import-preview-dialog #import-preview-diff th,
@@ -757,7 +757,7 @@
     max-height: 180px;
     resize: vertical;
     font-family: Consolas, "Courier New", monospace;
-    font-size: 12px;
+    font-size: 1.03rem;
 }
 
 .ui-dialog.fv-import-preview-modal #import-preview-dialog {
@@ -788,13 +788,13 @@
 
 .import-preview-title {
     margin: 0;
-    font-size: 1.02rem;
+    font-size: 1.03rem;
     font-weight: 700;
 }
 
 .import-preview-subtitle {
     margin: 0;
-    font-size: 0.85rem;
+    font-size: 1.03rem;
     opacity: 0.82;
 }
 
@@ -827,7 +827,7 @@
 
 .import-card-title {
     margin: 0 0 0.42rem 0;
-    font-size: 0.84rem;
+    font-size: 1.03rem;
     letter-spacing: 0.03em;
     text-transform: uppercase;
     opacity: 0.84;
@@ -835,7 +835,7 @@
 
 .import-mode-card > label[for="import-mode-select"] {
     display: inline-block;
-    font-size: 0.84rem;
+    font-size: 1.03rem;
     font-weight: 700;
 }
 
@@ -851,7 +851,7 @@
 
 .import-summary-details > summary {
     cursor: pointer;
-    font-size: 0.84rem;
+    font-size: 1.03rem;
     font-weight: 600;
     opacity: 0.9;
     margin-bottom: 0.35rem;
@@ -911,7 +911,7 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 0.45rem 0.65rem;
-    font-size: 0.9rem;
+    font-size: 1.03rem;
     font-weight: 600;
     opacity: 0.9;
 }
@@ -989,7 +989,7 @@ a:focus-visible {
 }
 
 .fv-update-notes-kicker {
-    font-size: 0.78rem;
+    font-size: 1.03rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     opacity: 0.78;
@@ -1028,7 +1028,7 @@ a:focus-visible {
 
 .fv-update-notes-foot {
     margin-top: 0.48rem;
-    font-size: 0.83rem;
+    font-size: 1.03rem;
     opacity: 0.78;
 }
 
@@ -1060,7 +1060,7 @@ a:focus-visible {
 }
 
 .fv-settings-subtitle {
-    font-size: 0.92rem;
+    font-size: 1.03rem;
     line-height: 1.2;
     opacity: 0.84;
     white-space: nowrap;
@@ -1113,7 +1113,7 @@ a:focus-visible {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    font-size: 0.82rem;
+    font-size: 1.03rem;
     opacity: 0.9;
     white-space: nowrap;
 }
@@ -1154,7 +1154,7 @@ a:focus-visible {
 }
 
 .fv-advanced-nav-label {
-    font-size: 0.84rem;
+    font-size: 1.03rem;
     opacity: 0.78;
     font-weight: 600;
     text-transform: uppercase;
@@ -1181,7 +1181,7 @@ a:focus-visible {
     border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.04);
-    font-size: 0.82rem;
+    font-size: 1.03rem;
 }
 
 .fv-advanced-tab.is-active {
@@ -1192,7 +1192,7 @@ a:focus-visible {
 
 .fv-advanced-count {
     opacity: 0.82;
-    font-size: 0.78rem;
+    font-size: 1.03rem;
 }
 
 .fv-advanced-compact {
@@ -1201,7 +1201,7 @@ a:focus-visible {
     border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.04);
-    font-size: 0.8rem;
+    font-size: 1.03rem;
 }
 
 h2[data-fv-section] {
@@ -1216,7 +1216,7 @@ h2[data-fv-section] {
     align-items: center;
     padding: 0.08rem 0.45rem;
     border-radius: 999px;
-    font-size: 0.76rem;
+    font-size: 1.03rem;
     font-weight: 600;
     letter-spacing: 0.02em;
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -1241,7 +1241,7 @@ h2[data-fv-section] {
 .fv-section-toggle {
     margin-left: auto;
     min-width: 0;
-    font-size: 0.78rem;
+    font-size: 1.03rem;
     line-height: 1.2;
     padding: 0.14rem 0.38rem;
     border: 1px solid rgba(255, 255, 255, 0.16);
@@ -1256,7 +1256,7 @@ h2[data-fv-section] {
 .fv-section-toggle::before {
     content: "\f068";
     font-family: FontAwesome;
-    font-size: 0.72rem;
+    font-size: 1.03rem;
     opacity: 0.86;
 }
 
@@ -1283,7 +1283,7 @@ h2[data-fv-section].fv-search-match {
 
 .rule-live-match {
     margin: 0.1rem 0 0.6rem 0;
-    font-size: 0.87rem;
+    font-size: 1.03rem;
     opacity: 0.86;
 }
 
@@ -1304,14 +1304,14 @@ h2[data-fv-section].fv-search-match {
 }
 
 .rule-presets > span {
-    font-size: 0.84rem;
+    font-size: 1.03rem;
     opacity: 0.78;
 }
 
 .rule-presets > button {
     min-width: 0;
     padding: 2px 7px;
-    font-size: 0.8rem;
+    font-size: 1.03rem;
 }
 
 .fv-input-invalid {
@@ -1320,7 +1320,7 @@ h2[data-fv-section].fv-search-match {
 
 #import-mode-help {
     margin: 0.1rem 0 0.4rem 0;
-    font-size: 0.84rem;
+    font-size: 1.03rem;
     opacity: 0.82;
     line-height: 1.35;
 }
@@ -1330,7 +1330,7 @@ h2[data-fv-section].fv-search-match {
     align-items: center;
     gap: 0.45rem;
     margin: 0;
-    font-size: 0.9rem;
+    font-size: 1.03rem;
 }
 
 :root {
@@ -1361,7 +1361,7 @@ h2[data-fv-section].fv-search-match {
 }
 
 .fv-action-status {
-    font-size: 0.86rem;
+    font-size: 1.03rem;
     opacity: 0.82;
 }
 
@@ -1469,7 +1469,7 @@ body {
         margin-left: 0;
         min-height: 34px;
         padding: 0.28rem 0.58rem;
-        font-size: 0.84rem;
+        font-size: 1.03rem;
     }
 
     .fv-update-notes-actions {

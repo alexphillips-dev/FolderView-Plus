@@ -63,7 +63,18 @@ const WIZARD_DONE_STORAGE_KEY = 'fv.settings.wizard.v1.done';
 const ADVANCED_TAB_STORAGE_KEY = 'fv.settings.advancedTab.v1';
 const ADVANCED_SECTION_STORAGE_KEY = 'fv.settings.advancedSection.v1';
 const ADVANCED_EXPANDED_STORAGE_KEY = 'fv.settings.advancedExpanded.v2';
+const ADVANCED_KNOWN_STORAGE_KEY = 'fv.settings.advancedKnown.v1';
 const SEARCH_ALL_ADVANCED_STORAGE_KEY = 'fv.settings.searchAllAdvanced.v1';
+const LEGACY_ADVANCED_SECTION_KEYS = [
+    'auto-assignment',
+    'bulk-assignment',
+    'runtime-actions',
+    'backups',
+    'folder-templates',
+    'change-history',
+    'diagnostics',
+    'conflict-inspector'
+];
 const ADVANCED_SECTION_KEYS = new Set([
     'auto-assignment',
     'bulk-assignment',
@@ -105,6 +116,7 @@ const settingsUiState = {
     advancedTab: 'automation',
     searchAllAdvanced: false,
     expandedAdvancedSections: new Set(),
+    knownAdvancedSections: new Set(),
     hasExpandedAdvancedPreference: false,
     wizardShown: false
 };
@@ -161,11 +173,43 @@ const persistExpandedAdvancedSections = () => {
     localStorage.setItem(ADVANCED_EXPANDED_STORAGE_KEY, payload);
 };
 
+const persistKnownAdvancedSections = () => {
+    const payload = JSON.stringify(Array.from(settingsUiState.knownAdvancedSections || []));
+    localStorage.setItem(ADVANCED_KNOWN_STORAGE_KEY, payload);
+};
+
+const setsEqual = (a, b) => {
+    if (a.size !== b.size) {
+        return false;
+    }
+    for (const item of a) {
+        if (!b.has(item)) {
+            return false;
+        }
+    }
+    return true;
+};
+
 const normalizeExpandedAdvancedSections = () => {
     const advancedKeys = settingsUiState.sections
         .filter((section) => section.advanced)
         .map((section) => section.key);
     const knownKeys = new Set(advancedKeys);
+    const priorExpanded = new Set(settingsUiState.expandedAdvancedSections || []);
+    let knownAdvanced = new Set(
+        Array.from(settingsUiState.knownAdvancedSections || [])
+            .map((key) => String(key || '').trim())
+            .filter((key) => key !== '' && knownKeys.has(key))
+    );
+
+    // Guard for old installs: if we had expansion prefs but no known-section list,
+    // treat legacy sections as known so newly added sections auto-expand once.
+    if (settingsUiState.hasExpandedAdvancedPreference && knownAdvanced.size === 0) {
+        knownAdvanced = new Set(
+            LEGACY_ADVANCED_SECTION_KEYS.filter((key) => knownKeys.has(key))
+        );
+    }
+
     const normalized = new Set(
         Array.from(settingsUiState.expandedAdvancedSections || [])
             .map((key) => String(key || '').trim())
@@ -179,12 +223,28 @@ const normalizeExpandedAdvancedSections = () => {
         if (advancedKeys.length > 0) {
             persistExpandedAdvancedSections();
         }
+        settingsUiState.knownAdvancedSections = new Set(advancedKeys);
+        persistKnownAdvancedSections();
         return;
     }
-    const changedByCleanup = normalized.size !== settingsUiState.expandedAdvancedSections.size;
+
+    for (const key of advancedKeys) {
+        if (!knownAdvanced.has(key)) {
+            normalized.add(key);
+        }
+    }
+
+    const changedByCleanup = !setsEqual(normalized, priorExpanded);
     settingsUiState.expandedAdvancedSections = normalized;
     if (changedByCleanup) {
         persistExpandedAdvancedSections();
+    }
+
+    const nextKnown = new Set(advancedKeys);
+    const knownChanged = !setsEqual(nextKnown, settingsUiState.knownAdvancedSections);
+    settingsUiState.knownAdvancedSections = nextKnown;
+    if (knownChanged) {
+        persistKnownAdvancedSections();
     }
 };
 
@@ -4096,6 +4156,7 @@ window.setSettingsMode = setSettingsMode;
         settingsUiState.searchAllAdvanced = localStorage.getItem(SEARCH_ALL_ADVANCED_STORAGE_KEY) === '1';
         settingsUiState.activeSectionKey = String(localStorage.getItem(ADVANCED_SECTION_STORAGE_KEY) || '').trim();
         const expandedRaw = localStorage.getItem(ADVANCED_EXPANDED_STORAGE_KEY);
+        const knownRaw = localStorage.getItem(ADVANCED_KNOWN_STORAGE_KEY);
         settingsUiState.hasExpandedAdvancedPreference = expandedRaw !== null;
         if (expandedRaw !== null) {
             try {
@@ -4109,6 +4170,18 @@ window.setSettingsMode = setSettingsMode;
             }
         } else {
             settingsUiState.expandedAdvancedSections = new Set();
+        }
+        if (knownRaw !== null) {
+            try {
+                const known = JSON.parse(knownRaw);
+                settingsUiState.knownAdvancedSections = new Set(
+                    Array.isArray(known) ? known.map((key) => String(key || '').trim()).filter((key) => key !== '') : []
+                );
+            } catch (_error) {
+                settingsUiState.knownAdvancedSections = new Set();
+            }
+        } else {
+            settingsUiState.knownAdvancedSections = new Set();
         }
         initSettingsControls();
         await fetchPluginVersion();

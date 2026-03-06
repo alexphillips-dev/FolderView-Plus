@@ -5,7 +5,7 @@ CWD="$(pwd)"
 tmpdir="$CWD/tmp/tmp.$((RANDOM % 1000000))"
 version_override="${FVPLUS_VERSION_OVERRIDE:-}"
 today_version="$(date +"%Y.%m.%d")"
-version="$today_version"
+version="${today_version}.01"
 plgfile="$CWD/folderview.plus.plg"
 archive_prefix="folderview.plus"
 icon_ext_regex='^(png|jpg|jpeg|gif|webp|svg|bmp|ico|avif)$'
@@ -14,16 +14,33 @@ is_stable_version() {
     [[ "${1:-}" =~ ^[0-9]{4}\.[0-9]{2}\.[0-9]{2}(\.[0-9]+)?$ ]]
 }
 
+normalize_stable_version_for_unraid() {
+    local input="${1:-}"
+    if [[ "$input" =~ ^([0-9]{4}\.[0-9]{2}\.[0-9]{2})$ ]]; then
+        echo "${BASH_REMATCH[1]}.01"
+        return
+    fi
+    if [[ "$input" =~ ^([0-9]{4}\.[0-9]{2}\.[0-9]{2})\.([0-9]+)$ ]]; then
+        local base="${BASH_REMATCH[1]}"
+        local patch_raw="${BASH_REMATCH[2]}"
+        local patch_num=$((10#$patch_raw))
+        printf '%s.%02d\n' "$base" "$patch_num"
+        return
+    fi
+    echo "$input"
+}
+
 next_patch_version() {
     local input="${1:-}"
     if [[ "$input" =~ ^([0-9]{4}\.[0-9]{2}\.[0-9]{2})\.([0-9]+)$ ]]; then
         local base="${BASH_REMATCH[1]}"
-        local patch="${BASH_REMATCH[2]}"
-        echo "${base}.$((patch + 1))"
+        local patch_raw="${BASH_REMATCH[2]}"
+        local next_patch=$((10#$patch_raw + 1))
+        printf '%s.%02d\n' "$base" "$next_patch"
         return
     fi
     if [[ "$input" =~ ^[0-9]{4}\.[0-9]{2}\.[0-9]{2}$ ]]; then
-        echo "${input}.1"
+        echo "${input}.01"
         return
     fi
     echo "$input"
@@ -83,7 +100,7 @@ should_package_file() {
 # Usage: pkg_build.sh [--beta [N]]
 #   --beta     -> YYYY.MM.DD-beta (beta branch)
 #   --beta 2   -> YYYY.MM.DD-beta2 (beta branch)
-#   (no flag)  -> YYYY.MM.DD(.N) (main branch, stable)
+#   (no flag)  -> YYYY.MM.DD.UU (main branch, stable; zero-padded update suffix)
 BETA=false
 BETA_NUM=""
 if [ "${1:-}" = "--beta" ]; then
@@ -105,6 +122,9 @@ if [ -n "$version_override" ]; then
     if [[ ! "$version_override" =~ ^[0-9]{4}\.[0-9]{2}\.[0-9]{2}([.-][0-9]+|-beta[0-9]*)?$ ]]; then
         echo "Invalid FVPLUS_VERSION_OVERRIDE: $version_override" >&2
         exit 1
+    fi
+    if [ "$BETA" = false ] && is_stable_version "$version_override"; then
+        version_override="$(normalize_stable_version_for_unraid "$version_override")"
     fi
     if [ "$BETA" = false ] && is_stable_version "$version_override"; then
         highest_stable="$(highest_stable_archive_version || true)"

@@ -22,7 +22,7 @@ if [[ -z "${MD5_ENTITY}" ]]; then
   exit 1
 fi
 
-if ! [[ "${VERSION}" =~ ^[0-9]{4}\.[0-9]{2}\.[0-9]{2}([.-][0-9]+|-beta[0-9]*)?$ ]]; then
+if ! [[ "${VERSION}" =~ ^[0-9]{4}\.[0-9]{2}\.[0-9]{2}(\.[0-9]{2,}|-beta[0-9]*)$ ]]; then
   echo "ERROR: Version has unexpected format: ${VERSION}" >&2
   exit 1
 fi

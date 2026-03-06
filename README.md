@@ -38,6 +38,11 @@ https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/<commit>/fold
 
 Then return to normal `main` updates.
 
+Versioning format:
+
+- Stable releases use `YYYY.MM.DD.UU` (for example `2026.03.14.11`)
+- `UU` is a zero-padded update number to keep Unraid update ordering consistent
+
 ## Uninstall
 
 ```bash

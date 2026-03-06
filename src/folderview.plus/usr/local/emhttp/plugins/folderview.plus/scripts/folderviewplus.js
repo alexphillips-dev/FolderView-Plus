@@ -124,6 +124,7 @@ const settingsUiState = {
     hasExpandedAdvancedPreference: false,
     wizardShown: false
 };
+let overflowGuardBound = false;
 const MOBILE_SETTINGS_BREAKPOINT_PX = 760;
 
 const supportsTouchInput = () => (
@@ -1931,6 +1932,54 @@ const showError = (title, error) => {
     });
 };
 
+const setImportantStyle = (element, property, value) => {
+    if (!element || !element.style || typeof element.style.setProperty !== 'function') {
+        return;
+    }
+    element.style.setProperty(property, value, 'important');
+};
+
+const enforceNoHorizontalOverflow = () => {
+    const rootTargets = [
+        document.documentElement,
+        document.body,
+        document.querySelector('.canvas'),
+        document.querySelector('#content'),
+        document.querySelector('#canvas')
+    ].filter(Boolean);
+
+    for (const target of rootTargets) {
+        setImportantStyle(target, 'overflow-x', 'hidden');
+    }
+
+    const tableTargets = document.querySelectorAll('.folder-table .table-wrap, .folder-table table, .folder-table table th, .folder-table table td');
+    tableTargets.forEach((target) => {
+        setImportantStyle(target, 'max-width', '100%');
+        setImportantStyle(target, 'min-width', '0');
+    });
+    document.querySelectorAll('.folder-table .table-wrap').forEach((target) => {
+        setImportantStyle(target, 'overflow-x', 'hidden');
+        setImportantStyle(target, 'overflow-y', 'visible');
+    });
+};
+
+const initOverflowGuard = () => {
+    if (overflowGuardBound) {
+        enforceNoHorizontalOverflow();
+        return;
+    }
+    overflowGuardBound = true;
+    enforceNoHorizontalOverflow();
+    window.addEventListener('resize', enforceNoHorizontalOverflow);
+    const observer = new MutationObserver(() => {
+        enforceNoHorizontalOverflow();
+    });
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+};
+
 const closeImportApplyProgressDialog = () => {
     const overlay = $('#import-apply-progress-overlay');
     const dialog = $('#import-apply-progress-dialog');
@@ -2791,6 +2840,7 @@ const renderTable = (type) => {
     renderFolderHealthCards();
     updateRuleLiveMatch(type);
     refreshSettingsUx();
+    enforceNoHorizontalOverflow();
 };
 
 const refreshType = async (type) => {
@@ -4627,6 +4677,7 @@ window.setSettingsMode = setSettingsMode;
             settingsUiState.knownAdvancedSections = new Set();
         }
         initSettingsControls();
+        initOverflowGuard();
         await fetchPluginVersion();
         await refreshAll();
         const serverMode = getServerSettingsMode();

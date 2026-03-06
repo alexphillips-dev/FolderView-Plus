@@ -82,5 +82,9 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const settingsChrome = window\.FolderViewPlusSettingsChrome \|\| null;/);
     assert.match(settingsJs, /const apiPostJson = async \(url, data = \{\}, options = \{\}\) =>/);
     assert.match(settingsJs, /const topbarHtml = settingsChrome && typeof settingsChrome\.getTopbarHtml === 'function'/);
+    assert.match(settingsJs, /const enforceNoHorizontalOverflow = \(\) =>/);
+    assert.match(settingsJs, /const initOverflowGuard = \(\) =>/);
+    assert.match(settingsJs, /window\.addEventListener\('resize', enforceNoHorizontalOverflow\)/);
+    assert.match(settingsJs, /initOverflowGuard\(\);/);
     assert.doesNotMatch(settingsJs, /await \$\.post\('\/plugins\/folderview\.plus\/server\//);
 });

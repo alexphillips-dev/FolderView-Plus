@@ -6,12 +6,22 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.11.5">
-<!ENTITY md5 "f4400c02d7f0892ab085ee7fc0c0d431">
+<!ENTITY version "2026.03.11.6">
+<!ENTITY md5 "03ef6c9928af5f2f1adda418f1b7f438">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.11.6
+- Advanced tab numbering cleanup:
+  - tab badges now show unique step order (`1..N`) left-to-right,
+  - remove duplicate-count behavior that caused repeated numbers.
+- Advanced section expansion behavior update:
+  - all advanced sections now default to expanded,
+  - keep per-section compact toggles,
+  - add `Compact tab` / `Expand tab` action in the advanced header.
+- Migrate advanced expand-state storage key to reset old collapsed defaults safely.
 
 ###2026.03.11.5
 - Split settings into clearer mode workspaces:

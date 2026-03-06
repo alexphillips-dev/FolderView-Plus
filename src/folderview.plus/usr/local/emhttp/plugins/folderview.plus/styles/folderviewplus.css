@@ -668,6 +668,7 @@ a:focus-visible {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: space-between;
     gap: 0.45rem 0.7rem;
 }
 
@@ -677,6 +678,14 @@ a:focus-visible {
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.03em;
+}
+
+.fv-advanced-controls {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.4rem 0.6rem;
 }
 
 .fv-advanced-tabs {
@@ -703,6 +712,15 @@ a:focus-visible {
 .fv-advanced-count {
     opacity: 0.82;
     font-size: 0.78rem;
+}
+
+.fv-advanced-compact {
+    min-width: 0;
+    padding: 0.24rem 0.52rem;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.04);
+    font-size: 0.8rem;
 }
 
 h2[data-fv-section] {

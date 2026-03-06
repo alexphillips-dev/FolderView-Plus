@@ -54,7 +54,7 @@ const UI_MODE_STORAGE_KEY = 'fv.settings.mode.v1';
 const WIZARD_DONE_STORAGE_KEY = 'fv.settings.wizard.v1.done';
 const ADVANCED_TAB_STORAGE_KEY = 'fv.settings.advancedTab.v1';
 const ADVANCED_SECTION_STORAGE_KEY = 'fv.settings.advancedSection.v1';
-const ADVANCED_EXPANDED_STORAGE_KEY = 'fv.settings.advancedExpanded.v1';
+const ADVANCED_EXPANDED_STORAGE_KEY = 'fv.settings.advancedExpanded.v2';
 const SEARCH_ALL_ADVANCED_STORAGE_KEY = 'fv.settings.searchAllAdvanced.v1';
 const ADVANCED_SECTION_KEYS = new Set([
     'auto-assignment',
@@ -95,6 +95,7 @@ const settingsUiState = {
     advancedTab: 'automation',
     searchAllAdvanced: false,
     expandedAdvancedSections: new Set(),
+    hasExpandedAdvancedPreference: false,
     wizardShown: false
 };
 
@@ -146,7 +147,35 @@ const normalizeAdvancedGroup = (value) => (
 
 const persistExpandedAdvancedSections = () => {
     const payload = JSON.stringify(Array.from(settingsUiState.expandedAdvancedSections || []));
+    settingsUiState.hasExpandedAdvancedPreference = true;
     localStorage.setItem(ADVANCED_EXPANDED_STORAGE_KEY, payload);
+};
+
+const normalizeExpandedAdvancedSections = () => {
+    const advancedKeys = settingsUiState.sections
+        .filter((section) => section.advanced)
+        .map((section) => section.key);
+    const knownKeys = new Set(advancedKeys);
+    const normalized = new Set(
+        Array.from(settingsUiState.expandedAdvancedSections || [])
+            .map((key) => String(key || '').trim())
+            .filter((key) => key !== '' && knownKeys.has(key))
+    );
+    if (!settingsUiState.hasExpandedAdvancedPreference) {
+        for (const key of advancedKeys) {
+            normalized.add(key);
+        }
+        settingsUiState.expandedAdvancedSections = normalized;
+        if (advancedKeys.length > 0) {
+            persistExpandedAdvancedSections();
+        }
+        return;
+    }
+    const changedByCleanup = normalized.size !== settingsUiState.expandedAdvancedSections.size;
+    settingsUiState.expandedAdvancedSections = normalized;
+    if (changedByCleanup) {
+        persistExpandedAdvancedSections();
+    }
 };
 
 const persistActiveAdvancedSection = (sectionKey) => {
@@ -277,7 +306,7 @@ const buildSettingsSections = () => {
             toggle.className = 'fv-section-toggle';
             toggle.dataset.sectionToggle = key;
             toggle.setAttribute('aria-label', `Toggle ${title || key}`);
-            toggle.textContent = 'Toggle';
+            toggle.textContent = 'Compact';
             heading.appendChild(toggle);
         }
 
@@ -290,6 +319,7 @@ const buildSettingsSections = () => {
             advancedGroup,
             heading,
             badge,
+            toggle,
             nodes,
             contentNodes
         });
@@ -344,25 +374,58 @@ const renderAdvancedNav = () => {
         return;
     }
 
-    const tabsHtml = ADVANCED_GROUPS
-        .map((group) => {
-            const count = advancedSections.filter((section) => section.advancedGroup === group).length;
-            if (!count) {
-                return '';
-            }
-            const active = settingsUiState.advancedTab === group ? 'is-active' : '';
-            const label = ADVANCED_GROUP_LABELS[group] || group;
-            return `<button type="button" class="fv-advanced-tab ${active}" data-fv-advanced-tab="${group}">${escapeHtml(label)} <span class="fv-advanced-count">${count}</span></button>`;
+    const groups = ADVANCED_GROUPS
+        .map((group) => ({
+            group,
+            count: advancedSections.filter((section) => section.advancedGroup === group).length
+        }))
+        .filter((entry) => entry.count > 0);
+    const tabsHtml = groups
+        .map((entry, index) => {
+            const active = settingsUiState.advancedTab === entry.group ? 'is-active' : '';
+            const label = ADVANCED_GROUP_LABELS[entry.group] || entry.group;
+            const step = index + 1;
+            const countTitle = `${entry.count} section${entry.count === 1 ? '' : 's'} in ${label}`;
+            return `<button type="button" class="fv-advanced-tab ${active}" data-fv-advanced-tab="${entry.group}" title="${escapeHtml(countTitle)}">${escapeHtml(label)} <span class="fv-advanced-count">${step}</span></button>`;
         })
-        .filter(Boolean)
         .join('');
+    const activeTabSections = advancedSections.filter((section) => section.advancedGroup === settingsUiState.advancedTab);
+    const allExpandedInTab = activeTabSections.length > 0
+        && activeTabSections.every((section) => settingsUiState.expandedAdvancedSections.has(section.key));
+    const compactLabel = allExpandedInTab ? 'Compact tab' : 'Expand tab';
+    const compactIcon = allExpandedInTab ? 'fa-compress' : 'fa-expand';
 
     container.html(`
         <div class="fv-advanced-nav-inner">
             <span class="fv-advanced-nav-label">Advanced sections</span>
-            <div class="fv-advanced-tabs">${tabsHtml}</div>
+            <div class="fv-advanced-controls">
+                <div class="fv-advanced-tabs">${tabsHtml}</div>
+                <button type="button" id="fv-advanced-compact" class="fv-advanced-compact"><i class="fa ${compactIcon}"></i> ${compactLabel}</button>
+            </div>
         </div>
     `).show();
+};
+
+const toggleAdvancedTabCompactState = () => {
+    const tabSections = settingsUiState.sections.filter((section) => (
+        section.advanced && section.advancedGroup === settingsUiState.advancedTab
+    ));
+    if (!tabSections.length) {
+        return;
+    }
+    const shouldCompact = tabSections.every((section) => settingsUiState.expandedAdvancedSections.has(section.key));
+    for (const section of tabSections) {
+        if (shouldCompact) {
+            settingsUiState.expandedAdvancedSections.delete(section.key);
+        } else {
+            settingsUiState.expandedAdvancedSections.add(section.key);
+        }
+    }
+    persistExpandedAdvancedSections();
+    applySettingsSectionVisibility();
+    syncSectionJumpOptions();
+    refreshSectionHealthBadges();
+    updateActionBarSaveState();
 };
 
 const applySettingsSectionVisibility = () => {
@@ -379,6 +442,12 @@ const applySettingsSectionVisibility = () => {
         }
         for (const node of section.contentNodes || []) {
             node.classList.toggle('fv-section-content-hidden', visible && !expanded);
+        }
+        if (section.toggle) {
+            const toggleLabel = expanded ? 'Compact' : 'Expand';
+            section.toggle.textContent = toggleLabel;
+            section.toggle.title = `${toggleLabel} section`;
+            section.toggle.setAttribute('aria-label', `${toggleLabel} ${section.title || section.key}`);
         }
         section.heading.classList.toggle('fv-search-match', visible && Boolean(settingsUiState.query));
         section.heading.classList.toggle('fv-section-collapsed', visible && section.advanced && !expanded);
@@ -883,6 +952,10 @@ const initSettingsControls = () => {
         refreshSectionHealthBadges();
         updateActionBarSaveState();
     });
+    $(document).off('click.fvcompact', '#fv-advanced-compact').on('click.fvcompact', '#fv-advanced-compact', (event) => {
+        event.preventDefault();
+        toggleAdvancedTabCompactState();
+    });
 
     $(document).off('click.fvsectiontoggle', '.fv-section-toggle').on('click.fvsectiontoggle', '.fv-section-toggle', (event) => {
         event.preventDefault();
@@ -924,6 +997,7 @@ const initSettingsControls = () => {
 
 const refreshSettingsUx = () => {
     buildSettingsSections();
+    normalizeExpandedAdvancedSections();
     const advancedSections = settingsUiState.sections.filter((section) => section.advanced);
     if (advancedSections.length) {
         const hasCurrentTab = advancedSections.some((section) => section.advancedGroup === settingsUiState.advancedTab);
@@ -3614,12 +3688,19 @@ window.setSettingsMode = setSettingsMode;
         setAdvancedTab(localStorage.getItem(ADVANCED_TAB_STORAGE_KEY) || 'automation', false);
         settingsUiState.searchAllAdvanced = localStorage.getItem(SEARCH_ALL_ADVANCED_STORAGE_KEY) === '1';
         settingsUiState.activeSectionKey = String(localStorage.getItem(ADVANCED_SECTION_STORAGE_KEY) || '').trim();
-        try {
-            const expanded = JSON.parse(localStorage.getItem(ADVANCED_EXPANDED_STORAGE_KEY) || '[]');
-            settingsUiState.expandedAdvancedSections = new Set(
-                Array.isArray(expanded) ? expanded.map((key) => String(key || '').trim()).filter((key) => key !== '') : []
-            );
-        } catch (_error) {
+        const expandedRaw = localStorage.getItem(ADVANCED_EXPANDED_STORAGE_KEY);
+        settingsUiState.hasExpandedAdvancedPreference = expandedRaw !== null;
+        if (expandedRaw !== null) {
+            try {
+                const expanded = JSON.parse(expandedRaw);
+                settingsUiState.expandedAdvancedSections = new Set(
+                    Array.isArray(expanded) ? expanded.map((key) => String(key || '').trim()).filter((key) => key !== '') : []
+                );
+            } catch (_error) {
+                settingsUiState.hasExpandedAdvancedPreference = false;
+                settingsUiState.expandedAdvancedSections = new Set();
+            }
+        } else {
             settingsUiState.expandedAdvancedSections = new Set();
         }
         initSettingsControls();

@@ -24,12 +24,22 @@ const vmCssPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/vm.css'
 );
+const settingsJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
+);
+const settingsCssPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css'
+);
 
 const dockerJs = fs.readFileSync(dockerJsPath, 'utf8');
 const vmJs = fs.readFileSync(vmJsPath, 'utf8');
 const folderJs = fs.readFileSync(folderJsPath, 'utf8');
 const dockerCss = fs.readFileSync(dockerCssPath, 'utf8');
 const vmCss = fs.readFileSync(vmCssPath, 'utf8');
+const settingsJs = fs.readFileSync(settingsJsPath, 'utf8');
+const settingsCss = fs.readFileSync(settingsCssPath, 'utf8');
 
 test('docker runtime includes touch-mode detection and avoids hover-only trigger on touch', () => {
     assert.match(dockerJs, /const FOLDER_VIEW_TOUCH_MODE = \(\(\) =>/);
@@ -52,4 +62,19 @@ test('docker and vm styles include responsive touch/mobile fallbacks', () => {
     assert.match(dockerCss, /@media \(max-width: 980px\)/);
     assert.match(vmCss, /@media \(hover: none\), \(pointer: coarse\)/);
     assert.match(vmCss, /@media \(max-width: 980px\)/);
+});
+
+test('settings advanced sections include mobile-safe expand/collapse handlers', () => {
+    assert.match(settingsJs, /const shouldUseMobileSectionToggle = \(\) =>/);
+    assert.match(settingsJs, /const toggleAdvancedSectionByKey = \(sectionKey\) =>/);
+    assert.match(settingsJs, /click\.fvsectionheader/);
+    assert.match(settingsJs, /h2\[data-fv-section\]\[data-fv-advanced="1"\]/);
+});
+
+test('settings styles include responsive advanced accordion controls on mobile', () => {
+    assert.match(settingsCss, /\.fv-section-toggle::before/);
+    assert.match(settingsCss, /\.fv-section-toggle\.is-collapsed::before/);
+    assert.match(settingsCss, /@media \(max-width: 760px\)/);
+    assert.match(settingsCss, /h2\[data-fv-section\]\[data-fv-advanced="1"\]/);
+    assert.match(settingsCss, /\.fv-advanced-tabs/);
 });

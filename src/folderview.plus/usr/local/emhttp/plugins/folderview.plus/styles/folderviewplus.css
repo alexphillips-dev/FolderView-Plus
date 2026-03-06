@@ -1014,6 +1014,21 @@ h2[data-fv-section] {
     border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.05);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
+    touch-action: manipulation;
+}
+
+.fv-section-toggle::before {
+    content: "\f068";
+    font-family: FontAwesome;
+    font-size: 0.72rem;
+    opacity: 0.86;
+}
+
+.fv-section-toggle.is-collapsed::before {
+    content: "\f067";
 }
 
 .fv-section-collapsed .fv-section-toggle {
@@ -1162,6 +1177,58 @@ body {
 
     .fv-settings-right input[type="text"] {
         width: 100%;
+    }
+
+    .fv-advanced-nav {
+        padding: 0.55rem 0.6rem;
+    }
+
+    .fv-advanced-nav-inner {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .fv-advanced-controls {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .fv-advanced-tabs {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.35rem;
+    }
+
+    .fv-advanced-tab,
+    .fv-advanced-compact {
+        min-height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.32rem 0.55rem;
+    }
+
+    .fv-advanced-compact {
+        width: 100%;
+    }
+
+    h2[data-fv-section] {
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.35rem 0.45rem;
+    }
+
+    h2[data-fv-section][data-fv-advanced="1"] {
+        cursor: pointer;
+        -webkit-tap-highlight-color: rgba(77, 163, 255, 0.15);
+    }
+
+    h2[data-fv-section][data-fv-advanced="1"] .fv-section-toggle {
+        margin-left: 0;
+        min-height: 34px;
+        padding: 0.28rem 0.58rem;
+        font-size: 0.84rem;
     }
 
     .fv-update-notes-actions {

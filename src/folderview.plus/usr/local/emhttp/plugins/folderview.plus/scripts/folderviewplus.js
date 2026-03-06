@@ -122,6 +122,20 @@ const settingsUiState = {
     hasExpandedAdvancedPreference: false,
     wizardShown: false
 };
+const MOBILE_SETTINGS_BREAKPOINT_PX = 760;
+
+const supportsTouchInput = () => (
+    ('ontouchstart' in window)
+    || (navigator.maxTouchPoints > 0)
+    || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches)
+);
+
+const isMobileSettingsViewport = () => (
+    window.matchMedia
+    && window.matchMedia(`(max-width: ${MOBILE_SETTINGS_BREAKPOINT_PX}px)`).matches
+);
+
+const shouldUseMobileSectionToggle = () => supportsTouchInput() && isMobileSettingsViewport();
 
 const getOptionalRequestToken = () => {
     const metaToken = document.querySelector('meta[name="fv-request-token"]');
@@ -335,7 +349,13 @@ const buildSettingsSections = () => {
     for (const heading of headings) {
         const key = String(heading.dataset.fvSection || slugifySectionKey(heading.textContent));
         const title = Array.from(heading.childNodes)
-            .filter((node) => !(node instanceof HTMLElement && node.classList.contains('fv-section-badge')))
+            .filter((node) => !(
+                node instanceof HTMLElement
+                && (
+                    node.classList.contains('fv-section-badge')
+                    || node.classList.contains('fv-section-toggle')
+                )
+            ))
             .map((node) => node.textContent || '')
             .join(' ')
             .replace(/\s+/g, ' ')
@@ -363,6 +383,7 @@ const buildSettingsSections = () => {
         heading.id = heading.id || `fv-section-${key}`;
         heading.dataset.fvSection = key;
         heading.dataset.fvAdvancedGroup = advancedGroup;
+        heading.dataset.fvAdvanced = advanced ? '1' : '0';
 
         let badge = heading.querySelector('.fv-section-badge');
         if (!badge) {
@@ -500,6 +521,32 @@ const toggleAdvancedTabCompactState = () => {
     updateActionBarSaveState();
 };
 
+const toggleAdvancedSectionByKey = (sectionKey) => {
+    const key = String(sectionKey || '').trim();
+    if (!key) {
+        return false;
+    }
+    const section = settingsUiState.sections.find((entry) => entry.key === key);
+    if (!section || !section.advanced) {
+        return false;
+    }
+
+    if (settingsUiState.expandedAdvancedSections.has(key)) {
+        settingsUiState.expandedAdvancedSections.delete(key);
+    } else {
+        settingsUiState.expandedAdvancedSections.add(key);
+        settingsUiState.activeSectionKey = key;
+        persistActiveAdvancedSection(key);
+        setAdvancedTab(section.advancedGroup);
+    }
+    persistExpandedAdvancedSections();
+    applySettingsSectionVisibility();
+    syncSectionJumpOptions();
+    refreshSectionHealthBadges();
+    updateActionBarSaveState();
+    return true;
+};
+
 const applySettingsSectionVisibility = () => {
     const visibleKeys = new Set(getVisibleSections().map((section) => section.key));
     const forceExpandForQuery = Boolean(settingsUiState.query);
@@ -520,6 +567,8 @@ const applySettingsSectionVisibility = () => {
             section.toggle.textContent = toggleLabel;
             section.toggle.title = `${toggleLabel} section`;
             section.toggle.setAttribute('aria-label', `${toggleLabel} ${section.title || section.key}`);
+            section.toggle.classList.toggle('is-expanded', expanded);
+            section.toggle.classList.toggle('is-collapsed', !expanded);
         }
         section.heading.classList.toggle('fv-search-match', visible && Boolean(settingsUiState.query));
         section.heading.classList.toggle('fv-section-collapsed', visible && section.advanced && !expanded);
@@ -1066,25 +1115,19 @@ const initSettingsControls = () => {
         event.preventDefault();
         event.stopPropagation();
         const key = String($(event.currentTarget).attr('data-section-toggle') || '').trim();
-        if (!key) {
+        toggleAdvancedSectionByKey(key);
+    });
+
+    $(document).off('click.fvsectionheader', 'h2[data-fv-section][data-fv-advanced="1"]').on('click.fvsectionheader', 'h2[data-fv-section][data-fv-advanced="1"]', (event) => {
+        if (!shouldUseMobileSectionToggle()) {
             return;
         }
-        if (settingsUiState.expandedAdvancedSections.has(key)) {
-            settingsUiState.expandedAdvancedSections.delete(key);
-        } else {
-            settingsUiState.expandedAdvancedSections.add(key);
-            settingsUiState.activeSectionKey = key;
-            persistActiveAdvancedSection(key);
-            const section = settingsUiState.sections.find((entry) => entry.key === key);
-            if (section?.advanced) {
-                setAdvancedTab(section.advancedGroup);
-            }
+        const target = event.target instanceof Element ? event.target : null;
+        if (target && target.closest('.fv-section-toggle, button, a, input, select, textarea, label')) {
+            return;
         }
-        persistExpandedAdvancedSections();
-        applySettingsSectionVisibility();
-        syncSectionJumpOptions();
-        refreshSectionHealthBadges();
-        updateActionBarSaveState();
+        const key = String($(event.currentTarget).attr('data-fv-section') || '').trim();
+        toggleAdvancedSectionByKey(key);
     });
 
     $('#docker-rule-kind, #docker-rule-pattern, #docker-rule-label-key, #docker-rule-label-value')

@@ -6,12 +6,24 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.06.30">
-<!ENTITY md5 "0b67e3579b406fb80d368f40cdb922d3">
+<!ENTITY version "2026.03.06.31">
+<!ENTITY md5 "2a5c68da7b3a7b0f410edcc543c20ced">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.06.31
+- Added new high-value Basic columns with type-aware rendering:
+  - shared: Last changed, Pinned,
+  - Docker: Updates, Health,
+  - VMs: Autostart, Resources.
+- Added folder metadata tracking for timestamps:
+  - folder updates now persist `createdAt` and refresh `updatedAt`,
+  - Last changed uses this metadata for per-folder visibility.
+- Extended VM info payload with runtime capacity fields:
+  - `vcpus` and `memoryKiB` for aggregate folder resource summaries.
+- Added/updated regression checks for new column hooks and metadata wiring.
 
 ###2026.03.06.30
 - Basic table action buttons are now visually consistent in size:

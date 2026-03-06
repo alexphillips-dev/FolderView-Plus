@@ -41,6 +41,12 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
     assert.match(settingsPage, /id="fv-settings-action-bar"/);
     assert.match(settingsPage, /folderviewplus\.request\.js/);
     assert.match(settingsPage, /folderviewplus\.chrome\.js/);
+    assert.match(settingsPage, /Last changed/);
+    assert.match(settingsPage, /Pinned/);
+    assert.match(settingsPage, /Updates/);
+    assert.match(settingsPage, /Health/);
+    assert.match(settingsPage, /Autostart/);
+    assert.match(settingsPage, /Resources/);
 });
 
 test('mobile action bar and import progress keep compact viewport guards', () => {
@@ -95,8 +101,12 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /initOverflowGuard\(\);/);
     assert.match(settingsJs, /window\.compareBackupSnapshots = compareBackupSnapshots;/);
     assert.match(settingsJs, /window\.copyFolderId = copyFolderId;/);
+    assert.match(settingsJs, /const isDockerUpdateAvailable = \(itemInfo\) =>/);
+    assert.match(settingsJs, /const formatGiBFromKiB = \(kibValue\) =>/);
     assert.match(settingsJs, /const persistImportPresetStoreTypeToServer = async/);
     assert.match(settingsCss, /\.folder-action-btn\s*\{/);
+    assert.match(settingsCss, /\.folder-metric-chip\s*\{/);
+    assert.match(settingsCss, /\.folder-pin-state,\s*[\s\S]*\.folder-metric-chip\s*\{/);
     assert.match(settingsCss, /\.backup-compare-row\s*\{/);
     assert.match(settingsCss, /\.ui-dialog\.fv-backup-compare-modal #backup-compare-dialog/);
     assert.doesNotMatch(settingsJs, /await \$\.post\('\/plugins\/folderview\.plus\/server\//);

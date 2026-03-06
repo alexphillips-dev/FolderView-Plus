@@ -109,6 +109,10 @@ emitRequestTokenMetaTag();
                     <th>Members</th>
                     <th>Status</th>
                     <th>Rules</th>
+                    <th>Last changed</th>
+                    <th>Pinned</th>
+                    <th>Updates</th>
+                    <th>Health</th>
                     <th data-i18n="el-actions">
                         Actions
                     </th>
@@ -197,6 +201,10 @@ emitRequestTokenMetaTag();
                     <th>Members</th>
                     <th>Status</th>
                     <th>Rules</th>
+                    <th>Last changed</th>
+                    <th>Pinned</th>
+                    <th>Autostart</th>
+                    <th>Resources</th>
                     <th data-i18n="el-actions">
                         Actions
                     </th>

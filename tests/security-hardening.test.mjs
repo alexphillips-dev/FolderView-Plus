@@ -23,6 +23,10 @@ test('lib.php keeps token rollout controls and secure API headers', () => {
     assert.match(libPhp, /function getRequestTokenEnforcementMode\s*\(/);
     assert.match(libPhp, /function ensureConfiguredRequestTokenFile\s*\(/);
     assert.match(libPhp, /function emitRequestTokenMetaTag\s*\(/);
+    assert.match(libPhp, /function normalizeIsoTimestamp\s*\(/);
+    assert.match(libPhp, /'updatedAt'\s*=>\s*gmdate\('c'\)/);
+    assert.match(libPhp, /'vcpus'\s*=>\s*\$vcpus/);
+    assert.match(libPhp, /'memoryKiB'\s*=>\s*\$memoryKiB/);
     assert.match(libPhp, /X-Content-Type-Options: nosniff/);
 });
 

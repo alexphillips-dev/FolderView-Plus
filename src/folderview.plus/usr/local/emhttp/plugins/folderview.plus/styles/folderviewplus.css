@@ -264,7 +264,7 @@
     grid-template-columns: 30px 1fr;
     align-items: center;
     column-gap: 0.5rem;
-    width: clamp(180px, 22vw, 280px);
+    width: clamp(160px, 16vw, 230px);
     text-align: left;
 }
 
@@ -334,8 +334,57 @@
 
 .folder-table table td.members-cell,
 .folder-table table td.rules-cell,
-.folder-table table td.status-cell {
+.folder-table table td.status-cell,
+.folder-table table td.last-changed-cell,
+.folder-table table td.pinned-cell,
+.folder-table table td.updates-cell,
+.folder-table table td.health-cell,
+.folder-table table td.autostart-cell,
+.folder-table table td.resources-cell {
     text-align: center;
+}
+
+.folder-table table td.resources-cell {
+    font-size: 1.03rem;
+}
+
+.folder-pin-state,
+.folder-metric-chip {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0.12rem 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+    font-size: 1.03rem;
+    opacity: 0.95;
+}
+
+.folder-pin-state.is-pinned {
+    border-color: rgba(255, 210, 77, 0.56);
+    color: #ffd24d;
+}
+
+.folder-metric-chip.is-ok {
+    border-color: rgba(147, 225, 159, 0.55);
+    color: #93e19f;
+}
+
+.folder-metric-chip.is-warning {
+    border-color: rgba(255, 193, 94, 0.58);
+    color: #ffc15e;
+}
+
+.folder-metric-chip.is-paused {
+    border-color: rgba(255, 193, 94, 0.58);
+    color: #ffc15e;
+}
+
+.folder-metric-chip.is-empty {
+    border-color: rgba(192, 192, 192, 0.45);
+    color: rgba(240, 240, 240, 0.86);
 }
 
 .folder-runtime-status {

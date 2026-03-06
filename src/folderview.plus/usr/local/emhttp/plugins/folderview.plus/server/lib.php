@@ -500,6 +500,18 @@
         return $normalized;
     }
 
+    function normalizeIsoTimestamp($value): string {
+        $raw = trim((string)$value);
+        if ($raw === '') {
+            return '';
+        }
+        $parsed = @strtotime($raw);
+        if ($parsed === false) {
+            return '';
+        }
+        return gmdate('c', (int)$parsed);
+    }
+
     function readInstalledVersion(): string {
         global $configDir;
         $versionPath = "$configDir/version";
@@ -3259,7 +3271,23 @@
         if (!is_array($decodedContent)) {
             throw new RuntimeException('Invalid folder payload.');
         }
-        $fileData[$id] = normalizeFolderContentPayload($decodedContent);
+        $existingFolder = is_array($fileData[$id] ?? null)
+            ? normalizeFolderContentPayload((array)$fileData[$id])
+            : null;
+        $nextFolder = normalizeFolderContentPayload($decodedContent);
+        $createdAt = normalizeIsoTimestamp($nextFolder['createdAt'] ?? '');
+        if (is_array($existingFolder)) {
+            $existingCreatedAt = normalizeIsoTimestamp($existingFolder['createdAt'] ?? '');
+            if ($existingCreatedAt !== '') {
+                $createdAt = $existingCreatedAt;
+            }
+        }
+        if ($createdAt === '') {
+            $createdAt = gmdate('c');
+        }
+        $nextFolder['createdAt'] = $createdAt;
+        $nextFolder['updatedAt'] = gmdate('c');
+        $fileData[$id] = $nextFolder;
         writeRawFolderMap($type, $fileData);
         syncManualOrderWithFolders($type, $fileData);
         try {
@@ -3610,11 +3638,18 @@
                     $res = $lv->get_domain_by_name($vm);
                     if (!$res) { fv3_debug_log("VM: Could not get domain by name for $vm."); continue; }
                     $dom = $lv->domain_get_info($res);
+                    $vcpus = (int)($dom['nrVirtCpu'] ?? 0);
+                    $memoryKiB = (int)($dom['memory'] ?? 0);
+                    if ($memoryKiB <= 0) {
+                        $memoryKiB = (int)($dom['maxMem'] ?? 0);
+                    }
                     $info[$vm] = [
                         'uuid' => $lv->domain_get_uuid($res), 'name' => $vm,
                         'description' => $lv->domain_get_description($res),
                         'autostart' => $lv->domain_get_autostart($res),
                         'state' => $lv->domain_state_translate($dom['state']),
+                        'vcpus' => $vcpus,
+                        'memoryKiB' => $memoryKiB,
                         'icon' => $lv->domain_get_icon_url($res),
                         'logs' => (is_file("/var/log/libvirt/qemu/$vm.log") ? "libvirt/qemu/$vm.log" : '')
                     ];

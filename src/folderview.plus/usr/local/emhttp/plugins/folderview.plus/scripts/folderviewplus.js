@@ -1469,6 +1469,56 @@ const getItemRuntimeStateKind = (type, itemInfo) => {
     return 'stopped';
 };
 
+const valueIsTruthy = (value) => {
+    if (typeof value === 'boolean') {
+        return value;
+    }
+    if (typeof value === 'number') {
+        return Number.isFinite(value) && value !== 0;
+    }
+    const text = String(value || '').trim().toLowerCase();
+    return text === 'true' || text === '1' || text === 'yes' || text === 'on' || text === 'enabled';
+};
+
+const isDockerUpdateAvailable = (itemInfo) => {
+    const source = itemInfo && typeof itemInfo === 'object' ? itemInfo : {};
+    const raw = source?.info?.State?.Updated ?? source?.State?.Updated ?? source?.Updated;
+    if (raw === null || raw === undefined) {
+        return false;
+    }
+    if (typeof raw === 'boolean' || typeof raw === 'number') {
+        return valueIsTruthy(raw);
+    }
+    if (typeof raw === 'object') {
+        const candidate = raw.available ?? raw.hasUpdate ?? raw.updateAvailable ?? raw.status ?? '';
+        return isDockerUpdateAvailable({ Updated: candidate });
+    }
+    const normalized = String(raw).trim().toLowerCase();
+    if (!normalized) {
+        return false;
+    }
+    if (['false', '0', 'none', 'no', 'n/a', 'na', 'up-to-date', 'up to date', 'current', 'latest'].includes(normalized)) {
+        return false;
+    }
+    if (normalized.includes('up-to-date') || normalized.includes('up to date') || normalized.includes('latest')) {
+        return false;
+    }
+    if (['true', '1', 'update', 'available', 'update available', 'not up-to-date', 'not up to date'].includes(normalized)) {
+        return true;
+    }
+    return normalized.includes('update');
+};
+
+const formatGiBFromKiB = (kibValue) => {
+    const kib = Number(kibValue) || 0;
+    if (kib <= 0) {
+        return '0 GiB';
+    }
+    const gib = kib / (1024 * 1024);
+    const fixed = gib >= 100 ? gib.toFixed(0) : gib.toFixed(1);
+    return `${fixed} GiB`;
+};
+
 const hasInvalidFolderRegex = (folder) => {
     const pattern = String(folder?.regex || '').trim();
     if (!pattern) {
@@ -2857,7 +2907,9 @@ const offerUndoAction = async (type, backup, actionLabel) => {
 };
 
 const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = false, healthMetrics = null) => {
-    const TABLE_COLUMN_COUNT = 6;
+    const isDockerType = type === 'docker';
+    const TABLE_COLUMN_COUNT = 10;
+    const dockerHealthPrefs = isDockerType ? normalizeHealthPrefs('docker') : null;
     const rows = [];
     const filter = normalizedFilter(filtersByType[type]?.folders);
     const healthFilterMode = normalizeHealthFilterMode(healthFilterByType[type]);
@@ -2878,9 +2930,10 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         const pinTitle = pinned ? 'Unpin folder' : 'Pin folder to top';
         const safeName = escapeHtml(folder.name);
         const safeIcon = escapeHtml(folder.icon || '');
+        const infoByName = infoByType[type] || {};
         const countsByState = { started: 0, paused: 0, stopped: 0 };
         for (const member of members) {
-            const runtimeState = getItemRuntimeStateKind(type, infoByType[type]?.[member] || {});
+            const runtimeState = getItemRuntimeStateKind(type, infoByName[member] || {});
             if (runtimeState === 'started') {
                 countsByState.started += 1;
             } else if (runtimeState === 'paused') {
@@ -2917,6 +2970,62 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         const ruleTitle = folderRules.length === 0
             ? 'No rules for this folder'
             : `${activeRuleCount} active of ${folderRules.length} total rules`;
+
+        const lastChangedRaw = String(folder.updatedAt || folder.createdAt || '').trim();
+        const lastChangedText = lastChangedRaw ? formatTimestamp(lastChangedRaw) : 'Unknown';
+        const pinnedText = pinned ? 'Pinned' : 'No';
+        const pinnedClass = pinned ? 'is-pinned' : '';
+
+        let typeSpecificColumns = '';
+        if (isDockerType) {
+            let updateCount = 0;
+            for (const member of members) {
+                if (isDockerUpdateAvailable(infoByName[member] || {})) {
+                    updateCount += 1;
+                }
+            }
+            const updateText = `${updateCount}/${members.length}`;
+            const updateClass = updateCount > 0 ? 'is-warning' : 'is-ok';
+            const stoppedPercent = members.length > 0 ? Math.round((countsByState.stopped / members.length) * 100) : 0;
+            const warnThreshold = Number(dockerHealthPrefs?.warnStoppedPercent) || 60;
+            let healthText = 'Empty';
+            let healthClass = 'is-empty';
+            if (members.length > 0) {
+                if (stoppedPercent >= warnThreshold) {
+                    healthText = `Warn ${stoppedPercent}% stopped`;
+                    healthClass = 'is-warning';
+                } else if (countsByState.stopped > 0) {
+                    healthText = `${countsByState.stopped}/${members.length} stopped`;
+                    healthClass = 'is-paused';
+                } else if (countsByState.paused > 0) {
+                    healthText = `${countsByState.paused} paused`;
+                    healthClass = 'is-paused';
+                } else {
+                    healthText = 'Healthy';
+                    healthClass = 'is-ok';
+                }
+            }
+            typeSpecificColumns = ''
+                + `<td class="updates-cell"><span class="folder-metric-chip ${updateClass}">${escapeHtml(updateText)}</span></td>`
+                + `<td class="health-cell"><span class="folder-metric-chip ${healthClass}">${escapeHtml(healthText)}</span></td>`;
+        } else {
+            let autostartCount = 0;
+            let vcpusTotal = 0;
+            let memoryKiBTotal = 0;
+            for (const member of members) {
+                const vmInfo = infoByName[member] || {};
+                if (valueIsTruthy(vmInfo.autostart)) {
+                    autostartCount += 1;
+                }
+                vcpusTotal += Number(vmInfo.vcpus ?? vmInfo.nrVirtCpu ?? 0) || 0;
+                memoryKiBTotal += Number(vmInfo.memoryKiB ?? vmInfo.memory ?? vmInfo.maxMem ?? 0) || 0;
+            }
+            const autostartText = `${autostartCount}/${members.length}`;
+            const resourceText = `${vcpusTotal} vCPU | ${formatGiBFromKiB(memoryKiBTotal)}`;
+            typeSpecificColumns = ''
+                + `<td class="autostart-cell"><span class="folder-metric-chip ${autostartCount > 0 ? 'is-ok' : 'is-empty'}">${escapeHtml(autostartText)}</span></td>`
+                + `<td class="resources-cell" title="${escapeHtml(resourceText)}">${escapeHtml(resourceText)}</td>`;
+        }
         rows.push(
             `<tr data-folder-id="${escapeHtml(id)}" tabindex="0" onkeydown="handleFolderRowKeydown('${type}','${escapeHtml(id)}',event)">`
             + `<td><span class="row-order-actions"><button title="Move up" aria-label="Move ${safeName} up" onclick="moveFolderRow('${type}','${escapeHtml(id)}',-1)"><i class="fa fa-chevron-up"></i></button><button title="Move down" aria-label="Move ${safeName} down" onclick="moveFolderRow('${type}','${escapeHtml(id)}',1)"><i class="fa fa-chevron-down"></i></button></span></td>`
@@ -2924,6 +3033,9 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             + `<td class="members-cell">${members.length}</td>`
             + `<td class="status-cell"><span class="folder-runtime-status ${statusClass}">${escapeHtml(statusText)}</span></td>`
             + `<td class="rules-cell" title="${escapeHtml(ruleTitle)}">${escapeHtml(ruleText)}</td>`
+            + `<td class="last-changed-cell" title="${escapeHtml(lastChangedRaw || '')}">${escapeHtml(lastChangedText)}</td>`
+            + `<td class="pinned-cell"><span class="folder-pin-state ${pinnedClass}">${escapeHtml(pinnedText)}</span></td>`
+            + typeSpecificColumns
             + `<td class="actions-cell"><button class="folder-action-btn folder-pin-btn ${pinned ? 'is-pinned' : ''}" title="${pinTitle}" aria-label="${pinTitle}" onclick="toggleFolderPin('${type}','${escapeHtml(id)}')"><i class="fa ${pinned ? 'fa-star' : 'fa-star-o'}"></i></button><button class="folder-action-btn" title="Export" aria-label="Export ${safeName}" onclick="${type === 'docker' ? 'downloadDocker' : 'downloadVm'}('${escapeHtml(id)}')"><i class="fa fa-download"></i></button><button class="folder-action-btn" title="Delete" aria-label="Delete ${safeName}" onclick="${type === 'docker' ? 'clearDocker' : 'clearVm'}('${escapeHtml(id)}')"><i class="fa fa-trash"></i></button><button class="folder-action-btn" title="Copy ID" aria-label="Copy ID for ${safeName}" onclick="copyFolderId('${type}','${escapeHtml(id)}')"><i class="fa fa-clipboard"></i></button></td>`
             + '</tr>'
         );

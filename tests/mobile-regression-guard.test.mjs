@@ -72,3 +72,12 @@ test('settings action bar reserves space above Unraid bottom status bar', () => 
     assert.match(settingsCss, /bottom:\s*calc\(var\(--fv-unraid-bottom-bar-offset\)\s*\+\s*env\(safe-area-inset-bottom,\s*0px\)\)/);
     assert.match(settingsCss, /padding-bottom:\s*calc\(64px\s*\+\s*var\(--fv-unraid-bottom-bar-offset\)\s*\+\s*env\(safe-area-inset-bottom,\s*0px\)\)/);
 });
+
+test('mobile action bar stays compact and horizontally scrollable', () => {
+    assert.match(settingsCss, /@media \(max-width: 760px\)/);
+    assert.match(settingsCss, /#fv-settings-action-bar\s*\{[\s\S]*max-width:\s*calc\(100vw\s*-\s*1rem\)/);
+    assert.match(settingsCss, /\.fv-action-status\s*\{[\s\S]*display:\s*none/);
+    assert.match(settingsCss, /\.fv-action-buttons\s*\{[\s\S]*flex-wrap:\s*nowrap/);
+    assert.match(settingsCss, /\.fv-action-buttons\s*\{[\s\S]*overflow-x:\s*auto/);
+    assert.match(settingsCss, /\.fv-action-buttons > button\s*\{[\s\S]*flex:\s*0 0 auto/);
+});

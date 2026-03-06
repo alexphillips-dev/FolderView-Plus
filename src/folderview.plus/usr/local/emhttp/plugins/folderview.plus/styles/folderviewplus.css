@@ -1424,14 +1424,17 @@ body {
 
     #fv-settings-action-bar {
         left: 0.5rem;
-        right: 0.5rem;
-        max-width: none;
+        right: auto;
+        width: auto;
+        max-width: calc(100vw - 1rem);
         border-radius: 10px;
+        padding: 0.35rem 0.4rem;
+        align-items: center;
+        gap: 0.25rem;
     }
 
     .fv-action-status {
-        max-width: 100%;
-        white-space: normal;
+        display: none;
     }
 
     #fv-settings-topbar {
@@ -1527,16 +1530,26 @@ body {
         flex: 1 1 calc(50% - 0.4rem);
     }
 
-    #fv-settings-action-bar {
-        align-items: stretch;
+    .fv-action-buttons {
+        width: auto;
+        max-width: calc(100vw - 1.1rem);
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
     }
 
-    .fv-action-buttons {
-        width: 100%;
+    .fv-action-buttons::-webkit-scrollbar {
+        display: none;
     }
 
     .fv-action-buttons > button {
-        flex: 1 1 calc(50% - 0.5rem);
+        flex: 0 0 auto;
+        min-width: 0;
+        min-height: 34px;
+        white-space: nowrap;
+        padding: 0.3rem 0.52rem;
     }
 
     .toolbar-actions > button {

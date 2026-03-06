@@ -42,7 +42,8 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
 
 test('mobile action bar and import progress keep compact viewport guards', () => {
     assert.match(settingsCss, /@media \(max-width: 760px\)/);
-    assert.match(settingsCss, /#fv-settings-action-bar\s*\{[\s\S]*max-width:\s*calc\(100vw\s*-\s*1rem\)/);
+    assert.match(settingsCss, /#fv-settings-action-bar\s*\{[\s\S]*max-width:\s*calc\(100%\s*-\s*1rem\)/);
+    assert.doesNotMatch(settingsCss, /#fv-settings-action-bar[\s\S]*max-width:\s*calc\(100vw/);
     assert.match(settingsCss, /\.fv-action-buttons\s*\{[\s\S]*overflow-x:\s*auto/);
     assert.match(settingsCss, /#import-apply-progress-dialog\s*\{[\s\S]*max-width:\s*min\([0-9]+px,\s*calc\(100vw\s*-\s*1\.5rem\)\)/);
     assert.match(settingsCss, /@media \(max-width: 760px\)\s*\{[\s\S]*#import-apply-progress-dialog/);

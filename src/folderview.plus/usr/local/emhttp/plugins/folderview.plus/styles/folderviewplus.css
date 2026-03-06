@@ -1387,7 +1387,7 @@ h2[data-fv-section].fv-search-match {
     padding: 0.5rem 0.55rem;
     display: inline-flex;
     width: auto;
-    max-width: calc(100vw - 1.6rem);
+    max-width: calc(100% - 1.6rem);
     flex-wrap: wrap;
     align-items: flex-start;
     justify-content: flex-start;
@@ -1403,7 +1403,7 @@ h2[data-fv-section].fv-search-match {
 .fv-action-status {
     font-size: 1.03rem;
     opacity: 0.82;
-    max-width: min(70ch, calc(100vw - 2.1rem));
+    max-width: min(70ch, calc(100% - 2.1rem));
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1436,7 +1436,7 @@ body {
         left: 0.5rem;
         right: auto;
         width: auto;
-        max-width: calc(100vw - 1rem);
+        max-width: calc(100% - 1rem);
         border-radius: 10px;
         padding: 0.35rem 0.4rem;
         align-items: center;
@@ -1542,7 +1542,7 @@ body {
 
     .fv-action-buttons {
         width: auto;
-        max-width: calc(100vw - 1.1rem);
+        max-width: calc(100% - 1.1rem);
         flex-wrap: nowrap;
         overflow-x: auto;
         overflow-y: hidden;

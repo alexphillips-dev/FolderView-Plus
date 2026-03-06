@@ -876,16 +876,23 @@
 .ui-dialog.fv-import-apply-progress-modal {
     width: min(620px, 92vw) !important;
     max-width: 92vw !important;
+    height: auto !important;
+    min-height: 0 !important;
 }
 
 .ui-dialog.fv-import-apply-progress-modal .ui-dialog-content {
     height: auto !important;
     min-height: 0 !important;
+    max-height: none !important;
+    overflow: hidden !important;
     padding: 0.6rem 0.7rem !important;
 }
 
 #import-apply-progress-dialog {
     display: grid;
+    grid-template-columns: 1fr;
+    align-content: start;
+    justify-items: stretch;
     gap: 0.55rem;
     width: 100%;
     max-width: 560px;

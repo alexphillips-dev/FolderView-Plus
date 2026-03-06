@@ -1943,7 +1943,7 @@ const openImportApplyProgressDialog = (type, totalSteps) => {
         total: totalSteps,
         label: `Preparing ${resolvedType === 'docker' ? 'Docker' : 'VM'} import...`
     });
-    const modalWidth = Math.min(620, Math.max(420, Math.floor(window.innerWidth * 0.62)));
+    const modalWidth = Math.min(560, Math.max(400, Math.floor(window.innerWidth * 0.56)));
     dialog.dialog({
         title: `Applying ${resolvedType === 'docker' ? 'Docker' : 'VM'} import`,
         resizable: false,

@@ -1,6 +1,8 @@
 ﻿const utils = window.FolderViewPlusUtils;
 const EXPORT_BASENAME = 'FolderView Plus Export';
 const REQUEST_TOKEN_STORAGE_KEY = 'fv.request.token';
+const requestClient = window.FolderViewPlusRequest || null;
+const settingsChrome = window.FolderViewPlusSettingsChrome || null;
 
 let dockers = {};
 let vms = {};
@@ -136,29 +138,11 @@ const isMobileSettingsViewport = () => (
 );
 
 const shouldUseMobileSectionToggle = () => supportsTouchInput() && isMobileSettingsViewport();
-
-const getOptionalRequestToken = () => {
-    const metaToken = document.querySelector('meta[name="fv-request-token"]');
-    if (metaToken instanceof HTMLMetaElement) {
-        return String(metaToken.content || '').trim();
-    }
-    try {
-        return String(localStorage.getItem(REQUEST_TOKEN_STORAGE_KEY) || '').trim();
-    } catch (_error) {
-        return '';
-    }
-};
-
-const setupAjaxSecurityHeaders = () => {
-    const headers = { 'X-FV-Request': '1' };
-    const token = getOptionalRequestToken();
-    if (token) {
-        headers['X-FV-Token'] = token;
-    }
-    $.ajaxSetup({ headers });
-};
-
-setupAjaxSecurityHeaders();
+if (requestClient && typeof requestClient.configureSecurityHeaders === 'function') {
+    requestClient.configureSecurityHeaders({
+        tokenStorageKey: REQUEST_TOKEN_STORAGE_KEY
+    });
+}
 
 const slugifySectionKey = (text) => String(text || '')
     .toLowerCase()
@@ -995,41 +979,47 @@ const initSettingsControls = () => {
         return;
     }
 
-    controls.html(`
-        <div class="fv-settings-inline">
-            <div class="fv-settings-left" aria-label="Plugin settings title">
-                <h2 class="fv-settings-title">FolderView Plus</h2>
-                <span class="fv-settings-subtitle">Plugin settings</span>
+    const topbarHtml = settingsChrome && typeof settingsChrome.getTopbarHtml === 'function'
+        ? settingsChrome.getTopbarHtml()
+        : `
+            <div class="fv-settings-inline">
+                <div class="fv-settings-left" aria-label="Plugin settings title">
+                    <h2 class="fv-settings-title">FolderView Plus</h2>
+                    <span class="fv-settings-subtitle">Plugin settings</span>
+                </div>
+                <div class="fv-settings-right">
+                    <input type="text" id="fv-settings-search" placeholder="Search settings" aria-label="Search settings">
+                    <button type="button" id="fv-settings-clear-search" title="Clear search" aria-label="Clear search"><i class="fa fa-times"></i></button>
+                    <label class="fv-search-scope" title="Limit search to currently selected advanced tab">
+                        <input type="checkbox" id="fv-search-all-advanced">
+                        Search all advanced
+                    </label>
+                    <span class="fv-mode-toggle" title="Settings mode">
+                        <button type="button" class="fv-mode-btn" data-mode="basic" aria-label="Use basic settings mode">Basic</button>
+                        <button type="button" class="fv-mode-btn" data-mode="advanced" aria-label="Use advanced settings mode">Advanced</button>
+                    </span>
+                    <button type="button" id="fv-run-wizard" title="Run quick setup wizard"><i class="fa fa-magic"></i> Wizard</button>
+                </div>
             </div>
-            <div class="fv-settings-right">
-                <input type="text" id="fv-settings-search" placeholder="Search settings" aria-label="Search settings">
-                <button type="button" id="fv-settings-clear-search" title="Clear search" aria-label="Clear search"><i class="fa fa-times"></i></button>
-                <label class="fv-search-scope" title="Limit search to currently selected advanced tab">
-                    <input type="checkbox" id="fv-search-all-advanced">
-                    Search all advanced
-                </label>
-                <span class="fv-mode-toggle" title="Settings mode">
-                    <button type="button" class="fv-mode-btn" data-mode="basic" aria-label="Use basic settings mode">Basic</button>
-                    <button type="button" class="fv-mode-btn" data-mode="advanced" aria-label="Use advanced settings mode">Advanced</button>
-                </span>
-                <button type="button" id="fv-run-wizard" title="Run quick setup wizard"><i class="fa fa-magic"></i> Wizard</button>
-            </div>
-        </div>
-    `);
+        `;
+    controls.html(topbarHtml);
 
     if (!$('#fv-advanced-nav').length) {
         $('.fv-customizations-header').after('<div id="fv-advanced-nav" class="fv-advanced-nav" style="display:none"></div>');
     }
 
-    actionBar.html(`
-        <div class="fv-action-buttons">
-            <button type="button" id="fv-action-save"><i class="fa fa-save"></i> Save</button>
-            <button type="button" id="fv-action-save-close"><i class="fa fa-check"></i> Save &amp; Close</button>
-            <button type="button" id="fv-action-cancel"><i class="fa fa-undo"></i> Cancel</button>
-            <button type="button" id="fv-action-reset-section"><i class="fa fa-refresh"></i> Reset section</button>
-        </div>
-        <span id="fv-action-status" class="fv-action-status">All changes are saved.</span>
-    `);
+    const actionBarHtml = settingsChrome && typeof settingsChrome.getActionBarHtml === 'function'
+        ? settingsChrome.getActionBarHtml()
+        : `
+            <div class="fv-action-buttons">
+                <button type="button" id="fv-action-save"><i class="fa fa-save"></i> Save</button>
+                <button type="button" id="fv-action-save-close"><i class="fa fa-check"></i> Save &amp; Close</button>
+                <button type="button" id="fv-action-cancel"><i class="fa fa-undo"></i> Cancel</button>
+                <button type="button" id="fv-action-reset-section"><i class="fa fa-refresh"></i> Reset section</button>
+            </div>
+            <span id="fv-action-status" class="fv-action-status">All changes are saved.</span>
+        `;
+    actionBar.html(actionBarHtml);
 
     $('.fv-mode-btn').off('click.fvui').on('click.fvui', (event) => {
         const mode = String($(event.currentTarget).attr('data-mode') || 'basic');
@@ -1517,11 +1507,37 @@ const setFilterQuery = (section, type, value) => {
     }
 };
 
-const apiGetJson = async (url) => parseJsonResponse(await $.get(url).promise());
+const apiGetText = async (url, options = {}) => {
+    if (requestClient && typeof requestClient.getText === 'function') {
+        return requestClient.getText(url, options);
+    }
+    return $.get(url, options?.data).promise();
+};
+
+const apiPostText = async (url, data = {}, options = {}) => {
+    if (requestClient && typeof requestClient.postText === 'function') {
+        return requestClient.postText(url, data, options);
+    }
+    return $.post(url, data).promise();
+};
+
+const apiGetJson = async (url, options = {}) => {
+    if (requestClient && typeof requestClient.getJson === 'function') {
+        return requestClient.getJson(url, options);
+    }
+    return parseJsonResponse(await $.get(url, options?.data).promise());
+};
+
+const apiPostJson = async (url, data = {}, options = {}) => {
+    if (requestClient && typeof requestClient.postJson === 'function') {
+        return requestClient.postJson(url, data, options);
+    }
+    return parseJsonResponse(await $.post(url, data).promise());
+};
 
 const fetchPluginVersion = async () => {
     try {
-        pluginVersion = (await $.get('/plugins/folderview.plus/server/version.php').promise()).trim() || '0.0.0';
+        pluginVersion = String(await apiGetText('/plugins/folderview.plus/server/version.php')).trim() || '0.0.0';
     } catch (error) {
         pluginVersion = '0.0.0';
     }
@@ -1622,10 +1638,12 @@ const fetchTypeInfo = async (type) => apiGetJson(`/plugins/folderview.plus/serve
 
 const fetchBackups = async (type) => {
     const resolvedType = normalizeManagedType(type);
-    const response = parseJsonResponse(await $.get('/plugins/folderview.plus/server/backup.php', {
-        type: resolvedType,
-        action: 'list'
-    }).promise());
+    const response = await apiGetJson('/plugins/folderview.plus/server/backup.php', {
+        data: {
+            type: resolvedType,
+            action: 'list'
+        }
+    });
     if (!response.ok) {
         throw new Error(response.error || 'Failed to fetch backups.');
     }
@@ -1634,11 +1652,11 @@ const fetchBackups = async (type) => {
 
 const restoreBackupByName = async (type, name) => {
     const resolvedType = normalizeManagedType(type);
-    const response = parseJsonResponse(await $.post('/plugins/folderview.plus/server/backup.php', {
+    const response = await apiPostJson('/plugins/folderview.plus/server/backup.php', {
         type: resolvedType,
         action: 'restore',
         name
-    }).promise());
+    });
     if (!response.ok) {
         throw new Error(response.error || 'Restore failed.');
     }
@@ -1647,11 +1665,11 @@ const restoreBackupByName = async (type, name) => {
 
 const deleteBackupByName = async (type, name) => {
     const resolvedType = normalizeManagedType(type);
-    const response = parseJsonResponse(await $.post('/plugins/folderview.plus/server/backup.php', {
+    const response = await apiPostJson('/plugins/folderview.plus/server/backup.php', {
         type: resolvedType,
         action: 'delete',
         name
-    }).promise());
+    });
     if (!response.ok) {
         throw new Error(response.error || 'Delete failed.');
     }
@@ -1659,10 +1677,12 @@ const deleteBackupByName = async (type, name) => {
 };
 
 const fetchTemplates = async (type) => {
-    const response = parseJsonResponse(await $.get('/plugins/folderview.plus/server/templates.php', {
-        type,
-        action: 'list'
-    }).promise());
+    const response = await apiGetJson('/plugins/folderview.plus/server/templates.php', {
+        data: {
+            type,
+            action: 'list'
+        }
+    });
     if (!response.ok) {
         throw new Error(response.error || 'Failed to fetch templates.');
     }
@@ -1670,12 +1690,12 @@ const fetchTemplates = async (type) => {
 };
 
 const createTemplate = async (type, folderId, name) => {
-    const response = parseJsonResponse(await $.post('/plugins/folderview.plus/server/templates.php', {
+    const response = await apiPostJson('/plugins/folderview.plus/server/templates.php', {
         type,
         action: 'create',
         folderId,
         name
-    }).promise());
+    });
     if (!response.ok) {
         throw new Error(response.error || 'Template create failed.');
     }
@@ -1683,11 +1703,11 @@ const createTemplate = async (type, folderId, name) => {
 };
 
 const deleteTemplate = async (type, templateId) => {
-    const response = parseJsonResponse(await $.post('/plugins/folderview.plus/server/templates.php', {
+    const response = await apiPostJson('/plugins/folderview.plus/server/templates.php', {
         type,
         action: 'delete',
         templateId
-    }).promise());
+    });
     if (!response.ok) {
         throw new Error(response.error || 'Template delete failed.');
     }
@@ -1695,12 +1715,12 @@ const deleteTemplate = async (type, templateId) => {
 };
 
 const applyTemplate = async (type, templateId, folderId) => {
-    const response = parseJsonResponse(await $.post('/plugins/folderview.plus/server/templates.php', {
+    const response = await apiPostJson('/plugins/folderview.plus/server/templates.php', {
         type,
         action: 'apply',
         templateId,
         folderId
-    }).promise());
+    });
     if (!response.ok) {
         throw new Error(response.error || 'Template apply failed.');
     }
@@ -1708,11 +1728,11 @@ const applyTemplate = async (type, templateId, folderId) => {
 };
 
 const bulkAssign = async (type, folderId, items) => {
-    const response = parseJsonResponse(await $.post('/plugins/folderview.plus/server/bulk_assign.php', {
+    const response = await apiPostJson('/plugins/folderview.plus/server/bulk_assign.php', {
         type,
         folderId,
         items: JSON.stringify(items || [])
-    }).promise());
+    });
     if (!response.ok) {
         throw new Error(response.error || 'Bulk assignment failed.');
     }
@@ -1741,7 +1761,7 @@ const runDiagnosticAction = async (action, type, privacy = 'sanitized') => {
         payload.type = type;
     }
     payload.privacy = privacy || 'sanitized';
-    const response = parseJsonResponse(await $.post('/plugins/folderview.plus/server/diagnostics.php', payload).promise());
+    const response = await apiPostJson('/plugins/folderview.plus/server/diagnostics.php', payload);
     if (!response.ok) {
         throw new Error(response.error || 'Diagnostics action failed.');
     }
@@ -1763,7 +1783,10 @@ const trackDiagnosticsEvent = async ({ eventType, type = null, status = 'ok', so
         payload.type = type;
     }
     try {
-        await $.post('/plugins/folderview.plus/server/diagnostics.php', payload).promise();
+        await apiPostText('/plugins/folderview.plus/server/diagnostics.php', payload, {
+            retries: 0,
+            timeoutMs: 8000
+        });
     } catch (error) {
         // Event tracking is best-effort and should never block UI actions.
     }
@@ -1782,10 +1805,10 @@ const fetchPrefs = async (type) => {
 };
 
 const postPrefs = async (type, prefs) => {
-    const response = parseJsonResponse(await $.post('/plugins/folderview.plus/server/prefs.php', {
+    const response = await apiPostJson('/plugins/folderview.plus/server/prefs.php', {
         type,
         prefs: JSON.stringify(prefs)
-    }).promise());
+    });
     if (!response.ok) {
         throw new Error(response.error || 'Failed to save preferences.');
     }
@@ -1795,11 +1818,11 @@ const postPrefs = async (type, prefs) => {
 
 const createBackup = async (type, reason) => {
     const resolvedType = normalizeManagedType(type);
-    const response = parseJsonResponse(await $.post('/plugins/folderview.plus/server/backup.php', {
+    const response = await apiPostJson('/plugins/folderview.plus/server/backup.php', {
         type: resolvedType,
         action: 'create',
         reason
-    }).promise());
+    });
     if (!response.ok) {
         throw new Error(response.error || 'Backup failed.');
     }
@@ -1807,10 +1830,10 @@ const createBackup = async (type, reason) => {
 };
 
 const createGlobalRollbackCheckpointApi = async (reason = 'manual') => {
-    const response = parseJsonResponse(await $.post('/plugins/folderview.plus/server/backup.php', {
+    const response = await apiPostJson('/plugins/folderview.plus/server/backup.php', {
         action: 'rollback_checkpoint',
         reason
-    }).promise());
+    });
     if (!response.ok) {
         throw new Error(response.error || 'Rollback checkpoint failed.');
     }
@@ -1818,9 +1841,9 @@ const createGlobalRollbackCheckpointApi = async (reason = 'manual') => {
 };
 
 const restorePreviousGlobalRollbackCheckpointApi = async () => {
-    const response = parseJsonResponse(await $.post('/plugins/folderview.plus/server/backup.php', {
+    const response = await apiPostJson('/plugins/folderview.plus/server/backup.php', {
         action: 'rollback_restore_previous'
-    }).promise());
+    });
     if (!response.ok) {
         throw new Error(response.error || 'Rollback restore failed.');
     }
@@ -1829,10 +1852,10 @@ const restorePreviousGlobalRollbackCheckpointApi = async () => {
 
 const restoreLatest = async (type) => {
     const resolvedType = normalizeManagedType(type);
-    const response = parseJsonResponse(await $.post('/plugins/folderview.plus/server/backup.php', {
+    const response = await apiPostJson('/plugins/folderview.plus/server/backup.php', {
         type: resolvedType,
         action: 'restore_latest'
-    }).promise());
+    });
     if (!response.ok) {
         throw new Error(response.error || 'Restore failed.');
     }
@@ -1841,10 +1864,10 @@ const restoreLatest = async (type) => {
 
 const restoreLatestUndo = async (type) => {
     const resolvedType = normalizeManagedType(type);
-    const response = parseJsonResponse(await $.post('/plugins/folderview.plus/server/backup.php', {
+    const response = await apiPostJson('/plugins/folderview.plus/server/backup.php', {
         type: resolvedType,
         action: 'restore_latest_undo'
-    }).promise());
+    });
     if (!response.ok) {
         throw new Error(response.error || 'Undo restore failed.');
     }
@@ -1852,11 +1875,11 @@ const restoreLatestUndo = async (type) => {
 };
 
 const executeFolderRuntimeAction = async (type, runtimeAction, items) => {
-    const response = parseJsonResponse(await $.post('/plugins/folderview.plus/server/bulk_folder_action.php', {
+    const response = await apiPostJson('/plugins/folderview.plus/server/bulk_folder_action.php', {
         type,
         runtimeAction,
         items: JSON.stringify(items || [])
-    }).promise());
+    });
     if (!response.ok) {
         throw new Error(response.error || 'Runtime action failed.');
     }
@@ -1870,7 +1893,7 @@ const runScheduledBackup = async (type) => {
     if (type) {
         payload.type = type;
     }
-    const response = parseJsonResponse(await $.post('/plugins/folderview.plus/server/backup.php', payload).promise());
+    const response = await apiPostJson('/plugins/folderview.plus/server/backup.php', payload);
     if (!response.ok) {
         throw new Error(response.error || 'Scheduled backup run failed.');
     }
@@ -1878,7 +1901,7 @@ const runScheduledBackup = async (type) => {
 };
 
 const syncDockerOrder = async () => {
-    await $.post('/plugins/folderview.plus/server/sync_order.php', { type: 'docker' }).promise();
+    await apiPostText('/plugins/folderview.plus/server/sync_order.php', { type: 'docker' });
 };
 
 const setUpdateStatus = (text) => {
@@ -2241,28 +2264,28 @@ const applyImportOperations = async (type, operations, onProgress = null) => {
 
     for (const id of deletes) {
         const folderName = String(currentFolders[id]?.name || id || 'folder');
-        await $.post('/plugins/folderview.plus/server/delete.php', { type: resolvedType, id }).promise();
+        await apiPostText('/plugins/folderview.plus/server/delete.php', { type: resolvedType, id });
         completed += 1;
         emit(`Deleted ${folderName}`);
     }
 
     for (const item of upserts) {
         const folderName = String(item?.folder?.name || currentFolders[item?.id]?.name || item?.id || 'folder');
-        await $.post('/plugins/folderview.plus/server/update.php', {
+        await apiPostText('/plugins/folderview.plus/server/update.php', {
             type: resolvedType,
             id: item.id,
             content: JSON.stringify(item.folder)
-        }).promise();
+        });
         completed += 1;
         emit(`Updated ${folderName}`);
     }
 
     for (const item of creates) {
         const folderName = String(item?.folder?.name || 'folder');
-        await $.post('/plugins/folderview.plus/server/create.php', {
+        await apiPostText('/plugins/folderview.plus/server/create.php', {
             type: resolvedType,
             content: JSON.stringify(item.folder)
-        }).promise();
+        });
         completed += 1;
         emit(`Created ${folderName}`);
     }
@@ -2358,10 +2381,10 @@ const currentOrderedIdsFromTable = (type) => {
 
 const persistManualOrderFromDom = async (type) => {
     const order = currentOrderedIdsFromTable(type);
-    const reorderResponse = parseJsonResponse(await $.post('/plugins/folderview.plus/server/reorder.php', {
+    const reorderResponse = await apiPostJson('/plugins/folderview.plus/server/reorder.php', {
         type,
         order: JSON.stringify(order)
-    }).promise());
+    });
 
     if (!reorderResponse.ok) {
         throw new Error(reorderResponse.error || 'Failed to persist folder order.');
@@ -3085,7 +3108,7 @@ const clearType = (type, id) => {
             const foldersBeforeDelete = getFolderMap(resolvedType);
             for (const currentId of deleteIds) {
                 const currentName = foldersBeforeDelete[currentId]?.name || currentId;
-                await $.post('/plugins/folderview.plus/server/delete.php', { type: resolvedType, id: currentId }).promise();
+                await apiPostText('/plugins/folderview.plus/server/delete.php', { type: resolvedType, id: currentId });
                 completed += 1;
                 setProgress(completed, `Deleted ${currentName}`);
             }

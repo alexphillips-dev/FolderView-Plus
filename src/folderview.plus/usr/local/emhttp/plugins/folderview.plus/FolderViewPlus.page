@@ -620,4 +620,6 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 <div id="fv-settings-action-bar"></div>
 
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>"></script>
+<script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>
+<script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.chrome.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.js')?>"></script>

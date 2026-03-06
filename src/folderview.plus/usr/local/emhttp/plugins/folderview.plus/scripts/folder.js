@@ -228,7 +228,7 @@ const renderThirdPartyFolderList = () => {
         return;
     }
     if (!thirdPartyIconFolders.length) {
-        list.html('<div class="fv-icon-picker-empty">No folders found. Add folders under /boot/config/plugins/folderview.plus/third-party-icons.</div>');
+        list.html('<div class="fv-icon-picker-empty">No folders found. Add folders under /usr/local/emhttp/plugins/folderview.plus/images/third-party-icons.</div>');
         status.text('No third-party icon folders detected.');
         return;
     }

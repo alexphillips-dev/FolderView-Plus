@@ -4,8 +4,8 @@ require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php");
 const FVPLUS_THIRD_PARTY_ICON_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'ico', 'avif'];
 
 function thirdPartyIconsBaseDir(): string {
-    global $configDir;
-    return "$configDir/third-party-icons";
+    global $sourceDir;
+    return "$sourceDir/images/third-party-icons";
 }
 
 function ensureThirdPartyIconsDirExists(): string {
@@ -204,4 +204,3 @@ try {
         'error' => $e->getMessage()
     ]);
 }
-

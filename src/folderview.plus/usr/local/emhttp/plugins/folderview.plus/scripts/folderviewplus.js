@@ -2066,6 +2066,10 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     const result = $('#import-preview-result');
     const folders = getFolderMap(type);
     let dialogResult = null;
+    const isImportDryRunOnly = () => {
+        const checkbox = $('#import-dry-run-only');
+        return checkbox.length ? checkbox.prop('checked') === true : false;
+    };
 
     modeSelect.html(`
         <option value="merge">Merge (add new + update existing)</option>
@@ -2074,19 +2078,20 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     `);
 
     if (!$('#import-mode-help').length) {
-        modeSelect.after('<div id="import-mode-help">Safer default: dry run is enabled. Review summary and diff before applying.</div>');
+        modeSelect.after('<div id="import-mode-help">Optional dry run: enable preview-only mode if you want to review without applying changes.</div>');
     }
     if (!$('#import-dry-run-row').length) {
         $('#import-mode-help').after('<label id="import-dry-run-row"><input id="import-dry-run-only" type="checkbox"> Dry run only (preview changes, do not modify folders)</label>');
     }
-    $('#import-dry-run-only').prop('checked', true);
+    // Default import behavior must apply changes when user clicks "Apply Import".
+    $('#import-dry-run-only').prop('checked', false);
 
     const renderPreview = () => {
         const mode = modeSelect.val();
         const summary = utils.summarizeImport(folders, parsed, mode);
         const operations = utils.buildImportOperations(folders, parsed, mode);
         const diffRows = utils.buildImportDiffRows(folders, parsed, mode);
-        const dryRunOnly = $('#import-dry-run-only').prop('checked') === true;
+        const dryRunOnly = isImportDryRunOnly();
         importSelectionState = buildOperationSelectionState(operations, folders);
         renderOperationSelection();
         renderImportDiffTable(diffRows);
@@ -2128,7 +2133,7 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
             'Apply Import': function() {
                 const mode = modeSelect.val();
                 const operations = filterOperationsBySelection(utils.buildImportOperations(folders, parsed, mode));
-                const dryRunOnly = $('#import-dry-run-only').prop('checked') === true;
+                const dryRunOnly = isImportDryRunOnly();
                 dialogResult = { mode, operations, dryRunOnly };
                 $(this).dialog('close');
             },

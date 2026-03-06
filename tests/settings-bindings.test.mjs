@@ -31,3 +31,10 @@ test('backup endpoint supports scheduler and rollback actions', () => {
     assert.match(backupPhp, /action\s*===\s*'rollback_checkpoint'/);
     assert.match(backupPhp, /action\s*===\s*'rollback_restore_previous'/);
 });
+
+test('import preview defaults to apply mode (dry run OFF)', () => {
+    assert.match(script, /\$\('#import-dry-run-only'\)\.prop\('checked', false\)/);
+    assert.match(script, /const isImportDryRunOnly = \(\) =>/);
+    assert.match(script, /return checkbox\.length \? checkbox\.prop\('checked'\) === true : false;/);
+    assert.doesNotMatch(script, /\$\('#import-dry-run-only'\)\.prop\('checked', true\)/);
+});

@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.13.1">
-<!ENTITY md5 "9c6d8929928907afc7301eb0de9c06e5">
+<!ENTITY version "2026.03.13.2">
+<!ENTITY md5 "92a4a3903ffb07f993deb3690a853c54">
 ]>
 
-<PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="/plugins/folderview.plus/images/folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
+<PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="https://raw.githubusercontent.com/&github;/main/img/folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.13.2
+- Fix icon rendering regression:
+  - restore page/menu `Icon=` headers to supported Unraid icon class (`folder-open-o`) to prevent fallback/default icons,
+  - switch plugin card icon to direct GitHub image URL for reliable image rendering in Plugins tab.
 
 ###2026.03.13.1
 - Wire plugin icon to packaged PNG asset:

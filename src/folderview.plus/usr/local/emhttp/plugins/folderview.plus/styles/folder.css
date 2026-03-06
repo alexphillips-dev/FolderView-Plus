@@ -286,6 +286,31 @@
     opacity: 0.78;
 }
 
+.fv-icon-picker-pager {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.35em;
+}
+
+.fv-icon-picker-pager > button {
+    min-width: 30px;
+    min-height: 28px;
+    padding: 0;
+}
+
+.fv-icon-picker-pager > button:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.fv-icon-picker-pager > span {
+    font-size: 0.82em;
+    opacity: 0.82;
+    min-width: 92px;
+    text-align: center;
+}
+
 .fv-third-party-panel {
     display: grid;
     gap: 0.5em;

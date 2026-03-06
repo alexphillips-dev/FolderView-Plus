@@ -497,7 +497,7 @@ const createFolders = async () => {
         element.click();
         document.body.removeChild(element);
         URL.revokeObjectURL(url);
-        console.log('Order:', [...order]); // Existing log
+        if (FOLDER_VIEW_DEBUG_MODE) console.log('Order:', [...order]); // Existing log
         if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Debug JSON downloaded. Order logged (existing log):', [...order]);
     }
 

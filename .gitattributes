@@ -1,5 +1,18 @@
 * text=auto eol=lf
+
+*.sh text eol=lf
+*.md text eol=lf
+*.php text eol=lf
+*.js text eol=lf
+*.css text eol=lf
+
 *.txz binary
 *.png binary
 *.jpg binary
+*.jpeg binary
 *.gif binary
+*.webp binary
+*.bmp binary
+*.ico binary
+*.avif binary
+*.psd binary

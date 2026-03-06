@@ -57,6 +57,11 @@ Markdown="false"
                             <button type="button" id="fv-icon-picker-clear" title="Clear search" aria-label="Clear search"><i class="fa fa-times" aria-hidden="true"></i></button>
                         </div>
                         <div id="fv-icon-picker-grid" class="fv-icon-picker-grid"></div>
+                        <div class="fv-icon-picker-pager">
+                            <button type="button" id="fv-icon-picker-prev" title="Previous page"><i class="fa fa-chevron-left" aria-hidden="true"></i></button>
+                            <span id="fv-icon-picker-page-label">Page 1 / 1</span>
+                            <button type="button" id="fv-icon-picker-next" title="Next page"><i class="fa fa-chevron-right" aria-hidden="true"></i></button>
+                        </div>
                         <div id="fv-icon-picker-status" class="fv-icon-picker-status"></div>
                     </div>
                     <div id="fv-third-party-icon-panel" class="fv-icon-picker-panel fv-third-party-panel" hidden>
@@ -67,6 +72,11 @@ Markdown="false"
                         <div id="fv-third-party-folder-list" class="fv-third-party-folder-list"></div>
                         <div id="fv-third-party-current-folder" class="fv-third-party-current-folder">Select a folder to browse icons.</div>
                         <div id="fv-third-party-icon-grid" class="fv-icon-picker-grid"></div>
+                        <div class="fv-icon-picker-pager">
+                            <button type="button" id="fv-third-party-icon-prev" title="Previous page"><i class="fa fa-chevron-left" aria-hidden="true"></i></button>
+                            <span id="fv-third-party-icon-page-label">Page 1 / 1</span>
+                            <button type="button" id="fv-third-party-icon-next" title="Next page"><i class="fa fa-chevron-right" aria-hidden="true"></i></button>
+                        </div>
                         <div id="fv-third-party-icon-status" class="fv-icon-picker-status"></div>
                     </div>
                 </dd>

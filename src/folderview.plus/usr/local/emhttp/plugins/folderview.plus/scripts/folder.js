@@ -39,6 +39,8 @@ const BUILT_IN_ICON_MANIFEST_PATH = '/plugins/folderview.plus/images/icons/icons
 const THIRD_PARTY_ICON_API_PATH = '/plugins/folderview.plus/server/third_party_icons.php';
 const CUSTOM_ICON_UPLOAD_API_PATH = '/plugins/folderview.plus/server/upload_custom_icon.php';
 const REQUEST_TOKEN_STORAGE_KEY = 'fv.request.token';
+const ICON_PICKER_PAGE_SIZE = 120;
+const ICON_PICKER_SEARCH_DEBOUNCE_MS = 120;
 const BUILT_IN_ICON_FALLBACK = [{
     id: 'default-folder',
     name: 'Default Folder',
@@ -54,9 +56,12 @@ let isFormInitialized = false;
 let suppressUnloadPrompt = false;
 let builtInIcons = [...BUILT_IN_ICON_FALLBACK];
 let builtInIconSearchQuery = '';
+let builtInIconPage = 1;
+let builtInIconSearchTimer = null;
 let thirdPartyIconFolders = [];
 let thirdPartySelectedFolder = '';
 let thirdPartyIcons = [];
+let thirdPartyIconPage = 1;
 
 const getFolderLabelValue = (labels) => {
     const source = labels && typeof labels === 'object' ? labels : {};
@@ -108,6 +113,22 @@ const parseJsonPayload = (value) => {
         return JSON.parse(value.replace(/^\uFEFF/, ''));
     }
     return value;
+};
+
+const paginateItems = (items, page, pageSize) => {
+    const source = Array.isArray(items) ? items : [];
+    const safePageSize = Math.max(1, Number(pageSize) || 1);
+    const totalPages = Math.max(1, Math.ceil(source.length / safePageSize));
+    const safePage = Math.min(Math.max(1, Number(page) || 1), totalPages);
+    const startIndex = (safePage - 1) * safePageSize;
+    const endIndex = Math.min(source.length, startIndex + safePageSize);
+    return {
+        page: safePage,
+        totalPages,
+        startIndex,
+        endIndex,
+        items: source.slice(startIndex, endIndex)
+    };
 };
 
 const getOptionalRequestToken = () => {
@@ -247,6 +268,9 @@ const renderBuiltInIconPicker = () => {
     const panel = $('#fv-icon-picker-panel');
     const grid = $('#fv-icon-picker-grid');
     const status = $('#fv-icon-picker-status');
+    const prevButton = $('#fv-icon-picker-prev');
+    const nextButton = $('#fv-icon-picker-next');
+    const pageLabel = $('#fv-icon-picker-page-label');
     if (!panel.length || !grid.length || !status.length) {
         return;
     }
@@ -260,6 +284,30 @@ const renderBuiltInIconPicker = () => {
         const haystack = `${icon.name} ${icon.id} ${icon.tags.join(' ')}`.toLowerCase();
         return haystack.includes(search);
     });
+    const paged = paginateItems(filtered, builtInIconPage, ICON_PICKER_PAGE_SIZE);
+    builtInIconPage = paged.page;
+
+    if (prevButton.length && nextButton.length && pageLabel.length) {
+        prevButton.prop('disabled', paged.page <= 1);
+        nextButton.prop('disabled', paged.page >= paged.totalPages);
+        pageLabel.text(`Page ${paged.page} / ${paged.totalPages}`);
+        prevButton.off('click.fviconpager').on('click.fviconpager', (event) => {
+            event.preventDefault();
+            if (builtInIconPage <= 1) {
+                return;
+            }
+            builtInIconPage -= 1;
+            renderBuiltInIconPicker();
+        });
+        nextButton.off('click.fviconpager').on('click.fviconpager', (event) => {
+            event.preventDefault();
+            if (builtInIconPage >= paged.totalPages) {
+                return;
+            }
+            builtInIconPage += 1;
+            renderBuiltInIconPicker();
+        });
+    }
 
     if (filtered.length === 0) {
         grid.html('<div class="fv-icon-picker-empty">No built-in icons match this search.</div>');
@@ -267,7 +315,7 @@ const renderBuiltInIconPicker = () => {
         return;
     }
 
-    const rows = filtered.map((icon) => {
+    const rows = paged.items.map((icon) => {
         const selected = currentValue === icon.path;
         const safePath = escapeHtml(icon.path);
         const safeName = escapeHtml(icon.name);
@@ -280,7 +328,7 @@ const renderBuiltInIconPicker = () => {
     }).join('');
 
     grid.html(rows);
-    status.text(`Showing ${filtered.length} of ${builtInIcons.length} icons`);
+    status.text(`Showing ${paged.startIndex + 1}-${paged.endIndex} of ${filtered.length} matches (${builtInIcons.length} total icons)`);
     grid.find('.fv-icon-picker-item').off('click').on('click', (event) => {
         event.preventDefault();
         const value = String($(event.currentTarget).attr('data-icon-value') || '').trim();
@@ -328,12 +376,26 @@ const renderThirdPartyIconGrid = () => {
     const grid = $('#fv-third-party-icon-grid');
     const header = $('#fv-third-party-current-folder');
     const status = $('#fv-third-party-icon-status');
+    const prevButton = $('#fv-third-party-icon-prev');
+    const nextButton = $('#fv-third-party-icon-next');
+    const pageLabel = $('#fv-third-party-icon-page-label');
     if (!grid.length || !header.length || !status.length) {
         return;
     }
+
+    const setPager = (page, totalPages) => {
+        if (!prevButton.length || !nextButton.length || !pageLabel.length) {
+            return;
+        }
+        prevButton.prop('disabled', page <= 1);
+        nextButton.prop('disabled', page >= totalPages);
+        pageLabel.text(`Page ${page} / ${totalPages}`);
+    };
+
     if (!thirdPartySelectedFolder) {
         header.text('Select a folder to browse icons.');
         grid.empty();
+        setPager(1, 1);
         return;
     }
     header.text(`Folder: ${thirdPartySelectedFolder}`);
@@ -341,11 +403,32 @@ const renderThirdPartyIconGrid = () => {
     if (!thirdPartyIcons.length) {
         grid.html('<div class="fv-icon-picker-empty">No supported icon files found in this folder.</div>');
         status.text(`Folder "${thirdPartySelectedFolder}" has 0 supported icon files.`);
+        setPager(1, 1);
         return;
     }
 
+    const paged = paginateItems(thirdPartyIcons, thirdPartyIconPage, ICON_PICKER_PAGE_SIZE);
+    thirdPartyIconPage = paged.page;
+    setPager(paged.page, paged.totalPages);
+    prevButton.off('click.fvthirdpartypager').on('click.fvthirdpartypager', (event) => {
+        event.preventDefault();
+        if (thirdPartyIconPage <= 1) {
+            return;
+        }
+        thirdPartyIconPage -= 1;
+        renderThirdPartyIconGrid();
+    });
+    nextButton.off('click.fvthirdpartypager').on('click.fvthirdpartypager', (event) => {
+        event.preventDefault();
+        if (thirdPartyIconPage >= paged.totalPages) {
+            return;
+        }
+        thirdPartyIconPage += 1;
+        renderThirdPartyIconGrid();
+    });
+
     const currentValue = getCurrentIconValue();
-    const rows = thirdPartyIcons.map((icon) => {
+    const rows = paged.items.map((icon) => {
         const selected = currentValue === icon.url ? ' is-selected' : '';
         const safeUrl = escapeHtml(icon.url);
         const safeName = escapeHtml(icon.name);
@@ -357,7 +440,7 @@ const renderThirdPartyIconGrid = () => {
         `;
     }).join('');
     grid.html(rows);
-    status.text(`Showing ${thirdPartyIcons.length} icon${thirdPartyIcons.length === 1 ? '' : 's'} in "${thirdPartySelectedFolder}".`);
+    status.text(`Showing ${paged.startIndex + 1}-${paged.endIndex} of ${thirdPartyIcons.length} icon${thirdPartyIcons.length === 1 ? '' : 's'} in "${thirdPartySelectedFolder}".`);
     grid.find('.fv-icon-picker-item').off('click').on('click', (event) => {
         event.preventDefault();
         const value = String($(event.currentTarget).attr('data-icon-value') || '').trim();
@@ -399,6 +482,7 @@ const loadThirdPartyIcons = async (folderName) => {
         name: String(entry?.name || '').trim(),
         url: String(entry?.url || '').trim()
     })).filter((entry) => entry.name !== '' && entry.url !== '');
+    thirdPartyIconPage = 1;
     renderThirdPartyFolderList();
     renderThirdPartyIconGrid();
 };
@@ -432,6 +516,7 @@ const loadBuiltInIcons = async () => {
     } catch (_error) {
         builtInIcons = [...BUILT_IN_ICON_FALLBACK];
     }
+    builtInIconPage = 1;
 };
 
 const initBuiltInIconPicker = async () => {
@@ -447,6 +532,8 @@ const initBuiltInIconPicker = async () => {
         setThirdPartyIconPickerOpen(false);
         setBuiltInIconPickerOpen(!isOpen);
         if (!isOpen) {
+            builtInIconPage = 1;
+            renderBuiltInIconPicker();
             $('#fv-icon-picker-search').trigger('focus');
         }
     });
@@ -502,12 +589,25 @@ const initBuiltInIconPicker = async () => {
         await refreshThirdPartyIconPicker();
     });
     $('#fv-icon-picker-search').off('input.fviconpicker').on('input.fviconpicker', (event) => {
-        builtInIconSearchQuery = String($(event.currentTarget).val() || '').trim();
-        renderBuiltInIconPicker();
+        if (builtInIconSearchTimer) {
+            clearTimeout(builtInIconSearchTimer);
+        }
+        const value = String($(event.currentTarget).val() || '').trim();
+        builtInIconSearchTimer = setTimeout(() => {
+            builtInIconSearchTimer = null;
+            builtInIconSearchQuery = value;
+            builtInIconPage = 1;
+            renderBuiltInIconPicker();
+        }, ICON_PICKER_SEARCH_DEBOUNCE_MS);
     });
     $('#fv-icon-picker-clear').off('click.fviconpicker').on('click.fviconpicker', (event) => {
         event.preventDefault();
+        if (builtInIconSearchTimer) {
+            clearTimeout(builtInIconSearchTimer);
+            builtInIconSearchTimer = null;
+        }
         builtInIconSearchQuery = '';
+        builtInIconPage = 1;
         $('#fv-icon-picker-search').val('');
         renderBuiltInIconPicker();
         $('#fv-icon-picker-search').trigger('focus');

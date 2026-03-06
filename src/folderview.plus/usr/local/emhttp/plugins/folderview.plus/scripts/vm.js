@@ -46,6 +46,12 @@ const utils = window.FolderViewPlusUtils || {
         };
     }
 };
+const VM_DEBUG_MODE = false;
+const vmDebugLog = (...args) => {
+    if (VM_DEBUG_MODE) {
+        console.log(...args);
+    }
+};
 
 const getPrefsOrderedFolderMap = (folders, prefs) => {
     const source = folders && typeof folders === 'object' ? folders : {};
@@ -193,7 +199,7 @@ const createFolders = async () => {
         element.click();
         document.body.removeChild(element);
         URL.revokeObjectURL(url);
-        console.log('Order:', [...order]);
+        vmDebugLog('Order:', [...order]);
     }
 
     let foldersDone = {};
@@ -451,7 +457,7 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone) => {
             $(`tr.folder-id-${id} div.folder-storage`).append($vmTR.addClass(`folder-${id}-element`).addClass(`folder-element`).removeClass('sortable'));
 
             if(folderDebugMode) {
-                console.log(`${newFolder[container].id}(${offsetIndex}, ${index}) => ${id}`);
+                vmDebugLog(`${newFolder[container].id}(${offsetIndex}, ${index}) => ${id}`);
             }
             
             addPreview(id, ct.autostart);

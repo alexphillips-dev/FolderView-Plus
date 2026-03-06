@@ -63,6 +63,17 @@ for required_entry in "${REQUIRED_ARCHIVE_ENTRIES[@]}"; do
   fi
 done
 
+ICON_ARCHIVE_ENTRIES="$(printf '%s\n' "${ARCHIVE_LIST_NORMALIZED}" | grep -E '^usr/local/emhttp/plugins/folderview.plus/images/(third-party-icons|custom)/' || true)"
+if [[ -n "${ICON_ARCHIVE_ENTRIES}" ]]; then
+  ICON_ARCHIVE_FILES="$(printf '%s\n' "${ICON_ARCHIVE_ENTRIES}" | grep -Ev '/$' || true)"
+  INVALID_ICON_ENTRIES="$(printf '%s\n' "${ICON_ARCHIVE_FILES}" | grep -Ev '\.(png|jpg|jpeg|gif|webp|svg|bmp|ico|avif)$' || true)"
+  if [[ -n "${INVALID_ICON_ENTRIES}" ]]; then
+    echo "ERROR: Archive contains non-icon files in icon asset directories:" >&2
+    echo "${INVALID_ICON_ENTRIES}" >&2
+    exit 1
+  fi
+fi
+
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "${TMP_DIR}"' EXIT
 tar -xf "${ARCHIVE_FILE}" -C "${TMP_DIR}"

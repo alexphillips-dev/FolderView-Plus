@@ -55,6 +55,12 @@ const getFolderLabelValue = (labels) => {
     }
     return '';
 };
+const DASHBOARD_DEBUG_MODE = false;
+const dashboardDebugLog = (...args) => {
+    if (DASHBOARD_DEBUG_MODE) {
+        console.log(...args);
+    }
+};
 
 const getPrefsOrderedFolderMap = (folders, prefs) => {
     const source = folders && typeof folders === 'object' ? folders : {};
@@ -149,7 +155,7 @@ const createFolders = async () => {
             element.click();
             document.body.removeChild(element);
             URL.revokeObjectURL(url);
-            console.log('Docker Order:', [...order]);
+            dashboardDebugLog('Docker Order:', [...order]);
         }
     
         let foldersDone = {};
@@ -269,7 +275,7 @@ const createFolders = async () => {
             element.click();
             document.body.removeChild(element);
             URL.revokeObjectURL(url);
-            console.log('VM Order:', [...order]);
+            dashboardDebugLog('VM Order:', [...order]);
         }
     
         let foldersDone = {};
@@ -491,7 +497,7 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
             }
 
             if(folderDebugMode) {
-                console.log(`Docker ${newFolder[container].id}(${offsetIndex}, ${index}) => ${id}`);
+                dashboardDebugLog(`Docker ${newFolder[container].id}(${offsetIndex}, ${index}) => ${id}`);
             }
 
             // set the status of the folder
@@ -734,7 +740,7 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone) => {
             $(`tbody#vm_view span#folder-id-${id}`).siblings('div.folder-storage').append($vmEl.addClass(`folder-${id}-element`).addClass(`folder-element-vm`).addClass(`${ct.autostart ? 'autostart' : ''}`));
 
             if(folderDebugMode) {
-                console.log(`VM ${newFolder[container].id}(${offsetIndex}, ${index}) => ${id}`);
+                dashboardDebugLog(`VM ${newFolder[container].id}(${offsetIndex}, ${index}) => ${id}`);
             }
             
             // set the status of the folder

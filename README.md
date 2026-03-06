@@ -40,7 +40,7 @@ Then return to normal `main` updates.
 
 Versioning format:
 
-- Stable releases use `YYYY.MM.DD.UU` (for example `2026.03.14.11`)
+- Stable releases use `YYYY.MM.DD.UU` (for example `2026.03.06.26`)
 - `UU` is a zero-padded update number to keep Unraid update ordering consistent
 - Stable release date is always anchored to the current release day; only `UU` increments for multiple same-day releases
 - Future-dated stable versions are blocked by release guard checks
@@ -69,6 +69,31 @@ plugin remove folderview.plus
 - Local icon management with built-in icon packs and direct upload support
 - Custom CSS/JS extension loading
 - Full mobile/touch support across Docker, VMs, Dashboard, and Settings (including Advanced section expand/collapse behavior)
+
+## Browser Support
+
+Supported major browsers (current versions):
+
+- Google Chrome
+- Microsoft Edge (Chromium)
+- Mozilla Firefox
+- Apple Safari (macOS + iOS)
+
+Not supported:
+
+- Internet Explorer 11
+- Legacy Edge (EdgeHTML)
+- Very old Safari/legacy mobile browsers that do not support modern JavaScript features used by the plugin
+
+## Security Hardening
+
+FolderView Plus includes compatibility-safe hardening updates:
+
+- Request token rollout with compatibility mode (`compat`) to avoid breaking older cached clients during transition
+- Guarded POST backup download path (`download_post`) with temporary legacy GET fallback during migration
+- Response hardening headers on plugin JSON/file responses (`X-Content-Type-Options: nosniff`)
+- Safer UI rendering for dynamic folder/action text to reduce injection/XSS risk
+- Security regression tests to help prevent these protections from regressing in future updates
 
 ## Quick Start
 

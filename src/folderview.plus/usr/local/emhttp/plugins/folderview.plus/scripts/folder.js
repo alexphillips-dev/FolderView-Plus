@@ -635,13 +635,17 @@ const initBuiltInIconPicker = async () => {
         renderBuiltInIconPicker();
         $('#fv-icon-picker-search').trigger('focus');
     });
-    $(document).off('mousedown.fviconpicker').on('mousedown.fviconpicker', (event) => {
+    const closeIconPickersFromOutside = (event) => {
         const target = $(event.target);
         if (!target.closest('#fv-icon-picker-panel, #fv-icon-picker-toggle, #fv-third-party-icon-panel, #fv-icon-third-party-toggle, #fv-icon-upload, #fv-icon-upload-file').length) {
             setBuiltInIconPickerOpen(false);
             setThirdPartyIconPickerOpen(false);
         }
-    });
+    };
+    $(document)
+        .off('mousedown.fviconpicker touchstart.fviconpicker pointerdown.fviconpicker')
+        .on('pointerdown.fviconpicker', closeIconPickersFromOutside)
+        .on('mousedown.fviconpicker touchstart.fviconpicker', closeIconPickersFromOutside);
     getIconInput().off('input.fviconpicker change.fviconpicker').on('input.fviconpicker change.fviconpicker', () => {
         renderBuiltInIconPicker();
         renderThirdPartyIconGrid();

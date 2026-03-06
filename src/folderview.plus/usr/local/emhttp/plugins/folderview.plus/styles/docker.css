@@ -483,3 +483,58 @@ div.folder-preview-4 span.outer {
 .docker-context-menu a:hover {
     background-color: rgba(128, 128, 128, 0.2);
 }
+
+/* Touch/mobile behavior: avoid hover-only interactions. */
+@media (hover: none), (pointer: coarse) {
+    .hover div.folder-preview div {
+        visibility: visible;
+    }
+}
+
+/* Mobile layout tuning for Docker tab folder UI and tooltip content. */
+@media (max-width: 980px) {
+    .folder-name {
+        width: 180px;
+    }
+
+    .folder-outer {
+        width: calc(180px - 25px);
+    }
+
+    .folder-element .ct-name {
+        padding-left: 14px !important;
+    }
+
+    .folder-preview {
+        min-height: 3em;
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+
+    .preview-outbox {
+        min-width: 0;
+        width: 96vw;
+        max-width: 96vw;
+        min-height: 0;
+        max-height: 86vh;
+        padding: 8px;
+    }
+
+    .first-row {
+        flex-wrap: wrap;
+    }
+
+    .second-row {
+        flex-wrap: wrap;
+        overflow: auto;
+    }
+
+    .action-info {
+        flex: 1 1 100%;
+    }
+
+    .info-section {
+        flex: 1 1 100%;
+        min-height: 220px;
+    }
+}

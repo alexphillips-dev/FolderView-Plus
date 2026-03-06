@@ -124,3 +124,27 @@ div.folder-preview-4 span.outer{
 .folder-element-custom-btn {
     margin-left: 0.5em;
 }
+
+/* Touch/mobile behavior: avoid hover-only interactions. */
+@media (hover: none), (pointer: coarse) {
+    .hover div.folder-preview div {
+        visibility: visible;
+    }
+}
+
+/* Mobile layout tuning for VM tab folder UI. */
+@media (max-width: 980px) {
+    .folder-name {
+        width: 180px;
+    }
+
+    .folder-outer {
+        width: calc(180px - 25px);
+    }
+
+    .folder-preview {
+        min-height: 3em;
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+}

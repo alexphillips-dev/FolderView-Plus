@@ -216,10 +216,23 @@
     overflow-x: hidden;
 }
 
+.folder-table .table-wrap {
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    scrollbar-width: none;
+}
+
+.folder-table .table-wrap::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+}
+
 .folder-table table {
     table-layout: fixed;
     width: 100%;
     max-width: 100%;
+    min-width: 0;
     border-collapse: collapse;
     border-spacing: 0;
     text-align: center;
@@ -227,6 +240,7 @@
 
 .folder-table table th,
 .folder-table table td {
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

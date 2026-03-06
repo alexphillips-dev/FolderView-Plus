@@ -587,14 +587,26 @@ a:focus-visible {
 
 .fv-settings-left {
     display: inline-flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0.08rem;
     min-width: 0;
 }
 
 .fv-settings-title {
-    font-size: 1rem;
+    margin: 0;
+    font-size: clamp(1.25rem, 1.7vw, 1.6rem);
+    line-height: 1.15;
     font-weight: 700;
-    letter-spacing: 0.01em;
+    letter-spacing: 0.015em;
+    white-space: nowrap;
+}
+
+.fv-settings-subtitle {
+    font-size: 0.85rem;
+    line-height: 1.2;
+    opacity: 0.78;
     white-space: nowrap;
 }
 
@@ -917,6 +929,10 @@ body {
     }
 
     .fv-settings-title {
+        white-space: normal;
+    }
+
+    .fv-settings-subtitle {
         white-space: normal;
     }
 

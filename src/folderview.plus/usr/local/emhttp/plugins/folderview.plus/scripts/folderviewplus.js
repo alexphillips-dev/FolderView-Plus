@@ -873,7 +873,8 @@ const initSettingsControls = () => {
     controls.html(`
         <div class="fv-settings-inline">
             <div class="fv-settings-left" aria-label="Plugin settings title">
-                <span class="fv-settings-title">FolderView Plus Settings</span>
+                <h2 class="fv-settings-title">FolderView Plus</h2>
+                <span class="fv-settings-subtitle">Plugin settings</span>
             </div>
             <div class="fv-settings-right">
                 <input type="text" id="fv-settings-search" placeholder="Search settings" aria-label="Search settings">

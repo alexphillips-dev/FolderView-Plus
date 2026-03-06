@@ -569,18 +569,40 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 </div>
 
 <div id="import-preview-dialog" style="display:none;">
-    <p><strong>Import summary</strong></p>
-    <div id="import-preview-meta" class="preview-meta"></div>
-    <div id="import-preview-result" class="preview-result"></div>
-    <div id="import-preview-diff"></div>
-    <label for="import-mode-select">Import mode</label>
-    <select id="import-mode-select">
-        <option value="merge">Merge</option>
-        <option value="replace">Replace</option>
-        <option value="skip">Skip existing</option>
-    </select>
-    <div id="import-preview-selection" class="import-selection"></div>
-    <textarea id="import-preview-text" readonly></textarea>
+    <div class="import-preview-head">
+        <p class="import-preview-title">Review import plan</p>
+        <p class="import-preview-subtitle">Choose mode, review changes, and apply only what you want.</p>
+    </div>
+    <div class="import-top-grid">
+        <div class="import-preview-card">
+            <p class="import-card-title">Summary</p>
+            <div id="import-preview-meta" class="preview-meta"></div>
+            <div id="import-preview-result" class="preview-result"></div>
+            <div id="import-preview-counts" class="import-preview-counts"></div>
+        </div>
+        <div class="import-preview-card import-mode-card">
+            <label for="import-mode-select">Import mode</label>
+            <select id="import-mode-select">
+                <option value="merge">Merge</option>
+                <option value="replace">Replace</option>
+                <option value="skip">Skip existing</option>
+            </select>
+            <div id="import-mode-help">Optional dry run: enable preview-only mode if you want to review without applying changes.</div>
+            <label id="import-dry-run-row"><input id="import-dry-run-only" type="checkbox"> Dry run only (preview changes, do not modify folders)</label>
+        </div>
+    </div>
+    <div class="import-preview-card">
+        <p class="import-card-title">Changed rows</p>
+        <div id="import-preview-diff"></div>
+    </div>
+    <div class="import-preview-card">
+        <p class="import-card-title">Selected operations</p>
+        <div id="import-preview-selection" class="import-selection"></div>
+    </div>
+    <details id="import-summary-details" class="import-summary-details">
+        <summary>Show raw summary details</summary>
+        <textarea id="import-preview-text" readonly></textarea>
+    </details>
 </div>
 
 <div id="fv-settings-action-bar"></div>

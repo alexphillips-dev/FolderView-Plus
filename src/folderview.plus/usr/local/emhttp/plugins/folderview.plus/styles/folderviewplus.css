@@ -602,8 +602,8 @@
 }
 
 .import-selection {
-    margin-bottom: 0.65rem;
-    max-height: 260px;
+    margin: 0;
+    max-height: 170px;
     overflow-y: auto;
     overflow-x: hidden;
     width: 100%;
@@ -651,20 +651,80 @@
 }
 
 #import-preview-dialog .preview-meta {
-    margin-bottom: 0.6rem;
-    font-size: 0.9rem;
-    opacity: 0.85;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.32rem;
+    margin-bottom: 0.5rem;
 }
 
-#import-preview-dialog .preview-result {
-    margin-bottom: 0.45rem;
-    font-size: 0.88rem;
+#import-preview-dialog .preview-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
+    font-size: 0.82rem;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+    padding: 0.14rem 0.45rem;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+#import-preview-dialog .preview-meta-item strong {
+    font-weight: 700;
     opacity: 0.9;
 }
 
+#import-preview-dialog .preview-result {
+    margin-bottom: 0.5rem;
+    font-size: 0.92rem;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+#import-preview-dialog .import-preview-counts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+#import-preview-dialog .import-count-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.32rem;
+    font-size: 0.8rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    padding: 0.14rem 0.42rem;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+#import-preview-dialog .import-count-chip.is-create {
+    border-color: rgba(147, 225, 159, 0.52);
+    color: #93e19f;
+}
+
+#import-preview-dialog .import-count-chip.is-update {
+    border-color: rgba(77, 163, 255, 0.58);
+    color: #b9dcff;
+}
+
+#import-preview-dialog .import-count-chip.is-delete {
+    border-color: rgba(255, 116, 116, 0.58);
+    color: #ff8c8c;
+}
+
+#import-preview-dialog .import-count-chip.is-selected {
+    border-color: rgba(255, 193, 94, 0.58);
+    color: #ffc15e;
+}
+
+#import-preview-dialog .import-count-chip.is-dryrun {
+    border-color: rgba(192, 192, 192, 0.4);
+    color: rgba(255, 255, 255, 0.85);
+}
+
 #import-preview-dialog #import-preview-diff {
-    margin: 0.4rem 0 0.65rem 0;
-    max-height: 220px;
+    margin: 0;
+    max-height: 180px;
     overflow: auto;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 5px;
@@ -687,15 +747,88 @@
 #import-preview-dialog select {
     width: 100%;
     min-height: 32px;
-    margin: 0.35rem 0 0.6rem 0;
+    margin: 0.25rem 0 0.35rem 0;
 }
 
 #import-preview-dialog textarea {
     width: 100%;
-    min-height: 260px;
+    min-height: 120px;
+    max-height: 180px;
     resize: vertical;
     font-family: Consolas, "Courier New", monospace;
     font-size: 12px;
+}
+
+.ui-dialog.fv-import-preview-modal #import-preview-dialog {
+    display: grid;
+    gap: 0.6rem;
+}
+
+.ui-dialog.fv-import-preview-modal .ui-dialog-content {
+    padding: 0.6rem 0.8rem;
+}
+
+.import-preview-head {
+    display: grid;
+    gap: 0.18rem;
+}
+
+.import-preview-title {
+    margin: 0;
+    font-size: 1.02rem;
+    font-weight: 700;
+}
+
+.import-preview-subtitle {
+    margin: 0;
+    font-size: 0.85rem;
+    opacity: 0.82;
+}
+
+.import-top-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+}
+
+.import-preview-card {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 6px;
+    padding: 0.5rem 0.58rem;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.import-card-title {
+    margin: 0 0 0.42rem 0;
+    font-size: 0.84rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    opacity: 0.84;
+}
+
+.import-mode-card > label[for="import-mode-select"] {
+    display: inline-block;
+    font-size: 0.84rem;
+    font-weight: 700;
+}
+
+.import-summary-details {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 6px;
+    padding: 0.35rem 0.5rem 0.5rem 0.5rem;
+    background: rgba(0, 0, 0, 0.12);
+}
+
+.import-summary-details > summary {
+    cursor: pointer;
+    font-size: 0.84rem;
+    font-weight: 600;
+    opacity: 0.9;
+    margin-bottom: 0.35rem;
+}
+
+.import-summary-details:not([open]) textarea {
+    display: none;
 }
 
 .ui-dialog.fv-import-preview-modal .ui-dialog-titlebar {
@@ -704,6 +837,16 @@
 
 .ui-dialog.fv-import-preview-modal .ui-dialog-titlebar-close {
     display: none !important;
+}
+
+@media (max-width: 760px) {
+    .import-top-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ui-dialog.fv-import-preview-modal .ui-dialog-content {
+        padding: 0.5rem 0.55rem;
+    }
 }
 
 button:focus-visible,
@@ -1086,8 +1229,8 @@ h2[data-fv-section].fv-search-match {
 }
 
 #import-mode-help {
-    margin: -0.25rem 0 0.45rem 0;
-    font-size: 0.86rem;
+    margin: 0.1rem 0 0.4rem 0;
+    font-size: 0.84rem;
     opacity: 0.82;
     line-height: 1.35;
 }
@@ -1096,7 +1239,7 @@ h2[data-fv-section].fv-search-match {
     display: flex;
     align-items: center;
     gap: 0.45rem;
-    margin: 0 0 0.55rem 0;
+    margin: 0;
     font-size: 0.9rem;
 }
 

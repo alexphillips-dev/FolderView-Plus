@@ -2069,6 +2069,7 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     const previewText = $('#import-preview-text');
     const meta = $('#import-preview-meta');
     const result = $('#import-preview-result');
+    const counts = $('#import-preview-counts');
     const folders = getFolderMap(type);
     let dialogResult = null;
     const isImportDryRunOnly = () => {
@@ -2097,21 +2098,39 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         const operations = utils.buildImportOperations(folders, parsed, mode);
         const diffRows = utils.buildImportDiffRows(folders, parsed, mode);
         const dryRunOnly = isImportDryRunOnly();
+        const selectedOperations = filterOperationsBySelection(operations);
+        const selectedCount = countImportOperations(selectedOperations);
         importSelectionState = buildOperationSelectionState(operations, folders);
         renderOperationSelection();
         renderImportDiffTable(diffRows);
         previewText.val(formatImportSummary(summary));
-        result.text(`Selected operations: ${countImportOperations(filterOperationsBySelection(operations))} | Creates: ${operations.creates.length}, Updates: ${operations.upserts.length}, Deletes: ${operations.deletes.length} | Dry run: ${dryRunOnly ? 'ON' : 'OFF'}`);
+        if (selectedCount === 0) {
+            result.text('No operations selected yet. Use the checkboxes below to include at least one change.');
+        } else if (dryRunOnly) {
+            result.text(`${selectedCount} operation${selectedCount === 1 ? '' : 's'} selected. Dry run is ON, so no folder changes will be applied.`);
+        } else {
+            result.text(`${selectedCount} operation${selectedCount === 1 ? '' : 's'} selected and ready to apply.`);
+        }
 
-        const metaParts = [
-            `Type: ${type}`,
-            `Mode: ${parsed.mode}${parsed.legacy ? ' (legacy format)' : ''}`,
-            parsed.schemaVersion !== null ? `Schema: v${parsed.schemaVersion}` : 'Schema: legacy',
-            parsed.pluginVersion ? `Plugin: ${parsed.pluginVersion}` : null,
-            parsed.exportedAt ? `Exported: ${parsed.exportedAt}` : null,
-            'Safety: automatic pre-import backup'
-        ].filter(Boolean);
-        meta.text(metaParts.join(' | '));
+        const metaItems = [
+            { label: 'Type', value: type },
+            { label: 'Format', value: `${parsed.mode}${parsed.legacy ? ' (legacy)' : ''}` },
+            { label: 'Schema', value: parsed.schemaVersion !== null ? `v${parsed.schemaVersion}` : 'legacy' },
+            { label: 'Plugin', value: parsed.pluginVersion || 'unknown' },
+            { label: 'Exported', value: parsed.exportedAt || 'unknown' },
+            { label: 'Safety', value: 'Auto backup before apply' }
+        ];
+        meta.html(metaItems.map((item) => (
+            `<span class="preview-meta-item"><strong>${escapeHtml(item.label)}:</strong> ${escapeHtml(String(item.value))}</span>`
+        )).join(''));
+
+        counts.html(`
+            <span class="import-count-chip is-create">Create: ${operations.creates.length}</span>
+            <span class="import-count-chip is-update">Update: ${operations.upserts.length}</span>
+            <span class="import-count-chip is-delete">Delete: ${operations.deletes.length}</span>
+            <span class="import-count-chip is-selected">Selected: ${selectedCount}</span>
+            <span class="import-count-chip is-dryrun">Dry run: ${dryRunOnly ? 'ON' : 'OFF'}</span>
+        `);
     };
 
     modeSelect.off('change.fvimport').on('change.fvimport', () => {

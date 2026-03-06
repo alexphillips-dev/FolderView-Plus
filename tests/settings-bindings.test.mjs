@@ -43,3 +43,11 @@ test('import preview dialog stays outside section-collapse visibility controls',
     assert.match(script, /if \(cursor\.id === 'import-preview-dialog'\) \{/);
     assert.match(script, /dialog\.removeClass\('fv-section-hidden fv-section-content-hidden'\);/);
 });
+
+test('import preview layout includes user-facing summary cards and collapsible raw details', () => {
+    assert.match(page, /id="import-preview-counts"/);
+    assert.match(page, /class="import-top-grid"/);
+    assert.match(page, /id="import-summary-details"/);
+    assert.match(script, /const counts = \$\('#import-preview-counts'\);/);
+    assert.match(script, /result\.text\(`\$\{selectedCount\} operation/);
+});

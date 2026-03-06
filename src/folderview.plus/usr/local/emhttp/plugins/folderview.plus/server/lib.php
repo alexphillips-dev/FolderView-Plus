@@ -732,7 +732,86 @@
                 'intervalHours' => 24,
                 'retention' => 25,
                 'lastRunAt' => ''
+            ],
+            'importPresets' => [
+                'defaultId' => 'builtin:merge',
+                'custom' => []
             ]
+        ];
+    }
+
+    function normalizeImportPresetName(string $name): string {
+        $trimmed = trim($name);
+        if ($trimmed === '') {
+            return '';
+        }
+        return truncateUtf8String($trimmed, 64);
+    }
+
+    function normalizeImportPresetMode(string $mode): string {
+        $normalized = strtolower(trim($mode));
+        if ($normalized === 'replace' || $normalized === 'skip') {
+            return $normalized;
+        }
+        return 'merge';
+    }
+
+    function normalizeTypeImportPresets($value): array {
+        $incoming = is_array($value) ? $value : [];
+        $rawCustom = is_array($incoming['custom'] ?? null) ? $incoming['custom'] : [];
+        $custom = [];
+        $seenIds = [];
+
+        foreach ($rawCustom as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+            $id = trim((string)($row['id'] ?? ''));
+            if ($id === '' || strpos($id, 'builtin:') === 0 || in_array($id, $seenIds, true)) {
+                continue;
+            }
+            $name = normalizeImportPresetName((string)($row['name'] ?? ''));
+            if ($name === '') {
+                continue;
+            }
+            $seenIds[] = $id;
+            $custom[] = [
+                'id' => truncateUtf8String($id, 96),
+                'name' => $name,
+                'mode' => normalizeImportPresetMode((string)($row['mode'] ?? 'merge')),
+                'dryRunOnly' => normalizeBool($row['dryRunOnly'] ?? false, false)
+            ];
+            if (count($custom) >= 30) {
+                break;
+            }
+        }
+
+        $defaultId = trim((string)($incoming['defaultId'] ?? 'builtin:merge'));
+        if ($defaultId === '') {
+            $defaultId = 'builtin:merge';
+        }
+        $defaultAllowed = [
+            'builtin:merge',
+            'builtin:replace',
+            'builtin:skip',
+            'builtin:dryrun'
+        ];
+        if (!in_array($defaultId, $defaultAllowed, true)) {
+            $found = false;
+            foreach ($custom as $row) {
+                if ((string)$row['id'] === $defaultId) {
+                    $found = true;
+                    break;
+                }
+            }
+            if (!$found) {
+                $defaultId = 'builtin:merge';
+            }
+        }
+
+        return [
+            'defaultId' => $defaultId,
+            'custom' => $custom
         ];
     }
 
@@ -825,6 +904,7 @@
             'retention' => normalizeIntInRange($scheduleIncoming['retention'] ?? 25, 1, 200, 25),
             'lastRunAt' => is_string($scheduleIncoming['lastRunAt'] ?? null) ? (string)$scheduleIncoming['lastRunAt'] : ''
         ];
+        $normalized['importPresets'] = normalizeTypeImportPresets($prefs['importPresets'] ?? []);
         return $normalized;
     }
 
@@ -1302,6 +1382,7 @@
     function createBackupSnapshot(string $type, string $reason = 'manual'): array {
         $type = ensureType($type);
         $folders = readRawFolderMap($type);
+        $prefs = readTypePrefs($type);
         $backupDir = getBackupsDirPath();
         if (!is_dir($backupDir)) {
             @mkdir($backupDir, 0770, true);
@@ -1318,7 +1399,8 @@
             'type' => $type,
             'mode' => 'full',
             'reason' => $reason,
-            'folders' => $folders
+            'folders' => $folders,
+            'prefs' => $prefs
         ];
         @file_put_contents("$backupDir/$filename", json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
         $pruned = pruneBackupSnapshots($type, getTypeBackupRetention($type));
@@ -1399,6 +1481,7 @@
         if (!is_array($folders)) {
             $folders = [];
         }
+        $prefs = is_array($decoded['prefs'] ?? null) ? normalizeTypePrefs($decoded['prefs']) : null;
 
         return [
             'name' => $safeName,
@@ -1408,6 +1491,7 @@
             'pluginVersion' => (string)($decoded['pluginVersion'] ?? ''),
             'exportedAt' => (string)($decoded['exportedAt'] ?? ''),
             'count' => count($folders),
+            'prefs' => $prefs,
             'folders' => $folders
         ];
     }

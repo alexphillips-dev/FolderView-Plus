@@ -6,12 +6,27 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.06.27">
-<!ENTITY md5 "e8445320f711b7896304be335d781336">
+<!ENTITY version "2026.03.06.28">
+<!ENTITY md5 "3a99a7ea4c1dc23c9a15c4a0e8a20ee0">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.06.28
+- Add server-persisted import presets:
+  - save custom presets in plugin preferences (not local browser storage),
+  - keep per-type default preset selection across browsers/sessions.
+- Improve import preview workflow:
+  - live selected-operation counters and action totals as checkboxes change,
+  - clearer selected counts by Create/Update/Delete in the preview summary.
+- Expand backup compare:
+  - optional "include preferences" mode in Docker/VM compare,
+  - show structured preference-level diffs in compare results.
+- Add large-library performance guardrails:
+  - paginate import and backup-compare diff tables,
+  - include pager controls for faster rendering on large datasets.
+- Add regression coverage for the new import preset, compare, and paging paths.
 
 ###2026.03.06.27
 - Add import presets in the import preview dialog:

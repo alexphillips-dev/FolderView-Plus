@@ -403,6 +403,7 @@ emitRequestTokenMetaTag();
             <select id="docker-backup-compare-left"></select>
             <span class="backup-compare-sep">vs</span>
             <select id="docker-backup-compare-right"></select>
+            <label class="backup-compare-prefs-toggle"><input id="docker-backup-compare-include-prefs" type="checkbox" checked> Include preference changes</label>
             <button onclick="compareBackupSnapshots('docker')"><i class="fa fa-exchange"></i> Compare snapshots</button>
         </div>
         <input id="docker-backups-filter" type="text" placeholder="Search Docker backups" oninput="setFilterQuery('backups','docker',this.value)">
@@ -441,6 +442,7 @@ emitRequestTokenMetaTag();
             <select id="vm-backup-compare-left"></select>
             <span class="backup-compare-sep">vs</span>
             <select id="vm-backup-compare-right"></select>
+            <label class="backup-compare-prefs-toggle"><input id="vm-backup-compare-include-prefs" type="checkbox" checked> Include preference changes</label>
             <button onclick="compareBackupSnapshots('vm')"><i class="fa fa-exchange"></i> Compare snapshots</button>
         </div>
         <input id="vm-backups-filter" type="text" placeholder="Search VM backups" oninput="setFilterQuery('backups','vm',this.value)">
@@ -638,6 +640,7 @@ emitRequestTokenMetaTag();
     <div id="backup-compare-meta" class="preview-meta"></div>
     <div id="backup-compare-counts" class="import-preview-counts"></div>
     <div id="backup-compare-diff" class="backup-compare-diff"></div>
+    <div id="backup-compare-prefs" class="backup-compare-prefs"></div>
 </div>
 
 <div id="import-apply-progress-overlay" style="display:none;"></div>

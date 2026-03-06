@@ -60,9 +60,11 @@ plugin remove folderview.plus
 - Auto-assignment rules (regex + Docker labels)
 - Rule testing and full simulator output
 - Import preview with `Merge`, `Replace`, and `Skip existing`
+- Import presets (built-in + custom) with per-type default preset selection persisted in plugin prefs
 - Pretty-printed exports with schema metadata
 - Automatic pre-import backups + restore latest
 - Scheduled backups via plugin cron runner
+- Snapshot compare for Docker/VM backups (`backup vs backup` or `backup vs current`) with optional preference diff
 - Change history and one-click undo to latest transaction backup
 - Global rollback checkpoints (Docker + VM folders and prefs)
 - Diagnostics bundle and issue-report output
@@ -203,9 +205,22 @@ Recommended import flow:
 
 1. Export current config first.
 2. Start import and review preview diff.
-3. Pick mode: `Merge`, `Replace`, or `Skip existing`.
+3. Pick a preset (or save your own), then confirm mode: `Merge`, `Replace`, or `Skip existing`.
 4. Apply import.
 5. Use `Restore latest backup` if rollback is needed.
+
+Import preset behavior:
+
+- Built-ins: merge safely, replace fully, add new only, dry-run merge
+- Save custom presets from current mode + dry-run selection
+- Set a per-type default preset (Docker and VM tracked independently)
+- Presets are stored in plugin prefs, so they survive browser switches and reinstall/restore workflows
+
+Backup compare behavior:
+
+- Compare any backup against another backup, or against current live folders
+- Optional `Include preference changes` toggle to diff sort/pin/runtime/health/schedule/import-preset prefs
+- Paginated compare tables for large libraries
 
 ## Config and Customization Paths
 

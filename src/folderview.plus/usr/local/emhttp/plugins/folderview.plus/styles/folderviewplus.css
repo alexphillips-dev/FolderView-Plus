@@ -573,7 +573,7 @@
 
 .backup-compare-row {
     display: grid;
-    grid-template-columns: auto minmax(180px, 1fr) auto minmax(180px, 1fr) auto;
+    grid-template-columns: auto minmax(160px, 1fr) auto minmax(160px, 1fr) auto auto;
     align-items: center;
     gap: 0.45rem;
     margin: 0.35rem 0 0.7rem 0;
@@ -595,6 +595,14 @@
     letter-spacing: 0.03em;
     font-size: 1.03rem;
     opacity: 0.75;
+}
+
+.backup-compare-prefs-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.32rem;
+    font-size: 1.03rem;
+    white-space: nowrap;
 }
 
 .bulk-row > select,
@@ -814,6 +822,25 @@
     word-break: break-word;
 }
 
+.fv-table-pager {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.38rem;
+    margin: 0.35rem 0 0 0;
+}
+
+.fv-table-pager button {
+    min-height: 28px;
+    padding: 0.15rem 0.45rem;
+    font-size: 1.03rem;
+}
+
+.fv-table-pager .fv-table-pager-info {
+    font-size: 1.03rem;
+    opacity: 0.88;
+}
+
 #import-preview-dialog select {
     width: 100%;
     min-height: 32px;
@@ -993,6 +1020,43 @@
 .backup-compare-diff td {
     text-align: left;
     padding: 0.35rem 0.42rem;
+    white-space: normal;
+    word-break: break-word;
+}
+
+.backup-compare-prefs {
+    display: grid;
+    gap: 0.35rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 6px;
+    padding: 0.45rem 0.55rem;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.backup-compare-prefs .backup-compare-prefs-title {
+    margin: 0;
+    font-size: 1.03rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    opacity: 0.84;
+}
+
+.backup-compare-prefs .backup-compare-prefs-empty {
+    font-size: 1.03rem;
+    opacity: 0.84;
+}
+
+.backup-compare-prefs table {
+    width: 100%;
+    table-layout: fixed;
+    font-size: 1.03rem;
+}
+
+.backup-compare-prefs th,
+.backup-compare-prefs td {
+    text-align: left;
+    padding: 0.25rem 0.3rem;
     white-space: normal;
     word-break: break-word;
 }

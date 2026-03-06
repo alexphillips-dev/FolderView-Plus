@@ -150,6 +150,42 @@
             retention: clampNumber(backupScheduleRaw.retention, 1, 200, defaultSchedule.retention),
             lastRunAt: typeof backupScheduleRaw.lastRunAt === 'string' ? backupScheduleRaw.lastRunAt : ''
         };
+        const importPresetsRaw = isPlainObject(incoming.importPresets) ? incoming.importPresets : {};
+        const importPresetCustomRaw = Array.isArray(importPresetsRaw.custom) ? importPresetsRaw.custom : [];
+        const importPresetCustom = [];
+        const importPresetIds = new Set();
+        for (const row of importPresetCustomRaw) {
+            if (!isPlainObject(row)) {
+                continue;
+            }
+            const id = typeof row.id === 'string' ? row.id.trim() : '';
+            const name = typeof row.name === 'string' ? row.name.trim() : '';
+            if (!id || !name || id.startsWith('builtin:') || importPresetIds.has(id)) {
+                continue;
+            }
+            importPresetIds.add(id);
+            importPresetCustom.push({
+                id: id.slice(0, 96),
+                name: name.slice(0, 64),
+                mode: ['replace', 'skip'].includes(String(row.mode || '').trim().toLowerCase()) ? String(row.mode || '').trim().toLowerCase() : 'merge',
+                dryRunOnly: row.dryRunOnly === true
+            });
+            if (importPresetCustom.length >= 30) {
+                break;
+            }
+        }
+        const defaultImportPresetIdRaw = typeof importPresetsRaw.defaultId === 'string' ? importPresetsRaw.defaultId.trim() : 'builtin:merge';
+        const importPresetBuiltinIds = new Set(['builtin:merge', 'builtin:replace', 'builtin:skip', 'builtin:dryrun']);
+        const importPresetCustomIds = new Set(importPresetCustom.map((row) => row.id));
+        const defaultImportPresetId = (
+            importPresetBuiltinIds.has(defaultImportPresetIdRaw) || importPresetCustomIds.has(defaultImportPresetIdRaw)
+        )
+            ? defaultImportPresetIdRaw
+            : 'builtin:merge';
+        const importPresets = {
+            defaultId: defaultImportPresetId,
+            custom: importPresetCustom
+        };
         const runtimePrefsSchema = clampNumber(incoming.runtimePrefsSchema, 0, RUNTIME_PREFS_SCHEMA, 0);
         const runtimePrefsReady = runtimePrefsSchema >= RUNTIME_PREFS_SCHEMA;
         const liveRefreshEnabled = runtimePrefsReady ? incoming.liveRefreshEnabled === true : false;
@@ -192,7 +228,8 @@
             lazyPreviewEnabled,
             lazyPreviewThreshold,
             health,
-            backupSchedule
+            backupSchedule,
+            importPresets
         };
     };
 

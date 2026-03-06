@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.13.2">
+<!ENTITY version "2026.03.13.3">
 <!ENTITY md5 "92a4a3903ffb07f993deb3690a853c54">
 ]>
 
-<PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="https://raw.githubusercontent.com/&github;/main/img/folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
+<PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.13.3
+- Stabilize icon rendering in Unraid UI:
+  - use supported Font Awesome icon class in plugin manifest (`folder-open-o`),
+  - avoids broken image icons in Plugins tab caused by image-src handling differences.
 
 ###2026.03.13.2
 - Fix icon rendering regression:

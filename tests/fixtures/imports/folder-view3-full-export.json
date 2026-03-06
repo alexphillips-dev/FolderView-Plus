@@ -1,0 +1,25 @@
+{
+  "S9deYJyJjG5Ou7cxF1XIr": {
+    "name": "Audiobooks",
+    "icon": "/plugins/folderview.plus/images/icons/folder-audiobooks.svg",
+    "regex": "",
+    "containers": [
+      "audiobookshelf",
+      "audiobookshelf-temp"
+    ],
+    "settings": {
+      "preview": 1
+    },
+    "actions": []
+  },
+  "R9eTAjGfUJyUPIV6b7H5": {
+    "name": "Torrents",
+    "icon": "/plugins/folderview.plus/images/icons/folder-torrents.svg",
+    "regex": "^(qbit|radarr|sonarr)",
+    "containers": [],
+    "settings": {
+      "preview": 2
+    },
+    "actions": []
+  }
+}

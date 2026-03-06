@@ -58,6 +58,55 @@ function appearsToBeSvg(string $path): bool {
     return strpos($normalized, '<svg') !== false;
 }
 
+function validateAndNormalizeSvgContent(string $tmpPath): void {
+    $raw = @file_get_contents($tmpPath);
+    if (!is_string($raw) || $raw === '') {
+        throw new RuntimeException('Invalid SVG icon file.');
+    }
+    if (strlen($raw) > FVPLUS_CUSTOM_ICON_MAX_BYTES) {
+        throw new RuntimeException('SVG icon exceeds 4MB limit.');
+    }
+    if (strncmp($raw, "\xEF\xBB\xBF", 3) === 0) {
+        $raw = substr($raw, 3);
+    }
+    if (!preg_match('/<\s*svg\b/i', $raw)) {
+        throw new RuntimeException('Invalid SVG icon file.');
+    }
+
+    $blockedPatterns = [
+        '/<\s*script\b/i',
+        '/<\s*iframe\b/i',
+        '/<\s*object\b/i',
+        '/<\s*embed\b/i',
+        '/<\s*foreignObject\b/i',
+        '/<!\s*doctype/i',
+        '/<!\s*entity/i',
+        '/\bon[a-z]+\s*=/i',
+        '/\b(?:xlink:href|href|src)\s*=\s*["\']\s*(?:javascript:|data:text\/html)/i',
+        '/\burl\(\s*["\']?\s*javascript:/i'
+    ];
+    foreach ($blockedPatterns as $pattern) {
+        if (@preg_match($pattern, $raw) === 1) {
+            throw new RuntimeException('SVG contains blocked content.');
+        }
+    }
+
+    if (function_exists('libxml_use_internal_errors') && function_exists('simplexml_load_string')) {
+        $prev = libxml_use_internal_errors(true);
+        $xml = @simplexml_load_string($raw, 'SimpleXMLElement', LIBXML_NONET);
+        $errors = libxml_get_errors();
+        libxml_clear_errors();
+        libxml_use_internal_errors($prev);
+        if ($xml === false || !empty($errors)) {
+            throw new RuntimeException('Invalid SVG icon file.');
+        }
+    }
+
+    if (@file_put_contents($tmpPath, $raw, LOCK_EX) === false) {
+        throw new RuntimeException('Unable to process uploaded SVG icon.');
+    }
+}
+
 function appearsToBeIco(string $path): bool {
     $chunk = @file_get_contents($path, false, null, 0, 4);
     if (!is_string($chunk) || strlen($chunk) < 4) {
@@ -87,6 +136,9 @@ function validateUploadedIcon(string $tmpPath, string $extension): void {
 
     if ($extension === 'svg' && !appearsToBeSvg($tmpPath)) {
         throw new RuntimeException('Invalid SVG icon file.');
+    }
+    if ($extension === 'svg') {
+        validateAndNormalizeSvgContent($tmpPath);
     }
 
     if ($extension === 'ico' && !appearsToBeIco($tmpPath)) {
@@ -135,9 +187,7 @@ function uploadErrorMessage(int $errorCode): string {
     }
 }
 
-header('Content-Type: application/json');
-
-try {
+fvplus_json_try(function (): array {
     requireMutationRequestGuard();
 
     if (!isset($_FILES['icon']) || !is_array($_FILES['icon'])) {
@@ -186,16 +236,9 @@ try {
         $version = time();
     }
 
-    echo json_encode([
-        'ok' => true,
+    return [
         'name' => $fileName,
         'url' => '/plugins/folderview.plus/images/custom/' . rawurlencode($fileName) . '?v=' . $version,
         'path' => '/usr/local/emhttp/plugins/folderview.plus/images/custom/' . $fileName
-    ]);
-} catch (Throwable $e) {
-    http_response_code(400);
-    echo json_encode([
-        'ok' => false,
-        'error' => $e->getMessage()
-    ]);
-}
+    ];
+});

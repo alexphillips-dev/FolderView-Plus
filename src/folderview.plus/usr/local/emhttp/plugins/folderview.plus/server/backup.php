@@ -1,9 +1,7 @@
 <?php
 require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php");
 
-header('Content-Type: application/json');
-
-try {
+fvplus_json_try(function (): array {
     $action = (string)($_REQUEST['action'] ?? 'list');
     $mutatingActions = [
         'run_schedule',
@@ -21,49 +19,39 @@ try {
     }
 
     if ($action === 'rollback_list') {
-        echo json_encode([
-            'ok' => true,
+        return [
             'snapshots' => listGlobalRollbackSnapshots()
-        ]);
-        exit;
+        ];
     }
 
     if ($action === 'rollback_checkpoint') {
         $reason = (string)($_POST['reason'] ?? 'manual');
-        echo json_encode([
-            'ok' => true,
+        return [
             'rollback' => createGlobalRollbackSnapshot($reason),
             'snapshots' => listGlobalRollbackSnapshots()
-        ]);
-        exit;
+        ];
     }
 
     if ($action === 'rollback_restore_latest') {
-        echo json_encode([
-            'ok' => true,
+        return [
             'restore' => restoreLatestGlobalRollbackSnapshot(),
             'snapshots' => listGlobalRollbackSnapshots()
-        ]);
-        exit;
+        ];
     }
 
     if ($action === 'rollback_restore_previous') {
-        echo json_encode([
-            'ok' => true,
+        return [
             'restore' => restorePreviousGlobalRollbackSnapshot(),
             'snapshots' => listGlobalRollbackSnapshots()
-        ]);
-        exit;
+        ];
     }
 
     if ($action === 'run_schedule') {
         $requestedType = (string)($_POST['type'] ?? '');
         $result = runScheduledBackups($requestedType !== '' ? $requestedType : null);
-        echo json_encode([
-            'ok' => true,
+        return [
             'schedules' => $result
-        ]);
-        exit;
+        ];
     }
 
     $type = ensureType((string)(in_array($action, $mutatingActions, true) ? ($_POST['type'] ?? '') : ($_REQUEST['type'] ?? '')));
@@ -91,61 +79,43 @@ try {
 
     if ($action === 'create') {
         $reason = (string)($_POST['reason'] ?? 'manual');
-        echo json_encode([
-            'ok' => true,
+        return [
             'backup' => createBackupSnapshot($type, $reason)
-        ]);
-        exit;
+        ];
     }
 
     if ($action === 'restore') {
         $name = (string)($_POST['name'] ?? '');
-        echo json_encode([
-            'ok' => true,
+        return [
             'restore' => restoreBackupSnapshot($type, $name)
-        ]);
-        exit;
+        ];
     }
 
     if ($action === 'restore_latest') {
-        echo json_encode([
-            'ok' => true,
+        return [
             'restore' => restoreLatestBackupSnapshot($type)
-        ]);
-        exit;
+        ];
     }
 
     if ($action === 'restore_latest_undo') {
-        echo json_encode([
-            'ok' => true,
+        return [
             'restore' => restoreLatestUndoBackupSnapshot($type)
-        ]);
-        exit;
+        ];
     }
 
     if ($action === 'list') {
-        echo json_encode([
-            'ok' => true,
+        return [
             'backups' => listBackupSnapshots($type)
-        ]);
-        exit;
+        ];
     }
 
     if ($action === 'delete') {
         $name = (string)($_POST['name'] ?? '');
-        echo json_encode([
-            'ok' => true,
+        return [
             'deleted' => deleteBackupSnapshot($type, $name),
             'backups' => listBackupSnapshots($type)
-        ]);
-        exit;
+        ];
     }
 
     throw new RuntimeException('Unsupported action.');
-} catch (Throwable $e) {
-    http_response_code(400);
-    echo json_encode([
-        'ok' => false,
-        'error' => $e->getMessage()
-    ]);
-}
+});

@@ -1,0 +1,13 @@
+{
+  "name": "Legacy Cloud",
+  "icon": "/plugins/folder.view2/images/folder-cloud.png",
+  "regex": "^cloud",
+  "containers": [
+    "nextcloud"
+  ],
+  "settings": {
+    "preview": 0,
+    "expand_tab": true
+  },
+  "actions": []
+}

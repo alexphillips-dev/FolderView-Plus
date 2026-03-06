@@ -234,6 +234,62 @@
         validateOptionalRequestToken();
     }
 
+    function fvplus_json_response(array $payload, int $statusCode = 200): void {
+        if (!headers_sent()) {
+            header('Content-Type: application/json');
+        }
+        http_response_code($statusCode);
+        $encoded = json_encode($payload, JSON_UNESCAPED_SLASHES);
+        if ($encoded === false) {
+            http_response_code(500);
+            echo '{"ok":false,"error":"JSON encoding failed."}';
+            return;
+        }
+        echo $encoded;
+    }
+
+    function fvplus_json_ok(array $payload = []): void {
+        $data = ['ok' => true];
+        foreach ($payload as $key => $value) {
+            if ($key === 'ok') {
+                continue;
+            }
+            $data[$key] = $value;
+        }
+        fvplus_json_response($data, 200);
+    }
+
+    function fvplus_json_error(string $message, int $statusCode = 400, array $payload = []): void {
+        $data = [
+            'ok' => false,
+            'error' => $message
+        ];
+        foreach ($payload as $key => $value) {
+            if ($key === 'ok' || $key === 'error') {
+                continue;
+            }
+            $data[$key] = $value;
+        }
+        fvplus_json_response($data, $statusCode);
+    }
+
+    function fvplus_json_try(callable $handler): void {
+        try {
+            $result = $handler();
+            if (is_array($result)) {
+                if (array_key_exists('ok', $result)) {
+                    fvplus_json_response($result, $result['ok'] === false ? 400 : 200);
+                } else {
+                    fvplus_json_ok($result);
+                }
+            } elseif ($result !== null) {
+                fvplus_json_ok(['data' => $result]);
+            }
+        } catch (Throwable $e) {
+            fvplus_json_error($e->getMessage(), 400);
+        }
+    }
+
     function normalizeBool($value, bool $default = false): bool {
         if (is_bool($value)) {
             return $value;

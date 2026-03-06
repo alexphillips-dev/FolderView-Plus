@@ -115,7 +115,7 @@ const parseJsonPayload = (value) => {
     return value;
 };
 
-const paginateItems = (items, page, pageSize) => {
+const fallbackPaginateItems = (items, page, pageSize) => {
     const source = Array.isArray(items) ? items : [];
     const safePageSize = Math.max(1, Number(pageSize) || 1);
     const totalPages = Math.max(1, Math.ceil(source.length / safePageSize));
@@ -130,6 +130,30 @@ const paginateItems = (items, page, pageSize) => {
         items: source.slice(startIndex, endIndex)
     };
 };
+
+const fallbackFilterIconsByQuery = (icons, query) => {
+    const source = Array.isArray(icons) ? icons : [];
+    const needle = String(query || '').trim().toLowerCase();
+    if (!needle) {
+        return [...source];
+    }
+    return source.filter((icon) => {
+        const name = String(icon?.name || '').toLowerCase();
+        if (name.includes(needle)) {
+            return true;
+        }
+        const tags = Array.isArray(icon?.tags) ? icon.tags : [];
+        return tags.some((tag) => String(tag || '').toLowerCase().includes(needle));
+    });
+};
+
+const iconPickerRuntime = window.FolderViewIconPickerRuntime || {
+    paginateItems: fallbackPaginateItems,
+    filterIconsByQuery: fallbackFilterIconsByQuery
+};
+
+const paginateItems = (items, page, pageSize) => iconPickerRuntime.paginateItems(items, page, pageSize);
+const filterIconItems = (icons, query) => iconPickerRuntime.filterIconsByQuery(icons, query);
 
 const getOptionalRequestToken = () => {
     const metaToken = document.querySelector('meta[name="fv-request-token"]');
@@ -275,15 +299,14 @@ const renderBuiltInIconPicker = () => {
         return;
     }
 
-    const search = builtInIconSearchQuery.toLowerCase();
     const currentValue = getCurrentIconValue();
-    const filtered = builtInIcons.filter((icon) => {
-        if (!search) {
-            return true;
-        }
-        const haystack = `${icon.name} ${icon.id} ${icon.tags.join(' ')}`.toLowerCase();
-        return haystack.includes(search);
-    });
+    const filtered = filterIconItems(
+        builtInIcons.map((icon) => ({
+            ...icon,
+            tags: Array.isArray(icon?.tags) ? [...icon.tags, icon.id] : [icon.id]
+        })),
+        builtInIconSearchQuery
+    );
     const paged = paginateItems(filtered, builtInIconPage, ICON_PICKER_PAGE_SIZE);
     builtInIconPage = paged.page;
 

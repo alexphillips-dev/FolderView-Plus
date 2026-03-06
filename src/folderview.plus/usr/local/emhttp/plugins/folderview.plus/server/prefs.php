@@ -1,16 +1,12 @@
 <?php
 require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php");
 
-header('Content-Type: application/json');
-
-try {
+fvplus_json_try(function (): array {
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $type = ensureType((string)($_GET['type'] ?? $_REQUEST['type'] ?? ''));
-        echo json_encode([
-            'ok' => true,
+        return [
             'prefs' => readTypePrefs($type)
-        ]);
-        exit;
+        ];
     }
 
     requireMutationRequestGuard();
@@ -47,15 +43,8 @@ try {
         // Non-fatal.
     }
 
-    echo json_encode([
-        'ok' => true,
+    return [
         'prefs' => $saved,
         'backup' => $backup
-    ]);
-} catch (Throwable $e) {
-    http_response_code(400);
-    echo json_encode([
-        'ok' => false,
-        'error' => $e->getMessage()
-    ]);
-}
+    ];
+});

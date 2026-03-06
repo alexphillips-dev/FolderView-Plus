@@ -150,287 +150,63 @@ const renderRuntimeHealthBadge = (folders, prefs) => {
     badge.textContent = `Folder health: ${startedFolders} started | ${pausedFolders} paused | ${stoppedFolders} stopped`;
 };
 
-if (FOLDER_VIEW_DEBUG_MODE) {
-    console.log('[FV3_DEBUG] docker.js loaded. FOLDER_VIEW_DEBUG_MODE is ON.');
-}
-
-const escapeClassToken = (value) => {
-    const input = String(value);
-    if (window.CSS && typeof window.CSS.escape === 'function') {
-        return window.CSS.escape(input);
-    }
-    return input.replace(/[^a-zA-Z0-9_-]/g, '\\$&');
-};
-
-const getFolderNameCell = (row) => {
-    if (!row || !row.querySelector) {
-        return null;
-    }
-    const direct = row.querySelector('td.ct-name.folder-name');
-    if (direct) {
-        return direct;
-    }
-    const sub = row.querySelector('.folder-name-sub');
-    return sub && sub.closest ? sub.closest('td') : null;
-};
-
-const getFolderRows = () => {
-    const rows = [];
-    const seen = new Set();
-    document.querySelectorAll('tr').forEach((row) => {
-        const cell = getFolderNameCell(row);
-        if (!cell || seen.has(row)) {
-            return;
+const dockerModules = window.FolderViewDockerModules || {};
+const dockerDebug = typeof dockerModules.createDebugLogger === 'function'
+    ? dockerModules.createDebugLogger(FOLDER_VIEW_DEBUG_MODE)
+    : {
+        log: (...args) => { if (FOLDER_VIEW_DEBUG_MODE) console.log(...args); },
+        warn: (...args) => { if (FOLDER_VIEW_DEBUG_MODE) console.warn(...args); },
+        error: (...args) => { if (FOLDER_VIEW_DEBUG_MODE) console.error(...args); }
+    };
+const folderViewPerfFromQuery = (() => {
+    try {
+        if (!window.location || typeof window.location.search !== 'string' || typeof URLSearchParams !== 'function') {
+            return false;
         }
-        seen.add(row);
-        rows.push(row);
-    });
-    return rows;
-};
-
-const getFolderIdFromRow = (row) => {
-    if (!row) {
-        return '';
-    }
-    if (row.classList) {
-        for (const cls of row.classList) {
-            if (typeof cls === 'string' && cls.startsWith('folder-id-')) {
-                return cls.substring('folder-id-'.length);
-            }
-        }
-    }
-    const label = row.querySelector && row.querySelector('span.appname a');
-    if (label && typeof label.textContent === 'string') {
-        const text = label.textContent.trim();
-        if (text.startsWith('folder-') && text.length > 7) {
-            return text.substring(7);
-        }
-    }
-    return '';
-};
-
-const getFolderNameFromRow = (row) => {
-    if (!row || !row.querySelector) {
-        return '';
-    }
-    const label = row.querySelector('a.exec.folder-appname');
-    if (!label || typeof label.textContent !== 'string') {
-        return '';
-    }
-    return label.textContent.trim();
-};
-
-const getRenderedRowHeight = (row) => {
-    if (!row) {
-        return 0;
-    }
-    const rect = row.getBoundingClientRect ? row.getBoundingClientRect() : null;
-    const rectHeight = rect && Number.isFinite(rect.height) ? rect.height : 0;
-    const offsetHeight = Number.isFinite(row.offsetHeight) ? row.offsetHeight : 0;
-    return Math.max(Math.round(rectHeight), Math.round(offsetHeight), 0);
-};
-
-const rowHasFolderPreview = (row) => {
-    return !!(row && row.querySelector && row.querySelector('div.folder-preview'));
-};
-
-const applyRowHeight = (row, height = 0) => {
-    if (!row || row.tagName !== 'TR') {
-        return;
-    }
-    const targetHeight = Number.isFinite(height) && height > 0 ? Math.round(height) : 0;
-    if (targetHeight > 0) {
-        row.style.setProperty('height', `${targetHeight}px`, 'important');
-    } else {
-        row.style.removeProperty('height');
-    }
-    Array.from(row.children || []).forEach((td) => {
-        if (td && td.tagName === 'TD') {
-            if (targetHeight > 0) {
-                td.style.setProperty('height', `${targetHeight}px`, 'important');
-            } else {
-                td.style.removeProperty('height');
-            }
-            td.style.setProperty('vertical-align', 'middle', 'important');
-        }
-    });
-};
-
-const buildMainFolderHeightLookup = (mainRows = []) => {
-    const byId = new Map();
-    const byName = new Map();
-    const ordered = [];
-
-    const rows = Array.isArray(mainRows) && mainRows.length
-        ? mainRows
-        : getFolderRows().filter((row) => rowHasFolderPreview(row));
-
-    rows.forEach((row) => {
-        const height = getRenderedRowHeight(row);
-        if (height <= 0) {
-            return;
-        }
-
-        ordered.push(height);
-
-        const folderId = getFolderIdFromRow(row);
-        if (folderId && !byId.has(folderId)) {
-            byId.set(folderId, height);
-        }
-
-        const folderName = getFolderNameFromRow(row);
-        if (folderName && !byName.has(folderName)) {
-            byName.set(folderName, height);
-        }
-    });
-
-    return { byId, byName, ordered };
-};
-
-const applyFolderCellCentering = (cell, rowHeight = 0) => {
-    if (!cell) {
+        return new URLSearchParams(window.location.search).get('fvperf') === '1';
+    } catch (error) {
         return false;
     }
-
-    let sub = null;
-    Array.from(cell.children || []).forEach((child) => {
-        if (!sub && child && child.classList && child.classList.contains('folder-name-sub')) {
-            sub = child;
-        }
-    });
-    if (!sub) {
-        sub = cell.querySelector('.folder-name-sub');
-    }
-    if (!sub) {
+})();
+const folderViewPerfFromStorage = (() => {
+    try {
+        return window.localStorage && window.localStorage.getItem('fvplus_perf') === '1';
+    } catch (error) {
         return false;
     }
+})();
+const FOLDER_VIEW_PERF_MODE = folderViewPerfFromQuery || folderViewPerfFromStorage;
+const dockerPerf = typeof dockerModules.createPerfTracker === 'function'
+    ? dockerModules.createPerfTracker('folderview-plus.docker', FOLDER_VIEW_PERF_MODE)
+    : {
+        enabled: false,
+        stamp: () => {},
+        begin: () => {},
+        end: () => 0
+    };
+const rowCenteringTools = typeof dockerModules.createRowCenteringTools === 'function'
+    ? dockerModules.createRowCenteringTools()
+    : {
+        forceFolderRowVerticalCenter: () => {},
+        queueForceAllFolderRowsVerticalCenter: () => {},
+        startFolderRowCenterObserver: () => {}
+    };
+const forceFolderRowVerticalCenter = (id) => rowCenteringTools.forceFolderRowVerticalCenter(id);
+const queueForceAllFolderRowsVerticalCenter = () => rowCenteringTools.queueForceAllFolderRowsVerticalCenter();
+const startFolderRowCenterObserver = () => rowCenteringTools.startFolderRowCenterObserver();
 
-    const row = cell.parentElement;
-    const height = Number.isFinite(rowHeight) && rowHeight > 0 ? Math.round(rowHeight) : 0;
-    cell.style.setProperty('vertical-align', 'middle', 'important');
-    cell.style.setProperty('position', 'relative', 'important');
-    cell.style.setProperty('display', 'table-cell', 'important');
-    cell.style.setProperty('padding-top', '0px', 'important');
-    cell.style.setProperty('padding-bottom', '0px', 'important');
-    if (height > 0) {
-        cell.style.setProperty('height', `${height}px`, 'important');
-    } else {
-        cell.style.removeProperty('height');
-    }
-
-    sub.style.setProperty('position', 'absolute', 'important');
-    sub.style.setProperty('top', '50%', 'important');
-    sub.style.setProperty('left', '8px', 'important');
-    sub.style.setProperty('right', '8px', 'important');
-    sub.style.setProperty('transform', 'translateY(-50%)', 'important');
-    sub.style.setProperty('display', 'flex', 'important');
-    sub.style.setProperty('align-items', 'center', 'important');
-    sub.style.setProperty('min-height', '0', 'important');
-    sub.style.setProperty('width', '100%', 'important');
-    if (height > 0) {
-        sub.style.setProperty('height', `${Math.max(0, height - 2)}px`, 'important');
-    } else {
-        sub.style.removeProperty('height');
-    }
-
-    return true;
-};
-
-const forceAllFolderRowsVerticalCenter = () => {
-    const rows = getFolderRows();
-    const sourceRows = rows.filter((row) => rowHasFolderPreview(row));
-    const cloneRows = rows.filter((row) => !rowHasFolderPreview(row));
-    const lookup = buildMainFolderHeightLookup(sourceRows);
-
-    cloneRows.forEach((row, index) => {
-        const folderId = getFolderIdFromRow(row);
-        const folderName = getFolderNameFromRow(row);
-        let targetHeight = 0;
-
-        if (folderId && lookup.byId.has(folderId)) {
-            targetHeight = lookup.byId.get(folderId);
-        } else if (folderName && lookup.byName.has(folderName)) {
-            targetHeight = lookup.byName.get(folderName);
-        } else if (lookup.ordered.length > 0) {
-            targetHeight = lookup.ordered[Math.min(index, lookup.ordered.length - 1)];
-        }
-
-        applyRowHeight(row, targetHeight);
-        const cell = getFolderNameCell(row);
-        if (cell) {
-            applyFolderCellCentering(cell, targetHeight);
-        }
-    });
-
-    sourceRows.forEach((row) => {
-        applyRowHeight(row, 0);
-        const cell = getFolderNameCell(row);
-        if (cell) {
-            applyFolderCellCentering(cell, 0);
-        }
-    });
-};
-
-const forceFolderRowVerticalCenter = (id) => {
-    const escapedId = escapeClassToken(id); // Keep id-specific call signature for existing call sites.
-    if (!escapedId) {
-        return;
-    }
-    forceAllFolderRowsVerticalCenter();
-};
-
-let folderRowCenterObserver = null;
-let folderRowCenterRaf = 0;
-
-const queueForceAllFolderRowsVerticalCenter = () => {
-    if (folderRowCenterRaf) {
-        return;
-    }
-    folderRowCenterRaf = window.requestAnimationFrame(() => {
-        folderRowCenterRaf = 0;
-        forceAllFolderRowsVerticalCenter();
-    });
-};
-
-const startFolderRowCenterObserver = () => {
-    if (folderRowCenterObserver || !document.body) {
-        return;
-    }
-
-    folderRowCenterObserver = new MutationObserver((mutations) => {
-        for (const mutation of mutations) {
-            if (!mutation || !mutation.addedNodes || mutation.addedNodes.length === 0) {
-                continue;
-            }
-            for (const node of mutation.addedNodes) {
-                if (!node || node.nodeType !== 1) {
-                    continue;
-                }
-                const element = node;
-                if (
-                    (element.matches && element.matches('td.ct-name.folder-name, tr[class*="folder-id-"], .folder-name-sub, .folder-appname'))
-                    || (element.querySelector && element.querySelector('td.ct-name.folder-name, tr[class*="folder-id-"], .folder-name-sub, .folder-appname'))
-                ) {
-                    queueForceAllFolderRowsVerticalCenter();
-                    return;
-                }
-            }
-        }
-    });
-
-    folderRowCenterObserver.observe(document.body, { childList: true, subtree: true });
-    queueForceAllFolderRowsVerticalCenter();
-    setTimeout(queueForceAllFolderRowsVerticalCenter, 50);
-    setTimeout(queueForceAllFolderRowsVerticalCenter, 250);
-    setTimeout(queueForceAllFolderRowsVerticalCenter, 1000);
-};
+dockerDebug.log('[FV3_DEBUG] docker.js loaded. FOLDER_VIEW_DEBUG_MODE is ON.');
 
 /**
  * Handles the creation of all folders
  */
 const createFolders = async () => {
+    dockerPerf.begin('createFolders.total');
+    try {
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Entry');
+    dockerPerf.begin('createFolders.requests');
     const prom = await Promise.all(folderReq);
+    dockerPerf.end('createFolders.requests', { requestCount: Array.isArray(folderReq) ? folderReq.length : 0 });
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Promises resolved', prom);
 
     // Parse the results
@@ -530,6 +306,7 @@ const createFolders = async () => {
     }}));
 
     // Draw the folders in the order
+    dockerPerf.begin('createFolders.renderOrdered');
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Starting loop to draw folders in order.');
     for (let key = 0; key < order.length; key++) {
         const container = order[key];
@@ -553,8 +330,10 @@ const createFolders = async () => {
         }
     }
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Finished loop for ordered folders.');
+    dockerPerf.end('createFolders.renderOrdered', { orderedEntries: order.length });
 
     // Draw the foldes outside of the order
+    dockerPerf.begin('createFolders.renderRemaining');
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Starting loop to draw folders outside of order (remaining).');
     // Preserve original folder order when inserting at the top with unshift.
     const remainingFolders = Object.entries(getPrefsOrderedFolderMap(folders, folderTypePrefs)).reverse();
@@ -570,6 +349,7 @@ const createFolders = async () => {
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Remaining folder ${id} moved to foldersDone. Updated foldersDone:`, {...foldersDone}, "Remaining folders:", {...folders});
     }
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Finished loop for remaining folders.');
+    dockerPerf.end('createFolders.renderRemaining', { remainingCount: Object.keys(folders).length });
 
     // Expand folders that are set to be expanded by default, this is here because is easier to work with all compressed folder when creating them
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Expanding folders set to expand by default.');
@@ -607,6 +387,12 @@ const createFolders = async () => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Set folderDebugMode (existing) to false.');
 
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Exit');
+    } finally {
+    dockerPerf.end('createFolders.total', {
+        folderCount: Object.keys(globalFolders || {}).length,
+        perfMode: FOLDER_VIEW_PERF_MODE
+    });
+    }
 };
 
 /**
@@ -620,6 +406,9 @@ const createFolders = async () => {
  * @returns {number} the number of element removed before the folder
  */
 const createFolder = (folder, id, positionInMainOrder, liveOrderArray, containersInfo, foldersDone) => {
+    const perfKey = `createFolder.${id}`;
+    dockerPerf.begin(perfKey);
+    try {
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Entry`, { folder: JSON.parse(JSON.stringify(folder)), id, positionInMainOrder, orderInitialSnapshot: [...liveOrderArray], containersInfoKeys: Object.keys(containersInfo).length, foldersDone: [...foldersDone] });
     if (folderTypePrefs?.performanceMode === true && folder && typeof folder === 'object') {
         folder.settings = {
@@ -1559,6 +1348,9 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
 
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Exit. Returning remBefore = ${remBefore}`);
     return remBefore;
+    } finally {
+        dockerPerf.end(perfKey, { id });
+    }
 };
 
 /**

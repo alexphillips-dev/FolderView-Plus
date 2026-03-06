@@ -1,9 +1,7 @@
 <?php
 require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php");
 
-header('Content-Type: application/json');
-
-try {
+fvplus_json_try(function (): array {
     requireMutationRequestGuard();
     $type = ensureType((string)($_POST['type'] ?? ''));
     $content = (string)($_POST['content'] ?? '');
@@ -12,12 +10,5 @@ try {
     }
 
     updateFolder($type, $content);
-    echo json_encode(['ok' => true]);
-} catch (Throwable $e) {
-    http_response_code(400);
-    echo json_encode([
-        'ok' => false,
-        'error' => $e->getMessage()
-    ]);
-}
-?>
+    return [];
+});

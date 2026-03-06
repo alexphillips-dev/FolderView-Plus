@@ -587,6 +587,7 @@ Markdown="false"
     </form>
 </div>
 
+<script src="<?autov('/plugins/folderview.plus/scripts/icon-picker.runtime.js')?>"></script>
 <script src="<?autov('/plugins/folderview.plus/scripts/folder.js')?>" defer></script>
 
 <div class="dialogCustomAction" style="display:none"></div>

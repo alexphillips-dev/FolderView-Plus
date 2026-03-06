@@ -42,6 +42,14 @@ test('upload endpoint enforces request guard and uploads into images\\/custom', 
     assert.match(uploadPhp, /\/plugins\/folderview\.plus\/images\/custom\//);
 });
 
+test('upload endpoint hardens SVG uploads against active content', () => {
+    assert.match(uploadPhp, /validateAndNormalizeSvgContent\s*\(/);
+    assert.match(uploadPhp, /SVG contains blocked content/);
+    assert.match(uploadPhp, /foreignObject/);
+    assert.match(uploadPhp, /xlink:href/);
+    assert.match(uploadPhp, /LIBXML_NONET/);
+});
+
 test('upload and third-party endpoints share the same icon extension allowlist', () => {
     const thirdPartyExt = parsePhpStringArray(thirdPartyPhp, 'FVPLUS_THIRD_PARTY_ICON_EXTENSIONS');
     const uploadExt = parsePhpStringArray(uploadPhp, 'FVPLUS_CUSTOM_ICON_EXTENSIONS');

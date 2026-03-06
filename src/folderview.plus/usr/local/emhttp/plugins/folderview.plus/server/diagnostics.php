@@ -1,9 +1,7 @@
 <?php
 require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php");
 
-header('Content-Type: application/json');
-
-try {
+fvplus_json_try(function (): array {
     $action = (string)($_REQUEST['action'] ?? 'report');
     $privacyMode = normalizeDiagnosticsPrivacyMode((string)($_REQUEST['privacy'] ?? FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY));
     $mutatingActions = ['track_event', 'sync_docker_order', 'normalize_prefs', 'repair_paths', 'create_backup'];
@@ -36,19 +34,15 @@ try {
             $details = $detailsRaw;
         }
         $event = appendDiagnosticsHistoryEvent($eventType, $type, $details, $status, $source);
-        echo json_encode([
-            'ok' => true,
+        return [
             'event' => $event
-        ]);
-        exit;
+        ];
     }
 
     if ($action === 'report') {
-        echo json_encode([
-            'ok' => true,
+        return [
             'diagnostics' => getDiagnosticsSnapshot($privacyMode)
-        ]);
-        exit;
+        ];
     }
 
     if ($action === 'support_bundle') {
@@ -60,21 +54,17 @@ try {
             'privacyMode' => $privacyMode,
             'diagnostics' => $diagnostics
         ];
-        echo json_encode([
-            'ok' => true,
+        return [
             'bundle' => $bundle
-        ]);
-        exit;
+        ];
     }
 
     if ($action === 'sync_docker_order') {
         syncContainerOrder('docker');
-        echo json_encode([
-            'ok' => true,
+        return [
             'message' => 'Docker order sync completed.',
             'diagnostics' => getDiagnosticsSnapshot($privacyMode)
-        ]);
-        exit;
+        ];
     }
 
     if ($action === 'normalize_prefs') {
@@ -83,41 +73,29 @@ try {
             $prefs = readTypePrefs($type);
             writeTypePrefs($type, $prefs);
         }
-        echo json_encode([
-            'ok' => true,
+        return [
             'message' => 'Preferences normalized and rewritten.',
             'diagnostics' => getDiagnosticsSnapshot($privacyMode)
-        ]);
-        exit;
+        ];
     }
 
     if ($action === 'repair_paths') {
         $repair = repairPluginPaths();
-        echo json_encode([
-            'ok' => true,
+        return [
             'message' => 'Plugin paths repaired.',
             'repair' => $repair,
             'diagnostics' => getDiagnosticsSnapshot($privacyMode)
-        ]);
-        exit;
+        ];
     }
 
     if ($action === 'create_backup') {
         $type = ensureType((string)($_POST['type'] ?? ''));
         $backup = createBackupSnapshot($type, 'manual-diagnostics');
-        echo json_encode([
-            'ok' => true,
+        return [
             'backup' => $backup,
             'diagnostics' => getDiagnosticsSnapshot($privacyMode)
-        ]);
-        exit;
+        ];
     }
 
     throw new RuntimeException('Unsupported action.');
-} catch (Throwable $e) {
-    http_response_code(400);
-    echo json_encode([
-        'ok' => false,
-        'error' => $e->getMessage()
-    ]);
-}
+});

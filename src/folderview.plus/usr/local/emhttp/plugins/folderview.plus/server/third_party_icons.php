@@ -232,11 +232,8 @@ try {
         exit;
     }
 
-    header('Content-Type: application/json');
-
     if ($action === 'list_folders') {
-        echo json_encode([
-            'ok' => true,
+        fvplus_json_ok([
             'baseDir' => thirdPartyIconsBaseDir(),
             'folders' => listThirdPartyFolders()
         ]);
@@ -246,8 +243,7 @@ try {
     if ($action === 'list_icons') {
         $folder = (string)($_GET['folder'] ?? '');
         $result = listThirdPartyIconsInFolder($folder);
-        echo json_encode([
-            'ok' => true,
+        fvplus_json_ok([
             'folder' => $result['folder'],
             'icons' => $result['icons']
         ]);
@@ -256,10 +252,5 @@ try {
 
     throw new RuntimeException('Unsupported action.');
 } catch (Throwable $e) {
-    http_response_code(400);
-    header('Content-Type: application/json');
-    echo json_encode([
-        'ok' => false,
-        'error' => $e->getMessage()
-    ]);
+    fvplus_json_error($e->getMessage(), 400);
 }

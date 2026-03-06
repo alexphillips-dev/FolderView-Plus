@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.12.8">
+<!ENTITY version "2026.03.12.9">
 <!ENTITY md5 "9f96a851b2c466c162ba7a68a6bf7c1b">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.12.9
+- Release bump for validation rollout through Unraid update flow.
+- Includes latest repository asset updates and metadata refresh.
 
 ###2026.03.12.8
 - Improve Docker/VM sort/settings UX:

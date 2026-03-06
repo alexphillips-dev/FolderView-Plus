@@ -57,14 +57,14 @@
 }
 
 .toolbar-sort-toggle {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
+    column-gap: 0.5rem;
     cursor: pointer;
     list-style: none;
     margin: 0;
-    padding: 0 0.45rem 0 0;
+    padding: 0 0.7rem 0 0;
     overflow: visible;
 }
 
@@ -85,9 +85,9 @@
     font-size: 1.03rem;
     opacity: 0.72;
     white-space: nowrap;
-    margin-left: auto;
-    flex: 0 0 auto;
-    padding-right: 0.1rem;
+    justify-self: end;
+    line-height: 1.2;
+    padding-right: 0.2rem;
 }
 
 .toolbar-sort-caret {

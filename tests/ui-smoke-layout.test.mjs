@@ -50,11 +50,13 @@ test('mobile action bar and import progress keep compact viewport guards', () =>
 });
 
 test('sort toggle note has anti-clipping layout guards', () => {
-    assert.match(settingsCss, /\.toolbar-sort-toggle\s*\{[\s\S]*padding:\s*0 0\.45rem 0 0/);
+    assert.match(settingsCss, /\.toolbar-sort-toggle\s*\{[\s\S]*display:\s*grid/);
+    assert.match(settingsCss, /\.toolbar-sort-toggle\s*\{[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s*auto/);
+    assert.match(settingsCss, /\.toolbar-sort-toggle\s*\{[\s\S]*padding:\s*0 0\.7rem 0 0/);
     assert.match(settingsCss, /\.toolbar-sort-toggle\s*\{[\s\S]*overflow:\s*visible/);
     assert.match(settingsCss, /\.toolbar-sort-toggle-main\s*\{[\s\S]*flex:\s*1 1 auto/);
-    assert.match(settingsCss, /\.toolbar-sort-toggle-note\s*\{[\s\S]*margin-left:\s*auto/);
-    assert.match(settingsCss, /\.toolbar-sort-toggle-note\s*\{[\s\S]*flex:\s*0 0 auto/);
+    assert.match(settingsCss, /\.toolbar-sort-toggle-note\s*\{[\s\S]*justify-self:\s*end/);
+    assert.match(settingsCss, /\.toolbar-sort-toggle-note\s*\{[\s\S]*padding-right:\s*0\.2rem/);
 });
 
 test('folder tables avoid unnecessary horizontal scrollbar in basic view', () => {

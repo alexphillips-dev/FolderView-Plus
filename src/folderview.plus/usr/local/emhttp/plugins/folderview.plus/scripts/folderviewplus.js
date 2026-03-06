@@ -1943,13 +1943,14 @@ const openImportApplyProgressDialog = (type, totalSteps) => {
         total: totalSteps,
         label: `Preparing ${resolvedType === 'docker' ? 'Docker' : 'VM'} import...`
     });
-    const modalWidth = Math.min(560, Math.max(400, Math.floor(window.innerWidth * 0.56)));
+    const modalWidth = Math.min(520, Math.max(390, Math.floor(window.innerWidth * 0.5)));
+    const modalHeight = Math.min(230, Math.max(185, Math.floor(window.innerHeight * 0.26)));
     dialog.dialog({
         title: `Applying ${resolvedType === 'docker' ? 'Docker' : 'VM'} import`,
         resizable: false,
         width: modalWidth,
-        minHeight: 0,
-        height: 'auto',
+        minHeight: modalHeight,
+        height: modalHeight,
         modal: true,
         closeOnEscape: false,
         dialogClass: 'fv-import-apply-progress-modal'

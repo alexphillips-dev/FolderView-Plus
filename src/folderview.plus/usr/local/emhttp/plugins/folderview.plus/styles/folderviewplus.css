@@ -874,7 +874,7 @@
 }
 
 .ui-dialog.fv-import-apply-progress-modal {
-    width: min(620px, 92vw) !important;
+    width: min(560px, 92vw) !important;
     max-width: 92vw !important;
     height: auto !important;
     min-height: 0 !important;
@@ -895,7 +895,7 @@
     justify-items: stretch;
     gap: 0.55rem;
     width: 100%;
-    max-width: 560px;
+    max-width: 500px;
     margin: 0 auto;
     padding: 0.2rem 0.1rem 0.1rem 0.1rem;
 }
@@ -911,7 +911,7 @@
 .import-apply-progress-bar-wrap {
     position: relative;
     width: 100%;
-    max-width: 460px;
+    max-width: 360px;
     margin: 0 auto;
     height: 12px;
     border: 1px solid rgba(255, 255, 255, 0.16);

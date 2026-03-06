@@ -605,6 +605,17 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
     </details>
 </div>
 
+<div id="import-apply-progress-dialog" style="display:none;">
+    <div class="import-apply-progress-label" id="import-apply-progress-label">Preparing import...</div>
+    <div class="import-apply-progress-bar-wrap">
+        <div id="import-apply-progress-bar" class="import-apply-progress-bar"></div>
+    </div>
+    <div class="import-apply-progress-meta">
+        <span id="import-apply-progress-step">0 / 0</span>
+        <span id="import-apply-progress-percent">0%</span>
+    </div>
+</div>
+
 <div id="fv-settings-action-bar"></div>
 
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>"></script>

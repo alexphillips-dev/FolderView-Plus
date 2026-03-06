@@ -44,3 +44,8 @@ test('JSON endpoints use centralized response helper wrapper', () => {
         assert.match(source, /fvplus_json_try\s*\(/, `${name} should use fvplus_json_try()`);
     }
 });
+
+test('backup restore validates payload type against requested type', () => {
+    assert.match(libPhp, /function validateBackupPayloadType\s*\(array \$decoded, string \$type\): void/);
+    assert.match(libPhp, /validateBackupPayloadType\(\$decoded, \$type\);/);
+});

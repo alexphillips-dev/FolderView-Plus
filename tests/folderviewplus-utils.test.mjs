@@ -45,6 +45,17 @@ test('parseImportPayload rejects higher schema version', () => {
     assert.match(parsed.error, /Unsupported schema version/i);
 });
 
+test('parseImportPayload requires explicit type metadata for schema exports', () => {
+    const parsed = utils.parseImportPayload({
+        schemaVersion: utils.EXPORT_SCHEMA_VERSION,
+        mode: 'full',
+        folders: {}
+    }, 'docker');
+
+    assert.equal(parsed.ok, false);
+    assert.match(parsed.error, /missing required type metadata/i);
+});
+
 test('summarizeImport reports creates updates and deletes for replace mode', () => {
     const existing = {
         a: { name: 'A', containers: ['x'] },

@@ -1173,6 +1173,14 @@ const refreshSettingsUx = () => {
 const toPrettyJson = (value) => `${JSON.stringify(value, null, 2)}\n`;
 const tableIdByType = { docker: 'docker', vm: 'vms' };
 const parseJsonResponse = (value) => (typeof value === 'string' ? JSON.parse(value) : value);
+const VALID_MANAGED_TYPES = new Set(['docker', 'vm']);
+const normalizeManagedType = (type) => {
+    const normalized = String(type || '').trim().toLowerCase();
+    if (!VALID_MANAGED_TYPES.has(normalized)) {
+        throw new Error(`Invalid type: ${type}`);
+    }
+    return normalized;
+};
 const typeFolders = (type) => (type === 'docker' ? dockers : vms);
 
 const setTypeFolders = (type, value) => {
@@ -1613,8 +1621,9 @@ const fetchFolders = async (type) => apiGetJson(`/plugins/folderview.plus/server
 const fetchTypeInfo = async (type) => apiGetJson(`/plugins/folderview.plus/server/read_info.php?type=${type}`);
 
 const fetchBackups = async (type) => {
+    const resolvedType = normalizeManagedType(type);
     const response = parseJsonResponse(await $.get('/plugins/folderview.plus/server/backup.php', {
-        type,
+        type: resolvedType,
         action: 'list'
     }).promise());
     if (!response.ok) {
@@ -1624,8 +1633,9 @@ const fetchBackups = async (type) => {
 };
 
 const restoreBackupByName = async (type, name) => {
+    const resolvedType = normalizeManagedType(type);
     const response = parseJsonResponse(await $.post('/plugins/folderview.plus/server/backup.php', {
-        type,
+        type: resolvedType,
         action: 'restore',
         name
     }).promise());
@@ -1636,8 +1646,9 @@ const restoreBackupByName = async (type, name) => {
 };
 
 const deleteBackupByName = async (type, name) => {
+    const resolvedType = normalizeManagedType(type);
     const response = parseJsonResponse(await $.post('/plugins/folderview.plus/server/backup.php', {
-        type,
+        type: resolvedType,
         action: 'delete',
         name
     }).promise());
@@ -1783,8 +1794,9 @@ const postPrefs = async (type, prefs) => {
 };
 
 const createBackup = async (type, reason) => {
+    const resolvedType = normalizeManagedType(type);
     const response = parseJsonResponse(await $.post('/plugins/folderview.plus/server/backup.php', {
-        type,
+        type: resolvedType,
         action: 'create',
         reason
     }).promise());
@@ -1816,8 +1828,9 @@ const restorePreviousGlobalRollbackCheckpointApi = async () => {
 };
 
 const restoreLatest = async (type) => {
+    const resolvedType = normalizeManagedType(type);
     const response = parseJsonResponse(await $.post('/plugins/folderview.plus/server/backup.php', {
-        type,
+        type: resolvedType,
         action: 'restore_latest'
     }).promise());
     if (!response.ok) {
@@ -1827,8 +1840,9 @@ const restoreLatest = async (type) => {
 };
 
 const restoreLatestUndo = async (type) => {
+    const resolvedType = normalizeManagedType(type);
     const response = parseJsonResponse(await $.post('/plugins/folderview.plus/server/backup.php', {
-        type,
+        type: resolvedType,
         action: 'restore_latest_undo'
     }).promise());
     if (!response.ok) {
@@ -1892,6 +1906,53 @@ const showError = (title, error) => {
         text: error?.message || String(error),
         type: 'error'
     });
+};
+
+const closeImportApplyProgressDialog = () => {
+    const dialog = $('#import-apply-progress-dialog');
+    if (!dialog.length || !dialog.hasClass('ui-dialog-content')) {
+        return;
+    }
+    try {
+        dialog.dialog('close');
+    } catch (_error) {
+        // Ignore close races.
+    }
+};
+
+const updateImportApplyProgressDialog = ({ completed = 0, total = 1, label = '' }) => {
+    const safeTotal = Math.max(1, Number(total) || 1);
+    const safeCompleted = Math.max(0, Math.min(safeTotal, Number(completed) || 0));
+    const percent = Math.round((safeCompleted / safeTotal) * 100);
+    $('#import-apply-progress-label').text(label || 'Applying import...');
+    $('#import-apply-progress-step').text(`${safeCompleted} / ${safeTotal}`);
+    $('#import-apply-progress-percent').text(`${percent}%`);
+    $('#import-apply-progress-bar').css('width', `${percent}%`);
+};
+
+const openImportApplyProgressDialog = (type, totalSteps) => {
+    const resolvedType = normalizeManagedType(type);
+    const dialog = $('#import-apply-progress-dialog');
+    if (!dialog.length) {
+        return;
+    }
+    closeImportApplyProgressDialog();
+    dialog.removeClass('fv-section-hidden fv-section-content-hidden');
+    updateImportApplyProgressDialog({
+        completed: 0,
+        total: totalSteps,
+        label: `Preparing ${resolvedType === 'docker' ? 'Docker' : 'VM'} import...`
+    });
+    dialog.dialog({
+        title: `Applying ${resolvedType === 'docker' ? 'Docker' : 'VM'} import`,
+        resizable: false,
+        width: 520,
+        modal: true,
+        closeOnEscape: false,
+        dialogClass: 'fv-import-apply-progress-modal'
+    });
+    const widget = dialog.dialog('widget');
+    widget.find('.ui-dialog-titlebar-close').hide();
 };
 
 const readFileAsText = (file) => new Promise((resolve, reject) => {
@@ -2173,29 +2234,58 @@ const countImportOperations = (operations) => (
     operations.creates.length + operations.upserts.length + operations.deletes.length
 );
 
-const applyImportOperations = async (type, operations) => {
-    for (const id of operations.deletes) {
-        await $.post('/plugins/folderview.plus/server/delete.php', { type, id }).promise();
+const applyImportOperations = async (type, operations, onProgress = null) => {
+    const resolvedType = normalizeManagedType(type);
+    const deletes = Array.isArray(operations?.deletes) ? operations.deletes : [];
+    const upserts = Array.isArray(operations?.upserts) ? operations.upserts : [];
+    const creates = Array.isArray(operations?.creates) ? operations.creates : [];
+    const currentFolders = getFolderMap(resolvedType);
+    const totalSteps = deletes.length + upserts.length + creates.length + (resolvedType === 'docker' ? 1 : 0);
+    let completed = 0;
+    const emit = (label) => {
+        if (typeof onProgress === 'function') {
+            onProgress({ completed, total: totalSteps, label: String(label || '') });
+        }
+    };
+
+    for (const id of deletes) {
+        const folderName = String(currentFolders[id]?.name || id || 'folder');
+        await $.post('/plugins/folderview.plus/server/delete.php', { type: resolvedType, id }).promise();
+        completed += 1;
+        emit(`Deleted ${folderName}`);
     }
 
-    for (const item of operations.upserts) {
+    for (const item of upserts) {
+        const folderName = String(item?.folder?.name || currentFolders[item?.id]?.name || item?.id || 'folder');
         await $.post('/plugins/folderview.plus/server/update.php', {
-            type,
+            type: resolvedType,
             id: item.id,
             content: JSON.stringify(item.folder)
         }).promise();
+        completed += 1;
+        emit(`Updated ${folderName}`);
     }
 
-    for (const item of operations.creates) {
+    for (const item of creates) {
+        const folderName = String(item?.folder?.name || 'folder');
         await $.post('/plugins/folderview.plus/server/create.php', {
-            type,
+            type: resolvedType,
             content: JSON.stringify(item.folder)
         }).promise();
+        completed += 1;
+        emit(`Created ${folderName}`);
     }
 
-    if (type === 'docker') {
+    if (resolvedType === 'docker') {
         await syncDockerOrder();
+        completed += 1;
+        emit('Synced Docker folder order');
     }
+
+    return {
+        completed,
+        total: totalSteps
+    };
 };
 
 const offerUndoAction = async (type, backup, actionLabel) => {
@@ -2785,6 +2875,14 @@ const downloadType = (type, id) => {
     });
 };
 const importType = async (type) => {
+    let resolvedType;
+    try {
+        resolvedType = normalizeManagedType(type);
+    } catch (error) {
+        showError('Error', error);
+        return;
+    }
+
     let selected;
     try {
         selected = await selectJsonFile();
@@ -2809,7 +2907,7 @@ const importType = async (type) => {
         return;
     }
 
-    const parsed = utils.parseImportPayload(parsedFile, type);
+    const parsed = utils.parseImportPayload(parsedFile, resolvedType);
     if (!parsed.ok) {
         swal({
             title: 'Error',
@@ -2819,7 +2917,7 @@ const importType = async (type) => {
         return;
     }
 
-    const dialogResult = await showImportPreviewDialog(type, parsed);
+    const dialogResult = await showImportPreviewDialog(resolvedType, parsed);
     if (!dialogResult) {
         return;
     }
@@ -2837,7 +2935,7 @@ const importType = async (type) => {
     if (dialogResult.dryRunOnly) {
         await trackDiagnosticsEvent({
             eventType: 'import_dry_run',
-            type,
+            type: resolvedType,
             details: {
                 mode: dialogResult.mode,
                 creates: operations.creates.length,
@@ -2854,13 +2952,39 @@ const importType = async (type) => {
     }
 
     let transactionBackup = null;
+    const operationCount = countImportOperations(operations);
+    const syncStepCount = resolvedType === 'docker' ? 1 : 0;
+    const progressTotal = Math.max(3, operationCount + syncStepCount + 2);
+    let progressOpen = false;
+    const setProgress = (completed, label) => {
+        updateImportApplyProgressDialog({
+            completed: Math.max(0, Math.min(progressTotal, completed)),
+            total: progressTotal,
+            label
+        });
+    };
     try {
-        transactionBackup = await createBackup(type, `before-import-transaction-${dialogResult.mode}`);
-        await applyImportOperations(type, operations);
-        await Promise.all([refreshType(type), refreshBackups(type)]);
+        openImportApplyProgressDialog(resolvedType, progressTotal);
+        progressOpen = true;
+        setProgress(0, 'Creating safety backup...');
+
+        transactionBackup = await createBackup(resolvedType, `before-import-transaction-${dialogResult.mode}`);
+        setProgress(1, `Safety backup created: ${transactionBackup?.name || 'ready'}`);
+
+        await applyImportOperations(resolvedType, operations, ({ completed, label }) => {
+            setProgress(1 + completed, label || 'Applying import operations...');
+        });
+
+        setProgress(progressTotal - 1, `Refreshing ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders...`);
+        await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
+        setProgress(progressTotal, 'Import complete.');
+        await new Promise((resolve) => setTimeout(resolve, 180));
+        closeImportApplyProgressDialog();
+        progressOpen = false;
+
         await trackDiagnosticsEvent({
             eventType: 'import',
-            type,
+            type: resolvedType,
             details: {
                 mode: dialogResult.mode,
                 creates: operations.creates.length,
@@ -2868,13 +2992,17 @@ const importType = async (type) => {
                 deletes: operations.deletes.length
             }
         });
-        await offerUndoAction(type, transactionBackup, 'Import');
+        await offerUndoAction(resolvedType, transactionBackup, 'Import');
     } catch (error) {
+        if (progressOpen) {
+            closeImportApplyProgressDialog();
+            progressOpen = false;
+        }
         let rollbackMessage = 'No rollback backup available.';
         if (transactionBackup && transactionBackup.name) {
             try {
-                await restoreBackupByName(type, transactionBackup.name);
-                await Promise.all([refreshType(type), refreshBackups(type)]);
+                await restoreBackupByName(resolvedType, transactionBackup.name);
+                await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
                 rollbackMessage = `Automatic rollback restored backup: ${transactionBackup.name}`;
             } catch (rollbackError) {
                 rollbackMessage = `Rollback failed: ${rollbackError?.message || rollbackError}`;
@@ -3493,9 +3621,16 @@ const refreshChangeHistory = async () => {
 };
 
 const undoLatestChange = (type) => {
+    let resolvedType;
+    try {
+        resolvedType = normalizeManagedType(type);
+    } catch (error) {
+        showError('Undo failed', error);
+        return;
+    }
     swal({
         title: 'Undo latest change?',
-        text: `Restore the latest undo-capable ${type.toUpperCase()} backup snapshot.`,
+        text: `Restore the latest undo-capable ${resolvedType.toUpperCase()} backup snapshot.`,
         type: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Undo',
@@ -3506,8 +3641,8 @@ const undoLatestChange = (type) => {
             return;
         }
         try {
-            const restore = await restoreLatestUndo(type);
-            await Promise.all([refreshType(type), refreshBackups(type)]);
+            const restore = await restoreLatestUndo(resolvedType);
+            await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
             await refreshChangeHistory();
             swal({
                 title: 'Undo complete',
@@ -3521,9 +3656,16 @@ const undoLatestChange = (type) => {
 };
 
 const createManualBackup = async (type) => {
+    let resolvedType;
     try {
-        const backup = await createBackup(type, 'manual');
-        await refreshBackups(type);
+        resolvedType = normalizeManagedType(type);
+    } catch (error) {
+        showError('Backup failed', error);
+        return;
+    }
+    try {
+        const backup = await createBackup(resolvedType, 'manual');
+        await refreshBackups(resolvedType);
         swal({
             title: 'Backup created',
             text: backup.name,
@@ -3535,9 +3677,16 @@ const createManualBackup = async (type) => {
 };
 
 const restoreBackupEntry = (type, name) => {
+    let resolvedType;
+    try {
+        resolvedType = normalizeManagedType(type);
+    } catch (error) {
+        showError('Restore failed', error);
+        return;
+    }
     swal({
         title: 'Restore this backup?',
-        text: `This will overwrite current ${type} folders.`,
+        text: `This will overwrite current ${resolvedType} folders.`,
         type: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Restore',
@@ -3549,10 +3698,10 @@ const restoreBackupEntry = (type, name) => {
         }
 
         try {
-            const undoBackup = await createBackup(type, `before-restore-${name}`);
-            await restoreBackupByName(type, name);
-            await Promise.all([refreshType(type), refreshBackups(type)]);
-            await offerUndoAction(type, undoBackup, 'Backup restore');
+            const undoBackup = await createBackup(resolvedType, `before-restore-${name}`);
+            await restoreBackupByName(resolvedType, name);
+            await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
+            await offerUndoAction(resolvedType, undoBackup, 'Backup restore');
         } catch (error) {
             showError('Restore failed', error);
         }
@@ -3560,9 +3709,16 @@ const restoreBackupEntry = (type, name) => {
 };
 
 const restoreLatestBackup = (type) => {
+    let resolvedType;
+    try {
+        resolvedType = normalizeManagedType(type);
+    } catch (error) {
+        showError('Restore failed', error);
+        return;
+    }
     swal({
         title: 'Restore latest backup?',
-        text: `This will overwrite current ${type} folders with the latest backup snapshot.`,
+        text: `This will overwrite current ${resolvedType} folders with the latest backup snapshot.`,
         type: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Restore',
@@ -3574,10 +3730,10 @@ const restoreLatestBackup = (type) => {
         }
 
         try {
-            const undoBackup = await createBackup(type, 'before-restore-latest');
-            await restoreLatest(type);
-            await Promise.all([refreshType(type), refreshBackups(type)]);
-            await offerUndoAction(type, undoBackup, 'Restore latest backup');
+            const undoBackup = await createBackup(resolvedType, 'before-restore-latest');
+            await restoreLatest(resolvedType);
+            await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
+            await offerUndoAction(resolvedType, undoBackup, 'Restore latest backup');
         } catch (error) {
             showError('Restore failed', error);
         }
@@ -3585,7 +3741,14 @@ const restoreLatestBackup = (type) => {
 };
 
 const downloadBackupEntry = (type, name) => {
-    const url = `/plugins/folderview.plus/server/backup.php?type=${encodeURIComponent(type)}&action=download&name=${encodeURIComponent(name)}`;
+    let resolvedType;
+    try {
+        resolvedType = normalizeManagedType(type);
+    } catch (error) {
+        showError('Download failed', error);
+        return;
+    }
+    const url = `/plugins/folderview.plus/server/backup.php?type=${encodeURIComponent(resolvedType)}&action=download&name=${encodeURIComponent(name)}`;
     const link = document.createElement('a');
     link.href = url;
     link.style.display = 'none';
@@ -3595,6 +3758,13 @@ const downloadBackupEntry = (type, name) => {
 };
 
 const deleteBackupEntry = (type, name) => {
+    let resolvedType;
+    try {
+        resolvedType = normalizeManagedType(type);
+    } catch (error) {
+        showError('Delete failed', error);
+        return;
+    }
     swal({
         title: 'Delete backup?',
         text: `Delete ${name}? This cannot be undone.`,
@@ -3609,8 +3779,8 @@ const deleteBackupEntry = (type, name) => {
         }
 
         try {
-            backupsByType[type] = await deleteBackupByName(type, name);
-            renderBackupRows(type);
+            backupsByType[resolvedType] = await deleteBackupByName(resolvedType, name);
+            renderBackupRows(resolvedType);
         } catch (error) {
             showError('Delete failed', error);
         }

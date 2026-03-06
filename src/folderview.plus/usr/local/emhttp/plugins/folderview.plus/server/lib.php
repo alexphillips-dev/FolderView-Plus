@@ -1321,6 +1321,20 @@
         return $decoded;
     }
 
+    function validateBackupPayloadType(array $decoded, string $type): void {
+        $type = ensureType($type);
+        $declaredRaw = strtolower(trim((string)($decoded['type'] ?? '')));
+        if ($declaredRaw !== '' && !in_array($declaredRaw, FVPLUS_ALLOWED_TYPES, true)) {
+            throw new RuntimeException('Backup payload has an invalid type.');
+        }
+        if ($declaredRaw !== '' && $declaredRaw !== $type) {
+            throw new RuntimeException("Backup type \"$declaredRaw\" does not match \"$type\".");
+        }
+        if (array_key_exists('schemaVersion', $decoded) && $declaredRaw === '') {
+            throw new RuntimeException('Backup payload is missing a required type marker.');
+        }
+    }
+
     function restoreBackupSnapshot(string $type, string $name): array {
         $type = ensureType($type);
         $path = getBackupSnapshotPath($type, $name);
@@ -1329,6 +1343,9 @@
             throw new RuntimeException('Backup file not found.');
         }
         $decoded = @json_decode((string)@file_get_contents($path), true);
+        if (is_array($decoded)) {
+            validateBackupPayloadType($decoded, $type);
+        }
         $folders = normalizeImportedFoldersPayload($decoded);
         writeRawFolderMap($type, is_array($folders) ? $folders : []);
         syncManualOrderWithFolders($type, is_array($folders) ? $folders : []);

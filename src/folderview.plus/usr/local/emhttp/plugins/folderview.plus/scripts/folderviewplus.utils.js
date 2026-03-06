@@ -285,8 +285,15 @@
             if (schemaVersion > EXPORT_SCHEMA_VERSION) {
                 return { ok: false, error: `Unsupported schema version ${schemaVersion}.` };
             }
-            if (payload.type && expectedType && payload.type !== expectedType) {
-                return { ok: false, error: `Import type "${payload.type}" does not match "${expectedType}".` };
+            const declaredType = typeof payload.type === 'string' ? payload.type.trim().toLowerCase() : '';
+            if (declaredType !== '' && !['docker', 'vm'].includes(declaredType)) {
+                return { ok: false, error: `Import file type "${payload.type}" is invalid.` };
+            }
+            if (expectedType && declaredType === '') {
+                return { ok: false, error: 'Import file is missing required type metadata.' };
+            }
+            if (declaredType !== '' && expectedType && declaredType !== expectedType) {
+                return { ok: false, error: `Import type "${declaredType}" does not match "${expectedType}".` };
             }
 
             const mode = payload.mode === 'single' ? 'single' : 'full';
@@ -299,7 +306,8 @@
                     schemaVersion,
                     pluginVersion: payload.pluginVersion || null,
                     exportedAt: payload.exportedAt || null,
-                    type: payload.type || expectedType || null,
+                    type: declaredType || expectedType || null,
+                    declaredType: declaredType || null,
                     mode,
                     legacy: false,
                     folder: payload.folder,
@@ -314,7 +322,8 @@
                 schemaVersion,
                 pluginVersion: payload.pluginVersion || null,
                 exportedAt: payload.exportedAt || null,
-                type: payload.type || expectedType || null,
+                type: declaredType || expectedType || null,
+                declaredType: declaredType || null,
                 mode,
                 legacy: false,
                 folder: null,
@@ -331,6 +340,7 @@
                 pluginVersion: null,
                 exportedAt: null,
                 type: expectedType || null,
+                declaredType: null,
                 mode: 'single',
                 legacy: true,
                 folder: payload,
@@ -345,6 +355,7 @@
             pluginVersion: null,
             exportedAt: null,
             type: expectedType || null,
+            declaredType: null,
             mode: 'full',
             legacy: true,
             folder: null,

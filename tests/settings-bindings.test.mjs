@@ -52,3 +52,11 @@ test('import preview layout includes user-facing summary cards and collapsible r
     assert.match(script, /const counts = \$\('#import-preview-counts'\);/);
     assert.match(script, /result\.text\(`\$\{selectedCount\} operation/);
 });
+
+test('import apply flow includes a dedicated progress dialog', () => {
+    assert.match(page, /id="import-apply-progress-dialog"/);
+    assert.match(page, /id="import-apply-progress-bar"/);
+    assert.match(script, /const openImportApplyProgressDialog = \(type, totalSteps\) =>/);
+    assert.match(script, /const updateImportApplyProgressDialog = \(\{ completed = 0, total = 1, label = '' \}\) =>/);
+    assert.match(script, /await applyImportOperations\(resolvedType, operations, \(\{ completed, label \}\) =>/);
+});

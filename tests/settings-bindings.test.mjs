@@ -38,3 +38,8 @@ test('import preview defaults to apply mode (dry run OFF)', () => {
     assert.match(script, /return checkbox\.length \? checkbox\.prop\('checked'\) === true : false;/);
     assert.doesNotMatch(script, /\$\('#import-dry-run-only'\)\.prop\('checked', true\)/);
 });
+
+test('import preview dialog stays outside section-collapse visibility controls', () => {
+    assert.match(script, /if \(cursor\.id === 'import-preview-dialog'\) \{/);
+    assert.match(script, /dialog\.removeClass\('fv-section-hidden fv-section-content-hidden'\);/);
+});

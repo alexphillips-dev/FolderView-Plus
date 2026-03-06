@@ -373,6 +373,10 @@ const buildSettingsSections = () => {
             if (cursor.querySelector?.('h2[data-fv-section]')) {
                 break;
             }
+            // Keep shared modals outside section visibility toggles so dialogs never render blank.
+            if (cursor.id === 'import-preview-dialog') {
+                break;
+            }
             if (cursor.id === 'fv-settings-action-bar') {
                 break;
             }
@@ -2060,6 +2064,7 @@ const renderOperationSelection = () => {
 
 const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     const dialog = $('#import-preview-dialog');
+    dialog.removeClass('fv-section-hidden fv-section-content-hidden');
     const modeSelect = $('#import-mode-select');
     const previewText = $('#import-preview-text');
     const meta = $('#import-preview-meta');

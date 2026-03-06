@@ -561,20 +561,19 @@ a:focus-visible {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
-    gap: 0.6rem 0.9rem;
+    gap: 0.35rem 0.8rem;
 }
 
 .fv-customizations-header > h2[data-fv-section="customizations"] {
     margin: 0;
 }
 
-#fv-settings-controls {
-    flex: 1 1 560px;
+#fv-settings-topbar {
+    margin: 0 0 0.65rem 0;
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    min-width: 320px;
+    min-width: 0;
 }
 
 .fv-settings-inline {
@@ -873,9 +872,7 @@ body {
 }
 
 @media (max-width: 760px) {
-    #fv-settings-controls {
-        flex: 1 1 100%;
-        min-width: 0;
+    #fv-settings-topbar {
         justify-content: flex-start;
     }
 

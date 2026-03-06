@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.11.4">
-<!ENTITY md5 "c9a3a0f94a289344769cc57dc87ebb97">
+<!ENTITY version "2026.03.11.5">
+<!ENTITY md5 "f4400c02d7f0892ab085ee7fc0c0d431">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.11.5
+- Split settings into clearer mode workspaces:
+  - `Basic` now shows only `Docker` and `VMs`.
+  - `Advanced` now shows `Customizations` plus advanced tab groups.
+- Keep mode/search/wizard controls always visible by mounting the settings toolbar outside section visibility rules.
+- Preserve unsaved form state while switching between Basic and Advanced views in the same settings page.
 
 ###2026.03.11.4
 - Advanced settings layout refactor to prevent UI crowding:

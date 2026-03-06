@@ -17,9 +17,10 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 </script>
 <link rel="stylesheet" href="<?=autov('/plugins/folderview.plus/styles/folderviewplus.css')?>">
 
+<div id="fv-settings-topbar"></div>
+
 <div class="fv-customizations-header" data-fv-section-row="1">
     <h2 data-i18n="customizations" data-fv-section="customizations">Customizations</h2>
-    <div id="fv-settings-controls"></div>
 </div>
 <button data-i18n="file-manager" onclick="fileManager()">Open File Manager</button>
 <button onclick="checkForUpdatesNow()"><i class="fa fa-refresh" aria-hidden="true"></i> Check for updates now</button>

@@ -83,6 +83,7 @@ const ADVANCED_GROUP_BY_SECTION = {
     'folder-templates': 'operations',
     'diagnostics': 'diagnostics'
 };
+const BASIC_WORKSPACE_SECTION_KEYS = new Set(['docker', 'vms']);
 const settingsUiState = {
     initialized: false,
     controlsInitialized: false,
@@ -302,8 +303,12 @@ const getSectionSearchHaystack = (section) => section.nodes
     .join(' ')
     .toLowerCase();
 
+const isBasicWorkspaceSection = (section) => BASIC_WORKSPACE_SECTION_KEYS.has(String(section?.key || ''));
+
 const getVisibleSections = () => settingsUiState.sections.filter((section) => {
-    const modeVisible = settingsUiState.mode === 'advanced' || !section.advanced;
+    const modeVisible = settingsUiState.mode === 'advanced'
+        ? !isBasicWorkspaceSection(section)
+        : isBasicWorkspaceSection(section);
     if (!modeVisible) {
         return false;
     }
@@ -390,6 +395,7 @@ const applySettingsSectionVisibility = () => {
     const modeButtons = $('.fv-mode-btn');
     modeButtons.removeClass('is-active');
     modeButtons.filter(`[data-mode="${settingsUiState.mode}"]`).addClass('is-active');
+    $('#fv-settings-topbar').attr('data-fv-mode', settingsUiState.mode);
 };
 
 const syncSectionJumpOptions = () => {
@@ -778,7 +784,7 @@ const runQuickSetupWizard = (force = false) => {
             }
             swal({
                 title: 'Quick setup complete',
-                text: 'Use search + jump at the top, and switch to Advanced for full controls.',
+                text: 'Use search at the top, and switch to Advanced for full controls.',
                 type: 'success'
             });
         });
@@ -789,7 +795,7 @@ const initSettingsControls = () => {
     if (settingsUiState.controlsInitialized) {
         return;
     }
-    const controls = $('#fv-settings-controls');
+    const controls = $('#fv-settings-topbar');
     const actionBar = $('#fv-settings-action-bar');
     if (!controls.length || !actionBar.length) {
         return;

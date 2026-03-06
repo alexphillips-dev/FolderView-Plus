@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.11.8">
-<!ENTITY md5 "911e642231da9f61f4bb233b01fad195">
+<!ENTITY version "2026.03.11.9">
+<!ENTITY md5 "cdc8ecbcb24e5e415ff72a4f3559f19e">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.11.9
+- Increase settings header visual prominence:
+  - larger, bolder top-left title sizing for better readability.
+- Fix pin/unpin ordering regression in settings:
+  - stop mutating in-memory folder map during table render,
+  - after pin/unpin, refresh from server so unpinned folders return immediately to normal order without page reload.
+- Add test coverage for unpin behavior returning to base/manual order.
 
 ###2026.03.11.8
 - Improve top-left settings title legibility:

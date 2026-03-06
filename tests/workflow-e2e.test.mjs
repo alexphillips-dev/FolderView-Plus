@@ -183,5 +183,13 @@ for (const type of ['docker', 'vm']) {
         });
         const ordered = utils.orderFoldersByPrefs(state.folders, state.prefs);
         assert.deepEqual(Object.keys(ordered), ['two', 'three', 'one']);
+
+        // unpin should immediately return to base/manual order
+        state.prefs = utils.normalizePrefs({
+            ...state.prefs,
+            pinnedFolderIds: []
+        });
+        const unpinned = utils.orderFoldersByPrefs(state.folders, state.prefs);
+        assert.deepEqual(Object.keys(unpinned), ['three', 'one', 'two']);
     });
 }

@@ -2091,7 +2091,6 @@ const renderTemplateRows = (type) => {
 const renderTable = (type) => {
     const folders = getFolderMap(type);
     const ordered = utils.orderFoldersByPrefs(folders, prefsByType[type]);
-    setTypeFolders(type, ordered);
     const memberSnapshot = getEffectiveMemberSnapshot(type, ordered);
     const hideEmptyFolders = utils.normalizePrefs(prefsByType[type]).hideEmptyFolders === true;
 
@@ -2429,7 +2428,7 @@ const toggleFolderPin = async (type, folderId) => {
     };
     try {
         prefsByType[type] = await postPrefs(type, next);
-        renderTable(type);
+        await refreshType(type);
     } catch (error) {
         showError('Pin update failed', error);
     }

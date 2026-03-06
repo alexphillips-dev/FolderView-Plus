@@ -596,17 +596,17 @@ a:focus-visible {
 
 .fv-settings-title {
     margin: 0;
-    font-size: clamp(1.25rem, 1.7vw, 1.6rem);
+    font-size: clamp(1.55rem, 2.35vw, 2.1rem);
     line-height: 1.15;
-    font-weight: 700;
+    font-weight: 800;
     letter-spacing: 0.015em;
     white-space: nowrap;
 }
 
 .fv-settings-subtitle {
-    font-size: 0.85rem;
+    font-size: 0.92rem;
     line-height: 1.2;
-    opacity: 0.78;
+    opacity: 0.84;
     white-space: nowrap;
 }
 

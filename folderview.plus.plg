@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.13.4">
-<!ENTITY md5 "7fa1f36969cee4c2748ca2eb8ce841a7">
+<!ENTITY version "2026.03.13.5">
+<!ENTITY md5 "807cfc83b388d15f7f9e079e72a9eac0">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.13.5
+- Refresh folder icon asset in both source and packaged plugin image paths.
+- Release bump so Unraid can pull and apply the updated icon package.
 
 ###2026.03.13.4
 - Use packaged image filename for plugin and page icons:

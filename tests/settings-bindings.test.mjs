@@ -28,6 +28,8 @@ test('backup endpoint supports scheduler and rollback actions', () => {
     assert.match(backupPhp, /action\s*===\s*'run_schedule'/);
     assert.match(backupPhp, /runScheduledBackups/);
     assert.match(backupPhp, /action\s*===\s*'restore_latest_undo'/);
+    assert.match(backupPhp, /action\s*===\s*'read'/);
+    assert.match(backupPhp, /readBackupSnapshot/);
     assert.match(backupPhp, /action\s*===\s*'rollback_checkpoint'/);
     assert.match(backupPhp, /action\s*===\s*'rollback_restore_previous'/);
 });
@@ -48,9 +50,15 @@ test('import preview layout includes user-facing summary cards and collapsible r
     assert.match(page, /id="import-preview-counts"/);
     assert.match(page, /class="import-top-grid"/);
     assert.match(page, /class="import-preview-card import-selection-card"/);
+    assert.match(page, /id="import-preset-select"/);
+    assert.match(page, /id="import-preset-save"/);
+    assert.match(page, /id="import-preset-default"/);
+    assert.match(page, /id="import-preset-delete"/);
     assert.match(page, /id="import-summary-details"/);
     assert.match(script, /const counts = \$\('#import-preview-counts'\);/);
     assert.match(script, /result\.text\(`\$\{selectedCount\} operation/);
+    assert.match(script, /saveCustomImportPresetForType/);
+    assert.match(script, /setDefaultImportPresetIdForType/);
 });
 
 test('import apply flow includes a dedicated progress dialog', () => {

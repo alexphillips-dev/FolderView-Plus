@@ -1381,6 +1381,37 @@
         return $entries;
     }
 
+    function readBackupSnapshot(string $type, string $name): array {
+        $type = ensureType($type);
+        $path = getBackupSnapshotPath($type, $name);
+        $safeName = basename($path);
+        if (!file_exists($path)) {
+            throw new RuntimeException('Backup file not found.');
+        }
+
+        $raw = (string)@file_get_contents($path);
+        $decoded = @json_decode($raw, true);
+        if (!is_array($decoded)) {
+            throw new RuntimeException('Backup payload is not valid JSON.');
+        }
+        validateBackupPayloadType($decoded, $type);
+        $folders = normalizeImportedFoldersPayload($decoded);
+        if (!is_array($folders)) {
+            $folders = [];
+        }
+
+        return [
+            'name' => $safeName,
+            'createdAt' => gmdate('c', (int)@filemtime($path)),
+            'reason' => (string)($decoded['reason'] ?? ''),
+            'schemaVersion' => array_key_exists('schemaVersion', $decoded) ? $decoded['schemaVersion'] : null,
+            'pluginVersion' => (string)($decoded['pluginVersion'] ?? ''),
+            'exportedAt' => (string)($decoded['exportedAt'] ?? ''),
+            'count' => count($folders),
+            'folders' => $folders
+        ];
+    }
+
     function deleteBackupSnapshot(string $type, string $name): array {
         $path = getBackupSnapshotPath($type, $name);
         if (!file_exists($path)) {

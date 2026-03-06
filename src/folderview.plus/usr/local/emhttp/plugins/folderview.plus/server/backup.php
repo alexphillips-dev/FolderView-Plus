@@ -129,6 +129,13 @@ fvplus_json_try(function (): array {
         ];
     }
 
+    if ($action === 'read') {
+        $name = (string)($_REQUEST['name'] ?? '');
+        return [
+            'snapshot' => readBackupSnapshot($type, $name)
+        ];
+    }
+
     if ($action === 'delete') {
         $name = (string)($_POST['name'] ?? '');
         return [

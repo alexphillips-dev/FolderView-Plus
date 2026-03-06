@@ -571,6 +571,32 @@
     margin: 0.55rem 0 0.75rem 0;
 }
 
+.backup-compare-row {
+    display: grid;
+    grid-template-columns: auto minmax(180px, 1fr) auto minmax(180px, 1fr) auto;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0.35rem 0 0.7rem 0;
+}
+
+.backup-compare-row > label {
+    font-weight: 600;
+    font-size: 1.03rem;
+    opacity: 0.9;
+}
+
+.backup-compare-row > select,
+.backup-compare-row > button {
+    min-height: 34px;
+}
+
+.backup-compare-sep {
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-size: 1.03rem;
+    opacity: 0.75;
+}
+
 .bulk-row > select,
 .bulk-row > button {
     flex: 1 1 220px;
@@ -684,14 +710,16 @@
     box-sizing: border-box;
 }
 
-#import-preview-dialog .preview-meta {
+#import-preview-dialog .preview-meta,
+#backup-compare-dialog .preview-meta {
     display: flex;
     flex-wrap: wrap;
     gap: 0.32rem;
     margin-bottom: 0.5rem;
 }
 
-#import-preview-dialog .preview-meta-item {
+#import-preview-dialog .preview-meta-item,
+#backup-compare-dialog .preview-meta-item {
     display: inline-flex;
     align-items: center;
     gap: 0.28rem;
@@ -702,7 +730,8 @@
     background: rgba(255, 255, 255, 0.04);
 }
 
-#import-preview-dialog .preview-meta-item strong {
+#import-preview-dialog .preview-meta-item strong,
+#backup-compare-dialog .preview-meta-item strong {
     font-weight: 700;
     opacity: 0.9;
 }
@@ -714,13 +743,15 @@
     line-height: 1.3;
 }
 
-#import-preview-dialog .import-preview-counts {
+#import-preview-dialog .import-preview-counts,
+#backup-compare-dialog .import-preview-counts {
     display: flex;
     flex-wrap: wrap;
     gap: 0.35rem;
 }
 
-#import-preview-dialog .import-count-chip {
+#import-preview-dialog .import-count-chip,
+#backup-compare-dialog .import-count-chip {
     display: inline-flex;
     align-items: center;
     gap: 0.32rem;
@@ -731,27 +762,32 @@
     background: rgba(255, 255, 255, 0.04);
 }
 
-#import-preview-dialog .import-count-chip.is-create {
+#import-preview-dialog .import-count-chip.is-create,
+#backup-compare-dialog .import-count-chip.is-create {
     border-color: rgba(147, 225, 159, 0.52);
     color: #93e19f;
 }
 
-#import-preview-dialog .import-count-chip.is-update {
+#import-preview-dialog .import-count-chip.is-update,
+#backup-compare-dialog .import-count-chip.is-update {
     border-color: rgba(77, 163, 255, 0.58);
     color: #b9dcff;
 }
 
-#import-preview-dialog .import-count-chip.is-delete {
+#import-preview-dialog .import-count-chip.is-delete,
+#backup-compare-dialog .import-count-chip.is-delete {
     border-color: rgba(255, 116, 116, 0.58);
     color: #ff8c8c;
 }
 
-#import-preview-dialog .import-count-chip.is-selected {
+#import-preview-dialog .import-count-chip.is-selected,
+#backup-compare-dialog .import-count-chip.is-selected {
     border-color: rgba(255, 193, 94, 0.58);
     color: #ffc15e;
 }
 
-#import-preview-dialog .import-count-chip.is-dryrun {
+#import-preview-dialog .import-count-chip.is-dryrun,
+#backup-compare-dialog .import-count-chip.is-dryrun {
     border-color: rgba(192, 192, 192, 0.4);
     color: rgba(255, 255, 255, 0.85);
 }
@@ -782,6 +818,30 @@
     width: 100%;
     min-height: 32px;
     margin: 0.25rem 0 0.35rem 0;
+}
+
+.import-preset-stack {
+    display: grid;
+    gap: 0.28rem;
+    margin-bottom: 0.35rem;
+}
+
+.import-preset-stack > label {
+    display: inline-block;
+    font-size: 1.03rem;
+    font-weight: 700;
+}
+
+.import-preset-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.import-preset-actions > button {
+    min-height: 30px;
+    padding: 0.2rem 0.5rem;
+    font-size: 1.03rem;
 }
 
 #import-preview-dialog textarea {
@@ -902,6 +962,41 @@
     display: none !important;
 }
 
+.ui-dialog.fv-backup-compare-modal #backup-compare-dialog {
+    display: grid !important;
+    gap: 0.6rem;
+}
+
+.ui-dialog.fv-backup-compare-modal .ui-dialog-content {
+    padding: 0.6rem 0.8rem;
+}
+
+.backup-compare-head {
+    display: grid;
+    gap: 0.2rem;
+}
+
+.backup-compare-diff {
+    max-height: 360px;
+    overflow: auto;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 6px;
+}
+
+.backup-compare-diff table {
+    width: 100%;
+    table-layout: fixed;
+    font-size: 1.03rem;
+}
+
+.backup-compare-diff th,
+.backup-compare-diff td {
+    text-align: left;
+    padding: 0.35rem 0.42rem;
+    white-space: normal;
+    word-break: break-word;
+}
+
 #import-apply-progress-overlay {
     position: fixed;
     inset: 0;
@@ -982,6 +1077,16 @@
     line-height: 1.2;
 }
 
+@media (max-width: 980px) {
+    .backup-compare-row {
+        grid-template-columns: 1fr;
+    }
+
+    .backup-compare-sep {
+        display: none;
+    }
+}
+
 @media (max-width: 760px) {
     .import-top-grid {
         grid-template-columns: 1fr;
@@ -995,6 +1100,10 @@
         top: 12vh;
         max-width: calc(100vw - 1rem);
         padding: 0.62rem 0.62rem 0.6rem 0.62rem;
+    }
+
+    .import-preset-actions > button {
+        flex: 1 1 140px;
     }
 }
 

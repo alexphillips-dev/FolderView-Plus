@@ -6,12 +6,22 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.06.26">
-<!ENTITY md5 "186ec8ed7762d261da5097381b1cfb4a">
+<!ENTITY version "2026.03.06.27">
+<!ENTITY md5 "e8445320f711b7896304be335d781336">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.06.27
+- Add import presets in the import preview dialog:
+  - built-in presets for merge/replace/skip and dry-run merge,
+  - custom preset save/delete,
+  - per-type default preset selection.
+- Add backup snapshot compare tools for Docker and VM backups:
+  - compare backup-to-backup or backup-to-current live folders,
+  - show row-level create/update/delete diffs with changed field details.
+- Add backup endpoint snapshot-read action used by compare UI.
 
 ###2026.03.06.26
 - Complete compatibility-safe security rollout:

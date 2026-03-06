@@ -59,6 +59,16 @@ let latestPrefsBackupByType = {
     docker: null,
     vm: null
 };
+let backupCompareSelectionByType = {
+    docker: {
+        left: '',
+        right: '__current__'
+    },
+    vm: {
+        left: '',
+        right: '__current__'
+    }
+};
 
 const UI_MODE_STORAGE_KEY = 'fv.settings.mode.v1';
 const WIZARD_DONE_STORAGE_KEY = 'fv.settings.wizard.v1.done';
@@ -68,6 +78,34 @@ const ADVANCED_EXPANDED_STORAGE_KEY = 'fv.settings.advancedExpanded.v2';
 const ADVANCED_KNOWN_STORAGE_KEY = 'fv.settings.advancedKnown.v1';
 const SEARCH_ALL_ADVANCED_STORAGE_KEY = 'fv.settings.searchAllAdvanced.v1';
 const UPDATE_NOTES_SEEN_VERSION_STORAGE_KEY = 'fv.settings.updateNotesSeenVersion.v1';
+const IMPORT_PRESET_STORAGE_KEY = 'fv.import.presets.v1';
+const IMPORT_PRESET_DEFAULT_ID = 'builtin:merge';
+const IMPORT_PRESET_BUILTINS = [
+    {
+        id: 'builtin:merge',
+        name: 'Merge safely',
+        mode: 'merge',
+        dryRunOnly: false
+    },
+    {
+        id: 'builtin:replace',
+        name: 'Replace fully',
+        mode: 'replace',
+        dryRunOnly: false
+    },
+    {
+        id: 'builtin:skip',
+        name: 'Add new only',
+        mode: 'skip',
+        dryRunOnly: false
+    },
+    {
+        id: 'builtin:dryrun',
+        name: 'Dry-run merge',
+        mode: 'merge',
+        dryRunOnly: true
+    }
+];
 const UPDATE_NOTES_CHANGELOG_URL = 'https://github.com/alexphillips-dev/FolderView-Plus/blob/main/folderview.plus.plg';
 const LEGACY_ADVANCED_SECTION_KEYS = [
     'auto-assignment',
@@ -1189,6 +1227,193 @@ const normalizeManagedType = (type) => {
 };
 const typeFolders = (type) => (type === 'docker' ? dockers : vms);
 
+const normalizeImportMode = (value) => {
+    const mode = String(value || '').trim().toLowerCase();
+    if (mode === 'replace' || mode === 'skip') {
+        return mode;
+    }
+    return 'merge';
+};
+
+const normalizeImportPresetDefinition = (value, fallbackId = '') => {
+    const source = value && typeof value === 'object' ? value : {};
+    const id = String(source.id || fallbackId || '').trim();
+    if (!id) {
+        return null;
+    }
+    const name = String(source.name || '').trim().slice(0, 64);
+    if (!name) {
+        return null;
+    }
+    return {
+        id,
+        name,
+        mode: normalizeImportMode(source.mode),
+        dryRunOnly: source.dryRunOnly === true
+    };
+};
+
+const normalizeImportPresetStoreType = (entry) => {
+    const source = entry && typeof entry === 'object' ? entry : {};
+    const customRaw = Array.isArray(source.custom) ? source.custom : [];
+    const seen = new Set();
+    const custom = [];
+    for (const raw of customRaw) {
+        const normalized = normalizeImportPresetDefinition(raw);
+        if (!normalized || normalized.id.startsWith('builtin:') || seen.has(normalized.id)) {
+            continue;
+        }
+        seen.add(normalized.id);
+        custom.push(normalized);
+    }
+    let defaultId = String(source.defaultId || IMPORT_PRESET_DEFAULT_ID).trim();
+    if (!defaultId) {
+        defaultId = IMPORT_PRESET_DEFAULT_ID;
+    }
+    return {
+        custom,
+        defaultId
+    };
+};
+
+const normalizeImportPresetStore = (payload) => {
+    const source = payload && typeof payload === 'object' ? payload : {};
+    return {
+        docker: normalizeImportPresetStoreType(source.docker),
+        vm: normalizeImportPresetStoreType(source.vm)
+    };
+};
+
+const readImportPresetStore = () => {
+    try {
+        const raw = localStorage.getItem(IMPORT_PRESET_STORAGE_KEY);
+        if (!raw) {
+            return normalizeImportPresetStore({});
+        }
+        return normalizeImportPresetStore(JSON.parse(raw));
+    } catch (_error) {
+        return normalizeImportPresetStore({});
+    }
+};
+
+const writeImportPresetStore = (payload) => {
+    try {
+        localStorage.setItem(IMPORT_PRESET_STORAGE_KEY, JSON.stringify(normalizeImportPresetStore(payload)));
+    } catch (_error) {
+        // Best effort only.
+    }
+};
+
+const getImportPresetsForType = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const store = readImportPresetStore();
+    const custom = Array.isArray(store?.[resolvedType]?.custom) ? store[resolvedType].custom : [];
+    return [
+        ...IMPORT_PRESET_BUILTINS.map((preset) => ({ ...preset })),
+        ...custom.map((preset) => ({ ...preset }))
+    ];
+};
+
+const findImportPresetById = (type, presetId) => {
+    const id = String(presetId || '').trim();
+    if (!id) {
+        return null;
+    }
+    return getImportPresetsForType(type).find((preset) => preset.id === id) || null;
+};
+
+const findImportPresetByModeAndDryRun = (type, mode, dryRunOnly) => {
+    const normalizedMode = normalizeImportMode(mode);
+    const normalizedDryRun = dryRunOnly === true;
+    return getImportPresetsForType(type).find((preset) => (
+        normalizeImportMode(preset.mode) === normalizedMode
+        && (preset.dryRunOnly === true) === normalizedDryRun
+    )) || null;
+};
+
+const getDefaultImportPresetIdForType = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const store = readImportPresetStore();
+    const defaultId = String(store?.[resolvedType]?.defaultId || IMPORT_PRESET_DEFAULT_ID).trim();
+    return defaultId || IMPORT_PRESET_DEFAULT_ID;
+};
+
+const getDefaultImportPresetForType = (type) => {
+    const preferredId = getDefaultImportPresetIdForType(type);
+    return (
+        findImportPresetById(type, preferredId)
+        || findImportPresetById(type, IMPORT_PRESET_DEFAULT_ID)
+        || getImportPresetsForType(type)[0]
+        || null
+    );
+};
+
+const saveCustomImportPresetForType = (type, preset) => {
+    const resolvedType = normalizeManagedType(type);
+    const source = preset && typeof preset === 'object' ? preset : {};
+    const generatedId = `custom:${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+    const normalized = normalizeImportPresetDefinition(source, generatedId);
+    if (!normalized) {
+        throw new Error('Invalid preset.');
+    }
+    if (normalized.id.startsWith('builtin:')) {
+        throw new Error('Built-in preset IDs are reserved.');
+    }
+
+    const store = readImportPresetStore();
+    const current = Array.isArray(store?.[resolvedType]?.custom) ? store[resolvedType].custom : [];
+    const next = [normalized, ...current.filter((row) => row.id !== normalized.id)].slice(0, 30);
+    store[resolvedType] = normalizeImportPresetStoreType({
+        custom: next,
+        defaultId: store?.[resolvedType]?.defaultId || IMPORT_PRESET_DEFAULT_ID
+    });
+    writeImportPresetStore(store);
+    return normalized;
+};
+
+const deleteCustomImportPresetForType = (type, presetId) => {
+    const resolvedType = normalizeManagedType(type);
+    const id = String(presetId || '').trim();
+    if (!id || id.startsWith('builtin:')) {
+        return false;
+    }
+    const store = readImportPresetStore();
+    const current = Array.isArray(store?.[resolvedType]?.custom) ? store[resolvedType].custom : [];
+    const next = current.filter((row) => row.id !== id);
+    if (next.length === current.length) {
+        return false;
+    }
+    const defaultId = String(store?.[resolvedType]?.defaultId || IMPORT_PRESET_DEFAULT_ID).trim();
+    store[resolvedType] = normalizeImportPresetStoreType({
+        custom: next,
+        defaultId: defaultId === id ? IMPORT_PRESET_DEFAULT_ID : defaultId
+    });
+    writeImportPresetStore(store);
+    return true;
+};
+
+const setDefaultImportPresetIdForType = (type, presetId) => {
+    const resolvedType = normalizeManagedType(type);
+    const id = String(presetId || '').trim();
+    if (!id || !findImportPresetById(resolvedType, id)) {
+        throw new Error('Preset not found.');
+    }
+    const store = readImportPresetStore();
+    const current = store?.[resolvedType] || normalizeImportPresetStoreType({});
+    store[resolvedType] = normalizeImportPresetStoreType({
+        custom: current.custom,
+        defaultId: id
+    });
+    writeImportPresetStore(store);
+};
+
+const formatImportPresetLabel = (preset) => {
+    const mode = normalizeImportMode(preset?.mode);
+    const modeLabel = mode === 'replace' ? 'Replace' : mode === 'skip' ? 'Skip existing' : 'Merge';
+    const dryRunSuffix = preset?.dryRunOnly === true ? ', dry run' : '';
+    return `${String(preset?.name || 'Preset')} (${modeLabel}${dryRunSuffix})`;
+};
+
 const setTypeFolders = (type, value) => {
     if (type === 'docker') {
         dockers = value;
@@ -1664,6 +1889,21 @@ const fetchBackups = async (type) => {
         throw new Error(response.error || 'Failed to fetch backups.');
     }
     return Array.isArray(response.backups) ? response.backups : [];
+};
+
+const fetchBackupSnapshot = async (type, name) => {
+    const resolvedType = normalizeManagedType(type);
+    const response = await apiGetJson('/plugins/folderview.plus/server/backup.php', {
+        data: {
+            type: resolvedType,
+            action: 'read',
+            name
+        }
+    });
+    if (!response.ok) {
+        throw new Error(response.error || 'Failed to read backup snapshot.');
+    }
+    return response.snapshot || {};
 };
 
 const restoreBackupByName = async (type, name) => {
@@ -2205,15 +2445,77 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     const dialog = $('#import-preview-dialog');
     dialog.removeClass('fv-section-hidden fv-section-content-hidden');
     const modeSelect = $('#import-mode-select');
+    const presetSelect = $('#import-preset-select');
+    const presetSaveButton = $('#import-preset-save');
+    const presetDefaultButton = $('#import-preset-default');
+    const presetDeleteButton = $('#import-preset-delete');
     const previewText = $('#import-preview-text');
     const meta = $('#import-preview-meta');
     const result = $('#import-preview-result');
     const counts = $('#import-preview-counts');
     const folders = getFolderMap(type);
     let dialogResult = null;
+    let activePresetId = '';
     const isImportDryRunOnly = () => {
         const checkbox = $('#import-dry-run-only');
         return checkbox.length ? checkbox.prop('checked') === true : false;
+    };
+    const setImportDryRunOnly = (enabled) => {
+        const checkbox = $('#import-dry-run-only');
+        if (checkbox.length) {
+            checkbox.prop('checked', enabled === true);
+        }
+    };
+    const refreshPresetControls = () => {
+        if (!presetSelect.length) {
+            return;
+        }
+        const presets = getImportPresetsForType(type);
+        const defaultPresetId = getDefaultImportPresetIdForType(type);
+        const knownIds = new Set(presets.map((preset) => preset.id));
+        const selectedIsCustomUnsaved = activePresetId === '__custom__';
+
+        const options = presets.map((preset) => {
+            const isDefault = preset.id === defaultPresetId;
+            const label = isDefault ? `${formatImportPresetLabel(preset)} (default)` : formatImportPresetLabel(preset);
+            return `<option value="${escapeHtml(preset.id)}">${escapeHtml(label)}</option>`;
+        });
+        if (selectedIsCustomUnsaved) {
+            options.push('<option value="__custom__">Custom (unsaved)</option>');
+        }
+        presetSelect.html(options.join(''));
+
+        if (!activePresetId || (!knownIds.has(activePresetId) && activePresetId !== '__custom__')) {
+            activePresetId = defaultPresetId;
+        }
+        if (activePresetId && (knownIds.has(activePresetId) || activePresetId === '__custom__')) {
+            presetSelect.val(activePresetId);
+        } else if (presets.length) {
+            activePresetId = presets[0].id;
+            presetSelect.val(activePresetId);
+        }
+
+        const selectedPresetId = String(presetSelect.val() || '');
+        const canSetDefault = selectedPresetId !== '' && selectedPresetId !== '__custom__';
+        const canDelete = selectedPresetId.startsWith('custom:');
+        presetDefaultButton.prop('disabled', !canSetDefault);
+        presetDeleteButton.prop('disabled', !canDelete);
+    };
+    const applyPresetById = (presetId) => {
+        const preset = findImportPresetById(type, presetId);
+        if (!preset) {
+            return false;
+        }
+        modeSelect.val(normalizeImportMode(preset.mode));
+        setImportDryRunOnly(preset.dryRunOnly === true);
+        activePresetId = preset.id;
+        refreshPresetControls();
+        return true;
+    };
+    const syncPresetFromCurrentInputs = () => {
+        const matched = findImportPresetByModeAndDryRun(type, modeSelect.val(), isImportDryRunOnly());
+        activePresetId = matched ? matched.id : '__custom__';
+        refreshPresetControls();
     };
 
     modeSelect.html(`
@@ -2228,8 +2530,13 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     if (!$('#import-dry-run-row').length) {
         $('#import-mode-help').after('<label id="import-dry-run-row"><input id="import-dry-run-only" type="checkbox"> Dry run only (preview changes, do not modify folders)</label>');
     }
-    // Default import behavior must apply changes when user clicks "Apply Import".
+    // Safety default: keep dry-run disabled unless a user preset explicitly turns it on.
     $('#import-dry-run-only').prop('checked', false);
+    if (!applyPresetById(getDefaultImportPresetForType(type)?.id || IMPORT_PRESET_DEFAULT_ID)) {
+        modeSelect.val('merge');
+        setImportDryRunOnly(false);
+        activePresetId = '__custom__';
+    }
 
     const renderPreview = () => {
         const mode = modeSelect.val();
@@ -2237,9 +2544,9 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         const operations = utils.buildImportOperations(folders, parsed, mode);
         const diffRows = utils.buildImportDiffRows(folders, parsed, mode);
         const dryRunOnly = isImportDryRunOnly();
+        importSelectionState = buildOperationSelectionState(operations, folders);
         const selectedOperations = filterOperationsBySelection(operations);
         const selectedCount = countImportOperations(selectedOperations);
-        importSelectionState = buildOperationSelectionState(operations, folders);
         renderOperationSelection();
         renderImportDiffTable(diffRows);
         previewText.val(formatImportSummary(summary));
@@ -2270,6 +2577,7 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
             <span class="import-count-chip is-selected">Selected: ${selectedCount}</span>
             <span class="import-count-chip is-dryrun">Dry run: ${dryRunOnly ? 'ON' : 'OFF'}</span>
         `);
+        syncPresetFromCurrentInputs();
     };
 
     modeSelect.off('change.fvimport').on('change.fvimport', () => {
@@ -2278,8 +2586,73 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     $('#import-dry-run-only').off('change.fvimport').on('change.fvimport', () => {
         renderPreview();
     });
+    presetSelect.off('change.fvimportpreset').on('change.fvimportpreset', () => {
+        const selectedId = String(presetSelect.val() || '');
+        if (selectedId === '' || selectedId === '__custom__') {
+            return;
+        }
+        if (applyPresetById(selectedId)) {
+            renderPreview();
+        }
+    });
+    presetSaveButton.off('click.fvimportpreset').on('click.fvimportpreset', () => {
+        const suggestedName = String((findImportPresetById(type, activePresetId)?.name || 'My import preset')).trim();
+        const name = window.prompt('Preset name:', suggestedName);
+        const trimmedName = String(name || '').trim();
+        if (!trimmedName) {
+            return;
+        }
+        try {
+            const saved = saveCustomImportPresetForType(type, {
+                name: trimmedName,
+                mode: modeSelect.val(),
+                dryRunOnly: isImportDryRunOnly()
+            });
+            activePresetId = saved.id;
+            refreshPresetControls();
+        } catch (error) {
+            showError('Failed to save preset', error);
+        }
+    });
+    presetDefaultButton.off('click.fvimportpreset').on('click.fvimportpreset', () => {
+        const selectedId = String(presetSelect.val() || '');
+        if (!selectedId || selectedId === '__custom__') {
+            return;
+        }
+        try {
+            setDefaultImportPresetIdForType(type, selectedId);
+            activePresetId = selectedId;
+            refreshPresetControls();
+        } catch (error) {
+            showError('Failed to set default preset', error);
+        }
+    });
+    presetDeleteButton.off('click.fvimportpreset').on('click.fvimportpreset', () => {
+        const selectedId = String(presetSelect.val() || '');
+        if (!selectedId || !selectedId.startsWith('custom:')) {
+            return;
+        }
+        swal({
+            title: 'Delete import preset?',
+            text: 'This only removes the saved custom preset.',
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Delete',
+            cancelButtonText: 'Cancel'
+        }, (confirmed) => {
+            if (!confirmed) {
+                return;
+            }
+            const deleted = deleteCustomImportPresetForType(type, selectedId);
+            if (deleted) {
+                activePresetId = getDefaultImportPresetIdForType(type);
+                refreshPresetControls();
+                renderPreview();
+            }
+        });
+    });
 
-    modeSelect.val('merge');
+    refreshPresetControls();
     renderPreview();
 
     const modalWidth = Math.min(980, Math.max(760, Math.floor(window.innerWidth * 0.92)));
@@ -2761,6 +3134,7 @@ const renderBackupRows = (type) => {
     });
     if (!backups.length) {
         rowsEl.html('<tr><td colspan="4">No backups found.</td></tr>');
+        renderBackupCompareControls(type);
         return;
     }
 
@@ -2781,6 +3155,290 @@ const renderBackupRows = (type) => {
     });
 
     rowsEl.html(rows.join(''));
+    renderBackupCompareControls(type);
+};
+
+const getBackupCompareOptionLabel = (backup) => {
+    const created = formatTimestamp(backup?.createdAt || '');
+    const reason = String(backup?.reason || '').trim();
+    const base = String(backup?.name || '');
+    if (!reason) {
+        return `${created} | ${base}`;
+    }
+    return `${created} | ${reason} | ${base}`;
+};
+
+const renderBackupCompareControls = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const leftSelect = $(`#${resolvedType}-backup-compare-left`);
+    const rightSelect = $(`#${resolvedType}-backup-compare-right`);
+    if (!leftSelect.length || !rightSelect.length) {
+        return;
+    }
+
+    const backups = Array.isArray(backupsByType[resolvedType]) ? backupsByType[resolvedType] : [];
+    if (!backups.length) {
+        leftSelect.html('<option value="">No backups available</option>').prop('disabled', true);
+        rightSelect.html('<option value="__current__">Current live folders</option>').prop('disabled', true);
+        backupCompareSelectionByType[resolvedType] = {
+            left: '',
+            right: '__current__'
+        };
+        return;
+    }
+
+    leftSelect.prop('disabled', false);
+    rightSelect.prop('disabled', false);
+    const previous = backupCompareSelectionByType[resolvedType] || { left: '', right: '__current__' };
+    const availableNames = new Set(backups.map((backup) => String(backup?.name || '')));
+
+    const leftOptions = backups.map((backup) => (
+        `<option value="${escapeHtml(String(backup?.name || ''))}">${escapeHtml(getBackupCompareOptionLabel(backup))}</option>`
+    )).join('');
+    const rightOptions = [
+        '<option value="__current__">Current live folders</option>',
+        ...backups.map((backup) => (
+            `<option value="${escapeHtml(String(backup?.name || ''))}">${escapeHtml(getBackupCompareOptionLabel(backup))}</option>`
+        ))
+    ].join('');
+
+    leftSelect.html(leftOptions);
+    rightSelect.html(rightOptions);
+
+    const defaultLeft = availableNames.has(previous.left) ? previous.left : String(backups[0]?.name || '');
+    let defaultRight = previous.right;
+    if (defaultRight !== '__current__' && !availableNames.has(defaultRight)) {
+        defaultRight = '__current__';
+    }
+    if (!defaultRight) {
+        defaultRight = '__current__';
+    }
+    if (defaultRight === defaultLeft) {
+        defaultRight = '__current__';
+    }
+
+    leftSelect.val(defaultLeft);
+    rightSelect.val(defaultRight);
+
+    backupCompareSelectionByType[resolvedType] = {
+        left: String(leftSelect.val() || ''),
+        right: String(rightSelect.val() || '__current__')
+    };
+
+    leftSelect.off('change.fvcompare').on('change.fvcompare', () => {
+        backupCompareSelectionByType[resolvedType].left = String(leftSelect.val() || '');
+        if (String(rightSelect.val() || '') === backupCompareSelectionByType[resolvedType].left) {
+            rightSelect.val('__current__');
+            backupCompareSelectionByType[resolvedType].right = '__current__';
+        }
+    });
+    rightSelect.off('change.fvcompare').on('change.fvcompare', () => {
+        backupCompareSelectionByType[resolvedType].right = String(rightSelect.val() || '__current__');
+        if (backupCompareSelectionByType[resolvedType].right === backupCompareSelectionByType[resolvedType].left) {
+            backupCompareSelectionByType[resolvedType].right = '__current__';
+            rightSelect.val('__current__');
+        }
+    });
+};
+
+const buildBackupSnapshotDiff = (leftFolders, rightFolders) => {
+    const left = utils.normalizeFolderMap(leftFolders);
+    const right = utils.normalizeFolderMap(rightFolders);
+    const ids = Array.from(new Set([...Object.keys(left), ...Object.keys(right)])).sort((a, b) => a.localeCompare(b));
+    const rows = [];
+    const counts = {
+        create: 0,
+        update: 0,
+        delete: 0,
+        unchanged: 0
+    };
+
+    for (const id of ids) {
+        const before = left[id];
+        const after = right[id];
+        if (!before && after) {
+            counts.create += 1;
+            rows.push({
+                action: 'create',
+                id,
+                beforeName: '-',
+                afterName: String(after.name || id),
+                fields: ['folder']
+            });
+            continue;
+        }
+        if (before && !after) {
+            counts.delete += 1;
+            rows.push({
+                action: 'delete',
+                id,
+                beforeName: String(before.name || id),
+                afterName: '-',
+                fields: ['folder']
+            });
+            continue;
+        }
+        const fields = utils.diffFolderFields(before, after);
+        if (fields.length === 0) {
+            counts.unchanged += 1;
+            continue;
+        }
+        counts.update += 1;
+        rows.push({
+            action: 'update',
+            id,
+            beforeName: String(before?.name || id),
+            afterName: String(after?.name || id),
+            fields
+        });
+    }
+
+    return {
+        rows,
+        counts,
+        totalCompared: ids.length,
+        leftCount: Object.keys(left).length,
+        rightCount: Object.keys(right).length
+    };
+};
+
+const renderBackupCompareDialog = ({ type, leftSnapshot, rightSnapshot, diff }) => {
+    const dialog = $('#backup-compare-dialog');
+    const meta = $('#backup-compare-meta');
+    const counts = $('#backup-compare-counts');
+    const table = $('#backup-compare-diff');
+    if (!dialog.length || !meta.length || !counts.length || !table.length) {
+        return;
+    }
+
+    const metaItems = [
+        { label: 'Type', value: type === 'vm' ? 'vm' : 'docker' },
+        { label: 'From', value: leftSnapshot.label },
+        { label: 'To', value: rightSnapshot.label },
+        { label: 'From folders', value: diff.leftCount },
+        { label: 'To folders', value: diff.rightCount }
+    ];
+    meta.html(metaItems.map((item) => (
+        `<span class="preview-meta-item"><strong>${escapeHtml(item.label)}:</strong> ${escapeHtml(String(item.value))}</span>`
+    )).join(''));
+
+    counts.html(`
+        <span class="import-count-chip is-create">Create: ${diff.counts.create}</span>
+        <span class="import-count-chip is-update">Update: ${diff.counts.update}</span>
+        <span class="import-count-chip is-delete">Delete: ${diff.counts.delete}</span>
+        <span class="import-count-chip is-selected">Unchanged: ${diff.counts.unchanged}</span>
+    `);
+
+    if (!diff.rows.length) {
+        table.html('<div class="hint-line">No differences found between the selected snapshots.</div>');
+    } else {
+        const body = diff.rows.map((row) => (
+            `<tr>
+                <td>${escapeHtml(String(row.action || '').toUpperCase())}</td>
+                <td>${escapeHtml(String(row.id || '-'))}</td>
+                <td>${escapeHtml(String(row.beforeName || '-'))}</td>
+                <td>${escapeHtml(String(row.afterName || '-'))}</td>
+                <td>${escapeHtml(Array.isArray(row.fields) ? row.fields.join(', ') : '-')}</td>
+            </tr>`
+        )).join('');
+        table.html(`
+            <table>
+                <thead>
+                    <tr>
+                        <th>Action</th>
+                        <th>ID</th>
+                        <th>Before</th>
+                        <th>After</th>
+                        <th>Changed fields</th>
+                    </tr>
+                </thead>
+                <tbody>${body}</tbody>
+            </table>
+        `);
+    }
+
+    const modalWidth = Math.min(980, Math.max(760, Math.floor(window.innerWidth * 0.92)));
+    dialog.dialog({
+        title: `Compare ${type === 'docker' ? 'Docker' : 'VM'} snapshots`,
+        resizable: false,
+        width: modalWidth,
+        modal: true,
+        dialogClass: 'fv-backup-compare-modal',
+        buttons: {
+            Close: function() {
+                $(this).dialog('close');
+            }
+        }
+    });
+};
+
+const resolveBackupCompareSnapshot = async (type, target) => {
+    const resolvedType = normalizeManagedType(type);
+    const targetId = String(target || '').trim();
+    if (!targetId || targetId === '__current__') {
+        const folders = getFolderMap(resolvedType);
+        return {
+            targetId: '__current__',
+            label: 'Current live folders',
+            folders
+        };
+    }
+    const snapshot = await fetchBackupSnapshot(resolvedType, targetId);
+    const labelReason = String(snapshot.reason || '').trim();
+    const labelPrefix = formatTimestamp(snapshot.createdAt || '');
+    const label = labelReason
+        ? `${labelPrefix} | ${labelReason}`
+        : `${labelPrefix} | ${targetId}`;
+    return {
+        targetId,
+        label,
+        folders: utils.normalizeFolderMap(snapshot.folders || {})
+    };
+};
+
+const compareBackupSnapshots = async (type) => {
+    let resolvedType;
+    try {
+        resolvedType = normalizeManagedType(type);
+    } catch (error) {
+        showError('Compare failed', error);
+        return;
+    }
+
+    const leftTarget = String($(`#${resolvedType}-backup-compare-left`).val() || '').trim();
+    const rightTarget = String($(`#${resolvedType}-backup-compare-right`).val() || '__current__').trim() || '__current__';
+    if (!leftTarget) {
+        swal({
+            title: 'Compare unavailable',
+            text: 'Create at least one backup snapshot first.',
+            type: 'warning'
+        });
+        return;
+    }
+    if (leftTarget === rightTarget) {
+        swal({
+            title: 'Choose different snapshots',
+            text: 'Select two different targets to compare.',
+            type: 'warning'
+        });
+        return;
+    }
+
+    try {
+        const [leftSnapshot, rightSnapshot] = await Promise.all([
+            resolveBackupCompareSnapshot(resolvedType, leftTarget),
+            resolveBackupCompareSnapshot(resolvedType, rightTarget)
+        ]);
+        const diff = buildBackupSnapshotDiff(leftSnapshot.folders, rightSnapshot.folders);
+        renderBackupCompareDialog({
+            type: resolvedType,
+            leftSnapshot,
+            rightSnapshot,
+            diff
+        });
+    } catch (error) {
+        showError('Compare failed', error);
+    }
 };
 
 const renderTemplateRows = (type) => {
@@ -4670,6 +5328,7 @@ window.createManualBackup = createManualBackup;
 window.refreshBackups = refreshBackups;
 window.runScheduledBackupNow = runScheduledBackupNow;
 window.restoreLatestBackup = restoreLatestBackup;
+window.compareBackupSnapshots = compareBackupSnapshots;
 window.restoreBackupEntry = restoreBackupEntry;
 window.downloadBackupEntry = downloadBackupEntry;
 window.deleteBackupEntry = deleteBackupEntry;

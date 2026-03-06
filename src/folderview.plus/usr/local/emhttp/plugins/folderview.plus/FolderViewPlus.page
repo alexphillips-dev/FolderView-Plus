@@ -398,6 +398,13 @@ emitRequestTokenMetaTag();
             <button onclick="refreshBackups('docker')"><i class="fa fa-refresh"></i> Refresh list</button>
             <button onclick="runScheduledBackupNow('docker')"><i class="fa fa-clock-o"></i> Run scheduler now</button>
         </div>
+        <div class="backup-compare-row">
+            <label for="docker-backup-compare-left">Compare</label>
+            <select id="docker-backup-compare-left"></select>
+            <span class="backup-compare-sep">vs</span>
+            <select id="docker-backup-compare-right"></select>
+            <button onclick="compareBackupSnapshots('docker')"><i class="fa fa-exchange"></i> Compare snapshots</button>
+        </div>
         <input id="docker-backups-filter" type="text" placeholder="Search Docker backups" oninput="setFilterQuery('backups','docker',this.value)">
         <div class="schedule-row">
             <label><input id="docker-backup-schedule-enabled" type="checkbox" onchange="changeBackupSchedulePref('docker', 'enabled', this.checked)"> Scheduled backups</label>
@@ -428,6 +435,13 @@ emitRequestTokenMetaTag();
             <button onclick="restoreLatestBackup('vm')"><i class="fa fa-history"></i> Restore latest</button>
             <button onclick="refreshBackups('vm')"><i class="fa fa-refresh"></i> Refresh list</button>
             <button onclick="runScheduledBackupNow('vm')"><i class="fa fa-clock-o"></i> Run scheduler now</button>
+        </div>
+        <div class="backup-compare-row">
+            <label for="vm-backup-compare-left">Compare</label>
+            <select id="vm-backup-compare-left"></select>
+            <span class="backup-compare-sep">vs</span>
+            <select id="vm-backup-compare-right"></select>
+            <button onclick="compareBackupSnapshots('vm')"><i class="fa fa-exchange"></i> Compare snapshots</button>
         </div>
         <input id="vm-backups-filter" type="text" placeholder="Search VM backups" oninput="setFilterQuery('backups','vm',this.value)">
         <div class="schedule-row">
@@ -583,6 +597,15 @@ emitRequestTokenMetaTag();
             <div id="import-preview-counts" class="import-preview-counts"></div>
         </div>
         <div class="import-preview-card import-mode-card">
+            <div class="import-preset-stack">
+                <label for="import-preset-select">Preset</label>
+                <select id="import-preset-select"></select>
+                <div class="import-preset-actions">
+                    <button type="button" id="import-preset-save"><i class="fa fa-save"></i> Save current</button>
+                    <button type="button" id="import-preset-default"><i class="fa fa-star"></i> Set default</button>
+                    <button type="button" id="import-preset-delete"><i class="fa fa-trash"></i> Delete</button>
+                </div>
+            </div>
             <label for="import-mode-select">Import mode</label>
             <select id="import-mode-select">
                 <option value="merge">Merge</option>
@@ -605,6 +628,16 @@ emitRequestTokenMetaTag();
         <summary>Show raw summary details</summary>
         <textarea id="import-preview-text" readonly></textarea>
     </details>
+</div>
+
+<div id="backup-compare-dialog" style="display:none;">
+    <div class="backup-compare-head">
+        <p class="import-preview-title">Snapshot comparison</p>
+        <p class="import-preview-subtitle">Review exactly what changed between two configuration snapshots.</p>
+    </div>
+    <div id="backup-compare-meta" class="preview-meta"></div>
+    <div id="backup-compare-counts" class="import-preview-counts"></div>
+    <div id="backup-compare-diff" class="backup-compare-diff"></div>
 </div>
 
 <div id="import-apply-progress-overlay" style="display:none;"></div>

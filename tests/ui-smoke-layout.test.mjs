@@ -33,6 +33,9 @@ const folderJs = fs.readFileSync(folderJsPath, 'utf8');
 
 test('settings page includes smoke-test-critical containers and scripts', () => {
     assert.match(settingsPage, /id="import-preview-dialog"/);
+    assert.match(settingsPage, /id="backup-compare-dialog"/);
+    assert.match(settingsPage, /id="docker-backup-compare-left"/);
+    assert.match(settingsPage, /id="vm-backup-compare-left"/);
     assert.match(settingsPage, /id="import-apply-progress-overlay"/);
     assert.match(settingsPage, /id="import-apply-progress-dialog"/);
     assert.match(settingsPage, /id="fv-settings-action-bar"/);
@@ -90,5 +93,9 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const initOverflowGuard = \(\) =>/);
     assert.match(settingsJs, /window\.addEventListener\('resize', enforceNoHorizontalOverflow\)/);
     assert.match(settingsJs, /initOverflowGuard\(\);/);
+    assert.match(settingsJs, /window\.compareBackupSnapshots = compareBackupSnapshots;/);
+    assert.match(settingsJs, /const IMPORT_PRESET_STORAGE_KEY = 'fv\.import\.presets\.v1';/);
+    assert.match(settingsCss, /\.backup-compare-row\s*\{/);
+    assert.match(settingsCss, /\.ui-dialog\.fv-backup-compare-modal #backup-compare-dialog/);
     assert.doesNotMatch(settingsJs, /await \$\.post\('\/plugins\/folderview\.plus\/server\//);
 });

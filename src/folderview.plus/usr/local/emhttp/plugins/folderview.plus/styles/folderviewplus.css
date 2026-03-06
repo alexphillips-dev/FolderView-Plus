@@ -15,6 +15,15 @@
     display: grid;
     gap: 0.85rem;
     margin-bottom: 1rem;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden !important;
+}
+
+.folder-table > * {
+    min-width: 0;
+    max-width: 100%;
 }
 
 .folder-toolbar {

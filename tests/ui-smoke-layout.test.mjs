@@ -58,6 +58,8 @@ test('sort toggle note has anti-clipping layout guards', () => {
 });
 
 test('folder tables avoid unnecessary horizontal scrollbar in basic view', () => {
+    assert.match(settingsCss, /\.folder-table\s*\{[\s\S]*overflow-x:\s*hidden !important/);
+    assert.match(settingsCss, /\.folder-table > \*\s*\{[\s\S]*min-width:\s*0/);
     assert.match(settingsCss, /\.table-wrap\s*\{[\s\S]*box-sizing:\s*border-box/);
     assert.match(settingsCss, /\.table-wrap\s*\{[\s\S]*overflow-x:\s*hidden/);
     assert.match(settingsCss, /\.folder-table \.table-wrap\s*\{[\s\S]*overflow-x:\s*hidden !important/);

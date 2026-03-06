@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.12.1">
-<!ENTITY md5 "b145ec4e2ce5a1313cf1e3c0ecbd7afd">
+<!ENTITY version "2026.03.12.2">
+<!ENTITY md5 "2c67799ed5f131e2faad1d612b44af03">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.12.2
+- Fix pinned folder ordering in runtime views:
+  - apply prefs-based folder slot ordering (including `pinnedFolderIds`) in `Docker`, `VM`, and `Dashboard` scripts before row creation,
+  - apply same ordering logic for fallback folders not present in saved UI order.
+- Result: pinning in settings now moves folders to top in Docker/VM views as expected.
 
 ###2026.03.12.1
 - Increase top-left settings title size again for stronger visual hierarchy and readability.

@@ -41,6 +41,40 @@ const utils = window.FolderViewPlusUtils || {
     }
 };
 
+const getPrefsOrderedFolderMap = (folders, prefs) => {
+    const source = folders && typeof folders === 'object' ? folders : {};
+    if (typeof utils.orderFoldersByPrefs === 'function') {
+        return utils.orderFoldersByPrefs(source, prefs || {});
+    }
+    return source;
+};
+
+const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs) => {
+    const order = Array.isArray(baseOrder)
+        ? baseOrder.map((item) => String(item || ''))
+        : Object.values(baseOrder || {}).map((item) => String(item || ''));
+    const folderMap = folders && typeof folders === 'object' ? folders : {};
+    const desiredFolderTokens = Object.keys(getPrefsOrderedFolderMap(folderMap, prefs))
+        .map((id) => `folder-${id}`);
+    if (!desiredFolderTokens.length) {
+        return order;
+    }
+    let desiredIndex = 0;
+    return order.map((entry) => {
+        if (!folderRegex.test(entry)) {
+            return entry;
+        }
+        while (desiredIndex < desiredFolderTokens.length) {
+            const candidate = desiredFolderTokens[desiredIndex++];
+            const candidateId = candidate.replace(folderRegex, '');
+            if (Object.prototype.hasOwnProperty.call(folderMap, candidateId)) {
+                return candidate;
+            }
+        }
+        return entry;
+    });
+};
+
 /**
  * Handles the creation of all folders
  */
@@ -48,7 +82,7 @@ const createFolders = async () => {
     const prom = await Promise.all(folderReq);
     // Parse the results
     let folders = JSON.parse(prom[0]);
-    const unraidOrder = Object.values(JSON.parse(prom[1]));
+    let unraidOrder = Object.values(JSON.parse(prom[1]));
     const vmInfo = JSON.parse(prom[2]);
     let order = Object.values(JSON.parse(prom[3]));
     let prefsResponse = {};
@@ -58,6 +92,7 @@ const createFolders = async () => {
         prefsResponse = {};
     }
     folderTypePrefs = utils.normalizePrefs(prefsResponse?.prefs || {});
+    unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs);
     applyRuntimePrefs(folderTypePrefs);
     
 
@@ -122,7 +157,7 @@ const createFolders = async () => {
 
     // Draw the foldes outside of the order
     // Preserve original folder order when inserting at the top with unshift.
-    const remainingFolders = Object.entries(folders).reverse();
+    const remainingFolders = Object.entries(getPrefsOrderedFolderMap(folders, folderTypePrefs)).reverse();
     for (const [id, value] of remainingFolders) {
         // Add the folder on top of the array
         order.unshift(`folder-${id}`);

@@ -26,7 +26,13 @@ const utils = window.FolderViewPlusUtils || {
         liveRefreshSeconds: 20,
         performanceMode: false,
         lazyPreviewEnabled: false,
-        lazyPreviewThreshold: 30
+        lazyPreviewThreshold: 30,
+        health: {
+            cardsEnabled: true,
+            runtimeBadgeEnabled: false,
+            compact: false,
+            warnStoppedPercent: 60
+        }
     }),
     getAutoRuleMatches: () => [],
     DEFAULT_FOLDER_STATUS_COLORS: localDefaultFolderStatusColors,

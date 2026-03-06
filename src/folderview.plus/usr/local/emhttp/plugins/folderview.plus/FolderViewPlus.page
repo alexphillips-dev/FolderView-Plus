@@ -76,6 +76,16 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
                         <input id="docker-lazy-preview-threshold" type="number" min="10" max="200" step="1" onchange="changeRuntimePref('docker', 'lazyPreviewThreshold', this.value)">
                     </label>
                 </div>
+                <div class="settings-mini-card">
+                    <div class="settings-mini-title">Health cards</div>
+                    <label class="setting-toggle"><input id="docker-health-cards-enabled" type="checkbox" onchange="changeHealthPref('docker', 'cardsEnabled', this.checked)"> Show health cards</label>
+                    <label class="setting-toggle"><input id="docker-health-runtime-badge-enabled" type="checkbox" onchange="changeHealthPref('docker', 'runtimeBadgeEnabled', this.checked)"> Runtime summary badge</label>
+                    <label class="setting-toggle"><input id="docker-health-compact" type="checkbox" onchange="changeHealthPref('docker', 'compact', this.checked)"> Compact card layout</label>
+                    <label id="docker-health-warn-threshold-row" class="setting-inline-number">
+                        <span>Warn stopped (%)</span>
+                        <input id="docker-health-warn-threshold" type="number" min="0" max="100" step="1" onchange="changeHealthPref('docker', 'warnStoppedPercent', this.value)">
+                    </label>
+                </div>
             </div>
         </div>
     </div>
@@ -146,6 +156,16 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
                     <label id="vm-lazy-preview-threshold-row" class="setting-inline-number runtime-dependent">
                         <span>Lazy threshold</span>
                         <input id="vm-lazy-preview-threshold" type="number" min="10" max="200" step="1" onchange="changeRuntimePref('vm', 'lazyPreviewThreshold', this.value)">
+                    </label>
+                </div>
+                <div class="settings-mini-card">
+                    <div class="settings-mini-title">Health cards</div>
+                    <label class="setting-toggle"><input id="vm-health-cards-enabled" type="checkbox" onchange="changeHealthPref('vm', 'cardsEnabled', this.checked)"> Show health cards</label>
+                    <label class="setting-toggle"><input id="vm-health-runtime-badge-enabled" type="checkbox" onchange="changeHealthPref('vm', 'runtimeBadgeEnabled', this.checked)"> Runtime summary badge</label>
+                    <label class="setting-toggle"><input id="vm-health-compact" type="checkbox" onchange="changeHealthPref('vm', 'compact', this.checked)"> Compact card layout</label>
+                    <label id="vm-health-warn-threshold-row" class="setting-inline-number">
+                        <span>Warn stopped (%)</span>
+                        <input id="vm-health-warn-threshold" type="number" min="0" max="100" step="1" onchange="changeHealthPref('vm', 'warnStoppedPercent', this.value)">
                     </label>
                 </div>
             </div>
@@ -488,6 +508,18 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
         <button onclick="undoLatestChange('vm')"><i class="fa fa-undo"></i> Undo latest VM change</button>
     </div>
     <pre id="change-history-output" class="diagnostics-output compact-output">Refresh history to view recent changes.</pre>
+</div>
+<hr>
+
+<h2 data-fv-section="folder-health" data-fv-advanced="1" data-fv-advanced-group="diagnostics">Folder health cards</h2>
+<div class="rules-panel">
+    <div class="rules-header">
+        <h3>Folder health overview and quick filters</h3>
+        <span class="rules-help">Track empty/stopped/conflicting folders, then jump directly to fixes.</span>
+    </div>
+    <div id="folder-health-content" class="folder-health-grid">
+        <div class="folder-health-empty">Health cards populate after Docker/VM folders finish loading.</div>
+    </div>
 </div>
 <hr>
 

@@ -6,12 +6,23 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.12.2">
-<!ENTITY md5 "2c67799ed5f131e2faad1d612b44af03">
+<!ENTITY version "2026.03.12.4">
+<!ENTITY md5 "f08eb158dd1827a7109bef9757b375f3">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.12.4
+- Add full Folder Health feature set in settings:
+  - new `Folder health cards` section with Docker/VM health summaries (empty/stopped/conflict/regex issues, pinned/rules, stopped ratio),
+  - card-level quick filters (`All`, `Attention`, `Empty`, `Stopped`, `Conflict`) that immediately filter folder tables,
+  - quick actions from cards to jump to table view, run conflict scan, and run diagnostics.
+- Add new Docker/VM health preferences in settings cards:
+  - `Show health cards`, `Runtime summary badge`, `Compact card layout`, and `Warn stopped (%)`.
+- Add optional runtime summary badge support in Docker and VM tab scripts (controlled by per-type health prefs).
+- Extend preference schema + diagnostics snapshot to persist/report health settings safely across updates.
+- Add utility test coverage for new health preference normalization behavior.
 
 ###2026.03.12.2
 - Fix pinned folder ordering in runtime views:

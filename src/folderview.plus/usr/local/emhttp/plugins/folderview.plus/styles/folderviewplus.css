@@ -233,6 +233,117 @@
     font-size: 0.84rem;
 }
 
+.folder-health-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 0.7rem;
+}
+
+.folder-health-card {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 0.6rem 0.7rem;
+    display: grid;
+    gap: 0.5rem;
+}
+
+.folder-health-card.is-warning {
+    border-color: rgba(255, 193, 94, 0.58);
+}
+
+.folder-health-card.is-danger {
+    border-color: rgba(255, 116, 116, 0.62);
+}
+
+.folder-health-card.is-compact {
+    gap: 0.35rem;
+    padding: 0.5rem 0.6rem;
+}
+
+.folder-health-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.folder-health-header h4 {
+    margin: 0;
+}
+
+.folder-health-state {
+    font-size: 0.8rem;
+    opacity: 0.84;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.folder-health-state.is-warning {
+    color: #ffc15e;
+}
+
+.folder-health-state.is-danger {
+    color: #ff7474;
+}
+
+.folder-health-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+    gap: 0.35rem 0.7rem;
+    font-size: 0.86rem;
+}
+
+.folder-health-metric {
+    display: inline-flex;
+    justify-content: space-between;
+    gap: 0.45rem;
+    opacity: 0.9;
+}
+
+.folder-health-metric > strong {
+    font-weight: 700;
+}
+
+.folder-health-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.folder-health-filter {
+    min-width: 0;
+    padding: 0.2rem 0.48rem;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.04);
+    font-size: 0.8rem;
+}
+
+.folder-health-filter.is-active {
+    border-color: rgba(77, 163, 255, 0.6);
+    background: rgba(77, 163, 255, 0.2);
+    color: #d8ebff;
+}
+
+.folder-health-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.folder-health-actions > button {
+    min-width: 0;
+}
+
+.folder-health-empty {
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    padding: 0.7rem 0.75rem;
+    opacity: 0.85;
+    font-size: 0.9rem;
+}
+
 .rules-panel {
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 6px;

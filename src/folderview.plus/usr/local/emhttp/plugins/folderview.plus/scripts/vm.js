@@ -27,7 +27,13 @@ const utils = window.FolderViewPlusUtils || {
         liveRefreshSeconds: 20,
         performanceMode: false,
         lazyPreviewEnabled: false,
-        lazyPreviewThreshold: 30
+        lazyPreviewThreshold: 30,
+        health: {
+            cardsEnabled: true,
+            runtimeBadgeEnabled: false,
+            compact: false,
+            warnStoppedPercent: 60
+        }
     }),
     getAutoRuleMatches: () => [],
     DEFAULT_FOLDER_STATUS_COLORS: localDefaultFolderStatusColors,
@@ -73,6 +79,64 @@ const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs) => {
         }
         return entry;
     });
+};
+
+const removeRuntimeHealthBadge = () => {
+    const existing = document.getElementById('fv-runtime-health-badge-vm');
+    if (existing && existing.parentNode) {
+        existing.parentNode.removeChild(existing);
+    }
+};
+
+const renderRuntimeHealthBadge = (folders, prefs) => {
+    const normalizedPrefs = utils.normalizePrefs(prefs || {});
+    const healthPrefs = normalizedPrefs?.health && typeof normalizedPrefs.health === 'object'
+        ? normalizedPrefs.health
+        : {};
+    if (healthPrefs.runtimeBadgeEnabled !== true) {
+        removeRuntimeHealthBadge();
+        return;
+    }
+
+    const folderMap = folders && typeof folders === 'object' ? folders : {};
+    let startedFolders = 0;
+    let pausedFolders = 0;
+    let stoppedFolders = 0;
+    for (const folder of Object.values(folderMap)) {
+        const status = folder?.status || {};
+        const started = Number(status.started || 0);
+        const paused = Number(status.paused || 0);
+        const stopped = Number(status.stopped || 0);
+        if (started > 0) {
+            startedFolders += 1;
+        } else if (paused > 0) {
+            pausedFolders += 1;
+        } else if (stopped > 0) {
+            stoppedFolders += 1;
+        } else {
+            stoppedFolders += 1;
+        }
+    }
+
+    const table = document.querySelector('#kvm_list')?.closest('table');
+    const host = table?.parentElement || document.querySelector('#kvm_list')?.parentElement;
+    if (!host) {
+        return;
+    }
+    let badge = document.getElementById('fv-runtime-health-badge-vm');
+    if (!badge) {
+        badge = document.createElement('div');
+        badge.id = 'fv-runtime-health-badge-vm';
+        badge.className = 'fv-runtime-health-badge';
+        host.insertBefore(badge, host.firstChild);
+    }
+    badge.classList.remove('is-warning', 'is-danger');
+    if (stoppedFolders > 0) {
+        badge.classList.add('is-danger');
+    } else if (pausedFolders > 0) {
+        badge.classList.add('is-warning');
+    }
+    badge.textContent = `Folder health: ${startedFolders} started | ${pausedFolders} paused | ${stoppedFolders} stopped`;
 };
 
 /**
@@ -183,6 +247,7 @@ const createFolders = async () => {
 
     // Assing the folder done to the global object
     globalFolders = foldersDone;
+    renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
 
     folderDebugMode  = false;
 };

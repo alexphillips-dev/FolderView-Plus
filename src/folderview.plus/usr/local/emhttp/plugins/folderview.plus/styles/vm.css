@@ -1,3 +1,26 @@
+.fv-runtime-health-badge {
+    margin: 0.35rem 0 0.5rem 0;
+    padding: 0.26rem 0.58rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.82rem;
+    opacity: 0.92;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.fv-runtime-health-badge.is-warning {
+    border-color: rgba(255, 193, 94, 0.58);
+    color: #ffc15e;
+}
+
+.fv-runtime-health-badge.is-danger {
+    border-color: rgba(255, 116, 116, 0.62);
+    color: #ff7474;
+}
+
 .hover:hover div.folder-preview div {
     visibility: visible;
 }

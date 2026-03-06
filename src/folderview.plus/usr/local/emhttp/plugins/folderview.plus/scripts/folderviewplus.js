@@ -43,6 +43,14 @@ let filtersByType = {
         templates: ''
     }
 };
+let healthMetricsByType = {
+    docker: null,
+    vm: null
+};
+let healthFilterByType = {
+    docker: 'all',
+    vm: 'all'
+};
 let importSelectionState = null;
 let lastDiagnostics = null;
 let latestPrefsBackupByType = {
@@ -63,6 +71,7 @@ const ADVANCED_SECTION_KEYS = new Set([
     'backups',
     'folder-templates',
     'change-history',
+    'folder-health',
     'diagnostics',
     'conflict-inspector'
 ]);
@@ -81,6 +90,7 @@ const ADVANCED_GROUP_BY_SECTION = {
     'change-history': 'recovery',
     'runtime-actions': 'operations',
     'folder-templates': 'operations',
+    'folder-health': 'diagnostics',
     'diagnostics': 'diagnostics'
 };
 const BASIC_WORKSPACE_SECTION_KEYS = new Set(['docker', 'vms']);
@@ -948,6 +958,35 @@ const initSettingsControls = () => {
         applyRegexPreset(type, preset);
     });
 
+    $(document).off('click.fvhealthfilter', '[data-fv-health-filter]').on('click.fvhealthfilter', '[data-fv-health-filter]', (event) => {
+        const type = String($(event.currentTarget).attr('data-fv-health-type') || 'docker');
+        const mode = String($(event.currentTarget).attr('data-fv-health-filter') || 'all');
+        setHealthFolderFilter(type, mode);
+    });
+
+    $(document).off('click.fvhealthaction', '[data-fv-health-action]').on('click.fvhealthaction', '[data-fv-health-action]', (event) => {
+        const type = String($(event.currentTarget).attr('data-fv-health-type') || 'docker');
+        const action = String($(event.currentTarget).attr('data-fv-health-action') || '');
+        if (action === 'jump-table') {
+            setSettingsMode('basic');
+            scrollToSectionKey(type === 'vm' ? 'vms' : 'docker');
+            return;
+        }
+        if (action === 'scan-conflicts') {
+            setSettingsMode('advanced');
+            setAdvancedTab('automation');
+            scrollToSectionKey('conflict-inspector');
+            void runConflictInspector(type);
+            return;
+        }
+        if (action === 'run-diagnostics') {
+            setSettingsMode('advanced');
+            setAdvancedTab('diagnostics');
+            scrollToSectionKey('diagnostics');
+            void runDiagnostics();
+        }
+    });
+
     $(document).off('click.fvtab', '.fv-advanced-tab').on('click.fvtab', '.fv-advanced-tab', (event) => {
         const tab = String($(event.currentTarget).attr('data-fv-advanced-tab') || '');
         setAdvancedTab(tab);
@@ -1052,6 +1091,224 @@ const folderNameForId = (type, id) => {
 const isFolderPinned = (type, folderId) => {
     const pinned = Array.isArray(prefsByType[type]?.pinnedFolderIds) ? prefsByType[type].pinnedFolderIds : [];
     return pinned.includes(String(folderId || ''));
+};
+
+const normalizeHealthFilterMode = (value) => {
+    const mode = String(value || 'all').trim().toLowerCase();
+    return ['all', 'attention', 'empty', 'stopped', 'conflict'].includes(mode) ? mode : 'all';
+};
+
+const normalizeHealthPrefs = (type, prefsOverride = null) => {
+    const source = prefsOverride ? utils.normalizePrefs(prefsOverride) : utils.normalizePrefs(prefsByType[type]);
+    const incoming = source?.health && typeof source.health === 'object' ? source.health : {};
+    const warnRaw = Number(incoming.warnStoppedPercent);
+    const warnStoppedPercent = Number.isFinite(warnRaw) ? Math.min(100, Math.max(0, Math.round(warnRaw))) : 60;
+    return {
+        cardsEnabled: incoming.cardsEnabled !== false,
+        runtimeBadgeEnabled: incoming.runtimeBadgeEnabled === true,
+        compact: incoming.compact === true,
+        warnStoppedPercent
+    };
+};
+
+const getItemRuntimeStateKind = (type, itemInfo) => {
+    const source = itemInfo && typeof itemInfo === 'object' ? itemInfo : {};
+    if (type === 'vm') {
+        const raw = String(source.state || source.State || '').toLowerCase();
+        if (raw === 'running') {
+            return 'started';
+        }
+        if (raw === 'paused' || raw === 'unknown' || raw === 'pmsuspended') {
+            return 'paused';
+        }
+        return 'stopped';
+    }
+    const nested = source?.info?.State || source?.State || {};
+    const running = Boolean(nested?.Running ?? source?.state ?? source?.running);
+    const paused = Boolean(nested?.Paused ?? source?.pause ?? source?.paused);
+    if (running && paused) {
+        return 'paused';
+    }
+    if (running) {
+        return 'started';
+    }
+    return 'stopped';
+};
+
+const hasInvalidFolderRegex = (folder) => {
+    const pattern = String(folder?.regex || '').trim();
+    if (!pattern) {
+        return false;
+    }
+    try {
+        // eslint-disable-next-line no-new
+        new RegExp(pattern);
+        return false;
+    } catch (_error) {
+        return true;
+    }
+};
+
+const buildTypeHealthMetrics = (type, folders, memberSnapshot = {}, prefsOverride = null) => {
+    const normalizedType = type === 'vm' ? 'vm' : 'docker';
+    const folderMap = utils.normalizeFolderMap(folders);
+    const prefs = prefsOverride ? utils.normalizePrefs(prefsOverride) : utils.normalizePrefs(prefsByType[normalizedType]);
+    const healthPrefs = normalizeHealthPrefs(normalizedType, prefs);
+    const info = infoByType[normalizedType] || {};
+    const pinnedSet = new Set(Array.isArray(prefs.pinnedFolderIds) ? prefs.pinnedFolderIds : []);
+    const regexRuleKinds = new Set(['name_regex', 'image_regex', 'compose_project_regex']);
+    const invalidRuleRegexCount = (prefs.autoRules || []).reduce((count, rule) => {
+        if (!regexRuleKinds.has(String(rule?.kind || ''))) {
+            return count;
+        }
+        const pattern = String(rule?.pattern || '').trim();
+        if (!pattern) {
+            return count;
+        }
+        try {
+            // eslint-disable-next-line no-new
+            new RegExp(pattern);
+            return count;
+        } catch (_error) {
+            return count + 1;
+        }
+    }, 0);
+    const conflictReport = utils.getConflictReport({
+        type: normalizedType,
+        folders: folderMap,
+        prefs,
+        infoByName: info
+    });
+    const conflictFolderIds = new Set();
+    for (const row of conflictReport.rows || []) {
+        if (!row?.hasConflict) {
+            continue;
+        }
+        for (const matched of row.matchedFolders || []) {
+            const folderId = String(matched?.folderId || '').trim();
+            if (folderId) {
+                conflictFolderIds.add(folderId);
+            }
+        }
+    }
+
+    const memberTotals = { total: 0, started: 0, paused: 0, stopped: 0 };
+    const folderStatusTotals = { started: 0, paused: 0, stopped: 0, empty: 0 };
+    const folderIssues = {};
+    let invalidFolderRegexCount = 0;
+
+    for (const [folderId, folder] of Object.entries(folderMap)) {
+        const members = Array.isArray(memberSnapshot?.[folderId]?.members) ? memberSnapshot[folderId].members : [];
+        let started = 0;
+        let paused = 0;
+        let stopped = 0;
+        for (const name of members) {
+            const state = getItemRuntimeStateKind(normalizedType, info[name] || {});
+            if (state === 'started') {
+                started += 1;
+            } else if (state === 'paused') {
+                paused += 1;
+            } else {
+                stopped += 1;
+            }
+        }
+        memberTotals.total += members.length;
+        memberTotals.started += started;
+        memberTotals.paused += paused;
+        memberTotals.stopped += stopped;
+
+        const isEmpty = members.length === 0;
+        const isStoppedOnly = members.length > 0 && started === 0 && paused === 0;
+        const hasConflict = conflictFolderIds.has(String(folderId));
+        const invalidRegex = hasInvalidFolderRegex(folder);
+        const needsAttention = isEmpty || isStoppedOnly || hasConflict || invalidRegex;
+
+        if (isEmpty) {
+            folderStatusTotals.empty += 1;
+        } else if (started > 0) {
+            folderStatusTotals.started += 1;
+        } else if (paused > 0) {
+            folderStatusTotals.paused += 1;
+        } else {
+            folderStatusTotals.stopped += 1;
+        }
+        if (invalidRegex) {
+            invalidFolderRegexCount += 1;
+        }
+
+        folderIssues[String(folderId)] = {
+            empty: isEmpty,
+            stoppedOnly: isStoppedOnly,
+            conflict: hasConflict,
+            invalidRegex,
+            attention: needsAttention,
+            memberCount: members.length
+        };
+    }
+
+    const stoppedPercent = memberTotals.total > 0
+        ? Math.round((memberTotals.stopped / memberTotals.total) * 100)
+        : 0;
+    const attentionCount = Object.values(folderIssues).filter((issue) => issue.attention).length;
+    let severity = 'ok';
+    if (invalidFolderRegexCount > 0 || invalidRuleRegexCount > 0 || conflictReport.conflictingItems > 0) {
+        severity = 'danger';
+    } else if (stoppedPercent >= healthPrefs.warnStoppedPercent || attentionCount > 0) {
+        severity = 'warning';
+    }
+
+    return {
+        type: normalizedType,
+        severity,
+        folderCount: Object.keys(folderMap).length,
+        pinnedCount: Array.from(pinnedSet).filter((id) => Object.prototype.hasOwnProperty.call(folderMap, id)).length,
+        ruleCount: (prefs.autoRules || []).length,
+        invalidFolderRegexCount,
+        invalidRuleRegexCount,
+        conflictItemCount: Number(conflictReport.conflictingItems || 0),
+        stoppedPercent,
+        memberTotals,
+        folderStatusTotals,
+        attentionCount,
+        folderIssues
+    };
+};
+
+const folderMatchesHealthFilter = (type, folderId, healthMetrics) => {
+    const mode = normalizeHealthFilterMode(healthFilterByType[type]);
+    if (mode === 'all') {
+        return true;
+    }
+    const issue = healthMetrics?.folderIssues?.[String(folderId)] || {};
+    if (mode === 'attention') {
+        return issue.attention === true;
+    }
+    if (mode === 'empty') {
+        return issue.empty === true;
+    }
+    if (mode === 'stopped') {
+        return issue.stoppedOnly === true;
+    }
+    if (mode === 'conflict') {
+        return issue.conflict === true;
+    }
+    return true;
+};
+
+const getHealthFilterLabel = (mode) => {
+    if (mode === 'attention') {
+        return 'needs attention';
+    }
+    if (mode === 'empty') {
+        return 'empty';
+    }
+    if (mode === 'stopped') {
+        return 'stopped';
+    }
+    if (mode === 'conflict') {
+        return 'conflicts';
+    }
+    return 'all';
 };
 
 const getEffectiveMemberSnapshot = (type, folders) => {
@@ -1749,9 +2006,10 @@ const offerUndoAction = async (type, backup, actionLabel) => {
     });
 };
 
-const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = false) => {
+const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = false, healthMetrics = null) => {
     const rows = [];
     const filter = normalizedFilter(filtersByType[type]?.folders);
+    const healthFilterMode = normalizeHealthFilterMode(healthFilterByType[type]);
     for (const [id, folder] of Object.entries(folders)) {
         const nameText = String(folder.name || '');
         const haystack = `${String(id)} ${nameText}`.toLowerCase();
@@ -1760,6 +2018,9 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         }
         const members = Array.isArray(memberSnapshot[id]?.members) ? memberSnapshot[id].members : [];
         if (hideEmptyFolders && members.length === 0) {
+            continue;
+        }
+        if (!folderMatchesHealthFilter(type, id, healthMetrics)) {
             continue;
         }
         const pinned = isFolderPinned(type, id);
@@ -1776,7 +2037,10 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         );
     }
     if (rows.length === 0) {
-        return '<tr><td colspan="4">No folders match current filters.</td></tr>';
+        const filterSuffix = healthFilterMode !== 'all'
+            ? ` (${getHealthFilterLabel(healthFilterMode)} filter)`
+            : '';
+        return `<tr><td colspan="4">No folders match current filters${filterSuffix}.</td></tr>`;
     }
     return rows.join('');
 };
@@ -1904,6 +2168,18 @@ const renderRuntimeControls = (type) => {
     syncRuntimeDependentFields(type);
 };
 
+const renderHealthControls = (type) => {
+    const health = normalizeHealthPrefs(type);
+    $(`#${type}-health-cards-enabled`).prop('checked', health.cardsEnabled === true);
+    $(`#${type}-health-runtime-badge-enabled`).prop('checked', health.runtimeBadgeEnabled === true);
+    $(`#${type}-health-compact`).prop('checked', health.compact === true);
+    $(`#${type}-health-warn-threshold`).val(String(health.warnStoppedPercent));
+    $(`#${type}-health-warn-threshold-row`).toggleClass('is-hidden', health.cardsEnabled !== true);
+    if (health.cardsEnabled !== true) {
+        healthFilterByType[type] = 'all';
+    }
+};
+
 const renderVisibilityControls = (type) => {
     const prefs = utils.normalizePrefs(prefsByType[type]);
     $(`#${type}-hide-empty-folders`).prop('checked', prefs.hideEmptyFolders === true);
@@ -1925,6 +2201,78 @@ const renderFilterInputs = (type) => {
     $(`#${type}-rules-filter`).val(filterState.rules || '');
     $(`#${type}-backups-filter`).val(filterState.backups || '');
     $(`#${type}-templates-filter`).val(filterState.templates || '');
+};
+
+const buildHealthCardHtml = (type, metrics, healthPrefs) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const title = resolvedType === 'docker' ? 'Docker' : 'VMs';
+    const severityClass = metrics.severity === 'danger'
+        ? 'is-danger'
+        : (metrics.severity === 'warning' ? 'is-warning' : '');
+    const statusText = metrics.severity === 'danger'
+        ? 'Needs attention'
+        : (metrics.severity === 'warning' ? 'Watch list' : 'Healthy');
+    const statusClass = metrics.severity === 'danger'
+        ? 'is-danger'
+        : (metrics.severity === 'warning' ? 'is-warning' : '');
+    const compactClass = healthPrefs.compact ? 'is-compact' : '';
+    const activeFilter = normalizeHealthFilterMode(healthFilterByType[resolvedType]);
+    const filterButton = (mode, label) => {
+        const active = activeFilter === mode ? 'is-active' : '';
+        return `<button type="button" class="folder-health-filter ${active}" data-fv-health-filter="${escapeHtml(mode)}" data-fv-health-type="${escapeHtml(resolvedType)}">${escapeHtml(label)}</button>`;
+    };
+
+    return `
+        <section class="folder-health-card ${severityClass} ${compactClass}">
+            <div class="folder-health-header">
+                <h4>${escapeHtml(title)}</h4>
+                <span class="folder-health-state ${statusClass}">${escapeHtml(statusText)}</span>
+            </div>
+            <div class="folder-health-metrics">
+                <span class="folder-health-metric"><span>Folders</span><strong>${metrics.folderCount}</strong></span>
+                <span class="folder-health-metric"><span>Pinned</span><strong>${metrics.pinnedCount}</strong></span>
+                <span class="folder-health-metric"><span>Empty</span><strong>${metrics.folderStatusTotals.empty}</strong></span>
+                <span class="folder-health-metric"><span>Stopped folders</span><strong>${metrics.folderStatusTotals.stopped}</strong></span>
+                <span class="folder-health-metric"><span>Conflicts</span><strong>${metrics.conflictItemCount}</strong></span>
+                <span class="folder-health-metric"><span>Invalid regex</span><strong>${metrics.invalidFolderRegexCount + metrics.invalidRuleRegexCount}</strong></span>
+                <span class="folder-health-metric"><span>Stopped members</span><strong>${metrics.memberTotals.stopped}/${metrics.memberTotals.total}</strong></span>
+                <span class="folder-health-metric"><span>Stopped %</span><strong>${metrics.stoppedPercent}%</strong></span>
+            </div>
+            <div class="folder-health-filters">
+                ${filterButton('all', 'All')}
+                ${filterButton('attention', 'Attention')}
+                ${filterButton('empty', 'Empty')}
+                ${filterButton('stopped', 'Stopped')}
+                ${filterButton('conflict', 'Conflict')}
+            </div>
+            <div class="folder-health-actions">
+                <button type="button" data-fv-health-action="jump-table" data-fv-health-type="${escapeHtml(resolvedType)}"><i class="fa fa-table"></i> Open ${escapeHtml(title)} table</button>
+                <button type="button" data-fv-health-action="scan-conflicts" data-fv-health-type="${escapeHtml(resolvedType)}"><i class="fa fa-search"></i> Scan conflicts</button>
+                <button type="button" data-fv-health-action="run-diagnostics" data-fv-health-type="${escapeHtml(resolvedType)}"><i class="fa fa-stethoscope"></i> Run diagnostics</button>
+            </div>
+        </section>
+    `;
+};
+
+const renderFolderHealthCards = () => {
+    const container = $('#folder-health-content');
+    if (!container.length) {
+        return;
+    }
+    const cards = [];
+    for (const type of ['docker', 'vm']) {
+        const healthPrefs = normalizeHealthPrefs(type);
+        if (healthPrefs.cardsEnabled !== true) {
+            continue;
+        }
+        const metrics = healthMetricsByType[type] || buildTypeHealthMetrics(type, getFolderMap(type), getEffectiveMemberSnapshot(type, getFolderMap(type)));
+        cards.push(buildHealthCardHtml(type, metrics, healthPrefs));
+    }
+    if (!cards.length) {
+        container.html('<div class="folder-health-empty">Health cards are disabled. Enable them in Docker or VM settings cards.</div>');
+        return;
+    }
+    container.html(cards.join(''));
 };
 
 const ruleDescription = (rule) => {
@@ -2092,22 +2440,26 @@ const renderTable = (type) => {
     const folders = getFolderMap(type);
     const ordered = utils.orderFoldersByPrefs(folders, prefsByType[type]);
     const memberSnapshot = getEffectiveMemberSnapshot(type, ordered);
+    const healthMetrics = buildTypeHealthMetrics(type, ordered, memberSnapshot, prefsByType[type]);
+    healthMetricsByType[type] = healthMetrics;
     const hideEmptyFolders = utils.normalizePrefs(prefsByType[type]).hideEmptyFolders === true;
 
     const sortMode = prefsByType[type]?.sortMode || 'created';
     $(`#${type}-sort-mode`).val(sortMode);
     const tbodyId = tableIdByType[type];
-    $(`tbody#${tbodyId}`).html(buildRowsHtml(type, ordered, memberSnapshot, hideEmptyFolders));
+    $(`tbody#${tbodyId}`).html(buildRowsHtml(type, ordered, memberSnapshot, hideEmptyFolders, healthMetrics));
 
     renderFolderSelectOptions(type);
     renderBadgeToggles(type);
     renderRuntimeControls(type);
+    renderHealthControls(type);
     renderVisibilityControls(type);
     renderBackupScheduleControls(type);
     renderFilterInputs(type);
     renderRulesTable(type);
     renderBulkItemOptions(type);
     renderTemplateRows(type);
+    renderFolderHealthCards();
     updateRuleLiveMatch(type);
     refreshSettingsUx();
 };
@@ -2158,6 +2510,7 @@ const refreshAll = async () => {
     updateRuleLiveMatch('docker');
     updateRuleLiveMatch('vm');
     await refreshChangeHistory();
+    renderFolderHealthCards();
     refreshSettingsUx();
 };
 
@@ -2408,6 +2761,55 @@ const changeVisibilityPref = async (type, key, checked) => {
         renderTable(type);
     } catch (error) {
         showError('Visibility preference save failed', error);
+    }
+};
+
+const setHealthFolderFilter = (type, mode) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const nextMode = normalizeHealthFilterMode(mode);
+    const healthPrefs = normalizeHealthPrefs(resolvedType);
+    healthFilterByType[resolvedType] = healthPrefs.cardsEnabled ? nextMode : 'all';
+    renderTable(resolvedType);
+};
+
+const changeHealthPref = async (type, key, value) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const current = utils.normalizePrefs(prefsByType[resolvedType]);
+    const currentHealth = normalizeHealthPrefs(resolvedType, current);
+    const nextHealth = {
+        ...currentHealth
+    };
+
+    if (key === 'cardsEnabled') {
+        nextHealth.cardsEnabled = value === true;
+    } else if (key === 'runtimeBadgeEnabled') {
+        nextHealth.runtimeBadgeEnabled = value === true;
+    } else if (key === 'compact') {
+        nextHealth.compact = value === true;
+    } else if (key === 'warnStoppedPercent') {
+        const parsed = Number(value);
+        nextHealth.warnStoppedPercent = Number.isFinite(parsed)
+            ? Math.min(100, Math.max(0, Math.round(parsed)))
+            : currentHealth.warnStoppedPercent;
+    } else {
+        return;
+    }
+
+    const next = {
+        ...current,
+        health: nextHealth
+    };
+    if (!nextHealth.cardsEnabled) {
+        healthFilterByType[resolvedType] = 'all';
+    }
+
+    try {
+        prefsByType[resolvedType] = await postPrefs(resolvedType, next);
+        renderHealthControls(resolvedType);
+        renderTable(resolvedType);
+    } catch (error) {
+        renderHealthControls(resolvedType);
+        showError('Health preferences save failed', error);
     }
 };
 
@@ -3642,6 +4044,7 @@ window.changeSortMode = changeSortMode;
 window.changeBadgePref = changeBadgePref;
 window.changeVisibilityPref = changeVisibilityPref;
 window.changeRuntimePref = changeRuntimePref;
+window.changeHealthPref = changeHealthPref;
 window.changeBackupSchedulePref = changeBackupSchedulePref;
 window.setFilterQuery = setFilterQuery;
 window.addAutoRule = addAutoRule;
@@ -3682,6 +4085,7 @@ window.checkForUpdatesNow = checkForUpdatesNow;
 window.moveFolderRow = moveFolderRow;
 window.handleFolderRowKeydown = handleFolderRowKeydown;
 window.toggleFolderPin = toggleFolderPin;
+window.setHealthFolderFilter = setHealthFolderFilter;
 window.runQuickSetupWizard = runQuickSetupWizard;
 window.setSettingsMode = setSettingsMode;
 

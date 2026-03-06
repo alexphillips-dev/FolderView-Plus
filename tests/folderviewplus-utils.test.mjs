@@ -212,6 +212,12 @@ test('normalizePrefs includes live refresh, performance mode, and backup schedul
         retention: 25,
         lastRunAt: ''
     });
+    assert.deepEqual(prefs.health, {
+        cardsEnabled: true,
+        runtimeBadgeEnabled: false,
+        compact: false,
+        warnStoppedPercent: 60
+    });
     assert.equal(prefs.setupWizardCompleted, false);
     assert.equal(prefs.settingsMode, 'basic');
 });
@@ -249,6 +255,21 @@ test('normalizePrefs disables legacy runtime toggles until schema is upgraded', 
     });
     assert.equal(onboarding.setupWizardCompleted, true);
     assert.equal(onboarding.settingsMode, 'advanced');
+});
+
+test('normalizePrefs supports health card preferences and guards ranges', () => {
+    const prefs = utils.normalizePrefs({
+        health: {
+            cardsEnabled: false,
+            runtimeBadgeEnabled: true,
+            compact: true,
+            warnStoppedPercent: 133
+        }
+    });
+    assert.equal(prefs.health.cardsEnabled, false);
+    assert.equal(prefs.health.runtimeBadgeEnabled, true);
+    assert.equal(prefs.health.compact, true);
+    assert.equal(prefs.health.warnStoppedPercent, 100);
 });
 
 test('buildImportDiffRows reports row-level changed fields', () => {

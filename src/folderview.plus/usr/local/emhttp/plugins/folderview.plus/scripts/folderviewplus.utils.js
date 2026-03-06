@@ -22,6 +22,12 @@
         paused: '#b8860b',
         stopped: '#ff4d4d'
     };
+    const DEFAULT_HEALTH_PREFS = {
+        cardsEnabled: true,
+        runtimeBadgeEnabled: false,
+        compact: false,
+        warnStoppedPercent: 60
+    };
     const RUNTIME_ACTIONS_BY_TYPE = {
         docker: ['start', 'stop', 'pause', 'resume'],
         vm: ['start', 'stop', 'pause', 'resume']
@@ -151,6 +157,20 @@
         const performanceMode = runtimePrefsReady ? incoming.performanceMode === true : false;
         const lazyPreviewEnabled = runtimePrefsReady ? incoming.lazyPreviewEnabled === true : false;
         const lazyPreviewThreshold = clampNumber(incoming.lazyPreviewThreshold, 10, 200, 30);
+        const incomingHealth = isPlainObject(incoming.health) ? incoming.health : {};
+        const health = {
+            cardsEnabled: !Object.prototype.hasOwnProperty.call(incomingHealth, 'cardsEnabled')
+                ? DEFAULT_HEALTH_PREFS.cardsEnabled
+                : incomingHealth.cardsEnabled !== false,
+            runtimeBadgeEnabled: incomingHealth.runtimeBadgeEnabled === true,
+            compact: incomingHealth.compact === true,
+            warnStoppedPercent: clampNumber(
+                incomingHealth.warnStoppedPercent,
+                0,
+                100,
+                DEFAULT_HEALTH_PREFS.warnStoppedPercent
+            )
+        };
         const pinnedFolderIds = normalizeStringIdList(incoming.pinnedFolderIds);
         const hideEmptyFolders = incoming.hideEmptyFolders === true;
         const setupWizardCompleted = incoming.setupWizardCompleted === true;
@@ -171,6 +191,7 @@
             performanceMode,
             lazyPreviewEnabled,
             lazyPreviewThreshold,
+            health,
             backupSchedule
         };
     };
@@ -999,6 +1020,7 @@
         LEGACY_FOLDER_LABEL_KEYS,
         RUNTIME_PREFS_SCHEMA,
         DEFAULT_FOLDER_STATUS_COLORS,
+        DEFAULT_HEALTH_PREFS,
         normalizeFolderMap,
         normalizePrefs,
         orderFoldersByPrefs,

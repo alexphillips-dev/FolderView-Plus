@@ -521,6 +521,12 @@
             'performanceMode' => false,
             'lazyPreviewEnabled' => false,
             'lazyPreviewThreshold' => 30,
+            'health' => [
+                'cardsEnabled' => true,
+                'runtimeBadgeEnabled' => false,
+                'compact' => false,
+                'warnStoppedPercent' => 60
+            ],
             'backupSchedule' => [
                 'enabled' => false,
                 'intervalHours' => 24,
@@ -602,6 +608,15 @@
             ? normalizeBool($prefs['lazyPreviewEnabled'] ?? false, false)
             : false;
         $normalized['lazyPreviewThreshold'] = normalizeIntInRange($prefs['lazyPreviewThreshold'] ?? 30, 10, 200, 30);
+        $healthIncoming = is_array($prefs['health'] ?? null) ? $prefs['health'] : [];
+        $normalized['health'] = [
+            'cardsEnabled' => !array_key_exists('cardsEnabled', $healthIncoming)
+                ? true
+                : normalizeBool($healthIncoming['cardsEnabled'], true),
+            'runtimeBadgeEnabled' => normalizeBool($healthIncoming['runtimeBadgeEnabled'] ?? false, false),
+            'compact' => normalizeBool($healthIncoming['compact'] ?? false, false),
+            'warnStoppedPercent' => normalizeIntInRange($healthIncoming['warnStoppedPercent'] ?? 60, 0, 100, 60)
+        ];
 
         $scheduleIncoming = is_array($prefs['backupSchedule'] ?? null) ? $prefs['backupSchedule'] : [];
         $normalized['backupSchedule'] = [
@@ -2719,6 +2734,12 @@
                 'performanceMode' => normalizeBool($prefs['performanceMode'] ?? false, false),
                 'lazyPreviewEnabled' => normalizeBool($prefs['lazyPreviewEnabled'] ?? false, false),
                 'lazyPreviewThreshold' => normalizeIntInRange($prefs['lazyPreviewThreshold'] ?? 30, 10, 200, 30),
+                'health' => [
+                    'cardsEnabled' => normalizeBool($prefs['health']['cardsEnabled'] ?? true, true),
+                    'runtimeBadgeEnabled' => normalizeBool($prefs['health']['runtimeBadgeEnabled'] ?? false, false),
+                    'compact' => normalizeBool($prefs['health']['compact'] ?? false, false),
+                    'warnStoppedPercent' => normalizeIntInRange($prefs['health']['warnStoppedPercent'] ?? 60, 0, 100, 60)
+                ],
                 'backupSchedule' => getTypeBackupSchedule($type),
                 'lastBackup' => $backups[0] ?? null,
                 'backupCount' => count($backups),

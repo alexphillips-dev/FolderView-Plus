@@ -6,12 +6,23 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.11.3">
-<!ENTITY md5 "9008780ae2d8c904b6e4ba4b66d12a55">
+<!ENTITY version "2026.03.11.4">
+<!ENTITY md5 "c9a3a0f94a289344769cc57dc87ebb97">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.11.4
+- Advanced settings layout refactor to prevent UI crowding:
+  - add advanced tab groups (`Automation`, `Recovery`, `Operations`, `Diagnostics`),
+  - default advanced sections to collapsed with per-section toggles,
+  - persist last active advanced tab/section and expanded section state.
+- Search behavior update:
+  - default search scope is current advanced tab,
+  - add `Search all advanced` toggle for cross-tab matching.
+- UI polish:
+  - add dedicated advanced nav bar and section collapse styling.
 
 ###2026.03.11.3
 - Reliability and release hardening:

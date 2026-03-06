@@ -174,7 +174,7 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 </div>
 <hr>
 
-<h2 data-fv-section="auto-assignment" data-fv-advanced="1">Auto-assignment rules</h2>
+<h2 data-fv-section="auto-assignment" data-fv-advanced="1" data-fv-advanced-group="automation">Auto-assignment rules</h2>
 <div class="rules-bottom-grid">
     <div class="rules-panel">
         <div class="rules-header">
@@ -279,7 +279,7 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 </div>
 <hr>
 
-<h2 data-fv-section="bulk-assignment" data-fv-advanced="1">Bulk assignment</h2>
+<h2 data-fv-section="bulk-assignment" data-fv-advanced="1" data-fv-advanced-group="automation">Bulk assignment</h2>
 <div class="bulk-assign-grid">
     <div class="rules-panel">
         <div class="rules-header">
@@ -307,7 +307,7 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 </div>
 <hr>
 
-<h2 data-fv-section="runtime-actions" data-fv-advanced="1">Folder runtime actions</h2>
+<h2 data-fv-section="runtime-actions" data-fv-advanced="1" data-fv-advanced-group="operations">Folder runtime actions</h2>
 <div class="bulk-assign-grid">
     <div class="rules-panel">
         <div class="rules-header">
@@ -349,7 +349,7 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 </div>
 <hr>
 
-<h2 data-fv-section="backups" data-fv-advanced="1">Backups</h2>
+<h2 data-fv-section="backups" data-fv-advanced="1" data-fv-advanced-group="recovery">Backups</h2>
 <div class="backup-grid">
     <div class="rules-panel">
         <div class="rules-header">
@@ -415,7 +415,7 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 </div>
 <hr>
 
-<h2 data-fv-section="folder-templates" data-fv-advanced="1">Folder templates</h2>
+<h2 data-fv-section="folder-templates" data-fv-advanced="1" data-fv-advanced-group="operations">Folder templates</h2>
 <div class="template-grid">
     <div class="rules-panel">
         <div class="rules-header">
@@ -475,7 +475,7 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 </div>
 <hr>
 
-<h2 data-fv-section="change-history" data-fv-advanced="1">Change history and undo</h2>
+<h2 data-fv-section="change-history" data-fv-advanced="1" data-fv-advanced-group="recovery">Change history and undo</h2>
 <div class="rules-panel">
     <div class="rules-header">
         <h3>Recent changes</h3>
@@ -490,7 +490,7 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 </div>
 <hr>
 
-<h2 data-fv-section="diagnostics" data-fv-advanced="1">Diagnostics</h2>
+<h2 data-fv-section="diagnostics" data-fv-advanced="1" data-fv-advanced-group="diagnostics">Diagnostics</h2>
 <div class="rules-panel">
     <div class="rules-header">
         <h3>Health checks and quick repair</h3>
@@ -509,7 +509,7 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 </div>
 <hr>
 
-<h2 data-fv-section="conflict-inspector" data-fv-advanced="1">Conflict inspector</h2>
+<h2 data-fv-section="conflict-inspector" data-fv-advanced="1" data-fv-advanced-group="automation">Conflict inspector</h2>
 <div class="rules-panel">
     <div class="rules-header">
         <h3>Folder membership conflict report</h3>

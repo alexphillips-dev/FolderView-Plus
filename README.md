@@ -74,6 +74,7 @@ plugin remove folderview.plus
 Top controls in Customizations:
 
 - `Search settings` filters visible settings content
+- `Search all advanced` optionally broadens search beyond current advanced tab
 - `Basic / Advanced` changes how many sections are shown
 - `Wizard` reruns quick setup anytime
 - `Create rollback checkpoint` snapshots Docker/VM folders and prefs
@@ -88,6 +89,7 @@ Top controls in Customizations:
 
 `Advanced` mode additionally exposes:
 
+- Tabbed advanced workspaces (`Automation`, `Recovery`, `Operations`, `Diagnostics`)
 - Auto-assignment rules
 - Bulk assignment tools
 - Runtime action planner

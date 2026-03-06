@@ -629,6 +629,23 @@ a:focus-visible {
     min-height: 32px;
 }
 
+.fv-search-scope {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.82rem;
+    opacity: 0.9;
+    white-space: nowrap;
+}
+
+.fv-search-scope input[type="checkbox"] {
+    margin: 0;
+}
+
+.fv-search-scope.is-disabled {
+    opacity: 0.45;
+}
+
 #fv-settings-clear-search {
     min-width: 32px;
     width: 32px;
@@ -638,6 +655,55 @@ a:focus-visible {
 #fv-run-wizard {
     min-height: 32px;
     padding: 0.3rem 0.55rem;
+}
+
+.fv-advanced-nav {
+    margin: 0.4rem 0 0.8rem 0;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.015);
+    padding: 0.5rem 0.65rem;
+}
+
+.fv-advanced-nav-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem 0.7rem;
+}
+
+.fv-advanced-nav-label {
+    font-size: 0.84rem;
+    opacity: 0.78;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.fv-advanced-tabs {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.fv-advanced-tab {
+    min-width: 0;
+    padding: 0.28rem 0.55rem;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.04);
+    font-size: 0.82rem;
+}
+
+.fv-advanced-tab.is-active {
+    border-color: rgba(77, 163, 255, 0.6);
+    background: rgba(77, 163, 255, 0.2);
+    color: #d8ebff;
+}
+
+.fv-advanced-count {
+    opacity: 0.82;
+    font-size: 0.78rem;
 }
 
 h2[data-fv-section] {
@@ -674,7 +740,26 @@ h2[data-fv-section] {
     color: #ff7474;
 }
 
+.fv-section-toggle {
+    margin-left: auto;
+    min-width: 0;
+    font-size: 0.78rem;
+    line-height: 1.2;
+    padding: 0.14rem 0.38rem;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.fv-section-collapsed .fv-section-toggle {
+    opacity: 0.85;
+}
+
 .fv-section-hidden {
+    display: none !important;
+}
+
+.fv-section-content-hidden {
     display: none !important;
 }
 

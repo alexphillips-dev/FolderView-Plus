@@ -52,6 +52,10 @@ let latestPrefsBackupByType = {
 
 const UI_MODE_STORAGE_KEY = 'fv.settings.mode.v1';
 const WIZARD_DONE_STORAGE_KEY = 'fv.settings.wizard.v1.done';
+const ADVANCED_TAB_STORAGE_KEY = 'fv.settings.advancedTab.v1';
+const ADVANCED_SECTION_STORAGE_KEY = 'fv.settings.advancedSection.v1';
+const ADVANCED_EXPANDED_STORAGE_KEY = 'fv.settings.advancedExpanded.v1';
+const SEARCH_ALL_ADVANCED_STORAGE_KEY = 'fv.settings.searchAllAdvanced.v1';
 const ADVANCED_SECTION_KEYS = new Set([
     'auto-assignment',
     'bulk-assignment',
@@ -62,6 +66,23 @@ const ADVANCED_SECTION_KEYS = new Set([
     'diagnostics',
     'conflict-inspector'
 ]);
+const ADVANCED_GROUPS = ['automation', 'recovery', 'operations', 'diagnostics'];
+const ADVANCED_GROUP_LABELS = {
+    automation: 'Automation',
+    recovery: 'Recovery',
+    operations: 'Operations',
+    diagnostics: 'Diagnostics'
+};
+const ADVANCED_GROUP_BY_SECTION = {
+    'auto-assignment': 'automation',
+    'bulk-assignment': 'automation',
+    'conflict-inspector': 'automation',
+    'backups': 'recovery',
+    'change-history': 'recovery',
+    'runtime-actions': 'operations',
+    'folder-templates': 'operations',
+    'diagnostics': 'diagnostics'
+};
 const settingsUiState = {
     initialized: false,
     controlsInitialized: false,
@@ -70,6 +91,9 @@ const settingsUiState = {
     sections: [],
     baselineByInputId: new Map(),
     activeSectionKey: '',
+    advancedTab: 'automation',
+    searchAllAdvanced: false,
+    expandedAdvancedSections: new Set(),
     wizardShown: false
 };
 
@@ -112,6 +136,33 @@ const getInputSerializedValue = (input) => {
 };
 
 const getTrackedInputs = () => Array.from(document.querySelectorAll('input[id], select[id], textarea[id]'));
+
+const normalizeAdvancedGroup = (value) => (
+    ADVANCED_GROUPS.includes(String(value || ''))
+        ? String(value || '')
+        : 'operations'
+);
+
+const persistExpandedAdvancedSections = () => {
+    const payload = JSON.stringify(Array.from(settingsUiState.expandedAdvancedSections || []));
+    localStorage.setItem(ADVANCED_EXPANDED_STORAGE_KEY, payload);
+};
+
+const persistActiveAdvancedSection = (sectionKey) => {
+    const key = String(sectionKey || '').trim();
+    if (!key) {
+        localStorage.removeItem(ADVANCED_SECTION_STORAGE_KEY);
+        return;
+    }
+    localStorage.setItem(ADVANCED_SECTION_STORAGE_KEY, key);
+};
+
+const setAdvancedTab = (tab, persist = true) => {
+    settingsUiState.advancedTab = normalizeAdvancedGroup(tab);
+    if (persist) {
+        localStorage.setItem(ADVANCED_TAB_STORAGE_KEY, settingsUiState.advancedTab);
+    }
+};
 
 const setActionBarStatus = (text) => {
     $('#fv-action-status').text(text || '');
@@ -188,6 +239,9 @@ const buildSettingsSections = () => {
             .replace(/\s+/g, ' ')
             .trim();
         const advanced = heading.dataset.fvAdvanced === '1' || ADVANCED_SECTION_KEYS.has(key);
+        const advancedGroup = advanced
+            ? normalizeAdvancedGroup(heading.dataset.fvAdvancedGroup || ADVANCED_GROUP_BY_SECTION[key] || 'operations')
+            : 'main';
         const sectionRow = heading.closest('[data-fv-section-row="1"]');
         const sectionStartNode = sectionRow instanceof HTMLElement ? sectionRow : heading;
         const nodes = [sectionStartNode];
@@ -206,6 +260,7 @@ const buildSettingsSections = () => {
 
         heading.id = heading.id || `fv-section-${key}`;
         heading.dataset.fvSection = key;
+        heading.dataset.fvAdvancedGroup = advancedGroup;
 
         let badge = heading.querySelector('.fv-section-badge');
         if (!badge) {
@@ -214,18 +269,38 @@ const buildSettingsSections = () => {
             heading.appendChild(badge);
         }
 
+        let toggle = heading.querySelector('.fv-section-toggle');
+        if (advanced && !toggle) {
+            toggle = document.createElement('button');
+            toggle.type = 'button';
+            toggle.className = 'fv-section-toggle';
+            toggle.dataset.sectionToggle = key;
+            toggle.setAttribute('aria-label', `Toggle ${title || key}`);
+            toggle.textContent = 'Toggle';
+            heading.appendChild(toggle);
+        }
+
+        const contentNodes = nodes.filter((node) => node !== sectionStartNode);
+
         sections.push({
             key,
             title,
             advanced,
+            advancedGroup,
             heading,
             badge,
-            nodes
+            nodes,
+            contentNodes
         });
     }
 
     settingsUiState.sections = sections;
 };
+
+const getSectionSearchHaystack = (section) => section.nodes
+    .map((node) => node.textContent || '')
+    .join(' ')
+    .toLowerCase();
 
 const getVisibleSections = () => settingsUiState.sections.filter((section) => {
     const modeVisible = settingsUiState.mode === 'advanced' || !section.advanced;
@@ -233,24 +308,85 @@ const getVisibleSections = () => settingsUiState.sections.filter((section) => {
         return false;
     }
     const query = settingsUiState.query;
+    const searchAcrossAllAdvanced = settingsUiState.searchAllAdvanced && Boolean(query);
+    if (
+        settingsUiState.mode === 'advanced'
+        && section.advanced
+        && !searchAcrossAllAdvanced
+        && section.advancedGroup !== settingsUiState.advancedTab
+    ) {
+        return false;
+    }
     if (!query) {
         return true;
     }
-    const haystack = section.nodes.map((node) => node.textContent || '').join(' ').toLowerCase();
-    return haystack.includes(query);
+    return getSectionSearchHaystack(section).includes(query);
 });
+
+const renderAdvancedNav = () => {
+    const container = $('#fv-advanced-nav');
+    if (!container.length) {
+        return;
+    }
+    if (settingsUiState.mode !== 'advanced') {
+        container.hide().empty();
+        return;
+    }
+
+    const advancedSections = settingsUiState.sections.filter((section) => section.advanced);
+    if (!advancedSections.length) {
+        container.hide().empty();
+        return;
+    }
+
+    const tabsHtml = ADVANCED_GROUPS
+        .map((group) => {
+            const count = advancedSections.filter((section) => section.advancedGroup === group).length;
+            if (!count) {
+                return '';
+            }
+            const active = settingsUiState.advancedTab === group ? 'is-active' : '';
+            const label = ADVANCED_GROUP_LABELS[group] || group;
+            return `<button type="button" class="fv-advanced-tab ${active}" data-fv-advanced-tab="${group}">${escapeHtml(label)} <span class="fv-advanced-count">${count}</span></button>`;
+        })
+        .filter(Boolean)
+        .join('');
+
+    container.html(`
+        <div class="fv-advanced-nav-inner">
+            <span class="fv-advanced-nav-label">Advanced sections</span>
+            <div class="fv-advanced-tabs">${tabsHtml}</div>
+        </div>
+    `).show();
+};
 
 const applySettingsSectionVisibility = () => {
     const visibleKeys = new Set(getVisibleSections().map((section) => section.key));
+    const forceExpandForQuery = Boolean(settingsUiState.query);
 
     for (const section of settingsUiState.sections) {
         const visible = visibleKeys.has(section.key);
+        const expanded = !section.advanced
+            || settingsUiState.expandedAdvancedSections.has(section.key)
+            || forceExpandForQuery;
         for (const node of section.nodes) {
             node.classList.toggle('fv-section-hidden', !visible);
         }
+        for (const node of section.contentNodes || []) {
+            node.classList.toggle('fv-section-content-hidden', visible && !expanded);
+        }
         section.heading.classList.toggle('fv-search-match', visible && Boolean(settingsUiState.query));
+        section.heading.classList.toggle('fv-section-collapsed', visible && section.advanced && !expanded);
     }
 
+    renderAdvancedNav();
+    const searchScopeToggle = $('#fv-search-all-advanced');
+    if (searchScopeToggle.length) {
+        const enabled = settingsUiState.mode === 'advanced';
+        searchScopeToggle.prop('disabled', !enabled);
+        searchScopeToggle.prop('checked', settingsUiState.searchAllAdvanced === true);
+        searchScopeToggle.closest('.fv-search-scope').toggleClass('is-disabled', !enabled);
+    }
     const modeButtons = $('.fv-mode-btn');
     modeButtons.removeClass('is-active');
     modeButtons.filter(`[data-mode="${settingsUiState.mode}"]`).addClass('is-active');
@@ -260,12 +396,18 @@ const syncSectionJumpOptions = () => {
     const visibleSections = getVisibleSections();
     if (!visibleSections.length) {
         settingsUiState.activeSectionKey = '';
+        persistActiveAdvancedSection('');
         return;
     }
     const keep = settingsUiState.activeSectionKey && visibleSections.some((section) => section.key === settingsUiState.activeSectionKey);
     if (!keep) {
         settingsUiState.activeSectionKey = visibleSections[0]?.key || '';
     }
+    const activeSection = settingsUiState.sections.find((section) => section.key === settingsUiState.activeSectionKey);
+    if (activeSection?.advanced) {
+        setAdvancedTab(activeSection.advancedGroup);
+    }
+    persistActiveAdvancedSection(settingsUiState.activeSectionKey);
 
     const select = $('#fv-section-jump');
     if (!select.length) {
@@ -293,6 +435,12 @@ const scrollToSectionKey = (key) => {
 const setSettingsMode = (mode) => {
     settingsUiState.mode = mode === 'advanced' ? 'advanced' : 'basic';
     localStorage.setItem(UI_MODE_STORAGE_KEY, settingsUiState.mode);
+    if (settingsUiState.mode === 'advanced') {
+        const activeSection = settingsUiState.sections.find((section) => section.key === settingsUiState.activeSectionKey);
+        if (activeSection?.advanced) {
+            setAdvancedTab(activeSection.advancedGroup);
+        }
+    }
     applySettingsSectionVisibility();
     syncSectionJumpOptions();
     refreshSectionHealthBadges();
@@ -354,6 +502,15 @@ const persistSetupPrefsToServer = async ({ mode = null, completed = null } = {})
 
 const setSettingsSearchQuery = (query) => {
     settingsUiState.query = String(query || '').trim().toLowerCase();
+    applySettingsSectionVisibility();
+    syncSectionJumpOptions();
+    refreshSectionHealthBadges();
+    updateActionBarSaveState();
+};
+
+const setSearchAllAdvanced = (enabled) => {
+    settingsUiState.searchAllAdvanced = enabled === true;
+    localStorage.setItem(SEARCH_ALL_ADVANCED_STORAGE_KEY, settingsUiState.searchAllAdvanced ? '1' : '0');
     applySettingsSectionVisibility();
     syncSectionJumpOptions();
     refreshSectionHealthBadges();
@@ -643,6 +800,10 @@ const initSettingsControls = () => {
             <div class="fv-settings-right">
                 <input type="text" id="fv-settings-search" placeholder="Search settings" aria-label="Search settings">
                 <button type="button" id="fv-settings-clear-search" title="Clear search" aria-label="Clear search"><i class="fa fa-times"></i></button>
+                <label class="fv-search-scope" title="Limit search to currently selected advanced tab">
+                    <input type="checkbox" id="fv-search-all-advanced">
+                    Search all advanced
+                </label>
                 <span class="fv-mode-toggle" title="Settings mode">
                     <button type="button" class="fv-mode-btn" data-mode="basic" aria-label="Use basic settings mode">Basic</button>
                     <button type="button" class="fv-mode-btn" data-mode="advanced" aria-label="Use advanced settings mode">Advanced</button>
@@ -651,6 +812,10 @@ const initSettingsControls = () => {
             </div>
         </div>
     `);
+
+    if (!$('#fv-advanced-nav').length) {
+        $('.fv-customizations-header').after('<div id="fv-advanced-nav" class="fv-advanced-nav" style="display:none"></div>');
+    }
 
     actionBar.html(`
         <div class="fv-action-buttons">
@@ -668,6 +833,9 @@ const initSettingsControls = () => {
     });
     $('#fv-settings-search').off('input.fvui').on('input.fvui', (event) => {
         setSettingsSearchQuery($(event.currentTarget).val());
+    });
+    $('#fv-search-all-advanced').off('change.fvui').on('change.fvui', (event) => {
+        setSearchAllAdvanced($(event.currentTarget).prop('checked') === true);
     });
     $('#fv-settings-clear-search').off('click.fvui').on('click.fvui', () => {
         $('#fv-settings-search').val('');
@@ -701,6 +869,40 @@ const initSettingsControls = () => {
         applyRegexPreset(type, preset);
     });
 
+    $(document).off('click.fvtab', '.fv-advanced-tab').on('click.fvtab', '.fv-advanced-tab', (event) => {
+        const tab = String($(event.currentTarget).attr('data-fv-advanced-tab') || '');
+        setAdvancedTab(tab);
+        applySettingsSectionVisibility();
+        syncSectionJumpOptions();
+        refreshSectionHealthBadges();
+        updateActionBarSaveState();
+    });
+
+    $(document).off('click.fvsectiontoggle', '.fv-section-toggle').on('click.fvsectiontoggle', '.fv-section-toggle', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const key = String($(event.currentTarget).attr('data-section-toggle') || '').trim();
+        if (!key) {
+            return;
+        }
+        if (settingsUiState.expandedAdvancedSections.has(key)) {
+            settingsUiState.expandedAdvancedSections.delete(key);
+        } else {
+            settingsUiState.expandedAdvancedSections.add(key);
+            settingsUiState.activeSectionKey = key;
+            persistActiveAdvancedSection(key);
+            const section = settingsUiState.sections.find((entry) => entry.key === key);
+            if (section?.advanced) {
+                setAdvancedTab(section.advancedGroup);
+            }
+        }
+        persistExpandedAdvancedSections();
+        applySettingsSectionVisibility();
+        syncSectionJumpOptions();
+        refreshSectionHealthBadges();
+        updateActionBarSaveState();
+    });
+
     $('#docker-rule-kind, #docker-rule-pattern, #docker-rule-label-key, #docker-rule-label-value')
         .off('input.fvlivematch change.fvlivematch')
         .on('input.fvlivematch change.fvlivematch', () => updateRuleLiveMatch('docker'));
@@ -708,11 +910,27 @@ const initSettingsControls = () => {
         .off('input.fvlivematch change.fvlivematch')
         .on('input.fvlivematch change.fvlivematch', () => updateRuleLiveMatch('vm'));
 
+    $('#fv-settings-search').val(settingsUiState.query || '');
+    $('#fv-search-all-advanced').prop('checked', settingsUiState.searchAllAdvanced === true);
+
     settingsUiState.controlsInitialized = true;
 };
 
 const refreshSettingsUx = () => {
     buildSettingsSections();
+    const advancedSections = settingsUiState.sections.filter((section) => section.advanced);
+    if (advancedSections.length) {
+        const hasCurrentTab = advancedSections.some((section) => section.advancedGroup === settingsUiState.advancedTab);
+        if (!hasCurrentTab) {
+            setAdvancedTab(advancedSections[0].advancedGroup);
+        }
+        if (settingsUiState.activeSectionKey) {
+            const activeSection = settingsUiState.sections.find((section) => section.key === settingsUiState.activeSectionKey);
+            if (activeSection?.advanced) {
+                setAdvancedTab(activeSection.advancedGroup);
+            }
+        }
+    }
     applySettingsSectionVisibility();
     syncSectionJumpOptions();
     refreshInputInvalidStyles();
@@ -3387,6 +3605,17 @@ window.setSettingsMode = setSettingsMode;
 (async () => {
     try {
         settingsUiState.mode = localStorage.getItem(UI_MODE_STORAGE_KEY) === 'advanced' ? 'advanced' : 'basic';
+        setAdvancedTab(localStorage.getItem(ADVANCED_TAB_STORAGE_KEY) || 'automation', false);
+        settingsUiState.searchAllAdvanced = localStorage.getItem(SEARCH_ALL_ADVANCED_STORAGE_KEY) === '1';
+        settingsUiState.activeSectionKey = String(localStorage.getItem(ADVANCED_SECTION_STORAGE_KEY) || '').trim();
+        try {
+            const expanded = JSON.parse(localStorage.getItem(ADVANCED_EXPANDED_STORAGE_KEY) || '[]');
+            settingsUiState.expandedAdvancedSections = new Set(
+                Array.isArray(expanded) ? expanded.map((key) => String(key || '').trim()).filter((key) => key !== '') : []
+            );
+        } catch (_error) {
+            settingsUiState.expandedAdvancedSections = new Set();
+        }
         initSettingsControls();
         await fetchPluginVersion();
         await refreshAll();

@@ -59,6 +59,7 @@ plugin remove folderview.plus
 - Change history and one-click undo to latest transaction backup
 - Global rollback checkpoints (Docker + VM folders and prefs)
 - Diagnostics bundle and issue-report output
+- Local icon management with built-in icon packs and direct upload support
 - Custom CSS/JS extension loading
 
 ## Quick Start
@@ -159,12 +160,29 @@ Recommended import flow:
 - Plugin config root: `/boot/config/plugins/folderview.plus`
 - Custom styles: `/boot/config/plugins/folderview.plus/styles`
 - Custom scripts: `/boot/config/plugins/folderview.plus/scripts`
+- Third-party icon packs: `/usr/local/emhttp/plugins/folderview.plus/images/third-party-icons`
+- Uploaded custom icons: `/usr/local/emhttp/plugins/folderview.plus/images/custom`
 
 Custom file naming:
 
 - CSS: `name.dashboard.css`, `name.docker.css`, `name.vm.css`
 - JS: `name.dashboard.js`, `name.docker.js`, `name.vm.js`
 - Multi-tab examples: `name.dashboard-docker.css`, `name.dashboard-docker-vm.js`
+
+## Integrated Icon Packs
+
+FolderView Plus includes built-in support for local icon pack browsing so you can manage icons directly from the folder editor UI without manual URL hunting.
+
+Included pack sources:
+
+- https://github.com/sameerasw/folder-icons
+- https://github.com/hernandito/unRAID-Docker-Folder-Animated-Icons---Alternate-Colors
+
+How this helps:
+
+- Organized local icon sets for faster folder icon assignment
+- Easier long-term icon management inside your own plugin install
+- Consistent icon workflow across Docker and VM folders
 
 ## Development
 
@@ -199,6 +217,7 @@ bash scripts/install_git_hooks.sh
 ## Credits
 
 - [chodeus](https://github.com/chodeus/folder.view3) - FolderView Plus is built on the strong foundation established in folder.view3. Professional thanks for the original architecture, implementation groundwork, and iteration effort that made this project possible.
+- [sameerasw](https://github.com/sameerasw/folder-icons) and [hernandito](https://github.com/hernandito/unRAID-Docker-Folder-Animated-Icons---Alternate-Colors) - Thank you for creating and sharing high-quality icon collections that improve local icon management and the overall FolderView Plus user experience.
 
 ## License
 

@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.06.29">
-<!ENTITY md5 "74fd8962ef83180c9fb074024745701a">
+<!ENTITY version "2026.03.06.30">
+<!ENTITY md5 "0b67e3579b406fb80d368f40cdb922d3">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.06.30
+- Basic table action buttons are now visually consistent in size:
+  - pin, export, delete, and copy-ID all use the same compact button dimensions.
+- Added a new folder row action:
+  - copy folder ID to clipboard (clipboard icon button) for Docker and VM tables.
+- Kept folder ID discoverable in the Name cell tooltip while adding one-click copy.
 
 ###2026.03.06.29
 - Basic folder tables (Docker + VMs) updated to reduce clutter and improve signal:

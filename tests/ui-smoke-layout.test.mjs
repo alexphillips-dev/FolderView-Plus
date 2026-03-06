@@ -94,7 +94,9 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /window\.addEventListener\('resize', enforceNoHorizontalOverflow\)/);
     assert.match(settingsJs, /initOverflowGuard\(\);/);
     assert.match(settingsJs, /window\.compareBackupSnapshots = compareBackupSnapshots;/);
+    assert.match(settingsJs, /window\.copyFolderId = copyFolderId;/);
     assert.match(settingsJs, /const persistImportPresetStoreTypeToServer = async/);
+    assert.match(settingsCss, /\.folder-action-btn\s*\{/);
     assert.match(settingsCss, /\.backup-compare-row\s*\{/);
     assert.match(settingsCss, /\.ui-dialog\.fv-backup-compare-modal #backup-compare-dialog/);
     assert.doesNotMatch(settingsJs, /await \$\.post\('\/plugins\/folderview\.plus\/server\//);

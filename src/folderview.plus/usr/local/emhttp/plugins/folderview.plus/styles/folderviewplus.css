@@ -306,6 +306,25 @@
     color: #ffd24d;
 }
 
+.folder-table table td.actions-cell {
+    white-space: nowrap;
+}
+
+.folder-action-btn {
+    width: 30px;
+    min-width: 30px;
+    height: 28px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+}
+
+.folder-table table td.actions-cell .folder-action-btn + .folder-action-btn {
+    margin-left: 0.3rem;
+}
+
 .folder-member-count {
     display: inline-block;
     margin-left: 0.3rem;

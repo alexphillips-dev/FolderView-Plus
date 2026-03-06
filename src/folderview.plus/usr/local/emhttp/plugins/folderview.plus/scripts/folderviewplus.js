@@ -2173,6 +2173,57 @@ const showError = (title, error) => {
     });
 };
 
+const copyTextToClipboard = async (text) => {
+    const value = String(text || '');
+    if (!value) {
+        throw new Error('Nothing to copy.');
+    }
+
+    if (navigator?.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        await navigator.clipboard.writeText(value);
+        return;
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.value = value;
+    textarea.setAttribute('readonly', 'readonly');
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-9999px';
+    textarea.style.top = '0';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    let copied = false;
+    try {
+        copied = document.execCommand('copy');
+    } finally {
+        document.body.removeChild(textarea);
+    }
+    if (!copied) {
+        throw new Error('Clipboard access is unavailable in this browser context.');
+    }
+};
+
+const copyFolderId = async (type, folderId) => {
+    const resolvedType = normalizeManagedType(type);
+    const resolvedId = String(folderId || '').trim();
+    if (!resolvedId) {
+        return;
+    }
+    try {
+        await copyTextToClipboard(resolvedId);
+        swal({
+            title: 'Copied',
+            text: `${resolvedType === 'docker' ? 'Docker' : 'VM'} folder ID copied:\n${resolvedId}`,
+            type: 'success',
+            timer: 1400,
+            showConfirmButton: false
+        });
+    } catch (error) {
+        showError('Copy failed', error);
+    }
+};
+
 const setImportantStyle = (element, property, value) => {
     if (!element || !element.style || typeof element.style.setProperty !== 'function') {
         return;
@@ -2873,7 +2924,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             + `<td class="members-cell">${members.length}</td>`
             + `<td class="status-cell"><span class="folder-runtime-status ${statusClass}">${escapeHtml(statusText)}</span></td>`
             + `<td class="rules-cell" title="${escapeHtml(ruleTitle)}">${escapeHtml(ruleText)}</td>`
-            + `<td><button class="folder-pin-btn ${pinned ? 'is-pinned' : ''}" title="${pinTitle}" aria-label="${pinTitle}" onclick="toggleFolderPin('${type}','${escapeHtml(id)}')"><i class="fa ${pinned ? 'fa-star' : 'fa-star-o'}"></i></button> <button title="Export" onclick="${type === 'docker' ? 'downloadDocker' : 'downloadVm'}('${escapeHtml(id)}')"><i class="fa fa-download"></i></button> <button title="Delete" onclick="${type === 'docker' ? 'clearDocker' : 'clearVm'}('${escapeHtml(id)}')"><i class="fa fa-trash"></i></button></td>`
+            + `<td class="actions-cell"><button class="folder-action-btn folder-pin-btn ${pinned ? 'is-pinned' : ''}" title="${pinTitle}" aria-label="${pinTitle}" onclick="toggleFolderPin('${type}','${escapeHtml(id)}')"><i class="fa ${pinned ? 'fa-star' : 'fa-star-o'}"></i></button><button class="folder-action-btn" title="Export" aria-label="Export ${safeName}" onclick="${type === 'docker' ? 'downloadDocker' : 'downloadVm'}('${escapeHtml(id)}')"><i class="fa fa-download"></i></button><button class="folder-action-btn" title="Delete" aria-label="Delete ${safeName}" onclick="${type === 'docker' ? 'clearDocker' : 'clearVm'}('${escapeHtml(id)}')"><i class="fa fa-trash"></i></button><button class="folder-action-btn" title="Copy ID" aria-label="Copy ID for ${safeName}" onclick="copyFolderId('${type}','${escapeHtml(id)}')"><i class="fa fa-clipboard"></i></button></td>`
             + '</tr>'
         );
     }
@@ -5591,6 +5642,7 @@ window.checkForUpdatesNow = checkForUpdatesNow;
 window.moveFolderRow = moveFolderRow;
 window.handleFolderRowKeydown = handleFolderRowKeydown;
 window.toggleFolderPin = toggleFolderPin;
+window.copyFolderId = copyFolderId;
 window.setHealthFolderFilter = setHealthFolderFilter;
 window.runQuickSetupWizard = runQuickSetupWizard;
 window.setSettingsMode = setSettingsMode;

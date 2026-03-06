@@ -14,6 +14,29 @@ is_stable_version() {
     [[ "${1:-}" =~ ^[0-9]{4}\.[0-9]{2}\.[0-9]{2}(\.[0-9]+)?$ ]]
 }
 
+stable_date_part() {
+    local input="${1:-}"
+    if [[ "$input" =~ ^([0-9]{4}\.[0-9]{2}\.[0-9]{2})(\.[0-9]+)?$ ]]; then
+        echo "${BASH_REMATCH[1]}"
+        return
+    fi
+    echo ""
+}
+
+stable_update_part() {
+    local input="${1:-}"
+    if [[ "$input" =~ ^[0-9]{4}\.[0-9]{2}\.[0-9]{2}\.([0-9]+)$ ]]; then
+        echo $((10#${BASH_REMATCH[1]}))
+        return
+    fi
+    # Legacy stable tags without explicit update suffix are treated as update 1.
+    if [[ "$input" =~ ^[0-9]{4}\.[0-9]{2}\.[0-9]{2}$ ]]; then
+        echo 1
+        return
+    fi
+    echo 0
+}
+
 normalize_stable_version_for_unraid() {
     local input="${1:-}"
     if [[ "$input" =~ ^([0-9]{4}\.[0-9]{2}\.[0-9]{2})$ ]]; then
@@ -46,7 +69,12 @@ next_patch_version() {
     echo "$input"
 }
 
-highest_stable_archive_version() {
+highest_stable_archive_version_for_date() {
+    local target_date="${1:-}"
+    if [[ ! "$target_date" =~ ^[0-9]{4}\.[0-9]{2}\.[0-9]{2}$ ]]; then
+        return
+    fi
+    local highest=""
     local versions=()
     local archive
     shopt -s nullglob
@@ -55,30 +83,34 @@ highest_stable_archive_version() {
         local ver="${name#${archive_prefix}-}"
         ver="${ver%.txz}"
         if is_stable_version "$ver"; then
-            versions+=("$ver")
+            local ver_date
+            ver_date="$(stable_date_part "$ver")"
+            if [ "$ver_date" = "$target_date" ]; then
+                versions+=("$(normalize_stable_version_for_unraid "$ver")")
+            fi
         fi
     done
     shopt -u nullglob
     if [ "${#versions[@]}" -eq 0 ]; then
         return
     fi
-    printf '%s\n' "${versions[@]}" | sort -V | tail -n1
+    highest="$(printf '%s\n' "${versions[@]}" | sort -V | tail -n1)"
+    echo "$highest"
 }
 
-choose_safe_stable_version() {
-    local candidate="${1:-}"
-    local highest="${2:-}"
-    if [ -z "$highest" ]; then
-        echo "$candidate"
+next_stable_version_for_date() {
+    local target_date="${1:-}"
+    if [[ ! "$target_date" =~ ^[0-9]{4}\.[0-9]{2}\.[0-9]{2}$ ]]; then
+        echo ""
         return
     fi
-    local max_ver
-    max_ver="$(printf '%s\n%s\n' "$candidate" "$highest" | sort -V | tail -n1)"
-    if [ "$max_ver" = "$highest" ]; then
-        echo "$(next_patch_version "$highest")"
+    local highest_for_date=""
+    highest_for_date="$(highest_stable_archive_version_for_date "$target_date" || true)"
+    if [ -z "$highest_for_date" ]; then
+        echo "${target_date}.01"
         return
     fi
-    echo "$candidate"
+    echo "$(next_patch_version "$highest_for_date")"
 }
 
 should_package_file() {
@@ -125,32 +157,36 @@ if [ -n "$version_override" ]; then
     fi
     if [ "$BETA" = false ] && is_stable_version "$version_override"; then
         version_override="$(normalize_stable_version_for_unraid "$version_override")"
+        override_date="$(stable_date_part "$version_override")"
+        if [ "$override_date" != "$today_version" ]; then
+            echo "FVPLUS_VERSION_OVERRIDE for stable releases must use today's date (${today_version})." >&2
+            exit 1
+        fi
     fi
     if [ "$BETA" = false ] && is_stable_version "$version_override"; then
-        highest_stable="$(highest_stable_archive_version || true)"
-        if [ -n "$highest_stable" ]; then
-            max_ver="$(printf '%s\n%s\n' "$version_override" "$highest_stable" | sort -V | tail -n1)"
-            if [ "$max_ver" = "$highest_stable" ]; then
-                echo "FVPLUS_VERSION_OVERRIDE must be greater than highest archived stable version ($highest_stable)." >&2
+        highest_for_today="$(highest_stable_archive_version_for_date "$today_version" || true)"
+        if [ -n "$highest_for_today" ]; then
+            max_ver="$(printf '%s\n%s\n' "$version_override" "$highest_for_today" | sort -V | tail -n1)"
+            if [ "$max_ver" = "$highest_for_today" ]; then
+                echo "FVPLUS_VERSION_OVERRIDE must be greater than highest archived stable version for ${today_version} (${highest_for_today})." >&2
                 exit 1
             fi
         fi
     fi
     version="$version_override"
 elif [ "$BETA" = false ]; then
-    highest_stable="$(highest_stable_archive_version || true)"
-    version="$(choose_safe_stable_version "$version" "$highest_stable")"
+    version="$(next_stable_version_for_date "$today_version")"
 fi
 
 filename="$CWD/archive/$archive_prefix-$version.txz"
-if [ -f "$filename" ]; then
-    if [ -n "$version_override" ]; then
-        echo "Archive already exists for overridden version: $filename" >&2
-        exit 1
-    fi
+if [ -n "$version_override" ] && [ -f "$filename" ]; then
+    echo "Archive already exists for overridden version: $filename" >&2
+    exit 1
+fi
+while [ -f "$filename" ]; do
     version="$(next_patch_version "$version")"
     filename="$CWD/archive/$archive_prefix-$version.txz"
-fi
+done
 
 mkdir -p "$tmpdir"
 

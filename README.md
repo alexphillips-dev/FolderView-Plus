@@ -42,6 +42,8 @@ Versioning format:
 
 - Stable releases use `YYYY.MM.DD.UU` (for example `2026.03.14.11`)
 - `UU` is a zero-padded update number to keep Unraid update ordering consistent
+- Stable release date is always anchored to the current release day; only `UU` increments for multiple same-day releases
+- Future-dated stable versions are blocked by release guard checks
 
 ## Uninstall
 

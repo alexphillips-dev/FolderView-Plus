@@ -1909,15 +1909,13 @@ const showError = (title, error) => {
 };
 
 const closeImportApplyProgressDialog = () => {
+    const overlay = $('#import-apply-progress-overlay');
     const dialog = $('#import-apply-progress-dialog');
-    if (!dialog.length || !dialog.hasClass('ui-dialog-content')) {
+    if (!dialog.length) {
         return;
     }
-    try {
-        dialog.dialog('close');
-    } catch (_error) {
-        // Ignore close races.
-    }
+    overlay.hide();
+    dialog.hide().attr('aria-hidden', 'true');
 };
 
 const updateImportApplyProgressDialog = ({ completed = 0, total = 1, label = '' }) => {
@@ -1932,8 +1930,9 @@ const updateImportApplyProgressDialog = ({ completed = 0, total = 1, label = '' 
 
 const openImportApplyProgressDialog = (type, totalSteps) => {
     const resolvedType = normalizeManagedType(type);
+    const overlay = $('#import-apply-progress-overlay');
     const dialog = $('#import-apply-progress-dialog');
-    if (!dialog.length) {
+    if (!dialog.length || !overlay.length) {
         return;
     }
     closeImportApplyProgressDialog();
@@ -1943,20 +1942,8 @@ const openImportApplyProgressDialog = (type, totalSteps) => {
         total: totalSteps,
         label: `Preparing ${resolvedType === 'docker' ? 'Docker' : 'VM'} import...`
     });
-    const modalWidth = Math.min(520, Math.max(390, Math.floor(window.innerWidth * 0.5)));
-    const modalHeight = Math.min(230, Math.max(185, Math.floor(window.innerHeight * 0.26)));
-    dialog.dialog({
-        title: `Applying ${resolvedType === 'docker' ? 'Docker' : 'VM'} import`,
-        resizable: false,
-        width: modalWidth,
-        minHeight: modalHeight,
-        height: modalHeight,
-        modal: true,
-        closeOnEscape: false,
-        dialogClass: 'fv-import-apply-progress-modal'
-    });
-    const widget = dialog.dialog('widget');
-    widget.find('.ui-dialog-titlebar-close').hide();
+    overlay.show();
+    dialog.show().attr('aria-hidden', 'false');
 };
 
 const readFileAsText = (file) => new Promise((resolve, reject) => {

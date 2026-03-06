@@ -54,9 +54,12 @@ test('import preview layout includes user-facing summary cards and collapsible r
 });
 
 test('import apply flow includes a dedicated progress dialog', () => {
+    assert.match(page, /id="import-apply-progress-overlay"/);
     assert.match(page, /id="import-apply-progress-dialog"/);
     assert.match(page, /id="import-apply-progress-bar"/);
     assert.match(script, /const openImportApplyProgressDialog = \(type, totalSteps\) =>/);
     assert.match(script, /const updateImportApplyProgressDialog = \(\{ completed = 0, total = 1, label = '' \}\) =>/);
+    assert.match(script, /overlay\.show\(\);/);
+    assert.match(script, /overlay\.hide\(\);/);
     assert.match(script, /await applyImportOperations\(resolvedType, operations, \(\{ completed, label \}\) =>/);
 });

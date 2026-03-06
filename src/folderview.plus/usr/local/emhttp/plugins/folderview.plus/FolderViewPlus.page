@@ -605,7 +605,8 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
     </details>
 </div>
 
-<div id="import-apply-progress-dialog" style="display:none;">
+<div id="import-apply-progress-overlay" style="display:none;"></div>
+<div id="import-apply-progress-dialog" style="display:none;" role="dialog" aria-modal="true" aria-live="polite">
     <div class="import-apply-progress-label" id="import-apply-progress-label">Preparing import...</div>
     <div class="import-apply-progress-bar-wrap">
         <div id="import-apply-progress-bar" class="import-apply-progress-bar"></div>

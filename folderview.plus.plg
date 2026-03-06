@@ -6,12 +6,23 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.06.28">
-<!ENTITY md5 "3a99a7ea4c1dc23c9a15c4a0e8a20ee0">
+<!ENTITY version "2026.03.06.29">
+<!ENTITY md5 "74fd8962ef83180c9fb074024745701a">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.06.29
+- Basic folder tables (Docker + VMs) updated to reduce clutter and improve signal:
+  - removed ID as a dedicated column,
+  - added dedicated Members, Status, and Rules columns,
+  - kept Order and Actions for fast management workflows.
+- Name column now focuses on icon + folder name, with folder ID shown as tooltip metadata.
+- Added runtime status chips with clear state coloring (started/paused/stopped/empty).
+- Added folder-level rules count visibility:
+  - shows active/total when disabled rules exist,
+  - keeps quick at-a-glance rule coverage per folder.
 
 ###2026.03.06.28
 - Add server-persisted import presets:

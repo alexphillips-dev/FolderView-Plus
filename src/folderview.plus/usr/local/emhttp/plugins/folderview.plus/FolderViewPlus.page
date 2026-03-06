@@ -103,12 +103,12 @@ emitRequestTokenMetaTag();
             <thead>
                 <tr>
                     <th>Order</th>
-                    <th data-i18n="el-id">
-                        ID
-                    </th>
                     <th data-i18n="el-name">
                         Name
                     </th>
+                    <th>Members</th>
+                    <th>Status</th>
+                    <th>Rules</th>
                     <th data-i18n="el-actions">
                         Actions
                     </th>
@@ -191,12 +191,12 @@ emitRequestTokenMetaTag();
             <thead>
                 <tr>
                     <th>Order</th>
-                    <th data-i18n="el-id">
-                        ID
-                    </th>
                     <th data-i18n="el-name">
                         Name
                     </th>
+                    <th>Members</th>
+                    <th>Status</th>
+                    <th>Rules</th>
                     <th data-i18n="el-actions">
                         Actions
                     </th>

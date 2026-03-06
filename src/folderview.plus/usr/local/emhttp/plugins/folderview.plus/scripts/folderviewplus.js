@@ -2806,6 +2806,7 @@ const offerUndoAction = async (type, backup, actionLabel) => {
 };
 
 const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = false, healthMetrics = null) => {
+    const TABLE_COLUMN_COUNT = 6;
     const rows = [];
     const filter = normalizedFilter(filtersByType[type]?.folders);
     const healthFilterMode = normalizeHealthFilterMode(healthFilterByType[type]);
@@ -2826,11 +2827,52 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         const pinTitle = pinned ? 'Unpin folder' : 'Pin folder to top';
         const safeName = escapeHtml(folder.name);
         const safeIcon = escapeHtml(folder.icon || '');
+        const countsByState = { started: 0, paused: 0, stopped: 0 };
+        for (const member of members) {
+            const runtimeState = getItemRuntimeStateKind(type, infoByType[type]?.[member] || {});
+            if (runtimeState === 'started') {
+                countsByState.started += 1;
+            } else if (runtimeState === 'paused') {
+                countsByState.paused += 1;
+            } else {
+                countsByState.stopped += 1;
+            }
+        }
+        let statusText = 'Empty';
+        let statusClass = 'is-empty';
+        if (members.length > 0) {
+            const segments = [];
+            if (countsByState.started > 0) {
+                segments.push(`${countsByState.started} started`);
+            }
+            if (countsByState.paused > 0) {
+                segments.push(`${countsByState.paused} paused`);
+            }
+            if (countsByState.stopped > 0) {
+                segments.push(`${countsByState.stopped} stopped`);
+            }
+            statusText = segments.join(' | ');
+            if (countsByState.started > 0) {
+                statusClass = 'is-started';
+            } else if (countsByState.paused > 0) {
+                statusClass = 'is-paused';
+            } else {
+                statusClass = 'is-stopped';
+            }
+        }
+        const folderRules = (prefsByType[type]?.autoRules || []).filter((rule) => String(rule?.folderId || '') === String(id));
+        const activeRuleCount = folderRules.reduce((count, rule) => (rule?.enabled === false ? count : count + 1), 0);
+        const ruleText = folderRules.length === 0 ? '0' : (activeRuleCount === folderRules.length ? String(folderRules.length) : `${activeRuleCount}/${folderRules.length}`);
+        const ruleTitle = folderRules.length === 0
+            ? 'No rules for this folder'
+            : `${activeRuleCount} active of ${folderRules.length} total rules`;
         rows.push(
             `<tr data-folder-id="${escapeHtml(id)}" tabindex="0" onkeydown="handleFolderRowKeydown('${type}','${escapeHtml(id)}',event)">`
             + `<td><span class="row-order-actions"><button title="Move up" aria-label="Move ${safeName} up" onclick="moveFolderRow('${type}','${escapeHtml(id)}',-1)"><i class="fa fa-chevron-up"></i></button><button title="Move down" aria-label="Move ${safeName} down" onclick="moveFolderRow('${type}','${escapeHtml(id)}',1)"><i class="fa fa-chevron-down"></i></button></span></td>`
-            + `<td>${escapeHtml(id)}</td>`
-            + `<td class="name-cell"><span class="name-cell-content"><img src="${safeIcon}" class="img" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"><span class="name-cell-text">${safeName}</span></span><span class="folder-member-count">(${members.length})</span></td>`
+            + `<td class="name-cell" title="${escapeHtml(id)}"><span class="name-cell-content"><img src="${safeIcon}" class="img" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"><span class="name-cell-text">${safeName}</span></span></td>`
+            + `<td class="members-cell">${members.length}</td>`
+            + `<td class="status-cell"><span class="folder-runtime-status ${statusClass}">${escapeHtml(statusText)}</span></td>`
+            + `<td class="rules-cell" title="${escapeHtml(ruleTitle)}">${escapeHtml(ruleText)}</td>`
             + `<td><button class="folder-pin-btn ${pinned ? 'is-pinned' : ''}" title="${pinTitle}" aria-label="${pinTitle}" onclick="toggleFolderPin('${type}','${escapeHtml(id)}')"><i class="fa ${pinned ? 'fa-star' : 'fa-star-o'}"></i></button> <button title="Export" onclick="${type === 'docker' ? 'downloadDocker' : 'downloadVm'}('${escapeHtml(id)}')"><i class="fa fa-download"></i></button> <button title="Delete" onclick="${type === 'docker' ? 'clearDocker' : 'clearVm'}('${escapeHtml(id)}')"><i class="fa fa-trash"></i></button></td>`
             + '</tr>'
         );
@@ -2839,7 +2881,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         const filterSuffix = healthFilterMode !== 'all'
             ? ` (${getHealthFilterLabel(healthFilterMode)} filter)`
             : '';
-        return `<tr><td colspan="4">No folders match current filters${filterSuffix}.</td></tr>`;
+        return `<tr><td colspan="${TABLE_COLUMN_COUNT}">No folders match current filters${filterSuffix}.</td></tr>`;
     }
     return rows.join('');
 };

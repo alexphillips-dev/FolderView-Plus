@@ -264,7 +264,7 @@
     grid-template-columns: 30px 1fr;
     align-items: center;
     column-gap: 0.5rem;
-    width: clamp(180px, 24vw, 320px);
+    width: clamp(180px, 22vw, 280px);
     text-align: left;
 }
 
@@ -311,6 +311,45 @@
     margin-left: 0.3rem;
     opacity: 0.8;
     font-size: 1.03rem;
+}
+
+.folder-table table td.members-cell,
+.folder-table table td.rules-cell,
+.folder-table table td.status-cell {
+    text-align: center;
+}
+
+.folder-runtime-status {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0.12rem 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+    font-size: 1.03rem;
+    opacity: 0.95;
+}
+
+.folder-runtime-status.is-started {
+    border-color: rgba(147, 225, 159, 0.55);
+    color: #93e19f;
+}
+
+.folder-runtime-status.is-paused {
+    border-color: rgba(255, 193, 94, 0.58);
+    color: #ffc15e;
+}
+
+.folder-runtime-status.is-stopped {
+    border-color: rgba(255, 116, 116, 0.62);
+    color: #ff7474;
+}
+
+.folder-runtime-status.is-empty {
+    border-color: rgba(192, 192, 192, 0.45);
+    color: rgba(240, 240, 240, 0.86);
 }
 
 .folder-health-grid {

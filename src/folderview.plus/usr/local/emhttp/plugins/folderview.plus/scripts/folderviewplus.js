@@ -1925,8 +1925,8 @@ const updateImportApplyProgressDialog = ({ completed = 0, total = 1, label = '' 
     const safeCompleted = Math.max(0, Math.min(safeTotal, Number(completed) || 0));
     const percent = Math.round((safeCompleted / safeTotal) * 100);
     $('#import-apply-progress-label').text(label || 'Applying import...');
-    $('#import-apply-progress-step').text(`${safeCompleted} / ${safeTotal}`);
-    $('#import-apply-progress-percent').text(`${percent}%`);
+    $('#import-apply-progress-step').text(`Step ${safeCompleted} of ${safeTotal}`);
+    $('#import-apply-progress-percent').text(`Progress ${percent}%`);
     $('#import-apply-progress-bar').css('width', `${percent}%`);
 };
 

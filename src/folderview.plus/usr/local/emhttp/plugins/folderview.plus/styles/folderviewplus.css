@@ -734,6 +734,71 @@ a:focus-visible {
     min-width: 0;
 }
 
+.fv-update-notes-panel {
+    margin: 0 0 0.8rem 0;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 0.65rem 0.75rem;
+}
+
+.fv-update-notes-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.45rem 0.75rem;
+}
+
+.fv-update-notes-title-wrap {
+    display: grid;
+    gap: 0.08rem;
+}
+
+.fv-update-notes-kicker {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0.78;
+    font-weight: 700;
+}
+
+.fv-update-notes-title-wrap > h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    line-height: 1.2;
+}
+
+.fv-update-notes-actions {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.fv-update-notes-actions > button {
+    min-height: 30px;
+    padding: 0.2rem 0.5rem;
+}
+
+.fv-update-notes-list {
+    margin: 0.55rem 0 0;
+    padding-left: 1.2rem;
+    display: grid;
+    gap: 0.22rem;
+}
+
+.fv-update-notes-list > li {
+    margin: 0;
+    line-height: 1.32;
+}
+
+.fv-update-notes-foot {
+    margin-top: 0.48rem;
+    font-size: 0.83rem;
+    opacity: 0.78;
+}
+
 .fv-settings-inline {
     display: flex;
     flex-wrap: nowrap;
@@ -1097,6 +1162,15 @@ body {
 
     .fv-settings-right input[type="text"] {
         width: 100%;
+    }
+
+    .fv-update-notes-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .fv-update-notes-actions > button {
+        flex: 1 1 calc(50% - 0.4rem);
     }
 
     #fv-settings-action-bar {

@@ -34,6 +34,14 @@ const SECTION_META = {
     automation: { title: 'Automation', description: 'Auto-assign items using name regex.' },
     advanced: { title: 'Advanced', description: 'Optional defaults and tab behavior.' }
 };
+const DEFAULT_FOLDER_ICON_PATH = '/plugins/folderview.plus/images/folder-icon.png';
+const BUILT_IN_ICON_MANIFEST_PATH = '/plugins/folderview.plus/images/icons/icons.json';
+const BUILT_IN_ICON_FALLBACK = [{
+    id: 'default-folder',
+    name: 'Default Folder',
+    path: DEFAULT_FOLDER_ICON_PATH,
+    tags: ['default', 'folder']
+}];
 
 let existingFolderNames = new Set();
 let allFolderNames = new Set();
@@ -41,6 +49,8 @@ let currentFolderName = '';
 let initialSnapshot = '';
 let isFormInitialized = false;
 let suppressUnloadPrompt = false;
+let builtInIcons = [...BUILT_IN_ICON_FALLBACK];
+let builtInIconSearchQuery = '';
 
 const getFolderLabelValue = (labels) => {
     const source = labels && typeof labels === 'object' ? labels : {};
@@ -83,6 +93,168 @@ const escapeHtml = (value) => {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
+};
+
+const asArray = (value) => (Array.isArray(value) ? value : []);
+
+const normalizeBuiltInIconEntry = (entry, basePath) => {
+    if (!entry || typeof entry !== 'object') {
+        return null;
+    }
+    const id = String(entry.id || entry.name || '').trim().toLowerCase().replace(/[^a-z0-9._-]+/g, '-');
+    if (!id) {
+        return null;
+    }
+    const file = String(entry.file || '').trim();
+    const path = String(entry.path || '').trim() || (file ? `${basePath}${file}` : '');
+    if (!path) {
+        return null;
+    }
+    const name = String(entry.name || id).trim() || id;
+    const tags = asArray(entry.tags).map((tag) => String(tag || '').trim().toLowerCase()).filter((tag) => tag !== '');
+    return { id, name, path, tags };
+};
+
+const normalizeBuiltInIconManifest = (payload) => {
+    const source = (payload && typeof payload === 'object') ? payload : {};
+    const basePath = String(source.basePath || '/plugins/folderview.plus/images/icons/').trim();
+    const normalizedBase = basePath.endsWith('/') ? basePath : `${basePath}/`;
+    const icons = asArray(source.icons)
+        .map((entry) => normalizeBuiltInIconEntry(entry, normalizedBase))
+        .filter(Boolean);
+    if (icons.length === 0) {
+        return [...BUILT_IN_ICON_FALLBACK];
+    }
+    return icons;
+};
+
+const getIconInput = () => $(getForm()?.icon);
+
+const getCurrentIconValue = () => String(getIconInput().val() || '').trim();
+
+const setIconInputValue = (value) => {
+    const input = getIconInput();
+    if (!input.length) {
+        return;
+    }
+    input.val(value || '');
+    input.trigger('input');
+    input.trigger('change');
+};
+
+const setBuiltInIconPickerOpen = (open) => {
+    const panel = $('#fv-icon-picker-panel');
+    const toggle = $('#fv-icon-picker-toggle');
+    if (!panel.length || !toggle.length) {
+        return;
+    }
+    panel.prop('hidden', !open);
+    toggle.attr('aria-expanded', open ? 'true' : 'false').toggleClass('is-open', open);
+};
+
+const renderBuiltInIconPicker = () => {
+    const panel = $('#fv-icon-picker-panel');
+    const grid = $('#fv-icon-picker-grid');
+    const status = $('#fv-icon-picker-status');
+    if (!panel.length || !grid.length || !status.length) {
+        return;
+    }
+
+    const search = builtInIconSearchQuery.toLowerCase();
+    const currentValue = getCurrentIconValue();
+    const filtered = builtInIcons.filter((icon) => {
+        if (!search) {
+            return true;
+        }
+        const haystack = `${icon.name} ${icon.id} ${icon.tags.join(' ')}`.toLowerCase();
+        return haystack.includes(search);
+    });
+
+    if (filtered.length === 0) {
+        grid.html('<div class="fv-icon-picker-empty">No built-in icons match this search.</div>');
+        status.text(`Showing 0 of ${builtInIcons.length} icons`);
+        return;
+    }
+
+    const rows = filtered.map((icon) => {
+        const selected = currentValue === icon.path;
+        const safePath = escapeHtml(icon.path);
+        const safeName = escapeHtml(icon.name);
+        return `
+            <button type="button" class="fv-icon-picker-item${selected ? ' is-selected' : ''}" data-icon-value="${safePath}" title="${safeName}">
+                <img src="${safePath}" alt="${safeName}" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';">
+                <span class="fv-icon-picker-item-name">${safeName}</span>
+            </button>
+        `;
+    }).join('');
+
+    grid.html(rows);
+    status.text(`Showing ${filtered.length} of ${builtInIcons.length} icons`);
+    grid.find('.fv-icon-picker-item').off('click').on('click', (event) => {
+        event.preventDefault();
+        const value = String($(event.currentTarget).attr('data-icon-value') || '').trim();
+        if (!value) {
+            return;
+        }
+        setIconInputValue(value);
+    });
+};
+
+const loadBuiltInIcons = async () => {
+    try {
+        const response = await $.get(BUILT_IN_ICON_MANIFEST_PATH).promise();
+        const payload = (typeof response === 'string')
+            ? JSON.parse(response.replace(/^\uFEFF/, ''))
+            : response;
+        builtInIcons = normalizeBuiltInIconManifest(payload);
+    } catch (_error) {
+        builtInIcons = [...BUILT_IN_ICON_FALLBACK];
+    }
+};
+
+const initBuiltInIconPicker = async () => {
+    const panel = $('#fv-icon-picker-panel');
+    if (!panel.length) {
+        return;
+    }
+
+    await loadBuiltInIcons();
+    $('#fv-icon-picker-toggle').off('click.fviconpicker').on('click.fviconpicker', (event) => {
+        event.preventDefault();
+        const isOpen = !panel.prop('hidden');
+        setBuiltInIconPickerOpen(!isOpen);
+        if (!isOpen) {
+            $('#fv-icon-picker-search').trigger('focus');
+        }
+    });
+    $('#fv-icon-picker-default').off('click.fviconpicker').on('click.fviconpicker', (event) => {
+        event.preventDefault();
+        setIconInputValue(DEFAULT_FOLDER_ICON_PATH);
+    });
+    $('#fv-icon-picker-search').off('input.fviconpicker').on('input.fviconpicker', (event) => {
+        builtInIconSearchQuery = String($(event.currentTarget).val() || '').trim();
+        renderBuiltInIconPicker();
+    });
+    $('#fv-icon-picker-clear').off('click.fviconpicker').on('click.fviconpicker', (event) => {
+        event.preventDefault();
+        builtInIconSearchQuery = '';
+        $('#fv-icon-picker-search').val('');
+        renderBuiltInIconPicker();
+        $('#fv-icon-picker-search').trigger('focus');
+    });
+    $(document).off('mousedown.fviconpicker').on('mousedown.fviconpicker', (event) => {
+        const target = $(event.target);
+        if (!target.closest('#fv-icon-picker-panel, #fv-icon-picker-toggle').length) {
+            setBuiltInIconPickerOpen(false);
+        }
+    });
+    getIconInput().off('input.fviconpicker change.fviconpicker').on('input.fviconpicker change.fviconpicker', () => {
+        renderBuiltInIconPicker();
+    });
+
+    $('#fv-icon-picker-toggle').attr('aria-expanded', 'false');
+    setBuiltInIconPickerOpen(false);
+    renderBuiltInIconPicker();
 };
 
 const getAllMembers = () => {
@@ -790,6 +962,7 @@ resetStatusColorDefaults();
     }
 
     choose.sort((a, b) => a.Name.localeCompare(b.Name));
+    await initBuiltInIconPicker();
 
     updateList();
     applySectionTags();
@@ -829,6 +1002,7 @@ const updateIcon = (e) => {
     if (e.previousElementSibling && e.previousElementSibling.tagName === 'IMG') {
         e.previousElementSibling.src = e.value;
     }
+    renderBuiltInIconPicker();
 };
 
 /**

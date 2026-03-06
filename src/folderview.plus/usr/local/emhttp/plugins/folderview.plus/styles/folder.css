@@ -120,6 +120,124 @@
     min-width: 0;
 }
 
+.canvas form.folder-editor-form dd.fv-icon-dd {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.42em;
+}
+
+.canvas form.folder-editor-form dd.fv-icon-dd > img.img {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+}
+
+.canvas form.folder-editor-form dd.fv-icon-dd > input[name="icon"] {
+    width: min(100%, 640px);
+}
+
+.fv-icon-input-actions {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35em;
+}
+
+.fv-icon-input-actions > button {
+    min-height: 30px;
+    padding: 0.25em 0.55em;
+}
+
+.fv-icon-picker-panel {
+    width: min(100%, 640px);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 8px;
+    padding: 0.55em 0.6em;
+    background: rgba(255, 255, 255, 0.02);
+    display: grid;
+    gap: 0.45em;
+}
+
+.fv-icon-picker-panel[hidden] {
+    display: none !important;
+}
+
+.fv-icon-picker-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.35em;
+}
+
+.fv-icon-picker-toolbar > input[type="text"] {
+    width: 100%;
+    min-height: 30px;
+}
+
+#fv-icon-picker-clear {
+    min-width: 30px;
+    width: 30px;
+    padding: 0;
+}
+
+.fv-icon-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 0.35em;
+    max-height: 220px;
+    overflow-y: auto;
+    padding-right: 0.1em;
+}
+
+.fv-icon-picker-item {
+    display: grid;
+    grid-template-columns: 24px 1fr;
+    align-items: center;
+    gap: 0.35em;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.16);
+    min-height: 34px;
+    padding: 0.3em 0.4em;
+    text-align: left;
+}
+
+.fv-icon-picker-item:hover {
+    border-color: rgba(255, 255, 255, 0.32);
+}
+
+.fv-icon-picker-item.is-selected {
+    border-color: rgba(255, 140, 42, 0.92);
+    box-shadow: inset 0 0 0 1px rgba(255, 140, 42, 0.34);
+}
+
+.fv-icon-picker-item > img {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+}
+
+.fv-icon-picker-item-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.86em;
+}
+
+.fv-icon-picker-empty {
+    grid-column: 1 / -1;
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    padding: 0.5em 0.6em;
+    opacity: 0.8;
+    font-size: 0.88em;
+}
+
+.fv-icon-picker-status {
+    font-size: 0.82em;
+    opacity: 0.78;
+}
+
 .fv-live-grid {
     display: grid;
     gap: 0.4em 1em;

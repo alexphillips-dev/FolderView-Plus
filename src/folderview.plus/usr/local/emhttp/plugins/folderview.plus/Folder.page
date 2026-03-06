@@ -40,9 +40,21 @@ Markdown="false"
         <div class="basic">
             <dl>
                 <dt data-i18n="icon">Icon:</dt>
-                <dd>
+                <dd class="fv-icon-dd">
                     <img src="/plugins/dynamix.docker.manager/images/question.png" class="img" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';">
                     <input type="text" name="icon" value=""  oninput="updateIcon(this)">
+                    <div class="fv-icon-input-actions">
+                        <button type="button" id="fv-icon-picker-toggle"><i class="fa fa-th-large" aria-hidden="true"></i> Built-in icons</button>
+                        <button type="button" id="fv-icon-picker-default"><i class="fa fa-folder-open-o" aria-hidden="true"></i> Use default icon</button>
+                    </div>
+                    <div id="fv-icon-picker-panel" class="fv-icon-picker-panel" hidden>
+                        <div class="fv-icon-picker-toolbar">
+                            <input type="text" id="fv-icon-picker-search" placeholder="Search built-in icons">
+                            <button type="button" id="fv-icon-picker-clear" title="Clear search" aria-label="Clear search"><i class="fa fa-times" aria-hidden="true"></i></button>
+                        </div>
+                        <div id="fv-icon-picker-grid" class="fv-icon-picker-grid"></div>
+                        <div id="fv-icon-picker-status" class="fv-icon-picker-status"></div>
+                    </div>
                 </dd>
             </dl>
             <blockquote class="inline_help">

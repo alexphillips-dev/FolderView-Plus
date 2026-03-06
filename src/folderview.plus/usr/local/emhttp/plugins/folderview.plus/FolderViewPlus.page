@@ -18,6 +18,7 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 <link rel="stylesheet" href="<?=autov('/plugins/folderview.plus/styles/folderviewplus.css')?>">
 
 <div id="fv-settings-topbar"></div>
+<div id="fv-update-notes-panel" class="fv-update-notes-panel" style="display:none"></div>
 
 <div class="fv-customizations-header" data-fv-section-row="1">
     <h2 data-i18n="customizations" data-fv-section="customizations">Customizations</h2>

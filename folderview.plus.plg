@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.13.5">
-<!ENTITY md5 "807cfc83b388d15f7f9e079e72a9eac0">
+<!ENTITY version "2026.03.13.6">
+<!ENTITY md5 "2bc2f238b4e5fa036eae6f7c5b099929">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.13.6
+- Add built-in icon catalog support for folder edit pages:
+  - ship local icons in `/plugins/folderview.plus/images/icons/` with manifest `icons.json`,
+  - add searchable icon picker in Folder editor while keeping URL/manual icon input support.
+- Replace modal-only update notes with a persistent settings panel:
+  - show “What changed” after update until user explicitly dismisses that version,
+  - include quick changelog link and “hide for now” action.
 
 ###2026.03.13.5
 - Refresh folder icon asset in both source and packaged plugin image paths.

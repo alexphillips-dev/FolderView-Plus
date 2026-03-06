@@ -66,6 +66,7 @@ const ADVANCED_EXPANDED_STORAGE_KEY = 'fv.settings.advancedExpanded.v2';
 const ADVANCED_KNOWN_STORAGE_KEY = 'fv.settings.advancedKnown.v1';
 const SEARCH_ALL_ADVANCED_STORAGE_KEY = 'fv.settings.searchAllAdvanced.v1';
 const UPDATE_NOTES_SEEN_VERSION_STORAGE_KEY = 'fv.settings.updateNotesSeenVersion.v1';
+const UPDATE_NOTES_CHANGELOG_URL = 'https://github.com/alexphillips-dev/FolderView-Plus/blob/main/folderview.plus.plg';
 const LEGACY_ADVANCED_SECTION_KEYS = [
     'auto-assignment',
     'bulk-assignment',
@@ -1473,37 +1474,92 @@ const fetchPluginVersion = async () => {
 
 const fetchCurrentUpdateNotes = async () => apiGetJson('/plugins/folderview.plus/server/update_notes.php');
 
-const maybeShowUpdateNotesDialog = async () => {
+const getUpdateNotesSeenVersion = () => {
+    try {
+        return String(localStorage.getItem(UPDATE_NOTES_SEEN_VERSION_STORAGE_KEY) || '').trim();
+    } catch (_error) {
+        return '';
+    }
+};
+
+const setUpdateNotesSeenVersion = (version) => {
+    try {
+        localStorage.setItem(UPDATE_NOTES_SEEN_VERSION_STORAGE_KEY, String(version || '').trim());
+    } catch (_error) {
+        // Best effort only.
+    }
+};
+
+const showUpdateNotesPanel = ({ version, lines }) => {
+    const panel = $('#fv-update-notes-panel');
+    if (!panel.length) {
+        return;
+    }
+
+    const normalizedLines = Array.isArray(lines)
+        ? lines
+            .map((line) => String(line || '').trim())
+            .filter((line) => line !== '' && line !== '...')
+            .map((line) => line.replace(/^[-*]\s*/, ''))
+        : [];
+    const listHtml = normalizedLines.length
+        ? normalizedLines.map((line) => `<li>${escapeHtml(line)}</li>`).join('')
+        : '<li>This update includes fixes and quality improvements.</li>';
+
+    panel.html(`
+        <div class="fv-update-notes-head">
+            <div class="fv-update-notes-title-wrap">
+                <span class="fv-update-notes-kicker">What changed</span>
+                <h3>FolderView Plus ${escapeHtml(version)}</h3>
+            </div>
+            <div class="fv-update-notes-actions">
+                <button type="button" id="fv-update-notes-open-changelog"><i class="fa fa-external-link"></i> Changelog</button>
+                <button type="button" id="fv-update-notes-hide"><i class="fa fa-times"></i> Hide for now</button>
+                <button type="button" id="fv-update-notes-dismiss"><i class="fa fa-check"></i> Dismiss</button>
+            </div>
+        </div>
+        <ul class="fv-update-notes-list">${listHtml}</ul>
+        <div class="fv-update-notes-foot">This panel remains visible after updates until you click Dismiss.</div>
+    `).show();
+
+    $('#fv-update-notes-open-changelog').off('click').on('click', () => {
+        window.open(UPDATE_NOTES_CHANGELOG_URL, '_blank', 'noopener');
+    });
+    $('#fv-update-notes-hide').off('click').on('click', () => {
+        panel.slideUp(120);
+    });
+    $('#fv-update-notes-dismiss').off('click').on('click', () => {
+        setUpdateNotesSeenVersion(version);
+        panel.slideUp(120);
+    });
+};
+
+const maybeShowUpdateNotesPanel = async () => {
     const currentVersion = String(pluginVersion || '').trim();
     if (!currentVersion || currentVersion === '0.0.0') {
+        $('#fv-update-notes-panel').hide().empty();
         return;
     }
 
-    const seenVersion = String(localStorage.getItem(UPDATE_NOTES_SEEN_VERSION_STORAGE_KEY) || '').trim();
+    const seenVersion = getUpdateNotesSeenVersion();
     if (seenVersion === currentVersion) {
+        $('#fv-update-notes-panel').hide().empty();
         return;
     }
 
-    let notesText = 'This update includes fixes and quality improvements.';
+    let notes = [];
     try {
         const response = await fetchCurrentUpdateNotes();
         const lines = Array.isArray(response?.lines)
             ? response.lines.map((line) => String(line || '').trim()).filter((line) => line !== '')
             : [];
         if (lines.length) {
-            notesText = lines.join('\n');
+            notes = lines;
         }
     } catch (_error) {
         // Non-fatal: keep fallback message.
     }
-
-    swal({
-        title: `Updated to ${currentVersion}`,
-        text: notesText,
-        type: 'success'
-    });
-
-    localStorage.setItem(UPDATE_NOTES_SEEN_VERSION_STORAGE_KEY, currentVersion);
+    showUpdateNotesPanel({ version: currentVersion, lines: notes });
 };
 
 const fetchFolders = async (type) => apiGetJson(`/plugins/folderview.plus/server/read.php?type=${type}`);
@@ -4242,7 +4298,7 @@ window.setSettingsMode = setSettingsMode;
         if (shouldRunWizard) {
             runQuickSetupWizard(false);
         } else {
-            await maybeShowUpdateNotesDialog();
+            await maybeShowUpdateNotesPanel();
         }
         settingsUiState.initialized = true;
     } catch (error) {

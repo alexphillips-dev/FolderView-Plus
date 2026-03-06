@@ -18,10 +18,7 @@
 }
 
 .folder-toolbar {
-    display: grid;
-    grid-template-columns: minmax(420px, 1.6fr) minmax(280px, 1fr);
-    gap: 0.75rem;
-    align-items: start;
+    display: block;
 }
 
 .toolbar-actions {
@@ -38,10 +35,17 @@
 .toolbar-sort {
     display: grid;
     gap: 0.55rem;
+    width: 100%;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 6px;
     padding: 0.65rem 0.75rem;
     background: rgba(255, 255, 255, 0.02);
+}
+
+.toolbar-sort-wide {
+    width: 100%;
+    grid-column: 1 / -1;
+    justify-self: stretch;
 }
 
 .sort-row {
@@ -1003,12 +1007,6 @@ h2[data-fv-section].fv-search-match {
 
 body {
     padding-bottom: 64px;
-}
-
-@media (max-width: 1080px) {
-    .folder-toolbar {
-        grid-template-columns: 1fr;
-    }
 }
 
 @media (min-width: 1320px) {

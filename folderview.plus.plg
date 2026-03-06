@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.12.6">
-<!ENTITY md5 "38f0ad707d449d9e5f7dd823adcaaedb">
+<!ENTITY version "2026.03.12.7">
+<!ENTITY md5 "14d86b8785588e5d88fc491ad4140db7">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.12.7
+- Move Docker/VM settings controls panel below the action buttons in plugin settings:
+  - panel now starts at the left under `Export all / Import / Restore latest backup / Clear`,
+  - panel spans full width left-to-right for cleaner layout.
+- Apply the same layout structure to both `Docker` and `VMs` sections.
 
 ###2026.03.12.6
 - Add update-safe advanced-section expansion guard:

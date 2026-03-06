@@ -39,53 +39,53 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
             <button onclick="restoreLatestBackup('docker')"><i class="fa fa-history" aria-hidden="true"></i> Restore latest backup</button>
             <button data-i18n="[html]clear-all" onclick="clearDocker()"><i class="fa fa-ban" aria-hidden="true"></i> Clear</button>
         </div>
-        <div class="toolbar-sort">
-            <div class="sort-row">
-                <label class="sort-label" for="docker-sort-mode">Sort mode</label>
-                <select id="docker-sort-mode" onchange="changeSortMode('docker', this.value)">
-                    <option value="created">Created order</option>
-                    <option value="manual">Manual (buttons)</option>
-                    <option value="alpha">Name (A-Z)</option>
-                </select>
-                <span class="sort-hint-chip" title="Use manual mode and the up/down buttons in the first column to set custom order."><i class="fa fa-info-circle"></i> Manual uses up/down in Order column</span>
+    </div>
+    <div class="toolbar-sort toolbar-sort-wide">
+        <div class="sort-row">
+            <label class="sort-label" for="docker-sort-mode">Sort mode</label>
+            <select id="docker-sort-mode" onchange="changeSortMode('docker', this.value)">
+                <option value="created">Created order</option>
+                <option value="manual">Manual (buttons)</option>
+                <option value="alpha">Name (A-Z)</option>
+            </select>
+            <span class="sort-hint-chip" title="Use manual mode and the up/down buttons in the first column to set custom order."><i class="fa fa-info-circle"></i> Manual uses up/down in Order column</span>
+        </div>
+        <input id="docker-folder-filter" type="text" placeholder="Search Docker folders" oninput="setFilterQuery('folders','docker',this.value)">
+        <div class="settings-cards-grid">
+            <div class="settings-mini-card">
+                <div class="settings-mini-title">Layout</div>
+                <label class="setting-toggle"><input id="docker-hide-empty-folders" type="checkbox" onchange="changeVisibilityPref('docker', 'hideEmptyFolders', this.checked)"> Hide empty folders</label>
+                <div class="setting-note">Pin folders with the star button in the Actions column.</div>
             </div>
-            <input id="docker-folder-filter" type="text" placeholder="Search Docker folders" oninput="setFilterQuery('folders','docker',this.value)">
-            <div class="settings-cards-grid">
-                <div class="settings-mini-card">
-                    <div class="settings-mini-title">Layout</div>
-                    <label class="setting-toggle"><input id="docker-hide-empty-folders" type="checkbox" onchange="changeVisibilityPref('docker', 'hideEmptyFolders', this.checked)"> Hide empty folders</label>
-                    <div class="setting-note">Pin folders with the star button in the Actions column.</div>
-                </div>
-                <div class="settings-mini-card">
-                    <div class="settings-mini-title">Folder badges</div>
-                    <label class="setting-toggle"><input id="docker-badge-running" type="checkbox" onchange="changeBadgePref('docker', 'running', this.checked)"> Running</label>
-                    <label class="setting-toggle"><input id="docker-badge-stopped" type="checkbox" onchange="changeBadgePref('docker', 'stopped', this.checked)"> Stopped</label>
-                    <label class="setting-toggle"><input id="docker-badge-updates" type="checkbox" onchange="changeBadgePref('docker', 'updates', this.checked)"> Updates</label>
-                </div>
-                <div class="settings-mini-card">
-                    <div class="settings-mini-title">Runtime</div>
-                    <label class="setting-toggle"><input id="docker-live-refresh-enabled" type="checkbox" onchange="changeRuntimePref('docker', 'liveRefreshEnabled', this.checked)"> Live auto-refresh</label>
-                    <label id="docker-live-refresh-seconds-row" class="setting-inline-number runtime-dependent">
-                        <span>Interval (sec)</span>
-                        <input id="docker-live-refresh-seconds" type="number" min="10" max="300" step="1" onchange="changeRuntimePref('docker', 'liveRefreshSeconds', this.value)">
-                    </label>
-                    <label class="setting-toggle"><input id="docker-performance-mode" type="checkbox" onchange="changeRuntimePref('docker', 'performanceMode', this.checked)"> Performance mode</label>
-                    <label class="setting-toggle"><input id="docker-lazy-preview-enabled" type="checkbox" onchange="changeRuntimePref('docker', 'lazyPreviewEnabled', this.checked)"> Lazy previews</label>
-                    <label id="docker-lazy-preview-threshold-row" class="setting-inline-number runtime-dependent">
-                        <span>Lazy threshold</span>
-                        <input id="docker-lazy-preview-threshold" type="number" min="10" max="200" step="1" onchange="changeRuntimePref('docker', 'lazyPreviewThreshold', this.value)">
-                    </label>
-                </div>
-                <div class="settings-mini-card">
-                    <div class="settings-mini-title">Health cards</div>
-                    <label class="setting-toggle"><input id="docker-health-cards-enabled" type="checkbox" onchange="changeHealthPref('docker', 'cardsEnabled', this.checked)"> Show health cards</label>
-                    <label class="setting-toggle"><input id="docker-health-runtime-badge-enabled" type="checkbox" onchange="changeHealthPref('docker', 'runtimeBadgeEnabled', this.checked)"> Runtime summary badge</label>
-                    <label class="setting-toggle"><input id="docker-health-compact" type="checkbox" onchange="changeHealthPref('docker', 'compact', this.checked)"> Compact card layout</label>
-                    <label id="docker-health-warn-threshold-row" class="setting-inline-number">
-                        <span>Warn stopped (%)</span>
-                        <input id="docker-health-warn-threshold" type="number" min="0" max="100" step="1" onchange="changeHealthPref('docker', 'warnStoppedPercent', this.value)">
-                    </label>
-                </div>
+            <div class="settings-mini-card">
+                <div class="settings-mini-title">Folder badges</div>
+                <label class="setting-toggle"><input id="docker-badge-running" type="checkbox" onchange="changeBadgePref('docker', 'running', this.checked)"> Running</label>
+                <label class="setting-toggle"><input id="docker-badge-stopped" type="checkbox" onchange="changeBadgePref('docker', 'stopped', this.checked)"> Stopped</label>
+                <label class="setting-toggle"><input id="docker-badge-updates" type="checkbox" onchange="changeBadgePref('docker', 'updates', this.checked)"> Updates</label>
+            </div>
+            <div class="settings-mini-card">
+                <div class="settings-mini-title">Runtime</div>
+                <label class="setting-toggle"><input id="docker-live-refresh-enabled" type="checkbox" onchange="changeRuntimePref('docker', 'liveRefreshEnabled', this.checked)"> Live auto-refresh</label>
+                <label id="docker-live-refresh-seconds-row" class="setting-inline-number runtime-dependent">
+                    <span>Interval (sec)</span>
+                    <input id="docker-live-refresh-seconds" type="number" min="10" max="300" step="1" onchange="changeRuntimePref('docker', 'liveRefreshSeconds', this.value)">
+                </label>
+                <label class="setting-toggle"><input id="docker-performance-mode" type="checkbox" onchange="changeRuntimePref('docker', 'performanceMode', this.checked)"> Performance mode</label>
+                <label class="setting-toggle"><input id="docker-lazy-preview-enabled" type="checkbox" onchange="changeRuntimePref('docker', 'lazyPreviewEnabled', this.checked)"> Lazy previews</label>
+                <label id="docker-lazy-preview-threshold-row" class="setting-inline-number runtime-dependent">
+                    <span>Lazy threshold</span>
+                    <input id="docker-lazy-preview-threshold" type="number" min="10" max="200" step="1" onchange="changeRuntimePref('docker', 'lazyPreviewThreshold', this.value)">
+                </label>
+            </div>
+            <div class="settings-mini-card">
+                <div class="settings-mini-title">Health cards</div>
+                <label class="setting-toggle"><input id="docker-health-cards-enabled" type="checkbox" onchange="changeHealthPref('docker', 'cardsEnabled', this.checked)"> Show health cards</label>
+                <label class="setting-toggle"><input id="docker-health-runtime-badge-enabled" type="checkbox" onchange="changeHealthPref('docker', 'runtimeBadgeEnabled', this.checked)"> Runtime summary badge</label>
+                <label class="setting-toggle"><input id="docker-health-compact" type="checkbox" onchange="changeHealthPref('docker', 'compact', this.checked)"> Compact card layout</label>
+                <label id="docker-health-warn-threshold-row" class="setting-inline-number">
+                    <span>Warn stopped (%)</span>
+                    <input id="docker-health-warn-threshold" type="number" min="0" max="100" step="1" onchange="changeHealthPref('docker', 'warnStoppedPercent', this.value)">
+                </label>
             </div>
         </div>
     </div>
@@ -122,52 +122,52 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
             <button onclick="restoreLatestBackup('vm')"><i class="fa fa-history" aria-hidden="true"></i> Restore latest backup</button>
             <button data-i18n="[html]clear-all" onclick="clearVm()"><i class="fa fa-ban" aria-hidden="true"></i> Clear</button>
         </div>
-        <div class="toolbar-sort">
-            <div class="sort-row">
-                <label class="sort-label" for="vm-sort-mode">Sort mode</label>
-                <select id="vm-sort-mode" onchange="changeSortMode('vm', this.value)">
-                    <option value="created">Created order</option>
-                    <option value="manual">Manual (buttons)</option>
-                    <option value="alpha">Name (A-Z)</option>
-                </select>
-                <span class="sort-hint-chip" title="Use manual mode and the up/down buttons in the first column to set custom order."><i class="fa fa-info-circle"></i> Manual uses up/down in Order column</span>
+    </div>
+    <div class="toolbar-sort toolbar-sort-wide">
+        <div class="sort-row">
+            <label class="sort-label" for="vm-sort-mode">Sort mode</label>
+            <select id="vm-sort-mode" onchange="changeSortMode('vm', this.value)">
+                <option value="created">Created order</option>
+                <option value="manual">Manual (buttons)</option>
+                <option value="alpha">Name (A-Z)</option>
+            </select>
+            <span class="sort-hint-chip" title="Use manual mode and the up/down buttons in the first column to set custom order."><i class="fa fa-info-circle"></i> Manual uses up/down in Order column</span>
+        </div>
+        <input id="vm-folder-filter" type="text" placeholder="Search VM folders" oninput="setFilterQuery('folders','vm',this.value)">
+        <div class="settings-cards-grid">
+            <div class="settings-mini-card">
+                <div class="settings-mini-title">Layout</div>
+                <label class="setting-toggle"><input id="vm-hide-empty-folders" type="checkbox" onchange="changeVisibilityPref('vm', 'hideEmptyFolders', this.checked)"> Hide empty folders</label>
+                <div class="setting-note">Pin folders with the star button in the Actions column.</div>
             </div>
-            <input id="vm-folder-filter" type="text" placeholder="Search VM folders" oninput="setFilterQuery('folders','vm',this.value)">
-            <div class="settings-cards-grid">
-                <div class="settings-mini-card">
-                    <div class="settings-mini-title">Layout</div>
-                    <label class="setting-toggle"><input id="vm-hide-empty-folders" type="checkbox" onchange="changeVisibilityPref('vm', 'hideEmptyFolders', this.checked)"> Hide empty folders</label>
-                    <div class="setting-note">Pin folders with the star button in the Actions column.</div>
-                </div>
-                <div class="settings-mini-card">
-                    <div class="settings-mini-title">Folder badges</div>
-                    <label class="setting-toggle"><input id="vm-badge-running" type="checkbox" onchange="changeBadgePref('vm', 'running', this.checked)"> Running</label>
-                    <label class="setting-toggle"><input id="vm-badge-stopped" type="checkbox" onchange="changeBadgePref('vm', 'stopped', this.checked)"> Stopped</label>
-                </div>
-                <div class="settings-mini-card">
-                    <div class="settings-mini-title">Runtime</div>
-                    <label class="setting-toggle"><input id="vm-live-refresh-enabled" type="checkbox" onchange="changeRuntimePref('vm', 'liveRefreshEnabled', this.checked)"> Live auto-refresh</label>
-                    <label id="vm-live-refresh-seconds-row" class="setting-inline-number runtime-dependent">
-                        <span>Interval (sec)</span>
-                        <input id="vm-live-refresh-seconds" type="number" min="10" max="300" step="1" onchange="changeRuntimePref('vm', 'liveRefreshSeconds', this.value)">
-                    </label>
-                    <label class="setting-toggle"><input id="vm-performance-mode" type="checkbox" onchange="changeRuntimePref('vm', 'performanceMode', this.checked)"> Performance mode</label>
-                    <label class="setting-toggle"><input id="vm-lazy-preview-enabled" type="checkbox" onchange="changeRuntimePref('vm', 'lazyPreviewEnabled', this.checked)"> Lazy previews</label>
-                    <label id="vm-lazy-preview-threshold-row" class="setting-inline-number runtime-dependent">
-                        <span>Lazy threshold</span>
-                        <input id="vm-lazy-preview-threshold" type="number" min="10" max="200" step="1" onchange="changeRuntimePref('vm', 'lazyPreviewThreshold', this.value)">
-                    </label>
-                </div>
-                <div class="settings-mini-card">
-                    <div class="settings-mini-title">Health cards</div>
-                    <label class="setting-toggle"><input id="vm-health-cards-enabled" type="checkbox" onchange="changeHealthPref('vm', 'cardsEnabled', this.checked)"> Show health cards</label>
-                    <label class="setting-toggle"><input id="vm-health-runtime-badge-enabled" type="checkbox" onchange="changeHealthPref('vm', 'runtimeBadgeEnabled', this.checked)"> Runtime summary badge</label>
-                    <label class="setting-toggle"><input id="vm-health-compact" type="checkbox" onchange="changeHealthPref('vm', 'compact', this.checked)"> Compact card layout</label>
-                    <label id="vm-health-warn-threshold-row" class="setting-inline-number">
-                        <span>Warn stopped (%)</span>
-                        <input id="vm-health-warn-threshold" type="number" min="0" max="100" step="1" onchange="changeHealthPref('vm', 'warnStoppedPercent', this.value)">
-                    </label>
-                </div>
+            <div class="settings-mini-card">
+                <div class="settings-mini-title">Folder badges</div>
+                <label class="setting-toggle"><input id="vm-badge-running" type="checkbox" onchange="changeBadgePref('vm', 'running', this.checked)"> Running</label>
+                <label class="setting-toggle"><input id="vm-badge-stopped" type="checkbox" onchange="changeBadgePref('vm', 'stopped', this.checked)"> Stopped</label>
+            </div>
+            <div class="settings-mini-card">
+                <div class="settings-mini-title">Runtime</div>
+                <label class="setting-toggle"><input id="vm-live-refresh-enabled" type="checkbox" onchange="changeRuntimePref('vm', 'liveRefreshEnabled', this.checked)"> Live auto-refresh</label>
+                <label id="vm-live-refresh-seconds-row" class="setting-inline-number runtime-dependent">
+                    <span>Interval (sec)</span>
+                    <input id="vm-live-refresh-seconds" type="number" min="10" max="300" step="1" onchange="changeRuntimePref('vm', 'liveRefreshSeconds', this.value)">
+                </label>
+                <label class="setting-toggle"><input id="vm-performance-mode" type="checkbox" onchange="changeRuntimePref('vm', 'performanceMode', this.checked)"> Performance mode</label>
+                <label class="setting-toggle"><input id="vm-lazy-preview-enabled" type="checkbox" onchange="changeRuntimePref('vm', 'lazyPreviewEnabled', this.checked)"> Lazy previews</label>
+                <label id="vm-lazy-preview-threshold-row" class="setting-inline-number runtime-dependent">
+                    <span>Lazy threshold</span>
+                    <input id="vm-lazy-preview-threshold" type="number" min="10" max="200" step="1" onchange="changeRuntimePref('vm', 'lazyPreviewThreshold', this.value)">
+                </label>
+            </div>
+            <div class="settings-mini-card">
+                <div class="settings-mini-title">Health cards</div>
+                <label class="setting-toggle"><input id="vm-health-cards-enabled" type="checkbox" onchange="changeHealthPref('vm', 'cardsEnabled', this.checked)"> Show health cards</label>
+                <label class="setting-toggle"><input id="vm-health-runtime-badge-enabled" type="checkbox" onchange="changeHealthPref('vm', 'runtimeBadgeEnabled', this.checked)"> Runtime summary badge</label>
+                <label class="setting-toggle"><input id="vm-health-compact" type="checkbox" onchange="changeHealthPref('vm', 'compact', this.checked)"> Compact card layout</label>
+                <label id="vm-health-warn-threshold-row" class="setting-inline-number">
+                    <span>Warn stopped (%)</span>
+                    <input id="vm-health-warn-threshold" type="number" min="0" max="100" step="1" onchange="changeHealthPref('vm', 'warnStoppedPercent', this.value)">
+                </label>
             </div>
         </div>
     </div>

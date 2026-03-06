@@ -3,6 +3,7 @@ set -euo pipefail
 
 CWD="$(pwd)"
 tmpdir="$CWD/tmp/tmp.$((RANDOM % 1000000))"
+version_override="${FVPLUS_VERSION_OVERRIDE:-}"
 version=$(date +"%Y.%m.%d")
 plgfile="$CWD/folderview.plus.plg"
 archive_prefix="folderview.plus"
@@ -29,16 +30,26 @@ else
     branch="main"
 fi
 
-filename="$CWD/archive/$archive_prefix-$version.txz"
-shopt -s nullglob
-existing_day_builds=("$CWD/archive/$archive_prefix-$version"*.txz)
-dayversion=${#existing_day_builds[@]}
-shopt -u nullglob
+if [ -n "$version_override" ]; then
+    if [[ ! "$version_override" =~ ^[0-9]{4}\.[0-9]{2}\.[0-9]{2}([.-][0-9]+|-beta[0-9]*)?$ ]]; then
+        echo "Invalid FVPLUS_VERSION_OVERRIDE: $version_override" >&2
+        exit 1
+    fi
+    version="$version_override"
+fi
 
-if [ $dayversion -gt 0 ]
-then
-    version="$version.$dayversion"
-    filename="$CWD/archive/$archive_prefix-$version.txz"
+filename="$CWD/archive/$archive_prefix-$version.txz"
+if [ -z "$version_override" ]; then
+    shopt -s nullglob
+    existing_day_builds=("$CWD/archive/$archive_prefix-$version"*.txz)
+    dayversion=${#existing_day_builds[@]}
+    shopt -u nullglob
+
+    if [ $dayversion -gt 0 ]
+    then
+        version="$version.$dayversion"
+        filename="$CWD/archive/$archive_prefix-$version.txz"
+    fi
 fi
 
 mkdir -p "$tmpdir"

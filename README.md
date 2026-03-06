@@ -61,6 +61,7 @@ plugin remove folderview.plus
 - Diagnostics bundle and issue-report output
 - Local icon management with built-in icon packs and direct upload support
 - Custom CSS/JS extension loading
+- Full mobile/touch support across Docker, VMs, Dashboard, and Settings (including Advanced section expand/collapse behavior)
 
 ## Quick Start
 
@@ -134,6 +135,25 @@ Validation tools:
 - `Simulate all items` for full assignment preview
 - Rule search + bulk enable/disable/delete/export actions
 
+## Mobile Support
+
+FolderView Plus is fully supported on mobile and touch devices.
+
+Included behavior:
+
+- Touch-friendly folder interactions on Docker and VM tabs
+- Responsive layouts for Docker, VM, Dashboard, and settings workflows
+- Advanced settings section expand/collapse support on mobile
+- Mobile-safe icon picker interactions in folder editor flows
+
+Regression safeguards:
+
+- Dedicated mobile tests:
+  - `tests/mobile-touch-support.test.mjs`
+  - `tests/mobile-regression-guard.test.mjs`
+- CI step: `Run mobile guard tests`
+- Release guard checks that mobile settings JS/CSS files are present in package output and match source
+
 ## Import and Export
 
 Export filenames:
@@ -202,6 +222,12 @@ Release preparation (auto version bump/build, md5, CHANGES entry, release guard,
 
 ```bash
 bash scripts/release_prepare.sh
+```
+
+Run only mobile guard tests locally:
+
+```bash
+node --test tests/mobile-touch-support.test.mjs tests/mobile-regression-guard.test.mjs
 ```
 
 Enable local push blocking when release checks fail:

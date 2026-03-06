@@ -37,6 +37,10 @@ jobs:
             php -l "$f"
           done
 
+      - name: Run mobile guard tests
+        run: |
+          node --test tests/mobile-touch-support.test.mjs tests/mobile-regression-guard.test.mjs
+
       - name: Run utility tests
         run: |
           node --test tests/*.mjs

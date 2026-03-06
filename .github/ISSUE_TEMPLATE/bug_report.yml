@@ -17,6 +17,8 @@ body:
           required: true
         - label: I tested on the latest plugin version available from this repository.
           required: true
+        - label: I verified whether this issue happens on mobile/touch and noted the result below.
+          required: true
 
   - type: input
     id: unraid_version
@@ -57,6 +59,7 @@ body:
         - VM tab
         - Dashboard
         - Settings page
+        - Mobile / touch behavior
         - Import/Export
         - Folder ordering
         - Auto-assignment rules

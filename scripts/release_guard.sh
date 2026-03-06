@@ -50,6 +50,8 @@ fi
 
 SOURCE_FOLDER_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js"
 SOURCE_FOLDER_CSS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folder.css"
+SOURCE_SETTINGS_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js"
+SOURCE_SETTINGS_CSS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css"
 
 if [[ ! -f "${SOURCE_FOLDER_JS}" ]]; then
   echo "ERROR: Missing source folder editor script: ${SOURCE_FOLDER_JS}" >&2
@@ -57,6 +59,14 @@ if [[ ! -f "${SOURCE_FOLDER_JS}" ]]; then
 fi
 if [[ ! -f "${SOURCE_FOLDER_CSS}" ]]; then
   echo "ERROR: Missing source folder editor stylesheet: ${SOURCE_FOLDER_CSS}" >&2
+  exit 1
+fi
+if [[ ! -f "${SOURCE_SETTINGS_JS}" ]]; then
+  echo "ERROR: Missing source settings script: ${SOURCE_SETTINGS_JS}" >&2
+  exit 1
+fi
+if [[ ! -f "${SOURCE_SETTINGS_CSS}" ]]; then
+  echo "ERROR: Missing source settings stylesheet: ${SOURCE_SETTINGS_CSS}" >&2
   exit 1
 fi
 
@@ -70,7 +80,9 @@ fi
 
 REQUIRED_ARCHIVE_PATHS=(
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folder.js"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js"
   "./usr/local/emhttp/plugins/folderview.plus/styles/folder.css"
+  "./usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css"
 )
 
 for required_path in "${REQUIRED_ARCHIVE_PATHS[@]}"; do
@@ -85,20 +97,48 @@ if ! grep -q 'fv-force-left-v2 marker' "${SOURCE_FOLDER_JS}"; then
   echo "ERROR: Source folder.js is missing the alignment regression marker comment." >&2
   exit 1
 fi
+if ! grep -q 'click\.fvsectionheader' "${SOURCE_SETTINGS_JS}"; then
+  echo "ERROR: Source folderviewplus.js is missing mobile section-toggle header binding." >&2
+  exit 1
+fi
+if ! grep -Fq 'h2[data-fv-section][data-fv-advanced="1"]' "${SOURCE_SETTINGS_JS}"; then
+  echo "ERROR: Source folderviewplus.js is missing advanced-section heading selector for mobile support." >&2
+  exit 1
+fi
+if ! grep -q '@media (max-width: 760px)' "${SOURCE_SETTINGS_CSS}"; then
+  echo "ERROR: Source folderviewplus.css is missing mobile settings breakpoint rules." >&2
+  exit 1
+fi
+if ! grep -q '\.fv-section-toggle::before' "${SOURCE_SETTINGS_CSS}"; then
+  echo "ERROR: Source folderviewplus.css is missing mobile-friendly section toggle affordance." >&2
+  exit 1
+fi
 
 TMP_ARCHIVE_FOLDER_JS="$(mktemp)"
 TMP_ARCHIVE_FOLDER_CSS="$(mktemp)"
-trap 'rm -f "${TMP_ARCHIVE_FOLDER_JS}" "${TMP_ARCHIVE_FOLDER_CSS}"' EXIT
+TMP_ARCHIVE_SETTINGS_JS="$(mktemp)"
+TMP_ARCHIVE_SETTINGS_CSS="$(mktemp)"
+trap 'rm -f "${TMP_ARCHIVE_FOLDER_JS}" "${TMP_ARCHIVE_FOLDER_CSS}" "${TMP_ARCHIVE_SETTINGS_JS}" "${TMP_ARCHIVE_SETTINGS_CSS}"' EXIT
 ARCHIVE_FOLDER_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folder.js"
 ARCHIVE_FOLDER_CSS_PATH="./usr/local/emhttp/plugins/folderview.plus/styles/folder.css"
+ARCHIVE_SETTINGS_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js"
+ARCHIVE_SETTINGS_CSS_PATH="./usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css"
 if ! grep -Fxq "${ARCHIVE_FOLDER_JS_PATH}" <<< "${ARCHIVE_LIST}"; then
   ARCHIVE_FOLDER_JS_PATH="${ARCHIVE_FOLDER_JS_PATH#./}"
 fi
 if ! grep -Fxq "${ARCHIVE_FOLDER_CSS_PATH}" <<< "${ARCHIVE_LIST}"; then
   ARCHIVE_FOLDER_CSS_PATH="${ARCHIVE_FOLDER_CSS_PATH#./}"
 fi
+if ! grep -Fxq "${ARCHIVE_SETTINGS_JS_PATH}" <<< "${ARCHIVE_LIST}"; then
+  ARCHIVE_SETTINGS_JS_PATH="${ARCHIVE_SETTINGS_JS_PATH#./}"
+fi
+if ! grep -Fxq "${ARCHIVE_SETTINGS_CSS_PATH}" <<< "${ARCHIVE_LIST}"; then
+  ARCHIVE_SETTINGS_CSS_PATH="${ARCHIVE_SETTINGS_CSS_PATH#./}"
+fi
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_FOLDER_JS_PATH}" > "${TMP_ARCHIVE_FOLDER_JS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_FOLDER_CSS_PATH}" > "${TMP_ARCHIVE_FOLDER_CSS}"
+tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_JS}"
+tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_CSS_PATH}" > "${TMP_ARCHIVE_SETTINGS_CSS}"
 
 if ! grep -q 'fv-force-left-v2 marker' "${TMP_ARCHIVE_FOLDER_JS}"; then
   echo "ERROR: Packaged folder.js is missing the alignment regression marker comment." >&2
@@ -112,6 +152,14 @@ fi
 
 if ! cmp -s "${SOURCE_FOLDER_CSS}" "${TMP_ARCHIVE_FOLDER_CSS}"; then
   echo "ERROR: Packaged folder.css does not match source folder.css." >&2
+  exit 1
+fi
+if ! cmp -s "${SOURCE_SETTINGS_JS}" "${TMP_ARCHIVE_SETTINGS_JS}"; then
+  echo "ERROR: Packaged folderviewplus.js does not match source folderviewplus.js." >&2
+  exit 1
+fi
+if ! cmp -s "${SOURCE_SETTINGS_CSS}" "${TMP_ARCHIVE_SETTINGS_CSS}"; then
+  echo "ERROR: Packaged folderviewplus.css does not match source folderviewplus.css." >&2
   exit 1
 fi
 

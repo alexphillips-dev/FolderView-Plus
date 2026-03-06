@@ -1365,19 +1365,23 @@ h2[data-fv-section].fv-search-match {
 
 #fv-settings-action-bar {
     position: fixed;
-    left: 0;
-    right: 0;
+    left: 0.8rem;
+    right: auto;
     bottom: calc(var(--fv-unraid-bottom-bar-offset) + env(safe-area-inset-bottom, 0px));
     z-index: 1000;
-    border-top: 1px solid rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 12px;
     background: rgba(11, 14, 18, 0.96);
     backdrop-filter: blur(3px);
-    padding: 0.5rem 0.8rem;
-    display: flex;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.38);
+    padding: 0.5rem 0.55rem;
+    display: inline-flex;
+    width: auto;
+    max-width: calc(100vw - 1.6rem);
     flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.45rem 0.8rem;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 0.35rem 0.6rem;
 }
 
 .fv-action-buttons {
@@ -1389,6 +1393,10 @@ h2[data-fv-section].fv-search-match {
 .fv-action-status {
     font-size: 1.03rem;
     opacity: 0.82;
+    max-width: min(70ch, calc(100vw - 2.1rem));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 body {
@@ -1412,6 +1420,18 @@ body {
 @media (max-width: 760px) {
     :root {
         --fv-unraid-bottom-bar-offset: 40px;
+    }
+
+    #fv-settings-action-bar {
+        left: 0.5rem;
+        right: 0.5rem;
+        max-width: none;
+        border-radius: 10px;
+    }
+
+    .fv-action-status {
+        max-width: 100%;
+        white-space: normal;
     }
 
     #fv-settings-topbar {

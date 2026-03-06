@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.11.6">
-<!ENTITY md5 "03ef6c9928af5f2f1adda418f1b7f438">
+<!ENTITY version "2026.03.11.7">
+<!ENTITY md5 "de61b34d5f6e052a1741aaa98671a34b">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.11.7
+- Add a clear top-left settings title in the plugin toolbar: `FolderView Plus Settings`.
+- Keep existing controls on the right and preserve responsive behavior on smaller widths.
 
 ###2026.03.11.6
 - Advanced tab numbering cleanup:

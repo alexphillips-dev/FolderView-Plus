@@ -571,7 +571,7 @@ a:focus-visible {
 #fv-settings-topbar {
     margin: 0 0 0.65rem 0;
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     align-items: center;
     min-width: 0;
 }
@@ -583,6 +583,19 @@ a:focus-visible {
     justify-content: flex-end;
     gap: 0.35rem 0.45rem;
     width: 100%;
+}
+
+.fv-settings-left {
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+}
+
+.fv-settings-title {
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
 }
 
 .fv-settings-right {
@@ -897,6 +910,14 @@ body {
     .fv-settings-inline {
         flex-wrap: wrap;
         justify-content: flex-start;
+    }
+
+    .fv-settings-left {
+        width: 100%;
+    }
+
+    .fv-settings-title {
+        white-space: normal;
     }
 
     .fv-settings-right {

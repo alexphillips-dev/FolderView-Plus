@@ -1483,31 +1483,10 @@ const valueIsTruthy = (value) => {
 
 const isDockerUpdateAvailable = (itemInfo) => {
     const source = itemInfo && typeof itemInfo === 'object' ? itemInfo : {};
-    const raw = source?.info?.State?.Updated ?? source?.State?.Updated ?? source?.Updated;
-    if (raw === null || raw === undefined) {
-        return false;
-    }
-    if (typeof raw === 'boolean' || typeof raw === 'number') {
-        return valueIsTruthy(raw);
-    }
-    if (typeof raw === 'object') {
-        const candidate = raw.available ?? raw.hasUpdate ?? raw.updateAvailable ?? raw.status ?? '';
-        return isDockerUpdateAvailable({ Updated: candidate });
-    }
-    const normalized = String(raw).trim().toLowerCase();
-    if (!normalized) {
-        return false;
-    }
-    if (['false', '0', 'none', 'no', 'n/a', 'na', 'up-to-date', 'up to date', 'current', 'latest'].includes(normalized)) {
-        return false;
-    }
-    if (normalized.includes('up-to-date') || normalized.includes('up to date') || normalized.includes('latest')) {
-        return false;
-    }
-    if (['true', '1', 'update', 'available', 'update available', 'not up-to-date', 'not up to date'].includes(normalized)) {
-        return true;
-    }
-    return normalized.includes('update');
+    const state = source?.info?.State || source?.State || {};
+    // Mirror Docker tab behavior exactly:
+    // update-ready means manager is dockerman and Updated is strict boolean false.
+    return state?.manager === 'dockerman' && state?.Updated === false;
 };
 
 const formatGiBFromKiB = (kibValue) => {

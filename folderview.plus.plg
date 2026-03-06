@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.06.32">
-<!ENTITY md5 "e9abfd8c8e9cb55793fe177db396c4e6">
+<!ENTITY version "2026.03.06.33">
+<!ENTITY md5 "cecb8d2b4fb44f39dd56213f067e8967">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.06.33
+- Fixed Docker `Updates` column counting regression:
+  - now uses the exact Unraid Docker condition for update-ready containers,
+  - counts only containers where `State.manager === "dockerman"` and `State.Updated === false`.
+- Prevented false positives where folders appeared to have updates when containers were already up to date.
+- Added regression assertion to lock this condition and prevent future drift.
 
 ###2026.03.06.32
 - Refined Docker `Updates` column UX:

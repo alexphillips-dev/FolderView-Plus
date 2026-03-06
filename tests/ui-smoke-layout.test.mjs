@@ -103,6 +103,8 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /window\.copyFolderId = copyFolderId;/);
     assert.match(settingsJs, /window\.toggleDockerUpdatesFilter = toggleDockerUpdatesFilter;/);
     assert.match(settingsJs, /const isDockerUpdateAvailable = \(itemInfo\) =>/);
+    assert.match(settingsJs, /state\?\.manager === 'dockerman'/);
+    assert.match(settingsJs, /state\?\.Updated === false/);
     assert.match(settingsJs, /const formatGiBFromKiB = \(kibValue\) =>/);
     assert.match(settingsJs, /const persistImportPresetStoreTypeToServer = async/);
     assert.match(settingsCss, /\.folder-action-btn\s*\{/);

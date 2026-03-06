@@ -66,3 +66,9 @@ test('settings stylesheet keeps required mobile advanced accordion rules', () =>
     assert.match(settingsCss, /\.fv-section-toggle\.is-collapsed::before/);
     assert.match(settingsCss, /\.fv-advanced-tabs/);
 });
+
+test('settings action bar reserves space above Unraid bottom status bar', () => {
+    assert.match(settingsCss, /--fv-unraid-bottom-bar-offset:\s*36px/);
+    assert.match(settingsCss, /bottom:\s*calc\(var\(--fv-unraid-bottom-bar-offset\)\s*\+\s*env\(safe-area-inset-bottom,\s*0px\)\)/);
+    assert.match(settingsCss, /padding-bottom:\s*calc\(64px\s*\+\s*var\(--fv-unraid-bottom-bar-offset\)\s*\+\s*env\(safe-area-inset-bottom,\s*0px\)\)/);
+});

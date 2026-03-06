@@ -1100,11 +1100,15 @@ h2[data-fv-section].fv-search-match {
     font-size: 0.9rem;
 }
 
+:root {
+    --fv-unraid-bottom-bar-offset: 36px;
+}
+
 #fv-settings-action-bar {
     position: fixed;
     left: 0;
     right: 0;
-    bottom: 0;
+    bottom: calc(var(--fv-unraid-bottom-bar-offset) + env(safe-area-inset-bottom, 0px));
     z-index: 1000;
     border-top: 1px solid rgba(255, 255, 255, 0.14);
     background: rgba(11, 14, 18, 0.96);
@@ -1129,7 +1133,7 @@ h2[data-fv-section].fv-search-match {
 }
 
 body {
-    padding-bottom: 64px;
+    padding-bottom: calc(64px + var(--fv-unraid-bottom-bar-offset) + env(safe-area-inset-bottom, 0px));
 }
 
 @media (min-width: 1320px) {
@@ -1147,6 +1151,10 @@ body {
 }
 
 @media (max-width: 760px) {
+    :root {
+        --fv-unraid-bottom-bar-offset: 40px;
+    }
+
     #fv-settings-topbar {
         justify-content: flex-start;
     }

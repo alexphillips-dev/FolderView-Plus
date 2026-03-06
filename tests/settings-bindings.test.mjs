@@ -47,6 +47,7 @@ test('import preview dialog stays outside section-collapse visibility controls',
 test('import preview layout includes user-facing summary cards and collapsible raw details', () => {
     assert.match(page, /id="import-preview-counts"/);
     assert.match(page, /class="import-top-grid"/);
+    assert.match(page, /class="import-preview-card import-selection-card"/);
     assert.match(page, /id="import-summary-details"/);
     assert.match(script, /const counts = \$\('#import-preview-counts'\);/);
     assert.match(script, /result\.text\(`\$\{selectedCount\} operation/);

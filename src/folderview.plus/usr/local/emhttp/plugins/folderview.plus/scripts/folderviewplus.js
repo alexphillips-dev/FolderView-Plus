@@ -2143,10 +2143,11 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     modeSelect.val('merge');
     renderPreview();
 
+    const modalWidth = Math.min(980, Math.max(760, Math.floor(window.innerWidth * 0.92)));
     dialog.dialog({
         title: `Import ${type === 'docker' ? 'Docker' : 'VM'} Folders`,
         resizable: false,
-        width: 760,
+        width: modalWidth,
         modal: true,
         dialogClass: 'fv-import-preview-modal',
         closeText: '',

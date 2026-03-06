@@ -595,7 +595,7 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
         <p class="import-card-title">Changed rows</p>
         <div id="import-preview-diff"></div>
     </div>
-    <div class="import-preview-card">
+    <div class="import-preview-card import-selection-card">
         <p class="import-card-title">Selected operations</p>
         <div id="import-preview-selection" class="import-selection"></div>
     </div>

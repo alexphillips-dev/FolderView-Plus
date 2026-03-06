@@ -603,10 +603,11 @@
 
 .import-selection {
     margin: 0;
-    max-height: 170px;
+    max-height: 180px;
     overflow-y: auto;
     overflow-x: hidden;
     width: 100%;
+    min-width: 0;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 5px;
     padding: 0.45rem 0.55rem;
@@ -760,12 +761,24 @@
 }
 
 .ui-dialog.fv-import-preview-modal #import-preview-dialog {
-    display: grid;
+    display: grid !important;
     gap: 0.6rem;
+    width: 100% !important;
+    max-width: 100% !important;
+    align-items: start;
+    justify-items: stretch;
 }
 
 .ui-dialog.fv-import-preview-modal .ui-dialog-content {
     padding: 0.6rem 0.8rem;
+    overflow-x: hidden;
+}
+
+.ui-dialog.fv-import-preview-modal #import-preview-dialog > * {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    justify-self: stretch;
 }
 
 .import-preview-head {
@@ -792,10 +805,24 @@
 }
 
 .import-preview-card {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    justify-self: stretch;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 6px;
     padding: 0.5rem 0.58rem;
     background: rgba(255, 255, 255, 0.02);
+}
+
+.import-selection-card {
+    width: 100% !important;
+    min-width: 0;
+}
+
+.import-selection-card .import-selection {
+    min-height: 220px;
+    max-height: 300px;
 }
 
 .import-card-title {
@@ -813,6 +840,9 @@
 }
 
 .import-summary-details {
+    width: 100%;
+    min-width: 0;
+    justify-self: stretch;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 6px;
     padding: 0.35rem 0.5rem 0.5rem 0.5rem;

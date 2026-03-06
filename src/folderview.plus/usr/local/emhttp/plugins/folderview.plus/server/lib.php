@@ -363,6 +363,59 @@
         return $version === '' ? '0.0.0' : $version;
     }
 
+    function readInstalledManifestPath(): string {
+        global $configDir;
+        return "$configDir/folderview.plus.plg";
+    }
+
+    function readChangesLinesForVersion(string $version, int $maxLines = 14): array {
+        $version = trim($version);
+        if ($version === '') {
+            return [];
+        }
+
+        $manifestPath = readInstalledManifestPath();
+        if (!file_exists($manifestPath)) {
+            return [];
+        }
+
+        $raw = @file_get_contents($manifestPath);
+        if (!is_string($raw) || $raw === '') {
+            return [];
+        }
+
+        $content = str_replace(["\r\n", "\r"], "\n", $raw);
+        $pattern = '/^###\s*' . preg_quote($version, '/') . '\s*$(.*?)(?=^###|\z)/ms';
+        if (!preg_match($pattern, $content, $match)) {
+            return [];
+        }
+
+        $block = trim((string)($match[1] ?? ''));
+        if ($block === '') {
+            return [];
+        }
+
+        $lines = [];
+        foreach (explode("\n", $block) as $line) {
+            $trimmed = trim((string)$line);
+            if ($trimmed === '') {
+                continue;
+            }
+            $lines[] = $trimmed;
+        }
+
+        if ($maxLines > 0 && count($lines) > $maxLines) {
+            $lines = array_slice($lines, 0, $maxLines);
+            $lines[] = '...';
+        }
+
+        return $lines;
+    }
+
+    function readCurrentVersionChanges(int $maxLines = 14): array {
+        return readChangesLinesForVersion(readInstalledVersion(), $maxLines);
+    }
+
     function getLegacyConfigDirCandidates(): array {
         $candidates = [];
         foreach (FVPLUS_LEGACY_CONFIG_DIRS as $dir) {

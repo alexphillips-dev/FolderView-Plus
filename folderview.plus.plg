@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.12.7">
-<!ENTITY md5 "14d86b8785588e5d88fc491ad4140db7">
+<!ENTITY version "2026.03.12.8">
+<!ENTITY md5 "9f96a851b2c466c162ba7a68a6bf7c1b">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-open-o" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.12.8
+- Improve Docker/VM sort/settings UX:
+  - convert each sort/settings block into a collapsible panel,
+  - default state is collapsed for cleaner settings pages.
+- Add one-time "Updated to VERSION" popup in settings:
+  - shown after plugin version changes,
+  - pulls current-version CHANGES lines from local manifest for quick "what changed" visibility.
 
 ###2026.03.12.7
 - Move Docker/VM settings controls panel below the action buttons in plugin settings:

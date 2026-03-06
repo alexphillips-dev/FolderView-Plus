@@ -33,12 +33,11 @@
 }
 
 .toolbar-sort {
-    display: grid;
-    gap: 0.55rem;
+    display: block;
     width: 100%;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 6px;
-    padding: 0.65rem 0.75rem;
+    padding: 0.5rem 0.7rem;
     background: rgba(255, 255, 255, 0.02);
 }
 
@@ -46,6 +45,50 @@
     width: 100%;
     grid-column: 1 / -1;
     justify-self: stretch;
+}
+
+.toolbar-sort-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    cursor: pointer;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.toolbar-sort-toggle::-webkit-details-marker {
+    display: none;
+}
+
+.toolbar-sort-toggle-main {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 600;
+}
+
+.toolbar-sort-toggle-note {
+    font-size: 0.8rem;
+    opacity: 0.72;
+    white-space: nowrap;
+}
+
+.toolbar-sort-caret {
+    transition: transform 120ms ease;
+}
+
+.toolbar-sort[open] .toolbar-sort-caret {
+    transform: rotate(90deg);
+}
+
+.toolbar-sort-body {
+    display: grid;
+    gap: 0.55rem;
+    margin-top: 0.55rem;
+    padding-top: 0.55rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .sort-row {
@@ -88,7 +131,7 @@
     line-height: 1.35;
 }
 
-.toolbar-sort > input[type="text"] {
+.toolbar-sort-body > input[type="text"] {
     width: 100%;
     min-height: 34px;
     margin: 0;

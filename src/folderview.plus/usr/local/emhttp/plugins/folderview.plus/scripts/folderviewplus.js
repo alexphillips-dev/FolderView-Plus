@@ -65,6 +65,7 @@ const ADVANCED_SECTION_STORAGE_KEY = 'fv.settings.advancedSection.v1';
 const ADVANCED_EXPANDED_STORAGE_KEY = 'fv.settings.advancedExpanded.v2';
 const ADVANCED_KNOWN_STORAGE_KEY = 'fv.settings.advancedKnown.v1';
 const SEARCH_ALL_ADVANCED_STORAGE_KEY = 'fv.settings.searchAllAdvanced.v1';
+const UPDATE_NOTES_SEEN_VERSION_STORAGE_KEY = 'fv.settings.updateNotesSeenVersion.v1';
 const LEGACY_ADVANCED_SECTION_KEYS = [
     'auto-assignment',
     'bulk-assignment',
@@ -1468,6 +1469,41 @@ const fetchPluginVersion = async () => {
     } catch (error) {
         pluginVersion = '0.0.0';
     }
+};
+
+const fetchCurrentUpdateNotes = async () => apiGetJson('/plugins/folderview.plus/server/update_notes.php');
+
+const maybeShowUpdateNotesDialog = async () => {
+    const currentVersion = String(pluginVersion || '').trim();
+    if (!currentVersion || currentVersion === '0.0.0') {
+        return;
+    }
+
+    const seenVersion = String(localStorage.getItem(UPDATE_NOTES_SEEN_VERSION_STORAGE_KEY) || '').trim();
+    if (seenVersion === currentVersion) {
+        return;
+    }
+
+    let notesText = 'This update includes fixes and quality improvements.';
+    try {
+        const response = await fetchCurrentUpdateNotes();
+        const lines = Array.isArray(response?.lines)
+            ? response.lines.map((line) => String(line || '').trim()).filter((line) => line !== '')
+            : [];
+        if (lines.length) {
+            notesText = lines.join('\n');
+        }
+    } catch (_error) {
+        // Non-fatal: keep fallback message.
+    }
+
+    swal({
+        title: `Updated to ${currentVersion}`,
+        text: notesText,
+        type: 'success'
+    });
+
+    localStorage.setItem(UPDATE_NOTES_SEEN_VERSION_STORAGE_KEY, currentVersion);
 };
 
 const fetchFolders = async (type) => apiGetJson(`/plugins/folderview.plus/server/read.php?type=${type}`);
@@ -4205,6 +4241,8 @@ window.setSettingsMode = setSettingsMode;
         const shouldRunWizard = !isWizardCompletedServerSide() && localStorage.getItem(WIZARD_DONE_STORAGE_KEY) !== '1';
         if (shouldRunWizard) {
             runQuickSetupWizard(false);
+        } else {
+            await maybeShowUpdateNotesDialog();
         }
         settingsUiState.initialized = true;
     } catch (error) {

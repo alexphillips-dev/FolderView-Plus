@@ -6,12 +6,34 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.06.24">
-<!ENTITY md5 "83a2cf6d0bac7f0a37794f50cf64b783">
+<!ENTITY version "2026.03.06.26">
+<!ENTITY md5 "186ec8ed7762d261da5097381b1cfb4a">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.06.26
+- Complete compatibility-safe security rollout:
+  - load request-header client on Docker, VMs, Dashboard, and Folder editor pages,
+  - keep token enforcement in compat mode for legacy browser/client safety.
+- Add security regression tests to prevent drift:
+  - token/meta/backup-download guards and output sanitization checks.
+
+###2026.03.06.25
+- Security hardening (compatibility-safe):
+  - add `X-Content-Type-Options: nosniff` and no-store JSON response headers,
+  - add safer API exception handling + server-side error logging.
+- Request token rollout (compat mode):
+  - auto-create token file,
+  - emit `fv-request-token` meta tag on plugin pages,
+  - keep compatibility fallback for older clients.
+- Backup download hardening:
+  - add POST + guarded `download_post` path,
+  - keep legacy GET download as temporary fallback.
+- UI injection hardening:
+  - escape folder name/icon rendering in Docker, VMs, and Dashboard views,
+  - escape custom action names in folder editor output.
 
 ###2026.03.06.24
 - Automated release metadata update.

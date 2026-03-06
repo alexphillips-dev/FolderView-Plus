@@ -14,7 +14,11 @@ fvplus_json_try(function (): array {
         'rollback_restore_latest',
         'rollback_restore_previous'
     ];
+    $guardedReadActions = ['download_post'];
     if (in_array($action, $mutatingActions, true)) {
+        requireMutationRequestGuard();
+    }
+    if (in_array($action, $guardedReadActions, true)) {
         requireMutationRequestGuard();
     }
 
@@ -54,27 +58,43 @@ fvplus_json_try(function (): array {
         ];
     }
 
-    $type = ensureType((string)(in_array($action, $mutatingActions, true) ? ($_POST['type'] ?? '') : ($_REQUEST['type'] ?? '')));
+    $type = ensureType((string)((in_array($action, $mutatingActions, true) || in_array($action, $guardedReadActions, true))
+        ? ($_POST['type'] ?? '')
+        : ($_REQUEST['type'] ?? '')));
 
-    if ($action === 'download') {
-        $name = (string)($_REQUEST['name'] ?? '');
-        $path = getBackupSnapshotPath($type, $name);
+    $streamBackupDownload = static function (string $downloadType, string $name, string $mode = 'legacy_get'): void {
+        $downloadType = ensureType($downloadType);
+        $path = getBackupSnapshotPath($downloadType, $name);
         if (!file_exists($path)) {
             throw new RuntimeException('Backup file not found.');
         }
         try {
-            appendDiagnosticsHistoryEvent('backup_download', $type, [
-                'name' => basename($path)
+            appendDiagnosticsHistoryEvent('backup_download', $downloadType, [
+                'name' => basename($path),
+                'mode' => $mode
             ], 'ok', 'server');
         } catch (Throwable $err) {
             // Non-fatal.
         }
         header_remove('Content-Type');
+        header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: private, no-store, max-age=0');
         header('Content-Type: application/json');
         header('Content-Disposition: attachment; filename="' . basename($path) . '"');
         header('Content-Length: ' . (string)filesize($path));
         readfile($path);
         exit;
+    };
+
+    if ($action === 'download') {
+        $name = (string)($_REQUEST['name'] ?? '');
+        header('X-FV-Download-Mode: legacy-get');
+        $streamBackupDownload($type, $name, 'legacy_get');
+    }
+
+    if ($action === 'download_post') {
+        $name = (string)($_POST['name'] ?? '');
+        $streamBackupDownload($type, $name, 'post_token');
     }
 
     if ($action === 'create') {

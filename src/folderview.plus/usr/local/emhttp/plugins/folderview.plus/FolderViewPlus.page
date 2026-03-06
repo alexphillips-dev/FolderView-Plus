@@ -8,6 +8,8 @@ Markdown="false"
 
 <?php
 require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
+require_once('/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
+emitRequestTokenMetaTag();
 ?>
 
 <script>

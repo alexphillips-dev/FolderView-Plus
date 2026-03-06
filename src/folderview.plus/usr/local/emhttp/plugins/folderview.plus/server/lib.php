@@ -96,6 +96,9 @@
         '/boot/config/plugins/folder.view2',
         '/boot/config/plugins/folder.view'
     ];
+    const FVPLUS_REQUEST_TOKEN_ENFORCEMENT = 'compat';
+    const FVPLUS_VERBOSE_API_ERRORS = false;
+    const FVPLUS_API_ERROR_LOG = '/tmp/folderview.plus.api-error.log';
 
     function ensureType(string $type): string {
         if (!in_array($type, FVPLUS_ALLOWED_TYPES, true)) {
@@ -198,7 +201,41 @@
         return "$configDir/request.token";
     }
 
+    function normalizeRequestTokenEnforcementMode(string $mode): string {
+        $normalized = strtolower(trim($mode));
+        if (in_array($normalized, ['off', 'compat', 'strict'], true)) {
+            return $normalized;
+        }
+        return 'compat';
+    }
+
+    function getRequestTokenEnforcementMode(): string {
+        return normalizeRequestTokenEnforcementMode(FVPLUS_REQUEST_TOKEN_ENFORCEMENT);
+    }
+
+    function ensureConfiguredRequestTokenFile(): void {
+        $path = getOptionalRequestTokenPath();
+        if (file_exists($path)) {
+            return;
+        }
+        $parent = dirname($path);
+        if (!is_dir($parent)) {
+            @mkdir($parent, 0770, true);
+        }
+        try {
+            $token = bin2hex(random_bytes(24));
+        } catch (Throwable $error) {
+            return;
+        }
+        if ($token === '') {
+            return;
+        }
+        @file_put_contents($path, $token, LOCK_EX);
+        @chmod($path, 0600);
+    }
+
     function getConfiguredRequestToken(): string {
+        ensureConfiguredRequestTokenFile();
         $path = getOptionalRequestTokenPath();
         if (!file_exists($path)) {
             return '';
@@ -213,13 +250,33 @@
         return $token;
     }
 
+    function emitRequestTokenMetaTag(): void {
+        $token = getConfiguredRequestToken();
+        if ($token === '') {
+            return;
+        }
+        echo '<meta name="fv-request-token" content="'
+            . htmlspecialchars($token, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
+            . '">' . "\n";
+    }
+
     function validateOptionalRequestToken(): void {
+        $mode = getRequestTokenEnforcementMode();
+        if ($mode === 'off') {
+            return;
+        }
         $expected = getConfiguredRequestToken();
         if ($expected === '') {
             return;
         }
         $provided = trim((string)($_POST['token'] ?? getRequestHeaderValue('X-FV-Token')));
-        if ($provided === '' || !hash_equals($expected, $provided)) {
+        if ($provided === '') {
+            if ($mode === 'strict') {
+                throw new RuntimeException('Invalid request token.');
+            }
+            return;
+        }
+        if (!hash_equals($expected, $provided)) {
             throw new RuntimeException('Invalid request token.');
         }
     }
@@ -237,6 +294,8 @@
     function fvplus_json_response(array $payload, int $statusCode = 200): void {
         if (!headers_sent()) {
             header('Content-Type: application/json');
+            header('X-Content-Type-Options: nosniff');
+            header('Cache-Control: no-store, no-cache, must-revalidate');
         }
         http_response_code($statusCode);
         $encoded = json_encode($payload, JSON_UNESCAPED_SLASHES);
@@ -273,6 +332,37 @@
         fvplus_json_response($data, $statusCode);
     }
 
+    function fvplus_log_api_exception(Throwable $error): void {
+        $timestamp = gmdate('c');
+        $line = sprintf(
+            "[%s] %s in %s:%d | %s\n",
+            $timestamp,
+            get_class($error),
+            (string)$error->getFile(),
+            (int)$error->getLine(),
+            (string)$error->getMessage()
+        );
+        @file_put_contents(FVPLUS_API_ERROR_LOG, $line, FILE_APPEND);
+        @error_log(trim($line));
+    }
+
+    function fvplus_get_api_error_status(Throwable $error): int {
+        if ($error instanceof InvalidArgumentException || $error instanceof RuntimeException) {
+            return 400;
+        }
+        return 500;
+    }
+
+    function fvplus_get_api_error_message(Throwable $error): string {
+        if (FVPLUS_VERBOSE_API_ERRORS || FV3_DEBUG_MODE) {
+            return (string)$error->getMessage();
+        }
+        if ($error instanceof InvalidArgumentException || $error instanceof RuntimeException) {
+            return (string)$error->getMessage();
+        }
+        return 'Request failed.';
+    }
+
     function fvplus_json_try(callable $handler): void {
         try {
             $result = $handler();
@@ -286,7 +376,8 @@
                 fvplus_json_ok(['data' => $result]);
             }
         } catch (Throwable $e) {
-            fvplus_json_error($e->getMessage(), 400);
+            fvplus_log_api_exception($e);
+            fvplus_json_error(fvplus_get_api_error_message($e), fvplus_get_api_error_status($e));
         }
     }
 

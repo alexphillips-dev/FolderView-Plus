@@ -55,6 +55,19 @@ const getFolderLabelValue = (labels) => {
     }
     return '';
 };
+const escapeHtml = (value) => String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+const sanitizeImageSrc = (value, fallback = '/plugins/dynamix.docker.manager/images/question.png') => {
+    const raw = String(value || '').trim();
+    if (!raw || /^javascript:/i.test(raw)) {
+        return fallback;
+    }
+    return escapeHtml(raw);
+};
 const DASHBOARD_DEBUG_MODE = false;
 const dashboardDebugLog = (...args) => {
     if (DASHBOARD_DEBUG_MODE) {
@@ -423,7 +436,9 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
     }
 
     // the HTML template for the folder
-    const fld = `<div class="folder-showcase-outer-${id} folder-showcase-outer"><span class="outer solid apps stopped folder-docker"><span id="folder-id-${id}" onclick='addDockerFolderContext("${id}")' class="hand docker folder-hand-docker"><img src="${folder.icon}" class="img folder-img-docker" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"></span><span class="inner folder-inner-docker"><span class="folder-appname-docker">${folder.name}</span><br><i class="fa fa-square stopped folder-load-status-docker"></i><span class="state folder-state-docker">${$.i18n('stopped')}</span></span><div class="folder-storage"></div></span><div class="folder-showcase-${id} folder-showcase"></div></div>`;
+    const safeFolderIcon = sanitizeImageSrc(folder.icon);
+    const safeFolderName = escapeHtml(folder.name);
+    const fld = `<div class="folder-showcase-outer-${id} folder-showcase-outer"><span class="outer solid apps stopped folder-docker"><span id="folder-id-${id}" onclick='addDockerFolderContext("${id}")' class="hand docker folder-hand-docker"><img src="${safeFolderIcon}" class="img folder-img-docker" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"></span><span class="inner folder-inner-docker"><span class="folder-appname-docker">${safeFolderName}</span><br><i class="fa fa-square stopped folder-load-status-docker"></i><span class="state folder-state-docker">${$.i18n('stopped')}</span></span><div class="folder-storage"></div></span><div class="folder-showcase-${id} folder-showcase"></div></div>`;
 
     // insertion at position of the folder
     if (position === 0) {
@@ -676,7 +691,9 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone) => {
     }
 
     // the HTML template for the folder
-    const fld = `<div class="folder-showcase-outer-${id} folder-showcase-outer"><span class="outer solid vms stopped folder-vm"><span id="folder-id-${id}" onclick='addVMFolderContext("${id}")' class="hand vm folder-hand-vm"><img src="${folder.icon}" class="img folder-img-vm" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span><span class="inner folder-inner-vm"><span class="folder-appname-vm">${folder.name}</span><br><i class="fa fa-square stopped folder-load-status-vm"></i><span class="state folder-state-vm">${$.i18n('stopped')}</span></span><div class="folder-storage" style="display:none"></div></span><div class="folder-showcase-${id} folder-showcase"></div></div>`;
+    const safeFolderIcon = sanitizeImageSrc(folder.icon);
+    const safeFolderName = escapeHtml(folder.name);
+    const fld = `<div class="folder-showcase-outer-${id} folder-showcase-outer"><span class="outer solid vms stopped folder-vm"><span id="folder-id-${id}" onclick='addVMFolderContext("${id}")' class="hand vm folder-hand-vm"><img src="${safeFolderIcon}" class="img folder-img-vm" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span><span class="inner folder-inner-vm"><span class="folder-appname-vm">${safeFolderName}</span><br><i class="fa fa-square stopped folder-load-status-vm"></i><span class="state folder-state-vm">${$.i18n('stopped')}</span></span><div class="folder-storage" style="display:none"></div></span><div class="folder-showcase-${id} folder-showcase"></div></div>`;
 
     // insertion at position of the folder
     if (position === 0) {

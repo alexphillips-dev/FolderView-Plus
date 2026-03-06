@@ -7,6 +7,8 @@ Markdown="false"
 <?php
 $type = 'vm';
 require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
+require_once('/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
+emitRequestTokenMetaTag();
 ?>
 <script>
     $(document).ready(() => {
@@ -22,6 +24,7 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 <?php require_once('/usr/local/emhttp/plugins/folderview.plus/scripts/custom.php') ?>
 
 <script src="<?php autov('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>"></script>
+<script src="<?php autov('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>
 <script src="<?php autov('/plugins/folderview.plus/scripts/vm.js')?>"></script>
 
 <link rel="stylesheet" href="<?php autov('/plugins/folderview.plus/styles/vm.css')?>">

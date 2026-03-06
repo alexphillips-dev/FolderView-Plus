@@ -10,7 +10,11 @@ Markdown="false"
         $('body').i18n();
     }
 </script>
-<? require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php') ?>
+<?php
+require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
+require_once('/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
+emitRequestTokenMetaTag();
+?>
 <script src="<?autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.switchbutton.css')?>">
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.ui.css')?>">
@@ -20,6 +24,7 @@ Markdown="false"
 <?php endif; ?>
 <link type="text/css" rel="stylesheet" href="<?autov("/plugins/folderview.plus/styles/include/jquery.multiselect.css")?>">
 <script src="<?autov('/plugins/folderview.plus/scripts/include/jquery.multiselect.js')?>"></script>
+<script src="<?autov('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>
 
 <div class="canvas">
     <form class="folder-editor-form" onsubmit="submitForm(this, false); return false">

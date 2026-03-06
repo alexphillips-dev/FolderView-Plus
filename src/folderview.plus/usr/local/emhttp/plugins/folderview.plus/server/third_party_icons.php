@@ -227,6 +227,7 @@ try {
         $path = resolveThirdPartyIconFilePath($folder, $file);
         $mime = thirdPartyIconMimeType($path);
         header('Content-Type: ' . $mime);
+        header('X-Content-Type-Options: nosniff');
         header('Cache-Control: public, max-age=600');
         readfile($path);
         exit;

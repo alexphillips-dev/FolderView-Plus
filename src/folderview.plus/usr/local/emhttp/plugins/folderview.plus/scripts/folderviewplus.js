@@ -145,6 +145,21 @@ if (requestClient && typeof requestClient.configureSecurityHeaders === 'function
     });
 }
 
+const getOptionalRequestToken = () => {
+    const metaToken = document.querySelector('meta[name="fv-request-token"]');
+    if (metaToken && typeof metaToken.content === 'string') {
+        const fromMeta = String(metaToken.content || '').trim();
+        if (fromMeta) {
+            return fromMeta;
+        }
+    }
+    try {
+        return String(localStorage.getItem(REQUEST_TOKEN_STORAGE_KEY) || '').trim();
+    } catch (_error) {
+        return '';
+    }
+};
+
 const slugifySectionKey = (text) => String(text || '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
@@ -3906,13 +3921,53 @@ const downloadBackupEntry = (type, name) => {
         showError('Download failed', error);
         return;
     }
-    const url = `/plugins/folderview.plus/server/backup.php?type=${encodeURIComponent(resolvedType)}&action=download&name=${encodeURIComponent(name)}`;
-    const link = document.createElement('a');
-    link.href = url;
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const resolvedName = String(name || '').trim();
+    if (!resolvedName) {
+        showError('Download failed', new Error('Backup name is required.'));
+        return;
+    }
+
+    const frameName = `fv-download-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const iframe = document.createElement('iframe');
+    iframe.name = frameName;
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/plugins/folderview.plus/server/backup.php';
+    form.target = frameName;
+    form.style.display = 'none';
+
+    const addField = (fieldName, value) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = fieldName;
+        input.value = String(value ?? '');
+        form.appendChild(input);
+    };
+
+    addField('action', 'download_post');
+    addField('type', resolvedType);
+    addField('name', resolvedName);
+    const token = getOptionalRequestToken();
+    if (token) {
+        addField('token', token);
+    }
+
+    document.body.appendChild(form);
+    form.submit();
+
+    window.setTimeout(() => {
+        if (form.parentNode) {
+            form.parentNode.removeChild(form);
+        }
+    }, 1000);
+    window.setTimeout(() => {
+        if (iframe.parentNode) {
+            iframe.parentNode.removeChild(iframe);
+        }
+    }, 20000);
 };
 
 const deleteBackupEntry = (type, name) => {

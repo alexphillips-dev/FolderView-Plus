@@ -183,6 +183,20 @@
     padding: 0.25em 0.55em;
 }
 
+.fv-icon-upload-status {
+    font-size: 0.82em;
+    min-height: 1.2em;
+    opacity: 0.86;
+}
+
+.fv-icon-upload-status.is-error {
+    color: #ff8f8f;
+}
+
+.fv-icon-upload-status.is-success {
+    color: #89e08f;
+}
+
 .fv-icon-picker-panel {
     width: min(100%, 640px);
     border: 1px solid rgba(255, 255, 255, 0.14);

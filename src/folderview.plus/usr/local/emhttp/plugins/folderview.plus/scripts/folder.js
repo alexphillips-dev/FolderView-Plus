@@ -37,6 +37,8 @@ const SECTION_META = {
 const DEFAULT_FOLDER_ICON_PATH = '/plugins/folderview.plus/images/folder-icon.png';
 const BUILT_IN_ICON_MANIFEST_PATH = '/plugins/folderview.plus/images/icons/icons.json';
 const THIRD_PARTY_ICON_API_PATH = '/plugins/folderview.plus/server/third_party_icons.php';
+const CUSTOM_ICON_UPLOAD_API_PATH = '/plugins/folderview.plus/server/upload_custom_icon.php';
+const REQUEST_TOKEN_STORAGE_KEY = 'fv.request.token';
 const BUILT_IN_ICON_FALLBACK = [{
     id: 'default-folder',
     name: 'Default Folder',
@@ -108,6 +110,18 @@ const parseJsonPayload = (value) => {
     return value;
 };
 
+const getOptionalRequestToken = () => {
+    const metaToken = document.querySelector('meta[name="fv-request-token"]');
+    if (metaToken instanceof HTMLMetaElement) {
+        return String(metaToken.content || '').trim();
+    }
+    try {
+        return String(localStorage.getItem(REQUEST_TOKEN_STORAGE_KEY) || '').trim();
+    } catch (_error) {
+        return '';
+    }
+};
+
 const normalizeBuiltInIconEntry = (entry, basePath) => {
     if (!entry || typeof entry !== 'object') {
         return null;
@@ -151,6 +165,62 @@ const setIconInputValue = (value) => {
     input.val(value || '');
     input.trigger('input');
     input.trigger('change');
+};
+
+const setIconUploadStatus = (message, isError = false) => {
+    const status = $('#fv-icon-upload-status');
+    if (!status.length) {
+        return;
+    }
+    const text = String(message || '').trim();
+    status.removeClass('is-error is-success').text(text);
+    if (!text) {
+        return;
+    }
+    status.addClass(isError ? 'is-error' : 'is-success');
+};
+
+const uploadCustomIconFile = async (file) => {
+    if (!file || typeof file.name !== 'string') {
+        throw new Error('No icon file selected.');
+    }
+
+    const token = getOptionalRequestToken();
+    const formData = new FormData();
+    formData.append('icon', file);
+    if (token) {
+        formData.append('token', token);
+    }
+
+    const headers = { 'X-FV-Request': '1' };
+    if (token) {
+        headers['X-FV-Token'] = token;
+    }
+
+    const response = await $.ajax({
+        url: CUSTOM_ICON_UPLOAD_API_PATH,
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        cache: false,
+        headers
+    }).promise();
+
+    const payload = parseJsonPayload(response);
+    if (!payload || payload.ok !== true) {
+        throw new Error(String(payload?.error || 'Upload failed.'));
+    }
+
+    const url = String(payload.url || '').trim();
+    if (!url) {
+        throw new Error('Upload did not return an icon URL.');
+    }
+
+    return {
+        name: String(payload.name || file.name).trim() || file.name,
+        url
+    };
 };
 
 const setBuiltInIconPickerOpen = (open) => {
@@ -393,6 +463,39 @@ const initBuiltInIconPicker = async () => {
     $('#fv-icon-picker-default').off('click.fviconpicker').on('click.fviconpicker', (event) => {
         event.preventDefault();
         setIconInputValue(DEFAULT_FOLDER_ICON_PATH);
+        setIconUploadStatus('');
+    });
+    $('#fv-icon-upload').off('click.fviconpicker').on('click.fviconpicker', (event) => {
+        event.preventDefault();
+        const fileInput = $('#fv-icon-upload-file');
+        if (!fileInput.length) {
+            return;
+        }
+        fileInput.val('');
+        fileInput.trigger('click');
+    });
+    $('#fv-icon-upload-file').off('change.fviconpicker').on('change.fviconpicker', async (event) => {
+        const input = event.currentTarget;
+        const file = (input && input.files && input.files.length > 0) ? input.files[0] : null;
+        if (!file) {
+            return;
+        }
+
+        const uploadButton = $('#fv-icon-upload');
+        const safeName = String(file.name || 'icon').trim() || 'icon';
+        uploadButton.prop('disabled', true);
+        setIconUploadStatus(`Uploading "${safeName}"...`);
+
+        try {
+            const result = await uploadCustomIconFile(file);
+            setIconInputValue(result.url);
+            setIconUploadStatus(`Uploaded "${result.name}" and set as icon.`);
+        } catch (error) {
+            setIconUploadStatus(`Upload failed: ${error.message || 'Unknown error.'}`, true);
+        } finally {
+            uploadButton.prop('disabled', false);
+            $(input).val('');
+        }
     });
     $('#fv-third-party-refresh').off('click.fviconpicker').on('click.fviconpicker', async (event) => {
         event.preventDefault();
@@ -411,7 +514,7 @@ const initBuiltInIconPicker = async () => {
     });
     $(document).off('mousedown.fviconpicker').on('mousedown.fviconpicker', (event) => {
         const target = $(event.target);
-        if (!target.closest('#fv-icon-picker-panel, #fv-icon-picker-toggle, #fv-third-party-icon-panel, #fv-icon-third-party-toggle').length) {
+        if (!target.closest('#fv-icon-picker-panel, #fv-icon-picker-toggle, #fv-third-party-icon-panel, #fv-icon-third-party-toggle, #fv-icon-upload, #fv-icon-upload-file').length) {
             setBuiltInIconPickerOpen(false);
             setThirdPartyIconPickerOpen(false);
         }
@@ -425,6 +528,7 @@ const initBuiltInIconPicker = async () => {
     $('#fv-icon-third-party-toggle').attr('aria-expanded', 'false');
     setBuiltInIconPickerOpen(false);
     setThirdPartyIconPickerOpen(false);
+    setIconUploadStatus('');
     renderBuiltInIconPicker();
     renderThirdPartyFolderList();
     renderThirdPartyIconGrid();

@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.14.1">
-<!ENTITY md5 "496c5fbcd85e3eb1a3cd1cc3b0d666c8">
+<!ENTITY version "2026.03.05.2">
+<!ENTITY md5 "bcc4b93c672957573b66bc2730502ab7">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.05
+- Automated release metadata update.
+
 
 ###2026.03.14.1
 - Move 3rd-party icon storage to a packaged image path:

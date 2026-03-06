@@ -31,6 +31,7 @@ if ! command -v node >/dev/null 2>&1; then
 fi
 
 ARCHIVE_LIST="$(tar -tf "${ARCHIVE_FILE}")"
+ARCHIVE_LIST_NORMALIZED="$(printf '%s\n' "${ARCHIVE_LIST}" | sed 's#^\./##')"
 if grep -q '^./local/' <<< "${ARCHIVE_LIST}"; then
   echo "ERROR: Archive contains invalid top-level './local/' paths." >&2
   exit 1
@@ -55,7 +56,8 @@ REQUIRED_ARCHIVE_ENTRIES=(
 )
 
 for required_entry in "${REQUIRED_ARCHIVE_ENTRIES[@]}"; do
-  if ! grep -Fxq "${required_entry}" <<< "${ARCHIVE_LIST}"; then
+  normalized_required_entry="${required_entry#./}"
+  if ! grep -Fxq "${normalized_required_entry}" <<< "${ARCHIVE_LIST_NORMALIZED}"; then
     echo "ERROR: Missing required archive entry: ${required_entry}" >&2
     exit 1
   fi

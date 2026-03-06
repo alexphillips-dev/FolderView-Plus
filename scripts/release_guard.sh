@@ -61,6 +61,7 @@ if [[ ! -f "${SOURCE_FOLDER_CSS}" ]]; then
 fi
 
 ARCHIVE_LIST="$(tar -tf "${ARCHIVE_FILE}")"
+ARCHIVE_LIST_NORMALIZED="$(printf '%s\n' "${ARCHIVE_LIST}" | sed 's#^\./##')"
 
 if grep -q '^./local/' <<< "${ARCHIVE_LIST}"; then
   echo "ERROR: Archive contains invalid top-level './local/' paths. Must install under './usr/local/'." >&2
@@ -73,7 +74,8 @@ REQUIRED_ARCHIVE_PATHS=(
 )
 
 for required_path in "${REQUIRED_ARCHIVE_PATHS[@]}"; do
-  if ! grep -Fxq "${required_path}" <<< "${ARCHIVE_LIST}"; then
+  normalized_required_path="${required_path#./}"
+  if ! grep -Fxq "${normalized_required_path}" <<< "${ARCHIVE_LIST_NORMALIZED}"; then
     echo "ERROR: Missing required archive entry: ${required_path}" >&2
     exit 1
   fi
@@ -87,8 +89,16 @@ fi
 TMP_ARCHIVE_FOLDER_JS="$(mktemp)"
 TMP_ARCHIVE_FOLDER_CSS="$(mktemp)"
 trap 'rm -f "${TMP_ARCHIVE_FOLDER_JS}" "${TMP_ARCHIVE_FOLDER_CSS}"' EXIT
-tar -xOf "${ARCHIVE_FILE}" "./usr/local/emhttp/plugins/folderview.plus/scripts/folder.js" > "${TMP_ARCHIVE_FOLDER_JS}"
-tar -xOf "${ARCHIVE_FILE}" "./usr/local/emhttp/plugins/folderview.plus/styles/folder.css" > "${TMP_ARCHIVE_FOLDER_CSS}"
+ARCHIVE_FOLDER_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folder.js"
+ARCHIVE_FOLDER_CSS_PATH="./usr/local/emhttp/plugins/folderview.plus/styles/folder.css"
+if ! grep -Fxq "${ARCHIVE_FOLDER_JS_PATH}" <<< "${ARCHIVE_LIST}"; then
+  ARCHIVE_FOLDER_JS_PATH="${ARCHIVE_FOLDER_JS_PATH#./}"
+fi
+if ! grep -Fxq "${ARCHIVE_FOLDER_CSS_PATH}" <<< "${ARCHIVE_LIST}"; then
+  ARCHIVE_FOLDER_CSS_PATH="${ARCHIVE_FOLDER_CSS_PATH#./}"
+fi
+tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_FOLDER_JS_PATH}" > "${TMP_ARCHIVE_FOLDER_JS}"
+tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_FOLDER_CSS_PATH}" > "${TMP_ARCHIVE_FOLDER_CSS}"
 
 if ! grep -q 'fv-force-left-v2 marker' "${TMP_ARCHIVE_FOLDER_JS}"; then
   echo "ERROR: Packaged folder.js is missing the alignment regression marker comment." >&2

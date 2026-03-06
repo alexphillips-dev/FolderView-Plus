@@ -47,7 +47,10 @@ Markdown="false"
                         <button type="button" id="fv-icon-picker-toggle"><i class="fa fa-th-large" aria-hidden="true"></i> Built-in icons</button>
                         <button type="button" id="fv-icon-third-party-toggle"><i class="fa fa-folder-open-o" aria-hidden="true"></i> 3rd Party icons</button>
                         <button type="button" id="fv-icon-picker-default"><i class="fa fa-folder-open-o" aria-hidden="true"></i> Use default icon</button>
+                        <button type="button" id="fv-icon-upload"><i class="fa fa-arrow-up" aria-hidden="true"></i> Upload</button>
                     </div>
+                    <input type="file" id="fv-icon-upload-file" accept=".png,.jpg,.jpeg,.gif,.webp,.svg,.bmp,.ico,.avif" hidden>
+                    <div id="fv-icon-upload-status" class="fv-icon-upload-status" aria-live="polite"></div>
                     <div id="fv-icon-picker-panel" class="fv-icon-picker-panel" hidden>
                         <div class="fv-icon-picker-toolbar">
                             <input type="text" id="fv-icon-picker-search" placeholder="Search built-in icons">
@@ -77,6 +80,8 @@ Markdown="false"
                     <a href="https://forums.unraid.net/topic/92824-icon-collections-for-docker-folder-plugin/" target="_blank">Thread with some icons</a>.
                     <br>
                     For 3rd-party icon folders, place files under <b>/usr/local/emhttp/plugins/folderview.plus/images/third-party-icons/&lt;folder-name&gt;/</b>.
+                    <br>
+                    Uploaded custom icons are saved in <b>/usr/local/emhttp/plugins/folderview.plus/images/custom/</b>.
                     <br>
                     You can click the icon of the Docker/VM to set the folder icon.
                 </p>

@@ -30,7 +30,10 @@ else
 fi
 
 filename="$CWD/archive/$archive_prefix-$version.txz"
-dayversion=$(ls "$CWD/archive/$archive_prefix-$version"*.txz 2>/dev/null | wc -l)
+shopt -s nullglob
+existing_day_builds=("$CWD/archive/$archive_prefix-$version"*.txz)
+dayversion=${#existing_day_builds[@]}
+shopt -u nullglob
 
 if [ $dayversion -gt 0 ]
 then

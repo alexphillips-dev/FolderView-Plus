@@ -30,6 +30,27 @@ function sanitizeThirdPartySegment(string $value, string $label): string {
     return $trimmed;
 }
 
+function sanitizeThirdPartyFolderPath(string $value, string $label): string {
+    $trimmed = trim(str_replace('\\', '/', $value));
+    if ($trimmed === '' || strlen($trimmed) > 240) {
+        throw new RuntimeException("$label is required.");
+    }
+    if (strpos($trimmed, '..') !== false) {
+        throw new RuntimeException("Invalid $label.");
+    }
+    $parts = array_values(array_filter(explode('/', $trimmed), static function (string $segment): bool {
+        return $segment !== '';
+    }));
+    if (count($parts) === 0 || count($parts) > 6) {
+        throw new RuntimeException("Invalid $label.");
+    }
+    $safeParts = [];
+    foreach ($parts as $part) {
+        $safeParts[] = sanitizeThirdPartySegment($part, $label);
+    }
+    return implode('/', $safeParts);
+}
+
 function isAllowedThirdPartyIconFile(string $filename): bool {
     $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
     return $extension !== '' && in_array($extension, FVPLUS_THIRD_PARTY_ICON_EXTENSIONS, true);
@@ -51,6 +72,27 @@ function thirdPartyIconMimeType(string $filename): string {
     return $map[$extension] ?? 'application/octet-stream';
 }
 
+function countSupportedIconsInDirectory(string $directory): int {
+    if (!is_dir($directory)) {
+        return 0;
+    }
+    $count = 0;
+    $items = @scandir($directory) ?: [];
+    foreach ($items as $name) {
+        if ($name === '.' || $name === '..') {
+            continue;
+        }
+        if ($name !== basename($name)) {
+            continue;
+        }
+        $path = "$directory/$name";
+        if (is_file($path) && isAllowedThirdPartyIconFile($name)) {
+            $count += 1;
+        }
+    }
+    return $count;
+}
+
 function listThirdPartyFolders(): array {
     $baseDir = ensureThirdPartyIconsDirExists();
     $folders = [];
@@ -62,28 +104,45 @@ function listThirdPartyFolders(): array {
         if ($name !== basename($name)) {
             continue;
         }
-        $folderPath = "$baseDir/$name";
+        try {
+            $safeName = sanitizeThirdPartySegment($name, 'Folder');
+        } catch (Throwable $_error) {
+            continue;
+        }
+        $folderPath = "$baseDir/$safeName";
         if (!is_dir($folderPath)) {
             continue;
         }
-        $iconCount = 0;
-        $folderItems = @scandir($folderPath) ?: [];
-        foreach ($folderItems as $file) {
-            if ($file === '.' || $file === '..') {
-                continue;
-            }
-            if ($file !== basename($file)) {
-                continue;
-            }
-            $filePath = "$folderPath/$file";
-            if (is_file($filePath) && isAllowedThirdPartyIconFile($file)) {
-                $iconCount += 1;
-            }
+        $iconCount = countSupportedIconsInDirectory($folderPath);
+        if ($iconCount > 0) {
+            $folders[] = [
+                'name' => $safeName,
+                'iconCount' => $iconCount
+            ];
         }
-        $folders[] = [
-            'name' => $name,
-            'iconCount' => $iconCount
-        ];
+        $folderItems = @scandir($folderPath) ?: [];
+        foreach ($folderItems as $subName) {
+            if ($subName === '.' || $subName === '..') {
+                continue;
+            }
+            if ($subName !== basename($subName)) {
+                continue;
+            }
+            try {
+                $safeSubName = sanitizeThirdPartySegment($subName, 'Folder');
+            } catch (Throwable $_error) {
+                continue;
+            }
+            $subPath = "$folderPath/$safeSubName";
+            if (!is_dir($subPath)) {
+                continue;
+            }
+            $subIconCount = countSupportedIconsInDirectory($subPath);
+            $folders[] = [
+                'name' => "$safeName/$safeSubName",
+                'iconCount' => $subIconCount
+            ];
+        }
     }
     usort($folders, static function (array $a, array $b): int {
         return strcasecmp((string)$a['name'], (string)$b['name']);
@@ -93,7 +152,7 @@ function listThirdPartyFolders(): array {
 
 function listThirdPartyIconsInFolder(string $folder): array {
     $baseDir = ensureThirdPartyIconsDirExists();
-    $safeFolder = sanitizeThirdPartySegment($folder, 'Folder');
+    $safeFolder = sanitizeThirdPartyFolderPath($folder, 'Folder');
     $folderPath = "$baseDir/$safeFolder";
     if (!is_dir($folderPath)) {
         throw new RuntimeException('Folder does not exist.');
@@ -134,7 +193,7 @@ function listThirdPartyIconsInFolder(string $folder): array {
 
 function resolveThirdPartyIconFilePath(string $folder, string $file): string {
     $baseDir = ensureThirdPartyIconsDirExists();
-    $safeFolder = sanitizeThirdPartySegment($folder, 'Folder');
+    $safeFolder = sanitizeThirdPartyFolderPath($folder, 'Folder');
     $safeFile = sanitizeThirdPartySegment($file, 'File');
     if (!isAllowedThirdPartyIconFile($safeFile)) {
         throw new RuntimeException('Unsupported icon file type.');

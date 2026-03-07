@@ -1723,6 +1723,7 @@ h2[data-fv-section].fv-search-match {
     align-items: flex-start;
     justify-content: flex-start;
     gap: 0.35rem 0.6rem;
+    overflow: visible;
 }
 
 .fv-action-buttons {
@@ -1733,11 +1734,35 @@ h2[data-fv-section].fv-search-match {
 
 .fv-action-status {
     font-size: 1.03rem;
-    opacity: 0.82;
-    max-width: min(70ch, calc(100% - 2.1rem));
+    opacity: 0.95;
+    position: absolute;
+    left: 0.1rem;
+    bottom: calc(100% + 0.35rem);
+    max-width: min(78ch, calc(100vw - 1.6rem));
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    background: rgba(11, 14, 18, 0.96);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.34);
+    padding: 0.22rem 0.58rem;
+    display: none;
+    pointer-events: none;
+}
+
+.fv-action-status.is-visible {
+    display: inline-flex;
+}
+
+.folder-empty-cell {
+    text-align: center;
+}
+
+.folder-empty-clear-filter {
+    margin-left: 0.45rem;
+    padding: 0.12rem 0.52rem;
+    font-size: 1.03rem;
 }
 
 body {
@@ -1775,7 +1800,7 @@ body {
     }
 
     .fv-action-status {
-        display: none;
+        display: none !important;
     }
 
     #fv-settings-topbar {

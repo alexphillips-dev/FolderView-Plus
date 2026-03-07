@@ -335,7 +335,13 @@ const setAdvancedTab = (tab, persist = true) => {
 };
 
 const setActionBarStatus = (text) => {
-    $('#fv-action-status').text(text || '');
+    const status = $('#fv-action-status');
+    if (!status.length) {
+        return;
+    }
+    const message = String(text || '').trim();
+    status.text(message);
+    status.toggleClass('is-visible', message !== '');
 };
 
 const updateActionBarSaveState = () => {
@@ -349,7 +355,7 @@ const updateActionBarSaveState = () => {
     saveButton.prop('disabled', count === 0);
     saveCloseButton.prop('disabled', count === 0);
     if (count === 0) {
-        setActionBarStatus('All changes are saved.');
+        setActionBarStatus('');
     } else {
         setActionBarStatus(`${count} unsaved field change${count === 1 ? '' : 's'} in this session.`);
     }
@@ -1087,7 +1093,7 @@ const initSettingsControls = () => {
                 <button type="button" id="fv-action-cancel"><i class="fa fa-undo"></i> Cancel</button>
                 <button type="button" id="fv-action-reset-section"><i class="fa fa-refresh"></i> Reset section</button>
             </div>
-            <span id="fv-action-status" class="fv-action-status">All changes are saved.</span>
+            <span id="fv-action-status" class="fv-action-status" aria-live="polite"></span>
         `;
     actionBar.html(actionBarHtml);
 
@@ -1885,6 +1891,20 @@ const toggleHealthSeverityFilter = (type = 'docker') => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     const current = normalizeHealthSeverityFilterMode(healthSeverityFilterByType[resolvedType]);
     healthSeverityFilterByType[resolvedType] = current === 'warn_critical' ? 'all' : 'warn_critical';
+    renderTable(resolvedType);
+};
+
+const clearFolderTableFilters = (type = 'docker') => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    if (filtersByType[resolvedType]) {
+        filtersByType[resolvedType].folders = '';
+        $(`#${resolvedType}-folder-filter`).val('');
+    }
+    healthFilterByType[resolvedType] = 'all';
+    healthSeverityFilterByType[resolvedType] = 'all';
+    if (resolvedType === 'docker') {
+        dockerUpdatesOnlyFilter = false;
+    }
     renderTable(resolvedType);
 };
 
@@ -3173,7 +3193,11 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             suffixes.push(getHealthSeverityFilterLabel(healthSeverityFilterMode));
         }
         const filterSuffix = suffixes.length ? ` (${suffixes.join(', ')})` : '';
-        return `<tr><td colspan="${TABLE_COLUMN_COUNT}">No folders match current filters${filterSuffix}.</td></tr>`;
+        const showClearFilters = Boolean(filter || healthFilterMode !== 'all' || (isDockerType && (dockerUpdatesOnlyFilter || healthSeverityFilterMode !== 'all')));
+        const clearButton = showClearFilters
+            ? `<button type="button" class="folder-empty-clear-filter" onclick="clearFolderTableFilters('${type}')">Clear filters</button>`
+            : '';
+        return `<tr><td colspan="${TABLE_COLUMN_COUNT}" class="folder-empty-cell">No folders match current filters${filterSuffix}. ${clearButton}</td></tr>`;
     }
     return rows.join('');
 };
@@ -5886,6 +5910,7 @@ window.toggleFolderPin = toggleFolderPin;
 window.copyFolderId = copyFolderId;
 window.toggleDockerUpdatesFilter = toggleDockerUpdatesFilter;
 window.toggleHealthSeverityFilter = toggleHealthSeverityFilter;
+window.clearFolderTableFilters = clearFolderTableFilters;
 window.setHealthFolderFilter = setHealthFolderFilter;
 window.runQuickSetupWizard = runQuickSetupWizard;
 window.setSettingsMode = setSettingsMode;

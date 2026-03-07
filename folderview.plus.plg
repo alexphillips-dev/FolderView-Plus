@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.07.01">
-<!ENTITY md5 "8d9458b5b46de3fc0479bd1133a4b85e">
+<!ENTITY version "2026.03.07.02">
+<!ENTITY md5 "71b80528149ec672453282244fe9da48">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.07.02
+- Fixed Docker Health chip filter workflow:
+  - added a `Clear filters` fallback action when a filter combination returns no rows,
+  - prevents getting stuck in an empty table state after enabling health-only filtering.
+- Improved settings action-pill UX:
+  - unsaved-change status now only appears when there are unsaved changes,
+  - moved status into a separate floating chip above the button pill so it no longer stretches the action bar.
 
 ###2026.03.07.01
 - Overhauled Docker folder `Health` column with clearer score chips:

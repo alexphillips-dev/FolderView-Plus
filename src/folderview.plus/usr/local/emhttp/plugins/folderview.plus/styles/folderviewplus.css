@@ -366,6 +366,7 @@
 
 .folder-table table td.resources-cell {
     font-size: 1.03rem;
+    white-space: normal;
 }
 
 /* Keep core table columns readable while giving Status enough room for side-by-side chips. */
@@ -455,6 +456,39 @@
 
 .health-chip.is-filter-active {
     box-shadow: 0 0 0 1px rgba(77, 163, 255, 0.45) inset;
+}
+
+.autostart-chip {
+    min-width: 132px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+}
+
+.autostart-chip i {
+    font-size: 1.03rem;
+}
+
+.vm-resource-stack {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.28rem;
+    flex-wrap: wrap;
+    max-width: 100%;
+}
+
+.vm-resource-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
+    padding: 0.08rem 0.42rem;
+}
+
+.vm-resource-label {
+    letter-spacing: 0.03em;
+    opacity: 0.86;
 }
 
 .folder-runtime-status {

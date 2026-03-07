@@ -118,11 +118,16 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /state\?\.manager === 'dockerman'/);
     assert.match(settingsJs, /state\?\.Updated === false/);
     assert.match(settingsJs, /const formatGiBFromKiB = \(kibValue\) =>/);
+    assert.match(settingsJs, /autostart-chip/);
+    assert.match(settingsJs, /vm-resource-stack/);
     assert.match(settingsJs, /const persistImportPresetStoreTypeToServer = async/);
     assert.match(settingsCss, /\.folder-action-btn\s*\{/);
     assert.match(settingsCss, /\.updates-chip\s*\{/);
     assert.match(settingsCss, /\.health-chip\s*\{/);
     assert.match(settingsCss, /\.health-chip\.is-filter-active\s*\{/);
+    assert.match(settingsCss, /\.autostart-chip\s*\{/);
+    assert.match(settingsCss, /\.vm-resource-stack\s*\{/);
+    assert.match(settingsCss, /\.vm-resource-chip\s*\{/);
     assert.match(settingsCss, /\.status-cell-content\s*\{/);
     assert.match(settingsCss, /\.status-chip-list\s*\{/);
     assert.match(settingsCss, /\.status-chip-list\s*\{[\s\S]*flex-wrap:\s*nowrap/);

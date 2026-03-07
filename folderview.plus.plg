@@ -6,12 +6,24 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.07.07">
-<!ENTITY md5 "7ff14a1e602ebbb4031cec66fb95a53e">
+<!ENTITY version "2026.03.07.08">
+<!ENTITY md5 "51ffbd52e2a6a8e46196bef821ee25ea">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.07.08
+- Improved VM `Autostart` chip clarity in Basic table:
+  - `All auto X/Y` when all VMs autostart,
+  - `Mixed X/Y` when some autostart,
+  - `Manual 0/Y` when none autostart,
+  - `Empty` for folders with no VMs.
+- Added autostart state icons and richer autostart tooltips with member previews.
+- Improved VM `Resources` column presentation:
+  - split into compact `CPU` and `RAM` chips for easier scanning,
+  - added detailed tooltip with total and per-VM average resources.
+- Added UI smoke assertions for new VM autostart/resource chip classes to reduce regressions.
 
 ###2026.03.07.07
 - Fixed Status column scrollbar issue in Basic tables:

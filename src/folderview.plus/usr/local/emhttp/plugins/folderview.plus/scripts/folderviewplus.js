@@ -3505,21 +3505,60 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
                 + `<td class="health-cell"><button type="button" class="folder-metric-chip health-chip ${healthStatus.className} ${healthFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(healthTitle)}" aria-label="${escapeHtml(healthTitle)}" onclick="toggleHealthSeverityFilter('${type}','${escapeHtml(healthStatus.severity)}')">${escapeHtml(healthStatus.text)}</button></td>`;
         } else {
             let autostartCount = 0;
+            const autostartMembers = [];
             let vcpusTotal = 0;
             let memoryKiBTotal = 0;
             for (const member of members) {
                 const vmInfo = infoByName[member] || {};
                 if (valueIsTruthy(vmInfo.autostart)) {
                     autostartCount += 1;
+                    autostartMembers.push(String(member));
                 }
                 vcpusTotal += Number(vmInfo.vcpus ?? vmInfo.nrVirtCpu ?? 0) || 0;
                 memoryKiBTotal += Number(vmInfo.memoryKiB ?? vmInfo.memory ?? vmInfo.maxMem ?? 0) || 0;
             }
-            const autostartText = `${autostartCount}/${members.length}`;
-            const resourceText = `${vcpusTotal} vCPU | ${formatGiBFromKiB(memoryKiBTotal)}`;
+            const membersCount = members.length;
+            const autostartRatio = `${autostartCount}/${membersCount}`;
+            let autostartClass = 'is-empty';
+            let autostartIcon = 'fa-circle-o';
+            let autostartText = 'Empty';
+            if (membersCount > 0 && autostartCount === membersCount) {
+                autostartClass = 'is-ok';
+                autostartIcon = 'fa-check-circle';
+                autostartText = `All auto ${autostartRatio}`;
+            } else if (membersCount > 0 && autostartCount > 0) {
+                autostartClass = 'is-paused';
+                autostartIcon = 'fa-adjust';
+                autostartText = `Mixed ${autostartRatio}`;
+            } else if (membersCount > 0) {
+                autostartClass = 'is-warning';
+                autostartIcon = 'fa-pause-circle';
+                autostartText = `Manual ${autostartRatio}`;
+            }
+            const autostartMembersPreview = autostartMembers.slice(0, 5).join(', ');
+            const autostartMembersExtra = autostartMembers.length > 5 ? ` (+${autostartMembers.length - 5} more)` : '';
+            const autostartTitle = membersCount <= 0
+                ? 'No VMs in this folder.'
+                : [
+                    `Autostart enabled: ${autostartCount}/${membersCount}`,
+                    autostartMembers.length > 0
+                        ? `Autostart VMs: ${autostartMembersPreview}${autostartMembersExtra}`
+                        : 'Autostart VMs: none'
+                ].join('\n');
+            const memoryTotalText = formatGiBFromKiB(memoryKiBTotal);
+            const avgVcpus = membersCount > 0 ? (vcpusTotal / membersCount) : 0;
+            const avgMemoryKiB = membersCount > 0 ? Math.round(memoryKiBTotal / membersCount) : 0;
+            const avgVcpusText = Number.isInteger(avgVcpus) ? String(avgVcpus) : avgVcpus.toFixed(1);
+            const avgMemoryText = formatGiBFromKiB(avgMemoryKiB);
+            const resourcesTitle = membersCount <= 0
+                ? 'No VMs in this folder.'
+                : [
+                    `Total: ${vcpusTotal} vCPU | ${memoryTotalText}`,
+                    `Average per VM: ${avgVcpusText} vCPU | ${avgMemoryText}`
+                ].join('\n');
             typeSpecificColumns = ''
-                + `<td class="autostart-cell"><span class="folder-metric-chip ${autostartCount > 0 ? 'is-ok' : 'is-empty'}">${escapeHtml(autostartText)}</span></td>`
-                + `<td class="resources-cell" title="${escapeHtml(resourceText)}">${escapeHtml(resourceText)}</td>`;
+                + `<td class="autostart-cell"><span class="folder-metric-chip autostart-chip ${autostartClass}" title="${escapeHtml(autostartTitle)}"><i class="fa ${autostartIcon}" aria-hidden="true"></i><span>${escapeHtml(autostartText)}</span></span></td>`
+                + `<td class="resources-cell"><span class="vm-resource-stack" title="${escapeHtml(resourcesTitle)}"><span class="folder-metric-chip vm-resource-chip ${vcpusTotal > 0 ? 'is-ok' : 'is-empty'}"><span class="vm-resource-label">CPU</span><span>${escapeHtml(String(vcpusTotal))}</span></span><span class="folder-metric-chip vm-resource-chip ${memoryKiBTotal > 0 ? 'is-ok' : 'is-empty'}"><span class="vm-resource-label">RAM</span><span>${escapeHtml(memoryTotalText)}</span></span></span></td>`;
         }
         rows.push(
             `<tr data-folder-id="${escapeHtml(id)}" tabindex="0" onkeydown="handleFolderRowKeydown('${type}','${escapeHtml(id)}',event)">`

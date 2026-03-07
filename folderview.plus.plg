@@ -6,12 +6,23 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.07.04">
-<!ENTITY md5 "957103bb46fb3e8862ad96fe803d9e14">
+<!ENTITY version "2026.03.07.05">
+<!ENTITY md5 "eb8d9857180f0db888158080189a0487">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.07.05
+- Refined Basic table `Status` column to render separate status chips per folder state instead of a single combined badge.
+- Each folder now shows only relevant chips:
+  - `Started`, `Paused`, and `Stopped` chips for active states,
+  - `Empty` chip for folders with no members.
+- Attention styling now applies only to the state chip that needs it (for example, stopped risk on the `Stopped` chip), not the whole status block.
+- Status-chip filtering now works by clicked state chip:
+  - click a state chip to filter folders by that state,
+  - click again to clear and show all.
+- Added layout polish for multi-chip status rendering and trend badge alignment.
 
 ###2026.03.07.04
 - Upgraded the Basic `Status` column with richer, user-controlled behavior:

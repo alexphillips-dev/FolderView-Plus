@@ -108,6 +108,8 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const toggleHealthSeverityFilter = \(type = 'docker', severity = 'all'\) =>/);
     assert.match(settingsJs, /window\.toggleHealthSeverityFilter = toggleHealthSeverityFilter;/);
     assert.match(settingsJs, /toggleHealthSeverityFilter\('\$\{type\}','\$\{escapeHtml\(healthStatus\.severity\)\}'\)/);
+    assert.match(settingsJs, /const folderMatchesStatusFilter = \(statusFilterMode, countsByState, totalMembers\) =>/);
+    assert.match(settingsJs, /toggleStatusFilter\('\$\{type\}','\$\{escapeHtml\(chip\.key\)\}'\)/);
     assert.match(settingsJs, /return 'good health';/);
     assert.match(settingsJs, /return 'warn health';/);
     assert.match(settingsJs, /return 'critical health';/);
@@ -121,6 +123,8 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsCss, /\.updates-chip\s*\{/);
     assert.match(settingsCss, /\.health-chip\s*\{/);
     assert.match(settingsCss, /\.health-chip\.is-filter-active\s*\{/);
+    assert.match(settingsCss, /\.status-cell-content\s*\{/);
+    assert.match(settingsCss, /\.status-chip-list\s*\{/);
     assert.match(settingsCss, /\.folder-metric-chip\.is-danger\s*\{/);
     assert.match(settingsCss, /\.folder-metric-chip\s*\{/);
     assert.match(settingsCss, /\.folder-pin-state,\s*[\s\S]*\.folder-metric-chip\s*\{/);

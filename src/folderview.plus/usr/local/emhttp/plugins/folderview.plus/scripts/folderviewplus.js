@@ -1488,21 +1488,21 @@ const normalizeStatusFilterMode = (value) => {
 
 const getStatusFilterLabel = (mode) => {
     if (mode === 'started') {
-        return 'started status';
+        return 'started folders';
     }
     if (mode === 'paused') {
-        return 'paused status';
+        return 'paused folders';
     }
     if (mode === 'stopped') {
-        return 'stopped status';
+        return 'stopped folders';
     }
     if (mode === 'mixed') {
-        return 'mixed status';
+        return 'mixed folders';
     }
     if (mode === 'empty') {
-        return 'empty status';
+        return 'empty folders';
     }
-    return 'all status';
+    return 'all folders';
 };
 
 const getItemRuntimeStateKind = (type, itemInfo) => {
@@ -1624,6 +1624,36 @@ const formatStatusDominantText = (statusKey, countsByState, totalMembers) => {
         ? Number(countsByState?.started || 0)
         : (statusKey === 'paused' ? Number(countsByState?.paused || 0) : Number(countsByState?.stopped || 0));
     return `${label} ${count}/${total}`;
+};
+
+const folderMatchesStatusFilter = (statusFilterMode, countsByState, totalMembers) => {
+    const mode = normalizeStatusFilterMode(statusFilterMode);
+    if (mode === 'all') {
+        return true;
+    }
+    const total = Number(totalMembers) || 0;
+    if (mode === 'empty') {
+        return total <= 0;
+    }
+    if (total <= 0) {
+        return false;
+    }
+    const started = Number(countsByState?.started || 0);
+    const paused = Number(countsByState?.paused || 0);
+    const stopped = Number(countsByState?.stopped || 0);
+    if (mode === 'started') {
+        return started > 0;
+    }
+    if (mode === 'paused') {
+        return paused > 0;
+    }
+    if (mode === 'stopped') {
+        return stopped > 0;
+    }
+    if (mode === 'mixed') {
+        return [started, paused, stopped].filter((value) => value > 0).length > 1;
+    }
+    return true;
 };
 
 const summarizeStatusMembers = (label, names, maxItems = 6) => {
@@ -3294,42 +3324,96 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
                 namesByState.stopped.push(String(member));
             }
         }
-        const statusKey = deriveFolderStatusKey(countsByState, members.length);
-        if (statusFilterMode !== 'all' && statusKey !== statusFilterMode) {
+        if (!folderMatchesStatusFilter(statusFilterMode, countsByState, members.length)) {
             continue;
         }
-
-        const statusClass = statusClassForKey(statusKey);
-        const statusText = statusPrefs.mode === 'dominant'
-            ? formatStatusDominantText(statusKey, countsByState, members.length)
-            : formatStatusSummaryText(countsByState, members.length);
-        const statusFilterActive = statusFilterMode === statusKey;
         const statusWarnThresholdInfo = resolveFolderStatusWarnThreshold(folder, statusPrefs.warnStoppedPercent);
         const statusWarnThreshold = statusWarnThresholdInfo.value;
         const stoppedPercent = members.length > 0 ? Math.round((countsByState.stopped / members.length) * 100) : 0;
-        const statusAttention = statusPrefs.attentionAccent === true
-            && members.length > 0
-            && (
-                (countsByState.started === 0 && countsByState.paused === 0 && countsByState.stopped > 0)
-                || stoppedPercent >= statusWarnThreshold
-            );
+        const allStopped = members.length > 0
+            && countsByState.started === 0
+            && countsByState.paused === 0
+            && countsByState.stopped > 0;
+        const pausedOnly = members.length > 0
+            && countsByState.started === 0
+            && countsByState.paused > 0
+            && countsByState.stopped === 0;
+        const stoppedAttention = statusPrefs.attentionAccent === true
+            && countsByState.stopped > 0
+            && (allStopped || stoppedPercent >= statusWarnThreshold);
+        const pausedAttention = statusPrefs.attentionAccent === true
+            && !stoppedAttention
+            && pausedOnly;
         const statusThresholdLabel = statusWarnThresholdInfo.source === 'folder'
             ? `Status warn threshold: ${statusWarnThreshold}% stopped (folder override).`
             : `Status warn threshold: ${statusWarnThreshold}% stopped (global default).`;
-        const statusHint = statusFilterActive
-            ? 'Click to show all statuses.'
-            : `Click to show ${statusLabelForKey(statusKey)} only.`;
-        const statusTitle = [
-            `Status: ${statusLabelForKey(statusKey)}`,
-            `Members: ${members.length} total`,
-            `${countsByState.started} started, ${countsByState.paused} paused, ${countsByState.stopped} stopped`,
-            `Stopped percentage: ${stoppedPercent}%`,
-            summarizeStatusMembers('Started items', namesByState.started),
-            summarizeStatusMembers('Paused items', namesByState.paused),
-            summarizeStatusMembers('Stopped items', namesByState.stopped),
-            statusThresholdLabel,
-            statusHint
-        ].join('\n');
+        const statusChips = [];
+        if (members.length <= 0) {
+            statusChips.push({
+                key: 'empty',
+                count: 0,
+                names: [],
+                attention: false
+            });
+        } else {
+            if (countsByState.started > 0) {
+                statusChips.push({
+                    key: 'started',
+                    count: countsByState.started,
+                    names: namesByState.started,
+                    attention: false
+                });
+            }
+            if (countsByState.paused > 0) {
+                statusChips.push({
+                    key: 'paused',
+                    count: countsByState.paused,
+                    names: namesByState.paused,
+                    attention: pausedAttention
+                });
+            }
+            if (countsByState.stopped > 0) {
+                statusChips.push({
+                    key: 'stopped',
+                    count: countsByState.stopped,
+                    names: namesByState.stopped,
+                    attention: stoppedAttention
+                });
+            }
+        }
+        const statusChipsHtml = `<span class="status-chip-list">${statusChips.map((chip) => {
+            const chipClass = statusClassForKey(chip.key);
+            const chipFilterActive = statusFilterMode === chip.key;
+            const chipHint = chipFilterActive
+                ? 'Click to show all statuses.'
+                : `Click to show folders with ${statusLabelForKey(chip.key).toLowerCase()} members.`;
+            const chipCountLabel = chip.key === 'empty'
+                ? 'No members in this folder.'
+                : `${chip.count} ${chip.key} member${chip.count === 1 ? '' : 's'}.`;
+            const chipMemberDetails = chip.key === 'started'
+                ? summarizeStatusMembers('Started items', namesByState.started)
+                : (chip.key === 'paused'
+                    ? summarizeStatusMembers('Paused items', namesByState.paused)
+                    : (chip.key === 'stopped'
+                        ? summarizeStatusMembers('Stopped items', namesByState.stopped)
+                        : 'Started items: none'));
+            const chipTitle = [
+                `Status: ${statusLabelForKey(chip.key)}`,
+                `Members: ${members.length} total`,
+                `${countsByState.started} started, ${countsByState.paused} paused, ${countsByState.stopped} stopped`,
+                chipCountLabel,
+                chipMemberDetails,
+                chip.key === 'stopped' ? `Stopped percentage: ${stoppedPercent}%` : '',
+                chip.key === 'stopped' ? statusThresholdLabel : '',
+                chipHint
+            ].filter(Boolean).join('\n');
+            const chipText = chip.key === 'empty'
+                ? 'Empty'
+                : (statusPrefs.mode === 'dominant'
+                    ? `${statusLabelForKey(chip.key)} ${chip.count}/${members.length}`
+                    : `${chip.count} ${chip.key}`);
+            return `<button type="button" class="folder-runtime-status status-chip ${chipClass} ${chip.attention ? 'is-attention' : ''} ${chipFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(chipTitle)}" aria-label="${escapeHtml(chipTitle)}" onclick="toggleStatusFilter('${type}','${escapeHtml(chip.key)}')"><span>${escapeHtml(chipText)}</span></button>`;
+        }).join('')}</span>`;
 
         let statusTrendHtml = '';
         if (statusPrefs.trendEnabled === true) {
@@ -3442,7 +3526,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             + `<td><span class="row-order-actions"><button title="Move up" aria-label="Move ${safeName} up" onclick="moveFolderRow('${type}','${escapeHtml(id)}',-1)"><i class="fa fa-chevron-up"></i></button><button title="Move down" aria-label="Move ${safeName} down" onclick="moveFolderRow('${type}','${escapeHtml(id)}',1)"><i class="fa fa-chevron-down"></i></button></span></td>`
             + `<td class="name-cell" title="${escapeHtml(id)}"><span class="name-cell-content"><img src="${safeIcon}" class="img" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"><span class="name-cell-text">${safeName}</span></span></td>`
             + `<td class="members-cell">${members.length}</td>`
-            + `<td class="status-cell"><button type="button" class="folder-runtime-status status-chip ${statusClass} ${statusAttention ? 'is-attention' : ''} ${statusFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(statusTitle)}" aria-label="${escapeHtml(statusTitle)}" onclick="toggleStatusFilter('${type}','${escapeHtml(statusKey)}')"><span>${escapeHtml(statusText)}</span></button>${statusTrendHtml}</td>`
+            + `<td class="status-cell"><span class="status-cell-content">${statusChipsHtml}${statusTrendHtml}</span></td>`
             + `<td class="rules-cell" title="${escapeHtml(ruleTitle)}">${escapeHtml(ruleText)}</td>`
             + `<td class="last-changed-cell" title="${escapeHtml(lastChangedRaw || '')}">${escapeHtml(lastChangedText)}</td>`
             + `<td class="pinned-cell"><span class="folder-pin-state ${pinnedClass}">${escapeHtml(pinnedText)}</span></td>`

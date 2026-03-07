@@ -108,6 +108,8 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const toggleHealthSeverityFilter = \(type = 'docker', severity = 'all'\) =>/);
     assert.match(settingsJs, /window\.toggleHealthSeverityFilter = toggleHealthSeverityFilter;/);
     assert.match(settingsJs, /toggleHealthSeverityFilter\('\$\{type\}','\$\{escapeHtml\(healthStatus\.severity\)\}'\)/);
+    assert.match(settingsJs, /const compactHoverLabel = 'Compact tab';/);
+    assert.match(settingsJs, /id="fv-advanced-compact" class="fv-advanced-compact" title="\$\{escapeHtml\(compactHoverLabel\)\}" aria-label="\$\{escapeHtml\(compactLabel\)\}"/);
     assert.match(settingsJs, /const folderMatchesStatusFilter = \(statusFilterMode, countsByState, totalMembers\) =>/);
     assert.match(settingsJs, /toggleStatusFilter\('\$\{type\}','\$\{escapeHtml\(chip\.key\)\}'\)/);
     assert.match(settingsJs, /return 'good health';/);
@@ -128,6 +130,9 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsCss, /\.autostart-chip\s*\{/);
     assert.match(settingsCss, /\.vm-resource-stack\s*\{/);
     assert.match(settingsCss, /\.vm-resource-chip\s*\{/);
+    assert.match(settingsCss, /\.vm-resource-chip\.is-cpu\s*\{/);
+    assert.match(settingsCss, /\.vm-resource-chip\.is-ram\s*\{/);
+    assert.match(settingsCss, /\.fv-advanced-compact i\s*\{/);
     assert.match(settingsCss, /\.status-cell-content\s*\{/);
     assert.match(settingsCss, /\.status-chip-list\s*\{/);
     assert.match(settingsCss, /\.status-chip-list\s*\{[\s\S]*flex-wrap:\s*nowrap/);

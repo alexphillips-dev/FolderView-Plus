@@ -484,11 +484,38 @@
     align-items: center;
     gap: 0.28rem;
     padding: 0.08rem 0.42rem;
+    min-width: 118px;
+    justify-content: center;
+}
+
+.vm-resource-chip i {
+    opacity: 0.9;
+    font-size: 1.03rem;
 }
 
 .vm-resource-label {
     letter-spacing: 0.03em;
     opacity: 0.86;
+}
+
+.vm-resource-value {
+    font-weight: 700;
+}
+
+.vm-resource-chip.is-cpu {
+    border-color: rgba(77, 163, 255, 0.58);
+    color: #b9dcff;
+    background: rgba(77, 163, 255, 0.12);
+}
+
+.vm-resource-chip.is-ram {
+    border-color: rgba(112, 224, 187, 0.56);
+    color: #9de6cf;
+    background: rgba(72, 177, 141, 0.14);
+}
+
+.vm-resource-chip.is-empty {
+    background: rgba(255, 255, 255, 0.03);
 }
 
 .folder-runtime-status {
@@ -1727,11 +1754,19 @@ a:focus-visible {
 }
 
 .fv-advanced-compact {
-    min-width: 0;
-    padding: 0.24rem 0.52rem;
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    padding: 0;
     border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.04);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fv-advanced-compact i {
     font-size: 1.03rem;
 }
 
@@ -2020,8 +2055,7 @@ body {
         gap: 0.35rem;
     }
 
-    .fv-advanced-tab,
-    .fv-advanced-compact {
+    .fv-advanced-tab {
         min-height: 36px;
         display: inline-flex;
         align-items: center;
@@ -2030,7 +2064,11 @@ body {
     }
 
     .fv-advanced-compact {
-        width: 100%;
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        min-height: 36px;
+        padding: 0;
     }
 
     h2[data-fv-section] {

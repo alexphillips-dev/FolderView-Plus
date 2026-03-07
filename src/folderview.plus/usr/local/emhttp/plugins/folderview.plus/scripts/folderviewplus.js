@@ -558,6 +558,7 @@ const renderAdvancedNav = () => {
     const allExpandedInTab = activeTabSections.length > 0
         && activeTabSections.every((section) => settingsUiState.expandedAdvancedSections.has(section.key));
     const compactLabel = allExpandedInTab ? 'Compact tab' : 'Expand tab';
+    const compactHoverLabel = 'Compact tab';
     const compactIcon = allExpandedInTab ? 'fa-compress' : 'fa-expand';
 
     container.html(`
@@ -565,7 +566,7 @@ const renderAdvancedNav = () => {
             <span class="fv-advanced-nav-label">Advanced sections</span>
             <div class="fv-advanced-controls">
                 <div class="fv-advanced-tabs">${tabsHtml}</div>
-                <button type="button" id="fv-advanced-compact" class="fv-advanced-compact"><i class="fa ${compactIcon}"></i> ${compactLabel}</button>
+                <button type="button" id="fv-advanced-compact" class="fv-advanced-compact" title="${escapeHtml(compactHoverLabel)}" aria-label="${escapeHtml(compactLabel)}"><i class="fa ${compactIcon}" aria-hidden="true"></i></button>
             </div>
         </div>
     `).show();
@@ -3558,7 +3559,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
                 ].join('\n');
             typeSpecificColumns = ''
                 + `<td class="autostart-cell"><span class="folder-metric-chip autostart-chip ${autostartClass}" title="${escapeHtml(autostartTitle)}"><i class="fa ${autostartIcon}" aria-hidden="true"></i><span>${escapeHtml(autostartText)}</span></span></td>`
-                + `<td class="resources-cell"><span class="vm-resource-stack" title="${escapeHtml(resourcesTitle)}"><span class="folder-metric-chip vm-resource-chip ${vcpusTotal > 0 ? 'is-ok' : 'is-empty'}"><span class="vm-resource-label">CPU</span><span>${escapeHtml(String(vcpusTotal))}</span></span><span class="folder-metric-chip vm-resource-chip ${memoryKiBTotal > 0 ? 'is-ok' : 'is-empty'}"><span class="vm-resource-label">RAM</span><span>${escapeHtml(memoryTotalText)}</span></span></span></td>`;
+                + `<td class="resources-cell"><span class="vm-resource-stack" title="${escapeHtml(resourcesTitle)}"><span class="folder-metric-chip vm-resource-chip is-cpu ${vcpusTotal > 0 ? '' : 'is-empty'}"><i class="fa fa-cogs" aria-hidden="true"></i><span class="vm-resource-label">CPU</span><span class="vm-resource-value">${escapeHtml(`${vcpusTotal} vCPU`)}</span></span><span class="folder-metric-chip vm-resource-chip is-ram ${memoryKiBTotal > 0 ? '' : 'is-empty'}"><i class="fa fa-hdd-o" aria-hidden="true"></i><span class="vm-resource-label">RAM</span><span class="vm-resource-value">${escapeHtml(memoryTotalText)}</span></span></span></td>`;
         }
         rows.push(
             `<tr data-folder-id="${escapeHtml(id)}" tabindex="0" onkeydown="handleFolderRowKeydown('${type}','${escapeHtml(id)}',event)">`

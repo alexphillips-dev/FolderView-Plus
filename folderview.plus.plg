@@ -6,12 +6,23 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.07.08">
-<!ENTITY md5 "51ffbd52e2a6a8e46196bef821ee25ea">
+<!ENTITY version "2026.03.07.09">
+<!ENTITY md5 "ae9eae3db77452f0c9f294b85a0de496">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.07.09
+- Refined VM `Resources` chips to a more modern chip style (aligned with Docker health chip visual quality):
+  - dedicated CPU and RAM chip themes,
+  - stronger value emphasis and icon-led scanning,
+  - improved tooltip readability for totals and per-VM averages.
+- Updated Advanced mode header compact control:
+  - compact toggle is now icon-only,
+  - hover tooltip now shows `Compact tab`,
+  - retained accessible aria label behavior for compact/expand state.
+- Updated responsive styling so icon-only compact control remains clean on smaller viewports.
 
 ###2026.03.07.08
 - Improved VM `Autostart` chip clarity in Basic table:

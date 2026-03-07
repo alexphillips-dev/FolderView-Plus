@@ -368,6 +368,28 @@
     font-size: 1.03rem;
 }
 
+/* Keep core table columns readable while giving Status enough room for side-by-side chips. */
+.folder-table table th:nth-child(1),
+.folder-table table td:nth-child(1) { width: 7%; }
+.folder-table table th:nth-child(2),
+.folder-table table td:nth-child(2) { width: 18%; }
+.folder-table table th:nth-child(3),
+.folder-table table td:nth-child(3) { width: 7%; }
+.folder-table table th:nth-child(4),
+.folder-table table td:nth-child(4) { width: 15%; }
+.folder-table table th:nth-child(5),
+.folder-table table td:nth-child(5) { width: 6%; }
+.folder-table table th:nth-child(6),
+.folder-table table td:nth-child(6) { width: 11%; }
+.folder-table table th:nth-child(7),
+.folder-table table td:nth-child(7) { width: 7%; }
+.folder-table table th:nth-child(8),
+.folder-table table td:nth-child(8) { width: 9%; }
+.folder-table table th:nth-child(9),
+.folder-table table td:nth-child(9) { width: 9%; }
+.folder-table table th:nth-child(10),
+.folder-table table td:nth-child(10) { width: 11%; }
+
 .folder-pin-state,
 .folder-metric-chip {
     display: inline-block;
@@ -443,7 +465,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    padding: 0.12rem 0.5rem;
+    padding: 0.08rem 0.42rem;
     border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 999px;
     font-size: 1.03rem;
@@ -462,16 +484,11 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.34rem;
+    gap: 0.28rem;
     flex-wrap: nowrap;
     white-space: nowrap;
-    overflow-x: auto;
-    overflow-y: hidden;
+    overflow: visible;
     max-width: 100%;
-}
-
-.status-chip-list::-webkit-scrollbar {
-    height: 4px;
 }
 
 .folder-runtime-status.status-chip {

@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.07.06">
-<!ENTITY md5 "e1ec47701777e93a8e361ee55c7d6511">
+<!ENTITY version "2026.03.07.07">
+<!ENTITY md5 "7ff14a1e602ebbb4031cec66fb95a53e">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.07.07
+- Fixed Status column scrollbar issue in Basic tables:
+  - removed per-row horizontal scrollers from status chips,
+  - kept chips left-to-right without forcing a row-level scroll bar.
+- Rebalanced table column widths so the Status column has enough space for side-by-side chips.
+- Tightened status chip spacing/padding for better fit while preserving readability.
 
 ###2026.03.07.06
 - Fixed Status chip spacing regression in Basic tables (Docker and VMs):

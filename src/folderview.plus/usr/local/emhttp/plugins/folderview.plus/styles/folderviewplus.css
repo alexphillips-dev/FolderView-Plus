@@ -452,7 +452,7 @@
 
 .status-cell-content {
     display: inline-flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
     gap: 0.34rem;
     max-width: 100%;
@@ -463,8 +463,15 @@
     align-items: center;
     justify-content: center;
     gap: 0.34rem;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
     max-width: 100%;
+}
+
+.status-chip-list::-webkit-scrollbar {
+    height: 4px;
 }
 
 .folder-runtime-status.status-chip {
@@ -506,6 +513,7 @@
 
 .status-cell-content .status-trend {
     margin-left: 0;
+    flex: 0 0 auto;
 }
 
 .status-trend i {

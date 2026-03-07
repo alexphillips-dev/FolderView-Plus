@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.07.05">
-<!ENTITY md5 "eb8d9857180f0db888158080189a0487">
+<!ENTITY version "2026.03.07.06">
+<!ENTITY md5 "e1ec47701777e93a8e361ee55c7d6511">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.07.06
+- Fixed Status chip spacing regression in Basic tables (Docker and VMs):
+  - status chips now stay left-to-right in a single row,
+  - removed vertical wrapping behavior that stacked chips up/down.
+- Kept per-state chip behavior and targeted attention styling while improving horizontal alignment.
+- Added regression coverage for no-wrap status-chip layout.
 
 ###2026.03.07.05
 - Refined Basic table `Status` column to render separate status chips per folder state instead of a single combined badge.

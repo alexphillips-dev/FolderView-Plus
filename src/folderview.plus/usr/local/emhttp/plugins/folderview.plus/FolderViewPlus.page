@@ -63,6 +63,19 @@ emitRequestTokenMetaTag();
                 <div class="settings-mini-card">
                     <div class="settings-mini-title">Layout</div>
                     <label class="setting-toggle"><input id="docker-hide-empty-folders" type="checkbox" onchange="changeVisibilityPref('docker', 'hideEmptyFolders', this.checked)"> Hide empty folders</label>
+                    <label class="setting-select" for="docker-status-mode">
+                        <span>Status mode</span>
+                        <select id="docker-status-mode" onchange="changeStatusPref('docker', 'mode', this.value)">
+                            <option value="summary">Summary</option>
+                            <option value="dominant">Dominant</option>
+                        </select>
+                    </label>
+                    <label class="setting-toggle"><input id="docker-status-trend-enabled" type="checkbox" onchange="changeStatusPref('docker', 'trendEnabled', this.checked)"> Trend indicator</label>
+                    <label class="setting-toggle"><input id="docker-status-attention-accent" type="checkbox" onchange="changeStatusPref('docker', 'attentionAccent', this.checked)"> Attention accent</label>
+                    <label id="docker-status-warn-threshold-row" class="setting-inline-number">
+                        <span>Status warn (%)</span>
+                        <input id="docker-status-warn-threshold" type="number" min="0" max="100" step="1" onchange="changeStatusPref('docker', 'warnStoppedPercent', this.value)">
+                    </label>
                     <div class="setting-note">Pin folders with the star button in the Actions column.</div>
                 </div>
                 <div class="settings-mini-card">
@@ -156,6 +169,19 @@ emitRequestTokenMetaTag();
                 <div class="settings-mini-card">
                     <div class="settings-mini-title">Layout</div>
                     <label class="setting-toggle"><input id="vm-hide-empty-folders" type="checkbox" onchange="changeVisibilityPref('vm', 'hideEmptyFolders', this.checked)"> Hide empty folders</label>
+                    <label class="setting-select" for="vm-status-mode">
+                        <span>Status mode</span>
+                        <select id="vm-status-mode" onchange="changeStatusPref('vm', 'mode', this.value)">
+                            <option value="summary">Summary</option>
+                            <option value="dominant">Dominant</option>
+                        </select>
+                    </label>
+                    <label class="setting-toggle"><input id="vm-status-trend-enabled" type="checkbox" onchange="changeStatusPref('vm', 'trendEnabled', this.checked)"> Trend indicator</label>
+                    <label class="setting-toggle"><input id="vm-status-attention-accent" type="checkbox" onchange="changeStatusPref('vm', 'attentionAccent', this.checked)"> Attention accent</label>
+                    <label id="vm-status-warn-threshold-row" class="setting-inline-number">
+                        <span>Status warn (%)</span>
+                        <input id="vm-status-warn-threshold" type="number" min="0" max="100" step="1" onchange="changeStatusPref('vm', 'warnStoppedPercent', this.value)">
+                    </label>
                     <div class="setting-note">Pin folders with the star button in the Actions column.</div>
                 </div>
                 <div class="settings-mini-card">

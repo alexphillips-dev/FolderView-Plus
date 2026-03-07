@@ -229,6 +229,12 @@ test('normalizePrefs includes live refresh, performance mode, and backup schedul
         compact: false,
         warnStoppedPercent: 60
     });
+    assert.deepEqual(prefs.status, {
+        mode: 'summary',
+        trendEnabled: true,
+        attentionAccent: true,
+        warnStoppedPercent: 60
+    });
     assert.equal(prefs.setupWizardCompleted, false);
     assert.equal(prefs.settingsMode, 'basic');
 });
@@ -281,6 +287,21 @@ test('normalizePrefs supports health card preferences and guards ranges', () => 
     assert.equal(prefs.health.runtimeBadgeEnabled, true);
     assert.equal(prefs.health.compact, true);
     assert.equal(prefs.health.warnStoppedPercent, 100);
+});
+
+test('normalizePrefs supports status column preferences and guards ranges', () => {
+    const prefs = utils.normalizePrefs({
+        status: {
+            mode: 'dominant',
+            trendEnabled: false,
+            attentionAccent: false,
+            warnStoppedPercent: 222
+        }
+    });
+    assert.equal(prefs.status.mode, 'dominant');
+    assert.equal(prefs.status.trendEnabled, false);
+    assert.equal(prefs.status.attentionAccent, false);
+    assert.equal(prefs.status.warnStoppedPercent, 100);
 });
 
 test('buildImportDiffRows reports row-level changed fields', () => {

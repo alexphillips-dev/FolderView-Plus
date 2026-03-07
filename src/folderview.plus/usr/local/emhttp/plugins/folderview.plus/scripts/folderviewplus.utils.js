@@ -28,6 +28,12 @@
         compact: false,
         warnStoppedPercent: 60
     };
+    const DEFAULT_STATUS_PREFS = {
+        mode: 'summary',
+        trendEnabled: true,
+        attentionAccent: true,
+        warnStoppedPercent: 60
+    };
     const RUNTIME_ACTIONS_BY_TYPE = {
         docker: ['start', 'stop', 'pause', 'resume'],
         vm: ['start', 'stop', 'pause', 'resume']
@@ -207,6 +213,24 @@
                 DEFAULT_HEALTH_PREFS.warnStoppedPercent
             )
         };
+        const incomingStatus = isPlainObject(incoming.status) ? incoming.status : {};
+        const status = {
+            mode: String(incomingStatus.mode || '').trim().toLowerCase() === 'dominant'
+                ? 'dominant'
+                : DEFAULT_STATUS_PREFS.mode,
+            trendEnabled: !Object.prototype.hasOwnProperty.call(incomingStatus, 'trendEnabled')
+                ? DEFAULT_STATUS_PREFS.trendEnabled
+                : incomingStatus.trendEnabled !== false,
+            attentionAccent: !Object.prototype.hasOwnProperty.call(incomingStatus, 'attentionAccent')
+                ? DEFAULT_STATUS_PREFS.attentionAccent
+                : incomingStatus.attentionAccent !== false,
+            warnStoppedPercent: clampNumber(
+                incomingStatus.warnStoppedPercent,
+                0,
+                100,
+                DEFAULT_STATUS_PREFS.warnStoppedPercent
+            )
+        };
         const pinnedFolderIds = normalizeStringIdList(incoming.pinnedFolderIds);
         const hideEmptyFolders = incoming.hideEmptyFolders === true;
         const setupWizardCompleted = incoming.setupWizardCompleted === true;
@@ -228,6 +252,7 @@
             lazyPreviewEnabled,
             lazyPreviewThreshold,
             health,
+            status,
             backupSchedule,
             importPresets
         };

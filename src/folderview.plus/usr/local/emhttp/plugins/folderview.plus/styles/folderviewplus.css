@@ -207,6 +207,20 @@
     min-height: 30px;
 }
 
+.setting-select {
+    display: grid;
+    gap: 0.2rem;
+    font-size: 1.03rem;
+}
+
+.setting-select > span {
+    opacity: 0.9;
+}
+
+.setting-select > select {
+    min-height: 30px;
+}
+
 .setting-note {
     font-size: 1.03rem;
     opacity: 0.74;
@@ -416,7 +430,9 @@
 }
 
 .folder-runtime-status {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
     max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -426,6 +442,68 @@
     border-radius: 999px;
     font-size: 1.03rem;
     opacity: 0.95;
+}
+
+.folder-runtime-status.status-chip {
+    cursor: pointer;
+    background: transparent;
+    text-align: left;
+}
+
+.folder-runtime-status.status-chip.is-filter-active {
+    box-shadow: 0 0 0 1px rgba(77, 163, 255, 0.45) inset;
+}
+
+.folder-runtime-status.status-chip:focus-visible {
+    outline: 2px solid rgba(77, 163, 255, 0.75);
+    outline-offset: 1px;
+}
+
+.folder-runtime-status.is-mixed {
+    border-color: rgba(123, 182, 255, 0.58);
+    color: #7bb6ff;
+}
+
+.folder-runtime-status.is-attention {
+    box-shadow: 0 0 0 1px rgba(255, 166, 0, 0.55), 0 0 0 3px rgba(255, 166, 0, 0.14);
+}
+
+.status-trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.22rem;
+    margin-left: 0.42rem;
+    padding: 0.08rem 0.42rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    font-size: 1.03rem;
+    opacity: 0.9;
+    white-space: nowrap;
+}
+
+.status-trend i {
+    font-size: 1.03rem;
+}
+
+.status-trend.is-up {
+    color: #93e19f;
+    border-color: rgba(147, 225, 159, 0.45);
+}
+
+.status-trend.is-down {
+    color: #ff7474;
+    border-color: rgba(255, 116, 116, 0.55);
+}
+
+.status-trend.is-neutral {
+    color: rgba(240, 240, 240, 0.9);
+    border-color: rgba(192, 192, 192, 0.4);
+}
+
+@media (max-width: 980px) {
+    .status-trend {
+        display: none;
+    }
 }
 
 .folder-runtime-status.is-started {

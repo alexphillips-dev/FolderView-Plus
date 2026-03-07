@@ -863,13 +863,34 @@ const validateHealthWarnThreshold = () => {
     return true;
 };
 
+const validateStatusWarnThreshold = () => {
+    const form = getForm();
+    const input = form.status_warn_stopped_percent;
+    if (!input) {
+        return true;
+    }
+    const raw = String(input.value || '').trim();
+    if (!raw) {
+        setFieldError('status_warn_stopped_percent', '');
+        return true;
+    }
+    const parsed = Number(raw);
+    if (!Number.isInteger(parsed) || parsed < 0 || parsed > 100) {
+        setFieldError('status_warn_stopped_percent', 'Threshold must be an integer between 0 and 100.');
+        return false;
+    }
+    setFieldError('status_warn_stopped_percent', '');
+    return true;
+};
+
 const validateForm = () => {
     const valid = [
         validateNameField(),
         validateRegexField(),
         validateFolderWebUiUrl(),
         validateContextGraphTime(),
-        validateHealthWarnThreshold()
+        validateHealthWarnThreshold(),
+        validateStatusWarnThreshold()
     ].every(Boolean);
 
     const summary = $('#fvValidationSummary');
@@ -1156,6 +1177,7 @@ const applySectionTags = () => {
     markSection('ul:has([name="preview_hover"])', 'preview');
     markSection('div.basic:has([name="status_color_started"])', 'preview');
     markSection('div.basic:has([name="health_warn_stopped_percent"])', 'preview');
+    markSection('div.basic:has([name="status_warn_stopped_percent"])', 'preview');
 
     markSection('div.basic.custom-action-wrapper-parent', 'actions');
     markSection('div.basic:has(a.custom-action)', 'actions');
@@ -1171,6 +1193,7 @@ const applySectionTags = () => {
     markAdvanced('ul:has([name="folder_webui_url"])');
     markAdvanced('ul:has([name="preview_hover"])');
     markAdvanced('div.basic:has([name="health_warn_stopped_percent"])');
+    markAdvanced('div.basic:has([name="status_warn_stopped_percent"])');
     markAdvanced('div.basic:has([name="update_column"])');
     markAdvanced('div.basic:has([name="override_default_actions"])');
     markAdvanced('div.basic:has([name="default_action"])');
@@ -1361,6 +1384,11 @@ resetStatusColorDefaults();
             || currFolder.settings.health_warn_stopped_percent === ''
             ? ''
             : String(currFolder.settings.health_warn_stopped_percent);
+        form.status_warn_stopped_percent.value = currFolder.settings.status_warn_stopped_percent === undefined
+            || currFolder.settings.status_warn_stopped_percent === null
+            || currFolder.settings.status_warn_stopped_percent === ''
+            ? ''
+            : String(currFolder.settings.status_warn_stopped_percent);
         form.update_column.checked = currFolder.settings.update_column || false;
         form.default_action.checked = currFolder.settings.default_action || false;
         form.expand_tab.checked = currFolder.settings.expand_tab;
@@ -1634,6 +1662,16 @@ const submitForm = async (e, saveAsCopy = false) => {
             }
             return Math.min(100, Math.max(0, Math.round(parsed)));
         })();
+    const statusWarnThresholdRaw = String(e.status_warn_stopped_percent?.value || '').trim();
+    const statusWarnThreshold = statusWarnThresholdRaw === ''
+        ? ''
+        : (() => {
+            const parsed = Number(statusWarnThresholdRaw);
+            if (!Number.isFinite(parsed)) {
+                return '';
+            }
+            return Math.min(100, Math.max(0, Math.round(parsed)));
+        })();
     // this is easy, no need for a comment :)
     const folder = {
         name: e.name.value.toString().trim(),
@@ -1661,6 +1699,7 @@ const submitForm = async (e, saveAsCopy = false) => {
             status_color_paused: normalizeHexColor(e.status_color_paused.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.paused),
             status_color_stopped: normalizeHexColor(e.status_color_stopped.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.stopped),
             health_warn_stopped_percent: healthWarnThreshold,
+            status_warn_stopped_percent: statusWarnThreshold,
             update_column: e.update_column.checked,
             default_action: e.default_action.checked,
             expand_tab: e.expand_tab.checked,

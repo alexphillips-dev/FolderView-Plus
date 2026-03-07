@@ -739,6 +739,12 @@
                 'compact' => false,
                 'warnStoppedPercent' => 60
             ],
+            'status' => [
+                'mode' => 'summary',
+                'trendEnabled' => true,
+                'attentionAccent' => true,
+                'warnStoppedPercent' => 60
+            ],
             'backupSchedule' => [
                 'enabled' => false,
                 'intervalHours' => 24,
@@ -907,6 +913,21 @@
             'runtimeBadgeEnabled' => normalizeBool($healthIncoming['runtimeBadgeEnabled'] ?? false, false),
             'compact' => normalizeBool($healthIncoming['compact'] ?? false, false),
             'warnStoppedPercent' => normalizeIntInRange($healthIncoming['warnStoppedPercent'] ?? 60, 0, 100, 60)
+        ];
+        $statusIncoming = is_array($prefs['status'] ?? null) ? $prefs['status'] : [];
+        $statusMode = strtolower(trim((string)($statusIncoming['mode'] ?? 'summary')));
+        if (!in_array($statusMode, ['summary', 'dominant'], true)) {
+            $statusMode = 'summary';
+        }
+        $normalized['status'] = [
+            'mode' => $statusMode,
+            'trendEnabled' => !array_key_exists('trendEnabled', $statusIncoming)
+                ? true
+                : normalizeBool($statusIncoming['trendEnabled'], true),
+            'attentionAccent' => !array_key_exists('attentionAccent', $statusIncoming)
+                ? true
+                : normalizeBool($statusIncoming['attentionAccent'], true),
+            'warnStoppedPercent' => normalizeIntInRange($statusIncoming['warnStoppedPercent'] ?? 60, 0, 100, 60)
         ];
 
         $scheduleIncoming = is_array($prefs['backupSchedule'] ?? null) ? $prefs['backupSchedule'] : [];
@@ -3083,6 +3104,14 @@
                     'runtimeBadgeEnabled' => normalizeBool($prefs['health']['runtimeBadgeEnabled'] ?? false, false),
                     'compact' => normalizeBool($prefs['health']['compact'] ?? false, false),
                     'warnStoppedPercent' => normalizeIntInRange($prefs['health']['warnStoppedPercent'] ?? 60, 0, 100, 60)
+                ],
+                'status' => [
+                    'mode' => in_array(strtolower(trim((string)($prefs['status']['mode'] ?? 'summary'))), ['summary', 'dominant'], true)
+                        ? strtolower(trim((string)($prefs['status']['mode'] ?? 'summary')))
+                        : 'summary',
+                    'trendEnabled' => normalizeBool($prefs['status']['trendEnabled'] ?? true, true),
+                    'attentionAccent' => normalizeBool($prefs['status']['attentionAccent'] ?? true, true),
+                    'warnStoppedPercent' => normalizeIntInRange($prefs['status']['warnStoppedPercent'] ?? 60, 0, 100, 60)
                 ],
                 'backupSchedule' => getTypeBackupSchedule($type),
                 'lastBackup' => $backups[0] ?? null,

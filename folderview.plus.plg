@@ -6,12 +6,26 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.07.03">
-<!ENTITY md5 "d04e5d29c08ab3639d85e4d7645795e6">
+<!ENTITY version "2026.03.07.04">
+<!ENTITY md5 "957103bb46fb3e8862ad96fe803d9e14">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.07.04
+- Upgraded the Basic `Status` column with richer, user-controlled behavior:
+  - added `Summary` vs `Dominant` display modes,
+  - added optional trend indicators to show status movement between renders,
+  - added optional attention accent for high-risk states.
+- Added per-type global status warning thresholds (Docker and VM) in settings.
+- Added per-folder status warning threshold override in folder editor:
+  - optional `Status warn threshold (%)` (blank uses global threshold).
+- Added exact click-to-filter behavior on Status chips:
+  - clicking a status now filters to only that status group,
+  - clicking again clears that status filter.
+- Added detailed status tooltips with counts, member samples, threshold source, and filter hint text.
+- Added status snapshot/compare plumbing and normalization guards to reduce future regressions.
 
 ###2026.03.07.03
 - Fixed Health chip filtering behavior in Docker folder table:

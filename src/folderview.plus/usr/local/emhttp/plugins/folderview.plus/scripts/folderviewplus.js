@@ -57,6 +57,14 @@ let healthSeverityFilterByType = {
     docker: 'all',
     vm: 'all'
 };
+let statusFilterByType = {
+    docker: 'all',
+    vm: 'all'
+};
+let statusSnapshotByType = {
+    docker: {},
+    vm: {}
+};
 let dockerUpdatesOnlyFilter = false;
 let importSelectionState = null;
 let importDiffPagingState = {
@@ -1456,6 +1464,47 @@ const normalizeHealthPrefs = (type, prefsOverride = null) => {
     };
 };
 
+const normalizeStatusMode = (value) => (
+    String(value || '').trim().toLowerCase() === 'dominant' ? 'dominant' : 'summary'
+);
+
+const normalizeStatusPrefs = (type, prefsOverride = null) => {
+    const source = prefsOverride ? utils.normalizePrefs(prefsOverride) : utils.normalizePrefs(prefsByType[type]);
+    const incoming = source?.status && typeof source.status === 'object' ? source.status : {};
+    const warnRaw = Number(incoming.warnStoppedPercent);
+    const warnStoppedPercent = Number.isFinite(warnRaw) ? Math.min(100, Math.max(0, Math.round(warnRaw))) : 60;
+    return {
+        mode: normalizeStatusMode(incoming.mode),
+        trendEnabled: incoming.trendEnabled !== false,
+        attentionAccent: incoming.attentionAccent !== false,
+        warnStoppedPercent
+    };
+};
+
+const normalizeStatusFilterMode = (value) => {
+    const mode = String(value || 'all').trim().toLowerCase();
+    return ['all', 'started', 'paused', 'stopped', 'mixed', 'empty'].includes(mode) ? mode : 'all';
+};
+
+const getStatusFilterLabel = (mode) => {
+    if (mode === 'started') {
+        return 'started status';
+    }
+    if (mode === 'paused') {
+        return 'paused status';
+    }
+    if (mode === 'stopped') {
+        return 'stopped status';
+    }
+    if (mode === 'mixed') {
+        return 'mixed status';
+    }
+    if (mode === 'empty') {
+        return 'empty status';
+    }
+    return 'all status';
+};
+
 const getItemRuntimeStateKind = (type, itemInfo) => {
     const source = itemInfo && typeof itemInfo === 'object' ? itemInfo : {};
     if (type === 'vm') {
@@ -1489,6 +1538,149 @@ const valueIsTruthy = (value) => {
     }
     const text = String(value || '').trim().toLowerCase();
     return text === 'true' || text === '1' || text === 'yes' || text === 'on' || text === 'enabled';
+};
+
+const deriveFolderStatusKey = (countsByState, totalMembers) => {
+    const total = Number(totalMembers) || 0;
+    if (total <= 0) {
+        return 'empty';
+    }
+    const started = Number(countsByState?.started || 0);
+    const paused = Number(countsByState?.paused || 0);
+    const stopped = Number(countsByState?.stopped || 0);
+    const nonZeroKinds = [started, paused, stopped].filter((value) => value > 0).length;
+    if (nonZeroKinds > 1) {
+        return 'mixed';
+    }
+    if (started > 0) {
+        return 'started';
+    }
+    if (paused > 0) {
+        return 'paused';
+    }
+    return 'stopped';
+};
+
+const statusClassForKey = (statusKey) => {
+    if (statusKey === 'started') {
+        return 'is-started';
+    }
+    if (statusKey === 'paused') {
+        return 'is-paused';
+    }
+    if (statusKey === 'stopped') {
+        return 'is-stopped';
+    }
+    if (statusKey === 'mixed') {
+        return 'is-mixed';
+    }
+    return 'is-empty';
+};
+
+const statusLabelForKey = (statusKey) => {
+    if (statusKey === 'started') {
+        return 'Started';
+    }
+    if (statusKey === 'paused') {
+        return 'Paused';
+    }
+    if (statusKey === 'stopped') {
+        return 'Stopped';
+    }
+    if (statusKey === 'mixed') {
+        return 'Mixed';
+    }
+    return 'Empty';
+};
+
+const formatStatusSummaryText = (countsByState, totalMembers) => {
+    const total = Number(totalMembers) || 0;
+    if (total <= 0) {
+        return 'Empty';
+    }
+    const parts = [];
+    if ((countsByState?.started || 0) > 0) {
+        parts.push(`${countsByState.started} started`);
+    }
+    if ((countsByState?.paused || 0) > 0) {
+        parts.push(`${countsByState.paused} paused`);
+    }
+    if ((countsByState?.stopped || 0) > 0) {
+        parts.push(`${countsByState.stopped} stopped`);
+    }
+    return parts.join(' | ');
+};
+
+const formatStatusDominantText = (statusKey, countsByState, totalMembers) => {
+    const total = Number(totalMembers) || 0;
+    if (total <= 0) {
+        return 'Empty';
+    }
+    const label = statusLabelForKey(statusKey);
+    if (statusKey === 'mixed') {
+        return 'Mixed';
+    }
+    const count = statusKey === 'started'
+        ? Number(countsByState?.started || 0)
+        : (statusKey === 'paused' ? Number(countsByState?.paused || 0) : Number(countsByState?.stopped || 0));
+    return `${label} ${count}/${total}`;
+};
+
+const summarizeStatusMembers = (label, names, maxItems = 6) => {
+    const list = Array.isArray(names) ? names : [];
+    if (!list.length) {
+        return `${label}: none`;
+    }
+    const preview = list.slice(0, maxItems).join(', ');
+    const extra = list.length > maxItems ? ` (+${list.length - maxItems} more)` : '';
+    return `${label}: ${preview}${extra}`;
+};
+
+const resolveFolderStatusWarnThreshold = (folder, fallbackThreshold) => {
+    const safeFallback = Number.isFinite(Number(fallbackThreshold))
+        ? Math.min(100, Math.max(0, Math.round(Number(fallbackThreshold))))
+        : 60;
+    const settings = (folder && typeof folder.settings === 'object' && folder.settings !== null)
+        ? folder.settings
+        : {};
+    const raw = settings.status_warn_stopped_percent;
+    if (raw === '' || raw === null || raw === undefined) {
+        return { value: safeFallback, source: 'global' };
+    }
+    const parsed = Number(raw);
+    if (!Number.isFinite(parsed)) {
+        return { value: safeFallback, source: 'global' };
+    }
+    return {
+        value: Math.min(100, Math.max(0, Math.round(parsed))),
+        source: 'folder'
+    };
+};
+
+const buildStatusSnapshot = (type, folders, memberSnapshot, infoByName) => {
+    const snapshot = {};
+    for (const [id] of Object.entries(folders || {})) {
+        const members = Array.isArray(memberSnapshot?.[id]?.members) ? memberSnapshot[id].members : [];
+        const countsByState = { started: 0, paused: 0, stopped: 0 };
+        for (const member of members) {
+            const runtimeState = getItemRuntimeStateKind(type, infoByName[member] || {});
+            if (runtimeState === 'started') {
+                countsByState.started += 1;
+            } else if (runtimeState === 'paused') {
+                countsByState.paused += 1;
+            } else {
+                countsByState.stopped += 1;
+            }
+        }
+        snapshot[String(id)] = {
+            total: members.length,
+            started: countsByState.started,
+            paused: countsByState.paused,
+            stopped: countsByState.stopped,
+            statusKey: deriveFolderStatusKey(countsByState, members.length)
+        };
+    }
+    return snapshot;
 };
 
 const isDockerUpdateAvailable = (itemInfo) => {
@@ -1911,6 +2103,14 @@ const toggleHealthSeverityFilter = (type = 'docker', severity = 'all') => {
     renderTable(resolvedType);
 };
 
+const toggleStatusFilter = (type = 'docker', statusKey = 'all') => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const target = normalizeStatusFilterMode(statusKey);
+    const current = normalizeStatusFilterMode(statusFilterByType[resolvedType]);
+    statusFilterByType[resolvedType] = current === target ? 'all' : target;
+    renderTable(resolvedType);
+};
+
 const clearFolderTableFilters = (type = 'docker') => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     if (filtersByType[resolvedType]) {
@@ -1919,6 +2119,7 @@ const clearFolderTableFilters = (type = 'docker') => {
     }
     healthFilterByType[resolvedType] = 'all';
     healthSeverityFilterByType[resolvedType] = 'all';
+    statusFilterByType[resolvedType] = 'all';
     if (resolvedType === 'docker') {
         dockerUpdatesOnlyFilter = false;
     }
@@ -3047,14 +3248,19 @@ const offerUndoAction = async (type, backup, actionLabel) => {
     });
 };
 
-const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = false, healthMetrics = null) => {
+const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = false, healthMetrics = null, statusContext = null) => {
     const isDockerType = type === 'docker';
     const TABLE_COLUMN_COUNT = 10;
     const dockerHealthPrefs = isDockerType ? normalizeHealthPrefs('docker') : null;
+    const statusPrefs = normalizeStatusPrefs(type);
     const rows = [];
     const filter = normalizedFilter(filtersByType[type]?.folders);
     const healthFilterMode = normalizeHealthFilterMode(healthFilterByType[type]);
     const healthSeverityFilterMode = normalizeHealthSeverityFilterMode(healthSeverityFilterByType[type]);
+    const statusFilterMode = normalizeStatusFilterMode(statusFilterByType[type]);
+    const previousStatusSnapshot = statusContext?.previous && typeof statusContext.previous === 'object'
+        ? statusContext.previous
+        : {};
     for (const [id, folder] of Object.entries(folders)) {
         const nameText = String(folder.name || '');
         const haystack = `${String(id)} ${nameText}`.toLowerCase();
@@ -3074,36 +3280,83 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         const safeIcon = escapeHtml(folder.icon || '');
         const infoByName = infoByType[type] || {};
         const countsByState = { started: 0, paused: 0, stopped: 0 };
+        const namesByState = { started: [], paused: [], stopped: [] };
         for (const member of members) {
             const runtimeState = getItemRuntimeStateKind(type, infoByName[member] || {});
             if (runtimeState === 'started') {
                 countsByState.started += 1;
+                namesByState.started.push(String(member));
             } else if (runtimeState === 'paused') {
                 countsByState.paused += 1;
+                namesByState.paused.push(String(member));
             } else {
                 countsByState.stopped += 1;
+                namesByState.stopped.push(String(member));
             }
         }
-        let statusText = 'Empty';
-        let statusClass = 'is-empty';
-        if (members.length > 0) {
-            const segments = [];
-            if (countsByState.started > 0) {
-                segments.push(`${countsByState.started} started`);
-            }
-            if (countsByState.paused > 0) {
-                segments.push(`${countsByState.paused} paused`);
-            }
-            if (countsByState.stopped > 0) {
-                segments.push(`${countsByState.stopped} stopped`);
-            }
-            statusText = segments.join(' | ');
-            if (countsByState.started > 0) {
-                statusClass = 'is-started';
-            } else if (countsByState.paused > 0) {
-                statusClass = 'is-paused';
-            } else {
-                statusClass = 'is-stopped';
+        const statusKey = deriveFolderStatusKey(countsByState, members.length);
+        if (statusFilterMode !== 'all' && statusKey !== statusFilterMode) {
+            continue;
+        }
+
+        const statusClass = statusClassForKey(statusKey);
+        const statusText = statusPrefs.mode === 'dominant'
+            ? formatStatusDominantText(statusKey, countsByState, members.length)
+            : formatStatusSummaryText(countsByState, members.length);
+        const statusFilterActive = statusFilterMode === statusKey;
+        const statusWarnThresholdInfo = resolveFolderStatusWarnThreshold(folder, statusPrefs.warnStoppedPercent);
+        const statusWarnThreshold = statusWarnThresholdInfo.value;
+        const stoppedPercent = members.length > 0 ? Math.round((countsByState.stopped / members.length) * 100) : 0;
+        const statusAttention = statusPrefs.attentionAccent === true
+            && members.length > 0
+            && (
+                (countsByState.started === 0 && countsByState.paused === 0 && countsByState.stopped > 0)
+                || stoppedPercent >= statusWarnThreshold
+            );
+        const statusThresholdLabel = statusWarnThresholdInfo.source === 'folder'
+            ? `Status warn threshold: ${statusWarnThreshold}% stopped (folder override).`
+            : `Status warn threshold: ${statusWarnThreshold}% stopped (global default).`;
+        const statusHint = statusFilterActive
+            ? 'Click to show all statuses.'
+            : `Click to show ${statusLabelForKey(statusKey)} only.`;
+        const statusTitle = [
+            `Status: ${statusLabelForKey(statusKey)}`,
+            `Members: ${members.length} total`,
+            `${countsByState.started} started, ${countsByState.paused} paused, ${countsByState.stopped} stopped`,
+            `Stopped percentage: ${stoppedPercent}%`,
+            summarizeStatusMembers('Started items', namesByState.started),
+            summarizeStatusMembers('Paused items', namesByState.paused),
+            summarizeStatusMembers('Stopped items', namesByState.stopped),
+            statusThresholdLabel,
+            statusHint
+        ].join('\n');
+
+        let statusTrendHtml = '';
+        if (statusPrefs.trendEnabled === true) {
+            const previousStatus = previousStatusSnapshot[String(id)] || null;
+            if (previousStatus) {
+                const deltaStarted = countsByState.started - Number(previousStatus.started || 0);
+                const deltaPaused = countsByState.paused - Number(previousStatus.paused || 0);
+                const deltaStopped = countsByState.stopped - Number(previousStatus.stopped || 0);
+                let trendClass = '';
+                let trendIcon = '';
+                let trendText = '';
+                if (deltaStarted > 0 && deltaStopped <= 0) {
+                    trendClass = 'is-up';
+                    trendIcon = 'fa-arrow-up';
+                    trendText = `+${deltaStarted} started`;
+                } else if (deltaStopped > 0 && deltaStarted <= 0) {
+                    trendClass = 'is-down';
+                    trendIcon = 'fa-arrow-down';
+                    trendText = `+${deltaStopped} stopped`;
+                } else if (deltaPaused !== 0 || deltaStarted !== 0 || deltaStopped !== 0) {
+                    trendClass = deltaStopped > deltaStarted ? 'is-down' : 'is-up';
+                    trendIcon = trendClass === 'is-down' ? 'fa-exchange' : 'fa-random';
+                    trendText = `S:${deltaStarted >= 0 ? '+' : ''}${deltaStarted} P:${deltaPaused >= 0 ? '+' : ''}${deltaPaused} X:${deltaStopped >= 0 ? '+' : ''}${deltaStopped}`;
+                }
+                if (trendText) {
+                    statusTrendHtml = `<span class="status-trend ${trendClass}" aria-label="${escapeHtml(`Status trend ${trendText}`)}"><i class="fa ${trendIcon}" aria-hidden="true"></i><span>${escapeHtml(trendText)}</span></span>`;
+                }
             }
         }
         const folderRules = (prefsByType[type]?.autoRules || []).filter((rule) => String(rule?.folderId || '') === String(id));
@@ -3189,7 +3442,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             + `<td><span class="row-order-actions"><button title="Move up" aria-label="Move ${safeName} up" onclick="moveFolderRow('${type}','${escapeHtml(id)}',-1)"><i class="fa fa-chevron-up"></i></button><button title="Move down" aria-label="Move ${safeName} down" onclick="moveFolderRow('${type}','${escapeHtml(id)}',1)"><i class="fa fa-chevron-down"></i></button></span></td>`
             + `<td class="name-cell" title="${escapeHtml(id)}"><span class="name-cell-content"><img src="${safeIcon}" class="img" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"><span class="name-cell-text">${safeName}</span></span></td>`
             + `<td class="members-cell">${members.length}</td>`
-            + `<td class="status-cell"><span class="folder-runtime-status ${statusClass}">${escapeHtml(statusText)}</span></td>`
+            + `<td class="status-cell"><button type="button" class="folder-runtime-status status-chip ${statusClass} ${statusAttention ? 'is-attention' : ''} ${statusFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(statusTitle)}" aria-label="${escapeHtml(statusTitle)}" onclick="toggleStatusFilter('${type}','${escapeHtml(statusKey)}')"><span>${escapeHtml(statusText)}</span></button>${statusTrendHtml}</td>`
             + `<td class="rules-cell" title="${escapeHtml(ruleTitle)}">${escapeHtml(ruleText)}</td>`
             + `<td class="last-changed-cell" title="${escapeHtml(lastChangedRaw || '')}">${escapeHtml(lastChangedText)}</td>`
             + `<td class="pinned-cell"><span class="folder-pin-state ${pinnedClass}">${escapeHtml(pinnedText)}</span></td>`
@@ -3209,8 +3462,16 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         if (isDockerType && healthSeverityFilterMode !== 'all') {
             suffixes.push(getHealthSeverityFilterLabel(healthSeverityFilterMode));
         }
+        if (statusFilterMode !== 'all') {
+            suffixes.push(getStatusFilterLabel(statusFilterMode));
+        }
         const filterSuffix = suffixes.length ? ` (${suffixes.join(', ')})` : '';
-        const showClearFilters = Boolean(filter || healthFilterMode !== 'all' || (isDockerType && (dockerUpdatesOnlyFilter || healthSeverityFilterMode !== 'all')));
+        const showClearFilters = Boolean(
+            filter
+            || healthFilterMode !== 'all'
+            || statusFilterMode !== 'all'
+            || (isDockerType && (dockerUpdatesOnlyFilter || healthSeverityFilterMode !== 'all'))
+        );
         const clearButton = showClearFilters
             ? `<button type="button" class="folder-empty-clear-filter" onclick="clearFolderTableFilters('${type}')">Clear filters</button>`
             : '';
@@ -3340,6 +3601,14 @@ const renderRuntimeControls = (type) => {
     $(`#${type}-lazy-preview-enabled`).prop('checked', prefs.lazyPreviewEnabled === true);
     $(`#${type}-lazy-preview-threshold`).val(String(prefs.lazyPreviewThreshold || 30));
     syncRuntimeDependentFields(type);
+};
+
+const renderStatusControls = (type) => {
+    const status = normalizeStatusPrefs(type);
+    $(`#${type}-status-mode`).val(status.mode);
+    $(`#${type}-status-trend-enabled`).prop('checked', status.trendEnabled === true);
+    $(`#${type}-status-attention-accent`).prop('checked', status.attentionAccent === true);
+    $(`#${type}-status-warn-threshold`).val(String(status.warnStoppedPercent));
 };
 
 const renderHealthControls = (type) => {
@@ -3765,6 +4034,7 @@ const buildBackupPrefsDiff = (leftPrefs, rightPrefs) => {
         { key: 'lazyPreviewEnabled', label: 'Lazy previews' },
         { key: 'lazyPreviewThreshold', label: 'Lazy preview threshold' },
         { key: 'health', label: 'Health card settings' },
+        { key: 'status', label: 'Status column settings' },
         { key: 'backupSchedule', label: 'Backup schedule' },
         { key: 'importPresets', label: 'Import preset settings' }
     ];
@@ -4063,6 +4333,10 @@ const renderTable = (type) => {
     const folders = getFolderMap(type);
     const ordered = utils.orderFoldersByPrefs(folders, prefsByType[type]);
     const memberSnapshot = getEffectiveMemberSnapshot(type, ordered);
+    const previousStatusSnapshot = statusSnapshotByType[type] && typeof statusSnapshotByType[type] === 'object'
+        ? statusSnapshotByType[type]
+        : {};
+    const nextStatusSnapshot = buildStatusSnapshot(type, ordered, memberSnapshot, infoByType[type] || {});
     const healthMetrics = buildTypeHealthMetrics(type, ordered, memberSnapshot, prefsByType[type]);
     healthMetricsByType[type] = healthMetrics;
     const hideEmptyFolders = utils.normalizePrefs(prefsByType[type]).hideEmptyFolders === true;
@@ -4070,11 +4344,16 @@ const renderTable = (type) => {
     const sortMode = prefsByType[type]?.sortMode || 'created';
     $(`#${type}-sort-mode`).val(sortMode);
     const tbodyId = tableIdByType[type];
-    $(`tbody#${tbodyId}`).html(buildRowsHtml(type, ordered, memberSnapshot, hideEmptyFolders, healthMetrics));
+    $(`tbody#${tbodyId}`).html(buildRowsHtml(type, ordered, memberSnapshot, hideEmptyFolders, healthMetrics, {
+        previous: previousStatusSnapshot,
+        current: nextStatusSnapshot
+    }));
+    statusSnapshotByType[type] = nextStatusSnapshot;
 
     renderFolderSelectOptions(type);
     renderBadgeToggles(type);
     renderRuntimeControls(type);
+    renderStatusControls(type);
     renderHealthControls(type);
     renderVisibilityControls(type);
     renderBackupScheduleControls(type);
@@ -4491,6 +4770,44 @@ const changeVisibilityPref = async (type, key, checked) => {
         renderTable(type);
     } catch (error) {
         showError('Visibility preference save failed', error);
+    }
+};
+
+const changeStatusPref = async (type, key, value) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const current = utils.normalizePrefs(prefsByType[resolvedType]);
+    const currentStatus = normalizeStatusPrefs(resolvedType, current);
+    const nextStatus = {
+        ...currentStatus
+    };
+
+    if (key === 'mode') {
+        nextStatus.mode = normalizeStatusMode(value);
+    } else if (key === 'trendEnabled') {
+        nextStatus.trendEnabled = value === true;
+    } else if (key === 'attentionAccent') {
+        nextStatus.attentionAccent = value === true;
+    } else if (key === 'warnStoppedPercent') {
+        const parsed = Number(value);
+        nextStatus.warnStoppedPercent = Number.isFinite(parsed)
+            ? Math.min(100, Math.max(0, Math.round(parsed)))
+            : currentStatus.warnStoppedPercent;
+    } else {
+        return;
+    }
+
+    const next = {
+        ...current,
+        status: nextStatus
+    };
+
+    try {
+        prefsByType[resolvedType] = await postPrefs(resolvedType, next);
+        renderStatusControls(resolvedType);
+        renderTable(resolvedType);
+    } catch (error) {
+        renderStatusControls(resolvedType);
+        showError('Status preferences save failed', error);
     }
 };
 
@@ -5881,6 +6198,7 @@ window.rollbackLatestCheckpoint = rollbackLatestCheckpoint;
 window.changeSortMode = changeSortMode;
 window.changeBadgePref = changeBadgePref;
 window.changeVisibilityPref = changeVisibilityPref;
+window.changeStatusPref = changeStatusPref;
 window.changeRuntimePref = changeRuntimePref;
 window.changeHealthPref = changeHealthPref;
 window.changeBackupSchedulePref = changeBackupSchedulePref;
@@ -5927,6 +6245,7 @@ window.toggleFolderPin = toggleFolderPin;
 window.copyFolderId = copyFolderId;
 window.toggleDockerUpdatesFilter = toggleDockerUpdatesFilter;
 window.toggleHealthSeverityFilter = toggleHealthSeverityFilter;
+window.toggleStatusFilter = toggleStatusFilter;
 window.clearFolderTableFilters = clearFolderTableFilters;
 window.setHealthFolderFilter = setHealthFolderFilter;
 window.runQuickSetupWizard = runQuickSetupWizard;

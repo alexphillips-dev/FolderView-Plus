@@ -105,9 +105,13 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /window\.copyFolderId = copyFolderId;/);
     assert.match(settingsJs, /window\.toggleDockerUpdatesFilter = toggleDockerUpdatesFilter;/);
     assert.match(settingsJs, /const evaluateDockerFolderHealth = \(folder, members, countsByState, updateCount, fallbackWarnThreshold\) =>/);
-    assert.match(settingsJs, /const toggleHealthSeverityFilter = \(type = 'docker'\) =>/);
+    assert.match(settingsJs, /const toggleHealthSeverityFilter = \(type = 'docker', severity = 'all'\) =>/);
     assert.match(settingsJs, /window\.toggleHealthSeverityFilter = toggleHealthSeverityFilter;/);
-    assert.match(settingsJs, /warn\/critical health/);
+    assert.match(settingsJs, /toggleHealthSeverityFilter\('\$\{type\}','\$\{escapeHtml\(healthStatus\.severity\)\}'\)/);
+    assert.match(settingsJs, /return 'good health';/);
+    assert.match(settingsJs, /return 'warn health';/);
+    assert.match(settingsJs, /return 'critical health';/);
+    assert.match(settingsJs, /return 'empty health';/);
     assert.match(settingsJs, /const isDockerUpdateAvailable = \(itemInfo\) =>/);
     assert.match(settingsJs, /state\?\.manager === 'dockerman'/);
     assert.match(settingsJs, /state\?\.Updated === false/);

@@ -1774,13 +1774,29 @@ const setFilterQuery = (section, type, value) => {
     }
 };
 
-const normalizeHealthSeverityFilterMode = (mode) => (
-    mode === 'warn_critical' ? 'warn_critical' : 'all'
-);
+const normalizeHealthSeverityFilterMode = (mode) => {
+    const normalized = String(mode || '').trim().toLowerCase();
+    if (normalized === 'good' || normalized === 'warn' || normalized === 'critical' || normalized === 'empty') {
+        return normalized;
+    }
+    return 'all';
+};
 
-const getHealthSeverityFilterLabel = (mode) => (
-    mode === 'warn_critical' ? 'warn/critical health' : 'all health'
-);
+const getHealthSeverityFilterLabel = (mode) => {
+    if (mode === 'good') {
+        return 'good health';
+    }
+    if (mode === 'warn') {
+        return 'warn health';
+    }
+    if (mode === 'critical') {
+        return 'critical health';
+    }
+    if (mode === 'empty') {
+        return 'empty health';
+    }
+    return 'all health';
+};
 
 const resolveFolderWarnThreshold = (folder, fallbackThreshold) => {
     const safeFallback = Number.isFinite(Number(fallbackThreshold))
@@ -1887,10 +1903,11 @@ const toggleDockerUpdatesFilter = (hasUpdatesInRow = false) => {
     });
 };
 
-const toggleHealthSeverityFilter = (type = 'docker') => {
+const toggleHealthSeverityFilter = (type = 'docker', severity = 'all') => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const target = normalizeHealthSeverityFilterMode(severity);
     const current = normalizeHealthSeverityFilterMode(healthSeverityFilterByType[resolvedType]);
-    healthSeverityFilterByType[resolvedType] = current === 'warn_critical' ? 'all' : 'warn_critical';
+    healthSeverityFilterByType[resolvedType] = current === target ? 'all' : target;
     renderTable(resolvedType);
 };
 
@@ -3138,17 +3155,17 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
                 updateCount,
                 Number(dockerHealthPrefs?.warnStoppedPercent) || 60
             );
-            if (healthSeverityFilterMode === 'warn_critical' && !healthStatus.isAlert) {
+            if (healthSeverityFilterMode !== 'all' && healthStatus.severity !== healthSeverityFilterMode) {
                 continue;
             }
-            const healthFilterActive = healthSeverityFilterMode === 'warn_critical';
+            const healthFilterActive = healthSeverityFilterMode === healthStatus.severity;
             const healthToggleHint = healthFilterActive
                 ? 'Click to show all folders.'
-                : 'Click to show Warn/Critical folders only.';
+                : `Click to show ${healthStatus.text} folders only.`;
             const healthTitle = [...healthStatus.details, healthToggleHint].join('\n');
             typeSpecificColumns = ''
                 + `<td class="updates-cell"><button type="button" class="folder-metric-chip updates-chip ${updateClass} ${dockerUpdatesOnlyFilter ? 'is-filter-active' : ''}" title="${escapeHtml(updateTitle)}" aria-label="${escapeHtml(updateTitle)}" onclick="toggleDockerUpdatesFilter(${updateCount > 0 ? 'true' : 'false'})"><i class="fa ${updateIcon}" aria-hidden="true"></i><span>${escapeHtml(updateText)}</span></button></td>`
-                + `<td class="health-cell"><button type="button" class="folder-metric-chip health-chip ${healthStatus.className} ${healthFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(healthTitle)}" aria-label="${escapeHtml(healthTitle)}" onclick="toggleHealthSeverityFilter('${type}')">${escapeHtml(healthStatus.text)}</button></td>`;
+                + `<td class="health-cell"><button type="button" class="folder-metric-chip health-chip ${healthStatus.className} ${healthFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(healthTitle)}" aria-label="${escapeHtml(healthTitle)}" onclick="toggleHealthSeverityFilter('${type}','${escapeHtml(healthStatus.severity)}')">${escapeHtml(healthStatus.text)}</button></td>`;
         } else {
             let autostartCount = 0;
             let vcpusTotal = 0;

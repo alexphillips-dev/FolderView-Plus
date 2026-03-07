@@ -6,12 +6,21 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.07.02">
-<!ENTITY md5 "71b80528149ec672453282244fe9da48">
+<!ENTITY version "2026.03.07.03">
+<!ENTITY md5 "d04e5d29c08ab3639d85e4d7645795e6">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.07.03
+- Fixed Health chip filtering behavior in Docker folder table:
+  - clicking `Good` now filters to only `Good`,
+  - clicking `Warn` now filters to only `Warn`,
+  - clicking `Critical` now filters to only `Critical`,
+  - clicking `Empty` now filters to only `Empty`.
+- Clicking the same Health chip again clears that specific Health filter and returns to all folders.
+- Kept the clear-filters fallback action for empty results to ensure recovery without page refresh.
 
 ###2026.03.07.02
 - Fixed Docker Health chip filter workflow:

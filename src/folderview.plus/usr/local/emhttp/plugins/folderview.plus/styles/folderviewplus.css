@@ -757,6 +757,21 @@
     background: rgba(255, 255, 255, 0.015);
 }
 
+/* Advanced modules keep a consistent default viewport and scroll only when needed. */
+:root {
+    --fv-advanced-module-height: clamp(340px, 56vh, 620px);
+}
+
+h2[data-fv-advanced="1"] + .rules-panel,
+h2[data-fv-advanced="1"] + .rules-bottom-grid .rules-panel,
+h2[data-fv-advanced="1"] + .bulk-assign-grid .rules-panel,
+h2[data-fv-advanced="1"] + .backup-grid .rules-panel,
+h2[data-fv-advanced="1"] + .template-grid .rules-panel {
+    height: var(--fv-advanced-module-height);
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
 .rules-bottom-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -1754,9 +1769,9 @@ a:focus-visible {
 }
 
 .fv-advanced-compact {
-    width: 34px;
-    height: 34px;
-    min-width: 34px;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
     padding: 0;
     border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 999px;
@@ -1767,7 +1782,7 @@ a:focus-visible {
 }
 
 .fv-advanced-compact i {
-    font-size: 1.03rem;
+    font-size: 0.95rem;
 }
 
 h2[data-fv-section] {
@@ -2064,10 +2079,10 @@ body {
     }
 
     .fv-advanced-compact {
-        width: 36px;
-        height: 36px;
-        min-width: 36px;
-        min-height: 36px;
+        width: 30px;
+        height: 30px;
+        min-width: 30px;
+        min-height: 30px;
         padding: 0;
     }
 

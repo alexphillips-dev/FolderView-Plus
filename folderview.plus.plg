@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.07.09">
-<!ENTITY md5 "ae9eae3db77452f0c9f294b85a0de496">
+<!ENTITY version "2026.03.07.10">
+<!ENTITY md5 "60a424a4d30a8c6341913bf7d6078c46">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.07.10
+- Reduced Advanced header compact-toggle button size for a cleaner icon-only control.
+- Added default-sized advanced module viewports with auto vertical scrolling only when content exceeds the module height.
+- Applied overflow guard to all advanced modules (including Docker/VM backup modules) so long content no longer runs indefinitely down the page.
+- Added regression assertions for advanced module sizing/scroll behavior.
 
 ###2026.03.07.09
 - Refined VM `Resources` chips to a more modern chip style (aligned with Docker health chip visual quality):

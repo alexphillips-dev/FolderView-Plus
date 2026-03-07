@@ -133,6 +133,9 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsCss, /\.vm-resource-chip\.is-cpu\s*\{/);
     assert.match(settingsCss, /\.vm-resource-chip\.is-ram\s*\{/);
     assert.match(settingsCss, /\.fv-advanced-compact i\s*\{/);
+    assert.match(settingsCss, /--fv-advanced-module-height:\s*clamp\(/);
+    assert.match(settingsCss, /h2\[data-fv-advanced="1"\] \+ \.backup-grid \.rules-panel[\s\S]*overflow-y:\s*auto/);
+    assert.match(settingsCss, /\.fv-advanced-compact\s*\{[\s\S]*width:\s*28px/);
     assert.match(settingsCss, /\.status-cell-content\s*\{/);
     assert.match(settingsCss, /\.status-chip-list\s*\{/);
     assert.match(settingsCss, /\.status-chip-list\s*\{[\s\S]*flex-wrap:\s*nowrap/);

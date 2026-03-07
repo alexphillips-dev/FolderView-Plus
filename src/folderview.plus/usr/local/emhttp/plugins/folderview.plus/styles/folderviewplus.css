@@ -406,6 +406,15 @@
     box-shadow: 0 0 0 1px rgba(77, 163, 255, 0.45) inset;
 }
 
+.health-chip {
+    cursor: pointer;
+    background: transparent;
+}
+
+.health-chip.is-filter-active {
+    box-shadow: 0 0 0 1px rgba(77, 163, 255, 0.45) inset;
+}
+
 .folder-runtime-status {
     display: inline-block;
     max-width: 100%;

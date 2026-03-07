@@ -445,6 +445,23 @@ emitRequestTokenMetaTag();
 
         <div class="basic" constraint="docker">
             <dl>
+                <dt>Health warn threshold (%):</dt>
+                <dd>
+                    <img class="img" style="visibility: hidden;">
+                    <input type="number" name="health_warn_stopped_percent" min="0" max="100" step="1" placeholder="Use global threshold">
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <p>
+                    Optional per-folder override for the stopped percentage warning threshold used in the Health column.
+                    <br>
+                    Leave blank to use the global Docker Health threshold.
+                </p>
+            </blockquote>
+        </div>
+
+        <div class="basic" constraint="docker">
+            <dl>
                 <dt data-i18n="update-column">Hide update column:</dt>
                 <dd>
                     <input class="basic-switch" name="update_column" type="checkbox" style="display: none;" />

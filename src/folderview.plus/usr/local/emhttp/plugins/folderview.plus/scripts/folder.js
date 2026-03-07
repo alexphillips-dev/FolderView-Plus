@@ -843,12 +843,33 @@ const validateContextGraphTime = () => {
     return true;
 };
 
+const validateHealthWarnThreshold = () => {
+    const form = getForm();
+    const input = form.health_warn_stopped_percent;
+    if (!input) {
+        return true;
+    }
+    const raw = String(input.value || '').trim();
+    if (!raw) {
+        setFieldError('health_warn_stopped_percent', '');
+        return true;
+    }
+    const parsed = Number(raw);
+    if (!Number.isInteger(parsed) || parsed < 0 || parsed > 100) {
+        setFieldError('health_warn_stopped_percent', 'Threshold must be an integer between 0 and 100.');
+        return false;
+    }
+    setFieldError('health_warn_stopped_percent', '');
+    return true;
+};
+
 const validateForm = () => {
     const valid = [
         validateNameField(),
         validateRegexField(),
         validateFolderWebUiUrl(),
-        validateContextGraphTime()
+        validateContextGraphTime(),
+        validateHealthWarnThreshold()
     ].every(Boolean);
 
     const summary = $('#fvValidationSummary');
@@ -1134,6 +1155,7 @@ const applySectionTags = () => {
     markSection('div.basic:has([name="preview"])', 'preview');
     markSection('ul:has([name="preview_hover"])', 'preview');
     markSection('div.basic:has([name="status_color_started"])', 'preview');
+    markSection('div.basic:has([name="health_warn_stopped_percent"])', 'preview');
 
     markSection('div.basic.custom-action-wrapper-parent', 'actions');
     markSection('div.basic:has(a.custom-action)', 'actions');
@@ -1148,6 +1170,7 @@ const applySectionTags = () => {
 
     markAdvanced('ul:has([name="folder_webui_url"])');
     markAdvanced('ul:has([name="preview_hover"])');
+    markAdvanced('div.basic:has([name="health_warn_stopped_percent"])');
     markAdvanced('div.basic:has([name="update_column"])');
     markAdvanced('div.basic:has([name="override_default_actions"])');
     markAdvanced('div.basic:has([name="default_action"])');
@@ -1333,6 +1356,11 @@ resetStatusColorDefaults();
         form.status_color_started.value = normalizeHexColor(currFolder.settings.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started);
         form.status_color_paused.value = normalizeHexColor(currFolder.settings.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused);
         form.status_color_stopped.value = normalizeHexColor(currFolder.settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped);
+        form.health_warn_stopped_percent.value = currFolder.settings.health_warn_stopped_percent === undefined
+            || currFolder.settings.health_warn_stopped_percent === null
+            || currFolder.settings.health_warn_stopped_percent === ''
+            ? ''
+            : String(currFolder.settings.health_warn_stopped_percent);
         form.update_column.checked = currFolder.settings.update_column || false;
         form.default_action.checked = currFolder.settings.default_action || false;
         form.expand_tab.checked = currFolder.settings.expand_tab;
@@ -1596,6 +1624,16 @@ const submitForm = async (e, saveAsCopy = false) => {
         return false;
     }
     const actions = $('input[name*="custom_action"]').map((i, e) => JSON.parse(atob($(e).val()))).get();
+    const healthWarnThresholdRaw = String(e.health_warn_stopped_percent?.value || '').trim();
+    const healthWarnThreshold = healthWarnThresholdRaw === ''
+        ? ''
+        : (() => {
+            const parsed = Number(healthWarnThresholdRaw);
+            if (!Number.isFinite(parsed)) {
+                return '';
+            }
+            return Math.min(100, Math.max(0, Math.round(parsed)));
+        })();
     // this is easy, no need for a comment :)
     const folder = {
         name: e.name.value.toString().trim(),
@@ -1622,6 +1660,7 @@ const submitForm = async (e, saveAsCopy = false) => {
             status_color_started: normalizeHexColor(e.status_color_started.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.started),
             status_color_paused: normalizeHexColor(e.status_color_paused.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.paused),
             status_color_stopped: normalizeHexColor(e.status_color_stopped.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.stopped),
+            health_warn_stopped_percent: healthWarnThreshold,
             update_column: e.update_column.checked,
             default_action: e.default_action.checked,
             expand_tab: e.expand_tab.checked,

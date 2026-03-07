@@ -53,6 +53,10 @@ let healthFilterByType = {
     docker: 'all',
     vm: 'all'
 };
+let healthSeverityFilterByType = {
+    docker: 'all',
+    vm: 'all'
+};
 let dockerUpdatesOnlyFilter = false;
 let importSelectionState = null;
 let importDiffPagingState = {
@@ -1764,6 +1768,101 @@ const setFilterQuery = (section, type, value) => {
     }
 };
 
+const normalizeHealthSeverityFilterMode = (mode) => (
+    mode === 'warn_critical' ? 'warn_critical' : 'all'
+);
+
+const getHealthSeverityFilterLabel = (mode) => (
+    mode === 'warn_critical' ? 'warn/critical health' : 'all health'
+);
+
+const resolveFolderWarnThreshold = (folder, fallbackThreshold) => {
+    const safeFallback = Number.isFinite(Number(fallbackThreshold))
+        ? Math.min(100, Math.max(0, Math.round(Number(fallbackThreshold))))
+        : 60;
+    const settings = (folder && typeof folder.settings === 'object' && folder.settings !== null)
+        ? folder.settings
+        : {};
+    const raw = settings.health_warn_stopped_percent;
+    if (raw === '' || raw === null || raw === undefined) {
+        return { value: safeFallback, source: 'global' };
+    }
+    const parsed = Number(raw);
+    if (!Number.isFinite(parsed)) {
+        return { value: safeFallback, source: 'global' };
+    }
+    return {
+        value: Math.min(100, Math.max(0, Math.round(parsed))),
+        source: 'folder'
+    };
+};
+
+const evaluateDockerFolderHealth = (folder, members, countsByState, updateCount, fallbackWarnThreshold) => {
+    const totalMembers = Number(members) || 0;
+    const started = Number(countsByState?.started || 0);
+    const paused = Number(countsByState?.paused || 0);
+    const stopped = Number(countsByState?.stopped || 0);
+    const thresholdInfo = resolveFolderWarnThreshold(folder, fallbackWarnThreshold);
+    const warnThreshold = thresholdInfo.value;
+    if (totalMembers === 0) {
+        return {
+            severity: 'empty',
+            text: 'Empty',
+            className: 'is-empty',
+            isAlert: false,
+            details: ['No members in this folder.']
+        };
+    }
+
+    const stoppedPercent = Math.round((stopped / totalMembers) * 100);
+    const allStopped = started === 0 && paused === 0 && stopped > 0;
+    const hasUpdates = updateCount > 0;
+    const thresholdLabel = thresholdInfo.source === 'folder'
+        ? `Warn threshold: ${warnThreshold}% stopped (folder override).`
+        : `Warn threshold: ${warnThreshold}% stopped (global default).`;
+
+    const details = [];
+    if (allStopped) {
+        details.push(`All ${stopped}/${totalMembers} members are stopped.`);
+    } else {
+        details.push(`${started} started, ${paused} paused, ${stopped} stopped.`);
+    }
+    details.push(`Stopped percentage: ${stoppedPercent}%.`);
+    if (hasUpdates) {
+        details.push(`${updateCount} update${updateCount === 1 ? '' : 's'} available.`);
+    } else {
+        details.push('No updates available.');
+    }
+    details.push(thresholdLabel);
+
+    const criticalThreshold = Math.min(100, Math.max(warnThreshold + 25, 90));
+    if (allStopped || stoppedPercent >= criticalThreshold || updateCount >= 10) {
+        return {
+            severity: 'critical',
+            text: 'Critical',
+            className: 'is-danger',
+            isAlert: true,
+            details
+        };
+    }
+    if (stoppedPercent >= warnThreshold || paused > 0 || hasUpdates) {
+        return {
+            severity: 'warn',
+            text: 'Warn',
+            className: 'is-warning',
+            isAlert: true,
+            details
+        };
+    }
+    return {
+        severity: 'good',
+        text: 'Good',
+        className: 'is-ok',
+        isAlert: false,
+        details
+    };
+};
+
 const toggleDockerUpdatesFilter = (hasUpdatesInRow = false) => {
     if (dockerUpdatesOnlyFilter) {
         dockerUpdatesOnlyFilter = false;
@@ -1780,6 +1879,13 @@ const toggleDockerUpdatesFilter = (hasUpdatesInRow = false) => {
         text: 'Choose a folder with updates to enable the updates-only filter.',
         type: 'info'
     });
+};
+
+const toggleHealthSeverityFilter = (type = 'docker') => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const current = normalizeHealthSeverityFilterMode(healthSeverityFilterByType[resolvedType]);
+    healthSeverityFilterByType[resolvedType] = current === 'warn_critical' ? 'all' : 'warn_critical';
+    renderTable(resolvedType);
 };
 
 const apiGetText = async (url, options = {}) => {
@@ -2911,6 +3017,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
     const rows = [];
     const filter = normalizedFilter(filtersByType[type]?.folders);
     const healthFilterMode = normalizeHealthFilterMode(healthFilterByType[type]);
+    const healthSeverityFilterMode = normalizeHealthSeverityFilterMode(healthSeverityFilterByType[type]);
     for (const [id, folder] of Object.entries(folders)) {
         const nameText = String(folder.name || '');
         const haystack = `${String(id)} ${nameText}`.toLowerCase();
@@ -3004,28 +3111,24 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             const updateTitle = updateNames.length
                 ? `Containers with updates: ${updatePreview}${updateExtra}\nClick to ${dockerUpdatesOnlyFilter ? 'show all folders' : 'show folders with updates only'}`
                 : `${members.length > 0 ? 'No updates in this folder' : 'Folder has no members'}\nClick to ${dockerUpdatesOnlyFilter ? 'show all folders' : 'show folders with updates only'}`;
-            const stoppedPercent = members.length > 0 ? Math.round((countsByState.stopped / members.length) * 100) : 0;
-            const warnThreshold = Number(dockerHealthPrefs?.warnStoppedPercent) || 60;
-            let healthText = 'Empty';
-            let healthClass = 'is-empty';
-            if (members.length > 0) {
-                if (stoppedPercent >= warnThreshold) {
-                    healthText = `Warn ${stoppedPercent}% stopped`;
-                    healthClass = 'is-warning';
-                } else if (countsByState.stopped > 0) {
-                    healthText = `${countsByState.stopped}/${members.length} stopped`;
-                    healthClass = 'is-paused';
-                } else if (countsByState.paused > 0) {
-                    healthText = `${countsByState.paused} paused`;
-                    healthClass = 'is-paused';
-                } else {
-                    healthText = 'Healthy';
-                    healthClass = 'is-ok';
-                }
+            const healthStatus = evaluateDockerFolderHealth(
+                folder,
+                members.length,
+                countsByState,
+                updateCount,
+                Number(dockerHealthPrefs?.warnStoppedPercent) || 60
+            );
+            if (healthSeverityFilterMode === 'warn_critical' && !healthStatus.isAlert) {
+                continue;
             }
+            const healthFilterActive = healthSeverityFilterMode === 'warn_critical';
+            const healthToggleHint = healthFilterActive
+                ? 'Click to show all folders.'
+                : 'Click to show Warn/Critical folders only.';
+            const healthTitle = [...healthStatus.details, healthToggleHint].join('\n');
             typeSpecificColumns = ''
                 + `<td class="updates-cell"><button type="button" class="folder-metric-chip updates-chip ${updateClass} ${dockerUpdatesOnlyFilter ? 'is-filter-active' : ''}" title="${escapeHtml(updateTitle)}" aria-label="${escapeHtml(updateTitle)}" onclick="toggleDockerUpdatesFilter(${updateCount > 0 ? 'true' : 'false'})"><i class="fa ${updateIcon}" aria-hidden="true"></i><span>${escapeHtml(updateText)}</span></button></td>`
-                + `<td class="health-cell"><span class="folder-metric-chip ${healthClass}">${escapeHtml(healthText)}</span></td>`;
+                + `<td class="health-cell"><button type="button" class="folder-metric-chip health-chip ${healthStatus.className} ${healthFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(healthTitle)}" aria-label="${escapeHtml(healthTitle)}" onclick="toggleHealthSeverityFilter('${type}')">${escapeHtml(healthStatus.text)}</button></td>`;
         } else {
             let autostartCount = 0;
             let vcpusTotal = 0;
@@ -3065,6 +3168,9 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         }
         if (isDockerType && dockerUpdatesOnlyFilter) {
             suffixes.push('updates only');
+        }
+        if (isDockerType && healthSeverityFilterMode !== 'all') {
+            suffixes.push(getHealthSeverityFilterLabel(healthSeverityFilterMode));
         }
         const filterSuffix = suffixes.length ? ` (${suffixes.join(', ')})` : '';
         return `<tr><td colspan="${TABLE_COLUMN_COUNT}">No folders match current filters${filterSuffix}.</td></tr>`;
@@ -5779,6 +5885,7 @@ window.handleFolderRowKeydown = handleFolderRowKeydown;
 window.toggleFolderPin = toggleFolderPin;
 window.copyFolderId = copyFolderId;
 window.toggleDockerUpdatesFilter = toggleDockerUpdatesFilter;
+window.toggleHealthSeverityFilter = toggleHealthSeverityFilter;
 window.setHealthFolderFilter = setHealthFolderFilter;
 window.runQuickSetupWizard = runQuickSetupWizard;
 window.setSettingsMode = setSettingsMode;

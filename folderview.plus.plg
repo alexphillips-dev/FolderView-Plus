@@ -6,12 +6,25 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.06.33">
-<!ENTITY md5 "cecb8d2b4fb44f39dd56213f067e8967">
+<!ENTITY version "2026.03.07.01">
+<!ENTITY md5 "8d9458b5b46de3fc0479bd1133a4b85e">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.07.01
+- Overhauled Docker folder `Health` column with clearer score chips:
+  - `Good`, `Warn`, `Critical`, and `Empty` states.
+- Health severity now factors in update risk:
+  - update availability contributes to warning/critical escalation.
+- Added reason tooltips for Health chips:
+  - shows stopped/paused totals, update counts, and threshold source.
+- Added click-to-filter on Health chips:
+  - toggles table view between all folders and Warn/Critical folders only.
+- Added per-folder health warning threshold override in folder editor:
+  - optional `Health warn threshold (%)` field (blank uses global threshold).
+- Added regression guards for new health column logic and folder setting hooks.
 
 ###2026.03.06.33
 - Fixed Docker `Updates` column counting regression:

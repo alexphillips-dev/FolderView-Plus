@@ -86,6 +86,8 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderJs, /const enforceLeftAlignedSettingsLayout = \(\) =>/);
     assert.match(folderJs, /fv-force-left-v2 marker/);
     assert.match(folderJs, /fv-force-left-v3 marker/);
+    assert.match(folderJs, /const validateHealthWarnThreshold = \(\) =>/);
+    assert.match(folderJs, /health_warn_stopped_percent/);
     assert.match(folderCss, /\.canvas form\.folder-editor-form\.fv-force-left-v3/);
     assert.match(folderCss, /Runtime-enforced left alignment guard/);
 });
@@ -102,6 +104,10 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /window\.compareBackupSnapshots = compareBackupSnapshots;/);
     assert.match(settingsJs, /window\.copyFolderId = copyFolderId;/);
     assert.match(settingsJs, /window\.toggleDockerUpdatesFilter = toggleDockerUpdatesFilter;/);
+    assert.match(settingsJs, /const evaluateDockerFolderHealth = \(folder, members, countsByState, updateCount, fallbackWarnThreshold\) =>/);
+    assert.match(settingsJs, /const toggleHealthSeverityFilter = \(type = 'docker'\) =>/);
+    assert.match(settingsJs, /window\.toggleHealthSeverityFilter = toggleHealthSeverityFilter;/);
+    assert.match(settingsJs, /warn\/critical health/);
     assert.match(settingsJs, /const isDockerUpdateAvailable = \(itemInfo\) =>/);
     assert.match(settingsJs, /state\?\.manager === 'dockerman'/);
     assert.match(settingsJs, /state\?\.Updated === false/);
@@ -109,6 +115,8 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const persistImportPresetStoreTypeToServer = async/);
     assert.match(settingsCss, /\.folder-action-btn\s*\{/);
     assert.match(settingsCss, /\.updates-chip\s*\{/);
+    assert.match(settingsCss, /\.health-chip\s*\{/);
+    assert.match(settingsCss, /\.health-chip\.is-filter-active\s*\{/);
     assert.match(settingsCss, /\.folder-metric-chip\.is-danger\s*\{/);
     assert.match(settingsCss, /\.folder-metric-chip\s*\{/);
     assert.match(settingsCss, /\.folder-pin-state,\s*[\s\S]*\.folder-metric-chip\s*\{/);

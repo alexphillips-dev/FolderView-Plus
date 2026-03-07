@@ -5,7 +5,16 @@
 [![Open Issues](https://img.shields.io/github/issues/alexphillips-dev/FolderView-Plus)](https://github.com/alexphillips-dev/FolderView-Plus/issues)
 [![Last Commit](https://img.shields.io/github/last-commit/alexphillips-dev/FolderView-Plus/main)](https://github.com/alexphillips-dev/FolderView-Plus/commits/main)
 
-FolderView Plus adds folder-based organization for Docker and VMs in Unraid, with safer import/backup workflows and a faster settings experience.
+FolderView Plus gives Unraid a cleaner, folder-first way to manage Docker containers and VMs.  
+It is built for real libraries: easier organization, safer imports, faster recovery, and better day-to-day control.
+
+## Why Install This
+
+- Keep large Docker/VM setups readable with folder grouping in Docker, VMs, and Dashboard
+- Recover faster with automatic backups, snapshot compare, and one-click restore
+- Import safely with preview diff and selective apply before making changes
+- Reduce manual work using regex/label-based assignment rules
+- Manage everything from a modern settings flow that works on desktop and mobile
 
 ## Requirements
 
@@ -43,21 +52,40 @@ Version format:
 plugin remove folderview.plus
 ```
 
-## What You Get
+## Feature Highlights
+
+### Organization and Control
 
 - Folder views for Docker, VMs, and Dashboard
-- Manual folder ordering (up/down), plus created and A-Z sort modes
+- Folder runtime actions (`Start`, `Stop`, `Pause`, `Resume`)
+- Sort modes: created, manual, A-Z
+- Reliable manual reordering with up/down controls
+- Pinned folders and status/health/update visibility controls
+
+### Automation and Scale
+
 - Auto-assignment rules:
-  - Docker: name regex, label/image/compose matching
+  - Docker: name regex + label/image/compose matching
   - VM: name regex
-- Rule tester + simulator + conflict inspector
-- Safer import flow with preview and mode selection (`Merge`, `Replace`, `Skip existing`)
+- Rule tester, simulator, and conflict inspector
+- Bulk assignment for Docker and VMs
+- Folder templates for faster reuse
+
+### Safer Data Operations
+
+- Import preview with `Merge`, `Replace`, `Skip existing`
+- Per-type import presets and defaults
 - Pretty-printed schema exports with metadata
-- Automatic pre-import backups and one-click restore
-- Scheduled backups, snapshot compare, change history, and undo
-- Folder templates and bulk assignment tools
-- Built-in/third-party/custom icon workflows
-- Mobile/touch support across tabs and settings
+- Automatic pre-import backup + restore latest
+- Scheduled backups, snapshot compare, and rollback checkpoints
+- Change history and one-click undo
+
+### UX and Compatibility
+
+- Built-in, third-party, and uploaded icon support
+- Custom CSS/JS extension loading
+- Full mobile/touch support
+- Modern browser support (Chrome, Edge, Firefox, Safari)
 
 ## Quick Start
 
@@ -77,7 +105,7 @@ plugin remove folderview.plus
 
 Rule order is priority-based (top to bottom). Exclude rules block assignment.
 
-## Import, Export, Backups
+## Import, Export, and Backups
 
 Export files:
 
@@ -98,6 +126,12 @@ Recommended import flow:
 4. Apply import.
 5. Use `Restore latest backup` if needed.
 
+## Security and Reliability
+
+- Request token and guarded endpoint protections
+- Safer dynamic rendering to reduce XSS risk
+- Automated regression checks (including mobile and release guards)
+
 ## Browser Support
 
 Supported current major browsers:
@@ -112,12 +146,6 @@ Not supported:
 - Internet Explorer 11
 - Legacy Edge (EdgeHTML)
 
-## Security Notes
-
-- Request-token and guarded endpoint protections are included
-- Safer dynamic text rendering for XSS resistance
-- Security and regression tests are part of CI
-
 ## Paths
 
 - Config root: `/boot/config/plugins/folderview.plus`
@@ -125,6 +153,11 @@ Not supported:
 - Custom JS: `/boot/config/plugins/folderview.plus/scripts`
 - Third-party icons: `/usr/local/emhttp/plugins/folderview.plus/images/third-party-icons`
 - User-uploaded icons: `/usr/local/emhttp/plugins/folderview.plus/images/custom`
+
+## Included Icon Pack Credits
+
+- https://github.com/sameerasw/folder-icons
+- https://github.com/hernandito/unRAID-Docker-Folder-Animated-Icons---Alternate-Colors
 
 ## Development
 
@@ -156,8 +189,8 @@ node --test tests/*.mjs
 
 ## Credits
 
-- [chodeus](https://github.com/chodeus/folder.view3) - FolderView Plus is built on the foundation of folder.view3. Thank you for the original architecture and groundwork.
-- [sameerasw](https://github.com/sameerasw/folder-icons) and [hernandito](https://github.com/hernandito/unRAID-Docker-Folder-Animated-Icons---Alternate-Colors) - Thank you for the icon packs and ongoing community value.
+- [chodeus](https://github.com/chodeus/folder.view3) - FolderView Plus is built on the strong foundation of folder.view3. Thank you for the original architecture and groundwork.
+- [sameerasw](https://github.com/sameerasw/folder-icons) and [hernandito](https://github.com/hernandito/unRAID-Docker-Folder-Animated-Icons---Alternate-Colors) - Thank you for creating and sharing icon packs that improve local icon workflows.
 
 ## License
 

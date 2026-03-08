@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.08.12">
-<!ENTITY md5 "f68aa27b853abcd8dbf1736e54fdd953">
+<!ENTITY version "2026.03.08.13">
+<!ENTITY md5 "20ff49063967dfbcde5d33b07333c4d4">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.08.13
+- Wizard readability fix: enforced hard minimum text sizing tokens in Setup Assistant so wizard menu/body text does not render too small under theme/root font overrides.
+- Styling hardening: applied wizard-specific font-size variables across sidebar, step list, cards, chips, warnings, review, and progress text.
+- Regression guard: added UI smoke checks that assert wizard min-font tokens are present and wired to key wizard components.
+
 
 ###2026.03.08.12
 - Wizard UX: added quick start bundles directly in the Welcome step (Balanced, Minimal, Power, Media Stack) with state-aware preset tracking.

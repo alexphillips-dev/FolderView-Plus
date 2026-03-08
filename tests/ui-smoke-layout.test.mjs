@@ -173,6 +173,9 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsCss, /\.fv-setup-quick-preset-grid\s*\{/);
     assert.match(settingsCss, /\.fv-setup-quick-preset\.is-active\s*\{/);
     assert.match(settingsCss, /\.fv-setup-rule-preview\.is-match\s*\{/);
+    assert.match(settingsCss, /--fv-wizard-font-103:\s*max\(1\.03rem,\s*16\.5px\)/);
+    assert.match(settingsCss, /\.fv-setup-step-list li\s*\{[\s\S]*font-size:\s*var\(--fv-wizard-font-103\)/);
+    assert.match(settingsCss, /\.fv-setup-assistant-head h4\s*\{[\s\S]*font-size:\s*var\(--fv-wizard-font-118\)/);
     assert.match(settingsCss, /--fv-advanced-module-height:\s*clamp\(/);
     assert.match(settingsCss, /h2\[data-fv-advanced="1"\] \+ \.backup-grid \.rules-panel[\s\S]*overflow-y:\s*auto/);
     assert.match(settingsCss, /\.fv-advanced-compact\s*\{[\s\S]*width:\s*28px/);

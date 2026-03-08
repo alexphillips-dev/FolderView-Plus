@@ -1,5 +1,11 @@
 # FolderView Plus Changelog
 
+## Version 2026.03.08.13
+
+- Enforce hard minimum text size tokens for Setup Assistant (wizard) so menu/body text stays readable across theme/root font overrides.
+- Apply the wizard min-font tokens across step navigation, profile/import/rules/behavior cards, review notes, and progress text.
+- Add smoke-test coverage to guard wizard minimum font token wiring and prevent regression.
+
 ## Version 2026.03.08.12
 
 - Improve Setup Assistant with in-wizard quick start bundles (Balanced, Minimal, Power, Media Stack).

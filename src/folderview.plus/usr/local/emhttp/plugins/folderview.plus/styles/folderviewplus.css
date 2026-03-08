@@ -1949,14 +1949,14 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 .fv-setup-assistant-shell {
     display: grid;
-    grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+    grid-template-columns: minmax(190px, 230px) minmax(0, 1fr);
     width: 100%;
     height: 100%;
 }
 
 .fv-setup-assistant-sidebar {
     border-right: 1px solid rgba(255, 255, 255, 0.12);
-    padding: 0.85rem 0.8rem;
+    padding: 0.65rem 0.62rem;
     background: rgba(255, 255, 255, 0.03);
     overflow-y: auto;
 }
@@ -1967,21 +1967,21 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 }
 
 .fv-setup-step-list {
-    margin: 0.5rem 0 0 0;
+    margin: 0.32rem 0 0 0;
     padding: 0;
     list-style: none;
     display: grid;
-    gap: 0.35rem;
+    gap: 0.22rem;
 }
 
 .fv-setup-sidebar-summary {
-    margin-top: 0.65rem;
+    margin-top: 0.45rem;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.03);
-    padding: 0.42rem 0.46rem;
+    padding: 0.32rem 0.36rem;
     display: grid;
-    gap: 0.4rem;
+    gap: 0.28rem;
 }
 
 .fv-setup-sidebar-summary > h4 {
@@ -1992,14 +1992,14 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 .fv-setup-sidebar-stats {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.3rem;
+    gap: 0.22rem;
 }
 
 .fv-setup-sidebar-stats > div {
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.03);
-    padding: 0.26rem 0.32rem;
+    padding: 0.2rem 0.24rem;
     display: grid;
     gap: 0.1rem;
 }
@@ -2040,10 +2040,10 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     background: transparent;
     color: inherit;
     display: grid;
-    grid-template-columns: 24px minmax(0, 1fr);
+    grid-template-columns: 21px minmax(0, 1fr);
     align-items: center;
-    gap: 0.45rem;
-    padding: 0.24rem 0.3rem;
+    gap: 0.34rem;
+    padding: 0.18rem 0.24rem;
     text-align: left;
 }
 
@@ -2065,8 +2065,8 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
     border-radius: 999px;
     border: 1px solid rgba(255, 255, 255, 0.2);
     font-size: var(--fv-wizard-font-103);

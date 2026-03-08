@@ -2882,8 +2882,6 @@ const renderSetupAssistantWelcomeStep = () => {
             <span class="fv-setup-quick-preset-help">${escapeHtml(preset.description)}</span>
         </button>
     `).join('');
-    const stepSequence = getSetupAssistantStepSequence();
-    const pathText = stepSequence.map((step) => setupAssistantStepLabel(step)).join(' -> ');
     return `
         <div class="fv-setup-step-grid">
             <section class="fv-setup-card">
@@ -2904,7 +2902,6 @@ const renderSetupAssistantWelcomeStep = () => {
                         </label>
                     `).join('')}
                 </div>
-                <p class="fv-setup-muted"><strong>Wizard path:</strong> ${escapeHtml(pathText)}</p>
             </section>
             <section class="fv-setup-card">
                 <h4>Default settings mode</h4>

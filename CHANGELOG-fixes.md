@@ -1,5 +1,11 @@
 # FolderView Plus Changelog
 
+## Version 2026.03.08.15
+
+- Remove redundant `Wizard path` line from Setup Assistant Welcome card (step flow already exists in sidebar).
+- Compact Setup Assistant sidebar/menu footprint with tighter spacing and a narrower sidebar width.
+- Add UI smoke-test assertions for compact wizard sidebar sizing.
+
 ## Version 2026.03.08.13
 
 - Enforce hard minimum text size tokens for Setup Assistant (wizard) so menu/body text stays readable across theme/root font overrides.

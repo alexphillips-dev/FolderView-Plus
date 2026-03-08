@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.08.13">
-<!ENTITY md5 "20ff49063967dfbcde5d33b07333c4d4">
+<!ENTITY version "2026.03.08.15">
+<!ENTITY md5 "ccfe111c69267d97bc069ab385420f71">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.08.15
+- Wizard cleanup: removed redundant `Wizard path` text from the Welcome card since step flow is already represented in the sidebar.
+- Wizard layout polish: compacted Setup Assistant sidebar/menu sizing to reduce unused space (narrower sidebar, tighter step row spacing, denser summary card layout).
+- Regression guard: added UI smoke checks for compact wizard sidebar sizing rules.
+
 
 ###2026.03.08.13
 - Wizard readability fix: enforced hard minimum text sizing tokens in Setup Assistant so wizard menu/body text does not render too small under theme/root font overrides.

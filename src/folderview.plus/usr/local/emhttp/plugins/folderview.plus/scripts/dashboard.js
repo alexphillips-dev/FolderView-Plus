@@ -1330,7 +1330,13 @@ const addDockerFolderContext = (id) => {
         opts.push({
             text: $.i18n('webui'),
             icon: 'fa-globe',
-            action: (e) => { e.preventDefault(); window.open(globalFolders.docker[id].settings.folder_webui_url, '_blank'); }
+            action: (e) => {
+                e.preventDefault();
+                const popup = window.open(globalFolders.docker[id].settings.folder_webui_url, '_blank', 'noopener,noreferrer');
+                if (popup) {
+                    popup.opener = null;
+                }
+            }
         });
         opts.push({ divider: true });
     }

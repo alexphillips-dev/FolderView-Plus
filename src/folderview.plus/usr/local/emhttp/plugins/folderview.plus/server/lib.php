@@ -205,7 +205,7 @@
         '/boot/config/plugins/folder.view2',
         '/boot/config/plugins/folder.view'
     ];
-    const FVPLUS_REQUEST_TOKEN_ENFORCEMENT = 'compat';
+    const FVPLUS_REQUEST_TOKEN_ENFORCEMENT = 'strict';
     const FVPLUS_VERBOSE_API_ERRORS = false;
     const FVPLUS_API_ERROR_LOG = '/tmp/folderview.plus.api-error.log';
     const FVPLUS_INFO_CACHE_TTL_FULL = 2;

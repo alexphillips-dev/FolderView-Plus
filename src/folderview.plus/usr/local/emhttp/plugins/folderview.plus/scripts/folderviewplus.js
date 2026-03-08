@@ -4253,7 +4253,10 @@ const showUpdateNotesPanel = ({ version, lines }) => {
     `).show();
 
     $('#fv-update-notes-open-changelog').off('click').on('click', () => {
-        window.open(UPDATE_NOTES_CHANGELOG_URL, '_blank', 'noopener');
+        const popup = window.open(UPDATE_NOTES_CHANGELOG_URL, '_blank', 'noopener,noreferrer');
+        if (popup) {
+            popup.opener = null;
+        }
     });
     $('#fv-update-notes-hide').off('click').on('click', () => {
         panel.slideUp(120);

@@ -97,8 +97,8 @@ const buildDockerTooltipContent = (ct) => $(`
                     <div class="action-left">
                         <ul class="fa-ul">
                             ${(ct.info.State.Running && !ct.info.State.Paused) ? 
-                                `${ct.info.State.WebUi ? `<li><a href="${ct.info.State.WebUi}" target="_blank"><i class="fa fa-globe" aria-hidden="true"></i> ${$.i18n('webui')}</a></li>` : ''}
-                                 ${ct.info.State.TSWebUi ? `<li><a href="${ct.info.State.TSWebUi}" target="_blank"><i class="fa fa-shield" aria-hidden="true"></i> ${$.i18n('tailscale-webui')}</a></li>` : ''}
+                                `${ct.info.State.WebUi ? `<li><a href="${ct.info.State.WebUi}" target="_blank" rel="noopener noreferrer"><i class="fa fa-globe" aria-hidden="true"></i> ${$.i18n('webui')}</a></li>` : ''}
+                                 ${ct.info.State.TSWebUi ? `<li><a href="${ct.info.State.TSWebUi}" target="_blank" rel="noopener noreferrer"><i class="fa fa-shield" aria-hidden="true"></i> ${$.i18n('tailscale-webui')}</a></li>` : ''}
                                  <li><a onclick="event.preventDefault(); openTerminal('docker', '${ct.info.Name}', '${ct.info.Shell}');"><i class="fa fa-terminal" aria-hidden="true"></i> ${$.i18n('console')}</a></li>`
                             : ''}
                             ${!ct.info.State.Running ? `<li><a onclick="event.preventDefault(); eventControl({action:'start', container:'${ct.shortId}'}, 'loadlist');"><i class="fa fa-play" aria-hidden="true"></i> ${$.i18n('start')}</a></li>` : 
@@ -113,17 +113,17 @@ const buildDockerTooltipContent = (ct) => $(`
                     </div>
                     <div class="action-right">
                         <ul class="fa-ul">
-                            ${ct.info.ReadMe ? `<li><a href="${ct.info.ReadMe}" target="_blank"><i class="fa fa-book" aria-hidden="true"></i> ${$.i18n('read-me-first')}</a></li>` : ''}
-                            ${ct.info.Project ? `<li><a href="${ct.info.Project}" target="_blank"><i class="fa fa-life-ring" aria-hidden="true"></i> ${$.i18n('project-page')}</a></li>` : ''}
-                            ${ct.info.Support ? `<li><a href="${ct.info.Support}" target="_blank"><i class="fa fa-question" aria-hidden="true"></i> ${$.i18n('support')}</a></li>` : ''}
-                            ${ct.info.registry ? `<li><a href="${ct.info.registry}" target="_blank"><i class="fa fa-info-circle" aria-hidden="true"></i> ${$.i18n('more-info')}</a></li>` : ''}
-                            ${ct.info.DonateLink ? `<li><a href="${ct.info.DonateLink}" target="_blank"><i class="fa fa-usd" aria-hidden="true"></i> ${$.i18n('donate')}</a></li>` : ''}
+                            ${ct.info.ReadMe ? `<li><a href="${ct.info.ReadMe}" target="_blank" rel="noopener noreferrer"><i class="fa fa-book" aria-hidden="true"></i> ${$.i18n('read-me-first')}</a></li>` : ''}
+                            ${ct.info.Project ? `<li><a href="${ct.info.Project}" target="_blank" rel="noopener noreferrer"><i class="fa fa-life-ring" aria-hidden="true"></i> ${$.i18n('project-page')}</a></li>` : ''}
+                            ${ct.info.Support ? `<li><a href="${ct.info.Support}" target="_blank" rel="noopener noreferrer"><i class="fa fa-question" aria-hidden="true"></i> ${$.i18n('support')}</a></li>` : ''}
+                            ${ct.info.registry ? `<li><a href="${ct.info.registry}" target="_blank" rel="noopener noreferrer"><i class="fa fa-info-circle" aria-hidden="true"></i> ${$.i18n('more-info')}</a></li>` : ''}
+                            ${ct.info.DonateLink ? `<li><a href="${ct.info.DonateLink}" target="_blank" rel="noopener noreferrer"><i class="fa fa-usd" aria-hidden="true"></i> ${$.i18n('donate')}</a></li>` : ''}
                         </ul>
                     </div>
                 </div>
                 <div class="info-ct">
                     <span class="container-id">${$.i18n('container-id')}: ${ct.shortId}</span><br>
-                    <span class="repo">${$.i18n('by')}: <a target="_blank" ${ct.info.registry ? `href="${ct.info.registry}"` : ''} >${ct.info.Config.Image.split(':').shift()}</a></span>
+                    <span class="repo">${$.i18n('by')}: <a target="_blank" rel="noopener noreferrer" ${ct.info.registry ? `href="${ct.info.registry}"` : ''} >${ct.info.Config.Image.split(':').shift()}</a></span>
                 </div>
             </div>
             <div class="info-section">
@@ -1334,7 +1334,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
 
             if (folder.settings.preview_webui && ct.info.State.WebUi) {
                 if ($targetForAppend.length) {
-                    $targetForAppend.append($(`<span class="folder-element-custom-btn folder-element-webui"><a href="${ct.info.State.WebUi}" target="_blank"><i class="fa fa-globe" aria-hidden="true"></i></a></span>`));
+                    $targetForAppend.append($(`<span class="folder-element-custom-btn folder-element-webui"><a href="${ct.info.State.WebUi}" target="_blank" rel="noopener noreferrer"><i class="fa fa-globe" aria-hidden="true"></i></a></span>`));
                     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Appended WebUI icon to preview.`);
                 } else {
                      if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: WebUI icon: Could not find target for append in preview element.`);
@@ -1940,7 +1940,13 @@ const addDockerFolderContext = (id) => {
         opts.push({
             text: $.i18n('webui'),
             icon: 'fa-globe',
-            action: (evt) => { evt.preventDefault(); window.open(folderData.settings.folder_webui_url, '_blank'); }
+            action: (evt) => {
+                evt.preventDefault();
+                const popup = window.open(folderData.settings.folder_webui_url, '_blank', 'noopener,noreferrer');
+                if (popup) {
+                    popup.opener = null;
+                }
+            }
         });
         opts.push({ divider: true });
     }

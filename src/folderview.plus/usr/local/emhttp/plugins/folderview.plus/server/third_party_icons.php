@@ -354,7 +354,6 @@ try {
 
     if ($action === 'list_folders') {
         fvplus_json_ok([
-            'baseDir' => thirdPartyIconsBaseDir(),
             'folders' => listThirdPartyFolders()
         ]);
         exit;

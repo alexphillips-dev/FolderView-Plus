@@ -12,6 +12,7 @@ const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.p
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js');
 const folderJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js');
+const folderViewPlusJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js');
 const folderPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page');
 const settingsPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page');
 const dockerPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Docker.page');
@@ -19,7 +20,7 @@ const vmPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plu
 const dashboardPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Dashboard.page');
 
 test('lib.php keeps token rollout controls and secure API headers', () => {
-    assert.match(libPhp, /const FVPLUS_REQUEST_TOKEN_ENFORCEMENT = 'compat';/);
+    assert.match(libPhp, /const FVPLUS_REQUEST_TOKEN_ENFORCEMENT = 'strict';/);
     assert.match(libPhp, /function getRequestTokenEnforcementMode\s*\(/);
     assert.match(libPhp, /function ensureConfiguredRequestTokenFile\s*\(/);
     assert.match(libPhp, /function emitRequestTokenMetaTag\s*\(/);
@@ -55,4 +56,13 @@ test('folder display scripts sanitize folder icon and name in HTML templates', (
 test('folder editor escapes custom action labels when rendering HTML', () => {
     assert.match(folderJs, /const safeActionName = escapeHtml\(e\?\.name \|\| ''\)/);
     assert.match(folderJs, /const safeCfgName = escapeHtml\(cfg\.name \|\| ''\)/);
+});
+
+test('external links and popup actions enforce noopener protections', () => {
+    assert.match(folderPage, /target="_blank" rel="noopener noreferrer"/);
+    assert.match(dockerJs, /target="_blank" rel="noopener noreferrer"/);
+    assert.match(dockerJs, /window\.open\(folderData\.settings\.folder_webui_url, '_blank', 'noopener,noreferrer'\)/);
+    assert.match(dashboardJs, /window\.open\(globalFolders\.docker\[id\]\.settings\.folder_webui_url, '_blank', 'noopener,noreferrer'\)/);
+    assert.match(folderViewPlusJs, /window\.open\(UPDATE_NOTES_CHANGELOG_URL, '_blank', 'noopener,noreferrer'\)/);
+    assert.match(folderViewPlusJs, /popup\.opener = null;/);
 });

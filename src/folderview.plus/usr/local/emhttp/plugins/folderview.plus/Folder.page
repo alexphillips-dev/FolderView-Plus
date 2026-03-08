@@ -88,11 +88,11 @@ emitRequestTokenMetaTag();
             </dl>
             <blockquote class="inline_help">
                 <p data-i18n="[html]icon-tooltip">
-                    A link to an image (<a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/img#supported_image_formats" target="_blank">Supported formats</a>)
+                    A link to an image (<a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/img#supported_image_formats" target="_blank" rel="noopener noreferrer">Supported formats</a>)
                     <br>
-                    It also supports <b>data:image/{type};base64,</b> format (<a href="https://base64.guru/converter/encode/image" target="_blank">Convert image to data strings</a>)
+                    It also supports <b>data:image/{type};base64,</b> format (<a href="https://base64.guru/converter/encode/image" target="_blank" rel="noopener noreferrer">Convert image to data strings</a>)
                     <br>
-                    <a href="https://forums.unraid.net/topic/92824-icon-collections-for-docker-folder-plugin/" target="_blank">Thread with some icons</a>.
+                    <a href="https://forums.unraid.net/topic/92824-icon-collections-for-docker-folder-plugin/" target="_blank" rel="noopener noreferrer">Thread with some icons</a>.
                     <br>
                     For 3rd-party icon folders, place files under <b>/usr/local/emhttp/plugins/folderview.plus/images/third-party-icons/&lt;folder-name&gt;/</b>.
                     <br>

@@ -6,12 +6,22 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.07.14">
-<!ENTITY md5 "06b3e1286f34761023ca802383b23180">
+<!ENTITY version "2026.03.07.15">
+<!ENTITY md5 "d57ceb45dfdeecceea908bf691bdb004">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.07.15
+- Switched request-token guard mode from `compat` to `strict` for mutation endpoints.
+- Hardened custom icon upload endpoint:
+  - added per-client upload rate limiting,
+  - added maximum stored icon count guard,
+  - expanded SVG sanitization to block external/protocol references.
+- Removed third-party icon API `baseDir` disclosure from the folder listing response.
+- Added `noopener noreferrer` protections to external `_blank` links and popup actions.
+- Extended regression tests for strict token mode, endpoint hardening, and safe external link handling.
 
 ###2026.03.07.14
 - Added a signature-based Docker template metadata cache in `readInfo(full)` to avoid reparsing unchanged XML templates on every refresh.

@@ -3,6 +3,9 @@ require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php");
 
 const FVPLUS_CUSTOM_ICON_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'ico', 'avif'];
 const FVPLUS_CUSTOM_ICON_MAX_BYTES = 4194304;
+const FVPLUS_CUSTOM_ICON_MAX_FILES = 2000;
+const FVPLUS_CUSTOM_ICON_RATE_WINDOW_SECONDS = 60;
+const FVPLUS_CUSTOM_ICON_RATE_MAX_UPLOADS = 24;
 
 function customIconDirPath(): string {
     global $sourceDir;
@@ -18,6 +21,116 @@ function ensureCustomIconDirExists(): string {
         throw new RuntimeException('Custom icon directory is not writable.');
     }
     return $path;
+}
+
+function customIconRateDirPath(): string {
+    $path = '/tmp/folderview.plus-cache/custom-icon-rate';
+    if (!is_dir($path)) {
+        @mkdir($path, 0770, true);
+    }
+    return $path;
+}
+
+function customIconUploadClientKey(): string {
+    $raw = (string)($_SERVER['REMOTE_ADDR'] ?? '');
+    $normalized = preg_replace('/[^A-Fa-f0-9:.]+/', '', $raw);
+    if (!is_string($normalized) || trim($normalized) === '') {
+        $normalized = 'unknown';
+    }
+    return strtolower($normalized);
+}
+
+function customIconUploadRatePath(string $clientKey): string {
+    return customIconRateDirPath() . '/' . sha1($clientKey) . '.json';
+}
+
+function readCustomIconUploadRateBucket(string $path): array {
+    if (!is_file($path)) {
+        return [];
+    }
+    $raw = @file_get_contents($path);
+    if (!is_string($raw) || trim($raw) === '') {
+        return [];
+    }
+    $decoded = json_decode($raw, true);
+    if (!is_array($decoded)) {
+        return [];
+    }
+    $timestamps = [];
+    foreach ($decoded as $entry) {
+        $timestamp = (int)$entry;
+        if ($timestamp > 0) {
+            $timestamps[] = $timestamp;
+        }
+    }
+    sort($timestamps, SORT_NUMERIC);
+    return $timestamps;
+}
+
+function writeCustomIconUploadRateBucket(string $path, array $timestamps): void {
+    $encoded = json_encode(array_values($timestamps), JSON_UNESCAPED_SLASHES);
+    if (!is_string($encoded)) {
+        return;
+    }
+    $tmpPath = $path . '.tmp';
+    if (@file_put_contents($tmpPath, $encoded, LOCK_EX) !== false) {
+        @rename($tmpPath, $path);
+        @chmod($path, 0644);
+        return;
+    }
+    @file_put_contents($path, $encoded, LOCK_EX);
+    @chmod($path, 0644);
+}
+
+function enforceCustomIconUploadRateLimit(): void {
+    $clientKey = customIconUploadClientKey();
+    $bucketPath = customIconUploadRatePath($clientKey);
+    $now = time();
+    $windowStart = $now - FVPLUS_CUSTOM_ICON_RATE_WINDOW_SECONDS;
+    $timestamps = array_values(array_filter(
+        readCustomIconUploadRateBucket($bucketPath),
+        static function ($entry) use ($windowStart, $now): bool {
+            $timestamp = (int)$entry;
+            return $timestamp >= $windowStart && $timestamp <= ($now + 5);
+        }
+    ));
+    if (count($timestamps) >= FVPLUS_CUSTOM_ICON_RATE_MAX_UPLOADS) {
+        throw new RuntimeException('Too many icon uploads. Please wait one minute and try again.');
+    }
+    $timestamps[] = $now;
+    writeCustomIconUploadRateBucket($bucketPath, $timestamps);
+}
+
+function countCustomIconsInDirectory(string $directory): int {
+    if (!is_dir($directory)) {
+        return 0;
+    }
+    $count = 0;
+    $items = @scandir($directory) ?: [];
+    foreach ($items as $name) {
+        if ($name === '.' || $name === '..') {
+            continue;
+        }
+        if ($name !== basename($name)) {
+            continue;
+        }
+        $path = "$directory/$name";
+        if (!is_file($path)) {
+            continue;
+        }
+        $extension = strtolower((string)pathinfo($name, PATHINFO_EXTENSION));
+        if ($extension === '' || !in_array($extension, FVPLUS_CUSTOM_ICON_EXTENSIONS, true)) {
+            continue;
+        }
+        $count += 1;
+    }
+    return $count;
+}
+
+function enforceCustomIconStorageLimit(string $directory): void {
+    if (countCustomIconsInDirectory($directory) >= FVPLUS_CUSTOM_ICON_MAX_FILES) {
+        throw new RuntimeException('Custom icon storage limit reached. Remove old icons before uploading more.');
+    }
 }
 
 function sanitizeCustomIconBasename(string $value): string {
@@ -82,8 +195,9 @@ function validateAndNormalizeSvgContent(string $tmpPath): void {
         '/<!\s*doctype/i',
         '/<!\s*entity/i',
         '/\bon[a-z]+\s*=/i',
-        '/\b(?:xlink:href|href|src)\s*=\s*["\']\s*(?:javascript:|data:text\/html)/i',
-        '/\burl\(\s*["\']?\s*javascript:/i'
+        '/\b(?:xlink:href|href|src)\s*=\s*["\']\s*(?:javascript:|vbscript:|data:|https?:|ftp:|file:|\/\/)/i',
+        '/\burl\(\s*["\']?\s*(?:javascript:|vbscript:|data:|https?:|ftp:|file:|\/\/)/i',
+        '/@\s*import\b/i'
     ];
     foreach ($blockedPatterns as $pattern) {
         if (@preg_match($pattern, $raw) === 1) {
@@ -189,6 +303,7 @@ function uploadErrorMessage(int $errorCode): string {
 
 fvplus_json_try(function (): array {
     requireMutationRequestGuard();
+    enforceCustomIconUploadRateLimit();
 
     if (!isset($_FILES['icon']) || !is_array($_FILES['icon'])) {
         throw new RuntimeException('No icon file uploaded.');
@@ -222,6 +337,7 @@ fvplus_json_try(function (): array {
     validateUploadedIcon($tmpPath, $extension);
 
     $customDir = ensureCustomIconDirExists();
+    enforceCustomIconStorageLimit($customDir);
     $baseName = sanitizeCustomIconBasename((string)pathinfo($originalName, PATHINFO_FILENAME));
     $fileName = nextAvailableCustomIconName($customDir, $baseName, $extension);
     $targetPath = "$customDir/$fileName";

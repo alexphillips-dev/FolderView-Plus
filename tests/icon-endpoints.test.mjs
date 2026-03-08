@@ -32,12 +32,18 @@ test('third-party endpoint supports nested folder paths with sanitization', () =
     assert.match(thirdPartyPhp, /count\(\$parts\)\s*>\s*6/);
     assert.match(thirdPartyPhp, /sanitizeThirdPartyFolderPath\(\$folder,\s*'Folder'\)/);
     assert.match(thirdPartyPhp, /'name'\s*=>\s*\"\$safeName\/\$safeSubName\"/);
+    assert.doesNotMatch(thirdPartyPhp, /'baseDir'\s*=>/);
 });
 
 test('upload endpoint enforces request guard and uploads into images\\/custom', () => {
     assert.match(uploadPhp, /requireMutationRequestGuard\(\)/);
     assert.match(uploadPhp, /return \"\$sourceDir\/images\/custom\"/);
     assert.match(uploadPhp, /const FVPLUS_CUSTOM_ICON_MAX_BYTES = 4194304;/);
+    assert.match(uploadPhp, /const FVPLUS_CUSTOM_ICON_MAX_FILES = 2000;/);
+    assert.match(uploadPhp, /const FVPLUS_CUSTOM_ICON_RATE_WINDOW_SECONDS = 60;/);
+    assert.match(uploadPhp, /const FVPLUS_CUSTOM_ICON_RATE_MAX_UPLOADS = 24;/);
+    assert.match(uploadPhp, /enforceCustomIconUploadRateLimit\(\)/);
+    assert.match(uploadPhp, /enforceCustomIconStorageLimit\(\$customDir\)/);
     assert.match(uploadPhp, /move_uploaded_file\(/);
     assert.match(uploadPhp, /\/plugins\/folderview\.plus\/images\/custom\//);
 });
@@ -47,6 +53,10 @@ test('upload endpoint hardens SVG uploads against active content', () => {
     assert.match(uploadPhp, /SVG contains blocked content/);
     assert.match(uploadPhp, /foreignObject/);
     assert.match(uploadPhp, /xlink:href/);
+    assert.match(uploadPhp, /Too many icon uploads/);
+    assert.match(uploadPhp, /Custom icon storage limit reached/);
+    assert.match(uploadPhp, /@\\s\*import/);
+    assert.match(uploadPhp, /vbscript:/);
     assert.match(uploadPhp, /LIBXML_NONET/);
 });
 

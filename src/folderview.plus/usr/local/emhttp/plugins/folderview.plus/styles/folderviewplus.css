@@ -802,6 +802,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 0.5rem;
     margin: 0.6rem 0 0.75rem 0;
+    align-items: center;
 }
 
 .rules-editor > select,
@@ -861,6 +862,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 0.5rem;
     margin-bottom: 0.75rem;
+    align-items: center;
 }
 
 .rule-tester > button {
@@ -882,6 +884,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     flex-wrap: wrap;
     gap: 0.5rem;
     margin: 0.45rem 0 0.7rem 0;
+    align-items: center;
 }
 
 .compact-output {
@@ -912,6 +915,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     flex-wrap: wrap;
     gap: 0.5rem;
     margin: 0.55rem 0 0.75rem 0;
+    align-items: center;
 }
 
 .backup-compare-row {
@@ -958,6 +962,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 0.5rem;
     margin: 0.55rem 0 0.75rem 0;
+    align-items: center;
 }
 
 .runtime-action-grid > select,
@@ -972,6 +977,29 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     gap: 0.5rem 0.75rem;
     align-items: center;
     margin: 0.35rem 0 0.75rem 0;
+}
+
+/* Keep advanced module action buttons compact and consistent. */
+.rules-editor > button,
+.rule-tester > button,
+.selection-actions > button,
+.bulk-row > button,
+.backup-actions > button,
+.runtime-action-grid > button,
+.template-controls > button,
+.import-preset-actions > button {
+    width: auto;
+    max-width: 100%;
+    min-width: 140px;
+    min-height: 34px;
+    height: 34px;
+    padding: 0.2rem 0.6rem;
+    line-height: 1.2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    justify-self: start;
+    align-self: center;
 }
 
 .schedule-row label,

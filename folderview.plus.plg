@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.08.09">
-<!ENTITY md5 "a63c45b1b49075c44eaee8840fe549eb">
+<!ENTITY version "2026.03.08.10">
+<!ENTITY md5 "19b1e26747e13a67b538a0cd65762cfc">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.08.10
+- Maintenance: automated release metadata update.
+
 
 ###2026.03.08.09
 - Maintenance: automated release metadata update.

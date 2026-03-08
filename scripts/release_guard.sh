@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PLG_FILE="${ROOT_DIR}/folderview.plus.plg"
+CA_TEMPLATE_FILE="${ROOT_DIR}/folderview.plus.xml"
 PLUGIN_SRC_DIR="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus"
 SERVER_DIR="${PLUGIN_SRC_DIR}/server"
 MAX_ARCHIVE_BYTES="${FVPLUS_MAX_ARCHIVE_BYTES:-52428800}" # 50 MiB default ceiling
@@ -38,6 +39,23 @@ if [[ "${VERSION}" =~ ^([0-9]{4}\.[0-9]{2}\.[0-9]{2})(\.[0-9]{2,}|-beta[0-9]*)$ 
     echo "ERROR: Version date (${VERSION_DATE}) is in the future (today: ${TODAY_DATE})." >&2
     exit 1
   fi
+fi
+
+if [[ ! -f "${CA_TEMPLATE_FILE}" ]]; then
+  echo "ERROR: Missing CA template file: ${CA_TEMPLATE_FILE}" >&2
+  exit 1
+fi
+
+CA_TEMPLATE_DATE="$(sed -n 's|.*<Date>\([^<]*\)</Date>.*|\1|p' "${CA_TEMPLATE_FILE}" | head -n 1 || true)"
+if [[ -z "${CA_TEMPLATE_DATE}" ]]; then
+  echo "ERROR: Could not parse <Date> from ${CA_TEMPLATE_FILE}" >&2
+  exit 1
+fi
+
+EXPECTED_CA_TEMPLATE_DATE="${VERSION_DATE//./-}"
+if [[ "${CA_TEMPLATE_DATE}" != "${EXPECTED_CA_TEMPLATE_DATE}" ]]; then
+  echo "ERROR: CA template <Date> mismatch. expected=${EXPECTED_CA_TEMPLATE_DATE}, found=${CA_TEMPLATE_DATE}" >&2
+  exit 1
 fi
 
 if command -v xmllint >/dev/null 2>&1; then

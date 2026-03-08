@@ -7,6 +7,7 @@ version_override="${FVPLUS_VERSION_OVERRIDE:-}"
 today_version="$(date +"%Y.%m.%d")"
 version="${today_version}.01"
 plgfile="$CWD/folderview.plus.plg"
+xmlfile="$CWD/folderview.plus.xml"
 archive_prefix="folderview.plus"
 icon_ext_regex='^(png|jpg|jpeg|gif|webp|svg|bmp|ico|avif)$'
 
@@ -210,6 +211,17 @@ md5=$(md5sum "$filename" | awk '{print $1}')
 # Update version and md5 in plg file
 sed -i "s/<!ENTITY version.*>/<!ENTITY version \"$version\">/" "$plgfile"
 sed -i "s/<!ENTITY md5.*>/<!ENTITY md5 \"$md5\">/" "$plgfile"
+
+# Keep CA template date aligned with the release version date.
+if [[ "$version" =~ ^([0-9]{4})\.([0-9]{2})\.([0-9]{2})(\.[0-9]+|-beta[0-9]*)?$ ]]; then
+    xml_date="${BASH_REMATCH[1]}-${BASH_REMATCH[2]}-${BASH_REMATCH[3]}"
+    if [ -f "$xmlfile" ]; then
+        sed -i "s|<Date>.*</Date>|<Date>${xml_date}</Date>|" "$xmlfile"
+    else
+        echo "ERROR: Missing CA template file: $xmlfile" >&2
+        exit 1
+    fi
+fi
 
 # Update branch references in plg file (URLs use XML entities like &github;)
 sed -i 's|/main/folderview.plus.plg|/'"$branch"'/folderview.plus.plg|' "$plgfile"

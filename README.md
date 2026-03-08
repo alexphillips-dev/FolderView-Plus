@@ -193,6 +193,11 @@ node --test tests/*.mjs
 
 - Issues: https://github.com/alexphillips-dev/FolderView-Plus/issues
 
+> [!TIP]
+> **Need help or want to support the project?**
+> - Open an issue: https://github.com/alexphillips-dev/FolderView-Plus/issues
+> - Sponsor development: https://buymeacoffee.com/alexphillipsdev
+
 ## Credits
 
 - [chodeus](https://github.com/chodeus/folder.view3) - FolderView Plus is built on the strong foundation of folder.view3. Thank you for the original architecture and groundwork.

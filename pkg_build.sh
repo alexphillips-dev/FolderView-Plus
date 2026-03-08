@@ -157,7 +157,7 @@ highest_stable_archive_version_for_date() {
     shopt -s nullglob
     for archive in "$archive_dir/$archive_prefix-"*.txz; do
         local name="${archive##*/}"
-        local ver="${name#${archive_prefix}-}"
+        local ver="${name#"${archive_prefix}-"}"
         ver="${ver%.txz}"
         if is_stable_version "$ver"; then
             local ver_date
@@ -187,7 +187,7 @@ next_stable_version_for_date() {
         echo "${target_date}.01"
         return
     fi
-    echo "$(next_patch_version "$highest_for_date")"
+    next_patch_version "$highest_for_date"
 }
 
 should_package_file() {
@@ -369,7 +369,7 @@ tar --sort=name \
     --owner=0 \
     --group=0 \
     --numeric-owner \
-    -cJf "$filename" *
+    -cJf "$filename" ./*
 
 cd "$CWD"
 md5=$(md5sum "$filename" | awk '{print $1}')

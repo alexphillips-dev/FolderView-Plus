@@ -40,8 +40,18 @@ test('pkg_build includes dependency preflight, safe temp cleanup, dry-run, and c
     assert.match(pkgBuild, /require_commands tar sha256sum md5sum sed find date awk grep cp chmod mkdir rm mktemp sort tail/);
     assert.match(pkgBuild, /tmpdir="\$\(mktemp -d \"\$CWD\/tmp\/build\.XXXXXX\"\)"/);
     assert.match(pkgBuild, /trap cleanup_tmpdir EXIT/);
+    assert.match(pkgBuild, /ensure_repo_layout/);
+    assert.match(pkgBuild, /acquire_build_lock/);
+    assert.match(pkgBuild, /flock -n 9/);
+    assert.match(pkgBuild, /--output-dir D/);
+    assert.match(pkgBuild, /--install-smoke/);
     assert.match(pkgBuild, /--dry-run/);
     assert.match(pkgBuild, /Post-build validation: \$validate_after_build/);
+    assert.match(pkgBuild, /Install smoke: \$run_install_smoke/);
+    assert.match(pkgBuild, /--sort=name/);
+    assert.match(pkgBuild, /--mtime='UTC 1970-01-01'/);
+    assert.match(pkgBuild, /FVPLUS_ARCHIVE_DIR="\$archive_dir" bash "\$release_guard_script"/);
+    assert.match(pkgBuild, /bash "\$install_smoke_script"/);
     assert.match(pkgBuild, /sha256=\$\(sha256sum "\$filename" \| awk '\{print \$1\}'\)/);
     assert.match(pkgBuild, /printf '%s  %s\\n' "\$sha256" "\$\(basename "\$filename"\)" > "\$sha256_file"/);
     assert.doesNotMatch(pkgBuild, /rm -R "\$CWD\/tmp"/);
@@ -60,6 +70,7 @@ test('release_guard enforces category-signaling changelog content for current ve
 });
 
 test('release_guard enforces archive size, file-count, and extension policy', () => {
+    assert.match(releaseGuard, /ARCHIVE_DIR="\$\{FVPLUS_ARCHIVE_DIR:-\$\{ROOT_DIR\}\/archive\}"/);
     assert.match(releaseGuard, /MAX_ARCHIVE_BYTES="\$\{FVPLUS_MAX_ARCHIVE_BYTES:-52428800\}"/);
     assert.match(releaseGuard, /MAX_ARCHIVE_FILE_COUNT="\$\{FVPLUS_MAX_ARCHIVE_FILE_COUNT:-10000\}"/);
     assert.match(releaseGuard, /Archive exceeds size budget/);

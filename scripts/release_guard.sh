@@ -6,6 +6,7 @@ PLG_FILE="${ROOT_DIR}/folderview.plus.plg"
 CA_TEMPLATE_FILE="${ROOT_DIR}/folderview.plus.xml"
 PLUGIN_SRC_DIR="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus"
 SERVER_DIR="${PLUGIN_SRC_DIR}/server"
+ARCHIVE_DIR="${FVPLUS_ARCHIVE_DIR:-${ROOT_DIR}/archive}"
 MAX_ARCHIVE_BYTES="${FVPLUS_MAX_ARCHIVE_BYTES:-52428800}" # 50 MiB default ceiling
 MAX_ARCHIVE_FILE_COUNT="${FVPLUS_MAX_ARCHIVE_FILE_COUNT:-10000}"
 
@@ -73,7 +74,7 @@ else
   ' "${PLG_FILE}"
 fi
 
-ARCHIVE_FILE="${ROOT_DIR}/archive/folderview.plus-${VERSION}.txz"
+ARCHIVE_FILE="${ARCHIVE_DIR}/folderview.plus-${VERSION}.txz"
 if [[ ! -f "${ARCHIVE_FILE}" ]]; then
   echo "ERROR: Missing archive package for current version: ${ARCHIVE_FILE}" >&2
   exit 1

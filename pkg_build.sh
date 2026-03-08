@@ -8,17 +8,24 @@ version="${today_version}.01"
 plgfile="$CWD/folderview.plus.plg"
 xmlfile="$CWD/folderview.plus.xml"
 release_guard_script="$CWD/scripts/release_guard.sh"
+install_smoke_script="$CWD/scripts/install_smoke.sh"
 archive_prefix="folderview.plus"
+archive_dir="$CWD/archive"
 icon_ext_regex='^(png|jpg|jpeg|gif|webp|svg|bmp|ico|avif)$'
 validate_after_build=true
 dry_run=false
+run_install_smoke=false
 tmpdir=""
+lockfile="$CWD/tmp/pkg_build.lock"
+lockdir=""
 
 print_usage() {
     cat <<'EOF'
 Usage: pkg_build.sh [options]
   --beta [N]      Build beta package version (YYYY.MM.DD-beta or -betaN)
   --dry-run       Show computed version/output paths without writing files
+  --output-dir D  Write .txz/.sha256 to directory D (default: ./archive)
+  --install-smoke Run scripts/install_smoke.sh after successful build
   --validate      Run scripts/release_guard.sh after build (default: enabled)
   --no-validate   Skip post-build release guard validation
   -h, --help      Show this help
@@ -42,6 +49,41 @@ require_commands() {
 cleanup_tmpdir() {
     if [ -n "${tmpdir:-}" ] && [ -d "${tmpdir}" ]; then
         rm -rf "${tmpdir}"
+    fi
+    if [ -n "${lockdir:-}" ] && [ -d "${lockdir}" ]; then
+        rm -rf "${lockdir}"
+    fi
+}
+
+ensure_repo_layout() {
+    if [ ! -f "$plgfile" ]; then
+        echo "ERROR: Run pkg_build.sh from repo root (missing $plgfile)." >&2
+        exit 1
+    fi
+    if [ ! -f "$xmlfile" ]; then
+        echo "ERROR: Missing CA template file: $xmlfile" >&2
+        exit 1
+    fi
+    if [ ! -d "$CWD/src/folderview.plus" ]; then
+        echo "ERROR: Missing plugin source directory: $CWD/src/folderview.plus" >&2
+        exit 1
+    fi
+}
+
+acquire_build_lock() {
+    mkdir -p "$CWD/tmp"
+    if command -v flock >/dev/null 2>&1; then
+        exec 9>"$lockfile"
+        if ! flock -n 9; then
+            echo "ERROR: Another pkg_build.sh instance is already running (lock: $lockfile)." >&2
+            exit 1
+        fi
+        return
+    fi
+    lockdir="${lockfile}.d"
+    if ! mkdir "$lockdir" 2>/dev/null; then
+        echo "ERROR: Another pkg_build.sh instance is already running (lock: $lockdir)." >&2
+        exit 1
     fi
 }
 
@@ -113,7 +155,7 @@ highest_stable_archive_version_for_date() {
     local versions=()
     local archive
     shopt -s nullglob
-    for archive in "$CWD/archive/$archive_prefix-"*.txz; do
+    for archive in "$archive_dir/$archive_prefix-"*.txz; do
         local name="${archive##*/}"
         local ver="${name#${archive_prefix}-}"
         ver="${ver%.txz}"
@@ -183,6 +225,20 @@ while [[ $# -gt 0 ]]; do
         --dry-run)
             dry_run=true
             ;;
+        --output-dir)
+            if [ -z "${2:-}" ]; then
+                echo "ERROR: --output-dir requires a path." >&2
+                exit 1
+            fi
+            archive_dir="${2:-}"
+            shift
+            ;;
+        --install-smoke)
+            run_install_smoke=true
+            ;;
+        --no-install-smoke)
+            run_install_smoke=false
+            ;;
         --validate)
             validate_after_build=true
             ;;
@@ -202,11 +258,26 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
+if [[ "$archive_dir" != /* && ! "$archive_dir" =~ ^[A-Za-z]:[\\/].* ]]; then
+    archive_dir="$CWD/$archive_dir"
+fi
+
+ensure_repo_layout
+trap cleanup_tmpdir EXIT
+acquire_build_lock
+
 require_commands tar sha256sum md5sum sed find date awk grep cp chmod mkdir rm mktemp sort tail
 if [ "$validate_after_build" = true ]; then
     require_commands bash
     if [ ! -f "$release_guard_script" ]; then
         echo "ERROR: Missing release guard script: $release_guard_script" >&2
+        exit 1
+    fi
+fi
+if [ "$run_install_smoke" = true ]; then
+    require_commands bash
+    if [ ! -f "$install_smoke_script" ]; then
+        echo "ERROR: Missing install smoke script: $install_smoke_script" >&2
         exit 1
     fi
 fi
@@ -247,14 +318,14 @@ elif [ "$BETA" = false ]; then
     version="$(next_stable_version_for_date "$today_version")"
 fi
 
-filename="$CWD/archive/$archive_prefix-$version.txz"
+filename="$archive_dir/$archive_prefix-$version.txz"
 if [ -n "$version_override" ] && [ -f "$filename" ]; then
     echo "Archive already exists for overridden version: $filename" >&2
     exit 1
 fi
 while [ -f "$filename" ]; do
     version="$(next_patch_version "$version")"
-    filename="$CWD/archive/$archive_prefix-$version.txz"
+    filename="$archive_dir/$archive_prefix-$version.txz"
 done
 
 xml_date=""
@@ -266,18 +337,20 @@ if [ "$dry_run" = true ]; then
     echo "Dry run: no files will be written."
     echo "Version: $version"
     echo "Branch: $branch"
+    echo "Output directory: $archive_dir"
     echo "Archive target: $filename"
     echo "PLG file: $plgfile"
     if [ -n "$xml_date" ]; then
         echo "CA template date: $xml_date"
     fi
     echo "Post-build validation: $validate_after_build"
+    echo "Install smoke: $run_install_smoke"
     exit 0
 fi
 
 mkdir -p "$CWD/tmp"
+mkdir -p "$archive_dir"
 tmpdir="$(mktemp -d "$CWD/tmp/build.XXXXXX")"
-trap cleanup_tmpdir EXIT
 
 cd "$CWD/src/folderview.plus"
 while IFS= read -r -d '' file; do
@@ -291,7 +364,12 @@ done < <(find . -type f ! \( -iname "pkg_build.sh" -o -iname "sftp-config.json" 
 chmod -R 0755 "$tmpdir"
 
 cd "$tmpdir"
-tar -cJf "$filename" *
+tar --sort=name \
+    --mtime='UTC 1970-01-01' \
+    --owner=0 \
+    --group=0 \
+    --numeric-owner \
+    -cJf "$filename" *
 
 cd "$CWD"
 md5=$(md5sum "$filename" | awk '{print $1}')
@@ -318,7 +396,10 @@ sed -i 's|/main/folderview.plus.plg|/'"$branch"'/folderview.plus.plg|' "$plgfile
 sed -i 's|/main/archive/|/'"$branch"'/archive/|' "$plgfile"
 
 if [ "$validate_after_build" = true ]; then
-    bash "$release_guard_script"
+    FVPLUS_ARCHIVE_DIR="$archive_dir" bash "$release_guard_script"
+fi
+if [ "$run_install_smoke" = true ]; then
+    bash "$install_smoke_script"
 fi
 
 echo "Package created: $filename"

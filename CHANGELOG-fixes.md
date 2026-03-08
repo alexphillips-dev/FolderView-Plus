@@ -1,5 +1,11 @@
 # FolderView Plus Changelog
 
+## Version 2026.03.08.20
+
+- Increase Setup Assistant modal size slightly for better readability while preserving compact modal behavior.
+- Correct sidebar step-state logic so only the current step can show blocked/review states; upcoming steps display as next.
+- Fix step-state badge alignment and styling in the wizard sidebar.
+
 ## Version 2026.03.08.19
 
 - Finalize Setup Assistant overhaul release packaging and validation.

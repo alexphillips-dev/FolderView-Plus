@@ -1938,8 +1938,8 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: min(1120px, calc(100vw - 2.25rem));
-    height: min(80vh, 780px);
+    width: min(1180px, calc(100vw - 2rem));
+    height: min(82vh, 810px);
     z-index: 5201;
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 12px;
@@ -2055,7 +2055,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     background: transparent;
     color: inherit;
     display: grid;
-    grid-template-columns: 21px minmax(0, 1fr);
+    grid-template-columns: 21px minmax(0, 1fr) auto;
     align-items: center;
     gap: 0.34rem;
     padding: 0.18rem 0.24rem;
@@ -2104,9 +2104,46 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 }
 
 .fv-setup-step-state {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 0.12rem 0.42rem;
     justify-self: end;
     font-size: var(--fv-wizard-font-103);
     line-height: 1.2;
+    white-space: nowrap;
+}
+
+.fv-setup-step-state.is-ready {
+    border-color: rgba(147, 225, 159, 0.45);
+    color: #93e19f;
+    background: rgba(147, 225, 159, 0.08);
+}
+
+.fv-setup-step-state.is-done {
+    border-color: rgba(147, 225, 159, 0.45);
+    color: #93e19f;
+    background: rgba(147, 225, 159, 0.08);
+}
+
+.fv-setup-step-state.is-pending {
+    border-color: rgba(255, 255, 255, 0.22);
+    color: rgba(255, 255, 255, 0.82);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.fv-setup-step-state.is-warn {
+    border-color: rgba(255, 193, 94, 0.52);
+    color: #ffc15e;
+    background: rgba(255, 193, 94, 0.09);
+}
+
+.fv-setup-step-state.is-blocked {
+    border-color: rgba(255, 116, 116, 0.56);
+    color: #ff8c8c;
+    background: rgba(255, 116, 116, 0.09);
 }
 
 .fv-setup-assistant-head {

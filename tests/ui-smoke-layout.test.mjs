@@ -114,6 +114,7 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const buildSetupAssistantImpactSummary = \(\) =>/);
     assert.match(settingsJs, /const getSetupAssistantImpactDelta = \(currentImpact, baselineImpact = null\) =>/);
     assert.match(settingsJs, /const buildSetupAssistantStepStatusMap = \(\) =>/);
+    assert.match(settingsJs, /status = 'pending';/);
     assert.match(settingsJs, /const getSetupAssistantStepValidation = \(stepKey = currentSetupAssistantStepKey\(\)\) =>/);
     assert.match(settingsJs, /const previewSetupAssistantRuleMatches = \(type, pattern\) =>/);
     assert.match(settingsJs, /const handleSetupAssistantDialogKeydown = \(event\) =>/);
@@ -179,7 +180,9 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsCss, /#fv-setup-assistant-dialog\s*\{/);
     assert.match(settingsCss, /\.fv-setup-assistant-shell\s*\{/);
     assert.match(settingsCss, /\.fv-setup-step-list\s*\{/);
+    assert.match(settingsCss, /\.fv-setup-step-jump\s*\{[\s\S]*grid-template-columns:\s*21px minmax\(0,\s*1fr\) auto/);
     assert.match(settingsCss, /\.fv-setup-step-state\s*\{/);
+    assert.match(settingsCss, /\.fv-setup-step-state\.is-pending\s*\{/);
     assert.match(settingsCss, /\.fv-setup-step-delta\s*\{/);
     assert.match(settingsCss, /\.fv-setup-nav-note\s*\{/);
     assert.match(settingsCss, /\.fv-setup-safety-grid\s*\{/);
@@ -199,8 +202,8 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsCss, /\.fv-setup-rule-preview\.is-match\s*\{/);
     assert.match(settingsCss, /--fv-wizard-font-103:\s*1\.03rem/);
     assert.match(settingsCss, /#fv-setup-assistant-dialog\s*\{[\s\S]*transform:\s*translate\(-50%,\s*-50%\)/);
-    assert.match(settingsCss, /#fv-setup-assistant-dialog\s*\{[\s\S]*width:\s*min\(1120px,\s*calc\(100vw\s*-\s*2\.25rem\)\)/);
-    assert.match(settingsCss, /#fv-setup-assistant-dialog\s*\{[\s\S]*height:\s*min\(80vh,\s*780px\)/);
+    assert.match(settingsCss, /#fv-setup-assistant-dialog\s*\{[\s\S]*width:\s*min\(1180px,\s*calc\(100vw\s*-\s*2rem\)\)/);
+    assert.match(settingsCss, /#fv-setup-assistant-dialog\s*\{[\s\S]*height:\s*min\(82vh,\s*810px\)/);
     assert.match(settingsCss, /\.fv-setup-step-list li\s*\{[\s\S]*font-size:\s*var\(--fv-wizard-font-103\)/);
     assert.match(settingsCss, /\.fv-setup-assistant-head h4\s*\{[\s\S]*font-size:\s*var\(--fv-wizard-font-118\)/);
     assert.match(settingsCss, /\.fv-setup-quick-preset\s*\{[\s\S]*white-space:\s*normal/);

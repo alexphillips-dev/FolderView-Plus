@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.08.19">
-<!ENTITY md5 "33dad0bef8ad94d896893b15ae241cef">
+<!ENTITY version "2026.03.08.20">
+<!ENTITY md5 "2bf24c1ee55f0fe9faf06c4a49f1e647">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.08.20
+- UI fix: increased Setup Assistant dialog size slightly for better readability while keeping the compact modal behavior.
+- UX fix: corrected sidebar step-state behavior so only the active step can show blocked/review states; upcoming steps now show as next.
+- UI polish: fixed step-state badge alignment and styling in the wizard sidebar.
+
 
 ###2026.03.08.19
 - Reliability: finalized Setup Assistant overhaul release packaging and validation for Guided/Expert, safety modes, and retry reporting.

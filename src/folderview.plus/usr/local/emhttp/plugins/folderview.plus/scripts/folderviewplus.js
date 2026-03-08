@@ -2927,15 +2927,20 @@ const getSetupAssistantStepDeltaSummary = (stepKey, deltaSummary = null) => {
 const buildSetupAssistantStepStatusMap = () => {
     const sequence = getSetupAssistantStepSequence();
     return sequence.map((stepKey, index) => {
-        const validation = getSetupAssistantStepValidation(stepKey);
+        const isCurrent = index === setupAssistantState.step;
+        const isPast = index < setupAssistantState.step;
+        const validation = isCurrent
+            ? getSetupAssistantStepValidation(stepKey)
+            : { blockers: [], warnings: [] };
         let status = 'ok';
-        if (validation.blockers.length > 0) {
+        if (isPast) {
+            status = 'complete';
+        } else if (!isCurrent) {
+            status = 'pending';
+        } else if (validation.blockers.length > 0) {
             status = 'blocked';
         } else if (validation.warnings.length > 0) {
             status = 'warn';
-        }
-        if (index < setupAssistantState.step && status === 'ok') {
-            status = 'complete';
         }
         return {
             key: stepKey,
@@ -3217,6 +3222,9 @@ const setupAssistantStepLabel = (stepKey) => {
 };
 
 const setupAssistantStepStatusLabel = (status) => {
+    if (status === 'pending') {
+        return 'Next';
+    }
     if (status === 'blocked') {
         return 'Blocked';
     }
@@ -3230,16 +3238,19 @@ const setupAssistantStepStatusLabel = (status) => {
 };
 
 const setupAssistantStepStatusClass = (status) => {
+    if (status === 'pending') {
+        return 'is-pending';
+    }
     if (status === 'blocked') {
-        return 'is-delete';
+        return 'is-blocked';
     }
     if (status === 'warn') {
-        return 'is-update';
+        return 'is-warn';
     }
     if (status === 'complete') {
-        return 'is-create';
+        return 'is-done';
     }
-    return '';
+    return 'is-ready';
 };
 
 const renderSetupAssistantSidebarSummary = (impactSummary) => {

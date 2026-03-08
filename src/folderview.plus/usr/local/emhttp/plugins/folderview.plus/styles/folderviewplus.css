@@ -1493,6 +1493,32 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 }
 
 @media (max-width: 760px) {
+    #fv-setup-assistant-dialog {
+        inset: 2vh 2vw;
+    }
+
+    .fv-setup-assistant-shell {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    .fv-setup-assistant-sidebar {
+        border-right: 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        max-height: 34vh;
+    }
+
+    .fv-setup-step-grid,
+    .fv-setup-route-grid,
+    .fv-setup-profile-grid,
+    .fv-setup-field-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .fv-setup-assistant-foot {
+        flex-wrap: wrap;
+    }
+
     .import-top-grid {
         grid-template-columns: 1fr;
     }
@@ -1708,6 +1734,390 @@ a:focus-visible {
 #fv-run-wizard {
     min-height: 32px;
     padding: 0.3rem 0.55rem;
+}
+
+#fv-setup-assistant-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 5200;
+    background: rgba(0, 0, 0, 0.54);
+}
+
+#fv-setup-assistant-dialog {
+    position: fixed;
+    inset: 4vh 4vw;
+    z-index: 5201;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    background: rgba(8, 12, 18, 0.985);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+    overflow: hidden;
+}
+
+#fv-setup-assistant-content {
+    width: 100%;
+    height: 100%;
+}
+
+.fv-setup-assistant-shell {
+    display: grid;
+    grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+    width: 100%;
+    height: 100%;
+}
+
+.fv-setup-assistant-sidebar {
+    border-right: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 0.85rem 0.8rem;
+    background: rgba(255, 255, 255, 0.03);
+    overflow-y: auto;
+}
+
+.fv-setup-assistant-sidebar > h3 {
+    margin: 0 0 0.35rem 0;
+    font-size: 1.15rem;
+}
+
+.fv-setup-step-list {
+    margin: 0.5rem 0 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.35rem;
+}
+
+.fv-setup-step-list li {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr);
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.24rem 0.3rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 1.03rem;
+    opacity: 0.84;
+}
+
+.fv-setup-step-list li.is-active {
+    border-color: rgba(77, 163, 255, 0.55);
+    background: rgba(77, 163, 255, 0.14);
+    opacity: 1;
+}
+
+.fv-setup-step-list li.is-complete {
+    border-color: rgba(147, 225, 159, 0.4);
+}
+
+.fv-setup-step-index {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 1.03rem;
+}
+
+.fv-setup-assistant-main {
+    display: grid;
+    grid-template-rows: auto 1fr auto auto;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.fv-setup-assistant-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.55rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.7rem 0.8rem;
+}
+
+.fv-setup-assistant-head h4 {
+    margin: 0;
+    font-size: 1.18rem;
+}
+
+.fv-setup-assistant-body {
+    padding: 0.72rem 0.82rem;
+    overflow: auto;
+}
+
+.fv-setup-step-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+}
+
+.fv-setup-card {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 0.6rem 0.65rem;
+    display: grid;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.fv-setup-card h4 {
+    margin: 0;
+    font-size: 1.08rem;
+}
+
+.fv-setup-muted {
+    margin: 0;
+    font-size: 1.03rem;
+    opacity: 0.84;
+    line-height: 1.35;
+}
+
+.fv-setup-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.32rem;
+}
+
+.fv-setup-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+    padding: 0.14rem 0.45rem;
+    font-size: 1.03rem;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.fv-setup-chip.is-create {
+    border-color: rgba(147, 225, 159, 0.52);
+    color: #93e19f;
+}
+
+.fv-setup-chip.is-update {
+    border-color: rgba(77, 163, 255, 0.54);
+    color: #b9dcff;
+}
+
+.fv-setup-chip.is-delete {
+    border-color: rgba(255, 116, 116, 0.58);
+    color: #ff8c8c;
+}
+
+.fv-setup-route-grid,
+.fv-setup-profile-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.45rem;
+}
+
+.fv-setup-route-option,
+.fv-setup-profile-option {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    padding: 0.4rem 0.45rem;
+    display: grid;
+    gap: 0.28rem;
+    cursor: pointer;
+}
+
+.fv-setup-route-option.is-active,
+.fv-setup-profile-option.is-active {
+    border-color: rgba(77, 163, 255, 0.55);
+    background: rgba(77, 163, 255, 0.14);
+}
+
+.fv-setup-route-option input,
+.fv-setup-profile-option input {
+    margin: 0;
+}
+
+.fv-setup-route-title,
+.fv-setup-profile-title {
+    font-size: 1.03rem;
+    font-weight: 700;
+}
+
+.fv-setup-route-help,
+.fv-setup-profile-help {
+    font-size: 1.03rem;
+    opacity: 0.82;
+    line-height: 1.3;
+}
+
+.fv-setup-mode-toggle {
+    display: inline-flex;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.fv-setup-mode-toggle button {
+    min-width: 110px;
+    border: 0;
+    border-right: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.fv-setup-mode-toggle button:last-child {
+    border-right: 0;
+}
+
+.fv-setup-mode-toggle button.is-active {
+    background: rgba(77, 163, 255, 0.2);
+    color: #d8ebff;
+}
+
+.fv-setup-import-actions,
+.fv-setup-inline-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.fv-setup-field-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.45rem;
+}
+
+.fv-setup-field {
+    display: grid;
+    gap: 0.24rem;
+    min-width: 0;
+}
+
+.fv-setup-field > span {
+    font-size: 1.03rem;
+    font-weight: 700;
+}
+
+.fv-setup-field select,
+.fv-setup-field input[type="number"] {
+    width: 100%;
+    min-height: 32px;
+}
+
+.fv-setup-inline-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.42rem;
+    font-size: 1.03rem;
+}
+
+.fv-setup-rule-list {
+    max-height: 270px;
+    overflow: auto;
+    display: grid;
+    gap: 0.35rem;
+    padding-right: 0.1rem;
+}
+
+.fv-setup-rule-row {
+    display: grid;
+    grid-template-columns: 20px minmax(0, 1fr);
+    gap: 0.35rem;
+    align-items: start;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 0.34rem 0.4rem;
+}
+
+.fv-setup-rule-main,
+.fv-setup-rule-help {
+    display: block;
+    font-size: 1.03rem;
+}
+
+.fv-setup-rule-help {
+    opacity: 0.78;
+    margin-top: 0.1rem;
+}
+
+.fv-setup-review-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.fv-setup-warning-box {
+    border: 1px solid rgba(255, 193, 94, 0.4);
+    border-radius: 8px;
+    background: rgba(255, 193, 94, 0.09);
+    padding: 0.42rem 0.48rem;
+    font-size: 1.03rem;
+}
+
+.fv-setup-warning-box ul {
+    margin: 0.25rem 0 0 1rem;
+    padding: 0;
+}
+
+.fv-setup-warning-box li {
+    margin: 0.1rem 0;
+}
+
+.fv-setup-error {
+    border: 1px solid rgba(255, 116, 116, 0.5);
+    border-radius: 6px;
+    background: rgba(255, 116, 116, 0.1);
+    padding: 0.35rem 0.45rem;
+    font-size: 1.03rem;
+    color: #ff8c8c;
+}
+
+.fv-setup-assistant-foot {
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 0.58rem 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.45rem;
+}
+
+.fv-setup-foot-left,
+.fv-setup-foot-right {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.fv-setup-progress {
+    display: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 0.45rem 0.8rem 0.52rem 0.8rem;
+}
+
+.fv-setup-progress.is-visible {
+    display: grid;
+    gap: 0.3rem;
+}
+
+.fv-setup-progress-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.45rem;
+    font-size: 1.03rem;
+    font-weight: 600;
+}
+
+.fv-setup-progress-track {
+    width: 100%;
+    height: 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.fv-setup-progress-track > span {
+    display: block;
+    height: 100%;
+    width: 0%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #ff8f2a 0%, #ffd26f 100%);
+    transition: width 130ms ease;
 }
 
 .fv-advanced-nav {

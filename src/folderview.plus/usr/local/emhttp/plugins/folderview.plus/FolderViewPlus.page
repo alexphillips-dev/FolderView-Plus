@@ -689,6 +689,11 @@ emitRequestTokenMetaTag();
     </div>
 </div>
 
+<div id="fv-setup-assistant-overlay" style="display:none;"></div>
+<div id="fv-setup-assistant-dialog" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="fv-setup-assistant-title">
+    <div id="fv-setup-assistant-content"></div>
+</div>
+
 <div id="fv-settings-action-bar"></div>
 
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>"></script>

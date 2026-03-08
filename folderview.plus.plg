@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.07.10">
-<!ENTITY md5 "60a424a4d30a8c6341913bf7d6078c46">
+<!ENTITY version "2026.03.07.11">
+<!ENTITY md5 "2d9eed57ee46c8cc760d4dfb0fde99fe">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.07.11
+- Replace the old quick-setup prompt with a full multi-step Setup Assistant:
+  welcome, profile, import, rules, behavior, and review/apply.
+- Add guarded first-run completion markers so setup only auto-runs for true first installs.
+- Add rollback-backed apply flow with import planning for Docker/VM and starter rule bootstrap.
+- Add responsive Setup Assistant overlay UI with progress tracking and one-click undo option.
 
 ###2026.03.07.10
 - Reduced Advanced header compact-toggle button size for a cleaner icon-only control.

@@ -38,6 +38,9 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
     assert.match(settingsPage, /id="vm-backup-compare-left"/);
     assert.match(settingsPage, /id="import-apply-progress-overlay"/);
     assert.match(settingsPage, /id="import-apply-progress-dialog"/);
+    assert.match(settingsPage, /id="fv-setup-assistant-overlay"/);
+    assert.match(settingsPage, /id="fv-setup-assistant-dialog"/);
+    assert.match(settingsPage, /id="fv-setup-assistant-content"/);
     assert.match(settingsPage, /id="fv-settings-action-bar"/);
     assert.match(settingsPage, /folderviewplus\.request\.js/);
     assert.match(settingsPage, /folderviewplus\.chrome\.js/);
@@ -95,6 +98,14 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
 test('settings runtime uses extracted chrome module and shared request wrapper', () => {
     assert.match(settingsJs, /const requestClient = window\.FolderViewPlusRequest \|\| null;/);
     assert.match(settingsJs, /const settingsChrome = window\.FolderViewPlusSettingsChrome \|\| null;/);
+    assert.match(settingsJs, /const SETUP_ASSISTANT_DONE_STORAGE_KEY = 'fv\.settings\.setupAssistant\.v2\.done';/);
+    assert.match(settingsJs, /const openSetupAssistant = \(force = false\) =>/);
+    assert.match(settingsJs, /const applySetupAssistantPlan = async \(\) =>/);
+    assert.match(settingsJs, /runQuickSetupWizard = \(force = false\) => \{/);
+    assert.match(settingsJs, /openSetupAssistant\(force === true\);/);
+    assert.match(settingsJs, /const bindSetupAssistantEvents = \(\) =>/);
+    assert.match(settingsJs, /markSetupAssistantCompletedLocal\(\);/);
+    assert.match(settingsJs, /const shouldRunWizard = !isWizardCompletedServerSide\(\) && !isSetupAssistantCompletedLocal\(\);/);
     assert.match(settingsJs, /const apiPostJson = async \(url, data = \{\}, options = \{\}\) =>/);
     assert.match(settingsJs, /const topbarHtml = settingsChrome && typeof settingsChrome\.getTopbarHtml === 'function'/);
     assert.match(settingsJs, /const enforceNoHorizontalOverflow = \(\) =>/);
@@ -133,6 +144,11 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsCss, /\.vm-resource-chip\.is-cpu\s*\{/);
     assert.match(settingsCss, /\.vm-resource-chip\.is-ram\s*\{/);
     assert.match(settingsCss, /\.fv-advanced-compact i\s*\{/);
+    assert.match(settingsCss, /#fv-setup-assistant-overlay\s*\{/);
+    assert.match(settingsCss, /#fv-setup-assistant-dialog\s*\{/);
+    assert.match(settingsCss, /\.fv-setup-assistant-shell\s*\{/);
+    assert.match(settingsCss, /\.fv-setup-step-list\s*\{/);
+    assert.match(settingsCss, /\.fv-setup-progress-track > span\s*\{/);
     assert.match(settingsCss, /--fv-advanced-module-height:\s*clamp\(/);
     assert.match(settingsCss, /h2\[data-fv-advanced="1"\] \+ \.backup-grid \.rules-panel[\s\S]*overflow-y:\s*auto/);
     assert.match(settingsCss, /\.fv-advanced-compact\s*\{[\s\S]*width:\s*28px/);

@@ -16,7 +16,7 @@
                     <button type="button" class="fv-mode-btn" data-mode="basic" aria-label="Use basic settings mode">Basic</button>
                     <button type="button" class="fv-mode-btn" data-mode="advanced" aria-label="Use advanced settings mode">Advanced</button>
                 </span>
-                <button type="button" id="fv-run-wizard" title="Run quick setup wizard"><i class="fa fa-magic"></i> Wizard</button>
+                <button type="button" id="fv-run-wizard" title="Run setup assistant"><i class="fa fa-magic"></i> Wizard</button>
             </div>
         </div>
     `;

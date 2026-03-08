@@ -30,12 +30,18 @@ jobs:
           set -euo pipefail
           VERSION=$(grep -oP '<!ENTITY version "\K[^"]+' folderview.plus.plg)
           ARCHIVE="archive/folderview.plus-${VERSION}.txz"
+          CHECKSUM="${ARCHIVE}.sha256"
           if [ ! -f "${ARCHIVE}" ]; then
             echo "ERROR: expected archive not found: ${ARCHIVE}" >&2
             exit 1
           fi
+          if [ ! -f "${CHECKSUM}" ]; then
+            echo "ERROR: expected checksum not found: ${CHECKSUM}" >&2
+            exit 1
+          fi
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "archive=${ARCHIVE}" >> "$GITHUB_OUTPUT"
+          echo "checksum=${CHECKSUM}" >> "$GITHUB_OUTPUT"
           echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
 
       - name: Run release guard
@@ -120,11 +126,12 @@ jobs:
           set -euo pipefail
           TAG="${{ steps.release_meta.outputs.tag }}"
           ARCHIVE="${{ steps.release_meta.outputs.archive }}"
+          CHECKSUM="${{ steps.release_meta.outputs.checksum }}"
           if gh release view "${TAG}" >/dev/null 2>&1; then
             gh release edit "${TAG}" --title "${TAG}" --notes-file release_notes.md
-            gh release upload "${TAG}" "${ARCHIVE}" --clobber
+            gh release upload "${TAG}" "${ARCHIVE}" "${CHECKSUM}" --clobber
             echo "Updated release ${TAG}"
           else
-            gh release create "${TAG}" "${ARCHIVE}" --title "${TAG}" --notes-file release_notes.md
+            gh release create "${TAG}" "${ARCHIVE}" "${CHECKSUM}" --title "${TAG}" --notes-file release_notes.md
             echo "Created release ${TAG}"
           fi

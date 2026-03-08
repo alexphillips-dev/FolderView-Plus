@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PLG_FILE="${ROOT_DIR}/folderview.plus.plg"
+ARCHIVE_DIR="${FVPLUS_ARCHIVE_DIR:-${ROOT_DIR}/archive}"
 
 if [[ ! -f "${PLG_FILE}" ]]; then
   echo "ERROR: Missing plugin manifest: ${PLG_FILE}" >&2
@@ -15,7 +16,7 @@ if [[ -z "${VERSION}" ]]; then
   exit 1
 fi
 
-ARCHIVE_FILE="${ROOT_DIR}/archive/folderview.plus-${VERSION}.txz"
+ARCHIVE_FILE="${ARCHIVE_DIR}/folderview.plus-${VERSION}.txz"
 if [[ ! -f "${ARCHIVE_FILE}" ]]; then
   echo "ERROR: Missing archive for current version: ${ARCHIVE_FILE}" >&2
   exit 1

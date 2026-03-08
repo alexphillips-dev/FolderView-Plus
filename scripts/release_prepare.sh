@@ -8,12 +8,12 @@ chmod +x pkg_build.sh scripts/ensure_plg_changes_entry.sh scripts/release_guard.
 
 if [[ "${1:-}" == "--beta" ]]; then
   if [[ -n "${2:-}" ]]; then
-    bash pkg_build.sh --beta "${2}"
+    bash pkg_build.sh --beta "${2}" --no-validate
   else
-    bash pkg_build.sh --beta
+    bash pkg_build.sh --beta --no-validate
   fi
 else
-  bash pkg_build.sh
+  bash pkg_build.sh --no-validate
 fi
 
 bash scripts/ensure_plg_changes_entry.sh

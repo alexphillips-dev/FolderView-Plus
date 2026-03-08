@@ -30,7 +30,7 @@ awk -v version="${VERSION}" '
     if (!inserted && $0 ~ /<CHANGES>/) {
       print ""
       print "###" version
-      print "- Automated release metadata update."
+      print "- Maintenance: automated release metadata update."
       print ""
       inserted = 1
     }

@@ -61,9 +61,15 @@ jobs:
         run: |
           VERSION="${{ steps.beta.outputs.version }}"
           FILENAME="archive/folderview.plus-${VERSION}.txz"
+          CHECKSUM="${FILENAME}.sha256"
 
           if [ ! -f "$FILENAME" ]; then
             echo "ERROR: Expected $FILENAME not found"
+            ls -la archive/
+            exit 1
+          fi
+          if [ ! -f "$CHECKSUM" ]; then
+            echo "ERROR: Expected $CHECKSUM not found"
             ls -la archive/
             exit 1
           fi
@@ -71,6 +77,7 @@ jobs:
           # Verify plg was updated
           PLG_VERSION=$(grep -oP '<!ENTITY version "\K[^"]+' folderview.plus.plg)
           echo "Package: $FILENAME"
+          echo "Checksum: $CHECKSUM"
           echo "PLG version: $PLG_VERSION"
 
           if [ "$PLG_VERSION" != "$VERSION" ]; then
@@ -105,7 +112,7 @@ jobs:
 
       - name: Commit and push to beta
         run: |
-          git add archive/ folderview.plus.plg
+          git add archive/ folderview.plus.plg folderview.plus.xml
           git commit -m "Build beta ${{ steps.beta.outputs.version }}"
           git push origin beta
 

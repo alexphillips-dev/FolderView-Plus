@@ -14,6 +14,8 @@ const releaseBetaWorkflowPath = path.join(repoRoot, '.github/workflows/release-b
 const releaseOnMainWorkflowPath = path.join(repoRoot, '.github/workflows/release-on-main.yml');
 const browserSmokeShellPath = path.join(repoRoot, 'scripts/browser_smoke.sh');
 const browserSmokeNodePath = path.join(repoRoot, 'scripts/browser_smoke.mjs');
+const installSmokePath = path.join(repoRoot, 'scripts/install_smoke.sh');
+const ensureChangesPath = path.join(repoRoot, 'scripts/ensure_plg_changes_entry.sh');
 const pkgBuild = fs.readFileSync(pkgBuildPath, 'utf8');
 const releaseGuard = fs.readFileSync(releaseGuardPath, 'utf8');
 const releasePrepare = fs.readFileSync(releasePreparePath, 'utf8');
@@ -24,6 +26,8 @@ const releaseBetaWorkflow = fs.readFileSync(releaseBetaWorkflowPath, 'utf8');
 const releaseOnMainWorkflow = fs.readFileSync(releaseOnMainWorkflowPath, 'utf8');
 const browserSmokeShell = fs.readFileSync(browserSmokeShellPath, 'utf8');
 const browserSmokeNode = fs.readFileSync(browserSmokeNodePath, 'utf8');
+const installSmoke = fs.readFileSync(installSmokePath, 'utf8');
+const ensureChanges = fs.readFileSync(ensureChangesPath, 'utf8');
 
 test('pkg_build computes stable versions per current date only', () => {
     assert.match(pkgBuild, /next_stable_version_for_date/);
@@ -121,6 +125,8 @@ test('validation workflows include optional browser smoke integration', () => {
         assert.match(workflow, /bash scripts\/browser_smoke\.sh/);
     }
     assert.match(releasePrepare, /bash scripts\/browser_smoke\.sh/);
+    assert.match(releasePrepare, /bash pkg_build\.sh --no-validate/);
+    assert.match(releasePrepare, /bash pkg_build\.sh --beta .* --no-validate/);
 });
 
 test('release-on-main workflow auto-publishes validated releases from current plg version', () => {
@@ -132,7 +138,25 @@ test('release-on-main workflow auto-publishes validated releases from current pl
     assert.match(releaseOnMainWorkflow, /release_notes\.md/);
     assert.match(releaseOnMainWorkflow, /folderview\.plus\.plg/);
     assert.match(releaseOnMainWorkflow, /archive\/folderview\.plus-\$\{VERSION\}\.txz/);
+    assert.match(releaseOnMainWorkflow, /CHECKSUM="\$\{ARCHIVE\}\.sha256"/);
     assert.match(releaseOnMainWorkflow, /gh release create/);
     assert.match(releaseOnMainWorkflow, /gh release edit/);
+    assert.match(releaseOnMainWorkflow, /gh release upload "\$\{TAG\}" "\$\{ARCHIVE\}" "\$\{CHECKSUM\}" --clobber/);
     assert.match(releaseOnMainWorkflow, /GH_TOKEN:\s*\$\{\{\s*github\.token\s*\}\}/);
+});
+
+test('install smoke supports configurable archive directory override', () => {
+    assert.match(installSmoke, /ARCHIVE_DIR="\$\{FVPLUS_ARCHIVE_DIR:-\$\{ROOT_DIR\}\/archive\}"/);
+    assert.match(installSmoke, /ARCHIVE_FILE="\$\{ARCHIVE_DIR\}\/folderview\.plus-\$\{VERSION\}\.txz"/);
+});
+
+test('ensure changes entry seeds category-signaling release note text', () => {
+    assert.match(ensureChanges, /Maintenance: automated release metadata update/);
+});
+
+test('release workflows keep checksum assets and metadata changes', () => {
+    assert.match(releaseBetaWorkflow, /CHECKSUM="\$\{FILENAME\}\.sha256"/);
+    assert.match(releaseBetaWorkflow, /git add archive\/ folderview\.plus\.plg folderview\.plus\.xml/);
+    assert.match(releaseStableWorkflow, /CHECKSUM_FILENAME="\$\{FILENAME\}\.sha256"/);
+    assert.match(releaseStableWorkflow, /archive\/\$\{\{ steps\.version\.outputs\.checksum_filename \}\}/);
 });

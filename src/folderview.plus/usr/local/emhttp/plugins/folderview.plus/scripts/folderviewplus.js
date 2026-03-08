@@ -61,11 +61,22 @@ let statusFilterByType = {
     docker: 'all',
     vm: 'all'
 };
+let quickFolderFilterByType = {
+    docker: 'all',
+    vm: 'all'
+};
 let statusSnapshotByType = {
     docker: {},
     vm: {}
 };
 let dockerUpdatesOnlyFilter = false;
+let activityFeedEntries = [];
+let toastSerial = 0;
+const pendingUndoTimers = new Map();
+let rowLongPressByType = {
+    docker: null,
+    vm: null
+};
 let importSelectionState = null;
 let importDiffPagingState = {
     rows: [],
@@ -109,6 +120,9 @@ const ADVANCED_EXPANDED_STORAGE_KEY = 'fv.settings.advancedExpanded.v2';
 const ADVANCED_KNOWN_STORAGE_KEY = 'fv.settings.advancedKnown.v1';
 const SEARCH_ALL_ADVANCED_STORAGE_KEY = 'fv.settings.searchAllAdvanced.v1';
 const UPDATE_NOTES_SEEN_VERSION_STORAGE_KEY = 'fv.settings.updateNotesSeenVersion.v1';
+const IMPORT_PREVIEW_FIRST_STORAGE_KEY = 'fv.import.previewFirst.v1';
+const ACTIVITY_FEED_MAX_ENTRIES = 12;
+const LONG_PRESS_DELAY_MS = 560;
 const IMPORT_PRESET_DEFAULT_ID = 'builtin:merge';
 const IMPORT_PRESET_BUILTINS = [
     {
@@ -317,6 +331,57 @@ const SETUP_ASSISTANT_PROFILE_PRESETS = {
             trendEnabled: true,
             attentionAccent: true
         }
+    }
+};
+const QUICK_PROFILE_PRESETS = {
+    balanced: {
+        label: 'Balanced',
+        description: 'Recommended defaults for daily use.',
+        profile: 'balanced',
+        environment: 'home_lab'
+    },
+    minimal: {
+        label: 'Minimal',
+        description: 'Lower-noise layout with fewer visual badges and cards.',
+        profile: 'safe',
+        environment: 'home_lab',
+        overridesByType: {
+            docker: {
+                hideEmptyFolders: true,
+                health: {
+                    cardsEnabled: false,
+                    runtimeBadgeEnabled: false
+                },
+                badges: {
+                    running: true,
+                    stopped: false,
+                    updates: true
+                }
+            },
+            vm: {
+                hideEmptyFolders: true,
+                health: {
+                    cardsEnabled: false,
+                    runtimeBadgeEnabled: false
+                },
+                badges: {
+                    running: true,
+                    stopped: false
+                }
+            }
+        }
+    },
+    power: {
+        label: 'Power',
+        description: 'Higher visibility and faster telemetry refresh for large installs.',
+        profile: 'power',
+        environment: 'production'
+    },
+    media_stack: {
+        label: 'Media Stack',
+        description: 'Balanced runtime defaults with media-focused sort and thresholds.',
+        profile: 'balanced',
+        environment: 'media_stack'
     }
 };
 const settingsUiState = {
@@ -1398,9 +1463,29 @@ const initSettingsControls = () => {
     $('#vm-rule-pattern')
         .off('input.fvlivematch change.fvlivematch')
         .on('input.fvlivematch change.fvlivematch', () => updateRuleLiveMatch('vm'));
+    $('#docker-rule-test-name, #docker-rule-test-label-key, #docker-rule-test-label-value, #docker-rule-test-image, #docker-rule-test-compose')
+        .off('input.fvrulehint change.fvrulehint')
+        .on('input.fvrulehint change.fvrulehint', () => updateRuleValidationHint('docker'));
+    $('#vm-rule-test-name')
+        .off('input.fvrulehint change.fvrulehint')
+        .on('input.fvrulehint change.fvrulehint', () => updateRuleValidationHint('vm'));
+    $('#docker-template-name')
+        .off('input.fvtemplatehint change.fvtemplatehint')
+        .on('input.fvtemplatehint change.fvtemplatehint', () => {
+            validateTemplateNameInput('docker', false);
+        });
+    $('#vm-template-name')
+        .off('input.fvtemplatehint change.fvtemplatehint')
+        .on('input.fvtemplatehint change.fvtemplatehint', () => {
+            validateTemplateNameInput('vm', false);
+        });
 
     $('#fv-settings-search').val(settingsUiState.query || '');
     $('#fv-search-all-advanced').prop('checked', settingsUiState.searchAllAdvanced === true);
+    updateRuleValidationHint('docker');
+    updateRuleValidationHint('vm');
+    validateTemplateNameInput('docker', false);
+    validateTemplateNameInput('vm', false);
 
     settingsUiState.controlsInitialized = true;
 };
@@ -1447,6 +1532,26 @@ const normalizeImportMode = (value) => {
         return mode;
     }
     return 'merge';
+};
+
+const getImportPreviewFirstPreference = () => {
+    try {
+        const value = String(localStorage.getItem(IMPORT_PREVIEW_FIRST_STORAGE_KEY) || '').trim();
+        if (value === '') {
+            return true;
+        }
+        return value !== '0';
+    } catch (_error) {
+        return true;
+    }
+};
+
+const setImportPreviewFirstPreference = (enabled) => {
+    try {
+        localStorage.setItem(IMPORT_PREVIEW_FIRST_STORAGE_KEY, enabled === true ? '1' : '0');
+    } catch (_error) {
+        // Non-fatal in restricted browser contexts.
+    }
 };
 
 const normalizeImportPresetDefinition = (value, fallbackId = '') => {
@@ -3710,6 +3815,23 @@ const normalizeStatusFilterMode = (value) => {
     return ['all', 'started', 'paused', 'stopped', 'mixed', 'empty'].includes(mode) ? mode : 'all';
 };
 
+const normalizeQuickFolderFilterMode = (value, type = 'docker') => {
+    const mode = String(value || 'all').trim().toLowerCase();
+    const allowed = type === 'docker'
+        ? ['all', 'pinned', 'stopped', 'empty', 'no-rules', 'has-updates']
+        : ['all', 'pinned', 'stopped', 'empty', 'no-rules'];
+    return allowed.includes(mode) ? mode : 'all';
+};
+
+const setQuickFolderFilter = (type = 'docker', mode = 'all') => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const normalizedMode = normalizeQuickFolderFilterMode(mode, resolvedType);
+    const current = normalizeQuickFolderFilterMode(quickFolderFilterByType[resolvedType], resolvedType);
+    quickFolderFilterByType[resolvedType] = current === normalizedMode ? 'all' : normalizedMode;
+    renderQuickFolderFilters(resolvedType);
+    renderTable(resolvedType);
+};
+
 const getStatusFilterLabel = (mode) => {
     if (mode === 'started') {
         return 'started folders';
@@ -3880,6 +4002,42 @@ const folderMatchesStatusFilter = (statusFilterMode, countsByState, totalMembers
     return true;
 };
 
+const folderMatchesQuickFilter = ({
+    type,
+    mode,
+    pinned = false,
+    ruleCount = 0,
+    members = 0,
+    countsByState = {},
+    updateCount = 0
+}) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const normalizedMode = normalizeQuickFolderFilterMode(mode, resolvedType);
+    if (normalizedMode === 'all') {
+        return true;
+    }
+    if (normalizedMode === 'pinned') {
+        return pinned === true;
+    }
+    if (normalizedMode === 'no-rules') {
+        return Number(ruleCount) <= 0;
+    }
+    if (normalizedMode === 'empty') {
+        return Number(members) <= 0;
+    }
+    if (normalizedMode === 'stopped') {
+        const total = Number(members) || 0;
+        return total > 0
+            && Number(countsByState?.started || 0) <= 0
+            && Number(countsByState?.paused || 0) <= 0
+            && Number(countsByState?.stopped || 0) > 0;
+    }
+    if (normalizedMode === 'has-updates') {
+        return resolvedType === 'docker' && Number(updateCount) > 0;
+    }
+    return true;
+};
+
 const summarizeStatusMembers = (label, names, maxItems = 6) => {
     const list = Array.isArray(names) ? names : [];
     if (!list.length) {
@@ -3888,6 +4046,363 @@ const summarizeStatusMembers = (label, names, maxItems = 6) => {
     const preview = list.slice(0, maxItems).join(', ');
     const extra = list.length > maxItems ? ` (+${list.length - maxItems} more)` : '';
     return `${label}: ${preview}${extra}`;
+};
+
+const getFolderStatusBreakdown = (type, folderId) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const folders = getFolderMap(resolvedType);
+    const folder = folders[folderId];
+    if (!folder) {
+        return null;
+    }
+    const memberSnapshot = getEffectiveMemberSnapshot(resolvedType, folders);
+    const members = Array.isArray(memberSnapshot[folderId]?.members) ? memberSnapshot[folderId].members : [];
+    const infoByName = infoByType[resolvedType] || {};
+    const countsByState = { started: 0, paused: 0, stopped: 0 };
+    const namesByState = { started: [], paused: [], stopped: [] };
+    for (const member of members) {
+        const runtimeState = getItemRuntimeStateKind(resolvedType, infoByName[member] || {});
+        if (runtimeState === 'started') {
+            countsByState.started += 1;
+            namesByState.started.push(String(member));
+        } else if (runtimeState === 'paused') {
+            countsByState.paused += 1;
+            namesByState.paused.push(String(member));
+        } else {
+            countsByState.stopped += 1;
+            namesByState.stopped.push(String(member));
+        }
+    }
+    const dominantStatus = deriveFolderStatusKey(countsByState, members.length);
+    let updateCount = 0;
+    if (resolvedType === 'docker') {
+        for (const member of members) {
+            if (isDockerUpdateAvailable(infoByName[member] || {})) {
+                updateCount += 1;
+            }
+        }
+    }
+    return {
+        type: resolvedType,
+        folderId,
+        folderName: String(folder.name || folderId),
+        members,
+        countsByState,
+        namesByState,
+        dominantStatus,
+        updateCount
+    };
+};
+
+const showFolderStatusBreakdown = (type, folderId) => {
+    const details = getFolderStatusBreakdown(type, folderId);
+    if (!details) {
+        return;
+    }
+    const total = details.members.length;
+    const stoppedPercent = total > 0 ? Math.round((details.countsByState.stopped / total) * 100) : 0;
+    const suggestions = [];
+    if (total <= 0) {
+        suggestions.push('Add members to this folder to track runtime status.');
+    }
+    if (details.countsByState.started <= 0 && details.countsByState.paused <= 0 && details.countsByState.stopped > 0) {
+        suggestions.push('All members are stopped. Consider running Start from Folder runtime actions.');
+    }
+    if (details.countsByState.paused > 0) {
+        suggestions.push('Paused members detected. Resume them from Folder runtime actions if needed.');
+    }
+    if (details.type === 'docker' && details.updateCount > 0) {
+        suggestions.push(`Updates available in ${details.updateCount} container${details.updateCount === 1 ? '' : 's'}.`);
+    }
+    if (stoppedPercent >= normalizeStatusPrefs(details.type).warnStoppedPercent) {
+        suggestions.push(`Stopped percentage (${stoppedPercent}%) is above current warn threshold.`);
+    }
+    if (!suggestions.length) {
+        suggestions.push('No action needed. This folder status looks healthy.');
+    }
+    const summaryLines = [
+        `Folder: ${details.folderName}`,
+        `Members: ${total}`,
+        `${details.countsByState.started} started, ${details.countsByState.paused} paused, ${details.countsByState.stopped} stopped`,
+        `Dominant status: ${statusLabelForKey(details.dominantStatus)}`,
+        details.type === 'docker' ? `Updates: ${details.updateCount}` : '',
+        '',
+        'Suggestions:',
+        ...suggestions.map((line) => `- ${line}`)
+    ].filter(Boolean);
+
+    swal({
+        title: 'Status breakdown',
+        text: summaryLines.join('\n'),
+        type: 'info',
+        showCancelButton: true,
+        confirmButtonText: `Filter ${statusLabelForKey(details.dominantStatus)}`,
+        cancelButtonText: 'Close'
+    }, (confirmed) => {
+        if (!confirmed) {
+            return;
+        }
+        toggleStatusFilter(details.type, details.dominantStatus);
+    });
+};
+
+const setInlineValidationHint = (targetId, text = '', level = 'info') => {
+    const hint = $(`#${targetId}`);
+    if (!hint.length) {
+        return;
+    }
+    const normalized = String(text || '').trim();
+    const levelClass = String(level || 'info').trim().toLowerCase();
+    hint.removeClass('is-info is-success is-warning is-error');
+    if (!normalized) {
+        hint.text('');
+        return;
+    }
+    hint.text(normalized).addClass(`is-${['success', 'warning', 'error'].includes(levelClass) ? levelClass : 'info'}`);
+};
+
+const normalizeQuickProfilePresetId = (value) => {
+    const presetId = String(value || '').trim().toLowerCase();
+    return Object.prototype.hasOwnProperty.call(QUICK_PROFILE_PRESETS, presetId) ? presetId : 'balanced';
+};
+
+const applyQuickProfileOverrides = (prefs, overrides = null) => {
+    const source = overrides && typeof overrides === 'object' ? overrides : {};
+    const normalized = utils.normalizePrefs({
+        ...prefs,
+        ...source,
+        badges: {
+            ...(prefs?.badges || {}),
+            ...(source?.badges || {})
+        },
+        health: {
+            ...(prefs?.health || {}),
+            ...(source?.health || {})
+        },
+        status: {
+            ...(prefs?.status || {}),
+            ...(source?.status || {})
+        }
+    });
+    return normalized;
+};
+
+const applyQuickProfilePreset = async (presetId) => {
+    const key = normalizeQuickProfilePresetId(presetId);
+    const preset = QUICK_PROFILE_PRESETS[key] || QUICK_PROFILE_PRESETS.balanced;
+    const profileKey = Object.prototype.hasOwnProperty.call(SETUP_ASSISTANT_PROFILE_PRESETS, preset.profile)
+        ? preset.profile
+        : 'balanced';
+    const envKey = Object.prototype.hasOwnProperty.call(SETUP_ASSISTANT_ENV_PRESETS, preset.environment)
+        ? preset.environment
+        : 'home_lab';
+    const envBehavior = SETUP_ASSISTANT_ENV_PRESETS[envKey]?.behavior || {};
+    const applyToTypes = ['docker', 'vm'];
+
+    swal({
+        title: `Apply ${preset.label} preset?`,
+        text: `${preset.description}\n\nThis updates Docker and VM behavior/runtime defaults in one step.`,
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Apply preset',
+        cancelButtonText: 'Cancel',
+        showLoaderOnConfirm: true
+    }, async (confirmed) => {
+        if (!confirmed) {
+            return;
+        }
+        try {
+            for (const type of applyToTypes) {
+                const current = utils.normalizePrefs(prefsByType[type] || {});
+                const withProfile = applySetupAssistantProfileToPrefs(current, profileKey);
+                const withEnvironment = applySetupAssistantBehaviorToPrefs(
+                    withProfile,
+                    normalizeSetupAssistantBehaviorFromValue(type, envBehavior[type] || {})
+                );
+                const overrides = preset?.overridesByType?.[type] || null;
+                const next = applyQuickProfileOverrides(withEnvironment, overrides);
+                prefsByType[type] = await postPrefs(type, next);
+            }
+            await Promise.all([refreshType('docker'), refreshType('vm')]);
+            addActivityEntry(`Quick profile preset applied: ${preset.label}.`, 'success');
+            showToastMessage({
+                title: 'Preset applied',
+                message: `${preset.label} preset was applied to Docker and VMs.`,
+                level: 'success',
+                durationMs: 3800
+            });
+        } catch (error) {
+            showError('Preset apply failed', error);
+        }
+    });
+};
+
+const quickCreateStarterFolder = async (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const suggestedName = resolvedType === 'docker' ? 'New Docker Folder' : 'New VM Folder';
+    const requestedName = window.prompt('Folder name:', suggestedName);
+    const name = String(requestedName || '').trim();
+    if (!name) {
+        return;
+    }
+    const folderPayload = {
+        name,
+        icon: '/plugins/folderview.plus/images/folder-icon.png',
+        containers: [],
+        settings: {},
+        actions: []
+    };
+    try {
+        await apiPostText('/plugins/folderview.plus/server/create.php', {
+            type: resolvedType,
+            content: JSON.stringify(folderPayload)
+        });
+        await refreshType(resolvedType);
+        addActivityEntry(`${resolvedType === 'docker' ? 'Docker' : 'VM'} folder created: ${name}.`, 'success');
+        showToastMessage({
+            title: 'Folder created',
+            message: `${name} is ready.`,
+            level: 'success',
+            durationMs: 3400
+        });
+    } catch (error) {
+        showError('Create folder failed', error);
+    }
+};
+
+const showFolderRowQuickActions = (type, folderId) => {
+    const resolvedType = normalizeManagedType(type);
+    const folderMap = getFolderMap(resolvedType);
+    const folder = folderMap[folderId];
+    if (!folder) {
+        return;
+    }
+    const pinned = isFolderPinned(resolvedType, folderId);
+    const safeFolderName = escapeHtml(String(folder.name || folderId));
+    const safeFolderId = escapeHtml(String(folderId || ''));
+    const typeLabel = resolvedType === 'docker' ? 'Docker' : 'VM';
+    const html = `
+        <div class="fv-row-quick-actions">
+            <div class="fv-row-quick-actions-meta">${typeLabel} folder ID: <code>${safeFolderId}</code></div>
+            <div class="fv-row-quick-actions-grid">
+                <button type="button" class="fv-row-quick-action" data-action="pin"><i class="fa ${pinned ? 'fa-star-o' : 'fa-star'}"></i> ${pinned ? 'Unpin' : 'Pin to top'}</button>
+                <button type="button" class="fv-row-quick-action" data-action="status"><i class="fa fa-info-circle"></i> Status breakdown</button>
+                <button type="button" class="fv-row-quick-action" data-action="copy"><i class="fa fa-clipboard"></i> Copy ID</button>
+                <button type="button" class="fv-row-quick-action" data-action="export"><i class="fa fa-download"></i> Export folder</button>
+                <button type="button" class="fv-row-quick-action is-danger" data-action="delete"><i class="fa fa-trash"></i> Delete folder</button>
+            </div>
+        </div>
+    `;
+    swal({
+        title: safeFolderName,
+        text: html,
+        html: true,
+        confirmButtonText: 'Close'
+    });
+    window.setTimeout(() => {
+        $('.fv-row-quick-action').off('click.fvrowquick').on('click.fvrowquick', (event) => {
+            event.preventDefault();
+            const action = String($(event.currentTarget).attr('data-action') || '');
+            swal.close();
+            if (action === 'pin') {
+                void toggleFolderPin(resolvedType, folderId);
+                return;
+            }
+            if (action === 'status') {
+                showFolderStatusBreakdown(resolvedType, folderId);
+                return;
+            }
+            if (action === 'copy') {
+                void copyFolderId(resolvedType, folderId);
+                return;
+            }
+            if (action === 'export') {
+                if (resolvedType === 'docker') {
+                    void downloadDocker(folderId);
+                } else {
+                    void downloadVm(folderId);
+                }
+                return;
+            }
+            if (action === 'delete') {
+                if (resolvedType === 'docker') {
+                    void clearDocker(folderId);
+                } else {
+                    void clearVm(folderId);
+                }
+            }
+        });
+    }, 0);
+};
+
+const clearRowLongPressState = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const state = rowLongPressByType[resolvedType];
+    if (state?.timer) {
+        window.clearTimeout(state.timer);
+    }
+    if (state?.row && state.row.classList) {
+        state.row.classList.remove('is-long-press-active');
+    }
+    rowLongPressByType[resolvedType] = null;
+};
+
+const bindRowTouchQuickActions = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const tbodySelector = `tbody#${tableIdByType[resolvedType]}`;
+    const namespace = `.fvrowtouch${resolvedType}`;
+
+    $(document).off(`touchstart${namespace}`, `${tbodySelector} tr[data-folder-id]`);
+    $(document).off(`touchmove${namespace}`, `${tbodySelector} tr[data-folder-id]`);
+    $(document).off(`touchend${namespace}`, `${tbodySelector} tr[data-folder-id]`);
+    $(document).off(`touchcancel${namespace}`, `${tbodySelector} tr[data-folder-id]`);
+    $(document).off(`contextmenu${namespace}`, `${tbodySelector} tr[data-folder-id]`);
+
+    $(document).on(`touchstart${namespace}`, `${tbodySelector} tr[data-folder-id]`, (event) => {
+        if (!supportsTouchInput()) {
+            return;
+        }
+        const target = event.target instanceof Element ? event.target : null;
+        if (target && target.closest('button, a, input, select, textarea, label')) {
+            return;
+        }
+        const row = event.currentTarget;
+        const folderId = String($(row).attr('data-folder-id') || '').trim();
+        if (!folderId) {
+            return;
+        }
+        clearRowLongPressState(resolvedType);
+        row.classList.add('is-long-press-active');
+        const timer = window.setTimeout(() => {
+            showFolderRowQuickActions(resolvedType, folderId);
+            clearRowLongPressState(resolvedType);
+        }, LONG_PRESS_DELAY_MS);
+        rowLongPressByType[resolvedType] = {
+            timer,
+            row
+        };
+    });
+
+    $(document).on(`touchmove${namespace}`, `${tbodySelector} tr[data-folder-id]`, () => {
+        clearRowLongPressState(resolvedType);
+    });
+    $(document).on(`touchend${namespace}`, `${tbodySelector} tr[data-folder-id]`, () => {
+        clearRowLongPressState(resolvedType);
+    });
+    $(document).on(`touchcancel${namespace}`, `${tbodySelector} tr[data-folder-id]`, () => {
+        clearRowLongPressState(resolvedType);
+    });
+    $(document).on(`contextmenu${namespace}`, `${tbodySelector} tr[data-folder-id]`, (event) => {
+        if (event.target instanceof Element && event.target.closest('button, a, input, select, textarea, label')) {
+            return;
+        }
+        event.preventDefault();
+        const folderId = String($(event.currentTarget).attr('data-folder-id') || '').trim();
+        if (!folderId) {
+            return;
+        }
+        showFolderRowQuickActions(resolvedType, folderId);
+    });
 };
 
 const resolveFolderStatusWarnThreshold = (folder, fallbackThreshold) => {
@@ -4374,9 +4889,11 @@ const clearFolderTableFilters = (type = 'docker') => {
     healthFilterByType[resolvedType] = 'all';
     healthSeverityFilterByType[resolvedType] = 'all';
     statusFilterByType[resolvedType] = 'all';
+    quickFolderFilterByType[resolvedType] = 'all';
     if (resolvedType === 'docker') {
         dockerUpdatesOnlyFilter = false;
     }
+    renderQuickFolderFilters(resolvedType);
     renderTable(resolvedType);
 };
 
@@ -4781,10 +5298,24 @@ const trackDiagnosticsEvent = async ({ eventType, type = null, status = 'ok', so
     if (!eventType) {
         return;
     }
+    const statusValue = String(status || 'ok');
+    const activityMessage = describeTrackedEvent(eventType, type, details);
+    if (activityMessage) {
+        addActivityEntry(activityMessage, statusValue === 'ok' ? 'info' : 'error');
+        if (statusValue === 'ok' && ['import', 'clear_folders', 'delete_folder', 'runtime_bulk_action', 'bulk_assign'].includes(String(eventType))) {
+            showToastMessage({
+                title: 'Action completed',
+                message: activityMessage,
+                level: 'success',
+                durationMs: 4200
+            });
+        }
+    }
+
     const payload = {
         action: 'track_event',
         eventType: String(eventType),
-        status: String(status || 'ok'),
+        status: statusValue,
         source: String(source || 'ui'),
         details: JSON.stringify(details || {})
     };
@@ -4921,6 +5452,106 @@ const setRollbackStatus = (text) => {
     $('#rollback-status').text(text || '');
 };
 
+const formatActivityTimestamp = (at) => {
+    const date = new Date(Number(at) || Date.now());
+    if (Number.isNaN(date.getTime())) {
+        return '';
+    }
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+};
+
+const renderActivityFeed = () => {
+    const panel = $('#fv-activity-feed-panel');
+    const list = $('#fv-activity-feed-list');
+    if (!panel.length || !list.length) {
+        return;
+    }
+    if (!activityFeedEntries.length) {
+        panel.hide();
+        list.empty();
+        return;
+    }
+    const rows = activityFeedEntries.map((entry) => {
+        const level = String(entry?.level || 'info');
+        return `<li class="fv-activity-item is-${escapeHtml(level)}"><span class="fv-activity-time">${escapeHtml(formatActivityTimestamp(entry.at))}</span><span class="fv-activity-text">${escapeHtml(String(entry.message || ''))}</span></li>`;
+    }).join('');
+    list.html(rows);
+    panel.show();
+};
+
+const addActivityEntry = (message, level = 'info') => {
+    const text = String(message || '').trim();
+    if (!text) {
+        return;
+    }
+    activityFeedEntries.unshift({
+        at: Date.now(),
+        level: String(level || 'info'),
+        message: text
+    });
+    if (activityFeedEntries.length > ACTIVITY_FEED_MAX_ENTRIES) {
+        activityFeedEntries = activityFeedEntries.slice(0, ACTIVITY_FEED_MAX_ENTRIES);
+    }
+    renderActivityFeed();
+};
+
+const clearActivityFeed = () => {
+    activityFeedEntries = [];
+    renderActivityFeed();
+};
+
+const showToastMessage = ({
+    title = '',
+    message = '',
+    level = 'info',
+    durationMs = 4200,
+    actionLabel = '',
+    onAction = null
+} = {}) => {
+    const host = $('#fv-toast-host');
+    if (!host.length) {
+        return;
+    }
+    const toastId = `fv-toast-${Date.now()}-${++toastSerial}`;
+    const safeTitle = String(title || '').trim();
+    const safeMessage = String(message || '').trim();
+    const safeActionLabel = String(actionLabel || '').trim();
+    host.append(`
+        <div id="${toastId}" class="fv-toast is-${escapeHtml(level)}" role="status">
+            <div class="fv-toast-main">
+                ${safeTitle ? `<div class="fv-toast-title">${escapeHtml(safeTitle)}</div>` : ''}
+                ${safeMessage ? `<div class="fv-toast-message">${escapeHtml(safeMessage)}</div>` : ''}
+            </div>
+            <div class="fv-toast-actions">
+                ${safeActionLabel ? `<button type="button" class="fv-toast-action">${escapeHtml(safeActionLabel)}</button>` : ''}
+                <button type="button" class="fv-toast-close" aria-label="Dismiss notification"><i class="fa fa-times"></i></button>
+            </div>
+        </div>
+    `);
+    const toast = host.find(`#${toastId}`);
+    const removeToast = () => {
+        toast.fadeOut(120, () => {
+            toast.remove();
+        });
+    };
+
+    toast.find('.fv-toast-close').off('click.fvtoast').on('click.fvtoast', () => {
+        removeToast();
+    });
+    toast.find('.fv-toast-action').off('click.fvtoast').on('click.fvtoast', async () => {
+        if (typeof onAction === 'function') {
+            await onAction();
+        }
+        removeToast();
+    });
+
+    if (Number.isFinite(Number(durationMs)) && Number(durationMs) > 0) {
+        window.setTimeout(() => {
+            removeToast();
+        }, Number(durationMs));
+    }
+};
+
 const formatTimestamp = (isoString) => {
     if (!isoString) {
         return 'Unknown';
@@ -4932,10 +5563,57 @@ const formatTimestamp = (isoString) => {
     return date.toLocaleString();
 };
 
+const describeTrackedEvent = (eventType, type, details = {}) => {
+    const kind = String(eventType || '').trim();
+    const scope = type === 'vm' ? 'VM' : (type === 'docker' ? 'Docker' : 'Plugin');
+    if (kind === 'export') {
+        return `${scope} export generated`;
+    }
+    if (kind === 'import') {
+        return `${scope} import applied (${details.creates || 0} create, ${details.updates || 0} update, ${details.deletes || 0} delete)`;
+    }
+    if (kind === 'import_dry_run') {
+        return `${scope} import dry run completed`;
+    }
+    if (kind === 'delete_folder') {
+        return `${scope} folder deleted`;
+    }
+    if (kind === 'clear_folders') {
+        return `${scope} folders cleared`;
+    }
+    if (kind === 'runtime_bulk_action') {
+        return `${scope} runtime action "${details.action || 'apply'}" completed`;
+    }
+    if (kind === 'bulk_assign') {
+        return `${scope} bulk assignment completed`;
+    }
+    if (kind === 'rule_simulator') {
+        return `${scope} rule simulator completed`;
+    }
+    if (kind === 'diagnostics_export') {
+        return 'Diagnostics export generated';
+    }
+    if (kind === 'support_bundle_export') {
+        return 'Support bundle exported';
+    }
+    if (kind === 'conflict_scan') {
+        return `${scope} conflict scan completed`;
+    }
+    return '';
+};
+
 const showError = (title, error) => {
+    const message = error?.message || String(error);
+    addActivityEntry(`${String(title || 'Error')}: ${message}`, 'error');
+    showToastMessage({
+        title: String(title || 'Error'),
+        message,
+        level: 'error',
+        durationMs: 7000
+    });
     swal({
         title,
-        text: error?.message || String(error),
+        text: message,
         type: 'error'
     });
 };
@@ -5295,11 +5973,49 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     const meta = $('#import-preview-meta');
     const result = $('#import-preview-result');
     const counts = $('#import-preview-counts');
+    const previewFirstToggle = $('#import-preview-first-toggle');
+    const reviewAckRow = $('#import-review-ack-row');
+    const reviewAck = $('#import-review-ack');
     const folders = getFolderMap(type);
     let dialogResult = null;
     let activePresetId = '';
     let currentOperations = { mode: 'merge', creates: [], upserts: [], deletes: [] };
     let currentDryRunOnly = false;
+    const isPreviewFirstEnabled = () => (
+        previewFirstToggle.length ? previewFirstToggle.prop('checked') === true : true
+    );
+    const setPreviewFirstEnabled = (enabled) => {
+        if (previewFirstToggle.length) {
+            previewFirstToggle.prop('checked', enabled === true);
+        }
+    };
+    const isImportReviewAcked = () => (
+        reviewAck.length ? reviewAck.prop('checked') === true : false
+    );
+    const setImportReviewAcked = (enabled) => {
+        if (reviewAck.length) {
+            reviewAck.prop('checked', enabled === true);
+        }
+    };
+    const getImportApplyButton = () => dialog.closest('.ui-dialog').find('.ui-dialog-buttonpane button')
+        .filter((_, element) => String($(element).text() || '').trim().toLowerCase() === 'apply import')
+        .first();
+    const syncImportSafetyUi = () => {
+        const selectedOperations = filterOperationsBySelection(currentOperations);
+        const selectedCount = countImportOperations(selectedOperations);
+        const previewFirstEnabled = isPreviewFirstEnabled();
+        const requireAck = currentDryRunOnly !== true && previewFirstEnabled === true;
+        if (reviewAckRow.length) {
+            reviewAckRow.toggle(requireAck);
+        }
+        if (!requireAck) {
+            setImportReviewAcked(false);
+        }
+        const applyButton = getImportApplyButton();
+        if (applyButton.length) {
+            applyButton.prop('disabled', selectedCount <= 0 || (requireAck && !isImportReviewAcked()));
+        }
+    };
     const isImportDryRunOnly = () => {
         const checkbox = $('#import-dry-run-only');
         return checkbox.length ? checkbox.prop('checked') === true : false;
@@ -5332,6 +6048,7 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
             <span class="import-count-chip is-selected">Selected: ${selectedCount}</span>
             <span class="import-count-chip is-dryrun">Dry run: ${currentDryRunOnly ? 'ON' : 'OFF'}</span>
         `);
+        syncImportSafetyUi();
     };
     const refreshPresetControls = () => {
         if (!presetSelect.length) {
@@ -5399,6 +6116,8 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     }
     // Safety default: keep dry-run disabled unless a user preset explicitly turns it on.
     $('#import-dry-run-only').prop('checked', false);
+    setPreviewFirstEnabled(getImportPreviewFirstPreference());
+    setImportReviewAcked(false);
     if (!applyPresetById(getDefaultImportPresetForType(type)?.id || IMPORT_PRESET_DEFAULT_ID)) {
         modeSelect.val('merge');
         setImportDryRunOnly(false);
@@ -5414,6 +6133,7 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         currentOperations = operations;
         currentDryRunOnly = dryRunOnly;
         importSelectionState = buildOperationSelectionState(operations, folders);
+        setImportReviewAcked(false);
         renderOperationSelection(updateSelectionSummary);
         renderImportDiffTable(diffRows, { resetPage: true });
         previewText.val(formatImportSummary(summary));
@@ -5430,6 +6150,7 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
             `<span class="preview-meta-item"><strong>${escapeHtml(item.label)}:</strong> ${escapeHtml(String(item.value))}</span>`
         )).join(''));
         syncPresetFromCurrentInputs();
+        syncImportSafetyUi();
     };
 
     modeSelect.off('change.fvimport').on('change.fvimport', () => {
@@ -5437,6 +6158,16 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
     });
     $('#import-dry-run-only').off('change.fvimport').on('change.fvimport', () => {
         renderPreview();
+    });
+    previewFirstToggle.off('change.fvimportsafety').on('change.fvimportsafety', () => {
+        setImportPreviewFirstPreference(isPreviewFirstEnabled());
+        if (isPreviewFirstEnabled()) {
+            setImportReviewAcked(false);
+        }
+        syncImportSafetyUi();
+    });
+    reviewAck.off('change.fvimportsafety').on('change.fvimportsafety', () => {
+        syncImportSafetyUi();
     });
     presetSelect.off('change.fvimportpreset').on('change.fvimportpreset', () => {
         const selectedId = String(presetSelect.val() || '');
@@ -5521,12 +6252,24 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         closeText: '',
         show: { effect: 'fade', duration: 120 },
         hide: { effect: 'fade', duration: 120 },
+        open: () => {
+            syncImportSafetyUi();
+        },
         close: () => resolve(dialogResult),
         buttons: {
             'Apply Import': function() {
                 const mode = modeSelect.val();
                 const operations = filterOperationsBySelection(utils.buildImportOperations(folders, parsed, mode));
                 const dryRunOnly = isImportDryRunOnly();
+                const requireAck = dryRunOnly !== true && isPreviewFirstEnabled() === true;
+                if (requireAck && !isImportReviewAcked()) {
+                    swal({
+                        title: 'Review required',
+                        text: 'Review the diff and confirm the acknowledgement checkbox before applying import.',
+                        type: 'warning'
+                    });
+                    return;
+                }
                 dialogResult = { mode, operations, dryRunOnly };
                 $(this).dialog('close');
             },
@@ -5623,31 +6366,48 @@ const offerUndoAction = async (type, backup, actionLabel) => {
     if (!backup || !backup.name) {
         return;
     }
+    const undoKey = `${type}:${backup.name}`;
+    if (pendingUndoTimers.has(undoKey)) {
+        window.clearTimeout(pendingUndoTimers.get(undoKey));
+        pendingUndoTimers.delete(undoKey);
+    }
+    addActivityEntry(`${actionLabel} completed. Undo available for 30 seconds.`, 'warning');
+    const expireTimer = window.setTimeout(() => {
+        pendingUndoTimers.delete(undoKey);
+    }, 30000);
+    pendingUndoTimers.set(undoKey, expireTimer);
 
-    swal({
+    showToastMessage({
         title: `${actionLabel} complete`,
-        text: `Backup created: ${backup.name}\nUndo this change now?`,
-        type: 'success',
-        showCancelButton: true,
-        confirmButtonText: 'Undo now',
-        cancelButtonText: 'Keep changes',
-        closeOnConfirm: false,
-        showLoaderOnConfirm: true
-    }, async (shouldUndo) => {
-        if (!shouldUndo) {
-            return;
-        }
-
-        try {
-            const restore = await restoreBackupByName(type, backup.name);
-            await Promise.all([refreshType(type), refreshBackups(type)]);
-            swal({
-                title: 'Undo complete',
-                text: `Restored ${restore.name}`,
-                type: 'success'
-            });
-        } catch (error) {
-            showError('Undo failed', error);
+        message: `Backup created: ${backup.name}.`,
+        level: 'warning',
+        durationMs: 30000,
+        actionLabel: 'Undo',
+        onAction: async () => {
+            if (!pendingUndoTimers.has(undoKey)) {
+                showToastMessage({
+                    title: 'Undo expired',
+                    message: 'This undo window has expired.',
+                    level: 'warning',
+                    durationMs: 2600
+                });
+                return;
+            }
+            window.clearTimeout(pendingUndoTimers.get(undoKey));
+            pendingUndoTimers.delete(undoKey);
+            try {
+                const restore = await restoreBackupByName(type, backup.name);
+                await Promise.all([refreshType(type), refreshBackups(type)]);
+                addActivityEntry(`Undo applied: restored ${restore?.name || backup.name}.`, 'success');
+                showToastMessage({
+                    title: 'Undo complete',
+                    message: `Restored ${restore?.name || backup.name}`,
+                    level: 'success',
+                    durationMs: 3600
+                });
+            } catch (error) {
+                showError('Undo failed', error);
+            }
         }
     });
 };
@@ -5663,6 +6423,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
     const healthFilterMode = normalizeHealthFilterMode(healthFilterByType[type]);
     const healthSeverityFilterMode = normalizeHealthSeverityFilterMode(healthSeverityFilterByType[type]);
     const statusFilterMode = normalizeStatusFilterMode(statusFilterByType[type]);
+    const quickFilterMode = normalizeQuickFolderFilterMode(quickFolderFilterByType[type], type);
     const previousStatusSnapshot = statusContext?.previous && typeof statusContext.previous === 'object'
         ? statusContext.previous
         : {};
@@ -5681,8 +6442,6 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         }
         const pinned = isFolderPinned(type, id);
         const pinTitle = pinned ? 'Unpin folder' : 'Pin folder to top';
-        const safeName = escapeHtml(folder.name);
-        const safeIcon = escapeHtml(folder.icon || '');
         const infoByName = infoByType[type] || {};
         const countsByState = { started: 0, paused: 0, stopped: 0 };
         const namesByState = { started: [], paused: [], stopped: [] };
@@ -5699,6 +6458,33 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
                 namesByState.stopped.push(String(member));
             }
         }
+        const folderRules = (prefsByType[type]?.autoRules || []).filter((rule) => String(rule?.folderId || '') === String(id));
+        const activeRuleCount = folderRules.reduce((count, rule) => (rule?.enabled === false ? count : count + 1), 0);
+        const ruleText = folderRules.length === 0 ? '0' : (activeRuleCount === folderRules.length ? String(folderRules.length) : `${activeRuleCount}/${folderRules.length}`);
+        const ruleTitle = folderRules.length === 0
+            ? 'No rules for this folder'
+            : `${activeRuleCount} active of ${folderRules.length} total rules`;
+        let dockerUpdateNames = [];
+        if (isDockerType) {
+            for (const member of members) {
+                if (isDockerUpdateAvailable(infoByName[member] || {})) {
+                    dockerUpdateNames.push(String(member));
+                }
+            }
+        }
+        if (!folderMatchesQuickFilter({
+            type,
+            mode: quickFilterMode,
+            pinned,
+            ruleCount: folderRules.length,
+            members: members.length,
+            countsByState,
+            updateCount: dockerUpdateNames.length
+        })) {
+            continue;
+        }
+        const safeName = escapeHtml(folder.name);
+        const safeIcon = escapeHtml(folder.icon || '');
         if (!folderMatchesStatusFilter(statusFilterMode, countsByState, members.length)) {
             continue;
         }
@@ -5818,13 +6604,6 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
                 }
             }
         }
-        const folderRules = (prefsByType[type]?.autoRules || []).filter((rule) => String(rule?.folderId || '') === String(id));
-        const activeRuleCount = folderRules.reduce((count, rule) => (rule?.enabled === false ? count : count + 1), 0);
-        const ruleText = folderRules.length === 0 ? '0' : (activeRuleCount === folderRules.length ? String(folderRules.length) : `${activeRuleCount}/${folderRules.length}`);
-        const ruleTitle = folderRules.length === 0
-            ? 'No rules for this folder'
-            : `${activeRuleCount} active of ${folderRules.length} total rules`;
-
         const lastChangedRaw = String(folder.updatedAt || folder.createdAt || '').trim();
         const lastChangedText = lastChangedRaw ? formatTimestamp(lastChangedRaw) : 'Unknown';
         const pinnedText = pinned ? 'Pinned' : 'No';
@@ -5832,14 +6611,8 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
 
         let typeSpecificColumns = '';
         if (isDockerType) {
-            let updateCount = 0;
-            const updateNames = [];
-            for (const member of members) {
-                if (isDockerUpdateAvailable(infoByName[member] || {})) {
-                    updateCount += 1;
-                    updateNames.push(String(member));
-                }
-            }
+            const updateNames = dockerUpdateNames;
+            const updateCount = updateNames.length;
             if (dockerUpdatesOnlyFilter && updateCount === 0) {
                 continue;
             }
@@ -5940,7 +6713,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             + `<td><span class="row-order-actions"><button title="Move up" aria-label="Move ${safeName} up" onclick="moveFolderRow('${type}','${escapeHtml(id)}',-1)"><i class="fa fa-chevron-up"></i></button><button title="Move down" aria-label="Move ${safeName} down" onclick="moveFolderRow('${type}','${escapeHtml(id)}',1)"><i class="fa fa-chevron-down"></i></button></span></td>`
             + `<td class="name-cell" title="${escapeHtml(id)}"><span class="name-cell-content"><img src="${safeIcon}" class="img" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"><span class="name-cell-text">${safeName}</span></span></td>`
             + `<td class="members-cell">${members.length}</td>`
-            + `<td class="status-cell"><span class="status-cell-content">${statusChipsHtml}${statusTrendHtml}</span></td>`
+            + `<td class="status-cell"><span class="status-cell-content">${statusChipsHtml}${statusTrendHtml}<button type="button" class="status-breakdown-btn" title="Open status breakdown" aria-label="Open status breakdown for ${safeName}" onclick="showFolderStatusBreakdown('${type}','${escapeHtml(id)}')"><i class="fa fa-info-circle"></i></button></span></td>`
             + `<td class="rules-cell" title="${escapeHtml(ruleTitle)}">${escapeHtml(ruleText)}</td>`
             + `<td class="last-changed-cell" title="${escapeHtml(lastChangedRaw || '')}">${escapeHtml(lastChangedText)}</td>`
             + `<td class="pinned-cell"><span class="folder-pin-state ${pinnedClass}">${escapeHtml(pinnedText)}</span></td>`
@@ -5963,21 +6736,28 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         if (statusFilterMode !== 'all') {
             suffixes.push(getStatusFilterLabel(statusFilterMode));
         }
+        if (quickFilterMode !== 'all') {
+            suffixes.push(`quick ${quickFilterMode} filter`);
+        }
         const filterSuffix = suffixes.length ? ` (${suffixes.join(', ')})` : '';
         const showClearFilters = Boolean(
             filter
             || healthFilterMode !== 'all'
             || statusFilterMode !== 'all'
+            || quickFilterMode !== 'all'
             || (isDockerType && (dockerUpdatesOnlyFilter || healthSeverityFilterMode !== 'all'))
         );
         const clearButton = showClearFilters
             ? `<button type="button" class="folder-empty-clear-filter" onclick="clearFolderTableFilters('${type}')">Clear filters</button>`
             : '';
         if (folderCount <= 0 && !showClearFilters) {
-            const firstRunMessage = isDockerType
-                ? 'No Docker folders yet. Create your first folder in the Docker tab or import an export file.'
-                : 'No VM folders yet. Create your first folder in the VMs tab or import an export file.';
-            return `<tr><td colspan="${TABLE_COLUMN_COUNT}" class="folder-empty-cell">${firstRunMessage}</td></tr>`;
+            const title = isDockerType ? 'No Docker folders yet.' : 'No VM folders yet.';
+            const help = isDockerType
+                ? 'Start by creating your first folder, importing a JSON export, or running the setup wizard.'
+                : 'Start by creating your first VM folder, importing a VM export, or running the setup wizard.';
+            const importAction = isDockerType ? "importDocker()" : "importVm()";
+            const typeValue = isDockerType ? 'docker' : 'vm';
+            return `<tr><td colspan="${TABLE_COLUMN_COUNT}" class="folder-empty-cell"><div class="fv-starter-empty"><div class="fv-starter-empty-title">${escapeHtml(title)}</div><div class="fv-starter-empty-help">${escapeHtml(help)}</div><div class="fv-starter-empty-actions"><button type="button" onclick="quickCreateStarterFolder('${typeValue}')"><i class="fa fa-plus-circle"></i> Create folder</button><button type="button" onclick="${importAction}"><i class="fa fa-upload"></i> Import config</button><button type="button" onclick="runQuickSetupWizard(true)"><i class="fa fa-magic"></i> Open wizard</button></div></div></td></tr>`;
         }
         if (folderCount > 0 && hideEmptyFolders && !showClearFilters) {
             return `<tr><td colspan="${TABLE_COLUMN_COUNT}" class="folder-empty-cell">All folders are currently hidden by "Hide empty folders".</td></tr>`;
@@ -6151,6 +6931,19 @@ const renderFilterInputs = (type) => {
     $(`#${type}-rules-filter`).val(filterState.rules || '');
     $(`#${type}-backups-filter`).val(filterState.backups || '');
     $(`#${type}-templates-filter`).val(filterState.templates || '');
+};
+
+const renderQuickFolderFilters = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const active = normalizeQuickFolderFilterMode(quickFolderFilterByType[resolvedType], resolvedType);
+    const root = $(`#${resolvedType}-quick-filters`);
+    if (!root.length) {
+        return;
+    }
+    root.find('button[data-filter]').each((_, button) => {
+        const candidate = normalizeQuickFolderFilterMode($(button).attr('data-filter'), resolvedType);
+        $(button).toggleClass('is-active', candidate === active);
+    });
 };
 
 const buildHealthCardHtml = (type, metrics, healthPrefs) => {
@@ -6856,6 +7649,7 @@ const renderTable = (type) => {
         current: nextStatusSnapshot
     }));
     statusSnapshotByType[type] = nextStatusSnapshot;
+    bindRowTouchQuickActions(type);
 
     renderFolderSelectOptions(type);
     renderBadgeToggles(type);
@@ -6865,6 +7659,7 @@ const renderTable = (type) => {
     renderVisibilityControls(type);
     renderBackupScheduleControls(type);
     renderFilterInputs(type);
+    renderQuickFolderFilters(type);
     renderRulesTable(type);
     renderBulkItemOptions(type);
     renderTemplateRows(type);
@@ -7680,13 +8475,87 @@ const toggleRuleKindFields = (type) => {
     $('#docker-rule-label-key').toggle(labelKinds.includes(kind));
     $('#docker-rule-label-value').toggle(labelKinds.includes(kind));
     updateRuleLiveMatch('docker');
+    updateRuleValidationHint('docker');
+};
+
+const updateRuleValidationHint = (type, strict = false) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const testName = String($(`#${resolvedType}-rule-test-name`).val() || '').trim();
+    if (!testName) {
+        setInlineValidationHint(
+            `${resolvedType}-rule-validation`,
+            'Enter a test item name to simulate rule matching.',
+            strict ? 'error' : 'info'
+        );
+        return strict ? false : true;
+    }
+    if (resolvedType === 'docker') {
+        const labelKey = String($('#docker-rule-test-label-key').val() || '').trim();
+        const labelValue = String($('#docker-rule-test-label-value').val() || '').trim();
+        if (!labelKey && labelValue) {
+            setInlineValidationHint('docker-rule-validation', 'Label value is set, but label key is empty.', 'warning');
+            return strict ? false : true;
+        }
+    }
+    setInlineValidationHint(`${resolvedType}-rule-validation`, 'Ready to run rule test.', 'success');
+    return true;
+};
+
+const applyRuleTestSample = (type, sampleId) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const samples = resolvedType === 'docker'
+        ? {
+            media: {
+                name: 'sonarr',
+                labelKey: 'com.docker.compose.project',
+                labelValue: 'media',
+                image: 'linuxserver/sonarr',
+                compose: 'media'
+            },
+            network: {
+                name: 'nginx-proxy-manager',
+                labelKey: 'com.docker.compose.project',
+                labelValue: 'network',
+                image: 'jc21/nginx-proxy-manager:latest',
+                compose: 'networking'
+            },
+            database: {
+                name: 'postgresql',
+                labelKey: 'com.example.stack',
+                labelValue: 'database',
+                image: 'postgres:16',
+                compose: 'data'
+            }
+        }
+        : {
+            production: { name: 'prod-db-01' },
+            desktop: { name: 'desktop-win11' }
+        };
+    const sample = samples[String(sampleId || '').trim().toLowerCase()];
+    if (!sample) {
+        return;
+    }
+    $(`#${resolvedType}-rule-test-name`).val(sample.name || '');
+    if (resolvedType === 'docker') {
+        $('#docker-rule-test-label-key').val(sample.labelKey || '');
+        $('#docker-rule-test-label-value').val(sample.labelValue || '');
+        $('#docker-rule-test-image').val(sample.image || '');
+        $('#docker-rule-test-compose').val(sample.compose || '');
+    }
+    updateRuleValidationHint(resolvedType);
+    $(`#${resolvedType}-rule-test-output`).text('Sample loaded. Click "Test rule priority".');
 };
 
 const testAutoRule = (type) => {
     const rules = prefsByType[type]?.autoRules || [];
     const output = $(`#${type}-rule-test-output`);
 
+    const hasValidInputs = updateRuleValidationHint(type, true);
     const testName = String($(`#${type}-rule-test-name`).val() || '').trim();
+    if (!hasValidInputs) {
+        output.text('Fix the highlighted test inputs first.');
+        return;
+    }
     if (!testName) {
         output.text('Enter a test name first.');
         return;
@@ -8137,20 +9006,44 @@ const deleteBackupEntry = (type, name) => {
     });
 };
 
+const validateTemplateNameInput = (type, strict = false) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const raw = String($(`#${resolvedType}-template-name`).val() || '').trim();
+    if (!raw) {
+        const message = strict ? 'Enter a template name (3-64 characters).' : '';
+        setInlineValidationHint(`${resolvedType}-template-validation`, message, strict ? 'error' : 'info');
+        return { ok: !strict, value: raw, message };
+    }
+    if (raw.length < 3 || raw.length > 64) {
+        const message = 'Template name must be between 3 and 64 characters.';
+        setInlineValidationHint(`${resolvedType}-template-validation`, message, 'error');
+        return { ok: false, value: raw, message };
+    }
+    if (!/^[a-zA-Z0-9][a-zA-Z0-9 _().-]*$/.test(raw)) {
+        const message = 'Use letters, numbers, spaces, and _ . ( ) - only.';
+        setInlineValidationHint(`${resolvedType}-template-validation`, message, 'error');
+        return { ok: false, value: raw, message };
+    }
+    setInlineValidationHint(`${resolvedType}-template-validation`, 'Template name looks good.', 'success');
+    return { ok: true, value: raw, message: '' };
+};
+
 const createTemplateFromFolder = async (type) => {
     const folderId = String($(`#${type}-template-source-folder`).val() || '');
-    const templateName = String($(`#${type}-template-name`).val() || '').trim();
+    const templateValidation = validateTemplateNameInput(type, true);
+    const templateName = templateValidation.value;
     if (!folderId) {
         swal({ title: 'Error', text: 'Select a source folder first.', type: 'error' });
         return;
     }
-    if (!templateName) {
-        swal({ title: 'Error', text: 'Enter a template name.', type: 'error' });
+    if (!templateValidation.ok) {
+        swal({ title: 'Error', text: templateValidation.message || 'Enter a valid template name.', type: 'error' });
         return;
     }
     try {
         templatesByType[type] = await createTemplate(type, folderId, templateName);
         $(`#${type}-template-name`).val('');
+        setInlineValidationHint(`${type}-template-validation`, '', 'info');
         renderTemplateRows(type);
         swal({ title: 'Template saved', text: 'Template created successfully.', type: 'success' });
     } catch (error) {
@@ -8837,7 +9730,13 @@ window.toggleDockerUpdatesFilter = toggleDockerUpdatesFilter;
 window.toggleHealthSeverityFilter = toggleHealthSeverityFilter;
 window.toggleStatusFilter = toggleStatusFilter;
 window.clearFolderTableFilters = clearFolderTableFilters;
+window.setQuickFolderFilter = setQuickFolderFilter;
 window.setHealthFolderFilter = setHealthFolderFilter;
+window.showFolderStatusBreakdown = showFolderStatusBreakdown;
+window.quickCreateStarterFolder = quickCreateStarterFolder;
+window.applyQuickProfilePreset = applyQuickProfilePreset;
+window.applyRuleTestSample = applyRuleTestSample;
+window.clearActivityFeed = clearActivityFeed;
 window.refreshPerformanceDiagnostics = renderPerformanceDiagnostics;
 window.runQuickSetupWizard = runQuickSetupWizard;
 window.setSettingsMode = setSettingsMode;

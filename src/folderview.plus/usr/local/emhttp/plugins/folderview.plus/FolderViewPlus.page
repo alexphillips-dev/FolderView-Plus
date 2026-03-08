@@ -22,6 +22,13 @@ emitRequestTokenMetaTag();
 <div id="fv-settings-root" class="fv-theme-safe">
 <div id="fv-settings-topbar"></div>
 <div id="fv-update-notes-panel" class="fv-update-notes-panel" style="display:none"></div>
+<div id="fv-activity-feed-panel" class="fv-activity-feed-panel" style="display:none;">
+    <div class="fv-activity-feed-head">
+        <strong>Recent activity</strong>
+        <button type="button" onclick="clearActivityFeed()"><i class="fa fa-times"></i> Clear</button>
+    </div>
+    <ul id="fv-activity-feed-list" class="fv-activity-feed-list"></ul>
+</div>
 
 <div class="fv-customizations-header" data-fv-section-row="1">
     <h2 data-i18n="customizations" data-fv-section="customizations">Customizations</h2>
@@ -30,6 +37,13 @@ emitRequestTokenMetaTag();
 <button onclick="checkForUpdatesNow()"><i class="fa fa-refresh" aria-hidden="true"></i> Check for updates now</button>
 <button onclick="createRollbackCheckpoint()"><i class="fa fa-life-ring" aria-hidden="true"></i> Create rollback checkpoint</button>
 <button onclick="rollbackLatestCheckpoint()"><i class="fa fa-undo" aria-hidden="true"></i> Rollback to previous snapshot</button>
+<div class="fv-quick-presets">
+    <span class="fv-quick-presets-title">Quick profile presets</span>
+    <button type="button" onclick="applyQuickProfilePreset('balanced')"><i class="fa fa-sliders"></i> Balanced</button>
+    <button type="button" onclick="applyQuickProfilePreset('minimal')"><i class="fa fa-leaf"></i> Minimal</button>
+    <button type="button" onclick="applyQuickProfilePreset('power')"><i class="fa fa-bolt"></i> Power</button>
+    <button type="button" onclick="applyQuickProfilePreset('media_stack')"><i class="fa fa-play-circle"></i> Media Stack</button>
+</div>
 <span id="update-check-status" class="status-line"></span>
 <span id="rollback-status" class="status-line"></span>
 
@@ -60,6 +74,14 @@ emitRequestTokenMetaTag();
                 <span class="sort-hint-chip" title="Use manual mode and the up/down buttons in the first column to set custom order."><i class="fa fa-info-circle"></i> Manual uses up/down in Order column</span>
             </div>
             <input id="docker-folder-filter" type="text" placeholder="Search Docker folders" oninput="setFilterQuery('folders','docker',this.value)">
+            <div id="docker-quick-filters" class="folder-quick-filters">
+                <button type="button" data-filter="all" onclick="setQuickFolderFilter('docker','all')">All</button>
+                <button type="button" data-filter="pinned" onclick="setQuickFolderFilter('docker','pinned')">Pinned</button>
+                <button type="button" data-filter="stopped" onclick="setQuickFolderFilter('docker','stopped')">Stopped</button>
+                <button type="button" data-filter="empty" onclick="setQuickFolderFilter('docker','empty')">Empty</button>
+                <button type="button" data-filter="no-rules" onclick="setQuickFolderFilter('docker','no-rules')">No rules</button>
+                <button type="button" data-filter="has-updates" onclick="setQuickFolderFilter('docker','has-updates')">Has updates</button>
+            </div>
             <div class="settings-cards-grid">
                 <div class="settings-mini-card">
                     <div class="settings-mini-title">Layout</div>
@@ -166,6 +188,13 @@ emitRequestTokenMetaTag();
                 <span class="sort-hint-chip" title="Use manual mode and the up/down buttons in the first column to set custom order."><i class="fa fa-info-circle"></i> Manual uses up/down in Order column</span>
             </div>
             <input id="vm-folder-filter" type="text" placeholder="Search VM folders" oninput="setFilterQuery('folders','vm',this.value)">
+            <div id="vm-quick-filters" class="folder-quick-filters">
+                <button type="button" data-filter="all" onclick="setQuickFolderFilter('vm','all')">All</button>
+                <button type="button" data-filter="pinned" onclick="setQuickFolderFilter('vm','pinned')">Pinned</button>
+                <button type="button" data-filter="stopped" onclick="setQuickFolderFilter('vm','stopped')">Stopped</button>
+                <button type="button" data-filter="empty" onclick="setQuickFolderFilter('vm','empty')">Empty</button>
+                <button type="button" data-filter="no-rules" onclick="setQuickFolderFilter('vm','no-rules')">No rules</button>
+            </div>
             <div class="settings-cards-grid">
                 <div class="settings-mini-card">
                     <div class="settings-mini-title">Layout</div>
@@ -277,8 +306,14 @@ emitRequestTokenMetaTag();
             <input id="docker-rule-test-label-value" type="text" placeholder="Test label value (optional)">
             <input id="docker-rule-test-image" type="text" placeholder="Test image (optional, example: linuxserver/sonarr)">
             <input id="docker-rule-test-compose" type="text" placeholder="Test compose project (optional)">
+            <div class="rule-test-samples">
+                <button type="button" onclick="applyRuleTestSample('docker','media')"><i class="fa fa-flask"></i> Media sample</button>
+                <button type="button" onclick="applyRuleTestSample('docker','network')"><i class="fa fa-flask"></i> Network sample</button>
+                <button type="button" onclick="applyRuleTestSample('docker','database')"><i class="fa fa-flask"></i> Database sample</button>
+            </div>
             <button onclick="testAutoRule('docker')"><i class="fa fa-flask"></i> Test rule priority</button>
             <button onclick="runRuleSimulator('docker')"><i class="fa fa-list-alt"></i> Simulate all items</button>
+            <div id="docker-rule-validation" class="inline-validation-hint"></div>
             <div id="docker-rule-test-output" class="rule-test-output"></div>
         </div>
         <input id="docker-rules-filter" type="text" placeholder="Search Docker rules" oninput="setFilterQuery('rules','docker',this.value)">
@@ -322,8 +357,13 @@ emitRequestTokenMetaTag();
         </div>
         <div class="rule-tester">
             <input id="vm-rule-test-name" type="text" placeholder="Test VM name (example: prod-db)">
+            <div class="rule-test-samples">
+                <button type="button" onclick="applyRuleTestSample('vm','production')"><i class="fa fa-flask"></i> Production sample</button>
+                <button type="button" onclick="applyRuleTestSample('vm','desktop')"><i class="fa fa-flask"></i> Desktop sample</button>
+            </div>
             <button onclick="testAutoRule('vm')"><i class="fa fa-flask"></i> Test rule priority</button>
             <button onclick="runRuleSimulator('vm')"><i class="fa fa-list-alt"></i> Simulate all items</button>
+            <div id="vm-rule-validation" class="inline-validation-hint"></div>
             <div id="vm-rule-test-output" class="rule-test-output"></div>
         </div>
         <input id="vm-rules-filter" type="text" placeholder="Search VM rules" oninput="setFilterQuery('rules','vm',this.value)">
@@ -514,6 +554,7 @@ emitRequestTokenMetaTag();
             <input id="docker-template-name" type="text" placeholder="Template name">
             <button onclick="createTemplateFromFolder('docker')"><i class="fa fa-save"></i> Save template from folder</button>
         </div>
+        <div id="docker-template-validation" class="inline-validation-hint"></div>
         <input id="docker-templates-filter" type="text" placeholder="Search Docker templates" oninput="setFilterQuery('templates','docker',this.value)">
         <div class="selection-actions">
             <button onclick="bulkTemplateAction('docker','delete')"><i class="fa fa-trash"></i> Delete selected</button>
@@ -542,6 +583,7 @@ emitRequestTokenMetaTag();
             <input id="vm-template-name" type="text" placeholder="Template name">
             <button onclick="createTemplateFromFolder('vm')"><i class="fa fa-save"></i> Save template from folder</button>
         </div>
+        <div id="vm-template-validation" class="inline-validation-hint"></div>
         <input id="vm-templates-filter" type="text" placeholder="Search VM templates" oninput="setFilterQuery('templates','vm',this.value)">
         <div class="selection-actions">
             <button onclick="bulkTemplateAction('vm','delete')"><i class="fa fa-trash"></i> Delete selected</button>
@@ -658,6 +700,8 @@ emitRequestTokenMetaTag();
             </select>
             <div id="import-mode-help">Optional dry run: enable preview-only mode if you want to review without applying changes.</div>
             <label id="import-dry-run-row"><input id="import-dry-run-only" type="checkbox"> Dry run only (preview changes, do not modify folders)</label>
+            <label id="import-preview-first-row"><input id="import-preview-first-toggle" type="checkbox" checked> Preview diff first (recommended)</label>
+            <label id="import-review-ack-row" style="display:none;"><input id="import-review-ack" type="checkbox"> I reviewed the diff and selected operations</label>
         </div>
     </div>
     <div class="import-preview-card">
@@ -701,6 +745,7 @@ emitRequestTokenMetaTag();
 <div id="fv-setup-assistant-dialog" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="fv-setup-assistant-title">
     <div id="fv-setup-assistant-content"></div>
 </div>
+<div id="fv-toast-host" class="fv-toast-host" aria-live="polite" aria-atomic="false"></div>
 
 <div id="fv-settings-action-bar"></div>
 </div>

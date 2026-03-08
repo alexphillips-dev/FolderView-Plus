@@ -19,6 +19,7 @@ emitRequestTokenMetaTag();
 </script>
 <link rel="stylesheet" href="<?=autov('/plugins/folderview.plus/styles/folderviewplus.css')?>">
 
+<div id="fv-settings-root" class="fv-theme-safe">
 <div id="fv-settings-topbar"></div>
 <div id="fv-update-notes-panel" class="fv-update-notes-panel" style="display:none"></div>
 
@@ -702,6 +703,7 @@ emitRequestTokenMetaTag();
 </div>
 
 <div id="fv-settings-action-bar"></div>
+</div>
 
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>

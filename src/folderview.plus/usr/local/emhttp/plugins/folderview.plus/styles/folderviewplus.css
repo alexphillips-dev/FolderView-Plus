@@ -1594,11 +1594,11 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     }
 }
 
-button:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible,
-a:focus-visible {
+#fv-settings-root button:focus-visible,
+#fv-settings-root input:focus-visible,
+#fv-settings-root select:focus-visible,
+#fv-settings-root textarea:focus-visible,
+#fv-settings-root a:focus-visible {
     outline: 2px solid #4da3ff;
     outline-offset: 2px;
 }
@@ -2710,7 +2710,7 @@ h2[data-fv-section].fv-search-match {
     font-size: 1.03rem;
 }
 
-body {
+#fv-settings-root {
     padding-bottom: calc(64px + var(--fv-unraid-bottom-bar-offset) + env(safe-area-inset-bottom, 0px));
 }
 

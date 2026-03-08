@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.08.05">
-<!ENTITY md5 "0a80435be4ea2e2e2b4a03c3ebf1d8da">
+<!ENTITY version "2026.03.08.06">
+<!ENTITY md5 "9a7c8551c73f86995494c5a99c64ef72">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.08.06
+- Theme compatibility hardening: scoped settings-page focus styling to plugin root container only.
+- Theme compatibility hardening: replaced global `body` bottom-padding rule with plugin-root scoped padding.
+- UX safety: wrapped settings content in `#fv-settings-root` to isolate styling from external theme engines.
+- Regression guard: added automated tests for theme-safe CSS selector scoping.
+
 
 ###2026.03.08.05
 - Bug fix: hardened first-install behavior when no prior folder JSON data exists.

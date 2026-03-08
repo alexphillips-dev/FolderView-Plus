@@ -1946,10 +1946,10 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     background: rgba(8, 12, 18, 0.985);
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
     overflow: hidden;
-    --fv-wizard-font-103: clamp(16.5px, 1.03rem, 17.5px);
-    --fv-wizard-font-108: clamp(17px, 1.08rem, 18.2px);
-    --fv-wizard-font-115: clamp(17.8px, 1.15rem, 19.4px);
-    --fv-wizard-font-118: clamp(18.3px, 1.18rem, 20px);
+    --fv-wizard-font-103: 1.03rem;
+    --fv-wizard-font-108: 1.08rem;
+    --fv-wizard-font-115: 1.15rem;
+    --fv-wizard-font-118: 1.18rem;
 }
 
 #fv-setup-assistant-dialog button {

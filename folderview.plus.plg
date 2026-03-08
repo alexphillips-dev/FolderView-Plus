@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.08.16">
-<!ENTITY md5 "60122e46dbef035d018ddc1cd3d1e5c1">
+<!ENTITY version "2026.03.08.17">
+<!ENTITY md5 "70237b9bd5a80d729a9bff16b0eed848">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.08.17
+- Wizard typography rollback: reverted Setup Assistant font-size tokens back to normal rem sizing (`1.03/1.08/1.15/1.18rem`) while keeping the improved compact modal window size.
+- Kept compact centered modal behavior from `2026.03.08.16` intact.
+- Regression guard: updated wizard font-token smoke assertion to match the reverted standard sizing.
+
 
 ###2026.03.08.16
 - Wizard modal sizing fix: switched Setup Assistant to a centered compact dialog (`width: min(1120px, calc(100vw - 2.25rem))`, `height: min(80vh, 780px)`) instead of oversized full-window inset behavior.

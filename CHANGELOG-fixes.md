@@ -1,5 +1,11 @@
 # FolderView Plus Changelog
 
+## Version 2026.03.08.17
+
+- Revert Setup Assistant font scaling to standard rem-based sizing (normal text size) while preserving the compact centered modal window.
+- Keep quick-preset wrapping and compact dialog layout fixes from prior release.
+- Update wizard font-token regression assertion to reflect reverted standard sizing.
+
 ## Version 2026.03.08.16
 
 - Convert Setup Assistant to a centered compact modal instead of oversized full-window inset layout.

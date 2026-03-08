@@ -175,7 +175,7 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsCss, /\.fv-setup-assistant-shell\s*\{[\s\S]*grid-template-columns:\s*minmax\(190px,\s*230px\)\s*minmax\(0,\s*1fr\)/);
     assert.match(settingsCss, /\.fv-setup-assistant-sidebar\s*\{[\s\S]*padding:\s*0\.65rem 0\.62rem/);
     assert.match(settingsCss, /\.fv-setup-rule-preview\.is-match\s*\{/);
-    assert.match(settingsCss, /--fv-wizard-font-103:\s*clamp\(16\.5px,\s*1\.03rem,\s*17\.5px\)/);
+    assert.match(settingsCss, /--fv-wizard-font-103:\s*1\.03rem/);
     assert.match(settingsCss, /#fv-setup-assistant-dialog\s*\{[\s\S]*transform:\s*translate\(-50%,\s*-50%\)/);
     assert.match(settingsCss, /#fv-setup-assistant-dialog\s*\{[\s\S]*width:\s*min\(1120px,\s*calc\(100vw\s*-\s*2\.25rem\)\)/);
     assert.match(settingsCss, /#fv-setup-assistant-dialog\s*\{[\s\S]*height:\s*min\(80vh,\s*780px\)/);

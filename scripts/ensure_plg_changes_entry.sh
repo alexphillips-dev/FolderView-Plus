@@ -28,6 +28,7 @@ awk -v version="${VERSION}" '
       print ""
       print "###" version
       print "- Maintenance: automated release metadata update."
+      print "- Action required: replace these placeholder notes with user-facing release details before publishing."
       print ""
       inserted = 1
     }

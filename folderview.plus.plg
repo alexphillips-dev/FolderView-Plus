@@ -6,23 +6,39 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.08.10">
-<!ENTITY md5 "19b1e26747e13a67b538a0cd65762cfc">
+<!ENTITY version "2026.03.08.11">
+<!ENTITY md5 "6d5298fbc83f5664ebaf629d164f3530">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
 
+###2026.03.08.11
+- UI fix: force-compact sizing for advanced module action buttons so `Add rule`, `Test rule priority`, and `Simulate all items` no longer render oversized.
+- Styling hardening: added high-priority button sizing overrides to prevent theme/CSS inheritance from stretching action controls.
+- Changelog maintenance: corrected 2026.03.08.10, 2026.03.08.09, and 2026.03.08.07 entries with proper release details.
+
+
 ###2026.03.08.10
-- Maintenance: automated release metadata update.
+- UI/UX fix: normalized oversized action buttons across Advanced modules (Auto-assignment, Runtime, Backup, and Templates).
+- Layout fix: prevented grid row stretch in rules/runtime sections so controls stay compact and aligned.
+- Consistency: standardized button sizing for Docker and VM advanced action rows.
 
 
 ###2026.03.08.09
-- Maintenance: automated release metadata update.
+- Feature: added quick profile presets (Balanced, Minimal, Power, Media Stack) for one-click Docker/VM defaults.
+- Feature: added Recent activity feed and toast notifications, including undo-capable action toasts.
+- Feature: added quick folder filters (All, Pinned, Stopped, Empty, No rules, and Docker "Has updates").
+- Feature: added per-folder status breakdown modal with actionable suggestions and direct status-filter shortcut.
+- UX: improved first-run empty state with direct Create Folder, Import, and Wizard actions.
+- Safety: import flow now supports "Preview diff first" preference and a required review acknowledgement before apply.
+- Usability: added rule-test sample presets, inline validation hints, and stricter template-name validation.
+- Mobile: added touch long-press row quick actions for core folder operations.
 
 
 ###2026.03.08.07
-- Maintenance: automated release metadata update.
+- Release maintenance: synchronized manifest and changelog metadata during packaging.
+- No functional runtime behavior changes were introduced in this patch step.
 
 
 ###2026.03.08.06

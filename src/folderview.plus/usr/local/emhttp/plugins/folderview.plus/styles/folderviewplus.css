@@ -988,18 +988,39 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 .runtime-action-grid > button,
 .template-controls > button,
 .import-preset-actions > button {
-    width: auto;
-    max-width: 100%;
-    min-width: 140px;
-    min-height: 34px;
-    height: 34px;
-    padding: 0.2rem 0.6rem;
-    line-height: 1.2;
-    display: inline-flex;
+    width: auto !important;
+    max-width: 100% !important;
+    min-width: 140px !important;
+    min-height: 34px !important;
+    height: 34px !important;
+    padding: 0.2rem 0.6rem !important;
+    line-height: 1.2 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    justify-self: start !important;
+    align-self: center !important;
+    grid-row: auto !important;
+}
+
+.rules-editor > .rules-add-btn,
+.rule-tester > button,
+.rule-test-samples > button {
+    flex: 0 0 auto !important;
+}
+
+.rule-test-samples {
     align-items: center;
-    justify-content: center;
-    justify-self: start;
-    align-self: center;
+}
+
+.rule-test-samples > button {
+    width: auto !important;
+    min-height: 30px !important;
+    height: 30px !important;
+    padding: 0.15rem 0.5rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 .schedule-row label,

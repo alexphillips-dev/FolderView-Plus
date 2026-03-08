@@ -1,5 +1,13 @@
 # FolderView Plus Changelog
 
+## Version 2026.03.08.12
+
+- Improve Setup Assistant with in-wizard quick start bundles (Balanced, Minimal, Power, Media Stack).
+- Add clickable wizard sidebar step navigation and a one-click Review jump action.
+- Add Copy Summary action in wizard review to export the full plan snapshot to clipboard.
+- Add setup keyboard shortcuts: Alt+Left/Right for step movement, Ctrl+Enter to apply from review, Ctrl+Shift+C to copy summary.
+- Add UI regression checks for new wizard controls and styles.
+
 ## Version 2026.03.06.8
 
 - Add full rules simulator for Docker/VM to preview assignment outcomes across all items.

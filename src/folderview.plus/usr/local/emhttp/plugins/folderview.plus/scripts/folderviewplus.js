@@ -410,6 +410,7 @@ const setupAssistantState = {
     progressPercent: 0,
     route: 'new',
     mode: 'basic',
+    quickPreset: 'balanced',
     profile: 'balanced',
     applyProfileDefaults: true,
     environmentPreset: 'home_lab',
@@ -1887,6 +1888,58 @@ const applySetupAssistantEnvironmentPresetToState = () => {
     };
 };
 
+const normalizeSetupAssistantQuickPresetState = (value) => {
+    const raw = String(value || '').trim().toLowerCase();
+    if (raw === 'custom') {
+        return 'custom';
+    }
+    return normalizeQuickProfilePresetId(raw, 'balanced');
+};
+
+const applySetupAssistantQuickPresetToState = (presetId) => {
+    const key = normalizeQuickProfilePresetId(presetId, 'balanced');
+    const preset = QUICK_PROFILE_PRESETS[key] || QUICK_PROFILE_PRESETS.balanced;
+    const profileKey = Object.prototype.hasOwnProperty.call(SETUP_ASSISTANT_PROFILE_PRESETS, preset.profile)
+        ? preset.profile
+        : 'balanced';
+    const envKey = Object.prototype.hasOwnProperty.call(SETUP_ASSISTANT_ENV_PRESETS, preset.environment)
+        ? preset.environment
+        : 'home_lab';
+    const envBehavior = SETUP_ASSISTANT_ENV_PRESETS[envKey]?.behavior || {};
+
+    setupAssistantState.quickPreset = key;
+    setupAssistantState.profile = profileKey;
+    setupAssistantState.environmentPreset = envKey;
+    setupAssistantState.applyProfileDefaults = true;
+    setupAssistantState.applyEnvironmentDefaults = true;
+    setupAssistantState.behavior = {
+        docker: normalizeSetupAssistantBehaviorFromValue('docker', envBehavior.docker || {}),
+        vm: normalizeSetupAssistantBehaviorFromValue('vm', envBehavior.vm || {})
+    };
+
+    for (const type of ['docker', 'vm']) {
+        const overrides = preset?.overridesByType?.[type] || null;
+        if (!overrides || typeof overrides !== 'object') {
+            continue;
+        }
+        const current = {
+            ...(setupAssistantState.behavior?.[type] || {})
+        };
+        if (Object.prototype.hasOwnProperty.call(overrides, 'hideEmptyFolders')) {
+            current.hideEmptyFolders = overrides.hideEmptyFolders === true;
+        }
+        if (overrides.health && typeof overrides.health === 'object') {
+            if (Object.prototype.hasOwnProperty.call(overrides.health, 'cardsEnabled')) {
+                current.healthCardsEnabled = overrides.health.cardsEnabled === true;
+            }
+            if (Object.prototype.hasOwnProperty.call(overrides.health, 'runtimeBadgeEnabled')) {
+                current.runtimeBadgeEnabled = overrides.health.runtimeBadgeEnabled === true;
+            }
+        }
+        setupAssistantState.behavior[type] = normalizeSetupAssistantBehaviorFromValue(type, current);
+    }
+};
+
 const serializeSetupAssistantRuleSuggestions = (suggestions) => {
     if (!Array.isArray(suggestions)) {
         return [];
@@ -1905,6 +1958,7 @@ const serializeSetupAssistantDraft = () => ({
     step: Number(setupAssistantState.step) || 0,
     route: String(setupAssistantState.route || 'new'),
     mode: String(setupAssistantState.mode || 'basic'),
+    quickPreset: normalizeSetupAssistantQuickPresetState(setupAssistantState.quickPreset),
     profile: String(setupAssistantState.profile || 'balanced'),
     applyProfileDefaults: setupAssistantState.applyProfileDefaults === true,
     environmentPreset: normalizeSetupAssistantEnvironmentPreset(setupAssistantState.environmentPreset),
@@ -1992,6 +2046,7 @@ const restoreSetupAssistantDraftFromStorage = () => {
     const stepSequence = getSetupAssistantStepSequence(restoredRoute);
     setupAssistantState.step = Math.max(0, Math.min(stepSequence.length - 1, Number(parsed.step) || 0));
     setupAssistantState.mode = String(parsed.mode || '').toLowerCase() === 'advanced' ? 'advanced' : 'basic';
+    setupAssistantState.quickPreset = normalizeSetupAssistantQuickPresetState(parsed.quickPreset);
     setupAssistantState.profile = Object.prototype.hasOwnProperty.call(SETUP_ASSISTANT_PROFILE_PRESETS, String(parsed.profile || ''))
         ? String(parsed.profile)
         : setupAssistantState.profile;
@@ -2083,6 +2138,7 @@ const resetSetupAssistantState = (force = false) => {
     setupAssistantState.progressPercent = 0;
     setupAssistantState.route = route;
     setupAssistantState.mode = mode;
+    setupAssistantState.quickPreset = 'balanced';
     setupAssistantState.profile = 'balanced';
     setupAssistantState.applyProfileDefaults = route === 'new';
     setupAssistantState.environmentPreset = 'home_lab';
@@ -2788,6 +2844,7 @@ const renderSetupAssistantSidebarSummary = (impactSummary) => {
             <div class="fv-setup-chip-row">
                 <span class="fv-setup-chip">${escapeHtml(routeLabel)}</span>
                 <span class="fv-setup-chip">Mode: ${escapeHtml(setupAssistantState.mode)}</span>
+                <span class="fv-setup-chip">Preset: ${escapeHtml(normalizeSetupAssistantQuickPresetState(setupAssistantState.quickPreset))}</span>
                 <span class="fv-setup-chip ${setupAssistantState.dryRunOnly ? 'is-update' : ''}">Dry run: ${setupAssistantState.dryRunOnly ? 'ON' : 'OFF'}</span>
             </div>
             <div class="fv-setup-sidebar-stats">
@@ -2816,6 +2873,15 @@ const renderSetupAssistantWelcomeStep = () => {
         migrate: 'Migrate existing config from export files.',
         advanced: 'Advanced custom setup with manual choices.'
     };
+    const selectedQuickPreset = normalizeSetupAssistantQuickPresetState(setupAssistantState.quickPreset);
+    const quickPresetHtml = Object.entries(QUICK_PROFILE_PRESETS).map(([presetKey, preset]) => `
+        <button type="button"
+            class="fv-setup-quick-preset ${selectedQuickPreset === presetKey ? 'is-active' : ''}"
+            data-fv-setup-quick-preset="${escapeHtml(presetKey)}">
+            <span class="fv-setup-quick-preset-title">${escapeHtml(preset.label)}</span>
+            <span class="fv-setup-quick-preset-help">${escapeHtml(preset.description)}</span>
+        </button>
+    `).join('');
     const stepSequence = getSetupAssistantStepSequence();
     const pathText = stepSequence.map((step) => setupAssistantStepLabel(step)).join(' -> ');
     return `
@@ -2848,6 +2914,14 @@ const renderSetupAssistantWelcomeStep = () => {
                     <button type="button" class="${setupAssistantState.mode === 'advanced' ? 'is-active' : ''}" data-fv-setup-mode="advanced">Advanced</button>
                 </div>
                 <p class="fv-setup-muted">Basic keeps day-to-day settings visible. Advanced unlocks all sections.</p>
+            </section>
+            <section class="fv-setup-card">
+                <h4>Quick start bundle</h4>
+                <p class="fv-setup-muted">Pick a ready-made bundle. You can still fine tune profile and behavior in later steps.</p>
+                <div class="fv-setup-quick-preset-grid">
+                    ${quickPresetHtml}
+                </div>
+                <p class="fv-setup-muted">Current bundle: <strong>${escapeHtml(selectedQuickPreset)}</strong></p>
             </section>
         </div>
     `;
@@ -3060,6 +3134,7 @@ const renderSetupAssistantReviewStep = () => {
             <div class="fv-setup-review-grid">
                 <span class="fv-setup-chip">Mode: ${escapeHtml(setupAssistantState.mode)}</span>
                 <span class="fv-setup-chip">Route: ${escapeHtml(setupAssistantState.route)}</span>
+                <span class="fv-setup-chip">Quick preset: ${escapeHtml(normalizeSetupAssistantQuickPresetState(setupAssistantState.quickPreset))}</span>
                 <span class="fv-setup-chip">Profile: ${escapeHtml(setupAssistantState.profile)}</span>
                 <span class="fv-setup-chip">Environment: ${escapeHtml(SETUP_ASSISTANT_ENV_PRESETS[setupAssistantState.environmentPreset]?.label || 'Home Lab')}</span>
                 <span class="fv-setup-chip">Dry run: ${setupAssistantState.dryRunOnly ? 'ON' : 'OFF'}</span>
@@ -3103,6 +3178,10 @@ const renderSetupAssistantReviewStep = () => {
                 <input type="checkbox" id="fv-setup-dry-run" ${setupAssistantState.dryRunOnly ? 'checked' : ''}>
                 Dry run only (preview changes, do not modify folders or settings)
             </label>
+            <div class="fv-setup-import-actions">
+                <button type="button" id="fv-setup-copy-summary"><i class="fa fa-clipboard"></i> Copy summary</button>
+                <span class="fv-setup-muted">Tip: <kbd>Alt</kbd> + <kbd>Left/Right</kbd> moves steps, <kbd>Ctrl</kbd> + <kbd>Enter</kbd> applies on this step.</span>
+            </div>
             ${notes.length ? `
                 <div class="fv-setup-warning-box">
                     <strong>Review notes</strong>
@@ -3153,6 +3232,83 @@ const renderSetupAssistantStepBody = () => {
     return renderSetupAssistantReviewStep();
 };
 
+const jumpSetupAssistantToStep = (targetIndex) => {
+    if (setupAssistantState.busy || setupAssistantState.applying) {
+        return false;
+    }
+    const sequence = getSetupAssistantStepSequence();
+    const maxIndex = Math.max(0, sequence.length - 1);
+    const nextIndex = Math.max(0, Math.min(maxIndex, Number(targetIndex) || 0));
+    const currentIndex = Math.max(0, Math.min(maxIndex, Number(setupAssistantState.step) || 0));
+    if (nextIndex === currentIndex) {
+        return true;
+    }
+    if (nextIndex > currentIndex) {
+        for (let index = currentIndex; index < nextIndex; index += 1) {
+            const validation = getSetupAssistantStepValidation(sequence[index]);
+            if (validation.blockers.length > 0) {
+                setupAssistantState.step = index;
+                return false;
+            }
+        }
+    }
+    setupAssistantState.step = nextIndex;
+    return true;
+};
+
+const buildSetupAssistantClipboardSummary = () => {
+    const impact = buildSetupAssistantImpactSummary();
+    const validation = getSetupAssistantStepValidation('review');
+    const notes = buildSetupAssistantReviewNotes();
+    const imports = impact?.imports?.totals || { totalOps: 0, creates: 0, updates: 0, deletes: 0 };
+    const prefs = impact?.prefs || { totalChanges: 0, byType: { docker: { count: 0 }, vm: { count: 0 } } };
+    const rules = impact?.rules || { creatable: 0, selected: 0, duplicates: 0, unresolvedFolder: 0, invalidPattern: 0 };
+
+    const lines = [
+        'FolderView Plus - Setup Assistant Plan',
+        `Generated: ${new Date().toISOString()}`,
+        `Route: ${setupAssistantState.route}`,
+        `Mode: ${setupAssistantState.mode}`,
+        `Quick preset: ${normalizeSetupAssistantQuickPresetState(setupAssistantState.quickPreset)}`,
+        `Profile: ${setupAssistantState.profile} (${setupAssistantState.applyProfileDefaults ? 'apply defaults' : 'do not apply defaults'})`,
+        `Environment: ${setupAssistantState.environmentPreset} (${setupAssistantState.applyEnvironmentDefaults ? 'apply defaults' : 'do not apply defaults'})`,
+        `Dry run: ${setupAssistantState.dryRunOnly ? 'ON' : 'OFF'}`,
+        '',
+        `Import operations: ${imports.totalOps} (create ${imports.creates}, update ${imports.updates}, delete ${imports.deletes})`,
+        `Preference changes: ${prefs.totalChanges} (docker ${prefs.byType?.docker?.count || 0}, vm ${prefs.byType?.vm?.count || 0})`,
+        `Starter rules: ${rules.creatable} (selected ${rules.selected}, duplicates ${rules.duplicates}, missing folder ${rules.unresolvedFolder}, invalid pattern ${rules.invalidPattern})`,
+        `Total planned changes: ${impact.totalPlannedChanges}`,
+        ''
+    ];
+
+    if (validation.blockers.length > 0) {
+        lines.push('Blockers:');
+        validation.blockers.forEach((item) => lines.push(`- ${item}`));
+        lines.push('');
+    }
+    if (validation.warnings.length > 0 || notes.length > 0) {
+        lines.push('Warnings/notes:');
+        [...validation.warnings, ...notes].forEach((item) => lines.push(`- ${item}`));
+    }
+
+    return lines.join('\n');
+};
+
+const copySetupAssistantSummaryToClipboard = async () => {
+    try {
+        const text = buildSetupAssistantClipboardSummary();
+        await copyTextToClipboard(text);
+        showToastMessage({
+            title: 'Wizard summary copied',
+            message: 'Setup assistant summary was copied to clipboard.',
+            level: 'success',
+            durationMs: 2800
+        });
+    } catch (error) {
+        showError('Copy summary failed', error);
+    }
+};
+
 const getSetupAssistantFocusableElements = () => {
     const dialog = $('#fv-setup-assistant-dialog');
     if (!dialog.length) {
@@ -3167,11 +3323,43 @@ const handleSetupAssistantDialogKeydown = (event) => {
     if (!setupAssistantState.open) {
         return;
     }
+    const stepSequence = getSetupAssistantStepSequence();
+    const atLastStep = setupAssistantState.step >= Math.max(0, stepSequence.length - 1);
     if (event.key === 'Escape') {
         if (!setupAssistantState.busy && !setupAssistantState.applying) {
             event.preventDefault();
             closeSetupAssistant();
         }
+        return;
+    }
+    if (event.altKey && event.key === 'ArrowLeft') {
+        event.preventDefault();
+        if (jumpSetupAssistantToStep(setupAssistantState.step - 1)) {
+            renderSetupAssistant();
+        } else {
+            renderSetupAssistant();
+        }
+        return;
+    }
+    if (event.altKey && event.key === 'ArrowRight') {
+        event.preventDefault();
+        if (jumpSetupAssistantToStep(setupAssistantState.step + 1)) {
+            renderSetupAssistant();
+        } else {
+            renderSetupAssistant();
+        }
+        return;
+    }
+    if ((event.ctrlKey || event.metaKey) && event.key === 'Enter' && atLastStep) {
+        event.preventDefault();
+        if (!setupAssistantState.busy && !setupAssistantState.applying) {
+            void applySetupAssistantPlan();
+        }
+        return;
+    }
+    if ((event.ctrlKey || event.metaKey) && event.shiftKey && String(event.key || '').toLowerCase() === 'c' && atLastStep) {
+        event.preventDefault();
+        void copySetupAssistantSummaryToClipboard();
         return;
     }
     if (event.key !== 'Tab') {
@@ -3302,8 +3490,14 @@ const renderSetupAssistant = () => {
                 <ol class="fv-setup-step-list">
                     ${stepSequence.map((stepKey, index) => `
                         <li class="${index === setupAssistantState.step ? 'is-active' : (index < setupAssistantState.step ? 'is-complete' : '')}">
-                            <span class="fv-setup-step-index">${index + 1}</span>
-                            <span class="fv-setup-step-label">${escapeHtml(setupAssistantStepLabel(stepKey))}</span>
+                            <button type="button"
+                                class="fv-setup-step-jump"
+                                data-fv-setup-step-jump="${index}"
+                                aria-label="Go to ${escapeHtml(setupAssistantStepLabel(stepKey))}"
+                                ${canMove ? '' : 'disabled'}>
+                                <span class="fv-setup-step-index">${index + 1}</span>
+                                <span class="fv-setup-step-label">${escapeHtml(setupAssistantStepLabel(stepKey))}</span>
+                            </button>
                         </li>
                     `).join('')}
                 </ol>
@@ -3323,6 +3517,7 @@ const renderSetupAssistant = () => {
                     <div class="fv-setup-foot-left">
                         <button type="button" id="fv-setup-prev" ${(!canMove || atFirstStep) ? 'disabled' : ''}><i class="fa fa-arrow-left"></i> Back</button>
                         <button type="button" id="fv-setup-next" ${canNext ? '' : 'disabled'}>Next <i class="fa fa-arrow-right"></i></button>
+                        <button type="button" id="fv-setup-skip-review" ${(!canMove || atLastStep) ? 'disabled' : ''}><i class="fa fa-step-forward"></i> Review</button>
                     </div>
                     <div class="fv-setup-foot-right">
                         <button type="button" id="fv-setup-apply" ${canApply ? '' : 'disabled'}><i class="fa fa-check"></i> Apply setup</button>
@@ -3631,22 +3826,16 @@ const bindSetupAssistantEvents = () => {
         renderSetupAssistant();
     });
     root.find('#fv-setup-prev').off('click.fvsetup').on('click.fvsetup', () => {
-        if (setupAssistantState.busy || setupAssistantState.applying) {
-            return;
-        }
-        setupAssistantState.step = Math.max(0, setupAssistantState.step - 1);
+        jumpSetupAssistantToStep(setupAssistantState.step - 1);
         rerender();
     });
     root.find('#fv-setup-next').off('click.fvsetup').on('click.fvsetup', () => {
-        if (setupAssistantState.busy || setupAssistantState.applying) {
-            return;
-        }
-        const validation = getSetupAssistantStepValidation(currentSetupAssistantStepKey());
-        if (validation.blockers.length) {
-            rerender();
-            return;
-        }
-        setupAssistantState.step = Math.min(getSetupAssistantStepSequence().length - 1, setupAssistantState.step + 1);
+        jumpSetupAssistantToStep(setupAssistantState.step + 1);
+        rerender();
+    });
+    root.find('#fv-setup-skip-review').off('click.fvsetup').on('click.fvsetup', () => {
+        const lastIndex = Math.max(0, getSetupAssistantStepSequence().length - 1);
+        jumpSetupAssistantToStep(lastIndex);
         rerender();
     });
     root.find('#fv-setup-apply').off('click.fvsetup').on('click.fvsetup', () => {
@@ -3654,6 +3843,11 @@ const bindSetupAssistantEvents = () => {
             return;
         }
         void applySetupAssistantPlan();
+    });
+    root.find('[data-fv-setup-step-jump]').off('click.fvsetup').on('click.fvsetup', (event) => {
+        const target = Number($(event.currentTarget).attr('data-fv-setup-step-jump'));
+        jumpSetupAssistantToStep(target);
+        rerender();
     });
     root.find('input[name="fv-setup-route"]').off('change.fvsetup').on('change.fvsetup', (event) => {
         setupAssistantState.route = String($(event.currentTarget).val() || 'new');
@@ -3668,13 +3862,20 @@ const bindSetupAssistantEvents = () => {
         setupAssistantState.mode = String($(event.currentTarget).attr('data-fv-setup-mode') || 'basic') === 'advanced' ? 'advanced' : 'basic';
         rerender();
     });
+    root.find('[data-fv-setup-quick-preset]').off('click.fvsetup').on('click.fvsetup', (event) => {
+        const presetId = String($(event.currentTarget).attr('data-fv-setup-quick-preset') || 'balanced');
+        applySetupAssistantQuickPresetToState(presetId);
+        rerender();
+    });
     root.find('input[name="fv-setup-profile"]').off('change.fvsetup').on('change.fvsetup', (event) => {
         const value = String($(event.currentTarget).val() || 'balanced');
         setupAssistantState.profile = Object.prototype.hasOwnProperty.call(SETUP_ASSISTANT_PROFILE_PRESETS, value) ? value : 'balanced';
+        setupAssistantState.quickPreset = 'custom';
         rerender();
     });
     root.find('#fv-setup-apply-profile').off('change.fvsetup').on('change.fvsetup', (event) => {
         setupAssistantState.applyProfileDefaults = $(event.currentTarget).prop('checked') === true;
+        setupAssistantState.quickPreset = 'custom';
         rerender();
     });
     root.find('input[name="fv-setup-environment"]').off('change.fvsetup').on('change.fvsetup', (event) => {
@@ -3682,6 +3883,7 @@ const bindSetupAssistantEvents = () => {
         if (setupAssistantState.applyEnvironmentDefaults) {
             applySetupAssistantEnvironmentPresetToState();
         }
+        setupAssistantState.quickPreset = 'custom';
         rerender();
     });
     root.find('#fv-setup-apply-environment').off('change.fvsetup').on('change.fvsetup', (event) => {
@@ -3689,11 +3891,15 @@ const bindSetupAssistantEvents = () => {
         if (setupAssistantState.applyEnvironmentDefaults) {
             applySetupAssistantEnvironmentPresetToState();
         }
+        setupAssistantState.quickPreset = 'custom';
         rerender();
     });
     root.find('#fv-setup-dry-run').off('change.fvsetup').on('change.fvsetup', (event) => {
         setupAssistantState.dryRunOnly = $(event.currentTarget).prop('checked') === true;
         rerender();
+    });
+    root.find('#fv-setup-copy-summary').off('click.fvsetup').on('click.fvsetup', () => {
+        void copySetupAssistantSummaryToClipboard();
     });
     root.find('[data-fv-setup-import-mode]').off('change.fvsetup').on('change.fvsetup', (event) => {
         const type = normalizeManagedType($(event.currentTarget).attr('data-fv-setup-import-mode'));
@@ -3772,11 +3978,13 @@ const bindSetupAssistantEvents = () => {
     root.find('[data-fv-setup-behavior-sort]').off('change.fvsetup').on('change.fvsetup', (event) => {
         const type = normalizeManagedType($(event.currentTarget).attr('data-fv-setup-behavior-sort'));
         setupAssistantState.behavior[type].sortMode = String($(event.currentTarget).val() || 'created');
+        setupAssistantState.quickPreset = 'custom';
         rerender();
     });
     root.find('[data-fv-setup-behavior-status]').off('change.fvsetup').on('change.fvsetup', (event) => {
         const type = normalizeManagedType($(event.currentTarget).attr('data-fv-setup-behavior-status'));
         setupAssistantState.behavior[type].statusMode = normalizeStatusMode($(event.currentTarget).val());
+        setupAssistantState.quickPreset = 'custom';
         rerender();
     });
     root.find('[data-fv-setup-behavior-status-warn]').off('change.fvsetup').on('change.fvsetup', (event) => {
@@ -3785,21 +3993,25 @@ const bindSetupAssistantEvents = () => {
         setupAssistantState.behavior[type].statusWarnStoppedPercent = Number.isFinite(value)
             ? Math.max(0, Math.min(100, Math.round(value)))
             : 60;
+        setupAssistantState.quickPreset = 'custom';
         rerender();
     });
     root.find('[data-fv-setup-behavior-hide-empty]').off('change.fvsetup').on('change.fvsetup', (event) => {
         const type = normalizeManagedType($(event.currentTarget).attr('data-fv-setup-behavior-hide-empty'));
         setupAssistantState.behavior[type].hideEmptyFolders = $(event.currentTarget).prop('checked') === true;
+        setupAssistantState.quickPreset = 'custom';
         rerender();
     });
     root.find('[data-fv-setup-behavior-health-cards]').off('change.fvsetup').on('change.fvsetup', (event) => {
         const type = normalizeManagedType($(event.currentTarget).attr('data-fv-setup-behavior-health-cards'));
         setupAssistantState.behavior[type].healthCardsEnabled = $(event.currentTarget).prop('checked') === true;
+        setupAssistantState.quickPreset = 'custom';
         rerender();
     });
     root.find('[data-fv-setup-behavior-runtime-badge]').off('change.fvsetup').on('change.fvsetup', (event) => {
         const type = normalizeManagedType($(event.currentTarget).attr('data-fv-setup-behavior-runtime-badge'));
         setupAssistantState.behavior[type].runtimeBadgeEnabled = $(event.currentTarget).prop('checked') === true;
+        setupAssistantState.quickPreset = 'custom';
         rerender();
     });
     $('#fv-setup-assistant-overlay').off('click.fvsetup').on('click.fvsetup', () => {
@@ -4161,9 +4373,11 @@ const setInlineValidationHint = (targetId, text = '', level = 'info') => {
     hint.text(normalized).addClass(`is-${['success', 'warning', 'error'].includes(levelClass) ? levelClass : 'info'}`);
 };
 
-const normalizeQuickProfilePresetId = (value) => {
+const normalizeQuickProfilePresetId = (value, fallback = 'balanced') => {
     const presetId = String(value || '').trim().toLowerCase();
-    return Object.prototype.hasOwnProperty.call(QUICK_PROFILE_PRESETS, presetId) ? presetId : 'balanced';
+    return Object.prototype.hasOwnProperty.call(QUICK_PROFILE_PRESETS, presetId)
+        ? presetId
+        : String(fallback || 'balanced');
 };
 
 const applyQuickProfileOverrides = (prefs, overrides = null) => {
@@ -4188,7 +4402,7 @@ const applyQuickProfileOverrides = (prefs, overrides = null) => {
 };
 
 const applyQuickProfilePreset = async (presetId) => {
-    const key = normalizeQuickProfilePresetId(presetId);
+    const key = normalizeQuickProfilePresetId(presetId, 'balanced');
     const preset = QUICK_PROFILE_PRESETS[key] || QUICK_PROFILE_PRESETS.balanced;
     const profileKey = Object.prototype.hasOwnProperty.call(SETUP_ASSISTANT_PROFILE_PRESETS, preset.profile)
         ? preset.profile

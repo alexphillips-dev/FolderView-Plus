@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.08.11">
-<!ENTITY md5 "6d5298fbc83f5664ebaf629d164f3530">
+<!ENTITY version "2026.03.08.12">
+<!ENTITY md5 "f68aa27b853abcd8dbf1736e54fdd953">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.08.12
+- Wizard UX: added quick start bundles directly in the Welcome step (Balanced, Minimal, Power, Media Stack) with state-aware preset tracking.
+- Wizard navigation: sidebar steps are now clickable for faster navigation, plus a one-click `Review` footer action to jump to the final step.
+- Wizard review polish: added `Copy summary` action to export a full plan snapshot (route, mode, imports, rules, warnings) to clipboard for support/debug sharing.
+- Wizard accessibility: added keyboard shortcuts (`Alt+Left/Right` step navigation, `Ctrl+Enter` apply on review, `Ctrl+Shift+C` copy summary).
+- Regression guard: expanded UI smoke assertions for new wizard controls and styling hooks.
+
 
 ###2026.03.08.11
 - UI fix: force-compact sizing for advanced module action buttons so `Add rule`, `Test rule priority`, and `Simulate all items` no longer render oversized.

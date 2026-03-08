@@ -108,12 +108,18 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const getSetupAssistantStepValidation = \(stepKey = currentSetupAssistantStepKey\(\)\) =>/);
     assert.match(settingsJs, /const previewSetupAssistantRuleMatches = \(type, pattern\) =>/);
     assert.match(settingsJs, /const handleSetupAssistantDialogKeydown = \(event\) =>/);
+    assert.match(settingsJs, /const jumpSetupAssistantToStep = \(targetIndex\) =>/);
+    assert.match(settingsJs, /const buildSetupAssistantClipboardSummary = \(\) =>/);
+    assert.match(settingsJs, /const copySetupAssistantSummaryToClipboard = async \(\) =>/);
     assert.match(settingsJs, /runQuickSetupWizard = \(force = false\) => \{/);
     assert.match(settingsJs, /openSetupAssistant\(force === true\);/);
     assert.match(settingsJs, /const bindSetupAssistantEvents = \(\) =>/);
     assert.match(settingsJs, /markSetupAssistantCompletedLocal\(\);/);
     assert.match(settingsJs, /id="fv-setup-dry-run"/);
+    assert.match(settingsJs, /id="fv-setup-copy-summary"/);
     assert.match(settingsJs, /id="fv-setup-discard-draft"/);
+    assert.match(settingsJs, /id="fv-setup-skip-review"/);
+    assert.match(settingsJs, /data-fv-setup-quick-preset=/);
     assert.match(settingsJs, /Dry run only \(preview changes, do not modify folders or settings\)/);
     assert.match(settingsJs, /const shouldRunWizard = !isWizardCompletedServerSide\(\) && !isSetupAssistantCompletedLocal\(\);/);
     assert.match(settingsJs, /const apiPostJson = async \(url, data = \{\}, options = \{\}\) =>/);
@@ -163,6 +169,9 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsCss, /\.fv-setup-validation-box\s*\{/);
     assert.match(settingsCss, /\.fv-setup-impact-grid\s*\{/);
     assert.match(settingsCss, /\.fv-setup-env-grid\s*\{/);
+    assert.match(settingsCss, /\.fv-setup-step-jump\s*\{/);
+    assert.match(settingsCss, /\.fv-setup-quick-preset-grid\s*\{/);
+    assert.match(settingsCss, /\.fv-setup-quick-preset\.is-active\s*\{/);
     assert.match(settingsCss, /\.fv-setup-rule-preview\.is-match\s*\{/);
     assert.match(settingsCss, /--fv-advanced-module-height:\s*clamp\(/);
     assert.match(settingsCss, /h2\[data-fv-advanced="1"\] \+ \.backup-grid \.rules-panel[\s\S]*overflow-y:\s*auto/);

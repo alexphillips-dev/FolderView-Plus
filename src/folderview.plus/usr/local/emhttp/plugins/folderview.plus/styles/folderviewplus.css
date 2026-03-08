@@ -1611,6 +1611,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     .fv-setup-route-grid,
     .fv-setup-profile-grid,
     .fv-setup-env-grid,
+    .fv-setup-quick-preset-grid,
     .fv-setup-impact-grid,
     .fv-setup-field-grid {
         grid-template-columns: 1fr;
@@ -2020,15 +2021,30 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 }
 
 .fv-setup-step-list li {
+    padding: 0;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 1.03rem;
+    opacity: 0.84;
+}
+
+.fv-setup-step-jump {
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
     display: grid;
     grid-template-columns: 24px minmax(0, 1fr);
     align-items: center;
     gap: 0.45rem;
     padding: 0.24rem 0.3rem;
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    font-size: 1.03rem;
-    opacity: 0.84;
+    text-align: left;
+}
+
+.fv-setup-step-jump:disabled {
+    opacity: 0.9;
 }
 
 .fv-setup-step-list li.is-active {
@@ -2152,6 +2168,42 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     gap: 0.45rem;
 }
 
+.fv-setup-quick-preset-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem;
+}
+
+.fv-setup-quick-preset {
+    min-width: 0;
+    width: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    color: inherit;
+    display: grid;
+    gap: 0.18rem;
+    text-align: left;
+    padding: 0.42rem 0.5rem;
+}
+
+.fv-setup-quick-preset.is-active {
+    border-color: rgba(77, 163, 255, 0.6);
+    background: rgba(77, 163, 255, 0.16);
+    color: #d8ebff;
+}
+
+.fv-setup-quick-preset-title {
+    font-size: 1.03rem;
+    font-weight: 700;
+}
+
+.fv-setup-quick-preset-help {
+    font-size: 1.03rem;
+    opacity: 0.82;
+    line-height: 1.3;
+}
+
 .fv-setup-route-option,
 .fv-setup-profile-option {
     border: 1px solid rgba(255, 255, 255, 0.12);
@@ -2272,6 +2324,19 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     align-items: center;
     gap: 0.42rem;
     font-size: 1.03rem;
+}
+
+.fv-setup-assistant-body kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5em;
+    padding: 0.05rem 0.3rem;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    font-size: 1.03rem;
+    line-height: 1.2;
 }
 
 .fv-setup-rule-list {

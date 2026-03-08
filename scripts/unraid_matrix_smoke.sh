@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MATRIX="${FVPLUS_UNRAID_MATRIX:-}"
+REQUIRED_RAW="${FVPLUS_UNRAID_MATRIX_REQUIRED:-0}"
 SMOKE_SCRIPT="${ROOT_DIR}/scripts/browser_smoke.sh"
 # shellcheck source=scripts/lib.sh
 source "${ROOT_DIR}/scripts/lib.sh"
@@ -13,13 +14,28 @@ if [[ ! -x "${SMOKE_SCRIPT}" ]]; then
   chmod +x "${SMOKE_SCRIPT}"
 fi
 
+case "$(printf '%s' "${REQUIRED_RAW}" | tr '[:upper:]' '[:lower:]')" in
+  1|true|yes|on)
+    MATRIX_REQUIRED=1
+    ;;
+  *)
+    MATRIX_REQUIRED=0
+    ;;
+esac
+
 if [[ -z "${MATRIX}" ]]; then
+  if [[ "${MATRIX_REQUIRED}" -eq 1 ]]; then
+    fvplus::fail "FVPLUS_UNRAID_MATRIX is required but not set."
+  fi
   echo "Skipping Unraid matrix smoke checks (FVPLUS_UNRAID_MATRIX not set)."
   exit 0
 fi
 
 mapfile -t entries < <(printf '%s\n' "${MATRIX}" | tr ',;' '\n' | sed '/^[[:space:]]*$/d')
 if [[ ${#entries[@]} -eq 0 ]]; then
+  if [[ "${MATRIX_REQUIRED}" -eq 1 ]]; then
+    fvplus::fail "FVPLUS_UNRAID_MATRIX is required but no usable entries were parsed."
+  fi
   echo "Skipping Unraid matrix smoke checks (no usable entries parsed)."
   exit 0
 fi

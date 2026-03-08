@@ -20,10 +20,12 @@ const i18nGuardPath = path.join(repoRoot, 'scripts/i18n_guard.sh');
 const langUsageGuardPath = path.join(repoRoot, 'scripts/lang_usage_guard.sh');
 const themeScopeGuardPath = path.join(repoRoot, 'scripts/theme_scope_guard.sh');
 const perfBudgetGuardPath = path.join(repoRoot, 'scripts/perf_budget_guard.sh');
+const reproBuildGuardPath = path.join(repoRoot, 'scripts/repro_build_guard.sh');
 const unraidMatrixSmokePath = path.join(repoRoot, 'scripts/unraid_matrix_smoke.sh');
 const ensureChangesPath = path.join(repoRoot, 'scripts/ensure_plg_changes_entry.sh');
 const doctorPath = path.join(repoRoot, 'scripts/doctor.sh');
 const sharedLibPath = path.join(repoRoot, 'scripts/lib.sh');
+const perfBaselinePath = path.join(repoRoot, 'scripts/perf_baseline.json');
 const pkgBuild = fs.readFileSync(pkgBuildPath, 'utf8');
 const releaseGuard = fs.readFileSync(releaseGuardPath, 'utf8');
 const releasePrepare = fs.readFileSync(releasePreparePath, 'utf8');
@@ -40,10 +42,12 @@ const i18nGuard = fs.readFileSync(i18nGuardPath, 'utf8');
 const langUsageGuard = fs.readFileSync(langUsageGuardPath, 'utf8');
 const themeScopeGuard = fs.readFileSync(themeScopeGuardPath, 'utf8');
 const perfBudgetGuard = fs.readFileSync(perfBudgetGuardPath, 'utf8');
+const reproBuildGuard = fs.readFileSync(reproBuildGuardPath, 'utf8');
 const unraidMatrixSmoke = fs.readFileSync(unraidMatrixSmokePath, 'utf8');
 const ensureChanges = fs.readFileSync(ensureChangesPath, 'utf8');
 const doctorScript = fs.readFileSync(doctorPath, 'utf8');
 const sharedLib = fs.readFileSync(sharedLibPath, 'utf8');
+const perfBaseline = JSON.parse(fs.readFileSync(perfBaselinePath, 'utf8'));
 
 test('pkg_build computes stable versions per current date only', () => {
     assert.match(pkgBuild, /next_stable_version_for_date/);
@@ -82,11 +86,13 @@ test('release_guard blocks future-dated versions', () => {
     assert.match(releaseGuard, /TODAY_DATE="\$\(date \+\"%Y\.%m\.%d\"\)"/);
 });
 
-test('release_guard enforces category-signaling changelog content for current version', () => {
+test('release_guard enforces explicit changelog category contract for current version', () => {
     assert.match(releaseGuard, /CURRENT_CHANGES_BLOCK="\$\(awk -v version="\$\{VERSION\}"/);
     assert.match(releaseGuard, /CHANGES entry for \$\{VERSION\} is empty/);
-    assert.match(releaseGuard, /lacks category-signaling keywords/);
-    assert.match(releaseGuard, /feature\/fix\/security\/performance\/ui\/maintenance/);
+    assert.match(releaseGuard, /CURRENT_CHANGES_CATEGORIES/);
+    assert.match(releaseGuard, /must include at least one category-formatted bullet/);
+    assert.match(releaseGuard, /is_allowed_changes_category/);
+    assert.match(releaseGuard, /Allowed categories: Feature, Fix, Security, Performance, UX, UI\/UX, Maintenance, Docs, Test, Quality, Regression guard, Compatibility, Refactor/);
 });
 
 test('release_guard enforces archive size, file-count, and extension policy', () => {
@@ -142,7 +148,10 @@ test('validation workflows include optional browser smoke integration', () => {
         assert.match(workflow, /bash scripts\/lang_usage_guard\.sh/);
         assert.match(workflow, /bash scripts\/theme_scope_guard\.sh/);
         assert.match(workflow, /bash scripts\/perf_budget_guard\.sh/);
+        assert.match(workflow, /bash scripts\/repro_build_guard\.sh/);
         assert.match(workflow, /bash scripts\/unraid_matrix_smoke\.sh/);
+        assert.match(workflow, /FVPLUS_I18N_STRICT/);
+        assert.match(workflow, /FVPLUS_REQUIRE_PERF_BASELINE/);
         assert.match(workflow, /Optional browser smoke checks/);
         assert.match(workflow, /FVPLUS_BROWSER_SMOKE_URL/);
         assert.match(workflow, /bash scripts\/browser_smoke\.sh/);
@@ -153,6 +162,7 @@ test('validation workflows include optional browser smoke integration', () => {
     assert.match(releasePrepare, /bash scripts\/lang_usage_guard\.sh/);
     assert.match(releasePrepare, /bash scripts\/theme_scope_guard\.sh/);
     assert.match(releasePrepare, /bash scripts\/perf_budget_guard\.sh/);
+    assert.match(releasePrepare, /bash scripts\/repro_build_guard\.sh/);
     assert.match(releasePrepare, /bash scripts\/unraid_matrix_smoke\.sh/);
     assert.match(releasePrepare, /bash scripts\/browser_smoke\.sh/);
     assert.match(releasePrepare, /bash scripts\/doctor\.sh/);
@@ -165,6 +175,7 @@ test('release workflows serialize concurrent runs with shared release concurrenc
         assert.match(workflow, /concurrency:/);
         assert.match(workflow, /group:\s*folderview-plus-release/);
         assert.match(workflow, /cancel-in-progress:\s*false/);
+        assert.match(workflow, /FVPLUS_UNRAID_MATRIX_REQUIRED:\s*'1'/);
     }
 });
 
@@ -234,6 +245,31 @@ test('standards guard scripts exist with expected core checks', () => {
     assert.match(themeScopeGuard, /#fv-settings-root/);
     assert.match(perfBudgetGuard, /Performance budget guard passed/);
     assert.match(perfBudgetGuard, /FVPLUS_MAX_FOLDERVIEWPLUS_JS_BYTES/);
+    assert.match(perfBudgetGuard, /FVPLUS_PERF_BASELINE_FILE/);
+    assert.match(perfBudgetGuard, /FVPLUS_MAX_BUDGET_GROWTH_PCT/);
+    assert.match(perfBudgetGuard, /FVPLUS_REQUIRE_PERF_BASELINE/);
+    assert.match(reproBuildGuard, /Deterministic build guard passed/);
+    assert.match(reproBuildGuard, /FVPLUS_REPRO_VERSION_OVERRIDE/);
+    assert.match(reproBuildGuard, /FVPLUS_REPRO_ALLOW_STALE_STABLE/);
     assert.match(unraidMatrixSmoke, /FVPLUS_UNRAID_MATRIX/);
     assert.match(unraidMatrixSmoke, /Skipping Unraid matrix smoke checks/);
+    assert.match(unraidMatrixSmoke, /FVPLUS_UNRAID_MATRIX_REQUIRED/);
+});
+
+test('performance baseline contract file exists and includes tracked asset metrics', () => {
+    assert.equal(typeof perfBaseline, 'object');
+    assert.equal(perfBaseline.version, 1);
+    assert.equal(typeof perfBaseline.assets, 'object');
+    assert.equal(typeof perfBaseline.totals, 'object');
+    for (const key of [
+        'scripts/folderviewplus.js',
+        'styles/folderviewplus.css',
+        'scripts/docker.js',
+        'scripts/vm.js',
+        'scripts/folder.js'
+    ]) {
+        assert.equal(typeof perfBaseline.assets[key], 'object');
+        assert.equal(typeof perfBaseline.assets[key].bytes, 'number');
+        assert.equal(typeof perfBaseline.assets[key].gzipBytes, 'number');
+    }
 });

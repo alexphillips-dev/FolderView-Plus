@@ -19,6 +19,7 @@ chmod +x \
   scripts/lang_usage_guard.sh \
   scripts/theme_scope_guard.sh \
   scripts/perf_budget_guard.sh \
+  scripts/repro_build_guard.sh \
   scripts/unraid_matrix_smoke.sh
 bash scripts/doctor.sh
 
@@ -37,10 +38,11 @@ bash scripts/release_guard.sh
 bash scripts/install_smoke.sh
 bash scripts/api_contract_guard.sh
 bash scripts/i18n_guard.sh
-bash scripts/lang_usage_guard.sh
+FVPLUS_I18N_STRICT=1 bash scripts/lang_usage_guard.sh
 bash scripts/theme_scope_guard.sh
-bash scripts/perf_budget_guard.sh
-bash scripts/unraid_matrix_smoke.sh
+FVPLUS_REQUIRE_PERF_BASELINE=1 bash scripts/perf_budget_guard.sh
+bash scripts/repro_build_guard.sh
+FVPLUS_UNRAID_MATRIX_REQUIRED="${FVPLUS_UNRAID_MATRIX_REQUIRED:-0}" bash scripts/unraid_matrix_smoke.sh
 bash scripts/browser_smoke.sh
 node --test tests/*.mjs
 

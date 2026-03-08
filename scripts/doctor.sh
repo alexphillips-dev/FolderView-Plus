@@ -12,6 +12,7 @@ REQUIRED_COMMANDS=(
   awk
   grep
   find
+  cmp
   md5sum
   sha256sum
   php

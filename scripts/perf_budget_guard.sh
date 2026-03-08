@@ -3,17 +3,30 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PLUGIN_DIR="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus"
+BASELINE_FILE="${FVPLUS_PERF_BASELINE_FILE:-${ROOT_DIR}/scripts/perf_baseline.json}"
+MAX_GROWTH_PCT="${FVPLUS_MAX_BUDGET_GROWTH_PCT:-8}"
+REQUIRE_BASELINE="${FVPLUS_REQUIRE_PERF_BASELINE:-0}"
 # shellcheck source=scripts/lib.sh
 source "${ROOT_DIR}/scripts/lib.sh"
 
 fvplus::require_commands node
 
-node - "${PLUGIN_DIR}" <<'NODE'
+node - "${PLUGIN_DIR}" "${BASELINE_FILE}" "${MAX_GROWTH_PCT}" "${REQUIRE_BASELINE}" <<'NODE'
 const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
 
 const pluginDir = process.argv[2];
+const baselineFile = process.argv[3];
+const maxGrowthPct = Number.parseFloat(process.argv[4] || '');
+const requireBaseline = /^(1|true|yes|on)$/i.test(String(process.argv[5] || '').trim());
+
+if (!Number.isFinite(maxGrowthPct) || maxGrowthPct < 0) {
+  console.error(`ERROR: Invalid FVPLUS_MAX_BUDGET_GROWTH_PCT value: ${process.argv[4]}`);
+  process.exit(1);
+}
+
+const growthFactor = 1 + maxGrowthPct / 100;
 
 const envInt = (name, fallback) => {
   const raw = process.env[name];
@@ -65,6 +78,8 @@ let totalJs = 0;
 let totalCss = 0;
 let totalJsGzip = 0;
 let totalCssGzip = 0;
+const metricsByPath = {};
+const missingBaselineMetrics = [];
 
 const walkFiles = (dir, out) => {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -91,6 +106,7 @@ for (const fullPath of allAssets) {
   const relPath = path.relative(pluginDir, fullPath).replace(/\\/g, '/');
   const bytes = fs.statSync(fullPath).size;
   const gzipBytes = zlib.gzipSync(fs.readFileSync(fullPath), { level: 9 }).length;
+  metricsByPath[relPath] = { bytes, gzipBytes };
   if (relPath.endsWith('.js')) {
     totalJs += bytes;
     totalJsGzip += gzipBytes;
@@ -136,11 +152,80 @@ if (totalCssGzip > totalCssGzipBudget) {
   failed = true;
 }
 
+let baseline = null;
+if (fs.existsSync(baselineFile)) {
+  try {
+    baseline = JSON.parse(fs.readFileSync(baselineFile, 'utf8'));
+  } catch (error) {
+    console.error(`ERROR: Failed to parse baseline file ${baselineFile}: ${error.message}`);
+    process.exit(1);
+  }
+  if (!baseline || typeof baseline !== 'object' || Array.isArray(baseline)) {
+    console.error(`ERROR: Invalid baseline format in ${baselineFile}.`);
+    process.exit(1);
+  }
+} else if (requireBaseline) {
+  console.error(`ERROR: Required performance baseline file is missing: ${baselineFile}`);
+  process.exit(1);
+}
+
+if (baseline) {
+  const baselineAssets =
+    baseline.assets && typeof baseline.assets === 'object' && !Array.isArray(baseline.assets)
+      ? baseline.assets
+      : {};
+  const baselineTotals =
+    baseline.totals && typeof baseline.totals === 'object' && !Array.isArray(baseline.totals)
+      ? baseline.totals
+      : {};
+
+  const checkRatchet = (label, currentValue, baselineValue) => {
+    if (!Number.isFinite(baselineValue) || baselineValue <= 0) {
+      missingBaselineMetrics.push(label);
+      return;
+    }
+    const allowed = Math.ceil(baselineValue * growthFactor);
+    if (currentValue > allowed) {
+      console.error(
+        `ERROR: ${label} exceeds ratchet budget (${currentValue} > ${allowed}, baseline ${baselineValue}, max growth ${maxGrowthPct}%).`
+      );
+      failed = true;
+    }
+  };
+
+  for (const budget of budgets) {
+    const metric = metricsByPath[budget.path];
+    const baseMetric = baselineAssets[budget.path] || {};
+    if (!metric) {
+      continue;
+    }
+    checkRatchet(`${budget.path} bytes`, metric.bytes, Number(baseMetric.bytes));
+    checkRatchet(`${budget.path} gzip`, metric.gzipBytes, Number(baseMetric.gzipBytes));
+  }
+
+  checkRatchet('totalJs bytes', totalJs, Number(baselineTotals.totalJs));
+  checkRatchet('totalCss bytes', totalCss, Number(baselineTotals.totalCss));
+  checkRatchet('totalJs gzip', totalJsGzip, Number(baselineTotals.totalJsGzip));
+  checkRatchet('totalCss gzip', totalCssGzip, Number(baselineTotals.totalCssGzip));
+}
+
+if (missingBaselineMetrics.length > 0) {
+  const uniqueMissing = [...new Set(missingBaselineMetrics)].sort();
+  const message = `Missing baseline metric(s): ${uniqueMissing.join(', ')}`;
+  if (requireBaseline) {
+    console.error(`ERROR: ${message}`);
+    failed = true;
+  } else {
+    console.log(`WARN: ${message}`);
+  }
+}
+
 if (failed) {
   process.exit(1);
 }
 
+const baselineStatus = baseline ? path.basename(baselineFile) : 'not configured';
 console.log(
-  `Performance budget guard passed: JS ${totalJs}B (${totalJsGzip}B gzip), CSS ${totalCss}B (${totalCssGzip}B gzip).`
+  `Performance budget guard passed: JS ${totalJs}B (${totalJsGzip}B gzip), CSS ${totalCss}B (${totalCssGzip}B gzip), ratchet baseline ${baselineStatus}.`
 );
 NODE

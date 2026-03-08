@@ -91,6 +91,10 @@ SOURCE_FOLDER_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folde
 SOURCE_FOLDER_CSS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folder.css"
 SOURCE_SETTINGS_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js"
 SOURCE_SETTINGS_CSS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css"
+SOURCE_FOLDER_PAGE="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page"
+SOURCE_SETTINGS_PAGE="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page"
+SOURCE_SERVER_LIB="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php"
+SOURCE_SERVER_UPDATE_NOTES="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/update_notes.php"
 
 if [[ ! -f "${SOURCE_FOLDER_JS}" ]]; then
   echo "ERROR: Missing source folder editor script: ${SOURCE_FOLDER_JS}" >&2
@@ -106,6 +110,22 @@ if [[ ! -f "${SOURCE_SETTINGS_JS}" ]]; then
 fi
 if [[ ! -f "${SOURCE_SETTINGS_CSS}" ]]; then
   echo "ERROR: Missing source settings stylesheet: ${SOURCE_SETTINGS_CSS}" >&2
+  exit 1
+fi
+if [[ ! -f "${SOURCE_FOLDER_PAGE}" ]]; then
+  echo "ERROR: Missing source folder editor page: ${SOURCE_FOLDER_PAGE}" >&2
+  exit 1
+fi
+if [[ ! -f "${SOURCE_SETTINGS_PAGE}" ]]; then
+  echo "ERROR: Missing source settings page: ${SOURCE_SETTINGS_PAGE}" >&2
+  exit 1
+fi
+if [[ ! -f "${SOURCE_SERVER_LIB}" ]]; then
+  echo "ERROR: Missing source server lib: ${SOURCE_SERVER_LIB}" >&2
+  exit 1
+fi
+if [[ ! -f "${SOURCE_SERVER_UPDATE_NOTES}" ]]; then
+  echo "ERROR: Missing source server update notes endpoint: ${SOURCE_SERVER_UPDATE_NOTES}" >&2
   exit 1
 fi
 
@@ -145,6 +165,10 @@ REQUIRED_ARCHIVE_PATHS=(
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js"
   "./usr/local/emhttp/plugins/folderview.plus/styles/folder.css"
   "./usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css"
+  "./usr/local/emhttp/plugins/folderview.plus/Folder.page"
+  "./usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page"
+  "./usr/local/emhttp/plugins/folderview.plus/server/lib.php"
+  "./usr/local/emhttp/plugins/folderview.plus/server/update_notes.php"
 )
 
 for required_path in "${REQUIRED_ARCHIVE_PATHS[@]}"; do
@@ -258,11 +282,19 @@ TMP_ARCHIVE_FOLDER_JS="$(mktemp)"
 TMP_ARCHIVE_FOLDER_CSS="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_JS="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_CSS="$(mktemp)"
-trap 'rm -f "${TMP_ARCHIVE_FOLDER_JS}" "${TMP_ARCHIVE_FOLDER_CSS}" "${TMP_ARCHIVE_SETTINGS_JS}" "${TMP_ARCHIVE_SETTINGS_CSS}"' EXIT
+TMP_ARCHIVE_FOLDER_PAGE="$(mktemp)"
+TMP_ARCHIVE_SETTINGS_PAGE="$(mktemp)"
+TMP_ARCHIVE_SERVER_LIB="$(mktemp)"
+TMP_ARCHIVE_SERVER_UPDATE_NOTES="$(mktemp)"
+trap 'rm -f "${TMP_ARCHIVE_FOLDER_JS}" "${TMP_ARCHIVE_FOLDER_CSS}" "${TMP_ARCHIVE_SETTINGS_JS}" "${TMP_ARCHIVE_SETTINGS_CSS}" "${TMP_ARCHIVE_FOLDER_PAGE}" "${TMP_ARCHIVE_SETTINGS_PAGE}" "${TMP_ARCHIVE_SERVER_LIB}" "${TMP_ARCHIVE_SERVER_UPDATE_NOTES}"' EXIT
 ARCHIVE_FOLDER_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folder.js"
 ARCHIVE_FOLDER_CSS_PATH="./usr/local/emhttp/plugins/folderview.plus/styles/folder.css"
 ARCHIVE_SETTINGS_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js"
 ARCHIVE_SETTINGS_CSS_PATH="./usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css"
+ARCHIVE_FOLDER_PAGE_PATH="./usr/local/emhttp/plugins/folderview.plus/Folder.page"
+ARCHIVE_SETTINGS_PAGE_PATH="./usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page"
+ARCHIVE_SERVER_LIB_PATH="./usr/local/emhttp/plugins/folderview.plus/server/lib.php"
+ARCHIVE_SERVER_UPDATE_NOTES_PATH="./usr/local/emhttp/plugins/folderview.plus/server/update_notes.php"
 if ! grep -Fxq "${ARCHIVE_FOLDER_JS_PATH}" <<< "${ARCHIVE_LIST}"; then
   ARCHIVE_FOLDER_JS_PATH="${ARCHIVE_FOLDER_JS_PATH#./}"
 fi
@@ -275,10 +307,26 @@ fi
 if ! grep -Fxq "${ARCHIVE_SETTINGS_CSS_PATH}" <<< "${ARCHIVE_LIST}"; then
   ARCHIVE_SETTINGS_CSS_PATH="${ARCHIVE_SETTINGS_CSS_PATH#./}"
 fi
+if ! grep -Fxq "${ARCHIVE_FOLDER_PAGE_PATH}" <<< "${ARCHIVE_LIST}"; then
+  ARCHIVE_FOLDER_PAGE_PATH="${ARCHIVE_FOLDER_PAGE_PATH#./}"
+fi
+if ! grep -Fxq "${ARCHIVE_SETTINGS_PAGE_PATH}" <<< "${ARCHIVE_LIST}"; then
+  ARCHIVE_SETTINGS_PAGE_PATH="${ARCHIVE_SETTINGS_PAGE_PATH#./}"
+fi
+if ! grep -Fxq "${ARCHIVE_SERVER_LIB_PATH}" <<< "${ARCHIVE_LIST}"; then
+  ARCHIVE_SERVER_LIB_PATH="${ARCHIVE_SERVER_LIB_PATH#./}"
+fi
+if ! grep -Fxq "${ARCHIVE_SERVER_UPDATE_NOTES_PATH}" <<< "${ARCHIVE_LIST}"; then
+  ARCHIVE_SERVER_UPDATE_NOTES_PATH="${ARCHIVE_SERVER_UPDATE_NOTES_PATH#./}"
+fi
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_FOLDER_JS_PATH}" > "${TMP_ARCHIVE_FOLDER_JS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_FOLDER_CSS_PATH}" > "${TMP_ARCHIVE_FOLDER_CSS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_JS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_CSS_PATH}" > "${TMP_ARCHIVE_SETTINGS_CSS}"
+tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_FOLDER_PAGE_PATH}" > "${TMP_ARCHIVE_FOLDER_PAGE}"
+tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_PAGE_PATH}" > "${TMP_ARCHIVE_SETTINGS_PAGE}"
+tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SERVER_LIB_PATH}" > "${TMP_ARCHIVE_SERVER_LIB}"
+tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SERVER_UPDATE_NOTES_PATH}" > "${TMP_ARCHIVE_SERVER_UPDATE_NOTES}"
 
 if ! grep -q 'fv-force-left-v2 marker' "${TMP_ARCHIVE_FOLDER_JS}"; then
   echo "ERROR: Packaged folder.js is missing the alignment regression marker comment." >&2
@@ -300,6 +348,22 @@ if ! cmp -s "${SOURCE_SETTINGS_JS}" "${TMP_ARCHIVE_SETTINGS_JS}"; then
 fi
 if ! cmp -s "${SOURCE_SETTINGS_CSS}" "${TMP_ARCHIVE_SETTINGS_CSS}"; then
   echo "ERROR: Packaged folderviewplus.css does not match source folderviewplus.css." >&2
+  exit 1
+fi
+if ! cmp -s "${SOURCE_FOLDER_PAGE}" "${TMP_ARCHIVE_FOLDER_PAGE}"; then
+  echo "ERROR: Packaged Folder.page does not match source Folder.page." >&2
+  exit 1
+fi
+if ! cmp -s "${SOURCE_SETTINGS_PAGE}" "${TMP_ARCHIVE_SETTINGS_PAGE}"; then
+  echo "ERROR: Packaged FolderViewPlus.page does not match source FolderViewPlus.page." >&2
+  exit 1
+fi
+if ! cmp -s "${SOURCE_SERVER_LIB}" "${TMP_ARCHIVE_SERVER_LIB}"; then
+  echo "ERROR: Packaged server/lib.php does not match source server/lib.php." >&2
+  exit 1
+fi
+if ! cmp -s "${SOURCE_SERVER_UPDATE_NOTES}" "${TMP_ARCHIVE_SERVER_UPDATE_NOTES}"; then
+  echo "ERROR: Packaged server/update_notes.php does not match source server/update_notes.php." >&2
   exit 1
 fi
 
@@ -363,9 +427,44 @@ if [[ -z "${CURRENT_CHANGES_LINES}" ]]; then
   exit 1
 fi
 
-if ! grep -Eiq '(feature|enhancement|fix|bug|security|harden|performance|optimi|ui|ux|layout|mobile|usability|maintenance|refactor|docs|test|reliab|compat)' <<< "${CURRENT_CHANGES_LINES}"; then
-  echo "ERROR: CHANGES entry for ${VERSION} lacks category-signaling keywords." >&2
-  echo "Add release notes that indicate update type (feature/fix/security/performance/ui/maintenance)." >&2
+if grep -Eiq 'Action required: replace these placeholder notes' <<< "${CURRENT_CHANGES_LINES}"; then
+  echo "ERROR: CHANGES entry for ${VERSION} still contains placeholder notes from ensure_plg_changes_entry.sh." >&2
+  exit 1
+fi
+
+is_allowed_changes_category() {
+  local category_name="${1:-}"
+  case "${category_name}" in
+    Feature|Fix|Security|Performance|UX|UI/UX|Maintenance|Docs|Test|Quality|"Regression guard"|Compatibility|Refactor)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+mapfile -t CURRENT_CHANGES_CATEGORIES < <(printf '%s\n' "${CURRENT_CHANGES_LINES}" | sed -n 's/^[[:space:]]*-[[:space:]]*\([^:][^:]*\):.*/\1/p')
+if [[ ${#CURRENT_CHANGES_CATEGORIES[@]} -eq 0 ]]; then
+  echo "ERROR: CHANGES entry for ${VERSION} must include at least one category-formatted bullet (for example: '- Feature: ...')." >&2
+  exit 1
+fi
+
+INVALID_CHANGE_CATEGORIES=()
+for raw_category in "${CURRENT_CHANGES_CATEGORIES[@]}"; do
+  category="$(printf '%s' "${raw_category}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+  if [[ -z "${category}" ]]; then
+    continue
+  fi
+  if ! is_allowed_changes_category "${category}"; then
+    INVALID_CHANGE_CATEGORIES+=("${category}")
+  fi
+done
+
+if [[ ${#INVALID_CHANGE_CATEGORIES[@]} -gt 0 ]]; then
+  unique_invalid="$(printf '%s\n' "${INVALID_CHANGE_CATEGORIES[@]}" | sort -u | awk 'BEGIN{first=1} {if (!first) {printf ", "} printf "%s", $0; first=0}')"
+  echo "ERROR: CHANGES entry for ${VERSION} contains unsupported category tag(s): ${unique_invalid}" >&2
+  echo "Allowed categories: Feature, Fix, Security, Performance, UX, UI/UX, Maintenance, Docs, Test, Quality, Regression guard, Compatibility, Refactor." >&2
   exit 1
 fi
 

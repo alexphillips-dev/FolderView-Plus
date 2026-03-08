@@ -4,6 +4,8 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PLUGIN_DIR="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus"
 EN_FILE="${PLUGIN_DIR}/langs/en.json"
+STRICT_MODE="${FVPLUS_I18N_STRICT:-0}"
+ALLOW_UNUSED_KEYS="${FVPLUS_I18N_ALLOW_UNUSED_KEYS:-el-id,folderviewplus-desc}"
 # shellcheck source=scripts/lib.sh
 source "${ROOT_DIR}/scripts/lib.sh"
 
@@ -13,12 +15,19 @@ if [[ ! -f "${EN_FILE}" ]]; then
   fvplus::fail "Missing base locale file: ${EN_FILE}"
 fi
 
-node - "${PLUGIN_DIR}" "${EN_FILE}" <<'NODE'
+node - "${PLUGIN_DIR}" "${EN_FILE}" "${STRICT_MODE}" "${ALLOW_UNUSED_KEYS}" <<'NODE'
 const fs = require('fs');
 const path = require('path');
 
 const pluginDir = process.argv[2];
 const enFile = process.argv[3];
+const strictMode = /^(1|true|yes|on)$/i.test(String(process.argv[4] || '').trim());
+const allowUnusedKeys = new Set(
+  String(process.argv[5] || '')
+    .split(/[,\n;]+/)
+    .map((raw) => raw.trim())
+    .filter(Boolean)
+);
 
 const normalizeKey = (raw) => {
   if (!raw) return '';
@@ -109,9 +118,18 @@ if (missing.length > 0) {
   process.exit(1);
 }
 
-const unused = [...localeKeys].filter((key) => key !== '@metadata' && !referencedKeys.has(key)).sort();
+const unused = [...localeKeys]
+  .filter((key) => key !== '@metadata' && !allowUnusedKeys.has(key) && !referencedKeys.has(key))
+  .sort();
 if (unused.length > 0) {
-  console.log(`WARN: ${unused.length} locale key(s) in en.json are not referenced by .page/.js files.`);
+  const details = unused.slice(0, 20).join(', ');
+  const prefix = strictMode ? 'ERROR' : 'WARN';
+  console.log(
+    `${prefix}: ${unused.length} locale key(s) in en.json are not referenced by .page/.js files: ${details}`
+  );
+  if (strictMode) {
+    process.exit(1);
+  }
 }
 
 console.log(`Language usage guard passed: ${sourceFiles.length} files scanned, ${referencedKeys.size} unique keys referenced.`);

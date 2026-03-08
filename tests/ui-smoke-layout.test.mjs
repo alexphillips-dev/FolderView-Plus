@@ -50,6 +50,21 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
     assert.match(settingsPage, /Health/);
     assert.match(settingsPage, /Autostart/);
     assert.match(settingsPage, /Resources/);
+    assert.match(settingsPage, /id="docker-col-members"/);
+    assert.match(settingsPage, /id="docker-col-status"/);
+    assert.match(settingsPage, /id="docker-col-rules"/);
+    assert.match(settingsPage, /id="docker-col-last-changed"/);
+    assert.match(settingsPage, /id="docker-col-pinned"/);
+    assert.match(settingsPage, /id="docker-col-updates"/);
+    assert.match(settingsPage, /id="docker-col-health"/);
+    assert.match(settingsPage, /id="vm-col-members"/);
+    assert.match(settingsPage, /id="vm-col-status"/);
+    assert.match(settingsPage, /id="vm-col-rules"/);
+    assert.match(settingsPage, /id="vm-col-last-changed"/);
+    assert.match(settingsPage, /id="vm-col-pinned"/);
+    assert.match(settingsPage, /id="vm-col-autostart"/);
+    assert.match(settingsPage, /id="vm-col-resources"/);
+    assert.match(settingsPage, /id="fv-first-run-panel"/);
 });
 
 test('mobile action bar and import progress keep compact viewport guards', () => {
@@ -101,6 +116,12 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const SETUP_ASSISTANT_DONE_STORAGE_KEY = 'fv\.settings\.setupAssistant\.v2\.done';/);
     assert.match(settingsJs, /const SETUP_ASSISTANT_DRAFT_STORAGE_KEY = 'fv\.settings\.setupAssistant\.v2\.draft';/);
     assert.match(settingsJs, /const SETUP_ASSISTANT_PRESETS_STORAGE_KEY = 'fv\.settings\.setupAssistant\.v2\.presets';/);
+    assert.match(settingsJs, /const TABLE_UI_STATE_STORAGE_KEY = 'fv\.settings\.tableUiState\.v1';/);
+    assert.match(settingsJs, /const UNDO_WINDOW_MS = 10000;/);
+    assert.match(settingsJs, /const buildModuleEmptyTableRow = \(title, help, colspan = 1\) =>/);
+    assert.match(settingsJs, /const focusFolderRow = \(type, folderId\) =>/);
+    assert.match(settingsJs, /const showActionSummaryToast = \(\{/);
+    assert.match(settingsJs, /resolveAffectedFolderIdsFromOperations\(resolvedType, operations\)/);
     assert.match(settingsJs, /const SETUP_ASSISTANT_EXPERIENCE_MODES = new Set\(\['guided', 'expert'\]\);/);
     assert.match(settingsJs, /const SETUP_ASSISTANT_APPLY_SAFETY_MODES = new Set\(\['auto', 'strict', 'fast'\]\);/);
     assert.match(settingsJs, /const SETUP_ASSISTANT_ENV_PRESETS = \{/);
@@ -154,6 +175,10 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const compactHoverLabel = 'Compact tab';/);
     assert.match(settingsJs, /id="fv-advanced-compact" class="fv-advanced-compact" title="\$\{escapeHtml\(compactHoverLabel\)\}" aria-label="\$\{escapeHtml\(compactLabel\)\}"/);
     assert.match(settingsJs, /const folderMatchesStatusFilter = \(statusFilterMode, countsByState, totalMembers\) =>/);
+    assert.match(settingsJs, /const applyColumnVisibility = \(type\) =>/);
+    assert.match(settingsJs, /const renderColumnVisibilityControls = \(type\) =>/);
+    assert.match(settingsJs, /const changeColumnVisibility = \(type, key, checked\) =>/);
+    assert.match(settingsJs, /window\.changeColumnVisibility = changeColumnVisibility;/);
     assert.match(settingsJs, /toggleStatusFilter\('\$\{type\}','\$\{escapeHtml\(chip\.key\)\}'\)/);
     assert.match(settingsJs, /return 'good health';/);
     assert.match(settingsJs, /return 'warn health';/);
@@ -212,6 +237,7 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsCss, /\.fv-advanced-compact\s*\{[\s\S]*width:\s*28px/);
     assert.match(settingsCss, /\.status-cell-content\s*\{/);
     assert.match(settingsCss, /\.folder-table table td\.status-cell\s*\{[\s\S]*text-align:\s*left/);
+    assert.match(settingsCss, /\.folder-table table th\.fv-col-hidden,\s*[\s\S]*\.folder-table table td\.fv-col-hidden\s*\{[\s\S]*display:\s*none !important/);
     assert.match(settingsCss, /\.status-cell-content\s*\{[\s\S]*justify-content:\s*flex-start/);
     assert.match(settingsCss, /\.status-chip-list\s*\{/);
     assert.match(settingsCss, /\.status-chip-list\s*\{[\s\S]*justify-content:\s*flex-start/);
@@ -223,5 +249,7 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsCss, /\.folder-pin-state,\s*[\s\S]*\.folder-metric-chip\s*\{/);
     assert.match(settingsCss, /\.backup-compare-row\s*\{/);
     assert.match(settingsCss, /\.ui-dialog\.fv-backup-compare-modal #backup-compare-dialog/);
+    assert.match(settingsCss, /\.module-empty-note\s*\{/);
+    assert.match(settingsCss, /\.folder-table tbody tr\.fv-row-focus\s*\{/);
     assert.doesNotMatch(settingsJs, /await \$\.post\('\/plugins\/folderview\.plus\/server\//);
 });

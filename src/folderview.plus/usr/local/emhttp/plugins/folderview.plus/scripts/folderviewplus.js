@@ -65,6 +65,30 @@ let quickFolderFilterByType = {
     docker: 'all',
     vm: 'all'
 };
+const DEFAULT_COLUMN_VISIBILITY_BY_TYPE = Object.freeze({
+    docker: Object.freeze({
+        members: true,
+        status: true,
+        rules: true,
+        lastChanged: true,
+        pinned: true,
+        updates: true,
+        health: true
+    }),
+    vm: Object.freeze({
+        members: true,
+        status: true,
+        rules: true,
+        lastChanged: true,
+        pinned: true,
+        autostart: true,
+        resources: true
+    })
+});
+let columnVisibilityByType = {
+    docker: { ...DEFAULT_COLUMN_VISIBILITY_BY_TYPE.docker },
+    vm: { ...DEFAULT_COLUMN_VISIBILITY_BY_TYPE.vm }
+};
 let statusSnapshotByType = {
     docker: {},
     vm: {}
@@ -74,6 +98,10 @@ let activityFeedEntries = [];
 let toastSerial = 0;
 const pendingUndoTimers = new Map();
 let rowLongPressByType = {
+    docker: null,
+    vm: null
+};
+let rowFocusTimersByType = {
     docker: null,
     vm: null
 };
@@ -123,9 +151,13 @@ const ADVANCED_KNOWN_STORAGE_KEY = 'fv.settings.advancedKnown.v1';
 const SEARCH_ALL_ADVANCED_STORAGE_KEY = 'fv.settings.searchAllAdvanced.v1';
 const UPDATE_NOTES_SEEN_VERSION_STORAGE_KEY = 'fv.settings.updateNotesSeenVersion.v1';
 const IMPORT_PREVIEW_FIRST_STORAGE_KEY = 'fv.import.previewFirst.v1';
+const TABLE_UI_STATE_STORAGE_KEY = 'fv.settings.tableUiState.v1';
+const QUICK_PRESET_ACTIVE_STORAGE_KEY = 'fv.settings.quickPresetActive.v1';
 const ACTIVITY_FEED_MAX_ENTRIES = 12;
 const LONG_PRESS_DELAY_MS = 560;
 const IMPORT_PRESET_DEFAULT_ID = 'builtin:merge';
+const UNDO_WINDOW_MS = 10000;
+const ROW_FOCUS_HIGHLIGHT_MS = 2200;
 const IMPORT_PRESET_BUILTINS = [
     {
         id: 'builtin:merge',
@@ -4803,6 +4835,7 @@ const setQuickFolderFilter = (type = 'docker', mode = 'all') => {
     const normalizedMode = normalizeQuickFolderFilterMode(mode, resolvedType);
     const current = normalizeQuickFolderFilterMode(quickFolderFilterByType[resolvedType], resolvedType);
     quickFolderFilterByType[resolvedType] = current === normalizedMode ? 'all' : normalizedMode;
+    persistTableUiState();
     renderQuickFolderFilters(resolvedType);
     renderTable(resolvedType);
 };
@@ -5138,9 +5171,45 @@ const setInlineValidationHint = (targetId, text = '', level = 'info') => {
 
 const normalizeQuickProfilePresetId = (value, fallback = 'balanced') => {
     const presetId = String(value || '').trim().toLowerCase();
-    return Object.prototype.hasOwnProperty.call(QUICK_PROFILE_PRESETS, presetId)
-        ? presetId
-        : String(fallback || 'balanced');
+    if (Object.prototype.hasOwnProperty.call(QUICK_PROFILE_PRESETS, presetId)) {
+        return presetId;
+    }
+    const fallbackId = String(fallback || '').trim().toLowerCase();
+    if (!fallbackId) {
+        return '';
+    }
+    return Object.prototype.hasOwnProperty.call(QUICK_PROFILE_PRESETS, fallbackId)
+        ? fallbackId
+        : 'balanced';
+};
+
+const getActiveQuickPresetUi = () => {
+    try {
+        return normalizeQuickProfilePresetId(localStorage.getItem(QUICK_PRESET_ACTIVE_STORAGE_KEY) || '', '');
+    } catch (_error) {
+        return '';
+    }
+};
+
+const setActiveQuickPresetUi = (presetId) => {
+    const key = normalizeQuickProfilePresetId(presetId, '');
+    try {
+        if (!key) {
+            localStorage.removeItem(QUICK_PRESET_ACTIVE_STORAGE_KEY);
+            return;
+        }
+        localStorage.setItem(QUICK_PRESET_ACTIVE_STORAGE_KEY, key);
+    } catch (_error) {
+        // Ignore storage failures; runtime still works.
+    }
+};
+
+const renderQuickProfilePresetButtons = () => {
+    const active = getActiveQuickPresetUi();
+    $('.fv-quick-presets [data-fv-quick-preset]').each((_, button) => {
+        const key = normalizeQuickProfilePresetId($(button).attr('data-fv-quick-preset') || '', '');
+        $(button).toggleClass('is-active', Boolean(active) && key === active);
+    });
 };
 
 const applyQuickProfileOverrides = (prefs, overrides = null) => {
@@ -5201,6 +5270,8 @@ const applyQuickProfilePreset = async (presetId) => {
                 prefsByType[type] = await postPrefs(type, next);
             }
             await Promise.all([refreshType('docker'), refreshType('vm')]);
+            setActiveQuickPresetUi(key);
+            renderQuickProfilePresetButtons();
             addActivityEntry(`Quick profile preset applied: ${preset.label}.`, 'success');
             showToastMessage({
                 title: 'Preset applied',
@@ -5235,16 +5306,60 @@ const quickCreateStarterFolder = async (type) => {
             content: JSON.stringify(folderPayload)
         });
         await refreshType(resolvedType);
+        const createdFolderId = resolveFolderIdsByNames(resolvedType, [name])[0] || '';
         addActivityEntry(`${resolvedType === 'docker' ? 'Docker' : 'VM'} folder created: ${name}.`, 'success');
-        showToastMessage({
+        showActionSummaryToast({
             title: 'Folder created',
             message: `${name} is ready.`,
             level: 'success',
-            durationMs: 3400
+            durationMs: 3600,
+            type: resolvedType,
+            focusFolderId: createdFolderId
         });
     } catch (error) {
         showError('Create folder failed', error);
     }
+};
+
+const renderFirstRunQuickPathPanel = () => {
+    const panel = $('#fv-first-run-panel');
+    if (!panel.length) {
+        return;
+    }
+    const dockerCount = Object.keys(getFolderMap('docker') || {}).length;
+    const vmCount = Object.keys(getFolderMap('vm') || {}).length;
+    if (dockerCount > 0 && vmCount > 0) {
+        panel.hide().empty();
+        return;
+    }
+
+    const needsDocker = dockerCount <= 0;
+    const needsVm = vmCount <= 0;
+    const parts = [];
+    if (needsDocker) {
+        parts.push('Docker folders not set up yet');
+    }
+    if (needsVm) {
+        parts.push('VM folders not set up yet');
+    }
+    const title = parts.length ? `Quick start: ${parts.join(' and ')}` : 'Quick start';
+    const help = 'Use one of these shortcuts to get organized quickly. You can still adjust everything manually afterward.';
+    const buttons = [];
+    if (needsDocker) {
+        buttons.push('<button type="button" onclick="quickCreateStarterFolder(\'docker\')"><i class="fa fa-plus-circle"></i> Create Docker folder</button>');
+        buttons.push('<button type="button" onclick="importDocker()"><i class="fa fa-upload"></i> Import Docker config</button>');
+    }
+    if (needsVm) {
+        buttons.push('<button type="button" onclick="quickCreateStarterFolder(\'vm\')"><i class="fa fa-plus-circle"></i> Create VM folder</button>');
+        buttons.push('<button type="button" onclick="importVm()"><i class="fa fa-upload"></i> Import VM config</button>');
+    }
+    buttons.push('<button type="button" onclick="runQuickSetupWizard(true)"><i class="fa fa-magic"></i> Open setup wizard</button>');
+
+    panel.html(`
+        <div class="fv-first-run-title">${escapeHtml(title)}</div>
+        <div class="fv-first-run-help">${escapeHtml(help)}</div>
+        <div class="fv-first-run-actions">${buttons.join('')}</div>
+    `).show();
 };
 
 const showFolderRowQuickActions = (type, folderId) => {
@@ -5689,12 +5804,143 @@ const runtimePreviewText = (type, folderId, action, plan) => {
     return `${lines.join('\n')}\n`;
 };
 
+const TABLE_COLUMN_SELECTOR_MAP = Object.freeze({
+    docker: Object.freeze({
+        members: Object.freeze({ header: '.col-members', cell: '.members-cell' }),
+        status: Object.freeze({ header: '.col-status', cell: '.status-cell' }),
+        rules: Object.freeze({ header: '.col-rules', cell: '.rules-cell' }),
+        lastChanged: Object.freeze({ header: '.col-last-changed', cell: '.last-changed-cell' }),
+        pinned: Object.freeze({ header: '.col-pinned', cell: '.pinned-cell' }),
+        updates: Object.freeze({ header: '.col-updates', cell: '.updates-cell' }),
+        health: Object.freeze({ header: '.col-health', cell: '.health-cell' })
+    }),
+    vm: Object.freeze({
+        members: Object.freeze({ header: '.col-members', cell: '.members-cell' }),
+        status: Object.freeze({ header: '.col-status', cell: '.status-cell' }),
+        rules: Object.freeze({ header: '.col-rules', cell: '.rules-cell' }),
+        lastChanged: Object.freeze({ header: '.col-last-changed', cell: '.last-changed-cell' }),
+        pinned: Object.freeze({ header: '.col-pinned', cell: '.pinned-cell' }),
+        autostart: Object.freeze({ header: '.col-autostart', cell: '.autostart-cell' }),
+        resources: Object.freeze({ header: '.col-resources', cell: '.resources-cell' })
+    })
+});
+
 const normalizedFilter = (value) => String(value || '').trim().toLowerCase();
+const normalizeColumnVisibilityForType = (type, value = null) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const defaults = DEFAULT_COLUMN_VISIBILITY_BY_TYPE[resolvedType] || {};
+    const source = value && typeof value === 'object' ? value : {};
+    const normalized = {};
+    Object.keys(defaults).forEach((key) => {
+        normalized[key] = source[key] !== false;
+    });
+    return normalized;
+};
+
+const buildTableUiStatePayload = () => ({
+    filters: {
+        docker: { ...(filtersByType.docker || {}) },
+        vm: { ...(filtersByType.vm || {}) }
+    },
+    quick: {
+        docker: normalizeQuickFolderFilterMode(quickFolderFilterByType.docker, 'docker'),
+        vm: normalizeQuickFolderFilterMode(quickFolderFilterByType.vm, 'vm')
+    },
+    health: {
+        docker: normalizeHealthFilterMode(healthFilterByType.docker),
+        vm: normalizeHealthFilterMode(healthFilterByType.vm)
+    },
+    healthSeverity: {
+        docker: normalizeHealthSeverityFilterMode(healthSeverityFilterByType.docker),
+        vm: normalizeHealthSeverityFilterMode(healthSeverityFilterByType.vm)
+    },
+    status: {
+        docker: normalizeStatusFilterMode(statusFilterByType.docker),
+        vm: normalizeStatusFilterMode(statusFilterByType.vm)
+    },
+    dockerUpdatesOnlyFilter: dockerUpdatesOnlyFilter === true,
+    columns: {
+        docker: { ...(columnVisibilityByType.docker || {}) },
+        vm: { ...(columnVisibilityByType.vm || {}) }
+    }
+});
+
+const persistTableUiState = () => {
+    try {
+        localStorage.setItem(TABLE_UI_STATE_STORAGE_KEY, JSON.stringify(buildTableUiStatePayload()));
+    } catch (_error) {
+        // Ignore storage failures; UI continues with runtime state only.
+    }
+};
+
+const restoreTableUiState = () => {
+    try {
+        const raw = localStorage.getItem(TABLE_UI_STATE_STORAGE_KEY);
+        if (!raw) {
+            return;
+        }
+        const parsed = JSON.parse(raw);
+        const source = parsed && typeof parsed === 'object' ? parsed : {};
+        const sourceFilters = source.filters && typeof source.filters === 'object' ? source.filters : {};
+        const sourceQuick = source.quick && typeof source.quick === 'object' ? source.quick : {};
+        const sourceHealth = source.health && typeof source.health === 'object' ? source.health : {};
+        const sourceHealthSeverity = source.healthSeverity && typeof source.healthSeverity === 'object' ? source.healthSeverity : {};
+        const sourceStatus = source.status && typeof source.status === 'object' ? source.status : {};
+        const sourceColumns = source.columns && typeof source.columns === 'object' ? source.columns : {};
+        ['docker', 'vm'].forEach((resolvedType) => {
+            const perTypeFilters = sourceFilters[resolvedType] && typeof sourceFilters[resolvedType] === 'object'
+                ? sourceFilters[resolvedType]
+                : {};
+            filtersByType[resolvedType] = {
+                folders: normalizedFilter(perTypeFilters.folders),
+                rules: normalizedFilter(perTypeFilters.rules),
+                backups: normalizedFilter(perTypeFilters.backups),
+                templates: normalizedFilter(perTypeFilters.templates)
+            };
+            quickFolderFilterByType[resolvedType] = normalizeQuickFolderFilterMode(sourceQuick[resolvedType], resolvedType);
+            healthFilterByType[resolvedType] = normalizeHealthFilterMode(sourceHealth[resolvedType]);
+            healthSeverityFilterByType[resolvedType] = normalizeHealthSeverityFilterMode(sourceHealthSeverity[resolvedType]);
+            statusFilterByType[resolvedType] = normalizeStatusFilterMode(sourceStatus[resolvedType]);
+            columnVisibilityByType[resolvedType] = normalizeColumnVisibilityForType(resolvedType, sourceColumns[resolvedType]);
+        });
+        dockerUpdatesOnlyFilter = source.dockerUpdatesOnlyFilter === true;
+    } catch (_error) {
+        // Ignore parse/storage failures; fall back to defaults.
+    }
+};
+
+const applyColumnVisibility = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const tbodyId = tableIdByType[resolvedType];
+    const tbody = $(`tbody#${tbodyId}`);
+    if (!tbody.length) {
+        return;
+    }
+    const table = tbody.closest('table');
+    const selectors = TABLE_COLUMN_SELECTOR_MAP[resolvedType] || {};
+    const state = normalizeColumnVisibilityForType(resolvedType, columnVisibilityByType[resolvedType]);
+    Object.entries(selectors).forEach(([key, target]) => {
+        const visible = state[key] !== false;
+        table.find(String(target.header || '')).toggleClass('fv-col-hidden', !visible);
+        table.find(String(target.cell || '')).toggleClass('fv-col-hidden', !visible);
+    });
+};
+
+const renderColumnVisibilityControls = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const state = normalizeColumnVisibilityForType(resolvedType, columnVisibilityByType[resolvedType]);
+    Object.entries(state).forEach(([key, enabled]) => {
+        const fieldId = `${resolvedType}-col-${key === 'lastChanged' ? 'last-changed' : key}`;
+        $(`#${fieldId}`).prop('checked', enabled === true);
+    });
+};
+
 const setFilterQuery = (section, type, value) => {
     if (!filtersByType[type] || !Object.prototype.hasOwnProperty.call(filtersByType[type], section)) {
         return;
     }
     filtersByType[type][section] = normalizedFilter(value);
+    persistTableUiState();
     if (section === 'folders') {
         renderTable(type);
         return;
@@ -5826,11 +6072,13 @@ const evaluateDockerFolderHealth = (folder, members, countsByState, updateCount,
 const toggleDockerUpdatesFilter = (hasUpdatesInRow = false) => {
     if (dockerUpdatesOnlyFilter) {
         dockerUpdatesOnlyFilter = false;
+        persistTableUiState();
         renderTable('docker');
         return;
     }
     if (hasUpdatesInRow) {
         dockerUpdatesOnlyFilter = true;
+        persistTableUiState();
         renderTable('docker');
         return;
     }
@@ -5846,6 +6094,7 @@ const toggleHealthSeverityFilter = (type = 'docker', severity = 'all') => {
     const target = normalizeHealthSeverityFilterMode(severity);
     const current = normalizeHealthSeverityFilterMode(healthSeverityFilterByType[resolvedType]);
     healthSeverityFilterByType[resolvedType] = current === target ? 'all' : target;
+    persistTableUiState();
     renderTable(resolvedType);
 };
 
@@ -5854,6 +6103,7 @@ const toggleStatusFilter = (type = 'docker', statusKey = 'all') => {
     const target = normalizeStatusFilterMode(statusKey);
     const current = normalizeStatusFilterMode(statusFilterByType[resolvedType]);
     statusFilterByType[resolvedType] = current === target ? 'all' : target;
+    persistTableUiState();
     renderTable(resolvedType);
 };
 
@@ -5870,6 +6120,7 @@ const clearFolderTableFilters = (type = 'docker') => {
     if (resolvedType === 'docker') {
         dockerUpdatesOnlyFilter = false;
     }
+    persistTableUiState();
     renderQuickFolderFilters(resolvedType);
     renderTable(resolvedType);
 };
@@ -6538,6 +6789,149 @@ const formatTimestamp = (isoString) => {
         return String(isoString);
     }
     return date.toLocaleString();
+};
+
+const buildModuleEmptyTableRow = (title, help, colspan = 1) => (
+    `<tr><td colspan="${Number(colspan) || 1}" class="module-empty-note"><div class="module-empty-title">${escapeHtml(title || 'No data available.')}</div>${help ? `<div class="module-empty-help">${escapeHtml(help)}</div>` : ''}</td></tr>`
+);
+
+const normalizeFocusableFolderId = (type, folderId) => {
+    try {
+        const resolvedType = normalizeManagedType(type);
+        const resolvedId = String(folderId || '').trim();
+        if (!resolvedId) {
+            return null;
+        }
+        return {
+            type: resolvedType,
+            id: resolvedId
+        };
+    } catch (_error) {
+        return null;
+    }
+};
+
+const focusFolderRow = (type, folderId) => {
+    const target = normalizeFocusableFolderId(type, folderId);
+    if (!target) {
+        return false;
+    }
+    const tbodyId = tableIdByType[target.type];
+    const row = $(`tbody#${tbodyId} tr[data-folder-id]`).filter((_, element) => (
+        String($(element).attr('data-folder-id') || '') === target.id
+    )).first();
+    if (!row.length) {
+        return false;
+    }
+
+    const tbody = row.closest('tbody');
+    tbody.find('tr.fv-row-focus').removeClass('fv-row-focus');
+    row.addClass('fv-row-focus');
+    if (rowFocusTimersByType[target.type]) {
+        window.clearTimeout(rowFocusTimersByType[target.type]);
+    }
+    rowFocusTimersByType[target.type] = window.setTimeout(() => {
+        row.removeClass('fv-row-focus');
+        rowFocusTimersByType[target.type] = null;
+    }, ROW_FOCUS_HIGHLIGHT_MS);
+
+    const element = row.get(0);
+    if (element && typeof element.scrollIntoView === 'function') {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+    }
+    return true;
+};
+
+const showActionSummaryToast = ({
+    title = 'Action complete',
+    message = '',
+    level = 'success',
+    type = null,
+    focusFolderId = '',
+    durationMs = 4200
+} = {}) => {
+    const target = normalizeFocusableFolderId(type, focusFolderId);
+    showToastMessage({
+        title,
+        message,
+        level,
+        durationMs,
+        actionLabel: target ? 'Focus folder' : '',
+        onAction: () => {
+            if (!target) {
+                return;
+            }
+            if (!focusFolderRow(target.type, target.id)) {
+                showToastMessage({
+                    title: 'Folder not visible',
+                    message: 'Clear filters or refresh to locate this folder row.',
+                    level: 'warning',
+                    durationMs: 2600
+                });
+            }
+        }
+    });
+};
+
+const resolveFolderIdsByNames = (type, names = []) => {
+    let resolvedType;
+    try {
+        resolvedType = normalizeManagedType(type);
+    } catch (_error) {
+        return [];
+    }
+    const folderMap = getFolderMap(resolvedType);
+    const entries = Object.entries(folderMap || {});
+    if (!entries.length || !Array.isArray(names) || names.length === 0) {
+        return [];
+    }
+    const usedIds = new Set();
+    const results = [];
+    names.forEach((rawName) => {
+        const expected = String(rawName || '').trim().toLowerCase();
+        if (!expected) {
+            return;
+        }
+        const match = entries.find(([id, folder]) => {
+            if (usedIds.has(id)) {
+                return false;
+            }
+            return String(folder?.name || '').trim().toLowerCase() === expected;
+        });
+        if (!match) {
+            return;
+        }
+        usedIds.add(match[0]);
+        results.push(String(match[0]));
+    });
+    return results;
+};
+
+const resolveAffectedFolderIdsFromOperations = (type, operations = null) => {
+    let resolvedType;
+    try {
+        resolvedType = normalizeManagedType(type);
+    } catch (_error) {
+        return [];
+    }
+    const op = operations && typeof operations === 'object' ? operations : {};
+    const seen = new Set();
+    const ids = [];
+    const addId = (value) => {
+        const id = String(value || '').trim();
+        if (!id || seen.has(id)) {
+            return;
+        }
+        seen.add(id);
+        ids.push(id);
+    };
+    const upserts = Array.isArray(op.upserts) ? op.upserts : [];
+    upserts.forEach((item) => addId(item?.id));
+
+    const creates = Array.isArray(op.creates) ? op.creates : [];
+    const createdNames = creates.map((item) => String(item?.folder?.name || '').trim()).filter(Boolean);
+    resolveFolderIdsByNames(resolvedType, createdNames).forEach((id) => addId(id));
+    return ids;
 };
 
 const describeTrackedEvent = (eventType, type, details = {}) => {
@@ -7348,17 +7742,18 @@ const offerUndoAction = async (type, backup, actionLabel) => {
         window.clearTimeout(pendingUndoTimers.get(undoKey));
         pendingUndoTimers.delete(undoKey);
     }
-    addActivityEntry(`${actionLabel} completed. Undo available for 30 seconds.`, 'warning');
+    const undoSeconds = Math.round(UNDO_WINDOW_MS / 1000);
+    addActivityEntry(`${actionLabel} completed. Undo available for ${undoSeconds} seconds.`, 'warning');
     const expireTimer = window.setTimeout(() => {
         pendingUndoTimers.delete(undoKey);
-    }, 30000);
+    }, UNDO_WINDOW_MS);
     pendingUndoTimers.set(undoKey, expireTimer);
 
     showToastMessage({
         title: `${actionLabel} complete`,
         message: `Backup created: ${backup.name}.`,
         level: 'warning',
-        durationMs: 30000,
+        durationMs: UNDO_WINDOW_MS,
         actionLabel: 'Undo',
         onAction: async () => {
             if (!pendingUndoTimers.has(undoKey)) {
@@ -8030,7 +8425,12 @@ const renderRulesTable = (type) => {
     });
 
     if (!filteredRules.length) {
-        rulesBody.html('<tr><td colspan="5">No rules defined.</td></tr>');
+        const hasFilter = filter.length > 0;
+        const title = hasFilter ? 'No rules match your search.' : 'No rules defined yet.';
+        const help = hasFilter
+            ? 'Try a different search term or clear the rule filter.'
+            : `Add your first ${type === 'docker' ? 'Docker container' : 'VM'} auto-assignment rule above.`;
+        rulesBody.html(buildModuleEmptyTableRow(title, help, 5));
         $(`#${type}-rules-select-all`).prop('checked', false);
         return;
     }
@@ -8072,8 +8472,15 @@ const renderRulesTable = (type) => {
 const renderBulkItemOptions = (type) => {
     const infoByName = infoByType[type] || {};
     const names = Object.keys(infoByName).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
+    const items = $(`#${type}-bulk-items`);
+    if (!names.length) {
+        items.html('<option value="" disabled>(No items detected yet)</option>');
+        items.prop('disabled', true);
+        return;
+    }
     const options = names.map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
-    $(`#${type}-bulk-items`).html(options);
+    items.html(options);
+    items.prop('disabled', false);
 };
 
 const renderBackupRows = (type) => {
@@ -8087,7 +8494,12 @@ const renderBackupRows = (type) => {
         return haystack.includes(filter);
     });
     if (!backups.length) {
-        rowsEl.html('<tr><td colspan="4">No backups found.</td></tr>');
+        const hasFilter = filter.length > 0;
+        const title = hasFilter ? 'No backups match your search.' : 'No backups yet.';
+        const help = hasFilter
+            ? 'Try another backup search term.'
+            : 'Create a manual backup or run an import/change to generate snapshots.';
+        rowsEl.html(buildModuleEmptyTableRow(title, help, 4));
         renderBackupCompareControls(type);
         return;
     }
@@ -8580,7 +8992,12 @@ const renderTemplateRows = (type) => {
     )).join('');
 
     if (!templates.length) {
-        rowsEl.html('<tr><td colspan="4">No templates saved.</td></tr>');
+        const hasFilter = filter.length > 0;
+        const title = hasFilter ? 'No templates match your search.' : 'No templates saved yet.';
+        const help = hasFilter
+            ? 'Try another template search term.'
+            : 'Create a template from an existing folder to reuse icon/settings/actions.';
+        rowsEl.html(buildModuleEmptyTableRow(title, help, 4));
         $(`#${type}-templates-select-all`).prop('checked', false);
         return;
     }
@@ -8637,10 +9054,14 @@ const renderTable = (type) => {
     renderBackupScheduleControls(type);
     renderFilterInputs(type);
     renderQuickFolderFilters(type);
+    renderColumnVisibilityControls(type);
+    applyColumnVisibility(type);
+    renderQuickProfilePresetButtons();
     renderRulesTable(type);
     renderBulkItemOptions(type);
     renderTemplateRows(type);
     renderFolderHealthCards();
+    renderFirstRunQuickPathPanel();
     updateRuleLiveMatch(type);
     refreshSettingsUx();
     enforceNoHorizontalOverflow();
@@ -8975,6 +9396,19 @@ const importType = async (type) => {
                 deletes: operations.deletes.length
             }
         });
+        const affectedFolderIds = resolveAffectedFolderIdsFromOperations(resolvedType, operations);
+        const summaryBits = [
+            `${operations.creates.length} create${operations.creates.length === 1 ? '' : 's'}`,
+            `${operations.upserts.length} update${operations.upserts.length === 1 ? '' : 's'}`,
+            `${operations.deletes.length} delete${operations.deletes.length === 1 ? '' : 's'}`
+        ];
+        showActionSummaryToast({
+            title: `${resolvedType === 'docker' ? 'Docker' : 'VM'} import applied`,
+            message: summaryBits.join(' | '),
+            level: 'success',
+            type: resolvedType,
+            focusFolderId: affectedFolderIds[0] || ''
+        });
         await offerUndoAction(resolvedType, transactionBackup, 'Import');
     } catch (error) {
         if (progressOpen) {
@@ -9069,6 +9503,13 @@ const clearType = (type, id) => {
                     deletedCount: deleteIds.length,
                     singleFolder: Boolean(id)
                 }
+            });
+            showActionSummaryToast({
+                title: id ? 'Folder deleted' : 'Folders cleared',
+                message: id
+                    ? `Deleted ${folderName || id}.`
+                    : `Deleted ${deleteIds.length} folder${deleteIds.length === 1 ? '' : 's'}.`,
+                level: 'success'
             });
             await offerUndoAction(resolvedType, backup, id ? 'Delete folder' : 'Clear folders');
         } catch (error) {
@@ -9178,7 +9619,21 @@ const setHealthFolderFilter = (type, mode) => {
     const nextMode = normalizeHealthFilterMode(mode);
     const healthPrefs = normalizeHealthPrefs(resolvedType);
     healthFilterByType[resolvedType] = healthPrefs.cardsEnabled ? nextMode : 'all';
+    persistTableUiState();
     renderTable(resolvedType);
+};
+
+const changeColumnVisibility = (type, key, checked) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const normalized = normalizeColumnVisibilityForType(resolvedType, columnVisibilityByType[resolvedType]);
+    if (!Object.prototype.hasOwnProperty.call(normalized, key)) {
+        return;
+    }
+    normalized[key] = checked === true;
+    columnVisibilityByType[resolvedType] = normalized;
+    renderColumnVisibilityControls(resolvedType);
+    applyColumnVisibility(resolvedType);
+    persistTableUiState();
 };
 
 const changeHealthPref = async (type, key, value) => {
@@ -9628,6 +10083,14 @@ const assignSelectedItems = async (type) => {
         const backup = await createBackup(type, 'before-bulk-assign');
         await bulkAssign(type, folderId, selected);
         await Promise.all([refreshType(type), refreshBackups(type)]);
+        const targetFolderName = folderNameForId(type, folderId);
+        showActionSummaryToast({
+            title: `${type === 'docker' ? 'Docker' : 'VM'} bulk assignment complete`,
+            message: `${selected.length} item${selected.length === 1 ? '' : 's'} assigned to ${targetFolderName}.`,
+            level: 'success',
+            type,
+            focusFolderId: folderId
+        });
         await trackDiagnosticsEvent({
             eventType: 'bulk_assign',
             type,
@@ -10050,6 +10513,14 @@ const applyTemplateToFolder = (type, templateId, selectId) => {
             const backup = await createBackup(type, 'before-template-apply');
             await applyTemplate(type, templateId, folderId);
             await Promise.all([refreshType(type), refreshBackups(type)]);
+            const targetFolderName = folderNameForId(type, folderId);
+            showActionSummaryToast({
+                title: 'Template applied',
+                message: `Updated ${targetFolderName} from saved template.`,
+                level: 'success',
+                type,
+                focusFolderId: folderId
+            });
             await offerUndoAction(type, backup, 'Template apply');
         } catch (error) {
             showError('Template apply failed', error);
@@ -10709,6 +11180,7 @@ window.toggleStatusFilter = toggleStatusFilter;
 window.clearFolderTableFilters = clearFolderTableFilters;
 window.setQuickFolderFilter = setQuickFolderFilter;
 window.setHealthFolderFilter = setHealthFolderFilter;
+window.changeColumnVisibility = changeColumnVisibility;
 window.showFolderStatusBreakdown = showFolderStatusBreakdown;
 window.quickCreateStarterFolder = quickCreateStarterFolder;
 window.applyQuickProfilePreset = applyQuickProfilePreset;
@@ -10752,6 +11224,7 @@ window.setSettingsMode = setSettingsMode;
         } else {
             settingsUiState.knownAdvancedSections = new Set();
         }
+        restoreTableUiState();
         initSettingsControls();
         initOverflowGuard();
         renderPerformanceDiagnostics();

@@ -39,11 +39,12 @@ emitRequestTokenMetaTag();
 <button onclick="rollbackLatestCheckpoint()"><i class="fa fa-undo" aria-hidden="true"></i> Rollback to previous snapshot</button>
 <div class="fv-quick-presets">
     <span class="fv-quick-presets-title">Quick profile presets</span>
-    <button type="button" onclick="applyQuickProfilePreset('balanced')"><i class="fa fa-sliders"></i> Balanced</button>
-    <button type="button" onclick="applyQuickProfilePreset('minimal')"><i class="fa fa-leaf"></i> Minimal</button>
-    <button type="button" onclick="applyQuickProfilePreset('power')"><i class="fa fa-bolt"></i> Power</button>
-    <button type="button" onclick="applyQuickProfilePreset('media_stack')"><i class="fa fa-play-circle"></i> Media Stack</button>
+    <button type="button" data-fv-quick-preset="balanced" onclick="applyQuickProfilePreset('balanced')"><i class="fa fa-sliders"></i> Balanced</button>
+    <button type="button" data-fv-quick-preset="minimal" onclick="applyQuickProfilePreset('minimal')"><i class="fa fa-leaf"></i> Minimal</button>
+    <button type="button" data-fv-quick-preset="power" onclick="applyQuickProfilePreset('power')"><i class="fa fa-bolt"></i> Power</button>
+    <button type="button" data-fv-quick-preset="media_stack" onclick="applyQuickProfilePreset('media_stack')"><i class="fa fa-play-circle"></i> Media Stack</button>
 </div>
+<div id="fv-first-run-panel" class="fv-first-run-panel" style="display:none;"></div>
 <span id="update-check-status" class="status-line"></span>
 <span id="rollback-status" class="status-line"></span>
 
@@ -99,6 +100,7 @@ emitRequestTokenMetaTag();
                         <span>Status warn (%)</span>
                         <input id="docker-status-warn-threshold" type="number" min="0" max="100" step="1" onchange="changeStatusPref('docker', 'warnStoppedPercent', this.value)">
                     </label>
+                    <div class="setting-help">Status mode controls chip style. Attention accent highlights folders crossing your warn threshold.</div>
                     <div class="setting-note">Pin folders with the star button in the Actions column.</div>
                 </div>
                 <div class="settings-mini-card">
@@ -120,6 +122,7 @@ emitRequestTokenMetaTag();
                         <span>Lazy threshold</span>
                         <input id="docker-lazy-preview-threshold" type="number" min="10" max="200" step="1" onchange="changeRuntimePref('docker', 'lazyPreviewThreshold', this.value)">
                     </label>
+                    <div class="setting-help">Use performance mode + lazy previews for larger libraries to reduce render overhead.</div>
                 </div>
                 <div class="settings-mini-card">
                     <div class="settings-mini-title">Health cards</div>
@@ -130,6 +133,17 @@ emitRequestTokenMetaTag();
                         <span>Warn stopped (%)</span>
                         <input id="docker-health-warn-threshold" type="number" min="0" max="100" step="1" onchange="changeHealthPref('docker', 'warnStoppedPercent', this.value)">
                     </label>
+                    <div class="setting-help">Health cards summarize pinned, stopped, empty, and conflict status with one-click filters.</div>
+                </div>
+                <div class="settings-mini-card">
+                    <div class="settings-mini-title">Columns</div>
+                    <label class="setting-toggle"><input id="docker-col-members" type="checkbox" onchange="changeColumnVisibility('docker', 'members', this.checked)"> Members</label>
+                    <label class="setting-toggle"><input id="docker-col-status" type="checkbox" onchange="changeColumnVisibility('docker', 'status', this.checked)"> Status</label>
+                    <label class="setting-toggle"><input id="docker-col-rules" type="checkbox" onchange="changeColumnVisibility('docker', 'rules', this.checked)"> Rules</label>
+                    <label class="setting-toggle"><input id="docker-col-last-changed" type="checkbox" onchange="changeColumnVisibility('docker', 'lastChanged', this.checked)"> Last changed</label>
+                    <label class="setting-toggle"><input id="docker-col-pinned" type="checkbox" onchange="changeColumnVisibility('docker', 'pinned', this.checked)"> Pinned</label>
+                    <label class="setting-toggle"><input id="docker-col-updates" type="checkbox" onchange="changeColumnVisibility('docker', 'updates', this.checked)"> Updates</label>
+                    <label class="setting-toggle"><input id="docker-col-health" type="checkbox" onchange="changeColumnVisibility('docker', 'health', this.checked)"> Health</label>
                 </div>
             </div>
         </div>
@@ -138,18 +152,18 @@ emitRequestTokenMetaTag();
         <table>
             <thead>
                 <tr>
-                    <th>Order</th>
-                    <th data-i18n="el-name">
+                    <th class="col-order">Order</th>
+                    <th class="col-name" data-i18n="el-name">
                         Name
                     </th>
-                    <th>Members</th>
-                    <th>Status</th>
-                    <th>Rules</th>
-                    <th>Last changed</th>
-                    <th>Pinned</th>
-                    <th>Updates</th>
-                    <th>Health</th>
-                    <th data-i18n="el-actions">
+                    <th class="col-members">Members</th>
+                    <th class="col-status">Status</th>
+                    <th class="col-rules">Rules</th>
+                    <th class="col-last-changed">Last changed</th>
+                    <th class="col-pinned">Pinned</th>
+                    <th class="col-updates">Updates</th>
+                    <th class="col-health">Health</th>
+                    <th class="col-actions" data-i18n="el-actions">
                         Actions
                     </th>
                 </tr>
@@ -212,6 +226,7 @@ emitRequestTokenMetaTag();
                         <span>Status warn (%)</span>
                         <input id="vm-status-warn-threshold" type="number" min="0" max="100" step="1" onchange="changeStatusPref('vm', 'warnStoppedPercent', this.value)">
                     </label>
+                    <div class="setting-help">Status mode controls chip style. Attention accent highlights folders crossing your warn threshold.</div>
                     <div class="setting-note">Pin folders with the star button in the Actions column.</div>
                 </div>
                 <div class="settings-mini-card">
@@ -232,6 +247,7 @@ emitRequestTokenMetaTag();
                         <span>Lazy threshold</span>
                         <input id="vm-lazy-preview-threshold" type="number" min="10" max="200" step="1" onchange="changeRuntimePref('vm', 'lazyPreviewThreshold', this.value)">
                     </label>
+                    <div class="setting-help">Use performance mode + lazy previews for larger libraries to reduce render overhead.</div>
                 </div>
                 <div class="settings-mini-card">
                     <div class="settings-mini-title">Health cards</div>
@@ -242,6 +258,17 @@ emitRequestTokenMetaTag();
                         <span>Warn stopped (%)</span>
                         <input id="vm-health-warn-threshold" type="number" min="0" max="100" step="1" onchange="changeHealthPref('vm', 'warnStoppedPercent', this.value)">
                     </label>
+                    <div class="setting-help">Health cards summarize pinned, stopped, empty, and conflict status with one-click filters.</div>
+                </div>
+                <div class="settings-mini-card">
+                    <div class="settings-mini-title">Columns</div>
+                    <label class="setting-toggle"><input id="vm-col-members" type="checkbox" onchange="changeColumnVisibility('vm', 'members', this.checked)"> Members</label>
+                    <label class="setting-toggle"><input id="vm-col-status" type="checkbox" onchange="changeColumnVisibility('vm', 'status', this.checked)"> Status</label>
+                    <label class="setting-toggle"><input id="vm-col-rules" type="checkbox" onchange="changeColumnVisibility('vm', 'rules', this.checked)"> Rules</label>
+                    <label class="setting-toggle"><input id="vm-col-last-changed" type="checkbox" onchange="changeColumnVisibility('vm', 'lastChanged', this.checked)"> Last changed</label>
+                    <label class="setting-toggle"><input id="vm-col-pinned" type="checkbox" onchange="changeColumnVisibility('vm', 'pinned', this.checked)"> Pinned</label>
+                    <label class="setting-toggle"><input id="vm-col-autostart" type="checkbox" onchange="changeColumnVisibility('vm', 'autostart', this.checked)"> Autostart</label>
+                    <label class="setting-toggle"><input id="vm-col-resources" type="checkbox" onchange="changeColumnVisibility('vm', 'resources', this.checked)"> Resources</label>
                 </div>
             </div>
         </div>
@@ -250,18 +277,18 @@ emitRequestTokenMetaTag();
         <table>
             <thead>
                 <tr>
-                    <th>Order</th>
-                    <th data-i18n="el-name">
+                    <th class="col-order">Order</th>
+                    <th class="col-name" data-i18n="el-name">
                         Name
                     </th>
-                    <th>Members</th>
-                    <th>Status</th>
-                    <th>Rules</th>
-                    <th>Last changed</th>
-                    <th>Pinned</th>
-                    <th>Autostart</th>
-                    <th>Resources</th>
-                    <th data-i18n="el-actions">
+                    <th class="col-members">Members</th>
+                    <th class="col-status">Status</th>
+                    <th class="col-rules">Rules</th>
+                    <th class="col-last-changed">Last changed</th>
+                    <th class="col-pinned">Pinned</th>
+                    <th class="col-autostart">Autostart</th>
+                    <th class="col-resources">Resources</th>
+                    <th class="col-actions" data-i18n="el-actions">
                         Actions
                     </th>
                 </tr>
@@ -311,8 +338,8 @@ emitRequestTokenMetaTag();
                 <button type="button" onclick="applyRuleTestSample('docker','network')"><i class="fa fa-flask"></i> Network sample</button>
                 <button type="button" onclick="applyRuleTestSample('docker','database')"><i class="fa fa-flask"></i> Database sample</button>
             </div>
-            <button onclick="testAutoRule('docker')"><i class="fa fa-flask"></i> Test rule priority</button>
-            <button onclick="runRuleSimulator('docker')"><i class="fa fa-list-alt"></i> Simulate all items</button>
+            <button onclick="testAutoRule('docker')"><i class="fa fa-flask"></i> Test rules</button>
+            <button onclick="runRuleSimulator('docker')"><i class="fa fa-list-alt"></i> Simulate assignments</button>
             <div id="docker-rule-validation" class="inline-validation-hint"></div>
             <div id="docker-rule-test-output" class="rule-test-output"></div>
         </div>
@@ -361,8 +388,8 @@ emitRequestTokenMetaTag();
                 <button type="button" onclick="applyRuleTestSample('vm','production')"><i class="fa fa-flask"></i> Production sample</button>
                 <button type="button" onclick="applyRuleTestSample('vm','desktop')"><i class="fa fa-flask"></i> Desktop sample</button>
             </div>
-            <button onclick="testAutoRule('vm')"><i class="fa fa-flask"></i> Test rule priority</button>
-            <button onclick="runRuleSimulator('vm')"><i class="fa fa-list-alt"></i> Simulate all items</button>
+            <button onclick="testAutoRule('vm')"><i class="fa fa-flask"></i> Test rules</button>
+            <button onclick="runRuleSimulator('vm')"><i class="fa fa-list-alt"></i> Simulate assignments</button>
             <div id="vm-rule-validation" class="inline-validation-hint"></div>
             <div id="vm-rule-test-output" class="rule-test-output"></div>
         </div>
@@ -399,7 +426,7 @@ emitRequestTokenMetaTag();
         </div>
         <div class="bulk-row">
             <select id="docker-bulk-folder"></select>
-            <button onclick="assignSelectedItems('docker')"><i class="fa fa-share-square-o"></i> Assign selected</button>
+            <button onclick="assignSelectedItems('docker')"><i class="fa fa-share-square-o"></i> Assign items</button>
         </div>
         <select id="docker-bulk-items" multiple size="10"></select>
     </div>
@@ -411,7 +438,7 @@ emitRequestTokenMetaTag();
         </div>
         <div class="bulk-row">
             <select id="vm-bulk-folder"></select>
-            <button onclick="assignSelectedItems('vm')"><i class="fa fa-share-square-o"></i> Assign selected</button>
+            <button onclick="assignSelectedItems('vm')"><i class="fa fa-share-square-o"></i> Assign items</button>
         </div>
         <select id="vm-bulk-items" multiple size="10"></select>
     </div>

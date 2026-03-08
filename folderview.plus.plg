@@ -6,12 +6,21 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.08.22">
-<!ENTITY md5 "2582ba81ca2b2b0d3d3bfe32ef8a6088">
+<!ENTITY version "2026.03.08.23">
+<!ENTITY md5 "c079f30b6cc33bbe84126780bbdd217a">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.08.23
+- UX: added richer empty-state guidance for Rules, Backups, and Templates modules (with clearer next steps and filter-specific messaging).
+- UX: improved bulk-assignment empty handling with disabled placeholder when no items are detected yet.
+- Feature: persisted column visibility toggles for Docker/VM tables and restored them on reload.
+- Feature: added action summary toasts with one-click "Focus folder" for imports, template apply, bulk assignment, and starter-folder creation.
+- Safety: shortened undo window from 30s to 10s for faster confirmation flow while keeping rollback support.
+- Regression guard: expanded UI smoke coverage for new table-state, empty-state, and focus-highlight UX hooks.
+
 
 ###2026.03.08.22
 - UI polish: moved Status breakdown info button to the left side of status chips for cleaner scan order.

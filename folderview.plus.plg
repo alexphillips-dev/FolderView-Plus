@@ -6,12 +6,28 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.07.15">
-<!ENTITY md5 "d57ceb45dfdeecceea908bf691bdb004">
+<!ENTITY version "2026.03.07.16">
+<!ENTITY md5 "a6050bab18c02a2c0cb9ce5f53bfb680">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.07.16
+- Improved update-banner changelog loading so it reads from multiple installed manifest locations (not only one path).
+- Added changelog fallback logic:
+  - if notes for the installed version are unavailable locally, show the latest available changelog entry instead.
+- Added automatic update-category detection from changelog content:
+  - Feature Update,
+  - Bug Fix Update,
+  - Security Update,
+  - Performance Update,
+  - UI/UX Update,
+  - Maintenance Update,
+  - Mixed Update.
+- Added a category+headline summary block in the `What changed` panel above the bullet list.
+- Added optional fallback context text when notes are sourced from a different changelog version.
+- Added regression tests for categorized update notes backend payload and settings UI rendering.
 
 ###2026.03.07.15
 - Switched request-token guard mode from `compat` to `strict` for mutation endpoints.

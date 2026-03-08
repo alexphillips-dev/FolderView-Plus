@@ -750,53 +750,241 @@
         return $version === '' ? '0.0.0' : $version;
     }
 
-    function readInstalledManifestPath(): string {
-        global $configDir;
-        return "$configDir/folderview.plus.plg";
+    function readInstalledManifestPathCandidates(): array {
+        global $configDir, $sourceDir;
+        $candidates = [
+            "$configDir/folderview.plus.plg",
+            '/boot/config/plugins/folderview.plus.plg',
+            "$sourceDir/folderview.plus.plg"
+        ];
+        $unique = [];
+        foreach ($candidates as $path) {
+            $normalized = trim((string)$path);
+            if ($normalized === '' || in_array($normalized, $unique, true)) {
+                continue;
+            }
+            if (is_file($normalized)) {
+                $unique[] = $normalized;
+            }
+        }
+        return $unique;
     }
 
-    function readChangesLinesForVersion(string $version, int $maxLines = 14): array {
-        $version = trim($version);
-        if ($version === '') {
-            return [];
+    function readInstalledManifestPath(): string {
+        global $configDir;
+        $preferred = "$configDir/folderview.plus.plg";
+        if (is_file($preferred)) {
+            return $preferred;
         }
-
-        $manifestPath = readInstalledManifestPath();
-        if (!file_exists($manifestPath)) {
-            return [];
+        $candidates = readInstalledManifestPathCandidates();
+        if (count($candidates) > 0) {
+            return (string)$candidates[0];
         }
+        return $preferred;
+    }
 
-        $raw = @file_get_contents($manifestPath);
-        if (!is_string($raw) || $raw === '') {
-            return [];
-        }
-
-        $content = str_replace(["\r\n", "\r"], "\n", $raw);
-        $pattern = '/^###\s*' . preg_quote($version, '/') . '\s*$(.*?)(?=^###|\z)/ms';
-        if (!preg_match($pattern, $content, $match)) {
-            return [];
-        }
-
-        $block = trim((string)($match[1] ?? ''));
-        if ($block === '') {
-            return [];
-        }
-
+    function normalizeChangesBlockLines(string $block): array {
         $lines = [];
-        foreach (explode("\n", $block) as $line) {
+        foreach (explode("\n", str_replace(["\r\n", "\r"], "\n", $block)) as $line) {
             $trimmed = trim((string)$line);
             if ($trimmed === '') {
                 continue;
             }
-            $lines[] = $trimmed;
+            $trimmed = preg_replace('/^\s*[-*]\s*/', '', $trimmed);
+            $trimmed = trim((string)$trimmed);
+            if ($trimmed !== '') {
+                $lines[] = $trimmed;
+            }
         }
+        return $lines;
+    }
 
+    function applyChangesLineLimit(array $lines, int $maxLines): array {
         if ($maxLines > 0 && count($lines) > $maxLines) {
             $lines = array_slice($lines, 0, $maxLines);
             $lines[] = '...';
         }
-
         return $lines;
+    }
+
+    function extractChangesBlockForVersion(string $content, string $version): array {
+        $version = trim($version);
+        if ($version === '') {
+            return [];
+        }
+        $pattern = '/^###\s*' . preg_quote($version, '/') . '\s*$(.*?)(?=^###|\z)/ms';
+        if (!preg_match($pattern, $content, $match)) {
+            return [];
+        }
+        $block = trim((string)($match[1] ?? ''));
+        if ($block === '') {
+            return [];
+        }
+        return normalizeChangesBlockLines($block);
+    }
+
+    function extractLatestChangesBlock(string $content): array {
+        if (!preg_match('/^###\s*([0-9][0-9A-Za-z._-]*)\s*$(.*?)(?=^###|\z)/ms', $content, $match)) {
+            return [];
+        }
+        $version = trim((string)($match[1] ?? ''));
+        $block = trim((string)($match[2] ?? ''));
+        if ($version === '' || $block === '') {
+            return [];
+        }
+        return [
+            'sourceVersion' => $version,
+            'lines' => normalizeChangesBlockLines($block)
+        ];
+    }
+
+    function readChangesSummaryForVersion(string $version, int $maxLines = 14): array {
+        $requestedVersion = trim($version);
+        if ($requestedVersion === '') {
+            $requestedVersion = readInstalledVersion();
+        }
+
+        $latestFallback = [];
+        foreach (readInstalledManifestPathCandidates() as $manifestPath) {
+            $raw = @file_get_contents($manifestPath);
+            if (!is_string($raw) || trim($raw) === '') {
+                continue;
+            }
+            $content = str_replace(["\r\n", "\r"], "\n", $raw);
+            $matchedLines = extractChangesBlockForVersion($content, $requestedVersion);
+            if (count($matchedLines) > 0) {
+                return [
+                    'version' => $requestedVersion,
+                    'sourceVersion' => $requestedVersion,
+                    'lines' => applyChangesLineLimit($matchedLines, $maxLines),
+                    'usedFallback' => false,
+                    'manifestPath' => $manifestPath
+                ];
+            }
+
+            if (count($latestFallback) === 0) {
+                $latestFallback = extractLatestChangesBlock($content);
+                if (count($latestFallback) > 0) {
+                    $latestFallback['manifestPath'] = $manifestPath;
+                }
+            }
+        }
+
+        if (count($latestFallback) > 0 && count($latestFallback['lines'] ?? []) > 0) {
+            return [
+                'version' => $requestedVersion,
+                'sourceVersion' => (string)($latestFallback['sourceVersion'] ?? ''),
+                'lines' => applyChangesLineLimit((array)($latestFallback['lines'] ?? []), $maxLines),
+                'usedFallback' => true,
+                'manifestPath' => (string)($latestFallback['manifestPath'] ?? '')
+            ];
+        }
+
+        return [
+            'version' => $requestedVersion,
+            'sourceVersion' => '',
+            'lines' => [],
+            'usedFallback' => false,
+            'manifestPath' => ''
+        ];
+    }
+
+    function classifyChangesCategory(array $lines): array {
+        $text = strtolower(implode("\n", array_map(static function ($line): string {
+            return trim((string)$line);
+        }, $lines)));
+        if (trim($text) === '') {
+            return [
+                'id' => 'bugfix',
+                'label' => 'Bug Fix Update',
+                'headline' => 'This update includes bug fixes and quality improvements.'
+            ];
+        }
+
+        $scores = [
+            'feature' => 0,
+            'bugfix' => 0,
+            'security' => 0,
+            'performance' => 0,
+            'ui' => 0,
+            'maintenance' => 0
+        ];
+        $keywords = [
+            'feature' => ['add', 'added', 'new', 'introduce', 'enhancement', 'support', 'wizard', 'module', 'column'],
+            'bugfix' => ['fix', 'fixed', 'bug', 'regression', 'resolve', 'issue', 'broken', 'correct'],
+            'security' => ['security', 'harden', 'token', 'guard', 'sanitize', 'xss', 'csrf', 'permission', 'auth'],
+            'performance' => ['performance', 'optimiz', 'faster', 'cache', 'latency', 'speed', 'efficient'],
+            'ui' => ['ui', 'ux', 'layout', 'style', 'responsive', 'mobile', 'visual', 'usability', 'alignment'],
+            'maintenance' => ['test', 'docs', 'documentation', 'cleanup', 'refactor', 'lint', 'guardrail', 'quality']
+        ];
+
+        foreach ($keywords as $category => $terms) {
+            $score = 0;
+            foreach ($terms as $term) {
+                if (strpos($text, $term) !== false) {
+                    $score += 1;
+                }
+            }
+            $scores[$category] = $score;
+        }
+
+        arsort($scores);
+        $orderedCategories = array_keys($scores);
+        $topCategory = (string)($orderedCategories[0] ?? 'bugfix');
+        $topScore = (int)($scores[$topCategory] ?? 0);
+        $secondCategory = (string)($orderedCategories[1] ?? '');
+        $secondScore = (int)($scores[$secondCategory] ?? 0);
+
+        if ($topScore > 0 && $secondScore > 0 && abs($topScore - $secondScore) <= 1) {
+            return [
+                'id' => 'mixed',
+                'label' => 'Mixed Update',
+                'headline' => 'This update includes features, fixes, and quality improvements.'
+            ];
+        }
+
+        if ($topScore <= 0) {
+            $topCategory = 'bugfix';
+        }
+
+        $labels = [
+            'feature' => 'Feature Update',
+            'bugfix' => 'Bug Fix Update',
+            'security' => 'Security Update',
+            'performance' => 'Performance Update',
+            'ui' => 'UI/UX Update',
+            'maintenance' => 'Maintenance Update',
+            'mixed' => 'Mixed Update'
+        ];
+        $headlines = [
+            'feature' => 'This update includes new features and enhancements.',
+            'bugfix' => 'This update includes bug fixes and quality improvements.',
+            'security' => 'This update includes security hardening and safety improvements.',
+            'performance' => 'This update includes performance and reliability improvements.',
+            'ui' => 'This update includes UI and usability improvements.',
+            'maintenance' => 'This update includes maintenance and quality improvements.',
+            'mixed' => 'This update includes features, fixes, and quality improvements.'
+        ];
+
+        return [
+            'id' => $topCategory,
+            'label' => (string)$labels[$topCategory],
+            'headline' => (string)$headlines[$topCategory]
+        ];
+    }
+
+    function readCurrentVersionChangeSummary(int $maxLines = 14): array {
+        $summary = readChangesSummaryForVersion(readInstalledVersion(), $maxLines);
+        $category = classifyChangesCategory((array)($summary['lines'] ?? []));
+        $summary['category'] = (string)($category['id'] ?? 'bugfix');
+        $summary['categoryLabel'] = (string)($category['label'] ?? 'Bug Fix Update');
+        $summary['headline'] = (string)($category['headline'] ?? 'This update includes bug fixes and quality improvements.');
+        return $summary;
+    }
+
+    function readChangesLinesForVersion(string $version, int $maxLines = 14): array {
+        $summary = readChangesSummaryForVersion($version, $maxLines);
+        return (array)($summary['lines'] ?? []);
     }
 
     function readCurrentVersionChanges(int $maxLines = 14): array {

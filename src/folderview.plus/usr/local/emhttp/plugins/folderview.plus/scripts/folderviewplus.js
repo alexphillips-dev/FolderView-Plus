@@ -4203,6 +4203,50 @@ const fetchPluginVersion = async () => {
 };
 
 const fetchCurrentUpdateNotes = async () => apiGetJson('/plugins/folderview.plus/server/update_notes.php');
+const UPDATE_NOTES_CATEGORY_META = {
+    feature: {
+        label: 'Feature Update',
+        headline: 'This update includes new features and enhancements.',
+        className: 'is-feature'
+    },
+    bugfix: {
+        label: 'Bug Fix Update',
+        headline: 'This update includes bug fixes and quality improvements.',
+        className: 'is-bugfix'
+    },
+    security: {
+        label: 'Security Update',
+        headline: 'This update includes security hardening and safety improvements.',
+        className: 'is-security'
+    },
+    performance: {
+        label: 'Performance Update',
+        headline: 'This update includes performance and reliability improvements.',
+        className: 'is-performance'
+    },
+    ui: {
+        label: 'UI/UX Update',
+        headline: 'This update includes UI and usability improvements.',
+        className: 'is-ui'
+    },
+    maintenance: {
+        label: 'Maintenance Update',
+        headline: 'This update includes maintenance and quality improvements.',
+        className: 'is-maintenance'
+    },
+    mixed: {
+        label: 'Mixed Update',
+        headline: 'This update includes features, fixes, and quality improvements.',
+        className: 'is-mixed'
+    }
+};
+
+const normalizeUpdateNotesCategoryId = (value) => {
+    const normalized = String(value || '').trim().toLowerCase();
+    return Object.prototype.hasOwnProperty.call(UPDATE_NOTES_CATEGORY_META, normalized)
+        ? normalized
+        : 'bugfix';
+};
 
 const getUpdateNotesSeenVersion = () => {
     try {
@@ -4220,11 +4264,32 @@ const setUpdateNotesSeenVersion = (version) => {
     }
 };
 
-const showUpdateNotesPanel = ({ version, lines }) => {
+const showUpdateNotesPanel = ({
+    version,
+    sourceVersion = '',
+    usedFallback = false,
+    category = 'bugfix',
+    categoryLabel = '',
+    headline = '',
+    lines
+}) => {
     const panel = $('#fv-update-notes-panel');
     if (!panel.length) {
         return;
     }
+
+    const categoryId = normalizeUpdateNotesCategoryId(category);
+    const categoryMeta = UPDATE_NOTES_CATEGORY_META[categoryId] || UPDATE_NOTES_CATEGORY_META.bugfix;
+    const resolvedCategoryLabel = String(categoryLabel || '').trim() || categoryMeta.label;
+    const resolvedHeadline = String(headline || '').trim() || categoryMeta.headline;
+    const normalizedSourceVersion = String(sourceVersion || '').trim();
+    const fallbackNote = (
+        usedFallback === true
+        && normalizedSourceVersion !== ''
+        && normalizedSourceVersion !== String(version || '').trim()
+    )
+        ? `Showing latest available changelog entry (${normalizedSourceVersion}) because notes for ${version} were not found on this install.`
+        : '';
 
     const normalizedLines = Array.isArray(lines)
         ? lines
@@ -4234,7 +4299,10 @@ const showUpdateNotesPanel = ({ version, lines }) => {
         : [];
     const listHtml = normalizedLines.length
         ? normalizedLines.map((line) => `<li>${escapeHtml(line)}</li>`).join('')
-        : '<li>This update includes fixes and quality improvements.</li>';
+        : `<li>${escapeHtml(resolvedHeadline)}</li>`;
+    const fallbackHtml = fallbackNote
+        ? `<div class="fv-update-notes-source">${escapeHtml(fallbackNote)}</div>`
+        : '';
 
     panel.html(`
         <div class="fv-update-notes-head">
@@ -4247,6 +4315,11 @@ const showUpdateNotesPanel = ({ version, lines }) => {
                 <button type="button" id="fv-update-notes-hide"><i class="fa fa-times"></i> Hide for now</button>
                 <button type="button" id="fv-update-notes-dismiss"><i class="fa fa-check"></i> Dismiss</button>
             </div>
+        </div>
+        <div class="fv-update-notes-summary">
+            <span class="fv-update-notes-category ${categoryMeta.className}">${escapeHtml(resolvedCategoryLabel)}</span>
+            <div class="fv-update-notes-headline">${escapeHtml(resolvedHeadline)}</div>
+            ${fallbackHtml}
         </div>
         <ul class="fv-update-notes-list">${listHtml}</ul>
         <div class="fv-update-notes-foot">This panel remains visible after updates until you click Dismiss.</div>
@@ -4281,6 +4354,11 @@ const maybeShowUpdateNotesPanel = async () => {
     }
 
     let notes = [];
+    let category = 'bugfix';
+    let categoryLabel = '';
+    let headline = '';
+    let sourceVersion = '';
+    let usedFallback = false;
     try {
         const response = await fetchCurrentUpdateNotes();
         const lines = Array.isArray(response?.lines)
@@ -4289,10 +4367,23 @@ const maybeShowUpdateNotesPanel = async () => {
         if (lines.length) {
             notes = lines;
         }
+        category = normalizeUpdateNotesCategoryId(response?.category);
+        categoryLabel = String(response?.categoryLabel || '').trim();
+        headline = String(response?.headline || '').trim();
+        sourceVersion = String(response?.sourceVersion || '').trim();
+        usedFallback = response?.usedFallback === true;
     } catch (_error) {
         // Non-fatal: keep fallback message.
     }
-    showUpdateNotesPanel({ version: currentVersion, lines: notes });
+    showUpdateNotesPanel({
+        version: currentVersion,
+        sourceVersion,
+        usedFallback,
+        category,
+        categoryLabel,
+        headline,
+        lines: notes
+    });
 };
 
 const fetchFolders = async (type) => apiGetJson(`/plugins/folderview.plus/server/read.php?type=${type}`);

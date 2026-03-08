@@ -15,6 +15,12 @@ const releaseOnMainWorkflowPath = path.join(repoRoot, '.github/workflows/release
 const browserSmokeShellPath = path.join(repoRoot, 'scripts/browser_smoke.sh');
 const browserSmokeNodePath = path.join(repoRoot, 'scripts/browser_smoke.mjs');
 const installSmokePath = path.join(repoRoot, 'scripts/install_smoke.sh');
+const apiContractGuardPath = path.join(repoRoot, 'scripts/api_contract_guard.sh');
+const i18nGuardPath = path.join(repoRoot, 'scripts/i18n_guard.sh');
+const langUsageGuardPath = path.join(repoRoot, 'scripts/lang_usage_guard.sh');
+const themeScopeGuardPath = path.join(repoRoot, 'scripts/theme_scope_guard.sh');
+const perfBudgetGuardPath = path.join(repoRoot, 'scripts/perf_budget_guard.sh');
+const unraidMatrixSmokePath = path.join(repoRoot, 'scripts/unraid_matrix_smoke.sh');
 const ensureChangesPath = path.join(repoRoot, 'scripts/ensure_plg_changes_entry.sh');
 const doctorPath = path.join(repoRoot, 'scripts/doctor.sh');
 const sharedLibPath = path.join(repoRoot, 'scripts/lib.sh');
@@ -29,6 +35,12 @@ const releaseOnMainWorkflow = fs.readFileSync(releaseOnMainWorkflowPath, 'utf8')
 const browserSmokeShell = fs.readFileSync(browserSmokeShellPath, 'utf8');
 const browserSmokeNode = fs.readFileSync(browserSmokeNodePath, 'utf8');
 const installSmoke = fs.readFileSync(installSmokePath, 'utf8');
+const apiContractGuard = fs.readFileSync(apiContractGuardPath, 'utf8');
+const i18nGuard = fs.readFileSync(i18nGuardPath, 'utf8');
+const langUsageGuard = fs.readFileSync(langUsageGuardPath, 'utf8');
+const themeScopeGuard = fs.readFileSync(themeScopeGuardPath, 'utf8');
+const perfBudgetGuard = fs.readFileSync(perfBudgetGuardPath, 'utf8');
+const unraidMatrixSmoke = fs.readFileSync(unraidMatrixSmokePath, 'utf8');
 const ensureChanges = fs.readFileSync(ensureChangesPath, 'utf8');
 const doctorScript = fs.readFileSync(doctorPath, 'utf8');
 const sharedLib = fs.readFileSync(sharedLibPath, 'utf8');
@@ -124,11 +136,24 @@ test('browser smoke scripts are optional, URL-gated, and include core UI checks'
 
 test('validation workflows include optional browser smoke integration', () => {
     for (const workflow of [ciWorkflow, releaseMainWorkflow, releaseStableWorkflow, releaseBetaWorkflow, releaseOnMainWorkflow]) {
+        assert.match(workflow, /Standards guard checks/);
+        assert.match(workflow, /bash scripts\/api_contract_guard\.sh/);
+        assert.match(workflow, /bash scripts\/i18n_guard\.sh/);
+        assert.match(workflow, /bash scripts\/lang_usage_guard\.sh/);
+        assert.match(workflow, /bash scripts\/theme_scope_guard\.sh/);
+        assert.match(workflow, /bash scripts\/perf_budget_guard\.sh/);
+        assert.match(workflow, /bash scripts\/unraid_matrix_smoke\.sh/);
         assert.match(workflow, /Optional browser smoke checks/);
         assert.match(workflow, /FVPLUS_BROWSER_SMOKE_URL/);
         assert.match(workflow, /bash scripts\/browser_smoke\.sh/);
         assert.match(workflow, /actions\/upload-artifact@v4/);
     }
+    assert.match(releasePrepare, /bash scripts\/api_contract_guard\.sh/);
+    assert.match(releasePrepare, /bash scripts\/i18n_guard\.sh/);
+    assert.match(releasePrepare, /bash scripts\/lang_usage_guard\.sh/);
+    assert.match(releasePrepare, /bash scripts\/theme_scope_guard\.sh/);
+    assert.match(releasePrepare, /bash scripts\/perf_budget_guard\.sh/);
+    assert.match(releasePrepare, /bash scripts\/unraid_matrix_smoke\.sh/);
     assert.match(releasePrepare, /bash scripts\/browser_smoke\.sh/);
     assert.match(releasePrepare, /bash scripts\/doctor\.sh/);
     assert.match(releasePrepare, /bash pkg_build\.sh --no-validate/);
@@ -196,4 +221,19 @@ test('shared script library and doctor preflight exist with required helpers', (
     assert.match(doctorScript, /REQUIRED_COMMANDS=\(/);
     assert.match(doctorScript, /gh/);
     assert.match(doctorScript, /Tooling doctor passed/);
+});
+
+test('standards guard scripts exist with expected core checks', () => {
+    assert.match(apiContractGuard, /API contract guard passed/);
+    assert.match(apiContractGuard, /requireMutationRequestGuard/);
+    assert.match(i18nGuard, /i18n guard passed/);
+    assert.match(i18nGuard, /Missing base locale file/);
+    assert.match(langUsageGuard, /Language usage guard passed/);
+    assert.match(langUsageGuard, /data-i18n/);
+    assert.match(themeScopeGuard, /Theme scope guard passed/);
+    assert.match(themeScopeGuard, /#fv-settings-root/);
+    assert.match(perfBudgetGuard, /Performance budget guard passed/);
+    assert.match(perfBudgetGuard, /FVPLUS_MAX_FOLDERVIEWPLUS_JS_BYTES/);
+    assert.match(unraidMatrixSmoke, /FVPLUS_UNRAID_MATRIX/);
+    assert.match(unraidMatrixSmoke, /Skipping Unraid matrix smoke checks/);
 });

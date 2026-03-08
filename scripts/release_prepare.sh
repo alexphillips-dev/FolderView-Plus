@@ -7,7 +7,19 @@ source "${ROOT_DIR}/scripts/lib.sh"
 cd "${ROOT_DIR}"
 
 fvplus::require_commands bash node
-chmod +x pkg_build.sh scripts/doctor.sh scripts/ensure_plg_changes_entry.sh scripts/release_guard.sh scripts/install_smoke.sh scripts/browser_smoke.sh
+chmod +x \
+  pkg_build.sh \
+  scripts/doctor.sh \
+  scripts/ensure_plg_changes_entry.sh \
+  scripts/release_guard.sh \
+  scripts/install_smoke.sh \
+  scripts/browser_smoke.sh \
+  scripts/api_contract_guard.sh \
+  scripts/i18n_guard.sh \
+  scripts/lang_usage_guard.sh \
+  scripts/theme_scope_guard.sh \
+  scripts/perf_budget_guard.sh \
+  scripts/unraid_matrix_smoke.sh
 bash scripts/doctor.sh
 
 if [[ "${1:-}" == "--beta" ]]; then
@@ -23,6 +35,12 @@ fi
 bash scripts/ensure_plg_changes_entry.sh
 bash scripts/release_guard.sh
 bash scripts/install_smoke.sh
+bash scripts/api_contract_guard.sh
+bash scripts/i18n_guard.sh
+bash scripts/lang_usage_guard.sh
+bash scripts/theme_scope_guard.sh
+bash scripts/perf_budget_guard.sh
+bash scripts/unraid_matrix_smoke.sh
 bash scripts/browser_smoke.sh
 node --test tests/*.mjs
 

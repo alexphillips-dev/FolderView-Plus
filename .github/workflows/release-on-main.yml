@@ -59,6 +59,18 @@ jobs:
           chmod +x scripts/install_smoke.sh
           bash scripts/install_smoke.sh
 
+      - name: Standards guard checks
+        env:
+          FVPLUS_UNRAID_MATRIX: ${{ secrets.FVPLUS_UNRAID_MATRIX }}
+        run: |
+          chmod +x scripts/api_contract_guard.sh scripts/i18n_guard.sh scripts/lang_usage_guard.sh scripts/theme_scope_guard.sh scripts/perf_budget_guard.sh scripts/unraid_matrix_smoke.sh
+          bash scripts/api_contract_guard.sh
+          bash scripts/i18n_guard.sh
+          bash scripts/lang_usage_guard.sh
+          bash scripts/theme_scope_guard.sh
+          bash scripts/perf_budget_guard.sh
+          bash scripts/unraid_matrix_smoke.sh
+
       - name: Run test suite
         run: |
           node --test tests/*.mjs

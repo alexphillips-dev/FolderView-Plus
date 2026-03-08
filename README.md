@@ -15,9 +15,6 @@ FolderView Plus gives Unraid a cleaner, folder-first way to manage Docker contai
 It is built for real libraries: easier organization, safer imports, faster recovery, and better day-to-day control.
 
 ## Why Install This
-> [!TIP]
-> Built for large Docker/VM libraries with safer import, backup, and organization workflows.
-
 - Keep large Docker/VM setups readable with folder grouping in Docker, VMs, and Dashboard
 - Recover faster with automatic backups, snapshot compare, and one-click restore
 - Import safely with preview diff and selective apply before making changes
@@ -25,15 +22,9 @@ It is built for real libraries: easier organization, safer imports, faster recov
 - Manage everything from a modern settings flow that works on desktop and mobile
 
 ## Requirements
-> [!IMPORTANT]
-> Unraid `7.0.0+` is required.
-
 - Unraid `7.0.0+`
 
 ## Install
-> [!NOTE]
-> Install from Unraid Plugins UI or with the CLI command below.
-
 Unraid UI (`Plugins -> Install Plugin`) or CLI:
 
 ```bash
@@ -69,9 +60,6 @@ plugin remove folderview.plus
 ```
 
 ## Feature Highlights
-> [!TIP]
-> High-level capabilities across organization, automation, safer operations, and UX.
-
 ### Organization and Control
 
 - Folder views for Docker, VMs, and Dashboard
@@ -106,9 +94,6 @@ plugin remove folderview.plus
 - Modern browser support (Chrome, Edge, Firefox, Safari)
 
 ## Quick Start
-> [!NOTE]
-> This is the fastest path to a working setup.
-
 1. Open `Settings -> FolderView Plus`.
 2. Create folders in Docker and/or VM sections.
 3. Choose sort mode and view options.
@@ -116,9 +101,6 @@ plugin remove folderview.plus
 5. Confirm folder groups in Docker/VM tabs.
 
 ## Rules Quick Guide
-> [!IMPORTANT]
-> Rule order is priority-based from top to bottom; exclude rules take precedence.
-
 1. Switch to `Advanced`.
 2. Open `Auto-assignment rules`.
 3. Choose folder, rule kind, and action (`Include`/`Exclude`).
@@ -126,9 +108,6 @@ plugin remove folderview.plus
 5. Use `Test rule priority` or `Simulate all items` to validate behavior.
 
 ## Import, Export, and Backups
-> [!WARNING]
-> Best practice: export first, then import with preview diff and backup safety.
-
 Export files:
 
 - Docker: `FolderView Plus Export.json`
@@ -149,17 +128,11 @@ Recommended import flow:
 5. Use `Restore latest backup` if needed.
 
 ## Security and Reliability
-> [!CAUTION]
-> Keep these controls enabled for safer production usage.
-
 - Request token and guarded endpoint protections
 - Safer dynamic rendering to reduce XSS risk
 - Automated regression checks (including mobile and release guards)
 
 ## Browser Support
-> [!NOTE]
-> Validated on current major browser versions.
-
 Supported current major browsers:
 
 - Chrome
@@ -173,9 +146,6 @@ Not supported:
 - Legacy Edge (EdgeHTML)
 
 ## Paths
-> [!NOTE]
-> Primary runtime and customization paths.
-
 - Config root: `/boot/config/plugins/folderview.plus`
 - Custom CSS: `/boot/config/plugins/folderview.plus/styles`
 - Custom JS: `/boot/config/plugins/folderview.plus/scripts`
@@ -183,16 +153,10 @@ Not supported:
 - User-uploaded icons: `/usr/local/emhttp/plugins/folderview.plus/images/custom`
 
 ## Included Icon Pack Credits
-> [!TIP]
-> Bundled icon sources used for built-in icon management.
-
 - https://github.com/sameerasw/folder-icons
 - https://github.com/hernandito/unRAID-Docker-Folder-Animated-Icons---Alternate-Colors
 
 ## Development
-> [!IMPORTANT]
-> Use the scripts below before publishing or release workflows.
-
 - Runtime source: `src/folderview.plus/`
 - Manifest: `folderview.plus.plg`
 - Archives: `archive/`
@@ -216,9 +180,6 @@ node --test tests/*.mjs
 ```
 
 ## Support
-> [!NOTE]
-> Use GitHub Issues for bug reports and feature requests.
-
 - Issues: https://github.com/alexphillips-dev/FolderView-Plus/issues
 
 ## Sponsor
@@ -227,14 +188,8 @@ node --test tests/*.mjs
 > https://buymeacoffee.com/alexphillipsdev
 
 ## Credits
-> [!NOTE]
-> Project foundation and icon pack acknowledgements.
-
 - [chodeus](https://github.com/chodeus/folder.view3) - FolderView Plus is built on the strong foundation of folder.view3. Thank you for the original architecture and groundwork.
 - [sameerasw](https://github.com/sameerasw/folder-icons) and [hernandito](https://github.com/hernandito/unRAID-Docker-Folder-Animated-Icons---Alternate-Colors) - Thank you for creating and sharing icon packs that improve local icon workflows.
 
 ## License
-> [!NOTE]
-> Distributed under the MIT license.
-
 See `LICENSE.md`.

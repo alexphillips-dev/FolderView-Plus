@@ -1,13 +1,15 @@
 # FolderView Plus
 
-[![Unraid 7.0.0+](https://img.shields.io/badge/Unraid-7.0.0%2B-F15A2C?logo=unraid&logoColor=white)](https://unraid.net/)
-[![License: MIT](https://img.shields.io/github/license/alexphillips-dev/FolderView-Plus)](LICENSE.md)
-[![Open Issues](https://img.shields.io/github/issues/alexphillips-dev/FolderView-Plus)](https://github.com/alexphillips-dev/FolderView-Plus/issues)
-[![Last Commit](https://img.shields.io/github/last-commit/alexphillips-dev/FolderView-Plus/main)](https://github.com/alexphillips-dev/FolderView-Plus/commits/main)
-[![CI](https://github.com/alexphillips-dev/FolderView-Plus/actions/workflows/ci.yml/badge.svg)](https://github.com/alexphillips-dev/FolderView-Plus/actions/workflows/ci.yml)
-[![Latest Release](https://img.shields.io/github/v/release/alexphillips-dev/FolderView-Plus)](https://github.com/alexphillips-dev/FolderView-Plus/releases)
-[![Release Date](https://img.shields.io/github/release-date/alexphillips-dev/FolderView-Plus)](https://github.com/alexphillips-dev/FolderView-Plus/releases)
-[![Sponsor](https://img.shields.io/badge/Sponsor-Buy%20Me%20a%20Coffee-FFDD00?logo=buymeacoffee&logoColor=000)](https://buymeacoffee.com/alexphillipsdev)
+<p align="center">
+  <a href="https://github.com/alexphillips-dev/FolderView-Plus/actions/workflows/ci.yml"><img src="https://github.com/alexphillips-dev/FolderView-Plus/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/alexphillips-dev/FolderView-Plus/releases"><img src="https://img.shields.io/github/v/release/alexphillips-dev/FolderView-Plus?style=flat-square" alt="Latest Release"></a>
+  <a href="https://github.com/alexphillips-dev/FolderView-Plus/releases"><img src="https://img.shields.io/github/release-date/alexphillips-dev/FolderView-Plus?style=flat-square" alt="Release Date"></a>
+  <a href="https://unraid.net/"><img src="https://img.shields.io/badge/Unraid-7.0.0%2B-F15A2C?logo=unraid&logoColor=white&style=flat-square" alt="Unraid 7.0.0+"></a>
+  <a href="LICENSE.md"><img src="https://img.shields.io/github/license/alexphillips-dev/FolderView-Plus?style=flat-square" alt="License: MIT"></a>
+  <a href="https://github.com/alexphillips-dev/FolderView-Plus/issues"><img src="https://img.shields.io/github/issues/alexphillips-dev/FolderView-Plus?style=flat-square" alt="Open Issues"></a>
+  <a href="https://github.com/alexphillips-dev/FolderView-Plus/commits/main"><img src="https://img.shields.io/github/last-commit/alexphillips-dev/FolderView-Plus/main?style=flat-square" alt="Last Commit"></a>
+  <a href="https://buymeacoffee.com/alexphillipsdev"><img src="https://img.shields.io/badge/Sponsor-Buy%20Me%20a%20Coffee-FFDD00?logo=buymeacoffee&logoColor=000&style=flat-square" alt="Sponsor"></a>
+</p>
 
 FolderView Plus gives Unraid a cleaner, folder-first way to manage Docker containers and VMs.  
 It is built for real libraries: easier organization, safer imports, faster recovery, and better day-to-day control.

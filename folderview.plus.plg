@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.08.20">
-<!ENTITY md5 "2bf24c1ee55f0fe9faf06c4a49f1e647">
+<!ENTITY version "2026.03.08.22">
+<!ENTITY md5 "2582ba81ca2b2b0d3d3bfe32ef8a6088">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.08.22
+- UI polish: moved Status breakdown info button to the left side of status chips for cleaner scan order.
+- UI polish: left-aligned status badges/chips in the Status column.
+- UX polish: compacted the status breakdown button to an icon-only footprint.
+
 
 ###2026.03.08.20
 - UI fix: increased Setup Assistant dialog size slightly for better readability while keeping the compact modal behavior.

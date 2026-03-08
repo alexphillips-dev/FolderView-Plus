@@ -359,6 +359,7 @@
 }
 
 .folder-table table td.status-cell {
+    text-align: left;
     white-space: normal;
     overflow: visible;
     text-overflow: clip;
@@ -534,17 +535,19 @@
 }
 
 .status-cell-content {
-    display: inline-flex;
+    display: flex;
     flex-direction: row;
     align-items: center;
+    justify-content: flex-start;
     gap: 0.34rem;
+    width: 100%;
     max-width: 100%;
 }
 
 .status-chip-list {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 0.28rem;
     flex-wrap: nowrap;
     white-space: nowrap;
@@ -3031,8 +3034,13 @@ h2[data-fv-section].fv-search-match {
 }
 
 .status-breakdown-btn {
-    min-width: 24px;
-    min-height: 24px;
+    width: 22px !important;
+    min-width: 22px !important;
+    max-width: 22px;
+    height: 22px !important;
+    min-height: 22px !important;
+    max-height: 22px;
+    flex: 0 0 22px;
     border: 1px solid rgba(255, 255, 255, 0.14);
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.03);

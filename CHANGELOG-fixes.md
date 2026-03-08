@@ -1,5 +1,11 @@
 # FolderView Plus Changelog
 
+## Version 2026.03.08.22
+
+- UI polish: move the Status breakdown info button to the left side of status chips for cleaner scan order.
+- UI polish: left-align status badges/chips in the Status column.
+- UX polish: compact the status breakdown button to an icon-only footprint.
+
 ## Version 2026.03.08.20
 
 - Increase Setup Assistant modal size slightly for better readability while preserving compact modal behavior.

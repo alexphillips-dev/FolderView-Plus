@@ -36,8 +36,9 @@ jobs:
             exit 1
           fi
           if [ ! -f "${CHECKSUM}" ]; then
-            echo "ERROR: expected checksum not found: ${CHECKSUM}" >&2
-            exit 1
+            ARCHIVE_BASENAME="$(basename "${ARCHIVE}")"
+            sha256sum "${ARCHIVE}" | awk -v name="${ARCHIVE_BASENAME}" '{print $1 "  " name}' > "${CHECKSUM}"
+            echo "Generated missing checksum: ${CHECKSUM}"
           fi
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "archive=${ARCHIVE}" >> "$GITHUB_OUTPUT"

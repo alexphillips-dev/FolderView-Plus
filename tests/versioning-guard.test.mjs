@@ -139,6 +139,8 @@ test('release-on-main workflow auto-publishes validated releases from current pl
     assert.match(releaseOnMainWorkflow, /folderview\.plus\.plg/);
     assert.match(releaseOnMainWorkflow, /archive\/folderview\.plus-\$\{VERSION\}\.txz/);
     assert.match(releaseOnMainWorkflow, /CHECKSUM="\$\{ARCHIVE\}\.sha256"/);
+    assert.match(releaseOnMainWorkflow, /sha256sum "\$\{ARCHIVE\}"/);
+    assert.match(releaseOnMainWorkflow, /Generated missing checksum/);
     assert.match(releaseOnMainWorkflow, /gh release create/);
     assert.match(releaseOnMainWorkflow, /gh release edit/);
     assert.match(releaseOnMainWorkflow, /gh release upload "\$\{TAG\}" "\$\{ARCHIVE\}" "\$\{CHECKSUM\}" --clobber/);

@@ -3,6 +3,10 @@ name: Release Main
 on:
   workflow_dispatch:
 
+concurrency:
+  group: folderview-plus-release
+  cancel-in-progress: false
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -94,4 +98,20 @@ jobs:
           files: archive/${{ steps.version.outputs.filename }}
           draft: false
           prerelease: false
+
+      - name: Upload debug artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-main-debug-${{ github.run_id }}-${{ github.job }}
+          if-no-files-found: ignore
+          path: |
+            folderview.plus.plg
+            folderview.plus.xml
+            archive/*.txz
+            archive/*.sha256
+            CHANGELOG-fixes.md
+            release_notes.md
+            *.log
+            scripts/*.log
 

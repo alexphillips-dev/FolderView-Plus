@@ -4,32 +4,21 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PLG_FILE="${ROOT_DIR}/folderview.plus.plg"
 ARCHIVE_DIR="${FVPLUS_ARCHIVE_DIR:-${ROOT_DIR}/archive}"
+# shellcheck source=./lib.sh
+source "${ROOT_DIR}/scripts/lib.sh"
 
 if [[ ! -f "${PLG_FILE}" ]]; then
-  echo "ERROR: Missing plugin manifest: ${PLG_FILE}" >&2
-  exit 1
+  fvplus::fail "Missing plugin manifest: ${PLG_FILE}"
 fi
 
-VERSION="$(sed -n 's/^<!ENTITY version "\([^"]*\)".*/\1/p' "${PLG_FILE}" | head -n 1 || true)"
-if [[ -z "${VERSION}" ]]; then
-  echo "ERROR: Could not parse version from PLG manifest." >&2
-  exit 1
-fi
+VERSION="$(fvplus::read_plg_version "${PLG_FILE}")"
 
 ARCHIVE_FILE="${ARCHIVE_DIR}/folderview.plus-${VERSION}.txz"
 if [[ ! -f "${ARCHIVE_FILE}" ]]; then
-  echo "ERROR: Missing archive for current version: ${ARCHIVE_FILE}" >&2
-  exit 1
+  fvplus::fail "Missing archive for current version: ${ARCHIVE_FILE}"
 fi
 
-if ! command -v php >/dev/null 2>&1; then
-  echo "ERROR: php is required for install smoke checks." >&2
-  exit 1
-fi
-if ! command -v node >/dev/null 2>&1; then
-  echo "ERROR: node is required for install smoke checks." >&2
-  exit 1
-fi
+fvplus::require_commands php node tar sed grep find
 
 ARCHIVE_LIST="$(tar -tf "${ARCHIVE_FILE}")"
 ARCHIVE_LIST_NORMALIZED="$(printf '%s\n' "${ARCHIVE_LIST}" | sed 's#^\./##')"

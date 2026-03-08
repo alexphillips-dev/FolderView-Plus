@@ -9,6 +9,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: folderview-plus-release
+  cancel-in-progress: false
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -136,3 +140,19 @@ jobs:
             gh release create "${TAG}" "${ARCHIVE}" "${CHECKSUM}" --title "${TAG}" --notes-file release_notes.md
             echo "Created release ${TAG}"
           fi
+
+      - name: Upload debug artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-on-main-debug-${{ github.run_id }}-${{ github.job }}
+          if-no-files-found: ignore
+          path: |
+            folderview.plus.plg
+            folderview.plus.xml
+            archive/*.txz
+            archive/*.sha256
+            release_notes.md
+            CHANGELOG-fixes.md
+            *.log
+            scripts/*.log

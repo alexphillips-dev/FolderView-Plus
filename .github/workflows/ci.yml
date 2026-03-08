@@ -21,6 +21,19 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Install shellcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+
+      - name: Lint shell scripts
+        run: |
+          set -euo pipefail
+          mapfile -d '' files < <(find . -type f \( -name "*.sh" -o -path "./.githooks/pre-push" \) -print0)
+          for f in "${files[@]}"; do
+            shellcheck "$f"
+          done
+
       - name: Lint JavaScript syntax
         run: |
           set -euo pipefail
@@ -69,3 +82,18 @@ jobs:
           npx playwright install --with-deps chromium firefox
           chmod +x scripts/browser_smoke.sh
           bash scripts/browser_smoke.sh
+
+      - name: Upload debug artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-debug-${{ github.run_id }}-${{ github.job }}
+          if-no-files-found: ignore
+          path: |
+            folderview.plus.plg
+            folderview.plus.xml
+            archive/*.txz
+            archive/*.sha256
+            CHANGELOG-fixes.md
+            *.log
+            scripts/*.log

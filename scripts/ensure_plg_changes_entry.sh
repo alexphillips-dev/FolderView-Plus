@@ -3,17 +3,14 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PLG_FILE="${ROOT_DIR}/folderview.plus.plg"
+# shellcheck source=./lib.sh
+source "${ROOT_DIR}/scripts/lib.sh"
 
 if [[ ! -f "${PLG_FILE}" ]]; then
-  echo "ERROR: Missing plugin manifest: ${PLG_FILE}" >&2
-  exit 1
+  fvplus::fail "Missing plugin manifest: ${PLG_FILE}"
 fi
 
-VERSION="$(sed -n 's/^<!ENTITY version "\([^"]*\)".*/\1/p' "${PLG_FILE}" | head -n 1 || true)"
-if [[ -z "${VERSION}" ]]; then
-  echo "ERROR: Could not parse version from folderview.plus.plg" >&2
-  exit 1
-fi
+VERSION="$(fvplus::read_plg_version "${PLG_FILE}")"
 
 if grep -q "^###${VERSION}$" "${PLG_FILE}"; then
   echo "CHANGES entry already present for ${VERSION}"

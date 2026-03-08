@@ -3,6 +3,10 @@ name: Release Beta
 on:
   workflow_dispatch:
 
+concurrency:
+  group: folderview-plus-release
+  cancel-in-progress: false
+
 jobs:
   beta:
     runs-on: ubuntu-latest
@@ -115,4 +119,19 @@ jobs:
           git add archive/ folderview.plus.plg folderview.plus.xml
           git commit -m "Build beta ${{ steps.beta.outputs.version }}"
           git push origin beta
+
+      - name: Upload debug artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-beta-debug-${{ github.run_id }}-${{ github.job }}
+          if-no-files-found: ignore
+          path: |
+            folderview.plus.plg
+            folderview.plus.xml
+            archive/*.txz
+            archive/*.sha256
+            CHANGELOG-fixes.md
+            *.log
+            scripts/*.log
 

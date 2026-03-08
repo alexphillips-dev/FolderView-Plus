@@ -2,9 +2,13 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=./lib.sh
+source "${ROOT_DIR}/scripts/lib.sh"
 cd "${ROOT_DIR}"
 
-chmod +x pkg_build.sh scripts/ensure_plg_changes_entry.sh scripts/release_guard.sh scripts/install_smoke.sh scripts/browser_smoke.sh
+fvplus::require_commands bash node
+chmod +x pkg_build.sh scripts/doctor.sh scripts/ensure_plg_changes_entry.sh scripts/release_guard.sh scripts/install_smoke.sh scripts/browser_smoke.sh
+bash scripts/doctor.sh
 
 if [[ "${1:-}" == "--beta" ]]; then
   if [[ -n "${2:-}" ]]; then

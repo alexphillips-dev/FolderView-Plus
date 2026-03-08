@@ -16,6 +16,8 @@ const browserSmokeShellPath = path.join(repoRoot, 'scripts/browser_smoke.sh');
 const browserSmokeNodePath = path.join(repoRoot, 'scripts/browser_smoke.mjs');
 const installSmokePath = path.join(repoRoot, 'scripts/install_smoke.sh');
 const ensureChangesPath = path.join(repoRoot, 'scripts/ensure_plg_changes_entry.sh');
+const doctorPath = path.join(repoRoot, 'scripts/doctor.sh');
+const sharedLibPath = path.join(repoRoot, 'scripts/lib.sh');
 const pkgBuild = fs.readFileSync(pkgBuildPath, 'utf8');
 const releaseGuard = fs.readFileSync(releaseGuardPath, 'utf8');
 const releasePrepare = fs.readFileSync(releasePreparePath, 'utf8');
@@ -28,6 +30,8 @@ const browserSmokeShell = fs.readFileSync(browserSmokeShellPath, 'utf8');
 const browserSmokeNode = fs.readFileSync(browserSmokeNodePath, 'utf8');
 const installSmoke = fs.readFileSync(installSmokePath, 'utf8');
 const ensureChanges = fs.readFileSync(ensureChangesPath, 'utf8');
+const doctorScript = fs.readFileSync(doctorPath, 'utf8');
+const sharedLib = fs.readFileSync(sharedLibPath, 'utf8');
 
 test('pkg_build computes stable versions per current date only', () => {
     assert.match(pkgBuild, /next_stable_version_for_date/);
@@ -123,10 +127,20 @@ test('validation workflows include optional browser smoke integration', () => {
         assert.match(workflow, /Optional browser smoke checks/);
         assert.match(workflow, /FVPLUS_BROWSER_SMOKE_URL/);
         assert.match(workflow, /bash scripts\/browser_smoke\.sh/);
+        assert.match(workflow, /actions\/upload-artifact@v4/);
     }
     assert.match(releasePrepare, /bash scripts\/browser_smoke\.sh/);
+    assert.match(releasePrepare, /bash scripts\/doctor\.sh/);
     assert.match(releasePrepare, /bash pkg_build\.sh --no-validate/);
     assert.match(releasePrepare, /bash pkg_build\.sh --beta .* --no-validate/);
+});
+
+test('release workflows serialize concurrent runs with shared release concurrency group', () => {
+    for (const workflow of [releaseMainWorkflow, releaseStableWorkflow, releaseBetaWorkflow, releaseOnMainWorkflow]) {
+        assert.match(workflow, /concurrency:/);
+        assert.match(workflow, /group:\s*folderview-plus-release/);
+        assert.match(workflow, /cancel-in-progress:\s*false/);
+    }
 });
 
 test('release-on-main workflow auto-publishes validated releases from current plg version', () => {
@@ -148,11 +162,16 @@ test('release-on-main workflow auto-publishes validated releases from current pl
 });
 
 test('install smoke supports configurable archive directory override', () => {
+    assert.match(installSmoke, /source "\$\{ROOT_DIR\}\/scripts\/lib\.sh"/);
+    assert.match(installSmoke, /VERSION="\$\(fvplus::read_plg_version "\$\{PLG_FILE\}"\)"/);
+    assert.match(installSmoke, /fvplus::require_commands php node tar sed grep find/);
     assert.match(installSmoke, /ARCHIVE_DIR="\$\{FVPLUS_ARCHIVE_DIR:-\$\{ROOT_DIR\}\/archive\}"/);
     assert.match(installSmoke, /ARCHIVE_FILE="\$\{ARCHIVE_DIR\}\/folderview\.plus-\$\{VERSION\}\.txz"/);
 });
 
 test('ensure changes entry seeds category-signaling release note text', () => {
+    assert.match(ensureChanges, /source "\$\{ROOT_DIR\}\/scripts\/lib\.sh"/);
+    assert.match(ensureChanges, /VERSION="\$\(fvplus::read_plg_version "\$\{PLG_FILE\}"\)"/);
     assert.match(ensureChanges, /Maintenance: automated release metadata update/);
 });
 
@@ -161,4 +180,20 @@ test('release workflows keep checksum assets and metadata changes', () => {
     assert.match(releaseBetaWorkflow, /git add archive\/ folderview\.plus\.plg folderview\.plus\.xml/);
     assert.match(releaseStableWorkflow, /CHECKSUM_FILENAME="\$\{FILENAME\}\.sha256"/);
     assert.match(releaseStableWorkflow, /archive\/\$\{\{ steps\.version\.outputs\.checksum_filename \}\}/);
+});
+
+test('CI includes shellcheck linting for repository shell scripts', () => {
+    assert.match(ciWorkflow, /Install shellcheck/);
+    assert.match(ciWorkflow, /Lint shell scripts/);
+    assert.match(ciWorkflow, /shellcheck "\$f"/);
+});
+
+test('shared script library and doctor preflight exist with required helpers', () => {
+    assert.match(sharedLib, /fvplus::require_commands/);
+    assert.match(sharedLib, /fvplus::read_plg_version/);
+    assert.match(sharedLib, /fvplus::archive_file/);
+    assert.match(doctorScript, /source "\$\{ROOT_DIR\}\/scripts\/lib\.sh"/);
+    assert.match(doctorScript, /REQUIRED_COMMANDS=\(/);
+    assert.match(doctorScript, /gh/);
+    assert.match(doctorScript, /Tooling doctor passed/);
 });

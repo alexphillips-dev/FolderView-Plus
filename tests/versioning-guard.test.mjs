@@ -36,6 +36,17 @@ test('pkg_build blocks stable override dates that are not today', () => {
     assert.match(pkgBuild, /override_date="\$\(stable_date_part \"\$version_override\"\)"/);
 });
 
+test('pkg_build includes dependency preflight, safe temp cleanup, dry-run, and checksum outputs', () => {
+    assert.match(pkgBuild, /require_commands tar sha256sum md5sum sed find date awk grep cp chmod mkdir rm mktemp sort tail/);
+    assert.match(pkgBuild, /tmpdir="\$\(mktemp -d \"\$CWD\/tmp\/build\.XXXXXX\"\)"/);
+    assert.match(pkgBuild, /trap cleanup_tmpdir EXIT/);
+    assert.match(pkgBuild, /--dry-run/);
+    assert.match(pkgBuild, /Post-build validation: \$validate_after_build/);
+    assert.match(pkgBuild, /sha256=\$\(sha256sum "\$filename" \| awk '\{print \$1\}'\)/);
+    assert.match(pkgBuild, /printf '%s  %s\\n' "\$sha256" "\$\(basename "\$filename"\)" > "\$sha256_file"/);
+    assert.doesNotMatch(pkgBuild, /rm -R "\$CWD\/tmp"/);
+});
+
 test('release_guard blocks future-dated versions', () => {
     assert.match(releaseGuard, /Version date \(\$\{VERSION_DATE\}\) is in the future/);
     assert.match(releaseGuard, /TODAY_DATE="\$\(date \+\"%Y\.%m\.%d\"\)"/);

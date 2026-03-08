@@ -2,14 +2,48 @@
 set -euo pipefail
 
 CWD="$(pwd)"
-tmpdir="$CWD/tmp/tmp.$((RANDOM % 1000000))"
 version_override="${FVPLUS_VERSION_OVERRIDE:-}"
 today_version="$(date +"%Y.%m.%d")"
 version="${today_version}.01"
 plgfile="$CWD/folderview.plus.plg"
 xmlfile="$CWD/folderview.plus.xml"
+release_guard_script="$CWD/scripts/release_guard.sh"
 archive_prefix="folderview.plus"
 icon_ext_regex='^(png|jpg|jpeg|gif|webp|svg|bmp|ico|avif)$'
+validate_after_build=true
+dry_run=false
+tmpdir=""
+
+print_usage() {
+    cat <<'EOF'
+Usage: pkg_build.sh [options]
+  --beta [N]      Build beta package version (YYYY.MM.DD-beta or -betaN)
+  --dry-run       Show computed version/output paths without writing files
+  --validate      Run scripts/release_guard.sh after build (default: enabled)
+  --no-validate   Skip post-build release guard validation
+  -h, --help      Show this help
+EOF
+}
+
+require_commands() {
+    local missing=()
+    local cmd
+    for cmd in "$@"; do
+        if ! command -v "$cmd" >/dev/null 2>&1; then
+            missing+=("$cmd")
+        fi
+    done
+    if [ "${#missing[@]}" -gt 0 ]; then
+        echo "ERROR: Missing required commands: ${missing[*]}" >&2
+        exit 1
+    fi
+}
+
+cleanup_tmpdir() {
+    if [ -n "${tmpdir:-}" ] && [ -d "${tmpdir}" ]; then
+        rm -rf "${tmpdir}"
+    fi
+}
 
 is_stable_version() {
     [[ "${1:-}" =~ ^[0-9]{4}\.[0-9]{2}\.[0-9]{2}(\.[0-9]+)?$ ]]
@@ -130,16 +164,50 @@ should_package_file() {
 }
 
 # Parse flags
-# Usage: pkg_build.sh [--beta [N]]
+# Usage: pkg_build.sh [--beta [N]] [--dry-run] [--validate|--no-validate]
 #   --beta     -> YYYY.MM.DD-beta (beta branch)
 #   --beta 2   -> YYYY.MM.DD-beta2 (beta branch)
-#   (no flag)  -> YYYY.MM.DD.UU (main branch, stable; zero-padded update suffix)
+#   --dry-run  -> Print build plan without writing files
+#   (no --beta)-> YYYY.MM.DD.UU (main branch, stable; zero-padded update suffix)
 BETA=false
 BETA_NUM=""
-if [ "${1:-}" = "--beta" ]; then
-    BETA=true
-    if [ -n "${2:-}" ] && [ "${2:-}" -eq "${2:-}" ] 2>/dev/null; then
-        BETA_NUM="${2:-}"
+while [[ $# -gt 0 ]]; do
+    case "${1:-}" in
+        --beta)
+            BETA=true
+            if [[ -n "${2:-}" && "${2:-}" =~ ^[0-9]+$ ]]; then
+                BETA_NUM="${2:-}"
+                shift
+            fi
+            ;;
+        --dry-run)
+            dry_run=true
+            ;;
+        --validate)
+            validate_after_build=true
+            ;;
+        --no-validate)
+            validate_after_build=false
+            ;;
+        -h|--help)
+            print_usage
+            exit 0
+            ;;
+        *)
+            echo "Unknown argument: ${1}" >&2
+            print_usage >&2
+            exit 1
+            ;;
+    esac
+    shift
+done
+
+require_commands tar sha256sum md5sum sed find date awk grep cp chmod mkdir rm mktemp sort tail
+if [ "$validate_after_build" = true ]; then
+    require_commands bash
+    if [ ! -f "$release_guard_script" ]; then
+        echo "ERROR: Missing release guard script: $release_guard_script" >&2
+        exit 1
     fi
 fi
 
@@ -189,7 +257,27 @@ while [ -f "$filename" ]; do
     filename="$CWD/archive/$archive_prefix-$version.txz"
 done
 
-mkdir -p "$tmpdir"
+xml_date=""
+if [[ "$version" =~ ^([0-9]{4})\.([0-9]{2})\.([0-9]{2})(\.[0-9]+|-beta[0-9]*)?$ ]]; then
+    xml_date="${BASH_REMATCH[1]}-${BASH_REMATCH[2]}-${BASH_REMATCH[3]}"
+fi
+
+if [ "$dry_run" = true ]; then
+    echo "Dry run: no files will be written."
+    echo "Version: $version"
+    echo "Branch: $branch"
+    echo "Archive target: $filename"
+    echo "PLG file: $plgfile"
+    if [ -n "$xml_date" ]; then
+        echo "CA template date: $xml_date"
+    fi
+    echo "Post-build validation: $validate_after_build"
+    exit 0
+fi
+
+mkdir -p "$CWD/tmp"
+tmpdir="$(mktemp -d "$CWD/tmp/build.XXXXXX")"
+trap cleanup_tmpdir EXIT
 
 cd "$CWD/src/folderview.plus"
 while IFS= read -r -d '' file; do
@@ -207,14 +295,16 @@ tar -cJf "$filename" *
 
 cd "$CWD"
 md5=$(md5sum "$filename" | awk '{print $1}')
+sha256=$(sha256sum "$filename" | awk '{print $1}')
+sha256_file="${filename}.sha256"
+printf '%s  %s\n' "$sha256" "$(basename "$filename")" > "$sha256_file"
 
 # Update version and md5 in plg file
 sed -i "s/<!ENTITY version.*>/<!ENTITY version \"$version\">/" "$plgfile"
 sed -i "s/<!ENTITY md5.*>/<!ENTITY md5 \"$md5\">/" "$plgfile"
 
 # Keep CA template date aligned with the release version date.
-if [[ "$version" =~ ^([0-9]{4})\.([0-9]{2})\.([0-9]{2})(\.[0-9]+|-beta[0-9]*)?$ ]]; then
-    xml_date="${BASH_REMATCH[1]}-${BASH_REMATCH[2]}-${BASH_REMATCH[3]}"
+if [ -n "$xml_date" ]; then
     if [ -f "$xmlfile" ]; then
         sed -i "s|<Date>.*</Date>|<Date>${xml_date}</Date>|" "$xmlfile"
     else
@@ -227,10 +317,14 @@ fi
 sed -i 's|/main/folderview.plus.plg|/'"$branch"'/folderview.plus.plg|' "$plgfile"
 sed -i 's|/main/archive/|/'"$branch"'/archive/|' "$plgfile"
 
-rm -R "$CWD/tmp"
+if [ "$validate_after_build" = true ]; then
+    bash "$release_guard_script"
+fi
 
 echo "Package created: $filename"
 echo "Version: $version"
 echo "MD5: $md5"
+echo "SHA256: $sha256"
+echo "SHA256 file: $sha256_file"
 echo "Branch: $branch"
 echo "PLG file updated"

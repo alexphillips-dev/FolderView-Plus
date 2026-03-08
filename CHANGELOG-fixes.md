@@ -1,5 +1,13 @@
 # FolderView Plus Changelog
 
+## Version 2026.03.08.16
+
+- Convert Setup Assistant to a centered compact modal instead of oversized full-window inset layout.
+- Replace uncapped wizard min-font tokens with clamped size tokens to prevent giant text when theme root font is large.
+- Force quick-preset card text wrapping and neutral button text transform/letter spacing so labels remain readable.
+- Add mobile-specific resets for centered dialog positioning at the existing mobile breakpoint.
+- Extend UI smoke tests for compact centered dialog sizing and clamped wizard font token behavior.
+
 ## Version 2026.03.08.15
 
 - Remove redundant `Wizard path` line from Setup Assistant Welcome card (step flow already exists in sidebar).

@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.08.15">
-<!ENTITY md5 "ccfe111c69267d97bc069ab385420f71">
+<!ENTITY version "2026.03.08.16">
+<!ENTITY md5 "60122e46dbef035d018ddc1cd3d1e5c1">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.08.16
+- Wizard modal sizing fix: switched Setup Assistant to a centered compact dialog (`width: min(1120px, calc(100vw - 2.25rem))`, `height: min(80vh, 780px)`) instead of oversized full-window inset behavior.
+- Wizard typography fix: replaced uncapped min-font tokens with clamped tokens to keep text readable without over-scaling under aggressive theme root font settings.
+- Wizard card text fix: forced quick preset cards to wrap normally (no forced uppercase/nowrap overflow) so labels/descriptions stay readable and aligned.
+- Mobile guard: added explicit mobile reset for centered-dialog positioning (`top/left/transform/width/height`) under the existing mobile breakpoint.
+- Regression guard: expanded UI smoke checks for clamped wizard font token and compact centered dialog sizing rules.
+
 
 ###2026.03.08.15
 - Wizard cleanup: removed redundant `Wizard path` text from the Welcome card since step flow is already represented in the sidebar.

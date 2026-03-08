@@ -1,5 +1,19 @@
 # FolderView Plus Changelog
 
+## Version 2026.03.08.19
+
+- Finalize Setup Assistant overhaul release packaging and validation.
+- Rebuild plugin archive/checksum artifacts for the Guided/Expert + safety/retry wizard release.
+
+## Version 2026.03.08.18
+
+- Overhaul Setup Assistant with Guided/Expert detail modes plus smart auto-detected defaults for route/mode/bundle selection.
+- Add live per-step impact delta chips, sidebar step health states, and inline blocker guidance for faster progress decisions.
+- Add reusable wizard preset management (save/load/delete) for local setup profiles.
+- Add apply safety modes (`auto`, `strict`, `fast`) with strict-mode warning guards and optional fast path that skips rollback checkpoint creation.
+- Add post-apply failure reporting with one-click retry for failed import/rule operations.
+- Improve wizard accessibility with stronger focus visibility, reduced-motion behavior, and clearer live status messaging.
+
 ## Version 2026.03.08.17
 
 - Revert Setup Assistant font scaling to standard rem-based sizing (normal text size) while preserving the compact centered modal window.

@@ -6,12 +6,26 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.08.17">
-<!ENTITY md5 "70237b9bd5a80d729a9bff16b0eed848">
+<!ENTITY version "2026.03.08.19">
+<!ENTITY md5 "33dad0bef8ad94d896893b15ae241cef">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.08.19
+- Reliability: finalized Setup Assistant overhaul release packaging and validation for Guided/Expert, safety modes, and retry reporting.
+- Maintenance: rebuilt plugin archive/checksums for the wizard overhaul update line.
+
+
+###2026.03.08.18
+- Feature: overhauled Setup Assistant with Guided/Expert detail modes and smart auto-detected defaults for route/mode/bundle selection.
+- UX: added live per-step impact delta chips, sidebar step health states (ready/warn/blocked/done), and inline blocker guidance for clearer progression.
+- Enhancement: added reusable wizard preset management (save/load/delete) for local setup profiles.
+- Reliability: added apply safety modes (`auto`, `strict`, `fast`) with strict-mode pre-apply guards and optional fast path without rollback checkpoint creation.
+- Reliability: added post-apply failure reporting with one-click retry for failed import/rule tasks.
+- Accessibility: improved wizard focus visibility, motion reduction handling, and status/live-region messaging.
+
 
 ###2026.03.08.17
 - Wizard typography rollback: reverted Setup Assistant font-size tokens back to normal rem sizing (`1.03/1.08/1.15/1.18rem`) while keeping the improved compact modal window size.

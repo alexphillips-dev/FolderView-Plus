@@ -29,7 +29,8 @@ const envInt = (name, fallback) => {
 const budgets = [
   {
     path: 'scripts/folderviewplus.js',
-    maxBytes: envInt('FVPLUS_MAX_FOLDERVIEWPLUS_JS_BYTES', 450000),
+    // Raised after UX and safety feature expansion; still bounded and overrideable via env.
+    maxBytes: envInt('FVPLUS_MAX_FOLDERVIEWPLUS_JS_BYTES', 470000),
     maxGzipBytes: envInt('FVPLUS_MAX_FOLDERVIEWPLUS_JS_GZIP_BYTES', 90000),
   },
   {

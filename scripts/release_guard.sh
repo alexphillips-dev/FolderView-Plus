@@ -62,6 +62,7 @@ fi
 if command -v xmllint >/dev/null 2>&1; then
   xmllint --noout "${PLG_FILE}"
 else
+  # shellcheck disable=SC2016
   php -r '
       libxml_use_internal_errors(true);
       $xml = @file_get_contents($argv[1]);

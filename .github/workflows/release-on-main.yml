@@ -1,0 +1,130 @@
+name: Release On Main
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Resolve release version and archive
+        id: release_meta
+        run: |
+          set -euo pipefail
+          VERSION=$(grep -oP '<!ENTITY version "\K[^"]+' folderview.plus.plg)
+          ARCHIVE="archive/folderview.plus-${VERSION}.txz"
+          if [ ! -f "${ARCHIVE}" ]; then
+            echo "ERROR: expected archive not found: ${ARCHIVE}" >&2
+            exit 1
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "archive=${ARCHIVE}" >> "$GITHUB_OUTPUT"
+          echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Run release guard
+        run: |
+          chmod +x scripts/release_guard.sh
+          bash scripts/release_guard.sh
+
+      - name: Run install smoke checks
+        run: |
+          chmod +x scripts/install_smoke.sh
+          bash scripts/install_smoke.sh
+
+      - name: Run test suite
+        run: |
+          node --test tests/*.mjs
+
+      - name: Optional browser smoke checks
+        env:
+          FVPLUS_BROWSER_SMOKE_URL: ${{ secrets.FVPLUS_BROWSER_SMOKE_URL }}
+          FVPLUS_BROWSER_SMOKE_TIMEOUT_MS: '90000'
+          FVPLUS_BROWSER_SMOKE_IGNORE_HTTPS: '1'
+        run: |
+          if [ -z "${FVPLUS_BROWSER_SMOKE_URL:-}" ]; then
+            echo "Skipping browser smoke checks (FVPLUS_BROWSER_SMOKE_URL not configured)."
+            exit 0
+          fi
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium firefox
+          chmod +x scripts/browser_smoke.sh
+          bash scripts/browser_smoke.sh
+
+      - name: Build release notes from current CHANGES block
+        id: notes
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.release_meta.outputs.version }}"
+          NOTES_BLOCK="$(awk -v version="${VERSION}" '
+            BEGIN { capture = 0 }
+            /^###/ {
+              if (capture) {
+                exit
+              }
+              if ($0 ~ "^###" version "[[:space:]]*$") {
+                capture = 1
+                next
+              }
+            }
+            {
+              if (capture) {
+                print
+              }
+            }
+          ' folderview.plus.plg | sed '/^[[:space:]]*$/d')"
+
+          if [ -z "${NOTES_BLOCK}" ]; then
+            echo "ERROR: Missing CHANGES block for version ${VERSION}" >&2
+            exit 1
+          fi
+
+          {
+            echo "## FolderView Plus ${VERSION}"
+            echo
+            echo "Install URL: \`https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/main/folderview.plus.plg\`"
+            echo
+            echo "### Changes"
+            echo "${NOTES_BLOCK}"
+          } > release_notes.md
+
+      - name: Ensure GitHub CLI
+        run: |
+          if command -v gh >/dev/null 2>&1; then
+            gh --version
+            exit 0
+          fi
+          sudo apt-get update
+          sudo apt-get install -y gh
+
+      - name: Create or update GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.release_meta.outputs.tag }}"
+          ARCHIVE="${{ steps.release_meta.outputs.archive }}"
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            gh release edit "${TAG}" --title "${TAG}" --notes-file release_notes.md
+            gh release upload "${TAG}" "${ARCHIVE}" --clobber
+            echo "Updated release ${TAG}"
+          else
+            gh release create "${TAG}" "${ARCHIVE}" --title "${TAG}" --notes-file release_notes.md
+            echo "Created release ${TAG}"
+          fi

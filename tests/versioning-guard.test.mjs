@@ -11,6 +11,7 @@ const ciWorkflowPath = path.join(repoRoot, '.github/workflows/ci.yml');
 const releaseMainWorkflowPath = path.join(repoRoot, '.github/workflows/release-main.yml');
 const releaseStableWorkflowPath = path.join(repoRoot, '.github/workflows/release-stable.yml');
 const releaseBetaWorkflowPath = path.join(repoRoot, '.github/workflows/release-beta.yml');
+const releaseOnMainWorkflowPath = path.join(repoRoot, '.github/workflows/release-on-main.yml');
 const browserSmokeShellPath = path.join(repoRoot, 'scripts/browser_smoke.sh');
 const browserSmokeNodePath = path.join(repoRoot, 'scripts/browser_smoke.mjs');
 const pkgBuild = fs.readFileSync(pkgBuildPath, 'utf8');
@@ -20,6 +21,7 @@ const ciWorkflow = fs.readFileSync(ciWorkflowPath, 'utf8');
 const releaseMainWorkflow = fs.readFileSync(releaseMainWorkflowPath, 'utf8');
 const releaseStableWorkflow = fs.readFileSync(releaseStableWorkflowPath, 'utf8');
 const releaseBetaWorkflow = fs.readFileSync(releaseBetaWorkflowPath, 'utf8');
+const releaseOnMainWorkflow = fs.readFileSync(releaseOnMainWorkflowPath, 'utf8');
 const browserSmokeShell = fs.readFileSync(browserSmokeShellPath, 'utf8');
 const browserSmokeNode = fs.readFileSync(browserSmokeNodePath, 'utf8');
 
@@ -91,10 +93,24 @@ test('browser smoke scripts are optional, URL-gated, and include core UI checks'
 });
 
 test('validation workflows include optional browser smoke integration', () => {
-    for (const workflow of [ciWorkflow, releaseMainWorkflow, releaseStableWorkflow, releaseBetaWorkflow]) {
+    for (const workflow of [ciWorkflow, releaseMainWorkflow, releaseStableWorkflow, releaseBetaWorkflow, releaseOnMainWorkflow]) {
         assert.match(workflow, /Optional browser smoke checks/);
         assert.match(workflow, /FVPLUS_BROWSER_SMOKE_URL/);
         assert.match(workflow, /bash scripts\/browser_smoke\.sh/);
     }
     assert.match(releasePrepare, /bash scripts\/browser_smoke\.sh/);
+});
+
+test('release-on-main workflow auto-publishes validated releases from current plg version', () => {
+    assert.match(releaseOnMainWorkflow, /name:\s*Release On Main/);
+    assert.match(releaseOnMainWorkflow, /push:\s*\n\s*branches:\s*\n\s*-\s*main/);
+    assert.match(releaseOnMainWorkflow, /bash scripts\/release_guard\.sh/);
+    assert.match(releaseOnMainWorkflow, /bash scripts\/install_smoke\.sh/);
+    assert.match(releaseOnMainWorkflow, /node --test tests\/\*\.mjs/);
+    assert.match(releaseOnMainWorkflow, /release_notes\.md/);
+    assert.match(releaseOnMainWorkflow, /folderview\.plus\.plg/);
+    assert.match(releaseOnMainWorkflow, /archive\/folderview\.plus-\$\{VERSION\}\.txz/);
+    assert.match(releaseOnMainWorkflow, /gh release create/);
+    assert.match(releaseOnMainWorkflow, /gh release edit/);
+    assert.match(releaseOnMainWorkflow, /GH_TOKEN:\s*\$\{\{\s*github\.token\s*\}\}/);
 });

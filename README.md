@@ -7,7 +7,6 @@
 [![CI](https://github.com/alexphillips-dev/FolderView-Plus/actions/workflows/ci.yml/badge.svg)](https://github.com/alexphillips-dev/FolderView-Plus/actions/workflows/ci.yml)
 [![Latest Release](https://img.shields.io/github/v/release/alexphillips-dev/FolderView-Plus)](https://github.com/alexphillips-dev/FolderView-Plus/releases)
 [![Release Date](https://img.shields.io/github/release-date/alexphillips-dev/FolderView-Plus)](https://github.com/alexphillips-dev/FolderView-Plus/releases)
-[![Downloads](https://img.shields.io/github/downloads/alexphillips-dev/FolderView-Plus/total)](https://github.com/alexphillips-dev/FolderView-Plus/releases)
 [![Sponsor](https://img.shields.io/badge/Sponsor-Buy%20Me%20a%20Coffee-FFDD00?logo=buymeacoffee&logoColor=000)](https://buymeacoffee.com/alexphillipsdev)
 
 FolderView Plus gives Unraid a cleaner, folder-first way to manage Docker containers and VMs.  

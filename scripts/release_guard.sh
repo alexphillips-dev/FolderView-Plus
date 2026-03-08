@@ -3,6 +3,10 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PLG_FILE="${ROOT_DIR}/folderview.plus.plg"
+PLUGIN_SRC_DIR="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus"
+SERVER_DIR="${PLUGIN_SRC_DIR}/server"
+MAX_ARCHIVE_BYTES="${FVPLUS_MAX_ARCHIVE_BYTES:-52428800}" # 50 MiB default ceiling
+MAX_ARCHIVE_FILE_COUNT="${FVPLUS_MAX_ARCHIVE_FILE_COUNT:-10000}"
 
 if [[ ! -f "${PLG_FILE}" ]]; then
   echo "ERROR: Missing plugin manifest: ${PLG_FILE}" >&2
@@ -57,6 +61,12 @@ if [[ ! -f "${ARCHIVE_FILE}" ]]; then
   exit 1
 fi
 
+ARCHIVE_SIZE_BYTES="$(wc -c < "${ARCHIVE_FILE}" | tr -d '[:space:]')"
+if [[ -z "${ARCHIVE_SIZE_BYTES}" || "${ARCHIVE_SIZE_BYTES}" -gt "${MAX_ARCHIVE_BYTES}" ]]; then
+  echo "ERROR: Archive exceeds size budget (${ARCHIVE_SIZE_BYTES:-unknown} bytes > ${MAX_ARCHIVE_BYTES} bytes)." >&2
+  exit 1
+fi
+
 SOURCE_FOLDER_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js"
 SOURCE_FOLDER_CSS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folder.css"
 SOURCE_SETTINGS_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js"
@@ -81,9 +91,32 @@ fi
 
 ARCHIVE_LIST="$(tar -tf "${ARCHIVE_FILE}")"
 ARCHIVE_LIST_NORMALIZED="$(printf '%s\n' "${ARCHIVE_LIST}" | sed 's#^\./##')"
+ARCHIVE_FILES_ONLY="$(printf '%s\n' "${ARCHIVE_LIST_NORMALIZED}" | grep -Ev '/$' || true)"
+
+ARCHIVE_FILE_COUNT="$(printf '%s\n' "${ARCHIVE_FILES_ONLY}" | sed '/^$/d' | wc -l | tr -d '[:space:]')"
+if [[ -z "${ARCHIVE_FILE_COUNT}" || "${ARCHIVE_FILE_COUNT}" -gt "${MAX_ARCHIVE_FILE_COUNT}" ]]; then
+  echo "ERROR: Archive file count exceeds budget (${ARCHIVE_FILE_COUNT:-unknown} > ${MAX_ARCHIVE_FILE_COUNT})." >&2
+  exit 1
+fi
 
 if grep -q '^./local/' <<< "${ARCHIVE_LIST}"; then
   echo "ERROR: Archive contains invalid top-level './local/' paths. Must install under './usr/local/'." >&2
+  exit 1
+fi
+
+DANGEROUS_ARCHIVE_EXTENSIONS='exe|dll|bat|cmd|com|msi|scr|ps1|jar|apk|deb|rpm|dmg|pkg|appimage|iso'
+DANGEROUS_ARCHIVE_FILES="$(printf '%s\n' "${ARCHIVE_FILES_ONLY}" | grep -Ei "\.(${DANGEROUS_ARCHIVE_EXTENSIONS})$" || true)"
+if [[ -n "${DANGEROUS_ARCHIVE_FILES}" ]]; then
+  echo "ERROR: Archive contains blocked executable/binary artifacts:" >&2
+  echo "${DANGEROUS_ARCHIVE_FILES}" >&2
+  exit 1
+fi
+
+ALLOWED_ARCHIVE_EXTENSIONS='page|php|js|css|png|jpg|jpeg|gif|webp|svg|bmp|ico|avif|json|md|txt|woff|woff2|ttf|eot|otf|map'
+UNEXPECTED_ARCHIVE_FILES="$(printf '%s\n' "${ARCHIVE_FILES_ONLY}" | grep -Evi "\.(${ALLOWED_ARCHIVE_EXTENSIONS})$" || true)"
+if [[ -n "${UNEXPECTED_ARCHIVE_FILES}" ]]; then
+  echo "ERROR: Archive contains files with unexpected extensions:" >&2
+  echo "${UNEXPECTED_ARCHIVE_FILES}" >&2
   exit 1
 fi
 
@@ -120,6 +153,84 @@ if ! grep -q '@media (max-width: 760px)' "${SOURCE_SETTINGS_CSS}"; then
 fi
 if ! grep -q '\.fv-section-toggle::before' "${SOURCE_SETTINGS_CSS}"; then
   echo "ERROR: Source folderviewplus.css is missing mobile-friendly section toggle affordance." >&2
+  exit 1
+fi
+
+if ! grep -Eq "define\('FV3_DEBUG_MODE', false\)" "${SERVER_DIR}/lib.php"; then
+  echo "ERROR: FV3_DEBUG_MODE must be false for release builds." >&2
+  exit 1
+fi
+if grep -Eq "define\('FV3_DEBUG_MODE', true\)" "${SERVER_DIR}/lib.php"; then
+  echo "ERROR: FV3_DEBUG_MODE is enabled in lib.php." >&2
+  exit 1
+fi
+if grep -Eq 'const FOLDER_VIEW_DEBUG_MODE = true;' "${PLUGIN_SRC_DIR}/scripts/docker.js"; then
+  echo "ERROR: FOLDER_VIEW_DEBUG_MODE is enabled in docker.js." >&2
+  exit 1
+fi
+if grep -Eq 'const VM_DEBUG_MODE = true;' "${PLUGIN_SRC_DIR}/scripts/vm.js"; then
+  echo "ERROR: VM_DEBUG_MODE is enabled in vm.js." >&2
+  exit 1
+fi
+if grep -Eq 'const DASHBOARD_DEBUG_MODE = true;' "${PLUGIN_SRC_DIR}/scripts/dashboard.js"; then
+  echo "ERROR: DASHBOARD_DEBUG_MODE is enabled in dashboard.js." >&2
+  exit 1
+fi
+
+if command -v rg >/dev/null 2>&1; then
+  TARGET_BLANK_LINES="$(rg -n 'target=\"_blank\"' "${PLUGIN_SRC_DIR}" -g '*.js' -g '*.page' || true)"
+else
+  TARGET_BLANK_LINES="$(grep -RIn --include='*.js' --include='*.page' 'target="_blank"' "${PLUGIN_SRC_DIR}" || true)"
+fi
+if [[ -n "${TARGET_BLANK_LINES}" ]]; then
+  TARGET_BLANK_MISSING_REL="$(printf '%s\n' "${TARGET_BLANK_LINES}" | grep -Ev 'rel=\"noopener noreferrer\"' || true)"
+  if [[ -n "${TARGET_BLANK_MISSING_REL}" ]]; then
+    echo "ERROR: Found target=\"_blank\" without rel=\"noopener noreferrer\":" >&2
+    echo "${TARGET_BLANK_MISSING_REL}" >&2
+    exit 1
+  fi
+fi
+
+if command -v rg >/dev/null 2>&1; then
+  WINDOW_OPEN_BLANK_LINES="$(rg -n "window\\.open\\([^\\n]*['\"]_blank['\"]" "${PLUGIN_SRC_DIR}" -g '*.js' || true)"
+else
+  WINDOW_OPEN_BLANK_LINES="$(grep -RInE --include='*.js' "window\\.open\\([^)]*['_\"]_blank['_\"]" "${PLUGIN_SRC_DIR}" || true)"
+fi
+if [[ -n "${WINDOW_OPEN_BLANK_LINES}" ]]; then
+  WINDOW_OPEN_MISSING_NOOPENER="$(printf '%s\n' "${WINDOW_OPEN_BLANK_LINES}" | grep -Evi 'noopener' || true)"
+  if [[ -n "${WINDOW_OPEN_MISSING_NOOPENER}" ]]; then
+    echo "ERROR: Found window.open(..., '_blank', ...) calls without noopener:" >&2
+    echo "${WINDOW_OPEN_MISSING_NOOPENER}" >&2
+    exit 1
+  fi
+fi
+
+if [[ ! -f "${SERVER_DIR}/update_notes.php" ]]; then
+  echo "ERROR: Missing update_notes.php endpoint." >&2
+  exit 1
+fi
+if ! grep -q 'readCurrentVersionChangeSummary' "${SERVER_DIR}/update_notes.php"; then
+  echo "ERROR: update_notes.php must use readCurrentVersionChangeSummary()." >&2
+  exit 1
+fi
+if ! grep -q "'lines' =>" "${SERVER_DIR}/update_notes.php"; then
+  echo "ERROR: update_notes.php must return lines payload." >&2
+  exit 1
+fi
+if ! grep -q "'category' =>" "${SERVER_DIR}/update_notes.php"; then
+  echo "ERROR: update_notes.php must return category payload." >&2
+  exit 1
+fi
+if ! grep -q "'headline' =>" "${SERVER_DIR}/update_notes.php"; then
+  echo "ERROR: update_notes.php must return headline payload." >&2
+  exit 1
+fi
+if ! grep -q 'function classifyChangesCategory' "${SERVER_DIR}/lib.php"; then
+  echo "ERROR: lib.php must define classifyChangesCategory()." >&2
+  exit 1
+fi
+if ! grep -q 'function readCurrentVersionChangeSummary' "${SERVER_DIR}/lib.php"; then
+  echo "ERROR: lib.php must define readCurrentVersionChangeSummary()." >&2
   exit 1
 fi
 
@@ -171,6 +282,37 @@ if ! cmp -s "${SOURCE_SETTINGS_CSS}" "${TMP_ARCHIVE_SETTINGS_CSS}"; then
   echo "ERROR: Packaged folderviewplus.css does not match source folderviewplus.css." >&2
   exit 1
 fi
+
+if [[ ! -d "${SERVER_DIR}" ]]; then
+  echo "ERROR: Missing server directory: ${SERVER_DIR}" >&2
+  exit 1
+fi
+
+READ_ONLY_ENDPOINTS=(
+  "cpu.php"
+  "read.php"
+  "read_info.php"
+  "read_order.php"
+  "read_unraid_order.php"
+  "third_party_icons.php"
+  "update_check.php"
+  "update_notes.php"
+  "version.php"
+)
+
+while IFS= read -r endpoint_path; do
+  endpoint_name="$(basename "${endpoint_path}")"
+  if [[ "${endpoint_name}" == "lib.php" ]]; then
+    continue
+  fi
+  if printf '%s\n' "${READ_ONLY_ENDPOINTS[@]}" | grep -Fxq "${endpoint_name}"; then
+    continue
+  fi
+  if ! grep -q 'requireMutationRequestGuard()' "${endpoint_path}"; then
+    echo "ERROR: Mutating endpoint is missing requireMutationRequestGuard(): ${endpoint_name}" >&2
+    exit 1
+  fi
+done < <(find "${SERVER_DIR}" -maxdepth 1 -type f -name '*.php' | sort)
 
 if ! grep -q "###${VERSION}" "${PLG_FILE}"; then
   echo "ERROR: CHANGES section does not contain an entry for ${VERSION}" >&2

@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.08.01">
-<!ENTITY md5 "ad394a3592a772425d4eaddab2474bf4">
+<!ENTITY version "2026.03.08.02">
+<!ENTITY md5 "2b970f8206b92b1608b6e6dfb4cdfb3d">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.08.02
+- UI/UX fix: advanced side-by-side modules now use adaptive panel sizing instead of forcing full-height blocks.
+- Layout fix: advanced module grids now align cards to the top so shorter cards no longer stretch and show unnecessary blank space.
+- Usability fix: bulk assignment item lists now use a smaller adaptive list height with scroll only when needed.
+- Quality: keeps compact mode cleaner in Advanced sections while preserving default max module sizing behavior.
+
 
 ###2026.03.08.01
 - Feature: setup wizard now uses route-aware step flow (new installs skip import unless an import file is selected).

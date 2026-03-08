@@ -757,7 +757,7 @@
     background: rgba(255, 255, 255, 0.015);
 }
 
-/* Advanced modules keep a consistent default viewport and scroll only when needed. */
+/* Advanced modules use a default max viewport and only scroll when content exceeds it. */
 :root {
     --fv-advanced-module-height: clamp(340px, 56vh, 620px);
 }
@@ -767,7 +767,8 @@ h2[data-fv-advanced="1"] + .rules-bottom-grid .rules-panel,
 h2[data-fv-advanced="1"] + .bulk-assign-grid .rules-panel,
 h2[data-fv-advanced="1"] + .backup-grid .rules-panel,
 h2[data-fv-advanced="1"] + .template-grid .rules-panel {
-    height: var(--fv-advanced-module-height);
+    height: auto;
+    max-height: var(--fv-advanced-module-height);
     overflow-y: auto;
     overflow-x: hidden;
 }
@@ -900,6 +901,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 .template-grid {
     display: grid;
     grid-template-columns: 1fr;
+    align-items: start;
     gap: 0.85rem;
     margin-bottom: 1rem;
 }
@@ -991,7 +993,8 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 #docker-bulk-items,
 #vm-bulk-items {
     width: 100%;
-    min-height: 210px;
+    min-height: 120px;
+    max-height: clamp(180px, 30vh, 320px);
 }
 
 .diagnostics-output {

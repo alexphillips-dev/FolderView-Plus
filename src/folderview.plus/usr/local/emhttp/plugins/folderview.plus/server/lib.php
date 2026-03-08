@@ -26,31 +26,138 @@
     require_once("$documentRoot/plugins/dynamix.docker.manager/include/DockerClient.php");
     require_once ("$documentRoot/plugins/dynamix.vm.manager/include/libvirt_helpers.php");
 
-    function fv3_get_tailscale_ip_from_container(string $containerName): ?string {
+    function fv3_cache_root(): string {
+        static $cacheRoot = null;
+        if (is_string($cacheRoot) && $cacheRoot !== '') {
+            return $cacheRoot;
+        }
+        $cacheRoot = '/tmp/folderview.plus-cache';
+        if (!is_dir($cacheRoot)) {
+            @mkdir($cacheRoot, 0770, true);
+        }
+        return $cacheRoot;
+    }
+
+    function fv3_read_json_cache_payload(string $path): ?array {
+        if (!is_file($path)) {
+            return null;
+        }
+        $raw = @file_get_contents($path);
+        if (!is_string($raw) || trim($raw) === '') {
+            return null;
+        }
+        $decoded = json_decode($raw, true);
+        return is_array($decoded) ? $decoded : null;
+    }
+
+    function fv3_write_json_cache_payload(string $path, array $payload): void {
+        $directory = dirname($path);
+        if (!is_dir($directory)) {
+            @mkdir($directory, 0770, true);
+        }
+        $encoded = json_encode($payload, JSON_UNESCAPED_SLASHES);
+        if (!is_string($encoded) || $encoded === '') {
+            return;
+        }
+        $tmpPath = $path . '.tmp';
+        if (@file_put_contents($tmpPath, $encoded, LOCK_EX) !== false) {
+            @rename($tmpPath, $path);
+            @chmod($path, 0644);
+            return;
+        }
+        @file_put_contents($path, $encoded, LOCK_EX);
+        @chmod($path, 0644);
+    }
+
+    function fv3_get_tailscale_cache_path(string $containerName, string $kind): string {
+        $safeName = preg_replace('/[^a-zA-Z0-9_.-]+/', '_', $containerName);
+        $safeKind = preg_replace('/[^a-z]+/', '', strtolower($kind)) ?: 'value';
+        return fv3_cache_root() . "/tailscale/{$safeName}-{$safeKind}.json";
+    }
+
+    function fv3_read_tailscale_cache(string $containerName, string $kind, int $ttlSeconds): ?array {
+        if ($ttlSeconds <= 0) {
+            return null;
+        }
+        $path = fv3_get_tailscale_cache_path($containerName, $kind);
+        $mtime = (int)@filemtime($path);
+        if ($mtime <= 0) {
+            return null;
+        }
+        $age = time() - $mtime;
+        if ($age < 0 || $age > $ttlSeconds) {
+            return null;
+        }
+        $payload = fv3_read_json_cache_payload($path);
+        if (!is_array($payload)) {
+            return null;
+        }
+        if (($payload['container'] ?? '') !== $containerName || ($payload['kind'] ?? '') !== $kind) {
+            return null;
+        }
+        return [
+            'found' => ($payload['found'] ?? false) === true,
+            'value' => is_string($payload['value'] ?? null) ? (string)$payload['value'] : null
+        ];
+    }
+
+    function fv3_write_tailscale_cache(string $containerName, string $kind, ?string $value): void {
+        fv3_write_json_cache_payload(fv3_get_tailscale_cache_path($containerName, $kind), [
+            'container' => $containerName,
+            'kind' => $kind,
+            'found' => is_string($value) && trim($value) !== '',
+            'value' => is_string($value) ? $value : null,
+            'generatedAt' => gmdate('c')
+        ]);
+    }
+
+    function fv3_get_tailscale_ip_from_container(string $containerName, bool $containerRunning = true): ?string {
         if (empty($containerName) || !preg_match('/^[a-zA-Z0-9_.-]+$/', $containerName)) {
             fv3_debug_log("    fv3_get_tailscale_ip_from_container: Invalid container name for exec: $containerName");
             return null;
         }
+
+        $cached = fv3_read_tailscale_cache($containerName, 'ip', FVPLUS_TAILSCALE_EXEC_CACHE_TTL);
+        if (is_array($cached)) {
+            return $cached['found'] ? (string)$cached['value'] : null;
+        }
+        if (!$containerRunning) {
+            fv3_debug_log("    fv3_get_tailscale_ip_from_container: Skipping exec for stopped container $containerName");
+            return null;
+        }
+
         $command = "docker exec " . escapeshellarg($containerName) . " tailscale ip -4 2>/dev/null";
         fv3_debug_log("    fv3_get_tailscale_ip_from_container: Executing: $command for $containerName");
         $output = [];
         $return_var = -1;
         @exec($command, $output, $return_var);
-        
+
         if ($return_var === 0 && !empty($output) && filter_var(trim($output[0]), FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
             $ip = trim($output[0]);
+            fv3_write_tailscale_cache($containerName, 'ip', $ip);
             fv3_debug_log("    fv3_get_tailscale_ip_from_container: Found IP for $containerName: $ip");
             return $ip;
         }
+        fv3_write_tailscale_cache($containerName, 'ip', null);
         fv3_debug_log("    fv3_get_tailscale_ip_from_container: No valid IP found for $containerName. Output: " . json_encode($output) . ", Return: $return_var");
         return null;
     }
 
-    function fv3_get_tailscale_fqdn_from_container(string $containerName): ?string {
+    function fv3_get_tailscale_fqdn_from_container(string $containerName, bool $containerRunning = true): ?string {
         if (empty($containerName) || !preg_match('/^[a-zA-Z0-9_.-]+$/', $containerName)) {
             fv3_debug_log("    fv3_get_tailscale_fqdn_from_container: Invalid container name for exec: $containerName");
             return null;
         }
+
+        $cached = fv3_read_tailscale_cache($containerName, 'fqdn', FVPLUS_TAILSCALE_EXEC_CACHE_TTL);
+        if (is_array($cached)) {
+            return $cached['found'] ? (string)$cached['value'] : null;
+        }
+        if (!$containerRunning) {
+            fv3_debug_log("    fv3_get_tailscale_fqdn_from_container: Skipping exec for stopped container $containerName");
+            return null;
+        }
+
         $command = "docker exec " . escapeshellarg($containerName) . " tailscale status --peers=false --json 2>/dev/null";
         fv3_debug_log("    fv3_get_tailscale_fqdn_from_container: Executing: $command for $containerName");
         $output_lines = [];
@@ -61,11 +168,13 @@
         if ($return_var === 0 && !empty($json_output)) {
             $status_data = json_decode($json_output, true);
             if (isset($status_data['Self']['DNSName'])) {
-                $dnsName = rtrim($status_data['Self']['DNSName'], '.'); 
+                $dnsName = rtrim((string)$status_data['Self']['DNSName'], '.');
+                fv3_write_tailscale_cache($containerName, 'fqdn', $dnsName);
                 fv3_debug_log("    fv3_get_tailscale_fqdn_from_container: Found DNSName for $containerName: " . $dnsName);
                 return $dnsName;
             }
         }
+        fv3_write_tailscale_cache($containerName, 'fqdn', null);
         fv3_debug_log("    fv3_get_tailscale_fqdn_from_container: No DNSName found for $containerName. Output: " . $json_output . ", Return: $return_var");
         return null;
     }
@@ -101,6 +210,8 @@
     const FVPLUS_API_ERROR_LOG = '/tmp/folderview.plus.api-error.log';
     const FVPLUS_INFO_CACHE_TTL_FULL = 2;
     const FVPLUS_INFO_CACHE_TTL_STATE = 2;
+    const FVPLUS_DOCKER_TEMPLATE_CACHE_TTL = 300;
+    const FVPLUS_TAILSCALE_EXEC_CACHE_TTL = 20;
 
     function ensureType(string $type): string {
         if (!in_array($type, FVPLUS_ALLOWED_TYPES, true)) {
@@ -119,7 +230,7 @@
         if (is_string($path) && $path !== '') {
             return $path;
         }
-        $path = '/tmp/folderview.plus-cache/read-info';
+        $path = fv3_cache_root() . '/read-info';
         if (!is_dir($path)) {
             @mkdir($path, 0770, true);
         }
@@ -3509,6 +3620,95 @@
         ];
     }
 
+    function getDockerTemplateCachePath(): string {
+        return fv3_cache_root() . '/docker-template-index/cache.json';
+    }
+
+    function buildDockerTemplateSignature(array $templateFiles): string {
+        $parts = [];
+        foreach ($templateFiles as $templateFile) {
+            $path = trim((string)($templateFile['path'] ?? ''));
+            if ($path === '') {
+                continue;
+            }
+            $parts[] = $path . '|' . (int)@filemtime($path) . '|' . (int)@filesize($path);
+        }
+        sort($parts, SORT_STRING);
+        return hash('sha256', implode("\n", $parts));
+    }
+
+    function readDockerTemplateCache(string $signature): ?array {
+        $payload = fv3_read_json_cache_payload(getDockerTemplateCachePath());
+        if (!is_array($payload)) {
+            return null;
+        }
+        if (($payload['signature'] ?? '') !== $signature) {
+            return null;
+        }
+        $generatedAt = strtotime((string)($payload['generatedAt'] ?? ''));
+        if ($generatedAt <= 0 || (time() - $generatedAt) > FVPLUS_DOCKER_TEMPLATE_CACHE_TTL) {
+            return null;
+        }
+        $templates = $payload['templates'] ?? null;
+        return is_array($templates) ? $templates : null;
+    }
+
+    function writeDockerTemplateCache(string $signature, array $templates): void {
+        fv3_write_json_cache_payload(getDockerTemplateCachePath(), [
+            'signature' => $signature,
+            'generatedAt' => gmdate('c'),
+            'templates' => $templates
+        ]);
+    }
+
+    function buildDockerTemplateIndex(array $templateFiles): array {
+        $allXmlTemplates = [];
+        foreach ($templateFiles as $templateFile) {
+            $path = trim((string)($templateFile['path'] ?? ''));
+            if ($path === '' || !is_file($path)) {
+                continue;
+            }
+            $doc = new DOMDocument();
+            if (!@$doc->load($path)) {
+                continue;
+            }
+            $templateName = trim((string)($doc->getElementsByTagName('Name')->item(0)->nodeValue ?? ''));
+            $templateImage = DockerUtil::ensureImageTag((string)($doc->getElementsByTagName('Repository')->item(0)->nodeValue ?? ''));
+            if ($templateName === '' || $templateImage === '') {
+                continue;
+            }
+            $allXmlTemplates[$templateName . '|' . $templateImage] = [
+                'WebUi' => trim((string)($doc->getElementsByTagName('WebUI')->item(0)->nodeValue ?? '')),
+                'TSUrlRaw' => trim((string)($doc->getElementsByTagName('TailscaleWebUI')->item(0)->nodeValue ?? '')),
+                'TSServeMode' => trim((string)($doc->getElementsByTagName('TailscaleServe')->item(0)->nodeValue ?? 'no')),
+                'TSTailscaleEnabled' => strtolower(trim((string)($doc->getElementsByTagName('TailscaleEnabled')->item(0)->nodeValue ?? 'false'))) === 'true',
+                'registry' => trim((string)($doc->getElementsByTagName('Registry')->item(0)->nodeValue ?? '')),
+                'Support' => trim((string)($doc->getElementsByTagName('Support')->item(0)->nodeValue ?? '')),
+                'Project' => trim((string)($doc->getElementsByTagName('Project')->item(0)->nodeValue ?? '')),
+                'DonateLink' => trim((string)($doc->getElementsByTagName('DonateLink')->item(0)->nodeValue ?? '')),
+                'ReadMe' => trim((string)($doc->getElementsByTagName('ReadMe')->item(0)->nodeValue ?? '')),
+                'Shell' => trim((string)($doc->getElementsByTagName('Shell')->item(0)->nodeValue ?? 'sh')),
+                'path' => $path
+            ];
+        }
+        return $allXmlTemplates;
+    }
+
+    function getDockerTemplateIndexCached(DockerTemplates $dockerTemplates): array {
+        $templateFiles = $dockerTemplates->getTemplates('all');
+        if (!is_array($templateFiles) || empty($templateFiles)) {
+            return [];
+        }
+        $signature = buildDockerTemplateSignature($templateFiles);
+        $cached = readDockerTemplateCache($signature);
+        if (is_array($cached)) {
+            return $cached;
+        }
+        $templates = buildDockerTemplateIndex($templateFiles);
+        writeDockerTemplateCache($signature, $templates);
+        return $templates;
+    }
+
     function readInfoState(string $type): array {
         $type = ensureType($type);
         $info = [];
@@ -3635,30 +3835,7 @@
                 $autoStart = array_map('var_split', $cleanedLines);
             }
 
-            $allXmlTemplates = [];
-            foreach ($dockerTemplates->getTemplates('all') as $templateFile) {
-                $doc = new DOMDocument();
-                if (@$doc->load($templateFile['path'])) { 
-                    $templateName = trim($doc->getElementsByTagName('Name')->item(0)->nodeValue ?? '');
-                    $templateImage = DockerUtil::ensureImageTag($doc->getElementsByTagName('Repository')->item(0)->nodeValue ?? '');
-                    if ($templateName && $templateImage) {
-                        $allXmlTemplates[$templateName . '|' . $templateImage] = [
-                            'WebUi'             => trim($doc->getElementsByTagName('WebUI')->item(0)->nodeValue ?? ''),
-                            'TSUrlRaw'          => trim($doc->getElementsByTagName('TailscaleWebUI')->item(0)->nodeValue ?? ''),
-                            'TSServeMode'       => trim($doc->getElementsByTagName('TailscaleServe')->item(0)->nodeValue ?? 'no'),
-                            'TSTailscaleEnabled'=> strtolower(trim($doc->getElementsByTagName('TailscaleEnabled')->item(0)->nodeValue ?? 'false')) === 'true',
-                            'registry'          => trim($doc->getElementsByTagName('Registry')->item(0)->nodeValue ?? ''),
-                            'Support'           => trim($doc->getElementsByTagName('Support')->item(0)->nodeValue ?? ''),
-                            'Project'           => trim($doc->getElementsByTagName('Project')->item(0)->nodeValue ?? ''),
-                            'DonateLink'        => trim($doc->getElementsByTagName('DonateLink')->item(0)->nodeValue ?? ''),
-                            'ReadMe'            => trim($doc->getElementsByTagName('ReadMe')->item(0)->nodeValue ?? ''),
-                            'Shell'             => trim($doc->getElementsByTagName('Shell')->item(0)->nodeValue ?? 'sh'),
-                            'path'              => $templateFile['path']
-                        ];
-                    }
-                }
-            }
-            unset($doc);
+            $allXmlTemplates = getDockerTemplateIndexCached($dockerTemplates);
 
             foreach ($cts as $key => &$ct) {
                 $ct['info'] = $dockerClient->getContainerDetails($ct['Id']);
@@ -3824,7 +4001,7 @@
 
                     if (!empty($baseTsTemplateFromHelper)) {
                         if (strpos($baseTsTemplateFromHelper, '[hostname]') !== false || strpos($baseTsTemplateFromHelper, '[HOSTNAME]') !== false) {
-                            $tsFqdn = fv3_get_tailscale_fqdn_from_container($containerName); 
+                            $tsFqdn = fv3_get_tailscale_fqdn_from_container($containerName, (bool)($ct['info']['State']['Running'] ?? false)); 
                             if ($tsFqdn) {
                                 $finalTsWebUi = str_replace(["[hostname][magicdns]", "[HOSTNAME][MAGICDNS]"], $tsFqdn, $baseTsTemplateFromHelper);
                                 if (strpos($baseTsTemplateFromHelper, 'http://[hostname]') === 0) {
@@ -3832,7 +4009,7 @@
                                 }
                             } else { fv3_debug_log("    $containerName: TS WebUI: Could not resolve [hostname] via exec."); $finalTsWebUi = ''; }
                         } elseif (strpos($baseTsTemplateFromHelper, '[noserve]') !== false || strpos($baseTsTemplateFromHelper, '[NOSERVE]') !== false) {
-                            $tsIP = fv3_get_tailscale_ip_from_container($containerName); 
+                            $tsIP = fv3_get_tailscale_ip_from_container($containerName, (bool)($ct['info']['State']['Running'] ?? false)); 
                             if ($tsIP) {
                                 $finalTsWebUi = str_replace(["[noserve]", "[NOSERVE]"], $tsIP, $baseTsTemplateFromHelper);
                                 $internalPortForTS = null;

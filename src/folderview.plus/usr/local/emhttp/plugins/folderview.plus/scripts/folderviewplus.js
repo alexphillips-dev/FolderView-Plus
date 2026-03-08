@@ -77,6 +77,8 @@ let backupCompareDiffPagingState = {
     page: 1,
     pageSize: 120
 };
+const IMPORT_APPLY_CHUNK_SIZE = 20;
+const IMPORT_APPLY_CHUNK_PAUSE_MS = 16;
 let lastDiagnostics = null;
 let latestPrefsBackupByType = {
     docker: null,
@@ -135,6 +137,12 @@ const IMPORT_PRESET_BUILTINS = [
     }
 ];
 const UPDATE_NOTES_CHANGELOG_URL = 'https://github.com/alexphillips-dev/FolderView-Plus/blob/main/folderview.plus.plg';
+const PERF_DIAGNOSTICS_SAMPLE_LIMIT = 30;
+const performanceDiagnosticsState = {
+    refresh: { docker: [], vm: [] },
+    import: { docker: [], vm: [] },
+    updatedAt: 0
+};
 const LEGACY_ADVANCED_SECTION_KEYS = [
     'auto-assignment',
     'bulk-assignment',
@@ -5193,8 +5201,26 @@ const countImportOperations = (operations) => (
     operations.creates.length + operations.upserts.length + operations.deletes.length
 );
 
+const pauseImportApplyChunk = () => new Promise((resolve) => {
+    window.setTimeout(resolve, IMPORT_APPLY_CHUNK_PAUSE_MS);
+});
+
+const runImportChunked = async (items, runner) => {
+    const list = Array.isArray(items) ? items : [];
+    for (let start = 0; start < list.length; start += IMPORT_APPLY_CHUNK_SIZE) {
+        const end = Math.min(start + IMPORT_APPLY_CHUNK_SIZE, list.length);
+        for (let index = start; index < end; index += 1) {
+            await runner(list[index], index);
+        }
+        if (end < list.length) {
+            await pauseImportApplyChunk();
+        }
+    }
+};
+
 const applyImportOperations = async (type, operations, onProgress = null) => {
     const resolvedType = normalizeManagedType(type);
+    const startedAt = perfNowMs();
     const deletes = Array.isArray(operations?.deletes) ? operations.deletes : [];
     const upserts = Array.isArray(operations?.upserts) ? operations.upserts : [];
     const creates = Array.isArray(operations?.creates) ? operations.creates : [];
@@ -5207,14 +5233,14 @@ const applyImportOperations = async (type, operations, onProgress = null) => {
         }
     };
 
-    for (const id of deletes) {
+    await runImportChunked(deletes, async (id) => {
         const folderName = String(currentFolders[id]?.name || id || 'folder');
         await apiPostText('/plugins/folderview.plus/server/delete.php', { type: resolvedType, id });
         completed += 1;
         emit(`Deleted ${folderName}`);
-    }
+    });
 
-    for (const item of upserts) {
+    await runImportChunked(upserts, async (item) => {
         const folderName = String(item?.folder?.name || currentFolders[item?.id]?.name || item?.id || 'folder');
         await apiPostText('/plugins/folderview.plus/server/update.php', {
             type: resolvedType,
@@ -5223,9 +5249,9 @@ const applyImportOperations = async (type, operations, onProgress = null) => {
         });
         completed += 1;
         emit(`Updated ${folderName}`);
-    }
+    });
 
-    for (const item of creates) {
+    await runImportChunked(creates, async (item) => {
         const folderName = String(item?.folder?.name || 'folder');
         await apiPostText('/plugins/folderview.plus/server/create.php', {
             type: resolvedType,
@@ -5233,13 +5259,19 @@ const applyImportOperations = async (type, operations, onProgress = null) => {
         });
         completed += 1;
         emit(`Created ${folderName}`);
-    }
+    });
 
     if (resolvedType === 'docker') {
         await syncDockerOrder();
         completed += 1;
         emit('Synced Docker folder order');
     }
+
+    recordPerformanceDiagnosticsSample('import', resolvedType, perfNowMs() - startedAt, {
+        deletes: deletes.length,
+        updates: upserts.length,
+        creates: creates.length
+    });
 
     return {
         completed,
@@ -6492,7 +6524,86 @@ const renderTable = (type) => {
     enforceNoHorizontalOverflow();
 };
 
+const perfNowMs = () => ((window.performance && typeof window.performance.now === 'function')
+    ? window.performance.now()
+    : Date.now());
+
+const recordPerformanceDiagnosticsSample = (bucket, type, durationMs, details = {}) => {
+    const resolvedType = normalizeManagedType(type);
+    if (!performanceDiagnosticsState[bucket] || !Array.isArray(performanceDiagnosticsState[bucket][resolvedType])) {
+        return;
+    }
+    const duration = Number(durationMs);
+    if (!Number.isFinite(duration) || duration < 0) {
+        return;
+    }
+    const target = performanceDiagnosticsState[bucket][resolvedType];
+    target.push({
+        at: Date.now(),
+        durationMs: Number(duration.toFixed(2)),
+        details: details && typeof details === 'object' ? details : {}
+    });
+    if (target.length > PERF_DIAGNOSTICS_SAMPLE_LIMIT) {
+        target.splice(0, target.length - PERF_DIAGNOSTICS_SAMPLE_LIMIT);
+    }
+    performanceDiagnosticsState.updatedAt = Date.now();
+    renderPerformanceDiagnostics();
+};
+
+const summarizePerformanceDiagnosticsSamples = (samples) => {
+    const list = Array.isArray(samples) ? samples : [];
+    if (!list.length) {
+        return null;
+    }
+    const durations = list
+        .map((row) => Number(row?.durationMs))
+        .filter((value) => Number.isFinite(value) && value >= 0);
+    if (!durations.length) {
+        return null;
+    }
+    const total = durations.reduce((sum, value) => sum + value, 0);
+    return {
+        count: durations.length,
+        lastMs: Number(durations[durations.length - 1].toFixed(2)),
+        avgMs: Number((total / durations.length).toFixed(2)),
+        maxMs: Number(Math.max(...durations).toFixed(2))
+    };
+};
+
+const renderPerformanceDiagnostics = () => {
+    const host = $('#performance-diagnostics-output');
+    if (!host.length) {
+        return;
+    }
+    const renderRow = (label, summary) => {
+        if (!summary) {
+            return `<tr><th>${escapeHtml(label)}</th><td colspan="4">No samples yet</td></tr>`;
+        }
+        return `<tr><th>${escapeHtml(label)}</th><td>${summary.count}</td><td>${summary.lastMs}ms</td><td>${summary.avgMs}ms</td><td>${summary.maxMs}ms</td></tr>`;
+    };
+    const rows = [
+        renderRow('Docker refresh', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.refresh.docker)),
+        renderRow('VM refresh', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.refresh.vm)),
+        renderRow('Docker import', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.import.docker)),
+        renderRow('VM import', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.import.vm))
+    ].join('');
+    const updatedAt = performanceDiagnosticsState.updatedAt > 0
+        ? new Date(performanceDiagnosticsState.updatedAt).toLocaleString()
+        : 'Not yet sampled';
+    host.html(`
+        <div class="fv-perf-summary-note">Recent UI operation timings from this browser session.</div>
+        <table class="fv-perf-table">
+            <thead>
+                <tr><th>Operation</th><th>Samples</th><th>Last</th><th>Avg</th><th>Max</th></tr>
+            </thead>
+            <tbody>${rows}</tbody>
+        </table>
+        <div class="fv-perf-summary-note">Updated: ${escapeHtml(updatedAt)}</div>
+    `);
+};
+
 const refreshType = async (type) => {
+    const startedAt = perfNowMs();
     const [folders, prefs, info] = await Promise.all([
         fetchFolders(type),
         fetchPrefs(type),
@@ -6503,6 +6614,10 @@ const refreshType = async (type) => {
     infoByType[type] = info && typeof info === 'object' ? info : {};
     setTypeFolders(type, folders);
     renderTable(type);
+    recordPerformanceDiagnosticsSample('refresh', type, perfNowMs() - startedAt, {
+        folderCount: Object.keys(folders || {}).length,
+        infoCount: Object.keys(info || {}).length
+    });
 };
 
 const refreshBackups = async (type) => {
@@ -8373,6 +8488,7 @@ window.toggleHealthSeverityFilter = toggleHealthSeverityFilter;
 window.toggleStatusFilter = toggleStatusFilter;
 window.clearFolderTableFilters = clearFolderTableFilters;
 window.setHealthFolderFilter = setHealthFolderFilter;
+window.refreshPerformanceDiagnostics = renderPerformanceDiagnostics;
 window.runQuickSetupWizard = runQuickSetupWizard;
 window.setSettingsMode = setSettingsMode;
 
@@ -8412,6 +8528,7 @@ window.setSettingsMode = setSettingsMode;
         }
         initSettingsControls();
         initOverflowGuard();
+        renderPerformanceDiagnostics();
         await fetchPluginVersion();
         await refreshAll();
         const serverMode = getServerSettingsMode();

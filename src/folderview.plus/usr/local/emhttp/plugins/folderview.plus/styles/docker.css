@@ -204,6 +204,14 @@ div.folder-preview-4 span.outer {
     overflow: auto;
 }
 
+.fv-tooltip-lazy-loading {
+    min-width: 16rem;
+    padding: 0.55rem 0.65rem;
+    font-size: 1.03rem;
+    font-weight: 600;
+    opacity: 0.88;
+}
+
 /* Force the tooltip to pick up page styling */
 .tooltipster-docker-folder {
     color: inherit;

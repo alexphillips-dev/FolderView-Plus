@@ -32,6 +32,14 @@ const dockerModulesPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.modules.js'
 );
+const settingsJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
+);
+const settingsPagePath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page'
+);
 
 const libPhp = fs.readFileSync(libPath, 'utf8');
 const readInfoPhp = fs.readFileSync(readInfoPath, 'utf8');
@@ -40,6 +48,8 @@ const dockerJs = fs.readFileSync(dockerJsPath, 'utf8');
 const vmJs = fs.readFileSync(vmJsPath, 'utf8');
 const dashboardJs = fs.readFileSync(dashboardJsPath, 'utf8');
 const dockerModulesJs = fs.readFileSync(dockerModulesPath, 'utf8');
+const settingsJs = fs.readFileSync(settingsJsPath, 'utf8');
+const settingsPage = fs.readFileSync(settingsPagePath, 'utf8');
 
 test('read_info supports cached full/state payload retrieval', () => {
     assert.match(libPhp, /const FVPLUS_INFO_CACHE_TTL_FULL\s*=\s*\d+/);
@@ -78,4 +88,33 @@ test('third-party icon endpoint caches folder and icon scans', () => {
 test('row-centering observer scopes to docker containers instead of full document body by default', () => {
     assert.match(dockerModulesJs, /document\.querySelector\('#docker_list'\)/);
     assert.match(dockerModulesJs, /folderRowCenterObserver\.observe\(observerRoot/);
+});
+
+test('full readInfo docker template metadata uses cached signature index', () => {
+    assert.match(libPhp, /FVPLUS_DOCKER_TEMPLATE_CACHE_TTL/);
+    assert.match(libPhp, /function buildDockerTemplateSignature\s*\(/);
+    assert.match(libPhp, /function getDockerTemplateIndexCached\s*\(/);
+    assert.match(libPhp, /getDockerTemplateIndexCached\(\$dockerTemplates\)/);
+});
+
+test('tailscale helper calls support cache and running-state guard', () => {
+    assert.match(libPhp, /FVPLUS_TAILSCALE_EXEC_CACHE_TTL/);
+    assert.match(libPhp, /function fv3_read_tailscale_cache\s*\(/);
+    assert.match(libPhp, /fv3_get_tailscale_fqdn_from_container\(string \$containerName,\s*bool \$containerRunning/);
+    assert.match(libPhp, /fv3_get_tailscale_ip_from_container\(string \$containerName,\s*bool \$containerRunning/);
+    assert.match(libPhp, /Skipping exec for stopped container/);
+});
+
+test('docker tooltip payload is lazy-built on first open', () => {
+    assert.match(dockerJs, /const buildDockerTooltipContent\s*=\s*\(ct\)\s*=>/);
+    assert.match(dockerJs, /fvTooltipLazyBuilt/);
+    assert.match(dockerJs, /Loading preview\.\.\./);
+});
+
+test('import apply uses chunked execution and performance diagnostics panel exists', () => {
+    assert.match(settingsJs, /IMPORT_APPLY_CHUNK_SIZE/);
+    assert.match(settingsJs, /runImportChunked/);
+    assert.match(settingsJs, /performanceDiagnosticsState/);
+    assert.match(settingsJs, /renderPerformanceDiagnostics/);
+    assert.match(settingsPage, /performance-diagnostics-output/);
 });

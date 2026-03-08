@@ -1009,6 +1009,53 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     line-height: 1.45;
 }
 
+.fv-perf-panel {
+    margin: 0 0 0.75rem 0;
+    padding: 0.6rem 0.65rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.14);
+}
+
+.fv-perf-panel-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.fv-perf-output {
+    min-height: 120px;
+    overflow: auto;
+}
+
+.fv-perf-summary-note {
+    font-size: 1.03rem;
+    opacity: 0.85;
+    margin: 0 0 0.35rem 0;
+}
+
+.fv-perf-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 0.35rem 0;
+    font-size: 1.03rem;
+}
+
+.fv-perf-table th,
+.fv-perf-table td {
+    text-align: left;
+    padding: 0.25rem 0.35rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    white-space: nowrap;
+}
+
+.fv-perf-table tbody tr:last-child th,
+.fv-perf-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
 .import-selection {
     margin: 0;
     max-height: 180px;

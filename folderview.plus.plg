@@ -6,12 +6,23 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.07.13">
-<!ENTITY md5 "4286de2d083605587751e543732323b9">
+<!ENTITY version "2026.03.07.14">
+<!ENTITY md5 "06b3e1286f34761023ca802383b23180">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.07.14
+- Added a signature-based Docker template metadata cache in `readInfo(full)` to avoid reparsing unchanged XML templates on every refresh.
+- Added Tailscale helper optimization:
+  - short-lived cache for container TS IP/FQDN lookups,
+  - skip `docker exec tailscale ...` when a container is not running.
+- Added lazy Docker tooltip payload build:
+  - tooltip content now renders on first open instead of prebuilding for every container row.
+- Added chunked import apply execution for large imports so progress updates stay responsive during long runs.
+- Added Advanced Diagnostics performance panel with in-session timing samples for Docker/VM refresh and import operations (last/avg/max).
+- Added regression coverage for template cache, Tailscale cache/guard, lazy tooltip build, import chunking, and diagnostics panel wiring.
 
 ###2026.03.07.13
 - Performance update pass across server/runtime paths:

@@ -603,6 +603,13 @@ emitRequestTokenMetaTag();
         <button onclick="exportSupportBundle()"><i class="fa fa-life-ring"></i> Export support bundle</button>
         <button onclick="copyIssueReport()"><i class="fa fa-clipboard"></i> Copy issue report</button>
     </div>
+    <div class="fv-perf-panel">
+        <div class="fv-perf-panel-head">
+            <strong>Performance diagnostics</strong>
+            <button onclick="refreshPerformanceDiagnostics()"><i class="fa fa-refresh"></i> Refresh panel</button>
+        </div>
+        <div id="performance-diagnostics-output" class="fv-perf-output">No samples yet. Run refresh/import actions to populate timings.</div>
+    </div>
     <pre id="diagnostics-output" class="diagnostics-output">Run health check to view diagnostics.</pre>
 </div>
 <hr>

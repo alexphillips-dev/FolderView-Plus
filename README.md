@@ -181,6 +181,7 @@ node --test tests/*.mjs
 
 ## Support
 - Issues: https://github.com/alexphillips-dev/FolderView-Plus/issues
+- Forum support thread: https://forums.unraid.net/topic/197631-plugin-folderview-plus/
 
 ## Sponsor
 > [!TIP]

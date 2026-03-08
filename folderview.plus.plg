@@ -6,12 +6,23 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.08.02">
-<!ENTITY md5 "2b970f8206b92b1608b6e6dfb4cdfb3d">
+<!ENTITY version "2026.03.08.04">
+<!ENTITY md5 "2e71f08fbeb23ce32587c25abd680b71">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.08.04
+- Bug fix: resolved a first-install regression that could render the Settings page blank.
+- Reliability: added startup safeguards so basic Docker/VM sections stay visible even if initial API calls fail.
+- Stability: refresh now falls back to empty/default data on first-load fetch hiccups instead of aborting UI rendering.
+- Regression guard: added tests to prevent future blank-first-run settings regressions.
+
+
+###2026.03.08.03
+- Maintenance: automated release metadata update.
+
 
 ###2026.03.08.02
 - UI/UX fix: advanced side-by-side modules now use adaptive panel sizing instead of forcing full-height blocks.

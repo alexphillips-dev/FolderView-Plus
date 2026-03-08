@@ -687,7 +687,31 @@ const getSectionSearchHaystack = (section) => section.nodes
     .join(' ')
     .toLowerCase();
 
-const isBasicWorkspaceSection = (section) => BASIC_WORKSPACE_SECTION_KEYS.has(String(section?.key || ''));
+const sectionContainsSelector = (section, selector) => {
+    const nodes = Array.isArray(section?.nodes) ? section.nodes : [];
+    for (const node of nodes) {
+        if (!(node instanceof Element)) {
+            continue;
+        }
+        if (typeof node.matches === 'function' && node.matches(selector)) {
+            return true;
+        }
+        if (typeof node.querySelector === 'function' && node.querySelector(selector)) {
+            return true;
+        }
+    }
+    return false;
+};
+
+const isBasicWorkspaceSection = (section) => {
+    const key = String(section?.key || '').trim().toLowerCase();
+    if (BASIC_WORKSPACE_SECTION_KEYS.has(key)) {
+        return true;
+    }
+    return sectionContainsSelector(section, 'tbody#docker, tbody#vms');
+};
+
+const getBasicWorkspaceSections = () => settingsUiState.sections.filter((section) => isBasicWorkspaceSection(section));
 
 const getVisibleSections = () => settingsUiState.sections.filter((section) => {
     const modeVisible = settingsUiState.mode === 'advanced'
@@ -811,6 +835,11 @@ const toggleAdvancedSectionByKey = (sectionKey) => {
 
 const applySettingsSectionVisibility = () => {
     const visibleKeys = new Set(getVisibleSections().map((section) => section.key));
+    if (!visibleKeys.size && settingsUiState.mode === 'basic' && !settingsUiState.query) {
+        for (const section of getBasicWorkspaceSections()) {
+            visibleKeys.add(section.key);
+        }
+    }
     const forceExpandForQuery = Boolean(settingsUiState.query);
 
     for (const section of settingsUiState.sections) {
@@ -6889,17 +6918,17 @@ const renderPerformanceDiagnostics = () => {
 const refreshType = async (type) => {
     const startedAt = perfNowMs();
     const [folders, prefs, info] = await Promise.all([
-        fetchFolders(type),
-        fetchPrefs(type),
+        fetchFolders(type).catch(() => ({})),
+        fetchPrefs(type).catch(() => (utils.normalizePrefs({}))),
         fetchTypeInfo(type).catch(() => ({}))
     ]);
 
     prefsByType[type] = utils.normalizePrefs(prefs || {});
     infoByType[type] = info && typeof info === 'object' ? info : {};
-    setTypeFolders(type, folders);
+    setTypeFolders(type, utils.normalizeFolderMap(folders || {}));
     renderTable(type);
     recordPerformanceDiagnosticsSample('refresh', type, perfNowMs() - startedAt, {
-        folderCount: Object.keys(folders || {}).length,
+        folderCount: Object.keys(utils.normalizeFolderMap(folders || {})).length,
         infoCount: Object.keys(info || {}).length
     });
 };
@@ -8814,7 +8843,13 @@ window.setSettingsMode = setSettingsMode;
         initOverflowGuard();
         renderPerformanceDiagnostics();
         await fetchPluginVersion();
-        await refreshAll();
+        try {
+            await refreshAll();
+        } catch (error) {
+            // Keep initial settings sections visible on first-load API hiccups.
+            refreshSettingsUx();
+            showError('Initial data load failed', error);
+        }
         const serverMode = getServerSettingsMode();
         if (serverMode) {
             settingsUiState.mode = serverMode;
@@ -8841,6 +8876,11 @@ window.setSettingsMode = setSettingsMode;
         }
         settingsUiState.initialized = true;
     } catch (error) {
+        try {
+            refreshSettingsUx();
+        } catch (_ignored) {
+            // Best effort only; do not shadow the original initialization error.
+        }
         showError('Initialization failed', error);
     }
 })();

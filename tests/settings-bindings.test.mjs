@@ -79,3 +79,12 @@ test('basic toolbar actions reuse compact progress overlay for docker and vm flo
     assert.match(script, /openImportApplyProgressDialog\(resolvedType, progressTotal\);/);
     assert.match(script, /setProgress\(0, 'Creating safety backup\.\.\.'\);/);
 });
+
+test('fresh install guard keeps basic Docker/VM sections visible on startup failures', () => {
+    assert.match(script, /const sectionContainsSelector = \(section, selector\) =>/);
+    assert.match(script, /return sectionContainsSelector\(section, 'tbody#docker, tbody#vms'\);/);
+    assert.match(script, /if \(!visibleKeys\.size && settingsUiState\.mode === 'basic' && !settingsUiState\.query\) \{/);
+    assert.match(script, /for \(const section of getBasicWorkspaceSections\(\)\) \{/);
+    assert.match(script, /visibleKeys\.add\(section\.key\);/);
+    assert.match(script, /showError\('Initial data load failed', error\);/);
+});

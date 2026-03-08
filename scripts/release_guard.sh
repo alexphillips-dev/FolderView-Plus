@@ -177,6 +177,36 @@ if ! grep -q "###${VERSION}" "${PLG_FILE}"; then
   exit 1
 fi
 
+CURRENT_CHANGES_BLOCK="$(awk -v version="${VERSION}" '
+  BEGIN { capture = 0 }
+  /^###/ {
+    if (capture) {
+      exit
+    }
+    if ($0 ~ "^###" version "[[:space:]]*$") {
+      capture = 1
+      next
+    }
+  }
+  {
+    if (capture) {
+      print
+    }
+  }
+' "${PLG_FILE}")"
+
+CURRENT_CHANGES_LINES="$(printf '%s\n' "${CURRENT_CHANGES_BLOCK}" | sed '/^[[:space:]]*$/d')"
+if [[ -z "${CURRENT_CHANGES_LINES}" ]]; then
+  echo "ERROR: CHANGES entry for ${VERSION} is empty." >&2
+  exit 1
+fi
+
+if ! grep -Eiq '(feature|enhancement|fix|bug|security|harden|performance|optimi|ui|ux|layout|mobile|usability|maintenance|refactor|docs|test|reliab|compat)' <<< "${CURRENT_CHANGES_LINES}"; then
+  echo "ERROR: CHANGES entry for ${VERSION} lacks category-signaling keywords." >&2
+  echo "Add release notes that indicate update type (feature/fix/security/performance/ui/maintenance)." >&2
+  exit 1
+fi
+
 MD5_CALC="$(md5sum "${ARCHIVE_FILE}" | awk '{print $1}')"
 if [[ "${MD5_ENTITY}" != "${MD5_CALC}" ]]; then
   echo "ERROR: md5 entity mismatch. plg=${MD5_ENTITY}, archive=${MD5_CALC}" >&2

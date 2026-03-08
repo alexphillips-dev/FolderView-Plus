@@ -1511,6 +1511,8 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     .fv-setup-step-grid,
     .fv-setup-route-grid,
     .fv-setup-profile-grid,
+    .fv-setup-env-grid,
+    .fv-setup-impact-grid,
     .fv-setup-field-grid {
         grid-template-columns: 1fr;
     }
@@ -1913,8 +1915,23 @@ a:focus-visible {
     gap: 0.45rem;
 }
 
+.fv-setup-env-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.45rem;
+}
+
 .fv-setup-route-option,
 .fv-setup-profile-option {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    padding: 0.4rem 0.45rem;
+    display: grid;
+    gap: 0.28rem;
+    cursor: pointer;
+}
+
+.fv-setup-env-option {
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 8px;
     padding: 0.4rem 0.45rem;
@@ -1929,8 +1946,17 @@ a:focus-visible {
     background: rgba(77, 163, 255, 0.14);
 }
 
+.fv-setup-env-option.is-active {
+    border-color: rgba(77, 163, 255, 0.55);
+    background: rgba(77, 163, 255, 0.14);
+}
+
 .fv-setup-route-option input,
 .fv-setup-profile-option input {
+    margin: 0;
+}
+
+.fv-setup-env-option input {
     margin: 0;
 }
 
@@ -1940,8 +1966,19 @@ a:focus-visible {
     font-weight: 700;
 }
 
+.fv-setup-env-title {
+    font-size: 1.03rem;
+    font-weight: 700;
+}
+
 .fv-setup-route-help,
 .fv-setup-profile-help {
+    font-size: 1.03rem;
+    opacity: 0.82;
+    line-height: 1.3;
+}
+
+.fv-setup-env-help {
     font-size: 1.03rem;
     opacity: 0.82;
     line-height: 1.3;
@@ -2035,10 +2072,55 @@ a:focus-visible {
     margin-top: 0.1rem;
 }
 
+.fv-setup-rule-preview {
+    display: block;
+    font-size: 1.03rem;
+    opacity: 0.9;
+    margin-top: 0.08rem;
+}
+
+.fv-setup-rule-preview.is-match {
+    color: #93e19f;
+}
+
+.fv-setup-rule-preview.is-empty {
+    color: rgba(255, 255, 255, 0.72);
+}
+
+.fv-setup-rule-preview.is-error {
+    color: #ff8c8c;
+}
+
 .fv-setup-review-grid {
     display: flex;
     flex-wrap: wrap;
     gap: 0.35rem;
+}
+
+.fv-setup-impact-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem;
+}
+
+.fv-setup-impact-card {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 0.42rem 0.48rem;
+    display: grid;
+    gap: 0.28rem;
+}
+
+.fv-setup-impact-card > h5 {
+    margin: 0;
+    font-size: 1.03rem;
+}
+
+.fv-setup-impact-card > p {
+    margin: 0;
+    font-size: 1.03rem;
+    opacity: 0.9;
 }
 
 .fv-setup-warning-box {
@@ -2046,6 +2128,54 @@ a:focus-visible {
     border-radius: 8px;
     background: rgba(255, 193, 94, 0.09);
     padding: 0.42rem 0.48rem;
+    font-size: 1.03rem;
+}
+
+.fv-setup-validation-box {
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    padding: 0.42rem 0.48rem;
+    font-size: 1.03rem;
+    display: grid;
+    gap: 0.28rem;
+}
+
+.fv-setup-validation-box.is-blocking {
+    border-color: rgba(255, 116, 116, 0.48);
+    background: rgba(255, 116, 116, 0.08);
+}
+
+.fv-setup-validation-box.is-warning {
+    border-color: rgba(255, 193, 94, 0.4);
+    background: rgba(255, 193, 94, 0.08);
+}
+
+.fv-setup-validation-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 1.03rem;
+    font-weight: 700;
+}
+
+.fv-setup-validation-box > ul {
+    margin: 0 0 0 1rem;
+    padding: 0;
+    display: grid;
+    gap: 0.2rem;
+}
+
+.fv-setup-draft-banner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.35rem 0.5rem;
+    border: 1px solid rgba(77, 163, 255, 0.45);
+    border-radius: 8px;
+    background: rgba(77, 163, 255, 0.12);
+    padding: 0.35rem 0.45rem;
     font-size: 1.03rem;
 }
 

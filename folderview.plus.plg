@@ -6,12 +6,25 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.07.11">
-<!ENTITY md5 "2d9eed57ee46c8cc760d4dfb0fde99fe">
+<!ENTITY version "2026.03.07.12">
+<!ENTITY md5 "782d9baa1fee8e1e3cc02ef9bd0796f3">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.07.12
+- Setup Assistant phased overhaul:
+  - added step-level validation gates with required blockers before `Next`/`Apply`,
+  - added richer review impact cards (prefs/import/rule totals),
+  - added draft save + auto-resume with one-click `Start fresh`,
+  - added built-in dry-run apply mode for preview-only setup runs.
+- Added environment presets (`Home Lab`, `Production`, `Media Stack`) with optional behavior defaults.
+- Added starter-rule preview matching text so suggested regex rules show current sample matches.
+- Added Setup Assistant keyboard/focus accessibility improvements:
+  - focus trap, `Esc` close guard, and progress `aria-live` updates.
+- Added post-apply verification summary reporting persisted mode/setup flags and checkpoint status.
+- Added UI regression guards for new Setup Assistant runtime and styling hooks.
 
 ###2026.03.07.11
 - Replace the old quick-setup prompt with a full multi-step Setup Assistant:

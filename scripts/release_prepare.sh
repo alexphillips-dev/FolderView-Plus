@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-# shellcheck source=./lib.sh
+# shellcheck source=scripts/lib.sh
 source "${ROOT_DIR}/scripts/lib.sh"
 cd "${ROOT_DIR}"
 

@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PLG_FILE="${ROOT_DIR}/folderview.plus.plg"
-# shellcheck source=./lib.sh
+# shellcheck source=scripts/lib.sh
 source "${ROOT_DIR}/scripts/lib.sh"
 
 if [[ ! -f "${PLG_FILE}" ]]; then

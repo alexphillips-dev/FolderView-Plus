@@ -185,7 +185,7 @@ test('release workflows keep checksum assets and metadata changes', () => {
 test('CI includes shellcheck linting for repository shell scripts', () => {
     assert.match(ciWorkflow, /Install shellcheck/);
     assert.match(ciWorkflow, /Lint shell scripts/);
-    assert.match(ciWorkflow, /shellcheck "\$f"/);
+    assert.match(ciWorkflow, /shellcheck -x --source-path=SCRIPTDIR "\$f"/);
 });
 
 test('shared script library and doctor preflight exist with required helpers', () => {

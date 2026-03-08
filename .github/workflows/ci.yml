@@ -31,7 +31,7 @@ jobs:
           set -euo pipefail
           mapfile -d '' files < <(find . -type f \( -name "*.sh" -o -path "./.githooks/pre-push" \) -print0)
           for f in "${files[@]}"; do
-            shellcheck "$f"
+            shellcheck -x --source-path=SCRIPTDIR "$f"
           done
 
       - name: Lint JavaScript syntax

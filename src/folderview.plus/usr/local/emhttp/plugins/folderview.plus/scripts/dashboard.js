@@ -109,6 +109,166 @@ const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs) => {
     });
 };
 
+const parseJsonPayloadSafe = (payload) => {
+    if (payload && typeof payload === 'object') {
+        return payload;
+    }
+    if (typeof payload === 'string') {
+        const trimmed = payload.trim();
+        if (!trimmed) {
+            return {};
+        }
+        try {
+            return JSON.parse(trimmed);
+        } catch (_error) {
+            return {};
+        }
+    }
+    return {};
+};
+
+const normalizeDockerStateToken = (entry, fromStateMode = false) => {
+    if (!entry || typeof entry !== 'object') {
+        return 's:0::';
+    }
+    if (fromStateMode) {
+        const running = entry.running === true;
+        const paused = entry.paused === true;
+        const status = running ? (paused ? 'p' : 'r') : 's';
+        const autostart = entry.autostart === true ? '1' : '0';
+        const manager = String(entry.manager || '').trim();
+        const label = String(entry.folderLabel || '').trim();
+        return `${status}:${autostart}:${manager}:${label}`;
+    }
+    const info = entry.info && typeof entry.info === 'object' ? entry.info : {};
+    const state = info.State && typeof info.State === 'object' ? info.State : {};
+    const labels = entry.Labels && typeof entry.Labels === 'object' ? entry.Labels : {};
+    const running = state.Running === true;
+    const paused = state.Paused === true;
+    const status = running ? (paused ? 'p' : 'r') : 's';
+    const manager = String(state.manager || '').trim();
+    const autostart = !(state.Autostart === false) ? '1' : '0';
+    const label = getFolderLabelValue(labels);
+    return `${status}:${autostart}:${manager}:${label}`;
+};
+
+const buildDockerStateSignature = (source, fromStateMode = false) => {
+    const map = source && typeof source === 'object' ? source : {};
+    const names = Object.keys(map).sort((a, b) => a.localeCompare(b));
+    if (!names.length) {
+        return '';
+    }
+    const tokens = names.map((name) => `${name}:${normalizeDockerStateToken(map[name], fromStateMode)}`);
+    return tokens.join('|');
+};
+
+const normalizeVmStateToken = (entry, fromStateMode = false) => {
+    if (!entry || typeof entry !== 'object') {
+        return 'stopped:0';
+    }
+    const state = String(entry.state || '').toLowerCase() || 'stopped';
+    const autostart = entry.autostart ? '1' : '0';
+    return `${state}:${autostart}`;
+};
+
+const buildVmStateSignature = (source, fromStateMode = false) => {
+    const map = source && typeof source === 'object' ? source : {};
+    const names = Object.keys(map).sort((a, b) => a.localeCompare(b));
+    if (!names.length) {
+        return '';
+    }
+    const tokens = names.map((name) => `${name}:${normalizeVmStateToken(map[name], fromStateMode)}`);
+    return tokens.join('|');
+};
+
+const buildDashboardDockerFolderMatchCache = (orderSnapshot, containersInfo, folders, prefs) => {
+    const folderMap = folders && typeof folders === 'object' ? folders : {};
+    const infoByName = containersInfo && typeof containersInfo === 'object' ? containersInfo : {};
+    const names = (Array.isArray(orderSnapshot) ? orderSnapshot : [])
+        .filter((entry) => entry && !folderRegex.test(entry) && Object.prototype.hasOwnProperty.call(infoByName, entry));
+    const labelBuckets = new Map();
+    for (const name of names) {
+        const labels = infoByName[name]?.Labels || {};
+        const labelValue = getFolderLabelValue(labels);
+        if (!labelValue) {
+            continue;
+        }
+        if (!labelBuckets.has(labelValue)) {
+            labelBuckets.set(labelValue, []);
+        }
+        labelBuckets.get(labelValue).push(name);
+    }
+    const rules = Array.isArray(prefs?.autoRules) ? prefs.autoRules : [];
+    const cache = {};
+    for (const [folderId, folder] of Object.entries(folderMap)) {
+        const explicit = Array.isArray(folder?.containers)
+            ? folder.containers.filter((name) => infoByName[name])
+            : [];
+        let regexMatches = [];
+        const regexRaw = String(folder?.regex || '').trim();
+        if (regexRaw) {
+            try {
+                const regex = new RegExp(regexRaw);
+                regexMatches = names.filter((name) => regex.test(name));
+            } catch (_error) {
+                regexMatches = [];
+            }
+        }
+        const labelMatches = [...(labelBuckets.get(String(folder?.name || '')) || [])];
+        const ruleMatches = utils.getAutoRuleMatches({
+            rules,
+            folderId,
+            names,
+            infoByName,
+            type: 'docker'
+        });
+        cache[folderId] = {
+            explicit,
+            regex: regexMatches,
+            label: labelMatches,
+            rules: ruleMatches
+        };
+    }
+    return cache;
+};
+
+const buildDashboardVmFolderMatchCache = (orderSnapshot, vmInfo, folders, prefs) => {
+    const folderMap = folders && typeof folders === 'object' ? folders : {};
+    const infoByName = vmInfo && typeof vmInfo === 'object' ? vmInfo : {};
+    const names = (Array.isArray(orderSnapshot) ? orderSnapshot : [])
+        .filter((entry) => entry && !folderRegex.test(entry) && Object.prototype.hasOwnProperty.call(infoByName, entry));
+    const rules = Array.isArray(prefs?.autoRules) ? prefs.autoRules : [];
+    const cache = {};
+    for (const [folderId, folder] of Object.entries(folderMap)) {
+        const explicit = Array.isArray(folder?.containers)
+            ? folder.containers.filter((name) => infoByName[name])
+            : [];
+        let regexMatches = [];
+        const regexRaw = String(folder?.regex || '').trim();
+        if (regexRaw) {
+            try {
+                const regex = new RegExp(regexRaw);
+                regexMatches = names.filter((name) => regex.test(name));
+            } catch (_error) {
+                regexMatches = [];
+            }
+        }
+        const ruleMatches = utils.getAutoRuleMatches({
+            rules,
+            folderId,
+            names,
+            infoByName,
+            type: 'vm'
+        });
+        cache[folderId] = {
+            explicit,
+            regex: regexMatches,
+            rules: ruleMatches
+        };
+    }
+    return cache;
+};
+
 /**
  * Handles the creation of all folders
  */
@@ -135,6 +295,7 @@ const createFolders = async () => {
         folderTypePrefs.docker = utils.normalizePrefs(prefsResponse?.prefs || {});
         unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs.docker);
         applyDashboardRuntimePrefs();
+        lastDashboardStateSignatures.docker = buildDockerStateSignature(containersInfo, false);
     
         // Filter the order to get the container that aren't in the order, this happen when a new container is created
         let newOnes = order.filter(x => !unraidOrder.includes(x));
@@ -178,6 +339,7 @@ const createFolders = async () => {
             order: order,
             containersInfo: containersInfo
         }}));
+        const dockerMatchCache = buildDashboardDockerFolderMatchCache(order, containersInfo, folders, folderTypePrefs.docker);
 
         // Draw the folders in the order
         for (let key = 0; key < order.length; key++) {
@@ -185,7 +347,15 @@ const createFolders = async () => {
             if (container && folderRegex.test(container)) {
                 let id = container.replace(folderRegex, '');
                 if (folders[id]) {
-                    key -= createFolderDocker(folders[id], id, key, order, containersInfo, Object.keys(foldersDone));
+                    key -= createFolderDocker(
+                        folders[id],
+                        id,
+                        key,
+                        order,
+                        containersInfo,
+                        Object.keys(foldersDone),
+                        dockerMatchCache[id] || null
+                    );
                     key -= newOnes.length;
                     // Move the folder to the done object and delete it from the undone one
                     foldersDone[id] = folders[id];
@@ -200,7 +370,15 @@ const createFolders = async () => {
         for (const [id, value] of remainingDockerFolders) {
             // Add the folder on top of the array
             order.unshift(`folder-${id}`);
-            createFolderDocker(value, id, 0, order, containersInfo, Object.keys(foldersDone));
+            createFolderDocker(
+                value,
+                id,
+                0,
+                order,
+                containersInfo,
+                Object.keys(foldersDone),
+                dockerMatchCache[id] || null
+            );
             // Move the folder to the done object and delete it from the undone one
             foldersDone[id] = folders[id];
             delete folders[id];
@@ -255,6 +433,7 @@ const createFolders = async () => {
         folderTypePrefs.vm = utils.normalizePrefs(prefsResponse?.prefs || {});
         unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs.vm);
         applyDashboardRuntimePrefs();
+        lastDashboardStateSignatures.vm = buildVmStateSignature(vmInfo, false);
     
         // Filter the webui order to get the container that aren't in the order, this happen when a new container is created
         let newOnes = order.filter(x => !unraidOrder.includes(x));
@@ -298,6 +477,7 @@ const createFolders = async () => {
             order: order,
             vmInfo: vmInfo
         }}));
+        const vmMatchCache = buildDashboardVmFolderMatchCache(order, vmInfo, folders, folderTypePrefs.vm);
 
         // Draw the folders in the order
         for (let key = 0; key < order.length; key++) {
@@ -305,7 +485,15 @@ const createFolders = async () => {
             if (container && folderRegex.test(container)) {
                 let id = container.replace(folderRegex, '');
                 if (folders[id]) {
-                    key -= createFolderVM(folders[id], id, key, order, vmInfo, Object.keys(foldersDone));
+                    key -= createFolderVM(
+                        folders[id],
+                        id,
+                        key,
+                        order,
+                        vmInfo,
+                        Object.keys(foldersDone),
+                        vmMatchCache[id] || null
+                    );
                     key -= newOnes.length;
                     // Move the folder to the done object and delete it from the undone one
                     foldersDone[id] = folders[id];
@@ -320,7 +508,15 @@ const createFolders = async () => {
         for (const [id, value] of remainingVmFolders) {
             // Add the folder on top of the array
             order.unshift(`folder-${id}`);
-            createFolderVM(value, id, 0, order, vmInfo, Object.keys(foldersDone));
+            createFolderVM(
+                value,
+                id,
+                0,
+                order,
+                vmInfo,
+                Object.keys(foldersDone),
+                vmMatchCache[id] || null
+            );
             // Move the folder to the done object and delete it from the undone one
             foldersDone[id] = folders[id];
             delete folders[id];
@@ -360,9 +556,10 @@ const createFolders = async () => {
  * @param {Array<string>} order order of containers
  * @param {object} containersInfo info of the containers
  * @param {Array<string>} foldersDone folders that are done
+ * @param {object|null} matchCacheEntry precomputed membership candidates
  * @returns the number of element removed before the folder
  */
-const createFolderDocker = (folder, id, position, order, containersInfo, foldersDone) => {
+const createFolderDocker = (folder, id, position, order, containersInfo, foldersDone, matchCacheEntry = null) => {
     if (folderTypePrefs?.docker?.performanceMode === true && folder && typeof folder === 'object') {
         folder.settings = {
             ...(folder.settings || {}),
@@ -395,31 +592,63 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
     let managerTypes = new Set();
     let remBefore = 0;
 
-    // If regex is present searches all containers for a match and put them inside the folder containers
-    if (folder.regex) {
-        const regex = new RegExp(folder.regex);
-        folder.containers = folder.containers.concat(order.filter(el => regex.test(el)));
+    const precomputed = matchCacheEntry && typeof matchCacheEntry === 'object' ? matchCacheEntry : null;
+    const combinedMembers = [];
+    const combinedSet = new Set();
+    const pushCombined = (name) => {
+        const key = String(name || '').trim();
+        if (!key || combinedSet.has(key) || !containersInfo[key]) {
+            return;
+        }
+        combinedSet.add(key);
+        combinedMembers.push(key);
+    };
+    const explicit = precomputed
+        ? (Array.isArray(precomputed.explicit) ? precomputed.explicit : [])
+        : (Array.isArray(folder.containers) ? folder.containers : []);
+    explicit.forEach(pushCombined);
+
+    let regexMatches = [];
+    if (precomputed && Array.isArray(precomputed.regex)) {
+        regexMatches = precomputed.regex;
+    } else {
+        const regexRaw = String(folder.regex || '').trim();
+        if (regexRaw) {
+            try {
+                const regex = new RegExp(regexRaw);
+                regexMatches = order.filter((entry) => containersInfo[entry] && regex.test(entry));
+            } catch (_error) {
+                regexMatches = [];
+            }
+        }
     }
+    regexMatches.forEach(pushCombined);
 
-    folder.containers = folder.containers.concat(order.filter(el => {
-        const labels = containersInfo[el]?.Labels || {};
-        return getFolderLabelValue(labels) === folder.name;
-    }));
+    const labelMatches = precomputed && Array.isArray(precomputed.label)
+        ? precomputed.label
+        : order.filter((entry) => {
+            const labels = containersInfo[entry]?.Labels || {};
+            return getFolderLabelValue(labels) === folder.name;
+        });
+    labelMatches.forEach(pushCombined);
 
-    folder.containers = folder.containers.concat(utils.getAutoRuleMatches({
-        rules: folderTypePrefs.docker.autoRules || [],
-        folderId: id,
-        names: order,
-        infoByName: containersInfo,
-        type: 'docker'
-    }).filter((name) => !folder.containers.includes(name)));
+    const ruleMatches = precomputed && Array.isArray(precomputed.rules)
+        ? precomputed.rules
+        : utils.getAutoRuleMatches({
+            rules: folderTypePrefs.docker.autoRules || [],
+            folderId: id,
+            names: order,
+            infoByName: containersInfo,
+            type: 'docker'
+        });
+    ruleMatches.forEach(pushCombined);
 
     const lazyPreviewEnabled = folderTypePrefs?.docker?.lazyPreviewEnabled === true;
     const lazyPreviewThreshold = Number(folderTypePrefs?.docker?.lazyPreviewThreshold || 30);
     const isExpandedByDefault = folder?.settings?.expand_dashboard === true;
     const lazyPreviewActive = lazyPreviewEnabled
         && Number.isFinite(lazyPreviewThreshold)
-        && new Set(folder.containers).size >= Math.max(10, Math.min(200, Math.round(lazyPreviewThreshold)))
+        && combinedMembers.length >= Math.max(10, Math.min(200, Math.round(lazyPreviewThreshold)))
         && !isExpandedByDefault;
     if (lazyPreviewActive && folder && typeof folder === 'object') {
         folder.settings = {
@@ -459,7 +688,7 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
     });
 
     // loop over the containers
-    for (const container of folder.containers) {
+    for (const container of combinedMembers) {
         // get both index, tis is needed for removing from the orders later
         const index = cutomOrder.indexOf(container);
         const offsetIndex = order.indexOf(container);
@@ -623,9 +852,10 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
  * @param {Array<string>} order order of vms
  * @param {object} vmInfo info of the vms
  * @param {Array<string>} foldersDone folders that are done
+ * @param {object|null} matchCacheEntry precomputed membership candidates
  * @returns the number of element removed before the folder
  */
-const createFolderVM = (folder, id, position, order, vmInfo, foldersDone) => {
+const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchCacheEntry = null) => {
     if (folderTypePrefs?.vm?.performanceMode === true && folder && typeof folder === 'object') {
         folder.settings = {
             ...(folder.settings || {}),
@@ -655,26 +885,55 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone) => {
     let autostartStarted = 0;
     let remBefore = 0;
 
-    // If regex is present searches all containers for a match and put them inside the folder containers
-    if (folder.regex) {
-        const regex = new RegExp(folder.regex);
-        folder.containers = folder.containers.concat(order.filter(el => regex.test(el)));
-    }
+    const precomputed = matchCacheEntry && typeof matchCacheEntry === 'object' ? matchCacheEntry : null;
+    const combinedMembers = [];
+    const combinedSet = new Set();
+    const pushCombined = (name) => {
+        const key = String(name || '').trim();
+        if (!key || combinedSet.has(key) || !vmInfo[key]) {
+            return;
+        }
+        combinedSet.add(key);
+        combinedMembers.push(key);
+    };
+    const explicit = precomputed
+        ? (Array.isArray(precomputed.explicit) ? precomputed.explicit : [])
+        : (Array.isArray(folder.containers) ? folder.containers : []);
+    explicit.forEach(pushCombined);
 
-    folder.containers = folder.containers.concat(utils.getAutoRuleMatches({
-        rules: folderTypePrefs.vm.autoRules || [],
-        folderId: id,
-        names: order,
-        infoByName: vmInfo,
-        type: 'vm'
-    }).filter((name) => !folder.containers.includes(name)));
+    let regexMatches = [];
+    if (precomputed && Array.isArray(precomputed.regex)) {
+        regexMatches = precomputed.regex;
+    } else {
+        const regexRaw = String(folder.regex || '').trim();
+        if (regexRaw) {
+            try {
+                const regex = new RegExp(regexRaw);
+                regexMatches = order.filter((entry) => vmInfo[entry] && regex.test(entry));
+            } catch (_error) {
+                regexMatches = [];
+            }
+        }
+    }
+    regexMatches.forEach(pushCombined);
+
+    const ruleMatches = precomputed && Array.isArray(precomputed.rules)
+        ? precomputed.rules
+        : utils.getAutoRuleMatches({
+            rules: folderTypePrefs.vm.autoRules || [],
+            folderId: id,
+            names: order,
+            infoByName: vmInfo,
+            type: 'vm'
+        });
+    ruleMatches.forEach(pushCombined);
 
     const lazyPreviewEnabled = folderTypePrefs?.vm?.lazyPreviewEnabled === true;
     const lazyPreviewThreshold = Number(folderTypePrefs?.vm?.lazyPreviewThreshold || 30);
     const isExpandedByDefault = folder?.settings?.expand_dashboard === true;
     const lazyPreviewActive = lazyPreviewEnabled
         && Number.isFinite(lazyPreviewThreshold)
-        && new Set(folder.containers).size >= Math.max(10, Math.min(200, Math.round(lazyPreviewThreshold)))
+        && combinedMembers.length >= Math.max(10, Math.min(200, Math.round(lazyPreviewThreshold)))
         && !isExpandedByDefault;
     if (lazyPreviewActive && folder && typeof folder === 'object') {
         folder.settings = {
@@ -714,7 +973,7 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone) => {
     });
 
     // loop over the containers
-    for (const container of folder.containers) {
+    for (const container of combinedMembers) {
         // get both index, tis is needed for removing from the orders later
         const index = cutomOrder.indexOf(container);
         const offsetIndex = order.indexOf(container);
@@ -1564,6 +1823,30 @@ let folderReq = {
 let liveRefreshTimer = null;
 let liveRefreshMs = 0;
 let liveRefreshInFlight = false;
+let queuedLoadlistTimer = null;
+let lastDashboardStateSignatures = {
+    docker: '',
+    vm: ''
+};
+
+const queueLoadlistRefresh = () => {
+    if (queuedLoadlistTimer) {
+        return;
+    }
+    queuedLoadlistTimer = setTimeout(() => {
+        queuedLoadlistTimer = null;
+        loadlist();
+    }, 90);
+};
+
+const fetchDashboardTypeStateSignature = async (type) => {
+    const payload = await $.get(`/plugins/folderview.plus/server/read_info.php?type=${type}&mode=state`).promise();
+    const parsed = parseJsonPayloadSafe(payload);
+    if (type === 'docker') {
+        return buildDockerStateSignature(parsed, true);
+    }
+    return buildVmStateSignature(parsed, true);
+};
 
 const clearLiveRefreshTimer = () => {
     if (liveRefreshTimer) {
@@ -1578,13 +1861,45 @@ const runLiveRefreshTick = () => {
         return;
     }
     liveRefreshInFlight = true;
-    try {
-        loadlist();
-    } finally {
-        setTimeout(() => {
-            liveRefreshInFlight = false;
-        }, 1000);
-    }
+    Promise.resolve()
+        .then(async () => {
+            const checks = [];
+            if ($('tbody#docker_view').length > 0 && folderTypePrefs?.docker?.liveRefreshEnabled === true) {
+                checks.push('docker');
+            }
+            if ($('tbody#vm_view').length > 0 && folderTypePrefs?.vm?.liveRefreshEnabled === true) {
+                checks.push('vm');
+            }
+            if (!checks.length) {
+                return;
+            }
+
+            let changed = false;
+            for (const type of checks) {
+                let signature = '';
+                try {
+                    signature = await fetchDashboardTypeStateSignature(type);
+                } catch (_error) {
+                    signature = '';
+                }
+                if (!signature) {
+                    changed = true;
+                    continue;
+                }
+                if (signature !== lastDashboardStateSignatures[type]) {
+                    lastDashboardStateSignatures[type] = signature;
+                    changed = true;
+                }
+            }
+            if (changed) {
+                queueLoadlistRefresh();
+            }
+        })
+        .finally(() => {
+            setTimeout(() => {
+                liveRefreshInFlight = false;
+            }, 500);
+        });
 };
 
 const applyDashboardRuntimePrefs = () => {

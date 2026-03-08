@@ -291,7 +291,14 @@
         };
 
         const startFolderRowCenterObserver = () => {
-            if (folderRowCenterObserver || !document.body || typeof MutationObserver !== 'function') {
+            if (folderRowCenterObserver || typeof MutationObserver !== 'function') {
+                return;
+            }
+            const observerRoot = document.querySelector('#docker_list')
+                || document.querySelector('#docker_view')
+                || document.querySelector('#docker_containers')
+                || document.body;
+            if (!observerRoot) {
                 return;
             }
 
@@ -316,7 +323,7 @@
                 }
             });
 
-            folderRowCenterObserver.observe(document.body, { childList: true, subtree: true });
+            folderRowCenterObserver.observe(observerRoot, { childList: true, subtree: true });
             queueForceAllFolderRowsVerticalCenter();
             setTimeout(queueForceAllFolderRowsVerticalCenter, 50);
             setTimeout(queueForceAllFolderRowsVerticalCenter, 250);

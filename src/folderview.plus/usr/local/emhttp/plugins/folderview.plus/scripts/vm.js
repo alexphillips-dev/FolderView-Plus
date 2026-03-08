@@ -115,6 +115,85 @@ const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs) => {
     });
 };
 
+const parseJsonPayloadSafe = (payload) => {
+    if (payload && typeof payload === 'object') {
+        return payload;
+    }
+    if (typeof payload === 'string') {
+        const trimmed = payload.trim();
+        if (!trimmed) {
+            return {};
+        }
+        try {
+            return JSON.parse(trimmed);
+        } catch (_error) {
+            return {};
+        }
+    }
+    return {};
+};
+
+const normalizeVmStateToken = (entry, fromStateMode = false) => {
+    if (!entry || typeof entry !== 'object') {
+        return 's:0';
+    }
+    if (fromStateMode) {
+        const state = String(entry.state || '').toLowerCase();
+        const autostart = entry.autostart === true ? '1' : '0';
+        return `${state || 'stopped'}:${autostart}`;
+    }
+    const state = String(entry.state || '').toLowerCase();
+    const autostart = entry.autostart ? '1' : '0';
+    return `${state || 'stopped'}:${autostart}`;
+};
+
+const buildVmStateSignature = (source, fromStateMode = false) => {
+    const map = source && typeof source === 'object' ? source : {};
+    const names = Object.keys(map).sort((a, b) => a.localeCompare(b));
+    if (!names.length) {
+        return '';
+    }
+    const tokens = names.map((name) => `${name}:${normalizeVmStateToken(map[name], fromStateMode)}`);
+    return tokens.join('|');
+};
+
+const buildVmFolderMatchCache = (orderSnapshot, vmInfo, folders, prefs) => {
+    const folderMap = folders && typeof folders === 'object' ? folders : {};
+    const infoByName = vmInfo && typeof vmInfo === 'object' ? vmInfo : {};
+    const names = (Array.isArray(orderSnapshot) ? orderSnapshot : [])
+        .filter((entry) => entry && !folderRegex.test(entry) && Object.prototype.hasOwnProperty.call(infoByName, entry));
+    const rules = Array.isArray(prefs?.autoRules) ? prefs.autoRules : [];
+    const cache = {};
+    for (const [folderId, folder] of Object.entries(folderMap)) {
+        const explicit = Array.isArray(folder?.containers)
+            ? folder.containers.filter((name) => infoByName[name])
+            : [];
+        let regexMatches = [];
+        const regexRaw = String(folder?.regex || '').trim();
+        if (regexRaw) {
+            try {
+                const regex = new RegExp(regexRaw);
+                regexMatches = names.filter((name) => regex.test(name));
+            } catch (_error) {
+                regexMatches = [];
+            }
+        }
+        const ruleMatches = utils.getAutoRuleMatches({
+            rules,
+            folderId,
+            names,
+            infoByName,
+            type: 'vm'
+        });
+        cache[folderId] = {
+            explicit,
+            regex: regexMatches,
+            rules: ruleMatches
+        };
+    }
+    return cache;
+};
+
 const removeRuntimeHealthBadge = () => {
     const existing = document.getElementById('fv-runtime-health-badge-vm');
     if (existing && existing.parentNode) {
@@ -192,6 +271,7 @@ const createFolders = async () => {
     folderTypePrefs = utils.normalizePrefs(prefsResponse?.prefs || {});
     unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs);
     applyRuntimePrefs(folderTypePrefs);
+    lastLiveRefreshStateSignature = buildVmStateSignature(vmInfo, false);
     
 
     
@@ -237,6 +317,7 @@ const createFolders = async () => {
         order: order,
         vmInfo: vmInfo
     }}));
+    const folderMatchCache = buildVmFolderMatchCache(order, vmInfo, folders, folderTypePrefs);
 
     // Draw the folders in the order
     for (let key = 0; key < order.length; key++) {
@@ -244,7 +325,15 @@ const createFolders = async () => {
         if (container && folderRegex.test(container)) {
             let id = container.replace(folderRegex, '');
             if (folders[id]) {
-                key -= createFolder(folders[id], id, key, order, vmInfo, Object.keys(foldersDone));
+                key -= createFolder(
+                    folders[id],
+                    id,
+                    key,
+                    order,
+                    vmInfo,
+                    Object.keys(foldersDone),
+                    folderMatchCache[id] || null
+                );
                 key -= newOnes.length;
                 // Move the folder to the done object and delete it from the undone one
                 foldersDone[id] = folders[id];
@@ -259,7 +348,15 @@ const createFolders = async () => {
     for (const [id, value] of remainingFolders) {
         // Add the folder on top of the array
         order.unshift(`folder-${id}`);
-        createFolder(value, id, 0, order, vmInfo, Object.keys(foldersDone));
+        createFolder(
+            value,
+            id,
+            0,
+            order,
+            vmInfo,
+            Object.keys(foldersDone),
+            folderMatchCache[id] || null
+        );
         // Move the folder to the done object and delete it from the undone one
         foldersDone[id] = folders[id];
         delete folders[id];
@@ -294,9 +391,10 @@ const createFolders = async () => {
  * @param {Array<string>} order order of vms
  * @param {object} vmInfo info of the vms
  * @param {Array<string>} foldersDone folders that are done
+ * @param {object|null} matchCacheEntry precomputed membership candidates
  * @returns the number of element removed before the folder
  */
-const createFolder = (folder, id, position, order, vmInfo, foldersDone) => {
+const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCacheEntry = null) => {
     if (folderTypePrefs?.performanceMode === true && folder && typeof folder === 'object') {
         folder.settings = {
             ...(folder.settings || {}),
@@ -328,32 +426,53 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone) => {
     let autostartStarted = 0;
     let remBefore = 0;
 
-    // If regex is present searches all containers for a match and put them inside the folder containers
-    if (folder.regex && typeof folder.regex === 'string' && folder.regex.trim() !== "") {
+    const precomputed = matchCacheEntry && typeof matchCacheEntry === 'object' ? matchCacheEntry : null;
+    const combinedMembers = [];
+    const combinedSet = new Set();
+    const pushCombined = (name) => {
+        const key = String(name || '').trim();
+        if (!key || combinedSet.has(key) || !vmInfo[key]) {
+            return;
+        }
+        combinedSet.add(key);
+        combinedMembers.push(key);
+    };
+    const explicit = precomputed
+        ? (Array.isArray(precomputed.explicit) ? precomputed.explicit : [])
+        : (Array.isArray(folder.containers) ? folder.containers : []);
+    explicit.forEach(pushCombined);
+
+    let regexMatches = [];
+    if (precomputed && Array.isArray(precomputed.regex)) {
+        regexMatches = precomputed.regex;
+    } else if (folder.regex && typeof folder.regex === 'string' && folder.regex.trim() !== "") {
         try {
             const regex = new RegExp(folder.regex);
-            const regexMatches = order.filter(el => vmInfo[el] && regex.test(el) && !folder.containers.includes(el));
-            folder.containers = folder.containers.concat(regexMatches);
+            regexMatches = order.filter((el) => vmInfo[el] && regex.test(el));
         } catch (e) {
+            regexMatches = [];
             console.warn(`folderview.plus: Invalid regex "${folder.regex}" in VM folder "${folder.name}"`);
         }
     }
+    regexMatches.forEach(pushCombined);
 
-    const ruleMatches = utils.getAutoRuleMatches({
-        rules: folderTypePrefs.autoRules || [],
-        folderId: id,
-        names: order,
-        infoByName: vmInfo,
-        type: 'vm'
-    }).filter((vmName) => !folder.containers.includes(vmName));
-    folder.containers = folder.containers.concat(ruleMatches);
+    const ruleMatches = precomputed && Array.isArray(precomputed.rules)
+        ? precomputed.rules
+        : utils.getAutoRuleMatches({
+            rules: folderTypePrefs.autoRules || [],
+            folderId: id,
+            names: order,
+            infoByName: vmInfo,
+            type: 'vm'
+        });
+    ruleMatches.forEach(pushCombined);
 
     const lazyPreviewEnabled = folderTypePrefs?.lazyPreviewEnabled === true;
     const lazyPreviewThreshold = Number(folderTypePrefs?.lazyPreviewThreshold || 30);
     const isExpandedByDefault = folder?.settings?.expand_tab === true;
     const lazyPreviewActive = lazyPreviewEnabled
         && Number.isFinite(lazyPreviewThreshold)
-        && new Set(folder.containers).size >= Math.max(10, Math.min(200, Math.round(lazyPreviewThreshold)))
+        && combinedMembers.length >= Math.max(10, Math.min(200, Math.round(lazyPreviewThreshold)))
         && !isExpandedByDefault;
     if (lazyPreviewActive && folder && typeof folder === 'object') {
         folder.settings = {
@@ -441,7 +560,7 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone) => {
     });
 
     // loop over the containers
-    for (const container of folder.containers) {
+    for (const container of combinedMembers) {
 
         // get both index, tis is needed for removing from the orders later
         const index = cutomOrder.indexOf(container);
@@ -1013,6 +1132,24 @@ let folderTypePrefs = utils.normalizePrefs({});
 let liveRefreshTimer = null;
 let liveRefreshMs = 0;
 let liveRefreshInFlight = false;
+let queuedLoadlistTimer = null;
+let lastLiveRefreshStateSignature = '';
+
+const queueLoadlistRefresh = () => {
+    if (queuedLoadlistTimer) {
+        return;
+    }
+    queuedLoadlistTimer = setTimeout(() => {
+        queuedLoadlistTimer = null;
+        loadlist();
+    }, 90);
+};
+
+const fetchVmStateSignature = async () => {
+    const payload = await $.get('/plugins/folderview.plus/server/read_info.php?type=vm&mode=state').promise();
+    const parsed = parseJsonPayloadSafe(payload);
+    return buildVmStateSignature(parsed, true);
+};
 
 const clearLiveRefreshTimer = () => {
     if (liveRefreshTimer) {
@@ -1027,13 +1164,28 @@ const runLiveRefreshTick = () => {
         return;
     }
     liveRefreshInFlight = true;
-    try {
-        loadlist();
-    } finally {
-        setTimeout(() => {
-            liveRefreshInFlight = false;
-        }, 1000);
-    }
+    Promise.resolve()
+        .then(async () => {
+            let nextSignature = '';
+            try {
+                nextSignature = await fetchVmStateSignature();
+            } catch (_error) {
+                nextSignature = '';
+            }
+            if (!nextSignature) {
+                queueLoadlistRefresh();
+                return;
+            }
+            if (nextSignature !== lastLiveRefreshStateSignature) {
+                lastLiveRefreshStateSignature = nextSignature;
+                queueLoadlistRefresh();
+            }
+        })
+        .finally(() => {
+            setTimeout(() => {
+                liveRefreshInFlight = false;
+            }, 500);
+        });
 };
 
 const scheduleLiveRefresh = (prefs) => {

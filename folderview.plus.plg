@@ -6,12 +6,21 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.07.12">
-<!ENTITY md5 "782d9baa1fee8e1e3cc02ef9bd0796f3">
+<!ENTITY version "2026.03.07.13">
+<!ENTITY md5 "4286de2d083605587751e543732323b9">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.07.13
+- Performance update pass across server/runtime paths:
+  - added short-lived `read_info` caching for full and lightweight state payloads,
+  - added state-mode polling for live refresh so full list re-render only runs when signatures change,
+  - added precomputed folder membership caches for Docker/VM rendering in Docker, VMs, and Dashboard views,
+  - added third-party icon directory scan caching for faster icon picker loading with large icon libraries,
+  - narrowed row-centering observer scope to Docker table roots and tightened folder status icon observation,
+  - added regression coverage for the new performance guards.
 
 ###2026.03.07.12
 - Setup Assistant phased overhaul:

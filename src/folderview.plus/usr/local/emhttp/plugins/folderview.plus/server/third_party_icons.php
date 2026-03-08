@@ -2,6 +2,7 @@
 require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php");
 
 const FVPLUS_THIRD_PARTY_ICON_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'ico', 'avif'];
+const FVPLUS_THIRD_PARTY_ICON_CACHE_TTL = 30;
 
 function thirdPartyIconsBaseDir(): string {
     global $sourceDir;
@@ -14,6 +15,108 @@ function ensureThirdPartyIconsDirExists(): string {
         @mkdir($baseDir, 0770, true);
     }
     return $baseDir;
+}
+
+function thirdPartyIconCacheDir(): string {
+    $path = '/tmp/folderview.plus-cache/third-party-icons';
+    if (!is_dir($path)) {
+        @mkdir($path, 0770, true);
+    }
+    return $path;
+}
+
+function thirdPartyIconCachePath(string $key): string {
+    $safe = preg_replace('/[^A-Za-z0-9._-]+/', '-', strtolower(trim($key)));
+    if (!is_string($safe) || $safe === '') {
+        $safe = 'cache';
+    }
+    return thirdPartyIconCacheDir() . '/' . $safe . '.json';
+}
+
+function readThirdPartyIconCache(string $key, string $signature, int $ttlSeconds): ?array {
+    if ($ttlSeconds <= 0) {
+        return null;
+    }
+    $path = thirdPartyIconCachePath($key);
+    if (!is_file($path)) {
+        return null;
+    }
+    $modifiedAt = (int)@filemtime($path);
+    if ($modifiedAt <= 0) {
+        return null;
+    }
+    $age = time() - $modifiedAt;
+    if ($age < 0 || $age > $ttlSeconds) {
+        return null;
+    }
+    $raw = @file_get_contents($path);
+    if (!is_string($raw) || trim($raw) === '') {
+        return null;
+    }
+    $payload = json_decode($raw, true);
+    if (!is_array($payload)) {
+        return null;
+    }
+    if ((string)($payload['signature'] ?? '') !== $signature) {
+        return null;
+    }
+    $data = $payload['data'] ?? null;
+    return is_array($data) ? $data : null;
+}
+
+function writeThirdPartyIconCache(string $key, string $signature, array $data): void {
+    $path = thirdPartyIconCachePath($key);
+    $dir = dirname($path);
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0770, true);
+    }
+    $payload = [
+        'signature' => $signature,
+        'generatedAt' => gmdate('c'),
+        'data' => $data
+    ];
+    $encoded = json_encode($payload, JSON_UNESCAPED_SLASHES);
+    if (!is_string($encoded) || $encoded === '') {
+        return;
+    }
+    $tmpPath = $path . '.tmp';
+    if (@file_put_contents($tmpPath, $encoded, LOCK_EX) !== false) {
+        @rename($tmpPath, $path);
+        @chmod($path, 0644);
+        return;
+    }
+    @file_put_contents($path, $encoded, LOCK_EX);
+    @chmod($path, 0644);
+}
+
+function thirdPartyFolderListSignature(string $baseDir): string {
+    if (!is_dir($baseDir)) {
+        return 'missing';
+    }
+    $parts = ['base:' . (int)@filemtime($baseDir)];
+    $items = @scandir($baseDir) ?: [];
+    foreach ($items as $name) {
+        if ($name === '.' || $name === '..') {
+            continue;
+        }
+        if ($name !== basename($name)) {
+            continue;
+        }
+        $path = "$baseDir/$name";
+        if (!is_dir($path)) {
+            continue;
+        }
+        $parts[] = $name . ':' . (int)@filemtime($path);
+    }
+    sort($parts, SORT_STRING);
+    return sha1(implode('|', $parts));
+}
+
+function thirdPartyFolderIconsSignature(string $folderPath): string {
+    if (!is_dir($folderPath)) {
+        return 'missing';
+    }
+    return sha1((string)((int)@filemtime($folderPath)));
 }
 
 function sanitizeThirdPartySegment(string $value, string $label): string {
@@ -95,6 +198,11 @@ function countSupportedIconsInDirectory(string $directory): int {
 
 function listThirdPartyFolders(): array {
     $baseDir = ensureThirdPartyIconsDirExists();
+    $signature = thirdPartyFolderListSignature($baseDir);
+    $cached = readThirdPartyIconCache('folders', $signature, FVPLUS_THIRD_PARTY_ICON_CACHE_TTL);
+    if (is_array($cached)) {
+        return $cached;
+    }
     $folders = [];
     $items = @scandir($baseDir) ?: [];
     foreach ($items as $name) {
@@ -147,6 +255,7 @@ function listThirdPartyFolders(): array {
     usort($folders, static function (array $a, array $b): int {
         return strcasecmp((string)$a['name'], (string)$b['name']);
     });
+    writeThirdPartyIconCache('folders', $signature, $folders);
     return $folders;
 }
 
@@ -156,6 +265,15 @@ function listThirdPartyIconsInFolder(string $folder): array {
     $folderPath = "$baseDir/$safeFolder";
     if (!is_dir($folderPath)) {
         throw new RuntimeException('Folder does not exist.');
+    }
+    $signature = thirdPartyFolderIconsSignature($folderPath);
+    $cacheKey = 'icons-' . md5($safeFolder);
+    $cached = readThirdPartyIconCache($cacheKey, $signature, FVPLUS_THIRD_PARTY_ICON_CACHE_TTL);
+    if (is_array($cached)) {
+        return [
+            'folder' => $safeFolder,
+            'icons' => $cached
+        ];
     }
 
     $icons = [];
@@ -185,6 +303,7 @@ function listThirdPartyIconsInFolder(string $folder): array {
     usort($icons, static function (array $a, array $b): int {
         return strcasecmp((string)$a['name'], (string)$b['name']);
     });
+    writeThirdPartyIconCache($cacheKey, $signature, $icons);
     return [
         'folder' => $safeFolder,
         'icons' => $icons

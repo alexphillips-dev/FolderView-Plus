@@ -99,12 +99,129 @@
     const FVPLUS_REQUEST_TOKEN_ENFORCEMENT = 'compat';
     const FVPLUS_VERBOSE_API_ERRORS = false;
     const FVPLUS_API_ERROR_LOG = '/tmp/folderview.plus.api-error.log';
+    const FVPLUS_INFO_CACHE_TTL_FULL = 2;
+    const FVPLUS_INFO_CACHE_TTL_STATE = 2;
 
     function ensureType(string $type): string {
         if (!in_array($type, FVPLUS_ALLOWED_TYPES, true)) {
             throw new InvalidArgumentException("Invalid type: $type");
         }
         return $type;
+    }
+
+    function normalizeReadInfoMode(string $mode): string {
+        $normalized = strtolower(trim($mode));
+        return $normalized === 'state' ? 'state' : 'full';
+    }
+
+    function getReadInfoCacheDirectory(): string {
+        static $path = null;
+        if (is_string($path) && $path !== '') {
+            return $path;
+        }
+        $path = '/tmp/folderview.plus-cache/read-info';
+        if (!is_dir($path)) {
+            @mkdir($path, 0770, true);
+        }
+        return $path;
+    }
+
+    function getReadInfoCachePath(string $type, string $mode): string {
+        $safeType = ensureType($type);
+        $safeMode = normalizeReadInfoMode($mode);
+        return getReadInfoCacheDirectory() . "/$safeType-$safeMode.json";
+    }
+
+    function readReadInfoCachePayload(string $path): ?array {
+        if (!is_file($path)) {
+            return null;
+        }
+        $raw = @file_get_contents($path);
+        if (!is_string($raw) || trim($raw) === '') {
+            return null;
+        }
+        $decoded = json_decode($raw, true);
+        return is_array($decoded) ? $decoded : null;
+    }
+
+    function readReadInfoCacheIfFresh(string $type, string $mode, int $ttlSeconds): ?array {
+        if ($ttlSeconds <= 0) {
+            return null;
+        }
+        $cachePath = getReadInfoCachePath($type, $mode);
+        if (!is_file($cachePath)) {
+            return null;
+        }
+        $modifiedAt = (int)@filemtime($cachePath);
+        if ($modifiedAt <= 0) {
+            return null;
+        }
+        $ageSeconds = time() - $modifiedAt;
+        if ($ageSeconds < 0 || $ageSeconds > $ttlSeconds) {
+            return null;
+        }
+
+        $payload = readReadInfoCachePayload($cachePath);
+        if (!is_array($payload)) {
+            return null;
+        }
+        if ((string)($payload['type'] ?? '') !== ensureType($type)) {
+            return null;
+        }
+        if ((string)($payload['mode'] ?? '') !== normalizeReadInfoMode($mode)) {
+            return null;
+        }
+        $data = $payload['data'] ?? null;
+        return is_array($data) ? $data : null;
+    }
+
+    function writeReadInfoCache(string $type, string $mode, array $data): void {
+        $cachePath = getReadInfoCachePath($type, $mode);
+        $directory = dirname($cachePath);
+        if (!is_dir($directory)) {
+            @mkdir($directory, 0770, true);
+        }
+        $payload = [
+            'type' => ensureType($type),
+            'mode' => normalizeReadInfoMode($mode),
+            'generatedAt' => gmdate('c'),
+            'data' => $data
+        ];
+        $encoded = json_encode($payload, JSON_UNESCAPED_SLASHES);
+        if (!is_string($encoded) || $encoded === '') {
+            return;
+        }
+        $tmpPath = $cachePath . '.tmp';
+        if (@file_put_contents($tmpPath, $encoded, LOCK_EX) !== false) {
+            @rename($tmpPath, $cachePath);
+            @chmod($cachePath, 0644);
+            return;
+        }
+        @file_put_contents($cachePath, $encoded, LOCK_EX);
+        @chmod($cachePath, 0644);
+    }
+
+    function readInfoCached(string $type, string $mode = 'full', ?int $ttlSeconds = null, bool $forceRefresh = false): array {
+        $safeType = ensureType($type);
+        $safeMode = normalizeReadInfoMode($mode);
+        $effectiveTtl = $ttlSeconds;
+        if (!is_int($effectiveTtl)) {
+            $effectiveTtl = ($safeMode === 'state') ? FVPLUS_INFO_CACHE_TTL_STATE : FVPLUS_INFO_CACHE_TTL_FULL;
+        }
+        $effectiveTtl = max(0, min(30, $effectiveTtl));
+
+        if (!$forceRefresh) {
+            $cached = readReadInfoCacheIfFresh($safeType, $safeMode, $effectiveTtl);
+            if (is_array($cached)) {
+                return $cached;
+            }
+        }
+
+        $data = ($safeMode === 'state') ? readInfoState($safeType) : readInfo($safeType);
+        if (is_array($data) && $effectiveTtl > 0) {
+            writeReadInfoCache($safeType, $safeMode, $data);
+        }
+        return is_array($data) ? $data : [];
     }
 
     function getRequestHeaderValue(string $name): string {
@@ -3390,6 +3507,102 @@
             'createdPaths' => $created,
             'configDir' => $configDir
         ];
+    }
+
+    function readInfoState(string $type): array {
+        $type = ensureType($type);
+        $info = [];
+
+        if ($type === 'docker') {
+            global $dockerManPaths;
+            $dockerClient = new DockerClient();
+            $containers = $dockerClient->getDockerJSON("/containers/json?all=1");
+            if (!is_array($containers)) {
+                return [];
+            }
+
+            $autoStartFile = $dockerManPaths['autostart-file'] ?? "/var/lib/docker/unraid-autostart";
+            $autoStartLines = @file($autoStartFile, FILE_IGNORE_NEW_LINES) ?: [];
+            $autoStartSet = [];
+            foreach ($autoStartLines as $line) {
+                $trimmed = trim((string)$line);
+                if ($trimmed === '') {
+                    continue;
+                }
+                $parts = preg_split('/\s+/', $trimmed, 2);
+                $name = trim((string)($parts[0] ?? ''));
+                if ($name !== '') {
+                    $autoStartSet[$name] = true;
+                }
+            }
+
+            foreach ($containers as $container) {
+                $name = ltrim((string)($container['Names'][0] ?? ''), '/');
+                if ($name === '') {
+                    continue;
+                }
+                $labels = is_array($container['Labels'] ?? null) ? $container['Labels'] : [];
+                $stateRaw = strtolower(trim((string)($container['State'] ?? '')));
+                $statusRaw = trim((string)($container['Status'] ?? ''));
+                $running = $stateRaw === 'running';
+                $paused = ($stateRaw === 'paused') || (stripos($statusRaw, 'paused') !== false);
+                $stateKind = $running ? ($paused ? 'paused' : 'running') : 'stopped';
+                $manager = trim((string)($labels['net.unraid.docker.managed'] ?? ''));
+
+                $info[$name] = [
+                    'name' => $name,
+                    'id' => substr(str_replace('sha256:', '', (string)($container['Id'] ?? '')), 0, 12),
+                    'state' => $stateKind,
+                    'running' => $running,
+                    'paused' => $paused,
+                    'status' => $statusRaw,
+                    'autostart' => isset($autoStartSet[$name]),
+                    'manager' => $manager,
+                    'folderLabel' => getFolderLabelValueFromLabels($labels)
+                ];
+            }
+            ksort($info);
+            return $info;
+        }
+
+        if ($type === 'vm') {
+            global $lv;
+            if (!isset($lv)) {
+                $lv = new Libvirt();
+                if (!$lv->connect()) {
+                    return [];
+                }
+            }
+            $vms = $lv->get_domains();
+            if (!is_array($vms)) {
+                return [];
+            }
+            foreach ($vms as $vm) {
+                $res = $lv->get_domain_by_name($vm);
+                if (!$res) {
+                    continue;
+                }
+                $dom = $lv->domain_get_info($res);
+                $state = strtolower(trim((string)$lv->domain_state_translate($dom['state'] ?? '')));
+                if ($state === '') {
+                    $state = 'stopped';
+                }
+                $name = trim((string)$vm);
+                if ($name === '') {
+                    continue;
+                }
+                $info[$name] = [
+                    'name' => $name,
+                    'uuid' => (string)$lv->domain_get_uuid($res),
+                    'state' => $state,
+                    'autostart' => (bool)$lv->domain_get_autostart($res)
+                ];
+            }
+            ksort($info);
+            return $info;
+        }
+
+        return [];
     }
 
     function readInfo(string $type): array {

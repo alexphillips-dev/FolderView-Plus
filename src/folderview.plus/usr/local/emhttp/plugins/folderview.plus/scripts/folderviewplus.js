@@ -184,6 +184,11 @@ const ADVANCED_GROUP_BY_SECTION = {
 };
 const BASIC_WORKSPACE_SECTION_KEYS = new Set(['docker', 'vms']);
 const SETUP_ASSISTANT_STEPS = ['welcome', 'profile', 'import', 'rules', 'behavior', 'review'];
+const SETUP_ASSISTANT_STEPS_BY_ROUTE = {
+    new: ['welcome', 'profile', 'rules', 'behavior', 'review'],
+    migrate: [...SETUP_ASSISTANT_STEPS],
+    advanced: [...SETUP_ASSISTANT_STEPS]
+};
 const SETUP_ASSISTANT_ENV_PRESETS = {
     home_lab: {
         label: 'Home Lab',
@@ -1635,12 +1640,64 @@ const createSetupAssistantImportPlan = () => ({
     include: false,
     mode: 'merge',
     fileName: '',
+    fileSizeBytes: 0,
+    fileLastModified: '',
     parsed: null,
     summary: null,
     operations: null,
     diffRows: [],
+    warnings: [],
     error: ''
 });
+
+const getSetupAssistantStepSequence = (routeOverride = null) => {
+    const route = ['new', 'migrate', 'advanced'].includes(String(routeOverride || setupAssistantState.route || ''))
+        ? String(routeOverride || setupAssistantState.route)
+        : 'new';
+    if (route === 'new') {
+        const hasNewRouteImports = ['docker', 'vm'].some((type) => {
+            const plan = setupAssistantState?.importPlans?.[type];
+            return Boolean(plan?.parsed) || plan?.include === true;
+        });
+        if (hasNewRouteImports) {
+            return SETUP_ASSISTANT_STEPS;
+        }
+    }
+    const sequence = SETUP_ASSISTANT_STEPS_BY_ROUTE[route];
+    if (Array.isArray(sequence) && sequence.length > 0) {
+        return sequence;
+    }
+    return SETUP_ASSISTANT_STEPS;
+};
+
+const formatBytesShort = (bytes) => {
+    const value = Number(bytes);
+    if (!Number.isFinite(value) || value <= 0) {
+        return '';
+    }
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let size = value;
+    let index = 0;
+    while (size >= 1024 && index < units.length - 1) {
+        size /= 1024;
+        index += 1;
+    }
+    const rounded = size >= 100 || index === 0 ? Math.round(size) : Number(size.toFixed(1));
+    return `${rounded} ${units[index]}`;
+};
+
+const getSetupAssistantImportFormatLabel = (parsed) => {
+    if (!parsed || typeof parsed !== 'object') {
+        return 'No import selected';
+    }
+    if (parsed.legacy === true) {
+        return 'Legacy format (folder.view2/folder.view3)';
+    }
+    if (Number.isFinite(Number(parsed.schemaVersion))) {
+        return `Schema v${Number(parsed.schemaVersion)} (FolderView Plus)`;
+    }
+    return 'Custom/unknown format';
+};
 
 const createSetupAssistantBehavior = (type) => {
     const prefs = utils.normalizePrefs(prefsByType[type] || {});
@@ -1724,12 +1781,16 @@ const serializeSetupAssistantDraft = () => ({
             include: setupAssistantState.importPlans?.docker?.include === true,
             mode: normalizeImportMode(setupAssistantState.importPlans?.docker?.mode),
             fileName: String(setupAssistantState.importPlans?.docker?.fileName || ''),
+            fileSizeBytes: Number(setupAssistantState.importPlans?.docker?.fileSizeBytes) || 0,
+            fileLastModified: String(setupAssistantState.importPlans?.docker?.fileLastModified || ''),
             parsed: setupAssistantState.importPlans?.docker?.parsed || null
         },
         vm: {
             include: setupAssistantState.importPlans?.vm?.include === true,
             mode: normalizeImportMode(setupAssistantState.importPlans?.vm?.mode),
             fileName: String(setupAssistantState.importPlans?.vm?.fileName || ''),
+            fileSizeBytes: Number(setupAssistantState.importPlans?.vm?.fileSizeBytes) || 0,
+            fileLastModified: String(setupAssistantState.importPlans?.vm?.fileLastModified || ''),
             parsed: setupAssistantState.importPlans?.vm?.parsed || null
         }
     },
@@ -1790,10 +1851,12 @@ const restoreSetupAssistantDraftFromStorage = () => {
         return false;
     }
 
-    setupAssistantState.step = Math.max(0, Math.min(SETUP_ASSISTANT_STEPS.length - 1, Number(parsed.step) || 0));
-    setupAssistantState.route = ['new', 'migrate', 'advanced'].includes(String(parsed.route || ''))
+    const restoredRoute = ['new', 'migrate', 'advanced'].includes(String(parsed.route || ''))
         ? String(parsed.route)
         : setupAssistantState.route;
+    setupAssistantState.route = restoredRoute;
+    const stepSequence = getSetupAssistantStepSequence(restoredRoute);
+    setupAssistantState.step = Math.max(0, Math.min(stepSequence.length - 1, Number(parsed.step) || 0));
     setupAssistantState.mode = String(parsed.mode || '').toLowerCase() === 'advanced' ? 'advanced' : 'basic';
     setupAssistantState.profile = Object.prototype.hasOwnProperty.call(SETUP_ASSISTANT_PROFILE_PRESETS, String(parsed.profile || ''))
         ? String(parsed.profile)
@@ -1811,6 +1874,8 @@ const restoreSetupAssistantDraftFromStorage = () => {
                 include: incomingPlan.include === true,
                 mode: normalizeImportMode(incomingPlan.mode),
                 fileName: String(incomingPlan.fileName || ''),
+                fileSizeBytes: Math.max(0, Number(incomingPlan.fileSizeBytes) || 0),
+                fileLastModified: String(incomingPlan.fileLastModified || ''),
                 parsed: incomingPlan.parsed && typeof incomingPlan.parsed === 'object'
                     ? incomingPlan.parsed
                     : null
@@ -1928,13 +1993,14 @@ const resetSetupAssistantState = (force = false) => {
 };
 
 const clampSetupAssistantStep = () => {
-    const maxStep = SETUP_ASSISTANT_STEPS.length - 1;
+    const maxStep = getSetupAssistantStepSequence().length - 1;
     setupAssistantState.step = Math.max(0, Math.min(maxStep, Number(setupAssistantState.step) || 0));
 };
 
 const currentSetupAssistantStepKey = () => {
     clampSetupAssistantStep();
-    return SETUP_ASSISTANT_STEPS[setupAssistantState.step] || 'welcome';
+    const sequence = getSetupAssistantStepSequence();
+    return sequence[setupAssistantState.step] || 'welcome';
 };
 
 const setSetupAssistantProgress = (label, percent = 0) => {
@@ -1976,6 +2042,18 @@ const summarizeSetupAssistantImportPlan = (type) => {
     plan.summary = summary;
     plan.operations = operations;
     plan.diffRows = diffRows;
+    plan.warnings = [];
+    if (plan.parsed.legacy === true) {
+        plan.warnings.push('Legacy export detected. Verify icon/settings fields before apply.');
+    }
+    const deletesCount = summary?.deletes?.length || 0;
+    if (normalizeImportMode(plan.mode) === 'replace' && deletesCount > 0) {
+        plan.warnings.push(`Replace mode will delete ${deletesCount} existing ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders.`);
+    }
+    const totalOps = countImportOperations(operations || { creates: [], upserts: [], deletes: [] });
+    if (totalOps <= 0) {
+        plan.warnings.push('No folder operations detected from this file.');
+    }
     plan.error = '';
     return plan;
 };
@@ -2318,6 +2396,11 @@ const getSetupAssistantStepValidation = (stepKey = currentSetupAssistantStepKey(
                 if (!plan.parsed) {
                     blockers.push(`${type.toUpperCase()} import is enabled but no file is selected.`);
                 }
+                if (plan.parsed?.legacy === true) {
+                    warnings.push(`${type.toUpperCase()} import uses legacy format. Review diff before apply.`);
+                }
+                const planWarnings = Array.isArray(plan.warnings) ? plan.warnings : [];
+                warnings.push(...planWarnings.map((message) => `${type.toUpperCase()}: ${message}`));
             }
         }
         if (setupAssistantState.route === 'migrate' && includeTypes.length === 0) {
@@ -2506,12 +2589,21 @@ const applySetupAssistantRulesForType = async (type) => {
 
 const buildSetupAssistantReviewNotes = () => {
     const notes = [];
+    const seen = new Set();
+    const pushUnique = (text) => {
+        const normalized = String(text || '').trim();
+        if (!normalized || seen.has(normalized)) {
+            return;
+        }
+        seen.add(normalized);
+        notes.push(normalized);
+    };
     const reviewValidation = getSetupAssistantStepValidation('review');
     if (reviewValidation.blockers.length) {
-        notes.push(...reviewValidation.blockers);
+        reviewValidation.blockers.forEach(pushUnique);
     }
     if (reviewValidation.warnings.length) {
-        notes.push(...reviewValidation.warnings);
+        reviewValidation.warnings.forEach(pushUnique);
     }
     for (const type of ['docker', 'vm']) {
         const plan = setupAssistantState.importPlans[type];
@@ -2520,7 +2612,7 @@ const buildSetupAssistantReviewNotes = () => {
         }
         const operationCount = countImportOperations(plan.operations || { creates: [], upserts: [], deletes: [] });
         if (operationCount === 0) {
-            notes.push(`${type.toUpperCase()} import file is loaded, but no folder changes were detected.`);
+            pushUnique(`${type.toUpperCase()} import file is loaded, but no folder changes were detected.`);
         }
     }
     return notes;
@@ -2545,6 +2637,35 @@ const setupAssistantStepLabel = (stepKey) => {
     return 'Review';
 };
 
+const renderSetupAssistantSidebarSummary = (impactSummary) => {
+    const impact = impactSummary && typeof impactSummary === 'object'
+        ? impactSummary
+        : buildSetupAssistantImpactSummary();
+    const importTotals = impact.imports?.totals || { totalOps: 0, creates: 0, updates: 0, deletes: 0 };
+    const prefsTotal = Number(impact.prefs?.totalChanges) || 0;
+    const rulesTotal = Number(impact.rules?.creatable) || 0;
+    const hasDeletes = Number(importTotals.deletes) > 0;
+    const routeLabel = setupAssistantState.route === 'migrate'
+        ? 'Migration flow'
+        : (setupAssistantState.route === 'advanced' ? 'Advanced flow' : 'New install flow');
+    return `
+        <section class="fv-setup-sidebar-summary">
+            <h4>What will change</h4>
+            <div class="fv-setup-chip-row">
+                <span class="fv-setup-chip">${escapeHtml(routeLabel)}</span>
+                <span class="fv-setup-chip">Mode: ${escapeHtml(setupAssistantState.mode)}</span>
+                <span class="fv-setup-chip ${setupAssistantState.dryRunOnly ? 'is-update' : ''}">Dry run: ${setupAssistantState.dryRunOnly ? 'ON' : 'OFF'}</span>
+            </div>
+            <div class="fv-setup-sidebar-stats">
+                <div><strong>${importTotals.totalOps}</strong><span>Import ops</span></div>
+                <div><strong>${prefsTotal}</strong><span>Setting changes</span></div>
+                <div><strong>${rulesTotal}</strong><span>Starter rules</span></div>
+            </div>
+            ${hasDeletes ? '<p class="fv-setup-sidebar-alert"><i class="fa fa-exclamation-triangle"></i> Delete operations detected.</p>' : ''}
+        </section>
+    `;
+};
+
 const renderSetupAssistantWelcomeStep = () => {
     const context = setupAssistantState.context || {
         dockerFolders: 0,
@@ -2561,6 +2682,8 @@ const renderSetupAssistantWelcomeStep = () => {
         migrate: 'Migrate existing config from export files.',
         advanced: 'Advanced custom setup with manual choices.'
     };
+    const stepSequence = getSetupAssistantStepSequence();
+    const pathText = stepSequence.map((step) => setupAssistantStepLabel(step)).join(' -> ');
     return `
         <div class="fv-setup-step-grid">
             <section class="fv-setup-card">
@@ -2581,6 +2704,7 @@ const renderSetupAssistantWelcomeStep = () => {
                         </label>
                     `).join('')}
                 </div>
+                <p class="fv-setup-muted"><strong>Wizard path:</strong> ${escapeHtml(pathText)}</p>
             </section>
             <section class="fv-setup-card">
                 <h4>Default settings mode</h4>
@@ -2641,16 +2765,19 @@ const renderSetupAssistantImportTypeCard = (type) => {
         ? countImportOperations(plan.operations || { creates: [], upserts: [], deletes: [] })
         : 0;
     const summary = plan?.summary;
-    const schemaText = hasFile
-        ? (plan.parsed.schemaVersion !== null ? `Schema v${plan.parsed.schemaVersion}` : 'Legacy schema')
+    const formatText = hasFile
+        ? getSetupAssistantImportFormatLabel(plan.parsed)
         : 'No file selected';
+    const fileSizeText = hasFile ? formatBytesShort(plan?.fileSizeBytes || 0) : '';
+    const fileDateText = hasFile ? formatTimestamp(plan?.fileLastModified || '') : '';
+    const warnings = Array.isArray(plan?.warnings) ? plan.warnings : [];
 
     return `
         <section class="fv-setup-card fv-setup-import-card">
             <div class="fv-setup-import-header">
                 <h4>${title} import</h4>
                 <div class="fv-setup-chip-row">
-                    <span class="fv-setup-chip">${escapeHtml(schemaText)}</span>
+                    <span class="fv-setup-chip ${hasFile && plan?.parsed?.legacy === true ? 'is-delete' : 'is-update'}">${escapeHtml(formatText)}</span>
                     <span class="fv-setup-chip">${hasFile ? escapeHtml(plan.parsed.mode === 'single' ? 'Single folder' : 'Full export') : 'Waiting for file'}</span>
                     <span class="fv-setup-chip">Operations: ${operationCount}</span>
                 </div>
@@ -2660,6 +2787,12 @@ const renderSetupAssistantImportTypeCard = (type) => {
                 <button type="button" data-fv-setup-import-clear="${resolvedType}" ${hasFile ? '' : 'disabled'}><i class="fa fa-trash"></i> Clear</button>
             </div>
             <div class="fv-setup-muted">${hasFile ? escapeHtml(plan.fileName || 'Selected file') : `Choose a ${title} export JSON to preview changes.`}</div>
+            ${hasFile && (fileSizeText || fileDateText) ? `
+                <div class="fv-setup-chip-row">
+                    ${fileSizeText ? `<span class="fv-setup-chip">Size: ${escapeHtml(fileSizeText)}</span>` : ''}
+                    ${fileDateText ? `<span class="fv-setup-chip">Modified: ${escapeHtml(fileDateText)}</span>` : ''}
+                </div>
+            ` : ''}
             <label class="fv-setup-inline-toggle">
                 <input type="checkbox" data-fv-setup-import-include="${resolvedType}" ${plan.include ? 'checked' : ''} ${hasFile ? '' : 'disabled'}>
                 Include this ${title} import in Apply
@@ -2679,6 +2812,11 @@ const renderSetupAssistantImportTypeCard = (type) => {
                     <span class="fv-setup-chip is-delete">Delete: ${summary?.deletes?.length || 0}</span>
                     <span class="fv-setup-chip">Unchanged: ${summary?.unchanged?.length || 0}</span>
                 </div>
+            ` : ''}
+            ${warnings.length ? `
+                <ul class="fv-setup-import-warnings">
+                    ${warnings.map((warning) => `<li>${escapeHtml(warning)}</li>`).join('')}
+                </ul>
             ` : ''}
             ${plan.error ? `<div class="fv-setup-error">${escapeHtml(plan.error)}</div>` : ''}
         </section>
@@ -3003,11 +3141,13 @@ const renderSetupAssistant = () => {
     }
 
     clampSetupAssistantStep();
+    const stepSequence = getSetupAssistantStepSequence();
     const step = currentSetupAssistantStepKey();
     const atFirstStep = setupAssistantState.step === 0;
-    const atLastStep = setupAssistantState.step >= SETUP_ASSISTANT_STEPS.length - 1;
+    const atLastStep = setupAssistantState.step >= stepSequence.length - 1;
     const canMove = !setupAssistantState.busy && !setupAssistantState.applying;
     const stepValidation = getSetupAssistantStepValidation(step);
+    const impactSummary = buildSetupAssistantImpactSummary();
     const hasBlockers = stepValidation.blockers.length > 0;
     const canNext = !atLastStep && canMove && !hasBlockers;
     const canApply = atLastStep && canMove && !hasBlockers;
@@ -3024,15 +3164,16 @@ const renderSetupAssistant = () => {
         <div class="fv-setup-assistant-shell">
             <aside class="fv-setup-assistant-sidebar">
                 <h3 id="fv-setup-assistant-title">Setup Assistant</h3>
-                <p class="fv-setup-muted">Step ${setupAssistantState.step + 1} of ${SETUP_ASSISTANT_STEPS.length}</p>
+                <p class="fv-setup-muted">Step ${setupAssistantState.step + 1} of ${stepSequence.length}</p>
                 <ol class="fv-setup-step-list">
-                    ${SETUP_ASSISTANT_STEPS.map((stepKey, index) => `
+                    ${stepSequence.map((stepKey, index) => `
                         <li class="${index === setupAssistantState.step ? 'is-active' : (index < setupAssistantState.step ? 'is-complete' : '')}">
                             <span class="fv-setup-step-index">${index + 1}</span>
                             <span class="fv-setup-step-label">${escapeHtml(setupAssistantStepLabel(stepKey))}</span>
                         </li>
                     `).join('')}
                 </ol>
+                ${renderSetupAssistantSidebarSummary(impactSummary)}
             </aside>
             <section class="fv-setup-assistant-main">
                 <header class="fv-setup-assistant-head">
@@ -3103,20 +3244,54 @@ const openSetupAssistant = (force = false) => {
     renderSetupAssistant();
 };
 
+const confirmSetupAssistantApply = async (impactSummary, reviewValidation) => (
+    new Promise((resolve) => {
+        const totals = impactSummary?.imports?.totals || { creates: 0, updates: 0, deletes: 0, totalOps: 0 };
+        const prefsTotal = Number(impactSummary?.prefs?.totalChanges) || 0;
+        const rulesTotal = Number(impactSummary?.rules?.creatable) || 0;
+        const hasDeletes = Number(totals.deletes) > 0;
+        const lines = [
+            `Route: ${setupAssistantState.route}`,
+            `Mode: ${setupAssistantState.mode}`,
+            `Imports: ${totals.totalOps} ops (create ${totals.creates}, update ${totals.updates}, delete ${totals.deletes})`,
+            `Settings: ${prefsTotal} changes`,
+            `Starter rules: ${rulesTotal}`,
+            `Dry run: ${setupAssistantState.dryRunOnly ? 'ON' : 'OFF'}`
+        ];
+        if (reviewValidation?.warnings?.length) {
+            lines.push(`Warnings: ${reviewValidation.warnings.length}`);
+        }
+        swal({
+            title: setupAssistantState.dryRunOnly ? 'Run setup dry run?' : 'Apply setup assistant changes?',
+            text: lines.join('\n'),
+            type: hasDeletes && setupAssistantState.dryRunOnly !== true ? 'warning' : 'info',
+            showCancelButton: true,
+            confirmButtonText: setupAssistantState.dryRunOnly ? 'Run dry run' : 'Apply now',
+            cancelButtonText: 'Keep editing',
+            closeOnConfirm: true
+        }, (isConfirm) => resolve(isConfirm === true));
+    })
+);
+
 const applySetupAssistantPlan = async () => {
     if (setupAssistantState.applying) {
         return;
     }
     const reviewValidation = getSetupAssistantStepValidation('review');
     if (reviewValidation.blockers.length) {
-        setupAssistantState.step = SETUP_ASSISTANT_STEPS.length - 1;
+        setupAssistantState.step = getSetupAssistantStepSequence().length - 1;
         renderSetupAssistant();
+        return;
+    }
+    const impactSummary = buildSetupAssistantImpactSummary();
+    const confirmed = await confirmSetupAssistantApply(impactSummary, reviewValidation);
+    if (!confirmed) {
         return;
     }
 
     setupAssistantState.applying = true;
     setupAssistantState.busy = true;
-    const impactSummary = buildSetupAssistantImpactSummary();
+    const applyStartedAt = Date.now();
     setSetupAssistantProgress(setupAssistantState.dryRunOnly ? 'Running dry run checks...' : 'Creating rollback checkpoint...', 5);
     renderSetupAssistant();
 
@@ -3236,16 +3411,21 @@ const applySetupAssistantPlan = async () => {
         const checkpointText = setupAssistantState.rollbackCheckpointName
             ? `Rollback checkpoint: ${setupAssistantState.rollbackCheckpointName}`
             : 'Rollback checkpoint created.';
+        const durationMs = Math.max(0, Date.now() - applyStartedAt);
+        const durationSeconds = (durationMs / 1000).toFixed(1);
         const summaryLines = [
             `Mode: ${setupAssistantState.mode}`,
+            `Route: ${setupAssistantState.route}`,
             `Profile defaults: ${setupAssistantState.applyProfileDefaults ? setupAssistantState.profile : 'not applied'}`,
             `Environment defaults: ${setupAssistantState.applyEnvironmentDefaults ? (SETUP_ASSISTANT_ENV_PRESETS[setupAssistantState.environmentPreset]?.label || 'Home Lab') : 'not applied'}`,
             `Docker import operations: ${importOutcomes.docker}`,
             `VM import operations: ${importOutcomes.vm}`,
             `Docker starter rules added: ${ruleOutcomes.docker.created}`,
             `VM starter rules added: ${ruleOutcomes.vm.created}`,
+            `Estimated preference changes: ${impactSummary.prefs.totalChanges}`,
             `Verification: ${verification.passed}/${verification.total} checks passed`,
-            checkpointText
+            checkpointText,
+            `Duration: ${durationSeconds}s`
         ];
         if (validationWarnings.length) {
             summaryLines.push(`Validation warnings: ${validationWarnings.join(' | ')}`);
@@ -3332,7 +3512,7 @@ const bindSetupAssistantEvents = () => {
             rerender();
             return;
         }
-        setupAssistantState.step = Math.min(SETUP_ASSISTANT_STEPS.length - 1, setupAssistantState.step + 1);
+        setupAssistantState.step = Math.min(getSetupAssistantStepSequence().length - 1, setupAssistantState.step + 1);
         rerender();
     });
     root.find('#fv-setup-apply').off('click.fvsetup').on('click.fvsetup', () => {
@@ -3347,6 +3527,7 @@ const bindSetupAssistantEvents = () => {
             setupAssistantState.applyProfileDefaults = true;
             setupAssistantState.applyEnvironmentDefaults = true;
         }
+        clampSetupAssistantStep();
         rerender();
     });
     root.find('[data-fv-setup-mode]').off('click.fvsetup').on('click.fvsetup', (event) => {
@@ -3422,6 +3603,10 @@ const bindSetupAssistantEvents = () => {
                 throw new Error(parsed.error || 'Invalid import payload.');
             }
             setupAssistantState.importPlans[type].fileName = selected.name || `${type}.json`;
+            setupAssistantState.importPlans[type].fileSizeBytes = Math.max(0, Number(selected.size) || 0);
+            setupAssistantState.importPlans[type].fileLastModified = Number(selected.lastModified) > 0
+                ? new Date(Number(selected.lastModified)).toISOString()
+                : '';
             setupAssistantState.importPlans[type].parsed = parsed;
             setupAssistantState.importPlans[type].include = true;
             setupAssistantState.importPlans[type].error = '';
@@ -4857,7 +5042,12 @@ const selectJsonFile = () => new Promise((resolve, reject) => {
         }
         try {
             const text = await readFileAsText(file);
-            resolve({ name: file.name, text });
+            resolve({
+                name: file.name,
+                text,
+                size: Number(file.size) || 0,
+                lastModified: Number(file.lastModified) || 0
+            });
         } catch (error) {
             reject(error);
         }

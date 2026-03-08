@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.07.16">
-<!ENTITY md5 "a6050bab18c02a2c0cb9ce5f53bfb680">
+<!ENTITY version "2026.03.08.01">
+<!ENTITY md5 "ad394a3592a772425d4eaddab2474bf4">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.08.01
+- Feature: setup wizard now uses route-aware step flow (new installs skip import unless an import file is selected).
+- UI/UX: added a live "What will change" summary panel in the wizard sidebar with import/settings/rules impact totals.
+- Usability: improved wizard import cards with format detection, file size/date metadata, and clearer migration warnings.
+- Safety: added an apply confirmation step with a summarized impact preview before changes are executed.
+- Quality: enhanced completion summary with route context and apply duration.
+
 
 ###2026.03.07.16
 - Improved update-banner changelog loading so it reads from multiple installed manifest locations (not only one path).

@@ -1,0 +1,10 @@
+# Default ownership
+* @alexphillips-dev
+
+# Critical paths
+/.github/ @alexphillips-dev
+/scripts/ @alexphillips-dev
+/src/ @alexphillips-dev
+/tests/ @alexphillips-dev
+/folderview.plus.plg @alexphillips-dev
+/folderview.plus.xml @alexphillips-dev

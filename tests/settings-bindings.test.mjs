@@ -88,3 +88,14 @@ test('fresh install guard keeps basic Docker/VM sections visible on startup fail
     assert.match(script, /visibleKeys\.add\(section\.key\);/);
     assert.match(script, /showError\('Initial data load failed', error\);/);
 });
+
+test('fresh install fallback sanitizes error-shaped API payloads and shows empty-state guidance', () => {
+    assert.match(script, /const sanitizeTypeMapResponse = \(response\) =>/);
+    assert.match(script, /if \(response\.ok === false && typeof response\.error === 'string'\) \{/);
+    assert.match(script, /const sanitizeTypeInfoMap = \(value\) =>/);
+    assert.match(script, /const fetchFolders = async \(type\) =>/);
+    assert.match(script, /const fetchTypeInfo = async \(type\) =>/);
+    assert.match(script, /No Docker folders yet\./);
+    assert.match(script, /No VM folders yet\./);
+    assert.match(script, /All folders are currently hidden by "Hide empty folders"\./);
+});

@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.08.04">
-<!ENTITY md5 "2e71f08fbeb23ce32587c25abd680b71">
+<!ENTITY version "2026.03.08.05">
+<!ENTITY md5 "0a80435be4ea2e2e2b4a03c3ebf1d8da">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.08.05
+- Bug fix: hardened first-install behavior when no prior folder JSON data exists.
+- Reliability: sanitize error-shaped API responses before rendering folder/state tables.
+- UX: improved empty-state messages for fresh installs and hide-empty-folder scenarios.
+- Regression guard: added tests for first-run API fallback and empty-state handling.
+
 
 ###2026.03.08.04
 - Bug fix: resolved a first-install regression that could render the Settings page blank.

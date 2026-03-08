@@ -4600,8 +4600,35 @@ const maybeShowUpdateNotesPanel = async () => {
     });
 };
 
-const fetchFolders = async (type) => apiGetJson(`/plugins/folderview.plus/server/read.php?type=${type}`);
-const fetchTypeInfo = async (type) => apiGetJson(`/plugins/folderview.plus/server/read_info.php?type=${type}`);
+const sanitizeTypeMapResponse = (response) => {
+    if (!response || typeof response !== 'object' || Array.isArray(response)) {
+        return {};
+    }
+    if (response.ok === false && typeof response.error === 'string') {
+        return {};
+    }
+    return response;
+};
+
+const sanitizeTypeInfoMap = (value) => {
+    const source = sanitizeTypeMapResponse(value);
+    const output = {};
+    for (const [name, item] of Object.entries(source)) {
+        if (typeof name !== 'string' || !name.trim()) {
+            continue;
+        }
+        if (!item || typeof item !== 'object' || Array.isArray(item)) {
+            continue;
+        }
+        output[name] = item;
+    }
+    return output;
+};
+
+const fetchFolders = async (type) => (
+    utils.normalizeFolderMap(sanitizeTypeMapResponse(await apiGetJson(`/plugins/folderview.plus/server/read.php?type=${type}`)))
+);
+const fetchTypeInfo = async (type) => sanitizeTypeInfoMap(await apiGetJson(`/plugins/folderview.plus/server/read_info.php?type=${type}`));
 
 const fetchBackups = async (type) => {
     const resolvedType = normalizeManagedType(type);
@@ -5628,6 +5655,7 @@ const offerUndoAction = async (type, backup, actionLabel) => {
 const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = false, healthMetrics = null, statusContext = null) => {
     const isDockerType = type === 'docker';
     const TABLE_COLUMN_COUNT = 10;
+    const folderCount = Object.keys(folders || {}).length;
     const dockerHealthPrefs = isDockerType ? normalizeHealthPrefs('docker') : null;
     const statusPrefs = normalizeStatusPrefs(type);
     const rows = [];
@@ -5945,6 +5973,15 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         const clearButton = showClearFilters
             ? `<button type="button" class="folder-empty-clear-filter" onclick="clearFolderTableFilters('${type}')">Clear filters</button>`
             : '';
+        if (folderCount <= 0 && !showClearFilters) {
+            const firstRunMessage = isDockerType
+                ? 'No Docker folders yet. Create your first folder in the Docker tab or import an export file.'
+                : 'No VM folders yet. Create your first folder in the VMs tab or import an export file.';
+            return `<tr><td colspan="${TABLE_COLUMN_COUNT}" class="folder-empty-cell">${firstRunMessage}</td></tr>`;
+        }
+        if (folderCount > 0 && hideEmptyFolders && !showClearFilters) {
+            return `<tr><td colspan="${TABLE_COLUMN_COUNT}" class="folder-empty-cell">All folders are currently hidden by "Hide empty folders".</td></tr>`;
+        }
         return `<tr><td colspan="${TABLE_COLUMN_COUNT}" class="folder-empty-cell">No folders match current filters${filterSuffix}. ${clearButton}</td></tr>`;
     }
     return rows.join('');

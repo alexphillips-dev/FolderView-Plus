@@ -106,8 +106,21 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderJs, /fv-force-left-v3 marker/);
     assert.match(folderJs, /const validateHealthWarnThreshold = \(\) =>/);
     assert.match(folderJs, /health_warn_stopped_percent/);
+    assert.match(folderJs, /const collectValidationWarnings = \(\) =>/);
+    assert.match(folderJs, /const suggestDefaultsFromMembers = \(\) =>/);
+    assert.match(folderJs, /const buildRegexSuggestionFromNames = \(names\) =>/);
+    assert.match(folderJs, /const applyAdvancedMode = \(\) =>/);
+    assert.match(folderJs, /const toggleAdvancedSectionCollapse = \(sectionKey\) =>/);
+    assert.match(folderJs, /ComposeProject/);
+    assert.match(folderJs, /UpdateAvailable/);
+    assert.match(folderJs, /id="fvSuggestDefaults"/);
+    assert.match(folderJs, /id="fvDockerSignals"/);
     assert.match(folderCss, /\.canvas form\.folder-editor-form\.fv-force-left-v3/);
     assert.match(folderCss, /Runtime-enforced left alignment guard/);
+    assert.match(folderCss, /\.fv-editor-mode/);
+    assert.match(folderCss, /\.fv-section-collapse/);
+    assert.match(folderCss, /\.fv-docker-signals/);
+    assert.match(folderCss, /\.fv-validation-details/);
 });
 
 test('settings runtime uses extracted chrome module and shared request wrapper', () => {

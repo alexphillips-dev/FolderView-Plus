@@ -27,13 +27,16 @@ const CONTEXT_MODE_LABELS = {
     2: 'Advanced'
 };
 const SECTION_META = {
-    general: { title: 'General', description: 'Folder identity, icon, and base behavior.' },
-    members: { title: 'Members', description: 'Assign containers or VMs to this folder.' },
-    preview: { title: 'Preview', description: 'Control how this folder is rendered in tab views.' },
-    actions: { title: 'Actions', description: 'Configure quick actions exposed by this folder.' },
-    automation: { title: 'Automation', description: 'Auto-assign items using name regex.' },
-    advanced: { title: 'Advanced', description: 'Optional defaults and tab behavior.' }
+    general: { title: 'General', description: 'Folder identity, icon, and base behavior.', advanced: false },
+    members: { title: 'Members', description: 'Assign containers or VMs to this folder.', advanced: false },
+    preview: { title: 'Preview', description: 'Control how this folder is rendered in tab views.', advanced: false },
+    actions: { title: 'Actions', description: 'Configure quick actions exposed by this folder.', advanced: true },
+    automation: { title: 'Automation', description: 'Auto-assign items using name regex.', advanced: true },
+    advanced: { title: 'Advanced', description: 'Optional defaults and tab behavior.', advanced: true }
 };
+const ADVANCED_SECTION_KEYS = Object.entries(SECTION_META)
+    .filter(([, section]) => section?.advanced === true)
+    .map(([key]) => key);
 const DEFAULT_FOLDER_ICON_PATH = '/plugins/folderview.plus/images/folder-icon.png';
 const BUILT_IN_ICON_MANIFEST_PATH = '/plugins/folderview.plus/images/icons/icons.json';
 const THIRD_PARTY_ICON_API_PATH = '/plugins/folderview.plus/server/third_party_icons.php';
@@ -41,6 +44,8 @@ const CUSTOM_ICON_UPLOAD_API_PATH = '/plugins/folderview.plus/server/upload_cust
 const REQUEST_TOKEN_STORAGE_KEY = 'fv.request.token';
 const ICON_PICKER_PAGE_SIZE = 120;
 const ICON_PICKER_SEARCH_DEBOUNCE_MS = 120;
+const EDITOR_MODE_STORAGE_KEY = 'fv.folder.editor.mode.v1';
+const EDITOR_ADVANCED_COLLAPSE_STORAGE_KEY = 'fv.folder.editor.advancedCollapse.v1';
 const BUILT_IN_ICON_FALLBACK = [{
     id: 'default-folder',
     name: 'Default Folder',
@@ -62,6 +67,8 @@ let thirdPartyIconFolders = [];
 let thirdPartySelectedFolder = '';
 let thirdPartyIcons = [];
 let thirdPartyIconPage = 1;
+let editorMode = 'basic';
+let advancedSectionCollapsedState = {};
 
 const getFolderLabelValue = (labels) => {
     const source = labels && typeof labels === 'object' ? labels : {};
@@ -883,19 +890,96 @@ const validateStatusWarnThreshold = () => {
     return true;
 };
 
+const isLikelyIconPath = (value) => {
+    const source = String(value || '').trim();
+    if (!source) {
+        return false;
+    }
+    if (source.startsWith('/plugins/')) {
+        return true;
+    }
+    if (/^https?:\/\//i.test(source)) {
+        return true;
+    }
+    if (/^data:image\//i.test(source)) {
+        return true;
+    }
+    return false;
+};
+
+const collectValidationWarnings = () => {
+    const form = getForm();
+    if (!form) {
+        return [];
+    }
+    const warnings = [];
+    const regexValue = String(form.regex.value || '').trim();
+    const iconValue = String(form.icon.value || '').trim();
+    const checkedCount = Number($('input[name*="containers"]:checked').length || 0);
+    const statusThresholdRaw = String(form.status_warn_stopped_percent?.value || '').trim();
+    const healthThresholdRaw = String(form.health_warn_stopped_percent?.value || '').trim();
+
+    if (!regexValue) {
+        warnings.push('Regex is empty, so only manual assignment will be used for this folder.');
+    }
+    if (iconValue && !isLikelyIconPath(iconValue)) {
+        warnings.push('Icon path looks unusual. Use /plugins/, http(s)://, or data:image/* for best compatibility.');
+    }
+    if (checkedCount === 0) {
+        warnings.push('No members are currently selected in this folder.');
+    }
+    if (statusThresholdRaw && Number(statusThresholdRaw) >= 95) {
+        warnings.push('Status warn threshold is very high and may hide stopped-state alerts.');
+    }
+    if (healthThresholdRaw && Number(healthThresholdRaw) >= 95) {
+        warnings.push('Health warn threshold is very high and may reduce health visibility.');
+    }
+    return warnings;
+};
+
 const validateForm = () => {
-    const valid = [
+    const checks = [
         validateNameField(),
         validateRegexField(),
         validateFolderWebUiUrl(),
         validateContextGraphTime(),
         validateHealthWarnThreshold(),
         validateStatusWarnThreshold()
-    ].every(Boolean);
+    ];
+    const valid = checks.every(Boolean);
+    const blockedCount = checks.filter((ok) => !ok).length;
+    const warnings = collectValidationWarnings();
 
     const summary = $('#fvValidationSummary');
+    const details = $('#fvValidationDetails');
     if (summary.length) {
-        summary.toggleClass('invalid', !valid).text(valid ? 'All checks passed.' : 'Fix highlighted fields before saving.');
+        summary.removeClass('invalid warning ready');
+        if (!valid) {
+            summary.addClass('invalid').text(`Blocked: fix ${blockedCount} field issue${blockedCount === 1 ? '' : 's'} before saving.`);
+        } else if (warnings.length > 0) {
+            summary.addClass('warning').text(`Warning: ${warnings.length} recommendation${warnings.length === 1 ? '' : 's'} available.`);
+        } else {
+            summary.addClass('ready').text('Ready: all checks passed.');
+        }
+    }
+    if (details.length) {
+        if (!valid) {
+            details
+                .removeClass('warning ready')
+                .addClass('invalid')
+                .text('Resolve highlighted field errors, then try saving again.');
+        } else if (warnings.length > 0) {
+            const rendered = warnings.slice(0, 3).map((line) => `• ${line}`).join('\n');
+            details
+                .removeClass('invalid ready')
+                .addClass('warning')
+                .text(rendered);
+        } else {
+            details
+                .removeClass('invalid warning')
+                .addClass('ready')
+                .text('No warnings.');
+        }
     }
     $('.folder-btn-submit, .folder-btn-copy').prop('disabled', !valid);
     return valid;
@@ -992,13 +1076,95 @@ const moveMemberRow = (button, direction) => {
     }
 };
 
-const applyAdvancedMode = () => {
-    const checkbox = $('#fvShowAdvanced');
-    if (!checkbox.length) {
+const normalizeEditorMode = (value) => (String(value || '').trim().toLowerCase() === 'advanced' ? 'advanced' : 'basic');
+
+const loadEditorModePreference = () => {
+    try {
+        return normalizeEditorMode(localStorage.getItem(EDITOR_MODE_STORAGE_KEY) || 'basic');
+    } catch (_error) {
+        return 'basic';
+    }
+};
+
+const saveEditorModePreference = (mode) => {
+    try {
+        localStorage.setItem(EDITOR_MODE_STORAGE_KEY, normalizeEditorMode(mode));
+    } catch (_error) {
+        // Ignore storage failures; runtime mode still works.
+    }
+};
+
+const loadAdvancedCollapseState = () => {
+    try {
+        const raw = localStorage.getItem(EDITOR_ADVANCED_COLLAPSE_STORAGE_KEY);
+        const parsed = raw ? JSON.parse(raw) : {};
+        if (!parsed || typeof parsed !== 'object') {
+            return {};
+        }
+        const state = {};
+        ADVANCED_SECTION_KEYS.forEach((key) => {
+            state[key] = parsed[key] === true;
+        });
+        return state;
+    } catch (_error) {
+        return {};
+    }
+};
+
+const saveAdvancedCollapseState = () => {
+    try {
+        localStorage.setItem(EDITOR_ADVANCED_COLLAPSE_STORAGE_KEY, JSON.stringify(advancedSectionCollapsedState || {}));
+    } catch (_error) {
+        // Ignore storage failures.
+    }
+};
+
+const setEditorMode = (mode) => {
+    editorMode = normalizeEditorMode(mode);
+    saveEditorModePreference(editorMode);
+    applyAdvancedMode();
+};
+
+const toggleAdvancedSectionCollapse = (sectionKey) => {
+    if (!ADVANCED_SECTION_KEYS.includes(String(sectionKey || ''))) {
         return;
     }
-    const showAdvanced = checkbox.prop('checked');
-    localStorage.setItem('fv.folder.editor.showAdvanced', showAdvanced ? '1' : '0');
+    advancedSectionCollapsedState[sectionKey] = !(advancedSectionCollapsedState[sectionKey] === true);
+    saveAdvancedCollapseState();
+    applyAdvancedMode();
+};
+
+const applyAdvancedMode = () => {
+    editorMode = normalizeEditorMode(editorMode);
+    const showAdvanced = editorMode === 'advanced';
+    $('.fv-editor-mode > button').removeClass('is-active');
+    $(`.fv-editor-mode > button[data-mode="${showAdvanced ? 'advanced' : 'basic'}"]`).addClass('is-active');
+
+    Object.entries(SECTION_META).forEach(([key, meta]) => {
+        const isAdvancedSection = meta?.advanced === true;
+        const heading = $(`#fv-section-${key}`);
+        const rows = $(`[data-editor-section="${key}"]`);
+        const navButton = $(`.fv-section-nav > button[data-target="${key}"]`);
+        const collapseButton = heading.find('.fv-section-collapse');
+
+        if (!showAdvanced && isAdvancedSection) {
+            heading.hide();
+            rows.hide();
+            navButton.hide();
+            return;
+        }
+
+        heading.show();
+        navButton.show();
+        const collapsed = showAdvanced && isAdvancedSection && advancedSectionCollapsedState[key] === true;
+        heading.toggleClass('is-collapsed', collapsed);
+        if (collapseButton.length) {
+            collapseButton.attr('aria-pressed', collapsed ? 'true' : 'false');
+            collapseButton.html(`<i class="fa ${collapsed ? 'fa-plus-square-o' : 'fa-minus-square-o'}" aria-hidden="true"></i> ${collapsed ? 'Expand' : 'Collapse'}`);
+        }
+        rows.toggle(!collapsed);
+    });
+
     $('.fv-advanced-setting').toggleClass('fv-advanced-hidden', !showAdvanced);
 };
 
@@ -1094,6 +1260,166 @@ const enforceLeftAlignedSettingsLayout = () => {
     }
 };
 
+const getIncludedMemberNames = () => $('input[name*="containers"]:checked').map((_, el) => String($(el).val() || '')).get();
+
+const getMemberMapByName = () => new Map(getAllMembers().map((member) => [String(member?.Name || ''), member]));
+
+const escapeRegexLiteral = (value) => String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const longestCommonPrefix = (values) => {
+    if (!Array.isArray(values) || values.length === 0) {
+        return '';
+    }
+    const source = values
+        .map((value) => String(value || '').trim())
+        .filter((value) => value !== '');
+    if (source.length === 0) {
+        return '';
+    }
+    let prefix = source[0];
+    for (let i = 1; i < source.length; i += 1) {
+        const current = source[i];
+        while (prefix && !current.toLowerCase().startsWith(prefix.toLowerCase())) {
+            prefix = prefix.slice(0, -1);
+        }
+        if (!prefix) {
+            break;
+        }
+    }
+    return prefix.trim();
+};
+
+const buildRegexSuggestionFromNames = (names) => {
+    const list = Array.isArray(names) ? names : [];
+    const prefix = longestCommonPrefix(list);
+    if (prefix.length >= 3) {
+        return `^${escapeRegexLiteral(prefix)}`;
+    }
+    const tokens = list
+        .map((name) => String(name || '').trim())
+        .filter((name) => name.length >= 3)
+        .map((name) => name.split(/[-_.\s]+/)[0] || '')
+        .filter((token) => token.length >= 3);
+    if (!tokens.length) {
+        return '';
+    }
+    const counts = new Map();
+    tokens.forEach((token) => {
+        const lower = token.toLowerCase();
+        counts.set(lower, (counts.get(lower) || 0) + 1);
+    });
+    const [topToken, topCount] = Array.from(counts.entries()).sort((a, b) => b[1] - a[1])[0] || ['', 0];
+    if (!topToken || topCount < Math.max(2, Math.ceil(list.length * 0.5))) {
+        return '';
+    }
+    return `^${escapeRegexLiteral(topToken)}`;
+};
+
+const isDockerUpdateAvailableInEditor = (member) => {
+    const source = member && typeof member === 'object' ? member : {};
+    const state = source?.State || source?.RawState || {};
+    return state?.manager === 'dockerman' && state?.Updated === false;
+};
+
+const suggestDefaultsFromMembers = () => {
+    const form = getForm();
+    if (!form) {
+        return;
+    }
+    const memberNames = getIncludedMemberNames();
+    if (!memberNames.length) {
+        swal({
+            title: 'No members selected',
+            text: 'Select at least one member in this folder first, then try Suggest defaults again.',
+            type: 'warning'
+        });
+        return;
+    }
+    const memberMap = getMemberMapByName();
+    const selectedMembers = memberNames.map((name) => memberMap.get(name)).filter(Boolean);
+
+    const suggestions = [];
+    const iconCandidate = selectedMembers.find((member) => String(member?.Icon || '').trim())?.Icon || '';
+    if (iconCandidate) {
+        suggestions.push({
+            key: 'icon',
+            label: 'Icon',
+            value: String(iconCandidate),
+            apply: () => { form.icon.value = String(iconCandidate); }
+        });
+    }
+
+    const regexCandidate = buildRegexSuggestionFromNames(memberNames);
+    if (regexCandidate) {
+        suggestions.push({
+            key: 'regex',
+            label: 'Regex',
+            value: regexCandidate,
+            apply: () => { form.regex.value = regexCandidate; }
+        });
+    }
+
+    if (type === 'docker') {
+        const composeProjects = Array.from(new Set(
+            selectedMembers
+                .map((member) => String(member?.ComposeProject || '').trim())
+                .filter((value) => value !== '')
+        ));
+        if (composeProjects.length === 1) {
+            suggestions.push({
+                key: 'compose',
+                label: 'Compose project',
+                value: composeProjects[0],
+                apply: () => { /* display-only advisory */ }
+            });
+        }
+        const updateCount = selectedMembers.filter((member) => isDockerUpdateAvailableInEditor(member)).length;
+        suggestions.push({
+            key: 'updates',
+            label: 'Update-aware preview',
+            value: `${updateCount}/${selectedMembers.length} with updates`,
+            apply: () => { form.preview_update.checked = updateCount > 0; }
+        });
+    }
+
+    if (!suggestions.length) {
+        swal({
+            title: 'No suggestions found',
+            text: 'Current selection does not provide enough signal for safe defaults.',
+            type: 'info'
+        });
+        return;
+    }
+
+    const previewText = suggestions.map((entry) => `- ${entry.label}: ${entry.value}`).join('\n');
+    swal({
+        title: 'Apply smart defaults?',
+        text: previewText,
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Apply suggestions',
+        cancelButtonText: 'Cancel'
+    }, (confirmed) => {
+        if (!confirmed) {
+            return;
+        }
+        suggestions.forEach((entry) => {
+            if (typeof entry.apply === 'function') {
+                entry.apply();
+            }
+        });
+        updateIcon(form.icon);
+        updateRegex(form.regex);
+        updateForm();
+        validateForm();
+        updateLiveSummary();
+        updateRegexSimulator();
+        if (isFormInitialized) {
+            updateUnsavedIndicator();
+        }
+    });
+};
+
 const updateLiveSummary = () => {
     const form = getForm();
     if (!form) {
@@ -1105,6 +1431,29 @@ const updateLiveSummary = () => {
     $('#fvSwatchStarted').css('background-color', normalizeHexColor(form.status_color_started.value, DEFAULT_FOLDER_STATUS_COLORS.started));
     $('#fvSwatchPaused').css('background-color', normalizeHexColor(form.status_color_paused.value, DEFAULT_FOLDER_STATUS_COLORS.paused));
     $('#fvSwatchStopped').css('background-color', normalizeHexColor(form.status_color_stopped.value, DEFAULT_FOLDER_STATUS_COLORS.stopped));
+    const memberNames = getIncludedMemberNames();
+    const memberMap = getMemberMapByName();
+    const selectedMembers = memberNames.map((name) => memberMap.get(name)).filter(Boolean);
+    const dockerSignals = $('#fvDockerSignals');
+    if (type === 'docker' && dockerSignals.length) {
+        const composeProjects = Array.from(new Set(
+            selectedMembers
+                .map((member) => String(member?.ComposeProject || '').trim())
+                .filter((value) => value !== '')
+        ));
+        const updateCount = selectedMembers.filter((member) => isDockerUpdateAvailableInEditor(member)).length;
+        const composeSummary = composeProjects.length === 0
+            ? 'Compose: none detected'
+            : (composeProjects.length === 1
+                ? `Compose: ${composeProjects[0]}`
+                : `Compose: ${composeProjects.length} projects`);
+        const updateSummary = `Updates: ${updateCount}/${selectedMembers.length || 0}`;
+        $('#fvDockerComposeSummary').text(composeSummary);
+        $('#fvDockerUpdateSummary').text(updateSummary);
+        dockerSignals.show();
+    } else if (dockerSignals.length) {
+        dockerSignals.hide();
+    }
     updateMemberStats();
 };
 
@@ -1217,10 +1566,14 @@ const initEditorChrome = () => {
             <div id="fvEditorChrome" class="fv-editor-chrome">
                 <div class="fv-editor-nav-row">
                     <div class="fv-section-nav">${navButtons}</div>
-                    <label class="fv-advanced-toggle"><input type="checkbox" id="fvShowAdvanced">Show advanced</label>
+                    <div class="fv-editor-mode" role="group" aria-label="Editor mode">
+                        <button type="button" data-mode="basic" class="is-active">Basic</button>
+                        <button type="button" data-mode="advanced">Advanced</button>
+                    </div>
                 </div>
                 <div class="fv-editor-status-row">
                     <span id="fvValidationSummary" class="fv-validation-summary">All checks passed.</span>
+                    <pre id="fvValidationDetails" class="fv-validation-details">No warnings.</pre>
                 </div>
             </div>
             <div id="fvLivePanel" class="fv-live-panel">
@@ -1234,6 +1587,13 @@ const initEditorChrome = () => {
                     <span class="fv-swatch-item"><em>Started</em><i id="fvSwatchStarted"></i></span>
                     <span class="fv-swatch-item"><em>Paused</em><i id="fvSwatchPaused"></i></span>
                     <span class="fv-swatch-item"><em>Stopped</em><i id="fvSwatchStopped"></i></span>
+                </div>
+                <div id="fvDockerSignals" class="fv-docker-signals" style="display:none;">
+                    <span id="fvDockerComposeSummary" class="fv-docker-signal-chip">Compose: none detected</span>
+                    <span id="fvDockerUpdateSummary" class="fv-docker-signal-chip">Updates: 0/0</span>
+                </div>
+                <div class="fv-smart-defaults-row">
+                    <button type="button" id="fvSuggestDefaults"><i class="fa fa-magic" aria-hidden="true"></i> Suggest defaults</button>
                 </div>
                 <div class="fv-regex-simulator">
                     <label for="fvRegexSimulatorInput"><strong>Regex simulator</strong></label>
@@ -1269,8 +1629,11 @@ const initEditorChrome = () => {
             return;
         }
         first.before(`
-            <div class="fv-section-heading" id="fv-section-${key}">
-                <h3>${section.title}</h3>
+            <div class="fv-section-heading${section.advanced ? ' is-advanced' : ''}" id="fv-section-${key}" data-section-key="${key}">
+                <div class="fv-section-heading-title-row">
+                    <h3>${section.title}${section.advanced ? ' <span class="fv-section-badge">advanced</span>' : ''}</h3>
+                    ${section.advanced ? `<button type="button" class="fv-section-collapse" data-section="${key}" aria-pressed="false"><i class="fa fa-minus-square-o" aria-hidden="true"></i> Collapse</button>` : ''}
+                </div>
                 <p>${section.description}</p>
             </div>
         `);
@@ -1295,16 +1658,17 @@ const initEditorChrome = () => {
         applyMemberFilters();
     });
 
-    const advancedPref = localStorage.getItem('fv.folder.editor.showAdvanced');
-    $('#fvShowAdvanced').prop('checked', advancedPref === '1');
-    $('#fvShowAdvanced').off('change').on('change', () => {
-        updateForm();
-        applyAdvancedMode();
-        if (isFormInitialized) {
-            updateUnsavedIndicator();
-        }
-    });
+    editorMode = loadEditorModePreference();
+    advancedSectionCollapsedState = loadAdvancedCollapseState();
     $('#fvRegexSimulatorInput').off('input').on('input', updateRegexSimulator);
+    $('#fvSuggestDefaults').off('click').on('click', suggestDefaultsFromMembers);
+
+    $('.fv-editor-mode > button').off('click').on('click', function onModeClick() {
+        setEditorMode($(this).attr('data-mode'));
+    });
+    $('.fv-section-collapse').off('click').on('click', function onCollapseClick() {
+        toggleAdvancedSectionCollapse($(this).attr('data-section'));
+    });
 
     enforceLeftAlignedSettingsLayout();
     setTimeout(enforceLeftAlignedSettingsLayout, 50);
@@ -1329,10 +1693,15 @@ resetStatusColorDefaults();
     if (type === 'docker') {
         typeFilter = (e) => {
             const labels = e?.info?.Config?.Labels || {};
+            const state = e?.info?.State || e?.State || {};
             return {
                 'Name': e.info.Name,
                 'Icon': labels['net.unraid.docker.icon'],
-                'Label': getFolderLabelValue(labels)
+                'Label': getFolderLabelValue(labels),
+                'ComposeProject': labels['com.docker.compose.project'] || '',
+                'State': state,
+                'RawState': state,
+                'UpdateAvailable': state?.manager === 'dockerman' && state?.Updated === false
             }
         };
     } else if (type === 'vm') {

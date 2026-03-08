@@ -6,12 +6,21 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.08.23">
-<!ENTITY md5 "c079f30b6cc33bbe84126780bbdd217a">
+<!ENTITY version "2026.03.08.24">
+<!ENTITY md5 "6c00b2cebfb694c4ff4f7e67da29157a">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.08.24
+- Feature: upgraded folder editor validation status to explicit Ready/Warning/Blocked states with inline recommendation details.
+- Feature: added Smart Defaults assistant in folder editor (`Suggest defaults`) to auto-suggest icon/regex and Docker update-aware preview defaults from selected members.
+- Feature: added Docker editor live signal chips for compose-project detection and update coverage preview.
+- UX: replaced checkbox-style editor advanced toggle with Basic/Advanced mode buttons and collapsible advanced section cards.
+- Quality: updated performance budget guard ceiling for `folderviewplus.js` to match current feature scope while keeping byte and gzip budgets enforced.
+- Regression guard: expanded folder editor smoke coverage for new editor mode, validation detail, smart-defaults, and Docker signal UI hooks.
+
 
 ###2026.03.08.23
 - UX: added richer empty-state guidance for Rules, Backups, and Templates modules (with clearer next steps and filter-specific messaging).

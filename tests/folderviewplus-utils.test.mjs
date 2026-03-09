@@ -193,6 +193,64 @@ test('getAutoRuleMatches supports docker label and regex rules', () => {
     assert.deepEqual(matches.sort(), ['homeassistant', 'plex']);
 });
 
+test('compose project helpers normalize compose labels and manager fallback', () => {
+    assert.equal(
+        utils.getComposeProjectFromLabels({ 'com.docker.compose.project': 'media' }),
+        'media'
+    );
+    assert.equal(
+        utils.getComposeProjectFromLabels({ 'com.docker.compose.project.working_dir': '/mnt/user/appdata/networking' }),
+        'networking'
+    );
+    assert.equal(
+        utils.getComposeProjectFromLabels({ 'com.docker.compose.project.config_files': '/mnt/user/appdata/media/docker-compose.yml' }),
+        'media'
+    );
+    assert.equal(utils.getComposeProjectFromLabels({}), '');
+
+    assert.equal(utils.isComposeManagedFromLabels({ 'net.unraid.docker.managed': 'composeman' }), true);
+    assert.equal(
+        utils.isComposeManagedFromLabels({ 'com.docker.compose.project.working_dir': '/mnt/user/appdata/media' }),
+        true
+    );
+    assert.equal(utils.isComposeManagedFromLabels({ 'net.unraid.docker.managed': 'dockerman' }), false);
+});
+
+test('getAutoRuleMatches supports compose project regex with compose label fallbacks', () => {
+    const rules = [
+        {
+            id: 'compose-rule',
+            enabled: true,
+            folderId: 'compose-folder',
+            kind: 'compose_project_regex',
+            pattern: '^media$'
+        }
+    ];
+    const names = ['sonarr', 'nginx'];
+    const info = {
+        sonarr: {
+            Labels: {
+                'com.docker.compose.project.config_files': '/mnt/user/appdata/media/docker-compose.yml'
+            }
+        },
+        nginx: {
+            Labels: {
+                'com.docker.compose.project.working_dir': '/mnt/user/appdata/networking'
+            }
+        }
+    };
+
+    const matches = utils.getAutoRuleMatches({
+        rules,
+        folderId: 'compose-folder',
+        names,
+        infoByName: info,
+        type: 'docker'
+    });
+
+    assert.deepEqual(matches, ['sonarr']);
+});
+
 test('getAutoRuleDecision supports exclude precedence and advanced docker kinds', () => {
     const rules = [
         {

@@ -1267,6 +1267,51 @@ const applyRegexPreset = (type, preset) => {
 
 const getDockerItemLabels = (itemInfo) => itemInfo?.Labels || itemInfo?.info?.Config?.Labels || {};
 
+const basenameFromPathish = (value) => {
+    const trimmed = String(value || '').trim();
+    if (!trimmed) {
+        return '';
+    }
+    const firstEntry = trimmed.split(',')[0].trim();
+    if (!firstEntry) {
+        return '';
+    }
+    const normalized = firstEntry.replace(/\\/g, '/').replace(/\/+$/, '');
+    if (!normalized) {
+        return '';
+    }
+    const parts = normalized.split('/');
+    return String(parts[parts.length - 1] || '').trim();
+};
+
+const getComposeProjectLabelValue = (labels) => {
+    if (utils && typeof utils.getComposeProjectFromLabels === 'function') {
+        return String(utils.getComposeProjectFromLabels(labels) || '');
+    }
+    const source = labels && typeof labels === 'object' ? labels : {};
+    const explicit = String(source['com.docker.compose.project'] || '').trim();
+    if (explicit) {
+        return explicit;
+    }
+    const fromWorkingDir = basenameFromPathish(source['com.docker.compose.project.working_dir']);
+    if (fromWorkingDir) {
+        return fromWorkingDir;
+    }
+    const configFiles = String(source['com.docker.compose.project.config_files'] || '').trim();
+    if (configFiles) {
+        const firstConfig = configFiles.split(',')[0].trim();
+        if (firstConfig) {
+            const normalized = firstConfig.replace(/\\/g, '/');
+            const dir = normalized.split('/').slice(0, -1).join('/');
+            const fromConfigDir = basenameFromPathish(dir);
+            if (fromConfigDir) {
+                return fromConfigDir;
+            }
+        }
+    }
+    return '';
+};
+
 const updateRuleLiveMatch = (type) => {
     const output = $(`#${type}-rule-live-match`);
     if (!output.length) {
@@ -1312,7 +1357,7 @@ const updateRuleLiveMatch = (type) => {
                 const row = info[name] || {};
                 const labels = getDockerItemLabels(row);
                 const image = row?.info?.Config?.Image || '';
-                const composeProject = labels['com.docker.compose.project'] || '';
+                const composeProject = getComposeProjectLabelValue(labels);
                 const value = kind === 'image_regex' ? image : (kind === 'compose_project_regex' ? composeProject : name);
                 regex.lastIndex = 0;
                 if (regex.test(String(value || ''))) {

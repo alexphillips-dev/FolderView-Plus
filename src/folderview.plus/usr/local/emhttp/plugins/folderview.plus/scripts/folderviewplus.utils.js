@@ -748,9 +748,61 @@
         return String(item.info?.Config?.Image || item.Image || '');
     };
 
+    const basenameFromPathish = (value) => {
+        const trimmed = String(value || '').trim();
+        if (!trimmed) {
+            return '';
+        }
+        const firstEntry = trimmed.split(',')[0].trim();
+        if (!firstEntry) {
+            return '';
+        }
+        const normalized = firstEntry.replace(/\\/g, '/').replace(/\/+$/, '');
+        if (!normalized) {
+            return '';
+        }
+        const parts = normalized.split('/');
+        return String(parts[parts.length - 1] || '').trim();
+    };
+
+    const getComposeProjectFromLabels = (labels) => {
+        const source = isPlainObject(labels) ? labels : {};
+
+        const explicit = String(source['com.docker.compose.project'] || '').trim();
+        if (explicit) {
+            return explicit;
+        }
+
+        const fromWorkingDir = basenameFromPathish(source['com.docker.compose.project.working_dir']);
+        if (fromWorkingDir) {
+            return fromWorkingDir;
+        }
+
+        const configFiles = String(source['com.docker.compose.project.config_files'] || '').trim();
+        if (configFiles) {
+            const firstConfig = configFiles.split(',')[0].trim();
+            if (firstConfig) {
+                const normalized = firstConfig.replace(/\\/g, '/');
+                const dir = normalized.split('/').slice(0, -1).join('/');
+                const fromConfigDir = basenameFromPathish(dir);
+                if (fromConfigDir) {
+                    return fromConfigDir;
+                }
+            }
+        }
+
+        return '';
+    };
+
+    const isComposeManagedFromLabels = (labels) => {
+        const source = isPlainObject(labels) ? labels : {};
+        const manager = String(source['net.unraid.docker.managed'] || '').trim().toLowerCase();
+        return manager === 'composeman' || getComposeProjectFromLabels(source) !== '';
+    };
+
     const getComposeProject = (infos, name) => {
         const labels = getDockerLabels(infos, name);
-        return String(labels['com.docker.compose.project'] || labels['com.docker.compose.project.working_dir'] || '');
+        return getComposeProjectFromLabels(labels);
     };
 
     const getFolderLabelValue = (labels) => {
@@ -1197,6 +1249,8 @@
         getEffectiveFolderMembers,
         planFolderRuntimeAction,
         getFolderLabelValue,
+        getComposeProjectFromLabels,
+        isComposeManagedFromLabels,
         getConflictReport
     };
 }));

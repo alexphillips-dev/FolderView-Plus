@@ -2609,6 +2609,62 @@
         return '';
     }
 
+    function basenameFromPathish(string $value): string {
+        $trimmed = trim($value);
+        if ($trimmed === '') {
+            return '';
+        }
+        $first = trim(explode(',', $trimmed)[0] ?? '');
+        if ($first === '') {
+            return '';
+        }
+        $normalized = str_replace('\\', '/', $first);
+        $normalized = rtrim($normalized, '/');
+        if ($normalized === '') {
+            return '';
+        }
+        $parts = explode('/', $normalized);
+        $last = trim((string)end($parts));
+        return $last;
+    }
+
+    function getComposeProjectValueFromLabels($labels): string {
+        if (!is_array($labels)) {
+            return '';
+        }
+        $explicit = trim((string)($labels['com.docker.compose.project'] ?? ''));
+        if ($explicit !== '') {
+            return $explicit;
+        }
+        $fromWorkingDir = basenameFromPathish((string)($labels['com.docker.compose.project.working_dir'] ?? ''));
+        if ($fromWorkingDir !== '') {
+            return $fromWorkingDir;
+        }
+        $configFiles = trim((string)($labels['com.docker.compose.project.config_files'] ?? ''));
+        if ($configFiles !== '') {
+            $firstConfig = trim(explode(',', $configFiles)[0] ?? '');
+            if ($firstConfig !== '') {
+                $normalized = str_replace('\\', '/', $firstConfig);
+                $fromConfigDir = basenameFromPathish(dirname($normalized));
+                if ($fromConfigDir !== '') {
+                    return $fromConfigDir;
+                }
+            }
+        }
+        return '';
+    }
+
+    function getNormalizedDockerManagerFromLabels($labels) {
+        if (!is_array($labels)) {
+            return false;
+        }
+        $manager = strtolower(trim((string)($labels['net.unraid.docker.managed'] ?? '')));
+        if ($manager === '' && getComposeProjectValueFromLabels($labels) !== '') {
+            $manager = 'composeman';
+        }
+        return $manager === '' ? false : $manager;
+    }
+
     function serverRegexMatches(string $pattern, string $input): bool {
         if (trim($pattern) === '') {
             return false;
@@ -2647,13 +2703,7 @@
 
     function dockerInfoComposeProjectForName(array $infoByName, string $name): string {
         $labels = dockerInfoLabelsForName($infoByName, $name);
-        if (isset($labels['com.docker.compose.project'])) {
-            return (string)$labels['com.docker.compose.project'];
-        }
-        if (isset($labels['com.docker.compose.project.working_dir'])) {
-            return (string)$labels['com.docker.compose.project.working_dir'];
-        }
-        return '';
+        return getComposeProjectValueFromLabels($labels);
     }
 
     function autoRuleMatchesItem(array $rule, string $name, array $infoByName, string $type): bool {
@@ -4012,7 +4062,7 @@
                 $running = $stateRaw === 'running';
                 $paused = ($stateRaw === 'paused') || (stripos($statusRaw, 'paused') !== false);
                 $stateKind = $running ? ($paused ? 'paused' : 'running') : 'stopped';
-                $manager = trim((string)($labels['net.unraid.docker.managed'] ?? ''));
+                $manager = getNormalizedDockerManagerFromLabels($labels);
 
                 $info[$name] = [
                     'name' => $name,
@@ -4023,6 +4073,7 @@
                     'status' => $statusRaw,
                     'autostart' => isset($autoStartSet[$name]),
                     'manager' => $manager,
+                    'composeProject' => getComposeProjectValueFromLabels($labels),
                     'folderLabel' => getFolderLabelValueFromLabels($labels)
                 ];
             }
@@ -4113,7 +4164,7 @@
                 $ct['info']['State']['Autostart'] = in_array($containerName, $autoStart);
                 $ct['info']['Config']['Image'] = DockerUtil::ensureImageTag($ct['info']['Config']['Image']);
                 $ct['info']['State']['Updated'] = $DockerUpdate->getUpdateStatus($ct['info']['Config']['Image']);
-                $ct['info']['State']['manager'] = $ct['Labels']['net.unraid.docker.managed'] ?? false;
+                $ct['info']['State']['manager'] = getNormalizedDockerManagerFromLabels($ct['Labels'] ?? []);
                 $ct['shortId'] = substr(str_replace('sha256:', '', $ct['Id']), 0, 12);
                 $ct['shortImageId'] = substr(str_replace('sha256:', '', $ct['ImageID']), 0, 12);
                 $ct['info']['State']['WebUi'] = ''; $ct['info']['State']['TSWebUi'] = '';

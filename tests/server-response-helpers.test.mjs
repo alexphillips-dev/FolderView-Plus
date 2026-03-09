@@ -49,3 +49,14 @@ test('backup restore validates payload type against requested type', () => {
     assert.match(libPhp, /function validateBackupPayloadType\s*\(array \$decoded, string \$type\): void/);
     assert.match(libPhp, /validateBackupPayloadType\(\$decoded, \$type\);/);
 });
+
+test('lib.php normalizes compose manager and compose project labels', () => {
+    assert.match(libPhp, /function getComposeProjectValueFromLabels\s*\(/);
+    assert.match(libPhp, /function getNormalizedDockerManagerFromLabels\s*\(/);
+    assert.match(libPhp, /'composeProject'\s*=>\s*getComposeProjectValueFromLabels\(\$labels\)/);
+    assert.match(libPhp, /\$manager\s*=\s*getNormalizedDockerManagerFromLabels\(\$labels\);/);
+    assert.match(
+        libPhp,
+        /\$ct\['info'\]\['State'\]\['manager'\]\s*=\s*getNormalizedDockerManagerFromLabels\(\$ct\['Labels'\]\s*\?\?\s*\[\]\);/
+    );
+});

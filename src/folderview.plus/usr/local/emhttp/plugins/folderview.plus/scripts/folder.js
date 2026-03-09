@@ -80,6 +80,48 @@ const getFolderLabelValue = (labels) => {
     return '';
 };
 
+const basenameFromPathish = (value) => {
+    const trimmed = String(value || '').trim();
+    if (!trimmed) {
+        return '';
+    }
+    const firstEntry = trimmed.split(',')[0].trim();
+    if (!firstEntry) {
+        return '';
+    }
+    const normalized = firstEntry.replace(/\\/g, '/').replace(/\/+$/, '');
+    if (!normalized) {
+        return '';
+    }
+    const parts = normalized.split('/');
+    return String(parts[parts.length - 1] || '').trim();
+};
+
+const getComposeProjectFromLabels = (labels) => {
+    const source = labels && typeof labels === 'object' ? labels : {};
+    const explicit = String(source['com.docker.compose.project'] || '').trim();
+    if (explicit) {
+        return explicit;
+    }
+    const fromWorkingDir = basenameFromPathish(source['com.docker.compose.project.working_dir']);
+    if (fromWorkingDir) {
+        return fromWorkingDir;
+    }
+    const configFiles = String(source['com.docker.compose.project.config_files'] || '').trim();
+    if (configFiles) {
+        const firstConfig = configFiles.split(',')[0].trim();
+        if (firstConfig) {
+            const normalized = firstConfig.replace(/\\/g, '/');
+            const dir = normalized.split('/').slice(0, -1).join('/');
+            const fromConfigDir = basenameFromPathish(dir);
+            if (fromConfigDir) {
+                return fromConfigDir;
+            }
+        }
+    }
+    return '';
+};
+
 const rgbToHex = (rgb) => {
     rgb = rgb.slice(4, -1).split(', ');
     return "#" + (1 << 24 | rgb[0] << 16 | rgb[1] << 8 | rgb[2]).toString(16).slice(1);
@@ -1698,7 +1740,7 @@ resetStatusColorDefaults();
                 'Name': e.info.Name,
                 'Icon': labels['net.unraid.docker.icon'],
                 'Label': getFolderLabelValue(labels),
-                'ComposeProject': labels['com.docker.compose.project'] || '',
+                'ComposeProject': getComposeProjectFromLabels(labels),
                 'State': state,
                 'RawState': state,
                 'UpdateAvailable': state?.manager === 'dockerman' && state?.Updated === false

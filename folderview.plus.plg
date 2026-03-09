@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.08.25">
-<!ENTITY md5 "54b35f45b22f8a859523bae848eedce6">
+<!ENTITY version "2026.03.09.01">
+<!ENTITY md5 "d63b24ba9729d2839cd3ab98a1f88147">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.09.01
+- Compatibility: added Compose Manager fallback support so compose project detection works from `com.docker.compose.project`, `com.docker.compose.project.working_dir`, and `com.docker.compose.project.config_files`.
+- Fix: normalized Docker manager classification so compose-labeled containers are treated as `composeman` even when the manager label is missing/inconsistent.
+- Fix: updated folder editor and live rule matching paths to use the same compose project fallback logic for `compose_project_regex`.
+- Regression guard: added utility/server tests for compose manager normalization and compose label fallback matching.
 
 ###2026.03.08.25
 - Compatibility: permanently hardened legacy import support for historical payload shapes from folder.view2/folder.view3, including type-wrapped legacy exports.

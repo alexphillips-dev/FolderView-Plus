@@ -32,7 +32,8 @@ esac
 
 if [[ "${VERSION_OVERRIDE}" =~ ^([0-9]{4}\.[0-9]{2}\.[0-9]{2})(\.[0-9]+)?$ ]]; then
   stable_date="${BASH_REMATCH[1]}"
-  today_date="$(date +"%Y.%m.%d")"
+  # Use UTC to match pkg_build.sh date resolution during deterministic checks.
+  today_date="$(TZ=UTC date +"%Y.%m.%d")"
   if [[ "${stable_date}" != "${today_date}" && "${ALLOW_STALE_STABLE}" -ne 1 ]]; then
     echo "Skipping deterministic build guard for stale stable version ${VERSION_OVERRIDE} (today: ${today_date})."
     echo "Set FVPLUS_REPRO_ALLOW_STALE_STABLE=1 to force this check."

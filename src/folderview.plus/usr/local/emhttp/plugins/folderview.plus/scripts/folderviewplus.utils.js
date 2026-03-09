@@ -102,19 +102,69 @@
         );
     };
 
+    const normalizeFolderMembers = (value) => {
+        if (Array.isArray(value)) {
+            return Array.from(
+                new Set(
+                    value
+                        .map((item) => String(item || '').trim())
+                        .filter((item) => item !== '')
+                )
+            );
+        }
+        if (isPlainObject(value)) {
+            return Array.from(
+                new Set(
+                    Object.keys(value)
+                        .map((item) => String(item || '').trim())
+                        .filter((item) => item !== '')
+                )
+            );
+        }
+        return [];
+    };
+
+    const normalizeFolderRecord = (value) => {
+        if (!isPlainObject(value)) {
+            return null;
+        }
+
+        const name = String(value.name || '').trim();
+        if (name === '') {
+            return null;
+        }
+
+        const normalized = { ...value };
+        normalized.name = name;
+        normalized.icon = typeof value.icon === 'string' ? value.icon : '';
+        normalized.regex = typeof value.regex === 'string' ? value.regex : '';
+        normalized.containers = normalizeFolderMembers(value.containers);
+        normalized.settings = isPlainObject(value.settings) ? { ...value.settings } : {};
+        normalized.actions = Array.isArray(value.actions) ? value.actions.slice(0, 200) : [];
+        if (typeof value.createdAt === 'string') {
+            normalized.createdAt = value.createdAt;
+        }
+        if (typeof value.updatedAt === 'string') {
+            normalized.updatedAt = value.updatedAt;
+        }
+        return normalized;
+    };
+
     const normalizeFolderMap = (value) => {
         if (!isPlainObject(value)) {
             return {};
         }
         const output = {};
         for (const [id, folder] of Object.entries(value)) {
-            if (!isPlainObject(folder)) {
+            const normalizedId = String(id || '').trim();
+            if (normalizedId === '' || Object.prototype.hasOwnProperty.call(output, normalizedId)) {
                 continue;
             }
-            if (typeof folder.name !== 'string' || folder.name.trim() === '') {
+            const normalizedFolder = normalizeFolderRecord(folder);
+            if (!normalizedFolder) {
                 continue;
             }
-            output[id] = folder;
+            output[normalizedId] = normalizedFolder;
         }
         return output;
     };
@@ -395,6 +445,22 @@
         }
 
         // Legacy format support
+        if (isPlainObject(payload.folder) && typeof payload.folder.name === 'string' && payload.folder.name.trim() !== '') {
+            return {
+                ok: true,
+                schemaVersion: null,
+                pluginVersion: null,
+                exportedAt: null,
+                type: expectedType || null,
+                declaredType: null,
+                mode: 'single',
+                legacy: true,
+                folder: payload.folder,
+                folderId: typeof payload.folderId === 'string' && payload.folderId.trim() !== '' ? payload.folderId.trim() : null,
+                folders: {}
+            };
+        }
+
         if (typeof payload.name === 'string' && payload.name.trim() !== '') {
             return {
                 ok: true,
@@ -408,6 +474,25 @@
                 folder: payload,
                 folderId: null,
                 folders: {}
+            };
+        }
+
+        const wrappedByType = expectedType && isPlainObject(payload[expectedType]) ? payload[expectedType] : null;
+        const wrappedByFolders = isPlainObject(payload.folders) ? payload.folders : null;
+        const wrappedSource = wrappedByType || wrappedByFolders;
+        if (wrappedSource) {
+            return {
+                ok: true,
+                schemaVersion: null,
+                pluginVersion: null,
+                exportedAt: null,
+                type: expectedType || null,
+                declaredType: null,
+                mode: 'full',
+                legacy: true,
+                folder: null,
+                folderId: null,
+                folders: normalizeFolderMap(wrappedSource)
             };
         }
 

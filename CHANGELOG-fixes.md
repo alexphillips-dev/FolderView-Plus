@@ -1,5 +1,13 @@
 # FolderView Plus Changelog
 
+## Version 2026.03.08.25
+
+- Permanently harden legacy import parsing for folder.view2/folder.view3 payload variants, including legacy type-wrapped exports.
+- Normalize migrated legacy folder data while preserving compatibility for existing user configs.
+- Add self-healing folder/prefs JSON handling with atomic writes and `.lastgood` fallback recovery.
+- Auto-recover malformed folder/prefs files from last-known-good snapshots to prevent blank settings/folder states.
+- Add dedicated legacy-support CI guard and contract tests to lock migration compatibility and self-heal behavior.
+
 ## Version 2026.03.08.22
 
 - UI polish: move the Status breakdown info button to the left side of status chips for cleaner scan order.

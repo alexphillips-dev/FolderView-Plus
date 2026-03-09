@@ -36,6 +36,42 @@ test('compat: parses legacy folder.view2 single export payload', () => {
     assert.equal(parsed.folderId, null);
 });
 
+test('compat: parses legacy type-wrapped full payloads used by older tools', () => {
+    const parsed = utils.parseImportPayload({
+        docker: {
+            LegacyDocker: {
+                name: 'Legacy Docker',
+                containers: ['plex']
+            }
+        },
+        vm: {
+            LegacyVm: {
+                name: 'Legacy VM',
+                containers: ['Windows Server']
+            }
+        }
+    }, 'docker');
+
+    assert.equal(parsed.ok, true);
+    assert.equal(parsed.legacy, true);
+    assert.equal(parsed.mode, 'full');
+    assert.deepEqual(Object.keys(parsed.folders), ['LegacyDocker']);
+});
+
+test('compat: parses legacy single payload wrapped in folder property', () => {
+    const parsed = utils.parseImportPayload({
+        folder: {
+            name: 'Wrapped legacy single',
+            containers: ['nextcloud']
+        }
+    }, 'docker');
+
+    assert.equal(parsed.ok, true);
+    assert.equal(parsed.legacy, true);
+    assert.equal(parsed.mode, 'single');
+    assert.equal(parsed.folder?.name, 'Wrapped legacy single');
+});
+
 test('compat: parses current schema full export payload', () => {
     const payload = loadFixture('folderview-plus-schema1-full.json');
     const parsed = utils.parseImportPayload(payload, 'docker');
@@ -81,6 +117,10 @@ test('compat: merge/replace operation contracts remain stable for legacy full pa
 });
 
 test('compat: docker label fallback still supports folder.view3 and folder.view2 keys', () => {
+    assert.deepEqual(
+        utils.LEGACY_FOLDER_LABEL_KEYS,
+        ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view']
+    );
     assert.equal(
         utils.getFolderLabelValue({
             'folder.view3': 'Media'

@@ -1009,6 +1009,76 @@
         return is_array($decoded) ? $decoded : null;
     }
 
+    function getLastGoodJsonPath(string $path): string {
+        return $path . '.lastgood';
+    }
+
+    function writeJsonObjectAtomic(string $path, array $payload): void {
+        $parent = dirname($path);
+        if (!is_dir($parent)) {
+            @mkdir($parent, 0770, true);
+        }
+        $encoded = json_encode($payload, JSON_UNESCAPED_SLASHES);
+        if (!is_string($encoded) || $encoded === '') {
+            throw new RuntimeException("Failed to encode JSON payload for '$path'.");
+        }
+        $tmpPath = $path . '.tmp';
+        if (@file_put_contents($tmpPath, $encoded, LOCK_EX) === false) {
+            throw new RuntimeException("Failed to write temp JSON payload for '$path'.");
+        }
+        if (!@rename($tmpPath, $path)) {
+            @unlink($tmpPath);
+            throw new RuntimeException("Failed to replace JSON payload for '$path'.");
+        }
+        @chmod($path, 0644);
+    }
+
+    function writeJsonObjectWithLastGood(string $path, array $payload): void {
+        writeJsonObjectAtomic($path, $payload);
+        $lastGoodPath = getLastGoodJsonPath($path);
+        try {
+            writeJsonObjectAtomic($lastGoodPath, $payload);
+        } catch (Throwable $error) {
+            // Keep primary writes non-fatal if last-good mirror fails.
+        }
+    }
+
+    function recoverJsonObjectFromLastGood(string $path): ?array {
+        $lastGoodPath = getLastGoodJsonPath($path);
+        $decoded = readJsonObjectFile($lastGoodPath);
+        if (!is_array($decoded)) {
+            return null;
+        }
+        try {
+            writeJsonObjectAtomic($path, $decoded);
+        } catch (Throwable $error) {
+            // Keep recovery best-effort.
+        }
+        return $decoded;
+    }
+
+    function normalizeFolderMapPayload($value): array {
+        if (!is_array($value)) {
+            return [];
+        }
+        $normalized = [];
+        foreach ($value as $id => $folder) {
+            $safeId = trim((string)$id);
+            if ($safeId === '' || !is_array($folder)) {
+                continue;
+            }
+            if (array_key_exists($safeId, $normalized)) {
+                continue;
+            }
+            $normalized[$safeId] = normalizeFolderContentPayload($folder);
+        }
+        return $normalized;
+    }
+
+    function jsonObjectsDiffer(array $a, array $b): bool {
+        return json_encode($a, JSON_UNESCAPED_SLASHES) !== json_encode($b, JSON_UNESCAPED_SLASHES);
+    }
+
     function getLegacyMigrationMarkerPath(string $type, string $kind): string {
         global $configDir;
         $safeType = ensureType($type);
@@ -1061,15 +1131,14 @@
                 if ($legacyData === defaultTypePrefs()) {
                     continue;
                 }
-            } elseif (count($legacyData) === 0) {
-                continue;
+            } else {
+                $legacyData = normalizeFolderMapPayload($legacyData);
+                if (count($legacyData) === 0) {
+                    continue;
+                }
             }
 
-            $parent = dirname($targetPath);
-            if (!is_dir($parent)) {
-                @mkdir($parent, 0770, true);
-            }
-            @file_put_contents($targetPath, json_encode($legacyData, JSON_UNESCAPED_SLASHES));
+            writeJsonObjectWithLastGood($targetPath, $legacyData);
             markLegacyMigrationComplete($type, $safeKind);
             return;
         }
@@ -1107,21 +1176,28 @@
         if (!file_exists($path)) {
             createFile($type);
         }
-        $decoded = @json_decode((string)@file_get_contents($path), true);
-        return is_array($decoded) ? $decoded : [];
+        $decoded = readJsonObjectFile($path);
+        $recoveredFromLastGood = false;
+        if (!is_array($decoded)) {
+            $decoded = recoverJsonObjectFromLastGood($path);
+            $recoveredFromLastGood = is_array($decoded);
+        }
+        if (!is_array($decoded)) {
+            $decoded = [];
+        }
+
+        $normalized = normalizeFolderMapPayload($decoded);
+        if ($recoveredFromLastGood || jsonObjectsDiffer($decoded, $normalized)) {
+            writeRawFolderMap($type, $normalized);
+        }
+        return $normalized;
     }
 
     function writeRawFolderMap(string $type, array $folders): void {
         $type = ensureType($type);
         $path = getFolderFilePath($type);
-        $parent = dirname($path);
-        if (!is_dir($parent)) {
-            @mkdir($parent, 0770, true);
-        }
-        $result = @file_put_contents($path, json_encode($folders, JSON_UNESCAPED_SLASHES));
-        if ($result === false) {
-            throw new RuntimeException("Failed to write folder map for type '$type'.");
-        }
+        $normalized = normalizeFolderMapPayload($folders);
+        writeJsonObjectWithLastGood($path, $normalized);
     }
 
     function getTypePrefsPath(string $type): string {
@@ -1366,27 +1442,29 @@
             @mkdir($parent, 0770, true);
         }
         if (!file_exists($path)) {
-            $defaults = defaultTypePrefs();
-            @file_put_contents($path, json_encode($defaults, JSON_UNESCAPED_SLASHES));
-            return $defaults;
+            return writeTypePrefs($type, defaultTypePrefs());
         }
-        $decoded = @json_decode((string)@file_get_contents($path), true);
-        $normalized = normalizeTypePrefs(is_array($decoded) ? $decoded : []);
+        $decoded = readJsonObjectFile($path);
+        $recoveredFromLastGood = false;
+        if (!is_array($decoded)) {
+            $decoded = recoverJsonObjectFromLastGood($path);
+            $recoveredFromLastGood = is_array($decoded);
+        }
+        if (!is_array($decoded)) {
+            $decoded = [];
+        }
+        $normalized = normalizeTypePrefs($decoded);
+        if ($recoveredFromLastGood || jsonObjectsDiffer($decoded, $normalized)) {
+            writeTypePrefs($type, $normalized);
+        }
         return $normalized;
     }
 
     function writeTypePrefs(string $type, array $prefs): array {
         $type = ensureType($type);
         $path = getTypePrefsPath($type);
-        $parent = dirname($path);
-        if (!is_dir($parent)) {
-            @mkdir($parent, 0770, true);
-        }
         $normalized = normalizeTypePrefs($prefs);
-        $result = @file_put_contents($path, json_encode($normalized, JSON_UNESCAPED_SLASHES));
-        if ($result === false) {
-            throw new RuntimeException("Failed to write preferences for type '$type'.");
-        }
+        writeJsonObjectWithLastGood($path, $normalized);
         return $normalized;
     }
 
@@ -3773,14 +3851,13 @@
         if (!is_dir($configDir)) {
             @mkdir($configDir, 0770, true);
         }
-        $default = ['docker' => '{}', 'vm' => '{}'];
         $filePath = "$configDir/$type.json";
         if (!file_exists($filePath)) {
-            @file_put_contents($filePath, $default[$type] ?? '{}');
+            writeJsonObjectWithLastGood($filePath, []);
         }
         $prefsPath = getTypePrefsPath($type);
         if (!file_exists($prefsPath)) {
-            @file_put_contents($prefsPath, json_encode(defaultTypePrefs(), JSON_UNESCAPED_SLASHES));
+            writeJsonObjectWithLastGood($prefsPath, defaultTypePrefs());
         }
     }
 

@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.08.24">
-<!ENTITY md5 "6c00b2cebfb694c4ff4f7e67da29157a">
+<!ENTITY version "2026.03.08.25">
+<!ENTITY md5 "54b35f45b22f8a859523bae848eedce6">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.08.25
+- Compatibility: permanently hardened legacy import support for historical payload shapes from folder.view2/folder.view3, including type-wrapped legacy exports.
+- Fix: normalized legacy folder payloads during migration while preserving older configs for seamless upgrades.
+- Quality: added self-healing JSON persistence for Docker/VM folders and preferences using atomic writes plus `.lastgood` recovery snapshots.
+- Fix: malformed/corrupt folder or prefs files now auto-recover from last-known-good data instead of returning blank state.
+- Regression guard: added dedicated legacy compatibility + self-heal contract tests and CI guard script to prevent future migration breakage.
 
 ###2026.03.08.24
 - Feature: upgraded folder editor validation status to explicit Ready/Warning/Blocked states with inline recommendation details.

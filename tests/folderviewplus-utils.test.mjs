@@ -56,6 +56,34 @@ test('parseImportPayload requires explicit type metadata for schema exports', ()
     assert.match(parsed.error, /missing required type metadata/i);
 });
 
+test('normalizeFolderMap trims ids and heals member lists', () => {
+    const normalized = utils.normalizeFolderMap({
+        '  alpha  ': {
+            name: ' Alpha ',
+            containers: {
+                plex: true,
+                sonarr: true
+            },
+            settings: null,
+            actions: 'bad-value'
+        },
+        '': {
+            name: 'Discard',
+            containers: []
+        },
+        beta: {
+            name: '',
+            containers: []
+        }
+    });
+
+    assert.deepEqual(Object.keys(normalized), ['alpha']);
+    assert.equal(normalized.alpha.name, 'Alpha');
+    assert.deepEqual(normalized.alpha.containers.sort(), ['plex', 'sonarr']);
+    assert.deepEqual(normalized.alpha.settings, {});
+    assert.deepEqual(normalized.alpha.actions, []);
+});
+
 test('summarizeImport reports creates updates and deletes for replace mode', () => {
     const existing = {
         a: { name: 'A', containers: ['x'] },
@@ -348,7 +376,11 @@ test('export/import roundtrip smoke works for full payload', () => {
     const parsed = utils.parseImportPayload(exported, 'docker');
     assert.equal(parsed.ok, true);
     assert.equal(parsed.mode, 'full');
-    assert.deepEqual(parsed.folders, original);
+    assert.deepEqual(Object.keys(parsed.folders), ['abc', 'def']);
+    assert.equal(parsed.folders.abc.name, 'One');
+    assert.deepEqual(parsed.folders.abc.containers, ['x']);
+    assert.equal(parsed.folders.def.name, 'Two');
+    assert.deepEqual(parsed.folders.def.containers, []);
 
     const ops = utils.buildImportOperations({}, parsed, 'merge');
     assert.equal(ops.upserts.length, 2);

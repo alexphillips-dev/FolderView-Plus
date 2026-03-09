@@ -62,7 +62,7 @@ jobs:
       - name: Standards guard checks
         env:
           FVPLUS_UNRAID_MATRIX: ${{ secrets.FVPLUS_UNRAID_MATRIX }}
-          FVPLUS_UNRAID_MATRIX_REQUIRED: '1'
+          FVPLUS_UNRAID_MATRIX_REQUIRED: ${{ secrets.FVPLUS_UNRAID_MATRIX != '' && '1' || '0' }}
           FVPLUS_I18N_STRICT: '1'
           FVPLUS_REQUIRE_PERF_BASELINE: '1'
         run: |

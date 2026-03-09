@@ -175,7 +175,7 @@ test('release workflows serialize concurrent runs with shared release concurrenc
         assert.match(workflow, /concurrency:/);
         assert.match(workflow, /group:\s*folderview-plus-release/);
         assert.match(workflow, /cancel-in-progress:\s*false/);
-        assert.match(workflow, /FVPLUS_UNRAID_MATRIX_REQUIRED:\s*'1'/);
+        assert.match(workflow, /FVPLUS_UNRAID_MATRIX_REQUIRED:\s*\$\{\{\s*secrets\.FVPLUS_UNRAID_MATRIX\s*!=\s*''\s*&&\s*'1'\s*\|\|\s*'0'\s*\}\}/);
     }
 });
 

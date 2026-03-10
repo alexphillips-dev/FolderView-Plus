@@ -24,7 +24,7 @@ $fvplusRuntimeConflicts = fvplus_detect_runtime_plugin_conflicts();
 <div id="fv-settings-topbar"></div>
 <?php
 if (!empty($fvplusRuntimeConflicts)) {
-    fvplus_render_runtime_conflict_notice('FolderView Plus runtime');
+    fvplus_render_runtime_conflict_notice('Settings');
 }
 ?>
 <div id="fv-update-notes-panel" class="fv-update-notes-panel" style="display:none"></div>

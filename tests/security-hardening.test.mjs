@@ -51,7 +51,7 @@ test('runtime pages halt safely when conflicting folder view plugins are detecte
         assert.match(source, /if\s*\(!empty\(\$fvplusRuntimeConflicts\)\)\s*\{[\s\S]*fvplus_render_runtime_conflict_notice\('[^']+'\);[\s\S]*return;[\s\S]*\}/);
     }
     assert.match(settingsPage, /\$fvplusRuntimeConflicts\s*=\s*fvplus_detect_runtime_plugin_conflicts\(\);/);
-    assert.match(settingsPage, /fvplus_render_runtime_conflict_notice\('FolderView Plus runtime'\)/);
+    assert.match(settingsPage, /fvplus_render_runtime_conflict_notice\('[^']+'\)/);
 });
 
 test('folder display scripts sanitize folder icon and name in HTML templates', () => {

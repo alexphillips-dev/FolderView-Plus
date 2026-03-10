@@ -252,13 +252,29 @@
         $names = array_map(static fn(array $entry): string => (string)($entry['name'] ?? ''), $conflicts);
         $names = array_values(array_filter(array_map('trim', $names), static fn(string $value): bool => $value !== ''));
         $pluginText = htmlspecialchars(implode(', ', $names), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $isSettingsSurface = trim($surfaceLabel) !== '' && stripos($surfaceLabel, 'settings') !== false;
         $scope = trim($surfaceLabel) !== ''
             ? htmlspecialchars($surfaceLabel, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
             : 'this page';
-        echo '<div class="notice" style="margin:12px 0;padding:12px 14px;border:1px solid rgba(255,153,0,0.45);background:rgba(120,60,0,0.18);border-radius:8px;">';
-        echo '<strong>FolderView Plus paused on ' . $scope . '.</strong><br>';
-        echo 'Detected incompatible plugin runtime: <strong>' . $pluginText . '</strong>.<br>';
-        echo 'Both plugins patch the same Docker/VM/Dashboard hooks and can conflict. Keep only one runtime plugin enabled.';
+        echo '<div class="notice" style="margin:12px 0 16px 0;padding:14px 16px;border:1px solid rgba(255,153,0,0.45);background:rgba(120,60,0,0.16);border-radius:10px;line-height:1.55;">';
+        echo '<div style="font-size:1.08rem;font-weight:700;margin-bottom:4px;">FolderView Plus is in safe mode.</div>';
+        if ($isSettingsSurface) {
+            echo '<div style="margin-bottom:8px;">Runtime injection is paused because another Folder View plugin is installed. ';
+            echo 'You can still review settings here, but Docker/VM/Dashboard folder rendering is disabled until the conflict is removed.</div>';
+        } else {
+            echo '<div style="margin-bottom:8px;">Folder rendering is paused on <strong>' . $scope . '</strong> to prevent runtime conflicts.</div>';
+        }
+        echo '<div style="margin-bottom:8px;">Detected conflicting runtime plugin(s): <strong>' . $pluginText . '</strong>.</div>';
+        echo '<div style="font-weight:600;margin-bottom:4px;">How to fix</div>';
+        echo '<ol style="margin:0 0 10px 18px;padding:0;">';
+        echo '<li>Open <strong>Plugins</strong> and keep only one Folder View runtime plugin installed.</li>';
+        echo '<li>Remove either FolderView Plus or the conflicting plugin(s): <strong>' . $pluginText . '</strong>.</li>';
+        echo '<li>Reload the page after the plugin change completes.</li>';
+        echo '</ol>';
+        echo '<div style="display:flex;gap:8px;flex-wrap:wrap;">';
+        echo '<a href="/Plugins" class="btn" style="text-decoration:none;">Open Plugins</a>';
+        echo '<a href="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" class="btn" style="text-decoration:none;">Support Thread</a>';
+        echo '</div>';
         echo '</div>';
     }
 

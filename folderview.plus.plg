@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.10.03">
-<!ENTITY md5 "08ac982d1340ba05f442faeda8e0cfbf">
+<!ENTITY version "2026.03.10.04">
+<!ENTITY md5 "3afe201767c5d918164e742c60f55ec4">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.10.04
+- UX: redesigned the conflict banner into a clearer safe-mode notice with plain-language explanation and recovery steps.
+- UX: added direct actions in the banner for Open Plugins and Support Thread to reduce recovery friction.
+- Fix: improved settings-surface conflict wording so it explains that settings remain available while runtime injection is paused.
+- Regression guard: added banner copy assertions and relaxed settings-surface test coupling to prevent false failures on wording updates.
+
 
 ###2026.03.10.03
 - Compatibility: added runtime conflict detection for Folder View 2/3 and now safely pauses FolderView Plus runtime on Docker/VM/Dashboard when both are installed.

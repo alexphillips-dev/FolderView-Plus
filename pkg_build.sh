@@ -9,6 +9,7 @@ plgfile="$CWD/folderview.plus.plg"
 xmlfile="$CWD/folderview.plus.xml"
 release_guard_script="$CWD/scripts/release_guard.sh"
 install_smoke_script="$CWD/scripts/install_smoke.sh"
+ensure_changes_entry_script="$CWD/scripts/ensure_plg_changes_entry.sh"
 archive_prefix="folderview.plus"
 archive_dir="$CWD/archive"
 icon_ext_regex='^(png|jpg|jpeg|gif|webp|svg|bmp|ico|avif)$'
@@ -274,6 +275,10 @@ if [ "$validate_after_build" = true ]; then
         exit 1
     fi
 fi
+if [ ! -f "$ensure_changes_entry_script" ]; then
+    echo "ERROR: Missing CHANGES helper script: $ensure_changes_entry_script" >&2
+    exit 1
+fi
 if [ "$run_install_smoke" = true ]; then
     require_commands bash
     if [ ! -f "$install_smoke_script" ]; then
@@ -394,6 +399,11 @@ fi
 # Update branch references in plg file (URLs use XML entities like &github;)
 sed -i 's|/main/folderview.plus.plg|/'"$branch"'/folderview.plus.plg|' "$plgfile"
 sed -i 's|/main/archive/|/'"$branch"'/archive/|' "$plgfile"
+
+# Ensure a CHANGES block exists for the computed version so release validation
+# cannot fail after bumping version metadata.
+chmod +x "$ensure_changes_entry_script"
+bash "$ensure_changes_entry_script"
 
 if [ "$validate_after_build" = true ]; then
     FVPLUS_ARCHIVE_DIR="$archive_dir" bash "$release_guard_script"

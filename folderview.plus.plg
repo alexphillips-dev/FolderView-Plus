@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.10.01">
-<!ENTITY md5 "256420338309d4c050590d999753e94b">
+<!ENTITY version "2026.03.10.03">
+<!ENTITY md5 "08ac982d1340ba05f442faeda8e0cfbf">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.10.03
+- Compatibility: added runtime conflict detection for Folder View 2/3 and now safely pauses FolderView Plus runtime on Docker/VM/Dashboard when both are installed.
+- UX: added a settings-page warning banner when an incompatible Folder View runtime is detected.
+- Maintenance: updated plugin support URL to the official Unraid support thread.
+- Quality: pkg_build now auto-seeds a CHANGES block for the computed version to prevent release_guard failures on version bumps.
+
 
 ###2026.03.10.01
 - Fix: wrapped Dashboard runtime script in a private scope to prevent global symbol collisions (for example `escapeHtml`) with other plugins.

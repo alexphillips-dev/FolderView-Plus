@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.10.04">
-<!ENTITY md5 "3afe201767c5d918164e742c60f55ec4">
+<!ENTITY version "2026.03.10.05">
+<!ENTITY md5 "a9baf591064806b04104ee600f91ad15">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.10.05
+- Fix: removed inherited `.notice` styling from the safe-mode banner that was causing clipped/overlapping text in settings.
+- UX: increased safe-mode title size and visual prominence for faster user recognition.
+- UX: refined banner typography/spacing so update-notes and page sections stack cleanly without text collisions.
+- Regression guard: tightened runtime-conflict banner tests to enforce dedicated banner class usage.
+
 
 ###2026.03.10.04
 - UX: redesigned the conflict banner into a clearer safe-mode notice with plain-language explanation and recovery steps.

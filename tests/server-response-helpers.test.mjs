@@ -65,7 +65,9 @@ test('lib.php defines runtime conflict detection and notice helpers', () => {
     assert.match(libPhp, /const FVPLUS_RUNTIME_CONFLICT_PLUGINS\s*=\s*\[/);
     assert.match(libPhp, /function fvplus_detect_runtime_plugin_conflicts\s*\(/);
     assert.match(libPhp, /function fvplus_render_runtime_conflict_notice\s*\(/);
-    assert.match(libPhp, /FolderView Plus is in safe mode\./);
+    assert.match(libPhp, /Safe mode active/);
     assert.match(libPhp, /How to fix/);
     assert.match(libPhp, /Open Plugins/);
+    assert.match(libPhp, /class="fv-runtime-conflict-banner"/);
+    assert.doesNotMatch(libPhp, /class="notice"/);
 });

@@ -268,15 +268,16 @@
             echo '<div style="margin-bottom:8px;">Folder rendering is paused on <strong>' . $scope . '</strong> to prevent runtime conflicts.</div>';
         }
         echo '<div style="margin-bottom:8px;">Detected conflicting runtime plugin(s): <strong>' . $pluginText . '</strong>.</div>';
+        echo '<div style="margin-bottom:8px;">Keep <strong>FolderView Plus</strong> installed. Remove only the conflicting plugin listed above.</div>';
         echo '<div style="font-weight:700;font-size:1.08rem;margin-bottom:4px;">How to fix</div>';
         echo '<ol style="margin:0 0 10px 20px;padding:0;">';
         echo '<li>Open <strong>Plugins</strong>.</li>';
-        echo '<li>Keep <strong>FolderView Plus</strong> installed, then remove: <strong>' . $pluginText . '</strong>.</li>';
-        echo '<li>Reload this page.</li>';
+        echo '<li>Remove: <strong>' . $pluginText . '</strong>.</li>';
+        echo '<li>Refresh this page to re-enable FolderView Plus.</li>';
         echo '</ol>';
         echo '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">';
-        echo '<button type="button" class="btn" onclick="window.location.href=\'/Plugins\'">Open Plugins</button>';
-        echo '<a href="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;min-height:32px;white-space:nowrap;">Support Thread</a>';
+        echo '<button type="button" class="btn" onclick="window.location.href=\'/Plugins\'" style="margin:0;">Open Plugins</button>';
+        echo '<a href="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;align-self:center;line-height:1.2;margin:0;white-space:nowrap;">Support Thread</a>';
         echo '</div>';
         echo '</div>';
     }

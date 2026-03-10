@@ -66,3 +66,8 @@ test('external links and popup actions enforce noopener protections', () => {
     assert.match(folderViewPlusJs, /window\.open\(UPDATE_NOTES_CHANGELOG_URL, '_blank', 'noopener,noreferrer'\)/);
     assert.match(folderViewPlusJs, /popup\.opener = null;/);
 });
+
+test('dashboard script is wrapped in a private scope to avoid global symbol collisions', () => {
+    assert.match(dashboardJs, /^\(function fvplusDashboardScope\(window, \$\) \{/);
+    assert.match(dashboardJs, /\}\)\(window, window\.jQuery \|\| window\.\$\);\s*$/);
+});

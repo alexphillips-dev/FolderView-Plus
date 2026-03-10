@@ -1,3 +1,8 @@
+(function fvplusDashboardScope(window, $) {
+if (!window || !$) {
+    return;
+}
+
 const localDefaultFolderStatusColors = {
     started: '#ffffff',
     paused: '#b8860b',
@@ -1986,7 +1991,7 @@ $.ajaxPrefilter((options, originalOptions, jqXHR) => {
 });
 
 // activate debug mode
-addEventListener("keydown", (e) => {
+window.addEventListener("keydown", (e) => {
     if (e.isComposing || e.key.length !== 1) { // letter X FOR TESTING
         return;
     }
@@ -1998,4 +2003,5 @@ addEventListener("keydown", (e) => {
         folderDebugMode = true;
         loadlist();
     }
-})
+});
+})(window, window.jQuery || window.$);

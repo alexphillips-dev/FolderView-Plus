@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.09.01">
-<!ENTITY md5 "d63b24ba9729d2839cd3ab98a1f88147">
+<!ENTITY version "2026.03.10.01">
+<!ENTITY md5 "256420338309d4c050590d999753e94b">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://github.com/alexphillips-dev/FolderView-Plus/issues" min="7.0.0">
     <CHANGES>
+
+###2026.03.10.01
+- Fix: wrapped Dashboard runtime script in a private scope to prevent global symbol collisions (for example `escapeHtml`) with other plugins.
+- Fix: preserved Dashboard Docker widget patching (`loadlist`) while isolating local helpers/constants from global namespace.
+- Regression guard: added security test coverage to enforce dashboard script scope wrapping.
 
 ###2026.03.09.01
 - Compatibility: added Compose Manager fallback support so compose project detection works from `com.docker.compose.project`, `com.docker.compose.project.working_dir`, and `com.docker.compose.project.config_files`.

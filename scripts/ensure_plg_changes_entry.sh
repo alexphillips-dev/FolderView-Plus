@@ -33,22 +33,22 @@ guess_category_from_subject() {
   local lowered
   lowered="$(printf '%s' "${subject}" | tr '[:upper:]' '[:lower:]')"
   case "${lowered}" in
-    feat*|feature*|add*|implement*)
+    feature*|feat*|add*|implement*)
       printf 'Feature'
       ;;
     fix*|bug*|hotfix*|resolve*)
       printf 'Fix'
       ;;
-    sec*|security*|hardening*)
+    security*|sec*|hardening*)
       printf 'Security'
       ;;
-    perf*|performance*|optimi*|speed*)
+    performance*|perf*|optimi*|speed*)
       printf 'Performance'
       ;;
     ux*|ui*|style*|polish*)
       printf 'UX'
       ;;
-    compat*|compatibility*)
+    compatibility*|compat*)
       printf 'Compatibility'
       ;;
     refactor*)

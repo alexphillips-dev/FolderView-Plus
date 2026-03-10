@@ -208,7 +208,8 @@ test('install smoke supports configurable archive directory override', () => {
 test('ensure changes entry seeds category-signaling release note text', () => {
     assert.match(ensureChanges, /source "\$\{ROOT_DIR\}\/scripts\/lib\.sh"/);
     assert.match(ensureChanges, /VERSION="\$\(fvplus::read_plg_version "\$\{PLG_FILE\}"\)"/);
-    assert.match(ensureChanges, /Maintenance: automated release metadata update/);
+    assert.match(ensureChanges, /guess_category_from_subject/);
+    assert.match(ensureChanges, /Maintenance: release metadata and packaging sync/);
 });
 
 test('release workflows keep checksum assets and metadata changes', () => {

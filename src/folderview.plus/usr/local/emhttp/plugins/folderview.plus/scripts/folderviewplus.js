@@ -150,6 +150,8 @@ const ADVANCED_EXPANDED_STORAGE_KEY = 'fv.settings.advancedExpanded.v2';
 const ADVANCED_KNOWN_STORAGE_KEY = 'fv.settings.advancedKnown.v1';
 const SEARCH_ALL_ADVANCED_STORAGE_KEY = 'fv.settings.searchAllAdvanced.v1';
 const UPDATE_NOTES_SEEN_VERSION_STORAGE_KEY = 'fv.settings.updateNotesSeenVersion.v1';
+const RUNTIME_CONFLICT_ACTIVE_STORAGE_KEY = 'fv.runtimeConflict.active.v1';
+const RUNTIME_CONFLICT_RESOLVED_PENDING_STORAGE_KEY = 'fv.runtimeConflict.resolvedPending.v1';
 const IMPORT_PREVIEW_FIRST_STORAGE_KEY = 'fv.import.previewFirst.v1';
 const TABLE_UI_STATE_STORAGE_KEY = 'fv.settings.tableUiState.v1';
 const QUICK_PRESET_ACTIVE_STORAGE_KEY = 'fv.settings.quickPresetActive.v1';
@@ -185,6 +187,7 @@ const IMPORT_PRESET_BUILTINS = [
     }
 ];
 const UPDATE_NOTES_CHANGELOG_URL = 'https://github.com/alexphillips-dev/FolderView-Plus/blob/main/folderview.plus.plg';
+const SUPPORT_THREAD_URL = 'https://forums.unraid.net/topic/197631-plugin-folderview-plus/';
 const PERF_DIAGNOSTICS_SAMPLE_LIMIT = 30;
 const performanceDiagnosticsState = {
     refresh: { docker: [], vm: [] },
@@ -6268,6 +6271,90 @@ const setUpdateNotesSeenVersion = (version) => {
     }
 };
 
+const readConflictStorageValue = (key) => {
+    try {
+        return String(localStorage.getItem(key) || '').trim();
+    } catch (_error) {
+        return '';
+    }
+};
+
+const writeConflictStorageValue = (key, value) => {
+    const normalized = String(value || '').trim();
+    try {
+        if (normalized) {
+            localStorage.setItem(key, normalized);
+        } else {
+            localStorage.removeItem(key);
+        }
+    } catch (_error) {
+        // Best effort only.
+    }
+};
+
+const hideConflictResolvedPanel = () => {
+    const panel = $('#fv-runtime-resolved-panel');
+    if (!panel.length) {
+        return;
+    }
+    panel.hide().empty();
+};
+
+const showConflictResolvedPanel = (conflictKey = '') => {
+    const panel = $('#fv-runtime-resolved-panel');
+    if (!panel.length) {
+        return;
+    }
+
+    panel.html(`
+        <div class="fv-runtime-resolved-head">
+            <i class="fa fa-check-circle" aria-hidden="true"></i>
+            <h3 class="fv-runtime-resolved-title">Conflict removed. FolderView Plus is active again.</h3>
+        </div>
+        <p class="fv-runtime-resolved-copy">
+            Docker, VMs, and Dashboard folder rendering are now re-enabled.
+            Refresh those tabs if they were already open.
+        </p>
+        <div class="fv-runtime-resolved-actions">
+            <button type="button" id="fv-runtime-resolved-dismiss"><i class="fa fa-check"></i> Dismiss</button>
+            <a href="${escapeHtml(SUPPORT_THREAD_URL)}" target="_blank" rel="noopener noreferrer">Support Thread</a>
+        </div>
+    `).show();
+
+    $('#fv-runtime-resolved-dismiss').off('click').on('click', () => {
+        if (readConflictStorageValue(RUNTIME_CONFLICT_RESOLVED_PENDING_STORAGE_KEY) === String(conflictKey || '').trim()) {
+            writeConflictStorageValue(RUNTIME_CONFLICT_RESOLVED_PENDING_STORAGE_KEY, '');
+        } else if (!String(conflictKey || '').trim()) {
+            writeConflictStorageValue(RUNTIME_CONFLICT_RESOLVED_PENDING_STORAGE_KEY, '');
+        }
+        hideConflictResolvedPanel();
+    });
+};
+
+const syncRuntimeConflictResolutionBanner = () => {
+    const activeBanner = document.querySelector('#fv-settings-root .fv-runtime-conflict-banner');
+    if (activeBanner) {
+        const activeKey = String(activeBanner.getAttribute('data-conflict-key') || 'runtime-conflict').trim() || 'runtime-conflict';
+        writeConflictStorageValue(RUNTIME_CONFLICT_ACTIVE_STORAGE_KEY, activeKey);
+        writeConflictStorageValue(RUNTIME_CONFLICT_RESOLVED_PENDING_STORAGE_KEY, '');
+        hideConflictResolvedPanel();
+        return;
+    }
+
+    const previousActiveKey = readConflictStorageValue(RUNTIME_CONFLICT_ACTIVE_STORAGE_KEY);
+    if (previousActiveKey) {
+        writeConflictStorageValue(RUNTIME_CONFLICT_RESOLVED_PENDING_STORAGE_KEY, previousActiveKey);
+        writeConflictStorageValue(RUNTIME_CONFLICT_ACTIVE_STORAGE_KEY, '');
+    }
+
+    const pendingResolvedKey = readConflictStorageValue(RUNTIME_CONFLICT_RESOLVED_PENDING_STORAGE_KEY);
+    if (!pendingResolvedKey) {
+        hideConflictResolvedPanel();
+        return;
+    }
+    showConflictResolvedPanel(pendingResolvedKey);
+};
+
 const showUpdateNotesPanel = ({
     version,
     sourceVersion = '',
@@ -11305,6 +11392,7 @@ window.setSettingsMode = setSettingsMode;
         } else {
             await maybeShowUpdateNotesPanel();
         }
+        syncRuntimeConflictResolutionBanner();
         settingsUiState.initialized = true;
     } catch (error) {
         try {

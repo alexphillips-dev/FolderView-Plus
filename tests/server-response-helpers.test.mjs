@@ -69,6 +69,7 @@ test('lib.php defines runtime conflict detection and notice helpers', () => {
     assert.match(libPhp, /How to fix/);
     assert.match(libPhp, /Open Plugins/);
     assert.match(libPhp, /class="fv-runtime-conflict-banner"/);
+    assert.match(libPhp, /data-conflict-key="/);
     assert.doesNotMatch(libPhp, /class="notice"/);
     assert.match(libPhp, /Keep <strong>FolderView Plus<\/strong> installed/);
     assert.match(libPhp, /target="_blank" rel="noopener noreferrer"[^>]*>Support Thread/);

@@ -1733,6 +1733,51 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     padding: 0.65rem 0.75rem;
 }
 
+.fv-runtime-resolved-panel {
+    margin: 0 0 0.8rem 0;
+    border: 1px solid rgba(126, 214, 161, 0.42);
+    border-radius: 8px;
+    background: linear-gradient(180deg, rgba(33, 102, 69, 0.18), rgba(16, 54, 38, 0.2));
+    padding: 0.7rem 0.75rem;
+}
+
+.fv-runtime-resolved-head {
+    display: flex;
+    align-items: center;
+    gap: 0.42rem;
+    margin-bottom: 0.3rem;
+}
+
+.fv-runtime-resolved-head > i {
+    color: #7ed6a1;
+    font-size: 1.06rem;
+}
+
+.fv-runtime-resolved-title {
+    margin: 0;
+    font-size: 1.09rem;
+    line-height: 1.2;
+    font-weight: 800;
+}
+
+.fv-runtime-resolved-copy {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.03rem;
+    line-height: 1.35;
+}
+
+.fv-runtime-resolved-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+.fv-runtime-resolved-actions > button {
+    min-height: 30px;
+    padding: 0.2rem 0.5rem;
+}
+
 .fv-update-notes-head {
     display: flex;
     flex-wrap: wrap;
@@ -3452,6 +3497,11 @@ tr.is-long-press-active {
 
     .fv-update-notes-actions > button {
         flex: 1 1 calc(50% - 0.4rem);
+    }
+
+    .fv-runtime-resolved-actions {
+        width: 100%;
+        justify-content: flex-start;
     }
 
     .fv-action-buttons {

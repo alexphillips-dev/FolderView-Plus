@@ -251,12 +251,16 @@
         }
         $names = array_map(static fn(array $entry): string => (string)($entry['name'] ?? ''), $conflicts);
         $names = array_values(array_filter(array_map('trim', $names), static fn(string $value): bool => $value !== ''));
+        $ids = array_map(static fn(array $entry): string => (string)($entry['id'] ?? ''), $conflicts);
+        $ids = array_values(array_filter(array_map('trim', $ids), static fn(string $value): bool => $value !== ''));
+        $conflictKeyRaw = implode('|', count($ids) > 0 ? $ids : $names);
+        $conflictKey = htmlspecialchars($conflictKeyRaw, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
         $pluginText = htmlspecialchars(implode(', ', $names), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
         $isSettingsSurface = trim($surfaceLabel) !== '' && stripos($surfaceLabel, 'settings') !== false;
         $scope = trim($surfaceLabel) !== ''
             ? htmlspecialchars($surfaceLabel, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
             : 'this page';
-        echo '<div class="fv-runtime-conflict-banner" style="margin:12px 0 16px 0;padding:14px 16px;border:1px solid rgba(255,153,0,0.45);background:linear-gradient(180deg, rgba(120,60,0,0.22), rgba(50,26,0,0.22));border-radius:10px;line-height:1.5;">';
+        echo '<div class="fv-runtime-conflict-banner" data-conflict-key="' . $conflictKey . '" style="margin:12px 0 16px 0;padding:14px 16px;border:1px solid rgba(255,153,0,0.45);background:linear-gradient(180deg, rgba(120,60,0,0.22), rgba(50,26,0,0.22));border-radius:10px;line-height:1.5;">';
         echo '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">';
         echo '<i class="fa fa-exclamation-triangle" aria-hidden="true" style="font-size:1.2rem;color:#ffbf78;"></i>';
         echo '<div style="font-size:1.34rem;font-weight:800;line-height:1.1;letter-spacing:0.01em;color:#ffd7a2;">Safe mode active</div>';

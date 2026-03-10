@@ -42,6 +42,7 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
     assert.match(settingsPage, /id="fv-setup-assistant-dialog"/);
     assert.match(settingsPage, /id="fv-setup-assistant-content"/);
     assert.match(settingsPage, /id="fv-settings-action-bar"/);
+    assert.match(settingsPage, /id="fv-runtime-resolved-panel"/);
     assert.match(settingsPage, /folderviewplus\.request\.js/);
     assert.match(settingsPage, /folderviewplus\.chrome\.js/);
     assert.match(settingsPage, /Last changed/);
@@ -129,6 +130,8 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const SETUP_ASSISTANT_DONE_STORAGE_KEY = 'fv\.settings\.setupAssistant\.v2\.done';/);
     assert.match(settingsJs, /const SETUP_ASSISTANT_DRAFT_STORAGE_KEY = 'fv\.settings\.setupAssistant\.v2\.draft';/);
     assert.match(settingsJs, /const SETUP_ASSISTANT_PRESETS_STORAGE_KEY = 'fv\.settings\.setupAssistant\.v2\.presets';/);
+    assert.match(settingsJs, /const RUNTIME_CONFLICT_ACTIVE_STORAGE_KEY = 'fv\.runtimeConflict\.active\.v1';/);
+    assert.match(settingsJs, /const RUNTIME_CONFLICT_RESOLVED_PENDING_STORAGE_KEY = 'fv\.runtimeConflict\.resolvedPending\.v1';/);
     assert.match(settingsJs, /const TABLE_UI_STATE_STORAGE_KEY = 'fv\.settings\.tableUiState\.v1';/);
     assert.match(settingsJs, /const UNDO_WINDOW_MS = 10000;/);
     assert.match(settingsJs, /const buildModuleEmptyTableRow = \(title, help, colspan = 1\) =>/);
@@ -155,6 +158,8 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const jumpSetupAssistantToStep = \(targetIndex\) =>/);
     assert.match(settingsJs, /const buildSetupAssistantClipboardSummary = \(\) =>/);
     assert.match(settingsJs, /const copySetupAssistantSummaryToClipboard = async \(\) =>/);
+    assert.match(settingsJs, /const syncRuntimeConflictResolutionBanner = \(\) =>/);
+    assert.match(settingsJs, /Conflict removed\. FolderView Plus is active again\./);
     assert.match(settingsJs, /runQuickSetupWizard = \(force = false\) => \{/);
     assert.match(settingsJs, /openSetupAssistant\(force === true\);/);
     assert.match(settingsJs, /const bindSetupAssistantEvents = \(\) =>/);
@@ -178,6 +183,7 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const initOverflowGuard = \(\) =>/);
     assert.match(settingsJs, /window\.addEventListener\('resize', enforceNoHorizontalOverflow\)/);
     assert.match(settingsJs, /initOverflowGuard\(\);/);
+    assert.match(settingsJs, /syncRuntimeConflictResolutionBanner\(\);/);
     assert.match(settingsJs, /window\.compareBackupSnapshots = compareBackupSnapshots;/);
     assert.match(settingsJs, /window\.copyFolderId = copyFolderId;/);
     assert.match(settingsJs, /window\.toggleDockerUpdatesFilter = toggleDockerUpdatesFilter;/);
@@ -205,6 +211,8 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /vm-resource-stack/);
     assert.match(settingsJs, /const persistImportPresetStoreTypeToServer = async/);
     assert.match(settingsCss, /\.folder-action-btn\s*\{/);
+    assert.match(settingsCss, /\.fv-runtime-resolved-panel\s*\{/);
+    assert.match(settingsCss, /\.fv-runtime-resolved-actions\s*\{/);
     assert.match(settingsCss, /\.updates-chip\s*\{/);
     assert.match(settingsCss, /\.health-chip\s*\{/);
     assert.match(settingsCss, /\.health-chip\.is-filter-active\s*\{/);

@@ -6,12 +6,21 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.10.08">
-<!ENTITY md5 "ba0ffbb07986c57f387b38d72aca7890">
+<!ENTITY version "2026.03.10.09">
+<!ENTITY md5 "40c778ece4fd6a402133a683690c407b">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.10.09
+- Maintenance: Align conflict banner actions and simplify removal guidance.
+- UX: Polish safe-mode actions alignment and simplify fix steps.
+- Maintenance: Refine safe-mode banner actions and conflict guidance.
+- Fix: Fix safe-mode banner clipping and improve prominence.
+- Maintenance: Improve runtime conflict banner guidance and actions.
+- Maintenance: Auto-generate CHANGES notes from commit history.
+
 
 ###2026.03.10.08
 - UX: fixed Support Thread link alignment in the safe-mode action row so it lines up cleanly with Open Plugins.

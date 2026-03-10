@@ -95,7 +95,7 @@ jobs:
             exit 0
           fi
           npm install --no-save playwright
-          npx playwright install --with-deps chromium firefox
+          npx playwright install --with-deps chromium firefox webkit
           chmod +x scripts/browser_smoke.sh
           bash scripts/browser_smoke.sh
 

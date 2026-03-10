@@ -63,6 +63,12 @@ test('lib.php normalizes compose manager and compose project labels', () => {
 
 test('lib.php defines runtime conflict detection and notice helpers', () => {
     assert.match(libPhp, /const FVPLUS_RUNTIME_CONFLICT_PLUGINS\s*=\s*\[/);
+    assert.match(libPhp, /'folder\.view3'\s*=>\s*\[/);
+    assert.match(libPhp, /'folder\.view2'\s*=>\s*\[/);
+    assert.match(libPhp, /'runtimeDir'\s*=>\s*'\/usr\/local\/emhttp\/plugins\/folder\.view3'/);
+    assert.match(libPhp, /'runtimeDir'\s*=>\s*'\/usr\/local\/emhttp\/plugins\/folder\.view2'/);
+    assert.match(libPhp, /'folder\.view3\.Docker\.page'/);
+    assert.match(libPhp, /'folder\.view2\.Docker\.page'/);
     assert.match(libPhp, /'markers'\s*=>\s*\[/);
     assert.match(libPhp, /function fvplus_detect_runtime_plugin_conflicts\s*\(/);
     assert.match(libPhp, /function fvplus_render_runtime_conflict_notice\s*\(/);

@@ -383,11 +383,74 @@
         folder: isPlainObject(folder) ? folder : {}
     });
 
+    const buildImportTrustMeta = ({
+        legacy = false,
+        schemaVersion = null,
+        pluginVersion = null,
+        exportedAt = null,
+        declaredType = '',
+        expectedType = ''
+    } = {}) => {
+        if (legacy === true) {
+            return {
+                level: 'legacy',
+                label: 'Legacy compatibility',
+                reason: 'Legacy folder.view2/folder.view3 format detected. Review changes before apply.'
+            };
+        }
+
+        const normalizedDeclaredType = String(declaredType || '').trim().toLowerCase();
+        const normalizedExpectedType = String(expectedType || '').trim().toLowerCase();
+        const typeMatches = (
+            normalizedExpectedType === ''
+            || normalizedDeclaredType === ''
+            || normalizedDeclaredType === normalizedExpectedType
+        );
+
+        const pluginVersionText = String(pluginVersion || '').trim();
+        const exportedAtText = String(exportedAt || '').trim();
+        const hasPluginVersion = pluginVersionText !== '';
+        const hasValidExportedAt = exportedAtText !== '' && Number.isFinite(Date.parse(exportedAtText));
+        const hasKnownSchema = Number.isFinite(Number(schemaVersion));
+
+        if (hasKnownSchema && hasPluginVersion && hasValidExportedAt && typeMatches) {
+            return {
+                level: 'trusted',
+                label: `Validated schema v${Math.round(Number(schemaVersion))}`,
+                reason: 'Schema metadata and source details validated.'
+            };
+        }
+
+        const reasons = [];
+        if (!hasPluginVersion) {
+            reasons.push('missing plugin version');
+        }
+        if (!hasValidExportedAt) {
+            reasons.push('invalid export timestamp');
+        }
+        if (!typeMatches) {
+            reasons.push('type mismatch');
+        }
+        if (!hasKnownSchema) {
+            reasons.push('missing schema metadata');
+        }
+
+        const reasonText = reasons.length
+            ? `Validation warning: ${reasons.join(', ')}.`
+            : 'Validation warning: metadata could not be fully validated.';
+        return {
+            level: 'untrusted',
+            label: 'Validation warning',
+            reason: reasonText
+        };
+    };
+
     const parseImportPayload = (payload, expectedType) => {
         if (!isPlainObject(payload)) {
             return { ok: false, error: 'Import file must contain a JSON object.' };
         }
 
+        const normalizedExpectedType = typeof expectedType === 'string' ? expectedType.trim().toLowerCase() : '';
         const hasSchema = Object.prototype.hasOwnProperty.call(payload, 'schemaVersion');
         if (hasSchema) {
             const schemaVersion = Number(payload.schemaVersion);
@@ -401,14 +464,25 @@
             if (declaredType !== '' && !['docker', 'vm'].includes(declaredType)) {
                 return { ok: false, error: `Import file type "${payload.type}" is invalid.` };
             }
-            if (expectedType && declaredType === '') {
+            if (normalizedExpectedType && declaredType === '') {
                 return { ok: false, error: 'Import file is missing required type metadata.' };
             }
-            if (declaredType !== '' && expectedType && declaredType !== expectedType) {
-                return { ok: false, error: `Import type "${declaredType}" does not match "${expectedType}".` };
+            if (declaredType !== '' && normalizedExpectedType && declaredType !== normalizedExpectedType) {
+                return { ok: false, error: `Import type "${declaredType}" does not match "${normalizedExpectedType}".` };
             }
 
             const mode = payload.mode === 'single' ? 'single' : 'full';
+            const pluginVersion = payload.pluginVersion || null;
+            const exportedAt = payload.exportedAt || null;
+            const resolvedType = declaredType || normalizedExpectedType || null;
+            const trust = buildImportTrustMeta({
+                legacy: false,
+                schemaVersion,
+                pluginVersion,
+                exportedAt,
+                declaredType,
+                expectedType: normalizedExpectedType
+            });
             if (mode === 'single') {
                 if (!isPlainObject(payload.folder) || typeof payload.folder.name !== 'string' || payload.folder.name.trim() === '') {
                     return { ok: false, error: 'Single-folder export is missing a valid folder object.' };
@@ -416,12 +490,13 @@
                 return {
                     ok: true,
                     schemaVersion,
-                    pluginVersion: payload.pluginVersion || null,
-                    exportedAt: payload.exportedAt || null,
-                    type: declaredType || expectedType || null,
+                    pluginVersion,
+                    exportedAt,
+                    type: resolvedType,
                     declaredType: declaredType || null,
                     mode,
                     legacy: false,
+                    trust,
                     folder: payload.folder,
                     folderId: typeof payload.folderId === 'string' && payload.folderId !== '' ? payload.folderId : null,
                     folders: {}
@@ -432,12 +507,13 @@
             return {
                 ok: true,
                 schemaVersion,
-                pluginVersion: payload.pluginVersion || null,
-                exportedAt: payload.exportedAt || null,
-                type: declaredType || expectedType || null,
+                pluginVersion,
+                exportedAt,
+                type: resolvedType,
                 declaredType: declaredType || null,
                 mode,
                 legacy: false,
+                trust,
                 folder: null,
                 folderId: null,
                 folders
@@ -451,10 +527,11 @@
                 schemaVersion: null,
                 pluginVersion: null,
                 exportedAt: null,
-                type: expectedType || null,
+                type: normalizedExpectedType || null,
                 declaredType: null,
                 mode: 'single',
                 legacy: true,
+                trust: buildImportTrustMeta({ legacy: true }),
                 folder: payload.folder,
                 folderId: typeof payload.folderId === 'string' && payload.folderId.trim() !== '' ? payload.folderId.trim() : null,
                 folders: {}
@@ -467,17 +544,18 @@
                 schemaVersion: null,
                 pluginVersion: null,
                 exportedAt: null,
-                type: expectedType || null,
+                type: normalizedExpectedType || null,
                 declaredType: null,
                 mode: 'single',
                 legacy: true,
+                trust: buildImportTrustMeta({ legacy: true }),
                 folder: payload,
                 folderId: null,
                 folders: {}
             };
         }
 
-        const wrappedByType = expectedType && isPlainObject(payload[expectedType]) ? payload[expectedType] : null;
+        const wrappedByType = normalizedExpectedType && isPlainObject(payload[normalizedExpectedType]) ? payload[normalizedExpectedType] : null;
         const wrappedByFolders = isPlainObject(payload.folders) ? payload.folders : null;
         const wrappedSource = wrappedByType || wrappedByFolders;
         if (wrappedSource) {
@@ -486,10 +564,11 @@
                 schemaVersion: null,
                 pluginVersion: null,
                 exportedAt: null,
-                type: expectedType || null,
+                type: normalizedExpectedType || null,
                 declaredType: null,
                 mode: 'full',
                 legacy: true,
+                trust: buildImportTrustMeta({ legacy: true }),
                 folder: null,
                 folderId: null,
                 folders: normalizeFolderMap(wrappedSource)
@@ -501,10 +580,11 @@
             schemaVersion: null,
             pluginVersion: null,
             exportedAt: null,
-            type: expectedType || null,
+            type: normalizedExpectedType || null,
             declaredType: null,
             mode: 'full',
             legacy: true,
+            trust: buildImportTrustMeta({ legacy: true }),
             folder: null,
             folderId: null,
             folders: normalizeFolderMap(payload)

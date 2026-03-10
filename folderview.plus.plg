@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.10.10">
-<!ENTITY md5 "5f604e1985180a39d0f709b15365c689">
+<!ENTITY version "2026.03.10.11">
+<!ENTITY md5 "dadff9b50d73653f139141cc7c89d270">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.10.11
+- UX: import preview now shows a Trust signal (`Validated schema`, `Legacy compatibility`, or `Validation warning`) with metadata-backed reasoning.
+- Performance: settings now lazy-load advanced backups/templates/diagnostics data on demand while keeping core Docker/VM data fast on first load.
+- Compatibility: enforced legacy conflict/runtime checks for both `folder.view2` and `folder.view3` across CI + release workflows.
+- Quality: browser smoke matrix now includes WebKit alongside Chromium and Firefox.
+- Regression guard: added parser/UI/workflow tests to lock trust metadata, lazy-load boot path, and dual-legacy conflict coverage.
+
 
 ###2026.03.10.10
 - Fix: conflict-resolved confirmation now appears reliably after uninstalling Folder View 2/3 by persisting conflict state from any conflict banner surface (Docker/VMs/Dashboard/Settings).

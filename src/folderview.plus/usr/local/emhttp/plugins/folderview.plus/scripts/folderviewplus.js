@@ -438,6 +438,10 @@ const settingsUiState = {
     hasExpandedAdvancedPreference: false,
     wizardShown: false
 };
+const advancedDataLoadState = {
+    loaded: false,
+    pending: null
+};
 const setupAssistantState = {
     version: SETUP_ASSISTANT_VERSION,
     open: false,
@@ -643,6 +647,9 @@ const setAdvancedTab = (tab, persist = true) => {
     settingsUiState.advancedTab = normalizeAdvancedGroup(tab);
     if (persist) {
         localStorage.setItem(ADVANCED_TAB_STORAGE_KEY, settingsUiState.advancedTab);
+    }
+    if (settingsUiState.mode === 'advanced') {
+        void ensureAdvancedDataLoaded();
     }
 };
 
@@ -1042,6 +1049,7 @@ const setSettingsMode = (mode) => {
         if (activeSection?.advanced) {
             setAdvancedTab(activeSection.advancedGroup);
         }
+        void ensureAdvancedDataLoaded();
     }
     applySettingsSectionVisibility();
     syncSectionJumpOptions();
@@ -1988,6 +1996,32 @@ const getSetupAssistantImportFormatLabel = (parsed) => {
         return `Schema v${Number(parsed.schemaVersion)} (FolderView Plus)`;
     }
     return 'Custom/unknown format';
+};
+
+const resolveImportTrustInfo = (parsed) => {
+    const trustValue = parsed && typeof parsed === 'object' && parsed.trust && typeof parsed.trust === 'object'
+        ? parsed.trust
+        : {};
+    const rawLevel = String(trustValue.level || '').trim().toLowerCase();
+    let level = 'trusted';
+    if (rawLevel === 'legacy' || rawLevel === 'untrusted') {
+        level = rawLevel;
+    } else if (parsed?.legacy === true) {
+        level = 'legacy';
+    }
+
+    const defaultLabels = {
+        trusted: 'Validated schema',
+        legacy: 'Legacy compatibility',
+        untrusted: 'Validation warning'
+    };
+    const label = String(trustValue.label || '').trim() || defaultLabels[level];
+    const reason = String(trustValue.reason || '').trim();
+    return {
+        level,
+        label,
+        reason
+    };
 };
 
 const createSetupAssistantBehavior = (type) => {
@@ -7632,6 +7666,7 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
         const summary = utils.summarizeImport(folders, parsed, mode);
         const operations = utils.buildImportOperations(folders, parsed, mode);
         const diffRows = utils.buildImportDiffRows(folders, parsed, mode);
+        const trust = resolveImportTrustInfo(parsed);
         const dryRunOnly = isImportDryRunOnly();
         currentOperations = operations;
         currentDryRunOnly = dryRunOnly;
@@ -7647,11 +7682,22 @@ const showImportPreviewDialog = (type, parsed) => new Promise((resolve) => {
             { label: 'Schema', value: parsed.schemaVersion !== null ? `v${parsed.schemaVersion}` : 'legacy' },
             { label: 'Plugin', value: parsed.pluginVersion || 'unknown' },
             { label: 'Exported', value: parsed.exportedAt || 'unknown' },
-            { label: 'Safety', value: 'Auto backup before apply' }
+            { label: 'Safety', value: 'Auto backup before apply' },
+            {
+                label: 'Trust',
+                value: trust.label,
+                className: `is-trust-${trust.level}`,
+                title: trust.reason || ''
+            }
         ];
         meta.html(metaItems.map((item) => (
-            `<span class="preview-meta-item"><strong>${escapeHtml(item.label)}:</strong> ${escapeHtml(String(item.value))}</span>`
+            `<span class="preview-meta-item ${escapeHtml(String(item.className || '').trim())}" title="${escapeHtml(String(item.title || '').trim())}"><strong>${escapeHtml(item.label)}:</strong> ${escapeHtml(String(item.value))}</span>`
         )).join(''));
+        if (trust.reason && trust.level !== 'trusted') {
+            result.attr('title', trust.reason);
+        } else {
+            result.attr('title', '');
+        }
         syncPresetFromCurrentInputs();
         syncImportSafetyUi();
     };
@@ -9318,17 +9364,44 @@ const refreshTemplates = async (type) => {
     refreshSettingsUx();
 };
 
-const refreshAll = async () => {
+const ensureAdvancedDataLoaded = async ({ force = false } = {}) => {
+    if (force === true) {
+        advancedDataLoadState.loaded = false;
+    }
+    if (advancedDataLoadState.loaded) {
+        return;
+    }
+    if (advancedDataLoadState.pending) {
+        await advancedDataLoadState.pending;
+        return;
+    }
+    advancedDataLoadState.pending = (async () => {
+        await Promise.all([refreshBackups('docker'), refreshBackups('vm')]);
+        await Promise.all([refreshTemplates('docker'), refreshTemplates('vm')]);
+        await refreshChangeHistory();
+        renderFolderHealthCards();
+        advancedDataLoadState.loaded = true;
+    })();
+    try {
+        await advancedDataLoadState.pending;
+    } finally {
+        advancedDataLoadState.pending = null;
+    }
+};
+
+const refreshCoreData = async () => {
     await Promise.all([refreshType('docker'), refreshType('vm')]);
-    await Promise.all([refreshBackups('docker'), refreshBackups('vm')]);
-    await Promise.all([refreshTemplates('docker'), refreshTemplates('vm')]);
     ensureRegexPresetUi('docker');
     ensureRegexPresetUi('vm');
     toggleRuleKindFields('docker');
     updateRuleLiveMatch('docker');
     updateRuleLiveMatch('vm');
-    await refreshChangeHistory();
-    renderFolderHealthCards();
+    refreshSettingsUx();
+};
+
+const refreshAll = async () => {
+    await refreshCoreData();
+    await ensureAdvancedDataLoaded({ force: true });
     refreshSettingsUx();
 };
 
@@ -11362,7 +11435,11 @@ window.setSettingsMode = setSettingsMode;
         renderPerformanceDiagnostics();
         await fetchPluginVersion();
         try {
-            await refreshAll();
+            if (settingsUiState.mode === 'advanced') {
+                await refreshAll();
+            } else {
+                await refreshCoreData();
+            }
         } catch (error) {
             // Keep initial settings sections visible on first-load API hiccups.
             refreshSettingsUx();

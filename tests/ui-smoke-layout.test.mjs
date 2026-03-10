@@ -133,6 +133,7 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const RUNTIME_CONFLICT_ACTIVE_STORAGE_KEY = 'fv\.runtimeConflict\.active\.v1';/);
     assert.match(settingsJs, /const RUNTIME_CONFLICT_RESOLVED_PENDING_STORAGE_KEY = 'fv\.runtimeConflict\.resolvedPending\.v1';/);
     assert.match(settingsJs, /const TABLE_UI_STATE_STORAGE_KEY = 'fv\.settings\.tableUiState\.v1';/);
+    assert.match(settingsJs, /const advancedDataLoadState = \{/);
     assert.match(settingsJs, /const UNDO_WINDOW_MS = 10000;/);
     assert.match(settingsJs, /const buildModuleEmptyTableRow = \(title, help, colspan = 1\) =>/);
     assert.match(settingsJs, /const focusFolderRow = \(type, folderId\) =>/);
@@ -210,6 +211,12 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /autostart-chip/);
     assert.match(settingsJs, /vm-resource-stack/);
     assert.match(settingsJs, /const persistImportPresetStoreTypeToServer = async/);
+    assert.match(settingsJs, /const resolveImportTrustInfo = \(parsed\) =>/);
+    assert.match(settingsJs, /label:\s*'Trust'/);
+    assert.match(settingsJs, /is-trust-\$\{trust\.level\}/);
+    assert.match(settingsJs, /const ensureAdvancedDataLoaded = async \(\{ force = false \} = \{\}\) =>/);
+    assert.match(settingsJs, /const refreshCoreData = async \(\) =>/);
+    assert.match(settingsJs, /if \(settingsUiState\.mode === 'advanced'\) \{\s*await refreshAll\(\);\s*\} else \{\s*await refreshCoreData\(\);\s*\}/);
     assert.match(settingsCss, /\.folder-action-btn\s*\{/);
     assert.match(settingsCss, /\.fv-runtime-resolved-panel\s*\{/);
     assert.match(settingsCss, /\.fv-runtime-resolved-actions\s*\{/);
@@ -221,6 +228,9 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsCss, /\.vm-resource-chip\s*\{/);
     assert.match(settingsCss, /\.vm-resource-chip\.is-cpu\s*\{/);
     assert.match(settingsCss, /\.vm-resource-chip\.is-ram\s*\{/);
+    assert.match(settingsCss, /\.preview-meta-item\.is-trust-trusted\s*\{/);
+    assert.match(settingsCss, /\.preview-meta-item\.is-trust-legacy\s*\{/);
+    assert.match(settingsCss, /\.preview-meta-item\.is-trust-untrusted\s*\{/);
     assert.match(settingsCss, /\.fv-advanced-compact i\s*\{/);
     assert.match(settingsCss, /#fv-setup-assistant-overlay\s*\{/);
     assert.match(settingsCss, /#fv-setup-assistant-dialog\s*\{/);

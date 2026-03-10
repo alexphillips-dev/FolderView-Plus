@@ -1232,6 +1232,24 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     opacity: 0.9;
 }
 
+#import-preview-dialog .preview-meta-item.is-trust-trusted,
+#backup-compare-dialog .preview-meta-item.is-trust-trusted {
+    border-color: rgba(102, 210, 136, 0.62);
+    color: #91e6ab;
+}
+
+#import-preview-dialog .preview-meta-item.is-trust-legacy,
+#backup-compare-dialog .preview-meta-item.is-trust-legacy {
+    border-color: rgba(255, 193, 94, 0.65);
+    color: #ffd083;
+}
+
+#import-preview-dialog .preview-meta-item.is-trust-untrusted,
+#backup-compare-dialog .preview-meta-item.is-trust-untrusted {
+    border-color: rgba(255, 116, 116, 0.7);
+    color: #ff9b9b;
+}
+
 #import-preview-dialog .preview-result {
     margin-bottom: 0.5rem;
     font-size: 1.03rem;

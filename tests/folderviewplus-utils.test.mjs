@@ -30,7 +30,38 @@ test('parseImportPayload accepts legacy full export', () => {
     assert.equal(parsed.ok, true);
     assert.equal(parsed.legacy, true);
     assert.equal(parsed.mode, 'full');
+    assert.equal(parsed.trust?.level, 'legacy');
     assert.deepEqual(Object.keys(parsed.folders), ['one', 'two']);
+});
+
+test('parseImportPayload marks schema exports as trusted when metadata is complete', () => {
+    const parsed = utils.parseImportPayload({
+        schemaVersion: utils.EXPORT_SCHEMA_VERSION,
+        pluginVersion: '2026.03.10.10',
+        exportedAt: '2026-03-10T15:42:00.000Z',
+        type: 'docker',
+        mode: 'full',
+        folders: {}
+    }, 'docker');
+
+    assert.equal(parsed.ok, true);
+    assert.equal(parsed.legacy, false);
+    assert.equal(parsed.trust?.level, 'trusted');
+    assert.match(String(parsed.trust?.label || ''), /validated schema/i);
+});
+
+test('parseImportPayload marks schema exports as untrusted when metadata is incomplete', () => {
+    const parsed = utils.parseImportPayload({
+        schemaVersion: utils.EXPORT_SCHEMA_VERSION,
+        type: 'docker',
+        mode: 'full',
+        folders: {}
+    }, 'docker');
+
+    assert.equal(parsed.ok, true);
+    assert.equal(parsed.legacy, false);
+    assert.equal(parsed.trust?.level, 'untrusted');
+    assert.match(String(parsed.trust?.reason || ''), /missing plugin version/i);
 });
 
 test('parseImportPayload rejects higher schema version', () => {

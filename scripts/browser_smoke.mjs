@@ -18,7 +18,7 @@ try {
     playwright = await import('playwright');
 } catch (error) {
     console.error('ERROR: playwright is required for browser smoke checks when FVPLUS_BROWSER_SMOKE_URL is set.');
-    console.error('Install with: npm i -D playwright && npx playwright install chromium firefox');
+    console.error('Install with: npm i -D playwright && npx playwright install chromium firefox webkit');
     throw error;
 }
 
@@ -78,6 +78,7 @@ const runBrowserSmoke = async (browserName, browserType) => {
 try {
     await runBrowserSmoke('chromium', playwright.chromium);
     await runBrowserSmoke('firefox', playwright.firefox);
+    await runBrowserSmoke('webkit', playwright.webkit);
 } finally {
     try {
         fs.unlinkSync(tempImportPath);

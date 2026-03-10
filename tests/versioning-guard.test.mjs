@@ -16,6 +16,7 @@ const browserSmokeShellPath = path.join(repoRoot, 'scripts/browser_smoke.sh');
 const browserSmokeNodePath = path.join(repoRoot, 'scripts/browser_smoke.mjs');
 const installSmokePath = path.join(repoRoot, 'scripts/install_smoke.sh');
 const apiContractGuardPath = path.join(repoRoot, 'scripts/api_contract_guard.sh');
+const legacySupportGuardPath = path.join(repoRoot, 'scripts/legacy_support_guard.sh');
 const i18nGuardPath = path.join(repoRoot, 'scripts/i18n_guard.sh');
 const langUsageGuardPath = path.join(repoRoot, 'scripts/lang_usage_guard.sh');
 const themeScopeGuardPath = path.join(repoRoot, 'scripts/theme_scope_guard.sh');
@@ -38,6 +39,7 @@ const browserSmokeShell = fs.readFileSync(browserSmokeShellPath, 'utf8');
 const browserSmokeNode = fs.readFileSync(browserSmokeNodePath, 'utf8');
 const installSmoke = fs.readFileSync(installSmokePath, 'utf8');
 const apiContractGuard = fs.readFileSync(apiContractGuardPath, 'utf8');
+const legacySupportGuard = fs.readFileSync(legacySupportGuardPath, 'utf8');
 const i18nGuard = fs.readFileSync(i18nGuardPath, 'utf8');
 const langUsageGuard = fs.readFileSync(langUsageGuardPath, 'utf8');
 const themeScopeGuard = fs.readFileSync(themeScopeGuardPath, 'utf8');
@@ -138,12 +140,14 @@ test('browser smoke scripts are optional, URL-gated, and include core UI checks'
     assert.match(browserSmokeNode, /#import-preview-dialog/);
     assert.match(browserSmokeNode, /runBrowserSmoke\('chromium'/);
     assert.match(browserSmokeNode, /runBrowserSmoke\('firefox'/);
+    assert.match(browserSmokeNode, /runBrowserSmoke\('webkit'/);
 });
 
 test('validation workflows include optional browser smoke integration', () => {
     for (const workflow of [ciWorkflow, releaseMainWorkflow, releaseStableWorkflow, releaseBetaWorkflow, releaseOnMainWorkflow]) {
         assert.match(workflow, /Standards guard checks/);
         assert.match(workflow, /bash scripts\/api_contract_guard\.sh/);
+        assert.match(workflow, /bash scripts\/legacy_support_guard\.sh/);
         assert.match(workflow, /bash scripts\/i18n_guard\.sh/);
         assert.match(workflow, /bash scripts\/lang_usage_guard\.sh/);
         assert.match(workflow, /bash scripts\/theme_scope_guard\.sh/);
@@ -158,6 +162,7 @@ test('validation workflows include optional browser smoke integration', () => {
         assert.match(workflow, /actions\/upload-artifact@v4/);
     }
     assert.match(releasePrepare, /bash scripts\/api_contract_guard\.sh/);
+    assert.match(releasePrepare, /bash scripts\/legacy_support_guard\.sh/);
     assert.match(releasePrepare, /bash scripts\/i18n_guard\.sh/);
     assert.match(releasePrepare, /bash scripts\/lang_usage_guard\.sh/);
     assert.match(releasePrepare, /bash scripts\/theme_scope_guard\.sh/);
@@ -238,6 +243,9 @@ test('shared script library and doctor preflight exist with required helpers', (
 test('standards guard scripts exist with expected core checks', () => {
     assert.match(apiContractGuard, /API contract guard passed/);
     assert.match(apiContractGuard, /requireMutationRequestGuard/);
+    assert.match(legacySupportGuard, /Legacy support guard passed/);
+    assert.match(legacySupportGuard, /folder\.view2/);
+    assert.match(legacySupportGuard, /folder\.view3/);
     assert.match(i18nGuard, /i18n guard passed/);
     assert.match(i18nGuard, /Missing base locale file/);
     assert.match(langUsageGuard, /Language usage guard passed/);

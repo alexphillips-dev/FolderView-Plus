@@ -42,6 +42,29 @@ for dir in "${required_legacy_dirs[@]}"; do
   fi
 done
 
+required_runtime_conflicts=(
+  "folder.view3"
+  "folder.view2"
+)
+
+for plugin_id in "${required_runtime_conflicts[@]}"; do
+  if ! grep -q "'${plugin_id}' => \\[" "${LIB_FILE}"; then
+    fvplus::fail "Runtime conflict contract missing plugin id '${plugin_id}'."
+  fi
+  if ! grep -q "'runtimeDir' => '/usr/local/emhttp/plugins/${plugin_id}'" "${LIB_FILE}"; then
+    fvplus::fail "Runtime conflict contract missing runtimeDir for '${plugin_id}'."
+  fi
+  if ! grep -q "'${plugin_id}.Docker.page'" "${LIB_FILE}"; then
+    fvplus::fail "Runtime conflict contract missing Docker marker for '${plugin_id}'."
+  fi
+  if ! grep -q "'${plugin_id}.VMs.page'" "${LIB_FILE}"; then
+    fvplus::fail "Runtime conflict contract missing VM marker for '${plugin_id}'."
+  fi
+  if ! grep -q "'${plugin_id}.Dashboard.page'" "${LIB_FILE}"; then
+    fvplus::fail "Runtime conflict contract missing Dashboard marker for '${plugin_id}'."
+  fi
+done
+
 required_lib_helpers=(
   "function writeJsonObjectWithLastGood"
   "function recoverJsonObjectFromLastGood"

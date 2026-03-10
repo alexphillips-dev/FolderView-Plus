@@ -9,6 +9,11 @@ $type = 'vm';
 require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 require_once('/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
 emitRequestTokenMetaTag();
+$fvplusRuntimeConflicts = fvplus_detect_runtime_plugin_conflicts();
+if (!empty($fvplusRuntimeConflicts)) {
+    fvplus_render_runtime_conflict_notice('VMs');
+    return;
+}
 ?>
 <script>
     $(document).ready(() => {

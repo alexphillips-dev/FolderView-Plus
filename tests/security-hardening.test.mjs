@@ -45,6 +45,15 @@ test('plugin pages emit request token meta tag', () => {
     }
 });
 
+test('runtime pages halt safely when conflicting folder view plugins are detected', () => {
+    for (const source of [dockerPage, vmPage, dashboardPage]) {
+        assert.match(source, /\$fvplusRuntimeConflicts\s*=\s*fvplus_detect_runtime_plugin_conflicts\(\);/);
+        assert.match(source, /if\s*\(!empty\(\$fvplusRuntimeConflicts\)\)\s*\{[\s\S]*fvplus_render_runtime_conflict_notice\('[^']+'\);[\s\S]*return;[\s\S]*\}/);
+    }
+    assert.match(settingsPage, /\$fvplusRuntimeConflicts\s*=\s*fvplus_detect_runtime_plugin_conflicts\(\);/);
+    assert.match(settingsPage, /fvplus_render_runtime_conflict_notice\('FolderView Plus runtime'\)/);
+});
+
 test('folder display scripts sanitize folder icon and name in HTML templates', () => {
     for (const source of [dockerJs, vmJs, dashboardJs]) {
         assert.match(source, /const sanitizeImageSrc\s*=/);

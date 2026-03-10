@@ -205,6 +205,18 @@
         '/boot/config/plugins/folder.view2',
         '/boot/config/plugins/folder.view'
     ];
+    const FVPLUS_RUNTIME_CONFLICT_PLUGINS = [
+        'folder.view3' => [
+            'name' => 'Folder View 3',
+            'runtimeDir' => '/usr/local/emhttp/plugins/folder.view3',
+            'marker' => 'folder.view3.Docker.page'
+        ],
+        'folder.view2' => [
+            'name' => 'Folder View 2',
+            'runtimeDir' => '/usr/local/emhttp/plugins/folder.view2',
+            'marker' => 'folder.view2.Docker.page'
+        ]
+    ];
     const FVPLUS_REQUEST_TOKEN_ENFORCEMENT = 'strict';
     const FVPLUS_VERBOSE_API_ERRORS = false;
     const FVPLUS_API_ERROR_LOG = '/tmp/folderview.plus.api-error.log';
@@ -212,6 +224,43 @@
     const FVPLUS_INFO_CACHE_TTL_STATE = 2;
     const FVPLUS_DOCKER_TEMPLATE_CACHE_TTL = 300;
     const FVPLUS_TAILSCALE_EXEC_CACHE_TTL = 20;
+
+    function fvplus_detect_runtime_plugin_conflicts(): array {
+        $detected = [];
+        foreach (FVPLUS_RUNTIME_CONFLICT_PLUGINS as $id => $meta) {
+            $runtimeDir = (string)($meta['runtimeDir'] ?? '');
+            $marker = (string)($meta['marker'] ?? '');
+            if ($runtimeDir === '' || $marker === '') {
+                continue;
+            }
+            if (@is_dir($runtimeDir) && @is_file($runtimeDir . '/' . $marker)) {
+                $detected[] = [
+                    'id' => (string)$id,
+                    'name' => (string)($meta['name'] ?? $id),
+                    'runtimeDir' => $runtimeDir
+                ];
+            }
+        }
+        return $detected;
+    }
+
+    function fvplus_render_runtime_conflict_notice(string $surfaceLabel = ''): void {
+        $conflicts = fvplus_detect_runtime_plugin_conflicts();
+        if (count($conflicts) === 0) {
+            return;
+        }
+        $names = array_map(static fn(array $entry): string => (string)($entry['name'] ?? ''), $conflicts);
+        $names = array_values(array_filter(array_map('trim', $names), static fn(string $value): bool => $value !== ''));
+        $pluginText = htmlspecialchars(implode(', ', $names), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $scope = trim($surfaceLabel) !== ''
+            ? htmlspecialchars($surfaceLabel, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
+            : 'this page';
+        echo '<div class="notice" style="margin:12px 0;padding:12px 14px;border:1px solid rgba(255,153,0,0.45);background:rgba(120,60,0,0.18);border-radius:8px;">';
+        echo '<strong>FolderView Plus paused on ' . $scope . '.</strong><br>';
+        echo 'Detected incompatible plugin runtime: <strong>' . $pluginText . '</strong>.<br>';
+        echo 'Both plugins patch the same Docker/VM/Dashboard hooks and can conflict. Keep only one runtime plugin enabled.';
+        echo '</div>';
+    }
 
     function ensureType(string $type): string {
         if (!in_array($type, FVPLUS_ALLOWED_TYPES, true)) {

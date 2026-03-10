@@ -10,6 +10,7 @@ Markdown="false"
 require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 require_once('/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
 emitRequestTokenMetaTag();
+$fvplusRuntimeConflicts = fvplus_detect_runtime_plugin_conflicts();
 ?>
 
 <script>
@@ -21,6 +22,11 @@ emitRequestTokenMetaTag();
 
 <div id="fv-settings-root" class="fv-theme-safe">
 <div id="fv-settings-topbar"></div>
+<?php
+if (!empty($fvplusRuntimeConflicts)) {
+    fvplus_render_runtime_conflict_notice('FolderView Plus runtime');
+}
+?>
 <div id="fv-update-notes-panel" class="fv-update-notes-panel" style="display:none"></div>
 <div id="fv-activity-feed-panel" class="fv-activity-feed-panel" style="display:none;">
     <div class="fv-activity-feed-head">

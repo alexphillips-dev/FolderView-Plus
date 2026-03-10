@@ -60,3 +60,9 @@ test('lib.php normalizes compose manager and compose project labels', () => {
         /\$ct\['info'\]\['State'\]\['manager'\]\s*=\s*getNormalizedDockerManagerFromLabels\(\$ct\['Labels'\]\s*\?\?\s*\[\]\);/
     );
 });
+
+test('lib.php defines runtime conflict detection and notice helpers', () => {
+    assert.match(libPhp, /const FVPLUS_RUNTIME_CONFLICT_PLUGINS\s*=\s*\[/);
+    assert.match(libPhp, /function fvplus_detect_runtime_plugin_conflicts\s*\(/);
+    assert.match(libPhp, /function fvplus_render_runtime_conflict_notice\s*\(/);
+});

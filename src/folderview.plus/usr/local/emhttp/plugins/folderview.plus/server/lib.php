@@ -252,6 +252,8 @@
         $names = array_map(static fn(array $entry): string => (string)($entry['name'] ?? ''), $conflicts);
         $names = array_values(array_filter(array_map('trim', $names), static fn(string $value): bool => $value !== ''));
         $pluginText = htmlspecialchars(implode(', ', $names), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $conflictCount = count($names);
+        $conflictNoun = $conflictCount === 1 ? 'plugin' : 'plugins';
         $isSettingsSurface = trim($surfaceLabel) !== '' && stripos($surfaceLabel, 'settings') !== false;
         $scope = trim($surfaceLabel) !== ''
             ? htmlspecialchars($surfaceLabel, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
@@ -271,12 +273,12 @@
         echo '<div style="font-weight:700;font-size:1.08rem;margin-bottom:4px;">How to fix</div>';
         echo '<ol style="margin:0 0 10px 20px;padding:0;">';
         echo '<li>Open <strong>Plugins</strong> and keep only one Folder View runtime plugin installed.</li>';
-        echo '<li>Remove either FolderView Plus or the conflicting plugin(s): <strong>' . $pluginText . '</strong>.</li>';
+        echo '<li>Keep <strong>FolderView Plus</strong> installed and remove the conflicting ' . $conflictNoun . ': <strong>' . $pluginText . '</strong>.</li>';
         echo '<li>Reload the page after the plugin change completes.</li>';
         echo '</ol>';
         echo '<div style="display:flex;gap:8px;flex-wrap:wrap;">';
-        echo '<a href="/Plugins" class="btn" style="text-decoration:none;">Open Plugins</a>';
-        echo '<a href="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" class="btn" style="text-decoration:none;">Support Thread</a>';
+        echo '<button type="button" class="btn" onclick="window.location.href=\'/Plugins\'">Open Plugins</button>';
+        echo '<a href="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" target="_blank" rel="noopener noreferrer">Support Thread</a>';
         echo '</div>';
         echo '</div>';
     }

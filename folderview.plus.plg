@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.10.05">
-<!ENTITY md5 "a9baf591064806b04104ee600f91ad15">
+<!ENTITY version "2026.03.10.06">
+<!ENTITY md5 "47e857c3cec266eff4b08c9c6bec232e">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.10.06
+- UX: changed **Open Plugins** to a true button action in the safe-mode banner.
+- UX: kept **Support Thread** as a link and made it open in a new tab (`target="_blank" rel="noopener noreferrer"`).
+- Fix: updated conflict recovery steps to explicitly keep FolderView Plus installed and remove only the auto-detected conflicting plugin(s).
+- Regression guard: added tests to enforce new-tab support link behavior and ban old "remove FolderView Plus" wording.
+
 
 ###2026.03.10.05
 - Fix: removed inherited `.notice` styling from the safe-mode banner that was causing clipped/overlapping text in settings.

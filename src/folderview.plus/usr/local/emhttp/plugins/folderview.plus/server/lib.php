@@ -209,12 +209,26 @@
         'folder.view3' => [
             'name' => 'Folder View 3',
             'runtimeDir' => '/usr/local/emhttp/plugins/folder.view3',
-            'marker' => 'folder.view3.Docker.page'
+            'markers' => [
+                'folder.view3.Docker.page',
+                'folder.view3.VMs.page',
+                'folder.view3.Dashboard.page',
+                'scripts/docker.js',
+                'scripts/vm.js',
+                'scripts/dashboard.js'
+            ]
         ],
         'folder.view2' => [
             'name' => 'Folder View 2',
             'runtimeDir' => '/usr/local/emhttp/plugins/folder.view2',
-            'marker' => 'folder.view2.Docker.page'
+            'markers' => [
+                'folder.view2.Docker.page',
+                'folder.view2.VMs.page',
+                'folder.view2.Dashboard.page',
+                'scripts/docker.js',
+                'scripts/vm.js',
+                'scripts/dashboard.js'
+            ]
         ]
     ];
     const FVPLUS_REQUEST_TOKEN_ENFORCEMENT = 'strict';
@@ -229,11 +243,38 @@
         $detected = [];
         foreach (FVPLUS_RUNTIME_CONFLICT_PLUGINS as $id => $meta) {
             $runtimeDir = (string)($meta['runtimeDir'] ?? '');
-            $marker = (string)($meta['marker'] ?? '');
-            if ($runtimeDir === '' || $marker === '') {
+            if ($runtimeDir === '' || !@is_dir($runtimeDir)) {
                 continue;
             }
-            if (@is_dir($runtimeDir) && @is_file($runtimeDir . '/' . $marker)) {
+
+            $markers = [];
+            $legacyMarker = trim((string)($meta['marker'] ?? ''));
+            if ($legacyMarker !== '') {
+                $markers[] = $legacyMarker;
+            }
+            $markerList = $meta['markers'] ?? [];
+            if (is_array($markerList)) {
+                foreach ($markerList as $entry) {
+                    $candidate = trim((string)$entry);
+                    if ($candidate !== '') {
+                        $markers[] = $candidate;
+                    }
+                }
+            }
+            $markers = array_values(array_unique($markers));
+            if (count($markers) === 0) {
+                continue;
+            }
+
+            $hasRuntimeMarker = false;
+            foreach ($markers as $marker) {
+                if (@is_file($runtimeDir . '/' . $marker)) {
+                    $hasRuntimeMarker = true;
+                    break;
+                }
+            }
+
+            if ($hasRuntimeMarker) {
                 $detected[] = [
                     'id' => (string)$id,
                     'name' => (string)($meta['name'] ?? $id),
@@ -284,6 +325,11 @@
         echo '<a href="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;align-self:center;line-height:1.2;margin:0;white-space:nowrap;">Support Thread</a>';
         echo '</div>';
         echo '</div>';
+        $conflictStorageKey = trim((string)$conflictKeyRaw);
+        if ($conflictStorageKey === '') {
+            $conflictStorageKey = 'runtime-conflict';
+        }
+        echo '<script>(function(){try{localStorage.setItem(\'fv.runtimeConflict.active.v1\',' . json_encode($conflictStorageKey, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . ');localStorage.removeItem(\'fv.runtimeConflict.resolvedPending.v1\');}catch(_fvErr){}})();</script>';
     }
 
     function ensureType(string $type): string {

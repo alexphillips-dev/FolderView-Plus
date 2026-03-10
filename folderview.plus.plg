@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.10.09">
-<!ENTITY md5 "40c778ece4fd6a402133a683690c407b">
+<!ENTITY version "2026.03.10.10">
+<!ENTITY md5 "5f604e1985180a39d0f709b15365c689">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.10.10
+- Fix: conflict-resolved confirmation now appears reliably after uninstalling Folder View 2/3 by persisting conflict state from any conflict banner surface (Docker/VMs/Dashboard/Settings).
+- Compatibility: hardened conflicting-plugin detection with multi-marker runtime checks for Folder View 2 and Folder View 3.
+- Quality: strengthened runtime pause tracking so FolderView Plus stays paused until conflicts are cleared, then cleanly resumes with user confirmation.
+
 
 ###2026.03.10.09
 - Maintenance: Align conflict banner actions and simplify removal guidance.

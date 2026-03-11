@@ -1479,14 +1479,16 @@ const initSettingsControls = () => {
                     <span class="fv-settings-subtitle">Plugin settings</span>
                 </div>
                 <div class="fv-settings-right">
-                    <div class="fv-settings-search-wrap">
-                        <input type="text" id="fv-settings-search" placeholder="Search settings" aria-label="Search settings">
-                        <button type="button" id="fv-settings-clear-search" title="Clear search" aria-label="Clear search"><i class="fa fa-times"></i></button>
+                    <div class="fv-settings-search-block">
+                        <div class="fv-settings-search-wrap">
+                            <input type="text" id="fv-settings-search" placeholder="Search settings" aria-label="Search settings">
+                            <button type="button" id="fv-settings-clear-search" title="Clear search" aria-label="Clear search"><i class="fa fa-times"></i></button>
+                        </div>
+                        <label class="fv-search-scope" title="Limit search to currently selected advanced tab">
+                            <input type="checkbox" id="fv-search-all-advanced">
+                            Search all advanced
+                        </label>
                     </div>
-                    <label class="fv-search-scope" title="Limit search to currently selected advanced tab">
-                        <input type="checkbox" id="fv-search-all-advanced">
-                        Search all advanced
-                    </label>
                     <span class="fv-mode-toggle" title="Settings mode">
                         <button type="button" class="fv-mode-btn" data-mode="basic" aria-label="Use basic settings mode">Basic</button>
                         <button type="button" class="fv-mode-btn" data-mode="advanced" aria-label="Use advanced settings mode">Advanced</button>

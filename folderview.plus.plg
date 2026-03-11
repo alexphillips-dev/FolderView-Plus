@@ -6,12 +6,27 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.10.17">
-<!ENTITY md5 "1b750973c07b81d99a5beea33fce9f2a">
+<!ENTITY version "2026.03.10.19">
+<!ENTITY md5 "df94e06315e05cba17b4dd8d37ec2f94">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.10.19
+- Fix: keep `Advanced` mode button visible on desktop by preventing mode-toggle shrink/clipping.
+- UX: move `Search all advanced` below the search field for a cleaner topbar layout.
+- UX: keep search + mode controls aligned so search sits next to Basic/Advanced on desktop.
+
+
+###2026.03.10.18
+- Maintenance: Force mobile-compact layout for settings basic table and wizard.
+- Fix: Fix mobile settings usability for basic table and setup wizard.
+- Fix: Fix perf-budget regression and publish release 2026.03.10.15.
+- Fix: Fix release guard drift and harden local pre-push prevention.
+- Maintenance: Improve mobile readability for settings and setup wizard.
+- Feature: add theme matrix smoke automation.
+
 
 ###2026.03.10.17
 - Fix: force compact mobile layout with runtime detection for browsers that report desktop-style viewports on phones.

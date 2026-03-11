@@ -1660,18 +1660,12 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 @media (max-width: 760px) {
     #fv-setup-assistant-dialog {
         inset: 0;
-        top: 0;
-        left: 0;
         transform: none;
-        width: 100vw;
         width: 100dvw;
-        height: 100vh;
         height: 100dvh;
         max-height: none;
         border-radius: 0;
-        border-left: 0;
-        border-right: 0;
-        border-bottom: 0;
+        border: 0;
     }
 
     .fv-setup-assistant-shell {
@@ -1744,18 +1738,6 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
-    .fv-setup-assistant-main {
-        grid-template-rows: auto minmax(0, 1fr) auto auto auto;
-    }
-
-    .fv-setup-assistant-head {
-        padding: 0.58rem 0.62rem;
-    }
-
-    .fv-setup-assistant-body {
-        padding: 0.6rem;
-    }
-
     .fv-setup-step-delta {
         display: none;
     }
@@ -1771,11 +1753,6 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
         justify-content: flex-start;
         flex-wrap: wrap;
         gap: 0.35rem;
-    }
-
-    .fv-setup-foot-left > button,
-    .fv-setup-foot-right > button {
-        min-height: 34px;
     }
 
     #fv-setup-prev,

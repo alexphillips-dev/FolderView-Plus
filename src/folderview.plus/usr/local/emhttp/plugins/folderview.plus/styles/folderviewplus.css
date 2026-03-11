@@ -4027,7 +4027,6 @@ tr.is-long-press-active {
     position: fixed;
     bottom: calc(var(--fv-unraid-bottom-bar-offset) + env(safe-area-inset-bottom, 0px));
     left: 0.8rem;
-    right: auto;
     z-index: 1000;
     width: auto;
     max-width: calc(100% - 1.6rem);
@@ -4036,16 +4035,6 @@ tr.is-long-press-active {
 
 #fv-settings-action-bar.is-hidden {
     display: none !important;
-}
-
-#fv-settings-action-bar.is-right {
-    left: auto;
-    right: 0.8rem;
-}
-
-#fv-settings-action-bar.is-left {
-    left: 0.8rem;
-    right: auto;
 }
 
 .fv-save-dock {
@@ -4061,14 +4050,10 @@ tr.is-long-press-active {
     gap: 0.3rem;
 }
 
-.fv-save-dock.is-dragging {
-    box-shadow: 0 0 0 2px rgba(77, 163, 255, 0.46), 0 8px 24px rgba(0, 0, 0, 0.42);
-}
-
 .fv-save-dock-head {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
+    justify-content: flex-start;
 }
 
 .fv-save-dock-chip {
@@ -4094,22 +4079,6 @@ tr.is-long-press-active {
 
 .fv-save-dock[data-expanded="1"] .fv-save-dock-chevron {
     transform: rotate(180deg);
-}
-
-.fv-save-dock-handle {
-    width: 32px;
-    min-width: 32px;
-    height: 32px;
-    padding: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    cursor: grab;
-}
-
-.fv-save-dock-handle:active {
-    cursor: grabbing;
 }
 
 .fv-save-dock-panel {
@@ -4222,19 +4191,8 @@ tr.is-long-press-active {
 
     #fv-settings-action-bar {
         left: 0.5rem;
-        right: auto;
         width: auto;
         max-width: calc(100% - 1rem);
-    }
-
-    #fv-settings-action-bar.is-right {
-        left: auto;
-        right: 0.5rem;
-    }
-
-    #fv-settings-action-bar.is-left {
-        left: 0.5rem;
-        right: auto;
     }
 
     .fv-save-dock {
@@ -4244,12 +4202,6 @@ tr.is-long-press-active {
         border-radius: 10px;
         padding: 0.35rem 0.4rem;
         gap: 0.25rem;
-    }
-
-    .fv-save-dock-handle {
-        width: 30px;
-        min-width: 30px;
-        height: 30px;
     }
 
     .fv-save-dock-chip {

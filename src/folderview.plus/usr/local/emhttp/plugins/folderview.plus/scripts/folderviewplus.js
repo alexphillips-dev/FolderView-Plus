@@ -155,7 +155,6 @@ const RUNTIME_CONFLICT_RESOLVED_PENDING_STORAGE_KEY = 'fv.runtimeConflict.resolv
 const IMPORT_PREVIEW_FIRST_STORAGE_KEY = 'fv.import.previewFirst.v1';
 const TABLE_UI_STATE_STORAGE_KEY = 'fv.settings.tableUiState.v1';
 const QUICK_PRESET_ACTIVE_STORAGE_KEY = 'fv.settings.quickPresetActive.v1';
-const ACTION_DOCK_SIDE_STORAGE_KEY = 'fv.settings.actionDockSide.v1';
 const ACTIVITY_FEED_MAX_ENTRIES = 12;
 const LONG_PRESS_DELAY_MS = 560;
 const ACTION_DOCK_AUTOCOLLAPSE_MS = 5000;
@@ -441,8 +440,7 @@ const settingsUiState = {
     wizardShown: false,
     unsavedCount: 0,
     actionDockExpanded: false,
-    actionDockMoreOpen: false,
-    actionDockSide: 'left'
+    actionDockMoreOpen: false
 };
 const advancedDataLoadState = {
     loaded: false,
@@ -607,7 +605,30 @@ const getInputSerializedValue = (input) => {
     return String(input.value ?? '');
 };
 
-const getTrackedInputs = () => Array.from(document.querySelectorAll('input[id], select[id], textarea[id]'));
+const INSTANT_PERSIST_ONCHANGE_TOKENS = Object.freeze([
+    'changesortmode(',
+    'changebadgepref(',
+    'changevisibilitypref(',
+    'changestatuspref(',
+    'changeruntimepref(',
+    'changehealthpref(',
+    'changecolumnvisibility('
+]);
+
+const isInstantPersistInput = (input) => {
+    if (!(input instanceof HTMLElement)) {
+        return false;
+    }
+    const handler = String(input.getAttribute('onchange') || '').trim().toLowerCase();
+    if (!handler) {
+        return false;
+    }
+    return INSTANT_PERSIST_ONCHANGE_TOKENS.some((token) => handler.includes(token));
+};
+
+const getTrackedInputs = () => Array
+    .from(document.querySelectorAll('input[id], select[id], textarea[id]'))
+    .filter((input) => !isInstantPersistInput(input));
 
 const normalizeAdvancedGroup = (value) => (
     ADVANCED_GROUPS.includes(String(value || ''))
@@ -732,22 +753,6 @@ const clearActionDockAutoCollapseTimer = () => {
     }
 };
 
-const normalizeActionDockSide = (value) => {
-    const side = String(value || '').trim().toLowerCase();
-    return side === 'right' ? 'right' : 'left';
-};
-
-const setActionDockSide = (side, persist = true) => {
-    const normalized = normalizeActionDockSide(side);
-    settingsUiState.actionDockSide = normalized;
-    const bar = $('#fv-settings-action-bar');
-    bar.toggleClass('is-right', normalized === 'right');
-    bar.toggleClass('is-left', normalized !== 'right');
-    if (persist) {
-        localStorage.setItem(ACTION_DOCK_SIDE_STORAGE_KEY, normalized);
-    }
-};
-
 const setActionDockMoreOpen = (open) => {
     settingsUiState.actionDockMoreOpen = open === true;
     $('#fv-save-dock').attr('data-more-open', settingsUiState.actionDockMoreOpen ? '1' : '0');
@@ -813,72 +818,6 @@ const updateActionBarSaveState = () => {
         setActionBarStatus(`${count} unsaved field change${count === 1 ? '' : 's'} in this session.`);
     }
     syncActionDockVisibility();
-};
-
-const bindActionDockDrag = () => {
-    const dockElement = document.getElementById('fv-settings-action-bar');
-    const handleElement = document.getElementById('fv-save-dock-handle');
-    if (!dockElement || !handleElement || typeof handleElement.addEventListener !== 'function') {
-        return;
-    }
-    const dragState = {
-        active: false,
-        pointerId: null,
-        lastX: 0
-    };
-
-    const finishDrag = (clientX = 0) => {
-        if (!dragState.active) {
-            return;
-        }
-        dragState.active = false;
-        const width = Number(window.innerWidth || document.documentElement?.clientWidth || 0);
-        const useX = Number(clientX || dragState.lastX || 0);
-        const nextSide = width > 0 && useX > (width / 2) ? 'right' : 'left';
-        setActionDockSide(nextSide);
-        dockElement.classList.remove('is-dragging');
-        if (dragState.pointerId !== null && typeof handleElement.releasePointerCapture === 'function') {
-            try {
-                handleElement.releasePointerCapture(dragState.pointerId);
-            } catch (_error) {
-                // Ignore capture release errors.
-            }
-        }
-        dragState.pointerId = null;
-    };
-
-    handleElement.addEventListener('pointerdown', (event) => {
-        if (event.button !== 0 || settingsUiState.unsavedCount <= 0) {
-            return;
-        }
-        dragState.active = true;
-        dragState.pointerId = event.pointerId;
-        dragState.lastX = Number(event.clientX || 0);
-        dockElement.classList.add('is-dragging');
-        if (typeof handleElement.setPointerCapture === 'function') {
-            try {
-                handleElement.setPointerCapture(event.pointerId);
-            } catch (_error) {
-                // Ignore capture errors.
-            }
-        }
-        event.preventDefault();
-    });
-
-    handleElement.addEventListener('pointermove', (event) => {
-        if (!dragState.active) {
-            return;
-        }
-        dragState.lastX = Number(event.clientX || dragState.lastX || 0);
-    });
-
-    handleElement.addEventListener('pointerup', (event) => {
-        finishDrag(Number(event.clientX || 0));
-    });
-
-    handleElement.addEventListener('pointercancel', () => {
-        finishDrag(dragState.lastX);
-    });
 };
 
 const captureSettingsBaseline = () => {
@@ -1655,16 +1594,6 @@ const initSettingsControls = () => {
         ? settingsChrome.getActionBarHtml()
         : `
             <div id="fv-save-dock" class="fv-save-dock" data-dirty="0" data-expanded="0" data-more-open="0">
-                <div class="fv-save-dock-head">
-                    <button type="button" id="fv-save-dock-chip" class="fv-save-dock-chip" aria-expanded="false" aria-label="Open save actions">
-                        <i class="fa fa-circle"></i>
-                        <span id="fv-save-dock-chip-text">Unsaved (0)</span>
-                        <i class="fa fa-chevron-up fv-save-dock-chevron"></i>
-                    </button>
-                    <button type="button" id="fv-save-dock-handle" class="fv-save-dock-handle" title="Drag to move save dock" aria-label="Drag to move save dock">
-                        <i class="fa fa-arrows"></i>
-                    </button>
-                </div>
                 <div class="fv-save-dock-panel">
                     <div class="fv-action-buttons fv-action-buttons-primary">
                         <button type="button" id="fv-action-save"><i class="fa fa-save"></i> Save</button>
@@ -1677,15 +1606,18 @@ const initSettingsControls = () => {
                     </div>
                     <span id="fv-action-status" class="fv-action-status" aria-live="polite"></span>
                 </div>
+                <div class="fv-save-dock-head">
+                    <button type="button" id="fv-save-dock-chip" class="fv-save-dock-chip" aria-expanded="false" aria-label="Open save actions">
+                        <i class="fa fa-circle"></i>
+                        <span id="fv-save-dock-chip-text">Unsaved (0)</span>
+                        <i class="fa fa-chevron-up fv-save-dock-chevron"></i>
+                    </button>
+                </div>
             </div>
         `;
     actionBar.html(actionBarHtml);
-
-    const storedDockSide = localStorage.getItem(ACTION_DOCK_SIDE_STORAGE_KEY);
-    setActionDockSide(storedDockSide || settingsUiState.actionDockSide, false);
     setActionDockMoreOpen(false);
     setActionDockExpanded(false);
-    bindActionDockDrag();
 
     $('.fv-mode-btn').off('click.fvui').on('click.fvui', (event) => {
         const mode = String($(event.currentTarget).attr('data-mode') || 'basic');

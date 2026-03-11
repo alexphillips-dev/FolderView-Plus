@@ -27,16 +27,6 @@
 
     const getActionBarHtml = () => `
         <div id="fv-save-dock" class="fv-save-dock" data-dirty="0" data-expanded="0" data-more-open="0">
-            <div class="fv-save-dock-head">
-                <button type="button" id="fv-save-dock-chip" class="fv-save-dock-chip" aria-expanded="false" aria-label="Open save actions">
-                    <i class="fa fa-circle"></i>
-                    <span id="fv-save-dock-chip-text">Unsaved (0)</span>
-                    <i class="fa fa-chevron-up fv-save-dock-chevron"></i>
-                </button>
-                <button type="button" id="fv-save-dock-handle" class="fv-save-dock-handle" title="Drag to move save dock" aria-label="Drag to move save dock">
-                    <i class="fa fa-arrows"></i>
-                </button>
-            </div>
             <div class="fv-save-dock-panel">
                 <div class="fv-action-buttons fv-action-buttons-primary">
                     <button type="button" id="fv-action-save"><i class="fa fa-save"></i> Save</button>
@@ -48,6 +38,13 @@
                     <button type="button" id="fv-action-reset-section"><i class="fa fa-refresh"></i> Reset section</button>
                 </div>
                 <span id="fv-action-status" class="fv-action-status" aria-live="polite"></span>
+            </div>
+            <div class="fv-save-dock-head">
+                <button type="button" id="fv-save-dock-chip" class="fv-save-dock-chip" aria-expanded="false" aria-label="Open save actions">
+                    <i class="fa fa-circle"></i>
+                    <span id="fv-save-dock-chip-text">Unsaved (0)</span>
+                    <i class="fa fa-chevron-up fv-save-dock-chevron"></i>
+                </button>
             </div>
         </div>
     `;

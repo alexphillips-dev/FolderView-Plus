@@ -437,6 +437,92 @@
 .folder-table table th:nth-child(10),
 .folder-table table td:nth-child(10) { width: 11%; }
 
+/* Mobile/touch compact mode: prioritize core columns and prevent chip overlap. */
+@media (max-width: 1100px) {
+    .folder-table .table-wrap {
+        overflow-x: auto !important;
+        overflow-y: visible !important;
+        scrollbar-width: thin;
+    }
+
+    .folder-table table {
+        table-layout: fixed;
+        min-width: 0;
+    }
+
+    .folder-table table th:nth-child(5),
+    .folder-table table td:nth-child(5),
+    .folder-table table th:nth-child(6),
+    .folder-table table td:nth-child(6),
+    .folder-table table th:nth-child(7),
+    .folder-table table td:nth-child(7),
+    .folder-table table th:nth-child(8),
+    .folder-table table td:nth-child(8),
+    .folder-table table th:nth-child(9),
+    .folder-table table td:nth-child(9) {
+        display: none !important;
+    }
+
+    .folder-table table th:nth-child(1),
+    .folder-table table td:nth-child(1) { width: 10%; }
+    .folder-table table th:nth-child(2),
+    .folder-table table td:nth-child(2) { width: 38%; }
+    .folder-table table th:nth-child(3),
+    .folder-table table td:nth-child(3) { width: 8%; }
+    .folder-table table th:nth-child(4),
+    .folder-table table td:nth-child(4) { width: 28%; }
+    .folder-table table th:nth-child(10),
+    .folder-table table td:nth-child(10) { width: 16%; }
+
+    .name-cell-content {
+        width: 100%;
+        max-width: 100%;
+        grid-template-columns: 28px minmax(0, 1fr);
+        column-gap: 0.35rem;
+    }
+
+    .name-cell-content > img {
+        width: 28px;
+        height: 28px;
+    }
+
+    .status-cell-content {
+        flex-wrap: wrap;
+        align-items: flex-start;
+        row-gap: 0.2rem;
+        column-gap: 0.24rem;
+    }
+
+    .status-chip-list {
+        width: 100%;
+        flex-wrap: wrap;
+        white-space: normal;
+        row-gap: 0.2rem;
+        column-gap: 0.2rem;
+    }
+}
+
+@media (max-width: 700px) {
+    .folder-table table th:nth-child(3),
+    .folder-table table td:nth-child(3) {
+        display: none !important;
+    }
+
+    .folder-table table th:nth-child(1),
+    .folder-table table td:nth-child(1) { width: 12%; }
+    .folder-table table th:nth-child(2),
+    .folder-table table td:nth-child(2) { width: 46%; }
+    .folder-table table th:nth-child(4),
+    .folder-table table td:nth-child(4) { width: 27%; }
+    .folder-table table th:nth-child(10),
+    .folder-table table td:nth-child(10) { width: 15%; }
+
+    .row-order-actions button {
+        min-width: 24px;
+        padding: 1px 5px;
+    }
+}
+
 .folder-pin-state,
 .folder-metric-chip {
     display: inline-block;
@@ -1654,6 +1740,126 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
     .backup-compare-sep {
         display: none;
+    }
+}
+
+/* Many mobile browsers render plugin settings around ~980 CSS px; widen wizard stacking guard. */
+@media (max-width: 1100px) {
+    #fv-setup-assistant-dialog {
+        inset: 0;
+        transform: none;
+        width: 100dvw;
+        height: 100dvh;
+        max-height: none;
+        border-radius: 0;
+        border: 0;
+    }
+
+    .fv-setup-assistant-shell {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    .fv-setup-assistant-sidebar {
+        border-right: 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        max-height: none;
+        padding: 0.45rem 0.55rem;
+        display: grid;
+        grid-template-rows: auto auto minmax(0, 1fr) auto;
+        gap: 0.35rem;
+        overflow: hidden;
+    }
+
+    .fv-setup-step-list {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        gap: 0.35rem;
+        padding: 0 0.05rem 0.1rem 0;
+        margin-top: 0;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+    }
+
+    .fv-setup-step-list li {
+        min-width: 112px;
+        flex: 0 0 auto;
+    }
+
+    .fv-setup-step-jump {
+        grid-template-columns: 18px minmax(0, 1fr);
+        gap: 0.28rem;
+        padding: 0.2rem 0.28rem;
+    }
+
+    .fv-setup-step-state {
+        display: none;
+    }
+
+    .fv-setup-sidebar-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+        min-height: 34px;
+        width: 100%;
+    }
+
+    .fv-setup-assistant-shell[data-fv-mobile-summary-open="0"] .fv-setup-sidebar-summary {
+        display: none;
+    }
+
+    .fv-setup-assistant-shell[data-fv-mobile-summary-open="1"] .fv-setup-sidebar-summary {
+        display: grid;
+    }
+
+    .fv-setup-sidebar-summary {
+        margin-top: 0;
+        max-height: 26vh;
+        overflow: auto;
+    }
+
+    .fv-setup-sidebar-stats {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .fv-setup-step-delta {
+        display: none;
+    }
+
+    .fv-setup-assistant-foot {
+        padding: 0.5rem 0.6rem;
+        flex-wrap: wrap;
+    }
+
+    .fv-setup-foot-left,
+    .fv-setup-foot-right {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+    }
+
+    #fv-setup-prev,
+    #fv-setup-next,
+    #fv-setup-skip-review {
+        flex: 1 1 calc(33.333% - 0.24rem);
+    }
+
+    #fv-setup-apply {
+        flex: 1 1 100%;
+    }
+
+    .fv-setup-step-grid,
+    .fv-setup-route-grid,
+    .fv-setup-profile-grid,
+    .fv-setup-env-grid,
+    .fv-setup-quick-preset-grid,
+    .fv-setup-impact-grid,
+    .fv-setup-field-grid {
+        grid-template-columns: 1fr;
     }
 }
 

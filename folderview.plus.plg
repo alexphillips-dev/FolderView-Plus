@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.10.15">
-<!ENTITY md5 "f7c4f004216190ed1eb4af1798200480">
+<!ENTITY version "2026.03.10.16">
+<!ENTITY md5 "a9c0c3d62a06bad22b038a1477a4144a">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.10.16
+- Fix: improved Basic mobile usability by switching to a compact table column set and preventing status-chip overlap.
+- Fix: setup wizard now enforces a stacked single-column mobile layout on wider mobile CSS viewports.
+- Quality: kept 760px regression guards while adding a broader 1100px mobile-safety layer for real device compatibility.
+
 
 ###2026.03.10.15
 - Fix: resolved CI/release failures by trimming mobile wizard CSS under perf ratchet limits while keeping the new mobile UX layout.

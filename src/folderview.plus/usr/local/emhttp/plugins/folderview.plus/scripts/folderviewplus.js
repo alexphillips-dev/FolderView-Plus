@@ -491,7 +491,8 @@ const setupAssistantState = {
     lastApplyReport: null,
     rollbackCheckpointName: '',
     draftRestored: false,
-    restoredDraftSavedAt: ''
+    restoredDraftSavedAt: '',
+    mobileSidebarSummaryOpen: false
 };
 let setupAssistantLastFocusedElement = null;
 let overflowGuardBound = false;
@@ -1424,8 +1425,10 @@ const initSettingsControls = () => {
                     <span class="fv-settings-subtitle">Plugin settings</span>
                 </div>
                 <div class="fv-settings-right">
-                    <input type="text" id="fv-settings-search" placeholder="Search settings" aria-label="Search settings">
-                    <button type="button" id="fv-settings-clear-search" title="Clear search" aria-label="Clear search"><i class="fa fa-times"></i></button>
+                    <div class="fv-settings-search-wrap">
+                        <input type="text" id="fv-settings-search" placeholder="Search settings" aria-label="Search settings">
+                        <button type="button" id="fv-settings-clear-search" title="Clear search" aria-label="Clear search"><i class="fa fa-times"></i></button>
+                    </div>
                     <label class="fv-search-scope" title="Limit search to currently selected advanced tab">
                         <input type="checkbox" id="fv-search-all-advanced">
                         Search all advanced
@@ -2593,6 +2596,7 @@ const resetSetupAssistantState = (force = false) => {
     setupAssistantState.rollbackCheckpointName = '';
     setupAssistantState.draftRestored = false;
     setupAssistantState.restoredDraftSavedAt = '';
+    setupAssistantState.mobileSidebarSummaryOpen = false;
 };
 
 const clampSetupAssistantStep = () => {
@@ -3379,7 +3383,7 @@ const renderSetupAssistantSidebarSummary = (impactSummary) => {
         ? 'Migration flow'
         : (setupAssistantState.route === 'advanced' ? 'Advanced flow' : 'New install flow');
     return `
-        <section class="fv-setup-sidebar-summary">
+        <section id="fv-setup-sidebar-summary" class="fv-setup-sidebar-summary">
             <h4>What will change</h4>
             <div class="fv-setup-chip-row">
                 <span class="fv-setup-chip">${escapeHtml(routeLabel)}</span>
@@ -4089,6 +4093,7 @@ const renderSetupAssistant = () => {
     const canApply = atLastStep && canMove && !hasBlockers;
     const primaryBlocker = hasBlockers ? String(stepValidation.blockers[0] || '').trim() : '';
     const blockerHintId = primaryBlocker ? 'fv-setup-blocker-hint' : '';
+    const mobileSidebarSummaryOpen = setupAssistantState.mobileSidebarSummaryOpen === true;
     const restoredBanner = setupAssistantState.draftRestored
         ? `
             <div class="fv-setup-draft-banner">
@@ -4099,7 +4104,7 @@ const renderSetupAssistant = () => {
         : '';
 
     content.html(`
-        <div class="fv-setup-assistant-shell">
+        <div class="fv-setup-assistant-shell" data-fv-mobile-summary-open="${mobileSidebarSummaryOpen ? '1' : '0'}">
             <aside class="fv-setup-assistant-sidebar">
                 <h3 id="fv-setup-assistant-title">Setup Assistant</h3>
                 <p class="fv-setup-muted">Step ${setupAssistantState.step + 1} of ${stepSequence.length}</p>
@@ -4129,6 +4134,14 @@ const renderSetupAssistant = () => {
                     `;
                     }).join('')}
                 </ol>
+                <button type="button"
+                    id="fv-setup-sidebar-toggle"
+                    class="fv-setup-sidebar-toggle"
+                    aria-expanded="${mobileSidebarSummaryOpen ? 'true' : 'false'}"
+                    aria-controls="fv-setup-sidebar-summary"
+                    ${canMove ? '' : 'disabled'}>
+                    <i class="fa fa-sliders"></i> ${mobileSidebarSummaryOpen ? 'Hide details' : 'Show details'}
+                </button>
                 ${renderSetupAssistantSidebarSummary(impactSummary)}
             </aside>
             <section class="fv-setup-assistant-main">
@@ -4621,6 +4634,10 @@ const bindSetupAssistantEvents = () => {
         summarizeSetupAssistantImportPlan('vm');
         refreshSetupAssistantRuleSuggestions();
         renderSetupAssistant();
+    });
+    root.find('#fv-setup-sidebar-toggle').off('click.fvsetup').on('click.fvsetup', () => {
+        setupAssistantState.mobileSidebarSummaryOpen = !setupAssistantState.mobileSidebarSummaryOpen;
+        rerender();
     });
     root.find('#fv-setup-prev').off('click.fvsetup').on('click.fvsetup', () => {
         jumpSetupAssistantToStep(setupAssistantState.step - 1);

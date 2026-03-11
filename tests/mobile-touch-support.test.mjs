@@ -69,6 +69,8 @@ test('settings advanced sections include mobile-safe expand/collapse handlers', 
     assert.match(settingsJs, /const toggleAdvancedSectionByKey = \(sectionKey\) =>/);
     assert.match(settingsJs, /click\.fvsectionheader/);
     assert.match(settingsJs, /h2\[data-fv-section\]\[data-fv-advanced="1"\]/);
+    assert.match(settingsJs, /mobileSidebarSummaryOpen/);
+    assert.match(settingsJs, /fv-setup-sidebar-toggle/);
 });
 
 test('settings styles include responsive advanced accordion controls on mobile', () => {
@@ -77,4 +79,7 @@ test('settings styles include responsive advanced accordion controls on mobile',
     assert.match(settingsCss, /@media \(max-width: 760px\)/);
     assert.match(settingsCss, /h2\[data-fv-section\]\[data-fv-advanced="1"\]/);
     assert.match(settingsCss, /\.fv-advanced-tabs/);
+    assert.match(settingsCss, /\.fv-settings-search-wrap/);
+    assert.match(settingsCss, /\.fv-setup-sidebar-toggle/);
+    assert.match(settingsCss, /\[data-fv-mobile-summary-open="0"\] \.fv-setup-sidebar-summary/);
 });

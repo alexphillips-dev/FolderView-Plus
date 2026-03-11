@@ -5518,6 +5518,118 @@ const renderFirstRunQuickPathPanel = () => {
     `).show();
 };
 
+const buildFolderQuickActionSummary = (type, folderId) => {
+    const resolvedType = normalizeManagedType(type);
+    const folderMap = getFolderMap(resolvedType);
+    const folder = folderMap[folderId];
+    if (!folder) {
+        return null;
+    }
+
+    const memberSnapshot = getEffectiveMemberSnapshot(resolvedType, folderMap);
+    const members = Array.isArray(memberSnapshot[folderId]?.members) ? memberSnapshot[folderId].members : [];
+    const infoByName = infoByType[resolvedType] || {};
+    const countsByState = { started: 0, paused: 0, stopped: 0 };
+    for (const member of members) {
+        const runtimeState = getItemRuntimeStateKind(resolvedType, infoByName[member] || {});
+        if (runtimeState === 'started') {
+            countsByState.started += 1;
+        } else if (runtimeState === 'paused') {
+            countsByState.paused += 1;
+        } else {
+            countsByState.stopped += 1;
+        }
+    }
+
+    const rules = (prefsByType[resolvedType]?.autoRules || []).filter(
+        (rule) => String(rule?.folderId || '') === String(folderId)
+    );
+    const activeRuleCount = rules.reduce((count, rule) => (rule?.enabled === false ? count : count + 1), 0);
+    const lastChangedRaw = String(folder.updatedAt || folder.createdAt || '').trim();
+    const pinned = isFolderPinned(resolvedType, folderId);
+    const summary = {
+        type: resolvedType,
+        folderId: String(folderId || ''),
+        folderName: String(folder.name || folderId),
+        membersCount: members.length,
+        countsByState,
+        rulesCount: rules.length,
+        activeRulesCount: activeRuleCount,
+        lastChanged: lastChangedRaw ? formatTimestamp(lastChangedRaw) : 'Unknown',
+        pinned: pinned === true
+    };
+
+    if (resolvedType === 'docker') {
+        const updateNames = [];
+        for (const member of members) {
+            if (isDockerUpdateAvailable(infoByName[member] || {})) {
+                updateNames.push(String(member));
+            }
+        }
+        const health = evaluateDockerFolderHealth(
+            folder,
+            members.length,
+            countsByState,
+            updateNames.length,
+            Number(normalizeHealthPrefs('docker').warnStoppedPercent) || 60
+        );
+        summary.updatesCount = updateNames.length;
+        summary.health = health?.text || 'Unknown';
+    } else {
+        let autostartCount = 0;
+        let vcpusTotal = 0;
+        let memoryKiBTotal = 0;
+        for (const member of members) {
+            const vmInfo = infoByName[member] || {};
+            if (valueIsTruthy(vmInfo.autostart)) {
+                autostartCount += 1;
+            }
+            vcpusTotal += Number(vmInfo.vcpus ?? vmInfo.nrVirtCpu ?? 0) || 0;
+            memoryKiBTotal += Number(vmInfo.memoryKiB ?? vmInfo.memory ?? vmInfo.maxMem ?? 0) || 0;
+        }
+        summary.autostart = `${autostartCount}/${members.length}`;
+        summary.resources = `${vcpusTotal} vCPU | ${formatGiBFromKiB(memoryKiBTotal)}`;
+    }
+
+    return summary;
+};
+
+const renderFolderQuickActionSummaryHtml = (summary) => {
+    if (!summary) {
+        return '';
+    }
+    const statusText = `${summary.countsByState.started} started | ${summary.countsByState.paused} paused | ${summary.countsByState.stopped} stopped`;
+    const rows = [
+        { label: 'Members', value: String(summary.membersCount) },
+        { label: 'Status', value: statusText },
+        {
+            label: 'Rules',
+            value: summary.rulesCount <= 0
+                ? '0'
+                : `${summary.activeRulesCount}/${summary.rulesCount} active`
+        },
+        { label: 'Last changed', value: String(summary.lastChanged || 'Unknown') },
+        { label: 'Pinned', value: summary.pinned ? 'Yes' : 'No' }
+    ];
+    if (summary.type === 'docker') {
+        rows.push({ label: 'Updates', value: `${Number(summary.updatesCount || 0)}` });
+        rows.push({ label: 'Health', value: String(summary.health || 'Unknown') });
+    } else {
+        rows.push({ label: 'Autostart', value: String(summary.autostart || '0/0') });
+        rows.push({ label: 'Resources', value: String(summary.resources || '0 vCPU | 0.00 GiB') });
+    }
+    return `
+        <div class="fv-row-quick-actions-summary">
+            ${rows.map((row) => `
+                <div class="fv-row-quick-actions-summary-row">
+                    <span>${escapeHtml(row.label)}</span>
+                    <strong>${escapeHtml(row.value)}</strong>
+                </div>
+            `).join('')}
+        </div>
+    `;
+};
+
 const showFolderRowQuickActions = (type, folderId) => {
     const resolvedType = normalizeManagedType(type);
     const folderMap = getFolderMap(resolvedType);
@@ -5525,6 +5637,7 @@ const showFolderRowQuickActions = (type, folderId) => {
     if (!folder) {
         return;
     }
+    const summary = buildFolderQuickActionSummary(resolvedType, folderId);
     const pinned = isFolderPinned(resolvedType, folderId);
     const safeFolderName = escapeHtml(String(folder.name || folderId));
     const safeFolderId = escapeHtml(String(folderId || ''));
@@ -5532,6 +5645,7 @@ const showFolderRowQuickActions = (type, folderId) => {
     const html = `
         <div class="fv-row-quick-actions">
             <div class="fv-row-quick-actions-meta">${typeLabel} folder ID: <code>${safeFolderId}</code></div>
+            ${renderFolderQuickActionSummaryHtml(summary)}
             <div class="fv-row-quick-actions-grid">
                 <button type="button" class="fv-row-quick-action" data-action="pin"><i class="fa ${pinned ? 'fa-star-o' : 'fa-star'}"></i> ${pinned ? 'Unpin' : 'Pin to top'}</button>
                 <button type="button" class="fv-row-quick-action" data-action="status"><i class="fa fa-info-circle"></i> Status breakdown</button>
@@ -5581,6 +5695,16 @@ const showFolderRowQuickActions = (type, folderId) => {
             }
         });
     }, 0);
+};
+
+const openFolderRowQuickActions = (type, folderId, event = null) => {
+    if (event && typeof event.preventDefault === 'function') {
+        event.preventDefault();
+    }
+    if (event && typeof event.stopPropagation === 'function') {
+        event.stopPropagation();
+    }
+    showFolderRowQuickActions(type, folderId);
 };
 
 const clearRowLongPressState = (type) => {
@@ -8342,7 +8466,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             + `<td class="last-changed-cell" title="${escapeHtml(lastChangedRaw || '')}">${escapeHtml(lastChangedText)}</td>`
             + `<td class="pinned-cell"><span class="folder-pin-state ${pinnedClass}">${escapeHtml(pinnedText)}</span></td>`
             + typeSpecificColumns
-            + `<td class="actions-cell"><button class="folder-action-btn folder-pin-btn ${pinned ? 'is-pinned' : ''}" title="${pinTitle}" aria-label="${pinTitle}" onclick="toggleFolderPin('${type}','${escapeHtml(id)}')"><i class="fa ${pinned ? 'fa-star' : 'fa-star-o'}"></i></button><button class="folder-action-btn" title="Export" aria-label="Export ${safeName}" onclick="${type === 'docker' ? 'downloadDocker' : 'downloadVm'}('${escapeHtml(id)}')"><i class="fa fa-download"></i></button><button class="folder-action-btn" title="Delete" aria-label="Delete ${safeName}" onclick="${type === 'docker' ? 'clearDocker' : 'clearVm'}('${escapeHtml(id)}')"><i class="fa fa-trash"></i></button><button class="folder-action-btn" title="Copy ID" aria-label="Copy ID for ${safeName}" onclick="copyFolderId('${type}','${escapeHtml(id)}')"><i class="fa fa-clipboard"></i></button></td>`
+            + `<td class="actions-cell"><button class="folder-action-btn folder-pin-btn ${pinned ? 'is-pinned' : ''}" title="${pinTitle}" aria-label="${pinTitle}" onclick="toggleFolderPin('${type}','${escapeHtml(id)}')"><i class="fa ${pinned ? 'fa-star' : 'fa-star-o'}"></i></button><button class="folder-action-btn" title="Export" aria-label="Export ${safeName}" onclick="${type === 'docker' ? 'downloadDocker' : 'downloadVm'}('${escapeHtml(id)}')"><i class="fa fa-download"></i></button><button class="folder-action-btn" title="Delete" aria-label="Delete ${safeName}" onclick="${type === 'docker' ? 'clearDocker' : 'clearVm'}('${escapeHtml(id)}')"><i class="fa fa-trash"></i></button><button class="folder-action-btn" title="Copy ID" aria-label="Copy ID for ${safeName}" onclick="copyFolderId('${type}','${escapeHtml(id)}')"><i class="fa fa-clipboard"></i></button><button type="button" class="folder-action-btn folder-overflow-btn" title="More" aria-label="More actions for ${safeName}" onclick="openFolderRowQuickActions('${type}','${escapeHtml(id)}')"><i class="fa fa-ellipsis-h"></i></button></td>`
             + '</tr>'
         );
     }
@@ -11461,6 +11585,7 @@ window.setQuickFolderFilter = setQuickFolderFilter;
 window.setHealthFolderFilter = setHealthFolderFilter;
 window.changeColumnVisibility = changeColumnVisibility;
 window.showFolderStatusBreakdown = showFolderStatusBreakdown;
+window.openFolderRowQuickActions = openFolderRowQuickActions;
 window.quickCreateStarterFolder = quickCreateStarterFolder;
 window.applyQuickProfilePreset = applyQuickProfilePreset;
 window.applyRuleTestSample = applyRuleTestSample;

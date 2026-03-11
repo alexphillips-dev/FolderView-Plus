@@ -101,6 +101,25 @@ test('folder tables avoid unnecessary horizontal scrollbar in basic view', () =>
     assert.match(settingsCss, /\.folder-table table\s*\{[\s\S]*border-spacing:\s*0/);
 });
 
+test('mobile folder table keeps Order + Name and routes details to overflow menu', () => {
+    assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*th:nth-child\(3\)/);
+    assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*th:nth-child\(4\)/);
+    assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*th\.col-status/);
+    assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*td\.status-cell/);
+    assert.match(settingsCss, /#fv-settings-root\.fv-mobile-compact[\s\S]*th:nth-child\(3\)/);
+    assert.match(settingsCss, /#fv-settings-root\.fv-mobile-compact[\s\S]*th:nth-child\(4\)/);
+    assert.match(settingsCss, /#fv-settings-root\.fv-mobile-compact[\s\S]*th\.col-status/);
+    assert.match(settingsCss, /#fv-settings-root\.fv-mobile-compact[\s\S]*td\.status-cell/);
+    assert.match(settingsCss, /\.folder-overflow-btn\s*\{[\s\S]*display:\s*none/);
+    assert.match(settingsCss, /\.actions-cell[\s\S]*\.folder-action-btn:not\(\.folder-overflow-btn\)[\s\S]*display:\s*none !important/);
+    assert.match(settingsCss, /\.actions-cell[\s\S]*\.folder-overflow-btn[\s\S]*display:\s*inline-flex !important/);
+    assert.match(settingsJs, /class="folder-action-btn folder-overflow-btn"/);
+    assert.match(settingsJs, /onclick="openFolderRowQuickActions\('\$\{type\}','\$\{escapeHtml\(id\)\}'\)"/);
+    assert.match(settingsJs, /const openFolderRowQuickActions = \(type, folderId, event = null\) =>/);
+    assert.match(settingsJs, /window\.openFolderRowQuickActions = openFolderRowQuickActions;/);
+    assert.match(settingsJs, /const renderFolderQuickActionSummaryHtml = \(summary\) =>/);
+});
+
 test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderJs, /const enforceLeftAlignedSettingsLayout = \(\) =>/);
     assert.match(folderJs, /fv-force-left-v2 marker/);

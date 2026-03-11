@@ -6,12 +6,30 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.10.19">
-<!ENTITY md5 "df94e06315e05cba17b4dd8d37ec2f94">
+<!ENTITY version "2026.03.11.02">
+<!ENTITY md5 "8e186872c90f4453000996e4437177b1">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.11.02
+- Fix: Fix perf ratchet CI failures and add baseline refresh safeguards.
+- Maintenance: Clean up settings topbar layout and restore advanced button visibility.
+- Maintenance: Force mobile-compact layout for settings basic table and wizard.
+- Fix: Fix mobile settings usability for basic table and setup wizard.
+- Fix: Fix perf-budget regression and publish release 2026.03.10.15.
+- Fix: Fix release guard drift and harden local pre-push prevention.
+
+
+###2026.03.11.01
+- Fix: Fix perf ratchet CI failures and add baseline refresh safeguards.
+- Maintenance: Clean up settings topbar layout and restore advanced button visibility.
+- Maintenance: Force mobile-compact layout for settings basic table and wizard.
+- Fix: Fix mobile settings usability for basic table and setup wizard.
+- Fix: Fix perf-budget regression and publish release 2026.03.10.15.
+- Fix: Fix release guard drift and harden local pre-push prevention.
+
 
 ###2026.03.10.19
 - Fix: keep `Advanced` mode button visible on desktop by preventing mode-toggle shrink/clipping.

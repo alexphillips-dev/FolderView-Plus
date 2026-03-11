@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.11.04">
-<!ENTITY md5 "02d5d3412501207707729ba838c090c5">
+<!ENTITY version "2026.03.11.05">
+<!ENTITY md5 "338a16fd8bc61915ffec34dc9378d368">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.11.05
+- Maintenance: release metadata and packaging sync.
+
 
 ###2026.03.11.04
 - Fix: Update-notes panel now removes carryover bullets already present in the prior release entry.

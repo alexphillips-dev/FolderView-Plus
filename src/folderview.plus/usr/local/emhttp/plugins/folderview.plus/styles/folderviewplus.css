@@ -4025,24 +4025,119 @@ tr.is-long-press-active {
 
 #fv-settings-action-bar {
     position: fixed;
+    bottom: calc(var(--fv-unraid-bottom-bar-offset) + env(safe-area-inset-bottom, 0px));
     left: 0.8rem;
     right: auto;
-    bottom: calc(var(--fv-unraid-bottom-bar-offset) + env(safe-area-inset-bottom, 0px));
     z-index: 1000;
+    width: auto;
+    max-width: calc(100% - 1.6rem);
+    display: inline-flex;
+}
+
+#fv-settings-action-bar.is-hidden {
+    display: none !important;
+}
+
+#fv-settings-action-bar.is-right {
+    left: auto;
+    right: 0.8rem;
+}
+
+#fv-settings-action-bar.is-left {
+    left: 0.8rem;
+    right: auto;
+}
+
+.fv-save-dock {
     border: 1px solid rgba(255, 255, 255, 0.14);
     border-radius: 12px;
     background: rgba(11, 14, 18, 0.96);
     backdrop-filter: blur(3px);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.38);
-    padding: 0.5rem 0.55rem;
+    padding: 0.4rem 0.45rem;
+    min-width: 220px;
+    max-width: min(720px, calc(100vw - 1.6rem));
+    display: grid;
+    gap: 0.3rem;
+}
+
+.fv-save-dock.is-dragging {
+    box-shadow: 0 0 0 2px rgba(77, 163, 255, 0.46), 0 8px 24px rgba(0, 0, 0, 0.42);
+}
+
+.fv-save-dock-head {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.fv-save-dock-chip {
+    flex: 1 1 auto;
+    min-height: 32px;
     display: inline-flex;
-    width: auto;
-    max-width: calc(100% - 1.6rem);
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.45rem;
+    border-radius: 999px;
+    padding: 0.18rem 0.6rem;
+    font-size: 1.03rem;
+}
+
+.fv-save-dock-chip .fa-circle {
+    color: #ff9f45;
+    font-size: 0.8em;
+}
+
+.fv-save-dock-chevron {
+    transition: transform 160ms ease;
+}
+
+.fv-save-dock[data-expanded="1"] .fv-save-dock-chevron {
+    transform: rotate(180deg);
+}
+
+.fv-save-dock-handle {
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    cursor: grab;
+}
+
+.fv-save-dock-handle:active {
+    cursor: grabbing;
+}
+
+.fv-save-dock-panel {
+    display: none;
+}
+
+.fv-save-dock[data-expanded="1"] .fv-save-dock-panel {
+    display: grid;
+    gap: 0.36rem;
+}
+
+.fv-action-buttons-primary,
+.fv-action-buttons-secondary {
+    display: flex;
     flex-wrap: wrap;
-    align-items: flex-start;
-    justify-content: flex-start;
-    gap: 0.35rem 0.6rem;
-    overflow: visible;
+    gap: 0.45rem;
+}
+
+.fv-action-more {
+    display: none;
+    min-height: 32px;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+}
+
+.fv-save-dock[data-more-open="1"] .fv-action-more i {
+    transform: rotate(90deg);
 }
 
 .fv-action-buttons {
@@ -4054,18 +4149,15 @@ tr.is-long-press-active {
 .fv-action-status {
     font-size: 1.03rem;
     opacity: 0.95;
-    position: absolute;
-    left: 0.1rem;
-    bottom: calc(100% + 0.35rem);
-    max-width: min(78ch, calc(100vw - 1.6rem));
+    max-width: min(78ch, calc(100vw - 2.2rem));
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    background: rgba(11, 14, 18, 0.96);
+    background: rgba(0, 0, 0, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: 999px;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.34);
-    padding: 0.22rem 0.58rem;
+    border-radius: 8px;
+    box-shadow: none;
+    padding: 0.2rem 0.52rem;
     display: none;
     pointer-events: none;
 }
@@ -4133,10 +4225,53 @@ tr.is-long-press-active {
         right: auto;
         width: auto;
         max-width: calc(100% - 1rem);
+    }
+
+    #fv-settings-action-bar.is-right {
+        left: auto;
+        right: 0.5rem;
+    }
+
+    #fv-settings-action-bar.is-left {
+        left: 0.5rem;
+        right: auto;
+    }
+
+    .fv-save-dock {
+        min-width: 0;
+        width: min(92vw, 420px);
+        max-width: calc(100vw - 1rem);
         border-radius: 10px;
         padding: 0.35rem 0.4rem;
-        align-items: center;
         gap: 0.25rem;
+    }
+
+    .fv-save-dock-handle {
+        width: 30px;
+        min-width: 30px;
+        height: 30px;
+    }
+
+    .fv-save-dock-chip {
+        min-height: 30px;
+        padding: 0.18rem 0.5rem;
+    }
+
+    .fv-action-more {
+        display: inline-flex;
+        width: 100%;
+    }
+
+    .fv-action-buttons-primary {
+        display: flex;
+    }
+
+    .fv-action-buttons-secondary {
+        display: none;
+    }
+
+    .fv-save-dock[data-more-open="1"] .fv-action-buttons-secondary {
+        display: flex;
     }
 
     .fv-action-status {
@@ -4275,8 +4410,8 @@ tr.is-long-press-active {
     }
 
     .fv-action-buttons {
-        width: auto;
-        max-width: calc(100% - 1.1rem);
+        width: 100%;
+        max-width: 100%;
         flex-wrap: nowrap;
         overflow-x: auto;
         overflow-y: hidden;
@@ -4291,9 +4426,9 @@ tr.is-long-press-active {
     .fv-action-buttons > button {
         flex: 0 0 auto;
         min-width: 0;
-        min-height: 34px;
+        min-height: 32px;
         white-space: nowrap;
-        padding: 0.3rem 0.52rem;
+        padding: 0.25rem 0.45rem;
     }
 
     .toolbar-actions > button {

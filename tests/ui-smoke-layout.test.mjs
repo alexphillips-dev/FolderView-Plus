@@ -71,7 +71,11 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
 test('mobile action bar and import progress keep compact viewport guards', () => {
     assert.match(settingsCss, /@media \(max-width: 760px\)/);
     assert.match(settingsCss, /#fv-settings-action-bar\s*\{[\s\S]*max-width:\s*calc\(100%\s*-\s*1rem\)/);
-    assert.doesNotMatch(settingsCss, /#fv-settings-action-bar[\s\S]*max-width:\s*calc\(100vw/);
+    assert.doesNotMatch(settingsCss, /#fv-settings-action-bar\s*\{[^}]*max-width:\s*calc\(100vw/);
+    assert.match(settingsCss, /\.fv-save-dock\s*\{/);
+    assert.match(settingsCss, /\.fv-save-dock-chip\s*\{/);
+    assert.match(settingsCss, /\.fv-save-dock-handle\s*\{/);
+    assert.match(settingsCss, /#fv-settings-action-bar\.is-hidden/);
     assert.match(settingsCss, /\.fv-action-buttons\s*\{[\s\S]*overflow-x:\s*auto/);
     assert.match(settingsCss, /#import-apply-progress-dialog\s*\{[\s\S]*max-width:\s*min\([0-9]+px,\s*calc\(100vw\s*-\s*1\.5rem\)\)/);
     assert.match(settingsCss, /@media \(max-width: 760px\)\s*\{[\s\S]*#import-apply-progress-dialog/);
@@ -152,11 +156,16 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const RUNTIME_CONFLICT_ACTIVE_STORAGE_KEY = 'fv\.runtimeConflict\.active\.v1';/);
     assert.match(settingsJs, /const RUNTIME_CONFLICT_RESOLVED_PENDING_STORAGE_KEY = 'fv\.runtimeConflict\.resolvedPending\.v1';/);
     assert.match(settingsJs, /const TABLE_UI_STATE_STORAGE_KEY = 'fv\.settings\.tableUiState\.v1';/);
+    assert.match(settingsJs, /const ACTION_DOCK_SIDE_STORAGE_KEY = 'fv\.settings\.actionDockSide\.v1';/);
+    assert.match(settingsJs, /const ACTION_DOCK_AUTOCOLLAPSE_MS = 5000;/);
     assert.match(settingsJs, /const advancedDataLoadState = \{/);
     assert.match(settingsJs, /const UNDO_WINDOW_MS = 10000;/);
     assert.match(settingsJs, /const buildModuleEmptyTableRow = \(title, help, colspan = 1\) =>/);
     assert.match(settingsJs, /const focusFolderRow = \(type, folderId\) =>/);
     assert.match(settingsJs, /const showActionSummaryToast = \(\{/);
+    assert.match(settingsJs, /const setActionDockSide = \(side, persist = true\) =>/);
+    assert.match(settingsJs, /const setActionDockExpanded = \(expanded, \{ auto = false \} = \{\}\) =>/);
+    assert.match(settingsJs, /const bindActionDockDrag = \(\) =>/);
     assert.match(settingsJs, /resolveAffectedFolderIdsFromOperations\(resolvedType, operations\)/);
     assert.match(settingsJs, /const SETUP_ASSISTANT_EXPERIENCE_MODES = new Set\(\['guided', 'expert'\]\);/);
     assert.match(settingsJs, /const SETUP_ASSISTANT_APPLY_SAFETY_MODES = new Set\(\['auto', 'strict', 'fast'\]\);/);

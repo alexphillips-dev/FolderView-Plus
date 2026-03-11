@@ -80,6 +80,8 @@ test('mobile action bar stays compact and horizontally scrollable', () => {
     assert.match(settingsCss, /@media \(max-width: 760px\)/);
     assert.match(settingsCss, /#fv-settings-action-bar\s*\{[\s\S]*max-width:\s*calc\(100%\s*-\s*1rem\)/);
     assert.match(settingsCss, /\.fv-action-status\s*\{[\s\S]*display:\s*none/);
+    assert.match(settingsCss, /\.fv-action-more\s*\{[\s\S]*display:\s*inline-flex/);
+    assert.match(settingsCss, /\.fv-save-dock\[data-more-open="1"\]\s*\.fv-action-buttons-secondary\s*\{[\s\S]*display:\s*flex/);
     assert.match(settingsCss, /\.fv-action-buttons\s*\{[\s\S]*flex-wrap:\s*nowrap/);
     assert.match(settingsCss, /\.fv-action-buttons\s*\{[\s\S]*overflow-x:\s*auto/);
     assert.match(settingsCss, /\.fv-action-buttons > button\s*\{[\s\S]*flex:\s*0 0 auto/);

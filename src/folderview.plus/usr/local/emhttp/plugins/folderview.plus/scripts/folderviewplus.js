@@ -155,8 +155,10 @@ const RUNTIME_CONFLICT_RESOLVED_PENDING_STORAGE_KEY = 'fv.runtimeConflict.resolv
 const IMPORT_PREVIEW_FIRST_STORAGE_KEY = 'fv.import.previewFirst.v1';
 const TABLE_UI_STATE_STORAGE_KEY = 'fv.settings.tableUiState.v1';
 const QUICK_PRESET_ACTIVE_STORAGE_KEY = 'fv.settings.quickPresetActive.v1';
+const ACTION_DOCK_SIDE_STORAGE_KEY = 'fv.settings.actionDockSide.v1';
 const ACTIVITY_FEED_MAX_ENTRIES = 12;
 const LONG_PRESS_DELAY_MS = 560;
+const ACTION_DOCK_AUTOCOLLAPSE_MS = 5000;
 const IMPORT_PRESET_DEFAULT_ID = 'builtin:merge';
 const UNDO_WINDOW_MS = 10000;
 const ROW_FOCUS_HIGHLIGHT_MS = 2200;
@@ -436,7 +438,11 @@ const settingsUiState = {
     expandedAdvancedSections: new Set(),
     knownAdvancedSections: new Set(),
     hasExpandedAdvancedPreference: false,
-    wizardShown: false
+    wizardShown: false,
+    unsavedCount: 0,
+    actionDockExpanded: false,
+    actionDockMoreOpen: false,
+    actionDockSide: 'left'
 };
 const advancedDataLoadState = {
     loaded: false,
@@ -497,6 +503,7 @@ const setupAssistantState = {
 let setupAssistantLastFocusedElement = null;
 let overflowGuardBound = false;
 let mobileLayoutGuardBound = false;
+let actionDockAutoCollapseTimer = null;
 const MOBILE_SETTINGS_BREAKPOINT_PX = 760;
 const MOBILE_LAYOUT_BREAKPOINT_PX = 1100;
 const MOBILE_LAYOUT_COARSE_BREAKPOINT_PX = 1600;
@@ -718,21 +725,160 @@ const setActionBarStatus = (text) => {
     status.toggleClass('is-visible', message !== '');
 };
 
+const clearActionDockAutoCollapseTimer = () => {
+    if (actionDockAutoCollapseTimer !== null) {
+        window.clearTimeout(actionDockAutoCollapseTimer);
+        actionDockAutoCollapseTimer = null;
+    }
+};
+
+const normalizeActionDockSide = (value) => {
+    const side = String(value || '').trim().toLowerCase();
+    return side === 'right' ? 'right' : 'left';
+};
+
+const setActionDockSide = (side, persist = true) => {
+    const normalized = normalizeActionDockSide(side);
+    settingsUiState.actionDockSide = normalized;
+    const bar = $('#fv-settings-action-bar');
+    bar.toggleClass('is-right', normalized === 'right');
+    bar.toggleClass('is-left', normalized !== 'right');
+    if (persist) {
+        localStorage.setItem(ACTION_DOCK_SIDE_STORAGE_KEY, normalized);
+    }
+};
+
+const setActionDockMoreOpen = (open) => {
+    settingsUiState.actionDockMoreOpen = open === true;
+    $('#fv-save-dock').attr('data-more-open', settingsUiState.actionDockMoreOpen ? '1' : '0');
+    $('#fv-action-more').attr('aria-expanded', settingsUiState.actionDockMoreOpen ? 'true' : 'false');
+};
+
+const setActionDockExpanded = (expanded, { auto = false } = {}) => {
+    const nextExpanded = expanded === true && settingsUiState.unsavedCount > 0;
+    settingsUiState.actionDockExpanded = nextExpanded;
+    const dock = $('#fv-save-dock');
+    dock.attr('data-expanded', nextExpanded ? '1' : '0');
+    $('#fv-save-dock-chip').attr('aria-expanded', nextExpanded ? 'true' : 'false');
+    if (!nextExpanded) {
+        clearActionDockAutoCollapseTimer();
+        setActionDockMoreOpen(false);
+        return;
+    }
+    if (!settingsUiState.actionDockMoreOpen) {
+        setActionDockMoreOpen(false);
+    }
+    if (!auto) {
+        clearActionDockAutoCollapseTimer();
+        actionDockAutoCollapseTimer = window.setTimeout(() => {
+            setActionDockExpanded(false, { auto: true });
+        }, ACTION_DOCK_AUTOCOLLAPSE_MS);
+    }
+};
+
+const syncActionDockVisibility = () => {
+    const count = Number(settingsUiState.unsavedCount || 0);
+    const bar = $('#fv-settings-action-bar');
+    const dock = $('#fv-save-dock');
+    const chipText = $('#fv-save-dock-chip-text');
+    const chip = $('#fv-save-dock-chip');
+    const moreButton = $('#fv-action-more');
+
+    chipText.text(`Unsaved (${count})`);
+    chip.prop('disabled', count <= 0);
+    moreButton.prop('disabled', count <= 0);
+    bar.toggleClass('is-hidden', count <= 0);
+    dock.attr('data-dirty', count > 0 ? '1' : '0');
+    if (count <= 0) {
+        setActionDockExpanded(false);
+    }
+};
+
 const updateActionBarSaveState = () => {
     const changed = getTrackedInputs().filter((input) => (
         settingsUiState.baselineByInputId.has(input.id)
         && settingsUiState.baselineByInputId.get(input.id) !== getInputSerializedValue(input)
     ));
     const count = changed.length;
+    settingsUiState.unsavedCount = count;
     const saveButton = $('#fv-action-save');
     const saveCloseButton = $('#fv-action-save-close');
+    const resetButton = $('#fv-action-reset-section');
     saveButton.prop('disabled', count === 0);
     saveCloseButton.prop('disabled', count === 0);
+    resetButton.prop('disabled', count === 0);
     if (count === 0) {
         setActionBarStatus('');
     } else {
         setActionBarStatus(`${count} unsaved field change${count === 1 ? '' : 's'} in this session.`);
     }
+    syncActionDockVisibility();
+};
+
+const bindActionDockDrag = () => {
+    const dockElement = document.getElementById('fv-settings-action-bar');
+    const handleElement = document.getElementById('fv-save-dock-handle');
+    if (!dockElement || !handleElement || typeof handleElement.addEventListener !== 'function') {
+        return;
+    }
+    const dragState = {
+        active: false,
+        pointerId: null,
+        lastX: 0
+    };
+
+    const finishDrag = (clientX = 0) => {
+        if (!dragState.active) {
+            return;
+        }
+        dragState.active = false;
+        const width = Number(window.innerWidth || document.documentElement?.clientWidth || 0);
+        const useX = Number(clientX || dragState.lastX || 0);
+        const nextSide = width > 0 && useX > (width / 2) ? 'right' : 'left';
+        setActionDockSide(nextSide);
+        dockElement.classList.remove('is-dragging');
+        if (dragState.pointerId !== null && typeof handleElement.releasePointerCapture === 'function') {
+            try {
+                handleElement.releasePointerCapture(dragState.pointerId);
+            } catch (_error) {
+                // Ignore capture release errors.
+            }
+        }
+        dragState.pointerId = null;
+    };
+
+    handleElement.addEventListener('pointerdown', (event) => {
+        if (event.button !== 0 || settingsUiState.unsavedCount <= 0) {
+            return;
+        }
+        dragState.active = true;
+        dragState.pointerId = event.pointerId;
+        dragState.lastX = Number(event.clientX || 0);
+        dockElement.classList.add('is-dragging');
+        if (typeof handleElement.setPointerCapture === 'function') {
+            try {
+                handleElement.setPointerCapture(event.pointerId);
+            } catch (_error) {
+                // Ignore capture errors.
+            }
+        }
+        event.preventDefault();
+    });
+
+    handleElement.addEventListener('pointermove', (event) => {
+        if (!dragState.active) {
+            return;
+        }
+        dragState.lastX = Number(event.clientX || dragState.lastX || 0);
+    });
+
+    handleElement.addEventListener('pointerup', (event) => {
+        finishDrag(Number(event.clientX || 0));
+    });
+
+    handleElement.addEventListener('pointercancel', () => {
+        finishDrag(dragState.lastX);
+    });
 };
 
 const captureSettingsBaseline = () => {
@@ -1233,6 +1379,7 @@ const saveActionBarChanges = async (closeAfterSave = false) => {
     captureSettingsBaseline();
     refreshSectionHealthBadges();
     setActionBarStatus('Saved current settings snapshot.');
+    setActionDockExpanded(false);
     if (closeAfterSave) {
         setTimeout(() => {
             window.history.back();
@@ -1273,6 +1420,7 @@ const resetCurrentSectionToBaseline = () => {
     refreshInputInvalidStyles();
     refreshSectionHealthBadges();
     updateActionBarSaveState();
+    setActionDockExpanded(false);
     setActionBarStatus(`Reset section "${section.title}" to baseline snapshot.`);
 };
 
@@ -1506,15 +1654,38 @@ const initSettingsControls = () => {
     const actionBarHtml = settingsChrome && typeof settingsChrome.getActionBarHtml === 'function'
         ? settingsChrome.getActionBarHtml()
         : `
-            <div class="fv-action-buttons">
-                <button type="button" id="fv-action-save"><i class="fa fa-save"></i> Save</button>
-                <button type="button" id="fv-action-save-close"><i class="fa fa-check"></i> Save &amp; Close</button>
-                <button type="button" id="fv-action-cancel"><i class="fa fa-undo"></i> Cancel</button>
-                <button type="button" id="fv-action-reset-section"><i class="fa fa-refresh"></i> Reset section</button>
+            <div id="fv-save-dock" class="fv-save-dock" data-dirty="0" data-expanded="0" data-more-open="0">
+                <div class="fv-save-dock-head">
+                    <button type="button" id="fv-save-dock-chip" class="fv-save-dock-chip" aria-expanded="false" aria-label="Open save actions">
+                        <i class="fa fa-circle"></i>
+                        <span id="fv-save-dock-chip-text">Unsaved (0)</span>
+                        <i class="fa fa-chevron-up fv-save-dock-chevron"></i>
+                    </button>
+                    <button type="button" id="fv-save-dock-handle" class="fv-save-dock-handle" title="Drag to move save dock" aria-label="Drag to move save dock">
+                        <i class="fa fa-arrows"></i>
+                    </button>
+                </div>
+                <div class="fv-save-dock-panel">
+                    <div class="fv-action-buttons fv-action-buttons-primary">
+                        <button type="button" id="fv-action-save"><i class="fa fa-save"></i> Save</button>
+                        <button type="button" id="fv-action-cancel"><i class="fa fa-undo"></i> Cancel</button>
+                    </div>
+                    <button type="button" id="fv-action-more" class="fv-action-more" aria-expanded="false"><i class="fa fa-ellipsis-h"></i> More</button>
+                    <div class="fv-action-buttons fv-action-buttons-secondary">
+                        <button type="button" id="fv-action-save-close"><i class="fa fa-check"></i> Save &amp; Close</button>
+                        <button type="button" id="fv-action-reset-section"><i class="fa fa-refresh"></i> Reset section</button>
+                    </div>
+                    <span id="fv-action-status" class="fv-action-status" aria-live="polite"></span>
+                </div>
             </div>
-            <span id="fv-action-status" class="fv-action-status" aria-live="polite"></span>
         `;
     actionBar.html(actionBarHtml);
+
+    const storedDockSide = localStorage.getItem(ACTION_DOCK_SIDE_STORAGE_KEY);
+    setActionDockSide(storedDockSide || settingsUiState.actionDockSide, false);
+    setActionDockMoreOpen(false);
+    setActionDockExpanded(false);
+    bindActionDockDrag();
 
     $('.fv-mode-btn').off('click.fvui').on('click.fvui', (event) => {
         const mode = String($(event.currentTarget).attr('data-mode') || 'basic');
@@ -1541,6 +1712,27 @@ const initSettingsControls = () => {
     });
     $('#fv-action-reset-section').off('click.fvui').on('click.fvui', () => {
         resetCurrentSectionToBaseline();
+    });
+    $('#fv-save-dock-chip').off('click.fvui').on('click.fvui', () => {
+        if (settingsUiState.unsavedCount <= 0) {
+            return;
+        }
+        setActionDockExpanded(!settingsUiState.actionDockExpanded);
+    });
+    $('#fv-action-more').off('click.fvui').on('click.fvui', () => {
+        if (settingsUiState.unsavedCount <= 0) {
+            return;
+        }
+        setActionDockMoreOpen(!settingsUiState.actionDockMoreOpen);
+        setActionDockExpanded(true);
+    });
+    $('#fv-settings-action-bar').off('pointerdown.fvui keydown.fvui click.fvui').on('pointerdown.fvui keydown.fvui click.fvui', () => {
+        if (settingsUiState.actionDockExpanded) {
+            clearActionDockAutoCollapseTimer();
+            actionDockAutoCollapseTimer = window.setTimeout(() => {
+                setActionDockExpanded(false, { auto: true });
+            }, ACTION_DOCK_AUTOCOLLAPSE_MS);
+        }
     });
     $('#fv-run-wizard').off('click.fvui').on('click.fvui', () => {
         runQuickSetupWizard(true);

@@ -140,6 +140,33 @@ if (!empty($fvplusRuntimeConflicts)) {
                         <span>Warn stopped (%)</span>
                         <input id="docker-health-warn-threshold" type="number" min="0" max="100" step="1" onchange="changeHealthPref('docker', 'warnStoppedPercent', this.value)">
                     </label>
+                    <label id="docker-health-critical-threshold-row" class="setting-inline-number">
+                        <span>Critical stopped (%)</span>
+                        <input id="docker-health-critical-threshold" type="number" min="0" max="100" step="1" onchange="changeHealthPref('docker', 'criticalStoppedPercent', this.value)">
+                    </label>
+                    <label id="docker-health-policy-profile-row" class="setting-select">
+                        <span>Profile</span>
+                        <select id="docker-health-profile" onchange="changeHealthPref('docker', 'profile', this.value)">
+                            <option value="strict">Strict</option>
+                            <option value="balanced">Balanced</option>
+                            <option value="lenient">Lenient</option>
+                        </select>
+                    </label>
+                    <label id="docker-health-updates-mode-row" class="setting-select">
+                        <span>Updates handling</span>
+                        <select id="docker-health-updates-mode" onchange="changeHealthPref('docker', 'updatesMode', this.value)">
+                            <option value="maintenance">Maintenance</option>
+                            <option value="warn">Warn</option>
+                            <option value="ignore">Ignore</option>
+                        </select>
+                    </label>
+                    <label id="docker-health-all-stopped-mode-row" class="setting-select">
+                        <span>All stopped mode</span>
+                        <select id="docker-health-all-stopped-mode" onchange="changeHealthPref('docker', 'allStoppedMode', this.value)">
+                            <option value="critical">Critical</option>
+                            <option value="warn">Warn</option>
+                        </select>
+                    </label>
                     <div class="setting-help">Health cards summarize pinned, stopped, empty, and conflict status with one-click filters.</div>
                 </div>
                 <div class="settings-mini-card">
@@ -264,6 +291,33 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <label id="vm-health-warn-threshold-row" class="setting-inline-number">
                         <span>Warn stopped (%)</span>
                         <input id="vm-health-warn-threshold" type="number" min="0" max="100" step="1" onchange="changeHealthPref('vm', 'warnStoppedPercent', this.value)">
+                    </label>
+                    <label id="vm-health-critical-threshold-row" class="setting-inline-number">
+                        <span>Critical stopped (%)</span>
+                        <input id="vm-health-critical-threshold" type="number" min="0" max="100" step="1" onchange="changeHealthPref('vm', 'criticalStoppedPercent', this.value)">
+                    </label>
+                    <label id="vm-health-policy-profile-row" class="setting-select">
+                        <span>Profile</span>
+                        <select id="vm-health-profile" onchange="changeHealthPref('vm', 'profile', this.value)">
+                            <option value="strict">Strict</option>
+                            <option value="balanced">Balanced</option>
+                            <option value="lenient">Lenient</option>
+                        </select>
+                    </label>
+                    <label id="vm-health-updates-mode-row" class="setting-select">
+                        <span>Updates handling</span>
+                        <select id="vm-health-updates-mode" onchange="changeHealthPref('vm', 'updatesMode', this.value)">
+                            <option value="maintenance">Maintenance</option>
+                            <option value="warn">Warn</option>
+                            <option value="ignore">Ignore</option>
+                        </select>
+                    </label>
+                    <label id="vm-health-all-stopped-mode-row" class="setting-select">
+                        <span>All stopped mode</span>
+                        <select id="vm-health-all-stopped-mode" onchange="changeHealthPref('vm', 'allStoppedMode', this.value)">
+                            <option value="critical">Critical</option>
+                            <option value="warn">Warn</option>
+                        </select>
                     </label>
                     <div class="setting-help">Health cards summarize pinned, stopped, empty, and conflict status with one-click filters.</div>
                 </div>

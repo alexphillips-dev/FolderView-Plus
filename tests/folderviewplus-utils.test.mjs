@@ -344,7 +344,11 @@ test('normalizePrefs includes live refresh, performance mode, and backup schedul
         cardsEnabled: true,
         runtimeBadgeEnabled: false,
         compact: false,
-        warnStoppedPercent: 60
+        warnStoppedPercent: 60,
+        criticalStoppedPercent: 90,
+        profile: 'balanced',
+        updatesMode: 'maintenance',
+        allStoppedMode: 'critical'
     });
     assert.deepEqual(prefs.status, {
         mode: 'summary',
@@ -397,13 +401,34 @@ test('normalizePrefs supports health card preferences and guards ranges', () => 
             cardsEnabled: false,
             runtimeBadgeEnabled: true,
             compact: true,
-            warnStoppedPercent: 133
+            warnStoppedPercent: 133,
+            criticalStoppedPercent: 144,
+            profile: 'strict',
+            updatesMode: 'warn',
+            allStoppedMode: 'warn'
         }
     });
     assert.equal(prefs.health.cardsEnabled, false);
     assert.equal(prefs.health.runtimeBadgeEnabled, true);
     assert.equal(prefs.health.compact, true);
     assert.equal(prefs.health.warnStoppedPercent, 100);
+    assert.equal(prefs.health.criticalStoppedPercent, 100);
+    assert.equal(prefs.health.profile, 'strict');
+    assert.equal(prefs.health.updatesMode, 'warn');
+    assert.equal(prefs.health.allStoppedMode, 'warn');
+});
+
+test('normalizePrefs heals unknown health policy values to defaults', () => {
+    const prefs = utils.normalizePrefs({
+        health: {
+            profile: 'invalid',
+            updatesMode: 'bad',
+            allStoppedMode: 'nope'
+        }
+    });
+    assert.equal(prefs.health.profile, 'balanced');
+    assert.equal(prefs.health.updatesMode, 'maintenance');
+    assert.equal(prefs.health.allStoppedMode, 'critical');
 });
 
 test('normalizePrefs supports status column preferences and guards ranges', () => {

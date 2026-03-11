@@ -36,7 +36,11 @@ const utils = window.FolderViewPlusUtils || {
             cardsEnabled: true,
             runtimeBadgeEnabled: false,
             compact: false,
-            warnStoppedPercent: 60
+            warnStoppedPercent: 60,
+            criticalStoppedPercent: 90,
+            profile: 'balanced',
+            updatesMode: 'maintenance',
+            allStoppedMode: 'critical'
         }
     }),
     getAutoRuleMatches: () => [],

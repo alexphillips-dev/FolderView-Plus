@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.11.07">
-<!ENTITY md5 "ccba8a178cd59e8ad775cdcec59a1961">
+<!ENTITY version "2026.03.11.08">
+<!ENTITY md5 "7e53bedd50ce318ade6cdd4e77b8308d">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.11.08
+- Feature: Overhauled Docker folder health to v2 scoring with explainable reason codes and policy-aware thresholds.
+- UX: Added in-row health details button with a focused health breakdown modal and one-click filter action.
+- Feature: Added health policy controls in settings (profile, updates mode, all-stopped mode, warn/critical thresholds).
+- Feature: Added per-folder health policy overrides in folder editor (profile, updates mode, all-stopped mode, critical threshold).
+- Quality: Expanded health normalization, diagnostics metadata, and regression tests for v2 policy compatibility.
+
 
 ###2026.03.11.07
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

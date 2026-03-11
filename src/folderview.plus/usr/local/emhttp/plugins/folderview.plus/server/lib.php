@@ -1456,7 +1456,11 @@
                 'cardsEnabled' => true,
                 'runtimeBadgeEnabled' => false,
                 'compact' => false,
-                'warnStoppedPercent' => 60
+                'warnStoppedPercent' => 60,
+                'criticalStoppedPercent' => 90,
+                'profile' => 'balanced',
+                'updatesMode' => 'maintenance',
+                'allStoppedMode' => 'critical'
             ],
             'status' => [
                 'mode' => 'summary',
@@ -1625,13 +1629,29 @@
             : false;
         $normalized['lazyPreviewThreshold'] = normalizeIntInRange($prefs['lazyPreviewThreshold'] ?? 30, 10, 200, 30);
         $healthIncoming = is_array($prefs['health'] ?? null) ? $prefs['health'] : [];
+        $healthProfile = strtolower(trim((string)($healthIncoming['profile'] ?? 'balanced')));
+        if (!in_array($healthProfile, ['strict', 'balanced', 'lenient'], true)) {
+            $healthProfile = 'balanced';
+        }
+        $healthUpdatesMode = strtolower(trim((string)($healthIncoming['updatesMode'] ?? 'maintenance')));
+        if (!in_array($healthUpdatesMode, ['maintenance', 'warn', 'ignore'], true)) {
+            $healthUpdatesMode = 'maintenance';
+        }
+        $healthAllStoppedMode = strtolower(trim((string)($healthIncoming['allStoppedMode'] ?? 'critical')));
+        if (!in_array($healthAllStoppedMode, ['critical', 'warn'], true)) {
+            $healthAllStoppedMode = 'critical';
+        }
         $normalized['health'] = [
             'cardsEnabled' => !array_key_exists('cardsEnabled', $healthIncoming)
                 ? true
                 : normalizeBool($healthIncoming['cardsEnabled'], true),
             'runtimeBadgeEnabled' => normalizeBool($healthIncoming['runtimeBadgeEnabled'] ?? false, false),
             'compact' => normalizeBool($healthIncoming['compact'] ?? false, false),
-            'warnStoppedPercent' => normalizeIntInRange($healthIncoming['warnStoppedPercent'] ?? 60, 0, 100, 60)
+            'warnStoppedPercent' => normalizeIntInRange($healthIncoming['warnStoppedPercent'] ?? 60, 0, 100, 60),
+            'criticalStoppedPercent' => normalizeIntInRange($healthIncoming['criticalStoppedPercent'] ?? 90, 0, 100, 90),
+            'profile' => $healthProfile,
+            'updatesMode' => $healthUpdatesMode,
+            'allStoppedMode' => $healthAllStoppedMode
         ];
         $statusIncoming = is_array($prefs['status'] ?? null) ? $prefs['status'] : [];
         $statusMode = strtolower(trim((string)($statusIncoming['mode'] ?? 'summary')));
@@ -3874,7 +3894,17 @@
                     'cardsEnabled' => normalizeBool($prefs['health']['cardsEnabled'] ?? true, true),
                     'runtimeBadgeEnabled' => normalizeBool($prefs['health']['runtimeBadgeEnabled'] ?? false, false),
                     'compact' => normalizeBool($prefs['health']['compact'] ?? false, false),
-                    'warnStoppedPercent' => normalizeIntInRange($prefs['health']['warnStoppedPercent'] ?? 60, 0, 100, 60)
+                    'warnStoppedPercent' => normalizeIntInRange($prefs['health']['warnStoppedPercent'] ?? 60, 0, 100, 60),
+                    'criticalStoppedPercent' => normalizeIntInRange($prefs['health']['criticalStoppedPercent'] ?? 90, 0, 100, 90),
+                    'profile' => in_array(strtolower(trim((string)($prefs['health']['profile'] ?? 'balanced'))), ['strict', 'balanced', 'lenient'], true)
+                        ? strtolower(trim((string)($prefs['health']['profile'] ?? 'balanced')))
+                        : 'balanced',
+                    'updatesMode' => in_array(strtolower(trim((string)($prefs['health']['updatesMode'] ?? 'maintenance'))), ['maintenance', 'warn', 'ignore'], true)
+                        ? strtolower(trim((string)($prefs['health']['updatesMode'] ?? 'maintenance')))
+                        : 'maintenance',
+                    'allStoppedMode' => in_array(strtolower(trim((string)($prefs['health']['allStoppedMode'] ?? 'critical'))), ['critical', 'warn'], true)
+                        ? strtolower(trim((string)($prefs['health']['allStoppedMode'] ?? 'critical')))
+                        : 'critical'
                 ],
                 'status' => [
                     'mode' => in_array(strtolower(trim((string)($prefs['status']['mode'] ?? 'summary'))), ['summary', 'dominant'], true)

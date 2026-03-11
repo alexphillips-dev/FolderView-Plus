@@ -460,6 +460,82 @@ emitRequestTokenMetaTag();
             </blockquote>
         </div>
 
+        <div class="basic" constraint="docker">
+            <dl>
+                <dt>Health critical threshold (%):</dt>
+                <dd>
+                    <img class="img" style="visibility: hidden;">
+                    <input type="number" name="health_critical_stopped_percent" min="0" max="100" step="1" placeholder="Use global/profile threshold">
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <p>
+                    Optional per-folder override for the stopped percentage critical threshold in health scoring.
+                    <br>
+                    Leave blank to use the current health profile/global setting.
+                </p>
+            </blockquote>
+        </div>
+
+        <div class="basic" constraint="docker">
+            <dl>
+                <dt>Health profile:</dt>
+                <dd>
+                    <img class="img" style="visibility: hidden;">
+                    <select name="health_profile">
+                        <option value="" selected>Use global profile</option>
+                        <option value="strict">Strict</option>
+                        <option value="balanced">Balanced</option>
+                        <option value="lenient">Lenient</option>
+                    </select>
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <p>
+                    Optional per-folder profile preset for health scoring and thresholds.
+                </p>
+            </blockquote>
+        </div>
+
+        <div class="basic" constraint="docker">
+            <dl>
+                <dt>Health updates mode:</dt>
+                <dd>
+                    <img class="img" style="visibility: hidden;">
+                    <select name="health_updates_mode">
+                        <option value="" selected>Use global mode</option>
+                        <option value="maintenance">Maintenance</option>
+                        <option value="warn">Warn</option>
+                        <option value="ignore">Ignore</option>
+                    </select>
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <p>
+                    Controls how pending updates affect this folder’s health.
+                </p>
+            </blockquote>
+        </div>
+
+        <div class="basic" constraint="docker">
+            <dl>
+                <dt>Health all-stopped mode:</dt>
+                <dd>
+                    <img class="img" style="visibility: hidden;">
+                    <select name="health_all_stopped_mode">
+                        <option value="" selected>Use global mode</option>
+                        <option value="critical">Critical</option>
+                        <option value="warn">Warn</option>
+                    </select>
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <p>
+                    Controls how an all-stopped folder is classified.
+                </p>
+            </blockquote>
+        </div>
+
         <div class="basic">
             <dl>
                 <dt>Status warn threshold (%):</dt>

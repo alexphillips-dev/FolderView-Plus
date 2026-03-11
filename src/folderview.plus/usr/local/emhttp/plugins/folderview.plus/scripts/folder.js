@@ -26,6 +26,9 @@ const CONTEXT_MODE_LABELS = {
     1: 'Default',
     2: 'Advanced'
 };
+const FOLDER_HEALTH_PROFILE_VALUES = ['strict', 'balanced', 'lenient'];
+const FOLDER_HEALTH_UPDATES_MODE_VALUES = ['maintenance', 'warn', 'ignore'];
+const FOLDER_HEALTH_ALL_STOPPED_MODE_VALUES = ['critical', 'warn'];
 const SECTION_META = {
     general: { title: 'General', description: 'Folder identity, icon, and base behavior.', advanced: false },
     members: { title: 'Members', description: 'Assign containers or VMs to this folder.', advanced: false },
@@ -892,6 +895,28 @@ const validateContextGraphTime = () => {
     return true;
 };
 
+const normalizeOptionalHealthSelect = (value, allowedValues) => {
+    const normalized = String(value || '').trim().toLowerCase();
+    if (!normalized) {
+        return '';
+    }
+    return Array.isArray(allowedValues) && allowedValues.includes(normalized)
+        ? normalized
+        : '';
+};
+
+const parseOptionalThresholdInput = (value) => {
+    const raw = String(value || '').trim();
+    if (!raw) {
+        return '';
+    }
+    const parsed = Number(raw);
+    if (!Number.isFinite(parsed)) {
+        return '';
+    }
+    return Math.min(100, Math.max(0, Math.round(parsed)));
+};
+
 const validateHealthWarnThreshold = () => {
     const form = getForm();
     const input = form.health_warn_stopped_percent;
@@ -910,6 +935,52 @@ const validateHealthWarnThreshold = () => {
     }
     setFieldError('health_warn_stopped_percent', '');
     return true;
+};
+
+const validateHealthCriticalThreshold = () => {
+    const form = getForm();
+    const input = form.health_critical_stopped_percent;
+    if (!input) {
+        return true;
+    }
+    const raw = String(input.value || '').trim();
+    if (!raw) {
+        setFieldError('health_critical_stopped_percent', '');
+        return true;
+    }
+    const parsed = Number(raw);
+    if (!Number.isInteger(parsed) || parsed < 0 || parsed > 100) {
+        setFieldError('health_critical_stopped_percent', 'Threshold must be an integer between 0 and 100.');
+        return false;
+    }
+    const warnRaw = String(form.health_warn_stopped_percent?.value || '').trim();
+    if (warnRaw) {
+        const warnParsed = Number(warnRaw);
+        if (Number.isFinite(warnParsed) && parsed < Math.min(100, Math.max(0, Math.round(warnParsed))) + 5) {
+            setFieldError('health_critical_stopped_percent', 'Critical threshold should be at least 5 points above warn threshold.');
+            return false;
+        }
+    }
+    setFieldError('health_critical_stopped_percent', '');
+    return true;
+};
+
+const validateHealthPolicySelects = () => {
+    const form = getForm();
+    if (!form) {
+        return true;
+    }
+    const profile = normalizeOptionalHealthSelect(form.health_profile?.value, FOLDER_HEALTH_PROFILE_VALUES);
+    const updatesMode = normalizeOptionalHealthSelect(form.health_updates_mode?.value, FOLDER_HEALTH_UPDATES_MODE_VALUES);
+    const allStoppedMode = normalizeOptionalHealthSelect(form.health_all_stopped_mode?.value, FOLDER_HEALTH_ALL_STOPPED_MODE_VALUES);
+    const profileOk = String(form.health_profile?.value || '').trim() === '' || profile !== '';
+    const updatesOk = String(form.health_updates_mode?.value || '').trim() === '' || updatesMode !== '';
+    const allStoppedOk = String(form.health_all_stopped_mode?.value || '').trim() === '' || allStoppedMode !== '';
+
+    setFieldError('health_profile', profileOk ? '' : 'Choose strict, balanced, lenient, or leave blank for global.');
+    setFieldError('health_updates_mode', updatesOk ? '' : 'Choose maintenance, warn, ignore, or leave blank for global.');
+    setFieldError('health_all_stopped_mode', allStoppedOk ? '' : 'Choose critical, warn, or leave blank for global.');
+    return profileOk && updatesOk && allStoppedOk;
 };
 
 const validateStatusWarnThreshold = () => {
@@ -960,6 +1031,8 @@ const collectValidationWarnings = () => {
     const checkedCount = Number($('input[name*="containers"]:checked').length || 0);
     const statusThresholdRaw = String(form.status_warn_stopped_percent?.value || '').trim();
     const healthThresholdRaw = String(form.health_warn_stopped_percent?.value || '').trim();
+    const healthCriticalThresholdRaw = String(form.health_critical_stopped_percent?.value || '').trim();
+    const updatesMode = normalizeOptionalHealthSelect(form.health_updates_mode?.value, FOLDER_HEALTH_UPDATES_MODE_VALUES);
 
     if (!regexValue) {
         warnings.push('Regex is empty, so only manual assignment will be used for this folder.');
@@ -976,6 +1049,12 @@ const collectValidationWarnings = () => {
     if (healthThresholdRaw && Number(healthThresholdRaw) >= 95) {
         warnings.push('Health warn threshold is very high and may reduce health visibility.');
     }
+    if (healthCriticalThresholdRaw && Number(healthCriticalThresholdRaw) <= 40) {
+        warnings.push('Health critical threshold is low and may trigger frequent critical alerts.');
+    }
+    if (updatesMode === 'ignore') {
+        warnings.push('Health updates mode is set to ignore; pending image updates will not affect health.');
+    }
     return warnings;
 };
 
@@ -986,6 +1065,8 @@ const validateForm = () => {
         validateFolderWebUiUrl(),
         validateContextGraphTime(),
         validateHealthWarnThreshold(),
+        validateHealthCriticalThreshold(),
+        validateHealthPolicySelects(),
         validateStatusWarnThreshold()
     ];
     const valid = checks.every(Boolean);
@@ -1568,6 +1649,10 @@ const applySectionTags = () => {
     markSection('ul:has([name="preview_hover"])', 'preview');
     markSection('div.basic:has([name="status_color_started"])', 'preview');
     markSection('div.basic:has([name="health_warn_stopped_percent"])', 'preview');
+    markSection('div.basic:has([name="health_critical_stopped_percent"])', 'preview');
+    markSection('div.basic:has([name="health_profile"])', 'preview');
+    markSection('div.basic:has([name="health_updates_mode"])', 'preview');
+    markSection('div.basic:has([name="health_all_stopped_mode"])', 'preview');
     markSection('div.basic:has([name="status_warn_stopped_percent"])', 'preview');
 
     markSection('div.basic.custom-action-wrapper-parent', 'actions');
@@ -1584,6 +1669,10 @@ const applySectionTags = () => {
     markAdvanced('ul:has([name="folder_webui_url"])');
     markAdvanced('ul:has([name="preview_hover"])');
     markAdvanced('div.basic:has([name="health_warn_stopped_percent"])');
+    markAdvanced('div.basic:has([name="health_critical_stopped_percent"])');
+    markAdvanced('div.basic:has([name="health_profile"])');
+    markAdvanced('div.basic:has([name="health_updates_mode"])');
+    markAdvanced('div.basic:has([name="health_all_stopped_mode"])');
     markAdvanced('div.basic:has([name="status_warn_stopped_percent"])');
     markAdvanced('div.basic:has([name="update_column"])');
     markAdvanced('div.basic:has([name="override_default_actions"])');
@@ -1795,6 +1884,14 @@ resetStatusColorDefaults();
             || currFolder.settings.health_warn_stopped_percent === ''
             ? ''
             : String(currFolder.settings.health_warn_stopped_percent);
+        form.health_critical_stopped_percent.value = currFolder.settings.health_critical_stopped_percent === undefined
+            || currFolder.settings.health_critical_stopped_percent === null
+            || currFolder.settings.health_critical_stopped_percent === ''
+            ? ''
+            : String(currFolder.settings.health_critical_stopped_percent);
+        form.health_profile.value = normalizeOptionalHealthSelect(currFolder.settings.health_profile, FOLDER_HEALTH_PROFILE_VALUES);
+        form.health_updates_mode.value = normalizeOptionalHealthSelect(currFolder.settings.health_updates_mode, FOLDER_HEALTH_UPDATES_MODE_VALUES);
+        form.health_all_stopped_mode.value = normalizeOptionalHealthSelect(currFolder.settings.health_all_stopped_mode, FOLDER_HEALTH_ALL_STOPPED_MODE_VALUES);
         form.status_warn_stopped_percent.value = currFolder.settings.status_warn_stopped_percent === undefined
             || currFolder.settings.status_warn_stopped_percent === null
             || currFolder.settings.status_warn_stopped_percent === ''
@@ -2064,25 +2161,14 @@ const submitForm = async (e, saveAsCopy = false) => {
     }
     const actions = $('input[name*="custom_action"]').map((i, e) => JSON.parse(atob($(e).val()))).get();
     const healthWarnThresholdRaw = String(e.health_warn_stopped_percent?.value || '').trim();
-    const healthWarnThreshold = healthWarnThresholdRaw === ''
-        ? ''
-        : (() => {
-            const parsed = Number(healthWarnThresholdRaw);
-            if (!Number.isFinite(parsed)) {
-                return '';
-            }
-            return Math.min(100, Math.max(0, Math.round(parsed)));
-        })();
+    const healthWarnThreshold = parseOptionalThresholdInput(healthWarnThresholdRaw);
+    const healthCriticalThresholdRaw = String(e.health_critical_stopped_percent?.value || '').trim();
+    const healthCriticalThreshold = parseOptionalThresholdInput(healthCriticalThresholdRaw);
+    const healthProfile = normalizeOptionalHealthSelect(e.health_profile?.value, FOLDER_HEALTH_PROFILE_VALUES);
+    const healthUpdatesMode = normalizeOptionalHealthSelect(e.health_updates_mode?.value, FOLDER_HEALTH_UPDATES_MODE_VALUES);
+    const healthAllStoppedMode = normalizeOptionalHealthSelect(e.health_all_stopped_mode?.value, FOLDER_HEALTH_ALL_STOPPED_MODE_VALUES);
     const statusWarnThresholdRaw = String(e.status_warn_stopped_percent?.value || '').trim();
-    const statusWarnThreshold = statusWarnThresholdRaw === ''
-        ? ''
-        : (() => {
-            const parsed = Number(statusWarnThresholdRaw);
-            if (!Number.isFinite(parsed)) {
-                return '';
-            }
-            return Math.min(100, Math.max(0, Math.round(parsed)));
-        })();
+    const statusWarnThreshold = parseOptionalThresholdInput(statusWarnThresholdRaw);
     // this is easy, no need for a comment :)
     const folder = {
         name: e.name.value.toString().trim(),
@@ -2110,6 +2196,10 @@ const submitForm = async (e, saveAsCopy = false) => {
             status_color_paused: normalizeHexColor(e.status_color_paused.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.paused),
             status_color_stopped: normalizeHexColor(e.status_color_stopped.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.stopped),
             health_warn_stopped_percent: healthWarnThreshold,
+            health_critical_stopped_percent: healthCriticalThreshold,
+            health_profile: healthProfile,
+            health_updates_mode: healthUpdatesMode,
+            health_all_stopped_mode: healthAllStoppedMode,
             status_warn_stopped_percent: statusWarnThreshold,
             update_column: e.update_column.checked,
             default_action: e.default_action.checked,

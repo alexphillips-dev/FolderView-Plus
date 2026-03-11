@@ -58,6 +58,10 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
     assert.match(settingsPage, /id="docker-col-pinned"/);
     assert.match(settingsPage, /id="docker-col-updates"/);
     assert.match(settingsPage, /id="docker-col-health"/);
+    assert.match(settingsPage, /id="docker-health-critical-threshold"/);
+    assert.match(settingsPage, /id="docker-health-profile"/);
+    assert.match(settingsPage, /id="docker-health-updates-mode"/);
+    assert.match(settingsPage, /id="docker-health-all-stopped-mode"/);
     assert.match(settingsPage, /id="vm-col-members"/);
     assert.match(settingsPage, /id="vm-col-status"/);
     assert.match(settingsPage, /id="vm-col-rules"/);
@@ -65,6 +69,10 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
     assert.match(settingsPage, /id="vm-col-pinned"/);
     assert.match(settingsPage, /id="vm-col-autostart"/);
     assert.match(settingsPage, /id="vm-col-resources"/);
+    assert.match(settingsPage, /id="vm-health-critical-threshold"/);
+    assert.match(settingsPage, /id="vm-health-profile"/);
+    assert.match(settingsPage, /id="vm-health-updates-mode"/);
+    assert.match(settingsPage, /id="vm-health-all-stopped-mode"/);
     assert.match(settingsPage, /id="fv-first-run-panel"/);
 });
 
@@ -129,7 +137,13 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderJs, /fv-force-left-v2 marker/);
     assert.match(folderJs, /fv-force-left-v3 marker/);
     assert.match(folderJs, /const validateHealthWarnThreshold = \(\) =>/);
+    assert.match(folderJs, /const validateHealthCriticalThreshold = \(\) =>/);
+    assert.match(folderJs, /const validateHealthPolicySelects = \(\) =>/);
     assert.match(folderJs, /health_warn_stopped_percent/);
+    assert.match(folderJs, /health_critical_stopped_percent/);
+    assert.match(folderJs, /health_profile/);
+    assert.match(folderJs, /health_updates_mode/);
+    assert.match(folderJs, /health_all_stopped_mode/);
     assert.match(folderJs, /const collectValidationWarnings = \(\) =>/);
     assert.match(folderJs, /const suggestDefaultsFromMembers = \(\) =>/);
     assert.match(folderJs, /const buildRegexSuggestionFromNames = \(names\) =>/);
@@ -224,7 +238,10 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const evaluateDockerFolderHealth = \(folder, members, countsByState, updateCount, fallbackWarnThreshold\) =>/);
     assert.match(settingsJs, /const toggleHealthSeverityFilter = \(type = 'docker', severity = 'all'\) =>/);
     assert.match(settingsJs, /window\.toggleHealthSeverityFilter = toggleHealthSeverityFilter;/);
-    assert.match(settingsJs, /toggleHealthSeverityFilter\('\$\{type\}','\$\{escapeHtml\(healthStatus\.severity\)\}'\)/);
+    assert.match(settingsJs, /toggleHealthSeverityFilter\('\$\{type\}','\$\{escapeHtml\(healthStatus\.filterSeverity\)\}'\)/);
+    assert.match(settingsJs, /const showFolderHealthBreakdown = \(type, folderId\) =>/);
+    assert.match(settingsJs, /window\.showFolderHealthBreakdown = showFolderHealthBreakdown;/);
+    assert.match(settingsJs, /class="health-breakdown-btn"/);
     assert.match(settingsJs, /const compactHoverLabel = 'Compact tab';/);
     assert.match(settingsJs, /id="fv-advanced-compact" class="fv-advanced-compact" title="\$\{escapeHtml\(compactHoverLabel\)\}" aria-label="\$\{escapeHtml\(compactLabel\)\}"/);
     assert.match(settingsJs, /const folderMatchesStatusFilter = \(statusFilterMode, countsByState, totalMembers\) =>/);
@@ -255,6 +272,8 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsCss, /\.fv-runtime-resolved-actions\s*\{/);
     assert.match(settingsCss, /\.updates-chip\s*\{/);
     assert.match(settingsCss, /\.health-chip\s*\{/);
+    assert.match(settingsCss, /\.folder-metric-chip\.is-maintenance\s*\{/);
+    assert.match(settingsCss, /\.health-breakdown-btn\s*\{/);
     assert.match(settingsCss, /\.health-chip\.is-filter-active\s*\{/);
     assert.match(settingsCss, /\.autostart-chip\s*\{/);
     assert.match(settingsCss, /\.vm-resource-stack\s*\{/);

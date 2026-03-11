@@ -26,7 +26,11 @@
         cardsEnabled: true,
         runtimeBadgeEnabled: false,
         compact: false,
-        warnStoppedPercent: 60
+        warnStoppedPercent: 60,
+        criticalStoppedPercent: 90,
+        profile: 'balanced',
+        updatesMode: 'maintenance',
+        allStoppedMode: 'critical'
     };
     const DEFAULT_STATUS_PREFS = {
         mode: 'summary',
@@ -100,6 +104,27 @@
                     .filter((item) => item !== '')
             )
         );
+    };
+
+    const normalizeHealthProfile = (value) => {
+        const normalized = String(value || '').trim().toLowerCase();
+        return ['strict', 'balanced', 'lenient'].includes(normalized)
+            ? normalized
+            : DEFAULT_HEALTH_PREFS.profile;
+    };
+
+    const normalizeHealthUpdatesMode = (value) => {
+        const normalized = String(value || '').trim().toLowerCase();
+        return ['maintenance', 'warn', 'ignore'].includes(normalized)
+            ? normalized
+            : DEFAULT_HEALTH_PREFS.updatesMode;
+    };
+
+    const normalizeHealthAllStoppedMode = (value) => {
+        const normalized = String(value || '').trim().toLowerCase();
+        return ['critical', 'warn'].includes(normalized)
+            ? normalized
+            : DEFAULT_HEALTH_PREFS.allStoppedMode;
     };
 
     const normalizeFolderMembers = (value) => {
@@ -261,7 +286,16 @@
                 0,
                 100,
                 DEFAULT_HEALTH_PREFS.warnStoppedPercent
-            )
+            ),
+            criticalStoppedPercent: clampNumber(
+                incomingHealth.criticalStoppedPercent,
+                0,
+                100,
+                DEFAULT_HEALTH_PREFS.criticalStoppedPercent
+            ),
+            profile: normalizeHealthProfile(incomingHealth.profile),
+            updatesMode: normalizeHealthUpdatesMode(incomingHealth.updatesMode),
+            allStoppedMode: normalizeHealthAllStoppedMode(incomingHealth.allStoppedMode)
         };
         const incomingStatus = isPlainObject(incoming.status) ? incoming.status : {};
         const status = {

@@ -2032,11 +2032,23 @@ const normalizeHealthPrefs = (type, prefsOverride = null) => {
     const incoming = source?.health && typeof source.health === 'object' ? source.health : {};
     const warnRaw = Number(incoming.warnStoppedPercent);
     const warnStoppedPercent = Number.isFinite(warnRaw) ? Math.min(100, Math.max(0, Math.round(warnRaw))) : 60;
+    const criticalRaw = Number(incoming.criticalStoppedPercent);
+    const criticalStoppedPercent = Number.isFinite(criticalRaw) ? Math.min(100, Math.max(0, Math.round(criticalRaw))) : 90;
+    const profileRaw = String(incoming.profile || '').trim().toLowerCase();
+    const profile = ['strict', 'balanced', 'lenient'].includes(profileRaw) ? profileRaw : 'balanced';
+    const updatesModeRaw = String(incoming.updatesMode || '').trim().toLowerCase();
+    const updatesMode = ['maintenance', 'warn', 'ignore'].includes(updatesModeRaw) ? updatesModeRaw : 'maintenance';
+    const allStoppedModeRaw = String(incoming.allStoppedMode || '').trim().toLowerCase();
+    const allStoppedMode = ['critical', 'warn'].includes(allStoppedModeRaw) ? allStoppedModeRaw : 'critical';
     return {
         cardsEnabled: incoming.cardsEnabled !== false,
         runtimeBadgeEnabled: incoming.runtimeBadgeEnabled === true,
         compact: incoming.compact === true,
-        warnStoppedPercent
+        warnStoppedPercent,
+        criticalStoppedPercent,
+        profile,
+        updatesMode,
+        allStoppedMode
     };
 };
 
@@ -3096,6 +3108,10 @@ const buildSetupAssistantPrefsDiffForType = (type) => {
     register('status warn %', Number(current?.status?.warnStoppedPercent ?? 60), Number(next?.status?.warnStoppedPercent ?? 60));
     register('health cards', current?.health?.cardsEnabled !== false ? '1' : '0', next?.health?.cardsEnabled !== false ? '1' : '0');
     register('runtime badge', current?.health?.runtimeBadgeEnabled === true ? '1' : '0', next?.health?.runtimeBadgeEnabled === true ? '1' : '0');
+    register('health profile', current?.health?.profile || 'balanced', next?.health?.profile || 'balanced');
+    register('health updates mode', current?.health?.updatesMode || 'maintenance', next?.health?.updatesMode || 'maintenance');
+    register('health all stopped mode', current?.health?.allStoppedMode || 'critical', next?.health?.allStoppedMode || 'critical');
+    register('health critical %', Number(current?.health?.criticalStoppedPercent ?? 90), Number(next?.health?.criticalStoppedPercent ?? 90));
     if (setupAssistantState.applyProfileDefaults) {
         register('live refresh', current.liveRefreshEnabled === true ? '1' : '0', next.liveRefreshEnabled === true ? '1' : '0');
         register('refresh interval', Number(current.liveRefreshSeconds ?? 20), Number(next.liveRefreshSeconds ?? 20));
@@ -5434,6 +5450,64 @@ const showFolderStatusBreakdown = (type, folderId) => {
     });
 };
 
+const showFolderHealthBreakdown = (type, folderId) => {
+    const details = getFolderStatusBreakdown(type, folderId);
+    if (!details) {
+        return;
+    }
+    if (details.type !== 'docker') {
+        swal({
+            title: 'Health details',
+            text: 'Detailed health scoring is currently available for Docker folders.',
+            type: 'info'
+        });
+        return;
+    }
+    const folders = getFolderMap(details.type);
+    const folder = folders[folderId];
+    if (!folder) {
+        return;
+    }
+    const healthPrefs = normalizeHealthPrefs('docker');
+    const health = evaluateDockerFolderHealth(
+        folder,
+        details.members.length,
+        details.countsByState,
+        details.updateCount,
+        Number(healthPrefs.warnStoppedPercent) || 60
+    );
+    const reasonLines = Array.isArray(health.reasons)
+        ? health.reasons.map((reason, index) => `${index + 1}. ${reason.label}: ${reason.message}`)
+        : [];
+    const summaryLines = [
+        `Folder: ${details.folderName}`,
+        `Health: ${health.text} (${health.severity})`,
+        `Score: ${health.score}/100`,
+        `Members: ${details.members.length}`,
+        `${details.countsByState.started} started, ${details.countsByState.paused} paused, ${details.countsByState.stopped} stopped`,
+        `Updates: ${details.updateCount}`,
+        `Policy: ${health.policy.profile} | updates ${health.policy.updatesMode} | all-stopped ${health.policy.allStoppedMode}`,
+        `Thresholds: warn ${health.policy.warnThreshold}% (${health.policy.warnSource}), critical ${health.policy.criticalThreshold}% (${health.policy.criticalSource})`,
+        '',
+        'Reasons:',
+        ...(reasonLines.length ? reasonLines : ['- No health reasons available.'])
+    ];
+
+    swal({
+        title: 'Health details',
+        text: summaryLines.join('\n'),
+        type: health.severity === 'critical' ? 'error' : (health.severity === 'warn' ? 'warning' : 'info'),
+        showCancelButton: true,
+        confirmButtonText: `Filter ${health.text}`,
+        cancelButtonText: 'Close'
+    }, (confirmed) => {
+        if (!confirmed) {
+            return;
+        }
+        toggleHealthSeverityFilter(details.type, health.filterSeverity || health.severity);
+    });
+};
+
 const setInlineValidationHint = (targetId, text = '', level = 'info') => {
     const hint = $(`#${targetId}`);
     if (!hint.length) {
@@ -6026,6 +6100,17 @@ const buildTypeHealthMetrics = (type, folders, memberSnapshot = {}, prefsOverrid
     const memberTotals = { total: 0, started: 0, paused: 0, stopped: 0 };
     const folderStatusTotals = { started: 0, paused: 0, stopped: 0, empty: 0 };
     const folderIssues = {};
+    const healthScoreTotals = {
+        sum: 0,
+        count: 0
+    };
+    const healthSeverityTotals = {
+        good: 0,
+        maintenance: 0,
+        warn: 0,
+        critical: 0,
+        empty: 0
+    };
     let invalidFolderRegexCount = 0;
 
     for (const [folderId, folder] of Object.entries(folderMap)) {
@@ -6052,7 +6137,39 @@ const buildTypeHealthMetrics = (type, folders, memberSnapshot = {}, prefsOverrid
         const isStoppedOnly = members.length > 0 && started === 0 && paused === 0;
         const hasConflict = conflictFolderIds.has(String(folderId));
         const invalidRegex = hasInvalidFolderRegex(folder);
-        const needsAttention = isEmpty || isStoppedOnly || hasConflict || invalidRegex;
+        let needsAttention = isEmpty || isStoppedOnly || hasConflict || invalidRegex;
+        let dockerHealth = null;
+        if (normalizedType === 'docker') {
+            let updateCount = 0;
+            for (const member of members) {
+                if (isDockerUpdateAvailable(info[member] || {})) {
+                    updateCount += 1;
+                }
+            }
+            dockerHealth = evaluateDockerFolderHealth(
+                folder,
+                members.length,
+                { started, paused, stopped },
+                updateCount,
+                Number(healthPrefs.warnStoppedPercent) || 60
+            );
+            if (dockerHealth && typeof dockerHealth === 'object') {
+                const score = Number(dockerHealth.score);
+                if (Number.isFinite(score)) {
+                    healthScoreTotals.sum += score;
+                    healthScoreTotals.count += 1;
+                }
+                const severityKey = String(dockerHealth.filterSeverity || dockerHealth.severity || '').trim().toLowerCase();
+                if (Object.prototype.hasOwnProperty.call(healthSeverityTotals, severityKey)) {
+                    healthSeverityTotals[severityKey] += 1;
+                } else if (severityKey === 'warn') {
+                    healthSeverityTotals.warn += 1;
+                }
+                needsAttention = (dockerHealth.severity === 'warn' || dockerHealth.severity === 'critical')
+                    || hasConflict
+                    || invalidRegex;
+            }
+        }
 
         if (isEmpty) {
             folderStatusTotals.empty += 1;
@@ -6073,7 +6190,11 @@ const buildTypeHealthMetrics = (type, folders, memberSnapshot = {}, prefsOverrid
             conflict: hasConflict,
             invalidRegex,
             attention: needsAttention,
-            memberCount: members.length
+            memberCount: members.length,
+            healthSeverity: dockerHealth?.severity || '',
+            healthFilterSeverity: dockerHealth?.filterSeverity || dockerHealth?.severity || '',
+            healthScore: Number.isFinite(Number(dockerHealth?.score)) ? Number(dockerHealth.score) : null,
+            healthMaintenance: dockerHealth?.isMaintenance === true
         };
     }
 
@@ -6084,9 +6205,12 @@ const buildTypeHealthMetrics = (type, folders, memberSnapshot = {}, prefsOverrid
     let severity = 'ok';
     if (invalidFolderRegexCount > 0 || invalidRuleRegexCount > 0 || conflictReport.conflictingItems > 0) {
         severity = 'danger';
-    } else if (stoppedPercent >= healthPrefs.warnStoppedPercent || attentionCount > 0) {
+    } else if (healthSeverityTotals.critical > 0 || healthSeverityTotals.warn > 0 || stoppedPercent >= healthPrefs.warnStoppedPercent || attentionCount > 0) {
         severity = 'warning';
     }
+    const averageHealthScore = healthScoreTotals.count > 0
+        ? Math.round(healthScoreTotals.sum / healthScoreTotals.count)
+        : 0;
 
     return {
         type: normalizedType,
@@ -6098,9 +6222,11 @@ const buildTypeHealthMetrics = (type, folders, memberSnapshot = {}, prefsOverrid
         invalidRuleRegexCount,
         conflictItemCount: Number(conflictReport.conflictingItems || 0),
         stoppedPercent,
+        averageHealthScore,
         memberTotals,
         folderStatusTotals,
         attentionCount,
+        healthSeverityTotals,
         folderIssues
     };
 };
@@ -6364,7 +6490,7 @@ const setFilterQuery = (section, type, value) => {
 
 const normalizeHealthSeverityFilterMode = (mode) => {
     const normalized = String(mode || '').trim().toLowerCase();
-    if (normalized === 'good' || normalized === 'warn' || normalized === 'critical' || normalized === 'empty') {
+    if (normalized === 'good' || normalized === 'maintenance' || normalized === 'warn' || normalized === 'critical' || normalized === 'empty') {
         return normalized;
     }
     return 'all';
@@ -6373,6 +6499,9 @@ const normalizeHealthSeverityFilterMode = (mode) => {
 const getHealthSeverityFilterLabel = (mode) => {
     if (mode === 'good') {
         return 'good health';
+    }
+    if (mode === 'maintenance') {
+        return 'maintenance health';
     }
     if (mode === 'warn') {
         return 'warn health';
@@ -6386,89 +6515,304 @@ const getHealthSeverityFilterLabel = (mode) => {
     return 'all health';
 };
 
-const resolveFolderWarnThreshold = (folder, fallbackThreshold) => {
-    const safeFallback = Number.isFinite(Number(fallbackThreshold))
-        ? Math.min(100, Math.max(0, Math.round(Number(fallbackThreshold))))
-        : 60;
+const HEALTH_PROFILE_DEFAULTS = Object.freeze({
+    strict: Object.freeze({
+        warnStoppedPercent: 45,
+        criticalStoppedPercent: 75,
+        updatesMode: 'warn',
+        allStoppedMode: 'critical'
+    }),
+    balanced: Object.freeze({
+        warnStoppedPercent: 60,
+        criticalStoppedPercent: 90,
+        updatesMode: 'maintenance',
+        allStoppedMode: 'critical'
+    }),
+    lenient: Object.freeze({
+        warnStoppedPercent: 75,
+        criticalStoppedPercent: 95,
+        updatesMode: 'maintenance',
+        allStoppedMode: 'warn'
+    })
+});
+
+const HEALTH_REASON_META = Object.freeze({
+    EMPTY_FOLDER: Object.freeze({ label: 'Empty folder' }),
+    HEALTHY: Object.freeze({ label: 'Healthy runtime' }),
+    ALL_STOPPED: Object.freeze({ label: 'All members stopped' }),
+    STOPPED_PERCENT_WARN: Object.freeze({ label: 'Stopped ratio over warn threshold' }),
+    STOPPED_PERCENT_CRITICAL: Object.freeze({ label: 'Stopped ratio over critical threshold' }),
+    PAUSED_MEMBERS: Object.freeze({ label: 'Paused members detected' }),
+    UPDATES_PENDING: Object.freeze({ label: 'Updates pending' }),
+    UPDATE_SURGE: Object.freeze({ label: 'Large update backlog' })
+});
+
+const normalizeHealthProfile = (value, fallback = 'balanced') => {
+    const normalized = String(value || '').trim().toLowerCase();
+    if (normalized === 'strict' || normalized === 'balanced' || normalized === 'lenient') {
+        return normalized;
+    }
+    return fallback;
+};
+
+const normalizeHealthUpdatesMode = (value, fallback = 'maintenance') => {
+    const normalized = String(value || '').trim().toLowerCase();
+    if (normalized === 'maintenance' || normalized === 'warn' || normalized === 'ignore') {
+        return normalized;
+    }
+    return fallback;
+};
+
+const normalizeHealthAllStoppedMode = (value, fallback = 'critical') => {
+    const normalized = String(value || '').trim().toLowerCase();
+    if (normalized === 'critical' || normalized === 'warn') {
+        return normalized;
+    }
+    return fallback;
+};
+
+const resolveFolderHealthPolicy = (folder, fallbackThreshold) => {
+    const globalHealthPrefs = normalizeHealthPrefs('docker');
+    const globalProfile = normalizeHealthProfile(globalHealthPrefs.profile, 'balanced');
+    const globalDefaults = HEALTH_PROFILE_DEFAULTS[globalProfile] || HEALTH_PROFILE_DEFAULTS.balanced;
     const settings = (folder && typeof folder.settings === 'object' && folder.settings !== null)
         ? folder.settings
         : {};
-    const raw = settings.health_warn_stopped_percent;
-    if (raw === '' || raw === null || raw === undefined) {
-        return { value: safeFallback, source: 'global' };
+
+    const folderProfileRaw = String(settings.health_profile || '').trim();
+    const hasFolderProfile = folderProfileRaw !== '';
+    const folderProfile = hasFolderProfile
+        ? normalizeHealthProfile(folderProfileRaw, globalProfile)
+        : globalProfile;
+    const profileDefaults = hasFolderProfile
+        ? (HEALTH_PROFILE_DEFAULTS[folderProfile] || globalDefaults)
+        : globalDefaults;
+
+    const fallbackWarn = Number.isFinite(Number(fallbackThreshold))
+        ? Math.min(100, Math.max(0, Math.round(Number(fallbackThreshold))))
+        : Number(globalHealthPrefs.warnStoppedPercent || profileDefaults.warnStoppedPercent || 60);
+    let warnThreshold = fallbackWarn;
+    let warnSource = Number.isFinite(Number(fallbackThreshold)) ? 'global-warn' : 'profile';
+
+    const warnRaw = settings.health_warn_stopped_percent;
+    if (!(warnRaw === '' || warnRaw === null || warnRaw === undefined)) {
+        const parsedWarn = Number(warnRaw);
+        if (Number.isFinite(parsedWarn)) {
+            warnThreshold = Math.min(100, Math.max(0, Math.round(parsedWarn)));
+            warnSource = 'folder-warn';
+        }
     }
-    const parsed = Number(raw);
-    if (!Number.isFinite(parsed)) {
-        return { value: safeFallback, source: 'global' };
+
+    let criticalThreshold = Number(globalHealthPrefs.criticalStoppedPercent || profileDefaults.criticalStoppedPercent || 90);
+    let criticalSource = Number(globalHealthPrefs.criticalStoppedPercent) ? 'global-critical' : 'profile';
+    const criticalRaw = settings.health_critical_stopped_percent;
+    if (!(criticalRaw === '' || criticalRaw === null || criticalRaw === undefined)) {
+        const parsedCritical = Number(criticalRaw);
+        if (Number.isFinite(parsedCritical)) {
+            criticalThreshold = Math.min(100, Math.max(0, Math.round(parsedCritical)));
+            criticalSource = 'folder-critical';
+        }
+    } else {
+        criticalThreshold = Math.min(100, Math.max(0, Math.round(criticalThreshold)));
     }
+
+    let updatesMode = normalizeHealthUpdatesMode(globalHealthPrefs.updatesMode, profileDefaults.updatesMode);
+    let updatesModeSource = (globalHealthPrefs.updatesMode && String(globalHealthPrefs.updatesMode).trim() !== '')
+        ? 'global-updates'
+        : 'profile';
+    const updatesModeRaw = String(settings.health_updates_mode || '').trim();
+    if (updatesModeRaw !== '') {
+        updatesMode = normalizeHealthUpdatesMode(updatesModeRaw, updatesMode);
+        updatesModeSource = 'folder-updates';
+    }
+
+    let allStoppedMode = normalizeHealthAllStoppedMode(globalHealthPrefs.allStoppedMode, profileDefaults.allStoppedMode);
+    let allStoppedModeSource = (globalHealthPrefs.allStoppedMode && String(globalHealthPrefs.allStoppedMode).trim() !== '')
+        ? 'global-all-stopped'
+        : 'profile';
+    const allStoppedModeRaw = String(settings.health_all_stopped_mode || '').trim();
+    if (allStoppedModeRaw !== '') {
+        allStoppedMode = normalizeHealthAllStoppedMode(allStoppedModeRaw, allStoppedMode);
+        allStoppedModeSource = 'folder-all-stopped';
+    }
+
+    criticalThreshold = Math.min(100, Math.max(0, Math.round(criticalThreshold)));
+    if (criticalThreshold < warnThreshold + 5) {
+        criticalThreshold = Math.min(100, warnThreshold + 5);
+        criticalSource = 'auto-adjust';
+    }
+
     return {
-        value: Math.min(100, Math.max(0, Math.round(parsed))),
-        source: 'folder'
+        profile: folderProfile,
+        warnThreshold,
+        warnSource,
+        criticalThreshold,
+        criticalSource,
+        updatesMode,
+        updatesModeSource,
+        allStoppedMode,
+        allStoppedModeSource
     };
 };
+
+const makeHealthReason = (code, message, severity = 'info') => ({
+    code,
+    label: String(HEALTH_REASON_META?.[code]?.label || code),
+    message,
+    severity
+});
 
 const evaluateDockerFolderHealth = (folder, members, countsByState, updateCount, fallbackWarnThreshold) => {
     const totalMembers = Number(members) || 0;
     const started = Number(countsByState?.started || 0);
     const paused = Number(countsByState?.paused || 0);
     const stopped = Number(countsByState?.stopped || 0);
-    const thresholdInfo = resolveFolderWarnThreshold(folder, fallbackWarnThreshold);
-    const warnThreshold = thresholdInfo.value;
+    const policy = resolveFolderHealthPolicy(folder, fallbackWarnThreshold);
+    const warnThreshold = policy.warnThreshold;
+    const criticalThreshold = policy.criticalThreshold;
     if (totalMembers === 0) {
         return {
             severity: 'empty',
+            filterSeverity: 'empty',
             text: 'Empty',
             className: 'is-empty',
             isAlert: false,
-            details: ['No members in this folder.']
+            score: 100,
+            isMaintenance: false,
+            reasons: [
+                makeHealthReason('EMPTY_FOLDER', 'No members in this folder.', 'info')
+            ],
+            policy,
+            details: [
+                'Score: 100/100.',
+                'No members in this folder.',
+                `Policy: ${policy.profile} profile (${warnThreshold}% warn, ${criticalThreshold}% critical).`
+            ]
         };
     }
 
     const stoppedPercent = Math.round((stopped / totalMembers) * 100);
     const allStopped = started === 0 && paused === 0 && stopped > 0;
     const hasUpdates = updateCount > 0;
-    const thresholdLabel = thresholdInfo.source === 'folder'
-        ? `Warn threshold: ${warnThreshold}% stopped (folder override).`
-        : `Warn threshold: ${warnThreshold}% stopped (global default).`;
+    const allStoppedCritical = allStopped && policy.allStoppedMode === 'critical';
+    const allStoppedWarn = allStopped && policy.allStoppedMode === 'warn';
+    const stoppedCritical = stoppedPercent >= criticalThreshold;
+    const stoppedWarn = stoppedPercent >= warnThreshold;
+    const updateWarn = hasUpdates && policy.updatesMode === 'warn';
+    const updateMaintenance = hasUpdates && policy.updatesMode === 'maintenance';
+    const updateCritical = updateWarn && updateCount >= 10;
 
-    const details = [];
+    let severity = 'good';
+    if (allStoppedCritical || stoppedCritical || updateCritical) {
+        severity = 'critical';
+    } else if (allStoppedWarn || stoppedWarn || paused > 0 || updateWarn || updateMaintenance) {
+        severity = 'warn';
+    }
+    const maintenanceOnly = severity === 'warn' && updateMaintenance && !allStoppedWarn && !allStoppedCritical && !stoppedWarn && !stoppedCritical && paused <= 0;
+    const filterSeverity = maintenanceOnly ? 'maintenance' : severity;
+
+    const reasons = [];
     if (allStopped) {
-        details.push(`All ${stopped}/${totalMembers} members are stopped.`);
-    } else {
-        details.push(`${started} started, ${paused} paused, ${stopped} stopped.`);
+        reasons.push(makeHealthReason(
+            'ALL_STOPPED',
+            `All ${stopped}/${totalMembers} members are stopped.`,
+            allStoppedCritical ? 'critical' : 'warning'
+        ));
     }
-    details.push(`Stopped percentage: ${stoppedPercent}%.`);
-    if (hasUpdates) {
-        details.push(`${updateCount} update${updateCount === 1 ? '' : 's'} available.`);
-    } else {
-        details.push('No updates available.');
+    if (stoppedCritical) {
+        reasons.push(makeHealthReason(
+            'STOPPED_PERCENT_CRITICAL',
+            `Stopped percentage ${stoppedPercent}% is above critical threshold ${criticalThreshold}%.`,
+            'critical'
+        ));
+    } else if (stoppedWarn) {
+        reasons.push(makeHealthReason(
+            'STOPPED_PERCENT_WARN',
+            `Stopped percentage ${stoppedPercent}% is above warn threshold ${warnThreshold}%.`,
+            'warning'
+        ));
     }
-    details.push(thresholdLabel);
+    if (paused > 0) {
+        reasons.push(makeHealthReason(
+            'PAUSED_MEMBERS',
+            `${paused} member${paused === 1 ? '' : 's'} paused.`,
+            'warning'
+        ));
+    }
+    if (hasUpdates && policy.updatesMode !== 'ignore') {
+        reasons.push(makeHealthReason(
+            updateCount >= 10 ? 'UPDATE_SURGE' : 'UPDATES_PENDING',
+            `${updateCount} update${updateCount === 1 ? '' : 's'} available.`,
+            updateMaintenance ? 'maintenance' : (updateCritical ? 'critical' : 'warning')
+        ));
+    }
+    if (!reasons.length) {
+        reasons.push(makeHealthReason(
+            'HEALTHY',
+            'No health issues detected.',
+            'success'
+        ));
+    }
 
-    const criticalThreshold = Math.min(100, Math.max(warnThreshold + 25, 90));
-    if (allStopped || stoppedPercent >= criticalThreshold || updateCount >= 10) {
-        return {
-            severity: 'critical',
-            text: 'Critical',
-            className: 'is-danger',
-            isAlert: true,
-            details
-        };
+    let scorePenalty = 0;
+    if (stoppedPercent > 0) {
+        if (stoppedPercent >= warnThreshold) {
+            const range = Math.max(1, 100 - warnThreshold);
+            scorePenalty += 18 + Math.round(((stoppedPercent - warnThreshold) / range) * 42);
+        } else {
+            scorePenalty += Math.round((stoppedPercent / Math.max(1, warnThreshold)) * 18);
+        }
     }
-    if (stoppedPercent >= warnThreshold || paused > 0 || hasUpdates) {
-        return {
-            severity: 'warn',
-            text: 'Warn',
-            className: 'is-warning',
-            isAlert: true,
-            details
-        };
+    if (paused > 0) {
+        scorePenalty += Math.min(20, 2 + Math.round((paused / totalMembers) * 30));
+    }
+    if (hasUpdates && policy.updatesMode !== 'ignore') {
+        const updatePenaltyBase = policy.updatesMode === 'warn' ? 4 : 2;
+        const updatePenaltyCap = policy.updatesMode === 'warn' ? 34 : 18;
+        scorePenalty += Math.min(updatePenaltyCap, updateCount * updatePenaltyBase);
+    }
+    if (allStopped) {
+        scorePenalty += policy.allStoppedMode === 'critical' ? 40 : 24;
+    }
+    if (stoppedCritical) {
+        scorePenalty += 18;
+    }
+    if (updateCritical) {
+        scorePenalty += 16;
+    }
+    const score = Math.max(0, Math.min(100, 100 - scorePenalty));
+
+    const details = [
+        `Score: ${score}/100.`,
+        `${started} started, ${paused} paused, ${stopped} stopped (${stoppedPercent}% stopped).`,
+        hasUpdates ? `${updateCount} update${updateCount === 1 ? '' : 's'} available.` : 'No updates available.',
+        `Policy: ${policy.profile} | updates ${policy.updatesMode} | all-stopped ${policy.allStoppedMode}.`,
+        `Thresholds: warn ${warnThreshold}% (${policy.warnSource}), critical ${criticalThreshold}% (${policy.criticalSource}).`,
+        ...reasons.map((reason) => `${reason.label}: ${reason.message}`)
+    ];
+
+    let text = 'Healthy';
+    let className = 'is-ok';
+    if (severity === 'critical') {
+        text = 'Critical';
+        className = 'is-danger';
+    } else if (maintenanceOnly) {
+        text = 'Maintenance';
+        className = 'is-maintenance';
+    } else if (severity === 'warn') {
+        text = 'Degraded';
+        className = 'is-warning';
     }
     return {
-        severity: 'good',
-        text: 'Good',
-        className: 'is-ok',
-        isAlert: false,
+        severity,
+        filterSeverity,
+        text,
+        className,
+        isAlert: severity === 'critical' || (severity === 'warn' && !maintenanceOnly),
+        score,
+        isMaintenance: maintenanceOnly,
+        reasons,
+        policy,
         details
     };
 };
@@ -8512,17 +8856,17 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
                 updateCount,
                 Number(dockerHealthPrefs?.warnStoppedPercent) || 60
             );
-            if (healthSeverityFilterMode !== 'all' && healthStatus.severity !== healthSeverityFilterMode) {
+            if (healthSeverityFilterMode !== 'all' && healthStatus.filterSeverity !== healthSeverityFilterMode) {
                 continue;
             }
-            const healthFilterActive = healthSeverityFilterMode === healthStatus.severity;
+            const healthFilterActive = healthSeverityFilterMode === healthStatus.filterSeverity;
             const healthToggleHint = healthFilterActive
                 ? 'Click to show all folders.'
                 : `Click to show ${healthStatus.text} folders only.`;
             const healthTitle = [...healthStatus.details, healthToggleHint].join('\n');
             typeSpecificColumns = ''
                 + `<td class="updates-cell"><button type="button" class="folder-metric-chip updates-chip ${updateClass} ${dockerUpdatesOnlyFilter ? 'is-filter-active' : ''}" title="${escapeHtml(updateTitle)}" aria-label="${escapeHtml(updateTitle)}" onclick="toggleDockerUpdatesFilter(${updateCount > 0 ? 'true' : 'false'})"><i class="fa ${updateIcon}" aria-hidden="true"></i><span>${escapeHtml(updateText)}</span></button></td>`
-                + `<td class="health-cell"><button type="button" class="folder-metric-chip health-chip ${healthStatus.className} ${healthFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(healthTitle)}" aria-label="${escapeHtml(healthTitle)}" onclick="toggleHealthSeverityFilter('${type}','${escapeHtml(healthStatus.severity)}')">${escapeHtml(healthStatus.text)}</button></td>`;
+                + `<td class="health-cell"><span class="health-cell-content"><button type="button" class="health-breakdown-btn" title="Open health details" aria-label="Open health details for ${safeName}" onclick="showFolderHealthBreakdown('${type}','${escapeHtml(id)}')"><i class="fa fa-heartbeat"></i></button><button type="button" class="folder-metric-chip health-chip ${healthStatus.className} ${healthFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(healthTitle)}" aria-label="${escapeHtml(healthTitle)}" onclick="toggleHealthSeverityFilter('${type}','${escapeHtml(healthStatus.filterSeverity)}')">${escapeHtml(healthStatus.text)}</button></span></td>`;
         } else {
             let autostartCount = 0;
             const autostartMembers = [];
@@ -8776,7 +9120,16 @@ const renderHealthControls = (type) => {
     $(`#${type}-health-runtime-badge-enabled`).prop('checked', health.runtimeBadgeEnabled === true);
     $(`#${type}-health-compact`).prop('checked', health.compact === true);
     $(`#${type}-health-warn-threshold`).val(String(health.warnStoppedPercent));
-    $(`#${type}-health-warn-threshold-row`).toggleClass('is-hidden', health.cardsEnabled !== true);
+    $(`#${type}-health-critical-threshold`).val(String(health.criticalStoppedPercent));
+    $(`#${type}-health-profile`).val(health.profile);
+    $(`#${type}-health-updates-mode`).val(health.updatesMode);
+    $(`#${type}-health-all-stopped-mode`).val(health.allStoppedMode);
+    const showHealthSettings = health.cardsEnabled === true;
+    $(`#${type}-health-warn-threshold-row`).toggleClass('is-hidden', !showHealthSettings);
+    $(`#${type}-health-critical-threshold-row`).toggleClass('is-hidden', !showHealthSettings);
+    $(`#${type}-health-policy-profile-row`).toggleClass('is-hidden', !showHealthSettings);
+    $(`#${type}-health-updates-mode-row`).toggleClass('is-hidden', !showHealthSettings);
+    $(`#${type}-health-all-stopped-mode-row`).toggleClass('is-hidden', !showHealthSettings);
     if (health.cardsEnabled !== true) {
         healthFilterByType[type] = 'all';
     }
@@ -8848,6 +9201,8 @@ const buildHealthCardHtml = (type, metrics, healthPrefs) => {
                 <span class="folder-health-metric"><span>Pinned</span><strong>${metrics.pinnedCount}</strong></span>
                 <span class="folder-health-metric"><span>Empty</span><strong>${metrics.folderStatusTotals.empty}</strong></span>
                 <span class="folder-health-metric"><span>Stopped folders</span><strong>${metrics.folderStatusTotals.stopped}</strong></span>
+                <span class="folder-health-metric"><span>Avg score</span><strong>${escapeHtml(String(metrics.averageHealthScore ?? 0))}</strong></span>
+                <span class="folder-health-metric"><span>Maintenance</span><strong>${escapeHtml(String(metrics.healthSeverityTotals?.maintenance ?? 0))}</strong></span>
                 <span class="folder-health-metric"><span>Conflicts</span><strong>${metrics.conflictItemCount}</strong></span>
                 <span class="folder-health-metric"><span>Invalid regex</span><strong>${metrics.invalidFolderRegexCount + metrics.invalidRuleRegexCount}</strong></span>
                 <span class="folder-health-metric"><span>Stopped members</span><strong>${metrics.memberTotals.stopped}/${metrics.memberTotals.total}</strong></span>
@@ -10182,6 +10537,17 @@ const changeHealthPref = async (type, key, value) => {
         nextHealth.warnStoppedPercent = Number.isFinite(parsed)
             ? Math.min(100, Math.max(0, Math.round(parsed)))
             : currentHealth.warnStoppedPercent;
+    } else if (key === 'criticalStoppedPercent') {
+        const parsed = Number(value);
+        nextHealth.criticalStoppedPercent = Number.isFinite(parsed)
+            ? Math.min(100, Math.max(0, Math.round(parsed)))
+            : currentHealth.criticalStoppedPercent;
+    } else if (key === 'profile') {
+        nextHealth.profile = normalizeHealthProfile(value, currentHealth.profile);
+    } else if (key === 'updatesMode') {
+        nextHealth.updatesMode = normalizeHealthUpdatesMode(value, currentHealth.updatesMode);
+    } else if (key === 'allStoppedMode') {
+        nextHealth.allStoppedMode = normalizeHealthAllStoppedMode(value, currentHealth.allStoppedMode);
     } else {
         return;
     }
@@ -11709,6 +12075,7 @@ window.setQuickFolderFilter = setQuickFolderFilter;
 window.setHealthFolderFilter = setHealthFolderFilter;
 window.changeColumnVisibility = changeColumnVisibility;
 window.showFolderStatusBreakdown = showFolderStatusBreakdown;
+window.showFolderHealthBreakdown = showFolderHealthBreakdown;
 window.openFolderRowQuickActions = openFolderRowQuickActions;
 window.quickCreateStarterFolder = quickCreateStarterFolder;
 window.applyQuickProfilePreset = applyQuickProfilePreset;

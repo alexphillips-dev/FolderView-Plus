@@ -824,6 +824,40 @@ body.fv-mobile-compact #fv-settings-root .status-chip-list {
     background: transparent;
 }
 
+.folder-metric-chip.is-maintenance {
+    border-color: rgba(113, 184, 255, 0.58);
+    color: #9ecbff;
+    background: rgba(113, 184, 255, 0.12);
+}
+
+.health-cell-content {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.28rem;
+    max-width: 100%;
+}
+
+.health-breakdown-btn {
+    width: 22px !important;
+    height: 22px !important;
+    min-width: 22px !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 0 !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 5px !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    color: rgba(226, 236, 248, 0.9) !important;
+    cursor: pointer;
+}
+
+.health-breakdown-btn:hover {
+    border-color: rgba(113, 184, 255, 0.7) !important;
+    color: #cfe7ff !important;
+}
+
 .health-chip.is-filter-active {
     box-shadow: 0 0 0 1px rgba(77, 163, 255, 0.45) inset;
 }

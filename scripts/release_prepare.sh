@@ -21,7 +21,8 @@ chmod +x \
   scripts/theme_scope_guard.sh \
   scripts/perf_budget_guard.sh \
   scripts/repro_build_guard.sh \
-  scripts/unraid_matrix_smoke.sh
+  scripts/unraid_matrix_smoke.sh \
+  scripts/theme_matrix_smoke.sh
 bash scripts/doctor.sh
 
 if [[ "${1:-}" == "--beta" ]]; then
@@ -45,6 +46,7 @@ bash scripts/theme_scope_guard.sh
 FVPLUS_REQUIRE_PERF_BASELINE=1 bash scripts/perf_budget_guard.sh
 bash scripts/repro_build_guard.sh
 FVPLUS_UNRAID_MATRIX_REQUIRED="${FVPLUS_UNRAID_MATRIX_REQUIRED:-0}" bash scripts/unraid_matrix_smoke.sh
+bash scripts/theme_matrix_smoke.sh
 bash scripts/browser_smoke.sh
 node --test tests/*.mjs
 

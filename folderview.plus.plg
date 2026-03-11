@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.10.12">
+<!ENTITY version "2026.03.10.13">
 <!ENTITY md5 "2713a68c113590a9ba6d1ff490e90bc5">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.10.13
+- Quality: added optional Playwright theme-matrix smoke coverage for wizard readability and interaction checks across browser/theme targets.
+- Compatibility: expanded theme validation to cover desktop/mobile layouts, zoom levels, focus-visible states, disabled controls, and overflow guards.
+- Regression guard: wired theme-matrix smoke into CI + release workflows and `release_prepare.sh`, with versioning-guard tests enforcing the new contract.
+
 
 ###2026.03.10.12
 - Fix: Setup Assistant wizard text contrast on light themes (including Dynamix Color Themes White) is now readable.

@@ -14,6 +14,8 @@ const releaseBetaWorkflowPath = path.join(repoRoot, '.github/workflows/release-b
 const releaseOnMainWorkflowPath = path.join(repoRoot, '.github/workflows/release-on-main.yml');
 const browserSmokeShellPath = path.join(repoRoot, 'scripts/browser_smoke.sh');
 const browserSmokeNodePath = path.join(repoRoot, 'scripts/browser_smoke.mjs');
+const themeMatrixSmokeShellPath = path.join(repoRoot, 'scripts/theme_matrix_smoke.sh');
+const themeMatrixSmokeNodePath = path.join(repoRoot, 'scripts/theme_matrix_smoke.mjs');
 const installSmokePath = path.join(repoRoot, 'scripts/install_smoke.sh');
 const apiContractGuardPath = path.join(repoRoot, 'scripts/api_contract_guard.sh');
 const legacySupportGuardPath = path.join(repoRoot, 'scripts/legacy_support_guard.sh');
@@ -37,6 +39,8 @@ const releaseBetaWorkflow = fs.readFileSync(releaseBetaWorkflowPath, 'utf8');
 const releaseOnMainWorkflow = fs.readFileSync(releaseOnMainWorkflowPath, 'utf8');
 const browserSmokeShell = fs.readFileSync(browserSmokeShellPath, 'utf8');
 const browserSmokeNode = fs.readFileSync(browserSmokeNodePath, 'utf8');
+const themeMatrixSmokeShell = fs.readFileSync(themeMatrixSmokeShellPath, 'utf8');
+const themeMatrixSmokeNode = fs.readFileSync(themeMatrixSmokeNodePath, 'utf8');
 const installSmoke = fs.readFileSync(installSmokePath, 'utf8');
 const apiContractGuard = fs.readFileSync(apiContractGuardPath, 'utf8');
 const legacySupportGuard = fs.readFileSync(legacySupportGuardPath, 'utf8');
@@ -143,6 +147,19 @@ test('browser smoke scripts are optional, URL-gated, and include core UI checks'
     assert.match(browserSmokeNode, /runBrowserSmoke\('webkit'/);
 });
 
+test('theme matrix smoke scripts are optional, URL-gated, and include wizard/theme checks', () => {
+    assert.match(themeMatrixSmokeShell, /FVPLUS_THEME_MATRIX_URLS/);
+    assert.match(themeMatrixSmokeShell, /Skipping theme matrix smoke checks/);
+    assert.match(themeMatrixSmokeShell, /node "\$\{ROOT_DIR\}\/scripts\/theme_matrix_smoke\.mjs"/);
+    assert.match(themeMatrixSmokeNode, /playwright/);
+    assert.match(themeMatrixSmokeNode, /FVPLUS_THEME_SMOKE_BROWSERS/);
+    assert.match(themeMatrixSmokeNode, /FVPLUS_THEME_SMOKE_ZOOMS/);
+    assert.match(themeMatrixSmokeNode, /#fv-run-wizard/);
+    assert.match(themeMatrixSmokeNode, /#fv-setup-assistant-dialog/);
+    assert.match(themeMatrixSmokeNode, /Focus-visible ring is not present/);
+    assert.match(themeMatrixSmokeNode, /horizontal overflow/);
+});
+
 test('validation workflows include optional browser smoke integration', () => {
     for (const workflow of [ciWorkflow, releaseMainWorkflow, releaseStableWorkflow, releaseBetaWorkflow, releaseOnMainWorkflow]) {
         assert.match(workflow, /Standards guard checks/);
@@ -159,6 +176,9 @@ test('validation workflows include optional browser smoke integration', () => {
         assert.match(workflow, /Optional browser smoke checks/);
         assert.match(workflow, /FVPLUS_BROWSER_SMOKE_URL/);
         assert.match(workflow, /bash scripts\/browser_smoke\.sh/);
+        assert.match(workflow, /Optional theme matrix smoke checks/);
+        assert.match(workflow, /FVPLUS_THEME_MATRIX_URLS/);
+        assert.match(workflow, /bash scripts\/theme_matrix_smoke\.sh/);
         assert.match(workflow, /actions\/upload-artifact@v4/);
     }
     assert.match(releasePrepare, /bash scripts\/api_contract_guard\.sh/);
@@ -169,6 +189,7 @@ test('validation workflows include optional browser smoke integration', () => {
     assert.match(releasePrepare, /bash scripts\/perf_budget_guard\.sh/);
     assert.match(releasePrepare, /bash scripts\/repro_build_guard\.sh/);
     assert.match(releasePrepare, /bash scripts\/unraid_matrix_smoke\.sh/);
+    assert.match(releasePrepare, /bash scripts\/theme_matrix_smoke\.sh/);
     assert.match(releasePrepare, /bash scripts\/browser_smoke\.sh/);
     assert.match(releasePrepare, /bash scripts\/doctor\.sh/);
     assert.match(releasePrepare, /bash pkg_build\.sh --no-validate/);

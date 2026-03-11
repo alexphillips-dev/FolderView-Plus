@@ -523,6 +523,88 @@
     }
 }
 
+#fv-settings-root.fv-mobile-compact .folder-table .table-wrap,
+body.fv-mobile-compact #fv-settings-root .folder-table .table-wrap {
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    scrollbar-width: thin;
+}
+
+#fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(5),
+#fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(5),
+#fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(6),
+#fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(6),
+#fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(7),
+#fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(7),
+#fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(8),
+#fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(8),
+#fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(9),
+#fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(9),
+body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(5),
+body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(5),
+body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(6),
+body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(6),
+body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(7),
+body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(7),
+body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(8),
+body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(8),
+body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(9),
+body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(9) {
+    display: none !important;
+}
+
+#fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(1),
+#fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(1),
+body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(1),
+body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(1) { width: 10%; }
+#fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(2),
+#fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(2),
+body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(2),
+body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(2) { width: 38%; }
+#fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(3),
+#fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(3),
+body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(3),
+body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(3) { width: 8%; }
+#fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(4),
+#fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(4),
+body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(4),
+body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(4) { width: 28%; }
+#fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(10),
+#fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(10),
+body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(10),
+body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(10) { width: 16%; }
+
+#fv-settings-root.fv-mobile-compact .name-cell-content,
+body.fv-mobile-compact #fv-settings-root .name-cell-content {
+    width: 100%;
+    max-width: 100%;
+    grid-template-columns: 28px minmax(0, 1fr);
+    column-gap: 0.35rem;
+}
+
+#fv-settings-root.fv-mobile-compact .name-cell-content > img,
+body.fv-mobile-compact #fv-settings-root .name-cell-content > img {
+    width: 28px;
+    height: 28px;
+}
+
+#fv-settings-root.fv-mobile-compact .status-cell-content,
+body.fv-mobile-compact #fv-settings-root .status-cell-content {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    row-gap: 0.2rem;
+    column-gap: 0.24rem;
+}
+
+#fv-settings-root.fv-mobile-compact .status-chip-list,
+body.fv-mobile-compact #fv-settings-root .status-chip-list {
+    width: 100%;
+    flex-wrap: wrap;
+    white-space: normal;
+    row-gap: 0.2rem;
+    column-gap: 0.2rem;
+}
+
 .folder-pin-state,
 .folder-metric-chip {
     display: inline-block;
@@ -1861,6 +1943,123 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     .fv-setup-field-grid {
         grid-template-columns: 1fr;
     }
+}
+
+body.fv-mobile-compact #fv-setup-assistant-dialog {
+    inset: 0;
+    transform: none;
+    width: 100dvw;
+    height: 100dvh;
+    max-height: none;
+    border-radius: 0;
+    border: 0;
+}
+
+body.fv-mobile-compact .fv-setup-assistant-shell {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+}
+
+body.fv-mobile-compact .fv-setup-assistant-sidebar {
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    max-height: none;
+    padding: 0.45rem 0.55rem;
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    gap: 0.35rem;
+    overflow: hidden;
+}
+
+body.fv-mobile-compact .fv-setup-step-list {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 0.35rem;
+    padding: 0 0.05rem 0.1rem 0;
+    margin-top: 0;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+}
+
+body.fv-mobile-compact .fv-setup-step-list li {
+    min-width: 112px;
+    flex: 0 0 auto;
+}
+
+body.fv-mobile-compact .fv-setup-step-jump {
+    grid-template-columns: 18px minmax(0, 1fr);
+    gap: 0.28rem;
+    padding: 0.2rem 0.28rem;
+}
+
+body.fv-mobile-compact .fv-setup-step-state {
+    display: none;
+}
+
+body.fv-mobile-compact .fv-setup-sidebar-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    min-height: 34px;
+    width: 100%;
+}
+
+body.fv-mobile-compact .fv-setup-assistant-shell[data-fv-mobile-summary-open="0"] .fv-setup-sidebar-summary {
+    display: none;
+}
+
+body.fv-mobile-compact .fv-setup-assistant-shell[data-fv-mobile-summary-open="1"] .fv-setup-sidebar-summary {
+    display: grid;
+}
+
+body.fv-mobile-compact .fv-setup-sidebar-summary {
+    margin-top: 0;
+    max-height: 26vh;
+    overflow: auto;
+}
+
+body.fv-mobile-compact .fv-setup-sidebar-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+body.fv-mobile-compact .fv-setup-step-delta {
+    display: none;
+}
+
+body.fv-mobile-compact .fv-setup-assistant-foot {
+    padding: 0.5rem 0.6rem;
+    flex-wrap: wrap;
+}
+
+body.fv-mobile-compact .fv-setup-foot-left,
+body.fv-mobile-compact .fv-setup-foot-right {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+body.fv-mobile-compact #fv-setup-prev,
+body.fv-mobile-compact #fv-setup-next,
+body.fv-mobile-compact #fv-setup-skip-review {
+    flex: 1 1 calc(33.333% - 0.24rem);
+}
+
+body.fv-mobile-compact #fv-setup-apply {
+    flex: 1 1 100%;
+}
+
+body.fv-mobile-compact .fv-setup-step-grid,
+body.fv-mobile-compact .fv-setup-route-grid,
+body.fv-mobile-compact .fv-setup-profile-grid,
+body.fv-mobile-compact .fv-setup-env-grid,
+body.fv-mobile-compact .fv-setup-quick-preset-grid,
+body.fv-mobile-compact .fv-setup-impact-grid,
+body.fv-mobile-compact .fv-setup-field-grid {
+    grid-template-columns: 1fr;
 }
 
 @media (max-width: 760px) {

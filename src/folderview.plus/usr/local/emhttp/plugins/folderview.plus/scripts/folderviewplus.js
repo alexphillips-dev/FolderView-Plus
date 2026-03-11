@@ -496,7 +496,10 @@ const setupAssistantState = {
 };
 let setupAssistantLastFocusedElement = null;
 let overflowGuardBound = false;
+let mobileLayoutGuardBound = false;
 const MOBILE_SETTINGS_BREAKPOINT_PX = 760;
+const MOBILE_LAYOUT_BREAKPOINT_PX = 1100;
+const MOBILE_LAYOUT_COARSE_BREAKPOINT_PX = 1600;
 
 const supportsTouchInput = () => (
     ('ontouchstart' in window)
@@ -510,6 +513,57 @@ const isMobileSettingsViewport = () => (
 );
 
 const shouldUseMobileSectionToggle = () => supportsTouchInput() && isMobileSettingsViewport();
+
+const getViewportWidth = () => {
+    const visualWidth = Number(window?.visualViewport?.width || 0);
+    const innerWidth = Number(window.innerWidth || 0);
+    const docWidth = Number(document?.documentElement?.clientWidth || 0);
+    return [visualWidth, innerWidth, docWidth]
+        .filter((value) => Number.isFinite(value) && value > 0)
+        .reduce((min, value) => Math.min(min, value), Number.POSITIVE_INFINITY);
+};
+
+const isLikelyMobileUserAgent = () => (
+    /android|iphone|ipod|ipad|mobile|windows phone/i.test(String(navigator?.userAgent || ''))
+);
+
+const shouldUseCompactMobileLayout = () => {
+    const width = getViewportWidth();
+    const coarsePointer = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    if (Number.isFinite(width) && width > 0) {
+        if (width <= MOBILE_LAYOUT_BREAKPOINT_PX) {
+            return true;
+        }
+        if (coarsePointer && width <= MOBILE_LAYOUT_COARSE_BREAKPOINT_PX) {
+            return true;
+        }
+    }
+    return coarsePointer || isLikelyMobileUserAgent();
+};
+
+const syncCompactMobileLayoutClass = () => {
+    const enabled = shouldUseCompactMobileLayout();
+    const root = document.getElementById('fv-settings-root');
+    if (root) {
+        root.classList.toggle('fv-mobile-compact', enabled);
+    }
+    if (document.body) {
+        document.body.classList.toggle('fv-mobile-compact', enabled);
+    }
+};
+
+const initCompactMobileLayoutGuard = () => {
+    syncCompactMobileLayoutClass();
+    if (mobileLayoutGuardBound) {
+        return;
+    }
+    mobileLayoutGuardBound = true;
+    window.addEventListener('resize', syncCompactMobileLayoutClass);
+    window.addEventListener('orientationchange', syncCompactMobileLayoutClass);
+    if (window.visualViewport && typeof window.visualViewport.addEventListener === 'function') {
+        window.visualViewport.addEventListener('resize', syncCompactMobileLayoutClass);
+    }
+};
 if (requestClient && typeof requestClient.configureSecurityHeaders === 'function') {
     requestClient.configureSecurityHeaders({
         tokenStorageKey: REQUEST_TOKEN_STORAGE_KEY
@@ -1597,6 +1651,7 @@ const initSettingsControls = () => {
 };
 
 const refreshSettingsUx = () => {
+    syncCompactMobileLayoutClass();
     buildSettingsSections();
     normalizeExpandedAdvancedSections();
     const advancedSections = settingsUiState.sections.filter((section) => section.advanced);
@@ -11449,6 +11504,7 @@ window.setSettingsMode = setSettingsMode;
         restoreTableUiState();
         initSettingsControls();
         initOverflowGuard();
+        initCompactMobileLayoutGuard();
         renderPerformanceDiagnostics();
         await fetchPluginVersion();
         try {

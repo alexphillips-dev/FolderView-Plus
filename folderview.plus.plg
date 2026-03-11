@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.10.16">
-<!ENTITY md5 "a9c0c3d62a06bad22b038a1477a4144a">
+<!ENTITY version "2026.03.10.17">
+<!ENTITY md5 "1b750973c07b81d99a5beea33fce9f2a">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.10.17
+- Fix: force compact mobile layout with runtime detection for browsers that report desktop-style viewports on phones.
+- Fix: bind compact/mobile table rendering to runtime class so Basic columns no longer overlap on mobile.
+- Fix: bind setup wizard stacked layout to runtime class so wizard never renders in clipped split-pane mode on phones.
+
 
 ###2026.03.10.16
 - Fix: improved Basic mobile usability by switching to a compact table column set and preventing status-chip overlap.

@@ -2057,15 +2057,34 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     background: rgba(8, 12, 18, 0.985);
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
     overflow: hidden;
+    color: #edf3fb;
+    --fv-wizard-text-primary: #edf3fb;
+    --fv-wizard-text-muted: #cfd9e7;
+    --fv-wizard-text-dim: #b7c5d7;
     --fv-wizard-font-103: 1.03rem;
     --fv-wizard-font-108: 1.08rem;
     --fv-wizard-font-115: 1.15rem;
     --fv-wizard-font-118: 1.18rem;
 }
 
-#fv-setup-assistant-dialog button {
+.fv-setup-assistant-shell button {
     text-transform: none;
     letter-spacing: normal;
+    color: var(--fv-wizard-text-primary);
+}
+
+.fv-setup-assistant-shell input:not([type="checkbox"]):not([type="radio"]),
+.fv-setup-assistant-shell select,
+.fv-setup-assistant-shell textarea {
+    color: var(--fv-wizard-text-primary);
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.22);
+}
+
+.fv-setup-assistant-shell input::placeholder,
+.fv-setup-assistant-shell textarea::placeholder {
+    color: var(--fv-wizard-text-dim);
+    opacity: 1;
 }
 
 #fv-setup-assistant-content {
@@ -2137,7 +2156,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 .fv-setup-sidebar-stats span {
     font-size: var(--fv-wizard-font-103);
-    opacity: 0.84;
+    color: var(--fv-wizard-text-muted);
     line-height: 1.25;
 }
 
@@ -2155,7 +2174,8 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     font-size: var(--fv-wizard-font-103);
-    opacity: 0.84;
+    color: var(--fv-wizard-text-primary);
+    opacity: 0.92;
 }
 
 .fv-setup-step-jump {
@@ -2307,7 +2327,8 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 .fv-setup-muted {
     margin: 0;
     font-size: var(--fv-wizard-font-103);
-    opacity: 0.84;
+    color: var(--fv-wizard-text-muted);
+    opacity: 1;
     line-height: 1.35;
 }
 
@@ -2406,7 +2427,8 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 .fv-setup-quick-preset-help {
     display: block;
     font-size: var(--fv-wizard-font-103);
-    opacity: 0.82;
+    color: var(--fv-wizard-text-muted);
+    opacity: 1;
     line-height: 1.3;
     white-space: normal;
     overflow-wrap: anywhere;
@@ -2466,13 +2488,15 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 .fv-setup-route-help,
 .fv-setup-profile-help {
     font-size: var(--fv-wizard-font-103);
-    opacity: 0.82;
+    color: var(--fv-wizard-text-muted);
+    opacity: 1;
     line-height: 1.3;
 }
 
 .fv-setup-env-help {
     font-size: var(--fv-wizard-font-103);
-    opacity: 0.82;
+    color: var(--fv-wizard-text-muted);
+    opacity: 1;
     line-height: 1.3;
 }
 
@@ -2595,7 +2619,8 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 }
 
 .fv-setup-rule-help {
-    opacity: 0.78;
+    color: var(--fv-wizard-text-dim);
+    opacity: 1;
     margin-top: 0.1rem;
 }
 
@@ -2647,7 +2672,8 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 .fv-setup-impact-card > p {
     margin: 0;
     font-size: var(--fv-wizard-font-103);
-    opacity: 0.9;
+    color: var(--fv-wizard-text-muted);
+    opacity: 1;
 }
 
 .fv-setup-warning-box {

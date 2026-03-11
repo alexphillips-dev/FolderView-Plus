@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.10.11">
-<!ENTITY md5 "dadff9b50d73653f139141cc7c89d270">
+<!ENTITY version "2026.03.10.12">
+<!ENTITY md5 "2713a68c113590a9ba6d1ff490e90bc5">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.10.12
+- Fix: Setup Assistant wizard text contrast on light themes (including Dynamix Color Themes White) is now readable.
+- UX: Wizard dialog now applies theme-independent text and form-control colors so readability remains stable across browser/theme combos.
+- Regression guard: preserved state/accent color chips while improving base text contrast.
+
 
 ###2026.03.10.11
 - UX: import preview now shows a Trust signal (`Validated schema`, `Legacy compatibility`, or `Validation warning`) with metadata-backed reasoning.

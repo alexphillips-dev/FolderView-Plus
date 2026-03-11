@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.10.13">
-<!ENTITY md5 "2713a68c113590a9ba6d1ff490e90bc5">
+<!ENTITY version "2026.03.10.14">
+<!ENTITY md5 "e54c95f336a78d98d62858e6cb54827e">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.10.14
+- UX: overhauled mobile readability for settings and setup wizard (full-screen wizard dialog, compact step rail, and mobile-first controls layout).
+- UX: added a mobile wizard details toggle so sidebar summary content is collapsed by default on small screens.
+- Fix: synchronized packaged release artifacts with source to resolve release/quality guard failures.
+- Quality: improved release guard mismatch errors with explicit `pkg_build.sh` remediation guidance.
+- Quality: strengthened developer preflight by checking git hook activation in `scripts/doctor.sh` and documenting hook setup in `CONTRIBUTING.md`.
+
 
 ###2026.03.10.13
 - Quality: added optional Playwright theme-matrix smoke coverage for wizard readability and interaction checks across browser/theme targets.

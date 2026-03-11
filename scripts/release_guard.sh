@@ -10,6 +10,17 @@ ARCHIVE_DIR="${FVPLUS_ARCHIVE_DIR:-${ROOT_DIR}/archive}"
 MAX_ARCHIVE_BYTES="${FVPLUS_MAX_ARCHIVE_BYTES:-52428800}" # 50 MiB default ceiling
 MAX_ARCHIVE_FILE_COUNT="${FVPLUS_MAX_ARCHIVE_FILE_COUNT:-10000}"
 
+packaging_sync_hint() {
+  echo "HINT: Run 'bash pkg_build.sh' and commit updated release artifacts (folderview.plus.plg + archive/*.txz + archive/*.sha256)." >&2
+}
+
+fail_packaged_source_mismatch() {
+  local message="${1:-Packaged artifact does not match source.}"
+  echo "ERROR: ${message}" >&2
+  packaging_sync_hint
+  exit 1
+}
+
 if [[ ! -f "${PLG_FILE}" ]]; then
   echo "ERROR: Missing plugin manifest: ${PLG_FILE}" >&2
   exit 1
@@ -334,37 +345,29 @@ if ! grep -q 'fv-force-left-v2 marker' "${TMP_ARCHIVE_FOLDER_JS}"; then
 fi
 
 if ! cmp -s "${SOURCE_FOLDER_JS}" "${TMP_ARCHIVE_FOLDER_JS}"; then
-  echo "ERROR: Packaged folder.js does not match source folder.js." >&2
-  exit 1
+  fail_packaged_source_mismatch "Packaged folder.js does not match source folder.js."
 fi
 
 if ! cmp -s "${SOURCE_FOLDER_CSS}" "${TMP_ARCHIVE_FOLDER_CSS}"; then
-  echo "ERROR: Packaged folder.css does not match source folder.css." >&2
-  exit 1
+  fail_packaged_source_mismatch "Packaged folder.css does not match source folder.css."
 fi
 if ! cmp -s "${SOURCE_SETTINGS_JS}" "${TMP_ARCHIVE_SETTINGS_JS}"; then
-  echo "ERROR: Packaged folderviewplus.js does not match source folderviewplus.js." >&2
-  exit 1
+  fail_packaged_source_mismatch "Packaged folderviewplus.js does not match source folderviewplus.js."
 fi
 if ! cmp -s "${SOURCE_SETTINGS_CSS}" "${TMP_ARCHIVE_SETTINGS_CSS}"; then
-  echo "ERROR: Packaged folderviewplus.css does not match source folderviewplus.css." >&2
-  exit 1
+  fail_packaged_source_mismatch "Packaged folderviewplus.css does not match source folderviewplus.css."
 fi
 if ! cmp -s "${SOURCE_FOLDER_PAGE}" "${TMP_ARCHIVE_FOLDER_PAGE}"; then
-  echo "ERROR: Packaged Folder.page does not match source Folder.page." >&2
-  exit 1
+  fail_packaged_source_mismatch "Packaged Folder.page does not match source Folder.page."
 fi
 if ! cmp -s "${SOURCE_SETTINGS_PAGE}" "${TMP_ARCHIVE_SETTINGS_PAGE}"; then
-  echo "ERROR: Packaged FolderViewPlus.page does not match source FolderViewPlus.page." >&2
-  exit 1
+  fail_packaged_source_mismatch "Packaged FolderViewPlus.page does not match source FolderViewPlus.page."
 fi
 if ! cmp -s "${SOURCE_SERVER_LIB}" "${TMP_ARCHIVE_SERVER_LIB}"; then
-  echo "ERROR: Packaged server/lib.php does not match source server/lib.php." >&2
-  exit 1
+  fail_packaged_source_mismatch "Packaged server/lib.php does not match source server/lib.php."
 fi
 if ! cmp -s "${SOURCE_SERVER_UPDATE_NOTES}" "${TMP_ARCHIVE_SERVER_UPDATE_NOTES}"; then
-  echo "ERROR: Packaged server/update_notes.php does not match source server/update_notes.php." >&2
-  exit 1
+  fail_packaged_source_mismatch "Packaged server/update_notes.php does not match source server/update_notes.php."
 fi
 
 if [[ ! -d "${SERVER_DIR}" ]]; then

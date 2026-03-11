@@ -18,6 +18,8 @@ Thanks for helping improve FolderView Plus.
    - Node.js 20+
    - PHP
    - Bash + shellcheck
+4. Enable repo hooks (recommended, prevents failed pushes):
+   - `bash scripts/install_git_hooks.sh`
 
 ## Validation Checklist
 

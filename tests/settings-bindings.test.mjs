@@ -72,6 +72,17 @@ test('import apply flow includes a dedicated progress dialog', () => {
     assert.match(script, /await applyImportOperations\(resolvedType, operations, \(\{ completed, label \}\) =>/);
 });
 
+test('settings action dock tracks only explicit/manual fields and excludes instant or transient controls', () => {
+    assert.match(script, /changebackupschedulepref\(/);
+    assert.match(script, /togglerulekindfields\(/);
+    assert.match(script, /toggleallruleselections\(/);
+    assert.match(script, /togglealltemplateselections\(/);
+    assert.match(script, /if \(!handler\) \{\s*\/\/ Inputs without an onchange handler[\s\S]*return true;\s*\}/);
+    assert.match(script, /if \(String\(input\.dataset\.fvTrackSave \|\| ''\) === '1'\) \{\s*return false;\s*\}/);
+    assert.match(script, /const cancelActionBarChanges = \(\) =>/);
+    assert.match(script, /\$\('#fv-action-cancel'\)\.off\('click\.fvui'\)\.on\('click\.fvui', \(\) => \{\s*cancelActionBarChanges\(\);/);
+});
+
 test('basic toolbar actions reuse compact progress overlay for docker and vm flows', () => {
     assert.match(script, /const downloadType = async \(type, id\) =>/);
     assert.match(script, /const clearType = \(type, id\) =>/);

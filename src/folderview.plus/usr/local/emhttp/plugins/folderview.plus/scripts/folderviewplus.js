@@ -612,16 +612,25 @@ const INSTANT_PERSIST_ONCHANGE_TOKENS = Object.freeze([
     'changestatuspref(',
     'changeruntimepref(',
     'changehealthpref(',
-    'changecolumnvisibility('
+    'changebackupschedulepref(',
+    'changecolumnvisibility(',
+    'togglerulekindfields(',
+    'toggleallruleselections(',
+    'togglealltemplateselections('
 ]);
 
 const isInstantPersistInput = (input) => {
     if (!(input instanceof HTMLElement)) {
         return false;
     }
+    if (String(input.dataset.fvTrackSave || '') === '1') {
+        return false;
+    }
     const handler = String(input.getAttribute('onchange') || '').trim().toLowerCase();
     if (!handler) {
-        return false;
+        // Inputs without an onchange handler are typically transient filters/test fields
+        // and should not trigger the global save/cancel action dock.
+        return true;
     }
     return INSTANT_PERSIST_ONCHANGE_TOKENS.some((token) => handler.includes(token));
 };
@@ -807,9 +816,11 @@ const updateActionBarSaveState = () => {
     const count = changed.length;
     settingsUiState.unsavedCount = count;
     const saveButton = $('#fv-action-save');
+    const cancelButton = $('#fv-action-cancel');
     const saveCloseButton = $('#fv-action-save-close');
     const resetButton = $('#fv-action-reset-section');
     saveButton.prop('disabled', count === 0);
+    cancelButton.prop('disabled', count === 0);
     saveCloseButton.prop('disabled', count === 0);
     resetButton.prop('disabled', count === 0);
     if (count === 0) {
@@ -1326,6 +1337,33 @@ const saveActionBarChanges = async (closeAfterSave = false) => {
     }
 };
 
+const cancelActionBarChanges = () => {
+    const changedInputs = getTrackedInputs().filter((input) => (
+        settingsUiState.baselineByInputId.has(input.id)
+        && settingsUiState.baselineByInputId.get(input.id) !== getInputSerializedValue(input)
+    ));
+    if (changedInputs.length <= 0) {
+        updateActionBarSaveState();
+        setActionDockExpanded(false);
+        return;
+    }
+    for (const input of changedInputs) {
+        const baseline = settingsUiState.baselineByInputId.get(input.id);
+        if (input.type === 'checkbox') {
+            input.checked = baseline === '1';
+        } else {
+            input.value = baseline;
+        }
+        $(input).trigger('input');
+        $(input).trigger('change');
+    }
+    refreshInputInvalidStyles();
+    refreshSectionHealthBadges();
+    updateActionBarSaveState();
+    setActionBarStatus('Reverted unsaved field changes.');
+    setActionDockExpanded(false);
+};
+
 const resetCurrentSectionToBaseline = () => {
     if (!settingsUiState.activeSectionKey) {
         setActionBarStatus('Select a section first.');
@@ -1640,7 +1678,7 @@ const initSettingsControls = () => {
         void saveActionBarChanges(true);
     });
     $('#fv-action-cancel').off('click.fvui').on('click.fvui', () => {
-        location.reload();
+        cancelActionBarChanges();
     });
     $('#fv-action-reset-section').off('click.fvui').on('click.fvui', () => {
         resetCurrentSectionToBaseline();

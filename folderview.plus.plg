@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.11.08">
-<!ENTITY md5 "7e53bedd50ce318ade6cdd4e77b8308d">
+<!ENTITY version "2026.03.11.09">
+<!ENTITY md5 "e282c12c363398d16f14341ab2a8f9b0">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.11.09
+- Fix: action-dock unsaved tracking now ignores instant-persist and transient controls to prevent false save/cancel prompts.
+- Fix: Cancel now reverts staged unsaved fields instead of forcing a full page reload.
+- Quality: added regression coverage for action-dock tracking and cancel binding.
+
 
 ###2026.03.11.08
 - Feature: Overhauled Docker folder health to v2 scoring with explainable reason codes and policy-aware thresholds.

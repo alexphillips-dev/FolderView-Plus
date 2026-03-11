@@ -19,6 +19,7 @@ chmod +x \
   scripts/i18n_guard.sh \
   scripts/lang_usage_guard.sh \
   scripts/theme_scope_guard.sh \
+  scripts/perf_baseline_refresh.sh \
   scripts/perf_budget_guard.sh \
   scripts/repro_build_guard.sh \
   scripts/unraid_matrix_smoke.sh \
@@ -43,6 +44,7 @@ bash scripts/legacy_support_guard.sh
 bash scripts/i18n_guard.sh
 FVPLUS_I18N_STRICT=1 bash scripts/lang_usage_guard.sh
 bash scripts/theme_scope_guard.sh
+bash scripts/perf_baseline_refresh.sh
 FVPLUS_REQUIRE_PERF_BASELINE=1 bash scripts/perf_budget_guard.sh
 bash scripts/repro_build_guard.sh
 FVPLUS_UNRAID_MATRIX_REQUIRED="${FVPLUS_UNRAID_MATRIX_REQUIRED:-0}" bash scripts/unraid_matrix_smoke.sh

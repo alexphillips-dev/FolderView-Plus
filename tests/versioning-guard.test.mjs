@@ -235,6 +235,8 @@ test('ensure changes entry seeds category-signaling release note text', () => {
     assert.match(ensureChanges, /source "\$\{ROOT_DIR\}\/scripts\/lib\.sh"/);
     assert.match(ensureChanges, /VERSION="\$\(fvplus::read_plg_version "\$\{PLG_FILE\}"\)"/);
     assert.match(ensureChanges, /guess_category_from_subject/);
+    assert.match(ensureChanges, /log --no-merges --format=%H -S "###\$\{previous_version\}" -- "\$\{PLG_FILE\}"/);
+    assert.match(ensureChanges, /range="\$\{anchor_ref\}\.\.HEAD"/);
     assert.match(ensureChanges, /Maintenance: release metadata and packaging sync/);
 });
 

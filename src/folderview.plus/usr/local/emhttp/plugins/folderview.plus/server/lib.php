@@ -957,6 +957,80 @@
         ];
     }
 
+    function extractChangesEntries(string $content): array {
+        if (!preg_match_all('/^###\s*([0-9][0-9A-Za-z._-]*)\s*$(.*?)(?=^###|\z)/ms', $content, $matches, PREG_SET_ORDER)) {
+            return [];
+        }
+        $entries = [];
+        foreach ($matches as $match) {
+            $version = trim((string)($match[1] ?? ''));
+            if ($version === '') {
+                continue;
+            }
+            $block = trim((string)($match[2] ?? ''));
+            $entries[] = [
+                'version' => $version,
+                'lines' => normalizeChangesBlockLines($block)
+            ];
+        }
+        return $entries;
+    }
+
+    function extractPreviousChangesEntry(string $content, string $version): array {
+        $targetVersion = trim($version);
+        if ($targetVersion === '') {
+            return [];
+        }
+        $entries = extractChangesEntries($content);
+        $entryCount = count($entries);
+        if ($entryCount === 0) {
+            return [];
+        }
+        for ($index = 0; $index < $entryCount; $index += 1) {
+            $entryVersion = trim((string)($entries[$index]['version'] ?? ''));
+            if ($entryVersion !== $targetVersion) {
+                continue;
+            }
+            if (($index + 1) >= $entryCount) {
+                return [];
+            }
+            return (array)$entries[$index + 1];
+        }
+        return [];
+    }
+
+    function buildUniqueCurrentChangesLines(array $currentLines, array $previousLines): array {
+        if (count($currentLines) === 0 || count($previousLines) === 0) {
+            return $currentLines;
+        }
+        $previousLookup = [];
+        foreach ($previousLines as $line) {
+            $normalized = trim((string)$line);
+            if ($normalized === '') {
+                continue;
+            }
+            $previousLookup[$normalized] = true;
+        }
+        if (count($previousLookup) === 0) {
+            return $currentLines;
+        }
+        $unique = [];
+        foreach ($currentLines as $line) {
+            $normalized = trim((string)$line);
+            if ($normalized === '') {
+                continue;
+            }
+            if (isset($previousLookup[$normalized])) {
+                continue;
+            }
+            $unique[] = $normalized;
+        }
+        if (count($unique) === 0) {
+            return $currentLines;
+        }
+        return $unique;
+    }
+
     function readChangesSummaryForVersion(string $version, int $maxLines = 14): array {
         $requestedVersion = trim($version);
         if ($requestedVersion === '') {
@@ -972,10 +1046,13 @@
             $content = str_replace(["\r\n", "\r"], "\n", $raw);
             $matchedLines = extractChangesBlockForVersion($content, $requestedVersion);
             if (count($matchedLines) > 0) {
+                $displayLines = $matchedLines;
+                $previousEntry = extractPreviousChangesEntry($content, $requestedVersion);
+                $displayLines = buildUniqueCurrentChangesLines($displayLines, (array)($previousEntry['lines'] ?? []));
                 return [
                     'version' => $requestedVersion,
                     'sourceVersion' => $requestedVersion,
-                    'lines' => applyChangesLineLimit($matchedLines, $maxLines),
+                    'lines' => applyChangesLineLimit($displayLines, $maxLines),
                     'usedFallback' => false,
                     'manifestPath' => $manifestPath
                 ];

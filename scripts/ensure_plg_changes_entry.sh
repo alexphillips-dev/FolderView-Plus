@@ -84,11 +84,17 @@ build_auto_notes() {
   local -a subjects=()
   local -a notes=()
   local note
+  local anchor_ref=""
+  local range=""
 
   if command -v git >/dev/null 2>&1 && git -C "${ROOT_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    local range=""
     if [[ -n "${previous_version}" ]] && git -C "${ROOT_DIR}" rev-parse -q --verify "refs/tags/v${previous_version}^{tag}" >/dev/null 2>&1; then
-      range="v${previous_version}..HEAD"
+      anchor_ref="v${previous_version}"
+    elif [[ -n "${previous_version}" ]]; then
+      anchor_ref="$(git -C "${ROOT_DIR}" log --no-merges --format=%H -S "###${previous_version}" -- "${PLG_FILE}" | head -n 1 || true)"
+    fi
+    if [[ -n "${anchor_ref}" ]]; then
+      range="${anchor_ref}..HEAD"
     fi
     if [[ -n "${range}" ]]; then
       mapfile -t subjects < <(git -C "${ROOT_DIR}" log --no-merges --pretty=%s "${range}" | sed '/^[[:space:]]*$/d' | head -n "${MAX_AUTO_LINES}")

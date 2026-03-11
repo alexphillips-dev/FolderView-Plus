@@ -98,6 +98,8 @@ test('release_guard enforces explicit changelog category contract for current ve
     assert.match(releaseGuard, /CURRENT_CHANGES_CATEGORIES/);
     assert.match(releaseGuard, /must include at least one category-formatted bullet/);
     assert.match(releaseGuard, /is_allowed_changes_category/);
+    assert.match(releaseGuard, /is_metadata_only_changes_line/);
+    assert.match(releaseGuard, /contains only release-metadata boilerplate notes/);
     assert.match(releaseGuard, /Allowed categories: Feature, Fix, Security, Performance, UX, UI\/UX, Maintenance, Docs, Test, Quality, Regression guard, Compatibility, Refactor/);
 });
 
@@ -235,6 +237,9 @@ test('ensure changes entry seeds category-signaling release note text', () => {
     assert.match(ensureChanges, /source "\$\{ROOT_DIR\}\/scripts\/lib\.sh"/);
     assert.match(ensureChanges, /VERSION="\$\(fvplus::read_plg_version "\$\{PLG_FILE\}"\)"/);
     assert.match(ensureChanges, /guess_category_from_subject/);
+    assert.match(ensureChanges, /is_subject_metadata_only/);
+    assert.match(ensureChanges, /build_diff_based_notes/);
+    assert.match(ensureChanges, /git -C "\$\{ROOT_DIR\}" diff --name-only --relative HEAD -- \./);
     assert.match(ensureChanges, /log --no-merges --format=%H -S "###\$\{previous_version\}" -- "\$\{PLG_FILE\}"/);
     assert.match(ensureChanges, /range="\$\{anchor_ref\}\.\.HEAD"/);
     assert.match(ensureChanges, /Maintenance: release metadata and packaging sync/);

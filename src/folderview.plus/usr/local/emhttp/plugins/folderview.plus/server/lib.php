@@ -918,6 +918,35 @@
         return $lines;
     }
 
+    function isChangesBoilerplateLine(string $line): bool {
+        $lowered = strtolower(trim($line));
+        if ($lowered === '') {
+            return false;
+        }
+        return $lowered === 'maintenance: release metadata and packaging sync.'
+            || $lowered === 'maintenance: release metadata and packaging sync'
+            || $lowered === 'maintenance: automated release metadata update.'
+            || $lowered === 'maintenance: automated release metadata update';
+    }
+
+    function filterBoilerplateChangesLines(array $lines): array {
+        if (count($lines) <= 1) {
+            return $lines;
+        }
+        $filtered = [];
+        foreach ($lines as $line) {
+            $trimmed = trim((string)$line);
+            if ($trimmed === '') {
+                continue;
+            }
+            if (isChangesBoilerplateLine($trimmed)) {
+                continue;
+            }
+            $filtered[] = $trimmed;
+        }
+        return count($filtered) > 0 ? $filtered : $lines;
+    }
+
     function applyChangesLineLimit(array $lines, int $maxLines): array {
         if ($maxLines > 0 && count($lines) > $maxLines) {
             $lines = array_slice($lines, 0, $maxLines);
@@ -1049,6 +1078,7 @@
                 $displayLines = $matchedLines;
                 $previousEntry = extractPreviousChangesEntry($content, $requestedVersion);
                 $displayLines = buildUniqueCurrentChangesLines($displayLines, (array)($previousEntry['lines'] ?? []));
+                $displayLines = filterBoilerplateChangesLines($displayLines);
                 return [
                     'version' => $requestedVersion,
                     'sourceVersion' => $requestedVersion,
@@ -1067,10 +1097,11 @@
         }
 
         if (count($latestFallback) > 0 && count($latestFallback['lines'] ?? []) > 0) {
+            $latestLines = filterBoilerplateChangesLines((array)($latestFallback['lines'] ?? []));
             return [
                 'version' => $requestedVersion,
                 'sourceVersion' => (string)($latestFallback['sourceVersion'] ?? ''),
-                'lines' => applyChangesLineLimit((array)($latestFallback['lines'] ?? []), $maxLines),
+                'lines' => applyChangesLineLimit($latestLines, $maxLines),
                 'usedFallback' => true,
                 'manifestPath' => (string)($latestFallback['manifestPath'] ?? '')
             ];
@@ -1111,7 +1142,7 @@
             'security' => ['security', 'harden', 'token', 'guard', 'sanitize', 'xss', 'csrf', 'permission', 'auth'],
             'performance' => ['performance', 'optimiz', 'faster', 'cache', 'latency', 'speed', 'efficient'],
             'ui' => ['ui', 'ux', 'layout', 'style', 'responsive', 'mobile', 'visual', 'usability', 'alignment'],
-            'maintenance' => ['test', 'docs', 'documentation', 'cleanup', 'refactor', 'lint', 'guardrail', 'quality']
+            'maintenance' => ['maintenance', 'release', 'metadata', 'packaging', 'sync', 'build', 'ci', 'test', 'docs', 'documentation', 'cleanup', 'refactor', 'lint', 'guardrail', 'quality']
         ];
 
         foreach ($keywords as $category => $terms) {

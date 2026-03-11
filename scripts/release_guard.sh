@@ -447,6 +447,15 @@ is_allowed_changes_category() {
   esac
 }
 
+is_metadata_only_changes_line() {
+  local line="${1:-}"
+  local lowered
+  lowered="$(printf '%s' "${line}" | tr '[:upper:]' '[:lower:]')"
+  [[ "${lowered}" == *"maintenance: release metadata and packaging sync"* ]] && return 0
+  [[ "${lowered}" == *"maintenance: automated release metadata update"* ]] && return 0
+  return 1
+}
+
 mapfile -t CURRENT_CHANGES_CATEGORIES < <(printf '%s\n' "${CURRENT_CHANGES_LINES}" | sed -n 's/^[[:space:]]*-[[:space:]]*\([^:][^:]*\):.*/\1/p')
 if [[ ${#CURRENT_CHANGES_CATEGORIES[@]} -eq 0 ]]; then
   echo "ERROR: CHANGES entry for ${VERSION} must include at least one category-formatted bullet (for example: '- Feature: ...')." >&2
@@ -468,6 +477,22 @@ if [[ ${#INVALID_CHANGE_CATEGORIES[@]} -gt 0 ]]; then
   unique_invalid="$(printf '%s\n' "${INVALID_CHANGE_CATEGORIES[@]}" | sort -u | awk 'BEGIN{first=1} {if (!first) {printf ", "} printf "%s", $0; first=0}')"
   echo "ERROR: CHANGES entry for ${VERSION} contains unsupported category tag(s): ${unique_invalid}" >&2
   echo "Allowed categories: Feature, Fix, Security, Performance, UX, UI/UX, Maintenance, Docs, Test, Quality, Regression guard, Compatibility, Refactor." >&2
+  exit 1
+fi
+
+HAS_NON_METADATA_CHANGE_LINE=0
+while IFS= read -r raw_line; do
+  [[ -z "${raw_line}" ]] && continue
+  if is_metadata_only_changes_line "${raw_line}"; then
+    continue
+  fi
+  HAS_NON_METADATA_CHANGE_LINE=1
+  break
+done <<< "${CURRENT_CHANGES_LINES}"
+
+if [[ ${HAS_NON_METADATA_CHANGE_LINE} -ne 1 ]]; then
+  echo "ERROR: CHANGES entry for ${VERSION} contains only release-metadata boilerplate notes." >&2
+  echo "Add at least one user-facing categorized bullet (for example: '- Fix: ...' or '- UX: ...')." >&2
   exit 1
 fi
 

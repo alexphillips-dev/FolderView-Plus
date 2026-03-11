@@ -16,7 +16,11 @@ test('update-notes backend provides fallback-aware categorized summary', () => {
     assert.match(libPhp, /function readChangesSummaryForVersion\s*\(/);
     assert.match(libPhp, /function extractPreviousChangesEntry\s*\(/);
     assert.match(libPhp, /function buildUniqueCurrentChangesLines\s*\(/);
+    assert.match(libPhp, /function filterBoilerplateChangesLines\s*\(/);
+    assert.match(libPhp, /function isChangesBoilerplateLine\s*\(/);
+    assert.match(libPhp, /filterBoilerplateChangesLines\(\$displayLines\)/);
     assert.match(libPhp, /buildUniqueCurrentChangesLines\(\$displayLines,\s*\(array\)\(\$previousEntry\['lines'\]/);
+    assert.match(libPhp, /'maintenance'\s*=>\s*\[[^\]]*'release'[^\]]*'metadata'[^\]]*'packaging'[^\]]*'sync'/);
     assert.match(libPhp, /function classifyChangesCategory\s*\(/);
     assert.match(libPhp, /function readCurrentVersionChangeSummary\s*\(/);
     assert.match(updateNotesPhp, /'category'\s*=>\s*\(string\)\(\$summary\['category'\]/);

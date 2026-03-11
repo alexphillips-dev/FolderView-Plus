@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PLG_FILE="${ROOT_DIR}/folderview.plus.plg"
 MAX_AUTO_LINES="${FVPLUS_AUTO_CHANGE_LINES:-6}"
+AUTO_METADATA_NOTE='Maintenance: release metadata and packaging sync.'
 # shellcheck source=scripts/lib.sh
 source "${ROOT_DIR}/scripts/lib.sh"
 
@@ -79,6 +80,85 @@ format_change_line() {
   fi
 }
 
+is_subject_metadata_only() {
+  local subject="${1:-}"
+  local lowered
+  lowered="$(printf '%s' "${subject}" | tr '[:upper:]' '[:lower:]')"
+  [[ "${lowered}" == *"release metadata and packaging sync"* ]] && return 0
+  [[ "${lowered}" == *"automated release metadata update"* ]] && return 0
+  [[ "${lowered}" == *"metadata update"* ]] && return 0
+  [[ "${lowered}" == *"packaging sync"* ]] && return 0
+  return 1
+}
+
+build_diff_based_notes() {
+  local -a changed_files=()
+  local -a notes=()
+  local has_ui=0
+  local has_backend=0
+  local has_quality=0
+  local has_docs=0
+
+  if ! command -v git >/dev/null 2>&1 || ! git -C "${ROOT_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    return
+  fi
+
+  mapfile -t changed_files < <(
+    {
+      git -C "${ROOT_DIR}" diff --name-only --relative HEAD -- .
+      git -C "${ROOT_DIR}" ls-files --others --exclude-standard
+    } | sed '/^[[:space:]]*$/d' | sort -u
+  )
+
+  if [[ ${#changed_files[@]} -eq 0 ]]; then
+    return
+  fi
+
+  for changed in "${changed_files[@]}"; do
+    case "${changed}" in
+      src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/*|\
+      src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/*.page|\
+      src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/*.js)
+        has_ui=1
+        ;;
+    esac
+    case "${changed}" in
+      src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/*)
+        has_backend=1
+        ;;
+    esac
+    case "${changed}" in
+      tests/*|scripts/*|.github/workflows/*|.githooks/*)
+        has_quality=1
+        ;;
+    esac
+    case "${changed}" in
+      README.md|CHANGELOG-fixes.md|SECURITY.md|SUPPORT.md|CONTRIBUTING.md)
+        has_docs=1
+        ;;
+    esac
+  done
+
+  if (( has_ui )); then
+    notes+=("- UX: Refined settings and on-screen update messaging for clarity and consistency.")
+  fi
+  if (( has_backend )); then
+    notes+=("- Fix: Improved backend release-note parsing and category detection for accurate summaries.")
+  fi
+  if (( has_quality )); then
+    notes+=("- Quality: Strengthened release automation and regression guards to prevent note drift.")
+  fi
+  if (( has_docs )); then
+    notes+=("- Docs: Updated project documentation to match the latest behavior.")
+  fi
+
+  if [[ ${#notes[@]} -eq 0 ]]; then
+    return
+  fi
+
+  printf '%s\n' "${notes[@]}" | head -n "${MAX_AUTO_LINES}"
+}
+
 build_auto_notes() {
   local previous_version="${1:-}"
   local -a subjects=()
@@ -104,7 +184,12 @@ build_auto_notes() {
   fi
 
   if [[ ${#subjects[@]} -eq 0 ]]; then
-    printf -- '- Maintenance: release metadata and packaging sync.\n'
+    mapfile -t notes < <(build_diff_based_notes || true)
+    if [[ ${#notes[@]} -eq 0 ]]; then
+      printf -- '- %s\n' "${AUTO_METADATA_NOTE}"
+    else
+      printf '%s\n' "${notes[@]}"
+    fi
     return
   fi
 
@@ -115,6 +200,9 @@ build_auto_notes() {
     if [[ -z "${normalized}" ]]; then
       continue
     fi
+    if is_subject_metadata_only "${normalized}"; then
+      continue
+    fi
     category="$(guess_category_from_subject "${normalized}")"
     note="$(format_change_line "${category}" "${normalized}")"
     if [[ -n "${note}" ]]; then
@@ -123,7 +211,11 @@ build_auto_notes() {
   done
 
   if [[ ${#notes[@]} -eq 0 ]]; then
-    printf -- '- Maintenance: release metadata and packaging sync.\n'
+    mapfile -t notes < <(build_diff_based_notes || true)
+  fi
+
+  if [[ ${#notes[@]} -eq 0 ]]; then
+    printf -- '- %s\n' "${AUTO_METADATA_NOTE}"
     return
   fi
 
@@ -141,7 +233,7 @@ PREVIOUS_VERSION="$(awk '
 
 AUTO_NOTES="$(build_auto_notes "${PREVIOUS_VERSION}")"
 if [[ -z "${AUTO_NOTES}" ]]; then
-  AUTO_NOTES='- Maintenance: release metadata and packaging sync.'
+  AUTO_NOTES="- ${AUTO_METADATA_NOTE}"
 fi
 
 TMP_FILE="$(mktemp)"

@@ -219,6 +219,61 @@ const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs) => {
     });
 };
 
+const buildFolderHierarchy = (folders) => {
+    const source = folders && typeof folders === 'object' ? folders : {};
+    const ids = Object.keys(source);
+    const idSet = new Set(ids);
+    const parentById = {};
+    const childrenById = {};
+    ids.forEach((id) => {
+        childrenById[id] = [];
+    });
+    for (const id of ids) {
+        const rawParent = normalizeFolderParentId(source[id]?.parentId || source[id]?.parent_id || '');
+        const parentId = (rawParent && rawParent !== id && idSet.has(rawParent)) ? rawParent : '';
+        parentById[id] = parentId;
+        if (parentId) {
+            childrenById[parentId].push(id);
+        }
+    }
+    return { ids, parentById, childrenById };
+};
+
+const getFolderChildren = (folderId) => {
+    const map = dockerFolderHierarchy?.childrenById || {};
+    return Array.isArray(map[folderId]) ? map[folderId] : [];
+};
+
+const getFolderDescendants = (folderId) => {
+    const result = [];
+    const queue = [...getFolderChildren(folderId)];
+    const seen = new Set();
+    while (queue.length) {
+        const current = queue.shift();
+        if (!current || seen.has(current)) {
+            continue;
+        }
+        seen.add(current);
+        result.push(current);
+        queue.push(...getFolderChildren(current));
+    }
+    return result;
+};
+
+const folderHasChildren = (folderId) => getFolderChildren(folderId).length > 0;
+
+const getFolderRuntimeContainers = (folder) => {
+    if (!folder || typeof folder !== 'object') {
+        return {};
+    }
+    const runtime = folder.runtimeContainers;
+    if (runtime && typeof runtime === 'object' && Object.keys(runtime).length > 0) {
+        return runtime;
+    }
+    const containers = folder.containers;
+    return (containers && typeof containers === 'object') ? containers : {};
+};
+
 const parseJsonPayloadSafe = (payload) => {
     if (payload && typeof payload === 'object') {
         return payload;
@@ -464,6 +519,7 @@ const createFolders = async () => {
     try {
     showDockerRuntimeLoadingRow();
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Entry');
+    const previousFolders = (globalFolders && typeof globalFolders === 'object') ? globalFolders : {};
     dockerPerf.begin('createFolders.requests');
     const prom = await Promise.all(folderReq);
     dockerPerf.end('createFolders.requests', { requestCount: Array.isArray(folderReq) ? folderReq.length : 0 });
@@ -632,16 +688,6 @@ const createFolders = async () => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Finished loop for remaining folders.');
     dockerPerf.end('createFolders.renderRemaining', { remainingCount: Object.keys(folders).length });
 
-    // Expand folders that are set to be expanded by default, this is here because is easier to work with all compressed folder when creating them
-    if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Expanding folders set to expand by default.');
-    for (const [id, value] of Object.entries(foldersDone)) {
-        if ((globalFolders[id] && globalFolders[id].status.expanded) || value.settings.expand_tab) {
-            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Expanding folder ${id} by default.`);
-            value.status.expanded = true;
-            dropDownButton(id);
-        }
-    }
-
     try { $('#docker_list').sortable('refresh'); } catch(e) {}
 
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Dispatching docker-post-folders-creation event.');
@@ -651,8 +697,25 @@ const createFolders = async () => {
         containersInfo: containersInfo
     }}));
 
-    // Assing the folder done to the global object
+    // Assign the folder done to the global object
     globalFolders = foldersDone;
+    dockerFolderHierarchy = buildFolderHierarchy(globalFolders);
+    applyNestedFolderHierarchy();
+
+    // Expand folders that are set to be expanded by default.
+    if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Expanding folders set to expand by default.');
+    for (const [id, value] of Object.entries(foldersDone)) {
+        const parentId = normalizeFolderParentId(value?.parentId || value?.parent_id || '');
+        if (parentId) {
+            continue;
+        }
+        if ((previousFolders[id] && previousFolders[id].status && previousFolders[id].status.expanded === true) || value.settings.expand_tab) {
+            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Expanding folder ${id} by default.`);
+            value.status.expanded = true;
+            dropDownButton(id);
+        }
+    }
+
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Assigned foldersDone to globalFolders:', {...globalFolders});
     renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
 
@@ -1348,8 +1411,11 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
 
             newFolder[container_name_in_folder] = {
                 id: ct.shortId,
+                name: ct.info.Name || container_name_in_folder,
+                icon: ct.Labels?.['net.unraid.docker.icon'] || '/plugins/dynamix.docker.manager/images/question.png',
                 pause: ct.info.State.Paused,
                 state: ct.info.State.Running,
+                autostart: !(ct.info.State.Autostart === false),
                 update: ct.info.State.Updated === false && ct.info.State.manager === 'dockerman',
                 managed: ct.info.State.manager === 'dockerman',
                 manager: ct.info.State.manager
@@ -1603,6 +1669,203 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     }
 };
 
+const forceCollapseFolderRow = (id, syncStatus = true) => {
+    const element = $(`.dropDown-${id}`);
+    if (element.length) {
+        element.children().removeClass('fa-chevron-up').addClass('fa-chevron-down');
+        element.attr('active', 'false');
+    }
+    const $folderRow = $(`tr.folder-id-${id}`);
+    $folderRow.addClass('sortable');
+    $folderRow.find('.folder-storage').append($(`.folder-${id}-element`));
+    $(`.folder-${id}-element`).addClass('fv-nested-hidden').hide();
+    if (syncStatus && globalFolders[id] && globalFolders[id].status) {
+        globalFolders[id].status.expanded = false;
+    }
+};
+
+const buildRuntimeContainerMapForFolder = (folderId, includeDescendants = false) => {
+    const collected = {};
+    const targetIds = includeDescendants ? [folderId, ...getFolderDescendants(folderId)] : [folderId];
+    for (const targetId of targetIds) {
+        const folder = globalFolders[targetId];
+        if (!folder || !folder.containers || typeof folder.containers !== 'object') {
+            continue;
+        }
+        for (const [name, meta] of Object.entries(folder.containers)) {
+            const key = String(name || '').trim();
+            if (!key || Object.prototype.hasOwnProperty.call(collected, key)) {
+                continue;
+            }
+            const source = meta && typeof meta === 'object' ? meta : {};
+            collected[key] = {
+                ...source,
+                name: source.name || key,
+                icon: source.icon || '/plugins/dynamix.docker.manager/images/question.png',
+                autostart: source.autostart === true
+            };
+        }
+    }
+    return collected;
+};
+
+const updateFolderRowStatusFromContainers = (id, folder, runtimeContainers) => {
+    if (!folder || typeof folder !== 'object') {
+        return;
+    }
+    const containerEntries = Object.values(runtimeContainers || {});
+    let upToDate = true;
+    let started = 0;
+    let paused = 0;
+    let stopped = 0;
+    let autostart = 0;
+    let autostartStarted = 0;
+    let managed = 0;
+    const managerTypes = new Set();
+
+    for (const entry of containerEntries) {
+        const state = entry?.state === true;
+        const isPaused = entry?.pause === true;
+        const isManaged = entry?.managed === true;
+        const hasUpdate = entry?.update === true;
+        const manager = String(entry?.manager || '').trim();
+        const isAutostart = entry?.autostart === true;
+
+        upToDate = upToDate && !hasUpdate;
+        if (state) {
+            if (isPaused) {
+                paused += 1;
+            } else {
+                started += 1;
+            }
+        } else {
+            stopped += 1;
+        }
+        if (isAutostart) {
+            autostart += 1;
+            if (state) {
+                autostartStarted += 1;
+            }
+        }
+        if (isManaged) {
+            managed += 1;
+        }
+        if (manager) {
+            managerTypes.add(manager);
+        }
+    }
+
+    const total = containerEntries.length;
+    const statusColors = typeof utils.getFolderStatusColors === 'function'
+        ? utils.getFolderStatusColors(folder.settings)
+        : localDefaultFolderStatusColors;
+    const $folderIcon = $(`tr.folder-id-${id} i#load-folder-${id}`);
+    const $folderState = $(`tr.folder-id-${id} span.folder-state`);
+    $folderState.removeClass('fv-folder-state-started fv-folder-state-paused fv-folder-state-stopped');
+    $folderState.css('color', '');
+    $folderIcon.show().css('color', '');
+    if (started > 0) {
+        $folderIcon.attr('class', 'fa fa-play started folder-load-status').css('color', statusColors.started);
+        $folderState.text(`${started}/${total} ${$.i18n('started')}`).addClass('fv-folder-state-started').css('color', statusColors.started);
+    } else if (paused > 0) {
+        $folderIcon.attr('class', 'fa fa-pause paused folder-load-status').css('color', statusColors.paused);
+        $folderState.text(`${paused}/${total} ${$.i18n('paused')}`).addClass('fv-folder-state-paused').css('color', statusColors.paused);
+    } else {
+        $folderIcon.attr('class', 'fa fa-square stopped folder-load-status').css('color', statusColors.stopped);
+        $folderState.text(`${stopped}/${total} ${$.i18n('stopped')}`).addClass('fv-folder-state-stopped').css('color', statusColors.stopped);
+    }
+
+    const expanded = folder?.status?.expanded === true;
+    folder.status = { upToDate, started, paused, stopped, autostart, autostartStarted, managed, managerTypes: Array.from(managerTypes), expanded };
+};
+
+const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
+    const $preview = $(`tr.folder-id-${id} div.folder-preview`);
+    if (!$preview.length) {
+        return;
+    }
+    const previewMode = Number(folder?.settings?.preview || 0);
+    if (previewMode <= 0) {
+        $preview.empty();
+        return;
+    }
+    const entries = Object.values(runtimeContainers || {});
+    $preview.empty();
+    for (const entry of entries) {
+        const safeName = escapeHtml(entry?.name || '');
+        const safeIcon = sanitizeImageSrc(entry?.icon || '/plugins/dynamix.docker.manager/images/question.png');
+        const isRunning = entry?.state === true;
+        const isPaused = entry?.pause === true;
+        const iconClass = isRunning ? (isPaused ? 'fa-pause paused orange-text' : 'fa-play started green-text') : 'fa-square stopped red-text';
+        const stateLabel = isRunning ? (isPaused ? $.i18n('paused') : $.i18n('started')) : $.i18n('stopped');
+        const item = $(`
+            <span class="outer fv-nested-preview-item ${entry?.autostart === true ? 'autostart' : ''}">
+                <span class="hand"><img src="${safeIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span>
+                <span class="inner">
+                    <span class="appname"><a>${safeName}</a></span><br>
+                    <i class="fa ${iconClass}"></i><span class="state"> ${stateLabel}</span>
+                </span>
+            </span>
+        `);
+        $preview.append(item);
+    }
+    $preview.children('span').wrap('<div class="folder-preview-wrapper"></div>');
+    if (folder?.settings?.preview_vertical_bars) {
+        const barsColor = folder.settings.preview_vertical_bars_color || folder.settings.preview_border_color || '';
+        $preview.find('div.folder-preview-wrapper').after(`<div class="folder-preview-divider" ${barsColor ? `style="border-color: ${barsColor};"` : ''}></div>`);
+    }
+    $preview.find('span.inner > span.appname').css('width', folder?.settings?.preview_text_width || '');
+};
+
+const hideNestedDescendants = (id) => {
+    for (const descendantId of getFolderDescendants(id)) {
+        forceCollapseFolderRow(descendantId, true);
+        $(`tr.folder-id-${descendantId}`).addClass('fv-nested-hidden').hide();
+    }
+};
+
+const showDirectNestedChildren = (id) => {
+    for (const childId of getFolderChildren(id)) {
+        forceCollapseFolderRow(childId, false);
+        $(`tr.folder-id-${childId}`).removeClass('fv-nested-hidden').show();
+    }
+};
+
+const applyNestedFolderHierarchy = () => {
+    dockerFolderHierarchy = buildFolderHierarchy(globalFolders);
+    const allIds = dockerFolderHierarchy?.ids || [];
+    const parentById = dockerFolderHierarchy?.parentById || {};
+
+    for (const id of allIds) {
+        const parentId = parentById[id] || '';
+        const $row = $(`tr.folder-id-${id}`);
+        $row.attr('data-folder-parent', parentId);
+        $row.toggleClass('fv-folder-is-child', !!parentId);
+        $row.toggleClass('fv-folder-has-children', folderHasChildren(id));
+        if (parentId) {
+            forceCollapseFolderRow(id, false);
+            $row.addClass('fv-nested-hidden').hide();
+        } else {
+            $row.removeClass('fv-nested-hidden').show();
+        }
+    }
+
+    for (const id of allIds) {
+        if (!folderHasChildren(id)) {
+            if (globalFolders[id]) {
+                delete globalFolders[id].runtimeContainers;
+            }
+            continue;
+        }
+        const runtimeContainers = buildRuntimeContainerMapForFolder(id, true);
+        if (globalFolders[id]) {
+            globalFolders[id].runtimeContainers = runtimeContainers;
+            updateFolderRowStatusFromContainers(id, globalFolders[id], runtimeContainers);
+            renderNestedAggregatePreview(id, globalFolders[id], runtimeContainers);
+        }
+    }
+};
+
 /**
  * Function to hide all tooltips
  */
@@ -1672,20 +1935,33 @@ const dropDownButton = (id) => {
     folderEvents.dispatchEvent(new CustomEvent('docker-pre-folder-expansion', {detail: { id }}));
     const element = $(`.dropDown-${id}`);
     const state = element.attr('active') === "true";
+    const hasChildren = folderHasChildren(id);
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Current state (active attribute): ${state}.`);
     if (state) { // Is expanded, so collapse
         element.children().removeClass('fa-chevron-up').addClass('fa-chevron-down');
+        if (hasChildren) {
+            hideNestedDescendants(id);
+        }
         $(`tr.folder-id-${id}`).addClass('sortable');
         $(`tr.folder-id-${id} .folder-storage`).append($(`.folder-${id}-element`));
+        $(`.folder-${id}-element`).addClass('fv-nested-hidden').hide();
         element.attr('active', 'false');
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Collapsed folder. Moved elements to storage.`);
     } else { // Is collapsed, so expand
         element.children().removeClass('fa-chevron-down').addClass('fa-chevron-up');
         $(`tr.folder-id-${id}`).removeClass('sortable').removeClass('ui-sortable-handle').off().css('cursor', '');
-        $(`tr.folder-id-${id}`).after($(`.folder-${id}-element`));
-        $(`.folder-${id}-element > td > i.fa-arrows-v`).remove(); // Remove mover icon from children when expanded
+        if (hasChildren) {
+            $(`tr.folder-id-${id} .folder-storage`).append($(`.folder-${id}-element`));
+            $(`.folder-${id}-element`).addClass('fv-nested-hidden').hide();
+            showDirectNestedChildren(id);
+            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Expanded parent folder. Showing nested children only.`);
+        } else {
+            $(`tr.folder-id-${id}`).after($(`.folder-${id}-element`));
+            $(`.folder-${id}-element`).removeClass('fv-nested-hidden').show();
+            $(`.folder-${id}-element > td > i.fa-arrows-v`).remove(); // Remove mover icon from children when expanded
+            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Expanded leaf folder. Moved elements after folder row.`);
+        }
         element.attr('active', 'true');
-        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Expanded folder. Moved elements after folder row.`);
     }
     if(globalFolders[id]) {
         globalFolders[id].status.expanded = !state;
@@ -1744,7 +2020,8 @@ const forceUpdateFolder = (id) => {
     hideAllTips();
     const folder = globalFolders[id];
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] forceUpdateFolder (id: ${id}): Folder data:`, {...folder});
-    const containersToUpdate = Object.entries(folder.containers).filter(([k, v]) => v.managed).map(e => e[0]).join('*');
+    const containersMap = getFolderRuntimeContainers(folder);
+    const containersToUpdate = Object.entries(containersMap).filter(([, v]) => v.managed).map((e) => e[0]).join('*');
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] forceUpdateFolder (id: ${id}): Containers to force update: ${containersToUpdate}. Calling openDocker.`);
     openDocker('update_container ' + containersToUpdate, $.i18n('updating', folder.name),'','loadlist');
 };
@@ -1758,7 +2035,8 @@ const updateFolder = (id) => {
     hideAllTips();
     const folder = globalFolders[id];
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] updateFolder (id: ${id}): Folder data:`, {...folder});
-    const containersToUpdate = Object.entries(folder.containers).filter(([k, v]) => v.managed && v.update).map(e => e[0]).join('*');
+    const containersMap = getFolderRuntimeContainers(folder);
+    const containersToUpdate = Object.entries(containersMap).filter(([, v]) => v.managed && v.update).map((e) => e[0]).join('*');
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] updateFolder (id: ${id}): Containers to update (ready): ${containersToUpdate}. Calling openDocker.`);
     openDocker('update_container ' + containersToUpdate, $.i18n('updating', folder.name),'','loadlist');
 };
@@ -1771,12 +2049,13 @@ const updateFolder = (id) => {
 const actionFolder = async (id, action) => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] actionFolder (id: ${id}, action: ${action}): Entry.`);
     const folder = globalFolders[id];
-    if (!folder || !folder.containers) {
+    const containersMap = getFolderRuntimeContainers(folder);
+    if (!folder || !containersMap || Object.keys(containersMap).length === 0) {
         if (FOLDER_VIEW_DEBUG_MODE) console.error(`[FV3_DEBUG] actionFolder (id: ${id}): Folder or folder.containers not found in globalFolders.`);
         $('div.spinner.fixed').hide('slow');
         return;
     }
-    const cts = Object.keys(folder.containers);
+    const cts = Object.keys(containersMap);
     let proms = [];
     let errors;
 
@@ -1787,7 +2066,7 @@ const actionFolder = async (id, action) => {
 
     for (let index = 0; index < cts.length; index++) {
         const containerName = cts[index];
-        const ct = folder.containers[containerName];
+        const ct = containersMap[containerName];
         if (!ct) {
             if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] actionFolder (id: ${id}): Container data for '${containerName}' not found in folder.containers.`);
             continue;
@@ -1870,8 +2149,9 @@ const folderCustomAction = async (id, actionIndex) => {
 
     if(act.type === 0) { // Standard Docker action
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Action type 0 (Standard Docker).`);
-        // act.conatiners is an array of names. Need to map to folder.containers[name]
-        const cts = act.conatiners.map(name => folder.containers[name]).filter(e => e);
+        const containersMap = getFolderRuntimeContainers(folder);
+        // act.conatiners is an array of names. Need to map to folder containers by name.
+        const cts = act.conatiners.map((name) => containersMap[name]).filter((e) => e);
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Targeted containers data:`, [...cts]);
 
         let ctAction = (e) => {}; // Placeholder
@@ -2285,6 +2565,7 @@ const bToMem = (b) => {
 let cpus = 1;
 let loadedFolder = false;
 let globalFolders = {};
+let dockerFolderHierarchy = buildFolderHierarchy({});
 const folderRegex = /^folder-/;
 let folderDebugMode = false; // Existing flag
 let folderDebugModeWindow = [];

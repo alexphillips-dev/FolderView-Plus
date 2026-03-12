@@ -111,6 +111,10 @@ span.folder-state.fv-folder-state-stopped {
     display: none;
 }
 
+.fv-nested-hidden {
+    display: none !important;
+}
+
 .folder-preview {
     border-radius: 4px;
     height: 3.5em;

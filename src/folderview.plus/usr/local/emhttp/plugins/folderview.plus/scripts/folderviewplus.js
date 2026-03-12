@@ -5909,6 +5909,7 @@ const buildFolderQuickActionSummary = (type, folderId) => {
         summary.resources = vmResourceBadge.text;
         summary.resourceSeverity = vmResourceBadge.severity;
         summary.resourceThresholds = String(vmResourceBadge.title || '');
+        summary.resourceChips = vmResourceBadge.chips || null;
     }
 
     return summary;
@@ -5989,12 +5990,13 @@ const runVmRowDrawerAction = async (action, folderId) => {
 const buildVmRowDetailsDrawerHtml = (folderId, folder, summary, pinned) => {
     const safeFolderName = escapeHtml(String(folder?.name || folderId || 'VM folder'));
     const safeFolderId = escapeHtml(String(folderId || ''));
-    const resourceText = escapeHtml(String(summary?.resources || '0 vCPU | 0 GB'));
-    const resourceSeverity = String(summary?.resourceSeverity || 'good');
-    const resourceClass = resourceSeverity === 'critical'
-        ? 'is-critical'
-        : (resourceSeverity === 'warn' ? 'is-warn' : 'is-good');
     const resourceTitle = escapeHtml(String(summary?.resourceThresholds || ''));
+    const chips = summary?.resourceChips && typeof summary.resourceChips === 'object'
+        ? summary.resourceChips
+        : null;
+    const cpuChip = chips?.cpu || { text: '0 vCPU', className: 'is-empty', title: 'CPU total: 0 vCPU' };
+    const memoryChip = chips?.memory || { text: '0 GB RAM', className: 'is-empty', title: 'Memory total: 0 GB' };
+    const storageChip = chips?.storage || { text: '0 B Storage', className: 'is-empty', title: 'Storage total: 0 B' };
     const statusText = `${summary?.countsByState?.started || 0} started | ${summary?.countsByState?.paused || 0} paused | ${summary?.countsByState?.stopped || 0} stopped`;
     const detailRows = [
         ['Members', summary?.membersCount || 0],
@@ -6015,7 +6017,7 @@ const buildVmRowDetailsDrawerHtml = (folderId, folder, summary, pinned) => {
     ].map(([action, icon, label, extraClass]) => (
         `<button type="button" class="fv-row-quick-action${extraClass}" data-fv-vm-drawer-action="${escapeHtml(String(action))}" data-fv-vm-drawer-folder="${safeFolderId}"><i class="fa ${escapeHtml(String(icon))}"></i> ${escapeHtml(String(label))}</button>`
     )).join('');
-    return `<div class="fv-row-details-panel"><div class="fv-row-details-head"><div class="fv-row-details-title">${safeFolderName}</div><div class="fv-row-details-meta">ID: <code>${safeFolderId}</code></div></div><div class="fv-row-details-grid">${detailRows}</div><div class="fv-row-details-resource"><span class="folder-metric-chip vm-resource-chip ${resourceClass}" title="${resourceTitle}"><i class="fa fa-microchip" aria-hidden="true"></i><span class="vm-resource-value">${resourceText}</span></span></div><div class="fv-row-details-actions">${actions}</div></div>`;
+    return `<div class="fv-row-details-panel"><div class="fv-row-details-head"><div class="fv-row-details-title">${safeFolderName}</div><div class="fv-row-details-meta">ID: <code>${safeFolderId}</code></div></div><div class="fv-row-details-grid">${detailRows}</div><div class="fv-row-details-resource"><span class="vm-resource-stack" title="${resourceTitle}"><span class="folder-metric-chip vm-resource-chip is-cpu ${escapeHtml(String(cpuChip.className || 'is-empty'))}" title="${escapeHtml(String(cpuChip.title || ''))}"><i class="fa fa-microchip" aria-hidden="true"></i><span class="vm-resource-value">${escapeHtml(String(cpuChip.text || '0 vCPU'))}</span></span><span class="folder-metric-chip vm-resource-chip is-ram ${escapeHtml(String(memoryChip.className || 'is-empty'))}" title="${escapeHtml(String(memoryChip.title || ''))}"><i class="fa fa-hdd-o" aria-hidden="true"></i><span class="vm-resource-value">${escapeHtml(String(memoryChip.text || '0 GB RAM'))}</span></span><span class="folder-metric-chip vm-resource-chip is-storage ${escapeHtml(String(storageChip.className || 'is-empty'))}" title="${escapeHtml(String(storageChip.title || ''))}"><i class="fa fa-database" aria-hidden="true"></i><span class="vm-resource-value">${escapeHtml(String(storageChip.text || '0 B Storage'))}</span></span></span></div><div class="fv-row-details-actions">${actions}</div></div>`;
 };
 
 const toggleVmRowDetailsDrawer = (folderId) => {
@@ -6326,6 +6328,7 @@ const collectVmFolderResources = (members, infoByName) => {
     let autostartCount = 0;
     let vcpusTotal = 0;
     let memoryKiBTotal = 0;
+    let storageBytesTotal = 0;
     const autostartMembers = [];
     for (const member of list) {
         const vmInfo = info[member] || {};
@@ -6335,13 +6338,15 @@ const collectVmFolderResources = (members, infoByName) => {
         }
         vcpusTotal += Number(vmInfo.vcpus ?? vmInfo.nrVirtCpu ?? 0) || 0;
         memoryKiBTotal += Number(vmInfo.memoryKiB ?? vmInfo.memory ?? vmInfo.maxMem ?? 0) || 0;
+        storageBytesTotal += Number(vmInfo.storageBytes ?? vmInfo.storage ?? 0) || 0;
     }
     return {
         membersCount: list.length,
         autostartCount,
         autostartMembers,
         vcpusTotal,
-        memoryKiBTotal
+        memoryKiBTotal,
+        storageBytesTotal
     };
 };
 
@@ -6350,8 +6355,10 @@ const evaluateVmResourceBadge = (resourceTotals, healthPrefs) => {
     const prefs = healthPrefs && typeof healthPrefs === 'object' ? healthPrefs : {};
     const vcpusTotal = Number(totals.vcpusTotal || 0);
     const memoryKiBTotal = Number(totals.memoryKiBTotal || 0);
+    const storageBytesTotal = Number(totals.storageBytesTotal || 0);
     const membersCount = Number(totals.membersCount || 0);
     const memoryGiBTotal = memoryKiBTotal > 0 ? (memoryKiBTotal / (1024 * 1024)) : 0;
+    const storageText = formatBytesShort(storageBytesTotal) || '0 B';
     const warnVcpus = Number.isFinite(Number(prefs.vmResourceWarnVcpus)) ? Number(prefs.vmResourceWarnVcpus) : 16;
     const criticalVcpus = Number.isFinite(Number(prefs.vmResourceCriticalVcpus)) ? Number(prefs.vmResourceCriticalVcpus) : 32;
     const warnGiB = Number.isFinite(Number(prefs.vmResourceWarnGiB)) ? Number(prefs.vmResourceWarnGiB) : 32;
@@ -6370,7 +6377,16 @@ const evaluateVmResourceBadge = (resourceTotals, healthPrefs) => {
         severity = 'warn';
     }
 
-    const text = `${vcpusTotal} vCPU | ${formatVmMemoryLabel(memoryKiBTotal)}`;
+    const cpuClass = membersCount <= 0
+        ? 'is-empty'
+        : (criticalCpuExceeded ? 'is-critical' : (warnCpuExceeded ? 'is-warn' : 'is-good'));
+    const memoryClass = membersCount <= 0
+        ? 'is-empty'
+        : (criticalMemoryExceeded ? 'is-critical' : (warnMemoryExceeded ? 'is-warn' : 'is-good'));
+    const storageClass = membersCount <= 0
+        ? 'is-empty'
+        : (storageBytesTotal > 0 ? 'is-good' : 'is-empty');
+    const text = `${vcpusTotal} vCPU | ${formatVmMemoryLabel(memoryKiBTotal)} RAM | ${storageText} storage`;
     const detailLines = [
         `Total resources: ${text}`,
         `Thresholds: warn ${warnVcpus} vCPU / ${warnGiB} GB, critical ${criticalVcpus} vCPU / ${criticalGiB} GB.`
@@ -6402,7 +6418,24 @@ const evaluateVmResourceBadge = (resourceTotals, healthPrefs) => {
         title: detailLines.join('\n'),
         className: severity === 'critical'
             ? 'is-critical'
-            : (severity === 'warn' ? 'is-warn' : (severity === 'empty' ? 'is-empty' : 'is-good'))
+            : (severity === 'warn' ? 'is-warn' : (severity === 'empty' ? 'is-empty' : 'is-good')),
+        chips: {
+            cpu: {
+                text: `${vcpusTotal} vCPU`,
+                className: cpuClass,
+                title: `CPU total: ${vcpusTotal} vCPU\nWarn: ${warnVcpus} vCPU\nCritical: ${criticalVcpus} vCPU`
+            },
+            memory: {
+                text: `${formatVmMemoryLabel(memoryKiBTotal)} RAM`,
+                className: memoryClass,
+                title: `Memory total: ${formatVmMemoryLabel(memoryKiBTotal)}\nWarn: ${warnGiB} GB\nCritical: ${criticalGiB} GB`
+            },
+            storage: {
+                text: `${storageText} Storage`,
+                className: storageClass,
+                title: `Storage total (file-backed disks): ${storageText}`
+            }
+        }
     };
 };
 
@@ -9310,6 +9343,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             const autostartMembers = vmResources.autostartMembers;
             const vcpusTotal = vmResources.vcpusTotal;
             const memoryKiBTotal = vmResources.memoryKiBTotal;
+            const storageBytesTotal = vmResources.storageBytesTotal;
             const autostartRatio = `${autostartCount}/${membersCount}`;
             let autostartClass = 'is-empty';
             let autostartIcon = 'fa-circle-o';
@@ -9339,19 +9373,25 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
                 ].join('\n');
             const vmHealthPrefs = normalizeHealthPrefs('vm');
             const resourcesBadge = evaluateVmResourceBadge(vmResources, vmHealthPrefs);
+            const resourceChips = resourcesBadge.chips || {};
+            const cpuChip = resourceChips.cpu || { text: '0 vCPU', className: 'is-empty', title: 'CPU total: 0 vCPU' };
+            const memoryChip = resourceChips.memory || { text: '0 GB RAM', className: 'is-empty', title: 'Memory total: 0 GB' };
+            const storageChip = resourceChips.storage || { text: '0 B Storage', className: 'is-empty', title: 'Storage total: 0 B' };
             const avgVcpus = membersCount > 0 ? (vcpusTotal / membersCount) : 0;
             const avgMemoryKiB = membersCount > 0 ? Math.round(memoryKiBTotal / membersCount) : 0;
+            const avgStorageBytes = membersCount > 0 ? Math.round(storageBytesTotal / membersCount) : 0;
             const avgVcpusText = Number.isInteger(avgVcpus) ? String(avgVcpus) : avgVcpus.toFixed(1);
             const avgMemoryText = formatGiBFromKiB(avgMemoryKiB);
+            const avgStorageText = formatBytesShort(avgStorageBytes) || '0 B';
             const resourcesTitle = membersCount <= 0
                 ? 'No VMs in this folder.'
                 : [
                     `Total: ${resourcesBadge.text}`,
-                    `Average per VM: ${avgVcpusText} vCPU | ${avgMemoryText}`
+                    `Average per VM: ${avgVcpusText} vCPU | ${avgMemoryText} | ${avgStorageText} storage`
                 ].join('\n') + `\n${resourcesBadge.title}`;
             typeSpecificColumns = ''
                 + `<td class="autostart-cell"><span class="folder-metric-chip autostart-chip ${autostartClass}" title="${escapeHtml(autostartTitle)}"><i class="fa ${autostartIcon}" aria-hidden="true"></i><span>${escapeHtml(autostartText)}</span></span></td>`
-                + `<td class="resources-cell"><span class="vm-resource-stack" title="${escapeHtml(resourcesTitle)}"><span class="folder-metric-chip vm-resource-chip ${resourcesBadge.className}"><i class="fa fa-microchip" aria-hidden="true"></i><span class="vm-resource-value">${escapeHtml(resourcesBadge.text)}</span></span></span></td>`;
+                + `<td class="resources-cell"><span class="vm-resource-stack" title="${escapeHtml(resourcesTitle)}"><span class="folder-metric-chip vm-resource-chip is-cpu ${escapeHtml(String(cpuChip.className || 'is-empty'))}" title="${escapeHtml(String(cpuChip.title || ''))}"><i class="fa fa-microchip" aria-hidden="true"></i><span class="vm-resource-value">${escapeHtml(String(cpuChip.text || '0 vCPU'))}</span></span><span class="folder-metric-chip vm-resource-chip is-ram ${escapeHtml(String(memoryChip.className || 'is-empty'))}" title="${escapeHtml(String(memoryChip.title || ''))}"><i class="fa fa-hdd-o" aria-hidden="true"></i><span class="vm-resource-value">${escapeHtml(String(memoryChip.text || '0 GB RAM'))}</span></span><span class="folder-metric-chip vm-resource-chip is-storage ${escapeHtml(String(storageChip.className || 'is-empty'))}" title="${escapeHtml(String(storageChip.title || ''))}"><i class="fa fa-database" aria-hidden="true"></i><span class="vm-resource-value">${escapeHtml(String(storageChip.text || '0 B Storage'))}</span></span></span></td>`;
         }
         rows.push(
             `<tr data-folder-id="${escapeHtml(id)}" tabindex="0" onkeydown="handleFolderRowKeydown('${type}','${escapeHtml(id)}',event)">`

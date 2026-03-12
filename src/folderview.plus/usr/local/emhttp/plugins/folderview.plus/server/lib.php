@@ -4636,6 +4636,29 @@
                     if ($memoryKiB <= 0) {
                         $memoryKiB = (int)($dom['maxMem'] ?? 0);
                     }
+                    $storageBytes = 0;
+                    if (method_exists($lv, 'domain_get_xml') && function_exists('simplexml_load_string')) {
+                        $domainXml = @((string)$lv->domain_get_xml($res));
+                        if ($domainXml !== '') {
+                            $xml = @simplexml_load_string($domainXml);
+                            if ($xml !== false && isset($xml->devices->disk)) {
+                                foreach ($xml->devices->disk as $diskNode) {
+                                    $deviceType = strtolower(trim((string)($diskNode['device'] ?? '')));
+                                    if ($deviceType !== '' && $deviceType !== 'disk') {
+                                        continue;
+                                    }
+                                    $sourcePath = trim((string)($diskNode->source['file'] ?? ''));
+                                    if ($sourcePath === '') {
+                                        continue;
+                                    }
+                                    $diskBytes = @filesize($sourcePath);
+                                    if ($diskBytes !== false && $diskBytes > 0) {
+                                        $storageBytes += (int)$diskBytes;
+                                    }
+                                }
+                            }
+                        }
+                    }
                     $info[$vm] = [
                         'uuid' => $lv->domain_get_uuid($res), 'name' => $vm,
                         'description' => $lv->domain_get_description($res),
@@ -4643,6 +4666,7 @@
                         'state' => $lv->domain_state_translate($dom['state']),
                         'vcpus' => $vcpus,
                         'memoryKiB' => $memoryKiB,
+                        'storageBytes' => $storageBytes,
                         'icon' => $lv->domain_get_icon_url($res),
                         'logs' => (is_file("/var/log/libvirt/qemu/$vm.log") ? "libvirt/qemu/$vm.log" : '')
                     ];

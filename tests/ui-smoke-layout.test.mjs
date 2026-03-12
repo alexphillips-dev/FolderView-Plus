@@ -141,7 +141,6 @@ test('mobile folder table keeps Order + Name and routes details to overflow menu
     assert.match(settingsJs, /const toggleVmRowDetailsDrawer = \(folderId\) =>/);
     assert.match(settingsJs, /data-fv-vm-drawer-action/);
     assert.match(settingsJs, /const runVmRowDrawerAction = async \(action, folderId\) =>/);
-    assert.match(settingsCss, /tbody#vms \.folder-overflow-btn\s*\{/);
     assert.match(settingsCss, /\.fv-row-details-panel\s*\{/);
     assert.match(settingsCss, /\.fv-row-details-grid\s*\{/);
 });
@@ -277,6 +276,8 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /vmResourceCriticalVcpus/);
     assert.match(settingsJs, /vmResourceWarnGiB/);
     assert.match(settingsJs, /vmResourceCriticalGiB/);
+    assert.match(settingsJs, /storageBytesTotal/);
+    assert.match(settingsJs, /fa-database/);
     assert.match(settingsJs, /autostart-chip/);
     assert.match(settingsJs, /vm-resource-stack/);
     assert.match(settingsJs, /const persistImportPresetStoreTypeToServer = async/);
@@ -299,6 +300,7 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsCss, /\.vm-resource-chip\s*\{/);
     assert.match(settingsCss, /\.vm-resource-chip\.is-cpu\s*\{/);
     assert.match(settingsCss, /\.vm-resource-chip\.is-ram\s*\{/);
+    assert.match(settingsCss, /\.vm-resource-chip\.is-storage\s*\{/);
     assert.match(settingsCss, /\.vm-resource-chip\.is-good\s*\{/);
     assert.match(settingsCss, /\.vm-resource-chip\.is-warn\s*\{/);
     assert.match(settingsCss, /\.vm-resource-chip\.is-critical\s*\{/);

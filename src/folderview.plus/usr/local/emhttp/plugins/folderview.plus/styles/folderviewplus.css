@@ -386,10 +386,6 @@
     z-index: 3;
 }
 
-tbody#vms .folder-overflow-btn {
-    display: inline-flex;
-}
-
 .folder-table table td.actions-cell .folder-action-btn + .folder-action-btn {
     margin-left: 0.3rem;
 }
@@ -924,6 +920,12 @@ body.fv-mobile-compact #fv-settings-root .status-chip-list {
     border-color: rgba(112, 224, 187, 0.56);
     color: #9de6cf;
     background: rgba(72, 177, 141, 0.14);
+}
+
+.vm-resource-chip.is-storage {
+    border-color: rgba(148, 180, 255, 0.56);
+    color: #c3d9ff;
+    background: rgba(98, 132, 224, 0.14);
 }
 
 .vm-resource-chip.is-empty {

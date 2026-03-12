@@ -278,6 +278,23 @@ const buildDashboardVmFolderMatchCache = (orderSnapshot, vmInfo, folders, prefs)
     return cache;
 };
 
+const showDashboardRuntimeLoadingRow = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const tbodyId = resolvedType === 'docker' ? 'docker_view' : 'vm_view';
+    const label = resolvedType === 'docker' ? 'Docker' : 'VM';
+    const tbody = $(`tbody#${tbodyId}`);
+    if (!tbody.length || tbody.find('tr.fv-runtime-loading-row').length) {
+        return;
+    }
+    tbody.prepend(`<tr class="fv-runtime-loading-row"><td colspan="18"><i class="fa fa-circle-o-notch fa-spin"></i> Loading ${label} folders...</td></tr>`);
+};
+
+const hideDashboardRuntimeLoadingRow = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const tbodyId = resolvedType === 'docker' ? 'docker_view' : 'vm_view';
+    $(`tbody#${tbodyId} tr.fv-runtime-loading-row`).remove();
+};
+
 /**
  * Handles the creation of all folders
  */
@@ -288,7 +305,8 @@ const createFolders = async () => {
 
     // if docker is enabled
     if($('tbody#docker_view').length > 0) {
-
+        showDashboardRuntimeLoadingRow('docker');
+        try {
         let prom = await Promise.all(folderReq.docker);
         // Parse the results
         let folders = JSON.parse(prom[0]);
@@ -416,7 +434,9 @@ const createFolders = async () => {
     
         // Assing the folder done to the global object
         globalFolders.docker = foldersDone;
-
+        } finally {
+            hideDashboardRuntimeLoadingRow('docker');
+        }
     }
 
 
@@ -426,7 +446,8 @@ const createFolders = async () => {
 
     // if vm is enabled
     if($('tbody#vm_view').length > 0) {
-
+        showDashboardRuntimeLoadingRow('vm');
+        try {
         const prom = await Promise.all(folderReq.vm);
         // Parse the results
         let folders = JSON.parse(prom[0]);
@@ -551,6 +572,9 @@ const createFolders = async () => {
         }}));
 
         globalFolders.vms = foldersDone;
+        } finally {
+            hideDashboardRuntimeLoadingRow('vm');
+        }
     }
 
     folderDebugMode  = false;

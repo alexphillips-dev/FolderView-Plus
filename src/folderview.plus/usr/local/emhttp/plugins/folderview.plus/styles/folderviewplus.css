@@ -382,6 +382,8 @@
 
 .folder-overflow-btn {
     display: none;
+    position: relative;
+    z-index: 3;
 }
 
 .folder-table table td.actions-cell .folder-action-btn + .folder-action-btn {
@@ -3632,6 +3634,34 @@ h2[data-fv-section] {
 .fv-section-badge.is-invalid {
     border-color: rgba(255, 116, 116, 0.62);
     color: #ff7474;
+}
+
+.fv-section-mode {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.08rem 0.45rem;
+    border-radius: 999px;
+    font-size: 1.03rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.82);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.fv-section-mode.is-instant {
+    border-color: rgba(130, 201, 255, 0.45);
+    color: #8fcdff;
+}
+
+.fv-section-mode.is-staged {
+    border-color: rgba(255, 193, 94, 0.58);
+    color: #ffc15e;
+}
+
+.fv-section-mode.is-mixed {
+    border-color: rgba(215, 173, 255, 0.52);
+    color: #d6a9ff;
 }
 
 .fv-section-toggle {

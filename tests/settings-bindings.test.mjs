@@ -83,6 +83,29 @@ test('settings action dock tracks only explicit/manual fields and excludes insta
     assert.match(script, /\$\('#fv-action-cancel'\)\.off\('click\.fvui'\)\.on\('click\.fvui', \(\) => \{\s*cancelActionBarChanges\(\);/);
 });
 
+test('settings sections render apply-mode badges for instant/save/mixed behavior', () => {
+    assert.match(script, /className = 'fv-section-mode is-instant'/);
+    assert.match(script, /const getSectionApplyMode = \(section\) =>/);
+    assert.match(script, /return \{ id: 'mixed', label: 'Mixed apply' \};/);
+    assert.match(script, /return \{ id: 'staged', label: 'Requires Save' \};/);
+    assert.match(script, /const refreshSectionApplyModeBadges = \(\) =>/);
+});
+
+test('runtime conflict safe mode blocks risky mutations with user-facing guard dialog', () => {
+    assert.match(script, /const ensureRuntimeConflictActionAllowed = \(actionLabel = 'This action'\) =>/);
+    assert.match(script, /if \(!ensureRuntimeConflictActionAllowed\(`Import \$\{resolvedType === 'docker' \? 'Docker' : 'VM'\} folders`\)\) \{/);
+    assert.match(script, /if \(!ensureRuntimeConflictActionAllowed\('Pin\/unpin folder'\)\) \{/);
+    assert.match(script, /if \(!ensureRuntimeConflictActionAllowed\(`Reorder \$\{resolvedType === 'docker' \? 'Docker' : 'VM'\} folders`\)\) \{/);
+});
+
+test('overflow row actions use delegated click/touch handlers for reliable mobile taps', () => {
+    assert.match(script, /class=\"folder-action-btn folder-overflow-btn\"/);
+    assert.match(script, /data-fv-overflow-type=/);
+    assert.match(script, /const overflowSelector = `\$\{tbodySelector\} \.folder-overflow-btn`;/);
+    assert.match(script, /on\(`click\$\{namespace\}`, overflowSelector/);
+    assert.match(script, /on\(`touchend\$\{namespace\}`, overflowSelector/);
+});
+
 test('basic toolbar actions reuse compact progress overlay for docker and vm flows', () => {
     assert.match(script, /const downloadType = async \(type, id\) =>/);
     assert.match(script, /const clearType = \(type, id\) =>/);

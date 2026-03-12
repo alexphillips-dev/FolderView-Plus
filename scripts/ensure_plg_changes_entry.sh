@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PLG_FILE="${ROOT_DIR}/folderview.plus.plg"
 MAX_AUTO_LINES="${FVPLUS_AUTO_CHANGE_LINES:-6}"
-AUTO_METADATA_NOTE='Maintenance: release metadata and packaging sync.'
+AUTO_PLACEHOLDER_NOTE='Maintenance: Action required: replace these placeholder notes with user-facing categorized bullets before release.'
 # shellcheck source=scripts/lib.sh
 source "${ROOT_DIR}/scripts/lib.sh"
 
@@ -186,7 +186,7 @@ build_auto_notes() {
   if [[ ${#subjects[@]} -eq 0 ]]; then
     mapfile -t notes < <(build_diff_based_notes || true)
     if [[ ${#notes[@]} -eq 0 ]]; then
-      printf -- '- %s\n' "${AUTO_METADATA_NOTE}"
+      printf -- '- %s\n' "${AUTO_PLACEHOLDER_NOTE}"
     else
       printf '%s\n' "${notes[@]}"
     fi
@@ -215,7 +215,7 @@ build_auto_notes() {
   fi
 
   if [[ ${#notes[@]} -eq 0 ]]; then
-    printf -- '- %s\n' "${AUTO_METADATA_NOTE}"
+    printf -- '- %s\n' "${AUTO_PLACEHOLDER_NOTE}"
     return
   fi
 
@@ -233,7 +233,7 @@ PREVIOUS_VERSION="$(awk '
 
 AUTO_NOTES="$(build_auto_notes "${PREVIOUS_VERSION}")"
 if [[ -z "${AUTO_NOTES}" ]]; then
-  AUTO_NOTES="- ${AUTO_METADATA_NOTE}"
+  AUTO_NOTES="- ${AUTO_PLACEHOLDER_NOTE}"
 fi
 
 TMP_FILE="$(mktemp)"

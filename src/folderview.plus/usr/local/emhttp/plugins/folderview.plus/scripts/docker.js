@@ -407,12 +407,25 @@ if (FOLDER_VIEW_TOUCH_MODE) {
     document.body.classList.add('fv-touch-device');
 }
 
+const showDockerRuntimeLoadingRow = () => {
+    const tbody = $('tbody#docker_view');
+    if (!tbody.length || tbody.find('tr.fv-runtime-loading-row').length) {
+        return;
+    }
+    tbody.prepend('<tr class="fv-runtime-loading-row"><td colspan="18"><i class="fa fa-circle-o-notch fa-spin"></i> Loading Docker folders...</td></tr>');
+};
+
+const hideDockerRuntimeLoadingRow = () => {
+    $('tbody#docker_view tr.fv-runtime-loading-row').remove();
+};
+
 /**
  * Handles the creation of all folders
  */
 const createFolders = async () => {
     dockerPerf.begin('createFolders.total');
     try {
+    showDockerRuntimeLoadingRow();
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Entry');
     dockerPerf.begin('createFolders.requests');
     const prom = await Promise.all(folderReq);
@@ -616,6 +629,7 @@ const createFolders = async () => {
 
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Exit');
     } finally {
+    hideDockerRuntimeLoadingRow();
     dockerPerf.end('createFolders.total', {
         folderCount: Object.keys(globalFolders || {}).length,
         perfMode: FOLDER_VIEW_PERF_MODE

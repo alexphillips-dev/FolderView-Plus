@@ -456,6 +456,10 @@ is_metadata_only_changes_line() {
   return 1
 }
 
+normalize_changes_lines() {
+  sed -E 's/^[[:space:]]*-[[:space:]]*//;s/[[:space:]]+$//' | sed '/^[[:space:]]*$/d'
+}
+
 mapfile -t CURRENT_CHANGES_CATEGORIES < <(printf '%s\n' "${CURRENT_CHANGES_LINES}" | sed -n 's/^[[:space:]]*-[[:space:]]*\([^:][^:]*\):.*/\1/p')
 if [[ ${#CURRENT_CHANGES_CATEGORIES[@]} -eq 0 ]]; then
   echo "ERROR: CHANGES entry for ${VERSION} must include at least one category-formatted bullet (for example: '- Feature: ...')." >&2
@@ -480,6 +484,20 @@ if [[ ${#INVALID_CHANGE_CATEGORIES[@]} -gt 0 ]]; then
   exit 1
 fi
 
+METADATA_DRIFT_LINES=""
+while IFS= read -r raw_line; do
+  [[ -z "${raw_line}" ]] && continue
+  if is_metadata_only_changes_line "${raw_line}"; then
+    METADATA_DRIFT_LINES+="${raw_line}"$'\n'
+  fi
+done <<< "${CURRENT_CHANGES_LINES}"
+
+if [[ -n "${METADATA_DRIFT_LINES}" ]]; then
+  echo "ERROR: CHANGES entry for ${VERSION} contains release-metadata boilerplate lines. Remove these from release notes:" >&2
+  printf '%s' "${METADATA_DRIFT_LINES}" >&2
+  exit 1
+fi
+
 HAS_NON_METADATA_CHANGE_LINE=0
 while IFS= read -r raw_line; do
   [[ -z "${raw_line}" ]] && continue
@@ -494,6 +512,47 @@ if [[ ${HAS_NON_METADATA_CHANGE_LINE} -ne 1 ]]; then
   echo "ERROR: CHANGES entry for ${VERSION} contains only release-metadata boilerplate notes." >&2
   echo "Add at least one user-facing categorized bullet (for example: '- Fix: ...' or '- UX: ...')." >&2
   exit 1
+fi
+
+PREVIOUS_CHANGES_BLOCK="$(awk -v version="${VERSION}" '
+  BEGIN { seen_current = 0; capture_previous = 0 }
+  /^###/ {
+    if (!seen_current) {
+      if ($0 ~ "^###" version "[[:space:]]*$") {
+        seen_current = 1
+      }
+      next
+    }
+    if (!capture_previous) {
+      capture_previous = 1
+      next
+    }
+    exit
+  }
+  {
+    if (capture_previous) {
+      print
+    }
+  }
+' "${PLG_FILE}")"
+
+CURRENT_NORMALIZED_LINES="$(printf '%s\n' "${CURRENT_CHANGES_LINES}" | normalize_changes_lines)"
+PREVIOUS_NORMALIZED_LINES="$(printf '%s\n' "${PREVIOUS_CHANGES_BLOCK}" | normalize_changes_lines)"
+if [[ -n "${CURRENT_NORMALIZED_LINES}" && -n "${PREVIOUS_NORMALIZED_LINES}" ]]; then
+  CURRENT_LINE_COUNT="$(printf '%s\n' "${CURRENT_NORMALIZED_LINES}" | wc -l | tr -d '[:space:]')"
+  DUPLICATE_LINE_COUNT=0
+  while IFS= read -r normalized_line; do
+    [[ -z "${normalized_line}" ]] && continue
+    if grep -Fqx "${normalized_line}" <<< "${PREVIOUS_NORMALIZED_LINES}"; then
+      DUPLICATE_LINE_COUNT=$((DUPLICATE_LINE_COUNT + 1))
+    fi
+  done <<< "${CURRENT_NORMALIZED_LINES}"
+
+  if [[ "${CURRENT_LINE_COUNT}" -gt 0 && "${DUPLICATE_LINE_COUNT}" -eq "${CURRENT_LINE_COUNT}" ]]; then
+    echo "ERROR: CHANGES entry for ${VERSION} duplicates the previous release notes block." >&2
+    echo "Update CHANGES with the current release deltas before packaging." >&2
+    exit 1
+  fi
 fi
 
 MD5_CALC="$(md5sum "${ARCHIVE_FILE}" | awk '{print $1}')"

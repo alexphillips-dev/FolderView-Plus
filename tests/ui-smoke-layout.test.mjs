@@ -126,7 +126,11 @@ test('mobile folder table keeps Order + Name and routes details to overflow menu
     assert.match(settingsCss, /\.actions-cell[\s\S]*\.folder-action-btn:not\(\.folder-overflow-btn\)[\s\S]*display:\s*none !important/);
     assert.match(settingsCss, /\.actions-cell[\s\S]*\.folder-overflow-btn[\s\S]*display:\s*inline-flex !important/);
     assert.match(settingsJs, /class="folder-action-btn folder-overflow-btn"/);
-    assert.match(settingsJs, /onclick="openFolderRowQuickActions\('\$\{type\}','\$\{escapeHtml\(id\)\}'\)"/);
+    assert.match(settingsJs, /data-fv-overflow-type="\$\{escapeHtml\(type\)\}"/);
+    assert.match(settingsJs, /data-fv-overflow-id="\$\{escapeHtml\(id\)\}"/);
+    assert.match(settingsJs, /const overflowSelector = `\$\{tbodySelector\} \.folder-overflow-btn`;/);
+    assert.match(settingsJs, /on\(`click\$\{namespace\}`, overflowSelector/);
+    assert.match(settingsJs, /on\(`touchend\$\{namespace\}`, overflowSelector/);
     assert.match(settingsJs, /const openFolderRowQuickActions = \(type, folderId, event = null\) =>/);
     assert.match(settingsJs, /window\.openFolderRowQuickActions = openFolderRowQuickActions;/);
     assert.match(settingsJs, /const renderFolderQuickActionSummaryHtml = \(summary\) =>/);

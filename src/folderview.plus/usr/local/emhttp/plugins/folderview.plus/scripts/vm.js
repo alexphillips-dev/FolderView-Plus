@@ -256,10 +256,24 @@ const renderRuntimeHealthBadge = (folders, prefs) => {
     badge.textContent = `Folder health: ${startedFolders} started | ${pausedFolders} paused | ${stoppedFolders} stopped`;
 };
 
+const showVmRuntimeLoadingRow = () => {
+    const tbody = $('tbody#kvm_list');
+    if (!tbody.length || tbody.find('tr.fv-runtime-loading-row').length) {
+        return;
+    }
+    tbody.prepend('<tr class="fv-runtime-loading-row"><td colspan="12"><i class="fa fa-circle-o-notch fa-spin"></i> Loading VM folders...</td></tr>');
+};
+
+const hideVmRuntimeLoadingRow = () => {
+    $('tbody#kvm_list tr.fv-runtime-loading-row').remove();
+};
+
 /**
  * Handles the creation of all folders
  */
 const createFolders = async () => {
+    showVmRuntimeLoadingRow();
+    try {
     const prom = await Promise.all(folderReq);
     // Parse the results
     let folders = JSON.parse(prom[0]);
@@ -385,6 +399,9 @@ const createFolders = async () => {
     renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
 
     folderDebugMode  = false;
+    } finally {
+        hideVmRuntimeLoadingRow();
+    }
 };
 
 /**

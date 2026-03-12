@@ -883,6 +883,7 @@ const buildSettingsSections = () => {
                 node instanceof HTMLElement
                 && (
                     node.classList.contains('fv-section-badge')
+                    || node.classList.contains('fv-section-mode')
                     || node.classList.contains('fv-section-toggle')
                 )
             ))
@@ -926,6 +927,14 @@ const buildSettingsSections = () => {
             heading.appendChild(badge);
         }
 
+        let modeBadge = heading.querySelector('.fv-section-mode');
+        if (!modeBadge) {
+            modeBadge = document.createElement('span');
+            modeBadge.className = 'fv-section-mode is-instant';
+            modeBadge.textContent = 'Applies instantly';
+            heading.appendChild(modeBadge);
+        }
+
         let toggle = heading.querySelector('.fv-section-toggle');
         if (advanced && !toggle) {
             toggle = document.createElement('button');
@@ -946,6 +955,7 @@ const buildSettingsSections = () => {
             advancedGroup,
             heading,
             badge,
+            modeBadge,
             toggle,
             nodes,
             contentNodes
@@ -953,6 +963,61 @@ const buildSettingsSections = () => {
     }
 
     settingsUiState.sections = sections;
+};
+
+const getSectionApplyMode = (section) => {
+    if (!section || !Array.isArray(section.nodes)) {
+        return { id: 'instant', label: 'Applies instantly' };
+    }
+    const seen = new Set();
+    let hasInstantApply = false;
+    let hasStagedApply = false;
+    for (const node of section.nodes) {
+        if (!(node instanceof HTMLElement)) {
+            continue;
+        }
+        const inputs = node.querySelectorAll('input[id], select[id], textarea[id]');
+        for (const input of inputs) {
+            const inputId = String(input.id || '').trim();
+            if (!inputId || seen.has(inputId)) {
+                continue;
+            }
+            seen.add(inputId);
+            if (String(input.dataset.fvTrackSave || '') === '1') {
+                hasStagedApply = true;
+                continue;
+            }
+            const handler = String(input.getAttribute('onchange') || '').trim().toLowerCase();
+            if (!handler) {
+                continue;
+            }
+            if (isInstantPersistInput(input)) {
+                hasInstantApply = true;
+            } else {
+                hasStagedApply = true;
+            }
+        }
+    }
+    if (hasStagedApply && hasInstantApply) {
+        return { id: 'mixed', label: 'Mixed apply' };
+    }
+    if (hasStagedApply) {
+        return { id: 'staged', label: 'Requires Save' };
+    }
+    return { id: 'instant', label: 'Applies instantly' };
+};
+
+const refreshSectionApplyModeBadges = () => {
+    for (const section of settingsUiState.sections) {
+        if (!section?.modeBadge) {
+            continue;
+        }
+        const mode = getSectionApplyMode(section);
+        section.modeBadge.textContent = mode.label;
+        section.modeBadge.classList.remove('is-instant', 'is-staged', 'is-mixed');
+        section.modeBadge.classList.add(`is-${mode.id}`);
+        section.modeBadge.setAttribute('title', mode.label);
+    }
 };
 
 const getSectionSearchHaystack = (section) => section.nodes
@@ -1150,6 +1215,7 @@ const applySettingsSectionVisibility = () => {
     modeButtons.removeClass('is-active');
     modeButtons.filter(`[data-mode="${settingsUiState.mode}"]`).addClass('is-active');
     $('#fv-settings-topbar').attr('data-fv-mode', settingsUiState.mode);
+    refreshSectionApplyModeBadges();
 };
 
 const syncSectionJumpOptions = () => {
@@ -5679,6 +5745,9 @@ const applyQuickProfilePreset = async (presetId) => {
 
 const quickCreateStarterFolder = async (type) => {
     const resolvedType = normalizeManagedType(type);
+    if (!ensureRuntimeConflictActionAllowed(`Create ${resolvedType === 'docker' ? 'Docker' : 'VM'} folder`)) {
+        return;
+    }
     const suggestedName = resolvedType === 'docker' ? 'New Docker Folder' : 'New VM Folder';
     const requestedName = window.prompt('Folder name:', suggestedName);
     const name = String(requestedName || '').trim();
@@ -5959,12 +6028,15 @@ const bindRowTouchQuickActions = (type) => {
     const resolvedType = normalizeManagedType(type);
     const tbodySelector = `tbody#${tableIdByType[resolvedType]}`;
     const namespace = `.fvrowtouch${resolvedType}`;
+    const overflowSelector = `${tbodySelector} .folder-overflow-btn`;
 
     $(document).off(`touchstart${namespace}`, `${tbodySelector} tr[data-folder-id]`);
     $(document).off(`touchmove${namespace}`, `${tbodySelector} tr[data-folder-id]`);
     $(document).off(`touchend${namespace}`, `${tbodySelector} tr[data-folder-id]`);
     $(document).off(`touchcancel${namespace}`, `${tbodySelector} tr[data-folder-id]`);
     $(document).off(`contextmenu${namespace}`, `${tbodySelector} tr[data-folder-id]`);
+    $(document).off(`click${namespace}`, overflowSelector);
+    $(document).off(`touchend${namespace}`, overflowSelector);
 
     $(document).on(`touchstart${namespace}`, `${tbodySelector} tr[data-folder-id]`, (event) => {
         if (!supportsTouchInput()) {
@@ -6009,6 +6081,30 @@ const bindRowTouchQuickActions = (type) => {
         if (!folderId) {
             return;
         }
+        showFolderRowQuickActions(resolvedType, folderId);
+    });
+
+    $(document).on(`click${namespace}`, overflowSelector, (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const row = $(event.currentTarget).closest('tr[data-folder-id]');
+        const folderId = String(row.attr('data-folder-id') || '').trim();
+        if (!folderId) {
+            return;
+        }
+        clearRowLongPressState(resolvedType);
+        showFolderRowQuickActions(resolvedType, folderId);
+    });
+
+    $(document).on(`touchend${namespace}`, overflowSelector, (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const row = $(event.currentTarget).closest('tr[data-folder-id]');
+        const folderId = String(row.attr('data-folder-id') || '').trim();
+        if (!folderId) {
+            return;
+        }
+        clearRowLongPressState(resolvedType);
         showFolderRowQuickActions(resolvedType, folderId);
     });
 };
@@ -7030,6 +7126,65 @@ const writeConflictStorageValue = (key, value) => {
     }
 };
 
+const parseRuntimeConflictPluginList = (value) => String(value || '')
+    .split('|')
+    .map((item) => item.trim())
+    .filter((item) => item !== '');
+
+const getRuntimeConflictContext = () => {
+    const activeBanner = document.querySelector('#fv-settings-root .fv-runtime-conflict-banner');
+    if (activeBanner instanceof HTMLElement) {
+        const key = String(activeBanner.getAttribute('data-conflict-key') || 'runtime-conflict').trim() || 'runtime-conflict';
+        const plugins = parseRuntimeConflictPluginList(activeBanner.getAttribute('data-conflict-plugins') || '');
+        return {
+            active: true,
+            key,
+            plugins
+        };
+    }
+    const key = readConflictStorageValue(RUNTIME_CONFLICT_ACTIVE_STORAGE_KEY);
+    return {
+        active: key !== '',
+        key,
+        plugins: parseRuntimeConflictPluginList(key)
+    };
+};
+
+const showRuntimeConflictBlockedDialog = (actionLabel = 'This action') => {
+    const conflict = getRuntimeConflictContext();
+    const pluginText = conflict.plugins.length
+        ? conflict.plugins.join(', ')
+        : 'another Folder View runtime plugin';
+    const label = String(actionLabel || 'This action').trim() || 'This action';
+    swal({
+        title: 'Safe mode active',
+        text: `${label} is blocked while a conflicting Folder View plugin is installed.\n\nConflicting plugin(s): ${pluginText}\n\nKeep FolderView Plus installed, remove only the conflicting plugin, then refresh.`,
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Open Plugins',
+        cancelButtonText: 'Close'
+    }, (confirmed) => {
+        if (confirmed) {
+            window.location.href = '/Plugins';
+        }
+    });
+};
+
+const ensureRuntimeConflictActionAllowed = (actionLabel = 'This action') => {
+    if (!getRuntimeConflictContext().active) {
+        return true;
+    }
+    showRuntimeConflictBlockedDialog(actionLabel);
+    return false;
+};
+
+const RUNTIME_CONFLICT_BLOCK_ERROR = 'Safe mode active: remove the conflicting plugin and refresh before applying changes.';
+const assertRuntimeConflictActionAllowed = (actionLabel = 'This action') => {
+    if (!ensureRuntimeConflictActionAllowed(actionLabel)) {
+        throw new Error(RUNTIME_CONFLICT_BLOCK_ERROR);
+    }
+};
+
 const hideConflictResolvedPanel = () => {
     const panel = $('#fv-runtime-resolved-panel');
     if (!panel.length) {
@@ -7276,6 +7431,7 @@ const fetchBackupSnapshot = async (type, name) => {
 
 const restoreBackupByName = async (type, name) => {
     const resolvedType = normalizeManagedType(type);
+    assertRuntimeConflictActionAllowed(`Restore ${resolvedType === 'docker' ? 'Docker' : 'VM'} backup`);
     const response = await apiPostJson('/plugins/folderview.plus/server/backup.php', {
         type: resolvedType,
         action: 'restore',
@@ -7289,6 +7445,7 @@ const restoreBackupByName = async (type, name) => {
 
 const deleteBackupByName = async (type, name) => {
     const resolvedType = normalizeManagedType(type);
+    assertRuntimeConflictActionAllowed(`Delete ${resolvedType === 'docker' ? 'Docker' : 'VM'} backup`);
     const response = await apiPostJson('/plugins/folderview.plus/server/backup.php', {
         type: resolvedType,
         action: 'delete',
@@ -7314,6 +7471,7 @@ const fetchTemplates = async (type) => {
 };
 
 const createTemplate = async (type, folderId, name) => {
+    assertRuntimeConflictActionAllowed(`Create ${type === 'docker' ? 'Docker' : 'VM'} template`);
     const response = await apiPostJson('/plugins/folderview.plus/server/templates.php', {
         type,
         action: 'create',
@@ -7327,6 +7485,7 @@ const createTemplate = async (type, folderId, name) => {
 };
 
 const deleteTemplate = async (type, templateId) => {
+    assertRuntimeConflictActionAllowed(`Delete ${type === 'docker' ? 'Docker' : 'VM'} template`);
     const response = await apiPostJson('/plugins/folderview.plus/server/templates.php', {
         type,
         action: 'delete',
@@ -7339,6 +7498,7 @@ const deleteTemplate = async (type, templateId) => {
 };
 
 const applyTemplate = async (type, templateId, folderId) => {
+    assertRuntimeConflictActionAllowed(`Apply ${type === 'docker' ? 'Docker' : 'VM'} template`);
     const response = await apiPostJson('/plugins/folderview.plus/server/templates.php', {
         type,
         action: 'apply',
@@ -7352,6 +7512,7 @@ const applyTemplate = async (type, templateId, folderId) => {
 };
 
 const bulkAssign = async (type, folderId, items) => {
+    assertRuntimeConflictActionAllowed(`Bulk assign ${type === 'docker' ? 'Docker' : 'VM'} items`);
     const response = await apiPostJson('/plugins/folderview.plus/server/bulk_assign.php', {
         type,
         folderId,
@@ -7456,6 +7617,7 @@ const postPrefs = async (type, prefs) => {
 
 const createBackup = async (type, reason) => {
     const resolvedType = normalizeManagedType(type);
+    assertRuntimeConflictActionAllowed(`Create ${resolvedType === 'docker' ? 'Docker' : 'VM'} backup`);
     const response = await apiPostJson('/plugins/folderview.plus/server/backup.php', {
         type: resolvedType,
         action: 'create',
@@ -7468,6 +7630,7 @@ const createBackup = async (type, reason) => {
 };
 
 const createGlobalRollbackCheckpointApi = async (reason = 'manual') => {
+    assertRuntimeConflictActionAllowed('Create rollback checkpoint');
     const response = await apiPostJson('/plugins/folderview.plus/server/backup.php', {
         action: 'rollback_checkpoint',
         reason
@@ -7479,6 +7642,7 @@ const createGlobalRollbackCheckpointApi = async (reason = 'manual') => {
 };
 
 const restorePreviousGlobalRollbackCheckpointApi = async () => {
+    assertRuntimeConflictActionAllowed('Restore rollback checkpoint');
     const response = await apiPostJson('/plugins/folderview.plus/server/backup.php', {
         action: 'rollback_restore_previous'
     });
@@ -7490,6 +7654,7 @@ const restorePreviousGlobalRollbackCheckpointApi = async () => {
 
 const restoreLatest = async (type) => {
     const resolvedType = normalizeManagedType(type);
+    assertRuntimeConflictActionAllowed(`Restore latest ${resolvedType === 'docker' ? 'Docker' : 'VM'} backup`);
     const response = await apiPostJson('/plugins/folderview.plus/server/backup.php', {
         type: resolvedType,
         action: 'restore_latest'
@@ -7502,6 +7667,7 @@ const restoreLatest = async (type) => {
 
 const restoreLatestUndo = async (type) => {
     const resolvedType = normalizeManagedType(type);
+    assertRuntimeConflictActionAllowed(`Undo latest ${resolvedType === 'docker' ? 'Docker' : 'VM'} restore`);
     const response = await apiPostJson('/plugins/folderview.plus/server/backup.php', {
         type: resolvedType,
         action: 'restore_latest_undo'
@@ -8972,7 +9138,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             + `<td class="last-changed-cell" title="${escapeHtml(lastChangedRaw || '')}">${escapeHtml(lastChangedText)}</td>`
             + `<td class="pinned-cell"><span class="folder-pin-state ${pinnedClass}">${escapeHtml(pinnedText)}</span></td>`
             + typeSpecificColumns
-            + `<td class="actions-cell"><button class="folder-action-btn folder-pin-btn ${pinned ? 'is-pinned' : ''}" title="${pinTitle}" aria-label="${pinTitle}" onclick="toggleFolderPin('${type}','${escapeHtml(id)}')"><i class="fa ${pinned ? 'fa-star' : 'fa-star-o'}"></i></button><button class="folder-action-btn" title="Export" aria-label="Export ${safeName}" onclick="${type === 'docker' ? 'downloadDocker' : 'downloadVm'}('${escapeHtml(id)}')"><i class="fa fa-download"></i></button><button class="folder-action-btn" title="Delete" aria-label="Delete ${safeName}" onclick="${type === 'docker' ? 'clearDocker' : 'clearVm'}('${escapeHtml(id)}')"><i class="fa fa-trash"></i></button><button class="folder-action-btn" title="Copy ID" aria-label="Copy ID for ${safeName}" onclick="copyFolderId('${type}','${escapeHtml(id)}')"><i class="fa fa-clipboard"></i></button><button type="button" class="folder-action-btn folder-overflow-btn" title="More" aria-label="More actions for ${safeName}" onclick="openFolderRowQuickActions('${type}','${escapeHtml(id)}')"><i class="fa fa-ellipsis-h"></i></button></td>`
+            + `<td class="actions-cell"><button class="folder-action-btn folder-pin-btn ${pinned ? 'is-pinned' : ''}" title="${pinTitle}" aria-label="${pinTitle}" onclick="toggleFolderPin('${type}','${escapeHtml(id)}')"><i class="fa ${pinned ? 'fa-star' : 'fa-star-o'}"></i></button><button class="folder-action-btn" title="Export" aria-label="Export ${safeName}" onclick="${type === 'docker' ? 'downloadDocker' : 'downloadVm'}('${escapeHtml(id)}')"><i class="fa fa-download"></i></button><button class="folder-action-btn" title="Delete" aria-label="Delete ${safeName}" onclick="${type === 'docker' ? 'clearDocker' : 'clearVm'}('${escapeHtml(id)}')"><i class="fa fa-trash"></i></button><button class="folder-action-btn" title="Copy ID" aria-label="Copy ID for ${safeName}" onclick="copyFolderId('${type}','${escapeHtml(id)}')"><i class="fa fa-clipboard"></i></button><button type="button" class="folder-action-btn folder-overflow-btn" title="More" aria-label="More actions for ${safeName}" data-fv-overflow-type="${escapeHtml(type)}" data-fv-overflow-id="${escapeHtml(id)}"><i class="fa fa-ellipsis-h"></i></button></td>`
             + '</tr>'
         );
     }
@@ -9053,9 +9219,19 @@ const persistManualOrderFromDom = async (type) => {
 };
 
 const moveFolderRow = async (type, folderId, direction) => {
-    let sortMode = prefsByType[type]?.sortMode || 'created';
+    const resolvedType = normalizeManagedType(type);
+    if (!ensureRuntimeConflictActionAllowed(`Reorder ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders`)) {
+        return;
+    }
+
+    const safeFolderId = String(folderId || '').trim();
+    if (!safeFolderId) {
+        return;
+    }
+
+    let sortMode = prefsByType[resolvedType]?.sortMode || 'created';
     if (sortMode !== 'manual') {
-        await changeSortMode(type, 'manual');
+        await changeSortMode(resolvedType, 'manual');
         sortMode = 'manual';
     }
 
@@ -9063,13 +9239,21 @@ const moveFolderRow = async (type, folderId, direction) => {
         return;
     }
 
-    const tbodyId = tableIdByType[type];
+    const tbodyId = tableIdByType[resolvedType];
     const tbody = $(`tbody#${tbodyId}`);
-    const row = tbody.find(`tr[data-folder-id="${folderId}"]`);
+    const row = tbody.find(`tr[data-folder-id="${safeFolderId}"]`);
     if (!row.length) {
         return;
     }
 
+    const previousId = direction < 0
+        ? String(row.prev('tr[data-folder-id]').attr('data-folder-id') || '')
+        : String(row.next('tr[data-folder-id]').attr('data-folder-id') || '');
+    if (!previousId) {
+        return;
+    }
+
+    let backup = null;
     if (direction < 0) {
         const prev = row.prev('tr[data-folder-id]');
         if (prev.length) {
@@ -9083,8 +9267,13 @@ const moveFolderRow = async (type, folderId, direction) => {
     }
 
     try {
-        await persistManualOrderFromDom(type);
+        backup = await createBackup(resolvedType, `before-reorder-${safeFolderId}`);
+        await persistManualOrderFromDom(resolvedType);
+        if (backup?.name) {
+            await offerUndoAction(resolvedType, backup, 'Reorder folders');
+        }
     } catch (error) {
+        await refreshType(resolvedType);
         showError('Order save failed', error);
     }
 };
@@ -10206,6 +10395,9 @@ const importType = async (type) => {
         showError('Error', error);
         return;
     }
+    if (!ensureRuntimeConflictActionAllowed(`Import ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders`)) {
+        return;
+    }
 
     let selected;
     try {
@@ -10355,6 +10547,9 @@ const clearType = (type, id) => {
         resolvedType = normalizeManagedType(type);
     } catch (error) {
         showError('Delete failed', error);
+        return;
+    }
+    if (!ensureRuntimeConflictActionAllowed(id ? 'Delete folder' : `Clear all ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders`)) {
         return;
     }
     const folders = getFolderMap(resolvedType);
@@ -10609,11 +10804,15 @@ const changeHealthPref = async (type, key, value) => {
 };
 
 const toggleFolderPin = async (type, folderId) => {
+    const resolvedType = normalizeManagedType(type);
+    if (!ensureRuntimeConflictActionAllowed('Pin/unpin folder')) {
+        return;
+    }
     const id = String(folderId || '');
     if (!id) {
         return;
     }
-    const current = utils.normalizePrefs(prefsByType[type]);
+    const current = utils.normalizePrefs(prefsByType[resolvedType]);
     const pinned = Array.isArray(current.pinnedFolderIds) ? [...current.pinnedFolderIds] : [];
     const exists = pinned.includes(id);
     const nextPinned = exists
@@ -10623,9 +10822,14 @@ const toggleFolderPin = async (type, folderId) => {
         ...current,
         pinnedFolderIds: nextPinned
     };
+    let backup = null;
     try {
-        prefsByType[type] = await postPrefs(type, next);
-        await refreshType(type);
+        backup = await createBackup(resolvedType, exists ? `before-unpin-${id}` : `before-pin-${id}`);
+        prefsByType[resolvedType] = await postPrefs(resolvedType, next);
+        await refreshType(resolvedType);
+        if (backup?.name) {
+            await offerUndoAction(resolvedType, backup, exists ? 'Unpin folder' : 'Pin folder');
+        }
     } catch (error) {
         showError('Pin update failed', error);
     }
@@ -11187,6 +11391,9 @@ const createManualBackup = async (type) => {
         showError('Backup failed', error);
         return;
     }
+    if (!ensureRuntimeConflictActionAllowed(`Create ${resolvedType === 'docker' ? 'Docker' : 'VM'} backup`)) {
+        return;
+    }
     try {
         const backup = await createBackup(resolvedType, 'manual');
         await refreshBackups(resolvedType);
@@ -11206,6 +11413,9 @@ const restoreBackupEntry = (type, name) => {
         resolvedType = normalizeManagedType(type);
     } catch (error) {
         showError('Restore failed', error);
+        return;
+    }
+    if (!ensureRuntimeConflictActionAllowed(`Restore ${resolvedType === 'docker' ? 'Docker' : 'VM'} backup`)) {
         return;
     }
     swal({
@@ -11238,6 +11448,9 @@ const restoreLatestBackup = (type) => {
         resolvedType = normalizeManagedType(type);
     } catch (error) {
         showError('Restore failed', error);
+        return;
+    }
+    if (!ensureRuntimeConflictActionAllowed(`Restore latest ${resolvedType === 'docker' ? 'Docker' : 'VM'} backup`)) {
         return;
     }
     swal({
@@ -11355,6 +11568,9 @@ const deleteBackupEntry = (type, name) => {
         showError('Delete failed', error);
         return;
     }
+    if (!ensureRuntimeConflictActionAllowed(`Delete ${resolvedType === 'docker' ? 'Docker' : 'VM'} backup`)) {
+        return;
+    }
     swal({
         title: 'Delete backup?',
         text: `Delete ${name}? This cannot be undone.`,
@@ -11400,6 +11616,9 @@ const validateTemplateNameInput = (type, strict = false) => {
 };
 
 const createTemplateFromFolder = async (type) => {
+    if (!ensureRuntimeConflictActionAllowed(`Create ${type === 'docker' ? 'Docker' : 'VM'} template`)) {
+        return;
+    }
     const folderId = String($(`#${type}-template-source-folder`).val() || '');
     const templateValidation = validateTemplateNameInput(type, true);
     const templateName = templateValidation.value;
@@ -11423,6 +11642,9 @@ const createTemplateFromFolder = async (type) => {
 };
 
 const applyTemplateToFolder = (type, templateId, selectId) => {
+    if (!ensureRuntimeConflictActionAllowed(`Apply ${type === 'docker' ? 'Docker' : 'VM'} template`)) {
+        return;
+    }
     const folderId = String($(`#${selectId}`).val() || '');
     if (!folderId) {
         swal({ title: 'Error', text: 'Select a target folder.', type: 'error' });
@@ -11460,6 +11682,9 @@ const applyTemplateToFolder = (type, templateId, selectId) => {
 };
 
 const deleteTemplateEntry = (type, templateId) => {
+    if (!ensureRuntimeConflictActionAllowed(`Delete ${type === 'docker' ? 'Docker' : 'VM'} template`)) {
+        return;
+    }
     swal({
         title: 'Delete template?',
         text: 'This cannot be undone.',

@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.11.09">
-<!ENTITY md5 "e282c12c363398d16f14341ab2a8f9b0">
+<!ENTITY version "2026.03.11.10">
+<!ENTITY md5 "f9adceb8392b1cbdb4767fbea77b141a">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.11.10
+- UX: Added per-section apply-mode badges in settings (Applies instantly, Requires Save, Mixed apply) to clarify save behavior.
+- Fix: Added safe-mode mutation guards plus reliable delegated overflow actions on mobile, and added undo support for folder reorder/pin actions.
+- Performance: Added lightweight loading rows for Docker/VM/Dashboard first-paint folder rendering to improve load feedback.
+- Quality: Hardened release-note automation/validation to block metadata boilerplate and duplicate carryover entries.
+
 
 ###2026.03.11.09
 - Fix: action-dock unsaved tracking now ignores instant-persist and transient controls to prevent false save/cancel prompts.

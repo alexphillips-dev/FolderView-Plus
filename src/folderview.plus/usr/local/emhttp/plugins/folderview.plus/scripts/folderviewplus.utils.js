@@ -167,6 +167,10 @@
         normalized.name = name;
         normalized.icon = typeof value.icon === 'string' ? value.icon : '';
         normalized.regex = typeof value.regex === 'string' ? value.regex : '';
+        const rawParentId = typeof value.parentId === 'string'
+            ? value.parentId
+            : (typeof value.parent_id === 'string' ? value.parent_id : '');
+        normalized.parentId = String(rawParentId || '').trim();
         normalized.containers = normalizeFolderMembers(value.containers);
         normalized.settings = isPlainObject(value.settings) ? { ...value.settings } : {};
         normalized.actions = Array.isArray(value.actions) ? value.actions.slice(0, 200) : [];
@@ -196,6 +200,59 @@
             output[normalizedId] = normalizedFolder;
         }
         return output;
+    };
+
+    const buildNestedFolderOrderIdsFromMap = (orderedMap) => {
+        const ids = Object.keys(orderedMap || {});
+        if (ids.length <= 0) {
+            return [];
+        }
+        const indexById = new Map(ids.map((id, idx) => [id, idx]));
+        const parentById = {};
+        for (const id of ids) {
+            const rawParentId = String(orderedMap[id]?.parentId || '').trim();
+            parentById[id] = rawParentId && rawParentId !== id && indexById.has(rawParentId) ? rawParentId : '';
+        }
+
+        const childrenByParent = new Map();
+        for (const id of ids) {
+            const parentId = parentById[id];
+            const key = parentId || '__root__';
+            if (!childrenByParent.has(key)) {
+                childrenByParent.set(key, []);
+            }
+            childrenByParent.get(key).push(id);
+        }
+
+        const sortByOriginalIndex = (a, b) => (indexById.get(a) || 0) - (indexById.get(b) || 0);
+        for (const list of childrenByParent.values()) {
+            list.sort(sortByOriginalIndex);
+        }
+
+        const orderedIds = [];
+        const visiting = new Set();
+        const visited = new Set();
+        const visit = (id) => {
+            if (!id || visited.has(id) || visiting.has(id)) {
+                return;
+            }
+            visiting.add(id);
+            orderedIds.push(id);
+            const children = childrenByParent.get(id) || [];
+            for (const childId of children) {
+                visit(childId);
+            }
+            visiting.delete(id);
+            visited.add(id);
+        };
+
+        for (const rootId of (childrenByParent.get('__root__') || [])) {
+            visit(rootId);
+        }
+        for (const id of ids) {
+            visit(id);
+        }
+        return orderedIds;
     };
 
     const normalizePrefs = (prefs) => {
@@ -412,7 +469,13 @@
             for (const key of keys) {
                 ordered[key] = normalizedFolders[key];
             }
-            return applyPinnedOrder(ordered);
+            const pinnedApplied = applyPinnedOrder(ordered);
+            const nestedIds = buildNestedFolderOrderIdsFromMap(pinnedApplied);
+            const nestedOrdered = {};
+            for (const key of nestedIds) {
+                nestedOrdered[key] = pinnedApplied[key];
+            }
+            return nestedOrdered;
         }
 
         if (normalizedPrefs.sortMode === 'manual') {
@@ -426,10 +489,22 @@
             for (const [id, folder] of Object.entries(normalizedFolders)) {
                 ordered[id] = folder;
             }
-            return applyPinnedOrder(ordered);
+            const pinnedApplied = applyPinnedOrder(ordered);
+            const nestedIds = buildNestedFolderOrderIdsFromMap(pinnedApplied);
+            const nestedOrdered = {};
+            for (const key of nestedIds) {
+                nestedOrdered[key] = pinnedApplied[key];
+            }
+            return nestedOrdered;
         }
 
-        return applyPinnedOrder(normalizedFolders);
+        const pinnedApplied = applyPinnedOrder(normalizedFolders);
+        const nestedIds = buildNestedFolderOrderIdsFromMap(pinnedApplied);
+        const nestedOrdered = {};
+        for (const key of nestedIds) {
+            nestedOrdered[key] = pinnedApplied[key];
+        }
+        return nestedOrdered;
     };
 
     const buildFullExportPayload = ({ type, folders, pluginVersion }) => ({

@@ -91,6 +91,7 @@ test('normalizeFolderMap trims ids and heals member lists', () => {
     const normalized = utils.normalizeFolderMap({
         '  alpha  ': {
             name: ' Alpha ',
+            parent_id: '  parent-1  ',
             containers: {
                 plex: true,
                 sonarr: true
@@ -110,6 +111,7 @@ test('normalizeFolderMap trims ids and heals member lists', () => {
 
     assert.deepEqual(Object.keys(normalized), ['alpha']);
     assert.equal(normalized.alpha.name, 'Alpha');
+    assert.equal(normalized.alpha.parentId, 'parent-1');
     assert.deepEqual(normalized.alpha.containers.sort(), ['plex', 'sonarr']);
     assert.deepEqual(normalized.alpha.settings, {});
     assert.deepEqual(normalized.alpha.actions, []);
@@ -166,6 +168,29 @@ test('orderFoldersByPrefs supports manual and alpha sort modes', () => {
 
     const alpha = utils.orderFoldersByPrefs(folders, { sortMode: 'alpha' });
     assert.deepEqual(Object.keys(alpha), ['a', 'b', 'z']);
+});
+
+test('orderFoldersByPrefs keeps child folders nested after parent in sorted output', () => {
+    const folders = {
+        rootA: { name: 'Zulu Root' },
+        childA: { name: 'Alpha Child', parentId: 'rootA' },
+        grandA: { name: 'Nested Child', parentId: 'childA' },
+        rootB: { name: 'Beta Root' },
+        orphan: { name: 'Orphan Child', parentId: 'missing' },
+        cycleA: { name: 'Cycle A', parentId: 'cycleB' },
+        cycleB: { name: 'Cycle B', parentId: 'cycleA' }
+    };
+
+    const alpha = utils.orderFoldersByPrefs(folders, { sortMode: 'alpha' });
+    assert.deepEqual(Object.keys(alpha), [
+        'rootB',
+        'orphan',
+        'rootA',
+        'childA',
+        'grandA',
+        'cycleA',
+        'cycleB'
+    ]);
 });
 
 test('getFolderStatusColors normalizes and defaults values', () => {

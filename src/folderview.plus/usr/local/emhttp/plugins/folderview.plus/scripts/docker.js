@@ -156,6 +156,43 @@ const getPrefsOrderedFolderMap = (folders, prefs) => {
     return source;
 };
 
+const normalizeFolderParentId = (value) => String(value || '').trim();
+
+const buildFolderDepthById = (folders) => {
+    const source = folders && typeof folders === 'object' ? folders : {};
+    const ids = Object.keys(source);
+    if (!ids.length) {
+        return {};
+    }
+    const validIds = new Set(ids);
+    const depthById = {};
+    const resolveDepth = (id, chain = new Set()) => {
+        if (!validIds.has(id)) {
+            return 0;
+        }
+        if (Object.prototype.hasOwnProperty.call(depthById, id)) {
+            return depthById[id];
+        }
+        if (chain.has(id)) {
+            depthById[id] = 0;
+            return 0;
+        }
+        chain.add(id);
+        const parentId = normalizeFolderParentId(source[id]?.parentId || source[id]?.parent_id || '');
+        let depth = 0;
+        if (parentId && parentId !== id && validIds.has(parentId)) {
+            depth = Math.min(8, resolveDepth(parentId, chain) + 1);
+        }
+        chain.delete(id);
+        depthById[id] = depth;
+        return depth;
+    };
+    for (const id of ids) {
+        resolveDepth(id, new Set());
+    }
+    return depthById;
+};
+
 const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs) => {
     const order = Array.isArray(baseOrder)
         ? baseOrder.map((item) => String(item || ''))
@@ -444,6 +481,7 @@ const createFolders = async () => {
         prefsResponse = {};
     }
     folderTypePrefs = utils.normalizePrefs(prefsResponse?.prefs || {});
+    const folderDepthById = buildFolderDepthById(folders);
     unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs);
     applyRuntimePrefs(folderTypePrefs);
     lastLiveRefreshStateSignature = buildDockerStateSignature(containersInfo, false);
@@ -550,7 +588,8 @@ const createFolders = async () => {
                     order,
                     containersInfo,
                     Object.keys(foldersDone),
-                    folderMatchCache[id] || null
+                    folderMatchCache[id] || null,
+                    folderDepthById[id] || 0
                 );
                 key -= removedCount; // Adjust key by the number of items that were before the folder and moved into it.
                 if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: createFolder for ${id} returned remBefore=${removedCount}. Adjusted main loop key to ${key}.`);
@@ -582,7 +621,8 @@ const createFolders = async () => {
             order,
             containersInfo,
             Object.keys(foldersDone),
-            folderMatchCache[id] || null
+            folderMatchCache[id] || null,
+            folderDepthById[id] || 0
         );
         // Move the folder to the done object and delete it from the undone one
         foldersDone[id] = folders[id];
@@ -646,9 +686,10 @@ const createFolders = async () => {
  * @param {object} containersInfo info of the containers
  * @param {Array<string>} foldersDone folders that are done
  * @param {object|null} matchCacheEntry precomputed membership candidates
+ * @param {number} depthLevel visual nesting depth for parent/child folders
  * @returns {number} the number of element removed before the folder
  */
-const createFolder = (folder, id, positionInMainOrder, liveOrderArray, containersInfo, foldersDone, matchCacheEntry = null) => {
+const createFolder = (folder, id, positionInMainOrder, liveOrderArray, containersInfo, foldersDone, matchCacheEntry = null, depthLevel = 0) => {
     const perfKey = `createFolder.${id}`;
     dockerPerf.begin(perfKey);
     try {
@@ -811,6 +852,12 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
              $('#docker_list').append($(fld));
         }
     }
+    const safeDepth = Math.max(0, Math.min(8, Number(depthLevel) || 0));
+    const depthIndentPx = safeDepth * 20;
+    $(`tr.folder-id-${id}`)
+        .attr('data-folder-depth', String(safeDepth))
+        .find('.folder-name-sub')
+        .css('padding-left', `${depthIndentPx}px`);
     forceFolderRowVerticalCenter(id);
 
     // NOTE: switchButton initialization is deferred until after autostart state is known (see below).

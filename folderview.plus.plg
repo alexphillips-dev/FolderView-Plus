@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.11.11">
-<!ENTITY md5 "0e622cae7ef63fdc505dc2ec0e97631b">
+<!ENTITY version "2026.03.11.13">
+<!ENTITY md5 "3906472bea1050b0709092c59b128ea5">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.11.13
+- UX: Improved mobile compact table readability by increasing spacing between Order and Name, rebalancing column widths, and left-aligning order controls.
+
+
+###2026.03.11.12
+- Mobile: Rebalanced Order/Name/Actions column widths and increased spacing between Order and Name to prevent left-side crowding on small screens.
+
 
 ###2026.03.11.11
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

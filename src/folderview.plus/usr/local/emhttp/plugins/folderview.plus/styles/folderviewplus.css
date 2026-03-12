@@ -495,28 +495,28 @@
     }
 
     .folder-table table th:nth-child(1),
-    .folder-table table td:nth-child(1) { width: 20%; }
+    .folder-table table td:nth-child(1) { width: 24%; }
     .folder-table table th:nth-child(2),
-    .folder-table table td:nth-child(2) { width: 58%; }
+    .folder-table table td:nth-child(2) { width: 52%; }
     .folder-table table th:nth-child(10),
-    .folder-table table td:nth-child(10) { width: 22%; }
+    .folder-table table td:nth-child(10) { width: 24%; }
 
     .folder-table table th:nth-child(1),
     .folder-table table td:nth-child(1) {
-        padding-left: 0.32rem;
-        padding-right: 0.32rem;
+        padding-left: 0.45rem;
+        padding-right: 0.45rem;
     }
 
     .folder-table table th:nth-child(2),
     .folder-table table td:nth-child(2) {
-        padding-left: 0.42rem;
-        padding-right: 0.2rem;
+        padding-left: 0.68rem;
+        padding-right: 0.24rem;
     }
 
     .row-order-actions {
         width: 100%;
-        justify-content: center;
-        gap: 0.12rem;
+        justify-content: flex-start;
+        gap: 0.2rem;
     }
 
     .row-order-actions button {
@@ -578,11 +578,11 @@
 
 @media (max-width: 700px) {
     .folder-table table th:nth-child(1),
-    .folder-table table td:nth-child(1) { width: 20%; }
+    .folder-table table td:nth-child(1) { width: 24%; }
     .folder-table table th:nth-child(2),
-    .folder-table table td:nth-child(2) { width: 58%; }
+    .folder-table table td:nth-child(2) { width: 52%; }
     .folder-table table th:nth-child(10),
-    .folder-table table td:nth-child(10) { width: 22%; }
+    .folder-table table td:nth-child(10) { width: 24%; }
 
     .row-order-actions button {
         width: 22px;
@@ -668,30 +668,30 @@ body.fv-mobile-compact #fv-settings-root .folder-table table td.resources-cell {
 #fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(1),
 #fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(1),
 body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(1),
-body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(1) { width: 20%; }
+body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(1) { width: 24%; }
 #fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(2),
 #fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(2),
 body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(2),
-body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(2) { width: 58%; }
+body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(2) { width: 52%; }
 #fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(10),
 #fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(10),
 body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(10),
-body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(10) { width: 22%; }
+body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(10) { width: 24%; }
 
 #fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(1),
 #fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(1),
 body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(1),
 body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(1) {
-    padding-left: 0.32rem;
-    padding-right: 0.32rem;
+    padding-left: 0.45rem;
+    padding-right: 0.45rem;
 }
 
 #fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(2),
 #fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(2),
 body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(2),
 body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(2) {
-    padding-left: 0.42rem;
-    padding-right: 0.2rem;
+    padding-left: 0.68rem;
+    padding-right: 0.24rem;
 }
 
 #fv-settings-root.fv-mobile-compact .folder-table table td.actions-cell,
@@ -730,8 +730,8 @@ body.fv-mobile-compact #fv-settings-root .name-cell-content {
 #fv-settings-root.fv-mobile-compact .row-order-actions,
 body.fv-mobile-compact #fv-settings-root .row-order-actions {
     width: 100%;
-    justify-content: center;
-    gap: 0.12rem;
+    justify-content: flex-start;
+    gap: 0.2rem;
 }
 
 #fv-settings-root.fv-mobile-compact .row-order-actions button,

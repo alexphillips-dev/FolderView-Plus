@@ -31,6 +31,12 @@ Unraid UI (`Plugins -> Install Plugin`) or CLI:
 plugin install https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/main/folderview.plus.plg
 ```
 
+Dev (testing) install URL:
+
+```bash
+plugin install https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/dev/folderview.plus.plg
+```
+
 ## Update
 > [!WARNING]
 > If update detection is cached, use a one-time commit URL install, then return to `main` updates.

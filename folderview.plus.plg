@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.12.03">
-<!ENTITY md5 "b4081e69411976c7ba765f50b6010e45">
+<!ENTITY version "2026.03.12.04">
+<!ENTITY md5 "2607be35c01a5791b83fcef2d3d3f3ae">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.12.04
+- Fix: parent Docker folders now hide aggregated preview containers while expanded to prevent duplicate rows with visible child folders.
+- UX: parent folders now restore aggregated preview on collapse and keep nested child folders visually outlined for clearer hierarchy.
+- UX: added explicit parent collapsed/expanded visual classes so only expanded top-level parents drop the preview outline.
+
 
 ###2026.03.12.03
 - Feature: Docker parent folders now render true nested behavior (collapsed parent shows aggregated descendant containers, expanded parent reveals indented child folders instead of container rows).

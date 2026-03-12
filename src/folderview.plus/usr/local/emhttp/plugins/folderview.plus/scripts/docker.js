@@ -1817,6 +1817,23 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
     $preview.find('span.inner > span.appname').css('width', folder?.settings?.preview_text_width || '');
 };
 
+const syncParentFolderVisualState = (id, expanded) => {
+    if (!folderHasChildren(id)) {
+        return;
+    }
+    const $row = $(`tr.folder-id-${id}`);
+    $row.toggleClass('fv-parent-collapsed', !expanded);
+    $row.toggleClass('fv-parent-expanded', !!expanded);
+
+    if (expanded) {
+        $row.find('div.folder-preview').empty();
+    } else {
+        const folder = globalFolders[id];
+        const runtimeContainers = folder?.runtimeContainers || {};
+        renderNestedAggregatePreview(id, folder, runtimeContainers);
+    }
+};
+
 const hideNestedDescendants = (id) => {
     for (const descendantId of getFolderDescendants(id)) {
         forceCollapseFolderRow(descendantId, true);
@@ -1861,7 +1878,7 @@ const applyNestedFolderHierarchy = () => {
         if (globalFolders[id]) {
             globalFolders[id].runtimeContainers = runtimeContainers;
             updateFolderRowStatusFromContainers(id, globalFolders[id], runtimeContainers);
-            renderNestedAggregatePreview(id, globalFolders[id], runtimeContainers);
+            syncParentFolderVisualState(id, globalFolders[id]?.status?.expanded === true);
         }
     }
 };
@@ -1945,6 +1962,9 @@ const dropDownButton = (id) => {
         $(`tr.folder-id-${id}`).addClass('sortable');
         $(`tr.folder-id-${id} .folder-storage`).append($(`.folder-${id}-element`));
         $(`.folder-${id}-element`).addClass('fv-nested-hidden').hide();
+        if (hasChildren) {
+            syncParentFolderVisualState(id, false);
+        }
         element.attr('active', 'false');
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Collapsed folder. Moved elements to storage.`);
     } else { // Is collapsed, so expand
@@ -1954,6 +1974,7 @@ const dropDownButton = (id) => {
             $(`tr.folder-id-${id} .folder-storage`).append($(`.folder-${id}-element`));
             $(`.folder-${id}-element`).addClass('fv-nested-hidden').hide();
             showDirectNestedChildren(id);
+            syncParentFolderVisualState(id, true);
             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Expanded parent folder. Showing nested children only.`);
         } else {
             $(`tr.folder-id-${id}`).after($(`.folder-${id}-element`));

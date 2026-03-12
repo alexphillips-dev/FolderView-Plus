@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.11.10">
-<!ENTITY md5 "f9adceb8392b1cbdb4767fbea77b141a">
+<!ENTITY version "2026.03.11.11">
+<!ENTITY md5 "0e622cae7ef63fdc505dc2ec0e97631b">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.11.11
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+
 
 ###2026.03.11.10
 - UX: Added per-section apply-mode badges in settings (Applies instantly, Requires Save, Mixed apply) to clarify save behavior.

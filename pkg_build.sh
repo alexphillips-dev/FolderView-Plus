@@ -19,11 +19,25 @@ run_install_smoke=false
 tmpdir=""
 lockfile="$CWD/tmp/pkg_build.lock"
 lockdir=""
+branch_override="${FVPLUS_BUILD_BRANCH:-}"
+
+detect_git_branch() {
+    local detected=""
+    if command -v git >/dev/null 2>&1 && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        detected="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+        if [ -z "$detected" ] || [ "$detected" = "HEAD" ]; then
+            detected="${GITHUB_REF_NAME:-}"
+            detected="${detected#refs/heads/}"
+        fi
+    fi
+    printf '%s' "$detected"
+}
 
 print_usage() {
     cat <<'EOF'
 Usage: pkg_build.sh [options]
   --beta [N]      Build beta package version (YYYY.MM.DD-beta or -betaN)
+  --branch NAME   Force update URLs to use branch NAME (default: auto dev/main)
   --dry-run       Show computed version/output paths without writing files
   --output-dir D  Write .txz/.sha256 to directory D (default: ./archive)
   --install-smoke Run scripts/install_smoke.sh after successful build
@@ -226,6 +240,14 @@ while [[ $# -gt 0 ]]; do
         --dry-run)
             dry_run=true
             ;;
+        --branch)
+            if [ -z "${2:-}" ]; then
+                echo "ERROR: --branch requires a branch name." >&2
+                exit 1
+            fi
+            branch_override="${2:-}"
+            shift
+            ;;
         --output-dir)
             if [ -z "${2:-}" ]; then
                 echo "ERROR: --output-dir requires a path." >&2
@@ -292,7 +314,21 @@ if [ "$BETA" = true ]; then
     branch="beta"
     version="${today_version}-beta${BETA_NUM}"
 else
-    branch="main"
+    if [ -n "$branch_override" ]; then
+        branch="$branch_override"
+    else
+        detected_branch="$(detect_git_branch)"
+        if [ "$detected_branch" = "dev" ]; then
+            branch="dev"
+        else
+            branch="main"
+        fi
+    fi
+fi
+
+if ! [[ "$branch" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+    echo "ERROR: Invalid branch name for URL generation: $branch" >&2
+    exit 1
 fi
 
 if [ -n "$version_override" ]; then

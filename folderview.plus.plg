@@ -5,13 +5,19 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.12.01">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
+<!ENTITY version "2026.03.12.02">
 <!ENTITY md5 "fdc8388f19066e550b755bd8b417fcdf">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.12.02
+- Fix: dev channel packages now keep `pluginURL` and archive download URLs on `/dev/` so Unraid checks updates against the dev branch.
+- Fix: pkg build flow now auto-detects `dev` vs `main` branch for stable builds instead of forcing `main`.
+- Maintenance: added `--branch` (and `FVPLUS_BUILD_BRANCH`) override support in `pkg_build.sh` for explicit channel builds.
+
 
 ###2026.03.12.01
 - Feature: added nested folder support for Docker/VM with per-folder `Parent folder` assignment in the folder editor.
@@ -1354,7 +1360,7 @@
     </CHANGES>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

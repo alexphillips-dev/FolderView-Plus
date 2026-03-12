@@ -13,6 +13,7 @@ const DEFAULT_FOLDER_STATUS_COLORS = {
     paused: '#b8860b',
     stopped: '#ff4d4d'
 };
+const DEFAULT_BORDER_COLOR = '#afa89e';
 const FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
 const PREVIEW_MODE_LABELS = {
     0: 'None',
@@ -1933,7 +1934,8 @@ const initEditorChrome = () => {
     setTimeout(enforceLeftAlignedSettingsLayout, 250);
 };
 
-getForm().preview_border_color.value = rgbToHex($('body').css('color'));
+getForm().preview_border.checked = true;
+getForm().preview_border_color.value = DEFAULT_BORDER_COLOR;
 getForm().preview_vertical_bars_color.value = rgbToHex($('body').css('color'));
 resetStatusColorDefaults();
 
@@ -2007,9 +2009,13 @@ resetStatusColorDefaults();
         form.context_trigger.value = currFolder.settings.context_trigger?.toString() || '0';
         form.context_graph.value = currFolder.settings.context_graph?.toString() || '1';
         form.context_graph_time.value = currFolder.settings.context_graph_time?.toString() || '60';
-        form.preview_border.checked = currFolder.settings.preview_border || false;
-        form.preview_border_color.value = currFolder.settings.preview_border_color || rgbToHex($('body').css('color'));
-        form.preview_vertical_bars_color.value = currFolder.settings.preview_vertical_bars_color || currFolder.settings.preview_border_color || rgbToHex($('body').css('color'));
+        const hasStoredPreviewBorder = Object.prototype.hasOwnProperty.call(currFolder.settings || {}, 'preview_border');
+        form.preview_border.checked = hasStoredPreviewBorder ? !!currFolder.settings.preview_border : true;
+        form.preview_border_color.value = normalizeHexColor(currFolder.settings.preview_border_color, DEFAULT_BORDER_COLOR);
+        form.preview_vertical_bars_color.value = normalizeHexColor(
+            currFolder.settings.preview_vertical_bars_color || currFolder.settings.preview_border_color,
+            DEFAULT_BORDER_COLOR
+        );
         form.status_color_started.value = normalizeHexColor(currFolder.settings.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started);
         form.status_color_paused.value = normalizeHexColor(currFolder.settings.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused);
         form.status_color_stopped.value = normalizeHexColor(currFolder.settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped);
@@ -2306,7 +2312,6 @@ const submitForm = async (e, saveAsCopy = false) => {
     const healthAllStoppedMode = normalizeOptionalHealthSelect(e.health_all_stopped_mode?.value, FOLDER_HEALTH_ALL_STOPPED_MODE_VALUES);
     const statusWarnThresholdRaw = String(e.status_warn_stopped_percent?.value || '').trim();
     const statusWarnThreshold = parseOptionalThresholdInput(statusWarnThresholdRaw);
-    // this is easy, no need for a comment :)
     const folder = {
         name: e.name.value.toString().trim(),
         parentId: normalizeParentFolderId(e.parent_folder_id?.value || ''),

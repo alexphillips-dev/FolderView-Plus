@@ -328,7 +328,7 @@ emitRequestTokenMetaTag();
                                 <dt data-i18n="border-color">Border color:</dt>
                                 <dd>
                                     <input type="color" name="preview_border_color" style="height:28px;vertical-align:middle;">
-                                    <button onclick="event.preventDefault(); $('div.canvas > form')[0].preview_border_color.value = rgbToHex($('body').css('color'));" style="width:44px;height:28px;min-width:0;padding:0;margin:0;margin-left:0.5em;vertical-align:middle;">
+                                    <button onclick="event.preventDefault(); $('div.canvas > form')[0].preview_border_color.value = '#afa89e';" style="width:44px;height:28px;min-width:0;padding:0;margin:0;margin-left:0.5em;vertical-align:middle;">
                                         <i class="fa fa-repeat" aria-hidden="true"></i>
                                     </button>
                                 </dd>

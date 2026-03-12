@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.12.06">
-<!ENTITY md5 "b30bcced3fa877931758313ac5676ecf">
+<!ENTITY version "2026.03.12.07">
+<!ENTITY md5 "beeb32e68ea6caf83e8ec439d932c76c">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.12.07
+- Fix: Folder preview border color now applies reliably after save for Docker and VM folders.
+- Fix: Border color is normalized with fallback `#afa89e` to avoid invalid or missing preview border color values.
+- Quality: Runtime now force-applies preview border style in nested Docker state transitions to prevent visual override drift.
+
 
 ###2026.03.12.06
 - Fix: Border color control is now visible whenever preview mode is active, even if `Show preview border` is currently off.

@@ -923,14 +923,14 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
         .css('padding-left', `${depthIndentPx}px`);
     forceFolderRowVerticalCenter(id);
 
-    // NOTE: switchButton initialization is deferred until after autostart state is known (see below).
-    // This avoids the bug where initializing with checked:false then clicking ON could
-    // fire a change event that resets container autostart settings.
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): switchButton init deferred until autostart state is calculated.`);
 
     if(folder.settings.preview_border) {
-        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Setting preview border color to ${folder.settings.preview_border_color}.`);
-        $(`tr.folder-id-${id}  div.folder-preview`).css('border', `solid ${folder.settings.preview_border_color} 1px`);
+        const previewColor = normalizeStatusHexColor(folder.settings.preview_border_color, '#afa89e');
+        const previewNode = $(`tr.folder-id-${id} div.folder-preview`).get(0);
+        if (previewNode) {
+            previewNode.style.setProperty('border', `1px solid ${previewColor}`, 'important');
+        }
     }
     $(`tr.folder-id-${id} div.folder-preview`).addClass(`folder-preview-${folder.settings.preview}`);
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Added class folder-preview-${folder.settings.preview} to preview div.`);
@@ -1831,6 +1831,12 @@ const syncParentFolderVisualState = (id, expanded) => {
         const folder = globalFolders[id];
         const runtimeContainers = folder?.runtimeContainers || {};
         renderNestedAggregatePreview(id, folder, runtimeContainers);
+    }
+    const folder = globalFolders[id];
+    if (folder?.settings?.preview_border) {
+        const previewColor = normalizeStatusHexColor(folder.settings.preview_border_color, '#afa89e');
+        const previewNode = $row.find('div.folder-preview').get(0);
+        if (previewNode) previewNode.style.setProperty('border', `1px solid ${previewColor}`, 'important');
     }
 };
 

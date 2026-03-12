@@ -571,13 +571,12 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
         .find('.folder-name-sub')
         .css('padding-left', `${depthIndentPx}px`);
 
-    // NOTE: switchButton initialization is deferred until after autostart state is known (see below).
-    // This avoids the bug where initializing with checked:false then clicking ON could
-    // fire a change event that resets VM autostart settings.
-
-    // Set the border if enabled and set the color
     if(folder.settings.preview_border) {
-        $(`tr.folder-id-${id} div.folder-preview`).css('border', `solid ${folder.settings.preview_border_color} 1px`);
+        const previewColor = normalizeStatusHexColor(folder.settings.preview_border_color, '#afa89e');
+        const previewNode = $(`tr.folder-id-${id} div.folder-preview`).get(0);
+        if (previewNode) {
+            previewNode.style.setProperty('border', `1px solid ${previewColor}`, 'important');
+        }
     }
 
     $(`tr.folder-id-${id} div.folder-preview`).addClass(`folder-preview-${folder.settings.preview}`);

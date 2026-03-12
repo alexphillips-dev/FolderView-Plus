@@ -43,8 +43,8 @@ const budgets = [
   {
     path: 'scripts/folderviewplus.js',
     // Keep an absolute ceiling while relying on the baseline ratchet for tight growth control.
-    maxBytes: envInt('FVPLUS_MAX_FOLDERVIEWPLUS_JS_BYTES', 510000),
-    maxGzipBytes: envInt('FVPLUS_MAX_FOLDERVIEWPLUS_JS_GZIP_BYTES', 96000),
+    maxBytes: envInt('FVPLUS_MAX_FOLDERVIEWPLUS_JS_BYTES', 525000),
+    maxGzipBytes: envInt('FVPLUS_MAX_FOLDERVIEWPLUS_JS_GZIP_BYTES', 100000),
   },
   {
     path: 'styles/folderviewplus.css',
@@ -68,7 +68,7 @@ const budgets = [
   },
 ];
 
-const totalJsBudget = envInt('FVPLUS_MAX_TOTAL_JS_BYTES', 960000);
+const totalJsBudget = envInt('FVPLUS_MAX_TOTAL_JS_BYTES', 980000);
 const totalCssBudget = envInt('FVPLUS_MAX_TOTAL_CSS_BYTES', 250000);
 const totalJsGzipBudget = envInt('FVPLUS_MAX_TOTAL_JS_GZIP_BYTES', 220000);
 const totalCssGzipBudget = envInt('FVPLUS_MAX_TOTAL_CSS_GZIP_BYTES', 60000);

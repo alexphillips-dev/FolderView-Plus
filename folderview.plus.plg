@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.11.13">
-<!ENTITY md5 "3906472bea1050b0709092c59b128ea5">
+<!ENTITY version "2026.03.11.14">
+<!ENTITY md5 "d9add9f5f2eb06bf364dbb158e5d36b5">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.11.14
+- Feature: VM Resources now render as a single clear badge (`vCPU | GB`) with `good/warn/critical` severity.
+- Feature: Added VM resource thresholds in Basic settings (`warn/critical vCPU` and `warn/critical GB`).
+- UX: Added a VM row details drawer from `...` (desktop + mobile) for secondary details and quick actions.
+- UX: Improved VM empty-state onboarding with `Create VM folder`, `Import VM config`, and `Run wizard`.
+- Quality: Added regression coverage for VM drawer/resource controls and refreshed perf guard baseline.
+
 
 ###2026.03.11.13
 - UX: Improved mobile compact table readability by increasing spacing between Order and Name, rebalancing column widths, and left-aligning order controls.

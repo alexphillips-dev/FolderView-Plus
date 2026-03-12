@@ -348,7 +348,11 @@ test('normalizePrefs includes live refresh, performance mode, and backup schedul
         criticalStoppedPercent: 90,
         profile: 'balanced',
         updatesMode: 'maintenance',
-        allStoppedMode: 'critical'
+        allStoppedMode: 'critical',
+        vmResourceWarnVcpus: 16,
+        vmResourceCriticalVcpus: 32,
+        vmResourceWarnGiB: 32,
+        vmResourceCriticalGiB: 64
     });
     assert.deepEqual(prefs.status, {
         mode: 'summary',
@@ -405,7 +409,11 @@ test('normalizePrefs supports health card preferences and guards ranges', () => 
             criticalStoppedPercent: 144,
             profile: 'strict',
             updatesMode: 'warn',
-            allStoppedMode: 'warn'
+            allStoppedMode: 'warn',
+            vmResourceWarnVcpus: 12,
+            vmResourceCriticalVcpus: 12,
+            vmResourceWarnGiB: 40,
+            vmResourceCriticalGiB: 40
         }
     });
     assert.equal(prefs.health.cardsEnabled, false);
@@ -416,6 +424,10 @@ test('normalizePrefs supports health card preferences and guards ranges', () => 
     assert.equal(prefs.health.profile, 'strict');
     assert.equal(prefs.health.updatesMode, 'warn');
     assert.equal(prefs.health.allStoppedMode, 'warn');
+    assert.equal(prefs.health.vmResourceWarnVcpus, 12);
+    assert.equal(prefs.health.vmResourceCriticalVcpus, 13);
+    assert.equal(prefs.health.vmResourceWarnGiB, 40);
+    assert.equal(prefs.health.vmResourceCriticalGiB, 41);
 });
 
 test('normalizePrefs heals unknown health policy values to defaults', () => {

@@ -319,6 +319,22 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <option value="warn">Warn</option>
                         </select>
                     </label>
+                    <label id="vm-resource-warn-vcpu-row" class="setting-inline-number">
+                        <span>Resource warn vCPU</span>
+                        <input id="vm-resource-warn-vcpu" type="number" min="1" max="512" step="1" onchange="changeHealthPref('vm', 'resourceWarnVcpu', this.value)">
+                    </label>
+                    <label id="vm-resource-critical-vcpu-row" class="setting-inline-number">
+                        <span>Resource critical vCPU</span>
+                        <input id="vm-resource-critical-vcpu" type="number" min="2" max="512" step="1" onchange="changeHealthPref('vm', 'resourceCriticalVcpu', this.value)">
+                    </label>
+                    <label id="vm-resource-warn-gib-row" class="setting-inline-number">
+                        <span>Resource warn GB</span>
+                        <input id="vm-resource-warn-gib" type="number" min="1" max="1024" step="1" onchange="changeHealthPref('vm', 'resourceWarnGiB', this.value)">
+                    </label>
+                    <label id="vm-resource-critical-gib-row" class="setting-inline-number">
+                        <span>Resource critical GB</span>
+                        <input id="vm-resource-critical-gib" type="number" min="2" max="1024" step="1" onchange="changeHealthPref('vm', 'resourceCriticalGiB', this.value)">
+                    </label>
                     <div class="setting-help">Health cards summarize pinned, stopped, empty, and conflict status with one-click filters.</div>
                 </div>
                 <div class="settings-mini-card">

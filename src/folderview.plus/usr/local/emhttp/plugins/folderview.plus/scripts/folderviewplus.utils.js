@@ -30,7 +30,11 @@
         criticalStoppedPercent: 90,
         profile: 'balanced',
         updatesMode: 'maintenance',
-        allStoppedMode: 'critical'
+        allStoppedMode: 'critical',
+        vmResourceWarnVcpus: 16,
+        vmResourceCriticalVcpus: 32,
+        vmResourceWarnGiB: 32,
+        vmResourceCriticalGiB: 64
     };
     const DEFAULT_STATUS_PREFS = {
         mode: 'summary',
@@ -295,8 +299,38 @@
             ),
             profile: normalizeHealthProfile(incomingHealth.profile),
             updatesMode: normalizeHealthUpdatesMode(incomingHealth.updatesMode),
-            allStoppedMode: normalizeHealthAllStoppedMode(incomingHealth.allStoppedMode)
+            allStoppedMode: normalizeHealthAllStoppedMode(incomingHealth.allStoppedMode),
+            vmResourceWarnVcpus: clampNumber(
+                incomingHealth.vmResourceWarnVcpus,
+                1,
+                512,
+                DEFAULT_HEALTH_PREFS.vmResourceWarnVcpus
+            ),
+            vmResourceCriticalVcpus: clampNumber(
+                incomingHealth.vmResourceCriticalVcpus,
+                1,
+                512,
+                DEFAULT_HEALTH_PREFS.vmResourceCriticalVcpus
+            ),
+            vmResourceWarnGiB: clampNumber(
+                incomingHealth.vmResourceWarnGiB,
+                1,
+                1024,
+                DEFAULT_HEALTH_PREFS.vmResourceWarnGiB
+            ),
+            vmResourceCriticalGiB: clampNumber(
+                incomingHealth.vmResourceCriticalGiB,
+                1,
+                1024,
+                DEFAULT_HEALTH_PREFS.vmResourceCriticalGiB
+            )
         };
+        if (health.vmResourceCriticalVcpus <= health.vmResourceWarnVcpus) {
+            health.vmResourceCriticalVcpus = Math.min(512, health.vmResourceWarnVcpus + 1);
+        }
+        if (health.vmResourceCriticalGiB <= health.vmResourceWarnGiB) {
+            health.vmResourceCriticalGiB = Math.min(1024, health.vmResourceWarnGiB + 1);
+        }
         const incomingStatus = isPlainObject(incoming.status) ? incoming.status : {};
         const status = {
             mode: String(incomingStatus.mode || '').trim().toLowerCase() === 'dominant'

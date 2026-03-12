@@ -73,6 +73,10 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
     assert.match(settingsPage, /id="vm-health-profile"/);
     assert.match(settingsPage, /id="vm-health-updates-mode"/);
     assert.match(settingsPage, /id="vm-health-all-stopped-mode"/);
+    assert.match(settingsPage, /id="vm-resource-warn-vcpu"/);
+    assert.match(settingsPage, /id="vm-resource-critical-vcpu"/);
+    assert.match(settingsPage, /id="vm-resource-warn-gib"/);
+    assert.match(settingsPage, /id="vm-resource-critical-gib"/);
     assert.match(settingsPage, /id="fv-first-run-panel"/);
 });
 
@@ -134,6 +138,12 @@ test('mobile folder table keeps Order + Name and routes details to overflow menu
     assert.match(settingsJs, /const openFolderRowQuickActions = \(type, folderId, event = null\) =>/);
     assert.match(settingsJs, /window\.openFolderRowQuickActions = openFolderRowQuickActions;/);
     assert.match(settingsJs, /const renderFolderQuickActionSummaryHtml = \(summary\) =>/);
+    assert.match(settingsJs, /const toggleVmRowDetailsDrawer = \(folderId\) =>/);
+    assert.match(settingsJs, /data-fv-vm-drawer-action/);
+    assert.match(settingsJs, /const runVmRowDrawerAction = async \(action, folderId\) =>/);
+    assert.match(settingsCss, /tbody#vms \.folder-overflow-btn\s*\{/);
+    assert.match(settingsCss, /\.fv-row-details-panel\s*\{/);
+    assert.match(settingsCss, /\.fv-row-details-grid\s*\{/);
 });
 
 test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
@@ -262,6 +272,11 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /state\?\.manager === 'dockerman'/);
     assert.match(settingsJs, /state\?\.Updated === false/);
     assert.match(settingsJs, /const formatGiBFromKiB = \(kibValue\) =>/);
+    assert.match(settingsJs, /const evaluateVmResourceBadge = \(resourceTotals, healthPrefs\) =>/);
+    assert.match(settingsJs, /vmResourceWarnVcpus/);
+    assert.match(settingsJs, /vmResourceCriticalVcpus/);
+    assert.match(settingsJs, /vmResourceWarnGiB/);
+    assert.match(settingsJs, /vmResourceCriticalGiB/);
     assert.match(settingsJs, /autostart-chip/);
     assert.match(settingsJs, /vm-resource-stack/);
     assert.match(settingsJs, /const persistImportPresetStoreTypeToServer = async/);
@@ -284,6 +299,9 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsCss, /\.vm-resource-chip\s*\{/);
     assert.match(settingsCss, /\.vm-resource-chip\.is-cpu\s*\{/);
     assert.match(settingsCss, /\.vm-resource-chip\.is-ram\s*\{/);
+    assert.match(settingsCss, /\.vm-resource-chip\.is-good\s*\{/);
+    assert.match(settingsCss, /\.vm-resource-chip\.is-warn\s*\{/);
+    assert.match(settingsCss, /\.vm-resource-chip\.is-critical\s*\{/);
     assert.match(settingsCss, /\.preview-meta-item\.is-trust-trusted\s*\{/);
     assert.match(settingsCss, /\.preview-meta-item\.is-trust-legacy\s*\{/);
     assert.match(settingsCss, /\.preview-meta-item\.is-trust-untrusted\s*\{/);

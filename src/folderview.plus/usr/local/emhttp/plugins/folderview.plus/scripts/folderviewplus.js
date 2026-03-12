@@ -76,11 +76,11 @@ const DEFAULT_COLUMN_VISIBILITY_BY_TYPE = Object.freeze({
         health: true
     }),
     vm: Object.freeze({
-        members: true,
-        status: true,
-        rules: true,
-        lastChanged: true,
-        pinned: true,
+        members: false,
+        status: false,
+        rules: false,
+        lastChanged: false,
+        pinned: false,
         autostart: true,
         resources: true
     })
@@ -102,6 +102,10 @@ let rowLongPressByType = {
     vm: null
 };
 let rowFocusTimersByType = {
+    docker: null,
+    vm: null
+};
+let rowDetailsDrawerByType = {
     docker: null,
     vm: null
 };
@@ -2144,6 +2148,20 @@ const normalizeHealthPrefs = (type, prefsOverride = null) => {
     const updatesMode = ['maintenance', 'warn', 'ignore'].includes(updatesModeRaw) ? updatesModeRaw : 'maintenance';
     const allStoppedModeRaw = String(incoming.allStoppedMode || '').trim().toLowerCase();
     const allStoppedMode = ['critical', 'warn'].includes(allStoppedModeRaw) ? allStoppedModeRaw : 'critical';
+    const warnVcpusRaw = Number(incoming.vmResourceWarnVcpus);
+    const warnVcpus = Number.isFinite(warnVcpusRaw) ? Math.min(512, Math.max(1, Math.round(warnVcpusRaw))) : 16;
+    const criticalVcpusRaw = Number(incoming.vmResourceCriticalVcpus);
+    let criticalVcpus = Number.isFinite(criticalVcpusRaw) ? Math.min(512, Math.max(1, Math.round(criticalVcpusRaw))) : 32;
+    if (criticalVcpus <= warnVcpus) {
+        criticalVcpus = Math.min(512, warnVcpus + 1);
+    }
+    const warnGiBRaw = Number(incoming.vmResourceWarnGiB);
+    const warnGiB = Number.isFinite(warnGiBRaw) ? Math.min(1024, Math.max(1, Math.round(warnGiBRaw))) : 32;
+    const criticalGiBRaw = Number(incoming.vmResourceCriticalGiB);
+    let criticalGiB = Number.isFinite(criticalGiBRaw) ? Math.min(1024, Math.max(1, Math.round(criticalGiBRaw))) : 64;
+    if (criticalGiB <= warnGiB) {
+        criticalGiB = Math.min(1024, warnGiB + 1);
+    }
     return {
         cardsEnabled: incoming.cardsEnabled !== false,
         runtimeBadgeEnabled: incoming.runtimeBadgeEnabled === true,
@@ -2152,7 +2170,11 @@ const normalizeHealthPrefs = (type, prefsOverride = null) => {
         criticalStoppedPercent,
         profile,
         updatesMode,
-        allStoppedMode
+        allStoppedMode,
+        vmResourceWarnVcpus: warnVcpus,
+        vmResourceCriticalVcpus: criticalVcpus,
+        vmResourceWarnGiB: warnGiB,
+        vmResourceCriticalGiB: criticalGiB
     };
 };
 
@@ -5881,19 +5903,12 @@ const buildFolderQuickActionSummary = (type, folderId) => {
         summary.updatesCount = updateNames.length;
         summary.health = health?.text || 'Unknown';
     } else {
-        let autostartCount = 0;
-        let vcpusTotal = 0;
-        let memoryKiBTotal = 0;
-        for (const member of members) {
-            const vmInfo = infoByName[member] || {};
-            if (valueIsTruthy(vmInfo.autostart)) {
-                autostartCount += 1;
-            }
-            vcpusTotal += Number(vmInfo.vcpus ?? vmInfo.nrVirtCpu ?? 0) || 0;
-            memoryKiBTotal += Number(vmInfo.memoryKiB ?? vmInfo.memory ?? vmInfo.maxMem ?? 0) || 0;
-        }
-        summary.autostart = `${autostartCount}/${members.length}`;
-        summary.resources = `${vcpusTotal} vCPU | ${formatGiBFromKiB(memoryKiBTotal)}`;
+        const vmResources = collectVmFolderResources(members, infoByName);
+        const vmResourceBadge = evaluateVmResourceBadge(vmResources, normalizeHealthPrefs('vm'));
+        summary.autostart = `${vmResources.autostartCount}/${members.length}`;
+        summary.resources = vmResourceBadge.text;
+        summary.resourceSeverity = vmResourceBadge.severity;
+        summary.resourceThresholds = String(vmResourceBadge.title || '');
     }
 
     return summary;
@@ -5921,7 +5936,11 @@ const renderFolderQuickActionSummaryHtml = (summary) => {
         rows.push({ label: 'Health', value: String(summary.health || 'Unknown') });
     } else {
         rows.push({ label: 'Autostart', value: String(summary.autostart || '0/0') });
-        rows.push({ label: 'Resources', value: String(summary.resources || '0 vCPU | 0.00 GiB') });
+        const resourceSeverity = String(summary.resourceSeverity || 'good');
+        const resourceLabel = resourceSeverity === 'critical'
+            ? 'Resources (critical)'
+            : (resourceSeverity === 'warn' ? 'Resources (warn)' : 'Resources');
+        rows.push({ label: resourceLabel, value: String(summary.resources || '0 vCPU | 0 GB') });
     }
     return `
         <div class="fv-row-quick-actions-summary">
@@ -5935,8 +5954,107 @@ const renderFolderQuickActionSummaryHtml = (summary) => {
     `;
 };
 
+const closeVmRowDetailsDrawer = () => {
+    const current = rowDetailsDrawerByType.vm;
+    if (!current) {
+        return;
+    }
+    const tbodyId = tableIdByType.vm;
+    const tbody = $(`tbody#${tbodyId}`);
+    tbody.find('tr.fv-row-details-drawer').remove();
+    tbody.find('tr.is-details-open').removeClass('is-details-open');
+    rowDetailsDrawerByType.vm = null;
+};
+
+const runVmRowDrawerAction = async (action, folderId) => {
+    const id = String(folderId || '').trim();
+    if (!id) {
+        return;
+    }
+    const handlers = {
+        pin: () => toggleFolderPin('vm', id),
+        status: () => {
+            showFolderStatusBreakdown('vm', id);
+            return Promise.resolve();
+        },
+        copy: () => copyFolderId('vm', id),
+        export: () => downloadVm(id),
+        delete: () => clearVm(id)
+    };
+    if (Object.prototype.hasOwnProperty.call(handlers, action)) {
+        await handlers[action]();
+    }
+};
+
+const buildVmRowDetailsDrawerHtml = (folderId, folder, summary, pinned) => {
+    const safeFolderName = escapeHtml(String(folder?.name || folderId || 'VM folder'));
+    const safeFolderId = escapeHtml(String(folderId || ''));
+    const resourceText = escapeHtml(String(summary?.resources || '0 vCPU | 0 GB'));
+    const resourceSeverity = String(summary?.resourceSeverity || 'good');
+    const resourceClass = resourceSeverity === 'critical'
+        ? 'is-critical'
+        : (resourceSeverity === 'warn' ? 'is-warn' : 'is-good');
+    const resourceTitle = escapeHtml(String(summary?.resourceThresholds || ''));
+    const statusText = `${summary?.countsByState?.started || 0} started | ${summary?.countsByState?.paused || 0} paused | ${summary?.countsByState?.stopped || 0} stopped`;
+    const detailRows = [
+        ['Members', summary?.membersCount || 0],
+        ['Status', statusText],
+        ['Rules', summary?.rulesCount || 0],
+        ['Pinned', pinned ? 'Yes' : 'No'],
+        ['Last changed', summary?.lastChanged || 'Unknown'],
+        ['Autostart', summary?.autostart || '0/0']
+    ].map(([label, value]) => (
+        `<div class="fv-row-details-item"><span>${escapeHtml(String(label))}</span><strong>${escapeHtml(String(value))}</strong></div>`
+    )).join('');
+    const actions = [
+        ['pin', pinned ? 'fa-star-o' : 'fa-star', pinned ? 'Unpin' : 'Pin to top', ''],
+        ['status', 'fa-info-circle', 'Status breakdown', ''],
+        ['copy', 'fa-clipboard', 'Copy ID', ''],
+        ['export', 'fa-download', 'Export', ''],
+        ['delete', 'fa-trash', 'Delete', ' is-danger']
+    ].map(([action, icon, label, extraClass]) => (
+        `<button type="button" class="fv-row-quick-action${extraClass}" data-fv-vm-drawer-action="${escapeHtml(String(action))}" data-fv-vm-drawer-folder="${safeFolderId}"><i class="fa ${escapeHtml(String(icon))}"></i> ${escapeHtml(String(label))}</button>`
+    )).join('');
+    return `<div class="fv-row-details-panel"><div class="fv-row-details-head"><div class="fv-row-details-title">${safeFolderName}</div><div class="fv-row-details-meta">ID: <code>${safeFolderId}</code></div></div><div class="fv-row-details-grid">${detailRows}</div><div class="fv-row-details-resource"><span class="folder-metric-chip vm-resource-chip ${resourceClass}" title="${resourceTitle}"><i class="fa fa-microchip" aria-hidden="true"></i><span class="vm-resource-value">${resourceText}</span></span></div><div class="fv-row-details-actions">${actions}</div></div>`;
+};
+
+const toggleVmRowDetailsDrawer = (folderId) => {
+    const id = String(folderId || '').trim();
+    if (!id) {
+        return;
+    }
+    const current = rowDetailsDrawerByType.vm;
+    if (current && current.folderId === id) {
+        closeVmRowDetailsDrawer();
+        return;
+    }
+    const tbodyId = tableIdByType.vm;
+    const tbody = $(`tbody#${tbodyId}`);
+    const row = tbody.find(`tr[data-folder-id="${id}"]`).first();
+    if (!row.length) {
+        return;
+    }
+    const folders = getFolderMap('vm');
+    const folder = folders[id];
+    if (!folder) {
+        return;
+    }
+    closeVmRowDetailsDrawer();
+    const summary = buildFolderQuickActionSummary('vm', id);
+    const pinned = isFolderPinned('vm', id);
+    const drawerHtml = buildVmRowDetailsDrawerHtml(id, folder, summary, pinned);
+    const drawerRow = `<tr class="fv-row-details-drawer" data-folder-id="${escapeHtml(id)}"><td colspan="${TABLE_COLUMN_COUNT}">${drawerHtml}</td></tr>`;
+    row.after(drawerRow);
+    row.addClass('is-details-open');
+    rowDetailsDrawerByType.vm = { folderId: id };
+};
+
 const showFolderRowQuickActions = (type, folderId) => {
     const resolvedType = normalizeManagedType(type);
+    if (resolvedType === 'vm') {
+        toggleVmRowDetailsDrawer(folderId);
+        return;
+    }
     const folderMap = getFolderMap(resolvedType);
     const folder = folderMap[folderId];
     if (!folder) {
@@ -6029,6 +6147,7 @@ const bindRowTouchQuickActions = (type) => {
     const tbodySelector = `tbody#${tableIdByType[resolvedType]}`;
     const namespace = `.fvrowtouch${resolvedType}`;
     const overflowSelector = `${tbodySelector} .folder-overflow-btn`;
+    const vmDrawerActionSelector = `${tbodySelector} [data-fv-vm-drawer-action]`;
 
     $(document).off(`touchstart${namespace}`, `${tbodySelector} tr[data-folder-id]`);
     $(document).off(`touchmove${namespace}`, `${tbodySelector} tr[data-folder-id]`);
@@ -6037,6 +6156,7 @@ const bindRowTouchQuickActions = (type) => {
     $(document).off(`contextmenu${namespace}`, `${tbodySelector} tr[data-folder-id]`);
     $(document).off(`click${namespace}`, overflowSelector);
     $(document).off(`touchend${namespace}`, overflowSelector);
+    $(document).off(`click${namespace}`, vmDrawerActionSelector);
 
     $(document).on(`touchstart${namespace}`, `${tbodySelector} tr[data-folder-id]`, (event) => {
         if (!supportsTouchInput()) {
@@ -6107,6 +6227,21 @@ const bindRowTouchQuickActions = (type) => {
         clearRowLongPressState(resolvedType);
         showFolderRowQuickActions(resolvedType, folderId);
     });
+
+    $(document).on(`click${namespace}`, vmDrawerActionSelector, (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const button = $(event.currentTarget);
+        const action = String(button.attr('data-fv-vm-drawer-action') || '').trim();
+        const folderId = String(button.attr('data-fv-vm-drawer-folder') || '').trim();
+        if (!action || !folderId) {
+            return;
+        }
+        closeVmRowDetailsDrawer();
+        Promise.resolve(runVmRowDrawerAction(action, folderId)).catch((error) => {
+            showError('Action failed', error);
+        });
+    });
 };
 
 const resolveFolderStatusWarnThreshold = (folder, fallbackThreshold) => {
@@ -6172,6 +6307,103 @@ const formatGiBFromKiB = (kibValue) => {
     const gib = kib / (1024 * 1024);
     const fixed = gib >= 100 ? gib.toFixed(0) : gib.toFixed(1);
     return `${fixed} GiB`;
+};
+
+const formatVmMemoryLabel = (kibValue) => {
+    const kib = Number(kibValue) || 0;
+    if (kib <= 0) {
+        return '0 GB';
+    }
+    const gib = kib / (1024 * 1024);
+    const rounded = gib >= 100 ? gib.toFixed(0) : gib.toFixed(1);
+    const compact = rounded.endsWith('.0') ? rounded.slice(0, -2) : rounded;
+    return `${compact} GB`;
+};
+
+const collectVmFolderResources = (members, infoByName) => {
+    const list = Array.isArray(members) ? members : [];
+    const info = infoByName && typeof infoByName === 'object' ? infoByName : {};
+    let autostartCount = 0;
+    let vcpusTotal = 0;
+    let memoryKiBTotal = 0;
+    const autostartMembers = [];
+    for (const member of list) {
+        const vmInfo = info[member] || {};
+        if (valueIsTruthy(vmInfo.autostart)) {
+            autostartCount += 1;
+            autostartMembers.push(String(member));
+        }
+        vcpusTotal += Number(vmInfo.vcpus ?? vmInfo.nrVirtCpu ?? 0) || 0;
+        memoryKiBTotal += Number(vmInfo.memoryKiB ?? vmInfo.memory ?? vmInfo.maxMem ?? 0) || 0;
+    }
+    return {
+        membersCount: list.length,
+        autostartCount,
+        autostartMembers,
+        vcpusTotal,
+        memoryKiBTotal
+    };
+};
+
+const evaluateVmResourceBadge = (resourceTotals, healthPrefs) => {
+    const totals = resourceTotals && typeof resourceTotals === 'object' ? resourceTotals : {};
+    const prefs = healthPrefs && typeof healthPrefs === 'object' ? healthPrefs : {};
+    const vcpusTotal = Number(totals.vcpusTotal || 0);
+    const memoryKiBTotal = Number(totals.memoryKiBTotal || 0);
+    const membersCount = Number(totals.membersCount || 0);
+    const memoryGiBTotal = memoryKiBTotal > 0 ? (memoryKiBTotal / (1024 * 1024)) : 0;
+    const warnVcpus = Number.isFinite(Number(prefs.vmResourceWarnVcpus)) ? Number(prefs.vmResourceWarnVcpus) : 16;
+    const criticalVcpus = Number.isFinite(Number(prefs.vmResourceCriticalVcpus)) ? Number(prefs.vmResourceCriticalVcpus) : 32;
+    const warnGiB = Number.isFinite(Number(prefs.vmResourceWarnGiB)) ? Number(prefs.vmResourceWarnGiB) : 32;
+    const criticalGiB = Number.isFinite(Number(prefs.vmResourceCriticalGiB)) ? Number(prefs.vmResourceCriticalGiB) : 64;
+    const criticalCpuExceeded = vcpusTotal >= criticalVcpus;
+    const criticalMemoryExceeded = memoryGiBTotal >= criticalGiB;
+    const warnCpuExceeded = vcpusTotal >= warnVcpus;
+    const warnMemoryExceeded = memoryGiBTotal >= warnGiB;
+
+    let severity = 'good';
+    if (membersCount <= 0) {
+        severity = 'empty';
+    } else if (criticalCpuExceeded || criticalMemoryExceeded) {
+        severity = 'critical';
+    } else if (warnCpuExceeded || warnMemoryExceeded) {
+        severity = 'warn';
+    }
+
+    const text = `${vcpusTotal} vCPU | ${formatVmMemoryLabel(memoryKiBTotal)}`;
+    const detailLines = [
+        `Total resources: ${text}`,
+        `Thresholds: warn ${warnVcpus} vCPU / ${warnGiB} GB, critical ${criticalVcpus} vCPU / ${criticalGiB} GB.`
+    ];
+    if (warnCpuExceeded || warnMemoryExceeded) {
+        const reasons = [];
+        if (warnCpuExceeded) {
+            reasons.push(`${vcpusTotal} vCPU >= warn ${warnVcpus}`);
+        }
+        if (warnMemoryExceeded) {
+            reasons.push(`${formatVmMemoryLabel(memoryKiBTotal)} >= warn ${warnGiB} GB`);
+        }
+        detailLines.push(`Warning: ${reasons.join(' | ')}`);
+    }
+    if (criticalCpuExceeded || criticalMemoryExceeded) {
+        const reasons = [];
+        if (criticalCpuExceeded) {
+            reasons.push(`${vcpusTotal} vCPU >= critical ${criticalVcpus}`);
+        }
+        if (criticalMemoryExceeded) {
+            reasons.push(`${formatVmMemoryLabel(memoryKiBTotal)} >= critical ${criticalGiB} GB`);
+        }
+        detailLines.push(`Critical: ${reasons.join(' | ')}`);
+    }
+
+    return {
+        severity,
+        text,
+        title: detailLines.join('\n'),
+        className: severity === 'critical'
+            ? 'is-critical'
+            : (severity === 'warn' ? 'is-warn' : (severity === 'empty' ? 'is-empty' : 'is-good'))
+    };
 };
 
 const hasInvalidFolderRegex = (folder) => {
@@ -9072,20 +9304,12 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
                 + `<td class="updates-cell"><button type="button" class="folder-metric-chip updates-chip ${updateClass} ${dockerUpdatesOnlyFilter ? 'is-filter-active' : ''}" title="${escapeHtml(updateTitle)}" aria-label="${escapeHtml(updateTitle)}" onclick="toggleDockerUpdatesFilter(${updateCount > 0 ? 'true' : 'false'})"><i class="fa ${updateIcon}" aria-hidden="true"></i><span>${escapeHtml(updateText)}</span></button></td>`
                 + `<td class="health-cell"><span class="health-cell-content"><button type="button" class="health-breakdown-btn" title="Open health details" aria-label="Open health details for ${safeName}" onclick="showFolderHealthBreakdown('${type}','${escapeHtml(id)}')"><i class="fa fa-heartbeat"></i></button><button type="button" class="folder-metric-chip health-chip ${healthStatus.className} ${healthFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(healthTitle)}" aria-label="${escapeHtml(healthTitle)}" onclick="toggleHealthSeverityFilter('${type}','${escapeHtml(healthStatus.filterSeverity)}')">${escapeHtml(healthStatus.text)}</button></span></td>`;
         } else {
-            let autostartCount = 0;
-            const autostartMembers = [];
-            let vcpusTotal = 0;
-            let memoryKiBTotal = 0;
-            for (const member of members) {
-                const vmInfo = infoByName[member] || {};
-                if (valueIsTruthy(vmInfo.autostart)) {
-                    autostartCount += 1;
-                    autostartMembers.push(String(member));
-                }
-                vcpusTotal += Number(vmInfo.vcpus ?? vmInfo.nrVirtCpu ?? 0) || 0;
-                memoryKiBTotal += Number(vmInfo.memoryKiB ?? vmInfo.memory ?? vmInfo.maxMem ?? 0) || 0;
-            }
-            const membersCount = members.length;
+            const vmResources = collectVmFolderResources(members, infoByName);
+            const membersCount = vmResources.membersCount;
+            const autostartCount = vmResources.autostartCount;
+            const autostartMembers = vmResources.autostartMembers;
+            const vcpusTotal = vmResources.vcpusTotal;
+            const memoryKiBTotal = vmResources.memoryKiBTotal;
             const autostartRatio = `${autostartCount}/${membersCount}`;
             let autostartClass = 'is-empty';
             let autostartIcon = 'fa-circle-o';
@@ -9113,7 +9337,8 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
                         ? `Autostart VMs: ${autostartMembersPreview}${autostartMembersExtra}`
                         : 'Autostart VMs: none'
                 ].join('\n');
-            const memoryTotalText = formatGiBFromKiB(memoryKiBTotal);
+            const vmHealthPrefs = normalizeHealthPrefs('vm');
+            const resourcesBadge = evaluateVmResourceBadge(vmResources, vmHealthPrefs);
             const avgVcpus = membersCount > 0 ? (vcpusTotal / membersCount) : 0;
             const avgMemoryKiB = membersCount > 0 ? Math.round(memoryKiBTotal / membersCount) : 0;
             const avgVcpusText = Number.isInteger(avgVcpus) ? String(avgVcpus) : avgVcpus.toFixed(1);
@@ -9121,12 +9346,12 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             const resourcesTitle = membersCount <= 0
                 ? 'No VMs in this folder.'
                 : [
-                    `Total: ${vcpusTotal} vCPU | ${memoryTotalText}`,
+                    `Total: ${resourcesBadge.text}`,
                     `Average per VM: ${avgVcpusText} vCPU | ${avgMemoryText}`
-                ].join('\n');
+                ].join('\n') + `\n${resourcesBadge.title}`;
             typeSpecificColumns = ''
                 + `<td class="autostart-cell"><span class="folder-metric-chip autostart-chip ${autostartClass}" title="${escapeHtml(autostartTitle)}"><i class="fa ${autostartIcon}" aria-hidden="true"></i><span>${escapeHtml(autostartText)}</span></span></td>`
-                + `<td class="resources-cell"><span class="vm-resource-stack" title="${escapeHtml(resourcesTitle)}"><span class="folder-metric-chip vm-resource-chip is-cpu ${vcpusTotal > 0 ? '' : 'is-empty'}"><i class="fa fa-cogs" aria-hidden="true"></i><span class="vm-resource-label">CPU</span><span class="vm-resource-value">${escapeHtml(`${vcpusTotal} vCPU`)}</span></span><span class="folder-metric-chip vm-resource-chip is-ram ${memoryKiBTotal > 0 ? '' : 'is-empty'}"><i class="fa fa-hdd-o" aria-hidden="true"></i><span class="vm-resource-label">RAM</span><span class="vm-resource-value">${escapeHtml(memoryTotalText)}</span></span></span></td>`;
+                + `<td class="resources-cell"><span class="vm-resource-stack" title="${escapeHtml(resourcesTitle)}"><span class="folder-metric-chip vm-resource-chip ${resourcesBadge.className}"><i class="fa fa-microchip" aria-hidden="true"></i><span class="vm-resource-value">${escapeHtml(resourcesBadge.text)}</span></span></span></td>`;
         }
         rows.push(
             `<tr data-folder-id="${escapeHtml(id)}" tabindex="0" onkeydown="handleFolderRowKeydown('${type}','${escapeHtml(id)}',event)">`
@@ -9177,7 +9402,10 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
                 : 'Start by creating your first VM folder, importing a VM export, or running the setup wizard.';
             const importAction = isDockerType ? "importDocker()" : "importVm()";
             const typeValue = isDockerType ? 'docker' : 'vm';
-            return `<tr><td colspan="${TABLE_COLUMN_COUNT}" class="folder-empty-cell"><div class="fv-starter-empty"><div class="fv-starter-empty-title">${escapeHtml(title)}</div><div class="fv-starter-empty-help">${escapeHtml(help)}</div><div class="fv-starter-empty-actions"><button type="button" onclick="quickCreateStarterFolder('${typeValue}')"><i class="fa fa-plus-circle"></i> Create folder</button><button type="button" onclick="${importAction}"><i class="fa fa-upload"></i> Import config</button><button type="button" onclick="runQuickSetupWizard(true)"><i class="fa fa-magic"></i> Open wizard</button></div></div></td></tr>`;
+            const createLabel = isDockerType ? 'Create folder' : 'Create VM folder';
+            const importLabel = isDockerType ? 'Import config' : 'Import VM config';
+            const wizardLabel = isDockerType ? 'Open wizard' : 'Run wizard';
+            return `<tr><td colspan="${TABLE_COLUMN_COUNT}" class="folder-empty-cell"><div class="fv-starter-empty"><div class="fv-starter-empty-title">${escapeHtml(title)}</div><div class="fv-starter-empty-help">${escapeHtml(help)}</div><div class="fv-starter-empty-actions"><button type="button" onclick="quickCreateStarterFolder('${typeValue}')"><i class="fa fa-plus-circle"></i> ${escapeHtml(createLabel)}</button><button type="button" onclick="${importAction}"><i class="fa fa-upload"></i> ${escapeHtml(importLabel)}</button><button type="button" onclick="runQuickSetupWizard(true)"><i class="fa fa-magic"></i> ${escapeHtml(wizardLabel)}</button></div></div></td></tr>`;
         }
         if (folderCount > 0 && hideEmptyFolders && !showClearFilters) {
             return `<tr><td colspan="${TABLE_COLUMN_COUNT}" class="folder-empty-cell">All folders are currently hidden by "Hide empty folders".</td></tr>`;
@@ -9351,12 +9579,21 @@ const renderHealthControls = (type) => {
     $(`#${type}-health-profile`).val(health.profile);
     $(`#${type}-health-updates-mode`).val(health.updatesMode);
     $(`#${type}-health-all-stopped-mode`).val(health.allStoppedMode);
+    $(`#${type}-resource-warn-vcpu`).val(String(health.vmResourceWarnVcpus));
+    $(`#${type}-resource-critical-vcpu`).val(String(health.vmResourceCriticalVcpus));
+    $(`#${type}-resource-warn-gib`).val(String(health.vmResourceWarnGiB));
+    $(`#${type}-resource-critical-gib`).val(String(health.vmResourceCriticalGiB));
     const showHealthSettings = health.cardsEnabled === true;
     $(`#${type}-health-warn-threshold-row`).toggleClass('is-hidden', !showHealthSettings);
     $(`#${type}-health-critical-threshold-row`).toggleClass('is-hidden', !showHealthSettings);
     $(`#${type}-health-policy-profile-row`).toggleClass('is-hidden', !showHealthSettings);
     $(`#${type}-health-updates-mode-row`).toggleClass('is-hidden', !showHealthSettings);
     $(`#${type}-health-all-stopped-mode-row`).toggleClass('is-hidden', !showHealthSettings);
+    const showVmResourceThresholds = showHealthSettings && type === 'vm';
+    $(`#${type}-resource-warn-vcpu-row`).toggleClass('is-hidden', !showVmResourceThresholds);
+    $(`#${type}-resource-critical-vcpu-row`).toggleClass('is-hidden', !showVmResourceThresholds);
+    $(`#${type}-resource-warn-gib-row`).toggleClass('is-hidden', !showVmResourceThresholds);
+    $(`#${type}-resource-critical-gib-row`).toggleClass('is-hidden', !showVmResourceThresholds);
     if (health.cardsEnabled !== true) {
         healthFilterByType[type] = 'all';
     }
@@ -10124,6 +10361,9 @@ const renderTable = (type) => {
         previous: previousStatusSnapshot,
         current: nextStatusSnapshot
     }));
+    if (type === 'vm') {
+        rowDetailsDrawerByType.vm = null;
+    }
     statusSnapshotByType[type] = nextStatusSnapshot;
     bindRowTouchQuickActions(type);
 
@@ -10781,8 +11021,34 @@ const changeHealthPref = async (type, key, value) => {
         nextHealth.updatesMode = normalizeHealthUpdatesMode(value, currentHealth.updatesMode);
     } else if (key === 'allStoppedMode') {
         nextHealth.allStoppedMode = normalizeHealthAllStoppedMode(value, currentHealth.allStoppedMode);
+    } else if (key === 'resourceWarnVcpu') {
+        const parsed = Number(value);
+        nextHealth.vmResourceWarnVcpus = Number.isFinite(parsed)
+            ? Math.min(512, Math.max(1, Math.round(parsed)))
+            : currentHealth.vmResourceWarnVcpus;
+    } else if (key === 'resourceCriticalVcpu') {
+        const parsed = Number(value);
+        nextHealth.vmResourceCriticalVcpus = Number.isFinite(parsed)
+            ? Math.min(512, Math.max(1, Math.round(parsed)))
+            : currentHealth.vmResourceCriticalVcpus;
+    } else if (key === 'resourceWarnGiB') {
+        const parsed = Number(value);
+        nextHealth.vmResourceWarnGiB = Number.isFinite(parsed)
+            ? Math.min(1024, Math.max(1, Math.round(parsed)))
+            : currentHealth.vmResourceWarnGiB;
+    } else if (key === 'resourceCriticalGiB') {
+        const parsed = Number(value);
+        nextHealth.vmResourceCriticalGiB = Number.isFinite(parsed)
+            ? Math.min(1024, Math.max(1, Math.round(parsed)))
+            : currentHealth.vmResourceCriticalGiB;
     } else {
         return;
+    }
+    if (nextHealth.vmResourceCriticalVcpus <= nextHealth.vmResourceWarnVcpus) {
+        nextHealth.vmResourceCriticalVcpus = Math.min(512, nextHealth.vmResourceWarnVcpus + 1);
+    }
+    if (nextHealth.vmResourceCriticalGiB <= nextHealth.vmResourceWarnGiB) {
+        nextHealth.vmResourceCriticalGiB = Math.min(1024, nextHealth.vmResourceWarnGiB + 1);
     }
 
     const next = {

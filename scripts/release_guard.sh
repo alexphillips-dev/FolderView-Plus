@@ -302,7 +302,8 @@ if ! grep -q 'function readCurrentVersionChangeSummary' "${SERVER_DIR}/lib.php";
   echo "ERROR: lib.php must define readCurrentVersionChangeSummary()." >&2
   exit 1
 fi
-if ! grep -Eq 'readChangesSummaryForVersion\(readInstalledVersion\(\),[[:space:]]*\$maxLines,[[:space:]]*false\)' "${SERVER_DIR}/lib.php"; then
+current_version_notes_pattern="readChangesSummaryForVersion\\(readInstalledVersion\\(\\),[[:space:]]*\\\$maxLines,[[:space:]]*false\\)"
+if ! grep -Eq "${current_version_notes_pattern}" "${SERVER_DIR}/lib.php"; then
   echo "ERROR: readCurrentVersionChangeSummary() must disable fallback so \"What Changed\" only shows current-version notes." >&2
   exit 1
 fi

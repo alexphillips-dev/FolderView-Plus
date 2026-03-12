@@ -3,6 +3,7 @@ const EXPORT_BASENAME = 'FolderView Plus Export';
 const REQUEST_TOKEN_STORAGE_KEY = 'fv.request.token';
 const requestClient = window.FolderViewPlusRequest || null;
 const settingsChrome = window.FolderViewPlusSettingsChrome || null;
+const dirtyTracker = window.FolderViewPlusDirtyTracker || null;
 
 let dockers = {};
 let vms = {};
@@ -600,6 +601,9 @@ const slugifySectionKey = (text) => String(text || '')
     .replace(/^-+|-+$/g, '');
 
 const getInputSerializedValue = (input) => {
+    if (dirtyTracker && typeof dirtyTracker.getInputSerializedValue === 'function') {
+        return dirtyTracker.getInputSerializedValue(input);
+    }
     if (!input) {
         return '';
     }
@@ -609,21 +613,30 @@ const getInputSerializedValue = (input) => {
     return String(input.value ?? '');
 };
 
-const INSTANT_PERSIST_ONCHANGE_TOKENS = Object.freeze([
-    'changesortmode(',
-    'changebadgepref(',
-    'changevisibilitypref(',
-    'changestatuspref(',
-    'changeruntimepref(',
-    'changehealthpref(',
-    'changebackupschedulepref(',
-    'changecolumnvisibility(',
-    'togglerulekindfields(',
-    'toggleallruleselections(',
-    'togglealltemplateselections('
-]);
+const INSTANT_PERSIST_ONCHANGE_TOKENS = Object.freeze(
+    dirtyTracker && Array.isArray(dirtyTracker.DEFAULT_INSTANT_PERSIST_ONCHANGE_TOKENS)
+        ? dirtyTracker.DEFAULT_INSTANT_PERSIST_ONCHANGE_TOKENS
+        : [
+            'changesortmode(',
+            'changebadgepref(',
+            'changevisibilitypref(',
+            'changestatuspref(',
+            'changeruntimepref(',
+            'changehealthpref(',
+            'changebackupschedulepref(',
+            'changecolumnvisibility(',
+            'togglerulekindfields(',
+            'toggleallruleselections(',
+            'togglealltemplateselections('
+        ]
+);
 
 const isInstantPersistInput = (input) => {
+    if (dirtyTracker && typeof dirtyTracker.isInstantPersistInput === 'function') {
+        return dirtyTracker.isInstantPersistInput(input, {
+            tokens: INSTANT_PERSIST_ONCHANGE_TOKENS
+        });
+    }
     if (!(input instanceof HTMLElement)) {
         return false;
     }
@@ -639,9 +652,30 @@ const isInstantPersistInput = (input) => {
     return INSTANT_PERSIST_ONCHANGE_TOKENS.some((token) => handler.includes(token));
 };
 
-const getTrackedInputs = () => Array
-    .from(document.querySelectorAll('input[id], select[id], textarea[id]'))
-    .filter((input) => !isInstantPersistInput(input));
+const getTrackedInputs = () => {
+    if (dirtyTracker && typeof dirtyTracker.getTrackedInputs === 'function') {
+        return dirtyTracker.getTrackedInputs(document, {
+            tokens: INSTANT_PERSIST_ONCHANGE_TOKENS
+        });
+    }
+    return Array
+        .from(document.querySelectorAll('input[id], select[id], textarea[id]'))
+        .filter((input) => !isInstantPersistInput(input));
+};
+
+const getChangedTrackedInputs = () => {
+    if (dirtyTracker && typeof dirtyTracker.getChangedInputs === 'function') {
+        return dirtyTracker.getChangedInputs(
+            getTrackedInputs(),
+            settingsUiState.baselineByInputId,
+            getInputSerializedValue
+        );
+    }
+    return getTrackedInputs().filter((input) => (
+        settingsUiState.baselineByInputId.has(input.id)
+        && settingsUiState.baselineByInputId.get(input.id) !== getInputSerializedValue(input)
+    ));
+};
 
 const normalizeAdvancedGroup = (value) => (
     ADVANCED_GROUPS.includes(String(value || ''))
@@ -813,10 +847,7 @@ const syncActionDockVisibility = () => {
 };
 
 const updateActionBarSaveState = () => {
-    const changed = getTrackedInputs().filter((input) => (
-        settingsUiState.baselineByInputId.has(input.id)
-        && settingsUiState.baselineByInputId.get(input.id) !== getInputSerializedValue(input)
-    ));
+    const changed = getChangedTrackedInputs();
     const count = changed.length;
     settingsUiState.unsavedCount = count;
     const saveButton = $('#fv-action-save');
@@ -836,9 +867,17 @@ const updateActionBarSaveState = () => {
 };
 
 const captureSettingsBaseline = () => {
-    settingsUiState.baselineByInputId.clear();
-    for (const input of getTrackedInputs()) {
-        settingsUiState.baselineByInputId.set(input.id, getInputSerializedValue(input));
+    if (dirtyTracker && typeof dirtyTracker.captureBaseline === 'function') {
+        dirtyTracker.captureBaseline(
+            getTrackedInputs(),
+            settingsUiState.baselineByInputId,
+            getInputSerializedValue
+        );
+    } else {
+        settingsUiState.baselineByInputId.clear();
+        for (const input of getTrackedInputs()) {
+            settingsUiState.baselineByInputId.set(input.id, getInputSerializedValue(input));
+        }
     }
     updateActionBarSaveState();
 };
@@ -1389,10 +1428,7 @@ const refreshSectionHealthBadges = () => {
 };
 
 const saveActionBarChanges = async (closeAfterSave = false) => {
-    const changedInputs = getTrackedInputs().filter((input) => (
-        settingsUiState.baselineByInputId.has(input.id)
-        && settingsUiState.baselineByInputId.get(input.id) !== getInputSerializedValue(input)
-    ));
+    const changedInputs = getChangedTrackedInputs();
     changedInputs.forEach((input) => {
         $(input).trigger('change');
     });
@@ -1408,21 +1444,23 @@ const saveActionBarChanges = async (closeAfterSave = false) => {
 };
 
 const cancelActionBarChanges = () => {
-    const changedInputs = getTrackedInputs().filter((input) => (
-        settingsUiState.baselineByInputId.has(input.id)
-        && settingsUiState.baselineByInputId.get(input.id) !== getInputSerializedValue(input)
-    ));
+    const changedInputs = getChangedTrackedInputs();
     if (changedInputs.length <= 0) {
         updateActionBarSaveState();
         setActionDockExpanded(false);
         return;
     }
-    for (const input of changedInputs) {
-        const baseline = settingsUiState.baselineByInputId.get(input.id);
-        if (input.type === 'checkbox') {
-            input.checked = baseline === '1';
-        } else {
-            input.value = baseline;
+    const revertedInputs = dirtyTracker && typeof dirtyTracker.applyBaselineValues === 'function'
+        ? dirtyTracker.applyBaselineValues(changedInputs, settingsUiState.baselineByInputId)
+        : changedInputs;
+    for (const input of revertedInputs) {
+        if (!(dirtyTracker && typeof dirtyTracker.applyBaselineValues === 'function')) {
+            const baseline = settingsUiState.baselineByInputId.get(input.id);
+            if (input.type === 'checkbox') {
+                input.checked = baseline === '1';
+            } else {
+                input.value = baseline;
+            }
         }
         $(input).trigger('input');
         $(input).trigger('change');

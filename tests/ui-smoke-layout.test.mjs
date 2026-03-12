@@ -45,6 +45,7 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
     assert.match(settingsPage, /id="fv-runtime-resolved-panel"/);
     assert.match(settingsPage, /folderviewplus\.request\.js/);
     assert.match(settingsPage, /folderviewplus\.chrome\.js/);
+    assert.match(settingsPage, /folderviewplus\.dirty\.js/);
     assert.match(settingsPage, /Last changed/);
     assert.match(settingsPage, /Pinned/);
     assert.match(settingsPage, /Updates/);
@@ -177,6 +178,7 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
 test('settings runtime uses extracted chrome module and shared request wrapper', () => {
     assert.match(settingsJs, /const requestClient = window\.FolderViewPlusRequest \|\| null;/);
     assert.match(settingsJs, /const settingsChrome = window\.FolderViewPlusSettingsChrome \|\| null;/);
+    assert.match(settingsJs, /const dirtyTracker = window\.FolderViewPlusDirtyTracker \|\| null;/);
     assert.match(settingsJs, /const SETUP_ASSISTANT_DONE_STORAGE_KEY = 'fv\.settings\.setupAssistant\.v2\.done';/);
     assert.match(settingsJs, /const SETUP_ASSISTANT_DRAFT_STORAGE_KEY = 'fv\.settings\.setupAssistant\.v2\.draft';/);
     assert.match(settingsJs, /const SETUP_ASSISTANT_PRESETS_STORAGE_KEY = 'fv\.settings\.setupAssistant\.v2\.presets';/);
@@ -185,9 +187,12 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const TABLE_UI_STATE_STORAGE_KEY = 'fv\.settings\.tableUiState\.v1';/);
     assert.doesNotMatch(settingsJs, /const ACTION_DOCK_SIDE_STORAGE_KEY = 'fv\.settings\.actionDockSide\.v1';/);
     assert.match(settingsJs, /const ACTION_DOCK_AUTOCOLLAPSE_MS = 5000;/);
-    assert.match(settingsJs, /const INSTANT_PERSIST_ONCHANGE_TOKENS = Object\.freeze\(\[/);
+    assert.match(settingsJs, /const INSTANT_PERSIST_ONCHANGE_TOKENS = Object\.freeze\(/);
     assert.match(settingsJs, /const isInstantPersistInput = \(input\) =>/);
     assert.match(settingsJs, /return INSTANT_PERSIST_ONCHANGE_TOKENS\.some\(\(token\) => handler\.includes\(token\)\);/);
+    assert.match(settingsJs, /const getChangedTrackedInputs = \(\) =>/);
+    assert.match(settingsJs, /dirtyTracker\.getChangedInputs\(/);
+    assert.match(settingsJs, /dirtyTracker\.captureBaseline\(/);
     assert.match(settingsJs, /const advancedDataLoadState = \{/);
     assert.match(settingsJs, /const UNDO_WINDOW_MS = 10000;/);
     assert.match(settingsJs, /const buildModuleEmptyTableRow = \(title, help, colspan = 1\) =>/);
@@ -197,7 +202,8 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.doesNotMatch(settingsJs, /const bindActionDockDrag = \(\) =>/);
     assert.doesNotMatch(settingsJs, /fv-save-dock-handle/);
     assert.match(settingsJs, /<div class="fv-save-dock-panel">[\s\S]*<div class="fv-save-dock-head">/);
-    assert.match(settingsJs, /const getTrackedInputs = \(\) => Array[\s\S]*\.filter\(\(input\) => !isInstantPersistInput\(input\)\);/);
+    assert.match(settingsJs, /const getTrackedInputs = \(\) => \{/);
+    assert.match(settingsJs, /dirtyTracker && typeof dirtyTracker\.getTrackedInputs === 'function'/);
     assert.match(settingsJs, /resolveAffectedFolderIdsFromOperations\(resolvedType, operations\)/);
     assert.match(settingsJs, /const SETUP_ASSISTANT_EXPERIENCE_MODES = new Set\(\['guided', 'expert'\]\);/);
     assert.match(settingsJs, /const SETUP_ASSISTANT_APPLY_SAFETY_MODES = new Set\(\['auto', 'strict', 'fast'\]\);/);

@@ -2,7 +2,7 @@
     "@metadata": {
         "authors": [],
         "last-updated": "2024-10-03",
-		"locale": "de"
+        "locale": "de"
     },
     "add-folder": "Ordner hinzufügen",
     "up-to-date": "Auf dem neusten Stand",
@@ -116,7 +116,6 @@
     "export-all": "<i class=\"fa fa-download\" aria-hidden=\"true\"></i> Alles exportieren",
     "import-all": "<i class=\"fa fa-upload\" aria-hidden=\"true\"></i> Importieren",
     "clear-all": "<i class=\"fa fa-ban\" aria-hidden=\"true\"></i> Leeren",
-    "el-id": "ID",
     "el-name": "Name",
     "el-actions": "Aktionen",
     "docker": "Docker",
@@ -148,7 +147,6 @@
     "customizations": "Benutzeranpassungen",
     "on": "Ein",
     "off": "Aus",
-    "folderviewplus-desc": "Mit FolderView Plus kannst du Ordner erstellen, um Docker-Container und VMs zu gruppieren und so die Organisation zu erleichtern. Das ist besonders nützlich, wenn du docker-compose verwendest. Der erste Schritt: Ein neuer Button mit dem Namen \"Ordner hinzufügen\" erscheint unten im Docker/VM-Reiter neben \"Container/VM hinzufügen\".",
     "action-add": "Aktion hinzufügen",
     "action-edit": "Aktion bearbeiten",
     "action-add-btn": "Hinzufügen",

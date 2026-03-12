@@ -2,7 +2,7 @@
     "@metadata": {
         "authors": [],
         "last-updated": "2024-10-02",
-		"locale": "fr"
+        "locale": "fr"
     },
     "add-folder": "Ajouter Dossier",
     "up-to-date": "à jour",
@@ -116,7 +116,6 @@
     "export-all": "<i class=\"fa fa-download\" aria-hidden=\"true\"></i> Tout exporter",
     "import-all": "<i class=\"fa fa-upload\" aria-hidden=\"true\"></i> Importer",
     "clear-all": "<i class=\"fa fa-ban\" aria-hidden=\"true\"></i> Effacer",
-    "el-id": "ID",
     "el-name": "Nom",
     "el-actions": "Actions",
     "docker": "Docker",
@@ -148,7 +147,6 @@
     "customizations": "Personnalisations",
     "on": "Oui",
     "off": "non",
-    "folderviewplus-desc": "FolderView Plus vous permet de créer des dossiers afin d'organiser et de regrouper les Conteneurs et VMs ensemble. C'est particulièrement utile si vous utilisez docker-compose. Pour commencer : un nouveau bouton  nommé \"Ajouter Dossier\" apparaîtra en bas de l'onglet Docker/VM à coté de \"Ajouter Conteneur/VM\".",
     "action-add": "Ajouter action",
     "action-edit": "Editer action",
     "action-add-btn": "Ajouter",

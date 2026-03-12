@@ -3,6 +3,9 @@ import os from 'node:os';
 import path from 'node:path';
 
 const targetUrl = String(process.env.FVPLUS_BROWSER_SMOKE_URL || '').trim();
+const targetLabel = String(process.env.FVPLUS_BROWSER_SMOKE_LABEL || '').trim();
+const unraidVersionHint = String(process.env.FVPLUS_UNRAID_VERSION_HINT || '').trim();
+const themeHint = String(process.env.FVPLUS_THEME_HINT || '').trim();
 const timeoutMs = Number.isFinite(Number(process.env.FVPLUS_BROWSER_SMOKE_TIMEOUT_MS))
     ? Math.max(5000, Number(process.env.FVPLUS_BROWSER_SMOKE_TIMEOUT_MS))
     : 45000;
@@ -12,6 +15,12 @@ if (!targetUrl) {
     console.log('Skipping browser smoke checks (FVPLUS_BROWSER_SMOKE_URL not set).');
     process.exit(0);
 }
+
+const scenarioLabel = [
+    targetLabel || 'unlabeled-target',
+    unraidVersionHint ? `Unraid ${unraidVersionHint}` : '',
+    themeHint ? `Theme ${themeHint}` : ''
+].filter(Boolean).join(' | ');
 
 let playwright;
 try {
@@ -68,7 +77,7 @@ const runBrowserSmoke = async (browserName, browserType) => {
             await page.keyboard.press('Escape');
         }
 
-        console.log(`Browser smoke passed: ${browserName}`);
+        console.log(`Browser smoke passed: ${browserName} (${scenarioLabel})`);
     } finally {
         await context.close();
         await browser.close();
@@ -76,6 +85,7 @@ const runBrowserSmoke = async (browserName, browserType) => {
 };
 
 try {
+    console.log(`Running browser smoke scenario: ${scenarioLabel}`);
     await runBrowserSmoke('chromium', playwright.chromium);
     await runBrowserSmoke('firefox', playwright.firefox);
     await runBrowserSmoke('webkit', playwright.webkit);

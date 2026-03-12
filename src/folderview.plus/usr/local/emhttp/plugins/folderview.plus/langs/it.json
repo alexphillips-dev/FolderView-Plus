@@ -2,7 +2,7 @@
     "@metadata": {
         "authors": [],
         "last-updated": "2023-11-29",
-		"locale": "it"
+        "locale": "it"
     },
     "add-folder": "Aggiungi Cartella",
     "up-to-date": "aggiornato",
@@ -116,7 +116,6 @@
     "export-all": "<i class=\"fa fa-download\" aria-hidden=\"true\"></i> Esporta tutto",
     "import-all": "<i class=\"fa fa-upload\" aria-hidden=\"true\"></i> Importa",
     "clear-all": "<i class=\"fa fa-ban\" aria-hidden=\"true\"></i> Riumovi tutto",
-    "el-id": "ID",
     "el-name": "Nome",
     "el-actions": "Azioni",
     "docker": "Docker",
@@ -148,7 +147,6 @@
     "customizations": "Personalizzazioni",
     "on": "Sì",
     "off": "No",
-    "folderviewplus-desc": "FolderView Plus ti permette di creare delle cartelle per raggruppare Docker e VM insieme per facilitare l'organizzazione. Utile nel caso tu stia usando docker-compose. Come iniziare: Un nuovo bottone apparirà in fondo alla schermata Docker/VM con il nome \"Aggiungi Cartella\" affianco al bottone \"Aggiungi container/VM\".",
     "action-add": "Aggiungi azione",
     "action-edit": "Modifica azione",
     "action-add-btn": "Aggiungi",

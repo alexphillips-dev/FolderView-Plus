@@ -11,15 +11,17 @@ const updateNotesPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folder
 const settingsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js');
 const settingsCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css');
 
-test('update-notes backend provides fallback-aware categorized summary', () => {
+test('update-notes backend provides current-version-only categorized summary', () => {
     assert.match(libPhp, /function readInstalledManifestPathCandidates\s*\(/);
     assert.match(libPhp, /function readChangesSummaryForVersion\s*\(/);
+    assert.match(libPhp, /function readChangesSummaryForVersion\(string \$version, int \$maxLines = 14, bool \$allowFallback = true\): array/);
     assert.match(libPhp, /function extractPreviousChangesEntry\s*\(/);
     assert.match(libPhp, /function buildUniqueCurrentChangesLines\s*\(/);
     assert.match(libPhp, /function filterBoilerplateChangesLines\s*\(/);
     assert.match(libPhp, /function isChangesBoilerplateLine\s*\(/);
     assert.match(libPhp, /filterBoilerplateChangesLines\(\$displayLines\)/);
     assert.match(libPhp, /buildUniqueCurrentChangesLines\(\$displayLines,\s*\(array\)\(\$previousEntry\['lines'\]/);
+    assert.match(libPhp, /readChangesSummaryForVersion\(readInstalledVersion\(\), \$maxLines, false\)/);
     assert.match(libPhp, /'maintenance'\s*=>\s*\[[^\]]*'release'[^\]]*'metadata'[^\]]*'packaging'[^\]]*'sync'/);
     assert.match(libPhp, /function classifyChangesCategory\s*\(/);
     assert.match(libPhp, /function readCurrentVersionChangeSummary\s*\(/);

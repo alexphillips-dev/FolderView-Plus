@@ -2,7 +2,7 @@
     "@metadata": {
         "authors": [],
         "last-updated": "2023-11-30",
-		"locale": "zh"
+        "locale": "zh"
     },
     "add-folder": "添加文件夹",
     "up-to-date": "最新",
@@ -116,7 +116,6 @@
     "export-all": "<i class=\"fa fa-download\" aria-hidden=\"true\"></i> 导出全部",
     "import-all": "<i class=\"fa fa-upload\" aria-hidden=\"true\"></i> 导入",
     "clear-all": "<i class=\"fa fa-ban\" aria-hidden=\"true\"></i> 清空",
-    "el-id": "编号",
     "el-name": "名称",
     "el-actions": "操作",
     "docker": "Docker",
@@ -148,7 +147,6 @@
     "customizations": "自定义",
     "on": "开",
     "off": "关",
-    "folderviewplus-desc": "FolderView Plus可以让你创建文件夹，将Docker和虚拟机进行分组，帮助合理规划。在使用docker-compose的情况下尤其有用。简单说明：在Docker/虚拟机页面的底部，在“添加容器”或“添加虚拟机”的按钮后面，会增加一个“添加文件夹”的按钮。",
     "action-add": "添加操作",
     "action-edit": "修改操作",
     "action-add-btn": "添加",

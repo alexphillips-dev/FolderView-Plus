@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.11.15">
-<!ENTITY md5 "a012f816328f8dc0f54130000c77c7f0">
+<!ENTITY version "2026.03.11.16">
+<!ENTITY md5 "dcb0e4f2c507abac6cf316e6de79fab9">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.11.16
+- Fix: Extracted staged save/cancel dirty-state logic into `folderviewplus.dirty.js` to reduce regressions and keep behavior consistent across settings actions.
+- Quality: Added dedicated save/cancel behavior tests, including instant-persist reorder coverage, to harden action-bar validation.
+- Quality: Enforced current-version-only `What Changed` summaries (no fallback to older versions) and added release guard checks for this contract.
+- Quality: Expanded Unraid/theme matrix smoke support with explicit version/theme hints and required-coverage checks in CI.
+- Maintenance: Removed stale locale keys and tightened i18n usage guard allowlist to prevent drift.
+
 
 ###2026.03.11.15
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

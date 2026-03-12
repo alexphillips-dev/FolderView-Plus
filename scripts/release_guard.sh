@@ -101,6 +101,7 @@ fi
 SOURCE_FOLDER_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js"
 SOURCE_FOLDER_CSS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folder.css"
 SOURCE_SETTINGS_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js"
+SOURCE_SETTINGS_DIRTY_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.dirty.js"
 SOURCE_SETTINGS_CSS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css"
 SOURCE_FOLDER_PAGE="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page"
 SOURCE_SETTINGS_PAGE="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page"
@@ -117,6 +118,10 @@ if [[ ! -f "${SOURCE_FOLDER_CSS}" ]]; then
 fi
 if [[ ! -f "${SOURCE_SETTINGS_JS}" ]]; then
   echo "ERROR: Missing source settings script: ${SOURCE_SETTINGS_JS}" >&2
+  exit 1
+fi
+if [[ ! -f "${SOURCE_SETTINGS_DIRTY_JS}" ]]; then
+  echo "ERROR: Missing source settings dirty-tracker script: ${SOURCE_SETTINGS_DIRTY_JS}" >&2
   exit 1
 fi
 if [[ ! -f "${SOURCE_SETTINGS_CSS}" ]]; then
@@ -174,6 +179,7 @@ fi
 REQUIRED_ARCHIVE_PATHS=(
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folder.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.dirty.js"
   "./usr/local/emhttp/plugins/folderview.plus/styles/folder.css"
   "./usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css"
   "./usr/local/emhttp/plugins/folderview.plus/Folder.page"
@@ -200,6 +206,14 @@ if ! grep -q 'click\.fvsectionheader' "${SOURCE_SETTINGS_JS}"; then
 fi
 if ! grep -Fq 'h2[data-fv-section][data-fv-advanced="1"]' "${SOURCE_SETTINGS_JS}"; then
   echo "ERROR: Source folderviewplus.js is missing advanced-section heading selector for mobile support." >&2
+  exit 1
+fi
+if ! grep -q 'window.FolderViewPlusDirtyTracker' "${SOURCE_SETTINGS_JS}"; then
+  echo "ERROR: Source folderviewplus.js is missing dirty-tracker module integration." >&2
+  exit 1
+fi
+if ! grep -q 'folderviewplus\.dirty\.js' "${SOURCE_SETTINGS_PAGE}"; then
+  echo "ERROR: Source FolderViewPlus.page is missing folderviewplus.dirty.js include." >&2
   exit 1
 fi
 if ! grep -q '@media (max-width: 760px)' "${SOURCE_SETTINGS_CSS}"; then
@@ -288,19 +302,25 @@ if ! grep -q 'function readCurrentVersionChangeSummary' "${SERVER_DIR}/lib.php";
   echo "ERROR: lib.php must define readCurrentVersionChangeSummary()." >&2
   exit 1
 fi
+if ! grep -Eq 'readChangesSummaryForVersion\(readInstalledVersion\(\),[[:space:]]*\$maxLines,[[:space:]]*false\)' "${SERVER_DIR}/lib.php"; then
+  echo "ERROR: readCurrentVersionChangeSummary() must disable fallback so \"What Changed\" only shows current-version notes." >&2
+  exit 1
+fi
 
 TMP_ARCHIVE_FOLDER_JS="$(mktemp)"
 TMP_ARCHIVE_FOLDER_CSS="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_JS="$(mktemp)"
+TMP_ARCHIVE_SETTINGS_DIRTY_JS="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_CSS="$(mktemp)"
 TMP_ARCHIVE_FOLDER_PAGE="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_PAGE="$(mktemp)"
 TMP_ARCHIVE_SERVER_LIB="$(mktemp)"
 TMP_ARCHIVE_SERVER_UPDATE_NOTES="$(mktemp)"
-trap 'rm -f "${TMP_ARCHIVE_FOLDER_JS}" "${TMP_ARCHIVE_FOLDER_CSS}" "${TMP_ARCHIVE_SETTINGS_JS}" "${TMP_ARCHIVE_SETTINGS_CSS}" "${TMP_ARCHIVE_FOLDER_PAGE}" "${TMP_ARCHIVE_SETTINGS_PAGE}" "${TMP_ARCHIVE_SERVER_LIB}" "${TMP_ARCHIVE_SERVER_UPDATE_NOTES}"' EXIT
+trap 'rm -f "${TMP_ARCHIVE_FOLDER_JS}" "${TMP_ARCHIVE_FOLDER_CSS}" "${TMP_ARCHIVE_SETTINGS_JS}" "${TMP_ARCHIVE_SETTINGS_DIRTY_JS}" "${TMP_ARCHIVE_SETTINGS_CSS}" "${TMP_ARCHIVE_FOLDER_PAGE}" "${TMP_ARCHIVE_SETTINGS_PAGE}" "${TMP_ARCHIVE_SERVER_LIB}" "${TMP_ARCHIVE_SERVER_UPDATE_NOTES}"' EXIT
 ARCHIVE_FOLDER_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folder.js"
 ARCHIVE_FOLDER_CSS_PATH="./usr/local/emhttp/plugins/folderview.plus/styles/folder.css"
 ARCHIVE_SETTINGS_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js"
+ARCHIVE_SETTINGS_DIRTY_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.dirty.js"
 ARCHIVE_SETTINGS_CSS_PATH="./usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css"
 ARCHIVE_FOLDER_PAGE_PATH="./usr/local/emhttp/plugins/folderview.plus/Folder.page"
 ARCHIVE_SETTINGS_PAGE_PATH="./usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page"
@@ -314,6 +334,9 @@ if ! grep -Fxq "${ARCHIVE_FOLDER_CSS_PATH}" <<< "${ARCHIVE_LIST}"; then
 fi
 if ! grep -Fxq "${ARCHIVE_SETTINGS_JS_PATH}" <<< "${ARCHIVE_LIST}"; then
   ARCHIVE_SETTINGS_JS_PATH="${ARCHIVE_SETTINGS_JS_PATH#./}"
+fi
+if ! grep -Fxq "${ARCHIVE_SETTINGS_DIRTY_JS_PATH}" <<< "${ARCHIVE_LIST}"; then
+  ARCHIVE_SETTINGS_DIRTY_JS_PATH="${ARCHIVE_SETTINGS_DIRTY_JS_PATH#./}"
 fi
 if ! grep -Fxq "${ARCHIVE_SETTINGS_CSS_PATH}" <<< "${ARCHIVE_LIST}"; then
   ARCHIVE_SETTINGS_CSS_PATH="${ARCHIVE_SETTINGS_CSS_PATH#./}"
@@ -333,6 +356,7 @@ fi
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_FOLDER_JS_PATH}" > "${TMP_ARCHIVE_FOLDER_JS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_FOLDER_CSS_PATH}" > "${TMP_ARCHIVE_FOLDER_CSS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_JS}"
+tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_DIRTY_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_DIRTY_JS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_CSS_PATH}" > "${TMP_ARCHIVE_SETTINGS_CSS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_FOLDER_PAGE_PATH}" > "${TMP_ARCHIVE_FOLDER_PAGE}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_PAGE_PATH}" > "${TMP_ARCHIVE_SETTINGS_PAGE}"
@@ -353,6 +377,9 @@ if ! cmp -s "${SOURCE_FOLDER_CSS}" "${TMP_ARCHIVE_FOLDER_CSS}"; then
 fi
 if ! cmp -s "${SOURCE_SETTINGS_JS}" "${TMP_ARCHIVE_SETTINGS_JS}"; then
   fail_packaged_source_mismatch "Packaged folderviewplus.js does not match source folderviewplus.js."
+fi
+if ! cmp -s "${SOURCE_SETTINGS_DIRTY_JS}" "${TMP_ARCHIVE_SETTINGS_DIRTY_JS}"; then
+  fail_packaged_source_mismatch "Packaged folderviewplus.dirty.js does not match source folderviewplus.dirty.js."
 fi
 if ! cmp -s "${SOURCE_SETTINGS_CSS}" "${TMP_ARCHIVE_SETTINGS_CSS}"; then
   fail_packaged_source_mismatch "Packaged folderviewplus.css does not match source folderviewplus.css."

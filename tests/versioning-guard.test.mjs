@@ -137,6 +137,7 @@ test('release_guard checks target blank and update-notes release contract', () =
     assert.match(releaseGuard, /update_notes\.php must return headline payload/);
     assert.match(releaseGuard, /lib\.php must define classifyChangesCategory/);
     assert.match(releaseGuard, /lib\.php must define readCurrentVersionChangeSummary/);
+    assert.match(releaseGuard, /must disable fallback so \\\"What Changed\\\" only shows current-version notes/);
 });
 
 test('browser smoke scripts are optional, URL-gated, and include core UI checks', () => {
@@ -234,6 +235,7 @@ test('install smoke supports configurable archive directory override', () => {
     assert.match(installSmoke, /fvplus::require_commands php node tar sed grep find/);
     assert.match(installSmoke, /ARCHIVE_DIR="\$\{FVPLUS_ARCHIVE_DIR:-\$\{ROOT_DIR\}\/archive\}"/);
     assert.match(installSmoke, /ARCHIVE_FILE="\$\{ARCHIVE_DIR\}\/folderview\.plus-\$\{VERSION\}\.txz"/);
+    assert.match(installSmoke, /scripts\/folderviewplus\.dirty\.js/);
 });
 
 test('ensure changes entry seeds category-signaling release note text', () => {
@@ -294,6 +296,11 @@ test('standards guard scripts exist with expected core checks', () => {
     assert.match(unraidMatrixSmoke, /FVPLUS_UNRAID_MATRIX/);
     assert.match(unraidMatrixSmoke, /Skipping Unraid matrix smoke checks/);
     assert.match(unraidMatrixSmoke, /FVPLUS_UNRAID_MATRIX_REQUIRED/);
+    assert.match(unraidMatrixSmoke, /FVPLUS_UNRAID_REQUIRED_VERSIONS/);
+    assert.match(unraidMatrixSmoke, /FVPLUS_UNRAID_REQUIRED_THEMES/);
+    assert.match(unraidMatrixSmoke, /<version>\\|<theme>\\|<url>/);
+    assert.match(unraidMatrixSmoke, /FVPLUS_UNRAID_VERSION_HINT/);
+    assert.match(unraidMatrixSmoke, /FVPLUS_THEME_HINT/);
 });
 
 test('performance baseline contract file exists and includes tracked asset metrics', () => {

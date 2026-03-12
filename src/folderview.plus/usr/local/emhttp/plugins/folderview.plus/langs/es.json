@@ -2,7 +2,7 @@
     "@metadata": {
         "authors": [],
         "last-updated": "2024-08-03",
-		"locale": "es"
+        "locale": "es"
     },
     "add-folder": "Añadir Carpeta",
     "up-to-date": "actualizados",
@@ -116,7 +116,6 @@
     "export-all": "<i class=\"fa fa-download\" aria-hidden=\"true\"></i> Exportar todo",
     "import-all": "<i class=\"fa fa-upload\" aria-hidden=\"true\"></i> Importar",
     "clear-all": "<i class=\"fa fa-ban\" aria-hidden=\"true\"></i> Limpiar",
-    "el-id": "ID",
     "el-name": "Nombre",
     "el-actions": "Acciones",
     "docker": "Docker",
@@ -148,7 +147,6 @@
     "customizations": "Personalizaciones",
     "on": "Si",
     "off": "No",
-    "folderviewplus-desc": "FolderView Plus te permite crear carpetas para agrupar Dockers y VM para ayudar con la organización. Es especialmente útil si estás usando Docker-Compose. Primeros pasos: aparecerá un nuevo botón llamado \"Agregar carpeta\" en la parte inferior de la pestaña Docker/VM junto a \"Agregar contenedor/VM\".",
     "action-add": "Añadir acción",
     "action-edit": "Editar acción",
     "action-add-btn": "Añadir",

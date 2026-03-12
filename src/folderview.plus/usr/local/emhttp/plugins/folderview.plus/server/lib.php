@@ -1061,7 +1061,7 @@
         return $unique;
     }
 
-    function readChangesSummaryForVersion(string $version, int $maxLines = 14): array {
+    function readChangesSummaryForVersion(string $version, int $maxLines = 14, bool $allowFallback = true): array {
         $requestedVersion = trim($version);
         if ($requestedVersion === '') {
             $requestedVersion = readInstalledVersion();
@@ -1097,7 +1097,7 @@
             }
         }
 
-        if (count($latestFallback) > 0 && count($latestFallback['lines'] ?? []) > 0) {
+        if ($allowFallback && count($latestFallback) > 0 && count($latestFallback['lines'] ?? []) > 0) {
             $latestLines = filterBoilerplateChangesLines((array)($latestFallback['lines'] ?? []));
             return [
                 'version' => $requestedVersion,
@@ -1202,7 +1202,7 @@
     }
 
     function readCurrentVersionChangeSummary(int $maxLines = 14): array {
-        $summary = readChangesSummaryForVersion(readInstalledVersion(), $maxLines);
+        $summary = readChangesSummaryForVersion(readInstalledVersion(), $maxLines, false);
         $category = classifyChangesCategory((array)($summary['lines'] ?? []));
         $summary['category'] = (string)($category['id'] ?? 'bugfix');
         $summary['categoryLabel'] = (string)($category['label'] ?? 'Bug Fix Update');

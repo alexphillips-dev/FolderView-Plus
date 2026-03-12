@@ -2202,9 +2202,7 @@ const updateForm = () => {
     $(`[constraint*="context-${form.context.value}"]`).show();
     $('[constraint*="border-color"]').hide();
     $('[constraint*="bars-color"]').hide();
-    if(form.preview_border.checked) {
-        $('[constraint*="border-color"]').show();
-    }
+    if (form.preview.value !== '0') $('[constraint*="border-color"]').show();
     if(form.preview_vertical_bars.checked) {
         $('[constraint*="bars-color"]').show();
     }

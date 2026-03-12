@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.12.05">
-<!ENTITY md5 "fcfac55edd70dacfe24f3d127fa3fc5f">
+<!ENTITY version "2026.03.12.06">
+<!ENTITY md5 "b30bcced3fa877931758313ac5676ecf">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.12.06
+- Fix: Border color control is now visible whenever preview mode is active, even if `Show preview border` is currently off.
+- UX: Border color fallback remains standardized at `#afa89e` (RGB 175,168,158) for predictable cross-theme behavior.
+- Quality: Updated editor visibility flow to avoid hidden border controls on both new and existing folders.
+
 
 ###2026.03.12.05
 - UX: new folders now default to preview border enabled so the Border color control is visible immediately in folder editor.

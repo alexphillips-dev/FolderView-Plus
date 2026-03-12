@@ -571,12 +571,10 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
         .find('.folder-name-sub')
         .css('padding-left', `${depthIndentPx}px`);
 
-    if(folder.settings.preview_border!==false) {
-        const previewColor = normalizeStatusHexColor(folder.settings.preview_border_color, '#afa89e');
-        const previewNode = $(`tr.folder-id-${id} div.folder-preview`).get(0);
-        if (previewNode) {
-            previewNode.style.setProperty('border', `1px solid ${previewColor}`, 'important');
-        }
+    const previewColor = normalizeStatusHexColor(folder.settings.preview_border_color, '#afa89e');
+    const previewNode = $(`tr.folder-id-${id} div.folder-preview`).get(0);
+    if (previewNode) {
+        previewNode.style.setProperty('border', `1px solid ${previewColor}`, 'important');
     }
 
     $(`tr.folder-id-${id} div.folder-preview`).addClass(`folder-preview-${folder.settings.preview}`);

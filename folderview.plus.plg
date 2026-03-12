@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.12.08">
-<!ENTITY md5 "b0cf8c30c8cdf918a1dd1582b1f5bc80">
+<!ENTITY version "2026.03.12.09">
+<!ENTITY md5 "9f4128cdfaee3f3184af736e3b84501e">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.12.09
+- Fix: Folder preview border color is now always rendered from saved folder settings for Docker/VM rows (including nested parent/child folders).
+- Fix: Legacy folders with `preview_border: false` now still render configured border color instead of silently dropping the outline.
+- Quality: Nested parent collapse rendering now reapplies saved border color after preview rebuild.
+
 
 ###2026.03.12.08
 - Fix: Folders with missing legacy `preview_border` now default to enabled border rendering in Docker and VM runtime.

@@ -923,12 +923,10 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
         .css('padding-left', `${depthIndentPx}px`);
     forceFolderRowVerticalCenter(id);
 
-    if(folder.settings.preview_border!==false) {
-        const previewColor = normalizeStatusHexColor(folder.settings.preview_border_color, '#afa89e');
-        const previewNode = $(`tr.folder-id-${id} div.folder-preview`).get(0);
-        if (previewNode) {
-            previewNode.style.setProperty('border', `1px solid ${previewColor}`, 'important');
-        }
+    const previewColor = normalizeStatusHexColor(folder.settings.preview_border_color, '#afa89e');
+    const previewNode = $(`tr.folder-id-${id} div.folder-preview`).get(0);
+    if (previewNode) {
+        previewNode.style.setProperty('border', `1px solid ${previewColor}`, 'important');
     }
     $(`tr.folder-id-${id} div.folder-preview`).addClass(`folder-preview-${folder.settings.preview}`);
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Added class folder-preview-${folder.settings.preview} to preview div.`);
@@ -1830,9 +1828,9 @@ const syncParentFolderVisualState = (id, expanded) => {
         const runtimeContainers = folder?.runtimeContainers || {};
         renderNestedAggregatePreview(id, folder, runtimeContainers);
     }
-    const folder = globalFolders[id];
-    if (folder?.settings?.preview_border!==false) {
-        const previewColor = normalizeStatusHexColor(folder.settings.preview_border_color, '#afa89e');
+    if (!expanded) {
+        const folder = globalFolders[id];
+        const previewColor = normalizeStatusHexColor(folder?.settings?.preview_border_color, '#afa89e');
         const previewNode = $row.find('div.folder-preview').get(0);
         if (previewNode) previewNode.style.setProperty('border', `1px solid ${previewColor}`, 'important');
     }

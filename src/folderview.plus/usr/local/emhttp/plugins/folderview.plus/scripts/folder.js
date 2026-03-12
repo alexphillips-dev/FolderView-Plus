@@ -2330,7 +2330,7 @@ const submitForm = async (e, saveAsCopy = false) => {
             context_trigger: parseInt(e.context_trigger.value.toString()),
             context_graph: parseInt(e.context_graph.value.toString()),
             context_graph_time: parseInt(e.context_graph_time.value.toString()),
-            preview_border: e.preview_border.checked,
+            preview_border: e.preview_border.checked||e.preview_border_color.value!='#afa89e',
             preview_border_color: e.preview_border_color.value.toString(),
             preview_vertical_bars_color: e.preview_vertical_bars_color.value.toString(),
             status_color_started: normalizeHexColor(e.status_color_started.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.started),

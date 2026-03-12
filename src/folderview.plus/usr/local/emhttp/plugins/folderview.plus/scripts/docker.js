@@ -923,9 +923,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
         .css('padding-left', `${depthIndentPx}px`);
     forceFolderRowVerticalCenter(id);
 
-    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): switchButton init deferred until autostart state is calculated.`);
-
-    if(folder.settings.preview_border) {
+    if(folder.settings.preview_border!==false) {
         const previewColor = normalizeStatusHexColor(folder.settings.preview_border_color, '#afa89e');
         const previewNode = $(`tr.folder-id-${id} div.folder-preview`).get(0);
         if (previewNode) {
@@ -1833,7 +1831,7 @@ const syncParentFolderVisualState = (id, expanded) => {
         renderNestedAggregatePreview(id, folder, runtimeContainers);
     }
     const folder = globalFolders[id];
-    if (folder?.settings?.preview_border) {
+    if (folder?.settings?.preview_border!==false) {
         const previewColor = normalizeStatusHexColor(folder.settings.preview_border_color, '#afa89e');
         const previewNode = $row.find('div.folder-preview').get(0);
         if (previewNode) previewNode.style.setProperty('border', `1px solid ${previewColor}`, 'important');

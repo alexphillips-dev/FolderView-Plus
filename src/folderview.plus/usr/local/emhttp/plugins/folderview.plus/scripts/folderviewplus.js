@@ -5818,7 +5818,7 @@ const quickCreateStarterFolder = async (type) => {
         name,
         icon: '/plugins/folderview.plus/images/folder-icon.png',
         containers: [],
-        settings: {},
+        settings: { preview_border: true, preview_border_color: '#afa89e' },
         actions: []
     };
     try {

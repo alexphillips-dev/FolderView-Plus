@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.12.12">
-<!ENTITY md5 "bf809641973a0adaf1af90f2c0f6a8ec">
+<!ENTITY version "2026.03.12.13">
+<!ENTITY md5 "23587442038aaeb2366938de5bf7fe0e">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.12.13
+- UX: Nested folder rows now show only `Move to root` and `Tree move` actions to avoid confusing in-level arrow controls.
+- Fix: Order column spacing and sizing were tightened so tree action buttons no longer clip in Basic view.
+- UX: Up/down boundary message now clearly explains to use Tree move when changing hierarchy level.
+
 
 ###2026.03.12.12
 - Fix: Nested-folder up/down arrows now reorder reliably within the same parent level and preserve subtree blocks.

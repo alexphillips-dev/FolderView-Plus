@@ -9652,11 +9652,14 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         const membersCellHtml = totalMemberCount > directMemberCount
             ? `<span class="folder-member-split" title="${escapeHtml(membersTitle)}"><strong>${directMemberCount}</strong><span class="folder-member-divider">/</span><span>${totalMemberCount}</span></span>`
             : `<span class="folder-member-split" title="${escapeHtml(membersTitle)}"><strong>${directMemberCount}</strong></span>`;
+        const rowReorderButtonsHtml = folderDepth > 0
+            ? ''
+            : (`<button title="Move up" aria-label="Move ${safeName} up" onclick="moveFolderRow('${type}','${escapeHtml(id)}',-1)"><i class="fa fa-chevron-up"></i></button>`
+                + `<button title="Move down" aria-label="Move ${safeName} down" onclick="moveFolderRow('${type}','${escapeHtml(id)}',1)"><i class="fa fa-chevron-down"></i></button>`);
         const orderCellHtml = ''
             + `<div class="row-order-stack">`
             + `<span class="row-order-actions">`
-            + `<button title="Move up" aria-label="Move ${safeName} up" onclick="moveFolderRow('${type}','${escapeHtml(id)}',-1)"><i class="fa fa-chevron-up"></i></button>`
-            + `<button title="Move down" aria-label="Move ${safeName} down" onclick="moveFolderRow('${type}','${escapeHtml(id)}',1)"><i class="fa fa-chevron-down"></i></button>`
+            + rowReorderButtonsHtml
             + `<button class="folder-tree-action" title="Move to root" aria-label="Move ${safeName} to root" onclick="moveFolderToRootQuick('${type}','${escapeHtml(id)}')"><i class="fa fa-level-up"></i></button>`
             + `<button class="folder-tree-action" title="Tree move (before/inside/after)" aria-label="Open tree move for ${safeName}" onclick="openFolderTreeMoveDialog('${type}','${escapeHtml(id)}')"><i class="fa fa-sitemap"></i></button>`
             + `</span>`
@@ -10093,8 +10096,8 @@ const moveFolderRow = async (type, folderId, direction) => {
             resolvedType,
             safeFolderId,
             direction < 0
-                ? 'Folder is already first in this level.'
-                : 'Folder is already last in this level.'
+                ? 'Already first in this level. Use Tree move to change level.'
+                : 'Already last in this level. Use Tree move to change level.'
         );
         return;
     }

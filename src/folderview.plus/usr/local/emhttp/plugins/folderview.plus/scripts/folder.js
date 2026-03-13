@@ -441,6 +441,61 @@ const setIconUploadStatus = (message, isError = false) => {
     status.addClass(isError ? 'is-error' : 'is-success');
 };
 
+const readFileAsDataUrl = (file) => new Promise((resolve, reject) => {
+    if (!(file instanceof File)) {
+        reject(new Error('No icon file selected.'));
+        return;
+    }
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Unable to read selected file.'));
+    reader.onload = () => {
+        const result = String(reader.result || '').trim();
+        if (!result) {
+            reject(new Error('Unable to read selected file.'));
+            return;
+        }
+        resolve(result);
+    };
+    reader.readAsDataURL(file);
+});
+
+const shouldUseInlineUploadFallback = (error) => {
+    const message = String(error?.message || '').toLowerCase();
+    if (!message) {
+        return false;
+    }
+    return message.includes('empty response')
+        || message.includes('invalid json')
+        || message.includes('unexpected');
+};
+
+const uploadCustomIconFileInline = async (file, token) => {
+    const inlinePayload = await readFileAsDataUrl(file);
+    const body = {
+        icon_inline_name: String(file.name || 'icon').trim() || 'icon',
+        icon_inline_data: inlinePayload
+    };
+    if (token) {
+        body.token = token;
+    }
+
+    const response = await $.ajax({
+        url: CUSTOM_ICON_UPLOAD_API_PATH,
+        method: 'POST',
+        data: body,
+        processData: true,
+        contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+        cache: false,
+        dataType: 'text',
+        headers: {
+            'X-FV-Request': '1',
+            ...(token ? { 'X-FV-Token': token } : {})
+        }
+    }).promise();
+
+    return parseJsonPayload(response, 'icon upload endpoint');
+};
+
 const uploadCustomIconFile = async (file) => {
     if (!file || typeof file.name !== 'string') {
         throw new Error('No icon file selected.');
@@ -458,9 +513,9 @@ const uploadCustomIconFile = async (file) => {
         headers['X-FV-Token'] = token;
     }
 
-    let response;
+    let payload;
     try {
-        response = await $.ajax({
+        const response = await $.ajax({
             url: CUSTOM_ICON_UPLOAD_API_PATH,
             method: 'POST',
             data: formData,
@@ -470,11 +525,20 @@ const uploadCustomIconFile = async (file) => {
             dataType: 'text',
             headers
         }).promise();
+        payload = parseJsonPayload(response, 'icon upload endpoint');
     } catch (error) {
-        throw new Error(extractAjaxErrorMessage(error, 'icon upload endpoint'));
+        const primaryError = (error instanceof Error)
+            ? error
+            : new Error(extractAjaxErrorMessage(error, 'icon upload endpoint'));
+        if (!shouldUseInlineUploadFallback(primaryError)) {
+            throw new Error(extractAjaxErrorMessage(error, 'icon upload endpoint'));
+        }
+        try {
+            payload = await uploadCustomIconFileInline(file, token);
+        } catch (inlineError) {
+            throw new Error(extractAjaxErrorMessage(inlineError, 'icon upload endpoint'));
+        }
     }
-
-    const payload = parseJsonPayload(response, 'icon upload endpoint');
     if (!payload || payload.ok !== true) {
         throw new Error(String(payload?.error || 'Upload failed.'));
     }

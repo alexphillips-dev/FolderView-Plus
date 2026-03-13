@@ -69,6 +69,20 @@ test('upload endpoint guarantees JSON output even on fatal failures', () => {
     assert.match(uploadPhp, /\$GLOBALS\['fvplus_custom_icon_response_sent'\]\s*=\s*true/);
 });
 
+test('upload endpoint supports inline fallback payloads when multipart uploads fail', () => {
+    assert.match(uploadPhp, /function decodeInlineIconPayload\s*\(/);
+    assert.match(uploadPhp, /function writeInlineIconTempFile\s*\(/);
+    assert.match(uploadPhp, /function resolveCustomIconUploadInput\s*\(/);
+    assert.match(uploadPhp, /icon_inline_data/);
+    assert.match(uploadPhp, /icon_inline_name/);
+    assert.match(uploadPhp, /base64_decode\(/);
+    assert.match(uploadPhp, /tempnam\(/);
+    assert.match(uploadPhp, /isHttpUpload/);
+    assert.match(uploadPhp, /move_uploaded_file\(/);
+    assert.match(uploadPhp, /@rename\(/);
+    assert.match(uploadPhp, /@copy\(/);
+});
+
 test('upload and third-party endpoints share the same icon extension allowlist', () => {
     const thirdPartyExt = parsePhpStringArray(thirdPartyPhp, 'FVPLUS_THIRD_PARTY_ICON_EXTENSIONS');
     const uploadExt = parsePhpStringArray(uploadPhp, 'FVPLUS_CUSTOM_ICON_EXTENSIONS');

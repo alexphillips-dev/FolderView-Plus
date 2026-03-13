@@ -322,21 +322,32 @@ function uploadErrorMessage(int $errorCode): string {
     }
 }
 
-fvplus_json_try(function (): array {
-    requireMutationRequestGuard();
-    enforceCustomIconUploadRateLimit();
-
-    if (!isset($_FILES['icon']) || !is_array($_FILES['icon'])) {
-        throw new RuntimeException('No icon file uploaded.');
+function decodeInlineIconPayload(string $payload): string {
+    $raw = trim($payload);
+    if ($raw === '') {
+        throw new RuntimeException('No icon payload provided.');
     }
 
-    $upload = $_FILES['icon'];
-    $error = (int)($upload['error'] ?? UPLOAD_ERR_NO_FILE);
-    if ($error !== UPLOAD_ERR_OK) {
-        throw new RuntimeException(uploadErrorMessage($error));
+    $base64 = $raw;
+    if (strpos($raw, 'base64,') !== false) {
+        $parts = explode('base64,', $raw, 2);
+        $base64 = (string)($parts[1] ?? '');
+    }
+    $base64 = preg_replace('/\s+/', '', $base64);
+    if (!is_string($base64) || $base64 === '') {
+        throw new RuntimeException('Invalid inline icon payload.');
     }
 
-    $size = (int)($upload['size'] ?? 0);
+    $decoded = base64_decode($base64, true);
+    if (!is_string($decoded) || $decoded === '') {
+        throw new RuntimeException('Invalid inline icon payload.');
+    }
+    return $decoded;
+}
+
+function writeInlineIconTempFile(string $payload): array {
+    $decoded = decodeInlineIconPayload($payload);
+    $size = strlen($decoded);
     if ($size <= 0) {
         throw new RuntimeException('Uploaded file is empty.');
     }
@@ -344,16 +355,96 @@ fvplus_json_try(function (): array {
         throw new RuntimeException('Uploaded file exceeds 4MB limit.');
     }
 
-    $tmpPath = (string)($upload['tmp_name'] ?? '');
-    if ($tmpPath === '' || !is_uploaded_file($tmpPath)) {
-        throw new RuntimeException('Invalid upload source.');
+    $tmpDir = is_dir('/tmp') ? '/tmp' : (string)sys_get_temp_dir();
+    $tmpPath = @tempnam($tmpDir, 'fvplus-icon-');
+    if (!is_string($tmpPath) || $tmpPath === '') {
+        throw new RuntimeException('Unable to allocate temporary upload file.');
     }
 
-    $originalName = (string)($upload['name'] ?? 'icon');
-    $extension = strtolower((string)pathinfo($originalName, PATHINFO_EXTENSION));
+    if (@file_put_contents($tmpPath, $decoded, LOCK_EX) === false) {
+        @unlink($tmpPath);
+        throw new RuntimeException('Unable to write temporary upload data.');
+    }
+
+    return [
+        'tmpPath' => $tmpPath,
+        'size' => $size
+    ];
+}
+
+function resolveCustomIconUploadInput(): array {
+    if (isset($_FILES['icon']) && is_array($_FILES['icon'])) {
+        $upload = $_FILES['icon'];
+        $error = (int)($upload['error'] ?? UPLOAD_ERR_NO_FILE);
+        if ($error !== UPLOAD_ERR_OK) {
+            throw new RuntimeException(uploadErrorMessage($error));
+        }
+
+        $size = (int)($upload['size'] ?? 0);
+        if ($size <= 0) {
+            throw new RuntimeException('Uploaded file is empty.');
+        }
+        if ($size > FVPLUS_CUSTOM_ICON_MAX_BYTES) {
+            throw new RuntimeException('Uploaded file exceeds 4MB limit.');
+        }
+
+        $tmpPath = (string)($upload['tmp_name'] ?? '');
+        if ($tmpPath === '' || !is_uploaded_file($tmpPath)) {
+            throw new RuntimeException('Invalid upload source.');
+        }
+
+        $originalName = (string)($upload['name'] ?? 'icon');
+        $extension = strtolower((string)pathinfo($originalName, PATHINFO_EXTENSION));
+        if ($extension === '' || !in_array($extension, FVPLUS_CUSTOM_ICON_EXTENSIONS, true)) {
+            throw new RuntimeException('Unsupported icon format.');
+        }
+
+        return [
+            'tmpPath' => $tmpPath,
+            'size' => $size,
+            'originalName' => $originalName,
+            'extension' => $extension,
+            'isHttpUpload' => true,
+            'cleanupPath' => ''
+        ];
+    }
+
+    $inlinePayload = (string)($_POST['icon_inline_data'] ?? '');
+    $inlineName = (string)($_POST['icon_inline_name'] ?? 'icon');
+    if (trim($inlinePayload) === '') {
+        throw new RuntimeException('No icon file uploaded.');
+    }
+
+    $extension = strtolower((string)pathinfo($inlineName, PATHINFO_EXTENSION));
     if ($extension === '' || !in_array($extension, FVPLUS_CUSTOM_ICON_EXTENSIONS, true)) {
         throw new RuntimeException('Unsupported icon format.');
     }
+
+    $tmp = writeInlineIconTempFile($inlinePayload);
+    $tmpPath = (string)($tmp['tmpPath'] ?? '');
+    if ($tmpPath === '') {
+        throw new RuntimeException('Invalid upload source.');
+    }
+
+    return [
+        'tmpPath' => $tmpPath,
+        'size' => (int)($tmp['size'] ?? 0),
+        'originalName' => trim($inlineName) !== '' ? $inlineName : 'icon.' . $extension,
+        'extension' => $extension,
+        'isHttpUpload' => false,
+        'cleanupPath' => $tmpPath
+    ];
+}
+
+fvplus_json_try(function (): array {
+    requireMutationRequestGuard();
+    enforceCustomIconUploadRateLimit();
+    $uploadSource = resolveCustomIconUploadInput();
+    $tmpPath = (string)($uploadSource['tmpPath'] ?? '');
+    $extension = strtolower((string)($uploadSource['extension'] ?? ''));
+    $originalName = (string)($uploadSource['originalName'] ?? 'icon');
+    $isHttpUpload = ($uploadSource['isHttpUpload'] ?? false) === true;
+    $cleanupPath = (string)($uploadSource['cleanupPath'] ?? '');
 
     validateUploadedIcon($tmpPath, $extension);
 
@@ -363,8 +454,27 @@ fvplus_json_try(function (): array {
     $fileName = nextAvailableCustomIconName($customDir, $baseName, $extension);
     $targetPath = "$customDir/$fileName";
 
-    if (!@move_uploaded_file($tmpPath, $targetPath)) {
+    $stored = false;
+    if ($isHttpUpload) {
+        $stored = @move_uploaded_file($tmpPath, $targetPath);
+    } else {
+        if (@rename($tmpPath, $targetPath)) {
+            $stored = true;
+            $cleanupPath = '';
+        } elseif (@copy($tmpPath, $targetPath)) {
+            $stored = true;
+        }
+    }
+
+    if (!$stored) {
+        if ($cleanupPath !== '' && is_file($cleanupPath)) {
+            @unlink($cleanupPath);
+        }
         throw new RuntimeException('Unable to store uploaded icon.');
+    }
+
+    if ($cleanupPath !== '' && is_file($cleanupPath)) {
+        @unlink($cleanupPath);
     }
 
     @chmod($targetPath, 0644);

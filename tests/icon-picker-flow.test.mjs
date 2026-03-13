@@ -83,4 +83,11 @@ test('folder.js icon upload parsing is resilient to empty and noisy endpoint res
     assert.match(folderScript, /dataType:\s*'text'/);
     assert.match(folderScript, /parseJsonPayload\(response, 'icon upload endpoint'\)/);
     assert.match(folderScript, /extractAjaxErrorMessage\(error, 'icon upload endpoint'\)/);
+    assert.match(folderScript, /const readFileAsDataUrl = \(file\) => new Promise/);
+    assert.match(folderScript, /const shouldUseInlineUploadFallback = \(error\) =>/);
+    assert.match(folderScript, /const uploadCustomIconFileInline = async \(file, token\) =>/);
+    assert.match(folderScript, /icon_inline_name/);
+    assert.match(folderScript, /icon_inline_data/);
+    assert.match(folderScript, /contentType:\s*'application\/x-www-form-urlencoded; charset=UTF-8'/);
+    assert.match(folderScript, /shouldUseInlineUploadFallback\(primaryError\)/);
 });

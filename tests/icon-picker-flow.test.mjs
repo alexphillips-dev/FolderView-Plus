@@ -73,3 +73,14 @@ test('folder.js integration keeps using shared icon picker runtime helpers', () 
     assert.match(folderScript, /iconPickerRuntime\.paginateItems/);
     assert.match(folderScript, /iconPickerRuntime\.filterIconsByQuery/);
 });
+
+test('folder.js icon upload parsing is resilient to empty and noisy endpoint responses', () => {
+    assert.match(folderScript, /const parseJsonPayload = \(value, context = 'response'\) =>/);
+    assert.match(folderScript, /returned an empty response/);
+    assert.match(folderScript, /const start = normalized\.indexOf\('\{'\)/);
+    assert.match(folderScript, /const end = normalized\.lastIndexOf\('\}'\)/);
+    assert.match(folderScript, /const extractAjaxErrorMessage = \(error, context = 'request'\) =>/);
+    assert.match(folderScript, /dataType:\s*'text'/);
+    assert.match(folderScript, /parseJsonPayload\(response, 'icon upload endpoint'\)/);
+    assert.match(folderScript, /extractAjaxErrorMessage\(error, 'icon upload endpoint'\)/);
+});

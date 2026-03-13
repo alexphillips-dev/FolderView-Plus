@@ -261,11 +261,74 @@ const escapeHtml = (value) => {
 
 const asArray = (value) => (Array.isArray(value) ? value : []);
 
-const parseJsonPayload = (value) => {
-    if (typeof value === 'string') {
-        return JSON.parse(value.replace(/^\uFEFF/, ''));
+const parseJsonPayload = (value, context = 'response') => {
+    if (value && typeof value === 'object') {
+        return value;
     }
-    return value;
+    if (typeof value !== 'string') {
+        throw new Error(`Unexpected ${context} type.`);
+    }
+    const normalized = value.replace(/^\uFEFF/, '').trim();
+    if (!normalized) {
+        throw new Error(`${context} returned an empty response.`);
+    }
+    try {
+        return JSON.parse(normalized);
+    } catch (_error) {
+        const start = normalized.indexOf('{');
+        const end = normalized.lastIndexOf('}');
+        if (start >= 0 && end > start) {
+            const candidate = normalized.slice(start, end + 1);
+            try {
+                return JSON.parse(candidate);
+            } catch (_ignored) {
+                // Keep flowing to the structured error below.
+            }
+        }
+        throw new Error(`Invalid JSON from ${context}.`);
+    }
+};
+
+const extractAjaxErrorMessage = (error, context = 'request') => {
+    const responseText = String(
+        error?.jqXHR?.responseText
+        || error?.responseText
+        || ''
+    ).trim();
+    if (responseText) {
+        try {
+            const payload = parseJsonPayload(responseText, context);
+            const serverMessage = String(payload?.error || '').trim();
+            if (serverMessage) {
+                return serverMessage;
+            }
+        } catch (_parseError) {
+            // Keep falling back to HTTP-level details.
+        }
+    }
+
+    const status = Number(error?.jqXHR?.status || error?.status || 0);
+    if (status > 0) {
+        const statusText = String(error?.jqXHR?.statusText || error?.statusText || '').trim();
+        return statusText ? `Request failed. HTTP ${status} ${statusText}.` : `Request failed. HTTP ${status}.`;
+    }
+
+    const textStatus = String(error?.textStatus || '').trim();
+    if (textStatus) {
+        return `Request failed (${textStatus}).`;
+    }
+
+    const thrown = String(error?.errorThrown || '').trim();
+    if (thrown) {
+        return `Request failed (${thrown}).`;
+    }
+
+    const message = String(error?.message || '').trim();
+    if (message) {
+        return message;
+    }
+
+    return `Request failed for ${context}.`;
 };
 
 const fallbackPaginateItems = (items, page, pageSize) => {
@@ -395,17 +458,23 @@ const uploadCustomIconFile = async (file) => {
         headers['X-FV-Token'] = token;
     }
 
-    const response = await $.ajax({
-        url: CUSTOM_ICON_UPLOAD_API_PATH,
-        method: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        cache: false,
-        headers
-    }).promise();
+    let response;
+    try {
+        response = await $.ajax({
+            url: CUSTOM_ICON_UPLOAD_API_PATH,
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            cache: false,
+            dataType: 'text',
+            headers
+        }).promise();
+    } catch (error) {
+        throw new Error(extractAjaxErrorMessage(error, 'icon upload endpoint'));
+    }
 
-    const payload = parseJsonPayload(response);
+    const payload = parseJsonPayload(response, 'icon upload endpoint');
     if (!payload || payload.ok !== true) {
         throw new Error(String(payload?.error || 'Upload failed.'));
     }

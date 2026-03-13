@@ -187,7 +187,7 @@ if (!empty($fvplusRuntimeConflicts)) {
     </details>
     <div id="docker-tree-undo-banner" class="fv-tree-undo-banner is-hidden"></div>
     <div class="table-wrap">
-        <table class="folder-grid-docker">
+        <table>
             <thead>
                 <tr>
                     <th class="col-order">Order</th>
@@ -361,7 +361,7 @@ if (!empty($fvplusRuntimeConflicts)) {
     </details>
     <div id="vm-tree-undo-banner" class="fv-tree-undo-banner is-hidden"></div>
     <div class="table-wrap">
-        <table class="folder-grid-vm">
+        <table>
             <thead>
                 <tr>
                     <th class="col-order">Order</th>

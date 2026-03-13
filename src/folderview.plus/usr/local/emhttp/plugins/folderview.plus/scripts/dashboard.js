@@ -104,10 +104,7 @@ const filterDashboardToRootFolders = (folders) => {
             rootOnly[id] = folder;
         }
     }
-    if (Object.keys(rootOnly).length <= 0 && Object.keys(source).length > 0) {
-        // Safety fallback: avoid dropping all folder rendering on malformed/cyclic parent graphs.
-        return { ...source };
-    }
+    if (!Object.keys(rootOnly).length && Object.keys(source).length) return source;
     return rootOnly;
 };
 
@@ -158,14 +155,10 @@ const buildFolderDescendantsByRoot = (folders) => {
 };
 
 const mergeUniqueNames = (target, source, seen) => {
-    if (!Array.isArray(source)) {
-        return;
-    }
+    if (!Array.isArray(source)) return;
     for (const rawName of source) {
         const name = String(rawName || '').trim();
-        if (!name || seen.has(name)) {
-            continue;
-        }
+        if (!name || seen.has(name)) continue;
         seen.add(name);
         target.push(name);
     }
@@ -175,9 +168,7 @@ const aggregateRootMatchCache = (fullFolders, rootFolders, fullCache) => {
     const descendantsByRoot = buildFolderDescendantsByRoot(fullFolders);
     const output = {};
     for (const rootId of Object.keys(rootFolders || {})) {
-        const subtreeIds = Array.isArray(descendantsByRoot[rootId]) && descendantsByRoot[rootId].length
-            ? descendantsByRoot[rootId]
-            : [rootId];
+        const subtreeIds = descendantsByRoot[rootId]?.length ? descendantsByRoot[rootId] : [rootId];
         const explicit = [];
         const regex = [];
         const label = [];

@@ -35,7 +35,8 @@ test('settings save/cancel flow uses centralized dirty tracking and baseline res
 
 test('folder reordering remains instant-persist and outside staged save/cancel dock', () => {
     assert.match(settingsJs, /const moveFolderRow = async \(type, folderId, direction\) =>/);
-    assert.match(settingsJs, /await persistManualOrderFromDom\(resolvedType\);/);
+    assert.match(settingsJs, /await persistManualOrder\(resolvedType, nextOrder, \{ refresh: false \}\);/);
+    assert.match(settingsJs, /await refreshType\(resolvedType\);/);
     assert.match(settingsJs, /await createBackup\(resolvedType, `before-reorder-\$\{safeFolderId\}`\);/);
     const moveBlockMatch = settingsJs.match(/const moveFolderRow = async \(type, folderId, direction\) => \{([\s\S]*?)\n\};/);
     assert.ok(moveBlockMatch, 'Expected moveFolderRow function block to exist.');

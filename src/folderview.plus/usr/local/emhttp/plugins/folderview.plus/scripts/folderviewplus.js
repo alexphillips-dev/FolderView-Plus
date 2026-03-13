@@ -9879,7 +9879,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             ? ''
             : `<span class="status-breakdown-list">${breakdownEntries.map((entry) => {
                 const title = `${entry.label}: ${entry.count} item${entry.count === 1 ? '' : 's'}`;
-                return `<span class="status-breakdown-chip ${statusClassForKey(entry.key)}" title="${escapeHtml(title)}"><i class="fa ${entry.icon}" aria-hidden="true"></i><span class="count">${entry.count}</span><span class="label">${escapeHtml(entry.label)}</span></span>`;
+                return `<span class="status-breakdown-chip ${statusClassForKey(entry.key)}" title="${escapeHtml(title)}"><i class="fa ${entry.icon}" aria-hidden="true"></i><span class="count">${entry.count}</span></span>`;
             }).join('')}</span>`;
         const statusDisplayClass = `is-${statusDisplayMode}`;
 

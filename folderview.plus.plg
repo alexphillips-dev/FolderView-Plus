@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.13.02">
-<!ENTITY md5 "5a10ebadef453dc36f383830a7bd1e0b">
+<!ENTITY version "2026.03.13.03">
+<!ENTITY md5 "7a1e6493d3b81af375947cf536f54737">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.13.03
+- UX: Converted status breakdown pills to compact icon+count signals next to the primary status chip (alerts-style visual language).
+- UX: Started uses play icon + count, Paused uses pause icon + count, Stopped uses stop icon + count.
+- UX: Empty keeps ban icon + count for zero-member folders.
+
 
 ###2026.03.13.02
 - UX: Unified Status chip styling so Started/Paused/Stopped now use the same stronger chip treatment as Mixed.

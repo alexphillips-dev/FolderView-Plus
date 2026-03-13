@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.12.23">
-<!ENTITY md5 "3d57e6d275c9af94984cbbacf4e98f0f">
+<!ENTITY version "2026.03.13.01">
+<!ENTITY md5 "12c478fe4339aed2a8a1b08d7dd329a5">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.13.01
+- Feature: Added `Status detail` modes (`Simple`, `Balanced`, `Detailed`) for Docker and VM folder tables, with `Balanced` as the default.
+- UX: Balanced status now renders a primary chip plus compact started/paused/stopped mini-counters for faster scanning.
+- UX: Simple mode now shows only the primary status chip, while Detailed mode keeps trend indicators and expanded counters.
+- Fix: Trend indicator controls now auto-hide unless `Detailed` mode is selected to avoid misleading toggles.
+- Compatibility: Added persistent `status.displayMode` normalization in JS/PHP/diagnostics so legacy configs continue working without migration.
+
 
 ###2026.03.12.23
 - UX: Removed the Basic `Parent` column for Docker/VM tables; nested hierarchy remains visible directly under folder names.

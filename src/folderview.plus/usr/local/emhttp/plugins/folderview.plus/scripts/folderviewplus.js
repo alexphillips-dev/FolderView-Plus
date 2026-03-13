@@ -2238,6 +2238,11 @@ const normalizeStatusMode = (value) => (
     String(value || '').trim().toLowerCase() === 'dominant' ? 'dominant' : 'summary'
 );
 
+const normalizeStatusDisplayMode = (value) => {
+    const mode = String(value || '').trim().toLowerCase();
+    return ['simple', 'balanced', 'detailed'].includes(mode) ? mode : 'balanced';
+};
+
 const normalizeStatusPrefs = (type, prefsOverride = null) => {
     const source = prefsOverride ? utils.normalizePrefs(prefsOverride) : utils.normalizePrefs(prefsByType[type]);
     const incoming = source?.status && typeof source.status === 'object' ? source.status : {};
@@ -2245,6 +2250,7 @@ const normalizeStatusPrefs = (type, prefsOverride = null) => {
     const warnStoppedPercent = Number.isFinite(warnRaw) ? Math.min(100, Math.max(0, Math.round(warnRaw))) : 60;
     return {
         mode: normalizeStatusMode(incoming.mode),
+        displayMode: normalizeStatusDisplayMode(incoming.displayMode),
         trendEnabled: incoming.trendEnabled !== false,
         attentionAccent: incoming.attentionAccent !== false,
         warnStoppedPercent
@@ -9788,6 +9794,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         }
         const statusWarnThresholdInfo = resolveFolderStatusWarnThreshold(folder, statusPrefs.warnStoppedPercent);
         const statusWarnThreshold = statusWarnThresholdInfo.value;
+        const statusDisplayMode = normalizeStatusDisplayMode(statusPrefs.displayMode);
         const stoppedPercent = members.length > 0 ? Math.round((countsByState.stopped / members.length) * 100) : 0;
         const allStopped = members.length > 0
             && countsByState.started === 0
@@ -9810,9 +9817,15 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         const statusPrimaryKey = dominantStatusKey === 'mixed' && countsByState.stopped > 0
             ? 'stopped'
             : dominantStatusKey;
-        const summaryStatusText = statusPrefs.mode === 'dominant'
+        const fullStatusSummaryText = statusPrefs.mode === 'dominant'
             ? formatStatusDominantText(dominantStatusKey, countsByState, members.length)
             : formatStatusSummaryText(countsByState, members.length);
+        const balancedPrimaryText = statusPrefs.mode === 'dominant'
+            ? formatStatusDominantText(dominantStatusKey, countsByState, members.length)
+            : statusLabelForKey(dominantStatusKey);
+        const statusPrimaryText = statusDisplayMode === 'balanced'
+            ? balancedPrimaryText
+            : fullStatusSummaryText;
         const statusChipAttention = stoppedAttention || pausedAttention;
         const statusChipClass = statusClassForKey(statusPrimaryKey);
         const statusChipFilterActive = statusFilterMode === statusPrimaryKey;
@@ -9820,7 +9833,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             ? 'Click to show all statuses.'
             : `Click to show folders with ${statusLabelForKey(statusPrimaryKey).toLowerCase()} members.`;
         const statusChipTitle = [
-            `Status summary: ${summaryStatusText}`,
+            `Status summary: ${fullStatusSummaryText}`,
             `Dominant status: ${statusLabelForKey(dominantStatusKey)}`,
             `Members: ${members.length} total`,
             `${countsByState.started} started, ${countsByState.paused} paused, ${countsByState.stopped} stopped`,
@@ -9832,10 +9845,46 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             'Open status breakdown from the info button for full details.',
             statusChipHint
         ].filter(Boolean).join('\n');
-        const statusSummaryChipHtml = `<span class="status-chip-list"><button type="button" class="folder-runtime-status status-chip ${statusChipClass} ${statusChipAttention ? 'is-attention' : ''} ${statusChipFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(statusChipTitle)}" aria-label="${escapeHtml(statusChipTitle)}" onclick="toggleStatusFilter('${type}','${escapeHtml(statusPrimaryKey)}')"><span>${escapeHtml(summaryStatusText)}</span></button></span>`;
+        const statusSummaryChipHtml = `<span class="status-chip-list"><button type="button" class="folder-runtime-status status-chip ${statusChipClass} ${statusChipAttention ? 'is-attention' : ''} ${statusChipFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(statusChipTitle)}" aria-label="${escapeHtml(statusChipTitle)}" onclick="toggleStatusFilter('${type}','${escapeHtml(statusPrimaryKey)}')"><span>${escapeHtml(statusPrimaryText)}</span></button></span>`;
+        const includeZeroBreakdown = statusDisplayMode === 'detailed';
+        const breakdownEntries = [
+            {
+                key: 'started',
+                count: Number(countsByState.started || 0),
+                icon: 'fa-play',
+                label: 'Started'
+            },
+            {
+                key: 'paused',
+                count: Number(countsByState.paused || 0),
+                icon: 'fa-pause',
+                label: 'Paused'
+            },
+            {
+                key: 'stopped',
+                count: Number(countsByState.stopped || 0),
+                icon: 'fa-stop',
+                label: 'Stopped'
+            }
+        ].filter((entry) => includeZeroBreakdown ? true : entry.count > 0);
+        if (!breakdownEntries.length && members.length <= 0) {
+            breakdownEntries.push({
+                key: 'empty',
+                count: 0,
+                icon: 'fa-ban',
+                label: 'Empty'
+            });
+        }
+        const statusBreakdownHtml = statusDisplayMode === 'simple'
+            ? ''
+            : `<span class="status-breakdown-list">${breakdownEntries.map((entry) => {
+                const title = `${entry.label}: ${entry.count} item${entry.count === 1 ? '' : 's'}`;
+                return `<span class="status-breakdown-chip ${statusClassForKey(entry.key)}" title="${escapeHtml(title)}"><i class="fa ${entry.icon}" aria-hidden="true"></i><span class="count">${entry.count}</span><span class="label">${escapeHtml(entry.label)}</span></span>`;
+            }).join('')}</span>`;
+        const statusDisplayClass = `is-${statusDisplayMode}`;
 
         let statusTrendHtml = '';
-        if (statusPrefs.trendEnabled === true) {
+        if (statusDisplayMode === 'detailed' && statusPrefs.trendEnabled === true) {
             const previousStatus = previousStatusSnapshot[String(id)] || null;
             if (previousStatus) {
                 const deltaStarted = countsByState.started - Number(previousStatus.started || 0);
@@ -9998,7 +10047,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             + `<td class="order-cell">${orderCellHtml}</td>`
             + `<td class="name-cell" title="${escapeHtml(id)}"><span class="${nameCellClass}" style="--fv-folder-depth:${folderDepth};">${treeToggleHtml}<img src="${safeIcon}" class="img" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"><span class="name-cell-text-wrap"><span class="name-cell-text">${safeName}</span>${membersMetaHtml}${nestedMetaHtml}</span></span></td>`
             + `<td class="members-cell fv-col-hidden">${membersCellHtml}</td>`
-            + `<td class="status-cell"><span class="status-cell-content"><button type="button" class="status-breakdown-btn" title="Open status breakdown" aria-label="Open status breakdown for ${safeName}" onclick="showFolderStatusBreakdown('${type}','${escapeHtml(id)}')"><i class="fa fa-info-circle"></i></button>${statusSummaryChipHtml}${statusTrendHtml}</span></td>`
+            + `<td class="status-cell"><span class="status-cell-content ${statusDisplayClass}"><button type="button" class="status-breakdown-btn" title="Open status breakdown" aria-label="Open status breakdown for ${safeName}" onclick="showFolderStatusBreakdown('${type}','${escapeHtml(id)}')"><i class="fa fa-info-circle"></i></button>${statusSummaryChipHtml}${statusBreakdownHtml}${statusTrendHtml}</span></td>`
             + `<td class="rules-cell" title="${escapeHtml(ruleTitle)}">${escapeHtml(ruleText)}</td>`
             + `<td class="last-changed-cell" title="${escapeHtml(lastChangedRaw || '')}">${escapeHtml(lastChangedText)}</td>`
             + `<td class="pinned-cell"><span class="folder-pin-state ${pinnedClass}">${escapeHtml(pinnedText)}</span></td>`
@@ -10542,9 +10591,12 @@ const renderRuntimeControls = (type) => {
 const renderStatusControls = (type) => {
     const status = normalizeStatusPrefs(type);
     $(`#${type}-status-mode`).val(status.mode);
+    $(`#${type}-status-display-mode`).val(status.displayMode);
     $(`#${type}-status-trend-enabled`).prop('checked', status.trendEnabled === true);
     $(`#${type}-status-attention-accent`).prop('checked', status.attentionAccent === true);
     $(`#${type}-status-warn-threshold`).val(String(status.warnStoppedPercent));
+    const showTrendControl = status.displayMode === 'detailed';
+    $(`#${type}-status-trend-row`).toggleClass('is-hidden', !showTrendControl);
 };
 
 const renderHealthControls = (type) => {
@@ -11924,6 +11976,8 @@ const changeStatusPref = async (type, key, value) => {
 
     if (key === 'mode') {
         nextStatus.mode = normalizeStatusMode(value);
+    } else if (key === 'displayMode') {
+        nextStatus.displayMode = normalizeStatusDisplayMode(value);
     } else if (key === 'trendEnabled') {
         nextStatus.trendEnabled = value === true;
     } else if (key === 'attentionAccent') {

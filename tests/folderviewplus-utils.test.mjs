@@ -381,6 +381,7 @@ test('normalizePrefs includes live refresh, performance mode, and backup schedul
     });
     assert.deepEqual(prefs.status, {
         mode: 'summary',
+        displayMode: 'balanced',
         trendEnabled: true,
         attentionAccent: true,
         warnStoppedPercent: 60

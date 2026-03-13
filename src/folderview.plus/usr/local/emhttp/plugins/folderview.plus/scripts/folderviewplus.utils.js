@@ -38,6 +38,7 @@
     };
     const DEFAULT_STATUS_PREFS = {
         mode: 'summary',
+        displayMode: 'balanced',
         trendEnabled: true,
         attentionAccent: true,
         warnStoppedPercent: 60
@@ -389,10 +390,14 @@
             health.vmResourceCriticalGiB = Math.min(1024, health.vmResourceWarnGiB + 1);
         }
         const incomingStatus = isPlainObject(incoming.status) ? incoming.status : {};
+        const normalizedStatusDisplayMode = String(incomingStatus.displayMode || '').trim().toLowerCase();
         const status = {
             mode: String(incomingStatus.mode || '').trim().toLowerCase() === 'dominant'
                 ? 'dominant'
                 : DEFAULT_STATUS_PREFS.mode,
+            displayMode: ['simple', 'balanced', 'detailed'].includes(normalizedStatusDisplayMode)
+                ? normalizedStatusDisplayMode
+                : DEFAULT_STATUS_PREFS.displayMode,
             trendEnabled: !Object.prototype.hasOwnProperty.call(incomingStatus, 'trendEnabled')
                 ? DEFAULT_STATUS_PREFS.trendEnabled
                 : incomingStatus.trendEnabled !== false,

@@ -155,3 +155,15 @@ test('tree runtime persists collapse state and guards tree operations', () => {
     assert.match(script, /queueTreeMoveUndoBanner\(resolvedType, backup\.name, 'Tree move', sourceId\)/);
     assert.match(script, /queueTreeMoveUndoBanner\(resolvedType, backup\.name, 'Move to root', sourceId\)/);
 });
+
+test('status detail controls support simple balanced and detailed modes', () => {
+    assert.match(page, /id="docker-status-display-mode"/);
+    assert.match(page, /id="vm-status-display-mode"/);
+    assert.match(page, /id="docker-status-trend-row"/);
+    assert.match(page, /id="vm-status-trend-row"/);
+    assert.match(script, /const normalizeStatusDisplayMode = \(value\) =>/);
+    assert.match(script, /displayMode: normalizeStatusDisplayMode\(incoming\.displayMode\)/);
+    assert.match(script, /if \(key === 'mode'\) \{[\s\S]*\} else if \(key === 'displayMode'\) \{/);
+    assert.match(script, /status-display-mode/);
+    assert.match(script, /const showTrendControl = status\.displayMode === 'detailed';/);
+});

@@ -810,6 +810,14 @@
         row-gap: 0.2rem;
         column-gap: 0.2rem;
     }
+
+    .status-breakdown-list {
+        width: 100%;
+        flex-wrap: wrap;
+        white-space: normal;
+        row-gap: 0.2rem;
+        column-gap: 0.2rem;
+    }
 }
 
 @media (max-width: 700px) {
@@ -1008,6 +1016,15 @@ body.fv-mobile-compact #fv-settings-root .status-cell-content {
 
 #fv-settings-root.fv-mobile-compact .status-chip-list,
 body.fv-mobile-compact #fv-settings-root .status-chip-list {
+    width: 100%;
+    flex-wrap: wrap;
+    white-space: normal;
+    row-gap: 0.2rem;
+    column-gap: 0.2rem;
+}
+
+#fv-settings-root.fv-mobile-compact .status-breakdown-list,
+body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     width: 100%;
     flex-wrap: wrap;
     white-space: normal;
@@ -1256,6 +1273,67 @@ body.fv-mobile-compact #fv-settings-root .status-chip-list {
     white-space: nowrap;
     overflow: visible;
     max-width: 100%;
+}
+
+.status-breakdown-list {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.24rem;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    overflow: visible;
+    max-width: 100%;
+}
+
+.status-breakdown-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.08rem 0.38rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    font-size: 1.03rem;
+    opacity: 0.94;
+    white-space: nowrap;
+}
+
+.status-breakdown-chip i {
+    font-size: 1.03rem;
+    opacity: 0.85;
+}
+
+.status-breakdown-chip .count {
+    font-weight: 700;
+}
+
+.status-breakdown-chip .label {
+    opacity: 0.88;
+}
+
+.status-breakdown-chip.is-started {
+    border-color: rgba(147, 225, 159, 0.5);
+    color: #93e19f;
+}
+
+.status-breakdown-chip.is-paused {
+    border-color: rgba(255, 193, 94, 0.55);
+    color: #ffc15e;
+}
+
+.status-breakdown-chip.is-stopped {
+    border-color: rgba(255, 116, 116, 0.58);
+    color: #ff7474;
+}
+
+.status-breakdown-chip.is-empty {
+    border-color: rgba(192, 192, 192, 0.45);
+    color: rgba(240, 240, 240, 0.86);
+}
+
+.status-cell-content.is-simple .status-breakdown-list,
+.status-cell-content.is-simple .status-trend {
+    display: none;
 }
 
 .folder-runtime-status.status-chip {

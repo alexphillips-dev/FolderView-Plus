@@ -1520,6 +1520,7 @@
             ],
             'status' => [
                 'mode' => 'summary',
+                'displayMode' => 'balanced',
                 'trendEnabled' => true,
                 'attentionAccent' => true,
                 'warnStoppedPercent' => 60
@@ -1714,8 +1715,13 @@
         if (!in_array($statusMode, ['summary', 'dominant'], true)) {
             $statusMode = 'summary';
         }
+        $statusDisplayMode = strtolower(trim((string)($statusIncoming['displayMode'] ?? 'balanced')));
+        if (!in_array($statusDisplayMode, ['simple', 'balanced', 'detailed'], true)) {
+            $statusDisplayMode = 'balanced';
+        }
         $normalized['status'] = [
             'mode' => $statusMode,
+            'displayMode' => $statusDisplayMode,
             'trendEnabled' => !array_key_exists('trendEnabled', $statusIncoming)
                 ? true
                 : normalizeBool($statusIncoming['trendEnabled'], true),
@@ -3966,6 +3972,9 @@
                     'mode' => in_array(strtolower(trim((string)($prefs['status']['mode'] ?? 'summary'))), ['summary', 'dominant'], true)
                         ? strtolower(trim((string)($prefs['status']['mode'] ?? 'summary')))
                         : 'summary',
+                    'displayMode' => in_array(strtolower(trim((string)($prefs['status']['displayMode'] ?? 'balanced'))), ['simple', 'balanced', 'detailed'], true)
+                        ? strtolower(trim((string)($prefs['status']['displayMode'] ?? 'balanced')))
+                        : 'balanced',
                     'trendEnabled' => normalizeBool($prefs['status']['trendEnabled'] ?? true, true),
                     'attentionAccent' => normalizeBool($prefs['status']['attentionAccent'] ?? true, true),
                     'warnStoppedPercent' => normalizeIntInRange($prefs['status']['warnStoppedPercent'] ?? 60, 0, 100, 60)

@@ -381,8 +381,10 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsCss, /\.status-chip-list\s*\{/);
     assert.match(settingsCss, /\.status-chip-list\s*\{[\s\S]*justify-content:\s*flex-start/);
     assert.match(settingsCss, /\.status-chip-list\s*\{[\s\S]*flex-wrap:\s*nowrap/);
+    assert.match(settingsCss, /\.status-breakdown-list\s*\{/);
+    assert.match(settingsCss, /\.status-breakdown-chip\s*\{/);
     assert.match(settingsCss, /\.status-breakdown-btn\s*\{[\s\S]*width:\s*22px !important/);
-    assert.match(settingsJs, /class="status-cell"><span class="status-cell-content"><button type="button" class="status-breakdown-btn"[\s\S]*\$\{statusSummaryChipHtml\}\$\{statusTrendHtml\}/);
+    assert.match(settingsJs, /class="status-cell"><span class="status-cell-content \$\{statusDisplayClass\}"><button type="button" class="status-breakdown-btn"[\s\S]*\$\{statusSummaryChipHtml\}\$\{statusBreakdownHtml\}\$\{statusTrendHtml\}/);
     assert.match(settingsCss, /\.folder-metric-chip\.is-danger\s*\{/);
     assert.match(settingsCss, /\.folder-metric-chip\s*\{/);
     assert.match(settingsCss, /\.folder-pin-state,\s*[\s\S]*\.folder-metric-chip\s*\{/);

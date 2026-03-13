@@ -69,17 +69,14 @@ let quickFolderFilterByType = {
 const DEFAULT_COLUMN_VISIBILITY_BY_TYPE = Object.freeze({
     docker: Object.freeze({
         parent: true,
-        members: true,
         status: true,
         rules: true,
         lastChanged: true,
         pinned: true,
-        updates: true,
-        health: true
+        signals: true
     }),
     vm: Object.freeze({
         parent: true,
-        members: false,
         status: false,
         rules: false,
         lastChanged: false,
@@ -6833,17 +6830,14 @@ const runtimePreviewText = (type, folderId, action, plan) => {
 const TABLE_COLUMN_SELECTOR_MAP = Object.freeze({
     docker: Object.freeze({
         parent: Object.freeze({ header: '.col-parent', cell: '.parent-cell' }),
-        members: Object.freeze({ header: '.col-members', cell: '.members-cell' }),
         status: Object.freeze({ header: '.col-status', cell: '.status-cell' }),
         rules: Object.freeze({ header: '.col-rules', cell: '.rules-cell' }),
         lastChanged: Object.freeze({ header: '.col-last-changed', cell: '.last-changed-cell' }),
         pinned: Object.freeze({ header: '.col-pinned', cell: '.pinned-cell' }),
-        updates: Object.freeze({ header: '.col-updates', cell: '.updates-cell' }),
-        health: Object.freeze({ header: '.col-health', cell: '.health-cell' })
+        signals: Object.freeze({ header: '.col-signals', cell: '.signals-cell' })
     }),
     vm: Object.freeze({
         parent: Object.freeze({ header: '.col-parent', cell: '.parent-cell' }),
-        members: Object.freeze({ header: '.col-members', cell: '.members-cell' }),
         status: Object.freeze({ header: '.col-status', cell: '.status-cell' }),
         rules: Object.freeze({ header: '.col-rules', cell: '.rules-cell' }),
         lastChanged: Object.freeze({ header: '.col-last-changed', cell: '.last-changed-cell' }),
@@ -6862,6 +6856,15 @@ const normalizeColumnVisibilityForType = (type, value = null) => {
     Object.keys(defaults).forEach((key) => {
         normalized[key] = source[key] !== false;
     });
+    // Legacy bridge: old docker prefs used separate updates/health columns.
+    // Preserve previous "both hidden" intent when migrating to unified Signals.
+    if (resolvedType === 'docker' && !Object.prototype.hasOwnProperty.call(source, 'signals')) {
+        const updatesHidden = source.updates === false;
+        const healthHidden = source.health === false;
+        if (updatesHidden && healthHidden) {
+            normalized.signals = false;
+        }
+    }
     return normalized;
 };
 
@@ -9813,73 +9816,33 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         const statusThresholdLabel = statusWarnThresholdInfo.source === 'folder'
             ? `Status warn threshold: ${statusWarnThreshold}% stopped (folder override).`
             : `Status warn threshold: ${statusWarnThreshold}% stopped (global default).`;
-        const statusChips = [];
-        if (members.length <= 0) {
-            statusChips.push({
-                key: 'empty',
-                count: 0,
-                names: [],
-                attention: false
-            });
-        } else {
-            if (countsByState.started > 0) {
-                statusChips.push({
-                    key: 'started',
-                    count: countsByState.started,
-                    names: namesByState.started,
-                    attention: false
-                });
-            }
-            if (countsByState.paused > 0) {
-                statusChips.push({
-                    key: 'paused',
-                    count: countsByState.paused,
-                    names: namesByState.paused,
-                    attention: pausedAttention
-                });
-            }
-            if (countsByState.stopped > 0) {
-                statusChips.push({
-                    key: 'stopped',
-                    count: countsByState.stopped,
-                    names: namesByState.stopped,
-                    attention: stoppedAttention
-                });
-            }
-        }
-        const statusChipsHtml = `<span class="status-chip-list">${statusChips.map((chip) => {
-            const chipClass = statusClassForKey(chip.key);
-            const chipFilterActive = statusFilterMode === chip.key;
-            const chipHint = chipFilterActive
-                ? 'Click to show all statuses.'
-                : `Click to show folders with ${statusLabelForKey(chip.key).toLowerCase()} members.`;
-            const chipCountLabel = chip.key === 'empty'
-                ? 'No members in this folder.'
-                : `${chip.count} ${chip.key} member${chip.count === 1 ? '' : 's'}.`;
-            const chipMemberDetails = chip.key === 'started'
-                ? summarizeStatusMembers('Started items', namesByState.started)
-                : (chip.key === 'paused'
-                    ? summarizeStatusMembers('Paused items', namesByState.paused)
-                    : (chip.key === 'stopped'
-                        ? summarizeStatusMembers('Stopped items', namesByState.stopped)
-                        : 'Started items: none'));
-            const chipTitle = [
-                `Status: ${statusLabelForKey(chip.key)}`,
-                `Members: ${members.length} total`,
-                `${countsByState.started} started, ${countsByState.paused} paused, ${countsByState.stopped} stopped`,
-                chipCountLabel,
-                chipMemberDetails,
-                chip.key === 'stopped' ? `Stopped percentage: ${stoppedPercent}%` : '',
-                chip.key === 'stopped' ? statusThresholdLabel : '',
-                chipHint
-            ].filter(Boolean).join('\n');
-            const chipText = chip.key === 'empty'
-                ? 'Empty'
-                : (statusPrefs.mode === 'dominant'
-                    ? `${statusLabelForKey(chip.key)} ${chip.count}/${members.length}`
-                    : `${chip.count} ${chip.key}`);
-            return `<button type="button" class="folder-runtime-status status-chip ${chipClass} ${chip.attention ? 'is-attention' : ''} ${chipFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(chipTitle)}" aria-label="${escapeHtml(chipTitle)}" onclick="toggleStatusFilter('${type}','${escapeHtml(chip.key)}')"><span>${escapeHtml(chipText)}</span></button>`;
-        }).join('')}</span>`;
+        const dominantStatusKey = deriveFolderStatusKey(countsByState, members.length);
+        const statusPrimaryKey = dominantStatusKey === 'mixed' && countsByState.stopped > 0
+            ? 'stopped'
+            : dominantStatusKey;
+        const summaryStatusText = statusPrefs.mode === 'dominant'
+            ? formatStatusDominantText(dominantStatusKey, countsByState, members.length)
+            : formatStatusSummaryText(countsByState, members.length);
+        const statusChipAttention = stoppedAttention || pausedAttention;
+        const statusChipClass = statusClassForKey(statusPrimaryKey);
+        const statusChipFilterActive = statusFilterMode === statusPrimaryKey;
+        const statusChipHint = statusChipFilterActive
+            ? 'Click to show all statuses.'
+            : `Click to show folders with ${statusLabelForKey(statusPrimaryKey).toLowerCase()} members.`;
+        const statusChipTitle = [
+            `Status summary: ${summaryStatusText}`,
+            `Dominant status: ${statusLabelForKey(dominantStatusKey)}`,
+            `Members: ${members.length} total`,
+            `${countsByState.started} started, ${countsByState.paused} paused, ${countsByState.stopped} stopped`,
+            summarizeStatusMembers('Started items', namesByState.started),
+            summarizeStatusMembers('Paused items', namesByState.paused),
+            summarizeStatusMembers('Stopped items', namesByState.stopped),
+            `Stopped percentage: ${stoppedPercent}%`,
+            statusThresholdLabel,
+            'Open status breakdown from the info button for full details.',
+            statusChipHint
+        ].filter(Boolean).join('\n');
+        const statusSummaryChipHtml = `<span class="status-chip-list"><button type="button" class="folder-runtime-status status-chip ${statusChipClass} ${statusChipAttention ? 'is-attention' : ''} ${statusChipFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(statusChipTitle)}" aria-label="${escapeHtml(statusChipTitle)}" onclick="toggleStatusFilter('${type}','${escapeHtml(statusPrimaryKey)}')"><span>${escapeHtml(summaryStatusText)}</span></button></span>`;
 
         let statusTrendHtml = '';
         if (statusPrefs.trendEnabled === true) {
@@ -9954,8 +9917,8 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
                 : `Click to show ${healthStatus.text} folders only.`;
             const healthTitle = [...healthStatus.details, healthToggleHint].join('\n');
             typeSpecificColumns = ''
-                + `<td class="updates-cell"><button type="button" class="folder-metric-chip updates-chip ${updateClass} ${dockerUpdatesOnlyFilter ? 'is-filter-active' : ''}" title="${escapeHtml(updateTitle)}" aria-label="${escapeHtml(updateTitle)}" onclick="toggleDockerUpdatesFilter(${updateCount > 0 ? 'true' : 'false'})"><i class="fa ${updateIcon}" aria-hidden="true"></i><span>${escapeHtml(updateText)}</span></button></td>`
-                + `<td class="health-cell"><span class="health-cell-content"><button type="button" class="health-breakdown-btn" title="Open health details" aria-label="Open health details for ${safeName}" onclick="showFolderHealthBreakdown('${type}','${escapeHtml(id)}')"><i class="fa fa-heartbeat"></i></button><button type="button" class="folder-metric-chip health-chip ${healthStatus.className} ${healthFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(healthTitle)}" aria-label="${escapeHtml(healthTitle)}" onclick="toggleHealthSeverityFilter('${type}','${escapeHtml(healthStatus.filterSeverity)}')">${escapeHtml(healthStatus.text)}</button></span></td>`;
+                + `<td class="updates-cell signals-cell"><span class="signals-cell-content"><button type="button" class="folder-metric-chip updates-chip ${updateClass} ${dockerUpdatesOnlyFilter ? 'is-filter-active' : ''}" title="${escapeHtml(updateTitle)}" aria-label="${escapeHtml(updateTitle)}" onclick="toggleDockerUpdatesFilter(${updateCount > 0 ? 'true' : 'false'})"><i class="fa ${updateIcon}" aria-hidden="true"></i><span>${escapeHtml(updateText)}</span></button><button type="button" class="health-breakdown-btn" title="Open health details" aria-label="Open health details for ${safeName}" onclick="showFolderHealthBreakdown('${type}','${escapeHtml(id)}')"><i class="fa fa-heartbeat"></i></button><button type="button" class="folder-metric-chip health-chip ${healthStatus.className} ${healthFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(healthTitle)}" aria-label="${escapeHtml(healthTitle)}" onclick="toggleHealthSeverityFilter('${type}','${escapeHtml(healthStatus.filterSeverity)}')"><span>${escapeHtml(healthStatus.text)}</span></button></span></td>`
+                + '<td class="health-cell fv-col-hidden"></td>';
         } else {
             const vmResources = collectVmFolderResources(members, infoByName);
             const membersCount = vmResources.membersCount;
@@ -10020,6 +9983,8 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         const membersCellHtml = totalMemberCount > directMemberCount
             ? `<span class="folder-member-split" title="${escapeHtml(membersTitle)}"><strong>${directMemberCount}</strong><span class="folder-member-divider">/</span><span>${totalMemberCount}</span></span>`
             : `<span class="folder-member-split" title="${escapeHtml(membersTitle)}"><strong>${directMemberCount}</strong></span>`;
+        const memberLabelText = `${totalMemberCount} item${totalMemberCount === 1 ? '' : 's'}`;
+        const membersMetaHtml = `<span class="name-cell-members-meta" title="${escapeHtml(membersTitle)}"><i class="fa fa-users" aria-hidden="true"></i><span>${escapeHtml(memberLabelText)}</span></span>`;
         const rowReorderButtonsHtml = folderDepth > 0
             ? ''
             : (`<button title="Move up" aria-label="Move ${safeName} up" onclick="moveFolderRow('${type}','${escapeHtml(id)}',-1)"><i class="fa fa-chevron-up"></i></button>`
@@ -10044,10 +10009,10 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         rows.push(
             `<tr class="${folderDepth > 0 ? 'is-nested-row' : 'is-root-row'}" data-folder-depth="${folderDepth}" data-folder-id="${escapeHtml(id)}" tabindex="0" onkeydown="handleFolderRowKeydown('${type}','${escapeHtml(id)}',event)">`
             + `<td class="order-cell">${orderCellHtml}</td>`
-            + `<td class="name-cell" title="${escapeHtml(id)}"><span class="${nameCellClass}" style="--fv-folder-depth:${folderDepth};">${treeToggleHtml}<img src="${safeIcon}" class="img" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"><span class="name-cell-text-wrap"><span class="name-cell-text">${safeName}</span>${nestedMetaHtml}</span></span></td>`
+            + `<td class="name-cell" title="${escapeHtml(id)}"><span class="${nameCellClass}" style="--fv-folder-depth:${folderDepth};">${treeToggleHtml}<img src="${safeIcon}" class="img" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"><span class="name-cell-text-wrap"><span class="name-cell-text">${safeName}</span>${membersMetaHtml}${nestedMetaHtml}</span></span></td>`
             + `<td class="parent-cell">${parentCellHtml}</td>`
-            + `<td class="members-cell">${membersCellHtml}</td>`
-            + `<td class="status-cell"><span class="status-cell-content"><button type="button" class="status-breakdown-btn" title="Open status breakdown" aria-label="Open status breakdown for ${safeName}" onclick="showFolderStatusBreakdown('${type}','${escapeHtml(id)}')"><i class="fa fa-info-circle"></i></button>${statusChipsHtml}${statusTrendHtml}</span></td>`
+            + `<td class="members-cell fv-col-hidden">${membersCellHtml}</td>`
+            + `<td class="status-cell"><span class="status-cell-content"><button type="button" class="status-breakdown-btn" title="Open status breakdown" aria-label="Open status breakdown for ${safeName}" onclick="showFolderStatusBreakdown('${type}','${escapeHtml(id)}')"><i class="fa fa-info-circle"></i></button>${statusSummaryChipHtml}${statusTrendHtml}</span></td>`
             + `<td class="rules-cell" title="${escapeHtml(ruleTitle)}">${escapeHtml(ruleText)}</td>`
             + `<td class="last-changed-cell" title="${escapeHtml(lastChangedRaw || '')}">${escapeHtml(lastChangedText)}</td>`
             + `<td class="pinned-cell"><span class="folder-pin-state ${pinnedClass}">${escapeHtml(pinnedText)}</span></td>`

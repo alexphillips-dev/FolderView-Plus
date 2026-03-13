@@ -450,6 +450,22 @@
     max-width: 100%;
 }
 
+.name-cell-members-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.24rem;
+    max-width: 100%;
+    font-size: 1.03rem;
+    line-height: 1.1;
+    color: rgba(187, 199, 219, 0.82);
+    opacity: 0.92;
+}
+
+.name-cell-members-meta i {
+    font-size: 0.85em;
+    opacity: 0.85;
+}
+
 .name-cell-nested-meta {
     display: inline-flex;
     align-items: center;
@@ -1075,7 +1091,7 @@ body.fv-mobile-compact #fv-settings-root .status-chip-list {
 }
 
 .updates-chip {
-    min-width: 126px;
+    min-width: 112px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1091,6 +1107,15 @@ body.fv-mobile-compact #fv-settings-root .status-chip-list {
 .health-chip {
     cursor: pointer;
     background: transparent;
+}
+
+.signals-cell-content {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.28rem;
+    flex-wrap: nowrap;
+    max-width: 100%;
 }
 
 .folder-metric-chip.is-maintenance {

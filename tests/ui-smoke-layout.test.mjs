@@ -62,18 +62,15 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
     assert.match(settingsPage, /Health/);
     assert.match(settingsPage, /Autostart/);
     assert.match(settingsPage, /Resources/);
-    assert.match(settingsPage, /id="docker-col-members"/);
     assert.match(settingsPage, /id="docker-col-status"/);
     assert.match(settingsPage, /id="docker-col-rules"/);
     assert.match(settingsPage, /id="docker-col-last-changed"/);
     assert.match(settingsPage, /id="docker-col-pinned"/);
-    assert.match(settingsPage, /id="docker-col-updates"/);
-    assert.match(settingsPage, /id="docker-col-health"/);
+    assert.match(settingsPage, /id="docker-col-signals"/);
     assert.match(settingsPage, /id="docker-health-critical-threshold"/);
     assert.match(settingsPage, /id="docker-health-profile"/);
     assert.match(settingsPage, /id="docker-health-updates-mode"/);
     assert.match(settingsPage, /id="docker-health-all-stopped-mode"/);
-    assert.match(settingsPage, /id="vm-col-members"/);
     assert.match(settingsPage, /id="vm-col-status"/);
     assert.match(settingsPage, /id="vm-col-rules"/);
     assert.match(settingsPage, /id="vm-col-last-changed"/);
@@ -297,7 +294,7 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const renderColumnVisibilityControls = \(type\) =>/);
     assert.match(settingsJs, /const changeColumnVisibility = \(type, key, checked\) =>/);
     assert.match(settingsJs, /window\.changeColumnVisibility = changeColumnVisibility;/);
-    assert.match(settingsJs, /toggleStatusFilter\('\$\{type\}','\$\{escapeHtml\(chip\.key\)\}'\)/);
+    assert.match(settingsJs, /toggleStatusFilter\('\$\{type\}','\$\{escapeHtml\(statusPrimaryKey\)\}'\)/);
     assert.match(settingsJs, /return 'good health';/);
     assert.match(settingsJs, /return 'warn health';/);
     assert.match(settingsJs, /return 'critical health';/);
@@ -385,7 +382,7 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsCss, /\.status-chip-list\s*\{[\s\S]*justify-content:\s*flex-start/);
     assert.match(settingsCss, /\.status-chip-list\s*\{[\s\S]*flex-wrap:\s*nowrap/);
     assert.match(settingsCss, /\.status-breakdown-btn\s*\{[\s\S]*width:\s*22px !important/);
-    assert.match(settingsJs, /class="status-cell"><span class="status-cell-content"><button type="button" class="status-breakdown-btn"[\s\S]*\$\{statusChipsHtml\}\$\{statusTrendHtml\}/);
+    assert.match(settingsJs, /class="status-cell"><span class="status-cell-content"><button type="button" class="status-breakdown-btn"[\s\S]*\$\{statusSummaryChipHtml\}\$\{statusTrendHtml\}/);
     assert.match(settingsCss, /\.folder-metric-chip\.is-danger\s*\{/);
     assert.match(settingsCss, /\.folder-metric-chip\s*\{/);
     assert.match(settingsCss, /\.folder-pin-state,\s*[\s\S]*\.folder-metric-chip\s*\{/);

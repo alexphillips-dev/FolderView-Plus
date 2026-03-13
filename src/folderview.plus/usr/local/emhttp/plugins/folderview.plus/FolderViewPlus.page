@@ -176,13 +176,11 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <div class="settings-mini-card">
                     <div class="settings-mini-title">Columns</div>
                     <label class="setting-toggle"><input id="docker-col-parent" type="checkbox" onchange="changeColumnVisibility('docker', 'parent', this.checked)"> Parent</label>
-                    <label class="setting-toggle"><input id="docker-col-members" type="checkbox" onchange="changeColumnVisibility('docker', 'members', this.checked)"> Members</label>
                     <label class="setting-toggle"><input id="docker-col-status" type="checkbox" onchange="changeColumnVisibility('docker', 'status', this.checked)"> Status</label>
                     <label class="setting-toggle"><input id="docker-col-rules" type="checkbox" onchange="changeColumnVisibility('docker', 'rules', this.checked)"> Rules</label>
                     <label class="setting-toggle"><input id="docker-col-last-changed" type="checkbox" onchange="changeColumnVisibility('docker', 'lastChanged', this.checked)"> Last changed</label>
                     <label class="setting-toggle"><input id="docker-col-pinned" type="checkbox" onchange="changeColumnVisibility('docker', 'pinned', this.checked)"> Pinned</label>
-                    <label class="setting-toggle"><input id="docker-col-updates" type="checkbox" onchange="changeColumnVisibility('docker', 'updates', this.checked)"> Updates</label>
-                    <label class="setting-toggle"><input id="docker-col-health" type="checkbox" onchange="changeColumnVisibility('docker', 'health', this.checked)"> Health</label>
+                    <label class="setting-toggle"><input id="docker-col-signals" type="checkbox" onchange="changeColumnVisibility('docker', 'signals', this.checked)"> Signals</label>
                 </div>
             </div>
         </div>
@@ -197,13 +195,13 @@ if (!empty($fvplusRuntimeConflicts)) {
                         Name
                     </th>
                     <th class="col-parent">Parent</th>
-                    <th class="col-members" title="Direct members / total members including nested folders">Members</th>
+                    <th class="col-members fv-col-hidden" title="Direct members / total members including nested folders">Members</th>
                     <th class="col-status">Status</th>
                     <th class="col-rules">Rules</th>
                     <th class="col-last-changed">Last changed</th>
                     <th class="col-pinned">Pinned</th>
-                    <th class="col-updates">Updates</th>
-                    <th class="col-health">Health</th>
+                    <th class="col-updates col-signals">Signals</th>
+                    <th class="col-health fv-col-hidden">Health</th>
                     <th class="col-actions" data-i18n="el-actions">
                         Actions
                     </th>
@@ -351,7 +349,6 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <div class="settings-mini-card">
                     <div class="settings-mini-title">Columns</div>
                     <label class="setting-toggle"><input id="vm-col-parent" type="checkbox" onchange="changeColumnVisibility('vm', 'parent', this.checked)"> Parent</label>
-                    <label class="setting-toggle"><input id="vm-col-members" type="checkbox" onchange="changeColumnVisibility('vm', 'members', this.checked)"> Members</label>
                     <label class="setting-toggle"><input id="vm-col-status" type="checkbox" onchange="changeColumnVisibility('vm', 'status', this.checked)"> Status</label>
                     <label class="setting-toggle"><input id="vm-col-rules" type="checkbox" onchange="changeColumnVisibility('vm', 'rules', this.checked)"> Rules</label>
                     <label class="setting-toggle"><input id="vm-col-last-changed" type="checkbox" onchange="changeColumnVisibility('vm', 'lastChanged', this.checked)"> Last changed</label>
@@ -372,7 +369,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                         Name
                     </th>
                     <th class="col-parent">Parent</th>
-                    <th class="col-members" title="Direct members / total members including nested folders">Members</th>
+                    <th class="col-members fv-col-hidden" title="Direct members / total members including nested folders">Members</th>
                     <th class="col-status">Status</th>
                     <th class="col-rules">Rules</th>
                     <th class="col-last-changed">Last changed</th>

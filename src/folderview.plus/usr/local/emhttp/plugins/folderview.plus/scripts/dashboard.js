@@ -104,6 +104,10 @@ const filterDashboardToRootFolders = (folders) => {
             rootOnly[id] = folder;
         }
     }
+    if (Object.keys(rootOnly).length <= 0 && Object.keys(source).length > 0) {
+        // Safety fallback: avoid dropping all folder rendering on malformed/cyclic parent graphs.
+        return { ...source };
+    }
     return rootOnly;
 };
 

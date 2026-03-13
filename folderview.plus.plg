@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.13.05">
-<!ENTITY md5 "2ed86339eb24dafc7b68380e374b5f48">
+<!ENTITY version "2026.03.13.06">
+<!ENTITY md5 "2bde6448bda9b01260b031f10b4ea278">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.13.06
+- Fix: Dashboard root-folder filter now falls back safely when parent graphs are malformed/cyclic, preventing container-only fallback in widgets.
+- Fix: Preserved root-only rendering path while guaranteeing folders still render instead of dropping to raw Docker list.
+
 
 ###2026.03.13.05
 - Fix: Restored Dashboard folder widgets so root folders render correctly with nested descendants (no raw all-container fallback).

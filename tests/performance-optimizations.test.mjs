@@ -75,6 +75,7 @@ test('dashboard widget renders root-level folders only when nested folders exist
     assert.match(dashboardJs, /const dockerRootFolders = filterDashboardToRootFolders\(allDockerFolders\);/);
     assert.match(dashboardJs, /const vmRootFolders = filterDashboardToRootFolders\(allVmFolders\);/);
     assert.match(dashboardJs, /const parentId = normalizeFolderParentId\(folder\?\.parentId \|\| folder\?\.parent_id \|\| ''\);/);
+    assert.match(dashboardJs, /if \(Object\.keys\(rootOnly\)\.length <= 0 && Object\.keys\(source\)\.length > 0\) \{/);
     assert.match(dashboardJs, /const aggregateRootMatchCache = \(fullFolders,\s*rootFolders,\s*fullCache\) =>/);
     assert.match(dashboardJs, /const dockerMatchCache = aggregateRootMatchCache\(allDockerFolders,\s*folders,\s*dockerFullMatchCache\);/);
 });

@@ -6,6 +6,27 @@ const FVPLUS_CUSTOM_ICON_MAX_BYTES = 4194304;
 const FVPLUS_CUSTOM_ICON_MAX_FILES = 2000;
 const FVPLUS_CUSTOM_ICON_RATE_WINDOW_SECONDS = 60;
 const FVPLUS_CUSTOM_ICON_RATE_MAX_UPLOADS = 24;
+const FVPLUS_CUSTOM_ICON_FATAL_TYPES = [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR];
+
+$GLOBALS['fvplus_custom_icon_response_sent'] = false;
+register_shutdown_function(static function (): void {
+    if (($GLOBALS['fvplus_custom_icon_response_sent'] ?? false) === true) {
+        return;
+    }
+
+    $lastError = error_get_last();
+    if (!is_array($lastError) || !in_array((int)($lastError['type'] ?? 0), FVPLUS_CUSTOM_ICON_FATAL_TYPES, true)) {
+        return;
+    }
+
+    if (function_exists('ob_get_level')) {
+        while (@ob_get_level() > 0) {
+            @ob_end_clean();
+        }
+    }
+
+    fvplus_json_error('Icon upload failed due to a server error. Check /tmp/folderview.plus.api-error.log for details.', 500);
+});
 
 function customIconDirPath(): string {
     global $sourceDir;
@@ -358,3 +379,5 @@ fvplus_json_try(function (): array {
         'path' => '/usr/local/emhttp/plugins/folderview.plus/images/custom/' . $fileName
     ];
 });
+
+$GLOBALS['fvplus_custom_icon_response_sent'] = true;

@@ -60,6 +60,15 @@ test('upload endpoint hardens SVG uploads against active content', () => {
     assert.match(uploadPhp, /LIBXML_NONET/);
 });
 
+test('upload endpoint guarantees JSON output even on fatal failures', () => {
+    assert.match(uploadPhp, /register_shutdown_function\s*\(/);
+    assert.match(uploadPhp, /\$GLOBALS\['fvplus_custom_icon_response_sent'\]\s*=\s*false/);
+    assert.match(uploadPhp, /FVPLUS_CUSTOM_ICON_FATAL_TYPES/);
+    assert.match(uploadPhp, /ob_end_clean/);
+    assert.match(uploadPhp, /Icon upload failed due to a server error/);
+    assert.match(uploadPhp, /\$GLOBALS\['fvplus_custom_icon_response_sent'\]\s*=\s*true/);
+});
+
 test('upload and third-party endpoints share the same icon extension allowlist', () => {
     const thirdPartyExt = parsePhpStringArray(thirdPartyPhp, 'FVPLUS_THIRD_PARTY_ICON_EXTENSIONS');
     const uploadExt = parsePhpStringArray(uploadPhp, 'FVPLUS_CUSTOM_ICON_EXTENSIONS');

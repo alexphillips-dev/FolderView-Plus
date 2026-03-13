@@ -6,12 +6,24 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.12.18">
-<!ENTITY md5 "ff40ff7a3435a8e4093600ebef941036">
+<!ENTITY version "2026.03.12.20">
+<!ENTITY md5 "51f0de6ca46e245d7f5b9788b51d2856">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.12.20
+- UX: Renamed Docker table `Signals` column to `Alerts` for clearer meaning.
+- UX: Rebalanced desktop table widths so `Name` sits directly next to `Order` and right-side columns shift left to free space for `Alerts`.
+- UX: Left-aligned `Name` header/cell content for tighter scan flow and reduced visual crowding.
+
+
+###2026.03.12.19
+- UX: Renamed Docker table `Signals` column to `Alerts` for clearer meaning.
+- UX: Rebalanced desktop Basic table widths so `Name` sits tighter to `Order` and right-side columns have more usable room.
+- UX: Left-aligned `Name` header/cell content to reduce visual spacing and improve scan speed.
+
 
 ###2026.03.12.18
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

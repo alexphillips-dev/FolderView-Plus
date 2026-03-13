@@ -180,7 +180,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <label class="setting-toggle"><input id="docker-col-rules" type="checkbox" onchange="changeColumnVisibility('docker', 'rules', this.checked)"> Rules</label>
                     <label class="setting-toggle"><input id="docker-col-last-changed" type="checkbox" onchange="changeColumnVisibility('docker', 'lastChanged', this.checked)"> Last changed</label>
                     <label class="setting-toggle"><input id="docker-col-pinned" type="checkbox" onchange="changeColumnVisibility('docker', 'pinned', this.checked)"> Pinned</label>
-                    <label class="setting-toggle"><input id="docker-col-signals" type="checkbox" onchange="changeColumnVisibility('docker', 'signals', this.checked)"> Signals</label>
+                    <label class="setting-toggle"><input id="docker-col-signals" type="checkbox" onchange="changeColumnVisibility('docker', 'signals', this.checked)"> Alerts</label>
                 </div>
             </div>
         </div>
@@ -200,7 +200,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <th class="col-rules">Rules</th>
                     <th class="col-last-changed">Last changed</th>
                     <th class="col-pinned">Pinned</th>
-                    <th class="col-updates col-signals">Signals</th>
+                    <th class="col-updates col-signals">Alerts</th>
                     <th class="col-health fv-col-hidden">Health</th>
                     <th class="col-actions" data-i18n="el-actions">
                         Actions

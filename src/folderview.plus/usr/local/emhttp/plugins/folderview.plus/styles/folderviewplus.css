@@ -368,8 +368,13 @@
 }
 
 .folder-table table td.name-cell {
-    text-align: center;
+    text-align: left;
     white-space: normal;
+}
+
+.folder-table table th.col-name {
+    text-align: left;
+    padding-left: 0.44rem;
 }
 
 .name-cell-content {
@@ -377,7 +382,7 @@
     grid-template-columns: 14px 30px 1fr;
     align-items: center;
     column-gap: 0.44rem;
-    width: clamp(160px, 16vw, 230px);
+    width: min(100%, 280px);
     text-align: left;
     --fv-folder-indent-step: 0.9rem;
     padding-left: calc(var(--fv-folder-depth, 0) * var(--fv-folder-indent-step));
@@ -659,29 +664,29 @@
     border-color: rgba(77, 163, 255, 0.45);
 }
 
-/* Keep core table columns readable while giving Status enough room for side-by-side chips. */
+/* Rebalanced desktop widths so Name is tighter to Order and Alerts/Actions have room. */
 .folder-table table th:nth-child(1),
-.folder-table table td:nth-child(1) { width: 9%; }
+.folder-table table td:nth-child(1) { width: 8%; }
 .folder-table table th:nth-child(2),
-.folder-table table td:nth-child(2) { width: 18%; }
+.folder-table table td:nth-child(2) { width: 24%; }
 .folder-table table th:nth-child(3),
-.folder-table table td:nth-child(3) { width: 5%; }
+.folder-table table td:nth-child(3) { width: 4%; }
 .folder-table table th:nth-child(4),
 .folder-table table td:nth-child(4) { width: 4%; }
 .folder-table table th:nth-child(5),
-.folder-table table td:nth-child(5) { width: 13%; }
+.folder-table table td:nth-child(5) { width: 15%; }
 .folder-table table th:nth-child(6),
-.folder-table table td:nth-child(6) { width: 5%; }
+.folder-table table td:nth-child(6) { width: 4%; }
 .folder-table table th:nth-child(7),
-.folder-table table td:nth-child(7) { width: 9%; }
+.folder-table table td:nth-child(7) { width: 8%; }
 .folder-table table th:nth-child(8),
 .folder-table table td:nth-child(8) { width: 5%; }
 .folder-table table th:nth-child(9),
-.folder-table table td:nth-child(9) { width: 10%; }
+.folder-table table td:nth-child(9) { width: 13%; }
 .folder-table table th:nth-child(10),
-.folder-table table td:nth-child(10) { width: 10%; }
+.folder-table table td:nth-child(10) { width: 5%; }
 .folder-table table th:nth-child(11),
-.folder-table table td:nth-child(11) { width: 12%; }
+.folder-table table td:nth-child(11) { width: 15%; }
 
 .folder-table table th.col-order,
 .folder-table table td.order-cell {

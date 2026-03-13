@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.13.10">
-<!ENTITY md5 "86a747bdc5645ce79af0838645171e62">
+<!ENTITY version "2026.03.13.11">
+<!ENTITY md5 "874aead40c930a2f4722fa9aadcb925c">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.13.11
+- Maintenance: lock legacy docker selector contract.
+- Maintenance: Document and guard legacy custom CSS/JS override compatibility.
+- Maintenance: Audit runtime no-op paths and add regression guards.
+- Feature: Add regression guard for expanded folder state persistence.
+- Maintenance: Refresh perf baseline after expand-state persistence updates.
+
 
 ###2026.03.13.10
 - Fix: Persist Docker/VM folder expand state to server prefs (with localStorage fallback) so expanded folders survive tab switches.

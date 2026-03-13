@@ -1,5 +1,20 @@
 # FolderView Plus Changelog
 
+## Version 2026.03.13.12
+
+### Highlights
+
+- Nested folders for Docker/VM with tree-aware behavior and root-level dashboard folder rendering.
+- Expanded legacy compatibility validation for folder.view2/folder.view3 selector and override contracts.
+- Added support policy documentation with stable selector/tag guarantees for long-term theme/CSS compatibility.
+
+### Important Bug Fixes
+
+- Fixed import compatibility edge cases for malformed/legacy payloads that could fail migration flows.
+- Fixed runtime conflict handling coverage for both install orders (FolderView Plus first or legacy plugin first).
+- Fixed backup/restore integrity regression risk with added rollback and metadata contract validation.
+- Fixed settings/theme surface regression risk by adding required theme matrix checks in CI/release workflows.
+
 ## Version 2026.03.08.25
 
 - Permanently harden legacy import parsing for folder.view2/folder.view3 payload variants, including legacy type-wrapped exports.

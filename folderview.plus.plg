@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.13.14">
-<!ENTITY md5 "90275d3dbe9eefc404c2b9ab82b7be0d">
+<!ENTITY version "2026.03.13.15">
+<!ENTITY md5 "693e5c46741de7802393ebaa3995f5fe">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.13.15
+- Feature: Add inline fallback path for icon upload transport failures.
+
 
 ###2026.03.13.14
 - Maintenance: Guard icon upload endpoint against empty responses.

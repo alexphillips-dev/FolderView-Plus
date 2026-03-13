@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.12.20">
-<!ENTITY md5 "51f0de6ca46e245d7f5b9788b51d2856">
+<!ENTITY version "2026.03.12.21">
+<!ENTITY md5 "f5e3d35a58ec0ba8b97ed553ff8a2474">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.12.21
+- UX: Tightened Docker table spacing so columns sit closer to `Name` and expanded `Alerts` visibility.
+- UX: Switched Docker update alert from text chip to icon-only indicator (matching compact heart-style alert controls).
+
 
 ###2026.03.12.20
 - UX: Renamed Docker table `Signals` column to `Alerts` for clearer meaning.

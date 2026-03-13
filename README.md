@@ -188,6 +188,10 @@ Legacy Docker selector compatibility contract (stable hooks):
 - `span.state.folder-state`
 - Tooltip hooks: `.preview-outbox`, `.action-info`, `.info-ct`, `.tooltipster-docker-folder`
 
+Full compatibility/deprecation policy:
+
+- `SUPPORT_POLICY.md`
+
 Example:
 
 - `hernando.docker.css` works as a Docker override and can stay in a legacy `folder.view*/styles` directory.

@@ -102,6 +102,7 @@ jobs:
       - name: Optional theme matrix smoke checks
         env:
           FVPLUS_THEME_MATRIX_URLS: ${{ secrets.FVPLUS_THEME_MATRIX_URLS }}
+          FVPLUS_THEME_REQUIRED_LABELS: 'black,white'
           FVPLUS_THEME_SMOKE_TIMEOUT_MS: '90000'
           FVPLUS_THEME_SMOKE_IGNORE_HTTPS: '1'
           FVPLUS_THEME_SMOKE_BROWSERS: 'chromium,firefox,webkit'

@@ -161,8 +161,15 @@ test('theme matrix smoke scripts are optional, URL-gated, and include wizard/the
     assert.match(themeMatrixSmokeShell, /Skipping theme matrix smoke checks/);
     assert.match(themeMatrixSmokeShell, /node "\$\{ROOT_DIR\}\/scripts\/theme_matrix_smoke\.mjs"/);
     assert.match(themeMatrixSmokeNode, /playwright/);
+    assert.match(themeMatrixSmokeNode, /FVPLUS_THEME_REQUIRED_LABELS/);
+    assert.match(themeMatrixSmokeNode, /Theme matrix is missing required label\(s\)/);
     assert.match(themeMatrixSmokeNode, /FVPLUS_THEME_SMOKE_BROWSERS/);
     assert.match(themeMatrixSmokeNode, /FVPLUS_THEME_SMOKE_ZOOMS/);
+    assert.match(themeMatrixSmokeNode, /runSettingsSurfaceChecks/);
+    assert.match(themeMatrixSmokeNode, /h2\[data-fv-section="docker"\]/);
+    assert.match(themeMatrixSmokeNode, /h2\[data-fv-section="vms"\]/);
+    assert.match(themeMatrixSmokeNode, /tbody#docker/);
+    assert.match(themeMatrixSmokeNode, /tbody#vms/);
     assert.match(themeMatrixSmokeNode, /#fv-run-wizard/);
     assert.match(themeMatrixSmokeNode, /#fv-setup-assistant-dialog/);
     assert.match(themeMatrixSmokeNode, /Focus-visible ring is not present/);
@@ -187,6 +194,7 @@ test('validation workflows enforce standards guards and release-required browser
         assert.match(workflow, /bash scripts\/browser_smoke\.sh/);
         assert.match(workflow, /Optional theme matrix smoke checks/);
         assert.match(workflow, /FVPLUS_THEME_MATRIX_URLS/);
+        assert.match(workflow, /FVPLUS_THEME_REQUIRED_LABELS:\s*'black,white'/);
         assert.match(workflow, /bash scripts\/theme_matrix_smoke\.sh/);
         assert.match(workflow, /actions\/upload-artifact@v4/);
     }

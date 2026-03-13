@@ -108,9 +108,24 @@
             new Set(
                 value
                     .map((item) => String(item || '').trim())
-                    .filter((item) => item !== '')
+                .filter((item) => item !== '')
             )
         );
+    };
+
+    const normalizeExpandedFolderStateMap = (value) => {
+        if (!isPlainObject(value)) {
+            return {};
+        }
+        const output = {};
+        for (const [rawId, expanded] of Object.entries(value)) {
+            const id = String(rawId || '').trim();
+            if (!id) {
+                continue;
+            }
+            output[id] = expanded === true;
+        }
+        return output;
     };
 
     const normalizeHealthProfile = (value) => {
@@ -428,6 +443,7 @@
             )
         };
         const pinnedFolderIds = normalizeStringIdList(incoming.pinnedFolderIds);
+        const expandedFolderState = normalizeExpandedFolderStateMap(incoming.expandedFolderState);
         const hideEmptyFolders = incoming.hideEmptyFolders === true;
         const setupWizardCompleted = incoming.setupWizardCompleted === true;
         const settingsMode = incoming.settingsMode === 'advanced' ? 'advanced' : 'basic';
@@ -436,6 +452,7 @@
             sortMode,
             manualOrder,
             pinnedFolderIds,
+            expandedFolderState,
             hideEmptyFolders,
             setupWizardCompleted,
             settingsMode,

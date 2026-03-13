@@ -69,21 +69,40 @@ const FV_VM_TOUCH_MODE = (() => {
     }
 })();
 const VM_EXPANDED_STATE_KEY = 'fvplus.runtime.expand.vm.v1';
+const VM_EXPANDED_STATE_SYNC_DELAY_MS = 220;
+let vmExpandedStateSyncTimer = null;
+let vmExpandedStateSyncInFlight = false;
+let vmExpandedStateSyncQueued = false;
+let vmExpandedStateLastSyncedPayload = '';
+const normalizeExpandedStateMap = (value) => {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+        return {};
+    }
+    const next = {};
+    for (const [rawId, expanded] of Object.entries(value)) {
+        const id = String(rawId || '').trim();
+        if (!id) {
+            continue;
+        }
+        next[id] = expanded === true;
+    }
+    return next;
+};
+const readVmServerExpandedStateMap = () => normalizeExpandedStateMap(folderTypePrefs?.expandedFolderState || {});
+const writeVmServerExpandedStateMap = (map) => {
+    const normalized = normalizeExpandedStateMap(map);
+    folderTypePrefs = utils.normalizePrefs({
+        ...(folderTypePrefs || {}),
+        expandedFolderState: normalized
+    });
+};
 const readVmExpandedStateMap = () => {
     try {
         const raw = window.localStorage && window.localStorage.getItem(VM_EXPANDED_STATE_KEY);
         if (!raw) {
             return {};
         }
-        const parsed = JSON.parse(raw);
-        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-            return {};
-        }
-        const next = {};
-        for (const [id, expanded] of Object.entries(parsed)) {
-            next[String(id || '')] = expanded === true;
-        }
-        return next;
+        return normalizeExpandedStateMap(JSON.parse(raw));
     } catch (_error) {
         return {};
     }
@@ -98,12 +117,66 @@ const writeVmExpandedStateMap = (map) => {
         // Ignore storage failures so runtime rendering never breaks.
     }
 };
-const buildVmExpandedStateMap = (folders, previousFolders = {}) => {
+const syncVmExpandedStateToServer = async () => {
+    const request = window.FolderViewPlusRequest;
+    if (!request || typeof request.postJson !== 'function') {
+        return;
+    }
+    if (vmExpandedStateSyncInFlight) {
+        vmExpandedStateSyncQueued = true;
+        return;
+    }
+
+    const payloadMap = readVmServerExpandedStateMap();
+    const payloadString = JSON.stringify(payloadMap);
+    if (payloadString === vmExpandedStateLastSyncedPayload) {
+        return;
+    }
+
+    vmExpandedStateSyncInFlight = true;
+    try {
+        const response = await request.postJson('/plugins/folderview.plus/server/prefs.php', {
+            type: 'vm',
+            prefs: JSON.stringify({
+                expandedFolderState: payloadMap
+            })
+        }, {
+            retries: 1,
+            retryDelayMs: 260
+        });
+        const nextPrefs = utils.normalizePrefs(response?.prefs || {});
+        writeVmServerExpandedStateMap(nextPrefs.expandedFolderState || payloadMap);
+        vmExpandedStateLastSyncedPayload = JSON.stringify(readVmServerExpandedStateMap());
+    } catch (_error) {
+        // Best effort only. LocalStorage fallback still retains behavior.
+    } finally {
+        vmExpandedStateSyncInFlight = false;
+        if (vmExpandedStateSyncQueued) {
+            vmExpandedStateSyncQueued = false;
+            scheduleVmExpandedStateSync();
+        }
+    }
+};
+const scheduleVmExpandedStateSync = () => {
+    if (vmExpandedStateSyncTimer) {
+        clearTimeout(vmExpandedStateSyncTimer);
+    }
+    vmExpandedStateSyncTimer = setTimeout(() => {
+        vmExpandedStateSyncTimer = null;
+        syncVmExpandedStateToServer();
+    }, VM_EXPANDED_STATE_SYNC_DELAY_MS);
+};
+const buildVmExpandedStateMap = (folders, previousFolders = {}, serverMap = {}) => {
     const source = folders && typeof folders === 'object' ? folders : {};
     const previous = previousFolders && typeof previousFolders === 'object' ? previousFolders : {};
+    const persistedServer = normalizeExpandedStateMap(serverMap);
     const persisted = readVmExpandedStateMap();
     const resolved = {};
     for (const [id, folder] of Object.entries(source)) {
+        if (Object.prototype.hasOwnProperty.call(persistedServer, id)) {
+            resolved[id] = persistedServer[id] === true;
+            continue;
+        }
         if (Object.prototype.hasOwnProperty.call(persisted, id)) {
             resolved[id] = persisted[id] === true;
             continue;
@@ -111,14 +184,23 @@ const buildVmExpandedStateMap = (folders, previousFolders = {}) => {
         resolved[id] = (previous[id]?.status?.expanded === true) || folder?.settings?.expand_tab === true;
     }
     writeVmExpandedStateMap(resolved);
+    writeVmServerExpandedStateMap(resolved);
     return resolved;
 };
-const persistVmExpandedStateFromGlobal = () => {
+const persistVmExpandedStateMap = (map, syncServer = true) => {
+    const normalized = normalizeExpandedStateMap(map);
+    writeVmExpandedStateMap(normalized);
+    writeVmServerExpandedStateMap(normalized);
+    if (syncServer) {
+        scheduleVmExpandedStateSync();
+    }
+};
+const persistVmExpandedStateFromGlobal = (syncServer = true) => {
     const map = {};
     for (const [id, folder] of Object.entries(globalFolders || {})) {
         map[id] = folder?.status?.expanded === true;
     }
-    writeVmExpandedStateMap(map);
+    persistVmExpandedStateMap(map, syncServer);
 };
 const readVmExpandedStateFromDom = () => {
     const map = {};
@@ -144,7 +226,7 @@ const persistVmExpandedStateFromDom = () => {
         return;
     }
     const current = readVmExpandedStateMap();
-    writeVmExpandedStateMap({ ...current, ...domState });
+    persistVmExpandedStateMap({ ...current, ...domState }, true);
 };
 const ensureVmExpandedStateLifecycleHooks = () => {
     if (window.__fvVmExpandedStateHooksBound) {
@@ -418,6 +500,7 @@ const createFolders = async () => {
         prefsResponse = {};
     }
     folderTypePrefs = utils.normalizePrefs(prefsResponse?.prefs || {});
+    vmExpandedStateLastSyncedPayload = JSON.stringify(readVmServerExpandedStateMap());
     const folderDepthById = buildFolderDepthById(folders);
     unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs);
     applyRuntimePrefs(folderTypePrefs);
@@ -515,7 +598,11 @@ const createFolders = async () => {
     }
 
     // Expand folders from remembered runtime state (fallback: previous in-memory state, then expand_tab).
-    const expandedStateById = buildVmExpandedStateMap(foldersDone, previousFolders);
+    const expandedStateById = buildVmExpandedStateMap(
+        foldersDone,
+        previousFolders,
+        readVmServerExpandedStateMap()
+    );
     for (const [id, value] of Object.entries(foldersDone)) {
         if (!value || typeof value !== 'object') {
             continue;

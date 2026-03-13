@@ -777,6 +777,21 @@
         return $out;
     }
 
+    function normalizeExpandedStateMap($value): array {
+        if (!is_array($value)) {
+            return [];
+        }
+        $out = [];
+        foreach ($value as $rawId => $expanded) {
+            $id = trim((string)$rawId);
+            if ($id === '' || array_key_exists($id, $out)) {
+                continue;
+            }
+            $out[$id] = normalizeBool($expanded, false);
+        }
+        return $out;
+    }
+
     function truncateUtf8String(string $value, int $maxBytes): string {
         if ($maxBytes <= 0) {
             return '';
@@ -1493,6 +1508,7 @@
             'sortMode' => 'created',
             'manualOrder' => [],
             'pinnedFolderIds' => [],
+            'expandedFolderState' => [],
             'hideEmptyFolders' => false,
             'setupWizardCompleted' => false,
             'settingsMode' => 'basic',
@@ -1636,6 +1652,7 @@
         }
         $normalized['manualOrder'] = normalizeStringIdList($manualOrder);
         $normalized['pinnedFolderIds'] = normalizeStringIdList($prefs['pinnedFolderIds'] ?? []);
+        $normalized['expandedFolderState'] = normalizeExpandedStateMap($prefs['expandedFolderState'] ?? []);
         $normalized['hideEmptyFolders'] = normalizeBool($prefs['hideEmptyFolders'] ?? false, false);
         $normalized['setupWizardCompleted'] = normalizeBool($prefs['setupWizardCompleted'] ?? false, false);
         $settingsMode = (string)($prefs['settingsMode'] ?? 'basic');

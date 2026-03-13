@@ -463,21 +463,40 @@ const folderViewPerfFromStorage = (() => {
     }
 })();
 const DOCKER_EXPANDED_STATE_KEY = 'fvplus.runtime.expand.docker.v1';
+const DOCKER_EXPANDED_STATE_SYNC_DELAY_MS = 220;
+let dockerExpandedStateSyncTimer = null;
+let dockerExpandedStateSyncInFlight = false;
+let dockerExpandedStateSyncQueued = false;
+let dockerExpandedStateLastSyncedPayload = '';
+const normalizeExpandedStateMap = (value) => {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+        return {};
+    }
+    const next = {};
+    for (const [rawId, expanded] of Object.entries(value)) {
+        const id = String(rawId || '').trim();
+        if (!id) {
+            continue;
+        }
+        next[id] = expanded === true;
+    }
+    return next;
+};
+const readDockerServerExpandedStateMap = () => normalizeExpandedStateMap(folderTypePrefs?.expandedFolderState || {});
+const writeDockerServerExpandedStateMap = (map) => {
+    const normalized = normalizeExpandedStateMap(map);
+    folderTypePrefs = utils.normalizePrefs({
+        ...(folderTypePrefs || {}),
+        expandedFolderState: normalized
+    });
+};
 const readDockerExpandedStateMap = () => {
     try {
         const raw = window.localStorage && window.localStorage.getItem(DOCKER_EXPANDED_STATE_KEY);
         if (!raw) {
             return {};
         }
-        const parsed = JSON.parse(raw);
-        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-            return {};
-        }
-        const next = {};
-        for (const [id, expanded] of Object.entries(parsed)) {
-            next[String(id || '')] = expanded === true;
-        }
-        return next;
+        return normalizeExpandedStateMap(JSON.parse(raw));
     } catch (_error) {
         return {};
     }
@@ -492,12 +511,66 @@ const writeDockerExpandedStateMap = (map) => {
         // Ignore storage failures so runtime rendering never breaks.
     }
 };
-const buildDockerExpandedStateMap = (folders, previousFolders = {}) => {
+const syncDockerExpandedStateToServer = async () => {
+    const request = window.FolderViewPlusRequest;
+    if (!request || typeof request.postJson !== 'function') {
+        return;
+    }
+    if (dockerExpandedStateSyncInFlight) {
+        dockerExpandedStateSyncQueued = true;
+        return;
+    }
+
+    const payloadMap = readDockerServerExpandedStateMap();
+    const payloadString = JSON.stringify(payloadMap);
+    if (payloadString === dockerExpandedStateLastSyncedPayload) {
+        return;
+    }
+
+    dockerExpandedStateSyncInFlight = true;
+    try {
+        const response = await request.postJson('/plugins/folderview.plus/server/prefs.php', {
+            type: 'docker',
+            prefs: JSON.stringify({
+                expandedFolderState: payloadMap
+            })
+        }, {
+            retries: 1,
+            retryDelayMs: 260
+        });
+        const nextPrefs = utils.normalizePrefs(response?.prefs || {});
+        writeDockerServerExpandedStateMap(nextPrefs.expandedFolderState || payloadMap);
+        dockerExpandedStateLastSyncedPayload = JSON.stringify(readDockerServerExpandedStateMap());
+    } catch (_error) {
+        // Best effort only. LocalStorage fallback still retains behavior.
+    } finally {
+        dockerExpandedStateSyncInFlight = false;
+        if (dockerExpandedStateSyncQueued) {
+            dockerExpandedStateSyncQueued = false;
+            scheduleDockerExpandedStateSync();
+        }
+    }
+};
+const scheduleDockerExpandedStateSync = () => {
+    if (dockerExpandedStateSyncTimer) {
+        clearTimeout(dockerExpandedStateSyncTimer);
+    }
+    dockerExpandedStateSyncTimer = setTimeout(() => {
+        dockerExpandedStateSyncTimer = null;
+        syncDockerExpandedStateToServer();
+    }, DOCKER_EXPANDED_STATE_SYNC_DELAY_MS);
+};
+const buildDockerExpandedStateMap = (folders, previousFolders = {}, serverMap = {}) => {
     const source = folders && typeof folders === 'object' ? folders : {};
     const previous = previousFolders && typeof previousFolders === 'object' ? previousFolders : {};
+    const persistedServer = normalizeExpandedStateMap(serverMap);
     const persisted = readDockerExpandedStateMap();
     const resolved = {};
     for (const [id, folder] of Object.entries(source)) {
+        if (Object.prototype.hasOwnProperty.call(persistedServer, id)) {
+            resolved[id] = persistedServer[id] === true;
+            continue;
+        }
         if (Object.prototype.hasOwnProperty.call(persisted, id)) {
             resolved[id] = persisted[id] === true;
             continue;
@@ -505,14 +578,23 @@ const buildDockerExpandedStateMap = (folders, previousFolders = {}) => {
         resolved[id] = (previous[id]?.status?.expanded === true) || folder?.settings?.expand_tab === true;
     }
     writeDockerExpandedStateMap(resolved);
+    writeDockerServerExpandedStateMap(resolved);
     return resolved;
 };
-const persistDockerExpandedStateFromGlobal = () => {
+const persistDockerExpandedStateMap = (map, syncServer = true) => {
+    const normalized = normalizeExpandedStateMap(map);
+    writeDockerExpandedStateMap(normalized);
+    writeDockerServerExpandedStateMap(normalized);
+    if (syncServer) {
+        scheduleDockerExpandedStateSync();
+    }
+};
+const persistDockerExpandedStateFromGlobal = (syncServer = true) => {
     const map = {};
     for (const [id, folder] of Object.entries(globalFolders || {})) {
         map[id] = folder?.status?.expanded === true;
     }
-    writeDockerExpandedStateMap(map);
+    persistDockerExpandedStateMap(map, syncServer);
 };
 const readDockerExpandedStateFromDom = () => {
     const map = {};
@@ -538,7 +620,7 @@ const persistDockerExpandedStateFromDom = () => {
         return;
     }
     const current = readDockerExpandedStateMap();
-    writeDockerExpandedStateMap({ ...current, ...domState });
+    persistDockerExpandedStateMap({ ...current, ...domState }, true);
 };
 const ensureDockerExpandedStateLifecycleHooks = () => {
     if (window.__fvDockerExpandedStateHooksBound) {
@@ -630,6 +712,7 @@ const createFolders = async () => {
         prefsResponse = {};
     }
     folderTypePrefs = utils.normalizePrefs(prefsResponse?.prefs || {});
+    dockerExpandedStateLastSyncedPayload = JSON.stringify(readDockerServerExpandedStateMap());
     const folderDepthById = buildFolderDepthById(folders);
     unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs);
     applyRuntimePrefs(folderTypePrefs);
@@ -797,7 +880,11 @@ const createFolders = async () => {
 
     // Expand folders from remembered runtime state (fallback: previous in-memory state, then expand_tab).
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Restoring remembered expand state.');
-    const expandedStateById = buildDockerExpandedStateMap(foldersDone, previousFolders);
+    const expandedStateById = buildDockerExpandedStateMap(
+        foldersDone,
+        previousFolders,
+        readDockerServerExpandedStateMap()
+    );
     for (const [id, value] of Object.entries(foldersDone)) {
         if (!value || typeof value !== 'object') {
             continue;

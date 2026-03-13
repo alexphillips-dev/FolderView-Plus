@@ -388,6 +388,7 @@ test('normalizePrefs includes live refresh, performance mode, and backup schedul
     });
     assert.equal(prefs.setupWizardCompleted, false);
     assert.equal(prefs.settingsMode, 'basic');
+    assert.deepEqual(prefs.expandedFolderState, {});
 });
 
 test('normalizePrefs disables legacy runtime toggles until schema is upgraded', () => {
@@ -579,6 +580,22 @@ test('normalizePrefs keeps pinned folders and hide-empty toggle', () => {
     });
     assert.deepEqual(prefs.pinnedFolderIds, ['a', 'b', 'c']);
     assert.equal(prefs.hideEmptyFolders, true);
+});
+
+test('normalizePrefs keeps expanded folder state as a boolean map', () => {
+    const prefs = utils.normalizePrefs({
+        expandedFolderState: {
+            alpha: true,
+            beta: false,
+            gamma: '1',
+            '': true
+        }
+    });
+    assert.deepEqual(prefs.expandedFolderState, {
+        alpha: true,
+        beta: false,
+        gamma: false
+    });
 });
 
 test('orderFoldersByPrefs keeps pinned folders at top', () => {

@@ -92,6 +92,21 @@ const getPrefsOrderedFolderMap = (folders, prefs) => {
     return source;
 };
 
+const normalizeFolderParentId = (value) => String(value || '').trim();
+const filterDashboardToRootFolders = (folders) => {
+    const source = folders && typeof folders === 'object' ? folders : {};
+    const ids = new Set(Object.keys(source));
+    const rootOnly = {};
+    for (const [id, folder] of Object.entries(source)) {
+        const parentId = normalizeFolderParentId(folder?.parentId || folder?.parent_id || '');
+        const isRoot = !parentId || parentId === id || !ids.has(parentId);
+        if (isRoot) {
+            rootOnly[id] = folder;
+        }
+    }
+    return rootOnly;
+};
+
 const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs) => {
     const order = Array.isArray(baseOrder)
         ? baseOrder.map((item) => String(item || ''))
@@ -320,6 +335,7 @@ const createFolders = async () => {
             prefsResponse = {};
         }
         folderTypePrefs.docker = utils.normalizePrefs(prefsResponse?.prefs || {});
+        folders = filterDashboardToRootFolders(folders);
         unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs.docker);
         applyDashboardRuntimePrefs();
         lastDashboardStateSignatures.docker = buildDockerStateSignature(containersInfo, false);
@@ -461,6 +477,7 @@ const createFolders = async () => {
             prefsResponse = {};
         }
         folderTypePrefs.vm = utils.normalizePrefs(prefsResponse?.prefs || {});
+        folders = filterDashboardToRootFolders(folders);
         unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs.vm);
         applyDashboardRuntimePrefs();
         lastDashboardStateSignatures.vm = buildVmStateSignature(vmInfo, false);

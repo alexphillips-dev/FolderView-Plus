@@ -156,6 +156,43 @@ const getPrefsOrderedFolderMap = (folders, prefs) => {
     return source;
 };
 
+const normalizeFolderParentId = (value) => String(value || '').trim();
+
+const buildFolderDepthById = (folders) => {
+    const source = folders && typeof folders === 'object' ? folders : {};
+    const ids = Object.keys(source);
+    if (!ids.length) {
+        return {};
+    }
+    const validIds = new Set(ids);
+    const depthById = {};
+    const resolveDepth = (id, chain = new Set()) => {
+        if (!validIds.has(id)) {
+            return 0;
+        }
+        if (Object.prototype.hasOwnProperty.call(depthById, id)) {
+            return depthById[id];
+        }
+        if (chain.has(id)) {
+            depthById[id] = 0;
+            return 0;
+        }
+        chain.add(id);
+        const parentId = normalizeFolderParentId(source[id]?.parentId || source[id]?.parent_id || '');
+        let depth = 0;
+        if (parentId && parentId !== id && validIds.has(parentId)) {
+            depth = Math.min(8, resolveDepth(parentId, chain) + 1);
+        }
+        chain.delete(id);
+        depthById[id] = depth;
+        return depth;
+    };
+    for (const id of ids) {
+        resolveDepth(id, new Set());
+    }
+    return depthById;
+};
+
 const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs) => {
     const order = Array.isArray(baseOrder)
         ? baseOrder.map((item) => String(item || ''))
@@ -180,6 +217,61 @@ const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs) => {
         }
         return entry;
     });
+};
+
+const buildFolderHierarchy = (folders) => {
+    const source = folders && typeof folders === 'object' ? folders : {};
+    const ids = Object.keys(source);
+    const idSet = new Set(ids);
+    const parentById = {};
+    const childrenById = {};
+    ids.forEach((id) => {
+        childrenById[id] = [];
+    });
+    for (const id of ids) {
+        const rawParent = normalizeFolderParentId(source[id]?.parentId || source[id]?.parent_id || '');
+        const parentId = (rawParent && rawParent !== id && idSet.has(rawParent)) ? rawParent : '';
+        parentById[id] = parentId;
+        if (parentId) {
+            childrenById[parentId].push(id);
+        }
+    }
+    return { ids, parentById, childrenById };
+};
+
+const getFolderChildren = (folderId) => {
+    const map = dockerFolderHierarchy?.childrenById || {};
+    return Array.isArray(map[folderId]) ? map[folderId] : [];
+};
+
+const getFolderDescendants = (folderId) => {
+    const result = [];
+    const queue = [...getFolderChildren(folderId)];
+    const seen = new Set();
+    while (queue.length) {
+        const current = queue.shift();
+        if (!current || seen.has(current)) {
+            continue;
+        }
+        seen.add(current);
+        result.push(current);
+        queue.push(...getFolderChildren(current));
+    }
+    return result;
+};
+
+const folderHasChildren = (folderId) => getFolderChildren(folderId).length > 0;
+
+const getFolderRuntimeContainers = (folder) => {
+    if (!folder || typeof folder !== 'object') {
+        return {};
+    }
+    const runtime = folder.runtimeContainers;
+    if (runtime && typeof runtime === 'object' && Object.keys(runtime).length > 0) {
+        return runtime;
+    }
+    const containers = folder.containers;
+    return (containers && typeof containers === 'object') ? containers : {};
 };
 
 const parseJsonPayloadSafe = (payload) => {
@@ -370,6 +462,179 @@ const folderViewPerfFromStorage = (() => {
         return false;
     }
 })();
+const DOCKER_EXPANDED_STATE_KEY = 'fvplus.runtime.expand.docker.v1';
+const DOCKER_EXPANDED_STATE_SYNC_DELAY_MS = 220;
+let dockerExpandedStateSyncTimer = null;
+let dockerExpandedStateSyncInFlight = false;
+let dockerExpandedStateSyncQueued = false;
+let dockerExpandedStateLastSyncedPayload = '';
+const normalizeExpandedStateMap = (value) => {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+        return {};
+    }
+    const next = {};
+    for (const [rawId, expanded] of Object.entries(value)) {
+        const id = String(rawId || '').trim();
+        if (!id) {
+            continue;
+        }
+        next[id] = expanded === true;
+    }
+    return next;
+};
+const readDockerServerExpandedStateMap = () => normalizeExpandedStateMap(folderTypePrefs?.expandedFolderState || {});
+const writeDockerServerExpandedStateMap = (map) => {
+    const normalized = normalizeExpandedStateMap(map);
+    folderTypePrefs = utils.normalizePrefs({
+        ...(folderTypePrefs || {}),
+        expandedFolderState: normalized
+    });
+};
+const readDockerExpandedStateMap = () => {
+    try {
+        const raw = window.localStorage && window.localStorage.getItem(DOCKER_EXPANDED_STATE_KEY);
+        if (!raw) {
+            return {};
+        }
+        return normalizeExpandedStateMap(JSON.parse(raw));
+    } catch (_error) {
+        return {};
+    }
+};
+const writeDockerExpandedStateMap = (map) => {
+    try {
+        const payload = map && typeof map === 'object' ? map : {};
+        if (window.localStorage) {
+            window.localStorage.setItem(DOCKER_EXPANDED_STATE_KEY, JSON.stringify(payload));
+        }
+    } catch (_error) {
+        // Ignore storage failures so runtime rendering never breaks.
+    }
+};
+const syncDockerExpandedStateToServer = async () => {
+    const request = window.FolderViewPlusRequest;
+    if (!request || typeof request.postJson !== 'function') {
+        return;
+    }
+    if (dockerExpandedStateSyncInFlight) {
+        dockerExpandedStateSyncQueued = true;
+        return;
+    }
+
+    const payloadMap = readDockerServerExpandedStateMap();
+    const payloadString = JSON.stringify(payloadMap);
+    if (payloadString === dockerExpandedStateLastSyncedPayload) {
+        return;
+    }
+
+    dockerExpandedStateSyncInFlight = true;
+    try {
+        const response = await request.postJson('/plugins/folderview.plus/server/prefs.php', {
+            type: 'docker',
+            prefs: JSON.stringify({
+                expandedFolderState: payloadMap
+            })
+        }, {
+            retries: 1,
+            retryDelayMs: 260
+        });
+        const nextPrefs = utils.normalizePrefs(response?.prefs || {});
+        writeDockerServerExpandedStateMap(nextPrefs.expandedFolderState || payloadMap);
+        dockerExpandedStateLastSyncedPayload = JSON.stringify(readDockerServerExpandedStateMap());
+    } catch (_error) {
+        // Best effort only. LocalStorage fallback still retains behavior.
+    } finally {
+        dockerExpandedStateSyncInFlight = false;
+        if (dockerExpandedStateSyncQueued) {
+            dockerExpandedStateSyncQueued = false;
+            scheduleDockerExpandedStateSync();
+        }
+    }
+};
+const scheduleDockerExpandedStateSync = () => {
+    if (dockerExpandedStateSyncTimer) {
+        clearTimeout(dockerExpandedStateSyncTimer);
+    }
+    dockerExpandedStateSyncTimer = setTimeout(() => {
+        dockerExpandedStateSyncTimer = null;
+        syncDockerExpandedStateToServer();
+    }, DOCKER_EXPANDED_STATE_SYNC_DELAY_MS);
+};
+const buildDockerExpandedStateMap = (folders, previousFolders = {}, serverMap = {}) => {
+    const source = folders && typeof folders === 'object' ? folders : {};
+    const previous = previousFolders && typeof previousFolders === 'object' ? previousFolders : {};
+    const persistedServer = normalizeExpandedStateMap(serverMap);
+    const persisted = readDockerExpandedStateMap();
+    const resolved = {};
+    for (const [id, folder] of Object.entries(source)) {
+        if (Object.prototype.hasOwnProperty.call(persistedServer, id)) {
+            resolved[id] = persistedServer[id] === true;
+            continue;
+        }
+        if (Object.prototype.hasOwnProperty.call(persisted, id)) {
+            resolved[id] = persisted[id] === true;
+            continue;
+        }
+        resolved[id] = (previous[id]?.status?.expanded === true) || folder?.settings?.expand_tab === true;
+    }
+    writeDockerExpandedStateMap(resolved);
+    writeDockerServerExpandedStateMap(resolved);
+    return resolved;
+};
+const persistDockerExpandedStateMap = (map, syncServer = true) => {
+    const normalized = normalizeExpandedStateMap(map);
+    writeDockerExpandedStateMap(normalized);
+    writeDockerServerExpandedStateMap(normalized);
+    if (syncServer) {
+        scheduleDockerExpandedStateSync();
+    }
+};
+const persistDockerExpandedStateFromGlobal = (syncServer = true) => {
+    const map = {};
+    for (const [id, folder] of Object.entries(globalFolders || {})) {
+        map[id] = folder?.status?.expanded === true;
+    }
+    persistDockerExpandedStateMap(map, syncServer);
+};
+const readDockerExpandedStateFromDom = () => {
+    const map = {};
+    const seen = new Set();
+    $('button.folder-dropdown').each((_, node) => {
+        const className = String(node.className || '');
+        const match = className.match(/\bdropDown-([A-Za-z0-9_-]+)\b/);
+        if (!match || !match[1]) {
+            return;
+        }
+        const id = String(match[1]);
+        if (seen.has(id)) {
+            return;
+        }
+        seen.add(id);
+        map[id] = String($(node).attr('active') || '').toLowerCase() === 'true';
+    });
+    return map;
+};
+const persistDockerExpandedStateFromDom = () => {
+    const domState = readDockerExpandedStateFromDom();
+    if (!Object.keys(domState).length) {
+        return;
+    }
+    const current = readDockerExpandedStateMap();
+    persistDockerExpandedStateMap({ ...current, ...domState }, true);
+};
+const ensureDockerExpandedStateLifecycleHooks = () => {
+    if (window.__fvDockerExpandedStateHooksBound) {
+        return;
+    }
+    window.__fvDockerExpandedStateHooksBound = true;
+    window.addEventListener('pagehide', persistDockerExpandedStateFromDom, { passive: true });
+    window.addEventListener('beforeunload', persistDockerExpandedStateFromDom, { passive: true });
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            persistDockerExpandedStateFromDom();
+        }
+    });
+};
 const FOLDER_VIEW_PERF_MODE = folderViewPerfFromQuery || folderViewPerfFromStorage;
 const FOLDER_VIEW_TOUCH_MODE = (() => {
     try {
@@ -425,8 +690,11 @@ const hideDockerRuntimeLoadingRow = () => {
 const createFolders = async () => {
     dockerPerf.begin('createFolders.total');
     try {
+    ensureDockerExpandedStateLifecycleHooks();
+    persistDockerExpandedStateFromDom();
     showDockerRuntimeLoadingRow();
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Entry');
+    const previousFolders = (globalFolders && typeof globalFolders === 'object') ? globalFolders : {};
     dockerPerf.begin('createFolders.requests');
     const prom = await Promise.all(folderReq);
     dockerPerf.end('createFolders.requests', { requestCount: Array.isArray(folderReq) ? folderReq.length : 0 });
@@ -444,6 +712,8 @@ const createFolders = async () => {
         prefsResponse = {};
     }
     folderTypePrefs = utils.normalizePrefs(prefsResponse?.prefs || {});
+    dockerExpandedStateLastSyncedPayload = JSON.stringify(readDockerServerExpandedStateMap());
+    const folderDepthById = buildFolderDepthById(folders);
     unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs);
     applyRuntimePrefs(folderTypePrefs);
     lastLiveRefreshStateSignature = buildDockerStateSignature(containersInfo, false);
@@ -550,7 +820,8 @@ const createFolders = async () => {
                     order,
                     containersInfo,
                     Object.keys(foldersDone),
-                    folderMatchCache[id] || null
+                    folderMatchCache[id] || null,
+                    folderDepthById[id] || 0
                 );
                 key -= removedCount; // Adjust key by the number of items that were before the folder and moved into it.
                 if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: createFolder for ${id} returned remBefore=${removedCount}. Adjusted main loop key to ${key}.`);
@@ -582,7 +853,8 @@ const createFolders = async () => {
             order,
             containersInfo,
             Object.keys(foldersDone),
-            folderMatchCache[id] || null
+            folderMatchCache[id] || null,
+            folderDepthById[id] || 0
         );
         // Move the folder to the done object and delete it from the undone one
         foldersDone[id] = folders[id];
@@ -592,17 +864,13 @@ const createFolders = async () => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Finished loop for remaining folders.');
     dockerPerf.end('createFolders.renderRemaining', { remainingCount: Object.keys(folders).length });
 
-    // Expand folders that are set to be expanded by default, this is here because is easier to work with all compressed folder when creating them
-    if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Expanding folders set to expand by default.');
-    for (const [id, value] of Object.entries(foldersDone)) {
-        if ((globalFolders[id] && globalFolders[id].status.expanded) || value.settings.expand_tab) {
-            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Expanding folder ${id} by default.`);
-            value.status.expanded = true;
-            dropDownButton(id);
+    const $dockerList = $('#docker_list');
+    if ($dockerList.length && typeof $dockerList.sortable === 'function') {
+        const sortableInstance = $dockerList.data('ui-sortable') || $dockerList.data('sortable');
+        if (sortableInstance) {
+            $dockerList.sortable('refresh');
         }
     }
-
-    try { $('#docker_list').sortable('refresh'); } catch(e) {}
 
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Dispatching docker-post-folders-creation event.');
     folderEvents.dispatchEvent(new CustomEvent('docker-post-folders-creation', {detail: {
@@ -611,8 +879,42 @@ const createFolders = async () => {
         containersInfo: containersInfo
     }}));
 
-    // Assing the folder done to the global object
+    // Assign the folder done to the global object
     globalFolders = foldersDone;
+    dockerFolderHierarchy = buildFolderHierarchy(globalFolders);
+    applyNestedFolderHierarchy();
+
+    // Expand folders from remembered runtime state (fallback: previous in-memory state, then expand_tab).
+    if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Restoring remembered expand state.');
+    const expandedStateById = buildDockerExpandedStateMap(
+        foldersDone,
+        previousFolders,
+        readDockerServerExpandedStateMap()
+    );
+    for (const [id, value] of Object.entries(foldersDone)) {
+        if (!value || typeof value !== 'object') {
+            continue;
+        }
+        value.status = (value.status && typeof value.status === 'object') ? value.status : {};
+        value.status.expanded = expandedStateById[id] === true;
+    }
+    const expansionIds = Object.keys(foldersDone)
+        .sort((a, b) => (folderDepthById[a] || 0) - (folderDepthById[b] || 0));
+    for (const id of expansionIds) {
+        if (expandedStateById[id] !== true) {
+            continue;
+        }
+        const folder = foldersDone[id] || {};
+        const parentId = normalizeFolderParentId(folder?.parentId || folder?.parent_id || '');
+        const hasKnownParent = !!(parentId && Object.prototype.hasOwnProperty.call(foldersDone, parentId));
+        if (hasKnownParent && expandedStateById[parentId] !== true) {
+            continue;
+        }
+        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Restoring expanded folder ${id}.`);
+        dropDownButton(id, false);
+    }
+    persistDockerExpandedStateFromGlobal();
+
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Assigned foldersDone to globalFolders:', {...globalFolders});
     renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
 
@@ -646,9 +948,10 @@ const createFolders = async () => {
  * @param {object} containersInfo info of the containers
  * @param {Array<string>} foldersDone folders that are done
  * @param {object|null} matchCacheEntry precomputed membership candidates
+ * @param {number} depthLevel visual nesting depth for parent/child folders
  * @returns {number} the number of element removed before the folder
  */
-const createFolder = (folder, id, positionInMainOrder, liveOrderArray, containersInfo, foldersDone, matchCacheEntry = null) => {
+const createFolder = (folder, id, positionInMainOrder, liveOrderArray, containersInfo, foldersDone, matchCacheEntry = null, depthLevel = 0) => {
     const perfKey = `createFolder.${id}`;
     dockerPerf.begin(perfKey);
     try {
@@ -811,16 +1114,18 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
              $('#docker_list').append($(fld));
         }
     }
+    const safeDepth = Math.max(0, Math.min(8, Number(depthLevel) || 0));
+    const depthIndentPx = safeDepth * 20;
+    $(`tr.folder-id-${id}`)
+        .attr('data-folder-depth', String(safeDepth))
+        .find('.folder-name-sub')
+        .css('padding-left', `${depthIndentPx}px`);
     forceFolderRowVerticalCenter(id);
 
-    // NOTE: switchButton initialization is deferred until after autostart state is known (see below).
-    // This avoids the bug where initializing with checked:false then clicking ON could
-    // fire a change event that resets container autostart settings.
-    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): switchButton init deferred until autostart state is calculated.`);
-
-    if(folder.settings.preview_border) {
-        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Setting preview border color to ${folder.settings.preview_border_color}.`);
-        $(`tr.folder-id-${id}  div.folder-preview`).css('border', `solid ${folder.settings.preview_border_color} 1px`);
+    const previewColor = normalizeStatusHexColor(folder.settings.preview_border_color, '#afa89e');
+    const previewNode = $(`tr.folder-id-${id} div.folder-preview`).get(0);
+    if (previewNode) {
+        previewNode.style.setProperty('border', `1px solid ${previewColor}`, 'important');
     }
     $(`tr.folder-id-${id} div.folder-preview`).addClass(`folder-preview-${folder.settings.preview}`);
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Added class folder-preview-${folder.settings.preview} to preview div.`);
@@ -1301,8 +1606,11 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
 
             newFolder[container_name_in_folder] = {
                 id: ct.shortId,
+                name: ct.info.Name || container_name_in_folder,
+                icon: ct.Labels?.['net.unraid.docker.icon'] || '/plugins/dynamix.docker.manager/images/question.png',
                 pause: ct.info.State.Paused,
                 state: ct.info.State.Running,
+                autostart: !(ct.info.State.Autostart === false),
                 update: ct.info.State.Updated === false && ct.info.State.manager === 'dockerman',
                 managed: ct.info.State.manager === 'dockerman',
                 manager: ct.info.State.manager
@@ -1556,6 +1864,226 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     }
 };
 
+const forceCollapseFolderRow = (id, syncStatus = true) => {
+    const element = $(`.dropDown-${id}`);
+    if (element.length) {
+        element.children().removeClass('fa-chevron-up').addClass('fa-chevron-down');
+        element.attr('active', 'false');
+    }
+    const $folderRow = $(`tr.folder-id-${id}`);
+    $folderRow.addClass('sortable');
+    $folderRow.find('.folder-storage').append($(`.folder-${id}-element`));
+    $(`.folder-${id}-element`).addClass('fv-nested-hidden').hide();
+    if (syncStatus && globalFolders[id] && globalFolders[id].status) {
+        globalFolders[id].status.expanded = false;
+    }
+};
+
+const buildRuntimeContainerMapForFolder = (folderId, includeDescendants = false) => {
+    const collected = {};
+    const targetIds = includeDescendants ? [folderId, ...getFolderDescendants(folderId)] : [folderId];
+    for (const targetId of targetIds) {
+        const folder = globalFolders[targetId];
+        if (!folder || !folder.containers || typeof folder.containers !== 'object') {
+            continue;
+        }
+        for (const [name, meta] of Object.entries(folder.containers)) {
+            const key = String(name || '').trim();
+            if (!key || Object.prototype.hasOwnProperty.call(collected, key)) {
+                continue;
+            }
+            const source = meta && typeof meta === 'object' ? meta : {};
+            collected[key] = {
+                ...source,
+                name: source.name || key,
+                icon: source.icon || '/plugins/dynamix.docker.manager/images/question.png',
+                autostart: source.autostart === true
+            };
+        }
+    }
+    return collected;
+};
+
+const updateFolderRowStatusFromContainers = (id, folder, runtimeContainers) => {
+    if (!folder || typeof folder !== 'object') {
+        return;
+    }
+    const containerEntries = Object.values(runtimeContainers || {});
+    let upToDate = true;
+    let started = 0;
+    let paused = 0;
+    let stopped = 0;
+    let autostart = 0;
+    let autostartStarted = 0;
+    let managed = 0;
+    const managerTypes = new Set();
+
+    for (const entry of containerEntries) {
+        const state = entry?.state === true;
+        const isPaused = entry?.pause === true;
+        const isManaged = entry?.managed === true;
+        const hasUpdate = entry?.update === true;
+        const manager = String(entry?.manager || '').trim();
+        const isAutostart = entry?.autostart === true;
+
+        upToDate = upToDate && !hasUpdate;
+        if (state) {
+            if (isPaused) {
+                paused += 1;
+            } else {
+                started += 1;
+            }
+        } else {
+            stopped += 1;
+        }
+        if (isAutostart) {
+            autostart += 1;
+            if (state) {
+                autostartStarted += 1;
+            }
+        }
+        if (isManaged) {
+            managed += 1;
+        }
+        if (manager) {
+            managerTypes.add(manager);
+        }
+    }
+
+    const total = containerEntries.length;
+    const statusColors = typeof utils.getFolderStatusColors === 'function'
+        ? utils.getFolderStatusColors(folder.settings)
+        : localDefaultFolderStatusColors;
+    const $folderIcon = $(`tr.folder-id-${id} i#load-folder-${id}`);
+    const $folderState = $(`tr.folder-id-${id} span.folder-state`);
+    $folderState.removeClass('fv-folder-state-started fv-folder-state-paused fv-folder-state-stopped');
+    $folderState.css('color', '');
+    $folderIcon.show().css('color', '');
+    if (started > 0) {
+        $folderIcon.attr('class', 'fa fa-play started folder-load-status').css('color', statusColors.started);
+        $folderState.text(`${started}/${total} ${$.i18n('started')}`).addClass('fv-folder-state-started').css('color', statusColors.started);
+    } else if (paused > 0) {
+        $folderIcon.attr('class', 'fa fa-pause paused folder-load-status').css('color', statusColors.paused);
+        $folderState.text(`${paused}/${total} ${$.i18n('paused')}`).addClass('fv-folder-state-paused').css('color', statusColors.paused);
+    } else {
+        $folderIcon.attr('class', 'fa fa-square stopped folder-load-status').css('color', statusColors.stopped);
+        $folderState.text(`${stopped}/${total} ${$.i18n('stopped')}`).addClass('fv-folder-state-stopped').css('color', statusColors.stopped);
+    }
+
+    const expanded = folder?.status?.expanded === true;
+    folder.status = { upToDate, started, paused, stopped, autostart, autostartStarted, managed, managerTypes: Array.from(managerTypes), expanded };
+};
+
+const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
+    const $preview = $(`tr.folder-id-${id} div.folder-preview`);
+    if (!$preview.length) {
+        return;
+    }
+    const previewMode = Number(folder?.settings?.preview || 0);
+    if (previewMode <= 0) {
+        $preview.empty();
+        return;
+    }
+    const entries = Object.values(runtimeContainers || {});
+    $preview.empty();
+    for (const entry of entries) {
+        const safeName = escapeHtml(entry?.name || '');
+        const safeIcon = sanitizeImageSrc(entry?.icon || '/plugins/dynamix.docker.manager/images/question.png');
+        const isRunning = entry?.state === true;
+        const isPaused = entry?.pause === true;
+        const iconClass = isRunning ? (isPaused ? 'fa-pause paused orange-text' : 'fa-play started green-text') : 'fa-square stopped red-text';
+        const stateLabel = isRunning ? (isPaused ? $.i18n('paused') : $.i18n('started')) : $.i18n('stopped');
+        const item = $(`
+            <span class="outer fv-nested-preview-item ${entry?.autostart === true ? 'autostart' : ''}">
+                <span class="hand"><img src="${safeIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span>
+                <span class="inner">
+                    <span class="appname"><a>${safeName}</a></span><br>
+                    <i class="fa ${iconClass}"></i><span class="state"> ${stateLabel}</span>
+                </span>
+            </span>
+        `);
+        $preview.append(item);
+    }
+    $preview.children('span').wrap('<div class="folder-preview-wrapper"></div>');
+    if (folder?.settings?.preview_vertical_bars) {
+        const barsColor = folder.settings.preview_vertical_bars_color || folder.settings.preview_border_color || '';
+        $preview.find('div.folder-preview-wrapper').after(`<div class="folder-preview-divider" ${barsColor ? `style="border-color: ${barsColor};"` : ''}></div>`);
+    }
+    $preview.find('span.inner > span.appname').css('width', folder?.settings?.preview_text_width || '');
+};
+
+const syncParentFolderVisualState = (id, expanded) => {
+    if (!folderHasChildren(id)) {
+        return;
+    }
+    const $row = $(`tr.folder-id-${id}`);
+    $row.toggleClass('fv-parent-collapsed', !expanded);
+    $row.toggleClass('fv-parent-expanded', !!expanded);
+
+    if (expanded) {
+        $row.find('div.folder-preview').empty();
+    } else {
+        const folder = globalFolders[id];
+        const runtimeContainers = folder?.runtimeContainers || {};
+        renderNestedAggregatePreview(id, folder, runtimeContainers);
+    }
+    if (!expanded) {
+        const folder = globalFolders[id];
+        const previewColor = normalizeStatusHexColor(folder?.settings?.preview_border_color, '#afa89e');
+        const previewNode = $row.find('div.folder-preview').get(0);
+        if (previewNode) previewNode.style.setProperty('border', `1px solid ${previewColor}`, 'important');
+    }
+};
+
+const hideNestedDescendants = (id) => {
+    for (const descendantId of getFolderDescendants(id)) {
+        forceCollapseFolderRow(descendantId, true);
+        $(`tr.folder-id-${descendantId}`).addClass('fv-nested-hidden').hide();
+    }
+};
+
+const showDirectNestedChildren = (id) => {
+    for (const childId of getFolderChildren(id)) {
+        forceCollapseFolderRow(childId, false);
+        $(`tr.folder-id-${childId}`).removeClass('fv-nested-hidden').show();
+    }
+};
+
+const applyNestedFolderHierarchy = () => {
+    dockerFolderHierarchy = buildFolderHierarchy(globalFolders);
+    const allIds = dockerFolderHierarchy?.ids || [];
+    const parentById = dockerFolderHierarchy?.parentById || {};
+
+    for (const id of allIds) {
+        const parentId = parentById[id] || '';
+        const $row = $(`tr.folder-id-${id}`);
+        $row.attr('data-folder-parent', parentId);
+        $row.toggleClass('fv-folder-is-child', !!parentId);
+        $row.toggleClass('fv-folder-has-children', folderHasChildren(id));
+        if (parentId) {
+            forceCollapseFolderRow(id, false);
+            $row.addClass('fv-nested-hidden').hide();
+        } else {
+            $row.removeClass('fv-nested-hidden').show();
+        }
+    }
+
+    for (const id of allIds) {
+        if (!folderHasChildren(id)) {
+            if (globalFolders[id]) {
+                delete globalFolders[id].runtimeContainers;
+            }
+            continue;
+        }
+        const runtimeContainers = buildRuntimeContainerMapForFolder(id, true);
+        if (globalFolders[id]) {
+            globalFolders[id].runtimeContainers = runtimeContainers;
+            updateFolderRowStatusFromContainers(id, globalFolders[id], runtimeContainers);
+            syncParentFolderVisualState(id, globalFolders[id]?.status?.expanded === true);
+        }
+    }
+};
+
 /**
  * Function to hide all tooltips
  */
@@ -1619,32 +2147,52 @@ const folderAutostart = async (el) => {
  * Handle the dropdown expand button of folders
  * @param {string} id the id of the folder
  */
-const dropDownButton = (id) => {
+const dropDownButton = (id, persistState = true) => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Entry.`);
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Dispatching docker-pre-folder-expansion event.`);
     folderEvents.dispatchEvent(new CustomEvent('docker-pre-folder-expansion', {detail: { id }}));
     const element = $(`.dropDown-${id}`);
     const state = element.attr('active') === "true";
+    const hasChildren = folderHasChildren(id);
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Current state (active attribute): ${state}.`);
     if (state) { // Is expanded, so collapse
         element.children().removeClass('fa-chevron-up').addClass('fa-chevron-down');
+        if (hasChildren) {
+            hideNestedDescendants(id);
+        }
         $(`tr.folder-id-${id}`).addClass('sortable');
         $(`tr.folder-id-${id} .folder-storage`).append($(`.folder-${id}-element`));
+        $(`.folder-${id}-element`).addClass('fv-nested-hidden').hide();
+        if (hasChildren) {
+            syncParentFolderVisualState(id, false);
+        }
         element.attr('active', 'false');
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Collapsed folder. Moved elements to storage.`);
     } else { // Is collapsed, so expand
         element.children().removeClass('fa-chevron-down').addClass('fa-chevron-up');
         $(`tr.folder-id-${id}`).removeClass('sortable').removeClass('ui-sortable-handle').off().css('cursor', '');
-        $(`tr.folder-id-${id}`).after($(`.folder-${id}-element`));
-        $(`.folder-${id}-element > td > i.fa-arrows-v`).remove(); // Remove mover icon from children when expanded
+        if (hasChildren) {
+            $(`tr.folder-id-${id} .folder-storage`).append($(`.folder-${id}-element`));
+            $(`.folder-${id}-element`).addClass('fv-nested-hidden').hide();
+            showDirectNestedChildren(id);
+            syncParentFolderVisualState(id, true);
+            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Expanded parent folder. Showing nested children only.`);
+        } else {
+            $(`tr.folder-id-${id}`).after($(`.folder-${id}-element`));
+            $(`.folder-${id}-element`).removeClass('fv-nested-hidden').show();
+            $(`.folder-${id}-element > td > i.fa-arrows-v`).remove(); // Remove mover icon from children when expanded
+            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Expanded leaf folder. Moved elements after folder row.`);
+        }
         element.attr('active', 'true');
-        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Expanded folder. Moved elements after folder row.`);
     }
     if(globalFolders[id]) {
         globalFolders[id].status.expanded = !state;
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Updated globalFolders[${id}].status.expanded to ${!state}.`);
     } else {
         if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] dropDownButton (id: ${id}): globalFolders[${id}] not found to update expanded status.`);
+    }
+    if (persistState) {
+        persistDockerExpandedStateFromGlobal();
     }
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Dispatching docker-post-folder-expansion event.`);
     folderEvents.dispatchEvent(new CustomEvent('docker-post-folder-expansion', {detail: { id }}));
@@ -1697,7 +2245,8 @@ const forceUpdateFolder = (id) => {
     hideAllTips();
     const folder = globalFolders[id];
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] forceUpdateFolder (id: ${id}): Folder data:`, {...folder});
-    const containersToUpdate = Object.entries(folder.containers).filter(([k, v]) => v.managed).map(e => e[0]).join('*');
+    const containersMap = getFolderRuntimeContainers(folder);
+    const containersToUpdate = Object.entries(containersMap).filter(([, v]) => v.managed).map((e) => e[0]).join('*');
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] forceUpdateFolder (id: ${id}): Containers to force update: ${containersToUpdate}. Calling openDocker.`);
     openDocker('update_container ' + containersToUpdate, $.i18n('updating', folder.name),'','loadlist');
 };
@@ -1711,7 +2260,8 @@ const updateFolder = (id) => {
     hideAllTips();
     const folder = globalFolders[id];
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] updateFolder (id: ${id}): Folder data:`, {...folder});
-    const containersToUpdate = Object.entries(folder.containers).filter(([k, v]) => v.managed && v.update).map(e => e[0]).join('*');
+    const containersMap = getFolderRuntimeContainers(folder);
+    const containersToUpdate = Object.entries(containersMap).filter(([, v]) => v.managed && v.update).map((e) => e[0]).join('*');
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] updateFolder (id: ${id}): Containers to update (ready): ${containersToUpdate}. Calling openDocker.`);
     openDocker('update_container ' + containersToUpdate, $.i18n('updating', folder.name),'','loadlist');
 };
@@ -1724,12 +2274,13 @@ const updateFolder = (id) => {
 const actionFolder = async (id, action) => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] actionFolder (id: ${id}, action: ${action}): Entry.`);
     const folder = globalFolders[id];
-    if (!folder || !folder.containers) {
+    const containersMap = getFolderRuntimeContainers(folder);
+    if (!folder || !containersMap || Object.keys(containersMap).length === 0) {
         if (FOLDER_VIEW_DEBUG_MODE) console.error(`[FV3_DEBUG] actionFolder (id: ${id}): Folder or folder.containers not found in globalFolders.`);
         $('div.spinner.fixed').hide('slow');
         return;
     }
-    const cts = Object.keys(folder.containers);
+    const cts = Object.keys(containersMap);
     let proms = [];
     let errors;
 
@@ -1740,7 +2291,7 @@ const actionFolder = async (id, action) => {
 
     for (let index = 0; index < cts.length; index++) {
         const containerName = cts[index];
-        const ct = folder.containers[containerName];
+        const ct = containersMap[containerName];
         if (!ct) {
             if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] actionFolder (id: ${id}): Container data for '${containerName}' not found in folder.containers.`);
             continue;
@@ -1823,11 +2374,15 @@ const folderCustomAction = async (id, actionIndex) => {
 
     if(act.type === 0) { // Standard Docker action
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Action type 0 (Standard Docker).`);
-        // act.conatiners is an array of names. Need to map to folder.containers[name]
-        const cts = act.conatiners.map(name => folder.containers[name]).filter(e => e);
+        const containersMap = getFolderRuntimeContainers(folder);
+        // Keep legacy typo key (`conatiners`) but accept correctly-spelled `containers` too.
+        const actionContainers = Array.isArray(act.conatiners)
+            ? act.conatiners
+            : (Array.isArray(act.containers) ? act.containers : []);
+        const cts = actionContainers.map((name) => containersMap[name]).filter((e) => e);
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Targeted containers data:`, [...cts]);
 
-        let ctAction = (e) => {}; // Placeholder
+        let ctAction = null;
         if(act.action === 0) { // Cycle
             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Standard action type 0 (Cycle). Mode: ${act.modes}.`);
             if(act.modes === 0) { // Start - Stop
@@ -1881,11 +2436,16 @@ const folderCustomAction = async (id, actionIndex) => {
                 prom.push($.post(eventURL, {action: 'restart', container:e_ct.id}, null,'json').promise());
             };
         }
-        cts.forEach((e_ct_data) => { // e_ct_data is like {id: "...", state: true, ...}
-            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Applying defined ctAction to container data:`, e_ct_data);
-            ctAction(e_ct_data);
-        });
-        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Pushed ${prom.length} standard actions to promise array.`);
+        if (typeof ctAction === 'function') {
+            cts.forEach((e_ct_data) => { // e_ct_data is like {id: "...", state: true, ...}
+                if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Applying defined ctAction to container data:`, e_ct_data);
+                ctAction(e_ct_data);
+            });
+            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Pushed ${prom.length} standard actions to promise array.`);
+        } else {
+            const unsupportedLabel = `action=${act.action}, mode=${act.modes}`;
+            console.warn(`folderview.plus: Unsupported Docker custom action configuration (${unsupportedLabel}) for folder "${folder.name || id}".`);
+        }
 
     } else if(act.type === 1) { // User Script
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Action type 1 (User Script). Script: ${act.script}, Sync: ${act.script_sync}, Args: ${act.script_args}`);
@@ -2238,6 +2798,7 @@ const bToMem = (b) => {
 let cpus = 1;
 let loadedFolder = false;
 let globalFolders = {};
+let dockerFolderHierarchy = buildFolderHierarchy({});
 const folderRegex = /^folder-/;
 let folderDebugMode = false; // Existing flag
 let folderDebugModeWindow = [];

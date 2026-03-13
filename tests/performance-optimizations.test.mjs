@@ -70,6 +70,17 @@ test('runtime refresh uses lightweight state mode checks before re-rendering', (
     assert.match(dashboardJs, /queueLoadlistRefresh/);
 });
 
+test('dashboard widget renders root-level folders only when nested folders exist', () => {
+    assert.match(dashboardJs, /const filterDashboardToRootFolders = \(folders\) =>/);
+    assert.match(dashboardJs, /const dockerRootFolders = filterDashboardToRootFolders\(allDockerFolders\);/);
+    assert.match(dashboardJs, /const vmRootFolders = filterDashboardToRootFolders\(allVmFolders\);/);
+    assert.match(dashboardJs, /const parentId = normalizeFolderParentId\(folder\?\.parentId \|\| folder\?\.parent_id \|\| ''\);/);
+    assert.match(dashboardJs, /Object\.keys\(rootOnly\)\.length/);
+    assert.match(dashboardJs, /Object\.keys\(source\)\.length/);
+    assert.match(dashboardJs, /const aggregateRootMatchCache = \(fullFolders,\s*rootFolders,\s*fullCache\) =>/);
+    assert.match(dashboardJs, /const dockerMatchCache = aggregateRootMatchCache\(allDockerFolders,\s*folders,\s*dockerFullMatchCache\);/);
+});
+
 test('docker and vm render paths support precomputed membership caches', () => {
     assert.match(dockerJs, /buildDockerFolderMatchCache/);
     assert.match(dockerJs, /matchCacheEntry = null/);

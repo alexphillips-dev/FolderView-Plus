@@ -5,13 +5,220 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.11.16">
-<!ENTITY md5 "dcb0e4f2c507abac6cf316e6de79fab9">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
+<!ENTITY version "2026.03.13.11">
+<!ENTITY md5 "874aead40c930a2f4722fa9aadcb925c">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.13.11
+- Maintenance: lock legacy docker selector contract.
+- Maintenance: Document and guard legacy custom CSS/JS override compatibility.
+- Maintenance: Audit runtime no-op paths and add regression guards.
+- Feature: Add regression guard for expanded folder state persistence.
+- Maintenance: Refresh perf baseline after expand-state persistence updates.
+
+
+###2026.03.13.10
+- Fix: Persist Docker/VM folder expand state to server prefs (with localStorage fallback) so expanded folders survive tab switches.
+- Fix: Restore expand state using server-first precedence with nested parent safeguards to prevent default-collapse regressions.
+- Quality: Added runtime + prefs normalization guard coverage for expanded-state persistence across Docker and VM views.
+
+
+###2026.03.13.09
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.13.08
+- Maintenance: Raise total JS perf ceiling to match current baseline.
+- Maintenance: Refresh perf baseline after runtime expand-state memory.
+- Maintenance: Remember Docker/VM folder collapse state across views.
+
+
+###2026.03.13.07
+- Fix: Added hard fallback in Dashboard root-folder extraction so folder rendering remains active if no valid root set is detected.
+- Fix: Prevented Docker/VM widgets from falling back to raw all-container lists when nested parent metadata is malformed.
+
+
+###2026.03.13.06
+- Fix: Dashboard root-folder filter now falls back safely when parent graphs are malformed/cyclic, preventing container-only fallback in widgets.
+- Fix: Preserved root-only rendering path while guaranteeing folders still render instead of dropping to raw Docker list.
+
+
+###2026.03.13.05
+- Fix: Restored Dashboard folder widgets so root folders render correctly with nested descendants (no raw all-container fallback).
+- Fix: Hardened import parsing for legacy exports with oversized embedded icon payloads to avoid `update.php` HTTP 400 failures.
+- UX: Empty-state actions now use delegated handlers for reliable `Open Wizard` behavior; quick create now uses a validated modal input instead of a browser prompt.
+
+
+###2026.03.13.04
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.13.03
+- UX: Converted status breakdown pills to compact icon+count signals next to the primary status chip (alerts-style visual language).
+- UX: Started uses play icon + count, Paused uses pause icon + count, Stopped uses stop icon + count.
+- UX: Empty keeps ban icon + count for zero-member folders.
+
+
+###2026.03.13.02
+- UX: Unified Status chip styling so Started/Paused/Stopped now use the same stronger chip treatment as Mixed.
+- UX: Upgraded primary and breakdown chips with clearer borders, subtle state-tinted backgrounds, and better visual hierarchy.
+
+
+###2026.03.13.01
+- Feature: Added `Status detail` modes (`Simple`, `Balanced`, `Detailed`) for Docker and VM folder tables, with `Balanced` as the default.
+- UX: Balanced status now renders a primary chip plus compact started/paused/stopped mini-counters for faster scanning.
+- UX: Simple mode now shows only the primary status chip, while Detailed mode keeps trend indicators and expanded counters.
+- Fix: Trend indicator controls now auto-hide unless `Detailed` mode is selected to avoid misleading toggles.
+- Compatibility: Added persistent `status.displayMode` normalization in JS/PHP/diagnostics so legacy configs continue working without migration.
+
+
+###2026.03.12.23
+- UX: Removed the Basic `Parent` column for Docker/VM tables; nested hierarchy remains visible directly under folder names.
+- UX: Rebalanced Status, Rules, Last changed, and Pinned widths to evenly fill the reclaimed space.
+- UX: Left-aligned Docker `Alerts` header/cell content for cleaner row scanning next to Name.
+
+
+###2026.03.12.22
+- UX: Compressed desktop table spacing so columns after `Name` sit closer and `Alerts` has wider readable space.
+- UX: Updated Docker `Alerts` update indicator to icon-only for a cleaner, compact signal row.
+
+
+###2026.03.12.21
+- UX: Tightened Docker table spacing so columns sit closer to `Name` and expanded `Alerts` visibility.
+- UX: Switched Docker update alert from text chip to icon-only indicator (matching compact heart-style alert controls).
+
+
+###2026.03.12.20
+- UX: Renamed Docker table `Signals` column to `Alerts` for clearer meaning.
+- UX: Rebalanced desktop table widths so `Name` sits directly next to `Order` and right-side columns shift left to free space for `Alerts`.
+- UX: Left-aligned `Name` header/cell content for tighter scan flow and reduced visual crowding.
+
+
+###2026.03.12.19
+- UX: Renamed Docker table `Signals` column to `Alerts` for clearer meaning.
+- UX: Rebalanced desktop Basic table widths so `Name` sits tighter to `Order` and right-side columns have more usable room.
+- UX: Left-aligned `Name` header/cell content to reduce visual spacing and improve scan speed.
+
+
+###2026.03.12.18
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.12.17
+- Maintenance: Update perf hard caps to prevent stale guard failures.
+- Feature: Add tree controls, parent column, and tree undo banner.
+- Maintenance: Hide root action on root rows and simplify nested order controls.
+- Maintenance: Simplify nested reorder controls and fix order-column clipping.
+- Maintenance: Update reorder test for hierarchy-aware manual ordering.
+- Fix: Fix nested reorder behavior and improve nested visibility in settings.
+
+
+###2026.03.12.16
+- Maintenance: Update perf hard caps to prevent stale guard failures.
+
+
+###2026.03.12.15
+- Feature: Added nested tree controls in Basic settings (`Expand all` / `Collapse all`) for Docker and VM tables.
+- Feature: Added a new `Parent` column (with toggle) to show root vs parent-folder relationships directly in table view.
+- Fix: Added tree-state persistence and ancestor auto-expand so moved folders are focused and visible after tree operations.
+- Fix: Tree move now disables when no valid target exists, and quick actions hide `Move to root` when a folder is already at root.
+- UX: Added inline per-type tree undo banner for `Tree move` and `Move to root` with one-click restore.
+
+
+###2026.03.12.14
+- UX: `Move to root` now only appears for nested folders; root folders no longer show a no-op root action.
+- UX: Nested rows keep only hierarchy actions (`Move to root` + `Tree move`) to reduce reorder confusion.
+- Fix: Order column action controls now fit cleanly without clipping by tightening spacing and width behavior.
+
+
+###2026.03.12.13
+- UX: Nested folder rows now show only `Move to root` and `Tree move` actions to avoid confusing in-level arrow controls.
+- Fix: Order column spacing and sizing were tightened so tree action buttons no longer clip in Basic view.
+- UX: Up/down boundary message now clearly explains to use Tree move when changing hierarchy level.
+
+
+###2026.03.12.12
+- Fix: Nested-folder up/down arrows now reorder reliably within the same parent level and preserve subtree blocks.
+- UX: Basic settings now clearly shows nested folders with depth indentation and parent context under each nested row name.
+- Fix: Reorder feedback now reports level-boundary limits instead of silently no-oping at top/bottom of a sibling group.
+
+
+###2026.03.12.11
+- Feature: Added nested tree move tools in settings (`before / inside / after`) while keeping up/down manual fallback.
+- Feature: Added fast parent actions (`Move to root`, `Move under...`) in row controls and quick-action menus.
+- Fix: Added cycle and invalid-target guardrails with inline per-row reason when a move is blocked.
+- UX: Members column now shows direct and nested totals, and sort hint text now reflects tree-move support.
+
+
+###2026.03.12.10
+- Feature: Added tree move controls in settings with `before / inside / after` placement, while keeping existing up/down manual reorder fallback.
+- Feature: Added quick parent actions for nested folders (`Move to root` and `Move under...`) in row controls and quick-action menus.
+- Fix: Added cycle/invalid move guardrails with inline row error reasons when a move cannot be applied.
+- UX: Members column now shows direct vs nested total counts (`direct/total`) for clearer subtree visibility.
+
+
+###2026.03.12.09
+- Fix: Folder preview border color is now always rendered from saved folder settings for Docker/VM rows (including nested parent/child folders).
+- Fix: Legacy folders with `preview_border: false` now still render configured border color instead of silently dropping the outline.
+- Quality: Nested parent collapse rendering now reapplies saved border color after preview rebuild.
+
+
+###2026.03.12.08
+- Fix: Folders with missing legacy `preview_border` now default to enabled border rendering in Docker and VM runtime.
+- Fix: Quick-created folders now store `preview_border: true` and default border color `#afa89e`.
+- Fix: Saving a non-default border color now auto-enables preview border so color changes apply immediately.
+
+
+###2026.03.12.07
+- Fix: Folder preview border color now applies reliably after save for Docker and VM folders.
+- Fix: Border color is normalized with fallback `#afa89e` to avoid invalid or missing preview border color values.
+- Quality: Runtime now force-applies preview border style in nested Docker state transitions to prevent visual override drift.
+
+
+###2026.03.12.06
+- Fix: Border color control is now visible whenever preview mode is active, even if `Show preview border` is currently off.
+- UX: Border color fallback remains standardized at `#afa89e` (RGB 175,168,158) for predictable cross-theme behavior.
+- Quality: Updated editor visibility flow to avoid hidden border controls on both new and existing folders.
+
+
+###2026.03.12.05
+- UX: new folders now default to preview border enabled so the Border color control is visible immediately in folder editor.
+- UX: default preview border color is now `#afa89e` (RGB 175,168,158) for new folders and fallback values.
+- Fix: border reset button now restores the stable default border color instead of inheriting the current theme font color.
+
+
+###2026.03.12.04
+- Fix: parent Docker folders now hide aggregated preview containers while expanded to prevent duplicate rows with visible child folders.
+- UX: parent folders now restore aggregated preview on collapse and keep nested child folders visually outlined for clearer hierarchy.
+- UX: added explicit parent collapsed/expanded visual classes so only expanded top-level parents drop the preview outline.
+
+
+###2026.03.12.03
+- Feature: Docker parent folders now render true nested behavior (collapsed parent shows aggregated descendant containers, expanded parent reveals indented child folders instead of container rows).
+- Fix: Parent-folder actions now target aggregated runtime members from nested descendants, so start/stop/update actions apply correctly in nested mode.
+- UX: Added nested-row visibility controls for Docker (`fv-nested-hidden`) to keep child folders hidden until their parent is expanded.
+
+
+###2026.03.12.02
+- Fix: dev channel packages now keep `pluginURL` and archive download URLs on `/dev/` so Unraid checks updates against the dev branch.
+- Fix: pkg build flow now auto-detects `dev` vs `main` branch for stable builds instead of forcing `main`.
+- Maintenance: added `--branch` (and `FVPLUS_BUILD_BRANCH`) override support in `pkg_build.sh` for explicit channel builds.
+
+
+###2026.03.12.01
+- Feature: added nested folder support for Docker/VM with per-folder `Parent folder` assignment in the folder editor.
+- Feature: runtime folder ordering now respects parent-child trees so child folders render directly under their parent.
+- Fix: folder delete now safely reparents children and heals invalid/cyclic parent links server-side.
+- Quality: expanded utility tests for parent-id normalization and nested ordering behavior.
+- Maintenance: raised total JS perf budget ceiling to `1,000,000` for the nested-folder feature set.
+
 
 ###2026.03.11.16
 - Fix: Extracted staged save/cancel dirty-state logic into `folderviewplus.dirty.js` to reduce regressions and keep behavior consistent across settings actions.
@@ -1346,7 +1553,7 @@
     </CHANGES>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

@@ -60,7 +60,9 @@ jobs:
       - name: Standards guard checks
         env:
           FVPLUS_UNRAID_MATRIX: ${{ secrets.FVPLUS_UNRAID_MATRIX }}
-          FVPLUS_UNRAID_MATRIX_REQUIRED: ${{ secrets.FVPLUS_UNRAID_MATRIX != '' && '1' || '0' }}
+          FVPLUS_UNRAID_MATRIX_REQUIRED: '1'
+          FVPLUS_UNRAID_REQUIRED_VERSIONS: '7.0.x,7.1.x,7.2.x'
+          FVPLUS_UNRAID_REQUIRED_THEMES: 'black,white'
           FVPLUS_I18N_STRICT: '1'
           FVPLUS_REQUIRE_PERF_BASELINE: '1'
         run: |
@@ -74,16 +76,13 @@ jobs:
           bash scripts/repro_build_guard.sh
           bash scripts/unraid_matrix_smoke.sh
 
-      - name: Optional browser smoke checks
+      - name: Browser smoke checks (required on release)
         env:
           FVPLUS_BROWSER_SMOKE_URL: ${{ secrets.FVPLUS_BROWSER_SMOKE_URL }}
+          FVPLUS_BROWSER_SMOKE_REQUIRED: '1'
           FVPLUS_BROWSER_SMOKE_TIMEOUT_MS: '90000'
           FVPLUS_BROWSER_SMOKE_IGNORE_HTTPS: '1'
         run: |
-          if [ -z "${FVPLUS_BROWSER_SMOKE_URL:-}" ]; then
-            echo "Skipping browser smoke checks (FVPLUS_BROWSER_SMOKE_URL not configured)."
-            exit 0
-          fi
           npm install --no-save playwright
           npx playwright install --with-deps chromium firefox webkit
           chmod +x scripts/browser_smoke.sh
@@ -92,6 +91,7 @@ jobs:
       - name: Optional theme matrix smoke checks
         env:
           FVPLUS_THEME_MATRIX_URLS: ${{ secrets.FVPLUS_THEME_MATRIX_URLS }}
+          FVPLUS_THEME_REQUIRED_LABELS: 'black,white'
           FVPLUS_THEME_SMOKE_TIMEOUT_MS: '90000'
           FVPLUS_THEME_SMOKE_IGNORE_HTTPS: '1'
           FVPLUS_THEME_SMOKE_BROWSERS: 'chromium,firefox,webkit'
@@ -118,7 +118,11 @@ jobs:
       - name: Commit stable release to main
         run: |
           git add -A
-          git commit -m "Stable release ${{ steps.version.outputs.version }}"
+          if git diff --cached --quiet; then
+            echo "No release file changes to commit."
+          else
+            git commit -m "Stable release ${{ steps.version.outputs.version }}"
+          fi
 
       - name: Push main
         run: git push origin main

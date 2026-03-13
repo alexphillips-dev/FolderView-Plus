@@ -31,6 +31,12 @@ Unraid UI (`Plugins -> Install Plugin`) or CLI:
 plugin install https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/main/folderview.plus.plg
 ```
 
+Dev (testing) install URL:
+
+```bash
+plugin install https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/dev/folderview.plus.plg
+```
+
 ## Update
 > [!WARNING]
 > If update detection is cached, use a one-time commit URL install, then return to `main` updates.
@@ -151,6 +157,50 @@ Not supported:
 - Custom JS: `/boot/config/plugins/folderview.plus/scripts`
 - Third-party icons: `/usr/local/emhttp/plugins/folderview.plus/images/third-party-icons`
 - User-uploaded icons: `/usr/local/emhttp/plugins/folderview.plus/images/custom`
+
+## Legacy CSS/JS Migration (FolderView2/3)
+FolderView Plus keeps legacy override directory support so older custom tweaks can continue working.
+
+Supported legacy override roots:
+
+- `/boot/config/plugins/folder.view/styles`
+- `/boot/config/plugins/folder.view2/styles`
+- `/boot/config/plugins/folder.view3/styles`
+- `/boot/config/plugins/folder.view/scripts`
+- `/boot/config/plugins/folder.view2/scripts`
+- `/boot/config/plugins/folder.view3/scripts`
+
+File naming rules:
+
+- Docker page overrides: `*.docker.css` and `*.docker.js`
+- VM page overrides: `*.vm.css` and `*.vm.js`
+- Dashboard overrides: `*.dashboard.css` and `*.dashboard.js`
+- Disable any override file by appending `.disabled`
+
+Legacy Docker selector compatibility contract (stable hooks):
+
+- `td.ct-name.folder-name`
+- `div.folder-name-sub`
+- `button.dropDown-*` + `.folder-dropdown`
+- `td.updatecolumn.folder-update`
+- `div.folder-preview`
+- `img.img.folder-img`
+- `span.state.folder-state`
+- Tooltip hooks: `.preview-outbox`, `.action-info`, `.info-ct`, `.tooltipster-docker-folder`
+
+Full compatibility/deprecation policy:
+
+- `SUPPORT_POLICY.md`
+
+Example:
+
+- `hernando.docker.css` works as a Docker override and can stay in a legacy `folder.view*/styles` directory.
+
+Recommended migration path (optional but preferred):
+
+1. Copy your legacy overrides into `/boot/config/plugins/folderview.plus/styles` and `/boot/config/plugins/folderview.plus/scripts`.
+2. Keep the same filenames (for example, `hernando.docker.css`).
+3. Hard-refresh the browser after save (`Ctrl+F5`) so CSS cache is rebuilt.
 
 ## Included Icon Pack Credits
 - https://github.com/sameerasw/folder-icons

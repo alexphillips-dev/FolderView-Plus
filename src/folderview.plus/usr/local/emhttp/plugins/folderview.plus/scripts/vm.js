@@ -68,6 +68,179 @@ const FV_VM_TOUCH_MODE = (() => {
         return false;
     }
 })();
+const VM_EXPANDED_STATE_KEY = 'fvplus.runtime.expand.vm.v1';
+const VM_EXPANDED_STATE_SYNC_DELAY_MS = 220;
+let vmExpandedStateSyncTimer = null;
+let vmExpandedStateSyncInFlight = false;
+let vmExpandedStateSyncQueued = false;
+let vmExpandedStateLastSyncedPayload = '';
+const normalizeExpandedStateMap = (value) => {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+        return {};
+    }
+    const next = {};
+    for (const [rawId, expanded] of Object.entries(value)) {
+        const id = String(rawId || '').trim();
+        if (!id) {
+            continue;
+        }
+        next[id] = expanded === true;
+    }
+    return next;
+};
+const readVmServerExpandedStateMap = () => normalizeExpandedStateMap(folderTypePrefs?.expandedFolderState || {});
+const writeVmServerExpandedStateMap = (map) => {
+    const normalized = normalizeExpandedStateMap(map);
+    folderTypePrefs = utils.normalizePrefs({
+        ...(folderTypePrefs || {}),
+        expandedFolderState: normalized
+    });
+};
+const readVmExpandedStateMap = () => {
+    try {
+        const raw = window.localStorage && window.localStorage.getItem(VM_EXPANDED_STATE_KEY);
+        if (!raw) {
+            return {};
+        }
+        return normalizeExpandedStateMap(JSON.parse(raw));
+    } catch (_error) {
+        return {};
+    }
+};
+const writeVmExpandedStateMap = (map) => {
+    try {
+        const payload = map && typeof map === 'object' ? map : {};
+        if (window.localStorage) {
+            window.localStorage.setItem(VM_EXPANDED_STATE_KEY, JSON.stringify(payload));
+        }
+    } catch (_error) {
+        // Ignore storage failures so runtime rendering never breaks.
+    }
+};
+const syncVmExpandedStateToServer = async () => {
+    const request = window.FolderViewPlusRequest;
+    if (!request || typeof request.postJson !== 'function') {
+        return;
+    }
+    if (vmExpandedStateSyncInFlight) {
+        vmExpandedStateSyncQueued = true;
+        return;
+    }
+
+    const payloadMap = readVmServerExpandedStateMap();
+    const payloadString = JSON.stringify(payloadMap);
+    if (payloadString === vmExpandedStateLastSyncedPayload) {
+        return;
+    }
+
+    vmExpandedStateSyncInFlight = true;
+    try {
+        const response = await request.postJson('/plugins/folderview.plus/server/prefs.php', {
+            type: 'vm',
+            prefs: JSON.stringify({
+                expandedFolderState: payloadMap
+            })
+        }, {
+            retries: 1,
+            retryDelayMs: 260
+        });
+        const nextPrefs = utils.normalizePrefs(response?.prefs || {});
+        writeVmServerExpandedStateMap(nextPrefs.expandedFolderState || payloadMap);
+        vmExpandedStateLastSyncedPayload = JSON.stringify(readVmServerExpandedStateMap());
+    } catch (_error) {
+        // Best effort only. LocalStorage fallback still retains behavior.
+    } finally {
+        vmExpandedStateSyncInFlight = false;
+        if (vmExpandedStateSyncQueued) {
+            vmExpandedStateSyncQueued = false;
+            scheduleVmExpandedStateSync();
+        }
+    }
+};
+const scheduleVmExpandedStateSync = () => {
+    if (vmExpandedStateSyncTimer) {
+        clearTimeout(vmExpandedStateSyncTimer);
+    }
+    vmExpandedStateSyncTimer = setTimeout(() => {
+        vmExpandedStateSyncTimer = null;
+        syncVmExpandedStateToServer();
+    }, VM_EXPANDED_STATE_SYNC_DELAY_MS);
+};
+const buildVmExpandedStateMap = (folders, previousFolders = {}, serverMap = {}) => {
+    const source = folders && typeof folders === 'object' ? folders : {};
+    const previous = previousFolders && typeof previousFolders === 'object' ? previousFolders : {};
+    const persistedServer = normalizeExpandedStateMap(serverMap);
+    const persisted = readVmExpandedStateMap();
+    const resolved = {};
+    for (const [id, folder] of Object.entries(source)) {
+        if (Object.prototype.hasOwnProperty.call(persistedServer, id)) {
+            resolved[id] = persistedServer[id] === true;
+            continue;
+        }
+        if (Object.prototype.hasOwnProperty.call(persisted, id)) {
+            resolved[id] = persisted[id] === true;
+            continue;
+        }
+        resolved[id] = (previous[id]?.status?.expanded === true) || folder?.settings?.expand_tab === true;
+    }
+    writeVmExpandedStateMap(resolved);
+    writeVmServerExpandedStateMap(resolved);
+    return resolved;
+};
+const persistVmExpandedStateMap = (map, syncServer = true) => {
+    const normalized = normalizeExpandedStateMap(map);
+    writeVmExpandedStateMap(normalized);
+    writeVmServerExpandedStateMap(normalized);
+    if (syncServer) {
+        scheduleVmExpandedStateSync();
+    }
+};
+const persistVmExpandedStateFromGlobal = (syncServer = true) => {
+    const map = {};
+    for (const [id, folder] of Object.entries(globalFolders || {})) {
+        map[id] = folder?.status?.expanded === true;
+    }
+    persistVmExpandedStateMap(map, syncServer);
+};
+const readVmExpandedStateFromDom = () => {
+    const map = {};
+    const seen = new Set();
+    $('button.folder-dropdown').each((_, node) => {
+        const className = String(node.className || '');
+        const match = className.match(/\bdropDown-([A-Za-z0-9_-]+)\b/);
+        if (!match || !match[1]) {
+            return;
+        }
+        const id = String(match[1]);
+        if (seen.has(id)) {
+            return;
+        }
+        seen.add(id);
+        map[id] = String($(node).attr('active') || '').toLowerCase() === 'true';
+    });
+    return map;
+};
+const persistVmExpandedStateFromDom = () => {
+    const domState = readVmExpandedStateFromDom();
+    if (!Object.keys(domState).length) {
+        return;
+    }
+    const current = readVmExpandedStateMap();
+    persistVmExpandedStateMap({ ...current, ...domState }, true);
+};
+const ensureVmExpandedStateLifecycleHooks = () => {
+    if (window.__fvVmExpandedStateHooksBound) {
+        return;
+    }
+    window.__fvVmExpandedStateHooksBound = true;
+    window.addEventListener('pagehide', persistVmExpandedStateFromDom, { passive: true });
+    window.addEventListener('beforeunload', persistVmExpandedStateFromDom, { passive: true });
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            persistVmExpandedStateFromDom();
+        }
+    });
+};
 const escapeHtml = (value) => String(value ?? '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -91,6 +264,43 @@ const getPrefsOrderedFolderMap = (folders, prefs) => {
         return utils.orderFoldersByPrefs(source, prefs || {});
     }
     return source;
+};
+
+const normalizeFolderParentId = (value) => String(value || '').trim();
+
+const buildFolderDepthById = (folders) => {
+    const source = folders && typeof folders === 'object' ? folders : {};
+    const ids = Object.keys(source);
+    if (!ids.length) {
+        return {};
+    }
+    const validIds = new Set(ids);
+    const depthById = {};
+    const resolveDepth = (id, chain = new Set()) => {
+        if (!validIds.has(id)) {
+            return 0;
+        }
+        if (Object.prototype.hasOwnProperty.call(depthById, id)) {
+            return depthById[id];
+        }
+        if (chain.has(id)) {
+            depthById[id] = 0;
+            return 0;
+        }
+        chain.add(id);
+        const parentId = normalizeFolderParentId(source[id]?.parentId || source[id]?.parent_id || '');
+        let depth = 0;
+        if (parentId && parentId !== id && validIds.has(parentId)) {
+            depth = Math.min(8, resolveDepth(parentId, chain) + 1);
+        }
+        chain.delete(id);
+        depthById[id] = depth;
+        return depth;
+    };
+    for (const id of ids) {
+        resolveDepth(id, new Set());
+    }
+    return depthById;
 };
 
 const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs) => {
@@ -274,6 +484,9 @@ const hideVmRuntimeLoadingRow = () => {
 const createFolders = async () => {
     showVmRuntimeLoadingRow();
     try {
+    ensureVmExpandedStateLifecycleHooks();
+    persistVmExpandedStateFromDom();
+    const previousFolders = (globalFolders && typeof globalFolders === 'object') ? globalFolders : {};
     const prom = await Promise.all(folderReq);
     // Parse the results
     let folders = JSON.parse(prom[0]);
@@ -287,6 +500,8 @@ const createFolders = async () => {
         prefsResponse = {};
     }
     folderTypePrefs = utils.normalizePrefs(prefsResponse?.prefs || {});
+    vmExpandedStateLastSyncedPayload = JSON.stringify(readVmServerExpandedStateMap());
+    const folderDepthById = buildFolderDepthById(folders);
     unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs);
     applyRuntimePrefs(folderTypePrefs);
     lastLiveRefreshStateSignature = buildVmStateSignature(vmInfo, false);
@@ -350,7 +565,8 @@ const createFolders = async () => {
                     order,
                     vmInfo,
                     Object.keys(foldersDone),
-                    folderMatchCache[id] || null
+                    folderMatchCache[id] || null,
+                    folderDepthById[id] || 0
                 );
                 key -= newOnes.length;
                 // Move the folder to the done object and delete it from the undone one
@@ -373,19 +589,40 @@ const createFolders = async () => {
             order,
             vmInfo,
             Object.keys(foldersDone),
-            folderMatchCache[id] || null
+            folderMatchCache[id] || null,
+            folderDepthById[id] || 0
         );
         // Move the folder to the done object and delete it from the undone one
         foldersDone[id] = folders[id];
         delete folders[id];
     }
 
-    // Expand folders that are set to be expanded by default, this is here because is easier to work with all compressed folder when creating them
+    // Expand folders from remembered runtime state (fallback: previous in-memory state, then expand_tab).
+    const expandedStateById = buildVmExpandedStateMap(
+        foldersDone,
+        previousFolders,
+        readVmServerExpandedStateMap()
+    );
     for (const [id, value] of Object.entries(foldersDone)) {
-        if((globalFolders[id] && globalFolders[id].status.expanded) || value.settings.expand_tab) {
-            value.status.expanded = true;
-            dropDownButton(id);
+        if (!value || typeof value !== 'object') {
+            continue;
         }
+        value.status = (value.status && typeof value.status === 'object') ? value.status : {};
+        value.status.expanded = expandedStateById[id] === true;
+    }
+    const expansionIds = Object.keys(foldersDone)
+        .sort((a, b) => (folderDepthById[a] || 0) - (folderDepthById[b] || 0));
+    for (const id of expansionIds) {
+        if (expandedStateById[id] !== true) {
+            continue;
+        }
+        const folder = foldersDone[id] || {};
+        const parentId = normalizeFolderParentId(folder?.parentId || folder?.parent_id || '');
+        const hasKnownParent = !!(parentId && Object.prototype.hasOwnProperty.call(foldersDone, parentId));
+        if (hasKnownParent && expandedStateById[parentId] !== true) {
+            continue;
+        }
+        dropDownButton(id, false);
     }
 
     folderEvents.dispatchEvent(new CustomEvent('vm-post-folders-creation', {detail: {
@@ -396,6 +633,7 @@ const createFolders = async () => {
 
     // Assing the folder done to the global object
     globalFolders = foldersDone;
+    persistVmExpandedStateFromGlobal();
     renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
 
     folderDebugMode  = false;
@@ -413,9 +651,10 @@ const createFolders = async () => {
  * @param {object} vmInfo info of the vms
  * @param {Array<string>} foldersDone folders that are done
  * @param {object|null} matchCacheEntry precomputed membership candidates
+ * @param {number} depthLevel visual nesting depth for parent/child folders
  * @returns the number of element removed before the folder
  */
-const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCacheEntry = null) => {
+const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCacheEntry = null, depthLevel = 0) => {
     if (folderTypePrefs?.performanceMode === true && folder && typeof folder === 'object') {
         folder.settings = {
             ...(folder.settings || {}),
@@ -523,14 +762,17 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
     } else {
         $('#kvm_list > tr.sortable').eq(position - 1).next().after($(fld));
     }
+    const safeDepth = Math.max(0, Math.min(8, Number(depthLevel) || 0));
+    const depthIndentPx = safeDepth * 20;
+    $(`tr.folder-id-${id}`)
+        .attr('data-folder-depth', String(safeDepth))
+        .find('.folder-name-sub')
+        .css('padding-left', `${depthIndentPx}px`);
 
-    // NOTE: switchButton initialization is deferred until after autostart state is known (see below).
-    // This avoids the bug where initializing with checked:false then clicking ON could
-    // fire a change event that resets VM autostart settings.
-
-    // Set the border if enabled and set the color
-    if(folder.settings.preview_border) {
-        $(`tr.folder-id-${id} div.folder-preview`).css('border', `solid ${folder.settings.preview_border_color} 1px`);
+    const previewColor = normalizeStatusHexColor(folder.settings.preview_border_color, '#afa89e');
+    const previewNode = $(`tr.folder-id-${id} div.folder-preview`).get(0);
+    if (previewNode) {
+        previewNode.style.setProperty('border', `1px solid ${previewColor}`, 'important');
     }
 
     $(`tr.folder-id-${id} div.folder-preview`).addClass(`folder-preview-${folder.settings.preview}`);
@@ -809,7 +1051,7 @@ const folderAutostart = (el) => {
  * Handle the dropdown expand button of folders
  * @param {string} id the id of the folder
  */
-const dropDownButton = (id) => {
+const dropDownButton = (id, persistState = true) => {
     folderEvents.dispatchEvent(new CustomEvent('vm-pre-folder-expansion', {detail: { id }}));
     const element = $(`.dropDown-${id}`);
     const state = element.attr('active') === "true";
@@ -827,6 +1069,9 @@ const dropDownButton = (id) => {
     }
     if(globalFolders[id]) {
         globalFolders[id].status.expanded = !state;
+    }
+    if (persistState) {
+        persistVmExpandedStateFromGlobal();
     }
     folderEvents.dispatchEvent(new CustomEvent('vm-post-folder-expansion', {detail: { id }}));
 };
@@ -943,8 +1188,11 @@ const folderCustomAction = async (id, action) => {
     let act = folder.actions[action];
     let prom = [];
     if(act.type === 0) {
-        const cts = act.conatiners.map(e => folder.containers[e]).filter(e => e);
-        let ctAction = (e) => {};
+        const actionContainers = Array.isArray(act.conatiners)
+            ? act.conatiners
+            : (Array.isArray(act.containers) ? act.containers : []);
+        const cts = actionContainers.map(e => folder.containers[e]).filter(e => e);
+        let ctAction = null;
         if(act.action === 0) {
 
             if(act.modes === 0) {
@@ -1003,9 +1251,14 @@ const folderCustomAction = async (id, action) => {
 
         }
 
-        cts.forEach((e) => {
-            ctAction(e);
-        });
+        if (typeof ctAction === 'function') {
+            cts.forEach((e) => {
+                ctAction(e);
+            });
+        } else {
+            const unsupportedLabel = `action=${act.action}, mode=${act.modes}`;
+            console.warn(`folderview.plus: Unsupported VM custom action configuration (${unsupportedLabel}) for folder "${folder.name || id}".`);
+        }
     } else if(act.type === 1) {
         const args = act.script_args || '';
         if(act.script_sync) {

@@ -24,12 +24,22 @@ const folderJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js'
 );
+const dockerJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js'
+);
+const vmJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js'
+);
 
 const settingsPage = fs.readFileSync(settingsPagePath, 'utf8');
 const settingsCss = fs.readFileSync(settingsCssPath, 'utf8');
 const settingsJs = fs.readFileSync(settingsJsPath, 'utf8');
 const folderCss = fs.readFileSync(folderCssPath, 'utf8');
 const folderJs = fs.readFileSync(folderJsPath, 'utf8');
+const dockerJs = fs.readFileSync(dockerJsPath, 'utf8');
+const vmJs = fs.readFileSync(vmJsPath, 'utf8');
 
 test('settings page includes smoke-test-critical containers and scripts', () => {
     assert.match(settingsPage, /id="import-preview-dialog"/);
@@ -52,18 +62,15 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
     assert.match(settingsPage, /Health/);
     assert.match(settingsPage, /Autostart/);
     assert.match(settingsPage, /Resources/);
-    assert.match(settingsPage, /id="docker-col-members"/);
     assert.match(settingsPage, /id="docker-col-status"/);
     assert.match(settingsPage, /id="docker-col-rules"/);
     assert.match(settingsPage, /id="docker-col-last-changed"/);
     assert.match(settingsPage, /id="docker-col-pinned"/);
-    assert.match(settingsPage, /id="docker-col-updates"/);
-    assert.match(settingsPage, /id="docker-col-health"/);
+    assert.match(settingsPage, /id="docker-col-signals"/);
     assert.match(settingsPage, /id="docker-health-critical-threshold"/);
     assert.match(settingsPage, /id="docker-health-profile"/);
     assert.match(settingsPage, /id="docker-health-updates-mode"/);
     assert.match(settingsPage, /id="docker-health-all-stopped-mode"/);
-    assert.match(settingsPage, /id="vm-col-members"/);
     assert.match(settingsPage, /id="vm-col-status"/);
     assert.match(settingsPage, /id="vm-col-rules"/);
     assert.match(settingsPage, /id="vm-col-last-changed"/);
@@ -130,6 +137,14 @@ test('mobile folder table keeps Order + Name and routes details to overflow menu
     assert.match(settingsCss, /\.folder-overflow-btn\s*\{[\s\S]*display:\s*none/);
     assert.match(settingsCss, /\.actions-cell[\s\S]*\.folder-action-btn:not\(\.folder-overflow-btn\)[\s\S]*display:\s*none !important/);
     assert.match(settingsCss, /\.actions-cell[\s\S]*\.folder-overflow-btn[\s\S]*display:\s*inline-flex !important/);
+    assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*th:nth-child\(1\)[\s\S]*width:\s*26%/);
+    assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*th:nth-child\(2\)[\s\S]*width:\s*50%/);
+    assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*th:nth-child\(10\)[\s\S]*width:\s*24%/);
+    assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*\.row-order-actions\s*\{[\s\S]*justify-content:\s*center/);
+    assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*th:nth-child\(2\)[\s\S]*padding-left:\s*0\.5rem/);
+    assert.match(settingsCss, /#fv-settings-root\.fv-mobile-compact[\s\S]*th:nth-child\(1\)[\s\S]*width:\s*26%/);
+    assert.match(settingsCss, /#fv-settings-root\.fv-mobile-compact[\s\S]*th:nth-child\(2\)[\s\S]*width:\s*50%/);
+    assert.match(settingsCss, /#fv-settings-root\.fv-mobile-compact[\s\S]*\.row-order-actions[\s\S]*justify-content:\s*center/);
     assert.match(settingsJs, /class="folder-action-btn folder-overflow-btn"/);
     assert.match(settingsJs, /data-fv-overflow-type="\$\{escapeHtml\(type\)\}"/);
     assert.match(settingsJs, /data-fv-overflow-id="\$\{escapeHtml\(id\)\}"/);
@@ -144,6 +159,17 @@ test('mobile folder table keeps Order + Name and routes details to overflow menu
     assert.match(settingsJs, /const runVmRowDrawerAction = async \(action, folderId\) =>/);
     assert.match(settingsCss, /\.fv-row-details-panel\s*\{/);
     assert.match(settingsCss, /\.fv-row-details-grid\s*\{/);
+});
+
+test('nested folder expansion avoids duplicate parent previews and keeps child-only reveal path', () => {
+    assert.match(dockerJs, /const hasChildren = folderHasChildren\(id\);/);
+    assert.match(dockerJs, /hideNestedDescendants\(id\);/);
+    assert.match(dockerJs, /showDirectNestedChildren\(id\);/);
+    assert.match(dockerJs, /syncParentFolderVisualState\(id,\s*true\);/);
+    assert.match(dockerJs, /syncParentFolderVisualState\(id,\s*false\);/);
+    assert.match(dockerJs, /Expanded parent folder\. Showing nested children only\./);
+    assert.match(dockerJs, /\.addClass\('fv-nested-hidden'\)\.hide\(\);/);
+    assert.match(vmJs, /const parentId = normalizeFolderParentId\(source\[id\]\?\.parentId \|\| source\[id\]\?\.parent_id \|\| ''\);/);
 });
 
 test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
@@ -268,7 +294,7 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const renderColumnVisibilityControls = \(type\) =>/);
     assert.match(settingsJs, /const changeColumnVisibility = \(type, key, checked\) =>/);
     assert.match(settingsJs, /window\.changeColumnVisibility = changeColumnVisibility;/);
-    assert.match(settingsJs, /toggleStatusFilter\('\$\{type\}','\$\{escapeHtml\(chip\.key\)\}'\)/);
+    assert.match(settingsJs, /toggleStatusFilter\('\$\{type\}','\$\{escapeHtml\(statusPrimaryKey\)\}'\)/);
     assert.match(settingsJs, /return 'good health';/);
     assert.match(settingsJs, /return 'warn health';/);
     assert.match(settingsJs, /return 'critical health';/);
@@ -355,8 +381,10 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsCss, /\.status-chip-list\s*\{/);
     assert.match(settingsCss, /\.status-chip-list\s*\{[\s\S]*justify-content:\s*flex-start/);
     assert.match(settingsCss, /\.status-chip-list\s*\{[\s\S]*flex-wrap:\s*nowrap/);
+    assert.match(settingsCss, /\.status-breakdown-list\s*\{/);
+    assert.match(settingsCss, /\.status-breakdown-chip\s*\{/);
     assert.match(settingsCss, /\.status-breakdown-btn\s*\{[\s\S]*width:\s*22px !important/);
-    assert.match(settingsJs, /class="status-cell"><span class="status-cell-content"><button type="button" class="status-breakdown-btn"[\s\S]*\$\{statusChipsHtml\}\$\{statusTrendHtml\}/);
+    assert.match(settingsJs, /class="status-cell"><span class="status-cell-content \$\{statusDisplayClass\}"><button type="button" class="status-breakdown-btn"[\s\S]*\$\{statusSummaryChipHtml\}\$\{statusBreakdownHtml\}\$\{statusTrendHtml\}/);
     assert.match(settingsCss, /\.folder-metric-chip\.is-danger\s*\{/);
     assert.match(settingsCss, /\.folder-metric-chip\s*\{/);
     assert.match(settingsCss, /\.folder-pin-state,\s*[\s\S]*\.folder-metric-chip\s*\{/);

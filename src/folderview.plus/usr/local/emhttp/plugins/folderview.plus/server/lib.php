@@ -777,6 +777,21 @@
         return $out;
     }
 
+    function normalizeExpandedStateMap($value): array {
+        if (!is_array($value)) {
+            return [];
+        }
+        $out = [];
+        foreach ($value as $rawId => $expanded) {
+            $id = trim((string)$rawId);
+            if ($id === '' || array_key_exists($id, $out)) {
+                continue;
+            }
+            $out[$id] = normalizeBool($expanded, false);
+        }
+        return $out;
+    }
+
     function truncateUtf8String(string $value, int $maxBytes): string {
         if ($maxBytes <= 0) {
             return '';
@@ -835,6 +850,9 @@
         $normalized['icon'] = truncateUtf8String(trim((string)($normalized['icon'] ?? '')), 2048);
         $normalized['regex'] = truncateUtf8String((string)($normalized['regex'] ?? ''), 1024);
         $normalized['containers'] = array_slice(normalizeFolderMembers($normalized['containers'] ?? []), 0, 5000);
+        $rawParentId = $normalized['parentId'] ?? ($normalized['parent_id'] ?? ($normalized['parent'] ?? ''));
+        $normalized['parentId'] = truncateUtf8String(trim((string)$rawParentId), 64);
+        unset($normalized['parent_id'], $normalized['parent']);
 
         if (!is_array($normalized['settings'] ?? null)) {
             $normalized['settings'] = [];
@@ -846,6 +864,58 @@
         }
 
         return $normalized;
+    }
+
+    function normalizeFolderParentIdValue($value): string {
+        if (!is_string($value) && !is_numeric($value)) {
+            return '';
+        }
+        return truncateUtf8String(trim((string)$value), 64);
+    }
+
+    function normalizeFolderParentLinks(array $folders): array {
+        if (count($folders) === 0) {
+            return $folders;
+        }
+
+        foreach ($folders as $id => &$folder) {
+            if (!is_array($folder)) {
+                $folder = [];
+            }
+            $parentId = normalizeFolderParentIdValue($folder['parentId'] ?? ($folder['parent_id'] ?? ''));
+            if ($parentId === $id || $parentId === '' || !array_key_exists($parentId, $folders)) {
+                $parentId = '';
+            }
+            $folder['parentId'] = $parentId;
+            unset($folder['parent_id']);
+        }
+        unset($folder);
+
+        foreach (array_keys($folders) as $id) {
+            $seen = [];
+            $cursor = $id;
+            while (true) {
+                if (!array_key_exists($cursor, $folders) || !is_array($folders[$cursor])) {
+                    break;
+                }
+                $parentId = normalizeFolderParentIdValue($folders[$cursor]['parentId'] ?? '');
+                if ($parentId === '') {
+                    break;
+                }
+                if (!array_key_exists($parentId, $folders)) {
+                    $folders[$cursor]['parentId'] = '';
+                    break;
+                }
+                if ($parentId === $id || isset($seen[$parentId])) {
+                    $folders[$cursor]['parentId'] = '';
+                    break;
+                }
+                $seen[$cursor] = true;
+                $cursor = $parentId;
+            }
+        }
+
+        return $folders;
     }
 
     function normalizeIsoTimestamp($value): string {
@@ -1300,7 +1370,7 @@
             }
             $normalized[$safeId] = normalizeFolderContentPayload($folder);
         }
-        return $normalized;
+        return normalizeFolderParentLinks($normalized);
     }
 
     function jsonObjectsDiffer(array $a, array $b): bool {
@@ -1438,6 +1508,7 @@
             'sortMode' => 'created',
             'manualOrder' => [],
             'pinnedFolderIds' => [],
+            'expandedFolderState' => [],
             'hideEmptyFolders' => false,
             'setupWizardCompleted' => false,
             'settingsMode' => 'basic',
@@ -1465,6 +1536,7 @@
             ],
             'status' => [
                 'mode' => 'summary',
+                'displayMode' => 'balanced',
                 'trendEnabled' => true,
                 'attentionAccent' => true,
                 'warnStoppedPercent' => 60
@@ -1580,6 +1652,7 @@
         }
         $normalized['manualOrder'] = normalizeStringIdList($manualOrder);
         $normalized['pinnedFolderIds'] = normalizeStringIdList($prefs['pinnedFolderIds'] ?? []);
+        $normalized['expandedFolderState'] = normalizeExpandedStateMap($prefs['expandedFolderState'] ?? []);
         $normalized['hideEmptyFolders'] = normalizeBool($prefs['hideEmptyFolders'] ?? false, false);
         $normalized['setupWizardCompleted'] = normalizeBool($prefs['setupWizardCompleted'] ?? false, false);
         $settingsMode = (string)($prefs['settingsMode'] ?? 'basic');
@@ -1659,8 +1732,13 @@
         if (!in_array($statusMode, ['summary', 'dominant'], true)) {
             $statusMode = 'summary';
         }
+        $statusDisplayMode = strtolower(trim((string)($statusIncoming['displayMode'] ?? 'balanced')));
+        if (!in_array($statusDisplayMode, ['simple', 'balanced', 'detailed'], true)) {
+            $statusDisplayMode = 'balanced';
+        }
         $normalized['status'] = [
             'mode' => $statusMode,
+            'displayMode' => $statusDisplayMode,
             'trendEnabled' => !array_key_exists('trendEnabled', $statusIncoming)
                 ? true
                 : normalizeBool($statusIncoming['trendEnabled'], true),
@@ -3911,6 +3989,9 @@
                     'mode' => in_array(strtolower(trim((string)($prefs['status']['mode'] ?? 'summary'))), ['summary', 'dominant'], true)
                         ? strtolower(trim((string)($prefs['status']['mode'] ?? 'summary')))
                         : 'summary',
+                    'displayMode' => in_array(strtolower(trim((string)($prefs['status']['displayMode'] ?? 'balanced'))), ['simple', 'balanced', 'detailed'], true)
+                        ? strtolower(trim((string)($prefs['status']['displayMode'] ?? 'balanced')))
+                        : 'balanced',
                     'trendEnabled' => normalizeBool($prefs['status']['trendEnabled'] ?? true, true),
                     'attentionAccent' => normalizeBool($prefs['status']['attentionAccent'] ?? true, true),
                     'warnStoppedPercent' => normalizeIntInRange($prefs['status']['warnStoppedPercent'] ?? 60, 0, 100, 60)
@@ -4119,6 +4200,7 @@
         $nextFolder['createdAt'] = $createdAt;
         $nextFolder['updatedAt'] = gmdate('c');
         $fileData[$id] = $nextFolder;
+        $fileData = normalizeFolderParentLinks($fileData);
         writeRawFolderMap($type, $fileData);
         syncManualOrderWithFolders($type, $fileData);
         try {
@@ -4135,7 +4217,19 @@
     function deleteFolder(string $type, string $id) : void {
         $type = ensureType($type);
         $fileData = readRawFolderMap($type);
+        $deletedParentId = normalizeFolderParentIdValue($fileData[$id]['parentId'] ?? '');
         unset($fileData[$id]);
+        foreach ($fileData as $folderId => &$folder) {
+            if (!is_array($folder)) {
+                continue;
+            }
+            $parentId = normalizeFolderParentIdValue($folder['parentId'] ?? ($folder['parent_id'] ?? ''));
+            if ($parentId === $id) {
+                $folder['parentId'] = $deletedParentId;
+            }
+        }
+        unset($folder);
+        $fileData = normalizeFolderParentLinks($fileData);
         writeRawFolderMap($type, $fileData);
         syncManualOrderWithFolders($type, $fileData);
         try {

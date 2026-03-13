@@ -158,6 +158,19 @@
     min-height: 34px;
 }
 
+.tree-visibility-controls {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.34rem;
+}
+
+.tree-visibility-controls > button {
+    min-height: 30px;
+    min-width: 0;
+    padding: 0.16rem 0.5rem;
+}
+
 .sort-hint-chip {
     display: inline-flex;
     align-items: center;
@@ -178,6 +191,46 @@
     font-size: 1.03rem;
     opacity: 0.82;
     line-height: 1.35;
+}
+
+.fv-tree-undo-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.52rem;
+    border: 1px solid rgba(255, 193, 94, 0.45);
+    border-radius: 6px;
+    background: rgba(255, 193, 94, 0.08);
+    padding: 0.35rem 0.48rem;
+    margin: 0;
+}
+
+.fv-tree-undo-banner.is-hidden {
+    display: none !important;
+}
+
+.fv-tree-undo-message {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.34rem;
+    font-size: 1.03rem;
+}
+
+.fv-tree-undo-message > strong {
+    font-weight: 700;
+}
+
+.fv-tree-undo-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.fv-tree-undo-actions > button {
+    min-height: 28px;
+    min-width: 0;
+    padding: 0.15rem 0.45rem;
 }
 
 .toolbar-sort-body > input[type="text"] {
@@ -315,16 +368,65 @@
 }
 
 .folder-table table td.name-cell {
-    text-align: center;
+    text-align: left;
+    white-space: normal;
+}
+
+.folder-table table th.col-name {
+    text-align: left;
+    padding-left: 0.44rem;
+}
+
+.folder-table table th.col-signals {
+    text-align: left;
+    padding-left: 0.28rem;
 }
 
 .name-cell-content {
     display: inline-grid;
-    grid-template-columns: 30px 1fr;
+    grid-template-columns: 14px 30px 1fr;
     align-items: center;
-    column-gap: 0.5rem;
-    width: clamp(160px, 16vw, 230px);
+    column-gap: 0.44rem;
+    width: min(100%, 210px);
     text-align: left;
+    --fv-folder-indent-step: 0.9rem;
+    padding-left: calc(var(--fv-folder-depth, 0) * var(--fv-folder-indent-step));
+    position: relative;
+}
+
+.folder-tree-toggle,
+.folder-tree-toggle-spacer {
+    width: 14px;
+    min-width: 14px;
+    height: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.folder-tree-toggle {
+    border: 0;
+    border-radius: 3px;
+    padding: 0;
+    background: transparent;
+    color: rgba(214, 224, 239, 0.88);
+    cursor: pointer;
+}
+
+.folder-tree-toggle:hover,
+.folder-tree-toggle:focus-visible {
+    color: rgba(255, 255, 255, 0.98);
+    background: rgba(255, 255, 255, 0.09);
+}
+
+.folder-tree-toggle:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.folder-tree-toggle i {
+    font-size: 12px;
+    line-height: 1;
 }
 
 .name-cell-content > img {
@@ -333,10 +435,63 @@
     object-fit: contain;
 }
 
+.name-cell-content.is-nested::before {
+    content: "";
+    position: absolute;
+    left: calc((var(--fv-folder-depth, 0) * var(--fv-folder-indent-step)) - 0.5rem);
+    top: 0.3rem;
+    bottom: 0.3rem;
+    border-left: 1px solid rgba(173, 178, 192, 0.55);
+    pointer-events: none;
+}
+
+.name-cell-text-wrap {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.15rem;
+}
+
 .name-cell-text {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    max-width: 100%;
+}
+
+.name-cell-members-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.24rem;
+    max-width: 100%;
+    font-size: 1.03rem;
+    line-height: 1.1;
+    color: rgba(187, 199, 219, 0.82);
+    opacity: 0.92;
+}
+
+.name-cell-members-meta i {
+    font-size: 0.85em;
+    opacity: 0.85;
+}
+
+.name-cell-nested-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.26rem;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 1.03rem;
+    line-height: 1.15;
+    color: rgba(194, 206, 224, 0.86);
+}
+
+.name-cell-nested-meta i {
+    font-size: 0.9em;
+    opacity: 0.9;
 }
 
 .status-line {
@@ -348,13 +503,39 @@
 
 .row-order-actions {
     display: inline-flex;
-    gap: 0.2rem;
+    gap: 0.08rem;
     vertical-align: middle;
 }
 
+.row-order-stack {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.16rem;
+}
+
 .row-order-actions button {
-    min-width: 26px;
-    padding: 2px 6px;
+    min-width: 18px;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+}
+
+.row-order-actions .folder-tree-action {
+    min-width: 16px;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    line-height: 16px;
+    font-size: 0.9em;
+}
+
+.row-order-error {
+    font-size: 1.03rem;
+    line-height: 1.2;
+    color: #ff8f8f;
+    max-width: 150px;
+    white-space: normal;
 }
 
 .folder-pin-btn {
@@ -390,10 +571,44 @@
     margin-left: 0.3rem;
 }
 
-.folder-member-count {
-    display: inline-block;
-    margin-left: 0.3rem;
-    opacity: 0.8;
+.folder-member-split {
+    display: inline-flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.24rem;
+    font-size: 1.03rem;
+}
+
+.folder-member-split strong {
+    font-weight: 700;
+}
+
+.folder-member-divider {
+    opacity: 0.55;
+    font-size: 1.03rem;
+}
+
+.fv-tree-move-dialog {
+    display: grid;
+    gap: 0.42rem;
+    text-align: left;
+}
+
+.fv-tree-move-source {
+    font-size: 1.03rem;
+    opacity: 0.9;
+}
+
+.fv-tree-move-field-label {
+    display: block;
+    font-size: 1.03rem;
+    font-weight: 600;
+    margin-top: 0.08rem;
+}
+
+.fv-tree-move-dialog select {
+    width: 100%;
+    min-height: 34px;
     font-size: 1.03rem;
 }
 
@@ -409,6 +624,12 @@
     text-align: center;
 }
 
+.folder-table table th.col-members,
+.folder-table table td.members-cell {
+    padding-left: 0.24rem;
+    padding-right: 0.24rem;
+}
+
 .folder-table table td.status-cell {
     text-align: left;
     white-space: normal;
@@ -421,27 +642,34 @@
     white-space: normal;
 }
 
-/* Keep core table columns readable while giving Status enough room for side-by-side chips. */
+/* Desktop widths: remove Parent column and redistribute space to core signals. */
 .folder-table table th:nth-child(1),
-.folder-table table td:nth-child(1) { width: 7%; }
+.folder-table table td:nth-child(1) { width: 8%; }
 .folder-table table th:nth-child(2),
-.folder-table table td:nth-child(2) { width: 18%; }
+.folder-table table td:nth-child(2) { width: 21%; }
 .folder-table table th:nth-child(3),
-.folder-table table td:nth-child(3) { width: 7%; }
+.folder-table table td:nth-child(3) { width: 4%; }
 .folder-table table th:nth-child(4),
-.folder-table table td:nth-child(4) { width: 15%; }
+.folder-table table td:nth-child(4) { width: 11%; }
 .folder-table table th:nth-child(5),
-.folder-table table td:nth-child(5) { width: 6%; }
+.folder-table table td:nth-child(5) { width: 9%; }
 .folder-table table th:nth-child(6),
-.folder-table table td:nth-child(6) { width: 11%; }
+.folder-table table td:nth-child(6) { width: 9%; }
 .folder-table table th:nth-child(7),
-.folder-table table td:nth-child(7) { width: 7%; }
+.folder-table table td:nth-child(7) { width: 9%; }
 .folder-table table th:nth-child(8),
-.folder-table table td:nth-child(8) { width: 9%; }
+.folder-table table td:nth-child(8) { width: 11%; }
 .folder-table table th:nth-child(9),
 .folder-table table td:nth-child(9) { width: 9%; }
 .folder-table table th:nth-child(10),
-.folder-table table td:nth-child(10) { width: 11%; }
+.folder-table table td:nth-child(10) { width: 9%; }
+
+.folder-table table th.col-order,
+.folder-table table td.order-cell {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+}
 
 /* Mobile/touch compact mode: prioritize core columns and prevent chip overlap. */
 @media (max-width: 1100px) {
@@ -495,9 +723,9 @@
     }
 
     .folder-table table th:nth-child(1),
-    .folder-table table td:nth-child(1) { width: 24%; }
+    .folder-table table td:nth-child(1) { width: 26%; }
     .folder-table table th:nth-child(2),
-    .folder-table table td:nth-child(2) { width: 52%; }
+    .folder-table table td:nth-child(2) { width: 50%; }
     .folder-table table th:nth-child(10),
     .folder-table table td:nth-child(10) { width: 24%; }
 
@@ -509,13 +737,13 @@
 
     .folder-table table th:nth-child(2),
     .folder-table table td:nth-child(2) {
-        padding-left: 0.68rem;
+        padding-left: 0.5rem;
         padding-right: 0.24rem;
     }
 
     .row-order-actions {
         width: 100%;
-        justify-content: flex-start;
+        justify-content: center;
         gap: 0.2rem;
     }
 
@@ -524,6 +752,14 @@
         min-width: 24px;
         height: 24px;
         padding: 0;
+    }
+
+    .row-order-actions .folder-tree-action {
+        display: none !important;
+    }
+
+    .row-order-error {
+        display: none !important;
     }
 
     .folder-table table td.actions-cell {
@@ -551,8 +787,8 @@
     .name-cell-content {
         width: 100%;
         max-width: 100%;
-        grid-template-columns: 28px minmax(0, 1fr);
-        column-gap: 0.35rem;
+        grid-template-columns: 14px 28px minmax(0, 1fr);
+        column-gap: 0.28rem;
     }
 
     .name-cell-content > img {
@@ -574,13 +810,21 @@
         row-gap: 0.2rem;
         column-gap: 0.2rem;
     }
+
+    .status-breakdown-list {
+        width: 100%;
+        flex-wrap: wrap;
+        white-space: normal;
+        row-gap: 0.2rem;
+        column-gap: 0.2rem;
+    }
 }
 
 @media (max-width: 700px) {
     .folder-table table th:nth-child(1),
-    .folder-table table td:nth-child(1) { width: 24%; }
+    .folder-table table td:nth-child(1) { width: 26%; }
     .folder-table table th:nth-child(2),
-    .folder-table table td:nth-child(2) { width: 52%; }
+    .folder-table table td:nth-child(2) { width: 50%; }
     .folder-table table th:nth-child(10),
     .folder-table table td:nth-child(10) { width: 24%; }
 
@@ -613,6 +857,10 @@ body.fv-mobile-compact #fv-settings-root .folder-table .table-wrap {
 #fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(8),
 #fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(9),
 #fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(9),
+body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(3),
+body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(3),
+body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(4),
+body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(4),
 body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(5),
 body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(5),
 body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(6),
@@ -668,11 +916,11 @@ body.fv-mobile-compact #fv-settings-root .folder-table table td.resources-cell {
 #fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(1),
 #fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(1),
 body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(1),
-body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(1) { width: 24%; }
+body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(1) { width: 26%; }
 #fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(2),
 #fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(2),
 body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(2),
-body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(2) { width: 52%; }
+body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(2) { width: 50%; }
 #fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(10),
 #fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(10),
 body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(10),
@@ -690,7 +938,7 @@ body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(1) {
 #fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(2),
 body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(2),
 body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(2) {
-    padding-left: 0.68rem;
+    padding-left: 0.5rem;
     padding-right: 0.24rem;
 }
 
@@ -723,14 +971,14 @@ body.fv-mobile-compact #fv-settings-root .folder-table table td.actions-cell .fo
 body.fv-mobile-compact #fv-settings-root .name-cell-content {
     width: 100%;
     max-width: 100%;
-    grid-template-columns: 28px minmax(0, 1fr);
-    column-gap: 0.35rem;
+    grid-template-columns: 14px 28px minmax(0, 1fr);
+    column-gap: 0.28rem;
 }
 
 #fv-settings-root.fv-mobile-compact .row-order-actions,
 body.fv-mobile-compact #fv-settings-root .row-order-actions {
     width: 100%;
-    justify-content: flex-start;
+    justify-content: center;
     gap: 0.2rem;
 }
 
@@ -740,6 +988,16 @@ body.fv-mobile-compact #fv-settings-root .row-order-actions button {
     min-width: 22px;
     height: 22px;
     padding: 0;
+}
+
+#fv-settings-root.fv-mobile-compact .row-order-actions .folder-tree-action,
+body.fv-mobile-compact #fv-settings-root .row-order-actions .folder-tree-action {
+    display: none !important;
+}
+
+#fv-settings-root.fv-mobile-compact .row-order-error,
+body.fv-mobile-compact #fv-settings-root .row-order-error {
+    display: none !important;
 }
 
 #fv-settings-root.fv-mobile-compact .name-cell-content > img,
@@ -758,6 +1016,15 @@ body.fv-mobile-compact #fv-settings-root .status-cell-content {
 
 #fv-settings-root.fv-mobile-compact .status-chip-list,
 body.fv-mobile-compact #fv-settings-root .status-chip-list {
+    width: 100%;
+    flex-wrap: wrap;
+    white-space: normal;
+    row-gap: 0.2rem;
+    column-gap: 0.2rem;
+}
+
+#fv-settings-root.fv-mobile-compact .status-breakdown-list,
+body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     width: 100%;
     flex-wrap: wrap;
     white-space: normal;
@@ -810,13 +1077,22 @@ body.fv-mobile-compact #fv-settings-root .status-chip-list {
 }
 
 .updates-chip {
-    min-width: 126px;
+    width: 22px !important;
+    height: 22px !important;
+    min-width: 22px !important;
+    padding: 0 !important;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.35rem;
+    gap: 0;
     cursor: pointer;
     background: transparent;
+    border-radius: 5px !important;
+}
+
+.updates-chip i {
+    font-size: 0.92em;
+    line-height: 1;
 }
 
 .updates-chip.is-filter-active {
@@ -826,6 +1102,19 @@ body.fv-mobile-compact #fv-settings-root .status-chip-list {
 .health-chip {
     cursor: pointer;
     background: transparent;
+}
+
+.folder-table table td.signals-cell {
+    text-align: left;
+}
+
+.signals-cell-content {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.28rem;
+    flex-wrap: nowrap;
+    max-width: 100%;
 }
 
 .folder-metric-chip.is-maintenance {
@@ -958,10 +1247,14 @@ body.fv-mobile-compact #fv-settings-root .status-chip-list {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    padding: 0.08rem 0.42rem;
+    padding: 0.12rem 0.5rem;
     border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: 999px;
+    border-radius: 7px;
     font-size: 1.03rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: rgba(255, 255, 255, 0.04);
     opacity: 0.95;
 }
 
@@ -986,6 +1279,66 @@ body.fv-mobile-compact #fv-settings-root .status-chip-list {
     max-width: 100%;
 }
 
+.status-breakdown-list {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.44rem;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    overflow: visible;
+    max-width: 100%;
+}
+
+.status-breakdown-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.18rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font-size: 1.03rem;
+    font-weight: 700;
+    letter-spacing: 0.015em;
+    text-transform: none;
+    opacity: 0.94;
+    white-space: nowrap;
+    line-height: 1;
+}
+
+.status-breakdown-chip i {
+    font-size: 0.96rem;
+    width: 0.98rem;
+    text-align: center;
+    opacity: 0.88;
+}
+
+.status-breakdown-chip .count {
+    font-weight: 700;
+    font-size: 1.03rem;
+}
+
+.status-breakdown-chip.is-started {
+    color: #93e19f;
+}
+
+.status-breakdown-chip.is-paused {
+    color: #ffc15e;
+}
+
+.status-breakdown-chip.is-stopped {
+    color: #ff7474;
+}
+
+.status-breakdown-chip.is-empty {
+    color: rgba(240, 240, 240, 0.86);
+}
+
+.status-cell-content.is-simple .status-breakdown-list,
+.status-cell-content.is-simple .status-trend {
+    display: none;
+}
+
 .folder-runtime-status.status-chip {
     cursor: pointer;
     background: transparent;
@@ -1004,6 +1357,7 @@ body.fv-mobile-compact #fv-settings-root .status-chip-list {
 .folder-runtime-status.is-mixed {
     border-color: rgba(123, 182, 255, 0.58);
     color: #7bb6ff;
+    background: rgba(123, 182, 255, 0.12);
 }
 
 .folder-runtime-status.is-attention {
@@ -1056,21 +1410,25 @@ body.fv-mobile-compact #fv-settings-root .status-chip-list {
 .folder-runtime-status.is-started {
     border-color: rgba(147, 225, 159, 0.55);
     color: #93e19f;
+    background: rgba(147, 225, 159, 0.12);
 }
 
 .folder-runtime-status.is-paused {
     border-color: rgba(255, 193, 94, 0.58);
     color: #ffc15e;
+    background: rgba(255, 193, 94, 0.12);
 }
 
 .folder-runtime-status.is-stopped {
     border-color: rgba(255, 116, 116, 0.62);
     color: #ff7474;
+    background: rgba(255, 116, 116, 0.12);
 }
 
 .folder-runtime-status.is-empty {
     border-color: rgba(192, 192, 192, 0.45);
     color: rgba(240, 240, 240, 0.86);
+    background: rgba(192, 192, 192, 0.08);
 }
 
 .folder-health-grid {
@@ -4595,6 +4953,11 @@ tr.is-long-press-active {
 
     .name-cell-content {
         width: min(100%, 280px);
+        --fv-folder-indent-step: 0.7rem;
+    }
+
+    .name-cell-nested-meta {
+        font-size: 1.03rem;
     }
 }
 

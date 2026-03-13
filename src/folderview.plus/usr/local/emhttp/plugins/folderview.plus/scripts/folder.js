@@ -13,6 +13,7 @@ const DEFAULT_FOLDER_STATUS_COLORS = {
     paused: '#b8860b',
     stopped: '#ff4d4d'
 };
+const DEFAULT_BORDER_COLOR = '#afa89e';
 const FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
 const PREVIEW_MODE_LABELS = {
     0: 'None',
@@ -58,6 +59,8 @@ const BUILT_IN_ICON_FALLBACK = [{
 
 let existingFolderNames = new Set();
 let allFolderNames = new Set();
+let allFoldersById = {};
+let currentFolderDescendantIds = new Set();
 let currentFolderName = '';
 let initialSnapshot = '';
 let isFormInitialized = false;
@@ -145,6 +148,104 @@ const normalizeHexColor = (value, fallback) => {
 };
 
 const getForm = () => $('div.canvas > form')[0];
+
+const normalizeParentFolderId = (value) => String(value || '').trim();
+
+const computeFolderDescendantIds = (foldersMap, rootId) => {
+    const source = foldersMap && typeof foldersMap === 'object' ? foldersMap : {};
+    const root = normalizeParentFolderId(rootId);
+    if (!root) {
+        return new Set();
+    }
+    const descendants = new Set();
+    const queue = [root];
+    while (queue.length > 0) {
+        const current = queue.shift();
+        for (const [id, folder] of Object.entries(source)) {
+            const parentId = normalizeParentFolderId(folder?.parentId || '');
+            if (parentId !== current || descendants.has(id)) {
+                continue;
+            }
+            descendants.add(id);
+            queue.push(id);
+        }
+    }
+    descendants.delete(root);
+    return descendants;
+};
+
+const buildNestedFolderOrder = (foldersMap) => {
+    const source = foldersMap && typeof foldersMap === 'object' ? foldersMap : {};
+    const ids = Object.keys(source);
+    if (ids.length <= 0) {
+        return [];
+    }
+    const indexById = new Map(ids.map((id, idx) => [id, idx]));
+    const childrenByParent = new Map();
+    for (const id of ids) {
+        const parentIdRaw = normalizeParentFolderId(source[id]?.parentId || '');
+        const parentId = parentIdRaw && parentIdRaw !== id && indexById.has(parentIdRaw) ? parentIdRaw : '';
+        const key = parentId || '__root__';
+        if (!childrenByParent.has(key)) {
+            childrenByParent.set(key, []);
+        }
+        childrenByParent.get(key).push(id);
+    }
+    const sortBySourceIndex = (a, b) => (indexById.get(a) || 0) - (indexById.get(b) || 0);
+    for (const list of childrenByParent.values()) {
+        list.sort(sortBySourceIndex);
+    }
+    const rows = [];
+    const visiting = new Set();
+    const visited = new Set();
+    const visit = (id, depth) => {
+        if (!id || visited.has(id) || visiting.has(id)) {
+            return;
+        }
+        visiting.add(id);
+        rows.push({ id, folder: source[id], depth: Math.max(0, depth) });
+        for (const childId of (childrenByParent.get(id) || [])) {
+            visit(childId, depth + 1);
+        }
+        visiting.delete(id);
+        visited.add(id);
+    };
+    for (const rootId of (childrenByParent.get('__root__') || [])) {
+        visit(rootId, 0);
+    }
+    for (const id of ids) {
+        visit(id, 0);
+    }
+    return rows;
+};
+
+const populateParentFolderOptions = (foldersMap, selectedParentId = '', blockedIds = new Set()) => {
+    const form = getForm();
+    const select = form?.parent_folder_id;
+    if (!select) {
+        return;
+    }
+    const selected = normalizeParentFolderId(selectedParentId);
+    const blocked = blockedIds instanceof Set ? blockedIds : new Set();
+    const rows = buildNestedFolderOrder(foldersMap);
+    const options = ['<option value="">No parent (top level)</option>'];
+    for (const row of rows) {
+        const id = normalizeParentFolderId(row?.id || '');
+        if (!id || blocked.has(id)) {
+            continue;
+        }
+        const depth = Math.max(0, Number(row?.depth || 0));
+        const indent = depth > 0 ? `${'  '.repeat(depth)}- ` : '';
+        const label = escapeHtml(`${indent}${String(row?.folder?.name || id)}`);
+        options.push(`<option value="${escapeHtml(id)}">${label}</option>`);
+    }
+    $(select).html(options.join(''));
+    if (selected && !blocked.has(selected)) {
+        select.value = selected;
+    } else {
+        select.value = '';
+    }
+};
 
 const escapeHtml = (value) => {
     if (value === undefined || value === null) {
@@ -1003,6 +1104,32 @@ const validateStatusWarnThreshold = () => {
     return true;
 };
 
+const validateParentFolderSelection = () => {
+    const form = getForm();
+    if (!form || !form.parent_folder_id) {
+        return true;
+    }
+    const parentId = normalizeParentFolderId(form.parent_folder_id.value);
+    if (!parentId) {
+        setFieldError('parent_folder_id', '');
+        return true;
+    }
+    if (folderId && parentId === folderId) {
+        setFieldError('parent_folder_id', 'A folder cannot be its own parent.');
+        return false;
+    }
+    if (currentFolderDescendantIds.has(parentId)) {
+        setFieldError('parent_folder_id', 'A folder cannot be nested under one of its own children.');
+        return false;
+    }
+    if (!Object.prototype.hasOwnProperty.call(allFoldersById, parentId)) {
+        setFieldError('parent_folder_id', 'Selected parent folder no longer exists.');
+        return false;
+    }
+    setFieldError('parent_folder_id', '');
+    return true;
+};
+
 const isLikelyIconPath = (value) => {
     const source = String(value || '').trim();
     if (!source) {
@@ -1061,6 +1188,7 @@ const collectValidationWarnings = () => {
 const validateForm = () => {
     const checks = [
         validateNameField(),
+        validateParentFolderSelection(),
         validateRegexField(),
         validateFolderWebUiUrl(),
         validateContextGraphTime(),
@@ -1806,7 +1934,8 @@ const initEditorChrome = () => {
     setTimeout(enforceLeftAlignedSettingsLayout, 250);
 };
 
-getForm().preview_border_color.value = rgbToHex($('body').css('color'));
+getForm().preview_border.checked = true;
+getForm().preview_border_color.value = DEFAULT_BORDER_COLOR;
 getForm().preview_vertical_bars_color.value = rgbToHex($('body').css('color'));
 resetStatusColorDefaults();
 
@@ -1818,6 +1947,7 @@ resetStatusColorDefaults();
     }
     // get folders
     let folders = JSON.parse(await $.get(`/plugins/folderview.plus/server/read.php?type=${type}`).promise());
+    allFoldersById = folders && typeof folders === 'object' ? { ...folders } : {};
     allFolderNames = new Set(Object.values(folders).map((folder) => (folder.name || '').trim().toLowerCase()));
     // get the list of element docker/vm
     let typeFilter;
@@ -1851,12 +1981,18 @@ resetStatusColorDefaults();
     if (folderId) {
         // select the folder and delete it from the list
         const currFolder = folders[folderId];
+        currentFolderDescendantIds = computeFolderDescendantIds(allFoldersById, folderId);
         currentFolderName = currFolder.name || '';
         delete folders[folderId];
 
         // set the value of the form
         const form = $('div.canvas > form')[0];
         form.name.value = currFolder.name;
+        populateParentFolderOptions(
+            folders,
+            normalizeParentFolderId(currFolder.parentId || ''),
+            new Set([folderId, ...Array.from(currentFolderDescendantIds)])
+        );
         form.icon.value = currFolder.icon;
         form.folder_webui.checked = currFolder.settings.folder_webui || false;
         form.folder_webui_url.value = currFolder.settings.folder_webui_url || '';
@@ -1873,9 +2009,13 @@ resetStatusColorDefaults();
         form.context_trigger.value = currFolder.settings.context_trigger?.toString() || '0';
         form.context_graph.value = currFolder.settings.context_graph?.toString() || '1';
         form.context_graph_time.value = currFolder.settings.context_graph_time?.toString() || '60';
-        form.preview_border.checked = currFolder.settings.preview_border || false;
-        form.preview_border_color.value = currFolder.settings.preview_border_color || rgbToHex($('body').css('color'));
-        form.preview_vertical_bars_color.value = currFolder.settings.preview_vertical_bars_color || currFolder.settings.preview_border_color || rgbToHex($('body').css('color'));
+        const hasStoredPreviewBorder = Object.prototype.hasOwnProperty.call(currFolder.settings || {}, 'preview_border');
+        form.preview_border.checked = hasStoredPreviewBorder ? !!currFolder.settings.preview_border : true;
+        form.preview_border_color.value = normalizeHexColor(currFolder.settings.preview_border_color, DEFAULT_BORDER_COLOR);
+        form.preview_vertical_bars_color.value = normalizeHexColor(
+            currFolder.settings.preview_vertical_bars_color || currFolder.settings.preview_border_color,
+            DEFAULT_BORDER_COLOR
+        );
         form.status_color_started.value = normalizeHexColor(currFolder.settings.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started);
         form.status_color_paused.value = normalizeHexColor(currFolder.settings.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused);
         form.status_color_stopped.value = normalizeHexColor(currFolder.settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped);
@@ -1920,6 +2060,9 @@ resetStatusColorDefaults();
         updateForm();
         updateRegex(form.regex);
         updateIcon(form.icon);
+    } else {
+        currentFolderDescendantIds = new Set();
+        populateParentFolderOptions(folders, '', new Set());
     }
 
     existingFolderNames = new Set(Object.values(folders).map((folder) => (folder.name || '').trim().toLowerCase()));
@@ -2059,9 +2202,7 @@ const updateForm = () => {
     $(`[constraint*="context-${form.context.value}"]`).show();
     $('[constraint*="border-color"]').hide();
     $('[constraint*="bars-color"]').hide();
-    if(form.preview_border.checked) {
-        $('[constraint*="border-color"]').show();
-    }
+    if (form.preview.value !== '0') $('[constraint*="border-color"]').show();
     if(form.preview_vertical_bars.checked) {
         $('[constraint*="bars-color"]').show();
     }
@@ -2169,9 +2310,9 @@ const submitForm = async (e, saveAsCopy = false) => {
     const healthAllStoppedMode = normalizeOptionalHealthSelect(e.health_all_stopped_mode?.value, FOLDER_HEALTH_ALL_STOPPED_MODE_VALUES);
     const statusWarnThresholdRaw = String(e.status_warn_stopped_percent?.value || '').trim();
     const statusWarnThreshold = parseOptionalThresholdInput(statusWarnThresholdRaw);
-    // this is easy, no need for a comment :)
     const folder = {
         name: e.name.value.toString().trim(),
+        parentId: normalizeParentFolderId(e.parent_folder_id?.value || ''),
         icon: e.icon.value.toString(),
         settings: {
             folder_webui: e.folder_webui.checked,
@@ -2189,7 +2330,7 @@ const submitForm = async (e, saveAsCopy = false) => {
             context_trigger: parseInt(e.context_trigger.value.toString()),
             context_graph: parseInt(e.context_graph.value.toString()),
             context_graph_time: parseInt(e.context_graph_time.value.toString()),
-            preview_border: e.preview_border.checked,
+            preview_border: e.preview_border.checked||e.preview_border_color.value!='#afa89e',
             preview_border_color: e.preview_border_color.value.toString(),
             preview_vertical_bars_color: e.preview_vertical_bars_color.value.toString(),
             status_color_started: normalizeHexColor(e.status_color_started.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.started),

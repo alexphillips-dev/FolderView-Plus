@@ -92,6 +92,103 @@ const getPrefsOrderedFolderMap = (folders, prefs) => {
     return source;
 };
 
+const normalizeFolderParentId = (value) => String(value || '').trim();
+const filterDashboardToRootFolders = (folders) => {
+    const source = folders && typeof folders === 'object' ? folders : {};
+    const ids = new Set(Object.keys(source));
+    const rootOnly = {};
+    for (const [id, folder] of Object.entries(source)) {
+        const parentId = normalizeFolderParentId(folder?.parentId || folder?.parent_id || '');
+        const isRoot = !parentId || parentId === id || !ids.has(parentId);
+        if (isRoot) {
+            rootOnly[id] = folder;
+        }
+    }
+    if (!Object.keys(rootOnly).length && Object.keys(source).length) return source;
+    return rootOnly;
+};
+
+const buildFolderChildrenIndex = (folders) => {
+    const source = folders && typeof folders === 'object' ? folders : {};
+    const ids = Object.keys(source);
+    const idSet = new Set(ids);
+    const childrenByParent = {};
+    const rootIds = [];
+    for (const id of ids) {
+        childrenByParent[id] = [];
+    }
+    for (const id of ids) {
+        const folder = source[id] || {};
+        const rawParent = normalizeFolderParentId(folder?.parentId || folder?.parent_id || '');
+        const parentId = rawParent && rawParent !== id && idSet.has(rawParent) ? rawParent : '';
+        if (parentId) {
+            childrenByParent[parentId].push(id);
+        } else {
+            rootIds.push(id);
+        }
+    }
+    return { rootIds, childrenByParent };
+};
+
+const buildFolderDescendantsByRoot = (folders) => {
+    const source = folders && typeof folders === 'object' ? folders : {};
+    const { rootIds, childrenByParent } = buildFolderChildrenIndex(source);
+    const descendantsByRoot = {};
+    const visit = (id, bucket, trail) => {
+        if (!id || trail.has(id)) {
+            return;
+        }
+        trail.add(id);
+        bucket.push(id);
+        const children = childrenByParent[id] || [];
+        for (const childId of children) {
+            visit(childId, bucket, trail);
+        }
+        trail.delete(id);
+    };
+    for (const rootId of rootIds) {
+        const bucket = [];
+        visit(rootId, bucket, new Set());
+        descendantsByRoot[rootId] = bucket;
+    }
+    return descendantsByRoot;
+};
+
+const mergeUniqueNames = (target, source, seen) => {
+    if (!Array.isArray(source)) return;
+    for (const rawName of source) {
+        const name = String(rawName || '').trim();
+        if (!name || seen.has(name)) continue;
+        seen.add(name);
+        target.push(name);
+    }
+};
+
+const aggregateRootMatchCache = (fullFolders, rootFolders, fullCache) => {
+    const descendantsByRoot = buildFolderDescendantsByRoot(fullFolders);
+    const output = {};
+    for (const rootId of Object.keys(rootFolders || {})) {
+        const subtreeIds = descendantsByRoot[rootId]?.length ? descendantsByRoot[rootId] : [rootId];
+        const explicit = [];
+        const regex = [];
+        const label = [];
+        const rules = [];
+        const explicitSeen = new Set();
+        const regexSeen = new Set();
+        const labelSeen = new Set();
+        const rulesSeen = new Set();
+        for (const folderId of subtreeIds) {
+            const entry = fullCache?.[folderId] || {};
+            mergeUniqueNames(explicit, entry.explicit, explicitSeen);
+            mergeUniqueNames(regex, entry.regex, regexSeen);
+            mergeUniqueNames(label, entry.label, labelSeen);
+            mergeUniqueNames(rules, entry.rules, rulesSeen);
+        }
+        output[rootId] = { explicit, regex, label, rules };
+    }
+    return output;
+};
+
 const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs) => {
     const order = Array.isArray(baseOrder)
         ? baseOrder.map((item) => String(item || ''))
@@ -310,6 +407,7 @@ const createFolders = async () => {
         let prom = await Promise.all(folderReq.docker);
         // Parse the results
         let folders = JSON.parse(prom[0]);
+        const allDockerFolders = folders && typeof folders === 'object' ? folders : {};
         let unraidOrder = Object.values(JSON.parse(prom[1]));
         const containersInfo = JSON.parse(prom[2]);
         let order = Object.values(JSON.parse(prom[3]));
@@ -320,6 +418,8 @@ const createFolders = async () => {
             prefsResponse = {};
         }
         folderTypePrefs.docker = utils.normalizePrefs(prefsResponse?.prefs || {});
+        const dockerRootFolders = filterDashboardToRootFolders(allDockerFolders);
+        folders = dockerRootFolders;
         unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs.docker);
         applyDashboardRuntimePrefs();
         lastDashboardStateSignatures.docker = buildDockerStateSignature(containersInfo, false);
@@ -366,7 +466,8 @@ const createFolders = async () => {
             order: order,
             containersInfo: containersInfo
         }}));
-        const dockerMatchCache = buildDashboardDockerFolderMatchCache(order, containersInfo, folders, folderTypePrefs.docker);
+        const dockerFullMatchCache = buildDashboardDockerFolderMatchCache(order, containersInfo, allDockerFolders, folderTypePrefs.docker);
+        const dockerMatchCache = aggregateRootMatchCache(allDockerFolders, folders, dockerFullMatchCache);
 
         // Draw the folders in the order
         for (let key = 0; key < order.length; key++) {
@@ -451,6 +552,7 @@ const createFolders = async () => {
         const prom = await Promise.all(folderReq.vm);
         // Parse the results
         let folders = JSON.parse(prom[0]);
+        const allVmFolders = folders && typeof folders === 'object' ? folders : {};
         let unraidOrder = Object.values(JSON.parse(prom[1]));
         const vmInfo = JSON.parse(prom[2]);
         let order = Object.values(JSON.parse(prom[3]));
@@ -461,6 +563,8 @@ const createFolders = async () => {
             prefsResponse = {};
         }
         folderTypePrefs.vm = utils.normalizePrefs(prefsResponse?.prefs || {});
+        const vmRootFolders = filterDashboardToRootFolders(allVmFolders);
+        folders = vmRootFolders;
         unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs.vm);
         applyDashboardRuntimePrefs();
         lastDashboardStateSignatures.vm = buildVmStateSignature(vmInfo, false);
@@ -507,7 +611,8 @@ const createFolders = async () => {
             order: order,
             vmInfo: vmInfo
         }}));
-        const vmMatchCache = buildDashboardVmFolderMatchCache(order, vmInfo, folders, folderTypePrefs.vm);
+        const vmFullMatchCache = buildDashboardVmFolderMatchCache(order, vmInfo, allVmFolders, folderTypePrefs.vm);
+        const vmMatchCache = aggregateRootMatchCache(allVmFolders, folders, vmFullMatchCache);
 
         // Draw the folders in the order
         for (let key = 0; key < order.length; key++) {
@@ -1250,8 +1355,11 @@ const folderDockerCustomAction = async (id, action) => {
     let act = folder.actions[action];
     let prom = [];
     if(act.type === 0) {
-        const cts = act.conatiners.map(e => folder.containers[e]).filter(e => e);
-        let ctAction = (e) => {};
+        const actionContainers = Array.isArray(act.conatiners)
+            ? act.conatiners
+            : (Array.isArray(act.containers) ? act.containers : []);
+        const cts = actionContainers.map(e => folder.containers[e]).filter(e => e);
+        let ctAction = null;
         if(act.action === 0) {
 
             if(act.modes === 0) {
@@ -1310,9 +1418,14 @@ const folderDockerCustomAction = async (id, action) => {
 
         }
 
-        cts.forEach((e) => {
-            ctAction(e);
-        });
+        if (typeof ctAction === 'function') {
+            cts.forEach((e) => {
+                ctAction(e);
+            });
+        } else {
+            const unsupportedLabel = `action=${act.action}, mode=${act.modes}`;
+            console.warn(`folderview.plus: Unsupported Docker dashboard custom action configuration (${unsupportedLabel}) for folder "${folder.name || id}".`);
+        }
     } else if(act.type === 1) {
         const args = act.script_args || '';
         if(act.script_sync) {
@@ -1570,8 +1683,11 @@ const folderVMCustomAction = async (id, action) => {
     let act = folder.actions[action];
     let prom = [];
     if(act.type === 0) {
-        const cts = act.conatiners.map(e => folder.containers[e]).filter(e => e);
-        let ctAction = (e) => {};
+        const actionContainers = Array.isArray(act.conatiners)
+            ? act.conatiners
+            : (Array.isArray(act.containers) ? act.containers : []);
+        const cts = actionContainers.map(e => folder.containers[e]).filter(e => e);
+        let ctAction = null;
         if(act.action === 0) {
 
             if(act.modes === 0) {
@@ -1630,9 +1746,14 @@ const folderVMCustomAction = async (id, action) => {
 
         }
 
-        cts.forEach((e) => {
-            ctAction(e);
-        });
+        if (typeof ctAction === 'function') {
+            cts.forEach((e) => {
+                ctAction(e);
+            });
+        } else {
+            const unsupportedLabel = `action=${act.action}, mode=${act.modes}`;
+            console.warn(`folderview.plus: Unsupported VM dashboard custom action configuration (${unsupportedLabel}) for folder "${folder.name || id}".`);
+        }
     } else if(act.type === 1) {
         const args = act.script_args || '';
         if(act.script_sync) {

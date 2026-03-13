@@ -68,16 +68,13 @@ let quickFolderFilterByType = {
 };
 const DEFAULT_COLUMN_VISIBILITY_BY_TYPE = Object.freeze({
     docker: Object.freeze({
-        members: true,
         status: true,
         rules: true,
         lastChanged: true,
         pinned: true,
-        updates: true,
-        health: true
+        signals: true
     }),
     vm: Object.freeze({
-        members: false,
         status: false,
         rules: false,
         lastChanged: false,
@@ -90,6 +87,10 @@ let columnVisibilityByType = {
     docker: { ...DEFAULT_COLUMN_VISIBILITY_BY_TYPE.docker },
     vm: { ...DEFAULT_COLUMN_VISIBILITY_BY_TYPE.vm }
 };
+let collapsedTreeParentsByType = {
+    docker: new Set(),
+    vm: new Set()
+};
 let statusSnapshotByType = {
     docker: {},
     vm: {}
@@ -98,6 +99,14 @@ let dockerUpdatesOnlyFilter = false;
 let activityFeedEntries = [];
 let toastSerial = 0;
 const pendingUndoTimers = new Map();
+const treeMoveUndoTimersByType = {
+    docker: null,
+    vm: null
+};
+let treeMoveUndoNoticeByType = {
+    docker: null,
+    vm: null
+};
 let rowLongPressByType = {
     docker: null,
     vm: null
@@ -109,6 +118,14 @@ let rowFocusTimersByType = {
 let rowDetailsDrawerByType = {
     docker: null,
     vm: null
+};
+let folderTreeMoveErrorsByType = {
+    docker: {},
+    vm: {}
+};
+let folderTreeMoveErrorTimersByType = {
+    docker: {},
+    vm: {}
 };
 let importSelectionState = null;
 let importDiffPagingState = {
@@ -166,6 +183,7 @@ const ACTION_DOCK_AUTOCOLLAPSE_MS = 5000;
 const IMPORT_PRESET_DEFAULT_ID = 'builtin:merge';
 const UNDO_WINDOW_MS = 10000;
 const ROW_FOCUS_HIGHLIGHT_MS = 2200;
+const SETTINGS_TABLE_COLUMN_COUNT = 10;
 const IMPORT_PRESET_BUILTINS = [
     {
         id: 'builtin:merge',
@@ -1815,6 +1833,26 @@ const initSettingsControls = () => {
     $('#fv-run-wizard').off('click.fvui').on('click.fvui', () => {
         runQuickSetupWizard(true);
     });
+    $(document).off('click.fvemptyactions', '[data-fv-empty-action]').on('click.fvemptyactions', '[data-fv-empty-action]', async (event) => {
+        event.preventDefault();
+        const action = String($(event.currentTarget).attr('data-fv-empty-action') || '').trim().toLowerCase();
+        const type = String($(event.currentTarget).attr('data-fv-type') || '').trim().toLowerCase();
+        if (action === 'create') {
+            await quickCreateStarterFolder(type === 'vm' ? 'vm' : 'docker');
+            return;
+        }
+        if (action === 'import') {
+            if (type === 'vm') {
+                importVm();
+                return;
+            }
+            importDocker();
+            return;
+        }
+        if (action === 'wizard') {
+            runQuickSetupWizard(true);
+        }
+    });
 
     $(document).off('input.fvhealth change.fvhealth', 'input,select,textarea').on('input.fvhealth change.fvhealth', 'input,select,textarea', () => {
         refreshInputInvalidStyles();
@@ -2220,6 +2258,11 @@ const normalizeStatusMode = (value) => (
     String(value || '').trim().toLowerCase() === 'dominant' ? 'dominant' : 'summary'
 );
 
+const normalizeStatusDisplayMode = (value) => {
+    const mode = String(value || '').trim().toLowerCase();
+    return ['simple', 'balanced', 'detailed'].includes(mode) ? mode : 'balanced';
+};
+
 const normalizeStatusPrefs = (type, prefsOverride = null) => {
     const source = prefsOverride ? utils.normalizePrefs(prefsOverride) : utils.normalizePrefs(prefsByType[type]);
     const incoming = source?.status && typeof source.status === 'object' ? source.status : {};
@@ -2227,6 +2270,7 @@ const normalizeStatusPrefs = (type, prefsOverride = null) => {
     const warnStoppedPercent = Number.isFinite(warnRaw) ? Math.min(100, Math.max(0, Math.round(warnRaw))) : 60;
     return {
         mode: normalizeStatusMode(incoming.mode),
+        displayMode: normalizeStatusDisplayMode(incoming.displayMode),
         trendEnabled: incoming.trendEnabled !== false,
         attentionAccent: incoming.attentionAccent !== false,
         warnStoppedPercent
@@ -5803,14 +5847,50 @@ const applyQuickProfilePreset = async (presetId) => {
     });
 };
 
+const promptStarterFolderName = async (type, suggestedName) => {
+    const resolvedType = normalizeManagedType(type);
+    const folderTypeLabel = resolvedType === 'docker' ? 'Docker' : 'VM';
+    const initialValue = String(suggestedName || '').trim() || `New ${folderTypeLabel} Folder`;
+    if (typeof window.swal !== 'function') {
+        const fallback = window.prompt(`Create ${folderTypeLabel} folder`, initialValue);
+        return String(fallback || '').trim();
+    }
+    return new Promise((resolve) => {
+        swal({
+            title: `Create ${folderTypeLabel} folder`,
+            text: 'Enter a folder name. You can change icon/settings after create.',
+            type: 'input',
+            inputValue: initialValue,
+            showCancelButton: true,
+            confirmButtonText: 'Create',
+            cancelButtonText: 'Cancel',
+            closeOnConfirm: false
+        }, (value) => {
+            if (value === false) {
+                resolve('');
+                return;
+            }
+            const name = String(value || '').trim();
+            if (!name) {
+                if (typeof swal.showInputError === 'function') {
+                    swal.showInputError('Folder name is required.');
+                }
+                return false;
+            }
+            swal.close();
+            resolve(name);
+            return true;
+        });
+    });
+};
+
 const quickCreateStarterFolder = async (type) => {
     const resolvedType = normalizeManagedType(type);
     if (!ensureRuntimeConflictActionAllowed(`Create ${resolvedType === 'docker' ? 'Docker' : 'VM'} folder`)) {
         return;
     }
     const suggestedName = resolvedType === 'docker' ? 'New Docker Folder' : 'New VM Folder';
-    const requestedName = window.prompt('Folder name:', suggestedName);
-    const name = String(requestedName || '').trim();
+    const name = await promptStarterFolderName(resolvedType, suggestedName);
     if (!name) {
         return;
     }
@@ -5818,7 +5898,7 @@ const quickCreateStarterFolder = async (type) => {
         name,
         icon: '/plugins/folderview.plus/images/folder-icon.png',
         containers: [],
-        settings: {},
+        settings: { preview_border: true, preview_border_color: '#afa89e' },
         actions: []
     };
     try {
@@ -5867,14 +5947,14 @@ const renderFirstRunQuickPathPanel = () => {
     const help = 'Use one of these shortcuts to get organized quickly. You can still adjust everything manually afterward.';
     const buttons = [];
     if (needsDocker) {
-        buttons.push('<button type="button" onclick="quickCreateStarterFolder(\'docker\')"><i class="fa fa-plus-circle"></i> Create Docker folder</button>');
-        buttons.push('<button type="button" onclick="importDocker()"><i class="fa fa-upload"></i> Import Docker config</button>');
+        buttons.push('<button type="button" data-fv-empty-action="create" data-fv-type="docker"><i class="fa fa-plus-circle"></i> Create Docker folder</button>');
+        buttons.push('<button type="button" data-fv-empty-action="import" data-fv-type="docker"><i class="fa fa-upload"></i> Import Docker config</button>');
     }
     if (needsVm) {
-        buttons.push('<button type="button" onclick="quickCreateStarterFolder(\'vm\')"><i class="fa fa-plus-circle"></i> Create VM folder</button>');
-        buttons.push('<button type="button" onclick="importVm()"><i class="fa fa-upload"></i> Import VM config</button>');
+        buttons.push('<button type="button" data-fv-empty-action="create" data-fv-type="vm"><i class="fa fa-plus-circle"></i> Create VM folder</button>');
+        buttons.push('<button type="button" data-fv-empty-action="import" data-fv-type="vm"><i class="fa fa-upload"></i> Import VM config</button>');
     }
-    buttons.push('<button type="button" onclick="runQuickSetupWizard(true)"><i class="fa fa-magic"></i> Open setup wizard</button>');
+    buttons.push('<button type="button" data-fv-empty-action="wizard"><i class="fa fa-magic"></i> Open setup wizard</button>');
 
     panel.html(`
         <div class="fv-first-run-title">${escapeHtml(title)}</div>
@@ -6012,6 +6092,9 @@ const runVmRowDrawerAction = async (action, folderId) => {
     }
     const handlers = {
         pin: () => toggleFolderPin('vm', id),
+        root: () => moveFolderToRootQuick('vm', id),
+        under: () => moveFolderUnderDialog('vm', id),
+        tree: () => openFolderTreeMoveDialog('vm', id),
         status: () => {
             showFolderStatusBreakdown('vm', id);
             return Promise.resolve();
@@ -6028,6 +6111,9 @@ const runVmRowDrawerAction = async (action, folderId) => {
 const buildVmRowDetailsDrawerHtml = (folderId, folder, summary, pinned) => {
     const safeFolderName = escapeHtml(String(folder?.name || folderId || 'VM folder'));
     const safeFolderId = escapeHtml(String(folderId || ''));
+    const hierarchyMeta = buildFolderHierarchyMeta(getFolderMap('vm'));
+    const hasParent = Boolean(String(hierarchyMeta.parentById?.[String(folderId || '')] || '').trim());
+    const treeMoveAvailable = canFolderUseTreeMove('vm', folderId, hierarchyMeta);
     const resourceTitle = escapeHtml(String(summary?.resourceThresholds || ''));
     const chips = summary?.resourceChips && typeof summary.resourceChips === 'object'
         ? summary.resourceChips
@@ -6047,12 +6133,15 @@ const buildVmRowDetailsDrawerHtml = (folderId, folder, summary, pinned) => {
         `<div class="fv-row-details-item"><span>${escapeHtml(String(label))}</span><strong>${escapeHtml(String(value))}</strong></div>`
     )).join('');
     const actions = [
-        ['pin', pinned ? 'fa-star-o' : 'fa-star', pinned ? 'Unpin' : 'Pin to top', ''],
-        ['status', 'fa-info-circle', 'Status breakdown', ''],
-        ['copy', 'fa-clipboard', 'Copy ID', ''],
-        ['export', 'fa-download', 'Export', ''],
-        ['delete', 'fa-trash', 'Delete', ' is-danger']
-    ].map(([action, icon, label, extraClass]) => (
+        ['pin', pinned ? 'fa-star-o' : 'fa-star', pinned ? 'Unpin' : 'Pin to top', '', true],
+        ['root', 'fa-level-up', 'Move to root', '', hasParent],
+        ['under', 'fa-level-down', 'Move under...', '', treeMoveAvailable],
+        ['tree', 'fa-sitemap', 'Tree move...', '', treeMoveAvailable],
+        ['status', 'fa-info-circle', 'Status breakdown', '', true],
+        ['copy', 'fa-clipboard', 'Copy ID', '', true],
+        ['export', 'fa-download', 'Export', '', true],
+        ['delete', 'fa-trash', 'Delete', ' is-danger', true]
+    ].filter(([, , , , isVisible]) => isVisible === true).map(([action, icon, label, extraClass]) => (
         `<button type="button" class="fv-row-quick-action${extraClass}" data-fv-vm-drawer-action="${escapeHtml(String(action))}" data-fv-vm-drawer-folder="${safeFolderId}"><i class="fa ${escapeHtml(String(icon))}"></i> ${escapeHtml(String(label))}</button>`
     )).join('');
     return `<div class="fv-row-details-panel"><div class="fv-row-details-head"><div class="fv-row-details-title">${safeFolderName}</div><div class="fv-row-details-meta">ID: <code>${safeFolderId}</code></div></div><div class="fv-row-details-grid">${detailRows}</div><div class="fv-row-details-resource"><span class="vm-resource-stack" title="${resourceTitle}"><span class="folder-metric-chip vm-resource-chip is-cpu ${escapeHtml(String(cpuChip.className || 'is-empty'))}" title="${escapeHtml(String(cpuChip.title || ''))}"><i class="fa fa-microchip" aria-hidden="true"></i><span class="vm-resource-value">${escapeHtml(String(cpuChip.text || '0 vCPU'))}</span></span><span class="folder-metric-chip vm-resource-chip is-ram ${escapeHtml(String(memoryChip.className || 'is-empty'))}" title="${escapeHtml(String(memoryChip.title || ''))}"><i class="fa fa-hdd-o" aria-hidden="true"></i><span class="vm-resource-value">${escapeHtml(String(memoryChip.text || '0 GB RAM'))}</span></span><span class="folder-metric-chip vm-resource-chip is-storage ${escapeHtml(String(storageChip.className || 'is-empty'))}" title="${escapeHtml(String(storageChip.title || ''))}"><i class="fa fa-database" aria-hidden="true"></i><span class="vm-resource-value">${escapeHtml(String(storageChip.text || '0 B Storage'))}</span></span></span></div><div class="fv-row-details-actions">${actions}</div></div>`;
@@ -6083,7 +6172,7 @@ const toggleVmRowDetailsDrawer = (folderId) => {
     const summary = buildFolderQuickActionSummary('vm', id);
     const pinned = isFolderPinned('vm', id);
     const drawerHtml = buildVmRowDetailsDrawerHtml(id, folder, summary, pinned);
-    const drawerRow = `<tr class="fv-row-details-drawer" data-folder-id="${escapeHtml(id)}"><td colspan="${TABLE_COLUMN_COUNT}">${drawerHtml}</td></tr>`;
+    const drawerRow = `<tr class="fv-row-details-drawer" data-folder-id="${escapeHtml(id)}"><td colspan="${SETTINGS_TABLE_COLUMN_COUNT}">${drawerHtml}</td></tr>`;
     row.after(drawerRow);
     row.addClass('is-details-open');
     rowDetailsDrawerByType.vm = { folderId: id };
@@ -6102,15 +6191,30 @@ const showFolderRowQuickActions = (type, folderId) => {
     }
     const summary = buildFolderQuickActionSummary(resolvedType, folderId);
     const pinned = isFolderPinned(resolvedType, folderId);
+    const hierarchyMeta = buildFolderHierarchyMeta(folderMap);
+    const hasParent = Boolean(String(hierarchyMeta.parentById?.[String(folderId || '')] || '').trim());
+    const treeMoveAvailable = canFolderUseTreeMove(resolvedType, folderId, hierarchyMeta);
     const safeFolderName = escapeHtml(String(folder.name || folderId));
     const safeFolderId = escapeHtml(String(folderId || ''));
     const typeLabel = resolvedType === 'docker' ? 'Docker' : 'VM';
+    const rootActionHtml = hasParent
+        ? '<button type="button" class="fv-row-quick-action" data-action="root"><i class="fa fa-level-up"></i> Move to root</button>'
+        : '';
+    const treeActionHtml = treeMoveAvailable
+        ? '<button type="button" class="fv-row-quick-action" data-action="tree"><i class="fa fa-sitemap"></i> Tree move...</button>'
+        : '';
+    const underActionHtml = treeMoveAvailable
+        ? '<button type="button" class="fv-row-quick-action" data-action="under"><i class="fa fa-level-down"></i> Move under...</button>'
+        : '';
     const html = `
         <div class="fv-row-quick-actions">
             <div class="fv-row-quick-actions-meta">${typeLabel} folder ID: <code>${safeFolderId}</code></div>
             ${renderFolderQuickActionSummaryHtml(summary)}
             <div class="fv-row-quick-actions-grid">
                 <button type="button" class="fv-row-quick-action" data-action="pin"><i class="fa ${pinned ? 'fa-star-o' : 'fa-star'}"></i> ${pinned ? 'Unpin' : 'Pin to top'}</button>
+                ${rootActionHtml}
+                ${underActionHtml}
+                ${treeActionHtml}
                 <button type="button" class="fv-row-quick-action" data-action="status"><i class="fa fa-info-circle"></i> Status breakdown</button>
                 <button type="button" class="fv-row-quick-action" data-action="copy"><i class="fa fa-clipboard"></i> Copy ID</button>
                 <button type="button" class="fv-row-quick-action" data-action="export"><i class="fa fa-download"></i> Export folder</button>
@@ -6131,6 +6235,18 @@ const showFolderRowQuickActions = (type, folderId) => {
             swal.close();
             if (action === 'pin') {
                 void toggleFolderPin(resolvedType, folderId);
+                return;
+            }
+            if (action === 'root') {
+                void moveFolderToRootQuick(resolvedType, folderId);
+                return;
+            }
+            if (action === 'under') {
+                moveFolderUnderDialog(resolvedType, folderId);
+                return;
+            }
+            if (action === 'tree') {
+                openFolderTreeMoveDialog(resolvedType, folderId);
                 return;
             }
             if (action === 'status') {
@@ -6773,16 +6889,13 @@ const runtimePreviewText = (type, folderId, action, plan) => {
 
 const TABLE_COLUMN_SELECTOR_MAP = Object.freeze({
     docker: Object.freeze({
-        members: Object.freeze({ header: '.col-members', cell: '.members-cell' }),
         status: Object.freeze({ header: '.col-status', cell: '.status-cell' }),
         rules: Object.freeze({ header: '.col-rules', cell: '.rules-cell' }),
         lastChanged: Object.freeze({ header: '.col-last-changed', cell: '.last-changed-cell' }),
         pinned: Object.freeze({ header: '.col-pinned', cell: '.pinned-cell' }),
-        updates: Object.freeze({ header: '.col-updates', cell: '.updates-cell' }),
-        health: Object.freeze({ header: '.col-health', cell: '.health-cell' })
+        signals: Object.freeze({ header: '.col-signals', cell: '.signals-cell' })
     }),
     vm: Object.freeze({
-        members: Object.freeze({ header: '.col-members', cell: '.members-cell' }),
         status: Object.freeze({ header: '.col-status', cell: '.status-cell' }),
         rules: Object.freeze({ header: '.col-rules', cell: '.rules-cell' }),
         lastChanged: Object.freeze({ header: '.col-last-changed', cell: '.last-changed-cell' }),
@@ -6801,6 +6914,15 @@ const normalizeColumnVisibilityForType = (type, value = null) => {
     Object.keys(defaults).forEach((key) => {
         normalized[key] = source[key] !== false;
     });
+    // Legacy bridge: old docker prefs used separate updates/health columns.
+    // Preserve previous "both hidden" intent when migrating to unified Signals.
+    if (resolvedType === 'docker' && !Object.prototype.hasOwnProperty.call(source, 'signals')) {
+        const updatesHidden = source.updates === false;
+        const healthHidden = source.health === false;
+        if (updatesHidden && healthHidden) {
+            normalized.signals = false;
+        }
+    }
     return normalized;
 };
 
@@ -6826,6 +6948,10 @@ const buildTableUiStatePayload = () => ({
         vm: normalizeStatusFilterMode(statusFilterByType.vm)
     },
     dockerUpdatesOnlyFilter: dockerUpdatesOnlyFilter === true,
+    treeCollapsed: {
+        docker: Array.from(collapsedTreeParentsByType.docker || []),
+        vm: Array.from(collapsedTreeParentsByType.vm || [])
+    },
     columns: {
         docker: { ...(columnVisibilityByType.docker || {}) },
         vm: { ...(columnVisibilityByType.vm || {}) }
@@ -6853,6 +6979,7 @@ const restoreTableUiState = () => {
         const sourceHealth = source.health && typeof source.health === 'object' ? source.health : {};
         const sourceHealthSeverity = source.healthSeverity && typeof source.healthSeverity === 'object' ? source.healthSeverity : {};
         const sourceStatus = source.status && typeof source.status === 'object' ? source.status : {};
+        const sourceTreeCollapsed = source.treeCollapsed && typeof source.treeCollapsed === 'object' ? source.treeCollapsed : {};
         const sourceColumns = source.columns && typeof source.columns === 'object' ? source.columns : {};
         ['docker', 'vm'].forEach((resolvedType) => {
             const perTypeFilters = sourceFilters[resolvedType] && typeof sourceFilters[resolvedType] === 'object'
@@ -6868,6 +6995,11 @@ const restoreTableUiState = () => {
             healthFilterByType[resolvedType] = normalizeHealthFilterMode(sourceHealth[resolvedType]);
             healthSeverityFilterByType[resolvedType] = normalizeHealthSeverityFilterMode(sourceHealthSeverity[resolvedType]);
             statusFilterByType[resolvedType] = normalizeStatusFilterMode(sourceStatus[resolvedType]);
+            collapsedTreeParentsByType[resolvedType] = new Set(
+                Array.isArray(sourceTreeCollapsed[resolvedType])
+                    ? sourceTreeCollapsed[resolvedType].map((id) => String(id || '').trim()).filter(Boolean)
+                    : []
+            );
             columnVisibilityByType[resolvedType] = normalizeColumnVisibilityForType(resolvedType, sourceColumns[resolvedType]);
         });
         dockerUpdatesOnlyFilter = source.dockerUpdatesOnlyFilter === true;
@@ -8150,11 +8282,48 @@ const normalizeFocusableFolderId = (type, folderId) => {
     }
 };
 
+const expandAncestorChainForFolder = (type, folderId) => {
+    const target = normalizeFocusableFolderId(type, folderId);
+    if (!target) {
+        return false;
+    }
+    const folders = getFolderMap(target.type);
+    if (!Object.prototype.hasOwnProperty.call(folders, target.id)) {
+        return false;
+    }
+    const hierarchyMeta = buildFolderHierarchyMeta(folders);
+    const collapsed = syncCollapsedTreeParentsForType(target.type, folders, hierarchyMeta);
+    if (collapsed.size <= 0) {
+        return false;
+    }
+    let changed = false;
+    const visited = new Set([target.id]);
+    let cursor = String(hierarchyMeta.parentById?.[target.id] || '').trim();
+    while (cursor) {
+        if (collapsed.has(cursor)) {
+            collapsed.delete(cursor);
+            changed = true;
+        }
+        if (visited.has(cursor)) {
+            break;
+        }
+        visited.add(cursor);
+        cursor = String(hierarchyMeta.parentById?.[cursor] || '').trim();
+    }
+    if (changed) {
+        collapsedTreeParentsByType[target.type] = collapsed;
+        persistTableUiState();
+        renderTable(target.type);
+    }
+    return changed;
+};
+
 const focusFolderRow = (type, folderId) => {
     const target = normalizeFocusableFolderId(type, folderId);
     if (!target) {
         return false;
     }
+    expandAncestorChainForFolder(target.type, target.id);
     const tbodyId = tableIdByType[target.type];
     const row = $(`tbody#${tbodyId} tr[data-folder-id]`).filter((_, element) => (
         String($(element).attr('data-folder-id') || '') === target.id
@@ -9135,9 +9304,428 @@ const offerUndoAction = async (type, backup, actionLabel) => {
     });
 };
 
+const treeUndoBannerSelectorByType = Object.freeze({
+    docker: '#docker-tree-undo-banner',
+    vm: '#vm-tree-undo-banner'
+});
+
+const clearTreeMoveUndoTimer = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    if (treeMoveUndoTimersByType[resolvedType]) {
+        window.clearTimeout(treeMoveUndoTimersByType[resolvedType]);
+        treeMoveUndoTimersByType[resolvedType] = null;
+    }
+};
+
+const dismissTreeMoveUndoBanner = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    clearTreeMoveUndoTimer(resolvedType);
+    treeMoveUndoNoticeByType[resolvedType] = null;
+    renderTreeMoveUndoBanner(resolvedType);
+};
+
+const renderTreeMoveUndoBanner = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const selector = treeUndoBannerSelectorByType[resolvedType];
+    const host = selector ? $(selector) : $();
+    if (!host.length) {
+        return;
+    }
+    const notice = treeMoveUndoNoticeByType[resolvedType];
+    if (!notice || !notice.backupName) {
+        host.addClass('is-hidden').empty();
+        return;
+    }
+    const actionLabel = String(notice.actionLabel || 'Tree change').trim();
+    const backupName = String(notice.backupName || '').trim();
+    const expiresAt = Number(notice.expiresAt || 0);
+    const remainingMs = Number.isFinite(expiresAt) ? Math.max(0, expiresAt - Date.now()) : 0;
+    if (remainingMs <= 0) {
+        dismissTreeMoveUndoBanner(resolvedType);
+        return;
+    }
+    const remainingSeconds = Math.max(1, Math.ceil(remainingMs / 1000));
+    host
+        .removeClass('is-hidden')
+        .html(`
+            <div class="fv-tree-undo-message">
+                <strong>${escapeHtml(actionLabel)} applied.</strong>
+                <span>Undo available for ${remainingSeconds}s.</span>
+            </div>
+            <div class="fv-tree-undo-actions">
+                <button type="button" class="fv-tree-undo-btn" data-fv-tree-undo-type="${escapeHtml(resolvedType)}"><i class="fa fa-undo"></i> Undo</button>
+                <button type="button" class="fv-tree-undo-dismiss" data-fv-tree-dismiss-type="${escapeHtml(resolvedType)}"><i class="fa fa-times"></i> Dismiss</button>
+            </div>
+        `);
+
+    host.find('[data-fv-tree-undo-type]')
+        .off('click.fvtreeundo')
+        .on('click.fvtreeundo', async (event) => {
+            event.preventDefault();
+            const targetType = String($(event.currentTarget).attr('data-fv-tree-undo-type') || '').trim();
+            if (!targetType) {
+                return;
+            }
+            await applyTreeMoveUndo(targetType);
+        });
+    host.find('[data-fv-tree-dismiss-type]')
+        .off('click.fvtreeundo')
+        .on('click.fvtreeundo', (event) => {
+            event.preventDefault();
+            const targetType = String($(event.currentTarget).attr('data-fv-tree-dismiss-type') || '').trim();
+            if (!targetType) {
+                return;
+            }
+            dismissTreeMoveUndoBanner(targetType);
+        });
+    host.attr('title', backupName);
+};
+
+const queueTreeMoveUndoBanner = (type, backupName, actionLabel, focusFolderId = '') => {
+    const resolvedType = normalizeManagedType(type);
+    const safeBackupName = String(backupName || '').trim();
+    if (!safeBackupName) {
+        return;
+    }
+    clearTreeMoveUndoTimer(resolvedType);
+    treeMoveUndoNoticeByType[resolvedType] = {
+        backupName: safeBackupName,
+        actionLabel: String(actionLabel || 'Tree change').trim(),
+        focusFolderId: String(focusFolderId || '').trim(),
+        expiresAt: Date.now() + UNDO_WINDOW_MS
+    };
+    treeMoveUndoTimersByType[resolvedType] = window.setTimeout(() => {
+        dismissTreeMoveUndoBanner(resolvedType);
+    }, UNDO_WINDOW_MS);
+    renderTreeMoveUndoBanner(resolvedType);
+};
+
+const applyTreeMoveUndo = async (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const notice = treeMoveUndoNoticeByType[resolvedType];
+    if (!notice?.backupName) {
+        dismissTreeMoveUndoBanner(resolvedType);
+        return;
+    }
+    const focusFolderId = String(notice.focusFolderId || '').trim();
+    const backupName = String(notice.backupName || '').trim();
+    dismissTreeMoveUndoBanner(resolvedType);
+    try {
+        await restoreBackupByName(resolvedType, backupName);
+        await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
+        if (focusFolderId) {
+            focusFolderRow(resolvedType, focusFolderId);
+        }
+        addActivityEntry(`Undo complete: restored ${backupName}.`, 'success');
+        showToastMessage({
+            title: 'Undo complete',
+            message: `Restored ${backupName}`,
+            level: 'success',
+            durationMs: 3200
+        });
+    } catch (error) {
+        showError('Undo failed', error);
+    }
+};
+
+const TREE_MOVE_PLACEMENTS = new Set(['before', 'after', 'inside']);
+
+const normalizeTreeMovePlacement = (value) => (
+    TREE_MOVE_PLACEMENTS.has(String(value || '').trim().toLowerCase())
+        ? String(value || '').trim().toLowerCase()
+        : 'inside'
+);
+
+const buildFolderHierarchyMeta = (foldersInput) => {
+    const folders = utils.normalizeFolderMap(foldersInput || {});
+    const ids = Object.keys(folders);
+    const idSet = new Set(ids);
+    const parentById = {};
+    const childrenById = {};
+    const depthById = {};
+    const descendantsById = {};
+    const indexById = new Map(ids.map((id, index) => [id, index]));
+
+    for (const id of ids) {
+        childrenById[id] = [];
+    }
+
+    for (const id of ids) {
+        const rawParent = String(folders[id]?.parentId || '').trim();
+        const safeParent = (rawParent && rawParent !== id && idSet.has(rawParent)) ? rawParent : '';
+        parentById[id] = safeParent;
+        if (safeParent) {
+            childrenById[safeParent].push(id);
+        }
+    }
+
+    const sortBySourceOrder = (left, right) => (
+        (indexById.get(left) || 0) - (indexById.get(right) || 0)
+    );
+    for (const children of Object.values(childrenById)) {
+        children.sort(sortBySourceOrder);
+    }
+
+    const visitedDepth = new Set();
+    const assignDepth = (id, depth, path = new Set()) => {
+        if (!idSet.has(id) || path.has(id)) {
+            return;
+        }
+        const nextPath = new Set(path);
+        nextPath.add(id);
+        if (!Object.prototype.hasOwnProperty.call(depthById, id)) {
+            depthById[id] = depth;
+        } else {
+            depthById[id] = Math.min(depthById[id], depth);
+        }
+        for (const childId of (childrenById[id] || [])) {
+            assignDepth(childId, depth + 1, nextPath);
+        }
+        visitedDepth.add(id);
+    };
+
+    const rootIds = ids.filter((id) => !parentById[id]);
+    rootIds.sort(sortBySourceOrder);
+    for (const rootId of rootIds) {
+        assignDepth(rootId, 0);
+    }
+    for (const id of ids) {
+        if (!visitedDepth.has(id)) {
+            assignDepth(id, 0);
+        }
+    }
+
+    const collectDescendants = (id, path = new Set()) => {
+        if (!idSet.has(id) || path.has(id)) {
+            return [];
+        }
+        const nextPath = new Set(path);
+        nextPath.add(id);
+        const output = [];
+        for (const childId of (childrenById[id] || [])) {
+            if (!output.includes(childId)) {
+                output.push(childId);
+            }
+            const childDescendants = collectDescendants(childId, nextPath);
+            for (const descendantId of childDescendants) {
+                if (!output.includes(descendantId)) {
+                    output.push(descendantId);
+                }
+            }
+        }
+        return output;
+    };
+
+    for (const id of ids) {
+        descendantsById[id] = collectDescendants(id);
+    }
+
+    return {
+        ids,
+        idSet,
+        parentById,
+        childrenById,
+        depthById,
+        descendantsById
+    };
+};
+
+const areStringSetsEqual = (left, right) => {
+    if (!(left instanceof Set) || !(right instanceof Set)) {
+        return false;
+    }
+    if (left.size !== right.size) {
+        return false;
+    }
+    for (const value of left) {
+        if (!right.has(value)) {
+            return false;
+        }
+    }
+    return true;
+};
+
+const normalizeCollapsedTreeParentsForType = (type, foldersInput = null, hierarchyMeta = null) => {
+    const resolvedType = normalizeManagedType(type);
+    const folders = foldersInput && typeof foldersInput === 'object'
+        ? utils.normalizeFolderMap(foldersInput)
+        : getFolderMap(resolvedType);
+    const meta = hierarchyMeta || buildFolderHierarchyMeta(folders);
+    const source = collapsedTreeParentsByType[resolvedType] instanceof Set
+        ? collapsedTreeParentsByType[resolvedType]
+        : new Set();
+    const normalized = new Set();
+    for (const rawId of source) {
+        const id = String(rawId || '').trim();
+        if (!id || !meta.idSet.has(id)) {
+            continue;
+        }
+        if (Array.isArray(meta.childrenById[id]) && meta.childrenById[id].length > 0) {
+            normalized.add(id);
+        }
+    }
+    return normalized;
+};
+
+const syncCollapsedTreeParentsForType = (type, foldersInput = null, hierarchyMeta = null, { persist = false } = {}) => {
+    const resolvedType = normalizeManagedType(type);
+    const normalized = normalizeCollapsedTreeParentsForType(resolvedType, foldersInput, hierarchyMeta);
+    const previous = collapsedTreeParentsByType[resolvedType] instanceof Set
+        ? collapsedTreeParentsByType[resolvedType]
+        : new Set();
+    const changed = !areStringSetsEqual(previous, normalized);
+    collapsedTreeParentsByType[resolvedType] = normalized;
+    if (persist || changed) {
+        persistTableUiState();
+    }
+    return normalized;
+};
+
+const isFolderHiddenByCollapsedAncestor = (folderId, parentById, collapsedSet) => {
+    const safeFolderId = String(folderId || '').trim();
+    if (!safeFolderId || !(collapsedSet instanceof Set) || collapsedSet.size <= 0) {
+        return false;
+    }
+    const visited = new Set([safeFolderId]);
+    let cursor = String(parentById?.[safeFolderId] || '').trim();
+    while (cursor) {
+        if (collapsedSet.has(cursor)) {
+            return true;
+        }
+        if (visited.has(cursor)) {
+            break;
+        }
+        visited.add(cursor);
+        cursor = String(parentById?.[cursor] || '').trim();
+    }
+    return false;
+};
+
+const canFolderUseTreeMove = (type, sourceFolderId, hierarchyMeta = null) => {
+    const resolvedType = normalizeManagedType(type);
+    const safeFolderId = String(sourceFolderId || '').trim();
+    if (!safeFolderId) {
+        return false;
+    }
+    const folders = getFolderMap(resolvedType);
+    if (!Object.prototype.hasOwnProperty.call(folders, safeFolderId)) {
+        return false;
+    }
+    const meta = hierarchyMeta || buildFolderHierarchyMeta(folders);
+    const blocked = new Set([safeFolderId, ...(meta.descendantsById[safeFolderId] || [])]);
+    for (const candidateId of Object.keys(folders)) {
+        if (!blocked.has(candidateId)) {
+            return true;
+        }
+    }
+    return false;
+};
+
+const toggleFolderTreeCollapse = (type, folderId) => {
+    const resolvedType = normalizeManagedType(type);
+    const safeFolderId = String(folderId || '').trim();
+    if (!safeFolderId) {
+        return;
+    }
+    const folders = getFolderMap(resolvedType);
+    if (!Object.prototype.hasOwnProperty.call(folders, safeFolderId)) {
+        return;
+    }
+    const hierarchyMeta = buildFolderHierarchyMeta(folders);
+    const children = Array.isArray(hierarchyMeta.childrenById[safeFolderId])
+        ? hierarchyMeta.childrenById[safeFolderId]
+        : [];
+    if (children.length <= 0) {
+        return;
+    }
+    const collapsed = syncCollapsedTreeParentsForType(resolvedType, folders, hierarchyMeta);
+    if (collapsed.has(safeFolderId)) {
+        collapsed.delete(safeFolderId);
+    } else {
+        collapsed.add(safeFolderId);
+    }
+    collapsedTreeParentsByType[resolvedType] = collapsed;
+    persistTableUiState();
+    renderTable(resolvedType);
+};
+
+const expandAllFolderTrees = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    collapsedTreeParentsByType[resolvedType] = new Set();
+    persistTableUiState();
+    renderTable(resolvedType);
+};
+
+const collapseAllFolderTrees = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const folders = getFolderMap(resolvedType);
+    const hierarchyMeta = buildFolderHierarchyMeta(folders);
+    const collapsed = new Set();
+    Object.entries(hierarchyMeta.childrenById || {}).forEach(([folderId, children]) => {
+        if (Array.isArray(children) && children.length > 0) {
+            collapsed.add(String(folderId || ''));
+        }
+    });
+    collapsedTreeParentsByType[resolvedType] = collapsed;
+    persistTableUiState();
+    renderTable(resolvedType);
+};
+
+const getOrderedFolderIdsForTreeOps = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const orderedMap = utils.orderFoldersByPrefs(getFolderMap(resolvedType), prefsByType[resolvedType] || {});
+    return Object.keys(orderedMap);
+};
+
+const findLastMatchingOrderIndex = (orderIds, candidateIds) => {
+    const list = Array.isArray(orderIds) ? orderIds : [];
+    const candidates = new Set(Array.isArray(candidateIds) ? candidateIds : []);
+    for (let index = list.length - 1; index >= 0; index -= 1) {
+        if (candidates.has(String(list[index] || ''))) {
+            return index;
+        }
+    }
+    return -1;
+};
+
+const clearFolderTreeMoveError = (type, folderId, { rerender = true } = {}) => {
+    const resolvedType = normalizeManagedType(type);
+    const safeFolderId = String(folderId || '').trim();
+    if (!safeFolderId) {
+        return;
+    }
+    if (folderTreeMoveErrorTimersByType[resolvedType]?.[safeFolderId]) {
+        window.clearTimeout(folderTreeMoveErrorTimersByType[resolvedType][safeFolderId]);
+        delete folderTreeMoveErrorTimersByType[resolvedType][safeFolderId];
+    }
+    if (folderTreeMoveErrorsByType[resolvedType]?.[safeFolderId]) {
+        delete folderTreeMoveErrorsByType[resolvedType][safeFolderId];
+        if (rerender) {
+            renderTable(resolvedType);
+        }
+    }
+};
+
+const setFolderTreeMoveError = (type, folderId, message) => {
+    const resolvedType = normalizeManagedType(type);
+    const safeFolderId = String(folderId || '').trim();
+    const safeMessage = String(message || '').trim();
+    if (!safeFolderId || !safeMessage) {
+        return;
+    }
+    folderTreeMoveErrorsByType[resolvedType][safeFolderId] = safeMessage;
+    if (folderTreeMoveErrorTimersByType[resolvedType]?.[safeFolderId]) {
+        window.clearTimeout(folderTreeMoveErrorTimersByType[resolvedType][safeFolderId]);
+    }
+    folderTreeMoveErrorTimersByType[resolvedType][safeFolderId] = window.setTimeout(() => {
+        clearFolderTreeMoveError(resolvedType, safeFolderId);
+    }, 7000);
+    renderTable(resolvedType);
+};
+
 const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = false, healthMetrics = null, statusContext = null) => {
     const isDockerType = type === 'docker';
-    const TABLE_COLUMN_COUNT = 10;
+    const TABLE_COLUMN_COUNT = SETTINGS_TABLE_COLUMN_COUNT;
     const folderCount = Object.keys(folders || {}).length;
     const dockerHealthPrefs = isDockerType ? normalizeHealthPrefs('docker') : null;
     const statusPrefs = normalizeStatusPrefs(type);
@@ -9150,13 +9738,37 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
     const previousStatusSnapshot = statusContext?.previous && typeof statusContext.previous === 'object'
         ? statusContext.previous
         : {};
+    const hierarchyMeta = statusContext?.hierarchyMeta && typeof statusContext.hierarchyMeta === 'object'
+        ? statusContext.hierarchyMeta
+        : buildFolderHierarchyMeta(folders);
+    const collapsedParents = statusContext?.collapsedParents instanceof Set
+        ? statusContext.collapsedParents
+        : syncCollapsedTreeParentsForType(type, folders, hierarchyMeta);
+    const treeErrors = folderTreeMoveErrorsByType[type] && typeof folderTreeMoveErrorsByType[type] === 'object'
+        ? folderTreeMoveErrorsByType[type]
+        : {};
     for (const [id, folder] of Object.entries(folders)) {
         const nameText = String(folder.name || '');
         const haystack = `${String(id)} ${nameText}`.toLowerCase();
         if (filter && !haystack.includes(filter)) {
             continue;
         }
+        if (!filter && isFolderHiddenByCollapsedAncestor(id, hierarchyMeta.parentById, collapsedParents)) {
+            continue;
+        }
         const members = Array.isArray(memberSnapshot[id]?.members) ? memberSnapshot[id].members : [];
+        const directMemberCount = members.length;
+        const descendantIds = Array.isArray(hierarchyMeta?.descendantsById?.[id]) ? hierarchyMeta.descendantsById[id] : [];
+        const totalMembersSet = new Set(members);
+        for (const descendantId of descendantIds) {
+            const descendantMembers = Array.isArray(memberSnapshot[descendantId]?.members)
+                ? memberSnapshot[descendantId].members
+                : [];
+            for (const member of descendantMembers) {
+                totalMembersSet.add(String(member || ''));
+            }
+        }
+        const totalMemberCount = totalMembersSet.size;
         if (hideEmptyFolders && members.length === 0) {
             continue;
         }
@@ -9206,13 +9818,39 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         })) {
             continue;
         }
-        const safeName = escapeHtml(folder.name);
+        const folderNameRaw = String(folder.name || id);
+        const safeName = escapeHtml(folderNameRaw);
         const safeIcon = escapeHtml(folder.icon || '');
+        const folderDepth = Math.max(0, Math.min(6, Number(hierarchyMeta?.depthById?.[id] || 0)));
+        const childFolderIds = Array.isArray(hierarchyMeta?.childrenById?.[id]) ? hierarchyMeta.childrenById[id] : [];
+        const hasChildren = childFolderIds.length > 0;
+        const isCollapsed = hasChildren && collapsedParents.has(id);
+        const treeToggleTitle = isCollapsed
+            ? `Expand nested folders in ${folderNameRaw}`
+            : `Collapse nested folders in ${folderNameRaw}`;
+        const treeToggleHtml = hasChildren
+            ? `<button type="button" class="folder-tree-toggle ${isCollapsed ? 'is-collapsed' : 'is-expanded'}" title="${escapeHtml(treeToggleTitle)}" aria-label="${escapeHtml(treeToggleTitle)}" onclick="toggleFolderTreeCollapse('${type}','${escapeHtml(id)}')"><i class="fa ${isCollapsed ? 'fa-caret-right' : 'fa-caret-down'}" aria-hidden="true"></i></button>`
+            : '<span class="folder-tree-toggle-spacer" aria-hidden="true"></span>';
+        const parentFolderId = String(hierarchyMeta?.parentById?.[id] || '').trim();
+        const parentFolderNameRaw = parentFolderId && Object.prototype.hasOwnProperty.call(folders, parentFolderId)
+            ? String(folders[parentFolderId]?.name || parentFolderId)
+            : '';
+        const nestedMetaTitleRaw = folderDepth > 0
+            ? `Nested level ${folderDepth}${parentFolderNameRaw ? ` under ${parentFolderNameRaw}` : ''}`
+            : 'Root folder';
+        const nestedMetaTextRaw = parentFolderNameRaw
+            ? `Nested under ${parentFolderNameRaw}`
+            : `Nested level ${folderDepth}`;
+        const nestedMetaHtml = folderDepth > 0
+            ? `<span class="name-cell-nested-meta" title="${escapeHtml(nestedMetaTitleRaw)}"><i class="fa fa-level-up fa-rotate-90" aria-hidden="true"></i><span>${escapeHtml(nestedMetaTextRaw)}</span></span>`
+            : '';
+        const nameCellClass = folderDepth > 0 ? 'name-cell-content is-nested' : 'name-cell-content is-root';
         if (!folderMatchesStatusFilter(statusFilterMode, countsByState, members.length)) {
             continue;
         }
         const statusWarnThresholdInfo = resolveFolderStatusWarnThreshold(folder, statusPrefs.warnStoppedPercent);
         const statusWarnThreshold = statusWarnThresholdInfo.value;
+        const statusDisplayMode = normalizeStatusDisplayMode(statusPrefs.displayMode);
         const stoppedPercent = members.length > 0 ? Math.round((countsByState.stopped / members.length) * 100) : 0;
         const allStopped = members.length > 0
             && countsByState.started === 0
@@ -9231,76 +9869,78 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         const statusThresholdLabel = statusWarnThresholdInfo.source === 'folder'
             ? `Status warn threshold: ${statusWarnThreshold}% stopped (folder override).`
             : `Status warn threshold: ${statusWarnThreshold}% stopped (global default).`;
-        const statusChips = [];
-        if (members.length <= 0) {
-            statusChips.push({
+        const dominantStatusKey = deriveFolderStatusKey(countsByState, members.length);
+        const statusPrimaryKey = dominantStatusKey === 'mixed' && countsByState.stopped > 0
+            ? 'stopped'
+            : dominantStatusKey;
+        const fullStatusSummaryText = statusPrefs.mode === 'dominant'
+            ? formatStatusDominantText(dominantStatusKey, countsByState, members.length)
+            : formatStatusSummaryText(countsByState, members.length);
+        const balancedPrimaryText = statusPrefs.mode === 'dominant'
+            ? formatStatusDominantText(dominantStatusKey, countsByState, members.length)
+            : statusLabelForKey(dominantStatusKey);
+        const statusPrimaryText = statusDisplayMode === 'balanced'
+            ? balancedPrimaryText
+            : fullStatusSummaryText;
+        const statusChipAttention = stoppedAttention || pausedAttention;
+        const statusChipClass = statusClassForKey(statusPrimaryKey);
+        const statusChipFilterActive = statusFilterMode === statusPrimaryKey;
+        const statusChipHint = statusChipFilterActive
+            ? 'Click to show all statuses.'
+            : `Click to show folders with ${statusLabelForKey(statusPrimaryKey).toLowerCase()} members.`;
+        const statusChipTitle = [
+            `Status summary: ${fullStatusSummaryText}`,
+            `Dominant status: ${statusLabelForKey(dominantStatusKey)}`,
+            `Members: ${members.length} total`,
+            `${countsByState.started} started, ${countsByState.paused} paused, ${countsByState.stopped} stopped`,
+            summarizeStatusMembers('Started items', namesByState.started),
+            summarizeStatusMembers('Paused items', namesByState.paused),
+            summarizeStatusMembers('Stopped items', namesByState.stopped),
+            `Stopped percentage: ${stoppedPercent}%`,
+            statusThresholdLabel,
+            'Open status breakdown from the info button for full details.',
+            statusChipHint
+        ].filter(Boolean).join('\n');
+        const statusSummaryChipHtml = `<span class="status-chip-list"><button type="button" class="folder-runtime-status status-chip ${statusChipClass} ${statusChipAttention ? 'is-attention' : ''} ${statusChipFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(statusChipTitle)}" aria-label="${escapeHtml(statusChipTitle)}" onclick="toggleStatusFilter('${type}','${escapeHtml(statusPrimaryKey)}')"><span>${escapeHtml(statusPrimaryText)}</span></button></span>`;
+        const includeZeroBreakdown = statusDisplayMode === 'detailed';
+        const breakdownEntries = [
+            {
+                key: 'started',
+                count: Number(countsByState.started || 0),
+                icon: 'fa-play',
+                label: 'Started'
+            },
+            {
+                key: 'paused',
+                count: Number(countsByState.paused || 0),
+                icon: 'fa-pause',
+                label: 'Paused'
+            },
+            {
+                key: 'stopped',
+                count: Number(countsByState.stopped || 0),
+                icon: 'fa-stop',
+                label: 'Stopped'
+            }
+        ].filter((entry) => includeZeroBreakdown ? true : entry.count > 0);
+        if (!breakdownEntries.length && members.length <= 0) {
+            breakdownEntries.push({
                 key: 'empty',
                 count: 0,
-                names: [],
-                attention: false
+                icon: 'fa-ban',
+                label: 'Empty'
             });
-        } else {
-            if (countsByState.started > 0) {
-                statusChips.push({
-                    key: 'started',
-                    count: countsByState.started,
-                    names: namesByState.started,
-                    attention: false
-                });
-            }
-            if (countsByState.paused > 0) {
-                statusChips.push({
-                    key: 'paused',
-                    count: countsByState.paused,
-                    names: namesByState.paused,
-                    attention: pausedAttention
-                });
-            }
-            if (countsByState.stopped > 0) {
-                statusChips.push({
-                    key: 'stopped',
-                    count: countsByState.stopped,
-                    names: namesByState.stopped,
-                    attention: stoppedAttention
-                });
-            }
         }
-        const statusChipsHtml = `<span class="status-chip-list">${statusChips.map((chip) => {
-            const chipClass = statusClassForKey(chip.key);
-            const chipFilterActive = statusFilterMode === chip.key;
-            const chipHint = chipFilterActive
-                ? 'Click to show all statuses.'
-                : `Click to show folders with ${statusLabelForKey(chip.key).toLowerCase()} members.`;
-            const chipCountLabel = chip.key === 'empty'
-                ? 'No members in this folder.'
-                : `${chip.count} ${chip.key} member${chip.count === 1 ? '' : 's'}.`;
-            const chipMemberDetails = chip.key === 'started'
-                ? summarizeStatusMembers('Started items', namesByState.started)
-                : (chip.key === 'paused'
-                    ? summarizeStatusMembers('Paused items', namesByState.paused)
-                    : (chip.key === 'stopped'
-                        ? summarizeStatusMembers('Stopped items', namesByState.stopped)
-                        : 'Started items: none'));
-            const chipTitle = [
-                `Status: ${statusLabelForKey(chip.key)}`,
-                `Members: ${members.length} total`,
-                `${countsByState.started} started, ${countsByState.paused} paused, ${countsByState.stopped} stopped`,
-                chipCountLabel,
-                chipMemberDetails,
-                chip.key === 'stopped' ? `Stopped percentage: ${stoppedPercent}%` : '',
-                chip.key === 'stopped' ? statusThresholdLabel : '',
-                chipHint
-            ].filter(Boolean).join('\n');
-            const chipText = chip.key === 'empty'
-                ? 'Empty'
-                : (statusPrefs.mode === 'dominant'
-                    ? `${statusLabelForKey(chip.key)} ${chip.count}/${members.length}`
-                    : `${chip.count} ${chip.key}`);
-            return `<button type="button" class="folder-runtime-status status-chip ${chipClass} ${chip.attention ? 'is-attention' : ''} ${chipFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(chipTitle)}" aria-label="${escapeHtml(chipTitle)}" onclick="toggleStatusFilter('${type}','${escapeHtml(chip.key)}')"><span>${escapeHtml(chipText)}</span></button>`;
-        }).join('')}</span>`;
+        const statusBreakdownHtml = statusDisplayMode === 'simple'
+            ? ''
+            : `<span class="status-breakdown-list">${breakdownEntries.map((entry) => {
+                const title = `${entry.label}: ${entry.count} item${entry.count === 1 ? '' : 's'}`;
+                return `<span class="status-breakdown-chip ${statusClassForKey(entry.key)}" title="${escapeHtml(title)}"><i class="fa ${entry.icon}" aria-hidden="true"></i><span class="count">${entry.count}</span></span>`;
+            }).join('')}</span>`;
+        const statusDisplayClass = `is-${statusDisplayMode}`;
 
         let statusTrendHtml = '';
-        if (statusPrefs.trendEnabled === true) {
+        if (statusDisplayMode === 'detailed' && statusPrefs.trendEnabled === true) {
             const previousStatus = previousStatusSnapshot[String(id)] || null;
             if (previousStatus) {
                 const deltaStarted = countsByState.started - Number(previousStatus.started || 0);
@@ -9339,15 +9979,12 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             if (dockerUpdatesOnlyFilter && updateCount === 0) {
                 continue;
             }
-            let updateText = 'Up to date';
             let updateClass = 'is-ok';
             let updateIcon = 'fa-check-circle';
             if (updateCount > 0 && updateCount <= 9) {
-                updateText = `${updateCount} update${updateCount === 1 ? '' : 's'}`;
                 updateClass = 'is-warning';
                 updateIcon = 'fa-exclamation-circle';
             } else if (updateCount > 9) {
-                updateText = `${updateCount} updates`;
                 updateClass = 'is-danger';
                 updateIcon = 'fa-exclamation-triangle';
             }
@@ -9372,8 +10009,8 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
                 : `Click to show ${healthStatus.text} folders only.`;
             const healthTitle = [...healthStatus.details, healthToggleHint].join('\n');
             typeSpecificColumns = ''
-                + `<td class="updates-cell"><button type="button" class="folder-metric-chip updates-chip ${updateClass} ${dockerUpdatesOnlyFilter ? 'is-filter-active' : ''}" title="${escapeHtml(updateTitle)}" aria-label="${escapeHtml(updateTitle)}" onclick="toggleDockerUpdatesFilter(${updateCount > 0 ? 'true' : 'false'})"><i class="fa ${updateIcon}" aria-hidden="true"></i><span>${escapeHtml(updateText)}</span></button></td>`
-                + `<td class="health-cell"><span class="health-cell-content"><button type="button" class="health-breakdown-btn" title="Open health details" aria-label="Open health details for ${safeName}" onclick="showFolderHealthBreakdown('${type}','${escapeHtml(id)}')"><i class="fa fa-heartbeat"></i></button><button type="button" class="folder-metric-chip health-chip ${healthStatus.className} ${healthFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(healthTitle)}" aria-label="${escapeHtml(healthTitle)}" onclick="toggleHealthSeverityFilter('${type}','${escapeHtml(healthStatus.filterSeverity)}')">${escapeHtml(healthStatus.text)}</button></span></td>`;
+                + `<td class="updates-cell signals-cell"><span class="signals-cell-content"><button type="button" class="folder-metric-chip updates-chip ${updateClass} ${dockerUpdatesOnlyFilter ? 'is-filter-active' : ''}" title="${escapeHtml(updateTitle)}" aria-label="${escapeHtml(updateTitle)}" onclick="toggleDockerUpdatesFilter(${updateCount > 0 ? 'true' : 'false'})"><i class="fa ${updateIcon}" aria-hidden="true"></i></button><button type="button" class="health-breakdown-btn" title="Open health details" aria-label="Open health details for ${safeName}" onclick="showFolderHealthBreakdown('${type}','${escapeHtml(id)}')"><i class="fa fa-heartbeat"></i></button><button type="button" class="folder-metric-chip health-chip ${healthStatus.className} ${healthFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(healthTitle)}" aria-label="${escapeHtml(healthTitle)}" onclick="toggleHealthSeverityFilter('${type}','${escapeHtml(healthStatus.filterSeverity)}')"><span>${escapeHtml(healthStatus.text)}</span></button></span></td>`
+                + '<td class="health-cell fv-col-hidden"></td>';
         } else {
             const vmResources = collectVmFolderResources(members, infoByName);
             const membersCount = vmResources.membersCount;
@@ -9431,12 +10068,42 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
                 + `<td class="autostart-cell"><span class="folder-metric-chip autostart-chip ${autostartClass}" title="${escapeHtml(autostartTitle)}"><i class="fa ${autostartIcon}" aria-hidden="true"></i><span>${escapeHtml(autostartText)}</span></span></td>`
                 + `<td class="resources-cell"><span class="vm-resource-stack" title="${escapeHtml(resourcesTitle)}"><span class="folder-metric-chip vm-resource-chip is-cpu ${escapeHtml(String(cpuChip.className || 'is-empty'))}" title="${escapeHtml(String(cpuChip.title || ''))}"><i class="fa fa-microchip" aria-hidden="true"></i><span class="vm-resource-value">${escapeHtml(String(cpuChip.text || '0 vCPU'))}</span></span><span class="folder-metric-chip vm-resource-chip is-ram ${escapeHtml(String(memoryChip.className || 'is-empty'))}" title="${escapeHtml(String(memoryChip.title || ''))}"><i class="fa fa-hdd-o" aria-hidden="true"></i><span class="vm-resource-value">${escapeHtml(String(memoryChip.text || '0 GB RAM'))}</span></span><span class="folder-metric-chip vm-resource-chip is-storage ${escapeHtml(String(storageChip.className || 'is-empty'))}" title="${escapeHtml(String(storageChip.title || ''))}"><i class="fa fa-database" aria-hidden="true"></i><span class="vm-resource-value">${escapeHtml(String(storageChip.text || '0 B Storage'))}</span></span></span></td>`;
         }
+        const treeErrorText = String(treeErrors[id] || '').trim();
+        const membersTitle = totalMemberCount > directMemberCount
+            ? `${directMemberCount} direct members | ${totalMemberCount} including nested folders`
+            : `${directMemberCount} direct members`;
+        const membersCellHtml = totalMemberCount > directMemberCount
+            ? `<span class="folder-member-split" title="${escapeHtml(membersTitle)}"><strong>${directMemberCount}</strong><span class="folder-member-divider">/</span><span>${totalMemberCount}</span></span>`
+            : `<span class="folder-member-split" title="${escapeHtml(membersTitle)}"><strong>${directMemberCount}</strong></span>`;
+        const memberLabelText = `${totalMemberCount} item${totalMemberCount === 1 ? '' : 's'}`;
+        const membersMetaHtml = `<span class="name-cell-members-meta" title="${escapeHtml(membersTitle)}"><i class="fa fa-users" aria-hidden="true"></i><span>${escapeHtml(memberLabelText)}</span></span>`;
+        const rowReorderButtonsHtml = folderDepth > 0
+            ? ''
+            : (`<button title="Move up" aria-label="Move ${safeName} up" onclick="moveFolderRow('${type}','${escapeHtml(id)}',-1)"><i class="fa fa-chevron-up"></i></button>`
+                + `<button title="Move down" aria-label="Move ${safeName} down" onclick="moveFolderRow('${type}','${escapeHtml(id)}',1)"><i class="fa fa-chevron-down"></i></button>`);
+        const moveToRootButtonHtml = folderDepth > 0
+            ? `<button class="folder-tree-action" title="Move to root" aria-label="Move ${safeName} to root" onclick="moveFolderToRootQuick('${type}','${escapeHtml(id)}')"><i class="fa fa-level-up"></i></button>`
+            : '';
+        const treeMoveAvailable = (folderCount - (descendantIds.length + 1)) > 0;
+        const treeMoveTitle = treeMoveAvailable
+            ? `Tree move ${folderNameRaw} (before/inside/after)`
+            : 'Tree move unavailable: no valid target folders.';
+        const treeMoveButtonHtml = `<button class="folder-tree-action" title="${escapeHtml(treeMoveTitle)}" aria-label="${escapeHtml(treeMoveTitle)}" onclick="${treeMoveAvailable ? `openFolderTreeMoveDialog('${type}','${escapeHtml(id)}')` : ''}" ${treeMoveAvailable ? '' : 'disabled'}><i class="fa fa-sitemap"></i></button>`;
+        const orderCellHtml = ''
+            + `<div class="row-order-stack">`
+            + `<span class="row-order-actions">`
+            + rowReorderButtonsHtml
+            + moveToRootButtonHtml
+            + treeMoveButtonHtml
+            + `</span>`
+            + (treeErrorText ? `<span class="row-order-error">${escapeHtml(treeErrorText)}</span>` : '')
+            + `</div>`;
         rows.push(
-            `<tr data-folder-id="${escapeHtml(id)}" tabindex="0" onkeydown="handleFolderRowKeydown('${type}','${escapeHtml(id)}',event)">`
-            + `<td><span class="row-order-actions"><button title="Move up" aria-label="Move ${safeName} up" onclick="moveFolderRow('${type}','${escapeHtml(id)}',-1)"><i class="fa fa-chevron-up"></i></button><button title="Move down" aria-label="Move ${safeName} down" onclick="moveFolderRow('${type}','${escapeHtml(id)}',1)"><i class="fa fa-chevron-down"></i></button></span></td>`
-            + `<td class="name-cell" title="${escapeHtml(id)}"><span class="name-cell-content"><img src="${safeIcon}" class="img" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"><span class="name-cell-text">${safeName}</span></span></td>`
-            + `<td class="members-cell">${members.length}</td>`
-            + `<td class="status-cell"><span class="status-cell-content"><button type="button" class="status-breakdown-btn" title="Open status breakdown" aria-label="Open status breakdown for ${safeName}" onclick="showFolderStatusBreakdown('${type}','${escapeHtml(id)}')"><i class="fa fa-info-circle"></i></button>${statusChipsHtml}${statusTrendHtml}</span></td>`
+            `<tr class="${folderDepth > 0 ? 'is-nested-row' : 'is-root-row'}" data-folder-depth="${folderDepth}" data-folder-id="${escapeHtml(id)}" tabindex="0" onkeydown="handleFolderRowKeydown('${type}','${escapeHtml(id)}',event)">`
+            + `<td class="order-cell">${orderCellHtml}</td>`
+            + `<td class="name-cell" title="${escapeHtml(id)}"><span class="${nameCellClass}" style="--fv-folder-depth:${folderDepth};">${treeToggleHtml}<img src="${safeIcon}" class="img" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"><span class="name-cell-text-wrap"><span class="name-cell-text">${safeName}</span>${membersMetaHtml}${nestedMetaHtml}</span></span></td>`
+            + `<td class="members-cell fv-col-hidden">${membersCellHtml}</td>`
+            + `<td class="status-cell"><span class="status-cell-content ${statusDisplayClass}"><button type="button" class="status-breakdown-btn" title="Open status breakdown" aria-label="Open status breakdown for ${safeName}" onclick="showFolderStatusBreakdown('${type}','${escapeHtml(id)}')"><i class="fa fa-info-circle"></i></button>${statusSummaryChipHtml}${statusBreakdownHtml}${statusTrendHtml}</span></td>`
             + `<td class="rules-cell" title="${escapeHtml(ruleTitle)}">${escapeHtml(ruleText)}</td>`
             + `<td class="last-changed-cell" title="${escapeHtml(lastChangedRaw || '')}">${escapeHtml(lastChangedText)}</td>`
             + `<td class="pinned-cell"><span class="folder-pin-state ${pinnedClass}">${escapeHtml(pinnedText)}</span></td>`
@@ -9478,12 +10145,11 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             const help = isDockerType
                 ? 'Start by creating your first folder, importing a JSON export, or running the setup wizard.'
                 : 'Start by creating your first VM folder, importing a VM export, or running the setup wizard.';
-            const importAction = isDockerType ? "importDocker()" : "importVm()";
             const typeValue = isDockerType ? 'docker' : 'vm';
             const createLabel = isDockerType ? 'Create folder' : 'Create VM folder';
             const importLabel = isDockerType ? 'Import config' : 'Import VM config';
             const wizardLabel = isDockerType ? 'Open wizard' : 'Run wizard';
-            return `<tr><td colspan="${TABLE_COLUMN_COUNT}" class="folder-empty-cell"><div class="fv-starter-empty"><div class="fv-starter-empty-title">${escapeHtml(title)}</div><div class="fv-starter-empty-help">${escapeHtml(help)}</div><div class="fv-starter-empty-actions"><button type="button" onclick="quickCreateStarterFolder('${typeValue}')"><i class="fa fa-plus-circle"></i> ${escapeHtml(createLabel)}</button><button type="button" onclick="${importAction}"><i class="fa fa-upload"></i> ${escapeHtml(importLabel)}</button><button type="button" onclick="runQuickSetupWizard(true)"><i class="fa fa-magic"></i> ${escapeHtml(wizardLabel)}</button></div></div></td></tr>`;
+            return `<tr><td colspan="${TABLE_COLUMN_COUNT}" class="folder-empty-cell"><div class="fv-starter-empty"><div class="fv-starter-empty-title">${escapeHtml(title)}</div><div class="fv-starter-empty-help">${escapeHtml(help)}</div><div class="fv-starter-empty-actions"><button type="button" data-fv-empty-action="create" data-fv-type="${escapeHtml(typeValue)}"><i class="fa fa-plus-circle"></i> ${escapeHtml(createLabel)}</button><button type="button" data-fv-empty-action="import" data-fv-type="${escapeHtml(typeValue)}"><i class="fa fa-upload"></i> ${escapeHtml(importLabel)}</button><button type="button" data-fv-empty-action="wizard"><i class="fa fa-magic"></i> ${escapeHtml(wizardLabel)}</button></div></div></td></tr>`;
         }
         if (folderCount > 0 && hideEmptyFolders && !showClearFilters) {
             return `<tr><td colspan="${TABLE_COLUMN_COUNT}" class="folder-empty-cell">All folders are currently hidden by "Hide empty folders".</td></tr>`;
@@ -9498,11 +10164,34 @@ const currentOrderedIdsFromTable = (type) => {
     return $(`tbody#${tbodyId} tr[data-folder-id]`).map((_, row) => $(row).attr('data-folder-id')).get();
 };
 
-const persistManualOrderFromDom = async (type) => {
-    const order = currentOrderedIdsFromTable(type);
+const sanitizeManualOrderList = (type, order) => {
+    const resolvedType = normalizeManagedType(type);
+    const folders = getFolderMap(resolvedType);
+    const validIds = new Set(Object.keys(folders || {}));
+    const out = [];
+    const seen = new Set();
+    for (const rawId of (Array.isArray(order) ? order : [])) {
+        const id = String(rawId || '').trim();
+        if (!id || seen.has(id) || !validIds.has(id)) {
+            continue;
+        }
+        seen.add(id);
+        out.push(id);
+    }
+    for (const id of validIds) {
+        if (!seen.has(id)) {
+            out.push(id);
+        }
+    }
+    return out;
+};
+
+const persistManualOrder = async (type, order, { refresh = true } = {}) => {
+    const resolvedType = normalizeManagedType(type);
+    const safeOrder = sanitizeManualOrderList(resolvedType, order);
     const reorderResponse = await apiPostJson('/plugins/folderview.plus/server/reorder.php', {
-        type,
-        order: JSON.stringify(order)
+        type: resolvedType,
+        order: JSON.stringify(safeOrder)
     });
 
     if (!reorderResponse.ok) {
@@ -9510,18 +10199,291 @@ const persistManualOrderFromDom = async (type) => {
     }
 
     const nextPrefs = utils.normalizePrefs({
-        ...prefsByType[type],
+        ...prefsByType[resolvedType],
         sortMode: 'manual',
-        manualOrder: order
+        manualOrder: safeOrder
     });
 
     try {
-        prefsByType[type] = await postPrefs(type, nextPrefs);
+        prefsByType[resolvedType] = await postPrefs(resolvedType, nextPrefs);
     } catch (error) {
-        prefsByType[type] = nextPrefs;
+        prefsByType[resolvedType] = nextPrefs;
     }
 
-    await refreshType(type);
+    if (refresh) {
+        await refreshType(resolvedType);
+    }
+};
+
+const persistManualOrderFromDom = async (type) => {
+    const order = currentOrderedIdsFromTable(type);
+    await persistManualOrder(type, order, { refresh: true });
+};
+
+const saveFolderRecord = async (type, folderId, folderPayload) => {
+    const resolvedType = normalizeManagedType(type);
+    const safeFolderId = String(folderId || '').trim();
+    if (!safeFolderId) {
+        throw new Error('Missing folder ID.');
+    }
+    const payload = folderPayload && typeof folderPayload === 'object' ? folderPayload : {};
+    await apiPostText('/plugins/folderview.plus/server/update.php', {
+        type: resolvedType,
+        id: safeFolderId,
+        content: JSON.stringify(payload)
+    });
+};
+
+const ensureFolderSortModeManual = async (type) => {
+    const resolvedType = normalizeManagedType(type);
+    let sortMode = prefsByType[resolvedType]?.sortMode || 'created';
+    if (sortMode !== 'manual') {
+        await changeSortMode(resolvedType, 'manual');
+        sortMode = prefsByType[resolvedType]?.sortMode || 'created';
+    }
+    return sortMode === 'manual';
+};
+
+const buildTreeMoveTargetOptions = (type, sourceFolderId, hierarchyMeta = null) => {
+    const resolvedType = normalizeManagedType(type);
+    const folders = getFolderMap(resolvedType);
+    const sourceId = String(sourceFolderId || '').trim();
+    const meta = hierarchyMeta || buildFolderHierarchyMeta(folders);
+    const blocked = new Set([sourceId, ...(meta.descendantsById[sourceId] || [])]);
+    const orderedIds = getOrderedFolderIdsForTreeOps(resolvedType);
+    const options = [];
+    for (const id of orderedIds) {
+        if (!Object.prototype.hasOwnProperty.call(folders, id) || blocked.has(id)) {
+            continue;
+        }
+        const folderName = String(folders[id]?.name || id);
+        const depth = Math.max(0, Number(meta.depthById[id] || 0));
+        const indent = depth > 0 ? '&nbsp;'.repeat(Math.min(10, depth) * 3) : '';
+        const prefix = depth > 0 ? '&#8627;&nbsp;' : '';
+        options.push(`<option value="${escapeHtml(id)}">${indent}${prefix}${escapeHtml(folderName)}</option>`);
+    }
+    return options.join('');
+};
+
+const applyFolderTreeMove = async (type, sourceFolderId, targetFolderId, placement) => {
+    const resolvedType = normalizeManagedType(type);
+    const sourceId = String(sourceFolderId || '').trim();
+    const targetId = String(targetFolderId || '').trim();
+    const mode = normalizeTreeMovePlacement(placement);
+    if (!sourceId) {
+        return;
+    }
+    const folders = getFolderMap(resolvedType);
+    const sourceFolder = folders[sourceId];
+    if (!sourceFolder) {
+        setFolderTreeMoveError(resolvedType, sourceId, 'Folder no longer exists.');
+        return;
+    }
+    const hierarchyMeta = buildFolderHierarchyMeta(folders);
+    const descendants = hierarchyMeta.descendantsById[sourceId] || [];
+    const parentById = hierarchyMeta.parentById || {};
+    const existingParentId = String(parentById[sourceId] || '').trim();
+    const allowedModes = mode === 'inside' ? ['inside'] : ['before', 'after', 'inside'];
+    if (!allowedModes.includes(mode)) {
+        setFolderTreeMoveError(resolvedType, sourceId, 'Invalid tree move mode.');
+        return;
+    }
+    if (!targetId) {
+        setFolderTreeMoveError(resolvedType, sourceId, 'Choose a target folder.');
+        return;
+    }
+    if (!Object.prototype.hasOwnProperty.call(folders, targetId)) {
+        setFolderTreeMoveError(resolvedType, sourceId, 'Target folder no longer exists.');
+        return;
+    }
+    if (targetId === sourceId) {
+        setFolderTreeMoveError(resolvedType, sourceId, 'A folder cannot be moved onto itself.');
+        return;
+    }
+    if (descendants.includes(targetId)) {
+        setFolderTreeMoveError(resolvedType, sourceId, 'Cannot move a folder into one of its own children.');
+        return;
+    }
+
+    let nextParentId = '';
+    if (mode === 'inside') {
+        nextParentId = targetId;
+    } else {
+        nextParentId = String(parentById[targetId] || '').trim();
+    }
+    if (nextParentId === sourceId || descendants.includes(nextParentId)) {
+        setFolderTreeMoveError(resolvedType, sourceId, 'This move would create a parent cycle.');
+        return;
+    }
+
+    const fullOrder = getOrderedFolderIdsForTreeOps(resolvedType);
+    const orderWithoutSource = fullOrder.filter((id) => id !== sourceId);
+    let insertIndex = orderWithoutSource.length;
+    if (mode === 'before') {
+        const targetIndex = orderWithoutSource.indexOf(targetId);
+        insertIndex = targetIndex >= 0 ? targetIndex : orderWithoutSource.length;
+    } else if (mode === 'after') {
+        const targetSubtree = [targetId, ...(hierarchyMeta.descendantsById[targetId] || [])];
+        const anchorIndex = findLastMatchingOrderIndex(orderWithoutSource, targetSubtree);
+        insertIndex = anchorIndex >= 0 ? (anchorIndex + 1) : orderWithoutSource.length;
+    } else {
+        const parentSubtree = [targetId, ...(hierarchyMeta.descendantsById[targetId] || [])];
+        const anchorIndex = findLastMatchingOrderIndex(orderWithoutSource, parentSubtree);
+        insertIndex = anchorIndex >= 0 ? (anchorIndex + 1) : orderWithoutSource.length;
+    }
+
+    const nextOrder = orderWithoutSource.slice();
+    nextOrder.splice(Math.max(0, Math.min(insertIndex, nextOrder.length)), 0, sourceId);
+    const parentChanged = nextParentId !== existingParentId;
+    const orderChanged = nextOrder.some((id, index) => id !== fullOrder[index]);
+    if (!parentChanged && !orderChanged) {
+        setFolderTreeMoveError(resolvedType, sourceId, 'Folder is already in that position.');
+        return;
+    }
+
+    let backup = null;
+    try {
+        const manualReady = await ensureFolderSortModeManual(resolvedType);
+        if (!manualReady) {
+            throw new Error('Manual sort mode is required for tree move.');
+        }
+        clearFolderTreeMoveError(resolvedType, sourceId, { rerender: false });
+        backup = await createBackup(resolvedType, `before-tree-move-${sourceId}`);
+        if (parentChanged) {
+            const nextFolder = {
+                ...sourceFolder,
+                parentId: nextParentId
+            };
+            await saveFolderRecord(resolvedType, sourceId, nextFolder);
+        }
+        if (orderChanged) {
+            await persistManualOrder(resolvedType, nextOrder, { refresh: false });
+        }
+        await refreshType(resolvedType);
+        if (backup?.name) {
+            queueTreeMoveUndoBanner(resolvedType, backup.name, 'Tree move', sourceId);
+        }
+        focusFolderRow(resolvedType, sourceId);
+        const destinationText = mode === 'inside'
+            ? `inside ${folders[targetId]?.name || targetId}`
+            : (mode === 'before'
+                ? `before ${folders[targetId]?.name || targetId}`
+                : `after ${folders[targetId]?.name || targetId}`);
+        addActivityEntry(`Tree move complete: ${(sourceFolder?.name || sourceId)} -> ${destinationText}.`, 'success');
+    } catch (error) {
+        await refreshType(resolvedType);
+        setFolderTreeMoveError(resolvedType, sourceId, error?.message || 'Tree move failed.');
+        showError('Tree move failed', error);
+    }
+};
+
+const openFolderTreeMoveDialog = (type, folderId, options = {}) => {
+    const resolvedType = normalizeManagedType(type);
+    const sourceId = String(folderId || '').trim();
+    if (!sourceId) {
+        return;
+    }
+    const folders = getFolderMap(resolvedType);
+    const folder = folders[sourceId];
+    if (!folder) {
+        return;
+    }
+    const hierarchyMeta = buildFolderHierarchyMeta(folders);
+    if (!canFolderUseTreeMove(resolvedType, sourceId, hierarchyMeta)) {
+        setFolderTreeMoveError(resolvedType, sourceId, 'No valid target folders available.');
+        return;
+    }
+    const targetOptions = buildTreeMoveTargetOptions(resolvedType, sourceId, hierarchyMeta);
+    if (!targetOptions) {
+        setFolderTreeMoveError(resolvedType, sourceId, 'No valid target folders available.');
+        return;
+    }
+    const modeInsideOnly = options?.modeInsideOnly === true;
+    const preferredPlacement = modeInsideOnly
+        ? 'inside'
+        : normalizeTreeMovePlacement(options?.placement || 'inside');
+    const placementSelectHtml = modeInsideOnly
+        ? '<input type="hidden" id="fv-tree-move-placement" value="inside">'
+        : `<label class="fv-tree-move-field-label" for="fv-tree-move-placement">Placement</label>
+           <select id="fv-tree-move-placement">
+             <option value="inside"${preferredPlacement === 'inside' ? ' selected' : ''}>Inside target</option>
+             <option value="before"${preferredPlacement === 'before' ? ' selected' : ''}>Before target</option>
+             <option value="after"${preferredPlacement === 'after' ? ' selected' : ''}>After target</option>
+           </select>`;
+    const sourceName = escapeHtml(String(folder.name || sourceId));
+    const targetLabel = modeInsideOnly ? 'Move under folder' : 'Target folder';
+    swal({
+        title: modeInsideOnly ? 'Move under...' : 'Tree move',
+        text: `
+            <div class="fv-tree-move-dialog">
+                <div class="fv-tree-move-source">Source: <strong>${sourceName}</strong></div>
+                <label class="fv-tree-move-field-label" for="fv-tree-move-target">${targetLabel}</label>
+                <select id="fv-tree-move-target">${targetOptions}</select>
+                ${placementSelectHtml}
+            </div>
+        `,
+        html: true,
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonText: modeInsideOnly ? 'Move under folder' : 'Apply tree move',
+        cancelButtonText: 'Cancel',
+        closeOnConfirm: true
+    }, (confirmed) => {
+        if (!confirmed) {
+            return;
+        }
+        const targetId = String($('#fv-tree-move-target').val() || '').trim();
+        const placement = modeInsideOnly
+            ? 'inside'
+            : normalizeTreeMovePlacement($('#fv-tree-move-placement').val() || preferredPlacement);
+        void applyFolderTreeMove(resolvedType, sourceId, targetId, placement);
+    });
+};
+
+const moveFolderToRootQuick = async (type, folderId) => {
+    const resolvedType = normalizeManagedType(type);
+    const sourceId = String(folderId || '').trim();
+    if (!sourceId) {
+        return;
+    }
+    const folders = getFolderMap(resolvedType);
+    const sourceFolder = folders[sourceId];
+    if (!sourceFolder) {
+        return;
+    }
+    const hierarchyMeta = buildFolderHierarchyMeta(folders);
+    const currentParentId = String(hierarchyMeta.parentById[sourceId] || '').trim();
+    if (!currentParentId) {
+        setFolderTreeMoveError(resolvedType, sourceId, 'Folder is already at root level.');
+        return;
+    }
+    let backup = null;
+    try {
+        const manualReady = await ensureFolderSortModeManual(resolvedType);
+        if (!manualReady) {
+            throw new Error('Manual sort mode is required for root move.');
+        }
+        clearFolderTreeMoveError(resolvedType, sourceId, { rerender: false });
+        backup = await createBackup(resolvedType, `before-root-move-${sourceId}`);
+        await saveFolderRecord(resolvedType, sourceId, {
+            ...sourceFolder,
+            parentId: ''
+        });
+        await refreshType(resolvedType);
+        if (backup?.name) {
+            queueTreeMoveUndoBanner(resolvedType, backup.name, 'Move to root', sourceId);
+        }
+        focusFolderRow(resolvedType, sourceId);
+        addActivityEntry(`Folder moved to root: ${sourceFolder.name || sourceId}.`, 'success');
+    } catch (error) {
+        await refreshType(resolvedType);
+        setFolderTreeMoveError(resolvedType, sourceId, error?.message || 'Move to root failed.');
+        showError('Move to root failed', error);
+    }
+};
+
+const moveFolderUnderDialog = (type, folderId) => {
+    openFolderTreeMoveDialog(type, folderId, { modeInsideOnly: true, placement: 'inside' });
 };
 
 const moveFolderRow = async (type, folderId, direction) => {
@@ -9545,41 +10507,83 @@ const moveFolderRow = async (type, folderId, direction) => {
         return;
     }
 
-    const tbodyId = tableIdByType[resolvedType];
-    const tbody = $(`tbody#${tbodyId}`);
-    const row = tbody.find(`tr[data-folder-id="${safeFolderId}"]`);
-    if (!row.length) {
+    if (direction !== -1 && direction !== 1) {
         return;
     }
 
-    const previousId = direction < 0
-        ? String(row.prev('tr[data-folder-id]').attr('data-folder-id') || '')
-        : String(row.next('tr[data-folder-id]').attr('data-folder-id') || '');
-    if (!previousId) {
+    const folders = getFolderMap(resolvedType);
+    if (!Object.prototype.hasOwnProperty.call(folders, safeFolderId)) {
+        setFolderTreeMoveError(resolvedType, safeFolderId, 'Folder no longer exists.');
+        return;
+    }
+
+    const hierarchyMeta = buildFolderHierarchyMeta(folders);
+    const parentById = hierarchyMeta.parentById || {};
+    const currentParentId = String(parentById[safeFolderId] || '').trim();
+    const fullOrder = getOrderedFolderIdsForTreeOps(resolvedType);
+    const siblingIds = fullOrder.filter((id) => String(parentById[id] || '').trim() === currentParentId);
+    const sourceSiblingIndex = siblingIds.indexOf(safeFolderId);
+    if (sourceSiblingIndex < 0) {
+        setFolderTreeMoveError(resolvedType, safeFolderId, 'Folder order could not be resolved.');
+        return;
+    }
+
+    const targetSiblingIndex = sourceSiblingIndex + direction;
+    if (targetSiblingIndex < 0 || targetSiblingIndex >= siblingIds.length) {
+        setFolderTreeMoveError(
+            resolvedType,
+            safeFolderId,
+            direction < 0
+                ? 'Already first in this level. Use Tree move to change level.'
+                : 'Already last in this level. Use Tree move to change level.'
+        );
+        return;
+    }
+
+    const targetSiblingId = String(siblingIds[targetSiblingIndex] || '').trim();
+    if (!targetSiblingId) {
+        setFolderTreeMoveError(resolvedType, safeFolderId, 'No sibling found for this move.');
+        return;
+    }
+
+    const sourceSubtreeIds = [safeFolderId, ...(hierarchyMeta.descendantsById[safeFolderId] || [])];
+    const targetSubtreeIds = [targetSiblingId, ...(hierarchyMeta.descendantsById[targetSiblingId] || [])];
+    const sourceSubtreeSet = new Set(sourceSubtreeIds);
+    const orderWithoutSource = fullOrder.filter((id) => !sourceSubtreeSet.has(String(id || '')));
+    let insertIndex = orderWithoutSource.length;
+    if (direction < 0) {
+        const firstTargetIndex = orderWithoutSource.findIndex((id) => targetSubtreeIds.includes(String(id || '')));
+        insertIndex = firstTargetIndex >= 0 ? firstTargetIndex : orderWithoutSource.length;
+    } else {
+        const lastTargetIndex = findLastMatchingOrderIndex(orderWithoutSource, targetSubtreeIds);
+        insertIndex = lastTargetIndex >= 0 ? (lastTargetIndex + 1) : orderWithoutSource.length;
+    }
+    const nextOrder = orderWithoutSource.slice();
+    nextOrder.splice(Math.max(0, Math.min(insertIndex, nextOrder.length)), 0, ...sourceSubtreeIds);
+    const orderChanged = nextOrder.length === fullOrder.length
+        && nextOrder.some((id, index) => String(id || '') !== String(fullOrder[index] || ''));
+    if (!orderChanged) {
+        setFolderTreeMoveError(resolvedType, safeFolderId, 'Folder is already in that position.');
         return;
     }
 
     let backup = null;
-    if (direction < 0) {
-        const prev = row.prev('tr[data-folder-id]');
-        if (prev.length) {
-            prev.before(row);
-        }
-    } else if (direction > 0) {
-        const next = row.next('tr[data-folder-id]');
-        if (next.length) {
-            next.after(row);
-        }
-    }
 
     try {
+        clearFolderTreeMoveError(resolvedType, safeFolderId, { rerender: false });
         backup = await createBackup(resolvedType, `before-reorder-${safeFolderId}`);
-        await persistManualOrderFromDom(resolvedType);
+        await persistManualOrder(resolvedType, nextOrder, { refresh: false });
+        await refreshType(resolvedType);
         if (backup?.name) {
             await offerUndoAction(resolvedType, backup, 'Reorder folders');
         }
+        const sourceName = String(folders[safeFolderId]?.name || safeFolderId);
+        const targetName = String(folders[targetSiblingId]?.name || targetSiblingId);
+        addActivityEntry(`Reordered folder: ${sourceName} ${direction < 0 ? 'before' : 'after'} ${targetName}.`, 'success');
+        focusFolderRow(resolvedType, safeFolderId);
     } catch (error) {
         await refreshType(resolvedType);
+        setFolderTreeMoveError(resolvedType, safeFolderId, error?.message || 'Order save failed.');
         showError('Order save failed', error);
     }
 };
@@ -9642,9 +10646,12 @@ const renderRuntimeControls = (type) => {
 const renderStatusControls = (type) => {
     const status = normalizeStatusPrefs(type);
     $(`#${type}-status-mode`).val(status.mode);
+    $(`#${type}-status-display-mode`).val(status.displayMode);
     $(`#${type}-status-trend-enabled`).prop('checked', status.trendEnabled === true);
     $(`#${type}-status-attention-accent`).prop('checked', status.attentionAccent === true);
     $(`#${type}-status-warn-threshold`).val(String(status.warnStoppedPercent));
+    const showTrendControl = status.displayMode === 'detailed';
+    $(`#${type}-status-trend-row`).toggleClass('is-hidden', !showTrendControl);
 };
 
 const renderHealthControls = (type) => {
@@ -10423,6 +11430,8 @@ const renderTemplateRows = (type) => {
 const renderTable = (type) => {
     const folders = getFolderMap(type);
     const ordered = utils.orderFoldersByPrefs(folders, prefsByType[type]);
+    const hierarchyMeta = buildFolderHierarchyMeta(ordered);
+    const collapsedParents = syncCollapsedTreeParentsForType(type, ordered, hierarchyMeta);
     const memberSnapshot = getEffectiveMemberSnapshot(type, ordered);
     const previousStatusSnapshot = statusSnapshotByType[type] && typeof statusSnapshotByType[type] === 'object'
         ? statusSnapshotByType[type]
@@ -10437,7 +11446,9 @@ const renderTable = (type) => {
     const tbodyId = tableIdByType[type];
     $(`tbody#${tbodyId}`).html(buildRowsHtml(type, ordered, memberSnapshot, hideEmptyFolders, healthMetrics, {
         previous: previousStatusSnapshot,
-        current: nextStatusSnapshot
+        current: nextStatusSnapshot,
+        hierarchyMeta,
+        collapsedParents
     }));
     if (type === 'vm') {
         rowDetailsDrawerByType.vm = null;
@@ -10456,6 +11467,7 @@ const renderTable = (type) => {
     renderQuickFolderFilters(type);
     renderColumnVisibilityControls(type);
     applyColumnVisibility(type);
+    renderTreeMoveUndoBanner(type);
     renderQuickProfilePresetButtons();
     renderRulesTable(type);
     renderBulkItemOptions(type);
@@ -11019,6 +12031,8 @@ const changeStatusPref = async (type, key, value) => {
 
     if (key === 'mode') {
         nextStatus.mode = normalizeStatusMode(value);
+    } else if (key === 'displayMode') {
+        nextStatus.displayMode = normalizeStatusDisplayMode(value);
     } else if (key === 'trendEnabled') {
         nextStatus.trendEnabled = value === true;
     } else if (key === 'attentionAccent') {
@@ -12671,6 +13685,12 @@ window.copyIssueReport = copyIssueReport;
 window.runConflictInspector = runConflictInspector;
 window.checkForUpdatesNow = checkForUpdatesNow;
 window.moveFolderRow = moveFolderRow;
+window.moveFolderToRootQuick = moveFolderToRootQuick;
+window.moveFolderUnderDialog = moveFolderUnderDialog;
+window.openFolderTreeMoveDialog = openFolderTreeMoveDialog;
+window.toggleFolderTreeCollapse = toggleFolderTreeCollapse;
+window.expandAllFolderTrees = expandAllFolderTrees;
+window.collapseAllFolderTrees = collapseAllFolderTrees;
 window.handleFolderRowKeydown = handleFolderRowKeydown;
 window.toggleFolderPin = toggleFolderPin;
 window.copyFolderId = copyFolderId;

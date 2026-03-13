@@ -79,7 +79,11 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <option value="manual">Manual (buttons)</option>
                     <option value="alpha">Name (A-Z)</option>
                 </select>
-                <span class="sort-hint-chip" title="Use manual mode and the up/down buttons in the first column to set custom order."><i class="fa fa-info-circle"></i> Manual uses up/down in Order column</span>
+                <span class="sort-hint-chip" title="Use manual mode with up/down and tree move controls in the first column to set custom nested order."><i class="fa fa-info-circle"></i> Manual uses up/down + tree move in Order column</span>
+                <span class="tree-visibility-controls">
+                    <button type="button" onclick="expandAllFolderTrees('docker')"><i class="fa fa-expand"></i> Expand all</button>
+                    <button type="button" onclick="collapseAllFolderTrees('docker')"><i class="fa fa-compress"></i> Collapse all</button>
+                </span>
             </div>
             <input id="docker-folder-filter" type="text" placeholder="Search Docker folders" oninput="setFilterQuery('folders','docker',this.value)">
             <div id="docker-quick-filters" class="folder-quick-filters">
@@ -101,13 +105,21 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <option value="dominant">Dominant</option>
                         </select>
                     </label>
-                    <label class="setting-toggle"><input id="docker-status-trend-enabled" type="checkbox" onchange="changeStatusPref('docker', 'trendEnabled', this.checked)"> Trend indicator</label>
+                    <label class="setting-select" for="docker-status-display-mode">
+                        <span>Status detail</span>
+                        <select id="docker-status-display-mode" onchange="changeStatusPref('docker', 'displayMode', this.value)">
+                            <option value="simple">Simple</option>
+                            <option value="balanced">Balanced</option>
+                            <option value="detailed">Detailed</option>
+                        </select>
+                    </label>
+                    <label id="docker-status-trend-row" class="setting-toggle"><input id="docker-status-trend-enabled" type="checkbox" onchange="changeStatusPref('docker', 'trendEnabled', this.checked)"> Trend indicator</label>
                     <label class="setting-toggle"><input id="docker-status-attention-accent" type="checkbox" onchange="changeStatusPref('docker', 'attentionAccent', this.checked)"> Attention accent</label>
                     <label id="docker-status-warn-threshold-row" class="setting-inline-number">
                         <span>Status warn (%)</span>
                         <input id="docker-status-warn-threshold" type="number" min="0" max="100" step="1" onchange="changeStatusPref('docker', 'warnStoppedPercent', this.value)">
                     </label>
-                    <div class="setting-help">Status mode controls chip style. Attention accent highlights folders crossing your warn threshold.</div>
+                    <div class="setting-help">Simple shows one chip, Balanced shows primary + mini counters, and Detailed adds trend. Attention accent highlights folders crossing your warn threshold.</div>
                     <div class="setting-note">Pin folders with the star button in the Actions column.</div>
                 </div>
                 <div class="settings-mini-card">
@@ -171,17 +183,16 @@ if (!empty($fvplusRuntimeConflicts)) {
                 </div>
                 <div class="settings-mini-card">
                     <div class="settings-mini-title">Columns</div>
-                    <label class="setting-toggle"><input id="docker-col-members" type="checkbox" onchange="changeColumnVisibility('docker', 'members', this.checked)"> Members</label>
                     <label class="setting-toggle"><input id="docker-col-status" type="checkbox" onchange="changeColumnVisibility('docker', 'status', this.checked)"> Status</label>
                     <label class="setting-toggle"><input id="docker-col-rules" type="checkbox" onchange="changeColumnVisibility('docker', 'rules', this.checked)"> Rules</label>
                     <label class="setting-toggle"><input id="docker-col-last-changed" type="checkbox" onchange="changeColumnVisibility('docker', 'lastChanged', this.checked)"> Last changed</label>
                     <label class="setting-toggle"><input id="docker-col-pinned" type="checkbox" onchange="changeColumnVisibility('docker', 'pinned', this.checked)"> Pinned</label>
-                    <label class="setting-toggle"><input id="docker-col-updates" type="checkbox" onchange="changeColumnVisibility('docker', 'updates', this.checked)"> Updates</label>
-                    <label class="setting-toggle"><input id="docker-col-health" type="checkbox" onchange="changeColumnVisibility('docker', 'health', this.checked)"> Health</label>
+                    <label class="setting-toggle"><input id="docker-col-signals" type="checkbox" onchange="changeColumnVisibility('docker', 'signals', this.checked)"> Alerts</label>
                 </div>
             </div>
         </div>
     </details>
+    <div id="docker-tree-undo-banner" class="fv-tree-undo-banner is-hidden"></div>
     <div class="table-wrap">
         <table>
             <thead>
@@ -190,13 +201,13 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <th class="col-name" data-i18n="el-name">
                         Name
                     </th>
-                    <th class="col-members">Members</th>
+                    <th class="col-members fv-col-hidden" title="Direct members / total members including nested folders">Members</th>
                     <th class="col-status">Status</th>
                     <th class="col-rules">Rules</th>
                     <th class="col-last-changed">Last changed</th>
                     <th class="col-pinned">Pinned</th>
-                    <th class="col-updates">Updates</th>
-                    <th class="col-health">Health</th>
+                    <th class="col-updates col-signals">Alerts</th>
+                    <th class="col-health fv-col-hidden">Health</th>
                     <th class="col-actions" data-i18n="el-actions">
                         Actions
                     </th>
@@ -233,7 +244,11 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <option value="manual">Manual (buttons)</option>
                     <option value="alpha">Name (A-Z)</option>
                 </select>
-                <span class="sort-hint-chip" title="Use manual mode and the up/down buttons in the first column to set custom order."><i class="fa fa-info-circle"></i> Manual uses up/down in Order column</span>
+                <span class="sort-hint-chip" title="Use manual mode with up/down and tree move controls in the first column to set custom nested order."><i class="fa fa-info-circle"></i> Manual uses up/down + tree move in Order column</span>
+                <span class="tree-visibility-controls">
+                    <button type="button" onclick="expandAllFolderTrees('vm')"><i class="fa fa-expand"></i> Expand all</button>
+                    <button type="button" onclick="collapseAllFolderTrees('vm')"><i class="fa fa-compress"></i> Collapse all</button>
+                </span>
             </div>
             <input id="vm-folder-filter" type="text" placeholder="Search VM folders" oninput="setFilterQuery('folders','vm',this.value)">
             <div id="vm-quick-filters" class="folder-quick-filters">
@@ -254,13 +269,21 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <option value="dominant">Dominant</option>
                         </select>
                     </label>
-                    <label class="setting-toggle"><input id="vm-status-trend-enabled" type="checkbox" onchange="changeStatusPref('vm', 'trendEnabled', this.checked)"> Trend indicator</label>
+                    <label class="setting-select" for="vm-status-display-mode">
+                        <span>Status detail</span>
+                        <select id="vm-status-display-mode" onchange="changeStatusPref('vm', 'displayMode', this.value)">
+                            <option value="simple">Simple</option>
+                            <option value="balanced">Balanced</option>
+                            <option value="detailed">Detailed</option>
+                        </select>
+                    </label>
+                    <label id="vm-status-trend-row" class="setting-toggle"><input id="vm-status-trend-enabled" type="checkbox" onchange="changeStatusPref('vm', 'trendEnabled', this.checked)"> Trend indicator</label>
                     <label class="setting-toggle"><input id="vm-status-attention-accent" type="checkbox" onchange="changeStatusPref('vm', 'attentionAccent', this.checked)"> Attention accent</label>
                     <label id="vm-status-warn-threshold-row" class="setting-inline-number">
                         <span>Status warn (%)</span>
                         <input id="vm-status-warn-threshold" type="number" min="0" max="100" step="1" onchange="changeStatusPref('vm', 'warnStoppedPercent', this.value)">
                     </label>
-                    <div class="setting-help">Status mode controls chip style. Attention accent highlights folders crossing your warn threshold.</div>
+                    <div class="setting-help">Simple shows one chip, Balanced shows primary + mini counters, and Detailed adds trend. Attention accent highlights folders crossing your warn threshold.</div>
                     <div class="setting-note">Pin folders with the star button in the Actions column.</div>
                 </div>
                 <div class="settings-mini-card">
@@ -339,7 +362,6 @@ if (!empty($fvplusRuntimeConflicts)) {
                 </div>
                 <div class="settings-mini-card">
                     <div class="settings-mini-title">Columns</div>
-                    <label class="setting-toggle"><input id="vm-col-members" type="checkbox" onchange="changeColumnVisibility('vm', 'members', this.checked)"> Members</label>
                     <label class="setting-toggle"><input id="vm-col-status" type="checkbox" onchange="changeColumnVisibility('vm', 'status', this.checked)"> Status</label>
                     <label class="setting-toggle"><input id="vm-col-rules" type="checkbox" onchange="changeColumnVisibility('vm', 'rules', this.checked)"> Rules</label>
                     <label class="setting-toggle"><input id="vm-col-last-changed" type="checkbox" onchange="changeColumnVisibility('vm', 'lastChanged', this.checked)"> Last changed</label>
@@ -350,6 +372,7 @@ if (!empty($fvplusRuntimeConflicts)) {
             </div>
         </div>
     </details>
+    <div id="vm-tree-undo-banner" class="fv-tree-undo-banner is-hidden"></div>
     <div class="table-wrap">
         <table>
             <thead>
@@ -358,7 +381,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <th class="col-name" data-i18n="el-name">
                         Name
                     </th>
-                    <th class="col-members">Members</th>
+                    <th class="col-members fv-col-hidden" title="Direct members / total members including nested folders">Members</th>
                     <th class="col-status">Status</th>
                     <th class="col-rules">Rules</th>
                     <th class="col-last-changed">Last changed</th>

@@ -111,6 +111,20 @@ span.folder-state.fv-folder-state-stopped {
     display: none;
 }
 
+.fv-nested-hidden {
+    display: none !important;
+}
+
+tr.folder.fv-parent-collapsed div.folder-preview,
+tr.folder.fv-folder-is-child div.folder-preview {
+    border: 1px solid rgba(224, 230, 239, 0.22);
+}
+
+tr.folder.fv-parent-expanded div.folder-preview {
+    border-color: transparent;
+    background: transparent;
+}
+
 .folder-preview {
     border-radius: 4px;
     height: 3.5em;

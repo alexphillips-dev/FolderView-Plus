@@ -16,6 +16,8 @@
     ];
     const RULE_EFFECTS = ['include', 'exclude'];
     const LEGACY_FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
+    const DEFAULT_FOLDER_ICON_PATH = '/plugins/folderview.plus/images/folder-icon.png';
+    const IMPORT_ICON_MAX_LENGTH = 8192;
     const RUNTIME_PREFS_SCHEMA = 2;
     const DEFAULT_FOLDER_STATUS_COLORS = {
         started: '#ffffff',
@@ -38,6 +40,7 @@
     };
     const DEFAULT_STATUS_PREFS = {
         mode: 'summary',
+        displayMode: 'balanced',
         trendEnabled: true,
         attentionAccent: true,
         warnStoppedPercent: 60
@@ -105,9 +108,24 @@
             new Set(
                 value
                     .map((item) => String(item || '').trim())
-                    .filter((item) => item !== '')
+                .filter((item) => item !== '')
             )
         );
+    };
+
+    const normalizeExpandedFolderStateMap = (value) => {
+        if (!isPlainObject(value)) {
+            return {};
+        }
+        const output = {};
+        for (const [rawId, expanded] of Object.entries(value)) {
+            const id = String(rawId || '').trim();
+            if (!id) {
+                continue;
+            }
+            output[id] = expanded === true;
+        }
+        return output;
     };
 
     const normalizeHealthProfile = (value) => {
@@ -153,6 +171,20 @@
         return [];
     };
 
+    const normalizeFolderIcon = (value) => {
+        if (typeof value !== 'string') {
+            return '';
+        }
+        const icon = String(value || '').trim();
+        if (icon === '') {
+            return '';
+        }
+        if (icon.length <= IMPORT_ICON_MAX_LENGTH) {
+            return icon;
+        }
+        return DEFAULT_FOLDER_ICON_PATH;
+    };
+
     const normalizeFolderRecord = (value) => {
         if (!isPlainObject(value)) {
             return null;
@@ -165,8 +197,12 @@
 
         const normalized = { ...value };
         normalized.name = name;
-        normalized.icon = typeof value.icon === 'string' ? value.icon : '';
+        normalized.icon = normalizeFolderIcon(value.icon);
         normalized.regex = typeof value.regex === 'string' ? value.regex : '';
+        const rawParentId = typeof value.parentId === 'string'
+            ? value.parentId
+            : (typeof value.parent_id === 'string' ? value.parent_id : '');
+        normalized.parentId = String(rawParentId || '').trim();
         normalized.containers = normalizeFolderMembers(value.containers);
         normalized.settings = isPlainObject(value.settings) ? { ...value.settings } : {};
         normalized.actions = Array.isArray(value.actions) ? value.actions.slice(0, 200) : [];
@@ -196,6 +232,59 @@
             output[normalizedId] = normalizedFolder;
         }
         return output;
+    };
+
+    const buildNestedFolderOrderIdsFromMap = (orderedMap) => {
+        const ids = Object.keys(orderedMap || {});
+        if (ids.length <= 0) {
+            return [];
+        }
+        const indexById = new Map(ids.map((id, idx) => [id, idx]));
+        const parentById = {};
+        for (const id of ids) {
+            const rawParentId = String(orderedMap[id]?.parentId || '').trim();
+            parentById[id] = rawParentId && rawParentId !== id && indexById.has(rawParentId) ? rawParentId : '';
+        }
+
+        const childrenByParent = new Map();
+        for (const id of ids) {
+            const parentId = parentById[id];
+            const key = parentId || '__root__';
+            if (!childrenByParent.has(key)) {
+                childrenByParent.set(key, []);
+            }
+            childrenByParent.get(key).push(id);
+        }
+
+        const sortByOriginalIndex = (a, b) => (indexById.get(a) || 0) - (indexById.get(b) || 0);
+        for (const list of childrenByParent.values()) {
+            list.sort(sortByOriginalIndex);
+        }
+
+        const orderedIds = [];
+        const visiting = new Set();
+        const visited = new Set();
+        const visit = (id) => {
+            if (!id || visited.has(id) || visiting.has(id)) {
+                return;
+            }
+            visiting.add(id);
+            orderedIds.push(id);
+            const children = childrenByParent.get(id) || [];
+            for (const childId of children) {
+                visit(childId);
+            }
+            visiting.delete(id);
+            visited.add(id);
+        };
+
+        for (const rootId of (childrenByParent.get('__root__') || [])) {
+            visit(rootId);
+        }
+        for (const id of ids) {
+            visit(id);
+        }
+        return orderedIds;
     };
 
     const normalizePrefs = (prefs) => {
@@ -332,10 +421,14 @@
             health.vmResourceCriticalGiB = Math.min(1024, health.vmResourceWarnGiB + 1);
         }
         const incomingStatus = isPlainObject(incoming.status) ? incoming.status : {};
+        const normalizedStatusDisplayMode = String(incomingStatus.displayMode || '').trim().toLowerCase();
         const status = {
             mode: String(incomingStatus.mode || '').trim().toLowerCase() === 'dominant'
                 ? 'dominant'
                 : DEFAULT_STATUS_PREFS.mode,
+            displayMode: ['simple', 'balanced', 'detailed'].includes(normalizedStatusDisplayMode)
+                ? normalizedStatusDisplayMode
+                : DEFAULT_STATUS_PREFS.displayMode,
             trendEnabled: !Object.prototype.hasOwnProperty.call(incomingStatus, 'trendEnabled')
                 ? DEFAULT_STATUS_PREFS.trendEnabled
                 : incomingStatus.trendEnabled !== false,
@@ -350,6 +443,7 @@
             )
         };
         const pinnedFolderIds = normalizeStringIdList(incoming.pinnedFolderIds);
+        const expandedFolderState = normalizeExpandedFolderStateMap(incoming.expandedFolderState);
         const hideEmptyFolders = incoming.hideEmptyFolders === true;
         const setupWizardCompleted = incoming.setupWizardCompleted === true;
         const settingsMode = incoming.settingsMode === 'advanced' ? 'advanced' : 'basic';
@@ -358,6 +452,7 @@
             sortMode,
             manualOrder,
             pinnedFolderIds,
+            expandedFolderState,
             hideEmptyFolders,
             setupWizardCompleted,
             settingsMode,
@@ -412,7 +507,13 @@
             for (const key of keys) {
                 ordered[key] = normalizedFolders[key];
             }
-            return applyPinnedOrder(ordered);
+            const pinnedApplied = applyPinnedOrder(ordered);
+            const nestedIds = buildNestedFolderOrderIdsFromMap(pinnedApplied);
+            const nestedOrdered = {};
+            for (const key of nestedIds) {
+                nestedOrdered[key] = pinnedApplied[key];
+            }
+            return nestedOrdered;
         }
 
         if (normalizedPrefs.sortMode === 'manual') {
@@ -426,10 +527,22 @@
             for (const [id, folder] of Object.entries(normalizedFolders)) {
                 ordered[id] = folder;
             }
-            return applyPinnedOrder(ordered);
+            const pinnedApplied = applyPinnedOrder(ordered);
+            const nestedIds = buildNestedFolderOrderIdsFromMap(pinnedApplied);
+            const nestedOrdered = {};
+            for (const key of nestedIds) {
+                nestedOrdered[key] = pinnedApplied[key];
+            }
+            return nestedOrdered;
         }
 
-        return applyPinnedOrder(normalizedFolders);
+        const pinnedApplied = applyPinnedOrder(normalizedFolders);
+        const nestedIds = buildNestedFolderOrderIdsFromMap(pinnedApplied);
+        const nestedOrdered = {};
+        for (const key of nestedIds) {
+            nestedOrdered[key] = pinnedApplied[key];
+        }
+        return nestedOrdered;
     };
 
     const buildFullExportPayload = ({ type, folders, pluginVersion }) => ({
@@ -552,7 +665,8 @@
                 expectedType: normalizedExpectedType
             });
             if (mode === 'single') {
-                if (!isPlainObject(payload.folder) || typeof payload.folder.name !== 'string' || payload.folder.name.trim() === '') {
+                const normalizedFolder = normalizeFolderRecord(payload.folder);
+                if (!normalizedFolder) {
                     return { ok: false, error: 'Single-folder export is missing a valid folder object.' };
                 }
                 return {
@@ -565,7 +679,7 @@
                     mode,
                     legacy: false,
                     trust,
-                    folder: payload.folder,
+                    folder: normalizedFolder,
                     folderId: typeof payload.folderId === 'string' && payload.folderId !== '' ? payload.folderId : null,
                     folders: {}
                 };
@@ -590,6 +704,10 @@
 
         // Legacy format support
         if (isPlainObject(payload.folder) && typeof payload.folder.name === 'string' && payload.folder.name.trim() !== '') {
+            const normalizedFolder = normalizeFolderRecord(payload.folder);
+            if (!normalizedFolder) {
+                return { ok: false, error: 'Single-folder export is missing a valid folder object.' };
+            }
             return {
                 ok: true,
                 schemaVersion: null,
@@ -600,13 +718,17 @@
                 mode: 'single',
                 legacy: true,
                 trust: buildImportTrustMeta({ legacy: true }),
-                folder: payload.folder,
+                folder: normalizedFolder,
                 folderId: typeof payload.folderId === 'string' && payload.folderId.trim() !== '' ? payload.folderId.trim() : null,
                 folders: {}
             };
         }
 
         if (typeof payload.name === 'string' && payload.name.trim() !== '') {
+            const normalizedFolder = normalizeFolderRecord(payload);
+            if (!normalizedFolder) {
+                return { ok: false, error: 'Single-folder export is missing a valid folder object.' };
+            }
             return {
                 ok: true,
                 schemaVersion: null,
@@ -617,7 +739,7 @@
                 mode: 'single',
                 legacy: true,
                 trust: buildImportTrustMeta({ legacy: true }),
-                folder: payload,
+                folder: normalizedFolder,
                 folderId: null,
                 folders: {}
             };

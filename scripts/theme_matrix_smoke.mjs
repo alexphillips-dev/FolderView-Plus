@@ -1,4 +1,5 @@
 const matrixRaw = String(process.env.FVPLUS_THEME_MATRIX_URLS || '').trim();
+const requiredLabelsRaw = String(process.env.FVPLUS_THEME_REQUIRED_LABELS || '').trim();
 const timeoutMs = Number.isFinite(Number(process.env.FVPLUS_THEME_SMOKE_TIMEOUT_MS))
     ? Math.max(5000, Number(process.env.FVPLUS_THEME_SMOKE_TIMEOUT_MS))
     : 90000;
@@ -45,6 +46,8 @@ const parseMatrixEntries = (raw) => {
     return entries;
 };
 
+const normalizeLabel = (value) => String(value || '').trim().toLowerCase();
+
 if (!matrixRaw) {
     console.log('Skipping theme matrix smoke checks (FVPLUS_THEME_MATRIX_URLS not set).');
     process.exit(0);
@@ -54,6 +57,19 @@ const matrixEntries = parseMatrixEntries(matrixRaw);
 if (!matrixEntries.length) {
     console.log('Skipping theme matrix smoke checks (no usable targets parsed from FVPLUS_THEME_MATRIX_URLS).');
     process.exit(0);
+}
+
+const requiredLabels = requiredLabelsRaw
+    .split(/[,\s;]+/)
+    .map((label) => normalizeLabel(label))
+    .filter((label, index, source) => label !== '' && source.indexOf(label) === index);
+if (requiredLabels.length > 0) {
+    const seenLabels = new Set(matrixEntries.map((entry) => normalizeLabel(entry.label)));
+    const missing = requiredLabels.filter((label) => !seenLabels.has(label));
+    if (missing.length > 0) {
+        console.error(`ERROR: Theme matrix is missing required label(s): ${missing.join(', ')}`);
+        process.exit(1);
+    }
 }
 
 if (!browserNames.length) {
@@ -85,6 +101,70 @@ const ensureWizardVisible = async (page) => {
         await runWizardButton.first().click({ timeout: timeoutMs });
     }
     await dialog.waitFor({ state: 'visible', timeout: timeoutMs });
+};
+
+const runSettingsSurfaceChecks = async (page, { label, browserName, mobile, zoom }) => {
+    const report = await page.evaluate((context) => {
+        const isVisible = (element) => {
+            if (!element) {
+                return false;
+            }
+            const style = window.getComputedStyle(element);
+            if (style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity) <= 0.01) {
+                return false;
+            }
+            const rect = element.getBoundingClientRect();
+            return rect.width > 1 && rect.height > 1;
+        };
+
+        const errors = [];
+        const root = document.querySelector('#fv-settings-root');
+        const topbar = document.querySelector('#fv-settings-topbar');
+        const dockerSection = document.querySelector('h2[data-fv-section="docker"]');
+        const vmSection = document.querySelector('h2[data-fv-section="vms"]');
+        const dockerTable = document.querySelector('tbody#docker');
+        const vmTable = document.querySelector('tbody#vms');
+        const basicButton = document.querySelector('#fv-settings-topbar .fv-mode-btn[data-mode="basic"]');
+        const advancedButton = document.querySelector('#fv-settings-topbar .fv-mode-btn[data-mode="advanced"]');
+        const advancedHeading = document.querySelector('h2[data-fv-advanced="1"]');
+
+        if (!isVisible(root)) {
+            errors.push('Settings root is not visible.');
+        }
+        if (!isVisible(topbar)) {
+            errors.push('Settings topbar is not visible.');
+        }
+        if (!isVisible(dockerSection)) {
+            errors.push('Docker section heading is not visible.');
+        }
+        if (!isVisible(vmSection)) {
+            errors.push('VM section heading is not visible.');
+        }
+        if (!dockerTable) {
+            errors.push('Docker table body (#docker) is missing.');
+        }
+        if (!vmTable) {
+            errors.push('VM table body (#vms) is missing.');
+        }
+        if (!isVisible(basicButton)) {
+            errors.push('Basic mode button is not visible.');
+        }
+        if (!isVisible(advancedButton)) {
+            errors.push('Advanced mode button is not visible.');
+        }
+        if (!advancedHeading) {
+            errors.push('At least one advanced section heading is missing.');
+        }
+        if (root && root.scrollWidth > (root.clientWidth + 2) && context.mobile === false) {
+            errors.push('Settings root has unexpected desktop horizontal overflow.');
+        }
+
+        return { errors };
+    }, { mobile, zoom });
+
+    if (Array.isArray(report?.errors) && report.errors.length > 0) {
+        throw new Error(`[${label}] ${browserName} ${mobile ? 'mobile' : 'desktop'} zoom=${zoom}: ${report.errors.join(' | ')}`);
+    }
 };
 
 const runScenarioChecks = async (page, { label, browserName, mobile, zoom }) => {
@@ -279,6 +359,7 @@ const runThemeChecks = async ({ label, url }, browserName, browserType) => {
         try {
             await page.goto(url, { waitUntil: 'domcontentloaded', timeout: timeoutMs });
             await page.locator('#fv-settings-topbar').waitFor({ state: 'visible', timeout: timeoutMs });
+            await runSettingsSurfaceChecks(page, { label, browserName, mobile, zoom });
             await ensureWizardVisible(page);
             if (zoom !== 1) {
                 await page.evaluate((zoomValue) => {

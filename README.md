@@ -177,6 +177,17 @@ File naming rules:
 - Dashboard overrides: `*.dashboard.css` and `*.dashboard.js`
 - Disable any override file by appending `.disabled`
 
+Legacy Docker selector compatibility contract (stable hooks):
+
+- `td.ct-name.folder-name`
+- `div.folder-name-sub`
+- `button.dropDown-*` + `.folder-dropdown`
+- `td.updatecolumn.folder-update`
+- `div.folder-preview`
+- `img.img.folder-img`
+- `span.state.folder-state`
+- Tooltip hooks: `.preview-outbox`, `.action-info`, `.info-ct`, `.tooltipster-docker-folder`
+
 Example:
 
 - `hernando.docker.css` works as a Docker override and can stay in a legacy `folder.view*/styles` directory.

@@ -158,6 +158,35 @@ Not supported:
 - Third-party icons: `/usr/local/emhttp/plugins/folderview.plus/images/third-party-icons`
 - User-uploaded icons: `/usr/local/emhttp/plugins/folderview.plus/images/custom`
 
+## Legacy CSS/JS Migration (FolderView2/3)
+FolderView Plus keeps legacy override directory support so older custom tweaks can continue working.
+
+Supported legacy override roots:
+
+- `/boot/config/plugins/folder.view/styles`
+- `/boot/config/plugins/folder.view2/styles`
+- `/boot/config/plugins/folder.view3/styles`
+- `/boot/config/plugins/folder.view/scripts`
+- `/boot/config/plugins/folder.view2/scripts`
+- `/boot/config/plugins/folder.view3/scripts`
+
+File naming rules:
+
+- Docker page overrides: `*.docker.css` and `*.docker.js`
+- VM page overrides: `*.vm.css` and `*.vm.js`
+- Dashboard overrides: `*.dashboard.css` and `*.dashboard.js`
+- Disable any override file by appending `.disabled`
+
+Example:
+
+- `hernando.docker.css` works as a Docker override and can stay in a legacy `folder.view*/styles` directory.
+
+Recommended migration path (optional but preferred):
+
+1. Copy your legacy overrides into `/boot/config/plugins/folderview.plus/styles` and `/boot/config/plugins/folderview.plus/scripts`.
+2. Keep the same filenames (for example, `hernando.docker.css`).
+3. Hard-refresh the browser after save (`Ctrl+F5`) so CSS cache is rebuilt.
+
 ## Included Icon Pack Credits
 - https://github.com/sameerasw/folder-icons
 - https://github.com/hernandito/unRAID-Docker-Folder-Animated-Icons---Alternate-Colors

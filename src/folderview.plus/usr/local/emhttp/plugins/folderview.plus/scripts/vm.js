@@ -68,6 +68,58 @@ const FV_VM_TOUCH_MODE = (() => {
         return false;
     }
 })();
+const VM_EXPANDED_STATE_KEY = 'fvplus.runtime.expand.vm.v1';
+const readVmExpandedStateMap = () => {
+    try {
+        const raw = window.localStorage && window.localStorage.getItem(VM_EXPANDED_STATE_KEY);
+        if (!raw) {
+            return {};
+        }
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+            return {};
+        }
+        const next = {};
+        for (const [id, expanded] of Object.entries(parsed)) {
+            next[String(id || '')] = expanded === true;
+        }
+        return next;
+    } catch (_error) {
+        return {};
+    }
+};
+const writeVmExpandedStateMap = (map) => {
+    try {
+        const payload = map && typeof map === 'object' ? map : {};
+        if (window.localStorage) {
+            window.localStorage.setItem(VM_EXPANDED_STATE_KEY, JSON.stringify(payload));
+        }
+    } catch (_error) {
+        // Ignore storage failures so runtime rendering never breaks.
+    }
+};
+const buildVmExpandedStateMap = (folders, previousFolders = {}) => {
+    const source = folders && typeof folders === 'object' ? folders : {};
+    const previous = previousFolders && typeof previousFolders === 'object' ? previousFolders : {};
+    const persisted = readVmExpandedStateMap();
+    const resolved = {};
+    for (const [id, folder] of Object.entries(source)) {
+        if (Object.prototype.hasOwnProperty.call(persisted, id)) {
+            resolved[id] = persisted[id] === true;
+            continue;
+        }
+        resolved[id] = (previous[id]?.status?.expanded === true) || folder?.settings?.expand_tab === true;
+    }
+    writeVmExpandedStateMap(resolved);
+    return resolved;
+};
+const persistVmExpandedStateFromGlobal = () => {
+    const map = {};
+    for (const [id, folder] of Object.entries(globalFolders || {})) {
+        map[id] = folder?.status?.expanded === true;
+    }
+    writeVmExpandedStateMap(map);
+};
 const escapeHtml = (value) => String(value ?? '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -311,6 +363,7 @@ const hideVmRuntimeLoadingRow = () => {
 const createFolders = async () => {
     showVmRuntimeLoadingRow();
     try {
+    const previousFolders = (globalFolders && typeof globalFolders === 'object') ? globalFolders : {};
     const prom = await Promise.all(folderReq);
     // Parse the results
     let folders = JSON.parse(prom[0]);
@@ -420,12 +473,27 @@ const createFolders = async () => {
         delete folders[id];
     }
 
-    // Expand folders that are set to be expanded by default, this is here because is easier to work with all compressed folder when creating them
+    // Expand folders from remembered runtime state (fallback: previous in-memory state, then expand_tab).
+    const expandedStateById = buildVmExpandedStateMap(foldersDone, previousFolders);
     for (const [id, value] of Object.entries(foldersDone)) {
-        if((globalFolders[id] && globalFolders[id].status.expanded) || value.settings.expand_tab) {
-            value.status.expanded = true;
-            dropDownButton(id);
+        if (!value || typeof value !== 'object') {
+            continue;
         }
+        value.status = (value.status && typeof value.status === 'object') ? value.status : {};
+        value.status.expanded = expandedStateById[id] === true;
+    }
+    const expansionIds = Object.keys(foldersDone)
+        .sort((a, b) => (folderDepthById[a] || 0) - (folderDepthById[b] || 0));
+    for (const id of expansionIds) {
+        if (expandedStateById[id] !== true) {
+            continue;
+        }
+        const folder = foldersDone[id] || {};
+        const parentId = normalizeFolderParentId(folder?.parentId || folder?.parent_id || '');
+        if (parentId && expandedStateById[parentId] !== true) {
+            continue;
+        }
+        dropDownButton(id, false);
     }
 
     folderEvents.dispatchEvent(new CustomEvent('vm-post-folders-creation', {detail: {
@@ -436,6 +504,7 @@ const createFolders = async () => {
 
     // Assing the folder done to the global object
     globalFolders = foldersDone;
+    persistVmExpandedStateFromGlobal();
     renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
 
     folderDebugMode  = false;
@@ -853,7 +922,7 @@ const folderAutostart = (el) => {
  * Handle the dropdown expand button of folders
  * @param {string} id the id of the folder
  */
-const dropDownButton = (id) => {
+const dropDownButton = (id, persistState = true) => {
     folderEvents.dispatchEvent(new CustomEvent('vm-pre-folder-expansion', {detail: { id }}));
     const element = $(`.dropDown-${id}`);
     const state = element.attr('active') === "true";
@@ -871,6 +940,9 @@ const dropDownButton = (id) => {
     }
     if(globalFolders[id]) {
         globalFolders[id].status.expanded = !state;
+    }
+    if (persistState) {
+        persistVmExpandedStateFromGlobal();
     }
     folderEvents.dispatchEvent(new CustomEvent('vm-post-folder-expansion', {detail: { id }}));
 };

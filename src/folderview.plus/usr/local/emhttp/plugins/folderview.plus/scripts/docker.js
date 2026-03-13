@@ -462,6 +462,58 @@ const folderViewPerfFromStorage = (() => {
         return false;
     }
 })();
+const DOCKER_EXPANDED_STATE_KEY = 'fvplus.runtime.expand.docker.v1';
+const readDockerExpandedStateMap = () => {
+    try {
+        const raw = window.localStorage && window.localStorage.getItem(DOCKER_EXPANDED_STATE_KEY);
+        if (!raw) {
+            return {};
+        }
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+            return {};
+        }
+        const next = {};
+        for (const [id, expanded] of Object.entries(parsed)) {
+            next[String(id || '')] = expanded === true;
+        }
+        return next;
+    } catch (_error) {
+        return {};
+    }
+};
+const writeDockerExpandedStateMap = (map) => {
+    try {
+        const payload = map && typeof map === 'object' ? map : {};
+        if (window.localStorage) {
+            window.localStorage.setItem(DOCKER_EXPANDED_STATE_KEY, JSON.stringify(payload));
+        }
+    } catch (_error) {
+        // Ignore storage failures so runtime rendering never breaks.
+    }
+};
+const buildDockerExpandedStateMap = (folders, previousFolders = {}) => {
+    const source = folders && typeof folders === 'object' ? folders : {};
+    const previous = previousFolders && typeof previousFolders === 'object' ? previousFolders : {};
+    const persisted = readDockerExpandedStateMap();
+    const resolved = {};
+    for (const [id, folder] of Object.entries(source)) {
+        if (Object.prototype.hasOwnProperty.call(persisted, id)) {
+            resolved[id] = persisted[id] === true;
+            continue;
+        }
+        resolved[id] = (previous[id]?.status?.expanded === true) || folder?.settings?.expand_tab === true;
+    }
+    writeDockerExpandedStateMap(resolved);
+    return resolved;
+};
+const persistDockerExpandedStateFromGlobal = () => {
+    const map = {};
+    for (const [id, folder] of Object.entries(globalFolders || {})) {
+        map[id] = folder?.status?.expanded === true;
+    }
+    writeDockerExpandedStateMap(map);
+};
 const FOLDER_VIEW_PERF_MODE = folderViewPerfFromQuery || folderViewPerfFromStorage;
 const FOLDER_VIEW_TOUCH_MODE = (() => {
     try {
@@ -702,19 +754,31 @@ const createFolders = async () => {
     dockerFolderHierarchy = buildFolderHierarchy(globalFolders);
     applyNestedFolderHierarchy();
 
-    // Expand folders that are set to be expanded by default.
-    if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Expanding folders set to expand by default.');
+    // Expand folders from remembered runtime state (fallback: previous in-memory state, then expand_tab).
+    if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Restoring remembered expand state.');
+    const expandedStateById = buildDockerExpandedStateMap(foldersDone, previousFolders);
     for (const [id, value] of Object.entries(foldersDone)) {
-        const parentId = normalizeFolderParentId(value?.parentId || value?.parent_id || '');
-        if (parentId) {
+        if (!value || typeof value !== 'object') {
             continue;
         }
-        if ((previousFolders[id] && previousFolders[id].status && previousFolders[id].status.expanded === true) || value.settings.expand_tab) {
-            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Expanding folder ${id} by default.`);
-            value.status.expanded = true;
-            dropDownButton(id);
-        }
+        value.status = (value.status && typeof value.status === 'object') ? value.status : {};
+        value.status.expanded = expandedStateById[id] === true;
     }
+    const expansionIds = Object.keys(foldersDone)
+        .sort((a, b) => (folderDepthById[a] || 0) - (folderDepthById[b] || 0));
+    for (const id of expansionIds) {
+        if (expandedStateById[id] !== true) {
+            continue;
+        }
+        const folder = foldersDone[id] || {};
+        const parentId = normalizeFolderParentId(folder?.parentId || folder?.parent_id || '');
+        if (parentId && expandedStateById[parentId] !== true) {
+            continue;
+        }
+        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Restoring expanded folder ${id}.`);
+        dropDownButton(id, false);
+    }
+    persistDockerExpandedStateFromGlobal();
 
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Assigned foldersDone to globalFolders:', {...globalFolders});
     renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
@@ -1948,7 +2012,7 @@ const folderAutostart = async (el) => {
  * Handle the dropdown expand button of folders
  * @param {string} id the id of the folder
  */
-const dropDownButton = (id) => {
+const dropDownButton = (id, persistState = true) => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Entry.`);
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Dispatching docker-pre-folder-expansion event.`);
     folderEvents.dispatchEvent(new CustomEvent('docker-pre-folder-expansion', {detail: { id }}));
@@ -1991,6 +2055,9 @@ const dropDownButton = (id) => {
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Updated globalFolders[${id}].status.expanded to ${!state}.`);
     } else {
         if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] dropDownButton (id: ${id}): globalFolders[${id}] not found to update expanded status.`);
+    }
+    if (persistState) {
+        persistDockerExpandedStateFromGlobal();
     }
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Dispatching docker-post-folder-expansion event.`);
     folderEvents.dispatchEvent(new CustomEvent('docker-post-folder-expansion', {detail: { id }}));

@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.13.07">
-<!ENTITY md5 "158e236dfc063b08dbd28424a57c5a39">
+<!ENTITY version "2026.03.13.08">
+<!ENTITY md5 "2c48938aa4d7d57057af1c4c36614681">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.13.08
+- Maintenance: Raise total JS perf ceiling to match current baseline.
+- Maintenance: Refresh perf baseline after runtime expand-state memory.
+- Maintenance: Remember Docker/VM folder collapse state across views.
+
 
 ###2026.03.13.07
 - Fix: Added hard fallback in Dashboard root-folder extraction so folder rendering remains active if no valid root set is detected.

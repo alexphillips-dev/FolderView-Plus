@@ -490,7 +490,8 @@ const createFolders = async () => {
         }
         const folder = foldersDone[id] || {};
         const parentId = normalizeFolderParentId(folder?.parentId || folder?.parent_id || '');
-        if (parentId && expandedStateById[parentId] !== true) {
+        const hasKnownParent = !!(parentId && Object.prototype.hasOwnProperty.call(foldersDone, parentId));
+        if (hasKnownParent && expandedStateById[parentId] !== true) {
             continue;
         }
         dropDownButton(id, false);

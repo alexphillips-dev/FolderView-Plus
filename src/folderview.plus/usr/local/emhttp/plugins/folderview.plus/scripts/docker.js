@@ -772,7 +772,8 @@ const createFolders = async () => {
         }
         const folder = foldersDone[id] || {};
         const parentId = normalizeFolderParentId(folder?.parentId || folder?.parent_id || '');
-        if (parentId && expandedStateById[parentId] !== true) {
+        const hasKnownParent = !!(parentId && Object.prototype.hasOwnProperty.call(foldersDone, parentId));
+        if (hasKnownParent && expandedStateById[parentId] !== true) {
             continue;
         }
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Restoring expanded folder ${id}.`);

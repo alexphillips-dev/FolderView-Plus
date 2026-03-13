@@ -9407,6 +9407,21 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         }
         const safeName = escapeHtml(folder.name);
         const safeIcon = escapeHtml(folder.icon || '');
+        const folderDepth = Math.max(0, Math.min(6, Number(hierarchyMeta?.depthById?.[id] || 0)));
+        const parentFolderId = String(hierarchyMeta?.parentById?.[id] || '').trim();
+        const parentFolderNameRaw = parentFolderId && Object.prototype.hasOwnProperty.call(folders, parentFolderId)
+            ? String(folders[parentFolderId]?.name || parentFolderId)
+            : '';
+        const nestedMetaTitleRaw = folderDepth > 0
+            ? `Nested level ${folderDepth}${parentFolderNameRaw ? ` under ${parentFolderNameRaw}` : ''}`
+            : 'Root folder';
+        const nestedMetaTextRaw = parentFolderNameRaw
+            ? `Nested under ${parentFolderNameRaw}`
+            : `Nested level ${folderDepth}`;
+        const nestedMetaHtml = folderDepth > 0
+            ? `<span class="name-cell-nested-meta" title="${escapeHtml(nestedMetaTitleRaw)}"><i class="fa fa-level-up fa-rotate-90" aria-hidden="true"></i><span>${escapeHtml(nestedMetaTextRaw)}</span></span>`
+            : '';
+        const nameCellClass = folderDepth > 0 ? 'name-cell-content is-nested' : 'name-cell-content is-root';
         if (!folderMatchesStatusFilter(statusFilterMode, countsByState, members.length)) {
             continue;
         }
@@ -9648,9 +9663,9 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             + (treeErrorText ? `<span class="row-order-error">${escapeHtml(treeErrorText)}</span>` : '')
             + `</div>`;
         rows.push(
-            `<tr data-folder-id="${escapeHtml(id)}" tabindex="0" onkeydown="handleFolderRowKeydown('${type}','${escapeHtml(id)}',event)">`
+            `<tr class="${folderDepth > 0 ? 'is-nested-row' : 'is-root-row'}" data-folder-depth="${folderDepth}" data-folder-id="${escapeHtml(id)}" tabindex="0" onkeydown="handleFolderRowKeydown('${type}','${escapeHtml(id)}',event)">`
             + `<td class="order-cell">${orderCellHtml}</td>`
-            + `<td class="name-cell" title="${escapeHtml(id)}"><span class="name-cell-content"><img src="${safeIcon}" class="img" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"><span class="name-cell-text">${safeName}</span></span></td>`
+            + `<td class="name-cell" title="${escapeHtml(id)}"><span class="${nameCellClass}" style="--fv-folder-depth:${folderDepth};"><img src="${safeIcon}" class="img" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"><span class="name-cell-text-wrap"><span class="name-cell-text">${safeName}</span>${nestedMetaHtml}</span></span></td>`
             + `<td class="members-cell">${membersCellHtml}</td>`
             + `<td class="status-cell"><span class="status-cell-content"><button type="button" class="status-breakdown-btn" title="Open status breakdown" aria-label="Open status breakdown for ${safeName}" onclick="showFolderStatusBreakdown('${type}','${escapeHtml(id)}')"><i class="fa fa-info-circle"></i></button>${statusChipsHtml}${statusTrendHtml}</span></td>`
             + `<td class="rules-cell" title="${escapeHtml(ruleTitle)}">${escapeHtml(ruleText)}</td>`
@@ -10051,46 +10066,79 @@ const moveFolderRow = async (type, folderId, direction) => {
         return;
     }
 
-    const tbodyId = tableIdByType[resolvedType];
-    const tbody = $(`tbody#${tbodyId}`);
-    const row = tbody.find(`tr[data-folder-id="${safeFolderId}"]`);
-    if (!row.length) {
-        setFolderTreeMoveError(resolvedType, safeFolderId, 'Folder row is no longer available.');
+    if (direction !== -1 && direction !== 1) {
         return;
     }
 
-    const previousId = direction < 0
-        ? String(row.prev('tr[data-folder-id]').attr('data-folder-id') || '')
-        : String(row.next('tr[data-folder-id]').attr('data-folder-id') || '');
-    if (!previousId) {
+    const folders = getFolderMap(resolvedType);
+    if (!Object.prototype.hasOwnProperty.call(folders, safeFolderId)) {
+        setFolderTreeMoveError(resolvedType, safeFolderId, 'Folder no longer exists.');
+        return;
+    }
+
+    const hierarchyMeta = buildFolderHierarchyMeta(folders);
+    const parentById = hierarchyMeta.parentById || {};
+    const currentParentId = String(parentById[safeFolderId] || '').trim();
+    const fullOrder = getOrderedFolderIdsForTreeOps(resolvedType);
+    const siblingIds = fullOrder.filter((id) => String(parentById[id] || '').trim() === currentParentId);
+    const sourceSiblingIndex = siblingIds.indexOf(safeFolderId);
+    if (sourceSiblingIndex < 0) {
+        setFolderTreeMoveError(resolvedType, safeFolderId, 'Folder order could not be resolved.');
+        return;
+    }
+
+    const targetSiblingIndex = sourceSiblingIndex + direction;
+    if (targetSiblingIndex < 0 || targetSiblingIndex >= siblingIds.length) {
         setFolderTreeMoveError(
             resolvedType,
             safeFolderId,
-            direction < 0 ? 'Folder is already at the top.' : 'Folder is already at the bottom.'
+            direction < 0
+                ? 'Folder is already first in this level.'
+                : 'Folder is already last in this level.'
         );
         return;
     }
 
-    let backup = null;
-    if (direction < 0) {
-        const prev = row.prev('tr[data-folder-id]');
-        if (prev.length) {
-            prev.before(row);
-        }
-    } else if (direction > 0) {
-        const next = row.next('tr[data-folder-id]');
-        if (next.length) {
-            next.after(row);
-        }
+    const targetSiblingId = String(siblingIds[targetSiblingIndex] || '').trim();
+    if (!targetSiblingId) {
+        setFolderTreeMoveError(resolvedType, safeFolderId, 'No sibling found for this move.');
+        return;
     }
+
+    const sourceSubtreeIds = [safeFolderId, ...(hierarchyMeta.descendantsById[safeFolderId] || [])];
+    const targetSubtreeIds = [targetSiblingId, ...(hierarchyMeta.descendantsById[targetSiblingId] || [])];
+    const sourceSubtreeSet = new Set(sourceSubtreeIds);
+    const orderWithoutSource = fullOrder.filter((id) => !sourceSubtreeSet.has(String(id || '')));
+    let insertIndex = orderWithoutSource.length;
+    if (direction < 0) {
+        const firstTargetIndex = orderWithoutSource.findIndex((id) => targetSubtreeIds.includes(String(id || '')));
+        insertIndex = firstTargetIndex >= 0 ? firstTargetIndex : orderWithoutSource.length;
+    } else {
+        const lastTargetIndex = findLastMatchingOrderIndex(orderWithoutSource, targetSubtreeIds);
+        insertIndex = lastTargetIndex >= 0 ? (lastTargetIndex + 1) : orderWithoutSource.length;
+    }
+    const nextOrder = orderWithoutSource.slice();
+    nextOrder.splice(Math.max(0, Math.min(insertIndex, nextOrder.length)), 0, ...sourceSubtreeIds);
+    const orderChanged = nextOrder.length === fullOrder.length
+        && nextOrder.some((id, index) => String(id || '') !== String(fullOrder[index] || ''));
+    if (!orderChanged) {
+        setFolderTreeMoveError(resolvedType, safeFolderId, 'Folder is already in that position.');
+        return;
+    }
+
+    let backup = null;
 
     try {
         clearFolderTreeMoveError(resolvedType, safeFolderId, { rerender: false });
         backup = await createBackup(resolvedType, `before-reorder-${safeFolderId}`);
-        await persistManualOrderFromDom(resolvedType);
+        await persistManualOrder(resolvedType, nextOrder, { refresh: false });
+        await refreshType(resolvedType);
         if (backup?.name) {
             await offerUndoAction(resolvedType, backup, 'Reorder folders');
         }
+        const sourceName = String(folders[safeFolderId]?.name || safeFolderId);
+        const targetName = String(folders[targetSiblingId]?.name || targetSiblingId);
+        addActivityEntry(`Reordered folder: ${sourceName} ${direction < 0 ? 'before' : 'after'} ${targetName}.`, 'success');
     } catch (error) {
         await refreshType(resolvedType);
         setFolderTreeMoveError(resolvedType, safeFolderId, error?.message || 'Order save failed.');

@@ -316,6 +316,7 @@
 
 .folder-table table td.name-cell {
     text-align: center;
+    white-space: normal;
 }
 
 .name-cell-content {
@@ -325,6 +326,9 @@
     column-gap: 0.5rem;
     width: clamp(160px, 16vw, 230px);
     text-align: left;
+    --fv-folder-indent-step: 0.9rem;
+    padding-left: calc(var(--fv-folder-depth, 0) * var(--fv-folder-indent-step));
+    position: relative;
 }
 
 .name-cell-content > img {
@@ -333,10 +337,47 @@
     object-fit: contain;
 }
 
+.name-cell-content.is-nested::before {
+    content: "";
+    position: absolute;
+    left: calc((var(--fv-folder-depth, 0) * var(--fv-folder-indent-step)) - 0.5rem);
+    top: 0.3rem;
+    bottom: 0.3rem;
+    border-left: 1px solid rgba(173, 178, 192, 0.55);
+    pointer-events: none;
+}
+
+.name-cell-text-wrap {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.15rem;
+}
+
 .name-cell-text {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    max-width: 100%;
+}
+
+.name-cell-nested-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.26rem;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 1.03rem;
+    line-height: 1.15;
+    color: rgba(194, 206, 224, 0.86);
+}
+
+.name-cell-nested-meta i {
+    font-size: 0.9em;
+    opacity: 0.9;
 }
 
 .status-line {
@@ -4669,6 +4710,11 @@ tr.is-long-press-active {
 
     .name-cell-content {
         width: min(100%, 280px);
+        --fv-folder-indent-step: 0.7rem;
+    }
+
+    .name-cell-nested-meta {
+        font-size: 1.03rem;
     }
 }
 

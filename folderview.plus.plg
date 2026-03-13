@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.13.01">
-<!ENTITY md5 "12c478fe4339aed2a8a1b08d7dd329a5">
+<!ENTITY version "2026.03.13.02">
+<!ENTITY md5 "5a10ebadef453dc36f383830a7bd1e0b">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.13.02
+- UX: Unified Status chip styling so Started/Paused/Stopped now use the same stronger chip treatment as Mixed.
+- UX: Upgraded primary and breakdown chips with clearer borders, subtle state-tinted backgrounds, and better visual hierarchy.
+
 
 ###2026.03.13.01
 - Feature: Added `Status detail` modes (`Simple`, `Balanced`, `Detailed`) for Docker and VM folder tables, with `Balanced` as the default.

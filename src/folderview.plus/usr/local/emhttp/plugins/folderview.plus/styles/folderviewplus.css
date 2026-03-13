@@ -1247,10 +1247,14 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    padding: 0.08rem 0.42rem;
+    padding: 0.12rem 0.5rem;
     border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: 999px;
+    border-radius: 7px;
     font-size: 1.03rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: rgba(255, 255, 255, 0.04);
     opacity: 0.95;
 }
 
@@ -1290,10 +1294,14 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     display: inline-flex;
     align-items: center;
     gap: 0.2rem;
-    padding: 0.08rem 0.38rem;
-    border-radius: 999px;
+    padding: 0.11rem 0.46rem;
+    border-radius: 7px;
     border: 1px solid rgba(255, 255, 255, 0.16);
     font-size: 1.03rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: rgba(255, 255, 255, 0.035);
     opacity: 0.94;
     white-space: nowrap;
 }
@@ -1308,27 +1316,31 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 }
 
 .status-breakdown-chip .label {
-    opacity: 0.88;
+    opacity: 0.9;
 }
 
 .status-breakdown-chip.is-started {
     border-color: rgba(147, 225, 159, 0.5);
     color: #93e19f;
+    background: rgba(147, 225, 159, 0.12);
 }
 
 .status-breakdown-chip.is-paused {
     border-color: rgba(255, 193, 94, 0.55);
     color: #ffc15e;
+    background: rgba(255, 193, 94, 0.12);
 }
 
 .status-breakdown-chip.is-stopped {
     border-color: rgba(255, 116, 116, 0.58);
     color: #ff7474;
+    background: rgba(255, 116, 116, 0.12);
 }
 
 .status-breakdown-chip.is-empty {
     border-color: rgba(192, 192, 192, 0.45);
     color: rgba(240, 240, 240, 0.86);
+    background: rgba(192, 192, 192, 0.08);
 }
 
 .status-cell-content.is-simple .status-breakdown-list,
@@ -1354,6 +1366,7 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 .folder-runtime-status.is-mixed {
     border-color: rgba(123, 182, 255, 0.58);
     color: #7bb6ff;
+    background: rgba(123, 182, 255, 0.12);
 }
 
 .folder-runtime-status.is-attention {
@@ -1406,21 +1419,25 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 .folder-runtime-status.is-started {
     border-color: rgba(147, 225, 159, 0.55);
     color: #93e19f;
+    background: rgba(147, 225, 159, 0.12);
 }
 
 .folder-runtime-status.is-paused {
     border-color: rgba(255, 193, 94, 0.58);
     color: #ffc15e;
+    background: rgba(255, 193, 94, 0.12);
 }
 
 .folder-runtime-status.is-stopped {
     border-color: rgba(255, 116, 116, 0.62);
     color: #ff7474;
+    background: rgba(255, 116, 116, 0.12);
 }
 
 .folder-runtime-status.is-empty {
     border-color: rgba(192, 192, 192, 0.45);
     color: rgba(240, 240, 240, 0.86);
+    background: rgba(192, 192, 192, 0.08);
 }
 
 .folder-health-grid {

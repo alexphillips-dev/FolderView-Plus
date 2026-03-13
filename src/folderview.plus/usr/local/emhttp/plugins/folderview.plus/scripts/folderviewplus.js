@@ -1833,6 +1833,26 @@ const initSettingsControls = () => {
     $('#fv-run-wizard').off('click.fvui').on('click.fvui', () => {
         runQuickSetupWizard(true);
     });
+    $(document).off('click.fvemptyactions', '[data-fv-empty-action]').on('click.fvemptyactions', '[data-fv-empty-action]', async (event) => {
+        event.preventDefault();
+        const action = String($(event.currentTarget).attr('data-fv-empty-action') || '').trim().toLowerCase();
+        const type = String($(event.currentTarget).attr('data-fv-type') || '').trim().toLowerCase();
+        if (action === 'create') {
+            await quickCreateStarterFolder(type === 'vm' ? 'vm' : 'docker');
+            return;
+        }
+        if (action === 'import') {
+            if (type === 'vm') {
+                importVm();
+                return;
+            }
+            importDocker();
+            return;
+        }
+        if (action === 'wizard') {
+            runQuickSetupWizard(true);
+        }
+    });
 
     $(document).off('input.fvhealth change.fvhealth', 'input,select,textarea').on('input.fvhealth change.fvhealth', 'input,select,textarea', () => {
         refreshInputInvalidStyles();
@@ -5827,14 +5847,50 @@ const applyQuickProfilePreset = async (presetId) => {
     });
 };
 
+const promptStarterFolderName = async (type, suggestedName) => {
+    const resolvedType = normalizeManagedType(type);
+    const folderTypeLabel = resolvedType === 'docker' ? 'Docker' : 'VM';
+    const initialValue = String(suggestedName || '').trim() || `New ${folderTypeLabel} Folder`;
+    if (typeof window.swal !== 'function') {
+        const fallback = window.prompt(`Create ${folderTypeLabel} folder`, initialValue);
+        return String(fallback || '').trim();
+    }
+    return new Promise((resolve) => {
+        swal({
+            title: `Create ${folderTypeLabel} folder`,
+            text: 'Enter a folder name. You can change icon/settings after create.',
+            type: 'input',
+            inputValue: initialValue,
+            showCancelButton: true,
+            confirmButtonText: 'Create',
+            cancelButtonText: 'Cancel',
+            closeOnConfirm: false
+        }, (value) => {
+            if (value === false) {
+                resolve('');
+                return;
+            }
+            const name = String(value || '').trim();
+            if (!name) {
+                if (typeof swal.showInputError === 'function') {
+                    swal.showInputError('Folder name is required.');
+                }
+                return false;
+            }
+            swal.close();
+            resolve(name);
+            return true;
+        });
+    });
+};
+
 const quickCreateStarterFolder = async (type) => {
     const resolvedType = normalizeManagedType(type);
     if (!ensureRuntimeConflictActionAllowed(`Create ${resolvedType === 'docker' ? 'Docker' : 'VM'} folder`)) {
         return;
     }
     const suggestedName = resolvedType === 'docker' ? 'New Docker Folder' : 'New VM Folder';
-    const requestedName = window.prompt('Folder name:', suggestedName);
-    const name = String(requestedName || '').trim();
+    const name = await promptStarterFolderName(resolvedType, suggestedName);
     if (!name) {
         return;
     }
@@ -5891,14 +5947,14 @@ const renderFirstRunQuickPathPanel = () => {
     const help = 'Use one of these shortcuts to get organized quickly. You can still adjust everything manually afterward.';
     const buttons = [];
     if (needsDocker) {
-        buttons.push('<button type="button" onclick="quickCreateStarterFolder(\'docker\')"><i class="fa fa-plus-circle"></i> Create Docker folder</button>');
-        buttons.push('<button type="button" onclick="importDocker()"><i class="fa fa-upload"></i> Import Docker config</button>');
+        buttons.push('<button type="button" data-fv-empty-action="create" data-fv-type="docker"><i class="fa fa-plus-circle"></i> Create Docker folder</button>');
+        buttons.push('<button type="button" data-fv-empty-action="import" data-fv-type="docker"><i class="fa fa-upload"></i> Import Docker config</button>');
     }
     if (needsVm) {
-        buttons.push('<button type="button" onclick="quickCreateStarterFolder(\'vm\')"><i class="fa fa-plus-circle"></i> Create VM folder</button>');
-        buttons.push('<button type="button" onclick="importVm()"><i class="fa fa-upload"></i> Import VM config</button>');
+        buttons.push('<button type="button" data-fv-empty-action="create" data-fv-type="vm"><i class="fa fa-plus-circle"></i> Create VM folder</button>');
+        buttons.push('<button type="button" data-fv-empty-action="import" data-fv-type="vm"><i class="fa fa-upload"></i> Import VM config</button>');
     }
-    buttons.push('<button type="button" onclick="runQuickSetupWizard(true)"><i class="fa fa-magic"></i> Open setup wizard</button>');
+    buttons.push('<button type="button" data-fv-empty-action="wizard"><i class="fa fa-magic"></i> Open setup wizard</button>');
 
     panel.html(`
         <div class="fv-first-run-title">${escapeHtml(title)}</div>
@@ -10089,12 +10145,11 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             const help = isDockerType
                 ? 'Start by creating your first folder, importing a JSON export, or running the setup wizard.'
                 : 'Start by creating your first VM folder, importing a VM export, or running the setup wizard.';
-            const importAction = isDockerType ? "importDocker()" : "importVm()";
             const typeValue = isDockerType ? 'docker' : 'vm';
             const createLabel = isDockerType ? 'Create folder' : 'Create VM folder';
             const importLabel = isDockerType ? 'Import config' : 'Import VM config';
             const wizardLabel = isDockerType ? 'Open wizard' : 'Run wizard';
-            return `<tr><td colspan="${TABLE_COLUMN_COUNT}" class="folder-empty-cell"><div class="fv-starter-empty"><div class="fv-starter-empty-title">${escapeHtml(title)}</div><div class="fv-starter-empty-help">${escapeHtml(help)}</div><div class="fv-starter-empty-actions"><button type="button" onclick="quickCreateStarterFolder('${typeValue}')"><i class="fa fa-plus-circle"></i> ${escapeHtml(createLabel)}</button><button type="button" onclick="${importAction}"><i class="fa fa-upload"></i> ${escapeHtml(importLabel)}</button><button type="button" onclick="runQuickSetupWizard(true)"><i class="fa fa-magic"></i> ${escapeHtml(wizardLabel)}</button></div></div></td></tr>`;
+            return `<tr><td colspan="${TABLE_COLUMN_COUNT}" class="folder-empty-cell"><div class="fv-starter-empty"><div class="fv-starter-empty-title">${escapeHtml(title)}</div><div class="fv-starter-empty-help">${escapeHtml(help)}</div><div class="fv-starter-empty-actions"><button type="button" data-fv-empty-action="create" data-fv-type="${escapeHtml(typeValue)}"><i class="fa fa-plus-circle"></i> ${escapeHtml(createLabel)}</button><button type="button" data-fv-empty-action="import" data-fv-type="${escapeHtml(typeValue)}"><i class="fa fa-upload"></i> ${escapeHtml(importLabel)}</button><button type="button" data-fv-empty-action="wizard"><i class="fa fa-magic"></i> ${escapeHtml(wizardLabel)}</button></div></div></td></tr>`;
         }
         if (folderCount > 0 && hideEmptyFolders && !showClearFilters) {
             return `<tr><td colspan="${TABLE_COLUMN_COUNT}" class="folder-empty-cell">All folders are currently hidden by "Hide empty folders".</td></tr>`;

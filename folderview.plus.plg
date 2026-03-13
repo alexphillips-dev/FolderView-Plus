@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.13.04">
-<!ENTITY md5 "f01cee5dabbc2cd5c8826b23a22f85e5">
+<!ENTITY version "2026.03.13.05">
+<!ENTITY md5 "2ed86339eb24dafc7b68380e374b5f48">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.13.05
+- Fix: Restored Dashboard folder widgets so root folders render correctly with nested descendants (no raw all-container fallback).
+- Fix: Hardened import parsing for legacy exports with oversized embedded icon payloads to avoid `update.php` HTTP 400 failures.
+- UX: Empty-state actions now use delegated handlers for reliable `Open Wizard` behavior; quick create now uses a validated modal input instead of a browser prompt.
+
 
 ###2026.03.13.04
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

@@ -16,6 +16,8 @@
     ];
     const RULE_EFFECTS = ['include', 'exclude'];
     const LEGACY_FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
+    const DEFAULT_FOLDER_ICON_PATH = '/plugins/folderview.plus/images/folder-icon.png';
+    const IMPORT_ICON_MAX_LENGTH = 8192;
     const RUNTIME_PREFS_SCHEMA = 2;
     const DEFAULT_FOLDER_STATUS_COLORS = {
         started: '#ffffff',
@@ -154,6 +156,20 @@
         return [];
     };
 
+    const normalizeFolderIcon = (value) => {
+        if (typeof value !== 'string') {
+            return '';
+        }
+        const icon = String(value || '').trim();
+        if (icon === '') {
+            return '';
+        }
+        if (icon.length <= IMPORT_ICON_MAX_LENGTH) {
+            return icon;
+        }
+        return DEFAULT_FOLDER_ICON_PATH;
+    };
+
     const normalizeFolderRecord = (value) => {
         if (!isPlainObject(value)) {
             return null;
@@ -166,7 +182,7 @@
 
         const normalized = { ...value };
         normalized.name = name;
-        normalized.icon = typeof value.icon === 'string' ? value.icon : '';
+        normalized.icon = normalizeFolderIcon(value.icon);
         normalized.regex = typeof value.regex === 'string' ? value.regex : '';
         const rawParentId = typeof value.parentId === 'string'
             ? value.parentId
@@ -632,7 +648,8 @@
                 expectedType: normalizedExpectedType
             });
             if (mode === 'single') {
-                if (!isPlainObject(payload.folder) || typeof payload.folder.name !== 'string' || payload.folder.name.trim() === '') {
+                const normalizedFolder = normalizeFolderRecord(payload.folder);
+                if (!normalizedFolder) {
                     return { ok: false, error: 'Single-folder export is missing a valid folder object.' };
                 }
                 return {
@@ -645,7 +662,7 @@
                     mode,
                     legacy: false,
                     trust,
-                    folder: payload.folder,
+                    folder: normalizedFolder,
                     folderId: typeof payload.folderId === 'string' && payload.folderId !== '' ? payload.folderId : null,
                     folders: {}
                 };
@@ -670,6 +687,10 @@
 
         // Legacy format support
         if (isPlainObject(payload.folder) && typeof payload.folder.name === 'string' && payload.folder.name.trim() !== '') {
+            const normalizedFolder = normalizeFolderRecord(payload.folder);
+            if (!normalizedFolder) {
+                return { ok: false, error: 'Single-folder export is missing a valid folder object.' };
+            }
             return {
                 ok: true,
                 schemaVersion: null,
@@ -680,13 +701,17 @@
                 mode: 'single',
                 legacy: true,
                 trust: buildImportTrustMeta({ legacy: true }),
-                folder: payload.folder,
+                folder: normalizedFolder,
                 folderId: typeof payload.folderId === 'string' && payload.folderId.trim() !== '' ? payload.folderId.trim() : null,
                 folders: {}
             };
         }
 
         if (typeof payload.name === 'string' && payload.name.trim() !== '') {
+            const normalizedFolder = normalizeFolderRecord(payload);
+            if (!normalizedFolder) {
+                return { ok: false, error: 'Single-folder export is missing a valid folder object.' };
+            }
             return {
                 ok: true,
                 schemaVersion: null,
@@ -697,7 +722,7 @@
                 mode: 'single',
                 legacy: true,
                 trust: buildImportTrustMeta({ legacy: true }),
-                folder: payload,
+                folder: normalizedFolder,
                 folderId: null,
                 folders: {}
             };

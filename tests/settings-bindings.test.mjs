@@ -134,6 +134,16 @@ test('fresh install fallback sanitizes error-shaped API payloads and shows empty
     assert.match(script, /All folders are currently hidden by "Hide empty folders"\./);
 });
 
+test('empty-state actions are delegated and create-folder uses modal input instead of plain prompt', () => {
+    assert.match(script, /const promptStarterFolderName = async \(type, suggestedName\) =>/);
+    assert.match(script, /type:\s*'input'/);
+    assert.match(script, /data-fv-empty-action="create"/);
+    assert.match(script, /data-fv-empty-action="import"/);
+    assert.match(script, /data-fv-empty-action="wizard"/);
+    assert.match(script, /off\('click\.fvemptyactions', '\[data-fv-empty-action\]'\)\.on\('click\.fvemptyactions', '\[data-fv-empty-action\]', async \(event\) =>/);
+    assert.doesNotMatch(script, /window\.prompt\('Folder name:'/);
+});
+
 test('nested tree settings expose collapse controls and inline undo hosts', () => {
     assert.match(page, /expandAllFolderTrees\('docker'\)/);
     assert.match(page, /collapseAllFolderTrees\('docker'\)/);

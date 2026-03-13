@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.12.22">
-<!ENTITY md5 "823dc1524623d10b5bca52d1a1699d67">
+<!ENTITY version "2026.03.12.23">
+<!ENTITY md5 "3d57e6d275c9af94984cbbacf4e98f0f">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.12.23
+- UX: Removed the Basic `Parent` column for Docker/VM tables; nested hierarchy remains visible directly under folder names.
+- UX: Rebalanced Status, Rules, Last changed, and Pinned widths to evenly fill the reclaimed space.
+- UX: Left-aligned Docker `Alerts` header/cell content for cleaner row scanning next to Name.
+
 
 ###2026.03.12.22
 - UX: Compressed desktop table spacing so columns after `Name` sit closer and `Alerts` has wider readable space.

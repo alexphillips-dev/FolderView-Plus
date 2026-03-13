@@ -134,27 +134,24 @@ test('fresh install fallback sanitizes error-shaped API payloads and shows empty
     assert.match(script, /All folders are currently hidden by "Hide empty folders"\./);
 });
 
-test('nested tree settings expose parent column, collapse controls, and inline undo hosts', () => {
+test('nested tree settings expose collapse controls and inline undo hosts', () => {
     assert.match(page, /expandAllFolderTrees\('docker'\)/);
     assert.match(page, /collapseAllFolderTrees\('docker'\)/);
     assert.match(page, /expandAllFolderTrees\('vm'\)/);
     assert.match(page, /collapseAllFolderTrees\('vm'\)/);
-    assert.match(page, /id="docker-col-parent"/);
-    assert.match(page, /id="vm-col-parent"/);
-    assert.match(page, /<th class="col-parent">Parent<\/th>/);
     assert.match(page, /id="docker-tree-undo-banner"/);
     assert.match(page, /id="vm-tree-undo-banner"/);
 });
 
 test('tree runtime persists collapse state and guards tree operations', () => {
-    assert.match(script, /const SETTINGS_TABLE_COLUMN_COUNT = 11;/);
+    assert.match(script, /const SETTINGS_TABLE_COLUMN_COUNT = 10;/);
     assert.match(script, /treeCollapsed:\s*\{/);
     assert.match(script, /collapsedTreeParentsByType\[resolvedType\] = new Set/);
     assert.match(script, /const canFolderUseTreeMove = \(type, sourceFolderId, hierarchyMeta = null\) =>/);
     assert.match(script, /window\.toggleFolderTreeCollapse = toggleFolderTreeCollapse;/);
     assert.match(script, /window\.expandAllFolderTrees = expandAllFolderTrees;/);
     assert.match(script, /window\.collapseAllFolderTrees = collapseAllFolderTrees;/);
-    assert.match(script, /<td class="parent-cell">\$\{parentCellHtml\}<\/td>/);
+    assert.doesNotMatch(script, /<td class="parent-cell">/);
     assert.match(script, /queueTreeMoveUndoBanner\(resolvedType, backup\.name, 'Tree move', sourceId\)/);
     assert.match(script, /queueTreeMoveUndoBanner\(resolvedType, backup\.name, 'Move to root', sourceId\)/);
 });

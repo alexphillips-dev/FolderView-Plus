@@ -377,6 +377,11 @@
     padding-left: 0.44rem;
 }
 
+.folder-table table th.col-signals {
+    text-align: left;
+    padding-left: 0.28rem;
+}
+
 .name-cell-content {
     display: inline-grid;
     grid-template-columns: 14px 30px 1fr;
@@ -608,7 +613,6 @@
 }
 
 .folder-table table td.members-cell,
-.folder-table table td.parent-cell,
 .folder-table table td.rules-cell,
 .folder-table table td.status-cell,
 .folder-table table td.last-changed-cell,
@@ -620,8 +624,6 @@
     text-align: center;
 }
 
-.folder-table table th.col-parent,
-.folder-table table td.parent-cell,
 .folder-table table th.col-members,
 .folder-table table td.members-cell {
     padding-left: 0.24rem;
@@ -640,53 +642,27 @@
     white-space: normal;
 }
 
-.folder-parent-chip {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    max-width: 100%;
-    padding: 0.08rem 0.44rem;
-    border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    font-size: 1.03rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.folder-parent-chip.is-root {
-    color: rgba(228, 232, 241, 0.86);
-    border-color: rgba(184, 194, 210, 0.42);
-}
-
-.folder-parent-chip.is-child {
-    color: #b9dcff;
-    border-color: rgba(77, 163, 255, 0.45);
-}
-
-/* Desktop widths: reduce Name gap and give Alerts more room. */
+/* Desktop widths: remove Parent column and redistribute space to core signals. */
 .folder-table table th:nth-child(1),
 .folder-table table td:nth-child(1) { width: 8%; }
 .folder-table table th:nth-child(2),
-.folder-table table td:nth-child(2) { width: 16%; }
+.folder-table table td:nth-child(2) { width: 21%; }
 .folder-table table th:nth-child(3),
 .folder-table table td:nth-child(3) { width: 4%; }
 .folder-table table th:nth-child(4),
-.folder-table table td:nth-child(4) { width: 4%; }
+.folder-table table td:nth-child(4) { width: 11%; }
 .folder-table table th:nth-child(5),
-.folder-table table td:nth-child(5) { width: 12%; }
+.folder-table table td:nth-child(5) { width: 9%; }
 .folder-table table th:nth-child(6),
-.folder-table table td:nth-child(6) { width: 4%; }
+.folder-table table td:nth-child(6) { width: 9%; }
 .folder-table table th:nth-child(7),
-.folder-table table td:nth-child(7) { width: 8%; }
+.folder-table table td:nth-child(7) { width: 9%; }
 .folder-table table th:nth-child(8),
-.folder-table table td:nth-child(8) { width: 4%; }
+.folder-table table td:nth-child(8) { width: 11%; }
 .folder-table table th:nth-child(9),
-.folder-table table td:nth-child(9) { width: 20%; }
+.folder-table table td:nth-child(9) { width: 9%; }
 .folder-table table th:nth-child(10),
-.folder-table table td:nth-child(10) { width: 6%; }
-.folder-table table th:nth-child(11),
-.folder-table table td:nth-child(11) { width: 14%; }
+.folder-table table td:nth-child(10) { width: 9%; }
 
 .folder-table table th.col-order,
 .folder-table table td.order-cell {
@@ -721,13 +697,10 @@
     .folder-table table th:nth-child(8),
     .folder-table table td:nth-child(8),
     .folder-table table th:nth-child(9),
-    .folder-table table td:nth-child(9),
-    .folder-table table th:nth-child(10),
-    .folder-table table td:nth-child(10) {
+    .folder-table table td:nth-child(9) {
         display: none !important;
     }
 
-    .folder-table table th.col-parent,
     .folder-table table th.col-members,
     .folder-table table th.col-status,
     .folder-table table th.col-rules,
@@ -745,7 +718,6 @@
     .folder-table table td.updates-cell,
     .folder-table table td.health-cell,
     .folder-table table td.autostart-cell,
-    .folder-table table td.parent-cell,
     .folder-table table td.resources-cell {
         display: none !important;
     }
@@ -754,8 +726,8 @@
     .folder-table table td:nth-child(1) { width: 26%; }
     .folder-table table th:nth-child(2),
     .folder-table table td:nth-child(2) { width: 50%; }
-    .folder-table table th:nth-child(11),
-    .folder-table table td:nth-child(11) { width: 24%; }
+    .folder-table table th:nth-child(10),
+    .folder-table table td:nth-child(10) { width: 24%; }
 
     .folder-table table th:nth-child(1),
     .folder-table table td:nth-child(1) {
@@ -845,8 +817,8 @@
     .folder-table table td:nth-child(1) { width: 26%; }
     .folder-table table th:nth-child(2),
     .folder-table table td:nth-child(2) { width: 50%; }
-    .folder-table table th:nth-child(11),
-    .folder-table table td:nth-child(11) { width: 24%; }
+    .folder-table table th:nth-child(10),
+    .folder-table table td:nth-child(10) { width: 24%; }
 
     .row-order-actions button {
         width: 22px;
@@ -877,8 +849,6 @@ body.fv-mobile-compact #fv-settings-root .folder-table .table-wrap {
 #fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(8),
 #fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(9),
 #fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(9),
-#fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(10),
-#fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(10),
 body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(3),
 body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(3),
 body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(4),
@@ -892,13 +862,10 @@ body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(7),
 body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(8),
 body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(8),
 body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(9),
-body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(9),
-body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(10),
-body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(10) {
+body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(9) {
     display: none !important;
 }
 
-#fv-settings-root.fv-mobile-compact .folder-table table th.col-parent,
 #fv-settings-root.fv-mobile-compact .folder-table table th.col-members,
 #fv-settings-root.fv-mobile-compact .folder-table table th.col-status,
 #fv-settings-root.fv-mobile-compact .folder-table table th.col-rules,
@@ -916,9 +883,7 @@ body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(10) {
 #fv-settings-root.fv-mobile-compact .folder-table table td.updates-cell,
 #fv-settings-root.fv-mobile-compact .folder-table table td.health-cell,
 #fv-settings-root.fv-mobile-compact .folder-table table td.autostart-cell,
-#fv-settings-root.fv-mobile-compact .folder-table table td.parent-cell,
 #fv-settings-root.fv-mobile-compact .folder-table table td.resources-cell,
-body.fv-mobile-compact #fv-settings-root .folder-table table th.col-parent,
 body.fv-mobile-compact #fv-settings-root .folder-table table th.col-members,
 body.fv-mobile-compact #fv-settings-root .folder-table table th.col-status,
 body.fv-mobile-compact #fv-settings-root .folder-table table th.col-rules,
@@ -936,7 +901,6 @@ body.fv-mobile-compact #fv-settings-root .folder-table table td.pinned-cell,
 body.fv-mobile-compact #fv-settings-root .folder-table table td.updates-cell,
 body.fv-mobile-compact #fv-settings-root .folder-table table td.health-cell,
 body.fv-mobile-compact #fv-settings-root .folder-table table td.autostart-cell,
-body.fv-mobile-compact #fv-settings-root .folder-table table td.parent-cell,
 body.fv-mobile-compact #fv-settings-root .folder-table table td.resources-cell {
     display: none !important;
 }
@@ -949,10 +913,10 @@ body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(1) { w
 #fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(2),
 body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(2),
 body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(2) { width: 50%; }
-#fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(11),
-#fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(11),
-body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(11),
-body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(11) { width: 24%; }
+#fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(10),
+#fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(10),
+body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(10),
+body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(10) { width: 24%; }
 
 #fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(1),
 #fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(1),
@@ -1123,10 +1087,14 @@ body.fv-mobile-compact #fv-settings-root .status-chip-list {
     background: transparent;
 }
 
+.folder-table table td.signals-cell {
+    text-align: left;
+}
+
 .signals-cell-content {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 0.28rem;
     flex-wrap: nowrap;
     max-width: 100%;

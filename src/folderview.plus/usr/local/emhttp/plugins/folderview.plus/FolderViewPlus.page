@@ -175,7 +175,6 @@ if (!empty($fvplusRuntimeConflicts)) {
                 </div>
                 <div class="settings-mini-card">
                     <div class="settings-mini-title">Columns</div>
-                    <label class="setting-toggle"><input id="docker-col-parent" type="checkbox" onchange="changeColumnVisibility('docker', 'parent', this.checked)"> Parent</label>
                     <label class="setting-toggle"><input id="docker-col-status" type="checkbox" onchange="changeColumnVisibility('docker', 'status', this.checked)"> Status</label>
                     <label class="setting-toggle"><input id="docker-col-rules" type="checkbox" onchange="changeColumnVisibility('docker', 'rules', this.checked)"> Rules</label>
                     <label class="setting-toggle"><input id="docker-col-last-changed" type="checkbox" onchange="changeColumnVisibility('docker', 'lastChanged', this.checked)"> Last changed</label>
@@ -194,7 +193,6 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <th class="col-name" data-i18n="el-name">
                         Name
                     </th>
-                    <th class="col-parent">Parent</th>
                     <th class="col-members fv-col-hidden" title="Direct members / total members including nested folders">Members</th>
                     <th class="col-status">Status</th>
                     <th class="col-rules">Rules</th>
@@ -348,7 +346,6 @@ if (!empty($fvplusRuntimeConflicts)) {
                 </div>
                 <div class="settings-mini-card">
                     <div class="settings-mini-title">Columns</div>
-                    <label class="setting-toggle"><input id="vm-col-parent" type="checkbox" onchange="changeColumnVisibility('vm', 'parent', this.checked)"> Parent</label>
                     <label class="setting-toggle"><input id="vm-col-status" type="checkbox" onchange="changeColumnVisibility('vm', 'status', this.checked)"> Status</label>
                     <label class="setting-toggle"><input id="vm-col-rules" type="checkbox" onchange="changeColumnVisibility('vm', 'rules', this.checked)"> Rules</label>
                     <label class="setting-toggle"><input id="vm-col-last-changed" type="checkbox" onchange="changeColumnVisibility('vm', 'lastChanged', this.checked)"> Last changed</label>
@@ -368,7 +365,6 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <th class="col-name" data-i18n="el-name">
                         Name
                     </th>
-                    <th class="col-parent">Parent</th>
                     <th class="col-members fv-col-hidden" title="Direct members / total members including nested folders">Members</th>
                     <th class="col-status">Status</th>
                     <th class="col-rules">Rules</th>

@@ -68,7 +68,6 @@ let quickFolderFilterByType = {
 };
 const DEFAULT_COLUMN_VISIBILITY_BY_TYPE = Object.freeze({
     docker: Object.freeze({
-        parent: true,
         status: true,
         rules: true,
         lastChanged: true,
@@ -76,7 +75,6 @@ const DEFAULT_COLUMN_VISIBILITY_BY_TYPE = Object.freeze({
         signals: true
     }),
     vm: Object.freeze({
-        parent: true,
         status: false,
         rules: false,
         lastChanged: false,
@@ -185,7 +183,7 @@ const ACTION_DOCK_AUTOCOLLAPSE_MS = 5000;
 const IMPORT_PRESET_DEFAULT_ID = 'builtin:merge';
 const UNDO_WINDOW_MS = 10000;
 const ROW_FOCUS_HIGHLIGHT_MS = 2200;
-const SETTINGS_TABLE_COLUMN_COUNT = 11;
+const SETTINGS_TABLE_COLUMN_COUNT = 10;
 const IMPORT_PRESET_BUILTINS = [
     {
         id: 'builtin:merge',
@@ -6829,7 +6827,6 @@ const runtimePreviewText = (type, folderId, action, plan) => {
 
 const TABLE_COLUMN_SELECTOR_MAP = Object.freeze({
     docker: Object.freeze({
-        parent: Object.freeze({ header: '.col-parent', cell: '.parent-cell' }),
         status: Object.freeze({ header: '.col-status', cell: '.status-cell' }),
         rules: Object.freeze({ header: '.col-rules', cell: '.rules-cell' }),
         lastChanged: Object.freeze({ header: '.col-last-changed', cell: '.last-changed-cell' }),
@@ -6837,7 +6834,6 @@ const TABLE_COLUMN_SELECTOR_MAP = Object.freeze({
         signals: Object.freeze({ header: '.col-signals', cell: '.signals-cell' })
     }),
     vm: Object.freeze({
-        parent: Object.freeze({ header: '.col-parent', cell: '.parent-cell' }),
         status: Object.freeze({ header: '.col-status', cell: '.status-cell' }),
         rules: Object.freeze({ header: '.col-rules', cell: '.rules-cell' }),
         lastChanged: Object.freeze({ header: '.col-last-changed', cell: '.last-changed-cell' }),
@@ -9777,12 +9773,6 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         const parentFolderNameRaw = parentFolderId && Object.prototype.hasOwnProperty.call(folders, parentFolderId)
             ? String(folders[parentFolderId]?.name || parentFolderId)
             : '';
-        const parentCellText = parentFolderNameRaw || 'Root';
-        const parentCellTitle = parentFolderNameRaw
-            ? `Parent folder: ${parentFolderNameRaw}`
-            : 'Top-level folder';
-        const parentCellClass = parentFolderNameRaw ? 'is-child' : 'is-root';
-        const parentCellHtml = `<span class="folder-parent-chip ${parentCellClass}" title="${escapeHtml(parentCellTitle)}">${escapeHtml(parentCellText)}</span>`;
         const nestedMetaTitleRaw = folderDepth > 0
             ? `Nested level ${folderDepth}${parentFolderNameRaw ? ` under ${parentFolderNameRaw}` : ''}`
             : 'Root folder';
@@ -10007,7 +9997,6 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             `<tr class="${folderDepth > 0 ? 'is-nested-row' : 'is-root-row'}" data-folder-depth="${folderDepth}" data-folder-id="${escapeHtml(id)}" tabindex="0" onkeydown="handleFolderRowKeydown('${type}','${escapeHtml(id)}',event)">`
             + `<td class="order-cell">${orderCellHtml}</td>`
             + `<td class="name-cell" title="${escapeHtml(id)}"><span class="${nameCellClass}" style="--fv-folder-depth:${folderDepth};">${treeToggleHtml}<img src="${safeIcon}" class="img" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"><span class="name-cell-text-wrap"><span class="name-cell-text">${safeName}</span>${membersMetaHtml}${nestedMetaHtml}</span></span></td>`
-            + `<td class="parent-cell">${parentCellHtml}</td>`
             + `<td class="members-cell fv-col-hidden">${membersCellHtml}</td>`
             + `<td class="status-cell"><span class="status-cell-content"><button type="button" class="status-breakdown-btn" title="Open status breakdown" aria-label="Open status breakdown for ${safeName}" onclick="showFolderStatusBreakdown('${type}','${escapeHtml(id)}')"><i class="fa fa-info-circle"></i></button>${statusSummaryChipHtml}${statusTrendHtml}</span></td>`
             + `<td class="rules-cell" title="${escapeHtml(ruleTitle)}">${escapeHtml(ruleText)}</td>`

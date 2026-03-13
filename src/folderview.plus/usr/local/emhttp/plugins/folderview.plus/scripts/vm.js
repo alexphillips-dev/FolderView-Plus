@@ -120,6 +120,45 @@ const persistVmExpandedStateFromGlobal = () => {
     }
     writeVmExpandedStateMap(map);
 };
+const readVmExpandedStateFromDom = () => {
+    const map = {};
+    const seen = new Set();
+    $('button.folder-dropdown').each((_, node) => {
+        const className = String(node.className || '');
+        const match = className.match(/\bdropDown-([A-Za-z0-9_-]+)\b/);
+        if (!match || !match[1]) {
+            return;
+        }
+        const id = String(match[1]);
+        if (seen.has(id)) {
+            return;
+        }
+        seen.add(id);
+        map[id] = String($(node).attr('active') || '').toLowerCase() === 'true';
+    });
+    return map;
+};
+const persistVmExpandedStateFromDom = () => {
+    const domState = readVmExpandedStateFromDom();
+    if (!Object.keys(domState).length) {
+        return;
+    }
+    const current = readVmExpandedStateMap();
+    writeVmExpandedStateMap({ ...current, ...domState });
+};
+const ensureVmExpandedStateLifecycleHooks = () => {
+    if (window.__fvVmExpandedStateHooksBound) {
+        return;
+    }
+    window.__fvVmExpandedStateHooksBound = true;
+    window.addEventListener('pagehide', persistVmExpandedStateFromDom, { passive: true });
+    window.addEventListener('beforeunload', persistVmExpandedStateFromDom, { passive: true });
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            persistVmExpandedStateFromDom();
+        }
+    });
+};
 const escapeHtml = (value) => String(value ?? '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -363,6 +402,8 @@ const hideVmRuntimeLoadingRow = () => {
 const createFolders = async () => {
     showVmRuntimeLoadingRow();
     try {
+    ensureVmExpandedStateLifecycleHooks();
+    persistVmExpandedStateFromDom();
     const previousFolders = (globalFolders && typeof globalFolders === 'object') ? globalFolders : {};
     const prom = await Promise.all(folderReq);
     // Parse the results

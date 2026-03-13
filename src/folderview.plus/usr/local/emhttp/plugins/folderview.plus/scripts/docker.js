@@ -514,6 +514,45 @@ const persistDockerExpandedStateFromGlobal = () => {
     }
     writeDockerExpandedStateMap(map);
 };
+const readDockerExpandedStateFromDom = () => {
+    const map = {};
+    const seen = new Set();
+    $('button.folder-dropdown').each((_, node) => {
+        const className = String(node.className || '');
+        const match = className.match(/\bdropDown-([A-Za-z0-9_-]+)\b/);
+        if (!match || !match[1]) {
+            return;
+        }
+        const id = String(match[1]);
+        if (seen.has(id)) {
+            return;
+        }
+        seen.add(id);
+        map[id] = String($(node).attr('active') || '').toLowerCase() === 'true';
+    });
+    return map;
+};
+const persistDockerExpandedStateFromDom = () => {
+    const domState = readDockerExpandedStateFromDom();
+    if (!Object.keys(domState).length) {
+        return;
+    }
+    const current = readDockerExpandedStateMap();
+    writeDockerExpandedStateMap({ ...current, ...domState });
+};
+const ensureDockerExpandedStateLifecycleHooks = () => {
+    if (window.__fvDockerExpandedStateHooksBound) {
+        return;
+    }
+    window.__fvDockerExpandedStateHooksBound = true;
+    window.addEventListener('pagehide', persistDockerExpandedStateFromDom, { passive: true });
+    window.addEventListener('beforeunload', persistDockerExpandedStateFromDom, { passive: true });
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            persistDockerExpandedStateFromDom();
+        }
+    });
+};
 const FOLDER_VIEW_PERF_MODE = folderViewPerfFromQuery || folderViewPerfFromStorage;
 const FOLDER_VIEW_TOUCH_MODE = (() => {
     try {
@@ -569,6 +608,8 @@ const hideDockerRuntimeLoadingRow = () => {
 const createFolders = async () => {
     dockerPerf.begin('createFolders.total');
     try {
+    ensureDockerExpandedStateLifecycleHooks();
+    persistDockerExpandedStateFromDom();
     showDockerRuntimeLoadingRow();
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Entry');
     const previousFolders = (globalFolders && typeof globalFolders === 'object') ? globalFolders : {};

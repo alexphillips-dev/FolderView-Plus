@@ -14,6 +14,9 @@ test('docker runtime persists expanded/collapsed folder state and restores it du
     assert.match(dockerJs, /const readDockerExpandedStateMap = \(\) =>/);
     assert.match(dockerJs, /const buildDockerExpandedStateMap = \(folders, previousFolders = \{\}\) =>/);
     assert.match(dockerJs, /const persistDockerExpandedStateFromGlobal = \(\) =>/);
+    assert.match(dockerJs, /const persistDockerExpandedStateFromDom = \(\) =>/);
+    assert.match(dockerJs, /const ensureDockerExpandedStateLifecycleHooks = \(\) =>/);
+    assert.match(dockerJs, /window\.addEventListener\('pagehide', persistDockerExpandedStateFromDom/);
     assert.match(dockerJs, /const expandedStateById = buildDockerExpandedStateMap\(foldersDone, previousFolders\);/);
     assert.match(dockerJs, /const hasKnownParent = !!\(parentId && Object\.prototype\.hasOwnProperty\.call\(foldersDone, parentId\)\);/);
     assert.match(dockerJs, /dropDownButton\(id, false\);/);
@@ -26,6 +29,9 @@ test('vm runtime persists expanded/collapsed folder state and restores it during
     assert.match(vmJs, /const readVmExpandedStateMap = \(\) =>/);
     assert.match(vmJs, /const buildVmExpandedStateMap = \(folders, previousFolders = \{\}\) =>/);
     assert.match(vmJs, /const persistVmExpandedStateFromGlobal = \(\) =>/);
+    assert.match(vmJs, /const persistVmExpandedStateFromDom = \(\) =>/);
+    assert.match(vmJs, /const ensureVmExpandedStateLifecycleHooks = \(\) =>/);
+    assert.match(vmJs, /window\.addEventListener\('pagehide', persistVmExpandedStateFromDom/);
     assert.match(vmJs, /const expandedStateById = buildVmExpandedStateMap\(foldersDone, previousFolders\);/);
     assert.match(vmJs, /const hasKnownParent = !!\(parentId && Object\.prototype\.hasOwnProperty\.call\(foldersDone, parentId\)\);/);
     assert.match(vmJs, /dropDownButton\(id, false\);/);

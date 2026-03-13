@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.12.14">
-<!ENTITY md5 "b3b32e1b8091bc5b319ed6b2484866ec">
+<!ENTITY version "2026.03.12.15">
+<!ENTITY md5 "ad04dab67227a02173c15c0778c48796">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.12.15
+- Feature: Added nested tree controls in Basic settings (`Expand all` / `Collapse all`) for Docker and VM tables.
+- Feature: Added a new `Parent` column (with toggle) to show root vs parent-folder relationships directly in table view.
+- Fix: Added tree-state persistence and ancestor auto-expand so moved folders are focused and visible after tree operations.
+- Fix: Tree move now disables when no valid target exists, and quick actions hide `Move to root` when a folder is already at root.
+- UX: Added inline per-type tree undo banner for `Tree move` and `Move to root` with one-click restore.
+
 
 ###2026.03.12.14
 - UX: `Move to root` now only appears for nested folders; root folders no longer show a no-op root action.

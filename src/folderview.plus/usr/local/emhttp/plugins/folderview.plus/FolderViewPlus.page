@@ -80,6 +80,10 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <option value="alpha">Name (A-Z)</option>
                 </select>
                 <span class="sort-hint-chip" title="Use manual mode with up/down and tree move controls in the first column to set custom nested order."><i class="fa fa-info-circle"></i> Manual uses up/down + tree move in Order column</span>
+                <span class="tree-visibility-controls">
+                    <button type="button" onclick="expandAllFolderTrees('docker')"><i class="fa fa-expand"></i> Expand all</button>
+                    <button type="button" onclick="collapseAllFolderTrees('docker')"><i class="fa fa-compress"></i> Collapse all</button>
+                </span>
             </div>
             <input id="docker-folder-filter" type="text" placeholder="Search Docker folders" oninput="setFilterQuery('folders','docker',this.value)">
             <div id="docker-quick-filters" class="folder-quick-filters">
@@ -171,6 +175,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                 </div>
                 <div class="settings-mini-card">
                     <div class="settings-mini-title">Columns</div>
+                    <label class="setting-toggle"><input id="docker-col-parent" type="checkbox" onchange="changeColumnVisibility('docker', 'parent', this.checked)"> Parent</label>
                     <label class="setting-toggle"><input id="docker-col-members" type="checkbox" onchange="changeColumnVisibility('docker', 'members', this.checked)"> Members</label>
                     <label class="setting-toggle"><input id="docker-col-status" type="checkbox" onchange="changeColumnVisibility('docker', 'status', this.checked)"> Status</label>
                     <label class="setting-toggle"><input id="docker-col-rules" type="checkbox" onchange="changeColumnVisibility('docker', 'rules', this.checked)"> Rules</label>
@@ -182,6 +187,7 @@ if (!empty($fvplusRuntimeConflicts)) {
             </div>
         </div>
     </details>
+    <div id="docker-tree-undo-banner" class="fv-tree-undo-banner is-hidden"></div>
     <div class="table-wrap">
         <table>
             <thead>
@@ -190,6 +196,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <th class="col-name" data-i18n="el-name">
                         Name
                     </th>
+                    <th class="col-parent">Parent</th>
                     <th class="col-members" title="Direct members / total members including nested folders">Members</th>
                     <th class="col-status">Status</th>
                     <th class="col-rules">Rules</th>
@@ -234,6 +241,10 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <option value="alpha">Name (A-Z)</option>
                 </select>
                 <span class="sort-hint-chip" title="Use manual mode with up/down and tree move controls in the first column to set custom nested order."><i class="fa fa-info-circle"></i> Manual uses up/down + tree move in Order column</span>
+                <span class="tree-visibility-controls">
+                    <button type="button" onclick="expandAllFolderTrees('vm')"><i class="fa fa-expand"></i> Expand all</button>
+                    <button type="button" onclick="collapseAllFolderTrees('vm')"><i class="fa fa-compress"></i> Collapse all</button>
+                </span>
             </div>
             <input id="vm-folder-filter" type="text" placeholder="Search VM folders" oninput="setFilterQuery('folders','vm',this.value)">
             <div id="vm-quick-filters" class="folder-quick-filters">
@@ -339,6 +350,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                 </div>
                 <div class="settings-mini-card">
                     <div class="settings-mini-title">Columns</div>
+                    <label class="setting-toggle"><input id="vm-col-parent" type="checkbox" onchange="changeColumnVisibility('vm', 'parent', this.checked)"> Parent</label>
                     <label class="setting-toggle"><input id="vm-col-members" type="checkbox" onchange="changeColumnVisibility('vm', 'members', this.checked)"> Members</label>
                     <label class="setting-toggle"><input id="vm-col-status" type="checkbox" onchange="changeColumnVisibility('vm', 'status', this.checked)"> Status</label>
                     <label class="setting-toggle"><input id="vm-col-rules" type="checkbox" onchange="changeColumnVisibility('vm', 'rules', this.checked)"> Rules</label>
@@ -350,6 +362,7 @@ if (!empty($fvplusRuntimeConflicts)) {
             </div>
         </div>
     </details>
+    <div id="vm-tree-undo-banner" class="fv-tree-undo-banner is-hidden"></div>
     <div class="table-wrap">
         <table>
             <thead>
@@ -358,6 +371,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <th class="col-name" data-i18n="el-name">
                         Name
                     </th>
+                    <th class="col-parent">Parent</th>
                     <th class="col-members" title="Direct members / total members including nested folders">Members</th>
                     <th class="col-status">Status</th>
                     <th class="col-rules">Rules</th>

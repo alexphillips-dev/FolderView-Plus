@@ -6,12 +6,22 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.13.15">
-<!ENTITY md5 "693e5c46741de7802393ebaa3995f5fe">
+<!ENTITY version "2026.03.13.16">
+<!ENTITY md5 "1bc1d06dc46c46a48de70b84beef77a3">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.13.16
+- Feature: Expanded custom icon upload endpoint with `upload`, `list`, `stats`, `rename`, and `delete` actions for full in-plugin icon management.
+- Feature: Added custom icon metadata index (hash, mime, dimensions, timestamps, optimization flag) with on-disk sync and quota stats.
+- Feature: Added duplicate-by-hash reuse and replace-by-name upload modes to reduce clutter and avoid accidental duplicates.
+- Security: Hardened SVG uploads with strict allowlisted elements/attributes/styles and blocked URI/event-handler vectors.
+- UX: Added custom icon manager UI in folder settings with searchable list, quota summary, quick-use, rename, and delete actions.
+- UX: Added upload preflight validation plus progress bar/cancel flow and replace/dedupe toggles in the icon editor.
+- Quality: Added regression coverage for new icon endpoint contracts and custom icon manager controls.
+
 
 ###2026.03.13.15
 - Feature: Add inline fallback path for icon upload transport failures.

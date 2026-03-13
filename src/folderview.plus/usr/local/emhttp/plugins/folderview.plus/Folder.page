@@ -65,10 +65,24 @@ emitRequestTokenMetaTag();
                     <div class="fv-icon-input-actions">
                         <button type="button" id="fv-icon-picker-toggle"><i class="fa fa-th-large" aria-hidden="true"></i> Built-in icons</button>
                         <button type="button" id="fv-icon-third-party-toggle"><i class="fa fa-folder-open-o" aria-hidden="true"></i> 3rd Party icons</button>
+                        <button type="button" id="fv-icon-custom-manager-toggle"><i class="fa fa-folder" aria-hidden="true"></i> Custom icons</button>
                         <button type="button" id="fv-icon-picker-default"><i class="fa fa-folder-open-o" aria-hidden="true"></i> Use default icon</button>
                         <button type="button" id="fv-icon-upload"><i class="fa fa-arrow-up" aria-hidden="true"></i> Upload</button>
                     </div>
                     <input type="file" id="fv-icon-upload-file" accept=".png,.jpg,.jpeg,.gif,.webp,.svg,.bmp,.ico,.avif" hidden>
+                    <div class="fv-icon-upload-options">
+                        <label><input type="checkbox" id="fv-icon-upload-replace"> Replace same name</label>
+                        <label><input type="checkbox" id="fv-icon-upload-dedupe" checked> Deduplicate exact file</label>
+                    </div>
+                    <div id="fv-icon-upload-progress" class="fv-icon-upload-progress" hidden>
+                        <div class="fv-icon-upload-progress-top">
+                            <span id="fv-icon-upload-progress-text">Preparing upload...</span>
+                            <button type="button" id="fv-icon-upload-cancel"><i class="fa fa-times" aria-hidden="true"></i> Cancel</button>
+                        </div>
+                        <div class="fv-icon-upload-progress-track">
+                            <div id="fv-icon-upload-progress-fill" class="fv-icon-upload-progress-fill" style="width: 0%;"></div>
+                        </div>
+                    </div>
                     <div id="fv-icon-upload-status" class="fv-icon-upload-status" aria-live="polite"></div>
                     <div id="fv-icon-picker-panel" class="fv-icon-picker-panel" hidden>
                         <div class="fv-icon-picker-toolbar">
@@ -97,6 +111,15 @@ emitRequestTokenMetaTag();
                             <button type="button" id="fv-third-party-icon-next" title="Next page"><i class="fa fa-chevron-right" aria-hidden="true"></i></button>
                         </div>
                         <div id="fv-third-party-icon-status" class="fv-icon-picker-status"></div>
+                    </div>
+                    <div id="fv-custom-icon-panel" class="fv-icon-picker-panel fv-custom-icon-panel" hidden>
+                        <div class="fv-icon-picker-toolbar">
+                            <input type="text" id="fv-custom-icon-search" placeholder="Search custom icons">
+                            <button type="button" id="fv-custom-icon-refresh" title="Refresh custom icons" aria-label="Refresh custom icons"><i class="fa fa-refresh" aria-hidden="true"></i></button>
+                        </div>
+                        <div id="fv-custom-icon-stats" class="fv-custom-icon-stats">Loading custom icon quota...</div>
+                        <div id="fv-custom-icon-list" class="fv-custom-icon-list"></div>
+                        <div id="fv-custom-icon-status" class="fv-icon-picker-status"></div>
                     </div>
                 </dd>
             </dl>

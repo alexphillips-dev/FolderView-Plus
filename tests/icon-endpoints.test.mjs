@@ -40,12 +40,16 @@ test('upload endpoint enforces request guard and uploads into images\\/custom', 
     assert.match(uploadPhp, /return \"\$sourceDir\/images\/custom\"/);
     assert.match(uploadPhp, /const FVPLUS_CUSTOM_ICON_MAX_BYTES = 4194304;/);
     assert.match(uploadPhp, /const FVPLUS_CUSTOM_ICON_MAX_FILES = 2000;/);
+    assert.match(uploadPhp, /const FVPLUS_CUSTOM_ICON_MAX_TOTAL_BYTES = 268435456;/);
     assert.match(uploadPhp, /const FVPLUS_CUSTOM_ICON_RATE_WINDOW_SECONDS = 60;/);
     assert.match(uploadPhp, /const FVPLUS_CUSTOM_ICON_RATE_MAX_UPLOADS = 24;/);
     assert.match(uploadPhp, /enforceCustomIconUploadRateLimit\(\)/);
-    assert.match(uploadPhp, /enforceCustomIconStorageLimit\(\$customDir\)/);
+    assert.match(uploadPhp, /enforceCustomIconStorageLimit\(\$customDir,\s*\$incomingBytes,\s*\$replaced \? \$targetName : ''\)/);
     assert.match(uploadPhp, /move_uploaded_file\(/);
     assert.match(uploadPhp, /\/plugins\/folderview\.plus\/images\/custom\//);
+    assert.match(uploadPhp, /function customIconStorageStats\s*\(/);
+    assert.match(uploadPhp, /function syncCustomIconMetadataIndex\s*\(/);
+    assert.match(uploadPhp, /function appendCustomIconAuditEvent\s*\(/);
 });
 
 test('upload endpoint hardens SVG uploads against active content', () => {
@@ -81,6 +85,28 @@ test('upload endpoint supports inline fallback payloads when multipart uploads f
     assert.match(uploadPhp, /move_uploaded_file\(/);
     assert.match(uploadPhp, /@rename\(/);
     assert.match(uploadPhp, /@copy\(/);
+});
+
+test('upload endpoint supports custom icon manager actions', () => {
+    assert.match(uploadPhp, /function handleCustomIconListAction\s*\(/);
+    assert.match(uploadPhp, /function handleCustomIconStatsAction\s*\(/);
+    assert.match(uploadPhp, /function handleCustomIconDeleteAction\s*\(/);
+    assert.match(uploadPhp, /function handleCustomIconRenameAction\s*\(/);
+    assert.match(uploadPhp, /\$action === 'list'/);
+    assert.match(uploadPhp, /\$action === 'stats'/);
+    assert.match(uploadPhp, /\$action === 'delete'/);
+    assert.match(uploadPhp, /\$action === 'rename'/);
+    assert.match(uploadPhp, /throw new RuntimeException\('Unsupported action\.'\)/);
+});
+
+test('upload endpoint stores metadata and supports dedupe or replace flows', () => {
+    assert.match(uploadPhp, /const FVPLUS_CUSTOM_ICON_METADATA_SCHEMA_VERSION = 1;/);
+    assert.match(uploadPhp, /function readCustomIconMetadataIndex\s*\(/);
+    assert.match(uploadPhp, /function writeCustomIconMetadataIndex\s*\(/);
+    assert.match(uploadPhp, /function findCustomIconNameByHash\s*\(/);
+    assert.match(uploadPhp, /Identical icon already exists; reusing existing file/);
+    assert.match(uploadPhp, /replaceExisting/);
+    assert.match(uploadPhp, /dedupeByHash/);
 });
 
 test('upload and third-party endpoints share the same icon extension allowlist', () => {

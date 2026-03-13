@@ -45,9 +45,12 @@ const DEFAULT_FOLDER_ICON_PATH = '/plugins/folderview.plus/images/folder-icon.pn
 const BUILT_IN_ICON_MANIFEST_PATH = '/plugins/folderview.plus/images/icons/icons.json';
 const THIRD_PARTY_ICON_API_PATH = '/plugins/folderview.plus/server/third_party_icons.php';
 const CUSTOM_ICON_UPLOAD_API_PATH = '/plugins/folderview.plus/server/upload_custom_icon.php';
+const CUSTOM_ICON_UPLOAD_MAX_BYTES = 4194304;
+const CUSTOM_ICON_ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'ico', 'avif'];
 const REQUEST_TOKEN_STORAGE_KEY = 'fv.request.token';
 const ICON_PICKER_PAGE_SIZE = 120;
 const ICON_PICKER_SEARCH_DEBOUNCE_MS = 120;
+const CUSTOM_ICON_SEARCH_DEBOUNCE_MS = 150;
 const EDITOR_MODE_STORAGE_KEY = 'fv.folder.editor.mode.v1';
 const EDITOR_ADVANCED_COLLAPSE_STORAGE_KEY = 'fv.folder.editor.advancedCollapse.v1';
 const BUILT_IN_ICON_FALLBACK = [{
@@ -73,6 +76,11 @@ let thirdPartyIconFolders = [];
 let thirdPartySelectedFolder = '';
 let thirdPartyIcons = [];
 let thirdPartyIconPage = 1;
+let customIconEntries = [];
+let customIconStats = null;
+let customIconSearchQuery = '';
+let customIconSearchTimer = null;
+let customIconUploadRequest = null;
 let editorMode = 'basic';
 let advancedSectionCollapsedState = {};
 
@@ -441,6 +449,71 @@ const setIconUploadStatus = (message, isError = false) => {
     status.addClass(isError ? 'is-error' : 'is-success');
 };
 
+const formatByteCount = (bytes) => {
+    const value = Number(bytes || 0);
+    if (!Number.isFinite(value) || value <= 0) {
+        return '0 B';
+    }
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let current = value;
+    let idx = 0;
+    while (current >= 1024 && idx < units.length - 1) {
+        current /= 1024;
+        idx += 1;
+    }
+    const precision = current >= 100 || idx === 0 ? 0 : (current >= 10 ? 1 : 2);
+    return `${current.toFixed(precision)} ${units[idx]}`;
+};
+
+const setIconUploadProgressVisible = (visible) => {
+    const box = $('#fv-icon-upload-progress');
+    if (!box.length) {
+        return;
+    }
+    box.prop('hidden', !visible);
+};
+
+const updateIconUploadProgress = (loaded, total, text = '') => {
+    const safeTotal = Math.max(0, Number(total || 0));
+    const safeLoaded = Math.max(0, Number(loaded || 0));
+    const ratio = safeTotal > 0 ? Math.max(0, Math.min(1, safeLoaded / safeTotal)) : 0;
+    const percent = Math.round(ratio * 100);
+    const fill = $('#fv-icon-upload-progress-fill');
+    const label = $('#fv-icon-upload-progress-text');
+    if (fill.length) {
+        fill.css('width', `${percent}%`);
+    }
+    if (label.length) {
+        const fallback = safeTotal > 0
+            ? `Uploading ${formatByteCount(safeLoaded)} of ${formatByteCount(safeTotal)} (${percent}%)`
+            : 'Preparing upload...';
+        label.text(String(text || fallback));
+    }
+};
+
+const resetIconUploadProgress = () => {
+    updateIconUploadProgress(0, 0, 'Preparing upload...');
+    setIconUploadProgressVisible(false);
+};
+
+const validateCustomIconFileBeforeUpload = (file) => {
+    if (!(file instanceof File)) {
+        throw new Error('No icon file selected.');
+    }
+    const name = String(file.name || '').trim();
+    const extension = String(name.split('.').pop() || '').toLowerCase();
+    if (!extension || !CUSTOM_ICON_ALLOWED_EXTENSIONS.includes(extension)) {
+        throw new Error('Unsupported icon format.');
+    }
+    const size = Number(file.size || 0);
+    if (!Number.isFinite(size) || size <= 0) {
+        throw new Error('Uploaded file is empty.');
+    }
+    if (size > CUSTOM_ICON_UPLOAD_MAX_BYTES) {
+        throw new Error('Uploaded file exceeds 4MB limit.');
+    }
+};
+
 const readFileAsDataUrl = (file) => new Promise((resolve, reject) => {
     if (!(file instanceof File)) {
         reject(new Error('No icon file selected.'));
@@ -469,11 +542,14 @@ const shouldUseInlineUploadFallback = (error) => {
         || message.includes('unexpected');
 };
 
-const uploadCustomIconFileInline = async (file, token) => {
+const uploadCustomIconFileInline = async (file, token, options = {}) => {
     const inlinePayload = await readFileAsDataUrl(file);
     const body = {
+        action: 'upload',
         icon_inline_name: String(file.name || 'icon').trim() || 'icon',
-        icon_inline_data: inlinePayload
+        icon_inline_data: inlinePayload,
+        replace: options?.replace ? '1' : '0',
+        dedupe: options?.dedupe === false ? '0' : '1'
     };
     if (token) {
         body.token = token;
@@ -496,14 +572,18 @@ const uploadCustomIconFileInline = async (file, token) => {
     return parseJsonPayload(response, 'icon upload endpoint');
 };
 
-const uploadCustomIconFile = async (file) => {
+const uploadCustomIconFile = async (file, options = {}) => {
     if (!file || typeof file.name !== 'string') {
         throw new Error('No icon file selected.');
     }
+    validateCustomIconFileBeforeUpload(file);
 
     const token = getOptionalRequestToken();
     const formData = new FormData();
+    formData.append('action', 'upload');
     formData.append('icon', file);
+    formData.append('replace', options?.replace ? '1' : '0');
+    formData.append('dedupe', options?.dedupe === false ? '0' : '1');
     if (token) {
         formData.append('token', token);
     }
@@ -514,8 +594,9 @@ const uploadCustomIconFile = async (file) => {
     }
 
     let payload;
+    const onProgress = typeof options?.onProgress === 'function' ? options.onProgress : null;
     try {
-        const response = await $.ajax({
+        customIconUploadRequest = $.ajax({
             url: CUSTOM_ICON_UPLOAD_API_PATH,
             method: 'POST',
             data: formData,
@@ -523,10 +604,28 @@ const uploadCustomIconFile = async (file) => {
             contentType: false,
             cache: false,
             dataType: 'text',
-            headers
-        }).promise();
+            headers,
+            xhr: () => {
+                const xhr = $.ajaxSettings.xhr();
+                if (xhr && xhr.upload && onProgress) {
+                    xhr.upload.addEventListener('progress', (event) => {
+                        if (!event || event.lengthComputable !== true) {
+                            return;
+                        }
+                        onProgress(Number(event.loaded || 0), Number(event.total || 0));
+                    });
+                }
+                return xhr;
+            }
+        });
+        const response = await customIconUploadRequest.promise();
         payload = parseJsonPayload(response, 'icon upload endpoint');
     } catch (error) {
+        const aborted = String(error?.textStatus || '').toLowerCase() === 'abort'
+            || String(error?.statusText || '').toLowerCase() === 'abort';
+        if (aborted) {
+            throw new Error('Upload cancelled.');
+        }
         const primaryError = (error instanceof Error)
             ? error
             : new Error(extractAjaxErrorMessage(error, 'icon upload endpoint'));
@@ -534,10 +633,12 @@ const uploadCustomIconFile = async (file) => {
             throw new Error(extractAjaxErrorMessage(error, 'icon upload endpoint'));
         }
         try {
-            payload = await uploadCustomIconFileInline(file, token);
+            payload = await uploadCustomIconFileInline(file, token, options);
         } catch (inlineError) {
             throw new Error(extractAjaxErrorMessage(inlineError, 'icon upload endpoint'));
         }
+    } finally {
+        customIconUploadRequest = null;
     }
     if (!payload || payload.ok !== true) {
         throw new Error(String(payload?.error || 'Upload failed.'));
@@ -550,7 +651,12 @@ const uploadCustomIconFile = async (file) => {
 
     return {
         name: String(payload.name || file.name).trim() || file.name,
-        url
+        url,
+        duplicate: payload?.duplicate === true,
+        replaced: payload?.replaced === true,
+        message: String(payload?.message || '').trim(),
+        metadata: payload?.metadata || null,
+        stats: payload?.stats || null
     };
 };
 
@@ -572,6 +678,208 @@ const setThirdPartyIconPickerOpen = (open) => {
     }
     panel.prop('hidden', !open);
     toggle.attr('aria-expanded', open ? 'true' : 'false').toggleClass('is-open', open);
+};
+
+const setCustomIconPickerOpen = (open) => {
+    const panel = $('#fv-custom-icon-panel');
+    const toggle = $('#fv-icon-custom-manager-toggle');
+    if (!panel.length || !toggle.length) {
+        return;
+    }
+    panel.prop('hidden', !open);
+    toggle.attr('aria-expanded', open ? 'true' : 'false').toggleClass('is-open', open);
+};
+
+const setCustomIconStatus = (message, isError = false) => {
+    const el = $('#fv-custom-icon-status');
+    if (!el.length) {
+        return;
+    }
+    const text = String(message || '').trim();
+    el.removeClass('is-error is-success').text(text);
+    if (!text) {
+        return;
+    }
+    el.addClass(isError ? 'is-error' : 'is-success');
+};
+
+const formatDateTimeShort = (isoString) => {
+    const value = String(isoString || '').trim();
+    if (!value) {
+        return '';
+    }
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+        return '';
+    }
+    return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+};
+
+const renderCustomIconStats = () => {
+    const el = $('#fv-custom-icon-stats');
+    if (!el.length) {
+        return;
+    }
+    const stats = customIconStats && typeof customIconStats === 'object' ? customIconStats : null;
+    if (!stats) {
+        el.text('No custom icon stats available.');
+        return;
+    }
+    const count = Number(stats.count || 0);
+    const maxFiles = Number(stats.maxFiles || 0);
+    const totalBytes = Number(stats.totalBytes || 0);
+    const maxBytes = Number(stats.maxTotalBytes || 0);
+    const warnings = asArray(stats.warnings).map((entry) => String(entry || '').trim()).filter((entry) => entry !== '');
+    const summary = `${count.toLocaleString()} / ${Math.max(0, maxFiles).toLocaleString()} files · ${formatByteCount(totalBytes)} / ${formatByteCount(maxBytes)}`;
+    if (!warnings.length) {
+        el.text(`Quota: ${summary}`);
+        return;
+    }
+    el.text(`Quota: ${summary} · ${warnings.join(' ')}`);
+};
+
+const requestCustomIconApi = async (action, payload = {}, method = 'GET') => {
+    const token = getOptionalRequestToken();
+    const normalizedMethod = String(method || 'GET').toUpperCase();
+    const data = {
+        action: String(action || '').trim(),
+        ...(payload && typeof payload === 'object' ? payload : {})
+    };
+    if (normalizedMethod === 'GET') {
+        const response = await $.get(CUSTOM_ICON_UPLOAD_API_PATH, data).promise();
+        const parsed = parseJsonPayload(response, 'custom icon manager');
+        if (!parsed || parsed.ok !== true) {
+            throw new Error(String(parsed?.error || 'Request failed.'));
+        }
+        return parsed;
+    }
+    if (token) {
+        data.token = token;
+    }
+    const response = await $.ajax({
+        url: CUSTOM_ICON_UPLOAD_API_PATH,
+        method: 'POST',
+        data,
+        processData: true,
+        contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+        cache: false,
+        dataType: 'text',
+        headers: {
+            'X-FV-Request': '1',
+            ...(token ? { 'X-FV-Token': token } : {})
+        }
+    }).promise();
+    const parsed = parseJsonPayload(response, 'custom icon manager');
+    if (!parsed || parsed.ok !== true) {
+        throw new Error(String(parsed?.error || 'Request failed.'));
+    }
+    return parsed;
+};
+
+const renderCustomIconList = () => {
+    const list = $('#fv-custom-icon-list');
+    if (!list.length) {
+        return;
+    }
+    if (!customIconEntries.length) {
+        list.html('<div class="fv-icon-picker-empty">No custom icons found. Upload an icon to get started.</div>');
+        return;
+    }
+    const rows = customIconEntries.map((icon) => {
+        const name = escapeHtml(String(icon?.name || ''));
+        const url = escapeHtml(String(icon?.url || ''));
+        const size = formatByteCount(Number(icon?.size || 0));
+        const dims = `${Math.max(0, Number(icon?.width || 0))}x${Math.max(0, Number(icon?.height || 0))}`;
+        const updated = formatDateTimeShort(icon?.updatedAt);
+        const meta = [size, dims, updated].filter((entry) => String(entry || '').trim() !== '').join(' · ');
+        return `
+            <div class="fv-custom-icon-row" data-custom-icon="${name}">
+                <img src="${url}" alt="${name}" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';">
+                <div class="fv-custom-icon-meta">
+                    <div class="fv-custom-icon-name" title="${name}">${name}</div>
+                    <div class="fv-custom-icon-extra">${escapeHtml(meta || 'No metadata')}</div>
+                </div>
+                <div class="fv-custom-icon-actions">
+                    <button type="button" data-action="use" title="Use icon"><i class="fa fa-check" aria-hidden="true"></i></button>
+                    <button type="button" data-action="rename" title="Rename icon"><i class="fa fa-pencil" aria-hidden="true"></i></button>
+                    <button type="button" data-action="delete" title="Delete icon"><i class="fa fa-trash" aria-hidden="true"></i></button>
+                </div>
+            </div>
+        `;
+    }).join('');
+    list.html(rows);
+    list.find('button[data-action]').off('click.fvcustomicons').on('click.fvcustomicons', async (event) => {
+        event.preventDefault();
+        const button = $(event.currentTarget);
+        const action = String(button.attr('data-action') || '').trim();
+        const row = button.closest('.fv-custom-icon-row');
+        const name = String(row.attr('data-custom-icon') || '').trim();
+        const icon = customIconEntries.find((entry) => String(entry?.name || '').trim() === name);
+        if (!icon) {
+            return;
+        }
+
+        if (action === 'use') {
+            setIconInputValue(String(icon.url || ''));
+            setCustomIconStatus(`Selected "${name}".`);
+            return;
+        }
+
+        if (action === 'rename') {
+            const proposal = window.prompt('Rename custom icon', String(name || ''));
+            const nextName = String(proposal || '').trim();
+            if (!nextName || nextName === name) {
+                return;
+            }
+            try {
+                await requestCustomIconApi('rename', { from: name, to: nextName }, 'POST');
+                await refreshCustomIconManager();
+                setCustomIconStatus(`Renamed "${name}" to "${nextName}".`);
+            } catch (error) {
+                setCustomIconStatus(String(error?.message || 'Rename failed.'), true);
+            }
+            return;
+        }
+
+        if (action === 'delete') {
+            swal({
+                title: 'Delete custom icon?',
+                text: `Remove "${name}" from custom icon storage?`,
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Delete',
+                cancelButtonText: 'Cancel'
+            }, async (confirmed) => {
+                if (!confirmed) {
+                    return;
+                }
+                try {
+                    await requestCustomIconApi('delete', { name }, 'POST');
+                    await refreshCustomIconManager();
+                    setCustomIconStatus(`Deleted "${name}".`);
+                } catch (error) {
+                    setCustomIconStatus(String(error?.message || 'Delete failed.'), true);
+                }
+            });
+        }
+    });
+};
+
+const refreshCustomIconManager = async () => {
+    try {
+        const payload = await requestCustomIconApi('list', { query: customIconSearchQuery, sort: 'newest' }, 'GET');
+        customIconEntries = asArray(payload?.icons);
+        customIconStats = payload?.stats || null;
+        renderCustomIconStats();
+        renderCustomIconList();
+        setCustomIconStatus('');
+    } catch (error) {
+        customIconEntries = [];
+        customIconStats = null;
+        renderCustomIconStats();
+        renderCustomIconList();
+        setCustomIconStatus(String(error?.message || 'Failed to load custom icons.'), true);
+    }
 };
 
 const renderBuiltInIconPicker = () => {
@@ -839,6 +1147,7 @@ const initBuiltInIconPicker = async () => {
         event.preventDefault();
         const isOpen = !panel.prop('hidden');
         setThirdPartyIconPickerOpen(false);
+        setCustomIconPickerOpen(false);
         setBuiltInIconPickerOpen(!isOpen);
         if (!isOpen) {
             builtInIconPage = 1;
@@ -851,9 +1160,22 @@ const initBuiltInIconPicker = async () => {
         const thirdPartyPanel = $('#fv-third-party-icon-panel');
         const isOpen = !thirdPartyPanel.prop('hidden');
         setBuiltInIconPickerOpen(false);
+        setCustomIconPickerOpen(false);
         setThirdPartyIconPickerOpen(!isOpen);
         if (!isOpen) {
             await refreshThirdPartyIconPicker();
+        }
+    });
+    $('#fv-icon-custom-manager-toggle').off('click.fviconpicker').on('click.fviconpicker', async (event) => {
+        event.preventDefault();
+        const customPanel = $('#fv-custom-icon-panel');
+        const isOpen = !customPanel.prop('hidden');
+        setBuiltInIconPickerOpen(false);
+        setThirdPartyIconPickerOpen(false);
+        setCustomIconPickerOpen(!isOpen);
+        if (!isOpen) {
+            await refreshCustomIconManager();
+            $('#fv-custom-icon-search').trigger('focus');
         }
     });
     $('#fv-icon-picker-default').off('click.fviconpicker').on('click.fviconpicker', (event) => {
@@ -877,25 +1199,70 @@ const initBuiltInIconPicker = async () => {
             return;
         }
 
+        try {
+            validateCustomIconFileBeforeUpload(file);
+        } catch (error) {
+            setIconUploadStatus(`Upload failed: ${error.message || 'Invalid file.'}`, true);
+            $(input).val('');
+            return;
+        }
+
         const uploadButton = $('#fv-icon-upload');
+        const cancelButton = $('#fv-icon-upload-cancel');
+        const replace = $('#fv-icon-upload-replace').is(':checked');
+        const dedupe = $('#fv-icon-upload-dedupe').is(':checked');
         const safeName = String(file.name || 'icon').trim() || 'icon';
         uploadButton.prop('disabled', true);
+        cancelButton.prop('disabled', false);
+        setIconUploadProgressVisible(true);
+        updateIconUploadProgress(0, Number(file.size || 0), `Uploading "${safeName}"...`);
         setIconUploadStatus(`Uploading "${safeName}"...`);
+        cancelButton.off('click.fviconpicker').on('click.fviconpicker', (cancelEvent) => {
+            cancelEvent.preventDefault();
+            if (customIconUploadRequest && typeof customIconUploadRequest.abort === 'function') {
+                customIconUploadRequest.abort();
+            }
+        });
 
         try {
-            const result = await uploadCustomIconFile(file);
+            const result = await uploadCustomIconFile(file, {
+                replace,
+                dedupe,
+                onProgress: (loaded, total) => updateIconUploadProgress(loaded, total)
+            });
+            updateIconUploadProgress(Number(file.size || 0), Number(file.size || 0), `Uploaded "${result.name}".`);
             setIconInputValue(result.url);
-            setIconUploadStatus(`Uploaded "${result.name}" and set as icon.`);
+            const message = String(result.message || '').trim() || `Uploaded "${result.name}" and set as icon.`;
+            setIconUploadStatus(message);
+            await refreshCustomIconManager();
         } catch (error) {
             setIconUploadStatus(`Upload failed: ${error.message || 'Unknown error.'}`, true);
         } finally {
+            cancelButton.off('click.fviconpicker').prop('disabled', true);
             uploadButton.prop('disabled', false);
             $(input).val('');
+            setTimeout(() => {
+                resetIconUploadProgress();
+            }, 220);
         }
     });
     $('#fv-third-party-refresh').off('click.fviconpicker').on('click.fviconpicker', async (event) => {
         event.preventDefault();
         await refreshThirdPartyIconPicker();
+    });
+    $('#fv-custom-icon-refresh').off('click.fviconpicker').on('click.fviconpicker', async (event) => {
+        event.preventDefault();
+        await refreshCustomIconManager();
+    });
+    $('#fv-custom-icon-search').off('input.fviconpicker').on('input.fviconpicker', (event) => {
+        if (customIconSearchTimer) {
+            clearTimeout(customIconSearchTimer);
+        }
+        customIconSearchQuery = String($(event.currentTarget).val() || '').trim();
+        customIconSearchTimer = setTimeout(async () => {
+            customIconSearchTimer = null;
+            await refreshCustomIconManager();
+        }, CUSTOM_ICON_SEARCH_DEBOUNCE_MS);
     });
     $('#fv-icon-picker-search').off('input.fviconpicker').on('input.fviconpicker', (event) => {
         if (builtInIconSearchTimer) {
@@ -923,9 +1290,10 @@ const initBuiltInIconPicker = async () => {
     });
     const closeIconPickersFromOutside = (event) => {
         const target = $(event.target);
-        if (!target.closest('#fv-icon-picker-panel, #fv-icon-picker-toggle, #fv-third-party-icon-panel, #fv-icon-third-party-toggle, #fv-icon-upload, #fv-icon-upload-file').length) {
+        if (!target.closest('#fv-icon-picker-panel, #fv-icon-picker-toggle, #fv-third-party-icon-panel, #fv-third-party-refresh, #fv-icon-third-party-toggle, #fv-custom-icon-panel, #fv-icon-custom-manager-toggle, #fv-custom-icon-refresh, #fv-icon-upload, #fv-icon-upload-file, #fv-icon-upload-progress').length) {
             setBuiltInIconPickerOpen(false);
             setThirdPartyIconPickerOpen(false);
+            setCustomIconPickerOpen(false);
         }
     };
     $(document)
@@ -939,12 +1307,18 @@ const initBuiltInIconPicker = async () => {
 
     $('#fv-icon-picker-toggle').attr('aria-expanded', 'false');
     $('#fv-icon-third-party-toggle').attr('aria-expanded', 'false');
+    $('#fv-icon-custom-manager-toggle').attr('aria-expanded', 'false');
     setBuiltInIconPickerOpen(false);
     setThirdPartyIconPickerOpen(false);
+    setCustomIconPickerOpen(false);
+    resetIconUploadProgress();
     setIconUploadStatus('');
     renderBuiltInIconPicker();
     renderThirdPartyFolderList();
     renderThirdPartyIconGrid();
+    renderCustomIconStats();
+    renderCustomIconList();
+    await refreshCustomIconManager();
 };
 
 const getAllMembers = () => {

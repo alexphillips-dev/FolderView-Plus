@@ -352,9 +352,31 @@
     vertical-align: middle;
 }
 
+.row-order-stack {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.24rem;
+}
+
 .row-order-actions button {
     min-width: 26px;
     padding: 2px 6px;
+}
+
+.row-order-actions .folder-tree-action {
+    min-width: 24px;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+}
+
+.row-order-error {
+    font-size: 1.03rem;
+    line-height: 1.2;
+    color: #ff8f8f;
+    max-width: 185px;
+    white-space: normal;
 }
 
 .folder-pin-btn {
@@ -390,10 +412,44 @@
     margin-left: 0.3rem;
 }
 
-.folder-member-count {
-    display: inline-block;
-    margin-left: 0.3rem;
-    opacity: 0.8;
+.folder-member-split {
+    display: inline-flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.24rem;
+    font-size: 1.03rem;
+}
+
+.folder-member-split strong {
+    font-weight: 700;
+}
+
+.folder-member-divider {
+    opacity: 0.55;
+    font-size: 1.03rem;
+}
+
+.fv-tree-move-dialog {
+    display: grid;
+    gap: 0.42rem;
+    text-align: left;
+}
+
+.fv-tree-move-source {
+    font-size: 1.03rem;
+    opacity: 0.9;
+}
+
+.fv-tree-move-field-label {
+    display: block;
+    font-size: 1.03rem;
+    font-weight: 600;
+    margin-top: 0.08rem;
+}
+
+.fv-tree-move-dialog select {
+    width: 100%;
+    min-height: 34px;
     font-size: 1.03rem;
 }
 
@@ -524,6 +580,14 @@
         min-width: 24px;
         height: 24px;
         padding: 0;
+    }
+
+    .row-order-actions .folder-tree-action {
+        display: none !important;
+    }
+
+    .row-order-error {
+        display: none !important;
     }
 
     .folder-table table td.actions-cell {
@@ -740,6 +804,16 @@ body.fv-mobile-compact #fv-settings-root .row-order-actions button {
     min-width: 22px;
     height: 22px;
     padding: 0;
+}
+
+#fv-settings-root.fv-mobile-compact .row-order-actions .folder-tree-action,
+body.fv-mobile-compact #fv-settings-root .row-order-actions .folder-tree-action {
+    display: none !important;
+}
+
+#fv-settings-root.fv-mobile-compact .row-order-error,
+body.fv-mobile-compact #fv-settings-root .row-order-error {
+    display: none !important;
 }
 
 #fv-settings-root.fv-mobile-compact .name-cell-content > img,

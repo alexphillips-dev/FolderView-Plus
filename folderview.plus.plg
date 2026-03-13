@@ -6,12 +6,26 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.12.09">
-<!ENTITY md5 "9f4128cdfaee3f3184af736e3b84501e">
+<!ENTITY version "2026.03.12.11">
+<!ENTITY md5 "4a491b2084ebd0079b20379d6170958e">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.12.11
+- Feature: Added nested tree move tools in settings (`before / inside / after`) while keeping up/down manual fallback.
+- Feature: Added fast parent actions (`Move to root`, `Move under...`) in row controls and quick-action menus.
+- Fix: Added cycle and invalid-target guardrails with inline per-row reason when a move is blocked.
+- UX: Members column now shows direct and nested totals, and sort hint text now reflects tree-move support.
+
+
+###2026.03.12.10
+- Feature: Added tree move controls in settings with `before / inside / after` placement, while keeping existing up/down manual reorder fallback.
+- Feature: Added quick parent actions for nested folders (`Move to root` and `Move under...`) in row controls and quick-action menus.
+- Fix: Added cycle/invalid move guardrails with inline row error reasons when a move cannot be applied.
+- UX: Members column now shows direct vs nested total counts (`direct/total`) for clearer subtree visibility.
+
 
 ###2026.03.12.09
 - Fix: Folder preview border color is now always rendered from saved folder settings for Docker/VM rows (including nested parent/child folders).

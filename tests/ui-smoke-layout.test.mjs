@@ -24,12 +24,22 @@ const folderJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js'
 );
+const dockerJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js'
+);
+const vmJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js'
+);
 
 const settingsPage = fs.readFileSync(settingsPagePath, 'utf8');
 const settingsCss = fs.readFileSync(settingsCssPath, 'utf8');
 const settingsJs = fs.readFileSync(settingsJsPath, 'utf8');
 const folderCss = fs.readFileSync(folderCssPath, 'utf8');
 const folderJs = fs.readFileSync(folderJsPath, 'utf8');
+const dockerJs = fs.readFileSync(dockerJsPath, 'utf8');
+const vmJs = fs.readFileSync(vmJsPath, 'utf8');
 
 test('settings page includes smoke-test-critical containers and scripts', () => {
     assert.match(settingsPage, /id="import-preview-dialog"/);
@@ -130,6 +140,14 @@ test('mobile folder table keeps Order + Name and routes details to overflow menu
     assert.match(settingsCss, /\.folder-overflow-btn\s*\{[\s\S]*display:\s*none/);
     assert.match(settingsCss, /\.actions-cell[\s\S]*\.folder-action-btn:not\(\.folder-overflow-btn\)[\s\S]*display:\s*none !important/);
     assert.match(settingsCss, /\.actions-cell[\s\S]*\.folder-overflow-btn[\s\S]*display:\s*inline-flex !important/);
+    assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*th:nth-child\(1\)[\s\S]*width:\s*26%/);
+    assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*th:nth-child\(2\)[\s\S]*width:\s*50%/);
+    assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*th:nth-child\(11\)[\s\S]*width:\s*24%/);
+    assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*\.row-order-actions\s*\{[\s\S]*justify-content:\s*center/);
+    assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*th:nth-child\(2\)[\s\S]*padding-left:\s*0\.5rem/);
+    assert.match(settingsCss, /#fv-settings-root\.fv-mobile-compact[\s\S]*th:nth-child\(1\)[\s\S]*width:\s*26%/);
+    assert.match(settingsCss, /#fv-settings-root\.fv-mobile-compact[\s\S]*th:nth-child\(2\)[\s\S]*width:\s*50%/);
+    assert.match(settingsCss, /#fv-settings-root\.fv-mobile-compact[\s\S]*\.row-order-actions[\s\S]*justify-content:\s*center/);
     assert.match(settingsJs, /class="folder-action-btn folder-overflow-btn"/);
     assert.match(settingsJs, /data-fv-overflow-type="\$\{escapeHtml\(type\)\}"/);
     assert.match(settingsJs, /data-fv-overflow-id="\$\{escapeHtml\(id\)\}"/);
@@ -144,6 +162,17 @@ test('mobile folder table keeps Order + Name and routes details to overflow menu
     assert.match(settingsJs, /const runVmRowDrawerAction = async \(action, folderId\) =>/);
     assert.match(settingsCss, /\.fv-row-details-panel\s*\{/);
     assert.match(settingsCss, /\.fv-row-details-grid\s*\{/);
+});
+
+test('nested folder expansion avoids duplicate parent previews and keeps child-only reveal path', () => {
+    assert.match(dockerJs, /const hasChildren = folderHasChildren\(id\);/);
+    assert.match(dockerJs, /hideNestedDescendants\(id\);/);
+    assert.match(dockerJs, /showDirectNestedChildren\(id\);/);
+    assert.match(dockerJs, /syncParentFolderVisualState\(id,\s*true\);/);
+    assert.match(dockerJs, /syncParentFolderVisualState\(id,\s*false\);/);
+    assert.match(dockerJs, /Expanded parent folder\. Showing nested children only\./);
+    assert.match(dockerJs, /\.addClass\('fv-nested-hidden'\)\.hide\(\);/);
+    assert.match(vmJs, /const parentId = normalizeFolderParentId\(source\[id\]\?\.parentId \|\| source\[id\]\?\.parent_id \|\| ''\);/);
 });
 
 test('folder editor keeps left-alignment runtime and stylesheet guards', () => {

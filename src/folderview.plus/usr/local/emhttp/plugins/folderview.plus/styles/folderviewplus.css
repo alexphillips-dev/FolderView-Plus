@@ -599,6 +599,14 @@
     text-align: center;
 }
 
+.folder-table table th.col-parent,
+.folder-table table td.parent-cell,
+.folder-table table th.col-members,
+.folder-table table td.members-cell {
+    padding-left: 0.24rem;
+    padding-right: 0.24rem;
+}
+
 .folder-table table td.status-cell {
     text-align: left;
     white-space: normal;
@@ -637,27 +645,27 @@
 
 /* Keep core table columns readable while giving Status enough room for side-by-side chips. */
 .folder-table table th:nth-child(1),
-.folder-table table td:nth-child(1) { width: 10%; }
+.folder-table table td:nth-child(1) { width: 9%; }
 .folder-table table th:nth-child(2),
-.folder-table table td:nth-child(2) { width: 16%; }
+.folder-table table td:nth-child(2) { width: 18%; }
 .folder-table table th:nth-child(3),
-.folder-table table td:nth-child(3) { width: 10%; }
+.folder-table table td:nth-child(3) { width: 5%; }
 .folder-table table th:nth-child(4),
-.folder-table table td:nth-child(4) { width: 6%; }
+.folder-table table td:nth-child(4) { width: 4%; }
 .folder-table table th:nth-child(5),
 .folder-table table td:nth-child(5) { width: 13%; }
 .folder-table table th:nth-child(6),
-.folder-table table td:nth-child(6) { width: 6%; }
+.folder-table table td:nth-child(6) { width: 5%; }
 .folder-table table th:nth-child(7),
 .folder-table table td:nth-child(7) { width: 9%; }
 .folder-table table th:nth-child(8),
-.folder-table table td:nth-child(8) { width: 6%; }
+.folder-table table td:nth-child(8) { width: 5%; }
 .folder-table table th:nth-child(9),
-.folder-table table td:nth-child(9) { width: 8%; }
+.folder-table table td:nth-child(9) { width: 10%; }
 .folder-table table th:nth-child(10),
-.folder-table table td:nth-child(10) { width: 8%; }
+.folder-table table td:nth-child(10) { width: 10%; }
 .folder-table table th:nth-child(11),
-.folder-table table td:nth-child(11) { width: 8%; }
+.folder-table table td:nth-child(11) { width: 12%; }
 
 .folder-table table th.col-order,
 .folder-table table td.order-cell {
@@ -722,9 +730,9 @@
     }
 
     .folder-table table th:nth-child(1),
-    .folder-table table td:nth-child(1) { width: 24%; }
+    .folder-table table td:nth-child(1) { width: 26%; }
     .folder-table table th:nth-child(2),
-    .folder-table table td:nth-child(2) { width: 52%; }
+    .folder-table table td:nth-child(2) { width: 50%; }
     .folder-table table th:nth-child(11),
     .folder-table table td:nth-child(11) { width: 24%; }
 
@@ -736,13 +744,13 @@
 
     .folder-table table th:nth-child(2),
     .folder-table table td:nth-child(2) {
-        padding-left: 0.68rem;
+        padding-left: 0.5rem;
         padding-right: 0.24rem;
     }
 
     .row-order-actions {
         width: 100%;
-        justify-content: flex-start;
+        justify-content: center;
         gap: 0.2rem;
     }
 
@@ -813,9 +821,9 @@
 
 @media (max-width: 700px) {
     .folder-table table th:nth-child(1),
-    .folder-table table td:nth-child(1) { width: 24%; }
+    .folder-table table td:nth-child(1) { width: 26%; }
     .folder-table table th:nth-child(2),
-    .folder-table table td:nth-child(2) { width: 52%; }
+    .folder-table table td:nth-child(2) { width: 50%; }
     .folder-table table th:nth-child(11),
     .folder-table table td:nth-child(11) { width: 24%; }
 
@@ -915,11 +923,11 @@ body.fv-mobile-compact #fv-settings-root .folder-table table td.resources-cell {
 #fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(1),
 #fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(1),
 body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(1),
-body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(1) { width: 24%; }
+body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(1) { width: 26%; }
 #fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(2),
 #fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(2),
 body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(2),
-body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(2) { width: 52%; }
+body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(2) { width: 50%; }
 #fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(11),
 #fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(11),
 body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(11),
@@ -937,7 +945,7 @@ body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(1) {
 #fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(2),
 body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(2),
 body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(2) {
-    padding-left: 0.68rem;
+    padding-left: 0.5rem;
     padding-right: 0.24rem;
 }
 
@@ -977,7 +985,7 @@ body.fv-mobile-compact #fv-settings-root .name-cell-content {
 #fv-settings-root.fv-mobile-compact .row-order-actions,
 body.fv-mobile-compact #fv-settings-root .row-order-actions {
     width: 100%;
-    justify-content: flex-start;
+    justify-content: center;
     gap: 0.2rem;
 }
 

@@ -6,12 +6,25 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.12.15">
-<!ENTITY md5 "ad04dab67227a02173c15c0778c48796">
+<!ENTITY version "2026.03.12.17">
+<!ENTITY md5 "39b7fd09841903d0bd44d67b0c66aaae">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.12.17
+- Maintenance: Update perf hard caps to prevent stale guard failures.
+- Feature: Add tree controls, parent column, and tree undo banner.
+- Maintenance: Hide root action on root rows and simplify nested order controls.
+- Maintenance: Simplify nested reorder controls and fix order-column clipping.
+- Maintenance: Update reorder test for hierarchy-aware manual ordering.
+- Fix: Fix nested reorder behavior and improve nested visibility in settings.
+
+
+###2026.03.12.16
+- Maintenance: Update perf hard caps to prevent stale guard failures.
+
 
 ###2026.03.12.15
 - Feature: Added nested tree controls in Basic settings (`Expand all` / `Collapse all`) for Docker and VM tables.

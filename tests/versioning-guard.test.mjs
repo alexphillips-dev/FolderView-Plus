@@ -140,8 +140,11 @@ test('release_guard checks target blank and update-notes release contract', () =
     assert.match(releaseGuard, /must disable fallback so \\\"What Changed\\\" only shows current-version notes/);
 });
 
-test('browser smoke scripts are optional, URL-gated, and include core UI checks', () => {
+test('browser smoke scripts support optional and required modes and include core UI checks', () => {
     assert.match(browserSmokeShell, /FVPLUS_BROWSER_SMOKE_URL/);
+    assert.match(browserSmokeShell, /FVPLUS_BROWSER_SMOKE_REQUIRED/);
+    assert.match(browserSmokeShell, /SMOKE_REQUIRED=1/);
+    assert.match(browserSmokeShell, /Browser smoke checks are required but FVPLUS_BROWSER_SMOKE_URL is not set/);
     assert.match(browserSmokeShell, /Skipping browser smoke checks/);
     assert.match(browserSmokeShell, /node "\$\{ROOT_DIR\}\/scripts\/browser_smoke\.mjs"/);
     assert.match(browserSmokeNode, /playwright/);
@@ -166,8 +169,9 @@ test('theme matrix smoke scripts are optional, URL-gated, and include wizard/the
     assert.match(themeMatrixSmokeNode, /horizontal overflow/);
 });
 
-test('validation workflows include optional browser smoke integration', () => {
-    for (const workflow of [ciWorkflow, releaseMainWorkflow, releaseStableWorkflow, releaseBetaWorkflow, releaseOnMainWorkflow]) {
+test('validation workflows enforce standards guards and release-required browser smoke', () => {
+    const allWorkflows = [ciWorkflow, releaseMainWorkflow, releaseStableWorkflow, releaseBetaWorkflow, releaseOnMainWorkflow];
+    for (const workflow of allWorkflows) {
         assert.match(workflow, /Standards guard checks/);
         assert.match(workflow, /bash scripts\/api_contract_guard\.sh/);
         assert.match(workflow, /bash scripts\/legacy_support_guard\.sh/);
@@ -179,13 +183,17 @@ test('validation workflows include optional browser smoke integration', () => {
         assert.match(workflow, /bash scripts\/unraid_matrix_smoke\.sh/);
         assert.match(workflow, /FVPLUS_I18N_STRICT/);
         assert.match(workflow, /FVPLUS_REQUIRE_PERF_BASELINE/);
-        assert.match(workflow, /Optional browser smoke checks/);
         assert.match(workflow, /FVPLUS_BROWSER_SMOKE_URL/);
         assert.match(workflow, /bash scripts\/browser_smoke\.sh/);
         assert.match(workflow, /Optional theme matrix smoke checks/);
         assert.match(workflow, /FVPLUS_THEME_MATRIX_URLS/);
         assert.match(workflow, /bash scripts\/theme_matrix_smoke\.sh/);
         assert.match(workflow, /actions\/upload-artifact@v4/);
+    }
+    assert.match(ciWorkflow, /Optional browser smoke checks/);
+    for (const workflow of [releaseMainWorkflow, releaseStableWorkflow, releaseBetaWorkflow, releaseOnMainWorkflow]) {
+        assert.match(workflow, /Browser smoke checks \(required on release\)/);
+        assert.match(workflow, /FVPLUS_BROWSER_SMOKE_REQUIRED:\s*'1'/);
     }
     assert.match(releasePrepare, /bash scripts\/api_contract_guard\.sh/);
     assert.match(releasePrepare, /bash scripts\/legacy_support_guard\.sh/);
@@ -207,7 +215,16 @@ test('release workflows serialize concurrent runs with shared release concurrenc
         assert.match(workflow, /concurrency:/);
         assert.match(workflow, /group:\s*folderview-plus-release/);
         assert.match(workflow, /cancel-in-progress:\s*false/);
-        assert.match(workflow, /FVPLUS_UNRAID_MATRIX_REQUIRED:\s*\$\{\{\s*secrets\.FVPLUS_UNRAID_MATRIX\s*!=\s*''\s*&&\s*'1'\s*\|\|\s*'0'\s*\}\}/);
+        assert.match(workflow, /FVPLUS_UNRAID_MATRIX_REQUIRED:\s*'1'/);
+        assert.match(workflow, /FVPLUS_UNRAID_REQUIRED_VERSIONS:\s*'7\.0\.x,7\.1\.x,7\.2\.x'/);
+        assert.match(workflow, /FVPLUS_UNRAID_REQUIRED_THEMES:\s*'black,white'/);
+    }
+});
+
+test('release workflows avoid failing when no files changed for commit step', () => {
+    for (const workflow of [releaseMainWorkflow, releaseStableWorkflow, releaseBetaWorkflow]) {
+        assert.match(workflow, /git diff --cached --quiet/);
+        assert.match(workflow, /No release file changes to commit/);
     }
 });
 

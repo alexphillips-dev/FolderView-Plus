@@ -201,7 +201,8 @@ test('validation workflows enforce standards guards and release-required browser
     assert.match(ciWorkflow, /Optional browser smoke checks/);
     for (const workflow of [releaseMainWorkflow, releaseStableWorkflow, releaseBetaWorkflow, releaseOnMainWorkflow]) {
         assert.match(workflow, /Browser smoke checks \(required on release\)/);
-        assert.match(workflow, /FVPLUS_BROWSER_SMOKE_REQUIRED:\s*'1'/);
+        assert.match(workflow, /FVPLUS_BROWSER_SMOKE_REQUIRED:\s*(?:'1'|\$\{\{[^}]+\}\})/);
+        assert.match(workflow, /Skipping browser smoke checks \(FVPLUS_BROWSER_SMOKE_URL not configured\)\./);
     }
     assert.match(releasePrepare, /bash scripts\/api_contract_guard\.sh/);
     assert.match(releasePrepare, /bash scripts\/legacy_support_guard\.sh/);

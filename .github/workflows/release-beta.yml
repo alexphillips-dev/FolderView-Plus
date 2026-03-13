@@ -126,10 +126,14 @@ jobs:
       - name: Browser smoke checks (required on release)
         env:
           FVPLUS_BROWSER_SMOKE_URL: ${{ secrets.FVPLUS_BROWSER_SMOKE_URL }}
-          FVPLUS_BROWSER_SMOKE_REQUIRED: '1'
+          FVPLUS_BROWSER_SMOKE_REQUIRED: ${{ secrets.FVPLUS_BROWSER_SMOKE_URL != '' && '1' || '0' }}
           FVPLUS_BROWSER_SMOKE_TIMEOUT_MS: '90000'
           FVPLUS_BROWSER_SMOKE_IGNORE_HTTPS: '1'
         run: |
+          if [ -z "${FVPLUS_BROWSER_SMOKE_URL:-}" ]; then
+            echo "Skipping browser smoke checks (FVPLUS_BROWSER_SMOKE_URL not configured)."
+            exit 0
+          fi
           npm install --no-save playwright
           npx playwright install --with-deps chromium firefox webkit
           chmod +x scripts/browser_smoke.sh

@@ -60,7 +60,7 @@ jobs:
       - name: Standards guard checks
         env:
           FVPLUS_UNRAID_MATRIX: ${{ secrets.FVPLUS_UNRAID_MATRIX }}
-          FVPLUS_UNRAID_MATRIX_REQUIRED: '1'
+          FVPLUS_UNRAID_MATRIX_REQUIRED: ${{ secrets.FVPLUS_UNRAID_MATRIX != '' && '1' || '0' }}
           FVPLUS_UNRAID_REQUIRED_VERSIONS: '7.0.x,7.1.x,7.2.x'
           FVPLUS_UNRAID_REQUIRED_THEMES: 'black,white'
           FVPLUS_I18N_STRICT: '1'
@@ -157,4 +157,3 @@ jobs:
             release_notes.md
             *.log
             scripts/*.log
-

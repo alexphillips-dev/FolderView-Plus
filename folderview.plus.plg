@@ -5,13 +5,21 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.13.11">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
+<!ENTITY version "2026.03.13.12">
 <!ENTITY md5 "874aead40c930a2f4722fa9aadcb925c">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.13.12
+- Feature: Add nested folders for Docker/VM with tree-aware behavior and root-only dashboard folder rendering.
+- Fix: Harden legacy import compatibility for malformed schema payloads and migration edge cases.
+- Fix: Strengthen runtime conflict handling coverage for both install orders (FolderView Plus first or legacy plugin first).
+- Fix: Add backup/restore integrity contract checks to prevent rollback and metadata regressions.
+- Quality: Expand theme/settings matrix checks and large-library performance smoke coverage.
+
 
 ###2026.03.13.11
 - Maintenance: lock legacy docker selector contract.
@@ -1553,7 +1561,7 @@
     </CHANGES>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

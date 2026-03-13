@@ -864,7 +864,13 @@ const createFolders = async () => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Finished loop for remaining folders.');
     dockerPerf.end('createFolders.renderRemaining', { remainingCount: Object.keys(folders).length });
 
-    try { $('#docker_list').sortable('refresh'); } catch(e) {}
+    const $dockerList = $('#docker_list');
+    if ($dockerList.length && typeof $dockerList.sortable === 'function') {
+        const sortableInstance = $dockerList.data('ui-sortable') || $dockerList.data('sortable');
+        if (sortableInstance) {
+            $dockerList.sortable('refresh');
+        }
+    }
 
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Dispatching docker-post-folders-creation event.');
     folderEvents.dispatchEvent(new CustomEvent('docker-post-folders-creation', {detail: {
@@ -2369,11 +2375,14 @@ const folderCustomAction = async (id, actionIndex) => {
     if(act.type === 0) { // Standard Docker action
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Action type 0 (Standard Docker).`);
         const containersMap = getFolderRuntimeContainers(folder);
-        // act.conatiners is an array of names. Need to map to folder containers by name.
-        const cts = act.conatiners.map((name) => containersMap[name]).filter((e) => e);
+        // Keep legacy typo key (`conatiners`) but accept correctly-spelled `containers` too.
+        const actionContainers = Array.isArray(act.conatiners)
+            ? act.conatiners
+            : (Array.isArray(act.containers) ? act.containers : []);
+        const cts = actionContainers.map((name) => containersMap[name]).filter((e) => e);
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Targeted containers data:`, [...cts]);
 
-        let ctAction = (e) => {}; // Placeholder
+        let ctAction = null;
         if(act.action === 0) { // Cycle
             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Standard action type 0 (Cycle). Mode: ${act.modes}.`);
             if(act.modes === 0) { // Start - Stop
@@ -2427,11 +2436,16 @@ const folderCustomAction = async (id, actionIndex) => {
                 prom.push($.post(eventURL, {action: 'restart', container:e_ct.id}, null,'json').promise());
             };
         }
-        cts.forEach((e_ct_data) => { // e_ct_data is like {id: "...", state: true, ...}
-            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Applying defined ctAction to container data:`, e_ct_data);
-            ctAction(e_ct_data);
-        });
-        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Pushed ${prom.length} standard actions to promise array.`);
+        if (typeof ctAction === 'function') {
+            cts.forEach((e_ct_data) => { // e_ct_data is like {id: "...", state: true, ...}
+                if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Applying defined ctAction to container data:`, e_ct_data);
+                ctAction(e_ct_data);
+            });
+            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Pushed ${prom.length} standard actions to promise array.`);
+        } else {
+            const unsupportedLabel = `action=${act.action}, mode=${act.modes}`;
+            console.warn(`folderview.plus: Unsupported Docker custom action configuration (${unsupportedLabel}) for folder "${folder.name || id}".`);
+        }
 
     } else if(act.type === 1) { // User Script
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderCustomAction (id: ${id}): Action type 1 (User Script). Script: ${act.script}, Sync: ${act.script_sync}, Args: ${act.script_args}`);

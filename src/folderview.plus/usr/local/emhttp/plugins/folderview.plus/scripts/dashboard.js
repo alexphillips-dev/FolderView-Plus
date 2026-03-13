@@ -1355,8 +1355,11 @@ const folderDockerCustomAction = async (id, action) => {
     let act = folder.actions[action];
     let prom = [];
     if(act.type === 0) {
-        const cts = act.conatiners.map(e => folder.containers[e]).filter(e => e);
-        let ctAction = (e) => {};
+        const actionContainers = Array.isArray(act.conatiners)
+            ? act.conatiners
+            : (Array.isArray(act.containers) ? act.containers : []);
+        const cts = actionContainers.map(e => folder.containers[e]).filter(e => e);
+        let ctAction = null;
         if(act.action === 0) {
 
             if(act.modes === 0) {
@@ -1415,9 +1418,14 @@ const folderDockerCustomAction = async (id, action) => {
 
         }
 
-        cts.forEach((e) => {
-            ctAction(e);
-        });
+        if (typeof ctAction === 'function') {
+            cts.forEach((e) => {
+                ctAction(e);
+            });
+        } else {
+            const unsupportedLabel = `action=${act.action}, mode=${act.modes}`;
+            console.warn(`folderview.plus: Unsupported Docker dashboard custom action configuration (${unsupportedLabel}) for folder "${folder.name || id}".`);
+        }
     } else if(act.type === 1) {
         const args = act.script_args || '';
         if(act.script_sync) {
@@ -1675,8 +1683,11 @@ const folderVMCustomAction = async (id, action) => {
     let act = folder.actions[action];
     let prom = [];
     if(act.type === 0) {
-        const cts = act.conatiners.map(e => folder.containers[e]).filter(e => e);
-        let ctAction = (e) => {};
+        const actionContainers = Array.isArray(act.conatiners)
+            ? act.conatiners
+            : (Array.isArray(act.containers) ? act.containers : []);
+        const cts = actionContainers.map(e => folder.containers[e]).filter(e => e);
+        let ctAction = null;
         if(act.action === 0) {
 
             if(act.modes === 0) {
@@ -1735,9 +1746,14 @@ const folderVMCustomAction = async (id, action) => {
 
         }
 
-        cts.forEach((e) => {
-            ctAction(e);
-        });
+        if (typeof ctAction === 'function') {
+            cts.forEach((e) => {
+                ctAction(e);
+            });
+        } else {
+            const unsupportedLabel = `action=${act.action}, mode=${act.modes}`;
+            console.warn(`folderview.plus: Unsupported VM dashboard custom action configuration (${unsupportedLabel}) for folder "${folder.name || id}".`);
+        }
     } else if(act.type === 1) {
         const args = act.script_args || '';
         if(act.script_sync) {

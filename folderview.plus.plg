@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.13.12">
-<!ENTITY md5 "874aead40c930a2f4722fa9aadcb925c">
+<!ENTITY version "2026.03.13.13">
+<!ENTITY md5 "11a5d5a0a7c3daaca8aefd60f75d43a9">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.13.13
+- Fix: Fix icon upload JSON parsing and surface API errors cleanly.
+- Maintenance: gate browser smoke requirement on configured release URL.
+- Maintenance: make Unraid matrix requirement conditional in release workflows.
+
 
 ###2026.03.13.12
 - Feature: Add nested folders for Docker/VM with tree-aware behavior and root-only dashboard folder rendering.

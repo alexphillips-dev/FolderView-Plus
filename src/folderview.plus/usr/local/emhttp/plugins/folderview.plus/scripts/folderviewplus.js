@@ -9656,11 +9656,14 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             ? ''
             : (`<button title="Move up" aria-label="Move ${safeName} up" onclick="moveFolderRow('${type}','${escapeHtml(id)}',-1)"><i class="fa fa-chevron-up"></i></button>`
                 + `<button title="Move down" aria-label="Move ${safeName} down" onclick="moveFolderRow('${type}','${escapeHtml(id)}',1)"><i class="fa fa-chevron-down"></i></button>`);
+        const moveToRootButtonHtml = folderDepth > 0
+            ? `<button class="folder-tree-action" title="Move to root" aria-label="Move ${safeName} to root" onclick="moveFolderToRootQuick('${type}','${escapeHtml(id)}')"><i class="fa fa-level-up"></i></button>`
+            : '';
         const orderCellHtml = ''
             + `<div class="row-order-stack">`
             + `<span class="row-order-actions">`
             + rowReorderButtonsHtml
-            + `<button class="folder-tree-action" title="Move to root" aria-label="Move ${safeName} to root" onclick="moveFolderToRootQuick('${type}','${escapeHtml(id)}')"><i class="fa fa-level-up"></i></button>`
+            + moveToRootButtonHtml
             + `<button class="folder-tree-action" title="Tree move (before/inside/after)" aria-label="Open tree move for ${safeName}" onclick="openFolderTreeMoveDialog('${type}','${escapeHtml(id)}')"><i class="fa fa-sitemap"></i></button>`
             + `</span>`
             + (treeErrorText ? `<span class="row-order-error">${escapeHtml(treeErrorText)}</span>` : '')

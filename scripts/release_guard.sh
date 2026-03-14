@@ -21,6 +21,17 @@ fail_packaged_source_mismatch() {
   exit 1
 }
 
+# Compare text files while tolerating cross-platform line endings.
+# This keeps real content mismatches failing while avoiding CRLF/LF false positives.
+text_files_match() {
+  local source_file="$1"
+  local packaged_file="$2"
+  if cmp -s "${source_file}" "${packaged_file}"; then
+    return 0
+  fi
+  diff -u <(tr -d '\r' < "${source_file}") <(tr -d '\r' < "${packaged_file}") >/dev/null
+}
+
 if [[ ! -f "${PLG_FILE}" ]]; then
   echo "ERROR: Missing plugin manifest: ${PLG_FILE}" >&2
   exit 1
@@ -369,32 +380,32 @@ if ! grep -q 'fv-force-left-v2 marker' "${TMP_ARCHIVE_FOLDER_JS}"; then
   exit 1
 fi
 
-if ! cmp -s "${SOURCE_FOLDER_JS}" "${TMP_ARCHIVE_FOLDER_JS}"; then
+if ! text_files_match "${SOURCE_FOLDER_JS}" "${TMP_ARCHIVE_FOLDER_JS}"; then
   fail_packaged_source_mismatch "Packaged folder.js does not match source folder.js."
 fi
 
-if ! cmp -s "${SOURCE_FOLDER_CSS}" "${TMP_ARCHIVE_FOLDER_CSS}"; then
+if ! text_files_match "${SOURCE_FOLDER_CSS}" "${TMP_ARCHIVE_FOLDER_CSS}"; then
   fail_packaged_source_mismatch "Packaged folder.css does not match source folder.css."
 fi
-if ! cmp -s "${SOURCE_SETTINGS_JS}" "${TMP_ARCHIVE_SETTINGS_JS}"; then
+if ! text_files_match "${SOURCE_SETTINGS_JS}" "${TMP_ARCHIVE_SETTINGS_JS}"; then
   fail_packaged_source_mismatch "Packaged folderviewplus.js does not match source folderviewplus.js."
 fi
-if ! cmp -s "${SOURCE_SETTINGS_DIRTY_JS}" "${TMP_ARCHIVE_SETTINGS_DIRTY_JS}"; then
+if ! text_files_match "${SOURCE_SETTINGS_DIRTY_JS}" "${TMP_ARCHIVE_SETTINGS_DIRTY_JS}"; then
   fail_packaged_source_mismatch "Packaged folderviewplus.dirty.js does not match source folderviewplus.dirty.js."
 fi
-if ! cmp -s "${SOURCE_SETTINGS_CSS}" "${TMP_ARCHIVE_SETTINGS_CSS}"; then
+if ! text_files_match "${SOURCE_SETTINGS_CSS}" "${TMP_ARCHIVE_SETTINGS_CSS}"; then
   fail_packaged_source_mismatch "Packaged folderviewplus.css does not match source folderviewplus.css."
 fi
-if ! cmp -s "${SOURCE_FOLDER_PAGE}" "${TMP_ARCHIVE_FOLDER_PAGE}"; then
+if ! text_files_match "${SOURCE_FOLDER_PAGE}" "${TMP_ARCHIVE_FOLDER_PAGE}"; then
   fail_packaged_source_mismatch "Packaged Folder.page does not match source Folder.page."
 fi
-if ! cmp -s "${SOURCE_SETTINGS_PAGE}" "${TMP_ARCHIVE_SETTINGS_PAGE}"; then
+if ! text_files_match "${SOURCE_SETTINGS_PAGE}" "${TMP_ARCHIVE_SETTINGS_PAGE}"; then
   fail_packaged_source_mismatch "Packaged FolderViewPlus.page does not match source FolderViewPlus.page."
 fi
-if ! cmp -s "${SOURCE_SERVER_LIB}" "${TMP_ARCHIVE_SERVER_LIB}"; then
+if ! text_files_match "${SOURCE_SERVER_LIB}" "${TMP_ARCHIVE_SERVER_LIB}"; then
   fail_packaged_source_mismatch "Packaged server/lib.php does not match source server/lib.php."
 fi
-if ! cmp -s "${SOURCE_SERVER_UPDATE_NOTES}" "${TMP_ARCHIVE_SERVER_UPDATE_NOTES}"; then
+if ! text_files_match "${SOURCE_SERVER_UPDATE_NOTES}" "${TMP_ARCHIVE_SERVER_UPDATE_NOTES}"; then
   fail_packaged_source_mismatch "Packaged server/update_notes.php does not match source server/update_notes.php."
 fi
 

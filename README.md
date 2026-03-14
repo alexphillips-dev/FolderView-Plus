@@ -1,6 +1,10 @@
 # FolderView Plus
 
 <p align="center">
+  <img src="docs/images/banner.png" alt="FolderView Plus banner" />
+</p>
+
+<p align="center">
   <a href="https://github.com/alexphillips-dev/FolderView-Plus/actions/workflows/ci.yml"><img src="https://github.com/alexphillips-dev/FolderView-Plus/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/alexphillips-dev/FolderView-Plus/releases"><img src="https://img.shields.io/github/v/release/alexphillips-dev/FolderView-Plus?style=flat-square" alt="Latest Release"></a>
   <a href="https://github.com/alexphillips-dev/FolderView-Plus/releases"><img src="https://img.shields.io/github/release-date/alexphillips-dev/FolderView-Plus?style=flat-square" alt="Release Date"></a>
@@ -13,6 +17,19 @@
 
 FolderView Plus gives Unraid a cleaner, folder-first way to manage Docker containers and VMs.  
 It is built for real libraries: easier organization, safer imports, faster recovery, and better day-to-day control.
+
+Quick links: [Install](#install) | [Feature Highlights](#feature-highlights) | [Screenshots](#screenshots) | [Rules Quick Guide](#rules-quick-guide) | [Import, Export, and Backups](#import-export-and-backups) | [Troubleshooting](#troubleshooting) | [Support](#support)
+
+## Screenshots
+
+<p align="center">
+  <img src="docs/images/screenshots/docker-basic.png" alt="Docker basic settings view" width="48%" />
+  <img src="docs/images/screenshots/vm-basic.png" alt="VM basic settings view" width="48%" />
+</p>
+<p align="center">
+  <img src="docs/images/screenshots/wizard.png" alt="Setup wizard view" width="48%" />
+  <img src="docs/images/screenshots/advanced.webp" alt="Advanced settings view" width="48%" />
+</p>
 
 ## Why Install This
 - Keep large Docker/VM setups readable with folder grouping in Docker, VMs, and Dashboard
@@ -69,6 +86,7 @@ plugin remove folderview.plus
 ### Organization and Control
 
 - Folder views for Docker, VMs, and Dashboard
+- Nested folders for Docker and VM organization with parent/child tree support
 - Folder runtime actions (`Start`, `Stop`, `Pause`, `Resume`)
 - Sort modes: created, manual, A-Z
 - Reliable manual reordering with up/down controls
@@ -97,6 +115,7 @@ plugin remove folderview.plus
 - Built-in, third-party, and uploaded icon support
 - Custom CSS/JS extension loading
 - Full mobile/touch support
+- Mobile basic-table optimization with compact columns and row action menu
 - Modern browser support (Chrome, Edge, Firefox, Safari)
 
 ## Quick Start
@@ -132,6 +151,22 @@ Recommended import flow:
 3. Choose mode/preset.
 4. Apply import.
 5. Use `Restore latest backup` if needed.
+
+## Troubleshooting
+
+- Plugin settings page appears blank on a fresh install:
+  - Refresh the browser once (`Ctrl+F5`), then open `Settings -> FolderView Plus` again.
+  - If still blank, check browser console and share diagnostics from the plugin settings page.
+- Folder rendering pauses with a safe-mode banner:
+  - FolderView Plus auto-detects conflicting FolderView runtimes.
+  - Keep FolderView Plus installed and remove the detected conflicting runtime plugin.
+  - Reload Unraid UI after plugin changes.
+- Updates do not appear immediately:
+  - Run `Plugins -> Check for Updates`.
+  - If still cached, install once from a commit URL, then return to `main` updates.
+- Import fails validation:
+  - Confirm Docker exports are imported into Docker and VM exports into VMs.
+  - Re-export with the latest plugin version if the source file was created by older tooling.
 
 ## Security and Reliability
 - Request token and guarded endpoint protections
@@ -230,8 +265,8 @@ node --test tests/*.mjs
 ```
 
 ## Support
-- Issues: https://github.com/alexphillips-dev/FolderView-Plus/issues
 - Forum support thread: https://forums.unraid.net/topic/197631-plugin-folderview-plus/
+- Issues (GitHub forms): https://github.com/alexphillips-dev/FolderView-Plus/issues
 
 ## Sponsor
 > [!TIP]

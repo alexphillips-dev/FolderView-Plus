@@ -15,8 +15,6 @@ body:
       options:
         - label: I searched existing issues and did not find an open duplicate request.
           required: true
-        - label: I described expected mobile/touch behavior for this feature.
-          required: true
 
   - type: textarea
     id: problem
@@ -50,13 +48,18 @@ body:
       label: Area
       multiple: true
       options:
-        - Docker tab
-        - VM tab
-        - Dashboard
-        - Settings page
-        - Import/Export
-        - Folder ordering
+        - Docker tab rendering
+        - VM tab rendering
+        - Dashboard widgets
+        - Settings basic view
+        - Settings advanced modules
+        - Setup wizard
+        - Nested folders / tree operations
+        - Import/export / backup restore
         - Auto-assignment rules
+        - Custom icon upload/third-party icons
+        - Safe mode / conflict detection
+        - Mobile / touch behavior
         - Update/Release process
         - Docs/README
         - Other
@@ -71,6 +74,41 @@ body:
         - High
         - Medium
         - Low
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: List 2-5 concrete outcomes that would make this complete.
+      placeholder: |
+        - [ ] In mobile basic view, only Order/Name/Actions columns show by default.
+        - [ ] Overflow menu exposes status/rules/alerts details.
+        - [ ] Behavior remains unchanged on desktop.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: compatibility
+    attributes:
+      label: Legacy compatibility expectation
+      description: Should this preserve compatibility with existing exports and legacy label keys?
+      options:
+        - Must preserve legacy compatibility
+        - Compatibility preferred but not required
+        - Break allowed with migration guidance
+    validations:
+      required: true
+
+  - type: dropdown
+    id: mobile_expectation
+    attributes:
+      label: Mobile/touch expectation
+      options:
+        - Must support mobile/touch
+        - Desktop only is acceptable
+        - Unsure
     validations:
       required: true
 

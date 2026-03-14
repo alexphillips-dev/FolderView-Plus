@@ -1,12 +1,12 @@
 name: Bug report
-description: Report a bug, regression, or unexpected behavior in FolderView Plus
+description: Report a reproducible bug, regression, or compatibility issue in FolderView Plus
 title: "[Bug]: "
 labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for reporting this. Please fill out the details below so we can reproduce and fix it quickly.
+        Thanks for reporting this. Please include only the details needed to reproduce the issue quickly.
 
   - type: checkboxes
     id: precheck
@@ -15,16 +15,14 @@ body:
       options:
         - label: I searched existing issues and did not find an open duplicate.
           required: true
-        - label: I tested on the latest plugin version available from this repository.
-          required: true
-        - label: I verified whether this issue happens on mobile/touch and noted the result below.
+        - label: I reproduced this on the latest version from this repository (main or latest commit URL).
           required: true
 
   - type: input
     id: unraid_version
     attributes:
       label: Unraid version
-      placeholder: "e.g. 7.1.4"
+      placeholder: "e.g. 7.2.4"
     validations:
       required: true
 
@@ -32,7 +30,16 @@ body:
     id: plugin_version
     attributes:
       label: FolderView Plus version
-      placeholder: "e.g. 2026.03.05.4"
+      placeholder: "e.g. 2026.03.13.17"
+    validations:
+      required: true
+
+  - type: input
+    id: browser_device
+    attributes:
+      label: Browser and device
+      description: Required for UI, wizard, mobile, and rendering issues.
+      placeholder: "e.g. Chrome 134 on Windows desktop, Safari on iPhone 15"
     validations:
       required: true
 
@@ -50,22 +57,62 @@ body:
       required: true
 
   - type: dropdown
+    id: theme_context
+    attributes:
+      label: Theme or custom styling active?
+      options:
+        - None (stock Unraid theme)
+        - Unraid theme engine / custom theme
+        - Custom CSS/JS overrides
+        - Both theme engine and custom CSS/JS
+        - Unsure
+    validations:
+      required: true
+
+  - type: dropdown
+    id: conflict_plugins
+    attributes:
+      label: Other Folder View plugins installed?
+      options:
+        - No
+        - Yes (FolderView3)
+        - Yes (FolderView2)
+        - Yes (multiple)
+        - Unsure
+    validations:
+      required: true
+
+  - type: dropdown
     id: affected_area
     attributes:
       label: Affected area
       multiple: true
       options:
-        - Docker tab
-        - VM tab
-        - Dashboard
-        - Settings page
-        - Mobile / touch behavior
-        - Import/Export
-        - Folder ordering
+        - Docker tab rendering
+        - VM tab rendering
+        - Dashboard widgets
+        - Settings basic view
+        - Settings advanced modules
+        - Setup wizard
+        - Nested folders / tree operations
+        - Import/export / backup restore
         - Auto-assignment rules
-        - Update check
-        - Installation/upgrade
+        - Custom icon upload/third-party icons
+        - Safe mode / conflict detection
+        - Mobile / touch behavior
+        - Install / update detection
         - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: reproducibility
+    attributes:
+      label: Reproducibility
+      options:
+        - Always
+        - Intermittent
+        - Once so far
     validations:
       required: true
 
@@ -96,18 +143,18 @@ body:
       required: true
 
   - type: textarea
-    id: browser_console_or_logs
+    id: logs
     attributes:
-      label: Browser console / logs
-      description: Paste relevant output from browser devtools console or Unraid terminal.
+      label: Relevant logs / console output
+      description: Include only the relevant snippet. For install/update/import issues, include exact terminal output.
       render: shell
     validations:
       required: false
 
   - type: textarea
-    id: screenshots
+    id: attachments
     attributes:
-      label: Screenshots or screen recording
-      description: Drag and drop images/videos here if helpful.
+      label: Attachments (optional but helpful)
+      description: Drag and drop screenshots, recordings, export JSON, or diagnostics JSON.
     validations:
       required: false

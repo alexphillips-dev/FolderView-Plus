@@ -16,9 +16,15 @@ body:
         - Plugin installation
         - Plugin update not showing
         - Folders not visible
+        - Nested folders / tree behavior
+        - Setup wizard behavior
         - Import/Export behavior
+        - Backup restore behavior
         - Folder ordering
         - Auto-assignment rules
+        - Custom icon upload or icon packs
+        - Safe mode / conflict banner
+        - Mobile/touch layout
         - UI/settings behavior
         - Other
     validations:
@@ -53,6 +59,41 @@ body:
     validations:
       required: true
 
+  - type: input
+    id: browser_device
+    attributes:
+      label: Browser and device
+      description: Required for UI, wizard, dashboard, and mobile issues.
+      placeholder: "e.g. Chrome 134 on Windows desktop, Safari on iPhone 15"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: theme_context
+    attributes:
+      label: Theme or custom styling active?
+      options:
+        - None (stock Unraid theme)
+        - Unraid theme engine / custom theme
+        - Custom CSS/JS overrides
+        - Both theme engine and custom CSS/JS
+        - Unsure
+    validations:
+      required: true
+
+  - type: dropdown
+    id: conflict_plugins
+    attributes:
+      label: Other Folder View plugins installed?
+      options:
+        - No
+        - Yes (FolderView3)
+        - Yes (FolderView2)
+        - Yes (multiple)
+        - Unsure
+    validations:
+      required: true
+
   - type: textarea
     id: current_behavior
     attributes:
@@ -73,7 +114,7 @@ body:
     id: troubleshooting_tried
     attributes:
       label: What you already tried
-      description: Include exact commands/steps, page refresh, reinstall, import attempts, etc.
+      description: Include exact commands/steps, hard refresh, reinstall attempts, and import/restore attempts if relevant.
       render: shell
     validations:
       required: true
@@ -84,6 +125,14 @@ body:
       label: Logs / console output
       description: Optional terminal output, plugin install output, or browser console logs.
       render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: attachments
+    attributes:
+      label: Attachments (optional but helpful)
+      description: Drag and drop screenshots, recordings, export JSON, or diagnostics JSON.
     validations:
       required: false
 

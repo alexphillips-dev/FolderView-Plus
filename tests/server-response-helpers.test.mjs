@@ -87,3 +87,14 @@ test('lib.php defines runtime conflict detection and notice helpers', () => {
     assert.match(libPhp, /localStorage\.removeItem\([^)]*fv\.runtimeConflict\.resolvedPending\.v1/);
     assert.doesNotMatch(libPhp, /Remove either FolderView Plus/);
 });
+
+test('lib.php diagnostics include custom icon storage and usage health', () => {
+    assert.match(libPhp, /function diagnosticsCustomIconExtensions\s*\(/);
+    assert.match(libPhp, /function diagnosticsCustomIconNameFromIconValue\s*\(/);
+    assert.match(libPhp, /function diagnosticsBuildCustomIconUsageMap\s*\(/);
+    assert.match(libPhp, /function diagnosticsBuildCustomIconStorage\s*\(/);
+    assert.match(libPhp, /'customIcons'\s*=>\s*diagnosticsBuildCustomIconStorage\(\$privacyMode\)/);
+    assert.match(libPhp, /'inUseIconCount'\s*=>/);
+    assert.match(libPhp, /'orphanedIconCount'\s*=>/);
+    assert.match(libPhp, /'repairHint'\s*=>/);
+});

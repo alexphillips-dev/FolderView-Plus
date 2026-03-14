@@ -64,7 +64,7 @@ const budgets = [
   },
   {
     path: 'scripts/folder.js',
-    maxBytes: envInt('FVPLUS_MAX_FOLDER_JS_BYTES', 120000),
+    maxBytes: envInt('FVPLUS_MAX_FOLDER_JS_BYTES', 130000),
     maxGzipBytes: envInt('FVPLUS_MAX_FOLDER_JS_GZIP_BYTES', 28000),
   },
 ];

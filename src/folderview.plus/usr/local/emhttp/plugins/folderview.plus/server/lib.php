@@ -3482,6 +3482,161 @@
         ];
     }
 
+    function diagnosticsCustomIconExtensions(): array {
+        return ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'ico', 'avif'];
+    }
+
+    function diagnosticsCustomIconNameFromIconValue(string $value): string {
+        $path = trim($value);
+        if ($path === '') {
+            return '';
+        }
+        $hashPos = strpos($path, '#');
+        if ($hashPos !== false) {
+            $path = substr($path, 0, $hashPos);
+        }
+        $queryPos = strpos($path, '?');
+        if ($queryPos !== false) {
+            $path = substr($path, 0, $queryPos);
+        }
+        $decoded = @rawurldecode($path);
+        if (is_string($decoded) && $decoded !== '') {
+            $path = $decoded;
+        }
+        $path = preg_replace('#^https?://[^/]+#i', '', $path);
+        $path = str_replace('\\', '/', trim((string)$path));
+        if ($path === '') {
+            return '';
+        }
+
+        $prefixes = [
+            '/plugins/folderview.plus/images/custom/',
+            '/usr/local/emhttp/plugins/folderview.plus/images/custom/',
+            'plugins/folderview.plus/images/custom/',
+            'usr/local/emhttp/plugins/folderview.plus/images/custom/'
+        ];
+        $candidate = '';
+        foreach ($prefixes as $prefix) {
+            if (strpos($path, $prefix) === 0) {
+                $candidate = basename(substr($path, strlen($prefix)));
+                break;
+            }
+        }
+        if ($candidate === '') {
+            return '';
+        }
+        $safe = basename(trim($candidate));
+        if ($safe === '' || $safe !== $candidate) {
+            return '';
+        }
+        $extension = strtolower((string)pathinfo($safe, PATHINFO_EXTENSION));
+        if ($extension === '' || !in_array($extension, diagnosticsCustomIconExtensions(), true)) {
+            return '';
+        }
+        return $safe;
+    }
+
+    function diagnosticsBuildCustomIconUsageMap(): array {
+        $usage = [];
+        foreach (['docker', 'vm'] as $type) {
+            $folders = readRawFolderMap($type);
+            foreach ($folders as $folderId => $folder) {
+                if (!is_array($folder)) {
+                    continue;
+                }
+                $name = diagnosticsCustomIconNameFromIconValue((string)($folder['icon'] ?? ''));
+                if ($name === '') {
+                    continue;
+                }
+                if (!isset($usage[$name]) || !is_array($usage[$name])) {
+                    $usage[$name] = [];
+                }
+                $usage[$name][] = [
+                    'type' => $type,
+                    'folderId' => (string)$folderId,
+                    'folderName' => trim((string)($folder['name'] ?? (string)$folderId))
+                ];
+            }
+        }
+        return $usage;
+    }
+
+    function diagnosticsBuildCustomIconStorage(string $privacyMode): array {
+        global $sourceDir;
+        $privacyMode = normalizeDiagnosticsPrivacyMode($privacyMode);
+        $directory = "$sourceDir/images/custom";
+        $descriptor = diagnosticsPathDescriptor($directory, $privacyMode);
+        $extensions = diagnosticsCustomIconExtensions();
+        $usageMap = diagnosticsBuildCustomIconUsageMap();
+        $fileCount = 0;
+        $totalBytes = 0;
+        $inUseIconCount = 0;
+        $orphanedIconCount = 0;
+        $referenceCount = 0;
+        $topReferences = [];
+
+        if (is_dir($directory)) {
+            foreach ((array)@scandir($directory) as $name) {
+                if ($name === '.' || $name === '..' || $name !== basename($name)) {
+                    continue;
+                }
+                $path = "$directory/$name";
+                if (!is_file($path)) {
+                    continue;
+                }
+                $extension = strtolower((string)pathinfo($name, PATHINFO_EXTENSION));
+                if ($extension === '' || !in_array($extension, $extensions, true)) {
+                    continue;
+                }
+                $fileCount++;
+                $totalBytes += max(0, (int)@filesize($path));
+                $refs = is_array($usageMap[$name] ?? null) ? $usageMap[$name] : [];
+                $refCount = count($refs);
+                if ($refCount > 0) {
+                    $inUseIconCount++;
+                    $referenceCount += $refCount;
+                    $topReferences[] = [
+                        'name' => $privacyMode === 'full' ? $name : diagnosticsHashShort($name),
+                        'referenceCount' => $refCount
+                    ];
+                } else {
+                    $orphanedIconCount++;
+                }
+            }
+        }
+
+        usort($topReferences, static function (array $a, array $b): int {
+            $cmp = ((int)($b['referenceCount'] ?? 0)) <=> ((int)($a['referenceCount'] ?? 0));
+            if ($cmp !== 0) {
+                return $cmp;
+            }
+            return strcmp((string)($a['name'] ?? ''), (string)($b['name'] ?? ''));
+        });
+
+        $issues = [];
+        if ($descriptor['exists'] !== true) {
+            $issues[] = 'Custom icon directory is missing.';
+        } elseif ($descriptor['isDir'] !== true) {
+            $issues[] = 'Custom icon path is not a directory.';
+        }
+        if ($descriptor['exists'] === true && $descriptor['writable'] !== true) {
+            $issues[] = 'Custom icon directory is not writable.';
+        }
+
+        $repairHint = 'mkdir -p ' . escapeshellarg($directory) . ' && chmod -R 775 ' . escapeshellarg($directory);
+        return [
+            'path' => $descriptor,
+            'fileCount' => $fileCount,
+            'totalBytes' => $totalBytes,
+            'inUseIconCount' => $inUseIconCount,
+            'orphanedIconCount' => $orphanedIconCount,
+            'referenceCount' => $referenceCount,
+            'topReferences' => array_slice($topReferences, 0, 15),
+            'issues' => $issues,
+            'repairHint' => $repairHint
+        ];
+    }
+
     function diagnosticsBuildPathHealth(string $type, string $privacyMode): array {
         global $configDir, $sourceDir;
         $folderPath = getFolderFilePath($type);
@@ -4013,6 +4168,7 @@
             'pluginVersion' => readInstalledVersion(),
             'environment' => getEnvironmentSnapshot($privacyMode),
             'hashes' => getDiagnosticsKeyFileHashes($privacyMode),
+            'customIcons' => diagnosticsBuildCustomIconStorage($privacyMode),
             'importExportHistory' => [
                 'retained' => count(readDiagnosticsHistoryEvents(FVPLUS_DIAGNOSTICS_HISTORY_MAX)),
                 'returned' => count($historyEvents),

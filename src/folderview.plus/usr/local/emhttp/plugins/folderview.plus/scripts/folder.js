@@ -1,4 +1,4 @@
-// list of element to select
+﻿// list of element to select
 let choose = [];
 // element selected by the regex string
 let selectedRegex = [];
@@ -47,8 +47,12 @@ const THIRD_PARTY_ICON_API_PATH = '/plugins/folderview.plus/server/third_party_i
 const CUSTOM_ICON_UPLOAD_API_PATH = '/plugins/folderview.plus/server/upload_custom_icon.php';
 const CUSTOM_ICON_UPLOAD_MAX_BYTES = 4194304;
 const CUSTOM_ICON_ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'ico', 'avif'];
+const ICON_FALLBACK_PATH = '/plugins/dynamix.docker.manager/images/question.png';
+const ICON_UPLOAD_ENDPOINT_CONTEXT = 'icon upload endpoint';
+const CUSTOM_ICON_MANAGER_CONTEXT = 'custom icon manager';
 const REQUEST_TOKEN_STORAGE_KEY = 'fv.request.token';
 const ICON_PICKER_PAGE_SIZE = 120;
+const CUSTOM_ICON_PAGE_SIZE = 60;
 const ICON_PICKER_SEARCH_DEBOUNCE_MS = 120;
 const CUSTOM_ICON_SEARCH_DEBOUNCE_MS = 150;
 const EDITOR_MODE_STORAGE_KEY = 'fv.folder.editor.mode.v1';
@@ -78,7 +82,9 @@ let thirdPartyIcons = [];
 let thirdPartyIconPage = 1;
 let customIconEntries = [];
 let customIconStats = null;
+let customIconHealth = null;
 let customIconSearchQuery = '';
+let customIconPage = 1;
 let customIconSearchTimer = null;
 let customIconUploadRequest = null;
 let editorMode = 'basic';
@@ -569,7 +575,7 @@ const uploadCustomIconFileInline = async (file, token, options = {}) => {
         }
     }).promise();
 
-    return parseJsonPayload(response, 'icon upload endpoint');
+    return parseJsonPayload(response, ICON_UPLOAD_ENDPOINT_CONTEXT);
 };
 
 const uploadCustomIconFile = async (file, options = {}) => {
@@ -619,7 +625,7 @@ const uploadCustomIconFile = async (file, options = {}) => {
             }
         });
         const response = await customIconUploadRequest.promise();
-        payload = parseJsonPayload(response, 'icon upload endpoint');
+        payload = parseJsonPayload(response, ICON_UPLOAD_ENDPOINT_CONTEXT);
     } catch (error) {
         const aborted = String(error?.textStatus || '').toLowerCase() === 'abort'
             || String(error?.statusText || '').toLowerCase() === 'abort';
@@ -628,14 +634,14 @@ const uploadCustomIconFile = async (file, options = {}) => {
         }
         const primaryError = (error instanceof Error)
             ? error
-            : new Error(extractAjaxErrorMessage(error, 'icon upload endpoint'));
+            : new Error(extractAjaxErrorMessage(error, ICON_UPLOAD_ENDPOINT_CONTEXT));
         if (!shouldUseInlineUploadFallback(primaryError)) {
-            throw new Error(extractAjaxErrorMessage(error, 'icon upload endpoint'));
+            throw new Error(extractAjaxErrorMessage(error, ICON_UPLOAD_ENDPOINT_CONTEXT));
         }
         try {
             payload = await uploadCustomIconFileInline(file, token, options);
         } catch (inlineError) {
-            throw new Error(extractAjaxErrorMessage(inlineError, 'icon upload endpoint'));
+            throw new Error(extractAjaxErrorMessage(inlineError, ICON_UPLOAD_ENDPOINT_CONTEXT));
         }
     } finally {
         customIconUploadRequest = null;
@@ -721,6 +727,7 @@ const renderCustomIconStats = () => {
         return;
     }
     const stats = customIconStats && typeof customIconStats === 'object' ? customIconStats : null;
+    const health = customIconHealth && typeof customIconHealth === 'object' ? customIconHealth : null;
     if (!stats) {
         el.text('No custom icon stats available.');
         return;
@@ -729,13 +736,18 @@ const renderCustomIconStats = () => {
     const maxFiles = Number(stats.maxFiles || 0);
     const totalBytes = Number(stats.totalBytes || 0);
     const maxBytes = Number(stats.maxTotalBytes || 0);
+    const inUse = Number(stats.inUseIconCount || 0);
     const warnings = asArray(stats.warnings).map((entry) => String(entry || '').trim()).filter((entry) => entry !== '');
-    const summary = `${count.toLocaleString()} / ${Math.max(0, maxFiles).toLocaleString()} files · ${formatByteCount(totalBytes)} / ${formatByteCount(maxBytes)}`;
+    const summary = `${count.toLocaleString()} / ${Math.max(0, maxFiles).toLocaleString()} files | ${formatByteCount(totalBytes)} / ${formatByteCount(maxBytes)} | in use ${inUse.toLocaleString()}`;
+    const healthText = health ? (health.writable === true ? 'Writable' : 'Read-only') : 'Directory status unknown';
+    const healthHint = (health && health.writable !== true && String(health.repairHint || '').trim() !== '')
+        ? ` | fix: ${String(health.repairHint || '').trim()}`
+        : '';
     if (!warnings.length) {
-        el.text(`Quota: ${summary}`);
+        el.text(`Quota: ${summary} | ${healthText}${healthHint}`);
         return;
     }
-    el.text(`Quota: ${summary} · ${warnings.join(' ')}`);
+    el.text(`Quota: ${summary} | ${healthText}${healthHint} | ${warnings.join(' ')}`);
 };
 
 const requestCustomIconApi = async (action, payload = {}, method = 'GET') => {
@@ -747,7 +759,7 @@ const requestCustomIconApi = async (action, payload = {}, method = 'GET') => {
     };
     if (normalizedMethod === 'GET') {
         const response = await $.get(CUSTOM_ICON_UPLOAD_API_PATH, data).promise();
-        const parsed = parseJsonPayload(response, 'custom icon manager');
+        const parsed = parseJsonPayload(response, CUSTOM_ICON_MANAGER_CONTEXT);
         if (!parsed || parsed.ok !== true) {
             throw new Error(String(parsed?.error || 'Request failed.'));
         }
@@ -769,7 +781,7 @@ const requestCustomIconApi = async (action, payload = {}, method = 'GET') => {
             ...(token ? { 'X-FV-Token': token } : {})
         }
     }).promise();
-    const parsed = parseJsonPayload(response, 'custom icon manager');
+    const parsed = parseJsonPayload(response, CUSTOM_ICON_MANAGER_CONTEXT);
     if (!parsed || parsed.ok !== true) {
         throw new Error(String(parsed?.error || 'Request failed.'));
     }
@@ -778,35 +790,73 @@ const requestCustomIconApi = async (action, payload = {}, method = 'GET') => {
 
 const renderCustomIconList = () => {
     const list = $('#fv-custom-icon-list');
+    const prevButton = $('#fv-custom-icon-prev');
+    const nextButton = $('#fv-custom-icon-next');
+    const pageLabel = $('#fv-custom-icon-page-label');
     if (!list.length) {
         return;
     }
+
     if (!customIconEntries.length) {
         list.html('<div class="fv-icon-picker-empty">No custom icons found. Upload an icon to get started.</div>');
+        if (prevButton.length && nextButton.length && pageLabel.length) {
+            prevButton.prop('disabled', true);
+            nextButton.prop('disabled', true);
+            pageLabel.text('Page 1 / 1');
+        }
         return;
     }
-    const rows = customIconEntries.map((icon) => {
+
+    const paged = paginateItems(customIconEntries, customIconPage, CUSTOM_ICON_PAGE_SIZE);
+    customIconPage = paged.page;
+    if (prevButton.length && nextButton.length && pageLabel.length) {
+        prevButton.prop('disabled', paged.page <= 1);
+        nextButton.prop('disabled', paged.page >= paged.totalPages);
+        pageLabel.text(`Page ${paged.page} / ${paged.totalPages}`);
+        prevButton.off('click.fvcustompager').on('click.fvcustompager', (event) => {
+            event.preventDefault();
+            if (customIconPage <= 1) {
+                return;
+            }
+            customIconPage -= 1;
+            renderCustomIconList();
+        });
+        nextButton.off('click.fvcustompager').on('click.fvcustompager', (event) => {
+            event.preventDefault();
+            if (customIconPage >= paged.totalPages) {
+                return;
+            }
+            customIconPage += 1;
+            renderCustomIconList();
+        });
+    }
+
+    const rows = paged.items.map((icon) => {
         const name = escapeHtml(String(icon?.name || ''));
         const url = escapeHtml(String(icon?.url || ''));
         const size = formatByteCount(Number(icon?.size || 0));
         const dims = `${Math.max(0, Number(icon?.width || 0))}x${Math.max(0, Number(icon?.height || 0))}`;
         const updated = formatDateTimeShort(icon?.updatedAt);
-        const meta = [size, dims, updated].filter((entry) => String(entry || '').trim() !== '').join(' · ');
+        const usageCount = Math.max(0, Number(icon?.usageCount || 0));
+        const usageMeta = usageCount > 0 ? `${usageCount} refs` : 'unused';
+        const meta = [size, dims, updated, usageMeta].filter((entry) => String(entry || '').trim() !== '').join(' | ');
         return `
             <div class="fv-custom-icon-row" data-custom-icon="${name}">
-                <img src="${url}" alt="${name}" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';">
+                <img src="${url}" alt="${name}" onerror="this.src='${ICON_FALLBACK_PATH}';">
                 <div class="fv-custom-icon-meta">
                     <div class="fv-custom-icon-name" title="${name}">${name}</div>
                     <div class="fv-custom-icon-extra">${escapeHtml(meta || 'No metadata')}</div>
                 </div>
                 <div class="fv-custom-icon-actions">
                     <button type="button" data-action="use" title="Use icon"><i class="fa fa-check" aria-hidden="true"></i></button>
+                    <button type="button" data-action="refs" title="Show folder references"><i class="fa fa-sitemap" aria-hidden="true"></i></button>
                     <button type="button" data-action="rename" title="Rename icon"><i class="fa fa-pencil" aria-hidden="true"></i></button>
                     <button type="button" data-action="delete" title="Delete icon"><i class="fa fa-trash" aria-hidden="true"></i></button>
                 </div>
             </div>
         `;
     }).join('');
+
     list.html(rows);
     list.find('button[data-action]').off('click.fvcustomicons').on('click.fvcustomicons', async (event) => {
         event.preventDefault();
@@ -822,6 +872,29 @@ const renderCustomIconList = () => {
         if (action === 'use') {
             setIconInputValue(String(icon.url || ''));
             setCustomIconStatus(`Selected "${name}".`);
+            return;
+        }
+
+        if (action === 'refs') {
+            try {
+                let refs = asArray(icon?.usage);
+                if (!refs.length) {
+                    const payload = await requestCustomIconApi('usage', { name }, 'GET');
+                    refs = asArray(payload?.usage);
+                }
+                if (!refs.length) {
+                    swal({ title: 'No references', text: `"${name}" is not used by any folder.`, type: 'info' });
+                    return;
+                }
+                const rowsHtml = refs
+                    .slice(0, 80)
+                    .map((entry) => `<li>${escapeHtml(String(entry?.type || '').toUpperCase())} | ${escapeHtml(String(entry?.folderName || entry?.folderId || 'Unknown'))}</li>`)
+                    .join('');
+                const html = `<div class="fv-custom-icon-ref-list"><ul>${rowsHtml}</ul></div>`;
+                swal({ title: `In use by ${refs.length} folder${refs.length === 1 ? '' : 's'}`, text: html, html: true, confirmButtonText: 'Close' });
+            } catch (error) {
+                setCustomIconStatus(String(error?.message || 'Failed to load references.'), true);
+            }
             return;
         }
 
@@ -842,6 +915,11 @@ const renderCustomIconList = () => {
         }
 
         if (action === 'delete') {
+            const usageCount = Math.max(0, Number(icon?.usageCount || 0));
+            if (usageCount > 0) {
+                setCustomIconStatus(`"${name}" is in use by ${usageCount} folder${usageCount === 1 ? '' : 's'}. Remove references before deleting.`, true);
+                return;
+            }
             swal({
                 title: 'Delete custom icon?',
                 text: `Remove "${name}" from custom icon storage?`,
@@ -869,13 +947,20 @@ const refreshCustomIconManager = async () => {
     try {
         const payload = await requestCustomIconApi('list', { query: customIconSearchQuery, sort: 'newest' }, 'GET');
         customIconEntries = asArray(payload?.icons);
-        customIconStats = payload?.stats || null;
+        const usageSummary = payload?.usage && typeof payload.usage === 'object' ? payload.usage : {};
+        customIconStats = {
+            ...(payload?.stats && typeof payload.stats === 'object' ? payload.stats : {}),
+            inUseIconCount: Math.max(0, Number(usageSummary.inUseIconCount || 0)),
+            totalReferences: Math.max(0, Number(usageSummary.totalReferences || 0))
+        };
+        customIconHealth = payload?.health && typeof payload.health === 'object' ? payload.health : null;
         renderCustomIconStats();
         renderCustomIconList();
         setCustomIconStatus('');
     } catch (error) {
         customIconEntries = [];
         customIconStats = null;
+        customIconHealth = null;
         renderCustomIconStats();
         renderCustomIconList();
         setCustomIconStatus(String(error?.message || 'Failed to load custom icons.'), true);
@@ -938,7 +1023,7 @@ const renderBuiltInIconPicker = () => {
         const safeName = escapeHtml(icon.name);
         return `
             <button type="button" class="fv-icon-picker-item${selected ? ' is-selected' : ''}" data-icon-value="${safePath}" title="${safeName}">
-                <img src="${safePath}" alt="${safeName}" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';">
+                <img src="${safePath}" alt="${safeName}" onerror="this.src='${ICON_FALLBACK_PATH}';">
                 <span class="fv-icon-picker-item-name">${safeName}</span>
             </button>
         `;
@@ -1051,7 +1136,7 @@ const renderThirdPartyIconGrid = () => {
         const safeName = escapeHtml(icon.name);
         return `
             <button type="button" class="fv-icon-picker-item${selected}" data-icon-value="${safeUrl}" title="${safeName}">
-                <img src="${safeUrl}" alt="${safeName}" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';">
+                <img src="${safeUrl}" alt="${safeName}" onerror="this.src='${ICON_FALLBACK_PATH}';">
                 <span class="fv-icon-picker-item-name">${safeName}</span>
             </button>
         `;
@@ -1252,6 +1337,7 @@ const initBuiltInIconPicker = async () => {
     });
     $('#fv-custom-icon-refresh').off('click.fviconpicker').on('click.fviconpicker', async (event) => {
         event.preventDefault();
+        customIconPage = 1;
         await refreshCustomIconManager();
     });
     $('#fv-custom-icon-search').off('input.fviconpicker').on('input.fviconpicker', (event) => {
@@ -1259,6 +1345,7 @@ const initBuiltInIconPicker = async () => {
             clearTimeout(customIconSearchTimer);
         }
         customIconSearchQuery = String($(event.currentTarget).val() || '').trim();
+        customIconPage = 1;
         customIconSearchTimer = setTimeout(async () => {
             customIconSearchTimer = null;
             await refreshCustomIconManager();
@@ -1727,7 +1814,7 @@ const validateForm = () => {
                 .addClass('invalid')
                 .text('Resolve highlighted field errors, then try saving again.');
         } else if (warnings.length > 0) {
-            const rendered = warnings.slice(0, 3).map((line) => `• ${line}`).join('\n');
+            const rendered = warnings.slice(0, 3).map((line) => `â€¢ ${line}`).join('\n');
             details
                 .removeClass('invalid ready')
                 .addClass('warning')
@@ -2738,7 +2825,7 @@ const updateList = () => {
     choose.forEach((member) => rows.push({ member, membership: 'available', checked: false, locked: false }));
 
     rows.forEach(({ member, membership, checked, locked }) => {
-        const icon = escapeHtml(member.Icon || '/plugins/dynamix.docker.manager/images/question.png');
+        const icon = escapeHtml(member.Icon || ICON_FALLBACK_PATH);
         const name = escapeHtml(member.Name);
         const orderControls = locked
             ? '<span class="order-lock" title="Auto-included by regex or label"><i class="fa fa-lock" aria-hidden="true"></i></span>'
@@ -2747,7 +2834,7 @@ const updateList = () => {
         table.append($(`
             <tr class="item" data-name="${name}" data-membership="${membership}">
                 <td class="order-col">${orderControls}</td>
-                <td class="name-col"><span style="cursor: pointer;" onclick="setIconAsContainer(this)"><img src="${icon}" class="img" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"></span>${name}</td>
+                <td class="name-col"><span style="cursor: pointer;" onclick="setIconAsContainer(this)"><img src="${icon}" class="img" onerror="this.src='${ICON_FALLBACK_PATH}';"></span>${name}</td>
                 <td><input class="container-switch" ${checked ? 'checked' : ''} ${locked ? 'disabled' : ''} type="checkbox" name="containers[]" value="${name}" style="display: none;"></td>
             </tr>
         `));
@@ -3062,3 +3149,5 @@ window.resetUnsavedChanges = resetUnsavedChanges;
 window.setIconAsContainer = setIconAsContainer;
 window.customAction = customAction;
 window.rCcustomAction = rCcustomAction;
+
+

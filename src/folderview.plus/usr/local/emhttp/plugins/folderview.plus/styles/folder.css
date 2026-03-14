@@ -599,6 +599,22 @@
     padding: 0;
 }
 
+.fv-custom-icon-ref-list {
+    max-height: 280px;
+    overflow: auto;
+    text-align: left;
+}
+
+.fv-custom-icon-ref-list > ul {
+    margin: 0;
+    padding-left: 1.2em;
+}
+
+.fv-custom-icon-ref-list li {
+    margin: 0.2em 0;
+    font-size: 1.03rem;
+}
+
 .fv-live-grid {
     display: grid;
     gap: 0.4em 1em;
@@ -922,5 +938,22 @@ table.sortable td:nth-child(3) {
     .fv-member-tools > input[type="text"],
     .fv-member-tools > select {
         min-width: 180px;
+    }
+
+    .fv-custom-icon-row {
+        grid-template-columns: 24px minmax(0, 1fr);
+        align-items: start;
+        row-gap: 0.3em;
+    }
+
+    .fv-custom-icon-actions {
+        grid-column: 1 / -1;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .fv-custom-icon-extra {
+        white-space: normal;
+        line-height: 1.25;
     }
 }

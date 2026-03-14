@@ -7,6 +7,7 @@ const FVPLUS_CUSTOM_ICON_MAX_FILES = 2000;
 const FVPLUS_CUSTOM_ICON_MAX_TOTAL_BYTES = 268435456;
 const FVPLUS_CUSTOM_ICON_RATE_WINDOW_SECONDS = 60;
 const FVPLUS_CUSTOM_ICON_RATE_MAX_UPLOADS = 24;
+const FVPLUS_CUSTOM_ICON_LOCK_TIMEOUT_SECONDS = 10;
 const FVPLUS_CUSTOM_ICON_OPTIMIZE_MAX_DIMENSION = 1024;
 const FVPLUS_CUSTOM_ICON_OPTIMIZE_JPEG_QUALITY = 90;
 const FVPLUS_CUSTOM_ICON_OPTIMIZE_PNG_COMPRESSION = 6;
@@ -81,15 +82,97 @@ function customIconDirPath(): string {
     return "$sourceDir/images/custom";
 }
 
-function ensureCustomIconDirExists(): string {
+function customIconRepairHintCommand(): string {
+    $dir = customIconDirPath();
+    return "mkdir -p " . escapeshellarg($dir) . " && chmod -R 775 " . escapeshellarg($dir);
+}
+
+function ensureCustomIconDirExists(bool $requireWritable = true): string {
     $path = customIconDirPath();
+    $repairAttempted = false;
     if (!is_dir($path)) {
+        $repairAttempted = true;
         @mkdir($path, 0770, true);
     }
-    if (!is_dir($path) || !is_writable($path)) {
-        throw new RuntimeException('Custom icon directory is not writable.');
+    if (is_dir($path) && !is_writable($path)) {
+        $repairAttempted = true;
+        @chmod($path, 0770);
+    }
+    if (!is_dir($path)) {
+        throw new RuntimeException('Custom icon directory does not exist. Run: ' . customIconRepairHintCommand());
+    }
+    if ($requireWritable && !is_writable($path)) {
+        $message = 'Custom icon directory is not writable. Run: ' . customIconRepairHintCommand();
+        if ($repairAttempted) {
+            $message .= ' (automatic repair attempt failed)';
+        }
+        throw new RuntimeException($message);
     }
     return $path;
+}
+
+function customIconDirectoryHealth(): array {
+    $path = customIconDirPath();
+    $existsBefore = is_dir($path);
+    $writableBefore = $existsBefore && is_writable($path);
+    $repairAttempted = false;
+    if (!$existsBefore) {
+        $repairAttempted = true;
+        @mkdir($path, 0770, true);
+    }
+    if (is_dir($path) && !is_writable($path)) {
+        $repairAttempted = true;
+        @chmod($path, 0770);
+    }
+    $existsAfter = is_dir($path);
+    $writableAfter = $existsAfter && is_writable($path);
+    return [
+        'path' => $path,
+        'exists' => $existsAfter,
+        'writable' => $writableAfter,
+        'repairAttempted' => $repairAttempted,
+        'repairSucceeded' => $existsAfter && (!$repairAttempted || $writableAfter),
+        'repairHint' => customIconRepairHintCommand()
+    ];
+}
+
+function customIconLockPath(): string {
+    return customIconDirPath() . '/.upload.lock';
+}
+
+function withCustomIconLock(bool $exclusive, callable $callback) {
+    $directory = ensureCustomIconDirExists(false);
+    if ($exclusive && !is_writable($directory)) {
+        @chmod($directory, 0770);
+    }
+    if ($exclusive && !is_writable($directory)) {
+        throw new RuntimeException('Custom icon directory is not writable. Run: ' . customIconRepairHintCommand());
+    }
+    $lockPath = customIconLockPath();
+    $handle = @fopen($lockPath, 'c+');
+    if (!is_resource($handle)) {
+        throw new RuntimeException('Unable to open custom icon lock file. Run: ' . customIconRepairHintCommand());
+    }
+    $mode = $exclusive ? LOCK_EX : LOCK_SH;
+    $start = microtime(true);
+    $locked = false;
+    while ((microtime(true) - $start) <= FVPLUS_CUSTOM_ICON_LOCK_TIMEOUT_SECONDS) {
+        if (@flock($handle, $mode | LOCK_NB)) {
+            $locked = true;
+            break;
+        }
+        usleep(25000);
+    }
+    if (!$locked) {
+        @fclose($handle);
+        throw new RuntimeException('Custom icon store is busy. Please try again.');
+    }
+    try {
+        return $callback();
+    } finally {
+        @flock($handle, LOCK_UN);
+        @fclose($handle);
+    }
 }
 
 function customIconMetadataPath(): string {
@@ -107,6 +190,115 @@ function customIconPublicUrl(string $fileName): string {
 
 function customIconPublicPath(string $fileName): string {
     return '/usr/local/emhttp/plugins/folderview.plus/images/custom/' . $fileName;
+}
+
+function normalizeCustomIconReferencePath(string $value): string {
+    $path = trim($value);
+    if ($path === '') {
+        return '';
+    }
+    $hashPos = strpos($path, '#');
+    if ($hashPos !== false) {
+        $path = substr($path, 0, $hashPos);
+    }
+    $queryPos = strpos($path, '?');
+    if ($queryPos !== false) {
+        $path = substr($path, 0, $queryPos);
+    }
+    $decoded = @rawurldecode($path);
+    if (is_string($decoded) && $decoded !== '') {
+        $path = $decoded;
+    }
+    $hostTrimmed = preg_replace('#^https?://[^/]+#i', '', $path);
+    if (is_string($hostTrimmed) && $hostTrimmed !== '') {
+        $path = $hostTrimmed;
+    }
+    return str_replace('\\', '/', trim($path));
+}
+
+function customIconNameFromReference(string $value): string {
+    $normalized = normalizeCustomIconReferencePath($value);
+    if ($normalized === '') {
+        return '';
+    }
+
+    $prefixes = [
+        '/plugins/folderview.plus/images/custom/',
+        '/usr/local/emhttp/plugins/folderview.plus/images/custom/',
+        'plugins/folderview.plus/images/custom/',
+        'usr/local/emhttp/plugins/folderview.plus/images/custom/'
+    ];
+    $candidate = '';
+    foreach ($prefixes as $prefix) {
+        if (strpos($normalized, $prefix) === 0) {
+            $candidate = basename(substr($normalized, strlen($prefix)));
+            break;
+        }
+    }
+    if ($candidate === '') {
+        return '';
+    }
+    $safe = basename(trim($candidate));
+    if ($safe === '' || $safe !== $candidate) {
+        return '';
+    }
+    $extension = strtolower((string)pathinfo($safe, PATHINFO_EXTENSION));
+    if ($extension === '' || !in_array($extension, FVPLUS_CUSTOM_ICON_EXTENSIONS, true)) {
+        return '';
+    }
+    return $safe;
+}
+
+function customIconUsageMap(): array {
+    $usage = [];
+    foreach (['docker', 'vm'] as $type) {
+        $folders = readRawFolderMap($type);
+        foreach ($folders as $folderId => $folder) {
+            if (!is_array($folder)) {
+                continue;
+            }
+            $iconName = customIconNameFromReference((string)($folder['icon'] ?? ''));
+            if ($iconName === '') {
+                continue;
+            }
+            if (!isset($usage[$iconName]) || !is_array($usage[$iconName])) {
+                $usage[$iconName] = [];
+            }
+            $usage[$iconName][] = [
+                'type' => $type,
+                'folderId' => (string)$folderId,
+                'folderName' => trim((string)($folder['name'] ?? (string)$folderId))
+            ];
+        }
+    }
+    foreach ($usage as $name => $refs) {
+        usort($refs, static function (array $a, array $b): int {
+            $typeCmp = strcmp((string)($a['type'] ?? ''), (string)($b['type'] ?? ''));
+            if ($typeCmp !== 0) {
+                return $typeCmp;
+            }
+            return strcasecmp((string)($a['folderName'] ?? ''), (string)($b['folderName'] ?? ''));
+        });
+        $usage[$name] = array_values($refs);
+    }
+    return $usage;
+}
+
+function customIconUsageSummary(array $usageMap): array {
+    $inUseIconCount = 0;
+    $references = 0;
+    foreach ($usageMap as $refs) {
+        $count = is_array($refs) ? count($refs) : 0;
+        if ($count <= 0) {
+            continue;
+        }
+        $inUseIconCount += 1;
+        $references += $count;
+    }
+    return [
+        'inUseIconCount' => $inUseIconCount,
+        'totalReferences' => $references
+    ];
 }
 
 function readCustomIconMetadataIndex(): array {
@@ -949,14 +1141,21 @@ function customIconMetadataForResponse(string $name, array $meta): array {
     ];
 }
 
-function customIconListRows(string $directory, string $search = '', string $sort = 'newest'): array {
+function customIconListRows(string $directory, string $search = '', string $sort = 'newest', array $usageMap = []): array {
     $meta = syncCustomIconMetadataIndex($directory);
     $files = listCustomIconsInDirectory($directory);
     $rows = [];
     $needle = strtolower(trim($search));
     foreach ($files as $name => $file) {
         $entry = customIconMetadataForResponse($name, $meta);
-        $searchHaystack = strtolower($name . ' ' . (string)$entry['originalName'] . ' ' . (string)$entry['hash']);
+        $usage = is_array($usageMap[$name] ?? null) ? array_values($usageMap[$name]) : [];
+        $usageSearch = [];
+        foreach ($usage as $ref) {
+            $usageSearch[] = (string)($ref['type'] ?? '');
+            $usageSearch[] = (string)($ref['folderName'] ?? '');
+            $usageSearch[] = (string)($ref['folderId'] ?? '');
+        }
+        $searchHaystack = strtolower($name . ' ' . (string)$entry['originalName'] . ' ' . (string)$entry['hash'] . ' ' . implode(' ', $usageSearch));
         if ($needle !== '' && strpos($searchHaystack, $needle) === false) {
             continue;
         }
@@ -972,7 +1171,10 @@ function customIconListRows(string $directory, string $search = '', string $sort
             'mime' => (string)($entry['mime'] ?? ''),
             'width' => max(0, (int)($entry['width'] ?? 0)),
             'height' => max(0, (int)($entry['height'] ?? 0)),
-            'optimized' => ($entry['optimized'] ?? false) === true
+            'optimized' => ($entry['optimized'] ?? false) === true,
+            'usageCount' => count($usage),
+            'inUse' => count($usage) > 0,
+            'usage' => array_slice($usage, 0, 50)
         ];
     }
     $mode = strtolower(trim($sort));
@@ -1016,7 +1218,8 @@ function findCustomIconNameByHash(array $meta, string $hash): string {
     return '';
 }
 
-function buildCustomIconUploadResponse(string $name, array $meta, bool $duplicate = false, bool $replaced = false, string $message = '', string $uploadMode = 'multipart'): array {
+function buildCustomIconUploadResponse(string $name, array $meta, bool $duplicate = false, bool $replaced = false, string $message = '', string $uploadMode = 'multipart', array $usageMap = []): array {
+    $usage = is_array($usageMap[$name] ?? null) ? array_values($usageMap[$name]) : [];
     $response = [
         'name' => $name,
         'url' => customIconPublicUrl($name),
@@ -1025,7 +1228,11 @@ function buildCustomIconUploadResponse(string $name, array $meta, bool $duplicat
         'replaced' => $replaced,
         'uploadMode' => $uploadMode,
         'metadata' => customIconMetadataForResponse($name, $meta),
-        'stats' => customIconStorageStats(customIconDirPath())
+        'stats' => customIconStorageStats(customIconDirPath()),
+        'health' => customIconDirectoryHealth(),
+        'usageCount' => count($usage),
+        'inUse' => count($usage) > 0,
+        'usage' => array_slice($usage, 0, 50)
     ];
     $text = trim($message);
     if ($text !== '') {
@@ -1050,84 +1257,95 @@ function handleCustomIconUploadAction(): array {
         validateUploadedIcon($tmpPath, $extension);
         $optimization = optimizeUploadedRasterIcon($tmpPath, $extension);
         $hash = computeCustomIconHash($tmpPath);
-        $customDir = ensureCustomIconDirExists();
-        $meta = syncCustomIconMetadataIndex($customDir);
+        $response = withCustomIconLock(true, static function () use (
+            $replaceExisting,
+            $dedupeByHash,
+            $hash,
+            $extension,
+            $originalName,
+            $tmpPath,
+            $isHttpUpload,
+            &$cleanupPath,
+            $optimization,
+            $uploadMode
+        ) {
+            $customDir = ensureCustomIconDirExists();
+            $meta = syncCustomIconMetadataIndex($customDir);
 
-        if ($dedupeByHash) {
-            $duplicateName = findCustomIconNameByHash($meta, $hash);
-            if ($duplicateName !== '') {
-                $response = buildCustomIconUploadResponse($duplicateName, $meta, true, false, 'Identical icon already exists; reusing existing file.', $uploadMode);
-                appendCustomIconAuditEvent('icon_upload', 'ok', [
-                    'result' => 'deduplicated',
-                    'name' => $duplicateName,
-                    'hash' => $hash,
-                    'mode' => $uploadMode
-                ]);
-                return $response;
+            if ($dedupeByHash) {
+                $duplicateName = findCustomIconNameByHash($meta, $hash);
+                if ($duplicateName !== '') {
+                    $usageMap = customIconUsageMap();
+                    return buildCustomIconUploadResponse($duplicateName, $meta, true, false, 'Identical icon already exists; reusing existing file.', $uploadMode, $usageMap);
+                }
             }
-        }
 
-        $baseName = sanitizeCustomIconBasename((string)pathinfo($originalName, PATHINFO_FILENAME));
-        $preferredName = "$baseName.$extension";
-        $targetName = $preferredName;
-        $targetPath = "$customDir/$targetName";
-        $replaced = false;
-        if (is_file($targetPath)) {
-            if ($replaceExisting) {
-                $replaced = true;
+            $baseName = sanitizeCustomIconBasename((string)pathinfo($originalName, PATHINFO_FILENAME));
+            $preferredName = "$baseName.$extension";
+            $targetName = $preferredName;
+            $targetPath = "$customDir/$targetName";
+            $replaced = false;
+            if (is_file($targetPath)) {
+                if ($replaceExisting) {
+                    $replaced = true;
+                } else {
+                    $targetName = nextAvailableCustomIconName($customDir, $baseName, $extension);
+                    $targetPath = "$customDir/$targetName";
+                }
+            }
+
+            $incomingBytes = max(0, (int)@filesize($tmpPath));
+            enforceCustomIconStorageLimit($customDir, $incomingBytes, $replaced ? $targetName : '');
+
+            $stored = false;
+            if ($isHttpUpload) {
+                $stored = @move_uploaded_file($tmpPath, $targetPath);
             } else {
-                $targetName = nextAvailableCustomIconName($customDir, $baseName, $extension);
-                $targetPath = "$customDir/$targetName";
+                if (@rename($tmpPath, $targetPath)) {
+                    $stored = true;
+                    $cleanupPath = '';
+                } elseif (@copy($tmpPath, $targetPath)) {
+                    $stored = true;
+                }
             }
-        }
 
-        $incomingBytes = max(0, (int)@filesize($tmpPath));
-        enforceCustomIconStorageLimit($customDir, $incomingBytes, $replaced ? $targetName : '');
-
-        $stored = false;
-        if ($isHttpUpload) {
-            $stored = @move_uploaded_file($tmpPath, $targetPath);
-        } else {
-            if (@rename($tmpPath, $targetPath)) {
-                $stored = true;
-                $cleanupPath = '';
-            } elseif (@copy($tmpPath, $targetPath)) {
-                $stored = true;
+            if (!$stored) {
+                throw new RuntimeException('Unable to store uploaded icon.');
             }
-        }
+            if ($cleanupPath !== '' && is_file($cleanupPath)) {
+                @unlink($cleanupPath);
+            }
 
-        if (!$stored) {
-            throw new RuntimeException('Unable to store uploaded icon.');
-        }
-        if ($cleanupPath !== '' && is_file($cleanupPath)) {
-            @unlink($cleanupPath);
-        }
-
-        @chmod($targetPath, 0644);
-        $dimensions = readImageDimensions($targetPath);
-        $now = gmdate('c');
-        $existingMeta = is_array($meta[$targetName] ?? null) ? $meta[$targetName] : [];
-        $uploadedAt = $existingMeta['uploadedAt'] ?? $now;
-        if (!$replaced || !isset($meta[$targetName])) {
-            $uploadedAt = $now;
-        }
-        $meta[$targetName] = [
-            'originalName' => basename($originalName) ?: $targetName,
-            'uploadedAt' => $uploadedAt,
-            'updatedAt' => $now,
-            'size' => max(0, (int)@filesize($targetPath)),
-            'hash' => $hash,
-            'mime' => detectUploadedMimeType($targetPath),
-            'width' => max(0, (int)$dimensions['width']),
-            'height' => max(0, (int)$dimensions['height']),
-            'optimized' => ($optimization['optimized'] ?? false) === true
-        ];
-        writeCustomIconMetadataIndex($meta);
-        $message = $replaced ? 'Existing icon replaced.' : 'Icon uploaded successfully.';
-        $response = buildCustomIconUploadResponse($targetName, $meta, false, $replaced, $message, $uploadMode);
+            @chmod($targetPath, 0644);
+            $dimensions = readImageDimensions($targetPath);
+            $now = gmdate('c');
+            $existingMeta = is_array($meta[$targetName] ?? null) ? $meta[$targetName] : [];
+            $uploadedAt = $existingMeta['uploadedAt'] ?? $now;
+            if (!$replaced || !isset($meta[$targetName])) {
+                $uploadedAt = $now;
+            }
+            $meta[$targetName] = [
+                'originalName' => basename($originalName) ?: $targetName,
+                'uploadedAt' => $uploadedAt,
+                'updatedAt' => $now,
+                'size' => max(0, (int)@filesize($targetPath)),
+                'hash' => $hash,
+                'mime' => detectUploadedMimeType($targetPath),
+                'width' => max(0, (int)$dimensions['width']),
+                'height' => max(0, (int)$dimensions['height']),
+                'optimized' => ($optimization['optimized'] ?? false) === true
+            ];
+            writeCustomIconMetadataIndex($meta);
+            $message = $replaced ? 'Existing icon replaced.' : 'Icon uploaded successfully.';
+            $usageMap = customIconUsageMap();
+            return buildCustomIconUploadResponse($targetName, $meta, false, $replaced, $message, $uploadMode, $usageMap);
+        });
+        $result = $response['duplicate'] === true
+            ? 'deduplicated'
+            : (($response['replaced'] ?? false) === true ? 'replaced' : 'uploaded');
         appendCustomIconAuditEvent('icon_upload', 'ok', [
-            'result' => $replaced ? 'replaced' : 'uploaded',
-            'name' => $targetName,
+            'result' => $result,
+            'name' => (string)($response['name'] ?? basename($originalName)),
             'hash' => $hash,
             'optimized' => ($optimization['optimized'] ?? false) === true,
             'mode' => $uploadMode
@@ -1148,81 +1366,130 @@ function handleCustomIconUploadAction(): array {
 }
 
 function handleCustomIconListAction(): array {
-    $customDir = ensureCustomIconDirExists();
-    $search = trim((string)($_REQUEST['query'] ?? ''));
-    $sort = trim((string)($_REQUEST['sort'] ?? 'newest'));
-    return [
-        'icons' => customIconListRows($customDir, $search, $sort),
-        'stats' => customIconStorageStats($customDir)
-    ];
+    return withCustomIconLock(true, static function (): array {
+        $customDir = ensureCustomIconDirExists(false);
+        $search = trim((string)($_REQUEST['query'] ?? ''));
+        $sort = trim((string)($_REQUEST['sort'] ?? 'newest'));
+        $usageMap = customIconUsageMap();
+        return [
+            'icons' => customIconListRows($customDir, $search, $sort, $usageMap),
+            'stats' => customIconStorageStats($customDir),
+            'health' => customIconDirectoryHealth(),
+            'usage' => customIconUsageSummary($usageMap)
+        ];
+    });
 }
 
 function handleCustomIconStatsAction(): array {
-    $customDir = ensureCustomIconDirExists();
-    syncCustomIconMetadataIndex($customDir);
-    return [
-        'stats' => customIconStorageStats($customDir)
-    ];
+    return withCustomIconLock(true, static function (): array {
+        $customDir = ensureCustomIconDirExists(false);
+        syncCustomIconMetadataIndex($customDir);
+        $usageMap = customIconUsageMap();
+        return [
+            'stats' => customIconStorageStats($customDir),
+            'health' => customIconDirectoryHealth(),
+            'usage' => customIconUsageSummary($usageMap)
+        ];
+    });
 }
 
 function handleCustomIconDeleteAction(): array {
-    $customDir = ensureCustomIconDirExists();
-    $name = normalizeCustomIconFileNameInput((string)($_POST['name'] ?? ''));
-    $path = "$customDir/$name";
-    if (!is_file($path)) {
-        throw new RuntimeException('Icon not found.');
-    }
-    if (!@unlink($path)) {
-        throw new RuntimeException('Failed to delete icon.');
-    }
-    $meta = readCustomIconMetadataIndex();
-    unset($meta[$name]);
-    writeCustomIconMetadataIndex($meta);
-    appendCustomIconAuditEvent('icon_delete', 'ok', ['name' => $name]);
-    return [
-        'deleted' => $name,
-        'stats' => customIconStorageStats($customDir)
-    ];
+    return withCustomIconLock(true, static function (): array {
+        $customDir = ensureCustomIconDirExists();
+        $name = normalizeCustomIconFileNameInput((string)($_POST['name'] ?? ''));
+        $path = "$customDir/$name";
+        if (!is_file($path)) {
+            throw new RuntimeException('Icon not found.');
+        }
+        $usageMap = customIconUsageMap();
+        $refs = is_array($usageMap[$name] ?? null) ? array_values($usageMap[$name]) : [];
+        if (count($refs) > 0) {
+            $previewNames = array_map(
+                static fn(array $entry): string => trim((string)($entry['folderName'] ?? '')),
+                array_slice($refs, 0, 3)
+            );
+            $previewNames = array_values(array_filter($previewNames, static fn(string $entry): bool => $entry !== ''));
+            $suffix = count($refs) > 3 ? ' +' . (count($refs) - 3) . ' more' : '';
+            $preview = count($previewNames) > 0 ? (' (' . implode(', ', $previewNames) . $suffix . ')') : '';
+            throw new RuntimeException('Icon is in use by folder references and cannot be deleted.' . $preview);
+        }
+        if (!@unlink($path)) {
+            throw new RuntimeException('Failed to delete icon.');
+        }
+        $meta = readCustomIconMetadataIndex();
+        unset($meta[$name]);
+        writeCustomIconMetadataIndex($meta);
+        appendCustomIconAuditEvent('icon_delete', 'ok', ['name' => $name]);
+        return [
+            'deleted' => $name,
+            'stats' => customIconStorageStats($customDir),
+            'health' => customIconDirectoryHealth()
+        ];
+    });
 }
 
 function handleCustomIconRenameAction(): array {
-    $customDir = ensureCustomIconDirExists();
-    $from = normalizeCustomIconFileNameInput((string)($_POST['from'] ?? ''));
-    $toRaw = (string)($_POST['to'] ?? '');
-    $fromPath = "$customDir/$from";
-    if (!is_file($fromPath)) {
-        throw new RuntimeException('Icon not found.');
-    }
-    $fromExt = strtolower((string)pathinfo($from, PATHINFO_EXTENSION));
-    $to = sanitizeCustomIconTargetName($toRaw, $fromExt);
-    if ($from === $to) {
-        $meta = syncCustomIconMetadataIndex($customDir);
+    return withCustomIconLock(true, static function (): array {
+        $customDir = ensureCustomIconDirExists();
+        $from = normalizeCustomIconFileNameInput((string)($_POST['from'] ?? ''));
+        $toRaw = (string)($_POST['to'] ?? '');
+        $fromPath = "$customDir/$from";
+        if (!is_file($fromPath)) {
+            throw new RuntimeException('Icon not found.');
+        }
+        $fromExt = strtolower((string)pathinfo($from, PATHINFO_EXTENSION));
+        $to = sanitizeCustomIconTargetName($toRaw, $fromExt);
+        if ($from === $to) {
+            $meta = syncCustomIconMetadataIndex($customDir);
+            $usageMap = customIconUsageMap();
+            return [
+                'icon' => buildCustomIconUploadResponse($from, $meta, false, false, '', 'multipart', $usageMap),
+                'health' => customIconDirectoryHealth()
+            ];
+        }
+        $toPath = "$customDir/$to";
+        if (is_file($toPath)) {
+            throw new RuntimeException('An icon with that name already exists.');
+        }
+        if (!@rename($fromPath, $toPath)) {
+            throw new RuntimeException('Failed to rename icon.');
+        }
+        $meta = readCustomIconMetadataIndex();
+        $entry = is_array($meta[$from] ?? null) ? $meta[$from] : [];
+        unset($meta[$from]);
+        $entry['updatedAt'] = gmdate('c');
+        $entry['size'] = max(0, (int)@filesize($toPath));
+        $entry['mime'] = detectUploadedMimeType($toPath);
+        if (trim((string)($entry['originalName'] ?? '')) === '') {
+            $entry['originalName'] = $from;
+        }
+        $meta[$to] = $entry;
+        writeCustomIconMetadataIndex($meta);
+        appendCustomIconAuditEvent('icon_rename', 'ok', ['from' => $from, 'to' => $to]);
+        $usageMap = customIconUsageMap();
+        if (isset($usageMap[$from])) {
+            $usageMap[$to] = $usageMap[$from];
+            unset($usageMap[$from]);
+        }
         return [
-            'icon' => buildCustomIconUploadResponse($from, $meta)
+            'icon' => buildCustomIconUploadResponse($to, $meta, false, false, '', 'multipart', $usageMap),
+            'health' => customIconDirectoryHealth()
         ];
-    }
-    $toPath = "$customDir/$to";
-    if (is_file($toPath)) {
-        throw new RuntimeException('An icon with that name already exists.');
-    }
-    if (!@rename($fromPath, $toPath)) {
-        throw new RuntimeException('Failed to rename icon.');
-    }
-    $meta = readCustomIconMetadataIndex();
-    $entry = is_array($meta[$from] ?? null) ? $meta[$from] : [];
-    unset($meta[$from]);
-    $entry['updatedAt'] = gmdate('c');
-    $entry['size'] = max(0, (int)@filesize($toPath));
-    $entry['mime'] = detectUploadedMimeType($toPath);
-    if (trim((string)($entry['originalName'] ?? '')) === '') {
-        $entry['originalName'] = $from;
-    }
-    $meta[$to] = $entry;
-    writeCustomIconMetadataIndex($meta);
-    appendCustomIconAuditEvent('icon_rename', 'ok', ['from' => $from, 'to' => $to]);
-    return [
-        'icon' => buildCustomIconUploadResponse($to, $meta)
-    ];
+    });
+}
+
+function handleCustomIconUsageAction(): array {
+    return withCustomIconLock(true, static function (): array {
+        $name = normalizeCustomIconFileNameInput((string)($_REQUEST['name'] ?? ''));
+        $usageMap = customIconUsageMap();
+        $refs = is_array($usageMap[$name] ?? null) ? array_values($usageMap[$name]) : [];
+        return [
+            'name' => $name,
+            'usageCount' => count($refs),
+            'inUse' => count($refs) > 0,
+            'usage' => $refs
+        ];
+    });
 }
 
 fvplus_json_try(function (): array {
@@ -1232,6 +1499,9 @@ fvplus_json_try(function (): array {
     }
     if ($action === 'stats') {
         return handleCustomIconStatsAction();
+    }
+    if ($action === 'usage') {
+        return handleCustomIconUsageAction();
     }
     if ($action === 'delete') {
         requireMutationRequestGuard();

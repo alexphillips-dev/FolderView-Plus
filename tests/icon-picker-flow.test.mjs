@@ -84,6 +84,9 @@ test('folder editor markup exposes custom icon manager controls', () => {
     assert.match(folderPage, /id="fv-custom-icon-panel"/);
     assert.match(folderPage, /id="fv-custom-icon-search"/);
     assert.match(folderPage, /id="fv-custom-icon-list"/);
+    assert.match(folderPage, /id="fv-custom-icon-prev"/);
+    assert.match(folderPage, /id="fv-custom-icon-next"/);
+    assert.match(folderPage, /id="fv-custom-icon-page-label"/);
     assert.match(folderPage, /id="fv-icon-upload-replace"/);
     assert.match(folderPage, /id="fv-icon-upload-dedupe"/);
     assert.match(folderPage, /id="fv-icon-upload-progress"/);
@@ -93,12 +96,14 @@ test('folder editor markup exposes custom icon manager controls', () => {
 test('folder.js icon upload parsing is resilient to empty and noisy endpoint responses', () => {
     assert.match(folderScript, /const parseJsonPayload = \(value, context = 'response'\) =>/);
     assert.match(folderScript, /returned an empty response/);
+    assert.match(folderScript, /const ICON_UPLOAD_ENDPOINT_CONTEXT = 'icon upload endpoint';/);
+    assert.match(folderScript, /const CUSTOM_ICON_MANAGER_CONTEXT = 'custom icon manager';/);
     assert.match(folderScript, /const start = normalized\.indexOf\('\{'\)/);
     assert.match(folderScript, /const end = normalized\.lastIndexOf\('\}'\)/);
     assert.match(folderScript, /const extractAjaxErrorMessage = \(error, context = 'request'\) =>/);
     assert.match(folderScript, /dataType:\s*'text'/);
-    assert.match(folderScript, /parseJsonPayload\(response, 'icon upload endpoint'\)/);
-    assert.match(folderScript, /extractAjaxErrorMessage\(error, 'icon upload endpoint'\)/);
+    assert.match(folderScript, /parseJsonPayload\(response, ICON_UPLOAD_ENDPOINT_CONTEXT\)/);
+    assert.match(folderScript, /extractAjaxErrorMessage\(error, ICON_UPLOAD_ENDPOINT_CONTEXT\)/);
     assert.match(folderScript, /const readFileAsDataUrl = \(file\) => new Promise/);
     assert.match(folderScript, /const shouldUseInlineUploadFallback = \(error\) =>/);
     assert.match(folderScript, /const uploadCustomIconFileInline = async \(file, token, options = \{\}\) =>/);
@@ -112,6 +117,9 @@ test('folder.js icon upload parsing is resilient to empty and noisy endpoint res
     assert.match(folderScript, /customIconUploadRequest\.abort\(/);
     assert.match(folderScript, /const setCustomIconPickerOpen = \(open\) =>/);
     assert.match(folderScript, /const refreshCustomIconManager = async \(\) =>/);
+    assert.match(folderScript, /CUSTOM_ICON_PAGE_SIZE/);
+    assert.match(folderScript, /data-action=\"refs\"/);
+    assert.match(folderScript, /requestCustomIconApi\('usage'/);
     assert.match(folderScript, /requestCustomIconApi\('rename'/);
     assert.match(folderScript, /requestCustomIconApi\('delete'/);
 });

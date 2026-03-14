@@ -43,7 +43,9 @@ test('upload endpoint enforces request guard and uploads into images\\/custom', 
     assert.match(uploadPhp, /const FVPLUS_CUSTOM_ICON_MAX_TOTAL_BYTES = 268435456;/);
     assert.match(uploadPhp, /const FVPLUS_CUSTOM_ICON_RATE_WINDOW_SECONDS = 60;/);
     assert.match(uploadPhp, /const FVPLUS_CUSTOM_ICON_RATE_MAX_UPLOADS = 24;/);
+    assert.match(uploadPhp, /const FVPLUS_CUSTOM_ICON_LOCK_TIMEOUT_SECONDS = 10;/);
     assert.match(uploadPhp, /enforceCustomIconUploadRateLimit\(\)/);
+    assert.match(uploadPhp, /withCustomIconLock\(true/);
     assert.match(uploadPhp, /enforceCustomIconStorageLimit\(\$customDir,\s*\$incomingBytes,\s*\$replaced \? \$targetName : ''\)/);
     assert.match(uploadPhp, /move_uploaded_file\(/);
     assert.match(uploadPhp, /\/plugins\/folderview\.plus\/images\/custom\//);
@@ -92,8 +94,10 @@ test('upload endpoint supports custom icon manager actions', () => {
     assert.match(uploadPhp, /function handleCustomIconStatsAction\s*\(/);
     assert.match(uploadPhp, /function handleCustomIconDeleteAction\s*\(/);
     assert.match(uploadPhp, /function handleCustomIconRenameAction\s*\(/);
+    assert.match(uploadPhp, /function handleCustomIconUsageAction\s*\(/);
     assert.match(uploadPhp, /\$action === 'list'/);
     assert.match(uploadPhp, /\$action === 'stats'/);
+    assert.match(uploadPhp, /\$action === 'usage'/);
     assert.match(uploadPhp, /\$action === 'delete'/);
     assert.match(uploadPhp, /\$action === 'rename'/);
     assert.match(uploadPhp, /throw new RuntimeException\('Unsupported action\.'\)/);
@@ -107,6 +111,16 @@ test('upload endpoint stores metadata and supports dedupe or replace flows', () 
     assert.match(uploadPhp, /Identical icon already exists; reusing existing file/);
     assert.match(uploadPhp, /replaceExisting/);
     assert.match(uploadPhp, /dedupeByHash/);
+    assert.match(uploadPhp, /function customIconUsageMap\s*\(/);
+    assert.match(uploadPhp, /usageCount/);
+    assert.match(uploadPhp, /Icon is in use by folder references and cannot be deleted/);
+});
+
+test('upload endpoint includes self-heal directory checks and fix hints', () => {
+    assert.match(uploadPhp, /function customIconDirectoryHealth\s*\(/);
+    assert.match(uploadPhp, /function customIconRepairHintCommand\s*\(/);
+    assert.match(uploadPhp, /automatic repair attempt failed/);
+    assert.match(uploadPhp, /repairHint/);
 });
 
 test('upload and third-party endpoints share the same icon extension allowlist', () => {

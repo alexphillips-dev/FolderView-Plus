@@ -5,13 +5,20 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.13.17">
-<!ENTITY md5 "ec28e58230010ac47732ba1ffcd75441">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
+<!ENTITY version "2026.03.14.01">
+<!ENTITY md5 "742e6277c4880300002aacb80680873e">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.14.01
+- Refactor: Refactor setup assistant into dedicated wizard runtime module.
+- Maintenance: Refine GitHub issue forms for current feature set and triage.
+- Maintenance: Enhance README with banner, screenshots, and troubleshooting guidance.
+- Maintenance: Normalize release guard text comparisons across line endings.
+
 
 ###2026.03.13.17
 - UX: Refined settings and on-screen update messaging for clarity and consistency.
@@ -1591,7 +1598,7 @@
     </CHANGES>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

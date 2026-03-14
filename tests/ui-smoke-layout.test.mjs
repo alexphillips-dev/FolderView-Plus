@@ -16,6 +16,10 @@ const settingsJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
 );
+const settingsWizardJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js'
+);
 const folderCssPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folder.css'
@@ -36,6 +40,8 @@ const vmJsPath = path.join(
 const settingsPage = fs.readFileSync(settingsPagePath, 'utf8');
 const settingsCss = fs.readFileSync(settingsCssPath, 'utf8');
 const settingsJs = fs.readFileSync(settingsJsPath, 'utf8');
+const settingsWizardJs = fs.readFileSync(settingsWizardJsPath, 'utf8');
+const settingsRuntime = `${settingsJs}\n${settingsWizardJs}`;
 const folderCss = fs.readFileSync(folderCssPath, 'utf8');
 const folderJs = fs.readFileSync(folderJsPath, 'utf8');
 const dockerJs = fs.readFileSync(dockerJsPath, 'utf8');
@@ -56,6 +62,7 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
     assert.match(settingsPage, /folderviewplus\.request\.js/);
     assert.match(settingsPage, /folderviewplus\.chrome\.js/);
     assert.match(settingsPage, /folderviewplus\.dirty\.js/);
+    assert.match(settingsPage, /folderviewplus\.wizard\.js/);
     assert.match(settingsPage, /Last changed/);
     assert.match(settingsPage, /Pinned/);
     assert.match(settingsPage, /Updates/);
@@ -231,44 +238,44 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const getTrackedInputs = \(\) => \{/);
     assert.match(settingsJs, /dirtyTracker && typeof dirtyTracker\.getTrackedInputs === 'function'/);
     assert.match(settingsJs, /resolveAffectedFolderIdsFromOperations\(resolvedType, operations\)/);
-    assert.match(settingsJs, /const SETUP_ASSISTANT_EXPERIENCE_MODES = new Set\(\['guided', 'expert'\]\);/);
-    assert.match(settingsJs, /const SETUP_ASSISTANT_APPLY_SAFETY_MODES = new Set\(\['auto', 'strict', 'fast'\]\);/);
-    assert.match(settingsJs, /const SETUP_ASSISTANT_ENV_PRESETS = \{/);
-    assert.match(settingsJs, /const normalizeSetupAssistantExperienceMode = \(value\) =>/);
-    assert.match(settingsJs, /const normalizeSetupAssistantSafetyMode = \(value\) =>/);
-    assert.match(settingsJs, /const detectSetupAssistantDefaultsFromContext = \(context = null\) =>/);
-    assert.match(settingsJs, /const openSetupAssistant = \(force = false\) =>/);
-    assert.match(settingsJs, /const applySetupAssistantPlan = async \(\) =>/);
-    assert.match(settingsJs, /const retrySetupAssistantFailures = async \(failures = \[\]\) =>/);
-    assert.match(settingsJs, /const restoreSetupAssistantDraftFromStorage = \(\) =>/);
-    assert.match(settingsJs, /const buildSetupAssistantImpactSummary = \(\) =>/);
-    assert.match(settingsJs, /const getSetupAssistantImpactDelta = \(currentImpact, baselineImpact = null\) =>/);
-    assert.match(settingsJs, /const buildSetupAssistantStepStatusMap = \(\) =>/);
-    assert.match(settingsJs, /status = 'pending';/);
-    assert.match(settingsJs, /const getSetupAssistantStepValidation = \(stepKey = currentSetupAssistantStepKey\(\)\) =>/);
-    assert.match(settingsJs, /const previewSetupAssistantRuleMatches = \(type, pattern\) =>/);
-    assert.match(settingsJs, /const handleSetupAssistantDialogKeydown = \(event\) =>/);
-    assert.match(settingsJs, /const jumpSetupAssistantToStep = \(targetIndex\) =>/);
-    assert.match(settingsJs, /const buildSetupAssistantClipboardSummary = \(\) =>/);
-    assert.match(settingsJs, /const copySetupAssistantSummaryToClipboard = async \(\) =>/);
+    assert.match(settingsRuntime, /const SETUP_ASSISTANT_EXPERIENCE_MODES = new Set\(\['guided', 'expert'\]\);/);
+    assert.match(settingsRuntime, /const SETUP_ASSISTANT_APPLY_SAFETY_MODES = new Set\(\['auto', 'strict', 'fast'\]\);/);
+    assert.match(settingsRuntime, /const SETUP_ASSISTANT_ENV_PRESETS = \{/);
+    assert.match(settingsRuntime, /const normalizeSetupAssistantExperienceMode = \(value\) =>/);
+    assert.match(settingsRuntime, /const normalizeSetupAssistantSafetyMode = \(value\) =>/);
+    assert.match(settingsRuntime, /const detectSetupAssistantDefaultsFromContext = \(context = null\) =>/);
+    assert.match(settingsRuntime, /const openSetupAssistant = \(force = false\) =>/);
+    assert.match(settingsRuntime, /const applySetupAssistantPlan = async \(\) =>/);
+    assert.match(settingsRuntime, /const retrySetupAssistantFailures = async \(failures = \[\]\) =>/);
+    assert.match(settingsRuntime, /const restoreSetupAssistantDraftFromStorage = \(\) =>/);
+    assert.match(settingsRuntime, /const buildSetupAssistantImpactSummary = \(\) =>/);
+    assert.match(settingsRuntime, /const getSetupAssistantImpactDelta = \(currentImpact, baselineImpact = null\) =>/);
+    assert.match(settingsRuntime, /const buildSetupAssistantStepStatusMap = \(\) =>/);
+    assert.match(settingsRuntime, /status = 'pending';/);
+    assert.match(settingsRuntime, /const getSetupAssistantStepValidation = \(stepKey = currentSetupAssistantStepKey\(\)\) =>/);
+    assert.match(settingsRuntime, /const previewSetupAssistantRuleMatches = \(type, pattern\) =>/);
+    assert.match(settingsRuntime, /const handleSetupAssistantDialogKeydown = \(event\) =>/);
+    assert.match(settingsRuntime, /const jumpSetupAssistantToStep = \(targetIndex\) =>/);
+    assert.match(settingsRuntime, /const buildSetupAssistantClipboardSummary = \(\) =>/);
+    assert.match(settingsRuntime, /const copySetupAssistantSummaryToClipboard = async \(\) =>/);
     assert.match(settingsJs, /const syncRuntimeConflictResolutionBanner = \(\) =>/);
     assert.match(settingsJs, /Conflict removed\. FolderView Plus is active again\./);
     assert.match(settingsJs, /runQuickSetupWizard = \(force = false\) => \{/);
-    assert.match(settingsJs, /openSetupAssistant\(force === true\);/);
-    assert.match(settingsJs, /const bindSetupAssistantEvents = \(\) =>/);
-    assert.match(settingsJs, /markSetupAssistantCompletedLocal\(\);/);
-    assert.match(settingsJs, /id="fv-setup-dry-run"/);
-    assert.match(settingsJs, /id="fv-setup-copy-summary"/);
-    assert.match(settingsJs, /id="fv-setup-discard-draft"/);
-    assert.match(settingsJs, /id="fv-setup-skip-review"/);
-    assert.match(settingsJs, /id="fv-setup-apply-detected"/);
-    assert.match(settingsJs, /id="fv-setup-preset-save"/);
-    assert.match(settingsJs, /id="fv-setup-preset-load"/);
-    assert.match(settingsJs, /id="fv-setup-preset-delete"/);
-    assert.match(settingsJs, /name="fv-setup-safety-mode"/);
-    assert.match(settingsJs, /data-fv-setup-experience=/);
-    assert.match(settingsJs, /data-fv-setup-quick-preset=/);
-    assert.match(settingsJs, /Dry run only \(preview changes, do not modify folders or settings\)/);
+    assert.match(settingsRuntime, /openSetupAssistant\(force === true\);/);
+    assert.match(settingsRuntime, /const bindSetupAssistantEvents = \(\) =>/);
+    assert.match(settingsRuntime, /markSetupAssistantCompletedLocal\(\);/);
+    assert.match(settingsRuntime, /id="fv-setup-dry-run"/);
+    assert.match(settingsRuntime, /id="fv-setup-copy-summary"/);
+    assert.match(settingsRuntime, /id="fv-setup-discard-draft"/);
+    assert.match(settingsRuntime, /id="fv-setup-skip-review"/);
+    assert.match(settingsRuntime, /id="fv-setup-apply-detected"/);
+    assert.match(settingsRuntime, /id="fv-setup-preset-save"/);
+    assert.match(settingsRuntime, /id="fv-setup-preset-load"/);
+    assert.match(settingsRuntime, /id="fv-setup-preset-delete"/);
+    assert.match(settingsRuntime, /name="fv-setup-safety-mode"/);
+    assert.match(settingsRuntime, /data-fv-setup-experience=/);
+    assert.match(settingsRuntime, /data-fv-setup-quick-preset=/);
+    assert.match(settingsRuntime, /Dry run only \(preview changes, do not modify folders or settings\)/);
     assert.match(settingsJs, /const shouldRunWizard = !isWizardCompletedServerSide\(\) && !isSetupAssistantCompletedLocal\(\);/);
     assert.match(settingsJs, /const apiPostJson = async \(url, data = \{\}, options = \{\}\) =>/);
     assert.match(settingsJs, /const topbarHtml = settingsChrome && typeof settingsChrome\.getTopbarHtml === 'function'/);
@@ -313,9 +320,9 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /autostart-chip/);
     assert.match(settingsJs, /vm-resource-stack/);
     assert.match(settingsJs, /const persistImportPresetStoreTypeToServer = async/);
-    assert.match(settingsJs, /const resolveImportTrustInfo = \(parsed\) =>/);
-    assert.match(settingsJs, /label:\s*'Trust'/);
-    assert.match(settingsJs, /is-trust-\$\{trust\.level\}/);
+    assert.match(settingsRuntime, /const resolveImportTrustInfo = \(parsed\) =>/);
+    assert.match(settingsRuntime, /label:\s*'Trust'/);
+    assert.match(settingsRuntime, /is-trust-\$\{trust\.level\}/);
     assert.match(settingsJs, /const ensureAdvancedDataLoaded = async \(\{ force = false \} = \{\}\) =>/);
     assert.match(settingsJs, /const refreshCoreData = async \(\) =>/);
     assert.match(settingsJs, /if \(settingsUiState\.mode === 'advanced'\) \{\s*await refreshAll\(\);\s*\} else \{\s*await refreshCoreData\(\);\s*\}/);

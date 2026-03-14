@@ -28,6 +28,10 @@ const settingsJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
 );
+const settingsWizardJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js'
+);
 const settingsCssPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css'
@@ -39,6 +43,8 @@ const folderJs = fs.readFileSync(folderJsPath, 'utf8');
 const dockerCss = fs.readFileSync(dockerCssPath, 'utf8');
 const vmCss = fs.readFileSync(vmCssPath, 'utf8');
 const settingsJs = fs.readFileSync(settingsJsPath, 'utf8');
+const settingsWizardJs = fs.readFileSync(settingsWizardJsPath, 'utf8');
+const settingsRuntime = `${settingsJs}\n${settingsWizardJs}`;
 const settingsCss = fs.readFileSync(settingsCssPath, 'utf8');
 
 test('docker runtime includes touch-mode detection and avoids hover-only trigger on touch', () => {
@@ -69,8 +75,8 @@ test('settings advanced sections include mobile-safe expand/collapse handlers', 
     assert.match(settingsJs, /const toggleAdvancedSectionByKey = \(sectionKey\) =>/);
     assert.match(settingsJs, /click\.fvsectionheader/);
     assert.match(settingsJs, /h2\[data-fv-section\]\[data-fv-advanced="1"\]/);
-    assert.match(settingsJs, /mobileSidebarSummaryOpen/);
-    assert.match(settingsJs, /fv-setup-sidebar-toggle/);
+    assert.match(settingsRuntime, /mobileSidebarSummaryOpen/);
+    assert.match(settingsRuntime, /fv-setup-sidebar-toggle/);
 });
 
 test('settings styles include responsive advanced accordion controls on mobile', () => {

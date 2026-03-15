@@ -73,6 +73,40 @@
         return RETRYABLE_STATUS_CODES.has(status);
     };
 
+    const extractServerErrorMessage = (error) => {
+        const responseJson = error?.jqXHR?.responseJSON;
+        if (responseJson && typeof responseJson === 'object') {
+            const jsonMessage = responseJson.error || responseJson.message || responseJson.detail || '';
+            if (jsonMessage) {
+                return String(jsonMessage).trim();
+            }
+        }
+
+        const responseText = String(error?.jqXHR?.responseText || '').trim();
+        if (!responseText) {
+            return '';
+        }
+
+        try {
+            const parsed = JSON.parse(responseText);
+            if (parsed && typeof parsed === 'object') {
+                const parsedMessage = parsed.error || parsed.message || parsed.detail || '';
+                if (parsedMessage) {
+                    return String(parsedMessage).trim();
+                }
+            }
+        } catch (_ignored) {
+            // Plain-text response; keep fallback below.
+        }
+
+        const firstLine = responseText.split(/\r?\n/).find((line) => String(line || '').trim() !== '');
+        if (!firstLine) {
+            return '';
+        }
+        const trimmed = String(firstLine).trim();
+        return trimmed.length > 240 ? `${trimmed.slice(0, 237)}...` : trimmed;
+    };
+
     const formatAjaxError = (error, url) => {
         if (error instanceof Error) {
             return error;
@@ -81,6 +115,7 @@
         const textStatus = String(error?.textStatus || '').trim();
         const statusText = String(error?.jqXHR?.statusText || '').trim();
         const errorThrown = String(error?.errorThrown || '').trim();
+        const serverDetail = extractServerErrorMessage(error);
         const pieces = [
             `Request failed for ${url}.`
         ];
@@ -95,6 +130,9 @@
         }
         if (errorThrown && errorThrown !== statusText) {
             pieces.push(errorThrown);
+        }
+        if (serverDetail) {
+            pieces.push(`- ${serverDetail}`);
         }
         return new Error(pieces.join(' '));
     };

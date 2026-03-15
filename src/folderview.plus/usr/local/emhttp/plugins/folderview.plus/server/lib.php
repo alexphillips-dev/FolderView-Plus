@@ -191,6 +191,7 @@
     const FVPLUS_GLOBAL_ROLLBACK_SCHEMA_VERSION = 1;
     const FVPLUS_GLOBAL_ROLLBACK_HISTORY_MAX = 20;
     const FVPLUS_MAX_FOLDER_CONTENT_BYTES = 131072;
+    const FVPLUS_MAX_FOLDER_CONTENT_RAW_BYTES = 1048576;
     const FVPLUS_MAX_FOLDER_NESTED_DEPTH = 6;
     const FVPLUS_MAX_FOLDER_ARRAY_ITEMS = 250;
     const FVPLUS_MAX_FOLDER_STRING_BYTES = 2048;
@@ -4327,8 +4328,8 @@
 
     function updateFolder(string $type, string $content, string $id = '') : void {
         $type = ensureType($type);
-        if (strlen($content) > FVPLUS_MAX_FOLDER_CONTENT_BYTES) {
-            throw new RuntimeException('Folder payload too large.');
+        if (strlen($content) > FVPLUS_MAX_FOLDER_CONTENT_RAW_BYTES) {
+            throw new RuntimeException('Folder payload exceeds raw upload limit.');
         }
         $isCreate = empty($id);
         if (empty($id)) {
@@ -4343,6 +4344,13 @@
             ? normalizeFolderContentPayload((array)$fileData[$id])
             : null;
         $nextFolder = normalizeFolderContentPayload($decodedContent);
+        $normalizedPreview = json_encode($nextFolder, JSON_UNESCAPED_SLASHES);
+        if (!is_string($normalizedPreview)) {
+            throw new RuntimeException('Failed to normalize folder payload.');
+        }
+        if (strlen($normalizedPreview) > FVPLUS_MAX_FOLDER_CONTENT_BYTES) {
+            throw new RuntimeException('Folder payload too large after normalization.');
+        }
         $createdAt = normalizeIsoTimestamp($nextFolder['createdAt'] ?? '');
         if (is_array($existingFolder)) {
             $existingCreatedAt = normalizeIsoTimestamp($existingFolder['createdAt'] ?? '');

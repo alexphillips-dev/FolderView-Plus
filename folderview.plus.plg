@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.15.05">
-<!ENTITY md5 "8bc8dfbe142188a6b34136d2e76f74c4">
+<!ENTITY version "2026.03.15.06">
+<!ENTITY md5 "a41d7da9b80005ae19ffdcc722373c88">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.15.06
+- Feature: Added per-type `Application width` controls (`Compact`, `Standard`, `Wide`) in Basic settings for both Docker and VM.
+- Fix: Applied runtime width preferences in Docker/VM views and reduced mobile overlap pressure in Docker update cells.
+- Quality: Added `appColumnWidth` normalization coverage and backup-compare diff visibility for the new preference.
+
 
 ###2026.03.15.05
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

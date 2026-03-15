@@ -898,6 +898,7 @@ const buildBackupPrefsDiff = (leftPrefs, rightPrefs) => {
         { key: 'manualOrder', label: 'Manual order' },
         { key: 'pinnedFolderIds', label: 'Pinned folders' },
         { key: 'hideEmptyFolders', label: 'Hide empty folders' },
+        { key: 'appColumnWidth', label: 'Application width' },
         { key: 'badges', label: 'Badge visibility' },
         { key: 'liveRefreshEnabled', label: 'Live refresh enabled' },
         { key: 'liveRefreshSeconds', label: 'Live refresh interval' },

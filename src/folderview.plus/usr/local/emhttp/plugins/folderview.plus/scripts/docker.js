@@ -28,6 +28,8 @@ const utils = window.FolderViewPlusUtils || {
     normalizePrefs: () => ({
         sortMode: 'created',
         manualOrder: [],
+        hideEmptyFolders: false,
+        appColumnWidth: 'standard',
         autoRules: [],
         badges: { running: true, stopped: false, updates: true },
         runtimePrefsSchema: 2,
@@ -2889,6 +2891,12 @@ const scheduleLiveRefresh = (prefs) => {
 
 const applyRuntimePrefs = (prefs) => {
     const normalized = utils.normalizePrefs(prefs || {});
+    const appColumnWidth = typeof utils.normalizeAppColumnWidth === 'function'
+        ? utils.normalizeAppColumnWidth(normalized.appColumnWidth)
+        : (['compact', 'wide'].includes(String(normalized.appColumnWidth || '').toLowerCase()) ? String(normalized.appColumnWidth || '').toLowerCase() : 'standard');
+    if (document.body && typeof document.body.setAttribute === 'function') {
+        document.body.setAttribute('data-fvplus-docker-app-width', appColumnWidth);
+    }
     $('body').toggleClass('fvplus-performance-mode', normalized.performanceMode === true);
     scheduleLiveRefresh(normalized);
 };

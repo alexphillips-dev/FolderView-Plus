@@ -1511,6 +1511,7 @@
             'pinnedFolderIds' => [],
             'expandedFolderState' => [],
             'hideEmptyFolders' => false,
+            'appColumnWidth' => 'standard',
             'setupWizardCompleted' => false,
             'settingsMode' => 'basic',
             'autoRules' => [],
@@ -1639,6 +1640,14 @@
         ];
     }
 
+    function normalizeAppColumnWidth($value): string {
+        $normalized = strtolower(trim((string)$value));
+        if (in_array($normalized, ['compact', 'standard', 'wide'], true)) {
+            return $normalized;
+        }
+        return 'standard';
+    }
+
     function normalizeTypePrefs(array $prefs): array {
         $normalized = defaultTypePrefs();
         $sortMode = $prefs['sortMode'] ?? $normalized['sortMode'];
@@ -1655,6 +1664,7 @@
         $normalized['pinnedFolderIds'] = normalizeStringIdList($prefs['pinnedFolderIds'] ?? []);
         $normalized['expandedFolderState'] = normalizeExpandedStateMap($prefs['expandedFolderState'] ?? []);
         $normalized['hideEmptyFolders'] = normalizeBool($prefs['hideEmptyFolders'] ?? false, false);
+        $normalized['appColumnWidth'] = normalizeAppColumnWidth($prefs['appColumnWidth'] ?? 'standard');
         $normalized['setupWizardCompleted'] = normalizeBool($prefs['setupWizardCompleted'] ?? false, false);
         $settingsMode = (string)($prefs['settingsMode'] ?? 'basic');
         $normalized['settingsMode'] = $settingsMode === 'advanced' ? 'advanced' : 'basic';
@@ -4117,6 +4127,7 @@
                 'manualOrderCount' => count($prefs['manualOrder'] ?? []),
                 'pinnedFolderCount' => count($prefs['pinnedFolderIds'] ?? []),
                 'hideEmptyFolders' => normalizeBool($prefs['hideEmptyFolders'] ?? false, false),
+                'appColumnWidth' => normalizeAppColumnWidth($prefs['appColumnWidth'] ?? 'standard'),
                 'setupWizardCompleted' => normalizeBool($prefs['setupWizardCompleted'] ?? false, false),
                 'settingsMode' => (($prefs['settingsMode'] ?? 'basic') === 'advanced') ? 'advanced' : 'basic',
                 'runtimePrefsSchema' => normalizeIntInRange($prefs['runtimePrefsSchema'] ?? FVPLUS_RUNTIME_PREFS_SCHEMA, 0, FVPLUS_RUNTIME_PREFS_SCHEMA, FVPLUS_RUNTIME_PREFS_SCHEMA),

@@ -7058,6 +7058,10 @@ const renderHealthControls = (type) => {
 const renderVisibilityControls = (type) => {
     const prefs = utils.normalizePrefs(prefsByType[type]);
     $(`#${type}-hide-empty-folders`).prop('checked', prefs.hideEmptyFolders === true);
+    const appColumnWidth = typeof utils.normalizeAppColumnWidth === 'function'
+        ? utils.normalizeAppColumnWidth(prefs.appColumnWidth)
+        : (['compact', 'wide'].includes(String(prefs.appColumnWidth || '').toLowerCase()) ? String(prefs.appColumnWidth || '').toLowerCase() : 'standard');
+    $(`#${type}-app-column-width`).val(appColumnWidth);
 };
 
 const renderBackupScheduleControls = (type) => {
@@ -7928,15 +7932,18 @@ const changeBadgePref = async (type, badgeKey, checked) => {
     }
 };
 
-const changeVisibilityPref = async (type, key, checked) => {
-    if (key !== 'hideEmptyFolders') {
+const changeVisibilityPref = async (type, key, value) => {
+    const current = utils.normalizePrefs(prefsByType[type]);
+    const next = { ...current };
+    if (key === 'hideEmptyFolders') {
+        next.hideEmptyFolders = value === true;
+    } else if (key === 'appColumnWidth') {
+        next.appColumnWidth = typeof utils.normalizeAppColumnWidth === 'function'
+            ? utils.normalizeAppColumnWidth(value)
+            : (['compact', 'wide'].includes(String(value || '').toLowerCase()) ? String(value || '').toLowerCase() : 'standard');
+    } else {
         return;
     }
-    const current = utils.normalizePrefs(prefsByType[type]);
-    const next = {
-        ...current,
-        hideEmptyFolders: checked === true
-    };
     try {
         prefsByType[type] = await postPrefs(type, next);
         renderVisibilityControls(type);

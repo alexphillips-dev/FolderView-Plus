@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.15.01">
-<!ENTITY md5 "ab4917ff227b5c41ac820dfd57c59983">
+<!ENTITY version "2026.03.15.02">
+<!ENTITY md5 "67f796d46b099195fc20a137e915df34">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.15.02
+- Fix: Basic view toolbar actions now use explicit non-submit buttons so import/export/restore/clear run reliably on fresh installs.
+- Fix: Folder table action controls now use explicit non-submit buttons to prevent accidental settings-form submits.
+- Quality: Added regression coverage to enforce explicit button types across settings action markup.
+
 
 ###2026.03.15.01
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

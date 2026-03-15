@@ -40,10 +40,10 @@ if (!empty($fvplusRuntimeConflicts)) {
 <div class="fv-customizations-header" data-fv-section-row="1">
     <h2 data-i18n="customizations" data-fv-section="customizations">Customizations</h2>
 </div>
-<button data-i18n="file-manager" onclick="fileManager()">Open File Manager</button>
-<button onclick="checkForUpdatesNow()"><i class="fa fa-refresh" aria-hidden="true"></i> Check for updates now</button>
-<button onclick="createRollbackCheckpoint()"><i class="fa fa-life-ring" aria-hidden="true"></i> Create rollback checkpoint</button>
-<button onclick="rollbackLatestCheckpoint()"><i class="fa fa-undo" aria-hidden="true"></i> Rollback to previous snapshot</button>
+<button type="button" data-i18n="file-manager" onclick="fileManager()">Open File Manager</button>
+<button type="button" onclick="checkForUpdatesNow()"><i class="fa fa-refresh" aria-hidden="true"></i> Check for updates now</button>
+<button type="button" onclick="createRollbackCheckpoint()"><i class="fa fa-life-ring" aria-hidden="true"></i> Create rollback checkpoint</button>
+<button type="button" onclick="rollbackLatestCheckpoint()"><i class="fa fa-undo" aria-hidden="true"></i> Rollback to previous snapshot</button>
 <div class="fv-quick-presets">
     <span class="fv-quick-presets-title">Quick profile presets</span>
     <button type="button" data-fv-quick-preset="balanced" onclick="applyQuickProfilePreset('balanced')"><i class="fa fa-sliders"></i> Balanced</button>
@@ -60,10 +60,10 @@ if (!empty($fvplusRuntimeConflicts)) {
 <div class="folder-table">
     <div class="folder-toolbar">
         <div class="toolbar-actions">
-            <button data-i18n="[html]export-all" onclick="downloadDocker()"><i class="fa fa-download" aria-hidden="true"></i> Export all</button>
-            <button data-i18n="[html]import-all" onclick="importDocker()"><i class="fa fa-upload" aria-hidden="true"></i> Import</button>
-            <button onclick="restoreLatestBackup('docker')"><i class="fa fa-history" aria-hidden="true"></i> Restore latest backup</button>
-            <button data-i18n="[html]clear-all" onclick="clearDocker()"><i class="fa fa-ban" aria-hidden="true"></i> Clear</button>
+            <button type="button" data-i18n="[html]export-all" onclick="downloadDocker()"><i class="fa fa-download" aria-hidden="true"></i> Export all</button>
+            <button type="button" data-i18n="[html]import-all" onclick="importDocker()"><i class="fa fa-upload" aria-hidden="true"></i> Import</button>
+            <button type="button" onclick="restoreLatestBackup('docker')"><i class="fa fa-history" aria-hidden="true"></i> Restore latest backup</button>
+            <button type="button" data-i18n="[html]clear-all" onclick="clearDocker()"><i class="fa fa-ban" aria-hidden="true"></i> Clear</button>
         </div>
     </div>
     <details class="toolbar-sort toolbar-sort-wide">
@@ -225,10 +225,10 @@ if (!empty($fvplusRuntimeConflicts)) {
 <div class="folder-table">
     <div class="folder-toolbar">
         <div class="toolbar-actions">
-            <button data-i18n="[html]export-all" onclick="downloadVm()"><i class="fa fa-download" aria-hidden="true"></i> Export all</button>
-            <button data-i18n="[html]import-all" onclick="importVm()"><i class="fa fa-upload" aria-hidden="true"></i> Import</button>
-            <button onclick="restoreLatestBackup('vm')"><i class="fa fa-history" aria-hidden="true"></i> Restore latest backup</button>
-            <button data-i18n="[html]clear-all" onclick="clearVm()"><i class="fa fa-ban" aria-hidden="true"></i> Clear</button>
+            <button type="button" data-i18n="[html]export-all" onclick="downloadVm()"><i class="fa fa-download" aria-hidden="true"></i> Export all</button>
+            <button type="button" data-i18n="[html]import-all" onclick="importVm()"><i class="fa fa-upload" aria-hidden="true"></i> Import</button>
+            <button type="button" onclick="restoreLatestBackup('vm')"><i class="fa fa-history" aria-hidden="true"></i> Restore latest backup</button>
+            <button type="button" data-i18n="[html]clear-all" onclick="clearVm()"><i class="fa fa-ban" aria-hidden="true"></i> Clear</button>
         </div>
     </div>
     <details class="toolbar-sort toolbar-sort-wide">
@@ -425,7 +425,7 @@ if (!empty($fvplusRuntimeConflicts)) {
             <input id="docker-rule-pattern" type="text" placeholder="Regex pattern (example: ^media-)">
             <input id="docker-rule-label-key" type="text" placeholder="Label key (example: com.example.stack)" style="display:none;">
             <input id="docker-rule-label-value" type="text" placeholder="Label value (optional, blank means any value)" style="display:none;">
-            <button class="rules-add-btn" onclick="addAutoRule('docker')"><i class="fa fa-plus"></i> Add rule</button>
+            <button type="button" class="rules-add-btn" onclick="addAutoRule('docker')"><i class="fa fa-plus"></i> Add rule</button>
         </div>
         <div class="rule-tester">
             <input id="docker-rule-test-name" type="text" placeholder="Test name (example: media-server)">
@@ -438,17 +438,17 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <button type="button" onclick="applyRuleTestSample('docker','network')"><i class="fa fa-flask"></i> Network sample</button>
                 <button type="button" onclick="applyRuleTestSample('docker','database')"><i class="fa fa-flask"></i> Database sample</button>
             </div>
-            <button onclick="testAutoRule('docker')"><i class="fa fa-flask"></i> Test rules</button>
-            <button onclick="runRuleSimulator('docker')"><i class="fa fa-list-alt"></i> Simulate assignments</button>
+            <button type="button" onclick="testAutoRule('docker')"><i class="fa fa-flask"></i> Test rules</button>
+            <button type="button" onclick="runRuleSimulator('docker')"><i class="fa fa-list-alt"></i> Simulate assignments</button>
             <div id="docker-rule-validation" class="inline-validation-hint"></div>
             <div id="docker-rule-test-output" class="rule-test-output"></div>
         </div>
         <input id="docker-rules-filter" type="text" placeholder="Search Docker rules" oninput="setFilterQuery('rules','docker',this.value)">
         <div class="selection-actions">
-            <button onclick="bulkRuleAction('docker','enable')"><i class="fa fa-eye"></i> Enable selected</button>
-            <button onclick="bulkRuleAction('docker','disable')"><i class="fa fa-eye-slash"></i> Disable selected</button>
-            <button onclick="bulkRuleAction('docker','delete')"><i class="fa fa-trash"></i> Delete selected</button>
-            <button onclick="bulkRuleAction('docker','export')"><i class="fa fa-download"></i> Export selected</button>
+            <button type="button" onclick="bulkRuleAction('docker','enable')"><i class="fa fa-eye"></i> Enable selected</button>
+            <button type="button" onclick="bulkRuleAction('docker','disable')"><i class="fa fa-eye-slash"></i> Disable selected</button>
+            <button type="button" onclick="bulkRuleAction('docker','delete')"><i class="fa fa-trash"></i> Delete selected</button>
+            <button type="button" onclick="bulkRuleAction('docker','export')"><i class="fa fa-download"></i> Export selected</button>
         </div>
         <pre id="docker-rule-sim-output" class="diagnostics-output compact-output">Run simulator to preview assignment results for all Docker items.</pre>
         <table class="rules-table auto-rules-table">
@@ -480,7 +480,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <option value="name_regex">Name regex</option>
             </select>
             <input id="vm-rule-pattern" type="text" placeholder="Regex pattern (example: ^prod-)">
-            <button class="rules-add-btn" onclick="addAutoRule('vm')"><i class="fa fa-plus"></i> Add rule</button>
+            <button type="button" class="rules-add-btn" onclick="addAutoRule('vm')"><i class="fa fa-plus"></i> Add rule</button>
         </div>
         <div class="rule-tester">
             <input id="vm-rule-test-name" type="text" placeholder="Test VM name (example: prod-db)">
@@ -488,17 +488,17 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <button type="button" onclick="applyRuleTestSample('vm','production')"><i class="fa fa-flask"></i> Production sample</button>
                 <button type="button" onclick="applyRuleTestSample('vm','desktop')"><i class="fa fa-flask"></i> Desktop sample</button>
             </div>
-            <button onclick="testAutoRule('vm')"><i class="fa fa-flask"></i> Test rules</button>
-            <button onclick="runRuleSimulator('vm')"><i class="fa fa-list-alt"></i> Simulate assignments</button>
+            <button type="button" onclick="testAutoRule('vm')"><i class="fa fa-flask"></i> Test rules</button>
+            <button type="button" onclick="runRuleSimulator('vm')"><i class="fa fa-list-alt"></i> Simulate assignments</button>
             <div id="vm-rule-validation" class="inline-validation-hint"></div>
             <div id="vm-rule-test-output" class="rule-test-output"></div>
         </div>
         <input id="vm-rules-filter" type="text" placeholder="Search VM rules" oninput="setFilterQuery('rules','vm',this.value)">
         <div class="selection-actions">
-            <button onclick="bulkRuleAction('vm','enable')"><i class="fa fa-eye"></i> Enable selected</button>
-            <button onclick="bulkRuleAction('vm','disable')"><i class="fa fa-eye-slash"></i> Disable selected</button>
-            <button onclick="bulkRuleAction('vm','delete')"><i class="fa fa-trash"></i> Delete selected</button>
-            <button onclick="bulkRuleAction('vm','export')"><i class="fa fa-download"></i> Export selected</button>
+            <button type="button" onclick="bulkRuleAction('vm','enable')"><i class="fa fa-eye"></i> Enable selected</button>
+            <button type="button" onclick="bulkRuleAction('vm','disable')"><i class="fa fa-eye-slash"></i> Disable selected</button>
+            <button type="button" onclick="bulkRuleAction('vm','delete')"><i class="fa fa-trash"></i> Delete selected</button>
+            <button type="button" onclick="bulkRuleAction('vm','export')"><i class="fa fa-download"></i> Export selected</button>
         </div>
         <pre id="vm-rule-sim-output" class="diagnostics-output compact-output">Run simulator to preview assignment results for all VM items.</pre>
         <table class="rules-table auto-rules-table">
@@ -526,7 +526,7 @@ if (!empty($fvplusRuntimeConflicts)) {
         </div>
         <div class="bulk-row">
             <select id="docker-bulk-folder"></select>
-            <button onclick="assignSelectedItems('docker')"><i class="fa fa-share-square-o"></i> Assign items</button>
+            <button type="button" onclick="assignSelectedItems('docker')"><i class="fa fa-share-square-o"></i> Assign items</button>
         </div>
         <select id="docker-bulk-items" multiple size="10"></select>
     </div>
@@ -538,7 +538,7 @@ if (!empty($fvplusRuntimeConflicts)) {
         </div>
         <div class="bulk-row">
             <select id="vm-bulk-folder"></select>
-            <button onclick="assignSelectedItems('vm')"><i class="fa fa-share-square-o"></i> Assign items</button>
+            <button type="button" onclick="assignSelectedItems('vm')"><i class="fa fa-share-square-o"></i> Assign items</button>
         </div>
         <select id="vm-bulk-items" multiple size="10"></select>
     </div>
@@ -560,8 +560,8 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <option value="pause">Pause</option>
                 <option value="resume">Resume</option>
             </select>
-            <button onclick="previewFolderRuntimeAction('docker')"><i class="fa fa-list-alt"></i> Preview</button>
-            <button onclick="applyFolderRuntimeAction('docker')"><i class="fa fa-play"></i> Apply action</button>
+            <button type="button" onclick="previewFolderRuntimeAction('docker')"><i class="fa fa-list-alt"></i> Preview</button>
+            <button type="button" onclick="applyFolderRuntimeAction('docker')"><i class="fa fa-play"></i> Apply action</button>
         </div>
         <pre id="docker-runtime-preview-output" class="diagnostics-output compact-output">Preview a runtime action to see exactly which containers will be changed.</pre>
     </div>
@@ -579,8 +579,8 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <option value="pause">Pause</option>
                 <option value="resume">Resume</option>
             </select>
-            <button onclick="previewFolderRuntimeAction('vm')"><i class="fa fa-list-alt"></i> Preview</button>
-            <button onclick="applyFolderRuntimeAction('vm')"><i class="fa fa-play"></i> Apply action</button>
+            <button type="button" onclick="previewFolderRuntimeAction('vm')"><i class="fa fa-list-alt"></i> Preview</button>
+            <button type="button" onclick="applyFolderRuntimeAction('vm')"><i class="fa fa-play"></i> Apply action</button>
         </div>
         <pre id="vm-runtime-preview-output" class="diagnostics-output compact-output">Preview a runtime action to see exactly which VMs will be changed.</pre>
     </div>
@@ -595,10 +595,10 @@ if (!empty($fvplusRuntimeConflicts)) {
             <span class="rules-help">Create, restore, download, or delete backup snapshots.</span>
         </div>
         <div class="backup-actions">
-            <button onclick="createManualBackup('docker')"><i class="fa fa-camera"></i> Create backup now</button>
-            <button onclick="restoreLatestBackup('docker')"><i class="fa fa-history"></i> Restore latest</button>
-            <button onclick="refreshBackups('docker')"><i class="fa fa-refresh"></i> Refresh list</button>
-            <button onclick="runScheduledBackupNow('docker')"><i class="fa fa-clock-o"></i> Run scheduler now</button>
+            <button type="button" onclick="createManualBackup('docker')"><i class="fa fa-camera"></i> Create backup now</button>
+            <button type="button" onclick="restoreLatestBackup('docker')"><i class="fa fa-history"></i> Restore latest</button>
+            <button type="button" onclick="refreshBackups('docker')"><i class="fa fa-refresh"></i> Refresh list</button>
+            <button type="button" onclick="runScheduledBackupNow('docker')"><i class="fa fa-clock-o"></i> Run scheduler now</button>
         </div>
         <div class="backup-compare-row">
             <label for="docker-backup-compare-left">Compare</label>
@@ -606,7 +606,7 @@ if (!empty($fvplusRuntimeConflicts)) {
             <span class="backup-compare-sep">vs</span>
             <select id="docker-backup-compare-right"></select>
             <label class="backup-compare-prefs-toggle"><input id="docker-backup-compare-include-prefs" type="checkbox" checked> Include preference changes</label>
-            <button onclick="compareBackupSnapshots('docker')"><i class="fa fa-exchange"></i> Compare snapshots</button>
+            <button type="button" onclick="compareBackupSnapshots('docker')"><i class="fa fa-exchange"></i> Compare snapshots</button>
         </div>
         <input id="docker-backups-filter" type="text" placeholder="Search Docker backups" oninput="setFilterQuery('backups','docker',this.value)">
         <div class="schedule-row">
@@ -634,10 +634,10 @@ if (!empty($fvplusRuntimeConflicts)) {
             <span class="rules-help">Create, restore, download, or delete backup snapshots.</span>
         </div>
         <div class="backup-actions">
-            <button onclick="createManualBackup('vm')"><i class="fa fa-camera"></i> Create backup now</button>
-            <button onclick="restoreLatestBackup('vm')"><i class="fa fa-history"></i> Restore latest</button>
-            <button onclick="refreshBackups('vm')"><i class="fa fa-refresh"></i> Refresh list</button>
-            <button onclick="runScheduledBackupNow('vm')"><i class="fa fa-clock-o"></i> Run scheduler now</button>
+            <button type="button" onclick="createManualBackup('vm')"><i class="fa fa-camera"></i> Create backup now</button>
+            <button type="button" onclick="restoreLatestBackup('vm')"><i class="fa fa-history"></i> Restore latest</button>
+            <button type="button" onclick="refreshBackups('vm')"><i class="fa fa-refresh"></i> Refresh list</button>
+            <button type="button" onclick="runScheduledBackupNow('vm')"><i class="fa fa-clock-o"></i> Run scheduler now</button>
         </div>
         <div class="backup-compare-row">
             <label for="vm-backup-compare-left">Compare</label>
@@ -645,7 +645,7 @@ if (!empty($fvplusRuntimeConflicts)) {
             <span class="backup-compare-sep">vs</span>
             <select id="vm-backup-compare-right"></select>
             <label class="backup-compare-prefs-toggle"><input id="vm-backup-compare-include-prefs" type="checkbox" checked> Include preference changes</label>
-            <button onclick="compareBackupSnapshots('vm')"><i class="fa fa-exchange"></i> Compare snapshots</button>
+            <button type="button" onclick="compareBackupSnapshots('vm')"><i class="fa fa-exchange"></i> Compare snapshots</button>
         </div>
         <input id="vm-backups-filter" type="text" placeholder="Search VM backups" oninput="setFilterQuery('backups','vm',this.value)">
         <div class="schedule-row">
@@ -679,13 +679,13 @@ if (!empty($fvplusRuntimeConflicts)) {
         <div class="template-controls">
             <select id="docker-template-source-folder"></select>
             <input id="docker-template-name" type="text" placeholder="Template name">
-            <button onclick="createTemplateFromFolder('docker')"><i class="fa fa-save"></i> Save template from folder</button>
+            <button type="button" onclick="createTemplateFromFolder('docker')"><i class="fa fa-save"></i> Save template from folder</button>
         </div>
         <div id="docker-template-validation" class="inline-validation-hint"></div>
         <input id="docker-templates-filter" type="text" placeholder="Search Docker templates" oninput="setFilterQuery('templates','docker',this.value)">
         <div class="selection-actions">
-            <button onclick="bulkTemplateAction('docker','delete')"><i class="fa fa-trash"></i> Delete selected</button>
-            <button onclick="bulkTemplateAction('docker','export')"><i class="fa fa-download"></i> Export selected</button>
+            <button type="button" onclick="bulkTemplateAction('docker','delete')"><i class="fa fa-trash"></i> Delete selected</button>
+            <button type="button" onclick="bulkTemplateAction('docker','export')"><i class="fa fa-download"></i> Export selected</button>
         </div>
         <table class="rules-table">
             <thead>
@@ -708,13 +708,13 @@ if (!empty($fvplusRuntimeConflicts)) {
         <div class="template-controls">
             <select id="vm-template-source-folder"></select>
             <input id="vm-template-name" type="text" placeholder="Template name">
-            <button onclick="createTemplateFromFolder('vm')"><i class="fa fa-save"></i> Save template from folder</button>
+            <button type="button" onclick="createTemplateFromFolder('vm')"><i class="fa fa-save"></i> Save template from folder</button>
         </div>
         <div id="vm-template-validation" class="inline-validation-hint"></div>
         <input id="vm-templates-filter" type="text" placeholder="Search VM templates" oninput="setFilterQuery('templates','vm',this.value)">
         <div class="selection-actions">
-            <button onclick="bulkTemplateAction('vm','delete')"><i class="fa fa-trash"></i> Delete selected</button>
-            <button onclick="bulkTemplateAction('vm','export')"><i class="fa fa-download"></i> Export selected</button>
+            <button type="button" onclick="bulkTemplateAction('vm','delete')"><i class="fa fa-trash"></i> Delete selected</button>
+            <button type="button" onclick="bulkTemplateAction('vm','export')"><i class="fa fa-download"></i> Export selected</button>
         </div>
         <table class="rules-table">
             <thead>
@@ -738,9 +738,9 @@ if (!empty($fvplusRuntimeConflicts)) {
         <span class="rules-help">Shows recent config actions from diagnostics history and allows one-click undo to the latest backup transaction.</span>
     </div>
     <div class="backup-actions">
-        <button onclick="refreshChangeHistory()"><i class="fa fa-refresh"></i> Refresh history</button>
-        <button onclick="undoLatestChange('docker')"><i class="fa fa-undo"></i> Undo latest Docker change</button>
-        <button onclick="undoLatestChange('vm')"><i class="fa fa-undo"></i> Undo latest VM change</button>
+        <button type="button" onclick="refreshChangeHistory()"><i class="fa fa-refresh"></i> Refresh history</button>
+        <button type="button" onclick="undoLatestChange('docker')"><i class="fa fa-undo"></i> Undo latest Docker change</button>
+        <button type="button" onclick="undoLatestChange('vm')"><i class="fa fa-undo"></i> Undo latest VM change</button>
     </div>
     <pre id="change-history-output" class="diagnostics-output compact-output">Refresh history to view recent changes.</pre>
 </div>
@@ -765,18 +765,18 @@ if (!empty($fvplusRuntimeConflicts)) {
         <span class="rules-help">Check plugin health, then run one-click repair actions when needed.</span>
     </div>
     <div class="backup-actions">
-        <button onclick="runDiagnostics()"><i class="fa fa-stethoscope"></i> Run health check</button>
-        <button onclick="repairDiagnostics('sync_docker_order')"><i class="fa fa-sort"></i> Rebuild Docker order index</button>
-        <button onclick="repairDiagnostics('normalize_prefs')"><i class="fa fa-wrench"></i> Validate and normalize prefs</button>
-        <button onclick="repairDiagnostics('repair_paths')"><i class="fa fa-folder-open"></i> Repair plugin paths</button>
-        <button onclick="exportDiagnostics()"><i class="fa fa-download"></i> Export diagnostics JSON</button>
-        <button onclick="exportSupportBundle()"><i class="fa fa-life-ring"></i> Export support bundle</button>
-        <button onclick="copyIssueReport()"><i class="fa fa-clipboard"></i> Copy issue report</button>
+        <button type="button" onclick="runDiagnostics()"><i class="fa fa-stethoscope"></i> Run health check</button>
+        <button type="button" onclick="repairDiagnostics('sync_docker_order')"><i class="fa fa-sort"></i> Rebuild Docker order index</button>
+        <button type="button" onclick="repairDiagnostics('normalize_prefs')"><i class="fa fa-wrench"></i> Validate and normalize prefs</button>
+        <button type="button" onclick="repairDiagnostics('repair_paths')"><i class="fa fa-folder-open"></i> Repair plugin paths</button>
+        <button type="button" onclick="exportDiagnostics()"><i class="fa fa-download"></i> Export diagnostics JSON</button>
+        <button type="button" onclick="exportSupportBundle()"><i class="fa fa-life-ring"></i> Export support bundle</button>
+        <button type="button" onclick="copyIssueReport()"><i class="fa fa-clipboard"></i> Copy issue report</button>
     </div>
     <div class="fv-perf-panel">
         <div class="fv-perf-panel-head">
             <strong>Performance diagnostics</strong>
-            <button onclick="refreshPerformanceDiagnostics()"><i class="fa fa-refresh"></i> Refresh panel</button>
+            <button type="button" onclick="refreshPerformanceDiagnostics()"><i class="fa fa-refresh"></i> Refresh panel</button>
         </div>
         <div id="performance-diagnostics-output" class="fv-perf-output">No samples yet. Run refresh/import actions to populate timings.</div>
     </div>
@@ -791,8 +791,8 @@ if (!empty($fvplusRuntimeConflicts)) {
         <span class="rules-help">Shows why each item is assigned (manual/regex/label/rule), including overlaps and blocked rules.</span>
     </div>
     <div class="backup-actions">
-        <button onclick="runConflictInspector('docker')"><i class="fa fa-search"></i> Scan Docker conflicts</button>
-        <button onclick="runConflictInspector('vm')"><i class="fa fa-search"></i> Scan VM conflicts</button>
+        <button type="button" onclick="runConflictInspector('docker')"><i class="fa fa-search"></i> Scan Docker conflicts</button>
+        <button type="button" onclick="runConflictInspector('vm')"><i class="fa fa-search"></i> Scan VM conflicts</button>
     </div>
     <pre id="conflict-output" class="diagnostics-output">Run a conflict scan to view results.</pre>
 </div>

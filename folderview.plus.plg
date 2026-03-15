@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.15.03">
-<!ENTITY md5 "d04128e9d79d276ac7150e2aabea4699">
+<!ENTITY version "2026.03.15.04">
+<!ENTITY md5 "11837d4a9d70aaa3784bc6e20b38781c">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.15.04
+- Fix: Fix preview border toggle persistence and rendering.
+
 
 ###2026.03.15.03
 - Fix: Basic view toolbar actions now use explicit non-submit buttons so import/export/restore/clear work correctly on fresh installs.

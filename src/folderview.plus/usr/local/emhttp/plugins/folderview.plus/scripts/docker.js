@@ -17,39 +17,12 @@ const normalizeStatusHexColor = (value, fallback) => {
     }
     return trimmed.toLowerCase();
 };
-const normalizePreviewBorderEnabled = (settings, fallback = true) => {
-    const source = settings && typeof settings === 'object' ? settings : {};
-    if (!Object.prototype.hasOwnProperty.call(source, 'preview_border')) {
-        return fallback;
-    }
-    const raw = source.preview_border;
-    if (typeof raw === 'boolean') {
-        return raw;
-    }
-    if (typeof raw === 'number') {
-        return raw !== 0;
-    }
-    if (typeof raw === 'string') {
-        const normalized = raw.trim().toLowerCase();
-        if (['1', 'true', 'yes', 'on'].includes(normalized)) {
-            return true;
-        }
-        if (['0', 'false', 'no', 'off'].includes(normalized)) {
-            return false;
-        }
-    }
-    return Boolean(raw);
-};
 const applyPreviewBorderStyle = (previewNode, settings) => {
-    if (!previewNode) {
-        return;
-    }
-    if (!normalizePreviewBorderEnabled(settings, true)) {
-        previewNode.style.setProperty('border', 'none', 'important');
-        return;
-    }
-    const previewColor = normalizeStatusHexColor(settings?.preview_border_color, '#afa89e');
-    previewNode.style.setProperty('border', `1px solid ${previewColor}`, 'important');
+    if (!previewNode) return;
+    const source = settings && typeof settings === 'object' ? settings : {};
+    const raw = String(source.preview_border ?? '').trim().toLowerCase();
+    const enabled = !Object.prototype.hasOwnProperty.call(source, 'preview_border') || (raw !== '0' && raw !== 'false');
+    previewNode.style.setProperty('border', enabled ? `1px solid ${normalizeStatusHexColor(source.preview_border_color, '#afa89e')}` : 'none', 'important');
 };
 const utils = window.FolderViewPlusUtils || {
     normalizePrefs: () => ({

@@ -161,28 +161,6 @@ const normalizeHexColor = (value, fallback) => {
     return trimmed.toLowerCase();
 };
 
-const normalizeBooleanSetting = (value, fallback = false) => {
-    if (value === undefined || value === null) {
-        return fallback;
-    }
-    if (typeof value === 'boolean') {
-        return value;
-    }
-    if (typeof value === 'number') {
-        return value !== 0;
-    }
-    if (typeof value === 'string') {
-        const normalized = value.trim().toLowerCase();
-        if (['1', 'true', 'yes', 'on'].includes(normalized)) {
-            return true;
-        }
-        if (['0', 'false', 'no', 'off'].includes(normalized)) {
-            return false;
-        }
-    }
-    return Boolean(value);
-};
-
 const getForm = () => $('div.canvas > form')[0];
 
 const normalizeParentFolderId = (value) => String(value || '').trim();
@@ -2627,7 +2605,7 @@ resetStatusColorDefaults();
         form.context_graph_time.value = currFolder.settings.context_graph_time?.toString() || '60';
         const hasStoredPreviewBorder = Object.prototype.hasOwnProperty.call(currFolder.settings || {}, 'preview_border');
         form.preview_border.checked = hasStoredPreviewBorder
-            ? normalizeBooleanSetting(currFolder.settings.preview_border, true)
+            ? !/^(0|false)$/i.test(String(currFolder.settings.preview_border).trim())
             : true;
         form.preview_border_color.value = normalizeHexColor(currFolder.settings.preview_border_color, DEFAULT_BORDER_COLOR);
         form.preview_vertical_bars_color.value = normalizeHexColor(

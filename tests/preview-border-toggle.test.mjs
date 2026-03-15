@@ -8,6 +8,7 @@ const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath)
 
 const folderJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
+const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 
 test('folder editor persists preview border directly from checkbox state', () => {
     assert.match(folderJs, /preview_border:\s*e\.preview_border\.checked/);
@@ -15,12 +16,21 @@ test('folder editor persists preview border directly from checkbox state', () =>
 });
 
 test('folder editor normalizes legacy preview border values when loading existing folders', () => {
-    assert.match(folderJs, /!\/\^\(0\|false\)\$\/i\.test\(String\(currFolder\.settings\.preview_border\)\.trim\(\)\)/);
+    assert.match(folderJs, /const isLegacyPreviewBorderEnabled = \(settings\) =>/);
+    assert.match(folderJs, /form\.preview_border\.checked = isLegacyPreviewBorderEnabled\(currFolder\.settings \|\| \{\}\);/);
 });
 
 test('docker preview renderer respects preview border toggle', () => {
-    assert.match(dockerJs, /const raw = String\(source\.preview_border \?\? ''\)\.trim\(\)\.toLowerCase\(\)/);
-    assert.match(dockerJs, /const enabled = !Object\.prototype\.hasOwnProperty\.call\(source, 'preview_border'\) \|\| \(raw !== '0' && raw !== 'false'\)/);
-    assert.match(dockerJs, /previewNode\.style\.setProperty\('border', enabled \? `1px solid \$\{normalizeStatusHexColor\(source\.preview_border_color, '#afa89e'\)\}` : 'none', 'important'\)/);
+    assert.match(dockerJs, /const hasLegacyCustomBorderColor = \(\) =>/);
+    assert.match(dockerJs, /const explicitOff = raw === '0' \|\| raw === 'false';/);
+    assert.match(dockerJs, /hasLegacyCustomBorderColor\(\)/);
+    assert.match(dockerJs, /previewNode\.style\.setProperty\('border', enabled \? `1px solid \$\{normalizeStatusHexColor\(source\.preview_border_color, DEFAULT_PREVIEW_BORDER_COLOR\)\}` : 'none', 'important'\)/);
     assert.match(dockerJs, /applyPreviewBorderStyle\(previewNode,\s*folder\.settings\)/);
+});
+
+test('vm preview renderer keeps legacy custom border colors visible', () => {
+    assert.match(vmJs, /const isPreviewBorderEnabled = \(settings\) =>/);
+    assert.match(vmJs, /const applyPreviewBorderStyle = \(previewNode, settings\) =>/);
+    assert.match(vmJs, /previewNode\.style\.setProperty\('border', isPreviewBorderEnabled\(source\) \? `1px solid \$\{previewColor\}` : 'none', 'important'\)/);
+    assert.match(vmJs, /applyPreviewBorderStyle\(previewNode,\s*folder\.settings\);/);
 });

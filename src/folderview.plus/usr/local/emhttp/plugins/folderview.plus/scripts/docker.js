@@ -4,6 +4,7 @@ const localDefaultFolderStatusColors = {
     paused: '#b8860b',
     stopped: '#ff4d4d'
 };
+const DEFAULT_PREVIEW_BORDER_COLOR = '#afa89e';
 const normalizeStatusHexColor = (value, fallback) => {
     if (typeof value !== 'string') {
         return fallback;
@@ -20,9 +21,21 @@ const normalizeStatusHexColor = (value, fallback) => {
 const applyPreviewBorderStyle = (previewNode, settings) => {
     if (!previewNode) return;
     const source = settings && typeof settings === 'object' ? settings : {};
+    const normalizeLegacyBorderColor = (value) => normalizeStatusHexColor(value, '').toLowerCase();
+    const hasLegacyCustomBorderColor = () => {
+        const borderColor = normalizeLegacyBorderColor(source.preview_border_color);
+        if (borderColor && borderColor !== DEFAULT_PREVIEW_BORDER_COLOR) {
+            return true;
+        }
+        const barsColor = normalizeLegacyBorderColor(source.preview_vertical_bars_color);
+        return Boolean(barsColor && barsColor !== DEFAULT_PREVIEW_BORDER_COLOR);
+    };
     const raw = String(source.preview_border ?? '').trim().toLowerCase();
-    const enabled = !Object.prototype.hasOwnProperty.call(source, 'preview_border') || (raw !== '0' && raw !== 'false');
-    previewNode.style.setProperty('border', enabled ? `1px solid ${normalizeStatusHexColor(source.preview_border_color, '#afa89e')}` : 'none', 'important');
+    const explicitOff = raw === '0' || raw === 'false';
+    const enabled = !Object.prototype.hasOwnProperty.call(source, 'preview_border')
+        || (!explicitOff)
+        || hasLegacyCustomBorderColor();
+    previewNode.style.setProperty('border', enabled ? `1px solid ${normalizeStatusHexColor(source.preview_border_color, DEFAULT_PREVIEW_BORDER_COLOR)}` : 'none', 'important');
 };
 const utils = window.FolderViewPlusUtils || {
     normalizePrefs: () => ({

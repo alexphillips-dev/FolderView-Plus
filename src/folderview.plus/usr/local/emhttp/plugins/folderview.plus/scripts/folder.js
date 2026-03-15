@@ -161,6 +161,19 @@ const normalizeHexColor = (value, fallback) => {
     return trimmed.toLowerCase();
 };
 
+const isLegacyPreviewBorderEnabled = (settings) => {
+    const source = settings && typeof settings === 'object' ? settings : {};
+    const borderColor = normalizeHexColor(source.preview_border_color, '').toLowerCase();
+    const barsColor = normalizeHexColor(source.preview_vertical_bars_color, '').toLowerCase();
+    const hasCustomColor = (borderColor && borderColor !== DEFAULT_BORDER_COLOR)
+        || (barsColor && barsColor !== DEFAULT_BORDER_COLOR);
+    const raw = String(source.preview_border ?? '').trim().toLowerCase();
+    const explicitOff = raw === '0' || raw === 'false';
+    return !Object.prototype.hasOwnProperty.call(source, 'preview_border')
+        || (!explicitOff)
+        || hasCustomColor;
+};
+
 const getForm = () => $('div.canvas > form')[0];
 
 const normalizeParentFolderId = (value) => String(value || '').trim();
@@ -2603,10 +2616,7 @@ resetStatusColorDefaults();
         form.context_trigger.value = currFolder.settings.context_trigger?.toString() || '0';
         form.context_graph.value = currFolder.settings.context_graph?.toString() || '1';
         form.context_graph_time.value = currFolder.settings.context_graph_time?.toString() || '60';
-        const hasStoredPreviewBorder = Object.prototype.hasOwnProperty.call(currFolder.settings || {}, 'preview_border');
-        form.preview_border.checked = hasStoredPreviewBorder
-            ? !/^(0|false)$/i.test(String(currFolder.settings.preview_border).trim())
-            : true;
+        form.preview_border.checked = isLegacyPreviewBorderEnabled(currFolder.settings || {});
         form.preview_border_color.value = normalizeHexColor(currFolder.settings.preview_border_color, DEFAULT_BORDER_COLOR);
         form.preview_vertical_bars_color.value = normalizeHexColor(
             currFolder.settings.preview_vertical_bars_color || currFolder.settings.preview_border_color,

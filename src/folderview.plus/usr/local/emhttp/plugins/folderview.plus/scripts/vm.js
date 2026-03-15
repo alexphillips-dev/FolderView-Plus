@@ -3,6 +3,7 @@ const localDefaultFolderStatusColors = {
     paused: '#b8860b',
     stopped: '#ff4d4d'
 };
+const DEFAULT_PREVIEW_BORDER_COLOR = '#afa89e';
 const normalizeStatusHexColor = (value, fallback) => {
     if (typeof value !== 'string') {
         return fallback;
@@ -15,6 +16,31 @@ const normalizeStatusHexColor = (value, fallback) => {
         return `#${trimmed[1]}${trimmed[1]}${trimmed[2]}${trimmed[2]}${trimmed[3]}${trimmed[3]}`.toLowerCase();
     }
     return trimmed.toLowerCase();
+};
+const isPreviewBorderEnabled = (settings) => {
+    const source = settings && typeof settings === 'object' ? settings : {};
+    const normalizeLegacyBorderColor = (value) => normalizeStatusHexColor(value, '').toLowerCase();
+    const hasLegacyCustomBorderColor = () => {
+        const borderColor = normalizeLegacyBorderColor(source.preview_border_color);
+        if (borderColor && borderColor !== DEFAULT_PREVIEW_BORDER_COLOR) {
+            return true;
+        }
+        const barsColor = normalizeLegacyBorderColor(source.preview_vertical_bars_color);
+        return Boolean(barsColor && barsColor !== DEFAULT_PREVIEW_BORDER_COLOR);
+    };
+    const raw = String(source.preview_border ?? '').trim().toLowerCase();
+    const explicitOff = raw === '0' || raw === 'false';
+    return !Object.prototype.hasOwnProperty.call(source, 'preview_border')
+        || (!explicitOff)
+        || hasLegacyCustomBorderColor();
+};
+const applyPreviewBorderStyle = (previewNode, settings) => {
+    if (!previewNode) {
+        return;
+    }
+    const source = settings && typeof settings === 'object' ? settings : {};
+    const previewColor = normalizeStatusHexColor(source.preview_border_color, DEFAULT_PREVIEW_BORDER_COLOR);
+    previewNode.style.setProperty('border', isPreviewBorderEnabled(source) ? `1px solid ${previewColor}` : 'none', 'important');
 };
 const utils = window.FolderViewPlusUtils || {
     normalizePrefs: () => ({
@@ -771,11 +797,8 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
         .find('.folder-name-sub')
         .css('padding-left', `${depthIndentPx}px`);
 
-    const previewColor = normalizeStatusHexColor(folder.settings.preview_border_color, '#afa89e');
     const previewNode = $(`tr.folder-id-${id} div.folder-preview`).get(0);
-    if (previewNode) {
-        previewNode.style.setProperty('border', `1px solid ${previewColor}`, 'important');
-    }
+    applyPreviewBorderStyle(previewNode, folder.settings);
 
     $(`tr.folder-id-${id} div.folder-preview`).addClass(`folder-preview-${folder.settings.preview}`);
 

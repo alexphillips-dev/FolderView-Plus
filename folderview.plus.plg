@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.15.06">
-<!ENTITY md5 "a41d7da9b80005ae19ffdcc722373c88">
+<!ENTITY version "2026.03.15.07">
+<!ENTITY md5 "aeae0970593f942d33e4f28b4d84bb48">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.15.07
+- Fix: Restored folder preview border colors for legacy/custom folders where `preview_border` was stored as off but custom border colors exist.
+- Fix: Applied the same preview-border compatibility behavior in both Docker and VM folder renderers.
+- Quality: Updated folder editor + regression tests to keep legacy custom-border configs consistent and prevent this from regressing.
+
 
 ###2026.03.15.06
 - Feature: Added per-type `Application width` controls (`Compact`, `Standard`, `Wide`) in Basic settings for both Docker and VM.

@@ -2856,6 +2856,42 @@ body.fv-mobile-compact .fv-setup-field-grid {
     padding: 0.2rem 0.5rem;
 }
 
+.fv-bootstrap-warning {
+    margin: 0 0 0.8rem 0;
+    border: 1px solid rgba(255, 153, 0, 0.45);
+    border-radius: 8px;
+    background: linear-gradient(180deg, rgba(120, 60, 0, 0.22), rgba(50, 26, 0, 0.22));
+    padding: 0.7rem 0.75rem;
+}
+
+.fv-bootstrap-warning .fv-runtime-conflict-title {
+    display: flex;
+    align-items: center;
+    gap: 0.42rem;
+    font-size: 1.09rem;
+    font-weight: 800;
+    margin-bottom: 0.28rem;
+}
+
+.fv-bootstrap-warning .fv-runtime-conflict-text,
+.fv-bootstrap-warning .fv-runtime-conflict-help {
+    font-size: 1.03rem;
+    line-height: 1.4;
+}
+
+.fv-bootstrap-warning .fv-runtime-conflict-list-title {
+    margin-top: 0.34rem;
+    font-size: 1.03rem;
+    font-weight: 700;
+}
+
+.fv-bootstrap-warning .fv-runtime-conflict-list {
+    margin: 0.2rem 0 0.42rem 1.1rem;
+    padding: 0;
+    display: grid;
+    gap: 0.12rem;
+}
+
 .fv-update-notes-head {
     display: flex;
     flex-wrap: wrap;

@@ -6,11 +6,14 @@ import path from 'node:path';
 const repoRoot = path.resolve(process.cwd());
 const pagePath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page');
 const jsPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js');
+const importJsPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js');
 const cssPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css');
 const libPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
 
 const page = fs.readFileSync(pagePath, 'utf8');
 const script = fs.readFileSync(jsPath, 'utf8');
+const importScript = fs.readFileSync(importJsPath, 'utf8');
+const runtimeScript = `${script}\n${importScript}`;
 const css = fs.readFileSync(cssPath, 'utf8');
 const libPhp = fs.readFileSync(libPath, 'utf8');
 
@@ -41,10 +44,10 @@ test('import presets persist through server prefs and not local storage', () => 
 test('import selection and compare tables include pagination and live counters', () => {
     assert.match(script, /let importDiffPagingState = \{/);
     assert.match(script, /let backupCompareDiffPagingState = \{/);
-    assert.match(script, /renderOperationSelection\(updateSelectionSummary\)/);
-    assert.match(script, /Create: \$\{selectedCreates\}\/\$\{currentOperations\.creates\.length\}/);
-    assert.match(script, /class="fv-import-diff-prev"/);
-    assert.match(script, /class="fv-backup-diff-prev"/);
+    assert.match(runtimeScript, /renderOperationSelection\(updateSelectionSummary\)/);
+    assert.match(runtimeScript, /Create: \$\{selectedCreates\}\/\$\{currentOperations\.creates\.length\}/);
+    assert.match(runtimeScript, /class="fv-import-diff-prev"/);
+    assert.match(runtimeScript, /class="fv-backup-diff-prev"/);
 });
 
 test('pagination and compare preference styles exist', () => {

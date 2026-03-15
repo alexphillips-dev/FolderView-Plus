@@ -10,6 +10,9 @@ bash scripts/release_guard.sh
 echo "[pre-push] Running install smoke checks..."
 bash scripts/install_smoke.sh
 
+echo "[pre-push] Running include order guard..."
+bash scripts/include_order_guard.sh
+
 echo "[pre-push] Running performance budget guard..."
 if ! FVPLUS_REQUIRE_PERF_BASELINE=1 bash scripts/perf_budget_guard.sh; then
   echo "[pre-push] Perf ratchet failed. If growth is intentional, run: bash scripts/perf_baseline_refresh.sh" >&2

@@ -3044,3 +3044,5 @@ const bindSetupAssistantEvents = () => {
         closeSetupAssistant();
     });
 };
+
+window.FolderViewPlusWizardModuleLoaded = true;

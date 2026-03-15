@@ -20,6 +20,10 @@ const settingsWizardJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js'
 );
+const settingsImportJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js'
+);
 const folderCssPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folder.css'
@@ -41,7 +45,8 @@ const settingsPage = fs.readFileSync(settingsPagePath, 'utf8');
 const settingsCss = fs.readFileSync(settingsCssPath, 'utf8');
 const settingsJs = fs.readFileSync(settingsJsPath, 'utf8');
 const settingsWizardJs = fs.readFileSync(settingsWizardJsPath, 'utf8');
-const settingsRuntime = `${settingsJs}\n${settingsWizardJs}`;
+const settingsImportJs = fs.readFileSync(settingsImportJsPath, 'utf8');
+const settingsRuntime = `${settingsJs}\n${settingsWizardJs}\n${settingsImportJs}`;
 const folderCss = fs.readFileSync(folderCssPath, 'utf8');
 const folderJs = fs.readFileSync(folderJsPath, 'utf8');
 const dockerJs = fs.readFileSync(dockerJsPath, 'utf8');
@@ -63,6 +68,7 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
     assert.match(settingsPage, /folderviewplus\.chrome\.js/);
     assert.match(settingsPage, /folderviewplus\.dirty\.js/);
     assert.match(settingsPage, /folderviewplus\.wizard\.js/);
+    assert.match(settingsPage, /folderviewplus\.import\.js/);
     assert.match(settingsPage, /Last changed/);
     assert.match(settingsPage, /Pinned/);
     assert.match(settingsPage, /Updates/);

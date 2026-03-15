@@ -54,6 +54,28 @@
 
     const cloneJson = (value) => JSON.parse(JSON.stringify(value));
 
+    const bindEventOnce = (target, eventName, selectorOrHandler, maybeHandler) => {
+        if (!target || typeof target.off !== 'function' || typeof target.on !== 'function') {
+            return target;
+        }
+        const eventToken = String(eventName || '').trim();
+        if (!eventToken) {
+            return target;
+        }
+        const hasSelector = typeof selectorOrHandler === 'string';
+        const selector = hasSelector ? selectorOrHandler : null;
+        const handler = hasSelector ? maybeHandler : selectorOrHandler;
+        if (typeof handler !== 'function') {
+            return target;
+        }
+        if (selector !== null) {
+            target.off(eventToken, selector).on(eventToken, selector, handler);
+            return target;
+        }
+        target.off(eventToken).on(eventToken, handler);
+        return target;
+    };
+
     const normalizeHexColor = (value, fallback) => {
         if (typeof value !== 'string') {
             return fallback;
@@ -1501,6 +1523,7 @@
         RUNTIME_PREFS_SCHEMA,
         DEFAULT_FOLDER_STATUS_COLORS,
         DEFAULT_HEALTH_PREFS,
+        bindEventOnce,
         normalizeFolderMap,
         normalizePrefs,
         orderFoldersByPrefs,

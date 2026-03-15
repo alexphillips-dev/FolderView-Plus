@@ -36,6 +36,10 @@ const settingsJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
 );
+const settingsImportJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js'
+);
 const settingsPagePath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page'
@@ -49,6 +53,8 @@ const vmJs = fs.readFileSync(vmJsPath, 'utf8');
 const dashboardJs = fs.readFileSync(dashboardJsPath, 'utf8');
 const dockerModulesJs = fs.readFileSync(dockerModulesPath, 'utf8');
 const settingsJs = fs.readFileSync(settingsJsPath, 'utf8');
+const settingsImportJs = fs.readFileSync(settingsImportJsPath, 'utf8');
+const settingsRuntime = `${settingsJs}\n${settingsImportJs}`;
 const settingsPage = fs.readFileSync(settingsPagePath, 'utf8');
 
 test('read_info supports cached full/state payload retrieval', () => {
@@ -123,9 +129,9 @@ test('docker tooltip payload is lazy-built on first open', () => {
 });
 
 test('import apply uses chunked execution and performance diagnostics panel exists', () => {
-    assert.match(settingsJs, /IMPORT_APPLY_CHUNK_SIZE/);
-    assert.match(settingsJs, /runImportChunked/);
-    assert.match(settingsJs, /performanceDiagnosticsState/);
-    assert.match(settingsJs, /renderPerformanceDiagnostics/);
+    assert.match(settingsRuntime, /IMPORT_APPLY_CHUNK_SIZE/);
+    assert.match(settingsRuntime, /runImportChunked/);
+    assert.match(settingsRuntime, /performanceDiagnosticsState/);
+    assert.match(settingsRuntime, /renderPerformanceDiagnostics/);
     assert.match(settingsPage, /performance-diagnostics-output/);
 });

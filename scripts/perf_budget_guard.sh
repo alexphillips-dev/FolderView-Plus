@@ -48,6 +48,16 @@ const budgets = [
     maxGzipBytes: envInt('FVPLUS_MAX_FOLDERVIEWPLUS_JS_GZIP_BYTES', 110000),
   },
   {
+    path: 'scripts/folderviewplus.wizard.js',
+    maxBytes: envInt('FVPLUS_MAX_FOLDERVIEWPLUS_WIZARD_JS_BYTES', 260000),
+    maxGzipBytes: envInt('FVPLUS_MAX_FOLDERVIEWPLUS_WIZARD_JS_GZIP_BYTES', 52000),
+  },
+  {
+    path: 'scripts/folderviewplus.import.js',
+    maxBytes: envInt('FVPLUS_MAX_FOLDERVIEWPLUS_IMPORT_JS_BYTES', 200000),
+    maxGzipBytes: envInt('FVPLUS_MAX_FOLDERVIEWPLUS_IMPORT_JS_GZIP_BYTES', 40000),
+  },
+  {
     path: 'styles/folderviewplus.css',
     maxBytes: envInt('FVPLUS_MAX_FOLDERVIEWPLUS_CSS_BYTES', 120000),
     maxGzipBytes: envInt('FVPLUS_MAX_FOLDERVIEWPLUS_CSS_GZIP_BYTES', 20000),
@@ -73,6 +83,15 @@ const totalJsBudget = envInt('FVPLUS_MAX_TOTAL_JS_BYTES', 1100000);
 const totalCssBudget = envInt('FVPLUS_MAX_TOTAL_CSS_BYTES', 250000);
 const totalJsGzipBudget = envInt('FVPLUS_MAX_TOTAL_JS_GZIP_BYTES', 220000);
 const totalCssGzipBudget = envInt('FVPLUS_MAX_TOTAL_CSS_GZIP_BYTES', 60000);
+const settingsRuntimeBudget = {
+  maxBytes: envInt('FVPLUS_MAX_SETTINGS_RUNTIME_JS_BYTES', 930000),
+  maxGzipBytes: envInt('FVPLUS_MAX_SETTINGS_RUNTIME_JS_GZIP_BYTES', 180000),
+};
+const settingsRuntimePaths = [
+  'scripts/folderviewplus.js',
+  'scripts/folderviewplus.wizard.js',
+  'scripts/folderviewplus.import.js',
+];
 
 let failed = false;
 let totalJs = 0;
@@ -114,6 +133,37 @@ for (const fullPath of allAssets) {
   } else if (relPath.endsWith('.css')) {
     totalCss += bytes;
     totalCssGzip += gzipBytes;
+  }
+}
+
+const settingsRuntimeMetric = settingsRuntimePaths.reduce(
+  (acc, relPath) => {
+    const metric = metricsByPath[relPath];
+    if (!metric) {
+      acc.missing.push(relPath);
+      return acc;
+    }
+    acc.bytes += metric.bytes;
+    acc.gzipBytes += metric.gzipBytes;
+    return acc;
+  },
+  { bytes: 0, gzipBytes: 0, missing: [] }
+);
+if (settingsRuntimeMetric.missing.length > 0) {
+  console.error(`ERROR: Missing settings runtime asset(s): ${settingsRuntimeMetric.missing.join(', ')}`);
+  failed = true;
+} else {
+  if (settingsRuntimeMetric.bytes > settingsRuntimeBudget.maxBytes) {
+    console.error(
+      `ERROR: Combined settings runtime JS exceeds byte budget (${settingsRuntimeMetric.bytes} > ${settingsRuntimeBudget.maxBytes}).`
+    );
+    failed = true;
+  }
+  if (settingsRuntimeMetric.gzipBytes > settingsRuntimeBudget.maxGzipBytes) {
+    console.error(
+      `ERROR: Combined settings runtime JS exceeds gzip budget (${settingsRuntimeMetric.gzipBytes} > ${settingsRuntimeBudget.maxGzipBytes}).`
+    );
+    failed = true;
   }
 }
 
@@ -208,6 +258,16 @@ if (baseline) {
   checkRatchet('totalCss bytes', totalCss, Number(baselineTotals.totalCss));
   checkRatchet('totalJs gzip', totalJsGzip, Number(baselineTotals.totalJsGzip));
   checkRatchet('totalCss gzip', totalCssGzip, Number(baselineTotals.totalCssGzip));
+  checkRatchet(
+    'settingsRuntimeJs bytes',
+    settingsRuntimeMetric.bytes,
+    Number(baselineTotals.settingsRuntimeJs)
+  );
+  checkRatchet(
+    'settingsRuntimeJs gzip',
+    settingsRuntimeMetric.gzipBytes,
+    Number(baselineTotals.settingsRuntimeJsGzip)
+  );
 }
 
 if (missingBaselineMetrics.length > 0) {

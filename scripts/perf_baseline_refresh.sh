@@ -19,10 +19,17 @@ const baselineFile = process.argv[3];
 
 const trackedAssets = [
   'scripts/folderviewplus.js',
+  'scripts/folderviewplus.wizard.js',
+  'scripts/folderviewplus.import.js',
   'styles/folderviewplus.css',
   'scripts/docker.js',
   'scripts/vm.js',
   'scripts/folder.js',
+];
+const settingsRuntimePaths = [
+  'scripts/folderviewplus.js',
+  'scripts/folderviewplus.wizard.js',
+  'scripts/folderviewplus.import.js',
 ];
 
 const walkAssets = (dir, out) => {
@@ -80,6 +87,20 @@ for (const relPath of trackedAssets) {
   assets[relPath] = metricsByPath[relPath];
 }
 
+const settingsRuntimeTotals = settingsRuntimePaths.reduce(
+  (acc, relPath) => {
+    const metric = metricsByPath[relPath];
+    if (!metric) {
+      console.error(`ERROR: Missing settings runtime asset: ${relPath}`);
+      process.exit(1);
+    }
+    acc.bytes += metric.bytes;
+    acc.gzipBytes += metric.gzipBytes;
+    return acc;
+  },
+  { bytes: 0, gzipBytes: 0 }
+);
+
 const baseline = {
   version: 1,
   generatedAt: new Date().toISOString(),
@@ -90,6 +111,8 @@ const baseline = {
     totalCss,
     totalJsGzip,
     totalCssGzip,
+    settingsRuntimeJs: settingsRuntimeTotals.bytes,
+    settingsRuntimeJsGzip: settingsRuntimeTotals.gzipBytes,
   },
 };
 

@@ -6,10 +6,13 @@ import path from 'node:path';
 const repoRoot = path.resolve(process.cwd());
 const pagePath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page');
 const scriptPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js');
+const importScriptPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js');
 const backupPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/backup.php');
 
 const page = fs.readFileSync(pagePath, 'utf8');
 const script = fs.readFileSync(scriptPath, 'utf8');
+const importScript = fs.readFileSync(importScriptPath, 'utf8');
+const runtimeScript = `${script}\n${importScript}`;
 const backupPhp = fs.readFileSync(backupPath, 'utf8');
 
 test('settings page onclick handlers are exported on window', () => {
@@ -35,15 +38,15 @@ test('backup endpoint supports scheduler and rollback actions', () => {
 });
 
 test('import preview defaults to apply mode (dry run OFF)', () => {
-    assert.match(script, /\$\('#import-dry-run-only'\)\.prop\('checked', false\)/);
-    assert.match(script, /const isImportDryRunOnly = \(\) =>/);
-    assert.match(script, /return checkbox\.length \? checkbox\.prop\('checked'\) === true : false;/);
-    assert.doesNotMatch(script, /\$\('#import-dry-run-only'\)\.prop\('checked', true\)/);
+    assert.match(runtimeScript, /\$\('#import-dry-run-only'\)\.prop\('checked', false\)/);
+    assert.match(runtimeScript, /const isImportDryRunOnly = \(\) =>/);
+    assert.match(runtimeScript, /return checkbox\.length \? checkbox\.prop\('checked'\) === true : false;/);
+    assert.doesNotMatch(runtimeScript, /\$\('#import-dry-run-only'\)\.prop\('checked', true\)/);
 });
 
 test('import preview dialog stays outside section-collapse visibility controls', () => {
     assert.match(script, /if \(cursor\.id === 'import-preview-dialog'\) \{/);
-    assert.match(script, /dialog\.removeClass\('fv-section-hidden fv-section-content-hidden'\);/);
+    assert.match(runtimeScript, /dialog\.removeClass\('fv-section-hidden fv-section-content-hidden'\);/);
 });
 
 test('import preview layout includes user-facing summary cards and collapsible raw details', () => {
@@ -55,8 +58,8 @@ test('import preview layout includes user-facing summary cards and collapsible r
     assert.match(page, /id="import-preset-default"/);
     assert.match(page, /id="import-preset-delete"/);
     assert.match(page, /id="import-summary-details"/);
-    assert.match(script, /const counts = \$\('#import-preview-counts'\);/);
-    assert.match(script, /result\.text\(`\$\{selectedCount\} operation/);
+    assert.match(runtimeScript, /const counts = \$\('#import-preview-counts'\);/);
+    assert.match(runtimeScript, /result\.text\(`\$\{selectedCount\} operation/);
     assert.match(script, /saveCustomImportPresetForType/);
     assert.match(script, /setDefaultImportPresetIdForType/);
 });
@@ -65,11 +68,11 @@ test('import apply flow includes a dedicated progress dialog', () => {
     assert.match(page, /id="import-apply-progress-overlay"/);
     assert.match(page, /id="import-apply-progress-dialog"/);
     assert.match(page, /id="import-apply-progress-bar"/);
-    assert.match(script, /const openImportApplyProgressDialog = \(type, totalSteps\) =>/);
-    assert.match(script, /const updateImportApplyProgressDialog = \(\{ completed = 0, total = 1, label = '' \}\) =>/);
-    assert.match(script, /overlay\.show\(\);/);
-    assert.match(script, /overlay\.hide\(\);/);
-    assert.match(script, /await applyImportOperations\(resolvedType, operations, \(\{ completed, label \}\) =>/);
+    assert.match(runtimeScript, /const openImportApplyProgressDialog = \(type, totalSteps\) =>/);
+    assert.match(runtimeScript, /const updateImportApplyProgressDialog = \(\{ completed = 0, total = 1, label = '' \}\) =>/);
+    assert.match(runtimeScript, /overlay\.show\(\);/);
+    assert.match(runtimeScript, /overlay\.hide\(\);/);
+    assert.match(runtimeScript, /await applyImportOperations\(resolvedType, operations, \(\{ completed, label \}\) =>/);
 });
 
 test('settings action dock tracks only explicit/manual fields and excludes instant or transient controls', () => {

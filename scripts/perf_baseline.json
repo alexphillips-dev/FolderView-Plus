@@ -1,43 +1,43 @@
 {
   "version": 1,
-  "generatedAt": "2026-03-15T20:16:58.002Z",
+  "generatedAt": "2026-03-15T21:55:43.980Z",
   "notes": "Baseline for perf ratchet guard. Update intentionally when expected growth is accepted.",
   "assets": {
     "scripts/folderviewplus.js": {
-      "bytes": 384986,
-      "gzipBytes": 74349
+      "bytes": 385648,
+      "gzipBytes": 74498
     },
     "scripts/folderviewplus.wizard.js": {
       "bytes": 140269,
       "gzipBytes": 24451
     },
     "scripts/folderviewplus.import.js": {
-      "bytes": 47726,
-      "gzipBytes": 10533
+      "bytes": 47789,
+      "gzipBytes": 10554
     },
     "styles/folderviewplus.css": {
       "bytes": 108884,
       "gzipBytes": 14559
     },
     "scripts/docker.js": {
-      "bytes": 166884,
-      "gzipBytes": 32435
+      "bytes": 168105,
+      "gzipBytes": 32721
     },
     "scripts/vm.js": {
-      "bytes": 60019,
-      "gzipBytes": 14068
+      "bytes": 61795,
+      "gzipBytes": 14474
     },
     "scripts/folder.js": {
-      "bytes": 124224,
-      "gzipBytes": 26617
+      "bytes": 124750,
+      "gzipBytes": 26748
     }
   },
   "totals": {
-    "totalJs": 1100222,
-    "totalCss": 144353,
-    "totalJsGzip": 213975,
-    "totalCssGzip": 22803,
-    "settingsRuntimeJs": 572981,
-    "settingsRuntimeJsGzip": 109333
+    "totalJs": 1104896,
+    "totalCss": 145727,
+    "totalJsGzip": 215065,
+    "totalCssGzip": 23008,
+    "settingsRuntimeJs": 573706,
+    "settingsRuntimeJsGzip": 109503
   }
 }

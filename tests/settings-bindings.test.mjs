@@ -117,6 +117,11 @@ test('basic toolbar actions reuse compact progress overlay for docker and vm flo
     assert.match(script, /setProgress\(0, 'Creating safety backup\.\.\.'\);/);
 });
 
+test('settings action buttons are explicitly non-submit buttons', () => {
+    const buttonWithoutTypePattern = /<button(?![^>]*\btype=)/;
+    assert.doesNotMatch(page, buttonWithoutTypePattern);
+});
+
 test('fresh install guard keeps basic Docker/VM sections visible on startup failures', () => {
     assert.match(script, /const sectionContainsSelector = \(section, selector\) =>/);
     assert.match(script, /return sectionContainsSelector\(section, 'tbody#docker, tbody#vms'\);/);

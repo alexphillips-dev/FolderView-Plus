@@ -6,12 +6,30 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.14.02">
-<!ENTITY md5 "f527fb5adfbee4070eb9bbb3d1102315">
+<!ENTITY version "2026.03.15.03">
+<!ENTITY md5 "d04128e9d79d276ac7150e2aabea4699">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.15.03
+- Fix: Basic view toolbar actions now use explicit non-submit buttons so import/export/restore/clear work correctly on fresh installs.
+- Fix: Prevent accidental settings-form submit behavior from action buttons that could interrupt import and wizard flows.
+- Quality: Added regression coverage to enforce non-submit action button markup in settings.
+
+
+###2026.03.15.02
+- Fix: Basic view toolbar actions now use explicit non-submit buttons so import/export/restore/clear run reliably on fresh installs.
+- Fix: Folder table action controls now use explicit non-submit buttons to prevent accidental settings-form submits.
+- Quality: Added regression coverage to enforce explicit button types across settings action markup.
+
+
+###2026.03.15.01
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Fix: Improved backend release-note parsing and category detection for accurate summaries.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
 
 ###2026.03.14.02
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

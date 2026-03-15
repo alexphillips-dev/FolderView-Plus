@@ -154,3 +154,25 @@ test('request client does not retry aborted requests', async () => {
     );
     assert.equal(getCallCount(), 1);
 });
+
+test('request client surfaces backend JSON error details in thrown message', async () => {
+    const { api, getCallCount } = loadRequestClient({
+        plan: [
+            {
+                type: 'error',
+                textStatus: 'error',
+                jqXHR: {
+                    status: 400,
+                    statusText: 'Bad Request',
+                    responseText: '{"ok":false,"error":"Missing required parameters."}'
+                }
+            }
+        ]
+    });
+
+    await assert.rejects(
+        () => api.postJson('/plugins/folderview.plus/server/update.php', { type: 'docker' }, { retries: 0 }),
+        /Missing required parameters/
+    );
+    assert.equal(getCallCount(), 1);
+});

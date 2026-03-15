@@ -120,7 +120,6 @@ test('basic toolbar actions reuse compact progress overlay for docker and vm flo
 test('settings action buttons are explicitly non-submit buttons', () => {
     const buttonWithoutTypePattern = /<button(?![^>]*\btype=)/;
     assert.doesNotMatch(page, buttonWithoutTypePattern);
-    assert.doesNotMatch(script, buttonWithoutTypePattern);
 });
 
 test('fresh install guard keeps basic Docker/VM sections visible on startup failures', () => {

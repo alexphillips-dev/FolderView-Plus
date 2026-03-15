@@ -1,6 +1,3 @@
-// FolderView Plus import/backup workflow module.
-// Extracted from folderviewplus.js to keep the core settings runtime maintainable.
-
 const closeImportApplyProgressDialog = () => {
     const overlay = $('#import-apply-progress-overlay');
     const dialog = $('#import-apply-progress-dialog');

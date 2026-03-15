@@ -17,6 +17,40 @@ const normalizeStatusHexColor = (value, fallback) => {
     }
     return trimmed.toLowerCase();
 };
+const normalizePreviewBorderEnabled = (settings, fallback = true) => {
+    const source = settings && typeof settings === 'object' ? settings : {};
+    if (!Object.prototype.hasOwnProperty.call(source, 'preview_border')) {
+        return fallback;
+    }
+    const raw = source.preview_border;
+    if (typeof raw === 'boolean') {
+        return raw;
+    }
+    if (typeof raw === 'number') {
+        return raw !== 0;
+    }
+    if (typeof raw === 'string') {
+        const normalized = raw.trim().toLowerCase();
+        if (['1', 'true', 'yes', 'on'].includes(normalized)) {
+            return true;
+        }
+        if (['0', 'false', 'no', 'off'].includes(normalized)) {
+            return false;
+        }
+    }
+    return Boolean(raw);
+};
+const applyPreviewBorderStyle = (previewNode, settings) => {
+    if (!previewNode) {
+        return;
+    }
+    if (!normalizePreviewBorderEnabled(settings, true)) {
+        previewNode.style.setProperty('border', 'none', 'important');
+        return;
+    }
+    const previewColor = normalizeStatusHexColor(settings?.preview_border_color, '#afa89e');
+    previewNode.style.setProperty('border', `1px solid ${previewColor}`, 'important');
+};
 const utils = window.FolderViewPlusUtils || {
     normalizePrefs: () => ({
         sortMode: 'created',
@@ -1122,11 +1156,8 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
         .css('padding-left', `${depthIndentPx}px`);
     forceFolderRowVerticalCenter(id);
 
-    const previewColor = normalizeStatusHexColor(folder.settings.preview_border_color, '#afa89e');
     const previewNode = $(`tr.folder-id-${id} div.folder-preview`).get(0);
-    if (previewNode) {
-        previewNode.style.setProperty('border', `1px solid ${previewColor}`, 'important');
-    }
+    applyPreviewBorderStyle(previewNode, folder.settings);
     $(`tr.folder-id-${id} div.folder-preview`).addClass(`folder-preview-${folder.settings.preview}`);
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Added class folder-preview-${folder.settings.preview} to preview div.`);
 
@@ -2029,9 +2060,8 @@ const syncParentFolderVisualState = (id, expanded) => {
     }
     if (!expanded) {
         const folder = globalFolders[id];
-        const previewColor = normalizeStatusHexColor(folder?.settings?.preview_border_color, '#afa89e');
         const previewNode = $row.find('div.folder-preview').get(0);
-        if (previewNode) previewNode.style.setProperty('border', `1px solid ${previewColor}`, 'important');
+        applyPreviewBorderStyle(previewNode, folder?.settings || {});
     }
 };
 

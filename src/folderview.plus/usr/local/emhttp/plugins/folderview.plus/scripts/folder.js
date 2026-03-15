@@ -161,6 +161,28 @@ const normalizeHexColor = (value, fallback) => {
     return trimmed.toLowerCase();
 };
 
+const normalizeBooleanSetting = (value, fallback = false) => {
+    if (value === undefined || value === null) {
+        return fallback;
+    }
+    if (typeof value === 'boolean') {
+        return value;
+    }
+    if (typeof value === 'number') {
+        return value !== 0;
+    }
+    if (typeof value === 'string') {
+        const normalized = value.trim().toLowerCase();
+        if (['1', 'true', 'yes', 'on'].includes(normalized)) {
+            return true;
+        }
+        if (['0', 'false', 'no', 'off'].includes(normalized)) {
+            return false;
+        }
+    }
+    return Boolean(value);
+};
+
 const getForm = () => $('div.canvas > form')[0];
 
 const normalizeParentFolderId = (value) => String(value || '').trim();
@@ -2604,7 +2626,9 @@ resetStatusColorDefaults();
         form.context_graph.value = currFolder.settings.context_graph?.toString() || '1';
         form.context_graph_time.value = currFolder.settings.context_graph_time?.toString() || '60';
         const hasStoredPreviewBorder = Object.prototype.hasOwnProperty.call(currFolder.settings || {}, 'preview_border');
-        form.preview_border.checked = hasStoredPreviewBorder ? !!currFolder.settings.preview_border : true;
+        form.preview_border.checked = hasStoredPreviewBorder
+            ? normalizeBooleanSetting(currFolder.settings.preview_border, true)
+            : true;
         form.preview_border_color.value = normalizeHexColor(currFolder.settings.preview_border_color, DEFAULT_BORDER_COLOR);
         form.preview_vertical_bars_color.value = normalizeHexColor(
             currFolder.settings.preview_vertical_bars_color || currFolder.settings.preview_border_color,
@@ -2924,7 +2948,7 @@ const submitForm = async (e, saveAsCopy = false) => {
             context_trigger: parseInt(e.context_trigger.value.toString()),
             context_graph: parseInt(e.context_graph.value.toString()),
             context_graph_time: parseInt(e.context_graph_time.value.toString()),
-            preview_border: e.preview_border.checked||e.preview_border_color.value!='#afa89e',
+            preview_border: e.preview_border.checked,
             preview_border_color: e.preview_border_color.value.toString(),
             preview_vertical_bars_color: e.preview_vertical_bars_color.value.toString(),
             status_color_started: normalizeHexColor(e.status_color_started.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.started),
@@ -3149,5 +3173,3 @@ window.resetUnsavedChanges = resetUnsavedChanges;
 window.setIconAsContainer = setIconAsContainer;
 window.customAction = customAction;
 window.rCcustomAction = rCcustomAction;
-
-

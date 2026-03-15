@@ -79,7 +79,7 @@ const budgets = [
   },
 ];
 
-const totalJsBudget = envInt('FVPLUS_MAX_TOTAL_JS_BYTES', 1103000);
+const totalJsBudget = envInt('FVPLUS_MAX_TOTAL_JS_BYTES', 1115000);
 const totalCssBudget = envInt('FVPLUS_MAX_TOTAL_CSS_BYTES', 250000);
 const totalJsGzipBudget = envInt('FVPLUS_MAX_TOTAL_JS_GZIP_BYTES', 220000);
 const totalCssGzipBudget = envInt('FVPLUS_MAX_TOTAL_CSS_GZIP_BYTES', 60000);

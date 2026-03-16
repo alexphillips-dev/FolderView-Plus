@@ -250,25 +250,50 @@ const applyDockerRuntimeAppWidthVariables = (desktopWidthPx = null) => {
     document.body.style.setProperty('--fvplus-docker-app-column-width-mobile', `${mobileWidth}px`);
 };
 
-const applyDockerRuntimeColumnWidths = (widthMap = null) => {
+const estimateDockerRuntimeAutoAppWidth = () => {
+    const baseline = getDockerRuntimePresetAppWidth() || DOCKER_RUNTIME_APP_PRESET_WIDTHS.standard;
+    const rows = Array.from(document.querySelectorAll('tbody#docker_view tr.folder'));
+    if (!rows.length) {
+        return baseline;
+    }
+    const measureCanvas = document.createElement('canvas');
+    const ctx = measureCanvas.getContext('2d');
+    if (!ctx) {
+        return baseline;
+    }
+    let maxWidth = baseline;
+    rows.forEach((row) => {
+        const nameNode = row.querySelector('.folder-appname');
+        if (!nameNode) {
+            return;
+        }
+        const text = String(nameNode.textContent || '').trim();
+        if (!text) {
+            return;
+        }
+        const style = window.getComputedStyle(nameNode);
+        ctx.font = `${style.fontStyle} ${style.fontVariant} ${style.fontWeight} ${style.fontSize} / ${style.lineHeight} ${style.fontFamily}`;
+        const textWidth = ctx.measureText(text).width;
+        // Include tree/icon/toggle/dropdown controls and a small right cushion.
+        const estimated = Math.ceil(textWidth + 120);
+        if (estimated > maxWidth) {
+            maxWidth = estimated;
+        }
+    });
+    return clampDockerRuntimeColumnWidth(maxWidth, 1) || baseline;
+};
+
+const applyDockerRuntimeColumnWidths = (_widthMap = null) => {
     const targets = getDockerRuntimeTableTargets();
     if (!targets) {
         return;
     }
-    const normalizedMap = normalizeDockerRuntimeColumnWidthMap(widthMap || getSavedDockerRuntimeColumnWidths());
-    if (!normalizedMap[1]) {
-        const fallbackAppWidth = getDockerRuntimePresetAppWidth();
-        if (fallbackAppWidth) {
-            normalizedMap[1] = fallbackAppWidth;
-        }
-    }
+    const autoAppWidth = estimateDockerRuntimeAutoAppWidth();
     const isMobile = window.matchMedia && window.matchMedia('(max-width: 900px)').matches;
     targets.headers.forEach((header, idx) => {
         const index = idx + 1;
-        const desktopWidth = clampDockerRuntimeColumnWidth(normalizedMap[index], index);
-        const minMobileWidth = index === 1 ? 220 : 72;
-        const effectiveWidth = desktopWidth
-            ? (isMobile ? Math.max(minMobileWidth, Math.round(desktopWidth * 0.82)) : desktopWidth)
+        const effectiveWidth = index === 1
+            ? (isMobile ? Math.max(220, Math.round(autoAppWidth * 0.82)) : autoAppWidth)
             : null;
         const applyWidth = (element) => {
             if (!element || !element.style) {
@@ -288,11 +313,11 @@ const applyDockerRuntimeColumnWidths = (widthMap = null) => {
         const cells = document.querySelectorAll(`tbody#docker_view > tr > td:nth-child(${index})`);
         cells.forEach((cell) => applyWidth(cell));
     });
-    applyDockerRuntimeAppWidthVariables(normalizedMap[1] || null);
+    applyDockerRuntimeAppWidthVariables(autoAppWidth || null);
 };
 
 const applySavedDockerRuntimeColumnWidths = () => {
-    applyDockerRuntimeColumnWidths(getSavedDockerRuntimeColumnWidths());
+    applyDockerRuntimeColumnWidths(null);
 };
 
 const stopDockerRuntimeColumnResize = (persist = true) => {
@@ -311,6 +336,11 @@ const stopDockerRuntimeColumnResize = (persist = true) => {
 };
 
 const beginDockerRuntimeColumnWidthResize = (columnIndex, event) => {
+    // Runtime drag-resize intentionally disabled; app column now auto-sizes from folder names.
+    void columnIndex;
+    void event;
+    return;
+    /*
     if (event.button !== 0) {
         return;
     }
@@ -352,6 +382,7 @@ const beginDockerRuntimeColumnWidthResize = (columnIndex, event) => {
     window.addEventListener('pointercancel', onCancel, true);
     event.preventDefault();
     event.stopPropagation();
+    */
 };
 
 const bindDockerRuntimeViewportWidthSync = () => {
@@ -417,29 +448,12 @@ const bindDockerRuntimeColumnResizers = () => {
     bindDockerRuntimeViewportWidthSync();
     targets.headers.forEach((header, idx) => {
         const columnIndex = idx + 1;
-        header.classList.add('fvplus-runtime-resizable');
-        if (columnIndex === 1) {
-            header.classList.add('fvplus-runtime-app-col');
-        }
+        header.classList.remove('fvplus-runtime-resizable');
+        header.classList.toggle('fvplus-runtime-app-col', columnIndex === 1);
         const existingHandle = header.querySelector('.fvplus-runtime-col-resizer');
         if (existingHandle) {
             existingHandle.remove();
         }
-        const handle = document.createElement('button');
-        handle.type = 'button';
-        handle.className = 'fvplus-runtime-col-resizer';
-        handle.tabIndex = -1;
-        handle.setAttribute('aria-hidden', 'true');
-        handle.addEventListener('pointerdown', (event) => beginDockerRuntimeColumnWidthResize(columnIndex, event));
-        handle.addEventListener('dblclick', (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            const widthMap = getSavedDockerRuntimeColumnWidths();
-            delete widthMap[columnIndex];
-            persistDockerRuntimeColumnWidths(widthMap);
-            applyRuntimePrefs(lastAppliedRuntimePrefs || folderTypePrefs || {});
-        });
-        header.appendChild(handle);
     });
     applySavedDockerRuntimeColumnWidths();
 };

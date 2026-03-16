@@ -700,25 +700,25 @@ body.fv-column-resize-active * {
 
 /* Desktop widths: remove Parent column and redistribute space to core signals. */
 .folder-table table th:nth-child(1),
-.folder-table table td:nth-child(1) { width: 8%; }
+.folder-table table td:nth-child(1) { width: 7%; }
 .folder-table table th:nth-child(2),
-.folder-table table td:nth-child(2) { width: 21%; }
+.folder-table table td:nth-child(2) { width: 26%; }
 .folder-table table th:nth-child(3),
-.folder-table table td:nth-child(3) { width: 4%; }
+.folder-table table td:nth-child(3) { width: 5%; }
 .folder-table table th:nth-child(4),
-.folder-table table td:nth-child(4) { width: 11%; }
+.folder-table table td:nth-child(4) { width: 16%; }
 .folder-table table th:nth-child(5),
-.folder-table table td:nth-child(5) { width: 9%; }
+.folder-table table td:nth-child(5) { width: 7%; }
 .folder-table table th:nth-child(6),
-.folder-table table td:nth-child(6) { width: 9%; }
+.folder-table table td:nth-child(6) { width: 12%; }
 .folder-table table th:nth-child(7),
-.folder-table table td:nth-child(7) { width: 9%; }
+.folder-table table td:nth-child(7) { width: 7%; }
 .folder-table table th:nth-child(8),
-.folder-table table td:nth-child(8) { width: 11%; }
+.folder-table table td:nth-child(8) { width: 10%; }
 .folder-table table th:nth-child(9),
-.folder-table table td:nth-child(9) { width: 9%; }
+.folder-table table td:nth-child(9) { width: 5%; }
 .folder-table table th:nth-child(10),
-.folder-table table td:nth-child(10) { width: 9%; }
+.folder-table table td:nth-child(10) { width: 5%; }
 
 .folder-table table th.col-order,
 .folder-table table td.order-cell {

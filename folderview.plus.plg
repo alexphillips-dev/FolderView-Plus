@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.16.05">
-<!ENTITY md5 "ab9ac5a751d144052f148699ce998552">
+<!ENTITY version "2026.03.16.06">
+<!ENTITY md5 "7e73dcfe2471c1a7afac002bb5c4b4ef">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.16.06
+- UX: adjusted default basic-table column spacing for clearer out-of-box layout while preserving per-user resized widths.
+- Compatibility: removed Docker-tab runtime drag-resize controls and switched Application column to automatic width based on folder names/nesting.
+- Fix: Docker Application column now expands more intelligently for long folder and nested names.
+
 
 ###2026.03.16.05
 - Fix: settings resize handles now sit on true column boundaries (divider-aligned) instead of header-text edges.

@@ -128,12 +128,12 @@ test('docker tooltip payload is lazy-built on first open', () => {
     assert.match(dockerJs, /Loading preview\.\.\./);
 });
 
-test('docker runtime app column supports persistent drag-resize controls', () => {
-    assert.match(dockerJs, /DOCKER_RUNTIME_COLUMN_WIDTHS_STORAGE_KEY/);
-    assert.match(dockerJs, /const applyDockerRuntimeColumnWidths = \(widthMap = null\) =>/);
-    assert.match(dockerJs, /const bindDockerRuntimeColumnResizers = \(\) =>/);
-    assert.match(dockerJs, /handle\.className = 'fvplus-runtime-col-resizer';/);
+test('docker runtime app column auto-sizes based on folder names and rebinds after render', () => {
+    assert.match(dockerJs, /const estimateDockerRuntimeAutoAppWidth = \(\) =>/);
+    assert.match(dockerJs, /const applyDockerRuntimeColumnWidths = \(_widthMap = null\) =>/);
+    assert.match(dockerJs, /auto-sizes from folder names/);
     assert.match(dockerJs, /bindDockerRuntimeAppColumnResizer\(\);/);
+    assert.match(dockerJs, /queueDockerRuntimeResizerBind\(\);/);
 });
 
 test('import apply uses chunked execution and performance diagnostics panel exists', () => {

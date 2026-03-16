@@ -673,9 +673,7 @@ const syncCompactMobileLayoutClass = () => {
         applyColumnWidths('vm');
         bindTableColumnResizers('docker');
         bindTableColumnResizers('vm');
-    } catch (_error) {
-        // Tables may not be mounted yet during early initialization.
-    }
+    } catch (_error) {}
 };
 
 const initCompactMobileLayoutGuard = () => {
@@ -4251,12 +4249,8 @@ const beginTableColumnResize = (type, key, event) => {
     const onUp = () => {
         stopActiveTableColumnResize(true);
     };
-    const onCancel = () => {
-        stopActiveTableColumnResize(true);
-    };
+    const onCancel = onUp;
     activeTableColumnResize = {
-        type: resolvedType,
-        key,
         onMove,
         onUp,
         onCancel
@@ -4294,7 +4288,6 @@ const bindTableColumnResizers = (type) => {
         handle.className = 'fv-col-resizer';
         handle.setAttribute('aria-hidden', 'true');
         handle.tabIndex = -1;
-        handle.title = `Resize ${String(header.textContent || key).trim()} column`;
         handle.addEventListener('pointerdown', (event) => {
             beginTableColumnResize(resolvedType, key, event);
         });

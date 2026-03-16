@@ -6,12 +6,26 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.15.07">
-<!ENTITY md5 "aeae0970593f942d33e4f28b4d84bb48">
+<!ENTITY version "2026.03.15.09">
+<!ENTITY md5 "42d27ca3824bbd3c086508a30530fa77">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.15.09
+- Maintenance: Raise total JS hard cap for perf guard.
+- Maintenance: Refresh perf baseline for border color compatibility fix.
+- Fix: Fix legacy custom folder border colors in nested views.
+- Fix: Fix app column width preferences for Docker and VM views.
+- Fix: Fix preview border toggle and update dev artifacts.
+- Maintenance: Sync dev release artifacts for border toggle fix.
+
+
+###2026.03.15.08
+- Maintenance: Raise total JS hard cap for perf guard.
+- Maintenance: Refresh perf baseline for border color compatibility fix.
+
 
 ###2026.03.15.07
 - Fix: Restored folder preview border colors for legacy/custom folders where `preview_border` was stored as off but custom border colors exist.

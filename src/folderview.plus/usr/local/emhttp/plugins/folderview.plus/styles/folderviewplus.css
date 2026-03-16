@@ -362,6 +362,49 @@
     white-space: nowrap;
 }
 
+.folder-table table th {
+    position: relative;
+}
+
+.folder-table table th.fv-col-resizable .fv-col-resizer {
+    position: absolute;
+    top: 0;
+    right: -4px;
+    width: 9px;
+    height: 100%;
+    border: 0;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    cursor: col-resize;
+    z-index: 4;
+}
+
+.folder-table table th.fv-col-resizable .fv-col-resizer::before {
+    content: "";
+    position: absolute;
+    top: 22%;
+    bottom: 22%;
+    left: 50%;
+    width: 1px;
+    transform: translateX(-50%);
+    background: rgba(142, 158, 184, 0.45);
+    opacity: 0;
+    transition: opacity 120ms ease-in-out;
+}
+
+.folder-table table th.fv-col-resizable:hover .fv-col-resizer::before,
+.folder-table table th.fv-col-resizable .fv-col-resizer:focus-visible::before,
+body.fv-column-resize-active .folder-table table th.fv-col-resizable .fv-col-resizer::before {
+    opacity: 1;
+}
+
+body.fv-column-resize-active,
+body.fv-column-resize-active * {
+    cursor: col-resize !important;
+    user-select: none !important;
+}
+
 .folder-table table th.fv-col-hidden,
 .folder-table table td.fv-col-hidden {
     display: none !important;
@@ -841,6 +884,11 @@ body.fv-mobile-compact #fv-settings-root .folder-table .table-wrap {
     overflow-x: auto !important;
     overflow-y: visible !important;
     scrollbar-width: thin;
+}
+
+#fv-settings-root.fv-mobile-compact .folder-table table .fv-col-resizer,
+body.fv-mobile-compact #fv-settings-root .folder-table table .fv-col-resizer {
+    display: none !important;
 }
 
 #fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(3),

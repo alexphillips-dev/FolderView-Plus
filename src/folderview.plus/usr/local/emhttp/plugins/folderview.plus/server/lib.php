@@ -609,35 +609,43 @@
             . '">' . "\n";
     }
 
-    function validateOptionalRequestToken(): void {
+    function validateOptionalRequestToken(): bool {
         $mode = getRequestTokenEnforcementMode();
         if ($mode === 'off') {
-            return;
+            return false;
         }
         $expected = getConfiguredRequestToken();
         if ($expected === '') {
-            return;
+            return false;
         }
         $provided = trim((string)($_POST['token'] ?? getRequestHeaderValue('X-FV-Token')));
         if ($provided === '') {
             if ($mode === 'strict') {
                 throw new RuntimeException('Invalid request token.');
             }
-            return;
+            return false;
         }
         if (!hash_equals($expected, $provided)) {
             throw new RuntimeException('Invalid request token.');
         }
+        return true;
+    }
+
+    function hasExplicitMutationRequestHeader(): bool {
+        return trim(getRequestHeaderValue('X-FV-Request')) === '1';
     }
 
     function requireMutationRequestGuard(): void {
         if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) !== 'POST') {
             throw new RuntimeException('Unsupported method.');
         }
-        if (!isTrustedMutationContext()) {
+        $tokenMode = getRequestTokenEnforcementMode();
+        $tokenRequiredForBypass = $tokenMode !== 'off' && getConfiguredRequestToken() !== '';
+        $tokenValidated = validateOptionalRequestToken();
+        $headerValidated = hasExplicitMutationRequestHeader() && ($tokenValidated || !$tokenRequiredForBypass);
+        if (!isTrustedMutationContext() && !$headerValidated) {
             throw new RuntimeException('Blocked by request guard.');
         }
-        validateOptionalRequestToken();
     }
 
     function fvplus_json_response(array $payload, int $statusCode = 200): void {

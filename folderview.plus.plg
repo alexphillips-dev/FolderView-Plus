@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.16.01">
-<!ENTITY md5 "5e69b18eef5c29509ee8c549bd7e2a1f">
+<!ENTITY version "2026.03.16.02">
+<!ENTITY md5 "0cbd31296fba154730df54bfbecd6ff9">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.16.02
+- Fix: corrected settings table column resizing so drag direction is consistent and resizing no longer distorts neighboring columns.
+- Feature: added persistent drag-resize for the Docker tab Application column at runtime.
+- Fix: folder names now support Chinese/Unicode characters while still blocking unsafe control/path characters.
+- Fix: resolved Add Folder submit failures by sending guarded mutation headers/token with create/update/sync requests.
+- Security: request guard now accepts explicit guarded fallback in alias/untrusted-context scenarios when token bypass rules allow it.
+
 
 ###2026.03.16.01
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

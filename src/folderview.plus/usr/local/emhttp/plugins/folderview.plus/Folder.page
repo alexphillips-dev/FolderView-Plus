@@ -33,7 +33,7 @@ emitRequestTokenMetaTag();
                 <dt data-i18n="name">Name:</dt>
                 <dd>
                     <img class="img" style="visibility: hidden;">
-                    <input type="text" name="name" pattern="[a-zA-Z0-9_.\ \-]+" value="" required>
+                    <input type="text" name="name" value="" required>
                 </dd>
             </dl>
             <blockquote class="inline_help">

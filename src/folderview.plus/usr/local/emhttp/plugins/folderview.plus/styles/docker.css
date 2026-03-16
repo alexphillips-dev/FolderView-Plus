@@ -16,6 +16,49 @@ body[data-fvplus-docker-app-width="wide"] {
     --fvplus-docker-app-column-width-mobile: 232px;
 }
 
+body.fvplus-docker-column-resize-active,
+body.fvplus-docker-column-resize-active * {
+    cursor: col-resize !important;
+    user-select: none !important;
+}
+
+th.fvplus-runtime-app-col {
+    position: relative;
+}
+
+th.fvplus-runtime-app-col .fvplus-runtime-col-resizer {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 10px;
+    height: 100%;
+    border: 0;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    cursor: col-resize;
+    z-index: 6;
+}
+
+th.fvplus-runtime-app-col .fvplus-runtime-col-resizer::before {
+    content: "";
+    position: absolute;
+    top: 18%;
+    bottom: 18%;
+    left: 50%;
+    width: 1px;
+    transform: translateX(-50%);
+    background: rgba(142, 158, 184, 0.5);
+    opacity: 0;
+    transition: opacity 120ms ease-in-out;
+}
+
+th.fvplus-runtime-app-col:hover .fvplus-runtime-col-resizer::before,
+th.fvplus-runtime-app-col .fvplus-runtime-col-resizer:focus-visible::before,
+body.fvplus-docker-column-resize-active th.fvplus-runtime-app-col .fvplus-runtime-col-resizer::before {
+    opacity: 1;
+}
+
 .fv-runtime-health-badge {
     margin: 0.35rem 0 0.5rem 0;
     padding: 0.26rem 0.58rem;

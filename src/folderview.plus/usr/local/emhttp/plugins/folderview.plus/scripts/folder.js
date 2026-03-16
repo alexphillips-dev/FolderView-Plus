@@ -30,6 +30,7 @@ const CONTEXT_MODE_LABELS = {
 const FOLDER_HEALTH_PROFILE_VALUES = ['strict', 'balanced', 'lenient'];
 const FOLDER_HEALTH_UPDATES_MODE_VALUES = ['maintenance', 'warn', 'ignore'];
 const FOLDER_HEALTH_ALL_STOPPED_MODE_VALUES = ['critical', 'warn'];
+const INVALID_FOLDER_NAME_CHAR_REGEX = /[\u0000-\u001f\u007f<>:"/\\|?*]/;
 const SECTION_META = {
     general: { title: 'General', description: 'Folder identity, icon, and base behavior.', advanced: false },
     members: { title: 'Members', description: 'Assign containers or VMs to this folder.', advanced: false },
@@ -408,6 +409,27 @@ const getOptionalRequestToken = () => {
     } catch (_error) {
         return '';
     }
+};
+
+const buildMutationHeaders = (token) => ({
+    'X-FV-Request': '1',
+    ...(token ? { 'X-FV-Token': token } : {})
+});
+
+const securePost = async (url, data = {}) => {
+    const token = getOptionalRequestToken();
+    const payload = {
+        ...(data && typeof data === 'object' ? data : {})
+    };
+    if (token) {
+        payload.token = token;
+    }
+    return $.ajax({
+        url,
+        type: 'POST',
+        data: payload,
+        headers: buildMutationHeaders(token)
+    });
 };
 
 const normalizeBuiltInIconEntry = (entry, basePath) => {
@@ -1533,8 +1555,8 @@ const validateNameField = () => {
         return false;
     }
 
-    if (!/^[a-zA-Z0-9_. \-]+$/.test(value)) {
-        setFieldError('name', 'Use letters, numbers, spaces, ., _, and - only.');
+    if (INVALID_FOLDER_NAME_CHAR_REGEX.test(value)) {
+        setFieldError('name', 'Name cannot contain control characters or <>:"/\\|?*.');
         return false;
     }
 
@@ -2965,15 +2987,36 @@ const submitForm = async (e, saveAsCopy = false) => {
         setFieldError('name', 'Folder name is required.');
         return false;
     }
-    // send the data to the right endpoint
-    if (folderId && !saveAsCopy) {
-        await $.post('/plugins/folderview.plus/server/update.php', { type: type, content: JSON.stringify(folder), id: folderId });
-    } else {
-        await $.post('/plugins/folderview.plus/server/create.php', { type: type, content: JSON.stringify(folder) });
-    }
+    try {
+        // send the data to the right endpoint
+        if (folderId && !saveAsCopy) {
+            await securePost('/plugins/folderview.plus/server/update.php', {
+                type: type,
+                content: JSON.stringify(folder),
+                id: folderId
+            });
+        } else {
+            await securePost('/plugins/folderview.plus/server/create.php', {
+                type: type,
+                content: JSON.stringify(folder)
+            });
+        }
 
-    if (type === 'docker') {
-        await $.post('/plugins/folderview.plus/server/sync_order.php', { type: type });
+        if (type === 'docker') {
+            await securePost('/plugins/folderview.plus/server/sync_order.php', { type: type });
+        }
+    } catch (error) {
+        const message = extractAjaxErrorMessage(error, 'folder save');
+        if (typeof swal === 'function') {
+            swal({
+                title: 'Save failed',
+                text: message,
+                type: 'error'
+            });
+        } else {
+            alert(message);
+        }
+        return false;
     }
 
     // return to the right tab

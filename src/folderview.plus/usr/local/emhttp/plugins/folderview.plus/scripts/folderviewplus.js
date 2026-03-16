@@ -4052,6 +4052,88 @@ const normalizeColumnWidthsForType = (type, value = null) => {
     return normalized;
 };
 
+const captureCurrentColumnWidths = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const table = getSettingsTableElement(resolvedType);
+    if (!table) {
+        return {};
+    }
+    const configByKey = TABLE_COLUMN_RESIZE_CONFIG_BY_TYPE[resolvedType] || {};
+    const keys = TABLE_COLUMN_RESIZE_KEYS_BY_TYPE[resolvedType] || [];
+    const widths = {};
+    keys.forEach((key) => {
+        const header = configByKey[key] ? table.querySelector(configByKey[key].header) : null;
+        if (!header || header.classList.contains('fv-col-hidden')) {
+            return;
+        }
+        const measured = normalizeSingleColumnWidth(resolvedType, key, header.getBoundingClientRect().width);
+        if (measured !== null) {
+            widths[key] = measured;
+        }
+    });
+    return widths;
+};
+
+const syncResizableTableLayout = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const table = getSettingsTableElement(resolvedType);
+    if (!table) {
+        return;
+    }
+    const tableWrap = table.closest('.table-wrap');
+    const customWidths = columnWidthsByType[resolvedType] && typeof columnWidthsByType[resolvedType] === 'object'
+        ? columnWidthsByType[resolvedType]
+        : {};
+    const hasCustomWidths = Object.keys(customWidths).length > 0;
+    if (shouldUseCompactMobileLayout()) {
+        table.style.removeProperty('width');
+        table.style.removeProperty('max-width');
+        table.style.removeProperty('table-layout');
+        if (tableWrap && tableWrap.style) {
+            tableWrap.style.removeProperty('overflow-x');
+            tableWrap.style.removeProperty('overflow-y');
+        }
+        return;
+    }
+    if (!hasCustomWidths) {
+        table.style.removeProperty('width');
+        table.style.removeProperty('max-width');
+        table.style.removeProperty('table-layout');
+        if (tableWrap && tableWrap.style) {
+            tableWrap.style.setProperty('overflow-x', 'auto');
+            tableWrap.style.setProperty('overflow-y', 'visible');
+        }
+        return;
+    }
+    const configByKey = TABLE_COLUMN_RESIZE_CONFIG_BY_TYPE[resolvedType] || {};
+    const keys = TABLE_COLUMN_RESIZE_KEYS_BY_TYPE[resolvedType] || [];
+    let totalWidth = 0;
+    let visibleColumns = 0;
+    keys.forEach((key) => {
+        const header = configByKey[key] ? table.querySelector(configByKey[key].header) : null;
+        if (!header || header.classList.contains('fv-col-hidden')) {
+            return;
+        }
+        totalWidth += Math.ceil(header.getBoundingClientRect().width || 0);
+        visibleColumns += 1;
+    });
+    if (visibleColumns <= 0 || totalWidth <= 0) {
+        table.style.removeProperty('width');
+        table.style.removeProperty('max-width');
+        table.style.removeProperty('table-layout');
+        return;
+    }
+    const wrapWidth = tableWrap ? Math.ceil(tableWrap.getBoundingClientRect().width || 0) : 0;
+    const targetWidth = Math.max(wrapWidth, totalWidth);
+    table.style.setProperty('width', `${targetWidth}px`);
+    table.style.setProperty('max-width', 'none');
+    table.style.setProperty('table-layout', 'fixed');
+    if (tableWrap && tableWrap.style) {
+        tableWrap.style.setProperty('overflow-x', 'auto');
+        tableWrap.style.setProperty('overflow-y', 'visible');
+    }
+};
+
 const buildTableUiStatePayload = () => ({
     filters: {
         docker: { ...(filtersByType.docker || {}) },
@@ -4190,6 +4272,7 @@ const applyColumnWidths = (type) => {
     keys.forEach((key) => {
         applySingleColumnWidth(resolvedType, key, widths[key]);
     });
+    syncResizableTableLayout(resolvedType);
 };
 
 const stopActiveTableColumnResize = (persist = true) => {
@@ -4223,6 +4306,15 @@ const beginTableColumnResize = (type, key, event) => {
     if (!config) {
         return;
     }
+    const startClientX = Number(event.clientX || 0);
+    const frozenWidths = captureCurrentColumnWidths(resolvedType);
+    if (Object.keys(frozenWidths).length > 0) {
+        columnWidthsByType[resolvedType] = normalizeColumnWidthsForType(resolvedType, {
+            ...(columnWidthsByType[resolvedType] || {}),
+            ...frozenWidths
+        });
+    }
+    applyColumnWidths(resolvedType);
     const header = table.querySelector(config.header);
     if (!header) {
         return;
@@ -4233,9 +4325,9 @@ const beginTableColumnResize = (type, key, event) => {
         ...(columnWidthsByType[resolvedType] || {}),
         [key]: normalizedStart
     });
-    applySingleColumnWidth(resolvedType, key, normalizedStart);
+    applyColumnWidths(resolvedType);
     const onMove = (moveEvent) => {
-        const delta = Number(moveEvent.clientX || 0) - Number(event.clientX || 0);
+        const delta = Number(moveEvent.clientX || 0) - startClientX;
         const nextWidth = normalizeSingleColumnWidth(resolvedType, key, normalizedStart + delta);
         if (nextWidth === null) {
             return;
@@ -4244,7 +4336,7 @@ const beginTableColumnResize = (type, key, event) => {
             ...(columnWidthsByType[resolvedType] || {}),
             [key]: nextWidth
         });
-        applySingleColumnWidth(resolvedType, key, nextWidth);
+        applyColumnWidths(resolvedType);
     };
     const onUp = () => {
         stopActiveTableColumnResize(true);
@@ -4298,7 +4390,7 @@ const bindTableColumnResizers = (type) => {
                 columnWidthsByType[resolvedType] = {};
             }
             delete columnWidthsByType[resolvedType][key];
-            applySingleColumnWidth(resolvedType, key, null);
+            applyColumnWidths(resolvedType);
             persistTableUiState();
         });
         header.appendChild(handle);
@@ -5884,13 +5976,12 @@ const enforceNoHorizontalOverflow = () => {
         setImportantStyle(target, 'overflow-x', 'hidden');
     }
 
-    const tableTargets = document.querySelectorAll('.folder-table .table-wrap, .folder-table table');
+    const compact = shouldUseCompactMobileLayout();
+    const tableTargets = document.querySelectorAll('.folder-table .table-wrap');
     tableTargets.forEach((target) => {
         setImportantStyle(target, 'max-width', '100%');
         setImportantStyle(target, 'min-width', '0');
-    });
-    document.querySelectorAll('.folder-table .table-wrap').forEach((target) => {
-        setImportantStyle(target, 'overflow-x', 'hidden');
+        setImportantStyle(target, 'overflow-x', compact ? 'hidden' : 'auto');
         setImportantStyle(target, 'overflow-y', 'visible');
     });
 };

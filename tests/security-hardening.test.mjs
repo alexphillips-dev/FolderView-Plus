@@ -67,6 +67,22 @@ test('folder editor escapes custom action labels when rendering HTML', () => {
     assert.match(folderJs, /const safeCfgName = escapeHtml\(cfg\.name \|\| ''\)/);
 });
 
+test('folder editor supports unicode names and secure guarded create/update posts', () => {
+    assert.doesNotMatch(folderPage, /<input[^>]*name="name"[^>]*pattern=/);
+    assert.match(folderJs, /const INVALID_FOLDER_NAME_CHAR_REGEX =/);
+    assert.match(folderJs, /Name cannot contain control characters or <>:"\/\\\\\|\?\*\./);
+    assert.match(folderJs, /const securePost = async \(url, data = \{\}\) =>/);
+    assert.match(folderJs, /'X-FV-Request': '1'/);
+    assert.match(folderJs, /await securePost\('\/plugins\/folderview\.plus\/server\/create\.php'/);
+    assert.match(folderJs, /await securePost\('\/plugins\/folderview\.plus\/server\/update\.php'/);
+});
+
+test('request guard allows explicit mutation header fallback when token bypass is valid', () => {
+    assert.match(libPhp, /function hasExplicitMutationRequestHeader\(\): bool/);
+    assert.match(libPhp, /\$tokenRequiredForBypass = \$tokenMode !== 'off' && getConfiguredRequestToken\(\) !== '';/);
+    assert.match(libPhp, /hasExplicitMutationRequestHeader\(\) && \(\$tokenValidated \|\| !\$tokenRequiredForBypass\)/);
+});
+
 test('external links and popup actions enforce noopener protections', () => {
     assert.match(folderPage, /target="_blank" rel="noopener noreferrer"/);
     assert.match(dockerJs, /target="_blank" rel="noopener noreferrer"/);

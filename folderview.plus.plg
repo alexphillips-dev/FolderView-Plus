@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.16.03">
-<!ENTITY md5 "ca231a9136c12d8af0334caf5d46d3f0">
+<!ENTITY version "2026.03.16.04">
+<!ENTITY md5 "a556e592df18b689dfd703a0682ec35b">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.16.04
+- Fix: settings table drag-resize now keeps each resized column independent (no cross-column shrinking while dragging).
+- Fix: restored compact tiny action buttons in the settings Actions column.
+- Fix: Docker runtime resize handles are now more visible/reliable and re-bind after list refreshes.
+- Fix: Docker Application dropdown chevron now sits next to folder text with padding and no longer clips into Version.
+
 
 ###2026.03.16.03
 - Fix: settings table column drag-resize now locks widths per-column to prevent neighboring columns from reflowing.

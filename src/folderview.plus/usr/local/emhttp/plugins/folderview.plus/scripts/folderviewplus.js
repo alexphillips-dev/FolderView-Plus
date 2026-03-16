@@ -4124,8 +4124,10 @@ const syncResizableTableLayout = (type) => {
         table.style.removeProperty('table-layout');
         return;
     }
-    const wrapWidth = tableWrap ? Math.ceil(tableWrap.getBoundingClientRect().width || 0) : 0;
-    const targetWidth = Math.max(wrapWidth, totalWidth);
+    // Keep each resized column independent by sizing the table to the
+    // explicit sum of visible column widths (instead of stretching to wrapper).
+    // This avoids the browser redistributing width across sibling columns.
+    const targetWidth = Math.max(0, totalWidth);
     table.style.setProperty('width', `${targetWidth}px`, 'important');
     table.style.setProperty('max-width', 'none', 'important');
     table.style.setProperty('table-layout', 'fixed', 'important');

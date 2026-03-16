@@ -582,7 +582,7 @@ body.fv-column-resize-active * {
 }
 
 .folder-pin-btn {
-    min-width: 30px;
+    min-width: 22px;
 }
 
 .folder-pin-btn.is-pinned {
@@ -594,14 +594,23 @@ body.fv-column-resize-active * {
 }
 
 .folder-action-btn {
-    width: 30px;
-    min-width: 30px;
-    height: 28px;
-    padding: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    width: 22px !important;
+    min-width: 22px !important;
+    max-width: 22px !important;
+    height: 22px !important;
+    min-height: 22px !important;
+    max-height: 22px !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     vertical-align: middle;
+    line-height: 1 !important;
+}
+
+.folder-action-btn > i {
+    font-size: 0.88em;
+    line-height: 1;
 }
 
 .folder-overflow-btn {
@@ -611,7 +620,7 @@ body.fv-column-resize-active * {
 }
 
 .folder-table table td.actions-cell .folder-action-btn + .folder-action-btn {
-    margin-left: 0.3rem;
+    margin-left: 0.22rem;
 }
 
 .folder-member-split {

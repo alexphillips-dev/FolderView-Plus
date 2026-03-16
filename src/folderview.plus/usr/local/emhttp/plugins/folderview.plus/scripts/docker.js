@@ -88,6 +88,7 @@ const DOCKER_RUNTIME_APP_PRESET_WIDTHS = Object.freeze({
 let dockerRuntimeColumnResizeSession = null;
 let lastAppliedRuntimePrefs = null;
 let dockerRuntimeResizeViewportBound = false;
+let dockerRuntimeResizerBindTimer = null;
 const getFolderLabelValue = (labels) => {
     const source = labels && typeof labels === 'object' ? labels : {};
     for (const key of FOLDER_LABEL_KEYS) {
@@ -208,7 +209,7 @@ const getDockerRuntimeTableTargets = () => {
     if (!table) {
         return null;
     }
-    const headers = Array.from(table.querySelectorAll('thead > tr > th'));
+    const headers = Array.from(table.querySelectorAll('thead th'));
     if (headers.length === 0) {
         return null;
     }
@@ -358,6 +359,16 @@ const bindDockerRuntimeViewportWidthSync = () => {
     const reapply = () => applySavedDockerRuntimeColumnWidths();
     window.addEventListener('resize', reapply, { passive: true });
     window.addEventListener('orientationchange', reapply, { passive: true });
+};
+
+const queueDockerRuntimeResizerBind = () => {
+    if (dockerRuntimeResizerBindTimer !== null) {
+        return;
+    }
+    dockerRuntimeResizerBindTimer = window.setTimeout(() => {
+        dockerRuntimeResizerBindTimer = null;
+        bindDockerRuntimeColumnResizers();
+    }, 0);
 };
 
 const bindDockerRuntimeColumnResizers = () => {
@@ -2971,6 +2982,7 @@ window.listview = () => {
     } else {
         if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched listview: loadedFolder is true. Skipped createFolders.');
     }
+    queueDockerRuntimeResizerBind();
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched listview: Exit.');
 };
 
@@ -2988,6 +3000,7 @@ window.loadlist = () => {
     } else {
         if (FOLDER_VIEW_DEBUG_MODE) console.error('[FV3_DEBUG] Patched loadlist: window.loadlist_original is not a function!');
     }
+    queueDockerRuntimeResizerBind();
      if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: Exit.');
 };
 
@@ -3215,6 +3228,7 @@ const applyRuntimePrefs = (prefs) => {
     if (document.body && typeof document.body.setAttribute === 'function') {
         document.body.setAttribute('data-fvplus-docker-app-width', appColumnWidth);
     }
+    queueDockerRuntimeResizerBind();
     applySavedDockerRuntimeAppWidth();
     $('body').toggleClass('fvplus-performance-mode', normalized.performanceMode === true);
     scheduleLiveRefresh(normalized);

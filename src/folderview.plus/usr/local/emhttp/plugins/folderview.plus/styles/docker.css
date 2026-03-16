@@ -30,7 +30,7 @@ th.fvplus-runtime-resizable {
 th.fvplus-runtime-resizable .fvplus-runtime-col-resizer {
     position: absolute;
     top: 0;
-    right: 0;
+    right: -7px;
     width: 14px;
     height: 100%;
     border: 0;

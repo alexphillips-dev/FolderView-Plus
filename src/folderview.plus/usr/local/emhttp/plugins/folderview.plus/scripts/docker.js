@@ -89,6 +89,9 @@ let dockerRuntimeColumnResizeSession = null;
 let lastAppliedRuntimePrefs = null;
 let dockerRuntimeResizeViewportBound = false;
 let dockerRuntimeResizerBindTimer = null;
+let dockerRuntimeResizerRetryTimer = null;
+let dockerRuntimeResizerRetryCount = 0;
+let dockerRuntimeResizerObserver = null;
 const getFolderLabelValue = (labels) => {
     const source = labels && typeof labels === 'object' ? labels : {};
     for (const key of FOLDER_LABEL_KEYS) {
@@ -361,6 +364,35 @@ const bindDockerRuntimeViewportWidthSync = () => {
     window.addEventListener('orientationchange', reapply, { passive: true });
 };
 
+const scheduleDockerRuntimeResizerRetry = () => {
+    if (dockerRuntimeResizerRetryTimer !== null) {
+        return;
+    }
+    dockerRuntimeResizerRetryTimer = window.setTimeout(() => {
+        dockerRuntimeResizerRetryTimer = null;
+        bindDockerRuntimeColumnResizers();
+    }, 180);
+};
+
+const ensureDockerRuntimeResizerObserver = () => {
+    if (dockerRuntimeResizerObserver || typeof MutationObserver !== 'function') {
+        return;
+    }
+    const target = document.querySelector('#docker_list')
+        || document.querySelector('tbody#docker_view')
+        || document.body;
+    if (!target) {
+        return;
+    }
+    dockerRuntimeResizerObserver = new MutationObserver(() => {
+        queueDockerRuntimeResizerBind();
+    });
+    dockerRuntimeResizerObserver.observe(target, {
+        childList: true,
+        subtree: true
+    });
+};
+
 const queueDockerRuntimeResizerBind = () => {
     if (dockerRuntimeResizerBindTimer !== null) {
         return;
@@ -374,8 +406,14 @@ const queueDockerRuntimeResizerBind = () => {
 const bindDockerRuntimeColumnResizers = () => {
     const targets = getDockerRuntimeTableTargets();
     if (!targets) {
+        if (dockerRuntimeResizerRetryCount < 20) {
+            dockerRuntimeResizerRetryCount += 1;
+            scheduleDockerRuntimeResizerRetry();
+        }
         return;
     }
+    dockerRuntimeResizerRetryCount = 0;
+    ensureDockerRuntimeResizerObserver();
     bindDockerRuntimeViewportWidthSync();
     targets.headers.forEach((header, idx) => {
         const columnIndex = idx + 1;

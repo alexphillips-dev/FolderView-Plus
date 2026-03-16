@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.16.04">
-<!ENTITY md5 "a556e592df18b689dfd703a0682ec35b">
+<!ENTITY version "2026.03.16.05">
+<!ENTITY md5 "ab9ac5a751d144052f148699ce998552">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.16.05
+- Fix: settings resize handles now sit on true column boundaries (divider-aligned) instead of header-text edges.
+- Fix: Docker-tab header resizers now retry/rebind after table rebuilds so resize controls stay available.
+- Fix: Docker runtime resize handle hit-area and contrast improved for easier drag targeting.
+
 
 ###2026.03.16.04
 - Fix: settings table drag-resize now keeps each resized column independent (no cross-column shrinking while dragging).

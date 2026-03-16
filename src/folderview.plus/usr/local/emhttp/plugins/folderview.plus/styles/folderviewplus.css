@@ -366,18 +366,22 @@
     position: relative;
 }
 
+.folder-table table th.fv-col-resizable {
+    overflow: visible !important;
+}
+
 .folder-table table th.fv-col-resizable .fv-col-resizer {
     position: absolute;
     top: 0;
-    right: 0;
-    width: 10px;
+    right: -6px;
+    width: 12px;
     height: 100%;
     border: 0;
     margin: 0;
     padding: 0;
     background: transparent;
     cursor: col-resize;
-    z-index: 4;
+    z-index: 8;
 }
 
 .folder-table table th.fv-col-resizable .fv-col-resizer::before {
@@ -386,10 +390,10 @@
     top: 22%;
     bottom: 22%;
     left: 50%;
-    width: 1px;
+    width: 2px;
     transform: translateX(-50%);
-    background: rgba(142, 158, 184, 0.45);
-    opacity: 0;
+    background: rgba(142, 158, 184, 0.72);
+    opacity: 0.82;
     transition: opacity 120ms ease-in-out;
 }
 

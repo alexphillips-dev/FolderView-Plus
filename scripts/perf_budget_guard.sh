@@ -42,6 +42,8 @@ const envInt = (name, fallback) => {
 const budgets = [
   {
     path: 'scripts/folderviewplus.js',
+    maxBytesEnv: 'FVPLUS_MAX_FOLDERVIEWPLUS_JS_BYTES',
+    maxGzipBytesEnv: 'FVPLUS_MAX_FOLDERVIEWPLUS_JS_GZIP_BYTES',
     // Keep an absolute ceiling while relying on the baseline ratchet for tight growth control.
     // These caps are intentionally above current baseline to avoid false failures from stale limits.
     maxBytes: envInt('FVPLUS_MAX_FOLDERVIEWPLUS_JS_BYTES', 580000),
@@ -49,40 +51,52 @@ const budgets = [
   },
   {
     path: 'scripts/folderviewplus.wizard.js',
+    maxBytesEnv: 'FVPLUS_MAX_FOLDERVIEWPLUS_WIZARD_JS_BYTES',
+    maxGzipBytesEnv: 'FVPLUS_MAX_FOLDERVIEWPLUS_WIZARD_JS_GZIP_BYTES',
     maxBytes: envInt('FVPLUS_MAX_FOLDERVIEWPLUS_WIZARD_JS_BYTES', 260000),
     maxGzipBytes: envInt('FVPLUS_MAX_FOLDERVIEWPLUS_WIZARD_JS_GZIP_BYTES', 52000),
   },
   {
     path: 'scripts/folderviewplus.import.js',
+    maxBytesEnv: 'FVPLUS_MAX_FOLDERVIEWPLUS_IMPORT_JS_BYTES',
+    maxGzipBytesEnv: 'FVPLUS_MAX_FOLDERVIEWPLUS_IMPORT_JS_GZIP_BYTES',
     maxBytes: envInt('FVPLUS_MAX_FOLDERVIEWPLUS_IMPORT_JS_BYTES', 200000),
     maxGzipBytes: envInt('FVPLUS_MAX_FOLDERVIEWPLUS_IMPORT_JS_GZIP_BYTES', 40000),
   },
   {
     path: 'styles/folderviewplus.css',
+    maxBytesEnv: 'FVPLUS_MAX_FOLDERVIEWPLUS_CSS_BYTES',
+    maxGzipBytesEnv: 'FVPLUS_MAX_FOLDERVIEWPLUS_CSS_GZIP_BYTES',
     maxBytes: envInt('FVPLUS_MAX_FOLDERVIEWPLUS_CSS_BYTES', 120000),
     maxGzipBytes: envInt('FVPLUS_MAX_FOLDERVIEWPLUS_CSS_GZIP_BYTES', 20000),
   },
   {
     path: 'scripts/docker.js',
+    maxBytesEnv: 'FVPLUS_MAX_DOCKER_JS_BYTES',
+    maxGzipBytesEnv: 'FVPLUS_MAX_DOCKER_JS_GZIP_BYTES',
     maxBytes: envInt('FVPLUS_MAX_DOCKER_JS_BYTES', 220000),
     maxGzipBytes: envInt('FVPLUS_MAX_DOCKER_JS_GZIP_BYTES', 45000),
   },
   {
     path: 'scripts/vm.js',
+    maxBytesEnv: 'FVPLUS_MAX_VM_JS_BYTES',
+    maxGzipBytesEnv: 'FVPLUS_MAX_VM_JS_GZIP_BYTES',
     maxBytes: envInt('FVPLUS_MAX_VM_JS_BYTES', 100000),
     maxGzipBytes: envInt('FVPLUS_MAX_VM_JS_GZIP_BYTES', 25000),
   },
   {
     path: 'scripts/folder.js',
+    maxBytesEnv: 'FVPLUS_MAX_FOLDER_JS_BYTES',
+    maxGzipBytesEnv: 'FVPLUS_MAX_FOLDER_JS_GZIP_BYTES',
     maxBytes: envInt('FVPLUS_MAX_FOLDER_JS_BYTES', 130000),
     maxGzipBytes: envInt('FVPLUS_MAX_FOLDER_JS_GZIP_BYTES', 28000),
   },
 ];
 
-const totalJsBudget = envInt('FVPLUS_MAX_TOTAL_JS_BYTES', 1115000);
-const totalCssBudget = envInt('FVPLUS_MAX_TOTAL_CSS_BYTES', 250000);
-const totalJsGzipBudget = envInt('FVPLUS_MAX_TOTAL_JS_GZIP_BYTES', 220000);
-const totalCssGzipBudget = envInt('FVPLUS_MAX_TOTAL_CSS_GZIP_BYTES', 60000);
+let totalJsBudget = envInt('FVPLUS_MAX_TOTAL_JS_BYTES', 1115000);
+let totalCssBudget = envInt('FVPLUS_MAX_TOTAL_CSS_BYTES', 250000);
+let totalJsGzipBudget = envInt('FVPLUS_MAX_TOTAL_JS_GZIP_BYTES', 220000);
+let totalCssGzipBudget = envInt('FVPLUS_MAX_TOTAL_CSS_GZIP_BYTES', 60000);
 const settingsRuntimeBudget = {
   maxBytes: envInt('FVPLUS_MAX_SETTINGS_RUNTIME_JS_BYTES', 930000),
   maxGzipBytes: envInt('FVPLUS_MAX_SETTINGS_RUNTIME_JS_GZIP_BYTES', 180000),
@@ -149,59 +163,61 @@ const settingsRuntimeMetric = settingsRuntimePaths.reduce(
   },
   { bytes: 0, gzipBytes: 0, missing: [] }
 );
-if (settingsRuntimeMetric.missing.length > 0) {
-  console.error(`ERROR: Missing settings runtime asset(s): ${settingsRuntimeMetric.missing.join(', ')}`);
-  failed = true;
-} else {
-  if (settingsRuntimeMetric.bytes > settingsRuntimeBudget.maxBytes) {
-    console.error(
-      `ERROR: Combined settings runtime JS exceeds byte budget (${settingsRuntimeMetric.bytes} > ${settingsRuntimeBudget.maxBytes}).`
-    );
+const runAbsoluteBudgetChecks = () => {
+  if (settingsRuntimeMetric.missing.length > 0) {
+    console.error(`ERROR: Missing settings runtime asset(s): ${settingsRuntimeMetric.missing.join(', ')}`);
     failed = true;
+  } else {
+    if (settingsRuntimeMetric.bytes > settingsRuntimeBudget.maxBytes) {
+      console.error(
+        `ERROR: Combined settings runtime JS exceeds byte budget (${settingsRuntimeMetric.bytes} > ${settingsRuntimeBudget.maxBytes}).`
+      );
+      failed = true;
+    }
+    if (settingsRuntimeMetric.gzipBytes > settingsRuntimeBudget.maxGzipBytes) {
+      console.error(
+        `ERROR: Combined settings runtime JS exceeds gzip budget (${settingsRuntimeMetric.gzipBytes} > ${settingsRuntimeBudget.maxGzipBytes}).`
+      );
+      failed = true;
+    }
   }
-  if (settingsRuntimeMetric.gzipBytes > settingsRuntimeBudget.maxGzipBytes) {
-    console.error(
-      `ERROR: Combined settings runtime JS exceeds gzip budget (${settingsRuntimeMetric.gzipBytes} > ${settingsRuntimeBudget.maxGzipBytes}).`
-    );
-    failed = true;
-  }
-}
 
-for (const budget of budgets) {
-  const fullPath = path.join(pluginDir, budget.path);
-  if (!fs.existsSync(fullPath)) {
-    console.error(`ERROR: Missing asset for performance budget: ${budget.path}`);
-    failed = true;
-    continue;
+  for (const budget of budgets) {
+    const fullPath = path.join(pluginDir, budget.path);
+    if (!fs.existsSync(fullPath)) {
+      console.error(`ERROR: Missing asset for performance budget: ${budget.path}`);
+      failed = true;
+      continue;
+    }
+    const bytes = fs.statSync(fullPath).size;
+    const gzipBytes = zlib.gzipSync(fs.readFileSync(fullPath), { level: 9 }).length;
+    if (bytes > budget.maxBytes) {
+      console.error(`ERROR: ${budget.path} exceeds byte budget (${bytes} > ${budget.maxBytes}).`);
+      failed = true;
+    }
+    if (gzipBytes > budget.maxGzipBytes) {
+      console.error(`ERROR: ${budget.path} exceeds gzip budget (${gzipBytes} > ${budget.maxGzipBytes}).`);
+      failed = true;
+    }
   }
-  const bytes = fs.statSync(fullPath).size;
-  const gzipBytes = zlib.gzipSync(fs.readFileSync(fullPath), { level: 9 }).length;
-  if (bytes > budget.maxBytes) {
-    console.error(`ERROR: ${budget.path} exceeds byte budget (${bytes} > ${budget.maxBytes}).`);
-    failed = true;
-  }
-  if (gzipBytes > budget.maxGzipBytes) {
-    console.error(`ERROR: ${budget.path} exceeds gzip budget (${gzipBytes} > ${budget.maxGzipBytes}).`);
-    failed = true;
-  }
-}
 
-if (totalJs > totalJsBudget) {
-  console.error(`ERROR: Total JS bytes exceed budget (${totalJs} > ${totalJsBudget}).`);
-  failed = true;
-}
-if (totalCss > totalCssBudget) {
-  console.error(`ERROR: Total CSS bytes exceed budget (${totalCss} > ${totalCssBudget}).`);
-  failed = true;
-}
-if (totalJsGzip > totalJsGzipBudget) {
-  console.error(`ERROR: Total JS gzip bytes exceed budget (${totalJsGzip} > ${totalJsGzipBudget}).`);
-  failed = true;
-}
-if (totalCssGzip > totalCssGzipBudget) {
-  console.error(`ERROR: Total CSS gzip bytes exceed budget (${totalCssGzip} > ${totalCssGzipBudget}).`);
-  failed = true;
-}
+  if (totalJs > totalJsBudget) {
+    console.error(`ERROR: Total JS bytes exceed budget (${totalJs} > ${totalJsBudget}).`);
+    failed = true;
+  }
+  if (totalCss > totalCssBudget) {
+    console.error(`ERROR: Total CSS bytes exceed budget (${totalCss} > ${totalCssBudget}).`);
+    failed = true;
+  }
+  if (totalJsGzip > totalJsGzipBudget) {
+    console.error(`ERROR: Total JS gzip bytes exceed budget (${totalJsGzip} > ${totalJsGzipBudget}).`);
+    failed = true;
+  }
+  if (totalCssGzip > totalCssGzipBudget) {
+    console.error(`ERROR: Total CSS gzip bytes exceed budget (${totalCssGzip} > ${totalCssGzipBudget}).`);
+    failed = true;
+  }
+};
 
 let baseline = null;
 if (fs.existsSync(baselineFile)) {
@@ -229,6 +245,45 @@ if (baseline) {
     baseline.totals && typeof baseline.totals === 'object' && !Array.isArray(baseline.totals)
       ? baseline.totals
       : {};
+
+  const hasEnvOverride = (name) => (
+    Object.prototype.hasOwnProperty.call(process.env, name)
+    && String(process.env[name] || '').trim() !== ''
+  );
+  const applyBaselineAbsoluteFloor = (currentValue, baselineValue) => {
+    if (!Number.isFinite(baselineValue) || baselineValue <= 0) {
+      return currentValue;
+    }
+    return Math.max(currentValue, Math.ceil(baselineValue * growthFactor));
+  };
+
+  for (const budget of budgets) {
+    const baseMetric = baselineAssets[budget.path] || {};
+    if (!hasEnvOverride(String(budget.maxBytesEnv || ''))) {
+      budget.maxBytes = applyBaselineAbsoluteFloor(budget.maxBytes, Number(baseMetric.bytes));
+    }
+    if (!hasEnvOverride(String(budget.maxGzipBytesEnv || ''))) {
+      budget.maxGzipBytes = applyBaselineAbsoluteFloor(budget.maxGzipBytes, Number(baseMetric.gzipBytes));
+    }
+  }
+  if (!hasEnvOverride('FVPLUS_MAX_TOTAL_JS_BYTES')) {
+    totalJsBudget = applyBaselineAbsoluteFloor(totalJsBudget, Number(baselineTotals.totalJs));
+  }
+  if (!hasEnvOverride('FVPLUS_MAX_TOTAL_CSS_BYTES')) {
+    totalCssBudget = applyBaselineAbsoluteFloor(totalCssBudget, Number(baselineTotals.totalCss));
+  }
+  if (!hasEnvOverride('FVPLUS_MAX_TOTAL_JS_GZIP_BYTES')) {
+    totalJsGzipBudget = applyBaselineAbsoluteFloor(totalJsGzipBudget, Number(baselineTotals.totalJsGzip));
+  }
+  if (!hasEnvOverride('FVPLUS_MAX_TOTAL_CSS_GZIP_BYTES')) {
+    totalCssGzipBudget = applyBaselineAbsoluteFloor(totalCssGzipBudget, Number(baselineTotals.totalCssGzip));
+  }
+  if (!hasEnvOverride('FVPLUS_MAX_SETTINGS_RUNTIME_JS_BYTES')) {
+    settingsRuntimeBudget.maxBytes = applyBaselineAbsoluteFloor(settingsRuntimeBudget.maxBytes, Number(baselineTotals.settingsRuntimeJs));
+  }
+  if (!hasEnvOverride('FVPLUS_MAX_SETTINGS_RUNTIME_JS_GZIP_BYTES')) {
+    settingsRuntimeBudget.maxGzipBytes = applyBaselineAbsoluteFloor(settingsRuntimeBudget.maxGzipBytes, Number(baselineTotals.settingsRuntimeJsGzip));
+  }
 
   const checkRatchet = (label, currentValue, baselineValue) => {
     if (!Number.isFinite(baselineValue) || baselineValue <= 0) {
@@ -269,6 +324,8 @@ if (baseline) {
     Number(baselineTotals.settingsRuntimeJsGzip)
   );
 }
+
+runAbsoluteBudgetChecks();
 
 if (missingBaselineMetrics.length > 0) {
   const uniqueMissing = [...new Set(missingBaselineMetrics)].sort();

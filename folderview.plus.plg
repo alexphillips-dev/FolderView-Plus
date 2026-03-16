@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.16.06">
-<!ENTITY md5 "7e73dcfe2471c1a7afac002bb5c4b4ef">
+<!ENTITY version "2026.03.16.07">
+<!ENTITY md5 "ddef8d73ab52b18b6310c81e1bb6b13e">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.16.07
+- Fix: Docker runtime Application auto-width now targets both `#docker_list` and `#docker_view` tables so nested folder names no longer get stuck at old width.
+- UX: Application auto-width now includes nested indentation depth when sizing, preventing deep child folder names from collapsing to ellipsis.
+- Compatibility: Increased safe upper bound for Docker Application auto-width to better handle long nested folder names.
+
 
 ###2026.03.16.06
 - UX: adjusted default basic-table column spacing for clearer out-of-box layout while preserving per-user resized widths.

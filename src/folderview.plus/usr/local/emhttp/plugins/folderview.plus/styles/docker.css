@@ -2,18 +2,18 @@
     --folder-view3-graph-cpu: #2b8da3;
     --folder-view3-graph-mem: #5d6db6;
     --tooltip-spacing: 5px;
-    --fvplus-docker-app-column-width: 220px;
-    --fvplus-docker-app-column-width-mobile: 180px;
+    --fvplus-docker-app-column-width: 260px;
+    --fvplus-docker-app-column-width-mobile: 214px;
 }
 
 body[data-fvplus-docker-app-width="compact"] {
-    --fvplus-docker-app-column-width: 190px;
-    --fvplus-docker-app-column-width-mobile: 164px;
+    --fvplus-docker-app-column-width: 220px;
+    --fvplus-docker-app-column-width-mobile: 182px;
 }
 
 body[data-fvplus-docker-app-width="wide"] {
-    --fvplus-docker-app-column-width: 280px;
-    --fvplus-docker-app-column-width-mobile: 232px;
+    --fvplus-docker-app-column-width: 320px;
+    --fvplus-docker-app-column-width-mobile: 262px;
 }
 
 body.fvplus-docker-column-resize-active,
@@ -22,41 +22,48 @@ body.fvplus-docker-column-resize-active * {
     user-select: none !important;
 }
 
-th.fvplus-runtime-app-col {
+th.fvplus-runtime-resizable {
     position: relative;
 }
 
-th.fvplus-runtime-app-col .fvplus-runtime-col-resizer {
+th.fvplus-runtime-resizable .fvplus-runtime-col-resizer {
     position: absolute;
     top: 0;
     right: 0;
-    width: 10px;
+    width: 12px;
     height: 100%;
     border: 0;
     margin: 0;
     padding: 0;
     background: transparent;
     cursor: col-resize;
-    z-index: 6;
+    z-index: 12;
+    touch-action: none;
 }
 
-th.fvplus-runtime-app-col .fvplus-runtime-col-resizer::before {
+th.fvplus-runtime-resizable .fvplus-runtime-col-resizer::before {
     content: "";
     position: absolute;
-    top: 18%;
-    bottom: 18%;
+    top: 14%;
+    bottom: 14%;
     left: 50%;
-    width: 1px;
+    width: 2px;
     transform: translateX(-50%);
-    background: rgba(142, 158, 184, 0.5);
-    opacity: 0;
+    background: rgba(142, 158, 184, 0.72);
+    opacity: 0.48;
     transition: opacity 120ms ease-in-out;
 }
 
-th.fvplus-runtime-app-col:hover .fvplus-runtime-col-resizer::before,
-th.fvplus-runtime-app-col .fvplus-runtime-col-resizer:focus-visible::before,
-body.fvplus-docker-column-resize-active th.fvplus-runtime-app-col .fvplus-runtime-col-resizer::before {
-    opacity: 1;
+th.fvplus-runtime-resizable:hover .fvplus-runtime-col-resizer::before,
+th.fvplus-runtime-resizable .fvplus-runtime-col-resizer:focus-visible::before,
+body.fvplus-docker-column-resize-active th.fvplus-runtime-resizable .fvplus-runtime-col-resizer::before {
+    opacity: 0.98;
+}
+
+@media (max-width: 900px) {
+    th.fvplus-runtime-resizable .fvplus-runtime-col-resizer {
+        display: none !important;
+    }
 }
 
 .fv-runtime-health-badge {

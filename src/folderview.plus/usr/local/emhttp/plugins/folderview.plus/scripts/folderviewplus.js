@@ -4100,8 +4100,8 @@ const syncResizableTableLayout = (type) => {
         table.style.removeProperty('max-width');
         table.style.removeProperty('table-layout');
         if (tableWrap && tableWrap.style) {
-            tableWrap.style.setProperty('overflow-x', 'auto');
-            tableWrap.style.setProperty('overflow-y', 'visible');
+            tableWrap.style.removeProperty('overflow-x');
+            tableWrap.style.removeProperty('overflow-y');
         }
         return;
     }
@@ -4114,7 +4114,8 @@ const syncResizableTableLayout = (type) => {
         if (!header || header.classList.contains('fv-col-hidden')) {
             return;
         }
-        totalWidth += Math.ceil(header.getBoundingClientRect().width || 0);
+        const configuredWidth = normalizeSingleColumnWidth(resolvedType, key, customWidths[key]);
+        totalWidth += Math.ceil(configuredWidth || header.getBoundingClientRect().width || 0);
         visibleColumns += 1;
     });
     if (visibleColumns <= 0 || totalWidth <= 0) {
@@ -4125,12 +4126,12 @@ const syncResizableTableLayout = (type) => {
     }
     const wrapWidth = tableWrap ? Math.ceil(tableWrap.getBoundingClientRect().width || 0) : 0;
     const targetWidth = Math.max(wrapWidth, totalWidth);
-    table.style.setProperty('width', `${targetWidth}px`);
-    table.style.setProperty('max-width', 'none');
-    table.style.setProperty('table-layout', 'fixed');
+    table.style.setProperty('width', `${targetWidth}px`, 'important');
+    table.style.setProperty('max-width', 'none', 'important');
+    table.style.setProperty('table-layout', 'fixed', 'important');
     if (tableWrap && tableWrap.style) {
-        tableWrap.style.setProperty('overflow-x', 'auto');
-        tableWrap.style.setProperty('overflow-y', 'visible');
+        tableWrap.style.setProperty('overflow-x', 'auto', 'important');
+        tableWrap.style.setProperty('overflow-y', 'visible', 'important');
     }
 };
 
@@ -4258,9 +4259,9 @@ const applySingleColumnWidth = (type, key, widthPx) => {
             element.style.removeProperty('max-width');
             return;
         }
-        element.style.setProperty('width', `${width}px`);
-        element.style.setProperty('min-width', `${width}px`);
-        element.style.setProperty('max-width', `${width}px`);
+        element.style.setProperty('width', `${width}px`, 'important');
+        element.style.setProperty('min-width', `${width}px`, 'important');
+        element.style.setProperty('max-width', `${width}px`, 'important');
     });
 };
 

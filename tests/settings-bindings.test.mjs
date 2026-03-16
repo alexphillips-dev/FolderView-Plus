@@ -179,7 +179,7 @@ test('settings column resize keeps per-column widths stable without side-effects
     assert.match(script, /const syncResizableTableLayout = \(type\) =>/);
     assert.match(script, /const hasCustomWidths = Object\.keys\(customWidths\)\.length > 0;/);
     assert.match(script, /const frozenWidths = captureCurrentColumnWidths\(resolvedType\);/);
-    assert.match(script, /table\.style\.setProperty\('table-layout', 'fixed'\);/);
+    assert.match(script, /table\.style\.setProperty\('table-layout', 'fixed'(,\s*'important')?\);/);
     assert.match(script, /const delta = Number\(moveEvent\.clientX \|\| 0\) - startClientX;/);
 });
 

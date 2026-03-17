@@ -5,13 +5,25 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.17.15">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
+<!ENTITY version "2026.03.17.17">
 <!ENTITY md5 "51951c66ff863448d243f6cdbff8d86d">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.17.17
+- Feature: Overhauled Advanced settings readability with corrected section numbering, vertical module stacking, and new left/right module gutters.
+- Feature: Improved nested folder behavior so parent/root folders with children can expand direct members first and then render nested child folders in order.
+- Feature: Added resilient quick-action fallback so nested parent previews keep WebUI, Console, and Logs actions even with legacy preview flags.
+- Feature: Upgraded Dashboard Docker/VM widgets with nested-folder-aware expansion, contained trays, and in-widget Docker quick actions.
+- Fix: Resolved settings load crash caused by bulk-assignment member normalization on some installs.
+- Fix: Stabilized Docker application-column auto-sizing for long and nested folder names to prevent dot-truncation regressions.
+- Fix: Corrected preview-border persistence so explicit border OFF/ON settings stay consistent across Docker/VM renders.
+- Quality: Expanded regression coverage for advanced layout, nested parent expansion order, dashboard nested rendering, and quick-action availability.
+- Quality: Validated release guards, install smoke, and packaging checks for this roll-up release.
+
 
 ###2026.03.17.15
 - Feature: add side gutters to advanced settings modules.
@@ -1807,7 +1819,7 @@
     </CHANGES>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

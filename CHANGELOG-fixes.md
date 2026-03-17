@@ -1,5 +1,25 @@
 # FolderView Plus Changelog
 
+## Version 2026.03.17.17
+
+### Highlights
+
+- Advanced settings refresh with corrected tab numbering, cleaner vertical module flow, and new side gutters.
+- Nested folder rendering improvements across Docker root/parent previews and Dashboard widget expansion.
+- Improved Docker/VM dashboard usability with nested-aware trays and direct Docker quick actions in expanded views.
+
+### Important Bug Fixes
+
+- Fixed advanced settings load failures tied to bulk-assignment member normalization.
+- Fixed nested parent/root preview regressions where direct members could disappear or lose quick-action controls.
+- Fixed Docker Application-column auto-size behavior for long/nested names to avoid truncation regressions.
+- Fixed preview-border persistence inconsistencies for explicit OFF/ON states.
+
+### Quality
+
+- Added/extended regression checks for nested expansion order, dashboard nested rendering, quick-action availability, and advanced-layout stability.
+- Validated packaging + guard/smoke workflows for this roll-up release.
+
 ## Version 2026.03.13.12
 
 ### Highlights

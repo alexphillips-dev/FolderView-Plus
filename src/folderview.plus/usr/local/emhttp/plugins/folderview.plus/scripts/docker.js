@@ -87,6 +87,18 @@ const DOCKER_RUNTIME_APP_PRESET_WIDTHS = Object.freeze({
     standard: 142,
     wide: 188
 });
+const runtimeColumnLayout = window.FolderViewPlusRuntimeColumnLayout || null;
+const dockerRuntimeColumnLayoutEngine = runtimeColumnLayout && typeof runtimeColumnLayout.createColumnLayoutEngine === 'function'
+    ? runtimeColumnLayout.createColumnLayoutEngine({
+        minWidth: DOCKER_RUNTIME_APP_WIDTH_MIN,
+        maxWidth: DOCKER_RUNTIME_APP_WIDTH_MAX,
+        presetWidths: DOCKER_RUNTIME_APP_PRESET_WIDTHS,
+        desktopVarName: '--fvplus-docker-app-column-width',
+        mobileVarName: '--fvplus-docker-app-column-width-mobile',
+        mobileScale: 0.82,
+        mobileMin: 112
+    })
+    : null;
 let dockerRuntimeColumnResizeSession = null;
 let lastAppliedRuntimePrefs = null;
 let dockerRuntimeResizeViewportBound = false;
@@ -134,9 +146,13 @@ const clampDockerRuntimeColumnWidth = (value, columnIndex = 0) => {
         return null;
     }
     const rounded = Math.round(parsed);
-    const min = columnIndex === 1 ? DOCKER_RUNTIME_APP_WIDTH_MIN : DOCKER_RUNTIME_COLUMN_WIDTH_MIN;
-    const max = columnIndex === 1 ? DOCKER_RUNTIME_APP_WIDTH_MAX : DOCKER_RUNTIME_COLUMN_WIDTH_MAX;
-    return Math.max(min, Math.min(max, rounded));
+    if (columnIndex === 1) {
+        if (dockerRuntimeColumnLayoutEngine && typeof dockerRuntimeColumnLayoutEngine.clampWidth === 'function') {
+            return dockerRuntimeColumnLayoutEngine.clampWidth(rounded);
+        }
+        return Math.max(DOCKER_RUNTIME_APP_WIDTH_MIN, Math.min(DOCKER_RUNTIME_APP_WIDTH_MAX, rounded));
+    }
+    return Math.max(DOCKER_RUNTIME_COLUMN_WIDTH_MIN, Math.min(DOCKER_RUNTIME_COLUMN_WIDTH_MAX, rounded));
 };
 
 const normalizeDockerRuntimeColumnWidthMap = (value) => {
@@ -172,6 +188,9 @@ const getDockerRuntimePresetAppWidth = () => {
         mode = normalizeDockerRuntimeAppColumnMode(lastAppliedRuntimePrefs.appColumnWidth);
     } else if (document.body && typeof document.body.getAttribute === 'function') {
         mode = normalizeDockerRuntimeAppColumnMode(document.body.getAttribute('data-fvplus-docker-app-width'));
+    }
+    if (dockerRuntimeColumnLayoutEngine && typeof dockerRuntimeColumnLayoutEngine.resolvePresetWidth === 'function') {
+        return dockerRuntimeColumnLayoutEngine.resolvePresetWidth(mode);
     }
     const preset = DOCKER_RUNTIME_APP_PRESET_WIDTHS[mode] || DOCKER_RUNTIME_APP_PRESET_WIDTHS.standard;
     return clampDockerRuntimeColumnWidth(preset, 1);
@@ -249,6 +268,10 @@ const captureCurrentDockerRuntimeColumnWidths = () => {
 };
 
 const applyDockerRuntimeAppWidthVariables = (desktopWidthPx = null) => {
+    if (dockerRuntimeColumnLayoutEngine && typeof dockerRuntimeColumnLayoutEngine.applyCssWidthVars === 'function') {
+        dockerRuntimeColumnLayoutEngine.applyCssWidthVars(desktopWidthPx);
+        return;
+    }
     const safeDesktopWidth = clampDockerRuntimeColumnWidth(desktopWidthPx, 1);
     if (!document.body || !document.body.style) {
         return;
@@ -266,40 +289,19 @@ const applyDockerRuntimeAppWidthVariables = (desktopWidthPx = null) => {
 const estimateDockerRuntimeAutoAppWidth = () => {
     const baseline = getDockerRuntimePresetAppWidth() || DOCKER_RUNTIME_APP_PRESET_WIDTHS.standard;
     const rows = Array.from(document.querySelectorAll('tbody#docker_list tr.folder, tbody#docker_view tr.folder'));
-    if (!rows.length) {
-        return baseline;
+    if (dockerRuntimeColumnLayoutEngine && typeof dockerRuntimeColumnLayoutEngine.estimateFromRows === 'function') {
+        const estimated = dockerRuntimeColumnLayoutEngine.estimateFromRows({
+            rows,
+            baseline,
+            nameSelector: '.folder-appname',
+            indentSelector: '.folder-name-sub',
+            hiddenClass: 'fv-nested-hidden',
+            chromeWidth: DOCKER_RUNTIME_APP_CHROME_WIDTH,
+            textBuffer: DOCKER_RUNTIME_APP_TEXT_BUFFER
+        });
+        return estimated || baseline;
     }
-    const measureCanvas = document.createElement('canvas');
-    const ctx = measureCanvas.getContext('2d');
-    if (!ctx) {
-        return baseline;
-    }
-    let maxWidth = baseline;
-    rows.forEach((row) => {
-        if (row.offsetParent === null || row.classList.contains('fv-nested-hidden')) {
-            return;
-        }
-        const nameNode = row.querySelector('.folder-appname');
-        if (!nameNode) {
-            return;
-        }
-        const text = String(nameNode.textContent || '').trim();
-        if (!text) {
-            return;
-        }
-        const style = window.getComputedStyle(nameNode);
-        ctx.font = `${style.fontStyle} ${style.fontVariant} ${style.fontWeight} ${style.fontSize} / ${style.lineHeight} ${style.fontFamily}`;
-        const textWidth = ctx.measureText(text).width;
-        const nameSubNode = row.querySelector('.folder-name-sub');
-        const nameSubStyle = nameSubNode ? window.getComputedStyle(nameSubNode) : null;
-        const paddingIndent = nameSubStyle ? Math.max(0, Math.round(parseFloat(nameSubStyle.paddingLeft) || 0)) : 0;
-        // Include fixed row chrome (icon/dropdown/gutters) plus a small text cushion.
-        const estimated = Math.ceil(textWidth + paddingIndent + DOCKER_RUNTIME_APP_CHROME_WIDTH + DOCKER_RUNTIME_APP_TEXT_BUFFER);
-        if (estimated > maxWidth) {
-            maxWidth = estimated;
-        }
-    });
-    return clampDockerRuntimeColumnWidth(maxWidth, 1) || baseline;
+    return baseline;
 };
 
 const applyDockerRuntimeColumnWidths = (_widthMap = null) => {

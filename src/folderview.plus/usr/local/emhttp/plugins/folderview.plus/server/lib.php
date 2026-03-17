@@ -25,6 +25,7 @@
     require_once("$documentRoot/webGui/include/Helpers.php");
     require_once("$documentRoot/plugins/dynamix.docker.manager/include/DockerClient.php");
     require_once ("$documentRoot/plugins/dynamix.vm.manager/include/libvirt_helpers.php");
+    require_once('/usr/local/emhttp/plugins/folderview.plus/server/lib.validation.php');
 
     function fv3_cache_root(): string {
         static $cacheRoot = null;
@@ -4387,6 +4388,7 @@
         if (!is_array($decodedContent)) {
             throw new RuntimeException('Invalid folder payload.');
         }
+        fvplus_assert_folder_payload_shape($decodedContent);
         $existingFolder = is_array($fileData[$id] ?? null)
             ? normalizeFolderContentPayload((array)$fileData[$id])
             : null;

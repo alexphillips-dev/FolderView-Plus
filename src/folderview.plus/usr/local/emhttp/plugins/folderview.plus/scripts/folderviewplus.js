@@ -10588,36 +10588,43 @@ const runConflictInspector = async (type) => {
     });
 };
 
+const updateTools = window.FolderViewPlusUpdateTools || null;
+
 const checkForUpdatesNow = async () => {
-    setUpdateStatus('Checking for updates...');
-
-    try {
-        const response = await apiGetJson('/plugins/folderview.plus/server/update_check.php');
-        if (!response.ok) {
-            setUpdateStatus('Update check failed.');
-            swal({
-                title: 'Update check failed',
-                text: response.error || 'Unable to check for updates right now.',
-                type: 'error'
-            });
-            return;
-        }
-
-        const message = response.updateAvailable
-            ? `Update available: ${response.currentVersion} -> ${response.remoteVersion}`
-            : `Up to date: ${response.currentVersion}`;
-
-        const statusMeta = `${response.responseStatus || 'status unknown'} | ${response.durationMs ?? '?'}ms`;
-        setUpdateStatus(`${message} (checked ${response.checkedAt})`);
-        swal({
-            title: response.updateAvailable ? 'Update available' : 'No update available',
-            text: `${message}\nSource: ${response.manifestUrl}\nRequest: ${response.requestUrl || response.manifestUrl}\nNetwork: ${statusMeta}`,
-            type: response.updateAvailable ? 'warning' : 'success'
+    if (updateTools && typeof updateTools.checkForUpdatesNow === 'function') {
+        return updateTools.checkForUpdatesNow({
+            apiGetJson,
+            setUpdateStatus,
+            showError,
+            swalFn: swal
         });
-    } catch (error) {
-        setUpdateStatus('Update check failed.');
-        showError('Update check failed', error);
     }
+    setUpdateStatus('Update helper module unavailable.');
+    swal({
+        title: 'Update helper unavailable',
+        text: 'Reload the page to load update helper scripts.',
+        type: 'warning'
+    });
+    return null;
+};
+
+const showDevForceRefreshHelper = async () => {
+    if (updateTools && typeof updateTools.showDevForceRefreshHelper === 'function') {
+        return updateTools.showDevForceRefreshHelper({
+            apiGetJson,
+            apiGetText,
+            setUpdateStatus,
+            showError,
+            swalFn: swal
+        });
+    }
+    setUpdateStatus('Force-refresh helper unavailable.');
+    swal({
+        title: 'Force-refresh helper unavailable',
+        text: 'Reload the page to load helper scripts.',
+        type: 'warning'
+    });
+    return null;
 };
 
 const createRollbackCheckpoint = async () => {
@@ -10736,6 +10743,7 @@ window.exportSupportBundle = exportSupportBundle;
 window.copyIssueReport = copyIssueReport;
 window.runConflictInspector = runConflictInspector;
 window.checkForUpdatesNow = checkForUpdatesNow;
+window.showDevForceRefreshHelper = showDevForceRefreshHelper;
 window.moveFolderRow = moveFolderRow;
 window.moveFolderToRootQuick = moveFolderToRootQuick;
 window.moveFolderUnderDialog = moveFolderUnderDialog;

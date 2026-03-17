@@ -6,12 +6,27 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.17.21">
-<!ENTITY md5 "eb4a5b5903a0e2a7ae9b4b380e2cd6c5">
+<!ENTITY version "2026.03.17.23">
+<!ENTITY md5 "95632a565080453e0cbc55fb189283a4">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.17.23
+- Fix: Repositioned Docker folder dropdown chevrons with extra right-side gutter spacing while keeping the button icon-sized to prevent Version-column clipping.
+- Feature: Added shared `runtime.column-layout.js` so Docker and VM runtimes use one auto-width/preset/CSS-var column layout engine.
+- Feature: Added a dedicated update helper module and new Settings action to generate force-refresh install commands for Unraid cache-bypass updates.
+- Quality: Added strict folder/prefs payload-shape validation at server boundaries, including explicit JSON-object enforcement for prefs writes.
+- Test: Extended browser smoke checks to validate Docker/VM runtime dropdown overlap metrics and capture artifacts per browser/runtime target.
+- Quality: Updated guard scripts so `server/lib*.php` helper modules are treated as libraries instead of mutating endpoints.
+
+
+###2026.03.17.22
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Fix: Improved backend release-note parsing and category detection for accurate summaries.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
 
 ###2026.03.17.21
 - Fix: Keep Docker folder dropdown chevron icon-sized while adding right-side gutter spacing so it no longer clips into the Version column.

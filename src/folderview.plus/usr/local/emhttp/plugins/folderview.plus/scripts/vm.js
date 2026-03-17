@@ -73,6 +73,28 @@ const utils = window.FolderViewPlusUtils || {
         };
     }
 };
+const runtimeColumnLayout = window.FolderViewPlusRuntimeColumnLayout || null;
+const VM_RUNTIME_APP_WIDTH_MIN = 160;
+const VM_RUNTIME_APP_WIDTH_MAX = 920;
+const VM_RUNTIME_APP_CHROME_WIDTH = 66;
+const VM_RUNTIME_APP_TEXT_BUFFER = 10;
+const VM_RUNTIME_APP_PRESET_WIDTHS = Object.freeze({
+    compact: 190,
+    standard: 220,
+    wide: 280
+});
+const vmRuntimeColumnLayoutEngine = runtimeColumnLayout && typeof runtimeColumnLayout.createColumnLayoutEngine === 'function'
+    ? runtimeColumnLayout.createColumnLayoutEngine({
+        minWidth: VM_RUNTIME_APP_WIDTH_MIN,
+        maxWidth: VM_RUNTIME_APP_WIDTH_MAX,
+        presetWidths: VM_RUNTIME_APP_PRESET_WIDTHS,
+        desktopVarName: '--fvplus-vm-app-column-width',
+        mobileVarName: '--fvplus-vm-app-column-width-mobile',
+        mobileScale: 0.82,
+        mobileMin: 156
+    })
+    : null;
+let vmRuntimeViewportBound = false;
 const VM_DEBUG_MODE = false;
 const vmDebugLog = (...args) => {
     if (VM_DEBUG_MODE) {
@@ -658,6 +680,7 @@ const createFolders = async () => {
     globalFolders = foldersDone;
     persistVmExpandedStateFromGlobal();
     renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
+    applyVmRuntimeAppWidthVariables(estimateVmRuntimeAutoAppWidth());
 
     folderDebugMode  = false;
     } finally {
@@ -1498,6 +1521,80 @@ const scheduleLiveRefresh = (prefs) => {
     liveRefreshTimer = setInterval(runLiveRefreshTick, ms);
 };
 
+const normalizeVmRuntimeAppColumnMode = (value) => {
+    const fallbackNormalize = () => {
+        const mode = String(value || '').trim().toLowerCase();
+        return mode === 'compact' || mode === 'wide' ? mode : 'standard';
+    };
+    if (!utils || typeof utils.normalizeAppColumnWidth !== 'function') {
+        return fallbackNormalize();
+    }
+    return utils.normalizeAppColumnWidth(value);
+};
+
+const getVmRuntimePresetAppWidth = () => {
+    let mode = 'standard';
+    if (folderTypePrefs && typeof folderTypePrefs === 'object') {
+        mode = normalizeVmRuntimeAppColumnMode(folderTypePrefs.appColumnWidth);
+    } else if (document.body && typeof document.body.getAttribute === 'function') {
+        mode = normalizeVmRuntimeAppColumnMode(document.body.getAttribute('data-fvplus-vm-app-width'));
+    }
+    if (vmRuntimeColumnLayoutEngine && typeof vmRuntimeColumnLayoutEngine.resolvePresetWidth === 'function') {
+        return vmRuntimeColumnLayoutEngine.resolvePresetWidth(mode);
+    }
+    const preset = VM_RUNTIME_APP_PRESET_WIDTHS[mode] || VM_RUNTIME_APP_PRESET_WIDTHS.standard;
+    return Math.max(VM_RUNTIME_APP_WIDTH_MIN, Math.min(VM_RUNTIME_APP_WIDTH_MAX, Math.round(Number(preset) || VM_RUNTIME_APP_PRESET_WIDTHS.standard)));
+};
+
+const estimateVmRuntimeAutoAppWidth = () => {
+    const baseline = getVmRuntimePresetAppWidth() || VM_RUNTIME_APP_PRESET_WIDTHS.standard;
+    const rows = Array.from(document.querySelectorAll('#kvm_table tr.folder, tbody#kvm_list tr.folder, tbody#kvm_view tr.folder'));
+    if (vmRuntimeColumnLayoutEngine && typeof vmRuntimeColumnLayoutEngine.estimateFromRows === 'function') {
+        const estimated = vmRuntimeColumnLayoutEngine.estimateFromRows({
+            rows,
+            baseline,
+            nameSelector: '.folder-appname',
+            indentSelector: '.folder-name-sub',
+            hiddenClass: 'fv-nested-hidden',
+            chromeWidth: VM_RUNTIME_APP_CHROME_WIDTH,
+            textBuffer: VM_RUNTIME_APP_TEXT_BUFFER
+        });
+        return estimated || baseline;
+    }
+    return baseline;
+};
+
+const applyVmRuntimeAppWidthVariables = (desktopWidthPx = null) => {
+    if (vmRuntimeColumnLayoutEngine && typeof vmRuntimeColumnLayoutEngine.applyCssWidthVars === 'function') {
+        vmRuntimeColumnLayoutEngine.applyCssWidthVars(desktopWidthPx);
+        return;
+    }
+    const safeDesktopWidth = Number.isFinite(Number(desktopWidthPx)) ? Math.round(Number(desktopWidthPx)) : null;
+    if (!document.body || !document.body.style) {
+        return;
+    }
+    if (!safeDesktopWidth) {
+        document.body.style.removeProperty('--fvplus-vm-app-column-width');
+        document.body.style.removeProperty('--fvplus-vm-app-column-width-mobile');
+        return;
+    }
+    const mobileWidth = Math.max(156, Math.round(safeDesktopWidth * 0.82));
+    document.body.style.setProperty('--fvplus-vm-app-column-width', `${safeDesktopWidth}px`);
+    document.body.style.setProperty('--fvplus-vm-app-column-width-mobile', `${mobileWidth}px`);
+};
+
+const bindVmRuntimeViewportWidthSync = () => {
+    if (vmRuntimeViewportBound) {
+        return;
+    }
+    vmRuntimeViewportBound = true;
+    const reapply = () => {
+        applyVmRuntimeAppWidthVariables(estimateVmRuntimeAutoAppWidth());
+    };
+    window.addEventListener('resize', reapply, { passive: true });
+    window.addEventListener('orientationchange', reapply, { passive: true });
+};
+
 const applyRuntimePrefs = (prefs) => {
     const normalized = utils.normalizePrefs(prefs || {});
     const appColumnWidth = typeof utils.normalizeAppColumnWidth === 'function'
@@ -1506,6 +1603,8 @@ const applyRuntimePrefs = (prefs) => {
     if (document.body && typeof document.body.setAttribute === 'function') {
         document.body.setAttribute('data-fvplus-vm-app-width', appColumnWidth);
     }
+    bindVmRuntimeViewportWidthSync();
+    applyVmRuntimeAppWidthVariables(estimateVmRuntimeAutoAppWidth());
     $('body').toggleClass('fvplus-performance-mode', normalized.performanceMode === true);
     scheduleLiveRefresh(normalized);
 };

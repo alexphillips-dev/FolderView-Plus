@@ -19,7 +19,7 @@ if [[ ${#files[@]} -eq 0 ]]; then
   fvplus::fail "No PHP endpoint files found in ${SERVER_DIR}"
 fi
 
-require_lib_exceptions=("lib.php" "cpu.php")
+require_lib_exceptions=("cpu.php")
 legacy_json_endpoints=("read.php" "read_info.php" "read_order.php" "read_unraid_order.php")
 plain_text_endpoints=("cpu.php" "version.php")
 mutation_endpoints=(
@@ -49,6 +49,9 @@ contains_item() {
 
 for file in "${files[@]}"; do
   name="$(basename "${file}")"
+  if [[ "${name}" == lib*.php ]]; then
+    continue
+  fi
 
   if ! contains_item "${name}" "${require_lib_exceptions[@]}"; then
     if ! grep -q 'require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php")' "${file}"; then

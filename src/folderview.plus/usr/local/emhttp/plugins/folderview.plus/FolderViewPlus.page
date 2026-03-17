@@ -42,6 +42,7 @@ if (!empty($fvplusRuntimeConflicts)) {
 </div>
 <button type="button" data-i18n="file-manager" onclick="fileManager()">Open File Manager</button>
 <button type="button" onclick="checkForUpdatesNow()"><i class="fa fa-refresh" aria-hidden="true"></i> Check for updates now</button>
+<button type="button" onclick="showDevForceRefreshHelper()"><i class="fa fa-bolt" aria-hidden="true"></i> Force-refresh install helper</button>
 <button type="button" onclick="createRollbackCheckpoint()"><i class="fa fa-life-ring" aria-hidden="true"></i> Create rollback checkpoint</button>
 <button type="button" onclick="rollbackLatestCheckpoint()"><i class="fa fa-undo" aria-hidden="true"></i> Rollback to previous snapshot</button>
 <div class="fv-quick-presets">
@@ -939,4 +940,5 @@ if (!empty($fvplusRuntimeConflicts)) {
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.dirty.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.wizard.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.import.js')?>"></script>
+<script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.updates.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.js')?>"></script>

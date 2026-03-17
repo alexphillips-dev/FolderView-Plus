@@ -30,6 +30,7 @@ if (!empty($fvplusRuntimeConflicts)) {
 
 <script src="<?php autov('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>"></script>
 <script src="<?php autov('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>
+<script src="<?php autov('/plugins/folderview.plus/scripts/runtime.column-layout.js')?>"></script>
 <script src="<?php autov('/plugins/folderview.plus/scripts/vm.js')?>"></script>
 
 <link rel="stylesheet" href="<?php autov('/plugins/folderview.plus/styles/vm.css')?>">

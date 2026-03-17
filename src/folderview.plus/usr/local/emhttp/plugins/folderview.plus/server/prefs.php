@@ -14,12 +14,16 @@ fvplus_json_try(function (): array {
 
     $incoming = $_POST['prefs'] ?? null;
     $decoded = [];
-    if (is_string($incoming) && $incoming !== '') {
+    if (is_string($incoming) && trim($incoming) !== '') {
         $parsed = json_decode($incoming, true);
-        if (is_array($parsed)) {
-            $decoded = $parsed;
+        if (!is_array($parsed)) {
+            throw new RuntimeException('Invalid prefs payload: expected JSON object.');
         }
+        $decoded = $parsed;
+    } elseif (is_array($incoming)) {
+        $decoded = $incoming;
     }
+    fvplus_assert_prefs_payload_shape($decoded);
 
     $current = readTypePrefs($type);
     $next = normalizeTypePrefs(array_merge($current, $decoded));

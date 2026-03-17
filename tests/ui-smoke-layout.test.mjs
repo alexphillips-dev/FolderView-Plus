@@ -69,6 +69,7 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
     assert.match(settingsPage, /folderviewplus\.dirty\.js/);
     assert.match(settingsPage, /folderviewplus\.wizard\.js/);
     assert.match(settingsPage, /folderviewplus\.import\.js/);
+    assert.match(settingsPage, /folderviewplus\.updates\.js/);
     assert.match(settingsPage, /Last changed/);
     assert.match(settingsPage, /Pinned/);
     assert.match(settingsPage, /Updates/);

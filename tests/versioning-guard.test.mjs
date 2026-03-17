@@ -163,6 +163,14 @@ test('browser smoke scripts support optional and required modes and include core
     assert.match(browserSmokeNode, /#fv-settings-topbar/);
     assert.match(browserSmokeNode, /#fv-settings-action-bar/);
     assert.match(browserSmokeNode, /#import-preview-dialog/);
+    assert.match(browserSmokeNode, /FVPLUS_BROWSER_SMOKE_DOCKER_URL/);
+    assert.match(browserSmokeNode, /FVPLUS_BROWSER_SMOKE_VM_URL/);
+    assert.match(browserSmokeNode, /FVPLUS_BROWSER_SMOKE_ARTIFACT_DIR/);
+    assert.match(browserSmokeNode, /FVPLUS_BROWSER_SMOKE_REQUIRE_RUNTIME_ROWS/);
+    assert.match(browserSmokeNode, /runRuntimeLayoutSmoke/);
+    assert.match(browserSmokeNode, /Runtime visual check passed/);
+    assert.match(browserSmokeNode, /Runtime layout overlap detected/);
+    assert.match(browserSmokeNode, /page\.screenshot\(\{ path: screenshotPath, fullPage: true \}\)/);
     assert.match(browserSmokeNode, /runBrowserSmoke\('chromium'/);
     assert.match(browserSmokeNode, /runBrowserSmoke\('firefox'/);
     assert.match(browserSmokeNode, /runBrowserSmoke\('webkit'/);

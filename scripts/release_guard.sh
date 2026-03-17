@@ -500,7 +500,7 @@ READ_ONLY_ENDPOINTS=(
 
 while IFS= read -r endpoint_path; do
   endpoint_name="$(basename "${endpoint_path}")"
-  if [[ "${endpoint_name}" == "lib.php" ]]; then
+  if [[ "${endpoint_name}" == lib*.php ]]; then
     continue
   fi
   if printf '%s\n' "${READ_ONLY_ENDPOINTS[@]}" | grep -Fxq "${endpoint_name}"; then

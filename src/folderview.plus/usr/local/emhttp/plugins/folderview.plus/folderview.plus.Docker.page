@@ -34,6 +34,7 @@ if (!empty($fvplusRuntimeConflicts)) {
 <script src="/plugins/folderview.plus/scripts/include/chartjs-plugin-streaming.min.js"></script>
 <script src="<?php autov('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>"></script>
 <script src="<?php autov('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>
+<script src="<?php autov('/plugins/folderview.plus/scripts/runtime.column-layout.js')?>"></script>
 <script src="<?php autov('/plugins/folderview.plus/scripts/docker.modules.js')?>"></script>
 <script defer src="<?php autov('/plugins/folderview.plus/scripts/docker.js')?>"></script>
 

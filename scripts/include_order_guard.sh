@@ -27,6 +27,7 @@ const expectedOrder = [
   'folderviewplus.dirty.js',
   'folderviewplus.wizard.js',
   'folderviewplus.import.js',
+  'folderviewplus.updates.js',
   'folderviewplus.js'
 ];
 

@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.17.07">
-<!ENTITY md5 "01530b142759a018c5c75af57aa3f863">
+<!ENTITY version "2026.03.17.08">
+<!ENTITY md5 "8d4f179b28154a6ae90dc7ab10100fd7">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.17.08
+- Fix: Fix settings load crash in bulk assignment member normalization.
+
 
 ###2026.03.17.07
 - Maintenance: Advanced UX: bulk assignment cleanup and move reliability hardening.

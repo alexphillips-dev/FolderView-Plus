@@ -80,6 +80,9 @@ const DOCKER_RUNTIME_APP_WIDTH_MIN = 118;
 const DOCKER_RUNTIME_APP_WIDTH_MAX = 1280;
 const DOCKER_RUNTIME_APP_CHROME_WIDTH = 132;
 const DOCKER_RUNTIME_APP_TEXT_BUFFER = 12;
+const DOCKER_RUNTIME_APP_OVERFLOW_CLIENT_WIDTH_MIN = 36;
+const DOCKER_RUNTIME_APP_OVERFLOW_NUDGE_MAX = 56;
+const DOCKER_RUNTIME_APP_WIDTH_FLOOR_HEADROOM = 56;
 const DOCKER_RUNTIME_COLUMN_WIDTH_MIN = 88;
 const DOCKER_RUNTIME_COLUMN_WIDTH_MAX = 920;
 const DOCKER_RUNTIME_APP_PRESET_WIDTHS = Object.freeze({
@@ -327,7 +330,12 @@ const adjustDockerRuntimeAppWidthForRenderedOverflow = (baseWidth = null) => {
         if (!label) {
             return;
         }
-        const overflow = Math.ceil((label.scrollWidth || 0) - (label.clientWidth || 0));
+        const clientWidth = Math.max(0, Math.ceil(label.clientWidth || 0));
+        if (clientWidth < DOCKER_RUNTIME_APP_OVERFLOW_CLIENT_WIDTH_MIN) {
+            return;
+        }
+        const rawOverflow = Math.ceil((label.scrollWidth || 0) - clientWidth);
+        const overflow = Math.min(rawOverflow, DOCKER_RUNTIME_APP_OVERFLOW_NUDGE_MAX);
         if (overflow > maxOverflow) {
             maxOverflow = overflow;
         }
@@ -352,10 +360,12 @@ const applyDockerRuntimeColumnWidths = (_widthMap = null) => {
     }
     const estimatedAppWidth = estimateDockerRuntimeAutoAppWidth();
     let autoAppWidth = adjustDockerRuntimeAppWidthForRenderedOverflow(estimatedAppWidth);
+    const floorLimit = clampDockerRuntimeColumnWidth(estimatedAppWidth + DOCKER_RUNTIME_APP_WIDTH_FLOOR_HEADROOM, 1) || estimatedAppWidth;
     if (Number.isFinite(dockerRuntimeAutoAppWidthFloor)) {
-        autoAppWidth = Math.max(autoAppWidth, dockerRuntimeAutoAppWidthFloor);
+        const boundedFloor = Math.min(dockerRuntimeAutoAppWidthFloor, floorLimit);
+        autoAppWidth = Math.max(autoAppWidth, boundedFloor);
     }
-    dockerRuntimeAutoAppWidthFloor = autoAppWidth;
+    dockerRuntimeAutoAppWidthFloor = Math.min(autoAppWidth, floorLimit);
     const isMobile = window.matchMedia && window.matchMedia('(max-width: 900px)').matches;
     targets.headers.forEach((header, idx) => {
         const index = idx + 1;

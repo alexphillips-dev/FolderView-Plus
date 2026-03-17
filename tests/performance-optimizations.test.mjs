@@ -149,9 +149,16 @@ test('docker runtime app column auto-sizes based on folder names and rebinds aft
     assert.match(dockerJs, /const adjustDockerRuntimeAppWidthForRenderedOverflow = \(baseWidth = null\) =>/);
     assert.match(dockerJs, /let dockerRuntimeAutoAppWidthFloor = null;/);
     assert.match(dockerJs, /let dockerRuntimeAutoAppWidthFloorMode = null;/);
+    assert.match(dockerJs, /const DOCKER_RUNTIME_APP_OVERFLOW_CLIENT_WIDTH_MIN = 36;/);
+    assert.match(dockerJs, /const DOCKER_RUNTIME_APP_OVERFLOW_NUDGE_MAX = 56;/);
+    assert.match(dockerJs, /const DOCKER_RUNTIME_APP_WIDTH_FLOOR_HEADROOM = 56;/);
     assert.match(dockerJs, /label\.scrollWidth/);
     assert.match(dockerJs, /label\.clientWidth/);
-    assert.match(dockerJs, /autoAppWidth = Math\.max\(autoAppWidth, dockerRuntimeAutoAppWidthFloor\)/);
+    assert.match(dockerJs, /Math\.min\(rawOverflow, DOCKER_RUNTIME_APP_OVERFLOW_NUDGE_MAX\)/);
+    assert.match(dockerJs, /const floorLimit = clampDockerRuntimeColumnWidth\(estimatedAppWidth \+ DOCKER_RUNTIME_APP_WIDTH_FLOOR_HEADROOM, 1\) \|\| estimatedAppWidth;/);
+    assert.match(dockerJs, /const boundedFloor = Math\.min\(dockerRuntimeAutoAppWidthFloor, floorLimit\)/);
+    assert.match(dockerJs, /autoAppWidth = Math\.max\(autoAppWidth, boundedFloor\)/);
+    assert.match(dockerJs, /dockerRuntimeAutoAppWidthFloor = Math\.min\(autoAppWidth, floorLimit\);/);
     assert.match(dockerJs, /const applyDockerRuntimeColumnWidths = \(_widthMap = null\) =>/);
     assert.match(dockerJs, /auto-sizes from folder names/);
     assert.match(dockerJs, /tbody#docker_list tr\.folder,\s*tbody#docker_view tr\.folder/);

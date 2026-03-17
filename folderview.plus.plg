@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.17.25">
-<!ENTITY md5 "f74c54a36427d5c829e44f25287360a7">
+<!ENTITY version "2026.03.17.26">
+<!ENTITY md5 "98f8816d5c646d2aa2e6f38cb1c18d1f">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.17.26
+- Fix: Reduced oversized Application-to-Version spacing by capping overflow nudges used for Docker runtime auto-width correction.
+- Fix: Ignored unreliable overflow samples from near-zero label widths during transient render states to prevent accidental column inflation.
+- Fix: Bounded mode-stabilized width floor with estimated-width headroom so long-name protection remains without creating large persistent gaps.
+- Test: Expanded Docker runtime auto-width regression assertions for bounded overflow and floor-limit behavior.
+
 
 ###2026.03.17.25
 - Fix: Eliminated Docker Application-column width thrashing that caused long names to flip between visible and truncated on refresh cycles.

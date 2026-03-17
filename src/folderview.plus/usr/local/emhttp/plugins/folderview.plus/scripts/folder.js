@@ -164,15 +164,13 @@ const normalizeHexColor = (value, fallback) => {
 
 const isLegacyPreviewBorderEnabled = (settings) => {
     const source = settings && typeof settings === 'object' ? settings : {};
-    const borderColor = normalizeHexColor(source.preview_border_color, '').toLowerCase();
-    const barsColor = normalizeHexColor(source.preview_vertical_bars_color, '').toLowerCase();
-    const hasCustomColor = (borderColor && borderColor !== DEFAULT_BORDER_COLOR)
-        || (barsColor && barsColor !== DEFAULT_BORDER_COLOR);
-    const raw = String(source.preview_border ?? '').trim().toLowerCase();
-    const explicitOff = raw === '0' || raw === 'false';
-    return !Object.prototype.hasOwnProperty.call(source, 'preview_border')
-        || (!explicitOff)
-        || hasCustomColor;
+    if (Object.prototype.hasOwnProperty.call(source, 'preview_border')) {
+        const raw = String(source.preview_border ?? '').trim().toLowerCase();
+        const explicitOff = raw === '0' || raw === 'false' || raw === 'off' || raw === 'no';
+        return !explicitOff;
+    }
+    // Legacy fallback: older payloads without preview_border should keep border visible.
+    return true;
 };
 
 const getForm = () => $('div.canvas > form')[0];

@@ -19,20 +19,12 @@ const normalizeStatusHexColor = (value, fallback) => {
 };
 const isPreviewBorderEnabled = (settings) => {
     const source = settings && typeof settings === 'object' ? settings : {};
-    const normalizeLegacyBorderColor = (value) => normalizeStatusHexColor(value, '').toLowerCase();
-    const hasLegacyCustomBorderColor = () => {
-        const borderColor = normalizeLegacyBorderColor(source.preview_border_color);
-        if (borderColor && borderColor !== DEFAULT_PREVIEW_BORDER_COLOR) {
-            return true;
-        }
-        const barsColor = normalizeLegacyBorderColor(source.preview_vertical_bars_color);
-        return Boolean(barsColor && barsColor !== DEFAULT_PREVIEW_BORDER_COLOR);
-    };
-    const raw = String(source.preview_border ?? '').trim().toLowerCase();
-    const explicitOff = raw === '0' || raw === 'false';
-    return !Object.prototype.hasOwnProperty.call(source, 'preview_border')
-        || (!explicitOff)
-        || hasLegacyCustomBorderColor();
+    if (Object.prototype.hasOwnProperty.call(source, 'preview_border')) {
+        const raw = String(source.preview_border ?? '').trim().toLowerCase();
+        const explicitOff = raw === '0' || raw === 'false' || raw === 'off' || raw === 'no';
+        return !explicitOff;
+    }
+    return true;
 };
 const applyPreviewBorderStyle = (previewNode, settings) => {
     if (!previewNode) {

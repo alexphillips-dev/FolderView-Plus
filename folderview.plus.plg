@@ -6,12 +6,25 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.16.08">
-<!ENTITY md5 "280a200a78f6f4fe189d875912640946">
+<!ENTITY version "2026.03.16.10">
+<!ENTITY md5 "a587c23811e159db2f9827f0054b9e93">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.16.10
+- Fix: Fix request-guard mutation fallback and harden preview/dashboard UX.
+- Fix: Fix Docker app auto-width for nested long folder names.
+- Maintenance: sensible default settings widths and auto-size Docker app column.
+- Fix: Fix settings/Docker column resizer alignment and runtime rebinding.
+- Fix: Fix settings column resize behavior and Docker runtime header controls.
+- Fix: Fix settings/runtime column resizing and Docker app-column readability.
+
+
+###2026.03.16.09
+- Fix: Fix branch-specific plugin channels for main/dev.
+
 
 ###2026.03.16.08
 - Fix: request-guard compatibility hardened for mutation POSTs (`prefs.php`, bulk assignment, folder create/update) by adding `_fv_request=1` + token payload fallback when headers are stripped.

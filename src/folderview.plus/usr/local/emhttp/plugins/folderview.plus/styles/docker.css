@@ -141,12 +141,33 @@ td.ct-name.folder-name > .folder-name-sub {
 
 .folder-outer {
     overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     min-width: 0;
     flex: 0 1 auto;
     max-width: calc(var(--fvplus-docker-app-column-width) - 44px);
+}
+
+.folder-hand {
+    flex: 0 0 auto;
+}
+
+.folder-inner {
+    display: inline-flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.folder-appname {
+    display: inline-block;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: top;
 }
 
 .folder-dropdown {

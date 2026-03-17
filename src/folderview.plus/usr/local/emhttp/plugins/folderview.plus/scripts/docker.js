@@ -78,6 +78,8 @@ const DOCKER_RUNTIME_COLUMN_WIDTHS_STORAGE_KEY = 'fv.runtime.docker.columnWidths
 const DOCKER_RUNTIME_LEGACY_APP_WIDTH_STORAGE_KEY = 'fv.runtime.docker.appColumnWidthPx.v1';
 const DOCKER_RUNTIME_APP_WIDTH_MIN = 118;
 const DOCKER_RUNTIME_APP_WIDTH_MAX = 1280;
+const DOCKER_RUNTIME_APP_CHROME_WIDTH = 78;
+const DOCKER_RUNTIME_APP_TEXT_BUFFER = 12;
 const DOCKER_RUNTIME_COLUMN_WIDTH_MIN = 88;
 const DOCKER_RUNTIME_COLUMN_WIDTH_MAX = 920;
 const DOCKER_RUNTIME_APP_PRESET_WIDTHS = Object.freeze({
@@ -291,8 +293,8 @@ const estimateDockerRuntimeAutoAppWidth = () => {
         const nameSubNode = row.querySelector('.folder-name-sub');
         const nameSubStyle = nameSubNode ? window.getComputedStyle(nameSubNode) : null;
         const paddingIndent = nameSubStyle ? Math.max(0, Math.round(parseFloat(nameSubStyle.paddingLeft) || 0)) : 0;
-        // Include tree controls, nesting indent, icon/toggle/dropdown, and right cushion.
-        const estimated = Math.ceil(textWidth + paddingIndent + 28);
+        // Include fixed row chrome (icon/dropdown/gutters) plus a small text cushion.
+        const estimated = Math.ceil(textWidth + paddingIndent + DOCKER_RUNTIME_APP_CHROME_WIDTH + DOCKER_RUNTIME_APP_TEXT_BUFFER);
         if (estimated > maxWidth) {
             maxWidth = estimated;
         }

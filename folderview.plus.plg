@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.17.09">
-<!ENTITY md5 "19107b614579f2ea6174adf382085efe">
+<!ENTITY version "2026.03.17.10">
+<!ENTITY md5 "51a19d11c637bebbbb059bc03c06f19f">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.17.10
+- Fix: Advanced section tabs now show ordered step numbering (1..N) instead of per-tab section counts.
+- Fix: Advanced modules are forced into a single top-down stack for easier editing and scanning.
+
 
 ###2026.03.17.09
 - Maintenance: Advanced settings: fix tab numbering and force vertical module layout.

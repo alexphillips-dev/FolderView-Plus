@@ -1268,8 +1268,8 @@ const renderAdvancedNav = () => {
             const active = settingsUiState.advancedTab === entry.group ? 'is-active' : '';
             const label = ADVANCED_GROUP_LABELS[entry.group] || entry.group;
             const countTitle = `${entry.count} section${entry.count === 1 ? '' : 's'} in ${label}`;
-            const step = index + 1;
-            return `<button type="button" class="fv-advanced-tab ${active}" data-fv-advanced-tab="${entry.group}" title="${escapeHtml(countTitle)}">${escapeHtml(label)} <span class="fv-advanced-count">${step}</span></button>`;
+            const displayStep = index + 1;
+            return `<button type="button" class="fv-advanced-tab ${active}" data-fv-advanced-tab="${entry.group}" data-fv-advanced-step="${displayStep}" title="${escapeHtml(countTitle)}">${escapeHtml(label)} <span class="fv-advanced-count">${displayStep}</span></button>`;
         })
         .join('');
     const activeTabSections = advancedSections.filter((section) => section.advancedGroup === settingsUiState.advancedTab);

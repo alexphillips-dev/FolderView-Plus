@@ -6,12 +6,24 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.17.05">
+<!ENTITY version "2026.03.17.06">
 <!ENTITY md5 "3e243d32a9839b9c8de4f62563a1c59f">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.17.06
+- Feature: Dashboard widget now supports nested folder cards with recursive expand/collapse for both Docker and VM folders.
+- Feature: Expanded Docker widget members now include quick actions for WebUI, Console, and Logs directly from the widget.
+- UX: Dashboard expanded trays are now constrained to the widget boundary and render in a cleaner responsive grid layout.
+- UX: Parent folders that only contain child folders are preserved in widget rendering so nested structures remain visible.
+- Fix: Dashboard expand/collapse handlers were rewritten to be nested-safe and no longer rely on top-level-only selectors.
+- Fix: Docker runtime app-column truncation/gap issues were corrected so folder names and nested names size more reliably.
+- Fix: Preview border OFF persistence and runtime rendering were stabilized for Docker/VM folder previews.
+- Quality: Added regression tests for nested dashboard rendering, tray containment, and widget quick-action contracts.
+- Quality: Strengthened release/guard coverage for this dashboard path to prevent reintroducing overflow and nested expansion regressions.
+
 
 ###2026.03.17.05
 - Feature: Added WebUI, Console, and Logs quick-action icons for containers shown in expanded Docker dashboard folders.

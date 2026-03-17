@@ -2,6 +2,27 @@
     display:none;
 }
 
+.folder-showcase {
+    display: none;
+    margin: 8px 0 12px 34px;
+    padding: 10px;
+    border: 1px solid rgba(224, 230, 239, 0.18);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    box-sizing: border-box;
+}
+
+.folder-showcase-outer[expanded="true"] .folder-showcase {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+    align-items: flex-start;
+}
+
+.folder-showcase-outer[expanded="true"] .folder-showcase > span.outer {
+    margin: 0 !important;
+}
+
 /* Override Unraid's blue-text with orange when both classes are present (folder update indicator) */
 .orange-text.blue-text {
     color: var(--color-orange, #f0a30a);

@@ -102,6 +102,18 @@ span.folder-state.fv-folder-state-stopped {
     align-items: center;
 }
 
+.folder-preview.fv-preview-border-off {
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.folder-preview.fv-preview-border-off .folder-preview-wrapper {
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
 .folder-preview-wrapper {
     float: left;
     height: 100%;

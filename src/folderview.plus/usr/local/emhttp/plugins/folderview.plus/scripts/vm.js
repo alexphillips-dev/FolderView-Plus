@@ -31,6 +31,9 @@ const applyPreviewBorderStyle = (previewNode, settings) => {
         return;
     }
     const source = settings && typeof settings === 'object' ? settings : {};
+    if (previewNode.classList && typeof previewNode.classList.toggle === 'function') {
+        previewNode.classList.toggle('fv-preview-border-off', !isPreviewBorderEnabled(source));
+    }
     const previewColor = normalizeStatusHexColor(source.preview_border_color, DEFAULT_PREVIEW_BORDER_COLOR);
     previewNode.style.setProperty('border', isPreviewBorderEnabled(source) ? `1px solid ${previewColor}` : 'none', 'important');
 };

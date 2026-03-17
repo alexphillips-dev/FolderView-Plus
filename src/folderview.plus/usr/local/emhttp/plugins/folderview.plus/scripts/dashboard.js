@@ -77,6 +77,67 @@ const sanitizeImageSrc = (value, fallback = '/plugins/dynamix.docker.manager/ima
     }
     return escapeHtml(raw);
 };
+const appendDashboardDockerMemberQuickActions = ($containerEl, ct) => {
+    if (!$containerEl || !$containerEl.length || !ct || typeof ct !== 'object') {
+        return;
+    }
+    let $targetForAppend = $containerEl.children('span.inner').last();
+    if (!$targetForAppend.length) {
+        $targetForAppend = $containerEl;
+    }
+    if (!$targetForAppend.length) {
+        return;
+    }
+
+    let $actionBar = $targetForAppend.children('span.fv-dashboard-member-actions');
+    if (!$actionBar.length) {
+        $actionBar = $('<span class="fv-dashboard-member-actions"></span>');
+        $targetForAppend.append($actionBar);
+    } else {
+        $actionBar.empty();
+    }
+
+    const webUiUrl = String(ct?.info?.State?.WebUi || '').trim();
+    if (webUiUrl) {
+        const $web = $(
+            '<a class="fv-dashboard-member-action fv-dashboard-member-webui" target="_blank" rel="noopener noreferrer" title="WebUI" aria-label="WebUI">' +
+                '<i class="fa fa-globe" aria-hidden="true"></i>' +
+            '</a>'
+        );
+        $web.attr('href', webUiUrl);
+        $actionBar.append($web);
+    }
+
+    const containerName = String(ct?.info?.Name || '').trim();
+    const containerShell = String(ct?.info?.Shell || 'sh').trim() || 'sh';
+    if (containerName && typeof window.openTerminal === 'function') {
+        const $console = $(
+            '<a href="#" class="fv-dashboard-member-action fv-dashboard-member-console" title="Console" aria-label="Console">' +
+                '<i class="fa fa-terminal" aria-hidden="true"></i>' +
+            '</a>'
+        );
+        $console.on('click', (event) => {
+            event.preventDefault();
+            window.openTerminal('docker', containerName, containerShell);
+        });
+        $actionBar.append($console);
+
+        const $logs = $(
+            '<a href="#" class="fv-dashboard-member-action fv-dashboard-member-logs" title="Logs" aria-label="Logs">' +
+                '<i class="fa fa-bars" aria-hidden="true"></i>' +
+            '</a>'
+        );
+        $logs.on('click', (event) => {
+            event.preventDefault();
+            window.openTerminal('docker', containerName, '.log');
+        });
+        $actionBar.append($logs);
+    }
+
+    if (!$actionBar.children().length) {
+        $actionBar.remove();
+    }
+};
 const DASHBOARD_DEBUG_MODE = false;
 const dashboardDebugLog = (...args) => {
     if (DASHBOARD_DEBUG_MODE) {
@@ -993,6 +1054,7 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
                 return innerText === container;
             }).first();
             element.append($containerEl.addClass(`folder-${id}-element`).addClass(`folder-element-docker`).addClass(`${!(ct.info.State.Autostart === false) ? 'autostart' : ''}`));
+            appendDashboardDockerMemberQuickActions($containerEl, ct);
             
 
             newFolder[container] = {};

@@ -108,3 +108,11 @@ test('dashboard folder cards are click-to-expand for docker and vm widgets', () 
     assert.match(dashboardJs, /window\.expandFolderDocker = expandFolderDocker;/);
     assert.match(dashboardJs, /window\.expandFolderVM = expandFolderVM;/);
 });
+
+test('dashboard expanded docker members include guarded quick actions', () => {
+    assert.match(dashboardJs, /const appendDashboardDockerMemberQuickActions = \(\$containerEl,\s*ct\) =>/);
+    assert.match(dashboardJs, /fv-dashboard-member-actions/);
+    assert.match(dashboardJs, /target="_blank" rel="noopener noreferrer"/);
+    assert.match(dashboardJs, /window\.openTerminal\('docker', containerName, containerShell\)/);
+    assert.match(dashboardJs, /window\.openTerminal\('docker', containerName, '\.log'\)/);
+});

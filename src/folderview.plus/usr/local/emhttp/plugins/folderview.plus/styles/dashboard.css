@@ -43,6 +43,32 @@
     margin-top: 8px;
 }
 
+.folder-showcase .fv-dashboard-member-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+.folder-showcase .fv-dashboard-member-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--link, #6fb1ff);
+    font-size: 12px;
+    line-height: 1;
+    text-decoration: none;
+    opacity: 0.95;
+}
+
+.folder-showcase .fv-dashboard-member-action:hover,
+.folder-showcase .fv-dashboard-member-action:focus {
+    color: var(--orange, #f0a30a);
+    text-decoration: none;
+    opacity: 1;
+}
+
 /* Override Unraid's blue-text with orange when both classes are present (folder update indicator) */
 .orange-text.blue-text {
     color: var(--color-orange, #f0a30a);

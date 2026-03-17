@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.17.04">
-<!ENTITY md5 "af84e00edcd261a4b52ea892706125cd">
+<!ENTITY version "2026.03.17.05">
+<!ENTITY md5 "3e243d32a9839b9c8de4f62563a1c59f">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.17.05
+- Feature: Added WebUI, Console, and Logs quick-action icons for containers shown in expanded Docker dashboard folders.
+- UX: Styled dashboard member action icons to match compact Docker-tab quick controls.
+- Quality: Added regression guards for dashboard quick-action rendering and secure behavior.
+
 
 ###2026.03.17.04
 - Fix: Dashboard widget expanded trays now stay contained inside the widget border.

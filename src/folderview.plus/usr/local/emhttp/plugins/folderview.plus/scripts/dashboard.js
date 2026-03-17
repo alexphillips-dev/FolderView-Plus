@@ -92,6 +92,25 @@ const getPrefsOrderedFolderMap = (folders, prefs) => {
     return source;
 };
 
+const sortFolderIdsByPrefs = (ids, folders, prefs) => {
+    const list = Array.isArray(ids) ? ids.map((id) => String(id || '')) : [];
+    if (!list.length) {
+        return [];
+    }
+    const source = folders && typeof folders === 'object' ? folders : {};
+    const scoped = {};
+    for (const id of list) {
+        if (Object.prototype.hasOwnProperty.call(source, id)) {
+            scoped[id] = source[id];
+        }
+    }
+    const ordered = Object.keys(getPrefsOrderedFolderMap(scoped, prefs));
+    if (ordered.length) {
+        return ordered;
+    }
+    return list.filter((id) => Object.prototype.hasOwnProperty.call(scoped, id));
+};
+
 const normalizeFolderParentId = (value) => String(value || '').trim();
 const filterDashboardToRootFolders = (folders) => {
     const source = folders && typeof folders === 'object' ? folders : {};
@@ -408,6 +427,8 @@ const createFolders = async () => {
         // Parse the results
         let folders = JSON.parse(prom[0]);
         const allDockerFolders = folders && typeof folders === 'object' ? folders : {};
+        const dockerTreeIndex = buildFolderChildrenIndex(allDockerFolders);
+        const dockerChildrenByParent = dockerTreeIndex.childrenByParent || {};
         let unraidOrder = Object.values(JSON.parse(prom[1]));
         const containersInfo = JSON.parse(prom[2]);
         let order = Object.values(JSON.parse(prom[3]));
@@ -468,6 +489,37 @@ const createFolders = async () => {
         }}));
         const dockerFullMatchCache = buildDashboardDockerFolderMatchCache(order, containersInfo, allDockerFolders, folderTypePrefs.docker);
         const dockerMatchCache = aggregateRootMatchCache(allDockerFolders, folders, dockerFullMatchCache);
+        const createdRootIds = [];
+        const createdNestedIds = new Set();
+        const renderDockerChildren = (parentId) => {
+            const parentKey = String(parentId || '').trim();
+            if (!parentKey) {
+                return;
+            }
+            const childIds = sortFolderIdsByPrefs(dockerChildrenByParent[parentKey] || [], allDockerFolders, folderTypePrefs.docker);
+            for (const childId of childIds) {
+                if (!allDockerFolders[childId] || createdNestedIds.has(childId)) {
+                    continue;
+                }
+                createdNestedIds.add(childId);
+                const childHasChildren = Array.isArray(dockerChildrenByParent[childId]) && dockerChildrenByParent[childId].length > 0;
+                createFolderDocker(
+                    allDockerFolders[childId],
+                    childId,
+                    0,
+                    order,
+                    containersInfo,
+                    Object.keys(foldersDone),
+                    dockerFullMatchCache[childId] || null,
+                    {
+                        appendTo: `.folder-showcase-outer-${parentKey} > .folder-showcase-${parentKey}`,
+                        preserveWhenEmpty: childHasChildren
+                    }
+                );
+                foldersDone[childId] = allDockerFolders[childId];
+                renderDockerChildren(childId);
+            }
+        };
 
         // Draw the folders in the order
         for (let key = 0; key < order.length; key++) {
@@ -475,6 +527,10 @@ const createFolders = async () => {
             if (container && folderRegex.test(container)) {
                 let id = container.replace(folderRegex, '');
                 if (folders[id]) {
+                    const hasChildren = Array.isArray(dockerChildrenByParent[id]) && dockerChildrenByParent[id].length > 0;
+                    const rootCacheEntry = hasChildren
+                        ? (dockerFullMatchCache[id] || null)
+                        : (dockerMatchCache[id] || dockerFullMatchCache[id] || null);
                     key -= createFolderDocker(
                         folders[id],
                         id,
@@ -482,11 +538,13 @@ const createFolders = async () => {
                         order,
                         containersInfo,
                         Object.keys(foldersDone),
-                        dockerMatchCache[id] || null
+                        rootCacheEntry,
+                        { preserveWhenEmpty: hasChildren }
                     );
                     key -= newOnes.length;
                     // Move the folder to the done object and delete it from the undone one
                     foldersDone[id] = folders[id];
+                    createdRootIds.push(id);
                     delete folders[id];
                 }
             }
@@ -498,6 +556,10 @@ const createFolders = async () => {
         for (const [id, value] of remainingDockerFolders) {
             // Add the folder on top of the array
             order.unshift(`folder-${id}`);
+            const hasChildren = Array.isArray(dockerChildrenByParent[id]) && dockerChildrenByParent[id].length > 0;
+            const rootCacheEntry = hasChildren
+                ? (dockerFullMatchCache[id] || null)
+                : (dockerMatchCache[id] || dockerFullMatchCache[id] || null);
             createFolderDocker(
                 value,
                 id,
@@ -505,11 +567,17 @@ const createFolders = async () => {
                 order,
                 containersInfo,
                 Object.keys(foldersDone),
-                dockerMatchCache[id] || null
+                rootCacheEntry,
+                { preserveWhenEmpty: hasChildren }
             );
             // Move the folder to the done object and delete it from the undone one
             foldersDone[id] = folders[id];
+            createdRootIds.push(id);
             delete folders[id];
+        }
+
+        for (const rootId of createdRootIds) {
+            renderDockerChildren(rootId);
         }
     
         // if started only is active hide all stopped folder
@@ -553,6 +621,8 @@ const createFolders = async () => {
         // Parse the results
         let folders = JSON.parse(prom[0]);
         const allVmFolders = folders && typeof folders === 'object' ? folders : {};
+        const vmTreeIndex = buildFolderChildrenIndex(allVmFolders);
+        const vmChildrenByParent = vmTreeIndex.childrenByParent || {};
         let unraidOrder = Object.values(JSON.parse(prom[1]));
         const vmInfo = JSON.parse(prom[2]);
         let order = Object.values(JSON.parse(prom[3]));
@@ -613,6 +683,37 @@ const createFolders = async () => {
         }}));
         const vmFullMatchCache = buildDashboardVmFolderMatchCache(order, vmInfo, allVmFolders, folderTypePrefs.vm);
         const vmMatchCache = aggregateRootMatchCache(allVmFolders, folders, vmFullMatchCache);
+        const createdRootVmIds = [];
+        const createdNestedVmIds = new Set();
+        const renderVmChildren = (parentId) => {
+            const parentKey = String(parentId || '').trim();
+            if (!parentKey) {
+                return;
+            }
+            const childIds = sortFolderIdsByPrefs(vmChildrenByParent[parentKey] || [], allVmFolders, folderTypePrefs.vm);
+            for (const childId of childIds) {
+                if (!allVmFolders[childId] || createdNestedVmIds.has(childId)) {
+                    continue;
+                }
+                createdNestedVmIds.add(childId);
+                const childHasChildren = Array.isArray(vmChildrenByParent[childId]) && vmChildrenByParent[childId].length > 0;
+                createFolderVM(
+                    allVmFolders[childId],
+                    childId,
+                    0,
+                    order,
+                    vmInfo,
+                    Object.keys(foldersDone),
+                    vmFullMatchCache[childId] || null,
+                    {
+                        appendTo: `.folder-showcase-outer-${parentKey} > .folder-showcase-${parentKey}`,
+                        preserveWhenEmpty: childHasChildren
+                    }
+                );
+                foldersDone[childId] = allVmFolders[childId];
+                renderVmChildren(childId);
+            }
+        };
 
         // Draw the folders in the order
         for (let key = 0; key < order.length; key++) {
@@ -620,6 +721,10 @@ const createFolders = async () => {
             if (container && folderRegex.test(container)) {
                 let id = container.replace(folderRegex, '');
                 if (folders[id]) {
+                    const hasChildren = Array.isArray(vmChildrenByParent[id]) && vmChildrenByParent[id].length > 0;
+                    const rootCacheEntry = hasChildren
+                        ? (vmFullMatchCache[id] || null)
+                        : (vmMatchCache[id] || vmFullMatchCache[id] || null);
                     key -= createFolderVM(
                         folders[id],
                         id,
@@ -627,11 +732,13 @@ const createFolders = async () => {
                         order,
                         vmInfo,
                         Object.keys(foldersDone),
-                        vmMatchCache[id] || null
+                        rootCacheEntry,
+                        { preserveWhenEmpty: hasChildren }
                     );
                     key -= newOnes.length;
                     // Move the folder to the done object and delete it from the undone one
                     foldersDone[id] = folders[id];
+                    createdRootVmIds.push(id);
                     delete folders[id];
                 }
             }
@@ -643,6 +750,10 @@ const createFolders = async () => {
         for (const [id, value] of remainingVmFolders) {
             // Add the folder on top of the array
             order.unshift(`folder-${id}`);
+            const hasChildren = Array.isArray(vmChildrenByParent[id]) && vmChildrenByParent[id].length > 0;
+            const rootCacheEntry = hasChildren
+                ? (vmFullMatchCache[id] || null)
+                : (vmMatchCache[id] || vmFullMatchCache[id] || null);
             createFolderVM(
                 value,
                 id,
@@ -650,11 +761,17 @@ const createFolders = async () => {
                 order,
                 vmInfo,
                 Object.keys(foldersDone),
-                vmMatchCache[id] || null
+                rootCacheEntry,
+                { preserveWhenEmpty: hasChildren }
             );
             // Move the folder to the done object and delete it from the undone one
             foldersDone[id] = folders[id];
+            createdRootVmIds.push(id);
             delete folders[id];
+        }
+
+        for (const rootId of createdRootVmIds) {
+            renderVmChildren(rootId);
         }
 
         // if started only is active hide all stopped folder
@@ -695,9 +812,10 @@ const createFolders = async () => {
  * @param {object} containersInfo info of the containers
  * @param {Array<string>} foldersDone folders that are done
  * @param {object|null} matchCacheEntry precomputed membership candidates
+ * @param {{appendTo?: string, preserveWhenEmpty?: boolean}} options render options
  * @returns the number of element removed before the folder
  */
-const createFolderDocker = (folder, id, position, order, containersInfo, foldersDone, matchCacheEntry = null) => {
+const createFolderDocker = (folder, id, position, order, containersInfo, foldersDone, matchCacheEntry = null, options = {}) => {
     if (folderTypePrefs?.docker?.performanceMode === true && folder && typeof folder === 'object') {
         folder.settings = {
             ...(folder.settings || {}),
@@ -731,6 +849,8 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
     let remBefore = 0;
 
     const precomputed = matchCacheEntry && typeof matchCacheEntry === 'object' ? matchCacheEntry : null;
+    const appendToSelector = typeof options?.appendTo === 'string' ? options.appendTo.trim() : '';
+    const preserveWhenEmpty = options?.preserveWhenEmpty === true;
     const combinedMembers = [];
     const combinedSet = new Set();
     const pushCombined = (name) => {
@@ -808,7 +928,16 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
     const fld = `<div class="folder-showcase-outer-${id} folder-showcase-outer"><span class="outer solid apps stopped folder-docker" onclick='expandFolderDocker("${id}")'><span id="folder-id-${id}" class="hand docker folder-hand-docker"><img src="${safeFolderIcon}" class="img folder-img-docker" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"></span><span class="inner folder-inner-docker"><span class="folder-appname-docker">${safeFolderName}</span><br><i class="fa fa-square stopped folder-load-status-docker"></i><span class="state folder-state-docker">${$.i18n('stopped')}</span></span><div class="folder-storage"></div></span><div class="folder-showcase-${id} folder-showcase"></div></div>`;
 
     // insertion at position of the folder
-    if (position === 0) {
+    if (appendToSelector) {
+        const $appendTarget = $(appendToSelector).first();
+        if ($appendTarget.length > 0) {
+            $appendTarget.append($(fld));
+        } else if (position === 0) {
+            $('tbody#docker_view > tr.updated > td').children().eq(position).before($(fld));
+        } else {
+            $('tbody#docker_view > tr.updated > td').children().eq(position - 1).after($(fld));
+        }
+    } else if (position === 0) {
         $('tbody#docker_view > tr.updated > td').children().eq(position).before($(fld));
     } else {
         $('tbody#docker_view > tr.updated > td').children().eq(position - 1).after($(fld));
@@ -915,7 +1044,7 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
 
     // replace the old containers array with the newFolder object
     folder.containers = newFolder;
-    if (folderTypePrefs?.docker?.hideEmptyFolders === true && Object.keys(folder.containers).length === 0) {
+    if (folderTypePrefs?.docker?.hideEmptyFolders === true && Object.keys(folder.containers).length === 0 && !preserveWhenEmpty) {
         $(`.folder-showcase-outer-${id}`).remove();
         return remBefore;
     }
@@ -991,9 +1120,10 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
  * @param {object} vmInfo info of the vms
  * @param {Array<string>} foldersDone folders that are done
  * @param {object|null} matchCacheEntry precomputed membership candidates
+ * @param {{appendTo?: string, preserveWhenEmpty?: boolean}} options render options
  * @returns the number of element removed before the folder
  */
-const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchCacheEntry = null) => {
+const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchCacheEntry = null, options = {}) => {
     if (folderTypePrefs?.vm?.performanceMode === true && folder && typeof folder === 'object') {
         folder.settings = {
             ...(folder.settings || {}),
@@ -1024,6 +1154,8 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
     let remBefore = 0;
 
     const precomputed = matchCacheEntry && typeof matchCacheEntry === 'object' ? matchCacheEntry : null;
+    const appendToSelector = typeof options?.appendTo === 'string' ? options.appendTo.trim() : '';
+    const preserveWhenEmpty = options?.preserveWhenEmpty === true;
     const combinedMembers = [];
     const combinedSet = new Set();
     const pushCombined = (name) => {
@@ -1093,7 +1225,16 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
     const fld = `<div class="folder-showcase-outer-${id} folder-showcase-outer"><span class="outer solid vms stopped folder-vm" onclick='expandFolderVM("${id}")'><span id="folder-id-${id}" class="hand vm folder-hand-vm"><img src="${safeFolderIcon}" class="img folder-img-vm" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span><span class="inner folder-inner-vm"><span class="folder-appname-vm">${safeFolderName}</span><br><i class="fa fa-square stopped folder-load-status-vm"></i><span class="state folder-state-vm">${$.i18n('stopped')}</span></span><div class="folder-storage" style="display:none"></div></span><div class="folder-showcase-${id} folder-showcase"></div></div>`;
 
     // insertion at position of the folder
-    if (position === 0) {
+    if (appendToSelector) {
+        const $appendTarget = $(appendToSelector).first();
+        if ($appendTarget.length > 0) {
+            $appendTarget.append($(fld));
+        } else if (position === 0) {
+            $('tbody#vm_view > tr.updated > td').children().eq(position).before($(fld));
+        } else {
+            $('tbody#vm_view > tr.updated > td').children().eq(position - 1).after($(fld));
+        }
+    } else if (position === 0) {
         $('tbody#vm_view > tr.updated > td').children().eq(position).before($(fld));
     } else {
         $('tbody#vm_view > tr.updated > td').children().eq(position - 1).after($(fld));
@@ -1184,7 +1325,7 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
 
     // replace the old containers array with the newFolder object
     folder.containers = newFolder;
-    if (folderTypePrefs?.vm?.hideEmptyFolders === true && Object.keys(folder.containers).length === 0) {
+    if (folderTypePrefs?.vm?.hideEmptyFolders === true && Object.keys(folder.containers).length === 0 && !preserveWhenEmpty) {
         $(`.folder-showcase-outer-${id}`).remove();
         return remBefore;
     }
@@ -1240,17 +1381,23 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
  */
 const expandFolderDocker = (id) => {
     folderEvents.dispatchEvent(new CustomEvent('docker-pre-folder-expansion', {detail: { id }}));
-    const el = $(`tbody#docker_view > tr.updated > td span.outer.apps > span#folder-id-${id}`);
+    const card = $(`tbody#docker_view .folder-showcase-outer-${id}`).first();
+    const el = card.children('span.outer.apps.folder-docker').first();
+    if (!card.length || !el.length) {
+        return;
+    }
     const state = el.attr('expanded') === "true";
+    const storage = el.children('div.folder-storage').first();
+    const showcase = card.children(`div.folder-showcase-${id}`).first();
     if (state) {
-        el.siblings('div.folder-storage').append(el.parents().siblings('div.folder-showcase').children());
+        storage.append(showcase.children());
         el.attr('expanded', 'false');
     } else {
-        el.parents().siblings('div.folder-showcase').append(el.siblings('div.folder-storage').children());
+        showcase.append(storage.children());
         el.attr('expanded', 'true');
     }
-    $(`tbody#docker_view .folder-showcase-outer-${id}`).attr('expanded', !state ? 'true' : 'false');
-    if(globalFolders.docker) {
+    card.attr('expanded', !state ? 'true' : 'false');
+    if(globalFolders.docker && globalFolders.docker[id]) {
         globalFolders.docker[id].status.expanded = !state;
     }
     folderEvents.dispatchEvent(new CustomEvent('docker-post-folder-expansion', {detail: { id }}));
@@ -1262,17 +1409,23 @@ const expandFolderDocker = (id) => {
  */
 const expandFolderVM = (id) => {
     folderEvents.dispatchEvent(new CustomEvent('vm-pre-folder-expansion', {detail: { id }}));
-    const el = $(`tbody#vm_view > tr.updated > td span.outer.vms > span#folder-id-${id}`);
+    const card = $(`tbody#vm_view .folder-showcase-outer-${id}`).first();
+    const el = card.children('span.outer.vms.folder-vm').first();
+    if (!card.length || !el.length) {
+        return;
+    }
     const state = el.attr('expanded') === "true";
+    const storage = el.children('div.folder-storage').first();
+    const showcase = card.children(`div.folder-showcase-${id}`).first();
     if (state) {
-        el.siblings('div.folder-storage').append(el.parents().siblings('div.folder-showcase').children());
+        storage.append(showcase.children());
         el.attr('expanded', 'false');
     } else {
-        el.parents().siblings('div.folder-showcase').append(el.siblings('div.folder-storage').children());
+        showcase.append(storage.children());
         el.attr('expanded', 'true');
     }
-    $(`tbody#vm_view .folder-showcase-outer-${id}`).attr('expanded', !state ? 'true' : 'false');
-    if(globalFolders.vms) {
+    card.attr('expanded', !state ? 'true' : 'false');
+    if(globalFolders.vms && globalFolders.vms[id]) {
         globalFolders.vms[id].status.expanded = !state;
     }
     folderEvents.dispatchEvent(new CustomEvent('vm-post-folder-expansion', {detail: { id }}));

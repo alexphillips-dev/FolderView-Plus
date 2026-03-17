@@ -4,23 +4,43 @@
 
 .folder-showcase {
     display: none;
-    margin: 8px 0 12px 34px;
+    margin: 8px 0 12px 0;
     padding: 10px;
     border: 1px solid rgba(224, 230, 239, 0.18);
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.04);
     box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .folder-showcase-outer[expanded="true"] .folder-showcase {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 8px 10px;
     align-items: flex-start;
 }
 
 .folder-showcase-outer[expanded="true"] .folder-showcase > span.outer {
     margin: 0 !important;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.folder-showcase-outer[expanded="true"] .folder-showcase > .folder-showcase-outer {
+    margin: 0 !important;
+    min-width: 0;
+}
+
+.folder-showcase-outer[expanded="true"] .folder-showcase > .folder-showcase-outer > span.outer {
+    margin: 0 !important;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.folder-showcase .folder-showcase {
+    margin-top: 8px;
 }
 
 /* Override Unraid's blue-text with orange when both classes are present (folder update indicator) */

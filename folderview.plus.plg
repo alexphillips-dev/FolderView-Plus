@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.17.03">
-<!ENTITY md5 "06dfd0c9c04dae820ed7161eddade859">
+<!ENTITY version "2026.03.17.04">
+<!ENTITY md5 "af84e00edcd261a4b52ea892706125cd">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.17.04
+- Fix: Dashboard widget expanded trays now stay contained inside the widget border.
+- Fix: Nested Docker and VM folders now render as child cards and expand/collapse correctly inside parent folders.
+- Fix: Dashboard folder expand handlers now resolve nested cards reliably and preserve parent folders that contain only child folders.
+
 
 ###2026.03.17.03
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

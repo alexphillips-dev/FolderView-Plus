@@ -28,6 +28,10 @@ const dashboardJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js'
 );
+const dashboardCssPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/dashboard.css'
+);
 const dockerModulesPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.modules.js'
@@ -51,6 +55,7 @@ const thirdPartyIconsPhp = fs.readFileSync(thirdPartyIconsPath, 'utf8');
 const dockerJs = fs.readFileSync(dockerJsPath, 'utf8');
 const vmJs = fs.readFileSync(vmJsPath, 'utf8');
 const dashboardJs = fs.readFileSync(dashboardJsPath, 'utf8');
+const dashboardCss = fs.readFileSync(dashboardCssPath, 'utf8');
 const dockerModulesJs = fs.readFileSync(dockerModulesPath, 'utf8');
 const settingsJs = fs.readFileSync(settingsJsPath, 'utf8');
 const settingsImportJs = fs.readFileSync(settingsImportJsPath, 'utf8');
@@ -85,6 +90,17 @@ test('dashboard widget renders root-level folders only when nested folders exist
     assert.match(dashboardJs, /Object\.keys\(source\)\.length/);
     assert.match(dashboardJs, /const aggregateRootMatchCache = \(fullFolders,\s*rootFolders,\s*fullCache\) =>/);
     assert.match(dashboardJs, /const dockerMatchCache = aggregateRootMatchCache\(allDockerFolders,\s*folders,\s*dockerFullMatchCache\);/);
+});
+
+test('dashboard widget supports nested child folders and constrains expanded trays', () => {
+    assert.match(dashboardJs, /const sortFolderIdsByPrefs = \(ids,\s*folders,\s*prefs\) =>/);
+    assert.match(dashboardJs, /const renderDockerChildren = \(parentId\) =>/);
+    assert.match(dashboardJs, /const renderVmChildren = \(parentId\) =>/);
+    assert.match(dashboardJs, /appendTo: `\.folder-showcase-outer-\$\{parentKey\} > \.folder-showcase-\$\{parentKey\}`/);
+    assert.match(dashboardJs, /const card = \$\(`tbody#docker_view \.folder-showcase-outer-\$\{id\}`\)\.first\(\);/);
+    assert.match(dashboardJs, /const card = \$\(`tbody#vm_view \.folder-showcase-outer-\$\{id\}`\)\.first\(\);/);
+    assert.match(dashboardCss, /\.folder-showcase\s*\{[\s\S]*?width:\s*100%;[\s\S]*?max-width:\s*100%;/);
+    assert.match(dashboardCss, /\.folder-showcase-outer\[expanded="true"\] \.folder-showcase\s*\{[\s\S]*?display:\s*grid;/);
 });
 
 test('docker and vm render paths support precomputed membership caches', () => {

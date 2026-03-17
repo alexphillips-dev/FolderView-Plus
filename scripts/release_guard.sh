@@ -81,6 +81,39 @@ if [[ "${CA_TEMPLATE_DATE}" != "${EXPECTED_CA_TEMPLATE_DATE}" ]]; then
   exit 1
 fi
 
+EXPECTED_PLUGIN_BRANCH="${FVPLUS_EXPECT_PLUGIN_BRANCH:-}"
+if [[ -z "${EXPECTED_PLUGIN_BRANCH}" ]]; then
+  if [[ -n "${GITHUB_REF_NAME:-}" ]]; then
+    EXPECTED_PLUGIN_BRANCH="${GITHUB_REF_NAME#refs/heads/}"
+  elif command -v git >/dev/null 2>&1 && git -C "${ROOT_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    EXPECTED_PLUGIN_BRANCH="$(git -C "${ROOT_DIR}" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+  fi
+fi
+
+if [[ "${EXPECTED_PLUGIN_BRANCH}" =~ ^(main|dev|beta)$ ]]; then
+  PLUGIN_URL_ENTITY="$(sed -n 's/^<!ENTITY pluginURL "\([^"]*\)".*/\1/p' "${PLG_FILE}" | head -n 1 || true)"
+  if [[ -z "${PLUGIN_URL_ENTITY}" ]]; then
+    echo "ERROR: Could not parse pluginURL entity from folderview.plus.plg" >&2
+    exit 1
+  fi
+  EXPECTED_PLUGIN_URL="https://raw.githubusercontent.com/&github;/${EXPECTED_PLUGIN_BRANCH}/folderview.plus.plg"
+  if [[ "${PLUGIN_URL_ENTITY}" != "${EXPECTED_PLUGIN_URL}" ]]; then
+    echo "ERROR: pluginURL branch mismatch. expected=${EXPECTED_PLUGIN_URL}, found=${PLUGIN_URL_ENTITY}" >&2
+    exit 1
+  fi
+
+  ARCHIVE_URL_TEMPLATE="$(sed -n 's|.*<URL>\(https://raw.githubusercontent.com/&github;/[^<]*/archive/&name;-&version;.txz\)</URL>.*|\1|p' "${PLG_FILE}" | head -n 1 || true)"
+  if [[ -z "${ARCHIVE_URL_TEMPLATE}" ]]; then
+    echo "ERROR: Could not parse archive URL template from folderview.plus.plg" >&2
+    exit 1
+  fi
+  EXPECTED_ARCHIVE_URL="https://raw.githubusercontent.com/&github;/${EXPECTED_PLUGIN_BRANCH}/archive/&name;-&version;.txz"
+  if [[ "${ARCHIVE_URL_TEMPLATE}" != "${EXPECTED_ARCHIVE_URL}" ]]; then
+    echo "ERROR: archive URL branch mismatch. expected=${EXPECTED_ARCHIVE_URL}, found=${ARCHIVE_URL_TEMPLATE}" >&2
+    exit 1
+  fi
+fi
+
 if command -v xmllint >/dev/null 2>&1; then
   xmllint --noout "${PLG_FILE}"
 else

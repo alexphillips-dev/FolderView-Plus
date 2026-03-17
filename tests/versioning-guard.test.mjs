@@ -84,6 +84,8 @@ test('pkg_build includes dependency preflight, safe temp cleanup, dry-run, and c
     assert.match(pkgBuild, /bash "\$install_smoke_script"/);
     assert.match(pkgBuild, /sha256=\$\(sha256sum "\$filename" \| awk '\{print \$1\}'\)/);
     assert.match(pkgBuild, /printf '%s  %s\\n' "\$sha256" "\$\(basename "\$filename"\)" > "\$sha256_file"/);
+    assert.match(pkgBuild, /https:\/\/raw\\\.githubusercontent\\\.com\/&github;\/\[\^\/\]\+\/folderview\\\.plus\\\.plg/);
+    assert.match(pkgBuild, /https:\/\/raw\\\.githubusercontent\\\.com\/&github;\/\[\^\/\]\+\/archive\//);
     assert.doesNotMatch(pkgBuild, /rm -R "\$CWD\/tmp"/);
 });
 
@@ -138,6 +140,14 @@ test('release_guard checks target blank and update-notes release contract', () =
     assert.match(releaseGuard, /lib\.php must define classifyChangesCategory/);
     assert.match(releaseGuard, /lib\.php must define readCurrentVersionChangeSummary/);
     assert.match(releaseGuard, /must disable fallback so \\\"What Changed\\\" only shows current-version notes/);
+});
+
+test('release_guard enforces branch-specific plugin and archive URLs for main\/dev\/beta', () => {
+    assert.match(releaseGuard, /FVPLUS_EXPECT_PLUGIN_BRANCH/);
+    assert.match(releaseGuard, /pluginURL branch mismatch/);
+    assert.match(releaseGuard, /archive URL branch mismatch/);
+    assert.match(releaseGuard, /EXPECTED_PLUGIN_URL="https:\/\/raw\.githubusercontent\.com\/&github;\/\$\{EXPECTED_PLUGIN_BRANCH\}\/folderview\.plus\.plg"/);
+    assert.match(releaseGuard, /EXPECTED_ARCHIVE_URL="https:\/\/raw\.githubusercontent\.com\/&github;\/\$\{EXPECTED_PLUGIN_BRANCH\}\/archive\/&name;-&version;\.txz"/);
 });
 
 test('browser smoke scripts support optional and required modes and include core UI checks', () => {

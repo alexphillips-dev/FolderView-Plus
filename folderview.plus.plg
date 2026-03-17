@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.17.13">
-<!ENTITY md5 "763d57ed3b0613c429faad9b5ff9e0f2">
+<!ENTITY version "2026.03.17.14">
+<!ENTITY md5 "5c2c44670c67fda477b9ecdef5350756">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.17.14
+- Maintenance: Restore nested parent quick actions even with legacy preview flags.
+
 
 ###2026.03.17.13
 - Maintenance: Restore parent preview quick actions for nested docker roots.

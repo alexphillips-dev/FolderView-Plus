@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.17.18">
-<!ENTITY md5 "e2786425b2826b1037cfda1cbe2e7086">
+<!ENTITY version "2026.03.17.19">
+<!ENTITY md5 "53709f5cc924a4e77e044f87f6dfb45f">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.17.19
+- Fix: Fix Docker folder dropdown right alignment and spacing.
+
 
 ###2026.03.17.18
 - Maintenance: Refresh performance baseline for bulk assignment overhaul.

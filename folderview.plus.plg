@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.17.23">
-<!ENTITY md5 "95632a565080453e0cbc55fb189283a4">
+<!ENTITY version "2026.03.17.24">
+<!ENTITY md5 "cfe69007b528b2d74ecb30456db18fc9">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.17.24
+- Fix: Docker runtime app column now performs a rendered-overflow pass and expands only when folder names are actually clipped.
+- Fix: Long folder names remain fully visible in normal cases without globally widening the Application column.
+- Test: Added regression assertions for overflow-aware width adjustment (`scrollWidth`/`clientWidth`) in Docker runtime sizing.
+
 
 ###2026.03.17.23
 - Fix: Repositioned Docker folder dropdown chevrons with extra right-side gutter spacing while keeping the button icon-sized to prevent Version-column clipping.

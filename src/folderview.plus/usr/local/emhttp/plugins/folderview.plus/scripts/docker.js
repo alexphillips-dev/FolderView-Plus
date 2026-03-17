@@ -304,12 +304,42 @@ const estimateDockerRuntimeAutoAppWidth = () => {
     return baseline;
 };
 
+const adjustDockerRuntimeAppWidthForRenderedOverflow = (baseWidth = null) => {
+    const fallback = getDockerRuntimePresetAppWidth() || DOCKER_RUNTIME_APP_PRESET_WIDTHS.standard;
+    const startingWidth = clampDockerRuntimeColumnWidth(baseWidth, 1) || fallback;
+    const rows = Array.from(document.querySelectorAll('tbody#docker_list tr.folder, tbody#docker_view tr.folder'));
+    if (!rows.length) {
+        return startingWidth;
+    }
+    let maxOverflow = 0;
+    rows.forEach((row) => {
+        if (!row || row.offsetParent === null || row.classList.contains('fv-nested-hidden')) {
+            return;
+        }
+        const label = row.querySelector('.folder-appname');
+        if (!label) {
+            return;
+        }
+        const overflow = Math.ceil((label.scrollWidth || 0) - (label.clientWidth || 0));
+        if (overflow > maxOverflow) {
+            maxOverflow = overflow;
+        }
+    });
+    if (maxOverflow <= 0) {
+        return startingWidth;
+    }
+    // Only nudge width when real rendered clipping exists; avoid global widening.
+    const padded = startingWidth + maxOverflow + DOCKER_RUNTIME_APP_TEXT_BUFFER;
+    return clampDockerRuntimeColumnWidth(padded, 1) || startingWidth;
+};
+
 const applyDockerRuntimeColumnWidths = (_widthMap = null) => {
     const targets = getDockerRuntimeTableTargets();
     if (!targets) {
         return;
     }
-    const autoAppWidth = estimateDockerRuntimeAutoAppWidth();
+    const estimatedAppWidth = estimateDockerRuntimeAutoAppWidth();
+    const autoAppWidth = adjustDockerRuntimeAppWidthForRenderedOverflow(estimatedAppWidth);
     const isMobile = window.matchMedia && window.matchMedia('(max-width: 900px)').matches;
     targets.headers.forEach((header, idx) => {
         const index = idx + 1;

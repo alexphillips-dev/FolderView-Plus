@@ -2472,10 +2472,16 @@ const hideNestedDescendants = (id) => {
     }
 };
 
-const showDirectNestedChildren = (id) => {
+const showDirectNestedChildren = (id, anchor = null) => {
+    let $insertAfter = anchor && anchor.length ? anchor : $(`tr.folder-id-${id}`);
     for (const childId of getFolderChildren(id)) {
         forceCollapseFolderRow(childId, false);
-        $(`tr.folder-id-${childId}`).removeClass('fv-nested-hidden').show();
+        const $childRow = $(`tr.folder-id-${childId}`);
+        if ($insertAfter.length && $childRow.length) {
+            $insertAfter.after($childRow);
+            $insertAfter = $childRow;
+        }
+        $childRow.removeClass('fv-nested-hidden').show();
     }
 };
 
@@ -2602,11 +2608,21 @@ const dropDownButton = (id, persistState = true) => {
         element.children().removeClass('fa-chevron-down').addClass('fa-chevron-up');
         $(`tr.folder-id-${id}`).removeClass('sortable').removeClass('ui-sortable-handle').off().css('cursor', '');
         if (hasChildren) {
-            $(`tr.folder-id-${id} .folder-storage`).append($(`.folder-${id}-element`));
-            $(`.folder-${id}-element`).addClass('fv-nested-hidden').hide();
-            showDirectNestedChildren(id);
+            const $folderRow = $(`tr.folder-id-${id}`);
+            const $directMemberRows = $(`.folder-${id}-element`);
+            let $childAnchor = $folderRow;
+            if ($directMemberRows.length) {
+                $folderRow.after($directMemberRows);
+                $directMemberRows.removeClass('fv-nested-hidden').show();
+                $(`.folder-${id}-element > td > i.fa-arrows-v`).remove();
+                $childAnchor = $directMemberRows.last();
+            } else {
+                $folderRow.find('.folder-storage').append($directMemberRows);
+                $directMemberRows.addClass('fv-nested-hidden').hide();
+            }
+            showDirectNestedChildren(id, $childAnchor);
             syncParentFolderVisualState(id, true);
-            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Expanded parent folder. Showing nested children only.`);
+            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Expanded parent folder. Showing direct members, then nested children.`);
         } else {
             $(`tr.folder-id-${id}`).after($(`.folder-${id}-element`));
             $(`.folder-${id}-element`).removeClass('fv-nested-hidden').show();

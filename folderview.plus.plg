@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.17.14">
-<!ENTITY md5 "5c2c44670c67fda477b9ecdef5350756">
+<!ENTITY version "2026.03.17.15">
+<!ENTITY md5 "51951c66ff863448d243f6cdbff8d86d">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.17.15
+- Feature: add side gutters to advanced settings modules.
+
 
 ###2026.03.17.14
 - Maintenance: Restore nested parent quick actions even with legacy preview flags.

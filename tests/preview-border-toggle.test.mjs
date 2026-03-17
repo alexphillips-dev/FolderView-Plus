@@ -21,15 +21,16 @@ test('folder editor normalizes legacy preview border values when loading existin
 });
 
 test('docker preview renderer respects preview border toggle', () => {
-    assert.match(dockerJs, /const hasLegacyCustomBorderColor = \(\) =>/);
-    assert.match(dockerJs, /const explicitOff = raw === '0' \|\| raw === 'false';/);
-    assert.match(dockerJs, /hasLegacyCustomBorderColor\(\)/);
+    assert.match(dockerJs, /const explicitOff = raw === '0' \|\| raw === 'false' \|\| raw === 'off' \|\| raw === 'no';/);
+    assert.match(dockerJs, /enabled = !explicitOff;/);
     assert.match(dockerJs, /previewNode\.style\.setProperty\('border', enabled \? `1px solid \$\{normalizeStatusHexColor\(source\.preview_border_color, DEFAULT_PREVIEW_BORDER_COLOR\)\}` : 'none', 'important'\)/);
     assert.match(dockerJs, /applyPreviewBorderStyle\(previewNode,\s*folder\.settings\)/);
 });
 
-test('vm preview renderer keeps legacy custom border colors visible', () => {
+test('vm preview renderer honors explicit preview border OFF values', () => {
     assert.match(vmJs, /const isPreviewBorderEnabled = \(settings\) =>/);
+    assert.match(vmJs, /const explicitOff = raw === '0' \|\| raw === 'false' \|\| raw === 'off' \|\| raw === 'no';/);
+    assert.match(vmJs, /return !explicitOff;/);
     assert.match(vmJs, /const applyPreviewBorderStyle = \(previewNode, settings\) =>/);
     assert.match(vmJs, /previewNode\.style\.setProperty\('border', isPreviewBorderEnabled\(source\) \? `1px solid \$\{previewColor\}` : 'none', 'important'\)/);
     assert.match(vmJs, /applyPreviewBorderStyle\(previewNode,\s*folder\.settings\);/);

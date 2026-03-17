@@ -2,6 +2,73 @@
     display:none;
 }
 
+.folder-showcase {
+    display: none;
+    margin: 8px 0 12px 0;
+    padding: 10px;
+    border: 1px solid rgba(224, 230, 239, 0.18);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.folder-showcase-outer[expanded="true"] .folder-showcase {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 8px 10px;
+    align-items: flex-start;
+}
+
+.folder-showcase-outer[expanded="true"] .folder-showcase > span.outer {
+    margin: 0 !important;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.folder-showcase-outer[expanded="true"] .folder-showcase > .folder-showcase-outer {
+    margin: 0 !important;
+    min-width: 0;
+}
+
+.folder-showcase-outer[expanded="true"] .folder-showcase > .folder-showcase-outer > span.outer {
+    margin: 0 !important;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.folder-showcase .folder-showcase {
+    margin-top: 8px;
+}
+
+.folder-showcase .fv-dashboard-member-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+.folder-showcase .fv-dashboard-member-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--link, #6fb1ff);
+    font-size: 12px;
+    line-height: 1;
+    text-decoration: none;
+    opacity: 0.95;
+}
+
+.folder-showcase .fv-dashboard-member-action:hover,
+.folder-showcase .fv-dashboard-member-action:focus {
+    color: var(--orange, #f0a30a);
+    text-decoration: none;
+    opacity: 1;
+}
+
 /* Override Unraid's blue-text with orange when both classes are present (folder update indicator) */
 .orange-text.blue-text {
     color: var(--color-orange, #f0a30a);

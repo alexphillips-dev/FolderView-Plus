@@ -1,0 +1,46 @@
+name: Back-Merge Main To Dev
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: folderview-plus-backmerge-main-to-dev
+  cancel-in-progress: false
+
+jobs:
+  backmerge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Sync main into dev
+        run: |
+          chmod +x scripts/sync_main_to_dev.sh
+          bash scripts/sync_main_to_dev.sh
+
+      - name: Push dev when updated
+        run: |
+          git fetch origin dev
+          LOCAL_DEV="$(git rev-parse dev)"
+          REMOTE_DEV="$(git rev-parse origin/dev)"
+          if [ "${LOCAL_DEV}" = "${REMOTE_DEV}" ]; then
+            echo "No dev changes produced by back-merge."
+            exit 0
+          fi
+          git push origin dev
+

@@ -5,13 +5,46 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.16.10">
-<!ENTITY md5 "280a200a78f6f4fe189d875912640946">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
+<!ENTITY version "2026.03.17.05">
+<!ENTITY md5 "3e243d32a9839b9c8de4f62563a1c59f">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.17.05
+- Feature: Added WebUI, Console, and Logs quick-action icons for containers shown in expanded Docker dashboard folders.
+- UX: Styled dashboard member action icons to match compact Docker-tab quick controls.
+- Quality: Added regression guards for dashboard quick-action rendering and secure behavior.
+
+
+###2026.03.17.04
+- Fix: Dashboard widget expanded trays now stay contained inside the widget border.
+- Fix: Nested Docker and VM folders now render as child cards and expand/collapse correctly inside parent folders.
+- Fix: Dashboard folder expand handlers now resolve nested cards reliably and preserve parent folders that contain only child folders.
+
+
+###2026.03.17.03
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.17.02
+- Fix: Fix Docker app column name truncation in runtime rows.
+
+
+###2026.03.17.01
+- Fix: Reduced Docker tab gap between `Application` and `Version` by tightening auto-width baselines and recalculating only visible folder rows.
+- Fix: Improved Docker auto-width reflow when expanding/collapsing nested folders so the first column stays snug.
+- Fix: `Show preview border` now hard-disables preview borders at runtime with explicit `border-off` class overrides for Docker/VM.
+- UX: Improved Dashboard widget folder expansion presentation with a cleaner expanded container tray.
+
+
+###2026.03.16.11
+- Fix: Tighten Docker Application column sizing so the Version column sits closer while still auto-expanding for long and nested folder names.
+- Fix: Persist `Show preview border` correctly by forcing fresh folder/read-info payloads after save (cache-bust client reads + no-cache response headers).
+
 
 ###2026.03.16.10
 - Fix: Fix request-guard mutation fallback and harden preview/dashboard UX.
@@ -1721,7 +1754,7 @@
     </CHANGES>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

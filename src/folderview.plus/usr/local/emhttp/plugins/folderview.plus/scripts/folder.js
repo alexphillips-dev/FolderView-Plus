@@ -164,15 +164,13 @@ const normalizeHexColor = (value, fallback) => {
 
 const isLegacyPreviewBorderEnabled = (settings) => {
     const source = settings && typeof settings === 'object' ? settings : {};
-    const borderColor = normalizeHexColor(source.preview_border_color, '').toLowerCase();
-    const barsColor = normalizeHexColor(source.preview_vertical_bars_color, '').toLowerCase();
-    const hasCustomColor = (borderColor && borderColor !== DEFAULT_BORDER_COLOR)
-        || (barsColor && barsColor !== DEFAULT_BORDER_COLOR);
-    const raw = String(source.preview_border ?? '').trim().toLowerCase();
-    const explicitOff = raw === '0' || raw === 'false';
-    return !Object.prototype.hasOwnProperty.call(source, 'preview_border')
-        || (!explicitOff)
-        || hasCustomColor;
+    if (Object.prototype.hasOwnProperty.call(source, 'preview_border')) {
+        const raw = String(source.preview_border ?? '').trim().toLowerCase();
+        const explicitOff = raw === '0' || raw === 'false' || raw === 'off' || raw === 'no';
+        return !explicitOff;
+    }
+    // Legacy fallback: older payloads without preview_border should keep border visible.
+    return true;
 };
 
 const getForm = () => $('div.canvas > form')[0];
@@ -2573,12 +2571,13 @@ resetStatusColorDefaults();
 
 (async () => {
     registerBeforeUnloadGuard();
+    const cacheBust = Date.now();
     // if editing a vm hide docker related settings
     if (type !== 'docker') {
         $('[constraint*="docker"]').hide();
     }
     // get folders
-    let folders = JSON.parse(await $.get(`/plugins/folderview.plus/server/read.php?type=${type}`).promise());
+    let folders = JSON.parse(await $.get(`/plugins/folderview.plus/server/read.php?type=${type}&nocache=1&_=${cacheBust}`).promise());
     allFoldersById = folders && typeof folders === 'object' ? { ...folders } : {};
     allFolderNames = new Set(Object.values(folders).map((folder) => (folder.name || '').trim().toLowerCase()));
     // get the list of element docker/vm
@@ -2607,7 +2606,7 @@ resetStatusColorDefaults();
         };
     }
 
-    choose = Object.values(JSON.parse(await $.get(`/plugins/folderview.plus/server/read_info.php?type=${type}`).promise())).map(typeFilter);
+    choose = Object.values(JSON.parse(await $.get(`/plugins/folderview.plus/server/read_info.php?type=${type}&nocache=1&_=${cacheBust}`).promise())).map(typeFilter);
 
     // if editing a folder and not creating one
     if (folderId) {

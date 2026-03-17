@@ -2,18 +2,18 @@
     --folder-view3-graph-cpu: #2b8da3;
     --folder-view3-graph-mem: #5d6db6;
     --tooltip-spacing: 5px;
-    --fvplus-docker-app-column-width: 260px;
-    --fvplus-docker-app-column-width-mobile: 214px;
+    --fvplus-docker-app-column-width: 142px;
+    --fvplus-docker-app-column-width-mobile: 118px;
 }
 
 body[data-fvplus-docker-app-width="compact"] {
-    --fvplus-docker-app-column-width: 220px;
-    --fvplus-docker-app-column-width-mobile: 182px;
+    --fvplus-docker-app-column-width: 128px;
+    --fvplus-docker-app-column-width-mobile: 110px;
 }
 
 body[data-fvplus-docker-app-width="wide"] {
-    --fvplus-docker-app-column-width: 320px;
-    --fvplus-docker-app-column-width-mobile: 262px;
+    --fvplus-docker-app-column-width: 188px;
+    --fvplus-docker-app-column-width-mobile: 156px;
 }
 
 body.fvplus-docker-column-resize-active,
@@ -141,12 +141,33 @@ td.ct-name.folder-name > .folder-name-sub {
 
 .folder-outer {
     overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     min-width: 0;
     flex: 0 1 auto;
-    max-width: calc(var(--fvplus-docker-app-column-width) - 64px);
+    max-width: calc(var(--fvplus-docker-app-column-width) - 44px);
+}
+
+.folder-hand {
+    flex: 0 0 auto;
+}
+
+.folder-inner {
+    display: inline-flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.folder-appname {
+    display: inline-block;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: top;
 }
 
 .folder-dropdown {
@@ -197,6 +218,18 @@ tr.folder.fv-parent-expanded div.folder-preview {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+}
+
+.folder-preview.fv-preview-border-off {
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.folder-preview.fv-preview-border-off .folder-preview-wrapper {
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
 }
 
 .folder-preview-wrapper {

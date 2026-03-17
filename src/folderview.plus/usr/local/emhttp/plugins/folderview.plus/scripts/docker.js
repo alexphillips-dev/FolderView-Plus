@@ -5,6 +5,16 @@ const localDefaultFolderStatusColors = {
     stopped: '#ff4d4d'
 };
 const DEFAULT_PREVIEW_BORDER_COLOR = '#afa89e';
+const isPreviewBorderEnabled = (settings) => {
+    const source = settings && typeof settings === 'object' ? settings : {};
+    let enabled = true;
+    if (Object.prototype.hasOwnProperty.call(source, 'preview_border')) {
+        const raw = String(source.preview_border ?? '').trim().toLowerCase();
+        const explicitOff = raw === '0' || raw === 'false' || raw === 'off' || raw === 'no';
+        enabled = !explicitOff;
+    }
+    return enabled;
+};
 const normalizeStatusHexColor = (value, fallback) => {
     if (typeof value !== 'string') {
         return fallback;
@@ -21,20 +31,10 @@ const normalizeStatusHexColor = (value, fallback) => {
 const applyPreviewBorderStyle = (previewNode, settings) => {
     if (!previewNode) return;
     const source = settings && typeof settings === 'object' ? settings : {};
-    const normalizeLegacyBorderColor = (value) => normalizeStatusHexColor(value, '').toLowerCase();
-    const hasLegacyCustomBorderColor = () => {
-        const borderColor = normalizeLegacyBorderColor(source.preview_border_color);
-        if (borderColor && borderColor !== DEFAULT_PREVIEW_BORDER_COLOR) {
-            return true;
-        }
-        const barsColor = normalizeLegacyBorderColor(source.preview_vertical_bars_color);
-        return Boolean(barsColor && barsColor !== DEFAULT_PREVIEW_BORDER_COLOR);
-    };
-    const raw = String(source.preview_border ?? '').trim().toLowerCase();
-    const explicitOff = raw === '0' || raw === 'false';
-    const enabled = !Object.prototype.hasOwnProperty.call(source, 'preview_border')
-        || (!explicitOff)
-        || hasLegacyCustomBorderColor();
+    const enabled = isPreviewBorderEnabled(source);
+    if (previewNode.classList && typeof previewNode.classList.toggle === 'function') {
+        previewNode.classList.toggle('fv-preview-border-off', !enabled);
+    }
     previewNode.style.setProperty('border', enabled ? `1px solid ${normalizeStatusHexColor(source.preview_border_color, DEFAULT_PREVIEW_BORDER_COLOR)}` : 'none', 'important');
 };
 const utils = window.FolderViewPlusUtils || {
@@ -76,14 +76,16 @@ const utils = window.FolderViewPlusUtils || {
 const FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
 const DOCKER_RUNTIME_COLUMN_WIDTHS_STORAGE_KEY = 'fv.runtime.docker.columnWidthsPx.v1';
 const DOCKER_RUNTIME_LEGACY_APP_WIDTH_STORAGE_KEY = 'fv.runtime.docker.appColumnWidthPx.v1';
-const DOCKER_RUNTIME_APP_WIDTH_MIN = 260;
+const DOCKER_RUNTIME_APP_WIDTH_MIN = 118;
 const DOCKER_RUNTIME_APP_WIDTH_MAX = 1280;
+const DOCKER_RUNTIME_APP_CHROME_WIDTH = 78;
+const DOCKER_RUNTIME_APP_TEXT_BUFFER = 12;
 const DOCKER_RUNTIME_COLUMN_WIDTH_MIN = 88;
 const DOCKER_RUNTIME_COLUMN_WIDTH_MAX = 920;
 const DOCKER_RUNTIME_APP_PRESET_WIDTHS = Object.freeze({
-    compact: 220,
-    standard: 260,
-    wide: 320
+    compact: 128,
+    standard: 142,
+    wide: 188
 });
 let dockerRuntimeColumnResizeSession = null;
 let lastAppliedRuntimePrefs = null;
@@ -256,7 +258,7 @@ const applyDockerRuntimeAppWidthVariables = (desktopWidthPx = null) => {
         document.body.style.removeProperty('--fvplus-docker-app-column-width-mobile');
         return;
     }
-    const mobileWidth = Math.max(220, Math.round(safeDesktopWidth * 0.82));
+    const mobileWidth = Math.max(112, Math.round(safeDesktopWidth * 0.82));
     document.body.style.setProperty('--fvplus-docker-app-column-width', `${safeDesktopWidth}px`);
     document.body.style.setProperty('--fvplus-docker-app-column-width-mobile', `${mobileWidth}px`);
 };
@@ -274,6 +276,9 @@ const estimateDockerRuntimeAutoAppWidth = () => {
     }
     let maxWidth = baseline;
     rows.forEach((row) => {
+        if (row.offsetParent === null || row.classList.contains('fv-nested-hidden')) {
+            return;
+        }
         const nameNode = row.querySelector('.folder-appname');
         if (!nameNode) {
             return;
@@ -288,8 +293,8 @@ const estimateDockerRuntimeAutoAppWidth = () => {
         const nameSubNode = row.querySelector('.folder-name-sub');
         const nameSubStyle = nameSubNode ? window.getComputedStyle(nameSubNode) : null;
         const paddingIndent = nameSubStyle ? Math.max(0, Math.round(parseFloat(nameSubStyle.paddingLeft) || 0)) : 0;
-        // Include tree controls, nesting indent, icon/toggle/dropdown, and right cushion.
-        const estimated = Math.ceil(textWidth + paddingIndent + 120);
+        // Include fixed row chrome (icon/dropdown/gutters) plus a small text cushion.
+        const estimated = Math.ceil(textWidth + paddingIndent + DOCKER_RUNTIME_APP_CHROME_WIDTH + DOCKER_RUNTIME_APP_TEXT_BUFFER);
         if (estimated > maxWidth) {
             maxWidth = estimated;
         }
@@ -307,7 +312,7 @@ const applyDockerRuntimeColumnWidths = (_widthMap = null) => {
     targets.headers.forEach((header, idx) => {
         const index = idx + 1;
         const effectiveWidth = index === 1
-            ? (isMobile ? Math.max(220, Math.round(autoAppWidth * 0.82)) : autoAppWidth)
+            ? (isMobile ? Math.max(108, Math.round(autoAppWidth * 0.82)) : autoAppWidth)
             : null;
         const applyWidth = (element) => {
             if (!element || !element.style) {
@@ -2617,6 +2622,8 @@ const dropDownButton = (id, persistState = true) => {
     if (persistState) {
         persistDockerExpandedStateFromGlobal();
     }
+    queueDockerRuntimeResizerBind();
+    setTimeout(() => applyDockerRuntimeColumnWidths(null), 0);
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Dispatching docker-post-folder-expansion event.`);
     folderEvents.dispatchEvent(new CustomEvent('docker-post-folder-expansion', {detail: { id }}));
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Exit.`);

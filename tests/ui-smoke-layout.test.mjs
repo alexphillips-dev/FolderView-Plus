@@ -180,6 +180,8 @@ test('nested folder expansion avoids duplicate parent previews and keeps child-o
     assert.match(dockerJs, /showDirectNestedChildren\(id\);/);
     assert.match(dockerJs, /syncParentFolderVisualState\(id,\s*true\);/);
     assert.match(dockerJs, /syncParentFolderVisualState\(id,\s*false\);/);
+    assert.match(dockerJs, /buildRuntimeContainerMapForFolder\(id,\s*false\)/);
+    assert.match(dockerJs, /When expanded, keep parent-level containers visible but avoid duplicating descendants\./);
     assert.match(dockerJs, /Expanded parent folder\. Showing nested children only\./);
     assert.match(dockerJs, /\.addClass\('fv-nested-hidden'\)\.hide\(\);/);
     assert.match(vmJs, /const parentId = normalizeFolderParentId\(source\[id\]\?\.parentId \|\| source\[id\]\?\.parent_id \|\| ''\);/);

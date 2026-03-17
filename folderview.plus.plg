@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.17.10">
-<!ENTITY md5 "51a19d11c637bebbbb059bc03c06f19f">
+<!ENTITY version "2026.03.17.11">
+<!ENTITY md5 "000c061e4cb00a899c25f92699854a05">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.17.11
+- Fix: Expanded parent folders with nested children now show direct containers in the parent preview area.
+- Fix: Parent expanded state no longer clears root-level folder members when child folders exist.
+- Quality: Added regression coverage to lock nested parent-preview behavior during expand/collapse.
+
 
 ###2026.03.17.10
 - Fix: Advanced section tabs now show ordered step numbering (1..N) instead of per-tab section counts.

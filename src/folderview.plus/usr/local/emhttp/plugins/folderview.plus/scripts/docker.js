@@ -2445,22 +2445,24 @@ const syncParentFolderVisualState = (id, expanded) => {
     if (!folderHasChildren(id)) {
         return;
     }
+    const folder = globalFolders[id];
+    if (!folder || typeof folder !== 'object') {
+        return;
+    }
     const $row = $(`tr.folder-id-${id}`);
     $row.toggleClass('fv-parent-collapsed', !expanded);
     $row.toggleClass('fv-parent-expanded', !!expanded);
 
     if (expanded) {
-        $row.find('div.folder-preview').empty();
+        // When expanded, keep parent-level containers visible but avoid duplicating descendants.
+        const directRuntimeContainers = buildRuntimeContainerMapForFolder(id, false);
+        renderNestedAggregatePreview(id, folder, directRuntimeContainers);
     } else {
-        const folder = globalFolders[id];
         const runtimeContainers = folder?.runtimeContainers || {};
         renderNestedAggregatePreview(id, folder, runtimeContainers);
     }
-    if (!expanded) {
-        const folder = globalFolders[id];
-        const previewNode = $row.find('div.folder-preview').get(0);
-        applyPreviewBorderStyle(previewNode, folder?.settings || {});
-    }
+    const previewNode = $row.find('div.folder-preview').get(0);
+    applyPreviewBorderStyle(previewNode, folder?.settings || {});
 };
 
 const hideNestedDescendants = (id) => {

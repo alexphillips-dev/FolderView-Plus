@@ -2571,12 +2571,13 @@ resetStatusColorDefaults();
 
 (async () => {
     registerBeforeUnloadGuard();
+    const cacheBust = Date.now();
     // if editing a vm hide docker related settings
     if (type !== 'docker') {
         $('[constraint*="docker"]').hide();
     }
     // get folders
-    let folders = JSON.parse(await $.get(`/plugins/folderview.plus/server/read.php?type=${type}`).promise());
+    let folders = JSON.parse(await $.get(`/plugins/folderview.plus/server/read.php?type=${type}&nocache=1&_=${cacheBust}`).promise());
     allFoldersById = folders && typeof folders === 'object' ? { ...folders } : {};
     allFolderNames = new Set(Object.values(folders).map((folder) => (folder.name || '').trim().toLowerCase()));
     // get the list of element docker/vm
@@ -2605,7 +2606,7 @@ resetStatusColorDefaults();
         };
     }
 
-    choose = Object.values(JSON.parse(await $.get(`/plugins/folderview.plus/server/read_info.php?type=${type}`).promise())).map(typeFilter);
+    choose = Object.values(JSON.parse(await $.get(`/plugins/folderview.plus/server/read_info.php?type=${type}&nocache=1&_=${cacheBust}`).promise())).map(typeFilter);
 
     // if editing a folder and not creating one
     if (folderId) {

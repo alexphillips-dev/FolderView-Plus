@@ -68,14 +68,14 @@ const utils = window.FolderViewPlusUtils || {
 const FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
 const DOCKER_RUNTIME_COLUMN_WIDTHS_STORAGE_KEY = 'fv.runtime.docker.columnWidthsPx.v1';
 const DOCKER_RUNTIME_LEGACY_APP_WIDTH_STORAGE_KEY = 'fv.runtime.docker.appColumnWidthPx.v1';
-const DOCKER_RUNTIME_APP_WIDTH_MIN = 260;
+const DOCKER_RUNTIME_APP_WIDTH_MIN = 148;
 const DOCKER_RUNTIME_APP_WIDTH_MAX = 1280;
 const DOCKER_RUNTIME_COLUMN_WIDTH_MIN = 88;
 const DOCKER_RUNTIME_COLUMN_WIDTH_MAX = 920;
 const DOCKER_RUNTIME_APP_PRESET_WIDTHS = Object.freeze({
-    compact: 220,
-    standard: 260,
-    wide: 320
+    compact: 160,
+    standard: 180,
+    wide: 240
 });
 let dockerRuntimeColumnResizeSession = null;
 let lastAppliedRuntimePrefs = null;
@@ -248,7 +248,7 @@ const applyDockerRuntimeAppWidthVariables = (desktopWidthPx = null) => {
         document.body.style.removeProperty('--fvplus-docker-app-column-width-mobile');
         return;
     }
-    const mobileWidth = Math.max(220, Math.round(safeDesktopWidth * 0.82));
+    const mobileWidth = Math.max(150, Math.round(safeDesktopWidth * 0.82));
     document.body.style.setProperty('--fvplus-docker-app-column-width', `${safeDesktopWidth}px`);
     document.body.style.setProperty('--fvplus-docker-app-column-width-mobile', `${mobileWidth}px`);
 };
@@ -281,7 +281,7 @@ const estimateDockerRuntimeAutoAppWidth = () => {
         const nameSubStyle = nameSubNode ? window.getComputedStyle(nameSubNode) : null;
         const paddingIndent = nameSubStyle ? Math.max(0, Math.round(parseFloat(nameSubStyle.paddingLeft) || 0)) : 0;
         // Include tree controls, nesting indent, icon/toggle/dropdown, and right cushion.
-        const estimated = Math.ceil(textWidth + paddingIndent + 120);
+        const estimated = Math.ceil(textWidth + paddingIndent + 64);
         if (estimated > maxWidth) {
             maxWidth = estimated;
         }
@@ -299,7 +299,7 @@ const applyDockerRuntimeColumnWidths = (_widthMap = null) => {
     targets.headers.forEach((header, idx) => {
         const index = idx + 1;
         const effectiveWidth = index === 1
-            ? (isMobile ? Math.max(220, Math.round(autoAppWidth * 0.82)) : autoAppWidth)
+            ? (isMobile ? Math.max(138, Math.round(autoAppWidth * 0.82)) : autoAppWidth)
             : null;
         const applyWidth = (element) => {
             if (!element || !element.style) {

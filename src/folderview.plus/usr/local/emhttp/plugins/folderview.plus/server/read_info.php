@@ -2,6 +2,9 @@
 require_once("/usr/local/emhttp/plugins/folderview.plus/server/lib.php");
 
 header('Content-Type: text/plain');
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: 0');
 
 try {
     $type = ensureType((string)($_GET['type'] ?? $_REQUEST['type'] ?? ''));

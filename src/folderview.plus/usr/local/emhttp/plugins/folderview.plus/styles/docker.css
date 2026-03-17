@@ -2,18 +2,18 @@
     --folder-view3-graph-cpu: #2b8da3;
     --folder-view3-graph-mem: #5d6db6;
     --tooltip-spacing: 5px;
-    --fvplus-docker-app-column-width: 260px;
-    --fvplus-docker-app-column-width-mobile: 214px;
+    --fvplus-docker-app-column-width: 180px;
+    --fvplus-docker-app-column-width-mobile: 150px;
 }
 
 body[data-fvplus-docker-app-width="compact"] {
-    --fvplus-docker-app-column-width: 220px;
-    --fvplus-docker-app-column-width-mobile: 182px;
+    --fvplus-docker-app-column-width: 160px;
+    --fvplus-docker-app-column-width-mobile: 136px;
 }
 
 body[data-fvplus-docker-app-width="wide"] {
-    --fvplus-docker-app-column-width: 320px;
-    --fvplus-docker-app-column-width-mobile: 262px;
+    --fvplus-docker-app-column-width: 240px;
+    --fvplus-docker-app-column-width-mobile: 198px;
 }
 
 body.fvplus-docker-column-resize-active,

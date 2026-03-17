@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.16.10">
-<!ENTITY md5 "a587c23811e159db2f9827f0054b9e93">
+<!ENTITY version "2026.03.16.11">
+<!ENTITY md5 "14287f3fdbc161acb5a9db9b742b659c">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.16.11
+- Fix: Tighten Docker Application column sizing so the Version column sits closer while still auto-expanding for long and nested folder names.
+- Fix: Persist `Show preview border` correctly by forcing fresh folder/read-info payloads after save (cache-bust client reads + no-cache response headers).
+
 
 ###2026.03.16.10
 - Fix: Fix request-guard mutation fallback and harden preview/dashboard UX.

@@ -543,20 +543,27 @@ if (!empty($fvplusRuntimeConflicts)) {
         <div class="bulk-row bulk-target-row">
             <label for="docker-bulk-folder">Target folder</label>
             <select id="docker-bulk-folder"></select>
-            <button id="docker-bulk-assign-btn" type="button" onclick="assignSelectedItems('docker')"><i class="fa fa-share-square-o"></i> Assign selected</button>
+            <button id="docker-bulk-assign-btn" type="button" onclick="assignSelectedItems('docker')"><i class="fa fa-share-square-o"></i> Preview &amp; assign</button>
         </div>
         <div class="bulk-row bulk-filter-row">
             <input id="docker-bulk-filter" type="text" placeholder="Filter containers" oninput="filterBulkItems('docker', this.value)">
             <div class="bulk-selection-actions">
                 <button type="button" onclick="bulkItemSelectionAction('docker','all')"><i class="fa fa-check-square-o"></i> Select visible</button>
                 <button type="button" onclick="bulkItemSelectionAction('docker','none')"><i class="fa fa-square-o"></i> Clear</button>
+                <button type="button" onclick="bulkItemSelectionAction('docker','invert')"><i class="fa fa-random"></i> Invert</button>
             </div>
         </div>
         <div class="bulk-row bulk-meta-row">
             <span id="docker-bulk-selected-count" class="bulk-selected-count">0 selected</span>
-            <span class="rules-help">Tip: use Shift/Ctrl (or Cmd) for multi-select.</span>
+            <span class="rules-help">Use checkboxes to select items, then review the diff before applying.</span>
         </div>
-        <select id="docker-bulk-items" multiple size="10" onchange="updateBulkSelectedCount('docker')"></select>
+        <div id="docker-bulk-items-list" class="bulk-items-list" role="listbox" aria-label="Docker items for bulk assignment"></div>
+        <select id="docker-bulk-items" class="bulk-items-legacy" multiple size="10" onchange="updateBulkSelectedCount('docker')"></select>
+        <div id="docker-bulk-preview" class="bulk-preview-panel">Select items to preview folder moves.</div>
+        <div id="docker-bulk-result" class="bulk-result-panel">No bulk action run yet.</div>
+        <div class="bulk-result-actions">
+            <button id="docker-bulk-retry-failed" type="button" class="is-hidden" onclick="retryFailedBulkItems('docker')"><i class="fa fa-repeat"></i> Retry failed</button>
+        </div>
         <div id="docker-bulk-help" class="bulk-help-text"></div>
     </div>
 
@@ -568,20 +575,27 @@ if (!empty($fvplusRuntimeConflicts)) {
         <div class="bulk-row bulk-target-row">
             <label for="vm-bulk-folder">Target folder</label>
             <select id="vm-bulk-folder"></select>
-            <button id="vm-bulk-assign-btn" type="button" onclick="assignSelectedItems('vm')"><i class="fa fa-share-square-o"></i> Assign selected</button>
+            <button id="vm-bulk-assign-btn" type="button" onclick="assignSelectedItems('vm')"><i class="fa fa-share-square-o"></i> Preview &amp; assign</button>
         </div>
         <div class="bulk-row bulk-filter-row">
             <input id="vm-bulk-filter" type="text" placeholder="Filter VMs" oninput="filterBulkItems('vm', this.value)">
             <div class="bulk-selection-actions">
                 <button type="button" onclick="bulkItemSelectionAction('vm','all')"><i class="fa fa-check-square-o"></i> Select visible</button>
                 <button type="button" onclick="bulkItemSelectionAction('vm','none')"><i class="fa fa-square-o"></i> Clear</button>
+                <button type="button" onclick="bulkItemSelectionAction('vm','invert')"><i class="fa fa-random"></i> Invert</button>
             </div>
         </div>
         <div class="bulk-row bulk-meta-row">
             <span id="vm-bulk-selected-count" class="bulk-selected-count">0 selected</span>
-            <span class="rules-help">Tip: use Shift/Ctrl (or Cmd) for multi-select.</span>
+            <span class="rules-help">Use checkboxes to select items, then review the diff before applying.</span>
         </div>
-        <select id="vm-bulk-items" multiple size="10" onchange="updateBulkSelectedCount('vm')"></select>
+        <div id="vm-bulk-items-list" class="bulk-items-list" role="listbox" aria-label="VM items for bulk assignment"></div>
+        <select id="vm-bulk-items" class="bulk-items-legacy" multiple size="10" onchange="updateBulkSelectedCount('vm')"></select>
+        <div id="vm-bulk-preview" class="bulk-preview-panel">Select items to preview folder moves.</div>
+        <div id="vm-bulk-result" class="bulk-result-panel">No bulk action run yet.</div>
+        <div class="bulk-result-actions">
+            <button id="vm-bulk-retry-failed" type="button" class="is-hidden" onclick="retryFailedBulkItems('vm')"><i class="fa fa-repeat"></i> Retry failed</button>
+        </div>
         <div id="vm-bulk-help" class="bulk-help-text"></div>
     </div>
 </div>

@@ -220,6 +220,20 @@ let backupCompareSelectionByType = {
         includePrefs: true
     }
 };
+const createBulkAssignUiState = () => ({
+    selected: new Set(),
+    allNames: [],
+    visibleNames: [],
+    failedNames: [],
+    lastTargetFolderId: '',
+    lastResult: null,
+    applying: false,
+    renderToken: 0
+});
+let bulkAssignStateByType = {
+    docker: createBulkAssignUiState(),
+    vm: createBulkAssignUiState()
+};
 
 const UI_MODE_STORAGE_KEY = 'fv.settings.mode.v1';
 const WIZARD_DONE_STORAGE_KEY = 'fv.settings.wizard.v1.done';
@@ -247,6 +261,9 @@ const IMPORT_PRESET_DEFAULT_ID = 'builtin:merge';
 const UNDO_WINDOW_MS = 10000;
 const ROW_FOCUS_HIGHLIGHT_MS = 2200;
 const SETTINGS_TABLE_COLUMN_COUNT = 10;
+const BULK_ASSIGN_CHUNK_SIZE = 40;
+const BULK_ASSIGN_CHUNK_PAUSE_MS = 20;
+const BULK_LIST_RENDER_CHUNK_SIZE = 120;
 const IMPORT_PRESET_BUILTINS = [
     {
         id: 'builtin:merge',
@@ -2055,6 +2072,23 @@ const initSettingsControls = () => {
         .on('input.fvtemplatehint change.fvtemplatehint', () => {
             validateTemplateNameInput('vm', false);
         });
+    $(document)
+        .off('change.fvbulkitems', '.bulk-item-checkbox[data-fv-bulk-type]')
+        .on('change.fvbulkitems', '.bulk-item-checkbox[data-fv-bulk-type]', (event) => {
+            const target = event.currentTarget;
+            const type = String(target?.getAttribute('data-fv-bulk-type') || '').trim().toLowerCase();
+            const safeType = type === 'vm' ? 'vm' : 'docker';
+            const checked = target instanceof HTMLInputElement ? target.checked : false;
+            setBulkItemChecked(safeType, target?.value || '', checked);
+        });
+    $(document)
+        .off('change.fvbulktarget', '#docker-bulk-folder, #vm-bulk-folder')
+        .on('change.fvbulktarget', '#docker-bulk-folder, #vm-bulk-folder', (event) => {
+            const target = event.currentTarget;
+            const id = String(target?.id || '').trim().toLowerCase();
+            const type = id.startsWith('vm-') ? 'vm' : 'docker';
+            updateBulkPreviewPanel(type);
+        });
 
     $('#fv-settings-search').val(settingsUiState.query || '');
     $('#fv-search-all-advanced').prop('checked', settingsUiState.searchAllAdvanced === true);
@@ -2305,6 +2339,45 @@ const getFolderMap = (type) => utils.normalizeFolderMap(typeFolders(type));
 const folderNameForId = (type, id) => {
     const folders = getFolderMap(type);
     return folders[id]?.name || id;
+};
+
+const getBulkState = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    if (!bulkAssignStateByType[resolvedType] || typeof bulkAssignStateByType[resolvedType] !== 'object') {
+        bulkAssignStateByType[resolvedType] = createBulkAssignUiState();
+    }
+    return bulkAssignStateByType[resolvedType];
+};
+
+const sanitizeBulkItemName = (value) => String(value || '').trim();
+
+const isValidBulkItemName = (name) => {
+    if (!name) {
+        return false;
+    }
+    if (name.length > 255) {
+        return false;
+    }
+    return !/[\x00-\x1F\x7F]/u.test(name);
+};
+
+const buildFolderPathLabel = (type, folderId, foldersInput = null, hierarchyMeta = null) => {
+    const resolvedType = normalizeManagedType(type);
+    const folders = utils.normalizeFolderMap(foldersInput || getFolderMap(resolvedType));
+    const safeId = String(folderId || '').trim();
+    if (!safeId || !Object.prototype.hasOwnProperty.call(folders, safeId)) {
+        return safeId;
+    }
+    const meta = hierarchyMeta || buildFolderHierarchyMeta(folders);
+    const parts = [];
+    const seen = new Set();
+    let cursor = safeId;
+    while (cursor && !seen.has(cursor)) {
+        seen.add(cursor);
+        parts.unshift(String(folders[cursor]?.name || cursor));
+        cursor = String(meta.parentById?.[cursor] || '').trim();
+    }
+    return parts.join(' / ');
 };
 
 const isFolderPinned = (type, folderId) => {
@@ -7354,14 +7427,44 @@ const renderFolderSelectOptions = (type) => {
     const folders = getFolderMap(type);
     const entries = Object.entries(folders);
     const hasFolders = entries.length > 0;
-    const options = hasFolders
+    const setOptionsPreserveValue = (selector, html, disabled) => {
+        const select = $(selector);
+        if (!select.length) {
+            return;
+        }
+        const previous = String(select.val() || '').trim();
+        select.html(html).prop('disabled', disabled === true);
+        if (!previous) {
+            return;
+        }
+        const hasPrevious = select.find('option').toArray().some((option) => String(option.value || '') === previous);
+        if (hasPrevious) {
+            select.val(previous);
+        }
+    };
+
+    const simpleOptions = hasFolders
         ? entries.map(([id, folder]) => `<option value="${escapeHtml(id)}">${escapeHtml(folder.name || id)}</option>`).join('')
         : '<option value="">(Create a folder first)</option>';
+    let bulkOptions = '<option value="">(Create a folder first)</option>';
+    if (hasFolders) {
+        const hierarchyMeta = buildFolderHierarchyMeta(folders);
+        const orderedIds = getOrderedFolderIdsForTreeOps(type);
+        bulkOptions = orderedIds.map((id) => {
+            if (!Object.prototype.hasOwnProperty.call(folders, id)) {
+                return '';
+            }
+            const depth = Math.max(0, Number(hierarchyMeta.depthById?.[id] || 0));
+            const indent = depth > 0 ? '&nbsp;'.repeat(Math.min(12, depth) * 2) : '';
+            const label = buildFolderPathLabel(type, id, folders, hierarchyMeta);
+            return `<option value="${escapeHtml(id)}">${indent}${escapeHtml(label)}</option>`;
+        }).join('');
+    }
 
-    $(`#${type}-rule-folder`).html(options).prop('disabled', !hasFolders);
-    $(`#${type}-bulk-folder`).html(options).prop('disabled', !hasFolders);
-    $(`#${type}-template-source-folder`).html(options).prop('disabled', !hasFolders);
-    $(`#${type}-runtime-folder`).html(options).prop('disabled', !hasFolders);
+    setOptionsPreserveValue(`#${type}-rule-folder`, simpleOptions, !hasFolders);
+    setOptionsPreserveValue(`#${type}-bulk-folder`, bulkOptions, !hasFolders);
+    setOptionsPreserveValue(`#${type}-template-source-folder`, simpleOptions, !hasFolders);
+    setOptionsPreserveValue(`#${type}-runtime-folder`, simpleOptions, !hasFolders);
     $(`#${type}-bulk-assign-btn`).prop('disabled', !hasFolders);
     if (!hasFolders) {
         $(`#${type}-bulk-help`).text('Create at least one folder first, then assign items here.');
@@ -7654,10 +7757,282 @@ const getBulkAssignableNames = (type) => {
 
 const getBulkItemsFilterQuery = (type) => normalizedFilter($(`#${type}-bulk-filter`).val());
 
+const getBulkMemberFolderLookup = (type, foldersInput = null) => {
+    const resolvedType = normalizeManagedType(type);
+    const folders = utils.normalizeFolderMap(foldersInput || getFolderMap(resolvedType));
+    const byName = {};
+    const conflicts = {};
+    for (const [folderId, folder] of Object.entries(folders || {})) {
+        const members = (utils && typeof utils.normalizeFolderMembers === 'function')
+            ? utils.normalizeFolderMembers(folder?.containers || [])
+            : (Array.isArray(folder?.containers) ? folder.containers.map((value) => String(value || '').trim()).filter(Boolean) : []);
+        for (const member of members) {
+            const safeName = sanitizeBulkItemName(member);
+            if (!safeName) {
+                continue;
+            }
+            const previousFolderId = String(byName[safeName] || '').trim();
+            if (!previousFolderId) {
+                byName[safeName] = folderId;
+                continue;
+            }
+            if (previousFolderId === folderId) {
+                continue;
+            }
+            if (!Array.isArray(conflicts[safeName])) {
+                conflicts[safeName] = [previousFolderId];
+            }
+            if (!conflicts[safeName].includes(folderId)) {
+                conflicts[safeName].push(folderId);
+            }
+        }
+    }
+    return { byName, conflicts };
+};
+
+const normalizeBulkSelectionForType = (type) => {
+    const state = getBulkState(type);
+    const validNames = new Set((state.allNames || []).map((name) => sanitizeBulkItemName(name)).filter(Boolean));
+    const normalized = new Set();
+    for (const value of Array.from(state.selected || [])) {
+        const safeName = sanitizeBulkItemName(value);
+        if (!safeName || !validNames.has(safeName)) {
+            continue;
+        }
+        normalized.add(safeName);
+    }
+    state.selected = normalized;
+};
+
+const syncBulkLegacySelect = (type, names, { disabled = false } = {}) => {
+    const selectEl = document.getElementById(`${type}-bulk-items`);
+    if (!(selectEl instanceof HTMLSelectElement)) {
+        return;
+    }
+    const state = getBulkState(type);
+    const safeNames = Array.isArray(names)
+        ? names.map((name) => sanitizeBulkItemName(name)).filter(Boolean)
+        : [];
+    if (!safeNames.length) {
+        selectEl.innerHTML = '<option value="" disabled>(No items detected yet)</option>';
+        selectEl.disabled = true;
+        return;
+    }
+    const selected = state.selected || new Set();
+    const options = safeNames
+        .map((name) => {
+            const isSelected = selected.has(name) ? ' selected' : '';
+            return `<option value="${escapeHtml(name)}"${isSelected}>${escapeHtml(name)}</option>`;
+        })
+        .join('');
+    selectEl.innerHTML = options;
+    selectEl.disabled = disabled === true;
+};
+
+const renderBulkResultPanel = (type, result = null) => {
+    const panel = $(`#${type}-bulk-result`);
+    if (!panel.length) {
+        return;
+    }
+    panel.removeClass('is-success is-warning is-error is-progress');
+    if (!result || typeof result !== 'object') {
+        panel.text('No bulk action run yet.');
+        return;
+    }
+    const level = String(result.level || 'info').toLowerCase();
+    if (level === 'success') {
+        panel.addClass('is-success');
+    } else if (level === 'warning') {
+        panel.addClass('is-warning');
+    } else if (level === 'error') {
+        panel.addClass('is-error');
+    } else if (level === 'progress') {
+        panel.addClass('is-progress');
+    }
+    const lines = Array.isArray(result.lines) ? result.lines.slice(0, 220) : [];
+    if (!lines.length) {
+        panel.html(`<div class="bulk-result-summary">${escapeHtml(String(result.summary || 'No updates.'))}</div>`);
+        return;
+    }
+    const rowHtml = lines.map((line) => {
+        const status = String(line.status || 'info').trim().toLowerCase();
+        const label = status === 'success'
+            ? 'Assigned'
+            : (status === 'skip' ? 'Skipped' : (status === 'invalid' ? 'Invalid' : (status === 'failed' ? 'Failed' : 'Info')));
+        return `<li class="bulk-result-line is-${escapeHtml(status)}">
+            <span class="bulk-result-badge">${escapeHtml(label)}</span>
+            <span class="bulk-result-name">${escapeHtml(String(line.name || ''))}</span>
+            <span class="bulk-result-detail">${escapeHtml(String(line.detail || ''))}</span>
+        </li>`;
+    }).join('');
+    panel.html(`
+        <div class="bulk-result-summary">${escapeHtml(String(result.summary || 'Bulk assignment update'))}</div>
+        <ul class="bulk-result-list">${rowHtml}</ul>
+    `);
+};
+
+const updateBulkResultActions = (type) => {
+    const state = getBulkState(type);
+    const retryButton = $(`#${type}-bulk-retry-failed`);
+    if (!retryButton.length) {
+        return;
+    }
+    const failedCount = Array.isArray(state.failedNames) ? state.failedNames.length : 0;
+    retryButton.toggleClass('is-hidden', failedCount <= 0);
+    retryButton.prop('disabled', state.applying === true);
+    if (failedCount > 0) {
+        retryButton.html(`<i class="fa fa-repeat"></i> Retry failed (${failedCount})`);
+    }
+};
+
+const buildBulkAssignmentPlan = (type, folderId, namesInput = null) => {
+    const resolvedType = normalizeManagedType(type);
+    const folders = getFolderMap(resolvedType);
+    const targetFolderId = String(folderId || '').trim();
+    const targetFolderName = targetFolderId ? String(folderNameForId(resolvedType, targetFolderId) || targetFolderId) : '';
+    const sourceNames = Array.isArray(namesInput) ? namesInput : Array.from(getBulkState(resolvedType).selected || []);
+    const deduped = [];
+    const duplicateNames = [];
+    const seen = new Set();
+    for (const value of sourceNames) {
+        const safeName = sanitizeBulkItemName(value);
+        if (!safeName) {
+            continue;
+        }
+        if (seen.has(safeName)) {
+            duplicateNames.push(safeName);
+            continue;
+        }
+        seen.add(safeName);
+        deduped.push(safeName);
+    }
+    const invalidNames = deduped.filter((name) => !isValidBulkItemName(name));
+    const validNames = deduped.filter((name) => isValidBulkItemName(name));
+    const lookup = getBulkMemberFolderLookup(resolvedType, folders);
+    const creates = [];
+    const moves = [];
+    const unchanged = [];
+    const conflicts = [];
+    for (const name of validNames) {
+        const currentFolderId = String(lookup.byName?.[name] || '').trim();
+        if (Array.isArray(lookup.conflicts?.[name]) && lookup.conflicts[name].length > 1) {
+            conflicts.push(name);
+        }
+        if (currentFolderId && currentFolderId === targetFolderId) {
+            unchanged.push({
+                name,
+                currentFolderId,
+                currentFolderName: folderNameForId(resolvedType, currentFolderId)
+            });
+            continue;
+        }
+        if (currentFolderId) {
+            moves.push({
+                name,
+                currentFolderId,
+                currentFolderName: folderNameForId(resolvedType, currentFolderId)
+            });
+            continue;
+        }
+        creates.push({ name });
+    }
+    return {
+        type: resolvedType,
+        targetFolderId,
+        targetFolderName,
+        selectedNames: deduped,
+        duplicateNames,
+        invalidNames,
+        validNames,
+        creates,
+        moves,
+        unchanged,
+        conflicts,
+        actionableNames: [...creates.map((entry) => entry.name), ...moves.map((entry) => entry.name)]
+    };
+};
+
+const confirmBulkAssignmentPlan = (typeLabel, plan) => new Promise((resolve) => {
+    const summary = [
+        `Target: ${plan.targetFolderName || plan.targetFolderId}`,
+        `Create: ${plan.creates.length}`,
+        `Move: ${plan.moves.length}`,
+        `Unchanged: ${plan.unchanged.length}`,
+        `Invalid: ${plan.invalidNames.length}`,
+        `Duplicates dropped: ${plan.duplicateNames.length}`
+    ].join('\n');
+    swal({
+        title: `Apply ${typeLabel} bulk assignment?`,
+        text: summary,
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Apply',
+        cancelButtonText: 'Cancel',
+        closeOnConfirm: true
+    }, (confirmed) => {
+        resolve(confirmed === true);
+    });
+});
+
+const updateBulkPreviewPanel = (type) => {
+    const panel = $(`#${type}-bulk-preview`);
+    if (!panel.length) {
+        return;
+    }
+    const folderId = String($(`#${type}-bulk-folder`).val() || '').trim();
+    const state = getBulkState(type);
+    const plan = buildBulkAssignmentPlan(type, folderId, Array.from(state.selected || []));
+    if (!folderId) {
+        panel.html('<div class="bulk-preview-empty">Select a target folder to preview planned changes.</div>');
+        return;
+    }
+    if (!plan.selectedNames.length) {
+        panel.html('<div class="bulk-preview-empty">Select one or more items to preview folder moves.</div>');
+        return;
+    }
+    const summaryBits = [
+        `Target: ${plan.targetFolderName || plan.targetFolderId}`,
+        `Create: ${plan.creates.length}`,
+        `Move: ${plan.moves.length}`,
+        `Unchanged: ${plan.unchanged.length}`,
+        `Invalid: ${plan.invalidNames.length}`
+    ];
+    if (plan.duplicateNames.length) {
+        summaryBits.push(`Duplicates dropped: ${plan.duplicateNames.length}`);
+    }
+    if (plan.conflicts.length) {
+        summaryBits.push(`Conflicts detected: ${plan.conflicts.length}`);
+    }
+    const listLimit = 8;
+    const movePreview = plan.moves.slice(0, listLimit)
+        .map((entry) => `${entry.name} (${entry.currentFolderName} -> ${plan.targetFolderName})`)
+        .join(', ');
+    const createPreview = plan.creates.slice(0, listLimit).map((entry) => entry.name).join(', ');
+    const unchangedPreview = plan.unchanged.slice(0, listLimit).map((entry) => entry.name).join(', ');
+    panel.html(`
+        <div class="bulk-preview-summary">${escapeHtml(summaryBits.join(' | '))}</div>
+        <div class="bulk-preview-lists">
+            <div class="bulk-preview-line"><strong>Create:</strong> ${createPreview ? escapeHtml(createPreview) : '<span class="bulk-preview-none">none</span>'}${plan.creates.length > listLimit ? `<span class="bulk-preview-more"> (+${plan.creates.length - listLimit} more)</span>` : ''}</div>
+            <div class="bulk-preview-line"><strong>Move:</strong> ${movePreview ? escapeHtml(movePreview) : '<span class="bulk-preview-none">none</span>'}${plan.moves.length > listLimit ? `<span class="bulk-preview-more"> (+${plan.moves.length - listLimit} more)</span>` : ''}</div>
+            <div class="bulk-preview-line"><strong>Unchanged:</strong> ${unchangedPreview ? escapeHtml(unchangedPreview) : '<span class="bulk-preview-none">none</span>'}${plan.unchanged.length > listLimit ? `<span class="bulk-preview-more"> (+${plan.unchanged.length - listLimit} more)</span>` : ''}</div>
+        </div>
+    `);
+};
+
 const updateBulkSelectedCount = (type) => {
-    const selectedCount = (($(`#${type}-bulk-items`).val() || []).map((name) => String(name)).filter(Boolean)).length;
-    const label = `${selectedCount} selected`;
+    normalizeBulkSelectionForType(type);
+    const state = getBulkState(type);
+    const selectedCount = state.selected.size;
+    const visibleCount = (state.visibleNames || []).length;
+    const hiddenSelectedCount = Math.max(0, selectedCount - (state.visibleNames || []).filter((name) => state.selected.has(name)).length);
+    let label = `${selectedCount} selected`;
+    if (hiddenSelectedCount > 0) {
+        label += ` (${hiddenSelectedCount} hidden by filter)`;
+    } else if (visibleCount && visibleCount !== (state.allNames || []).length) {
+        label += ` (${visibleCount} shown)`;
+    }
     $(`#${type}-bulk-selected-count`).text(label);
+    updateBulkPreviewPanel(type);
     return selectedCount;
 };
 
@@ -7679,10 +8054,60 @@ const updateBulkHelpText = (type, {
             help.text(`No items match "${filter}". Try a broader filter.`);
             return;
         }
-        help.text(`Showing ${visibleCount} of ${allCount} item${allCount === 1 ? '' : 's'}.`);
+        help.text(`Showing ${visibleCount} of ${allCount} item${allCount === 1 ? '' : 's'} (${BULK_LIST_RENDER_CHUNK_SIZE}/frame render chunks).`);
         return;
     }
-    help.text(`${allCount} item${allCount === 1 ? '' : 's'} available for assignment.`);
+    const perfHint = allCount > BULK_LIST_RENDER_CHUNK_SIZE ? ' Rendering is chunked for large inventories.' : '';
+    help.text(`${allCount} item${allCount === 1 ? '' : 's'} available for assignment.${perfHint}`);
+};
+
+const renderBulkChecklist = (type, visibleNames) => {
+    const list = document.getElementById(`${type}-bulk-items-list`);
+    if (!(list instanceof HTMLElement)) {
+        return;
+    }
+    const state = getBulkState(type);
+    state.renderToken += 1;
+    const renderToken = state.renderToken;
+    list.innerHTML = '';
+    if (!Array.isArray(visibleNames) || !visibleNames.length) {
+        list.innerHTML = '<div class="bulk-items-empty">No items match this filter.</div>';
+        return;
+    }
+    const selected = state.selected || new Set();
+    let cursor = 0;
+    const appendChunk = () => {
+        if (renderToken !== state.renderToken) {
+            return;
+        }
+        const end = Math.min(cursor + BULK_LIST_RENDER_CHUNK_SIZE, visibleNames.length);
+        const fragment = document.createDocumentFragment();
+        while (cursor < end) {
+            const name = visibleNames[cursor];
+            cursor += 1;
+            const row = document.createElement('label');
+            row.className = 'bulk-item-row';
+            row.title = name;
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'bulk-item-checkbox';
+            checkbox.value = name;
+            checkbox.checked = selected.has(name);
+            checkbox.setAttribute('data-fv-bulk-type', type);
+            checkbox.setAttribute('aria-label', `Select ${name}`);
+            const nameNode = document.createElement('span');
+            nameNode.className = 'bulk-item-name';
+            nameNode.textContent = name;
+            row.appendChild(checkbox);
+            row.appendChild(nameNode);
+            fragment.appendChild(row);
+        }
+        list.appendChild(fragment);
+        if (cursor < visibleNames.length) {
+            window.requestAnimationFrame(appendChunk);
+        }
+    };
+    appendChunk();
 };
 
 const renderBulkItemOptions = (type) => {
@@ -7690,46 +8115,35 @@ const renderBulkItemOptions = (type) => {
     if (!items.length) {
         return;
     }
+    const state = getBulkState(type);
     const hasTargetFolders = $(`#${type}-bulk-folder`).prop('disabled') !== true;
-
-    const selectedBefore = new Set((items.val() || []).map((name) => String(name)));
     const allNames = getBulkAssignableNames(type);
     const filter = getBulkItemsFilterQuery(type);
-    const names = filter
+    const visibleNames = filter
         ? allNames.filter((name) => name.toLowerCase().includes(filter))
         : allNames;
-
+    state.allNames = allNames;
+    state.visibleNames = visibleNames;
+    normalizeBulkSelectionForType(type);
+    syncBulkLegacySelect(type, allNames, { disabled: !hasTargetFolders || !allNames.length });
     if (!allNames.length) {
-        items.html('<option value="" disabled>(No items detected yet)</option>');
-        items.prop('disabled', true);
+        renderBulkChecklist(type, []);
+        renderBulkResultPanel(type, state.lastResult);
+        updateBulkResultActions(type);
         updateBulkSelectedCount(type);
         updateBulkHelpText(type, { allCount: 0, visibleCount: 0, filter });
         return;
     }
-
-    if (!names.length) {
-        items.html('<option value="" disabled>(No items match this filter)</option>');
-        items.prop('disabled', true);
-        updateBulkSelectedCount(type);
-        updateBulkHelpText(type, { allCount: allNames.length, visibleCount: 0, filter });
-        return;
-    }
-
-    const options = names
-        .map((name) => {
-            const selected = selectedBefore.has(name) ? ' selected' : '';
-            return `<option value="${escapeHtml(name)}"${selected}>${escapeHtml(name)}</option>`;
-        })
-        .join('');
-    items.html(options);
-    items.prop('disabled', !hasTargetFolders);
+    renderBulkChecklist(type, visibleNames);
     updateBulkSelectedCount(type);
     if (!hasTargetFolders) {
         updateBulkHelpText(type, { allCount: 0, visibleCount: 0, filter: '' });
         $(`#${type}-bulk-help`).text('Create a folder first, then assign selected items.');
     } else {
-        updateBulkHelpText(type, { allCount: allNames.length, visibleCount: names.length, filter });
+        updateBulkHelpText(type, { allCount: allNames.length, visibleCount: visibleNames.length, filter });
     }
+    renderBulkResultPanel(type, state.lastResult);
+    updateBulkResultActions(type);
 };
 
 const renderBackupRows = (type) => {
@@ -8976,85 +9390,251 @@ const filterBulkItems = (type, value = '') => {
 };
 
 const bulkItemSelectionAction = (type, action = 'all') => {
-    const selectEl = document.getElementById(`${type}-bulk-items`);
-    if (!(selectEl instanceof HTMLSelectElement) || selectEl.disabled) {
+    const state = getBulkState(type);
+    if (state.applying === true) {
         updateBulkSelectedCount(type);
         return;
     }
     const normalizedAction = String(action || '').trim().toLowerCase();
-    const options = Array.from(selectEl.options).filter((option) => !option.disabled && option.value !== '');
-    for (const option of options) {
+    const visible = Array.isArray(state.visibleNames) ? state.visibleNames : [];
+    for (const name of visible) {
+        if (!name) {
+            continue;
+        }
         if (normalizedAction === 'none') {
-            option.selected = false;
+            state.selected.delete(name);
         } else if (normalizedAction === 'invert') {
-            option.selected = !option.selected;
+            if (state.selected.has(name)) {
+                state.selected.delete(name);
+            } else {
+                state.selected.add(name);
+            }
         } else {
-            option.selected = true;
+            state.selected.add(name);
         }
     }
+    syncBulkLegacySelect(type, state.allNames || [], { disabled: $(`#${type}-bulk-folder`).prop('disabled') === true });
+    renderBulkChecklist(type, state.visibleNames || []);
     updateBulkSelectedCount(type);
 };
 
-const assignSelectedItems = async (type) => {
-    const folderId = String($(`#${type}-bulk-folder`).val() || '');
-    const selected = ($(`#${type}-bulk-items`).val() || []).map((name) => String(name));
+const setBulkItemChecked = (type, name, checked) => {
+    const state = getBulkState(type);
+    if (state.applying === true) {
+        return;
+    }
+    const safeName = sanitizeBulkItemName(name);
+    if (!safeName) {
+        return;
+    }
+    if (checked === true) {
+        state.selected.add(safeName);
+    } else {
+        state.selected.delete(safeName);
+    }
+    syncBulkLegacySelect(type, state.allNames || [], { disabled: $(`#${type}-bulk-folder`).prop('disabled') === true });
+    updateBulkSelectedCount(type);
+};
 
+const retryFailedBulkItems = async (type) => {
+    const state = getBulkState(type);
+    const failed = Array.isArray(state.failedNames) ? state.failedNames.map((name) => sanitizeBulkItemName(name)).filter(Boolean) : [];
+    if (!failed.length) {
+        swal({
+            title: 'No failed items',
+            text: 'There are no failed items to retry.',
+            type: 'info'
+        });
+        return;
+    }
+    const folderId = state.lastTargetFolderId || String($(`#${type}-bulk-folder`).val() || '').trim();
     if (!folderId) {
+        swal({
+            title: 'Missing target folder',
+            text: 'Select a target folder before retrying failed items.',
+            type: 'error'
+        });
+        return;
+    }
+    await assignSelectedItems(type, failed);
+};
+
+const assignSelectedItems = async (type, namesOverride = null) => {
+    const resolvedType = normalizeManagedType(type);
+    const state = getBulkState(resolvedType);
+    if (state.applying === true) {
+        return;
+    }
+    const folderId = String($(`#${resolvedType}-bulk-folder`).val() || '');
+    const selectedSource = Array.isArray(namesOverride) ? namesOverride : Array.from(state.selected || []);
+    const plan = buildBulkAssignmentPlan(resolvedType, folderId, selectedSource);
+    const typeLabel = resolvedType === 'docker' ? 'Docker' : 'VM';
+    updateBulkPreviewPanel(resolvedType);
+
+    if (!plan.targetFolderId) {
         swal({ title: 'Error', text: 'Select a folder for bulk assignment.', type: 'error' });
         return;
     }
-
-    if (!selected.length) {
+    const folders = getFolderMap(resolvedType);
+    if (!Object.prototype.hasOwnProperty.call(folders, plan.targetFolderId)) {
+        swal({ title: 'Error', text: 'Target folder no longer exists. Refresh and try again.', type: 'error' });
+        return;
+    }
+    if (!plan.selectedNames.length) {
         swal({ title: 'Error', text: 'Select at least one item to assign.', type: 'error' });
         return;
     }
-
+    const resultLines = [];
+    for (const name of plan.invalidNames) {
+        resultLines.push({ status: 'invalid', name, detail: 'Blocked by validation guard.' });
+    }
+    for (const name of plan.unchanged.map((entry) => entry.name)) {
+        resultLines.push({ status: 'skip', name, detail: 'Already assigned to the selected folder.' });
+    }
+    if (plan.duplicateNames.length > 0) {
+        const uniqueDuplicateNames = Array.from(new Set(plan.duplicateNames));
+        for (const name of uniqueDuplicateNames) {
+            resultLines.push({ status: 'skip', name, detail: 'Duplicate selection dropped.' });
+        }
+    }
+    if (!plan.actionableNames.length) {
+        const summary = `No-op: all selected ${typeLabel} items are already assigned or invalid.`;
+        state.lastResult = {
+            level: 'warning',
+            summary,
+            lines: resultLines
+        };
+        state.failedNames = [];
+        renderBulkResultPanel(resolvedType, state.lastResult);
+        updateBulkResultActions(resolvedType);
+        swal({ title: 'Nothing to apply', text: summary, type: 'info' });
+        return;
+    }
+    const confirmed = await confirmBulkAssignmentPlan(typeLabel, plan);
+    if (!confirmed) {
+        return;
+    }
+    const assignButton = $(`#${resolvedType}-bulk-assign-btn`);
+    let backup = null;
+    state.applying = true;
+    assignButton.prop('disabled', true);
+    updateBulkResultActions(resolvedType);
+    renderBulkResultPanel(resolvedType, {
+        level: 'progress',
+        summary: `Applying ${plan.actionableNames.length} item${plan.actionableNames.length === 1 ? '' : 's'} in chunks...`,
+        lines: []
+    });
+    const failedNames = [];
     try {
-        const backup = await createBackup(type, 'before-bulk-assign');
-        const result = await bulkAssign(type, folderId, selected);
-        await Promise.all([refreshType(type), refreshBackups(type)]);
-        const targetFolderName = folderNameForId(type, folderId);
-        const assigned = Array.isArray(result?.assigned)
-            ? result.assigned.map((name) => String(name || '').trim()).filter(Boolean)
-            : [];
-        const assignedSet = new Set(assigned);
-        const skipped = selected.filter((name) => !assignedSet.has(String(name || '').trim()));
-        const skippedInvalid = Array.isArray(result?.skippedInvalid)
-            ? result.skippedInvalid.map((name) => String(name || '').trim()).filter(Boolean)
-            : [];
-        const assignedCount = Number.isFinite(Number(result?.count)) ? Number(result.count) : assigned.length;
-        const statusLevel = (skipped.length || skippedInvalid.length) ? 'warning' : 'success';
-        const statusMessage = skipped.length
-            ? `${assignedCount} assigned to ${targetFolderName}. ${skipped.length} skipped.`
-            : `${selected.length} item${selected.length === 1 ? '' : 's'} assigned to ${targetFolderName}.`;
+        backup = await createBackup(resolvedType, 'before-bulk-assign');
+        const chunks = [];
+        for (let index = 0; index < plan.actionableNames.length; index += BULK_ASSIGN_CHUNK_SIZE) {
+            chunks.push(plan.actionableNames.slice(index, index + BULK_ASSIGN_CHUNK_SIZE));
+        }
+        for (let index = 0; index < chunks.length; index += 1) {
+            const chunk = chunks[index];
+            const chunkNumber = index + 1;
+            renderBulkResultPanel(resolvedType, {
+                level: 'progress',
+                summary: `Applying chunk ${chunkNumber}/${chunks.length} (${chunk.length} item${chunk.length === 1 ? '' : 's'})...`,
+                lines: resultLines
+            });
+            try {
+                const result = await bulkAssign(resolvedType, plan.targetFolderId, chunk);
+                const assignedSet = new Set(
+                    (Array.isArray(result?.assigned) ? result.assigned : [])
+                        .map((name) => sanitizeBulkItemName(name))
+                        .filter(Boolean)
+                );
+                const invalidSet = new Set(
+                    (Array.isArray(result?.skippedInvalid) ? result.skippedInvalid : [])
+                        .map((name) => sanitizeBulkItemName(name))
+                        .filter(Boolean)
+                );
+                for (const name of chunk) {
+                    if (assignedSet.has(name)) {
+                        resultLines.push({ status: 'success', name, detail: `Assigned to ${plan.targetFolderName}.` });
+                    } else if (invalidSet.has(name)) {
+                        resultLines.push({ status: 'invalid', name, detail: 'Blocked by request guard validation.' });
+                    } else {
+                        failedNames.push(name);
+                        resultLines.push({ status: 'failed', name, detail: 'Not applied by server response.' });
+                    }
+                }
+            } catch (error) {
+                const message = error?.message || 'Chunk request failed.';
+                for (const name of chunk) {
+                    failedNames.push(name);
+                    resultLines.push({ status: 'failed', name, detail: message });
+                }
+            }
+            if (index < chunks.length - 1) {
+                await new Promise((resolve) => setTimeout(resolve, BULK_ASSIGN_CHUNK_PAUSE_MS));
+            }
+        }
+        await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
+        const assignedCount = resultLines.filter((row) => row.status === 'success').length;
+        const skippedCount = resultLines.filter((row) => row.status === 'skip').length;
+        const invalidCount = resultLines.filter((row) => row.status === 'invalid').length;
+        const summaryBits = [
+            `${assignedCount} assigned`,
+            `${failedNames.length} failed`,
+            `${skippedCount} skipped`,
+            `${invalidCount} invalid`
+        ];
+        const statusLevel = failedNames.length > 0 ? 'warning' : 'success';
+        const statusMessage = summaryBits.join(' | ');
+        state.failedNames = Array.from(new Set(failedNames));
+        state.lastTargetFolderId = plan.targetFolderId;
+        state.lastResult = {
+            level: statusLevel,
+            summary: statusMessage,
+            lines: resultLines
+        };
+        renderBulkResultPanel(resolvedType, state.lastResult);
+        updateBulkResultActions(resolvedType);
+        state.selected = state.failedNames.length ? new Set(state.failedNames) : new Set();
+        renderBulkItemOptions(resolvedType);
         showActionSummaryToast({
-            title: `${type === 'docker' ? 'Docker' : 'VM'} bulk assignment complete`,
+            title: `${typeLabel} bulk assignment complete`,
             message: statusMessage,
             level: statusLevel,
-            type,
-            focusFolderId: folderId
+            type: resolvedType,
+            focusFolderId: plan.targetFolderId
         });
-        if (skipped.length || skippedInvalid.length) {
+        if (failedNames.length > 0) {
             swal({
-                title: 'Some items were skipped',
-                text: `Assigned: ${assignedCount}\nSkipped: ${skipped.length}\nInvalid names blocked: ${skippedInvalid.length}\n\nSkipped items:\n${skipped.slice(0, 12).join('\n')}${skipped.length > 12 ? '\n...' : ''}`,
+                title: 'Some items failed',
+                text: `Assigned: ${assignedCount}\nFailed: ${failedNames.length}\n\nUse "Retry failed" to try those items again.`,
                 type: 'warning'
             });
         }
         await trackDiagnosticsEvent({
             eventType: 'bulk_assign',
-            type,
+            type: resolvedType,
             details: {
-                folderId,
-                itemCount: selected.length,
+                folderId: plan.targetFolderId,
+                itemCount: plan.selectedNames.length,
                 assignedCount,
-                skippedCount: skipped.length,
-                skippedInvalidCount: skippedInvalid.length
+                skippedCount: skippedCount,
+                skippedInvalidCount: invalidCount,
+                failedCount: failedNames.length,
+                chunkCount: Math.max(1, Math.ceil(plan.actionableNames.length / BULK_ASSIGN_CHUNK_SIZE))
             }
         });
-        await offerUndoAction(type, backup, 'Bulk assignment');
+        await offerUndoAction(resolvedType, backup, 'Bulk assignment');
     } catch (error) {
+        state.lastResult = {
+            level: 'error',
+            summary: `Bulk assignment failed: ${error?.message || error}`,
+            lines: resultLines
+        };
+        renderBulkResultPanel(resolvedType, state.lastResult);
         showError('Bulk assignment failed', error);
+    } finally {
+        state.applying = false;
+        assignButton.prop('disabled', $(`#${resolvedType}-bulk-folder`).prop('disabled') === true);
+        updateBulkResultActions(resolvedType);
     }
 };
 
@@ -10127,6 +10707,7 @@ window.runRuleSimulator = runRuleSimulator;
 window.toggleRuleKindFields = toggleRuleKindFields;
 window.testAutoRule = testAutoRule;
 window.assignSelectedItems = assignSelectedItems;
+window.retryFailedBulkItems = retryFailedBulkItems;
 window.filterBulkItems = filterBulkItems;
 window.bulkItemSelectionAction = bulkItemSelectionAction;
 window.updateBulkSelectedCount = updateBulkSelectedCount;

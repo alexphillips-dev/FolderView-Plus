@@ -2,6 +2,69 @@
     --folder-view3-graph-cpu: #2b8da3;
     --folder-view3-graph-mem: #5d6db6;
     --tooltip-spacing: 5px;
+    --fvplus-docker-app-column-width: 260px;
+    --fvplus-docker-app-column-width-mobile: 214px;
+}
+
+body[data-fvplus-docker-app-width="compact"] {
+    --fvplus-docker-app-column-width: 220px;
+    --fvplus-docker-app-column-width-mobile: 182px;
+}
+
+body[data-fvplus-docker-app-width="wide"] {
+    --fvplus-docker-app-column-width: 320px;
+    --fvplus-docker-app-column-width-mobile: 262px;
+}
+
+body.fvplus-docker-column-resize-active,
+body.fvplus-docker-column-resize-active * {
+    cursor: col-resize !important;
+    user-select: none !important;
+}
+
+th.fvplus-runtime-resizable {
+    position: relative;
+    overflow: visible !important;
+}
+
+th.fvplus-runtime-resizable .fvplus-runtime-col-resizer {
+    position: absolute;
+    top: 0;
+    right: -7px;
+    width: 14px;
+    height: 100%;
+    border: 0;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    cursor: col-resize;
+    z-index: 12;
+    touch-action: none;
+}
+
+th.fvplus-runtime-resizable .fvplus-runtime-col-resizer::before {
+    content: "";
+    position: absolute;
+    top: 14%;
+    bottom: 14%;
+    left: 50%;
+    width: 2px;
+    transform: translateX(-50%);
+    background: rgba(142, 158, 184, 0.84);
+    opacity: 0.78;
+    transition: opacity 120ms ease-in-out;
+}
+
+th.fvplus-runtime-resizable:hover .fvplus-runtime-col-resizer::before,
+th.fvplus-runtime-resizable .fvplus-runtime-col-resizer:focus-visible::before,
+body.fvplus-docker-column-resize-active th.fvplus-runtime-resizable .fvplus-runtime-col-resizer::before {
+    opacity: 0.98;
+}
+
+@media (max-width: 900px) {
+    th.fvplus-runtime-resizable .fvplus-runtime-col-resizer {
+        display: none !important;
+    }
 }
 
 .fv-runtime-health-badge {
@@ -37,7 +100,7 @@
 }
 
 .folder-name {
-    width: 220px;
+    width: var(--fvplus-docker-app-column-width);
     padding: 8px;
     box-sizing: border-box;
 }
@@ -46,7 +109,7 @@
     display: flex;
     align-items: center;
     overflow: hidden;
-    gap: 4px;
+    gap: 6px;
     box-sizing: border-box;
 }
 
@@ -73,21 +136,23 @@ td.ct-name.folder-name > .folder-name-sub {
     right: 8px;
     transform: translateY(-50%);
     min-height: 0;
-    width: 100%;
+    width: auto;
 }
 
 .folder-outer {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    display: block;
-    width: calc(220px - 25px);
+    display: inline-block;
+    min-width: 0;
+    flex: 0 1 auto;
+    max-width: calc(var(--fvplus-docker-app-column-width) - 64px);
 }
 
 .folder-dropdown {
     padding: 6px;
     min-width: 0;
-    margin: 0;
+    margin: 0 0 0 4px;
     flex-shrink: 0;
 }
 
@@ -141,6 +206,34 @@ tr.folder.fv-parent-expanded div.folder-preview {
     margin-top: 7px;
 }
 
+.folder-preview-status-icon {
+    margin-left: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.86em;
+    vertical-align: middle;
+}
+
+.fv-preview-status-inline {
+    margin-right: 4px;
+    font-size: 0.8em;
+    display: inline-flex;
+    align-items: center;
+}
+
+.fv-preview-status-started {
+    color: #74d89b !important;
+}
+
+.fv-preview-status-paused {
+    color: #d1a84d !important;
+}
+
+.fv-preview-status-stopped {
+    color: #ff6d6d !important;
+}
+
 .folder-preview-wrapper .inner > span.appname {
     display: inline-block;
     overflow: clip;
@@ -175,10 +268,15 @@ div.folder-preview img.img {
 }
 
 .folder-element .ct-name .inner > span.appname {
-    width: 177px;
+    width: auto;
+    max-width: calc(var(--fvplus-docker-app-column-width) - 43px);
     display: inline-block;
     overflow: clip;
     word-break: break-all;
+}
+
+td.updatecolumn.folder-update {
+    white-space: nowrap;
 }
 
 div.folder-preview-4 span.outer {
@@ -516,15 +614,19 @@ div.folder-preview-4 span.outer {
 /* Mobile layout tuning for Docker tab folder UI and tooltip content. */
 @media (max-width: 980px) {
     .folder-name {
-        width: 180px;
+        width: var(--fvplus-docker-app-column-width-mobile);
     }
 
     .folder-outer {
-        width: calc(180px - 25px);
+        max-width: calc(var(--fvplus-docker-app-column-width-mobile) - 56px);
     }
 
     .folder-element .ct-name {
         padding-left: 14px !important;
+    }
+
+    .folder-element .ct-name .inner > span.appname {
+        max-width: calc(var(--fvplus-docker-app-column-width-mobile) - 43px);
     }
 
     .folder-preview {
@@ -558,5 +660,9 @@ div.folder-preview-4 span.outer {
     .info-section {
         flex: 1 1 100%;
         min-height: 220px;
+    }
+
+    td.updatecolumn.folder-update .advanced {
+        display: none !important;
     }
 }

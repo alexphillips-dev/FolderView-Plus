@@ -128,6 +128,16 @@ test('docker tooltip payload is lazy-built on first open', () => {
     assert.match(dockerJs, /Loading preview\.\.\./);
 });
 
+test('docker runtime app column auto-sizes based on folder names and rebinds after render', () => {
+    assert.match(dockerJs, /const estimateDockerRuntimeAutoAppWidth = \(\) =>/);
+    assert.match(dockerJs, /const applyDockerRuntimeColumnWidths = \(_widthMap = null\) =>/);
+    assert.match(dockerJs, /auto-sizes from folder names/);
+    assert.match(dockerJs, /tbody#docker_list tr\.folder,\s*tbody#docker_view tr\.folder/);
+    assert.match(dockerJs, /tbody#docker_list > tr > td:nth-child\(\$\{index\}\),\s*tbody#docker_view > tr > td:nth-child\(\$\{index\}\)/);
+    assert.match(dockerJs, /bindDockerRuntimeAppColumnResizer\(\);/);
+    assert.match(dockerJs, /queueDockerRuntimeResizerBind\(\);/);
+});
+
 test('import apply uses chunked execution and performance diagnostics panel exists', () => {
     assert.match(settingsRuntime, /IMPORT_APPLY_CHUNK_SIZE/);
     assert.match(settingsRuntime, /runImportChunked/);

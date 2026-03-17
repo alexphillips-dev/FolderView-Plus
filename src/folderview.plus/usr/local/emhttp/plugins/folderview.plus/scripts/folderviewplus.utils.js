@@ -19,6 +19,7 @@
     const DEFAULT_FOLDER_ICON_PATH = '/plugins/folderview.plus/images/folder-icon.png';
     const IMPORT_ICON_MAX_LENGTH = 8192;
     const RUNTIME_PREFS_SCHEMA = 2;
+    const APP_COLUMN_WIDTH_OPTIONS = ['compact', 'standard', 'wide'];
     const DEFAULT_FOLDER_STATUS_COLORS = {
         started: '#ffffff',
         paused: '#b8860b',
@@ -169,6 +170,11 @@
         return ['critical', 'warn'].includes(normalized)
             ? normalized
             : DEFAULT_HEALTH_PREFS.allStoppedMode;
+    };
+
+    const normalizeAppColumnWidth = (value) => {
+        const normalized = String(value || '').trim().toLowerCase();
+        return APP_COLUMN_WIDTH_OPTIONS.includes(normalized) ? normalized : 'standard';
     };
 
     const normalizeFolderMembers = (value) => {
@@ -467,6 +473,7 @@
         const pinnedFolderIds = normalizeStringIdList(incoming.pinnedFolderIds);
         const expandedFolderState = normalizeExpandedFolderStateMap(incoming.expandedFolderState);
         const hideEmptyFolders = incoming.hideEmptyFolders === true;
+        const appColumnWidth = normalizeAppColumnWidth(incoming.appColumnWidth);
         const setupWizardCompleted = incoming.setupWizardCompleted === true;
         const settingsMode = incoming.settingsMode === 'advanced' ? 'advanced' : 'basic';
 
@@ -476,6 +483,7 @@
             pinnedFolderIds,
             expandedFolderState,
             hideEmptyFolders,
+            appColumnWidth,
             setupWizardCompleted,
             settingsMode,
             autoRules,
@@ -1525,6 +1533,7 @@
         DEFAULT_HEALTH_PREFS,
         bindEventOnce,
         normalizeFolderMap,
+        normalizeAppColumnWidth,
         normalizePrefs,
         orderFoldersByPrefs,
         getFolderStatusColors,

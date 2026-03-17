@@ -30,6 +30,7 @@ const CONTEXT_MODE_LABELS = {
 const FOLDER_HEALTH_PROFILE_VALUES = ['strict', 'balanced', 'lenient'];
 const FOLDER_HEALTH_UPDATES_MODE_VALUES = ['maintenance', 'warn', 'ignore'];
 const FOLDER_HEALTH_ALL_STOPPED_MODE_VALUES = ['critical', 'warn'];
+const INVALID_FOLDER_NAME_CHAR_REGEX = /[\u0000-\u001f\u007f<>:"/\\|?*]/;
 const SECTION_META = {
     general: { title: 'General', description: 'Folder identity, icon, and base behavior.', advanced: false },
     members: { title: 'Members', description: 'Assign containers or VMs to this folder.', advanced: false },
@@ -159,6 +160,19 @@ const normalizeHexColor = (value, fallback) => {
         return `#${trimmed[1]}${trimmed[1]}${trimmed[2]}${trimmed[2]}${trimmed[3]}${trimmed[3]}`.toLowerCase();
     }
     return trimmed.toLowerCase();
+};
+
+const isLegacyPreviewBorderEnabled = (settings) => {
+    const source = settings && typeof settings === 'object' ? settings : {};
+    const borderColor = normalizeHexColor(source.preview_border_color, '').toLowerCase();
+    const barsColor = normalizeHexColor(source.preview_vertical_bars_color, '').toLowerCase();
+    const hasCustomColor = (borderColor && borderColor !== DEFAULT_BORDER_COLOR)
+        || (barsColor && barsColor !== DEFAULT_BORDER_COLOR);
+    const raw = String(source.preview_border ?? '').trim().toLowerCase();
+    const explicitOff = raw === '0' || raw === 'false';
+    return !Object.prototype.hasOwnProperty.call(source, 'preview_border')
+        || (!explicitOff)
+        || hasCustomColor;
 };
 
 const getForm = () => $('div.canvas > form')[0];
@@ -395,6 +409,30 @@ const getOptionalRequestToken = () => {
     } catch (_error) {
         return '';
     }
+};
+
+const buildMutationHeaders = (token) => ({
+    'X-FV-Request': '1',
+    ...(token ? { 'X-FV-Token': token } : {})
+});
+
+const securePost = async (url, data = {}) => {
+    const token = getOptionalRequestToken();
+    const payload = {
+        ...(data && typeof data === 'object' ? data : {})
+    };
+    if (!Object.prototype.hasOwnProperty.call(payload, '_fv_request')) {
+        payload._fv_request = '1';
+    }
+    if (token) {
+        payload.token = token;
+    }
+    return $.ajax({
+        url,
+        type: 'POST',
+        data: payload,
+        headers: buildMutationHeaders(token)
+    });
 };
 
 const normalizeBuiltInIconEntry = (entry, basePath) => {
@@ -1520,8 +1558,8 @@ const validateNameField = () => {
         return false;
     }
 
-    if (!/^[a-zA-Z0-9_. \-]+$/.test(value)) {
-        setFieldError('name', 'Use letters, numbers, spaces, ., _, and - only.');
+    if (INVALID_FOLDER_NAME_CHAR_REGEX.test(value)) {
+        setFieldError('name', 'Name cannot contain control characters or <>:"/\\|?*.');
         return false;
     }
 
@@ -2603,8 +2641,7 @@ resetStatusColorDefaults();
         form.context_trigger.value = currFolder.settings.context_trigger?.toString() || '0';
         form.context_graph.value = currFolder.settings.context_graph?.toString() || '1';
         form.context_graph_time.value = currFolder.settings.context_graph_time?.toString() || '60';
-        const hasStoredPreviewBorder = Object.prototype.hasOwnProperty.call(currFolder.settings || {}, 'preview_border');
-        form.preview_border.checked = hasStoredPreviewBorder ? !!currFolder.settings.preview_border : true;
+        form.preview_border.checked = isLegacyPreviewBorderEnabled(currFolder.settings || {});
         form.preview_border_color.value = normalizeHexColor(currFolder.settings.preview_border_color, DEFAULT_BORDER_COLOR);
         form.preview_vertical_bars_color.value = normalizeHexColor(
             currFolder.settings.preview_vertical_bars_color || currFolder.settings.preview_border_color,
@@ -2924,7 +2961,7 @@ const submitForm = async (e, saveAsCopy = false) => {
             context_trigger: parseInt(e.context_trigger.value.toString()),
             context_graph: parseInt(e.context_graph.value.toString()),
             context_graph_time: parseInt(e.context_graph_time.value.toString()),
-            preview_border: e.preview_border.checked||e.preview_border_color.value!='#afa89e',
+            preview_border: e.preview_border.checked,
             preview_border_color: e.preview_border_color.value.toString(),
             preview_vertical_bars_color: e.preview_vertical_bars_color.value.toString(),
             status_color_started: normalizeHexColor(e.status_color_started.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.started),
@@ -2953,15 +2990,36 @@ const submitForm = async (e, saveAsCopy = false) => {
         setFieldError('name', 'Folder name is required.');
         return false;
     }
-    // send the data to the right endpoint
-    if (folderId && !saveAsCopy) {
-        await $.post('/plugins/folderview.plus/server/update.php', { type: type, content: JSON.stringify(folder), id: folderId });
-    } else {
-        await $.post('/plugins/folderview.plus/server/create.php', { type: type, content: JSON.stringify(folder) });
-    }
+    try {
+        // send the data to the right endpoint
+        if (folderId && !saveAsCopy) {
+            await securePost('/plugins/folderview.plus/server/update.php', {
+                type: type,
+                content: JSON.stringify(folder),
+                id: folderId
+            });
+        } else {
+            await securePost('/plugins/folderview.plus/server/create.php', {
+                type: type,
+                content: JSON.stringify(folder)
+            });
+        }
 
-    if (type === 'docker') {
-        await $.post('/plugins/folderview.plus/server/sync_order.php', { type: type });
+        if (type === 'docker') {
+            await securePost('/plugins/folderview.plus/server/sync_order.php', { type: type });
+        }
+    } catch (error) {
+        const message = extractAjaxErrorMessage(error, 'folder save');
+        if (typeof swal === 'function') {
+            swal({
+                title: 'Save failed',
+                text: message,
+                type: 'error'
+            });
+        } else {
+            alert(message);
+        }
+        return false;
     }
 
     // return to the right tab
@@ -3149,5 +3207,3 @@ window.resetUnsavedChanges = resetUnsavedChanges;
 window.setIconAsContainer = setIconAsContainer;
 window.customAction = customAction;
 window.rCcustomAction = rCcustomAction;
-
-

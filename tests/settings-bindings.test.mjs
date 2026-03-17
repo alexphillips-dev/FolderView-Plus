@@ -174,6 +174,15 @@ test('tree runtime persists collapse state and guards tree operations', () => {
     assert.match(script, /queueTreeMoveUndoBanner\(resolvedType, backup\.name, 'Move to root', sourceId\)/);
 });
 
+test('settings column resize keeps per-column widths stable without side-effects', () => {
+    assert.match(script, /const captureCurrentColumnWidths = \(type\) =>/);
+    assert.match(script, /const syncResizableTableLayout = \(type\) =>/);
+    assert.match(script, /const hasCustomWidths = Object\.keys\(customWidths\)\.length > 0;/);
+    assert.match(script, /const frozenWidths = captureCurrentColumnWidths\(resolvedType\);/);
+    assert.match(script, /table\.style\.setProperty\('table-layout', 'fixed'(,\s*'important')?\);/);
+    assert.match(script, /const delta = Number\(moveEvent\.clientX \|\| 0\) - startClientX;/);
+});
+
 test('status detail controls support simple balanced and detailed modes', () => {
     assert.match(page, /id="docker-status-display-mode"/);
     assert.match(page, /id="vm-status-display-mode"/);

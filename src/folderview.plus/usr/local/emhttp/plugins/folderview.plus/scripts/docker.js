@@ -4,6 +4,7 @@ const localDefaultFolderStatusColors = {
     paused: '#b8860b',
     stopped: '#ff4d4d'
 };
+const DEFAULT_PREVIEW_BORDER_COLOR = '#afa89e';
 const normalizeStatusHexColor = (value, fallback) => {
     if (typeof value !== 'string') {
         return fallback;
@@ -17,10 +18,31 @@ const normalizeStatusHexColor = (value, fallback) => {
     }
     return trimmed.toLowerCase();
 };
+const applyPreviewBorderStyle = (previewNode, settings) => {
+    if (!previewNode) return;
+    const source = settings && typeof settings === 'object' ? settings : {};
+    const normalizeLegacyBorderColor = (value) => normalizeStatusHexColor(value, '').toLowerCase();
+    const hasLegacyCustomBorderColor = () => {
+        const borderColor = normalizeLegacyBorderColor(source.preview_border_color);
+        if (borderColor && borderColor !== DEFAULT_PREVIEW_BORDER_COLOR) {
+            return true;
+        }
+        const barsColor = normalizeLegacyBorderColor(source.preview_vertical_bars_color);
+        return Boolean(barsColor && barsColor !== DEFAULT_PREVIEW_BORDER_COLOR);
+    };
+    const raw = String(source.preview_border ?? '').trim().toLowerCase();
+    const explicitOff = raw === '0' || raw === 'false';
+    const enabled = !Object.prototype.hasOwnProperty.call(source, 'preview_border')
+        || (!explicitOff)
+        || hasLegacyCustomBorderColor();
+    previewNode.style.setProperty('border', enabled ? `1px solid ${normalizeStatusHexColor(source.preview_border_color, DEFAULT_PREVIEW_BORDER_COLOR)}` : 'none', 'important');
+};
 const utils = window.FolderViewPlusUtils || {
     normalizePrefs: () => ({
         sortMode: 'created',
         manualOrder: [],
+        hideEmptyFolders: false,
+        appColumnWidth: 'standard',
         autoRules: [],
         badges: { running: true, stopped: false, updates: true },
         runtimePrefsSchema: 2,
@@ -52,6 +74,24 @@ const utils = window.FolderViewPlusUtils || {
     }
 };
 const FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
+const DOCKER_RUNTIME_COLUMN_WIDTHS_STORAGE_KEY = 'fv.runtime.docker.columnWidthsPx.v1';
+const DOCKER_RUNTIME_LEGACY_APP_WIDTH_STORAGE_KEY = 'fv.runtime.docker.appColumnWidthPx.v1';
+const DOCKER_RUNTIME_APP_WIDTH_MIN = 260;
+const DOCKER_RUNTIME_APP_WIDTH_MAX = 1280;
+const DOCKER_RUNTIME_COLUMN_WIDTH_MIN = 88;
+const DOCKER_RUNTIME_COLUMN_WIDTH_MAX = 920;
+const DOCKER_RUNTIME_APP_PRESET_WIDTHS = Object.freeze({
+    compact: 220,
+    standard: 260,
+    wide: 320
+});
+let dockerRuntimeColumnResizeSession = null;
+let lastAppliedRuntimePrefs = null;
+let dockerRuntimeResizeViewportBound = false;
+let dockerRuntimeResizerBindTimer = null;
+let dockerRuntimeResizerRetryTimer = null;
+let dockerRuntimeResizerRetryCount = 0;
+let dockerRuntimeResizerObserver = null;
 const getFolderLabelValue = (labels) => {
     const source = labels && typeof labels === 'object' ? labels : {};
     for (const key of FOLDER_LABEL_KEYS) {
@@ -74,6 +114,367 @@ const sanitizeImageSrc = (value, fallback = '/plugins/dynamix.docker.manager/ima
     }
     return escapeHtml(raw);
 };
+const getPreviewContainerStatusMeta = (entry = {}) => {
+    const running = entry?.state === true;
+    const paused = running && entry?.pause === true;
+    if (running && paused) {
+        return { key: 'paused', icon: 'fa-pause', className: 'fv-preview-status-paused' };
+    }
+    if (running) {
+        return { key: 'started', icon: 'fa-play', className: 'fv-preview-status-started' };
+    }
+    return { key: 'stopped', icon: 'fa-square', className: 'fv-preview-status-stopped' };
+};
+
+const clampDockerRuntimeColumnWidth = (value, columnIndex = 0) => {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) {
+        return null;
+    }
+    const rounded = Math.round(parsed);
+    const min = columnIndex === 1 ? DOCKER_RUNTIME_APP_WIDTH_MIN : DOCKER_RUNTIME_COLUMN_WIDTH_MIN;
+    const max = columnIndex === 1 ? DOCKER_RUNTIME_APP_WIDTH_MAX : DOCKER_RUNTIME_COLUMN_WIDTH_MAX;
+    return Math.max(min, Math.min(max, rounded));
+};
+
+const normalizeDockerRuntimeColumnWidthMap = (value) => {
+    const source = value && typeof value === 'object' ? value : {};
+    const normalized = {};
+    Object.keys(source).forEach((rawKey) => {
+        const index = Number.parseInt(String(rawKey), 10);
+        if (!Number.isFinite(index) || index < 1 || index > 32) {
+            return;
+        }
+        const width = clampDockerRuntimeColumnWidth(source[rawKey], index);
+        if (width) {
+            normalized[index] = width;
+        }
+    });
+    return normalized;
+};
+
+const normalizeDockerRuntimeAppColumnMode = (value) => {
+    const fallbackNormalize = () => {
+        const mode = String(value || '').trim().toLowerCase();
+        return mode === 'compact' || mode === 'wide' ? mode : 'standard';
+    };
+    if (!utils || typeof utils.normalizeAppColumnWidth !== 'function') {
+        return fallbackNormalize();
+    }
+    return utils.normalizeAppColumnWidth(value);
+};
+
+const getDockerRuntimePresetAppWidth = () => {
+    let mode = 'standard';
+    if (lastAppliedRuntimePrefs && typeof lastAppliedRuntimePrefs === 'object') {
+        mode = normalizeDockerRuntimeAppColumnMode(lastAppliedRuntimePrefs.appColumnWidth);
+    } else if (document.body && typeof document.body.getAttribute === 'function') {
+        mode = normalizeDockerRuntimeAppColumnMode(document.body.getAttribute('data-fvplus-docker-app-width'));
+    }
+    const preset = DOCKER_RUNTIME_APP_PRESET_WIDTHS[mode] || DOCKER_RUNTIME_APP_PRESET_WIDTHS.standard;
+    return clampDockerRuntimeColumnWidth(preset, 1);
+};
+
+const getSavedDockerRuntimeColumnWidths = () => {
+    try {
+        const raw = localStorage.getItem(DOCKER_RUNTIME_COLUMN_WIDTHS_STORAGE_KEY);
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            const normalized = normalizeDockerRuntimeColumnWidthMap(parsed);
+            if (Object.keys(normalized).length > 0) {
+                return normalized;
+            }
+        }
+        const legacy = clampDockerRuntimeColumnWidth(
+            localStorage.getItem(DOCKER_RUNTIME_LEGACY_APP_WIDTH_STORAGE_KEY),
+            1
+        );
+        return legacy ? { 1: legacy } : {};
+    } catch (_error) {
+        return {};
+    }
+};
+
+const persistDockerRuntimeColumnWidths = (widthMap) => {
+    const normalized = normalizeDockerRuntimeColumnWidthMap(widthMap);
+    try {
+        if (Object.keys(normalized).length > 0) {
+            localStorage.setItem(DOCKER_RUNTIME_COLUMN_WIDTHS_STORAGE_KEY, JSON.stringify(normalized));
+            if (normalized[1]) {
+                localStorage.setItem(DOCKER_RUNTIME_LEGACY_APP_WIDTH_STORAGE_KEY, String(normalized[1]));
+            } else {
+                localStorage.removeItem(DOCKER_RUNTIME_LEGACY_APP_WIDTH_STORAGE_KEY);
+            }
+        } else {
+            localStorage.removeItem(DOCKER_RUNTIME_COLUMN_WIDTHS_STORAGE_KEY);
+            localStorage.removeItem(DOCKER_RUNTIME_LEGACY_APP_WIDTH_STORAGE_KEY);
+        }
+    } catch (_error) {
+        // Ignore localStorage quota/privacy failures.
+    }
+};
+
+const getDockerRuntimeTableTargets = () => {
+    const tbody = document.querySelector('tbody#docker_list') || document.querySelector('tbody#docker_view');
+    if (!tbody) {
+        return null;
+    }
+    const table = tbody.closest('table');
+    if (!table) {
+        return null;
+    }
+    const headers = Array.from(table.querySelectorAll('thead th'));
+    if (headers.length === 0) {
+        return null;
+    }
+    return { table, headers };
+};
+
+const captureCurrentDockerRuntimeColumnWidths = () => {
+    const targets = getDockerRuntimeTableTargets();
+    if (!targets) {
+        return {};
+    }
+    const widths = {};
+    targets.headers.forEach((header, idx) => {
+        const index = idx + 1;
+        const measured = clampDockerRuntimeColumnWidth(header.getBoundingClientRect().width, index);
+        if (measured) {
+            widths[index] = measured;
+        }
+    });
+    return widths;
+};
+
+const applyDockerRuntimeAppWidthVariables = (desktopWidthPx = null) => {
+    const safeDesktopWidth = clampDockerRuntimeColumnWidth(desktopWidthPx, 1);
+    if (!document.body || !document.body.style) {
+        return;
+    }
+    if (!safeDesktopWidth) {
+        document.body.style.removeProperty('--fvplus-docker-app-column-width');
+        document.body.style.removeProperty('--fvplus-docker-app-column-width-mobile');
+        return;
+    }
+    const mobileWidth = Math.max(220, Math.round(safeDesktopWidth * 0.82));
+    document.body.style.setProperty('--fvplus-docker-app-column-width', `${safeDesktopWidth}px`);
+    document.body.style.setProperty('--fvplus-docker-app-column-width-mobile', `${mobileWidth}px`);
+};
+
+const estimateDockerRuntimeAutoAppWidth = () => {
+    const baseline = getDockerRuntimePresetAppWidth() || DOCKER_RUNTIME_APP_PRESET_WIDTHS.standard;
+    const rows = Array.from(document.querySelectorAll('tbody#docker_list tr.folder, tbody#docker_view tr.folder'));
+    if (!rows.length) {
+        return baseline;
+    }
+    const measureCanvas = document.createElement('canvas');
+    const ctx = measureCanvas.getContext('2d');
+    if (!ctx) {
+        return baseline;
+    }
+    let maxWidth = baseline;
+    rows.forEach((row) => {
+        const nameNode = row.querySelector('.folder-appname');
+        if (!nameNode) {
+            return;
+        }
+        const text = String(nameNode.textContent || '').trim();
+        if (!text) {
+            return;
+        }
+        const style = window.getComputedStyle(nameNode);
+        ctx.font = `${style.fontStyle} ${style.fontVariant} ${style.fontWeight} ${style.fontSize} / ${style.lineHeight} ${style.fontFamily}`;
+        const textWidth = ctx.measureText(text).width;
+        const nameSubNode = row.querySelector('.folder-name-sub');
+        const nameSubStyle = nameSubNode ? window.getComputedStyle(nameSubNode) : null;
+        const paddingIndent = nameSubStyle ? Math.max(0, Math.round(parseFloat(nameSubStyle.paddingLeft) || 0)) : 0;
+        // Include tree controls, nesting indent, icon/toggle/dropdown, and right cushion.
+        const estimated = Math.ceil(textWidth + paddingIndent + 120);
+        if (estimated > maxWidth) {
+            maxWidth = estimated;
+        }
+    });
+    return clampDockerRuntimeColumnWidth(maxWidth, 1) || baseline;
+};
+
+const applyDockerRuntimeColumnWidths = (_widthMap = null) => {
+    const targets = getDockerRuntimeTableTargets();
+    if (!targets) {
+        return;
+    }
+    const autoAppWidth = estimateDockerRuntimeAutoAppWidth();
+    const isMobile = window.matchMedia && window.matchMedia('(max-width: 900px)').matches;
+    targets.headers.forEach((header, idx) => {
+        const index = idx + 1;
+        const effectiveWidth = index === 1
+            ? (isMobile ? Math.max(220, Math.round(autoAppWidth * 0.82)) : autoAppWidth)
+            : null;
+        const applyWidth = (element) => {
+            if (!element || !element.style) {
+                return;
+            }
+            if (!effectiveWidth) {
+                element.style.removeProperty('width');
+                element.style.removeProperty('min-width');
+                element.style.removeProperty('max-width');
+                return;
+            }
+            element.style.setProperty('width', `${effectiveWidth}px`);
+            element.style.setProperty('min-width', `${effectiveWidth}px`);
+            element.style.setProperty('max-width', `${effectiveWidth}px`);
+        };
+        applyWidth(header);
+        const cells = document.querySelectorAll(`tbody#docker_list > tr > td:nth-child(${index}), tbody#docker_view > tr > td:nth-child(${index})`);
+        cells.forEach((cell) => applyWidth(cell));
+    });
+    applyDockerRuntimeAppWidthVariables(autoAppWidth || null);
+};
+
+const applySavedDockerRuntimeColumnWidths = () => {
+    applyDockerRuntimeColumnWidths(null);
+};
+
+const stopDockerRuntimeColumnResize = (persist = true) => {
+    const active = dockerRuntimeColumnResizeSession;
+    if (!active) {
+        return;
+    }
+    window.removeEventListener('pointermove', active.onMove, true);
+    window.removeEventListener('pointerup', active.onUp, true);
+    window.removeEventListener('pointercancel', active.onCancel, true);
+    dockerRuntimeColumnResizeSession = null;
+    document.body?.classList.remove('fvplus-docker-column-resize-active');
+    if (persist) {
+        persistDockerRuntimeColumnWidths(active.widths);
+    }
+};
+
+const beginDockerRuntimeColumnWidthResize = (columnIndex, event) => {
+    // Runtime drag-resize intentionally disabled; app column now auto-sizes from folder names.
+    void columnIndex;
+    void event;
+    return;
+    /*
+    if (event.button !== 0) {
+        return;
+    }
+    const targets = getDockerRuntimeTableTargets();
+    if (!targets || !targets.headers[columnIndex - 1]) {
+        return;
+    }
+    const header = targets.headers[columnIndex - 1];
+    const frozenWidths = captureCurrentDockerRuntimeColumnWidths();
+    const initialWidth = clampDockerRuntimeColumnWidth(header.getBoundingClientRect().width, columnIndex);
+    if (!initialWidth) {
+        return;
+    }
+    const startX = Number(event.clientX || 0);
+    const onMove = (moveEvent) => {
+        const delta = Number(moveEvent.clientX || 0) - startX;
+        const nextWidth = clampDockerRuntimeColumnWidth(initialWidth + delta, columnIndex);
+        if (!nextWidth || !dockerRuntimeColumnResizeSession) {
+            return;
+        }
+        dockerRuntimeColumnResizeSession.widths[columnIndex] = nextWidth;
+        applyDockerRuntimeColumnWidths(dockerRuntimeColumnResizeSession.widths);
+    };
+    const onUp = () => stopDockerRuntimeColumnResize(true);
+    const onCancel = onUp;
+    dockerRuntimeColumnResizeSession = {
+        widths: {
+            ...frozenWidths,
+            [columnIndex]: initialWidth
+        },
+        onMove,
+        onUp,
+        onCancel
+    };
+    applyDockerRuntimeColumnWidths(dockerRuntimeColumnResizeSession.widths);
+    document.body?.classList.add('fvplus-docker-column-resize-active');
+    window.addEventListener('pointermove', onMove, true);
+    window.addEventListener('pointerup', onUp, true);
+    window.addEventListener('pointercancel', onCancel, true);
+    event.preventDefault();
+    event.stopPropagation();
+    */
+};
+
+const bindDockerRuntimeViewportWidthSync = () => {
+    if (dockerRuntimeResizeViewportBound) {
+        return;
+    }
+    dockerRuntimeResizeViewportBound = true;
+    const reapply = () => applySavedDockerRuntimeColumnWidths();
+    window.addEventListener('resize', reapply, { passive: true });
+    window.addEventListener('orientationchange', reapply, { passive: true });
+};
+
+const scheduleDockerRuntimeResizerRetry = () => {
+    if (dockerRuntimeResizerRetryTimer !== null) {
+        return;
+    }
+    dockerRuntimeResizerRetryTimer = window.setTimeout(() => {
+        dockerRuntimeResizerRetryTimer = null;
+        bindDockerRuntimeColumnResizers();
+    }, 180);
+};
+
+const ensureDockerRuntimeResizerObserver = () => {
+    if (dockerRuntimeResizerObserver || typeof MutationObserver !== 'function') {
+        return;
+    }
+    const target = document.querySelector('#docker_list')
+        || document.querySelector('tbody#docker_view')
+        || document.body;
+    if (!target) {
+        return;
+    }
+    dockerRuntimeResizerObserver = new MutationObserver(() => {
+        queueDockerRuntimeResizerBind();
+    });
+    dockerRuntimeResizerObserver.observe(target, {
+        childList: true,
+        subtree: true
+    });
+};
+
+const queueDockerRuntimeResizerBind = () => {
+    if (dockerRuntimeResizerBindTimer !== null) {
+        return;
+    }
+    dockerRuntimeResizerBindTimer = window.setTimeout(() => {
+        dockerRuntimeResizerBindTimer = null;
+        bindDockerRuntimeColumnResizers();
+    }, 0);
+};
+
+const bindDockerRuntimeColumnResizers = () => {
+    const targets = getDockerRuntimeTableTargets();
+    if (!targets) {
+        if (dockerRuntimeResizerRetryCount < 20) {
+            dockerRuntimeResizerRetryCount += 1;
+            scheduleDockerRuntimeResizerRetry();
+        }
+        return;
+    }
+    dockerRuntimeResizerRetryCount = 0;
+    ensureDockerRuntimeResizerObserver();
+    bindDockerRuntimeViewportWidthSync();
+    targets.headers.forEach((header, idx) => {
+        const columnIndex = idx + 1;
+        header.classList.remove('fvplus-runtime-resizable');
+        header.classList.toggle('fvplus-runtime-app-col', columnIndex === 1);
+        const existingHandle = header.querySelector('.fvplus-runtime-col-resizer');
+        if (existingHandle) {
+            existingHandle.remove();
+        }
+    });
+    applySavedDockerRuntimeColumnWidths();
+};
+
+// Backward-compatible aliases used by legacy tests/hooks.
+const bindDockerRuntimeAppColumnResizer = () => bindDockerRuntimeColumnResizers();
+const applySavedDockerRuntimeAppWidth = () => applySavedDockerRuntimeColumnWidths();
 
 const buildDockerTooltipContent = (ct) => $(`
     <div class="preview-outbox preview-outbox-${ct.shortId}">
@@ -925,6 +1326,8 @@ const createFolders = async () => {
         Object.keys(globalFolders).forEach((folderId) => forceFolderRowVerticalCenter(folderId));
         queueForceAllFolderRowsVerticalCenter();
     }, 50);
+    bindDockerRuntimeAppColumnResizer();
+    applySavedDockerRuntimeColumnWidths();
 
     folderDebugMode = false; // Existing flag
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Set folderDebugMode (existing) to false.');
@@ -1122,11 +1525,8 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
         .css('padding-left', `${depthIndentPx}px`);
     forceFolderRowVerticalCenter(id);
 
-    const previewColor = normalizeStatusHexColor(folder.settings.preview_border_color, '#afa89e');
     const previewNode = $(`tr.folder-id-${id} div.folder-preview`).get(0);
-    if (previewNode) {
-        previewNode.style.setProperty('border', `1px solid ${previewColor}`, 'important');
-    }
+    applyPreviewBorderStyle(previewNode, folder.settings);
     $(`tr.folder-id-${id} div.folder-preview`).addClass(`folder-preview-${folder.settings.preview}`);
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Added class folder-preview-${folder.settings.preview} to preview div.`);
 
@@ -1624,6 +2024,30 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
          
             const $previewElementTarget = $(`tr.folder-id-${id} div.folder-preview > span:last`); // Or elementForPreviewOpts if you prefer
             let $targetForAppend; // Used for WebUI, Console, Logs icons
+            const previewMode = Number(folder?.settings?.preview || 0);
+            const previewStateMeta = getPreviewContainerStatusMeta(newFolder[container_name_in_folder]);
+            const previewStatusTitle = escapeHtml($.i18n(previewStateMeta.key));
+
+            if (previewMode === 2 && $previewElementTarget.length) {
+                const $existingPreviewStateIcon = $previewElementTarget.children('.folder-preview-status-icon');
+                if (!$existingPreviewStateIcon.length) {
+                    $previewElementTarget.append(
+                        $(`<span class="folder-preview-status-icon ${previewStateMeta.className}" title="${previewStatusTitle}"><i class="fa ${previewStateMeta.icon}" aria-hidden="true"></i></span>`)
+                    );
+                }
+            }
+
+            if ((previewMode === 3 || previewMode === 4) && $previewElementTarget.length) {
+                const $previewAppName = $previewElementTarget.find('span.appname > a.exec').first();
+                if ($previewAppName.length) {
+                    $previewAppName.addClass('fv-preview-status-name').addClass(previewStateMeta.className);
+                    if (!$previewAppName.children('.fv-preview-status-inline').length) {
+                        $previewAppName.prepend(
+                            $(`<span class="fv-preview-status-inline ${previewStateMeta.className}" title="${previewStatusTitle}" aria-hidden="true"><i class="fa ${previewStateMeta.icon}"></i></span>`)
+                        );
+                    }
+                }
+            }
 
             if (folder.settings.preview_grayscale) {
                 let $imgToGrayscale = $previewElementTarget.children('span.hand').children('img.img');
@@ -2029,9 +2453,8 @@ const syncParentFolderVisualState = (id, expanded) => {
     }
     if (!expanded) {
         const folder = globalFolders[id];
-        const previewColor = normalizeStatusHexColor(folder?.settings?.preview_border_color, '#afa89e');
         const previewNode = $row.find('div.folder-preview').get(0);
-        if (previewNode) previewNode.style.setProperty('border', `1px solid ${previewColor}`, 'important');
+        applyPreviewBorderStyle(previewNode, folder?.settings || {});
     }
 };
 
@@ -2649,6 +3072,7 @@ window.listview = () => {
     } else {
         if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched listview: loadedFolder is true. Skipped createFolders.');
     }
+    queueDockerRuntimeResizerBind();
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched listview: Exit.');
 };
 
@@ -2666,6 +3090,7 @@ window.loadlist = () => {
     } else {
         if (FOLDER_VIEW_DEBUG_MODE) console.error('[FV3_DEBUG] Patched loadlist: window.loadlist_original is not a function!');
     }
+    queueDockerRuntimeResizerBind();
      if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: Exit.');
 };
 
@@ -2886,6 +3311,15 @@ const scheduleLiveRefresh = (prefs) => {
 
 const applyRuntimePrefs = (prefs) => {
     const normalized = utils.normalizePrefs(prefs || {});
+    lastAppliedRuntimePrefs = normalized;
+    const appColumnWidth = typeof utils.normalizeAppColumnWidth === 'function'
+        ? utils.normalizeAppColumnWidth(normalized.appColumnWidth)
+        : (['compact', 'wide'].includes(String(normalized.appColumnWidth || '').toLowerCase()) ? String(normalized.appColumnWidth || '').toLowerCase() : 'standard');
+    if (document.body && typeof document.body.setAttribute === 'function') {
+        document.body.setAttribute('data-fvplus-docker-app-width', appColumnWidth);
+    }
+    queueDockerRuntimeResizerBind();
+    applySavedDockerRuntimeAppWidth();
     $('body').toggleClass('fvplus-performance-mode', normalized.performanceMode === true);
     scheduleLiveRefresh(normalized);
 };

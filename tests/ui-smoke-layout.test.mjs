@@ -304,6 +304,11 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /id="fv-advanced-compact" class="fv-advanced-compact" title="\$\{escapeHtml\(compactHoverLabel\)\}" aria-label="\$\{escapeHtml\(compactLabel\)\}"/);
     assert.match(settingsJs, /const folderMatchesStatusFilter = \(statusFilterMode, countsByState, totalMembers\) =>/);
     assert.match(settingsJs, /const applyColumnVisibility = \(type\) =>/);
+    assert.match(settingsJs, /const TABLE_COLUMN_RESIZE_CONFIG_BY_TYPE = Object\.freeze\(/);
+    assert.match(settingsJs, /columnWidths:\s*\{\s*docker:\s*\{\s*\.\.\.\(columnWidthsByType\.docker/);
+    assert.match(settingsJs, /columnWidthsByType\[resolvedType\] = normalizeColumnWidthsForType\(resolvedType, sourceColumnWidths\[resolvedType\]\);/);
+    assert.match(settingsJs, /const applyColumnWidths = \(type\) =>/);
+    assert.match(settingsJs, /const bindTableColumnResizers = \(type\) =>/);
     assert.match(settingsJs, /const renderColumnVisibilityControls = \(type\) =>/);
     assert.match(settingsJs, /const changeColumnVisibility = \(type, key, checked\) =>/);
     assert.match(settingsJs, /window\.changeColumnVisibility = changeColumnVisibility;/);
@@ -333,6 +338,8 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const refreshCoreData = async \(\) =>/);
     assert.match(settingsJs, /if \(settingsUiState\.mode === 'advanced'\) \{\s*await refreshAll\(\);\s*\} else \{\s*await refreshCoreData\(\);\s*\}/);
     assert.match(settingsCss, /\.folder-action-btn\s*\{/);
+    assert.match(settingsCss, /\.fv-col-resizer/);
+    assert.match(settingsCss, /body\.fv-column-resize-active/);
     assert.match(settingsCss, /\.fv-runtime-resolved-panel\s*\{/);
     assert.match(settingsCss, /\.fv-runtime-resolved-actions\s*\{/);
     assert.match(settingsCss, /\.updates-chip\s*\{/);

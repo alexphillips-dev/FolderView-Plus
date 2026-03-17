@@ -389,6 +389,24 @@ test('normalizePrefs includes live refresh, performance mode, and backup schedul
     assert.equal(prefs.setupWizardCompleted, false);
     assert.equal(prefs.settingsMode, 'basic');
     assert.deepEqual(prefs.expandedFolderState, {});
+    assert.equal(prefs.appColumnWidth, 'standard');
+});
+
+test('normalizePrefs clamps application width mode', () => {
+    const compact = utils.normalizePrefs({
+        appColumnWidth: 'compact'
+    });
+    assert.equal(compact.appColumnWidth, 'compact');
+
+    const wide = utils.normalizePrefs({
+        appColumnWidth: 'WIDE'
+    });
+    assert.equal(wide.appColumnWidth, 'wide');
+
+    const fallback = utils.normalizePrefs({
+        appColumnWidth: 'extra-wide'
+    });
+    assert.equal(fallback.appColumnWidth, 'standard');
 });
 
 test('normalizePrefs disables legacy runtime toggles until schema is upgraded', () => {

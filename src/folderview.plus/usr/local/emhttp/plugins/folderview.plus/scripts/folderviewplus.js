@@ -146,6 +146,10 @@ let columnVisibilityByType = {
     docker: { ...DEFAULT_COLUMN_VISIBILITY_BY_TYPE.docker },
     vm: { ...DEFAULT_COLUMN_VISIBILITY_BY_TYPE.vm }
 };
+let columnWidthsByType = {
+    docker: {},
+    vm: {}
+};
 let collapsedTreeParentsByType = {
     docker: new Set(),
     vm: new Set()
@@ -661,6 +665,15 @@ const syncCompactMobileLayoutClass = () => {
     if (document.body) {
         document.body.classList.toggle('fv-mobile-compact', enabled);
     }
+    if (activeTableColumnResize) {
+        stopActiveTableColumnResize(false);
+    }
+    try {
+        applyColumnWidths('docker');
+        applyColumnWidths('vm');
+        bindTableColumnResizers('docker');
+        bindTableColumnResizers('vm');
+    } catch (_error) {}
 };
 
 const initCompactMobileLayoutGuard = () => {
@@ -3967,6 +3980,163 @@ const normalizeColumnVisibilityForType = (type, value = null) => {
     return normalized;
 };
 
+const TABLE_COLUMN_RESIZE_CONFIG_BY_TYPE = Object.freeze({
+    docker: Object.freeze({
+        order: Object.freeze({ header: '.col-order', cell: '.order-cell', min: 64, max: 220 }),
+        name: Object.freeze({ header: '.col-name', cell: '.name-cell', min: 220, max: 820 }),
+        members: Object.freeze({ header: '.col-members', cell: '.members-cell', min: 90, max: 260 }),
+        status: Object.freeze({ header: '.col-status', cell: '.status-cell', min: 170, max: 620 }),
+        rules: Object.freeze({ header: '.col-rules', cell: '.rules-cell', min: 80, max: 240 }),
+        lastChanged: Object.freeze({ header: '.col-last-changed', cell: '.last-changed-cell', min: 150, max: 360 }),
+        pinned: Object.freeze({ header: '.col-pinned', cell: '.pinned-cell', min: 80, max: 200 }),
+        signals: Object.freeze({ header: '.col-signals', cell: '.signals-cell', min: 120, max: 360 }),
+        actions: Object.freeze({ header: '.col-actions', cell: '.actions-cell', min: 160, max: 320 })
+    }),
+    vm: Object.freeze({
+        order: Object.freeze({ header: '.col-order', cell: '.order-cell', min: 64, max: 220 }),
+        name: Object.freeze({ header: '.col-name', cell: '.name-cell', min: 220, max: 820 }),
+        members: Object.freeze({ header: '.col-members', cell: '.members-cell', min: 90, max: 260 }),
+        status: Object.freeze({ header: '.col-status', cell: '.status-cell', min: 170, max: 620 }),
+        rules: Object.freeze({ header: '.col-rules', cell: '.rules-cell', min: 80, max: 240 }),
+        lastChanged: Object.freeze({ header: '.col-last-changed', cell: '.last-changed-cell', min: 150, max: 360 }),
+        pinned: Object.freeze({ header: '.col-pinned', cell: '.pinned-cell', min: 80, max: 200 }),
+        autostart: Object.freeze({ header: '.col-autostart', cell: '.autostart-cell', min: 130, max: 300 }),
+        resources: Object.freeze({ header: '.col-resources', cell: '.resources-cell', min: 170, max: 420 }),
+        actions: Object.freeze({ header: '.col-actions', cell: '.actions-cell', min: 160, max: 320 })
+    })
+});
+
+const TABLE_COLUMN_RESIZE_KEYS_BY_TYPE = Object.freeze({
+    docker: Object.freeze(Object.keys(TABLE_COLUMN_RESIZE_CONFIG_BY_TYPE.docker)),
+    vm: Object.freeze(Object.keys(TABLE_COLUMN_RESIZE_CONFIG_BY_TYPE.vm))
+});
+
+let activeTableColumnResize = null;
+
+const getSettingsTableElement = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const tbodyId = tableIdByType[resolvedType];
+    const tbody = document.querySelector(`tbody#${tbodyId}`);
+    if (!tbody) {
+        return null;
+    }
+    return tbody.closest('table');
+};
+
+const normalizeSingleColumnWidth = (type, key, value) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const config = TABLE_COLUMN_RESIZE_CONFIG_BY_TYPE[resolvedType]?.[key];
+    if (!config) {
+        return null;
+    }
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) {
+        return null;
+    }
+    const min = Number(config.min) || 60;
+    const max = Number(config.max) || 900;
+    return Math.round(Math.min(max, Math.max(min, parsed)));
+};
+
+const normalizeColumnWidthsForType = (type, value = null) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const keys = TABLE_COLUMN_RESIZE_KEYS_BY_TYPE[resolvedType] || [];
+    const source = value && typeof value === 'object' ? value : {};
+    const normalized = {};
+    keys.forEach((key) => {
+        const width = normalizeSingleColumnWidth(resolvedType, key, source[key]);
+        if (width !== null) {
+            normalized[key] = width;
+        }
+    });
+    return normalized;
+};
+
+const captureCurrentColumnWidths = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const table = getSettingsTableElement(resolvedType);
+    if (!table) {
+        return {};
+    }
+    const configByKey = TABLE_COLUMN_RESIZE_CONFIG_BY_TYPE[resolvedType] || {};
+    const keys = TABLE_COLUMN_RESIZE_KEYS_BY_TYPE[resolvedType] || [];
+    const widths = {};
+    keys.forEach((key) => {
+        const header = configByKey[key] ? table.querySelector(configByKey[key].header) : null;
+        if (!header || header.classList.contains('fv-col-hidden')) {
+            return;
+        }
+        const measured = normalizeSingleColumnWidth(resolvedType, key, header.getBoundingClientRect().width);
+        if (measured !== null) {
+            widths[key] = measured;
+        }
+    });
+    return widths;
+};
+
+const syncResizableTableLayout = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const table = getSettingsTableElement(resolvedType);
+    if (!table) {
+        return;
+    }
+    const tableWrap = table.closest('.table-wrap');
+    const customWidths = columnWidthsByType[resolvedType] && typeof columnWidthsByType[resolvedType] === 'object'
+        ? columnWidthsByType[resolvedType]
+        : {};
+    const hasCustomWidths = Object.keys(customWidths).length > 0;
+    if (shouldUseCompactMobileLayout()) {
+        table.style.removeProperty('width');
+        table.style.removeProperty('max-width');
+        table.style.removeProperty('table-layout');
+        if (tableWrap && tableWrap.style) {
+            tableWrap.style.removeProperty('overflow-x');
+            tableWrap.style.removeProperty('overflow-y');
+        }
+        return;
+    }
+    if (!hasCustomWidths) {
+        table.style.removeProperty('width');
+        table.style.removeProperty('max-width');
+        table.style.removeProperty('table-layout');
+        if (tableWrap && tableWrap.style) {
+            tableWrap.style.removeProperty('overflow-x');
+            tableWrap.style.removeProperty('overflow-y');
+        }
+        return;
+    }
+    const configByKey = TABLE_COLUMN_RESIZE_CONFIG_BY_TYPE[resolvedType] || {};
+    const keys = TABLE_COLUMN_RESIZE_KEYS_BY_TYPE[resolvedType] || [];
+    let totalWidth = 0;
+    let visibleColumns = 0;
+    keys.forEach((key) => {
+        const header = configByKey[key] ? table.querySelector(configByKey[key].header) : null;
+        if (!header || header.classList.contains('fv-col-hidden')) {
+            return;
+        }
+        const configuredWidth = normalizeSingleColumnWidth(resolvedType, key, customWidths[key]);
+        totalWidth += Math.ceil(configuredWidth || header.getBoundingClientRect().width || 0);
+        visibleColumns += 1;
+    });
+    if (visibleColumns <= 0 || totalWidth <= 0) {
+        table.style.removeProperty('width');
+        table.style.removeProperty('max-width');
+        table.style.removeProperty('table-layout');
+        return;
+    }
+    // Keep each resized column independent by sizing the table to the
+    // explicit sum of visible column widths (instead of stretching to wrapper).
+    // This avoids the browser redistributing width across sibling columns.
+    const targetWidth = Math.max(0, totalWidth);
+    table.style.setProperty('width', `${targetWidth}px`, 'important');
+    table.style.setProperty('max-width', 'none', 'important');
+    table.style.setProperty('table-layout', 'fixed', 'important');
+    if (tableWrap && tableWrap.style) {
+        tableWrap.style.setProperty('overflow-x', 'auto', 'important');
+        tableWrap.style.setProperty('overflow-y', 'visible', 'important');
+    }
+};
+
 const buildTableUiStatePayload = () => ({
     filters: {
         docker: { ...(filtersByType.docker || {}) },
@@ -3996,6 +4166,10 @@ const buildTableUiStatePayload = () => ({
     columns: {
         docker: { ...(columnVisibilityByType.docker || {}) },
         vm: { ...(columnVisibilityByType.vm || {}) }
+    },
+    columnWidths: {
+        docker: { ...(columnWidthsByType.docker || {}) },
+        vm: { ...(columnWidthsByType.vm || {}) }
     }
 });
 
@@ -4022,6 +4196,7 @@ const restoreTableUiState = () => {
         const sourceStatus = source.status && typeof source.status === 'object' ? source.status : {};
         const sourceTreeCollapsed = source.treeCollapsed && typeof source.treeCollapsed === 'object' ? source.treeCollapsed : {};
         const sourceColumns = source.columns && typeof source.columns === 'object' ? source.columns : {};
+        const sourceColumnWidths = source.columnWidths && typeof source.columnWidths === 'object' ? source.columnWidths : {};
         ['docker', 'vm'].forEach((resolvedType) => {
             const perTypeFilters = sourceFilters[resolvedType] && typeof sourceFilters[resolvedType] === 'object'
                 ? sourceFilters[resolvedType]
@@ -4042,6 +4217,7 @@ const restoreTableUiState = () => {
                     : []
             );
             columnVisibilityByType[resolvedType] = normalizeColumnVisibilityForType(resolvedType, sourceColumns[resolvedType]);
+            columnWidthsByType[resolvedType] = normalizeColumnWidthsForType(resolvedType, sourceColumnWidths[resolvedType]);
         });
         dockerUpdatesOnlyFilter = source.dockerUpdatesOnlyFilter === true;
     } catch (_error) {
@@ -4063,6 +4239,164 @@ const applyColumnVisibility = (type) => {
         const visible = state[key] !== false;
         table.find(String(target.header || '')).toggleClass('fv-col-hidden', !visible);
         table.find(String(target.cell || '')).toggleClass('fv-col-hidden', !visible);
+    });
+};
+
+const applySingleColumnWidth = (type, key, widthPx) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const table = getSettingsTableElement(resolvedType);
+    if (!table) {
+        return;
+    }
+    const config = TABLE_COLUMN_RESIZE_CONFIG_BY_TYPE[resolvedType]?.[key];
+    if (!config) {
+        return;
+    }
+    const targets = table.querySelectorAll(`${config.header}, ${config.cell}`);
+    const width = normalizeSingleColumnWidth(resolvedType, key, widthPx);
+    targets.forEach((element) => {
+        if (!width || shouldUseCompactMobileLayout()) {
+            element.style.removeProperty('width');
+            element.style.removeProperty('min-width');
+            element.style.removeProperty('max-width');
+            return;
+        }
+        element.style.setProperty('width', `${width}px`, 'important');
+        element.style.setProperty('min-width', `${width}px`, 'important');
+        element.style.setProperty('max-width', `${width}px`, 'important');
+    });
+};
+
+const applyColumnWidths = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    columnWidthsByType[resolvedType] = normalizeColumnWidthsForType(resolvedType, columnWidthsByType[resolvedType]);
+    const keys = TABLE_COLUMN_RESIZE_KEYS_BY_TYPE[resolvedType] || [];
+    const widths = columnWidthsByType[resolvedType] || {};
+    keys.forEach((key) => {
+        applySingleColumnWidth(resolvedType, key, widths[key]);
+    });
+    syncResizableTableLayout(resolvedType);
+};
+
+const stopActiveTableColumnResize = (persist = true) => {
+    const active = activeTableColumnResize;
+    if (!active) {
+        return;
+    }
+    document.body.classList.remove('fv-column-resize-active');
+    window.removeEventListener('pointermove', active.onMove, true);
+    window.removeEventListener('pointerup', active.onUp, true);
+    window.removeEventListener('pointercancel', active.onCancel, true);
+    activeTableColumnResize = null;
+    if (persist) {
+        persistTableUiState();
+    }
+};
+
+const beginTableColumnResize = (type, key, event) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    if (shouldUseCompactMobileLayout()) {
+        return;
+    }
+    if (event.button !== 0) {
+        return;
+    }
+    const table = getSettingsTableElement(resolvedType);
+    if (!table) {
+        return;
+    }
+    const config = TABLE_COLUMN_RESIZE_CONFIG_BY_TYPE[resolvedType]?.[key];
+    if (!config) {
+        return;
+    }
+    const startClientX = Number(event.clientX || 0);
+    const frozenWidths = captureCurrentColumnWidths(resolvedType);
+    if (Object.keys(frozenWidths).length > 0) {
+        columnWidthsByType[resolvedType] = normalizeColumnWidthsForType(resolvedType, {
+            ...(columnWidthsByType[resolvedType] || {}),
+            ...frozenWidths
+        });
+    }
+    applyColumnWidths(resolvedType);
+    const header = table.querySelector(config.header);
+    if (!header) {
+        return;
+    }
+    const startWidth = header.getBoundingClientRect().width;
+    const normalizedStart = normalizeSingleColumnWidth(resolvedType, key, startWidth) || startWidth;
+    columnWidthsByType[resolvedType] = normalizeColumnWidthsForType(resolvedType, {
+        ...(columnWidthsByType[resolvedType] || {}),
+        [key]: normalizedStart
+    });
+    applyColumnWidths(resolvedType);
+    const onMove = (moveEvent) => {
+        const delta = Number(moveEvent.clientX || 0) - startClientX;
+        const nextWidth = normalizeSingleColumnWidth(resolvedType, key, normalizedStart + delta);
+        if (nextWidth === null) {
+            return;
+        }
+        columnWidthsByType[resolvedType] = normalizeColumnWidthsForType(resolvedType, {
+            ...(columnWidthsByType[resolvedType] || {}),
+            [key]: nextWidth
+        });
+        applyColumnWidths(resolvedType);
+    };
+    const onUp = () => {
+        stopActiveTableColumnResize(true);
+    };
+    const onCancel = onUp;
+    activeTableColumnResize = {
+        onMove,
+        onUp,
+        onCancel
+    };
+    document.body.classList.add('fv-column-resize-active');
+    window.addEventListener('pointermove', onMove, true);
+    window.addEventListener('pointerup', onUp, true);
+    window.addEventListener('pointercancel', onCancel, true);
+    event.preventDefault();
+    event.stopPropagation();
+};
+
+const bindTableColumnResizers = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const table = getSettingsTableElement(resolvedType);
+    if (!table) {
+        return;
+    }
+    table.querySelectorAll('.fv-col-resizer').forEach((handle) => handle.remove());
+    const compact = shouldUseCompactMobileLayout();
+    const configByKey = TABLE_COLUMN_RESIZE_CONFIG_BY_TYPE[resolvedType] || {};
+    const keys = TABLE_COLUMN_RESIZE_KEYS_BY_TYPE[resolvedType] || [];
+    keys.forEach((key) => {
+        const config = configByKey[key];
+        const header = config ? table.querySelector(config.header) : null;
+        if (!header) {
+            return;
+        }
+        header.classList.add('fv-col-resizable');
+        if (compact) {
+            return;
+        }
+        const handle = document.createElement('button');
+        handle.type = 'button';
+        handle.className = 'fv-col-resizer';
+        handle.setAttribute('aria-hidden', 'true');
+        handle.tabIndex = -1;
+        handle.addEventListener('pointerdown', (event) => {
+            beginTableColumnResize(resolvedType, key, event);
+        });
+        handle.addEventListener('dblclick', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            if (!columnWidthsByType[resolvedType]) {
+                columnWidthsByType[resolvedType] = {};
+            }
+            delete columnWidthsByType[resolvedType][key];
+            applyColumnWidths(resolvedType);
+            persistTableUiState();
+        });
+        header.appendChild(handle);
     });
 };
 
@@ -4499,12 +4833,42 @@ const apiGetText = async (url, options = {}) => {
     }
 };
 
+const buildMutationRequestPayload = (data = {}) => {
+    const token = getOptionalRequestToken();
+    if (typeof FormData !== 'undefined' && data instanceof FormData) {
+        if (!data.has('_fv_request')) {
+            data.append('_fv_request', '1');
+        }
+        if (token && !data.has('token')) {
+            data.append('token', token);
+        }
+        return data;
+    }
+    if (typeof URLSearchParams !== 'undefined' && data instanceof URLSearchParams) {
+        if (!data.has('_fv_request')) {
+            data.set('_fv_request', '1');
+        }
+        if (token && !data.has('token')) {
+            data.set('token', token);
+        }
+        return data;
+    }
+    const payload = data && typeof data === 'object' ? { ...data } : {};
+    if (!Object.prototype.hasOwnProperty.call(payload, '_fv_request')) {
+        payload._fv_request = '1';
+    }
+    if (token && !Object.prototype.hasOwnProperty.call(payload, 'token')) {
+        payload.token = token;
+    }
+    return payload;
+};
+
 const apiPostText = async (url, data = {}, options = {}) => {
     try {
         if (requestClient && typeof requestClient.postText === 'function') {
             return await requestClient.postText(url, data, options);
         }
-        return await $.post(url, data).promise();
+        return await $.post(url, buildMutationRequestPayload(data)).promise();
     } catch (error) {
         recordRequestErrorTelemetry('POST', url, error, {
             source: 'apiPostText',
@@ -4536,7 +4900,7 @@ const apiPostJson = async (url, data = {}, options = {}) => {
         if (requestClient && typeof requestClient.postJson === 'function') {
             return await requestClient.postJson(url, data, options);
         }
-        return parseJsonResponse(await $.post(url, data).promise());
+        return parseJsonResponse(await $.post(url, buildMutationRequestPayload(data)).promise());
     } catch (error) {
         recordRequestErrorTelemetry('POST', url, error, {
             source: 'apiPostJson',
@@ -5645,13 +6009,12 @@ const enforceNoHorizontalOverflow = () => {
         setImportantStyle(target, 'overflow-x', 'hidden');
     }
 
-    const tableTargets = document.querySelectorAll('.folder-table .table-wrap, .folder-table table, .folder-table table th, .folder-table table td');
+    const compact = shouldUseCompactMobileLayout();
+    const tableTargets = document.querySelectorAll('.folder-table .table-wrap');
     tableTargets.forEach((target) => {
         setImportantStyle(target, 'max-width', '100%');
         setImportantStyle(target, 'min-width', '0');
-    });
-    document.querySelectorAll('.folder-table .table-wrap').forEach((target) => {
-        setImportantStyle(target, 'overflow-x', 'hidden');
+        setImportantStyle(target, 'overflow-x', compact ? 'hidden' : 'auto');
         setImportantStyle(target, 'overflow-y', 'visible');
     });
 };
@@ -7058,6 +7421,10 @@ const renderHealthControls = (type) => {
 const renderVisibilityControls = (type) => {
     const prefs = utils.normalizePrefs(prefsByType[type]);
     $(`#${type}-hide-empty-folders`).prop('checked', prefs.hideEmptyFolders === true);
+    const appColumnWidth = typeof utils.normalizeAppColumnWidth === 'function'
+        ? utils.normalizeAppColumnWidth(prefs.appColumnWidth)
+        : (['compact', 'wide'].includes(String(prefs.appColumnWidth || '').toLowerCase()) ? String(prefs.appColumnWidth || '').toLowerCase() : 'standard');
+    $(`#${type}-app-column-width`).val(appColumnWidth);
 };
 
 const renderBackupScheduleControls = (type) => {
@@ -7353,6 +7720,9 @@ const renderTemplateRows = (type) => {
 };
 
 const renderTable = (type) => {
+    if (activeTableColumnResize) {
+        stopActiveTableColumnResize(false);
+    }
     const folders = getFolderMap(type);
     const ordered = utils.orderFoldersByPrefs(folders, prefsByType[type]);
     const hierarchyMeta = buildFolderHierarchyMeta(ordered);
@@ -7392,6 +7762,8 @@ const renderTable = (type) => {
     renderQuickFolderFilters(type);
     renderColumnVisibilityControls(type);
     applyColumnVisibility(type);
+    applyColumnWidths(type);
+    bindTableColumnResizers(type);
     renderTreeMoveUndoBanner(type);
     renderQuickProfilePresetButtons();
     renderRulesTable(type);
@@ -7928,15 +8300,18 @@ const changeBadgePref = async (type, badgeKey, checked) => {
     }
 };
 
-const changeVisibilityPref = async (type, key, checked) => {
-    if (key !== 'hideEmptyFolders') {
+const changeVisibilityPref = async (type, key, value) => {
+    const current = utils.normalizePrefs(prefsByType[type]);
+    const next = { ...current };
+    if (key === 'hideEmptyFolders') {
+        next.hideEmptyFolders = value === true;
+    } else if (key === 'appColumnWidth') {
+        next.appColumnWidth = typeof utils.normalizeAppColumnWidth === 'function'
+            ? utils.normalizeAppColumnWidth(value)
+            : (['compact', 'wide'].includes(String(value || '').toLowerCase()) ? String(value || '').toLowerCase() : 'standard');
+    } else {
         return;
     }
-    const current = utils.normalizePrefs(prefsByType[type]);
-    const next = {
-        ...current,
-        hideEmptyFolders: checked === true
-    };
     try {
         prefsByType[type] = await postPrefs(type, next);
         renderVisibilityControls(type);
@@ -8005,6 +8380,8 @@ const changeColumnVisibility = (type, key, checked) => {
     columnVisibilityByType[resolvedType] = normalized;
     renderColumnVisibilityControls(resolvedType);
     applyColumnVisibility(resolvedType);
+    applyColumnWidths(resolvedType);
+    bindTableColumnResizers(resolvedType);
     persistTableUiState();
 };
 

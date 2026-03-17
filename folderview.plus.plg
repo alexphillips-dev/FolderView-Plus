@@ -5,13 +5,100 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.15.03">
-<!ENTITY md5 "d04128e9d79d276ac7150e2aabea4699">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
+<!ENTITY version "2026.03.16.08">
+<!ENTITY md5 "280a200a78f6f4fe189d875912640946">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.16.08
+- Fix: request-guard compatibility hardened for mutation POSTs (`prefs.php`, bulk assignment, folder create/update) by adding `_fv_request=1` + token payload fallback when headers are stripped.
+- Fix: server-side request guard now accepts explicit body/query mutation marker fallback in addition to `X-FV-Request`.
+- Fix: folder editor guarded POST helper now always includes `_fv_request` marker.
+- Fix: dashboard folder cards support click-to-expand behavior for both Docker and VM widgets.
+- Feature: preview mode now shows state icons/colors for icon-only and list previews.
+- Quality: added regression tests for guarded mutation payload markers and dashboard click-to-expand templates.
+
+
+###2026.03.16.07
+- Fix: Docker runtime Application auto-width now targets both `#docker_list` and `#docker_view` tables so nested folder names no longer get stuck at old width.
+- UX: Application auto-width now includes nested indentation depth when sizing, preventing deep child folder names from collapsing to ellipsis.
+- Compatibility: Increased safe upper bound for Docker Application auto-width to better handle long nested folder names.
+
+
+###2026.03.16.06
+- UX: adjusted default basic-table column spacing for clearer out-of-box layout while preserving per-user resized widths.
+- Compatibility: removed Docker-tab runtime drag-resize controls and switched Application column to automatic width based on folder names/nesting.
+- Fix: Docker Application column now expands more intelligently for long folder and nested names.
+
+
+###2026.03.16.05
+- Fix: settings resize handles now sit on true column boundaries (divider-aligned) instead of header-text edges.
+- Fix: Docker-tab header resizers now retry/rebind after table rebuilds so resize controls stay available.
+- Fix: Docker runtime resize handle hit-area and contrast improved for easier drag targeting.
+
+
+###2026.03.16.04
+- Fix: settings table drag-resize now keeps each resized column independent (no cross-column shrinking while dragging).
+- Fix: restored compact tiny action buttons in the settings Actions column.
+- Fix: Docker runtime resize handles are now more visible/reliable and re-bind after list refreshes.
+- Fix: Docker Application dropdown chevron now sits next to folder text with padding and no longer clips into Version.
+
+
+###2026.03.16.03
+- Fix: settings table column drag-resize now locks widths per-column to prevent neighboring columns from reflowing.
+- Fix: Docker tab runtime column resize handles now render for all desktop header columns and persist independently.
+- Fix: Docker Application column width now re-applies after folder render (with safer defaults) so nested folder names are readable.
+
+
+###2026.03.16.02
+- Fix: corrected settings table column resizing so drag direction is consistent and resizing no longer distorts neighboring columns.
+- Feature: added persistent drag-resize for the Docker tab Application column at runtime.
+- Fix: folder names now support Chinese/Unicode characters while still blocking unsafe control/path characters.
+- Fix: resolved Add Folder submit failures by sending guarded mutation headers/token with create/update/sync requests.
+- Security: request guard now accepts explicit guarded fallback in alias/untrusted-context scenarios when token bypass rules allow it.
+
+
+###2026.03.16.01
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+
+
+###2026.03.15.09
+- Maintenance: Raise total JS hard cap for perf guard.
+- Maintenance: Refresh perf baseline for border color compatibility fix.
+- Fix: Fix legacy custom folder border colors in nested views.
+- Fix: Fix app column width preferences for Docker and VM views.
+- Fix: Fix preview border toggle and update dev artifacts.
+- Maintenance: Sync dev release artifacts for border toggle fix.
+
+
+###2026.03.15.08
+- Maintenance: Raise total JS hard cap for perf guard.
+- Maintenance: Refresh perf baseline for border color compatibility fix.
+
+
+###2026.03.15.07
+- Fix: Restored folder preview border colors for legacy/custom folders where `preview_border` was stored as off but custom border colors exist.
+- Fix: Applied the same preview-border compatibility behavior in both Docker and VM folder renderers.
+- Quality: Updated folder editor + regression tests to keep legacy custom-border configs consistent and prevent this from regressing.
+
+
+###2026.03.15.06
+- Feature: Added per-type `Application width` controls (`Compact`, `Standard`, `Wide`) in Basic settings for both Docker and VM.
+- Fix: Applied runtime width preferences in Docker/VM views and reduced mobile overlap pressure in Docker update cells.
+- Quality: Added `appColumnWidth` normalization coverage and backup-compare diff visibility for the new preference.
+
+
+###2026.03.15.05
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.15.04
+- Fix: Fix preview border toggle persistence and rendering.
+
 
 ###2026.03.15.03
 - Fix: Basic view toolbar actions now use explicit non-submit buttons so import/export/restore/clear work correctly on fresh installs.
@@ -1621,7 +1708,7 @@
     </CHANGES>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

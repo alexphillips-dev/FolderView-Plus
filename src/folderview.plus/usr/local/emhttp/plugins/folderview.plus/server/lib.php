@@ -609,35 +609,47 @@
             . '">' . "\n";
     }
 
-    function validateOptionalRequestToken(): void {
+    function validateOptionalRequestToken(): bool {
         $mode = getRequestTokenEnforcementMode();
         if ($mode === 'off') {
-            return;
+            return false;
         }
         $expected = getConfiguredRequestToken();
         if ($expected === '') {
-            return;
+            return false;
         }
         $provided = trim((string)($_POST['token'] ?? getRequestHeaderValue('X-FV-Token')));
         if ($provided === '') {
             if ($mode === 'strict') {
                 throw new RuntimeException('Invalid request token.');
             }
-            return;
+            return false;
         }
         if (!hash_equals($expected, $provided)) {
             throw new RuntimeException('Invalid request token.');
         }
+        return true;
+    }
+
+    function hasExplicitMutationRequestHeader(): bool {
+        if (trim(getRequestHeaderValue('X-FV-Request')) === '1') {
+            return true;
+        }
+        $requestFlag = trim((string)($_POST['_fv_request'] ?? $_GET['_fv_request'] ?? ''));
+        return $requestFlag === '1';
     }
 
     function requireMutationRequestGuard(): void {
         if (strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET')) !== 'POST') {
             throw new RuntimeException('Unsupported method.');
         }
-        if (!isTrustedMutationContext()) {
+        $tokenMode = getRequestTokenEnforcementMode();
+        $tokenRequiredForBypass = $tokenMode !== 'off' && getConfiguredRequestToken() !== '';
+        $tokenValidated = validateOptionalRequestToken();
+        $headerValidated = hasExplicitMutationRequestHeader() && ($tokenValidated || !$tokenRequiredForBypass);
+        if (!isTrustedMutationContext() && !$headerValidated) {
             throw new RuntimeException('Blocked by request guard.');
         }
-        validateOptionalRequestToken();
     }
 
     function fvplus_json_response(array $payload, int $statusCode = 200): void {
@@ -1511,6 +1523,7 @@
             'pinnedFolderIds' => [],
             'expandedFolderState' => [],
             'hideEmptyFolders' => false,
+            'appColumnWidth' => 'standard',
             'setupWizardCompleted' => false,
             'settingsMode' => 'basic',
             'autoRules' => [],
@@ -1639,6 +1652,14 @@
         ];
     }
 
+    function normalizeAppColumnWidth($value): string {
+        $normalized = strtolower(trim((string)$value));
+        if (in_array($normalized, ['compact', 'standard', 'wide'], true)) {
+            return $normalized;
+        }
+        return 'standard';
+    }
+
     function normalizeTypePrefs(array $prefs): array {
         $normalized = defaultTypePrefs();
         $sortMode = $prefs['sortMode'] ?? $normalized['sortMode'];
@@ -1655,6 +1676,7 @@
         $normalized['pinnedFolderIds'] = normalizeStringIdList($prefs['pinnedFolderIds'] ?? []);
         $normalized['expandedFolderState'] = normalizeExpandedStateMap($prefs['expandedFolderState'] ?? []);
         $normalized['hideEmptyFolders'] = normalizeBool($prefs['hideEmptyFolders'] ?? false, false);
+        $normalized['appColumnWidth'] = normalizeAppColumnWidth($prefs['appColumnWidth'] ?? 'standard');
         $normalized['setupWizardCompleted'] = normalizeBool($prefs['setupWizardCompleted'] ?? false, false);
         $settingsMode = (string)($prefs['settingsMode'] ?? 'basic');
         $normalized['settingsMode'] = $settingsMode === 'advanced' ? 'advanced' : 'basic';
@@ -4117,6 +4139,7 @@
                 'manualOrderCount' => count($prefs['manualOrder'] ?? []),
                 'pinnedFolderCount' => count($prefs['pinnedFolderIds'] ?? []),
                 'hideEmptyFolders' => normalizeBool($prefs['hideEmptyFolders'] ?? false, false),
+                'appColumnWidth' => normalizeAppColumnWidth($prefs['appColumnWidth'] ?? 'standard'),
                 'setupWizardCompleted' => normalizeBool($prefs['setupWizardCompleted'] ?? false, false),
                 'settingsMode' => (($prefs['settingsMode'] ?? 'basic') === 'advanced') ? 'advanced' : 'basic',
                 'runtimePrefsSchema' => normalizeIntInRange($prefs['runtimePrefsSchema'] ?? FVPLUS_RUNTIME_PREFS_SCHEMA, 0, FVPLUS_RUNTIME_PREFS_SCHEMA, FVPLUS_RUNTIME_PREFS_SCHEMA),

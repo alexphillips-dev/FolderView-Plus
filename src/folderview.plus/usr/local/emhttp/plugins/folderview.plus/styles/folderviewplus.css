@@ -362,6 +362,53 @@
     white-space: nowrap;
 }
 
+.folder-table table th {
+    position: relative;
+}
+
+.folder-table table th.fv-col-resizable {
+    overflow: visible !important;
+}
+
+.folder-table table th.fv-col-resizable .fv-col-resizer {
+    position: absolute;
+    top: 0;
+    right: -6px;
+    width: 12px;
+    height: 100%;
+    border: 0;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    cursor: col-resize;
+    z-index: 8;
+}
+
+.folder-table table th.fv-col-resizable .fv-col-resizer::before {
+    content: "";
+    position: absolute;
+    top: 22%;
+    bottom: 22%;
+    left: 50%;
+    width: 2px;
+    transform: translateX(-50%);
+    background: rgba(142, 158, 184, 0.72);
+    opacity: 0.82;
+    transition: opacity 120ms ease-in-out;
+}
+
+.folder-table table th.fv-col-resizable:hover .fv-col-resizer::before,
+.folder-table table th.fv-col-resizable .fv-col-resizer:focus-visible::before,
+body.fv-column-resize-active .folder-table table th.fv-col-resizable .fv-col-resizer::before {
+    opacity: 1;
+}
+
+body.fv-column-resize-active,
+body.fv-column-resize-active * {
+    cursor: col-resize !important;
+    user-select: none !important;
+}
+
 .folder-table table th.fv-col-hidden,
 .folder-table table td.fv-col-hidden {
     display: none !important;
@@ -539,7 +586,7 @@
 }
 
 .folder-pin-btn {
-    min-width: 30px;
+    min-width: 22px;
 }
 
 .folder-pin-btn.is-pinned {
@@ -551,14 +598,23 @@
 }
 
 .folder-action-btn {
-    width: 30px;
-    min-width: 30px;
-    height: 28px;
-    padding: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    width: 22px !important;
+    min-width: 22px !important;
+    max-width: 22px !important;
+    height: 22px !important;
+    min-height: 22px !important;
+    max-height: 22px !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     vertical-align: middle;
+    line-height: 1 !important;
+}
+
+.folder-action-btn > i {
+    font-size: 0.88em;
+    line-height: 1;
 }
 
 .folder-overflow-btn {
@@ -568,7 +624,7 @@
 }
 
 .folder-table table td.actions-cell .folder-action-btn + .folder-action-btn {
-    margin-left: 0.3rem;
+    margin-left: 0.22rem;
 }
 
 .folder-member-split {
@@ -644,25 +700,25 @@
 
 /* Desktop widths: remove Parent column and redistribute space to core signals. */
 .folder-table table th:nth-child(1),
-.folder-table table td:nth-child(1) { width: 8%; }
+.folder-table table td:nth-child(1) { width: 7%; }
 .folder-table table th:nth-child(2),
-.folder-table table td:nth-child(2) { width: 21%; }
+.folder-table table td:nth-child(2) { width: 26%; }
 .folder-table table th:nth-child(3),
-.folder-table table td:nth-child(3) { width: 4%; }
+.folder-table table td:nth-child(3) { width: 5%; }
 .folder-table table th:nth-child(4),
-.folder-table table td:nth-child(4) { width: 11%; }
+.folder-table table td:nth-child(4) { width: 16%; }
 .folder-table table th:nth-child(5),
-.folder-table table td:nth-child(5) { width: 9%; }
+.folder-table table td:nth-child(5) { width: 7%; }
 .folder-table table th:nth-child(6),
-.folder-table table td:nth-child(6) { width: 9%; }
+.folder-table table td:nth-child(6) { width: 12%; }
 .folder-table table th:nth-child(7),
-.folder-table table td:nth-child(7) { width: 9%; }
+.folder-table table td:nth-child(7) { width: 7%; }
 .folder-table table th:nth-child(8),
-.folder-table table td:nth-child(8) { width: 11%; }
+.folder-table table td:nth-child(8) { width: 10%; }
 .folder-table table th:nth-child(9),
-.folder-table table td:nth-child(9) { width: 9%; }
+.folder-table table td:nth-child(9) { width: 5%; }
 .folder-table table th:nth-child(10),
-.folder-table table td:nth-child(10) { width: 9%; }
+.folder-table table td:nth-child(10) { width: 5%; }
 
 .folder-table table th.col-order,
 .folder-table table td.order-cell {
@@ -841,6 +897,11 @@ body.fv-mobile-compact #fv-settings-root .folder-table .table-wrap {
     overflow-x: auto !important;
     overflow-y: visible !important;
     scrollbar-width: thin;
+}
+
+#fv-settings-root.fv-mobile-compact .folder-table table .fv-col-resizer,
+body.fv-mobile-compact #fv-settings-root .folder-table table .fv-col-resizer {
+    display: none !important;
 }
 
 #fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(3),

@@ -98,6 +98,14 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <div class="settings-mini-card">
                     <div class="settings-mini-title">Layout</div>
                     <label class="setting-toggle"><input id="docker-hide-empty-folders" type="checkbox" onchange="changeVisibilityPref('docker', 'hideEmptyFolders', this.checked)"> Hide empty folders</label>
+                    <label class="setting-select" for="docker-app-column-width">
+                        <span>Application width</span>
+                        <select id="docker-app-column-width" onchange="changeVisibilityPref('docker', 'appColumnWidth', this.value)">
+                            <option value="compact">Compact</option>
+                            <option value="standard">Standard</option>
+                            <option value="wide">Wide</option>
+                        </select>
+                    </label>
                     <label class="setting-select" for="docker-status-mode">
                         <span>Status mode</span>
                         <select id="docker-status-mode" onchange="changeStatusPref('docker', 'mode', this.value)">
@@ -262,6 +270,14 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <div class="settings-mini-card">
                     <div class="settings-mini-title">Layout</div>
                     <label class="setting-toggle"><input id="vm-hide-empty-folders" type="checkbox" onchange="changeVisibilityPref('vm', 'hideEmptyFolders', this.checked)"> Hide empty folders</label>
+                    <label class="setting-select" for="vm-app-column-width">
+                        <span>Application width</span>
+                        <select id="vm-app-column-width" onchange="changeVisibilityPref('vm', 'appColumnWidth', this.value)">
+                            <option value="compact">Compact</option>
+                            <option value="standard">Standard</option>
+                            <option value="wide">Wide</option>
+                        </select>
+                    </label>
                     <label class="setting-select" for="vm-status-mode">
                         <span>Status mode</span>
                         <select id="vm-status-mode" onchange="changeStatusPref('vm', 'mode', this.value)">

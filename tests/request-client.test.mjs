@@ -13,10 +13,12 @@ const requestScript = fs.readFileSync(requestScriptPath, 'utf8');
 
 const createJQueryMock = (plan = []) => {
     const ajaxSetupCalls = [];
+    const ajaxCalls = [];
     let callCount = 0;
 
-    const ajax = (_options) => {
+    const ajax = (options) => {
         callCount += 1;
+        ajaxCalls.push(options);
         const step = plan[callCount - 1] || { type: 'success', data: '{}' };
         let doneHandler = null;
         let failHandler = null;
@@ -67,12 +69,13 @@ const createJQueryMock = (plan = []) => {
             ajax
         },
         getCallCount: () => callCount,
-        getAjaxSetupCalls: () => ajaxSetupCalls
+        getAjaxSetupCalls: () => ajaxSetupCalls,
+        getAjaxCalls: () => ajaxCalls
     };
 };
 
 const loadRequestClient = ({ token = '', plan = [], metaToken = '' } = {}) => {
-    const { $, getCallCount, getAjaxSetupCalls } = createJQueryMock(plan);
+    const { $, getCallCount, getAjaxSetupCalls, getAjaxCalls } = createJQueryMock(plan);
     const storage = new Map();
     if (token) {
         storage.set('fv.request.token', token);
@@ -110,7 +113,8 @@ const loadRequestClient = ({ token = '', plan = [], metaToken = '' } = {}) => {
     return {
         api: context.window.FolderViewPlusRequest,
         getCallCount,
-        getAjaxSetupCalls
+        getAjaxSetupCalls,
+        getAjaxCalls
     };
 };
 
@@ -175,4 +179,22 @@ test('request client surfaces backend JSON error details in thrown message', asy
         /Missing required parameters/
     );
     assert.equal(getCallCount(), 1);
+});
+
+test('request client appends mutation markers to POST payload for guard compatibility', async () => {
+    const { api, getAjaxCalls } = loadRequestClient({
+        token: 'tok-123',
+        plan: [{ type: 'success', data: '{"ok":true}' }]
+    });
+
+    const response = await api.postJson('/plugins/folderview.plus/server/prefs.php', {
+        type: 'docker',
+        prefs: '{}'
+    });
+
+    assert.equal(response.ok, true);
+    const call = getAjaxCalls()[0] || {};
+    assert.equal(call.method, 'POST');
+    assert.equal(call.data._fv_request, '1');
+    assert.equal(call.data.token, 'tok-123');
 });

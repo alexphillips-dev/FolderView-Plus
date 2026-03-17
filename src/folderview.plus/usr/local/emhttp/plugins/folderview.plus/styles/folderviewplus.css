@@ -4881,7 +4881,7 @@ tr.is-long-press-active {
 
 @media (min-width: 1320px) {
     .rules-bottom-grid {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
     }
 }
 
@@ -4889,7 +4889,7 @@ tr.is-long-press-active {
     .bulk-assign-grid,
     .backup-grid,
     .template-grid {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
     }
 }
 

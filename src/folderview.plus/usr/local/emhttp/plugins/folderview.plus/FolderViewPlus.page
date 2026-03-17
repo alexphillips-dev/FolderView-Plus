@@ -538,25 +538,51 @@ if (!empty($fvplusRuntimeConflicts)) {
     <div class="rules-panel">
         <div class="rules-header">
             <h3>Docker bulk assignment</h3>
-            <span class="rules-help">Select multiple containers and assign them to one folder in a single action.</span>
+            <span class="rules-help">Move multiple containers to one folder. Existing folder membership is cleaned up automatically.</span>
         </div>
-        <div class="bulk-row">
+        <div class="bulk-row bulk-target-row">
+            <label for="docker-bulk-folder">Target folder</label>
             <select id="docker-bulk-folder"></select>
-            <button type="button" onclick="assignSelectedItems('docker')"><i class="fa fa-share-square-o"></i> Assign items</button>
+            <button id="docker-bulk-assign-btn" type="button" onclick="assignSelectedItems('docker')"><i class="fa fa-share-square-o"></i> Assign selected</button>
         </div>
-        <select id="docker-bulk-items" multiple size="10"></select>
+        <div class="bulk-row bulk-filter-row">
+            <input id="docker-bulk-filter" type="text" placeholder="Filter containers" oninput="filterBulkItems('docker', this.value)">
+            <div class="bulk-selection-actions">
+                <button type="button" onclick="bulkItemSelectionAction('docker','all')"><i class="fa fa-check-square-o"></i> Select visible</button>
+                <button type="button" onclick="bulkItemSelectionAction('docker','none')"><i class="fa fa-square-o"></i> Clear</button>
+            </div>
+        </div>
+        <div class="bulk-row bulk-meta-row">
+            <span id="docker-bulk-selected-count" class="bulk-selected-count">0 selected</span>
+            <span class="rules-help">Tip: use Shift/Ctrl (or Cmd) for multi-select.</span>
+        </div>
+        <select id="docker-bulk-items" multiple size="10" onchange="updateBulkSelectedCount('docker')"></select>
+        <div id="docker-bulk-help" class="bulk-help-text"></div>
     </div>
 
     <div class="rules-panel">
         <div class="rules-header">
             <h3>VM bulk assignment</h3>
-            <span class="rules-help">Select multiple VMs and assign them to one folder in a single action.</span>
+            <span class="rules-help">Move multiple VMs to one folder. Existing folder membership is cleaned up automatically.</span>
         </div>
-        <div class="bulk-row">
+        <div class="bulk-row bulk-target-row">
+            <label for="vm-bulk-folder">Target folder</label>
             <select id="vm-bulk-folder"></select>
-            <button type="button" onclick="assignSelectedItems('vm')"><i class="fa fa-share-square-o"></i> Assign items</button>
+            <button id="vm-bulk-assign-btn" type="button" onclick="assignSelectedItems('vm')"><i class="fa fa-share-square-o"></i> Assign selected</button>
         </div>
-        <select id="vm-bulk-items" multiple size="10"></select>
+        <div class="bulk-row bulk-filter-row">
+            <input id="vm-bulk-filter" type="text" placeholder="Filter VMs" oninput="filterBulkItems('vm', this.value)">
+            <div class="bulk-selection-actions">
+                <button type="button" onclick="bulkItemSelectionAction('vm','all')"><i class="fa fa-check-square-o"></i> Select visible</button>
+                <button type="button" onclick="bulkItemSelectionAction('vm','none')"><i class="fa fa-square-o"></i> Clear</button>
+            </div>
+        </div>
+        <div class="bulk-row bulk-meta-row">
+            <span id="vm-bulk-selected-count" class="bulk-selected-count">0 selected</span>
+            <span class="rules-help">Tip: use Shift/Ctrl (or Cmd) for multi-select.</span>
+        </div>
+        <select id="vm-bulk-items" multiple size="10" onchange="updateBulkSelectedCount('vm')"></select>
+        <div id="vm-bulk-help" class="bulk-help-text"></div>
     </div>
 </div>
 <hr>

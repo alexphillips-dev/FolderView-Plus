@@ -3152,13 +3152,35 @@
             throw new RuntimeException('Target folder not found.');
         }
 
-        $validNames = array_keys(readInfo($type));
-        $validSet = array_fill_keys($validNames, true);
+        $validSet = array_fill_keys(array_keys(readInfo($type)), true);
+        foreach ($folders as $folder) {
+            foreach (normalizeFolderMembers($folder['containers'] ?? []) as $memberName) {
+                $safeMemberName = trim((string)$memberName);
+                if ($safeMemberName !== '') {
+                    $validSet[$safeMemberName] = true;
+                }
+            }
+        }
         $requested = [];
+        $skippedInvalid = [];
         foreach ($items as $item) {
             $name = trim((string)$item);
-            if ($name === '' || isset($requested[$name]) || !isset($validSet[$name])) {
+            if ($name === '' || isset($requested[$name])) {
                 continue;
+            }
+            if (preg_match('/[\x00-\x1F\x7F]/u', $name)) {
+                $skippedInvalid[] = $name;
+                continue;
+            }
+            // Keep migration compatibility: allow names already known in runtime data
+            // or present in existing folder mappings. Also allow unknown names from UI
+            // when they are sane-length printable strings.
+            if (!isset($validSet[$name])) {
+                $len = strlen($name);
+                if ($len < 1 || $len > 255) {
+                    $skippedInvalid[] = $name;
+                    continue;
+                }
             }
             $requested[$name] = true;
         }
@@ -3169,7 +3191,8 @@
                 'folderId' => $folderId,
                 'assigned' => [],
                 'removedFrom' => [],
-                'count' => 0
+                'count' => 0,
+                'skippedInvalid' => $skippedInvalid
             ];
         }
 
@@ -3210,7 +3233,8 @@
             'folderId' => $folderId,
             'assigned' => $itemNames,
             'removedFrom' => $removedFrom,
-            'count' => count($itemNames)
+            'count' => count($itemNames),
+            'skippedInvalid' => $skippedInvalid
         ];
     }
 

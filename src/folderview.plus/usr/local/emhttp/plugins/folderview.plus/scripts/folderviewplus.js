@@ -846,8 +846,18 @@ const normalizeExpandedAdvancedSections = () => {
             .filter((key) => key !== '' && knownKeys.has(key))
     );
     if (!settingsUiState.hasExpandedAdvancedPreference) {
-        for (const key of advancedKeys) {
-            normalized.add(key);
+        // New defaults: start less cluttered by expanding only the first section
+        // in each advanced tab. Users can still expand all via the tab compact toggle.
+        for (const group of ADVANCED_GROUPS) {
+            const firstInGroup = settingsUiState.sections.find((section) => (
+                section.advanced === true && section.advancedGroup === group
+            ));
+            if (firstInGroup?.key) {
+                normalized.add(firstInGroup.key);
+            }
+        }
+        if (normalized.size === 0 && advancedKeys.length > 0) {
+            normalized.add(advancedKeys[0]);
         }
         settingsUiState.expandedAdvancedSections = normalized;
         if (advancedKeys.length > 0) {
@@ -1254,12 +1264,11 @@ const renderAdvancedNav = () => {
         }))
         .filter((entry) => entry.count > 0);
     const tabsHtml = groups
-        .map((entry, index) => {
+        .map((entry) => {
             const active = settingsUiState.advancedTab === entry.group ? 'is-active' : '';
             const label = ADVANCED_GROUP_LABELS[entry.group] || entry.group;
-            const step = index + 1;
             const countTitle = `${entry.count} section${entry.count === 1 ? '' : 's'} in ${label}`;
-            return `<button type="button" class="fv-advanced-tab ${active}" data-fv-advanced-tab="${entry.group}" title="${escapeHtml(countTitle)}">${escapeHtml(label)} <span class="fv-advanced-count">${step}</span></button>`;
+            return `<button type="button" class="fv-advanced-tab ${active}" data-fv-advanced-tab="${entry.group}" title="${escapeHtml(countTitle)}">${escapeHtml(label)} <span class="fv-advanced-count">${entry.count}</span></button>`;
         })
         .join('');
     const activeTabSections = advancedSections.filter((section) => section.advancedGroup === settingsUiState.advancedTab);
@@ -7343,12 +7352,19 @@ const handleFolderRowKeydown = (type, folderId, event) => {
 const renderFolderSelectOptions = (type) => {
     const folders = getFolderMap(type);
     const entries = Object.entries(folders);
-    const options = entries.map(([id, folder]) => `<option value="${escapeHtml(id)}">${escapeHtml(folder.name || id)}</option>`).join('');
+    const hasFolders = entries.length > 0;
+    const options = hasFolders
+        ? entries.map(([id, folder]) => `<option value="${escapeHtml(id)}">${escapeHtml(folder.name || id)}</option>`).join('')
+        : '<option value="">(Create a folder first)</option>';
 
-    $(`#${type}-rule-folder`).html(options);
-    $(`#${type}-bulk-folder`).html(options);
-    $(`#${type}-template-source-folder`).html(options);
-    $(`#${type}-runtime-folder`).html(options);
+    $(`#${type}-rule-folder`).html(options).prop('disabled', !hasFolders);
+    $(`#${type}-bulk-folder`).html(options).prop('disabled', !hasFolders);
+    $(`#${type}-template-source-folder`).html(options).prop('disabled', !hasFolders);
+    $(`#${type}-runtime-folder`).html(options).prop('disabled', !hasFolders);
+    $(`#${type}-bulk-assign-btn`).prop('disabled', !hasFolders);
+    if (!hasFolders) {
+        $(`#${type}-bulk-help`).text('Create at least one folder first, then assign items here.');
+    }
 };
 
 const renderBadgeToggles = (type) => {
@@ -7611,18 +7627,105 @@ const renderRulesTable = (type) => {
     $(`#${type}-rules-select-all`).prop('checked', allSelected);
 };
 
-const renderBulkItemOptions = (type) => {
+const getBulkAssignableNames = (type) => {
+    const names = new Set();
     const infoByName = infoByType[type] || {};
-    const names = Object.keys(infoByName).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
-    const items = $(`#${type}-bulk-items`);
-    if (!names.length) {
-        items.html('<option value="" disabled>(No items detected yet)</option>');
-        items.prop('disabled', true);
+    for (const name of Object.keys(infoByName || {})) {
+        const safeName = String(name || '').trim();
+        if (safeName) {
+            names.add(safeName);
+        }
+    }
+    const folders = getFolderMap(type);
+    for (const folder of Object.values(folders || {})) {
+        for (const member of normalizeFolderMembers(folder?.containers || [])) {
+            const safeName = String(member || '').trim();
+            if (safeName) {
+                names.add(safeName);
+            }
+        }
+    }
+    return Array.from(names).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
+};
+
+const getBulkItemsFilterQuery = (type) => normalizedFilter($(`#${type}-bulk-filter`).val());
+
+const updateBulkSelectedCount = (type) => {
+    const selectedCount = (($(`#${type}-bulk-items`).val() || []).map((name) => String(name)).filter(Boolean)).length;
+    const label = `${selectedCount} selected`;
+    $(`#${type}-bulk-selected-count`).text(label);
+    return selectedCount;
+};
+
+const updateBulkHelpText = (type, {
+    allCount = 0,
+    visibleCount = 0,
+    filter = ''
+} = {}) => {
+    const help = $(`#${type}-bulk-help`);
+    if (!help.length) {
         return;
     }
-    const options = names.map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
+    if (!allCount) {
+        help.text('No items detected yet. Refresh the page after Docker/VM inventory loads.');
+        return;
+    }
+    if (filter) {
+        if (!visibleCount) {
+            help.text(`No items match "${filter}". Try a broader filter.`);
+            return;
+        }
+        help.text(`Showing ${visibleCount} of ${allCount} item${allCount === 1 ? '' : 's'}.`);
+        return;
+    }
+    help.text(`${allCount} item${allCount === 1 ? '' : 's'} available for assignment.`);
+};
+
+const renderBulkItemOptions = (type) => {
+    const items = $(`#${type}-bulk-items`);
+    if (!items.length) {
+        return;
+    }
+    const hasTargetFolders = $(`#${type}-bulk-folder`).prop('disabled') !== true;
+
+    const selectedBefore = new Set((items.val() || []).map((name) => String(name)));
+    const allNames = getBulkAssignableNames(type);
+    const filter = getBulkItemsFilterQuery(type);
+    const names = filter
+        ? allNames.filter((name) => name.toLowerCase().includes(filter))
+        : allNames;
+
+    if (!allNames.length) {
+        items.html('<option value="" disabled>(No items detected yet)</option>');
+        items.prop('disabled', true);
+        updateBulkSelectedCount(type);
+        updateBulkHelpText(type, { allCount: 0, visibleCount: 0, filter });
+        return;
+    }
+
+    if (!names.length) {
+        items.html('<option value="" disabled>(No items match this filter)</option>');
+        items.prop('disabled', true);
+        updateBulkSelectedCount(type);
+        updateBulkHelpText(type, { allCount: allNames.length, visibleCount: 0, filter });
+        return;
+    }
+
+    const options = names
+        .map((name) => {
+            const selected = selectedBefore.has(name) ? ' selected' : '';
+            return `<option value="${escapeHtml(name)}"${selected}>${escapeHtml(name)}</option>`;
+        })
+        .join('');
     items.html(options);
-    items.prop('disabled', false);
+    items.prop('disabled', !hasTargetFolders);
+    updateBulkSelectedCount(type);
+    if (!hasTargetFolders) {
+        updateBulkHelpText(type, { allCount: 0, visibleCount: 0, filter: '' });
+        $(`#${type}-bulk-help`).text('Create a folder first, then assign selected items.');
+    } else {
+        updateBulkHelpText(type, { allCount: allNames.length, visibleCount: names.length, filter });
+    }
 };
 
 const renderBackupRows = (type) => {
@@ -8860,6 +8963,34 @@ const testAutoRule = (type) => {
     output.text(`Matched priority #${priority}: ${folderNameForId(type, firstMatch.folderId)} (${ruleDescription(firstMatch)})`);
 };
 
+const filterBulkItems = (type, value = '') => {
+    const input = $(`#${type}-bulk-filter`);
+    if (input.length && input.val() !== value) {
+        input.val(value);
+    }
+    renderBulkItemOptions(type);
+};
+
+const bulkItemSelectionAction = (type, action = 'all') => {
+    const selectEl = document.getElementById(`${type}-bulk-items`);
+    if (!(selectEl instanceof HTMLSelectElement) || selectEl.disabled) {
+        updateBulkSelectedCount(type);
+        return;
+    }
+    const normalizedAction = String(action || '').trim().toLowerCase();
+    const options = Array.from(selectEl.options).filter((option) => !option.disabled && option.value !== '');
+    for (const option of options) {
+        if (normalizedAction === 'none') {
+            option.selected = false;
+        } else if (normalizedAction === 'invert') {
+            option.selected = !option.selected;
+        } else {
+            option.selected = true;
+        }
+    }
+    updateBulkSelectedCount(type);
+};
+
 const assignSelectedItems = async (type) => {
     const folderId = String($(`#${type}-bulk-folder`).val() || '');
     const selected = ($(`#${type}-bulk-items`).val() || []).map((name) => String(name));
@@ -8876,22 +9007,45 @@ const assignSelectedItems = async (type) => {
 
     try {
         const backup = await createBackup(type, 'before-bulk-assign');
-        await bulkAssign(type, folderId, selected);
+        const result = await bulkAssign(type, folderId, selected);
         await Promise.all([refreshType(type), refreshBackups(type)]);
         const targetFolderName = folderNameForId(type, folderId);
+        const assigned = Array.isArray(result?.assigned)
+            ? result.assigned.map((name) => String(name || '').trim()).filter(Boolean)
+            : [];
+        const assignedSet = new Set(assigned);
+        const skipped = selected.filter((name) => !assignedSet.has(String(name || '').trim()));
+        const skippedInvalid = Array.isArray(result?.skippedInvalid)
+            ? result.skippedInvalid.map((name) => String(name || '').trim()).filter(Boolean)
+            : [];
+        const assignedCount = Number.isFinite(Number(result?.count)) ? Number(result.count) : assigned.length;
+        const statusLevel = (skipped.length || skippedInvalid.length) ? 'warning' : 'success';
+        const statusMessage = skipped.length
+            ? `${assignedCount} assigned to ${targetFolderName}. ${skipped.length} skipped.`
+            : `${selected.length} item${selected.length === 1 ? '' : 's'} assigned to ${targetFolderName}.`;
         showActionSummaryToast({
             title: `${type === 'docker' ? 'Docker' : 'VM'} bulk assignment complete`,
-            message: `${selected.length} item${selected.length === 1 ? '' : 's'} assigned to ${targetFolderName}.`,
-            level: 'success',
+            message: statusMessage,
+            level: statusLevel,
             type,
             focusFolderId: folderId
         });
+        if (skipped.length || skippedInvalid.length) {
+            swal({
+                title: 'Some items were skipped',
+                text: `Assigned: ${assignedCount}\nSkipped: ${skipped.length}\nInvalid names blocked: ${skippedInvalid.length}\n\nSkipped items:\n${skipped.slice(0, 12).join('\n')}${skipped.length > 12 ? '\n...' : ''}`,
+                type: 'warning'
+            });
+        }
         await trackDiagnosticsEvent({
             eventType: 'bulk_assign',
             type,
             details: {
                 folderId,
-                itemCount: selected.length
+                itemCount: selected.length,
+                assignedCount,
+                skippedCount: skipped.length,
+                skippedInvalidCount: skippedInvalid.length
             }
         });
         await offerUndoAction(type, backup, 'Bulk assignment');
@@ -9969,6 +10123,9 @@ window.runRuleSimulator = runRuleSimulator;
 window.toggleRuleKindFields = toggleRuleKindFields;
 window.testAutoRule = testAutoRule;
 window.assignSelectedItems = assignSelectedItems;
+window.filterBulkItems = filterBulkItems;
+window.bulkItemSelectionAction = bulkItemSelectionAction;
+window.updateBulkSelectedCount = updateBulkSelectedCount;
 window.createManualBackup = createManualBackup;
 window.refreshBackups = refreshBackups;
 window.runScheduledBackupNow = runScheduledBackupNow;

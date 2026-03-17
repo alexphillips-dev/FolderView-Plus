@@ -8,12 +8,14 @@ const pagePath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugi
 const scriptPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js');
 const importScriptPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js');
 const backupPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/backup.php');
+const libPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
 
 const page = fs.readFileSync(pagePath, 'utf8');
 const script = fs.readFileSync(scriptPath, 'utf8');
 const importScript = fs.readFileSync(importScriptPath, 'utf8');
 const runtimeScript = `${script}\n${importScript}`;
 const backupPhp = fs.readFileSync(backupPath, 'utf8');
+const libPhp = fs.readFileSync(libPath, 'utf8');
 
 test('settings page onclick handlers are exported on window', () => {
     const handlers = [
@@ -193,4 +195,25 @@ test('status detail controls support simple balanced and detailed modes', () => 
     assert.match(script, /if \(key === 'mode'\) \{[\s\S]*\} else if \(key === 'displayMode'\) \{/);
     assert.match(script, /status-display-mode/);
     assert.match(script, /const showTrendControl = status\.displayMode === 'detailed';/);
+});
+
+test('bulk assignment advanced UX includes filtering, selection helpers, and compatibility-safe fallback', () => {
+    assert.match(page, /id="docker-bulk-filter"/);
+    assert.match(page, /id="vm-bulk-filter"/);
+    assert.match(page, /id="docker-bulk-selected-count"/);
+    assert.match(page, /id="vm-bulk-selected-count"/);
+    assert.match(page, /id="docker-bulk-help"/);
+    assert.match(page, /id="vm-bulk-help"/);
+    assert.match(page, /id="docker-bulk-assign-btn"/);
+    assert.match(page, /id="vm-bulk-assign-btn"/);
+    assert.match(script, /const getBulkAssignableNames = \(type\) =>/);
+    assert.match(script, /const filterBulkItems = \(type, value = ''\) =>/);
+    assert.match(script, /const bulkItemSelectionAction = \(type, action = 'all'\) =>/);
+    assert.match(script, /const updateBulkSelectedCount = \(type\) =>/);
+    assert.match(script, /window\.filterBulkItems = filterBulkItems;/);
+    assert.match(script, /window\.bulkItemSelectionAction = bulkItemSelectionAction;/);
+    assert.match(script, /window\.updateBulkSelectedCount = updateBulkSelectedCount;/);
+    assert.match(script, /normalizeFolderMembers\(folder\?\.containers \|\| \[\]\)/);
+    assert.match(libPhp, /foreach \(\$folders as \$folder\) \{[\s\S]*normalizeFolderMembers\(\$folder\['containers'\] \?\? \[\]\)/);
+    assert.match(libPhp, /'skippedInvalid' => \$skippedInvalid/);
 });

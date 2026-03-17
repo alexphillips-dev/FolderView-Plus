@@ -1810,6 +1810,70 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     flex: 1 1 220px;
 }
 
+.bulk-target-row {
+    margin-bottom: 0.45rem;
+}
+
+.bulk-target-row > label {
+    flex: 0 0 auto;
+    font-size: 1.03rem;
+    font-weight: 600;
+    opacity: 0.88;
+}
+
+.bulk-target-row > select {
+    flex: 2 1 260px;
+}
+
+.bulk-filter-row {
+    margin-top: 0.1rem;
+    margin-bottom: 0.45rem;
+}
+
+.bulk-filter-row > input[type="text"] {
+    flex: 2 1 260px;
+    min-height: 34px;
+}
+
+.bulk-selection-actions {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem;
+    flex: 1 1 auto;
+}
+
+.bulk-selection-actions > button {
+    min-width: 0 !important;
+}
+
+.bulk-meta-row {
+    margin-top: 0;
+    margin-bottom: 0.45rem;
+    justify-content: space-between;
+    gap: 0.45rem 0.8rem;
+}
+
+.bulk-selected-count {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.1rem 0.5rem;
+    border: 1px solid rgba(77, 163, 255, 0.45);
+    border-radius: 999px;
+    background: rgba(77, 163, 255, 0.08);
+    color: #9fd2ff;
+    font-size: 1.03rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.bulk-help-text {
+    margin-top: 0.38rem;
+    min-height: 1.2rem;
+    font-size: 1.03rem;
+    color: rgba(255, 255, 255, 0.72);
+}
+
 .runtime-action-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));

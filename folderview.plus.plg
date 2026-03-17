@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.17.01">
-<!ENTITY md5 "da8071584b07e77b0fb21c6d69a82b45">
+<!ENTITY version "2026.03.17.02">
+<!ENTITY md5 "a69098768409e59981d2ecc473681431">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.17.02
+- Fix: Fix Docker app column name truncation in runtime rows.
+
 
 ###2026.03.17.01
 - Fix: Reduced Docker tab gap between `Application` and `Version` by tightening auto-width baselines and recalculating only visible folder rows.

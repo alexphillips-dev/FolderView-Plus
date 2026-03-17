@@ -1278,6 +1278,10 @@ const expandFolderVM = (id) => {
     folderEvents.dispatchEvent(new CustomEvent('vm-post-folder-expansion', {detail: { id }}));
 };
 
+// Keep expand handlers on window for inline onclick contracts in dashboard cards.
+window.expandFolderDocker = expandFolderDocker;
+window.expandFolderVM = expandFolderVM;
+
 /**
  * Removie the folder
  * @param {string} id the id of the folder

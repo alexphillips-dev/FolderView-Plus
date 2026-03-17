@@ -105,4 +105,6 @@ test('dashboard script is wrapped in a private scope to avoid global symbol coll
 test('dashboard folder cards are click-to-expand for docker and vm widgets', () => {
     assert.match(dashboardJs, /onclick='expandFolderDocker\("\$\{id\}"\)'/);
     assert.match(dashboardJs, /onclick='expandFolderVM\("\$\{id\}"\)'/);
+    assert.match(dashboardJs, /window\.expandFolderDocker = expandFolderDocker;/);
+    assert.match(dashboardJs, /window\.expandFolderVM = expandFolderVM;/);
 });

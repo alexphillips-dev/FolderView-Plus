@@ -4833,12 +4833,42 @@ const apiGetText = async (url, options = {}) => {
     }
 };
 
+const buildMutationRequestPayload = (data = {}) => {
+    const token = getOptionalRequestToken();
+    if (typeof FormData !== 'undefined' && data instanceof FormData) {
+        if (!data.has('_fv_request')) {
+            data.append('_fv_request', '1');
+        }
+        if (token && !data.has('token')) {
+            data.append('token', token);
+        }
+        return data;
+    }
+    if (typeof URLSearchParams !== 'undefined' && data instanceof URLSearchParams) {
+        if (!data.has('_fv_request')) {
+            data.set('_fv_request', '1');
+        }
+        if (token && !data.has('token')) {
+            data.set('token', token);
+        }
+        return data;
+    }
+    const payload = data && typeof data === 'object' ? { ...data } : {};
+    if (!Object.prototype.hasOwnProperty.call(payload, '_fv_request')) {
+        payload._fv_request = '1';
+    }
+    if (token && !Object.prototype.hasOwnProperty.call(payload, 'token')) {
+        payload.token = token;
+    }
+    return payload;
+};
+
 const apiPostText = async (url, data = {}, options = {}) => {
     try {
         if (requestClient && typeof requestClient.postText === 'function') {
             return await requestClient.postText(url, data, options);
         }
-        return await $.post(url, data).promise();
+        return await $.post(url, buildMutationRequestPayload(data)).promise();
     } catch (error) {
         recordRequestErrorTelemetry('POST', url, error, {
             source: 'apiPostText',
@@ -4870,7 +4900,7 @@ const apiPostJson = async (url, data = {}, options = {}) => {
         if (requestClient && typeof requestClient.postJson === 'function') {
             return await requestClient.postJson(url, data, options);
         }
-        return parseJsonResponse(await $.post(url, data).promise());
+        return parseJsonResponse(await $.post(url, buildMutationRequestPayload(data)).promise());
     } catch (error) {
         recordRequestErrorTelemetry('POST', url, error, {
             source: 'apiPostJson',

@@ -6,12 +6,21 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.16.07">
-<!ENTITY md5 "ddef8d73ab52b18b6310c81e1bb6b13e">
+<!ENTITY version "2026.03.16.08">
+<!ENTITY md5 "280a200a78f6f4fe189d875912640946">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.16.08
+- Fix: request-guard compatibility hardened for mutation POSTs (`prefs.php`, bulk assignment, folder create/update) by adding `_fv_request=1` + token payload fallback when headers are stripped.
+- Fix: server-side request guard now accepts explicit body/query mutation marker fallback in addition to `X-FV-Request`.
+- Fix: folder editor guarded POST helper now always includes `_fv_request` marker.
+- Fix: dashboard folder cards support click-to-expand behavior for both Docker and VM widgets.
+- Feature: preview mode now shows state icons/colors for icon-only and list previews.
+- Quality: added regression tests for guarded mutation payload markers and dashboard click-to-expand templates.
+
 
 ###2026.03.16.07
 - Fix: Docker runtime Application auto-width now targets both `#docker_list` and `#docker_view` tables so nested folder names no longer get stuck at old width.

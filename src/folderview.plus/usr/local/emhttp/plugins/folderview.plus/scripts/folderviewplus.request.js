@@ -25,16 +25,55 @@
         }
     };
 
-    const buildHeaders = (extraHeaders = {}, tokenStorageKey = DEFAULT_TOKEN_STORAGE_KEY) => {
+    const buildHeaders = (extraHeaders = {}, tokenStorageKey = DEFAULT_TOKEN_STORAGE_KEY, resolvedToken = '') => {
         const headers = {
             'X-FV-Request': '1',
             ...(extraHeaders || {})
         };
-        const token = getOptionalRequestToken(tokenStorageKey);
+        const token = String(resolvedToken || getOptionalRequestToken(tokenStorageKey) || '').trim();
         if (token) {
             headers['X-FV-Token'] = token;
         }
         return headers;
+    };
+
+    const isPlainObject = (value) => (
+        value !== null
+        && typeof value === 'object'
+        && Object.prototype.toString.call(value) === '[object Object]'
+    );
+
+    const addMutationPayloadMarkers = (method, data, token) => {
+        if (String(method || '').toUpperCase() !== 'POST') {
+            return data;
+        }
+        const safeToken = String(token || '').trim();
+        if (typeof FormData !== 'undefined' && data instanceof FormData) {
+            if (!data.has('_fv_request')) {
+                data.append('_fv_request', '1');
+            }
+            if (safeToken && !data.has('token')) {
+                data.append('token', safeToken);
+            }
+            return data;
+        }
+        if (typeof URLSearchParams !== 'undefined' && data instanceof URLSearchParams) {
+            if (!data.has('_fv_request')) {
+                data.set('_fv_request', '1');
+            }
+            if (safeToken && !data.has('token')) {
+                data.set('token', safeToken);
+            }
+            return data;
+        }
+        const payload = isPlainObject(data) ? { ...data } : {};
+        if (!Object.prototype.hasOwnProperty.call(payload, '_fv_request')) {
+            payload._fv_request = '1';
+        }
+        if (safeToken && !Object.prototype.hasOwnProperty.call(payload, 'token')) {
+            payload.token = safeToken;
+        }
+        return payload;
     };
 
     const configureSecurityHeaders = ({ tokenStorageKey = DEFAULT_TOKEN_STORAGE_KEY } = {}) => {
@@ -154,14 +193,18 @@
         const safeTimeoutMs = Math.max(1000, Number(timeoutMs) || DEFAULT_TIMEOUT_MS);
         let lastError = null;
 
+        const normalizedMethod = String(method || 'GET').toUpperCase();
+        const token = getOptionalRequestToken(tokenStorageKey);
+        const payload = addMutationPayloadMarkers(normalizedMethod, data, token);
+
         for (let attempt = 0; attempt <= safeRetries; attempt += 1) {
             try {
                 return await toAjaxPromise({
                     url,
-                    method,
-                    data,
+                    method: normalizedMethod,
+                    data: payload,
                     timeout: safeTimeoutMs,
-                    headers: buildHeaders(headers, tokenStorageKey)
+                    headers: buildHeaders(headers, tokenStorageKey, token)
                 });
             } catch (error) {
                 lastError = error;

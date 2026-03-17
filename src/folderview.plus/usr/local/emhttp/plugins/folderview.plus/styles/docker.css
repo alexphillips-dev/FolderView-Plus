@@ -206,6 +206,34 @@ tr.folder.fv-parent-expanded div.folder-preview {
     margin-top: 7px;
 }
 
+.folder-preview-status-icon {
+    margin-left: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.86em;
+    vertical-align: middle;
+}
+
+.fv-preview-status-inline {
+    margin-right: 4px;
+    font-size: 0.8em;
+    display: inline-flex;
+    align-items: center;
+}
+
+.fv-preview-status-started {
+    color: #74d89b !important;
+}
+
+.fv-preview-status-paused {
+    color: #d1a84d !important;
+}
+
+.fv-preview-status-stopped {
+    color: #ff6d6d !important;
+}
+
 .folder-preview-wrapper .inner > span.appname {
     display: inline-block;
     overflow: clip;

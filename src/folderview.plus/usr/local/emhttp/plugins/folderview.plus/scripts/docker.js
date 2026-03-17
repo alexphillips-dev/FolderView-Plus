@@ -114,6 +114,17 @@ const sanitizeImageSrc = (value, fallback = '/plugins/dynamix.docker.manager/ima
     }
     return escapeHtml(raw);
 };
+const getPreviewContainerStatusMeta = (entry = {}) => {
+    const running = entry?.state === true;
+    const paused = running && entry?.pause === true;
+    if (running && paused) {
+        return { key: 'paused', icon: 'fa-pause', className: 'fv-preview-status-paused' };
+    }
+    if (running) {
+        return { key: 'started', icon: 'fa-play', className: 'fv-preview-status-started' };
+    }
+    return { key: 'stopped', icon: 'fa-square', className: 'fv-preview-status-stopped' };
+};
 
 const clampDockerRuntimeColumnWidth = (value, columnIndex = 0) => {
     const parsed = Number(value);
@@ -2013,6 +2024,30 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
          
             const $previewElementTarget = $(`tr.folder-id-${id} div.folder-preview > span:last`); // Or elementForPreviewOpts if you prefer
             let $targetForAppend; // Used for WebUI, Console, Logs icons
+            const previewMode = Number(folder?.settings?.preview || 0);
+            const previewStateMeta = getPreviewContainerStatusMeta(newFolder[container_name_in_folder]);
+            const previewStatusTitle = escapeHtml($.i18n(previewStateMeta.key));
+
+            if (previewMode === 2 && $previewElementTarget.length) {
+                const $existingPreviewStateIcon = $previewElementTarget.children('.folder-preview-status-icon');
+                if (!$existingPreviewStateIcon.length) {
+                    $previewElementTarget.append(
+                        $(`<span class="folder-preview-status-icon ${previewStateMeta.className}" title="${previewStatusTitle}"><i class="fa ${previewStateMeta.icon}" aria-hidden="true"></i></span>`)
+                    );
+                }
+            }
+
+            if ((previewMode === 3 || previewMode === 4) && $previewElementTarget.length) {
+                const $previewAppName = $previewElementTarget.find('span.appname > a.exec').first();
+                if ($previewAppName.length) {
+                    $previewAppName.addClass('fv-preview-status-name').addClass(previewStateMeta.className);
+                    if (!$previewAppName.children('.fv-preview-status-inline').length) {
+                        $previewAppName.prepend(
+                            $(`<span class="fv-preview-status-inline ${previewStateMeta.className}" title="${previewStatusTitle}" aria-hidden="true"><i class="fa ${previewStateMeta.icon}"></i></span>`)
+                        );
+                    }
+                }
+            }
 
             if (folder.settings.preview_grayscale) {
                 let $imgToGrayscale = $previewElementTarget.children('span.hand').children('img.img');

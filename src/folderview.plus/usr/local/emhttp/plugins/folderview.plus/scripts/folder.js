@@ -421,6 +421,9 @@ const securePost = async (url, data = {}) => {
     const payload = {
         ...(data && typeof data === 'object' ? data : {})
     };
+    if (!Object.prototype.hasOwnProperty.call(payload, '_fv_request')) {
+        payload._fv_request = '1';
+    }
     if (token) {
         payload.token = token;
     }

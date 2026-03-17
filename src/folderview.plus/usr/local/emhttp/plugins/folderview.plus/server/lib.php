@@ -632,7 +632,11 @@
     }
 
     function hasExplicitMutationRequestHeader(): bool {
-        return trim(getRequestHeaderValue('X-FV-Request')) === '1';
+        if (trim(getRequestHeaderValue('X-FV-Request')) === '1') {
+            return true;
+        }
+        $requestFlag = trim((string)($_POST['_fv_request'] ?? $_GET['_fv_request'] ?? ''));
+        return $requestFlag === '1';
     }
 
     function requireMutationRequestGuard(): void {

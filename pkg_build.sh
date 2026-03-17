@@ -433,9 +433,9 @@ if [ -n "$xml_date" ]; then
 fi
 
 # Update branch references in plg file (URLs use XML entities like &github;).
-# Always rewrite from any prior branch so dev/main stay separated permanently.
-sed -E -i 's|https://raw\.githubusercontent\.com/&github;/[^/]+/folderview\.plus\.plg|https://raw.githubusercontent.com/&github;/'"$branch"'/folderview.plus.plg|g' "$plgfile"
-sed -E -i 's|https://raw\.githubusercontent\.com/&github;/[^/]+/archive/|https://raw.githubusercontent.com/&github;/'"$branch"'/archive/|g' "$plgfile"
+# Always rewrite canonical lines from scratch so dev/main stay separated permanently.
+sed -E -i 's|^<!ENTITY pluginURL ".*">|<!ENTITY pluginURL "https://raw.githubusercontent.com/\&github;/'"$branch"'/folderview.plus.plg">|' "$plgfile"
+sed -E -i 's|<URL>https://raw.githubusercontent.com/.*?/archive/.*</URL>|<URL>https://raw.githubusercontent.com/\&github;/'"$branch"'/archive/\&name;-\&version;.txz</URL>|' "$plgfile"
 
 # Ensure a CHANGES block exists for the computed version so release validation
 # cannot fail after bumping version metadata.

@@ -84,8 +84,10 @@ test('pkg_build includes dependency preflight, safe temp cleanup, dry-run, and c
     assert.match(pkgBuild, /bash "\$install_smoke_script"/);
     assert.match(pkgBuild, /sha256=\$\(sha256sum "\$filename" \| awk '\{print \$1\}'\)/);
     assert.match(pkgBuild, /printf '%s  %s\\n' "\$sha256" "\$\(basename "\$filename"\)" > "\$sha256_file"/);
-    assert.match(pkgBuild, /https:\/\/raw\\\.githubusercontent\\\.com\/&github;\/\[\^\/\]\+\/folderview\\\.plus\\\.plg/);
-    assert.match(pkgBuild, /https:\/\/raw\\\.githubusercontent\\\.com\/&github;\/\[\^\/\]\+\/archive\//);
+    assert.match(pkgBuild, /\^<!ENTITY pluginURL ".*">/);
+    assert.match(pkgBuild, /https:\/\/raw\.githubusercontent\.com\/\\&github;\/'"\$branch"'\/folderview\.plus\.plg/);
+    assert.match(pkgBuild, /<URL>https:\/\/raw\.githubusercontent\.com\/\.\*\?\/archive\/\.\*<\/URL>/);
+    assert.match(pkgBuild, /https:\/\/raw\.githubusercontent\.com\/\\&github;\/'"\$branch"'\/archive\/\\&name;-\\&version;\.txz/);
     assert.doesNotMatch(pkgBuild, /rm -R "\$CWD\/tmp"/);
 });
 

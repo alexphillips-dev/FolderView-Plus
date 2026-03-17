@@ -7638,7 +7638,10 @@ const getBulkAssignableNames = (type) => {
     }
     const folders = getFolderMap(type);
     for (const folder of Object.values(folders || {})) {
-        for (const member of normalizeFolderMembers(folder?.containers || [])) {
+        const members = (utils && typeof utils.normalizeFolderMembers === 'function')
+            ? utils.normalizeFolderMembers(folder?.containers || [])
+            : (Array.isArray(folder?.containers) ? folder.containers.map((value) => String(value || '').trim()).filter(Boolean) : []);
+        for (const member of members) {
             const safeName = String(member || '').trim();
             if (safeName) {
                 names.add(safeName);

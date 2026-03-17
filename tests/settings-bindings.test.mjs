@@ -213,7 +213,8 @@ test('bulk assignment advanced UX includes filtering, selection helpers, and com
     assert.match(script, /window\.filterBulkItems = filterBulkItems;/);
     assert.match(script, /window\.bulkItemSelectionAction = bulkItemSelectionAction;/);
     assert.match(script, /window\.updateBulkSelectedCount = updateBulkSelectedCount;/);
-    assert.match(script, /normalizeFolderMembers\(folder\?\.containers \|\| \[\]\)/);
+    assert.match(script, /utils && typeof utils\.normalizeFolderMembers === 'function'/);
+    assert.match(script, /utils\.normalizeFolderMembers\(folder\?\.containers \|\| \[\]\)/);
     assert.match(libPhp, /foreach \(\$folders as \$folder\) \{[\s\S]*normalizeFolderMembers\(\$folder\['containers'\] \?\? \[\]\)/);
     assert.match(libPhp, /'skippedInvalid' => \$skippedInvalid/);
 });

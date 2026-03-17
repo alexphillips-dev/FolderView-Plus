@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.17.12">
-<!ENTITY md5 "e885d2ca6780c20f5eb3b51009843a12">
+<!ENTITY version "2026.03.17.13">
+<!ENTITY md5 "763d57ed3b0613c429faad9b5ff9e0f2">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.17.13
+- Maintenance: Restore parent preview quick actions for nested docker roots.
+
 
 ###2026.03.17.12
 - Fix: Nested parent-folder expansion now mirrors standard folder behavior by rendering direct parent members as rows.

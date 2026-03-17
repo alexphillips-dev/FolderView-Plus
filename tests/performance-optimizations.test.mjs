@@ -147,8 +147,11 @@ test('docker tooltip payload is lazy-built on first open', () => {
 test('docker runtime app column auto-sizes based on folder names and rebinds after render', () => {
     assert.match(dockerJs, /const estimateDockerRuntimeAutoAppWidth = \(\) =>/);
     assert.match(dockerJs, /const adjustDockerRuntimeAppWidthForRenderedOverflow = \(baseWidth = null\) =>/);
+    assert.match(dockerJs, /let dockerRuntimeAutoAppWidthFloor = null;/);
+    assert.match(dockerJs, /let dockerRuntimeAutoAppWidthFloorMode = null;/);
     assert.match(dockerJs, /label\.scrollWidth/);
     assert.match(dockerJs, /label\.clientWidth/);
+    assert.match(dockerJs, /autoAppWidth = Math\.max\(autoAppWidth, dockerRuntimeAutoAppWidthFloor\)/);
     assert.match(dockerJs, /const applyDockerRuntimeColumnWidths = \(_widthMap = null\) =>/);
     assert.match(dockerJs, /auto-sizes from folder names/);
     assert.match(dockerJs, /tbody#docker_list tr\.folder,\s*tbody#docker_view tr\.folder/);

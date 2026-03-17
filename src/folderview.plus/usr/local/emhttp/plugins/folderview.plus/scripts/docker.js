@@ -106,6 +106,8 @@ let dockerRuntimeResizerBindTimer = null;
 let dockerRuntimeResizerRetryTimer = null;
 let dockerRuntimeResizerRetryCount = 0;
 let dockerRuntimeResizerObserver = null;
+let dockerRuntimeAutoAppWidthFloor = null;
+let dockerRuntimeAutoAppWidthFloorMode = null;
 const getFolderLabelValue = (labels) => {
     const source = labels && typeof labels === 'object' ? labels : {};
     for (const key of FOLDER_LABEL_KEYS) {
@@ -182,13 +184,18 @@ const normalizeDockerRuntimeAppColumnMode = (value) => {
     return utils.normalizeAppColumnWidth(value);
 };
 
-const getDockerRuntimePresetAppWidth = () => {
-    let mode = 'standard';
+const getDockerRuntimeAppColumnMode = () => {
     if (lastAppliedRuntimePrefs && typeof lastAppliedRuntimePrefs === 'object') {
-        mode = normalizeDockerRuntimeAppColumnMode(lastAppliedRuntimePrefs.appColumnWidth);
-    } else if (document.body && typeof document.body.getAttribute === 'function') {
-        mode = normalizeDockerRuntimeAppColumnMode(document.body.getAttribute('data-fvplus-docker-app-width'));
+        return normalizeDockerRuntimeAppColumnMode(lastAppliedRuntimePrefs.appColumnWidth);
     }
+    if (document.body && typeof document.body.getAttribute === 'function') {
+        return normalizeDockerRuntimeAppColumnMode(document.body.getAttribute('data-fvplus-docker-app-width'));
+    }
+    return 'standard';
+};
+
+const getDockerRuntimePresetAppWidth = () => {
+    const mode = getDockerRuntimeAppColumnMode();
     if (dockerRuntimeColumnLayoutEngine && typeof dockerRuntimeColumnLayoutEngine.resolvePresetWidth === 'function') {
         return dockerRuntimeColumnLayoutEngine.resolvePresetWidth(mode);
     }
@@ -338,8 +345,17 @@ const applyDockerRuntimeColumnWidths = (_widthMap = null) => {
     if (!targets) {
         return;
     }
+    const appColumnMode = getDockerRuntimeAppColumnMode();
+    if (dockerRuntimeAutoAppWidthFloorMode !== appColumnMode) {
+        dockerRuntimeAutoAppWidthFloorMode = appColumnMode;
+        dockerRuntimeAutoAppWidthFloor = null;
+    }
     const estimatedAppWidth = estimateDockerRuntimeAutoAppWidth();
-    const autoAppWidth = adjustDockerRuntimeAppWidthForRenderedOverflow(estimatedAppWidth);
+    let autoAppWidth = adjustDockerRuntimeAppWidthForRenderedOverflow(estimatedAppWidth);
+    if (Number.isFinite(dockerRuntimeAutoAppWidthFloor)) {
+        autoAppWidth = Math.max(autoAppWidth, dockerRuntimeAutoAppWidthFloor);
+    }
+    dockerRuntimeAutoAppWidthFloor = autoAppWidth;
     const isMobile = window.matchMedia && window.matchMedia('(max-width: 900px)').matches;
     targets.headers.forEach((header, idx) => {
         const index = idx + 1;
@@ -3414,6 +3430,10 @@ const applyRuntimePrefs = (prefs) => {
     const appColumnWidth = typeof utils.normalizeAppColumnWidth === 'function'
         ? utils.normalizeAppColumnWidth(normalized.appColumnWidth)
         : (['compact', 'wide'].includes(String(normalized.appColumnWidth || '').toLowerCase()) ? String(normalized.appColumnWidth || '').toLowerCase() : 'standard');
+    if (dockerRuntimeAutoAppWidthFloorMode !== appColumnWidth) {
+        dockerRuntimeAutoAppWidthFloorMode = appColumnWidth;
+        dockerRuntimeAutoAppWidthFloor = null;
+    }
     if (document.body && typeof document.body.setAttribute === 'function') {
         document.body.setAttribute('data-fvplus-docker-app-width', appColumnWidth);
     }

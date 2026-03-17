@@ -187,11 +187,15 @@ test('nested folder expansion avoids duplicate parent previews and keeps child-o
     assert.match(dockerJs, /\.addClass\('fv-nested-hidden'\)\.hide\(\);/);
     assert.match(dockerJs, /webui:\s*ct\.info\.State\.WebUi \|\| ''/);
     assert.match(dockerJs, /shell:\s*ct\.info\.Shell \|\| '\/bin\/sh'/);
-    assert.match(dockerJs, /if \(folder\.settings\.preview_webui && webuiUrl\)/);
-    assert.match(dockerJs, /if \(folder\.settings\.preview_console\)/);
-    assert.match(dockerJs, /if \(folder\.settings\.preview_logs\)/);
     assert.match(dockerJs, /openTerminal\('docker', containerName, shellValue\);/);
     assert.match(dockerJs, /openTerminal\('docker', containerName, '\.log'\);/);
+    assert.match(dockerJs, /const nestedParentPreview = folderHasChildren\(id\);/);
+    assert.match(dockerJs, /const allowWebuiQuickAction = nestedParentPreview \|\| quickActionPrefs\.preview_webui === true;/);
+    assert.match(dockerJs, /const allowConsoleQuickAction = nestedParentPreview \|\| quickActionPrefs\.preview_console === true;/);
+    assert.match(dockerJs, /const allowLogsQuickAction = nestedParentPreview \|\| quickActionPrefs\.preview_logs === true;/);
+    assert.match(dockerJs, /if \(allowWebuiQuickAction && webuiUrl\)/);
+    assert.match(dockerJs, /if \(allowConsoleQuickAction\)/);
+    assert.match(dockerJs, /if \(allowLogsQuickAction\)/);
     assert.match(vmJs, /const parentId = normalizeFolderParentId\(source\[id\]\?\.parentId \|\| source\[id\]\?\.parent_id \|\| ''\);/);
 });
 

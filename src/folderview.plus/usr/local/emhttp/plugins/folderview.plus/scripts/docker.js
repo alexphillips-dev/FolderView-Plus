@@ -2416,6 +2416,13 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
         return;
     }
     const entries = Object.values(runtimeContainers || {});
+    const nestedParentPreview = folderHasChildren(id);
+    const quickActionPrefs = folder?.settings || {};
+    // Compatibility fallback: for nested parent previews, always expose quick actions
+    // so root-level members keep the same operational affordances.
+    const allowWebuiQuickAction = nestedParentPreview || quickActionPrefs.preview_webui === true;
+    const allowConsoleQuickAction = nestedParentPreview || quickActionPrefs.preview_console === true;
+    const allowLogsQuickAction = nestedParentPreview || quickActionPrefs.preview_logs === true;
     $preview.empty();
     for (const entry of entries) {
         const safeName = escapeHtml(entry?.name || '');
@@ -2438,7 +2445,7 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
         const shellValue = String(entry?.shell || '/bin/sh');
         const webuiUrl = String(entry?.webui || '').trim();
 
-        if (folder.settings.preview_webui && webuiUrl) {
+        if (allowWebuiQuickAction && webuiUrl) {
             const $webuiLink = $('<a></a>')
                 .attr('href', webuiUrl)
                 .attr('target', '_blank')
@@ -2447,7 +2454,7 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
             $inner.append($('<span class="folder-element-custom-btn folder-element-webui"></span>').append($webuiLink));
         }
 
-        if (folder.settings.preview_console) {
+        if (allowConsoleQuickAction) {
             const $consoleLink = $('<a href="#"></a>')
                 .append('<i class="fa fa-terminal" aria-hidden="true"></i>')
                 .on('click', (event) => {
@@ -2457,7 +2464,7 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
             $inner.append($('<span class="folder-element-custom-btn folder-element-console"></span>').append($consoleLink));
         }
 
-        if (folder.settings.preview_logs) {
+        if (allowLogsQuickAction) {
             const $logsLink = $('<a href="#"></a>')
                 .append('<i class="fa fa-bars" aria-hidden="true"></i>')
                 .on('click', (event) => {

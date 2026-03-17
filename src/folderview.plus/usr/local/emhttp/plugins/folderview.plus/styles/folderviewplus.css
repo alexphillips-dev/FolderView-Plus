@@ -1613,6 +1613,19 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 /* Advanced modules use a default max viewport and only scroll when content exceeds it. */
 :root {
     --fv-advanced-module-height: clamp(340px, 56vh, 620px);
+    --fv-advanced-side-padding: clamp(12px, 2.4vw, 36px);
+}
+
+/* Keep Advanced modules off the screen edges with consistent side gutters. */
+.fv-advanced-nav,
+h2[data-fv-advanced="1"],
+h2[data-fv-advanced="1"] + .rules-panel,
+h2[data-fv-advanced="1"] + .rules-bottom-grid,
+h2[data-fv-advanced="1"] + .bulk-assign-grid,
+h2[data-fv-advanced="1"] + .backup-grid,
+h2[data-fv-advanced="1"] + .template-grid {
+    box-sizing: border-box;
+    padding-inline: var(--fv-advanced-side-padding);
 }
 
 h2[data-fv-advanced="1"] + .rules-panel,
@@ -1768,6 +1781,18 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 .backup-grid,
 .template-grid {
     grid-template-columns: minmax(0, 1fr) !important;
+}
+
+@media (max-width: 980px) {
+    .fv-advanced-nav,
+    h2[data-fv-advanced="1"],
+    h2[data-fv-advanced="1"] + .rules-panel,
+    h2[data-fv-advanced="1"] + .rules-bottom-grid,
+    h2[data-fv-advanced="1"] + .bulk-assign-grid,
+    h2[data-fv-advanced="1"] + .backup-grid,
+    h2[data-fv-advanced="1"] + .template-grid {
+        padding-inline: 0.45rem;
+    }
 }
 
 .bulk-row,

@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.17.20">
-<!ENTITY md5 "a3e7a0f8aa9e29e301b0cd286799bef8">
+<!ENTITY version "2026.03.17.21">
+<!ENTITY md5 "eb4a5b5903a0e2a7ae9b4b380e2cd6c5">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.17.21
+- Fix: Keep Docker folder dropdown chevron icon-sized while adding right-side gutter spacing so it no longer clips into the Version column.
+
 
 ###2026.03.17.20
 - Fix: Increase Docker folder dropdown chevron right-side padding and width reservation to prevent clipping against the Version column.

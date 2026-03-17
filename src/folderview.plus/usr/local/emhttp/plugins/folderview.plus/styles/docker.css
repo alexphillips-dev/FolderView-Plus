@@ -108,8 +108,8 @@ body.fvplus-docker-column-resize-active th.fvplus-runtime-resizable .fvplus-runt
 .folder-name-sub {
     display: flex;
     align-items: center;
-    overflow: visible;
-    gap: 8px;
+    overflow: hidden;
+    gap: 6px;
     box-sizing: border-box;
 }
 
@@ -133,7 +133,7 @@ td.ct-name.folder-name > .folder-name-sub {
     position: absolute;
     top: 50%;
     left: 8px;
-    right: 20px;
+    right: 28px;
     transform: translateY(-50%);
     min-height: 0;
     width: auto;
@@ -144,10 +144,10 @@ td.ct-name.folder-name > .folder-name-sub {
     white-space: nowrap;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     min-width: 0;
     flex: 1 1 auto;
-    max-width: calc(var(--fvplus-docker-app-column-width) - 98px);
+    max-width: calc(var(--fvplus-docker-app-column-width) - 106px);
 }
 
 .folder-hand {
@@ -171,13 +171,30 @@ td.ct-name.folder-name > .folder-name-sub {
 }
 
 .folder-dropdown {
-    padding: 6px 14px;
-    min-width: 0;
-    margin: 0 6px 0 auto;
+    padding: 0 4px;
+    min-width: 18px;
+    height: 18px;
+    margin: 0 16px 0 auto;
     flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    line-height: 1;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.folder-dropdown:hover,
+.folder-dropdown:focus,
+.folder-dropdown:active {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.folder-dropdown > i {
+    font-size: 12px;
 }
 
 .folder-update-text {
@@ -654,7 +671,7 @@ div.folder-preview-4 span.outer {
     }
 
     .folder-outer {
-        max-width: calc(var(--fvplus-docker-app-column-width-mobile) - 108px);
+        max-width: calc(var(--fvplus-docker-app-column-width-mobile) - 116px);
     }
 
     .folder-element .ct-name {

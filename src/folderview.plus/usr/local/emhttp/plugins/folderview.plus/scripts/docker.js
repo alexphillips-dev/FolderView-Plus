@@ -2013,6 +2013,8 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                 id: ct.shortId,
                 name: ct.info.Name || container_name_in_folder,
                 icon: ct.Labels?.['net.unraid.docker.icon'] || '/plugins/dynamix.docker.manager/images/question.png',
+                webui: ct.info.State.WebUi || '',
+                shell: ct.info.Shell || '/bin/sh',
                 pause: ct.info.State.Paused,
                 state: ct.info.State.Running,
                 autostart: !(ct.info.State.Autostart === false),
@@ -2431,6 +2433,39 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
                 </span>
             </span>
         `);
+        const $inner = item.children('span.inner').last();
+        const containerName = String(entry?.name || '');
+        const shellValue = String(entry?.shell || '/bin/sh');
+        const webuiUrl = String(entry?.webui || '').trim();
+
+        if (folder.settings.preview_webui && webuiUrl) {
+            const $webuiLink = $('<a></a>')
+                .attr('href', webuiUrl)
+                .attr('target', '_blank')
+                .attr('rel', 'noopener noreferrer')
+                .append('<i class="fa fa-globe" aria-hidden="true"></i>');
+            $inner.append($('<span class="folder-element-custom-btn folder-element-webui"></span>').append($webuiLink));
+        }
+
+        if (folder.settings.preview_console) {
+            const $consoleLink = $('<a href="#"></a>')
+                .append('<i class="fa fa-terminal" aria-hidden="true"></i>')
+                .on('click', (event) => {
+                    event.preventDefault();
+                    openTerminal('docker', containerName, shellValue);
+                });
+            $inner.append($('<span class="folder-element-custom-btn folder-element-console"></span>').append($consoleLink));
+        }
+
+        if (folder.settings.preview_logs) {
+            const $logsLink = $('<a href="#"></a>')
+                .append('<i class="fa fa-bars" aria-hidden="true"></i>')
+                .on('click', (event) => {
+                    event.preventDefault();
+                    openTerminal('docker', containerName, '.log');
+                });
+            $inner.append($('<span class="folder-element-custom-btn folder-element-logs"></span>').append($logsLink));
+        }
         $preview.append(item);
     }
     $preview.children('span').wrap('<div class="folder-preview-wrapper"></div>');

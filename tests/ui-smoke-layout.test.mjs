@@ -185,6 +185,13 @@ test('nested folder expansion avoids duplicate parent previews and keeps child-o
     assert.match(dockerJs, /\$folderRow\.after\(\$directMemberRows\);/);
     assert.match(dockerJs, /Expanded parent folder\. Showing direct members, then nested children\./);
     assert.match(dockerJs, /\.addClass\('fv-nested-hidden'\)\.hide\(\);/);
+    assert.match(dockerJs, /webui:\s*ct\.info\.State\.WebUi \|\| ''/);
+    assert.match(dockerJs, /shell:\s*ct\.info\.Shell \|\| '\/bin\/sh'/);
+    assert.match(dockerJs, /if \(folder\.settings\.preview_webui && webuiUrl\)/);
+    assert.match(dockerJs, /if \(folder\.settings\.preview_console\)/);
+    assert.match(dockerJs, /if \(folder\.settings\.preview_logs\)/);
+    assert.match(dockerJs, /openTerminal\('docker', containerName, shellValue\);/);
+    assert.match(dockerJs, /openTerminal\('docker', containerName, '\.log'\);/);
     assert.match(vmJs, /const parentId = normalizeFolderParentId\(source\[id\]\?\.parentId \|\| source\[id\]\?\.parent_id \|\| ''\);/);
 });
 

@@ -2642,11 +2642,110 @@ const forceCollapseFolderRow = (id, syncStatus = true) => {
     }
     const $folderRow = $(`tr.folder-id-${id}`);
     $folderRow.addClass('sortable');
-    $folderRow.find('.folder-storage').append($(`.folder-${id}-element`));
-    $(`.folder-${id}-element`).addClass('fv-nested-hidden').hide();
+    const $directRows = getDirectMemberRowsForFolder(id);
+    const $fallbackRows = $(`.folder-${id}-element`);
+    const $rowsToMove = $directRows.length ? $directRows : $fallbackRows;
+    $folderRow.find('.folder-storage').append($rowsToMove);
+    $rowsToMove.addClass('fv-nested-hidden').hide();
     if (syncStatus && globalFolders[id] && globalFolders[id].status) {
         globalFolders[id].status.expanded = false;
     }
+};
+
+const getContainerNameFromRow = (row) => {
+    if (!row) {
+        return '';
+    }
+    const idAttr = String(row.id || '').trim();
+    if (idAttr.startsWith('ct-') && idAttr.length > 3) {
+        return idAttr.slice(3).trim();
+    }
+    return String($(row).find('td.ct-name .appname').first().text() || '').trim();
+};
+
+const rowAssignedToDifferentFolder = (row, folderId) => {
+    if (!row) {
+        return false;
+    }
+    const ownClass = `folder-${folderId}-element`;
+    const classes = String(row.className || '')
+        .split(/\s+/)
+        .map((entry) => String(entry || '').trim())
+        .filter(Boolean);
+    return classes.some((entry) => (
+        entry.startsWith('folder-')
+        && entry.endsWith('-element')
+        && entry !== ownClass
+    ));
+};
+
+const getDirectMemberRowsForFolder = (folderId) => {
+    const id = String(folderId || '').trim();
+    if (!id) {
+        return $();
+    }
+    const directContainerNames = Object.keys(buildRuntimeContainerMapForFolder(id, false));
+    if (!directContainerNames.length) {
+        return $(`.folder-${id}-element`);
+    }
+    const directNameSet = new Set(directContainerNames);
+    const className = `folder-${id}-element`;
+    const $folderRow = $(`tr.folder-id-${id}`);
+    const $storage = $folderRow.find('.folder-storage').first();
+    const rowsByContainerName = new Map();
+
+    const tryCaptureRow = (row, appendToStorage = false) => {
+        const name = getContainerNameFromRow(row);
+        if (!name || !directNameSet.has(name) || rowAssignedToDifferentFolder(row, id)) {
+            return;
+        }
+        if (!rowsByContainerName.has(name)) {
+            row.classList.add(className, 'folder-element');
+            if (appendToStorage && $storage.length) {
+                $storage.append(row);
+            }
+            rowsByContainerName.set(name, row);
+        }
+    };
+
+    // Keep existing direct rows if classes are already present.
+    $(`tr.${className}`).each((_, row) => {
+        tryCaptureRow(row, false);
+    });
+
+    // Recover rows from this folder's storage by authoritative container membership.
+    if ($storage.length) {
+        $storage.children('tr').each((_, row) => {
+            tryCaptureRow(row, false);
+        });
+    }
+
+    // Last-resort recovery: find rows by canonical container row IDs in the live table.
+    for (const name of directContainerNames) {
+        if (rowsByContainerName.has(name)) {
+            continue;
+        }
+        const rowById = document.getElementById(`ct-${name}`);
+        if (rowById && rowById.tagName === 'TR') {
+            tryCaptureRow(rowById, true);
+            continue;
+        }
+        const $rowByName = $('#docker_list > tr, tbody#docker_view > tr').filter((_, row) => (
+            getContainerNameFromRow(row) === name
+        )).first();
+        if ($rowByName.length) {
+            tryCaptureRow($rowByName.get(0), true);
+        }
+    }
+
+    const orderedRows = [];
+    for (const name of directContainerNames) {
+        const row = rowsByContainerName.get(name);
+        if (row) {
+            orderedRows.push(row);
+        }
+    }
+    return $(orderedRows);
 };
 
 const buildRuntimeContainerMapForFolder = (folderId, includeDescendants = false) => {
@@ -2937,7 +3036,7 @@ const folderAutostart = async (el) => {
     const status = el.target.checked;
     const id = el.target.id.split('-')[1];
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderAutostart: Folder ID: ${id}, New Status: ${status}`);
-    const containers = $(`.folder-${id}-element`);
+    const containers = getDirectMemberRowsForFolder(id);
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] folderAutostart: Found ${containers.length} containers in folder ${id}.`);
     for (const container of containers) {
         const switchTd = $(container).children('td.advanced').next();
@@ -2978,8 +3077,11 @@ const dropDownButton = (id, persistState = true) => {
             hideNestedDescendants(id);
         }
         $(`tr.folder-id-${id}`).addClass('sortable');
-        $(`tr.folder-id-${id} .folder-storage`).append($(`.folder-${id}-element`));
-        $(`.folder-${id}-element`).addClass('fv-nested-hidden').hide();
+        const $directRows = getDirectMemberRowsForFolder(id);
+        const $fallbackRows = $(`.folder-${id}-element`);
+        const $rowsToMove = $directRows.length ? $directRows : $fallbackRows;
+        $(`tr.folder-id-${id} .folder-storage`).append($rowsToMove);
+        $rowsToMove.addClass('fv-nested-hidden').hide();
         if (hasChildren) {
             syncParentFolderVisualState(id, false);
         }
@@ -2990,7 +3092,7 @@ const dropDownButton = (id, persistState = true) => {
         $(`tr.folder-id-${id}`).removeClass('sortable').removeClass('ui-sortable-handle').off().css('cursor', '');
         if (hasChildren) {
             const $folderRow = $(`tr.folder-id-${id}`);
-            const $directMemberRows = $(`.folder-${id}-element`);
+            const $directMemberRows = getDirectMemberRowsForFolder(id);
             let $childAnchor = $folderRow;
             if ($directMemberRows.length) {
                 $folderRow.after($directMemberRows);
@@ -3005,9 +3107,12 @@ const dropDownButton = (id, persistState = true) => {
             syncParentFolderVisualState(id, true);
             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Expanded parent folder. Showing direct members, then nested children.`);
         } else {
-            $(`tr.folder-id-${id}`).after($(`.folder-${id}-element`));
-            $(`.folder-${id}-element`).removeClass('fv-nested-hidden').show();
-            $(`.folder-${id}-element > td > i.fa-arrows-v`).remove(); // Remove mover icon from children when expanded
+            const $directMemberRows = getDirectMemberRowsForFolder(id);
+            const $fallbackRows = $(`.folder-${id}-element`);
+            const $rowsToShow = $directMemberRows.length ? $directMemberRows : $fallbackRows;
+            $(`tr.folder-id-${id}`).after($rowsToShow);
+            $rowsToShow.removeClass('fv-nested-hidden').show();
+            $rowsToShow.children('td').children('i.fa-arrows-v').remove(); // Remove mover icon from children when expanded
             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Expanded leaf folder. Moved elements after folder row.`);
         }
         element.attr('active', 'true');

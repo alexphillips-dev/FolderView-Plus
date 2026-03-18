@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.18.08">
-<!ENTITY md5 "e9a0f5b455c17cbda4bc0d1aee29059a">
+<!ENTITY version "2026.03.18.09">
+<!ENTITY md5 "4c6a894e0df51176986a4a374f39deb4">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.18.09
+- Fix: Docker nested parent expansion now resolves direct-member rows from folder membership (not only CSS classes), preventing blank parent rows and missing direct containers.
+- Fix: Hardened collapse/expand/autostart flows to recover direct container rows by canonical container ID when class tags drift.
+- Test: Added regression guards for the direct-member row recovery path in nested folder expansion.
+
 
 ###2026.03.18.08
 - Fix: Restored mobile settings overflow (3-dot) button size to 24px while preserving touch-safe spacing.

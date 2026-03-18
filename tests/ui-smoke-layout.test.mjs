@@ -191,12 +191,17 @@ test('mobile folder table hides Order column and routes controls to overflow men
 });
 
 test('nested folder expansion avoids duplicate parent previews and keeps child-only reveal path', () => {
+    assert.match(dockerJs, /const getDirectMemberRowsForFolder = \(folderId\) =>/);
+    assert.match(dockerJs, /const rowAssignedToDifferentFolder = \(row, folderId\) =>/);
+    assert.match(dockerJs, /const getContainerNameFromRow = \(row\) =>/);
     assert.match(dockerJs, /const hasChildren = folderHasChildren\(id\);/);
+    assert.match(dockerJs, /const \$directMemberRows = getDirectMemberRowsForFolder\(id\);/);
     assert.match(dockerJs, /hideNestedDescendants\(id\);/);
     assert.match(dockerJs, /showDirectNestedChildren\(id,\s*\$childAnchor\);/);
     assert.match(dockerJs, /syncParentFolderVisualState\(id,\s*true\);/);
     assert.match(dockerJs, /syncParentFolderVisualState\(id,\s*false\);/);
     assert.match(dockerJs, /buildRuntimeContainerMapForFolder\(id,\s*false\)/);
+    assert.match(dockerJs, /const \$rowsToMove = \$directRows\.length \? \$directRows : \$fallbackRows;/);
     assert.match(dockerJs, /When expanded, keep parent-level containers visible but avoid duplicating descendants\./);
     assert.match(dockerJs, /\$folderRow\.after\(\$directMemberRows\);/);
     assert.match(dockerJs, /Expanded parent folder\. Showing direct members, then nested children\./);

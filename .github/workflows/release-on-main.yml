@@ -89,6 +89,9 @@ jobs:
           FVPLUS_BROWSER_SMOKE_REQUIRED: ${{ secrets.FVPLUS_BROWSER_SMOKE_URL != '' && '1' || '0' }}
           FVPLUS_BROWSER_SMOKE_TIMEOUT_MS: '90000'
           FVPLUS_BROWSER_SMOKE_IGNORE_HTTPS: '1'
+          FVPLUS_BROWSER_SMOKE_REQUIRE_RUNTIME_ROWS: '1'
+          FVPLUS_BROWSER_SMOKE_RUNTIME_GAP_MAX: '30'
+          FVPLUS_BROWSER_SMOKE_ARTIFACT_DIR: ${{ github.workspace }}/tmp/browser-smoke-artifacts
         run: |
           if [ -z "${FVPLUS_BROWSER_SMOKE_URL:-}" ]; then
             echo "Skipping browser smoke checks (FVPLUS_BROWSER_SMOKE_URL not configured)."
@@ -193,5 +196,6 @@ jobs:
             archive/*.sha256
             release_notes.md
             CHANGELOG-fixes.md
+            tmp/browser-smoke-artifacts/**
             *.log
             scripts/*.log

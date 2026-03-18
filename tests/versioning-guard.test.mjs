@@ -167,9 +167,14 @@ test('browser smoke scripts support optional and required modes and include core
     assert.match(browserSmokeNode, /FVPLUS_BROWSER_SMOKE_VM_URL/);
     assert.match(browserSmokeNode, /FVPLUS_BROWSER_SMOKE_ARTIFACT_DIR/);
     assert.match(browserSmokeNode, /FVPLUS_BROWSER_SMOKE_REQUIRE_RUNTIME_ROWS/);
+    assert.match(browserSmokeNode, /FVPLUS_BROWSER_SMOKE_RUNTIME_GAP_MAX/);
     assert.match(browserSmokeNode, /runRuntimeLayoutSmoke/);
+    assert.match(browserSmokeNode, /shortest/);
+    assert.match(browserSmokeNode, /longest/);
+    assert.match(browserSmokeNode, /excessiveVersionGap/);
     assert.match(browserSmokeNode, /Runtime visual check passed/);
     assert.match(browserSmokeNode, /Runtime layout overlap detected/);
+    assert.match(browserSmokeNode, /Failed rows:/);
     assert.match(browserSmokeNode, /page\.screenshot\(\{ path: screenshotPath, fullPage: true \}\)/);
     assert.match(browserSmokeNode, /runBrowserSmoke\('chromium'/);
     assert.match(browserSmokeNode, /runBrowserSmoke\('firefox'/);
@@ -211,12 +216,15 @@ test('validation workflows enforce standards guards and release-required browser
         assert.match(workflow, /FVPLUS_I18N_STRICT/);
         assert.match(workflow, /FVPLUS_REQUIRE_PERF_BASELINE/);
         assert.match(workflow, /FVPLUS_BROWSER_SMOKE_URL/);
+        assert.match(workflow, /FVPLUS_BROWSER_SMOKE_REQUIRE_RUNTIME_ROWS/);
+        assert.match(workflow, /FVPLUS_BROWSER_SMOKE_RUNTIME_GAP_MAX/);
         assert.match(workflow, /bash scripts\/browser_smoke\.sh/);
         assert.match(workflow, /Optional theme matrix smoke checks/);
         assert.match(workflow, /FVPLUS_THEME_MATRIX_URLS/);
         assert.match(workflow, /FVPLUS_THEME_REQUIRED_LABELS:\s*'black,white'/);
         assert.match(workflow, /bash scripts\/theme_matrix_smoke\.sh/);
         assert.match(workflow, /actions\/upload-artifact@v4/);
+        assert.match(workflow, /tmp\/browser-smoke-artifacts/);
     }
     assert.match(ciWorkflow, /Optional browser smoke checks/);
     for (const workflow of [releaseMainWorkflow, releaseStableWorkflow, releaseBetaWorkflow, releaseOnMainWorkflow]) {
@@ -293,7 +301,7 @@ test('ensure changes entry seeds category-signaling release note text', () => {
     assert.match(ensureChanges, /git -C "\$\{ROOT_DIR\}" diff --name-only --relative HEAD -- \./);
     assert.match(ensureChanges, /log --no-merges --format=%H -S "###\$\{previous_version\}" -- "\$\{PLG_FILE\}"/);
     assert.match(ensureChanges, /range="\$\{anchor_ref\}\.\.HEAD"/);
-    assert.match(ensureChanges, /Action required: replace these placeholder notes with user-facing categorized bullets before release/);
+    assert.match(ensureChanges, /AUTO_FALLBACK_NOTE='Maintenance: Release metadata and packaging sync\.'/);
 });
 
 test('release workflows keep checksum assets and metadata changes', () => {

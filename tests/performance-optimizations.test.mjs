@@ -147,24 +147,37 @@ test('docker tooltip payload is lazy-built on first open', () => {
 test('docker runtime app column auto-sizes based on folder names and rebinds after render', () => {
     assert.match(dockerJs, /const estimateDockerRuntimeAutoAppWidth = \(\) =>/);
     assert.match(dockerJs, /const adjustDockerRuntimeAppWidthForRenderedOverflow = \(baseWidth = null\) =>/);
+    assert.match(dockerJs, /const buildDockerRuntimeWidthDecision = \(\) =>/);
+    assert.match(dockerJs, /const runDockerRuntimeWidthReflow = \(reason = 'direct'\) =>/);
+    assert.match(dockerJs, /const scheduleDockerRuntimeWidthReflow = \(reason = 'event', delayMs = DOCKER_RUNTIME_WIDTH_REFLOW_DEBOUNCE_MS\) =>/);
+    assert.match(dockerJs, /const DOCKER_RUNTIME_WIDTH_PHASES = Object\.freeze\(/);
+    assert.match(dockerJs, /phase:\s*DOCKER_RUNTIME_WIDTH_PHASES\.idle/);
     assert.match(dockerJs, /let dockerRuntimeAutoAppWidthFloor = null;/);
     assert.match(dockerJs, /let dockerRuntimeAutoAppWidthFloorMode = null;/);
     assert.match(dockerJs, /const DOCKER_RUNTIME_APP_OVERFLOW_CLIENT_WIDTH_MIN = 36;/);
     assert.match(dockerJs, /const DOCKER_RUNTIME_APP_OVERFLOW_NUDGE_MAX = 56;/);
     assert.match(dockerJs, /const DOCKER_RUNTIME_APP_WIDTH_FLOOR_HEADROOM = 56;/);
+    assert.match(dockerJs, /const DOCKER_RUNTIME_VERSION_GAP_MIN = 8;/);
+    assert.match(dockerJs, /const DOCKER_RUNTIME_VERSION_GAP_MAX = 26;/);
+    assert.match(dockerJs, /const applyDockerRuntimeGapContract = \(widthPx, metrics = null\) =>/);
     assert.match(dockerJs, /label\.scrollWidth/);
     assert.match(dockerJs, /label\.clientWidth/);
     assert.match(dockerJs, /Math\.min\(rawOverflow, DOCKER_RUNTIME_APP_OVERFLOW_NUDGE_MAX\)/);
-    assert.match(dockerJs, /const floorLimit = clampDockerRuntimeColumnWidth\(estimatedAppWidth \+ DOCKER_RUNTIME_APP_WIDTH_FLOOR_HEADROOM, 1\) \|\| estimatedAppWidth;/);
-    assert.match(dockerJs, /const boundedFloor = Math\.min\(dockerRuntimeAutoAppWidthFloor, floorLimit\)/);
-    assert.match(dockerJs, /autoAppWidth = Math\.max\(autoAppWidth, boundedFloor\)/);
-    assert.match(dockerJs, /dockerRuntimeAutoAppWidthFloor = Math\.min\(autoAppWidth, floorLimit\);/);
+    assert.match(dockerJs, /const floorLimit = clampDockerRuntimeColumnWidth\(\s*estimatedAppWidth \+ DOCKER_RUNTIME_APP_WIDTH_FLOOR_HEADROOM,\s*1\s*\) \|\| estimatedAppWidth;/);
+    assert.match(dockerJs, /boundedFloor = Math\.min\(dockerRuntimeAutoAppWidthFloor, floorLimit\)/);
+    assert.match(dockerJs, /appliedWidth = Math\.max\(appliedWidth, boundedFloor\)/);
+    assert.match(dockerJs, /dockerRuntimeAutoAppWidthFloor = decision\.nextFloor;/);
+    assert.match(dockerJs, /const ensureDockerRuntimeWidthDebugPanel = \(\) =>/);
+    assert.match(dockerJs, /window\.toggleDockerRuntimeWidthDebug = \(enabled = true\) =>/);
     assert.match(dockerJs, /const applyDockerRuntimeColumnWidths = \(_widthMap = null\) =>/);
     assert.match(dockerJs, /auto-sizes from folder names/);
     assert.match(dockerJs, /tbody#docker_list tr\.folder,\s*tbody#docker_view tr\.folder/);
     assert.match(dockerJs, /tbody#docker_list > tr > td:nth-child\(\$\{index\}\),\s*tbody#docker_view > tr > td:nth-child\(\$\{index\}\)/);
     assert.match(dockerJs, /bindDockerRuntimeAppColumnResizer\(\);/);
     assert.match(dockerJs, /queueDockerRuntimeResizerBind\(\);/);
+    assert.match(dockerJs, /scheduleDockerRuntimeWidthReflow\('render-complete', 0\)/);
+    assert.match(dockerJs, /scheduleDockerRuntimeWidthReflow\('folder-toggle', 24\)/);
+    assert.match(dockerJs, /scheduleDockerRuntimeWidthReflow\('prefs-change', 0\)/);
 });
 
 test('import apply uses chunked execution and performance diagnostics panel exists', () => {

@@ -812,6 +812,14 @@ body.fv-column-resize-active * {
 
     .row-order-actions .folder-tree-action {
         display: none !important;
+        width: 0 !important;
+        min-width: 0 !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
+        overflow: hidden !important;
     }
 
     .row-order-error {
@@ -1072,6 +1080,14 @@ body.fv-mobile-compact #fv-settings-root .row-order-actions button {
 #fv-settings-root.fv-mobile-compact .row-order-actions .folder-tree-action,
 body.fv-mobile-compact #fv-settings-root .row-order-actions .folder-tree-action {
     display: none !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    overflow: hidden !important;
 }
 
 #fv-settings-root.fv-mobile-compact .row-order-error,

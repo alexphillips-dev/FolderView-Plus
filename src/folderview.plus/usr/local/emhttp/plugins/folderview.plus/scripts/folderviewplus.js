@@ -6898,14 +6898,17 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             ? ''
             : (`<button type="button" title="Move up" aria-label="Move ${safeName} up" onclick="moveFolderRow('${type}','${escapeHtml(id)}',-1)"><i class="fa fa-chevron-up"></i></button>`
                 + `<button type="button" title="Move down" aria-label="Move ${safeName} down" onclick="moveFolderRow('${type}','${escapeHtml(id)}',1)"><i class="fa fa-chevron-down"></i></button>`);
-        const moveToRootButtonHtml = folderDepth > 0
+        const compactMobileLayout = shouldUseCompactMobileLayout();
+        const moveToRootButtonHtml = (!compactMobileLayout && folderDepth > 0)
             ? `<button type="button" class="folder-tree-action" title="Move to root" aria-label="Move ${safeName} to root" onclick="moveFolderToRootQuick('${type}','${escapeHtml(id)}')"><i class="fa fa-level-up"></i></button>`
             : '';
         const treeMoveAvailable = (folderCount - (descendantIds.length + 1)) > 0;
         const treeMoveTitle = treeMoveAvailable
             ? `Tree move ${folderNameRaw} (before/inside/after)`
             : 'Tree move unavailable: no valid target folders.';
-        const treeMoveButtonHtml = `<button type="button" class="folder-tree-action" title="${escapeHtml(treeMoveTitle)}" aria-label="${escapeHtml(treeMoveTitle)}" onclick="${treeMoveAvailable ? `openFolderTreeMoveDialog('${type}','${escapeHtml(id)}')` : ''}" ${treeMoveAvailable ? '' : 'disabled'}><i class="fa fa-sitemap"></i></button>`;
+        const treeMoveButtonHtml = compactMobileLayout
+            ? ''
+            : `<button type="button" class="folder-tree-action" title="${escapeHtml(treeMoveTitle)}" aria-label="${escapeHtml(treeMoveTitle)}" onclick="${treeMoveAvailable ? `openFolderTreeMoveDialog('${type}','${escapeHtml(id)}')` : ''}" ${treeMoveAvailable ? '' : 'disabled'}><i class="fa fa-sitemap"></i></button>`;
         const orderCellHtml = ''
             + `<div class="row-order-stack">`
             + `<span class="row-order-actions">`

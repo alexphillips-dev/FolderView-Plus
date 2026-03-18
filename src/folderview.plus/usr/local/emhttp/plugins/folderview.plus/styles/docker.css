@@ -671,7 +671,7 @@ div.folder-preview-4 span.outer {
     }
 
     .folder-outer {
-        max-width: calc(var(--fvplus-docker-app-column-width-mobile) - 116px);
+        max-width: calc(var(--fvplus-docker-app-column-width-mobile) - 88px);
     }
 
     .folder-element .ct-name {
@@ -679,7 +679,7 @@ div.folder-preview-4 span.outer {
     }
 
     .folder-element .ct-name .inner > span.appname {
-        max-width: calc(var(--fvplus-docker-app-column-width-mobile) - 43px);
+        max-width: calc(var(--fvplus-docker-app-column-width-mobile) - 24px);
     }
 
     .folder-preview {

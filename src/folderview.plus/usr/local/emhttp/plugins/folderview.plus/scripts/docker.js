@@ -83,6 +83,8 @@ const DOCKER_RUNTIME_APP_TEXT_BUFFER = 12;
 const DOCKER_RUNTIME_APP_OVERFLOW_CLIENT_WIDTH_MIN = 36;
 const DOCKER_RUNTIME_APP_OVERFLOW_NUDGE_MAX = 56;
 const DOCKER_RUNTIME_APP_WIDTH_FLOOR_HEADROOM = 56;
+const DOCKER_RUNTIME_APP_WIDTH_MOBILE_SCALE = 1;
+const DOCKER_RUNTIME_APP_WIDTH_MOBILE_MIN = 136;
 const DOCKER_RUNTIME_VERSION_GAP_MIN = 8;
 const DOCKER_RUNTIME_VERSION_GAP_MAX = 26;
 const DOCKER_RUNTIME_VERSION_GAP_ADJUST_MAX_STEP = 64;
@@ -103,8 +105,8 @@ const dockerRuntimeColumnLayoutEngine = runtimeColumnLayout && typeof runtimeCol
         presetWidths: DOCKER_RUNTIME_APP_PRESET_WIDTHS,
         desktopVarName: '--fvplus-docker-app-column-width',
         mobileVarName: '--fvplus-docker-app-column-width-mobile',
-        mobileScale: 0.82,
-        mobileMin: 112
+        mobileScale: DOCKER_RUNTIME_APP_WIDTH_MOBILE_SCALE,
+        mobileMin: DOCKER_RUNTIME_APP_WIDTH_MOBILE_MIN
     })
     : null;
 let dockerRuntimeColumnResizeSession = null;
@@ -479,7 +481,10 @@ const applyDockerRuntimeAppWidthVariables = (desktopWidthPx = null) => {
         document.body.style.removeProperty('--fvplus-docker-app-column-width-mobile');
         return;
     }
-    const mobileWidth = Math.max(112, Math.round(safeDesktopWidth * 0.82));
+    const mobileWidth = Math.max(
+        DOCKER_RUNTIME_APP_WIDTH_MOBILE_MIN,
+        Math.round(safeDesktopWidth * DOCKER_RUNTIME_APP_WIDTH_MOBILE_SCALE)
+    );
     document.body.style.setProperty('--fvplus-docker-app-column-width', `${safeDesktopWidth}px`);
     document.body.style.setProperty('--fvplus-docker-app-column-width-mobile', `${mobileWidth}px`);
 };
@@ -582,7 +587,14 @@ const applyDockerRuntimeColumnWidths = (_widthMap = null) => {
     targets.headers.forEach((header, idx) => {
         const index = idx + 1;
         const effectiveWidth = index === 1
-            ? (isMobile ? Math.max(108, Math.round(decision.appliedWidth * 0.82)) : decision.appliedWidth)
+            ? (
+                isMobile
+                    ? Math.max(
+                        DOCKER_RUNTIME_APP_WIDTH_MOBILE_MIN,
+                        Math.round(decision.appliedWidth * DOCKER_RUNTIME_APP_WIDTH_MOBILE_SCALE)
+                    )
+                    : decision.appliedWidth
+            )
             : null;
         const applyWidth = (element) => {
             if (!element || !element.style) {

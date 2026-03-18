@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.17.27">
-<!ENTITY md5 "7719ff49d1a9bcc4c28151db73bf62da">
+<!ENTITY version "2026.03.17.28">
+<!ENTITY md5 "c7cdcae2951a4a46a2461db4abfb4094">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.17.28
+- Fix: Increased Docker mobile Application-column width allocation so folder names are less aggressively truncated.
+- UX: Relaxed Docker mobile text-width caps so longer folder names render before ellipsis while preserving Version-column clearance.
+
 
 ###2026.03.17.27
 - UX: Made Docker runtime application sizing deterministic to stop long-name flicker between truncated and expanded states.

@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.17.28">
-<!ENTITY md5 "c7cdcae2951a4a46a2461db4abfb4094">
+<!ENTITY version "2026.03.18.01">
+<!ENTITY md5 "769acd0c5ab7c1ba7bb4606b78357168">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.18.01
+- Fix: Eliminated mobile settings action-button ghost boxes by hard-collapsing hidden controls in compact table mode.
+- UX: Normalized touch focus behavior to prevent persistent outline artifacts around order/actions and bottom action-bar buttons on mobile.
+
 
 ###2026.03.17.28
 - Fix: Increased Docker mobile Application-column width allocation so folder names are less aggressively truncated.

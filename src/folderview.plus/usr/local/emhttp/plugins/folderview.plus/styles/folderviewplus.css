@@ -829,6 +829,14 @@ body.fv-column-resize-active * {
 
     .folder-table table td.actions-cell .folder-action-btn:not(.folder-overflow-btn) {
         display: none !important;
+        width: 0 !important;
+        min-width: 0 !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
+        overflow: hidden !important;
     }
 
     .folder-table table td.actions-cell .folder-overflow-btn {
@@ -836,6 +844,7 @@ body.fv-column-resize-active * {
         width: 30px;
         min-width: 30px;
         height: 30px;
+        margin-left: 0 !important;
         pointer-events: auto;
         touch-action: manipulation;
     }
@@ -1016,6 +1025,14 @@ body.fv-mobile-compact #fv-settings-root .folder-table table td.actions-cell {
 #fv-settings-root.fv-mobile-compact .folder-table table td.actions-cell .folder-action-btn:not(.folder-overflow-btn),
 body.fv-mobile-compact #fv-settings-root .folder-table table td.actions-cell .folder-action-btn:not(.folder-overflow-btn) {
     display: none !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    overflow: hidden !important;
 }
 
 #fv-settings-root.fv-mobile-compact .folder-table table td.actions-cell .folder-overflow-btn,
@@ -1024,6 +1041,7 @@ body.fv-mobile-compact #fv-settings-root .folder-table table td.actions-cell .fo
     width: 30px;
     min-width: 30px;
     height: 30px;
+    margin-left: 0 !important;
     pointer-events: auto;
     touch-action: manipulation;
 }
@@ -3112,6 +3130,18 @@ body.fv-mobile-compact .fv-setup-field-grid {
 #fv-settings-root a:focus-visible {
     outline: 2px solid #4da3ff;
     outline-offset: 2px;
+}
+
+@media (hover: none), (pointer: coarse) {
+    #fv-settings-root :is(button, a, [role="button"]) {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    #fv-settings-root :is(button, a, [role="button"]):focus,
+    #fv-settings-root :is(button, a, [role="button"]):focus-visible {
+        outline: none !important;
+        box-shadow: none !important;
+    }
 }
 
 .fv-customizations-header {

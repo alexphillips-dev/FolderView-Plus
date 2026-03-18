@@ -3365,6 +3365,7 @@ const showFolderRowQuickActions = (type, folderId) => {
             </div>
         </div>
     `;
+    $('.sweet-alert').removeClass('fv-row-quick-actions-modal');
     swal({
         title: safeFolderName,
         text: html,
@@ -3373,6 +3374,7 @@ const showFolderRowQuickActions = (type, folderId) => {
         confirmButtonText: 'Close'
     });
     window.setTimeout(() => {
+        $('.sweet-alert:visible').addClass('fv-row-quick-actions-modal');
         $('.fv-row-quick-action').off('click.fvrowquick').on('click.fvrowquick', (event) => {
             event.preventDefault();
             const action = String($(event.currentTarget).attr('data-action') || '');
@@ -6924,15 +6926,17 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         const treeMoveButtonHtml = compactMobileLayout
             ? ''
             : `<button type="button" class="folder-tree-action" title="${escapeHtml(treeMoveTitle)}" aria-label="${escapeHtml(treeMoveTitle)}" onclick="${treeMoveAvailable ? `openFolderTreeMoveDialog('${type}','${escapeHtml(id)}')` : ''}" ${treeMoveAvailable ? '' : 'disabled'}><i class="fa fa-sitemap"></i></button>`;
-        const orderCellHtml = ''
-            + `<div class="row-order-stack">`
-            + `<span class="row-order-actions">`
-            + rowReorderButtonsHtml
-            + moveToRootButtonHtml
-            + treeMoveButtonHtml
-            + `</span>`
-            + (treeErrorText ? `<span class="row-order-error">${escapeHtml(treeErrorText)}</span>` : '')
-            + `</div>`;
+        const orderCellHtml = compactMobileLayout
+            ? ''
+            : (''
+                + `<div class="row-order-stack">`
+                + `<span class="row-order-actions">`
+                + rowReorderButtonsHtml
+                + moveToRootButtonHtml
+                + treeMoveButtonHtml
+                + `</span>`
+                + (treeErrorText ? `<span class="row-order-error">${escapeHtml(treeErrorText)}</span>` : '')
+                + `</div>`);
         rows.push(
             `<tr class="${folderDepth > 0 ? 'is-nested-row' : 'is-root-row'}" data-folder-depth="${folderDepth}" data-folder-id="${escapeHtml(id)}" tabindex="0" onkeydown="handleFolderRowKeydown('${type}','${escapeHtml(id)}',event)">`
             + `<td class="order-cell">${orderCellHtml}</td>`

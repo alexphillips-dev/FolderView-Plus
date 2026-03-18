@@ -792,22 +792,22 @@ body.fv-column-resize-active * {
     }
 
     .folder-table table th:nth-child(1),
-    .folder-table table td:nth-child(1) { width: 26%; }
-    .folder-table table th:nth-child(2),
-    .folder-table table td:nth-child(2) { width: 50%; }
-    .folder-table table th:nth-child(10),
-    .folder-table table td:nth-child(10) { width: 24%; }
-
-    .folder-table table th:nth-child(1),
     .folder-table table td:nth-child(1) {
-        padding-left: 0.45rem;
-        padding-right: 0.45rem;
+        display: none !important;
+        width: 0 !important;
+        min-width: 0 !important;
+        max-width: 0 !important;
+        padding: 0 !important;
     }
+    .folder-table table th:nth-child(2),
+    .folder-table table td:nth-child(2) { width: 78%; }
+    .folder-table table th:nth-child(10),
+    .folder-table table td:nth-child(10) { width: 22%; }
 
     .folder-table table th:nth-child(2),
     .folder-table table td:nth-child(2) {
-        padding-left: 0.5rem;
-        padding-right: 0.24rem;
+        padding-left: 0.45rem;
+        padding-right: 0.2rem;
     }
 
     .row-order-actions {
@@ -841,6 +841,8 @@ body.fv-column-resize-active * {
         white-space: nowrap;
         overflow: visible;
         text-overflow: clip;
+        padding-left: 0.2rem;
+        padding-right: 0.45rem;
     }
 
     .folder-table table td.actions-cell .folder-action-btn:not(.folder-overflow-btn) {
@@ -857,18 +859,29 @@ body.fv-column-resize-active * {
 
     .folder-table table td.actions-cell .folder-overflow-btn {
         display: inline-flex !important;
-        width: 24px;
-        min-width: 24px;
-        height: 24px;
+        width: 20px;
+        min-width: 20px;
+        max-width: 20px;
+        height: 20px;
+        min-height: 20px;
+        max-height: 20px;
         margin-left: 0 !important;
+        padding: 0 !important;
         border: 0 !important;
+        border-radius: 4px !important;
         background: transparent !important;
         box-shadow: none !important;
         outline: none !important;
         appearance: none !important;
         -webkit-appearance: none !important;
+        line-height: 1 !important;
         pointer-events: auto;
         touch-action: manipulation;
+    }
+
+    .folder-table table td.actions-cell .folder-overflow-btn > i {
+        font-size: 0.78rem !important;
+        line-height: 1 !important;
     }
 
     .name-cell-content {
@@ -909,11 +922,17 @@ body.fv-column-resize-active * {
 
 @media (max-width: 700px) {
     .folder-table table th:nth-child(1),
-    .folder-table table td:nth-child(1) { width: 26%; }
+    .folder-table table td:nth-child(1) {
+        display: none !important;
+        width: 0 !important;
+        min-width: 0 !important;
+        max-width: 0 !important;
+        padding: 0 !important;
+    }
     .folder-table table th:nth-child(2),
-    .folder-table table td:nth-child(2) { width: 50%; }
+    .folder-table table td:nth-child(2) { width: 78%; }
     .folder-table table th:nth-child(10),
-    .folder-table table td:nth-child(10) { width: 24%; }
+    .folder-table table td:nth-child(10) { width: 22%; }
 
     .row-order-actions button {
         display: none !important;
@@ -1005,30 +1024,28 @@ body.fv-mobile-compact #fv-settings-root .folder-table table td.resources-cell {
 #fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(1),
 #fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(1),
 body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(1),
-body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(1) { width: 26%; }
+body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(1) {
+    display: none !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    padding: 0 !important;
+}
 #fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(2),
 #fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(2),
 body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(2),
-body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(2) { width: 50%; }
+body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(2) { width: 78%; }
 #fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(10),
 #fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(10),
 body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(10),
-body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(10) { width: 24%; }
-
-#fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(1),
-#fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(1),
-body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(1),
-body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(1) {
-    padding-left: 0.45rem;
-    padding-right: 0.45rem;
-}
+body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(10) { width: 22%; }
 
 #fv-settings-root.fv-mobile-compact .folder-table table th:nth-child(2),
 #fv-settings-root.fv-mobile-compact .folder-table table td:nth-child(2),
 body.fv-mobile-compact #fv-settings-root .folder-table table th:nth-child(2),
 body.fv-mobile-compact #fv-settings-root .folder-table table td:nth-child(2) {
-    padding-left: 0.5rem;
-    padding-right: 0.24rem;
+    padding-left: 0.45rem;
+    padding-right: 0.2rem;
 }
 
 #fv-settings-root.fv-mobile-compact .folder-table table td.actions-cell,
@@ -1039,6 +1056,8 @@ body.fv-mobile-compact #fv-settings-root .folder-table table td.actions-cell {
     white-space: nowrap;
     overflow: visible;
     text-overflow: clip;
+    padding-left: 0.2rem;
+    padding-right: 0.45rem;
 }
 
 #fv-settings-root.fv-mobile-compact .folder-table table td.actions-cell .folder-action-btn:not(.folder-overflow-btn),
@@ -1057,18 +1076,30 @@ body.fv-mobile-compact #fv-settings-root .folder-table table td.actions-cell .fo
 #fv-settings-root.fv-mobile-compact .folder-table table td.actions-cell .folder-overflow-btn,
 body.fv-mobile-compact #fv-settings-root .folder-table table td.actions-cell .folder-overflow-btn {
     display: inline-flex !important;
-    width: 24px;
-    min-width: 24px;
-    height: 24px;
+    width: 20px;
+    min-width: 20px;
+    max-width: 20px;
+    height: 20px;
+    min-height: 20px;
+    max-height: 20px;
     margin-left: 0 !important;
+    padding: 0 !important;
     border: 0 !important;
+    border-radius: 4px !important;
     background: transparent !important;
     box-shadow: none !important;
     outline: none !important;
     appearance: none !important;
     -webkit-appearance: none !important;
+    line-height: 1 !important;
     pointer-events: auto;
     touch-action: manipulation;
+}
+
+#fv-settings-root.fv-mobile-compact .folder-table table td.actions-cell .folder-overflow-btn > i,
+body.fv-mobile-compact #fv-settings-root .folder-table table td.actions-cell .folder-overflow-btn > i {
+    font-size: 0.78rem !important;
+    line-height: 1 !important;
 }
 
 #fv-settings-root.fv-mobile-compact .name-cell-content,

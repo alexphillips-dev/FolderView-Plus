@@ -139,7 +139,7 @@ test('folder tables avoid unnecessary horizontal scrollbar in basic view', () =>
     assert.match(settingsCss, /\.folder-table table\s*\{[\s\S]*border-spacing:\s*0/);
 });
 
-test('mobile folder table keeps Order + Name and routes details to overflow menu', () => {
+test('mobile folder table hides Order column and routes controls to overflow menu', () => {
     assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*th:nth-child\(3\)/);
     assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*th:nth-child\(4\)/);
     assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*th\.col-status/);
@@ -151,20 +151,25 @@ test('mobile folder table keeps Order + Name and routes details to overflow menu
     assert.match(settingsCss, /\.folder-overflow-btn\s*\{[\s\S]*display:\s*none/);
     assert.match(settingsCss, /\.actions-cell[\s\S]*\.folder-action-btn:not\(\.folder-overflow-btn\)[\s\S]*display:\s*none !important/);
     assert.match(settingsCss, /\.actions-cell[\s\S]*\.folder-overflow-btn[\s\S]*display:\s*inline-flex !important/);
-    assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*th:nth-child\(1\)[\s\S]*width:\s*26%/);
-    assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*th:nth-child\(2\)[\s\S]*width:\s*50%/);
-    assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*th:nth-child\(10\)[\s\S]*width:\s*24%/);
-    assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*\.row-order-actions\s*\{[\s\S]*justify-content:\s*center/);
-    assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*th:nth-child\(2\)[\s\S]*padding-left:\s*0\.5rem/);
-    assert.match(settingsCss, /#fv-settings-root\.fv-mobile-compact[\s\S]*th:nth-child\(1\)[\s\S]*width:\s*26%/);
-    assert.match(settingsCss, /#fv-settings-root\.fv-mobile-compact[\s\S]*th:nth-child\(2\)[\s\S]*width:\s*50%/);
-    assert.match(settingsCss, /#fv-settings-root\.fv-mobile-compact[\s\S]*\.row-order-actions[\s\S]*justify-content:\s*center/);
+    assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*th:nth-child\(1\)[\s\S]*display:\s*none !important/);
+    assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*th:nth-child\(2\)[\s\S]*width:\s*78%/);
+    assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*th:nth-child\(10\)[\s\S]*width:\s*22%/);
+    assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*th:nth-child\(2\)[\s\S]*padding-left:\s*0\.45rem/);
+    assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*\.folder-overflow-btn[\s\S]*width:\s*20px/);
+    assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*\.row-order-actions\s*\{[\s\S]*display:\s*none !important/);
+    assert.match(settingsCss, /#fv-settings-root\.fv-mobile-compact[\s\S]*th:nth-child\(1\)[\s\S]*display:\s*none !important/);
+    assert.match(settingsCss, /#fv-settings-root\.fv-mobile-compact[\s\S]*th:nth-child\(2\)[\s\S]*width:\s*78%/);
+    assert.match(settingsCss, /#fv-settings-root\.fv-mobile-compact[\s\S]*th:nth-child\(10\)[\s\S]*width:\s*22%/);
+    assert.match(settingsCss, /#fv-settings-root\.fv-mobile-compact[\s\S]*\.folder-overflow-btn[\s\S]*width:\s*20px/);
+    assert.match(settingsCss, /#fv-settings-root\.fv-mobile-compact[\s\S]*\.row-order-actions[\s\S]*display:\s*none !important/);
     assert.match(settingsJs, /class="folder-action-btn folder-overflow-btn"/);
     assert.match(settingsJs, /data-fv-overflow-type="\$\{escapeHtml\(type\)\}"/);
     assert.match(settingsJs, /data-fv-overflow-id="\$\{escapeHtml\(id\)\}"/);
     assert.match(settingsJs, /const overflowSelector = `\$\{tbodySelector\} \.folder-overflow-btn`;/);
     assert.match(settingsJs, /on\(`click\$\{namespace\}`, overflowSelector/);
     assert.match(settingsJs, /on\(`touchend\$\{namespace\}`, overflowSelector/);
+    assert.match(settingsJs, /\$\('\.sweet-alert:visible'\)\.addClass\('fv-row-quick-actions-modal'\);/);
+    assert.match(settingsJs, /const orderCellHtml = compactMobileLayout[\s\S]*\?\s*''/);
     assert.match(settingsJs, /const openFolderRowQuickActions = \(type, folderId, event = null\) =>/);
     assert.match(settingsJs, /window\.openFolderRowQuickActions = openFolderRowQuickActions;/);
     assert.match(settingsJs, /const renderFolderQuickActionSummaryHtml = \(summary\) =>/);

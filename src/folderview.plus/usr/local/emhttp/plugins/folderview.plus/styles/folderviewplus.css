@@ -3158,6 +3158,36 @@ body.fv-mobile-compact .fv-setup-field-grid {
         outline: none !important;
         box-shadow: none !important;
     }
+
+    /* On some mobile/browser-theme combinations, generic button effects can
+       paint ghost rectangles around compact settings controls. Hard-reset the
+       affected controls to a single native-free paint path. */
+    #fv-settings-root .row-order-actions button,
+    #fv-settings-root .folder-action-btn,
+    #fv-settings-root .folder-overflow-btn,
+    #fv-settings-root .status-breakdown-btn,
+    #fv-settings-root .health-breakdown-btn,
+    #fv-settings-action-bar button,
+    #fv-save-dock button {
+        -webkit-appearance: none !important;
+        appearance: none !important;
+        background-image: none !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    #fv-settings-root .row-order-actions button::before,
+    #fv-settings-root .row-order-actions button::after,
+    #fv-settings-root .folder-action-btn::before,
+    #fv-settings-root .folder-action-btn::after,
+    #fv-settings-action-bar button::before,
+    #fv-settings-action-bar button::after,
+    #fv-save-dock button::before,
+    #fv-save-dock button::after {
+        content: none !important;
+        box-shadow: none !important;
+        border: 0 !important;
+    }
 }
 
 .fv-customizations-header {

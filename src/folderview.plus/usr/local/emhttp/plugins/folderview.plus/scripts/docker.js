@@ -2652,100 +2652,53 @@ const forceCollapseFolderRow = (id, syncStatus = true) => {
     }
 };
 
-const getContainerNameFromRow = (row) => {
-    if (!row) {
-        return '';
-    }
-    const idAttr = String(row.id || '').trim();
-    if (idAttr.startsWith('ct-') && idAttr.length > 3) {
-        return idAttr.slice(3).trim();
-    }
-    return String($(row).find('td.ct-name .appname').first().text() || '').trim();
-};
-
-const rowAssignedToDifferentFolder = (row, folderId) => {
-    if (!row) {
-        return false;
-    }
-    const ownClass = `folder-${folderId}-element`;
-    const classes = String(row.className || '')
-        .split(/\s+/)
-        .map((entry) => String(entry || '').trim())
-        .filter(Boolean);
-    return classes.some((entry) => (
-        entry.startsWith('folder-')
-        && entry.endsWith('-element')
-        && entry !== ownClass
-    ));
-};
-
 const getDirectMemberRowsForFolder = (folderId) => {
     const id = String(folderId || '').trim();
     if (!id) {
         return $();
     }
-    const directContainerNames = Object.keys(buildRuntimeContainerMapForFolder(id, false));
-    if (!directContainerNames.length) {
-        return $(`.folder-${id}-element`);
-    }
-    const directNameSet = new Set(directContainerNames);
     const className = `folder-${id}-element`;
+    const directContainerNames = new Set(Object.keys(buildRuntimeContainerMapForFolder(id, false)));
+    if (!directContainerNames.size) {
+        return $(`tr.${className}`);
+    }
     const $folderRow = $(`tr.folder-id-${id}`);
     const $storage = $folderRow.find('.folder-storage').first();
-    const rowsByContainerName = new Map();
-
-    const tryCaptureRow = (row, appendToStorage = false) => {
-        const name = getContainerNameFromRow(row);
-        if (!name || !directNameSet.has(name) || rowAssignedToDifferentFolder(row, id)) {
-            return;
+    const getRowContainerName = (row) => {
+        if (!row) return '';
+        const idAttr = String(row.id || '').trim();
+        if (idAttr.startsWith('ct-') && idAttr.length > 3) {
+            return idAttr.slice(3).trim();
         }
-        if (!rowsByContainerName.has(name)) {
-            row.classList.add(className, 'folder-element');
-            if (appendToStorage && $storage.length) {
-                $storage.append(row);
-            }
-            rowsByContainerName.set(name, row);
-        }
+        return String($(row).find('td.ct-name .appname').first().text() || '').trim();
     };
 
-    // Keep existing direct rows if classes are already present.
-    $(`tr.${className}`).each((_, row) => {
-        tryCaptureRow(row, false);
-    });
-
-    // Recover rows from this folder's storage by authoritative container membership.
+    // Recover missing class tags from this folder's storage using direct membership.
     if ($storage.length) {
         $storage.children('tr').each((_, row) => {
-            tryCaptureRow(row, false);
+            const name = getRowContainerName(row);
+            if (directContainerNames.has(name)) {
+                row.classList.add(className, 'folder-element');
+            }
         });
     }
 
-    // Last-resort recovery: find rows by canonical container row IDs in the live table.
+    // Keep canonical rows recoverable by ID even if class tags drift.
     for (const name of directContainerNames) {
-        if (rowsByContainerName.has(name)) {
-            continue;
-        }
-        const rowById = document.getElementById(`ct-${name}`);
-        if (rowById && rowById.tagName === 'TR') {
-            tryCaptureRow(rowById, true);
-            continue;
-        }
-        const $rowByName = $('#docker_list > tr, tbody#docker_view > tr').filter((_, row) => (
-            getContainerNameFromRow(row) === name
-        )).first();
-        if ($rowByName.length) {
-            tryCaptureRow($rowByName.get(0), true);
+        const row = document.getElementById(`ct-${name}`);
+        if (row && row.tagName === 'TR' && !row.classList.contains(className)) {
+            const hasOtherFolderClass = String(row.className || '')
+                .split(/\s+/)
+                .some((entry) => entry.startsWith('folder-') && entry.endsWith('-element'));
+            if (!hasOtherFolderClass) {
+                row.classList.add(className, 'folder-element');
+                if ($storage.length) {
+                    $storage.append(row);
+                }
+            }
         }
     }
-
-    const orderedRows = [];
-    for (const name of directContainerNames) {
-        const row = rowsByContainerName.get(name);
-        if (row) {
-            orderedRows.push(row);
-        }
-    }
-    return $(orderedRows);
+    return $(`tr.${className}`).filter((_, row) => directContainerNames.has(getRowContainerName(row)));
 };
 
 const buildRuntimeContainerMapForFolder = (folderId, includeDescendants = false) => {

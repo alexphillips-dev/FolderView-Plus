@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.18.03">
-<!ENTITY md5 "84f9c4857e7d1a031ffc5684f3feda11">
+<!ENTITY version "2026.03.18.04">
+<!ENTITY md5 "4d87ecd92098cb26dc3b86a40bd7328d">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.18.04
+- Fix: Forced compact mobile settings order and overflow controls to borderless icon buttons so inherited browser button chrome cannot paint box artifacts.
+- UX: Removed pseudo/button chrome fallback paths for row controls in mobile settings to avoid duplicate-outline rendering on iPhone Safari.
+
 
 ###2026.03.18.03
 - Fix: Added mobile-only hard reset for settings row/action buttons to neutralize browser/theme button overlays that can draw ghost boxes.

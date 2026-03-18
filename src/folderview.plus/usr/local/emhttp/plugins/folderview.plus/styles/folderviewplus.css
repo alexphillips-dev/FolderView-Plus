@@ -566,6 +566,19 @@ body.fv-column-resize-active * {
     width: 18px;
     height: 18px;
     padding: 0;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+}
+
+.row-order-actions button::before,
+.row-order-actions button::after {
+    content: none !important;
+    border: 0 !important;
+    box-shadow: none !important;
 }
 
 .row-order-actions .folder-tree-action {
@@ -853,6 +866,12 @@ body.fv-column-resize-active * {
         min-width: 30px;
         height: 30px;
         margin-left: 0 !important;
+        border: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        outline: none !important;
+        appearance: none !important;
+        -webkit-appearance: none !important;
         pointer-events: auto;
         touch-action: manipulation;
     }
@@ -1050,6 +1069,12 @@ body.fv-mobile-compact #fv-settings-root .folder-table table td.actions-cell .fo
     min-width: 30px;
     height: 30px;
     margin-left: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
     pointer-events: auto;
     touch-action: manipulation;
 }

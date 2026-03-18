@@ -811,16 +811,11 @@ body.fv-column-resize-active * {
     }
 
     .row-order-actions {
-        width: 100%;
-        justify-content: center;
-        gap: 0.2rem;
+        display: none !important;
     }
 
     .row-order-actions button {
-        width: 24px;
-        min-width: 24px;
-        height: 24px;
-        padding: 0;
+        display: none !important;
     }
 
     .row-order-actions .folder-tree-action {
@@ -862,9 +857,9 @@ body.fv-column-resize-active * {
 
     .folder-table table td.actions-cell .folder-overflow-btn {
         display: inline-flex !important;
-        width: 30px;
-        min-width: 30px;
-        height: 30px;
+        width: 24px;
+        min-width: 24px;
+        height: 24px;
         margin-left: 0 !important;
         border: 0 !important;
         background: transparent !important;
@@ -921,10 +916,7 @@ body.fv-column-resize-active * {
     .folder-table table td:nth-child(10) { width: 24%; }
 
     .row-order-actions button {
-        width: 22px;
-        min-width: 22px;
-        height: 22px;
-        padding: 0;
+        display: none !important;
     }
 }
 
@@ -1065,9 +1057,9 @@ body.fv-mobile-compact #fv-settings-root .folder-table table td.actions-cell .fo
 #fv-settings-root.fv-mobile-compact .folder-table table td.actions-cell .folder-overflow-btn,
 body.fv-mobile-compact #fv-settings-root .folder-table table td.actions-cell .folder-overflow-btn {
     display: inline-flex !important;
-    width: 30px;
-    min-width: 30px;
-    height: 30px;
+    width: 24px;
+    min-width: 24px;
+    height: 24px;
     margin-left: 0 !important;
     border: 0 !important;
     background: transparent !important;
@@ -1089,17 +1081,12 @@ body.fv-mobile-compact #fv-settings-root .name-cell-content {
 
 #fv-settings-root.fv-mobile-compact .row-order-actions,
 body.fv-mobile-compact #fv-settings-root .row-order-actions {
-    width: 100%;
-    justify-content: center;
-    gap: 0.2rem;
+    display: none !important;
 }
 
 #fv-settings-root.fv-mobile-compact .row-order-actions button,
 body.fv-mobile-compact #fv-settings-root .row-order-actions button {
-    width: 22px;
-    min-width: 22px;
-    height: 22px;
-    padding: 0;
+    display: none !important;
 }
 
 #fv-settings-root.fv-mobile-compact .row-order-actions .folder-tree-action,
@@ -5202,6 +5189,37 @@ tr.is-long-press-active {
 @media (max-width: 760px) {
     :root {
         --fv-unraid-bottom-bar-offset: 40px;
+    }
+
+    .sweet-alert.fv-row-quick-actions-modal {
+        width: calc(100vw - 1rem) !important;
+        max-width: calc(100vw - 1rem) !important;
+        max-height: calc(100vh - 1rem) !important;
+        top: 0.5rem !important;
+        margin-top: 0 !important;
+        transform: none !important;
+        overflow: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .sweet-alert.fv-row-quick-actions-modal .sa-icon {
+        display: none !important;
+    }
+
+    .sweet-alert.fv-row-quick-actions-modal h2 {
+        margin-top: 0.2rem;
+        font-size: 1.03rem;
+        line-height: 1.2;
+    }
+
+    .sweet-alert.fv-row-quick-actions-modal .fv-row-quick-actions-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .sweet-alert.fv-row-quick-actions-modal .fv-row-quick-action {
+        min-height: 30px;
+        font-size: 1.03rem;
+        padding: 0.16rem 0.38rem;
     }
 
     #fv-settings-action-bar {

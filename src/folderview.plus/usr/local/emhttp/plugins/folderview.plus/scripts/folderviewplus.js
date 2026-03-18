@@ -3228,6 +3228,8 @@ const runVmRowDrawerAction = async (action, folderId) => {
         return;
     }
     const handlers = {
+        up: () => moveFolderRow('vm', id, -1),
+        down: () => moveFolderRow('vm', id, 1),
         pin: () => toggleFolderPin('vm', id),
         root: () => moveFolderToRootQuick('vm', id),
         under: () => moveFolderUnderDialog('vm', id),
@@ -3270,6 +3272,8 @@ const buildVmRowDetailsDrawerHtml = (folderId, folder, summary, pinned) => {
         `<div class="fv-row-details-item"><span>${escapeHtml(String(label))}</span><strong>${escapeHtml(String(value))}</strong></div>`
     )).join('');
     const actions = [
+        ['up', 'fa-chevron-up', 'Move up', '', true],
+        ['down', 'fa-chevron-down', 'Move down', '', true],
         ['pin', pinned ? 'fa-star-o' : 'fa-star', pinned ? 'Unpin' : 'Pin to top', '', true],
         ['root', 'fa-level-up', 'Move to root', '', hasParent],
         ['under', 'fa-level-down', 'Move under...', '', treeMoveAvailable],
@@ -3348,6 +3352,8 @@ const showFolderRowQuickActions = (type, folderId) => {
             <div class="fv-row-quick-actions-meta">${typeLabel} folder ID: <code>${safeFolderId}</code></div>
             ${renderFolderQuickActionSummaryHtml(summary)}
             <div class="fv-row-quick-actions-grid">
+                <button type="button" class="fv-row-quick-action" data-action="up"><i class="fa fa-chevron-up"></i> Move up</button>
+                <button type="button" class="fv-row-quick-action" data-action="down"><i class="fa fa-chevron-down"></i> Move down</button>
                 <button type="button" class="fv-row-quick-action" data-action="pin"><i class="fa ${pinned ? 'fa-star-o' : 'fa-star'}"></i> ${pinned ? 'Unpin' : 'Pin to top'}</button>
                 ${rootActionHtml}
                 ${underActionHtml}
@@ -3363,6 +3369,7 @@ const showFolderRowQuickActions = (type, folderId) => {
         title: safeFolderName,
         text: html,
         html: true,
+        customClass: 'fv-row-quick-actions-modal',
         confirmButtonText: 'Close'
     });
     window.setTimeout(() => {
@@ -3372,6 +3379,14 @@ const showFolderRowQuickActions = (type, folderId) => {
             swal.close();
             if (action === 'pin') {
                 void toggleFolderPin(resolvedType, folderId);
+                return;
+            }
+            if (action === 'up') {
+                void moveFolderRow(resolvedType, folderId, -1);
+                return;
+            }
+            if (action === 'down') {
+                void moveFolderRow(resolvedType, folderId, 1);
                 return;
             }
             if (action === 'root') {
@@ -6894,11 +6909,11 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             : `<span class="folder-member-split" title="${escapeHtml(membersTitle)}"><strong>${directMemberCount}</strong></span>`;
         const memberLabelText = `${totalMemberCount} item${totalMemberCount === 1 ? '' : 's'}`;
         const membersMetaHtml = `<span class="name-cell-members-meta" title="${escapeHtml(membersTitle)}"><i class="fa fa-users" aria-hidden="true"></i><span>${escapeHtml(memberLabelText)}</span></span>`;
-        const rowReorderButtonsHtml = folderDepth > 0
+        const compactMobileLayout = shouldUseCompactMobileLayout();
+        const rowReorderButtonsHtml = (compactMobileLayout || folderDepth > 0)
             ? ''
             : (`<button type="button" title="Move up" aria-label="Move ${safeName} up" onclick="moveFolderRow('${type}','${escapeHtml(id)}',-1)"><i class="fa fa-chevron-up"></i></button>`
                 + `<button type="button" title="Move down" aria-label="Move ${safeName} down" onclick="moveFolderRow('${type}','${escapeHtml(id)}',1)"><i class="fa fa-chevron-down"></i></button>`);
-        const compactMobileLayout = shouldUseCompactMobileLayout();
         const moveToRootButtonHtml = (!compactMobileLayout && folderDepth > 0)
             ? `<button type="button" class="folder-tree-action" title="Move to root" aria-label="Move ${safeName} to root" onclick="moveFolderToRootQuick('${type}','${escapeHtml(id)}')"><i class="fa fa-level-up"></i></button>`
             : '';

@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.18.04">
-<!ENTITY md5 "4d87ecd92098cb26dc3b86a40bd7328d">
+<!ENTITY version "2026.03.18.05">
+<!ENTITY md5 "b4dc62ea23454fedaa0e91f3778feede">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.18.05
+- Fix: Removed compact-mobile inline order buttons and routed row reordering through quick actions to eliminate persistent iPhone button-box artifacts.
+- UX: Reduced mobile 3-dot control size and constrained quick-actions modal to viewport-safe dimensions to prevent top/bottom clipping on phones.
+
 
 ###2026.03.18.04
 - Fix: Forced compact mobile settings order and overflow controls to borderless icon buttons so inherited browser button chrome cannot paint box artifacts.

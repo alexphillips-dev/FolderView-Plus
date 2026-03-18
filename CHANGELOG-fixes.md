@@ -1,5 +1,26 @@
 # FolderView Plus Changelog
 
+## Version 2026.03.18.10
+
+### Highlights
+
+- Reworked Docker/VM runtime column handling with a shared layout engine and overflow-aware sizing so long folder names stay readable without destabilizing column spacing.
+- Improved Docker runtime UX with corrected dropdown chevron alignment, preserved compact icon size, and added right-side clearance from the Version column.
+- Added update-helper support for cache-safe install command generation to make Unraid update rollout and verification more reliable.
+
+### Important Bug Fixes
+
+- Fixed Docker app-column width thrash/flicker that caused long names to alternate between clipped and unclipped states.
+- Fixed oversized application-to-version gaps by bounding overflow/floor corrections and stabilizing runtime width calculations.
+- Fixed aggressive mobile truncation by increasing Docker mobile name width allocation while preserving Version-column separation.
+- Fixed iPhone/mobile settings visual artifacts (ghost boxes and inherited button chrome), restored intended control sizing, and constrained quick-actions menus to safe viewport bounds.
+- Fixed nested parent folder visibility regressions by recovering and consistently rendering direct parent-member container rows during expand/collapse/autostart flows.
+
+### Quality
+
+- Expanded regression coverage for runtime column stability, mobile settings rendering, iPhone quick-actions bounds, and nested parent direct-member behavior.
+- Strengthened release/guard automation (including release-note, include-order, and performance baseline checks) to reduce regression risk in packaged builds.
+
 ## Version 2026.03.17.17
 
 ### Highlights

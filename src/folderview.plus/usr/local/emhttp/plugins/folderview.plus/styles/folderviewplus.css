@@ -476,6 +476,35 @@ body.fv-column-resize-active * {
     line-height: 1;
 }
 
+#fv-settings-root .folder-tree-toggle {
+    width: 14px !important;
+    min-width: 14px !important;
+    max-width: 14px !important;
+    height: 14px !important;
+    min-height: 14px !important;
+    max-height: 14px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+    line-height: 1 !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+}
+
+#fv-settings-root .folder-tree-toggle::before,
+#fv-settings-root .folder-tree-toggle::after {
+    content: none !important;
+    border: 0 !important;
+    box-shadow: none !important;
+}
+
+#fv-settings-root .folder-tree-toggle > i {
+    font-size: 12px !important;
+    line-height: 1 !important;
+}
+
 .name-cell-content > img {
     width: 32px;
     height: 32px;
@@ -859,12 +888,12 @@ body.fv-column-resize-active * {
 
     .folder-table table td.actions-cell .folder-overflow-btn {
         display: inline-flex !important;
-        width: 20px;
-        min-width: 20px;
-        max-width: 20px;
-        height: 20px;
-        min-height: 20px;
-        max-height: 20px;
+        width: 24px;
+        min-width: 24px;
+        max-width: 24px;
+        height: 24px;
+        min-height: 24px;
+        max-height: 24px;
         margin-left: 0 !important;
         padding: 0 !important;
         border: 0 !important;
@@ -880,7 +909,7 @@ body.fv-column-resize-active * {
     }
 
     .folder-table table td.actions-cell .folder-overflow-btn > i {
-        font-size: 0.78rem !important;
+        font-size: 0.88rem !important;
         line-height: 1 !important;
     }
 
@@ -1076,12 +1105,12 @@ body.fv-mobile-compact #fv-settings-root .folder-table table td.actions-cell .fo
 #fv-settings-root.fv-mobile-compact .folder-table table td.actions-cell .folder-overflow-btn,
 body.fv-mobile-compact #fv-settings-root .folder-table table td.actions-cell .folder-overflow-btn {
     display: inline-flex !important;
-    width: 20px;
-    min-width: 20px;
-    max-width: 20px;
-    height: 20px;
-    min-height: 20px;
-    max-height: 20px;
+    width: 24px;
+    min-width: 24px;
+    max-width: 24px;
+    height: 24px;
+    min-height: 24px;
+    max-height: 24px;
     margin-left: 0 !important;
     padding: 0 !important;
     border: 0 !important;
@@ -1098,7 +1127,7 @@ body.fv-mobile-compact #fv-settings-root .folder-table table td.actions-cell .fo
 
 #fv-settings-root.fv-mobile-compact .folder-table table td.actions-cell .folder-overflow-btn > i,
 body.fv-mobile-compact #fv-settings-root .folder-table table td.actions-cell .folder-overflow-btn > i {
-    font-size: 0.78rem !important;
+    font-size: 0.88rem !important;
     line-height: 1 !important;
 }
 
@@ -3208,6 +3237,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
     #fv-settings-root .row-order-actions button,
     #fv-settings-root .folder-action-btn,
     #fv-settings-root .folder-overflow-btn,
+    #fv-settings-root .folder-tree-toggle,
     #fv-settings-root .status-breakdown-btn,
     #fv-settings-root .health-breakdown-btn,
     #fv-settings-action-bar button,
@@ -3223,6 +3253,8 @@ body.fv-mobile-compact .fv-setup-field-grid {
     #fv-settings-root .row-order-actions button::after,
     #fv-settings-root .folder-action-btn::before,
     #fv-settings-root .folder-action-btn::after,
+    #fv-settings-root .folder-tree-toggle::before,
+    #fv-settings-root .folder-tree-toggle::after,
     #fv-settings-action-bar button::before,
     #fv-settings-action-bar button::after,
     #fv-save-dock button::before,
@@ -5223,13 +5255,18 @@ tr.is-long-press-active {
     }
 
     .sweet-alert.fv-row-quick-actions-modal {
-        width: calc(100vw - 1rem) !important;
-        max-width: calc(100vw - 1rem) !important;
-        max-height: calc(100vh - 1rem) !important;
-        top: 0.5rem !important;
+        left: calc(env(safe-area-inset-left) + 0.5rem) !important;
+        right: calc(env(safe-area-inset-right) + 0.5rem) !important;
+        top: calc(env(safe-area-inset-top) + 0.5rem) !important;
+        bottom: calc(env(safe-area-inset-bottom) + 0.5rem) !important;
+        width: auto !important;
+        max-width: none !important;
+        max-height: none !important;
         margin-top: 0 !important;
+        margin-left: 0 !important;
         transform: none !important;
-        overflow: auto !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
         -webkit-overflow-scrolling: touch;
     }
 

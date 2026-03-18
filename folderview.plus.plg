@@ -6,12 +6,24 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.18.06">
-<!ENTITY md5 "b94089286532df3b071b31dea1d0b5bd">
+<!ENTITY version "2026.03.18.08">
+<!ENTITY md5 "e9a0f5b455c17cbda4bc0d1aee29059a">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.18.08
+- Fix: Restored mobile settings overflow (3-dot) button size to 24px while preserving touch-safe spacing.
+- Fix: Repositioned quick-actions popup to iPhone safe-area bounds so right-edge and bottom clipping are prevented.
+- Fix: Added strong tree-toggle button reset styles to stop lingering mobile settings box artifacts.
+
+
+###2026.03.18.07
+- Fix: Restored mobile settings overflow (3-dot) button size to 24px while keeping touch-safe spacing.
+- Fix: Anchored row quick-actions modal to iPhone safe-area bounds so it no longer clips on the side or bottom.
+- Fix: Added hard reset styles for tree toggle buttons to stop inherited mobile theme box artifacts in settings rows.
+
 
 ###2026.03.18.06
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

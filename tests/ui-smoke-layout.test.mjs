@@ -155,13 +155,16 @@ test('mobile folder table hides Order column and routes controls to overflow men
     assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*th:nth-child\(2\)[\s\S]*width:\s*78%/);
     assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*th:nth-child\(10\)[\s\S]*width:\s*22%/);
     assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*th:nth-child\(2\)[\s\S]*padding-left:\s*0\.45rem/);
-    assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*\.folder-overflow-btn[\s\S]*width:\s*20px/);
+    assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*\.folder-overflow-btn[\s\S]*width:\s*24px/);
     assert.match(settingsCss, /@media \(max-width: 1100px\)[\s\S]*\.row-order-actions\s*\{[\s\S]*display:\s*none !important/);
     assert.match(settingsCss, /#fv-settings-root\.fv-mobile-compact[\s\S]*th:nth-child\(1\)[\s\S]*display:\s*none !important/);
     assert.match(settingsCss, /#fv-settings-root\.fv-mobile-compact[\s\S]*th:nth-child\(2\)[\s\S]*width:\s*78%/);
     assert.match(settingsCss, /#fv-settings-root\.fv-mobile-compact[\s\S]*th:nth-child\(10\)[\s\S]*width:\s*22%/);
-    assert.match(settingsCss, /#fv-settings-root\.fv-mobile-compact[\s\S]*\.folder-overflow-btn[\s\S]*width:\s*20px/);
+    assert.match(settingsCss, /#fv-settings-root\.fv-mobile-compact[\s\S]*\.folder-overflow-btn[\s\S]*width:\s*24px/);
     assert.match(settingsCss, /#fv-settings-root\.fv-mobile-compact[\s\S]*\.row-order-actions[\s\S]*display:\s*none !important/);
+    assert.match(settingsCss, /#fv-settings-root \.folder-tree-toggle[\s\S]*appearance:\s*none !important/);
+    assert.match(settingsCss, /@media \(max-width: 760px\)[\s\S]*\.sweet-alert\.fv-row-quick-actions-modal[\s\S]*left:\s*calc\(env\(safe-area-inset-left\) \+ 0\.5rem\)/);
+    assert.match(settingsCss, /@media \(max-width: 760px\)[\s\S]*\.sweet-alert\.fv-row-quick-actions-modal[\s\S]*bottom:\s*calc\(env\(safe-area-inset-bottom\) \+ 0\.5rem\)/);
     assert.match(settingsJs, /class="folder-action-btn folder-overflow-btn"/);
     assert.match(settingsJs, /data-fv-overflow-type="\$\{escapeHtml\(type\)\}"/);
     assert.match(settingsJs, /data-fv-overflow-id="\$\{escapeHtml\(id\)\}"/);

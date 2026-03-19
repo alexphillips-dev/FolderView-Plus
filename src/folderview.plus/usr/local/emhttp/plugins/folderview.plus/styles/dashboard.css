@@ -17,6 +17,7 @@
     --fvplus-dashboard-warning: #ffbe5c;
     --fvplus-dashboard-stopped-border: rgba(255, 77, 77, 0.45);
     --fvplus-dashboard-stopped-bg: rgba(255, 77, 77, 0.1);
+    --fvplus-dashboard-quick-rail-top: 0px;
     --fvplus-status-started: var(--fvplus-theme-foreground);
     --fvplus-status-paused: #b8860b;
     --fvplus-status-stopped: #ff4d4d;
@@ -77,7 +78,7 @@
 
 .fv-dashboard-layout-inline-host {
     position: absolute;
-    top: 0;
+    top: var(--fvplus-dashboard-quick-rail-top);
     right: 0;
     z-index: 4;
     display: flex;
@@ -88,6 +89,10 @@
     padding: 0;
     box-sizing: border-box;
     pointer-events: none;
+}
+
+.fv-dashboard-layout-inline-host.is-hidden {
+    display: none !important;
 }
 
 .fv-dashboard-layout-quick-rail {
@@ -432,8 +437,11 @@ body.fvplus-performance-mode .tooltipster-content {
 }
 
 @media (max-width: 820px) {
+    :root {
+        --fvplus-dashboard-quick-rail-top: 0px;
+    }
+
     .fv-dashboard-layout-inline-host {
-        top: 0;
         right: 1px;
     }
 

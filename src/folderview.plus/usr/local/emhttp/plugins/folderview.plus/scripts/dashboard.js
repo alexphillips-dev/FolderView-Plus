@@ -290,6 +290,76 @@ const getDashboardFolderCardsForType = (type) => {
     const meta = dashboardTypeMeta(type);
     return $(`${meta.tbodySelector} .folder-showcase-outer`);
 };
+const isDashboardNodeVisible = (node) => {
+    if (!node || !(node instanceof Element)) {
+        return false;
+    }
+    if (node.hidden === true) {
+        return false;
+    }
+    const win = node.ownerDocument && node.ownerDocument.defaultView
+        ? node.ownerDocument.defaultView
+        : window;
+    let current = node;
+    while (current && current instanceof Element) {
+        const style = win.getComputedStyle(current);
+        if (!style || style.display === 'none' || style.visibility === 'hidden') {
+            return false;
+        }
+        current = current.parentElement;
+    }
+    return node.getClientRects().length > 0;
+};
+const getFirstVisibleDashboardFolderCardForType = (type) => {
+    const $cards = getDashboardFolderCardsForType(type);
+    if (!$cards.length) {
+        return null;
+    }
+    let firstVisible = null;
+    $cards.each((_, node) => {
+        if (isDashboardNodeVisible(node)) {
+            firstVisible = node;
+            return false;
+        }
+        return true;
+    });
+    return firstVisible;
+};
+const hasVisibleDashboardFolderCardsForType = (type) => !!getFirstVisibleDashboardFolderCardForType(type);
+const syncDashboardWidgetQuickRailAlignmentForType = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const $host = $(`.fv-dashboard-layout-inline-host[data-fv-dashboard-type="${resolvedType}"]`).first();
+    if (!$host.length) {
+        return;
+    }
+    const hostNode = $host.get(0);
+    const parentNode = hostNode && hostNode.parentElement ? hostNode.parentElement : null;
+    const firstVisibleCard = getFirstVisibleDashboardFolderCardForType(resolvedType);
+    if (!parentNode || !firstVisibleCard || !isDashboardNodeVisible(parentNode)) {
+        $host.css('top', '');
+        return;
+    }
+    const parentRect = parentNode.getBoundingClientRect();
+    const cardRect = firstVisibleCard.getBoundingClientRect();
+    const offsetTop = Math.max(0, Math.round(cardRect.top - parentRect.top));
+    $host.css('top', `${offsetTop}px`);
+};
+const syncDashboardWidgetQuickRailVisibilityForType = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const $host = $(`.fv-dashboard-layout-inline-host[data-fv-dashboard-type="${resolvedType}"]`).first();
+    if (!$host.length) {
+        return;
+    }
+    const hostNode = $host.get(0);
+    const parentNode = hostNode && hostNode.parentElement ? hostNode.parentElement : null;
+    const shouldShow = !!parentNode
+        && isDashboardNodeVisible(parentNode)
+        && hasVisibleDashboardFolderCardsForType(resolvedType);
+    $host.toggleClass('is-hidden', !shouldShow);
+    if (shouldShow) {
+        syncDashboardWidgetQuickRailAlignmentForType(resolvedType);
+    }
+};
 const getDashboardFolderIdsForType = (type) => {
     const ids = [];
     getDashboardFolderCardsForType(type).each((_, node) => {
@@ -413,6 +483,8 @@ const syncDashboardWidgetLayoutQuickControlForType = (type) => {
         $resetControl.attr('title', `${widgetLabel}: Reset quick view state`);
         $resetControl.attr('aria-label', `${widgetLabel}: reset quick view state`);
     }
+
+    syncDashboardWidgetQuickRailVisibilityForType(resolvedType);
 };
 const saveDashboardLayoutPrefForType = async (type, prefsPayload) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
@@ -584,7 +656,9 @@ const ensureDashboardWidgetLayoutQuickSwitchForType = (type) => {
         $rail.data('fvQuickActionBound', true);
     }
 
+    bindDashboardWidgetVisibilityObserverForType(resolvedType);
     syncDashboardWidgetLayoutQuickControlForType(resolvedType);
+    scheduleDashboardWidgetVisibilitySyncForType(resolvedType, 0);
 };
 const getDashboardCard = (type, id) => {
     const meta = dashboardTypeMeta(type);
@@ -753,6 +827,55 @@ const scheduleDashboardLayoutApplyForType = (type) => {
     }
     dashboardLayoutRafByType[resolvedType] = window.setTimeout(runApply, 16);
 };
+const scheduleDashboardWidgetVisibilitySyncForType = (type, delayMs = 40) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const delay = Number.isFinite(Number(delayMs)) ? Math.max(0, Number(delayMs)) : 40;
+    if (dashboardWidgetVisibilitySyncTimerByType[resolvedType]) {
+        window.clearTimeout(dashboardWidgetVisibilitySyncTimerByType[resolvedType]);
+    }
+    dashboardWidgetVisibilitySyncTimerByType[resolvedType] = window.setTimeout(() => {
+        dashboardWidgetVisibilitySyncTimerByType[resolvedType] = 0;
+        syncDashboardWidgetQuickRailVisibilityForType(resolvedType);
+    }, delay);
+};
+const bindDashboardWidgetVisibilityObserverForType = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const $container = resolveDashboardWidgetInlineHostForType(resolvedType);
+    if (!$container.length || typeof MutationObserver !== 'function') {
+        return;
+    }
+    const containerNode = $container.get(0);
+    if (!containerNode) {
+        return;
+    }
+    if (dashboardWidgetVisibilityObserverByType[resolvedType]) {
+        dashboardWidgetVisibilityObserverByType[resolvedType].disconnect();
+        dashboardWidgetVisibilityObserverByType[resolvedType] = null;
+    }
+    const observer = new MutationObserver(() => {
+        scheduleDashboardWidgetVisibilitySyncForType(resolvedType, 30);
+    });
+    const nodesToObserve = [];
+    let current = containerNode;
+    for (let depth = 0; current && depth < 8; depth += 1) {
+        if (current instanceof Element) {
+            nodesToObserve.push(current);
+        }
+        current = current.parentElement;
+    }
+    for (const node of nodesToObserve) {
+        observer.observe(node, {
+            attributes: true,
+            attributeFilter: ['class', 'style', 'hidden', 'aria-hidden']
+        });
+    }
+    observer.observe(containerNode, {
+        childList: true,
+        subtree: true
+    });
+    dashboardWidgetVisibilityObserverByType[resolvedType] = observer;
+    scheduleDashboardWidgetVisibilitySyncForType(resolvedType, 0);
+};
 const bindDashboardQuickActionSyncHandlers = () => {
     if (dashboardQuickActionSyncBound) {
         return;
@@ -761,11 +884,21 @@ const bindDashboardQuickActionSyncHandlers = () => {
         const id = String(event?.currentTarget?.id || '').trim().toLowerCase();
         if (id === 'apps') {
             syncDashboardWidgetLayoutQuickControlForType('docker');
+            scheduleDashboardWidgetVisibilitySyncForType('docker', 0);
             return;
         }
         if (id === 'vms') {
             syncDashboardWidgetLayoutQuickControlForType('vm');
+            scheduleDashboardWidgetVisibilitySyncForType('vm', 0);
         }
+    });
+    $(document).on('click.fvplusdashboardquickcollapse', 'a.switch, .switch', () => {
+        scheduleDashboardWidgetVisibilitySyncForType('docker', 80);
+        scheduleDashboardWidgetVisibilitySyncForType('vm', 80);
+    });
+    $(window).on('resize.fvplusdashboardquick orientationchange.fvplusdashboardquick', () => {
+        scheduleDashboardWidgetVisibilitySyncForType('docker', 0);
+        scheduleDashboardWidgetVisibilitySyncForType('vm', 0);
     });
     dashboardQuickActionSyncBound = true;
 };
@@ -2921,6 +3054,14 @@ let dashboardQuickSwitchRetryTimerByType = {
     docker: 0,
     vm: 0
 };
+let dashboardWidgetVisibilityObserverByType = {
+    docker: null,
+    vm: null
+};
+let dashboardWidgetVisibilitySyncTimerByType = {
+    docker: 0,
+    vm: 0
+};
 let dashboardQuickActionSyncBound = false;
 let dashboardThemeReflowBound = false;
 let dashboardThemeReflowObserver = null;
@@ -2939,6 +3080,8 @@ const queueDashboardThemeReflow = (reason = 'theme-change') => {
         scheduleDashboardLayoutApplyForType('vm');
         syncDashboardWidgetLayoutQuickControlForType('docker');
         syncDashboardWidgetLayoutQuickControlForType('vm');
+        scheduleDashboardWidgetVisibilitySyncForType('docker', 0);
+        scheduleDashboardWidgetVisibilitySyncForType('vm', 0);
     }, 40);
 };
 

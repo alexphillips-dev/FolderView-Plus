@@ -252,6 +252,12 @@ test('normalizePrefs sanitizes dashboard layout preferences', () => {
         greyscale: true,
         folderLabel: false
     });
+    const matrix = utils.normalizePrefs({
+        dashboard: {
+            layout: 'compactmatrix'
+        }
+    });
+    assert.equal(matrix.dashboard.layout, 'compactmatrix');
     const fallback = utils.normalizePrefs({
         dashboard: {
             layout: 'invalid-value'

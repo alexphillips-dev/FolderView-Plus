@@ -150,12 +150,13 @@ const dashboardDebugLog = (...args) => {
         console.log(...args);
     }
 };
-const DASHBOARD_LAYOUT_MODES = ['classic', 'fullwidth', 'accordion', 'inset'];
+const DASHBOARD_LAYOUT_MODES = ['classic', 'fullwidth', 'accordion', 'inset', 'compactmatrix'];
 const DASHBOARD_LAYOUT_LABELS = Object.freeze({
     classic: 'Classic',
     fullwidth: 'Full Width',
     accordion: 'Accordion',
-    inset: 'Inset'
+    inset: 'Inset',
+    compactmatrix: 'Compact Matrix'
 });
 const normalizeDashboardLayoutMode = (value) => {
     const normalized = String(value || '').trim().toLowerCase();
@@ -714,7 +715,7 @@ const applyDashboardLayoutStateForType = (type) => {
     const layout = normalizeDashboardLayoutMode(dashboardPrefs.layout);
     const nonClassicLayout = layout !== 'classic';
     $tbody.attr('data-fv-dashboard-layout', layout);
-    $tbody.removeClass('fv-dashboard-layout-classic fv-dashboard-layout-fullwidth fv-dashboard-layout-accordion fv-dashboard-layout-inset');
+    $tbody.removeClass('fv-dashboard-layout-classic fv-dashboard-layout-fullwidth fv-dashboard-layout-accordion fv-dashboard-layout-inset fv-dashboard-layout-compactmatrix');
     $tbody.addClass(`fv-dashboard-layout-${layout}`);
     $tbody.toggleClass('fv-dashboard-show-expand-toggle', nonClassicLayout && dashboardPrefs.expandToggle === true);
     $tbody.toggleClass('fv-dashboard-greyscale-enabled', nonClassicLayout && dashboardPrefs.greyscale === true);

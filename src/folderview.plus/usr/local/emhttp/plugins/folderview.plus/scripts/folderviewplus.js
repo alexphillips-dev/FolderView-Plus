@@ -8805,7 +8805,7 @@ const normalizeDashboardPrefsForType = (type, prefsOverride = null) => {
         ? utils.normalizeDashboardLayout
         : ((value) => {
             const normalized = String(value || '').trim().toLowerCase();
-            return ['classic', 'fullwidth', 'accordion', 'inset'].includes(normalized) ? normalized : 'classic';
+            return ['classic', 'fullwidth', 'accordion', 'inset', 'compactmatrix'].includes(normalized) ? normalized : 'classic';
         });
     return {
         layout: normalizeLayout(dashboard.layout),
@@ -10534,7 +10534,7 @@ const changeDashboardPref = async (type, key, value) => {
             ? utils.normalizeDashboardLayout
             : ((layoutValue) => {
                 const normalized = String(layoutValue || '').trim().toLowerCase();
-                return ['classic', 'fullwidth', 'accordion', 'inset'].includes(normalized) ? normalized : 'classic';
+                return ['classic', 'fullwidth', 'accordion', 'inset', 'compactmatrix'].includes(normalized) ? normalized : 'classic';
             });
         nextDashboard.layout = normalizeLayout(value);
     } else if (key === 'expandToggle') {

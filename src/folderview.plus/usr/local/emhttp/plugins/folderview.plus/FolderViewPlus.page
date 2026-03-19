@@ -168,6 +168,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <option value="fullwidth">Fullwidth</option>
                             <option value="accordion">Accordion</option>
                             <option value="inset">Inset</option>
+                            <option value="compactmatrix">Compact Matrix</option>
                         </select>
                     </label>
                     <label id="docker-dashboard-expand-toggle-row" class="setting-toggle"><input id="docker-dashboard-expand-toggle" type="checkbox" onchange="changeDashboardPref('docker', 'expandToggle', this.checked)"> Show expand toggle</label>
@@ -363,6 +364,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <option value="fullwidth">Fullwidth</option>
                             <option value="accordion">Accordion</option>
                             <option value="inset">Inset</option>
+                            <option value="compactmatrix">Compact Matrix</option>
                         </select>
                     </label>
                     <label id="vm-dashboard-expand-toggle-row" class="setting-toggle"><input id="vm-dashboard-expand-toggle" type="checkbox" onchange="changeDashboardPref('vm', 'expandToggle', this.checked)"> Show expand toggle</label>

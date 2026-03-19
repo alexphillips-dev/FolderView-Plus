@@ -28,6 +28,10 @@ const folderScriptPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js'
 );
+const libPhpPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php'
+);
 
 const settingsPage = fs.readFileSync(settingsPagePath, 'utf8');
 const settingsScript = fs.readFileSync(settingsScriptPath, 'utf8');
@@ -35,9 +39,11 @@ const dashboardScript = fs.readFileSync(dashboardScriptPath, 'utf8');
 const dashboardCss = fs.readFileSync(dashboardCssPath, 'utf8');
 const folderPage = fs.readFileSync(folderPagePath, 'utf8');
 const folderScript = fs.readFileSync(folderScriptPath, 'utf8');
+const libPhp = fs.readFileSync(libPhpPath, 'utf8');
 
 test('settings exposes dashboard layout controls for docker and vm', () => {
     assert.match(settingsPage, /id="docker-dashboard-layout"/);
+    assert.match(settingsPage, /<option value="compactmatrix">Compact Matrix<\/option>/);
     assert.match(settingsPage, /id="docker-dashboard-expand-toggle"/);
     assert.match(settingsPage, /id="docker-dashboard-greyscale"/);
     assert.match(settingsPage, /id="docker-dashboard-folder-label"/);
@@ -51,6 +57,7 @@ test('settings exposes dashboard layout controls for docker and vm', () => {
 
 test('settings runtime persists dashboard prefs and exports handler', () => {
     assert.match(settingsScript, /const normalizeDashboardPrefsForType = \(type, prefsOverride = null\) =>/);
+    assert.match(settingsScript, /compactmatrix/);
     assert.match(settingsScript, /const renderDashboardControls = \(type\) =>/);
     assert.match(settingsScript, /const changeDashboardPref = async \(type, key, value\) =>/);
     assert.match(settingsScript, /dashboard:\s*\{\s*\.\.\.\(prefs\?\.dashboard \|\| \{\}\)/);
@@ -58,8 +65,13 @@ test('settings runtime persists dashboard prefs and exports handler', () => {
     assert.match(settingsScript, /window\.changeDashboardPref = changeDashboardPref;/);
 });
 
+test('server normalizes compact matrix dashboard layout', () => {
+    assert.match(libPhp, /function normalizeDashboardLayout\(\$value\): string/);
+    assert.match(libPhp, /\['classic', 'fullwidth', 'accordion', 'inset', 'compactmatrix'\]/);
+});
+
 test('dashboard runtime supports layout classes, accordion guards, and overflow metadata', () => {
-    assert.match(dashboardScript, /const DASHBOARD_LAYOUT_MODES = \['classic', 'fullwidth', 'accordion', 'inset'\]/);
+    assert.match(dashboardScript, /const DASHBOARD_LAYOUT_MODES = \['classic', 'fullwidth', 'accordion', 'inset', 'compactmatrix'\]/);
     assert.match(dashboardScript, /const ensureDashboardWidgetLayoutQuickSwitchForType = \(type\) =>/);
     assert.match(dashboardScript, /const resolveDashboardWidgetInlineHostForType = \(type\) =>/);
     assert.match(dashboardScript, /fv-dashboard-layout-inline-host/);
@@ -79,6 +91,7 @@ test('dashboard runtime supports layout classes, accordion guards, and overflow 
     assert.match(dashboardScript, /const openFolderViewPlusSettings = \(\) =>/);
     assert.match(dashboardScript, /fv-dashboard-health-emphasis-enabled/);
     assert.match(dashboardScript, /fv-dashboard-density-compact/);
+    assert.match(dashboardScript, /fv-dashboard-layout-compactmatrix/);
     assert.match(dashboardScript, /handleDashboardWidgetLayoutQuickSwitch/);
     assert.match(dashboardScript, /FolderViewPlusRequest/);
     assert.match(dashboardScript, /\/plugins\/folderview\.plus\/server\/prefs\.php/);
@@ -107,6 +120,7 @@ test('dashboard css includes non-classic controls and overflow rendering modes',
     assert.match(dashboardCss, /tbody\.fv-dashboard-layout-fullwidth/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-layout-accordion/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-layout-inset/);
+    assert.match(dashboardCss, /tbody\.fv-dashboard-layout-compactmatrix/);
     assert.match(dashboardCss, /data-fv-dashboard-overflow="scroll"/);
     assert.match(dashboardCss, /data-fv-dashboard-overflow="expand_row"/);
 });

@@ -1,0 +1,92 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+
+const repoRoot = path.resolve(process.cwd());
+const settingsPagePath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page'
+);
+const settingsScriptPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
+);
+const dashboardScriptPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js'
+);
+const dashboardCssPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/dashboard.css'
+);
+const folderPagePath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page'
+);
+const folderScriptPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js'
+);
+
+const settingsPage = fs.readFileSync(settingsPagePath, 'utf8');
+const settingsScript = fs.readFileSync(settingsScriptPath, 'utf8');
+const dashboardScript = fs.readFileSync(dashboardScriptPath, 'utf8');
+const dashboardCss = fs.readFileSync(dashboardCssPath, 'utf8');
+const folderPage = fs.readFileSync(folderPagePath, 'utf8');
+const folderScript = fs.readFileSync(folderScriptPath, 'utf8');
+
+test('settings exposes dashboard layout controls for docker and vm', () => {
+    assert.match(settingsPage, /id="docker-dashboard-layout"/);
+    assert.match(settingsPage, /id="docker-dashboard-expand-toggle"/);
+    assert.match(settingsPage, /id="docker-dashboard-greyscale"/);
+    assert.match(settingsPage, /id="docker-dashboard-folder-label"/);
+    assert.match(settingsPage, /id="vm-dashboard-layout"/);
+    assert.match(settingsPage, /id="vm-dashboard-expand-toggle"/);
+    assert.match(settingsPage, /id="vm-dashboard-greyscale"/);
+    assert.match(settingsPage, /id="vm-dashboard-folder-label"/);
+    assert.match(settingsPage, /changeDashboardPref\('docker', 'layout', this\.value\)/);
+    assert.match(settingsPage, /changeDashboardPref\('vm', 'layout', this\.value\)/);
+});
+
+test('settings runtime persists dashboard prefs and exports handler', () => {
+    assert.match(settingsScript, /const normalizeDashboardPrefsForType = \(type, prefsOverride = null\) =>/);
+    assert.match(settingsScript, /const renderDashboardControls = \(type\) =>/);
+    assert.match(settingsScript, /const changeDashboardPref = async \(type, key, value\) =>/);
+    assert.match(settingsScript, /dashboard:\s*\{\s*\.\.\.\(prefs\?\.dashboard \|\| \{\}\)/);
+    assert.match(settingsScript, /renderDashboardControls\(type\);/);
+    assert.match(settingsScript, /window\.changeDashboardPref = changeDashboardPref;/);
+});
+
+test('dashboard runtime supports layout classes, accordion guards, and overflow metadata', () => {
+    assert.match(dashboardScript, /const DASHBOARD_LAYOUT_MODES = \['classic', 'fullwidth', 'accordion', 'inset'\]/);
+    assert.match(dashboardScript, /const normalizeDashboardOverflowMode = \(value\) =>/);
+    assert.match(dashboardScript, /const applyDashboardLayoutStateForType = \(type\) =>/);
+    assert.match(dashboardScript, /const scheduleDashboardLayoutApplyForType = \(type\) =>/);
+    assert.match(dashboardScript, /if \(layout === 'accordion'\) \{/);
+    assert.match(dashboardScript, /data-fv-dashboard-overflow="\$\{overflowMode\}"/);
+    assert.match(dashboardScript, /class="fv-dashboard-expand-toggle-btn"/);
+    assert.match(dashboardScript, /scheduleDashboardLayoutApplyForType\('docker'\)/);
+    assert.match(dashboardScript, /scheduleDashboardLayoutApplyForType\('vm'\)/);
+});
+
+test('dashboard css includes non-classic controls and overflow rendering modes', () => {
+    assert.match(dashboardCss, /tbody\.fv-dashboard-show-expand-toggle/);
+    assert.match(dashboardCss, /tbody\.fv-dashboard-greyscale-enabled/);
+    assert.match(dashboardCss, /tbody\.fv-dashboard-hide-folder-label/);
+    assert.match(dashboardCss, /tbody\.fv-dashboard-layout-fullwidth/);
+    assert.match(dashboardCss, /tbody\.fv-dashboard-layout-accordion/);
+    assert.match(dashboardCss, /tbody\.fv-dashboard-layout-inset/);
+    assert.match(dashboardCss, /data-fv-dashboard-overflow="scroll"/);
+    assert.match(dashboardCss, /data-fv-dashboard-overflow="expand_row"/);
+});
+
+test('folder editor supports per-folder dashboard overflow mode', () => {
+    assert.match(folderPage, /name="dashboard_overflow"/);
+    assert.match(folderPage, /<option value="default">Default<\/option>/);
+    assert.match(folderPage, /<option value="expand_row">Expand row<\/option>/);
+    assert.match(folderPage, /<option value="scroll">Scrollable panel<\/option>/);
+    assert.match(folderScript, /const normalizeDashboardOverflowMode = \(value\) =>/);
+    assert.match(folderScript, /form\.dashboard_overflow\.value = normalizeDashboardOverflowMode\(currFolder\.settings\.dashboard_overflow\);/);
+    assert.match(folderScript, /dashboard_overflow: normalizeDashboardOverflowMode\(e\.dashboard_overflow\?\.value\)/);
+});

@@ -32,6 +32,12 @@ const utils = window.FolderViewPlusUtils || {
         performanceMode: false,
         lazyPreviewEnabled: false,
         lazyPreviewThreshold: 30,
+        dashboard: {
+            layout: 'classic',
+            expandToggle: true,
+            greyscale: false,
+            folderLabel: true
+        },
         health: {
             cardsEnabled: true,
             runtimeBadgeEnabled: false,
@@ -143,6 +149,132 @@ const dashboardDebugLog = (...args) => {
     if (DASHBOARD_DEBUG_MODE) {
         console.log(...args);
     }
+};
+const DASHBOARD_LAYOUT_MODES = ['classic', 'fullwidth', 'accordion', 'inset'];
+const normalizeDashboardLayoutMode = (value) => {
+    const normalized = String(value || '').trim().toLowerCase();
+    return DASHBOARD_LAYOUT_MODES.includes(normalized) ? normalized : 'classic';
+};
+const normalizeDashboardOverflowMode = (value) => {
+    const normalized = String(value || '').trim().toLowerCase();
+    return ['default', 'expand_row', 'scroll'].includes(normalized) ? normalized : 'default';
+};
+const normalizeDashboardPrefsForType = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const prefs = utils.normalizePrefs(folderTypePrefs?.[resolvedType] || {});
+    const dashboard = prefs?.dashboard && typeof prefs.dashboard === 'object'
+        ? prefs.dashboard
+        : {};
+    return {
+        layout: typeof utils.normalizeDashboardLayout === 'function'
+            ? utils.normalizeDashboardLayout(dashboard.layout)
+            : normalizeDashboardLayoutMode(dashboard.layout),
+        expandToggle: dashboard.expandToggle !== false,
+        greyscale: dashboard.greyscale === true,
+        folderLabel: dashboard.folderLabel !== false
+    };
+};
+const dashboardTypeMeta = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    return {
+        type: resolvedType,
+        tbodySelector: resolvedType === 'vm' ? 'tbody#vm_view' : 'tbody#docker_view',
+        outerSelector: resolvedType === 'vm' ? 'span.outer.vms.folder-vm' : 'span.outer.apps.folder-docker'
+    };
+};
+const getDashboardCard = (type, id) => {
+    const meta = dashboardTypeMeta(type);
+    return $(`${meta.tbodySelector} .folder-showcase-outer-${id}`).first();
+};
+const updateExpandToggleIcon = ($card, expanded) => {
+    if (!$card || !$card.length) {
+        return;
+    }
+    const icon = $card.find('.fv-dashboard-expand-toggle-btn i.fa').first();
+    if (!icon.length) {
+        return;
+    }
+    icon.toggleClass('fa-chevron-down', expanded !== true);
+    icon.toggleClass('fa-chevron-up', expanded === true);
+};
+const applyFolderDashboardCardSettings = (type, id, folder) => {
+    const $card = getDashboardCard(type, id);
+    if (!$card.length) {
+        return;
+    }
+    const overflowMode = normalizeDashboardOverflowMode(folder?.settings?.dashboard_overflow);
+    const isExpanded = $card.attr('expanded') === 'true';
+    $card.attr('data-fv-folder-id', String(id || '').trim());
+    $card.attr('data-fv-dashboard-overflow', overflowMode);
+    $card.toggleClass('fv-dashboard-overflow-scroll', overflowMode === 'scroll');
+    $card.toggleClass('fv-dashboard-overflow-expand-row', overflowMode === 'expand_row');
+    $card.toggleClass('fv-dashboard-card-expanded', isExpanded);
+    $card.toggleClass('fv-dashboard-card-collapsed', !isExpanded);
+    updateExpandToggleIcon($card, isExpanded);
+};
+const getGlobalFoldersForType = (type) => (type === 'vm' ? globalFolders?.vms : globalFolders?.docker);
+const setFolderExpandedState = (type, id, expanded) => {
+    const map = getGlobalFoldersForType(type);
+    if (map && map[id] && map[id].status) {
+        map[id].status.expanded = expanded === true;
+    }
+};
+const resolveFolderIdFromCard = ($card) => {
+    if (!$card || !$card.length) {
+        return '';
+    }
+    const fromAttr = String($card.attr('data-fv-folder-id') || '').trim();
+    if (fromAttr) {
+        return fromAttr;
+    }
+    const className = String($card.attr('class') || '');
+    const match = className.match(/folder-showcase-outer-([A-Za-z0-9._-]+)/);
+    return match ? String(match[1] || '').trim() : '';
+};
+const applyDashboardLayoutStateForType = (type) => {
+    const meta = dashboardTypeMeta(type);
+    const $tbody = $(meta.tbodySelector);
+    if (!$tbody.length) {
+        return;
+    }
+    const dashboardPrefs = normalizeDashboardPrefsForType(meta.type);
+    const layout = normalizeDashboardLayoutMode(dashboardPrefs.layout);
+    const nonClassicLayout = layout !== 'classic';
+    $tbody.attr('data-fv-dashboard-layout', layout);
+    $tbody.removeClass('fv-dashboard-layout-classic fv-dashboard-layout-fullwidth fv-dashboard-layout-accordion fv-dashboard-layout-inset');
+    $tbody.addClass(`fv-dashboard-layout-${layout}`);
+    $tbody.toggleClass('fv-dashboard-show-expand-toggle', nonClassicLayout && dashboardPrefs.expandToggle === true);
+    $tbody.toggleClass('fv-dashboard-greyscale-enabled', nonClassicLayout && dashboardPrefs.greyscale === true);
+    $tbody.toggleClass('fv-dashboard-hide-folder-label', nonClassicLayout && dashboardPrefs.folderLabel === false);
+    $tbody.find('.folder-showcase-outer').each((_, node) => {
+        const $card = $(node);
+        const isExpanded = $card.attr('expanded') === 'true';
+        $card.toggleClass('fv-dashboard-card-expanded', isExpanded);
+        $card.toggleClass('fv-dashboard-card-collapsed', !isExpanded);
+        updateExpandToggleIcon($card, isExpanded);
+    });
+};
+const scheduleDashboardLayoutApplyForType = (type) => {
+    const meta = dashboardTypeMeta(type);
+    const resolvedType = meta.type;
+    dashboardLayoutApplyTokenByType[resolvedType] = (dashboardLayoutApplyTokenByType[resolvedType] || 0) + 1;
+    const token = dashboardLayoutApplyTokenByType[resolvedType];
+    if (dashboardLayoutRafByType[resolvedType]) {
+        return;
+    }
+    const runApply = () => {
+        dashboardLayoutRafByType[resolvedType] = 0;
+        if (token !== dashboardLayoutApplyTokenByType[resolvedType]) {
+            scheduleDashboardLayoutApplyForType(resolvedType);
+            return;
+        }
+        applyDashboardLayoutStateForType(resolvedType);
+    };
+    if (typeof window.requestAnimationFrame === 'function') {
+        dashboardLayoutRafByType[resolvedType] = window.requestAnimationFrame(runApply);
+        return;
+    }
+    dashboardLayoutRafByType[resolvedType] = window.setTimeout(runApply, 16);
 };
 
 const getPrefsOrderedFolderMap = (folders, prefs) => {
@@ -649,7 +781,8 @@ const createFolders = async () => {
             $('tbody#docker_view > tr.updated > td > div > span.outer.stopped').css('display', 'none');
         }
 
-        
+        // Keep global map in sync before restoring expansion state.
+        globalFolders.docker = foldersDone;
     
         // Expand folders that are set to be expanded by default, this is here because is easier to work with all compressed folder when creating them
         for (const [id, value] of Object.entries(foldersDone)) {
@@ -667,6 +800,7 @@ const createFolders = async () => {
     
         // Assing the folder done to the global object
         globalFolders.docker = foldersDone;
+        scheduleDashboardLayoutApplyForType('docker');
         } finally {
             hideDashboardRuntimeLoadingRow('docker');
         }
@@ -843,6 +977,9 @@ const createFolders = async () => {
             $('tbody#vm_view > tr.updated > td > div > span.outer.stopped').css('display', 'none');
         }
 
+        // Keep global map in sync before restoring expansion state.
+        globalFolders.vms = foldersDone;
+
         // Expand folders that are set to be expanded by default, this is here because is easier to work with all compressed folder when creating them
         for (const [id, value] of Object.entries(foldersDone)) {
             if ((globalFolders.vms && globalFolders.vms[id].status.expanded) || value.settings.expand_dashboard) {
@@ -858,6 +995,7 @@ const createFolders = async () => {
         }}));
 
         globalFolders.vms = foldersDone;
+        scheduleDashboardLayoutApplyForType('vm');
         } finally {
             hideDashboardRuntimeLoadingRow('vm');
         }
@@ -865,6 +1003,8 @@ const createFolders = async () => {
 
     folderDebugMode  = false;
     applyDashboardRuntimePrefs();
+    scheduleDashboardLayoutApplyForType('docker');
+    scheduleDashboardLayoutApplyForType('vm');
 };
 
 /**
@@ -989,7 +1129,8 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
     // the HTML template for the folder
     const safeFolderIcon = sanitizeImageSrc(folder.icon);
     const safeFolderName = escapeHtml(folder.name);
-    const fld = `<div class="folder-showcase-outer-${id} folder-showcase-outer"><span class="outer solid apps stopped folder-docker" onclick='expandFolderDocker("${id}")'><span id="folder-id-${id}" class="hand docker folder-hand-docker"><img src="${safeFolderIcon}" class="img folder-img-docker" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"></span><span class="inner folder-inner-docker"><span class="folder-appname-docker">${safeFolderName}</span><br><i class="fa fa-square stopped folder-load-status-docker"></i><span class="state folder-state-docker">${$.i18n('stopped')}</span></span><div class="folder-storage"></div></span><div class="folder-showcase-${id} folder-showcase"></div></div>`;
+    const overflowMode = normalizeDashboardOverflowMode(folder?.settings?.dashboard_overflow);
+    const fld = `<div class="folder-showcase-outer-${id} folder-showcase-outer" data-fv-folder-id="${id}" data-fv-dashboard-overflow="${overflowMode}"><span class="outer solid apps stopped folder-docker" onclick='expandFolderDocker("${id}")'><span id="folder-id-${id}" class="hand docker folder-hand-docker"><img src="${safeFolderIcon}" class="img folder-img-docker" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"></span><span class="inner folder-inner-docker"><span class="folder-appname-docker">${safeFolderName}</span><br><i class="fa fa-square stopped folder-load-status-docker"></i><span class="state folder-state-docker">${$.i18n('stopped')}</span></span><button type="button" class="fv-dashboard-expand-toggle-btn" onclick='event.stopPropagation(); expandFolderDocker("${id}"); return false;' aria-label="Toggle folder members"><i class="fa fa-chevron-down" aria-hidden="true"></i></button><div class="folder-storage"></div></span><div class="folder-showcase-${id} folder-showcase"></div></div>`;
 
     // insertion at position of the folder
     if (appendToSelector) {
@@ -1006,6 +1147,7 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
     } else {
         $('tbody#docker_view > tr.updated > td').children().eq(position - 1).after($(fld));
     }
+    applyFolderDashboardCardSettings('docker', id, folder);
 
     // new folder is needed for not altering the old containers
     let newFolder = {};
@@ -1287,7 +1429,8 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
     // the HTML template for the folder
     const safeFolderIcon = sanitizeImageSrc(folder.icon);
     const safeFolderName = escapeHtml(folder.name);
-    const fld = `<div class="folder-showcase-outer-${id} folder-showcase-outer"><span class="outer solid vms stopped folder-vm" onclick='expandFolderVM("${id}")'><span id="folder-id-${id}" class="hand vm folder-hand-vm"><img src="${safeFolderIcon}" class="img folder-img-vm" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span><span class="inner folder-inner-vm"><span class="folder-appname-vm">${safeFolderName}</span><br><i class="fa fa-square stopped folder-load-status-vm"></i><span class="state folder-state-vm">${$.i18n('stopped')}</span></span><div class="folder-storage" style="display:none"></div></span><div class="folder-showcase-${id} folder-showcase"></div></div>`;
+    const overflowMode = normalizeDashboardOverflowMode(folder?.settings?.dashboard_overflow);
+    const fld = `<div class="folder-showcase-outer-${id} folder-showcase-outer" data-fv-folder-id="${id}" data-fv-dashboard-overflow="${overflowMode}"><span class="outer solid vms stopped folder-vm" onclick='expandFolderVM("${id}")'><span id="folder-id-${id}" class="hand vm folder-hand-vm"><img src="${safeFolderIcon}" class="img folder-img-vm" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span><span class="inner folder-inner-vm"><span class="folder-appname-vm">${safeFolderName}</span><br><i class="fa fa-square stopped folder-load-status-vm"></i><span class="state folder-state-vm">${$.i18n('stopped')}</span></span><button type="button" class="fv-dashboard-expand-toggle-btn" onclick='event.stopPropagation(); expandFolderVM("${id}"); return false;' aria-label="Toggle folder members"><i class="fa fa-chevron-down" aria-hidden="true"></i></button><div class="folder-storage" style="display:none"></div></span><div class="folder-showcase-${id} folder-showcase"></div></div>`;
 
     // insertion at position of the folder
     if (appendToSelector) {
@@ -1304,6 +1447,7 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
     } else {
         $('tbody#vm_view > tr.updated > td').children().eq(position - 1).after($(fld));
     }
+    applyFolderDashboardCardSettings('vm', id, folder);
 
     // new folder is needed for not altering the old containers
     let newFolder = {};
@@ -1444,57 +1588,90 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
  * Handle the dropdown expand button of folders
  * @param {string} id the id of the folder
  */
-const expandFolderDocker = (id) => {
-    folderEvents.dispatchEvent(new CustomEvent('docker-pre-folder-expansion', {detail: { id }}));
-    const card = $(`tbody#docker_view .folder-showcase-outer-${id}`).first();
-    const el = card.children('span.outer.apps.folder-docker').first();
+const toggleFolderExpansion = (type, id, options = {}) => {
+    const meta = dashboardTypeMeta(type);
+    const safeId = String(id || '').trim();
+    if (!safeId) {
+        return;
+    }
+    const forceExpanded = Object.prototype.hasOwnProperty.call(options || {}, 'forceExpanded')
+        ? options.forceExpanded === true
+        : null;
+    const suppressAccordion = options?.suppressAccordion === true;
+    const eventPrefix = meta.type === 'vm' ? 'vm' : 'docker';
+    folderEvents.dispatchEvent(new CustomEvent(`${eventPrefix}-pre-folder-expansion`, {detail: { id: safeId }}));
+    const card = getDashboardCard(meta.type, safeId);
+    const el = card.children(meta.outerSelector).first();
     if (!card.length || !el.length) {
         return;
     }
-    const state = el.attr('expanded') === "true";
+    const state = el.attr('expanded') === 'true';
+    const nextState = forceExpanded === null ? !state : forceExpanded;
     const storage = el.children('div.folder-storage').first();
-    const showcase = card.children(`div.folder-showcase-${id}`).first();
-    if (state) {
-        storage.append(showcase.children());
-        el.attr('expanded', 'false');
-    } else {
+    const showcase = card.children(`div.folder-showcase-${safeId}`).first();
+    if (!storage.length || !showcase.length) {
+        return;
+    }
+    const setExpandedAttrs = (expanded) => {
+        const nextExpanded = expanded === true;
+        el.attr('expanded', nextExpanded ? 'true' : 'false');
+        card.attr('expanded', nextExpanded ? 'true' : 'false');
+        if (nextExpanded) {
+            card.attr('data-fv-expanded-at', String(Date.now()));
+        } else {
+            card.removeAttr('data-fv-expanded-at');
+        }
+        setFolderExpandedState(meta.type, safeId, nextExpanded);
+        applyFolderDashboardCardSettings(meta.type, safeId, getGlobalFoldersForType(meta.type)?.[safeId]);
+    };
+
+    if (nextState && !state && !suppressAccordion) {
+        const layout = normalizeDashboardPrefsForType(meta.type).layout;
+        if (layout === 'accordion') {
+            $(`${meta.tbodySelector} .folder-showcase-outer[expanded="true"]`).each((_, node) => {
+                const $node = $(node);
+                const nodeId = resolveFolderIdFromCard($node);
+                if (!nodeId || nodeId === safeId) {
+                    return;
+                }
+                const nodeOuter = $node.children(meta.outerSelector).first();
+                const nodeStorage = nodeOuter.children('div.folder-storage').first();
+                const nodeShowcase = $node.children(`div.folder-showcase-${nodeId}`).first();
+                if (!nodeOuter.length || !nodeStorage.length || !nodeShowcase.length) {
+                    return;
+                }
+                nodeStorage.append(nodeShowcase.children());
+                nodeOuter.attr('expanded', 'false');
+                $node.attr('expanded', 'false').removeAttr('data-fv-expanded-at');
+                setFolderExpandedState(meta.type, nodeId, false);
+                applyFolderDashboardCardSettings(meta.type, nodeId, getGlobalFoldersForType(meta.type)?.[nodeId]);
+            });
+        }
+    }
+
+    if (nextState === state) {
+        setExpandedAttrs(nextState);
+        scheduleDashboardLayoutApplyForType(meta.type);
+        folderEvents.dispatchEvent(new CustomEvent(`${eventPrefix}-post-folder-expansion`, {detail: { id: safeId }}));
+        return;
+    }
+
+    if (nextState) {
         showcase.append(storage.children());
-        el.attr('expanded', 'true');
+    } else {
+        storage.append(showcase.children());
     }
-    card.attr('expanded', !state ? 'true' : 'false');
-    if(globalFolders.docker && globalFolders.docker[id]) {
-        globalFolders.docker[id].status.expanded = !state;
-    }
-    folderEvents.dispatchEvent(new CustomEvent('docker-post-folder-expansion', {detail: { id }}));
+    setExpandedAttrs(nextState);
+    scheduleDashboardLayoutApplyForType(meta.type);
+    folderEvents.dispatchEvent(new CustomEvent(`${eventPrefix}-post-folder-expansion`, {detail: { id: safeId }}));
 };
 
 /**
  * Handle the dropdown expand button of folders
  * @param {string} id the id of the folder
  */
-const expandFolderVM = (id) => {
-    folderEvents.dispatchEvent(new CustomEvent('vm-pre-folder-expansion', {detail: { id }}));
-    const card = $(`tbody#vm_view .folder-showcase-outer-${id}`).first();
-    const el = card.children('span.outer.vms.folder-vm').first();
-    if (!card.length || !el.length) {
-        return;
-    }
-    const state = el.attr('expanded') === "true";
-    const storage = el.children('div.folder-storage').first();
-    const showcase = card.children(`div.folder-showcase-${id}`).first();
-    if (state) {
-        storage.append(showcase.children());
-        el.attr('expanded', 'false');
-    } else {
-        showcase.append(storage.children());
-        el.attr('expanded', 'true');
-    }
-    card.attr('expanded', !state ? 'true' : 'false');
-    if(globalFolders.vms && globalFolders.vms[id]) {
-        globalFolders.vms[id].status.expanded = !state;
-    }
-    folderEvents.dispatchEvent(new CustomEvent('vm-post-folder-expansion', {detail: { id }}));
-};
+const expandFolderDocker = (id) => toggleFolderExpansion('docker', id);
+const expandFolderVM = (id) => toggleFolderExpansion('vm', id);
 
 // Keep expand handlers on window for inline onclick contracts in dashboard cards.
 window.expandFolderDocker = expandFolderDocker;
@@ -2214,6 +2391,14 @@ let lastDashboardStateSignatures = {
 const LOADLIST_REFRESH_DEBOUNCE_MS = 90;
 const LOADLIST_REFRESH_MIN_GAP_MS = 420;
 const PERFORMANCE_MODE_MIN_REFRESH_SECONDS = 20;
+let dashboardLayoutRafByType = {
+    docker: 0,
+    vm: 0
+};
+let dashboardLayoutApplyTokenByType = {
+    docker: 0,
+    vm: 0
+};
 
 const queueLoadlistRefresh = () => {
     if (queuedLoadlistTimer) {

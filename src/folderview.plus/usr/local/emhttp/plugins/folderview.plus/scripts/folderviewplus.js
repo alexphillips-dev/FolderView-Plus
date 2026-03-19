@@ -828,6 +828,7 @@ const INSTANT_PERSIST_ONCHANGE_TOKENS = Object.freeze(
             'changevisibilitypref(',
             'changestatuspref(',
             'changeruntimepref(',
+            'changedashboardpref(',
             'changehealthpref(',
             'changebackupschedulepref(',
             'changecolumnvisibility(',
@@ -3110,6 +3111,10 @@ const applyQuickProfileOverrides = (prefs, overrides = null) => {
         status: {
             ...(prefs?.status || {}),
             ...(source?.status || {})
+        },
+        dashboard: {
+            ...(prefs?.dashboard || {}),
+            ...(source?.dashboard || {})
         }
     });
     return normalized;
@@ -8791,11 +8796,47 @@ const renderBadgeToggles = (type) => {
     }
 };
 
+const normalizeDashboardPrefsForType = (type, prefsOverride = null) => {
+    const sourcePrefs = prefsOverride ? utils.normalizePrefs(prefsOverride) : utils.normalizePrefs(prefsByType[type]);
+    const dashboard = sourcePrefs?.dashboard && typeof sourcePrefs.dashboard === 'object'
+        ? sourcePrefs.dashboard
+        : {};
+    const normalizeLayout = typeof utils.normalizeDashboardLayout === 'function'
+        ? utils.normalizeDashboardLayout
+        : ((value) => {
+            const normalized = String(value || '').trim().toLowerCase();
+            return ['classic', 'fullwidth', 'accordion', 'inset'].includes(normalized) ? normalized : 'classic';
+        });
+    return {
+        layout: normalizeLayout(dashboard.layout),
+        expandToggle: dashboard.expandToggle !== false,
+        greyscale: dashboard.greyscale === true,
+        folderLabel: dashboard.folderLabel !== false
+    };
+};
+
+const syncDashboardDependentFields = (type) => {
+    const prefs = normalizeDashboardPrefsForType(type);
+    const showNonClassicControls = prefs.layout !== 'classic';
+    $(`#${type}-dashboard-expand-toggle-row`).toggleClass('is-hidden', !showNonClassicControls);
+    $(`#${type}-dashboard-greyscale-row`).toggleClass('is-hidden', !showNonClassicControls);
+    $(`#${type}-dashboard-folder-label-row`).toggleClass('is-hidden', !showNonClassicControls);
+};
+
 const syncRuntimeDependentFields = (type) => {
     const liveEnabled = $(`#${type}-live-refresh-enabled`).is(':checked');
     const lazyEnabled = $(`#${type}-lazy-preview-enabled`).is(':checked');
     $(`#${type}-live-refresh-seconds-row`).toggleClass('is-hidden', !liveEnabled);
     $(`#${type}-lazy-preview-threshold-row`).toggleClass('is-hidden', !lazyEnabled);
+};
+
+const renderDashboardControls = (type) => {
+    const dashboard = normalizeDashboardPrefsForType(type);
+    $(`#${type}-dashboard-layout`).val(dashboard.layout);
+    $(`#${type}-dashboard-expand-toggle`).prop('checked', dashboard.expandToggle === true);
+    $(`#${type}-dashboard-greyscale`).prop('checked', dashboard.greyscale === true);
+    $(`#${type}-dashboard-folder-label`).prop('checked', dashboard.folderLabel !== false);
+    syncDashboardDependentFields(type);
 };
 
 const renderRuntimeControls = (type) => {
@@ -9594,6 +9635,7 @@ const renderTable = (type) => {
     renderFolderSelectOptions(type);
     renderBadgeToggles(type);
     renderRuntimeControls(type);
+    renderDashboardControls(type);
     renderStatusControls(type);
     renderHealthControls(type);
     renderVisibilityControls(type);
@@ -10477,6 +10519,45 @@ const changeRuntimePref = async (type, key, value) => {
     } catch (error) {
         renderRuntimeControls(type);
         showError('Runtime preference save failed', error);
+    }
+};
+
+const changeDashboardPref = async (type, key, value) => {
+    const current = utils.normalizePrefs(prefsByType[type]);
+    const dashboard = normalizeDashboardPrefsForType(type, current);
+    const nextDashboard = {
+        ...dashboard
+    };
+
+    if (key === 'layout') {
+        const normalizeLayout = typeof utils.normalizeDashboardLayout === 'function'
+            ? utils.normalizeDashboardLayout
+            : ((layoutValue) => {
+                const normalized = String(layoutValue || '').trim().toLowerCase();
+                return ['classic', 'fullwidth', 'accordion', 'inset'].includes(normalized) ? normalized : 'classic';
+            });
+        nextDashboard.layout = normalizeLayout(value);
+    } else if (key === 'expandToggle') {
+        nextDashboard.expandToggle = value === true;
+    } else if (key === 'greyscale') {
+        nextDashboard.greyscale = value === true;
+    } else if (key === 'folderLabel') {
+        nextDashboard.folderLabel = value === true;
+    } else {
+        return;
+    }
+
+    const next = {
+        ...current,
+        dashboard: nextDashboard
+    };
+
+    try {
+        prefsByType[type] = await postPrefs(type, next);
+        renderDashboardControls(type);
+    } catch (error) {
+        renderDashboardControls(type);
+        showError('Dashboard preference save failed', error);
     }
 };
 
@@ -12178,6 +12259,7 @@ window.changeBadgePref = changeBadgePref;
 window.changeVisibilityPref = changeVisibilityPref;
 window.changeStatusPref = changeStatusPref;
 window.changeRuntimePref = changeRuntimePref;
+window.changeDashboardPref = changeDashboardPref;
 window.changeHealthPref = changeHealthPref;
 window.changeBackupSchedulePref = changeBackupSchedulePref;
 window.setFilterQuery = setFilterQuery;

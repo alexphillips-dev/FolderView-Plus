@@ -43,6 +43,99 @@
     margin-top: 8px;
 }
 
+.folder-showcase-outer > span.outer {
+    position: relative;
+}
+
+.fv-dashboard-expand-toggle-btn {
+    display: none;
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    width: 20px;
+    height: 20px;
+    transform: translateY(-50%);
+    border: 1px solid rgba(240, 163, 10, 0.55);
+    border-radius: 6px;
+    background: rgba(10, 16, 26, 0.88);
+    color: var(--orange, #f0a30a);
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    padding: 0;
+    z-index: 2;
+}
+
+.fv-dashboard-expand-toggle-btn:hover,
+.fv-dashboard-expand-toggle-btn:focus {
+    background: rgba(240, 163, 10, 0.18);
+    color: #ffbe5c;
+    text-decoration: none;
+}
+
+tbody.fv-dashboard-show-expand-toggle .folder-showcase-outer > span.outer > .fv-dashboard-expand-toggle-btn {
+    display: inline-flex;
+}
+
+tbody.fv-dashboard-show-expand-toggle .folder-showcase-outer > span.outer > span.inner {
+    padding-right: 32px;
+}
+
+tbody.fv-dashboard-hide-folder-label .folder-showcase-outer > span.outer .folder-appname-docker,
+tbody.fv-dashboard-hide-folder-label .folder-showcase-outer > span.outer .folder-appname-vm {
+    display: none;
+}
+
+tbody.fv-dashboard-hide-folder-label .folder-showcase-outer > span.outer .folder-inner-docker > br,
+tbody.fv-dashboard-hide-folder-label .folder-showcase-outer > span.outer .folder-inner-vm > br {
+    display: none;
+}
+
+tbody.fv-dashboard-greyscale-enabled .folder-showcase-outer.fv-dashboard-card-collapsed > span.outer .img {
+    filter: grayscale(1);
+    opacity: 0.72;
+}
+
+tbody.fv-dashboard-layout-fullwidth .folder-showcase-outer[expanded="true"] > .folder-showcase {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+tbody.fv-dashboard-layout-accordion .folder-showcase-outer {
+    margin-bottom: 10px;
+}
+
+tbody.fv-dashboard-layout-accordion .folder-showcase-outer > span.outer {
+    border-radius: 8px;
+}
+
+tbody.fv-dashboard-layout-accordion .folder-showcase-outer[expanded="true"] > span.outer {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+tbody.fv-dashboard-layout-accordion .folder-showcase-outer > .folder-showcase {
+    margin-top: 0;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+tbody.fv-dashboard-layout-inset .folder-showcase-outer {
+    padding-left: 8px;
+    border-left: 2px solid rgba(224, 230, 239, 0.16);
+}
+
+.folder-showcase-outer[data-fv-dashboard-overflow="scroll"][expanded="true"] > .folder-showcase {
+    max-height: 420px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.folder-showcase-outer[data-fv-dashboard-overflow="expand_row"][expanded="true"] > .folder-showcase {
+    max-height: none;
+    overflow: visible;
+}
+
 .folder-showcase .fv-dashboard-member-actions {
     display: inline-flex;
     align-items: center;

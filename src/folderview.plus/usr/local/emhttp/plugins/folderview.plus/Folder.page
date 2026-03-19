@@ -735,6 +735,23 @@ emitRequestTokenMetaTag();
         </div>
         <div class="basic">
             <dl>
+                <dt>Dashboard overflow mode:</dt>
+                <dd>
+                    <select name="dashboard_overflow">
+                        <option value="default">Default</option>
+                        <option value="expand_row">Expand row</option>
+                        <option value="scroll">Scrollable panel</option>
+                    </select>
+                </dd>
+            </dl>
+            <blockquote class="inline_help">
+                <p>
+                    Controls how expanded dashboard members are shown for this folder.
+                </p>
+            </blockquote>
+        </div>
+        <div class="basic">
+            <dl>
                 <dt data-i18n="regex">Regex:</dt>
                 <dd>
                     <input type="text" name="regex" oninput="updateRegex(this)" value="">

@@ -2987,6 +2987,13 @@ const parseOptionalThresholdInput = (value) => {
     return Math.min(100, Math.max(0, Math.round(parsed)));
 };
 
+const normalizeDashboardOverflowMode = (value) => {
+    const normalized = String(value || '').trim().toLowerCase();
+    return ['default', 'expand_row', 'scroll'].includes(normalized)
+        ? normalized
+        : 'default';
+};
+
 const validateHealthWarnThreshold = () => {
     const form = getForm();
     const input = form.health_warn_stopped_percent;
@@ -3762,6 +3769,7 @@ const applySectionTags = () => {
     markSection('div.basic:has([name="default_action"])', 'advanced');
     markSection('div.basic:has([name="expand_tab"])', 'advanced');
     markSection('div.basic:has([name="expand_dashboard"])', 'advanced');
+    markSection('div.basic:has([name="dashboard_overflow"])', 'advanced');
 
     markAdvanced('ul:has([name="folder_webui_url"])');
     markAdvanced('ul:has([name="preview_hover"])');
@@ -3776,6 +3784,7 @@ const applySectionTags = () => {
     markAdvanced('div.basic:has([name="default_action"])');
     markAdvanced('div.basic:has([name="expand_tab"])');
     markAdvanced('div.basic:has([name="expand_dashboard"])');
+    markAdvanced('div.basic:has([name="dashboard_overflow"])');
     markAdvanced('div.basic.custom-action-wrapper-parent');
     markAdvanced('div.basic:has(a.custom-action)');
 };
@@ -4010,6 +4019,7 @@ resetStatusColorDefaults();
         form.expand_tab.checked = currFolder.settings.expand_tab;
         form.override_default_actions.checked = currFolder.settings.override_default_actions;
         form.expand_dashboard.checked = currFolder.settings.expand_dashboard;
+        form.dashboard_overflow.value = normalizeDashboardOverflowMode(currFolder.settings.dashboard_overflow);
         form.regex.value = currFolder.regex;
         for (const ct of currFolder.containers) {
             const index = choose.findIndex((e) => e.Name === ct);
@@ -4313,6 +4323,7 @@ const submitForm = async (e, saveAsCopy = false) => {
             expand_tab: e.expand_tab.checked,
             override_default_actions: e.override_default_actions.checked,
             expand_dashboard: e.expand_dashboard.checked,
+            dashboard_overflow: normalizeDashboardOverflowMode(e.dashboard_overflow?.value),
         },
         regex: e.regex.value.toString(),
         containers: [...$('input[name*="containers"]:checked').map((i, e) => $(e).val())],

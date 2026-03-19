@@ -227,6 +227,39 @@ test('orderFoldersByPrefs supports manual and alpha sort modes', () => {
     assert.deepEqual(Object.keys(alpha), ['a', 'b', 'z']);
 });
 
+test('normalizePrefs provides dashboard defaults', () => {
+    const prefs = utils.normalizePrefs({});
+    assert.deepEqual(prefs.dashboard, {
+        layout: 'classic',
+        expandToggle: true,
+        greyscale: false,
+        folderLabel: true
+    });
+});
+
+test('normalizePrefs sanitizes dashboard layout preferences', () => {
+    const prefs = utils.normalizePrefs({
+        dashboard: {
+            layout: 'accordion',
+            expandToggle: false,
+            greyscale: true,
+            folderLabel: false
+        }
+    });
+    assert.deepEqual(prefs.dashboard, {
+        layout: 'accordion',
+        expandToggle: false,
+        greyscale: true,
+        folderLabel: false
+    });
+    const fallback = utils.normalizePrefs({
+        dashboard: {
+            layout: 'invalid-value'
+        }
+    });
+    assert.equal(fallback.dashboard.layout, 'classic');
+});
+
 test('orderFoldersByPrefs keeps child folders nested after parent in sorted output', () => {
     const folders = {
         rootA: { name: 'Zulu Root' },

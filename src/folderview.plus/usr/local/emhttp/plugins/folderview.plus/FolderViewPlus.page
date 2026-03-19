@@ -160,6 +160,22 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <div class="setting-help">Use performance mode + lazy previews for larger libraries to reduce render overhead.</div>
                 </div>
                 <div class="settings-mini-card">
+                    <div class="settings-mini-title">Dashboard</div>
+                    <label class="setting-select" for="docker-dashboard-layout">
+                        <span>Layout mode</span>
+                        <select id="docker-dashboard-layout" onchange="changeDashboardPref('docker', 'layout', this.value)">
+                            <option value="classic">Classic</option>
+                            <option value="fullwidth">Fullwidth</option>
+                            <option value="accordion">Accordion</option>
+                            <option value="inset">Inset</option>
+                        </select>
+                    </label>
+                    <label id="docker-dashboard-expand-toggle-row" class="setting-toggle"><input id="docker-dashboard-expand-toggle" type="checkbox" onchange="changeDashboardPref('docker', 'expandToggle', this.checked)"> Show expand toggle</label>
+                    <label id="docker-dashboard-greyscale-row" class="setting-toggle"><input id="docker-dashboard-greyscale" type="checkbox" onchange="changeDashboardPref('docker', 'greyscale', this.checked)"> Dim collapsed cards</label>
+                    <label id="docker-dashboard-folder-label-row" class="setting-toggle"><input id="docker-dashboard-folder-label" type="checkbox" onchange="changeDashboardPref('docker', 'folderLabel', this.checked)"> Show folder label</label>
+                    <div class="setting-help">Non-classic layouts can show a compact toggle, optional dimming, and label visibility controls.</div>
+                </div>
+                <div class="settings-mini-card">
                     <div class="settings-mini-title">Health cards</div>
                     <label class="setting-toggle"><input id="docker-health-cards-enabled" type="checkbox" onchange="changeHealthPref('docker', 'cardsEnabled', this.checked)"> Show health cards</label>
                     <label class="setting-toggle"><input id="docker-health-runtime-badge-enabled" type="checkbox" onchange="changeHealthPref('docker', 'runtimeBadgeEnabled', this.checked)"> Runtime summary badge</label>
@@ -337,6 +353,22 @@ if (!empty($fvplusRuntimeConflicts)) {
                         <input id="vm-lazy-preview-threshold" type="number" min="10" max="200" step="1" onchange="changeRuntimePref('vm', 'lazyPreviewThreshold', this.value)">
                     </label>
                     <div class="setting-help">Use performance mode + lazy previews for larger libraries to reduce render overhead.</div>
+                </div>
+                <div class="settings-mini-card">
+                    <div class="settings-mini-title">Dashboard</div>
+                    <label class="setting-select" for="vm-dashboard-layout">
+                        <span>Layout mode</span>
+                        <select id="vm-dashboard-layout" onchange="changeDashboardPref('vm', 'layout', this.value)">
+                            <option value="classic">Classic</option>
+                            <option value="fullwidth">Fullwidth</option>
+                            <option value="accordion">Accordion</option>
+                            <option value="inset">Inset</option>
+                        </select>
+                    </label>
+                    <label id="vm-dashboard-expand-toggle-row" class="setting-toggle"><input id="vm-dashboard-expand-toggle" type="checkbox" onchange="changeDashboardPref('vm', 'expandToggle', this.checked)"> Show expand toggle</label>
+                    <label id="vm-dashboard-greyscale-row" class="setting-toggle"><input id="vm-dashboard-greyscale" type="checkbox" onchange="changeDashboardPref('vm', 'greyscale', this.checked)"> Dim collapsed cards</label>
+                    <label id="vm-dashboard-folder-label-row" class="setting-toggle"><input id="vm-dashboard-folder-label" type="checkbox" onchange="changeDashboardPref('vm', 'folderLabel', this.checked)"> Show folder label</label>
+                    <div class="setting-help">Non-classic layouts can show a compact toggle, optional dimming, and label visibility controls.</div>
                 </div>
                 <div class="settings-mini-card">
                     <div class="settings-mini-title">Health cards</div>

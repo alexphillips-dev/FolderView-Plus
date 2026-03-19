@@ -46,6 +46,12 @@
         attentionAccent: true,
         warnStoppedPercent: 60
     };
+    const DEFAULT_DASHBOARD_PREFS = {
+        layout: 'classic',
+        expandToggle: true,
+        greyscale: false,
+        folderLabel: true
+    };
     const RUNTIME_ACTIONS_BY_TYPE = {
         docker: ['start', 'stop', 'pause', 'resume'],
         vm: ['start', 'stop', 'pause', 'resume']
@@ -175,6 +181,13 @@
     const normalizeAppColumnWidth = (value) => {
         const normalized = String(value || '').trim().toLowerCase();
         return APP_COLUMN_WIDTH_OPTIONS.includes(normalized) ? normalized : 'standard';
+    };
+
+    const normalizeDashboardLayout = (value) => {
+        const normalized = String(value || '').trim().toLowerCase();
+        return ['classic', 'fullwidth', 'accordion', 'inset'].includes(normalized)
+            ? normalized
+            : DEFAULT_DASHBOARD_PREFS.layout;
     };
 
     const normalizeFolderMembers = (value) => {
@@ -395,6 +408,17 @@
         const performanceMode = runtimePrefsReady ? incoming.performanceMode === true : false;
         const lazyPreviewEnabled = runtimePrefsReady ? incoming.lazyPreviewEnabled === true : false;
         const lazyPreviewThreshold = clampNumber(incoming.lazyPreviewThreshold, 10, 200, 30);
+        const incomingDashboard = isPlainObject(incoming.dashboard) ? incoming.dashboard : {};
+        const dashboard = {
+            layout: normalizeDashboardLayout(incomingDashboard.layout),
+            expandToggle: !Object.prototype.hasOwnProperty.call(incomingDashboard, 'expandToggle')
+                ? DEFAULT_DASHBOARD_PREFS.expandToggle
+                : incomingDashboard.expandToggle !== false,
+            greyscale: incomingDashboard.greyscale === true,
+            folderLabel: !Object.prototype.hasOwnProperty.call(incomingDashboard, 'folderLabel')
+                ? DEFAULT_DASHBOARD_PREFS.folderLabel
+                : incomingDashboard.folderLabel !== false
+        };
         const incomingHealth = isPlainObject(incoming.health) ? incoming.health : {};
         const health = {
             cardsEnabled: !Object.prototype.hasOwnProperty.call(incomingHealth, 'cardsEnabled')
@@ -494,6 +518,7 @@
             performanceMode,
             lazyPreviewEnabled,
             lazyPreviewThreshold,
+            dashboard,
             health,
             status,
             backupSchedule,
@@ -1688,9 +1713,11 @@
         RUNTIME_PREFS_SCHEMA,
         DEFAULT_FOLDER_STATUS_COLORS,
         DEFAULT_HEALTH_PREFS,
+        DEFAULT_DASHBOARD_PREFS,
         bindEventOnce,
         normalizeFolderMap,
         normalizeAppColumnWidth,
+        normalizeDashboardLayout,
         normalizePrefs,
         orderFoldersByPrefs,
         getFolderStatusColors,

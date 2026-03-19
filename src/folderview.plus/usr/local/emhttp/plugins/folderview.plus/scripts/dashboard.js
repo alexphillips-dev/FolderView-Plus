@@ -188,6 +188,7 @@ const dashboardTypeMeta = (type) => {
         outerSelector: resolvedType === 'vm' ? 'span.outer.vms.folder-vm' : 'span.outer.apps.folder-docker'
     };
 };
+const resolveDashboardQuickSwitchScopeKey = (type) => (type === 'vm' ? 'vm' : 'docker');
 const resolveDashboardWidgetPanelForType = (type) => {
     const meta = dashboardTypeMeta(type);
     const $tbody = $(meta.tbodySelector).first();
@@ -222,17 +223,58 @@ const resolveDashboardWidgetHeaderForType = (type) => {
     }
     return $tbody.closest('table').prevAll('.panel-heading, .widget-header, .heading, header').first();
 };
-const resolveDashboardWidgetGearAnchorForType = (type) => {
-    const $header = resolveDashboardWidgetHeaderForType(type);
-    if (!$header.length) {
+const resolveDashboardWidgetHeaderActionAnchorForType = (type) => {
+    const resolvedType = resolveDashboardQuickSwitchScopeKey(type);
+    const $header = resolveDashboardWidgetHeaderForType(resolvedType);
+    const findAnchorInScope = ($scope) => {
+        if (!$scope || !$scope.length) {
+            return $();
+        }
+        const $gear = $scope.find('.fa-cog, .fa-gear, .icon-cog, .icon-gear, .icon-settings').first();
+        if ($gear.length) {
+            const $anchor = $gear.closest('a, button, span, i');
+            return $anchor.length ? $anchor.first() : $gear.first();
+        }
+        const $settingsAnchor = $scope
+            .find('a[title*="setting" i], button[title*="setting" i], [aria-label*="setting" i], a[href*="Settings"]')
+            .first();
+        if ($settingsAnchor.length) {
+            return $settingsAnchor.first();
+        }
         return $();
+    };
+
+    const $headerAnchor = findAnchorInScope($header);
+    if ($headerAnchor.length) {
+        return $headerAnchor;
     }
-    const $gearIcon = $header.find('.fa-cog, .fa-gear').first();
-    if (!$gearIcon.length) {
-        return $();
+
+    let $globalAnchor = $();
+    $('.fa-cog, .fa-gear, .icon-cog, .icon-gear, .icon-settings').each((_, node) => {
+        const $node = $(node);
+        const $scope = $node.closest('.panel-heading, .widget-header, .heading, header, .panel, .widget').first();
+        const scopeText = String($scope.text() || '').toLowerCase();
+        const matchesType = resolvedType === 'vm'
+            ? (scopeText.includes('vm') || scopeText.includes('virtual'))
+            : (scopeText.includes('docker') || scopeText.includes('container'));
+        if (!matchesType) {
+            return;
+        }
+        const $anchor = $node.closest('a, button, span, i');
+        $globalAnchor = $anchor.length ? $anchor.first() : $node.first();
+        return false;
+    });
+    if ($globalAnchor.length) {
+        return $globalAnchor;
     }
-    const $anchor = $gearIcon.closest('a, button, span, i');
-    return $anchor.length ? $anchor.first() : $gearIcon.first();
+
+    if ($header.length) {
+        const $fallbackAnchor = $header.find('a, button, [role="button"], span').last();
+        if ($fallbackAnchor.length) {
+            return $fallbackAnchor.first();
+        }
+    }
+    return $();
 };
 const syncDashboardWidgetLayoutQuickSwitchValue = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
@@ -313,10 +355,8 @@ const handleDashboardWidgetLayoutQuickSwitch = async (type, value) => {
 };
 const ensureDashboardWidgetLayoutQuickSwitchForType = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const $gearAnchor = resolveDashboardWidgetGearAnchorForType(resolvedType);
-    if (!$gearAnchor.length) {
-        return;
-    }
+    const $header = resolveDashboardWidgetHeaderForType(resolvedType);
+    const $anchor = resolveDashboardWidgetHeaderActionAnchorForType(resolvedType);
     const widgetLabel = resolvedType === 'vm' ? 'VM' : 'Docker';
     const switchSelector = `.fv-dashboard-layout-quick[data-fv-dashboard-type="${resolvedType}"]`;
     let $switch = $(switchSelector).first();
@@ -326,6 +366,7 @@ const ensureDashboardWidgetLayoutQuickSwitchForType = (type) => {
             .join('');
         $switch = $(
             `<label class="fv-dashboard-layout-quick" data-fv-dashboard-type="${resolvedType}" title="${widgetLabel} folder layout view">` +
+                '<span class="fv-dashboard-layout-quick-glyph" aria-hidden="true"><i class="fa fa-columns"></i></span>' +
                 '<span class="fv-dashboard-layout-quick-label">View</span>' +
                 `<select class="fv-dashboard-layout-quick-select" aria-label="${widgetLabel} folder layout view">${optionsHtml}</select>` +
             '</label>'
@@ -334,7 +375,20 @@ const ensureDashboardWidgetLayoutQuickSwitchForType = (type) => {
             void handleDashboardWidgetLayoutQuickSwitch(resolvedType, $(event.currentTarget).val());
         });
     }
-    $gearAnchor.before($switch);
+    if ($anchor.length) {
+        $anchor.before($switch);
+    } else if ($header.length) {
+        $header.append($switch);
+    } else {
+        if (dashboardQuickSwitchRetryTimerByType[resolvedType]) {
+            return;
+        }
+        dashboardQuickSwitchRetryTimerByType[resolvedType] = window.setTimeout(() => {
+            dashboardQuickSwitchRetryTimerByType[resolvedType] = 0;
+            ensureDashboardWidgetLayoutQuickSwitchForType(resolvedType);
+        }, 320);
+        return;
+    }
     syncDashboardWidgetLayoutQuickSwitchValue(resolvedType);
 };
 const getDashboardCard = (type, id) => {
@@ -372,6 +426,76 @@ const setFolderExpandedState = (type, id, expanded) => {
     const map = getGlobalFoldersForType(type);
     if (map && map[id] && map[id].status) {
         map[id].status.expanded = expanded === true;
+    }
+};
+const DASHBOARD_EXPANDED_STATE_STORAGE_KEYS = Object.freeze({
+    docker: 'fvplus.runtime.expand.dashboard.docker.v1',
+    vm: 'fvplus.runtime.expand.dashboard.vm.v1'
+});
+const normalizeExpandedStateMap = (value) => {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+        return {};
+    }
+    const next = {};
+    for (const [rawId, expanded] of Object.entries(value)) {
+        const id = String(rawId || '').trim();
+        if (!id) {
+            continue;
+        }
+        next[id] = expanded === true;
+    }
+    return next;
+};
+const readDashboardExpandedStateMap = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const storageKey = DASHBOARD_EXPANDED_STATE_STORAGE_KEYS[resolvedType];
+    if (!storageKey) {
+        return {};
+    }
+    try {
+        const raw = window.localStorage && window.localStorage.getItem(storageKey);
+        if (!raw) {
+            return {};
+        }
+        return normalizeExpandedStateMap(JSON.parse(raw));
+    } catch (_error) {
+        return {};
+    }
+};
+const writeDashboardExpandedStateMap = (type, map) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const storageKey = DASHBOARD_EXPANDED_STATE_STORAGE_KEYS[resolvedType];
+    if (!storageKey) {
+        return;
+    }
+    try {
+        if (window.localStorage) {
+            window.localStorage.setItem(storageKey, JSON.stringify(normalizeExpandedStateMap(map)));
+        }
+    } catch (_error) {
+        // Ignore localStorage failures so dashboard rendering remains stable.
+    }
+};
+const applyDashboardExpandedStateChanges = (type, changes) => {
+    if (!changes || typeof changes !== 'object') {
+        return;
+    }
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const current = readDashboardExpandedStateMap(resolvedType);
+    let dirty = false;
+    for (const [rawId, expanded] of Object.entries(changes)) {
+        const id = String(rawId || '').trim();
+        if (!id) {
+            continue;
+        }
+        const nextValue = expanded === true;
+        if (current[id] !== nextValue) {
+            current[id] = nextValue;
+            dirty = true;
+        }
+    }
+    if (dirty) {
+        writeDashboardExpandedStateMap(resolvedType, current);
     }
 };
 const resolveFolderIdFromCard = ($card) => {
@@ -940,11 +1064,15 @@ const createFolders = async () => {
         // Keep global map in sync before restoring expansion state.
         globalFolders.docker = foldersDone;
     
-        // Expand folders that are set to be expanded by default, this is here because is easier to work with all compressed folder when creating them
+        const dockerExpandedStateMap = readDashboardExpandedStateMap('docker');
+        // Restore dashboard expansion memory (falls back to per-folder expand default).
         for (const [id, value] of Object.entries(foldersDone)) {
-            if ((globalFolders.docker && globalFolders.docker[id].status.expanded) || value.settings.expand_dashboard) {
-                value.status.expanded = true;
-                expandFolderDocker(id);
+            const shouldExpand = Object.prototype.hasOwnProperty.call(dockerExpandedStateMap, id)
+                ? dockerExpandedStateMap[id] === true
+                : value.settings.expand_dashboard === true;
+            value.status.expanded = shouldExpand === true;
+            if (shouldExpand) {
+                expandFolderDocker(id, { persistExpandedState: false });
             }
         }
 
@@ -1136,11 +1264,15 @@ const createFolders = async () => {
         // Keep global map in sync before restoring expansion state.
         globalFolders.vms = foldersDone;
 
-        // Expand folders that are set to be expanded by default, this is here because is easier to work with all compressed folder when creating them
+        const vmExpandedStateMap = readDashboardExpandedStateMap('vm');
+        // Restore dashboard expansion memory (falls back to per-folder expand default).
         for (const [id, value] of Object.entries(foldersDone)) {
-            if ((globalFolders.vms && globalFolders.vms[id].status.expanded) || value.settings.expand_dashboard) {
-                value.status.expanded = true;
-                expandFolderVM(id);
+            const shouldExpand = Object.prototype.hasOwnProperty.call(vmExpandedStateMap, id)
+                ? vmExpandedStateMap[id] === true
+                : value.settings.expand_dashboard === true;
+            value.status.expanded = shouldExpand === true;
+            if (shouldExpand) {
+                expandFolderVM(id, { persistExpandedState: false });
             }
         }
 
@@ -1750,6 +1882,8 @@ const toggleFolderExpansion = (type, id, options = {}) => {
     if (!safeId) {
         return;
     }
+    const persistExpandedState = options?.persistExpandedState !== false;
+    const expandedStateChanges = {};
     const forceExpanded = Object.prototype.hasOwnProperty.call(options || {}, 'forceExpanded')
         ? options.forceExpanded === true
         : null;
@@ -1800,6 +1934,9 @@ const toggleFolderExpansion = (type, id, options = {}) => {
                 nodeOuter.attr('expanded', 'false');
                 $node.attr('expanded', 'false').removeAttr('data-fv-expanded-at');
                 setFolderExpandedState(meta.type, nodeId, false);
+                if (persistExpandedState) {
+                    expandedStateChanges[nodeId] = false;
+                }
                 applyFolderDashboardCardSettings(meta.type, nodeId, getGlobalFoldersForType(meta.type)?.[nodeId]);
             });
         }
@@ -1807,6 +1944,10 @@ const toggleFolderExpansion = (type, id, options = {}) => {
 
     if (nextState === state) {
         setExpandedAttrs(nextState);
+        if (persistExpandedState) {
+            expandedStateChanges[safeId] = nextState;
+            applyDashboardExpandedStateChanges(meta.type, expandedStateChanges);
+        }
         scheduleDashboardLayoutApplyForType(meta.type);
         folderEvents.dispatchEvent(new CustomEvent(`${eventPrefix}-post-folder-expansion`, {detail: { id: safeId }}));
         return;
@@ -1818,6 +1959,10 @@ const toggleFolderExpansion = (type, id, options = {}) => {
         storage.append(showcase.children());
     }
     setExpandedAttrs(nextState);
+    if (persistExpandedState) {
+        expandedStateChanges[safeId] = nextState;
+        applyDashboardExpandedStateChanges(meta.type, expandedStateChanges);
+    }
     scheduleDashboardLayoutApplyForType(meta.type);
     folderEvents.dispatchEvent(new CustomEvent(`${eventPrefix}-post-folder-expansion`, {detail: { id: safeId }}));
 };
@@ -1826,8 +1971,8 @@ const toggleFolderExpansion = (type, id, options = {}) => {
  * Handle the dropdown expand button of folders
  * @param {string} id the id of the folder
  */
-const expandFolderDocker = (id) => toggleFolderExpansion('docker', id);
-const expandFolderVM = (id) => toggleFolderExpansion('vm', id);
+const expandFolderDocker = (id, options = {}) => toggleFolderExpansion('docker', id, options);
+const expandFolderVM = (id, options = {}) => toggleFolderExpansion('vm', id, options);
 
 // Keep expand handlers on window for inline onclick contracts in dashboard cards.
 window.expandFolderDocker = expandFolderDocker;
@@ -2556,6 +2701,10 @@ let dashboardLayoutApplyTokenByType = {
     vm: 0
 };
 let dashboardLayoutPersistTokenByType = {
+    docker: 0,
+    vm: 0
+};
+let dashboardQuickSwitchRetryTimerByType = {
     docker: 0,
     vm: 0
 };

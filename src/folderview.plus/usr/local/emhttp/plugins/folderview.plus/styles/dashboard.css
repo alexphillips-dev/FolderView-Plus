@@ -56,6 +56,20 @@
     vertical-align: middle;
 }
 
+.fv-dashboard-layout-quick-glyph {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border: 1px solid rgba(224, 230, 239, 0.24);
+    border-radius: 5px;
+    color: rgba(224, 230, 239, 0.86);
+    background: rgba(12, 18, 28, 0.8);
+    font-size: 10px;
+    line-height: 1;
+}
+
 .fv-dashboard-layout-quick-label {
     font-size: 11px;
     line-height: 1;
@@ -211,6 +225,12 @@ body.fvplus-performance-mode .tooltipster-content {
     .fv-dashboard-layout-quick {
         gap: 4px;
         margin-right: 6px;
+    }
+
+    .fv-dashboard-layout-quick-glyph {
+        width: 16px;
+        height: 16px;
+        font-size: 9px;
     }
 
     .fv-dashboard-layout-quick-label {

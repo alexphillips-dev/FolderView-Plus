@@ -558,7 +558,7 @@
 
 .fv-third-party-folder-row {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-columns: minmax(0, 1fr) 24px 24px;
     align-items: center;
     gap: 0.22em;
 }
@@ -574,6 +574,9 @@
     padding: 0.2em 0.55em;
     min-height: 28px;
     text-align: left;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
 }
 
 .fv-third-party-folder-main:hover {
@@ -599,17 +602,32 @@
 }
 
 .fv-third-party-folder-action {
-    min-width: 26px;
-    width: 26px;
-    min-height: 26px;
-    padding: 0;
+    min-width: 24px !important;
+    width: 24px !important;
+    max-width: 24px !important;
+    min-height: 24px !important;
+    height: 24px !important;
+    padding: 0 !important;
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.03);
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+    letter-spacing: 0 !important;
+    text-indent: 0 !important;
+    overflow: hidden !important;
+    flex: 0 0 24px !important;
 }
 
 .fv-third-party-folder-action.is-active {
     border-color: rgba(255, 140, 42, 0.88);
+}
+
+.fv-third-party-folder-action > i {
+    font-size: 11px !important;
+    line-height: 1 !important;
 }
 
 .fv-third-party-inline-actions {
@@ -669,10 +687,17 @@
 }
 
 .fv-third-party-preview-action {
-    min-width: 30px;
-    width: 30px;
-    min-height: 30px;
-    padding: 0;
+    min-width: 24px !important;
+    width: 24px !important;
+    max-width: 24px !important;
+    min-height: 24px !important;
+    height: 24px !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+    letter-spacing: 0 !important;
 }
 
 .fv-third-party-icon-grid {
@@ -725,18 +750,33 @@
 }
 
 .fv-third-party-icon-fav {
-    min-width: 24px;
-    width: 24px;
-    min-height: 24px;
-    padding: 0;
+    min-width: 24px !important;
+    width: 24px !important;
+    max-width: 24px !important;
+    min-height: 24px !important;
+    height: 24px !important;
+    padding: 0 !important;
     border: 1px solid rgba(255, 255, 255, 0.13);
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.02);
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+    letter-spacing: 0 !important;
+    overflow: hidden !important;
+    flex: 0 0 24px !important;
 }
 
 .fv-third-party-icon-fav.is-active {
     border-color: rgba(255, 140, 42, 0.9);
     color: #ffbe76;
+}
+
+.fv-third-party-icon-fav > i,
+.fv-third-party-preview-action > i {
+    font-size: 11px !important;
+    line-height: 1 !important;
 }
 
 .fv-third-party-icon-badges {

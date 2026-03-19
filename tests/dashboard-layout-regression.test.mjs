@@ -95,6 +95,7 @@ test('dashboard runtime supports layout classes, accordion guards, and overflow 
     assert.match(dashboardScript, /handleDashboardWidgetLayoutQuickSwitch/);
     assert.match(dashboardScript, /FolderViewPlusRequest/);
     assert.match(dashboardScript, /\/plugins\/folderview\.plus\/server\/prefs\.php/);
+    assert.match(dashboardScript, /prefsResponse = parseJsonPayloadSafe\(prom\[4\]\);/);
     assert.match(dashboardScript, /ensureQuickAction\('layout-cycle', 'fa-columns', 'Cycle layout view', 'fv-dashboard-layout-quick'\)/);
     assert.match(dashboardScript, /const normalizeDashboardOverflowMode = \(value\) =>/);
     assert.match(dashboardScript, /const applyDashboardLayoutStateForType = \(type\) =>/);

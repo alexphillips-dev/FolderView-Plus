@@ -1123,8 +1123,8 @@ const createFolders = async () => {
         let order = Object.values(JSON.parse(prom[3]));
         let prefsResponse = {};
         try {
-            prefsResponse = prom[4] ? JSON.parse(prom[4]) : {};
-        } catch (error) {
+            prefsResponse = parseJsonPayloadSafe(prom[4]);
+        } catch (_error) {
             prefsResponse = {};
         }
         folderTypePrefs.docker = utils.normalizePrefs(prefsResponse?.prefs || {});
@@ -1323,8 +1323,8 @@ const createFolders = async () => {
         let order = Object.values(JSON.parse(prom[3]));
         let prefsResponse = {};
         try {
-            prefsResponse = prom[4] ? JSON.parse(prom[4]) : {};
-        } catch (error) {
+            prefsResponse = parseJsonPayloadSafe(prom[4]);
+        } catch (_error) {
             prefsResponse = {};
         }
         folderTypePrefs.vm = utils.normalizePrefs(prefsResponse?.prefs || {});

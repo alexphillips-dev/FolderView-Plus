@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.19.26">
-<!ENTITY md5 "9160c7990f4978fb5de859df4b22618e">
+<!ENTITY version "2026.03.19.27">
+<!ENTITY md5 "91984548903a994b02f693bb830fd5c7">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.19.27
+- Fix: Fix VM widget quick rail collapse sync and overhang.
+
 
 ###2026.03.19.26
 - Fix: Fix VM quick rail anchoring on widget collapse.

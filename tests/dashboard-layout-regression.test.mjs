@@ -79,7 +79,7 @@ test('dashboard runtime supports layout classes, accordion guards, and overflow 
 
 test('dashboard css includes non-classic controls and overflow rendering modes', () => {
     assert.match(dashboardCss, /\.fv-dashboard-layout-quick/);
-    assert.match(dashboardCss, /\.fv-dashboard-layout-quick-select/);
+    assert.match(dashboardCss, /data-fv-layout="accordion"/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-show-expand-toggle/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-greyscale-enabled/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-hide-folder-label/);

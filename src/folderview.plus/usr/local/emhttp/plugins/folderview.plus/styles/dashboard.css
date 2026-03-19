@@ -50,52 +50,44 @@
 .fv-dashboard-layout-quick {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
     margin-right: 8px;
     margin-bottom: 0;
+    padding: 0;
+    border: 1px solid rgba(224, 230, 239, 0.24);
+    border-radius: 6px;
+    background: rgba(12, 18, 28, 0.86);
+    color: rgba(224, 230, 239, 0.9);
+    cursor: pointer;
+    line-height: 1;
     vertical-align: middle;
 }
 
-.fv-dashboard-layout-quick-glyph {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 18px;
-    height: 18px;
-    border: 1px solid rgba(224, 230, 239, 0.24);
-    border-radius: 5px;
-    color: rgba(224, 230, 239, 0.86);
-    background: rgba(12, 18, 28, 0.8);
-    font-size: 10px;
-    line-height: 1;
-}
-
-.fv-dashboard-layout-quick-label {
-    font-size: 11px;
-    line-height: 1;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: rgba(224, 230, 239, 0.78);
-}
-
-.fv-dashboard-layout-quick-select {
-    min-height: 24px;
-    height: 24px;
-    min-width: 112px;
-    max-width: 132px;
-    border: 1px solid rgba(224, 230, 239, 0.28);
-    border-radius: 6px;
-    background: rgba(12, 18, 28, 0.92);
-    color: rgba(236, 241, 248, 0.94);
-    font-size: 11px;
-    line-height: 1.15;
-    padding: 0 18px 0 8px;
-}
-
-.fv-dashboard-layout-quick-select:focus {
+.fv-dashboard-layout-quick:hover,
+.fv-dashboard-layout-quick:focus {
+    text-decoration: none;
+    color: var(--orange, #f0a30a);
+    border-color: rgba(240, 163, 10, 0.55);
+    background: rgba(240, 163, 10, 0.14);
     outline: none;
-    border-color: rgba(240, 163, 10, 0.72);
-    box-shadow: 0 0 0 1px rgba(240, 163, 10, 0.24);
+}
+
+.fv-dashboard-layout-quick[data-fv-layout="classic"] {
+    color: rgba(224, 230, 239, 0.9);
+}
+
+.fv-dashboard-layout-quick[data-fv-layout="fullwidth"] {
+    color: #6fb1ff;
+}
+
+.fv-dashboard-layout-quick[data-fv-layout="accordion"] {
+    color: #ffd36c;
+}
+
+.fv-dashboard-layout-quick[data-fv-layout="inset"] {
+    color: #8ddf9f;
 }
 
 .fv-dashboard-expand-toggle-btn {
@@ -223,25 +215,10 @@ body.fvplus-performance-mode .tooltipster-content {
 
 @media (max-width: 820px) {
     .fv-dashboard-layout-quick {
-        gap: 4px;
+        width: 20px;
+        height: 20px;
         margin-right: 6px;
-    }
-
-    .fv-dashboard-layout-quick-glyph {
-        width: 16px;
-        height: 16px;
         font-size: 9px;
-    }
-
-    .fv-dashboard-layout-quick-label {
-        display: none;
-    }
-
-    .fv-dashboard-layout-quick-select {
-        min-width: 92px;
-        max-width: 102px;
-        padding-left: 6px;
-        font-size: 10px;
     }
 }
 

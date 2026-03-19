@@ -266,12 +266,12 @@ const resolveDashboardWidgetHeaderActionAnchorForType = (type) => {
         if (!$scope || !$scope.length) {
             return $();
         }
-        const $gear = $scope.find('.fa-cog, .fa-gear, .icon-cog, .icon-gear, .icon-settings').first();
+        const $gear = $scope.find('.fa-cog:visible, .fa-gear:visible, .icon-cog:visible, .icon-gear:visible, .icon-settings:visible').first();
         if ($gear.length) {
             const $anchor = $gear.closest('a, button, span, i');
             return $anchor.length ? $anchor.first() : $gear.first();
         }
-        const $candidates = $scope.find('a, button, [role="button"], span, i');
+        const $candidates = $scope.find('a:visible, button:visible, [role="button"]:visible, span:visible, i:visible');
         for (let index = 0; index < $candidates.length; index++) {
             const $candidate = $candidates.eq(index);
             const attrs = [
@@ -284,9 +284,9 @@ const resolveDashboardWidgetHeaderActionAnchorForType = (type) => {
                 return $candidate;
             }
         }
-        const $actionContainers = $scope.find('.panel-actions, .pull-right, .widget-actions, .actions, [class*="action"]').first();
+        const $actionContainers = $scope.find('.panel-actions:visible, .pull-right:visible, .widget-actions:visible, .actions:visible, [class*="action"]:visible').first();
         if ($actionContainers.length) {
-            const $fallbackAnchor = $actionContainers.find('a, button, [role="button"], span, i').first();
+            const $fallbackAnchor = $actionContainers.find('a:visible, button:visible, [role="button"]:visible, span:visible, i:visible').first();
             if ($fallbackAnchor.length) {
                 return $fallbackAnchor;
             }
@@ -302,6 +302,9 @@ const resolveDashboardWidgetHeaderActionAnchorForType = (type) => {
     let $globalAnchor = $();
     $('.fa-cog, .fa-gear, .icon-cog, .icon-gear, .icon-settings').each((_, node) => {
         const $node = $(node);
+        if (!$node.is(':visible')) {
+            return;
+        }
         const $scope = $node.closest('.panel-heading, .widget-header, .heading, header, .panel, .widget').first();
         const scopeText = String($scope.text() || '').toLowerCase();
         const matchesType = resolvedType === 'vm'
@@ -319,21 +322,25 @@ const resolveDashboardWidgetHeaderActionAnchorForType = (type) => {
     }
 
     if ($header.length) {
-        const $fallbackAnchor = $header.find('a, button, [role="button"], span').last();
+        const $fallbackAnchor = $header.find('a:visible, button:visible, [role="button"]:visible, span:visible').last();
         if ($fallbackAnchor.length) {
             return $fallbackAnchor.first();
         }
     }
     return $();
 };
-const syncDashboardWidgetLayoutQuickSwitchValue = (type) => {
+const syncDashboardWidgetLayoutQuickControlForType = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     const currentLayout = normalizeDashboardPrefsForType(resolvedType).layout;
-    const $switch = $(`.fv-dashboard-layout-quick[data-fv-dashboard-type="${resolvedType}"] .fv-dashboard-layout-quick-select`).first();
-    if (!$switch.length) {
+    const widgetLabel = resolvedType === 'vm' ? 'VM' : 'Docker';
+    const layoutLabel = DASHBOARD_LAYOUT_LABELS[currentLayout] || currentLayout;
+    const $control = $(`.fv-dashboard-layout-quick[data-fv-dashboard-type="${resolvedType}"]`).first();
+    if (!$control.length) {
         return;
     }
-    $switch.val(currentLayout);
+    $control.attr('data-fv-layout', currentLayout);
+    $control.attr('title', `${widgetLabel} view: ${layoutLabel} (click to switch)`);
+    $control.attr('aria-label', `${widgetLabel} dashboard view: ${layoutLabel}. Click to switch.`);
 };
 const saveDashboardLayoutPrefForType = async (type, prefsPayload) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
@@ -359,7 +366,7 @@ const handleDashboardWidgetLayoutQuickSwitch = async (type, value) => {
     const previousPrefs = utils.normalizePrefs(folderTypePrefs?.[resolvedType] || {});
     const previousDashboard = normalizeDashboardPrefsForType(resolvedType);
     if (previousDashboard.layout === nextLayout) {
-        syncDashboardWidgetLayoutQuickSwitchValue(resolvedType);
+        syncDashboardWidgetLayoutQuickControlForType(resolvedType);
         return;
     }
 
@@ -374,7 +381,7 @@ const handleDashboardWidgetLayoutQuickSwitch = async (type, value) => {
     dashboardLayoutPersistTokenByType[resolvedType] = saveToken;
     folderTypePrefs[resolvedType] = utils.normalizePrefs(nextPrefs);
     scheduleDashboardLayoutApplyForType(resolvedType);
-    syncDashboardWidgetLayoutQuickSwitchValue(resolvedType);
+    syncDashboardWidgetLayoutQuickControlForType(resolvedType);
 
     try {
         const response = await saveDashboardLayoutPrefForType(resolvedType, nextPrefs);
@@ -386,14 +393,14 @@ const handleDashboardWidgetLayoutQuickSwitch = async (type, value) => {
         }
         folderTypePrefs[resolvedType] = utils.normalizePrefs(response.prefs || nextPrefs);
         scheduleDashboardLayoutApplyForType(resolvedType);
-        syncDashboardWidgetLayoutQuickSwitchValue(resolvedType);
+        syncDashboardWidgetLayoutQuickControlForType(resolvedType);
     } catch (_error) {
         if (dashboardLayoutPersistTokenByType[resolvedType] !== saveToken) {
             return;
         }
         folderTypePrefs[resolvedType] = previousPrefs;
         scheduleDashboardLayoutApplyForType(resolvedType);
-        syncDashboardWidgetLayoutQuickSwitchValue(resolvedType);
+        syncDashboardWidgetLayoutQuickControlForType(resolvedType);
         if (typeof window.swal === 'function') {
             window.swal({
                 title: 'Error',
@@ -412,18 +419,16 @@ const ensureDashboardWidgetLayoutQuickSwitchForType = (type) => {
     const switchSelector = `.fv-dashboard-layout-quick[data-fv-dashboard-type="${resolvedType}"]`;
     let $switch = $(switchSelector).first();
     if (!$switch.length) {
-        const optionsHtml = DASHBOARD_LAYOUT_MODES
-            .map((mode) => `<option value="${mode}">${escapeHtml(DASHBOARD_LAYOUT_LABELS[mode] || mode)}</option>`)
-            .join('');
         $switch = $(
-            `<label class="fv-dashboard-layout-quick" data-fv-dashboard-type="${resolvedType}" title="${widgetLabel} folder layout view">` +
-                '<span class="fv-dashboard-layout-quick-glyph" aria-hidden="true"><i class="fa fa-columns"></i></span>' +
-                '<span class="fv-dashboard-layout-quick-label">View</span>' +
-                `<select class="fv-dashboard-layout-quick-select" aria-label="${widgetLabel} folder layout view">${optionsHtml}</select>` +
-            '</label>'
+            `<button type="button" class="fv-dashboard-layout-quick" data-fv-dashboard-type="${resolvedType}" title="${widgetLabel} folder layout view">` +
+                '<i class="fa fa-columns" aria-hidden="true"></i>' +
+            '</button>'
         );
-        $switch.find('.fv-dashboard-layout-quick-select').on('change.fvplusdashboardquick', (event) => {
-            void handleDashboardWidgetLayoutQuickSwitch(resolvedType, $(event.currentTarget).val());
+        $switch.on('click.fvplusdashboardquick', () => {
+            const currentLayout = normalizeDashboardPrefsForType(resolvedType).layout;
+            const currentIndex = DASHBOARD_LAYOUT_MODES.indexOf(currentLayout);
+            const nextIndex = currentIndex < 0 ? 0 : ((currentIndex + 1) % DASHBOARD_LAYOUT_MODES.length);
+            void handleDashboardWidgetLayoutQuickSwitch(resolvedType, DASHBOARD_LAYOUT_MODES[nextIndex]);
         });
     }
     if ($anchor.length) {
@@ -440,7 +445,7 @@ const ensureDashboardWidgetLayoutQuickSwitchForType = (type) => {
         }, 320);
         return;
     }
-    syncDashboardWidgetLayoutQuickSwitchValue(resolvedType);
+    syncDashboardWidgetLayoutQuickControlForType(resolvedType);
 };
 const getDashboardCard = (type, id) => {
     const meta = dashboardTypeMeta(type);

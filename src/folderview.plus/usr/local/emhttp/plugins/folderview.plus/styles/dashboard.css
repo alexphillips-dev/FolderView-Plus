@@ -56,13 +56,6 @@
     vertical-align: middle;
 }
 
-.fv-dashboard-layout-quick-host {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    margin: 4px 0 6px;
-}
-
 .fv-dashboard-layout-quick-glyph {
     display: inline-flex;
     align-items: center;

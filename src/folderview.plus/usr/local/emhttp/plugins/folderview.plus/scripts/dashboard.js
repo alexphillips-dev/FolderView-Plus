@@ -206,6 +206,7 @@ const resolveDashboardWidgetPanelForType = (type) => {
     return $();
 };
 const resolveDashboardWidgetHeaderForType = (type) => {
+    const resolvedType = resolveDashboardQuickSwitchScopeKey(type);
     const $panel = resolveDashboardWidgetPanelForType(type);
     if ($panel.length) {
         let $header = $panel.children('.panel-heading, .widget-header, .heading, header').first();
@@ -219,9 +220,44 @@ const resolveDashboardWidgetHeaderForType = (type) => {
     const meta = dashboardTypeMeta(type);
     const $tbody = $(meta.tbodySelector).first();
     if (!$tbody.length) {
-        return $();
+        // Fallback for dashboard variants where tbody panel ancestry is not stable.
+        const tokens = resolvedType === 'vm'
+            ? ['virtual', 'vm']
+            : ['docker', 'container'];
+        const $globalHeaders = $('.panel-heading, .widget-header, .heading, header');
+        let $best = $();
+        $globalHeaders.each((_, node) => {
+            const $node = $(node);
+            const text = String($node.text() || '').toLowerCase();
+            const matches = tokens.some((token) => text.includes(token));
+            if (!matches) {
+                return;
+            }
+            $best = $node;
+            return false;
+        });
+        return $best;
     }
-    return $tbody.closest('table').prevAll('.panel-heading, .widget-header, .heading, header').first();
+    let $header = $tbody.closest('table').prevAll('.panel-heading, .widget-header, .heading, header').first();
+    if ($header.length) {
+        return $header;
+    }
+    const tokens = resolvedType === 'vm'
+        ? ['virtual', 'vm']
+        : ['docker', 'container'];
+    const $globalHeaders = $('.panel-heading, .widget-header, .heading, header');
+    let $best = $();
+    $globalHeaders.each((_, node) => {
+        const $node = $(node);
+        const text = String($node.text() || '').toLowerCase();
+        const matches = tokens.some((token) => text.includes(token));
+        if (!matches) {
+            return;
+        }
+        $best = $node;
+        return false;
+    });
+    return $best;
 };
 const resolveDashboardWidgetHeaderActionAnchorForType = (type) => {
     const resolvedType = resolveDashboardQuickSwitchScopeKey(type);
@@ -289,18 +325,6 @@ const resolveDashboardWidgetHeaderActionAnchorForType = (type) => {
         }
     }
     return $();
-};
-const resolveDashboardWidgetQuickSwitchFallbackMountForType = (type) => {
-    const meta = dashboardTypeMeta(type);
-    const $tbody = $(meta.tbodySelector).first();
-    if (!$tbody.length) {
-        return $();
-    }
-    const $table = $tbody.closest('table').first();
-    if ($table.length) {
-        return $table;
-    }
-    return $tbody;
 };
 const syncDashboardWidgetLayoutQuickSwitchValue = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
@@ -383,7 +407,7 @@ const ensureDashboardWidgetLayoutQuickSwitchForType = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     const $header = resolveDashboardWidgetHeaderForType(resolvedType);
     const $anchor = resolveDashboardWidgetHeaderActionAnchorForType(resolvedType);
-    const $fallbackMount = resolveDashboardWidgetQuickSwitchFallbackMountForType(resolvedType);
+    $(`.fv-dashboard-layout-quick-host[data-fv-dashboard-type="${resolvedType}"]`).remove();
     const widgetLabel = resolvedType === 'vm' ? 'VM' : 'Docker';
     const switchSelector = `.fv-dashboard-layout-quick[data-fv-dashboard-type="${resolvedType}"]`;
     let $switch = $(switchSelector).first();
@@ -406,14 +430,6 @@ const ensureDashboardWidgetLayoutQuickSwitchForType = (type) => {
         $anchor.before($switch);
     } else if ($header.length) {
         $header.append($switch);
-    } else if ($fallbackMount.length) {
-        const fallbackHostSelector = `.fv-dashboard-layout-quick-host[data-fv-dashboard-type="${resolvedType}"]`;
-        let $host = $(fallbackHostSelector).first();
-        if (!$host.length) {
-            $host = $(`<div class="fv-dashboard-layout-quick-host" data-fv-dashboard-type="${resolvedType}"></div>`);
-            $fallbackMount.before($host);
-        }
-        $host.empty().append($switch);
     } else {
         if (dashboardQuickSwitchRetryTimerByType[resolvedType]) {
             return;

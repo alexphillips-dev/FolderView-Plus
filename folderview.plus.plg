@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.19.19">
-<!ENTITY md5 "5eea7a2756f6411c14e95e55e5d812b4">
+<!ENTITY version "2026.03.19.20">
+<!ENTITY md5 "8dc3a6a807f75fc7c2f420d924d4cec7">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.19.20
+- Fix: Fix dashboard layout persistence and compact matrix apply.
+- Maintenance: Refine compact matrix card layout and tiny toggle.
+
 
 ###2026.03.19.19
 - UX: Compact Matrix now hides folder icons and shows name/status text as the primary signal for cleaner dense scanning.

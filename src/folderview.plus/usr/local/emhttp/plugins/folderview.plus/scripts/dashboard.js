@@ -298,6 +298,7 @@ const ensureDashboardWidgetLayoutQuickSwitchForType = (type) => {
     let $host = $(hostSelector).first();
     if (!$host.length) {
         $host = $(`<div class="fv-dashboard-layout-inline-host" data-fv-dashboard-type="${resolvedType}"></div>`);
+        $container.addClass('fv-dashboard-layout-inline-container');
         $container.prepend($host);
     }
     const widgetLabel = resolvedType === 'vm' ? 'VM' : 'Docker';

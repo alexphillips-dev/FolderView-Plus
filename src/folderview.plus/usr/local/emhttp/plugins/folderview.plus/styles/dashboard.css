@@ -47,13 +47,21 @@
     position: relative;
 }
 
+.fv-dashboard-layout-inline-container {
+    position: relative;
+}
+
 .fv-dashboard-layout-inline-host {
+    position: absolute;
+    top: 0;
+    right: 2px;
+    z-index: 4;
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    width: 100%;
-    margin: 0 0 8px 0;
-    padding: 0 2px 0 0;
+    width: auto;
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
 }
 
@@ -61,18 +69,25 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 22px;
-    height: 22px;
-    margin-right: 8px;
-    margin-bottom: 0;
-    padding: 0;
+    width: 16px !important;
+    min-width: 16px !important;
+    max-width: 16px !important;
+    height: 16px !important;
+    min-height: 16px !important;
+    max-height: 16px !important;
+    margin: 0 !important;
+    padding: 0 !important;
     border: 1px solid rgba(224, 230, 239, 0.24);
-    border-radius: 6px;
+    border-radius: 4px;
     background: rgba(12, 18, 28, 0.86);
     color: rgba(224, 230, 239, 0.9);
     cursor: pointer;
     line-height: 1;
+    font-size: 9px;
     vertical-align: middle;
+    -webkit-appearance: none;
+    appearance: none;
+    box-shadow: none !important;
 }
 
 .fv-dashboard-layout-quick:hover,
@@ -224,10 +239,18 @@ body.fvplus-performance-mode .tooltipster-content {
 }
 
 @media (max-width: 820px) {
+    .fv-dashboard-layout-inline-host {
+        top: 0;
+        right: 1px;
+    }
+
     .fv-dashboard-layout-quick {
-        width: 20px;
-        height: 20px;
-        margin-right: 6px;
+        width: 14px !important;
+        min-width: 14px !important;
+        max-width: 14px !important;
+        height: 14px !important;
+        min-height: 14px !important;
+        max-height: 14px !important;
         font-size: 9px;
     }
 }

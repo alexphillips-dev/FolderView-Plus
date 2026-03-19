@@ -7,6 +7,23 @@
     background: rgba(255, 255, 255, 0.03);
 }
 
+@media (max-width: 760px) {
+    .fv-third-party-filter-sheet {
+        position: fixed;
+        left: 8px;
+        right: 8px;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+        max-height: 62vh;
+        overflow-y: auto;
+        z-index: 8;
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+    }
+
+    #fv-third-party-filter-toggle {
+        width: 100%;
+    }
+}
+
 .fv-editor-nav-row {
     display: flex;
     flex-wrap: wrap;
@@ -490,144 +507,74 @@
     padding: 0;
 }
 
-.fv-third-party-search-row > input[type="text"] {
+.fv-third-party-control-row {
+    display: grid;
+    gap: 0.3em;
+    align-items: center;
+}
+
+.fv-third-party-icon-controls {
+    grid-template-columns: minmax(0, 1fr) 30px minmax(138px, 180px) minmax(120px, 160px) auto;
+}
+
+.fv-third-party-pack-controls {
+    grid-template-columns: minmax(0, 1fr) minmax(110px, 130px) minmax(180px, 1fr) auto;
+}
+
+.fv-third-party-icon-controls input[type="text"],
+.fv-third-party-pack-controls input[type="text"] {
     width: 100%;
     min-height: 30px;
 }
 
-#fv-third-party-search-clear {
+#fv-third-party-search-clear,
+#fv-third-party-filter-toggle,
+#fv-third-party-pack-menu-toggle {
+    min-height: 30px;
     min-width: 30px;
-    width: 30px;
     padding: 0;
 }
 
-#fv-third-party-sort {
-    min-width: 138px;
-    max-width: 168px;
+#fv-third-party-pack-select,
+#fv-third-party-pack-kind,
+#fv-third-party-sort,
+#fv-third-party-view {
+    width: 100%;
+    min-height: 30px;
 }
 
-.fv-third-party-mode-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25em;
+.fv-third-party-pack-menu-wrap {
+    position: relative;
 }
 
-.fv-third-party-mode-list > button {
-    min-height: 28px;
-    padding: 0.15em 0.55em;
+.fv-third-party-pack-menu {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 0.18em;
+    z-index: 4;
+    min-width: 150px;
+    display: grid;
+    gap: 0.2em;
     border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    background: rgba(20, 20, 20, 0.98);
+    padding: 0.28em;
 }
 
-.fv-third-party-mode-list > button.is-active {
-    border-color: rgba(255, 140, 42, 0.88);
-    box-shadow: inset 0 0 0 1px rgba(255, 140, 42, 0.3);
-}
-
-.fv-third-party-tag-filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25em;
-}
-
-.fv-third-party-tag {
-    min-height: 24px;
-    padding: 0.1em 0.48em;
-    border: 1px solid rgba(255, 255, 255, 0.13);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.03);
-    font-size: 1.03rem;
-    opacity: 0.9;
-}
-
-.fv-third-party-tag.is-active {
-    border-color: rgba(255, 140, 42, 0.88);
-    box-shadow: inset 0 0 0 1px rgba(255, 140, 42, 0.24);
-    opacity: 1;
-}
-
-.fv-third-party-folder-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 0.3em;
-    max-height: 164px;
-    overflow-y: auto;
-    padding-right: 0.1em;
-}
-
-.fv-third-party-folder-row {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 24px 24px;
-    align-items: center;
-    gap: 0.22em;
-}
-
-.fv-third-party-folder-main {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.42em;
-    min-width: 0;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.03);
-    padding: 0.2em 0.55em;
+.fv-third-party-pack-menu > button {
     min-height: 28px;
     text-align: left;
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
+    padding: 0.16em 0.5em;
 }
 
-.fv-third-party-folder-main:hover {
-    border-color: rgba(255, 255, 255, 0.3);
-}
-
-.fv-third-party-folder-row.is-active .fv-third-party-folder-main {
-    border-color: rgba(255, 140, 42, 0.88);
-    box-shadow: inset 0 0 0 1px rgba(255, 140, 42, 0.28);
-}
-
-.fv-third-party-folder-name {
-    min-width: 0;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.fv-third-party-folder-count {
-    font-size: 1.03rem;
-    opacity: 0.82;
-}
-
-.fv-third-party-folder-action {
-    min-width: 24px !important;
-    width: 24px !important;
-    max-width: 24px !important;
-    min-height: 24px !important;
-    height: 24px !important;
-    padding: 0 !important;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.03);
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    line-height: 1 !important;
-    letter-spacing: 0 !important;
-    text-indent: 0 !important;
-    overflow: hidden !important;
-    flex: 0 0 24px !important;
-}
-
-.fv-third-party-folder-action.is-active {
-    border-color: rgba(255, 140, 42, 0.88);
-}
-
-.fv-third-party-folder-action > i {
-    font-size: 11px !important;
-    line-height: 1 !important;
+.fv-third-party-filter-sheet {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.14);
+    padding: 0.42em 0.46em;
+    display: grid;
+    gap: 0.42em;
 }
 
 .fv-third-party-inline-actions {
@@ -639,6 +586,68 @@
 .fv-third-party-inline-actions > button {
     min-height: 28px;
     padding: 0.15em 0.55em;
+}
+
+.fv-third-party-tag-shell {
+    display: grid;
+    gap: 0.3em;
+}
+
+.fv-third-party-tag-shell-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.3em;
+}
+
+#fv-third-party-tag-clear {
+    min-height: 26px;
+    padding: 0.12em 0.4em;
+}
+
+#fv-third-party-tag-search {
+    width: 100%;
+    min-height: 30px;
+}
+
+.fv-third-party-tag-filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(138px, 1fr));
+    gap: 0.22em;
+    max-height: 156px;
+    overflow-y: auto;
+    padding-right: 0.1em;
+}
+
+.fv-third-party-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28em;
+    min-height: 24px;
+    padding: 0.1em 0.38em;
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.03);
+    font-size: 1.03rem;
+    opacity: 0.9;
+}
+
+.fv-third-party-tag > input[type="checkbox"] {
+    margin: 0;
+    width: 12px;
+    height: 12px;
+}
+
+.fv-third-party-tag.is-active {
+    border-color: rgba(255, 140, 42, 0.88);
+    box-shadow: inset 0 0 0 1px rgba(255, 140, 42, 0.24);
+    opacity: 1;
+}
+
+.fv-third-party-context-line {
+    font-size: 1.03rem;
+    opacity: 0.82;
+    line-height: 1.25;
 }
 
 .fv-third-party-current-folder {
@@ -766,11 +775,15 @@
     letter-spacing: 0 !important;
     overflow: hidden !important;
     flex: 0 0 24px !important;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 120ms ease;
 }
 
 .fv-third-party-icon-fav.is-active {
     border-color: rgba(255, 140, 42, 0.9);
     color: #ffbe76;
+    opacity: 1;
 }
 
 .fv-third-party-icon-fav > i,
@@ -803,6 +816,13 @@
 .fv-third-party-badge.is-error {
     border-color: rgba(255, 127, 127, 0.78);
     color: #ff8f8f;
+}
+
+.fv-third-party-icon-item:hover .fv-third-party-icon-fav,
+.fv-third-party-icon-item:focus-within .fv-third-party-icon-fav,
+.fv-third-party-icon-item.is-selected .fv-third-party-icon-fav {
+    opacity: 1;
+    pointer-events: auto;
 }
 
 .fv-custom-icon-panel {
@@ -1237,23 +1257,27 @@ table.sortable td:nth-child(3) {
         line-height: 1.25;
     }
 
-    #fv-third-party-sort {
-        min-width: 0;
-        max-width: none;
-        width: 100%;
-    }
-
-    .fv-third-party-search-row {
-        display: grid;
+    .fv-third-party-icon-controls {
         grid-template-columns: minmax(0, 1fr) 30px;
     }
 
-    .fv-third-party-search-row > select {
+    .fv-third-party-icon-controls > select,
+    .fv-third-party-icon-controls > button#fv-third-party-filter-toggle {
         grid-column: 1 / -1;
+        width: 100%;
     }
 
-    .fv-third-party-folder-list {
+    .fv-third-party-pack-controls {
         grid-template-columns: 1fr;
+    }
+
+    .fv-third-party-pack-menu-wrap {
+        justify-self: end;
+    }
+
+    .fv-third-party-tag-filters {
+        grid-template-columns: 1fr;
+        max-height: 180px;
     }
 
     .fv-third-party-preview-card {

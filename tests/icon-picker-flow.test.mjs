@@ -96,11 +96,19 @@ test('folder editor markup exposes custom icon manager controls', () => {
 test('folder editor markup exposes advanced third-party icon controls', () => {
     assert.match(folderPage, /id="fv-third-party-search"/);
     assert.match(folderPage, /id="fv-third-party-search-clear"/);
+    assert.match(folderPage, /id="fv-third-party-view"/);
     assert.match(folderPage, /id="fv-third-party-sort"/);
-    assert.match(folderPage, /id="fv-third-party-mode-list"/);
+    assert.match(folderPage, /id="fv-third-party-pack-search"/);
+    assert.match(folderPage, /id="fv-third-party-pack-kind"/);
+    assert.match(folderPage, /id="fv-third-party-pack-select"/);
+    assert.match(folderPage, /id="fv-third-party-pack-menu-toggle"/);
+    assert.match(folderPage, /id="fv-third-party-filter-toggle"/);
+    assert.match(folderPage, /id="fv-third-party-filter-sheet"/);
+    assert.match(folderPage, /id="fv-third-party-tag-search"/);
     assert.match(folderPage, /id="fv-third-party-tag-filters"/);
     assert.match(folderPage, /id="fv-third-party-show-hidden"/);
     assert.match(folderPage, /id="fv-third-party-duplicates-cleanup"/);
+    assert.match(folderPage, /id="fv-third-party-context-line"/);
     assert.match(folderPage, /id="fv-third-party-preview"/);
 });
 
@@ -111,9 +119,13 @@ test('folder.js third-party icon picker supports advanced filtering and duplicat
     assert.match(folderScript, /const buildThirdPartyDuplicateCleanupScript = \(\) =>/);
     assert.match(folderScript, /const renderThirdPartyTagFilters = \(icons\) =>/);
     assert.match(folderScript, /const renderThirdPartyPreview = \(icon = null\) =>/);
+    assert.match(folderScript, /const getThirdPartyFolderKind = \(folderName\) =>/);
     assert.match(folderScript, /THIRD_PARTY_ICON_SEARCH_DEBOUNCE_MS/);
-    assert.match(folderPage, /data-third-party-mode="duplicates"/);
+    assert.match(folderPage, /value="duplicates"/);
     assert.match(folderScript, /#fv-third-party-duplicates-cleanup/);
+    assert.match(folderScript, /#fv-third-party-pack-select/);
+    assert.match(folderScript, /#fv-third-party-pack-menu-toggle/);
+    assert.match(folderScript, /#fv-third-party-filter-toggle/);
     assert.match(folderScript, /list_index/);
     assert.match(folderScript, /pointerdown\.fvthirdparty/);
 });

@@ -96,9 +96,12 @@ let thirdPartyIcons = [];
 let thirdPartyIconPage = 1;
 let thirdPartyIconSearchQuery = '';
 let thirdPartyIconSearchTimer = null;
-let thirdPartyActiveTag = 'all';
+let thirdPartySelectedTags = new Set();
+let thirdPartyTagSearchQuery = '';
 let thirdPartyQuickMode = 'folder';
 let thirdPartySortMode = 'usage';
+let thirdPartyPackSearchQuery = '';
+let thirdPartyPackKind = 'all';
 let thirdPartyFavorites = new Set();
 let thirdPartyRecent = [];
 let thirdPartyPinnedFolders = new Set();
@@ -114,6 +117,8 @@ let thirdPartyShowHiddenFolders = false;
 let thirdPartyGridRenderToken = 0;
 let thirdPartyPreviewIconUrl = '';
 let thirdPartyIndexCacheReady = false;
+let thirdPartyFilterSheetOpen = false;
+let thirdPartyPackMenuOpen = false;
 let customIconEntries = [];
 let customIconStats = null;
 let customIconHealth = null;
@@ -1390,7 +1395,25 @@ const applyThirdPartySearchAndTagFilters = (icons) => {
     const queryTokens = tokenizeThirdPartySearch(thirdPartyIconSearchQuery);
     return asArray(icons).filter((icon) => {
         const tags = asArray(icon?.tags).map((tag) => String(tag || '').trim().toLowerCase());
-        if (thirdPartyActiveTag !== 'all' && !tags.includes(String(thirdPartyActiveTag || '').toLowerCase())) {
+        if (thirdPartySelectedTags.size > 0) {
+            const matchesTag = [...thirdPartySelectedTags].some((tag) => tags.includes(tag));
+            if (!matchesTag) {
+                return false;
+            }
+        }
+        if (thirdPartyPackKind === 'folders' || thirdPartyPackKind === 'icons') {
+            const kind = getThirdPartyFolderKind(String(icon?.folder || ''));
+            if (kind !== thirdPartyPackKind) {
+                return false;
+            }
+        }
+        if (thirdPartyPackSearchQuery) {
+            const packName = String(icon?.folder || '').toLowerCase();
+            if (!packName.includes(thirdPartyPackSearchQuery.toLowerCase())) {
+                return false;
+            }
+        }
+        if (thirdPartyQuickMode === 'folder' && thirdPartySelectedFolder && String(icon?.folder || '') !== thirdPartySelectedFolder) {
             return false;
         }
         if (!queryTokens.length) {
@@ -1447,6 +1470,7 @@ const getThirdPartyVisibleIcons = () => {
 };
 
 const buildThirdPartyTagList = (icons) => {
+    const tagNeedle = String(thirdPartyTagSearchQuery || '').trim().toLowerCase();
     const counts = new Map();
     asArray(icons).forEach((icon) => {
         asArray(icon?.tags).forEach((tag) => {
@@ -1459,10 +1483,11 @@ const buildThirdPartyTagList = (icons) => {
     });
     const rows = [...counts.entries()]
         .filter(([, count]) => count >= THIRD_PARTY_MIN_TAG_COUNT)
+        .filter(([tag]) => (!tagNeedle || tag.includes(tagNeedle)))
         .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-        .slice(0, 12)
+        .slice(0, 48)
         .map(([tag, count]) => ({ tag, count }));
-    return [{ tag: 'all', count: asArray(icons).length }, ...rows];
+    return rows;
 };
 
 const renderThirdPartyTagFilters = (icons) => {
@@ -1471,27 +1496,33 @@ const renderThirdPartyTagFilters = (icons) => {
         return;
     }
     const tags = buildThirdPartyTagList(icons);
-    if (!tags.some((entry) => entry.tag === thirdPartyActiveTag)) {
-        thirdPartyActiveTag = 'all';
+    if (!tags.length) {
+        box.html('<div class="fv-icon-picker-empty">No tags for current results.</div>');
+        return;
     }
     box.html(tags.map((entry) => {
-        const tag = escapeHtml(entry.tag);
+        const tagValue = String(entry.tag || '').trim().toLowerCase();
+        const tag = escapeHtml(tagValue);
         const count = Math.max(0, Number(entry.count || 0));
-        const active = entry.tag === thirdPartyActiveTag ? ' is-active' : '';
-        return `<button type="button" class="fv-third-party-tag${active}" data-third-party-tag="${tag}">${tag} ${count}</button>`;
+        const active = thirdPartySelectedTags.has(tagValue) ? ' is-active' : '';
+        return `
+            <label class="fv-third-party-tag${active}">
+                <input type="checkbox" data-third-party-tag="${tag}" ${active ? 'checked' : ''}>
+                <span>${tag} ${count}</span>
+            </label>
+        `;
     }).join(''));
 };
 
-const renderThirdPartyModeButtons = () => {
-    const modeList = $('#fv-third-party-mode-list');
-    if (!modeList.length) {
-        return;
+const getThirdPartyFolderKind = (folderName) => {
+    const value = String(folderName || '').trim().toLowerCase();
+    if (value.startsWith('folders/')) {
+        return 'folders';
     }
-    modeList.find('button[data-third-party-mode]').each((_, element) => {
-        const button = $(element);
-        const mode = String(button.attr('data-third-party-mode') || '').trim();
-        button.toggleClass('is-active', mode === thirdPartyQuickMode);
-    });
+    if (value.startsWith('icons/')) {
+        return 'icons';
+    }
+    return 'all';
 };
 
 const getThirdPartyFolderNewestStamp = (folderName) => {
@@ -1519,9 +1550,19 @@ const getThirdPartyVisibleFolders = () => {
             return false;
         }
         if (thirdPartyShowHiddenFolders) {
-            return true;
+            // keep flowing
+        } else if (thirdPartyHiddenFolders.has(name)) {
+            return false;
         }
-        return !thirdPartyHiddenFolders.has(name);
+        if (thirdPartyPackKind === 'folders' || thirdPartyPackKind === 'icons') {
+            if (getThirdPartyFolderKind(name) !== thirdPartyPackKind) {
+                return false;
+            }
+        }
+        if (thirdPartyPackSearchQuery) {
+            return name.toLowerCase().includes(thirdPartyPackSearchQuery.toLowerCase());
+        }
+        return true;
     });
     return rows.sort((a, b) => {
         const aName = String(a?.name || '');
@@ -1794,40 +1835,66 @@ const bindThirdPartyIconGridEvents = () => {
         });
 };
 
+const renderThirdPartyContextLine = (totalMatches = null) => {
+    const line = $('#fv-third-party-context-line');
+    if (!line.length) {
+        return;
+    }
+    const selectedTagText = thirdPartySelectedTags.size > 0
+        ? [...thirdPartySelectedTags].slice(0, 3).join(', ') + (thirdPartySelectedTags.size > 3 ? ` +${thirdPartySelectedTags.size - 3}` : '')
+        : 'all';
+    const modeText = thirdPartyQuickMode;
+    const packText = thirdPartySelectedFolder || 'none';
+    const resultText = Number.isFinite(Number(totalMatches)) ? ` | Results: ${Math.max(0, Number(totalMatches || 0))}` : '';
+    line.text(`Pack: ${packText} | View: ${modeText} | Tags: ${selectedTagText}${resultText}`);
+};
+
+const renderThirdPartyPackMenu = () => {
+    const menu = $('#fv-third-party-pack-menu');
+    if (!menu.length) {
+        return;
+    }
+    const folder = String(thirdPartySelectedFolder || '').trim();
+    const pinButton = $('#fv-third-party-pack-pin-toggle');
+    const hideButton = $('#fv-third-party-pack-hide-toggle');
+    if (!folder) {
+        pinButton.prop('disabled', true).html('<i class="fa fa-star-o" aria-hidden="true"></i> Pin pack');
+        hideButton.prop('disabled', true).html('<i class="fa fa-eye-slash" aria-hidden="true"></i> Hide pack');
+        return;
+    }
+    const pinned = thirdPartyPinnedFolders.has(folder);
+    const hidden = thirdPartyHiddenFolders.has(folder);
+    pinButton.prop('disabled', false).html(`<i class="fa ${pinned ? 'fa-star' : 'fa-star-o'}" aria-hidden="true"></i> ${pinned ? 'Unpin pack' : 'Pin pack'}`);
+    hideButton.prop('disabled', false).html(`<i class="fa fa-eye-slash" aria-hidden="true"></i> ${hidden ? 'Unhide pack' : 'Hide pack'}`);
+};
+
 const renderThirdPartyFolderList = () => {
-    const list = $('#fv-third-party-folder-list');
-    if (!list.length) {
+    const packSelect = $('#fv-third-party-pack-select');
+    if (!packSelect.length) {
         return;
     }
     const folders = getThirdPartyVisibleFolders();
     if (!folders.length) {
-        list.html('<div class="fv-icon-picker-empty">No visible folders. Toggle "Show hidden packs" or add icon packs under /usr/local/emhttp/plugins/folderview.plus/images/third-party-icons.</div>');
+        packSelect.html('<option value="">No packs available</option>').prop('disabled', true);
         setThirdPartyStatus('No visible third-party icon folders detected.');
+        renderThirdPartyPackMenu();
+        renderThirdPartyContextLine(0);
         return;
     }
-    const rows = folders.map((folder) => {
+    const options = folders.map((folder) => {
         const folderName = String(folder?.name || '').trim();
-        const name = escapeHtml(folderName);
         const count = Math.max(0, Number(folder?.iconCount || 0));
-        const active = folderName === thirdPartySelectedFolder ? ' is-active' : '';
-        const pinned = thirdPartyPinnedFolders.has(folderName) ? ' is-active' : '';
-        const hidden = thirdPartyHiddenFolders.has(folderName) ? ' is-active' : '';
-        return `
-            <div class="fv-third-party-folder-row${active}" data-third-party-folder-row="${name}">
-                <button type="button" class="fv-third-party-folder-main" data-third-party-folder="${name}">
-                    <span class="fv-third-party-folder-name" title="${name}">${name}</span>
-                    <span class="fv-third-party-folder-count">${count}</span>
-                </button>
-                <button type="button" class="fv-third-party-folder-action${pinned}" data-third-party-folder-pin="${name}" title="Pin pack">
-                    <i class="fa fa-star${pinned ? '' : '-o'}" aria-hidden="true"></i>
-                </button>
-                <button type="button" class="fv-third-party-folder-action${hidden}" data-third-party-folder-hide="${name}" title="Hide pack">
-                    <i class="fa fa-eye-slash" aria-hidden="true"></i>
-                </button>
-            </div>
-        `;
+        const pinned = thirdPartyPinnedFolders.has(folderName) ? ' [pinned]' : '';
+        const kind = getThirdPartyFolderKind(folderName);
+        const kindLabel = kind === 'folders' ? 'folder' : (kind === 'icons' ? 'icon' : 'pack');
+        return `<option value="${escapeHtml(folderName)}">${escapeHtml(folderName)} (${count}) - ${kindLabel}${pinned}</option>`;
     }).join('');
-    list.html(rows);
+    packSelect.html(options).prop('disabled', false);
+    if (!folders.some((entry) => String(entry?.name || '').trim() === thirdPartySelectedFolder)) {
+        thirdPartySelectedFolder = String(folders[0]?.name || '').trim();
+    }
+    packSelect.val(thirdPartySelectedFolder);
+    renderThirdPartyPackMenu();
     $('#fv-third-party-show-hidden')
         .toggleClass('is-active', thirdPartyShowHiddenFolders)
         .text(thirdPartyShowHiddenFolders ? 'Hide hidden packs' : 'Show hidden packs');
@@ -1843,7 +1910,6 @@ const renderThirdPartyIconGrid = () => {
         return;
     }
 
-    renderThirdPartyModeButtons();
     renderThirdPartyTagFilters(getThirdPartyActiveBaseIcons());
 
     const setPager = (page, totalPages) => {
@@ -1855,20 +1921,13 @@ const renderThirdPartyIconGrid = () => {
         pageLabel.text(`Page ${page} / ${totalPages}`);
     };
 
-    const modeLabel = {
-        folder: `Folder: ${thirdPartySelectedFolder || 'None selected'}`,
-        all: 'Mode: All icon packs',
-        favorites: 'Mode: Favorite icons',
-        recent: 'Mode: Recent icons',
-        suggested: 'Mode: Suggested for this folder',
-        duplicates: 'Mode: Potential duplicates'
-    };
-    header.text(modeLabel[thirdPartyQuickMode] || modeLabel.folder);
+    header.text(`Pack: ${thirdPartySelectedFolder || 'None selected'}`);
 
     const filteredIcons = getThirdPartyVisibleIcons();
     const paged = paginateItems(filteredIcons, thirdPartyIconPage, ICON_PICKER_PAGE_SIZE);
     thirdPartyIconPage = paged.page;
     setPager(paged.page, paged.totalPages);
+    renderThirdPartyContextLine(filteredIcons.length);
 
     prevButton.off('click.fvthirdpartypager').on('click.fvthirdpartypager', (event) => {
         event.preventDefault();
@@ -1892,6 +1951,7 @@ const renderThirdPartyIconGrid = () => {
         grid.html('<div class="fv-icon-picker-empty">No icons match the current search, mode, or tag filters.</div>');
         setThirdPartyStatus('No matching third-party icons found.');
         renderThirdPartyPreview();
+        renderThirdPartyContextLine(0);
         return;
     }
 
@@ -2180,6 +2240,15 @@ const initBuiltInIconPicker = async () => {
         event.preventDefault();
         await refreshThirdPartyIconPicker();
     });
+    const reflowThirdPartyPackSelection = async () => {
+        reconcileThirdPartySelectedFolder();
+        renderThirdPartyFolderList();
+        if (thirdPartyQuickMode === 'folder' && thirdPartySelectedFolder) {
+            await loadThirdPartyIcons(thirdPartySelectedFolder);
+        } else {
+            renderThirdPartyIconGrid();
+        }
+    };
     $('#fv-third-party-search').off('input.fviconpicker').on('input.fviconpicker', (event) => {
         if (thirdPartyIconSearchTimer) {
             clearTimeout(thirdPartyIconSearchTimer);
@@ -2203,82 +2272,120 @@ const initBuiltInIconPicker = async () => {
         $('#fv-third-party-search').val('').trigger('focus');
         renderThirdPartyIconGrid();
     });
-    $('#fv-third-party-sort').off('change.fviconpicker').on('change.fviconpicker', () => {
-        thirdPartySortMode = String($('#fv-third-party-sort').val() || 'usage').trim().toLowerCase();
-        thirdPartyIconPage = 1;
-        renderThirdPartyFolderList();
-        renderThirdPartyIconGrid();
-    });
-    $('#fv-third-party-mode-list').off('click.fviconpicker').on('click.fviconpicker', 'button[data-third-party-mode]', async (event) => {
-        event.preventDefault();
-        const mode = String($(event.currentTarget).attr('data-third-party-mode') || '').trim();
+    $('#fv-third-party-view').off('change.fviconpicker').on('change.fviconpicker', async () => {
+        const mode = String($('#fv-third-party-view').val() || 'folder').trim();
         const allowed = new Set(['folder', 'all', 'favorites', 'recent', 'suggested', 'duplicates']);
         if (!allowed.has(mode)) {
             return;
         }
         thirdPartyQuickMode = mode;
         thirdPartyIconPage = 1;
-        renderThirdPartyIconGrid();
-        if (mode === 'folder' && thirdPartySelectedFolder) {
-            await loadThirdPartyIcons(thirdPartySelectedFolder);
+        if (mode === 'folder') {
+            await reflowThirdPartyPackSelection();
+            return;
         }
+        renderThirdPartyIconGrid();
     });
-    $('#fv-third-party-tag-filters').off('click.fviconpicker').on('click.fviconpicker', 'button[data-third-party-tag]', (event) => {
+    $('#fv-third-party-sort').off('change.fviconpicker').on('change.fviconpicker', () => {
+        thirdPartySortMode = String($('#fv-third-party-sort').val() || 'usage').trim().toLowerCase();
+        thirdPartyIconPage = 1;
+        renderThirdPartyFolderList();
+        renderThirdPartyIconGrid();
+    });
+    $('#fv-third-party-pack-search').off('input.fviconpicker').on('input.fviconpicker', async (event) => {
+        thirdPartyPackSearchQuery = String($(event.currentTarget).val() || '').trim();
+        thirdPartyIconPage = 1;
+        await reflowThirdPartyPackSelection();
+    });
+    $('#fv-third-party-pack-kind').off('change.fviconpicker').on('change.fviconpicker', async () => {
+        const next = String($('#fv-third-party-pack-kind').val() || 'all').trim().toLowerCase();
+        thirdPartyPackKind = (next === 'folders' || next === 'icons') ? next : 'all';
+        thirdPartyIconPage = 1;
+        await reflowThirdPartyPackSelection();
+    });
+    $('#fv-third-party-pack-select').off('change.fviconpicker').on('change.fviconpicker', async (event) => {
+        const folder = String($(event.currentTarget).val() || '').trim();
+        if (!folder) {
+            return;
+        }
+        thirdPartyQuickMode = 'folder';
+        $('#fv-third-party-view').val('folder');
+        thirdPartySelectedFolder = folder;
+        thirdPartyIconPage = 1;
+        renderThirdPartyPackMenu();
+        await loadThirdPartyIcons(folder);
+    });
+    $('#fv-third-party-filter-toggle').off('click.fviconpicker').on('click.fviconpicker', (event) => {
         event.preventDefault();
-        thirdPartyActiveTag = String($(event.currentTarget).attr('data-third-party-tag') || 'all').trim().toLowerCase() || 'all';
+        thirdPartyFilterSheetOpen = !thirdPartyFilterSheetOpen;
+        $('#fv-third-party-filter-sheet').prop('hidden', !thirdPartyFilterSheetOpen);
+    });
+    $('#fv-third-party-tag-search').off('input.fviconpicker').on('input.fviconpicker', (event) => {
+        thirdPartyTagSearchQuery = String($(event.currentTarget).val() || '').trim();
+        renderThirdPartyTagFilters(getThirdPartyActiveBaseIcons());
+    });
+    $('#fv-third-party-tag-clear').off('click.fviconpicker').on('click.fviconpicker', (event) => {
+        event.preventDefault();
+        thirdPartySelectedTags = new Set();
+        renderThirdPartyTagFilters(getThirdPartyActiveBaseIcons());
+        renderThirdPartyIconGrid();
+    });
+    $('#fv-third-party-tag-filters').off('change.fviconpicker').on('change.fviconpicker', 'input[data-third-party-tag]', (event) => {
+        const checkbox = $(event.currentTarget);
+        const tag = String(checkbox.attr('data-third-party-tag') || '').trim().toLowerCase();
+        if (!tag) {
+            return;
+        }
+        if (checkbox.is(':checked')) {
+            thirdPartySelectedTags.add(tag);
+        } else {
+            thirdPartySelectedTags.delete(tag);
+        }
         thirdPartyIconPage = 1;
         renderThirdPartyIconGrid();
     });
-    $('#fv-third-party-folder-list')
-        .off('click.fviconpicker')
-        .on('click.fviconpicker', '[data-third-party-folder]', async (event) => {
-            event.preventDefault();
-            const folder = String($(event.currentTarget).attr('data-third-party-folder') || '').trim();
-            if (!folder) {
-                return;
-            }
-            thirdPartyQuickMode = 'folder';
-            thirdPartyIconPage = 1;
-            await loadThirdPartyIcons(folder);
-        })
-        .on('click.fviconpicker', '[data-third-party-folder-pin]', (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            const folder = String($(event.currentTarget).attr('data-third-party-folder-pin') || '').trim();
-            if (!folder) {
-                return;
-            }
-            if (thirdPartyPinnedFolders.has(folder)) {
-                thirdPartyPinnedFolders.delete(folder);
-            } else {
-                thirdPartyPinnedFolders.add(folder);
-            }
-            persistThirdPartyPreferences();
-            renderThirdPartyFolderList();
-        })
-        .on('click.fviconpicker', '[data-third-party-folder-hide]', (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            const folder = String($(event.currentTarget).attr('data-third-party-folder-hide') || '').trim();
-            if (!folder) {
-                return;
-            }
-            if (thirdPartyHiddenFolders.has(folder)) {
-                thirdPartyHiddenFolders.delete(folder);
-            } else {
-                thirdPartyHiddenFolders.add(folder);
-            }
-            persistThirdPartyPreferences();
-            reconcileThirdPartySelectedFolder();
-            renderThirdPartyFolderList();
-            renderThirdPartyIconGrid();
-        });
-    $('#fv-third-party-show-hidden').off('click.fviconpicker').on('click.fviconpicker', (event) => {
+    $('#fv-third-party-pack-menu-toggle').off('click.fviconpicker').on('click.fviconpicker', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        thirdPartyPackMenuOpen = !thirdPartyPackMenuOpen;
+        $('#fv-third-party-pack-menu').prop('hidden', !thirdPartyPackMenuOpen);
+        renderThirdPartyPackMenu();
+    });
+    $('#fv-third-party-pack-pin-toggle').off('click.fviconpicker').on('click.fviconpicker', (event) => {
+        event.preventDefault();
+        const folder = String(thirdPartySelectedFolder || '').trim();
+        if (!folder) {
+            return;
+        }
+        if (thirdPartyPinnedFolders.has(folder)) {
+            thirdPartyPinnedFolders.delete(folder);
+        } else {
+            thirdPartyPinnedFolders.add(folder);
+        }
+        persistThirdPartyPreferences();
+        renderThirdPartyFolderList();
+        renderThirdPartyPackMenu();
+    });
+    $('#fv-third-party-pack-hide-toggle').off('click.fviconpicker').on('click.fviconpicker', async (event) => {
+        event.preventDefault();
+        const folder = String(thirdPartySelectedFolder || '').trim();
+        if (!folder) {
+            return;
+        }
+        if (thirdPartyHiddenFolders.has(folder)) {
+            thirdPartyHiddenFolders.delete(folder);
+        } else {
+            thirdPartyHiddenFolders.add(folder);
+        }
+        persistThirdPartyPreferences();
+        thirdPartyIconPage = 1;
+        await reflowThirdPartyPackSelection();
+        renderThirdPartyPackMenu();
+    });
+    $('#fv-third-party-show-hidden').off('click.fviconpicker').on('click.fviconpicker', async (event) => {
         event.preventDefault();
         thirdPartyShowHiddenFolders = !thirdPartyShowHiddenFolders;
-        reconcileThirdPartySelectedFolder();
-        renderThirdPartyFolderList();
-        renderThirdPartyIconGrid();
+        await reflowThirdPartyPackSelection();
     });
     $('#fv-third-party-duplicates-cleanup').off('click.fviconpicker').on('click.fviconpicker', (event) => {
         event.preventDefault();
@@ -2332,10 +2439,19 @@ const initBuiltInIconPicker = async () => {
     });
     const closeIconPickersFromOutside = (event) => {
         const target = $(event.target);
+        const inThirdPartyPanel = target.closest('#fv-third-party-icon-panel').length > 0;
+        if (inThirdPartyPanel && !target.closest('#fv-third-party-pack-menu, #fv-third-party-pack-menu-toggle').length) {
+            thirdPartyPackMenuOpen = false;
+            $('#fv-third-party-pack-menu').prop('hidden', true);
+        }
         if (!target.closest('#fv-icon-picker-panel, #fv-icon-picker-toggle, #fv-third-party-icon-panel, #fv-third-party-refresh, #fv-icon-third-party-toggle, #fv-custom-icon-panel, #fv-icon-custom-manager-toggle, #fv-custom-icon-refresh, #fv-icon-upload, #fv-icon-upload-file, #fv-icon-upload-progress').length) {
             setBuiltInIconPickerOpen(false);
             setThirdPartyIconPickerOpen(false);
             setCustomIconPickerOpen(false);
+            thirdPartyPackMenuOpen = false;
+            thirdPartyFilterSheetOpen = false;
+            $('#fv-third-party-pack-menu').prop('hidden', true);
+            $('#fv-third-party-filter-sheet').prop('hidden', true);
         }
     };
     $(document)
@@ -2355,8 +2471,14 @@ const initBuiltInIconPicker = async () => {
     setCustomIconPickerOpen(false);
     ensureThirdPartyPreferencesLoaded();
     $('#fv-third-party-sort').val(thirdPartySortMode);
+    $('#fv-third-party-view').val(thirdPartyQuickMode);
     $('#fv-third-party-search').val(thirdPartyIconSearchQuery);
-    renderThirdPartyModeButtons();
+    $('#fv-third-party-pack-search').val(thirdPartyPackSearchQuery);
+    $('#fv-third-party-pack-kind').val(thirdPartyPackKind);
+    $('#fv-third-party-tag-search').val(thirdPartyTagSearchQuery);
+    $('#fv-third-party-pack-menu').prop('hidden', true);
+    $('#fv-third-party-filter-sheet').prop('hidden', true);
+    renderThirdPartyPackMenu();
     resetIconUploadProgress();
     setIconUploadStatus('');
     renderBuiltInIconPicker();

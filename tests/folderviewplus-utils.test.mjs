@@ -153,6 +153,63 @@ test('buildImportOperations respects skip mode', () => {
     assert.equal(ops.deletes.length, 0);
 });
 
+test('buildImportOperations remaps incoming nested ids by matching parent/name path', () => {
+    const existing = {
+        rootA: { name: 'Apps', parentId: '', containers: [] },
+        childA: { name: 'Media', parentId: 'rootA', containers: [] }
+    };
+    const parsed = {
+        mode: 'full',
+        folders: {
+            incomingRoot: { name: 'Apps', parentId: '', containers: [] },
+            incomingChild: { name: 'Media', parentId: 'incomingRoot', containers: [] }
+        }
+    };
+    const ops = utils.buildImportOperations(existing, parsed, 'merge');
+    assert.equal(ops.upserts.length, 2);
+    assert.equal(ops.pathMappings.length, 2);
+    const byId = Object.fromEntries(ops.upserts.map((row) => [row.id, row]));
+    assert.equal(byId.rootA.pathMapped, true);
+    assert.equal(byId.childA.pathMapped, true);
+    assert.equal(byId.childA.folder.parentId, 'rootA');
+});
+
+test('buildImportOperations records path conflicts when collisions are ambiguous', () => {
+    const existing = {
+        one: { name: 'Apps', parentId: '', containers: [] },
+        two: { name: 'Apps', parentId: '', containers: [] }
+    };
+    const parsed = {
+        mode: 'full',
+        folders: {
+            incoming: { name: 'Apps', parentId: '', containers: [] }
+        }
+    };
+    const ops = utils.buildImportOperations(existing, parsed, 'merge');
+    assert.equal(ops.pathConflicts.length, 1);
+    assert.equal(ops.upserts.length, 1);
+    assert.equal(ops.upserts[0].id, 'incoming');
+});
+
+test('buildImportDiffRows reports parent field changes', () => {
+    const existing = {
+        child: { name: 'Child', parentId: '', containers: [] },
+        root: { name: 'Root', parentId: '', containers: [] }
+    };
+    const parsed = {
+        mode: 'full',
+        folders: {
+            child: { name: 'Child', parentId: 'root', containers: [] },
+            root: { name: 'Root', parentId: '', containers: [] }
+        }
+    };
+    const rows = utils.buildImportDiffRows(existing, parsed, 'merge');
+    const childRow = rows.find((row) => row.id === 'child');
+    assert.ok(childRow);
+    assert.equal(childRow.action, 'update');
+    assert.ok(childRow.fields.includes('parent'));
+});
+
 test('orderFoldersByPrefs supports manual and alpha sort modes', () => {
     const folders = {
         z: { name: 'Zulu' },

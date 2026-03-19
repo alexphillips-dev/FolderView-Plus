@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.19.02">
-<!ENTITY md5 "bf6e9b99210f7f43a7cda91ff679ae9e">
+<!ENTITY version "2026.03.19.03">
+<!ENTITY md5 "62328324f02cd64725dbc4f5266a84ac">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.19.03
+- Improvement: Folder editor now enforces duplicate-name checks by parent path (sibling scope) and suggests the next available name.
+- Improvement: New child folder creation now inherits smart defaults from the selected parent (icon/preview/color) unless the field was manually edited.
+- Improvement: Nested tree integrity scans now include depth warnings and empty-branch detection in addition to orphan/cycle checks.
+- Improvement: Import preview/apply now supports nested path-based ID mapping so matching parent/name paths update existing folders instead of duplicating.
+- Fix: Import diff now reports parent-path changes explicitly, and import summaries surface path-collision resolver notes.
+
 
 ###2026.03.19.02
 - UX: Reworked the 3rd-party icon picker into clearer Find/Pack/Filters/Results sections with a simpler top-to-bottom flow.

@@ -181,7 +181,9 @@ const filterOperationsBySelection = (operations) => {
         mode: operations.mode,
         creates: operations.creates.filter((_, index) => createIndexes.has(index)),
         upserts: operations.upserts.filter((_, index) => upsertIndexes.has(index)),
-        deletes: operations.deletes.filter((_, index) => deleteIndexes.has(index))
+        deletes: operations.deletes.filter((_, index) => deleteIndexes.has(index)),
+        pathMappings: Array.isArray(operations.pathMappings) ? operations.pathMappings.slice() : [],
+        pathConflicts: Array.isArray(operations.pathConflicts) ? operations.pathConflicts.slice() : []
     };
 };
 

@@ -183,6 +183,7 @@ const treeMoveHistoryByType = {
     }
 };
 const TREE_MOVE_HISTORY_LIMIT = 20;
+const TREE_INTEGRITY_DEPTH_WARN_LEVEL = 4;
 let mobileTreeReorderModeByType = {
     docker: false,
     vm: false
@@ -7301,12 +7302,77 @@ const scanFolderTreeIntegrity = (type, foldersInput = null) => {
     };
     ids.forEach((id) => traverse(id, []));
 
+    const hierarchyMeta = buildFolderHierarchyMeta(folders);
+    const childrenById = hierarchyMeta?.childrenById && typeof hierarchyMeta.childrenById === 'object'
+        ? hierarchyMeta.childrenById
+        : {};
+    const depthById = hierarchyMeta?.depthById && typeof hierarchyMeta.depthById === 'object'
+        ? hierarchyMeta.depthById
+        : {};
+    const branchMemberCache = {};
+    const getBranchMemberCount = (id, seen = new Set()) => {
+        const safeId = String(id || '').trim();
+        if (!safeId) {
+            return 0;
+        }
+        if (Object.prototype.hasOwnProperty.call(branchMemberCache, safeId)) {
+            return Number(branchMemberCache[safeId] || 0);
+        }
+        if (seen.has(safeId)) {
+            return 0;
+        }
+        seen.add(safeId);
+        const folder = folders[safeId] || {};
+        const directMembers = (utils && typeof utils.normalizeFolderMembers === 'function')
+            ? utils.normalizeFolderMembers(folder?.containers || []).length
+            : (Array.isArray(folder?.containers) ? folder.containers.length : 0);
+        let total = directMembers;
+        const children = Array.isArray(childrenById[safeId]) ? childrenById[safeId] : [];
+        for (const childId of children) {
+            total += getBranchMemberCount(childId, seen);
+        }
+        seen.delete(safeId);
+        branchMemberCache[safeId] = total;
+        return total;
+    };
+    const depthWarnings = [];
+    const emptyBranches = [];
+    let maxDepth = 0;
+    for (const id of ids) {
+        const depth = Math.max(0, Number(depthById[id] || 0));
+        if (depth > maxDepth) {
+            maxDepth = depth;
+        }
+        if (depth > TREE_INTEGRITY_DEPTH_WARN_LEVEL) {
+            depthWarnings.push({
+                id,
+                name: String(folders[id]?.name || id),
+                depth
+            });
+        }
+        const children = Array.isArray(childrenById[id]) ? childrenById[id] : [];
+        if (children.length <= 0) {
+            continue;
+        }
+        const branchMembers = getBranchMemberCount(id);
+        if (branchMembers <= 0) {
+            emptyBranches.push({
+                id,
+                name: String(folders[id]?.name || id),
+                depth
+            });
+        }
+    }
+
     return {
         type: resolvedType,
         totalFolders: ids.length,
         selfParents,
         orphans,
-        cycles
+        cycles,
+        maxDepth,
+        depthWarnings,
+        emptyBranches
     };
 };
 
@@ -7422,27 +7488,50 @@ const runTreeIntegrityCheck = async (type, options = {}) => {
     const repair = normalizedOptions.repair === true;
     const resolvedType = normalizeManagedType(type);
     const report = scanFolderTreeIntegrity(resolvedType);
-    const totalIssues = report.selfParents.length + report.orphans.length + report.cycles.length;
+    const linkIssueCount = report.selfParents.length + report.orphans.length + report.cycles.length;
+    const advisoryIssueCount = report.depthWarnings.length + report.emptyBranches.length;
+    const totalIssues = linkIssueCount + advisoryIssueCount;
     if (totalIssues <= 0) {
         swal({
             title: 'Tree integrity healthy',
-            text: `${resolvedType.toUpperCase()} nested folder structure has no cycle/orphan issues.`,
+            text: `${resolvedType.toUpperCase()} nested folder structure has no cycle/orphan/depth/empty-branch issues.`,
             type: 'success'
         });
         return;
     }
     if (!repair) {
         const cyclePreview = report.cycles.slice(0, 3).map((cycle) => cycle.join(' -> ')).join('\n');
+        const depthPreview = report.depthWarnings
+            .slice(0, 4)
+            .map((row) => `${row.name} (depth ${row.depth})`)
+            .join('\n');
+        const emptyBranchPreview = report.emptyBranches
+            .slice(0, 4)
+            .map((row) => `${row.name} (depth ${row.depth})`)
+            .join('\n');
         const details = [
             `Self-parent links: ${report.selfParents.length}`,
             `Orphans: ${report.orphans.length}`,
             `Cycles: ${report.cycles.length}`,
+            `Depth warnings (> ${TREE_INTEGRITY_DEPTH_WARN_LEVEL}): ${report.depthWarnings.length}`,
+            `Empty branches (no members in subtree): ${report.emptyBranches.length}`,
+            `Max depth: ${report.maxDepth}`,
             cyclePreview ? `\nCycle preview:\n${cyclePreview}` : ''
+            , depthPreview ? `\nDeep branch preview:\n${depthPreview}` : ''
+            , emptyBranchPreview ? `\nEmpty branch preview:\n${emptyBranchPreview}` : ''
         ].join('\n');
         swal({
             title: 'Tree integrity issues found',
             text: details,
             type: 'warning'
+        });
+        return;
+    }
+    if (linkIssueCount <= 0) {
+        swal({
+            title: 'No repairable link issues',
+            text: `Detected ${advisoryIssueCount} advisory issue(s) (depth/empty branch), but no orphan/cycle link errors to auto-repair.`,
+            type: 'info'
         });
         return;
     }
@@ -7464,7 +7553,7 @@ const runTreeIntegrityCheck = async (type, options = {}) => {
     const confirmed = await new Promise((resolve) => {
         swal({
             title: 'Repair tree integrity?',
-            text: `This will reset parent links to root for ${toRepair.length} folder(s).`,
+            text: `This will reset parent links to root for ${toRepair.length} folder(s). Advisory depth/empty-branch warnings are reported but not auto-changed.`,
             type: 'warning',
             showCancelButton: true,
             confirmButtonText: 'Repair',
@@ -7490,7 +7579,7 @@ const runTreeIntegrityCheck = async (type, options = {}) => {
         }
         swal({
             title: 'Repair complete',
-            text: `Fixed ${toRepair.length} folder link${toRepair.length === 1 ? '' : 's'}.`,
+            text: `Fixed ${toRepair.length} folder link${toRepair.length === 1 ? '' : 's'}. Remaining advisory warnings: ${advisoryIssueCount}.`,
             type: 'success'
         });
     } catch (error) {

@@ -811,6 +811,125 @@
         };
     };
 
+    const normalizeImportPathSegment = (value) => String(value || '')
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, ' ')
+        .replace(/[\\/]+/g, '/');
+
+    const buildImportPathData = (foldersMap) => {
+        const folders = normalizeFolderMap(foldersMap);
+        const ids = Object.keys(folders);
+        const idSet = new Set(ids);
+        const parentById = {};
+        for (const id of ids) {
+            const rawParent = String(folders[id]?.parentId || '').trim();
+            parentById[id] = rawParent && rawParent !== id && idSet.has(rawParent) ? rawParent : '';
+        }
+        const pathById = {};
+        const building = new Set();
+        const buildPath = (id) => {
+            const safeId = String(id || '').trim();
+            if (!safeId || !Object.prototype.hasOwnProperty.call(folders, safeId)) {
+                return '';
+            }
+            if (Object.prototype.hasOwnProperty.call(pathById, safeId)) {
+                return pathById[safeId];
+            }
+            if (building.has(safeId)) {
+                pathById[safeId] = `__cycle__/${normalizeImportPathSegment(folders[safeId]?.name || safeId)}`;
+                return pathById[safeId];
+            }
+            building.add(safeId);
+            const parentId = parentById[safeId];
+            const parentPath = parentId ? buildPath(parentId) : '';
+            const namePart = normalizeImportPathSegment(folders[safeId]?.name || safeId) || safeId.toLowerCase();
+            const ownPath = parentPath ? `${parentPath}/${namePart}` : namePart;
+            pathById[safeId] = ownPath;
+            building.delete(safeId);
+            return ownPath;
+        };
+        for (const id of ids) {
+            buildPath(id);
+        }
+        const indexByPath = {};
+        for (const [id, path] of Object.entries(pathById)) {
+            const key = String(path || '').trim();
+            if (!key) {
+                continue;
+            }
+            if (!Array.isArray(indexByPath[key])) {
+                indexByPath[key] = [];
+            }
+            indexByPath[key].push(id);
+        }
+        return { folders, parentById, pathById, indexByPath };
+    };
+
+    const resolveImportPathCollisions = (currentFolders, incomingFolders) => {
+        const current = buildImportPathData(currentFolders);
+        const incoming = buildImportPathData(incomingFolders);
+        const currentIds = new Set(Object.keys(current.folders));
+        const incomingIds = Object.keys(incoming.folders);
+        const resolvedIdByIncomingId = {};
+        const usedTargetIds = new Set();
+        const mappings = [];
+        const conflicts = [];
+
+        for (const incomingId of incomingIds) {
+            let targetId = incomingId;
+            const incomingPath = String(incoming.pathById[incomingId] || '').trim();
+            if (currentIds.has(incomingId)) {
+                targetId = incomingId;
+            } else if (incomingPath && Array.isArray(current.indexByPath[incomingPath]) && current.indexByPath[incomingPath].length === 1) {
+                targetId = current.indexByPath[incomingPath][0];
+                mappings.push({
+                    sourceId: incomingId,
+                    targetId,
+                    path: incomingPath
+                });
+            } else if (incomingPath && Array.isArray(current.indexByPath[incomingPath]) && current.indexByPath[incomingPath].length > 1) {
+                conflicts.push({
+                    sourceId: incomingId,
+                    path: incomingPath,
+                    reason: `Ambiguous path matches ${current.indexByPath[incomingPath].length} existing folders`
+                });
+            }
+
+            if (targetId !== incomingId && usedTargetIds.has(targetId)) {
+                conflicts.push({
+                    sourceId: incomingId,
+                    path: incomingPath,
+                    reason: `Multiple incoming folders resolved to target "${targetId}"`
+                });
+                targetId = incomingId;
+            }
+            resolvedIdByIncomingId[incomingId] = targetId;
+            usedTargetIds.add(targetId);
+        }
+
+        return {
+            resolvedIdByIncomingId,
+            mappings,
+            conflicts
+        };
+    };
+
+    const remapImportedFolderParent = (folder, incomingMap, resolvedIdByIncomingId) => {
+        const source = isPlainObject(folder) ? cloneJson(folder) : {};
+        const rawParent = String(source.parentId || '').trim();
+        if (!rawParent) {
+            source.parentId = '';
+            return source;
+        }
+        if (Object.prototype.hasOwnProperty.call(incomingMap, rawParent)) {
+            source.parentId = String(resolvedIdByIncomingId[rawParent] || '').trim();
+            return source;
+        }
+        source.parentId = rawParent;
+        return source;
+    };
+
     const summarizeImport = (existingFolders, parsed, importMode) => {
         const current = normalizeFolderMap(existingFolders);
         const mode = ['replace', 'merge', 'skip'].includes(importMode) ? importMode : 'merge';
@@ -864,28 +983,47 @@
 
         const incoming = normalizeFolderMap(parsed.folders);
         const incomingIds = Object.keys(incoming);
-        for (const id of incomingIds) {
-            const existing = current[id];
-            if (!existing) {
-                result.creates.push({ id, name: incoming[id]?.name || id });
+        const pathResolution = resolveImportPathCollisions(current, incoming);
+        const resolvedTargets = new Set();
+        for (const incomingId of incomingIds) {
+            const targetId = String(pathResolution.resolvedIdByIncomingId[incomingId] || incomingId).trim();
+            if (!targetId || resolvedTargets.has(targetId)) {
                 continue;
             }
-            const same = JSON.stringify(existing) === JSON.stringify(incoming[id]);
+            resolvedTargets.add(targetId);
+            const importedFolder = remapImportedFolderParent(
+                incoming[incomingId],
+                incoming,
+                pathResolution.resolvedIdByIncomingId
+            );
+            const existing = current[targetId];
+            if (!existing) {
+                result.creates.push({ id: targetId, name: importedFolder?.name || targetId });
+                continue;
+            }
+            const same = JSON.stringify(existing) === JSON.stringify(importedFolder);
             if (mode === 'skip') {
-                result.skipped.push({ id, name: incoming[id]?.name || id });
+                result.skipped.push({ id: targetId, name: importedFolder?.name || targetId });
             } else if (same) {
-                result.unchanged.push({ id, name: incoming[id]?.name || id });
+                result.unchanged.push({ id: targetId, name: importedFolder?.name || targetId });
             } else {
-                result.updates.push({ id, name: incoming[id]?.name || id });
+                result.updates.push({ id: targetId, name: importedFolder?.name || targetId });
             }
         }
 
         if (mode === 'replace') {
             for (const id of existingIds) {
-                if (!Object.prototype.hasOwnProperty.call(incoming, id)) {
+                if (!resolvedTargets.has(id)) {
                     result.deletes.push({ id, name: current[id]?.name || id });
                 }
             }
+        }
+
+        if (pathResolution.mappings.length > 0) {
+            result.notes.push(`Path resolver: mapped ${pathResolution.mappings.length} incoming folder id(s) to existing parent/name path matches.`);
+        }
+        if (pathResolution.conflicts.length > 0) {
+            result.notes.push(`Path conflicts: ${pathResolution.conflicts.length} incoming folder(s) had ambiguous path collisions and kept original ids.`);
         }
 
         return result;
@@ -922,16 +1060,32 @@
         }
 
         const incoming = normalizeFolderMap(parsed.folders);
-        for (const [id, folder] of Object.entries(incoming)) {
-            if (mode === 'skip' && Object.prototype.hasOwnProperty.call(current, id)) {
+        const pathResolution = resolveImportPathCollisions(current, incoming);
+        const queuedTargets = new Set();
+        for (const [incomingId, folder] of Object.entries(incoming)) {
+            const targetId = String(pathResolution.resolvedIdByIncomingId[incomingId] || incomingId).trim();
+            if (!targetId || queuedTargets.has(targetId)) {
                 continue;
             }
-            operations.upserts.push({ id, folder: cloneJson(folder) });
+            queuedTargets.add(targetId);
+            if (mode === 'skip' && Object.prototype.hasOwnProperty.call(current, targetId)) {
+                continue;
+            }
+            const remappedFolder = remapImportedFolderParent(folder, incoming, pathResolution.resolvedIdByIncomingId);
+            operations.upserts.push({
+                id: targetId,
+                sourceId: incomingId,
+                pathMapped: targetId !== incomingId,
+                folder: remappedFolder
+            });
         }
 
         if (mode === 'replace') {
-            operations.deletes = Object.keys(current).filter((id) => !Object.prototype.hasOwnProperty.call(incoming, id));
+            operations.deletes = Object.keys(current).filter((id) => !queuedTargets.has(id));
         }
+
+        operations.pathMappings = pathResolution.mappings.slice();
+        operations.pathConflicts = pathResolution.conflicts.slice();
 
         return operations;
     };
@@ -959,6 +1113,9 @@
         }
         if (String(current.regex || '') !== String(next.regex || '')) {
             fields.push('regex');
+        }
+        if (String(current.parentId || '') !== String(next.parentId || '')) {
+            fields.push('parent');
         }
         if (JSON.stringify(current.settings || {}) !== JSON.stringify(next.settings || {})) {
             fields.push('settings');

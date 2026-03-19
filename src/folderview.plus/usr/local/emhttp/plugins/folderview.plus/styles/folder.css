@@ -1243,6 +1243,24 @@ table.sortable td:nth-child(3) {
     font-size: 1.03rem;
 }
 
+.fv-parent-defaults-note {
+    margin-top: 0.22em;
+    font-size: 0.96rem;
+    opacity: 0.9;
+}
+
+.fv-parent-defaults-note.is-info {
+    color: #9bb8d6;
+}
+
+.fv-parent-defaults-note.is-success {
+    color: #9ed29e;
+}
+
+.fv-parent-defaults-note.is-warning {
+    color: #ffbe76;
+}
+
 .fv-input-error {
     border-color: #ff7f7f !important;
 }

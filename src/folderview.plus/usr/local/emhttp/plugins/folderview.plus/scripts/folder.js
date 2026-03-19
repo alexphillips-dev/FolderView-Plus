@@ -77,8 +77,6 @@ const BUILT_IN_ICON_FALLBACK = [{
     tags: ['default', 'folder']
 }];
 
-let existingFolderNames = new Set();
-let allFolderNames = new Set();
 let allFoldersById = {};
 let currentFolderDescendantIds = new Set();
 let currentFolderName = '';
@@ -129,6 +127,21 @@ let customIconSearchTimer = null;
 let customIconUploadRequest = null;
 let editorMode = 'basic';
 let advancedSectionCollapsedState = {};
+let isApplyingParentDefaults = false;
+let smartDefaultTouchedFields = new Set();
+
+const SMART_DEFAULT_FIELD_NAMES = new Set([
+    'icon',
+    'preview',
+    'preview_hover',
+    'preview_border',
+    'preview_border_color',
+    'preview_vertical_bars',
+    'preview_vertical_bars_color',
+    'status_color_started',
+    'status_color_paused',
+    'status_color_stopped'
+]);
 
 const getFolderLabelValue = (labels) => {
     const source = labels && typeof labels === 'object' ? labels : {};
@@ -310,6 +323,166 @@ const populateParentFolderOptions = (foldersMap, selectedParentId = '', blockedI
     } else {
         select.value = '';
     }
+};
+
+const getSiblingNameCollision = (nameValue, parentId, excludeFolderId = '') => {
+    const nameNeedle = String(nameValue || '').trim().toLowerCase();
+    if (!nameNeedle) {
+        return null;
+    }
+    const targetParent = normalizeParentFolderId(parentId);
+    const excludeId = normalizeParentFolderId(excludeFolderId);
+    for (const [id, folder] of Object.entries(allFoldersById || {})) {
+        const safeId = normalizeParentFolderId(id);
+        if (!safeId || (excludeId && safeId === excludeId)) {
+            continue;
+        }
+        const folderName = String(folder?.name || '').trim().toLowerCase();
+        if (!folderName || folderName !== nameNeedle) {
+            continue;
+        }
+        const folderParent = normalizeParentFolderId(folder?.parentId || folder?.parent_id || '');
+        if (folderParent === targetParent) {
+            return {
+                id: safeId,
+                name: String(folder?.name || '').trim() || safeId
+            };
+        }
+    }
+    return null;
+};
+
+const suggestSiblingName = (baseName, parentId, excludeFolderId = '') => {
+    const trimmedBase = String(baseName || '').trim() || 'Folder';
+    if (!getSiblingNameCollision(trimmedBase, parentId, excludeFolderId)) {
+        return trimmedBase;
+    }
+    let index = 2;
+    while (index < 500) {
+        const candidate = `${trimmedBase} (${index})`;
+        if (!getSiblingNameCollision(candidate, parentId, excludeFolderId)) {
+            return candidate;
+        }
+        index += 1;
+    }
+    return `${trimmedBase} ${Date.now()}`;
+};
+
+const setParentDefaultsNote = (message = '', level = 'info') => {
+    const form = getForm();
+    const select = $(form?.elements?.parent_folder_id);
+    if (!select.length) {
+        return;
+    }
+    const dd = select.closest('dd');
+    if (!dd.length) {
+        return;
+    }
+    let note = dd.find('.fv-parent-defaults-note');
+    if (!note.length) {
+        note = $('<div class="fv-parent-defaults-note" style="display:none;"></div>');
+        dd.append(note);
+    }
+    note.removeClass('is-info is-success is-warning').addClass(
+        level === 'success' ? 'is-success' : (level === 'warning' ? 'is-warning' : 'is-info')
+    );
+    const safeMessage = String(message || '').trim();
+    if (!safeMessage) {
+        note.hide().text('');
+        return;
+    }
+    note.text(safeMessage).show();
+};
+
+const applySmartDefaultsFromParent = (parentId, { force = false } = {}) => {
+    if (folderId) {
+        return 0;
+    }
+    const safeParentId = normalizeParentFolderId(parentId);
+    if (!safeParentId) {
+        setParentDefaultsNote('');
+        return 0;
+    }
+    const parentFolder = allFoldersById?.[safeParentId];
+    if (!parentFolder || typeof parentFolder !== 'object') {
+        setParentDefaultsNote('');
+        return 0;
+    }
+
+    const form = getForm();
+    if (!form) {
+        return 0;
+    }
+    const settings = parentFolder?.settings && typeof parentFolder.settings === 'object' ? parentFolder.settings : {};
+    const candidateDefaults = {
+        icon: String(parentFolder?.icon || '').trim(),
+        preview: Number.isFinite(Number(settings.preview)) ? String(settings.preview) : '',
+        preview_hover: settings.preview_hover === true,
+        preview_border: isLegacyPreviewBorderEnabled(settings),
+        preview_border_color: normalizeHexColor(settings.preview_border_color, DEFAULT_BORDER_COLOR),
+        preview_vertical_bars: settings.preview_vertical_bars === true,
+        preview_vertical_bars_color: normalizeHexColor(
+            settings.preview_vertical_bars_color || settings.preview_border_color,
+            DEFAULT_BORDER_COLOR
+        ),
+        status_color_started: normalizeHexColor(settings.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started),
+        status_color_paused: normalizeHexColor(settings.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused),
+        status_color_stopped: normalizeHexColor(settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped)
+    };
+
+    let applied = 0;
+    isApplyingParentDefaults = true;
+    try {
+        for (const [fieldName, value] of Object.entries(candidateDefaults)) {
+            if (!SMART_DEFAULT_FIELD_NAMES.has(fieldName)) {
+                continue;
+            }
+            if (!force && smartDefaultTouchedFields.has(fieldName)) {
+                continue;
+            }
+            const input = form.elements?.[fieldName];
+            if (!input) {
+                continue;
+            }
+            if (typeof value === 'boolean') {
+                input.checked = value;
+                applied += 1;
+                continue;
+            }
+            const nextValue = String(value || '');
+            if (nextValue === '') {
+                continue;
+            }
+            input.value = nextValue;
+            applied += 1;
+        }
+    } finally {
+        isApplyingParentDefaults = false;
+    }
+
+    if (applied > 0) {
+        const parentName = String(parentFolder?.name || safeParentId).trim() || safeParentId;
+        setParentDefaultsNote(`Inherited ${applied} default${applied === 1 ? '' : 's'} from parent "${parentName}".`, 'success');
+    } else {
+        setParentDefaultsNote('Parent selected. Existing custom values were kept.', 'info');
+    }
+
+    updateForm();
+    validateForm();
+    updateLiveSummary();
+    updateRegexSimulator();
+    return applied;
+};
+
+const markSmartDefaultFieldTouched = (fieldName) => {
+    const safeName = String(fieldName || '').trim();
+    if (!safeName || !SMART_DEFAULT_FIELD_NAMES.has(safeName)) {
+        return;
+    }
+    if (isApplyingParentDefaults) {
+        return;
+    }
+    smartDefaultTouchedFields.add(safeName);
 };
 
 const escapeHtml = (value) => {
@@ -2712,7 +2885,6 @@ const setFieldError = (fieldName, message) => {
 const validateNameField = () => {
     const form = getForm();
     const value = (form.name.value || '').trim();
-    const lower = value.toLowerCase();
 
     if (!value) {
         setFieldError('name', 'Folder name is required.');
@@ -2724,8 +2896,12 @@ const validateNameField = () => {
         return false;
     }
 
-    if (existingFolderNames.has(lower) && lower !== currentFolderName.toLowerCase()) {
-        setFieldError('name', 'A folder with this name already exists.');
+    const parentId = normalizeParentFolderId(form.parent_folder_id?.value || '');
+    const collision = getSiblingNameCollision(value, parentId, folderId || '');
+    if (collision) {
+        const suggestion = suggestSiblingName(value, parentId, folderId || '');
+        const parentLabel = parentId ? 'this parent folder' : 'top level';
+        setFieldError('name', `A sibling with this name already exists under ${parentLabel}. Try "${suggestion}".`);
         return false;
     }
 
@@ -3742,7 +3918,6 @@ resetStatusColorDefaults();
     // get folders
     let folders = JSON.parse(await $.get(`/plugins/folderview.plus/server/read.php?type=${type}&nocache=1&_=${cacheBust}`).promise());
     allFoldersById = folders && typeof folders === 'object' ? { ...folders } : {};
-    allFolderNames = new Set(Object.values(folders).map((folder) => (folder.name || '').trim().toLowerCase()));
     // get the list of element docker/vm
     let typeFilter;
     if (type === 'docker') {
@@ -3853,12 +4028,12 @@ resetStatusColorDefaults();
         updateForm();
         updateRegex(form.regex);
         updateIcon(form.icon);
+        setParentDefaultsNote('');
     } else {
         currentFolderDescendantIds = new Set();
         populateParentFolderOptions(folders, '', new Set());
+        setParentDefaultsNote('Select a parent to inherit preview/icon defaults automatically.', 'info');
     }
-
-    existingFolderNames = new Set(Object.values(folders).map((folder) => (folder.name || '').trim().toLowerCase()));
 
     // create the *cool* unraid button for the autostart
     $('input.basic-switch').switchButton({ labels_placement: 'right', off_label: $.i18n('off'), on_label: $.i18n('on')});
@@ -3904,6 +4079,11 @@ resetStatusColorDefaults();
     $(form).on('input change', ':input', (event) => {
         if (!isFormInitialized) {
             return;
+        }
+        const fieldName = String(event?.target?.name || '').trim();
+        markSmartDefaultFieldTouched(fieldName);
+        if (!folderId && fieldName === 'parent_folder_id' && event.type === 'change') {
+            void applySmartDefaultsFromParent(normalizeParentFolderId(form.parent_folder_id?.value || ''));
         }
         if (event.target.name === 'name') {
             updateRegex(form.regex);
@@ -4077,16 +4257,9 @@ const updateList = () => {
  * @param {*} e the form
  * @returns {bool} always false
  */
-const generateCopyName = (baseName) => {
+const generateCopyName = (baseName, parentId = '') => {
     const trimmed = (baseName || '').trim() || 'Folder';
-    let suffix = 1;
-    let candidate = `${trimmed} Copy`;
-    while (allFolderNames.has(candidate.toLowerCase())) {
-        suffix += 1;
-        candidate = `${trimmed} Copy ${suffix}`;
-    }
-    allFolderNames.add(candidate.toLowerCase());
-    return candidate;
+    return suggestSiblingName(`${trimmed} Copy`, parentId, '');
 };
 
 const submitForm = async (e, saveAsCopy = false) => {
@@ -4146,7 +4319,7 @@ const submitForm = async (e, saveAsCopy = false) => {
         actions
     }
     if (saveAsCopy) {
-        folder.name = generateCopyName(folder.name);
+        folder.name = generateCopyName(folder.name, folder.parentId);
     }
     if (!folder.name) {
         setFieldError('name', 'Folder name is required.');

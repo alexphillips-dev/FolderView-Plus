@@ -39,6 +39,20 @@ test('settings stylesheet keeps iPhone/touch control chrome reset guard', () => 
     assert.match(settingsCss, /content:\s*none !important/);
 });
 
+test('mobile compact mode keeps optional tree reorder controls and path hints for narrow screens', () => {
+    assert.match(settingsCss, /\.fv-tree-path-hint/);
+    assert.match(settingsCss, /\.tree-management-controls > button\.is-active/);
+    assert.match(settingsCss, /fv-mobile-tree-reorder-docker/);
+    assert.match(settingsCss, /fv-mobile-tree-reorder-vm/);
+    assert.match(settingsCss, /tbody#docker td:nth-child\(1\)/);
+    assert.match(settingsCss, /tbody#vms td:nth-child\(1\)/);
+    assert.match(settingsCss, /tbody#docker \.row-order-actions/);
+    assert.match(settingsCss, /tbody#vms \.row-order-actions/);
+    assert.match(settingsJs, /let mobileTreeReorderModeByType = \{/);
+    assert.match(settingsJs, /const toggleMobileTreeReorderMode = \(type\) =>/);
+    assert.match(settingsJs, /window\.toggleMobileTreeReorderMode = toggleMobileTreeReorderMode;/);
+});
+
 test('quick-actions modal remains iPhone safe-area bounded and scroll-safe', () => {
     assert.match(settingsCss, /@media \(max-width: 760px\)/);
     assert.match(settingsCss, /\.sweet-alert\.fv-row-quick-actions-modal[\s\S]*left:\s*calc\(env\(safe-area-inset-left\) \+ 0\.5rem\)/);

@@ -85,6 +85,13 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <button type="button" onclick="expandAllFolderTrees('docker')"><i class="fa fa-expand"></i> Expand all</button>
                     <button type="button" onclick="collapseAllFolderTrees('docker')"><i class="fa fa-compress"></i> Collapse all</button>
                 </span>
+                <span class="tree-visibility-controls tree-management-controls">
+                    <button id="docker-tree-history-undo" type="button" onclick="applyTreeMoveUndo('docker')" disabled><i class="fa fa-undo"></i> Undo</button>
+                    <button id="docker-tree-history-redo" type="button" onclick="applyTreeMoveRedo('docker')" disabled><i class="fa fa-repeat"></i> Redo</button>
+                    <button id="docker-tree-reorder-toggle" type="button" onclick="toggleMobileTreeReorderMode('docker')" aria-pressed="false"><i class="fa fa-mobile"></i> Mobile reorder</button>
+                    <button type="button" onclick="runTreeIntegrityCheck('docker')"><i class="fa fa-stethoscope"></i> Tree scan</button>
+                    <button type="button" onclick="runTreeIntegrityCheck('docker', { repair: true })"><i class="fa fa-wrench"></i> Tree repair</button>
+                </span>
             </div>
             <input id="docker-folder-filter" type="text" placeholder="Search Docker folders" oninput="setFilterQuery('folders','docker',this.value)">
             <div id="docker-quick-filters" class="folder-quick-filters">
@@ -202,6 +209,7 @@ if (!empty($fvplusRuntimeConflicts)) {
         </div>
     </details>
     <div id="docker-tree-undo-banner" class="fv-tree-undo-banner is-hidden"></div>
+    <div id="docker-tree-path-hint" class="fv-tree-path-hint">Path: select a folder</div>
     <div class="table-wrap">
         <table>
             <thead>
@@ -257,6 +265,13 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <span class="tree-visibility-controls">
                     <button type="button" onclick="expandAllFolderTrees('vm')"><i class="fa fa-expand"></i> Expand all</button>
                     <button type="button" onclick="collapseAllFolderTrees('vm')"><i class="fa fa-compress"></i> Collapse all</button>
+                </span>
+                <span class="tree-visibility-controls tree-management-controls">
+                    <button id="vm-tree-history-undo" type="button" onclick="applyTreeMoveUndo('vm')" disabled><i class="fa fa-undo"></i> Undo</button>
+                    <button id="vm-tree-history-redo" type="button" onclick="applyTreeMoveRedo('vm')" disabled><i class="fa fa-repeat"></i> Redo</button>
+                    <button id="vm-tree-reorder-toggle" type="button" onclick="toggleMobileTreeReorderMode('vm')" aria-pressed="false"><i class="fa fa-mobile"></i> Mobile reorder</button>
+                    <button type="button" onclick="runTreeIntegrityCheck('vm')"><i class="fa fa-stethoscope"></i> Tree scan</button>
+                    <button type="button" onclick="runTreeIntegrityCheck('vm', { repair: true })"><i class="fa fa-wrench"></i> Tree repair</button>
                 </span>
             </div>
             <input id="vm-folder-filter" type="text" placeholder="Search VM folders" oninput="setFilterQuery('folders','vm',this.value)">
@@ -390,6 +405,7 @@ if (!empty($fvplusRuntimeConflicts)) {
         </div>
     </details>
     <div id="vm-tree-undo-banner" class="fv-tree-undo-banner is-hidden"></div>
+    <div id="vm-tree-path-hint" class="fv-tree-path-hint">Path: select a folder</div>
     <div class="table-wrap">
         <table>
             <thead>

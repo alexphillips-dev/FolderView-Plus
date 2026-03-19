@@ -161,6 +161,16 @@ test('nested tree settings expose collapse controls and inline undo hosts', () =
     assert.match(page, /collapseAllFolderTrees\('vm'\)/);
     assert.match(page, /id="docker-tree-undo-banner"/);
     assert.match(page, /id="vm-tree-undo-banner"/);
+    assert.match(page, /id="docker-tree-history-undo"/);
+    assert.match(page, /id="docker-tree-history-redo"/);
+    assert.match(page, /id="vm-tree-history-undo"/);
+    assert.match(page, /id="vm-tree-history-redo"/);
+    assert.match(page, /id="docker-tree-reorder-toggle"/);
+    assert.match(page, /id="vm-tree-reorder-toggle"/);
+    assert.match(page, /id="docker-tree-path-hint"/);
+    assert.match(page, /id="vm-tree-path-hint"/);
+    assert.match(page, /runTreeIntegrityCheck\('docker'/);
+    assert.match(page, /runTreeIntegrityCheck\('vm'/);
 });
 
 test('tree runtime persists collapse state and guards tree operations', () => {
@@ -171,9 +181,40 @@ test('tree runtime persists collapse state and guards tree operations', () => {
     assert.match(script, /window\.toggleFolderTreeCollapse = toggleFolderTreeCollapse;/);
     assert.match(script, /window\.expandAllFolderTrees = expandAllFolderTrees;/);
     assert.match(script, /window\.collapseAllFolderTrees = collapseAllFolderTrees;/);
+    assert.match(script, /window\.applyTreeMoveUndo = applyTreeMoveUndo;/);
+    assert.match(script, /window\.applyTreeMoveRedo = applyTreeMoveRedo;/);
+    assert.match(script, /window\.toggleMobileTreeReorderMode = toggleMobileTreeReorderMode;/);
+    assert.match(script, /const recordTreeMoveHistoryFromBackup = async \(type, beforeBackupName, actionLabel, focusFolderId = ''\) =>/);
+    assert.match(script, /pushTreeMoveHistoryEntry\(resolvedType,/);
+    assert.match(script, /History: \$\{historyDepth\.undo\} undo \/ \$\{historyDepth\.redo\} redo\./);
     assert.doesNotMatch(script, /<td class="parent-cell">/);
-    assert.match(script, /queueTreeMoveUndoBanner\(resolvedType, backup\.name, 'Tree move', sourceId\)/);
-    assert.match(script, /queueTreeMoveUndoBanner\(resolvedType, backup\.name, 'Move to root', sourceId\)/);
+    assert.match(script, /recordTreeMoveHistoryFromBackup\(resolvedType, backup\.name, 'Tree move', sourceId\)/);
+    assert.match(script, /recordTreeMoveHistoryFromBackup\(resolvedType, backup\.name, 'Move to root', sourceId\)/);
+    assert.match(script, /recordTreeMoveHistoryFromBackup\(resolvedType, backup\.name, 'Reorder folders', safeFolderId\)/);
+});
+
+test('nested folder rendering keeps highlighted display HTML isolated from aria/title text', () => {
+    assert.match(script, /const safeNameText = escapeHtml\(folderNameRaw\);/);
+    assert.match(script, /const safeNameDisplayHtml = filter \? highlightSearchText\(folderNameRaw, filter\) : safeNameText;/);
+    assert.match(script, /aria-label="Open status breakdown for \$\{safeNameText\}"/);
+    assert.match(script, /<span class="name-cell-text">\$\{safeNameDisplayHtml\}<\/span>/);
+    assert.match(script, /const showBreadcrumb = folderDepth > 0 \|\| Boolean\(filter\);/);
+});
+
+test('nested folder branch and integrity actions are reachable from quick actions and exported', () => {
+    assert.match(script, /data-action="branchCollapse"/);
+    assert.match(script, /data-action="branchExpand"/);
+    assert.match(script, /data-action="branchExport"/);
+    assert.match(script, /data-action="branchImport"/);
+    assert.match(script, /const setFolderBranchPinned = async \(type, folderId, pinned = true\) =>/);
+    assert.match(script, /const exportFolderBranch = async \(type, folderId\) =>/);
+    assert.match(script, /const importFolderBranch = async \(type, targetFolderId\) =>/);
+    assert.match(script, /const runTreeIntegrityCheck = async \(type, options = \{\}\) =>/);
+    assert.match(script, /window\.setFolderBranchCollapse = setFolderBranchCollapse;/);
+    assert.match(script, /window\.setFolderBranchPinned = setFolderBranchPinned;/);
+    assert.match(script, /window\.exportFolderBranch = exportFolderBranch;/);
+    assert.match(script, /window\.importFolderBranch = importFolderBranch;/);
+    assert.match(script, /window\.runTreeIntegrityCheck = runTreeIntegrityCheck;/);
 });
 
 test('settings column resize keeps per-column widths stable without side-effects', () => {

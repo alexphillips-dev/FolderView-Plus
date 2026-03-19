@@ -179,7 +179,8 @@ test('mobile folder table hides Order column and routes controls to overflow men
     assert.match(settingsJs, /on\(`touchend\$\{namespace\}`, overflowSelector/);
     assert.match(settingsJs, /\$\('\.sweet-alert'\)\.removeClass\('fv-row-quick-actions-modal'\);/);
     assert.match(settingsJs, /\$\('\.sweet-alert:visible'\)\.addClass\('fv-row-quick-actions-modal'\);/);
-    assert.match(settingsJs, /const orderCellHtml = compactMobileLayout[\s\S]*\?\s*''/);
+    assert.match(settingsJs, /const hideOrderControls = compactMobileLayout && !mobileTreeReorderMode;/);
+    assert.match(settingsJs, /const orderCellHtml = hideOrderControls[\s\S]*\?\s*''/);
     assert.match(settingsJs, /const openFolderRowQuickActions = \(type, folderId, event = null\) =>/);
     assert.match(settingsJs, /window\.openFolderRowQuickActions = openFolderRowQuickActions;/);
     assert.match(settingsJs, /const renderFolderQuickActionSummaryHtml = \(summary\) =>/);

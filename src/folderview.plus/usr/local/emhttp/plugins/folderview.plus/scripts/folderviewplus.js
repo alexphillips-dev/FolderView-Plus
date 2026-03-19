@@ -172,6 +172,25 @@ let treeMoveUndoNoticeByType = {
     docker: null,
     vm: null
 };
+const treeMoveHistoryByType = {
+    docker: {
+        undoStack: [],
+        redoStack: []
+    },
+    vm: {
+        undoStack: [],
+        redoStack: []
+    }
+};
+const TREE_MOVE_HISTORY_LIMIT = 20;
+let mobileTreeReorderModeByType = {
+    docker: false,
+    vm: false
+};
+let pendingTableRenderFrameByType = {
+    docker: null,
+    vm: null
+};
 let rowLongPressByType = {
     docker: null,
     vm: null
@@ -2261,6 +2280,7 @@ const initSettingsControls = () => {
 
 const refreshSettingsUx = () => {
     syncCompactMobileLayoutClass();
+    refreshMobileTreeReorderModeClasses();
     buildSettingsSections();
     normalizeExpandedAdvancedSections();
     const advancedSections = settingsUiState.sections.filter((section) => section.advanced);
@@ -3396,6 +3416,14 @@ const runVmRowDrawerAction = async (action, folderId) => {
         root: () => moveFolderToRootQuick('vm', id),
         under: () => moveFolderUnderDialog('vm', id),
         tree: () => openFolderTreeMoveDialog('vm', id),
+        branchCollapse: () => setFolderBranchCollapse('vm', id, true),
+        branchExpand: () => setFolderBranchCollapse('vm', id, false),
+        branchPin: () => setFolderBranchPinned('vm', id, true),
+        branchUnpin: () => setFolderBranchPinned('vm', id, false),
+        branchExport: () => exportFolderBranch('vm', id),
+        branchImport: () => importFolderBranch('vm', id),
+        treeScan: () => runTreeIntegrityCheck('vm'),
+        treeRepair: () => runTreeIntegrityCheck('vm', { repair: true }),
         status: () => {
             showFolderStatusBreakdown('vm', id);
             return Promise.resolve();
@@ -3440,6 +3468,14 @@ const buildVmRowDetailsDrawerHtml = (folderId, folder, summary, pinned) => {
         ['root', 'fa-level-up', 'Move to root', '', hasParent],
         ['under', 'fa-level-down', 'Move under...', '', treeMoveAvailable],
         ['tree', 'fa-sitemap', 'Tree move...', '', treeMoveAvailable],
+        ['branchCollapse', 'fa-compress', 'Collapse branch', '', true],
+        ['branchExpand', 'fa-expand', 'Expand branch', '', true],
+        ['branchPin', 'fa-thumb-tack', 'Pin branch', '', true],
+        ['branchUnpin', 'fa-thumb-tack', 'Unpin branch', '', true],
+        ['branchExport', 'fa-sign-out', 'Export branch', '', true],
+        ['branchImport', 'fa-sign-in', 'Import branch here', '', true],
+        ['treeScan', 'fa-stethoscope', 'Scan tree integrity', '', true],
+        ['treeRepair', 'fa-wrench', 'Repair tree integrity', '', true],
         ['status', 'fa-info-circle', 'Status breakdown', '', true],
         ['copy', 'fa-clipboard', 'Copy ID', '', true],
         ['export', 'fa-download', 'Export', '', true],
@@ -3509,6 +3545,15 @@ const showFolderRowQuickActions = (type, folderId) => {
     const underActionHtml = treeMoveAvailable
         ? '<button type="button" class="fv-row-quick-action" data-action="under"><i class="fa fa-level-down"></i> Move under...</button>'
         : '';
+    const branchActionsHtml = ''
+        + '<button type="button" class="fv-row-quick-action" data-action="branchCollapse"><i class="fa fa-compress"></i> Collapse branch</button>'
+        + '<button type="button" class="fv-row-quick-action" data-action="branchExpand"><i class="fa fa-expand"></i> Expand branch</button>'
+        + '<button type="button" class="fv-row-quick-action" data-action="branchPin"><i class="fa fa-thumb-tack"></i> Pin branch</button>'
+        + '<button type="button" class="fv-row-quick-action" data-action="branchUnpin"><i class="fa fa-thumb-tack"></i> Unpin branch</button>'
+        + '<button type="button" class="fv-row-quick-action" data-action="branchExport"><i class="fa fa-sign-out"></i> Export branch</button>'
+        + '<button type="button" class="fv-row-quick-action" data-action="branchImport"><i class="fa fa-sign-in"></i> Import branch here</button>'
+        + '<button type="button" class="fv-row-quick-action" data-action="treeScan"><i class="fa fa-stethoscope"></i> Scan tree integrity</button>'
+        + '<button type="button" class="fv-row-quick-action" data-action="treeRepair"><i class="fa fa-wrench"></i> Repair tree integrity</button>';
     const html = `
         <div class="fv-row-quick-actions">
             <div class="fv-row-quick-actions-meta">${typeLabel} folder ID: <code>${safeFolderId}</code></div>
@@ -3520,6 +3565,7 @@ const showFolderRowQuickActions = (type, folderId) => {
                 ${rootActionHtml}
                 ${underActionHtml}
                 ${treeActionHtml}
+                ${branchActionsHtml}
                 <button type="button" class="fv-row-quick-action" data-action="status"><i class="fa fa-info-circle"></i> Status breakdown</button>
                 <button type="button" class="fv-row-quick-action" data-action="copy"><i class="fa fa-clipboard"></i> Copy ID</button>
                 <button type="button" class="fv-row-quick-action" data-action="export"><i class="fa fa-download"></i> Export folder</button>
@@ -3563,6 +3609,38 @@ const showFolderRowQuickActions = (type, folderId) => {
             }
             if (action === 'tree') {
                 openFolderTreeMoveDialog(resolvedType, folderId);
+                return;
+            }
+            if (action === 'branchCollapse') {
+                setFolderBranchCollapse(resolvedType, folderId, true);
+                return;
+            }
+            if (action === 'branchExpand') {
+                setFolderBranchCollapse(resolvedType, folderId, false);
+                return;
+            }
+            if (action === 'branchPin') {
+                void setFolderBranchPinned(resolvedType, folderId, true);
+                return;
+            }
+            if (action === 'branchUnpin') {
+                void setFolderBranchPinned(resolvedType, folderId, false);
+                return;
+            }
+            if (action === 'branchExport') {
+                void exportFolderBranch(resolvedType, folderId);
+                return;
+            }
+            if (action === 'branchImport') {
+                void importFolderBranch(resolvedType, folderId);
+                return;
+            }
+            if (action === 'treeScan') {
+                void runTreeIntegrityCheck(resolvedType);
+                return;
+            }
+            if (action === 'treeRepair') {
+                void runTreeIntegrityCheck(resolvedType, { repair: true });
                 return;
             }
             if (action === 'status') {
@@ -3626,6 +3704,8 @@ const bindRowTouchQuickActions = (type) => {
     $(document).off(`touchend${namespace}`, `${tbodySelector} tr[data-folder-id]`);
     $(document).off(`touchcancel${namespace}`, `${tbodySelector} tr[data-folder-id]`);
     $(document).off(`contextmenu${namespace}`, `${tbodySelector} tr[data-folder-id]`);
+    $(document).off(`mouseenter${namespace}`, `${tbodySelector} tr[data-folder-id]`);
+    $(document).off(`focusin${namespace}`, `${tbodySelector} tr[data-folder-id]`);
     $(document).off(`click${namespace}`, overflowSelector);
     $(document).off(`touchend${namespace}`, overflowSelector);
     $(document).off(`click${namespace}`, vmDrawerActionSelector);
@@ -3674,6 +3754,20 @@ const bindRowTouchQuickActions = (type) => {
             return;
         }
         showFolderRowQuickActions(resolvedType, folderId);
+    });
+    $(document).on(`mouseenter${namespace}`, `${tbodySelector} tr[data-folder-id]`, (event) => {
+        const folderId = String($(event.currentTarget).attr('data-folder-id') || '').trim();
+        if (!folderId) {
+            return;
+        }
+        updateMobileTreePathHint(resolvedType, folderId);
+    });
+    $(document).on(`focusin${namespace}`, `${tbodySelector} tr[data-folder-id]`, (event) => {
+        const folderId = String($(event.currentTarget).attr('data-folder-id') || '').trim();
+        if (!folderId) {
+            return;
+        }
+        updateMobileTreePathHint(resolvedType, folderId);
     });
 
     $(document).on(`click${namespace}`, overflowSelector, (event) => {
@@ -4433,6 +4527,10 @@ const buildTableUiStatePayload = () => ({
         docker: { ...(columnWidthsByType.docker || {}) },
         vm: { ...(columnWidthsByType.vm || {}) }
     },
+    treeReorderMode: {
+        docker: mobileTreeReorderModeByType.docker === true,
+        vm: mobileTreeReorderModeByType.vm === true
+    },
     advancedSearch: {
         byTab: normalizeAdvancedSearchMap(settingsUiState.advancedSearchByTab),
         query: normalizedFilter(settingsUiState.query),
@@ -4464,6 +4562,7 @@ const restoreTableUiState = () => {
         const sourceTreeCollapsed = source.treeCollapsed && typeof source.treeCollapsed === 'object' ? source.treeCollapsed : {};
         const sourceColumns = source.columns && typeof source.columns === 'object' ? source.columns : {};
         const sourceColumnWidths = source.columnWidths && typeof source.columnWidths === 'object' ? source.columnWidths : {};
+        const sourceTreeReorderMode = source.treeReorderMode && typeof source.treeReorderMode === 'object' ? source.treeReorderMode : {};
         const sourceAdvancedSearch = source.advancedSearch && typeof source.advancedSearch === 'object' ? source.advancedSearch : {};
         ['docker', 'vm'].forEach((resolvedType) => {
             const perTypeFilters = sourceFilters[resolvedType] && typeof sourceFilters[resolvedType] === 'object'
@@ -4487,6 +4586,7 @@ const restoreTableUiState = () => {
             );
             columnVisibilityByType[resolvedType] = normalizeColumnVisibilityForType(resolvedType, sourceColumns[resolvedType]);
             columnWidthsByType[resolvedType] = normalizeColumnWidthsForType(resolvedType, sourceColumnWidths[resolvedType]);
+            mobileTreeReorderModeByType[resolvedType] = sourceTreeReorderMode[resolvedType] === true;
         });
         settingsUiState.advancedSearchByTab = normalizeAdvancedSearchMap(
             sourceAdvancedSearch.byTab || sourceAdvancedSearch.queryByTab || {}
@@ -6052,6 +6152,7 @@ const focusFolderRow = (type, folderId) => {
     if (!row.length) {
         return false;
     }
+    updateMobileTreePathHint(target.type, target.id);
 
     const tbody = row.closest('tbody');
     tbody.find('tr.fv-row-focus').removeClass('fv-row-focus');
@@ -6451,6 +6552,64 @@ const treeUndoBannerSelectorByType = Object.freeze({
     vm: '#vm-tree-undo-banner'
 });
 
+const getTreeMoveHistoryState = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const state = treeMoveHistoryByType[resolvedType];
+    if (!state || typeof state !== 'object') {
+        treeMoveHistoryByType[resolvedType] = {
+            undoStack: [],
+            redoStack: []
+        };
+    }
+    return treeMoveHistoryByType[resolvedType];
+};
+
+const pushTreeMoveHistoryEntry = (type, entry) => {
+    const resolvedType = normalizeManagedType(type);
+    const state = getTreeMoveHistoryState(resolvedType);
+    const beforeBackupName = String(entry?.beforeBackupName || '').trim();
+    const afterBackupName = String(entry?.afterBackupName || '').trim();
+    if (!beforeBackupName || !afterBackupName) {
+        return;
+    }
+    const nextEntry = {
+        beforeBackupName,
+        afterBackupName,
+        actionLabel: String(entry?.actionLabel || 'Tree move').trim(),
+        focusFolderId: String(entry?.focusFolderId || '').trim(),
+        createdAt: Date.now()
+    };
+    state.undoStack.push(nextEntry);
+    while (state.undoStack.length > TREE_MOVE_HISTORY_LIMIT) {
+        state.undoStack.shift();
+    }
+    state.redoStack = [];
+};
+
+const getTreeMoveHistoryDepth = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const state = getTreeMoveHistoryState(resolvedType);
+    return {
+        undo: Array.isArray(state.undoStack) ? state.undoStack.length : 0,
+        redo: Array.isArray(state.redoStack) ? state.redoStack.length : 0
+    };
+};
+
+const updateTreeMoveHistoryButtons = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const depth = getTreeMoveHistoryDepth(resolvedType);
+    const undoBtn = $(`#${resolvedType}-tree-history-undo`);
+    const redoBtn = $(`#${resolvedType}-tree-history-redo`);
+    if (undoBtn.length) {
+        undoBtn.prop('disabled', depth.undo <= 0);
+        undoBtn.attr('title', depth.undo > 0 ? `Undo last ${depth.undo} tree change(s)` : 'No tree changes to undo');
+    }
+    if (redoBtn.length) {
+        redoBtn.prop('disabled', depth.redo <= 0);
+        redoBtn.attr('title', depth.redo > 0 ? `Redo ${depth.redo} tree change(s)` : 'No tree changes to redo');
+    }
+};
+
 const clearTreeMoveUndoTimer = (type) => {
     const resolvedType = normalizeManagedType(type);
     if (treeMoveUndoTimersByType[resolvedType]) {
@@ -6471,11 +6630,14 @@ const renderTreeMoveUndoBanner = (type) => {
     const selector = treeUndoBannerSelectorByType[resolvedType];
     const host = selector ? $(selector) : $();
     if (!host.length) {
+        updateTreeMoveHistoryButtons(resolvedType);
         return;
     }
     const notice = treeMoveUndoNoticeByType[resolvedType];
+    const historyDepth = getTreeMoveHistoryDepth(resolvedType);
     if (!notice || !notice.backupName) {
         host.addClass('is-hidden').empty();
+        updateTreeMoveHistoryButtons(resolvedType);
         return;
     }
     const actionLabel = String(notice.actionLabel || 'Tree change').trim();
@@ -6492,10 +6654,11 @@ const renderTreeMoveUndoBanner = (type) => {
         .html(`
             <div class="fv-tree-undo-message">
                 <strong>${escapeHtml(actionLabel)} applied.</strong>
-                <span>Undo available for ${remainingSeconds}s.</span>
+                <span>Undo available for ${remainingSeconds}s. History: ${historyDepth.undo} undo / ${historyDepth.redo} redo.</span>
             </div>
             <div class="fv-tree-undo-actions">
                 <button type="button" class="fv-tree-undo-btn" data-fv-tree-undo-type="${escapeHtml(resolvedType)}"><i class="fa fa-undo"></i> Undo</button>
+                <button type="button" class="fv-tree-redo-btn" data-fv-tree-redo-type="${escapeHtml(resolvedType)}" ${historyDepth.redo > 0 ? '' : 'disabled'}><i class="fa fa-repeat"></i> Redo</button>
                 <button type="button" class="fv-tree-undo-dismiss" data-fv-tree-dismiss-type="${escapeHtml(resolvedType)}"><i class="fa fa-times"></i> Dismiss</button>
             </div>
         `);
@@ -6510,6 +6673,16 @@ const renderTreeMoveUndoBanner = (type) => {
             }
             await applyTreeMoveUndo(targetType);
         });
+    host.find('[data-fv-tree-redo-type]')
+        .off('click.fvtreeundo')
+        .on('click.fvtreeundo', async (event) => {
+            event.preventDefault();
+            const targetType = String($(event.currentTarget).attr('data-fv-tree-redo-type') || '').trim();
+            if (!targetType) {
+                return;
+            }
+            await applyTreeMoveRedo(targetType);
+        });
     host.find('[data-fv-tree-dismiss-type]')
         .off('click.fvtreeundo')
         .on('click.fvtreeundo', (event) => {
@@ -6521,6 +6694,7 @@ const renderTreeMoveUndoBanner = (type) => {
             dismissTreeMoveUndoBanner(targetType);
         });
     host.attr('title', backupName);
+    updateTreeMoveHistoryButtons(resolvedType);
 };
 
 const queueTreeMoveUndoBanner = (type, backupName, actionLabel, focusFolderId = '') => {
@@ -6542,21 +6716,64 @@ const queueTreeMoveUndoBanner = (type, backupName, actionLabel, focusFolderId = 
     renderTreeMoveUndoBanner(resolvedType);
 };
 
-const applyTreeMoveUndo = async (type) => {
+const recordTreeMoveHistoryFromBackup = async (type, beforeBackupName, actionLabel, focusFolderId = '') => {
     const resolvedType = normalizeManagedType(type);
-    const notice = treeMoveUndoNoticeByType[resolvedType];
-    if (!notice?.backupName) {
-        dismissTreeMoveUndoBanner(resolvedType);
+    const safeBeforeBackupName = String(beforeBackupName || '').trim();
+    if (!safeBeforeBackupName) {
+        updateTreeMoveHistoryButtons(resolvedType);
         return;
     }
-    const focusFolderId = String(notice.focusFolderId || '').trim();
-    const backupName = String(notice.backupName || '').trim();
-    dismissTreeMoveUndoBanner(resolvedType);
+    let afterBackupName = '';
+    try {
+        const slug = String(actionLabel || 'tree-change')
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '')
+            .slice(0, 32) || 'tree-change';
+        const postBackup = await createBackup(resolvedType, `after-${slug}-${Date.now()}`);
+        afterBackupName = String(postBackup?.name || '').trim();
+    } catch (_error) {
+        // Keep undo banner even if post-action snapshot cannot be captured.
+    }
+    if (afterBackupName) {
+        pushTreeMoveHistoryEntry(resolvedType, {
+            beforeBackupName: safeBeforeBackupName,
+            afterBackupName,
+            actionLabel: String(actionLabel || 'Tree change').trim() || 'Tree change',
+            focusFolderId
+        });
+    }
+    queueTreeMoveUndoBanner(resolvedType, safeBeforeBackupName, actionLabel, focusFolderId);
+    updateTreeMoveHistoryButtons(resolvedType);
+};
+
+const applyTreeMoveUndo = async (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const state = getTreeMoveHistoryState(resolvedType);
+    if (!Array.isArray(state.undoStack) || state.undoStack.length <= 0) {
+        dismissTreeMoveUndoBanner(resolvedType);
+        updateTreeMoveHistoryButtons(resolvedType);
+        return;
+    }
+    const entry = state.undoStack.pop();
+    const backupName = String(entry?.beforeBackupName || '').trim();
+    const focusFolderId = String(entry?.focusFolderId || '').trim();
+    if (!backupName) {
+        updateTreeMoveHistoryButtons(resolvedType);
+        return;
+    }
     try {
         await restoreBackupByName(resolvedType, backupName);
         await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
         if (focusFolderId) {
             focusFolderRow(resolvedType, focusFolderId);
+        }
+        if (entry?.afterBackupName) {
+            state.redoStack.push(entry);
+            while (state.redoStack.length > TREE_MOVE_HISTORY_LIMIT) {
+                state.redoStack.shift();
+            }
         }
         addActivityEntry(`Undo complete: restored ${backupName}.`, 'success');
         showToastMessage({
@@ -6566,7 +6783,71 @@ const applyTreeMoveUndo = async (type) => {
             durationMs: 3200
         });
     } catch (error) {
+        state.undoStack.push(entry);
         showError('Undo failed', error);
+    } finally {
+        const latestUndo = state.undoStack[state.undoStack.length - 1];
+        if (latestUndo?.beforeBackupName) {
+            queueTreeMoveUndoBanner(
+                resolvedType,
+                latestUndo.beforeBackupName,
+                latestUndo.actionLabel || 'Tree change',
+                latestUndo.focusFolderId || ''
+            );
+        } else {
+            dismissTreeMoveUndoBanner(resolvedType);
+        }
+        updateTreeMoveHistoryButtons(resolvedType);
+    }
+};
+
+const applyTreeMoveRedo = async (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const state = getTreeMoveHistoryState(resolvedType);
+    if (!Array.isArray(state.redoStack) || state.redoStack.length <= 0) {
+        updateTreeMoveHistoryButtons(resolvedType);
+        return;
+    }
+    const entry = state.redoStack.pop();
+    const backupName = String(entry?.afterBackupName || '').trim();
+    const focusFolderId = String(entry?.focusFolderId || '').trim();
+    if (!backupName) {
+        updateTreeMoveHistoryButtons(resolvedType);
+        return;
+    }
+    try {
+        await restoreBackupByName(resolvedType, backupName);
+        await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
+        if (focusFolderId) {
+            focusFolderRow(resolvedType, focusFolderId);
+        }
+        state.undoStack.push(entry);
+        while (state.undoStack.length > TREE_MOVE_HISTORY_LIMIT) {
+            state.undoStack.shift();
+        }
+        addActivityEntry(`Redo complete: restored ${backupName}.`, 'success');
+        showToastMessage({
+            title: 'Redo complete',
+            message: `Restored ${backupName}`,
+            level: 'success',
+            durationMs: 3200
+        });
+    } catch (error) {
+        state.redoStack.push(entry);
+        showError('Redo failed', error);
+    } finally {
+        const latestUndo = state.undoStack[state.undoStack.length - 1];
+        if (latestUndo?.beforeBackupName) {
+            queueTreeMoveUndoBanner(
+                resolvedType,
+                latestUndo.beforeBackupName,
+                latestUndo.actionLabel || 'Tree change',
+                latestUndo.focusFolderId || ''
+            );
+        } else {
+            dismissTreeMoveUndoBanner(resolvedType);
+        }
+        updateTreeMoveHistoryButtons(resolvedType);
     }
 };
 
@@ -6763,6 +7044,460 @@ const canFolderUseTreeMove = (type, sourceFolderId, hierarchyMeta = null) => {
     return false;
 };
 
+const scheduleTableRender = (type, { immediate = false } = {}) => {
+    const resolvedType = normalizeManagedType(type);
+    if (immediate) {
+        if (pendingTableRenderFrameByType[resolvedType] !== null) {
+            window.cancelAnimationFrame(pendingTableRenderFrameByType[resolvedType]);
+            pendingTableRenderFrameByType[resolvedType] = null;
+        }
+        renderTable(resolvedType);
+        return;
+    }
+    if (pendingTableRenderFrameByType[resolvedType] !== null) {
+        return;
+    }
+    pendingTableRenderFrameByType[resolvedType] = window.requestAnimationFrame(() => {
+        pendingTableRenderFrameByType[resolvedType] = null;
+        renderTable(resolvedType);
+    });
+};
+
+const applyMobileTreeReorderModeClass = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const enabled = mobileTreeReorderModeByType[resolvedType] === true;
+    const className = `fv-mobile-tree-reorder-${resolvedType}`;
+    const root = document.getElementById('fv-settings-root');
+    if (root) {
+        root.classList.toggle(className, enabled);
+    }
+    if (document.body) {
+        document.body.classList.toggle(className, enabled);
+    }
+    $(`#${resolvedType}-tree-reorder-toggle`)
+        .toggleClass('is-active', enabled)
+        .attr('aria-pressed', enabled ? 'true' : 'false');
+};
+
+const refreshMobileTreeReorderModeClasses = () => {
+    applyMobileTreeReorderModeClass('docker');
+    applyMobileTreeReorderModeClass('vm');
+};
+
+const setMobileTreeReorderMode = (type, enabled) => {
+    const resolvedType = normalizeManagedType(type);
+    mobileTreeReorderModeByType[resolvedType] = enabled === true;
+    persistTableUiState();
+    applyMobileTreeReorderModeClass(resolvedType);
+    scheduleTableRender(resolvedType);
+};
+
+const toggleMobileTreeReorderMode = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    setMobileTreeReorderMode(resolvedType, !(mobileTreeReorderModeByType[resolvedType] === true));
+};
+
+const treePathHintSelectorByType = Object.freeze({
+    docker: '#docker-tree-path-hint',
+    vm: '#vm-tree-path-hint'
+});
+
+const updateMobileTreePathHint = (type, folderId = '') => {
+    const resolvedType = normalizeManagedType(type);
+    const selector = treePathHintSelectorByType[resolvedType];
+    const host = selector ? $(selector) : $();
+    if (!host.length) {
+        return;
+    }
+    const id = String(folderId || '').trim();
+    if (!id) {
+        host.text('Path: select a folder');
+        return;
+    }
+    const folders = getFolderMap(resolvedType);
+    if (!Object.prototype.hasOwnProperty.call(folders, id)) {
+        host.text('Path: folder unavailable');
+        return;
+    }
+    const hierarchyMeta = buildFolderHierarchyMeta(folders);
+    const path = buildFolderPathLabel(resolvedType, id, folders, hierarchyMeta);
+    host.text(`Path: ${path}`);
+};
+
+const getFolderBranchIds = (type, folderId, hierarchyMeta = null) => {
+    const resolvedType = normalizeManagedType(type);
+    const sourceId = String(folderId || '').trim();
+    if (!sourceId) {
+        return [];
+    }
+    const folders = getFolderMap(resolvedType);
+    if (!Object.prototype.hasOwnProperty.call(folders, sourceId)) {
+        return [];
+    }
+    const meta = hierarchyMeta || buildFolderHierarchyMeta(folders);
+    return [sourceId, ...(meta.descendantsById[sourceId] || [])];
+};
+
+const setFolderBranchCollapse = (type, folderId, collapse = true) => {
+    const resolvedType = normalizeManagedType(type);
+    const folders = getFolderMap(resolvedType);
+    const hierarchyMeta = buildFolderHierarchyMeta(folders);
+    const branchIds = getFolderBranchIds(resolvedType, folderId, hierarchyMeta);
+    if (!branchIds.length) {
+        return;
+    }
+    const collapsed = syncCollapsedTreeParentsForType(resolvedType, folders, hierarchyMeta);
+    if (collapse) {
+        for (const id of branchIds) {
+            const children = Array.isArray(hierarchyMeta.childrenById[id]) ? hierarchyMeta.childrenById[id] : [];
+            if (children.length > 0) {
+                collapsed.add(id);
+            }
+        }
+    } else {
+        for (const id of branchIds) {
+            collapsed.delete(id);
+        }
+    }
+    collapsedTreeParentsByType[resolvedType] = collapsed;
+    persistTableUiState();
+    scheduleTableRender(resolvedType);
+};
+
+const setFolderBranchPinned = async (type, folderId, pinned = true) => {
+    const resolvedType = normalizeManagedType(type);
+    if (!ensureRuntimeConflictActionAllowed('Pin/unpin folder branch')) {
+        return;
+    }
+    const folders = getFolderMap(resolvedType);
+    const hierarchyMeta = buildFolderHierarchyMeta(folders);
+    const branchIds = getFolderBranchIds(resolvedType, folderId, hierarchyMeta);
+    if (!branchIds.length) {
+        return;
+    }
+    const current = utils.normalizePrefs(prefsByType[resolvedType]);
+    const pinnedSet = new Set(Array.isArray(current.pinnedFolderIds) ? current.pinnedFolderIds : []);
+    if (pinned) {
+        branchIds.forEach((id) => pinnedSet.add(String(id)));
+    } else {
+        branchIds.forEach((id) => pinnedSet.delete(String(id)));
+    }
+    const next = {
+        ...current,
+        pinnedFolderIds: Array.from(pinnedSet)
+    };
+    const branchLabel = `${branchIds.length} folder${branchIds.length === 1 ? '' : 's'}`;
+    let backup = null;
+    try {
+        backup = await createBackup(resolvedType, pinned ? `before-pin-branch-${folderId}` : `before-unpin-branch-${folderId}`);
+        prefsByType[resolvedType] = await postPrefs(resolvedType, next);
+        await refreshType(resolvedType);
+        if (backup?.name) {
+            await offerUndoAction(resolvedType, backup, pinned ? 'Pin branch' : 'Unpin branch');
+        }
+        showToastMessage({
+            title: pinned ? 'Branch pinned' : 'Branch unpinned',
+            message: `${branchLabel} updated.`,
+            level: 'success',
+            durationMs: 3200
+        });
+    } catch (error) {
+        showError('Branch pin update failed', error);
+    }
+};
+
+const exportFolderBranch = async (type, folderId) => {
+    const resolvedType = normalizeManagedType(type);
+    const folders = getFolderMap(resolvedType);
+    const hierarchyMeta = buildFolderHierarchyMeta(folders);
+    const branchIds = getFolderBranchIds(resolvedType, folderId, hierarchyMeta);
+    if (!branchIds.length) {
+        swal({ title: 'Export failed', text: 'Folder branch no longer exists.', type: 'error' });
+        return;
+    }
+    const branchFolders = {};
+    branchIds.forEach((id) => {
+        if (Object.prototype.hasOwnProperty.call(folders, id)) {
+            branchFolders[id] = folders[id];
+        }
+    });
+    const sourceFolder = folders[String(folderId || '').trim()] || {};
+    const payload = utils.buildFullExportPayload({
+        type: resolvedType,
+        folders: branchFolders,
+        pluginVersion
+    });
+    payload.mode = 'branch';
+    payload.branchRootId = String(folderId || '').trim();
+    payload.branchSize = branchIds.length;
+    const baseName = String(sourceFolder.name || folderId || 'folder-branch').trim() || 'folder-branch';
+    downloadFile(`${baseName}-branch.json`, toPrettyJson(payload));
+    await trackDiagnosticsEvent({
+        eventType: 'export',
+        type: resolvedType,
+        details: {
+            mode: 'branch',
+            folderCount: branchIds.length,
+            schemaVersion: utils.EXPORT_SCHEMA_VERSION
+        }
+    });
+};
+
+const buildRawParentMap = (foldersInput = null) => {
+    const folders = utils.normalizeFolderMap(foldersInput || {});
+    const parentMap = {};
+    for (const [id, folder] of Object.entries(folders)) {
+        const rawParent = typeof folder?.parentId === 'string'
+            ? folder.parentId
+            : (typeof folder?.parent_id === 'string' ? folder.parent_id : '');
+        parentMap[id] = String(rawParent || '').trim();
+    }
+    return { folders, parentMap };
+};
+
+const scanFolderTreeIntegrity = (type, foldersInput = null) => {
+    const resolvedType = normalizeManagedType(type);
+    const { folders, parentMap } = buildRawParentMap(foldersInput || getFolderMap(resolvedType));
+    const ids = Object.keys(folders);
+    const idSet = new Set(ids);
+    const selfParents = [];
+    const orphans = [];
+    const cycles = [];
+
+    ids.forEach((id) => {
+        const parentId = String(parentMap[id] || '').trim();
+        if (!parentId) {
+            return;
+        }
+        if (parentId === id) {
+            selfParents.push(id);
+            return;
+        }
+        if (!idSet.has(parentId)) {
+            orphans.push(id);
+        }
+    });
+
+    const visited = new Set();
+    const inPath = new Set();
+    const traverse = (id, chain = []) => {
+        if (inPath.has(id)) {
+            const startIndex = chain.indexOf(id);
+            if (startIndex >= 0) {
+                cycles.push(chain.slice(startIndex).concat(id));
+            }
+            return;
+        }
+        if (visited.has(id)) {
+            return;
+        }
+        visited.add(id);
+        inPath.add(id);
+        const parentId = String(parentMap[id] || '').trim();
+        if (parentId && idSet.has(parentId)) {
+            traverse(parentId, chain.concat(id));
+        }
+        inPath.delete(id);
+    };
+    ids.forEach((id) => traverse(id, []));
+
+    return {
+        type: resolvedType,
+        totalFolders: ids.length,
+        selfParents,
+        orphans,
+        cycles
+    };
+};
+
+const importFolderBranch = async (type, targetFolderId) => {
+    const resolvedType = normalizeManagedType(type);
+    const targetId = String(targetFolderId || '').trim();
+    const folders = getFolderMap(resolvedType);
+    if (!targetId || !Object.prototype.hasOwnProperty.call(folders, targetId)) {
+        swal({ title: 'Import failed', text: 'Target folder is required.', type: 'error' });
+        return;
+    }
+    if (!ensureRuntimeConflictActionAllowed(`Import ${resolvedType === 'docker' ? 'Docker' : 'VM'} branch`)) {
+        return;
+    }
+    let selected;
+    try {
+        selected = await selectJsonFile();
+    } catch (error) {
+        showError('Import failed', error);
+        return;
+    }
+    if (!selected) {
+        return;
+    }
+    let parsedFile;
+    try {
+        parsedFile = JSON.parse(selected.text);
+    } catch (_error) {
+        swal({ title: 'Import failed', text: 'Invalid JSON file.', type: 'error' });
+        return;
+    }
+    const parsed = utils.parseImportPayload(parsedFile, resolvedType);
+    if (!parsed.ok) {
+        swal({ title: 'Import failed', text: parsed.error || 'Invalid branch payload.', type: 'error' });
+        return;
+    }
+
+    const sourceFolders = parsed.mode === 'single'
+        ? { [String(parsed.folderId || `branch-${Date.now()}`)]: parsed.folder }
+        : utils.normalizeFolderMap(parsed.folders || {});
+    const sourceIds = Object.keys(sourceFolders);
+    if (!sourceIds.length) {
+        swal({ title: 'Import failed', text: 'No folders found in selected file.', type: 'error' });
+        return;
+    }
+    const existingIds = new Set(Object.keys(folders || {}));
+    const remapId = {};
+    const uniqueIdFor = (base, index) => {
+        let candidate = String(base || `branch-${index + 1}`).trim() || `branch-${index + 1}`;
+        candidate = candidate.replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-+|-+$/g, '') || `branch-${index + 1}`;
+        if (!existingIds.has(candidate) && !Object.values(remapId).includes(candidate)) {
+            return candidate;
+        }
+        let counter = 1;
+        while (existingIds.has(`${candidate}-${counter}`) || Object.values(remapId).includes(`${candidate}-${counter}`)) {
+            counter += 1;
+        }
+        return `${candidate}-${counter}`;
+    };
+    sourceIds.forEach((sourceId, index) => {
+        remapId[sourceId] = uniqueIdFor(sourceId, index);
+    });
+    const sourceSet = new Set(sourceIds);
+    const upserts = sourceIds.map((sourceId) => {
+        const folder = utils.normalizeFolderMap({ [sourceId]: sourceFolders[sourceId] })[sourceId];
+        const mappedId = remapId[sourceId];
+        const sourceParentId = String(folder?.parentId || '').trim();
+        const remappedParentId = sourceSet.has(sourceParentId)
+            ? remapId[sourceParentId]
+            : targetId;
+        return {
+            id: mappedId,
+            folder: {
+                ...(folder || {}),
+                parentId: remappedParentId
+            }
+        };
+    });
+    const operations = {
+        deletes: [],
+        upserts,
+        creates: []
+    };
+    let backup = null;
+    try {
+        backup = await createBackup(resolvedType, `before-branch-import-${targetId}`);
+        await applyImportOperations(resolvedType, operations);
+        await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
+        await offerUndoAction(resolvedType, backup, 'Branch import');
+        showToastMessage({
+            title: 'Branch imported',
+            message: `Imported ${upserts.length} folder${upserts.length === 1 ? '' : 's'} under ${folders[targetId]?.name || targetId}.`,
+            level: 'success',
+            durationMs: 4200
+        });
+    } catch (error) {
+        showError('Branch import failed', error);
+    }
+};
+
+const normalizeTreeIntegrityOptions = (options) => {
+    if (typeof options === 'boolean') {
+        return { repair: options };
+    }
+    if (!options || typeof options !== 'object') {
+        return { repair: false };
+    }
+    return { repair: options.repair === true };
+};
+
+const runTreeIntegrityCheck = async (type, options = {}) => {
+    const normalizedOptions = normalizeTreeIntegrityOptions(options);
+    const repair = normalizedOptions.repair === true;
+    const resolvedType = normalizeManagedType(type);
+    const report = scanFolderTreeIntegrity(resolvedType);
+    const totalIssues = report.selfParents.length + report.orphans.length + report.cycles.length;
+    if (totalIssues <= 0) {
+        swal({
+            title: 'Tree integrity healthy',
+            text: `${resolvedType.toUpperCase()} nested folder structure has no cycle/orphan issues.`,
+            type: 'success'
+        });
+        return;
+    }
+    if (!repair) {
+        const cyclePreview = report.cycles.slice(0, 3).map((cycle) => cycle.join(' -> ')).join('\n');
+        const details = [
+            `Self-parent links: ${report.selfParents.length}`,
+            `Orphans: ${report.orphans.length}`,
+            `Cycles: ${report.cycles.length}`,
+            cyclePreview ? `\nCycle preview:\n${cyclePreview}` : ''
+        ].join('\n');
+        swal({
+            title: 'Tree integrity issues found',
+            text: details,
+            type: 'warning'
+        });
+        return;
+    }
+    const folders = getFolderMap(resolvedType);
+    const toRepairSet = new Set([...report.selfParents, ...report.orphans]);
+    report.cycles.forEach((cycle) => {
+        const first = Array.isArray(cycle) ? String(cycle[0] || '').trim() : '';
+        if (first) {
+            toRepairSet.add(first);
+        }
+    });
+    const toRepair = Array.from(toRepairSet).filter((id) => Object.prototype.hasOwnProperty.call(folders, id));
+    if (!toRepair.length) {
+        return;
+    }
+    if (!ensureRuntimeConflictActionAllowed(`Repair ${resolvedType.toUpperCase()} nested tree integrity`)) {
+        return;
+    }
+    const confirmed = await new Promise((resolve) => {
+        swal({
+            title: 'Repair tree integrity?',
+            text: `This will reset parent links to root for ${toRepair.length} folder(s).`,
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Repair',
+            cancelButtonText: 'Cancel'
+        }, (ok) => resolve(ok === true));
+    });
+    if (!confirmed) {
+        return;
+    }
+    let backup = null;
+    try {
+        backup = await createBackup(resolvedType, `before-tree-integrity-repair-${Date.now()}`);
+        for (const id of toRepair) {
+            const folder = folders[id];
+            await saveFolderRecord(resolvedType, id, {
+                ...folder,
+                parentId: ''
+            });
+        }
+        await refreshType(resolvedType);
+        if (backup?.name) {
+            await offerUndoAction(resolvedType, backup, 'Tree integrity repair');
+        }
+        swal({
+            title: 'Repair complete',
+            text: `Fixed ${toRepair.length} folder link${toRepair.length === 1 ? '' : 's'}.`,
+            type: 'success'
+        });
+    } catch (error) {
+        showError('Tree integrity repair failed', error);
+    }
+};
+
 const toggleFolderTreeCollapse = (type, folderId) => {
     const resolvedType = normalizeManagedType(type);
     const safeFolderId = String(folderId || '').trim();
@@ -6788,14 +7523,14 @@ const toggleFolderTreeCollapse = (type, folderId) => {
     }
     collapsedTreeParentsByType[resolvedType] = collapsed;
     persistTableUiState();
-    renderTable(resolvedType);
+    scheduleTableRender(resolvedType);
 };
 
 const expandAllFolderTrees = (type) => {
     const resolvedType = normalizeManagedType(type);
     collapsedTreeParentsByType[resolvedType] = new Set();
     persistTableUiState();
-    renderTable(resolvedType);
+    scheduleTableRender(resolvedType);
 };
 
 const collapseAllFolderTrees = (type) => {
@@ -6810,7 +7545,7 @@ const collapseAllFolderTrees = (type) => {
     });
     collapsedTreeParentsByType[resolvedType] = collapsed;
     persistTableUiState();
-    renderTable(resolvedType);
+    scheduleTableRender(resolvedType);
 };
 
 const getOrderedFolderIdsForTreeOps = (type) => {
@@ -6843,7 +7578,7 @@ const clearFolderTreeMoveError = (type, folderId, { rerender = true } = {}) => {
     if (folderTreeMoveErrorsByType[resolvedType]?.[safeFolderId]) {
         delete folderTreeMoveErrorsByType[resolvedType][safeFolderId];
         if (rerender) {
-            renderTable(resolvedType);
+            scheduleTableRender(resolvedType);
         }
     }
 };
@@ -6862,7 +7597,121 @@ const setFolderTreeMoveError = (type, folderId, message) => {
     folderTreeMoveErrorTimersByType[resolvedType][safeFolderId] = window.setTimeout(() => {
         clearFolderTreeMoveError(resolvedType, safeFolderId);
     }, 7000);
-    renderTable(resolvedType);
+    scheduleTableRender(resolvedType);
+};
+
+const getFolderInheritanceFlags = (folder) => {
+    const settings = (folder && typeof folder.settings === 'object' && folder.settings !== null)
+        ? folder.settings
+        : {};
+    return {
+        icon: settings.inherit_parent_icon === true,
+        status: settings.inherit_parent_status === true,
+        runtime: settings.inherit_parent_runtime === true
+    };
+};
+
+const resolveInheritedFolderIcon = (type, folderId, foldersInput = null, hierarchyMeta = null) => {
+    const resolvedType = normalizeManagedType(type);
+    const folders = utils.normalizeFolderMap(foldersInput || getFolderMap(resolvedType));
+    const sourceId = String(folderId || '').trim();
+    if (!sourceId || !Object.prototype.hasOwnProperty.call(folders, sourceId)) {
+        return '/plugins/folderview.plus/images/folder-icon.png';
+    }
+    const meta = hierarchyMeta || buildFolderHierarchyMeta(folders);
+    const sourceFolder = folders[sourceId];
+    const sourceFlags = getFolderInheritanceFlags(sourceFolder);
+    const ownIcon = String(sourceFolder?.icon || '').trim();
+    if (!sourceFlags.icon) {
+        return ownIcon || '/plugins/folderview.plus/images/folder-icon.png';
+    }
+    const visited = new Set([sourceId]);
+    let cursor = String(meta.parentById?.[sourceId] || '').trim();
+    while (cursor && !visited.has(cursor) && Object.prototype.hasOwnProperty.call(folders, cursor)) {
+        visited.add(cursor);
+        const folder = folders[cursor];
+        const icon = String(folder?.icon || '').trim();
+        if (icon) {
+            return icon;
+        }
+        const flags = getFolderInheritanceFlags(folder);
+        if (!flags.icon) {
+            break;
+        }
+        cursor = String(meta.parentById?.[cursor] || '').trim();
+    }
+    return ownIcon || '/plugins/folderview.plus/images/folder-icon.png';
+};
+
+const resolveFolderStatusWarnThresholdForId = ({
+    type,
+    folderId,
+    folders,
+    hierarchyMeta,
+    fallbackThreshold
+}) => {
+    const resolvedType = normalizeManagedType(type);
+    const folderMap = utils.normalizeFolderMap(folders || getFolderMap(resolvedType));
+    const sourceId = String(folderId || '').trim();
+    if (!sourceId || !Object.prototype.hasOwnProperty.call(folderMap, sourceId)) {
+        return { value: Math.min(100, Math.max(0, Math.round(Number(fallbackThreshold) || 60))), source: 'global' };
+    }
+    const meta = hierarchyMeta || buildFolderHierarchyMeta(folderMap);
+    const safeFallback = Number.isFinite(Number(fallbackThreshold))
+        ? Math.min(100, Math.max(0, Math.round(Number(fallbackThreshold))))
+        : 60;
+    const resolveRawThreshold = (id, visited = new Set()) => {
+        const safeId = String(id || '').trim();
+        if (!safeId || visited.has(safeId) || !Object.prototype.hasOwnProperty.call(folderMap, safeId)) {
+            return null;
+        }
+        const nextVisited = new Set(visited);
+        nextVisited.add(safeId);
+        const folder = folderMap[safeId];
+        const settings = (folder && typeof folder.settings === 'object' && folder.settings !== null)
+            ? folder.settings
+            : {};
+        const raw = settings.status_warn_stopped_percent;
+        if (!(raw === '' || raw === null || raw === undefined)) {
+            const parsed = Number(raw);
+            if (Number.isFinite(parsed)) {
+                return {
+                    parsed: Math.min(100, Math.max(0, Math.round(parsed))),
+                    sourceId: safeId
+                };
+            }
+        }
+        const flags = getFolderInheritanceFlags(folder);
+        if (!flags.status) {
+            return null;
+        }
+        const parentId = String(meta.parentById?.[safeId] || '').trim();
+        if (!parentId) {
+            return null;
+        }
+        return resolveRawThreshold(parentId, nextVisited);
+    };
+
+    const resolved = resolveRawThreshold(sourceId, new Set());
+    if (!resolved) {
+        return { value: safeFallback, source: 'global' };
+    }
+    if (resolved.sourceId === sourceId) {
+        return { value: resolved.parsed, source: 'folder' };
+    }
+    return { value: resolved.parsed, source: 'inherited' };
+};
+
+const escapeRegexForSearch = (value) => String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const highlightSearchText = (text, query) => {
+    const rawText = String(text || '');
+    const rawQuery = String(query || '').trim();
+    if (!rawQuery) {
+        return escapeHtml(rawText);
+    }
+    const pattern = new RegExp(`(${escapeRegexForSearch(rawQuery)})`, 'ig');
+    return escapeHtml(rawText).replace(pattern, '<mark class="fv-filter-hit">$1</mark>');
 };
 
 const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = false, healthMetrics = null, statusContext = null) => {
@@ -6889,13 +7738,40 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
     const treeErrors = folderTreeMoveErrorsByType[type] && typeof folderTreeMoveErrorsByType[type] === 'object'
         ? folderTreeMoveErrorsByType[type]
         : {};
+    const pathLabelById = {};
+    Object.keys(folders || {}).forEach((id) => {
+        pathLabelById[id] = buildFolderPathLabel(type, id, folders, hierarchyMeta);
+    });
+    const filterVisibleIds = new Set();
+    if (filter) {
+        Object.keys(folders || {}).forEach((id) => {
+            const nameText = String(folders[id]?.name || '');
+            const pathLabel = String(pathLabelById[id] || nameText || id);
+            const haystack = `${String(id)} ${nameText} ${pathLabel}`.toLowerCase();
+            if (!haystack.includes(filter)) {
+                return;
+            }
+            filterVisibleIds.add(id);
+            let cursor = String(hierarchyMeta.parentById?.[id] || '').trim();
+            const visited = new Set([id]);
+            while (cursor && !visited.has(cursor)) {
+                visited.add(cursor);
+                if (!Object.prototype.hasOwnProperty.call(folders, cursor)) {
+                    break;
+                }
+                filterVisibleIds.add(cursor);
+                cursor = String(hierarchyMeta.parentById?.[cursor] || '').trim();
+            }
+        });
+    }
+    const activeCollapsedParents = filter ? new Set() : collapsedParents;
     for (const [id, folder] of Object.entries(folders)) {
         const nameText = String(folder.name || '');
-        const haystack = `${String(id)} ${nameText}`.toLowerCase();
-        if (filter && !haystack.includes(filter)) {
+        const pathLabel = String(pathLabelById[id] || nameText || id);
+        if (filter && !filterVisibleIds.has(id)) {
             continue;
         }
-        if (!filter && isFolderHiddenByCollapsedAncestor(id, hierarchyMeta.parentById, collapsedParents)) {
+        if (!filter && isFolderHiddenByCollapsedAncestor(id, hierarchyMeta.parentById, activeCollapsedParents)) {
             continue;
         }
         const members = Array.isArray(memberSnapshot[id]?.members) ? memberSnapshot[id].members : [];
@@ -6961,8 +7837,9 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             continue;
         }
         const folderNameRaw = String(folder.name || id);
-        const safeName = escapeHtml(folderNameRaw);
-        const safeIcon = escapeHtml(folder.icon || '');
+        const safeNameText = escapeHtml(folderNameRaw);
+        const safeNameDisplayHtml = filter ? highlightSearchText(folderNameRaw, filter) : safeNameText;
+        const safeIcon = escapeHtml(resolveInheritedFolderIcon(type, id, folders, hierarchyMeta));
         const folderDepth = Math.max(0, Math.min(6, Number(hierarchyMeta?.depthById?.[id] || 0)));
         const childFolderIds = Array.isArray(hierarchyMeta?.childrenById?.[id]) ? hierarchyMeta.childrenById[id] : [];
         const hasChildren = childFolderIds.length > 0;
@@ -6986,11 +7863,22 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         const nestedMetaHtml = folderDepth > 0
             ? `<span class="name-cell-nested-meta" title="${escapeHtml(nestedMetaTitleRaw)}"><i class="fa fa-level-up fa-rotate-90" aria-hidden="true"></i><span>${escapeHtml(nestedMetaTextRaw)}</span></span>`
             : '';
+        const showBreadcrumb = folderDepth > 0 || Boolean(filter);
+        const breadcrumbTitle = `Path: ${pathLabel}`;
+        const breadcrumbHtml = showBreadcrumb
+            ? `<span class="name-cell-breadcrumb" title="${escapeHtml(breadcrumbTitle)}">${highlightSearchText(pathLabel, filter)}</span>`
+            : '';
         const nameCellClass = folderDepth > 0 ? 'name-cell-content is-nested' : 'name-cell-content is-root';
         if (!folderMatchesStatusFilter(statusFilterMode, countsByState, members.length)) {
             continue;
         }
-        const statusWarnThresholdInfo = resolveFolderStatusWarnThreshold(folder, statusPrefs.warnStoppedPercent);
+        const statusWarnThresholdInfo = resolveFolderStatusWarnThresholdForId({
+            type,
+            folderId: id,
+            folders,
+            hierarchyMeta,
+            fallbackThreshold: statusPrefs.warnStoppedPercent
+        });
         const statusWarnThreshold = statusWarnThresholdInfo.value;
         const statusDisplayMode = normalizeStatusDisplayMode(statusPrefs.displayMode);
         const stoppedPercent = members.length > 0 ? Math.round((countsByState.stopped / members.length) * 100) : 0;
@@ -7010,7 +7898,9 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
             && pausedOnly;
         const statusThresholdLabel = statusWarnThresholdInfo.source === 'folder'
             ? `Status warn threshold: ${statusWarnThreshold}% stopped (folder override).`
-            : `Status warn threshold: ${statusWarnThreshold}% stopped (global default).`;
+            : (statusWarnThresholdInfo.source === 'inherited'
+                ? `Status warn threshold: ${statusWarnThreshold}% stopped (inherited from parent).`
+                : `Status warn threshold: ${statusWarnThreshold}% stopped (global default).`);
         const dominantStatusKey = deriveFolderStatusKey(countsByState, members.length);
         const statusPrimaryKey = dominantStatusKey === 'mixed' && countsByState.stopped > 0
             ? 'stopped'
@@ -7151,7 +8041,7 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
                 : `Click to show ${healthStatus.text} folders only.`;
             const healthTitle = [...healthStatus.details, healthToggleHint].join('\n');
             typeSpecificColumns = ''
-                + `<td class="updates-cell signals-cell"><span class="signals-cell-content"><button type="button" class="folder-metric-chip updates-chip ${updateClass} ${dockerUpdatesOnlyFilter ? 'is-filter-active' : ''}" title="${escapeHtml(updateTitle)}" aria-label="${escapeHtml(updateTitle)}" onclick="toggleDockerUpdatesFilter(${updateCount > 0 ? 'true' : 'false'})"><i class="fa ${updateIcon}" aria-hidden="true"></i></button><button type="button" class="health-breakdown-btn" title="Open health details" aria-label="Open health details for ${safeName}" onclick="showFolderHealthBreakdown('${type}','${escapeHtml(id)}')"><i class="fa fa-heartbeat"></i></button><button type="button" class="folder-metric-chip health-chip ${healthStatus.className} ${healthFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(healthTitle)}" aria-label="${escapeHtml(healthTitle)}" onclick="toggleHealthSeverityFilter('${type}','${escapeHtml(healthStatus.filterSeverity)}')"><span>${escapeHtml(healthStatus.text)}</span></button></span></td>`
+                + `<td class="updates-cell signals-cell"><span class="signals-cell-content"><button type="button" class="folder-metric-chip updates-chip ${updateClass} ${dockerUpdatesOnlyFilter ? 'is-filter-active' : ''}" title="${escapeHtml(updateTitle)}" aria-label="${escapeHtml(updateTitle)}" onclick="toggleDockerUpdatesFilter(${updateCount > 0 ? 'true' : 'false'})"><i class="fa ${updateIcon}" aria-hidden="true"></i></button><button type="button" class="health-breakdown-btn" title="Open health details" aria-label="Open health details for ${safeNameText}" onclick="showFolderHealthBreakdown('${type}','${escapeHtml(id)}')"><i class="fa fa-heartbeat"></i></button><button type="button" class="folder-metric-chip health-chip ${healthStatus.className} ${healthFilterActive ? 'is-filter-active' : ''}" title="${escapeHtml(healthTitle)}" aria-label="${escapeHtml(healthTitle)}" onclick="toggleHealthSeverityFilter('${type}','${escapeHtml(healthStatus.filterSeverity)}')"><span>${escapeHtml(healthStatus.text)}</span></button></span></td>`
                 + '<td class="health-cell fv-col-hidden"></td>';
         } else {
             const vmResources = collectVmFolderResources(members, infoByName);
@@ -7220,21 +8110,23 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         const memberLabelText = `${totalMemberCount} item${totalMemberCount === 1 ? '' : 's'}`;
         const membersMetaHtml = `<span class="name-cell-members-meta" title="${escapeHtml(membersTitle)}"><i class="fa fa-users" aria-hidden="true"></i><span>${escapeHtml(memberLabelText)}</span></span>`;
         const compactMobileLayout = shouldUseCompactMobileLayout();
-        const rowReorderButtonsHtml = (compactMobileLayout || folderDepth > 0)
+        const mobileTreeReorderMode = compactMobileLayout && mobileTreeReorderModeByType[type] === true;
+        const hideOrderControls = compactMobileLayout && !mobileTreeReorderMode;
+        const rowReorderButtonsHtml = (hideOrderControls || folderDepth > 0)
             ? ''
-            : (`<button type="button" title="Move up" aria-label="Move ${safeName} up" onclick="moveFolderRow('${type}','${escapeHtml(id)}',-1)"><i class="fa fa-chevron-up"></i></button>`
-                + `<button type="button" title="Move down" aria-label="Move ${safeName} down" onclick="moveFolderRow('${type}','${escapeHtml(id)}',1)"><i class="fa fa-chevron-down"></i></button>`);
-        const moveToRootButtonHtml = (!compactMobileLayout && folderDepth > 0)
-            ? `<button type="button" class="folder-tree-action" title="Move to root" aria-label="Move ${safeName} to root" onclick="moveFolderToRootQuick('${type}','${escapeHtml(id)}')"><i class="fa fa-level-up"></i></button>`
+            : (`<button type="button" title="Move up" aria-label="Move ${safeNameText} up" onclick="moveFolderRow('${type}','${escapeHtml(id)}',-1)"><i class="fa fa-chevron-up"></i></button>`
+                + `<button type="button" title="Move down" aria-label="Move ${safeNameText} down" onclick="moveFolderRow('${type}','${escapeHtml(id)}',1)"><i class="fa fa-chevron-down"></i></button>`);
+        const moveToRootButtonHtml = (!hideOrderControls && folderDepth > 0)
+            ? `<button type="button" class="folder-tree-action" title="Move to root" aria-label="Move ${safeNameText} to root" onclick="moveFolderToRootQuick('${type}','${escapeHtml(id)}')"><i class="fa fa-level-up"></i></button>`
             : '';
         const treeMoveAvailable = (folderCount - (descendantIds.length + 1)) > 0;
         const treeMoveTitle = treeMoveAvailable
             ? `Tree move ${folderNameRaw} (before/inside/after)`
             : 'Tree move unavailable: no valid target folders.';
-        const treeMoveButtonHtml = compactMobileLayout
+        const treeMoveButtonHtml = hideOrderControls
             ? ''
             : `<button type="button" class="folder-tree-action" title="${escapeHtml(treeMoveTitle)}" aria-label="${escapeHtml(treeMoveTitle)}" onclick="${treeMoveAvailable ? `openFolderTreeMoveDialog('${type}','${escapeHtml(id)}')` : ''}" ${treeMoveAvailable ? '' : 'disabled'}><i class="fa fa-sitemap"></i></button>`;
-        const orderCellHtml = compactMobileLayout
+        const orderCellHtml = hideOrderControls
             ? ''
             : (''
                 + `<div class="row-order-stack">`
@@ -7248,14 +8140,14 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
         rows.push(
             `<tr class="${folderDepth > 0 ? 'is-nested-row' : 'is-root-row'}" data-folder-depth="${folderDepth}" data-folder-id="${escapeHtml(id)}" tabindex="0" onkeydown="handleFolderRowKeydown('${type}','${escapeHtml(id)}',event)">`
             + `<td class="order-cell">${orderCellHtml}</td>`
-            + `<td class="name-cell" title="${escapeHtml(id)}"><span class="${nameCellClass}" style="--fv-folder-depth:${folderDepth};">${treeToggleHtml}<img src="${safeIcon}" class="img" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"><span class="name-cell-text-wrap"><span class="name-cell-text">${safeName}</span>${membersMetaHtml}${nestedMetaHtml}</span></span></td>`
+            + `<td class="name-cell" title="${escapeHtml(id)}"><span class="${nameCellClass}" style="--fv-folder-depth:${folderDepth};">${treeToggleHtml}<img src="${safeIcon}" class="img" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png';"><span class="name-cell-text-wrap"><span class="name-cell-text">${safeNameDisplayHtml}</span>${breadcrumbHtml}${membersMetaHtml}${nestedMetaHtml}</span></span></td>`
             + `<td class="members-cell fv-col-hidden">${membersCellHtml}</td>`
-            + `<td class="status-cell"><span class="status-cell-content ${statusDisplayClass}"><button type="button" class="status-breakdown-btn" title="Open status breakdown" aria-label="Open status breakdown for ${safeName}" onclick="showFolderStatusBreakdown('${type}','${escapeHtml(id)}')"><i class="fa fa-info-circle"></i></button>${statusSummaryChipHtml}${statusBreakdownHtml}${statusTrendHtml}</span></td>`
+            + `<td class="status-cell"><span class="status-cell-content ${statusDisplayClass}"><button type="button" class="status-breakdown-btn" title="Open status breakdown" aria-label="Open status breakdown for ${safeNameText}" onclick="showFolderStatusBreakdown('${type}','${escapeHtml(id)}')"><i class="fa fa-info-circle"></i></button>${statusSummaryChipHtml}${statusBreakdownHtml}${statusTrendHtml}</span></td>`
             + `<td class="rules-cell" title="${escapeHtml(ruleTitle)}">${escapeHtml(ruleText)}</td>`
             + `<td class="last-changed-cell" title="${escapeHtml(lastChangedRaw || '')}">${escapeHtml(lastChangedText)}</td>`
             + `<td class="pinned-cell"><span class="folder-pin-state ${pinnedClass}">${escapeHtml(pinnedText)}</span></td>`
             + typeSpecificColumns
-            + `<td class="actions-cell"><button type="button" class="folder-action-btn folder-pin-btn ${pinned ? 'is-pinned' : ''}" title="${pinTitle}" aria-label="${pinTitle}" onclick="toggleFolderPin('${type}','${escapeHtml(id)}')"><i class="fa ${pinned ? 'fa-star' : 'fa-star-o'}"></i></button><button type="button" class="folder-action-btn" title="Export" aria-label="Export ${safeName}" onclick="${type === 'docker' ? 'downloadDocker' : 'downloadVm'}('${escapeHtml(id)}')"><i class="fa fa-download"></i></button><button type="button" class="folder-action-btn" title="Delete" aria-label="Delete ${safeName}" onclick="${type === 'docker' ? 'clearDocker' : 'clearVm'}('${escapeHtml(id)}')"><i class="fa fa-trash"></i></button><button type="button" class="folder-action-btn" title="Copy ID" aria-label="Copy ID for ${safeName}" onclick="copyFolderId('${type}','${escapeHtml(id)}')"><i class="fa fa-clipboard"></i></button><button type="button" class="folder-action-btn folder-overflow-btn" title="More" aria-label="More actions for ${safeName}" data-fv-overflow-type="${escapeHtml(type)}" data-fv-overflow-id="${escapeHtml(id)}"><i class="fa fa-ellipsis-h"></i></button></td>`
+            + `<td class="actions-cell"><button type="button" class="folder-action-btn folder-pin-btn ${pinned ? 'is-pinned' : ''}" title="${pinTitle}" aria-label="${pinTitle}" onclick="toggleFolderPin('${type}','${escapeHtml(id)}')"><i class="fa ${pinned ? 'fa-star' : 'fa-star-o'}"></i></button><button type="button" class="folder-action-btn" title="Export" aria-label="Export ${safeNameText}" onclick="${type === 'docker' ? 'downloadDocker' : 'downloadVm'}('${escapeHtml(id)}')"><i class="fa fa-download"></i></button><button type="button" class="folder-action-btn" title="Delete" aria-label="Delete ${safeNameText}" onclick="${type === 'docker' ? 'clearDocker' : 'clearVm'}('${escapeHtml(id)}')"><i class="fa fa-trash"></i></button><button type="button" class="folder-action-btn" title="Copy ID" aria-label="Copy ID for ${safeNameText}" onclick="copyFolderId('${type}','${escapeHtml(id)}')"><i class="fa fa-clipboard"></i></button><button type="button" class="folder-action-btn folder-overflow-btn" title="More" aria-label="More actions for ${safeNameText}" data-fv-overflow-type="${escapeHtml(type)}" data-fv-overflow-id="${escapeHtml(id)}"><i class="fa fa-ellipsis-h"></i></button></td>`
             + '</tr>'
         );
     }
@@ -7508,7 +8400,7 @@ const applyFolderTreeMove = async (type, sourceFolderId, targetFolderId, placeme
         }
         await refreshType(resolvedType);
         if (backup?.name) {
-            queueTreeMoveUndoBanner(resolvedType, backup.name, 'Tree move', sourceId);
+            await recordTreeMoveHistoryFromBackup(resolvedType, backup.name, 'Tree move', sourceId);
         }
         focusFolderRow(resolvedType, sourceId);
         const destinationText = mode === 'inside'
@@ -7618,7 +8510,7 @@ const moveFolderToRootQuick = async (type, folderId) => {
         });
         await refreshType(resolvedType);
         if (backup?.name) {
-            queueTreeMoveUndoBanner(resolvedType, backup.name, 'Move to root', sourceId);
+            await recordTreeMoveHistoryFromBackup(resolvedType, backup.name, 'Move to root', sourceId);
         }
         focusFolderRow(resolvedType, sourceId);
         addActivityEntry(`Folder moved to root: ${sourceFolder.name || sourceId}.`, 'success');
@@ -7722,7 +8614,7 @@ const moveFolderRow = async (type, folderId, direction) => {
         await persistManualOrder(resolvedType, nextOrder, { refresh: false });
         await refreshType(resolvedType);
         if (backup?.name) {
-            await offerUndoAction(resolvedType, backup, 'Reorder folders');
+            await recordTreeMoveHistoryFromBackup(resolvedType, backup.name, 'Reorder folders', safeFolderId);
         }
         const sourceName = String(folders[safeFolderId]?.name || safeFolderId);
         const targetName = String(folders[targetSiblingId]?.name || targetSiblingId);
@@ -8624,6 +9516,8 @@ const renderTable = (type) => {
     applyColumnWidths(type);
     bindTableColumnResizers(type);
     renderTreeMoveUndoBanner(type);
+    applyMobileTreeReorderModeClass(type);
+    updateMobileTreePathHint(type);
     renderQuickProfilePresetButtons();
     renderRulesTable(type);
     renderBulkItemOptions(type);
@@ -11243,9 +12137,17 @@ window.moveFolderRow = moveFolderRow;
 window.moveFolderToRootQuick = moveFolderToRootQuick;
 window.moveFolderUnderDialog = moveFolderUnderDialog;
 window.openFolderTreeMoveDialog = openFolderTreeMoveDialog;
+window.applyTreeMoveUndo = applyTreeMoveUndo;
+window.applyTreeMoveRedo = applyTreeMoveRedo;
 window.toggleFolderTreeCollapse = toggleFolderTreeCollapse;
 window.expandAllFolderTrees = expandAllFolderTrees;
 window.collapseAllFolderTrees = collapseAllFolderTrees;
+window.toggleMobileTreeReorderMode = toggleMobileTreeReorderMode;
+window.setFolderBranchCollapse = setFolderBranchCollapse;
+window.setFolderBranchPinned = setFolderBranchPinned;
+window.exportFolderBranch = exportFolderBranch;
+window.importFolderBranch = importFolderBranch;
+window.runTreeIntegrityCheck = runTreeIntegrityCheck;
 window.handleFolderRowKeydown = handleFolderRowKeydown;
 window.toggleFolderPin = toggleFolderPin;
 window.copyFolderId = copyFolderId;

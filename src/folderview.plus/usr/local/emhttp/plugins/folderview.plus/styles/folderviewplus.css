@@ -171,6 +171,26 @@
     padding: 0.16rem 0.5rem;
 }
 
+.tree-management-controls > button.is-active {
+    border-color: rgba(103, 214, 255, 0.75);
+    box-shadow: 0 0 0 1px rgba(103, 214, 255, 0.35) inset;
+}
+
+.fv-tree-path-hint {
+    margin-top: 0.3rem;
+    margin-bottom: 0.18rem;
+    padding: 0.26rem 0.42rem;
+    border: 1px solid rgba(133, 161, 199, 0.28);
+    border-radius: 5px;
+    background: rgba(17, 27, 42, 0.55);
+    color: rgba(199, 214, 234, 0.9);
+    font-size: 0.92rem;
+    line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .sort-hint-chip {
     display: inline-flex;
     align-items: center;
@@ -534,6 +554,26 @@ body.fv-column-resize-active * {
     text-overflow: ellipsis;
     white-space: nowrap;
     max-width: 100%;
+}
+
+.name-cell-breadcrumb {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.9rem;
+    line-height: 1.2;
+    opacity: 0.82;
+    color: rgba(180, 197, 221, 0.88);
+}
+
+.fv-filter-hit {
+    padding: 0 0.08rem;
+    border-radius: 0.18rem;
+    background: rgba(255, 174, 67, 0.22);
+    color: inherit;
 }
 
 .name-cell-members-meta {
@@ -1165,6 +1205,49 @@ body.fv-mobile-compact #fv-settings-root .row-order-actions .folder-tree-action 
 #fv-settings-root.fv-mobile-compact .row-order-error,
 body.fv-mobile-compact #fv-settings-root .row-order-error {
     display: none !important;
+}
+
+#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-docker tbody#docker td:nth-child(1),
+#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-vm tbody#vms td:nth-child(1),
+body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-docker tbody#docker td:nth-child(1),
+body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-vm tbody#vms td:nth-child(1) {
+    display: table-cell !important;
+    width: 11% !important;
+    min-width: 44px !important;
+    max-width: 56px !important;
+    padding: 0.22rem 0.15rem !important;
+}
+
+#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-docker .folder-table table td.actions-cell,
+#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-vm .folder-table table td.actions-cell,
+body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-docker .folder-table table td.actions-cell,
+body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-vm .folder-table table td.actions-cell {
+    width: 17% !important;
+}
+
+#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-docker .folder-table table th:nth-child(2),
+#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-docker .folder-table table td:nth-child(2),
+#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-vm .folder-table table th:nth-child(2),
+#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-vm .folder-table table td:nth-child(2),
+body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-docker .folder-table table th:nth-child(2),
+body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-docker .folder-table table td:nth-child(2),
+body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-vm .folder-table table th:nth-child(2),
+body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-vm .folder-table table td:nth-child(2) {
+    width: 72% !important;
+}
+
+#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-docker tbody#docker .row-order-actions,
+#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-vm tbody#vms .row-order-actions,
+body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-docker tbody#docker .row-order-actions,
+body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-vm tbody#vms .row-order-actions {
+    display: inline-flex !important;
+}
+
+#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-docker tbody#docker .row-order-actions button,
+#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-vm tbody#vms .row-order-actions button,
+body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-docker tbody#docker .row-order-actions button,
+body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-vm tbody#vms .row-order-actions button {
+    display: inline-flex !important;
 }
 
 #fv-settings-root.fv-mobile-compact .name-cell-content > img,

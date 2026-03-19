@@ -6,12 +6,28 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.19.28">
+<!ENTITY version "2026.03.19.29">
 <!ENTITY md5 "12e1c185e462e9f9aa53848216f3f7fb">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.19.29
+- Feature: Added a full dashboard quick-action rail for Docker and VM widgets (layout cycle, expand/collapse all, running-only, health emphasis, compact density, reset view, and settings shortcut).
+- Feature: Added dashboard layout modes (Classic, Full Width, Accordion, Inset, Compact Matrix) with persisted per-widget view preferences and per-folder overflow controls.
+- Feature: Added dashboard expanded-folder memory so widget expansion state persists across refreshes and tab changes.
+- UX: Reworked the 3rd-party icon picker with Basic/Advanced modes, guided workflow sections, inline pack actions, active-filter badges, and clearer empty-state recovery.
+- UX: Improved nested-folder management with sibling-safe duplicate-name checks, parent default inheritance for child folders, and deeper tree integrity diagnostics.
+- Fix: Fixed Docker dashboard/runtime column clipping and oscillation, restored tiny dropdown chevrons, and stabilized Application/Version spacing on desktop and mobile.
+- Fix: Fixed iPhone/mobile settings artifacts and overflow-menu clipping by hardening touch-safe control resets and viewport-safe action-menu bounds.
+- Fix: Fixed dashboard quick-rail reliability for Docker and VM (anchoring, collapse sync, row alignment, and short-widget overhang containment).
+- Fix: Fixed plugin settings initial-load crash caused by an invalid `arguments` reference path.
+- Performance: Improved runtime redraw behavior with refresh coalescing, queued folder rendering, and safer performance-mode behavior for large nested trees.
+- Compatibility: Hardened theme/runtime token handling so started-state colors follow active themes (including light themes) without fragile inline color painting.
+- Regression guard: Added/expanded regression coverage for compact-matrix layout behavior, dashboard rail collapse heuristics, mobile rendering, nested-folder flows, and theme-token contracts.
+- Quality: Strengthened release automation and validation (guards, smoke checks, packaging checks) to reduce release-note drift and regression risk.
+
 
 ###2026.03.19.28
 - Maintenance: Restore dashboard rail visibility while keeping widget clamp.

@@ -6,12 +6,28 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.18.17">
-<!ENTITY md5 "bd12e3364fd3c4f3a56efb6f47a38787">
+<!ENTITY version "2026.03.19.02">
+<!ENTITY md5 "bf6e9b99210f7f43a7cda91ff679ae9e">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.19.02
+- UX: Reworked the 3rd-party icon picker into clearer Find/Pack/Filters/Results sections with a simpler top-to-bottom flow.
+- UX: Added Basic/Advanced modes (Basic default), quick presets (Recent/Favorites/Most used/Folder icons), and clearer Scope/Pack labels.
+- UX: Replaced floating pack actions with an inline Pack actions dropdown panel to keep controls anchored and easier to understand.
+- UX: Added active filter badges plus one-click "Clear all filters" to recover quickly when results are empty.
+- Fix: Added clearer empty-state guidance and step hints so users know exactly what to do next.
+
+
+###2026.03.19.01
+- UX: Reworked the 3rd-party icon picker into a clearer guided flow with Find/Pack/Filters/Results sections.
+- UX: Added Basic/Advanced modes (Basic default), quick presets, clearer scope labels, and inline step guidance.
+- UX: Replaced floating pack action overlays with an in-panel Pack actions dropdown to reduce clutter and confusion.
+- UX: Added active filter count badges and a one-click "Clear all filters" action for faster recovery when results are empty.
+- Fix: Improved empty-state/help text so users get direct next-step guidance when packs or icons are filtered out.
+
 
 ###2026.03.18.17
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

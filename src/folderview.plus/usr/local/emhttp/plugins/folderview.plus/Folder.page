@@ -102,53 +102,81 @@ emitRequestTokenMetaTag();
                             <span class="fv-third-party-hint">Source: /usr/local/emhttp/plugins/folderview.plus/images/third-party-icons</span>
                             <button type="button" id="fv-third-party-refresh" title="Refresh folders and icons" aria-label="Refresh folders and icons"><i class="fa fa-refresh" aria-hidden="true"></i></button>
                         </div>
-                        <div class="fv-third-party-control-row fv-third-party-icon-controls">
-                            <input type="text" id="fv-third-party-search" placeholder="Search third-party icons across packs">
-                            <button type="button" id="fv-third-party-search-clear" title="Clear search" aria-label="Clear search"><i class="fa fa-times" aria-hidden="true"></i></button>
-                            <select id="fv-third-party-view" title="View mode">
-                                <option value="folder">View: folder</option>
-                                <option value="all">View: all packs</option>
-                                <option value="favorites">View: favorites</option>
-                                <option value="recent">View: recent</option>
-                                <option value="suggested">View: suggested</option>
-                                <option value="duplicates">View: duplicates</option>
-                            </select>
-                            <select id="fv-third-party-sort" title="Sort packs and icons">
-                                <option value="usage">Sort: usage</option>
-                                <option value="name">Sort: name</option>
-                                <option value="count">Sort: icon count</option>
-                                <option value="newest">Sort: newest</option>
-                            </select>
-                            <button type="button" id="fv-third-party-filter-toggle" title="Show filters"><i class="fa fa-sliders" aria-hidden="true"></i> Filters</button>
+                        <div class="fv-third-party-section">
+                            <div class="fv-third-party-section-title">Find</div>
+                            <div class="fv-third-party-mode-switch" role="group" aria-label="Picker mode">
+                                <button type="button" id="fv-third-party-mode-basic" class="is-active">Basic</button>
+                                <button type="button" id="fv-third-party-mode-advanced">Advanced</button>
+                            </div>
+                            <div class="fv-third-party-control-row fv-third-party-icon-controls">
+                                <input type="text" id="fv-third-party-search" placeholder="Search icon name or tag">
+                                <button type="button" id="fv-third-party-search-clear" title="Clear search" aria-label="Clear search"><i class="fa fa-times" aria-hidden="true"></i></button>
+                                <select id="fv-third-party-view" title="Scope">
+                                    <option value="folder">Scope: selected pack</option>
+                                    <option value="all">Scope: all packs</option>
+                                    <option value="favorites">Scope: favorites</option>
+                                    <option value="recent">Scope: recent</option>
+                                    <option value="suggested">Scope: suggested</option>
+                                    <option value="duplicates">Scope: duplicates</option>
+                                </select>
+                                <select id="fv-third-party-sort" title="Sort">
+                                    <option value="usage">Sort: most used</option>
+                                    <option value="name">Sort: name</option>
+                                    <option value="count">Sort: icon count</option>
+                                    <option value="newest">Sort: newest</option>
+                                </select>
+                                <button type="button" id="fv-third-party-filter-toggle" class="fv-third-party-advanced-only" title="Show filters"><i class="fa fa-sliders" aria-hidden="true"></i> Filters</button>
+                            </div>
+                            <div class="fv-third-party-presets">
+                                <button type="button" id="fv-third-party-preset-recent">Recent</button>
+                                <button type="button" id="fv-third-party-preset-favorites">Favorites</button>
+                                <button type="button" id="fv-third-party-preset-most-used">Most used</button>
+                                <button type="button" id="fv-third-party-preset-folder-icons">Folder icons only</button>
+                            </div>
                         </div>
-                        <div class="fv-third-party-control-row fv-third-party-pack-controls">
-                            <input type="text" id="fv-third-party-pack-search" placeholder="Find icon pack">
-                            <select id="fv-third-party-pack-kind" title="Pack type">
-                                <option value="all">Packs: all</option>
-                                <option value="folders">Packs: folders</option>
-                                <option value="icons">Packs: icons</option>
-                            </select>
-                            <select id="fv-third-party-pack-select" title="Select icon pack"></select>
-                        </div>
-                        <div id="fv-third-party-filter-sheet" class="fv-third-party-filter-sheet" hidden>
-                            <div class="fv-third-party-inline-actions">
-                                <button type="button" id="fv-third-party-show-hidden" title="Toggle hidden icon packs">Show hidden packs</button>
+                        <div class="fv-third-party-section">
+                            <div class="fv-third-party-section-title">Pack</div>
+                            <div class="fv-third-party-control-row fv-third-party-pack-primary">
+                                <select id="fv-third-party-pack-select" title="Pick icon pack"></select>
+                                <button type="button" id="fv-third-party-pack-actions-toggle" class="fv-third-party-advanced-only"><i class="fa fa-caret-down" aria-hidden="true"></i> Pack actions</button>
+                            </div>
+                            <div class="fv-third-party-control-row fv-third-party-pack-controls fv-third-party-advanced-only">
+                                <input type="text" id="fv-third-party-pack-search" placeholder="Filter packs by name">
+                                <select id="fv-third-party-pack-kind" title="Pack type">
+                                    <option value="all">Pack type: all</option>
+                                    <option value="folders">Pack type: folders</option>
+                                    <option value="icons">Pack type: icons</option>
+                                </select>
+                            </div>
+                            <div id="fv-third-party-pack-actions-panel" class="fv-third-party-pack-actions-panel fv-third-party-advanced-only" hidden>
                                 <button type="button" id="fv-third-party-pack-pin-toggle"><i class="fa fa-star-o" aria-hidden="true"></i> Pin pack</button>
                                 <button type="button" id="fv-third-party-pack-hide-toggle"><i class="fa fa-eye-slash" aria-hidden="true"></i> Hide pack</button>
-                                <button type="button" id="fv-third-party-duplicates-cleanup" title="Generate duplicate cleanup commands"><i class="fa fa-files-o" aria-hidden="true"></i> Duplicate cleanup</button>
-                            </div>
-                            <div class="fv-third-party-tag-shell">
-                                <div class="fv-third-party-tag-shell-top">
-                                    <strong>Tags</strong>
-                                    <button type="button" id="fv-third-party-tag-clear">Clear tags</button>
-                                </div>
-                                <input type="text" id="fv-third-party-tag-search" placeholder="Filter tags">
-                                <div id="fv-third-party-tag-filters" class="fv-third-party-tag-filters"></div>
+                                <button type="button" id="fv-third-party-show-hidden" title="Toggle hidden icon packs">Show hidden</button>
+                                <button type="button" id="fv-third-party-duplicates-cleanup" title="Generate duplicate cleanup commands"><i class="fa fa-files-o" aria-hidden="true"></i> Find duplicates</button>
                             </div>
                         </div>
-                        <div id="fv-third-party-context-line" class="fv-third-party-context-line">Pack: none | View: folder | Tags: all</div>
-                        <div id="fv-third-party-current-folder" class="fv-third-party-current-folder">Select a folder to browse icons.</div>
-                        <div id="fv-third-party-preview" class="fv-third-party-preview">Preview an icon to inspect details.</div>
+                        <div class="fv-third-party-section fv-third-party-advanced-only">
+                            <div class="fv-third-party-section-title">Filters</div>
+                            <div id="fv-third-party-filter-sheet" class="fv-third-party-filter-sheet" hidden>
+                                <div class="fv-third-party-inline-actions">
+                                    <button type="button" id="fv-third-party-filter-clear-all">Clear all filters</button>
+                                </div>
+                                <div class="fv-third-party-tag-shell">
+                                    <div class="fv-third-party-tag-shell-top">
+                                        <strong>Tags</strong>
+                                        <button type="button" id="fv-third-party-tag-clear">Clear tags</button>
+                                    </div>
+                                    <input type="text" id="fv-third-party-tag-search" placeholder="Filter tags">
+                                    <div id="fv-third-party-tag-filters" class="fv-third-party-tag-filters"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="fv-third-party-section">
+                            <div class="fv-third-party-section-title">Results</div>
+                            <div id="fv-third-party-context-line" class="fv-third-party-context-line">Pack: none | Scope: selected pack | Filters: none</div>
+                            <div id="fv-third-party-current-folder" class="fv-third-party-current-folder">Step 1: pick a pack. Step 2: choose an icon.</div>
+                            <div id="fv-third-party-preview" class="fv-third-party-preview">Preview an icon to inspect details.</div>
+                        </div>
                         <div id="fv-third-party-icon-grid" class="fv-icon-picker-grid fv-third-party-icon-grid"></div>
                         <div class="fv-icon-picker-pager">
                             <button type="button" id="fv-third-party-icon-prev" title="Previous page"><i class="fa fa-chevron-left" aria-hidden="true"></i></button>

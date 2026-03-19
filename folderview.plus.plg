@@ -6,12 +6,25 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.19.13">
-<!ENTITY md5 "9996bb25935f9cefda08bb9e0fea739b">
+<!ENTITY version "2026.03.19.15">
+<!ENTITY md5 "84c9f6bba1c141be87691a36c40759fc">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.19.15
+- Feature: Added dashboard widget quick actions for `Compact density` and `Reset view` in the right-side action rail.
+- UX: Compact density now applies a per-widget runtime class to tighten row spacing and icon footprint for quicker scanning.
+- UX: `Reset view` now collapses all expanded folders and clears running-only, health emphasis, compact density, and expansion-memory state for the active widget.
+- Regression: Extended dashboard layout/runtime guards to lock these quick-action controls against regressions.
+
+
+###2026.03.19.14
+- Feature: Added dashboard widget quick actions for `Compact density` and `Reset view` in the right-side action rail.
+- UX: `Reset view` now clears running-only filter, health emphasis, compact density mode, and expanded-folder memory for the active widget.
+- Regression: Added dashboard layout/runtime guards for the new quick-action controls.
+
 
 ###2026.03.19.13
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

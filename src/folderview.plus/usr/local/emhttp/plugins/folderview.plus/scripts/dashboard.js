@@ -204,6 +204,10 @@ const DASHBOARD_HEALTH_EMPHASIS_STORAGE_KEYS = Object.freeze({
     docker: 'fvplus.runtime.dashboard.health-emphasis.docker.v1',
     vm: 'fvplus.runtime.dashboard.health-emphasis.vm.v1'
 });
+const DASHBOARD_COMPACT_DENSITY_STORAGE_KEYS = Object.freeze({
+    docker: 'fvplus.runtime.dashboard.compact-density.docker.v1',
+    vm: 'fvplus.runtime.dashboard.compact-density.vm.v1'
+});
 const readDashboardHealthEmphasisStateForType = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     const storageKey = DASHBOARD_HEALTH_EMPHASIS_STORAGE_KEYS[resolvedType];
@@ -220,6 +224,34 @@ const readDashboardHealthEmphasisStateForType = (type) => {
 const writeDashboardHealthEmphasisStateForType = (type, enabled) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     const storageKey = DASHBOARD_HEALTH_EMPHASIS_STORAGE_KEYS[resolvedType];
+    if (!storageKey) {
+        return;
+    }
+    try {
+        if (!window.localStorage) {
+            return;
+        }
+        window.localStorage.setItem(storageKey, enabled === true ? '1' : '0');
+    } catch (_error) {
+        // Ignore localStorage failures so dashboard rendering remains stable.
+    }
+};
+const readDashboardCompactDensityStateForType = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const storageKey = DASHBOARD_COMPACT_DENSITY_STORAGE_KEYS[resolvedType];
+    if (!storageKey) {
+        return false;
+    }
+    try {
+        const raw = window.localStorage && window.localStorage.getItem(storageKey);
+        return raw === '1';
+    } catch (_error) {
+        return false;
+    }
+};
+const writeDashboardCompactDensityStateForType = (type, enabled) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const storageKey = DASHBOARD_COMPACT_DENSITY_STORAGE_KEYS[resolvedType];
     if (!storageKey) {
         return;
     }
@@ -300,6 +332,24 @@ const toggleDashboardExpandAllForType = (type) => {
 const openFolderViewPlusSettings = () => {
     window.location.href = '/Settings/FolderViewPlus';
 };
+const resetDashboardWidgetViewStateForType = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    setDashboardStartedOnlyEnabledForType(resolvedType, false);
+    writeDashboardHealthEmphasisStateForType(resolvedType, false);
+    writeDashboardCompactDensityStateForType(resolvedType, false);
+
+    const ids = getDashboardFolderIdsForType(resolvedType);
+    for (const id of ids) {
+        toggleFolderExpansion(resolvedType, id, {
+            forceExpanded: false,
+            persistExpandedState: false,
+            suppressAccordion: true
+        });
+    }
+    writeDashboardExpandedStateMap(resolvedType, {});
+    scheduleDashboardLayoutApplyForType(resolvedType);
+    syncDashboardWidgetLayoutQuickControlForType(resolvedType);
+};
 const syncDashboardWidgetLayoutQuickControlForType = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     const widgetLabel = resolvedType === 'vm' ? 'VM' : 'Docker';
@@ -347,6 +397,20 @@ const syncDashboardWidgetLayoutQuickControlForType = (type) => {
         $healthControl.toggleClass('is-active', healthEnabled);
         $healthControl.attr('title', `${widgetLabel}: Health emphasis ${healthEnabled ? 'enabled' : 'disabled'}`);
         $healthControl.attr('aria-label', `${widgetLabel}: health emphasis ${healthEnabled ? 'enabled' : 'disabled'}`);
+    }
+
+    const compactDensityEnabled = readDashboardCompactDensityStateForType(resolvedType);
+    const $densityControl = $host.children('.fv-dashboard-layout-quick-rail').children('[data-fv-quick-action="density-toggle"]').first();
+    if ($densityControl.length) {
+        $densityControl.toggleClass('is-active', compactDensityEnabled);
+        $densityControl.attr('title', `${widgetLabel}: Compact density ${compactDensityEnabled ? 'enabled' : 'disabled'}`);
+        $densityControl.attr('aria-label', `${widgetLabel}: compact density ${compactDensityEnabled ? 'enabled' : 'disabled'}`);
+    }
+
+    const $resetControl = $host.children('.fv-dashboard-layout-quick-rail').children('[data-fv-quick-action="reset-view"]').first();
+    if ($resetControl.length) {
+        $resetControl.attr('title', `${widgetLabel}: Reset quick view state`);
+        $resetControl.attr('aria-label', `${widgetLabel}: reset quick view state`);
     }
 };
 const saveDashboardLayoutPrefForType = async (type, prefsPayload) => {
@@ -464,6 +528,8 @@ const ensureDashboardWidgetLayoutQuickSwitchForType = (type) => {
     ensureQuickAction('expand-toggle', 'fa-angle-double-down', 'Expand all folders');
     ensureQuickAction('running-only', 'fa-play-circle', 'Toggle running-only filter');
     ensureQuickAction('health-emphasis', 'fa-heartbeat', 'Toggle health emphasis');
+    ensureQuickAction('density-toggle', 'fa-compress', 'Toggle compact density');
+    ensureQuickAction('reset-view', 'fa-undo', 'Reset widget view');
     ensureQuickAction('open-settings', 'fa-cog', 'Open FolderView Plus settings');
 
     if (!$rail.data('fvQuickActionBound')) {
@@ -497,6 +563,17 @@ const ensureDashboardWidgetLayoutQuickSwitchForType = (type) => {
                 writeDashboardHealthEmphasisStateForType(buttonType, !current);
                 scheduleDashboardLayoutApplyForType(buttonType);
                 syncDashboardWidgetLayoutQuickControlForType(buttonType);
+                return;
+            }
+            if (action === 'density-toggle') {
+                const current = readDashboardCompactDensityStateForType(buttonType);
+                writeDashboardCompactDensityStateForType(buttonType, !current);
+                scheduleDashboardLayoutApplyForType(buttonType);
+                syncDashboardWidgetLayoutQuickControlForType(buttonType);
+                return;
+            }
+            if (action === 'reset-view') {
+                resetDashboardWidgetViewStateForType(buttonType);
                 return;
             }
             if (action === 'open-settings') {
@@ -643,6 +720,7 @@ const applyDashboardLayoutStateForType = (type) => {
     $tbody.toggleClass('fv-dashboard-greyscale-enabled', nonClassicLayout && dashboardPrefs.greyscale === true);
     $tbody.toggleClass('fv-dashboard-hide-folder-label', nonClassicLayout && dashboardPrefs.folderLabel === false);
     $tbody.toggleClass('fv-dashboard-health-emphasis-enabled', readDashboardHealthEmphasisStateForType(meta.type));
+    $tbody.toggleClass('fv-dashboard-density-compact', readDashboardCompactDensityStateForType(meta.type));
     ensureDashboardWidgetLayoutQuickSwitchForType(meta.type);
     $tbody.find('.folder-showcase-outer').each((_, node) => {
         const $card = $(node);

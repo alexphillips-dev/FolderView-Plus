@@ -68,12 +68,17 @@ test('dashboard runtime supports layout classes, accordion guards, and overflow 
     assert.match(dashboardScript, /ensureQuickAction\('expand-toggle'/);
     assert.match(dashboardScript, /ensureQuickAction\('running-only'/);
     assert.match(dashboardScript, /ensureQuickAction\('health-emphasis'/);
+    assert.match(dashboardScript, /ensureQuickAction\('density-toggle'/);
+    assert.match(dashboardScript, /ensureQuickAction\('reset-view'/);
     assert.match(dashboardScript, /ensureQuickAction\('open-settings'/);
     assert.match(dashboardScript, /const toggleDashboardExpandAllForType = \(type\) =>/);
     assert.match(dashboardScript, /const setDashboardStartedOnlyEnabledForType = \(type, enabled\) =>/);
     assert.match(dashboardScript, /const readDashboardHealthEmphasisStateForType = \(type\) =>/);
+    assert.match(dashboardScript, /const readDashboardCompactDensityStateForType = \(type\) =>/);
+    assert.match(dashboardScript, /const resetDashboardWidgetViewStateForType = \(type\) =>/);
     assert.match(dashboardScript, /const openFolderViewPlusSettings = \(\) =>/);
     assert.match(dashboardScript, /fv-dashboard-health-emphasis-enabled/);
+    assert.match(dashboardScript, /fv-dashboard-density-compact/);
     assert.match(dashboardScript, /handleDashboardWidgetLayoutQuickSwitch/);
     assert.match(dashboardScript, /FolderViewPlusRequest/);
     assert.match(dashboardScript, /\/plugins\/folderview\.plus\/server\/prefs\.php/);
@@ -94,6 +99,7 @@ test('dashboard css includes non-classic controls and overflow rendering modes',
     assert.match(dashboardCss, /\.fv-dashboard-layout-quick-rail/);
     assert.match(dashboardCss, /\.fv-dashboard-quick-action/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-health-emphasis-enabled/);
+    assert.match(dashboardCss, /tbody\.fv-dashboard-density-compact/);
     assert.match(dashboardCss, /data-fv-layout="accordion"/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-show-expand-toggle/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-greyscale-enabled/);

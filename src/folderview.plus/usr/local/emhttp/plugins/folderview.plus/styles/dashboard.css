@@ -203,6 +203,31 @@ tbody.fv-dashboard-health-emphasis-enabled .folder-showcase-outer > span.outer .
     color: var(--orange, #f0a30a);
 }
 
+tbody.fv-dashboard-density-compact .folder-showcase-outer {
+    margin-bottom: 6px !important;
+}
+
+tbody.fv-dashboard-density-compact .folder-showcase-outer > span.outer {
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+
+tbody.fv-dashboard-density-compact .folder-showcase-outer > span.outer .img {
+    width: 32px;
+    height: 32px;
+}
+
+tbody.fv-dashboard-density-compact .folder-showcase-outer > span.outer .folder-appname-docker,
+tbody.fv-dashboard-density-compact .folder-showcase-outer > span.outer .folder-appname-vm {
+    font-size: 0.95em;
+    line-height: 1.1;
+}
+
+tbody.fv-dashboard-density-compact .folder-showcase-outer > span.outer .folder-state-docker,
+tbody.fv-dashboard-density-compact .folder-showcase-outer > span.outer .folder-state-vm {
+    font-size: 0.92em;
+}
+
 tbody.fv-dashboard-layout-fullwidth .folder-showcase-outer[expanded="true"] > .folder-showcase {
     grid-template-columns: minmax(0, 1fr);
 }

@@ -14,10 +14,10 @@
     <CHANGES>
 
 ###2026.03.19.03
-- Improvement: Folder editor now enforces duplicate-name checks by parent path (sibling scope) and suggests the next available name.
-- Improvement: New child folder creation now inherits smart defaults from the selected parent (icon/preview/color) unless the field was manually edited.
-- Improvement: Nested tree integrity scans now include depth warnings and empty-branch detection in addition to orphan/cycle checks.
-- Improvement: Import preview/apply now supports nested path-based ID mapping so matching parent/name paths update existing folders instead of duplicating.
+- UX: Folder editor now enforces duplicate-name checks by parent path (sibling scope) and suggests the next available name.
+- UX: New child folder creation now inherits smart defaults from the selected parent (icon/preview/color) unless the field was manually edited.
+- Quality: Nested tree integrity scans now include depth warnings and empty-branch detection in addition to orphan/cycle checks.
+- Quality: Import preview/apply now supports nested path-based ID mapping so matching parent/name paths update existing folders instead of duplicating.
 - Fix: Import diff now reports parent-path changes explicitly, and import summaries surface path-collision resolver notes.
 
 

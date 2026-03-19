@@ -260,36 +260,41 @@ tbody.fv-dashboard-layout-inset .folder-showcase-outer {
     border-left: 2px solid rgba(224, 230, 239, 0.16);
 }
 
-tbody.fv-dashboard-layout-compactmatrix .folder-showcase-outer {
-    display: inline-block;
-    width: calc(33.333% - 8px);
-    margin: 0 8px 8px 0 !important;
-    vertical-align: top;
+tbody.fv-dashboard-layout-compactmatrix > tr.updated > td > div {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    align-items: start;
 }
 
-tbody.fv-dashboard-layout-compactmatrix .folder-showcase-outer > span.outer {
+tbody.fv-dashboard-layout-compactmatrix > tr.updated > td > div > .folder-showcase-outer {
+    margin: 0 !important;
+    min-width: 0;
+}
+
+tbody.fv-dashboard-layout-compactmatrix > tr.updated > td > div > .folder-showcase-outer > span.outer {
     margin: 0 !important;
     min-height: 50px;
     box-sizing: border-box;
 }
 
-tbody.fv-dashboard-layout-compactmatrix .folder-showcase-outer[expanded="true"] .folder-showcase {
+tbody.fv-dashboard-layout-compactmatrix > tr.updated > td > div > .folder-showcase-outer[expanded="true"] .folder-showcase {
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 6px 8px;
 }
 
-tbody.fv-dashboard-layout-compactmatrix .folder-showcase-outer > span.outer .img {
+tbody.fv-dashboard-layout-compactmatrix > tr.updated > td > div > .folder-showcase-outer > span.outer .img {
     width: 30px;
     height: 30px;
 }
 
-tbody.fv-dashboard-layout-compactmatrix .folder-showcase-outer > span.outer .folder-appname-docker,
-tbody.fv-dashboard-layout-compactmatrix .folder-showcase-outer > span.outer .folder-appname-vm {
+tbody.fv-dashboard-layout-compactmatrix > tr.updated > td > div > .folder-showcase-outer > span.outer .folder-appname-docker,
+tbody.fv-dashboard-layout-compactmatrix > tr.updated > td > div > .folder-showcase-outer > span.outer .folder-appname-vm {
     font-size: 0.93em;
 }
 
-tbody.fv-dashboard-layout-compactmatrix .folder-showcase-outer > span.outer .folder-state-docker,
-tbody.fv-dashboard-layout-compactmatrix .folder-showcase-outer > span.outer .folder-state-vm {
+tbody.fv-dashboard-layout-compactmatrix > tr.updated > td > div > .folder-showcase-outer > span.outer .folder-state-docker,
+tbody.fv-dashboard-layout-compactmatrix > tr.updated > td > div > .folder-showcase-outer > span.outer .folder-state-vm {
     font-size: 0.9em;
 }
 
@@ -358,14 +363,14 @@ body.fvplus-performance-mode .tooltipster-content {
         font-size: 9px;
     }
 
-    tbody.fv-dashboard-layout-compactmatrix .folder-showcase-outer {
-        width: calc(50% - 8px);
+    tbody.fv-dashboard-layout-compactmatrix > tr.updated > td > div {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
 @media (max-width: 520px) {
-    tbody.fv-dashboard-layout-compactmatrix .folder-showcase-outer {
-        width: calc(100% - 8px);
+    tbody.fv-dashboard-layout-compactmatrix > tr.updated > td > div {
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 

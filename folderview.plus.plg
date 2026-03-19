@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.19.16">
-<!ENTITY md5 "3025e0c9ef13d4391dbf18372452909b">
+<!ENTITY version "2026.03.19.17">
+<!ENTITY md5 "05df16f2d6dd1b7657608d6de2307ea4">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.19.17
+- Fix: Corrected Compact Matrix CSS scoping so only top-level dashboard cards are affected.
+- Fix: Switched Compact Matrix to a stable top-level grid container to prevent layout breakage in Dashboard and nested folder views.
+- Regression guard: Kept dashboard layout contracts and responsive behavior checks passing after the selector fix.
+
 
 ###2026.03.19.16
 - Feature: Added `Compact Matrix` as a new dashboard widget layout mode for Docker and VM views.

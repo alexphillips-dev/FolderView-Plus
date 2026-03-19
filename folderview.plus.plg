@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.18.10">
-<!ENTITY md5 "b6713f43afc462c01753a8836a33aac2">
+<!ENTITY version "2026.03.18.11">
+<!ENTITY md5 "495c015ab7d811d4b246aba640ad735a">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.18.11
+- Maintenance: Harden advanced settings module loading, locking, and persistence.
+- Feature: Add mobile/runtime regression guards and archive retention strategy.
+- Fix: Fix main archive URL target for release guard.
+- Fix: Fix main pluginURL target for release guard.
+- Maintenance: Release 2026.03.18.10 on main with full dev improvement rollup.
+
 
 ###2026.03.18.10
 - Fix: Added lightweight direct-member row recovery in Docker nested parent expansion so parent containers remain visible when expanded.

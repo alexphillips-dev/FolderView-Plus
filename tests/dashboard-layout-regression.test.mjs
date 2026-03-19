@@ -122,6 +122,8 @@ test('dashboard css includes non-classic controls and overflow rendering modes',
     assert.match(dashboardCss, /tbody\.fv-dashboard-layout-accordion/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-layout-inset/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-layout-compactmatrix/);
+    assert.match(dashboardCss, /tbody\.fv-dashboard-layout-compactmatrix > tr\.updated > td \{/);
+    assert.match(dashboardCss, /tbody\.fv-dashboard-layout-compactmatrix \.fv-dashboard-expand-toggle-btn \{/);
     assert.match(dashboardCss, /data-fv-dashboard-overflow="scroll"/);
     assert.match(dashboardCss, /data-fv-dashboard-overflow="expand_row"/);
 });

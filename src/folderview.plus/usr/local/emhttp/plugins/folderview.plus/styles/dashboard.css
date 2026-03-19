@@ -311,7 +311,8 @@ tbody.fv-dashboard-layout-compactmatrix .folder-showcase-outer > span.outer .fol
 tbody.fv-dashboard-layout-compactmatrix .folder-showcase-outer > span.outer .folder-inner-vm {
     min-width: 0;
     width: auto;
-    flex: 1 1 auto;
+    max-width: calc(100% - 10px);
+    flex: 0 1 auto;
     margin: 0;
     padding: 0;
 }
@@ -334,31 +335,31 @@ tbody.fv-dashboard-layout-compactmatrix .fv-dashboard-expand-toggle-btn {
     top: auto;
     right: auto;
     transform: none;
-    margin: 0 0 0 2px !important;
+    margin: 0 0 0 1px !important;
     padding: 0 !important;
     border: 0 !important;
     border-radius: 0 !important;
     background: transparent !important;
     box-shadow: none !important;
-    min-width: 7px !important;
-    max-width: 7px !important;
-    width: 7px !important;
-    min-height: 7px !important;
-    max-height: 7px !important;
-    height: 7px !important;
+    min-width: 6px !important;
+    max-width: 6px !important;
+    width: 6px !important;
+    min-height: 6px !important;
+    max-height: 6px !important;
+    height: 6px !important;
     line-height: 1 !important;
     overflow: visible;
     -webkit-appearance: none !important;
     appearance: none !important;
-    font-size: 8px;
-    flex: 0 0 7px;
+    font-size: 7px;
+    flex: 0 0 auto;
 }
 
 tbody.fv-dashboard-layout-compactmatrix .fv-dashboard-expand-toggle-btn > i.fa {
-    font-size: 8px !important;
+    font-size: 7px !important;
     line-height: 1 !important;
-    width: 7px;
-    height: 7px;
+    width: 6px;
+    height: 6px;
 }
 
 .folder-showcase-outer[data-fv-dashboard-overflow="scroll"][expanded="true"] > .folder-showcase {

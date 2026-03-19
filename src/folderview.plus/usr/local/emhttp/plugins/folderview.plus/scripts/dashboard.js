@@ -188,146 +188,17 @@ const dashboardTypeMeta = (type) => {
         outerSelector: resolvedType === 'vm' ? 'span.outer.vms.folder-vm' : 'span.outer.apps.folder-docker'
     };
 };
-const resolveDashboardQuickSwitchScopeKey = (type) => (type === 'vm' ? 'vm' : 'docker');
-const resolveDashboardWidgetPanelForType = (type) => {
+const resolveDashboardWidgetInlineHostForType = (type) => {
     const meta = dashboardTypeMeta(type);
     const $tbody = $(meta.tbodySelector).first();
     if (!$tbody.length) {
         return $();
     }
-    let $panel = $tbody.closest('.panel');
-    if ($panel.length) {
-        return $panel.first();
+    const $targetCell = $tbody.children('tr.updated').children('td').first();
+    if ($targetCell.length) {
+        return $targetCell;
     }
-    $panel = $tbody.closest('.widget, .dashboard-panel, [class*="panel"], [class*="widget"]');
-    if ($panel.length) {
-        return $panel.first();
-    }
-    return $();
-};
-const resolveDashboardWidgetHeaderForType = (type) => {
-    const resolvedType = resolveDashboardQuickSwitchScopeKey(type);
-    const $panel = resolveDashboardWidgetPanelForType(type);
-    if ($panel.length) {
-        let $header = $panel.children('.panel-heading, .widget-header, .heading, header').first();
-        if (!$header.length) {
-            $header = $panel.find('.panel-heading, .widget-header, .heading, header').first();
-        }
-        if ($header.length) {
-            return $header;
-        }
-    }
-    const meta = dashboardTypeMeta(type);
-    const $tbody = $(meta.tbodySelector).first();
-    if (!$tbody.length) {
-        // Fallback for dashboard variants where tbody panel ancestry is not stable.
-        const tokens = resolvedType === 'vm'
-            ? ['virtual', 'vm']
-            : ['docker', 'container'];
-        const $globalHeaders = $('.panel-heading, .widget-header, .heading, header');
-        let $best = $();
-        $globalHeaders.each((_, node) => {
-            const $node = $(node);
-            const text = String($node.text() || '').toLowerCase();
-            const matches = tokens.some((token) => text.includes(token));
-            if (!matches) {
-                return;
-            }
-            $best = $node;
-            return false;
-        });
-        return $best;
-    }
-    let $header = $tbody.closest('table').prevAll('.panel-heading, .widget-header, .heading, header').first();
-    if ($header.length) {
-        return $header;
-    }
-    const tokens = resolvedType === 'vm'
-        ? ['virtual', 'vm']
-        : ['docker', 'container'];
-    const $globalHeaders = $('.panel-heading, .widget-header, .heading, header');
-    let $best = $();
-    $globalHeaders.each((_, node) => {
-        const $node = $(node);
-        const text = String($node.text() || '').toLowerCase();
-        const matches = tokens.some((token) => text.includes(token));
-        if (!matches) {
-            return;
-        }
-        $best = $node;
-        return false;
-    });
-    return $best;
-};
-const resolveDashboardWidgetHeaderActionAnchorForType = (type) => {
-    const resolvedType = resolveDashboardQuickSwitchScopeKey(type);
-    const $header = resolveDashboardWidgetHeaderForType(resolvedType);
-    const findAnchorInScope = ($scope) => {
-        if (!$scope || !$scope.length) {
-            return $();
-        }
-        const $gear = $scope.find('.fa-cog:visible, .fa-gear:visible, .icon-cog:visible, .icon-gear:visible, .icon-settings:visible').first();
-        if ($gear.length) {
-            const $anchor = $gear.closest('a, button, span, i');
-            return $anchor.length ? $anchor.first() : $gear.first();
-        }
-        const $candidates = $scope.find('a:visible, button:visible, [role="button"]:visible, span:visible, i:visible');
-        for (let index = 0; index < $candidates.length; index++) {
-            const $candidate = $candidates.eq(index);
-            const attrs = [
-                String($candidate.attr('title') || ''),
-                String($candidate.attr('aria-label') || ''),
-                String($candidate.attr('href') || ''),
-                String($candidate.text() || '')
-            ].join(' ').toLowerCase();
-            if (attrs.includes('setting') || attrs.includes('config') || attrs.includes('gear')) {
-                return $candidate;
-            }
-        }
-        const $actionContainers = $scope.find('.panel-actions:visible, .pull-right:visible, .widget-actions:visible, .actions:visible, [class*="action"]:visible').first();
-        if ($actionContainers.length) {
-            const $fallbackAnchor = $actionContainers.find('a:visible, button:visible, [role="button"]:visible, span:visible, i:visible').first();
-            if ($fallbackAnchor.length) {
-                return $fallbackAnchor;
-            }
-        }
-        return $();
-    };
-
-    const $headerAnchor = findAnchorInScope($header);
-    if ($headerAnchor.length) {
-        return $headerAnchor;
-    }
-
-    let $globalAnchor = $();
-    $('.fa-cog, .fa-gear, .icon-cog, .icon-gear, .icon-settings').each((_, node) => {
-        const $node = $(node);
-        if (!$node.is(':visible')) {
-            return;
-        }
-        const $scope = $node.closest('.panel-heading, .widget-header, .heading, header, .panel, .widget').first();
-        const scopeText = String($scope.text() || '').toLowerCase();
-        const matchesType = resolvedType === 'vm'
-            ? (scopeText.includes('vm') || scopeText.includes('virtual'))
-            : (scopeText.includes('docker') || scopeText.includes('container'));
-        if (!matchesType) {
-            return;
-        }
-        const $anchor = $node.closest('a, button, span, i');
-        $globalAnchor = $anchor.length ? $anchor.first() : $node.first();
-        return false;
-    });
-    if ($globalAnchor.length) {
-        return $globalAnchor;
-    }
-
-    if ($header.length) {
-        const $fallbackAnchor = $header.find('a:visible, button:visible, [role="button"]:visible, span:visible').last();
-        if ($fallbackAnchor.length) {
-            return $fallbackAnchor.first();
-        }
-    }
-    return $();
+    return $tbody;
 };
 const syncDashboardWidgetLayoutQuickControlForType = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
@@ -412,12 +283,27 @@ const handleDashboardWidgetLayoutQuickSwitch = async (type, value) => {
 };
 const ensureDashboardWidgetLayoutQuickSwitchForType = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const $header = resolveDashboardWidgetHeaderForType(resolvedType);
-    const $anchor = resolveDashboardWidgetHeaderActionAnchorForType(resolvedType);
-    $(`.fv-dashboard-layout-quick-host[data-fv-dashboard-type="${resolvedType}"]`).remove();
+    const $container = resolveDashboardWidgetInlineHostForType(resolvedType);
+    if (!$container.length) {
+        if (dashboardQuickSwitchRetryTimerByType[resolvedType]) {
+            return;
+        }
+        dashboardQuickSwitchRetryTimerByType[resolvedType] = window.setTimeout(() => {
+            dashboardQuickSwitchRetryTimerByType[resolvedType] = 0;
+            ensureDashboardWidgetLayoutQuickSwitchForType(resolvedType);
+        }, 320);
+        return;
+    }
+    const hostSelector = `.fv-dashboard-layout-inline-host[data-fv-dashboard-type="${resolvedType}"]`;
+    let $host = $(hostSelector).first();
+    if (!$host.length) {
+        $host = $(`<div class="fv-dashboard-layout-inline-host" data-fv-dashboard-type="${resolvedType}"></div>`);
+        $container.prepend($host);
+    }
     const widgetLabel = resolvedType === 'vm' ? 'VM' : 'Docker';
     const switchSelector = `.fv-dashboard-layout-quick[data-fv-dashboard-type="${resolvedType}"]`;
-    let $switch = $(switchSelector).first();
+    $(`${switchSelector}`).not($host.children('.fv-dashboard-layout-quick')).remove();
+    let $switch = $host.children('.fv-dashboard-layout-quick').first();
     if (!$switch.length) {
         $switch = $(
             `<button type="button" class="fv-dashboard-layout-quick" data-fv-dashboard-type="${resolvedType}" title="${widgetLabel} folder layout view">` +
@@ -431,19 +317,8 @@ const ensureDashboardWidgetLayoutQuickSwitchForType = (type) => {
             void handleDashboardWidgetLayoutQuickSwitch(resolvedType, DASHBOARD_LAYOUT_MODES[nextIndex]);
         });
     }
-    if ($anchor.length) {
-        $anchor.before($switch);
-    } else if ($header.length) {
-        $header.append($switch);
-    } else {
-        if (dashboardQuickSwitchRetryTimerByType[resolvedType]) {
-            return;
-        }
-        dashboardQuickSwitchRetryTimerByType[resolvedType] = window.setTimeout(() => {
-            dashboardQuickSwitchRetryTimerByType[resolvedType] = 0;
-            ensureDashboardWidgetLayoutQuickSwitchForType(resolvedType);
-        }, 320);
-        return;
+    if (!$switch.parent().is($host)) {
+        $host.append($switch);
     }
     syncDashboardWidgetLayoutQuickControlForType(resolvedType);
 };

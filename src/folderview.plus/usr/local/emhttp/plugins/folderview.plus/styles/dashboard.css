@@ -47,6 +47,16 @@
     position: relative;
 }
 
+.fv-dashboard-layout-inline-host {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    width: 100%;
+    margin: 0 0 8px 0;
+    padding: 0 2px 0 0;
+    box-sizing: border-box;
+}
+
 .fv-dashboard-layout-quick {
     display: inline-flex;
     align-items: center;

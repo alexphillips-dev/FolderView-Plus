@@ -61,8 +61,8 @@ test('settings runtime persists dashboard prefs and exports handler', () => {
 test('dashboard runtime supports layout classes, accordion guards, and overflow metadata', () => {
     assert.match(dashboardScript, /const DASHBOARD_LAYOUT_MODES = \['classic', 'fullwidth', 'accordion', 'inset'\]/);
     assert.match(dashboardScript, /const ensureDashboardWidgetLayoutQuickSwitchForType = \(type\) =>/);
-    assert.match(dashboardScript, /const resolveDashboardWidgetHeaderForType = \(type\) =>/);
-    assert.match(dashboardScript, /tokens = resolvedType === 'vm'/);
+    assert.match(dashboardScript, /const resolveDashboardWidgetInlineHostForType = \(type\) =>/);
+    assert.match(dashboardScript, /fv-dashboard-layout-inline-host/);
     assert.match(dashboardScript, /handleDashboardWidgetLayoutQuickSwitch/);
     assert.match(dashboardScript, /FolderViewPlusRequest/);
     assert.match(dashboardScript, /\/plugins\/folderview\.plus\/server\/prefs\.php/);
@@ -78,6 +78,7 @@ test('dashboard runtime supports layout classes, accordion guards, and overflow 
 });
 
 test('dashboard css includes non-classic controls and overflow rendering modes', () => {
+    assert.match(dashboardCss, /\.fv-dashboard-layout-inline-host/);
     assert.match(dashboardCss, /\.fv-dashboard-layout-quick/);
     assert.match(dashboardCss, /data-fv-layout="accordion"/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-show-expand-toggle/);

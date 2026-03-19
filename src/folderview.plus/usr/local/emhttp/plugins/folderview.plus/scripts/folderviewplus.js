@@ -96,13 +96,15 @@ let filtersByType = {
         folders: '',
         rules: '',
         backups: '',
-        templates: ''
+        templates: '',
+        bulk: ''
     },
     vm: {
         folders: '',
         rules: '',
         backups: '',
-        templates: ''
+        templates: '',
+        bulk: ''
     }
 };
 let healthMetricsByType = {
@@ -361,6 +363,20 @@ const ADVANCED_GROUP_BY_SECTION = {
     'folder-health': 'diagnostics',
     'diagnostics': 'diagnostics'
 };
+const ADVANCED_MODULE_STALE_MS = 1000 * 60 * 2;
+const ADVANCED_MODULE_KEYS = Object.freeze([
+    'docker_backups',
+    'vm_backups',
+    'docker_templates',
+    'vm_templates',
+    'change_history'
+]);
+const ADVANCED_MODULE_KEYS_BY_TAB = Object.freeze({
+    automation: Object.freeze([]),
+    recovery: Object.freeze(['docker_backups', 'vm_backups', 'change_history']),
+    operations: Object.freeze(['docker_templates', 'vm_templates']),
+    diagnostics: Object.freeze(['change_history'])
+});
 const BASIC_WORKSPACE_SECTION_KEYS = new Set(['docker', 'vms']);
 const SETUP_ASSISTANT_STEPS = ['welcome', 'profile', 'import', 'rules', 'behavior', 'review'];
 const SETUP_ASSISTANT_STEPS_BY_ROUTE = {
@@ -560,6 +576,12 @@ const settingsUiState = {
     baselineByInputId: new Map(),
     activeSectionKey: '',
     advancedTab: 'automation',
+    advancedSearchByTab: {
+        automation: '',
+        recovery: '',
+        operations: '',
+        diagnostics: ''
+    },
     searchAllAdvanced: false,
     expandedAdvancedSections: new Set(),
     knownAdvancedSections: new Set(),
@@ -569,9 +591,42 @@ const settingsUiState = {
     actionDockExpanded: false,
     actionDockMoreOpen: false
 };
+const createAdvancedModuleLoadEntry = () => ({
+    loaded: false,
+    pending: null,
+    lastLoadedAt: 0,
+    lastErrorAt: 0,
+    lastErrorMessage: ''
+});
 const advancedDataLoadState = {
     loaded: false,
-    pending: null
+    pending: null,
+    modules: {
+        docker_backups: createAdvancedModuleLoadEntry(),
+        vm_backups: createAdvancedModuleLoadEntry(),
+        docker_templates: createAdvancedModuleLoadEntry(),
+        vm_templates: createAdvancedModuleLoadEntry(),
+        change_history: createAdvancedModuleLoadEntry()
+    }
+};
+const advancedModuleStatusByKey = {
+    docker_backups: { state: 'idle', message: '' },
+    vm_backups: { state: 'idle', message: '' },
+    docker_templates: { state: 'idle', message: '' },
+    vm_templates: { state: 'idle', message: '' },
+    change_history: { state: 'idle', message: '' }
+};
+const advancedOperationLockByType = {
+    docker: {
+        backups: false,
+        templates: false,
+        bulk: false
+    },
+    vm: {
+        backups: false,
+        templates: false,
+        bulk: false
+    }
 };
 const setupAssistantState = {
     version: SETUP_ASSISTANT_VERSION,
@@ -814,6 +869,72 @@ const normalizeAdvancedGroup = (value) => (
         : 'operations'
 );
 
+const normalizeAdvancedSearchMap = (value) => {
+    const source = value && typeof value === 'object' ? value : {};
+    const next = {};
+    for (const group of ADVANCED_GROUPS) {
+        next[group] = normalizedFilter(source[group]);
+    }
+    return next;
+};
+
+const readActiveAdvancedSearchQuery = () => {
+    const tab = normalizeAdvancedGroup(settingsUiState.advancedTab);
+    const map = normalizeAdvancedSearchMap(settingsUiState.advancedSearchByTab);
+    settingsUiState.advancedSearchByTab = map;
+    return normalizedFilter(map[tab]);
+};
+
+const writeActiveAdvancedSearchQuery = (query) => {
+    const tab = normalizeAdvancedGroup(settingsUiState.advancedTab);
+    const map = normalizeAdvancedSearchMap(settingsUiState.advancedSearchByTab);
+    map[tab] = normalizedFilter(query);
+    settingsUiState.advancedSearchByTab = map;
+};
+
+const normalizeAdvancedModuleKeys = (modulesInput = null) => {
+    if (!Array.isArray(modulesInput)) {
+        return [];
+    }
+    const deduped = new Set();
+    for (const key of modulesInput) {
+        const normalized = String(key || '').trim().toLowerCase();
+        if (!normalized || !ADVANCED_MODULE_KEYS.includes(normalized)) {
+            continue;
+        }
+        deduped.add(normalized);
+    }
+    return Array.from(deduped);
+};
+
+const getAdvancedModulesForTab = (tab, includeSearchAll = false) => {
+    if (includeSearchAll) {
+        return [...ADVANCED_MODULE_KEYS];
+    }
+    const group = normalizeAdvancedGroup(tab);
+    return [...(ADVANCED_MODULE_KEYS_BY_TAB[group] || [])];
+};
+
+const getRequestedAdvancedModuleKeys = ({
+    force = false,
+    explicitModules = null,
+    tab = null,
+    includeSearchAll = false
+} = {}) => {
+    const normalizedExplicit = normalizeAdvancedModuleKeys(explicitModules);
+    if (normalizedExplicit.length > 0) {
+        return normalizedExplicit;
+    }
+    if (force === true) {
+        return [...ADVANCED_MODULE_KEYS];
+    }
+    if (settingsUiState.mode !== 'advanced') {
+        return [];
+    }
+    const targetTab = tab === null ? settingsUiState.advancedTab : tab;
+    return getAdvancedModulesForTab(targetTab, includeSearchAll);
+};
+
 const persistExpandedAdvancedSections = () => {
     const payload = JSON.stringify(Array.from(settingsUiState.expandedAdvancedSections || []));
     settingsUiState.hasExpandedAdvancedPreference = true;
@@ -916,8 +1037,17 @@ const persistActiveAdvancedSection = (sectionKey) => {
 
 const setAdvancedTab = (tab, persist = true) => {
     settingsUiState.advancedTab = normalizeAdvancedGroup(tab);
+    if (settingsUiState.mode === 'advanced') {
+        const nextQuery = readActiveAdvancedSearchQuery();
+        settingsUiState.query = nextQuery;
+        const searchInput = $('#fv-settings-search');
+        if (searchInput.length) {
+            searchInput.val(nextQuery);
+        }
+    }
     if (persist) {
         localStorage.setItem(ADVANCED_TAB_STORAGE_KEY, settingsUiState.advancedTab);
+        persistTableUiState();
     }
     if (settingsUiState.mode === 'advanced') {
         void ensureAdvancedDataLoaded();
@@ -1450,8 +1580,14 @@ const setSettingsMode = (mode) => {
         if (activeSection?.advanced) {
             setAdvancedTab(activeSection.advancedGroup);
         }
+        settingsUiState.query = readActiveAdvancedSearchQuery();
+        const searchInput = $('#fv-settings-search');
+        if (searchInput.length) {
+            searchInput.val(settingsUiState.query);
+        }
         void ensureAdvancedDataLoaded();
     }
+    persistTableUiState();
     applySettingsSectionVisibility();
     syncSectionJumpOptions();
     refreshSectionHealthBadges();
@@ -1512,7 +1648,11 @@ const persistSetupPrefsToServer = async ({ mode = null, completed = null } = {})
 };
 
 const setSettingsSearchQuery = (query) => {
-    settingsUiState.query = String(query || '').trim().toLowerCase();
+    settingsUiState.query = normalizedFilter(query);
+    if (settingsUiState.mode === 'advanced') {
+        writeActiveAdvancedSearchQuery(settingsUiState.query);
+    }
+    persistTableUiState();
     applySettingsSectionVisibility();
     syncSectionJumpOptions();
     refreshSectionHealthBadges();
@@ -1522,6 +1662,10 @@ const setSettingsSearchQuery = (query) => {
 const setSearchAllAdvanced = (enabled) => {
     settingsUiState.searchAllAdvanced = enabled === true;
     localStorage.setItem(SEARCH_ALL_ADVANCED_STORAGE_KEY, settingsUiState.searchAllAdvanced ? '1' : '0');
+    persistTableUiState();
+    if (settingsUiState.mode === 'advanced') {
+        void ensureAdvancedDataLoaded();
+    }
     applySettingsSectionVisibility();
     syncSectionJumpOptions();
     refreshSectionHealthBadges();
@@ -2026,6 +2170,18 @@ const initSettingsControls = () => {
         refreshSectionHealthBadges();
         updateActionBarSaveState();
     });
+    $(document).off('click.fvadvretry', '[data-fv-advanced-module-retry]').on('click.fvadvretry', '[data-fv-advanced-module-retry]', (event) => {
+        event.preventDefault();
+        const moduleKey = String($(event.currentTarget).attr('data-fv-advanced-module-retry') || '').trim().toLowerCase();
+        if (!ADVANCED_MODULE_KEYS.includes(moduleKey)) {
+            return;
+        }
+        void ensureAdvancedDataLoaded({
+            force: true,
+            modules: [moduleKey],
+            quiet: false
+        });
+    });
     $(document).off('click.fvcompact', '#fv-advanced-compact').on('click.fvcompact', '#fv-advanced-compact', (event) => {
         event.preventDefault();
         toggleAdvancedTabCompactState();
@@ -2096,6 +2252,9 @@ const initSettingsControls = () => {
     updateRuleValidationHint('vm');
     validateTemplateNameInput('docker', false);
     validateTemplateNameInput('vm', false);
+    ADVANCED_MODULE_KEYS.forEach((moduleKey) => {
+        renderAdvancedModuleStatus(moduleKey);
+    });
 
     settingsUiState.controlsInitialized = true;
 };
@@ -2122,6 +2281,9 @@ const refreshSettingsUx = () => {
     refreshInputInvalidStyles();
     refreshSectionHealthBadges();
     updateActionBarSaveState();
+    ADVANCED_MODULE_KEYS.forEach((moduleKey) => {
+        renderAdvancedModuleStatus(moduleKey);
+    });
 };
 
 const toPrettyJson = (value) => `${JSON.stringify(value, null, 2)}\n`;
@@ -4270,6 +4432,11 @@ const buildTableUiStatePayload = () => ({
     columnWidths: {
         docker: { ...(columnWidthsByType.docker || {}) },
         vm: { ...(columnWidthsByType.vm || {}) }
+    },
+    advancedSearch: {
+        byTab: normalizeAdvancedSearchMap(settingsUiState.advancedSearchByTab),
+        query: normalizedFilter(settingsUiState.query),
+        searchAll: settingsUiState.searchAllAdvanced === true
     }
 });
 
@@ -4297,6 +4464,7 @@ const restoreTableUiState = () => {
         const sourceTreeCollapsed = source.treeCollapsed && typeof source.treeCollapsed === 'object' ? source.treeCollapsed : {};
         const sourceColumns = source.columns && typeof source.columns === 'object' ? source.columns : {};
         const sourceColumnWidths = source.columnWidths && typeof source.columnWidths === 'object' ? source.columnWidths : {};
+        const sourceAdvancedSearch = source.advancedSearch && typeof source.advancedSearch === 'object' ? source.advancedSearch : {};
         ['docker', 'vm'].forEach((resolvedType) => {
             const perTypeFilters = sourceFilters[resolvedType] && typeof sourceFilters[resolvedType] === 'object'
                 ? sourceFilters[resolvedType]
@@ -4305,7 +4473,8 @@ const restoreTableUiState = () => {
                 folders: normalizedFilter(perTypeFilters.folders),
                 rules: normalizedFilter(perTypeFilters.rules),
                 backups: normalizedFilter(perTypeFilters.backups),
-                templates: normalizedFilter(perTypeFilters.templates)
+                templates: normalizedFilter(perTypeFilters.templates),
+                bulk: normalizedFilter(perTypeFilters.bulk)
             };
             quickFolderFilterByType[resolvedType] = normalizeQuickFolderFilterMode(sourceQuick[resolvedType], resolvedType);
             healthFilterByType[resolvedType] = normalizeHealthFilterMode(sourceHealth[resolvedType]);
@@ -4319,6 +4488,17 @@ const restoreTableUiState = () => {
             columnVisibilityByType[resolvedType] = normalizeColumnVisibilityForType(resolvedType, sourceColumns[resolvedType]);
             columnWidthsByType[resolvedType] = normalizeColumnWidthsForType(resolvedType, sourceColumnWidths[resolvedType]);
         });
+        settingsUiState.advancedSearchByTab = normalizeAdvancedSearchMap(
+            sourceAdvancedSearch.byTab || sourceAdvancedSearch.queryByTab || {}
+        );
+        if (typeof sourceAdvancedSearch.query === 'string') {
+            settingsUiState.query = normalizedFilter(sourceAdvancedSearch.query);
+        } else if (settingsUiState.mode === 'advanced') {
+            settingsUiState.query = readActiveAdvancedSearchQuery();
+        }
+        if (sourceAdvancedSearch.searchAll === true || sourceAdvancedSearch.searchAll === false) {
+            settingsUiState.searchAllAdvanced = sourceAdvancedSearch.searchAll === true;
+        }
         dockerUpdatesOnlyFilter = source.dockerUpdatesOnlyFilter === true;
     } catch (_error) {
         // Ignore parse/storage failures; fall back to defaults.
@@ -6038,6 +6218,134 @@ const showError = (title, error) => {
     });
 };
 
+const ADVANCED_MODULE_STATUS_CONFIG = Object.freeze({
+    docker_backups: Object.freeze({
+        anchorSelector: '#docker-backups',
+        label: 'Docker backups'
+    }),
+    vm_backups: Object.freeze({
+        anchorSelector: '#vm-backups',
+        label: 'VM backups'
+    }),
+    docker_templates: Object.freeze({
+        anchorSelector: '#docker-templates',
+        label: 'Docker templates'
+    }),
+    vm_templates: Object.freeze({
+        anchorSelector: '#vm-templates',
+        label: 'VM templates'
+    }),
+    change_history: Object.freeze({
+        anchorSelector: '#change-history-output',
+        label: 'Change history'
+    })
+});
+
+const ensureAdvancedModuleStatusHost = (moduleKey) => {
+    const config = ADVANCED_MODULE_STATUS_CONFIG[moduleKey];
+    if (!config) {
+        return null;
+    }
+    const anchor = document.querySelector(config.anchorSelector);
+    if (!(anchor instanceof HTMLElement)) {
+        return null;
+    }
+    const panel = anchor.closest('.rules-panel') || anchor.parentElement;
+    if (!(panel instanceof HTMLElement)) {
+        return null;
+    }
+    let host = panel.querySelector(`[data-fv-advanced-module-status="${moduleKey}"]`);
+    if (!(host instanceof HTMLElement)) {
+        host = document.createElement('div');
+        host.className = 'inline-validation-hint fv-advanced-module-status';
+        host.setAttribute('data-fv-advanced-module-status', moduleKey);
+        const header = panel.querySelector('.rules-header');
+        if (header instanceof HTMLElement) {
+            header.insertAdjacentElement('afterend', host);
+        } else {
+            panel.insertBefore(host, panel.firstChild || null);
+        }
+    }
+    return host;
+};
+
+const renderAdvancedModuleStatus = (moduleKey) => {
+    const status = advancedModuleStatusByKey[moduleKey];
+    const config = ADVANCED_MODULE_STATUS_CONFIG[moduleKey];
+    const host = ensureAdvancedModuleStatusHost(moduleKey);
+    if (!status || !config || !(host instanceof HTMLElement)) {
+        return;
+    }
+    if (status.state === 'loading') {
+        host.classList.remove('is-error');
+        host.classList.add('is-info');
+        host.innerHTML = `<i class="fa fa-refresh fa-spin"></i> Refreshing ${escapeHtml(config.label)}...`;
+        host.style.display = '';
+        return;
+    }
+    if (status.state === 'error') {
+        const message = String(status.message || 'Refresh failed.');
+        host.classList.remove('is-info');
+        host.classList.add('is-error');
+        host.innerHTML = `${escapeHtml(config.label)} failed: ${escapeHtml(message)} <button type="button" data-fv-advanced-module-retry="${escapeHtml(moduleKey)}"><i class="fa fa-repeat"></i> Retry</button>`;
+        host.style.display = '';
+        return;
+    }
+    host.classList.remove('is-error', 'is-info');
+    host.textContent = '';
+    host.style.display = 'none';
+};
+
+const setAdvancedModuleStatus = (moduleKey, state = 'idle', message = '') => {
+    if (!Object.prototype.hasOwnProperty.call(advancedModuleStatusByKey, moduleKey)) {
+        return;
+    }
+    advancedModuleStatusByKey[moduleKey] = {
+        state,
+        message: String(message || '')
+    };
+    renderAdvancedModuleStatus(moduleKey);
+};
+
+const claimAdvancedOperationLock = (type, scope, actionLabel = 'Operation') => {
+    const resolvedType = normalizeManagedType(type);
+    const map = advancedOperationLockByType[resolvedType];
+    if (!map || !Object.prototype.hasOwnProperty.call(map, scope)) {
+        return true;
+    }
+    if (map[scope] === true) {
+        swal({
+            title: 'Please wait',
+            text: `${actionLabel} is already running for ${resolvedType.toUpperCase()}.`,
+            type: 'info'
+        });
+        return false;
+    }
+    map[scope] = true;
+    return true;
+};
+
+const releaseAdvancedOperationLock = (type, scope) => {
+    const resolvedType = normalizeManagedType(type);
+    const map = advancedOperationLockByType[resolvedType];
+    if (!map || !Object.prototype.hasOwnProperty.call(map, scope)) {
+        return;
+    }
+    map[scope] = false;
+};
+
+const withAdvancedOperationLock = async (type, scope, actionLabel, callback) => {
+    const resolvedType = normalizeManagedType(type);
+    if (!claimAdvancedOperationLock(resolvedType, scope, actionLabel)) {
+        return null;
+    }
+    try {
+        return await callback();
+    } finally {
+        releaseAdvancedOperationLock(resolvedType, scope);
+    }
+};
+
 const copyTextToClipboard = async (text) => {
     const value = String(text || '');
     if (!value) {
@@ -7585,6 +7893,7 @@ const renderFilterInputs = (type) => {
     $(`#${type}-rules-filter`).val(filterState.rules || '');
     $(`#${type}-backups-filter`).val(filterState.backups || '');
     $(`#${type}-templates-filter`).val(filterState.templates || '');
+    $(`#${type}-bulk-filter`).val(filterState.bulk || '');
 };
 
 const renderQuickFolderFilters = (type) => {
@@ -7777,7 +8086,14 @@ const getBulkAssignableNames = (type) => {
     return Array.from(names).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
 };
 
-const getBulkItemsFilterQuery = (type) => normalizedFilter($(`#${type}-bulk-filter`).val());
+const getBulkItemsFilterQuery = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const fromState = normalizedFilter(filtersByType[resolvedType]?.bulk);
+    if (fromState) {
+        return fromState;
+    }
+    return normalizedFilter($(`#${resolvedType}-bulk-filter`).val());
+};
 
 const getBulkMemberFolderLookup = (type, foldersInput = null) => {
     const resolvedType = normalizeManagedType(type);
@@ -8415,52 +8731,161 @@ const refreshType = async (type) => {
     });
 };
 
-const refreshBackups = async (type) => {
-    try {
-        backupsByType[type] = await fetchBackups(type);
-    } catch (error) {
-        backupsByType[type] = [];
-        showError(`Failed to load ${type.toUpperCase()} backups`, error);
+const getAdvancedModuleLoadEntry = (moduleKey) => {
+    if (!Object.prototype.hasOwnProperty.call(advancedDataLoadState.modules, moduleKey)) {
+        return null;
     }
-    renderBackupRows(type);
-    renderBackupScheduleControls(type);
-    refreshSettingsUx();
+    return advancedDataLoadState.modules[moduleKey];
 };
 
-const refreshTemplates = async (type) => {
-    try {
-        templatesByType[type] = await fetchTemplates(type);
-    } catch (error) {
-        templatesByType[type] = [];
-        showError(`Failed to load ${type.toUpperCase()} templates`, error);
+const markAdvancedModuleLoadSuccess = (moduleKey) => {
+    const state = getAdvancedModuleLoadEntry(moduleKey);
+    if (!state) {
+        return;
     }
-    renderTemplateRows(type);
+    state.loaded = true;
+    state.lastLoadedAt = Date.now();
+    state.lastErrorAt = 0;
+    state.lastErrorMessage = '';
+    setAdvancedModuleStatus(moduleKey, 'idle', '');
+};
+
+const markAdvancedModuleLoadError = (moduleKey, error) => {
+    const state = getAdvancedModuleLoadEntry(moduleKey);
+    if (!state) {
+        return;
+    }
+    const message = error?.message || String(error || 'Unknown error');
+    state.loaded = false;
+    state.lastErrorAt = Date.now();
+    state.lastErrorMessage = message;
+    setAdvancedModuleStatus(moduleKey, 'error', message);
+};
+
+const isAdvancedModuleStale = (moduleKey, force = false) => {
+    if (force === true) {
+        return true;
+    }
+    const state = getAdvancedModuleLoadEntry(moduleKey);
+    if (!state || state.loaded !== true) {
+        return true;
+    }
+    const age = Date.now() - Number(state.lastLoadedAt || 0);
+    return !Number.isFinite(age) || age >= ADVANCED_MODULE_STALE_MS;
+};
+
+const refreshBackups = async (type, { quiet = false } = {}) => {
+    const resolvedType = normalizeManagedType(type);
+    const moduleKey = `${resolvedType}_backups`;
+    setAdvancedModuleStatus(moduleKey, 'loading');
+    try {
+        backupsByType[resolvedType] = await fetchBackups(resolvedType);
+        markAdvancedModuleLoadSuccess(moduleKey);
+    } catch (error) {
+        backupsByType[resolvedType] = [];
+        markAdvancedModuleLoadError(moduleKey, error);
+        if (!quiet) {
+            showError(`Failed to load ${resolvedType.toUpperCase()} backups`, error);
+        }
+        renderBackupRows(resolvedType);
+        renderBackupScheduleControls(resolvedType);
+        refreshSettingsUx();
+        return false;
+    }
+    renderBackupRows(resolvedType);
+    renderBackupScheduleControls(resolvedType);
     refreshSettingsUx();
+    return true;
+};
+
+const refreshTemplates = async (type, { quiet = false } = {}) => {
+    const resolvedType = normalizeManagedType(type);
+    const moduleKey = `${resolvedType}_templates`;
+    setAdvancedModuleStatus(moduleKey, 'loading');
+    try {
+        templatesByType[resolvedType] = await fetchTemplates(resolvedType);
+        markAdvancedModuleLoadSuccess(moduleKey);
+    } catch (error) {
+        templatesByType[resolvedType] = [];
+        markAdvancedModuleLoadError(moduleKey, error);
+        if (!quiet) {
+            showError(`Failed to load ${resolvedType.toUpperCase()} templates`, error);
+        }
+        renderTemplateRows(resolvedType);
+        refreshSettingsUx();
+        return false;
+    }
+    renderTemplateRows(resolvedType);
+    refreshSettingsUx();
+    return true;
 };
 
 const ensureAdvancedDataLoaded = async ({ force = false } = {}) => {
-    if (force === true) {
-        advancedDataLoadState.loaded = false;
-    }
-    if (advancedDataLoadState.loaded) {
+    const options = arguments[0] && typeof arguments[0] === 'object' ? arguments[0] : {};
+    const requestedModules = getRequestedAdvancedModuleKeys({
+        force: force === true,
+        explicitModules: options.modules,
+        tab: options.tab ?? null,
+        includeSearchAll: options.includeSearchAll === true
+            || (settingsUiState.searchAllAdvanced === true && Boolean(settingsUiState.query))
+    });
+    if (requestedModules.length <= 0) {
+        advancedDataLoadState.loaded = ADVANCED_MODULE_KEYS.every((key) => advancedDataLoadState.modules[key]?.loaded === true);
         return;
     }
-    if (advancedDataLoadState.pending) {
-        await advancedDataLoadState.pending;
-        return;
-    }
-    advancedDataLoadState.pending = (async () => {
-        await Promise.all([refreshBackups('docker'), refreshBackups('vm')]);
-        await Promise.all([refreshTemplates('docker'), refreshTemplates('vm')]);
-        await refreshChangeHistory();
-        renderFolderHealthCards();
-        advancedDataLoadState.loaded = true;
-    })();
+    const quiet = options.quiet !== false;
+
+    const runModuleRefresh = async (moduleKey) => {
+        const state = getAdvancedModuleLoadEntry(moduleKey);
+        if (!state) {
+            return;
+        }
+        if (!isAdvancedModuleStale(moduleKey, force === true)) {
+            return;
+        }
+        if (state.pending) {
+            await state.pending;
+            return;
+        }
+        state.pending = (async () => {
+            if (moduleKey === 'docker_backups') {
+                await refreshBackups('docker', { quiet });
+                return;
+            }
+            if (moduleKey === 'vm_backups') {
+                await refreshBackups('vm', { quiet });
+                return;
+            }
+            if (moduleKey === 'docker_templates') {
+                await refreshTemplates('docker', { quiet });
+                return;
+            }
+            if (moduleKey === 'vm_templates') {
+                await refreshTemplates('vm', { quiet });
+                return;
+            }
+            if (moduleKey === 'change_history') {
+                await refreshChangeHistory({ quiet });
+            }
+        })();
+        try {
+            await state.pending;
+        } finally {
+            state.pending = null;
+        }
+    };
+
+    const pending = Promise.allSettled(requestedModules.map((moduleKey) => runModuleRefresh(moduleKey)));
+    advancedDataLoadState.pending = pending;
     try {
-        await advancedDataLoadState.pending;
+        await pending;
     } finally {
-        advancedDataLoadState.pending = null;
+        if (advancedDataLoadState.pending === pending) {
+            advancedDataLoadState.pending = null;
+        }
+        advancedDataLoadState.loaded = ADVANCED_MODULE_KEYS.every((key) => advancedDataLoadState.modules[key]?.loaded === true);
     }
+    renderFolderHealthCards();
 };
 
 const refreshCoreData = async () => {
@@ -9404,11 +9829,25 @@ const testAutoRule = (type) => {
 };
 
 const filterBulkItems = (type, value = '') => {
-    const input = $(`#${type}-bulk-filter`);
-    if (input.length && input.val() !== value) {
-        input.val(value);
+    const resolvedType = normalizeManagedType(type);
+    const displayValue = String(value || '');
+    const normalized = normalizedFilter(displayValue);
+    if (!filtersByType[resolvedType]) {
+        filtersByType[resolvedType] = {
+            folders: '',
+            rules: '',
+            backups: '',
+            templates: '',
+            bulk: ''
+        };
     }
-    renderBulkItemOptions(type);
+    filtersByType[resolvedType].bulk = normalized;
+    const input = $(`#${resolvedType}-bulk-filter`);
+    if (input.length && input.val() !== displayValue) {
+        input.val(displayValue);
+    }
+    persistTableUiState();
+    renderBulkItemOptions(resolvedType);
 };
 
 const bulkItemSelectionAction = (type, action = 'all') => {
@@ -9536,6 +9975,9 @@ const assignSelectedItems = async (type, namesOverride = null) => {
     if (!confirmed) {
         return;
     }
+    if (!claimAdvancedOperationLock(resolvedType, 'bulk', `${typeLabel} bulk assignment`)) {
+        return;
+    }
     const assignButton = $(`#${resolvedType}-bulk-assign-btn`);
     let backup = null;
     state.applying = true;
@@ -9655,6 +10097,7 @@ const assignSelectedItems = async (type, namesOverride = null) => {
         showError('Bulk assignment failed', error);
     } finally {
         state.applying = false;
+        releaseAdvancedOperationLock(resolvedType, 'bulk');
         assignButton.prop('disabled', $(`#${resolvedType}-bulk-folder`).prop('disabled') === true);
         updateBulkResultActions(resolvedType);
     }
@@ -9758,14 +10201,21 @@ const renderChangeHistory = (diagnostics) => {
     $('#change-history-output').text(`${lines.join('\n')}\n`);
 };
 
-const refreshChangeHistory = async () => {
+const refreshChangeHistory = async ({ quiet = false } = {}) => {
+    setAdvancedModuleStatus('change_history', 'loading');
     try {
         const diagnostics = await getDiagnostics('sanitized');
         renderDiagnostics(diagnostics);
         renderChangeHistory(diagnostics);
+        markAdvancedModuleLoadSuccess('change_history');
     } catch (error) {
-        showError('Change history refresh failed', error);
+        markAdvancedModuleLoadError('change_history', error);
+        if (!quiet) {
+            showError('Change history refresh failed', error);
+        }
+        return false;
     }
+    return true;
 };
 
 const undoLatestChange = (type) => {
@@ -9788,18 +10238,20 @@ const undoLatestChange = (type) => {
         if (!confirmed) {
             return;
         }
-        try {
-            const restore = await restoreLatestUndo(resolvedType);
-            await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
-            await refreshChangeHistory();
-            swal({
-                title: 'Undo complete',
-                text: `Restored ${restore.name || 'latest undo backup'}.`,
-                type: 'success'
-            });
-        } catch (error) {
-            showError('Undo failed', error);
-        }
+        await withAdvancedOperationLock(resolvedType, 'backups', `${resolvedType.toUpperCase()} undo restore`, async () => {
+            try {
+                const restore = await restoreLatestUndo(resolvedType);
+                await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
+                await refreshChangeHistory();
+                swal({
+                    title: 'Undo complete',
+                    text: `Restored ${restore.name || 'latest undo backup'}.`,
+                    type: 'success'
+                });
+            } catch (error) {
+                showError('Undo failed', error);
+            }
+        });
     });
 };
 
@@ -9814,17 +10266,19 @@ const createManualBackup = async (type) => {
     if (!ensureRuntimeConflictActionAllowed(`Create ${resolvedType === 'docker' ? 'Docker' : 'VM'} backup`)) {
         return;
     }
-    try {
-        const backup = await createBackup(resolvedType, 'manual');
-        await refreshBackups(resolvedType);
-        swal({
-            title: 'Backup created',
-            text: backup.name,
-            type: 'success'
-        });
-    } catch (error) {
-        showError('Backup failed', error);
-    }
+    await withAdvancedOperationLock(resolvedType, 'backups', `${resolvedType.toUpperCase()} backup action`, async () => {
+        try {
+            const backup = await createBackup(resolvedType, 'manual');
+            await refreshBackups(resolvedType);
+            swal({
+                title: 'Backup created',
+                text: backup.name,
+                type: 'success'
+            });
+        } catch (error) {
+            showError('Backup failed', error);
+        }
+    });
 };
 
 const restoreBackupEntry = (type, name) => {
@@ -9850,15 +10304,16 @@ const restoreBackupEntry = (type, name) => {
         if (!confirmed) {
             return;
         }
-
-        try {
-            const undoBackup = await createBackup(resolvedType, `before-restore-${name}`);
-            await restoreBackupByName(resolvedType, name);
-            await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
-            await offerUndoAction(resolvedType, undoBackup, 'Backup restore');
-        } catch (error) {
-            showError('Restore failed', error);
-        }
+        await withAdvancedOperationLock(resolvedType, 'backups', `${resolvedType.toUpperCase()} backup restore`, async () => {
+            try {
+                const undoBackup = await createBackup(resolvedType, `before-restore-${name}`);
+                await restoreBackupByName(resolvedType, name);
+                await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
+                await offerUndoAction(resolvedType, undoBackup, 'Backup restore');
+            } catch (error) {
+                showError('Restore failed', error);
+            }
+        });
     });
 };
 
@@ -9885,41 +10340,42 @@ const restoreLatestBackup = (type) => {
         if (!confirmed) {
             return;
         }
+        await withAdvancedOperationLock(resolvedType, 'backups', `${resolvedType.toUpperCase()} latest-backup restore`, async () => {
+            const progressTotal = 4;
+            let progressOpen = false;
+            const setProgress = (completed, label) => {
+                updateImportApplyProgressDialog({
+                    completed: Math.max(0, Math.min(progressTotal, completed)),
+                    total: progressTotal,
+                    label
+                });
+            };
+            try {
+                openImportApplyProgressDialog(resolvedType, progressTotal);
+                progressOpen = true;
+                setProgress(0, 'Creating safety backup...');
 
-        const progressTotal = 4;
-        let progressOpen = false;
-        const setProgress = (completed, label) => {
-            updateImportApplyProgressDialog({
-                completed: Math.max(0, Math.min(progressTotal, completed)),
-                total: progressTotal,
-                label
-            });
-        };
-        try {
-            openImportApplyProgressDialog(resolvedType, progressTotal);
-            progressOpen = true;
-            setProgress(0, 'Creating safety backup...');
+                const undoBackup = await createBackup(resolvedType, 'before-restore-latest');
+                setProgress(1, `Safety backup created: ${undoBackup?.name || 'ready'}`);
 
-            const undoBackup = await createBackup(resolvedType, 'before-restore-latest');
-            setProgress(1, `Safety backup created: ${undoBackup?.name || 'ready'}`);
+                await restoreLatest(resolvedType);
+                setProgress(2, 'Restored latest backup snapshot.');
 
-            await restoreLatest(resolvedType);
-            setProgress(2, 'Restored latest backup snapshot.');
-
-            await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
-            setProgress(3, `Refreshed ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders.`);
-            setProgress(progressTotal, 'Restore complete.');
-            await new Promise((resolve) => setTimeout(resolve, 180));
-            closeImportApplyProgressDialog();
-            progressOpen = false;
-
-            await offerUndoAction(resolvedType, undoBackup, 'Restore latest backup');
-        } catch (error) {
-            if (progressOpen) {
+                await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
+                setProgress(3, `Refreshed ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders.`);
+                setProgress(progressTotal, 'Restore complete.');
+                await new Promise((resolve) => setTimeout(resolve, 180));
                 closeImportApplyProgressDialog();
+                progressOpen = false;
+
+                await offerUndoAction(resolvedType, undoBackup, 'Restore latest backup');
+            } catch (error) {
+                if (progressOpen) {
+                    closeImportApplyProgressDialog();
+                }
+                showError('Restore failed', error);
             }
-            showError('Restore failed', error);
-        }
+        });
     });
 };
 
@@ -10003,13 +10459,14 @@ const deleteBackupEntry = (type, name) => {
         if (!confirmed) {
             return;
         }
-
-        try {
-            backupsByType[resolvedType] = await deleteBackupByName(resolvedType, name);
-            renderBackupRows(resolvedType);
-        } catch (error) {
-            showError('Delete failed', error);
-        }
+        await withAdvancedOperationLock(resolvedType, 'backups', `${resolvedType.toUpperCase()} backup delete`, async () => {
+            try {
+                backupsByType[resolvedType] = await deleteBackupByName(resolvedType, name);
+                renderBackupRows(resolvedType);
+            } catch (error) {
+                showError('Delete failed', error);
+            }
+        });
     });
 };
 
@@ -10050,15 +10507,19 @@ const createTemplateFromFolder = async (type) => {
         swal({ title: 'Error', text: templateValidation.message || 'Enter a valid template name.', type: 'error' });
         return;
     }
-    try {
-        templatesByType[type] = await createTemplate(type, folderId, templateName);
-        $(`#${type}-template-name`).val('');
-        setInlineValidationHint(`${type}-template-validation`, '', 'info');
-        renderTemplateRows(type);
-        swal({ title: 'Template saved', text: 'Template created successfully.', type: 'success' });
-    } catch (error) {
-        showError('Template create failed', error);
-    }
+    await withAdvancedOperationLock(type, 'templates', `${type.toUpperCase()} template create`, async () => {
+        try {
+            templatesByType[type] = await createTemplate(type, folderId, templateName);
+            markAdvancedModuleLoadSuccess(`${type}_templates`);
+            $(`#${type}-template-name`).val('');
+            setInlineValidationHint(`${type}-template-validation`, '', 'info');
+            renderTemplateRows(type);
+            swal({ title: 'Template saved', text: 'Template created successfully.', type: 'success' });
+        } catch (error) {
+            markAdvancedModuleLoadError(`${type}_templates`, error);
+            showError('Template create failed', error);
+        }
+    });
 };
 
 const applyTemplateToFolder = (type, templateId, selectId) => {
@@ -10082,22 +10543,24 @@ const applyTemplateToFolder = (type, templateId, selectId) => {
         if (!confirmed) {
             return;
         }
-        try {
-            const backup = await createBackup(type, 'before-template-apply');
-            await applyTemplate(type, templateId, folderId);
-            await Promise.all([refreshType(type), refreshBackups(type)]);
-            const targetFolderName = folderNameForId(type, folderId);
-            showActionSummaryToast({
-                title: 'Template applied',
-                message: `Updated ${targetFolderName} from saved template.`,
-                level: 'success',
-                type,
-                focusFolderId: folderId
-            });
-            await offerUndoAction(type, backup, 'Template apply');
-        } catch (error) {
-            showError('Template apply failed', error);
-        }
+        await withAdvancedOperationLock(type, 'templates', `${type.toUpperCase()} template apply`, async () => {
+            try {
+                const backup = await createBackup(type, 'before-template-apply');
+                await applyTemplate(type, templateId, folderId);
+                await Promise.all([refreshType(type), refreshBackups(type)]);
+                const targetFolderName = folderNameForId(type, folderId);
+                showActionSummaryToast({
+                    title: 'Template applied',
+                    message: `Updated ${targetFolderName} from saved template.`,
+                    level: 'success',
+                    type,
+                    focusFolderId: folderId
+                });
+                await offerUndoAction(type, backup, 'Template apply');
+            } catch (error) {
+                showError('Template apply failed', error);
+            }
+        });
     });
 };
 
@@ -10117,12 +10580,16 @@ const deleteTemplateEntry = (type, templateId) => {
         if (!confirmed) {
             return;
         }
-        try {
-            templatesByType[type] = await deleteTemplate(type, templateId);
-            renderTemplateRows(type);
-        } catch (error) {
-            showError('Template delete failed', error);
-        }
+        await withAdvancedOperationLock(type, 'templates', `${type.toUpperCase()} template delete`, async () => {
+            try {
+                templatesByType[type] = await deleteTemplate(type, templateId);
+                markAdvancedModuleLoadSuccess(`${type}_templates`);
+                renderTemplateRows(type);
+            } catch (error) {
+                markAdvancedModuleLoadError(`${type}_templates`, error);
+                showError('Template delete failed', error);
+            }
+        });
     });
 };
 
@@ -10341,32 +10808,38 @@ const bulkTemplateAction = (type, action) => {
         if (!confirmed) {
             return;
         }
-        try {
-            let nextTemplates = templates;
-            for (const template of selectedTemplates) {
-                nextTemplates = await deleteTemplate(type, String(template.id || ''));
+        await withAdvancedOperationLock(type, 'templates', `${type.toUpperCase()} template bulk delete`, async () => {
+            try {
+                let nextTemplates = templates;
+                for (const template of selectedTemplates) {
+                    nextTemplates = await deleteTemplate(type, String(template.id || ''));
+                }
+                templatesByType[type] = nextTemplates;
+                markAdvancedModuleLoadSuccess(`${type}_templates`);
+                selectedTemplateIdsByType[type] = new Set();
+                renderTemplateRows(type);
+            } catch (error) {
+                markAdvancedModuleLoadError(`${type}_templates`, error);
+                showError('Template bulk delete failed', error);
             }
-            templatesByType[type] = nextTemplates;
-            selectedTemplateIdsByType[type] = new Set();
-            renderTemplateRows(type);
-        } catch (error) {
-            showError('Template bulk delete failed', error);
-        }
+        });
     });
 };
 
 const runScheduledBackupNow = async (type) => {
-    try {
-        await runScheduledBackup(type);
-        await Promise.all([refreshType(type), refreshBackups(type)]);
-        swal({
-            title: 'Scheduler run complete',
-            text: `Scheduled backup check executed for ${type.toUpperCase()}.`,
-            type: 'success'
-        });
-    } catch (error) {
-        showError('Scheduler run failed', error);
-    }
+    await withAdvancedOperationLock(type, 'backups', `${type.toUpperCase()} scheduled backup run`, async () => {
+        try {
+            await runScheduledBackup(type);
+            await Promise.all([refreshType(type), refreshBackups(type)]);
+            swal({
+                title: 'Scheduler run complete',
+                text: `Scheduled backup check executed for ${type.toUpperCase()}.`,
+                type: 'success'
+            });
+        } catch (error) {
+            showError('Scheduler run failed', error);
+        }
+    });
 };
 
 const issueReportFromDiagnostics = (diagnostics) => {

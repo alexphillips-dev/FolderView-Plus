@@ -101,7 +101,8 @@ test('folder editor markup exposes advanced third-party icon controls', () => {
     assert.match(folderPage, /id="fv-third-party-pack-search"/);
     assert.match(folderPage, /id="fv-third-party-pack-kind"/);
     assert.match(folderPage, /id="fv-third-party-pack-select"/);
-    assert.match(folderPage, /id="fv-third-party-pack-menu-toggle"/);
+    assert.match(folderPage, /id="fv-third-party-pack-pin-toggle"/);
+    assert.match(folderPage, /id="fv-third-party-pack-hide-toggle"/);
     assert.match(folderPage, /id="fv-third-party-filter-toggle"/);
     assert.match(folderPage, /id="fv-third-party-filter-sheet"/);
     assert.match(folderPage, /id="fv-third-party-tag-search"/);
@@ -124,7 +125,8 @@ test('folder.js third-party icon picker supports advanced filtering and duplicat
     assert.match(folderPage, /value="duplicates"/);
     assert.match(folderScript, /#fv-third-party-duplicates-cleanup/);
     assert.match(folderScript, /#fv-third-party-pack-select/);
-    assert.match(folderScript, /#fv-third-party-pack-menu-toggle/);
+    assert.match(folderScript, /#fv-third-party-pack-pin-toggle/);
+    assert.match(folderScript, /#fv-third-party-pack-hide-toggle/);
     assert.match(folderScript, /#fv-third-party-filter-toggle/);
     assert.match(folderScript, /list_index/);
     assert.match(folderScript, /pointerdown\.fvthirdparty/);

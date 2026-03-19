@@ -118,7 +118,6 @@ let thirdPartyGridRenderToken = 0;
 let thirdPartyPreviewIconUrl = '';
 let thirdPartyIndexCacheReady = false;
 let thirdPartyFilterSheetOpen = false;
-let thirdPartyPackMenuOpen = false;
 let customIconEntries = [];
 let customIconStats = null;
 let customIconHealth = null;
@@ -1850,10 +1849,6 @@ const renderThirdPartyContextLine = (totalMatches = null) => {
 };
 
 const renderThirdPartyPackMenu = () => {
-    const menu = $('#fv-third-party-pack-menu');
-    if (!menu.length) {
-        return;
-    }
     const folder = String(thirdPartySelectedFolder || '').trim();
     const pinButton = $('#fv-third-party-pack-pin-toggle');
     const hideButton = $('#fv-third-party-pack-hide-toggle');
@@ -2344,13 +2339,6 @@ const initBuiltInIconPicker = async () => {
         thirdPartyIconPage = 1;
         renderThirdPartyIconGrid();
     });
-    $('#fv-third-party-pack-menu-toggle').off('click.fviconpicker').on('click.fviconpicker', (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        thirdPartyPackMenuOpen = !thirdPartyPackMenuOpen;
-        $('#fv-third-party-pack-menu').prop('hidden', !thirdPartyPackMenuOpen);
-        renderThirdPartyPackMenu();
-    });
     $('#fv-third-party-pack-pin-toggle').off('click.fviconpicker').on('click.fviconpicker', (event) => {
         event.preventDefault();
         const folder = String(thirdPartySelectedFolder || '').trim();
@@ -2439,18 +2427,11 @@ const initBuiltInIconPicker = async () => {
     });
     const closeIconPickersFromOutside = (event) => {
         const target = $(event.target);
-        const inThirdPartyPanel = target.closest('#fv-third-party-icon-panel').length > 0;
-        if (inThirdPartyPanel && !target.closest('#fv-third-party-pack-menu, #fv-third-party-pack-menu-toggle').length) {
-            thirdPartyPackMenuOpen = false;
-            $('#fv-third-party-pack-menu').prop('hidden', true);
-        }
         if (!target.closest('#fv-icon-picker-panel, #fv-icon-picker-toggle, #fv-third-party-icon-panel, #fv-third-party-refresh, #fv-icon-third-party-toggle, #fv-custom-icon-panel, #fv-icon-custom-manager-toggle, #fv-custom-icon-refresh, #fv-icon-upload, #fv-icon-upload-file, #fv-icon-upload-progress').length) {
             setBuiltInIconPickerOpen(false);
             setThirdPartyIconPickerOpen(false);
             setCustomIconPickerOpen(false);
-            thirdPartyPackMenuOpen = false;
             thirdPartyFilterSheetOpen = false;
-            $('#fv-third-party-pack-menu').prop('hidden', true);
             $('#fv-third-party-filter-sheet').prop('hidden', true);
         }
     };
@@ -2476,7 +2457,6 @@ const initBuiltInIconPicker = async () => {
     $('#fv-third-party-pack-search').val(thirdPartyPackSearchQuery);
     $('#fv-third-party-pack-kind').val(thirdPartyPackKind);
     $('#fv-third-party-tag-search').val(thirdPartyTagSearchQuery);
-    $('#fv-third-party-pack-menu').prop('hidden', true);
     $('#fv-third-party-filter-sheet').prop('hidden', true);
     renderThirdPartyPackMenu();
     resetIconUploadProgress();

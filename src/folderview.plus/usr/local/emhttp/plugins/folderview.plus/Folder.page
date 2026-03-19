@@ -129,17 +129,12 @@ emitRequestTokenMetaTag();
                                 <option value="icons">Packs: icons</option>
                             </select>
                             <select id="fv-third-party-pack-select" title="Select icon pack"></select>
-                            <div class="fv-third-party-pack-menu-wrap">
-                                <button type="button" id="fv-third-party-pack-menu-toggle" title="Pack actions"><i class="fa fa-ellipsis-h" aria-hidden="true"></i></button>
-                                <div id="fv-third-party-pack-menu" class="fv-third-party-pack-menu" hidden>
-                                    <button type="button" id="fv-third-party-pack-pin-toggle"><i class="fa fa-star-o" aria-hidden="true"></i> Pin pack</button>
-                                    <button type="button" id="fv-third-party-pack-hide-toggle"><i class="fa fa-eye-slash" aria-hidden="true"></i> Hide pack</button>
-                                </div>
-                            </div>
                         </div>
                         <div id="fv-third-party-filter-sheet" class="fv-third-party-filter-sheet" hidden>
                             <div class="fv-third-party-inline-actions">
                                 <button type="button" id="fv-third-party-show-hidden" title="Toggle hidden icon packs">Show hidden packs</button>
+                                <button type="button" id="fv-third-party-pack-pin-toggle"><i class="fa fa-star-o" aria-hidden="true"></i> Pin pack</button>
+                                <button type="button" id="fv-third-party-pack-hide-toggle"><i class="fa fa-eye-slash" aria-hidden="true"></i> Hide pack</button>
                                 <button type="button" id="fv-third-party-duplicates-cleanup" title="Generate duplicate cleanup commands"><i class="fa fa-files-o" aria-hidden="true"></i> Duplicate cleanup</button>
                             </div>
                             <div class="fv-third-party-tag-shell">

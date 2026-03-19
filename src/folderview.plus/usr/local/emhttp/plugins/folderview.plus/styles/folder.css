@@ -518,7 +518,7 @@
 }
 
 .fv-third-party-pack-controls {
-    grid-template-columns: minmax(0, 1fr) minmax(110px, 130px) minmax(180px, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) minmax(110px, 130px) minmax(180px, 1fr);
 }
 
 .fv-third-party-icon-controls input[type="text"],
@@ -528,8 +528,7 @@
 }
 
 #fv-third-party-search-clear,
-#fv-third-party-filter-toggle,
-#fv-third-party-pack-menu-toggle {
+#fv-third-party-filter-toggle {
     min-height: 30px;
     min-width: 30px;
     padding: 0;
@@ -541,32 +540,6 @@
 #fv-third-party-view {
     width: 100%;
     min-height: 30px;
-}
-
-.fv-third-party-pack-menu-wrap {
-    position: relative;
-}
-
-.fv-third-party-pack-menu {
-    position: absolute;
-    right: calc(100% + 0.24em);
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 4;
-    min-width: 148px;
-    display: grid;
-    gap: 0.2em;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 6px;
-    background: rgba(20, 20, 20, 0.98);
-    padding: 0.28em;
-}
-
-.fv-third-party-pack-menu > button {
-    min-height: 28px;
-    text-align: left;
-    padding: 0.16em 0.5em;
-    white-space: nowrap;
 }
 
 .fv-third-party-filter-sheet {
@@ -1270,17 +1243,6 @@ table.sortable td:nth-child(3) {
 
     .fv-third-party-pack-controls {
         grid-template-columns: 1fr;
-    }
-
-    .fv-third-party-pack-menu-wrap {
-        justify-self: end;
-    }
-
-    .fv-third-party-pack-menu {
-        right: 0;
-        top: 100%;
-        transform: none;
-        margin-top: 0.18em;
     }
 
     .fv-third-party-tag-filters {

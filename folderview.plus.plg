@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.19.24">
-<!ENTITY md5 "49d66eed1d4f413acc8acfd1092dbdd5">
+<!ENTITY version "2026.03.19.25">
+<!ENTITY md5 "7bc8a903164f74a14d5619527eababe8">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.19.25
+- Fix: Fix dashboard quick rail collapse visibility and row alignment.
+
 
 ###2026.03.19.24
 - Maintenance: Theme hardening: runtime guard, diagnostics, and live reflow.

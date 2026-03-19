@@ -9845,20 +9845,21 @@ const refreshTemplates = async (type, { quiet = false } = {}) => {
     return true;
 };
 
-const ensureAdvancedDataLoaded = async ({ force = false } = {}) => {
-    const options = arguments[0] && typeof arguments[0] === 'object' ? arguments[0] : {};
+const ensureAdvancedDataLoaded = async (options = {}) => {
+    const resolvedOptions = options && typeof options === 'object' ? options : {};
+    const force = resolvedOptions.force === true;
     const requestedModules = getRequestedAdvancedModuleKeys({
-        force: force === true,
-        explicitModules: options.modules,
-        tab: options.tab ?? null,
-        includeSearchAll: options.includeSearchAll === true
+        force,
+        explicitModules: resolvedOptions.modules,
+        tab: resolvedOptions.tab ?? null,
+        includeSearchAll: resolvedOptions.includeSearchAll === true
             || (settingsUiState.searchAllAdvanced === true && Boolean(settingsUiState.query))
     });
     if (requestedModules.length <= 0) {
         advancedDataLoadState.loaded = ADVANCED_MODULE_KEYS.every((key) => advancedDataLoadState.modules[key]?.loaded === true);
         return;
     }
-    const quiet = options.quiet !== false;
+    const quiet = resolvedOptions.quiet !== false;
 
     const runModuleRefresh = async (moduleKey) => {
         const state = getAdvancedModuleLoadEntry(moduleKey);

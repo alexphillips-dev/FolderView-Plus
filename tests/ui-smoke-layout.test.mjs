@@ -258,6 +258,8 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const RUNTIME_CONFLICT_ACTIVE_STORAGE_KEY = 'fv\.runtimeConflict\.active\.v1';/);
     assert.match(settingsJs, /const RUNTIME_CONFLICT_RESOLVED_PENDING_STORAGE_KEY = 'fv\.runtimeConflict\.resolvedPending\.v1';/);
     assert.match(settingsJs, /const TABLE_UI_STATE_STORAGE_KEY = 'fv\.settings\.tableUiState\.v1';/);
+    assert.match(settingsJs, /const ensureAdvancedDataLoaded = async \(options = \{\}\) =>/);
+    assert.doesNotMatch(settingsJs, /const ensureAdvancedDataLoaded = async \(\{ force = false \} = \{\}\) =>[\s\S]*arguments\[0\]/);
     assert.doesNotMatch(settingsJs, /const ACTION_DOCK_SIDE_STORAGE_KEY = 'fv\.settings\.actionDockSide\.v1';/);
     assert.match(settingsJs, /const ACTION_DOCK_AUTOCOLLAPSE_MS = 5000;/);
     assert.match(settingsJs, /const INSTANT_PERSIST_ONCHANGE_TOKENS = Object\.freeze\(/);
@@ -368,7 +370,7 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsRuntime, /const resolveImportTrustInfo = \(parsed\) =>/);
     assert.match(settingsRuntime, /label:\s*'Trust'/);
     assert.match(settingsRuntime, /is-trust-\$\{trust\.level\}/);
-    assert.match(settingsJs, /const ensureAdvancedDataLoaded = async \(\{ force = false \} = \{\}\) =>/);
+    assert.match(settingsJs, /const ensureAdvancedDataLoaded = async \(options = \{\}\) =>/);
     assert.match(settingsJs, /const refreshCoreData = async \(\) =>/);
     assert.match(settingsJs, /if \(settingsUiState\.mode === 'advanced'\) \{\s*await refreshAll\(\);\s*\} else \{\s*await refreshCoreData\(\);\s*\}/);
     assert.match(settingsCss, /\.folder-action-btn\s*\{/);

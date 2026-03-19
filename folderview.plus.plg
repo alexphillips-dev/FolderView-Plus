@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.19.20">
-<!ENTITY md5 "8dc3a6a807f75fc7c2f420d924d4cec7">
+<!ENTITY version "2026.03.19.21">
+<!ENTITY md5 "34b0b411f46607b347a38257ed427709">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.19.21
+- Fix: Fix compact matrix grid, tiny toggles, and right rail alignment.
+
 
 ###2026.03.19.20
 - Fix: Fix dashboard layout persistence and compact matrix apply.

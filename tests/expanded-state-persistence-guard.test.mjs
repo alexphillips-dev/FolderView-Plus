@@ -14,6 +14,14 @@ const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/
 test('server prefs contract keeps expandedFolderState default and normalization', () => {
     assert.match(libPhp, /'expandedFolderState'\s*=>\s*\[\]/);
     assert.match(libPhp, /\$normalized\['expandedFolderState'\]\s*=\s*normalizeExpandedStateMap\(\$prefs\['expandedFolderState'\]\s*\?\?\s*\[\]\);/);
+    assert.match(libPhp, /'dashboard'\s*=>\s*\[/);
+    assert.match(libPhp, /'layout'\s*=>\s*'classic'/);
+    assert.match(libPhp, /'expandToggle'\s*=>\s*true/);
+    assert.match(libPhp, /'greyscale'\s*=>\s*false/);
+    assert.match(libPhp, /'folderLabel'\s*=>\s*true/);
+    assert.match(libPhp, /\$dashboardIncoming\s*=\s*is_array\(\$prefs\['dashboard'\]\s*\?\?\s*null\)\s*\?\s*\$prefs\['dashboard'\]\s*:\s*\[\];/);
+    assert.match(libPhp, /\$normalized\['dashboard'\]\s*=\s*\[/);
+    assert.match(libPhp, /'layout'\s*=>\s*normalizeDashboardLayout\(\$dashboardIncoming\['layout'\]\s*\?\?\s*'classic'\)/);
 });
 
 test('shared prefs normalizer keeps expandedFolderState map support', () => {

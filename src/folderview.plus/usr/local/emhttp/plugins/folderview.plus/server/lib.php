@@ -1539,6 +1539,12 @@
             'performanceMode' => false,
             'lazyPreviewEnabled' => false,
             'lazyPreviewThreshold' => 30,
+            'dashboard' => [
+                'layout' => 'classic',
+                'expandToggle' => true,
+                'greyscale' => false,
+                'folderLabel' => true
+            ],
             'health' => [
                 'cardsEnabled' => true,
                 'runtimeBadgeEnabled' => false,
@@ -1661,6 +1667,14 @@
         return 'standard';
     }
 
+    function normalizeDashboardLayout($value): string {
+        $normalized = strtolower(trim((string)$value));
+        if (in_array($normalized, ['classic', 'fullwidth', 'accordion', 'inset'], true)) {
+            return $normalized;
+        }
+        return 'classic';
+    }
+
     function normalizeTypePrefs(array $prefs): array {
         $normalized = defaultTypePrefs();
         $sortMode = $prefs['sortMode'] ?? $normalized['sortMode'];
@@ -1726,6 +1740,17 @@
             ? normalizeBool($prefs['lazyPreviewEnabled'] ?? false, false)
             : false;
         $normalized['lazyPreviewThreshold'] = normalizeIntInRange($prefs['lazyPreviewThreshold'] ?? 30, 10, 200, 30);
+        $dashboardIncoming = is_array($prefs['dashboard'] ?? null) ? $prefs['dashboard'] : [];
+        $normalized['dashboard'] = [
+            'layout' => normalizeDashboardLayout($dashboardIncoming['layout'] ?? 'classic'),
+            'expandToggle' => !array_key_exists('expandToggle', $dashboardIncoming)
+                ? true
+                : normalizeBool($dashboardIncoming['expandToggle'], true),
+            'greyscale' => normalizeBool($dashboardIncoming['greyscale'] ?? false, false),
+            'folderLabel' => !array_key_exists('folderLabel', $dashboardIncoming)
+                ? true
+                : normalizeBool($dashboardIncoming['folderLabel'], true)
+        ];
         $healthIncoming = is_array($prefs['health'] ?? null) ? $prefs['health'] : [];
         $healthProfile = strtolower(trim((string)($healthIncoming['profile'] ?? 'balanced')));
         if (!in_array($healthProfile, ['strict', 'balanced', 'lenient'], true)) {

@@ -114,7 +114,7 @@ if (!function_exists('fvplus_assert_prefs_payload_shape')) {
             fvplus_validation_assert_assoc_map($payload['expandedFolderState'], 'expandedFolderState', 20000);
         }
 
-        $objectKeys = ['badges', 'health', 'status', 'backupSchedule', 'importPresets'];
+        $objectKeys = ['badges', 'dashboard', 'health', 'status', 'backupSchedule', 'importPresets'];
         foreach ($objectKeys as $key) {
             if (array_key_exists($key, $payload) && !is_array($payload[$key])) {
                 throw new RuntimeException("Invalid prefs payload: '$key' must be an object.");

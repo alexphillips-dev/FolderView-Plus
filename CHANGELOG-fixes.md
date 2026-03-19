@@ -1,5 +1,29 @@
 # FolderView Plus Changelog
 
+## Version 2026.03.19.29
+
+### Highlights
+
+- Added a full dashboard quick-action rail for Docker and VM widgets with layout cycle, expand/collapse all, running-only, health emphasis, compact density, reset view, and settings shortcut actions.
+- Added dashboard layout modes (`Classic`, `Full Width`, `Accordion`, `Inset`, `Compact Matrix`) with persisted per-widget preferences and per-folder overflow controls.
+- Added dashboard expansion memory so folder expansion state in widgets is preserved across refreshes and tab changes.
+- Reworked the 3rd-party icon picker with a guided flow, Basic/Advanced modes, clearer pack actions, active-filter badges, and stronger empty-state guidance.
+- Improved nested-folder management with sibling-safe duplicate-name checks, smart parent-default inheritance, and deeper tree integrity diagnostics.
+
+### Important Bug Fixes
+
+- Fixed Docker runtime/dashboard Application-column clipping, oscillation, and Version-column spacing conflicts while keeping dropdown controls compact and stable.
+- Fixed iPhone/mobile settings visual artifacts and action-menu clipping with touch-safe style resets and viewport-safe menu positioning.
+- Fixed dashboard quick-action rail behavior for Docker and VM widgets (anchoring, collapse sync, row alignment, and short-widget overhang containment).
+- Fixed plugin settings startup failure caused by an invalid `arguments` reference in initial-load code paths.
+- Hardened theme-aware runtime status rendering so started-state text follows active theme colors (including light themes) without inline color painting.
+
+### Quality
+
+- Improved runtime refresh and render behavior through redraw coalescing, queued folder rendering, and safer performance-mode handling for large nested trees.
+- Expanded regression coverage for compact-matrix layout behavior, dashboard rail collapse heuristics, mobile rendering, nested-folder flows, and theme-token contracts.
+- Strengthened release automation and validation (guards, smoke checks, packaging checks) to reduce release-note drift and regression risk.
+
 ## Version 2026.03.19.1
 
 ### Highlights

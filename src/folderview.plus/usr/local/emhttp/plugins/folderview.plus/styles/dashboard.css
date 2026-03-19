@@ -275,13 +275,16 @@ tbody.fv-dashboard-layout-compactmatrix > tr.updated > td > div > .folder-showca
     min-width: 0;
 }
 
-tbody.fv-dashboard-layout-compactmatrix > tr.updated > td > div > .folder-showcase-outer > span.outer {
+tbody.fv-dashboard-layout-compactmatrix .folder-showcase-outer > span.outer {
     margin: 0 !important;
     min-height: 50px;
     box-sizing: border-box;
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 tbody.fv-dashboard-layout-compactmatrix > tr.updated > td > div > .folder-showcase-outer[expanded="true"] .folder-showcase {
@@ -289,13 +292,13 @@ tbody.fv-dashboard-layout-compactmatrix > tr.updated > td > div > .folder-showca
     gap: 6px 8px;
 }
 
-tbody.fv-dashboard-layout-compactmatrix > tr.updated > td > div > .folder-showcase-outer > span.outer .folder-hand-docker,
-tbody.fv-dashboard-layout-compactmatrix > tr.updated > td > div > .folder-showcase-outer > span.outer .folder-hand-vm {
+tbody.fv-dashboard-layout-compactmatrix .folder-showcase-outer > span.outer .folder-hand-docker,
+tbody.fv-dashboard-layout-compactmatrix .folder-showcase-outer > span.outer .folder-hand-vm {
     display: none !important;
 }
 
-tbody.fv-dashboard-layout-compactmatrix > tr.updated > td > div > .folder-showcase-outer > span.outer .folder-appname-docker,
-tbody.fv-dashboard-layout-compactmatrix > tr.updated > td > div > .folder-showcase-outer > span.outer .folder-appname-vm {
+tbody.fv-dashboard-layout-compactmatrix .folder-showcase-outer > span.outer .folder-appname-docker,
+tbody.fv-dashboard-layout-compactmatrix .folder-showcase-outer > span.outer .folder-appname-vm {
     font-size: 0.93em;
     display: inline-block;
     max-width: 100%;
@@ -304,16 +307,17 @@ tbody.fv-dashboard-layout-compactmatrix > tr.updated > td > div > .folder-showca
     white-space: nowrap;
 }
 
-tbody.fv-dashboard-layout-compactmatrix > tr.updated > td > div > .folder-showcase-outer > span.outer .folder-inner-docker,
-tbody.fv-dashboard-layout-compactmatrix > tr.updated > td > div > .folder-showcase-outer > span.outer .folder-inner-vm {
+tbody.fv-dashboard-layout-compactmatrix .folder-showcase-outer > span.outer .folder-inner-docker,
+tbody.fv-dashboard-layout-compactmatrix .folder-showcase-outer > span.outer .folder-inner-vm {
     min-width: 0;
-    width: calc(100% - 12px);
+    width: auto;
+    flex: 1 1 auto;
     margin: 0;
     padding: 0;
 }
 
-tbody.fv-dashboard-layout-compactmatrix > tr.updated > td > div > .folder-showcase-outer > span.outer .folder-state-docker,
-tbody.fv-dashboard-layout-compactmatrix > tr.updated > td > div > .folder-showcase-outer > span.outer .folder-state-vm {
+tbody.fv-dashboard-layout-compactmatrix .folder-showcase-outer > span.outer .folder-state-docker,
+tbody.fv-dashboard-layout-compactmatrix .folder-showcase-outer > span.outer .folder-state-vm {
     font-size: 0.9em;
     overflow: visible !important;
     text-overflow: clip !important;
@@ -321,13 +325,17 @@ tbody.fv-dashboard-layout-compactmatrix > tr.updated > td > div > .folder-showca
 }
 
 tbody.fv-dashboard-layout-compactmatrix.fv-dashboard-show-expand-toggle .folder-showcase-outer > span.outer > span.inner {
-    padding-right: 10px;
+    padding-right: 0;
 }
 
 tbody.fv-dashboard-layout-compactmatrix .fv-dashboard-expand-toggle-btn {
-    width: 8px;
-    height: 8px;
-    right: 2px;
+    position: static;
+    top: auto;
+    right: auto;
+    transform: none;
+    margin-left: 2px;
+    width: 7px;
+    height: 7px;
     font-size: 8px;
 }
 

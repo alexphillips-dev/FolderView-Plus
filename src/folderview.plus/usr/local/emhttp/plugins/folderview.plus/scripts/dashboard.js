@@ -571,9 +571,11 @@ const ensureDashboardWidgetLayoutQuickSwitchForType = (type) => {
     let $host = $(hostSelector).first();
     if (!$host.length) {
         $host = $(`<div class="fv-dashboard-layout-inline-host fv-dashboard-quick-rail-host" data-fv-dashboard-type="${resolvedType}"></div>`);
-        $container.addClass('fv-dashboard-layout-inline-container');
+        $container.prepend($host);
+    } else if (!$host.parent().is($container)) {
         $container.prepend($host);
     }
+    $container.addClass('fv-dashboard-layout-inline-container');
     if (!$host.hasClass('fv-dashboard-quick-rail-host')) {
         $host.addClass('fv-dashboard-quick-rail-host');
     }
@@ -857,7 +859,7 @@ const bindDashboardWidgetVisibilityObserverForType = (type) => {
     });
     const nodesToObserve = [];
     let current = containerNode;
-    for (let depth = 0; current && depth < 8; depth += 1) {
+    for (let depth = 0; current && depth < 16; depth += 1) {
         if (current instanceof Element) {
             nodesToObserve.push(current);
         }

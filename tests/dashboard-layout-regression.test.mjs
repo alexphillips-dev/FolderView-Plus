@@ -100,6 +100,8 @@ test('dashboard runtime supports layout classes, accordion guards, and overflow 
     assert.match(dashboardScript, /const normalizeDashboardOverflowMode = \(value\) =>/);
     assert.match(dashboardScript, /const applyDashboardLayoutStateForType = \(type\) =>/);
     assert.match(dashboardScript, /const scheduleDashboardLayoutApplyForType = \(type\) =>/);
+    assert.match(dashboardScript, /\$host\.parent\(\)\.is\(\$container\)/);
+    assert.match(dashboardScript, /\$container\.prepend\(\$host\)/);
     assert.match(dashboardScript, /if \(layout === 'accordion'\) \{/);
     assert.match(dashboardScript, /data-fv-dashboard-overflow="\$\{overflowMode\}"/);
     assert.match(dashboardScript, /class="fv-dashboard-expand-toggle-btn"/);

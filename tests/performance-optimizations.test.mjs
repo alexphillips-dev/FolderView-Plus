@@ -32,6 +32,14 @@ const dashboardCssPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/dashboard.css'
 );
+const dockerCssPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css'
+);
+const vmCssPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/vm.css'
+);
 const dockerModulesPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.modules.js'
@@ -56,6 +64,8 @@ const dockerJs = fs.readFileSync(dockerJsPath, 'utf8');
 const vmJs = fs.readFileSync(vmJsPath, 'utf8');
 const dashboardJs = fs.readFileSync(dashboardJsPath, 'utf8');
 const dashboardCss = fs.readFileSync(dashboardCssPath, 'utf8');
+const dockerCss = fs.readFileSync(dockerCssPath, 'utf8');
+const vmCss = fs.readFileSync(vmCssPath, 'utf8');
 const dockerModulesJs = fs.readFileSync(dockerModulesPath, 'utf8');
 const settingsJs = fs.readFileSync(settingsJsPath, 'utf8');
 const settingsImportJs = fs.readFileSync(settingsImportJsPath, 'utf8');
@@ -79,6 +89,37 @@ test('runtime refresh uses lightweight state mode checks before re-rendering', (
     assert.match(dockerJs, /queueLoadlistRefresh/);
     assert.match(vmJs, /queueLoadlistRefresh/);
     assert.match(dashboardJs, /queueLoadlistRefresh/);
+    assert.match(dockerJs, /LOADLIST_REFRESH_MIN_GAP_MS/);
+    assert.match(vmJs, /LOADLIST_REFRESH_MIN_GAP_MS/);
+    assert.match(dashboardJs, /LOADLIST_REFRESH_MIN_GAP_MS/);
+    assert.match(dockerJs, /queuedLoadlistRequestedAt/);
+    assert.match(vmJs, /queuedLoadlistRequestedAt/);
+    assert.match(dashboardJs, /queuedLoadlistRequestedAt/);
+    assert.match(dockerJs, /const queueCreateFoldersRender = \(\) =>/);
+    assert.match(vmJs, /const queueCreateFoldersRender = \(\) =>/);
+    assert.match(dashboardJs, /const queueCreateFoldersRender = \(\) =>/);
+});
+
+test('performance mode applies stricter refresh cadence and reduced motion guards', () => {
+    assert.match(dockerJs, /PERFORMANCE_MODE_MIN_REFRESH_SECONDS/);
+    assert.match(vmJs, /PERFORMANCE_MODE_MIN_REFRESH_SECONDS/);
+    assert.match(dashboardJs, /PERFORMANCE_MODE_MIN_REFRESH_SECONDS/);
+    assert.match(dockerJs, /Math\.max\(PERFORMANCE_MODE_MIN_REFRESH_SECONDS,\s*requestedSeconds\)/);
+    assert.match(vmJs, /Math\.max\(PERFORMANCE_MODE_MIN_REFRESH_SECONDS,\s*requestedSeconds\)/);
+    assert.match(dashboardJs, /Math\.max\(PERFORMANCE_MODE_MIN_REFRESH_SECONDS,\s*dockerRequestedSeconds\)/);
+    assert.match(dashboardJs, /Math\.max\(PERFORMANCE_MODE_MIN_REFRESH_SECONDS,\s*vmRequestedSeconds\)/);
+    assert.match(dockerCss, /body\.fvplus-performance-mode \.folder-preview/);
+    assert.match(vmCss, /body\.fvplus-performance-mode \.folder-preview/);
+    assert.match(dashboardCss, /body\.fvplus-performance-mode \.folder-showcase/);
+});
+
+test('performance mode limits auto-restored expanded branches on runtime views', () => {
+    assert.match(dockerJs, /PERFORMANCE_MODE_EXPAND_RESTORE_LIMIT/);
+    assert.match(vmJs, /PERFORMANCE_MODE_EXPAND_RESTORE_LIMIT/);
+    assert.match(dockerJs, /restoredExpansionCount/);
+    assert.match(vmJs, /restoredExpansionCount/);
+    assert.match(dockerJs, /expandedStateById\[id\] = false/);
+    assert.match(vmJs, /expandedStateById\[id\] = false/);
 });
 
 test('dashboard widget renders root-level folders only when nested folders exist', () => {

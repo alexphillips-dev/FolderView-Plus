@@ -69,6 +69,14 @@
     opacity: 1;
 }
 
+body.fvplus-performance-mode .folder-showcase,
+body.fvplus-performance-mode .folder-showcase *,
+body.fvplus-performance-mode .tooltipster-base,
+body.fvplus-performance-mode .tooltipster-content {
+    animation: none !important;
+    transition: none !important;
+}
+
 /* Override Unraid's blue-text with orange when both classes are present (folder update indicator) */
 .orange-text.blue-text {
     color: var(--color-orange, #f0a30a);

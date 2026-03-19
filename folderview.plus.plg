@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.19.03">
-<!ENTITY md5 "62328324f02cd64725dbc4f5266a84ac">
+<!ENTITY version "2026.03.19.04">
+<!ENTITY md5 "9be38b1d83e7031ab11188e356a01105">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.19.04
+- Quality: Docker/VM/Dashboard runtimes now coalesce rapid refresh calls and queue folder renders to prevent overlapping redraw churn.
+- UX: Performance mode now applies a stricter minimum live-refresh cadence and reduced-motion runtime styling.
+- Quality: Performance mode restores only a capped number of expanded branches on large nested trees to keep render cost predictable.
+
 
 ###2026.03.19.03
 - UX: Folder editor now enforces duplicate-name checks by parent path (sibling scope) and suggests the next available name.

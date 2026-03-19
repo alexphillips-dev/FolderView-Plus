@@ -1429,6 +1429,9 @@ const hideDockerRuntimeLoadingRow = () => {
     $('tbody#docker_view tr.fv-runtime-loading-row').remove();
 };
 
+let createFoldersInFlight = false;
+let createFoldersQueued = false;
+
 /**
  * Handles the creation of all folders
  */
@@ -1645,6 +1648,10 @@ const createFolders = async () => {
     }
     const expansionIds = Object.keys(foldersDone)
         .sort((a, b) => (folderDepthById[a] || 0) - (folderDepthById[b] || 0));
+    const maxRestoredExpansions = folderTypePrefs?.performanceMode === true
+        ? PERFORMANCE_MODE_EXPAND_RESTORE_LIMIT
+        : Number.POSITIVE_INFINITY;
+    let restoredExpansionCount = 0;
     for (const id of expansionIds) {
         if (expandedStateById[id] !== true) {
             continue;
@@ -1655,8 +1662,15 @@ const createFolders = async () => {
         if (hasKnownParent && expandedStateById[parentId] !== true) {
             continue;
         }
+        if (restoredExpansionCount >= maxRestoredExpansions) {
+            expandedStateById[id] = false;
+            folder.status = (folder.status && typeof folder.status === 'object') ? folder.status : {};
+            folder.status.expanded = false;
+            continue;
+        }
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Restoring expanded folder ${id}.`);
         dropDownButton(id, false);
+        restoredExpansionCount++;
     }
     persistDockerExpandedStateFromGlobal();
 
@@ -1684,6 +1698,23 @@ const createFolders = async () => {
         perfMode: FOLDER_VIEW_PERF_MODE
     });
     }
+};
+
+const queueCreateFoldersRender = () => {
+    if (createFoldersInFlight) {
+        createFoldersQueued = true;
+        return;
+    }
+    createFoldersInFlight = true;
+    Promise.resolve()
+        .then(() => createFolders())
+        .finally(() => {
+            createFoldersInFlight = false;
+            if (createFoldersQueued) {
+                createFoldersQueued = false;
+                queueLoadlistRefresh();
+            }
+        });
 };
 
 /**
@@ -3529,8 +3560,8 @@ window.listview = () => {
         if (!Array.isArray(folderReq) || folderReq.length === 0) {
             folderReq = buildDockerFolderReq();
         }
-        if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched listview: loadedFolder is false. Calling createFolders.');
-        createFolders(); // This is async, but original listview isn't, so this runs after.
+        if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched listview: loadedFolder is false. Queueing createFolders render.');
+        queueCreateFoldersRender();
         loadedFolder = true;
          if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched listview: Set loadedFolder to true.');
     } else {
@@ -3702,16 +3733,28 @@ let liveRefreshTimer = null;
 let liveRefreshMs = 0;
 let liveRefreshInFlight = false;
 let queuedLoadlistTimer = null;
+let queuedLoadlistRequestedAt = 0;
 let lastLiveRefreshStateSignature = '';
+const LOADLIST_REFRESH_DEBOUNCE_MS = 90;
+const LOADLIST_REFRESH_MIN_GAP_MS = 420;
+const PERFORMANCE_MODE_MIN_REFRESH_SECONDS = 20;
+const PERFORMANCE_MODE_EXPAND_RESTORE_LIMIT = 12;
 
 const queueLoadlistRefresh = () => {
     if (queuedLoadlistTimer) {
         return;
     }
+    const now = Date.now();
+    const elapsed = now - queuedLoadlistRequestedAt;
+    const minGapWait = elapsed >= LOADLIST_REFRESH_MIN_GAP_MS
+        ? 0
+        : (LOADLIST_REFRESH_MIN_GAP_MS - elapsed);
+    const delayMs = Math.max(LOADLIST_REFRESH_DEBOUNCE_MS, minGapWait);
     queuedLoadlistTimer = setTimeout(() => {
         queuedLoadlistTimer = null;
+        queuedLoadlistRequestedAt = Date.now();
         loadlist();
-    }, 90);
+    }, delayMs);
 };
 
 const fetchDockerStateSignature = async () => {
@@ -3763,7 +3806,10 @@ const scheduleLiveRefresh = (prefs) => {
         clearLiveRefreshTimer();
         return;
     }
-    const seconds = Math.max(10, Math.min(300, Number(normalized.liveRefreshSeconds) || 20));
+    const requestedSeconds = Math.max(10, Math.min(300, Number(normalized.liveRefreshSeconds) || 20));
+    const seconds = normalized.performanceMode === true
+        ? Math.max(PERFORMANCE_MODE_MIN_REFRESH_SECONDS, requestedSeconds)
+        : requestedSeconds;
     const ms = seconds * 1000;
     if (liveRefreshTimer && liveRefreshMs === ms) {
         return;

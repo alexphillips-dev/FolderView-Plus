@@ -44,6 +44,20 @@ body[data-fvplus-vm-app-width="wide"] {
     visibility: hidden;
 }
 
+body.fvplus-performance-mode .folder-preview,
+body.fvplus-performance-mode .folder-preview *,
+body.fvplus-performance-mode .tooltipster-base,
+body.fvplus-performance-mode .tooltipster-content,
+body.fvplus-performance-mode .folder-dropdown,
+body.fvplus-performance-mode .folder-dropdown > i {
+    animation: none !important;
+    transition: none !important;
+}
+
+body.fvplus-performance-mode .hover div.folder-preview div {
+    visibility: hidden !important;
+}
+
 .folder-name {
     width: var(--fvplus-vm-app-column-width);
     padding: 8px;

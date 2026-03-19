@@ -523,6 +523,9 @@ const hideVmRuntimeLoadingRow = () => {
     $('tbody#kvm_list tr.fv-runtime-loading-row').remove();
 };
 
+let createFoldersInFlight = false;
+let createFoldersQueued = false;
+
 /**
  * Handles the creation of all folders
  */
@@ -657,6 +660,10 @@ const createFolders = async () => {
     }
     const expansionIds = Object.keys(foldersDone)
         .sort((a, b) => (folderDepthById[a] || 0) - (folderDepthById[b] || 0));
+    const maxRestoredExpansions = folderTypePrefs?.performanceMode === true
+        ? PERFORMANCE_MODE_EXPAND_RESTORE_LIMIT
+        : Number.POSITIVE_INFINITY;
+    let restoredExpansionCount = 0;
     for (const id of expansionIds) {
         if (expandedStateById[id] !== true) {
             continue;
@@ -667,7 +674,14 @@ const createFolders = async () => {
         if (hasKnownParent && expandedStateById[parentId] !== true) {
             continue;
         }
+        if (restoredExpansionCount >= maxRestoredExpansions) {
+            expandedStateById[id] = false;
+            folder.status = (folder.status && typeof folder.status === 'object') ? folder.status : {};
+            folder.status.expanded = false;
+            continue;
+        }
         dropDownButton(id, false);
+        restoredExpansionCount++;
     }
 
     folderEvents.dispatchEvent(new CustomEvent('vm-post-folders-creation', {detail: {
@@ -686,6 +700,23 @@ const createFolders = async () => {
     } finally {
         hideVmRuntimeLoadingRow();
     }
+};
+
+const queueCreateFoldersRender = () => {
+    if (createFoldersInFlight) {
+        createFoldersQueued = true;
+        return;
+    }
+    createFoldersInFlight = true;
+    Promise.resolve()
+        .then(() => createFolders())
+        .finally(() => {
+            createFoldersInFlight = false;
+            if (createFoldersQueued) {
+                createFoldersQueued = false;
+                queueLoadlistRefresh();
+            }
+        });
 };
 
 /**
@@ -1450,16 +1481,28 @@ let liveRefreshTimer = null;
 let liveRefreshMs = 0;
 let liveRefreshInFlight = false;
 let queuedLoadlistTimer = null;
+let queuedLoadlistRequestedAt = 0;
 let lastLiveRefreshStateSignature = '';
+const LOADLIST_REFRESH_DEBOUNCE_MS = 90;
+const LOADLIST_REFRESH_MIN_GAP_MS = 420;
+const PERFORMANCE_MODE_MIN_REFRESH_SECONDS = 20;
+const PERFORMANCE_MODE_EXPAND_RESTORE_LIMIT = 12;
 
 const queueLoadlistRefresh = () => {
     if (queuedLoadlistTimer) {
         return;
     }
+    const now = Date.now();
+    const elapsed = now - queuedLoadlistRequestedAt;
+    const minGapWait = elapsed >= LOADLIST_REFRESH_MIN_GAP_MS
+        ? 0
+        : (LOADLIST_REFRESH_MIN_GAP_MS - elapsed);
+    const delayMs = Math.max(LOADLIST_REFRESH_DEBOUNCE_MS, minGapWait);
     queuedLoadlistTimer = setTimeout(() => {
         queuedLoadlistTimer = null;
+        queuedLoadlistRequestedAt = Date.now();
         loadlist();
-    }, 90);
+    }, delayMs);
 };
 
 const fetchVmStateSignature = async () => {
@@ -1511,7 +1554,10 @@ const scheduleLiveRefresh = (prefs) => {
         clearLiveRefreshTimer();
         return;
     }
-    const seconds = Math.max(10, Math.min(300, Number(normalized.liveRefreshSeconds) || 20));
+    const requestedSeconds = Math.max(10, Math.min(300, Number(normalized.liveRefreshSeconds) || 20));
+    const seconds = normalized.performanceMode === true
+        ? Math.max(PERFORMANCE_MODE_MIN_REFRESH_SECONDS, requestedSeconds)
+        : requestedSeconds;
     const ms = seconds * 1000;
     if (liveRefreshTimer && liveRefreshMs === ms) {
         return;
@@ -1659,7 +1705,7 @@ $.ajaxPrefilter((options, originalOptions, jqXHR) => {
     // this is needed to trigger the funtion to create the folders
     } else if (options.url === "/plugins/dynamix.vm.manager/include/VMMachines.php" && !loadedFolder) {
         jqXHR.promise().then(() => {
-            createFolders();
+            queueCreateFoldersRender();
             $('div.spinner.fixed').hide();
             loadedFolder = !loadedFolder
         });

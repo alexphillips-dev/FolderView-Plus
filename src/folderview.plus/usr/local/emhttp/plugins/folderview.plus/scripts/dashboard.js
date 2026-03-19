@@ -472,6 +472,9 @@ const hideDashboardRuntimeLoadingRow = (type) => {
     $(`tbody#${tbodyId} tr.fv-runtime-loading-row`).remove();
 };
 
+let createFoldersInFlight = false;
+let createFoldersQueued = false;
+
 /**
  * Handles the creation of all folders
  */
@@ -2203,19 +2206,30 @@ let liveRefreshTimer = null;
 let liveRefreshMs = 0;
 let liveRefreshInFlight = false;
 let queuedLoadlistTimer = null;
+let queuedLoadlistRequestedAt = 0;
 let lastDashboardStateSignatures = {
     docker: '',
     vm: ''
 };
+const LOADLIST_REFRESH_DEBOUNCE_MS = 90;
+const LOADLIST_REFRESH_MIN_GAP_MS = 420;
+const PERFORMANCE_MODE_MIN_REFRESH_SECONDS = 20;
 
 const queueLoadlistRefresh = () => {
     if (queuedLoadlistTimer) {
         return;
     }
+    const now = Date.now();
+    const elapsed = now - queuedLoadlistRequestedAt;
+    const minGapWait = elapsed >= LOADLIST_REFRESH_MIN_GAP_MS
+        ? 0
+        : (LOADLIST_REFRESH_MIN_GAP_MS - elapsed);
+    const delayMs = Math.max(LOADLIST_REFRESH_DEBOUNCE_MS, minGapWait);
     queuedLoadlistTimer = setTimeout(() => {
         queuedLoadlistTimer = null;
+        queuedLoadlistRequestedAt = Date.now();
         loadlist();
-    }, 90);
+    }, delayMs);
 };
 
 const fetchDashboardTypeStateSignature = async (type) => {
@@ -2285,11 +2299,19 @@ const applyDashboardRuntimePrefs = () => {
     const dockerPrefs = utils.normalizePrefs(folderTypePrefs?.docker || {});
     const vmPrefs = utils.normalizePrefs(folderTypePrefs?.vm || {});
     const candidates = [];
+    const dockerRequestedSeconds = Math.max(10, Math.min(300, Number(dockerPrefs.liveRefreshSeconds) || 20));
+    const vmRequestedSeconds = Math.max(10, Math.min(300, Number(vmPrefs.liveRefreshSeconds) || 20));
+    const dockerSeconds = dockerPrefs.performanceMode === true
+        ? Math.max(PERFORMANCE_MODE_MIN_REFRESH_SECONDS, dockerRequestedSeconds)
+        : dockerRequestedSeconds;
+    const vmSeconds = vmPrefs.performanceMode === true
+        ? Math.max(PERFORMANCE_MODE_MIN_REFRESH_SECONDS, vmRequestedSeconds)
+        : vmRequestedSeconds;
     if ($('tbody#docker_view').length > 0 && dockerPrefs.liveRefreshEnabled === true) {
-        candidates.push(Math.max(10, Math.min(300, Number(dockerPrefs.liveRefreshSeconds) || 20)));
+        candidates.push(dockerSeconds);
     }
     if ($('tbody#vm_view').length > 0 && vmPrefs.liveRefreshEnabled === true) {
-        candidates.push(Math.max(10, Math.min(300, Number(vmPrefs.liveRefreshSeconds) || 20)));
+        candidates.push(vmSeconds);
     }
     const performanceMode = dockerPrefs.performanceMode === true || vmPrefs.performanceMode === true;
     $('body').toggleClass('fvplus-performance-mode', performanceMode);
@@ -2305,6 +2327,23 @@ const applyDashboardRuntimePrefs = () => {
     clearLiveRefreshTimer();
     liveRefreshMs = intervalMs;
     liveRefreshTimer = setInterval(runLiveRefreshTick, intervalMs);
+};
+
+const queueCreateFoldersRender = () => {
+    if (createFoldersInFlight) {
+        createFoldersQueued = true;
+        return;
+    }
+    createFoldersInFlight = true;
+    Promise.resolve()
+        .then(() => createFolders())
+        .finally(() => {
+            createFoldersInFlight = false;
+            if (createFoldersQueued) {
+                createFoldersQueued = false;
+                queueLoadlistRefresh();
+            }
+        });
 };
 
 // Patching the original function to make sure the containers are rendered before insering the folder
@@ -2351,7 +2390,7 @@ window.loadlist = (x) => {
 $.ajaxPrefilter((options, originalOptions, jqXHR) => {
     if (options.url === "/webGui/include/DashboardApps.php" && !loadedFolder) {
         jqXHR.promise().then(() => {
-            createFolders();
+            queueCreateFoldersRender();
             $('div.spinner.fixed').hide();
             loadedFolder = !loadedFolder
         });

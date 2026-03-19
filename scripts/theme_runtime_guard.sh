@@ -67,11 +67,17 @@ require_contains "${SETTINGS_CSS}" '--fvplus-settings-accent:' 'settings tokeniz
 require_absent "${DOCKER_JS}" '\.css\(\s*["'"'"']color["'"'"']\s*,\s*statusColors' 'docker inline status color painting'
 require_absent "${VM_JS}" '\.css\(\s*["'"'"']color["'"'"']\s*,\s*statusColors' 'vm inline status color painting'
 
+# shellcheck disable=SC2016
 require_contains "${STYLES_CUSTOM_PHP}" 'realpath\(' 'styles loader realpath'
+# shellcheck disable=SC2016
 require_contains "${STYLES_CUSTOM_PHP}" 'strpos\(\$resolved,\s*\$baseDir\s*\.\s*'\''/'\''\)\s*!==\s*0' 'styles loader path boundary check'
+# shellcheck disable=SC2016
 require_contains "${STYLES_CUSTOM_PHP}" 'autov\(\$resolved\)' 'styles loader autov resolved path'
+# shellcheck disable=SC2016
 require_contains "${SCRIPTS_CUSTOM_PHP}" 'realpath\(' 'scripts loader realpath'
+# shellcheck disable=SC2016
 require_contains "${SCRIPTS_CUSTOM_PHP}" 'strpos\(\$resolved,\s*\$baseDir\s*\.\s*'\''/'\''\)\s*!==\s*0' 'scripts loader path boundary check'
+# shellcheck disable=SC2016
 require_contains "${SCRIPTS_CUSTOM_PHP}" 'autov\(\$resolved\)' 'scripts loader autov resolved path'
 
 echo "Theme runtime guard passed."

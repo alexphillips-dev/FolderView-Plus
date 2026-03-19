@@ -56,6 +56,18 @@ const ICON_PICKER_PAGE_SIZE = 120;
 const CUSTOM_ICON_PAGE_SIZE = 60;
 const ICON_PICKER_SEARCH_DEBOUNCE_MS = 120;
 const CUSTOM_ICON_SEARCH_DEBOUNCE_MS = 150;
+const THIRD_PARTY_ICON_SEARCH_DEBOUNCE_MS = 140;
+const THIRD_PARTY_RECENT_LIMIT = 36;
+const THIRD_PARTY_LONG_PRESS_PREVIEW_MS = 460;
+const THIRD_PARTY_GRID_CHUNK_SIZE = 36;
+const THIRD_PARTY_MIN_TAG_COUNT = 2;
+const THIRD_PARTY_PLACEHOLDER_ICON = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+const THIRD_PARTY_FAVORITES_STORAGE_KEY = 'fv.folder.icon.thirdparty.favorites.v1';
+const THIRD_PARTY_RECENT_STORAGE_KEY = 'fv.folder.icon.thirdparty.recent.v1';
+const THIRD_PARTY_PINNED_STORAGE_KEY = 'fv.folder.icon.thirdparty.pinnedFolders.v1';
+const THIRD_PARTY_HIDDEN_STORAGE_KEY = 'fv.folder.icon.thirdparty.hiddenFolders.v1';
+const THIRD_PARTY_USAGE_STORAGE_KEY = 'fv.folder.icon.thirdparty.folderUsage.v1';
+const THIRD_PARTY_LAST_USED_STORAGE_KEY = 'fv.folder.icon.thirdparty.lastUsedByIcon.v1';
 const EDITOR_MODE_STORAGE_KEY = 'fv.folder.editor.mode.v1';
 const EDITOR_ADVANCED_COLLAPSE_STORAGE_KEY = 'fv.folder.editor.advancedCollapse.v1';
 const BUILT_IN_ICON_FALLBACK = [{
@@ -78,9 +90,30 @@ let builtInIconSearchQuery = '';
 let builtInIconPage = 1;
 let builtInIconSearchTimer = null;
 let thirdPartyIconFolders = [];
+let thirdPartyIconIndex = [];
 let thirdPartySelectedFolder = '';
 let thirdPartyIcons = [];
 let thirdPartyIconPage = 1;
+let thirdPartyIconSearchQuery = '';
+let thirdPartyIconSearchTimer = null;
+let thirdPartyActiveTag = 'all';
+let thirdPartyQuickMode = 'folder';
+let thirdPartySortMode = 'usage';
+let thirdPartyFavorites = new Set();
+let thirdPartyRecent = [];
+let thirdPartyPinnedFolders = new Set();
+let thirdPartyHiddenFolders = new Set();
+let thirdPartyFolderUsage = {};
+let thirdPartyIconLastUsedByUrl = {};
+let thirdPartyBrokenIconUrls = new Set();
+let thirdPartyImageObserver = null;
+let thirdPartyLongPressTimer = null;
+let thirdPartyPreferencesLoaded = false;
+let thirdPartyRenderedIconMap = new Map();
+let thirdPartyShowHiddenFolders = false;
+let thirdPartyGridRenderToken = 0;
+let thirdPartyPreviewIconUrl = '';
+let thirdPartyIndexCacheReady = false;
 let customIconEntries = [];
 let customIconStats = null;
 let customIconHealth = null;
@@ -1077,49 +1110,741 @@ const renderBuiltInIconPicker = () => {
     });
 };
 
-const renderThirdPartyFolderList = () => {
-    const list = $('#fv-third-party-folder-list');
-    const status = $('#fv-third-party-icon-status');
-    if (!list.length || !status.length) {
-        return;
+const parseJsonStorage = (key, fallback) => {
+    try {
+        const raw = localStorage.getItem(key);
+        if (!raw) {
+            return fallback;
+        }
+        const parsed = JSON.parse(raw);
+        return parsed === undefined || parsed === null ? fallback : parsed;
+    } catch (_error) {
+        return fallback;
     }
-    if (!thirdPartyIconFolders.length) {
-        list.html('<div class="fv-icon-picker-empty">No folders found. Add folders under /usr/local/emhttp/plugins/folderview.plus/images/third-party-icons.</div>');
-        status.text('No third-party icon folders detected.');
-        return;
+};
+
+const writeJsonStorage = (key, value) => {
+    try {
+        localStorage.setItem(key, JSON.stringify(value));
+    } catch (_error) {
+        // Ignore storage write failures.
     }
-    const rows = thirdPartyIconFolders.map((folder) => {
-        const name = escapeHtml(folder.name || '');
-        const count = Number(folder.iconCount || 0);
-        const active = folder.name === thirdPartySelectedFolder ? ' is-active' : '';
-        return `
-            <button type="button" class="fv-third-party-folder${active}" data-third-party-folder="${name}">
-                <span class="fv-third-party-folder-name">${name}</span>
-                <span class="fv-third-party-folder-count">${count}</span>
-            </button>
-        `;
-    }).join('');
-    list.html(rows);
-    list.find('.fv-third-party-folder').off('click').on('click', async (event) => {
-        event.preventDefault();
-        const folder = String($(event.currentTarget).attr('data-third-party-folder') || '').trim();
+};
+
+const normalizeThirdPartyToken = (value) => String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+const tokenizeThirdPartySearch = (value) => String(value || '')
+    .toLowerCase()
+    .split(/[^a-z0-9]+/g)
+    .map((token) => token.trim())
+    .filter((token) => token.length > 1);
+
+const normalizeThirdPartySet = (value) => new Set(
+    asArray(value)
+        .map((entry) => String(entry || '').trim())
+        .filter((entry) => entry !== '')
+);
+
+const normalizeThirdPartyRecent = (value) => asArray(value)
+    .map((entry) => String(entry || '').trim())
+    .filter((entry) => entry !== '')
+    .slice(0, THIRD_PARTY_RECENT_LIMIT);
+
+const normalizeThirdPartyUsageMap = (value) => {
+    const source = value && typeof value === 'object' ? value : {};
+    const next = {};
+    Object.entries(source).forEach(([key, amount]) => {
+        const folder = String(key || '').trim();
         if (!folder) {
             return;
         }
-        await loadThirdPartyIcons(folder);
+        const score = Math.max(0, Math.round(Number(amount || 0)));
+        if (score > 0) {
+            next[folder] = score;
+        }
     });
+    return next;
+};
+
+const normalizeThirdPartyLastUsedMap = (value) => {
+    const source = value && typeof value === 'object' ? value : {};
+    const next = {};
+    Object.entries(source).forEach(([key, stamp]) => {
+        const iconUrl = String(key || '').trim();
+        if (!iconUrl) {
+            return;
+        }
+        const timestamp = Math.max(0, Number(stamp || 0));
+        if (Number.isFinite(timestamp) && timestamp > 0) {
+            next[iconUrl] = timestamp;
+        }
+    });
+    return next;
+};
+
+const persistThirdPartyPreferences = () => {
+    writeJsonStorage(THIRD_PARTY_FAVORITES_STORAGE_KEY, [...thirdPartyFavorites]);
+    writeJsonStorage(THIRD_PARTY_RECENT_STORAGE_KEY, [...thirdPartyRecent]);
+    writeJsonStorage(THIRD_PARTY_PINNED_STORAGE_KEY, [...thirdPartyPinnedFolders]);
+    writeJsonStorage(THIRD_PARTY_HIDDEN_STORAGE_KEY, [...thirdPartyHiddenFolders]);
+    writeJsonStorage(THIRD_PARTY_USAGE_STORAGE_KEY, { ...thirdPartyFolderUsage });
+    writeJsonStorage(THIRD_PARTY_LAST_USED_STORAGE_KEY, { ...thirdPartyIconLastUsedByUrl });
+};
+
+const ensureThirdPartyPreferencesLoaded = () => {
+    if (thirdPartyPreferencesLoaded) {
+        return;
+    }
+    thirdPartyFavorites = normalizeThirdPartySet(parseJsonStorage(THIRD_PARTY_FAVORITES_STORAGE_KEY, []));
+    thirdPartyRecent = normalizeThirdPartyRecent(parseJsonStorage(THIRD_PARTY_RECENT_STORAGE_KEY, []));
+    thirdPartyPinnedFolders = normalizeThirdPartySet(parseJsonStorage(THIRD_PARTY_PINNED_STORAGE_KEY, []));
+    thirdPartyHiddenFolders = normalizeThirdPartySet(parseJsonStorage(THIRD_PARTY_HIDDEN_STORAGE_KEY, []));
+    thirdPartyFolderUsage = normalizeThirdPartyUsageMap(parseJsonStorage(THIRD_PARTY_USAGE_STORAGE_KEY, {}));
+    thirdPartyIconLastUsedByUrl = normalizeThirdPartyLastUsedMap(parseJsonStorage(THIRD_PARTY_LAST_USED_STORAGE_KEY, {}));
+    thirdPartyPreferencesLoaded = true;
+};
+
+const deriveThirdPartyTags = (entry, fallbackFolder = '') => {
+    const tags = new Set();
+    asArray(entry?.tags).forEach((tag) => {
+        const normalized = normalizeThirdPartyToken(tag);
+        if (normalized) {
+            tags.add(normalized);
+        }
+    });
+    const folder = String(entry?.folder || fallbackFolder || '').trim();
+    folder.split('/').forEach((segment) => {
+        const normalized = normalizeThirdPartyToken(segment);
+        if (normalized) {
+            tags.add(normalized);
+        }
+        tokenizeThirdPartySearch(segment).forEach((token) => {
+            const tokenTag = normalizeThirdPartyToken(token);
+            if (tokenTag) {
+                tags.add(tokenTag);
+            }
+        });
+    });
+    const fileName = String(entry?.name || '').trim();
+    tokenizeThirdPartySearch(fileName).forEach((token) => {
+        const normalized = normalizeThirdPartyToken(token);
+        if (normalized) {
+            tags.add(normalized);
+        }
+    });
+    const ext = normalizeThirdPartyToken(entry?.ext || String(fileName.split('.').pop() || ''));
+    if (ext) {
+        tags.add(ext);
+    }
+    return [...tags];
+};
+
+const normalizeThirdPartyIconEntry = (entry, fallbackFolder = '') => {
+    const name = String(entry?.name || '').trim();
+    const url = String(entry?.url || '').trim();
+    const folder = String(entry?.folder || fallbackFolder || '').trim();
+    if (!name || !url || !folder) {
+        return null;
+    }
+    const ext = String(entry?.ext || name.split('.').pop() || '').trim().toLowerCase();
+    const size = Math.max(0, Number(entry?.size || 0));
+    const width = Math.max(0, Number(entry?.width || 0));
+    const height = Math.max(0, Number(entry?.height || 0));
+    const updatedAt = String(entry?.updatedAt || '').trim();
+    const hash = String(entry?.hash || '').trim().toLowerCase();
+    const relativePath = String(entry?.relativePath || `${folder}/${name}`).trim();
+    const validation = String(entry?.validation || '').trim().toLowerCase();
+    return {
+        name,
+        url,
+        folder,
+        ext,
+        size,
+        width,
+        height,
+        updatedAt,
+        hash,
+        relativePath,
+        validation,
+        tags: deriveThirdPartyTags(entry, folder)
+    };
+};
+
+const setThirdPartyStatus = (message, isError = false) => {
+    const status = $('#fv-third-party-icon-status');
+    if (!status.length) {
+        return;
+    }
+    const text = String(message || '').trim();
+    status.removeClass('is-error is-success').text(text);
+    if (!text) {
+        return;
+    }
+    status.addClass(isError ? 'is-error' : 'is-success');
+};
+
+const getThirdPartyIconByUrl = (url) => {
+    const needle = String(url || '').trim();
+    if (!needle) {
+        return null;
+    }
+    return [...thirdPartyIcons, ...thirdPartyIconIndex].find((icon) => String(icon?.url || '').trim() === needle) || null;
+};
+
+const buildThirdPartyIconLookup = () => {
+    const map = new Map();
+    [...thirdPartyIconIndex, ...thirdPartyIcons].forEach((icon) => {
+        const url = String(icon?.url || '').trim();
+        if (!url || map.has(url)) {
+            return;
+        }
+        map.set(url, icon);
+    });
+    return map;
+};
+
+const getThirdPartyDuplicateGroups = () => {
+    const groups = new Map();
+    thirdPartyIconIndex.forEach((icon) => {
+        const hash = String(icon?.hash || '').trim();
+        const key = hash ? `hash:${hash}` : `name:${String(icon?.name || '').trim().toLowerCase()}`;
+        if (!key || key.endsWith(':')) {
+            return;
+        }
+        if (!groups.has(key)) {
+            groups.set(key, []);
+        }
+        groups.get(key).push(icon);
+    });
+    return [...groups.entries()]
+        .map(([key, icons]) => ({ key, icons: asArray(icons) }))
+        .filter((entry) => entry.icons.length > 1)
+        .sort((a, b) => b.icons.length - a.icons.length);
+};
+
+const collectThirdPartySuggestionTokens = () => {
+    const form = getForm();
+    const folderName = String(form?.name?.value || '').trim();
+    const regexText = String(form?.regex?.value || '').trim();
+    const tokens = [
+        ...tokenizeThirdPartySearch(folderName),
+        ...tokenizeThirdPartySearch(regexText),
+        ...tokenizeThirdPartySearch(thirdPartySelectedFolder)
+    ];
+    return [...new Set(tokens)].slice(0, 10);
+};
+
+const getThirdPartySuggestedIcons = () => {
+    const tokens = collectThirdPartySuggestionTokens();
+    if (!tokens.length) {
+        return [];
+    }
+    return thirdPartyIconIndex
+        .map((icon) => {
+            const corpus = `${String(icon?.name || '').toLowerCase()} ${String(icon?.folder || '').toLowerCase()} ${asArray(icon?.tags).join(' ')}`;
+            let score = 0;
+            tokens.forEach((token) => {
+                if (corpus.includes(token)) {
+                    score += String(icon?.name || '').toLowerCase().includes(token) ? 3 : 1;
+                }
+            });
+            return { icon, score };
+        })
+        .filter((row) => row.score > 0)
+        .sort((a, b) => b.score - a.score || String(a.icon.name).localeCompare(String(b.icon.name)))
+        .slice(0, ICON_PICKER_PAGE_SIZE * 4)
+        .map((row) => row.icon);
+};
+
+const getThirdPartyActiveBaseIcons = () => {
+    const lookup = buildThirdPartyIconLookup();
+    if (thirdPartyQuickMode === 'all') {
+        return [...thirdPartyIconIndex];
+    }
+    if (thirdPartyQuickMode === 'favorites') {
+        return thirdPartyIconIndex.filter((icon) => thirdPartyFavorites.has(String(icon?.url || '')));
+    }
+    if (thirdPartyQuickMode === 'recent') {
+        return thirdPartyRecent.map((url) => lookup.get(url)).filter(Boolean);
+    }
+    if (thirdPartyQuickMode === 'suggested') {
+        return getThirdPartySuggestedIcons();
+    }
+    if (thirdPartyQuickMode === 'duplicates') {
+        return getThirdPartyDuplicateGroups().flatMap((group) => group.icons);
+    }
+    if (!thirdPartySelectedFolder) {
+        return [];
+    }
+    if (thirdPartyIconIndex.length > 0) {
+        return thirdPartyIconIndex.filter((icon) => String(icon?.folder || '') === thirdPartySelectedFolder);
+    }
+    return [...thirdPartyIcons];
+};
+
+const applyThirdPartySearchAndTagFilters = (icons) => {
+    const queryTokens = tokenizeThirdPartySearch(thirdPartyIconSearchQuery);
+    return asArray(icons).filter((icon) => {
+        const tags = asArray(icon?.tags).map((tag) => String(tag || '').trim().toLowerCase());
+        if (thirdPartyActiveTag !== 'all' && !tags.includes(String(thirdPartyActiveTag || '').toLowerCase())) {
+            return false;
+        }
+        if (!queryTokens.length) {
+            return true;
+        }
+        const searchable = `${String(icon?.name || '').toLowerCase()} ${String(icon?.folder || '').toLowerCase()} ${String(icon?.ext || '').toLowerCase()} ${tags.join(' ')}`;
+        return queryTokens.every((token) => searchable.includes(token));
+    });
+};
+
+const sortThirdPartyIcons = (icons) => {
+    const source = asArray(icons);
+    if (thirdPartyQuickMode === 'recent') {
+        return source;
+    }
+    const sorter = (a, b) => {
+        if (thirdPartySortMode === 'name') {
+            return String(a?.name || '').localeCompare(String(b?.name || ''), undefined, { sensitivity: 'base' });
+        }
+        if (thirdPartySortMode === 'newest') {
+            const aStamp = Number(new Date(String(a?.updatedAt || '')).getTime() || 0);
+            const bStamp = Number(new Date(String(b?.updatedAt || '')).getTime() || 0);
+            return bStamp - aStamp || String(a?.name || '').localeCompare(String(b?.name || ''));
+        }
+        const aUse = Number(thirdPartyIconLastUsedByUrl[String(a?.url || '')] || 0);
+        const bUse = Number(thirdPartyIconLastUsedByUrl[String(b?.url || '')] || 0);
+        if (aUse !== bUse) {
+            return bUse - aUse;
+        }
+        const aFav = thirdPartyFavorites.has(String(a?.url || '')) ? 1 : 0;
+        const bFav = thirdPartyFavorites.has(String(b?.url || '')) ? 1 : 0;
+        if (aFav !== bFav) {
+            return bFav - aFav;
+        }
+        return String(a?.name || '').localeCompare(String(b?.name || ''));
+    };
+    return [...source].sort(sorter);
+};
+
+const getThirdPartyVisibleIcons = () => {
+    const base = getThirdPartyActiveBaseIcons();
+    const filtered = applyThirdPartySearchAndTagFilters(base);
+    const deduped = [];
+    const seen = new Set();
+    filtered.forEach((icon) => {
+        const url = String(icon?.url || '').trim();
+        if (!url || seen.has(url)) {
+            return;
+        }
+        seen.add(url);
+        deduped.push(icon);
+    });
+    return sortThirdPartyIcons(deduped);
+};
+
+const buildThirdPartyTagList = (icons) => {
+    const counts = new Map();
+    asArray(icons).forEach((icon) => {
+        asArray(icon?.tags).forEach((tag) => {
+            const normalized = normalizeThirdPartyToken(tag);
+            if (!normalized) {
+                return;
+            }
+            counts.set(normalized, (counts.get(normalized) || 0) + 1);
+        });
+    });
+    const rows = [...counts.entries()]
+        .filter(([, count]) => count >= THIRD_PARTY_MIN_TAG_COUNT)
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+        .slice(0, 12)
+        .map(([tag, count]) => ({ tag, count }));
+    return [{ tag: 'all', count: asArray(icons).length }, ...rows];
+};
+
+const renderThirdPartyTagFilters = (icons) => {
+    const box = $('#fv-third-party-tag-filters');
+    if (!box.length) {
+        return;
+    }
+    const tags = buildThirdPartyTagList(icons);
+    if (!tags.some((entry) => entry.tag === thirdPartyActiveTag)) {
+        thirdPartyActiveTag = 'all';
+    }
+    box.html(tags.map((entry) => {
+        const tag = escapeHtml(entry.tag);
+        const count = Math.max(0, Number(entry.count || 0));
+        const active = entry.tag === thirdPartyActiveTag ? ' is-active' : '';
+        return `<button type="button" class="fv-third-party-tag${active}" data-third-party-tag="${tag}">${tag} ${count}</button>`;
+    }).join(''));
+};
+
+const renderThirdPartyModeButtons = () => {
+    const modeList = $('#fv-third-party-mode-list');
+    if (!modeList.length) {
+        return;
+    }
+    modeList.find('button[data-third-party-mode]').each((_, element) => {
+        const button = $(element);
+        const mode = String(button.attr('data-third-party-mode') || '').trim();
+        button.toggleClass('is-active', mode === thirdPartyQuickMode);
+    });
+};
+
+const getThirdPartyFolderNewestStamp = (folderName) => {
+    const folder = String(folderName || '').trim();
+    if (!folder) {
+        return 0;
+    }
+    let newest = 0;
+    thirdPartyIconIndex.forEach((icon) => {
+        if (String(icon?.folder || '') !== folder) {
+            return;
+        }
+        const stamp = Number(new Date(String(icon?.updatedAt || '')).getTime() || 0);
+        if (stamp > newest) {
+            newest = stamp;
+        }
+    });
+    return newest;
+};
+
+const getThirdPartyVisibleFolders = () => {
+    const rows = asArray(thirdPartyIconFolders).filter((folder) => {
+        const name = String(folder?.name || '').trim();
+        if (!name) {
+            return false;
+        }
+        if (thirdPartyShowHiddenFolders) {
+            return true;
+        }
+        return !thirdPartyHiddenFolders.has(name);
+    });
+    return rows.sort((a, b) => {
+        const aName = String(a?.name || '');
+        const bName = String(b?.name || '');
+        const aPinned = thirdPartyPinnedFolders.has(aName) ? 1 : 0;
+        const bPinned = thirdPartyPinnedFolders.has(bName) ? 1 : 0;
+        if (aPinned !== bPinned) {
+            return bPinned - aPinned;
+        }
+        if (thirdPartySortMode === 'name') {
+            return aName.localeCompare(bName, undefined, { sensitivity: 'base' });
+        }
+        if (thirdPartySortMode === 'count') {
+            const aCount = Number(a?.iconCount || 0);
+            const bCount = Number(b?.iconCount || 0);
+            return bCount - aCount || aName.localeCompare(bName);
+        }
+        if (thirdPartySortMode === 'newest') {
+            const aStamp = getThirdPartyFolderNewestStamp(aName);
+            const bStamp = getThirdPartyFolderNewestStamp(bName);
+            return bStamp - aStamp || aName.localeCompare(bName);
+        }
+        const aUsage = Number(thirdPartyFolderUsage[aName] || 0);
+        const bUsage = Number(thirdPartyFolderUsage[bName] || 0);
+        return bUsage - aUsage || aName.localeCompare(bName);
+    });
+};
+
+const reconcileThirdPartySelectedFolder = () => {
+    const visible = getThirdPartyVisibleFolders();
+    const visibleNames = new Set(visible.map((entry) => String(entry?.name || '').trim()).filter(Boolean));
+    if (thirdPartySelectedFolder && visibleNames.has(thirdPartySelectedFolder)) {
+        return;
+    }
+    const firstPinned = visible.find((entry) => thirdPartyPinnedFolders.has(String(entry?.name || '').trim()));
+    thirdPartySelectedFolder = String(firstPinned?.name || visible[0]?.name || '').trim();
+};
+
+const recordThirdPartyRecentIcon = (iconUrl) => {
+    const url = String(iconUrl || '').trim();
+    if (!url) {
+        return;
+    }
+    thirdPartyRecent = [url, ...thirdPartyRecent.filter((entry) => entry !== url)].slice(0, THIRD_PARTY_RECENT_LIMIT);
+};
+
+const recordThirdPartyIconUsage = (icon) => {
+    const folder = String(icon?.folder || thirdPartySelectedFolder || '').trim();
+    const url = String(icon?.url || '').trim();
+    if (!url) {
+        return;
+    }
+    if (folder) {
+        thirdPartyFolderUsage[folder] = Math.max(0, Number(thirdPartyFolderUsage[folder] || 0)) + 1;
+    }
+    thirdPartyIconLastUsedByUrl[url] = Date.now();
+    recordThirdPartyRecentIcon(url);
+    persistThirdPartyPreferences();
+};
+
+const renderThirdPartyPreview = (icon = null) => {
+    const preview = $('#fv-third-party-preview');
+    if (!preview.length) {
+        return;
+    }
+    const source = icon && typeof icon === 'object' ? icon : null;
+    if (!source) {
+        thirdPartyPreviewIconUrl = '';
+        preview.html('Preview an icon to inspect details.');
+        return;
+    }
+    thirdPartyPreviewIconUrl = String(source.url || '').trim();
+    const name = escapeHtml(String(source.name || 'Unknown icon'));
+    const folder = escapeHtml(String(source.folder || 'Unknown folder'));
+    const url = escapeHtml(String(source.url || ''));
+    const size = Number(source.size || 0) > 0 ? formatByteCount(Number(source.size || 0)) : '';
+    const dim = Number(source.width || 0) > 0 && Number(source.height || 0) > 0
+        ? `${Math.max(0, Number(source.width || 0))}x${Math.max(0, Number(source.height || 0))}`
+        : '';
+    const when = formatDateTimeShort(String(source.updatedAt || ''));
+    const ext = String(source.ext || '').trim().toUpperCase();
+    const extra = [folder, size, dim, ext, when].filter((entry) => String(entry || '').trim() !== '').join(' | ');
+    const isFavorite = thirdPartyFavorites.has(String(source.url || '').trim());
+    preview.html(`
+        <div class="fv-third-party-preview-card">
+            <img src="${url}" alt="${name}" loading="lazy" onerror="this.src='${ICON_FALLBACK_PATH}';">
+            <div class="fv-third-party-preview-meta">
+                <div class="fv-third-party-preview-title" title="${name}">${name}</div>
+                <div class="fv-third-party-preview-sub">${escapeHtml(extra || 'No metadata')}</div>
+            </div>
+            <button type="button" class="fv-third-party-preview-action${isFavorite ? ' is-active' : ''}" data-third-party-preview-favorite="${url}" title="${isFavorite ? 'Remove favorite' : 'Favorite icon'}">
+                <i class="fa ${isFavorite ? 'fa-star' : 'fa-star-o'}" aria-hidden="true"></i>
+            </button>
+        </div>
+    `);
+};
+
+const toggleThirdPartyFavorite = (iconUrl) => {
+    const url = String(iconUrl || '').trim();
+    if (!url) {
+        return;
+    }
+    if (thirdPartyFavorites.has(url)) {
+        thirdPartyFavorites.delete(url);
+    } else {
+        thirdPartyFavorites.add(url);
+    }
+    persistThirdPartyPreferences();
+};
+
+const buildThirdPartyDuplicateCleanupScript = () => {
+    const basePath = '/usr/local/emhttp/plugins/folderview.plus/images/third-party-icons';
+    const quotePath = (value) => `'${String(value || '').replace(/'/g, "'\\''")}'`;
+    const groups = getThirdPartyDuplicateGroups();
+    if (!groups.length) {
+        return '# No duplicate icons detected.';
+    }
+    const lines = [
+        '#!/bin/bash',
+        '# FolderView Plus duplicate third-party icon cleanup',
+        '# Review before running. Keeps the first icon in each duplicate set.',
+        ''
+    ];
+    groups.forEach((group) => {
+        const sorted = [...asArray(group.icons)].sort((a, b) => {
+            const aFav = thirdPartyFavorites.has(String(a?.url || '')) ? 1 : 0;
+            const bFav = thirdPartyFavorites.has(String(b?.url || '')) ? 1 : 0;
+            if (aFav !== bFav) {
+                return bFav - aFav;
+            }
+            const aUse = Number(thirdPartyIconLastUsedByUrl[String(a?.url || '')] || 0);
+            const bUse = Number(thirdPartyIconLastUsedByUrl[String(b?.url || '')] || 0);
+            return bUse - aUse;
+        });
+        const keep = sorted[0];
+        lines.push(`# Group ${group.key} (${sorted.length} files)`);
+        lines.push(`# Keep: ${String(keep?.relativePath || `${keep?.folder || ''}/${keep?.name || ''}`)}`);
+        sorted.slice(1).forEach((icon) => {
+            const rel = String(icon?.relativePath || `${icon?.folder || ''}/${icon?.name || ''}`).trim();
+            if (!rel) {
+                return;
+            }
+            const fullPath = `${basePath}/${rel}`.replace(/\/+/g, '/');
+            lines.push(`rm -f ${quotePath(fullPath)}`);
+        });
+        lines.push('');
+    });
+    return lines.join('\n');
+};
+
+const selectThirdPartyIconByKey = (iconKey, { apply = true } = {}) => {
+    const key = String(iconKey || '').trim();
+    if (!key || !thirdPartyRenderedIconMap.has(key)) {
+        return;
+    }
+    const icon = thirdPartyRenderedIconMap.get(key);
+    if (!icon) {
+        return;
+    }
+    renderThirdPartyPreview(icon);
+    if (!apply) {
+        return;
+    }
+    setIconInputValue(String(icon.url || ''));
+    recordThirdPartyIconUsage(icon);
+    if (thirdPartyQuickMode === 'recent' || thirdPartySortMode === 'usage') {
+        renderThirdPartyIconGrid();
+    }
+};
+
+const bindThirdPartyIconGridEvents = () => {
+    const grid = $('#fv-third-party-icon-grid');
+    const preview = $('#fv-third-party-preview');
+    if (!grid.length) {
+        return;
+    }
+    grid
+        .off('click.fvthirdparty keydown.fvthirdparty pointerdown.fvthirdparty pointerup.fvthirdparty pointercancel.fvthirdparty pointerleave.fvthirdparty mouseenter.fvthirdparty')
+        .on('click.fvthirdparty', '.fv-third-party-icon-fav', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            const url = String($(event.currentTarget).attr('data-third-party-favorite') || '').trim();
+            if (!url) {
+                return;
+            }
+            toggleThirdPartyFavorite(url);
+            const icon = getThirdPartyIconByUrl(url);
+            if (icon && thirdPartyPreviewIconUrl === url) {
+                renderThirdPartyPreview(icon);
+            }
+            renderThirdPartyIconGrid();
+        })
+        .on('click.fvthirdparty', '.fv-third-party-icon-item', (event) => {
+            event.preventDefault();
+            const key = String($(event.currentTarget).attr('data-third-party-key') || '').trim();
+            selectThirdPartyIconByKey(key, { apply: true });
+        })
+        .on('mouseenter.fvthirdparty', '.fv-third-party-icon-item', (event) => {
+            const key = String($(event.currentTarget).attr('data-third-party-key') || '').trim();
+            selectThirdPartyIconByKey(key, { apply: false });
+        })
+        .on('keydown.fvthirdparty', '.fv-third-party-icon-item', (event) => {
+            const item = $(event.currentTarget);
+            const key = String(item.attr('data-third-party-key') || '').trim();
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                selectThirdPartyIconByKey(key, { apply: true });
+                return;
+            }
+            if (String(event.key || '').toLowerCase() === 'f') {
+                const icon = thirdPartyRenderedIconMap.get(key);
+                if (icon) {
+                    toggleThirdPartyFavorite(String(icon.url || ''));
+                    renderThirdPartyIconGrid();
+                }
+                return;
+            }
+            const items = grid.find('.fv-third-party-icon-item');
+            const currentIndex = items.index(item);
+            if (currentIndex < 0) {
+                return;
+            }
+            let nextIndex = currentIndex;
+            if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
+                nextIndex = Math.min(items.length - 1, currentIndex + 1);
+            } else if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
+                nextIndex = Math.max(0, currentIndex - 1);
+            } else {
+                return;
+            }
+            event.preventDefault();
+            items.eq(nextIndex).trigger('focus');
+        })
+        .on('pointerdown.fvthirdparty', '.fv-third-party-icon-item', (event) => {
+            const pointerType = String(event.originalEvent?.pointerType || event.pointerType || '').toLowerCase();
+            if (pointerType !== 'touch') {
+                return;
+            }
+            const key = String($(event.currentTarget).attr('data-third-party-key') || '').trim();
+            if (!key) {
+                return;
+            }
+            if (thirdPartyLongPressTimer) {
+                clearTimeout(thirdPartyLongPressTimer);
+            }
+            thirdPartyLongPressTimer = setTimeout(() => {
+                thirdPartyLongPressTimer = null;
+                selectThirdPartyIconByKey(key, { apply: false });
+            }, THIRD_PARTY_LONG_PRESS_PREVIEW_MS);
+        })
+        .on('pointerup.fvthirdparty pointercancel.fvthirdparty pointerleave.fvthirdparty', '.fv-third-party-icon-item', () => {
+            if (thirdPartyLongPressTimer) {
+                clearTimeout(thirdPartyLongPressTimer);
+                thirdPartyLongPressTimer = null;
+            }
+        });
+
+    preview
+        .off('click.fvthirdparty')
+        .on('click.fvthirdparty', '[data-third-party-preview-favorite]', (event) => {
+            event.preventDefault();
+            const url = String($(event.currentTarget).attr('data-third-party-preview-favorite') || '').trim();
+            if (!url) {
+                return;
+            }
+            toggleThirdPartyFavorite(url);
+            const icon = getThirdPartyIconByUrl(url);
+            renderThirdPartyPreview(icon);
+            renderThirdPartyIconGrid();
+        });
+};
+
+const renderThirdPartyFolderList = () => {
+    const list = $('#fv-third-party-folder-list');
+    if (!list.length) {
+        return;
+    }
+    const folders = getThirdPartyVisibleFolders();
+    if (!folders.length) {
+        list.html('<div class="fv-icon-picker-empty">No visible folders. Toggle "Show hidden packs" or add icon packs under /usr/local/emhttp/plugins/folderview.plus/images/third-party-icons.</div>');
+        setThirdPartyStatus('No visible third-party icon folders detected.');
+        return;
+    }
+    const rows = folders.map((folder) => {
+        const folderName = String(folder?.name || '').trim();
+        const name = escapeHtml(folderName);
+        const count = Math.max(0, Number(folder?.iconCount || 0));
+        const active = folderName === thirdPartySelectedFolder ? ' is-active' : '';
+        const pinned = thirdPartyPinnedFolders.has(folderName) ? ' is-active' : '';
+        const hidden = thirdPartyHiddenFolders.has(folderName) ? ' is-active' : '';
+        return `
+            <div class="fv-third-party-folder-row${active}" data-third-party-folder-row="${name}">
+                <button type="button" class="fv-third-party-folder-main" data-third-party-folder="${name}">
+                    <span class="fv-third-party-folder-name" title="${name}">${name}</span>
+                    <span class="fv-third-party-folder-count">${count}</span>
+                </button>
+                <button type="button" class="fv-third-party-folder-action${pinned}" data-third-party-folder-pin="${name}" title="Pin pack">
+                    <i class="fa fa-star${pinned ? '' : '-o'}" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="fv-third-party-folder-action${hidden}" data-third-party-folder-hide="${name}" title="Hide pack">
+                    <i class="fa fa-eye-slash" aria-hidden="true"></i>
+                </button>
+            </div>
+        `;
+    }).join('');
+    list.html(rows);
+    $('#fv-third-party-show-hidden')
+        .toggleClass('is-active', thirdPartyShowHiddenFolders)
+        .text(thirdPartyShowHiddenFolders ? 'Hide hidden packs' : 'Show hidden packs');
 };
 
 const renderThirdPartyIconGrid = () => {
     const grid = $('#fv-third-party-icon-grid');
     const header = $('#fv-third-party-current-folder');
-    const status = $('#fv-third-party-icon-status');
     const prevButton = $('#fv-third-party-icon-prev');
     const nextButton = $('#fv-third-party-icon-next');
     const pageLabel = $('#fv-third-party-icon-page-label');
-    if (!grid.length || !header.length || !status.length) {
+    if (!grid.length || !header.length) {
         return;
     }
+
+    renderThirdPartyModeButtons();
+    renderThirdPartyTagFilters(getThirdPartyActiveBaseIcons());
 
     const setPager = (page, totalPages) => {
         if (!prevButton.length || !nextButton.length || !pageLabel.length) {
@@ -1130,24 +1855,21 @@ const renderThirdPartyIconGrid = () => {
         pageLabel.text(`Page ${page} / ${totalPages}`);
     };
 
-    if (!thirdPartySelectedFolder) {
-        header.text('Select a folder to browse icons.');
-        grid.empty();
-        setPager(1, 1);
-        return;
-    }
-    header.text(`Folder: ${thirdPartySelectedFolder}`);
+    const modeLabel = {
+        folder: `Folder: ${thirdPartySelectedFolder || 'None selected'}`,
+        all: 'Mode: All icon packs',
+        favorites: 'Mode: Favorite icons',
+        recent: 'Mode: Recent icons',
+        suggested: 'Mode: Suggested for this folder',
+        duplicates: 'Mode: Potential duplicates'
+    };
+    header.text(modeLabel[thirdPartyQuickMode] || modeLabel.folder);
 
-    if (!thirdPartyIcons.length) {
-        grid.html('<div class="fv-icon-picker-empty">No supported icon files found in this folder.</div>');
-        status.text(`Folder "${thirdPartySelectedFolder}" has 0 supported icon files.`);
-        setPager(1, 1);
-        return;
-    }
-
-    const paged = paginateItems(thirdPartyIcons, thirdPartyIconPage, ICON_PICKER_PAGE_SIZE);
+    const filteredIcons = getThirdPartyVisibleIcons();
+    const paged = paginateItems(filteredIcons, thirdPartyIconPage, ICON_PICKER_PAGE_SIZE);
     thirdPartyIconPage = paged.page;
     setPager(paged.page, paged.totalPages);
+
     prevButton.off('click.fvthirdpartypager').on('click.fvthirdpartypager', (event) => {
         event.preventDefault();
         if (thirdPartyIconPage <= 1) {
@@ -1165,28 +1887,91 @@ const renderThirdPartyIconGrid = () => {
         renderThirdPartyIconGrid();
     });
 
+    if (!filteredIcons.length) {
+        thirdPartyRenderedIconMap = new Map();
+        grid.html('<div class="fv-icon-picker-empty">No icons match the current search, mode, or tag filters.</div>');
+        setThirdPartyStatus('No matching third-party icons found.');
+        renderThirdPartyPreview();
+        return;
+    }
+
+    const duplicateSet = new Set(
+        getThirdPartyDuplicateGroups()
+            .flatMap((group) => group.icons)
+            .map((icon) => String(icon?.url || '').trim())
+            .filter(Boolean)
+    );
+    thirdPartyRenderedIconMap = new Map();
+    grid.empty();
     const currentValue = getCurrentIconValue();
-    const rows = paged.items.map((icon) => {
-        const selected = currentValue === icon.url ? ' is-selected' : '';
-        const safeUrl = escapeHtml(icon.url);
-        const safeName = escapeHtml(icon.name);
-        return `
-            <button type="button" class="fv-icon-picker-item${selected}" data-icon-value="${safeUrl}" title="${safeName}">
-                <img src="${safeUrl}" alt="${safeName}" onerror="this.src='${ICON_FALLBACK_PATH}';">
-                <span class="fv-icon-picker-item-name">${safeName}</span>
-            </button>
-        `;
-    }).join('');
-    grid.html(rows);
-    status.text(`Showing ${paged.startIndex + 1}-${paged.endIndex} of ${thirdPartyIcons.length} icon${thirdPartyIcons.length === 1 ? '' : 's'} in "${thirdPartySelectedFolder}".`);
-    grid.find('.fv-icon-picker-item').off('click').on('click', (event) => {
-        event.preventDefault();
-        const value = String($(event.currentTarget).attr('data-icon-value') || '').trim();
-        if (!value) {
+    const token = ++thirdPartyGridRenderToken;
+    let offset = 0;
+
+    const appendChunk = () => {
+        if (token !== thirdPartyGridRenderToken) {
             return;
         }
-        setIconInputValue(value);
-    });
+        const chunk = paged.items.slice(offset, offset + THIRD_PARTY_GRID_CHUNK_SIZE);
+        if (!chunk.length) {
+            setThirdPartyStatus(`Showing ${paged.startIndex + 1}-${paged.endIndex} of ${filteredIcons.length} icon${filteredIcons.length === 1 ? '' : 's'}.`);
+            if (!thirdPartyPreviewIconUrl) {
+                renderThirdPartyPreview(paged.items[0] || null);
+            }
+            return;
+        }
+        const rows = chunk.map((icon, idx) => {
+            const key = `${paged.startIndex + offset + idx}:${String(icon?.url || '')}`;
+            thirdPartyRenderedIconMap.set(key, icon);
+            const safeKey = escapeHtml(key);
+            const safeName = escapeHtml(String(icon?.name || ''));
+            const safeUrl = escapeHtml(String(icon?.url || ''));
+            const safeFolder = escapeHtml(String(icon?.folder || ''));
+            const selected = String(icon?.url || '') === currentValue ? ' is-selected' : '';
+            const isFavorite = thirdPartyFavorites.has(String(icon?.url || '')) ? ' is-active' : '';
+            const badges = [];
+            if (duplicateSet.has(String(icon?.url || ''))) {
+                badges.push('<span class="fv-third-party-badge is-warning">dup</span>');
+            }
+            if (String(icon?.validation || '') === 'warn' || String(icon?.validation || '') === 'error' || thirdPartyBrokenIconUrls.has(String(icon?.url || ''))) {
+                badges.push('<span class="fv-third-party-badge is-error">check</span>');
+            }
+            return `
+                <div class="fv-third-party-icon-item${selected}" data-third-party-key="${safeKey}" tabindex="0" role="button" title="${safeName}">
+                    <img src="${THIRD_PARTY_PLACEHOLDER_ICON}" data-src="${safeUrl}" alt="${safeName}" loading="lazy" onerror="this.src='${ICON_FALLBACK_PATH}';">
+                    <div class="fv-third-party-icon-main">
+                        <span class="fv-icon-picker-item-name">${safeName}</span>
+                        <span class="fv-third-party-icon-folder">${safeFolder}</span>
+                    </div>
+                    <div>
+                        <button type="button" class="fv-third-party-icon-fav${isFavorite}" data-third-party-favorite="${safeUrl}" title="Toggle favorite">
+                            <i class="fa ${isFavorite ? 'fa-star' : 'fa-star-o'}" aria-hidden="true"></i>
+                        </button>
+                        <span class="fv-third-party-icon-badges">${badges.join('')}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        grid.append(rows);
+        grid.find('img[data-src]').each((_, element) => {
+            const image = element;
+            const source = String(image.getAttribute('data-src') || '').trim();
+            if (!source || image.getAttribute('src') === source) {
+                return;
+            }
+            image.addEventListener('error', () => {
+                thirdPartyBrokenIconUrls.add(source);
+            }, { once: true });
+            image.setAttribute('src', source);
+        });
+        offset += chunk.length;
+        if (offset < paged.items.length) {
+            window.requestAnimationFrame(appendChunk);
+        } else {
+            setThirdPartyStatus(`Showing ${paged.startIndex + 1}-${paged.endIndex} of ${filteredIcons.length} icon${filteredIcons.length === 1 ? '' : 's'}.`);
+        }
+    };
+    appendChunk();
+    bindThirdPartyIconGridEvents();
 };
 
 const loadThirdPartyFolders = async () => {
@@ -1197,7 +1982,7 @@ const loadThirdPartyFolders = async () => {
     }
     thirdPartyIconFolders = asArray(payload.folders).map((entry) => ({
         name: String(entry?.name || '').trim(),
-        iconCount: Number(entry?.iconCount || 0)
+        iconCount: Math.max(0, Number(entry?.iconCount || 0))
     })).filter((entry) => entry.name !== '');
     if (thirdPartySelectedFolder && !thirdPartyIconFolders.some((entry) => entry.name === thirdPartySelectedFolder)) {
         thirdPartySelectedFolder = '';
@@ -1205,9 +1990,29 @@ const loadThirdPartyFolders = async () => {
     }
 };
 
+const loadThirdPartyIconIndex = async () => {
+    const response = await $.get(THIRD_PARTY_ICON_API_PATH, { action: 'list_index' }).promise();
+    const payload = parseJsonPayload(response);
+    if (!payload || payload.ok !== true) {
+        throw new Error(String(payload?.error || 'Failed to build icon index.'));
+    }
+    thirdPartyIconIndex = asArray(payload.icons)
+        .map((entry) => normalizeThirdPartyIconEntry(entry))
+        .filter(Boolean);
+    thirdPartyIndexCacheReady = true;
+};
+
 const loadThirdPartyIcons = async (folderName) => {
     const folder = String(folderName || '').trim();
     if (!folder) {
+        return;
+    }
+    if (thirdPartyIndexCacheReady && thirdPartyIconIndex.length > 0) {
+        thirdPartySelectedFolder = folder;
+        thirdPartyIcons = thirdPartyIconIndex.filter((entry) => String(entry?.folder || '') === folder);
+        thirdPartyIconPage = 1;
+        renderThirdPartyFolderList();
+        renderThirdPartyIconGrid();
         return;
     }
     const response = await $.get(THIRD_PARTY_ICON_API_PATH, { action: 'list_icons', folder }).promise();
@@ -1215,32 +2020,35 @@ const loadThirdPartyIcons = async (folderName) => {
     if (!payload || payload.ok !== true) {
         throw new Error(String(payload?.error || 'Failed to load icons for selected folder.'));
     }
-    thirdPartySelectedFolder = String(payload.folder || folder);
-    thirdPartyIcons = asArray(payload.icons).map((entry) => ({
-        name: String(entry?.name || '').trim(),
-        url: String(entry?.url || '').trim()
-    })).filter((entry) => entry.name !== '' && entry.url !== '');
+    thirdPartySelectedFolder = String(payload.folder || folder).trim();
+    thirdPartyIcons = asArray(payload.icons)
+        .map((entry) => normalizeThirdPartyIconEntry(entry, thirdPartySelectedFolder))
+        .filter(Boolean);
     thirdPartyIconPage = 1;
     renderThirdPartyFolderList();
     renderThirdPartyIconGrid();
 };
 
 const refreshThirdPartyIconPicker = async () => {
-    const status = $('#fv-third-party-icon-status');
-    if (status.length) {
-        status.text('Refreshing third-party icon folders...');
-    }
+    ensureThirdPartyPreferencesLoaded();
+    setThirdPartyStatus('Refreshing third-party icon folders...');
     try {
         await loadThirdPartyFolders();
+        try {
+            await loadThirdPartyIconIndex();
+        } catch (_error) {
+            thirdPartyIconIndex = [];
+            thirdPartyIndexCacheReady = false;
+        }
+        reconcileThirdPartySelectedFolder();
         renderThirdPartyFolderList();
-        renderThirdPartyIconGrid();
-        if (!thirdPartySelectedFolder && thirdPartyIconFolders.length > 0) {
-            await loadThirdPartyIcons(thirdPartyIconFolders[0].name);
+        if (thirdPartySelectedFolder) {
+            await loadThirdPartyIcons(thirdPartySelectedFolder);
+        } else {
+            renderThirdPartyIconGrid();
         }
     } catch (error) {
-        if (status.length) {
-            status.text(`Error: ${error.message}`);
-        }
+        setThirdPartyStatus(`Error: ${String(error?.message || 'Failed to refresh third-party icon packs.')}`, true);
     }
 };
 
@@ -1285,6 +2093,7 @@ const initBuiltInIconPicker = async () => {
         setThirdPartyIconPickerOpen(!isOpen);
         if (!isOpen) {
             await refreshThirdPartyIconPicker();
+            $('#fv-third-party-search').trigger('focus');
         }
     });
     $('#fv-icon-custom-manager-toggle').off('click.fviconpicker').on('click.fviconpicker', async (event) => {
@@ -1371,6 +2180,116 @@ const initBuiltInIconPicker = async () => {
         event.preventDefault();
         await refreshThirdPartyIconPicker();
     });
+    $('#fv-third-party-search').off('input.fviconpicker').on('input.fviconpicker', (event) => {
+        if (thirdPartyIconSearchTimer) {
+            clearTimeout(thirdPartyIconSearchTimer);
+        }
+        const value = String($(event.currentTarget).val() || '').trim();
+        thirdPartyIconSearchTimer = setTimeout(() => {
+            thirdPartyIconSearchTimer = null;
+            thirdPartyIconSearchQuery = value;
+            thirdPartyIconPage = 1;
+            renderThirdPartyIconGrid();
+        }, THIRD_PARTY_ICON_SEARCH_DEBOUNCE_MS);
+    });
+    $('#fv-third-party-search-clear').off('click.fviconpicker').on('click.fviconpicker', (event) => {
+        event.preventDefault();
+        if (thirdPartyIconSearchTimer) {
+            clearTimeout(thirdPartyIconSearchTimer);
+            thirdPartyIconSearchTimer = null;
+        }
+        thirdPartyIconSearchQuery = '';
+        thirdPartyIconPage = 1;
+        $('#fv-third-party-search').val('').trigger('focus');
+        renderThirdPartyIconGrid();
+    });
+    $('#fv-third-party-sort').off('change.fviconpicker').on('change.fviconpicker', () => {
+        thirdPartySortMode = String($('#fv-third-party-sort').val() || 'usage').trim().toLowerCase();
+        thirdPartyIconPage = 1;
+        renderThirdPartyFolderList();
+        renderThirdPartyIconGrid();
+    });
+    $('#fv-third-party-mode-list').off('click.fviconpicker').on('click.fviconpicker', 'button[data-third-party-mode]', async (event) => {
+        event.preventDefault();
+        const mode = String($(event.currentTarget).attr('data-third-party-mode') || '').trim();
+        const allowed = new Set(['folder', 'all', 'favorites', 'recent', 'suggested', 'duplicates']);
+        if (!allowed.has(mode)) {
+            return;
+        }
+        thirdPartyQuickMode = mode;
+        thirdPartyIconPage = 1;
+        renderThirdPartyIconGrid();
+        if (mode === 'folder' && thirdPartySelectedFolder) {
+            await loadThirdPartyIcons(thirdPartySelectedFolder);
+        }
+    });
+    $('#fv-third-party-tag-filters').off('click.fviconpicker').on('click.fviconpicker', 'button[data-third-party-tag]', (event) => {
+        event.preventDefault();
+        thirdPartyActiveTag = String($(event.currentTarget).attr('data-third-party-tag') || 'all').trim().toLowerCase() || 'all';
+        thirdPartyIconPage = 1;
+        renderThirdPartyIconGrid();
+    });
+    $('#fv-third-party-folder-list')
+        .off('click.fviconpicker')
+        .on('click.fviconpicker', '[data-third-party-folder]', async (event) => {
+            event.preventDefault();
+            const folder = String($(event.currentTarget).attr('data-third-party-folder') || '').trim();
+            if (!folder) {
+                return;
+            }
+            thirdPartyQuickMode = 'folder';
+            thirdPartyIconPage = 1;
+            await loadThirdPartyIcons(folder);
+        })
+        .on('click.fviconpicker', '[data-third-party-folder-pin]', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            const folder = String($(event.currentTarget).attr('data-third-party-folder-pin') || '').trim();
+            if (!folder) {
+                return;
+            }
+            if (thirdPartyPinnedFolders.has(folder)) {
+                thirdPartyPinnedFolders.delete(folder);
+            } else {
+                thirdPartyPinnedFolders.add(folder);
+            }
+            persistThirdPartyPreferences();
+            renderThirdPartyFolderList();
+        })
+        .on('click.fviconpicker', '[data-third-party-folder-hide]', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            const folder = String($(event.currentTarget).attr('data-third-party-folder-hide') || '').trim();
+            if (!folder) {
+                return;
+            }
+            if (thirdPartyHiddenFolders.has(folder)) {
+                thirdPartyHiddenFolders.delete(folder);
+            } else {
+                thirdPartyHiddenFolders.add(folder);
+            }
+            persistThirdPartyPreferences();
+            reconcileThirdPartySelectedFolder();
+            renderThirdPartyFolderList();
+            renderThirdPartyIconGrid();
+        });
+    $('#fv-third-party-show-hidden').off('click.fviconpicker').on('click.fviconpicker', (event) => {
+        event.preventDefault();
+        thirdPartyShowHiddenFolders = !thirdPartyShowHiddenFolders;
+        reconcileThirdPartySelectedFolder();
+        renderThirdPartyFolderList();
+        renderThirdPartyIconGrid();
+    });
+    $('#fv-third-party-duplicates-cleanup').off('click.fviconpicker').on('click.fviconpicker', (event) => {
+        event.preventDefault();
+        const script = buildThirdPartyDuplicateCleanupScript();
+        swal({
+            title: 'Duplicate cleanup helper',
+            text: `<div class="fv-custom-icon-ref-list"><p>Review these commands before running:</p><textarea style="width:100%;min-height:220px;">${escapeHtml(script)}</textarea></div>`,
+            html: true,
+            confirmButtonText: 'Close'
+        });
+    });
     $('#fv-custom-icon-refresh').off('click.fviconpicker').on('click.fviconpicker', async (event) => {
         event.preventDefault();
         customIconPage = 1;
@@ -1434,6 +2353,10 @@ const initBuiltInIconPicker = async () => {
     setBuiltInIconPickerOpen(false);
     setThirdPartyIconPickerOpen(false);
     setCustomIconPickerOpen(false);
+    ensureThirdPartyPreferencesLoaded();
+    $('#fv-third-party-sort').val(thirdPartySortMode);
+    $('#fv-third-party-search').val(thirdPartyIconSearchQuery);
+    renderThirdPartyModeButtons();
     resetIconUploadProgress();
     setIconUploadStatus('');
     renderBuiltInIconPicker();

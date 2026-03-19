@@ -93,6 +93,31 @@ test('folder editor markup exposes custom icon manager controls', () => {
     assert.match(folderPage, /id="fv-icon-upload-cancel"/);
 });
 
+test('folder editor markup exposes advanced third-party icon controls', () => {
+    assert.match(folderPage, /id="fv-third-party-search"/);
+    assert.match(folderPage, /id="fv-third-party-search-clear"/);
+    assert.match(folderPage, /id="fv-third-party-sort"/);
+    assert.match(folderPage, /id="fv-third-party-mode-list"/);
+    assert.match(folderPage, /id="fv-third-party-tag-filters"/);
+    assert.match(folderPage, /id="fv-third-party-show-hidden"/);
+    assert.match(folderPage, /id="fv-third-party-duplicates-cleanup"/);
+    assert.match(folderPage, /id="fv-third-party-preview"/);
+});
+
+test('folder.js third-party icon picker supports advanced filtering and duplicate workflows', () => {
+    assert.match(folderScript, /const THIRD_PARTY_GRID_CHUNK_SIZE = \d+;/);
+    assert.match(folderScript, /const THIRD_PARTY_MIN_TAG_COUNT = \d+;/);
+    assert.match(folderScript, /const loadThirdPartyIconIndex = async \(\) =>/);
+    assert.match(folderScript, /const buildThirdPartyDuplicateCleanupScript = \(\) =>/);
+    assert.match(folderScript, /const renderThirdPartyTagFilters = \(icons\) =>/);
+    assert.match(folderScript, /const renderThirdPartyPreview = \(icon = null\) =>/);
+    assert.match(folderScript, /THIRD_PARTY_ICON_SEARCH_DEBOUNCE_MS/);
+    assert.match(folderPage, /data-third-party-mode="duplicates"/);
+    assert.match(folderScript, /#fv-third-party-duplicates-cleanup/);
+    assert.match(folderScript, /list_index/);
+    assert.match(folderScript, /pointerdown\.fvthirdparty/);
+});
+
 test('folder.js icon upload parsing is resilient to empty and noisy endpoint responses', () => {
     assert.match(folderScript, /const parseJsonPayload = \(value, context = 'response'\) =>/);
     assert.match(folderScript, /returned an empty response/);

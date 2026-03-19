@@ -98,13 +98,37 @@ emitRequestTokenMetaTag();
                         <div id="fv-icon-picker-status" class="fv-icon-picker-status"></div>
                     </div>
                     <div id="fv-third-party-icon-panel" class="fv-icon-picker-panel fv-third-party-panel" hidden>
-                        <div class="fv-icon-picker-toolbar">
+                        <div class="fv-icon-picker-toolbar fv-third-party-toolbar-main">
                             <span class="fv-third-party-hint">Source: /usr/local/emhttp/plugins/folderview.plus/images/third-party-icons</span>
                             <button type="button" id="fv-third-party-refresh" title="Refresh folders and icons" aria-label="Refresh folders and icons"><i class="fa fa-refresh" aria-hidden="true"></i></button>
                         </div>
+                        <div class="fv-icon-picker-toolbar fv-third-party-search-row">
+                            <input type="text" id="fv-third-party-search" placeholder="Search third-party icons across packs">
+                            <button type="button" id="fv-third-party-search-clear" title="Clear search" aria-label="Clear search"><i class="fa fa-times" aria-hidden="true"></i></button>
+                            <select id="fv-third-party-sort" title="Sort packs and icons">
+                                <option value="usage">Sort: usage</option>
+                                <option value="name">Sort: name</option>
+                                <option value="count">Sort: icon count</option>
+                                <option value="newest">Sort: newest</option>
+                            </select>
+                        </div>
+                        <div id="fv-third-party-mode-list" class="fv-third-party-mode-list" role="group" aria-label="Icon browsing mode">
+                            <button type="button" data-third-party-mode="folder" class="is-active">Folder</button>
+                            <button type="button" data-third-party-mode="all">All</button>
+                            <button type="button" data-third-party-mode="favorites">Favorites</button>
+                            <button type="button" data-third-party-mode="recent">Recent</button>
+                            <button type="button" data-third-party-mode="suggested">Suggested</button>
+                            <button type="button" data-third-party-mode="duplicates">Duplicates</button>
+                        </div>
+                        <div id="fv-third-party-tag-filters" class="fv-third-party-tag-filters"></div>
                         <div id="fv-third-party-folder-list" class="fv-third-party-folder-list"></div>
+                        <div class="fv-third-party-inline-actions">
+                            <button type="button" id="fv-third-party-show-hidden" title="Toggle hidden icon packs">Show hidden packs</button>
+                            <button type="button" id="fv-third-party-duplicates-cleanup" title="Generate duplicate cleanup commands"><i class="fa fa-files-o" aria-hidden="true"></i> Duplicate cleanup</button>
+                        </div>
                         <div id="fv-third-party-current-folder" class="fv-third-party-current-folder">Select a folder to browse icons.</div>
-                        <div id="fv-third-party-icon-grid" class="fv-icon-picker-grid"></div>
+                        <div id="fv-third-party-preview" class="fv-third-party-preview">Preview an icon to inspect details.</div>
+                        <div id="fv-third-party-icon-grid" class="fv-icon-picker-grid fv-third-party-icon-grid"></div>
                         <div class="fv-icon-picker-pager">
                             <button type="button" id="fv-third-party-icon-prev" title="Previous page"><i class="fa fa-chevron-left" aria-hidden="true"></i></button>
                             <span id="fv-third-party-icon-page-label">Page 1 / 1</span>

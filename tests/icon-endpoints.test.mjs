@@ -35,6 +35,18 @@ test('third-party endpoint supports nested folder paths with sanitization', () =
     assert.doesNotMatch(thirdPartyPhp, /'baseDir'\s*=>/);
 });
 
+test('third-party endpoint exposes metadata-rich icon index for advanced picker workflows', () => {
+    assert.match(thirdPartyPhp, /function buildThirdPartyIconRecord\s*\(/);
+    assert.match(thirdPartyPhp, /function listThirdPartyIconIndex\s*\(/);
+    assert.match(thirdPartyPhp, /\$action === 'list_index'/);
+    assert.match(thirdPartyPhp, /'relativePath'\s*=>/);
+    assert.match(thirdPartyPhp, /'ext'\s*=>/);
+    assert.match(thirdPartyPhp, /'size'\s*=>/);
+    assert.match(thirdPartyPhp, /'hash'\s*=>/);
+    assert.match(thirdPartyPhp, /'validation'\s*=>/);
+    assert.match(thirdPartyPhp, /thirdPartyFolderIconsSignature/);
+});
+
 test('upload endpoint enforces request guard and uploads into images\\/custom', () => {
     assert.match(uploadPhp, /requireMutationRequestGuard\(\)/);
     assert.match(uploadPhp, /return \"\$sourceDir\/images\/custom\"/);

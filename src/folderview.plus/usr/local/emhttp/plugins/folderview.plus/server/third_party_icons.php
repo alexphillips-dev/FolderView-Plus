@@ -116,7 +116,23 @@ function thirdPartyFolderIconsSignature(string $folderPath): string {
     if (!is_dir($folderPath)) {
         return 'missing';
     }
-    return sha1((string)((int)@filemtime($folderPath)));
+    $parts = ['folder:' . (int)@filemtime($folderPath)];
+    $items = @scandir($folderPath) ?: [];
+    foreach ($items as $name) {
+        if ($name === '.' || $name === '..') {
+            continue;
+        }
+        if ($name !== basename($name) || !isAllowedThirdPartyIconFile($name)) {
+            continue;
+        }
+        $path = "$folderPath/$name";
+        if (!is_file($path)) {
+            continue;
+        }
+        $parts[] = $name . ':' . (int)@filemtime($path) . ':' . (int)@filesize($path);
+    }
+    sort($parts, SORT_STRING);
+    return sha1(implode('|', $parts));
 }
 
 function sanitizeThirdPartySegment(string $value, string $label): string {
@@ -194,6 +210,60 @@ function countSupportedIconsInDirectory(string $directory): int {
         }
     }
     return $count;
+}
+
+function thirdPartyIconUrl(string $folder, string $file): string {
+    return '/plugins/folderview.plus/server/third_party_icons.php?action=file&folder='
+        . rawurlencode($folder)
+        . '&file='
+        . rawurlencode($file);
+}
+
+function thirdPartyIconValidation(string $path, string $ext): string {
+    if (!is_readable($path)) {
+        return 'error';
+    }
+    if ($ext === 'svg') {
+        $raw = @file_get_contents($path, false, null, 0, 200000);
+        if (!is_string($raw) || trim($raw) === '') {
+            return 'warn';
+        }
+        if (stripos($raw, '<svg') === false) {
+            return 'warn';
+        }
+        return 'ok';
+    }
+    if (function_exists('getimagesize')) {
+        $size = @getimagesize($path);
+        if (!is_array($size)) {
+            return 'warn';
+        }
+    }
+    return 'ok';
+}
+
+function buildThirdPartyIconRecord(string $safeFolder, string $file, string $filePath): array {
+    $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+    $size = (int)@filesize($filePath);
+    $mtime = (int)@filemtime($filePath);
+    $dims = @getimagesize($filePath);
+    $width = is_array($dims) ? (int)($dims[0] ?? 0) : 0;
+    $height = is_array($dims) ? (int)($dims[1] ?? 0) : 0;
+    $hash = @sha1_file($filePath);
+    return [
+        'name' => $file,
+        'folder' => $safeFolder,
+        'url' => thirdPartyIconUrl($safeFolder, $file),
+        'relativePath' => $safeFolder . '/' . $file,
+        'ext' => $ext,
+        'size' => max(0, $size),
+        'width' => max(0, $width),
+        'height' => max(0, $height),
+        'updatedAt' => $mtime > 0 ? gmdate('c', $mtime) : '',
+        'hash' => is_string($hash) ? $hash : '',
+        'validation' => thirdPartyIconValidation($filePath, $ext),
+        'tags' => [$ext]
+    ];
 }
 
 function listThirdPartyFolders(): array {
@@ -292,13 +362,7 @@ function listThirdPartyIconsInFolder(string $folder): array {
         if (!is_file($filePath)) {
             continue;
         }
-        $icons[] = [
-            'name' => $file,
-            'url' => '/plugins/folderview.plus/server/third_party_icons.php?action=file&folder='
-                . rawurlencode($safeFolder)
-                . '&file='
-                . rawurlencode($file)
-        ];
+        $icons[] = buildThirdPartyIconRecord($safeFolder, $file, $filePath);
     }
     usort($icons, static function (array $a, array $b): int {
         return strcasecmp((string)$a['name'], (string)$b['name']);
@@ -308,6 +372,49 @@ function listThirdPartyIconsInFolder(string $folder): array {
         'folder' => $safeFolder,
         'icons' => $icons
     ];
+}
+
+function listThirdPartyIconIndex(): array {
+    $folders = listThirdPartyFolders();
+    $parts = ['folders:' . count($folders)];
+    foreach ($folders as $entry) {
+        $name = sanitizeThirdPartyFolderPath((string)($entry['name'] ?? ''), 'Folder');
+        $folderPath = ensureThirdPartyIconsDirExists() . '/' . $name;
+        $parts[] = thirdPartyFolderIconsSignature($folderPath);
+    }
+    sort($parts, SORT_STRING);
+    $signature = sha1(implode('|', $parts));
+    $cached = readThirdPartyIconCache('index', $signature, FVPLUS_THIRD_PARTY_ICON_CACHE_TTL);
+    if (is_array($cached)) {
+        return $cached;
+    }
+
+    $icons = [];
+    foreach ($folders as $entry) {
+        $folderName = (string)($entry['name'] ?? '');
+        if ($folderName === '') {
+            continue;
+        }
+        $result = listThirdPartyIconsInFolder($folderName);
+        foreach (($result['icons'] ?? []) as $icon) {
+            if (is_array($icon)) {
+                $icons[] = $icon;
+            }
+        }
+    }
+    usort($icons, static function (array $a, array $b): int {
+        $byFolder = strcasecmp((string)($a['folder'] ?? ''), (string)($b['folder'] ?? ''));
+        if ($byFolder !== 0) {
+            return $byFolder;
+        }
+        return strcasecmp((string)($a['name'] ?? ''), (string)($b['name'] ?? ''));
+    });
+    $payload = [
+        'folders' => $folders,
+        'icons' => $icons
+    ];
+    writeThirdPartyIconCache('index', $signature, $payload);
+    return $payload;
 }
 
 function resolveThirdPartyIconFilePath(string $folder, string $file): string {
@@ -365,6 +472,15 @@ try {
         fvplus_json_ok([
             'folder' => $result['folder'],
             'icons' => $result['icons']
+        ]);
+        exit;
+    }
+
+    if ($action === 'list_index') {
+        $result = listThirdPartyIconIndex();
+        fvplus_json_ok([
+            'folders' => $result['folders'] ?? [],
+            'icons' => $result['icons'] ?? []
         ]);
         exit;
     }

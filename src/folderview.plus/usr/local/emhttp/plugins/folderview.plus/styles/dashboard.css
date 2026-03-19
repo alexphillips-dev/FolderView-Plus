@@ -57,15 +57,24 @@
     right: 2px;
     z-index: 4;
     display: flex;
-    justify-content: flex-end;
-    align-items: center;
+    justify-content: flex-start;
+    align-items: flex-start;
     width: auto;
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    pointer-events: none;
 }
 
-.fv-dashboard-layout-quick {
+.fv-dashboard-layout-quick-rail {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    pointer-events: auto;
+}
+
+.fv-dashboard-quick-action {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -90,13 +99,25 @@
     box-shadow: none !important;
 }
 
-.fv-dashboard-layout-quick:hover,
-.fv-dashboard-layout-quick:focus {
+.fv-dashboard-quick-action:hover,
+.fv-dashboard-quick-action:focus {
     text-decoration: none;
     color: var(--orange, #f0a30a);
     border-color: rgba(240, 163, 10, 0.55);
     background: rgba(240, 163, 10, 0.14);
     outline: none;
+}
+
+.fv-dashboard-quick-action.is-active {
+    color: var(--orange, #f0a30a);
+    border-color: rgba(240, 163, 10, 0.6);
+    background: rgba(240, 163, 10, 0.2);
+}
+
+.fv-dashboard-quick-action:disabled {
+    opacity: 0.45;
+    cursor: default;
+    pointer-events: none;
 }
 
 .fv-dashboard-layout-quick[data-fv-layout="classic"] {
@@ -163,6 +184,23 @@ tbody.fv-dashboard-hide-folder-label .folder-showcase-outer > span.outer .folder
 tbody.fv-dashboard-greyscale-enabled .folder-showcase-outer.fv-dashboard-card-collapsed > span.outer .img {
     filter: grayscale(1);
     opacity: 0.72;
+}
+
+tbody.fv-dashboard-health-emphasis-enabled .folder-showcase-outer > span.outer.started {
+    opacity: 0.86;
+}
+
+tbody.fv-dashboard-health-emphasis-enabled .folder-showcase-outer > span.outer.stopped {
+    box-shadow: inset 0 0 0 1px rgba(255, 77, 77, 0.45);
+    background: rgba(255, 77, 77, 0.1);
+}
+
+tbody.fv-dashboard-health-emphasis-enabled .folder-showcase-outer > span.outer .state {
+    font-weight: 600;
+}
+
+tbody.fv-dashboard-health-emphasis-enabled .folder-showcase-outer > span.outer .state.orange-text {
+    color: var(--orange, #f0a30a);
 }
 
 tbody.fv-dashboard-layout-fullwidth .folder-showcase-outer[expanded="true"] > .folder-showcase {
@@ -244,7 +282,11 @@ body.fvplus-performance-mode .tooltipster-content {
         right: 1px;
     }
 
-    .fv-dashboard-layout-quick {
+    .fv-dashboard-layout-quick-rail {
+        gap: 1px;
+    }
+
+    .fv-dashboard-quick-action {
         width: 14px !important;
         min-width: 14px !important;
         max-width: 14px !important;

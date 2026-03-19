@@ -200,18 +200,154 @@ const resolveDashboardWidgetInlineHostForType = (type) => {
     }
     return $tbody;
 };
-const syncDashboardWidgetLayoutQuickControlForType = (type) => {
+const DASHBOARD_HEALTH_EMPHASIS_STORAGE_KEYS = Object.freeze({
+    docker: 'fvplus.runtime.dashboard.health-emphasis.docker.v1',
+    vm: 'fvplus.runtime.dashboard.health-emphasis.vm.v1'
+});
+const readDashboardHealthEmphasisStateForType = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const currentLayout = normalizeDashboardPrefsForType(resolvedType).layout;
-    const widgetLabel = resolvedType === 'vm' ? 'VM' : 'Docker';
-    const layoutLabel = DASHBOARD_LAYOUT_LABELS[currentLayout] || currentLayout;
-    const $control = $(`.fv-dashboard-layout-quick[data-fv-dashboard-type="${resolvedType}"]`).first();
-    if (!$control.length) {
+    const storageKey = DASHBOARD_HEALTH_EMPHASIS_STORAGE_KEYS[resolvedType];
+    if (!storageKey) {
+        return false;
+    }
+    try {
+        const raw = window.localStorage && window.localStorage.getItem(storageKey);
+        return raw === '1';
+    } catch (_error) {
+        return false;
+    }
+};
+const writeDashboardHealthEmphasisStateForType = (type, enabled) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const storageKey = DASHBOARD_HEALTH_EMPHASIS_STORAGE_KEYS[resolvedType];
+    if (!storageKey) {
         return;
     }
-    $control.attr('data-fv-layout', currentLayout);
-    $control.attr('title', `${widgetLabel} view: ${layoutLabel} (click to switch)`);
-    $control.attr('aria-label', `${widgetLabel} dashboard view: ${layoutLabel}. Click to switch.`);
+    try {
+        if (!window.localStorage) {
+            return;
+        }
+        window.localStorage.setItem(storageKey, enabled === true ? '1' : '0');
+    } catch (_error) {
+        // Ignore localStorage failures so dashboard rendering remains stable.
+    }
+};
+const getDashboardStartedOnlySelectorForType = (type) => (type === 'vm' ? 'input#vms' : 'input#apps');
+const isDashboardStartedOnlyEnabledForType = (type) => {
+    const selector = getDashboardStartedOnlySelectorForType(type);
+    const $toggle = $(selector).first();
+    return $toggle.length ? $toggle.is(':checked') : false;
+};
+const setDashboardStartedOnlyEnabledForType = (type, enabled) => {
+    const selector = getDashboardStartedOnlySelectorForType(type);
+    const $toggle = $(selector).first();
+    if (!$toggle.length) {
+        return false;
+    }
+    const nextValue = enabled === true;
+    if ($toggle.is(':checked') === nextValue) {
+        return true;
+    }
+    $toggle.prop('checked', nextValue);
+    $toggle.trigger('change');
+    queueLoadlistRefresh();
+    return true;
+};
+const getDashboardFolderCardsForType = (type) => {
+    const meta = dashboardTypeMeta(type);
+    return $(`${meta.tbodySelector} .folder-showcase-outer`);
+};
+const getDashboardFolderIdsForType = (type) => {
+    const ids = [];
+    getDashboardFolderCardsForType(type).each((_, node) => {
+        const id = resolveFolderIdFromCard($(node));
+        if (id) {
+            ids.push(id);
+        }
+    });
+    return ids;
+};
+const areAllDashboardFoldersExpandedForType = (type) => {
+    const $cards = getDashboardFolderCardsForType(type);
+    if (!$cards.length) {
+        return false;
+    }
+    let allExpanded = true;
+    $cards.each((_, node) => {
+        if ($(node).attr('expanded') !== 'true') {
+            allExpanded = false;
+            return false;
+        }
+        return true;
+    });
+    return allExpanded;
+};
+const toggleDashboardExpandAllForType = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const ids = getDashboardFolderIdsForType(resolvedType);
+    if (!ids.length) {
+        return;
+    }
+    const targetExpanded = !areAllDashboardFoldersExpandedForType(resolvedType);
+    for (const id of ids) {
+        toggleFolderExpansion(resolvedType, id, {
+            forceExpanded: targetExpanded,
+            persistExpandedState: true,
+            suppressAccordion: true
+        });
+    }
+};
+const openFolderViewPlusSettings = () => {
+    window.location.href = '/Settings/FolderViewPlus';
+};
+const syncDashboardWidgetLayoutQuickControlForType = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const widgetLabel = resolvedType === 'vm' ? 'VM' : 'Docker';
+    const currentLayout = normalizeDashboardPrefsForType(resolvedType).layout;
+    const layoutLabel = DASHBOARD_LAYOUT_LABELS[currentLayout] || currentLayout;
+    const $host = $(`.fv-dashboard-layout-inline-host[data-fv-dashboard-type="${resolvedType}"]`).first();
+    if (!$host.length) {
+        return;
+    }
+
+    const $layoutControl = $host.children('.fv-dashboard-layout-quick-rail').children('[data-fv-quick-action="layout-cycle"]').first();
+    if ($layoutControl.length) {
+        $layoutControl.attr('data-fv-layout', currentLayout);
+        $layoutControl.attr('title', `${widgetLabel} view: ${layoutLabel} (click to switch)`);
+        $layoutControl.attr('aria-label', `${widgetLabel} dashboard view: ${layoutLabel}. Click to switch.`);
+    }
+
+    const allExpanded = areAllDashboardFoldersExpandedForType(resolvedType);
+    const folderCount = getDashboardFolderCardsForType(resolvedType).length;
+    const $expandControl = $host.children('.fv-dashboard-layout-quick-rail').children('[data-fv-quick-action="expand-toggle"]').first();
+    if ($expandControl.length) {
+        $expandControl.toggleClass('is-active', allExpanded === true);
+        $expandControl.prop('disabled', folderCount === 0);
+        $expandControl.attr('title', allExpanded ? `${widgetLabel}: Collapse all folders` : `${widgetLabel}: Expand all folders`);
+        $expandControl.attr('aria-label', allExpanded ? `${widgetLabel}: collapse all folders` : `${widgetLabel}: expand all folders`);
+        const $icon = $expandControl.children('i.fa').first();
+        $icon.toggleClass('fa-angle-double-down', allExpanded !== true);
+        $icon.toggleClass('fa-angle-double-up', allExpanded === true);
+    }
+
+    const selector = getDashboardStartedOnlySelectorForType(resolvedType);
+    const hasStartedOnlyToggle = $(selector).length > 0;
+    const startedOnlyEnabled = hasStartedOnlyToggle && isDashboardStartedOnlyEnabledForType(resolvedType);
+    const $runningControl = $host.children('.fv-dashboard-layout-quick-rail').children('[data-fv-quick-action="running-only"]').first();
+    if ($runningControl.length) {
+        $runningControl.toggleClass('is-active', startedOnlyEnabled);
+        $runningControl.prop('disabled', !hasStartedOnlyToggle);
+        $runningControl.attr('title', `${widgetLabel}: Running-only ${startedOnlyEnabled ? 'enabled' : 'disabled'}`);
+        $runningControl.attr('aria-label', `${widgetLabel}: running-only ${startedOnlyEnabled ? 'enabled' : 'disabled'}`);
+    }
+
+    const healthEnabled = readDashboardHealthEmphasisStateForType(resolvedType);
+    const $healthControl = $host.children('.fv-dashboard-layout-quick-rail').children('[data-fv-quick-action="health-emphasis"]').first();
+    if ($healthControl.length) {
+        $healthControl.toggleClass('is-active', healthEnabled);
+        $healthControl.attr('title', `${widgetLabel}: Health emphasis ${healthEnabled ? 'enabled' : 'disabled'}`);
+        $healthControl.attr('aria-label', `${widgetLabel}: health emphasis ${healthEnabled ? 'enabled' : 'disabled'}`);
+    }
 };
 const saveDashboardLayoutPrefForType = async (type, prefsPayload) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
@@ -297,30 +433,79 @@ const ensureDashboardWidgetLayoutQuickSwitchForType = (type) => {
     const hostSelector = `.fv-dashboard-layout-inline-host[data-fv-dashboard-type="${resolvedType}"]`;
     let $host = $(hostSelector).first();
     if (!$host.length) {
-        $host = $(`<div class="fv-dashboard-layout-inline-host" data-fv-dashboard-type="${resolvedType}"></div>`);
+        $host = $(`<div class="fv-dashboard-layout-inline-host fv-dashboard-quick-rail-host" data-fv-dashboard-type="${resolvedType}"></div>`);
         $container.addClass('fv-dashboard-layout-inline-container');
         $container.prepend($host);
     }
-    const widgetLabel = resolvedType === 'vm' ? 'VM' : 'Docker';
-    const switchSelector = `.fv-dashboard-layout-quick[data-fv-dashboard-type="${resolvedType}"]`;
-    $(`${switchSelector}`).not($host.children('.fv-dashboard-layout-quick')).remove();
-    let $switch = $host.children('.fv-dashboard-layout-quick').first();
-    if (!$switch.length) {
-        $switch = $(
-            `<button type="button" class="fv-dashboard-layout-quick" data-fv-dashboard-type="${resolvedType}" title="${widgetLabel} folder layout view">` +
-                '<i class="fa fa-columns" aria-hidden="true"></i>' +
-            '</button>'
-        );
-        $switch.on('click.fvplusdashboardquick', () => {
-            const currentLayout = normalizeDashboardPrefsForType(resolvedType).layout;
-            const currentIndex = DASHBOARD_LAYOUT_MODES.indexOf(currentLayout);
-            const nextIndex = currentIndex < 0 ? 0 : ((currentIndex + 1) % DASHBOARD_LAYOUT_MODES.length);
-            void handleDashboardWidgetLayoutQuickSwitch(resolvedType, DASHBOARD_LAYOUT_MODES[nextIndex]);
+    if (!$host.hasClass('fv-dashboard-quick-rail-host')) {
+        $host.addClass('fv-dashboard-quick-rail-host');
+    }
+    let $rail = $host.children('.fv-dashboard-layout-quick-rail').first();
+    if (!$rail.length) {
+        $rail = $('<div class="fv-dashboard-layout-quick-rail" role="group" aria-label="Dashboard quick actions"></div>');
+        $host.append($rail);
+    }
+
+    const ensureQuickAction = (action, iconClass, label, extraClass = '') => {
+        let $button = $rail.children(`button[data-fv-quick-action="${action}"]`).first();
+        if (!$button.length) {
+            const className = `fv-dashboard-quick-action ${extraClass}`.trim();
+            $button = $(
+                `<button type="button" class="${className}" data-fv-dashboard-type="${resolvedType}" data-fv-quick-action="${action}" aria-label="${label}" title="${label}">` +
+                    `<i class="fa ${iconClass}" aria-hidden="true"></i>` +
+                '</button>'
+            );
+            $rail.append($button);
+        }
+        return $button;
+    };
+
+    ensureQuickAction('layout-cycle', 'fa-columns', 'Cycle layout view', 'fv-dashboard-layout-quick');
+    ensureQuickAction('expand-toggle', 'fa-angle-double-down', 'Expand all folders');
+    ensureQuickAction('running-only', 'fa-play-circle', 'Toggle running-only filter');
+    ensureQuickAction('health-emphasis', 'fa-heartbeat', 'Toggle health emphasis');
+    ensureQuickAction('open-settings', 'fa-cog', 'Open FolderView Plus settings');
+
+    if (!$rail.data('fvQuickActionBound')) {
+        $rail.on('click.fvplusdashboardquick', 'button.fv-dashboard-quick-action', (event) => {
+            const $button = $(event.currentTarget);
+            const action = String($button.attr('data-fv-quick-action') || '').trim();
+            const buttonType = String($button.attr('data-fv-dashboard-type') || '').trim() === 'vm' ? 'vm' : 'docker';
+            if (!action) {
+                return;
+            }
+            if (action === 'layout-cycle') {
+                const currentLayout = normalizeDashboardPrefsForType(buttonType).layout;
+                const currentIndex = DASHBOARD_LAYOUT_MODES.indexOf(currentLayout);
+                const nextIndex = currentIndex < 0 ? 0 : ((currentIndex + 1) % DASHBOARD_LAYOUT_MODES.length);
+                void handleDashboardWidgetLayoutQuickSwitch(buttonType, DASHBOARD_LAYOUT_MODES[nextIndex]);
+                return;
+            }
+            if (action === 'expand-toggle') {
+                toggleDashboardExpandAllForType(buttonType);
+                syncDashboardWidgetLayoutQuickControlForType(buttonType);
+                return;
+            }
+            if (action === 'running-only') {
+                const current = isDashboardStartedOnlyEnabledForType(buttonType);
+                setDashboardStartedOnlyEnabledForType(buttonType, !current);
+                syncDashboardWidgetLayoutQuickControlForType(buttonType);
+                return;
+            }
+            if (action === 'health-emphasis') {
+                const current = readDashboardHealthEmphasisStateForType(buttonType);
+                writeDashboardHealthEmphasisStateForType(buttonType, !current);
+                scheduleDashboardLayoutApplyForType(buttonType);
+                syncDashboardWidgetLayoutQuickControlForType(buttonType);
+                return;
+            }
+            if (action === 'open-settings') {
+                openFolderViewPlusSettings();
+            }
         });
+        $rail.data('fvQuickActionBound', true);
     }
-    if (!$switch.parent().is($host)) {
-        $host.append($switch);
-    }
+
     syncDashboardWidgetLayoutQuickControlForType(resolvedType);
 };
 const getDashboardCard = (type, id) => {
@@ -457,6 +642,7 @@ const applyDashboardLayoutStateForType = (type) => {
     $tbody.toggleClass('fv-dashboard-show-expand-toggle', nonClassicLayout && dashboardPrefs.expandToggle === true);
     $tbody.toggleClass('fv-dashboard-greyscale-enabled', nonClassicLayout && dashboardPrefs.greyscale === true);
     $tbody.toggleClass('fv-dashboard-hide-folder-label', nonClassicLayout && dashboardPrefs.folderLabel === false);
+    $tbody.toggleClass('fv-dashboard-health-emphasis-enabled', readDashboardHealthEmphasisStateForType(meta.type));
     ensureDashboardWidgetLayoutQuickSwitchForType(meta.type);
     $tbody.find('.folder-showcase-outer').each((_, node) => {
         const $card = $(node);
@@ -487,6 +673,22 @@ const scheduleDashboardLayoutApplyForType = (type) => {
         return;
     }
     dashboardLayoutRafByType[resolvedType] = window.setTimeout(runApply, 16);
+};
+const bindDashboardQuickActionSyncHandlers = () => {
+    if (dashboardQuickActionSyncBound) {
+        return;
+    }
+    $(document).on('change.fvplusdashboardquick', 'input#apps, input#vms', (event) => {
+        const id = String(event?.currentTarget?.id || '').trim().toLowerCase();
+        if (id === 'apps') {
+            syncDashboardWidgetLayoutQuickControlForType('docker');
+            return;
+        }
+        if (id === 'vms') {
+            syncDashboardWidgetLayoutQuickControlForType('vm');
+        }
+    });
+    dashboardQuickActionSyncBound = true;
 };
 
 const getPrefsOrderedFolderMap = (folders, prefs) => {
@@ -2640,6 +2842,8 @@ let dashboardQuickSwitchRetryTimerByType = {
     docker: 0,
     vm: 0
 };
+let dashboardQuickActionSyncBound = false;
+bindDashboardQuickActionSyncHandlers();
 
 const queueLoadlistRefresh = () => {
     if (queuedLoadlistTimer) {

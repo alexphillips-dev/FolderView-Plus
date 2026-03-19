@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.19.10">
-<!ENTITY md5 "d8b79c7d7bbc27359c0319ec32c95e0c">
+<!ENTITY version "2026.03.19.11">
+<!ENTITY md5 "9f7e2f5aa4b846c294bfcb5f37848273">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.19.11
+- Maintenance: Render dashboard layout switch inside widget body for reliability.
+
 
 ###2026.03.19.10
 - Maintenance: Render dashboard layout switch as header icon button.

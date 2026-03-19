@@ -112,6 +112,14 @@ test('dashboard runtime supports layout classes, accordion guards, and overflow 
     assert.match(dashboardScript, /scheduleDashboardLayoutApplyForType\('vm'\)/);
 });
 
+test('dashboard quick rail collapse detection is row-visibility based and not icon-heuristic based', () => {
+    assert.match(dashboardScript, /const isDashboardWidgetCollapsedForType = \(type\) =>/);
+    assert.match(dashboardScript, /const \$updatedRow = getDashboardWidgetUpdatedRowForType\(resolvedType\);/);
+    assert.match(dashboardScript, /return !isDashboardNodeVisible\(updatedNode\);/);
+    assert.doesNotMatch(dashboardScript, /iconClass\.includes\('angle-down'\)/);
+    assert.doesNotMatch(dashboardScript, /iconClass\.includes\('chevron-down'\)/);
+});
+
 test('dashboard css includes non-classic controls and overflow rendering modes', () => {
     assert.match(dashboardCss, /\.fv-dashboard-layout-inline-host/);
     assert.match(dashboardCss, /\.fv-dashboard-layout-quick/);

@@ -319,11 +319,7 @@ const isDashboardNodeVisible = (node) => {
         }
         current = current.parentElement;
     }
-    const rect = typeof node.getBoundingClientRect === 'function' ? node.getBoundingClientRect() : null;
-    if (!rect) {
-        return false;
-    }
-    return rect.width > 1 && rect.height > 1;
+    return node.getClientRects().length > 0;
 };
 const isDashboardWidgetCollapsedForType = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
@@ -332,28 +328,18 @@ const isDashboardWidgetCollapsedForType = (type) => {
         return true;
     }
     const $updatedRow = getDashboardWidgetUpdatedRowForType(resolvedType);
-    if ($updatedRow.length) {
-        const updatedNode = $updatedRow.get(0);
-        const style = updatedNode ? window.getComputedStyle(updatedNode) : null;
-        if (style && (style.display === 'none' || style.visibility === 'hidden')) {
-            return true;
-        }
-        const rect = updatedNode && typeof updatedNode.getBoundingClientRect === 'function'
-            ? updatedNode.getBoundingClientRect()
-            : null;
-        if (rect && (rect.width < 8 || rect.height < 8)) {
-            return true;
-        }
-    }
-    const $headerRow = $tbody.children('tr').not('.updated').first();
-    const iconClass = String(
-        $headerRow.find('a.switch i, .switch i').first().attr('class')
-        || ''
-    ).toLowerCase();
-    if (iconClass.includes('angle-down') || iconClass.includes('chevron-down')) {
+    if (!$updatedRow.length) {
         return true;
     }
-    return false;
+    const updatedNode = $updatedRow.get(0);
+    if (!updatedNode) {
+        return true;
+    }
+    const style = window.getComputedStyle(updatedNode);
+    if (!style || style.display === 'none' || style.visibility === 'hidden') {
+        return true;
+    }
+    return !isDashboardNodeVisible(updatedNode);
 };
 const getFirstVisibleDashboardFolderCardForType = (type) => {
     const $cards = getDashboardFolderCardsForType(type);

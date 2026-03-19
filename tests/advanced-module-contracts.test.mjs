@@ -17,7 +17,7 @@ test('advanced module loader uses per-module stale state with scoped tab targeti
     assert.match(script, /const createAdvancedModuleLoadEntry = \(\) => \(\{/);
     assert.match(script, /modules:\s*\{\s*docker_backups:/);
     assert.match(script, /const getRequestedAdvancedModuleKeys = \(\{/);
-    assert.match(script, /const ensureAdvancedDataLoaded = async \(\{ force = false \} = \{\}\) =>/);
+    assert.match(script, /const ensureAdvancedDataLoaded = async \(options = \{\}\) =>/);
     assert.match(script, /Promise\.allSettled\(requestedModules\.map\(\(moduleKey\) => runModuleRefresh\(moduleKey\)\)\)/);
     assert.match(script, /const isAdvancedModuleStale = \(moduleKey, force = false\) =>/);
 });

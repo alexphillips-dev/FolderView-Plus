@@ -290,6 +290,17 @@ const getDashboardFolderCardsForType = (type) => {
     const meta = dashboardTypeMeta(type);
     return $(`${meta.tbodySelector} .folder-showcase-outer`);
 };
+const getDashboardWidgetBodyForType = (type) => {
+    const meta = dashboardTypeMeta(type);
+    return $(meta.tbodySelector).first();
+};
+const getDashboardWidgetUpdatedRowForType = (type) => {
+    const $tbody = getDashboardWidgetBodyForType(type);
+    if (!$tbody.length) {
+        return $();
+    }
+    return $tbody.children('tr.updated').first();
+};
 const isDashboardNodeVisible = (node) => {
     if (!node || !(node instanceof Element)) {
         return false;
@@ -308,7 +319,41 @@ const isDashboardNodeVisible = (node) => {
         }
         current = current.parentElement;
     }
-    return node.getClientRects().length > 0;
+    const rect = typeof node.getBoundingClientRect === 'function' ? node.getBoundingClientRect() : null;
+    if (!rect) {
+        return false;
+    }
+    return rect.width > 1 && rect.height > 1;
+};
+const isDashboardWidgetCollapsedForType = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const $tbody = getDashboardWidgetBodyForType(resolvedType);
+    if (!$tbody.length) {
+        return true;
+    }
+    const $updatedRow = getDashboardWidgetUpdatedRowForType(resolvedType);
+    if ($updatedRow.length) {
+        const updatedNode = $updatedRow.get(0);
+        const style = updatedNode ? window.getComputedStyle(updatedNode) : null;
+        if (style && (style.display === 'none' || style.visibility === 'hidden')) {
+            return true;
+        }
+        const rect = updatedNode && typeof updatedNode.getBoundingClientRect === 'function'
+            ? updatedNode.getBoundingClientRect()
+            : null;
+        if (rect && (rect.width < 8 || rect.height < 8)) {
+            return true;
+        }
+    }
+    const $headerRow = $tbody.children('tr').not('.updated').first();
+    const iconClass = String(
+        $headerRow.find('a.switch i, .switch i').first().attr('class')
+        || ''
+    ).toLowerCase();
+    if (iconClass.includes('angle-down') || iconClass.includes('chevron-down')) {
+        return true;
+    }
+    return false;
 };
 const getFirstVisibleDashboardFolderCardForType = (type) => {
     const $cards = getDashboardFolderCardsForType(type);
@@ -325,7 +370,67 @@ const getFirstVisibleDashboardFolderCardForType = (type) => {
     });
     return firstVisible;
 };
+const ensureDashboardWidgetInlineHostMountForType = (type, hostOverride = null) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const $container = resolveDashboardWidgetInlineHostForType(resolvedType);
+    const $host = hostOverride && hostOverride.length
+        ? hostOverride
+        : $(`.fv-dashboard-layout-inline-host[data-fv-dashboard-type="${resolvedType}"]`).first();
+    if (!$container.length || !$host.length) {
+        return $container;
+    }
+    if (!$host.parent().is($container)) {
+        $container.prepend($host);
+    }
+    $container.addClass('fv-dashboard-layout-inline-container');
+    return $container;
+};
 const hasVisibleDashboardFolderCardsForType = (type) => !!getFirstVisibleDashboardFolderCardForType(type);
+const syncDashboardWidgetQuickRailFitForType = (type, parentRect, offsetTop) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const $host = $(`.fv-dashboard-layout-inline-host[data-fv-dashboard-type="${resolvedType}"]`).first();
+    if (!$host.length) {
+        return;
+    }
+    const $rail = $host.children('.fv-dashboard-layout-quick-rail').first();
+    if (!$rail.length) {
+        return;
+    }
+    const availableHeight = Math.max(0, Math.floor((parentRect?.height || 0) - offsetTop - 2));
+    if (availableHeight <= 0) {
+        $host.css('max-height', '');
+        $rail.css('max-height', '');
+        $rail.removeClass('is-clamped is-compact-grid');
+        return;
+    }
+    $host.css('max-height', `${availableHeight}px`);
+    $rail.css('max-height', `${availableHeight}px`);
+
+    const $buttons = $rail.children('button.fv-dashboard-quick-action');
+    const buttonCount = $buttons.length;
+    const buttonNode = $buttons.first().get(0);
+    const buttonStyle = buttonNode ? window.getComputedStyle(buttonNode) : null;
+    const buttonHeight = buttonStyle
+        ? Math.max(10, Math.round(parseFloat(buttonStyle.height) || 16))
+        : 16;
+    const railNode = $rail.get(0);
+    const railStyle = railNode ? window.getComputedStyle(railNode) : null;
+    const rowGap = railStyle
+        ? Math.max(0, Math.round(parseFloat(railStyle.rowGap || railStyle.gap || '2') || 2))
+        : 2;
+    const singleRows = buttonCount;
+    const singleHeight = singleRows > 0
+        ? (singleRows * buttonHeight) + (Math.max(0, singleRows - 1) * rowGap)
+        : 0;
+    const gridRows = Math.ceil(buttonCount / 2);
+    const gridHeight = gridRows > 0
+        ? (gridRows * buttonHeight) + (Math.max(0, gridRows - 1) * rowGap)
+        : 0;
+    const useCompactGrid = availableHeight < singleHeight && availableHeight >= gridHeight;
+    $rail.toggleClass('is-compact-grid', useCompactGrid);
+    const requiredHeight = useCompactGrid ? gridHeight : singleHeight;
+    $rail.toggleClass('is-clamped', requiredHeight > availableHeight);
+};
 const syncDashboardWidgetQuickRailAlignmentForType = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     const $host = $(`.fv-dashboard-layout-inline-host[data-fv-dashboard-type="${resolvedType}"]`).first();
@@ -337,12 +442,15 @@ const syncDashboardWidgetQuickRailAlignmentForType = (type) => {
     const firstVisibleCard = getFirstVisibleDashboardFolderCardForType(resolvedType);
     if (!parentNode || !firstVisibleCard || !isDashboardNodeVisible(parentNode)) {
         $host.css('top', '');
+        $host.css('max-height', '');
+        $host.children('.fv-dashboard-layout-quick-rail').first().css('max-height', '').removeClass('is-clamped is-compact-grid');
         return;
     }
     const parentRect = parentNode.getBoundingClientRect();
     const cardRect = firstVisibleCard.getBoundingClientRect();
     const offsetTop = Math.max(0, Math.round(cardRect.top - parentRect.top));
     $host.css('top', `${offsetTop}px`);
+    syncDashboardWidgetQuickRailFitForType(resolvedType, parentRect, offsetTop);
 };
 const syncDashboardWidgetQuickRailVisibilityForType = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
@@ -350,15 +458,21 @@ const syncDashboardWidgetQuickRailVisibilityForType = (type) => {
     if (!$host.length) {
         return;
     }
+    ensureDashboardWidgetInlineHostMountForType(resolvedType, $host);
     const hostNode = $host.get(0);
     const parentNode = hostNode && hostNode.parentElement ? hostNode.parentElement : null;
     const shouldShow = !!parentNode
         && isDashboardNodeVisible(parentNode)
+        && isDashboardWidgetCollapsedForType(resolvedType) !== true
         && hasVisibleDashboardFolderCardsForType(resolvedType);
     $host.toggleClass('is-hidden', !shouldShow);
     if (shouldShow) {
         syncDashboardWidgetQuickRailAlignmentForType(resolvedType);
+        return;
     }
+    $host.css('top', '');
+    $host.css('max-height', '');
+    $host.children('.fv-dashboard-layout-quick-rail').first().css('max-height', '').removeClass('is-clamped is-compact-grid');
 };
 const getDashboardFolderIdsForType = (type) => {
     const ids = [];
@@ -571,11 +685,8 @@ const ensureDashboardWidgetLayoutQuickSwitchForType = (type) => {
     let $host = $(hostSelector).first();
     if (!$host.length) {
         $host = $(`<div class="fv-dashboard-layout-inline-host fv-dashboard-quick-rail-host" data-fv-dashboard-type="${resolvedType}"></div>`);
-        $container.prepend($host);
-    } else if (!$host.parent().is($container)) {
-        $container.prepend($host);
     }
-    $container.addClass('fv-dashboard-layout-inline-container');
+    ensureDashboardWidgetInlineHostMountForType(resolvedType, $host);
     if (!$host.hasClass('fv-dashboard-quick-rail-host')) {
         $host.addClass('fv-dashboard-quick-rail-host');
     }
@@ -872,6 +983,8 @@ const bindDashboardWidgetVisibilityObserverForType = (type) => {
         });
     }
     observer.observe(containerNode, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'hidden', 'aria-hidden'],
         childList: true,
         subtree: true
     });
@@ -895,8 +1008,12 @@ const bindDashboardQuickActionSyncHandlers = () => {
         }
     });
     $(document).on('click.fvplusdashboardquickcollapse', 'a.switch, .switch', () => {
+        scheduleDashboardWidgetVisibilitySyncForType('docker', 0);
+        scheduleDashboardWidgetVisibilitySyncForType('vm', 0);
         scheduleDashboardWidgetVisibilitySyncForType('docker', 80);
         scheduleDashboardWidgetVisibilitySyncForType('vm', 80);
+        scheduleDashboardWidgetVisibilitySyncForType('docker', 220);
+        scheduleDashboardWidgetVisibilitySyncForType('vm', 220);
     });
     $(window).on('resize.fvplusdashboardquick orientationchange.fvplusdashboardquick', () => {
         scheduleDashboardWidgetVisibilitySyncForType('docker', 0);

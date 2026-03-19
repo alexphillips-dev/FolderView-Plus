@@ -74,6 +74,9 @@ test('dashboard runtime supports layout classes, accordion guards, and overflow 
     assert.match(dashboardScript, /const DASHBOARD_LAYOUT_MODES = \['classic', 'fullwidth', 'accordion', 'inset', 'compactmatrix'\]/);
     assert.match(dashboardScript, /const ensureDashboardWidgetLayoutQuickSwitchForType = \(type\) =>/);
     assert.match(dashboardScript, /const resolveDashboardWidgetInlineHostForType = \(type\) =>/);
+    assert.match(dashboardScript, /const isDashboardWidgetCollapsedForType = \(type\) =>/);
+    assert.match(dashboardScript, /const ensureDashboardWidgetInlineHostMountForType = \(type, hostOverride = null\) =>/);
+    assert.match(dashboardScript, /const syncDashboardWidgetQuickRailFitForType = \(type, parentRect, offsetTop\) =>/);
     assert.match(dashboardScript, /fv-dashboard-layout-inline-host/);
     assert.match(dashboardScript, /fv-dashboard-layout-quick-rail/);
     assert.match(dashboardScript, /ensureQuickAction\('layout-cycle'/);
@@ -113,6 +116,8 @@ test('dashboard css includes non-classic controls and overflow rendering modes',
     assert.match(dashboardCss, /\.fv-dashboard-layout-inline-host/);
     assert.match(dashboardCss, /\.fv-dashboard-layout-quick/);
     assert.match(dashboardCss, /\.fv-dashboard-layout-quick-rail/);
+    assert.match(dashboardCss, /\.fv-dashboard-layout-quick-rail\.is-clamped/);
+    assert.match(dashboardCss, /\.fv-dashboard-layout-quick-rail\.is-compact-grid/);
     assert.match(dashboardCss, /\.fv-dashboard-quick-action/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-health-emphasis-enabled/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-density-compact/);

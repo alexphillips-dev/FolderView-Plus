@@ -88,6 +88,8 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    max-height: calc(100% - 2px);
+    overflow: hidden;
     pointer-events: none;
 }
 
@@ -100,7 +102,21 @@
     flex-direction: column;
     align-items: flex-end;
     gap: 2px;
+    max-height: 100%;
+    overflow: hidden;
     pointer-events: auto;
+}
+
+.fv-dashboard-layout-quick-rail.is-compact-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 16px));
+    justify-content: end;
+    align-content: start;
+}
+
+.fv-dashboard-layout-quick-rail.is-clamped {
+    overflow-y: auto;
+    scrollbar-width: thin;
 }
 
 .fv-dashboard-quick-action {
@@ -447,6 +463,10 @@ body.fvplus-performance-mode .tooltipster-content {
 
     .fv-dashboard-layout-quick-rail {
         gap: 1px;
+    }
+
+    .fv-dashboard-layout-quick-rail.is-compact-grid {
+        grid-template-columns: repeat(2, minmax(0, 14px));
     }
 
     .fv-dashboard-quick-action {

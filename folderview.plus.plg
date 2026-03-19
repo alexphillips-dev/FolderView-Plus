@@ -17,7 +17,7 @@
 - Feature: Added dashboard widget quick actions for `Compact density` and `Reset view` in the right-side action rail.
 - UX: Compact density now applies a per-widget runtime class to tighten row spacing and icon footprint for quicker scanning.
 - UX: `Reset view` now collapses all expanded folders and clears running-only, health emphasis, compact density, and expansion-memory state for the active widget.
-- Regression: Extended dashboard layout/runtime guards to lock these quick-action controls against regressions.
+- Regression guard: Extended dashboard layout/runtime guards to lock these quick-action controls against regressions.
 
 
 ###2026.03.19.14

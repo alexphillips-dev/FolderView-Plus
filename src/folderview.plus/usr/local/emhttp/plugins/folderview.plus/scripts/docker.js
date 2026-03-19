@@ -28,6 +28,41 @@ const normalizeStatusHexColor = (value, fallback) => {
     }
     return trimmed.toLowerCase();
 };
+const FOLDER_STATUS_COLOR_STYLE_PROPS = Object.freeze({
+    started: '--fvplus-folder-status-started',
+    paused: '--fvplus-folder-status-paused',
+    stopped: '--fvplus-folder-status-stopped'
+});
+const getFolderStatusColorOverrides = (settings) => {
+    const source = settings && typeof settings === 'object' ? settings : {};
+    const parsedStarted = normalizeStatusHexColor(source.status_color_started, '');
+    const parsedPaused = normalizeStatusHexColor(source.status_color_paused, '');
+    const parsedStopped = normalizeStatusHexColor(source.status_color_stopped, '');
+    return {
+        started: parsedStarted && parsedStarted !== localDefaultFolderStatusColors.started ? parsedStarted : '',
+        paused: parsedPaused && parsedPaused !== localDefaultFolderStatusColors.paused ? parsedPaused : '',
+        stopped: parsedStopped && parsedStopped !== localDefaultFolderStatusColors.stopped ? parsedStopped : ''
+    };
+};
+const applyFolderStatusColorOverrides = ($folderRow, settings) => {
+    if (!$folderRow || !$folderRow.length || !$folderRow[0] || !$folderRow[0].style) {
+        return;
+    }
+    const style = $folderRow[0].style;
+    const overrides = getFolderStatusColorOverrides(settings);
+    style.removeProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.started);
+    style.removeProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.paused);
+    style.removeProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.stopped);
+    if (overrides.started) {
+        style.setProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.started, overrides.started);
+    }
+    if (overrides.paused) {
+        style.setProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.paused, overrides.paused);
+    }
+    if (overrides.stopped) {
+        style.setProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.stopped, overrides.stopped);
+    }
+};
 const applyPreviewBorderStyle = (previewNode, settings) => {
     if (!previewNode) return;
     const source = settings && typeof settings === 'object' ? settings : {};
@@ -1868,7 +1903,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     const hoverClass = folder.settings.preview_hover && !FOLDER_VIEW_TOUCH_MODE ? 'hover' : '';
     const safeFolderIcon = sanitizeImageSrc(folder.icon);
     const safeFolderName = escapeHtml(folder.name);
-    const fld = `<tr class="sortable folder-id-${id} ${hoverClass} folder"><td class="ct-name folder-name"><div class="folder-name-sub"><i class="fa fa-arrows-v mover orange-text"></i><span class="outer folder-outer"><span id="${id}" onclick="addDockerFolderContext('${id}')" class="hand folder-hand"><img src="${safeFolderIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span><span class="inner folder-inner"><span class="appname" style="display: none;"><a>folder-${id}</a></span><a class="exec folder-appname" onclick='editFolder("${id}")'>${safeFolderName}</a><br><i id="load-folder-${id}" class="fa fa-square stopped red-text folder-load-status"></i><span class="state folder-state"> ${$.i18n('stopped')}</span></span></span><button class="dropDown-${id} folder-dropdown" onclick="dropDownButton('${id}')" ><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div></td><td class="updatecolumn folder-update"><span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i> ${$.i18n('up-to-date')}</span><div class="advanced" style="display: ${advanced ? 'block' : 'none'};"><a class="exec" onclick="forceUpdateFolder('${id}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i> ${$.i18n('force-update')}</span></a></div></td><td colspan="${colspan}"><div class="folder-storage"></div><div class="folder-preview"></div></td><td class="advanced folder-advanced" ${advanced ? 'style="display: table-cell;"' : ''}><span class="cpu-folder-${id} folder-cpu">0%</span><div class="usage-disk mm folder-load"><span id="cpu-folder-${id}" class="folder-cpu-bar" style="width:0%"></span><span></span></div><br><span class="mem-folder-${id} folder-mem">0 / 0</span></td><td class="folder-autostart"><input type="checkbox" id="folder-${id}-auto" class="autostart" style="display:none"><div style="clear:left"></div></td><td></td></tr>`;
+    const fld = `<tr class="sortable folder-id-${id} ${hoverClass} folder"><td class="ct-name folder-name"><div class="folder-name-sub"><i class="fa fa-arrows-v mover orange-text"></i><span class="outer folder-outer"><span id="${id}" onclick="addDockerFolderContext('${id}')" class="hand folder-hand"><img src="${safeFolderIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span><span class="inner folder-inner"><span class="appname" style="display: none;"><a>folder-${id}</a></span><a class="exec folder-appname" onclick='editFolder("${id}")'>${safeFolderName}</a><br><i id="load-folder-${id}" class="fa fa-square stopped folder-load-status"></i><span class="state folder-state fv-folder-state-stopped"> ${$.i18n('stopped')}</span></span></span><button class="dropDown-${id} folder-dropdown" onclick="dropDownButton('${id}')" ><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div></td><td class="updatecolumn folder-update"><span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i> ${$.i18n('up-to-date')}</span><div class="advanced" style="display: ${advanced ? 'block' : 'none'};"><a class="exec" onclick="forceUpdateFolder('${id}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i> ${$.i18n('force-update')}</span></a></div></td><td colspan="${colspan}"><div class="folder-storage"></div><div class="folder-preview"></div></td><td class="advanced folder-advanced" ${advanced ? 'style="display: table-cell;"' : ''}><span class="cpu-folder-${id} folder-cpu">0%</span><div class="usage-disk mm folder-load"><span id="cpu-folder-${id}" class="folder-cpu-bar" style="width:0%"></span><span></span></div><br><span class="mem-folder-${id} folder-mem">0 / 0</span></td><td class="folder-autostart"><input type="checkbox" id="folder-${id}-auto" class="autostart" style="display:none"><div style="clear:left"></div></td><td></td></tr>`;
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): colspan=${colspan}. Generated folder HTML (fld).`);
 
     if (positionInMainOrder === 0) {
@@ -2586,27 +2621,25 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): hideEmptyFolders enabled, removed empty folder row.`);
         return remBefore;
     }
-    const statusColors = typeof utils.getFolderStatusColors === 'function'
-        ? utils.getFolderStatusColors(folder.settings)
-        : localDefaultFolderStatusColors;
-    const $folderIcon = $(`tr.folder-id-${id} i#load-folder-${id}`);
-    const $folderState = $(`tr.folder-id-${id} span.folder-state`);
+    const $folderRow = $(`tr.folder-id-${id}`);
+    applyFolderStatusColorOverrides($folderRow, folder.settings);
+    const $folderIcon = $folderRow.find(`i#load-folder-${id}`);
+    const $folderState = $folderRow.find('span.folder-state');
     $folderState.removeClass('fv-folder-state-started fv-folder-state-paused fv-folder-state-stopped');
-    $folderState.css('color', '');
-    $folderIcon.show().css('color', '');
+    $folderIcon.show();
     let folderStatusKind = 'stopped';
     if (started > 0) {
         folderStatusKind = 'running';
-        $folderIcon.attr('class', 'fa fa-play started folder-load-status').css('color', statusColors.started);
-        $folderState.text(`${started}/${total} ${$.i18n('started')}`).addClass('fv-folder-state-started').css('color', statusColors.started);
+        $folderIcon.attr('class', 'fa fa-play started folder-load-status');
+        $folderState.text(`${started}/${total} ${$.i18n('started')}`).addClass('fv-folder-state-started');
     } else if (paused > 0) {
         folderStatusKind = 'paused';
-        $folderIcon.attr('class', 'fa fa-pause paused folder-load-status').css('color', statusColors.paused);
-        $folderState.text(`${paused}/${total} ${$.i18n('paused')}`).addClass('fv-folder-state-paused').css('color', statusColors.paused);
+        $folderIcon.attr('class', 'fa fa-pause paused folder-load-status');
+        $folderState.text(`${paused}/${total} ${$.i18n('paused')}`).addClass('fv-folder-state-paused');
     } else {
         folderStatusKind = 'stopped';
-        $folderIcon.attr('class', 'fa fa-square stopped folder-load-status').css('color', statusColors.stopped);
-        $folderState.text(`${stopped}/${total} ${$.i18n('stopped')}`).addClass('fv-folder-state-stopped').css('color', statusColors.stopped);
+        $folderIcon.attr('class', 'fa fa-square stopped folder-load-status');
+        $folderState.text(`${stopped}/${total} ${$.i18n('stopped')}`).addClass('fv-folder-state-stopped');
     }
     const badgePrefs = folderTypePrefs?.badges || {};
     const showRunningBadge = badgePrefs.running !== false;
@@ -2804,23 +2837,21 @@ const updateFolderRowStatusFromContainers = (id, folder, runtimeContainers) => {
     }
 
     const total = containerEntries.length;
-    const statusColors = typeof utils.getFolderStatusColors === 'function'
-        ? utils.getFolderStatusColors(folder.settings)
-        : localDefaultFolderStatusColors;
-    const $folderIcon = $(`tr.folder-id-${id} i#load-folder-${id}`);
-    const $folderState = $(`tr.folder-id-${id} span.folder-state`);
+    const $folderRow = $(`tr.folder-id-${id}`);
+    applyFolderStatusColorOverrides($folderRow, folder.settings);
+    const $folderIcon = $folderRow.find(`i#load-folder-${id}`);
+    const $folderState = $folderRow.find('span.folder-state');
     $folderState.removeClass('fv-folder-state-started fv-folder-state-paused fv-folder-state-stopped');
-    $folderState.css('color', '');
-    $folderIcon.show().css('color', '');
+    $folderIcon.show();
     if (started > 0) {
-        $folderIcon.attr('class', 'fa fa-play started folder-load-status').css('color', statusColors.started);
-        $folderState.text(`${started}/${total} ${$.i18n('started')}`).addClass('fv-folder-state-started').css('color', statusColors.started);
+        $folderIcon.attr('class', 'fa fa-play started folder-load-status');
+        $folderState.text(`${started}/${total} ${$.i18n('started')}`).addClass('fv-folder-state-started');
     } else if (paused > 0) {
-        $folderIcon.attr('class', 'fa fa-pause paused folder-load-status').css('color', statusColors.paused);
-        $folderState.text(`${paused}/${total} ${$.i18n('paused')}`).addClass('fv-folder-state-paused').css('color', statusColors.paused);
+        $folderIcon.attr('class', 'fa fa-pause paused folder-load-status');
+        $folderState.text(`${paused}/${total} ${$.i18n('paused')}`).addClass('fv-folder-state-paused');
     } else {
-        $folderIcon.attr('class', 'fa fa-square stopped folder-load-status').css('color', statusColors.stopped);
-        $folderState.text(`${stopped}/${total} ${$.i18n('stopped')}`).addClass('fv-folder-state-stopped').css('color', statusColors.stopped);
+        $folderIcon.attr('class', 'fa fa-square stopped folder-load-status');
+        $folderState.text(`${stopped}/${total} ${$.i18n('stopped')}`).addClass('fv-folder-state-stopped');
     }
 
     const expanded = folder?.status?.expanded === true;

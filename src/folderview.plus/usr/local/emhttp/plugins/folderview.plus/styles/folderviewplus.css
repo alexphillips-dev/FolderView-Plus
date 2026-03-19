@@ -1,3 +1,9 @@
+:root {
+    --fvplus-settings-text-primary: var(--text, currentColor);
+    --fvplus-settings-text-muted: #cfd9e7;
+    --fvplus-settings-text-dim: #b7c5d7;
+}
+
 .custom-css {
     display: flex;
     flex-direction: row;
@@ -3745,10 +3751,10 @@ body.fv-mobile-compact .fv-setup-field-grid {
     background: rgba(8, 12, 18, 0.985);
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
     overflow: hidden;
-    color: #edf3fb;
-    --fv-wizard-text-primary: #edf3fb;
-    --fv-wizard-text-muted: #cfd9e7;
-    --fv-wizard-text-dim: #b7c5d7;
+    color: var(--fvplus-settings-text-primary);
+    --fv-wizard-text-primary: var(--fvplus-settings-text-primary);
+    --fv-wizard-text-muted: var(--fvplus-settings-text-muted);
+    --fv-wizard-text-dim: var(--fvplus-settings-text-dim);
     --fv-wizard-font-103: 1.03rem;
     --fv-wizard-font-108: 1.08rem;
     --fv-wizard-font-115: 1.15rem;

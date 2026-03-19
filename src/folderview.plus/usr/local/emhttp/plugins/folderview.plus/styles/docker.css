@@ -1,6 +1,21 @@
 :root {
-    --folder-view3-graph-cpu: #2b8da3;
-    --folder-view3-graph-mem: #5d6db6;
+    --fvplus-theme-foreground: var(--text, currentColor);
+    --fvplus-status-started: var(--fvplus-theme-foreground);
+    --fvplus-status-paused: #b8860b;
+    --fvplus-status-stopped: #ff4d4d;
+    --fvplus-graph-cpu: var(--folder-view3-graph-cpu, #2b8da3);
+    --fvplus-graph-mem: var(--folder-view3-graph-mem, #5d6db6);
+    --fvplus-col-resizer-line: rgba(142, 158, 184, 0.84);
+    --fvplus-health-badge-border: rgba(255, 255, 255, 0.2);
+    --fvplus-health-badge-bg: rgba(255, 255, 255, 0.04);
+    --fvplus-health-warning-border: rgba(255, 193, 94, 0.58);
+    --fvplus-health-warning-color: #ffc15e;
+    --fvplus-health-danger-border: rgba(255, 116, 116, 0.62);
+    --fvplus-health-danger-color: #ff7474;
+    --fvplus-preview-border-muted: 1px solid rgba(224, 230, 239, 0.22);
+    --fvplus-surface-tint: rgba(128, 128, 128, 0.1);
+    --fvplus-hover-bg: rgba(128, 128, 128, 0.2);
+    --fvplus-border: 1px solid rgba(128, 128, 128, 0.3);
     --tooltip-spacing: 5px;
     --fvplus-docker-app-column-width: 142px;
     --fvplus-docker-app-column-width-mobile: 118px;
@@ -50,7 +65,7 @@ th.fvplus-runtime-resizable .fvplus-runtime-col-resizer::before {
     left: 50%;
     width: 2px;
     transform: translateX(-50%);
-    background: rgba(142, 158, 184, 0.84);
+    background: var(--fvplus-col-resizer-line);
     opacity: 0.78;
     transition: opacity 120ms ease-in-out;
 }
@@ -70,24 +85,24 @@ body.fvplus-docker-column-resize-active th.fvplus-runtime-resizable .fvplus-runt
 .fv-runtime-health-badge {
     margin: 0.35rem 0 0.5rem 0;
     padding: 0.26rem 0.58rem;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid var(--fvplus-health-badge-border);
     border-radius: 999px;
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
     font-size: 1.03rem;
     opacity: 0.92;
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--fvplus-health-badge-bg);
 }
 
 .fv-runtime-health-badge.is-warning {
-    border-color: rgba(255, 193, 94, 0.58);
-    color: #ffc15e;
+    border-color: var(--fvplus-health-warning-border);
+    color: var(--fvplus-health-warning-color);
 }
 
 .fv-runtime-health-badge.is-danger {
-    border-color: rgba(255, 116, 116, 0.62);
-    color: #ff7474;
+    border-color: var(--fvplus-health-danger-border);
+    color: var(--fvplus-health-danger-color);
 }
 
 /* --- General Folder Styles --- */
@@ -216,15 +231,27 @@ td.ct-name.folder-name > .folder-name-sub {
 }
 
 span.folder-state.fv-folder-state-started {
-    color: #ffffff;
+    color: var(--fvplus-folder-status-started, var(--fvplus-status-started));
 }
 
 span.folder-state.fv-folder-state-paused {
-    color: #b8860b;
+    color: var(--fvplus-folder-status-paused, var(--fvplus-status-paused));
 }
 
 span.folder-state.fv-folder-state-stopped {
-    color: #ff4d4d;
+    color: var(--fvplus-folder-status-stopped, var(--fvplus-status-stopped));
+}
+
+i.folder-load-status.started {
+    color: var(--fvplus-folder-status-started, var(--fvplus-status-started));
+}
+
+i.folder-load-status.paused {
+    color: var(--fvplus-folder-status-paused, var(--fvplus-status-paused));
+}
+
+i.folder-load-status.stopped {
+    color: var(--fvplus-folder-status-stopped, var(--fvplus-status-stopped));
 }
 
 .folder-storage {
@@ -237,7 +264,7 @@ span.folder-state.fv-folder-state-stopped {
 
 tr.folder.fv-parent-collapsed div.folder-preview,
 tr.folder.fv-folder-is-child div.folder-preview {
-    border: 1px solid rgba(224, 230, 239, 0.22);
+    border: var(--fvplus-preview-border-muted);
 }
 
 tr.folder.fv-parent-expanded div.folder-preview {
@@ -408,10 +435,10 @@ div.folder-preview-4 span.outer {
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
-    border: 1px solid rgba(128, 128, 128, 0.3);
+    border: var(--fvplus-border);
     border-radius: 5px;
     padding: var(--tooltip-spacing);
-    background-color: rgba(128, 128, 128, 0.1);
+    background-color: var(--fvplus-surface-tint);
     gap: var(--tooltip-spacing);
     flex-shrink: 0;
 }
@@ -446,16 +473,16 @@ div.folder-preview-4 span.outer {
 
 .status-header-version {
     border-radius: 5px 0 0 5px;
-    background-color: rgba(128, 128, 128, 0.2);
+    background-color: var(--fvplus-hover-bg);
 }
 
 .status-header-stats {
-    background-color: rgba(128, 128, 128, 0.2);
+    background-color: var(--fvplus-hover-bg);
 }
 
 .status-header-autostart {
     border-radius: 0 5px 5px 0;
-    background-color: rgba(128, 128, 128, 0.2);
+    background-color: var(--fvplus-hover-bg);
 }
 
 .preview-status td {
@@ -504,7 +531,7 @@ div.folder-preview-4 span.outer {
 }
 
 .action a:hover {
-    background-color: rgba(128, 128, 128, 0.2);
+    background-color: var(--fvplus-hover-bg);
 }
 
 .action-left {
@@ -517,8 +544,8 @@ div.folder-preview-4 span.outer {
 .info-ct {
     margin-top: auto;
     border-radius: 5px;
-    background-color: rgba(128, 128, 128, 0.1);
-    border: 1px solid rgba(128, 128, 128, 0.3);
+    background-color: var(--fvplus-surface-tint);
+    border: var(--fvplus-border);
     padding: 5px;
     font-size: 1.03rem;
     word-break: break-all;
@@ -633,11 +660,11 @@ div.folder-preview-4 span.outer {
 
 /* --- Specific Colors --- */
 .preview-outbox div.status-stats div.usage-disk.mm span:first-of-type {
-    background-color: var(--folder-view3-graph-cpu);
+    background-color: var(--fvplus-graph-cpu);
 }
 
 .preview-outbox div.status-stats div.usage-disk.mm span:last-of-type {
-    background-color: var(--folder-view3-graph-mem);
+    background-color: var(--fvplus-graph-mem);
 }
 
 /* === FOLDER EXPANDED STATE === */
@@ -654,7 +681,7 @@ div.folder-preview-4 span.outer {
 
 .docker-context-menu {
     background-color: inherit;
-    border: 1px solid rgba(128, 128, 128, 0.3);
+    border: var(--fvplus-border);
     border-radius: 4px;
     padding: 5px 0;
     min-width: 150px;
@@ -668,7 +695,7 @@ div.folder-preview-4 span.outer {
 }
 
 .docker-context-menu a:hover {
-    background-color: rgba(128, 128, 128, 0.2);
+    background-color: var(--fvplus-hover-bg);
 }
 
 /* Touch/mobile behavior: avoid hover-only interactions. */

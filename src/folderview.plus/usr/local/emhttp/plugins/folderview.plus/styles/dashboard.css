@@ -1,3 +1,27 @@
+:root {
+    --fvplus-theme-foreground: var(--text, currentColor);
+    --fvplus-dashboard-surface-tint: rgba(255, 255, 255, 0.04);
+    --fvplus-dashboard-border-muted: rgba(224, 230, 239, 0.18);
+    --fvplus-dashboard-quick-action-border: rgba(224, 230, 239, 0.24);
+    --fvplus-dashboard-quick-action-bg: rgba(12, 18, 28, 0.86);
+    --fvplus-dashboard-quick-action-fg: rgba(224, 230, 239, 0.9);
+    --fvplus-dashboard-accent: var(--orange, #f0a30a);
+    --fvplus-dashboard-accent-soft: rgba(240, 163, 10, 0.14);
+    --fvplus-dashboard-accent-border: rgba(240, 163, 10, 0.55);
+    --fvplus-dashboard-accent-soft-active: rgba(240, 163, 10, 0.2);
+    --fvplus-dashboard-accent-border-active: rgba(240, 163, 10, 0.6);
+    --fvplus-dashboard-layout-fullwidth: #6fb1ff;
+    --fvplus-dashboard-layout-accordion: #ffd36c;
+    --fvplus-dashboard-layout-inset: #8ddf9f;
+    --fvplus-dashboard-layout-compactmatrix: #7ce4ff;
+    --fvplus-dashboard-warning: #ffbe5c;
+    --fvplus-dashboard-stopped-border: rgba(255, 77, 77, 0.45);
+    --fvplus-dashboard-stopped-bg: rgba(255, 77, 77, 0.1);
+    --fvplus-status-started: var(--fvplus-theme-foreground);
+    --fvplus-status-paused: #b8860b;
+    --fvplus-status-stopped: #ff4d4d;
+}
+
 .folder-storage {
     display:none;
 }
@@ -6,9 +30,9 @@
     display: none;
     margin: 8px 0 12px 0;
     padding: 10px;
-    border: 1px solid rgba(224, 230, 239, 0.18);
+    border: 1px solid var(--fvplus-dashboard-border-muted);
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--fvplus-dashboard-surface-tint);
     box-sizing: border-box;
     width: 100%;
     max-width: 100%;
@@ -86,10 +110,10 @@
     max-height: 16px !important;
     margin: 0 !important;
     padding: 0 !important;
-    border: 1px solid rgba(224, 230, 239, 0.24);
+    border: 1px solid var(--fvplus-dashboard-quick-action-border);
     border-radius: 4px;
-    background: rgba(12, 18, 28, 0.86);
-    color: rgba(224, 230, 239, 0.9);
+    background: var(--fvplus-dashboard-quick-action-bg);
+    color: var(--fvplus-dashboard-quick-action-fg);
     cursor: pointer;
     line-height: 1;
     font-size: 9px;
@@ -102,16 +126,16 @@
 .fv-dashboard-quick-action:hover,
 .fv-dashboard-quick-action:focus {
     text-decoration: none;
-    color: var(--orange, #f0a30a);
-    border-color: rgba(240, 163, 10, 0.55);
-    background: rgba(240, 163, 10, 0.14);
+    color: var(--fvplus-dashboard-accent);
+    border-color: var(--fvplus-dashboard-accent-border);
+    background: var(--fvplus-dashboard-accent-soft);
     outline: none;
 }
 
 .fv-dashboard-quick-action.is-active {
-    color: var(--orange, #f0a30a);
-    border-color: rgba(240, 163, 10, 0.6);
-    background: rgba(240, 163, 10, 0.2);
+    color: var(--fvplus-dashboard-accent);
+    border-color: var(--fvplus-dashboard-accent-border-active);
+    background: var(--fvplus-dashboard-accent-soft-active);
 }
 
 .fv-dashboard-quick-action:disabled {
@@ -121,23 +145,23 @@
 }
 
 .fv-dashboard-layout-quick[data-fv-layout="classic"] {
-    color: rgba(224, 230, 239, 0.9);
+    color: var(--fvplus-dashboard-quick-action-fg);
 }
 
 .fv-dashboard-layout-quick[data-fv-layout="fullwidth"] {
-    color: #6fb1ff;
+    color: var(--fvplus-dashboard-layout-fullwidth);
 }
 
 .fv-dashboard-layout-quick[data-fv-layout="accordion"] {
-    color: #ffd36c;
+    color: var(--fvplus-dashboard-layout-accordion);
 }
 
 .fv-dashboard-layout-quick[data-fv-layout="inset"] {
-    color: #8ddf9f;
+    color: var(--fvplus-dashboard-layout-inset);
 }
 
 .fv-dashboard-layout-quick[data-fv-layout="compactmatrix"] {
-    color: #7ce4ff;
+    color: var(--fvplus-dashboard-layout-compactmatrix);
 }
 
 .fv-dashboard-expand-toggle-btn {
@@ -151,7 +175,7 @@
     border: none;
     border-radius: 0;
     background: transparent;
-    color: var(--orange, #f0a30a);
+    color: var(--fvplus-dashboard-accent);
     cursor: pointer;
     align-items: center;
     justify-content: center;
@@ -165,7 +189,7 @@
 .fv-dashboard-expand-toggle-btn:hover,
 .fv-dashboard-expand-toggle-btn:focus {
     background: transparent;
-    color: #ffbe5c;
+    color: var(--fvplus-dashboard-warning);
     text-decoration: none;
     outline: none;
 }
@@ -198,8 +222,8 @@ tbody.fv-dashboard-health-emphasis-enabled .folder-showcase-outer > span.outer.s
 }
 
 tbody.fv-dashboard-health-emphasis-enabled .folder-showcase-outer > span.outer.stopped {
-    box-shadow: inset 0 0 0 1px rgba(255, 77, 77, 0.45);
-    background: rgba(255, 77, 77, 0.1);
+    box-shadow: inset 0 0 0 1px var(--fvplus-dashboard-stopped-border);
+    background: var(--fvplus-dashboard-stopped-bg);
 }
 
 tbody.fv-dashboard-health-emphasis-enabled .folder-showcase-outer > span.outer .state {

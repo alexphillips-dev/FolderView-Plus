@@ -1,5 +1,24 @@
 # FolderView Plus Changelog
 
+## Version 2026.03.19.1
+
+### Highlights
+
+- Added a first-class theme token layer for Docker, VM, and Dashboard runtime surfaces to make overrides safer and more predictable.
+- Introduced a dedicated theme guide (`docs/THEME_GUIDE.md`) with token, selector, compatibility, and loader-security details.
+- Hardened custom CSS/JS extension loaders with resolved-path base-directory validation.
+
+### Important Bug Fixes
+
+- Fixed started-state readability on light themes by making default started status inherit active theme text color.
+- Fixed runtime status color regressions by removing inline JS color painting and switching to CSS-variable class rendering.
+- Preserved legacy graph variable compatibility while introducing canonical `--fvplus-*` graph tokens.
+
+### Quality
+
+- Added regression coverage for loader path hardening and runtime theme-token/status-color contracts.
+- Updated legacy selector contract tests to allow additive status-class extensions without breaking compatibility guarantees.
+
 ## Version 2026.03.18.10
 
 ### Highlights

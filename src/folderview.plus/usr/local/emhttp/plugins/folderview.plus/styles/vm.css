@@ -1,4 +1,14 @@
 :root {
+    --fvplus-theme-foreground: var(--text, currentColor);
+    --fvplus-status-started: var(--fvplus-theme-foreground);
+    --fvplus-status-paused: #b8860b;
+    --fvplus-status-stopped: #ff4d4d;
+    --fvplus-health-badge-border: rgba(255, 255, 255, 0.2);
+    --fvplus-health-badge-bg: rgba(255, 255, 255, 0.04);
+    --fvplus-health-warning-border: rgba(255, 193, 94, 0.58);
+    --fvplus-health-warning-color: #ffc15e;
+    --fvplus-health-danger-border: rgba(255, 116, 116, 0.62);
+    --fvplus-health-danger-color: #ff7474;
     --fvplus-vm-app-column-width: 220px;
     --fvplus-vm-app-column-width-mobile: 180px;
 }
@@ -16,24 +26,24 @@ body[data-fvplus-vm-app-width="wide"] {
 .fv-runtime-health-badge {
     margin: 0.35rem 0 0.5rem 0;
     padding: 0.26rem 0.58rem;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid var(--fvplus-health-badge-border);
     border-radius: 999px;
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
     font-size: 1.03rem;
     opacity: 0.92;
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--fvplus-health-badge-bg);
 }
 
 .fv-runtime-health-badge.is-warning {
-    border-color: rgba(255, 193, 94, 0.58);
-    color: #ffc15e;
+    border-color: var(--fvplus-health-warning-border);
+    color: var(--fvplus-health-warning-color);
 }
 
 .fv-runtime-health-badge.is-danger {
-    border-color: rgba(255, 116, 116, 0.62);
-    color: #ff7474;
+    border-color: var(--fvplus-health-danger-border);
+    color: var(--fvplus-health-danger-color);
 }
 
 .hover:hover div.folder-preview div {
@@ -92,15 +102,27 @@ body.fvplus-performance-mode .hover div.folder-preview div {
 }
 
 span.folder-state.fv-folder-state-started {
-    color: #ffffff;
+    color: var(--fvplus-folder-status-started, var(--fvplus-status-started));
 }
 
 span.folder-state.fv-folder-state-paused {
-    color: #b8860b;
+    color: var(--fvplus-folder-status-paused, var(--fvplus-status-paused));
 }
 
 span.folder-state.fv-folder-state-stopped {
-    color: #ff4d4d;
+    color: var(--fvplus-folder-status-stopped, var(--fvplus-status-stopped));
+}
+
+i.folder-load-status.started {
+    color: var(--fvplus-folder-status-started, var(--fvplus-status-started));
+}
+
+i.folder-load-status.paused {
+    color: var(--fvplus-folder-status-paused, var(--fvplus-status-paused));
+}
+
+i.folder-load-status.stopped {
+    color: var(--fvplus-folder-status-stopped, var(--fvplus-status-stopped));
 }
 
 .folder-storage {

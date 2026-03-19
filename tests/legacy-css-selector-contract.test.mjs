@@ -17,7 +17,7 @@ test('docker legacy CSS selector contract remains stable for folder rows', () =>
     assert.match(dockerJs, /<td class="updatecolumn folder-update">/);
     assert.match(dockerJs, /<div class="folder-preview"><\/div>/);
     assert.match(dockerJs, /class="img folder-img"/);
-    assert.match(dockerJs, /<span class="state folder-state">/);
+    assert.match(dockerJs, /<span class="state folder-state(?: [^"]+)?">/);
 });
 
 test('docker legacy CSS selector contract remains stable for tooltip content', () => {
@@ -31,7 +31,7 @@ test('vm legacy CSS selector contract remains stable for folder rows', () => {
     assert.match(vmJs, /<td class="vm-name folder-name"><div class="folder-name-sub">/);
     assert.match(vmJs, /<button class="dropDown-\$\{id\} folder-dropdown"/);
     assert.match(vmJs, /class="img folder-img"/);
-    assert.match(vmJs, /<span class="state folder-state">/);
+    assert.match(vmJs, /<span class="state folder-state(?: [^"]+)?">/);
     assert.match(vmJs, /<div class="folder-preview"><\/div>/);
     assert.match(vmJs, /folder-preview-wrapper/);
     assert.match(vmJs, /folder-preview-divider/);

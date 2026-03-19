@@ -193,6 +193,19 @@ Not supported:
 - Third-party icons: `/usr/local/emhttp/plugins/folderview.plus/images/third-party-icons`
 - User-uploaded icons: `/usr/local/emhttp/plugins/folderview.plus/images/custom`
 
+## Theme Development
+- Full theme guide: `docs/THEME_GUIDE.md`
+- Runtime status colors are CSS-variable driven:
+  - `--fvplus-status-started` (theme-aware, follows current text color)
+  - `--fvplus-status-paused`
+  - `--fvplus-status-stopped`
+- Legacy graph aliases remain supported:
+  - `--folder-view3-graph-cpu`
+  - `--folder-view3-graph-mem`
+- Canonical graph variables:
+  - `--fvplus-graph-cpu`
+  - `--fvplus-graph-mem`
+
 ## Legacy CSS/JS Migration (FolderView2/3)
 FolderView Plus keeps legacy override directory support so older custom tweaks can continue working.
 

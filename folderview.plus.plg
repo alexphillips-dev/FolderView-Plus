@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.18.11">
-<!ENTITY md5 "495c015ab7d811d4b246aba640ad735a">
+<!ENTITY version "2026.03.18.12">
+<!ENTITY md5 "1d4504af50be3a53108288703a50c29c">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.18.12
+- Maintenance: expand nested tree management and mobile reorder UX.
+
 
 ###2026.03.18.11
 - Maintenance: Harden advanced settings module loading, locking, and persistence.

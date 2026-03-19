@@ -873,6 +873,7 @@ if (!empty($fvplusRuntimeConflicts)) {
     </div>
     <div class="backup-actions">
         <button type="button" onclick="runDiagnostics()"><i class="fa fa-stethoscope"></i> Run health check</button>
+        <button type="button" onclick="runThemeDiagnostics()"><i class="fa fa-paint-brush"></i> Theme diagnostics</button>
         <button type="button" onclick="repairDiagnostics('sync_docker_order')"><i class="fa fa-sort"></i> Rebuild Docker order index</button>
         <button type="button" onclick="repairDiagnostics('normalize_prefs')"><i class="fa fa-wrench"></i> Validate and normalize prefs</button>
         <button type="button" onclick="repairDiagnostics('repair_paths')"><i class="fa fa-folder-open"></i> Repair plugin paths</button>
@@ -888,6 +889,7 @@ if (!empty($fvplusRuntimeConflicts)) {
         <div id="performance-diagnostics-output" class="fv-perf-output">No samples yet. Run refresh/import actions to populate timings.</div>
     </div>
     <pre id="diagnostics-output" class="diagnostics-output">Run health check to view diagnostics.</pre>
+    <pre id="theme-diagnostics-output" class="diagnostics-output compact-output">Run theme diagnostics to inspect active tokens and runtime selectors.</pre>
 </div>
 <hr>
 

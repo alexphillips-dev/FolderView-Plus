@@ -153,6 +153,9 @@ let dockerRuntimeResizerRetryCount = 0;
 let dockerRuntimeResizerObserver = null;
 let dockerRuntimeAutoAppWidthFloor = null;
 let dockerRuntimeAutoAppWidthFloorMode = null;
+let dockerRuntimeThemeReflowBound = false;
+let dockerRuntimeThemeReflowObserver = null;
+let dockerRuntimeThemeReflowTimer = null;
 const DOCKER_RUNTIME_WIDTH_PHASES = Object.freeze({
     idle: 'idle',
     debounce: 'debounce',
@@ -786,6 +789,59 @@ const bindDockerRuntimeViewportWidthSync = () => {
     window.addEventListener('orientationchange', reapply, { passive: true });
 };
 
+const queueDockerRuntimeThemeReflow = (reason = 'theme-change') => {
+    const nextReason = String(reason || 'theme-change');
+    if (dockerRuntimeThemeReflowTimer !== null) {
+        window.clearTimeout(dockerRuntimeThemeReflowTimer);
+    }
+    dockerRuntimeThemeReflowTimer = window.setTimeout(() => {
+        dockerRuntimeThemeReflowTimer = null;
+        scheduleDockerRuntimeWidthReflow(`theme:${nextReason}`, 20);
+    }, 40);
+};
+
+const bindDockerRuntimeThemeReflow = () => {
+    if (dockerRuntimeThemeReflowBound) {
+        return;
+    }
+    dockerRuntimeThemeReflowBound = true;
+    const onThemeChange = () => queueDockerRuntimeThemeReflow('observer');
+    if (typeof MutationObserver === 'function') {
+        dockerRuntimeThemeReflowObserver = new MutationObserver((mutations) => {
+            for (const mutation of mutations || []) {
+                if (mutation.type !== 'attributes') {
+                    continue;
+                }
+                const attr = String(mutation.attributeName || '').toLowerCase();
+                if (!attr || attr === 'class' || attr === 'style' || attr.includes('theme')) {
+                    onThemeChange();
+                    return;
+                }
+            }
+        });
+        if (document.documentElement) {
+            dockerRuntimeThemeReflowObserver.observe(document.documentElement, {
+                attributes: true,
+                attributeFilter: ['class', 'style', 'data-theme', 'theme', 'data-color-scheme', 'data-bs-theme']
+            });
+        }
+        if (document.body) {
+            dockerRuntimeThemeReflowObserver.observe(document.body, {
+                attributes: true,
+                attributeFilter: ['class', 'style', 'data-theme', 'theme', 'data-color-scheme', 'data-bs-theme']
+            });
+        }
+    }
+    if (typeof window.matchMedia === 'function') {
+        const media = window.matchMedia('(prefers-color-scheme: dark)');
+        if (media && typeof media.addEventListener === 'function') {
+            media.addEventListener('change', () => queueDockerRuntimeThemeReflow('prefers-color-scheme'));
+        } else if (media && typeof media.addListener === 'function') {
+            media.addListener(() => queueDockerRuntimeThemeReflow('prefers-color-scheme'));
+        }
+    }
+};
+
 const scheduleDockerRuntimeResizerRetry = () => {
     if (dockerRuntimeResizerRetryTimer !== null) {
         return;
@@ -838,6 +894,7 @@ const bindDockerRuntimeColumnResizers = () => {
     ensureDockerRuntimeResizerObserver();
     bindDockerRuntimeViewportWidthSync();
     bindDockerRuntimeFontReadyReflow();
+    bindDockerRuntimeThemeReflow();
     ensureDockerRuntimeWidthDebugPanel();
     targets.headers.forEach((header, idx) => {
         const columnIndex = idx + 1;

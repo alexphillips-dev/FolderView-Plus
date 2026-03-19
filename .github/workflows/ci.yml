@@ -74,13 +74,14 @@ jobs:
           FVPLUS_I18N_STRICT: '1'
           FVPLUS_REQUIRE_PERF_BASELINE: '1'
         run: |
-          chmod +x scripts/api_contract_guard.sh scripts/legacy_support_guard.sh scripts/i18n_guard.sh scripts/lang_usage_guard.sh scripts/include_order_guard.sh scripts/theme_scope_guard.sh scripts/perf_budget_guard.sh scripts/repro_build_guard.sh scripts/unraid_matrix_smoke.sh
+          chmod +x scripts/api_contract_guard.sh scripts/legacy_support_guard.sh scripts/i18n_guard.sh scripts/lang_usage_guard.sh scripts/include_order_guard.sh scripts/theme_scope_guard.sh scripts/theme_runtime_guard.sh scripts/perf_budget_guard.sh scripts/repro_build_guard.sh scripts/unraid_matrix_smoke.sh
           bash scripts/api_contract_guard.sh
           bash scripts/legacy_support_guard.sh
           bash scripts/i18n_guard.sh
           bash scripts/lang_usage_guard.sh
           bash scripts/include_order_guard.sh
           bash scripts/theme_scope_guard.sh
+          bash scripts/theme_runtime_guard.sh
           bash scripts/perf_budget_guard.sh
           bash scripts/repro_build_guard.sh
           bash scripts/unraid_matrix_smoke.sh
@@ -111,6 +112,7 @@ jobs:
           FVPLUS_THEME_SMOKE_IGNORE_HTTPS: '1'
           FVPLUS_THEME_SMOKE_BROWSERS: 'chromium,firefox,webkit'
           FVPLUS_THEME_SMOKE_ZOOMS: '1,1.25,1.5'
+          FVPLUS_THEME_SMOKE_ARTIFACT_DIR: ${{ github.workspace }}/tmp/browser-smoke-artifacts/theme-matrix
         run: |
           if [ -z "${FVPLUS_THEME_MATRIX_URLS:-}" ]; then
             echo "Skipping theme matrix smoke checks (FVPLUS_THEME_MATRIX_URLS not configured)."

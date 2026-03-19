@@ -3,6 +3,10 @@
 ## Overview
 FolderView Plus supports custom CSS and JavaScript extensions on Docker, VM, and Dashboard pages.
 
+Versioned compatibility contract:
+
+- `docs/THEME_API_CONTRACT.md`
+
 Custom extension directories:
 
 - CSS: `/boot/config/plugins/folderview.plus/styles/`
@@ -78,3 +82,4 @@ This blocks path traversal via symlinks or unexpected paths.
 - Prefer CSS variables over `!important`.
 - Scope overrides to Docker/VM/Dashboard roots where possible.
 - Keep status color overrides for semantic exceptions, not broad theme foundations.
+- Use **Theme diagnostics** in settings to verify resolved token values after switching themes.

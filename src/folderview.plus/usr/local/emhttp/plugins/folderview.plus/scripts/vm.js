@@ -130,6 +130,9 @@ const vmRuntimeColumnLayoutEngine = runtimeColumnLayout && typeof runtimeColumnL
     })
     : null;
 let vmRuntimeViewportBound = false;
+let vmRuntimeThemeReflowBound = false;
+let vmRuntimeThemeReflowObserver = null;
+let vmRuntimeThemeReflowTimer = null;
 const VM_DEBUG_MODE = false;
 const vmDebugLog = (...args) => {
     if (VM_DEBUG_MODE) {
@@ -1674,6 +1677,60 @@ const bindVmRuntimeViewportWidthSync = () => {
     window.addEventListener('orientationchange', reapply, { passive: true });
 };
 
+const queueVmRuntimeThemeReflow = (reason = 'theme-change') => {
+    const nextReason = String(reason || 'theme-change');
+    if (vmRuntimeThemeReflowTimer !== null) {
+        window.clearTimeout(vmRuntimeThemeReflowTimer);
+    }
+    vmRuntimeThemeReflowTimer = window.setTimeout(() => {
+        vmRuntimeThemeReflowTimer = null;
+        vmDebugLog(`theme-reflow:${nextReason}`);
+        applyVmRuntimeAppWidthVariables(estimateVmRuntimeAutoAppWidth());
+    }, 40);
+};
+
+const bindVmRuntimeThemeReflow = () => {
+    if (vmRuntimeThemeReflowBound) {
+        return;
+    }
+    vmRuntimeThemeReflowBound = true;
+    const onThemeChange = () => queueVmRuntimeThemeReflow('observer');
+    if (typeof MutationObserver === 'function') {
+        vmRuntimeThemeReflowObserver = new MutationObserver((mutations) => {
+            for (const mutation of mutations || []) {
+                if (mutation.type !== 'attributes') {
+                    continue;
+                }
+                const attr = String(mutation.attributeName || '').toLowerCase();
+                if (!attr || attr === 'class' || attr === 'style' || attr.includes('theme')) {
+                    onThemeChange();
+                    return;
+                }
+            }
+        });
+        if (document.documentElement) {
+            vmRuntimeThemeReflowObserver.observe(document.documentElement, {
+                attributes: true,
+                attributeFilter: ['class', 'style', 'data-theme', 'theme', 'data-color-scheme', 'data-bs-theme']
+            });
+        }
+        if (document.body) {
+            vmRuntimeThemeReflowObserver.observe(document.body, {
+                attributes: true,
+                attributeFilter: ['class', 'style', 'data-theme', 'theme', 'data-color-scheme', 'data-bs-theme']
+            });
+        }
+    }
+    if (typeof window.matchMedia === 'function') {
+        const media = window.matchMedia('(prefers-color-scheme: dark)');
+        if (media && typeof media.addEventListener === 'function') {
+            media.addEventListener('change', () => queueVmRuntimeThemeReflow('prefers-color-scheme'));
+        } else if (media && typeof media.addListener === 'function') {
+            media.addListener(() => queueVmRuntimeThemeReflow('prefers-color-scheme'));
+        }
+    }
+};
+
 const applyRuntimePrefs = (prefs) => {
     const normalized = utils.normalizePrefs(prefs || {});
     const appColumnWidth = typeof utils.normalizeAppColumnWidth === 'function'
@@ -1683,6 +1740,7 @@ const applyRuntimePrefs = (prefs) => {
         document.body.setAttribute('data-fvplus-vm-app-width', appColumnWidth);
     }
     bindVmRuntimeViewportWidthSync();
+    bindVmRuntimeThemeReflow();
     applyVmRuntimeAppWidthVariables(estimateVmRuntimeAutoAppWidth());
     $('body').toggleClass('fvplus-performance-mode', normalized.performanceMode === true);
     scheduleLiveRefresh(normalized);

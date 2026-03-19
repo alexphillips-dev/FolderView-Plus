@@ -703,6 +703,9 @@ const setupAssistantState = {
 let setupAssistantLastFocusedElement = null;
 let overflowGuardBound = false;
 let mobileLayoutGuardBound = false;
+let settingsThemeReflowBound = false;
+let settingsThemeReflowObserver = null;
+let settingsThemeReflowTimer = null;
 let actionDockAutoCollapseTimer = null;
 const MOBILE_SETTINGS_BREAKPOINT_PX = 760;
 const MOBILE_LAYOUT_BREAKPOINT_PX = 1100;
@@ -778,6 +781,77 @@ const initCompactMobileLayoutGuard = () => {
     window.addEventListener('orientationchange', syncCompactMobileLayoutClass);
     if (window.visualViewport && typeof window.visualViewport.addEventListener === 'function') {
         window.visualViewport.addEventListener('resize', syncCompactMobileLayoutClass);
+    }
+};
+
+const applySettingsThemeAwareReflow = () => {
+    syncCompactMobileLayoutClass();
+    enforceNoHorizontalOverflow();
+    try {
+        syncResizableTableLayout('docker');
+        syncResizableTableLayout('vm');
+        bindTableColumnResizers('docker');
+        bindTableColumnResizers('vm');
+    } catch (_error) {
+        // Best effort only; do not break settings runtime for one reflow failure.
+    }
+    refreshSettingsUx();
+};
+
+const queueSettingsThemeAwareReflow = (reason = 'theme-change') => {
+    const nextReason = String(reason || 'theme-change');
+    if (settingsThemeReflowTimer !== null) {
+        window.clearTimeout(settingsThemeReflowTimer);
+    }
+    settingsThemeReflowTimer = window.setTimeout(() => {
+        settingsThemeReflowTimer = null;
+        trackDiagnosticsEvent({
+            eventType: 'theme_reflow',
+            details: { source: nextReason }
+        });
+        applySettingsThemeAwareReflow();
+    }, 60);
+};
+
+const initThemeAwareSettingsReflow = () => {
+    applySettingsThemeAwareReflow();
+    if (settingsThemeReflowBound) {
+        return;
+    }
+    settingsThemeReflowBound = true;
+    if (typeof MutationObserver === 'function') {
+        settingsThemeReflowObserver = new MutationObserver((mutations) => {
+            for (const mutation of mutations || []) {
+                if (mutation.type !== 'attributes') {
+                    continue;
+                }
+                const attr = String(mutation.attributeName || '').toLowerCase();
+                if (!attr || attr === 'class' || attr === 'style' || attr.includes('theme')) {
+                    queueSettingsThemeAwareReflow('observer');
+                    return;
+                }
+            }
+        });
+        if (document.documentElement) {
+            settingsThemeReflowObserver.observe(document.documentElement, {
+                attributes: true,
+                attributeFilter: ['class', 'style', 'data-theme', 'theme', 'data-color-scheme', 'data-bs-theme']
+            });
+        }
+        if (document.body) {
+            settingsThemeReflowObserver.observe(document.body, {
+                attributes: true,
+                attributeFilter: ['class', 'style', 'data-theme', 'theme', 'data-color-scheme', 'data-bs-theme']
+            });
+        }
+    }
+    if (typeof window.matchMedia === 'function') {
+        const media = window.matchMedia('(prefers-color-scheme: dark)');
+        if (media && typeof media.addEventListener === 'function') {
+            media.addEventListener('change', () => queueSettingsThemeAwareReflow('prefers-color-scheme'));
+        } else if (media && typeof media.addListener === 'function') {
+            media.addListener(() => queueSettingsThemeAwareReflow('prefers-color-scheme'));
+        }
     }
 };
 if (requestClient && typeof requestClient.configureSecurityHeaders === 'function') {
@@ -11980,6 +12054,108 @@ const copyIssueReport = async () => {
     }
 };
 
+const THEME_DIAGNOSTIC_TOKENS = Object.freeze([
+    '--fvplus-theme-foreground',
+    '--fvplus-status-started',
+    '--fvplus-status-paused',
+    '--fvplus-status-stopped',
+    '--fvplus-folder-status-started',
+    '--fvplus-folder-status-paused',
+    '--fvplus-folder-status-stopped',
+    '--fvplus-settings-text-primary',
+    '--fvplus-settings-text-muted',
+    '--fvplus-settings-surface-muted',
+    '--fvplus-settings-border-subtle'
+]);
+
+const readThemeTokenSnapshot = (styleDeclaration) => {
+    const output = {};
+    for (const token of THEME_DIAGNOSTIC_TOKENS) {
+        output[token] = styleDeclaration ? String(styleDeclaration.getPropertyValue(token) || '').trim() : '';
+    }
+    return output;
+};
+
+const collectThemeDiagnostics = () => {
+    const html = document.documentElement;
+    const body = document.body;
+    const htmlStyle = html ? window.getComputedStyle(html) : null;
+    const bodyStyle = body ? window.getComputedStyle(body) : null;
+    const firstStartedState = document.querySelector('.folder-state.fv-folder-state-started');
+    const firstStoppedState = document.querySelector('.folder-state.fv-folder-state-stopped');
+    const firstStartedIcon = document.querySelector('i.folder-load-status.started');
+    const firstStoppedIcon = document.querySelector('i.folder-load-status.stopped');
+    const customStyleLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"][href]'))
+        .map((node) => String(node.getAttribute('href') || '').trim())
+        .filter((href) => href.includes('/plugins/folderview.plus/'));
+    const customScriptLinks = Array.from(document.querySelectorAll('script[src]'))
+        .map((node) => String(node.getAttribute('src') || '').trim())
+        .filter((src) => src.includes('/plugins/folderview.plus/'));
+
+    const warnings = [];
+    const htmlTokens = readThemeTokenSnapshot(htmlStyle);
+    if (!htmlTokens['--fvplus-status-started']) {
+        warnings.push('Missing --fvplus-status-started token value on document root.');
+    }
+    if (htmlTokens['--fvplus-status-started'] && htmlTokens['--fvplus-status-started'] === htmlTokens['--fvplus-status-stopped']) {
+        warnings.push('Started and stopped status tokens resolve to the same value.');
+    }
+    const startedSampleColor = firstStartedState ? window.getComputedStyle(firstStartedState).color : '';
+    const stoppedSampleColor = firstStoppedState ? window.getComputedStyle(firstStoppedState).color : '';
+    if (startedSampleColor && stoppedSampleColor && startedSampleColor === stoppedSampleColor) {
+        warnings.push('Runtime started/stopped state colors currently resolve to the same computed color.');
+    }
+
+    return {
+        generatedAt: new Date().toISOString(),
+        page: window.location.pathname || '',
+        htmlClassList: html ? Array.from(html.classList) : [],
+        bodyClassList: body ? Array.from(body.classList) : [],
+        htmlAttributes: html ? {
+            dataTheme: html.getAttribute('data-theme') || '',
+            dataBsTheme: html.getAttribute('data-bs-theme') || '',
+            theme: html.getAttribute('theme') || ''
+        } : {},
+        bodyAttributes: body ? {
+            dataTheme: body.getAttribute('data-theme') || '',
+            dataBsTheme: body.getAttribute('data-bs-theme') || '',
+            theme: body.getAttribute('theme') || ''
+        } : {},
+        tokens: {
+            html: htmlTokens,
+            body: readThemeTokenSnapshot(bodyStyle)
+        },
+        samples: {
+            startedStateColor: startedSampleColor,
+            stoppedStateColor: stoppedSampleColor,
+            startedIconColor: firstStartedIcon ? window.getComputedStyle(firstStartedIcon).color : '',
+            stoppedIconColor: firstStoppedIcon ? window.getComputedStyle(firstStoppedIcon).color : ''
+        },
+        runtimeSelectors: {
+            startedStateCount: document.querySelectorAll('.folder-state.fv-folder-state-started').length,
+            stoppedStateCount: document.querySelectorAll('.folder-state.fv-folder-state-stopped').length,
+            startedIconCount: document.querySelectorAll('i.folder-load-status.started').length,
+            stoppedIconCount: document.querySelectorAll('i.folder-load-status.stopped').length
+        },
+        pluginAssets: {
+            stylesheets: customStyleLinks,
+            scripts: customScriptLinks
+        },
+        warnings
+    };
+};
+
+const runThemeDiagnostics = () => {
+    try {
+        const diagnostics = collectThemeDiagnostics();
+        $('#theme-diagnostics-output').text(toPrettyJson(diagnostics));
+        return diagnostics;
+    } catch (error) {
+        showError('Theme diagnostics failed', error);
+        return null;
+    }
+};
+
 const renderDiagnostics = (diagnostics) => {
     lastDiagnostics = diagnostics || null;
     if (!diagnostics) {
@@ -11995,6 +12171,7 @@ const runDiagnostics = async () => {
     try {
         const diagnostics = await getDiagnostics();
         renderDiagnostics(diagnostics);
+        runThemeDiagnostics();
     } catch (error) {
         showError('Diagnostics failed', error);
     }
@@ -12298,6 +12475,7 @@ window.toggleTemplateSelection = toggleTemplateSelection;
 window.toggleAllTemplateSelections = toggleAllTemplateSelections;
 window.bulkTemplateAction = bulkTemplateAction;
 window.runDiagnostics = runDiagnostics;
+window.runThemeDiagnostics = runThemeDiagnostics;
 window.repairDiagnostics = repairDiagnostics;
 window.exportDiagnostics = exportDiagnostics;
 window.exportSupportBundle = exportSupportBundle;
@@ -12379,6 +12557,7 @@ window.setSettingsMode = setSettingsMode;
         initSettingsControls();
         initOverflowGuard();
         initCompactMobileLayoutGuard();
+        initThemeAwareSettingsReflow();
         renderPerformanceDiagnostics();
         await fetchPluginVersion();
         try {

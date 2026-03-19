@@ -22,6 +22,7 @@ const legacySupportGuardPath = path.join(repoRoot, 'scripts/legacy_support_guard
 const i18nGuardPath = path.join(repoRoot, 'scripts/i18n_guard.sh');
 const langUsageGuardPath = path.join(repoRoot, 'scripts/lang_usage_guard.sh');
 const themeScopeGuardPath = path.join(repoRoot, 'scripts/theme_scope_guard.sh');
+const themeRuntimeGuardPath = path.join(repoRoot, 'scripts/theme_runtime_guard.sh');
 const perfBudgetGuardPath = path.join(repoRoot, 'scripts/perf_budget_guard.sh');
 const reproBuildGuardPath = path.join(repoRoot, 'scripts/repro_build_guard.sh');
 const pruneArchivesPath = path.join(repoRoot, 'scripts/prune_archives.sh');
@@ -48,6 +49,7 @@ const legacySupportGuard = fs.readFileSync(legacySupportGuardPath, 'utf8');
 const i18nGuard = fs.readFileSync(i18nGuardPath, 'utf8');
 const langUsageGuard = fs.readFileSync(langUsageGuardPath, 'utf8');
 const themeScopeGuard = fs.readFileSync(themeScopeGuardPath, 'utf8');
+const themeRuntimeGuard = fs.readFileSync(themeRuntimeGuardPath, 'utf8');
 const perfBudgetGuard = fs.readFileSync(perfBudgetGuardPath, 'utf8');
 const reproBuildGuard = fs.readFileSync(reproBuildGuardPath, 'utf8');
 const pruneArchives = fs.readFileSync(pruneArchivesPath, 'utf8');
@@ -208,15 +210,21 @@ test('theme matrix smoke scripts are optional, URL-gated, and include wizard/the
     assert.match(themeMatrixSmokeNode, /Theme matrix is missing required label\(s\)/);
     assert.match(themeMatrixSmokeNode, /FVPLUS_THEME_SMOKE_BROWSERS/);
     assert.match(themeMatrixSmokeNode, /FVPLUS_THEME_SMOKE_ZOOMS/);
+    assert.match(themeMatrixSmokeNode, /FVPLUS_THEME_SMOKE_ARTIFACT_DIR/);
     assert.match(themeMatrixSmokeNode, /runSettingsSurfaceChecks/);
+    assert.match(themeMatrixSmokeNode, /captureScenarioScreenshot/);
+    assert.match(themeMatrixSmokeNode, /page\.screenshot\(\{ path: screenshotPath, fullPage: true \}\)/);
     assert.match(themeMatrixSmokeNode, /h2\[data-fv-section="docker"\]/);
     assert.match(themeMatrixSmokeNode, /h2\[data-fv-section="vms"\]/);
     assert.match(themeMatrixSmokeNode, /tbody#docker/);
     assert.match(themeMatrixSmokeNode, /tbody#vms/);
+    assert.match(themeMatrixSmokeNode, /tbody#docker_view/);
+    assert.match(themeMatrixSmokeNode, /tbody#vm_view/);
     assert.match(themeMatrixSmokeNode, /#fv-run-wizard/);
     assert.match(themeMatrixSmokeNode, /#fv-setup-assistant-dialog/);
     assert.match(themeMatrixSmokeNode, /Focus-visible ring is not present/);
     assert.match(themeMatrixSmokeNode, /horizontal overflow/);
+    assert.match(themeMatrixSmokeNode, /screenshot=/);
 });
 
 test('validation workflows enforce standards guards and release-required browser smoke', () => {
@@ -228,6 +236,7 @@ test('validation workflows enforce standards guards and release-required browser
         assert.match(workflow, /bash scripts\/i18n_guard\.sh/);
         assert.match(workflow, /bash scripts\/lang_usage_guard\.sh/);
         assert.match(workflow, /bash scripts\/theme_scope_guard\.sh/);
+        assert.match(workflow, /bash scripts\/theme_runtime_guard\.sh/);
         assert.match(workflow, /bash scripts\/perf_budget_guard\.sh/);
         assert.match(workflow, /bash scripts\/repro_build_guard\.sh/);
         assert.match(workflow, /bash scripts\/unraid_matrix_smoke\.sh/);
@@ -240,6 +249,7 @@ test('validation workflows enforce standards guards and release-required browser
         assert.match(workflow, /Optional theme matrix smoke checks/);
         assert.match(workflow, /FVPLUS_THEME_MATRIX_URLS/);
         assert.match(workflow, /FVPLUS_THEME_REQUIRED_LABELS:\s*'black,white'/);
+        assert.match(workflow, /FVPLUS_THEME_SMOKE_ARTIFACT_DIR/);
         assert.match(workflow, /bash scripts\/theme_matrix_smoke\.sh/);
         assert.match(workflow, /actions\/upload-artifact@v4/);
         assert.match(workflow, /tmp\/browser-smoke-artifacts/);
@@ -255,6 +265,7 @@ test('validation workflows enforce standards guards and release-required browser
     assert.match(releasePrepare, /bash scripts\/i18n_guard\.sh/);
     assert.match(releasePrepare, /bash scripts\/lang_usage_guard\.sh/);
     assert.match(releasePrepare, /bash scripts\/theme_scope_guard\.sh/);
+    assert.match(releasePrepare, /bash scripts\/theme_runtime_guard\.sh/);
     assert.match(releasePrepare, /bash scripts\/perf_budget_guard\.sh/);
     assert.match(releasePrepare, /bash scripts\/repro_build_guard\.sh/);
     assert.match(releasePrepare, /scripts\/prune_archives\.sh/);
@@ -358,6 +369,9 @@ test('standards guard scripts exist with expected core checks', () => {
     assert.match(langUsageGuard, /data-i18n/);
     assert.match(themeScopeGuard, /Theme scope guard passed/);
     assert.match(themeScopeGuard, /#fv-settings-root/);
+    assert.match(themeRuntimeGuard, /Theme runtime guard passed/);
+    assert.match(themeRuntimeGuard, /docker inline status color painting/);
+    assert.match(themeRuntimeGuard, /scripts loader path boundary check/);
     assert.match(perfBudgetGuard, /Performance budget guard passed/);
     assert.match(perfBudgetGuard, /FVPLUS_MAX_FOLDERVIEWPLUS_JS_BYTES/);
     assert.match(perfBudgetGuard, /FVPLUS_PERF_BASELINE_FILE/);

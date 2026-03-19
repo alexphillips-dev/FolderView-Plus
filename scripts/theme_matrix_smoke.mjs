@@ -1,3 +1,6 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+
 const matrixRaw = String(process.env.FVPLUS_THEME_MATRIX_URLS || '').trim();
 const requiredLabelsRaw = String(process.env.FVPLUS_THEME_REQUIRED_LABELS || '').trim();
 const timeoutMs = Number.isFinite(Number(process.env.FVPLUS_THEME_SMOKE_TIMEOUT_MS))
@@ -12,6 +15,47 @@ const zoomLevels = String(process.env.FVPLUS_THEME_SMOKE_ZOOMS || '1,1.25,1.5')
     .split(/[,\s]+/)
     .map((value) => Number(value))
     .filter((value, index, arr) => Number.isFinite(value) && value >= 1 && value <= 2 && arr.indexOf(value) === index);
+const screenshotArtifactDir = path.resolve(
+    String(process.env.FVPLUS_THEME_SMOKE_ARTIFACT_DIR || path.join(process.cwd(), 'tmp', 'browser-smoke-artifacts', 'theme-matrix')).trim()
+);
+
+const sanitizeSegment = (value) => String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'unknown';
+
+const zoomTag = (value) => {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) {
+        return '1';
+    }
+    return String(numeric).replace(/[.]+/g, '_');
+};
+
+const ensureArtifactDir = async () => {
+    await fs.mkdir(screenshotArtifactDir, { recursive: true });
+};
+
+const captureScenarioScreenshot = async (page, {
+    label,
+    browserName,
+    mobile,
+    zoom,
+    stage
+}) => {
+    await ensureArtifactDir();
+    const filename = [
+        sanitizeSegment(label),
+        sanitizeSegment(browserName),
+        mobile ? 'mobile' : 'desktop',
+        `zoom-${zoomTag(zoom)}`,
+        sanitizeSegment(stage)
+    ].join('__') + '.png';
+    const screenshotPath = path.join(screenshotArtifactDir, filename);
+    await page.screenshot({ path: screenshotPath, fullPage: true });
+    return screenshotPath;
+};
 
 const parseMatrixEntries = (raw) => {
     const entries = [];
@@ -124,6 +168,8 @@ const runSettingsSurfaceChecks = async (page, { label, browserName, mobile, zoom
         const vmSection = document.querySelector('h2[data-fv-section="vms"]');
         const dockerTable = document.querySelector('tbody#docker');
         const vmTable = document.querySelector('tbody#vms');
+        const dockerRuntimeTable = document.querySelector('tbody#docker_view');
+        const vmRuntimeTable = document.querySelector('tbody#vm_view');
         const basicButton = document.querySelector('#fv-settings-topbar .fv-mode-btn[data-mode="basic"]');
         const advancedButton = document.querySelector('#fv-settings-topbar .fv-mode-btn[data-mode="advanced"]');
         const advancedHeading = document.querySelector('h2[data-fv-advanced="1"]');
@@ -145,6 +191,12 @@ const runSettingsSurfaceChecks = async (page, { label, browserName, mobile, zoom
         }
         if (!vmTable) {
             errors.push('VM table body (#vms) is missing.');
+        }
+        if (dockerRuntimeTable && !isVisible(dockerRuntimeTable)) {
+            errors.push('Dashboard Docker runtime table body (#docker_view) is present but not visible.');
+        }
+        if (vmRuntimeTable && !isVisible(vmRuntimeTable)) {
+            errors.push('Dashboard VM runtime table body (#vm_view) is present but not visible.');
         }
         if (!isVisible(basicButton)) {
             errors.push('Basic mode button is not visible.');
@@ -359,6 +411,13 @@ const runThemeChecks = async ({ label, url }, browserName, browserType) => {
         try {
             await page.goto(url, { waitUntil: 'domcontentloaded', timeout: timeoutMs });
             await page.locator('#fv-settings-topbar').waitFor({ state: 'visible', timeout: timeoutMs });
+            const settingsScreenshotPath = await captureScenarioScreenshot(page, {
+                label,
+                browserName,
+                mobile,
+                zoom,
+                stage: 'settings'
+            });
             await runSettingsSurfaceChecks(page, { label, browserName, mobile, zoom });
             await ensureWizardVisible(page);
             if (zoom !== 1) {
@@ -371,7 +430,27 @@ const runThemeChecks = async ({ label, url }, browserName, browserType) => {
                 await page.waitForTimeout(80);
             }
             await runScenarioChecks(page, { label, browserName, mobile, zoom });
-            console.log(`[${label}] PASS ${browserName} ${mobile ? 'mobile' : 'desktop'} zoom=${zoom}`);
+            const wizardScreenshotPath = await captureScenarioScreenshot(page, {
+                label,
+                browserName,
+                mobile,
+                zoom,
+                stage: 'wizard'
+            });
+            console.log(`[${label}] PASS ${browserName} ${mobile ? 'mobile' : 'desktop'} zoom=${zoom} screenshots=${settingsScreenshotPath},${wizardScreenshotPath}`);
+        } catch (error) {
+            const failureScreenshotPath = await captureScenarioScreenshot(page, {
+                label,
+                browserName,
+                mobile,
+                zoom,
+                stage: 'failure'
+            }).catch(() => '');
+            const baseMessage = String(error?.message || error || 'Theme matrix scenario failed.');
+            const withScreenshot = failureScreenshotPath
+                ? `${baseMessage} | screenshot=${failureScreenshotPath}`
+                : baseMessage;
+            throw new Error(withScreenshot);
         } finally {
             await context.close();
         }
@@ -384,6 +463,8 @@ const runThemeChecks = async ({ label, url }, browserName, browserType) => {
 };
 
 let failures = 0;
+await ensureArtifactDir();
+console.log(`Theme matrix screenshots directory: ${screenshotArtifactDir}`);
 
 for (const browserName of browserNames) {
     const browserType = playwright[browserName];

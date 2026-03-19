@@ -195,6 +195,7 @@ Not supported:
 
 ## Theme Development
 - Full theme guide: `docs/THEME_GUIDE.md`
+- Versioned theme API contract: `docs/THEME_API_CONTRACT.md`
 - Runtime status colors are CSS-variable driven:
   - `--fvplus-status-started` (theme-aware, follows current text color)
   - `--fvplus-status-paused`
@@ -205,6 +206,7 @@ Not supported:
 - Canonical graph variables:
   - `--fvplus-graph-cpu`
   - `--fvplus-graph-mem`
+- Settings diagnostics includes **Theme diagnostics** to inspect resolved tokens and runtime selector state.
 
 ## Legacy CSS/JS Migration (FolderView2/3)
 FolderView Plus keeps legacy override directory support so older custom tweaks can continue working.

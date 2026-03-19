@@ -281,6 +281,7 @@ if ! grep -q 'folderviewplus\.import\.js' "${SOURCE_SETTINGS_PAGE}"; then
   exit 1
 fi
 bash "${ROOT_DIR}/scripts/include_order_guard.sh"
+bash "${ROOT_DIR}/scripts/theme_runtime_guard.sh"
 if ! grep -q '@media (max-width: 760px)' "${SOURCE_SETTINGS_CSS}"; then
   echo "ERROR: Source folderviewplus.css is missing mobile settings breakpoint rules." >&2
   exit 1

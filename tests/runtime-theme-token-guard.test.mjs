@@ -11,6 +11,9 @@ const vmCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus
 const dashboardCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/dashboard.css');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
+const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js');
+const settingsCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css');
+const settingsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js');
 
 test('runtime css defines canonical fvplus status tokens and legacy graph aliases', () => {
     assert.match(dockerCss, /--fvplus-status-started:\s*var\(--fvplus-theme-foreground\)/);
@@ -32,6 +35,8 @@ test('dashboard quick action palette is tokenized', () => {
     assert.match(dashboardCss, /--fvplus-dashboard-quick-action-border/);
     assert.match(dashboardCss, /--fvplus-dashboard-accent/);
     assert.match(dashboardCss, /\.fv-dashboard-quick-action:hover[\s\S]*var\(--fvplus-dashboard-accent\)/);
+    assert.match(settingsCss, /--fvplus-settings-surface-muted/);
+    assert.match(settingsCss, /--fvplus-settings-accent/);
 });
 
 test('runtime scripts avoid inline status color painting and use row-level css variable overrides', () => {
@@ -41,4 +46,15 @@ test('runtime scripts avoid inline status color painting and use row-level css v
     assert.match(vmJs, /applyFolderStatusColorOverrides\(\$folderRow,\s*folder\.settings\)/);
     assert.doesNotMatch(dockerJs, /\.css\('color',\s*statusColors\./);
     assert.doesNotMatch(vmJs, /\.css\('color',\s*statusColors\./);
+});
+
+test('theme-change observers trigger deterministic reflow across runtime and settings surfaces', () => {
+    assert.match(dockerJs, /const queueDockerRuntimeThemeReflow/);
+    assert.match(dockerJs, /const bindDockerRuntimeThemeReflow/);
+    assert.match(vmJs, /const queueVmRuntimeThemeReflow/);
+    assert.match(vmJs, /const bindVmRuntimeThemeReflow/);
+    assert.match(dashboardJs, /const queueDashboardThemeReflow/);
+    assert.match(dashboardJs, /const bindDashboardThemeReflowHandlers/);
+    assert.match(settingsJs, /const queueSettingsThemeAwareReflow/);
+    assert.match(settingsJs, /const initThemeAwareSettingsReflow/);
 });

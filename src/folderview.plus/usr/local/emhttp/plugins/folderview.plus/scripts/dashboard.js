@@ -2922,7 +2922,67 @@ let dashboardQuickSwitchRetryTimerByType = {
     vm: 0
 };
 let dashboardQuickActionSyncBound = false;
+let dashboardThemeReflowBound = false;
+let dashboardThemeReflowObserver = null;
+let dashboardThemeReflowTimer = 0;
 bindDashboardQuickActionSyncHandlers();
+
+const queueDashboardThemeReflow = (reason = 'theme-change') => {
+    const nextReason = String(reason || 'theme-change');
+    if (dashboardThemeReflowTimer) {
+        window.clearTimeout(dashboardThemeReflowTimer);
+    }
+    dashboardThemeReflowTimer = window.setTimeout(() => {
+        dashboardThemeReflowTimer = 0;
+        dashboardDebugLog(`theme-reflow:${nextReason}`);
+        scheduleDashboardLayoutApplyForType('docker');
+        scheduleDashboardLayoutApplyForType('vm');
+        syncDashboardWidgetLayoutQuickControlForType('docker');
+        syncDashboardWidgetLayoutQuickControlForType('vm');
+    }, 40);
+};
+
+const bindDashboardThemeReflowHandlers = () => {
+    if (dashboardThemeReflowBound) {
+        return;
+    }
+    dashboardThemeReflowBound = true;
+    if (typeof MutationObserver === 'function') {
+        dashboardThemeReflowObserver = new MutationObserver((mutations) => {
+            for (const mutation of mutations || []) {
+                if (mutation.type !== 'attributes') {
+                    continue;
+                }
+                const attr = String(mutation.attributeName || '').toLowerCase();
+                if (!attr || attr === 'class' || attr === 'style' || attr.includes('theme')) {
+                    queueDashboardThemeReflow('observer');
+                    return;
+                }
+            }
+        });
+        if (document.documentElement) {
+            dashboardThemeReflowObserver.observe(document.documentElement, {
+                attributes: true,
+                attributeFilter: ['class', 'style', 'data-theme', 'theme', 'data-color-scheme', 'data-bs-theme']
+            });
+        }
+        if (document.body) {
+            dashboardThemeReflowObserver.observe(document.body, {
+                attributes: true,
+                attributeFilter: ['class', 'style', 'data-theme', 'theme', 'data-color-scheme', 'data-bs-theme']
+            });
+        }
+    }
+    if (typeof window.matchMedia === 'function') {
+        const media = window.matchMedia('(prefers-color-scheme: dark)');
+        if (media && typeof media.addEventListener === 'function') {
+            media.addEventListener('change', () => queueDashboardThemeReflow('prefers-color-scheme'));
+        } else if (media && typeof media.addListener === 'function') {
+            media.addListener(() => queueDashboardThemeReflow('prefers-color-scheme'));
+        }
+    }
+};
+bindDashboardThemeReflowHandlers();
 
 const queueLoadlistRefresh = () => {
     if (queuedLoadlistTimer) {

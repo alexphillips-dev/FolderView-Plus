@@ -2,6 +2,20 @@
     --fvplus-settings-text-primary: var(--text, currentColor);
     --fvplus-settings-text-muted: #cfd9e7;
     --fvplus-settings-text-dim: #b7c5d7;
+    --fvplus-settings-border-subtle: rgba(255, 255, 255, 0.12);
+    --fvplus-settings-border-faint: rgba(255, 255, 255, 0.08);
+    --fvplus-settings-surface-muted: rgba(255, 255, 255, 0.02);
+    --fvplus-settings-surface-strong: rgba(0, 0, 0, 0.2);
+    --fvplus-settings-accent: rgba(77, 163, 255, 0.72);
+    --fvplus-settings-accent-soft: rgba(77, 163, 255, 0.18);
+    --fvplus-settings-warning: #ffd26f;
+    --fvplus-settings-warning-soft: rgba(255, 193, 94, 0.08);
+    --fvplus-settings-warning-border: rgba(255, 193, 94, 0.45);
+    --fvplus-settings-success: #8de0a6;
+    --fvplus-settings-danger: #ff7f7f;
+    --fvplus-settings-danger-border: rgba(255, 116, 116, 0.5);
+    --fvplus-settings-focus-ring: rgba(103, 214, 255, 0.35);
+    --fvplus-settings-surface-panel: rgba(0, 0, 0, 0.14);
 }
 
 .custom-css {
@@ -52,7 +66,7 @@
     gap: 0.55rem;
     padding: 0.7rem 0.75rem;
     margin: 0.35rem 0 0.55rem;
-    border: 1px solid rgba(95, 176, 255, 0.4);
+    border: 1px solid var(--fvplus-settings-accent);
     border-radius: 8px;
     background: linear-gradient(180deg, rgba(45, 122, 191, 0.12), rgba(18, 39, 58, 0.18));
 }
@@ -84,10 +98,10 @@
 .toolbar-sort {
     display: block;
     width: 100%;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--fvplus-settings-border-subtle);
     border-radius: 6px;
     padding: 0.5rem 0.7rem;
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--fvplus-settings-surface-muted);
 }
 
 .toolbar-sort-wide {
@@ -143,7 +157,7 @@
     gap: 0.55rem;
     margin-top: 0.55rem;
     padding-top: 0.55rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid var(--fvplus-settings-border-faint);
 }
 
 .sort-row {
@@ -178,18 +192,18 @@
 }
 
 .tree-management-controls > button.is-active {
-    border-color: rgba(103, 214, 255, 0.75);
-    box-shadow: 0 0 0 1px rgba(103, 214, 255, 0.35) inset;
+    border-color: var(--fvplus-settings-accent);
+    box-shadow: 0 0 0 1px var(--fvplus-settings-focus-ring) inset;
 }
 
 .fv-tree-path-hint {
     margin-top: 0.3rem;
     margin-bottom: 0.18rem;
     padding: 0.26rem 0.42rem;
-    border: 1px solid rgba(133, 161, 199, 0.28);
+    border: 1px solid var(--fvplus-settings-border-subtle);
     border-radius: 5px;
-    background: rgba(17, 27, 42, 0.55);
-    color: rgba(199, 214, 234, 0.9);
+    background: var(--fvplus-settings-surface-strong);
+    color: var(--fvplus-settings-text-muted);
     font-size: 0.92rem;
     line-height: 1.25;
     white-space: nowrap;
@@ -203,7 +217,7 @@
     gap: 0.35rem;
     font-size: 1.03rem;
     opacity: 0.86;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--fvplus-settings-border-subtle);
     border-radius: 999px;
     padding: 0.12rem 0.5rem;
     line-height: 1.2;
@@ -224,9 +238,9 @@
     align-items: center;
     justify-content: space-between;
     gap: 0.52rem;
-    border: 1px solid rgba(255, 193, 94, 0.45);
+    border: 1px solid var(--fvplus-settings-warning-border);
     border-radius: 6px;
-    background: rgba(255, 193, 94, 0.08);
+    background: var(--fvplus-settings-warning-soft);
     padding: 0.35rem 0.48rem;
     margin: 0;
 }
@@ -272,10 +286,10 @@
 }
 
 .settings-mini-card {
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--fvplus-settings-border-faint);
     border-radius: 6px;
     padding: 0.45rem 0.55rem;
-    background: rgba(0, 0, 0, 0.14);
+    background: var(--fvplus-settings-surface-panel);
     display: grid;
     gap: 0.35rem;
     align-content: start;
@@ -353,7 +367,7 @@
 .table-wrap {
     width: 100%;
     box-sizing: border-box;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--fvplus-settings-border-subtle);
     border-radius: 6px;
     overflow-x: hidden;
 }
@@ -668,7 +682,7 @@ body.fv-column-resize-active * {
 .row-order-error {
     font-size: 1.03rem;
     line-height: 1.2;
-    color: #ff8f8f;
+    color: var(--fvplus-settings-danger);
     max-width: 150px;
     white-space: normal;
 }
@@ -678,7 +692,7 @@ body.fv-column-resize-active * {
 }
 
 .folder-pin-btn.is-pinned {
-    color: #ffd24d;
+    color: var(--fvplus-settings-warning);
 }
 
 .folder-table table td.actions-cell {
@@ -2371,8 +2385,8 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     overflow: auto;
     padding: 0.65rem 0.75rem;
     border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    background: var(--fvplus-settings-surface-strong);
     font-family: Consolas, "Courier New", monospace;
     font-size: 1.03rem;
     line-height: 1.45;
@@ -2381,9 +2395,9 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 .fv-perf-panel {
     margin: 0 0 0.75rem 0;
     padding: 0.6rem 0.65rem;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--fvplus-settings-border-subtle);
     border-radius: 6px;
-    background: rgba(0, 0, 0, 0.14);
+    background: var(--fvplus-settings-surface-panel);
 }
 
 .fv-perf-panel-head {
@@ -4704,11 +4718,11 @@ h2[data-fv-section].fv-search-match {
 }
 
 .rule-live-match.is-invalid {
-    color: #ff7474;
+    color: var(--fvplus-settings-danger);
 }
 
 .rule-live-match.is-ok {
-    color: #93e19f;
+    color: var(--fvplus-settings-success);
 }
 
 .rule-presets {
@@ -4731,7 +4745,7 @@ h2[data-fv-section].fv-search-match {
 }
 
 .fv-input-invalid {
-    border-color: #ff7474 !important;
+    border-color: var(--fvplus-settings-danger) !important;
 }
 
 #import-mode-help {
@@ -4760,9 +4774,9 @@ h2[data-fv-section].fv-search-match {
 
 .fv-activity-feed-panel {
     margin: 0 0 0.65rem 0;
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    border: 1px solid var(--fvplus-settings-border-subtle);
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--fvplus-settings-surface-muted);
     padding: 0.5rem 0.65rem;
 }
 
@@ -4805,11 +4819,11 @@ h2[data-fv-section].fv-search-match {
 }
 
 .fv-activity-item.is-error .fv-activity-text {
-    color: #ff7f7f;
+    color: var(--fvplus-settings-danger);
 }
 
 .fv-activity-item.is-success .fv-activity-text {
-    color: #8de0a6;
+    color: var(--fvplus-settings-success);
 }
 
 .fv-quick-presets {
@@ -4833,8 +4847,8 @@ h2[data-fv-section].fv-search-match {
 }
 
 .fv-quick-presets > button.is-active {
-    border-color: rgba(77, 163, 255, 0.62);
-    background: rgba(77, 163, 255, 0.16);
+    border-color: var(--fvplus-settings-accent);
+    background: var(--fvplus-settings-accent-soft);
     color: #d9ecff;
 }
 
@@ -4850,13 +4864,13 @@ h2[data-fv-section].fv-search-match {
     padding: 0.14rem 0.5rem;
     border-radius: 999px;
     font-size: 1.03rem;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    background: var(--fvplus-settings-surface-muted);
 }
 
 .folder-quick-filters > button.is-active {
-    border-color: rgba(77, 163, 255, 0.65);
-    background: rgba(77, 163, 255, 0.18);
+    border-color: var(--fvplus-settings-accent);
+    background: var(--fvplus-settings-accent-soft);
     color: #d9ecff;
 }
 
@@ -4881,17 +4895,17 @@ h2[data-fv-section].fv-search-match {
 }
 
 .inline-validation-hint.is-success {
-    color: #8de0a6;
+    color: var(--fvplus-settings-success);
     opacity: 1;
 }
 
 .inline-validation-hint.is-warning {
-    color: #ffd26f;
+    color: var(--fvplus-settings-warning);
     opacity: 1;
 }
 
 .inline-validation-hint.is-error {
-    color: #ff7f7f;
+    color: var(--fvplus-settings-danger);
     opacity: 1;
 }
 
@@ -5133,9 +5147,9 @@ tr.is-long-press-active {
     display: grid;
     gap: 0.26rem;
     padding: 0.35rem 0.45rem;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--fvplus-settings-border-subtle);
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--fvplus-settings-surface-muted);
 }
 
 .fv-row-quick-actions-summary-row {
@@ -5169,8 +5183,8 @@ tr.is-long-press-active {
 }
 
 .fv-row-quick-action.is-danger {
-    border-color: rgba(255, 116, 116, 0.5);
-    color: #ff9090;
+    border-color: var(--fvplus-settings-danger-border);
+    color: var(--fvplus-settings-danger);
 }
 
 :root {

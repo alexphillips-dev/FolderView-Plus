@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.19.17">
-<!ENTITY md5 "05df16f2d6dd1b7657608d6de2307ea4">
+<!ENTITY version "2026.03.19.18">
+<!ENTITY md5 "49d7dc9611b9b3dd466cf21685eef00c">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.19.18
+- UX: Reduced dashboard expand-toggle controls (non-classic layouts) to tiny arrow-sized buttons.
+- Fix: Removed oversized toggle button chrome/background so only the compact arrow control is shown.
+- UX: Tightened right-side label padding to match the smaller toggle and avoid excessive spacing.
+
 
 ###2026.03.19.17
 - Fix: Corrected Compact Matrix CSS scoping so only top-level dashboard cards are affected.

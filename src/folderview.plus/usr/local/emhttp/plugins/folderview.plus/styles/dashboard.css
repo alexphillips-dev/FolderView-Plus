@@ -143,14 +143,14 @@
 .fv-dashboard-expand-toggle-btn {
     display: none;
     position: absolute;
-    right: 8px;
+    right: 6px;
     top: 50%;
-    width: 20px;
-    height: 20px;
+    width: 11px;
+    height: 11px;
     transform: translateY(-50%);
-    border: 1px solid rgba(240, 163, 10, 0.55);
-    border-radius: 6px;
-    background: rgba(10, 16, 26, 0.88);
+    border: none;
+    border-radius: 0;
+    background: transparent;
     color: var(--orange, #f0a30a);
     cursor: pointer;
     align-items: center;
@@ -158,13 +158,16 @@
     line-height: 1;
     padding: 0;
     z-index: 2;
+    font-size: 10px;
+    box-shadow: none;
 }
 
 .fv-dashboard-expand-toggle-btn:hover,
 .fv-dashboard-expand-toggle-btn:focus {
-    background: rgba(240, 163, 10, 0.18);
+    background: transparent;
     color: #ffbe5c;
     text-decoration: none;
+    outline: none;
 }
 
 tbody.fv-dashboard-show-expand-toggle .folder-showcase-outer > span.outer > .fv-dashboard-expand-toggle-btn {
@@ -172,7 +175,7 @@ tbody.fv-dashboard-show-expand-toggle .folder-showcase-outer > span.outer > .fv-
 }
 
 tbody.fv-dashboard-show-expand-toggle .folder-showcase-outer > span.outer > span.inner {
-    padding-right: 32px;
+    padding-right: 18px;
 }
 
 tbody.fv-dashboard-hide-folder-label .folder-showcase-outer > span.outer .folder-appname-docker,

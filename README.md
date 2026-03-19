@@ -18,7 +18,7 @@
 FolderView Plus gives Unraid a cleaner, folder-first way to manage Docker containers and VMs.  
 It is built for real libraries: easier organization, safer imports, faster recovery, and better day-to-day control.
 
-Quick links: [Install](#install) | [Feature Highlights](#feature-highlights) | [Screenshots](#screenshots) | [Rules Quick Guide](#rules-quick-guide) | [Import, Export, and Backups](#import-export-and-backups) | [Troubleshooting](#troubleshooting) | [Support](#support)
+Quick links: [Install](#install) | [Feature Highlights](#feature-highlights) | [Screenshots](#screenshots) | [Rules Quick Guide](#rules-quick-guide) | [Import, Export, and Backups](#import-export-and-backups) | [Troubleshooting](#troubleshooting) | [Edge Cases + Test Matrix](docs/edge-cases-test-matrix.md) | [Support](#support)
 
 ## Screenshots
 

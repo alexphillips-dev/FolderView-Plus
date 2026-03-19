@@ -23,6 +23,7 @@ chmod +x \
   scripts/perf_baseline_refresh.sh \
   scripts/perf_budget_guard.sh \
   scripts/repro_build_guard.sh \
+  scripts/prune_archives.sh \
   scripts/unraid_matrix_smoke.sh \
   scripts/theme_matrix_smoke.sh
 bash scripts/doctor.sh

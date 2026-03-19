@@ -12,6 +12,9 @@ install_smoke_script="$CWD/scripts/install_smoke.sh"
 ensure_changes_entry_script="$CWD/scripts/ensure_plg_changes_entry.sh"
 archive_prefix="folderview.plus"
 archive_dir="$CWD/archive"
+prune_archives_script="$CWD/scripts/prune_archives.sh"
+archive_prune_keep_raw="${FVPLUS_ARCHIVE_PRUNE_KEEP:-24}"
+archive_prune_keep=24
 icon_ext_regex='^(png|jpg|jpeg|gif|webp|svg|bmp|ico|avif)$'
 validate_after_build=true
 dry_run=false
@@ -39,6 +42,10 @@ Usage: pkg_build.sh [options]
   --beta [N]      Build beta package version (YYYY.MM.DD-beta or -betaN)
   --branch NAME   Force update URLs to use branch NAME (default: auto dev/main)
   --dry-run       Show computed version/output paths without writing files
+  --keep-archives N
+                  Keep latest N archive versions after build (default: 24, 0 disables prune)
+  --no-prune-archives
+                  Disable archive pruning for this build
   --output-dir D  Write .txz/.sha256 to directory D (default: ./archive)
   --install-smoke Run scripts/install_smoke.sh after successful build
   --validate      Run scripts/release_guard.sh after build (default: enabled)
@@ -68,6 +75,15 @@ cleanup_tmpdir() {
     if [ -n "${lockdir:-}" ] && [ -d "${lockdir}" ]; then
         rm -rf "${lockdir}"
     fi
+}
+
+parse_nonnegative_integer() {
+    local raw="${1:-}"
+    if [[ "$raw" =~ ^[0-9]+$ ]]; then
+        echo $((10#$raw))
+        return
+    fi
+    echo ""
 }
 
 ensure_repo_layout() {
@@ -240,6 +256,17 @@ while [[ $# -gt 0 ]]; do
         --dry-run)
             dry_run=true
             ;;
+        --keep-archives)
+            if [ -z "${2:-}" ]; then
+                echo "ERROR: --keep-archives requires a non-negative integer." >&2
+                exit 1
+            fi
+            archive_prune_keep_raw="${2:-}"
+            shift
+            ;;
+        --no-prune-archives)
+            archive_prune_keep_raw="0"
+            ;;
         --branch)
             if [ -z "${2:-}" ]; then
                 echo "ERROR: --branch requires a branch name." >&2
@@ -280,6 +307,12 @@ while [[ $# -gt 0 ]]; do
     esac
     shift
 done
+
+archive_prune_keep="$(parse_nonnegative_integer "$archive_prune_keep_raw")"
+if [ -z "$archive_prune_keep" ]; then
+    echo "ERROR: archive prune keep value must be a non-negative integer (received: $archive_prune_keep_raw)." >&2
+    exit 1
+fi
 
 if [[ "$archive_dir" != /* && ! "$archive_dir" =~ ^[A-Za-z]:[\\/].* ]]; then
     archive_dir="$CWD/$archive_dir"
@@ -384,6 +417,7 @@ if [ "$dry_run" = true ]; then
     if [ -n "$xml_date" ]; then
         echo "CA template date: $xml_date"
     fi
+    echo "Archive retention keep count: $archive_prune_keep"
     echo "Post-build validation: $validate_after_build"
     echo "Install smoke: $run_install_smoke"
     exit 0
@@ -441,6 +475,14 @@ sed -E -i 's|<URL>https://raw.githubusercontent.com/.*?/archive/.*</URL>|<URL>ht
 # cannot fail after bumping version metadata.
 chmod +x "$ensure_changes_entry_script"
 bash "$ensure_changes_entry_script"
+
+if [ "$archive_prune_keep" -gt 0 ]; then
+    if [ ! -f "$prune_archives_script" ]; then
+        echo "ERROR: Missing archive prune script: $prune_archives_script" >&2
+        exit 1
+    fi
+    bash "$prune_archives_script" --archive-dir "$archive_dir" --keep "$archive_prune_keep" --current-version "$version"
+fi
 
 if [ "$validate_after_build" = true ]; then
     FVPLUS_ARCHIVE_DIR="$archive_dir" bash "$release_guard_script"

@@ -24,6 +24,7 @@ const langUsageGuardPath = path.join(repoRoot, 'scripts/lang_usage_guard.sh');
 const themeScopeGuardPath = path.join(repoRoot, 'scripts/theme_scope_guard.sh');
 const perfBudgetGuardPath = path.join(repoRoot, 'scripts/perf_budget_guard.sh');
 const reproBuildGuardPath = path.join(repoRoot, 'scripts/repro_build_guard.sh');
+const pruneArchivesPath = path.join(repoRoot, 'scripts/prune_archives.sh');
 const unraidMatrixSmokePath = path.join(repoRoot, 'scripts/unraid_matrix_smoke.sh');
 const ensureChangesPath = path.join(repoRoot, 'scripts/ensure_plg_changes_entry.sh');
 const doctorPath = path.join(repoRoot, 'scripts/doctor.sh');
@@ -49,6 +50,7 @@ const langUsageGuard = fs.readFileSync(langUsageGuardPath, 'utf8');
 const themeScopeGuard = fs.readFileSync(themeScopeGuardPath, 'utf8');
 const perfBudgetGuard = fs.readFileSync(perfBudgetGuardPath, 'utf8');
 const reproBuildGuard = fs.readFileSync(reproBuildGuardPath, 'utf8');
+const pruneArchives = fs.readFileSync(pruneArchivesPath, 'utf8');
 const unraidMatrixSmoke = fs.readFileSync(unraidMatrixSmokePath, 'utf8');
 const ensureChanges = fs.readFileSync(ensureChangesPath, 'utf8');
 const doctorScript = fs.readFileSync(doctorPath, 'utf8');
@@ -74,6 +76,11 @@ test('pkg_build includes dependency preflight, safe temp cleanup, dry-run, and c
     assert.match(pkgBuild, /acquire_build_lock/);
     assert.match(pkgBuild, /flock -n 9/);
     assert.match(pkgBuild, /--output-dir D/);
+    assert.match(pkgBuild, /--keep-archives N/);
+    assert.match(pkgBuild, /--no-prune-archives/);
+    assert.match(pkgBuild, /archive_prune_keep_raw="\$\{FVPLUS_ARCHIVE_PRUNE_KEEP:-24\}"/);
+    assert.match(pkgBuild, /Archive retention keep count: \$archive_prune_keep/);
+    assert.match(pkgBuild, /bash "\$prune_archives_script" --archive-dir "\$archive_dir" --keep "\$archive_prune_keep" --current-version "\$version"/);
     assert.match(pkgBuild, /--install-smoke/);
     assert.match(pkgBuild, /--dry-run/);
     assert.match(pkgBuild, /Post-build validation: \$validate_after_build/);
@@ -89,6 +96,17 @@ test('pkg_build includes dependency preflight, safe temp cleanup, dry-run, and c
     assert.match(pkgBuild, /<URL>https:\/\/raw\.githubusercontent\.com\/\.\*\?\/archive\/\.\*<\/URL>/);
     assert.match(pkgBuild, /https:\/\/raw\.githubusercontent\.com\/\\&github;\/'"\$branch"'\/archive\/\\&name;-\\&version;\.txz/);
     assert.doesNotMatch(pkgBuild, /rm -R "\$CWD\/tmp"/);
+});
+
+test('archive pruning script keeps newest versions and preserves current release artifacts', () => {
+    assert.match(pruneArchives, /Usage: prune_archives\.sh/);
+    assert.match(pruneArchives, /--keep N/);
+    assert.match(pruneArchives, /--current-version VER/);
+    assert.match(pruneArchives, /FVPLUS_ARCHIVE_PRUNE_KEEP:-24/);
+    assert.match(pruneArchives, /CURRENT_VERSION="\$\(fvplus::read_plg_version "\$\{ROOT_DIR\}\/folderview\.plus\.plg"\)"/);
+    assert.match(pruneArchives, /folderview\.plus-\*\.txz/);
+    assert.match(pruneArchives, /sort -Vu/);
+    assert.match(pruneArchives, /Archive prune complete:/);
 });
 
 test('release_guard blocks future-dated versions', () => {
@@ -239,6 +257,7 @@ test('validation workflows enforce standards guards and release-required browser
     assert.match(releasePrepare, /bash scripts\/theme_scope_guard\.sh/);
     assert.match(releasePrepare, /bash scripts\/perf_budget_guard\.sh/);
     assert.match(releasePrepare, /bash scripts\/repro_build_guard\.sh/);
+    assert.match(releasePrepare, /scripts\/prune_archives\.sh/);
     assert.match(releasePrepare, /bash scripts\/unraid_matrix_smoke\.sh/);
     assert.match(releasePrepare, /bash scripts\/theme_matrix_smoke\.sh/);
     assert.match(releasePrepare, /bash scripts\/browser_smoke\.sh/);

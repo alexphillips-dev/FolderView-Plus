@@ -156,6 +156,7 @@ let dockerRuntimeAutoAppWidthFloorMode = null;
 let dockerRuntimeThemeReflowBound = false;
 let dockerRuntimeThemeReflowObserver = null;
 let dockerRuntimeThemeReflowTimer = null;
+let dockerRuntimeInfoByName = {};
 const DOCKER_RUNTIME_WIDTH_PHASES = Object.freeze({
     idle: 'idle',
     debounce: 'debounce',
@@ -1099,16 +1100,83 @@ const getFolderDescendants = (folderId) => {
 
 const folderHasChildren = (folderId) => getFolderChildren(folderId).length > 0;
 
+const readFolderContainerNames = (containers) => {
+    if (Array.isArray(containers)) {
+        return Array.from(new Set(containers.map((item) => String(item || '').trim()).filter((item) => item !== '')));
+    }
+    if (containers && typeof containers === 'object') {
+        return Array.from(new Set(Object.keys(containers).map((item) => String(item || '').trim()).filter((item) => item !== '')));
+    }
+    return [];
+};
+
+const getDockerRuntimeContainerInfo = (name) => {
+    const key = String(name || '').trim();
+    if (!key) {
+        return null;
+    }
+    const cached = dockerRuntimeInfoByName[key];
+    if (cached && typeof cached === 'object') {
+        return cached;
+    }
+    if (Array.isArray(window.docker)) {
+        const match = window.docker.find((entry) => String(entry?.info?.Name || '').trim() === key);
+        if (match && typeof match === 'object') {
+            dockerRuntimeInfoByName[key] = match;
+            return match;
+        }
+    }
+    return null;
+};
+
+const buildRuntimeContainerEntry = (name, sourceMeta = null) => {
+    const key = String(name || '').trim();
+    const source = (sourceMeta && typeof sourceMeta === 'object' && !Array.isArray(sourceMeta)) ? sourceMeta : {};
+    const runtime = getDockerRuntimeContainerInfo(key);
+    const runtimeState = runtime?.info?.State || {};
+    const runtimeManager = String(runtimeState.manager || '').trim();
+    const hasRuntimeState = typeof runtimeState.Running === 'boolean';
+    const hasRuntimePause = typeof runtimeState.Paused === 'boolean';
+    return {
+        ...source,
+        id: source.id || String(runtime?.shortId || '').trim(),
+        name: String(runtime?.info?.Name || source.name || key).trim() || key,
+        icon: source.icon || runtime?.Labels?.['net.unraid.docker.icon'] || '/plugins/dynamix.docker.manager/images/question.png',
+        webui: String(source.webui || runtimeState.WebUi || '').trim(),
+        shell: source.shell || runtime?.info?.Shell || '/bin/sh',
+        pause: hasRuntimePause ? (runtimeState.Paused === true) : (source.pause === true),
+        state: hasRuntimeState ? (runtimeState.Running === true) : (source.state === true),
+        autostart: typeof runtimeState.Autostart === 'boolean' ? runtimeState.Autostart === true : (source.autostart === true),
+        update: typeof runtimeState.Updated === 'boolean'
+            ? (runtimeState.Updated === false && runtimeManager === 'dockerman')
+            : (source.update === true),
+        managed: runtimeManager ? runtimeManager === 'dockerman' : (source.managed === true),
+        manager: runtimeManager || String(source.manager || '').trim()
+    };
+};
+
 const getFolderRuntimeContainers = (folder) => {
     if (!folder || typeof folder !== 'object') {
         return {};
     }
     const runtime = folder.runtimeContainers;
-    if (runtime && typeof runtime === 'object' && Object.keys(runtime).length > 0) {
+    if (runtime && typeof runtime === 'object' && !Array.isArray(runtime) && Object.keys(runtime).length > 0) {
         return runtime;
     }
     const containers = folder.containers;
-    return (containers && typeof containers === 'object') ? containers : {};
+    const names = readFolderContainerNames(containers);
+    if (!names.length) {
+        return {};
+    }
+    const sourceMap = (containers && typeof containers === 'object' && !Array.isArray(containers)) ? containers : {};
+    const collected = {};
+    for (const name of names) {
+        if (Object.prototype.hasOwnProperty.call(collected, name)) {
+            continue;
+        }
+        collected[name] = buildRuntimeContainerEntry(name, sourceMap[name]);
+    }
+    return collected;
 };
 
 const getScopedRuntimeContainersForFolder = (folderId, includeDescendants = true) => {
@@ -1646,6 +1714,9 @@ const createFolders = async () => {
     let folders = JSON.parse(prom[0]);
     let unraidOrder = Object.values(JSON.parse(prom[1]));
     const containersInfo = JSON.parse(prom[2]);
+    dockerRuntimeInfoByName = (containersInfo && typeof containersInfo === 'object' && !Array.isArray(containersInfo))
+        ? { ...containersInfo }
+        : {};
     let order = Object.values(JSON.parse(prom[3]));
     let prefsResponse = {};
     try {
@@ -2932,18 +3003,14 @@ const buildRuntimeContainerMapForFolder = (folderId, includeDescendants = false)
         if (!folder || !folder.containers || typeof folder.containers !== 'object') {
             continue;
         }
-        for (const [name, meta] of Object.entries(folder.containers)) {
+        const names = readFolderContainerNames(folder.containers);
+        const sourceMap = !Array.isArray(folder.containers) ? folder.containers : {};
+        for (const name of names) {
             const key = String(name || '').trim();
             if (!key || Object.prototype.hasOwnProperty.call(collected, key)) {
                 continue;
             }
-            const source = meta && typeof meta === 'object' ? meta : {};
-            collected[key] = {
-                ...source,
-                name: source.name || key,
-                icon: source.icon || '/plugins/dynamix.docker.manager/images/question.png',
-                autostart: source.autostart === true
-            };
+            collected[key] = buildRuntimeContainerEntry(key, sourceMap?.[key]);
         }
     }
     return collected;
@@ -3412,21 +3479,41 @@ const collectFolderWebuiTargets = (id, includeDescendants = true, runningOnly = 
     return out;
 }, []);
 
+const showFolderWebuiPopupWarning = (openedCount, totalCount, blockedUrls) => {
+    const blockedList = Array.isArray(blockedUrls) ? blockedUrls.slice(0, 6) : [];
+    const linkHtml = blockedList.map((url) => `<li style="margin:4px 0;"><a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a></li>`).join('');
+    const overflowCount = Math.max(0, (blockedUrls?.length || 0) - blockedList.length);
+    const overflowHint = overflowCount > 0 ? `<div style="margin-top:6px; opacity:.8;">+${overflowCount} more blocked link${overflowCount === 1 ? '' : 's'}</div>` : '';
+    swal({
+        title: 'Popup blocked',
+        text: `Opened <strong>${openedCount}</strong> of <strong>${totalCount}</strong> WebUIs.<br>Allow popups for this page to open all automatically.${linkHtml ? `<br><ul style="text-align:left; margin:8px 0 0 18px;">${linkHtml}</ul>${overflowHint}` : ''}`,
+        type: 'warning',
+        html: true,
+        confirmButtonText: 'OK'
+    });
+};
+
 const openFolderWebuisFromMenu = (id, runningOnly = true, includeDescendants = false) => {
     hideAllTips();
-    const urls = collectFolderWebuiTargets(id, includeDescendants, runningOnly);
+    const urls = Array.from(new Set(collectFolderWebuiTargets(id, includeDescendants, runningOnly)));
     if (!urls.length) return;
+    const blocked = [];
     const stamp = Date.now();
     for (let index = 0; index < urls.length; index += 1) {
         try {
-            const anchor = document.createElement('a');
-            anchor.href = urls[index];
-            anchor.target = `fvw-${stamp}-${index}`;
-            anchor.rel = 'noopener noreferrer';
-            document.body.appendChild(anchor);
-            anchor.click();
-            anchor.remove();
-        } catch {}
+            const popup = window.open('about:blank', `fvw-${stamp}-${index}`);
+            if (!popup) {
+                blocked.push(urls[index]);
+                continue;
+            }
+            popup.opener = null;
+            popup.location.replace(urls[index]);
+        } catch {
+            blocked.push(urls[index]);
+        }
+    }
+    if (blocked.length > 0) {
+        showFolderWebuiPopupWarning(urls.length - blocked.length, urls.length, blocked);
     }
 };
 

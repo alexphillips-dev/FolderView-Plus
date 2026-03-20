@@ -14,9 +14,10 @@ test('docker folder context supports open-all-webui actions with scoped options'
     assert.match(dockerScript, /const openFolderWebuisFromMenu = \(id, runningOnly = true, includeDescendants = false\) =>/);
     assert.match(dockerScript, /Open all WebUIs/);
     assert.match(dockerScript, /collectFolderWebuiTargets\(id, false, true\)/);
-    assert.match(dockerScript, /isRunning && !isPaused/);
-    assert.match(dockerScript, /document\.createElement\('a'\)/);
-    assert.doesNotMatch(dockerScript, /window\.open\(url, '_blank', 'noopener,noreferrer'\)/);
+    assert.match(dockerScript, /entry\?\.state === true && entry\?\.pause !== true/);
+    assert.match(dockerScript, /window\.open\('about:blank', `fvw-\$\{stamp\}-\$\{index\}`\)/);
+    assert.match(dockerScript, /showFolderWebuiPopupWarning/);
+    assert.match(dockerScript, /dockerRuntimeInfoByName/);
     assert.match(dockerScript, /openFolderWebuisFromMenu\(id, true, false\)/);
 });
 

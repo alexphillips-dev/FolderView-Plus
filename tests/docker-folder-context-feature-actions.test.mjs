@@ -27,5 +27,5 @@ test('docker folder context supports clone-folder action flow', () => {
     assert.match(dockerScript, /const cloneDockerFolderFromMenu = async \(id\) =>/);
     assert.match(dockerScript, /window\.prompt\('Clone folder name'/);
     assert.match(dockerScript, /\/server\/create\.php/);
-    assert.match(dockerScript, /text: 'Clone folder'/);
+    assert.match(dockerScript, /text:\s*getDockerMenuLabel\('clone-folder',\s*'Clone folder'\)/);
 });

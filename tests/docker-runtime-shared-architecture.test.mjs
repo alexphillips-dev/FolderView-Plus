@@ -28,6 +28,9 @@ test('docker shared runtime module exports state store, async boundary, quick st
     assert.match(dockerSharedJs, /const createAsyncActionBoundary =/);
     assert.match(dockerSharedJs, /const createContextMenuQuickStripAdapter =/);
     assert.match(dockerSharedJs, /const createRuntimePerfTelemetry =/);
+    assert.match(dockerSharedJs, /const createSafeUiActionRunner =/);
+    assert.match(dockerSharedJs, /const resolveRuntimePerformanceProfile =/);
+    assert.match(dockerSharedJs, /const runtimeContracts = Object\.freeze\(/);
     assert.match(dockerSharedJs, /window\.FolderViewDockerRuntimeShared =/);
 });
 

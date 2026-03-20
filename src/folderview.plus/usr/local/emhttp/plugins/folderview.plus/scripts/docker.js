@@ -147,11 +147,26 @@ const createDockerContextMenuQuickStripAdapter = typeof dockerRuntimeShared.crea
 const createDockerRuntimePerfTelemetry = typeof dockerRuntimeShared.createRuntimePerfTelemetry === 'function'
     ? dockerRuntimeShared.createRuntimePerfTelemetry
     : () => ({ enabled: false, begin: () => {}, end: () => 0, snapshot: () => ({}) });
+const createDockerSafeUiActionRunner = typeof dockerRuntimeShared.createSafeUiActionRunner === 'function'
+    ? dockerRuntimeShared.createSafeUiActionRunner
+    : () => ({ run: async (_actionKey, action) => ({ ok: true, value: await action() }) });
+const resolveDockerRuntimePerformanceProfile = typeof dockerRuntimeShared.resolveRuntimePerformanceProfile === 'function'
+    ? dockerRuntimeShared.resolveRuntimePerformanceProfile
+    : (prefs = {}, _counts = {}) => ({
+        performanceMode: prefs?.performanceMode === true,
+        strict: false,
+        expandRestoreLimit: null,
+        minLiveRefreshSeconds: null
+    });
+const runtimeContracts = dockerRuntimeShared.runtimeContracts && typeof dockerRuntimeShared.runtimeContracts === 'object'
+    ? dockerRuntimeShared.runtimeContracts
+    : {};
 const dockerRuntimeStateStore = createDockerRuntimeStateStore({
     focusedFolderId: '',
     lockedFolderIds: [],
     pinnedFolderIds: []
 });
+const dockerSafeUiActionRunner = createDockerSafeUiActionRunner();
 const getDockerMenuLabel = (key, fallback) => {
     const safeFallback = String(fallback || key || '').trim();
     try {
@@ -165,7 +180,9 @@ const getDockerMenuLabel = (key, fallback) => {
         return safeFallback;
     }
 };
-const FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
+const FOLDER_LABEL_KEYS = Array.isArray(runtimeContracts.folderLabelKeys) && runtimeContracts.folderLabelKeys.length
+    ? runtimeContracts.folderLabelKeys.map((entry) => String(entry || '').trim()).filter((entry) => entry !== '')
+    : ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
 const DOCKER_RUNTIME_COLUMN_WIDTHS_STORAGE_KEY = 'fv.runtime.docker.columnWidthsPx.v1';
 const DOCKER_RUNTIME_LEGACY_APP_WIDTH_STORAGE_KEY = 'fv.runtime.docker.appColumnWidthPx.v1';
 const DOCKER_RUNTIME_APP_WIDTH_MIN = 118;
@@ -1327,35 +1344,37 @@ const toggleDockerFolderPin = async (folderId) => {
     if (!id || !globalFolders[id]) {
         return;
     }
-    const current = Array.isArray(folderTypePrefs?.pinnedFolderIds) ? [...folderTypePrefs.pinnedFolderIds] : [];
-    const nextPinned = current.includes(id)
-        ? current.filter((entry) => entry !== id)
-        : [...current, id];
-    applyDockerPinnedFolderIds(nextPinned);
-    refreshDockerFolderQuickActionStates();
-    const request = window.FolderViewPlusRequest;
-    if (!request || typeof request.postJson !== 'function') {
-        queueLoadlistRefresh();
-        return;
-    }
-    const result = await runDockerGuardedAction('toggle-folder-pin', async () => {
-        const response = await request.postJson('/plugins/folderview.plus/server/prefs.php', {
-            type: 'docker',
-            prefs: JSON.stringify({ pinnedFolderIds: nextPinned })
-        }, {
-            retries: 1,
-            retryDelayMs: 260
-        });
-        applyDockerPinnedFolderIds(Array.isArray(response?.prefs?.pinnedFolderIds) ? response.prefs.pinnedFolderIds : nextPinned);
-        queueLoadlistRefresh();
-    }, {
-        userMessage: getDockerMenuLabel('folder-pin-failed', 'Failed to update pinned folders.'),
-        userVisible: false
-    });
-    if (!result.ok) {
-        applyDockerPinnedFolderIds(current);
+    return dockerSafeUiActionRunner.run(`docker-pin:${id}`, async () => {
+        const current = Array.isArray(folderTypePrefs?.pinnedFolderIds) ? [...folderTypePrefs.pinnedFolderIds] : [];
+        const nextPinned = current.includes(id)
+            ? current.filter((entry) => entry !== id)
+            : [...current, id];
+        applyDockerPinnedFolderIds(nextPinned);
         refreshDockerFolderQuickActionStates();
-    }
+        const request = window.FolderViewPlusRequest;
+        if (!request || typeof request.postJson !== 'function') {
+            queueLoadlistRefresh();
+            return;
+        }
+        const result = await runDockerGuardedAction('toggle-folder-pin', async () => {
+            const response = await request.postJson('/plugins/folderview.plus/server/prefs.php', {
+                type: 'docker',
+                prefs: JSON.stringify({ pinnedFolderIds: nextPinned })
+            }, {
+                retries: 1,
+                retryDelayMs: 260
+            });
+            applyDockerPinnedFolderIds(Array.isArray(response?.prefs?.pinnedFolderIds) ? response.prefs.pinnedFolderIds : nextPinned);
+            queueLoadlistRefresh();
+        }, {
+            userMessage: getDockerMenuLabel('folder-pin-failed', 'Failed to update pinned folders.'),
+            userVisible: false
+        });
+        if (!result.ok) {
+            applyDockerPinnedFolderIds(current);
+            refreshDockerFolderQuickActionStates();
+        }
+    });
 };
 const ensureDockerFolderUnlocked = (id, actionLabel = 'This action') => {
     if (!isDockerFolderLocked(id)) {
@@ -2020,6 +2039,7 @@ const createFolders = async () => {
         prefsResponse = {};
     }
     folderTypePrefs = utils.normalizePrefs(prefsResponse?.prefs || {});
+    resolveDockerStrictPerformanceProfile(folderTypePrefs, folders, containersInfo);
     dockerRuntimeStateStore.set({
         pinnedFolderIds: Array.isArray(folderTypePrefs?.pinnedFolderIds) ? [...folderTypePrefs.pinnedFolderIds] : []
     });
@@ -2212,7 +2232,7 @@ const createFolders = async () => {
     const expansionIds = Object.keys(foldersDone)
         .sort((a, b) => (folderDepthById[a] || 0) - (folderDepthById[b] || 0));
     const maxRestoredExpansions = folderTypePrefs?.performanceMode === true
-        ? PERFORMANCE_MODE_EXPAND_RESTORE_LIMIT
+        ? Number(dockerRuntimePerformanceProfile?.expandRestoreLimit || PERFORMANCE_MODE_EXPAND_RESTORE_LIMIT)
         : Number.POSITIVE_INFINITY;
     let restoredExpansionCount = 0;
     for (const id of expansionIds) {
@@ -2299,7 +2319,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     dockerPerf.begin(perfKey);
     try {
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Entry`, { folder: JSON.parse(JSON.stringify(folder)), id, positionInMainOrder, orderInitialSnapshot: [...liveOrderArray], containersInfoKeys: Object.keys(containersInfo).length, foldersDone: [...foldersDone] });
-    if (folderTypePrefs?.performanceMode === true && folder && typeof folder === 'object') {
+    if (dockerRuntimePerformanceProfile?.performanceMode === true && folder && typeof folder === 'object') {
         folder.settings = {
             ...(folder.settings || {}),
             preview: 0,
@@ -4735,6 +4755,18 @@ const LOADLIST_REFRESH_DEBOUNCE_MS = 90;
 const LOADLIST_REFRESH_MIN_GAP_MS = 420;
 const PERFORMANCE_MODE_MIN_REFRESH_SECONDS = 20;
 const PERFORMANCE_MODE_EXPAND_RESTORE_LIMIT = 12;
+let dockerRuntimePerformanceProfile = resolveDockerRuntimePerformanceProfile(folderTypePrefs, {
+    folderCount: 0,
+    itemCount: 0
+});
+
+const resolveDockerStrictPerformanceProfile = (prefs, folders, containersInfo) => {
+    const folderCount = Object.keys(folders && typeof folders === 'object' ? folders : {}).length;
+    const itemCount = Object.keys(containersInfo && typeof containersInfo === 'object' ? containersInfo : {}).length;
+    dockerRuntimePerformanceProfile = resolveDockerRuntimePerformanceProfile(prefs || {}, { folderCount, itemCount });
+    dockerRuntimeStateStore.set({ performanceProfile: dockerRuntimePerformanceProfile });
+    return dockerRuntimePerformanceProfile;
+};
 
 const queueLoadlistRefresh = () => {
     if (queuedLoadlistTimer) {
@@ -4803,8 +4835,12 @@ const scheduleLiveRefresh = (prefs) => {
         return;
     }
     const requestedSeconds = Math.max(10, Math.min(300, Number(normalized.liveRefreshSeconds) || 20));
-    const seconds = normalized.performanceMode === true
-        ? Math.max(PERFORMANCE_MODE_MIN_REFRESH_SECONDS, requestedSeconds)
+    const strictMinSeconds = Number(dockerRuntimePerformanceProfile?.minLiveRefreshSeconds || 0);
+    const perfMinSeconds = normalized.performanceMode === true
+        ? Math.max(PERFORMANCE_MODE_MIN_REFRESH_SECONDS, strictMinSeconds || PERFORMANCE_MODE_MIN_REFRESH_SECONDS)
+        : 0;
+    const seconds = perfMinSeconds > 0
+        ? Math.max(perfMinSeconds, requestedSeconds)
         : requestedSeconds;
     const ms = seconds * 1000;
     if (liveRefreshTimer && liveRefreshMs === ms) {
@@ -4831,6 +4867,7 @@ const applyRuntimePrefs = (prefs) => {
     queueDockerRuntimeResizerBind();
     scheduleDockerRuntimeWidthReflow('prefs-change', 0);
     $('body').toggleClass('fvplus-performance-mode', normalized.performanceMode === true);
+    $('body').toggleClass('fvplus-performance-mode-strict', dockerRuntimePerformanceProfile?.strict === true);
     scheduleLiveRefresh(normalized);
 };
 

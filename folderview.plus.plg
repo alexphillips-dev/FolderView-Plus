@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.20.13">
-<!ENTITY md5 "dbd3de15d71be54a1a8141a2486c8cf4">
+<!ENTITY version "2026.03.20.14">
+<!ENTITY md5 "cd5946f2e6e080a64d2413068712ef18">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.20.14
+- Maintenance: Update docker context action contract tests for i18n clone label.
+
 
 ###2026.03.20.13
 - Refactor: Added `docker.runtime.shared.js` for Docker runtime state store, async action boundaries, context-menu adapter, and perf telemetry primitives.

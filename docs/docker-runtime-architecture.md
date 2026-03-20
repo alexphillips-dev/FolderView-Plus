@@ -9,6 +9,9 @@ This document tracks the staged modularization of `docker.js` while preserving U
   - `createAsyncActionBoundary`: normalized async error handling and user-safe messaging.
   - `createContextMenuQuickStripAdapter`: resilient context-menu enhancement for icon-only quick actions.
   - `createRuntimePerfTelemetry`: structured action timing with snapshot support.
+  - `createSafeUiActionRunner`: in-flight dedupe for UI-triggered async actions.
+  - `resolveRuntimePerformanceProfile`: strict performance profile for large libraries.
+  - `runtimeContracts`: shared key/threshold contracts consumed by Docker and VMs.
 - `scripts/docker.modules.js`
   - view helpers (debug logger, perf tracker, row-centering tools).
 
@@ -20,6 +23,7 @@ This document tracks the staged modularization of `docker.js` while preserving U
   - `focusedFolderId`
   - `lockedFolderIds`
   - `pinnedFolderIds`
+  - `performanceProfile`
 
 ## Guardrails
 
@@ -35,3 +39,4 @@ This document tracks the staged modularization of `docker.js` while preserving U
   - `tests/docker-mobile-name-alignment-guard.test.mjs`
 - Perf telemetry snapshot is exposed as:
   - `window.getDockerRuntimePerfTelemetrySnapshot()`
+  - `window.getVmRuntimePerfTelemetrySnapshot()`

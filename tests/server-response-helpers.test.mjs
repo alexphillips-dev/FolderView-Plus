@@ -32,6 +32,10 @@ test('lib.php defines centralized JSON response helpers', () => {
     assert.match(libPhp, /function fvplus_json_ok\s*\(/);
     assert.match(libPhp, /function fvplus_json_error\s*\(/);
     assert.match(libPhp, /function fvplus_json_try\s*\(/);
+    assert.match(libPhp, /function getRequestTraceId\s*\(/);
+    assert.match(libPhp, /function emitRequestTraceHeader\s*\(/);
+    assert.match(libPhp, /header\('X-FV-Trace:\s*'\s*\.\s*getRequestTraceId\(\)\)/);
+    assert.match(libPhp, /'traceId'\s*=>\s*getRequestTraceId\(\)/);
 });
 
 test('JSON endpoints use centralized response helper wrapper', () => {

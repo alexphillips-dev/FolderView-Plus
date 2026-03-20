@@ -253,6 +253,82 @@
         return { enabled: on, begin, end, snapshot };
     };
 
+    const runtimeContracts = Object.freeze({
+        folderLabelKeys: Object.freeze(['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view']),
+        performance: Object.freeze({
+            strictFolderCount: 34,
+            strictItemCount: 220,
+            strictExpandRestoreLimit: 8,
+            strictLiveRefreshSeconds: 30
+        })
+    });
+
+    /**
+     * Resolves effective runtime performance profile for large installs.
+     * @param {{performanceMode?: boolean}} prefs
+     * @param {{folderCount?: number, itemCount?: number}} counts
+     * @param {{strictFolderCount?: number, strictItemCount?: number, strictExpandRestoreLimit?: number, strictLiveRefreshSeconds?: number}} overrides
+     */
+    const resolveRuntimePerformanceProfile = (prefs = {}, counts = {}, overrides = {}) => {
+        const perf = runtimeContracts.performance;
+        const performanceMode = prefs?.performanceMode === true;
+        const folderCount = Math.max(0, Number(counts?.folderCount || 0));
+        const itemCount = Math.max(0, Number(counts?.itemCount || 0));
+        const strictFolderCount = Math.max(1, Number(overrides.strictFolderCount || perf.strictFolderCount));
+        const strictItemCount = Math.max(1, Number(overrides.strictItemCount || perf.strictItemCount));
+        const strictExpandRestoreLimit = Math.max(1, Number(overrides.strictExpandRestoreLimit || perf.strictExpandRestoreLimit));
+        const strictLiveRefreshSeconds = Math.max(10, Number(overrides.strictLiveRefreshSeconds || perf.strictLiveRefreshSeconds));
+        const strict = performanceMode && (folderCount >= strictFolderCount || itemCount >= strictItemCount);
+        return Object.freeze({
+            performanceMode,
+            strict,
+            folderCount,
+            itemCount,
+            strictFolderCount,
+            strictItemCount,
+            expandRestoreLimit: strict ? strictExpandRestoreLimit : null,
+            minLiveRefreshSeconds: strict ? strictLiveRefreshSeconds : null
+        });
+    };
+
+    /**
+     * Deduplicates UI-triggered async actions by key to avoid racey double-click behavior.
+     * @param {{onError?: (error: Error, actionKey: string) => void, onBusy?: (actionKey: string) => void}} options
+     */
+    const createSafeUiActionRunner = (options = {}) => {
+        const inFlight = new Set();
+        const onError = typeof options.onError === 'function'
+            ? options.onError
+            : (error, actionKey) => console.error(`folderview.plus: safe ui action failed (${actionKey})`, error);
+        const onBusy = typeof options.onBusy === 'function' ? options.onBusy : null;
+        return {
+            isRunning: (actionKey) => inFlight.has(String(actionKey || '')),
+            run: async (actionKey, action) => {
+                const key = String(actionKey || '').trim() || 'action';
+                if (inFlight.has(key)) {
+                    if (onBusy) {
+                        onBusy(key);
+                    }
+                    return { ok: false, skipped: true, reason: 'in-flight' };
+                }
+                if (typeof action !== 'function') {
+                    return { ok: false, skipped: true, reason: 'invalid-action' };
+                }
+                inFlight.add(key);
+                try {
+                    const value = await action();
+                    return { ok: true, value };
+                } catch (rawError) {
+                    const error = rawError instanceof Error ? rawError : new Error(String(rawError || 'Unknown error'));
+                    onError(error, key);
+                    return { ok: false, error };
+                } finally {
+                    inFlight.delete(key);
+                }
+            }
+        };
+    };
+
     const layoutTokens = Object.freeze({
         folderRightGutterPx: 28,
         folderOuterReservedPx: 106,
@@ -267,6 +343,9 @@
         createAsyncActionBoundary,
         createContextMenuQuickStripAdapter,
         createRuntimePerfTelemetry,
+        createSafeUiActionRunner,
+        resolveRuntimePerformanceProfile,
+        runtimeContracts,
         layoutTokens
     };
 })(window);

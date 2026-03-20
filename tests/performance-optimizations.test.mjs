@@ -104,8 +104,10 @@ test('performance mode applies stricter refresh cadence and reduced motion guard
     assert.match(dockerJs, /PERFORMANCE_MODE_MIN_REFRESH_SECONDS/);
     assert.match(vmJs, /PERFORMANCE_MODE_MIN_REFRESH_SECONDS/);
     assert.match(dashboardJs, /PERFORMANCE_MODE_MIN_REFRESH_SECONDS/);
-    assert.match(dockerJs, /Math\.max\(PERFORMANCE_MODE_MIN_REFRESH_SECONDS,\s*requestedSeconds\)/);
-    assert.match(vmJs, /Math\.max\(PERFORMANCE_MODE_MIN_REFRESH_SECONDS,\s*requestedSeconds\)/);
+    assert.match(dockerJs, /strictMinSeconds/);
+    assert.match(vmJs, /strictMinSeconds/);
+    assert.match(dockerJs, /Math\.max\(PERFORMANCE_MODE_MIN_REFRESH_SECONDS,\s*strictMinSeconds \|\| PERFORMANCE_MODE_MIN_REFRESH_SECONDS\)/);
+    assert.match(vmJs, /Math\.max\(PERFORMANCE_MODE_MIN_REFRESH_SECONDS,\s*strictMinSeconds \|\| PERFORMANCE_MODE_MIN_REFRESH_SECONDS\)/);
     assert.match(dashboardJs, /Math\.max\(PERFORMANCE_MODE_MIN_REFRESH_SECONDS,\s*dockerRequestedSeconds\)/);
     assert.match(dashboardJs, /Math\.max\(PERFORMANCE_MODE_MIN_REFRESH_SECONDS,\s*vmRequestedSeconds\)/);
     assert.match(dockerCss, /body\.fvplus-performance-mode \.folder-preview/);

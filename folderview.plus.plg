@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.20.09">
-<!ENTITY md5 "377b0ec097140673fd8c818538012e65">
+<!ENTITY version "2026.03.20.10">
+<!ENTITY md5 "aa32b9e8cb8c6f3139a9c124e8779d9e">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.20.10
+- Feature: Added one-click folder-row quick actions for `Focus`, `Pin/Unpin`, and `Lock/Unlock` in Docker tab.
+- UX: Added focused-folder mode to isolate a selected folder branch (with nested-aware visibility handling).
+- UX: Added pinned-folder quick toggle with immediate prefs sync and reordering on refresh.
+- Fix: Added lock guardrail to block edit/delete/clone while locked and prevent accidental drag reorder via mover handle suppression.
+
 
 ###2026.03.20.09
 - UX: Redesigned the Docker `Popup blocked` dialog with a cleaner, modern card layout and concise visual status chips.

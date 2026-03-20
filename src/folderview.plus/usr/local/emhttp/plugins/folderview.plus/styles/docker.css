@@ -162,7 +162,7 @@ td.ct-name.folder-name > .folder-name-sub {
     position: absolute;
     top: 50%;
     left: 8px;
-    right: 28px;
+    right: 8px;
     transform: translateY(-50%);
     min-height: 0;
     width: auto;
@@ -176,7 +176,7 @@ td.ct-name.folder-name > .folder-name-sub {
     gap: 6px;
     min-width: 0;
     flex: 1 1 auto;
-    max-width: calc(var(--fvplus-docker-app-column-width) - 106px);
+    max-width: calc(var(--fvplus-docker-app-column-width) - 170px);
 }
 
 .folder-hand {
@@ -203,7 +203,7 @@ td.ct-name.folder-name > .folder-name-sub {
     padding: 0 4px;
     min-width: 18px;
     height: 18px;
-    margin: 0 16px 0 auto;
+    margin: 0 12px 0 4px;
     flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
@@ -212,6 +212,70 @@ td.ct-name.folder-name > .folder-name-sub {
     border: 0 !important;
     background: transparent !important;
     box-shadow: none !important;
+}
+
+.fv-folder-row-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+    flex: 0 0 auto;
+}
+
+.fv-folder-row-action {
+    width: 17px;
+    height: 17px;
+    min-width: 17px;
+    border: 0 !important;
+    border-radius: 3px;
+    background: transparent !important;
+    color: var(--orange) !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    line-height: 1;
+    box-shadow: none !important;
+    opacity: 0.86;
+}
+
+.fv-folder-row-action:hover,
+.fv-folder-row-action:focus,
+.fv-folder-row-action:active {
+    background: rgba(255, 138, 36, 0.18) !important;
+    box-shadow: none !important;
+    opacity: 1;
+}
+
+.fv-folder-row-action.is-active {
+    background: rgba(255, 138, 36, 0.2) !important;
+    opacity: 1;
+}
+
+.fv-folder-row-action > i {
+    font-size: 10px;
+}
+
+tr.fv-folder-focused td.ct-name.folder-name {
+    box-shadow: inset 2px 0 0 rgba(0, 170, 255, 0.85);
+}
+
+tr.fv-folder-pinned td.ct-name.folder-name {
+    box-shadow: inset 2px 0 0 rgba(255, 202, 99, 0.9);
+}
+
+tr.fv-folder-locked .mover,
+tr.fv-folder-locked .folder-appname {
+    opacity: 0.45;
+    pointer-events: none;
+}
+
+tr.fv-folder-locked .fv-folder-row-action-lock {
+    opacity: 1;
+}
+
+.fv-folder-focus-hidden {
+    display: none !important;
 }
 
 .folder-dropdown:hover,

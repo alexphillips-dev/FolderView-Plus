@@ -1098,7 +1098,227 @@ const getFolderDescendants = (folderId) => {
     return result;
 };
 
+const getFolderAncestors = (folderId) => {
+    const result = [];
+    const parentById = dockerFolderHierarchy?.parentById || {};
+    let current = String(folderId || '').trim();
+    const seen = new Set();
+    while (current && parentById[current] && !seen.has(parentById[current])) {
+        const nextParent = String(parentById[current] || '').trim();
+        if (!nextParent) {
+            break;
+        }
+        seen.add(nextParent);
+        result.push(nextParent);
+        current = nextParent;
+    }
+    return result;
+};
+
 const folderHasChildren = (folderId) => getFolderChildren(folderId).length > 0;
+
+const DOCKER_LOCKED_STATE_KEY = 'fvplus.runtime.locked.docker.v1';
+let dockerFocusedFolderId = '';
+const normalizeLockedFolderIdList = (value) => {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+    return Array.from(new Set(value.map((entry) => String(entry || '').trim()).filter((entry) => entry !== '')));
+};
+const readDockerLockedFolderIds = () => {
+    try {
+        const raw = window.localStorage && window.localStorage.getItem(DOCKER_LOCKED_STATE_KEY);
+        if (!raw) {
+            return [];
+        }
+        const parsed = JSON.parse(raw);
+        return normalizeLockedFolderIdList(parsed);
+    } catch (_error) {
+        return [];
+    }
+};
+const writeDockerLockedFolderIds = (ids) => {
+    try {
+        if (window.localStorage) {
+            window.localStorage.setItem(DOCKER_LOCKED_STATE_KEY, JSON.stringify(normalizeLockedFolderIdList(ids)));
+        }
+    } catch (_error) {
+        // Best effort only.
+    }
+};
+let dockerLockedFolderIdSet = new Set(readDockerLockedFolderIds());
+const isDockerFolderLocked = (folderId) => dockerLockedFolderIdSet.has(String(folderId || '').trim());
+const isDockerFolderPinned = (folderId) => {
+    const id = String(folderId || '').trim();
+    const pinned = Array.isArray(folderTypePrefs?.pinnedFolderIds) ? folderTypePrefs.pinnedFolderIds : [];
+    return pinned.includes(id);
+};
+const readFolderOwnerFromRow = (row) => {
+    if (!row || !row.className) {
+        return '';
+    }
+    const entries = String(row.className).split(/\s+/);
+    for (const className of entries) {
+        const match = className.match(/^folder-(.+)-element$/);
+        if (match && match[1]) {
+            return String(match[1] || '').trim();
+        }
+    }
+    return '';
+};
+const getFocusedFolderVisibleSet = (folderId) => {
+    const id = String(folderId || '').trim();
+    if (!id || !globalFolders[id]) {
+        return new Set();
+    }
+    return new Set([id, ...getFolderDescendants(id), ...getFolderAncestors(id)]);
+};
+const applyDockerFolderQuickActionState = (folderId) => {
+    const id = String(folderId || '').trim();
+    if (!id) {
+        return;
+    }
+    const $row = $(`tr.folder-id-${id}`);
+    if (!$row.length) {
+        return;
+    }
+    const pinned = isDockerFolderPinned(id);
+    const locked = isDockerFolderLocked(id);
+    const focused = dockerFocusedFolderId === id;
+    $row.toggleClass('fv-folder-pinned', pinned);
+    $row.toggleClass('fv-folder-locked', locked);
+    $row.toggleClass('fv-folder-focused', focused);
+    const $focusButton = $row.find(`button.fv-folder-row-action-focus[data-folder-id="${id}"]`).first();
+    const $pinButton = $row.find(`button.fv-folder-row-action-pin[data-folder-id="${id}"]`).first();
+    const $lockButton = $row.find(`button.fv-folder-row-action-lock[data-folder-id="${id}"]`).first();
+    if ($focusButton.length) {
+        $focusButton.toggleClass('is-active', focused)
+            .attr('aria-label', focused ? 'Clear focus' : 'Focus folder')
+            .attr('title', focused ? 'Clear focus' : 'Focus folder');
+        $focusButton.find('i').toggleClass('fa-bullseye', !focused).toggleClass('fa-dot-circle-o', focused);
+    }
+    if ($pinButton.length) {
+        $pinButton.toggleClass('is-active', pinned)
+            .attr('aria-label', pinned ? 'Unpin folder' : 'Pin folder')
+            .attr('title', pinned ? 'Unpin folder' : 'Pin folder');
+        $pinButton.find('i').toggleClass('fa-star-o', !pinned).toggleClass('fa-star', pinned);
+    }
+    if ($lockButton.length) {
+        $lockButton.toggleClass('is-active', locked)
+            .attr('aria-label', locked ? 'Unlock folder' : 'Lock folder')
+            .attr('title', locked ? 'Unlock folder' : 'Lock folder');
+        $lockButton.find('i').toggleClass('fa-unlock-alt', !locked).toggleClass('fa-lock', locked);
+    }
+};
+const refreshDockerFolderQuickActionStates = () => {
+    for (const id of Object.keys(globalFolders || {})) {
+        applyDockerFolderQuickActionState(id);
+    }
+};
+const applyDockerFocusedFolderState = () => {
+    const focusId = String(dockerFocusedFolderId || '').trim();
+    if (!focusId || !globalFolders[focusId]) {
+        dockerFocusedFolderId = '';
+        $('body').removeClass('fv-folder-focus-active');
+        $('#docker_list > tr').removeClass('fv-folder-focus-hidden');
+        refreshDockerFolderQuickActionStates();
+        return;
+    }
+    const visibleSet = getFocusedFolderVisibleSet(focusId);
+    $('body').addClass('fv-folder-focus-active');
+    $('#docker_list > tr').each((_, row) => {
+        if (!row) {
+            return;
+        }
+        const $row = $(row);
+        const className = String(row.className || '');
+        const folderMatch = className.match(/\bfolder-id-([A-Za-z0-9_-]+)\b/);
+        if (folderMatch && folderMatch[1]) {
+            $row.toggleClass('fv-folder-focus-hidden', !visibleSet.has(folderMatch[1]));
+            return;
+        }
+        const ownerId = readFolderOwnerFromRow(row);
+        if (ownerId) {
+            $row.toggleClass('fv-folder-focus-hidden', !visibleSet.has(ownerId));
+            return;
+        }
+        $row.toggleClass('fv-folder-focus-hidden', true);
+    });
+    refreshDockerFolderQuickActionStates();
+};
+const toggleDockerFolderFocus = (folderId) => {
+    const id = String(folderId || '').trim();
+    if (!id || !globalFolders[id]) {
+        return;
+    }
+    dockerFocusedFolderId = (dockerFocusedFolderId === id) ? '' : id;
+    applyDockerFocusedFolderState();
+    queueDockerRuntimeResizerBind();
+    scheduleDockerRuntimeWidthReflow('focus-toggle', 24);
+};
+const toggleDockerFolderLock = (folderId) => {
+    const id = String(folderId || '').trim();
+    if (!id || !globalFolders[id]) {
+        return;
+    }
+    if (isDockerFolderLocked(id)) {
+        dockerLockedFolderIdSet.delete(id);
+    } else {
+        dockerLockedFolderIdSet.add(id);
+    }
+    writeDockerLockedFolderIds(Array.from(dockerLockedFolderIdSet));
+    refreshDockerFolderQuickActionStates();
+};
+const applyDockerPinnedFolderIds = (nextPinnedIds) => {
+    folderTypePrefs = utils.normalizePrefs({
+        ...(folderTypePrefs || {}),
+        pinnedFolderIds: Array.isArray(nextPinnedIds) ? [...nextPinnedIds] : []
+    });
+};
+const toggleDockerFolderPin = async (folderId) => {
+    const id = String(folderId || '').trim();
+    if (!id || !globalFolders[id]) {
+        return;
+    }
+    const current = Array.isArray(folderTypePrefs?.pinnedFolderIds) ? [...folderTypePrefs.pinnedFolderIds] : [];
+    const nextPinned = current.includes(id)
+        ? current.filter((entry) => entry !== id)
+        : [...current, id];
+    applyDockerPinnedFolderIds(nextPinned);
+    refreshDockerFolderQuickActionStates();
+    const request = window.FolderViewPlusRequest;
+    if (!request || typeof request.postJson !== 'function') {
+        queueLoadlistRefresh();
+        return;
+    }
+    try {
+        const response = await request.postJson('/plugins/folderview.plus/server/prefs.php', {
+            type: 'docker',
+            prefs: JSON.stringify({ pinnedFolderIds: nextPinned })
+        }, {
+            retries: 1,
+            retryDelayMs: 260
+        });
+        applyDockerPinnedFolderIds(Array.isArray(response?.prefs?.pinnedFolderIds) ? response.prefs.pinnedFolderIds : nextPinned);
+        queueLoadlistRefresh();
+    } catch (_error) {
+        applyDockerPinnedFolderIds(current);
+        refreshDockerFolderQuickActionStates();
+    }
+};
+const ensureDockerFolderUnlocked = (id, actionLabel = 'This action') => {
+    if (!isDockerFolderLocked(id)) {
+        return true;
+    }
+    swal({
+        title: 'Folder locked',
+        text: `${escapeHtml(actionLabel)} is blocked while this folder is locked.<br>Click the lock icon on the folder row to unlock it.`,
+        type: 'info',
+        html: true,
+        confirmButtonText: 'OK'
+    });
+    return false;
+};
 
 const readFolderContainerNames = (containers) => {
     if (Array.isArray(containers)) {
@@ -1941,6 +2161,8 @@ const createFolders = async () => {
 
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Assigned foldersDone to globalFolders:', {...globalFolders});
     renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
+    refreshDockerFolderQuickActionStates();
+    applyDockerFocusedFolderState();
 
     startFolderRowCenterObserver();
     Object.keys(globalFolders).forEach((folderId) => forceFolderRowVerticalCenter(folderId));
@@ -2133,7 +2355,19 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     const hoverClass = folder.settings.preview_hover && !FOLDER_VIEW_TOUCH_MODE ? 'hover' : '';
     const safeFolderIcon = sanitizeImageSrc(folder.icon);
     const safeFolderName = escapeHtml(folder.name);
-    const fld = `<tr class="sortable folder-id-${id} ${hoverClass} folder"><td class="ct-name folder-name"><div class="folder-name-sub"><i class="fa fa-arrows-v mover orange-text"></i><span class="outer folder-outer"><span id="${id}" onclick="addDockerFolderContext('${id}')" class="hand folder-hand"><img src="${safeFolderIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span><span class="inner folder-inner"><span class="appname" style="display: none;"><a>folder-${id}</a></span><a class="exec folder-appname" onclick='editFolder("${id}")'>${safeFolderName}</a><br><i id="load-folder-${id}" class="fa fa-square stopped folder-load-status"></i><span class="state folder-state fv-folder-state-stopped"> ${$.i18n('stopped')}</span></span></span><button class="dropDown-${id} folder-dropdown" onclick="dropDownButton('${id}')" ><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div></td><td class="updatecolumn folder-update"><span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i> ${$.i18n('up-to-date')}</span><div class="advanced" style="display: ${advanced ? 'block' : 'none'};"><a class="exec" onclick="forceUpdateFolder('${id}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i> ${$.i18n('force-update')}</span></a></div></td><td colspan="${colspan}"><div class="folder-storage"></div><div class="folder-preview"></div></td><td class="advanced folder-advanced" ${advanced ? 'style="display: table-cell;"' : ''}><span class="cpu-folder-${id} folder-cpu">0%</span><div class="usage-disk mm folder-load"><span id="cpu-folder-${id}" class="folder-cpu-bar" style="width:0%"></span><span></span></div><br><span class="mem-folder-${id} folder-mem">0 / 0</span></td><td class="folder-autostart"><input type="checkbox" id="folder-${id}-auto" class="autostart" style="display:none"><div style="clear:left"></div></td><td></td></tr>`;
+    const pinned = isDockerFolderPinned(id);
+    const locked = isDockerFolderLocked(id);
+    const focused = dockerFocusedFolderId === id;
+    const focusTitle = focused ? 'Clear focus' : 'Focus folder';
+    const pinTitle = pinned ? 'Unpin folder' : 'Pin folder';
+    const lockTitle = locked ? 'Unlock folder' : 'Lock folder';
+    const focusIcon = focused ? 'fa-dot-circle-o' : 'fa-bullseye';
+    const pinIcon = pinned ? 'fa-star' : 'fa-star-o';
+    const lockIcon = locked ? 'fa-lock' : 'fa-unlock-alt';
+    const lockedClass = locked ? 'fv-folder-locked' : '';
+    const pinnedClass = pinned ? 'fv-folder-pinned' : '';
+    const focusedClass = focused ? 'fv-folder-focused' : '';
+    const fld = `<tr class="sortable folder-id-${id} ${hoverClass} ${lockedClass} ${pinnedClass} ${focusedClass} folder"><td class="ct-name folder-name"><div class="folder-name-sub"><i class="fa fa-arrows-v mover orange-text"></i><span class="outer folder-outer"><span id="${id}" onclick="addDockerFolderContext('${id}')" class="hand folder-hand"><img src="${safeFolderIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span><span class="inner folder-inner"><span class="appname" style="display: none;"><a>folder-${id}</a></span><a class="exec folder-appname" onclick='editFolder("${id}")'>${safeFolderName}</a><br><i id="load-folder-${id}" class="fa fa-square stopped folder-load-status"></i><span class="state folder-state fv-folder-state-stopped"> ${$.i18n('stopped')}</span></span></span><span class="fv-folder-row-actions"><button type="button" class="fv-folder-row-action fv-folder-row-action-focus ${focused ? 'is-active' : ''}" data-folder-id="${id}" title="${focusTitle}" aria-label="${focusTitle}" onclick="event.preventDefault();event.stopPropagation();toggleDockerFolderFocus('${id}')"><i class="fa ${focusIcon}" aria-hidden="true"></i></button><button type="button" class="fv-folder-row-action fv-folder-row-action-pin ${pinned ? 'is-active' : ''}" data-folder-id="${id}" title="${pinTitle}" aria-label="${pinTitle}" onclick="event.preventDefault();event.stopPropagation();toggleDockerFolderPin('${id}')"><i class="fa ${pinIcon}" aria-hidden="true"></i></button><button type="button" class="fv-folder-row-action fv-folder-row-action-lock ${locked ? 'is-active' : ''}" data-folder-id="${id}" title="${lockTitle}" aria-label="${lockTitle}" onclick="event.preventDefault();event.stopPropagation();toggleDockerFolderLock('${id}')"><i class="fa ${lockIcon}" aria-hidden="true"></i></button></span><button class="dropDown-${id} folder-dropdown" onclick="dropDownButton('${id}')" ><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div></td><td class="updatecolumn folder-update"><span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i> ${$.i18n('up-to-date')}</span><div class="advanced" style="display: ${advanced ? 'block' : 'none'};"><a class="exec" onclick="forceUpdateFolder('${id}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i> ${$.i18n('force-update')}</span></a></div></td><td colspan="${colspan}"><div class="folder-storage"></div><div class="folder-preview"></div></td><td class="advanced folder-advanced" ${advanced ? 'style="display: table-cell;"' : ''}><span class="cpu-folder-${id} folder-cpu">0%</span><div class="usage-disk mm folder-load"><span id="cpu-folder-${id}" class="folder-cpu-bar" style="width:0%"></span><span></span></div><br><span class="mem-folder-${id} folder-mem">0 / 0</span></td><td class="folder-autostart"><input type="checkbox" id="folder-${id}-auto" class="autostart" style="display:none"><div style="clear:left"></div></td><td></td></tr>`;
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): colspan=${colspan}. Generated folder HTML (fld).`);
 
     if (positionInMainOrder === 0) {
@@ -3367,6 +3601,7 @@ const dropDownButton = (id, persistState = true) => {
     if (persistState) {
         persistDockerExpandedStateFromGlobal();
     }
+    applyDockerFocusedFolderState();
     queueDockerRuntimeResizerBind();
     scheduleDockerRuntimeWidthReflow('folder-toggle', 24);
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Dispatching docker-post-folder-expansion event.`);
@@ -3380,6 +3615,9 @@ const dropDownButton = (id, persistState = true) => {
  */
 const rmFolder = (id) => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] rmFolder (id: ${id}): Entry.`);
+    if (!ensureDockerFolderUnlocked(id, 'Delete folder')) {
+        return;
+    }
     const folder = globalFolders[id] || {};
     const folderName = escapeHtml(String(folder.name || id));
     const parentId = normalizeFolderParentId(folder.parentId || folder.parent_id || '');
@@ -3425,6 +3663,9 @@ const rmFolder = (id) => {
  * @param {string} id the id of the folder
  */
 const editFolder = (id) => {
+    if (!ensureDockerFolderUnlocked(id, 'Edit folder')) {
+        return;
+    }
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] editFolder (id: ${id}): Redirecting to edit page.`);
     location.href = "/Docker/Folder?type=docker&id=" + id;
 };
@@ -3555,6 +3796,9 @@ const openFolderWebuisFromMenu = (id, runningOnly = true, includeDescendants = f
 };
 
 const cloneDockerFolderFromMenu = async (id) => {
+    if (!ensureDockerFolderUnlocked(id, 'Clone folder')) {
+        return;
+    }
     const source = globalFolders[id];
     if (!source || typeof source !== 'object') {
         return;
@@ -4450,6 +4694,9 @@ window.getDockerRuntimeWidthDebugSnapshot = () => {
     }
     return { ...dockerRuntimeWidthState.lastDecision };
 };
+window.toggleDockerFolderFocus = (id) => toggleDockerFolderFocus(id);
+window.toggleDockerFolderPin = (id) => toggleDockerFolderPin(id);
+window.toggleDockerFolderLock = (id) => toggleDockerFolderLock(id);
 
 function buildDockerFolderReq() {
     const safePrefsReq = $.get('/plugins/folderview.plus/server/prefs.php?type=docker')

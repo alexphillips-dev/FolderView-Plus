@@ -1111,6 +1111,108 @@ const getFolderRuntimeContainers = (folder) => {
     return (containers && typeof containers === 'object') ? containers : {};
 };
 
+const getScopedRuntimeContainersForFolder = (folderId, includeDescendants = true) => {
+    const id = String(folderId || '').trim();
+    if (!id || !globalFolders[id]) {
+        return {};
+    }
+    if (folderHasChildren(id)) {
+        return buildRuntimeContainerMapForFolder(id, includeDescendants === true);
+    }
+    return getFolderRuntimeContainers(globalFolders[id]);
+};
+
+const summarizeFolderActionCounts = (containersMap) => {
+    const entries = Object.values(containersMap || {});
+    let startable = 0;
+    let stoppable = 0;
+    let pausable = 0;
+    let resumable = 0;
+    let restartable = 0;
+    let managed = 0;
+    let updateReady = 0;
+    for (const entry of entries) {
+        const isRunning = entry?.state === true;
+        const isPaused = entry?.pause === true;
+        const isManaged = entry?.managed === true;
+        const hasUpdate = entry?.update === true;
+        if (!isRunning) {
+            startable += 1;
+        }
+        if (isRunning) {
+            stoppable += 1;
+        }
+        if (isRunning && !isPaused) {
+            pausable += 1;
+        }
+        if (isRunning && isPaused) {
+            resumable += 1;
+        }
+        restartable += 1;
+        if (isManaged) {
+            managed += 1;
+            if (hasUpdate) {
+                updateReady += 1;
+            }
+        }
+    }
+    return {
+        total: entries.length,
+        startable,
+        stoppable,
+        pausable,
+        resumable,
+        restartable,
+        managed,
+        updateReady
+    };
+};
+
+const expandFolderBranch = (folderId) => {
+    const id = String(folderId || '').trim();
+    if (!id) {
+        return;
+    }
+    const expandNode = (nodeId) => {
+        const button = $(`.dropDown-${nodeId}`);
+        if (button.length && button.attr('active') !== 'true') {
+            dropDownButton(nodeId, false);
+        }
+        for (const childId of getFolderChildren(nodeId)) {
+            expandNode(childId);
+        }
+    };
+    expandNode(id);
+    persistDockerExpandedStateFromGlobal();
+    queueDockerRuntimeResizerBind();
+    scheduleDockerRuntimeWidthReflow('folder-branch-expand', 24);
+};
+
+const collapseFolderBranch = (folderId) => {
+    const id = String(folderId || '').trim();
+    if (!id) {
+        return;
+    }
+    const descendants = getFolderDescendants(id).reverse();
+    for (const descendantId of descendants) {
+        forceCollapseFolderRow(descendantId, true);
+        $(`tr.folder-id-${descendantId}`).addClass('fv-nested-hidden').hide();
+    }
+    const button = $(`.dropDown-${id}`);
+    if (button.length && button.attr('active') === 'true') {
+        dropDownButton(id, false);
+    } else {
+        forceCollapseFolderRow(id, true);
+        hideNestedDescendants(id);
+        if (folderHasChildren(id)) {
+            syncParentFolderVisualState(id, false);
+        }
+    }
+    persistDockerExpandedStateFromGlobal();
+    queueDockerRuntimeResizerBind();
+    scheduleDockerRuntimeWidthReflow('folder-branch-collapse', 24);
+};
+
 const parseJsonPayloadSafe = (payload) => {
     if (payload && typeof payload === 'object') {
         return payload;
@@ -3211,10 +3313,28 @@ const dropDownButton = (id, persistState = true) => {
  */
 const rmFolder = (id) => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] rmFolder (id: ${id}): Entry.`);
+    const folder = globalFolders[id] || {};
+    const folderName = escapeHtml(String(folder.name || id));
+    const parentId = normalizeFolderParentId(folder.parentId || folder.parent_id || '');
+    const parentName = parentId && globalFolders[parentId]
+        ? escapeHtml(String(globalFolders[parentId].name || parentId))
+        : 'root';
+    const directChildren = getFolderChildren(id);
+    const directChildCount = directChildren.length;
+    const descendantCount = getFolderDescendants(id).length;
+    const impactLines = [
+        `${$.i18n('remove-folder')}: ${folderName}`
+    ];
+    if (directChildCount > 0) {
+        impactLines.push(
+            `This folder has <strong>${directChildCount}</strong> direct child folder${directChildCount === 1 ? '' : 's'} (${descendantCount} nested in branch).`,
+            `Children will be re-parented under <strong>${parentName}</strong>.`
+        );
+    }
     // Ask for a confirmation
     swal({
         title: $.i18n('are-you-sure'),
-        text: `${$.i18n('remove-folder')}: ${globalFolders[id].name}`,
+        text: impactLines.join('<br>'),
         type: 'warning',
         html: true,
         showCancelButton: true,
@@ -3246,13 +3366,20 @@ const editFolder = (id) => {
  * Force update all the containers inside a folder
  * @param {string} id the id of the folder
  */
-const forceUpdateFolder = (id) => {
-    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] forceUpdateFolder (id: ${id}): Entry.`);
+const forceUpdateFolder = (id, { includeDescendants = true } = {}) => {
+    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] forceUpdateFolder (id: ${id}, includeDescendants: ${includeDescendants}): Entry.`);
     hideAllTips();
     const folder = globalFolders[id];
+    if (!folder) {
+        return;
+    }
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] forceUpdateFolder (id: ${id}): Folder data:`, {...folder});
-    const containersMap = getFolderRuntimeContainers(folder);
+    const containersMap = getScopedRuntimeContainersForFolder(id, includeDescendants);
     const containersToUpdate = Object.entries(containersMap).filter(([, v]) => v.managed).map((e) => e[0]).join('*');
+    if (!containersToUpdate) {
+        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] forceUpdateFolder (id: ${id}): No managed containers in selected scope.`);
+        return;
+    }
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] forceUpdateFolder (id: ${id}): Containers to force update: ${containersToUpdate}. Calling openDocker.`);
     openDocker('update_container ' + containersToUpdate, $.i18n('updating', folder.name),'','loadlist');
 };
@@ -3261,13 +3388,20 @@ const forceUpdateFolder = (id) => {
  * Update all the updatable containers inside a folder
  * @param {string} id the id of the folder
  */
-const updateFolder = (id) => {
-    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] updateFolder (id: ${id}): Entry.`);
+const updateFolder = (id, { includeDescendants = true } = {}) => {
+    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] updateFolder (id: ${id}, includeDescendants: ${includeDescendants}): Entry.`);
     hideAllTips();
     const folder = globalFolders[id];
+    if (!folder) {
+        return;
+    }
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] updateFolder (id: ${id}): Folder data:`, {...folder});
-    const containersMap = getFolderRuntimeContainers(folder);
+    const containersMap = getScopedRuntimeContainersForFolder(id, includeDescendants);
     const containersToUpdate = Object.entries(containersMap).filter(([, v]) => v.managed && v.update).map((e) => e[0]).join('*');
+    if (!containersToUpdate) {
+        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] updateFolder (id: ${id}): No updatable managed containers in selected scope.`);
+        return;
+    }
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] updateFolder (id: ${id}): Containers to update (ready): ${containersToUpdate}. Calling openDocker.`);
     openDocker('update_container ' + containersToUpdate, $.i18n('updating', folder.name),'','loadlist');
 };
@@ -3277,86 +3411,100 @@ const updateFolder = (id) => {
  * @param {string} id The id of the folder
  * @param {string} action the desired action
  */
-const actionFolder = async (id, action) => {
-    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] actionFolder (id: ${id}, action: ${action}): Entry.`);
-    const folder = globalFolders[id];
-    const containersMap = getFolderRuntimeContainers(folder);
-    if (!folder || !containersMap || Object.keys(containersMap).length === 0) {
-        if (FOLDER_VIEW_DEBUG_MODE) console.error(`[FV3_DEBUG] actionFolder (id: ${id}): Folder or folder.containers not found in globalFolders.`);
-        $('div.spinner.fixed').hide('slow');
-        return;
-    }
-    const cts = Object.keys(containersMap);
-    let proms = [];
-    let errors;
-
-    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] actionFolder (id: ${id}): Folder data:`, {...folder}, "Containers to act on:", cts);
-
-    $(`i#load-folder-${id}`).removeClass('fa-play fa-square fa-pause').addClass('fa-refresh fa-spin');
-    $('div.spinner.fixed').show('slow');
-
-    for (let index = 0; index < cts.length; index++) {
-        const containerName = cts[index];
-        const ct = containersMap[containerName];
-        if (!ct) {
-            if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] actionFolder (id: ${id}): Container data for '${containerName}' not found in folder.containers.`);
-            continue;
+const actionFolder = async (id, action, { includeDescendants = true } = {}) => {
+    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] actionFolder (id: ${id}, action: ${action}, includeDescendants: ${includeDescendants}): Entry.`);
+    const spinner = $('div.spinner.fixed');
+    try {
+        const folder = globalFolders[id];
+        const containersMap = getScopedRuntimeContainersForFolder(id, includeDescendants);
+        if (!folder || !containersMap || Object.keys(containersMap).length === 0) {
+            if (FOLDER_VIEW_DEBUG_MODE) console.error(`[FV3_DEBUG] actionFolder (id: ${id}): Folder or scoped containers not found in globalFolders.`);
+            return;
         }
-        const cid = ct.id;
-        let pass = false; // Default to false
-        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] actionFolder (id: ${id}): Processing container ${containerName} (cid: ${cid}). State: ${ct.state}, Paused: ${ct.pause}.`);
-        switch (action) {
-            case "start":
-                pass = !ct.state;
-                break;
-            case "stop":
-                pass = ct.state;
-                break;
-            case "pause":
-                pass = ct.state && !ct.pause;
-                break;
-            case "resume":
-                pass = ct.state && ct.pause;
-                break;
-            case "restart":
-                pass = true;
-                break;
-            default:
-                pass = false; // Should not happen with predefined actions
-                if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] actionFolder (id: ${id}): Unknown action '${action}'.`);
-                break;
+        const cts = Object.keys(containersMap);
+        let proms = [];
+
+        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] actionFolder (id: ${id}): Folder data:`, {...folder}, "Containers to act on:", cts);
+
+        $(`i#load-folder-${id}`).removeClass('fa-play fa-square fa-pause').addClass('fa-refresh fa-spin');
+        spinner.show('slow');
+
+        for (let index = 0; index < cts.length; index++) {
+            const containerName = cts[index];
+            const ct = containersMap[containerName];
+            if (!ct) {
+                if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] actionFolder (id: ${id}): Container data for '${containerName}' not found in scoped containers.`);
+                continue;
+            }
+            const cid = ct.id;
+            let pass = false; // Default to false
+            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] actionFolder (id: ${id}): Processing container ${containerName} (cid: ${cid}). State: ${ct.state}, Paused: ${ct.pause}.`);
+            switch (action) {
+                case "start":
+                    pass = !ct.state;
+                    break;
+                case "stop":
+                    pass = ct.state;
+                    break;
+                case "pause":
+                    pass = ct.state && !ct.pause;
+                    break;
+                case "resume":
+                    pass = ct.state && ct.pause;
+                    break;
+                case "restart":
+                    pass = true;
+                    break;
+                default:
+                    pass = false; // Should not happen with predefined actions
+                    if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] actionFolder (id: ${id}): Unknown action '${action}'.`);
+                    break;
+            }
+            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] actionFolder (id: ${id}): Container ${containerName} - action '${action}', pass condition: ${pass}.`);
+            if(pass) {
+                if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] actionFolder (id: ${id}): Pushing POST request for container ${cid}, action ${action}.`);
+                proms.push($.post(eventURL, {action: action, container:cid}, null,'json').promise());
+            }
         }
-        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] actionFolder (id: ${id}): Container ${containerName} - action '${action}', pass condition: ${pass}.`);
-        if(pass) {
-            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] actionFolder (id: ${id}): Pushing POST request for container ${cid}, action ${action}.`);
-            proms.push($.post(eventURL, {action: action, container:cid}, null,'json').promise());
+
+        if (proms.length === 0) {
+            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] actionFolder (id: ${id}): No matching containers for action '${action}' in selected scope.`);
+            return;
         }
-    }
 
-    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] actionFolder (id: ${id}): Awaiting ${proms.length} promises.`);
-    const results = await Promise.all(proms);
-    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] actionFolder (id: ${id}): Promises resolved. Results:`, results);
+        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] actionFolder (id: ${id}): Awaiting ${proms.length} promises.`);
+        const results = await Promise.all(proms);
+        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] actionFolder (id: ${id}): Promises resolved. Results:`, results);
 
-    errors = results.filter(e => e.success !== true);
-    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] actionFolder (id: ${id}): Filtered errors:`, errors);
-    // errors = errors.map(e => e.success); // This line seems to map to boolean, original used `e.text` or similar for swal
-
-    if(errors.length > 0) {
-        const errorMessages = errors.map(e => e.text || JSON.stringify(e)); // Get error text or stringify if not present
-        if (FOLDER_VIEW_DEBUG_MODE) console.error(`[FV3_DEBUG] actionFolder (id: ${id}): Execution errors occurred:`, errorMessages);
+        const errors = results.filter((e) => e?.success !== true);
+        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] actionFolder (id: ${id}): Filtered errors:`, errors);
+        if(errors.length > 0) {
+            const errorMessages = errors.map((e) => e?.text || JSON.stringify(e));
+            if (FOLDER_VIEW_DEBUG_MODE) console.error(`[FV3_DEBUG] actionFolder (id: ${id}): Execution errors occurred:`, errorMessages);
+            swal({
+                title: $.i18n('exec-error'),
+                text: errorMessages.join('<br>'),
+                type: 'error',
+                html: true,
+                confirmButtonText: 'Ok'
+            }, loadlist);
+        } else {
+            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] actionFolder (id: ${id}): No errors. Reloading list.`);
+            loadlist();
+        }
+    } catch (error) {
+        console.error('folderview.plus: actionFolder failed', error);
         swal({
             title: $.i18n('exec-error'),
-            text:errorMessages.join('<br>'),
-            type:'error',
-            html:true,
-            confirmButtonText:'Ok'
-        }, loadlist);
-    } else {
-        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] actionFolder (id: ${id}): No errors. Reloading list.`);
-        loadlist();
+            text: escapeHtml(String(error?.message || 'Unknown folder action error.')),
+            type: 'error',
+            html: true,
+            confirmButtonText: 'Ok'
+        });
+    } finally {
+        spinner.hide('slow');
+        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] actionFolder (id: ${id}): Exit.`);
     }
-    $('div.spinner.fixed').hide('slow');
-    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] actionFolder (id: ${id}): Exit.`);
 };
 
 /**
@@ -3505,6 +3653,83 @@ const folderCustomAction = async (id, actionIndex) => {
 const addDockerFolderContext = (id) => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addDockerFolderContext (id: ${id}): Entry.`);
     let opts = [];
+    const appendDivider = () => {
+        if (!opts.length || opts[opts.length - 1].divider) {
+            return;
+        }
+        opts.push({ divider: true });
+    };
+    const appendCountedAction = ({ label, icon, count, run }) => {
+        if (count <= 0 || typeof run !== 'function') {
+            return;
+        }
+        opts.push({
+            text: `${label} (${count})`,
+            icon,
+            action: (evt) => {
+                evt.preventDefault();
+                run();
+            }
+        });
+    };
+    const appendScopeAwareAction = ({ label, icon, directCount, branchCount, runScoped }) => {
+        if (typeof runScoped !== 'function') {
+            return;
+        }
+        if (hasChildren) {
+            const subMenu = [];
+            if (directCount > 0) {
+                subMenu.push({
+                    text: `This folder (${directCount})`,
+                    icon: 'fa-folder-o',
+                    action: (evt) => {
+                        evt.preventDefault();
+                        runScoped(false);
+                    }
+                });
+            }
+            if (branchCount > 0) {
+                subMenu.push({
+                    text: `Folder + descendants (${branchCount})`,
+                    icon: 'fa-sitemap',
+                    action: (evt) => {
+                        evt.preventDefault();
+                        runScoped(true);
+                    }
+                });
+            }
+            if (!subMenu.length) {
+                return;
+            }
+            opts.push({
+                text: `${label} (${branchCount})`,
+                icon,
+                subMenu
+            });
+            return;
+        }
+        appendCountedAction({
+            label,
+            icon,
+            count: branchCount,
+            run: () => runScoped(true)
+        });
+    };
+    const normalizeDividers = (items) => {
+        const normalized = [];
+        for (const item of items) {
+            if (item?.divider) {
+                if (!normalized.length || normalized[normalized.length - 1].divider) {
+                    continue;
+                }
+            }
+            normalized.push(item);
+        }
+        while (normalized.length && normalized[normalized.length - 1]?.divider) {
+            normalized.pop();
+        }
+        return normalized;
+    };
 
     context.settings({
         right: false,
@@ -3517,6 +3742,11 @@ const addDockerFolderContext = (id) => {
         return;
     }
     const folderData = globalFolders[id];
+    const hasChildren = folderHasChildren(id);
+    const directScopeContainers = getScopedRuntimeContainersForFolder(id, false);
+    const branchScopeContainers = getScopedRuntimeContainersForFolder(id, true);
+    const directCounts = summarizeFolderActionCounts(directScopeContainers);
+    const branchCounts = summarizeFolderActionCounts(branchScopeContainers);
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addDockerFolderContext (id: ${id}): Folder data:`, {...folderData});
 
 
@@ -3532,7 +3762,7 @@ const addDockerFolderContext = (id) => {
                 }
             }
         });
-        opts.push({ divider: true });
+        appendDivider();
     }
 
     if(folderData.settings.override_default_actions && folderData.actions && folderData.actions.length) {
@@ -3546,53 +3776,135 @@ const addDockerFolderContext = (id) => {
                 }
             })
         );
-        opts.push({ divider: true });
+        appendDivider();
     } else if(!folderData.settings.default_action) { // if default actions are NOT hidden
-        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addDockerFolderContext (id: ${id}): Adding default action menu items.`);
-        opts.push({
-            text: $.i18n('start'),
+        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addDockerFolderContext (id: ${id}): Adding default action menu items with scoped counts.`);
+        appendScopeAwareAction({
+            label: $.i18n('start'),
             icon: 'fa-play',
-            action: (evt) => { evt.preventDefault(); actionFolder(id, "start"); }
+            directCount: directCounts.startable,
+            branchCount: branchCounts.startable,
+            runScoped: (includeDescendants) => actionFolder(id, 'start', { includeDescendants })
         });
-        opts.push({
-            text: $.i18n('stop'),
+        appendScopeAwareAction({
+            label: $.i18n('stop'),
             icon: 'fa-stop',
-            action: (evt) => { evt.preventDefault(); actionFolder(id, "stop"); }
+            directCount: directCounts.stoppable,
+            branchCount: branchCounts.stoppable,
+            runScoped: (includeDescendants) => actionFolder(id, 'stop', { includeDescendants })
         });
-        opts.push({
-            text: $.i18n('pause'),
+        appendScopeAwareAction({
+            label: $.i18n('pause'),
             icon: 'fa-pause',
-            action: (evt) => { evt.preventDefault(); actionFolder(id, "pause"); }
+            directCount: directCounts.pausable,
+            branchCount: branchCounts.pausable,
+            runScoped: (includeDescendants) => actionFolder(id, 'pause', { includeDescendants })
         });
-        opts.push({
-            text: $.i18n('resume'),
+        appendScopeAwareAction({
+            label: $.i18n('resume'),
             icon: 'fa-play-circle',
-            action: (evt) => { evt.preventDefault(); actionFolder(id, "resume"); }
+            directCount: directCounts.resumable,
+            branchCount: branchCounts.resumable,
+            runScoped: (includeDescendants) => actionFolder(id, 'resume', { includeDescendants })
         });
-        opts.push({
-            text: $.i18n('restart'),
+        appendScopeAwareAction({
+            label: $.i18n('restart'),
             icon: 'fa-refresh',
-            action: (evt) => { evt.preventDefault(); actionFolder(id, "restart"); }
+            directCount: directCounts.restartable,
+            branchCount: branchCounts.restartable,
+            runScoped: (includeDescendants) => actionFolder(id, 'restart', { includeDescendants })
         });
-        opts.push({ divider: true });
+        appendDivider();
     }
 
-    if(folderData.status.managed > 0) {
-        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addDockerFolderContext (id: ${id}): Folder has managed containers. Adding update options.`);
-        if(!folderData.status.upToDate) {
-            opts.push({
-                text: $.i18n('update'),
+    if(branchCounts.updateReady > 0 || branchCounts.managed > 0) {
+        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addDockerFolderContext (id: ${id}): Adding update menu item with scoped counts.`);
+        if (branchCounts.updateReady > 0) {
+            appendScopeAwareAction({
+                label: $.i18n('update'),
                 icon: 'fa-cloud-download',
-                action: (evt) => { evt.preventDefault();  updateFolder(id); }
+                directCount: directCounts.updateReady,
+                branchCount: branchCounts.updateReady,
+                runScoped: (includeDescendants) => updateFolder(id, { includeDescendants })
             });
         } else {
-            opts.push({
-                text: $.i18n('update-force'),
+            appendScopeAwareAction({
+                label: $.i18n('update-force'),
                 icon: 'fa-cloud-download',
-                action: (evt) => { evt.preventDefault(); forceUpdateFolder(id); }
+                directCount: directCounts.managed,
+                branchCount: branchCounts.managed,
+                runScoped: (includeDescendants) => forceUpdateFolder(id, { includeDescendants })
             });
         }
-        opts.push({ divider: true });
+        appendDivider();
+    }
+
+    if (hasChildren) {
+        const branchSubMenu = [
+            {
+                text: 'Expand branch',
+                icon: 'fa-angle-double-down',
+                action: (evt) => {
+                    evt.preventDefault();
+                    expandFolderBranch(id);
+                }
+            },
+            {
+                text: 'Collapse branch',
+                icon: 'fa-angle-double-up',
+                action: (evt) => {
+                    evt.preventDefault();
+                    collapseFolderBranch(id);
+                }
+            }
+        ];
+        if (branchCounts.startable > 0) {
+            branchSubMenu.push({
+                text: `Start branch (${branchCounts.startable})`,
+                icon: 'fa-play',
+                action: (evt) => {
+                    evt.preventDefault();
+                    actionFolder(id, 'start', { includeDescendants: true });
+                }
+            });
+        }
+        if (branchCounts.stoppable > 0) {
+            branchSubMenu.push({
+                text: `Stop branch (${branchCounts.stoppable})`,
+                icon: 'fa-stop',
+                action: (evt) => {
+                    evt.preventDefault();
+                    actionFolder(id, 'stop', { includeDescendants: true });
+                }
+            });
+        }
+        if (branchCounts.updateReady > 0) {
+            branchSubMenu.push({
+                text: `Update branch (${branchCounts.updateReady})`,
+                icon: 'fa-cloud-download',
+                action: (evt) => {
+                    evt.preventDefault();
+                    updateFolder(id, { includeDescendants: true });
+                }
+            });
+        } else if (branchCounts.managed > 0) {
+            branchSubMenu.push({
+                text: `Force update branch (${branchCounts.managed})`,
+                icon: 'fa-cloud-download',
+                action: (evt) => {
+                    evt.preventDefault();
+                    forceUpdateFolder(id, { includeDescendants: true });
+                }
+            });
+        }
+        if (branchSubMenu.length > 0) {
+            opts.push({
+                text: 'Branch actions',
+                icon: 'fa-sitemap',
+                subMenu: branchSubMenu
+            });
+            appendDivider();
+        }
     }
 
     opts.push({
@@ -3610,7 +3922,7 @@ const addDockerFolderContext = (id) => {
     // Add custom actions as submenu if not overriding and custom actions exist
     if(!folderData.settings.override_default_actions && folderData.actions && folderData.actions.length) {
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addDockerFolderContext (id: ${id}): Adding custom actions as submenu.`);
-        opts.push({ divider: true });
+        appendDivider();
         opts.push({
             text: $.i18n('custom-actions'),
             icon: 'fa-bars',
@@ -3624,6 +3936,7 @@ const addDockerFolderContext = (id) => {
         });
     }
 
+    opts = normalizeDividers(opts);
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addDockerFolderContext (id: ${id}): Dispatching docker-folder-context event. Options:`, opts);
     folderEvents.dispatchEvent(new CustomEvent('docker-folder-context', {detail: { id, opts }}));
 

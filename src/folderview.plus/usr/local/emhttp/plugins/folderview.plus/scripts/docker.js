@@ -4066,6 +4066,84 @@ const folderCustomAction = async (id, actionIndex) => {
 };
 
 
+const DOCKER_CONTEXT_QUICK_ACTION_LABELS = new Set([
+    'focus folder',
+    'clear focus',
+    'pin folder',
+    'unpin folder',
+    'lock folder',
+    'unlock folder'
+]);
+
+const normalizeDockerContextActionLabel = (value) => String(value || '').trim().replace(/\s+/g, ' ').toLowerCase();
+
+const findVisibleDockerContextMenu = () => {
+    const selectors = [
+        'ul.context-menu-list:visible',
+        'ul.contextMenuPlugin:visible',
+        'ul.context-menu:visible',
+        'ul.dropdown-menu:visible'
+    ];
+    for (const selector of selectors) {
+        const $menus = $(selector);
+        for (let idx = $menus.length - 1; idx >= 0; idx--) {
+            const $menu = $($menus.get(idx));
+            const quickCount = $menu.children('li').filter((_, item) => {
+                const label = normalizeDockerContextActionLabel($(item).text());
+                return DOCKER_CONTEXT_QUICK_ACTION_LABELS.has(label);
+            }).length;
+            if (quickCount >= 3) {
+                return $menu;
+            }
+        }
+    }
+    return $();
+};
+
+const styleDockerFolderContextQuickIcons = () => {
+    const $menu = findVisibleDockerContextMenu();
+    if (!$menu.length) {
+        return false;
+    }
+    const $quickItems = $menu.children('li').filter((_, item) => {
+        const label = normalizeDockerContextActionLabel($(item).text());
+        return DOCKER_CONTEXT_QUICK_ACTION_LABELS.has(label);
+    }).slice(0, 3);
+    if ($quickItems.length < 3) {
+        return false;
+    }
+    $menu.addClass('fvplus-docker-context-menu');
+    $quickItems.each((_, item) => {
+        const $item = $(item);
+        const label = String($item.text() || '').trim().replace(/\s+/g, ' ');
+        $item.addClass('fvplus-docker-quick-item');
+        const $interactive = $item.find('a, .context-menu-item').first();
+        if ($interactive.length) {
+            $interactive.addClass('fvplus-docker-quick-link');
+            $interactive.attr('title', label);
+            $interactive.attr('aria-label', label);
+        } else {
+            $item.attr('title', label);
+            $item.attr('aria-label', label);
+        }
+    });
+    const $firstNonQuick = $menu.children('li').not('.fvplus-docker-quick-item').first();
+    if ($firstNonQuick.length) {
+        $firstNonQuick.addClass('fvplus-docker-quick-clear');
+    }
+    return true;
+};
+
+const queueDockerFolderContextQuickIcons = (attempt = 0) => {
+    if (styleDockerFolderContextQuickIcons()) {
+        return;
+    }
+    if (attempt >= 8) {
+        return;
+    }
+    setTimeout(() => queueDockerFolderContextQuickIcons(attempt + 1), 18 * (attempt + 1));
+};
+
 /**
  * Atach the menu when clicking the folder icon
  * @param {string} id the id of the folder
@@ -4412,6 +4490,7 @@ const addDockerFolderContext = (id) => {
     folderEvents.dispatchEvent(new CustomEvent('docker-folder-context', {detail: { id, opts }}));
 
     context.attach('#' + id, opts);
+    queueDockerFolderContextQuickIcons();
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addDockerFolderContext (id: ${id}): Context menu attached to #${id}. Exit.`);
 };
 

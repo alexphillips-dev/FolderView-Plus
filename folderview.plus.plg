@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.20.11">
-<!ENTITY md5 "fce4cb8d9ae6540de09ea38d87ecf076">
+<!ENTITY version "2026.03.20.12">
+<!ENTITY md5 "53ab38d43d84b573e23ca2fa27198c3f">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.20.12
+- UX: Changed Docker folder click menu so `Focus`, `Pin`, and `Lock` render as icon-only quick actions on one top row.
+- Regression guard: Added runtime/test coverage for context quick-action strip detection and styling.
+
 
 ###2026.03.20.11
 - Fix: Restored Docker folder rows after row-action regression that hid folder names.

@@ -716,6 +716,37 @@ div.folder-preview-4 span.outer {
     background-color: var(--fvplus-hover-bg);
 }
 
+/* Docker folder context quick actions: icon-only strip on first row. */
+.fvplus-docker-context-menu > li.fvplus-docker-quick-item {
+    display: inline-flex !important;
+    width: 34px;
+    margin: 0 4px 0 0;
+    vertical-align: top;
+}
+
+.fvplus-docker-context-menu > li.fvplus-docker-quick-item > a,
+.fvplus-docker-context-menu > li.fvplus-docker-quick-item .context-menu-item {
+    width: 30px;
+    min-width: 30px;
+    height: 26px;
+    padding: 2px 0 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0 !important;
+    line-height: 1;
+}
+
+.fvplus-docker-context-menu > li.fvplus-docker-quick-item > a i,
+.fvplus-docker-context-menu > li.fvplus-docker-quick-item .context-menu-item i,
+.fvplus-docker-context-menu > li.fvplus-docker-quick-item::before {
+    font-size: 14px !important;
+}
+
+.fvplus-docker-context-menu > li.fvplus-docker-quick-clear {
+    clear: both;
+}
+
 /* Touch/mobile behavior: avoid hover-only interactions. */
 @media (hover: none), (pointer: coarse) {
     .hover div.folder-preview div {

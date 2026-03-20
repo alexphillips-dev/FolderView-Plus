@@ -1,3 +1,4 @@
+// @ts-check
 (() => {
     const createDebugLogger = (enabled = false) => {
         const on = Boolean(enabled);

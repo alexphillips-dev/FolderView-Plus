@@ -1,3 +1,4 @@
+// @ts-check
 const FOLDER_VIEW_DEBUG_MODE = false;
 const localDefaultFolderStatusColors = {
     started: '#ffffff',
@@ -106,6 +107,62 @@ const utils = window.FolderViewPlusUtils || {
             paused: normalizeStatusHexColor(incoming.status_color_paused, localDefaultFolderStatusColors.paused),
             stopped: normalizeStatusHexColor(incoming.status_color_stopped, localDefaultFolderStatusColors.stopped)
         };
+    }
+};
+const dockerRuntimeShared = window.FolderViewDockerRuntimeShared || {};
+const createDockerRuntimeStateStore = typeof dockerRuntimeShared.createRuntimeStateStore === 'function'
+    ? dockerRuntimeShared.createRuntimeStateStore
+    : (initialState = {}) => {
+        let state = { ...(initialState && typeof initialState === 'object' ? initialState : {}) };
+        return {
+            getState: () => ({ ...state }),
+            get: (key, fallback = undefined) => (Object.prototype.hasOwnProperty.call(state, key) ? state[key] : fallback),
+            set: (patch = {}) => {
+                if (patch && typeof patch === 'object') {
+                    state = { ...state, ...patch };
+                }
+                return { ...state };
+            },
+            subscribe: () => () => {}
+        };
+    };
+const createDockerAsyncActionBoundary = typeof dockerRuntimeShared.createAsyncActionBoundary === 'function'
+    ? dockerRuntimeShared.createAsyncActionBoundary
+    : ({ onError } = {}) => ({
+        run: async (_name, action, context = {}) => {
+            try {
+                return { ok: true, value: await action() };
+            } catch (rawError) {
+                const error = rawError instanceof Error ? rawError : new Error(String(rawError || 'Unknown error'));
+                if (typeof onError === 'function') {
+                    onError(_name, error, context);
+                }
+                return { ok: false, error };
+            }
+        }
+    });
+const createDockerContextMenuQuickStripAdapter = typeof dockerRuntimeShared.createContextMenuQuickStripAdapter === 'function'
+    ? dockerRuntimeShared.createContextMenuQuickStripAdapter
+    : () => ({ enhance: () => false, queueEnhance: () => {} });
+const createDockerRuntimePerfTelemetry = typeof dockerRuntimeShared.createRuntimePerfTelemetry === 'function'
+    ? dockerRuntimeShared.createRuntimePerfTelemetry
+    : () => ({ enabled: false, begin: () => {}, end: () => 0, snapshot: () => ({}) });
+const dockerRuntimeStateStore = createDockerRuntimeStateStore({
+    focusedFolderId: '',
+    lockedFolderIds: [],
+    pinnedFolderIds: []
+});
+const getDockerMenuLabel = (key, fallback) => {
+    const safeFallback = String(fallback || key || '').trim();
+    try {
+        if (typeof $ !== 'function' || !$.i18n) {
+            return safeFallback;
+        }
+        const localized = $.i18n(key);
+        const normalized = String(localized || '').trim();
+        return (!normalized || normalized === key) ? safeFallback : normalized;
+    } catch (_error) {
+        return safeFallback;
     }
 };
 const FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
@@ -1118,7 +1175,7 @@ const getFolderAncestors = (folderId) => {
 const folderHasChildren = (folderId) => getFolderChildren(folderId).length > 0;
 
 const DOCKER_LOCKED_STATE_KEY = 'fvplus.runtime.locked.docker.v1';
-let dockerFocusedFolderId = '';
+let dockerFocusedFolderId = String(dockerRuntimeStateStore.get('focusedFolderId', '') || '').trim();
 const normalizeLockedFolderIdList = (value) => {
     if (!Array.isArray(value)) {
         return [];
@@ -1147,6 +1204,12 @@ const writeDockerLockedFolderIds = (ids) => {
     }
 };
 let dockerLockedFolderIdSet = new Set(readDockerLockedFolderIds());
+dockerRuntimeStateStore.set({ lockedFolderIds: Array.from(dockerLockedFolderIdSet) });
+dockerRuntimeStateStore.subscribe((nextState, _prevState, patch) => {
+    if (patch && Object.prototype.hasOwnProperty.call(patch, 'focusedFolderId')) {
+        dockerFocusedFolderId = String(nextState.focusedFolderId || '').trim();
+    }
+});
 const isDockerFolderLocked = (folderId) => dockerLockedFolderIdSet.has(String(folderId || '').trim());
 const isDockerFolderPinned = (folderId) => {
     const id = String(folderId || '').trim();
@@ -1188,27 +1251,6 @@ const applyDockerFolderQuickActionState = (folderId) => {
     $row.toggleClass('fv-folder-pinned', pinned);
     $row.toggleClass('fv-folder-locked', locked);
     $row.toggleClass('fv-folder-focused', focused);
-    const $focusButton = $row.find(`button.fv-folder-row-action-focus[data-folder-id="${id}"]`).first();
-    const $pinButton = $row.find(`button.fv-folder-row-action-pin[data-folder-id="${id}"]`).first();
-    const $lockButton = $row.find(`button.fv-folder-row-action-lock[data-folder-id="${id}"]`).first();
-    if ($focusButton.length) {
-        $focusButton.toggleClass('is-active', focused)
-            .attr('aria-label', focused ? 'Clear focus' : 'Focus folder')
-            .attr('title', focused ? 'Clear focus' : 'Focus folder');
-        $focusButton.find('i').toggleClass('fa-bullseye', !focused).toggleClass('fa-dot-circle-o', focused);
-    }
-    if ($pinButton.length) {
-        $pinButton.toggleClass('is-active', pinned)
-            .attr('aria-label', pinned ? 'Unpin folder' : 'Pin folder')
-            .attr('title', pinned ? 'Unpin folder' : 'Pin folder');
-        $pinButton.find('i').toggleClass('fa-star-o', !pinned).toggleClass('fa-star', pinned);
-    }
-    if ($lockButton.length) {
-        $lockButton.toggleClass('is-active', locked)
-            .attr('aria-label', locked ? 'Unlock folder' : 'Lock folder')
-            .attr('title', locked ? 'Unlock folder' : 'Lock folder');
-        $lockButton.find('i').toggleClass('fa-unlock-alt', !locked).toggleClass('fa-lock', locked);
-    }
 };
 const refreshDockerFolderQuickActionStates = () => {
     for (const id of Object.keys(globalFolders || {})) {
@@ -1218,6 +1260,7 @@ const refreshDockerFolderQuickActionStates = () => {
 const applyDockerFocusedFolderState = () => {
     const focusId = String(dockerFocusedFolderId || '').trim();
     if (!focusId || !globalFolders[focusId]) {
+        dockerRuntimeStateStore.set({ focusedFolderId: '' });
         dockerFocusedFolderId = '';
         $('body').removeClass('fv-folder-focus-active');
         $('#docker_list > tr').removeClass('fv-folder-focus-hidden');
@@ -1251,7 +1294,9 @@ const toggleDockerFolderFocus = (folderId) => {
     if (!id || !globalFolders[id]) {
         return;
     }
-    dockerFocusedFolderId = (dockerFocusedFolderId === id) ? '' : id;
+    const nextFocus = (dockerFocusedFolderId === id) ? '' : id;
+    dockerRuntimeStateStore.set({ focusedFolderId: nextFocus });
+    dockerFocusedFolderId = nextFocus;
     applyDockerFocusedFolderState();
     queueDockerRuntimeResizerBind();
     scheduleDockerRuntimeWidthReflow('focus-toggle', 24);
@@ -1267,6 +1312,7 @@ const toggleDockerFolderLock = (folderId) => {
         dockerLockedFolderIdSet.add(id);
     }
     writeDockerLockedFolderIds(Array.from(dockerLockedFolderIdSet));
+    dockerRuntimeStateStore.set({ lockedFolderIds: Array.from(dockerLockedFolderIdSet) });
     refreshDockerFolderQuickActionStates();
 };
 const applyDockerPinnedFolderIds = (nextPinnedIds) => {
@@ -1274,6 +1320,7 @@ const applyDockerPinnedFolderIds = (nextPinnedIds) => {
         ...(folderTypePrefs || {}),
         pinnedFolderIds: Array.isArray(nextPinnedIds) ? [...nextPinnedIds] : []
     });
+    dockerRuntimeStateStore.set({ pinnedFolderIds: Array.isArray(nextPinnedIds) ? [...nextPinnedIds] : [] });
 };
 const toggleDockerFolderPin = async (folderId) => {
     const id = String(folderId || '').trim();
@@ -1291,7 +1338,7 @@ const toggleDockerFolderPin = async (folderId) => {
         queueLoadlistRefresh();
         return;
     }
-    try {
+    const result = await runDockerGuardedAction('toggle-folder-pin', async () => {
         const response = await request.postJson('/plugins/folderview.plus/server/prefs.php', {
             type: 'docker',
             prefs: JSON.stringify({ pinnedFolderIds: nextPinned })
@@ -1301,7 +1348,11 @@ const toggleDockerFolderPin = async (folderId) => {
         });
         applyDockerPinnedFolderIds(Array.isArray(response?.prefs?.pinnedFolderIds) ? response.prefs.pinnedFolderIds : nextPinned);
         queueLoadlistRefresh();
-    } catch (_error) {
+    }, {
+        userMessage: getDockerMenuLabel('folder-pin-failed', 'Failed to update pinned folders.'),
+        userVisible: false
+    });
+    if (!result.ok) {
         applyDockerPinnedFolderIds(current);
         refreshDockerFolderQuickActionStates();
     }
@@ -1883,6 +1934,30 @@ const dockerPerf = typeof dockerModules.createPerfTracker === 'function'
         begin: () => {},
         end: () => 0
     };
+const dockerPerfTelemetry = createDockerRuntimePerfTelemetry('folderview-plus.docker.actions', FOLDER_VIEW_PERF_MODE);
+const dockerActionBoundary = createDockerAsyncActionBoundary({
+    prefix: 'folderview.plus docker',
+    onError: (actionName, error, context = {}) => {
+        console.error(`folderview.plus docker: ${actionName} failed`, error);
+        if (context && context.userVisible === false) {
+            return;
+        }
+        const safeMessage = escapeHtml(String(context?.userMessage || error?.message || 'Unexpected runtime error'));
+        swal({
+            title: $.i18n('exec-error'),
+            text: safeMessage,
+            type: 'error',
+            html: true,
+            confirmButtonText: 'Ok'
+        });
+    }
+});
+const runDockerGuardedAction = async (actionName, action, context = {}) => {
+    dockerPerfTelemetry.begin(actionName);
+    const result = await dockerActionBoundary.run(actionName, action, context);
+    dockerPerfTelemetry.end(actionName, { ok: result.ok });
+    return result;
+};
 const rowCenteringTools = typeof dockerModules.createRowCenteringTools === 'function'
     ? dockerModules.createRowCenteringTools()
     : {
@@ -1945,6 +2020,9 @@ const createFolders = async () => {
         prefsResponse = {};
     }
     folderTypePrefs = utils.normalizePrefs(prefsResponse?.prefs || {});
+    dockerRuntimeStateStore.set({
+        pinnedFolderIds: Array.isArray(folderTypePrefs?.pinnedFolderIds) ? [...folderTypePrefs.pinnedFolderIds] : []
+    });
     dockerExpandedStateLastSyncedPayload = JSON.stringify(readDockerServerExpandedStateMap());
     const folderDepthById = buildFolderDepthById(folders);
     unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs);
@@ -3766,64 +3844,71 @@ const showFolderWebuiPopupWarning = (openedCount, totalCount, blockedUrls) => {
 };
 
 const openFolderWebuisFromMenu = (id, runningOnly = true, includeDescendants = false) => {
-    hideAllTips();
-    const urls = Array.from(new Set(collectFolderWebuiTargets(id, includeDescendants, runningOnly)));
-    if (!urls.length) return;
-    const blocked = [];
-    const stamp = Date.now();
-    for (let index = 0; index < urls.length; index += 1) {
-        try {
-            const popup = window.open('about:blank', `fvw-${stamp}-${index}`);
-            if (!popup) {
+    runDockerGuardedAction('open-folder-webuis', async () => {
+        hideAllTips();
+        const urls = Array.from(new Set(collectFolderWebuiTargets(id, includeDescendants, runningOnly)));
+        if (!urls.length) return;
+        const blocked = [];
+        const stamp = Date.now();
+        for (let index = 0; index < urls.length; index += 1) {
+            try {
+                const popup = window.open('about:blank', `fvw-${stamp}-${index}`);
+                if (!popup) {
+                    blocked.push(urls[index]);
+                    continue;
+                }
+                popup.opener = null;
+                popup.location.replace(urls[index]);
+            } catch {
                 blocked.push(urls[index]);
-                continue;
             }
-            popup.opener = null;
-            popup.location.replace(urls[index]);
-        } catch {
-            blocked.push(urls[index]);
         }
-    }
-    if (blocked.length > 0) {
-        showFolderWebuiPopupWarning(urls.length - blocked.length, urls.length, blocked);
-    }
+        if (blocked.length > 0) {
+            showFolderWebuiPopupWarning(urls.length - blocked.length, urls.length, blocked);
+        }
+    }, {
+        userVisible: false
+    });
 };
 
 const cloneDockerFolderFromMenu = async (id) => {
-    if (!ensureDockerFolderUnlocked(id, 'Clone folder')) {
-        return;
-    }
-    const source = globalFolders[id];
-    if (!source || typeof source !== 'object') {
-        return;
-    }
-    const defaultName = `${String(source?.name || 'Folder').trim() || 'Folder'} (Copy)`;
-    const nextName = String(window.prompt('Clone folder name', defaultName) || '').trim();
-    if (!nextName) {
-        return;
-    }
-    const clonePayload = {
-        name: nextName,
-        icon: String(source?.icon || ''),
-        parentId: normalizeFolderParentId(source?.parentId || source?.parent_id || ''),
-        settings: JSON.parse(JSON.stringify((source?.settings && typeof source.settings === 'object') ? source.settings : {})),
-        regex: String(source?.regex || ''),
-        containers: Array.isArray(source?.containers) ? [...source.containers] : [],
-        actions: Array.isArray(source?.actions) ? JSON.parse(JSON.stringify(source.actions)) : []
-    };
-    $('div.spinner.fixed').show('slow');
-    try {
-        await $.post('/plugins/folderview.plus/server/create.php', {
-            type: 'docker',
-            content: JSON.stringify(clonePayload)
-        }).promise();
-        await $.post('/plugins/folderview.plus/server/sync_order.php', { type: 'docker' }).promise();
-        loadlist();
-    } catch (error) {
-        console.error('folderview.plus clone failed', error);
-    } finally {
-        $('div.spinner.fixed').hide('slow');
-    }
+    await runDockerGuardedAction('clone-folder', async () => {
+        if (!ensureDockerFolderUnlocked(id, 'Clone folder')) {
+            return;
+        }
+        const source = globalFolders[id];
+        if (!source || typeof source !== 'object') {
+            return;
+        }
+        const defaultName = `${String(source?.name || 'Folder').trim() || 'Folder'} (Copy)`;
+        const nextName = String(window.prompt('Clone folder name', defaultName) || '').trim();
+        if (!nextName) {
+            return;
+        }
+        const clonePayload = {
+            name: nextName,
+            icon: String(source?.icon || ''),
+            parentId: normalizeFolderParentId(source?.parentId || source?.parent_id || ''),
+            settings: JSON.parse(JSON.stringify((source?.settings && typeof source.settings === 'object') ? source.settings : {})),
+            regex: String(source?.regex || ''),
+            containers: Array.isArray(source?.containers) ? [...source.containers] : [],
+            actions: Array.isArray(source?.actions) ? JSON.parse(JSON.stringify(source.actions)) : []
+        };
+        $('div.spinner.fixed').show('slow');
+        try {
+            await $.post('/plugins/folderview.plus/server/create.php', {
+                type: 'docker',
+                content: JSON.stringify(clonePayload)
+            }).promise();
+            await $.post('/plugins/folderview.plus/server/sync_order.php', { type: 'docker' }).promise();
+            loadlist();
+        } finally {
+            $('div.spinner.fixed').hide('slow');
+        }
+    }, {
+        userMessage: getDockerMenuLabel('clone-folder-failed', 'Failed to clone folder.'),
+        userVisible: true
+    });
 };
 
 /**
@@ -4074,74 +4159,25 @@ const DOCKER_CONTEXT_QUICK_ACTION_LABELS = new Set([
     'lock folder',
     'unlock folder'
 ]);
-
-const normalizeDockerContextActionLabel = (value) => String(value || '').trim().replace(/\s+/g, ' ').toLowerCase();
-
-const findVisibleDockerContextMenu = () => {
-    const selectors = [
-        'ul.context-menu-list:visible',
-        'ul.contextMenuPlugin:visible',
-        'ul.context-menu:visible',
-        'ul.dropdown-menu:visible'
-    ];
-    for (const selector of selectors) {
-        const $menus = $(selector);
-        for (let idx = $menus.length - 1; idx >= 0; idx--) {
-            const $menu = $($menus.get(idx));
-            const quickCount = $menu.children('li').filter((_, item) => {
-                const label = normalizeDockerContextActionLabel($(item).text());
-                return DOCKER_CONTEXT_QUICK_ACTION_LABELS.has(label);
-            }).length;
-            if (quickCount >= 3) {
-                return $menu;
-            }
-        }
-    }
-    return $();
-};
-
-const styleDockerFolderContextQuickIcons = () => {
-    const $menu = findVisibleDockerContextMenu();
-    if (!$menu.length) {
-        return false;
-    }
-    const $quickItems = $menu.children('li').filter((_, item) => {
-        const label = normalizeDockerContextActionLabel($(item).text());
-        return DOCKER_CONTEXT_QUICK_ACTION_LABELS.has(label);
-    }).slice(0, 3);
-    if ($quickItems.length < 3) {
-        return false;
-    }
-    $menu.addClass('fvplus-docker-context-menu');
-    $quickItems.each((_, item) => {
-        const $item = $(item);
-        const label = String($item.text() || '').trim().replace(/\s+/g, ' ');
-        $item.addClass('fvplus-docker-quick-item');
-        const $interactive = $item.find('a, .context-menu-item').first();
-        if ($interactive.length) {
-            $interactive.addClass('fvplus-docker-quick-link');
-            $interactive.attr('title', label);
-            $interactive.attr('aria-label', label);
-        } else {
-            $item.attr('title', label);
-            $item.attr('aria-label', label);
-        }
-    });
-    const $firstNonQuick = $menu.children('li').not('.fvplus-docker-quick-item').first();
-    if ($firstNonQuick.length) {
-        $firstNonQuick.addClass('fvplus-docker-quick-clear');
-    }
-    return true;
-};
-
+const dockerContextQuickStripAdapter = createDockerContextMenuQuickStripAdapter({
+    menuClassName: 'fvplus-docker-context-menu',
+    quickItemClassName: 'fvplus-docker-quick-item',
+    clearClassName: 'fvplus-docker-quick-clear',
+    labelSet: DOCKER_CONTEXT_QUICK_ACTION_LABELS,
+    iconClassCandidates: [
+        'fa-bullseye',
+        'fa-dot-circle-o',
+        'fa-star',
+        'fa-star-o',
+        'fa-lock',
+        'fa-unlock-alt'
+    ]
+});
 const queueDockerFolderContextQuickIcons = (attempt = 0) => {
-    if (styleDockerFolderContextQuickIcons()) {
+    if (!dockerContextQuickStripAdapter || typeof dockerContextQuickStripAdapter.queueEnhance !== 'function') {
         return;
     }
-    if (attempt >= 8) {
-        return;
-    }
-    setTimeout(() => queueDockerFolderContextQuickIcons(attempt + 1), 18 * (attempt + 1));
+    dockerContextQuickStripAdapter.queueEnhance(attempt);
 };
 
 /**
@@ -4150,6 +4186,7 @@ const queueDockerFolderContextQuickIcons = (attempt = 0) => {
  */
 const addDockerFolderContext = (id) => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addDockerFolderContext (id: ${id}): Entry.`);
+    dockerPerfTelemetry.begin('context-menu-build');
     let opts = [];
     const appendDivider = () => {
         if (!opts.length || opts[opts.length - 1].divider) {
@@ -4237,6 +4274,7 @@ const addDockerFolderContext = (id) => {
 
     if (!globalFolders[id]) {
         if (FOLDER_VIEW_DEBUG_MODE) console.error(`[FV3_DEBUG] addDockerFolderContext (id: ${id}): Folder data not found in globalFolders. Aborting context menu.`);
+        dockerPerfTelemetry.end('context-menu-build', { id, aborted: true });
         return;
     }
     const folderData = globalFolders[id];
@@ -4251,7 +4289,9 @@ const addDockerFolderContext = (id) => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addDockerFolderContext (id: ${id}): Folder data:`, {...folderData});
 
     opts.push({
-        text: focused ? 'Clear focus' : 'Focus folder',
+        text: focused
+            ? getDockerMenuLabel('clear-focus-folder', 'Clear focus')
+            : getDockerMenuLabel('focus-folder', 'Focus folder'),
         icon: focused ? 'fa-dot-circle-o' : 'fa-bullseye',
         action: (evt) => {
             evt.preventDefault();
@@ -4259,7 +4299,9 @@ const addDockerFolderContext = (id) => {
         }
     });
     opts.push({
-        text: pinned ? 'Unpin folder' : 'Pin folder',
+        text: pinned
+            ? getDockerMenuLabel('unpin-folder', 'Unpin folder')
+            : getDockerMenuLabel('pin-folder', 'Pin folder'),
         icon: pinned ? 'fa-star' : 'fa-star-o',
         action: (evt) => {
             evt.preventDefault();
@@ -4267,7 +4309,9 @@ const addDockerFolderContext = (id) => {
         }
     });
     opts.push({
-        text: locked ? 'Unlock folder' : 'Lock folder',
+        text: locked
+            ? getDockerMenuLabel('unlock-folder', 'Unlock folder')
+            : getDockerMenuLabel('lock-folder', 'Lock folder'),
         icon: locked ? 'fa-lock' : 'fa-unlock-alt',
         action: (evt) => {
             evt.preventDefault();
@@ -4437,7 +4481,7 @@ const addDockerFolderContext = (id) => {
     const folderWebuiCount = collectFolderWebuiTargets(id, false, true).length;
     if (folderWebuiCount > 0) {
         opts.push({
-            text: 'Open all WebUIs',
+            text: getDockerMenuLabel('open-all-webui', 'Open all WebUIs'),
             icon: 'fa-external-link',
             action: (evt) => {
                 evt.preventDefault();
@@ -4454,7 +4498,7 @@ const addDockerFolderContext = (id) => {
     });
 
     opts.push({
-        text: 'Clone folder',
+        text: getDockerMenuLabel('clone-folder', 'Clone folder'),
         icon: 'fa-clone',
         action: (evt) => {
             evt.preventDefault();
@@ -4491,6 +4535,7 @@ const addDockerFolderContext = (id) => {
 
     context.attach('#' + id, opts);
     queueDockerFolderContextQuickIcons();
+    dockerPerfTelemetry.end('context-menu-build', { id, optsCount: opts.length });
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addDockerFolderContext (id: ${id}): Context menu attached to #${id}. Exit.`);
 };
 
@@ -4795,6 +4840,12 @@ window.getDockerRuntimeWidthDebugSnapshot = () => {
         return null;
     }
     return { ...dockerRuntimeWidthState.lastDecision };
+};
+window.getDockerRuntimePerfTelemetrySnapshot = () => {
+    if (!dockerPerfTelemetry || typeof dockerPerfTelemetry.snapshot !== 'function') {
+        return {};
+    }
+    return dockerPerfTelemetry.snapshot();
 };
 window.toggleDockerFolderFocus = (id) => toggleDockerFolderFocus(id);
 window.toggleDockerFolderPin = (id) => toggleDockerFolderPin(id);

@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.20.12">
-<!ENTITY md5 "53ab38d43d84b573e23ca2fa27198c3f">
+<!ENTITY version "2026.03.20.13">
+<!ENTITY md5 "dbd3de15d71be54a1a8141a2486c8cf4">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.20.13
+- Refactor: Added `docker.runtime.shared.js` for Docker runtime state store, async action boundaries, context-menu adapter, and perf telemetry primitives.
+- Regression guard: Added architecture and visual-contract tests for Docker quick actions, shared module wiring, and layout token fallback behavior.
+- UX: Improved Docker runtime i18n-safe quick action labels and accessibility labels for icon-only context actions.
+- Compatibility: Added centralized Docker layout tokens with hard-coded fallbacks to preserve existing selector/spacing contracts.
+
 
 ###2026.03.20.12
 - UX: Changed Docker folder click menu so `Focus`, `Pin`, and `Lock` render as icon-only quick actions on one top row.

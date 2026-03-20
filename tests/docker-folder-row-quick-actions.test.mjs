@@ -14,14 +14,15 @@ const dockerCss = fs.readFileSync(
 );
 
 test('docker context menu keeps focus/pin/lock quick actions at the top', () => {
-    assert.match(dockerScript, /text:\s*focused \? 'Clear focus' : 'Focus folder'/);
-    assert.match(dockerScript, /text:\s*pinned \? 'Unpin folder' : 'Pin folder'/);
-    assert.match(dockerScript, /text:\s*locked \? 'Unlock folder' : 'Lock folder'/);
+    assert.match(dockerScript, /text:\s*focused[\s\S]*getDockerMenuLabel\('clear-focus-folder',\s*'Clear focus'\)/);
+    assert.match(dockerScript, /text:\s*pinned[\s\S]*getDockerMenuLabel\('unpin-folder',\s*'Unpin folder'\)/);
+    assert.match(dockerScript, /text:\s*locked[\s\S]*getDockerMenuLabel\('unlock-folder',\s*'Unlock folder'\)/);
     assert.match(dockerScript, /toggleDockerFolderFocus\(id\)/);
     assert.match(dockerScript, /toggleDockerFolderPin\(id\)/);
     assert.match(dockerScript, /toggleDockerFolderLock\(id\)/);
     assert.match(dockerScript, /queueDockerFolderContextQuickIcons\(/);
-    assert.match(dockerScript, /fvplus-docker-context-menu/);
+    assert.match(dockerScript, /createDockerContextMenuQuickStripAdapter/);
+    assert.match(dockerScript, /dockerContextQuickStripAdapter/);
     assert.doesNotMatch(dockerScript, /fv-folder-row-actions/);
 });
 

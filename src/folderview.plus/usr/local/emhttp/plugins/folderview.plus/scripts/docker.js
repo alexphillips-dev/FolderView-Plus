@@ -3408,9 +3408,7 @@ const updateFolder = (id, { includeDescendants = true } = {}) => {
 
 const collectFolderWebuiTargets = (id, includeDescendants = true, runningOnly = true) => Object.values(getScopedRuntimeContainersForFolder(id, includeDescendants) || {}).reduce((out, entry) => {
     const url = String(entry?.webui || '').trim();
-    const isRunning = entry?.state === true;
-    const isPaused = entry?.pause === true;
-    if (url && !/^javascript:/i.test(url) && (!runningOnly || (isRunning && !isPaused))) out.push(url);
+    if (url && !/^javascript:/i.test(url) && (!runningOnly || (entry?.state === true && entry?.pause !== true))) out.push(url);
     return out;
 }, []);
 
@@ -3418,13 +3416,17 @@ const openFolderWebuisFromMenu = (id, runningOnly = true, includeDescendants = f
     hideAllTips();
     const urls = collectFolderWebuiTargets(id, includeDescendants, runningOnly);
     if (!urls.length) return;
-    for (const url of urls) {
+    const stamp = Date.now();
+    for (let index = 0; index < urls.length; index += 1) {
         try {
-            const popup = window.open(url, '_blank', 'noopener,noreferrer');
-            if (popup) {
-                popup.opener = null;
-            }
-        } catch (_error) {}
+            const anchor = document.createElement('a');
+            anchor.href = urls[index];
+            anchor.target = `fvw-${stamp}-${index}`;
+            anchor.rel = 'noopener noreferrer';
+            document.body.appendChild(anchor);
+            anchor.click();
+            anchor.remove();
+        } catch {}
     }
 };
 

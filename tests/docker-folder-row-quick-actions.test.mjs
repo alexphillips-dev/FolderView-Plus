@@ -9,13 +9,14 @@ const dockerScript = fs.readFileSync(
     'utf8'
 );
 
-test('docker runtime renders one-click focus/pin/lock row actions', () => {
-    assert.match(dockerScript, /fv-folder-row-action-focus/);
-    assert.match(dockerScript, /fv-folder-row-action-pin/);
-    assert.match(dockerScript, /fv-folder-row-action-lock/);
-    assert.match(dockerScript, /toggleDockerFolderFocus\('/);
-    assert.match(dockerScript, /toggleDockerFolderPin\('/);
-    assert.match(dockerScript, /toggleDockerFolderLock\('/);
+test('docker context menu keeps focus/pin/lock quick actions at the top', () => {
+    assert.match(dockerScript, /text:\s*focused \? 'Clear focus' : 'Focus folder'/);
+    assert.match(dockerScript, /text:\s*pinned \? 'Unpin folder' : 'Pin folder'/);
+    assert.match(dockerScript, /text:\s*locked \? 'Unlock folder' : 'Lock folder'/);
+    assert.match(dockerScript, /toggleDockerFolderFocus\(id\)/);
+    assert.match(dockerScript, /toggleDockerFolderPin\(id\)/);
+    assert.match(dockerScript, /toggleDockerFolderLock\(id\)/);
+    assert.doesNotMatch(dockerScript, /fv-folder-row-actions/);
 });
 
 test('docker runtime exposes and applies focus\/lock state guards', () => {

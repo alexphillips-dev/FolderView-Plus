@@ -3408,7 +3408,9 @@ const updateFolder = (id, { includeDescendants = true } = {}) => {
 
 const collectFolderWebuiTargets = (id, includeDescendants = true, runningOnly = true) => Object.values(getScopedRuntimeContainersForFolder(id, includeDescendants) || {}).reduce((out, entry) => {
     const url = String(entry?.webui || '').trim();
-    if (url && !/^javascript:/i.test(url) && (!runningOnly || entry?.state === true)) out.push(url);
+    const isRunning = entry?.state === true;
+    const isPaused = entry?.pause === true;
+    if (url && !/^javascript:/i.test(url) && (!runningOnly || (isRunning && !isPaused))) out.push(url);
     return out;
 }, []);
 
@@ -3961,14 +3963,14 @@ const addDockerFolderContext = (id) => {
         }
     }
 
-    const folderWebuiCount = collectFolderWebuiTargets(id, false, false).length;
+    const folderWebuiCount = collectFolderWebuiTargets(id, false, true).length;
     if (folderWebuiCount > 0) {
         opts.push({
             text: 'Open all WebUIs',
             icon: 'fa-external-link',
             action: (evt) => {
                 evt.preventDefault();
-                openFolderWebuisFromMenu(id, false, false);
+                openFolderWebuisFromMenu(id, true, false);
             }
         });
         appendDivider();

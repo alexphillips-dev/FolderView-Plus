@@ -13,7 +13,9 @@ test('docker folder context supports open-all-webui actions with scoped options'
     assert.match(dockerScript, /const collectFolderWebuiTargets = \(id, includeDescendants = true, runningOnly = true\) =>/);
     assert.match(dockerScript, /const openFolderWebuisFromMenu = \(id, runningOnly = true, includeDescendants = false\) =>/);
     assert.match(dockerScript, /Open all WebUIs/);
-    assert.match(dockerScript, /collectFolderWebuiTargets\(id, false, false\)/);
+    assert.match(dockerScript, /collectFolderWebuiTargets\(id, false, true\)/);
+    assert.match(dockerScript, /isRunning && !isPaused/);
+    assert.match(dockerScript, /openFolderWebuisFromMenu\(id, true, false\)/);
 });
 
 test('docker folder context supports clone-folder action flow', () => {

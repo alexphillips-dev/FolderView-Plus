@@ -6,12 +6,27 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.20.02">
-<!ENTITY md5 "23bdf04a2ab6db8e6616c1239bf3f77b">
+<!ENTITY version "2026.03.20.04">
+<!ENTITY md5 "caa8cc6afe0320d8bd72a3d91285a659">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.20.04
+- Feature: Add Open All WebUIs and Clone Folder actions to Docker folder menu.
+- Maintenance: Bump dev release to 2026.03.20.01.
+- Maintenance: Improve Docker folder menu with scoped actions and branch controls.
+- Fix: Fix CI shellcheck SC2016 in theme runtime guard.
+- Maintenance: Release 2026.03.19.29 on main with full dev rollup notes.
+- Feature: Add regression guard for dashboard rail collapse detection.
+
+
+###2026.03.20.03
+- Feature: Added Docker folder menu quick actions for `Open all WebUIs` and `Clone folder`.
+- UX: `Open all WebUIs` now respects nested trees by targeting only direct members of the clicked folder.
+- Quality: Added regression coverage to keep new Docker folder context actions from drifting.
+
 
 ###2026.03.20.02
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

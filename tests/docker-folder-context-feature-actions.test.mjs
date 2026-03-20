@@ -10,15 +10,15 @@ const dockerScript = fs.readFileSync(
 );
 
 test('docker folder context supports open-all-webui actions with scoped options', () => {
-    assert.match(dockerScript, /const getFolderWebuiTargets = \(id, \{ includeDescendants = true, runningOnly = true \} = \{\}\) =>/);
-    assert.match(dockerScript, /const openAllFolderWebUIs = \(id, \{ includeDescendants = true, runningOnly = true \} = \{\}\) =>/);
+    assert.match(dockerScript, /const collectFolderWebuiTargets = \(id, includeDescendants = true, runningOnly = true\) =>/);
+    assert.match(dockerScript, /const openFolderWebuisFromMenu = \(id, runningOnly = true, includeDescendants = false\) =>/);
     assert.match(dockerScript, /Open all WebUIs/);
-    assert.match(dockerScript, /Folder \+ descendants \(running\)/);
+    assert.match(dockerScript, /collectFolderWebuiTargets\(id, false, false\)/);
 });
 
 test('docker folder context supports clone-folder action flow', () => {
-    assert.match(dockerScript, /const suggestCloneFolderName = \(baseName, parentId, excludeId = ''\) =>/);
-    assert.match(dockerScript, /const cloneDockerFolder = async \(id, cloneName\) =>/);
-    assert.match(dockerScript, /const cloneDockerFolderWithPrompt = async \(id\) =>/);
+    assert.match(dockerScript, /const cloneDockerFolderFromMenu = async \(id\) =>/);
+    assert.match(dockerScript, /window\.prompt\('Clone folder name'/);
+    assert.match(dockerScript, /\/server\/create\.php/);
     assert.match(dockerScript, /text: 'Clone folder'/);
 });

@@ -3406,252 +3406,55 @@ const updateFolder = (id, { includeDescendants = true } = {}) => {
     openDocker('update_container ' + containersToUpdate, $.i18n('updating', folder.name),'','loadlist');
 };
 
-const getFolderMutationErrorMessage = (error, fallback = 'Operation failed.') => {
-    if (!error) {
-        return fallback;
-    }
-    if (typeof error === 'string' && error.trim() !== '') {
-        return error.trim();
-    }
-    if (typeof error?.message === 'string' && error.message.trim() !== '') {
-        return error.message.trim();
-    }
-    if (typeof error?.responseJSON?.error?.message === 'string' && error.responseJSON.error.message.trim() !== '') {
-        return error.responseJSON.error.message.trim();
-    }
-    if (typeof error?.responseJSON?.message === 'string' && error.responseJSON.message.trim() !== '') {
-        return error.responseJSON.message.trim();
-    }
-    if (typeof error?.statusText === 'string' && error.statusText.trim() !== '') {
-        return error.statusText.trim();
-    }
-    return fallback;
-};
+const collectFolderWebuiTargets = (id, includeDescendants = true, runningOnly = true) => Object.values(getScopedRuntimeContainersForFolder(id, includeDescendants) || {}).reduce((out, entry) => {
+    const url = String(entry?.webui || '').trim();
+    if (url && !/^javascript:/i.test(url) && (!runningOnly || entry?.state === true)) out.push(url);
+    return out;
+}, []);
 
-const postFolderMutation = async (url, payload = {}) => {
-    const request = window.FolderViewPlusRequest;
-    if (request && typeof request.postJson === 'function') {
-        return request.postJson(url, payload, {
-            retries: 1,
-            retryDelayMs: 220
-        });
-    }
-    return $.post(url, payload).promise();
-};
-
-const getFolderWebuiTargets = (id, { includeDescendants = true, runningOnly = true } = {}) => {
-    const containersMap = getScopedRuntimeContainersForFolder(id, includeDescendants);
-    const targets = [];
-    for (const [containerName, entry] of Object.entries(containersMap || {})) {
-        const isRunning = entry?.state === true;
-        if (runningOnly && !isRunning) {
-            continue;
-        }
-        const rawWebui = String(entry?.webui || '').trim();
-        if (!rawWebui || /^javascript:/i.test(rawWebui)) {
-            continue;
-        }
-        targets.push({
-            name: String(entry?.name || containerName || '').trim() || String(containerName || '').trim(),
-            webui: rawWebui
-        });
-    }
-    targets.sort((a, b) => a.name.localeCompare(b.name));
-    return targets;
-};
-
-const openFolderWebuiTargets = (targets) => {
-    let opened = 0;
-    let blocked = 0;
-    for (const target of targets) {
+const openFolderWebuisFromMenu = (id, runningOnly = true, includeDescendants = false) => {
+    hideAllTips();
+    const urls = collectFolderWebuiTargets(id, includeDescendants, runningOnly);
+    if (!urls.length) return;
+    for (const url of urls) {
         try {
-            const popup = window.open(target.webui, '_blank', 'noopener,noreferrer');
+            const popup = window.open(url, '_blank', 'noopener,noreferrer');
             if (popup) {
                 popup.opener = null;
-                opened += 1;
-            } else {
-                blocked += 1;
             }
-        } catch (_error) {
-            blocked += 1;
-        }
-    }
-    return { opened, blocked };
-};
-
-const openAllFolderWebUIs = (id, { includeDescendants = true, runningOnly = true } = {}) => {
-    hideAllTips();
-    const targets = getFolderWebuiTargets(id, { includeDescendants, runningOnly });
-    if (!targets.length) {
-        if (typeof swal === 'function') {
-            swal({
-                title: 'No WebUIs to open',
-                text: runningOnly
-                    ? 'No running containers with WebUI links were found in this scope.'
-                    : 'No containers with WebUI links were found in this scope.',
-                type: 'info'
-            });
-        }
-        return;
-    }
-    const result = openFolderWebuiTargets(targets);
-    if (result.blocked > 0 || result.opened === 0) {
-        if (typeof swal === 'function') {
-            swal({
-                title: 'WebUI tabs partially opened',
-                text: `Opened ${result.opened} tab(s). Blocked ${result.blocked} tab(s). Allow pop-ups for this Unraid page to open all tabs.`,
-                type: result.opened > 0 ? 'warning' : 'error'
-            });
-        }
+        } catch (_error) {}
     }
 };
 
-const getSiblingFolderNameSet = (parentId, excludeId = '') => {
-    const parent = normalizeFolderParentId(parentId);
-    const excluded = String(excludeId || '').trim();
-    const names = new Set();
-    for (const [folderId, folder] of Object.entries(globalFolders || {})) {
-        const currentId = String(folderId || '').trim();
-        if (!currentId || currentId === excluded) {
-            continue;
-        }
-        const candidateParentId = normalizeFolderParentId(folder?.parentId || folder?.parent_id || '');
-        if (candidateParentId !== parent) {
-            continue;
-        }
-        const candidateName = String(folder?.name || '').trim().toLowerCase();
-        if (candidateName) {
-            names.add(candidateName);
-        }
-    }
-    return names;
-};
-
-const isSiblingFolderNameTaken = (name, parentId, excludeId = '') => {
-    const candidate = String(name || '').trim().toLowerCase();
-    if (!candidate) {
-        return false;
-    }
-    return getSiblingFolderNameSet(parentId, excludeId).has(candidate);
-};
-
-const suggestCloneFolderName = (baseName, parentId, excludeId = '') => {
-    const base = String(baseName || '').trim() || 'Folder';
-    const siblingNames = getSiblingFolderNameSet(parentId, excludeId);
-    const first = `${base} (Copy)`;
-    if (!siblingNames.has(first.toLowerCase())) {
-        return first;
-    }
-    for (let index = 2; index < 1000; index++) {
-        const nextName = `${base} (Copy ${index})`;
-        if (!siblingNames.has(nextName.toLowerCase())) {
-            return nextName;
-        }
-    }
-    return `${base} (Copy ${Date.now().toString().slice(-4)})`;
-};
-
-const promptCloneDockerFolderName = async (id) => {
-    const folder = globalFolders[id];
-    if (!folder) {
-        return '';
-    }
-    const parentId = normalizeFolderParentId(folder?.parentId || folder?.parent_id || '');
-    const suggestedName = suggestCloneFolderName(folder?.name || 'Folder', parentId, id);
-    if (typeof window.swal !== 'function') {
-        const fallback = window.prompt('Clone folder name', suggestedName);
-        const resolved = String(fallback || '').trim();
-        if (!resolved || isSiblingFolderNameTaken(resolved, parentId, id)) {
-            return '';
-        }
-        return resolved;
-    }
-    return new Promise((resolve) => {
-        swal({
-            title: 'Clone folder',
-            text: 'Enter a name for the cloned folder.',
-            type: 'input',
-            inputValue: suggestedName,
-            showCancelButton: true,
-            confirmButtonText: 'Clone',
-            cancelButtonText: 'Cancel',
-            closeOnConfirm: false
-        }, (value) => {
-            if (value === false) {
-                resolve('');
-                return;
-            }
-            const nextName = String(value || '').trim();
-            if (!nextName) {
-                if (typeof swal.showInputError === 'function') {
-                    swal.showInputError('Folder name is required.');
-                }
-                return false;
-            }
-            if (isSiblingFolderNameTaken(nextName, parentId, id)) {
-                if (typeof swal.showInputError === 'function') {
-                    swal.showInputError('A sibling folder with this name already exists.');
-                }
-                return false;
-            }
-            swal.close();
-            resolve(nextName);
-            return true;
-        });
-    });
-};
-
-const cloneDockerFolder = async (id, cloneName) => {
+const cloneDockerFolderFromMenu = async (id) => {
     const source = globalFolders[id];
     if (!source || typeof source !== 'object') {
-        throw new Error('Source folder not found.');
-    }
-    const parentId = normalizeFolderParentId(source?.parentId || source?.parent_id || '');
-    const resolvedName = String(cloneName || '').trim();
-    if (!resolvedName) {
-        throw new Error('Folder name is required.');
-    }
-    if (isSiblingFolderNameTaken(resolvedName, parentId, id)) {
-        throw new Error('A sibling folder with this name already exists.');
-    }
-    const clonePayload = {
-        name: resolvedName,
-        icon: String(source?.icon || '/plugins/folderview.plus/images/folder-icon.png'),
-        parentId,
-        settings: JSON.parse(JSON.stringify((source?.settings && typeof source.settings === 'object') ? source.settings : {})),
-        regex: String(source?.regex || ''),
-        containers: Array.isArray(source?.containers)
-            ? source.containers.map((entry) => String(entry || '').trim()).filter(Boolean)
-            : [],
-        actions: Array.isArray(source?.actions) ? JSON.parse(JSON.stringify(source.actions)) : []
-    };
-    await postFolderMutation('/plugins/folderview.plus/server/create.php', {
-        type: 'docker',
-        content: JSON.stringify(clonePayload)
-    });
-    await postFolderMutation('/plugins/folderview.plus/server/sync_order.php', {
-        type: 'docker'
-    });
-};
-
-const cloneDockerFolderWithPrompt = async (id) => {
-    const name = await promptCloneDockerFolderName(id);
-    if (!name) {
         return;
     }
+    const defaultName = `${String(source?.name || 'Folder').trim() || 'Folder'} (Copy)`;
+    const nextName = String(window.prompt('Clone folder name', defaultName) || '').trim();
+    if (!nextName) {
+        return;
+    }
+    const clonePayload = {
+        name: nextName,
+        icon: String(source?.icon || ''),
+        parentId: normalizeFolderParentId(source?.parentId || source?.parent_id || ''),
+        settings: JSON.parse(JSON.stringify((source?.settings && typeof source.settings === 'object') ? source.settings : {})),
+        regex: String(source?.regex || ''),
+        containers: Array.isArray(source?.containers) ? [...source.containers] : [],
+        actions: Array.isArray(source?.actions) ? JSON.parse(JSON.stringify(source.actions)) : []
+    };
     $('div.spinner.fixed').show('slow');
     try {
-        await cloneDockerFolder(id, name);
+        await $.post('/plugins/folderview.plus/server/create.php', {
+            type: 'docker',
+            content: JSON.stringify(clonePayload)
+        }).promise();
+        await $.post('/plugins/folderview.plus/server/sync_order.php', { type: 'docker' }).promise();
         loadlist();
     } catch (error) {
-        if (typeof swal === 'function') {
-            swal({
-                title: 'Clone failed',
-                text: escapeHtml(getFolderMutationErrorMessage(error, 'Unable to clone folder.')),
-                type: 'error',
-                html: true
-            });
-        }
+        console.error('folderview.plus clone failed', error);
     } finally {
         $('div.spinner.fixed').hide('slow');
     }
@@ -4158,83 +3961,17 @@ const addDockerFolderContext = (id) => {
         }
     }
 
-    const directWebuiRunningCount = getFolderWebuiTargets(id, { includeDescendants: false, runningOnly: true }).length;
-    const directWebuiAllCount = getFolderWebuiTargets(id, { includeDescendants: false, runningOnly: false }).length;
-    const branchWebuiRunningCount = getFolderWebuiTargets(id, { includeDescendants: true, runningOnly: true }).length;
-    const branchWebuiAllCount = getFolderWebuiTargets(id, { includeDescendants: true, runningOnly: false }).length;
-    if (branchWebuiAllCount > 0) {
-        const webuiSubMenu = [];
-        if (hasChildren) {
-            if (directWebuiRunningCount > 0) {
-                webuiSubMenu.push({
-                    text: `This folder (running) (${directWebuiRunningCount})`,
-                    icon: 'fa-play-circle',
-                    action: (evt) => {
-                        evt.preventDefault();
-                        openAllFolderWebUIs(id, { includeDescendants: false, runningOnly: true });
-                    }
-                });
+    const folderWebuiCount = collectFolderWebuiTargets(id, false, false).length;
+    if (folderWebuiCount > 0) {
+        opts.push({
+            text: 'Open all WebUIs',
+            icon: 'fa-external-link',
+            action: (evt) => {
+                evt.preventDefault();
+                openFolderWebuisFromMenu(id, false, false);
             }
-            if (directWebuiAllCount > directWebuiRunningCount) {
-                webuiSubMenu.push({
-                    text: `This folder (all) (${directWebuiAllCount})`,
-                    icon: 'fa-window-restore',
-                    action: (evt) => {
-                        evt.preventDefault();
-                        openAllFolderWebUIs(id, { includeDescendants: false, runningOnly: false });
-                    }
-                });
-            }
-            if (branchWebuiRunningCount > 0) {
-                webuiSubMenu.push({
-                    text: `Folder + descendants (running) (${branchWebuiRunningCount})`,
-                    icon: 'fa-sitemap',
-                    action: (evt) => {
-                        evt.preventDefault();
-                        openAllFolderWebUIs(id, { includeDescendants: true, runningOnly: true });
-                    }
-                });
-            }
-            if (branchWebuiAllCount > branchWebuiRunningCount) {
-                webuiSubMenu.push({
-                    text: `Folder + descendants (all) (${branchWebuiAllCount})`,
-                    icon: 'fa-window-restore',
-                    action: (evt) => {
-                        evt.preventDefault();
-                        openAllFolderWebUIs(id, { includeDescendants: true, runningOnly: false });
-                    }
-                });
-            }
-        } else {
-            if (branchWebuiRunningCount > 0) {
-                webuiSubMenu.push({
-                    text: `Running only (${branchWebuiRunningCount})`,
-                    icon: 'fa-play-circle',
-                    action: (evt) => {
-                        evt.preventDefault();
-                        openAllFolderWebUIs(id, { includeDescendants: true, runningOnly: true });
-                    }
-                });
-            }
-            if (branchWebuiAllCount > branchWebuiRunningCount) {
-                webuiSubMenu.push({
-                    text: `All statuses (${branchWebuiAllCount})`,
-                    icon: 'fa-window-restore',
-                    action: (evt) => {
-                        evt.preventDefault();
-                        openAllFolderWebUIs(id, { includeDescendants: true, runningOnly: false });
-                    }
-                });
-            }
-        }
-        if (webuiSubMenu.length > 0) {
-            opts.push({
-                text: `Open all WebUIs (${branchWebuiAllCount})`,
-                icon: 'fa-external-link',
-                subMenu: webuiSubMenu
-            });
-            appendDivider();
-        }
+        });
+        appendDivider();
     }
 
     opts.push({
@@ -4248,7 +3985,7 @@ const addDockerFolderContext = (id) => {
         icon: 'fa-clone',
         action: (evt) => {
             evt.preventDefault();
-            cloneDockerFolderWithPrompt(id);
+            cloneDockerFolderFromMenu(id);
         }
     });
 

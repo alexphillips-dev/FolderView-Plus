@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.19.29">
-<!ENTITY md5 "12e1c185e462e9f9aa53848216f3f7fb">
+<!ENTITY version "2026.03.20.01">
+<!ENTITY md5 "a2bf4cc5f092ffb17c08ec1636380cff">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.20.01
+- Maintenance: Improve Docker folder menu with scoped actions and branch controls.
+- Fix: Fix CI shellcheck SC2016 in theme runtime guard.
+
 
 ###2026.03.19.29
 - Feature: Added a full dashboard quick-action rail for Docker and VM widgets (layout cycle, expand/collapse all, running-only, health emphasis, compact density, reset view, and settings shortcut).

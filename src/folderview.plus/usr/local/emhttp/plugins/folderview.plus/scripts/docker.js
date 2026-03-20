@@ -3481,26 +3481,52 @@ const collectFolderWebuiTargets = (id, includeDescendants = true, runningOnly = 
 
 const showFolderWebuiPopupWarning = (openedCount, totalCount, blockedUrls) => {
     const blockedList = Array.isArray(blockedUrls) ? blockedUrls.slice(0, 6) : [];
-    const linkHtml = blockedList.map((url) => `<li style="margin:4px 0;"><a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a></li>`).join('');
+    const linkHtml = blockedList.map((url) => `<li style="margin:0 0 8px; line-height:1.35;"><a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" style="color:#6aa9ff; text-decoration:none;">${escapeHtml(url)}</a></li>`).join('');
     const overflowCount = Math.max(0, (blockedUrls?.length || 0) - blockedList.length);
-    const overflowHint = overflowCount > 0 ? `<div style="margin-top:6px; opacity:.8;">+${overflowCount} more blocked link${overflowCount === 1 ? '' : 's'}</div>` : '';
-    const host = escapeHtml(String(window.location?.host || 'this Unraid server').trim() || 'this Unraid server');
-    const allowHelp = [
-        `<div style="margin-top:8px; text-align:left;">`,
-        `<strong>How to allow popups for ${host}:</strong>`,
-        `<ul style="margin:6px 0 0 18px;">`,
-        `<li><strong>Chrome / Edge:</strong> click the blocked-popup icon in the address bar, then choose <em>Always allow pop-ups and redirects</em>.</li>`,
-        `<li><strong>Firefox:</strong> click the shield/menu icon in the address bar and allow popups for this site.</li>`,
-        `<li><strong>Safari (iPhone):</strong> Settings > Safari > turn off <em>Block Pop-ups</em> (or allow popups in website settings).</li>`,
+    const overflowHint = overflowCount > 0 ? `<div style="margin-top:2px; opacity:.75;">+${overflowCount} more blocked link${overflowCount === 1 ? '' : 's'} not shown</div>` : '';
+    const host = escapeHtml(String(window.location?.host || '').trim() || 'this Unraid server');
+    const blockedCount = Math.max(0, totalCount - openedCount);
+    const popupBody = [
+        `<div style="text-align:left; max-width:640px; margin:0 auto; color:#e8edf7;">`,
+        `<div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:8px 0 12px;">`,
+        `<span style="display:inline-flex; align-items:center; border:1px solid rgba(114, 205, 103, .45); background:rgba(114, 205, 103, .12); color:#b8f0b2; border-radius:999px; padding:4px 10px; font-size:12px; font-weight:600;">Opened ${openedCount}</span>`,
+        `<span style="display:inline-flex; align-items:center; border:1px solid rgba(255, 178, 92, .45); background:rgba(255, 178, 92, .12); color:#ffd6a3; border-radius:999px; padding:4px 10px; font-size:12px; font-weight:600;">Blocked ${blockedCount}</span>`,
+        `<span style="display:inline-flex; align-items:center; border:1px solid rgba(128, 164, 255, .45); background:rgba(128, 164, 255, .12); color:#c8d9ff; border-radius:999px; padding:4px 10px; font-size:12px; font-weight:600;">Total ${totalCount}</span>`,
+        `</div>`,
+        `<div style="border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.03); border-radius:10px; padding:10px 12px; margin:0 0 12px;">`,
+        `<div style="font-size:11px; opacity:.75; text-transform:uppercase; letter-spacing:.08em; margin-bottom:4px;">Current Unraid Host</div>`,
+        `<div style="font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px; word-break:break-all;">${host}</div>`,
+        `</div>`,
+        `<div style="border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.03); border-radius:10px; padding:10px 12px; margin:0 0 12px;">`,
+        `<div style="font-weight:700; margin:0 0 6px;">Allow Popups Once</div>`,
+        `<ol style="margin:0; padding-left:18px; line-height:1.45;">`,
+        `<li>Click the popup-blocked icon in your browser address bar.</li>`,
+        `<li>Choose to always allow popups/redirects for this Unraid host.</li>`,
+        `<li>Run <strong>Open all WebUIs</strong> again.</li>`,
+        `</ol>`,
+        `</div>`,
+        `<div style="border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.03); border-radius:10px; padding:10px 12px; margin:0 0 12px;">`,
+        `<div style="font-weight:700; margin:0 0 6px;">Browser Quick Guide</div>`,
+        `<ul style="margin:0; padding-left:18px; line-height:1.45;">`,
+        `<li><strong>Chrome / Edge:</strong> address bar popup icon -> <em>Always allow pop-ups and redirects</em>.</li>`,
+        `<li><strong>Firefox:</strong> address bar popup indicator -> allow popups for this site.</li>`,
+        `<li><strong>Safari (iPhone):</strong> Settings -> Safari -> turn off <em>Block Pop-ups</em>.</li>`,
         `</ul>`,
+        `</div>`,
+        linkHtml
+            ? `<div style="border:1px solid rgba(255,255,255,.08); background:rgba(0,0,0,.18); border-radius:10px; padding:10px 12px;">`
+                + `<div style="font-weight:700; margin:0 0 6px;">Blocked WebUIs (manual open)</div>`
+                + `<ul style="max-height:140px; overflow:auto; margin:0; padding-left:18px;">${linkHtml}</ul>${overflowHint}`
+                + `</div>`
+            : '',
         `</div>`
     ].join('');
     swal({
         title: 'Popup blocked',
-        text: `Opened <strong>${openedCount}</strong> of <strong>${totalCount}</strong> WebUIs.${allowHelp}${linkHtml ? `<br><ul style="text-align:left; margin:8px 0 0 18px;">${linkHtml}</ul>${overflowHint}` : ''}`,
+        text: popupBody,
         type: 'warning',
         html: true,
-        confirmButtonText: 'OK'
+        confirmButtonText: 'Got it'
     });
 };
 

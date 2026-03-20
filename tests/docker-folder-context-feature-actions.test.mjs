@@ -17,7 +17,8 @@ test('docker folder context supports open-all-webui actions with scoped options'
     assert.match(dockerScript, /entry\?\.state === true && entry\?\.pause !== true/);
     assert.match(dockerScript, /window\.open\('about:blank', `fvw-\$\{stamp\}-\$\{index\}`\)/);
     assert.match(dockerScript, /showFolderWebuiPopupWarning/);
-    assert.match(dockerScript, /How to allow popups for/);
+    assert.match(dockerScript, /Browser Quick Guide/);
+    assert.match(dockerScript, /Blocked WebUIs \(manual open\)/);
     assert.match(dockerScript, /dockerRuntimeInfoByName/);
     assert.match(dockerScript, /openFolderWebuisFromMenu\(id, true, false\)/);
 });

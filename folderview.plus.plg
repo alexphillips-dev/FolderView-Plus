@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.20.08">
-<!ENTITY md5 "1346fe2ee62de618d438e53734dca070">
+<!ENTITY version "2026.03.20.09">
+<!ENTITY md5 "377b0ec097140673fd8c818538012e65">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.20.09
+- UX: Redesigned the Docker `Popup blocked` dialog with a cleaner, modern card layout and concise visual status chips.
+- UX: Improved popup guidance flow with clearer action steps, host context, and browser-specific quick help.
+- UX: Refined blocked-WebUI fallback list styling for easier manual opening when popup policies block tabs.
+
 
 ###2026.03.20.08
 - Fix: Improved Docker folder `Open all WebUIs` runtime target resolution so direct folder members are resolved from live container metadata.

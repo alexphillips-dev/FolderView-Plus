@@ -3484,9 +3484,20 @@ const showFolderWebuiPopupWarning = (openedCount, totalCount, blockedUrls) => {
     const linkHtml = blockedList.map((url) => `<li style="margin:4px 0;"><a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a></li>`).join('');
     const overflowCount = Math.max(0, (blockedUrls?.length || 0) - blockedList.length);
     const overflowHint = overflowCount > 0 ? `<div style="margin-top:6px; opacity:.8;">+${overflowCount} more blocked link${overflowCount === 1 ? '' : 's'}</div>` : '';
+    const host = escapeHtml(String(window.location?.host || 'this Unraid server').trim() || 'this Unraid server');
+    const allowHelp = [
+        `<div style="margin-top:8px; text-align:left;">`,
+        `<strong>How to allow popups for ${host}:</strong>`,
+        `<ul style="margin:6px 0 0 18px;">`,
+        `<li><strong>Chrome / Edge:</strong> click the blocked-popup icon in the address bar, then choose <em>Always allow pop-ups and redirects</em>.</li>`,
+        `<li><strong>Firefox:</strong> click the shield/menu icon in the address bar and allow popups for this site.</li>`,
+        `<li><strong>Safari (iPhone):</strong> Settings > Safari > turn off <em>Block Pop-ups</em> (or allow popups in website settings).</li>`,
+        `</ul>`,
+        `</div>`
+    ].join('');
     swal({
         title: 'Popup blocked',
-        text: `Opened <strong>${openedCount}</strong> of <strong>${totalCount}</strong> WebUIs.<br>Allow popups for this page to open all automatically.${linkHtml ? `<br><ul style="text-align:left; margin:8px 0 0 18px;">${linkHtml}</ul>${overflowHint}` : ''}`,
+        text: `Opened <strong>${openedCount}</strong> of <strong>${totalCount}</strong> WebUIs.${allowHelp}${linkHtml ? `<br><ul style="text-align:left; margin:8px 0 0 18px;">${linkHtml}</ul>${overflowHint}` : ''}`,
         type: 'warning',
         html: true,
         confirmButtonText: 'OK'

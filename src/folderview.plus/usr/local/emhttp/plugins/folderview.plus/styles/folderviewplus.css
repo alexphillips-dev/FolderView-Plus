@@ -816,16 +816,26 @@ body.fv-column-resize-active * {
 .fv-starter-template-option {
     display: flex;
     align-items: center;
+    justify-content: flex-start;
     gap: 0.4rem;
+    width: 100%;
     min-height: 30px;
     padding: 0.2rem 0.35rem;
+    margin: 0;
+    float: none !important;
+    clear: both;
+    box-sizing: border-box;
+    text-align: left !important;
+    direction: ltr;
     border-radius: 6px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     background: rgba(255, 255, 255, 0.03);
 }
 
 .fv-starter-template-checkbox {
-    margin: 0;
+    margin: 0 !important;
+    float: none !important;
+    flex: 0 0 auto;
 }
 
 .fv-starter-template-option-icon {

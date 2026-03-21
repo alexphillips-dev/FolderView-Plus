@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.21.22">
-<!ENTITY md5 "24f047cbe9726b08846d1b20f5dff910">
+<!ENTITY version "2026.03.21.23">
+<!ENTITY md5 "23aca1be94a47ac4339f7fde187420e1">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.21.23
+- Fix: Starter-template selection popup now forces left-aligned, full-width option rows so checkbox entries render correctly across host themes.
+
 
 ###2026.03.21.22
 - Feature: Starter-template popup now supports checkbox selection so users can deploy only chosen templates.

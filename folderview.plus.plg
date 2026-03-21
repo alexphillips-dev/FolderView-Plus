@@ -6,12 +6,28 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.21.16">
-<!ENTITY md5 "8b813c84878baf0ad44ec74895d76d0a">
+<!ENTITY version "2026.03.21.18">
+<!ENTITY md5 "2161fdff4c6903dcf4b8ed916c4396a4">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.21.18
+- Maintenance: batch storage writes and smooth folder editor rendering.
+- Fix: Fix new-folder name typing lag and docker name truncation regression.
+- Maintenance: Improve fresh-folder editor responsiveness and defer icon manager warmup.
+- Maintenance: Build release artifacts for 2026.03.21.12.
+- Fix: Fix runtime width recovery for clipped fresh-install folder names.
+- Fix: Fix fresh-install folder editor with sparse folder settings.
+
+
+###2026.03.21.17
+- Performance: Added shared frame/idle scheduling and batched localStorage writers to reduce main-thread stalls during runtime/state updates.
+- Performance: Improved folder editor responsiveness with chunked member-list rendering and worker-backed regex matching on large datasets.
+- UX: Deferred heavy built-in icon manifest loading until picker open to keep initial settings/edit load snappy.
+- Quality: Expanded performance regression tests to enforce batched storage writes and large-list folder editor safeguards.
+
 
 ###2026.03.21.16
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

@@ -2434,10 +2434,16 @@ const adjustVmRuntimeAppWidthForRenderedOverflow = (baseWidth = null) => {
             return;
         }
         const clientWidth = Math.max(0, Math.ceil(label.clientWidth || 0));
-        if (clientWidth < VM_RUNTIME_APP_OVERFLOW_CLIENT_WIDTH_MIN) {
+        if (clientWidth <= 0) {
             return;
         }
         const rawOverflow = Math.ceil((label.scrollWidth || 0) - clientWidth);
+        if (clientWidth < VM_RUNTIME_APP_OVERFLOW_CLIENT_WIDTH_MIN && rawOverflow <= 0) {
+            return;
+        }
+        if (rawOverflow <= 0) {
+            return;
+        }
         const overflow = Math.min(rawOverflow, VM_RUNTIME_APP_OVERFLOW_NUDGE_MAX);
         if (overflow > maxOverflow) {
             maxOverflow = overflow;

@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.20.14">
-<!ENTITY md5 "cd5946f2e6e080a64d2413068712ef18">
+<!ENTITY version "2026.03.21.01">
+<!ENTITY md5 "de86426fa42edffd34a1458f37c6e109">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.21.01
+- Maintenance: Harden setup wizard contrast across themes.
+
 
 ###2026.03.20.14
 - Maintenance: Update docker context action contract tests for i18n clone label.

@@ -57,6 +57,8 @@ const CUSTOM_ICON_PAGE_SIZE = 60;
 const ICON_PICKER_SEARCH_DEBOUNCE_MS = 120;
 const CUSTOM_ICON_SEARCH_DEBOUNCE_MS = 150;
 const THIRD_PARTY_ICON_SEARCH_DEBOUNCE_MS = 140;
+const EDITOR_INPUT_RECALC_DEBOUNCE_MS = 90;
+const NAME_REGEX_SYNC_DEBOUNCE_MS = 150;
 const THIRD_PARTY_RECENT_LIMIT = 36;
 const THIRD_PARTY_LONG_PRESS_PREVIEW_MS = 460;
 const THIRD_PARTY_GRID_CHUNK_SIZE = 36;
@@ -87,6 +89,9 @@ let builtInIcons = [...BUILT_IN_ICON_FALLBACK];
 let builtInIconSearchQuery = '';
 let builtInIconPage = 1;
 let builtInIconSearchTimer = null;
+let editorRecalcTimer = null;
+let nameRegexSyncTimer = null;
+let lastNameRegexSyncValue = '';
 let thirdPartyIconFolders = [];
 let thirdPartyIconIndex = [];
 let thirdPartySelectedFolder = '';
@@ -1213,6 +1218,17 @@ const refreshCustomIconManager = async () => {
         renderCustomIconList();
         setCustomIconStatus(String(error?.message || 'Failed to load custom icons.'), true);
     }
+};
+
+const scheduleInitialCustomIconManagerRefresh = () => {
+    const refresh = () => {
+        void refreshCustomIconManager();
+    };
+    if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(refresh, { timeout: 700 });
+        return;
+    }
+    setTimeout(refresh, 160);
 };
 
 const renderBuiltInIconPicker = () => {
@@ -2777,7 +2793,7 @@ const initBuiltInIconPicker = async () => {
     renderThirdPartyIconGrid();
     renderCustomIconStats();
     renderCustomIconList();
-    await refreshCustomIconManager();
+    scheduleInitialCustomIconManagerRefresh();
 };
 
 const getAllMembers = () => {
@@ -2836,6 +2852,55 @@ const updateUnsavedIndicator = () => {
 const markCleanState = () => {
     initialSnapshot = computeFormSnapshot();
     updateUnsavedIndicator();
+};
+
+const runEditorRecalculation = () => {
+    validateForm();
+    updateLiveSummary();
+    updateRegexSimulator();
+    updateUnsavedIndicator();
+};
+
+const scheduleEditorRecalculation = (delayMs = 0) => {
+    const run = () => {
+        editorRecalcTimer = null;
+        runEditorRecalculation();
+    };
+    if (editorRecalcTimer) {
+        clearTimeout(editorRecalcTimer);
+        editorRecalcTimer = null;
+    }
+    if (!Number.isFinite(Number(delayMs)) || Number(delayMs) <= 0) {
+        run();
+        return;
+    }
+    editorRecalcTimer = setTimeout(run, Number(delayMs));
+};
+
+const runNameDrivenRegexSync = () => {
+    nameRegexSyncTimer = null;
+    const form = getForm();
+    if (!form) {
+        return;
+    }
+    const nextName = String(form.name?.value || '').trim();
+    if (nextName === lastNameRegexSyncValue) {
+        return;
+    }
+    lastNameRegexSyncValue = nextName;
+    updateRegex(form.regex);
+};
+
+const scheduleNameDrivenRegexSync = (mode = 'debounced') => {
+    if (nameRegexSyncTimer) {
+        clearTimeout(nameRegexSyncTimer);
+        nameRegexSyncTimer = null;
+    }
+    if (mode === 'immediate') {
+        runNameDrivenRegexSync();
+        return;
+    }
+    nameRegexSyncTimer = setTimeout(runNameDrivenRegexSync, NAME_REGEX_SYNC_DEBOUNCE_MS);
 };
 
 const registerBeforeUnloadGuard = () => {
@@ -4161,6 +4226,7 @@ resetStatusColorDefaults();
     isFormInitialized = true;
 
     const form = getForm();
+    lastNameRegexSyncValue = String(form?.name?.value || '').trim();
     $(form).on('input change', ':input', (event) => {
         if (!isFormInitialized) {
             return;
@@ -4170,14 +4236,10 @@ resetStatusColorDefaults();
         if (!folderId && fieldName === 'parent_folder_id' && event.type === 'change') {
             void applySmartDefaultsFromParent(normalizeParentFolderId(form.parent_folder_id?.value || ''));
         }
-        if (event.target.name === 'name') {
-            updateRegex(form.regex);
+        if (fieldName === 'name') {
+            scheduleNameDrivenRegexSync(event.type === 'change' ? 'immediate' : 'debounced');
         }
-        validateForm();
-        updateLiveSummary();
-        updateRegexSimulator();
-        enforceLeftAlignedSettingsLayout();
-        updateUnsavedIndicator();
+        scheduleEditorRecalculation(event.type === 'input' ? EDITOR_INPUT_RECALC_DEBOUNCE_MS : 0);
     });
 
     window.addEventListener('resize', enforceLeftAlignedSettingsLayout);

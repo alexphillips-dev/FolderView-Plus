@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.21.12">
-<!ENTITY md5 "4215645b603c9e24bd708fd62e7fd53a">
+<!ENTITY version "2026.03.21.13">
+<!ENTITY md5 "070d37fd307fbf86ed86ce506084cd3f">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.21.13
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+
 
 ###2026.03.21.12
 - Fix: Fix runtime width recovery for clipped fresh-install folder names.

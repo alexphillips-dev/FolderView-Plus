@@ -667,6 +667,11 @@ const setupAssistantState = {
     environmentPreset: 'home_lab',
     applyEnvironmentDefaults: true,
     dryRunOnly: false,
+    focusModeEnabled: true,
+    contrastPreference: 'auto',
+    contrastTierApplied: 'normal',
+    lastContrastReport: null,
+    collapsedChipRows: {},
     context: null,
     importPlans: {
         docker: null,

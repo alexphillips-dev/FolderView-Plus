@@ -285,6 +285,9 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsRuntime, /const SETUP_ASSISTANT_ENV_PRESETS = \{/);
     assert.match(settingsRuntime, /const normalizeSetupAssistantExperienceMode = \(value\) =>/);
     assert.match(settingsRuntime, /const normalizeSetupAssistantSafetyMode = \(value\) =>/);
+    assert.match(settingsRuntime, /const normalizeSetupAssistantContrastPreference = \(value\) =>/);
+    assert.match(settingsRuntime, /const applySetupAssistantContrastTier = \(\) =>/);
+    assert.match(settingsRuntime, /const decorateSetupAssistantChipRows = \(\) =>/);
     assert.match(settingsRuntime, /const detectSetupAssistantDefaultsFromContext = \(context = null\) =>/);
     assert.match(settingsRuntime, /const openSetupAssistant = \(force = false\) =>/);
     assert.match(settingsRuntime, /const applySetupAssistantPlan = async \(\) =>/);
@@ -314,6 +317,8 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsRuntime, /id="fv-setup-preset-save"/);
     assert.match(settingsRuntime, /id="fv-setup-preset-load"/);
     assert.match(settingsRuntime, /id="fv-setup-preset-delete"/);
+    assert.match(settingsRuntime, /id="fv-setup-focus-mode"/);
+    assert.match(settingsRuntime, /id="fv-setup-contrast-mode"/);
     assert.match(settingsRuntime, /name="fv-setup-safety-mode"/);
     assert.match(settingsRuntime, /data-fv-setup-experience=/);
     assert.match(settingsRuntime, /data-fv-setup-quick-preset=/);

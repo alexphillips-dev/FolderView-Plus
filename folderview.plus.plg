@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.21.08">
-<!ENTITY md5 "2b06eaf64095913eb3e1727c7c831357">
+<!ENTITY version "2026.03.21.09">
+<!ENTITY md5 "6e420ddd983612b56a79faf408199b6b">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.21.09
+- Feature: Added wizard contrast system with explicit tiers (`normal/high/max`) plus auto contrast evaluation that selects safer tiers when needed.
+- Feature: Added wizard quick accessibility controls (Focus mode toggle + Contrast selector) and keyboard shortcuts (`Alt+F`, `Alt+C`).
+- UX: Improved active/selected affordance beyond color (shape, weight, highlight rails), added inline "how to fix" guidance, and mobile chip-row detail toggles.
+- UX: Introduced semantic wizard status color mapping (`info/success/warning/danger/neutral`) with stronger hierarchy for step/card/readability states.
+- Quality: Expanded wizard regression guards in runtime/theme smoke tests and updated theme guards for tier/selector contracts.
+
 
 ###2026.03.21.08
 - Feature: Reworked setup-wizard card theming to use explicit `data-fv-card-tone` module mapping instead of positional `nth-child` styling.

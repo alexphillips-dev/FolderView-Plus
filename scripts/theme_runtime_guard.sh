@@ -9,6 +9,7 @@ VM_CSS="${PLUGIN_DIR}/styles/vm.css"
 DASHBOARD_CSS="${PLUGIN_DIR}/styles/dashboard.css"
 SETTINGS_CSS="${PLUGIN_DIR}/styles/folderviewplus.css"
 SETTINGS_JS="${PLUGIN_DIR}/scripts/folderviewplus.js"
+WIZARD_JS="${PLUGIN_DIR}/scripts/folderviewplus.wizard.js"
 SETTINGS_PAGE="${PLUGIN_DIR}/FolderViewPlus.page"
 DOCKER_JS="${PLUGIN_DIR}/scripts/docker.js"
 VM_JS="${PLUGIN_DIR}/scripts/vm.js"
@@ -48,6 +49,7 @@ require_file "${VM_CSS}"
 require_file "${DASHBOARD_CSS}"
 require_file "${SETTINGS_CSS}"
 require_file "${SETTINGS_JS}"
+require_file "${WIZARD_JS}"
 require_file "${SETTINGS_PAGE}"
 require_file "${DOCKER_JS}"
 require_file "${VM_JS}"
@@ -75,12 +77,18 @@ require_contains "${SETTINGS_CSS}" '\.fv-setup-card\[data-fv-card-tone="env"\]' 
 require_contains "${SETTINGS_CSS}" '\.fv-setup-card\[data-fv-card-tone="mode"\]' 'wizard card tone selector (mode)'
 require_contains "${SETTINGS_CSS}" '\.fv-setup-card\[data-fv-card-tone="bundle"\]' 'wizard card tone selector (bundle)'
 require_contains "${SETTINGS_CSS}" '\.fv-setup-card\[data-fv-card-tone="preset"\]' 'wizard card tone selector (preset)'
+require_contains "${SETTINGS_CSS}" '#fv-setup-assistant-dialog\[data-fv-wizard-contrast-tier="high"\]' 'wizard high contrast tier selector'
+require_contains "${SETTINGS_CSS}" '#fv-setup-assistant-dialog\[data-fv-wizard-contrast-tier="max"\]' 'wizard max contrast tier selector'
 require_absent "${SETTINGS_CSS}" '\.fv-setup-step-grid > \.fv-setup-card:nth-child' 'wizard should not use positional tone mapping'
 require_absent "${SETTINGS_CSS}" '--fv-wizard-text-primary:[[:space:]]*var\(--text' 'wizard text token must not follow host text token directly'
 require_absent "${SETTINGS_CSS}" '--fv-wizard-text-primary:[[:space:]]*var\(--fvplus-settings-text-primary\)' 'wizard text token must not follow settings token directly'
 require_contains "${SETTINGS_JS}" 'const buildResolvedThemeSnapshot = \(modeInput = null\) =>' 'theme resolver snapshot helper'
 require_contains "${SETTINGS_JS}" 'const applyResolvedThemeTokens = \(reason = '\''runtime'\''\) =>' 'theme resolver apply helper'
 require_contains "${SETTINGS_JS}" 'const runThemeSelfHeal = async \(\) =>' 'theme self-heal action'
+require_contains "${WIZARD_JS}" 'const normalizeSetupAssistantContrastPreference = \(value\) =>' 'wizard contrast preference normalizer'
+require_contains "${WIZARD_JS}" 'const applySetupAssistantContrastTier = \(\) =>' 'wizard contrast apply helper'
+require_contains "${WIZARD_JS}" 'id="fv-setup-focus-mode"' 'wizard focus mode control'
+require_contains "${WIZARD_JS}" 'id="fv-setup-contrast-mode"' 'wizard contrast mode control'
 require_contains "${SETTINGS_PAGE}" 'runThemeSelfHeal\(\)' 'theme self-heal button wiring'
 
 require_absent "${DOCKER_JS}" '\.css\(\s*["'"'"']color["'"'"']\s*,\s*statusColors' 'docker inline status color painting'

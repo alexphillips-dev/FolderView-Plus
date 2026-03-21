@@ -47,6 +47,10 @@ test('theme compatibility: setup wizard enforces theme-safe dark contrast tokens
     assert.match(wizardTokenBlock, /--fv-wizard-accent-amber-rgb:\s*255,\s*170,\s*94/);
     assert.match(wizardTokenBlock, /--fv-wizard-accent-green-rgb:\s*147,\s*225,\s*159/);
     assert.match(wizardTokenBlock, /--fv-wizard-accent-cyan-rgb:\s*92,\s*213,\s*255/);
+    assert.match(wizardTokenBlock, /--fv-wizard-color-info-rgb:\s*77,\s*163,\s*255/);
+    assert.match(wizardTokenBlock, /--fv-wizard-color-success-rgb:\s*147,\s*225,\s*159/);
+    assert.match(wizardTokenBlock, /--fv-wizard-color-warning-rgb:\s*255,\s*193,\s*94/);
+    assert.match(wizardTokenBlock, /--fv-wizard-color-danger-rgb:\s*255,\s*116,\s*116/);
     assert.doesNotMatch(wizardTokenBlock, /--fv-wizard-text-primary:\s*var\(--fvplus-settings-text-primary\)/);
     assert.doesNotMatch(wizardTokenBlock, /--fv-wizard-text-primary:\s*var\(--text/);
     assert.match(
@@ -58,6 +62,11 @@ test('theme compatibility: setup wizard enforces theme-safe dark contrast tokens
     assert.match(settingsCss, /\.fv-setup-card\[data-fv-card-tone="mode"\]\s*\{/);
     assert.match(settingsCss, /\.fv-setup-card\[data-fv-card-tone="bundle"\]\s*\{/);
     assert.match(settingsCss, /\.fv-setup-card\[data-fv-card-tone="preset"\]\s*\{/);
+    assert.match(settingsCss, /\.fv-setup-card\[data-fv-card-tone="import-docker"\]\s*\{/);
+    assert.match(settingsCss, /\.fv-setup-card\[data-fv-card-tone="import-vm"\]\s*\{/);
+    assert.match(settingsCss, /\.fv-setup-card\[data-fv-card-tone="review"\]\s*\{/);
+    assert.match(settingsCss, /#fv-setup-assistant-dialog\[data-fv-wizard-contrast-tier="high"\]\s*\{/);
+    assert.match(settingsCss, /#fv-setup-assistant-dialog\[data-fv-wizard-contrast-tier="max"\]\s*\{/);
     assert.doesNotMatch(settingsCss, /\.fv-setup-step-grid > \.fv-setup-card:nth-child/);
     assert.ok(wizardCardBlock, 'Wizard card block should exist in settings CSS.');
     assert.ok(wizardCardToplineBlock, 'Wizard card top-line block should exist in settings CSS.');

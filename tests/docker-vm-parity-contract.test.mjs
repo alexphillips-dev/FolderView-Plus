@@ -58,6 +58,16 @@ const parityContracts = [
         vm: /const vmContextQuickStripAdapter =/
     },
     {
+        name: 'runtime overflow width adjust helper',
+        docker: /const adjustDockerRuntimeAppWidthForRenderedOverflow = \(baseWidth = null\) =>/,
+        vm: /const adjustVmRuntimeAppWidthForRenderedOverflow = \(baseWidth = null\) =>/
+    },
+    {
+        name: 'runtime width reflow scheduler',
+        docker: /const scheduleDockerRuntimeWidthReflow = \(reason = 'event', delayMs = DOCKER_RUNTIME_WIDTH_REFLOW_DEBOUNCE_MS\) =>/,
+        vm: /const scheduleVmRuntimeWidthReflow = \(reason = 'event', delayMs = VM_RUNTIME_WIDTH_REFLOW_DEBOUNCE_MS\) =>/
+    },
+    {
         name: 'context menu contains Branch actions',
         docker: /text:\s*'Branch actions'/,
         vm: /text:\s*'Branch actions'/
@@ -81,4 +91,3 @@ test('docker/vm css parity contracts include quick-state visuals and quick-strip
     assert.match(dockerCss, /\.fvplus-docker-context-menu > li\.fvplus-docker-quick-item/);
     assert.match(vmCss, /\.fvplus-vm-context-menu > li\.fvplus-vm-quick-item/);
 });
-

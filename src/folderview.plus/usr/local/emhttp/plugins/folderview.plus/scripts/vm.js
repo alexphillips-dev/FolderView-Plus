@@ -219,8 +219,11 @@ const syncVmRuntimeExpandedStore = () => {
 const runtimeColumnLayout = window.FolderViewPlusRuntimeColumnLayout || null;
 const VM_RUNTIME_APP_WIDTH_MIN = 160;
 const VM_RUNTIME_APP_WIDTH_MAX = 920;
-const VM_RUNTIME_APP_CHROME_WIDTH = 66;
-const VM_RUNTIME_APP_TEXT_BUFFER = 10;
+const VM_RUNTIME_APP_CHROME_WIDTH = 122;
+const VM_RUNTIME_APP_TEXT_BUFFER = 12;
+const VM_RUNTIME_APP_OVERFLOW_CLIENT_WIDTH_MIN = 28;
+const VM_RUNTIME_APP_OVERFLOW_NUDGE_MAX = 56;
+const VM_RUNTIME_WIDTH_REFLOW_DEBOUNCE_MS = 72;
 const VM_RUNTIME_APP_PRESET_WIDTHS = Object.freeze({
     compact: 190,
     standard: 220,
@@ -241,6 +244,8 @@ let vmRuntimeViewportBound = false;
 let vmRuntimeThemeReflowBound = false;
 let vmRuntimeThemeReflowObserver = null;
 let vmRuntimeThemeReflowTimer = null;
+let vmRuntimeWidthReflowTimer = null;
+let vmRuntimeLastWidthReflowReason = 'init';
 const VM_DEBUG_MODE = false;
 const vmDebugLog = (...args) => {
     if (VM_DEBUG_MODE) {
@@ -609,7 +614,7 @@ const toggleVmFolderFocus = (folderId) => {
     vmRuntimeStateStore.set({ focusedFolderId: nextFocus });
     vmFocusedFolderId = nextFocus;
     applyVmFocusedFolderState();
-    applyVmRuntimeAppWidthVariables(estimateVmRuntimeAutoAppWidth());
+    scheduleVmRuntimeWidthReflow('focus-toggle', 24);
 };
 const toggleVmFolderLock = (folderId) => {
     const id = String(folderId || '').trim();
@@ -1096,7 +1101,7 @@ const createFolders = async () => {
     syncVmRuntimeExpandedStore();
     persistVmExpandedStateFromGlobal();
     renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
-    applyVmRuntimeAppWidthVariables(estimateVmRuntimeAutoAppWidth());
+    scheduleVmRuntimeWidthReflow('create-folders', 0);
 
     folderDebugMode  = false;
     } finally {
@@ -1559,6 +1564,7 @@ const dropDownButton = (id, persistState = true) => {
     if (persistState) {
         persistVmExpandedStateFromGlobal();
     }
+    scheduleVmRuntimeWidthReflow('folder-expand-toggle', 32);
     folderEvents.dispatchEvent(new CustomEvent('vm-post-folder-expansion', {detail: { id }}));
 };
 
@@ -2409,6 +2415,63 @@ const estimateVmRuntimeAutoAppWidth = () => {
     return baseline;
 };
 
+const adjustVmRuntimeAppWidthForRenderedOverflow = (baseWidth = null) => {
+    const fallback = getVmRuntimePresetAppWidth() || VM_RUNTIME_APP_PRESET_WIDTHS.standard;
+    const startingWidth = Number.isFinite(Number(baseWidth))
+        ? Math.max(VM_RUNTIME_APP_WIDTH_MIN, Math.min(VM_RUNTIME_APP_WIDTH_MAX, Math.round(Number(baseWidth))))
+        : fallback;
+    const rows = Array.from(document.querySelectorAll('tbody#kvm_list tr.folder, tbody#kvm_view tr.folder'));
+    if (!rows.length) {
+        return startingWidth;
+    }
+    let maxOverflow = 0;
+    rows.forEach((row) => {
+        if (!row || row.offsetParent === null || row.classList.contains('fv-nested-hidden') || row.classList.contains('fv-folder-focus-hidden')) {
+            return;
+        }
+        const label = row.querySelector('.folder-appname');
+        if (!label) {
+            return;
+        }
+        const clientWidth = Math.max(0, Math.ceil(label.clientWidth || 0));
+        if (clientWidth < VM_RUNTIME_APP_OVERFLOW_CLIENT_WIDTH_MIN) {
+            return;
+        }
+        const rawOverflow = Math.ceil((label.scrollWidth || 0) - clientWidth);
+        const overflow = Math.min(rawOverflow, VM_RUNTIME_APP_OVERFLOW_NUDGE_MAX);
+        if (overflow > maxOverflow) {
+            maxOverflow = overflow;
+        }
+    });
+    if (maxOverflow <= 0) {
+        return startingWidth;
+    }
+    return Math.max(
+        VM_RUNTIME_APP_WIDTH_MIN,
+        Math.min(VM_RUNTIME_APP_WIDTH_MAX, startingWidth + maxOverflow + VM_RUNTIME_APP_TEXT_BUFFER)
+    );
+};
+
+const runVmRuntimeWidthReflow = (reason = 'direct') => {
+    vmRuntimeLastWidthReflowReason = String(reason || 'direct');
+    const estimatedWidth = estimateVmRuntimeAutoAppWidth();
+    const overflowAdjustedWidth = adjustVmRuntimeAppWidthForRenderedOverflow(estimatedWidth);
+    applyVmRuntimeAppWidthVariables(overflowAdjustedWidth || estimatedWidth);
+    return overflowAdjustedWidth || estimatedWidth;
+};
+
+const scheduleVmRuntimeWidthReflow = (reason = 'event', delayMs = VM_RUNTIME_WIDTH_REFLOW_DEBOUNCE_MS) => {
+    const safeReason = String(reason || 'event');
+    const safeDelay = Number.isFinite(Number(delayMs)) ? Math.max(0, Number(delayMs)) : VM_RUNTIME_WIDTH_REFLOW_DEBOUNCE_MS;
+    if (vmRuntimeWidthReflowTimer !== null) {
+        window.clearTimeout(vmRuntimeWidthReflowTimer);
+    }
+    vmRuntimeWidthReflowTimer = window.setTimeout(() => {
+        vmRuntimeWidthReflowTimer = null;
+        runVmRuntimeWidthReflow(safeReason);
+    }, safeDelay);
+};
+
 const applyVmRuntimeAppWidthVariables = (desktopWidthPx = null) => {
     if (vmRuntimeColumnLayoutEngine && typeof vmRuntimeColumnLayoutEngine.applyCssWidthVars === 'function') {
         vmRuntimeColumnLayoutEngine.applyCssWidthVars(desktopWidthPx);
@@ -2434,7 +2497,7 @@ const bindVmRuntimeViewportWidthSync = () => {
     }
     vmRuntimeViewportBound = true;
     const reapply = () => {
-        applyVmRuntimeAppWidthVariables(estimateVmRuntimeAutoAppWidth());
+        scheduleVmRuntimeWidthReflow('viewport-resize', 48);
     };
     window.addEventListener('resize', reapply, { passive: true });
     window.addEventListener('orientationchange', reapply, { passive: true });
@@ -2448,7 +2511,7 @@ const queueVmRuntimeThemeReflow = (reason = 'theme-change') => {
     vmRuntimeThemeReflowTimer = window.setTimeout(() => {
         vmRuntimeThemeReflowTimer = null;
         vmDebugLog(`theme-reflow:${nextReason}`);
-        applyVmRuntimeAppWidthVariables(estimateVmRuntimeAutoAppWidth());
+        scheduleVmRuntimeWidthReflow(`theme-change:${nextReason}`, 40);
     }, 40);
 };
 
@@ -2504,7 +2567,7 @@ const applyRuntimePrefs = (prefs) => {
     }
     bindVmRuntimeViewportWidthSync();
     bindVmRuntimeThemeReflow();
-    applyVmRuntimeAppWidthVariables(estimateVmRuntimeAutoAppWidth());
+    scheduleVmRuntimeWidthReflow('runtime-prefs', 0);
     $('body').toggleClass('fvplus-performance-mode', normalized.performanceMode === true);
     $('body').toggleClass('fvplus-performance-mode-strict', vmRuntimePerformanceProfile?.strict === true);
     scheduleLiveRefresh(normalized);

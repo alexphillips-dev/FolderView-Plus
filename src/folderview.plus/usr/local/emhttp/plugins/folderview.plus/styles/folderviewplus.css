@@ -3784,7 +3784,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
     width: min(1180px, calc(100vw - 2rem));
     height: min(82vh, 810px);
     z-index: 5201;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(157, 183, 217, 0.34);
     border-radius: 12px;
     background: rgba(8, 12, 18, 0.985);
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
@@ -3799,6 +3799,17 @@ body.fv-mobile-compact .fv-setup-field-grid {
     --fv-wizard-font-108: 1.08rem;
     --fv-wizard-font-115: 1.15rem;
     --fv-wizard-font-118: 1.18rem;
+    --fv-wizard-surface-page: rgba(8, 12, 18, 0.985);
+    --fv-wizard-surface-panel: rgba(17, 25, 37, 0.74);
+    --fv-wizard-surface-card: rgba(17, 27, 42, 0.72);
+    --fv-wizard-surface-card-strong: rgba(20, 32, 48, 0.84);
+    --fv-wizard-border-subtle: rgba(157, 183, 217, 0.24);
+    --fv-wizard-border-strong: rgba(157, 183, 217, 0.34);
+    --fv-wizard-accent-blue-rgb: 77, 163, 255;
+    --fv-wizard-accent-amber-rgb: 255, 170, 94;
+    --fv-wizard-accent-green-rgb: 147, 225, 159;
+    --fv-wizard-accent-cyan-rgb: 92, 213, 255;
+    --fv-wizard-card-shadow: 0 10px 22px rgba(0, 0, 0, 0.24);
 }
 
 .fv-setup-assistant-shell button {
@@ -3868,9 +3879,9 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-setup-assistant-sidebar {
-    border-right: 1px solid rgba(255, 255, 255, 0.12);
+    border-right: 1px solid var(--fv-wizard-border-subtle);
     padding: 0.65rem 0.62rem;
-    background: rgba(255, 255, 255, 0.03);
+    background: linear-gradient(180deg, rgba(17, 25, 37, 0.88) 0%, rgba(11, 18, 28, 0.86) 100%);
     overflow-y: auto;
 }
 
@@ -3889,9 +3900,9 @@ body.fv-mobile-compact .fv-setup-field-grid {
 
 .fv-setup-sidebar-summary {
     margin-top: 0.45rem;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--fv-wizard-border-subtle);
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--fv-wizard-surface-panel);
     padding: 0.32rem 0.36rem;
     display: grid;
     gap: 0.28rem;
@@ -3909,9 +3920,9 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-setup-sidebar-stats > div {
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--fv-wizard-border-subtle);
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--fv-wizard-surface-card);
     padding: 0.2rem 0.24rem;
     display: grid;
     gap: 0.1rem;
@@ -3940,7 +3951,8 @@ body.fv-mobile-compact .fv-setup-field-grid {
 .fv-setup-step-list li {
     padding: 0;
     border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--fv-wizard-border-subtle);
+    background: rgba(11, 17, 27, 0.74);
     font-size: var(--fv-wizard-font-103);
     color: var(--fv-wizard-text-primary);
     opacity: 0.92;
@@ -3973,14 +3985,17 @@ body.fv-mobile-compact .fv-setup-field-grid {
 
 .fv-setup-step-list li.is-complete {
     border-color: rgba(147, 225, 159, 0.4);
+    background: rgba(147, 225, 159, 0.1);
 }
 
 .fv-setup-step-list li.status-blocked {
     border-color: rgba(255, 116, 116, 0.45);
+    background: rgba(255, 116, 116, 0.08);
 }
 
 .fv-setup-step-list li.status-warn {
     border-color: rgba(255, 193, 94, 0.45);
+    background: rgba(255, 193, 94, 0.08);
 }
 
 .fv-setup-step-index {
@@ -4050,8 +4065,9 @@ body.fv-mobile-compact .fv-setup-field-grid {
     align-items: center;
     justify-content: space-between;
     gap: 0.55rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--fv-wizard-border-subtle);
     padding: 0.7rem 0.8rem;
+    background: linear-gradient(180deg, rgba(17, 25, 37, 0.84) 0%, rgba(12, 20, 32, 0.78) 100%);
 }
 
 .fv-setup-assistant-head h4 {
@@ -4065,10 +4081,11 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-setup-step-delta {
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid var(--fv-wizard-border-subtle);
     padding: 0.45rem 0.8rem 0.38rem 0.8rem;
     display: grid;
     gap: 0.25rem;
+    background: rgba(10, 16, 25, 0.88);
 }
 
 .fv-setup-step-grid {
@@ -4078,13 +4095,54 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-setup-card {
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-blue-rgb);
+    border: 1px solid rgba(var(--fv-wizard-card-accent-rgb), 0.34);
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.02);
+    background: linear-gradient(
+        180deg,
+        rgba(var(--fv-wizard-card-accent-rgb), 0.14) 0%,
+        var(--fv-wizard-surface-card) 20%,
+        rgba(10, 16, 25, 0.9) 100%
+    );
     padding: 0.6rem 0.65rem;
     display: grid;
     gap: 0.5rem;
     min-width: 0;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--fv-wizard-card-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.fv-setup-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(
+        90deg,
+        rgba(var(--fv-wizard-card-accent-rgb), 0.92) 0%,
+        rgba(var(--fv-wizard-card-accent-rgb), 0.34) 70%,
+        transparent 100%
+    );
+    pointer-events: none;
+}
+
+.fv-setup-step-grid > .fv-setup-card:nth-child(4n + 1) {
+    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-blue-rgb);
+}
+
+.fv-setup-step-grid > .fv-setup-card:nth-child(4n + 2) {
+    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-amber-rgb);
+}
+
+.fv-setup-step-grid > .fv-setup-card:nth-child(4n + 3) {
+    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-green-rgb);
+}
+
+.fv-setup-step-grid > .fv-setup-card:nth-child(4n + 4) {
+    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-cyan-rgb);
 }
 
 .fv-setup-card h4 {
@@ -4110,11 +4168,11 @@ body.fv-mobile-compact .fv-setup-field-grid {
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    border: 1px solid var(--fv-wizard-border-subtle);
     border-radius: 999px;
     padding: 0.14rem 0.45rem;
     font-size: var(--fv-wizard-font-103);
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(14, 23, 35, 0.7);
 }
 
 .fv-setup-detected-row {
@@ -4162,9 +4220,9 @@ body.fv-mobile-compact .fv-setup-field-grid {
 .fv-setup-quick-preset {
     min-width: 0;
     width: 100%;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--fv-wizard-border-subtle);
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.03);
+    background: linear-gradient(180deg, rgba(16, 26, 40, 0.74) 0%, rgba(10, 17, 26, 0.82) 100%);
     color: inherit;
     display: grid;
     gap: 0.18rem;
@@ -4205,21 +4263,23 @@ body.fv-mobile-compact .fv-setup-field-grid {
 
 .fv-setup-route-option,
 .fv-setup-profile-option {
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--fv-wizard-border-subtle);
     border-radius: 8px;
     padding: 0.4rem 0.45rem;
     display: grid;
     gap: 0.28rem;
     cursor: pointer;
+    background: var(--fv-wizard-surface-panel);
 }
 
 .fv-setup-env-option {
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--fv-wizard-border-subtle);
     border-radius: 8px;
     padding: 0.4rem 0.45rem;
     display: grid;
     gap: 0.28rem;
     cursor: pointer;
+    background: var(--fv-wizard-surface-panel);
 }
 
 .fv-setup-route-option.is-active,
@@ -4270,15 +4330,17 @@ body.fv-mobile-compact .fv-setup-field-grid {
 
 .fv-setup-mode-toggle {
     display: inline-flex;
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    border: 1px solid var(--fv-wizard-border-subtle);
     border-radius: 8px;
     overflow: hidden;
+    background: rgba(12, 20, 31, 0.84);
 }
 
 .fv-setup-mode-toggle button {
     min-width: 110px;
     border: 0;
-    border-right: 1px solid rgba(255, 255, 255, 0.18);
+    border-right: 1px solid var(--fv-wizard-border-subtle);
+    background: transparent;
 }
 
 .fv-setup-mode-toggle button:last-child {
@@ -4334,9 +4396,9 @@ body.fv-mobile-compact .fv-setup-field-grid {
 .fv-setup-safety-grid {
     display: grid;
     gap: 0.3rem;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--fv-wizard-border-subtle);
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--fv-wizard-surface-panel);
     padding: 0.4rem 0.45rem;
 }
 
@@ -4375,9 +4437,10 @@ body.fv-mobile-compact .fv-setup-field-grid {
     grid-template-columns: 20px minmax(0, 1fr);
     gap: 0.35rem;
     align-items: start;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--fv-wizard-border-subtle);
     border-radius: 8px;
     padding: 0.34rem 0.4rem;
+    background: rgba(13, 20, 31, 0.72);
 }
 
 .fv-setup-rule-main,
@@ -4424,9 +4487,9 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-setup-impact-card {
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--fv-wizard-border-subtle);
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--fv-wizard-surface-card-strong);
     padding: 0.42rem 0.48rem;
     display: grid;
     gap: 0.28rem;
@@ -4453,9 +4516,9 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-setup-validation-box {
-    border: 1px solid rgba(255, 255, 255, 0.16);
+    border: 1px solid var(--fv-wizard-border-strong);
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--fv-wizard-surface-panel);
     padding: 0.42rem 0.48rem;
     font-size: var(--fv-wizard-font-103);
     display: grid;
@@ -4519,21 +4582,23 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-setup-assistant-foot {
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    border-top: 1px solid var(--fv-wizard-border-subtle);
     padding: 0.58rem 0.8rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 0.45rem;
+    background: rgba(10, 16, 25, 0.88);
 }
 
 .fv-setup-nav-note {
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    border-top: 1px solid var(--fv-wizard-border-subtle);
     padding: 0.34rem 0.8rem 0.4rem 0.8rem;
     font-size: var(--fv-wizard-font-103);
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
+    background: rgba(10, 16, 25, 0.88);
 }
 
 .fv-setup-foot-left,
@@ -4545,8 +4610,9 @@ body.fv-mobile-compact .fv-setup-field-grid {
 
 .fv-setup-progress {
     display: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    border-top: 1px solid var(--fv-wizard-border-subtle);
     padding: 0.45rem 0.8rem 0.52rem 0.8rem;
+    background: rgba(10, 16, 25, 0.88);
 }
 
 .fv-setup-progress.is-visible {

@@ -6,12 +6,30 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.21.04">
-<!ENTITY md5 "b6733917dbe8956fe54e1e88c8a785c7">
+<!ENTITY version "2026.03.21.07">
+<!ENTITY md5 "1c1b3ec507597d78f3bd54d63f3b0ab8">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.21.07
+- UX: Introduced multi-tone setup-wizard module styling so Environment/Mode/Bundle/Preset cards are visually distinct at a glance.
+- Fix: Increased contrast boundaries for wizard sidebar/header/footer and step panels to stop sections blending together.
+- Quality: Added regression checks for wizard accent token palette and per-card tone selector wiring.
+
+
+###2026.03.21.06
+- UX: Added stronger wizard module separation with tinted card surfaces, accent rails, and clearer sidebar/header panel boundaries.
+- Fix: Improved setup-assistant readability so sections no longer blend together under dark and light host themes.
+- Quality: Added regression coverage for wizard accent palette tokens and multi-card tone selectors.
+
+
+###2026.03.21.05
+- UX: Added stronger wizard module separation with tinted card surfaces, accent rails, and clearer sidebar/header panel boundaries.
+- Fix: Improved setup-assistant readability so sections no longer blend together under dark and light host themes.
+- Quality: Added regression coverage for wizard accent palette tokens and multi-card tone selectors.
+
 
 ###2026.03.21.04
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

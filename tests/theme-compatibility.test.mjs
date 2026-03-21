@@ -41,12 +41,20 @@ test('theme compatibility: setup wizard enforces theme-safe dark contrast tokens
     assert.match(wizardTokenBlock, /--fv-wizard-text-primary:\s*#e7eef9/);
     assert.match(wizardTokenBlock, /--fv-wizard-text-muted:\s*#c5d4e8/);
     assert.match(wizardTokenBlock, /--fv-wizard-text-dim:\s*#a7bad1/);
+    assert.match(wizardTokenBlock, /--fv-wizard-accent-blue-rgb:\s*77,\s*163,\s*255/);
+    assert.match(wizardTokenBlock, /--fv-wizard-accent-amber-rgb:\s*255,\s*170,\s*94/);
+    assert.match(wizardTokenBlock, /--fv-wizard-accent-green-rgb:\s*147,\s*225,\s*159/);
+    assert.match(wizardTokenBlock, /--fv-wizard-accent-cyan-rgb:\s*92,\s*213,\s*255/);
     assert.doesNotMatch(wizardTokenBlock, /--fv-wizard-text-primary:\s*var\(--fvplus-settings-text-primary\)/);
     assert.doesNotMatch(wizardTokenBlock, /--fv-wizard-text-primary:\s*var\(--text/);
     assert.match(
         settingsCss,
         /#fv-setup-assistant-dialog\s+\.fv-setup-assistant-shell button,\s*\n#fv-setup-assistant-dialog\s+\.fv-setup-assistant-shell \.btn\s*\{[\s\S]*color:\s*var\(--fv-wizard-text-primary\)/
     );
+    assert.match(settingsCss, /\.fv-setup-card::before\s*\{/);
+    assert.match(settingsCss, /\.fv-setup-step-grid > \.fv-setup-card:nth-child\(4n \+ 2\)\s*\{/);
+    assert.match(settingsCss, /\.fv-setup-step-grid > \.fv-setup-card:nth-child\(4n \+ 3\)\s*\{/);
+    assert.match(settingsCss, /\.fv-setup-step-grid > \.fv-setup-card:nth-child\(4n \+ 4\)\s*\{/);
 });
 
 test('theme compatibility: semantic settings tokens use resolver-first fallback chain', () => {

@@ -48,9 +48,17 @@ const settingsJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
 );
+const folderEditorJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js'
+);
 const settingsImportJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js'
+);
+const utilsJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils.js'
 );
 const settingsPagePath = path.join(
     repoRoot,
@@ -68,6 +76,8 @@ const dockerCss = fs.readFileSync(dockerCssPath, 'utf8');
 const vmCss = fs.readFileSync(vmCssPath, 'utf8');
 const dockerModulesJs = fs.readFileSync(dockerModulesPath, 'utf8');
 const settingsJs = fs.readFileSync(settingsJsPath, 'utf8');
+const folderEditorJs = fs.readFileSync(folderEditorJsPath, 'utf8');
+const utilsJs = fs.readFileSync(utilsJsPath, 'utf8');
 const settingsImportJs = fs.readFileSync(settingsImportJsPath, 'utf8');
 const settingsRuntime = `${settingsJs}\n${settingsImportJs}`;
 const settingsPage = fs.readFileSync(settingsPagePath, 'utf8');
@@ -205,6 +215,8 @@ test('docker runtime app column auto-sizes based on folder names and rebinds aft
     assert.match(dockerJs, /const applyDockerRuntimeGapContract = \(widthPx, metrics = null\) =>/);
     assert.match(dockerJs, /label\.scrollWidth/);
     assert.match(dockerJs, /label\.clientWidth/);
+    assert.match(dockerJs, /if \(clientWidth <= 0\) \{\s*return;\s*\}/);
+    assert.match(dockerJs, /if \(clientWidth < DOCKER_RUNTIME_APP_OVERFLOW_CLIENT_WIDTH_MIN && rawOverflow <= 0\) \{\s*return;\s*\}/);
     assert.match(dockerJs, /Math\.min\(rawOverflow, DOCKER_RUNTIME_APP_OVERFLOW_NUDGE_MAX\)/);
     assert.match(dockerJs, /const floorLimit = clampDockerRuntimeColumnWidth\(\s*estimatedAppWidth \+ DOCKER_RUNTIME_APP_WIDTH_FLOOR_HEADROOM,\s*1\s*\) \|\| estimatedAppWidth;/);
     assert.match(dockerJs, /boundedFloor = Math\.min\(dockerRuntimeAutoAppWidthFloor, floorLimit\)/);
@@ -223,10 +235,34 @@ test('docker runtime app column auto-sizes based on folder names and rebinds aft
     assert.match(dockerJs, /scheduleDockerRuntimeWidthReflow\('prefs-change', 0\)/);
 });
 
+test('vm runtime tiny-width overflow guard can still recover clipped folder names', () => {
+    assert.match(vmJs, /if \(clientWidth <= 0\) \{\s*return;\s*\}/);
+    assert.match(vmJs, /if \(clientWidth < VM_RUNTIME_APP_OVERFLOW_CLIENT_WIDTH_MIN && rawOverflow <= 0\) \{\s*return;\s*\}/);
+    assert.match(vmJs, /Math\.min\(rawOverflow, VM_RUNTIME_APP_OVERFLOW_NUDGE_MAX\)/);
+});
+
 test('import apply uses chunked execution and performance diagnostics panel exists', () => {
     assert.match(settingsRuntime, /IMPORT_APPLY_CHUNK_SIZE/);
     assert.match(settingsRuntime, /runImportChunked/);
     assert.match(settingsRuntime, /performanceDiagnosticsState/);
     assert.match(settingsRuntime, /renderPerformanceDiagnostics/);
     assert.match(settingsPage, /performance-diagnostics-output/);
+});
+
+test('settings/runtime scripts use batched localStorage writes', () => {
+    assert.match(utilsJs, /const createBatchedStorageWriter = \(storageRef = null,\s*options = \{\}\) =>/);
+    assert.match(dockerJs, /const dockerStorageWriter = typeof utils\.createBatchedStorageWriter === 'function'/);
+    assert.match(vmJs, /const vmStorageWriter = typeof utils\.createBatchedStorageWriter === 'function'/);
+    assert.match(dashboardJs, /const dashboardStorageWriter = typeof utils\.createBatchedStorageWriter === 'function'/);
+    assert.match(settingsJs, /const settingsStorageWriter = utils && typeof utils\.createBatchedStorageWriter === 'function'/);
+});
+
+test('folder editor avoids synchronous large-list stalls via chunking and worker-backed regex matching', () => {
+    assert.match(folderEditorJs, /const MEMBER_LIST_RENDER_CHUNK_SIZE = \d+;/);
+    assert.match(folderEditorJs, /const REGEX_WORKER_MIN_ITEMS = \d+;/);
+    assert.match(folderEditorJs, /const getRegexWorker = \(\) =>/);
+    assert.match(folderEditorJs, /const runRegexMatch = async \(pattern,\s*names\) =>/);
+    assert.match(folderEditorJs, /const mergeMembersByName = \(baseMembers,\s*candidateMembers\) =>/);
+    assert.match(folderEditorJs, /if \(rows\.length <= MEMBER_LIST_RENDER_CHUNK_SIZE\) \{/);
+    assert.match(folderEditorJs, /scheduleAnimationFrameTask\(appendChunk\)/);
 });

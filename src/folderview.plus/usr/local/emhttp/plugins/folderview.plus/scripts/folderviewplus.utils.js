@@ -84,6 +84,207 @@
         return target;
     };
 
+    const createFrameScheduler = () => {
+        const queued = new Map();
+        let rafId = null;
+
+        const flush = (timestamp = 0) => {
+            rafId = null;
+            const tasks = Array.from(queued.values());
+            queued.clear();
+            for (const task of tasks) {
+                try {
+                    task(timestamp);
+                } catch (error) {
+                    console.error('folderview.plus: frame scheduler task failed', error);
+                }
+            }
+        };
+
+        const ensureFlushScheduled = () => {
+            if (rafId !== null) {
+                return;
+            }
+            if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+                rafId = window.requestAnimationFrame(flush);
+                return;
+            }
+            rafId = setTimeout(() => flush(Date.now()), 16);
+        };
+
+        return {
+            schedule: (key, callback) => {
+                if (typeof callback !== 'function') {
+                    return;
+                }
+                const safeKey = String(key || 'default');
+                queued.set(safeKey, callback);
+                ensureFlushScheduled();
+            },
+            cancel: (key) => {
+                const safeKey = String(key || 'default');
+                queued.delete(safeKey);
+                if (queued.size === 0 && rafId !== null) {
+                    if (typeof window !== 'undefined' && typeof window.cancelAnimationFrame === 'function') {
+                        window.cancelAnimationFrame(rafId);
+                    } else {
+                        clearTimeout(rafId);
+                    }
+                    rafId = null;
+                }
+            },
+            flushNow: () => flush(Date.now())
+        };
+    };
+
+    const createIdleTaskQueue = (options = {}) => {
+        const timeout = Math.max(50, Number(options.timeout) || 700);
+        const fallbackDelay = Math.max(8, Number(options.fallbackDelay) || 24);
+        const tasks = [];
+        let scheduled = false;
+
+        const run = (deadline = null) => {
+            scheduled = false;
+            while (tasks.length > 0) {
+                if (deadline && typeof deadline.timeRemaining === 'function' && deadline.timeRemaining() <= 1) {
+                    break;
+                }
+                const task = tasks.shift();
+                if (typeof task !== 'function') {
+                    continue;
+                }
+                try {
+                    task();
+                } catch (error) {
+                    console.error('folderview.plus: idle task failed', error);
+                }
+            }
+            if (tasks.length > 0) {
+                schedule();
+            }
+        };
+
+        const schedule = () => {
+            if (scheduled) {
+                return;
+            }
+            scheduled = true;
+            if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
+                window.requestIdleCallback(run, { timeout });
+                return;
+            }
+            setTimeout(() => run(null), fallbackDelay);
+        };
+
+        return {
+            enqueue: (task) => {
+                if (typeof task !== 'function') {
+                    return;
+                }
+                tasks.push(task);
+                schedule();
+            },
+            clear: () => {
+                tasks.length = 0;
+            },
+            size: () => tasks.length
+        };
+    };
+
+    const createBatchedStorageWriter = (storageRef = null, options = {}) => {
+        const getStorage = () => {
+            if (storageRef) {
+                return storageRef;
+            }
+            if (typeof window !== 'undefined' && window.localStorage) {
+                return window.localStorage;
+            }
+            return null;
+        };
+        const defaultDelayMs = Math.max(0, Number(options.defaultDelayMs) || 80);
+        const idleQueue = createIdleTaskQueue({
+            timeout: Math.max(80, Number(options.idleTimeoutMs) || 900),
+            fallbackDelay: Math.max(8, Number(options.idleFallbackDelayMs) || 32)
+        });
+        const pendingByKey = new Map();
+
+        const commit = (key) => {
+            const safeKey = String(key || '').trim();
+            if (!safeKey || !pendingByKey.has(safeKey)) {
+                return;
+            }
+            const entry = pendingByKey.get(safeKey);
+            pendingByKey.delete(safeKey);
+            const storage = getStorage();
+            if (!storage) {
+                return;
+            }
+            try {
+                if (entry.remove === true) {
+                    storage.removeItem(safeKey);
+                } else {
+                    storage.setItem(safeKey, String(entry.value));
+                }
+            } catch (_error) {
+                // Best effort: never break runtime flow on quota/privacy failures.
+            }
+        };
+
+        const queueCommit = (key, value, remove, settings = {}) => {
+            const safeKey = String(key || '').trim();
+            if (!safeKey) {
+                return;
+            }
+            const delayMs = Math.max(0, Number(settings.delayMs ?? defaultDelayMs) || 0);
+            const useIdle = settings.idle === true;
+            const existing = pendingByKey.get(safeKey);
+            if (existing && existing.timer) {
+                clearTimeout(existing.timer);
+            }
+            const next = {
+                value,
+                remove: remove === true,
+                timer: null
+            };
+            pendingByKey.set(safeKey, next);
+            if (delayMs <= 0) {
+                if (useIdle) {
+                    idleQueue.enqueue(() => commit(safeKey));
+                } else {
+                    commit(safeKey);
+                }
+                return;
+            }
+            next.timer = setTimeout(() => {
+                const current = pendingByKey.get(safeKey);
+                if (current) {
+                    current.timer = null;
+                }
+                if (useIdle) {
+                    idleQueue.enqueue(() => commit(safeKey));
+                    return;
+                }
+                commit(safeKey);
+            }, delayMs);
+        };
+
+        return {
+            setItem: (key, value, settings = {}) => queueCommit(key, value, false, settings),
+            removeItem: (key, settings = {}) => queueCommit(key, '', true, settings),
+            flush: (key = '') => {
+                const safeKey = String(key || '').trim();
+                if (safeKey) {
+                    commit(safeKey);
+                    return;
+                }
+                const keys = Array.from(pendingByKey.keys());
+                for (const entryKey of keys) {
+                    commit(entryKey);
+                }
+            }
+        };
+    };
+
     const normalizeHexColor = (value, fallback) => {
         if (typeof value !== 'string') {
             return fallback;
@@ -1723,6 +1924,9 @@
         DEFAULT_HEALTH_PREFS,
         DEFAULT_DASHBOARD_PREFS,
         bindEventOnce,
+        createFrameScheduler,
+        createIdleTaskQueue,
+        createBatchedStorageWriter,
         normalizeFolderMap,
         normalizeAppColumnWidth,
         normalizeDashboardLayout,

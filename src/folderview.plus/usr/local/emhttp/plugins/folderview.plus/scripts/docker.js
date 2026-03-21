@@ -110,6 +110,12 @@ const utils = window.FolderViewPlusUtils || {
     }
 };
 const dockerRuntimeShared = window.FolderViewDockerRuntimeShared || {};
+const dockerStorageWriter = typeof utils.createBatchedStorageWriter === 'function'
+    ? utils.createBatchedStorageWriter(window.localStorage, {
+        defaultDelayMs: 72,
+        idleTimeoutMs: 900
+    })
+    : null;
 const createDockerRuntimeStateStore = typeof dockerRuntimeShared.createRuntimeStateStore === 'function'
     ? dockerRuntimeShared.createRuntimeStateStore
     : (initialState = {}) => {
@@ -351,7 +357,15 @@ const isDockerRuntimeWidthDebugEnabled = () => {
 const setDockerRuntimeWidthDebugEnabled = (enabled) => {
     const next = enabled === true;
     try {
-        localStorage.setItem(DOCKER_RUNTIME_WIDTH_DEBUG_STORAGE_KEY, next ? '1' : '0');
+        if (dockerStorageWriter && typeof dockerStorageWriter.setItem === 'function') {
+            dockerStorageWriter.setItem(
+                DOCKER_RUNTIME_WIDTH_DEBUG_STORAGE_KEY,
+                next ? '1' : '0',
+                { delayMs: 0, idle: false }
+            );
+        } else {
+            localStorage.setItem(DOCKER_RUNTIME_WIDTH_DEBUG_STORAGE_KEY, next ? '1' : '0');
+        }
     } catch (_error) {
         // Ignore localStorage limitations.
     }
@@ -533,15 +547,40 @@ const persistDockerRuntimeColumnWidths = (widthMap) => {
     const normalized = normalizeDockerRuntimeColumnWidthMap(widthMap);
     try {
         if (Object.keys(normalized).length > 0) {
-            localStorage.setItem(DOCKER_RUNTIME_COLUMN_WIDTHS_STORAGE_KEY, JSON.stringify(normalized));
-            if (normalized[1]) {
-                localStorage.setItem(DOCKER_RUNTIME_LEGACY_APP_WIDTH_STORAGE_KEY, String(normalized[1]));
+            if (dockerStorageWriter && typeof dockerStorageWriter.setItem === 'function') {
+                dockerStorageWriter.setItem(
+                    DOCKER_RUNTIME_COLUMN_WIDTHS_STORAGE_KEY,
+                    JSON.stringify(normalized),
+                    { delayMs: 96, idle: true }
+                );
             } else {
-                localStorage.removeItem(DOCKER_RUNTIME_LEGACY_APP_WIDTH_STORAGE_KEY);
+                localStorage.setItem(DOCKER_RUNTIME_COLUMN_WIDTHS_STORAGE_KEY, JSON.stringify(normalized));
+            }
+            if (normalized[1]) {
+                if (dockerStorageWriter && typeof dockerStorageWriter.setItem === 'function') {
+                    dockerStorageWriter.setItem(
+                        DOCKER_RUNTIME_LEGACY_APP_WIDTH_STORAGE_KEY,
+                        String(normalized[1]),
+                        { delayMs: 96, idle: true }
+                    );
+                } else {
+                    localStorage.setItem(DOCKER_RUNTIME_LEGACY_APP_WIDTH_STORAGE_KEY, String(normalized[1]));
+                }
+            } else {
+                if (dockerStorageWriter && typeof dockerStorageWriter.removeItem === 'function') {
+                    dockerStorageWriter.removeItem(DOCKER_RUNTIME_LEGACY_APP_WIDTH_STORAGE_KEY, { delayMs: 40, idle: true });
+                } else {
+                    localStorage.removeItem(DOCKER_RUNTIME_LEGACY_APP_WIDTH_STORAGE_KEY);
+                }
             }
         } else {
-            localStorage.removeItem(DOCKER_RUNTIME_COLUMN_WIDTHS_STORAGE_KEY);
-            localStorage.removeItem(DOCKER_RUNTIME_LEGACY_APP_WIDTH_STORAGE_KEY);
+            if (dockerStorageWriter && typeof dockerStorageWriter.removeItem === 'function') {
+                dockerStorageWriter.removeItem(DOCKER_RUNTIME_COLUMN_WIDTHS_STORAGE_KEY, { delayMs: 40, idle: true });
+                dockerStorageWriter.removeItem(DOCKER_RUNTIME_LEGACY_APP_WIDTH_STORAGE_KEY, { delayMs: 40, idle: true });
+            } else {
+                localStorage.removeItem(DOCKER_RUNTIME_COLUMN_WIDTHS_STORAGE_KEY);
+                localStorage.removeItem(DOCKER_RUNTIME_LEGACY_APP_WIDTH_STORAGE_KEY);
+            }
         }
     } catch (_error) {
         // Ignore localStorage quota/privacy failures.
@@ -637,10 +676,16 @@ const adjustDockerRuntimeAppWidthForRenderedOverflow = (baseWidth = null) => {
             return;
         }
         const clientWidth = Math.max(0, Math.ceil(label.clientWidth || 0));
-        if (clientWidth < DOCKER_RUNTIME_APP_OVERFLOW_CLIENT_WIDTH_MIN) {
+        if (clientWidth <= 0) {
             return;
         }
         const rawOverflow = Math.ceil((label.scrollWidth || 0) - clientWidth);
+        if (clientWidth < DOCKER_RUNTIME_APP_OVERFLOW_CLIENT_WIDTH_MIN && rawOverflow <= 0) {
+            return;
+        }
+        if (rawOverflow <= 0) {
+            return;
+        }
         const overflow = Math.min(rawOverflow, DOCKER_RUNTIME_APP_OVERFLOW_NUDGE_MAX);
         if (overflow > maxOverflow) {
             maxOverflow = overflow;
@@ -1214,7 +1259,12 @@ const readDockerLockedFolderIds = () => {
 const writeDockerLockedFolderIds = (ids) => {
     try {
         if (window.localStorage) {
-            window.localStorage.setItem(DOCKER_LOCKED_STATE_KEY, JSON.stringify(normalizeLockedFolderIdList(ids)));
+            const payload = JSON.stringify(normalizeLockedFolderIdList(ids));
+            if (dockerStorageWriter && typeof dockerStorageWriter.setItem === 'function') {
+                dockerStorageWriter.setItem(DOCKER_LOCKED_STATE_KEY, payload, { delayMs: 70, idle: true });
+            } else {
+                window.localStorage.setItem(DOCKER_LOCKED_STATE_KEY, payload);
+            }
         }
     } catch (_error) {
         // Best effort only.
@@ -1802,7 +1852,12 @@ const writeDockerExpandedStateMap = (map) => {
     try {
         const payload = map && typeof map === 'object' ? map : {};
         if (window.localStorage) {
-            window.localStorage.setItem(DOCKER_EXPANDED_STATE_KEY, JSON.stringify(payload));
+            const serialized = JSON.stringify(payload);
+            if (dockerStorageWriter && typeof dockerStorageWriter.setItem === 'function') {
+                dockerStorageWriter.setItem(DOCKER_EXPANDED_STATE_KEY, serialized, { delayMs: 80, idle: true });
+            } else {
+                window.localStorage.setItem(DOCKER_EXPANDED_STATE_KEY, serialized);
+            }
         }
     } catch (_error) {
         // Ignore storage failures so runtime rendering never breaks.
@@ -2271,6 +2326,8 @@ const createFolders = async () => {
     }, 50);
     bindDockerRuntimeAppColumnResizer();
     scheduleDockerRuntimeWidthReflow('render-complete', 0);
+    setTimeout(() => scheduleDockerRuntimeWidthReflow('render-post-80ms', 18), 80);
+    setTimeout(() => scheduleDockerRuntimeWidthReflow('render-post-260ms', 18), 260);
 
     folderDebugMode = false; // Existing flag
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Set folderDebugMode (existing) to false.');

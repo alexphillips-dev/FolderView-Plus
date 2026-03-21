@@ -4,6 +4,42 @@ const REQUEST_TOKEN_STORAGE_KEY = 'fv.request.token';
 const requestClient = window.FolderViewPlusRequest || null;
 const settingsChrome = window.FolderViewPlusSettingsChrome || null;
 const dirtyTracker = window.FolderViewPlusDirtyTracker || null;
+const settingsStorageWriter = utils && typeof utils.createBatchedStorageWriter === 'function'
+    ? utils.createBatchedStorageWriter(window.localStorage, {
+        defaultDelayMs: 80,
+        idleTimeoutMs: 900
+    })
+    : null;
+const writeSettingsStorage = (key, value, options = {}) => {
+    const safeKey = String(key || '').trim();
+    if (!safeKey) {
+        return;
+    }
+    try {
+        if (settingsStorageWriter && typeof settingsStorageWriter.setItem === 'function') {
+            settingsStorageWriter.setItem(safeKey, String(value ?? ''), options);
+            return;
+        }
+        localStorage.setItem(safeKey, String(value ?? ''));
+    } catch (_error) {
+        // Best effort only.
+    }
+};
+const removeSettingsStorage = (key, options = {}) => {
+    const safeKey = String(key || '').trim();
+    if (!safeKey) {
+        return;
+    }
+    try {
+        if (settingsStorageWriter && typeof settingsStorageWriter.removeItem === 'function') {
+            settingsStorageWriter.removeItem(safeKey, options);
+            return;
+        }
+        localStorage.removeItem(safeKey);
+    } catch (_error) {
+        // Best effort only.
+    }
+};
 const renderBootstrapDependencyBanner = (missingModules) => {
     const host = document.getElementById('fv-settings-root') || document.body;
     if (!host) {
@@ -1572,12 +1608,12 @@ const getRequestedAdvancedModuleKeys = ({
 const persistExpandedAdvancedSections = () => {
     const payload = JSON.stringify(Array.from(settingsUiState.expandedAdvancedSections || []));
     settingsUiState.hasExpandedAdvancedPreference = true;
-    localStorage.setItem(ADVANCED_EXPANDED_STORAGE_KEY, payload);
+    writeSettingsStorage(ADVANCED_EXPANDED_STORAGE_KEY, payload, { delayMs: 70, idle: true });
 };
 
 const persistKnownAdvancedSections = () => {
     const payload = JSON.stringify(Array.from(settingsUiState.knownAdvancedSections || []));
-    localStorage.setItem(ADVANCED_KNOWN_STORAGE_KEY, payload);
+    writeSettingsStorage(ADVANCED_KNOWN_STORAGE_KEY, payload, { delayMs: 70, idle: true });
 };
 
 const setsEqual = (a, b) => {
@@ -1663,10 +1699,10 @@ const normalizeExpandedAdvancedSections = () => {
 const persistActiveAdvancedSection = (sectionKey) => {
     const key = String(sectionKey || '').trim();
     if (!key) {
-        localStorage.removeItem(ADVANCED_SECTION_STORAGE_KEY);
+        removeSettingsStorage(ADVANCED_SECTION_STORAGE_KEY, { delayMs: 40, idle: true });
         return;
     }
-    localStorage.setItem(ADVANCED_SECTION_STORAGE_KEY, key);
+    writeSettingsStorage(ADVANCED_SECTION_STORAGE_KEY, key, { delayMs: 70, idle: true });
 };
 
 const setAdvancedTab = (tab, persist = true) => {
@@ -1680,7 +1716,7 @@ const setAdvancedTab = (tab, persist = true) => {
         }
     }
     if (persist) {
-        localStorage.setItem(ADVANCED_TAB_STORAGE_KEY, settingsUiState.advancedTab);
+        writeSettingsStorage(ADVANCED_TAB_STORAGE_KEY, settingsUiState.advancedTab, { delayMs: 70, idle: true });
         persistTableUiState();
     }
     if (settingsUiState.mode === 'advanced') {
@@ -2208,7 +2244,7 @@ const scrollToSectionKey = (key) => {
 
 const setSettingsMode = (mode) => {
     settingsUiState.mode = mode === 'advanced' ? 'advanced' : 'basic';
-    localStorage.setItem(UI_MODE_STORAGE_KEY, settingsUiState.mode);
+    writeSettingsStorage(UI_MODE_STORAGE_KEY, settingsUiState.mode, { delayMs: 60, idle: true });
     if (settingsUiState.mode === 'advanced') {
         const activeSection = settingsUiState.sections.find((section) => section.key === settingsUiState.activeSectionKey);
         if (activeSection?.advanced) {
@@ -2295,7 +2331,7 @@ const setSettingsSearchQuery = (query) => {
 
 const setSearchAllAdvanced = (enabled) => {
     settingsUiState.searchAllAdvanced = enabled === true;
-    localStorage.setItem(SEARCH_ALL_ADVANCED_STORAGE_KEY, settingsUiState.searchAllAdvanced ? '1' : '0');
+    writeSettingsStorage(SEARCH_ALL_ADVANCED_STORAGE_KEY, settingsUiState.searchAllAdvanced ? '1' : '0', { delayMs: 60, idle: true });
     persistTableUiState();
     if (settingsUiState.mode === 'advanced') {
         void ensureAdvancedDataLoaded();
@@ -2956,7 +2992,7 @@ const getImportPreviewFirstPreference = () => {
 
 const setImportPreviewFirstPreference = (enabled) => {
     try {
-        localStorage.setItem(IMPORT_PREVIEW_FIRST_STORAGE_KEY, enabled === true ? '1' : '0');
+        writeSettingsStorage(IMPORT_PREVIEW_FIRST_STORAGE_KEY, enabled === true ? '1' : '0', { delayMs: 60, idle: true });
     } catch (_error) {
         // Non-fatal in restricted browser contexts.
     }
@@ -3691,10 +3727,10 @@ const setActiveQuickPresetUi = (presetId) => {
     const key = normalizeQuickProfilePresetId(presetId, '');
     try {
         if (!key) {
-            localStorage.removeItem(QUICK_PRESET_ACTIVE_STORAGE_KEY);
+            removeSettingsStorage(QUICK_PRESET_ACTIVE_STORAGE_KEY, { delayMs: 40, idle: true });
             return;
         }
-        localStorage.setItem(QUICK_PRESET_ACTIVE_STORAGE_KEY, key);
+        writeSettingsStorage(QUICK_PRESET_ACTIVE_STORAGE_KEY, key, { delayMs: 60, idle: true });
     } catch (_error) {
         // Ignore storage failures; runtime still works.
     }
@@ -3836,7 +3872,41 @@ const quickCreateStarterFolder = async (type) => {
         name,
         icon: '/plugins/folderview.plus/images/folder-icon.png',
         containers: [],
-        settings: { preview_border: true, preview_border_color: '#afa89e' },
+        settings: {
+            folder_webui: false,
+            folder_webui_url: '',
+            preview: 1,
+            preview_hover: false,
+            preview_update: false,
+            preview_text_width: '',
+            preview_grayscale: false,
+            preview_webui: false,
+            preview_logs: false,
+            preview_console: false,
+            preview_vertical_bars: false,
+            context: 1,
+            context_trigger: 0,
+            context_graph: 1,
+            context_graph_time: 60,
+            preview_border: true,
+            preview_border_color: '#afa89e',
+            preview_vertical_bars_color: '#afa89e',
+            status_color_started: '#ffffff',
+            status_color_paused: '#b8860b',
+            status_color_stopped: '#ff4d4d',
+            health_warn_stopped_percent: '',
+            health_critical_stopped_percent: '',
+            health_profile: '',
+            health_updates_mode: '',
+            health_all_stopped_mode: '',
+            status_warn_stopped_percent: '',
+            update_column: false,
+            default_action: false,
+            expand_tab: false,
+            override_default_actions: false,
+            expand_dashboard: false,
+            dashboard_overflow: 'default'
+        },
         actions: []
     };
     try {
@@ -5159,7 +5229,7 @@ const buildTableUiStatePayload = () => ({
 
 const persistTableUiState = () => {
     try {
-        localStorage.setItem(TABLE_UI_STATE_STORAGE_KEY, JSON.stringify(buildTableUiStatePayload()));
+        writeSettingsStorage(TABLE_UI_STATE_STORAGE_KEY, JSON.stringify(buildTableUiStatePayload()), { delayMs: 90, idle: true });
     } catch (_error) {
         // Ignore storage failures; UI continues with runtime state only.
     }
@@ -5974,7 +6044,7 @@ const getUpdateNotesSeenVersion = () => {
 
 const setUpdateNotesSeenVersion = (version) => {
     try {
-        localStorage.setItem(UPDATE_NOTES_SEEN_VERSION_STORAGE_KEY, String(version || '').trim());
+        writeSettingsStorage(UPDATE_NOTES_SEEN_VERSION_STORAGE_KEY, String(version || '').trim(), { delayMs: 50, idle: true });
     } catch (_error) {
         // Best effort only.
     }
@@ -5992,9 +6062,9 @@ const writeConflictStorageValue = (key, value) => {
     const normalized = String(value || '').trim();
     try {
         if (normalized) {
-            localStorage.setItem(key, normalized);
+            writeSettingsStorage(key, normalized, { delayMs: 50, idle: true });
         } else {
-            localStorage.removeItem(key);
+            removeSettingsStorage(key, { delayMs: 40, idle: true });
         }
     } catch (_error) {
         // Best effort only.

@@ -5,13 +5,58 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.21.10">
-<!ENTITY md5 "6e420ddd983612b56a79faf408199b6b">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
+<!ENTITY version "2026.03.21.18">
+<!ENTITY md5 "2161fdff4c6903dcf4b8ed916c4396a4">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.21.18
+- Maintenance: batch storage writes and smooth folder editor rendering.
+- Fix: Fix new-folder name typing lag and docker name truncation regression.
+- Maintenance: Improve fresh-folder editor responsiveness and defer icon manager warmup.
+- Maintenance: Build release artifacts for 2026.03.21.12.
+- Fix: Fix runtime width recovery for clipped fresh-install folder names.
+- Fix: Fix fresh-install folder editor with sparse folder settings.
+
+
+###2026.03.21.17
+- Performance: Added shared frame/idle scheduling and batched localStorage writers to reduce main-thread stalls during runtime/state updates.
+- Performance: Improved folder editor responsiveness with chunked member-list rendering and worker-backed regex matching on large datasets.
+- UX: Deferred heavy built-in icon manifest loading until picker open to keep initial settings/edit load snappy.
+- Quality: Expanded performance regression tests to enforce batched storage writes and large-list folder editor safeguards.
+
+
+###2026.03.21.16
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.21.15
+- Fix: Improved new-folder editor performance by deferring heavy recompute paths while typing and making icon-manager hydration non-blocking at load.
+- Fix: Hardened Docker runtime name-column recovery with post-render width reflow passes and stronger width fallback to prevent severe name truncation after folder rename/create.
+
+
+###2026.03.21.14
+- Fix: Reduced fresh-folder editor typing lag by skipping heavy regex/member-table recompute while typing folder name.
+- Fix: Added post-render Docker width reflow passes and stronger folder-name width fallback to prevent newly renamed folders collapsing to 1-2 visible characters.
+
+
+###2026.03.21.13
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+
+
+###2026.03.21.12
+- Fix: Fix runtime width recovery for clipped fresh-install folder names.
+
+
+###2026.03.21.11
+- Maintenance: Align VM dropdown and name-column runtime behavior with Docker.
+- Maintenance: Refresh perf baseline after VM parity runtime updates.
+- Maintenance: Align VM folder runtime behavior with Docker and add parity guards.
+
 
 ###2026.03.21.10
 - Maintenance: Release rollup since main `2026.03.21.03`; merged all `dev` improvements through `2026.03.21.09` into `main`.
@@ -2278,7 +2323,7 @@
     </CHANGES>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

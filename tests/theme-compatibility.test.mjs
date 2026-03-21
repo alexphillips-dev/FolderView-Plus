@@ -15,6 +15,8 @@ const settingsCssPath = path.join(
 
 const settingsPage = fs.readFileSync(settingsPagePath, 'utf8');
 const settingsCss = fs.readFileSync(settingsCssPath, 'utf8');
+const wizardDialogBlocks = Array.from(settingsCss.matchAll(/#fv-setup-assistant-dialog\s*\{[\s\S]*?\n\}/g)).map((match) => match[0]);
+const wizardTokenBlock = wizardDialogBlocks.find((block) => /--fv-wizard-text-primary/.test(block)) || '';
 
 test('settings page wraps plugin UI in a theme-safe root container', () => {
     assert.match(settingsPage, /<div id="fv-settings-root" class="fv-theme-safe">/);
@@ -31,4 +33,18 @@ test('theme compatibility: global focus and body selectors are scoped to plugin 
     assert.match(settingsCss, /#fv-settings-root a:focus-visible/);
     assert.doesNotMatch(settingsCss, /\nbody\s*\{/);
     assert.doesNotMatch(settingsCss, /\nbutton:focus-visible,\s*\ninput:focus-visible,/);
+});
+
+test('theme compatibility: setup wizard enforces theme-safe dark contrast tokens', () => {
+    assert.ok(wizardTokenBlock, 'Wizard token block should exist in settings CSS.');
+    assert.match(wizardTokenBlock, /color-scheme:\s*dark/);
+    assert.match(wizardTokenBlock, /--fv-wizard-text-primary:\s*#e7eef9/);
+    assert.match(wizardTokenBlock, /--fv-wizard-text-muted:\s*#c5d4e8/);
+    assert.match(wizardTokenBlock, /--fv-wizard-text-dim:\s*#a7bad1/);
+    assert.doesNotMatch(wizardTokenBlock, /--fv-wizard-text-primary:\s*var\(--fvplus-settings-text-primary\)/);
+    assert.doesNotMatch(wizardTokenBlock, /--fv-wizard-text-primary:\s*var\(--text/);
+    assert.match(
+        settingsCss,
+        /#fv-setup-assistant-dialog\s+\.fv-setup-assistant-shell button,\s*\n#fv-setup-assistant-dialog\s+\.fv-setup-assistant-shell \.btn\s*\{[\s\S]*color:\s*var\(--fv-wizard-text-primary\)/
+    );
 });

@@ -3765,10 +3765,12 @@ body.fv-mobile-compact .fv-setup-field-grid {
     background: rgba(8, 12, 18, 0.985);
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
     overflow: hidden;
-    color: var(--fvplus-settings-text-primary);
-    --fv-wizard-text-primary: var(--fvplus-settings-text-primary);
-    --fv-wizard-text-muted: var(--fvplus-settings-text-muted);
-    --fv-wizard-text-dim: var(--fvplus-settings-text-dim);
+    /* Keep wizard contrast stable regardless of host Unraid theme tokens. */
+    color-scheme: dark;
+    color: #e7eef9;
+    --fv-wizard-text-primary: #e7eef9;
+    --fv-wizard-text-muted: #c5d4e8;
+    --fv-wizard-text-dim: #a7bad1;
     --fv-wizard-font-103: 1.03rem;
     --fv-wizard-font-108: 1.08rem;
     --fv-wizard-font-115: 1.15rem;
@@ -3779,6 +3781,40 @@ body.fv-mobile-compact .fv-setup-field-grid {
     text-transform: none;
     letter-spacing: normal;
     color: var(--fv-wizard-text-primary);
+}
+
+#fv-setup-assistant-dialog :is(
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    p,
+    span,
+    label,
+    legend,
+    li,
+    strong,
+    small,
+    dt,
+    dd,
+    th,
+    td
+) {
+    color: inherit;
+}
+
+#fv-setup-assistant-dialog .fv-setup-assistant-shell button,
+#fv-setup-assistant-dialog .fv-setup-assistant-shell .btn {
+    color: var(--fv-wizard-text-primary);
+    border-color: rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+#fv-setup-assistant-dialog .fv-setup-assistant-shell button:disabled,
+#fv-setup-assistant-dialog .fv-setup-assistant-shell .btn:disabled {
+    color: rgba(231, 238, 249, 0.68);
 }
 
 .fv-setup-assistant-shell input:not([type="checkbox"]):not([type="radio"]),

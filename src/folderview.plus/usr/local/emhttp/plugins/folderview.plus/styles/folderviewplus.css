@@ -794,6 +794,47 @@ body.fv-column-resize-active * {
     font-size: 1.03rem;
 }
 
+.fv-starter-template-dialog {
+    display: grid;
+    gap: 0.45rem;
+    text-align: left;
+}
+
+.fv-starter-template-help {
+    font-size: 1.03rem;
+    opacity: 0.9;
+}
+
+.fv-starter-template-options {
+    display: grid;
+    gap: 0.3rem;
+    max-height: 270px;
+    overflow: auto;
+    padding-right: 0.2rem;
+}
+
+.fv-starter-template-option {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 30px;
+    padding: 0.2rem 0.35rem;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.fv-starter-template-checkbox {
+    margin: 0;
+}
+
+.fv-starter-template-option-icon {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    flex: 0 0 16px;
+}
+
 .folder-table table td.members-cell,
 .folder-table table td.rules-cell,
 .folder-table table td.status-cell,

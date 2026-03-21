@@ -3926,6 +3926,84 @@ const buildStarterFolderPayload = (name, iconPath = DEFAULT_STARTER_FOLDER_ICON)
     actions: []
 });
 
+const promptStarterTemplateSelection = async (type, blueprints) => {
+    const resolvedType = normalizeManagedType(type);
+    const typeLabel = resolvedType === 'docker' ? 'Docker' : 'VM';
+    const templateList = Array.isArray(blueprints) ? blueprints.filter((entry) => String(entry?.name || '').trim() !== '') : [];
+    if (!templateList.length) {
+        return [];
+    }
+
+    if (typeof window.swal !== 'function') {
+        const numbered = templateList.map((entry, index) => `${index + 1}. ${String(entry.name || '').trim()}`).join('\n');
+        const raw = window.prompt(
+            `Select ${typeLabel} starter templates by number (comma-separated).\nLeave blank for all:\n\n${numbered}`,
+            ''
+        );
+        if (raw === null) {
+            return [];
+        }
+        const trimmed = String(raw || '').trim();
+        if (!trimmed) {
+            return templateList;
+        }
+        const selectedIndexes = new Set();
+        const parts = trimmed.split(',');
+        for (const part of parts) {
+            const idx = Number(String(part || '').trim());
+            if (!Number.isInteger(idx)) {
+                continue;
+            }
+            const zeroBased = idx - 1;
+            if (zeroBased >= 0 && zeroBased < templateList.length) {
+                selectedIndexes.add(zeroBased);
+            }
+        }
+        return templateList.filter((_, index) => selectedIndexes.has(index));
+    }
+
+    return new Promise((resolve) => {
+        const optionsHtml = templateList.map((entry, index) => {
+            const name = String(entry.name || '').trim();
+            const iconPath = String(entry.icon || '').trim() || DEFAULT_STARTER_FOLDER_ICON;
+            return `<label class="fv-starter-template-option"><input type="checkbox" class="fv-starter-template-checkbox" data-fv-starter-template-index="${index}" checked><img src="${escapeHtml(iconPath)}" alt="" class="fv-starter-template-option-icon"><span>${escapeHtml(name)}</span></label>`;
+        }).join('');
+
+        swal({
+            title: `Choose ${typeLabel} starter templates`,
+            text: `<div class="fv-starter-template-dialog"><div class="fv-starter-template-help">Pick the templates you want to deploy now. Existing matching folder names will be skipped.</div><div class="fv-starter-template-options">${optionsHtml}</div></div>`,
+            html: true,
+            type: 'info',
+            showCancelButton: true,
+            confirmButtonText: 'Create selected',
+            cancelButtonText: 'Cancel',
+            closeOnConfirm: false
+        }, (confirmed) => {
+            if (!confirmed) {
+                resolve([]);
+                return;
+            }
+            const selectedIndexes = $('.fv-starter-template-checkbox:checked').map((_, node) => {
+                const rawValue = Number($(node).attr('data-fv-starter-template-index'));
+                return Number.isInteger(rawValue) ? rawValue : -1;
+            }).get().filter((value) => value >= 0 && value < templateList.length);
+
+            if (!selectedIndexes.length) {
+                if (typeof swal.showInputError === 'function') {
+                    swal.showInputError('Select at least one template.');
+                }
+                return false;
+            }
+
+            const selectedIndexSet = new Set(selectedIndexes);
+            const selectedTemplates = templateList.filter((_, index) => selectedIndexSet.has(index));
+            swal.close();
+            resolve(selectedTemplates);
+            return true;
+        });
+    });
+};
+
 const quickCreateStarterFolder = async (type) => {
     const resolvedType = normalizeManagedType(type);
     if (!ensureRuntimeConflictActionAllowed(`Create ${resolvedType === 'docker' ? 'Docker' : 'VM'} folder`)) {
@@ -3970,23 +4048,8 @@ const quickCreateStarterTemplates = async (type) => {
         return;
     }
 
-    const confirmText = `Create ${blueprints.length} ${typeLabel} starter folders using built-in icons? Existing folder names will be skipped.`;
-    if (typeof window.swal === 'function') {
-        const confirmed = await new Promise((resolve) => {
-            swal({
-                title: `Create ${typeLabel} starter templates?`,
-                text: confirmText,
-                type: 'info',
-                showCancelButton: true,
-                confirmButtonText: 'Create templates',
-                cancelButtonText: 'Cancel',
-                closeOnConfirm: true
-            }, (ok) => resolve(ok === true));
-        });
-        if (!confirmed) {
-            return;
-        }
-    } else if (!window.confirm(confirmText)) {
+    const selectedBlueprints = await promptStarterTemplateSelection(resolvedType, blueprints);
+    if (!selectedBlueprints.length) {
         return;
     }
 
@@ -3997,7 +4060,7 @@ const quickCreateStarterTemplates = async (type) => {
         const createdNames = [];
         let skippedCount = 0;
 
-        for (const blueprint of blueprints) {
+        for (const blueprint of selectedBlueprints) {
             const folderName = String(blueprint?.name || '').trim();
             if (!folderName) {
                 continue;
@@ -4022,7 +4085,7 @@ const quickCreateStarterTemplates = async (type) => {
 
         const createdCount = createdNames.length;
         const createdFolderId = createdCount > 0 ? (resolveFolderIdsByNames(resolvedType, createdNames)[0] || '') : '';
-        const messageParts = [`Created ${createdCount} starter folder${createdCount === 1 ? '' : 's'}.`];
+        const messageParts = [`Created ${createdCount} starter folder${createdCount === 1 ? '' : 's'} from ${selectedBlueprints.length} selected template${selectedBlueprints.length === 1 ? '' : 's'}.`];
         if (skippedCount > 0) {
             messageParts.push(`Skipped ${skippedCount} existing.`);
         }

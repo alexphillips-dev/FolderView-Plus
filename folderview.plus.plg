@@ -6,12 +6,26 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.21.01">
+<!ENTITY version "2026.03.21.03">
 <!ENTITY md5 "de86426fa42edffd34a1458f37c6e109">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.21.03
+- Maintenance: Release rollup since main `2026.03.19.29`; merged all `dev` improvements through `2026.03.21.01` into `main`.
+- Feature: Expanded Docker folder quick actions with icon-row `Focus/Pin/Lock` controls plus `Open all WebUIs` and `Clone folder`.
+- UX: `Open all WebUIs` is now folder-scoped and nested-aware with smarter runtime checks, plus popup-block guidance and manual fallback links.
+- Feature: Added shared Docker runtime architecture (`docker.runtime.shared.js`) with centralized state, guarded async actions, and telemetry primitives.
+- Feature: Added dashboard layout/view improvements including persistent layout memory, expansion memory, quick-action rail controls, and Compact Matrix mode.
+- Fix: Resolved dashboard/action-rail regressions (collapse sync, right-rail anchoring, short-widget overhang) across Docker and VM widgets.
+- Fix: Stabilized Docker table/row layout behavior (dropdown gutter, app/version clipping, compact controls, long-name handling) on desktop and mobile.
+- Fix: Hardened iPhone/mobile settings rendering and overflow menu bounds; removed mobile artifact/box rendering regressions.
+- Fix: Resolved settings-load `arguments is not defined` crash path and hardened setup-wizard theme contrast across host themes (including Dynamix White).
+- Performance: Improved render/refresh behavior with coalesced refreshes, queued table renders, and safer large-tree performance-mode limits.
+- Quality: Expanded regression/architecture coverage and strengthened release guard/smoke automation to prevent recurrence.
+
 
 ###2026.03.21.01
 - Maintenance: Harden setup wizard contrast across themes.

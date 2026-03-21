@@ -5,13 +5,51 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.21.03">
-<!ENTITY md5 "de86426fa42edffd34a1458f37c6e109">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
+<!ENTITY version "2026.03.21.09">
+<!ENTITY md5 "6e420ddd983612b56a79faf408199b6b">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.21.09
+- Feature: Added wizard contrast system with explicit tiers (`normal/high/max`) plus auto contrast evaluation that selects safer tiers when needed.
+- Feature: Added wizard quick accessibility controls (Focus mode toggle + Contrast selector) and keyboard shortcuts (`Alt+F`, `Alt+C`).
+- UX: Improved active/selected affordance beyond color (shape, weight, highlight rails), added inline "how to fix" guidance, and mobile chip-row detail toggles.
+- UX: Introduced semantic wizard status color mapping (`info/success/warning/danger/neutral`) with stronger hierarchy for step/card/readability states.
+- Quality: Expanded wizard regression guards in runtime/theme smoke tests and updated theme guards for tier/selector contracts.
+
+
+###2026.03.21.08
+- Feature: Reworked setup-wizard card theming to use explicit `data-fv-card-tone` module mapping instead of positional `nth-child` styling.
+- UX: Tokenized wizard panel/card backgrounds, accents, and shell surfaces to reduce hardcoded style coupling while preserving contrast-safe fallbacks.
+- Quality: Added guardrails/tests to prevent regression to positional tone mapping and raw card color literals.
+
+
+###2026.03.21.07
+- UX: Introduced multi-tone setup-wizard module styling so Environment/Mode/Bundle/Preset cards are visually distinct at a glance.
+- Fix: Increased contrast boundaries for wizard sidebar/header/footer and step panels to stop sections blending together.
+- Quality: Added regression checks for wizard accent token palette and per-card tone selector wiring.
+
+
+###2026.03.21.06
+- UX: Added stronger wizard module separation with tinted card surfaces, accent rails, and clearer sidebar/header panel boundaries.
+- Fix: Improved setup-assistant readability so sections no longer blend together under dark and light host themes.
+- Quality: Added regression coverage for wizard accent palette tokens and multi-card tone selectors.
+
+
+###2026.03.21.05
+- UX: Added stronger wizard module separation with tinted card surfaces, accent rails, and clearer sidebar/header panel boundaries.
+- Fix: Improved setup-assistant readability so sections no longer blend together under dark and light host themes.
+- Quality: Added regression coverage for wizard accent palette tokens and multi-card tone selectors.
+
+
+###2026.03.21.04
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Fix: Improved backend release-note parsing and category detection for accurate summaries.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
 
 ###2026.03.21.03
 - Maintenance: Release rollup since main `2026.03.19.29`; merged all `dev` improvements through `2026.03.21.01` into `main`.
@@ -2230,7 +2268,7 @@
     </CHANGES>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

@@ -20,6 +20,7 @@
     const IMPORT_ICON_MAX_LENGTH = 8192;
     const RUNTIME_PREFS_SCHEMA = 2;
     const APP_COLUMN_WIDTH_OPTIONS = ['compact', 'standard', 'wide'];
+    const THEME_COMPATIBILITY_MODE_OPTIONS = ['auto', 'host', 'safe', 'highcontrast'];
     const DEFAULT_FOLDER_STATUS_COLORS = {
         started: '#ffffff',
         paused: '#b8860b',
@@ -188,6 +189,11 @@
         return ['classic', 'fullwidth', 'accordion', 'inset', 'compactmatrix'].includes(normalized)
             ? normalized
             : DEFAULT_DASHBOARD_PREFS.layout;
+    };
+
+    const normalizeThemeCompatibilityMode = (value) => {
+        const normalized = String(value || '').trim().toLowerCase();
+        return THEME_COMPATIBILITY_MODE_OPTIONS.includes(normalized) ? normalized : 'auto';
     };
 
     const normalizeFolderMembers = (value) => {
@@ -408,6 +414,7 @@
         const performanceMode = runtimePrefsReady ? incoming.performanceMode === true : false;
         const lazyPreviewEnabled = runtimePrefsReady ? incoming.lazyPreviewEnabled === true : false;
         const lazyPreviewThreshold = clampNumber(incoming.lazyPreviewThreshold, 10, 200, 30);
+        const themeCompatibilityMode = normalizeThemeCompatibilityMode(incoming.themeCompatibilityMode);
         const incomingDashboard = isPlainObject(incoming.dashboard) ? incoming.dashboard : {};
         const dashboard = {
             layout: normalizeDashboardLayout(incomingDashboard.layout),
@@ -518,6 +525,7 @@
             performanceMode,
             lazyPreviewEnabled,
             lazyPreviewThreshold,
+            themeCompatibilityMode,
             dashboard,
             health,
             status,
@@ -1718,6 +1726,7 @@
         normalizeFolderMap,
         normalizeAppColumnWidth,
         normalizeDashboardLayout,
+        normalizeThemeCompatibilityMode,
         normalizePrefs,
         orderFoldersByPrefs,
         getFolderStatusColors,

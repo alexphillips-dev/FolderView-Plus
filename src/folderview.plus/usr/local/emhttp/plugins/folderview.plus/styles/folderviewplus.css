@@ -1,21 +1,45 @@
 :root {
-    --fvplus-settings-text-primary: var(--text, currentColor);
-    --fvplus-settings-text-muted: #cfd9e7;
-    --fvplus-settings-text-dim: #b7c5d7;
-    --fvplus-settings-border-subtle: rgba(255, 255, 255, 0.12);
-    --fvplus-settings-border-faint: rgba(255, 255, 255, 0.08);
-    --fvplus-settings-surface-muted: rgba(255, 255, 255, 0.02);
-    --fvplus-settings-surface-strong: rgba(0, 0, 0, 0.2);
-    --fvplus-settings-accent: rgba(77, 163, 255, 0.72);
-    --fvplus-settings-accent-soft: rgba(77, 163, 255, 0.18);
+    --fvplus-settings-safe-text-primary: #e7eef9;
+    --fvplus-settings-safe-text-muted: #cfd9e7;
+    --fvplus-settings-safe-text-dim: #b7c5d7;
+    --fvplus-settings-safe-border-subtle: rgba(255, 255, 255, 0.12);
+    --fvplus-settings-safe-border-faint: rgba(255, 255, 255, 0.08);
+    --fvplus-settings-safe-surface-muted: rgba(255, 255, 255, 0.02);
+    --fvplus-settings-safe-surface-strong: rgba(0, 0, 0, 0.2);
+    --fvplus-settings-safe-accent: rgba(77, 163, 255, 0.72);
+    --fvplus-settings-safe-accent-soft: rgba(77, 163, 255, 0.18);
+    --fvplus-settings-safe-focus-ring: rgba(103, 214, 255, 0.35);
+    --fvplus-settings-safe-surface-panel: rgba(0, 0, 0, 0.14);
+
+    --fvplus-theme-text-primary: var(--text, currentColor);
+    --fvplus-theme-text-muted: var(--fvplus-settings-safe-text-muted);
+    --fvplus-theme-text-dim: var(--fvplus-settings-safe-text-dim);
+    --fvplus-theme-border-subtle: var(--fvplus-settings-safe-border-subtle);
+    --fvplus-theme-border-faint: var(--fvplus-settings-safe-border-faint);
+    --fvplus-theme-surface-muted: var(--fvplus-settings-safe-surface-muted);
+    --fvplus-theme-surface-strong: var(--fvplus-settings-safe-surface-strong);
+    --fvplus-theme-accent: var(--fvplus-settings-safe-accent);
+    --fvplus-theme-accent-soft: var(--fvplus-settings-safe-accent-soft);
+    --fvplus-theme-focus-ring: var(--fvplus-settings-safe-focus-ring);
+    --fvplus-theme-surface-panel: var(--fvplus-settings-safe-surface-panel);
+
+    --fvplus-settings-text-primary: var(--fvplus-theme-text-primary, var(--fvplus-settings-safe-text-primary));
+    --fvplus-settings-text-muted: var(--fvplus-theme-text-muted, var(--fvplus-settings-safe-text-muted));
+    --fvplus-settings-text-dim: var(--fvplus-theme-text-dim, var(--fvplus-settings-safe-text-dim));
+    --fvplus-settings-border-subtle: var(--fvplus-theme-border-subtle, var(--fvplus-settings-safe-border-subtle));
+    --fvplus-settings-border-faint: var(--fvplus-theme-border-faint, var(--fvplus-settings-safe-border-faint));
+    --fvplus-settings-surface-muted: var(--fvplus-theme-surface-muted, var(--fvplus-settings-safe-surface-muted));
+    --fvplus-settings-surface-strong: var(--fvplus-theme-surface-strong, var(--fvplus-settings-safe-surface-strong));
+    --fvplus-settings-accent: var(--fvplus-theme-accent, var(--fvplus-settings-safe-accent));
+    --fvplus-settings-accent-soft: var(--fvplus-theme-accent-soft, var(--fvplus-settings-safe-accent-soft));
     --fvplus-settings-warning: #ffd26f;
     --fvplus-settings-warning-soft: rgba(255, 193, 94, 0.08);
     --fvplus-settings-warning-border: rgba(255, 193, 94, 0.45);
     --fvplus-settings-success: #8de0a6;
     --fvplus-settings-danger: #ff7f7f;
     --fvplus-settings-danger-border: rgba(255, 116, 116, 0.5);
-    --fvplus-settings-focus-ring: rgba(103, 214, 255, 0.35);
-    --fvplus-settings-surface-panel: rgba(0, 0, 0, 0.14);
+    --fvplus-settings-focus-ring: var(--fvplus-theme-focus-ring, var(--fvplus-settings-safe-focus-ring));
+    --fvplus-settings-surface-panel: var(--fvplus-theme-surface-panel, var(--fvplus-settings-safe-surface-panel));
 }
 
 .custom-css {
@@ -3760,7 +3784,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
     width: min(1180px, calc(100vw - 2rem));
     height: min(82vh, 810px);
     z-index: 5201;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(157, 183, 217, 0.34);
     border-radius: 12px;
     background: rgba(8, 12, 18, 0.985);
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
@@ -3775,6 +3799,78 @@ body.fv-mobile-compact .fv-setup-field-grid {
     --fv-wizard-font-108: 1.08rem;
     --fv-wizard-font-115: 1.15rem;
     --fv-wizard-font-118: 1.18rem;
+    --fv-wizard-surface-page: rgba(8, 12, 18, 0.985);
+    --fv-wizard-surface-panel: rgba(17, 25, 37, 0.74);
+    --fv-wizard-surface-card: rgba(17, 27, 42, 0.72);
+    --fv-wizard-surface-card-strong: rgba(20, 32, 48, 0.84);
+    --fv-wizard-border-subtle: rgba(157, 183, 217, 0.24);
+    --fv-wizard-border-strong: rgba(157, 183, 217, 0.34);
+    --fv-wizard-accent-blue-rgb: 77, 163, 255;
+    --fv-wizard-accent-amber-rgb: 255, 170, 94;
+    --fv-wizard-accent-green-rgb: 147, 225, 159;
+    --fv-wizard-accent-cyan-rgb: 92, 213, 255;
+    --fv-wizard-accent-env-rgb: var(--fv-wizard-accent-blue-rgb);
+    --fv-wizard-accent-mode-rgb: var(--fv-wizard-accent-amber-rgb);
+    --fv-wizard-accent-bundle-rgb: var(--fv-wizard-accent-green-rgb);
+    --fv-wizard-accent-preset-rgb: var(--fv-wizard-accent-cyan-rgb);
+    --fv-wizard-accent-profile-rgb: var(--fv-wizard-accent-blue-rgb);
+    --fv-wizard-accent-import-docker-rgb: var(--fv-wizard-accent-amber-rgb);
+    --fv-wizard-accent-import-vm-rgb: var(--fv-wizard-accent-cyan-rgb);
+    --fv-wizard-accent-rules-docker-rgb: var(--fv-wizard-accent-green-rgb);
+    --fv-wizard-accent-rules-vm-rgb: var(--fv-wizard-accent-cyan-rgb);
+    --fv-wizard-accent-behavior-docker-rgb: var(--fv-wizard-accent-amber-rgb);
+    --fv-wizard-accent-behavior-vm-rgb: var(--fv-wizard-accent-blue-rgb);
+    --fv-wizard-accent-review-rgb: var(--fv-wizard-accent-blue-rgb);
+    --fv-wizard-accent-impact-prefs-rgb: var(--fv-wizard-accent-blue-rgb);
+    --fv-wizard-accent-impact-imports-rgb: var(--fv-wizard-accent-amber-rgb);
+    --fv-wizard-accent-impact-rules-rgb: var(--fv-wizard-accent-green-rgb);
+    --fv-wizard-accent-impact-total-rgb: var(--fv-wizard-accent-cyan-rgb);
+    --fv-wizard-color-info-rgb: 77, 163, 255;
+    --fv-wizard-color-success-rgb: 147, 225, 159;
+    --fv-wizard-color-warning-rgb: 255, 193, 94;
+    --fv-wizard-color-danger-rgb: 255, 116, 116;
+    --fv-wizard-color-neutral-rgb: 157, 183, 217;
+    --fv-wizard-color-info: rgb(var(--fv-wizard-color-info-rgb));
+    --fv-wizard-color-success: rgb(var(--fv-wizard-color-success-rgb));
+    --fv-wizard-color-warning: rgb(var(--fv-wizard-color-warning-rgb));
+    --fv-wizard-color-danger: rgb(var(--fv-wizard-color-danger-rgb));
+    --fv-wizard-color-neutral: rgb(var(--fv-wizard-color-neutral-rgb));
+    --fv-wizard-shell-sidebar-bg: linear-gradient(180deg, rgba(17, 25, 37, 0.88) 0%, rgba(11, 18, 28, 0.86) 100%);
+    --fv-wizard-shell-head-bg: linear-gradient(180deg, rgba(17, 25, 37, 0.84) 0%, rgba(12, 20, 32, 0.78) 100%);
+    --fv-wizard-shell-strip-bg: rgba(10, 16, 25, 0.88);
+    --fv-wizard-row-bg: rgba(11, 17, 27, 0.74);
+    --fv-wizard-card-border-alpha: 0.34;
+    --fv-wizard-card-tint-alpha: 0.14;
+    --fv-wizard-card-surface-stop: 20%;
+    --fv-wizard-card-base-bg: rgba(10, 16, 25, 0.9);
+    --fv-wizard-card-topline-strong-alpha: 0.92;
+    --fv-wizard-card-topline-soft-alpha: 0.34;
+    --fv-wizard-card-inset-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    --fv-wizard-card-shadow: 0 10px 22px rgba(0, 0, 0, 0.24);
+}
+
+#fv-setup-assistant-dialog[data-fv-wizard-contrast-tier="high"] {
+    --fv-wizard-text-primary: #f3f8ff;
+    --fv-wizard-text-muted: #dbe8f8;
+    --fv-wizard-text-dim: #c9daee;
+    --fv-wizard-border-subtle: rgba(188, 211, 238, 0.34);
+    --fv-wizard-border-strong: rgba(198, 220, 245, 0.48);
+    --fv-wizard-row-bg: rgba(14, 22, 34, 0.88);
+    --fv-wizard-card-border-alpha: 0.45;
+    --fv-wizard-card-tint-alpha: 0.19;
+}
+
+#fv-setup-assistant-dialog[data-fv-wizard-contrast-tier="max"] {
+    --fv-wizard-text-primary: #ffffff;
+    --fv-wizard-text-muted: #eef5ff;
+    --fv-wizard-text-dim: #deecff;
+    --fv-wizard-border-subtle: rgba(214, 232, 255, 0.48);
+    --fv-wizard-border-strong: rgba(224, 238, 255, 0.64);
+    --fv-wizard-row-bg: rgba(12, 18, 28, 0.95);
+    --fv-wizard-card-border-alpha: 0.58;
+    --fv-wizard-card-tint-alpha: 0.24;
+    --fv-wizard-card-topline-strong-alpha: 0.98;
+    --fv-wizard-card-topline-soft-alpha: 0.54;
 }
 
 .fv-setup-assistant-shell button {
@@ -3808,8 +3904,8 @@ body.fv-mobile-compact .fv-setup-field-grid {
 #fv-setup-assistant-dialog .fv-setup-assistant-shell button,
 #fv-setup-assistant-dialog .fv-setup-assistant-shell .btn {
     color: var(--fv-wizard-text-primary);
-    border-color: rgba(255, 255, 255, 0.22);
-    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--fv-wizard-border-subtle);
+    background: rgba(15, 23, 35, 0.78);
 }
 
 #fv-setup-assistant-dialog .fv-setup-assistant-shell button:disabled,
@@ -3821,8 +3917,8 @@ body.fv-mobile-compact .fv-setup-field-grid {
 .fv-setup-assistant-shell select,
 .fv-setup-assistant-shell textarea {
     color: var(--fv-wizard-text-primary);
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.22);
+    background: rgba(14, 23, 35, 0.78);
+    border-color: var(--fv-wizard-border-subtle);
 }
 
 .fv-setup-assistant-shell input::placeholder,
@@ -3844,9 +3940,9 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-setup-assistant-sidebar {
-    border-right: 1px solid rgba(255, 255, 255, 0.12);
+    border-right: 1px solid var(--fv-wizard-border-subtle);
     padding: 0.65rem 0.62rem;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--fv-wizard-shell-sidebar-bg);
     overflow-y: auto;
 }
 
@@ -3865,9 +3961,9 @@ body.fv-mobile-compact .fv-setup-field-grid {
 
 .fv-setup-sidebar-summary {
     margin-top: 0.45rem;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--fv-wizard-border-subtle);
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--fv-wizard-surface-panel);
     padding: 0.32rem 0.36rem;
     display: grid;
     gap: 0.28rem;
@@ -3885,9 +3981,9 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-setup-sidebar-stats > div {
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--fv-wizard-border-subtle);
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--fv-wizard-surface-card);
     padding: 0.2rem 0.24rem;
     display: grid;
     gap: 0.1rem;
@@ -3907,7 +4003,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
 .fv-setup-sidebar-alert {
     margin: 0;
     font-size: var(--fv-wizard-font-103);
-    color: #ffc15e;
+    color: var(--fv-wizard-color-warning);
     display: inline-flex;
     align-items: center;
     gap: 0.3rem;
@@ -3916,7 +4012,8 @@ body.fv-mobile-compact .fv-setup-field-grid {
 .fv-setup-step-list li {
     padding: 0;
     border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--fv-wizard-border-subtle);
+    background: var(--fv-wizard-row-bg);
     font-size: var(--fv-wizard-font-103);
     color: var(--fv-wizard-text-primary);
     opacity: 0.92;
@@ -3941,22 +4038,31 @@ body.fv-mobile-compact .fv-setup-field-grid {
     opacity: 0.9;
 }
 
+.fv-setup-step-list li.is-active .fv-setup-step-label {
+    font-weight: 700;
+    letter-spacing: 0.01em;
+}
+
 .fv-setup-step-list li.is-active {
-    border-color: rgba(77, 163, 255, 0.55);
-    background: rgba(77, 163, 255, 0.14);
+    border-color: rgba(var(--fv-wizard-color-info-rgb), 0.65);
+    background: rgba(var(--fv-wizard-color-info-rgb), 0.2);
+    box-shadow: inset 3px 0 0 rgba(var(--fv-wizard-color-info-rgb), 0.95), 0 0 0 1px rgba(var(--fv-wizard-color-info-rgb), 0.4);
     opacity: 1;
 }
 
 .fv-setup-step-list li.is-complete {
-    border-color: rgba(147, 225, 159, 0.4);
+    border-color: rgba(var(--fv-wizard-color-success-rgb), 0.45);
+    background: rgba(var(--fv-wizard-color-success-rgb), 0.12);
 }
 
 .fv-setup-step-list li.status-blocked {
-    border-color: rgba(255, 116, 116, 0.45);
+    border-color: rgba(var(--fv-wizard-color-danger-rgb), 0.52);
+    background: rgba(var(--fv-wizard-color-danger-rgb), 0.12);
 }
 
 .fv-setup-step-list li.status-warn {
-    border-color: rgba(255, 193, 94, 0.45);
+    border-color: rgba(var(--fv-wizard-color-warning-rgb), 0.52);
+    background: rgba(var(--fv-wizard-color-warning-rgb), 0.12);
 }
 
 .fv-setup-step-index {
@@ -3992,15 +4098,15 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-setup-step-state.is-ready {
-    border-color: rgba(147, 225, 159, 0.45);
-    color: #93e19f;
-    background: rgba(147, 225, 159, 0.08);
+    border-color: rgba(var(--fv-wizard-color-success-rgb), 0.45);
+    color: var(--fv-wizard-color-success);
+    background: rgba(var(--fv-wizard-color-success-rgb), 0.12);
 }
 
 .fv-setup-step-state.is-done {
-    border-color: rgba(147, 225, 159, 0.45);
-    color: #93e19f;
-    background: rgba(147, 225, 159, 0.08);
+    border-color: rgba(var(--fv-wizard-color-success-rgb), 0.45);
+    color: var(--fv-wizard-color-success);
+    background: rgba(var(--fv-wizard-color-success-rgb), 0.12);
 }
 
 .fv-setup-step-state.is-pending {
@@ -4010,15 +4116,15 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-setup-step-state.is-warn {
-    border-color: rgba(255, 193, 94, 0.52);
-    color: #ffc15e;
-    background: rgba(255, 193, 94, 0.09);
+    border-color: rgba(var(--fv-wizard-color-warning-rgb), 0.56);
+    color: var(--fv-wizard-color-warning);
+    background: rgba(var(--fv-wizard-color-warning-rgb), 0.14);
 }
 
 .fv-setup-step-state.is-blocked {
-    border-color: rgba(255, 116, 116, 0.56);
-    color: #ff8c8c;
-    background: rgba(255, 116, 116, 0.09);
+    border-color: rgba(var(--fv-wizard-color-danger-rgb), 0.58);
+    color: var(--fv-wizard-color-danger);
+    background: rgba(var(--fv-wizard-color-danger-rgb), 0.14);
 }
 
 .fv-setup-assistant-head {
@@ -4026,13 +4132,45 @@ body.fv-mobile-compact .fv-setup-field-grid {
     align-items: center;
     justify-content: space-between;
     gap: 0.55rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--fv-wizard-border-subtle);
     padding: 0.7rem 0.8rem;
+    background: var(--fv-wizard-shell-head-bg);
 }
 
 .fv-setup-assistant-head h4 {
     margin: 0;
     font-size: var(--fv-wizard-font-118);
+}
+
+.fv-setup-head-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.34rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.fv-setup-contrast-field {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.32rem;
+    font-size: var(--fv-wizard-font-103);
+}
+
+.fv-setup-contrast-field > span {
+    font-weight: 600;
+    color: var(--fv-wizard-text-muted);
+}
+
+#fv-setup-contrast-mode {
+    min-width: 96px;
+    min-height: 30px;
+}
+
+#fv-setup-focus-mode.is-active {
+    border-color: rgba(var(--fv-wizard-color-info-rgb), 0.58);
+    background: rgba(var(--fv-wizard-color-info-rgb), 0.22);
+    box-shadow: inset 0 0 0 1px rgba(var(--fv-wizard-color-info-rgb), 0.45);
 }
 
 .fv-setup-assistant-body {
@@ -4041,10 +4179,20 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-setup-step-delta {
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid var(--fv-wizard-border-subtle);
     padding: 0.45rem 0.8rem 0.38rem 0.8rem;
     display: grid;
     gap: 0.25rem;
+    background: var(--fv-wizard-shell-strip-bg);
+}
+
+.fv-setup-assistant-shell[data-fv-focus-mode="1"] .fv-setup-step-list li:not(.is-active) {
+    opacity: 0.68;
+    filter: saturate(0.78);
+}
+
+.fv-setup-assistant-shell[data-fv-focus-mode="1"] .fv-setup-assistant-main {
+    box-shadow: inset 0 0 0 1px rgba(var(--fv-wizard-color-info-rgb), 0.26);
 }
 
 .fv-setup-step-grid {
@@ -4054,13 +4202,86 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-setup-card {
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-env-rgb);
+    border: 1px solid rgba(var(--fv-wizard-card-accent-rgb), var(--fv-wizard-card-border-alpha));
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.02);
+    background: linear-gradient(
+        180deg,
+        rgba(var(--fv-wizard-card-accent-rgb), var(--fv-wizard-card-tint-alpha)) 0%,
+        var(--fv-wizard-surface-card) var(--fv-wizard-card-surface-stop),
+        var(--fv-wizard-card-base-bg) 100%
+    );
     padding: 0.6rem 0.65rem;
     display: grid;
     gap: 0.5rem;
     min-width: 0;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--fv-wizard-card-shadow), var(--fv-wizard-card-inset-highlight);
+}
+
+.fv-setup-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(
+        90deg,
+        rgba(var(--fv-wizard-card-accent-rgb), var(--fv-wizard-card-topline-strong-alpha)) 0%,
+        rgba(var(--fv-wizard-card-accent-rgb), var(--fv-wizard-card-topline-soft-alpha)) 70%,
+        transparent 100%
+    );
+    pointer-events: none;
+}
+
+.fv-setup-card[data-fv-card-tone="env"] {
+    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-env-rgb);
+}
+
+.fv-setup-card[data-fv-card-tone="mode"] {
+    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-mode-rgb);
+}
+
+.fv-setup-card[data-fv-card-tone="bundle"] {
+    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-bundle-rgb);
+}
+
+.fv-setup-card[data-fv-card-tone="preset"] {
+    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-preset-rgb);
+}
+
+.fv-setup-card[data-fv-card-tone="profile"] {
+    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-profile-rgb);
+}
+
+.fv-setup-card[data-fv-card-tone="import-docker"] {
+    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-import-docker-rgb);
+}
+
+.fv-setup-card[data-fv-card-tone="import-vm"] {
+    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-import-vm-rgb);
+}
+
+.fv-setup-card[data-fv-card-tone="rules-docker"] {
+    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-rules-docker-rgb);
+}
+
+.fv-setup-card[data-fv-card-tone="rules-vm"] {
+    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-rules-vm-rgb);
+}
+
+.fv-setup-card[data-fv-card-tone="behavior-docker"] {
+    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-behavior-docker-rgb);
+}
+
+.fv-setup-card[data-fv-card-tone="behavior-vm"] {
+    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-behavior-vm-rgb);
+}
+
+.fv-setup-card[data-fv-card-tone="review"] {
+    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-review-rgb);
 }
 
 .fv-setup-card h4 {
@@ -4082,15 +4303,35 @@ body.fv-mobile-compact .fv-setup-field-grid {
     gap: 0.32rem;
 }
 
+.fv-setup-chip-row.is-collapsed .fv-setup-chip.is-chip-hidden {
+    display: none;
+}
+
+.fv-setup-chip-toggle {
+    justify-self: start;
+    margin-top: 0.12rem;
+    padding: 0.16rem 0.46rem;
+    border: 1px solid var(--fv-wizard-border-subtle);
+    border-radius: 999px;
+    background: rgba(13, 21, 32, 0.84);
+    color: var(--fv-wizard-text-muted);
+    font-size: var(--fv-wizard-font-103);
+    line-height: 1.2;
+}
+
+.fv-setup-chip-toggle i {
+    margin-right: 0.2rem;
+}
+
 .fv-setup-chip {
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    border: 1px solid var(--fv-wizard-border-subtle);
     border-radius: 999px;
     padding: 0.14rem 0.45rem;
     font-size: var(--fv-wizard-font-103);
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(14, 23, 35, 0.7);
 }
 
 .fv-setup-detected-row {
@@ -4102,18 +4343,18 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-setup-chip.is-create {
-    border-color: rgba(147, 225, 159, 0.52);
-    color: #93e19f;
+    border-color: rgba(var(--fv-wizard-color-success-rgb), 0.56);
+    color: var(--fv-wizard-color-success);
 }
 
 .fv-setup-chip.is-update {
-    border-color: rgba(77, 163, 255, 0.54);
-    color: #b9dcff;
+    border-color: rgba(var(--fv-wizard-color-info-rgb), 0.56);
+    color: rgba(var(--fv-wizard-color-info-rgb), 1);
 }
 
 .fv-setup-chip.is-delete {
-    border-color: rgba(255, 116, 116, 0.58);
-    color: #ff8c8c;
+    border-color: rgba(var(--fv-wizard-color-danger-rgb), 0.62);
+    color: var(--fv-wizard-color-danger);
 }
 
 .fv-setup-route-grid,
@@ -4138,9 +4379,9 @@ body.fv-mobile-compact .fv-setup-field-grid {
 .fv-setup-quick-preset {
     min-width: 0;
     width: 100%;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--fv-wizard-border-subtle);
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.03);
+    background: linear-gradient(180deg, rgba(16, 26, 40, 0.74) 0%, rgba(10, 17, 26, 0.82) 100%);
     color: inherit;
     display: grid;
     gap: 0.18rem;
@@ -4181,32 +4422,36 @@ body.fv-mobile-compact .fv-setup-field-grid {
 
 .fv-setup-route-option,
 .fv-setup-profile-option {
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--fv-wizard-border-subtle);
     border-radius: 8px;
     padding: 0.4rem 0.45rem;
     display: grid;
     gap: 0.28rem;
     cursor: pointer;
+    background: var(--fv-wizard-surface-panel);
 }
 
 .fv-setup-env-option {
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--fv-wizard-border-subtle);
     border-radius: 8px;
     padding: 0.4rem 0.45rem;
     display: grid;
     gap: 0.28rem;
     cursor: pointer;
+    background: var(--fv-wizard-surface-panel);
 }
 
 .fv-setup-route-option.is-active,
 .fv-setup-profile-option.is-active {
-    border-color: rgba(77, 163, 255, 0.55);
-    background: rgba(77, 163, 255, 0.14);
+    border-color: rgba(var(--fv-wizard-color-info-rgb), 0.64);
+    background: rgba(var(--fv-wizard-color-info-rgb), 0.2);
+    box-shadow: inset 0 0 0 1px rgba(var(--fv-wizard-color-info-rgb), 0.45), 0 6px 16px rgba(0, 0, 0, 0.22);
 }
 
 .fv-setup-env-option.is-active {
-    border-color: rgba(77, 163, 255, 0.55);
-    background: rgba(77, 163, 255, 0.14);
+    border-color: rgba(var(--fv-wizard-color-info-rgb), 0.64);
+    background: rgba(var(--fv-wizard-color-info-rgb), 0.2);
+    box-shadow: inset 0 0 0 1px rgba(var(--fv-wizard-color-info-rgb), 0.45), 0 6px 16px rgba(0, 0, 0, 0.22);
 }
 
 .fv-setup-route-option input,
@@ -4246,15 +4491,17 @@ body.fv-mobile-compact .fv-setup-field-grid {
 
 .fv-setup-mode-toggle {
     display: inline-flex;
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    border: 1px solid var(--fv-wizard-border-subtle);
     border-radius: 8px;
     overflow: hidden;
+    background: rgba(12, 20, 31, 0.84);
 }
 
 .fv-setup-mode-toggle button {
     min-width: 110px;
     border: 0;
-    border-right: 1px solid rgba(255, 255, 255, 0.18);
+    border-right: 1px solid var(--fv-wizard-border-subtle);
+    background: transparent;
 }
 
 .fv-setup-mode-toggle button:last-child {
@@ -4262,8 +4509,17 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-setup-mode-toggle button.is-active {
-    background: rgba(77, 163, 255, 0.2);
+    background: rgba(var(--fv-wizard-color-info-rgb), 0.24);
     color: #d8ebff;
+    box-shadow: inset 0 0 0 1px rgba(var(--fv-wizard-color-info-rgb), 0.55);
+    font-weight: 700;
+}
+
+.fv-setup-quick-preset.is-active,
+.fv-setup-route-option.is-active,
+.fv-setup-profile-option.is-active,
+.fv-setup-env-option.is-active {
+    transform: translateY(-1px);
 }
 
 .fv-setup-import-actions,
@@ -4310,9 +4566,9 @@ body.fv-mobile-compact .fv-setup-field-grid {
 .fv-setup-safety-grid {
     display: grid;
     gap: 0.3rem;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--fv-wizard-border-subtle);
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--fv-wizard-surface-panel);
     padding: 0.4rem 0.45rem;
 }
 
@@ -4343,7 +4599,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
     display: grid;
     gap: 0.2rem;
     font-size: var(--fv-wizard-font-103);
-    color: #ffc15e;
+    color: var(--fv-wizard-color-warning);
 }
 
 .fv-setup-rule-row {
@@ -4351,9 +4607,10 @@ body.fv-mobile-compact .fv-setup-field-grid {
     grid-template-columns: 20px minmax(0, 1fr);
     gap: 0.35rem;
     align-items: start;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--fv-wizard-border-subtle);
     border-radius: 8px;
     padding: 0.34rem 0.4rem;
+    background: rgba(13, 20, 31, 0.72);
 }
 
 .fv-setup-rule-main,
@@ -4376,7 +4633,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-setup-rule-preview.is-match {
-    color: #93e19f;
+    color: var(--fv-wizard-color-success);
 }
 
 .fv-setup-rule-preview.is-empty {
@@ -4384,7 +4641,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-setup-rule-preview.is-error {
-    color: #ff8c8c;
+    color: var(--fv-wizard-color-danger);
 }
 
 .fv-setup-review-grid {
@@ -4400,12 +4657,34 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-setup-impact-card {
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    --fv-wizard-impact-accent-rgb: var(--fv-wizard-accent-impact-prefs-rgb);
+    border: 1px solid rgba(var(--fv-wizard-impact-accent-rgb), 0.3);
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.03);
+    background: linear-gradient(
+        180deg,
+        rgba(var(--fv-wizard-impact-accent-rgb), 0.12) 0%,
+        var(--fv-wizard-surface-card-strong) 20%,
+        var(--fv-wizard-card-base-bg) 100%
+    );
     padding: 0.42rem 0.48rem;
     display: grid;
     gap: 0.28rem;
+}
+
+.fv-setup-impact-card[data-fv-card-tone="impact-prefs"] {
+    --fv-wizard-impact-accent-rgb: var(--fv-wizard-accent-impact-prefs-rgb);
+}
+
+.fv-setup-impact-card[data-fv-card-tone="impact-imports"] {
+    --fv-wizard-impact-accent-rgb: var(--fv-wizard-accent-impact-imports-rgb);
+}
+
+.fv-setup-impact-card[data-fv-card-tone="impact-rules"] {
+    --fv-wizard-impact-accent-rgb: var(--fv-wizard-accent-impact-rules-rgb);
+}
+
+.fv-setup-impact-card[data-fv-card-tone="impact-total"] {
+    --fv-wizard-impact-accent-rgb: var(--fv-wizard-accent-impact-total-rgb);
 }
 
 .fv-setup-impact-card > h5 {
@@ -4421,17 +4700,17 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-setup-warning-box {
-    border: 1px solid rgba(255, 193, 94, 0.4);
+    border: 1px solid rgba(var(--fv-wizard-color-warning-rgb), 0.48);
     border-radius: 8px;
-    background: rgba(255, 193, 94, 0.09);
+    background: rgba(var(--fv-wizard-color-warning-rgb), 0.14);
     padding: 0.42rem 0.48rem;
     font-size: var(--fv-wizard-font-103);
 }
 
 .fv-setup-validation-box {
-    border: 1px solid rgba(255, 255, 255, 0.16);
+    border: 1px solid var(--fv-wizard-border-strong);
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--fv-wizard-surface-panel);
     padding: 0.42rem 0.48rem;
     font-size: var(--fv-wizard-font-103);
     display: grid;
@@ -4439,13 +4718,13 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-setup-validation-box.is-blocking {
-    border-color: rgba(255, 116, 116, 0.48);
-    background: rgba(255, 116, 116, 0.08);
+    border-color: rgba(var(--fv-wizard-color-danger-rgb), 0.54);
+    background: rgba(var(--fv-wizard-color-danger-rgb), 0.12);
 }
 
 .fv-setup-validation-box.is-warning {
-    border-color: rgba(255, 193, 94, 0.4);
-    background: rgba(255, 193, 94, 0.08);
+    border-color: rgba(var(--fv-wizard-color-warning-rgb), 0.5);
+    background: rgba(var(--fv-wizard-color-warning-rgb), 0.12);
 }
 
 .fv-setup-validation-title {
@@ -4454,6 +4733,41 @@ body.fv-mobile-compact .fv-setup-field-grid {
     gap: 0.3rem;
     font-size: var(--fv-wizard-font-103);
     font-weight: 700;
+}
+
+.fv-setup-inline-guidance {
+    border: 1px solid var(--fv-wizard-border-subtle);
+    border-radius: 8px;
+    background: var(--fv-wizard-surface-panel);
+    padding: 0.4rem 0.46rem;
+    margin-bottom: 0.52rem;
+    display: grid;
+    gap: 0.26rem;
+    font-size: var(--fv-wizard-font-103);
+}
+
+.fv-setup-inline-guidance.is-blocking {
+    border-color: rgba(var(--fv-wizard-color-danger-rgb), 0.52);
+    background: rgba(var(--fv-wizard-color-danger-rgb), 0.1);
+}
+
+.fv-setup-inline-guidance.is-warning {
+    border-color: rgba(var(--fv-wizard-color-warning-rgb), 0.5);
+    background: rgba(var(--fv-wizard-color-warning-rgb), 0.1);
+}
+
+.fv-setup-inline-guidance-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.26rem;
+    font-weight: 700;
+}
+
+.fv-setup-inline-guidance ul {
+    margin: 0 0 0 1rem;
+    padding: 0;
+    display: grid;
+    gap: 0.2rem;
 }
 
 .fv-setup-validation-box > ul {
@@ -4469,9 +4783,9 @@ body.fv-mobile-compact .fv-setup-field-grid {
     align-items: center;
     justify-content: space-between;
     gap: 0.35rem 0.5rem;
-    border: 1px solid rgba(77, 163, 255, 0.45);
+    border: 1px solid rgba(var(--fv-wizard-color-info-rgb), 0.5);
     border-radius: 8px;
-    background: rgba(77, 163, 255, 0.12);
+    background: rgba(var(--fv-wizard-color-info-rgb), 0.16);
     padding: 0.35rem 0.45rem;
     font-size: var(--fv-wizard-font-103);
 }
@@ -4486,30 +4800,32 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-setup-error {
-    border: 1px solid rgba(255, 116, 116, 0.5);
+    border: 1px solid rgba(var(--fv-wizard-color-danger-rgb), 0.56);
     border-radius: 6px;
-    background: rgba(255, 116, 116, 0.1);
+    background: rgba(var(--fv-wizard-color-danger-rgb), 0.13);
     padding: 0.35rem 0.45rem;
     font-size: var(--fv-wizard-font-103);
-    color: #ff8c8c;
+    color: var(--fv-wizard-color-danger);
 }
 
 .fv-setup-assistant-foot {
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    border-top: 1px solid var(--fv-wizard-border-subtle);
     padding: 0.58rem 0.8rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 0.45rem;
+    background: var(--fv-wizard-shell-strip-bg);
 }
 
 .fv-setup-nav-note {
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    border-top: 1px solid var(--fv-wizard-border-subtle);
     padding: 0.34rem 0.8rem 0.4rem 0.8rem;
     font-size: var(--fv-wizard-font-103);
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
+    background: var(--fv-wizard-shell-strip-bg);
 }
 
 .fv-setup-foot-left,
@@ -4521,8 +4837,9 @@ body.fv-mobile-compact .fv-setup-field-grid {
 
 .fv-setup-progress {
     display: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    border-top: 1px solid var(--fv-wizard-border-subtle);
     padding: 0.45rem 0.8rem 0.52rem 0.8rem;
+    background: var(--fv-wizard-shell-strip-bg);
 }
 
 .fv-setup-progress.is-visible {
@@ -4564,6 +4881,37 @@ body.fv-mobile-compact .fv-setup-field-grid {
 @media (prefers-reduced-motion: reduce) {
     .fv-setup-progress-track > span {
         transition: none;
+    }
+}
+
+@media (max-width: 860px) {
+    #fv-setup-assistant-dialog .fv-setup-assistant-shell button,
+    #fv-setup-assistant-dialog .fv-setup-assistant-shell .btn {
+        min-height: 34px;
+    }
+
+    .fv-setup-assistant-head {
+        align-items: flex-start;
+    }
+
+    .fv-setup-head-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .fv-setup-contrast-field {
+        flex-wrap: wrap;
+    }
+
+    .fv-setup-chip,
+    .fv-setup-inline-toggle,
+    .fv-setup-muted {
+        line-height: 1.4;
+    }
+
+    .fv-setup-step-jump {
+        padding-top: 0.3rem;
+        padding-bottom: 0.3rem;
     }
 }
 

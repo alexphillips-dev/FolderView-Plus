@@ -68,6 +68,9 @@ test('settings runtime persists dashboard prefs and exports handler', () => {
 test('server normalizes compact matrix dashboard layout', () => {
     assert.match(libPhp, /function normalizeDashboardLayout\(\$value\): string/);
     assert.match(libPhp, /\['classic', 'fullwidth', 'accordion', 'inset', 'compactmatrix'\]/);
+    assert.match(libPhp, /function normalizeThemeCompatibilityMode\(\$value\): string/);
+    assert.match(libPhp, /\['auto', 'host', 'safe', 'highcontrast'\]/);
+    assert.match(libPhp, /'themeCompatibilityMode'\s*=>\s*'auto'/);
 });
 
 test('dashboard runtime supports layout classes, accordion guards, and overflow metadata', () => {

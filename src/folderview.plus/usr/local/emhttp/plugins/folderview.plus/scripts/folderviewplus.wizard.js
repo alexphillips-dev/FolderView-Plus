@@ -27,6 +27,273 @@ const normalizeSetupAssistantSafetyMode = (value) => (
         : 'auto'
 );
 
+const SETUP_ASSISTANT_CONTRAST_PREFERENCES = new Set(['auto', 'normal', 'high', 'max']);
+const SETUP_ASSISTANT_CONTRAST_TIER_SEQUENCE = Object.freeze(['normal', 'high', 'max']);
+const SETUP_ASSISTANT_CONTRAST_TARGETS = Object.freeze([
+    { selector: '.fv-setup-assistant-head h4', minRatio: 4.5 },
+    { selector: '.fv-setup-card h4', minRatio: 4.5 },
+    { selector: '.fv-setup-muted', minRatio: 4.0 },
+    { selector: '.fv-setup-step-label', minRatio: 4.0 },
+    { selector: '.fv-setup-chip', minRatio: 3.5 }
+]);
+
+let setupAssistantViewportAccessibilityBound = false;
+
+const normalizeSetupAssistantContrastPreference = (value) => {
+    const normalized = String(value || '').trim().toLowerCase();
+    return SETUP_ASSISTANT_CONTRAST_PREFERENCES.has(normalized) ? normalized : 'auto';
+};
+
+const normalizeSetupAssistantContrastTier = (value) => {
+    const normalized = String(value || '').trim().toLowerCase();
+    return SETUP_ASSISTANT_CONTRAST_TIER_SEQUENCE.includes(normalized) ? normalized : 'normal';
+};
+
+const isSetupAssistantCompactViewport = () => {
+    const bodyCompact = document?.body?.classList?.contains('fv-mobile-compact') === true;
+    if (bodyCompact) {
+        return true;
+    }
+    try {
+        return window.matchMedia('(max-width: 860px)').matches;
+    } catch (_error) {
+        return window.innerWidth <= 860;
+    }
+};
+
+const parseSetupAssistantCssColor = (value) => {
+    const text = String(value || '').trim().toLowerCase();
+    if (!text || text === 'transparent') {
+        return null;
+    }
+    const rgbaMatch = text.match(/^rgba?\(\s*([0-9.]+)\s*,\s*([0-9.]+)\s*,\s*([0-9.]+)(?:\s*,\s*([0-9.]+))?\s*\)$/);
+    if (rgbaMatch) {
+        return {
+            r: Math.max(0, Math.min(255, Number(rgbaMatch[1]) || 0)),
+            g: Math.max(0, Math.min(255, Number(rgbaMatch[2]) || 0)),
+            b: Math.max(0, Math.min(255, Number(rgbaMatch[3]) || 0)),
+            a: Math.max(0, Math.min(1, rgbaMatch[4] === undefined ? 1 : Number(rgbaMatch[4]) || 0))
+        };
+    }
+    const hexMatch = text.match(/^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i);
+    if (!hexMatch) {
+        return null;
+    }
+    const hex = hexMatch[1];
+    if (hex.length === 3) {
+        return {
+            r: parseInt(`${hex[0]}${hex[0]}`, 16),
+            g: parseInt(`${hex[1]}${hex[1]}`, 16),
+            b: parseInt(`${hex[2]}${hex[2]}`, 16),
+            a: 1
+        };
+    }
+    if (hex.length === 6 || hex.length === 8) {
+        return {
+            r: parseInt(hex.slice(0, 2), 16),
+            g: parseInt(hex.slice(2, 4), 16),
+            b: parseInt(hex.slice(4, 6), 16),
+            a: hex.length === 8 ? Math.round((parseInt(hex.slice(6, 8), 16) / 255) * 1000) / 1000 : 1
+        };
+    }
+    return null;
+};
+
+const blendSetupAssistantColor = (foreground, background) => {
+    const alpha = Math.max(0, Math.min(1, Number(foreground?.a ?? 1)));
+    return {
+        r: (foreground.r * alpha) + (background.r * (1 - alpha)),
+        g: (foreground.g * alpha) + (background.g * (1 - alpha)),
+        b: (foreground.b * alpha) + (background.b * (1 - alpha)),
+        a: 1
+    };
+};
+
+const setupAssistantColorToLinear = (channel) => {
+    const value = Math.max(0, Math.min(255, Number(channel) || 0)) / 255;
+    return value <= 0.03928
+        ? value / 12.92
+        : ((value + 0.055) / 1.055) ** 2.4;
+};
+
+const getSetupAssistantLuminance = (color) => (
+    (0.2126 * setupAssistantColorToLinear(color.r))
+    + (0.7152 * setupAssistantColorToLinear(color.g))
+    + (0.0722 * setupAssistantColorToLinear(color.b))
+);
+
+const getSetupAssistantContrastRatio = (foreground, background) => {
+    const light = Math.max(getSetupAssistantLuminance(foreground), getSetupAssistantLuminance(background));
+    const dark = Math.min(getSetupAssistantLuminance(foreground), getSetupAssistantLuminance(background));
+    return (light + 0.05) / (dark + 0.05);
+};
+
+const isSetupAssistantElementVisible = (element) => {
+    if (!element) {
+        return false;
+    }
+    const style = window.getComputedStyle(element);
+    if (style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity) <= 0.01) {
+        return false;
+    }
+    const rect = element.getBoundingClientRect();
+    return rect.width > 1 && rect.height > 1;
+};
+
+const resolveSetupAssistantBackgroundColor = (element, fallback) => {
+    let current = element;
+    let color = fallback;
+    while (current && current !== document.body) {
+        const parsed = parseSetupAssistantCssColor(window.getComputedStyle(current).backgroundColor);
+        if (parsed && parsed.a > 0) {
+            color = blendSetupAssistantColor(parsed, color);
+            if (parsed.a >= 0.98) {
+                break;
+            }
+        }
+        current = current.parentElement;
+    }
+    return {
+        r: color.r,
+        g: color.g,
+        b: color.b,
+        a: 1
+    };
+};
+
+const evaluateSetupAssistantContrast = (dialog) => {
+    const fallback = parseSetupAssistantCssColor(window.getComputedStyle(dialog).backgroundColor)
+        || { r: 10, g: 14, b: 20, a: 1 };
+    let minimumRatio = Number.POSITIVE_INFINITY;
+    const failures = [];
+    for (const target of SETUP_ASSISTANT_CONTRAST_TARGETS) {
+        const elements = Array.from(dialog.querySelectorAll(target.selector)).filter((element) => isSetupAssistantElementVisible(element));
+        if (!elements.length) {
+            continue;
+        }
+        const sample = elements[0];
+        const foreground = parseSetupAssistantCssColor(window.getComputedStyle(sample).color);
+        if (!foreground) {
+            continue;
+        }
+        const background = resolveSetupAssistantBackgroundColor(sample, fallback);
+        const ratio = getSetupAssistantContrastRatio({ ...foreground, a: 1 }, background);
+        minimumRatio = Math.min(minimumRatio, ratio);
+        if (ratio < target.minRatio) {
+            failures.push({
+                selector: target.selector,
+                ratio,
+                minRatio: target.minRatio
+            });
+        }
+    }
+    return {
+        minRatio: Number.isFinite(minimumRatio) ? minimumRatio : 21,
+        failures,
+        pass: failures.length === 0
+    };
+};
+
+const applySetupAssistantContrastTier = () => {
+    const dialog = document.querySelector('#fv-setup-assistant-dialog');
+    if (!dialog || setupAssistantState.open !== true) {
+        return;
+    }
+    const preference = normalizeSetupAssistantContrastPreference(setupAssistantState.contrastPreference);
+    const candidates = preference === 'auto'
+        ? SETUP_ASSISTANT_CONTRAST_TIER_SEQUENCE
+        : [normalizeSetupAssistantContrastTier(preference)];
+    let chosenTier = candidates[candidates.length - 1] || 'normal';
+    let chosenReport = null;
+
+    for (const tier of candidates) {
+        dialog.setAttribute('data-fv-wizard-contrast-tier', tier);
+        const report = evaluateSetupAssistantContrast(dialog);
+        chosenReport = report;
+        chosenTier = tier;
+        if (report.pass) {
+            break;
+        }
+    }
+
+    setupAssistantState.contrastPreference = preference;
+    setupAssistantState.contrastTierApplied = chosenTier;
+    setupAssistantState.lastContrastReport = chosenReport;
+    dialog.setAttribute('data-fv-wizard-contrast-tier', chosenTier);
+    dialog.setAttribute('data-fv-wizard-contrast-auto', preference === 'auto' ? '1' : '0');
+    dialog.setAttribute('data-fv-wizard-contrast-score', String((chosenReport?.minRatio || 0).toFixed(2)));
+};
+
+const cycleSetupAssistantContrastPreference = () => {
+    const ordered = ['auto', 'normal', 'high', 'max'];
+    const current = normalizeSetupAssistantContrastPreference(setupAssistantState.contrastPreference);
+    const index = ordered.indexOf(current);
+    const next = ordered[(index + 1) % ordered.length];
+    setupAssistantState.contrastPreference = next;
+    renderSetupAssistant();
+};
+
+const decorateSetupAssistantChipRows = () => {
+    const root = document.getElementById('fv-setup-assistant-content');
+    if (!root) {
+        return;
+    }
+    const compact = isSetupAssistantCompactViewport();
+    if (!setupAssistantState.collapsedChipRows || typeof setupAssistantState.collapsedChipRows !== 'object') {
+        setupAssistantState.collapsedChipRows = {};
+    }
+    const rows = root.querySelectorAll('.fv-setup-chip-row[data-fv-chip-collapsible="1"]');
+    rows.forEach((row, rowIndex) => {
+        const chips = Array.from(row.querySelectorAll('.fv-setup-chip'));
+        const maxVisible = Math.max(2, Number(row.getAttribute('data-fv-chip-max')) || 4);
+        const rowKey = String(row.getAttribute('data-fv-chip-key') || `row-${rowIndex + 1}`);
+        row.setAttribute('data-fv-chip-key', rowKey);
+        row.classList.remove('is-collapsible', 'is-collapsed');
+        chips.forEach((chip) => chip.classList.remove('is-chip-hidden'));
+        const nextSibling = row.nextElementSibling;
+        if (nextSibling && nextSibling.classList.contains('fv-setup-chip-toggle')) {
+            nextSibling.remove();
+        }
+        if (!compact || chips.length <= maxVisible) {
+            delete setupAssistantState.collapsedChipRows[rowKey];
+            return;
+        }
+        const collapsed = setupAssistantState.collapsedChipRows[rowKey] !== false;
+        row.classList.add('is-collapsible');
+        if (collapsed) {
+            row.classList.add('is-collapsed');
+            chips.slice(maxVisible).forEach((chip) => chip.classList.add('is-chip-hidden'));
+        }
+        const hiddenCount = Math.max(0, chips.length - maxVisible);
+        const toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.className = 'fv-setup-chip-toggle';
+        toggle.setAttribute('data-fv-chip-toggle', rowKey);
+        toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        toggle.innerHTML = collapsed
+            ? `<i class="fa fa-angle-down"></i> Show ${hiddenCount} more`
+            : '<i class="fa fa-angle-up"></i> Show fewer';
+        row.insertAdjacentElement('afterend', toggle);
+    });
+};
+
+const bindSetupAssistantViewportAccessibilityHandlers = () => {
+    if (setupAssistantViewportAccessibilityBound) {
+        return;
+    }
+    const rerun = () => {
+        if (setupAssistantState.open !== true) {
+            return;
+        }
+        decorateSetupAssistantChipRows();
+        applySetupAssistantContrastTier();
+    };
+    $(window).off('resize.fvsetupwizardaccess').on('resize.fvsetupwizardaccess', () => {
+        window.requestAnimationFrame(rerun);
+    });
+    setupAssistantViewportAccessibilityBound = true;
+};
+
 const detectSetupAssistantDefaultsFromContext = (context = null) => {
     const source = context && typeof context === 'object' ? context : {};
     const dockerFolders = Math.max(0, Number(source.dockerFolders) || 0);
@@ -287,6 +554,12 @@ const serializeSetupAssistantDraft = () => ({
     environmentPreset: normalizeSetupAssistantEnvironmentPreset(setupAssistantState.environmentPreset),
     applyEnvironmentDefaults: setupAssistantState.applyEnvironmentDefaults !== false,
     dryRunOnly: setupAssistantState.dryRunOnly === true,
+    focusModeEnabled: setupAssistantState.focusModeEnabled !== false,
+    contrastPreference: normalizeSetupAssistantContrastPreference(setupAssistantState.contrastPreference),
+    contrastTierApplied: normalizeSetupAssistantContrastTier(setupAssistantState.contrastTierApplied),
+    collapsedChipRows: setupAssistantState.collapsedChipRows && typeof setupAssistantState.collapsedChipRows === 'object'
+        ? { ...setupAssistantState.collapsedChipRows }
+        : {},
     importPlans: {
         docker: {
             include: setupAssistantState.importPlans?.docker?.include === true,
@@ -383,6 +656,8 @@ const buildSetupAssistantPresetPayload = () => ({
     environmentPreset: normalizeSetupAssistantEnvironmentPreset(setupAssistantState.environmentPreset),
     applyEnvironmentDefaults: setupAssistantState.applyEnvironmentDefaults !== false,
     dryRunOnly: setupAssistantState.dryRunOnly === true,
+    focusModeEnabled: setupAssistantState.focusModeEnabled !== false,
+    contrastPreference: normalizeSetupAssistantContrastPreference(setupAssistantState.contrastPreference),
     importPlans: {
         docker: {
             include: setupAssistantState.importPlans?.docker?.include === true,
@@ -425,6 +700,9 @@ const applySetupAssistantPresetPayload = (payload) => {
     setupAssistantState.environmentPreset = normalizeSetupAssistantEnvironmentPreset(payload.environmentPreset);
     setupAssistantState.applyEnvironmentDefaults = payload.applyEnvironmentDefaults !== false;
     setupAssistantState.dryRunOnly = payload.dryRunOnly === true;
+    setupAssistantState.focusModeEnabled = payload.focusModeEnabled !== false;
+    setupAssistantState.contrastPreference = normalizeSetupAssistantContrastPreference(payload.contrastPreference);
+    setupAssistantState.collapsedChipRows = {};
 
     for (const type of ['docker', 'vm']) {
         const incomingPlan = payload.importPlans?.[type];
@@ -542,6 +820,12 @@ const restoreSetupAssistantDraftFromStorage = () => {
     setupAssistantState.environmentPreset = normalizeSetupAssistantEnvironmentPreset(parsed.environmentPreset);
     setupAssistantState.applyEnvironmentDefaults = parsed.applyEnvironmentDefaults !== false;
     setupAssistantState.dryRunOnly = parsed.dryRunOnly === true;
+    setupAssistantState.focusModeEnabled = parsed.focusModeEnabled !== false;
+    setupAssistantState.contrastPreference = normalizeSetupAssistantContrastPreference(parsed.contrastPreference);
+    setupAssistantState.contrastTierApplied = normalizeSetupAssistantContrastTier(parsed.contrastTierApplied);
+    setupAssistantState.collapsedChipRows = parsed.collapsedChipRows && typeof parsed.collapsedChipRows === 'object'
+        ? { ...parsed.collapsedChipRows }
+        : {};
 
     for (const type of ['docker', 'vm']) {
         const incomingPlan = parsed.importPlans?.[type];
@@ -666,6 +950,10 @@ const resetSetupAssistantState = (force = false) => {
     setupAssistantState.environmentPreset = 'home_lab';
     setupAssistantState.applyEnvironmentDefaults = route !== 'migrate';
     setupAssistantState.dryRunOnly = false;
+    setupAssistantState.focusModeEnabled = true;
+    setupAssistantState.contrastPreference = 'auto';
+    setupAssistantState.contrastTierApplied = 'normal';
+    setupAssistantState.lastContrastReport = null;
     setupAssistantState.context = {
         dockerFolders,
         vmFolders,
@@ -722,6 +1010,7 @@ const resetSetupAssistantState = (force = false) => {
     setupAssistantState.draftRestored = false;
     setupAssistantState.restoredDraftSavedAt = '';
     setupAssistantState.mobileSidebarSummaryOpen = false;
+    setupAssistantState.collapsedChipRows = {};
 };
 
 const clampSetupAssistantStep = () => {
@@ -1278,6 +1567,87 @@ const getSetupAssistantStepValidation = (stepKey = currentSetupAssistantStepKey(
     };
 };
 
+const buildSetupAssistantFixHints = (stepKey, validation) => {
+    const step = String(stepKey || '').trim();
+    const blockers = Array.isArray(validation?.blockers) ? validation.blockers : [];
+    const warnings = Array.isArray(validation?.warnings) ? validation.warnings : [];
+    const hints = [];
+    const addHint = (text) => {
+        const value = String(text || '').trim();
+        if (!value || hints.includes(value)) {
+            return;
+        }
+        hints.push(value);
+    };
+
+    blockers.forEach((message) => {
+        if (/no file is selected/i.test(message)) {
+            addHint('Use "Select Docker/VM export" and keep Include enabled only for files you want to apply.');
+            return;
+        }
+        if (/requires at least one enabled import/i.test(message)) {
+            addHint('For migrate flow, enable at least one Docker or VM import plan before continuing.');
+            return;
+        }
+        if (/between 0 and 100/i.test(message)) {
+            addHint('Set status warn threshold to a value from 0 to 100 (recommended: 60).');
+            return;
+        }
+        if (/valid profile preset/i.test(message)) {
+            addHint('Pick one of the available profile presets or disable "Apply profile defaults".');
+            return;
+        }
+        if (/valid environment preset/i.test(message)) {
+            addHint('Choose a listed environment preset or disable "Apply environment defaults".');
+            return;
+        }
+        addHint(`Resolve: ${message}`);
+    });
+
+    warnings.forEach((message) => {
+        if (/legacy format/i.test(message)) {
+            addHint('Legacy imports are supported, but inspect the diff and icon/settings fields before applying.');
+            return;
+        }
+        if (/replace mode will delete/i.test(message)) {
+            addHint('Switch import mode to Merge for a safer pass, or keep Replace only if cleanup is intentional.');
+            return;
+        }
+        if (/no changes are currently planned/i.test(message)) {
+            addHint('Enable imports/rules or adjust behavior to produce at least one planned change.');
+            return;
+        }
+        if (/dry run mode is on/i.test(message)) {
+            addHint('Turn off Dry run only when you are ready to persist changes.');
+            return;
+        }
+    });
+
+    if (!hints.length && (step === 'welcome' || step === 'review')) {
+        addHint('Use Focus mode for guided scanning and switch Contrast mode if text appears low-contrast.');
+    }
+
+    return hints.slice(0, 4);
+};
+
+const renderSetupAssistantInlineGuidance = (stepKey, validation) => {
+    const hints = buildSetupAssistantFixHints(stepKey, validation);
+    if (!hints.length) {
+        return '';
+    }
+    const isBlocking = Array.isArray(validation?.blockers) && validation.blockers.length > 0;
+    const toneClass = isBlocking ? 'is-blocking' : 'is-warning';
+    const title = isBlocking ? 'How to fix before continuing' : 'Suggested improvements';
+    return `
+        <section class="fv-setup-inline-guidance ${toneClass}" role="status" aria-live="polite" aria-atomic="true">
+            <div class="fv-setup-inline-guidance-title"><i class="fa fa-lightbulb-o"></i> ${escapeHtml(title)}</div>
+            <ul>
+                ${hints.map((hint) => `<li>${escapeHtml(hint)}</li>`).join('')}
+            </ul>
+        </section>
+    `;
+};
+
 const applySetupAssistantProfileToPrefs = (prefs, profileId) => {
     const preset = SETUP_ASSISTANT_PROFILE_PRESETS[profileId] || SETUP_ASSISTANT_PROFILE_PRESETS.balanced;
     const next = utils.normalizePrefs({
@@ -1514,7 +1884,7 @@ const renderSetupAssistantSidebarSummary = (impactSummary) => {
     return `
         <section id="fv-setup-sidebar-summary" class="fv-setup-sidebar-summary">
             <h4>What will change</h4>
-            <div class="fv-setup-chip-row">
+            <div class="fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="4" data-fv-chip-key="sidebar-summary">
                 <span class="fv-setup-chip">${escapeHtml(routeLabel)}</span>
                 <span class="fv-setup-chip">Mode: ${escapeHtml(setupAssistantState.mode)}</span>
                 <span class="fv-setup-chip">Detail: ${escapeHtml(normalizeSetupAssistantExperienceMode(setupAssistantState.experienceMode))}</span>
@@ -1577,9 +1947,9 @@ const renderSetupAssistantWelcomeStep = () => {
     `).join('');
     return `
         <div class="fv-setup-step-grid">
-            <section class="fv-setup-card">
+            <section class="fv-setup-card" data-fv-card-tone="env">
                 <h4>Detected environment</h4>
-                <div class="fv-setup-chip-row">
+                <div class="fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="3" data-fv-chip-key="welcome-environment">
                     <span class="fv-setup-chip">Docker folders: ${context.dockerFolders}</span>
                     <span class="fv-setup-chip">VM folders: ${context.vmFolders}</span>
                     <span class="fv-setup-chip">Rules: ${context.dockerRules + context.vmRules}</span>
@@ -1600,7 +1970,7 @@ const renderSetupAssistantWelcomeStep = () => {
                     <button type="button" id="fv-setup-apply-detected"><i class="fa fa-magic"></i> Use detected setup</button>
                 </div>
             </section>
-            <section class="fv-setup-card">
+            <section class="fv-setup-card" data-fv-card-tone="mode">
                 <h4>Default settings mode</h4>
                 <p class="fv-setup-muted">You can change this any time in the top bar.</p>
                 <div class="fv-setup-mode-toggle">
@@ -1615,7 +1985,7 @@ const renderSetupAssistantWelcomeStep = () => {
                     <button type="button" class="${experienceMode === 'expert' ? 'is-active' : ''}" data-fv-setup-experience="expert">Expert</button>
                 </div>
             </section>
-            <section class="fv-setup-card">
+            <section class="fv-setup-card" data-fv-card-tone="bundle">
                 <h4>Quick start bundle</h4>
                 <p class="fv-setup-muted">Pick a ready-made bundle. You can still fine tune profile and behavior in later steps.</p>
                 <div class="fv-setup-quick-preset-grid">
@@ -1623,7 +1993,7 @@ const renderSetupAssistantWelcomeStep = () => {
                 </div>
                 <p class="fv-setup-muted">Current bundle: <strong>${escapeHtml(selectedQuickPreset)}</strong></p>
             </section>
-            <section class="fv-setup-card">
+            <section class="fv-setup-card" data-fv-card-tone="preset">
                 <h4>Saved wizard presets</h4>
                 <p class="fv-setup-muted">Save your preferred setup path and reuse it later.</p>
                 <div class="fv-setup-field-grid">
@@ -1655,7 +2025,7 @@ const renderSetupAssistantWelcomeStep = () => {
 
 const renderSetupAssistantProfileStep = () => {
     return `
-        <div class="fv-setup-card">
+        <div class="fv-setup-card" data-fv-card-tone="profile">
             <h4>Choose a defaults profile</h4>
             <p class="fv-setup-muted">Profile defaults only apply if you enable them below.</p>
             <div class="fv-setup-profile-grid">
@@ -1709,10 +2079,10 @@ const renderSetupAssistantImportTypeCard = (type) => {
     const warnings = Array.isArray(plan?.warnings) ? plan.warnings : [];
 
     return `
-        <section class="fv-setup-card fv-setup-import-card">
+        <section class="fv-setup-card fv-setup-import-card" data-fv-card-tone="import-${resolvedType}">
             <div class="fv-setup-import-header">
                 <h4>${title} import</h4>
-                <div class="fv-setup-chip-row">
+                <div class="fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="3" data-fv-chip-key="import-${resolvedType}-meta">
                     <span class="fv-setup-chip ${hasFile && plan?.parsed?.legacy === true ? 'is-delete' : 'is-update'}">${escapeHtml(formatText)}</span>
                     <span class="fv-setup-chip">${hasFile ? escapeHtml(plan.parsed.mode === 'single' ? 'Single folder' : 'Full export') : 'Waiting for file'}</span>
                     <span class="fv-setup-chip">Operations: ${operationCount}</span>
@@ -1724,7 +2094,7 @@ const renderSetupAssistantImportTypeCard = (type) => {
             </div>
             <div class="fv-setup-muted">${hasFile ? escapeHtml(plan.fileName || 'Selected file') : `Choose a ${title} export JSON to preview changes.`}</div>
             ${hasFile && (fileSizeText || fileDateText) ? `
-                <div class="fv-setup-chip-row">
+                <div class="fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="3" data-fv-chip-key="import-${resolvedType}-summary">
                     ${fileSizeText ? `<span class="fv-setup-chip">Size: ${escapeHtml(fileSizeText)}</span>` : ''}
                     ${fileDateText ? `<span class="fv-setup-chip">Modified: ${escapeHtml(fileDateText)}</span>` : ''}
                 </div>
@@ -1790,7 +2160,7 @@ const renderSetupAssistantRuleTypeCard = (type) => {
     }).join('');
 
     return `
-        <section class="fv-setup-card">
+        <section class="fv-setup-card" data-fv-card-tone="rules-${resolvedType}">
             <label class="fv-setup-inline-toggle">
                 <input type="checkbox" data-fv-setup-rules-enable="${resolvedType}" ${bootstrap.enabled ? 'checked' : ''} ${suggestions.length ? '' : 'disabled'}>
                 Add starter ${title} rules (${selectedCount}/${suggestions.length} selected)
@@ -1817,7 +2187,7 @@ const renderSetupAssistantBehaviorTypeCard = (type) => {
     const title = resolvedType === 'docker' ? 'Docker' : 'VM';
     const isExpert = normalizeSetupAssistantExperienceMode(setupAssistantState.experienceMode) === 'expert';
     return `
-        <section class="fv-setup-card">
+        <section class="fv-setup-card" data-fv-card-tone="behavior-${resolvedType}">
             <h4>${title} behavior</h4>
             <div class="fv-setup-field-grid ${isExpert ? '' : 'is-guided'}">
                 <label class="fv-setup-field">
@@ -1865,9 +2235,9 @@ const renderSetupAssistantReviewStep = () => {
     setupAssistantState.reviewNotes = notes;
 
     return `
-        <div class="fv-setup-card">
+        <div class="fv-setup-card" data-fv-card-tone="review">
             <h4>Review planned changes</h4>
-            <div class="fv-setup-review-grid">
+            <div class="fv-setup-review-grid fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="4" data-fv-chip-key="review-summary">
                 <span class="fv-setup-chip">Mode: ${escapeHtml(setupAssistantState.mode)}</span>
                 <span class="fv-setup-chip">Route: ${escapeHtml(setupAssistantState.route)}</span>
                 <span class="fv-setup-chip">Quick preset: ${escapeHtml(normalizeSetupAssistantQuickPresetState(setupAssistantState.quickPreset))}</span>
@@ -1876,36 +2246,36 @@ const renderSetupAssistantReviewStep = () => {
                 <span class="fv-setup-chip">Dry run: ${setupAssistantState.dryRunOnly ? 'ON' : 'OFF'}</span>
             </div>
             <div class="fv-setup-impact-grid">
-                <article class="fv-setup-impact-card">
+                <article class="fv-setup-impact-card" data-fv-card-tone="impact-prefs">
                     <h5>Preferences</h5>
                     <p>${impact.prefs.totalChanges} changes planned</p>
-                    <div class="fv-setup-chip-row">
+                    <div class="fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="3" data-fv-chip-key="review-impact-prefs">
                         <span class="fv-setup-chip">Docker: ${impact.prefs.byType.docker.count}</span>
                         <span class="fv-setup-chip">VM: ${impact.prefs.byType.vm.count}</span>
                     </div>
                 </article>
-                <article class="fv-setup-impact-card">
+                <article class="fv-setup-impact-card" data-fv-card-tone="impact-imports">
                     <h5>Imports</h5>
                     <p>${impact.imports.totals.totalOps} operations planned</p>
-                    <div class="fv-setup-chip-row">
+                    <div class="fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="3" data-fv-chip-key="review-impact-imports">
                         <span class="fv-setup-chip is-create">Create: ${impact.imports.totals.creates}</span>
                         <span class="fv-setup-chip is-update">Update: ${impact.imports.totals.updates}</span>
                         <span class="fv-setup-chip is-delete">Delete: ${impact.imports.totals.deletes}</span>
                     </div>
                 </article>
-                <article class="fv-setup-impact-card">
+                <article class="fv-setup-impact-card" data-fv-card-tone="impact-rules">
                     <h5>Starter rules</h5>
                     <p>${impact.rules.creatable} new rules planned</p>
-                    <div class="fv-setup-chip-row">
+                    <div class="fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="3" data-fv-chip-key="review-impact-rules">
                         <span class="fv-setup-chip">Selected: ${impact.rules.selected}</span>
                         <span class="fv-setup-chip">Duplicates: ${impact.rules.duplicates}</span>
                         <span class="fv-setup-chip">Missing folder: ${impact.rules.unresolvedFolder}</span>
                     </div>
                 </article>
-                <article class="fv-setup-impact-card">
+                <article class="fv-setup-impact-card" data-fv-card-tone="impact-total">
                     <h5>Total impact</h5>
                     <p>${impact.totalPlannedChanges} net changes estimated</p>
-                    <div class="fv-setup-chip-row">
+                    <div class="fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="2" data-fv-chip-key="review-impact-total">
                         <span class="fv-setup-chip">${setupAssistantState.route === 'migrate' ? 'Migration' : 'Configuration'} flow</span>
                     </div>
                 </article>
@@ -1922,7 +2292,7 @@ const renderSetupAssistantReviewStep = () => {
             </div>
             <div class="fv-setup-import-actions">
                 <button type="button" id="fv-setup-copy-summary"><i class="fa fa-clipboard"></i> Copy summary</button>
-                <span class="fv-setup-muted">Tip: <kbd>Alt</kbd> + <kbd>Left/Right</kbd> moves steps, <kbd>Ctrl</kbd> + <kbd>Enter</kbd> applies on this step.</span>
+                <span class="fv-setup-muted">Tip: <kbd>Alt</kbd> + <kbd>Left/Right</kbd> moves steps, <kbd>Ctrl</kbd> + <kbd>Enter</kbd> applies, <kbd>Alt</kbd> + <kbd>F</kbd> toggles focus mode, <kbd>Alt</kbd> + <kbd>C</kbd> cycles contrast.</span>
             </div>
             ${notes.length ? `
                 <div class="fv-setup-warning-box">
@@ -2094,6 +2464,21 @@ const handleSetupAssistantDialogKeydown = (event) => {
         }
         return;
     }
+    if (event.altKey && String(event.key || '').toLowerCase() === 'f') {
+        event.preventDefault();
+        if (!setupAssistantState.busy && !setupAssistantState.applying) {
+            setupAssistantState.focusModeEnabled = setupAssistantState.focusModeEnabled === false;
+            renderSetupAssistant();
+        }
+        return;
+    }
+    if (event.altKey && String(event.key || '').toLowerCase() === 'c') {
+        event.preventDefault();
+        if (!setupAssistantState.busy && !setupAssistantState.applying) {
+            cycleSetupAssistantContrastPreference();
+        }
+        return;
+    }
     if ((event.ctrlKey || event.metaKey) && event.key === 'Enter' && atLastStep) {
         event.preventDefault();
         if (!setupAssistantState.busy && !setupAssistantState.applying) {
@@ -2223,6 +2608,9 @@ const renderSetupAssistant = () => {
     const primaryBlocker = hasBlockers ? String(stepValidation.blockers[0] || '').trim() : '';
     const blockerHintId = primaryBlocker ? 'fv-setup-blocker-hint' : '';
     const mobileSidebarSummaryOpen = setupAssistantState.mobileSidebarSummaryOpen === true;
+    const focusModeEnabled = setupAssistantState.focusModeEnabled !== false;
+    const contrastPreference = normalizeSetupAssistantContrastPreference(setupAssistantState.contrastPreference);
+    const inlineGuidanceHtml = renderSetupAssistantInlineGuidance(step, stepValidation);
     const restoredBanner = setupAssistantState.draftRestored
         ? `
             <div class="fv-setup-draft-banner">
@@ -2233,7 +2621,10 @@ const renderSetupAssistant = () => {
         : '';
 
     content.html(`
-        <div class="fv-setup-assistant-shell" data-fv-mobile-summary-open="${mobileSidebarSummaryOpen ? '1' : '0'}">
+        <div class="fv-setup-assistant-shell"
+            data-fv-mobile-summary-open="${mobileSidebarSummaryOpen ? '1' : '0'}"
+            data-fv-focus-mode="${focusModeEnabled ? '1' : '0'}"
+            data-fv-active-step="${escapeHtml(step)}">
             <aside class="fv-setup-assistant-sidebar">
                 <h3 id="fv-setup-assistant-title">Setup Assistant</h3>
                 <p class="fv-setup-muted">Step ${setupAssistantState.step + 1} of ${stepSequence.length}</p>
@@ -2276,27 +2667,48 @@ const renderSetupAssistant = () => {
             <section class="fv-setup-assistant-main">
                 <header class="fv-setup-assistant-head">
                     <h4>${escapeHtml(setupAssistantStepLabel(step))}</h4>
-                    <button type="button" id="fv-setup-close" ${canMove ? '' : 'disabled'}><i class="fa fa-times"></i> Close</button>
+                    <div class="fv-setup-head-actions">
+                        <button type="button"
+                            id="fv-setup-focus-mode"
+                            class="${focusModeEnabled ? 'is-active' : ''}"
+                            title="Toggle focus mode (Alt+F)"
+                            aria-pressed="${focusModeEnabled ? 'true' : 'false'}"
+                            aria-keyshortcuts="Alt+F"
+                            ${canMove ? '' : 'disabled'}>
+                            <i class="fa fa-bullseye"></i> Focus
+                        </button>
+                        <label class="fv-setup-contrast-field" for="fv-setup-contrast-mode">
+                            <span>Contrast</span>
+                            <select id="fv-setup-contrast-mode" aria-label="Wizard contrast mode (Alt+C)" aria-keyshortcuts="Alt+C" ${canMove ? '' : 'disabled'}>
+                                <option value="auto" ${contrastPreference === 'auto' ? 'selected' : ''}>Auto</option>
+                                <option value="normal" ${contrastPreference === 'normal' ? 'selected' : ''}>Normal</option>
+                                <option value="high" ${contrastPreference === 'high' ? 'selected' : ''}>High</option>
+                                <option value="max" ${contrastPreference === 'max' ? 'selected' : ''}>Max</option>
+                            </select>
+                        </label>
+                        <button type="button" id="fv-setup-close" aria-keyshortcuts="Escape" ${canMove ? '' : 'disabled'}><i class="fa fa-times"></i> Close</button>
+                    </div>
                 </header>
                 <div class="fv-setup-assistant-body">
                     ${restoredBanner}
+                    ${inlineGuidanceHtml}
                     ${renderSetupAssistantStepBody()}
                     ${renderSetupAssistantValidationBox(stepValidation)}
                 </div>
                 <div class="fv-setup-step-delta" aria-live="polite" aria-atomic="true">
                     <span class="fv-setup-muted">Live impact for this step</span>
-                    <div class="fv-setup-chip-row">
+                    <div class="fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="3" data-fv-chip-key="step-delta">
                         ${stepDeltaHtml}
                     </div>
                 </div>
                 <footer class="fv-setup-assistant-foot">
                     <div class="fv-setup-foot-left">
-                        <button type="button" id="fv-setup-prev" ${(!canMove || atFirstStep) ? 'disabled' : ''}><i class="fa fa-arrow-left"></i> Back</button>
-                        <button type="button" id="fv-setup-next" ${canNext ? '' : 'disabled'} ${blockerHintId ? `aria-describedby="${blockerHintId}"` : ''}>Next <i class="fa fa-arrow-right"></i></button>
+                        <button type="button" id="fv-setup-prev" aria-keyshortcuts="Alt+ArrowLeft" ${(!canMove || atFirstStep) ? 'disabled' : ''}><i class="fa fa-arrow-left"></i> Back</button>
+                        <button type="button" id="fv-setup-next" aria-keyshortcuts="Alt+ArrowRight" ${canNext ? '' : 'disabled'} ${blockerHintId ? `aria-describedby="${blockerHintId}"` : ''}>Next <i class="fa fa-arrow-right"></i></button>
                         <button type="button" id="fv-setup-skip-review" ${(!canMove || atLastStep) ? 'disabled' : ''}><i class="fa fa-step-forward"></i> Review</button>
                     </div>
                     <div class="fv-setup-foot-right">
-                        <button type="button" id="fv-setup-apply" ${canApply ? '' : 'disabled'} ${blockerHintId ? `aria-describedby="${blockerHintId}"` : ''}><i class="fa fa-check"></i> Apply setup</button>
+                        <button type="button" id="fv-setup-apply" aria-keyshortcuts="Control+Enter Meta+Enter" ${canApply ? '' : 'disabled'} ${blockerHintId ? `aria-describedby="${blockerHintId}"` : ''}><i class="fa fa-check"></i> Apply setup</button>
                     </div>
                 </footer>
                 <div class="fv-setup-nav-note" ${blockerHintId ? `id="${blockerHintId}"` : ''} role="status" aria-live="polite">
@@ -2317,6 +2729,9 @@ const renderSetupAssistant = () => {
 
     overlay.show();
     dialog.show().attr('aria-hidden', 'false');
+    bindSetupAssistantViewportAccessibilityHandlers();
+    decorateSetupAssistantChipRows();
+    applySetupAssistantContrastTier();
     bindSetupAssistantEvents();
     dialog.off('keydown.fvsetupa11y').on('keydown.fvsetupa11y', handleSetupAssistantDialogKeydown);
     persistSetupAssistantDraft();
@@ -2755,6 +3170,26 @@ const bindSetupAssistantEvents = () => {
 
     root.find('#fv-setup-close').off('click.fvsetup').on('click.fvsetup', () => {
         closeSetupAssistant();
+    });
+    root.find('#fv-setup-focus-mode').off('click.fvsetup').on('click.fvsetup', () => {
+        setupAssistantState.focusModeEnabled = setupAssistantState.focusModeEnabled === false;
+        rerender();
+    });
+    root.find('#fv-setup-contrast-mode').off('change.fvsetup').on('change.fvsetup', (event) => {
+        setupAssistantState.contrastPreference = normalizeSetupAssistantContrastPreference($(event.currentTarget).val());
+        rerender();
+    });
+    root.find('[data-fv-chip-toggle]').off('click.fvsetup').on('click.fvsetup', (event) => {
+        const rowKey = String($(event.currentTarget).attr('data-fv-chip-toggle') || '').trim();
+        if (!rowKey) {
+            return;
+        }
+        if (!setupAssistantState.collapsedChipRows || typeof setupAssistantState.collapsedChipRows !== 'object') {
+            setupAssistantState.collapsedChipRows = {};
+        }
+        setupAssistantState.collapsedChipRows[rowKey] = !(setupAssistantState.collapsedChipRows[rowKey] !== false);
+        decorateSetupAssistantChipRows();
+        persistSetupAssistantDraft();
     });
     root.find('#fv-setup-discard-draft').off('click.fvsetup').on('click.fvsetup', () => {
         clearSetupAssistantDraft();

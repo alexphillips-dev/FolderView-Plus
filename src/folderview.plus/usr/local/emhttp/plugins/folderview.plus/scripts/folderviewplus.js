@@ -667,6 +667,11 @@ const setupAssistantState = {
     environmentPreset: 'home_lab',
     applyEnvironmentDefaults: true,
     dryRunOnly: false,
+    focusModeEnabled: true,
+    contrastPreference: 'auto',
+    contrastTierApplied: 'normal',
+    lastContrastReport: null,
+    collapsedChipRows: {},
     context: null,
     importPlans: {
         docker: null,
@@ -707,9 +712,257 @@ let settingsThemeReflowBound = false;
 let settingsThemeReflowObserver = null;
 let settingsThemeReflowTimer = null;
 let actionDockAutoCollapseTimer = null;
+let lastThemeResolverSnapshot = null;
+let themeColorParserCanvasContext = null;
 const MOBILE_SETTINGS_BREAKPOINT_PX = 760;
 const MOBILE_LAYOUT_BREAKPOINT_PX = 1100;
 const MOBILE_LAYOUT_COARSE_BREAKPOINT_PX = 1600;
+const THEME_COMPATIBILITY_MODE_OPTIONS = Object.freeze(['auto', 'host', 'safe', 'highcontrast']);
+const THEME_COMPATIBILITY_MODE_WEIGHT = Object.freeze({
+    host: 0,
+    auto: 1,
+    safe: 2,
+    highcontrast: 3
+});
+const THEME_CONTRAST_RULES = Object.freeze({
+    textPrimary: 4.5,
+    textMuted: 3.0,
+    textDim: 2.7,
+    statusStarted: 3.0,
+    statusPaused: 3.0,
+    statusStopped: 3.0
+});
+
+const normalizeThemeCompatibilityMode = (value) => {
+    if (utils && typeof utils.normalizeThemeCompatibilityMode === 'function') {
+        return utils.normalizeThemeCompatibilityMode(value);
+    }
+    const normalized = String(value || '').trim().toLowerCase();
+    return THEME_COMPATIBILITY_MODE_OPTIONS.includes(normalized) ? normalized : 'auto';
+};
+
+const getThemeCompatibilityModeWeight = (value) => {
+    const normalized = normalizeThemeCompatibilityMode(value);
+    return Number(THEME_COMPATIBILITY_MODE_WEIGHT[normalized] ?? 1);
+};
+
+const getEffectiveThemeCompatibilityMode = () => {
+    const dockerPrefs = utils.normalizePrefs(prefsByType?.docker || {});
+    const vmPrefs = utils.normalizePrefs(prefsByType?.vm || {});
+    const dockerMode = normalizeThemeCompatibilityMode(dockerPrefs.themeCompatibilityMode);
+    const vmMode = normalizeThemeCompatibilityMode(vmPrefs.themeCompatibilityMode);
+    return getThemeCompatibilityModeWeight(dockerMode) >= getThemeCompatibilityModeWeight(vmMode)
+        ? dockerMode
+        : vmMode;
+};
+
+const clampThemeChannel = (value) => {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) {
+        return 0;
+    }
+    return Math.min(255, Math.max(0, Math.round(parsed)));
+};
+
+const clampThemeAlpha = (value) => {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) {
+        return 1;
+    }
+    return Math.min(1, Math.max(0, parsed));
+};
+
+const getThemeColorParserContext = () => {
+    if (themeColorParserCanvasContext) {
+        return themeColorParserCanvasContext;
+    }
+    try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1;
+        canvas.height = 1;
+        themeColorParserCanvasContext = canvas.getContext('2d');
+    } catch (_error) {
+        themeColorParserCanvasContext = null;
+    }
+    return themeColorParserCanvasContext;
+};
+
+const parseThemeColorToRgba = (value) => {
+    const raw = String(value || '').trim();
+    if (!raw || raw === 'transparent' || raw === 'currentcolor') {
+        return null;
+    }
+    const hexMatch = raw.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+    if (hexMatch) {
+        const body = hexMatch[1];
+        if (body.length === 3) {
+            return {
+                r: clampThemeChannel(parseInt(`${body[0]}${body[0]}`, 16)),
+                g: clampThemeChannel(parseInt(`${body[1]}${body[1]}`, 16)),
+                b: clampThemeChannel(parseInt(`${body[2]}${body[2]}`, 16)),
+                a: 1
+            };
+        }
+        return {
+            r: clampThemeChannel(parseInt(body.slice(0, 2), 16)),
+            g: clampThemeChannel(parseInt(body.slice(2, 4), 16)),
+            b: clampThemeChannel(parseInt(body.slice(4, 6), 16)),
+            a: 1
+        };
+    }
+    const rgbMatch = raw.match(/^rgba?\(([^)]+)\)$/i);
+    if (rgbMatch) {
+        const channels = rgbMatch[1].split(',').map((part) => part.trim());
+        if (channels.length >= 3) {
+            return {
+                r: clampThemeChannel(channels[0]),
+                g: clampThemeChannel(channels[1]),
+                b: clampThemeChannel(channels[2]),
+                a: clampThemeAlpha(channels[3] ?? 1)
+            };
+        }
+    }
+    const parserContext = getThemeColorParserContext();
+    if (!parserContext) {
+        return null;
+    }
+    parserContext.fillStyle = '#000000';
+    parserContext.fillStyle = raw;
+    const normalized = String(parserContext.fillStyle || '').trim();
+    if (!normalized) {
+        return null;
+    }
+    if (normalized === raw) {
+        const normalizedRgb = raw.match(/^rgba?\(([^)]+)\)$/i);
+        if (normalizedRgb) {
+            const channels = normalizedRgb[1].split(',').map((part) => part.trim());
+            if (channels.length >= 3) {
+                return {
+                    r: clampThemeChannel(channels[0]),
+                    g: clampThemeChannel(channels[1]),
+                    b: clampThemeChannel(channels[2]),
+                    a: clampThemeAlpha(channels[3] ?? 1)
+                };
+            }
+        }
+    }
+    return parseThemeColorToRgba(normalized);
+};
+
+const themeRgbaToCss = (color, alphaOverride = null) => {
+    if (!color) {
+        return '';
+    }
+    const alpha = alphaOverride === null ? clampThemeAlpha(color.a ?? 1) : clampThemeAlpha(alphaOverride);
+    if (alpha >= 0.999) {
+        return `rgb(${clampThemeChannel(color.r)}, ${clampThemeChannel(color.g)}, ${clampThemeChannel(color.b)})`;
+    }
+    return `rgba(${clampThemeChannel(color.r)}, ${clampThemeChannel(color.g)}, ${clampThemeChannel(color.b)}, ${alpha.toFixed(3).replace(/0+$/, '').replace(/\.$/, '')})`;
+};
+
+const themeRgbaLuminance = (color) => {
+    if (!color) {
+        return 0;
+    }
+    const normalizeChannel = (channel) => {
+        const value = clampThemeChannel(channel) / 255;
+        return value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+    };
+    const r = normalizeChannel(color.r);
+    const g = normalizeChannel(color.g);
+    const b = normalizeChannel(color.b);
+    return (0.2126 * r) + (0.7152 * g) + (0.0722 * b);
+};
+
+const themeContrastRatio = (left, right) => {
+    if (!left || !right) {
+        return 1;
+    }
+    const luminanceLeft = themeRgbaLuminance(left);
+    const luminanceRight = themeRgbaLuminance(right);
+    const bright = Math.max(luminanceLeft, luminanceRight);
+    const dark = Math.min(luminanceLeft, luminanceRight);
+    return (bright + 0.05) / (dark + 0.05);
+};
+
+const themeBlendColors = (foreground, background, alpha = 0.65) => {
+    if (!foreground && !background) {
+        return null;
+    }
+    if (!foreground) {
+        return background;
+    }
+    if (!background) {
+        return foreground;
+    }
+    const blend = clampThemeAlpha(alpha);
+    const inv = 1 - blend;
+    return {
+        r: clampThemeChannel((foreground.r * blend) + (background.r * inv)),
+        g: clampThemeChannel((foreground.g * blend) + (background.g * inv)),
+        b: clampThemeChannel((foreground.b * blend) + (background.b * inv)),
+        a: 1
+    };
+};
+
+const resolveThemeColorCandidate = (styleSources, candidates, fallbackColor) => {
+    const sourceList = Array.isArray(styleSources) ? styleSources : [];
+    const candidateList = Array.isArray(candidates) ? candidates : [];
+    for (const candidate of candidateList) {
+        const value = String(candidate || '').trim();
+        if (!value) {
+            continue;
+        }
+        if (value.startsWith('--')) {
+            for (const style of sourceList) {
+                if (!style || typeof style.getPropertyValue !== 'function') {
+                    continue;
+                }
+                const tokenValue = String(style.getPropertyValue(value) || '').trim();
+                const parsedToken = parseThemeColorToRgba(tokenValue);
+                if (parsedToken) {
+                    return parsedToken;
+                }
+            }
+            continue;
+        }
+        const parsedRaw = parseThemeColorToRgba(value);
+        if (parsedRaw) {
+            return parsedRaw;
+        }
+    }
+    return fallbackColor || null;
+};
+
+const resolveThemeStatusColor = (name, preferred, background, contrastThreshold, fallbackList) => {
+    const preferredRatio = themeContrastRatio(preferred, background);
+    if (preferredRatio >= contrastThreshold) {
+        return {
+            color: preferred,
+            ratio: preferredRatio,
+            autoHealed: false,
+            reason: `${name}:native`
+        };
+    }
+    const fallbackCandidates = Array.isArray(fallbackList) ? fallbackList : [];
+    for (const candidate of fallbackCandidates) {
+        const ratio = themeContrastRatio(candidate, background);
+        if (ratio >= contrastThreshold) {
+            return {
+                color: candidate,
+                ratio,
+                autoHealed: true,
+                reason: `${name}:fallback`
+            };
+        }
+    }
+    return {
+        color: preferred,
+        ratio: preferredRatio,
+        autoHealed: false,
+        reason: `${name}:unresolved`
+    };
+};
 
 const supportsTouchInput = () => (
     ('ontouchstart' in window)
@@ -785,6 +1038,7 @@ const initCompactMobileLayoutGuard = () => {
 };
 
 const applySettingsThemeAwareReflow = () => {
+    applyResolvedThemeTokens('settings-reflow');
     syncCompactMobileLayoutClass();
     enforceNoHorizontalOverflow();
     try {
@@ -853,6 +1107,291 @@ const initThemeAwareSettingsReflow = () => {
             media.addListener(() => queueSettingsThemeAwareReflow('prefers-color-scheme'));
         }
     }
+};
+
+const buildThemePaletteForMode = ({
+    mode = 'auto',
+    classification = 'dark',
+    hostText = null,
+    hostBackground = null,
+    accent = null
+} = {}) => {
+    const isDark = classification === 'dark';
+    const safeDark = {
+        textPrimary: parseThemeColorToRgba('#e7eef9'),
+        textMuted: parseThemeColorToRgba('#c5d4e8'),
+        textDim: parseThemeColorToRgba('#a7bad1'),
+        borderSubtle: parseThemeColorToRgba('rgba(255,255,255,0.16)'),
+        borderFaint: parseThemeColorToRgba('rgba(255,255,255,0.1)'),
+        surfaceMuted: parseThemeColorToRgba('rgba(255,255,255,0.03)'),
+        surfaceStrong: parseThemeColorToRgba('rgba(0,0,0,0.2)'),
+        surfacePanel: parseThemeColorToRgba('rgba(0,0,0,0.14)'),
+        accent: accent || parseThemeColorToRgba('#4da3ff'),
+        accentSoft: parseThemeColorToRgba('rgba(77,163,255,0.2)'),
+        focusRing: parseThemeColorToRgba('rgba(103,214,255,0.42)'),
+        runtimeForeground: parseThemeColorToRgba('#e7eef9'),
+        statusPaused: parseThemeColorToRgba('#d09a24'),
+        statusStopped: parseThemeColorToRgba('#ff7474')
+    };
+    const safeLight = {
+        textPrimary: parseThemeColorToRgba('#101926'),
+        textMuted: parseThemeColorToRgba('#304154'),
+        textDim: parseThemeColorToRgba('#56667a'),
+        borderSubtle: parseThemeColorToRgba('rgba(10,16,28,0.24)'),
+        borderFaint: parseThemeColorToRgba('rgba(10,16,28,0.16)'),
+        surfaceMuted: parseThemeColorToRgba('rgba(16,24,38,0.04)'),
+        surfaceStrong: parseThemeColorToRgba('rgba(255,255,255,0.72)'),
+        surfacePanel: parseThemeColorToRgba('rgba(255,255,255,0.82)'),
+        accent: accent || parseThemeColorToRgba('#2f78d8'),
+        accentSoft: parseThemeColorToRgba('rgba(47,120,216,0.15)'),
+        focusRing: parseThemeColorToRgba('rgba(48,116,214,0.44)'),
+        runtimeForeground: parseThemeColorToRgba('#101926'),
+        statusPaused: parseThemeColorToRgba('#8a5d00'),
+        statusStopped: parseThemeColorToRgba('#c62828')
+    };
+    const baseSafe = isDark ? safeDark : safeLight;
+    const hostForeground = hostText || baseSafe.textPrimary;
+    const hostSurface = hostBackground || (isDark ? parseThemeColorToRgba('#0f1825') : parseThemeColorToRgba('#f6f8fc'));
+    const hostPalette = {
+        textPrimary: hostForeground,
+        textMuted: themeBlendColors(hostForeground, hostSurface, 0.72) || baseSafe.textMuted,
+        textDim: themeBlendColors(hostForeground, hostSurface, 0.58) || baseSafe.textDim,
+        borderSubtle: baseSafe.borderSubtle,
+        borderFaint: baseSafe.borderFaint,
+        surfaceMuted: baseSafe.surfaceMuted,
+        surfaceStrong: baseSafe.surfaceStrong,
+        surfacePanel: baseSafe.surfacePanel,
+        accent: accent || baseSafe.accent,
+        accentSoft: baseSafe.accentSoft,
+        focusRing: baseSafe.focusRing,
+        runtimeForeground: hostForeground,
+        statusPaused: baseSafe.statusPaused,
+        statusStopped: baseSafe.statusStopped
+    };
+    if (mode === 'host') {
+        return hostPalette;
+    }
+    if (mode === 'highcontrast') {
+        return {
+            ...baseSafe,
+            textPrimary: isDark ? parseThemeColorToRgba('#ffffff') : parseThemeColorToRgba('#000000'),
+            textMuted: isDark ? parseThemeColorToRgba('#f0f5ff') : parseThemeColorToRgba('#111827'),
+            textDim: isDark ? parseThemeColorToRgba('#dce8ff') : parseThemeColorToRgba('#1f2937'),
+            borderSubtle: isDark ? parseThemeColorToRgba('rgba(255,255,255,0.28)') : parseThemeColorToRgba('rgba(0,0,0,0.34)'),
+            borderFaint: isDark ? parseThemeColorToRgba('rgba(255,255,255,0.2)') : parseThemeColorToRgba('rgba(0,0,0,0.24)'),
+            focusRing: isDark ? parseThemeColorToRgba('rgba(122,208,255,0.85)') : parseThemeColorToRgba('rgba(34,94,196,0.78)'),
+            runtimeForeground: isDark ? parseThemeColorToRgba('#ffffff') : parseThemeColorToRgba('#000000'),
+            statusPaused: isDark ? parseThemeColorToRgba('#ffd36b') : parseThemeColorToRgba('#7a4e00'),
+            statusStopped: isDark ? parseThemeColorToRgba('#ff8a8a') : parseThemeColorToRgba('#a61b1b')
+        };
+    }
+    return baseSafe;
+};
+
+const stringifyThemeTokens = (tokens) => ({
+    textPrimary: themeRgbaToCss(tokens.textPrimary),
+    textMuted: themeRgbaToCss(tokens.textMuted),
+    textDim: themeRgbaToCss(tokens.textDim),
+    borderSubtle: themeRgbaToCss(tokens.borderSubtle),
+    borderFaint: themeRgbaToCss(tokens.borderFaint),
+    surfaceMuted: themeRgbaToCss(tokens.surfaceMuted),
+    surfaceStrong: themeRgbaToCss(tokens.surfaceStrong),
+    surfacePanel: themeRgbaToCss(tokens.surfacePanel),
+    accent: themeRgbaToCss(tokens.accent),
+    accentSoft: themeRgbaToCss(tokens.accentSoft),
+    focusRing: themeRgbaToCss(tokens.focusRing),
+    runtimeForeground: themeRgbaToCss(tokens.runtimeForeground),
+    statusStarted: themeRgbaToCss(tokens.runtimeForeground),
+    statusPaused: themeRgbaToCss(tokens.statusPaused),
+    statusStopped: themeRgbaToCss(tokens.statusStopped)
+});
+
+const buildResolvedThemeSnapshot = (modeInput = null) => {
+    const root = document.getElementById('fv-settings-root') || document.body || document.documentElement;
+    const html = document.documentElement;
+    const body = document.body;
+    const rootStyle = root ? window.getComputedStyle(root) : null;
+    const htmlStyle = html ? window.getComputedStyle(html) : null;
+    const bodyStyle = body ? window.getComputedStyle(body) : null;
+    const styleSources = [rootStyle, bodyStyle, htmlStyle].filter(Boolean);
+
+    const requestedMode = normalizeThemeCompatibilityMode(modeInput || getEffectiveThemeCompatibilityMode());
+    const rootBackground = parseThemeColorToRgba(rootStyle?.backgroundColor)
+        || parseThemeColorToRgba(bodyStyle?.backgroundColor)
+        || parseThemeColorToRgba(htmlStyle?.backgroundColor)
+        || parseThemeColorToRgba('#0f1825');
+    const hostForeground = resolveThemeColorCandidate(
+        styleSources,
+        ['--text', '--fvplus-theme-foreground'],
+        parseThemeColorToRgba(rootStyle?.color) || parseThemeColorToRgba(bodyStyle?.color) || parseThemeColorToRgba('#e7eef9')
+    );
+    const hostAccent = resolveThemeColorCandidate(
+        styleSources,
+        ['--orange', '--fvplus-dashboard-accent', '--accent'],
+        parseThemeColorToRgba('#4da3ff')
+    );
+    const backgroundLuminance = themeRgbaLuminance(rootBackground);
+    const foregroundLuminance = themeRgbaLuminance(hostForeground);
+    const classification = backgroundLuminance <= 0.45
+        ? 'dark'
+        : (backgroundLuminance >= 0.58 ? 'light' : 'mixed');
+    const hostContrast = themeContrastRatio(hostForeground, rootBackground);
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    const paletteByMode = buildThemePaletteForMode({
+        mode: requestedMode === 'auto' ? 'host' : requestedMode,
+        classification,
+        hostText: hostForeground,
+        hostBackground: rootBackground,
+        accent: hostAccent
+    });
+    const safePalette = buildThemePaletteForMode({
+        mode: 'safe',
+        classification,
+        hostText: hostForeground,
+        hostBackground: rootBackground,
+        accent: hostAccent
+    });
+    const highContrastPalette = buildThemePaletteForMode({
+        mode: 'highcontrast',
+        classification,
+        hostText: hostForeground,
+        hostBackground: rootBackground,
+        accent: hostAccent
+    });
+
+    let selectedPalette = paletteByMode;
+    let modeApplied = requestedMode;
+    const contrastChecks = [];
+    const evaluateChecks = (palette) => {
+        const checks = [];
+        const evaluate = (name, color, minRatio) => {
+            const ratio = themeContrastRatio(color, rootBackground);
+            const passed = ratio >= minRatio;
+            checks.push({ name, ratio: Number(ratio.toFixed(3)), minRatio, passed });
+            return passed;
+        };
+        evaluate('textPrimary', palette.textPrimary, THEME_CONTRAST_RULES.textPrimary);
+        evaluate('textMuted', palette.textMuted, THEME_CONTRAST_RULES.textMuted);
+        evaluate('textDim', palette.textDim, THEME_CONTRAST_RULES.textDim);
+        return checks;
+    };
+
+    const initialChecks = evaluateChecks(selectedPalette);
+    contrastChecks.push(...initialChecks);
+    const initialFailed = initialChecks.filter((check) => !check.passed);
+    if (requestedMode === 'auto' && initialFailed.length > 0) {
+        selectedPalette = initialFailed.some((check) => check.name === 'textPrimary')
+            ? highContrastPalette
+            : safePalette;
+        modeApplied = selectedPalette === highContrastPalette ? 'highcontrast' : 'safe';
+        contrastChecks.splice(0, contrastChecks.length, ...evaluateChecks(selectedPalette));
+    }
+
+    const statusStarted = resolveThemeStatusColor(
+        'statusStarted',
+        selectedPalette.runtimeForeground,
+        rootBackground,
+        THEME_CONTRAST_RULES.statusStarted,
+        [safePalette.runtimeForeground, highContrastPalette.runtimeForeground]
+    );
+    const statusPaused = resolveThemeStatusColor(
+        'statusPaused',
+        selectedPalette.statusPaused,
+        rootBackground,
+        THEME_CONTRAST_RULES.statusPaused,
+        [safePalette.statusPaused, highContrastPalette.statusPaused]
+    );
+    const statusStopped = resolveThemeStatusColor(
+        'statusStopped',
+        selectedPalette.statusStopped,
+        rootBackground,
+        THEME_CONTRAST_RULES.statusStopped,
+        [safePalette.statusStopped, highContrastPalette.statusStopped]
+    );
+    selectedPalette.runtimeForeground = statusStarted.color;
+    selectedPalette.statusPaused = statusPaused.color;
+    selectedPalette.statusStopped = statusStopped.color;
+
+    const warnings = [];
+    if (hostContrast < THEME_CONTRAST_RULES.textPrimary) {
+        warnings.push(`Host text contrast is low (${hostContrast.toFixed(2)}:1).`);
+    }
+    for (const check of contrastChecks) {
+        if (!check.passed) {
+            warnings.push(`Contrast check failed for ${check.name} (${check.ratio}:1 < ${check.minRatio}:1).`);
+        }
+    }
+    if (statusStarted.autoHealed || statusPaused.autoHealed || statusStopped.autoHealed) {
+        warnings.push('Status colors were auto-healed to preserve contrast.');
+    }
+
+    return {
+        generatedAt: new Date().toISOString(),
+        requestedMode,
+        appliedMode: modeApplied,
+        prefersDark,
+        classification,
+        rootLuminance: Number(backgroundLuminance.toFixed(4)),
+        hostTextLuminance: Number(foregroundLuminance.toFixed(4)),
+        hostContrast: Number(hostContrast.toFixed(3)),
+        autoHealed: modeApplied !== requestedMode || statusStarted.autoHealed || statusPaused.autoHealed || statusStopped.autoHealed,
+        contrastChecks,
+        statusChecks: {
+            started: { ratio: Number(statusStarted.ratio.toFixed(3)), minRatio: THEME_CONTRAST_RULES.statusStarted, autoHealed: statusStarted.autoHealed },
+            paused: { ratio: Number(statusPaused.ratio.toFixed(3)), minRatio: THEME_CONTRAST_RULES.statusPaused, autoHealed: statusPaused.autoHealed },
+            stopped: { ratio: Number(statusStopped.ratio.toFixed(3)), minRatio: THEME_CONTRAST_RULES.statusStopped, autoHealed: statusStopped.autoHealed }
+        },
+        tokens: stringifyThemeTokens(selectedPalette),
+        warnings
+    };
+};
+
+const applyResolvedThemeTokens = (reason = 'runtime') => {
+    const snapshot = buildResolvedThemeSnapshot(getEffectiveThemeCompatibilityMode());
+    lastThemeResolverSnapshot = snapshot;
+    const root = document.getElementById('fv-settings-root') || document.body;
+    const html = document.documentElement;
+    if (!root || !html) {
+        return snapshot;
+    }
+    const tokens = snapshot.tokens || {};
+    const rootTokenMap = {
+        '--fvplus-theme-text-primary': tokens.textPrimary || '',
+        '--fvplus-theme-text-muted': tokens.textMuted || '',
+        '--fvplus-theme-text-dim': tokens.textDim || '',
+        '--fvplus-theme-border-subtle': tokens.borderSubtle || '',
+        '--fvplus-theme-border-faint': tokens.borderFaint || '',
+        '--fvplus-theme-surface-muted': tokens.surfaceMuted || '',
+        '--fvplus-theme-surface-strong': tokens.surfaceStrong || '',
+        '--fvplus-theme-surface-panel': tokens.surfacePanel || '',
+        '--fvplus-theme-accent': tokens.accent || '',
+        '--fvplus-theme-accent-soft': tokens.accentSoft || '',
+        '--fvplus-theme-focus-ring': tokens.focusRing || '',
+        '--fvplus-runtime-theme-foreground': tokens.runtimeForeground || '',
+        '--fvplus-runtime-status-started': tokens.statusStarted || '',
+        '--fvplus-runtime-status-paused': tokens.statusPaused || '',
+        '--fvplus-runtime-status-stopped': tokens.statusStopped || ''
+    };
+    for (const [token, value] of Object.entries(rootTokenMap)) {
+        root.style.setProperty(token, value);
+        html.style.setProperty(token, value);
+    }
+    root.setAttribute('data-fv-theme-mode', String(snapshot.appliedMode || 'auto'));
+    root.setAttribute('data-fv-theme-class', String(snapshot.classification || 'mixed'));
+    root.setAttribute('data-fv-theme-autoheal', snapshot.autoHealed ? '1' : '0');
+    trackDiagnosticsEvent({
+        eventType: 'theme_resolver_apply',
+        details: {
+            source: String(reason || 'runtime'),
+            requestedMode: snapshot.requestedMode,
+            appliedMode: snapshot.appliedMode,
+            class: snapshot.classification,
+            autoHealed: snapshot.autoHealed === true,
+            warnings: Array.isArray(snapshot.warnings) ? snapshot.warnings.length : 0
+        }
+    });
+    return snapshot;
 };
 if (requestClient && typeof requestClient.configureSecurityHeaders === 'function') {
     requestClient.configureSecurityHeaders({
@@ -8920,7 +9459,9 @@ const renderRuntimeControls = (type) => {
     $(`#${type}-performance-mode`).prop('checked', prefs.performanceMode === true);
     $(`#${type}-lazy-preview-enabled`).prop('checked', prefs.lazyPreviewEnabled === true);
     $(`#${type}-lazy-preview-threshold`).val(String(prefs.lazyPreviewThreshold || 30));
+    $(`#${type}-theme-compat-mode`).val(normalizeThemeCompatibilityMode(prefs.themeCompatibilityMode));
     syncRuntimeDependentFields(type);
+    applyResolvedThemeTokens(`render-runtime-${type}`);
 };
 
 const renderStatusControls = (type) => {
@@ -10580,6 +11121,8 @@ const changeRuntimePref = async (type, key, value) => {
     } else if (key === 'lazyPreviewThreshold') {
         const parsed = Number(value);
         next.lazyPreviewThreshold = Number.isFinite(parsed) ? Math.min(200, Math.max(10, Math.round(parsed))) : current.lazyPreviewThreshold;
+    } else if (key === 'themeCompatibilityMode') {
+        next.themeCompatibilityMode = normalizeThemeCompatibilityMode(value);
     } else {
         return;
     }
@@ -10591,6 +11134,10 @@ const changeRuntimePref = async (type, key, value) => {
     try {
         prefsByType[type] = await postPrefs(type, next);
         renderRuntimeControls(type);
+        if (key === 'themeCompatibilityMode') {
+            applyResolvedThemeTokens(`pref-${type}`);
+            queueSettingsThemeAwareReflow(`theme-compat-${type}`);
+        }
     } catch (error) {
         renderRuntimeControls(type);
         showError('Runtime preference save failed', error);
@@ -12056,12 +12603,27 @@ const copyIssueReport = async () => {
 
 const THEME_DIAGNOSTIC_TOKENS = Object.freeze([
     '--fvplus-theme-foreground',
+    '--fvplus-runtime-theme-foreground',
+    '--fvplus-runtime-status-started',
+    '--fvplus-runtime-status-paused',
+    '--fvplus-runtime-status-stopped',
     '--fvplus-status-started',
     '--fvplus-status-paused',
     '--fvplus-status-stopped',
     '--fvplus-folder-status-started',
     '--fvplus-folder-status-paused',
     '--fvplus-folder-status-stopped',
+    '--fvplus-theme-text-primary',
+    '--fvplus-theme-text-muted',
+    '--fvplus-theme-text-dim',
+    '--fvplus-theme-border-subtle',
+    '--fvplus-theme-border-faint',
+    '--fvplus-theme-surface-muted',
+    '--fvplus-theme-surface-strong',
+    '--fvplus-theme-surface-panel',
+    '--fvplus-theme-accent',
+    '--fvplus-theme-accent-soft',
+    '--fvplus-theme-focus-ring',
     '--fvplus-settings-text-primary',
     '--fvplus-settings-text-muted',
     '--fvplus-settings-surface-muted',
@@ -12079,8 +12641,10 @@ const readThemeTokenSnapshot = (styleDeclaration) => {
 const collectThemeDiagnostics = () => {
     const html = document.documentElement;
     const body = document.body;
+    const root = document.getElementById('fv-settings-root');
     const htmlStyle = html ? window.getComputedStyle(html) : null;
     const bodyStyle = body ? window.getComputedStyle(body) : null;
+    const rootStyle = root ? window.getComputedStyle(root) : null;
     const firstStartedState = document.querySelector('.folder-state.fv-folder-state-started');
     const firstStoppedState = document.querySelector('.folder-state.fv-folder-state-stopped');
     const firstStartedIcon = document.querySelector('i.folder-load-status.started');
@@ -12105,6 +12669,13 @@ const collectThemeDiagnostics = () => {
     if (startedSampleColor && stoppedSampleColor && startedSampleColor === stoppedSampleColor) {
         warnings.push('Runtime started/stopped state colors currently resolve to the same computed color.');
     }
+    const resolverSnapshot = applyResolvedThemeTokens('diagnostics');
+    if (resolverSnapshot?.autoHealed) {
+        warnings.push(`Theme resolver auto-heal applied mode ${resolverSnapshot.appliedMode}.`);
+    }
+    if (Array.isArray(resolverSnapshot?.warnings)) {
+        warnings.push(...resolverSnapshot.warnings);
+    }
 
     return {
         generatedAt: new Date().toISOString(),
@@ -12123,14 +12694,23 @@ const collectThemeDiagnostics = () => {
         } : {},
         tokens: {
             html: htmlTokens,
-            body: readThemeTokenSnapshot(bodyStyle)
+            body: readThemeTokenSnapshot(bodyStyle),
+            root: readThemeTokenSnapshot(rootStyle)
         },
         samples: {
+            rootBackgroundColor: rootStyle ? String(rootStyle.backgroundColor || '').trim() : '',
+            rootTextColor: rootStyle ? String(rootStyle.color || '').trim() : '',
             startedStateColor: startedSampleColor,
             stoppedStateColor: stoppedSampleColor,
             startedIconColor: firstStartedIcon ? window.getComputedStyle(firstStartedIcon).color : '',
             stoppedIconColor: firstStoppedIcon ? window.getComputedStyle(firstStoppedIcon).color : ''
         },
+        modeByType: {
+            docker: normalizeThemeCompatibilityMode(prefsByType?.docker?.themeCompatibilityMode),
+            vm: normalizeThemeCompatibilityMode(prefsByType?.vm?.themeCompatibilityMode),
+            effective: normalizeThemeCompatibilityMode(getEffectiveThemeCompatibilityMode())
+        },
+        resolver: resolverSnapshot,
         runtimeSelectors: {
             startedStateCount: document.querySelectorAll('.folder-state.fv-folder-state-started').length,
             stoppedStateCount: document.querySelectorAll('.folder-state.fv-folder-state-stopped').length,
@@ -12153,6 +12733,58 @@ const runThemeDiagnostics = () => {
     } catch (error) {
         showError('Theme diagnostics failed', error);
         return null;
+    }
+};
+
+const runThemeSelfHeal = async () => {
+    try {
+        const snapshot = buildResolvedThemeSnapshot('auto');
+        const contrastFailures = Array.isArray(snapshot?.contrastChecks)
+            ? snapshot.contrastChecks.filter((check) => !check.passed)
+            : [];
+        const statusFailures = [
+            snapshot?.statusChecks?.started,
+            snapshot?.statusChecks?.paused,
+            snapshot?.statusChecks?.stopped
+        ].filter((check) => check && Number(check.ratio || 0) < Number(check.minRatio || 0));
+        const needsHeal = contrastFailures.length > 0 || statusFailures.length > 0 || snapshot?.autoHealed === true;
+        if (!needsHeal) {
+            applyResolvedThemeTokens('self-heal-noop');
+            swal({
+                title: 'Theme looks healthy',
+                text: 'No fallback changes were needed.',
+                type: 'success',
+                timer: 1800,
+                showConfirmButton: false
+            });
+            runThemeDiagnostics();
+            return;
+        }
+        const targetMode = contrastFailures.some((check) => check.name === 'textPrimary')
+            ? 'highcontrast'
+            : 'safe';
+        for (const type of ['docker', 'vm']) {
+            const current = utils.normalizePrefs(prefsByType[type] || {});
+            if (normalizeThemeCompatibilityMode(current.themeCompatibilityMode) === targetMode) {
+                continue;
+            }
+            const next = {
+                ...current,
+                themeCompatibilityMode: targetMode
+            };
+            prefsByType[type] = await postPrefs(type, next);
+            renderRuntimeControls(type);
+        }
+        applyResolvedThemeTokens('self-heal-apply');
+        queueSettingsThemeAwareReflow('theme-self-heal');
+        runThemeDiagnostics();
+        swal({
+            title: 'Theme self-heal applied',
+            text: `Fallback mode switched to ${targetMode}.`,
+            type: 'success'
+        });
+    } catch (error) {
+        showError('Theme self-heal failed', error);
     }
 };
 
@@ -12476,6 +13108,7 @@ window.toggleAllTemplateSelections = toggleAllTemplateSelections;
 window.bulkTemplateAction = bulkTemplateAction;
 window.runDiagnostics = runDiagnostics;
 window.runThemeDiagnostics = runThemeDiagnostics;
+window.runThemeSelfHeal = runThemeSelfHeal;
 window.repairDiagnostics = repairDiagnostics;
 window.exportDiagnostics = exportDiagnostics;
 window.exportSupportBundle = exportSupportBundle;

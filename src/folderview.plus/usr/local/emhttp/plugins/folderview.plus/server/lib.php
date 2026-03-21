@@ -1589,6 +1589,7 @@
             'performanceMode' => false,
             'lazyPreviewEnabled' => false,
             'lazyPreviewThreshold' => 30,
+            'themeCompatibilityMode' => 'auto',
             'dashboard' => [
                 'layout' => 'classic',
                 'expandToggle' => true,
@@ -1725,6 +1726,14 @@
         return 'classic';
     }
 
+    function normalizeThemeCompatibilityMode($value): string {
+        $normalized = strtolower(trim((string)$value));
+        if (in_array($normalized, ['auto', 'host', 'safe', 'highcontrast'], true)) {
+            return $normalized;
+        }
+        return 'auto';
+    }
+
     function normalizeTypePrefs(array $prefs): array {
         $normalized = defaultTypePrefs();
         $sortMode = $prefs['sortMode'] ?? $normalized['sortMode'];
@@ -1790,6 +1799,7 @@
             ? normalizeBool($prefs['lazyPreviewEnabled'] ?? false, false)
             : false;
         $normalized['lazyPreviewThreshold'] = normalizeIntInRange($prefs['lazyPreviewThreshold'] ?? 30, 10, 200, 30);
+        $normalized['themeCompatibilityMode'] = normalizeThemeCompatibilityMode($prefs['themeCompatibilityMode'] ?? 'auto');
         $dashboardIncoming = is_array($prefs['dashboard'] ?? null) ? $prefs['dashboard'] : [];
         $normalized['dashboard'] = [
             'layout' => normalizeDashboardLayout($dashboardIncoming['layout'] ?? 'classic'),
@@ -4248,6 +4258,7 @@
                 'performanceMode' => normalizeBool($prefs['performanceMode'] ?? false, false),
                 'lazyPreviewEnabled' => normalizeBool($prefs['lazyPreviewEnabled'] ?? false, false),
                 'lazyPreviewThreshold' => normalizeIntInRange($prefs['lazyPreviewThreshold'] ?? 30, 10, 200, 30),
+                'themeCompatibilityMode' => normalizeThemeCompatibilityMode($prefs['themeCompatibilityMode'] ?? 'auto'),
                 'health' => [
                     'cardsEnabled' => normalizeBool($prefs['health']['cardsEnabled'] ?? true, true),
                     'runtimeBadgeEnabled' => normalizeBool($prefs['health']['runtimeBadgeEnabled'] ?? false, false),

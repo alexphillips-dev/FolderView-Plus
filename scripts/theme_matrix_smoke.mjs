@@ -294,6 +294,19 @@ const runScenarioChecks = async (page, { label, browserName, mobile, zoom }) => 
         }
 
         const errors = [];
+        const contrastTier = String(dialog.getAttribute('data-fv-wizard-contrast-tier') || '').trim();
+        if (!['normal', 'high', 'max'].includes(contrastTier)) {
+            errors.push(`Wizard contrast tier attribute is invalid (${contrastTier || 'missing'}).`);
+        }
+        const focusModeButton = dialog.querySelector('#fv-setup-focus-mode');
+        if (!focusModeButton) {
+            errors.push('Wizard focus mode toggle is missing.');
+        }
+        const contrastSelect = dialog.querySelector('#fv-setup-contrast-mode');
+        if (!contrastSelect) {
+            errors.push('Wizard contrast mode selector is missing.');
+        }
+
         const fallbackBg = parseColor(window.getComputedStyle(dialog).backgroundColor) || { r: 10, g: 14, b: 20, a: 1 };
         const resolveBackground = (element) => {
             let current = element;
@@ -336,6 +349,7 @@ const runScenarioChecks = async (page, { label, browserName, mobile, zoom }) => 
         verifyContrast('.fv-setup-profile-help', 4.0, 'Profile helper text');
         verifyContrast('.fv-setup-step-list li', 4.0, 'Step list labels');
         verifyContrast('.fv-setup-chip', 3.5, 'Summary chips');
+        verifyContrast('.fv-setup-inline-guidance', 4.0, 'Inline guidance text');
 
         const disabledControls = Array.from(dialog.querySelectorAll('button:disabled, input:disabled, select:disabled'))
             .filter((element) => isVisible(element))
@@ -388,6 +402,13 @@ const runScenarioChecks = async (page, { label, browserName, mobile, zoom }) => 
             const dialogRect = dialog.getBoundingClientRect();
             if (sidebarRect.width > dialogRect.width) {
                 errors.push('Wizard sidebar width exceeds dialog width in mobile mode.');
+            }
+        }
+
+        if (context.mobile === true) {
+            const chipToggle = dialog.querySelector('.fv-setup-chip-toggle');
+            if (!chipToggle) {
+                errors.push('Wizard mobile chip collapse toggle was not rendered.');
             }
         }
 

@@ -29,6 +29,20 @@ test('settings page onclick handlers are exported on window', () => {
     assert.deepEqual(missing, []);
 });
 
+test('settings page exposes theme fallback controls and runtime self-heal action', () => {
+    assert.match(page, /id="docker-theme-compat-mode"/);
+    assert.match(page, /id="vm-theme-compat-mode"/);
+    assert.match(page, /Theme fallback mode/);
+    assert.match(page, /changeRuntimePref\('docker', 'themeCompatibilityMode', this\.value\)/);
+    assert.match(page, /changeRuntimePref\('vm', 'themeCompatibilityMode', this\.value\)/);
+    assert.match(page, /onclick="runThemeSelfHeal\(\)"/);
+    assert.match(script, /const normalizeThemeCompatibilityMode = \(value\) =>/);
+    assert.match(script, /const getEffectiveThemeCompatibilityMode = \(\) =>/);
+    assert.match(script, /const runThemeSelfHeal = async \(\) =>/);
+    assert.match(script, /window\.runThemeSelfHeal = runThemeSelfHeal;/);
+    assert.match(script, /else if \(key === 'themeCompatibilityMode'\) \{/);
+});
+
 test('backup endpoint supports scheduler and rollback actions', () => {
     assert.match(backupPhp, /action\s*===\s*'run_schedule'/);
     assert.match(backupPhp, /runScheduledBackups/);

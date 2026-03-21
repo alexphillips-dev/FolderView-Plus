@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.21.23">
+<!ENTITY version "2026.03.21.24">
 <!ENTITY md5 "23aca1be94a47ac4339f7fde187420e1">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.21.24
+- Maintenance: Release rollup since main `2026.03.21.20`; merged all `dev` improvements through `2026.03.21.23` into `main`.
+- Feature: Added first-install starter-template flows for Docker and VM with one-click scaffold creation from the empty-state and quick-start panels.
+- Feature: Added selectable starter-template deployment so users can choose exactly which stock folders to create.
+- Fix: Corrected starter-template popup row alignment across themes (left-aligned, full-width options with stable checkbox/icon layout).
+
 
 ###2026.03.21.23
 - Fix: Starter-template selection popup now forces left-aligned, full-width option rows so checkbox entries render correctly across host themes.

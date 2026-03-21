@@ -455,6 +455,7 @@ test('normalizePrefs includes live refresh, performance mode, and backup schedul
     assert.equal(prefs.performanceMode, false);
     assert.equal(prefs.lazyPreviewEnabled, false);
     assert.equal(prefs.lazyPreviewThreshold, 30);
+    assert.equal(prefs.themeCompatibilityMode, 'auto');
     assert.deepEqual(prefs.backupSchedule, {
         enabled: false,
         intervalHours: 24,
@@ -486,6 +487,28 @@ test('normalizePrefs includes live refresh, performance mode, and backup schedul
     assert.equal(prefs.settingsMode, 'basic');
     assert.deepEqual(prefs.expandedFolderState, {});
     assert.equal(prefs.appColumnWidth, 'standard');
+});
+
+test('normalizePrefs supports theme compatibility mode and sanitizes invalid values', () => {
+    const hostMode = utils.normalizePrefs({
+        themeCompatibilityMode: 'host'
+    });
+    assert.equal(hostMode.themeCompatibilityMode, 'host');
+
+    const safeMode = utils.normalizePrefs({
+        themeCompatibilityMode: 'SAFE'
+    });
+    assert.equal(safeMode.themeCompatibilityMode, 'safe');
+
+    const highContrastMode = utils.normalizePrefs({
+        themeCompatibilityMode: 'highcontrast'
+    });
+    assert.equal(highContrastMode.themeCompatibilityMode, 'highcontrast');
+
+    const fallbackMode = utils.normalizePrefs({
+        themeCompatibilityMode: 'broken-mode'
+    });
+    assert.equal(fallbackMode.themeCompatibilityMode, 'auto');
 });
 
 test('normalizePrefs clamps application width mode', () => {

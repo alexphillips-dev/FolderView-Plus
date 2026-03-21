@@ -1,8 +1,8 @@
 :root {
-    --fvplus-theme-foreground: var(--text, currentColor);
-    --fvplus-status-started: var(--fvplus-theme-foreground);
-    --fvplus-status-paused: #b8860b;
-    --fvplus-status-stopped: #ff4d4d;
+    --fvplus-theme-foreground: var(--fvplus-runtime-theme-foreground, var(--text, currentColor));
+    --fvplus-status-started: var(--fvplus-runtime-status-started, var(--fvplus-theme-foreground));
+    --fvplus-status-paused: var(--fvplus-runtime-status-paused, #b8860b);
+    --fvplus-status-stopped: var(--fvplus-runtime-status-stopped, #ff4d4d);
     --fvplus-graph-cpu: var(--folder-view3-graph-cpu, #2b8da3);
     --fvplus-graph-mem: var(--folder-view3-graph-mem, #5d6db6);
     --fvplus-col-resizer-line: rgba(142, 158, 184, 0.84);

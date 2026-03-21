@@ -157,6 +157,15 @@ if (!empty($fvplusRuntimeConflicts)) {
                         <span>Lazy threshold</span>
                         <input id="docker-lazy-preview-threshold" type="number" min="10" max="200" step="1" onchange="changeRuntimePref('docker', 'lazyPreviewThreshold', this.value)">
                     </label>
+                    <label class="setting-select" for="docker-theme-compat-mode">
+                        <span>Theme fallback mode</span>
+                        <select id="docker-theme-compat-mode" onchange="changeRuntimePref('docker', 'themeCompatibilityMode', this.value)">
+                            <option value="auto">Auto (recommended)</option>
+                            <option value="host">Force host theme</option>
+                            <option value="safe">Force safe palette</option>
+                            <option value="highcontrast">High contrast safe</option>
+                        </select>
+                    </label>
                     <div class="setting-help">Use performance mode + lazy previews for larger libraries to reduce render overhead.</div>
                 </div>
                 <div class="settings-mini-card">
@@ -352,6 +361,15 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <label id="vm-lazy-preview-threshold-row" class="setting-inline-number runtime-dependent">
                         <span>Lazy threshold</span>
                         <input id="vm-lazy-preview-threshold" type="number" min="10" max="200" step="1" onchange="changeRuntimePref('vm', 'lazyPreviewThreshold', this.value)">
+                    </label>
+                    <label class="setting-select" for="vm-theme-compat-mode">
+                        <span>Theme fallback mode</span>
+                        <select id="vm-theme-compat-mode" onchange="changeRuntimePref('vm', 'themeCompatibilityMode', this.value)">
+                            <option value="auto">Auto (recommended)</option>
+                            <option value="host">Force host theme</option>
+                            <option value="safe">Force safe palette</option>
+                            <option value="highcontrast">High contrast safe</option>
+                        </select>
                     </label>
                     <div class="setting-help">Use performance mode + lazy previews for larger libraries to reduce render overhead.</div>
                 </div>
@@ -874,6 +892,7 @@ if (!empty($fvplusRuntimeConflicts)) {
     <div class="backup-actions">
         <button type="button" onclick="runDiagnostics()"><i class="fa fa-stethoscope"></i> Run health check</button>
         <button type="button" onclick="runThemeDiagnostics()"><i class="fa fa-paint-brush"></i> Theme diagnostics</button>
+        <button type="button" onclick="runThemeSelfHeal()"><i class="fa fa-magic"></i> Theme self-heal now</button>
         <button type="button" onclick="repairDiagnostics('sync_docker_order')"><i class="fa fa-sort"></i> Rebuild Docker order index</button>
         <button type="button" onclick="repairDiagnostics('normalize_prefs')"><i class="fa fa-wrench"></i> Validate and normalize prefs</button>
         <button type="button" onclick="repairDiagnostics('repair_paths')"><i class="fa fa-folder-open"></i> Repair plugin paths</button>

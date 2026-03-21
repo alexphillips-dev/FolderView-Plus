@@ -16,12 +16,15 @@ const settingsCss = read('src/folderview.plus/usr/local/emhttp/plugins/foldervie
 const settingsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js');
 
 test('runtime css defines canonical fvplus status tokens and legacy graph aliases', () => {
-    assert.match(dockerCss, /--fvplus-status-started:\s*var\(--fvplus-theme-foreground\)/);
-    assert.match(dockerCss, /--fvplus-status-paused:\s*#b8860b/);
-    assert.match(dockerCss, /--fvplus-status-stopped:\s*#ff4d4d/);
+    assert.match(dockerCss, /--fvplus-theme-foreground:\s*var\(--fvplus-runtime-theme-foreground,\s*var\(--text,\s*currentColor\)\)/);
+    assert.match(dockerCss, /--fvplus-status-started:\s*var\(--fvplus-runtime-status-started,\s*var\(--fvplus-theme-foreground\)\)/);
+    assert.match(dockerCss, /--fvplus-status-paused:\s*var\(--fvplus-runtime-status-paused,\s*#b8860b\)/);
+    assert.match(dockerCss, /--fvplus-status-stopped:\s*var\(--fvplus-runtime-status-stopped,\s*#ff4d4d\)/);
     assert.match(dockerCss, /--fvplus-graph-cpu:\s*var\(--folder-view3-graph-cpu,\s*#2b8da3\)/);
     assert.match(dockerCss, /--fvplus-graph-mem:\s*var\(--folder-view3-graph-mem,\s*#5d6db6\)/);
-    assert.match(vmCss, /--fvplus-status-started:\s*var\(--fvplus-theme-foreground\)/);
+    assert.match(vmCss, /--fvplus-theme-foreground:\s*var\(--fvplus-runtime-theme-foreground,\s*var\(--text,\s*currentColor\)\)/);
+    assert.match(vmCss, /--fvplus-status-started:\s*var\(--fvplus-runtime-status-started,\s*var\(--fvplus-theme-foreground\)\)/);
+    assert.match(dashboardCss, /--fvplus-status-started:\s*var\(--fvplus-runtime-status-started,\s*var\(--fvplus-theme-foreground\)\)/);
 });
 
 test('status state classes resolve through css variables instead of hardcoded runtime values', () => {
@@ -57,4 +60,7 @@ test('theme-change observers trigger deterministic reflow across runtime and set
     assert.match(dashboardJs, /const bindDashboardThemeReflowHandlers/);
     assert.match(settingsJs, /const queueSettingsThemeAwareReflow/);
     assert.match(settingsJs, /const initThemeAwareSettingsReflow/);
+    assert.match(settingsJs, /const buildResolvedThemeSnapshot = \(modeInput = null\) =>/);
+    assert.match(settingsJs, /const applyResolvedThemeTokens = \(reason = 'runtime'\) =>/);
+    assert.match(settingsJs, /const runThemeSelfHeal = async \(\) =>/);
 });

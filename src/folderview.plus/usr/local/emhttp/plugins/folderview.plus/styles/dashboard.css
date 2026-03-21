@@ -1,5 +1,5 @@
 :root {
-    --fvplus-theme-foreground: var(--text, currentColor);
+    --fvplus-theme-foreground: var(--fvplus-runtime-theme-foreground, var(--text, currentColor));
     --fvplus-dashboard-surface-tint: rgba(255, 255, 255, 0.04);
     --fvplus-dashboard-border-muted: rgba(224, 230, 239, 0.18);
     --fvplus-dashboard-quick-action-border: rgba(224, 230, 239, 0.24);
@@ -18,9 +18,9 @@
     --fvplus-dashboard-stopped-border: rgba(255, 77, 77, 0.45);
     --fvplus-dashboard-stopped-bg: rgba(255, 77, 77, 0.1);
     --fvplus-dashboard-quick-rail-top: 0px;
-    --fvplus-status-started: var(--fvplus-theme-foreground);
-    --fvplus-status-paused: #b8860b;
-    --fvplus-status-stopped: #ff4d4d;
+    --fvplus-status-started: var(--fvplus-runtime-status-started, var(--fvplus-theme-foreground));
+    --fvplus-status-paused: var(--fvplus-runtime-status-paused, #b8860b);
+    --fvplus-status-stopped: var(--fvplus-runtime-status-stopped, #ff4d4d);
 }
 
 .folder-storage {

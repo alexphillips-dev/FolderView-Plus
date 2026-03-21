@@ -1,21 +1,45 @@
 :root {
-    --fvplus-settings-text-primary: var(--text, currentColor);
-    --fvplus-settings-text-muted: #cfd9e7;
-    --fvplus-settings-text-dim: #b7c5d7;
-    --fvplus-settings-border-subtle: rgba(255, 255, 255, 0.12);
-    --fvplus-settings-border-faint: rgba(255, 255, 255, 0.08);
-    --fvplus-settings-surface-muted: rgba(255, 255, 255, 0.02);
-    --fvplus-settings-surface-strong: rgba(0, 0, 0, 0.2);
-    --fvplus-settings-accent: rgba(77, 163, 255, 0.72);
-    --fvplus-settings-accent-soft: rgba(77, 163, 255, 0.18);
+    --fvplus-settings-safe-text-primary: #e7eef9;
+    --fvplus-settings-safe-text-muted: #cfd9e7;
+    --fvplus-settings-safe-text-dim: #b7c5d7;
+    --fvplus-settings-safe-border-subtle: rgba(255, 255, 255, 0.12);
+    --fvplus-settings-safe-border-faint: rgba(255, 255, 255, 0.08);
+    --fvplus-settings-safe-surface-muted: rgba(255, 255, 255, 0.02);
+    --fvplus-settings-safe-surface-strong: rgba(0, 0, 0, 0.2);
+    --fvplus-settings-safe-accent: rgba(77, 163, 255, 0.72);
+    --fvplus-settings-safe-accent-soft: rgba(77, 163, 255, 0.18);
+    --fvplus-settings-safe-focus-ring: rgba(103, 214, 255, 0.35);
+    --fvplus-settings-safe-surface-panel: rgba(0, 0, 0, 0.14);
+
+    --fvplus-theme-text-primary: var(--text, currentColor);
+    --fvplus-theme-text-muted: var(--fvplus-settings-safe-text-muted);
+    --fvplus-theme-text-dim: var(--fvplus-settings-safe-text-dim);
+    --fvplus-theme-border-subtle: var(--fvplus-settings-safe-border-subtle);
+    --fvplus-theme-border-faint: var(--fvplus-settings-safe-border-faint);
+    --fvplus-theme-surface-muted: var(--fvplus-settings-safe-surface-muted);
+    --fvplus-theme-surface-strong: var(--fvplus-settings-safe-surface-strong);
+    --fvplus-theme-accent: var(--fvplus-settings-safe-accent);
+    --fvplus-theme-accent-soft: var(--fvplus-settings-safe-accent-soft);
+    --fvplus-theme-focus-ring: var(--fvplus-settings-safe-focus-ring);
+    --fvplus-theme-surface-panel: var(--fvplus-settings-safe-surface-panel);
+
+    --fvplus-settings-text-primary: var(--fvplus-theme-text-primary, var(--fvplus-settings-safe-text-primary));
+    --fvplus-settings-text-muted: var(--fvplus-theme-text-muted, var(--fvplus-settings-safe-text-muted));
+    --fvplus-settings-text-dim: var(--fvplus-theme-text-dim, var(--fvplus-settings-safe-text-dim));
+    --fvplus-settings-border-subtle: var(--fvplus-theme-border-subtle, var(--fvplus-settings-safe-border-subtle));
+    --fvplus-settings-border-faint: var(--fvplus-theme-border-faint, var(--fvplus-settings-safe-border-faint));
+    --fvplus-settings-surface-muted: var(--fvplus-theme-surface-muted, var(--fvplus-settings-safe-surface-muted));
+    --fvplus-settings-surface-strong: var(--fvplus-theme-surface-strong, var(--fvplus-settings-safe-surface-strong));
+    --fvplus-settings-accent: var(--fvplus-theme-accent, var(--fvplus-settings-safe-accent));
+    --fvplus-settings-accent-soft: var(--fvplus-theme-accent-soft, var(--fvplus-settings-safe-accent-soft));
     --fvplus-settings-warning: #ffd26f;
     --fvplus-settings-warning-soft: rgba(255, 193, 94, 0.08);
     --fvplus-settings-warning-border: rgba(255, 193, 94, 0.45);
     --fvplus-settings-success: #8de0a6;
     --fvplus-settings-danger: #ff7f7f;
     --fvplus-settings-danger-border: rgba(255, 116, 116, 0.5);
-    --fvplus-settings-focus-ring: rgba(103, 214, 255, 0.35);
-    --fvplus-settings-surface-panel: rgba(0, 0, 0, 0.14);
+    --fvplus-settings-focus-ring: var(--fvplus-theme-focus-ring, var(--fvplus-settings-safe-focus-ring));
+    --fvplus-settings-surface-panel: var(--fvplus-theme-surface-panel, var(--fvplus-settings-safe-surface-panel));
 }
 
 .custom-css {

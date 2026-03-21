@@ -48,3 +48,12 @@ test('theme compatibility: setup wizard enforces theme-safe dark contrast tokens
         /#fv-setup-assistant-dialog\s+\.fv-setup-assistant-shell button,\s*\n#fv-setup-assistant-dialog\s+\.fv-setup-assistant-shell \.btn\s*\{[\s\S]*color:\s*var\(--fv-wizard-text-primary\)/
     );
 });
+
+test('theme compatibility: semantic settings tokens use resolver-first fallback chain', () => {
+    assert.match(settingsCss, /--fvplus-theme-text-primary:\s*var\(--text,\s*currentColor\)/);
+    assert.match(settingsCss, /--fvplus-settings-text-primary:\s*var\(--fvplus-theme-text-primary,\s*var\(--fvplus-settings-safe-text-primary\)\)/);
+    assert.match(settingsCss, /--fvplus-settings-text-muted:\s*var\(--fvplus-theme-text-muted,\s*var\(--fvplus-settings-safe-text-muted\)\)/);
+    assert.match(settingsCss, /--fvplus-settings-border-subtle:\s*var\(--fvplus-theme-border-subtle,\s*var\(--fvplus-settings-safe-border-subtle\)\)/);
+    assert.match(settingsCss, /--fvplus-settings-surface-muted:\s*var\(--fvplus-theme-surface-muted,\s*var\(--fvplus-settings-safe-surface-muted\)\)/);
+    assert.match(settingsCss, /--fvplus-settings-accent:\s*var\(--fvplus-theme-accent,\s*var\(--fvplus-settings-safe-accent\)\)/);
+});

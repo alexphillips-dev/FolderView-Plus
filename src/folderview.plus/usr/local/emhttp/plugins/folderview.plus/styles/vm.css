@@ -1,8 +1,8 @@
 :root {
-    --fvplus-theme-foreground: var(--text, currentColor);
-    --fvplus-status-started: var(--fvplus-theme-foreground);
-    --fvplus-status-paused: #b8860b;
-    --fvplus-status-stopped: #ff4d4d;
+    --fvplus-theme-foreground: var(--fvplus-runtime-theme-foreground, var(--text, currentColor));
+    --fvplus-status-started: var(--fvplus-runtime-status-started, var(--fvplus-theme-foreground));
+    --fvplus-status-paused: var(--fvplus-runtime-status-paused, #b8860b);
+    --fvplus-status-stopped: var(--fvplus-runtime-status-stopped, #ff4d4d);
     --fvplus-health-badge-border: rgba(255, 255, 255, 0.2);
     --fvplus-health-badge-bg: rgba(255, 255, 255, 0.04);
     --fvplus-health-warning-border: rgba(255, 193, 94, 0.58);

@@ -5,13 +5,30 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.21.18">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
+<!ENTITY version "2026.03.21.20">
 <!ENTITY md5 "2161fdff4c6903dcf4b8ed916c4396a4">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.21.20
+- Maintenance: Release rollup since main `2026.03.21.10`; merged all `dev` improvements through `2026.03.21.18` into `main`.
+- Performance: Reduced main-thread stalls with shared frame/idle scheduling and batched persistence across Docker, VM, dashboard, and settings paths.
+- Performance: Improved large-library editing with chunked member-list rendering and worker-backed regex matching in folder editor flows.
+- Fix: Hardened fresh-install folder flows to prevent sparse-config edit failures, new-folder typing lag, and runtime app-name truncation regressions.
+- Quality: Brought VM runtime behavior and guard coverage in line with Docker for folder name/dropdown handling and core folder actions.
+
+
+###2026.03.21.19
+- Maintenance: Release rollup since main `2026.03.21.10`; merged all `dev` improvements through `2026.03.21.18` into `main`.
+- Performance: Reduced UI stalls via shared frame/idle schedulers and batched state persistence across Docker, VM, dashboard, and settings flows.
+- Performance: Improved folder-editor responsiveness on large libraries with chunked member rendering and worker-backed regex matching.
+- UX: Deferred heavy icon-manifest hydration until first picker open to improve initial settings/edit load time.
+- Fix: Hardened fresh-install/new-folder flows to prevent sparse-config edit failures, typing lag, and severe runtime name-column truncation.
+- Parity: Aligned VM runtime behavior with Docker for dropdown/name-column handling and expanded parity guard coverage.
+
 
 ###2026.03.21.18
 - Maintenance: batch storage writes and smooth folder editor rendering.
@@ -2323,7 +2340,7 @@
     </CHANGES>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

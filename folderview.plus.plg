@@ -19,15 +19,13 @@
 - Performance: Improved large-library editing with chunked member-list rendering and worker-backed regex matching in folder editor flows.
 - Fix: Hardened fresh-install folder flows to prevent sparse-config edit failures, new-folder typing lag, and runtime app-name truncation regressions.
 - Quality: Brought VM runtime behavior and guard coverage in line with Docker for folder name/dropdown handling and core folder actions.
-
+- Feature: Added fresh-install starter-template actions (Docker/VM) to auto-create stock folders with built-in icons.
 
 ###2026.03.21.19
-- Maintenance: Release rollup since main `2026.03.21.10`; merged all `dev` improvements through `2026.03.21.18` into `main`.
-- Performance: Reduced UI stalls via shared frame/idle schedulers and batched state persistence across Docker, VM, dashboard, and settings flows.
-- Performance: Improved folder-editor responsiveness on large libraries with chunked member rendering and worker-backed regex matching.
-- UX: Deferred heavy icon-manifest hydration until first picker open to improve initial settings/edit load time.
-- Fix: Hardened fresh-install/new-folder flows to prevent sparse-config edit failures, typing lag, and severe runtime name-column truncation.
-- Parity: Aligned VM runtime behavior with Docker for dropdown/name-column handling and expanded parity guard coverage.
+- Feature: Added fresh-install `Templates` empty-state actions for Docker and VM to create starter folder sets in one click.
+- UX: Added first-run quick-path buttons for `Docker templates` and `VM templates` alongside create/import/wizard actions.
+- Compatibility: Starter template presets now use built-in FolderView Plus icon assets (`/images/icons/folder-*.svg`) for consistent stock visuals.
+- Regression guard: Expanded settings binding tests to enforce template-action wiring and starter-template helper presence.
 
 
 ###2026.03.21.18

@@ -2778,6 +2778,10 @@ const initSettingsControls = () => {
             await quickCreateStarterFolder(type === 'vm' ? 'vm' : 'docker');
             return;
         }
+        if (action === 'templates') {
+            await quickCreateStarterTemplates(type === 'vm' ? 'vm' : 'docker');
+            return;
+        }
         if (action === 'import') {
             if (type === 'vm') {
                 importVm();
@@ -3858,6 +3862,148 @@ const promptStarterFolderName = async (type, suggestedName) => {
     });
 };
 
+const DEFAULT_STARTER_FOLDER_ICON = '/plugins/folderview.plus/images/folder-icon.png';
+
+const STARTER_TEMPLATE_BLUEPRINTS = Object.freeze({
+    docker: Object.freeze([
+        Object.freeze({ name: 'Media', icon: '/plugins/folderview.plus/images/icons/folder-media.svg' }),
+        Object.freeze({ name: 'Downloads', icon: '/plugins/folderview.plus/images/icons/folder-backup.svg' }),
+        Object.freeze({ name: 'Monitoring', icon: '/plugins/folderview.plus/images/icons/folder-cloud.svg' }),
+        Object.freeze({ name: 'Network', icon: '/plugins/folderview.plus/images/icons/folder-network.svg' }),
+        Object.freeze({ name: 'Utilities', icon: '/plugins/folderview.plus/images/icons/folder-tools.svg' }),
+        Object.freeze({ name: 'Automation', icon: '/plugins/folderview.plus/images/icons/folder-automation.svg' }),
+        Object.freeze({ name: 'Database', icon: '/plugins/folderview.plus/images/icons/folder-database.svg' }),
+        Object.freeze({ name: 'Security', icon: '/plugins/folderview.plus/images/icons/folder-security.svg' })
+    ]),
+    vm: Object.freeze([
+        Object.freeze({ name: 'Production VMs', icon: '/plugins/folderview.plus/images/icons/folder-default.svg' }),
+        Object.freeze({ name: 'Lab VMs', icon: '/plugins/folderview.plus/images/icons/folder-dev.svg' }),
+        Object.freeze({ name: 'Utility VMs', icon: '/plugins/folderview.plus/images/icons/folder-tools.svg' }),
+        Object.freeze({ name: 'Network VMs', icon: '/plugins/folderview.plus/images/icons/folder-network.svg' }),
+        Object.freeze({ name: 'Backups', icon: '/plugins/folderview.plus/images/icons/folder-backup.svg' })
+    ])
+});
+
+const buildStarterFolderPayload = (name, iconPath = DEFAULT_STARTER_FOLDER_ICON) => ({
+    name: String(name || '').trim(),
+    icon: String(iconPath || '').trim() || DEFAULT_STARTER_FOLDER_ICON,
+    containers: [],
+    settings: {
+        folder_webui: false,
+        folder_webui_url: '',
+        preview: 1,
+        preview_hover: false,
+        preview_update: false,
+        preview_text_width: '',
+        preview_grayscale: false,
+        preview_webui: false,
+        preview_logs: false,
+        preview_console: false,
+        preview_vertical_bars: false,
+        context: 1,
+        context_trigger: 0,
+        context_graph: 1,
+        context_graph_time: 60,
+        preview_border: true,
+        preview_border_color: '#afa89e',
+        preview_vertical_bars_color: '#afa89e',
+        status_color_started: '#ffffff',
+        status_color_paused: '#b8860b',
+        status_color_stopped: '#ff4d4d',
+        health_warn_stopped_percent: '',
+        health_critical_stopped_percent: '',
+        health_profile: '',
+        health_updates_mode: '',
+        health_all_stopped_mode: '',
+        status_warn_stopped_percent: '',
+        update_column: false,
+        default_action: false,
+        expand_tab: false,
+        override_default_actions: false,
+        expand_dashboard: false,
+        dashboard_overflow: 'default'
+    },
+    actions: []
+});
+
+const promptStarterTemplateSelection = async (type, blueprints) => {
+    const resolvedType = normalizeManagedType(type);
+    const typeLabel = resolvedType === 'docker' ? 'Docker' : 'VM';
+    const templateList = Array.isArray(blueprints) ? blueprints.filter((entry) => String(entry?.name || '').trim() !== '') : [];
+    if (!templateList.length) {
+        return [];
+    }
+
+    if (typeof window.swal !== 'function') {
+        const numbered = templateList.map((entry, index) => `${index + 1}. ${String(entry.name || '').trim()}`).join('\n');
+        const raw = window.prompt(
+            `Select ${typeLabel} starter templates by number (comma-separated).\nLeave blank for all:\n\n${numbered}`,
+            ''
+        );
+        if (raw === null) {
+            return [];
+        }
+        const trimmed = String(raw || '').trim();
+        if (!trimmed) {
+            return templateList;
+        }
+        const selectedIndexes = new Set();
+        const parts = trimmed.split(',');
+        for (const part of parts) {
+            const idx = Number(String(part || '').trim());
+            if (!Number.isInteger(idx)) {
+                continue;
+            }
+            const zeroBased = idx - 1;
+            if (zeroBased >= 0 && zeroBased < templateList.length) {
+                selectedIndexes.add(zeroBased);
+            }
+        }
+        return templateList.filter((_, index) => selectedIndexes.has(index));
+    }
+
+    return new Promise((resolve) => {
+        const optionsHtml = templateList.map((entry, index) => {
+            const name = String(entry.name || '').trim();
+            const iconPath = String(entry.icon || '').trim() || DEFAULT_STARTER_FOLDER_ICON;
+            return `<label class="fv-starter-template-option"><input type="checkbox" class="fv-starter-template-checkbox" data-fv-starter-template-index="${index}" checked><img src="${escapeHtml(iconPath)}" alt="" class="fv-starter-template-option-icon"><span>${escapeHtml(name)}</span></label>`;
+        }).join('');
+
+        swal({
+            title: `Choose ${typeLabel} starter templates`,
+            text: `<div class="fv-starter-template-dialog"><div class="fv-starter-template-help">Pick the templates you want to deploy now. Existing matching folder names will be skipped.</div><div class="fv-starter-template-options">${optionsHtml}</div></div>`,
+            html: true,
+            type: 'info',
+            showCancelButton: true,
+            confirmButtonText: 'Create selected',
+            cancelButtonText: 'Cancel',
+            closeOnConfirm: false
+        }, (confirmed) => {
+            if (!confirmed) {
+                resolve([]);
+                return;
+            }
+            const selectedIndexes = $('.fv-starter-template-checkbox:checked').map((_, node) => {
+                const rawValue = Number($(node).attr('data-fv-starter-template-index'));
+                return Number.isInteger(rawValue) ? rawValue : -1;
+            }).get().filter((value) => value >= 0 && value < templateList.length);
+
+            if (!selectedIndexes.length) {
+                if (typeof swal.showInputError === 'function') {
+                    swal.showInputError('Select at least one template.');
+                }
+                return false;
+            }
+
+            const selectedIndexSet = new Set(selectedIndexes);
+            const selectedTemplates = templateList.filter((_, index) => selectedIndexSet.has(index));
+            swal.close();
+            resolve(selectedTemplates);
+            return true;
+        });
+    });
+};
+
 const quickCreateStarterFolder = async (type) => {
     const resolvedType = normalizeManagedType(type);
     if (!ensureRuntimeConflictActionAllowed(`Create ${resolvedType === 'docker' ? 'Docker' : 'VM'} folder`)) {
@@ -3868,47 +4014,7 @@ const quickCreateStarterFolder = async (type) => {
     if (!name) {
         return;
     }
-    const folderPayload = {
-        name,
-        icon: '/plugins/folderview.plus/images/folder-icon.png',
-        containers: [],
-        settings: {
-            folder_webui: false,
-            folder_webui_url: '',
-            preview: 1,
-            preview_hover: false,
-            preview_update: false,
-            preview_text_width: '',
-            preview_grayscale: false,
-            preview_webui: false,
-            preview_logs: false,
-            preview_console: false,
-            preview_vertical_bars: false,
-            context: 1,
-            context_trigger: 0,
-            context_graph: 1,
-            context_graph_time: 60,
-            preview_border: true,
-            preview_border_color: '#afa89e',
-            preview_vertical_bars_color: '#afa89e',
-            status_color_started: '#ffffff',
-            status_color_paused: '#b8860b',
-            status_color_stopped: '#ff4d4d',
-            health_warn_stopped_percent: '',
-            health_critical_stopped_percent: '',
-            health_profile: '',
-            health_updates_mode: '',
-            health_all_stopped_mode: '',
-            status_warn_stopped_percent: '',
-            update_column: false,
-            default_action: false,
-            expand_tab: false,
-            override_default_actions: false,
-            expand_dashboard: false,
-            dashboard_overflow: 'default'
-        },
-        actions: []
-    };
+    const folderPayload = buildStarterFolderPayload(name, DEFAULT_STARTER_FOLDER_ICON);
     try {
         await apiPostText('/plugins/folderview.plus/server/create.php', {
             type: resolvedType,
@@ -3927,6 +4033,74 @@ const quickCreateStarterFolder = async (type) => {
         });
     } catch (error) {
         showError('Create folder failed', error);
+    }
+};
+
+const quickCreateStarterTemplates = async (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const typeLabel = resolvedType === 'docker' ? 'Docker' : 'VM';
+    if (!ensureRuntimeConflictActionAllowed(`Create ${typeLabel} starter templates`)) {
+        return;
+    }
+
+    const blueprints = Array.isArray(STARTER_TEMPLATE_BLUEPRINTS[resolvedType]) ? STARTER_TEMPLATE_BLUEPRINTS[resolvedType] : [];
+    if (!blueprints.length) {
+        return;
+    }
+
+    const selectedBlueprints = await promptStarterTemplateSelection(resolvedType, blueprints);
+    if (!selectedBlueprints.length) {
+        return;
+    }
+
+    try {
+        const existingNames = new Set(
+            Object.values(getFolderMap(resolvedType) || {}).map((folder) => String(folder?.name || '').trim().toLowerCase()).filter((name) => name !== '')
+        );
+        const createdNames = [];
+        let skippedCount = 0;
+
+        for (const blueprint of selectedBlueprints) {
+            const folderName = String(blueprint?.name || '').trim();
+            if (!folderName) {
+                continue;
+            }
+            const normalizedName = folderName.toLowerCase();
+            if (existingNames.has(normalizedName)) {
+                skippedCount += 1;
+                continue;
+            }
+            existingNames.add(normalizedName);
+            const payload = buildStarterFolderPayload(folderName, String(blueprint?.icon || DEFAULT_STARTER_FOLDER_ICON));
+            await apiPostText('/plugins/folderview.plus/server/create.php', {
+                type: resolvedType,
+                content: JSON.stringify(payload)
+            });
+            createdNames.push(folderName);
+        }
+
+        if (createdNames.length > 0) {
+            await refreshType(resolvedType);
+        }
+
+        const createdCount = createdNames.length;
+        const createdFolderId = createdCount > 0 ? (resolveFolderIdsByNames(resolvedType, createdNames)[0] || '') : '';
+        const messageParts = [`Created ${createdCount} starter folder${createdCount === 1 ? '' : 's'} from ${selectedBlueprints.length} selected template${selectedBlueprints.length === 1 ? '' : 's'}.`];
+        if (skippedCount > 0) {
+            messageParts.push(`Skipped ${skippedCount} existing.`);
+        }
+        const message = messageParts.join(' ');
+        addActivityEntry(`${typeLabel} starter templates applied. ${message}`, createdCount > 0 ? 'success' : 'info');
+        showActionSummaryToast({
+            title: createdCount > 0 ? 'Starter templates created' : 'No starter templates created',
+            message,
+            level: createdCount > 0 ? 'success' : 'info',
+            durationMs: 5000,
+            type: resolvedType,
+            focusFolderId: createdFolderId
+        });
+    } catch (error) {
+        showError('Create starter templates failed', error);
     }
 };
 
@@ -3956,10 +4130,12 @@ const renderFirstRunQuickPathPanel = () => {
     const buttons = [];
     if (needsDocker) {
         buttons.push('<button type="button" data-fv-empty-action="create" data-fv-type="docker"><i class="fa fa-plus-circle"></i> Create Docker folder</button>');
+        buttons.push('<button type="button" data-fv-empty-action="templates" data-fv-type="docker"><i class="fa fa-th-large"></i> Docker templates</button>');
         buttons.push('<button type="button" data-fv-empty-action="import" data-fv-type="docker"><i class="fa fa-upload"></i> Import Docker config</button>');
     }
     if (needsVm) {
         buttons.push('<button type="button" data-fv-empty-action="create" data-fv-type="vm"><i class="fa fa-plus-circle"></i> Create VM folder</button>');
+        buttons.push('<button type="button" data-fv-empty-action="templates" data-fv-type="vm"><i class="fa fa-th-large"></i> VM templates</button>');
         buttons.push('<button type="button" data-fv-empty-action="import" data-fv-type="vm"><i class="fa fa-upload"></i> Import VM config</button>');
     }
     buttons.push('<button type="button" data-fv-empty-action="wizard"><i class="fa fa-magic"></i> Open setup wizard</button>');
@@ -8963,9 +9139,10 @@ const buildRowsHtml = (type, folders, memberSnapshot = {}, hideEmptyFolders = fa
                 : 'Start by creating your first VM folder, importing a VM export, or running the setup wizard.';
             const typeValue = isDockerType ? 'docker' : 'vm';
             const createLabel = isDockerType ? 'Create folder' : 'Create VM folder';
+            const templatesLabel = isDockerType ? 'Starter templates' : 'VM templates';
             const importLabel = isDockerType ? 'Import config' : 'Import VM config';
             const wizardLabel = isDockerType ? 'Open wizard' : 'Run wizard';
-            return `<tr><td colspan="${TABLE_COLUMN_COUNT}" class="folder-empty-cell"><div class="fv-starter-empty"><div class="fv-starter-empty-title">${escapeHtml(title)}</div><div class="fv-starter-empty-help">${escapeHtml(help)}</div><div class="fv-starter-empty-actions"><button type="button" data-fv-empty-action="create" data-fv-type="${escapeHtml(typeValue)}"><i class="fa fa-plus-circle"></i> ${escapeHtml(createLabel)}</button><button type="button" data-fv-empty-action="import" data-fv-type="${escapeHtml(typeValue)}"><i class="fa fa-upload"></i> ${escapeHtml(importLabel)}</button><button type="button" data-fv-empty-action="wizard"><i class="fa fa-magic"></i> ${escapeHtml(wizardLabel)}</button></div></div></td></tr>`;
+            return `<tr><td colspan="${TABLE_COLUMN_COUNT}" class="folder-empty-cell"><div class="fv-starter-empty"><div class="fv-starter-empty-title">${escapeHtml(title)}</div><div class="fv-starter-empty-help">${escapeHtml(help)}</div><div class="fv-starter-empty-actions"><button type="button" data-fv-empty-action="create" data-fv-type="${escapeHtml(typeValue)}"><i class="fa fa-plus-circle"></i> ${escapeHtml(createLabel)}</button><button type="button" data-fv-empty-action="templates" data-fv-type="${escapeHtml(typeValue)}"><i class="fa fa-th-large"></i> ${escapeHtml(templatesLabel)}</button><button type="button" data-fv-empty-action="import" data-fv-type="${escapeHtml(typeValue)}"><i class="fa fa-upload"></i> ${escapeHtml(importLabel)}</button><button type="button" data-fv-empty-action="wizard"><i class="fa fa-magic"></i> ${escapeHtml(wizardLabel)}</button></div></div></td></tr>`;
         }
         if (folderCount > 0 && hideEmptyFolders && !showClearFilters) {
             return `<tr><td colspan="${TABLE_COLUMN_COUNT}" class="folder-empty-cell">All folders are currently hidden by "Hide empty folders".</td></tr>`;
@@ -13215,6 +13392,7 @@ window.showFolderStatusBreakdown = showFolderStatusBreakdown;
 window.showFolderHealthBreakdown = showFolderHealthBreakdown;
 window.openFolderRowQuickActions = openFolderRowQuickActions;
 window.quickCreateStarterFolder = quickCreateStarterFolder;
+window.quickCreateStarterTemplates = quickCreateStarterTemplates;
 window.applyQuickProfilePreset = applyQuickProfilePreset;
 window.applyRuleTestSample = applyRuleTestSample;
 window.clearActivityFeed = clearActivityFeed;

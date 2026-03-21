@@ -160,12 +160,20 @@ test('fresh install fallback sanitizes error-shaped API payloads and shows empty
 
 test('empty-state actions are delegated and create-folder uses modal input instead of plain prompt', () => {
     assert.match(script, /const promptStarterFolderName = async \(type, suggestedName\) =>/);
+    assert.match(script, /const promptStarterTemplateSelection = async \(type, blueprints\) =>/);
     assert.match(script, /type:\s*'input'/);
+    assert.match(script, /fv-starter-template-checkbox/);
+    assert.match(script, /data-fv-starter-template-index/);
+    assert.match(script, /confirmButtonText:\s*'Create selected'/);
+    assert.match(script, /swal\.showInputError\('Select at least one template\.'\)/);
     assert.match(script, /data-fv-empty-action="create"/);
+    assert.match(script, /data-fv-empty-action="templates"/);
     assert.match(script, /data-fv-empty-action="import"/);
     assert.match(script, /data-fv-empty-action="wizard"/);
     assert.match(script, /off\('click\.fvemptyactions', '\[data-fv-empty-action\]'\)\.on\('click\.fvemptyactions', '\[data-fv-empty-action\]', async \(event\) =>/);
     assert.match(script, /const quickCreateStarterFolder = async \(type\) =>/);
+    assert.match(script, /const quickCreateStarterTemplates = async \(type\) =>/);
+    assert.match(script, /STARTER_TEMPLATE_BLUEPRINTS = Object\.freeze/);
     assert.match(script, /settings:\s*\{[\s\S]*preview:\s*1/);
     assert.match(script, /preview_border:\s*true/);
     assert.match(script, /status_color_started:\s*'#ffffff'/);

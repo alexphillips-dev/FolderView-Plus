@@ -161,6 +161,12 @@ test('fresh install fallback sanitizes error-shaped API payloads and shows empty
 test('empty-state actions are delegated and create-folder uses modal input instead of plain prompt', () => {
     assert.match(script, /const promptStarterFolderName = async \(type, suggestedName\) =>/);
     assert.match(script, /const promptStarterTemplateSelection = async \(type, blueprints\) =>/);
+    assert.match(script, /STARTER_TEMPLATE_CATEGORY_META = Object\.freeze/);
+    assert.match(script, /normalizeStarterTemplateCategory = \(value\) =>/);
+    assert.match(script, /fv-starter-template-category/);
+    assert.match(script, /data-fv-starter-category/);
+    assert.match(script, /Pick a category, then choose the folders you want to deploy/);
+    assert.match(script, /fv-starter-template-option:visible \.fv-starter-template-checkbox:checked/);
     assert.match(script, /type:\s*'input'/);
     assert.match(script, /fv-starter-template-checkbox/);
     assert.match(script, /data-fv-starter-template-index/);

@@ -3864,23 +3864,35 @@ const promptStarterFolderName = async (type, suggestedName) => {
 
 const DEFAULT_STARTER_FOLDER_ICON = '/plugins/folderview.plus/images/folder-icon.png';
 
+const STARTER_TEMPLATE_CATEGORY_META = Object.freeze({
+    homelab: Object.freeze({ label: 'Homelab' }),
+    media: Object.freeze({ label: 'Media' }),
+    minimal: Object.freeze({ label: 'Minimal' }),
+    lab: Object.freeze({ label: 'Lab' })
+});
+
+const normalizeStarterTemplateCategory = (value) => {
+    const normalized = String(value || '').trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '-');
+    return normalized || 'homelab';
+};
+
 const STARTER_TEMPLATE_BLUEPRINTS = Object.freeze({
     docker: Object.freeze([
-        Object.freeze({ name: 'Media', icon: '/plugins/folderview.plus/images/icons/folder-media.svg' }),
-        Object.freeze({ name: 'Downloads', icon: '/plugins/folderview.plus/images/icons/folder-backup.svg' }),
-        Object.freeze({ name: 'Monitoring', icon: '/plugins/folderview.plus/images/icons/folder-cloud.svg' }),
-        Object.freeze({ name: 'Network', icon: '/plugins/folderview.plus/images/icons/folder-network.svg' }),
-        Object.freeze({ name: 'Utilities', icon: '/plugins/folderview.plus/images/icons/folder-tools.svg' }),
-        Object.freeze({ name: 'Automation', icon: '/plugins/folderview.plus/images/icons/folder-automation.svg' }),
-        Object.freeze({ name: 'Database', icon: '/plugins/folderview.plus/images/icons/folder-database.svg' }),
-        Object.freeze({ name: 'Security', icon: '/plugins/folderview.plus/images/icons/folder-security.svg' })
+        Object.freeze({ name: 'Media', icon: '/plugins/folderview.plus/images/icons/folder-media.svg', categories: Object.freeze(['homelab', 'media']) }),
+        Object.freeze({ name: 'Downloads', icon: '/plugins/folderview.plus/images/icons/folder-backup.svg', categories: Object.freeze(['homelab', 'media']) }),
+        Object.freeze({ name: 'Monitoring', icon: '/plugins/folderview.plus/images/icons/folder-cloud.svg', categories: Object.freeze(['homelab', 'minimal']) }),
+        Object.freeze({ name: 'Network', icon: '/plugins/folderview.plus/images/icons/folder-network.svg', categories: Object.freeze(['homelab', 'minimal']) }),
+        Object.freeze({ name: 'Utilities', icon: '/plugins/folderview.plus/images/icons/folder-tools.svg', categories: Object.freeze(['homelab', 'minimal']) }),
+        Object.freeze({ name: 'Automation', icon: '/plugins/folderview.plus/images/icons/folder-automation.svg', categories: Object.freeze(['homelab', 'media']) }),
+        Object.freeze({ name: 'Database', icon: '/plugins/folderview.plus/images/icons/folder-database.svg', categories: Object.freeze(['homelab', 'media']) }),
+        Object.freeze({ name: 'Security', icon: '/plugins/folderview.plus/images/icons/folder-security.svg', categories: Object.freeze(['homelab']) })
     ]),
     vm: Object.freeze([
-        Object.freeze({ name: 'Production VMs', icon: '/plugins/folderview.plus/images/icons/folder-default.svg' }),
-        Object.freeze({ name: 'Lab VMs', icon: '/plugins/folderview.plus/images/icons/folder-dev.svg' }),
-        Object.freeze({ name: 'Utility VMs', icon: '/plugins/folderview.plus/images/icons/folder-tools.svg' }),
-        Object.freeze({ name: 'Network VMs', icon: '/plugins/folderview.plus/images/icons/folder-network.svg' }),
-        Object.freeze({ name: 'Backups', icon: '/plugins/folderview.plus/images/icons/folder-backup.svg' })
+        Object.freeze({ name: 'Production VMs', icon: '/plugins/folderview.plus/images/icons/folder-default.svg', categories: Object.freeze(['homelab', 'minimal']) }),
+        Object.freeze({ name: 'Lab VMs', icon: '/plugins/folderview.plus/images/icons/folder-dev.svg', categories: Object.freeze(['homelab', 'lab']) }),
+        Object.freeze({ name: 'Utility VMs', icon: '/plugins/folderview.plus/images/icons/folder-tools.svg', categories: Object.freeze(['homelab', 'minimal']) }),
+        Object.freeze({ name: 'Network VMs', icon: '/plugins/folderview.plus/images/icons/folder-network.svg', categories: Object.freeze(['homelab']) }),
+        Object.freeze({ name: 'Backups', icon: '/plugins/folderview.plus/images/icons/folder-backup.svg', categories: Object.freeze(['homelab', 'media']) })
     ])
 });
 
@@ -3934,10 +3946,69 @@ const promptStarterTemplateSelection = async (type, blueprints) => {
         return [];
     }
 
+    const categoryBuckets = new Map();
+    categoryBuckets.set('all', templateList.slice());
+    for (const entry of templateList) {
+        const entryCategories = Array.isArray(entry?.categories) ? entry.categories : [];
+        for (const rawCategory of entryCategories) {
+            const categoryId = normalizeStarterTemplateCategory(rawCategory);
+            if (!categoryBuckets.has(categoryId)) {
+                categoryBuckets.set(categoryId, []);
+            }
+            categoryBuckets.get(categoryId).push(entry);
+        }
+    }
+    const preferredCategoryOrder = ['homelab', 'media', 'minimal', 'lab'];
+    const categoryIds = ['all'];
+    for (const categoryId of preferredCategoryOrder) {
+        if (categoryBuckets.has(categoryId) && categoryId !== 'all') {
+            categoryIds.push(categoryId);
+        }
+    }
+    for (const categoryId of categoryBuckets.keys()) {
+        if (!categoryIds.includes(categoryId) && categoryId !== 'all') {
+            categoryIds.push(categoryId);
+        }
+    }
+    const getCategoryLabel = (categoryId) => {
+        if (categoryId === 'all') {
+            return 'All';
+        }
+        const fallback = categoryId.replace(/[-_]+/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+        return String(STARTER_TEMPLATE_CATEGORY_META[categoryId]?.label || fallback);
+    };
+    const defaultCategoryId = categoryIds.includes('homelab') ? 'homelab' : 'all';
+
     if (typeof window.swal !== 'function') {
-        const numbered = templateList.map((entry, index) => `${index + 1}. ${String(entry.name || '').trim()}`).join('\n');
+        const categoryChoices = categoryIds
+            .filter((categoryId) => categoryId !== 'all')
+            .map((categoryId, index) => `${index + 1}. ${getCategoryLabel(categoryId)}`)
+            .join('\n');
+        const categoryRaw = window.prompt(
+            `Choose ${typeLabel} template category:\n\n${categoryChoices}\n\nEnter number or category name. Leave blank for ${getCategoryLabel(defaultCategoryId)}.`,
+            ''
+        );
+        if (categoryRaw === null) {
+            return [];
+        }
+        const normalizedCategoryRaw = normalizeStarterTemplateCategory(categoryRaw);
+        const categoryIndex = Number(String(categoryRaw || '').trim());
+        let activeCategoryId = defaultCategoryId;
+        if (Number.isInteger(categoryIndex) && categoryIndex > 0) {
+            const mapped = categoryIds.filter((categoryId) => categoryId !== 'all')[categoryIndex - 1] || '';
+            if (mapped) {
+                activeCategoryId = mapped;
+            }
+        } else if (normalizedCategoryRaw && categoryIds.includes(normalizedCategoryRaw)) {
+            activeCategoryId = normalizedCategoryRaw;
+        }
+        const categoryTemplates = (categoryBuckets.get(activeCategoryId) || []).slice();
+        if (!categoryTemplates.length) {
+            return [];
+        }
+        const numbered = categoryTemplates.map((entry, index) => `${index + 1}. ${String(entry.name || '').trim()}`).join('\n');
         const raw = window.prompt(
-            `Select ${typeLabel} starter templates by number (comma-separated).\nLeave blank for all:\n\n${numbered}`,
+            `Select ${typeLabel} ${getCategoryLabel(activeCategoryId)} templates by number (comma-separated).\nLeave blank for all shown:\n\n${numbered}`,
             ''
         );
         if (raw === null) {
@@ -3945,7 +4016,7 @@ const promptStarterTemplateSelection = async (type, blueprints) => {
         }
         const trimmed = String(raw || '').trim();
         if (!trimmed) {
-            return templateList;
+            return categoryTemplates;
         }
         const selectedIndexes = new Set();
         const parts = trimmed.split(',');
@@ -3955,23 +4026,60 @@ const promptStarterTemplateSelection = async (type, blueprints) => {
                 continue;
             }
             const zeroBased = idx - 1;
-            if (zeroBased >= 0 && zeroBased < templateList.length) {
+            if (zeroBased >= 0 && zeroBased < categoryTemplates.length) {
                 selectedIndexes.add(zeroBased);
             }
         }
-        return templateList.filter((_, index) => selectedIndexes.has(index));
+        return categoryTemplates.filter((_, index) => selectedIndexes.has(index));
     }
 
     return new Promise((resolve) => {
+        const categoryHtml = categoryIds.map((categoryId) => {
+            const label = getCategoryLabel(categoryId);
+            const activeClass = categoryId === defaultCategoryId ? ' is-active' : '';
+            return `<button type="button" class="fv-starter-template-category${activeClass}" data-fv-starter-category="${escapeHtml(categoryId)}">${escapeHtml(label)}</button>`;
+        }).join('');
         const optionsHtml = templateList.map((entry, index) => {
             const name = String(entry.name || '').trim();
             const iconPath = String(entry.icon || '').trim() || DEFAULT_STARTER_FOLDER_ICON;
-            return `<label class="fv-starter-template-option"><input type="checkbox" class="fv-starter-template-checkbox" data-fv-starter-template-index="${index}" checked><img src="${escapeHtml(iconPath)}" alt="" class="fv-starter-template-option-icon"><span>${escapeHtml(name)}</span></label>`;
+            const categories = Array.isArray(entry?.categories) ? entry.categories : [];
+            const normalizedCategories = ['all', ...categories.map((value) => normalizeStarterTemplateCategory(value))];
+            return `<label class="fv-starter-template-option" data-fv-starter-template-categories="${escapeHtml(normalizedCategories.join(','))}"><input type="checkbox" class="fv-starter-template-checkbox" data-fv-starter-template-index="${index}" checked><img src="${escapeHtml(iconPath)}" alt="" class="fv-starter-template-option-icon"><span>${escapeHtml(name)}</span></label>`;
         }).join('');
+
+        const applyCategoryFilter = (requestedCategoryId, resetSelection = false) => {
+            const activeCategoryId = categoryIds.includes(requestedCategoryId) ? requestedCategoryId : defaultCategoryId;
+            $('.fv-starter-template-category').removeClass('is-active').each((_, node) => {
+                if (String($(node).attr('data-fv-starter-category') || '') === activeCategoryId) {
+                    $(node).addClass('is-active');
+                }
+            });
+            let visibleCount = 0;
+            $('.fv-starter-template-option').each((_, node) => {
+                const categories = String($(node).attr('data-fv-starter-template-categories') || '')
+                    .split(',')
+                    .map((value) => normalizeStarterTemplateCategory(value))
+                    .filter((value) => value !== '');
+                const isVisible = activeCategoryId === 'all' || categories.includes(activeCategoryId);
+                $(node).toggle(isVisible);
+                const checkbox = $(node).find('.fv-starter-template-checkbox');
+                if (resetSelection) {
+                    checkbox.prop('checked', isVisible);
+                }
+                if (isVisible) {
+                    visibleCount += 1;
+                }
+            });
+            $('.fv-starter-template-empty').toggle(visibleCount <= 0);
+        };
+
+        const clearCategoryBindings = () => {
+            $(document).off('click.fvstartertemplatecategory', '.fv-starter-template-category');
+        };
 
         swal({
             title: `Choose ${typeLabel} starter templates`,
-            text: `<div class="fv-starter-template-dialog"><div class="fv-starter-template-help">Pick the templates you want to deploy now. Existing matching folder names will be skipped.</div><div class="fv-starter-template-options">${optionsHtml}</div></div>`,
+            text: `<div class="fv-starter-template-dialog"><div class="fv-starter-template-help">Pick a category, then choose the folders you want to deploy. Existing matching folder names will be skipped.</div><div class="fv-starter-template-categories">${categoryHtml}</div><div class="fv-starter-template-options">${optionsHtml}</div><div class="fv-starter-template-empty" style="display:none;">No templates in this category.</div></div>`,
             html: true,
             type: 'info',
             showCancelButton: true,
@@ -3980,10 +4088,11 @@ const promptStarterTemplateSelection = async (type, blueprints) => {
             closeOnConfirm: false
         }, (confirmed) => {
             if (!confirmed) {
+                clearCategoryBindings();
                 resolve([]);
                 return;
             }
-            const selectedIndexes = $('.fv-starter-template-checkbox:checked').map((_, node) => {
+            const selectedIndexes = $('.fv-starter-template-option:visible .fv-starter-template-checkbox:checked').map((_, node) => {
                 const rawValue = Number($(node).attr('data-fv-starter-template-index'));
                 return Number.isInteger(rawValue) ? rawValue : -1;
             }).get().filter((value) => value >= 0 && value < templateList.length);
@@ -3997,10 +4106,20 @@ const promptStarterTemplateSelection = async (type, blueprints) => {
 
             const selectedIndexSet = new Set(selectedIndexes);
             const selectedTemplates = templateList.filter((_, index) => selectedIndexSet.has(index));
+            clearCategoryBindings();
             swal.close();
             resolve(selectedTemplates);
             return true;
         });
+
+        $(document).off('click.fvstartertemplatecategory', '.fv-starter-template-category').on('click.fvstartertemplatecategory', '.fv-starter-template-category', (event) => {
+            event.preventDefault();
+            const requestedCategoryId = normalizeStarterTemplateCategory($(event.currentTarget).attr('data-fv-starter-category'));
+            applyCategoryFilter(requestedCategoryId, true);
+        });
+        window.setTimeout(() => {
+            applyCategoryFilter(defaultCategoryId, false);
+        }, 0);
     });
 };
 

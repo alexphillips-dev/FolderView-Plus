@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.21.24">
-<!ENTITY md5 "23aca1be94a47ac4339f7fde187420e1">
+<!ENTITY version "2026.03.21.25">
+<!ENTITY md5 "c6a87e9cb41a9addeeea9e81a67c856d">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.21.25
+- Feature: Added starter-template categories (`Homelab`, `Media`, `Minimal`, `Lab`) in the new-user popup.
+- UX: Category chips now filter the folder list live so users see only folders for the selected category before deploying.
+- UX: Template deployment now applies only checked folders from the active category, enabling precise pick-and-choose onboarding.
+- Fix: Improved starter-template popup layout with stronger category/row structure across host themes.
+
 
 ###2026.03.21.24
 - Maintenance: Release rollup since main `2026.03.21.20`; merged all `dev` improvements through `2026.03.21.23` into `main`.

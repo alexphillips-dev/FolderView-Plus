@@ -60,6 +60,12 @@ const utils = window.FolderViewPlusUtils || {
         };
     }
 };
+const dashboardStorageWriter = typeof utils.createBatchedStorageWriter === 'function'
+    ? utils.createBatchedStorageWriter(window.localStorage, {
+        defaultDelayMs: 84,
+        idleTimeoutMs: 900
+    })
+    : null;
 const FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
 const getFolderLabelValue = (labels) => {
     const source = labels && typeof labels === 'object' ? labels : {};
@@ -232,7 +238,11 @@ const writeDashboardHealthEmphasisStateForType = (type, enabled) => {
         if (!window.localStorage) {
             return;
         }
-        window.localStorage.setItem(storageKey, enabled === true ? '1' : '0');
+        if (dashboardStorageWriter && typeof dashboardStorageWriter.setItem === 'function') {
+            dashboardStorageWriter.setItem(storageKey, enabled === true ? '1' : '0', { delayMs: 70, idle: true });
+        } else {
+            window.localStorage.setItem(storageKey, enabled === true ? '1' : '0');
+        }
     } catch (_error) {
         // Ignore localStorage failures so dashboard rendering remains stable.
     }
@@ -260,7 +270,11 @@ const writeDashboardCompactDensityStateForType = (type, enabled) => {
         if (!window.localStorage) {
             return;
         }
-        window.localStorage.setItem(storageKey, enabled === true ? '1' : '0');
+        if (dashboardStorageWriter && typeof dashboardStorageWriter.setItem === 'function') {
+            dashboardStorageWriter.setItem(storageKey, enabled === true ? '1' : '0', { delayMs: 70, idle: true });
+        } else {
+            window.localStorage.setItem(storageKey, enabled === true ? '1' : '0');
+        }
     } catch (_error) {
         // Ignore localStorage failures so dashboard rendering remains stable.
     }
@@ -838,7 +852,12 @@ const writeDashboardExpandedStateMap = (type, map) => {
     }
     try {
         if (window.localStorage) {
-            window.localStorage.setItem(storageKey, JSON.stringify(normalizeExpandedStateMap(map)));
+            const payload = JSON.stringify(normalizeExpandedStateMap(map));
+            if (dashboardStorageWriter && typeof dashboardStorageWriter.setItem === 'function') {
+                dashboardStorageWriter.setItem(storageKey, payload, { delayMs: 80, idle: true });
+            } else {
+                window.localStorage.setItem(storageKey, payload);
+            }
         }
     } catch (_error) {
         // Ignore localStorage failures so dashboard rendering remains stable.

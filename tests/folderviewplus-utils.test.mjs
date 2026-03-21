@@ -808,3 +808,25 @@ test('planFolderRuntimeAction filters eligible docker items by current state', (
         stopped: 1
     });
 });
+
+test('performance utility helpers are exported and writable in node runtime', async () => {
+    assert.equal(typeof utils.createFrameScheduler, 'function');
+    assert.equal(typeof utils.createIdleTaskQueue, 'function');
+    assert.equal(typeof utils.createBatchedStorageWriter, 'function');
+
+    const storage = new Map();
+    const storageWriter = utils.createBatchedStorageWriter({
+        getItem: (key) => (storage.has(key) ? storage.get(key) : null),
+        setItem: (key, value) => storage.set(key, String(value)),
+        removeItem: (key) => storage.delete(key)
+    }, {
+        defaultDelayMs: 0
+    });
+
+    storageWriter.setItem('alpha', '1');
+    storageWriter.removeItem('alpha');
+    storageWriter.setItem('beta', '2');
+    storageWriter.flush();
+    assert.equal(storage.get('beta'), '2');
+    assert.equal(storage.has('alpha'), false);
+});

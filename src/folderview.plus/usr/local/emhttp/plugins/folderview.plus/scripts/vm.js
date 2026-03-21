@@ -110,6 +110,12 @@ const utils = window.FolderViewPlusUtils || {
     }
 };
 const runtimeShared = window.FolderViewDockerRuntimeShared || {};
+const vmStorageWriter = typeof utils.createBatchedStorageWriter === 'function'
+    ? utils.createBatchedStorageWriter(window.localStorage, {
+        defaultDelayMs: 72,
+        idleTimeoutMs: 900
+    })
+    : null;
 const createVmRuntimeStateStore = typeof runtimeShared.createRuntimeStateStore === 'function'
     ? runtimeShared.createRuntimeStateStore
     : (initialState = {}) => {
@@ -307,7 +313,12 @@ const writeVmExpandedStateMap = (map) => {
     try {
         const payload = map && typeof map === 'object' ? map : {};
         if (window.localStorage) {
-            window.localStorage.setItem(VM_EXPANDED_STATE_KEY, JSON.stringify(payload));
+            const serialized = JSON.stringify(payload);
+            if (vmStorageWriter && typeof vmStorageWriter.setItem === 'function') {
+                vmStorageWriter.setItem(VM_EXPANDED_STATE_KEY, serialized, { delayMs: 80, idle: true });
+            } else {
+                window.localStorage.setItem(VM_EXPANDED_STATE_KEY, serialized);
+            }
         }
     } catch (_error) {
         // Ignore storage failures so runtime rendering never breaks.
@@ -463,7 +474,12 @@ const readVmLockedFolderIds = () => {
 const writeVmLockedFolderIds = (ids) => {
     try {
         if (window.localStorage) {
-            window.localStorage.setItem(VM_LOCKED_STATE_KEY, JSON.stringify(normalizeLockedFolderIdList(ids)));
+            const payload = JSON.stringify(normalizeLockedFolderIdList(ids));
+            if (vmStorageWriter && typeof vmStorageWriter.setItem === 'function') {
+                vmStorageWriter.setItem(VM_LOCKED_STATE_KEY, payload, { delayMs: 70, idle: true });
+            } else {
+                window.localStorage.setItem(VM_LOCKED_STATE_KEY, payload);
+            }
         }
     } catch (_error) {
         // Best effort only.

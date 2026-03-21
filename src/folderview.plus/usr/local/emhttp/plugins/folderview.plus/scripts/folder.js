@@ -59,6 +59,8 @@ const CUSTOM_ICON_SEARCH_DEBOUNCE_MS = 150;
 const THIRD_PARTY_ICON_SEARCH_DEBOUNCE_MS = 140;
 const EDITOR_INPUT_RECALC_DEBOUNCE_MS = 90;
 const NAME_REGEX_SYNC_DEBOUNCE_MS = 150;
+const MEMBER_LIST_RENDER_CHUNK_SIZE = 140;
+const REGEX_WORKER_MIN_ITEMS = 180;
 const THIRD_PARTY_RECENT_LIMIT = 36;
 const THIRD_PARTY_LONG_PRESS_PREVIEW_MS = 460;
 const THIRD_PARTY_GRID_CHUNK_SIZE = 36;
@@ -86,12 +88,18 @@ let initialSnapshot = '';
 let isFormInitialized = false;
 let suppressUnloadPrompt = false;
 let builtInIcons = [...BUILT_IN_ICON_FALLBACK];
+let builtInIconManifestLoaded = false;
 let builtInIconSearchQuery = '';
 let builtInIconPage = 1;
 let builtInIconSearchTimer = null;
 let editorRecalcTimer = null;
 let nameRegexSyncTimer = null;
 let lastNameRegexSyncValue = '';
+let memberListRenderToken = 0;
+let regexWorker = null;
+let regexWorkerRequestId = 0;
+let latestRegexEvaluationRequestId = 0;
+let pendingRegexWorkerJobs = new Map();
 let thirdPartyIconFolders = [];
 let thirdPartyIconIndex = [];
 let thirdPartySelectedFolder = '';
@@ -2377,6 +2385,7 @@ const loadBuiltInIcons = async () => {
     } catch (_error) {
         builtInIcons = [...BUILT_IN_ICON_FALLBACK];
     }
+    builtInIconManifestLoaded = true;
     builtInIconPage = 1;
 };
 
@@ -2386,14 +2395,16 @@ const initBuiltInIconPicker = async () => {
         return;
     }
 
-    await loadBuiltInIcons();
-    $('#fv-icon-picker-toggle').off('click.fviconpicker').on('click.fviconpicker', (event) => {
+    $('#fv-icon-picker-toggle').off('click.fviconpicker').on('click.fviconpicker', async (event) => {
         event.preventDefault();
         const isOpen = !panel.prop('hidden');
         setThirdPartyIconPickerOpen(false);
         setCustomIconPickerOpen(false);
         setBuiltInIconPickerOpen(!isOpen);
         if (!isOpen) {
+            if (!builtInIconManifestLoaded) {
+                await loadBuiltInIcons();
+            }
             builtInIconPage = 1;
             renderBuiltInIconPicker();
             $('#fv-icon-picker-search').trigger('focus');
@@ -4268,6 +4279,130 @@ const updateIcon = (e) => {
     renderBuiltInIconPicker();
 };
 
+const scheduleAnimationFrameTask = (callback) => {
+    if (typeof callback !== 'function') {
+        return;
+    }
+    if (typeof window.requestAnimationFrame === 'function') {
+        window.requestAnimationFrame(callback);
+        return;
+    }
+    setTimeout(callback, 16);
+};
+
+const getRegexWorker = () => {
+    if (regexWorker) {
+        return regexWorker;
+    }
+    if (typeof Worker !== 'function' || typeof Blob !== 'function' || typeof URL === 'undefined' || typeof URL.createObjectURL !== 'function') {
+        return null;
+    }
+    try {
+        const source = 'self.onmessage=function(e){var p=e&&e.data?e.data:{},id=+p.id||0,pt=String(p.pattern||""),n=Array.isArray(p.names)?p.names:[],r;try{r=new RegExp(pt)}catch(err){self.postMessage({id:id,error:String(err&&err.message?err.message:"Invalid regex")});return}var m=[];for(var i=0;i<n.length;i++){var s=String(n[i]||"");if(!s)continue;if(r.test(s))m.push(s);r.lastIndex=0}self.postMessage({id:id,matches:m})};';
+        const blob = new Blob([source], { type: 'application/javascript' });
+        const url = URL.createObjectURL(blob);
+        regexWorker = new Worker(url);
+        URL.revokeObjectURL(url);
+        regexWorker.onmessage = (event) => {
+            const data = event?.data || {};
+            const id = Number(data.id || 0);
+            const pending = pendingRegexWorkerJobs.get(id);
+            if (!pending) {
+                return;
+            }
+            pendingRegexWorkerJobs.delete(id);
+            if (data && data.error) {
+                pending.reject(new Error(String(data.error)));
+                return;
+            }
+            pending.resolve(Array.isArray(data.matches) ? data.matches : []);
+        };
+        regexWorker.onerror = () => {
+            const pendingEntries = Array.from(pendingRegexWorkerJobs.values());
+            pendingRegexWorkerJobs.clear();
+            pendingEntries.forEach((entry) => {
+                entry.reject(new Error('Regex worker failed.'));
+            });
+            try {
+                regexWorker.terminate();
+            } catch (_error) {
+                // no-op
+            }
+            regexWorker = null;
+        };
+        return regexWorker;
+    } catch (_error) {
+        regexWorker = null;
+        return null;
+    }
+};
+
+const runRegexMatch = async (pattern, names) => {
+    const safePattern = String(pattern || '');
+    const safeNames = Array.isArray(names) ? names.map((name) => String(name || '')) : [];
+    if (!safePattern || safeNames.length < REGEX_WORKER_MIN_ITEMS) {
+        const regex = new RegExp(safePattern);
+        const matches = [];
+        for (const name of safeNames) {
+            if (!name) {
+                continue;
+            }
+            if (regex.test(name)) {
+                matches.push(name);
+            }
+            regex.lastIndex = 0;
+        }
+        return matches;
+    }
+    const worker = getRegexWorker();
+    if (!worker) {
+        const regex = new RegExp(safePattern);
+        const matches = [];
+        for (const name of safeNames) {
+            if (!name) {
+                continue;
+            }
+            if (regex.test(name)) {
+                matches.push(name);
+            }
+            regex.lastIndex = 0;
+        }
+        return matches;
+    }
+    const requestId = ++regexWorkerRequestId;
+    const job = new Promise((resolve, reject) => {
+        pendingRegexWorkerJobs.set(requestId, { resolve, reject });
+    });
+    worker.postMessage({
+        id: requestId,
+        pattern: safePattern,
+        names: safeNames
+    });
+    return job;
+};
+
+const mergeMembersByName = (baseMembers, candidateMembers) => {
+    const map = new Map();
+    const ordered = [];
+    (Array.isArray(baseMembers) ? baseMembers : []).forEach((member) => {
+        const key = String(member?.Name || '').trim();
+        if (!key || map.has(key)) {
+            return;
+        }
+        map.set(key, member);
+        ordered.push(member);
+    });
+    (Array.isArray(candidateMembers) ? candidateMembers : []).forEach((member) => {
+        const key = String(member?.Name || '').trim();
+        if (!key || map.has(key)) {
+            return;
+        }
+        map.set(key, member);
+        ordered.push(member);
+    });
+    return ordered;
+};
+
 /**
  * Update the regex selection when editing the respective field
  * @param {*} e the element
@@ -4282,25 +4417,73 @@ const updateRegex = (e) => {
     } else {
         selectedRegex = [];
     }
-    if (e.value) {
-        let regex;
-        try {
-            regex = new RegExp(e.value);
-        } catch (_error) {
-            updateList();
-            return false;
+    const regexSource = String(e?.value || '').trim();
+    if (!regexSource) {
+        updateList();
+        updateRegexSimulator();
+        return true;
+    }
+    let regex;
+    try {
+        regex = new RegExp(regexSource);
+    } catch (_error) {
+        updateList();
+        return false;
+    }
+
+    const baseChoose = choose.slice();
+    const requestId = ++latestRegexEvaluationRequestId;
+    const applyMatchResult = (matchNames) => {
+        if (requestId !== latestRegexEvaluationRequestId) {
+            return;
         }
-        for (let i = 0; i < choose.length; i++) {
-            if (regex.test(choose[i].Name)) {
-                const tmpSel = choose.splice(i, 1)[0];
-                if(!selectedRegex.includes(tmpSel)) {
-                    selectedRegex.push(tmpSel);
-                }
-                i--;
+        const matched = new Set(Array.isArray(matchNames) ? matchNames : []);
+        const nextChoose = [];
+        const regexMatches = [];
+        baseChoose.forEach((member) => {
+            const memberName = String(member?.Name || '');
+            if (matched.has(memberName)) {
+                regexMatches.push(member);
+            } else {
+                nextChoose.push(member);
+            }
+        });
+        choose = nextChoose;
+        selectedRegex = mergeMembersByName(selectedRegex, regexMatches);
+        updateList();
+        updateRegexSimulator();
+    };
+
+    if (baseChoose.length < REGEX_WORKER_MIN_ITEMS) {
+        const matchedNames = [];
+        baseChoose.forEach((member) => {
+            if (regex.test(member.Name)) {
+                matchedNames.push(member.Name);
             }
             regex.lastIndex = 0;
-        }
+        });
+        applyMatchResult(matchedNames);
+        return true;
     }
+
+    runRegexMatch(regexSource, baseChoose.map((member) => member.Name))
+        .then((matchedNames) => {
+            applyMatchResult(matchedNames);
+        })
+        .catch(() => {
+            if (requestId !== latestRegexEvaluationRequestId) {
+                return;
+            }
+            const matchedNames = [];
+            baseChoose.forEach((member) => {
+                if (regex.test(member.Name)) {
+                    matchedNames.push(member.Name);
+                }
+                regex.lastIndex = 0;
+            });
+            applyMatchResult(matchedNames);
+        });
+
     updateList();
     updateRegexSimulator();
     return true;
@@ -4356,59 +4539,93 @@ const updateForm = () => {
 const updateList = () => {
     const table = $('.sortable > tbody');
     table.empty();
-
+    const token = ++memberListRenderToken;
     const rows = [];
     selectedRegex.forEach((member) => rows.push({ member, membership: 'regex', checked: true, locked: true }));
     selected.forEach((member) => rows.push({ member, membership: 'manual', checked: true, locked: false }));
     choose.forEach((member) => rows.push({ member, membership: 'available', checked: false, locked: false }));
 
-    rows.forEach(({ member, membership, checked, locked }) => {
+    const renderRowHtml = ({ member, membership, checked, locked }) => {
         const icon = escapeHtml(member.Icon || ICON_FALLBACK_PATH);
         const name = escapeHtml(member.Name);
         const orderControls = locked
             ? '<span class="order-lock" title="Auto-included by regex or label"><i class="fa fa-lock" aria-hidden="true"></i></span>'
             : '<div class="order-buttons"><button type="button" class="member-move" data-direction="up" title="Move up"><i class="fa fa-chevron-up" aria-hidden="true"></i></button><button type="button" class="member-move" data-direction="down" title="Move down"><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div>';
-
-        table.append($(`
+        return `
             <tr class="item" data-name="${name}" data-membership="${membership}">
                 <td class="order-col">${orderControls}</td>
                 <td class="name-col"><span style="cursor: pointer;" onclick="setIconAsContainer(this)"><img src="${icon}" class="img" onerror="this.src='${ICON_FALLBACK_PATH}';"></span>${name}</td>
                 <td><input class="container-switch" ${checked ? 'checked' : ''} ${locked ? 'disabled' : ''} type="checkbox" name="containers[]" value="${name}" style="display: none;"></td>
             </tr>
-        `));
-    });
+        `;
+    };
 
-    $('table.sortable > tbody > tr > td > input.container-switch').switchButton({ show_labels: false });
-    $('table.sortable > tbody > tr > td > input.container-switch:disabled').each(function() {
-        const input = $(this);
-        input.closest('td').find('*').css('opacity', '0.5').css('cursor', 'default').off();
-        this.checked = true;
-    });
+    const finalizeMemberListRender = () => {
+        if (token !== memberListRenderToken) {
+            return;
+        }
+        $('table.sortable > tbody > tr > td > input.container-switch').switchButton({ show_labels: false });
+        $('table.sortable > tbody > tr > td > input.container-switch:disabled').each(function() {
+            const input = $(this);
+            input.closest('td').find('*').css('opacity', '0.5').css('cursor', 'default').off();
+            this.checked = true;
+        });
 
-    $('.item').css('border-color', $('body').css('color'));
+        $('.item').css('border-color', $('body').css('color'));
 
-    $('.member-move').off('click').on('click', function() {
-        moveMemberRow(this, $(this).data('direction'));
-    });
+        $('.member-move').off('click').on('click', function() {
+            moveMemberRow(this, $(this).data('direction'));
+        });
 
-    $('input.container-switch').off('change').on('change', () => {
+        $('input.container-switch').off('change').on('change', () => {
+            updateMemberStats();
+            updateLiveSummary();
+            if (isFormInitialized) {
+                validateForm();
+                updateUnsavedIndicator();
+            }
+        });
+
+        applyMemberFilters();
         updateMemberStats();
         updateLiveSummary();
+        updateRegexSimulator();
+
         if (isFormInitialized) {
             validateForm();
             updateUnsavedIndicator();
         }
-    });
+    };
 
-    applyMemberFilters();
-    updateMemberStats();
-    updateLiveSummary();
-    updateRegexSimulator();
-
-    if (isFormInitialized) {
-        validateForm();
-        updateUnsavedIndicator();
+    if (rows.length <= MEMBER_LIST_RENDER_CHUNK_SIZE) {
+        if (rows.length > 0) {
+            const html = rows.map((row) => renderRowHtml(row)).join('');
+            table.append($(html));
+        }
+        finalizeMemberListRender();
+        return;
     }
+
+    let offset = 0;
+    const appendChunk = () => {
+        if (token !== memberListRenderToken) {
+            return;
+        }
+        const chunk = rows.slice(offset, offset + MEMBER_LIST_RENDER_CHUNK_SIZE);
+        if (!chunk.length) {
+            finalizeMemberListRender();
+            return;
+        }
+        const html = chunk.map((row) => renderRowHtml(row)).join('');
+        table.append($(html));
+        offset += chunk.length;
+        if (offset < rows.length) {
+            scheduleAnimationFrameTask(appendChunk);
+            return;
+        }
+        finalizeMemberListRender();
+    };
+    appendChunk();
 };
 
 /**

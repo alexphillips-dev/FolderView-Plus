@@ -6,12 +6,22 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.21.13">
-<!ENTITY md5 "070d37fd307fbf86ed86ce506084cd3f">
+<!ENTITY version "2026.03.21.15">
+<!ENTITY md5 "36068849707f82654284ad3c715c164d">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.21.15
+- Fix: Improved new-folder editor performance by deferring heavy recompute paths while typing and making icon-manager hydration non-blocking at load.
+- Fix: Hardened Docker runtime name-column recovery with post-render width reflow passes and stronger width fallback to prevent severe name truncation after folder rename/create.
+
+
+###2026.03.21.14
+- Fix: Reduced fresh-folder editor typing lag by skipping heavy regex/member-table recompute while typing folder name.
+- Fix: Added post-render Docker width reflow passes and stronger folder-name width fallback to prevent newly renamed folders collapsing to 1-2 visible characters.
+
 
 ###2026.03.21.13
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

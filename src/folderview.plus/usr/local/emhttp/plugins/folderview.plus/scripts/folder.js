@@ -2854,6 +2854,13 @@ const markCleanState = () => {
     updateUnsavedIndicator();
 };
 
+const markUnsavedIndicatorDirty = () => {
+    if (!initialSnapshot) {
+        return;
+    }
+    $('#unsavedIndicator').show();
+};
+
 const runEditorRecalculation = () => {
     validateForm();
     updateLiveSummary();
@@ -4237,7 +4244,12 @@ resetStatusColorDefaults();
             void applySmartDefaultsFromParent(normalizeParentFolderId(form.parent_folder_id?.value || ''));
         }
         if (fieldName === 'name') {
-            scheduleNameDrivenRegexSync(event.type === 'change' ? 'immediate' : 'debounced');
+            if (event.type === 'input') {
+                $('#fvLiveName').text((form.name?.value || '').trim() || '(unnamed)');
+                markUnsavedIndicatorDirty();
+                return;
+            }
+            scheduleNameDrivenRegexSync('immediate');
         }
         scheduleEditorRecalculation(event.type === 'input' ? EDITOR_INPUT_RECALC_DEBOUNCE_MS : 0);
     });

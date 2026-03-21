@@ -185,6 +185,7 @@ td.ct-name.folder-name > .folder-name-sub {
     flex: 1 1 auto;
     max-width: calc(var(--fvplus-docker-app-column-width) - 106px);
     max-width: calc(var(--fvplus-docker-app-column-width) - var(--fvplus-docker-folder-outer-reserved-width, 106px));
+    max-width: max(112px, calc(var(--fvplus-docker-app-column-width) - var(--fvplus-docker-folder-outer-reserved-width, 106px)));
 }
 
 .folder-hand {
@@ -774,6 +775,7 @@ div.folder-preview-4 span.outer {
 
     .folder-outer {
         max-width: calc(var(--fvplus-docker-app-column-width-mobile) - 88px);
+        max-width: max(102px, calc(var(--fvplus-docker-app-column-width-mobile) - 88px));
     }
 
     .folder-element .ct-name {

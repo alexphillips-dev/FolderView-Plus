@@ -2277,6 +2277,8 @@ const createFolders = async () => {
     }, 50);
     bindDockerRuntimeAppColumnResizer();
     scheduleDockerRuntimeWidthReflow('render-complete', 0);
+    setTimeout(() => scheduleDockerRuntimeWidthReflow('render-post-80ms', 18), 80);
+    setTimeout(() => scheduleDockerRuntimeWidthReflow('render-post-260ms', 18), 260);
 
     folderDebugMode = false; // Existing flag
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Set folderDebugMode (existing) to false.');

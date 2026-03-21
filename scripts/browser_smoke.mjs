@@ -23,6 +23,12 @@ const artifactRoot = path.resolve(
     String(process.env.FVPLUS_BROWSER_SMOKE_ARTIFACT_DIR || '').trim()
         || path.join(process.cwd(), 'tmp', 'browser-smoke-artifacts')
 );
+const baselineFile = String(process.env.FVPLUS_BROWSER_SMOKE_BASELINE_FILE || '').trim();
+const baselineMode = String(process.env.FVPLUS_BROWSER_SMOKE_BASELINE_MODE || '').trim().toLowerCase() || 'off';
+const baselineTolerancePx = Number.isFinite(Number(process.env.FVPLUS_BROWSER_SMOKE_BASELINE_TOLERANCE_PX))
+    ? Math.max(0, Number(process.env.FVPLUS_BROWSER_SMOKE_BASELINE_TOLERANCE_PX))
+    : 2;
+const requireBaseline = String(process.env.FVPLUS_BROWSER_SMOKE_REQUIRE_BASELINE || '0').trim() === '1';
 
 if (!targetUrl) {
     console.log('Skipping browser smoke checks (FVPLUS_BROWSER_SMOKE_URL not set).');
@@ -41,6 +47,8 @@ const sanitizeToken = (value) => String(value || '')
     .replace(/[^a-z0-9._-]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, 80) || 'token';
+
+const runtimeReports = [];
 
 const resolveRuntimeUrl = (baseUrl, type) => {
     try {
@@ -62,6 +70,80 @@ const resolveRuntimeUrl = (baseUrl, type) => {
         return '';
     }
     return '';
+};
+
+const buildRuntimeReportKey = ({ browserName, type }) => `${sanitizeToken(browserName)}:${sanitizeToken(type)}`;
+
+const normalizeCheckRoleMap = (checks) => {
+    const map = {};
+    for (const check of Array.isArray(checks) ? checks : []) {
+        const role = String(check?.role || '').trim().toLowerCase();
+        if (!role || check?.skipped === true) {
+            continue;
+        }
+        map[role] = check;
+    }
+    return map;
+};
+
+const compareAgainstBaseline = (currentReports, baselinePayload = {}) => {
+    const baselineReports = baselinePayload?.reports && typeof baselinePayload.reports === 'object'
+        ? baselinePayload.reports
+        : {};
+    const failures = [];
+    for (const report of currentReports) {
+        const key = buildRuntimeReportKey(report);
+        const baseline = baselineReports[key];
+        if (!baseline || typeof baseline !== 'object') {
+            if (requireBaseline) {
+                failures.push({ key, reason: 'missing-baseline-entry' });
+            }
+            continue;
+        }
+        if (report.pass !== true) {
+            failures.push({ key, reason: 'current-report-failed' });
+            continue;
+        }
+        const currentByRole = normalizeCheckRoleMap(report.checks);
+        const baselineByRole = normalizeCheckRoleMap(baseline.checks);
+        for (const role of Object.keys(currentByRole)) {
+            const currentCheck = currentByRole[role];
+            const baselineCheck = baselineByRole[role];
+            if (!baselineCheck) {
+                if (requireBaseline) {
+                    failures.push({ key, role, reason: 'missing-baseline-role' });
+                }
+                continue;
+            }
+            const currentAppGap = Number(currentCheck?.appBoundaryGap);
+            const baselineAppGap = Number(baselineCheck?.appBoundaryGap);
+            if (Number.isFinite(currentAppGap) && Number.isFinite(baselineAppGap)) {
+                if (currentAppGap < (baselineAppGap - baselineTolerancePx)) {
+                    failures.push({
+                        key,
+                        role,
+                        reason: 'app-gap-regressed',
+                        currentAppGap,
+                        baselineAppGap
+                    });
+                }
+            }
+            const currentVersionGap = Number(currentCheck?.versionGap);
+            const baselineVersionGap = Number(baselineCheck?.versionGap);
+            if (Number.isFinite(currentVersionGap) && Number.isFinite(baselineVersionGap)) {
+                if (currentVersionGap > (baselineVersionGap + baselineTolerancePx)) {
+                    failures.push({
+                        key,
+                        role,
+                        reason: 'version-gap-regressed',
+                        currentVersionGap,
+                        baselineVersionGap
+                    });
+                }
+            }
+        }
+    }
+    return failures;
 };
 
 const dockerRuntimeUrl = dockerRuntimeUrlEnv || resolveRuntimeUrl(targetUrl, 'docker');
@@ -221,7 +303,16 @@ const runRuntimeLayoutSmoke = async (page, { browserName, type, url }) => {
             throw new Error(`${message} [required by FVPLUS_BROWSER_SMOKE_REQUIRE_RUNTIME_ROWS=1]`);
         }
         console.warn(message);
-        return;
+        return {
+            browserName,
+            type,
+            url,
+            skipped: true,
+            pass: false,
+            reason: report.reason,
+            checks: [],
+            screenshotPath
+        };
     }
 
     if (!report?.pass) {
@@ -239,6 +330,15 @@ const runRuntimeLayoutSmoke = async (page, { browserName, type, url }) => {
         `Runtime visual check passed: ${type} (${browserName}) `
         + `${JSON.stringify(report.checks || [])}`
     );
+    return {
+        browserName,
+        type,
+        url,
+        skipped: false,
+        pass: report?.pass === true,
+        checks: Array.isArray(report?.checks) ? report.checks : [],
+        screenshotPath
+    };
 };
 
 const runBrowserSmoke = async (browserName, browserType) => {
@@ -267,11 +367,14 @@ const runBrowserSmoke = async (browserName, browserType) => {
         }
 
         for (const runtimeTarget of runtimeTargets) {
-            await runRuntimeLayoutSmoke(page, {
+            const runtimeReport = await runRuntimeLayoutSmoke(page, {
                 browserName,
                 type: runtimeTarget.type,
                 url: runtimeTarget.url
             });
+            if (runtimeReport) {
+                runtimeReports.push(runtimeReport);
+            }
         }
 
         console.log(`Browser smoke passed: ${browserName} (${scenarioLabel})`);
@@ -294,6 +397,44 @@ try {
     await runBrowserSmoke('chromium', playwright.chromium);
     await runBrowserSmoke('firefox', playwright.firefox);
     await runBrowserSmoke('webkit', playwright.webkit);
+
+    const reportPayload = {
+        version: 1,
+        generatedAt: new Date().toISOString(),
+        scenarioLabel,
+        reports: runtimeReports
+    };
+    const reportPath = path.join(artifactRoot, 'browser-smoke-report.json');
+    fs.writeFileSync(reportPath, JSON.stringify(reportPayload, null, 2), 'utf8');
+    console.log(`Browser smoke report written: ${reportPath}`);
+
+    if (baselineFile) {
+        if (baselineMode === 'record') {
+            const baselinePayload = {
+                version: 1,
+                generatedAt: new Date().toISOString(),
+                scenarioLabel,
+                reports: Object.fromEntries(runtimeReports.map((entry) => [buildRuntimeReportKey(entry), entry]))
+            };
+            fs.mkdirSync(path.dirname(baselineFile), { recursive: true });
+            fs.writeFileSync(baselineFile, JSON.stringify(baselinePayload, null, 2), 'utf8');
+            console.log(`Browser smoke baseline updated: ${baselineFile}`);
+        } else if (baselineMode === 'enforce') {
+            if (!fs.existsSync(baselineFile)) {
+                if (requireBaseline) {
+                    throw new Error(`Browser smoke baseline file is required but missing: ${baselineFile}`);
+                }
+                console.warn(`Browser smoke baseline file not found (skipping compare): ${baselineFile}`);
+            } else {
+                const baselinePayload = JSON.parse(fs.readFileSync(baselineFile, 'utf8'));
+                const failures = compareAgainstBaseline(runtimeReports, baselinePayload);
+                if (failures.length > 0) {
+                    throw new Error(`Browser smoke baseline regression: ${JSON.stringify(failures)}`);
+                }
+                console.log(`Browser smoke baseline compare passed: ${baselineFile}`);
+            }
+        }
+    }
 } finally {
     try {
         fs.unlinkSync(tempImportPath);

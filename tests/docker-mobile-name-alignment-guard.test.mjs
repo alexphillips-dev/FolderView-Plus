@@ -26,6 +26,7 @@ test('docker mobile app-name width contract keeps long names visible before elli
 test('docker folder dropdown keeps right gutter to avoid version-column clipping', () => {
     assert.match(dockerCss, /\.folder-dropdown\s*\{[\s\S]*min-width:\s*18px/);
     assert.match(dockerCss, /\.folder-dropdown\s*\{[\s\S]*margin:\s*0 16px 0 auto/);
+    assert.match(dockerCss, /td\.ct-name\.folder-name > \.folder-name-sub\s*\{[\s\S]*right:\s*28px/);
     assert.match(dockerCss, /\.folder-dropdown > i\s*\{[\s\S]*font-size:\s*12px/);
 });
 

@@ -35,6 +35,7 @@ if (!empty($fvplusRuntimeConflicts)) {
 <script src="<?php autov('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>"></script>
 <script src="<?php autov('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>
 <script src="<?php autov('/plugins/folderview.plus/scripts/runtime.column-layout.js')?>"></script>
+<script src="<?php autov('/plugins/folderview.plus/scripts/docker.runtime.shared.js')?>"></script>
 <script src="<?php autov('/plugins/folderview.plus/scripts/docker.modules.js')?>"></script>
 <script defer src="<?php autov('/plugins/folderview.plus/scripts/docker.js')?>"></script>
 

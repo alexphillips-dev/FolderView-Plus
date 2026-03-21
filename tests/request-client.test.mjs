@@ -128,6 +128,26 @@ test('request client configures ajax headers with token', () => {
     assert.equal(lastHeaders['X-FV-Token'], 'abc123');
 });
 
+test('request client generates trace IDs and sends them on mutation payload + headers', async () => {
+    const { api, getAjaxCalls } = loadRequestClient({
+        token: 'tok-123',
+        plan: [{ type: 'success', data: '{"ok":true}' }]
+    });
+
+    const response = await api.postJson('/plugins/folderview.plus/server/prefs.php', {
+        type: 'docker',
+        prefs: '{}'
+    });
+    assert.equal(response.ok, true);
+
+    const call = getAjaxCalls()[0] || {};
+    assert.equal(call.method, 'POST');
+    assert.match(String(call.headers?.['X-FV-Trace'] || ''), /^fv-/);
+    assert.equal(call.data._fv_request, '1');
+    assert.equal(call.data.token, 'tok-123');
+    assert.equal(call.data._fv_trace, call.headers?.['X-FV-Trace']);
+});
+
 test('request client retries retryable failures and returns parsed JSON', async () => {
     const { api, getCallCount } = loadRequestClient({
         plan: [
@@ -154,7 +174,7 @@ test('request client does not retry aborted requests', async () => {
 
     await assert.rejects(
         () => api.postJson('/plugins/folderview.plus/server/test.php', { ok: 1 }, { retries: 3 }),
-        /Request failed/
+        /trace:\s*fv-/
     );
     assert.equal(getCallCount(), 1);
 });

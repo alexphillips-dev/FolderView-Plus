@@ -38,6 +38,7 @@ fvplus_json_try(function (): array {
     syncManualOrderWithFolders($type, readRawFolderMap($type));
     try {
         appendDiagnosticsHistoryEvent('prefs_update', $type, [
+            'traceId' => getRequestTraceId(),
             'backupCreated' => is_array($backup),
             'sortMode' => (string)($saved['sortMode'] ?? 'created'),
             'ruleCount' => count($saved['autoRules'] ?? []),

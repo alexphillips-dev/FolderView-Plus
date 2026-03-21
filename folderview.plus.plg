@@ -5,13 +5,97 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.19.29">
-<!ENTITY md5 "12e1c185e462e9f9aa53848216f3f7fb">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
+<!ENTITY version "2026.03.21.01">
+<!ENTITY md5 "de86426fa42edffd34a1458f37c6e109">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.21.01
+- Maintenance: Harden setup wizard contrast across themes.
+
+
+###2026.03.20.14
+- Maintenance: Update docker context action contract tests for i18n clone label.
+
+
+###2026.03.20.13
+- Refactor: Added `docker.runtime.shared.js` for Docker runtime state store, async action boundaries, context-menu adapter, and perf telemetry primitives.
+- Regression guard: Added architecture and visual-contract tests for Docker quick actions, shared module wiring, and layout token fallback behavior.
+- UX: Improved Docker runtime i18n-safe quick action labels and accessibility labels for icon-only context actions.
+- Compatibility: Added centralized Docker layout tokens with hard-coded fallbacks to preserve existing selector/spacing contracts.
+
+
+###2026.03.20.12
+- UX: Changed Docker folder click menu so `Focus`, `Pin`, and `Lock` render as icon-only quick actions on one top row.
+- Regression guard: Added runtime/test coverage for context quick-action strip detection and styling.
+
+
+###2026.03.20.11
+- Fix: Restored Docker folder rows after row-action regression that hid folder names.
+- UX: Moved `Focus`, `Pin/Unpin`, and `Lock/Unlock` into the top of the existing folder click menu.
+- Regression guard: Restored right-side dropdown gutter/padding contract to prevent Version column clipping.
+
+
+###2026.03.20.10
+- Feature: Added one-click folder-row quick actions for `Focus`, `Pin/Unpin`, and `Lock/Unlock` in Docker tab.
+- UX: Added focused-folder mode to isolate a selected folder branch (with nested-aware visibility handling).
+- UX: Added pinned-folder quick toggle with immediate prefs sync and reordering on refresh.
+- Fix: Added lock guardrail to block edit/delete/clone while locked and prevent accidental drag reorder via mover handle suppression.
+
+
+###2026.03.20.09
+- UX: Redesigned the Docker `Popup blocked` dialog with a cleaner, modern card layout and concise visual status chips.
+- UX: Improved popup guidance flow with clearer action steps, host context, and browser-specific quick help.
+- UX: Refined blocked-WebUI fallback list styling for easier manual opening when popup policies block tabs.
+
+
+###2026.03.20.08
+- Fix: Improved Docker folder `Open all WebUIs` runtime target resolution so direct folder members are resolved from live container metadata.
+- UX: Added popup-block warning guidance with browser-specific allow steps (Chrome/Edge, Firefox, Safari/iPhone) and host-specific instructions.
+- UX: Added blocked-link fallback list in the warning dialog so users can still open remaining WebUIs manually.
+
+
+###2026.03.20.07
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.20.06
+- Fix: Fix folder WebUI multi-open behavior and refresh perf baseline.
+
+
+###2026.03.20.05
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.20.04
+- Feature: Add Open All WebUIs and Clone Folder actions to Docker folder menu.
+- Maintenance: Bump dev release to 2026.03.20.01.
+- Maintenance: Improve Docker folder menu with scoped actions and branch controls.
+- Fix: Fix CI shellcheck SC2016 in theme runtime guard.
+- Maintenance: Release 2026.03.19.29 on main with full dev rollup notes.
+- Feature: Add regression guard for dashboard rail collapse detection.
+
+
+###2026.03.20.03
+- Feature: Added Docker folder menu quick actions for `Open all WebUIs` and `Clone folder`.
+- UX: `Open all WebUIs` now respects nested trees by targeting only direct members of the clicked folder.
+- Quality: Added regression coverage to keep new Docker folder context actions from drifting.
+
+
+###2026.03.20.02
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.20.01
+- Maintenance: Improve Docker folder menu with scoped actions and branch controls.
+- Fix: Fix CI shellcheck SC2016 in theme runtime guard.
+
 
 ###2026.03.19.29
 - Feature: Added a full dashboard quick-action rail for Docker and VM widgets (layout cycle, expand/collapse all, running-only, health emphasis, compact density, reset view, and settings shortcut).
@@ -2132,7 +2216,7 @@
     </CHANGES>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

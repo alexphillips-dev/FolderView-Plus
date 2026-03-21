@@ -462,6 +462,52 @@
         return isset($_SERVER[$key]) ? trim((string)$_SERVER[$key]) : '';
     }
 
+    function normalizeRequestTraceId(string $value): string {
+        $trimmed = trim($value);
+        if ($trimmed === '') {
+            return '';
+        }
+        if (!preg_match('/^[A-Za-z0-9._:-]{6,96}$/', $trimmed)) {
+            return '';
+        }
+        return $trimmed;
+    }
+
+    function getRequestTraceId(): string {
+        static $traceId = null;
+        if (is_string($traceId) && $traceId !== '') {
+            return $traceId;
+        }
+        $candidates = [
+            (string)($_POST['_fv_trace'] ?? ''),
+            (string)($_GET['_fv_trace'] ?? ''),
+            getRequestHeaderValue('X-FV-Trace')
+        ];
+        foreach ($candidates as $candidate) {
+            $normalized = normalizeRequestTraceId($candidate);
+            if ($normalized !== '') {
+                $traceId = $normalized;
+                return $traceId;
+            }
+        }
+        try {
+            $generated = 'fv-' . bin2hex(random_bytes(8));
+        } catch (Throwable $error) {
+            $generated = 'fv-' . substr(sha1(uniqid('', true)), 0, 16);
+        }
+        $traceId = normalizeRequestTraceId($generated);
+        if ($traceId === '') {
+            $traceId = 'fv-fallback';
+        }
+        return $traceId;
+    }
+
+    function emitRequestTraceHeader(): void {
+        if (!headers_sent()) {
+            header('X-FV-Trace: ' . getRequestTraceId());
+        }
+    }
+
     function normalizeHostForCompare(string $host): string {
         $host = strtolower(trim($host));
         if ($host === '') {
@@ -658,6 +704,7 @@
             header('Content-Type: application/json');
             header('X-Content-Type-Options: nosniff');
             header('Cache-Control: no-store, no-cache, must-revalidate');
+            emitRequestTraceHeader();
         }
         http_response_code($statusCode);
         $encoded = json_encode($payload, JSON_UNESCAPED_SLASHES);
@@ -683,7 +730,8 @@
     function fvplus_json_error(string $message, int $statusCode = 400, array $payload = []): void {
         $data = [
             'ok' => false,
-            'error' => $message
+            'error' => $message,
+            'traceId' => getRequestTraceId()
         ];
         foreach ($payload as $key => $value) {
             if ($key === 'ok' || $key === 'error') {
@@ -696,9 +744,11 @@
 
     function fvplus_log_api_exception(Throwable $error): void {
         $timestamp = gmdate('c');
+        $traceId = getRequestTraceId();
         $line = sprintf(
-            "[%s] %s in %s:%d | %s\n",
+            "[%s] [trace:%s] %s in %s:%d | %s\n",
             $timestamp,
+            $traceId,
             get_class($error),
             (string)$error->getFile(),
             (int)$error->getLine(),

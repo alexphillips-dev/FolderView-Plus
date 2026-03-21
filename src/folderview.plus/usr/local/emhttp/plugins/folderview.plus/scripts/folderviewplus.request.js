@@ -4,8 +4,14 @@
     const DEFAULT_RETRIES = 1;
     const DEFAULT_RETRY_DELAY_MS = 220;
     const RETRYABLE_STATUS_CODES = new Set([0, 408, 425, 429, 500, 502, 503, 504]);
+    const TRACE_HEADER_NAME = 'X-FV-Trace';
+    const TRACE_PAYLOAD_KEY = '_fv_trace';
 
     const wait = (ms) => new Promise((resolve) => setTimeout(resolve, Math.max(0, Number(ms) || 0)));
+    const newTraceId = () => {
+        const rand = Math.random().toString(16).slice(2, 10);
+        return `fv-${Date.now().toString(36)}-${rand}`;
+    };
 
     const isMetaTag = (node) => (
         node
@@ -25,7 +31,7 @@
         }
     };
 
-    const buildHeaders = (extraHeaders = {}, tokenStorageKey = DEFAULT_TOKEN_STORAGE_KEY, resolvedToken = '') => {
+    const buildHeaders = (extraHeaders = {}, tokenStorageKey = DEFAULT_TOKEN_STORAGE_KEY, resolvedToken = '', traceId = '') => {
         const headers = {
             'X-FV-Request': '1',
             ...(extraHeaders || {})
@@ -33,6 +39,10 @@
         const token = String(resolvedToken || getOptionalRequestToken(tokenStorageKey) || '').trim();
         if (token) {
             headers['X-FV-Token'] = token;
+        }
+        const trace = String(traceId || '').trim();
+        if (trace) {
+            headers[TRACE_HEADER_NAME] = trace;
         }
         return headers;
     };
@@ -43,17 +53,21 @@
         && Object.prototype.toString.call(value) === '[object Object]'
     );
 
-    const addMutationPayloadMarkers = (method, data, token) => {
+    const addMutationPayloadMarkers = (method, data, token, traceId = '') => {
         if (String(method || '').toUpperCase() !== 'POST') {
             return data;
         }
         const safeToken = String(token || '').trim();
+        const safeTraceId = String(traceId || '').trim();
         if (typeof FormData !== 'undefined' && data instanceof FormData) {
             if (!data.has('_fv_request')) {
                 data.append('_fv_request', '1');
             }
             if (safeToken && !data.has('token')) {
                 data.append('token', safeToken);
+            }
+            if (safeTraceId && !data.has(TRACE_PAYLOAD_KEY)) {
+                data.append(TRACE_PAYLOAD_KEY, safeTraceId);
             }
             return data;
         }
@@ -64,6 +78,9 @@
             if (safeToken && !data.has('token')) {
                 data.set('token', safeToken);
             }
+            if (safeTraceId && !data.has(TRACE_PAYLOAD_KEY)) {
+                data.set(TRACE_PAYLOAD_KEY, safeTraceId);
+            }
             return data;
         }
         const payload = isPlainObject(data) ? { ...data } : {};
@@ -72,6 +89,9 @@
         }
         if (safeToken && !Object.prototype.hasOwnProperty.call(payload, 'token')) {
             payload.token = safeToken;
+        }
+        if (safeTraceId && !Object.prototype.hasOwnProperty.call(payload, TRACE_PAYLOAD_KEY)) {
+            payload[TRACE_PAYLOAD_KEY] = safeTraceId;
         }
         return payload;
     };
@@ -146,7 +166,7 @@
         return trimmed.length > 240 ? `${trimmed.slice(0, 237)}...` : trimmed;
     };
 
-    const formatAjaxError = (error, url) => {
+    const formatAjaxError = (error, url, traceId = '') => {
         if (error instanceof Error) {
             return error;
         }
@@ -173,6 +193,9 @@
         if (serverDetail) {
             pieces.push(`- ${serverDetail}`);
         }
+        if (traceId) {
+            pieces.push(`(trace: ${traceId})`);
+        }
         return new Error(pieces.join(' '));
     };
 
@@ -195,28 +218,31 @@
 
         const normalizedMethod = String(method || 'GET').toUpperCase();
         const token = getOptionalRequestToken(tokenStorageKey);
-        const payload = addMutationPayloadMarkers(normalizedMethod, data, token);
+        const traceId = newTraceId();
+        const payload = addMutationPayloadMarkers(normalizedMethod, data, token, traceId);
 
         for (let attempt = 0; attempt <= safeRetries; attempt += 1) {
             try {
-                return await toAjaxPromise({
+                const response = await toAjaxPromise({
                     url,
                     method: normalizedMethod,
                     data: payload,
                     timeout: safeTimeoutMs,
-                    headers: buildHeaders(headers, tokenStorageKey, token)
+                    headers: buildHeaders(headers, tokenStorageKey, token, traceId)
                 });
+                response.traceId = traceId;
+                return response;
             } catch (error) {
                 lastError = error;
                 const shouldRetry = attempt < safeRetries && shouldRetryError(error);
                 if (!shouldRetry) {
-                    throw formatAjaxError(error, url);
+                    throw formatAjaxError(error, url, traceId);
                 }
                 await wait((attempt + 1) * retryDelayMs);
             }
         }
 
-        throw formatAjaxError(lastError, url);
+        throw formatAjaxError(lastError, url, traceId);
     };
 
     const parseJsonStrict = (payload, url) => {
@@ -321,6 +347,7 @@
 
     window.FolderViewPlusRequest = Object.freeze({
         configureSecurityHeaders,
+        newTraceId,
         request,
         getText,
         postText,

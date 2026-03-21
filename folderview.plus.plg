@@ -5,13 +5,23 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.21.09">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
+<!ENTITY version "2026.03.21.10">
 <!ENTITY md5 "6e420ddd983612b56a79faf408199b6b">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.21.10
+- Maintenance: Release rollup since main `2026.03.21.03`; merged all `dev` improvements through `2026.03.21.09` into `main`.
+- Feature: Added theme compatibility mode controls (`auto/host/safe/highcontrast`) with runtime resolver + self-heal action for Docker/VM settings.
+- Feature: Reworked setup wizard visual system with module-mapped card tones (`data-fv-card-tone`) and contrast tiers (`normal/high/max`) with auto-evaluation.
+- Feature: Added wizard accessibility controls (Focus mode + Contrast selector), expanded keyboard shortcuts (`Alt+F`, `Alt+C`), and mobile chip-row details toggles.
+- UX: Improved wizard readability with stronger panel/card separation, semantic status color mapping (`info/success/warning/danger/neutral`), and non-color active-state cues.
+- UX: Added inline "how to fix" guidance in wizard flow to reduce blocker/warning confusion and speed setup completion.
+- Quality: Expanded regression and guard coverage for wizard theme/contrast contracts, tone mapping, and theme matrix smoke checks.
+
 
 ###2026.03.21.09
 - Feature: Added wizard contrast system with explicit tiers (`normal/high/max`) plus auto contrast evaluation that selects safer tiers when needed.
@@ -2268,7 +2278,7 @@
     </CHANGES>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

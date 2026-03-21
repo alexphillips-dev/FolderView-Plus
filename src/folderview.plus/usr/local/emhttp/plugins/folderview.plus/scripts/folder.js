@@ -2994,6 +2994,71 @@ const normalizeDashboardOverflowMode = (value) => {
         : 'default';
 };
 
+const normalizeFolderRecordForEditor = (folder) => {
+    const source = folder && typeof folder === 'object' ? folder : {};
+    const settings = source.settings && typeof source.settings === 'object' ? source.settings : {};
+
+    const toSafeInt = (value, fallback) => {
+        const parsed = Number.parseInt(String(value ?? ''), 10);
+        return Number.isFinite(parsed) ? parsed : fallback;
+    };
+
+    return {
+        ...source,
+        name: String(source.name || '').trim() || 'Folder',
+        icon: String(source.icon || '').trim() || DEFAULT_FOLDER_ICON_PATH,
+        regex: String(source.regex || ''),
+        parentId: normalizeParentFolderId(source.parentId || source.parent_id || ''),
+        containers: Array.from(
+            new Set(
+                asArray(source.containers)
+                    .map((entry) => String(entry || '').trim())
+                    .filter(Boolean)
+            )
+        ),
+        actions: asArray(source.actions),
+        settings: {
+            ...settings,
+            folder_webui: settings.folder_webui === true,
+            folder_webui_url: String(settings.folder_webui_url || ''),
+            preview: Number.isFinite(Number(settings.preview)) ? toSafeInt(settings.preview, 1) : 1,
+            preview_hover: settings.preview_hover === true,
+            preview_update: settings.preview_update === true,
+            preview_text_width: String(settings.preview_text_width || ''),
+            preview_grayscale: settings.preview_grayscale === true,
+            preview_webui: settings.preview_webui === true,
+            preview_logs: settings.preview_logs === true,
+            preview_console: settings.preview_console === true,
+            preview_vertical_bars: settings.preview_vertical_bars === true,
+            context: Number.isFinite(Number(settings.context)) ? toSafeInt(settings.context, 1) : 1,
+            context_trigger: Number.isFinite(Number(settings.context_trigger)) ? toSafeInt(settings.context_trigger, 0) : 0,
+            context_graph: Number.isFinite(Number(settings.context_graph)) ? toSafeInt(settings.context_graph, 1) : 1,
+            context_graph_time: Number.isFinite(Number(settings.context_graph_time)) ? toSafeInt(settings.context_graph_time, 60) : 60,
+            preview_border: isLegacyPreviewBorderEnabled(settings),
+            preview_border_color: normalizeHexColor(settings.preview_border_color, DEFAULT_BORDER_COLOR),
+            preview_vertical_bars_color: normalizeHexColor(
+                settings.preview_vertical_bars_color || settings.preview_border_color,
+                DEFAULT_BORDER_COLOR
+            ),
+            status_color_started: normalizeHexColor(settings.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started),
+            status_color_paused: normalizeHexColor(settings.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused),
+            status_color_stopped: normalizeHexColor(settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped),
+            health_warn_stopped_percent: parseOptionalThresholdInput(settings.health_warn_stopped_percent),
+            health_critical_stopped_percent: parseOptionalThresholdInput(settings.health_critical_stopped_percent),
+            health_profile: normalizeOptionalHealthSelect(settings.health_profile, FOLDER_HEALTH_PROFILE_VALUES),
+            health_updates_mode: normalizeOptionalHealthSelect(settings.health_updates_mode, FOLDER_HEALTH_UPDATES_MODE_VALUES),
+            health_all_stopped_mode: normalizeOptionalHealthSelect(settings.health_all_stopped_mode, FOLDER_HEALTH_ALL_STOPPED_MODE_VALUES),
+            status_warn_stopped_percent: parseOptionalThresholdInput(settings.status_warn_stopped_percent),
+            update_column: settings.update_column === true,
+            default_action: settings.default_action === true,
+            expand_tab: settings.expand_tab === true,
+            override_default_actions: settings.override_default_actions === true,
+            expand_dashboard: settings.expand_dashboard === true,
+            dashboard_overflow: normalizeDashboardOverflowMode(settings.dashboard_overflow)
+        }
+    };
+};
+
 const validateHealthWarnThreshold = () => {
     const form = getForm();
     const input = form.health_warn_stopped_percent;
@@ -3925,8 +3990,18 @@ resetStatusColorDefaults();
         $('[constraint*="docker"]').hide();
     }
     // get folders
-    let folders = JSON.parse(await $.get(`/plugins/folderview.plus/server/read.php?type=${type}&nocache=1&_=${cacheBust}`).promise());
-    allFoldersById = folders && typeof folders === 'object' ? { ...folders } : {};
+    const foldersResponse = JSON.parse(await $.get(`/plugins/folderview.plus/server/read.php?type=${type}&nocache=1&_=${cacheBust}`).promise());
+    const folders = {};
+    if (foldersResponse && typeof foldersResponse === 'object') {
+        for (const [id, folder] of Object.entries(foldersResponse)) {
+            const safeId = String(id || '').trim();
+            if (!safeId) {
+                continue;
+            }
+            folders[safeId] = normalizeFolderRecordForEditor(folder);
+        }
+    }
+    allFoldersById = { ...folders };
     // get the list of element docker/vm
     let typeFilter;
     if (type === 'docker') {
@@ -3958,7 +4033,7 @@ resetStatusColorDefaults();
     // if editing a folder and not creating one
     if (folderId) {
         // select the folder and delete it from the list
-        const currFolder = folders[folderId];
+        const currFolder = normalizeFolderRecordForEditor(folders[folderId] || {});
         currentFolderDescendantIds = computeFolderDescendantIds(allFoldersById, folderId);
         currentFolderName = currFolder.name || '';
         delete folders[folderId];
@@ -3974,7 +4049,7 @@ resetStatusColorDefaults();
         form.icon.value = currFolder.icon;
         form.folder_webui.checked = currFolder.settings.folder_webui || false;
         form.folder_webui_url.value = currFolder.settings.folder_webui_url || '';
-        form.preview.value = currFolder.settings.preview.toString();
+        form.preview.value = String(currFolder.settings.preview);
         form.preview_hover.checked = currFolder.settings.preview_hover;
         form.preview_update.checked = currFolder.settings.preview_update;
         form.preview_text_width.value = currFolder.settings.preview_text_width || '';

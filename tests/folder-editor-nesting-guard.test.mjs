@@ -31,6 +31,14 @@ test('folder editor supports parent smart-default inheritance on new child folde
     assert.match(folderEditorScript, /fieldName === 'parent_folder_id' && event\.type === 'change'/);
 });
 
+test('folder editor normalizes sparse folder payloads before binding controls', () => {
+    assert.match(folderEditorScript, /const normalizeFolderRecordForEditor = \(folder\) =>/);
+    assert.match(folderEditorScript, /preview:\s*Number\.isFinite\(Number\(settings\.preview\)\)/);
+    assert.match(folderEditorScript, /context_graph_time:\s*Number\.isFinite\(Number\(settings\.context_graph_time\)\)/);
+    assert.match(folderEditorScript, /folders\[safeId\] = normalizeFolderRecordForEditor\(folder\);/);
+    assert.match(folderEditorScript, /form\.preview\.value = String\(currFolder\.settings\.preview\);/);
+});
+
 test('folder editor includes parent default hint styles', () => {
     assert.match(folderEditorStyles, /\.fv-parent-defaults-note/);
     assert.match(folderEditorStyles, /\.fv-parent-defaults-note\.is-success/);

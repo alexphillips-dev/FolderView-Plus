@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.21.10">
-<!ENTITY md5 "6e420ddd983612b56a79faf408199b6b">
+<!ENTITY version "2026.03.21.11">
+<!ENTITY md5 "3196c117d27f066e173698cdb20a94b5">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.21.11
+- Maintenance: Align VM dropdown and name-column runtime behavior with Docker.
+- Maintenance: Refresh perf baseline after VM parity runtime updates.
+- Maintenance: Align VM folder runtime behavior with Docker and add parity guards.
+
 
 ###2026.03.21.10
 - Maintenance: Release rollup since main `2026.03.21.03`; merged all `dev` improvements through `2026.03.21.09` into `main`.

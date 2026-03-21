@@ -6,12 +6,26 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.21.25">
-<!ENTITY md5 "c6a87e9cb41a9addeeea9e81a67c856d">
+<!ENTITY version "2026.03.21.27">
+<!ENTITY md5 "74dc9fbb16757d550a4dcbc73d878543">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.21.27
+- Feature: add category-driven starter template picker.
+- Maintenance: Release main 2026.03.21.24 with template rollup notes.
+- Maintenance: align starter template popup options across themes.
+- Maintenance: rebuild dev release artifacts for 2026.03.21.22.
+- Maintenance: make starter template popup selectable.
+- Maintenance: rebuild dev release artifacts for 2026.03.21.21.
+
+
+###2026.03.21.26
+- Fix: Starter-template category chips in the selection popup no longer close the dialog when clicked.
+- UX: Category chips now support keyboard activation (Enter/Space) with proper active-state accessibility (`aria-pressed`).
+
 
 ###2026.03.21.25
 - Feature: Added starter-template categories (`Homelab`, `Media`, `Minimal`, `Lab`) in the new-user popup.

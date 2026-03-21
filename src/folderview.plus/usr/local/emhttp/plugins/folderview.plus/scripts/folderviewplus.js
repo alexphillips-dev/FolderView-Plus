@@ -4037,7 +4037,7 @@ const promptStarterTemplateSelection = async (type, blueprints) => {
         const categoryHtml = categoryIds.map((categoryId) => {
             const label = getCategoryLabel(categoryId);
             const activeClass = categoryId === defaultCategoryId ? ' is-active' : '';
-            return `<button type="button" class="fv-starter-template-category${activeClass}" data-fv-starter-category="${escapeHtml(categoryId)}">${escapeHtml(label)}</button>`;
+            return `<span class="fv-starter-template-category${activeClass}" data-fv-starter-category="${escapeHtml(categoryId)}" role="button" tabindex="0" aria-pressed="${categoryId === defaultCategoryId ? 'true' : 'false'}">${escapeHtml(label)}</span>`;
         }).join('');
         const optionsHtml = templateList.map((entry, index) => {
             const name = String(entry.name || '').trim();
@@ -4049,9 +4049,9 @@ const promptStarterTemplateSelection = async (type, blueprints) => {
 
         const applyCategoryFilter = (requestedCategoryId, resetSelection = false) => {
             const activeCategoryId = categoryIds.includes(requestedCategoryId) ? requestedCategoryId : defaultCategoryId;
-            $('.fv-starter-template-category').removeClass('is-active').each((_, node) => {
+            $('.fv-starter-template-category').removeClass('is-active').attr('aria-pressed', 'false').each((_, node) => {
                 if (String($(node).attr('data-fv-starter-category') || '') === activeCategoryId) {
-                    $(node).addClass('is-active');
+                    $(node).addClass('is-active').attr('aria-pressed', 'true');
                 }
             });
             let visibleCount = 0;
@@ -4074,7 +4074,7 @@ const promptStarterTemplateSelection = async (type, blueprints) => {
         };
 
         const clearCategoryBindings = () => {
-            $(document).off('click.fvstartertemplatecategory', '.fv-starter-template-category');
+            $(document).off('click.fvstartertemplatecategory keydown.fvstartertemplatecategory', '.fv-starter-template-category');
         };
 
         swal({
@@ -4112,11 +4112,29 @@ const promptStarterTemplateSelection = async (type, blueprints) => {
             return true;
         });
 
-        $(document).off('click.fvstartertemplatecategory', '.fv-starter-template-category').on('click.fvstartertemplatecategory', '.fv-starter-template-category', (event) => {
-            event.preventDefault();
-            const requestedCategoryId = normalizeStarterTemplateCategory($(event.currentTarget).attr('data-fv-starter-category'));
-            applyCategoryFilter(requestedCategoryId, true);
-        });
+        $(document).off('click.fvstartertemplatecategory keydown.fvstartertemplatecategory', '.fv-starter-template-category')
+            .on('click.fvstartertemplatecategory', '.fv-starter-template-category', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                if (typeof event.stopImmediatePropagation === 'function') {
+                    event.stopImmediatePropagation();
+                }
+                const requestedCategoryId = normalizeStarterTemplateCategory($(event.currentTarget).attr('data-fv-starter-category'));
+                applyCategoryFilter(requestedCategoryId, true);
+            })
+            .on('keydown.fvstartertemplatecategory', '.fv-starter-template-category', (event) => {
+                const key = String(event.key || '').toLowerCase();
+                if (key !== 'enter' && key !== ' ') {
+                    return;
+                }
+                event.preventDefault();
+                event.stopPropagation();
+                if (typeof event.stopImmediatePropagation === 'function') {
+                    event.stopImmediatePropagation();
+                }
+                const requestedCategoryId = normalizeStarterTemplateCategory($(event.currentTarget).attr('data-fv-starter-category'));
+                applyCategoryFilter(requestedCategoryId, true);
+            });
         window.setTimeout(() => {
             applyCategoryFilter(defaultCategoryId, false);
         }, 0);

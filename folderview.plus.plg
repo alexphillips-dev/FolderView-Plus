@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.21.07">
-<!ENTITY md5 "1c1b3ec507597d78f3bd54d63f3b0ab8">
+<!ENTITY version "2026.03.21.08">
+<!ENTITY md5 "2b06eaf64095913eb3e1727c7c831357">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.21.08
+- Feature: Reworked setup-wizard card theming to use explicit `data-fv-card-tone` module mapping instead of positional `nth-child` styling.
+- UX: Tokenized wizard panel/card backgrounds, accents, and shell surfaces to reduce hardcoded style coupling while preserving contrast-safe fallbacks.
+- Quality: Added guardrails/tests to prevent regression to positional tone mapping and raw card color literals.
+
 
 ###2026.03.21.07
 - UX: Introduced multi-tone setup-wizard module styling so Environment/Mode/Bundle/Preset cards are visually distinct at a glance.

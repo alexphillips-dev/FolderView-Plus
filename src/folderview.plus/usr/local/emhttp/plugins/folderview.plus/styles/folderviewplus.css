@@ -3809,6 +3809,33 @@ body.fv-mobile-compact .fv-setup-field-grid {
     --fv-wizard-accent-amber-rgb: 255, 170, 94;
     --fv-wizard-accent-green-rgb: 147, 225, 159;
     --fv-wizard-accent-cyan-rgb: 92, 213, 255;
+    --fv-wizard-accent-env-rgb: var(--fv-wizard-accent-blue-rgb);
+    --fv-wizard-accent-mode-rgb: var(--fv-wizard-accent-amber-rgb);
+    --fv-wizard-accent-bundle-rgb: var(--fv-wizard-accent-green-rgb);
+    --fv-wizard-accent-preset-rgb: var(--fv-wizard-accent-cyan-rgb);
+    --fv-wizard-accent-profile-rgb: var(--fv-wizard-accent-blue-rgb);
+    --fv-wizard-accent-import-docker-rgb: var(--fv-wizard-accent-amber-rgb);
+    --fv-wizard-accent-import-vm-rgb: var(--fv-wizard-accent-cyan-rgb);
+    --fv-wizard-accent-rules-docker-rgb: var(--fv-wizard-accent-green-rgb);
+    --fv-wizard-accent-rules-vm-rgb: var(--fv-wizard-accent-cyan-rgb);
+    --fv-wizard-accent-behavior-docker-rgb: var(--fv-wizard-accent-amber-rgb);
+    --fv-wizard-accent-behavior-vm-rgb: var(--fv-wizard-accent-blue-rgb);
+    --fv-wizard-accent-review-rgb: var(--fv-wizard-accent-blue-rgb);
+    --fv-wizard-accent-impact-prefs-rgb: var(--fv-wizard-accent-blue-rgb);
+    --fv-wizard-accent-impact-imports-rgb: var(--fv-wizard-accent-amber-rgb);
+    --fv-wizard-accent-impact-rules-rgb: var(--fv-wizard-accent-green-rgb);
+    --fv-wizard-accent-impact-total-rgb: var(--fv-wizard-accent-cyan-rgb);
+    --fv-wizard-shell-sidebar-bg: linear-gradient(180deg, rgba(17, 25, 37, 0.88) 0%, rgba(11, 18, 28, 0.86) 100%);
+    --fv-wizard-shell-head-bg: linear-gradient(180deg, rgba(17, 25, 37, 0.84) 0%, rgba(12, 20, 32, 0.78) 100%);
+    --fv-wizard-shell-strip-bg: rgba(10, 16, 25, 0.88);
+    --fv-wizard-row-bg: rgba(11, 17, 27, 0.74);
+    --fv-wizard-card-border-alpha: 0.34;
+    --fv-wizard-card-tint-alpha: 0.14;
+    --fv-wizard-card-surface-stop: 20%;
+    --fv-wizard-card-base-bg: rgba(10, 16, 25, 0.9);
+    --fv-wizard-card-topline-strong-alpha: 0.92;
+    --fv-wizard-card-topline-soft-alpha: 0.34;
+    --fv-wizard-card-inset-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.06);
     --fv-wizard-card-shadow: 0 10px 22px rgba(0, 0, 0, 0.24);
 }
 
@@ -3881,7 +3908,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
 .fv-setup-assistant-sidebar {
     border-right: 1px solid var(--fv-wizard-border-subtle);
     padding: 0.65rem 0.62rem;
-    background: linear-gradient(180deg, rgba(17, 25, 37, 0.88) 0%, rgba(11, 18, 28, 0.86) 100%);
+    background: var(--fv-wizard-shell-sidebar-bg);
     overflow-y: auto;
 }
 
@@ -3952,7 +3979,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
     padding: 0;
     border-radius: 8px;
     border: 1px solid var(--fv-wizard-border-subtle);
-    background: rgba(11, 17, 27, 0.74);
+    background: var(--fv-wizard-row-bg);
     font-size: var(--fv-wizard-font-103);
     color: var(--fv-wizard-text-primary);
     opacity: 0.92;
@@ -4067,7 +4094,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
     gap: 0.55rem;
     border-bottom: 1px solid var(--fv-wizard-border-subtle);
     padding: 0.7rem 0.8rem;
-    background: linear-gradient(180deg, rgba(17, 25, 37, 0.84) 0%, rgba(12, 20, 32, 0.78) 100%);
+    background: var(--fv-wizard-shell-head-bg);
 }
 
 .fv-setup-assistant-head h4 {
@@ -4085,7 +4112,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
     padding: 0.45rem 0.8rem 0.38rem 0.8rem;
     display: grid;
     gap: 0.25rem;
-    background: rgba(10, 16, 25, 0.88);
+    background: var(--fv-wizard-shell-strip-bg);
 }
 
 .fv-setup-step-grid {
@@ -4095,14 +4122,14 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-setup-card {
-    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-blue-rgb);
-    border: 1px solid rgba(var(--fv-wizard-card-accent-rgb), 0.34);
+    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-env-rgb);
+    border: 1px solid rgba(var(--fv-wizard-card-accent-rgb), var(--fv-wizard-card-border-alpha));
     border-radius: 10px;
     background: linear-gradient(
         180deg,
-        rgba(var(--fv-wizard-card-accent-rgb), 0.14) 0%,
-        var(--fv-wizard-surface-card) 20%,
-        rgba(10, 16, 25, 0.9) 100%
+        rgba(var(--fv-wizard-card-accent-rgb), var(--fv-wizard-card-tint-alpha)) 0%,
+        var(--fv-wizard-surface-card) var(--fv-wizard-card-surface-stop),
+        var(--fv-wizard-card-base-bg) 100%
     );
     padding: 0.6rem 0.65rem;
     display: grid;
@@ -4110,7 +4137,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
     min-width: 0;
     position: relative;
     overflow: hidden;
-    box-shadow: var(--fv-wizard-card-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    box-shadow: var(--fv-wizard-card-shadow), var(--fv-wizard-card-inset-highlight);
 }
 
 .fv-setup-card::before {
@@ -4122,27 +4149,59 @@ body.fv-mobile-compact .fv-setup-field-grid {
     height: 2px;
     background: linear-gradient(
         90deg,
-        rgba(var(--fv-wizard-card-accent-rgb), 0.92) 0%,
-        rgba(var(--fv-wizard-card-accent-rgb), 0.34) 70%,
+        rgba(var(--fv-wizard-card-accent-rgb), var(--fv-wizard-card-topline-strong-alpha)) 0%,
+        rgba(var(--fv-wizard-card-accent-rgb), var(--fv-wizard-card-topline-soft-alpha)) 70%,
         transparent 100%
     );
     pointer-events: none;
 }
 
-.fv-setup-step-grid > .fv-setup-card:nth-child(4n + 1) {
-    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-blue-rgb);
+.fv-setup-card[data-fv-card-tone="env"] {
+    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-env-rgb);
 }
 
-.fv-setup-step-grid > .fv-setup-card:nth-child(4n + 2) {
-    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-amber-rgb);
+.fv-setup-card[data-fv-card-tone="mode"] {
+    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-mode-rgb);
 }
 
-.fv-setup-step-grid > .fv-setup-card:nth-child(4n + 3) {
-    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-green-rgb);
+.fv-setup-card[data-fv-card-tone="bundle"] {
+    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-bundle-rgb);
 }
 
-.fv-setup-step-grid > .fv-setup-card:nth-child(4n + 4) {
-    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-cyan-rgb);
+.fv-setup-card[data-fv-card-tone="preset"] {
+    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-preset-rgb);
+}
+
+.fv-setup-card[data-fv-card-tone="profile"] {
+    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-profile-rgb);
+}
+
+.fv-setup-card[data-fv-card-tone="import-docker"] {
+    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-import-docker-rgb);
+}
+
+.fv-setup-card[data-fv-card-tone="import-vm"] {
+    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-import-vm-rgb);
+}
+
+.fv-setup-card[data-fv-card-tone="rules-docker"] {
+    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-rules-docker-rgb);
+}
+
+.fv-setup-card[data-fv-card-tone="rules-vm"] {
+    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-rules-vm-rgb);
+}
+
+.fv-setup-card[data-fv-card-tone="behavior-docker"] {
+    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-behavior-docker-rgb);
+}
+
+.fv-setup-card[data-fv-card-tone="behavior-vm"] {
+    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-behavior-vm-rgb);
+}
+
+.fv-setup-card[data-fv-card-tone="review"] {
+    --fv-wizard-card-accent-rgb: var(--fv-wizard-accent-review-rgb);
 }
 
 .fv-setup-card h4 {
@@ -4487,12 +4546,34 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-setup-impact-card {
-    border: 1px solid var(--fv-wizard-border-subtle);
+    --fv-wizard-impact-accent-rgb: var(--fv-wizard-accent-impact-prefs-rgb);
+    border: 1px solid rgba(var(--fv-wizard-impact-accent-rgb), 0.3);
     border-radius: 8px;
-    background: var(--fv-wizard-surface-card-strong);
+    background: linear-gradient(
+        180deg,
+        rgba(var(--fv-wizard-impact-accent-rgb), 0.12) 0%,
+        var(--fv-wizard-surface-card-strong) 20%,
+        var(--fv-wizard-card-base-bg) 100%
+    );
     padding: 0.42rem 0.48rem;
     display: grid;
     gap: 0.28rem;
+}
+
+.fv-setup-impact-card[data-fv-card-tone="impact-prefs"] {
+    --fv-wizard-impact-accent-rgb: var(--fv-wizard-accent-impact-prefs-rgb);
+}
+
+.fv-setup-impact-card[data-fv-card-tone="impact-imports"] {
+    --fv-wizard-impact-accent-rgb: var(--fv-wizard-accent-impact-imports-rgb);
+}
+
+.fv-setup-impact-card[data-fv-card-tone="impact-rules"] {
+    --fv-wizard-impact-accent-rgb: var(--fv-wizard-accent-impact-rules-rgb);
+}
+
+.fv-setup-impact-card[data-fv-card-tone="impact-total"] {
+    --fv-wizard-impact-accent-rgb: var(--fv-wizard-accent-impact-total-rgb);
 }
 
 .fv-setup-impact-card > h5 {
@@ -4588,7 +4669,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
     align-items: center;
     justify-content: space-between;
     gap: 0.45rem;
-    background: rgba(10, 16, 25, 0.88);
+    background: var(--fv-wizard-shell-strip-bg);
 }
 
 .fv-setup-nav-note {
@@ -4598,7 +4679,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    background: rgba(10, 16, 25, 0.88);
+    background: var(--fv-wizard-shell-strip-bg);
 }
 
 .fv-setup-foot-left,
@@ -4612,7 +4693,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
     display: none;
     border-top: 1px solid var(--fv-wizard-border-subtle);
     padding: 0.45rem 0.8rem 0.52rem 0.8rem;
-    background: rgba(10, 16, 25, 0.88);
+    background: var(--fv-wizard-shell-strip-bg);
 }
 
 .fv-setup-progress.is-visible {

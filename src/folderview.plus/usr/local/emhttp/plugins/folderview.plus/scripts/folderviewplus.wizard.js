@@ -1577,7 +1577,7 @@ const renderSetupAssistantWelcomeStep = () => {
     `).join('');
     return `
         <div class="fv-setup-step-grid">
-            <section class="fv-setup-card">
+            <section class="fv-setup-card" data-fv-card-tone="env">
                 <h4>Detected environment</h4>
                 <div class="fv-setup-chip-row">
                     <span class="fv-setup-chip">Docker folders: ${context.dockerFolders}</span>
@@ -1600,7 +1600,7 @@ const renderSetupAssistantWelcomeStep = () => {
                     <button type="button" id="fv-setup-apply-detected"><i class="fa fa-magic"></i> Use detected setup</button>
                 </div>
             </section>
-            <section class="fv-setup-card">
+            <section class="fv-setup-card" data-fv-card-tone="mode">
                 <h4>Default settings mode</h4>
                 <p class="fv-setup-muted">You can change this any time in the top bar.</p>
                 <div class="fv-setup-mode-toggle">
@@ -1615,7 +1615,7 @@ const renderSetupAssistantWelcomeStep = () => {
                     <button type="button" class="${experienceMode === 'expert' ? 'is-active' : ''}" data-fv-setup-experience="expert">Expert</button>
                 </div>
             </section>
-            <section class="fv-setup-card">
+            <section class="fv-setup-card" data-fv-card-tone="bundle">
                 <h4>Quick start bundle</h4>
                 <p class="fv-setup-muted">Pick a ready-made bundle. You can still fine tune profile and behavior in later steps.</p>
                 <div class="fv-setup-quick-preset-grid">
@@ -1623,7 +1623,7 @@ const renderSetupAssistantWelcomeStep = () => {
                 </div>
                 <p class="fv-setup-muted">Current bundle: <strong>${escapeHtml(selectedQuickPreset)}</strong></p>
             </section>
-            <section class="fv-setup-card">
+            <section class="fv-setup-card" data-fv-card-tone="preset">
                 <h4>Saved wizard presets</h4>
                 <p class="fv-setup-muted">Save your preferred setup path and reuse it later.</p>
                 <div class="fv-setup-field-grid">
@@ -1655,7 +1655,7 @@ const renderSetupAssistantWelcomeStep = () => {
 
 const renderSetupAssistantProfileStep = () => {
     return `
-        <div class="fv-setup-card">
+        <div class="fv-setup-card" data-fv-card-tone="profile">
             <h4>Choose a defaults profile</h4>
             <p class="fv-setup-muted">Profile defaults only apply if you enable them below.</p>
             <div class="fv-setup-profile-grid">
@@ -1709,7 +1709,7 @@ const renderSetupAssistantImportTypeCard = (type) => {
     const warnings = Array.isArray(plan?.warnings) ? plan.warnings : [];
 
     return `
-        <section class="fv-setup-card fv-setup-import-card">
+        <section class="fv-setup-card fv-setup-import-card" data-fv-card-tone="import-${resolvedType}">
             <div class="fv-setup-import-header">
                 <h4>${title} import</h4>
                 <div class="fv-setup-chip-row">
@@ -1790,7 +1790,7 @@ const renderSetupAssistantRuleTypeCard = (type) => {
     }).join('');
 
     return `
-        <section class="fv-setup-card">
+        <section class="fv-setup-card" data-fv-card-tone="rules-${resolvedType}">
             <label class="fv-setup-inline-toggle">
                 <input type="checkbox" data-fv-setup-rules-enable="${resolvedType}" ${bootstrap.enabled ? 'checked' : ''} ${suggestions.length ? '' : 'disabled'}>
                 Add starter ${title} rules (${selectedCount}/${suggestions.length} selected)
@@ -1817,7 +1817,7 @@ const renderSetupAssistantBehaviorTypeCard = (type) => {
     const title = resolvedType === 'docker' ? 'Docker' : 'VM';
     const isExpert = normalizeSetupAssistantExperienceMode(setupAssistantState.experienceMode) === 'expert';
     return `
-        <section class="fv-setup-card">
+        <section class="fv-setup-card" data-fv-card-tone="behavior-${resolvedType}">
             <h4>${title} behavior</h4>
             <div class="fv-setup-field-grid ${isExpert ? '' : 'is-guided'}">
                 <label class="fv-setup-field">
@@ -1865,7 +1865,7 @@ const renderSetupAssistantReviewStep = () => {
     setupAssistantState.reviewNotes = notes;
 
     return `
-        <div class="fv-setup-card">
+        <div class="fv-setup-card" data-fv-card-tone="review">
             <h4>Review planned changes</h4>
             <div class="fv-setup-review-grid">
                 <span class="fv-setup-chip">Mode: ${escapeHtml(setupAssistantState.mode)}</span>
@@ -1876,7 +1876,7 @@ const renderSetupAssistantReviewStep = () => {
                 <span class="fv-setup-chip">Dry run: ${setupAssistantState.dryRunOnly ? 'ON' : 'OFF'}</span>
             </div>
             <div class="fv-setup-impact-grid">
-                <article class="fv-setup-impact-card">
+                <article class="fv-setup-impact-card" data-fv-card-tone="impact-prefs">
                     <h5>Preferences</h5>
                     <p>${impact.prefs.totalChanges} changes planned</p>
                     <div class="fv-setup-chip-row">
@@ -1884,7 +1884,7 @@ const renderSetupAssistantReviewStep = () => {
                         <span class="fv-setup-chip">VM: ${impact.prefs.byType.vm.count}</span>
                     </div>
                 </article>
-                <article class="fv-setup-impact-card">
+                <article class="fv-setup-impact-card" data-fv-card-tone="impact-imports">
                     <h5>Imports</h5>
                     <p>${impact.imports.totals.totalOps} operations planned</p>
                     <div class="fv-setup-chip-row">
@@ -1893,7 +1893,7 @@ const renderSetupAssistantReviewStep = () => {
                         <span class="fv-setup-chip is-delete">Delete: ${impact.imports.totals.deletes}</span>
                     </div>
                 </article>
-                <article class="fv-setup-impact-card">
+                <article class="fv-setup-impact-card" data-fv-card-tone="impact-rules">
                     <h5>Starter rules</h5>
                     <p>${impact.rules.creatable} new rules planned</p>
                     <div class="fv-setup-chip-row">
@@ -1902,7 +1902,7 @@ const renderSetupAssistantReviewStep = () => {
                         <span class="fv-setup-chip">Missing folder: ${impact.rules.unresolvedFolder}</span>
                     </div>
                 </article>
-                <article class="fv-setup-impact-card">
+                <article class="fv-setup-impact-card" data-fv-card-tone="impact-total">
                     <h5>Total impact</h5>
                     <p>${impact.totalPlannedChanges} net changes estimated</p>
                     <div class="fv-setup-chip-row">

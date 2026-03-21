@@ -17,6 +17,8 @@ const settingsPage = fs.readFileSync(settingsPagePath, 'utf8');
 const settingsCss = fs.readFileSync(settingsCssPath, 'utf8');
 const wizardDialogBlocks = Array.from(settingsCss.matchAll(/#fv-setup-assistant-dialog\s*\{[\s\S]*?\n\}/g)).map((match) => match[0]);
 const wizardTokenBlock = wizardDialogBlocks.find((block) => /--fv-wizard-text-primary/.test(block)) || '';
+const wizardCardBlock = (settingsCss.match(/\.fv-setup-card\s*\{[\s\S]*?\n\}/) || [''])[0];
+const wizardCardToplineBlock = (settingsCss.match(/\.fv-setup-card::before\s*\{[\s\S]*?\n\}/) || [''])[0];
 
 test('settings page wraps plugin UI in a theme-safe root container', () => {
     assert.match(settingsPage, /<div id="fv-settings-root" class="fv-theme-safe">/);
@@ -52,9 +54,15 @@ test('theme compatibility: setup wizard enforces theme-safe dark contrast tokens
         /#fv-setup-assistant-dialog\s+\.fv-setup-assistant-shell button,\s*\n#fv-setup-assistant-dialog\s+\.fv-setup-assistant-shell \.btn\s*\{[\s\S]*color:\s*var\(--fv-wizard-text-primary\)/
     );
     assert.match(settingsCss, /\.fv-setup-card::before\s*\{/);
-    assert.match(settingsCss, /\.fv-setup-step-grid > \.fv-setup-card:nth-child\(4n \+ 2\)\s*\{/);
-    assert.match(settingsCss, /\.fv-setup-step-grid > \.fv-setup-card:nth-child\(4n \+ 3\)\s*\{/);
-    assert.match(settingsCss, /\.fv-setup-step-grid > \.fv-setup-card:nth-child\(4n \+ 4\)\s*\{/);
+    assert.match(settingsCss, /\.fv-setup-card\[data-fv-card-tone="env"\]\s*\{/);
+    assert.match(settingsCss, /\.fv-setup-card\[data-fv-card-tone="mode"\]\s*\{/);
+    assert.match(settingsCss, /\.fv-setup-card\[data-fv-card-tone="bundle"\]\s*\{/);
+    assert.match(settingsCss, /\.fv-setup-card\[data-fv-card-tone="preset"\]\s*\{/);
+    assert.doesNotMatch(settingsCss, /\.fv-setup-step-grid > \.fv-setup-card:nth-child/);
+    assert.ok(wizardCardBlock, 'Wizard card block should exist in settings CSS.');
+    assert.ok(wizardCardToplineBlock, 'Wizard card top-line block should exist in settings CSS.');
+    assert.doesNotMatch(wizardCardBlock, /rgba\(\d/);
+    assert.doesNotMatch(wizardCardToplineBlock, /rgba\(\d/);
 });
 
 test('theme compatibility: semantic settings tokens use resolver-first fallback chain', () => {

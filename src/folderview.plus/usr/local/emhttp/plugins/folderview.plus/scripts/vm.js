@@ -147,6 +147,9 @@ const createVmRuntimePerfTelemetry = typeof runtimeShared.createRuntimePerfTelem
 const createVmSafeUiActionRunner = typeof runtimeShared.createSafeUiActionRunner === 'function'
     ? runtimeShared.createSafeUiActionRunner
     : () => ({ run: async (_actionKey, action) => ({ ok: true, value: await action() }) });
+const createVmContextMenuQuickStripAdapter = typeof runtimeShared.createContextMenuQuickStripAdapter === 'function'
+    ? runtimeShared.createContextMenuQuickStripAdapter
+    : null;
 const resolveVmRuntimePerformanceProfile = typeof runtimeShared.resolveRuntimePerformanceProfile === 'function'
     ? runtimeShared.resolveRuntimePerformanceProfile
     : (prefs = {}, _counts = {}) => ({
@@ -157,7 +160,11 @@ const resolveVmRuntimePerformanceProfile = typeof runtimeShared.resolveRuntimePe
     });
 const vmRuntimeStateStore = createVmRuntimeStateStore({
     expandedFolderIds: [],
-    inFlightAction: ''
+    inFlightAction: '',
+    focusedFolderId: '',
+    lockedFolderIds: [],
+    pinnedFolderIds: [],
+    performanceProfile: null
 });
 const folderViewPerfFromQuery = (() => {
     try {
@@ -428,6 +435,253 @@ const ensureVmExpandedStateLifecycleHooks = () => {
         }
     });
 };
+const VM_LOCKED_STATE_KEY = 'fvplus.runtime.locked.vm.v1';
+let vmFocusedFolderId = String(vmRuntimeStateStore.get('focusedFolderId', '') || '').trim();
+const normalizeLockedFolderIdList = (value) => {
+    if (!Array.isArray(value)) {
+        return [];
+    }
+    return Array.from(new Set(value.map((entry) => String(entry || '').trim()).filter((entry) => entry !== '')));
+};
+const readVmLockedFolderIds = () => {
+    try {
+        const raw = window.localStorage && window.localStorage.getItem(VM_LOCKED_STATE_KEY);
+        if (!raw) {
+            return [];
+        }
+        const parsed = JSON.parse(raw);
+        return normalizeLockedFolderIdList(parsed);
+    } catch (_error) {
+        return [];
+    }
+};
+const writeVmLockedFolderIds = (ids) => {
+    try {
+        if (window.localStorage) {
+            window.localStorage.setItem(VM_LOCKED_STATE_KEY, JSON.stringify(normalizeLockedFolderIdList(ids)));
+        }
+    } catch (_error) {
+        // Best effort only.
+    }
+};
+let vmLockedFolderIdSet = new Set(readVmLockedFolderIds());
+vmRuntimeStateStore.set({ lockedFolderIds: Array.from(vmLockedFolderIdSet) });
+vmRuntimeStateStore.subscribe((nextState, _prevState, patch) => {
+    if (patch && Object.prototype.hasOwnProperty.call(patch, 'focusedFolderId')) {
+        vmFocusedFolderId = String(nextState.focusedFolderId || '').trim();
+    }
+});
+const isVmFolderLocked = (folderId) => vmLockedFolderIdSet.has(String(folderId || '').trim());
+const isVmFolderPinned = (folderId) => {
+    const id = String(folderId || '').trim();
+    const pinned = Array.isArray(folderTypePrefs?.pinnedFolderIds) ? folderTypePrefs.pinnedFolderIds : [];
+    return pinned.includes(id);
+};
+const getFolderParentId = (folderId) => {
+    const id = String(folderId || '').trim();
+    if (!id || !globalFolders[id]) {
+        return '';
+    }
+    return normalizeFolderParentId(globalFolders[id]?.parentId || globalFolders[id]?.parent_id || '');
+};
+const getFolderChildren = (folderId) => {
+    const id = String(folderId || '').trim();
+    if (!id) {
+        return [];
+    }
+    return Object.entries(globalFolders || {})
+        .filter(([childId, folder]) => {
+            const parentId = normalizeFolderParentId(folder?.parentId || folder?.parent_id || '');
+            return parentId === id && childId !== id;
+        })
+        .map(([childId]) => childId);
+};
+const getFolderDescendants = (folderId) => {
+    const id = String(folderId || '').trim();
+    if (!id) {
+        return [];
+    }
+    const descendants = [];
+    const queue = [...getFolderChildren(id)];
+    const visited = new Set();
+    while (queue.length) {
+        const current = String(queue.shift() || '').trim();
+        if (!current || visited.has(current)) {
+            continue;
+        }
+        visited.add(current);
+        descendants.push(current);
+        queue.push(...getFolderChildren(current));
+    }
+    return descendants;
+};
+const getFolderAncestors = (folderId) => {
+    const ancestors = [];
+    let current = getFolderParentId(folderId);
+    const visited = new Set();
+    while (current && !visited.has(current)) {
+        visited.add(current);
+        ancestors.push(current);
+        current = getFolderParentId(current);
+    }
+    return ancestors;
+};
+const folderHasChildren = (folderId) => getFolderChildren(folderId).length > 0;
+const readFolderOwnerFromRow = (row) => {
+    if (!row || !row.className) {
+        return '';
+    }
+    const entries = String(row.className).split(/\s+/);
+    for (const className of entries) {
+        const match = className.match(/^folder-(.+)-element$/);
+        if (match && match[1]) {
+            return String(match[1] || '').trim();
+        }
+    }
+    return '';
+};
+const getFocusedFolderVisibleSet = (folderId) => {
+    const id = String(folderId || '').trim();
+    if (!id || !globalFolders[id]) {
+        return new Set();
+    }
+    return new Set([id, ...getFolderDescendants(id), ...getFolderAncestors(id)]);
+};
+const applyVmFolderQuickActionState = (folderId) => {
+    const id = String(folderId || '').trim();
+    if (!id) {
+        return;
+    }
+    const $row = $(`tr.folder-id-${id}`);
+    if (!$row.length) {
+        return;
+    }
+    const pinned = isVmFolderPinned(id);
+    const locked = isVmFolderLocked(id);
+    const focused = vmFocusedFolderId === id;
+    $row.toggleClass('fv-folder-pinned', pinned);
+    $row.toggleClass('fv-folder-locked', locked);
+    $row.toggleClass('fv-folder-focused', focused);
+};
+const refreshVmFolderQuickActionStates = () => {
+    for (const id of Object.keys(globalFolders || {})) {
+        applyVmFolderQuickActionState(id);
+    }
+};
+const applyVmFocusedFolderState = () => {
+    const focusId = String(vmFocusedFolderId || '').trim();
+    if (!focusId || !globalFolders[focusId]) {
+        vmRuntimeStateStore.set({ focusedFolderId: '' });
+        vmFocusedFolderId = '';
+        $('body').removeClass('fv-folder-focus-active');
+        $('#kvm_list > tr').removeClass('fv-folder-focus-hidden');
+        refreshVmFolderQuickActionStates();
+        return;
+    }
+    const visibleSet = getFocusedFolderVisibleSet(focusId);
+    $('body').addClass('fv-folder-focus-active');
+    $('#kvm_list > tr').each((_, row) => {
+        if (!row) {
+            return;
+        }
+        const $row = $(row);
+        const className = String(row.className || '');
+        const folderMatch = className.match(/\bfolder-id-([A-Za-z0-9_-]+)\b/);
+        if (folderMatch && folderMatch[1]) {
+            $row.toggleClass('fv-folder-focus-hidden', !visibleSet.has(folderMatch[1]));
+            return;
+        }
+        const ownerId = readFolderOwnerFromRow(row);
+        if (ownerId) {
+            $row.toggleClass('fv-folder-focus-hidden', !visibleSet.has(ownerId));
+            return;
+        }
+        $row.toggleClass('fv-folder-focus-hidden', true);
+    });
+    refreshVmFolderQuickActionStates();
+};
+const toggleVmFolderFocus = (folderId) => {
+    const id = String(folderId || '').trim();
+    if (!id || !globalFolders[id]) {
+        return;
+    }
+    const nextFocus = (vmFocusedFolderId === id) ? '' : id;
+    vmRuntimeStateStore.set({ focusedFolderId: nextFocus });
+    vmFocusedFolderId = nextFocus;
+    applyVmFocusedFolderState();
+    applyVmRuntimeAppWidthVariables(estimateVmRuntimeAutoAppWidth());
+};
+const toggleVmFolderLock = (folderId) => {
+    const id = String(folderId || '').trim();
+    if (!id || !globalFolders[id]) {
+        return;
+    }
+    if (isVmFolderLocked(id)) {
+        vmLockedFolderIdSet.delete(id);
+    } else {
+        vmLockedFolderIdSet.add(id);
+    }
+    writeVmLockedFolderIds(Array.from(vmLockedFolderIdSet));
+    vmRuntimeStateStore.set({ lockedFolderIds: Array.from(vmLockedFolderIdSet) });
+    refreshVmFolderQuickActionStates();
+};
+const applyVmPinnedFolderIds = (nextPinnedIds) => {
+    folderTypePrefs = utils.normalizePrefs({
+        ...(folderTypePrefs || {}),
+        pinnedFolderIds: Array.isArray(nextPinnedIds) ? [...nextPinnedIds] : []
+    });
+    vmRuntimeStateStore.set({ pinnedFolderIds: Array.isArray(nextPinnedIds) ? [...nextPinnedIds] : [] });
+};
+const toggleVmFolderPin = async (folderId) => {
+    const id = String(folderId || '').trim();
+    if (!id || !globalFolders[id]) {
+        return;
+    }
+    return vmSafeUiActionRunner.run(`vm-pin:${id}`, async () => {
+        const current = Array.isArray(folderTypePrefs?.pinnedFolderIds) ? [...folderTypePrefs.pinnedFolderIds] : [];
+        const nextPinned = current.includes(id)
+            ? current.filter((entry) => entry !== id)
+            : [...current, id];
+        applyVmPinnedFolderIds(nextPinned);
+        refreshVmFolderQuickActionStates();
+        const request = window.FolderViewPlusRequest;
+        if (!request || typeof request.postJson !== 'function') {
+            queueLoadlistRefresh();
+            return;
+        }
+        const result = await runVmGuardedAction('toggle-folder-pin', async () => {
+            const response = await request.postJson('/plugins/folderview.plus/server/prefs.php', {
+                type: 'vm',
+                prefs: JSON.stringify({ pinnedFolderIds: nextPinned })
+            }, {
+                retries: 1,
+                retryDelayMs: 260
+            });
+            applyVmPinnedFolderIds(Array.isArray(response?.prefs?.pinnedFolderIds) ? response.prefs.pinnedFolderIds : nextPinned);
+            queueLoadlistRefresh();
+        }, {
+            userMessage: 'Failed to update pinned folders.',
+            userVisible: false
+        });
+        if (!result.ok) {
+            applyVmPinnedFolderIds(current);
+            refreshVmFolderQuickActionStates();
+        }
+    });
+};
+const ensureVmFolderUnlocked = (id, actionLabel = 'This action') => {
+    if (!isVmFolderLocked(id)) {
+        return true;
+    }
+    swal({
+        title: 'Folder locked',
+        text: `${escapeHtml(actionLabel)} is blocked while this folder is locked.<br>Click the lock icon on the folder row to unlock it.`,
+        type: 'info',
+        html: true,
+        confirmButtonText: 'OK'
+    });
+    return false;
+};
 const escapeHtml = (value) => String(value ?? '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -692,6 +946,7 @@ const createFolders = async () => {
     }
     folderTypePrefs = utils.normalizePrefs(prefsResponse?.prefs || {});
     resolveVmStrictPerformanceProfile(folderTypePrefs, folders, vmInfo);
+    applyVmPinnedFolderIds(Array.isArray(folderTypePrefs?.pinnedFolderIds) ? folderTypePrefs.pinnedFolderIds : []);
     vmExpandedStateLastSyncedPayload = JSON.stringify(readVmServerExpandedStateMap());
     const folderDepthById = buildFolderDepthById(folders);
     unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs);
@@ -836,6 +1091,8 @@ const createFolders = async () => {
 
     // Assing the folder done to the global object
     globalFolders = foldersDone;
+    refreshVmFolderQuickActionStates();
+    applyVmFocusedFolderState();
     syncVmRuntimeExpandedStore();
     persistVmExpandedStateFromGlobal();
     renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
@@ -980,7 +1237,13 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
     const hoverClass = folder.settings.preview_hover && !FV_VM_TOUCH_MODE ? 'hover' : '';
     const safeFolderIcon = sanitizeImageSrc(folder.icon);
     const safeFolderName = escapeHtml(folder.name);
-    const fld = `<tr parent-id="${id}" class="sortable folder-id-${id} ${hoverClass} folder"><td class="vm-name folder-name"><div class="folder-name-sub"><i class="fa fa-arrows-v mover orange-text"></i><span class="outer folder-outer"><span id="${id}" onclick='addVMFolderContext("${id}")' class="hand folder-hand"><img src="${safeFolderIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span><span class="inner folder-inner"><a class="folder-appname" href="#" onclick='editFolder("${id}")'>${safeFolderName}</a><a class="folder-appname-id">folder-${id}</a><br><i id="load-folder-${id}" class="fa fa-square stopped folder-load-status"></i><span class="state folder-state fv-folder-state-stopped"> ${$.i18n('stopped')}</span></span></span><button class="dropDown-${id} folder-dropdown" onclick='dropDownButton("${id}")'><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div></td><td colspan="${colspan}"><div class="folder-storage"></div><div class="folder-preview"></div></td><td class="folder-autostart"><input class="autostart" type="checkbox" id="folder-${id}-auto" style="display:none"></td></tr><tr child-id="${id}" id="name-${id}" style="display:none"><td colspan="${totalCols}" style="margin:0;padding:0"></td></tr>`;
+    const pinned = isVmFolderPinned(id);
+    const locked = isVmFolderLocked(id);
+    const focused = vmFocusedFolderId === id;
+    const lockedClass = locked ? 'fv-folder-locked' : '';
+    const pinnedClass = pinned ? 'fv-folder-pinned' : '';
+    const focusedClass = focused ? 'fv-folder-focused' : '';
+    const fld = `<tr parent-id="${id}" class="sortable folder-id-${id} ${hoverClass} ${lockedClass} ${pinnedClass} ${focusedClass} folder"><td class="vm-name folder-name"><div class="folder-name-sub"><i class="fa fa-arrows-v mover orange-text"></i><span class="outer folder-outer"><span id="${id}" onclick='addVMFolderContext("${id}")' class="hand folder-hand"><img src="${safeFolderIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span><span class="inner folder-inner"><a class="folder-appname" href="#" onclick='editFolder("${id}")'>${safeFolderName}</a><a class="folder-appname-id">folder-${id}</a><br><i id="load-folder-${id}" class="fa fa-square stopped folder-load-status"></i><span class="state folder-state fv-folder-state-stopped"> ${$.i18n('stopped')}</span></span></span><button class="dropDown-${id} folder-dropdown" onclick='dropDownButton("${id}")'><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div></td><td colspan="${colspan}"><div class="folder-storage"></div><div class="folder-preview"></div></td><td class="folder-autostart"><input class="autostart" type="checkbox" id="folder-${id}-auto" style="display:none"></td></tr><tr child-id="${id}" id="name-${id}" style="display:none"><td colspan="${totalCols}" style="margin:0;padding:0"></td></tr>`;
 
     // insertion at position of the folder
     if (position === 0) {
@@ -994,6 +1257,7 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
         .attr('data-folder-depth', String(safeDepth))
         .find('.folder-name-sub')
         .css('padding-left', `${depthIndentPx}px`);
+    applyVmFolderQuickActionState(id);
 
     const previewNode = $(`tr.folder-id-${id} div.folder-preview`).get(0);
     applyPreviewBorderStyle(previewNode, folder.settings);
@@ -1298,11 +1562,111 @@ const dropDownButton = (id, persistState = true) => {
     folderEvents.dispatchEvent(new CustomEvent('vm-post-folder-expansion', {detail: { id }}));
 };
 
+const readVmFolderContainerNames = (containers) => {
+    if (Array.isArray(containers)) {
+        return Array.from(new Set(containers.map((item) => String(item || '').trim()).filter((item) => item !== '')));
+    }
+    if (containers && typeof containers === 'object') {
+        return Array.from(new Set(Object.keys(containers).map((item) => String(item || '').trim()).filter((item) => item !== '')));
+    }
+    return [];
+};
+
+const getScopedVmRuntimeContainersForFolder = (folderId, includeDescendants = true) => {
+    const id = String(folderId || '').trim();
+    if (!id || !globalFolders[id]) {
+        return {};
+    }
+    const targetIds = includeDescendants ? [id, ...getFolderDescendants(id)] : [id];
+    const collected = {};
+    for (const targetId of targetIds) {
+        const folder = globalFolders[targetId];
+        if (!folder || !folder.containers) {
+            continue;
+        }
+        const containerNames = readVmFolderContainerNames(folder.containers);
+        const sourceMap = !Array.isArray(folder.containers) ? folder.containers : {};
+        for (const name of containerNames) {
+            const key = String(name || '').trim();
+            if (!key || Object.prototype.hasOwnProperty.call(collected, key)) {
+                continue;
+            }
+            const source = sourceMap?.[key] && typeof sourceMap[key] === 'object' ? sourceMap[key] : {};
+            collected[key] = {
+                name: key,
+                id: String(source?.id || '').trim(),
+                state: String(source?.state || '').trim().toLowerCase()
+            };
+        }
+    }
+    return collected;
+};
+
+const summarizeVmFolderActionCounts = (containersMap) => {
+    const summary = {
+        total: 0,
+        startable: 0,
+        stoppable: 0,
+        pausable: 0,
+        resumable: 0,
+        restartable: 0,
+        hibernateable: 0,
+        destroyable: 0
+    };
+    for (const entry of Object.values(containersMap || {})) {
+        const state = String(entry?.state || '').toLowerCase();
+        summary.total += 1;
+        const canStart = state !== 'running' && state !== 'pmsuspended' && state !== 'paused' && state !== 'unknown';
+        const canRunningOnly = state === 'running';
+        const canResume = state === 'paused' || state === 'unknown' || state === 'pmsuspended';
+        const canForceStop = state === 'running' || state === 'pmsuspended' || state === 'paused' || state === 'unknown';
+        if (canStart) summary.startable += 1;
+        if (canRunningOnly) {
+            summary.stoppable += 1;
+            summary.pausable += 1;
+            summary.restartable += 1;
+            summary.hibernateable += 1;
+        }
+        if (canResume) summary.resumable += 1;
+        if (canForceStop) summary.destroyable += 1;
+    }
+    return summary;
+};
+
+const expandVmFolderBranch = (id) => {
+    const branchIds = [String(id || '').trim(), ...getFolderDescendants(id)];
+    for (const folderId of branchIds) {
+        if (!folderId || !globalFolders[folderId]) {
+            continue;
+        }
+        if (globalFolders[folderId]?.status?.expanded !== true) {
+            dropDownButton(folderId, false);
+        }
+    }
+    persistVmExpandedStateFromGlobal();
+};
+
+const collapseVmFolderBranch = (id) => {
+    const branchIds = [String(id || '').trim(), ...getFolderDescendants(id)].reverse();
+    for (const folderId of branchIds) {
+        if (!folderId || !globalFolders[folderId]) {
+            continue;
+        }
+        if (globalFolders[folderId]?.status?.expanded === true) {
+            dropDownButton(folderId, false);
+        }
+    }
+    persistVmExpandedStateFromGlobal();
+};
+
 /**
  * Removie the folder
  * @param {string} id the id of the folder
  */
 const rmFolder = (id) => {
+    if (!ensureVmFolderUnlocked(id, 'Delete folder')) {
+        return;
+    }
     // Ask for a confirmation
     swal({
         title: $.i18n('are-you-sure'),
@@ -1328,6 +1692,9 @@ const rmFolder = (id) => {
  * @param {string} id the id of the folder
  */
 const editFolder = (id) => {
+    if (!ensureVmFolderUnlocked(id, 'Edit folder')) {
+        return;
+    }
     location.href = "/VMs/Folder?type=vm&id=" + id;
 };
 
@@ -1336,68 +1703,81 @@ const editFolder = (id) => {
  * @param {string} id The id of the folder
  * @param {string} action the desired action
  */
-const actionFolder = async (id, action) => {
-    return vmSafeUiActionRunner.run(`vm-folder-action:${id}:${action}`, async () => {
+const actionFolder = async (id, action, { includeDescendants = true } = {}) => {
+    return vmSafeUiActionRunner.run(`vm-folder-action:${id}:${action}:${includeDescendants ? 'branch' : 'direct'}`, async () => {
         await runVmGuardedAction('vm-folder-action', async () => {
-            const folder = globalFolders[id];
-            if (!folder || !folder.containers || typeof folder.containers !== 'object') {
+            if (!ensureVmFolderUnlocked(id, 'Folder action')) {
                 return;
             }
-            const cts = Object.keys(folder.containers);
+            const folder = globalFolders[id];
+            if (!folder) {
+                return;
+            }
+            const containersMap = getScopedVmRuntimeContainersForFolder(id, includeDescendants);
+            const entries = Object.values(containersMap);
+            if (!entries.length) {
+                return;
+            }
             let proms = [];
-            let errors;
-            const oldAction = action;
+            const originalAction = String(action || '').trim();
 
-            vmRuntimeStateStore.set({ inFlightAction: `action:${id}:${oldAction}` });
+            vmRuntimeStateStore.set({ inFlightAction: `action:${id}:${originalAction}` });
             $(`i#load-folder-${id}`).removeClass('fa-play fa-square fa-pause').addClass('fa-refresh fa-spin');
             $('div.spinner.fixed').show('slow');
 
             try {
-                for (let index = 0; index < cts.length; index++) {
-                    const ct = folder.containers[cts[index]];
-                    const cid = ct.id;
-                    let pass;
-                    action = oldAction;
-                    switch (action) {
-                        case "domain-start":
-                            pass = ct.state !== "running" && ct.state !== "pmsuspended" && ct.state !== "paused" && ct.state !== "unknown";
+                for (const entry of entries) {
+                    const cid = String(entry?.id || '').trim();
+                    if (!cid) {
+                        continue;
+                    }
+                    const state = String(entry?.state || '').toLowerCase();
+                    let requestAction = originalAction;
+                    let pass = false;
+                    switch (originalAction) {
+                        case 'domain-start':
+                            pass = state !== 'running' && state !== 'pmsuspended' && state !== 'paused' && state !== 'unknown';
                             break;
-                        case "domain-stop":
-                        case "domain-pause":
-                        case "domain-restart":
-                        case "domain-pmsuspend":
-                            pass = ct.state === "running";
+                        case 'domain-stop':
+                        case 'domain-pause':
+                        case 'domain-restart':
+                        case 'domain-pmsuspend':
+                            pass = state === 'running';
                             break;
-                        case "domain-resume":
-                            pass = ct.state === "paused" || ct.state === "unknown";
-                            if(!pass) {
-                                pass = ct.state === "pmsuspended";
-                                action = "domain-pmwakeup";
+                        case 'domain-resume':
+                            pass = state === 'paused' || state === 'unknown';
+                            if (!pass && state === 'pmsuspended') {
+                                pass = true;
+                                requestAction = 'domain-pmwakeup';
                             }
                             break;
-                        case "domain-destroy":
-                            pass = ct.state === "running" || ct.state === "pmsuspended" || ct.state === "paused" || ct.state === "unknown";
+                        case 'domain-destroy':
+                            pass = state === 'running' || state === 'pmsuspended' || state === 'paused' || state === 'unknown';
                             break;
                         default:
                             pass = false;
                             break;
                     }
-                    if(pass) {
-                        proms.push($.post('/plugins/dynamix.vm.manager/include/VMajax.php', {action: action, uuid: cid}, null,'json').promise());
+                    if (pass) {
+                        proms.push($.post('/plugins/dynamix.vm.manager/include/VMajax.php', { action: requestAction, uuid: cid }, null, 'json').promise());
                     }
                 }
 
-                proms = await Promise.all(proms);
-                errors = proms.filter(e => e.success !== true);
-                const errorMessages = errors.map(e => e.text || JSON.stringify(e));
+                if (!proms.length) {
+                    return;
+                }
 
-                if(errors.length > 0) {
+                const results = await Promise.all(proms);
+                const errors = results.filter((result) => result.success !== true);
+                const errorMessages = errors.map((result) => result.text || JSON.stringify(result));
+
+                if (errors.length > 0) {
                     swal({
                         title: $.i18n('exec-error'),
-                        text:errorMessages.join('<br>'),
-                        type:'error',
-                        html:true,
-                        confirmButtonText:'Ok'
+                        text: errorMessages.join('<br>'),
+                        type: 'error',
+                        html: true,
+                        confirmButtonText: 'Ok'
                     }, loadlist);
                 }
 
@@ -1420,6 +1800,9 @@ const actionFolder = async (id, action) => {
 const folderCustomAction = async (id, action) => {
     return vmSafeUiActionRunner.run(`vm-custom-action:${id}:${action}`, async () => {
         await runVmGuardedAction('vm-custom-action', async () => {
+            if (!ensureVmFolderUnlocked(id, 'Custom action')) {
+                return;
+            }
             $('div.spinner.fixed').show('slow');
             vmRuntimeStateStore.set({ inFlightAction: `custom:${id}:${action}` });
             const eventURL = '/plugins/dynamix.vm.manager/include/VMajax.php';
@@ -1528,117 +1911,345 @@ const folderCustomAction = async (id, action) => {
     });
 };
 
+const cloneVmFolderFromMenu = async (id) => {
+    await runVmGuardedAction('clone-folder', async () => {
+        if (!ensureVmFolderUnlocked(id, 'Clone folder')) {
+            return;
+        }
+        const source = globalFolders[id];
+        if (!source || typeof source !== 'object') {
+            return;
+        }
+        const defaultName = `${String(source?.name || 'Folder').trim() || 'Folder'} (Copy)`;
+        const nextName = String(window.prompt('Clone folder name', defaultName) || '').trim();
+        if (!nextName) {
+            return;
+        }
+        const clonePayload = {
+            name: nextName,
+            icon: String(source?.icon || ''),
+            parentId: normalizeFolderParentId(source?.parentId || source?.parent_id || ''),
+            settings: JSON.parse(JSON.stringify((source?.settings && typeof source.settings === 'object') ? source.settings : {})),
+            regex: String(source?.regex || ''),
+            containers: readVmFolderContainerNames(source?.containers),
+            actions: Array.isArray(source?.actions) ? JSON.parse(JSON.stringify(source.actions)) : []
+        };
+        $('div.spinner.fixed').show('slow');
+        try {
+            await $.post('/plugins/folderview.plus/server/create.php', {
+                type: 'vm',
+                content: JSON.stringify(clonePayload)
+            }).promise();
+            await $.post('/plugins/folderview.plus/server/sync_order.php', { type: 'vm' }).promise();
+            loadlist();
+        } finally {
+            $('div.spinner.fixed').hide('slow');
+        }
+    }, {
+        userMessage: 'Failed to clone folder.',
+        userVisible: true
+    });
+};
+
+const VM_CONTEXT_QUICK_ACTION_LABELS = new Set([
+    'focus folder',
+    'clear focus',
+    'pin folder',
+    'unpin folder',
+    'lock folder',
+    'unlock folder'
+]);
+const vmContextQuickStripAdapter = createVmContextMenuQuickStripAdapter
+    ? createVmContextMenuQuickStripAdapter({
+        menuClassName: 'fvplus-vm-context-menu',
+        quickItemClassName: 'fvplus-vm-quick-item',
+        clearClassName: 'fvplus-vm-quick-clear',
+        labelSet: VM_CONTEXT_QUICK_ACTION_LABELS,
+        iconClassCandidates: [
+            'fa-bullseye',
+            'fa-dot-circle-o',
+            'fa-star',
+            'fa-star-o',
+            'fa-lock',
+            'fa-unlock-alt'
+        ]
+    })
+    : null;
+const queueVmFolderContextQuickIcons = (attempt = 0) => {
+    if (!vmContextQuickStripAdapter || typeof vmContextQuickStripAdapter.queueEnhance !== 'function') {
+        return;
+    }
+    vmContextQuickStripAdapter.queueEnhance(attempt);
+};
+
 /**
  * Atach the menu when clicking the folder icon
  * @param {string} id the id of the folder
  */
 const addVMFolderContext = (id) => {
+    vmPerfTelemetry.begin('context-menu-build');
     if (!globalFolders[id]) {
+        vmPerfTelemetry.end('context-menu-build', { id, aborted: true });
         return;
     }
     let opts = [];
+    const appendDivider = () => {
+        if (!opts.length || opts[opts.length - 1]?.divider) {
+            return;
+        }
+        opts.push({ divider: true });
+    };
+    const normalizeDividers = (items) => {
+        const normalized = [];
+        for (const item of items) {
+            if (item?.divider) {
+                if (!normalized.length || normalized[normalized.length - 1].divider) {
+                    continue;
+                }
+            }
+            normalized.push(item);
+        }
+        while (normalized.length && normalized[normalized.length - 1]?.divider) {
+            normalized.pop();
+        }
+        return normalized;
+    };
+    const appendScopeAwareAction = ({ label, icon, directCount, branchCount, runScoped }) => {
+        if (branchCount <= 0 || typeof runScoped !== 'function') {
+            return;
+        }
+        if (branchCount > directCount) {
+            opts.push({
+                text: `${label} (${branchCount})`,
+                icon,
+                subMenu: [
+                    {
+                        text: `Folder only (${directCount})`,
+                        icon,
+                        action: (evt) => {
+                            evt.preventDefault();
+                            runScoped(false);
+                        }
+                    },
+                    {
+                        text: `Folder + children (${branchCount})`,
+                        icon,
+                        action: (evt) => {
+                            evt.preventDefault();
+                            runScoped(true);
+                        }
+                    }
+                ]
+            });
+            return;
+        }
+        opts.push({
+            text: `${label} (${branchCount})`,
+            icon,
+            action: (evt) => {
+                evt.preventDefault();
+                runScoped(true);
+            }
+        });
+    };
+
     context.settings({
         right: false,
         above: false
     });
 
-    if(globalFolders[id].settings.override_default_actions && globalFolders[id].actions && globalFolders[id].actions.length) {
-        opts.push(
-            ...globalFolders[id].actions.map((e, i) => {
-                return {
-                    text: e.name,
-                    icon: e.script_icon || "fa-bolt",
-                    action: (e) => { e.preventDefault(); folderCustomAction(id, i); }
-                }
-            })
-        );
-    
-        opts.push({
-            divider: true
-        });
+    const folderData = globalFolders[id];
+    const hasChildren = folderHasChildren(id);
+    const focused = vmFocusedFolderId === id;
+    const pinned = isVmFolderPinned(id);
+    const locked = isVmFolderLocked(id);
+    const directScopeContainers = getScopedVmRuntimeContainersForFolder(id, false);
+    const branchScopeContainers = getScopedVmRuntimeContainersForFolder(id, true);
+    const directCounts = summarizeVmFolderActionCounts(directScopeContainers);
+    const branchCounts = summarizeVmFolderActionCounts(branchScopeContainers);
 
-    } else if(!globalFolders[id].settings.default_action) {
-        opts.push({
-            text:$.i18n('start'),
-            icon:"fa-play",
-            action:(e) => { e.preventDefault(); actionFolder(id, 'domain-start'); }
+    opts.push({
+        text: focused ? 'Clear focus' : 'Focus folder',
+        icon: focused ? 'fa-dot-circle-o' : 'fa-bullseye',
+        action: (evt) => {
+            evt.preventDefault();
+            toggleVmFolderFocus(id);
+        }
+    });
+    opts.push({
+        text: pinned ? 'Unpin folder' : 'Pin folder',
+        icon: pinned ? 'fa-star' : 'fa-star-o',
+        action: (evt) => {
+            evt.preventDefault();
+            toggleVmFolderPin(id);
+        }
+    });
+    opts.push({
+        text: locked ? 'Unlock folder' : 'Lock folder',
+        icon: locked ? 'fa-lock' : 'fa-unlock-alt',
+        action: (evt) => {
+            evt.preventDefault();
+            toggleVmFolderLock(id);
+        }
+    });
+    appendDivider();
+
+    if (folderData.settings.override_default_actions && folderData.actions && folderData.actions.length) {
+        opts.push(
+            ...folderData.actions.map((entry, index) => ({
+                text: entry.name,
+                icon: entry.script_icon || 'fa-bolt',
+                action: (evt) => {
+                    evt.preventDefault();
+                    folderCustomAction(id, index);
+                }
+            }))
+        );
+        appendDivider();
+    } else if (!folderData.settings.default_action) {
+        appendScopeAwareAction({
+            label: $.i18n('start'),
+            icon: 'fa-play',
+            directCount: directCounts.startable,
+            branchCount: branchCounts.startable,
+            runScoped: (includeDescendants) => actionFolder(id, 'domain-start', { includeDescendants })
         });
-    
-        opts.push({
-            text:$.i18n('stop'),
-            icon:"fa-stop",
-            action:(e) => { e.preventDefault(); actionFolder(id, 'domain-stop'); }
+        appendScopeAwareAction({
+            label: $.i18n('stop'),
+            icon: 'fa-stop',
+            directCount: directCounts.stoppable,
+            branchCount: branchCounts.stoppable,
+            runScoped: (includeDescendants) => actionFolder(id, 'domain-stop', { includeDescendants })
         });
-    
-        opts.push({
-            text:$.i18n('pause'),
-            icon:"fa-pause",
-            action:(e) => { e.preventDefault(); actionFolder(id, 'domain-pause'); }
+        appendScopeAwareAction({
+            label: $.i18n('pause'),
+            icon: 'fa-pause',
+            directCount: directCounts.pausable,
+            branchCount: branchCounts.pausable,
+            runScoped: (includeDescendants) => actionFolder(id, 'domain-pause', { includeDescendants })
         });
-    
-        opts.push({
-            text:$.i18n('resume'),
-            icon:"fa-play-circle",
-            action:(e) => { e.preventDefault(); actionFolder(id, 'domain-resume'); }
+        appendScopeAwareAction({
+            label: $.i18n('resume'),
+            icon: 'fa-play-circle',
+            directCount: directCounts.resumable,
+            branchCount: branchCounts.resumable,
+            runScoped: (includeDescendants) => actionFolder(id, 'domain-resume', { includeDescendants })
         });
-    
-        opts.push({
-            text:$.i18n('restart'),
-            icon:"fa-refresh",
-            action:(e) => { e.preventDefault(); actionFolder(id, 'domain-restart'); }
+        appendScopeAwareAction({
+            label: $.i18n('restart'),
+            icon: 'fa-refresh',
+            directCount: directCounts.restartable,
+            branchCount: branchCounts.restartable,
+            runScoped: (includeDescendants) => actionFolder(id, 'domain-restart', { includeDescendants })
         });
-    
-        opts.push({
-            text:$.i18n('hibernate'),
-            icon:"fa-bed",
-            action:(e) => { e.preventDefault(); actionFolder(id, 'domain-pmsuspend'); }
+        appendScopeAwareAction({
+            label: $.i18n('hibernate'),
+            icon: 'fa-bed',
+            directCount: directCounts.hibernateable,
+            branchCount: branchCounts.hibernateable,
+            runScoped: (includeDescendants) => actionFolder(id, 'domain-pmsuspend', { includeDescendants })
         });
-    
-        opts.push({
-            text:$.i18n('force-stop'),
-            icon:"fa-bomb",
-            action:(e) => { e.preventDefault(); actionFolder(id, 'domain-destroy'); }
+        appendScopeAwareAction({
+            label: $.i18n('force-stop'),
+            icon: 'fa-bomb',
+            directCount: directCounts.destroyable,
+            branchCount: branchCounts.destroyable,
+            runScoped: (includeDescendants) => actionFolder(id, 'domain-destroy', { includeDescendants })
         });
-    
-        opts.push({
-            divider: true
-        });
+        appendDivider();
     }
 
+    if (hasChildren) {
+        const branchSubMenu = [
+            {
+                text: 'Expand branch',
+                icon: 'fa-angle-double-down',
+                action: (evt) => {
+                    evt.preventDefault();
+                    expandVmFolderBranch(id);
+                }
+            },
+            {
+                text: 'Collapse branch',
+                icon: 'fa-angle-double-up',
+                action: (evt) => {
+                    evt.preventDefault();
+                    collapseVmFolderBranch(id);
+                }
+            }
+        ];
+        if (branchCounts.startable > 0) {
+            branchSubMenu.push({
+                text: `Start branch (${branchCounts.startable})`,
+                icon: 'fa-play',
+                action: (evt) => {
+                    evt.preventDefault();
+                    actionFolder(id, 'domain-start', { includeDescendants: true });
+                }
+            });
+        }
+        if (branchCounts.stoppable > 0) {
+            branchSubMenu.push({
+                text: `Stop branch (${branchCounts.stoppable})`,
+                icon: 'fa-stop',
+                action: (evt) => {
+                    evt.preventDefault();
+                    actionFolder(id, 'domain-stop', { includeDescendants: true });
+                }
+            });
+        }
+        if (branchSubMenu.length > 0) {
+            opts.push({
+                text: 'Branch actions',
+                icon: 'fa-sitemap',
+                subMenu: branchSubMenu
+            });
+            appendDivider();
+        }
+    }
 
     opts.push({
         text: $.i18n('edit'),
         icon: 'fa-wrench',
-        action: (e) => { e.preventDefault(); editFolder(id); }
+        action: (evt) => { evt.preventDefault(); editFolder(id); }
+    });
+
+    opts.push({
+        text: 'Clone folder',
+        icon: 'fa-clone',
+        action: (evt) => {
+            evt.preventDefault();
+            cloneVmFolderFromMenu(id);
+        }
     });
 
     opts.push({
         text: $.i18n('remove'),
         icon: 'fa-trash',
-        action: (e) => { e.preventDefault(); rmFolder(id); }
+        action: (evt) => { evt.preventDefault(); rmFolder(id); }
     });
 
-    if(!globalFolders[id].settings.override_default_actions && globalFolders[id].actions && globalFolders[id].actions.length) {
-        opts.push({
-            divider: true
-        });
-
+    if (!folderData.settings.override_default_actions && folderData.actions && folderData.actions.length) {
+        appendDivider();
         opts.push({
             text: $.i18n('custom-actions'),
             icon: 'fa-bars',
-            subMenu: globalFolders[id].actions.map((e, i) => {
-                return {
-                    text: e.name,
-                    icon: e.script_icon || "fa-bolt",
-                    action: (e) => { e.preventDefault(); folderCustomAction(id, i); }
+            subMenu: folderData.actions.map((entry, index) => ({
+                text: entry.name,
+                icon: entry.script_icon || 'fa-bolt',
+                action: (evt) => {
+                    evt.preventDefault();
+                    folderCustomAction(id, index);
                 }
-            })
+            }))
         });
     }
 
-    folderEvents.dispatchEvent(new CustomEvent('vm-folder-context', {detail: { id, opts }}));
-
+    opts = normalizeDividers(opts);
+    folderEvents.dispatchEvent(new CustomEvent('vm-folder-context', { detail: { id, opts } }));
     context.attach('#' + id, opts);
+    queueVmFolderContextQuickIcons();
+    vmPerfTelemetry.end('context-menu-build', { id, optsCount: opts.length });
 };
 
 // Global variables

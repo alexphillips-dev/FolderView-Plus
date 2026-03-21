@@ -101,6 +101,24 @@ body.fvplus-performance-mode .hover div.folder-preview div {
     flex-shrink: 0;
 }
 
+tr.fv-folder-focused td.vm-name.folder-name {
+    box-shadow: inset 2px 0 0 rgba(0, 170, 255, 0.85);
+}
+
+tr.fv-folder-pinned td.vm-name.folder-name {
+    box-shadow: inset 2px 0 0 rgba(255, 202, 99, 0.9);
+}
+
+tr.fv-folder-locked .mover,
+tr.fv-folder-locked .folder-appname {
+    opacity: 0.45;
+    pointer-events: none;
+}
+
+.fv-folder-focus-hidden {
+    display: none !important;
+}
+
 span.folder-state.fv-folder-state-started {
     color: var(--fvplus-folder-status-started, var(--fvplus-status-started));
 }
@@ -186,6 +204,37 @@ div.folder-preview-4 span.outer{
 
 .folder-element-custom-btn {
     margin-left: 0.5em;
+}
+
+/* VM folder context quick actions: icon-only strip on first row. */
+.fvplus-vm-context-menu > li.fvplus-vm-quick-item {
+    display: inline-flex !important;
+    width: 34px;
+    margin: 0 4px 0 0;
+    vertical-align: top;
+}
+
+.fvplus-vm-context-menu > li.fvplus-vm-quick-item > a,
+.fvplus-vm-context-menu > li.fvplus-vm-quick-item .context-menu-item {
+    width: 30px;
+    min-width: 30px;
+    height: 26px;
+    padding: 2px 0 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0 !important;
+    line-height: 1;
+}
+
+.fvplus-vm-context-menu > li.fvplus-vm-quick-item > a i,
+.fvplus-vm-context-menu > li.fvplus-vm-quick-item .context-menu-item i,
+.fvplus-vm-context-menu > li.fvplus-vm-quick-item::before {
+    font-size: 14px !important;
+}
+
+.fvplus-vm-context-menu > li.fvplus-vm-quick-clear {
+    clear: both;
 }
 
 /* Touch/mobile behavior: avoid hover-only interactions. */

@@ -680,15 +680,29 @@ const refreshSetupAssistantTemplateSelections = () => {
     }
 };
 
-const collectSetupAssistantItemTokens = (type, itemName, itemInfo) => {
+const normalizeSetupAssistantMatchText = (value) => (
+    String(value || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim()
+);
+
+const collectSetupAssistantItemMatchProfile = (type, itemName, itemInfo) => {
     const resolvedType = normalizeManagedType(type);
     const tokenSet = new Set();
-    const addTokens = (value) => {
-        const raw = String(value || '').toLowerCase();
-        if (!raw) {
+    const phraseSet = new Set();
+    const textParts = [];
+    const addTokens = (value, options = {}) => {
+        const normalizedText = normalizeSetupAssistantMatchText(value);
+        if (!normalizedText) {
             return;
         }
-        raw.split(/[^a-z0-9]+/).forEach((token) => {
+        const phraseEligible = options.allowPhrase !== false && normalizedText.length >= 3;
+        if (phraseEligible) {
+            phraseSet.add(normalizedText);
+            textParts.push(normalizedText);
+        }
+        normalizedText.split(/\s+/).forEach((token) => {
             const normalized = String(token || '').trim();
             if (normalized.length >= 3) {
                 tokenSet.add(normalized);
@@ -697,9 +711,21 @@ const collectSetupAssistantItemTokens = (type, itemName, itemInfo) => {
     };
     addTokens(itemName);
     if (resolvedType === 'docker') {
+        const labels = itemInfo?.Labels || itemInfo?.info?.Config?.Labels || {};
         addTokens(itemInfo?.Image);
         addTokens(itemInfo?.info?.Config?.Image);
-        const labels = itemInfo?.Labels || itemInfo?.info?.Config?.Labels || {};
+        addTokens(itemInfo?.composeProject);
+        addTokens(itemInfo?.folderLabel);
+        addTokens(itemInfo?.manager);
+        addTokens(itemInfo?.info?.State?.manager);
+        addTokens(itemInfo?.info?.registry);
+        addTokens(itemInfo?.info?.Project);
+        addTokens(itemInfo?.info?.Support);
+        addTokens(itemInfo?.info?.ReadMe);
+        addTokens(itemInfo?.info?.template?.path);
+        if (utils && typeof utils.getComposeProjectFromLabels === 'function') {
+            addTokens(utils.getComposeProjectFromLabels(labels));
+        }
         Object.entries(labels || {}).forEach(([key, value]) => {
             addTokens(key);
             addTokens(value);
@@ -710,10 +736,17 @@ const collectSetupAssistantItemTokens = (type, itemName, itemInfo) => {
         addTokens(itemInfo?.template);
         addTokens(itemInfo?.os);
     }
-    return tokenSet;
+    return {
+        tokens: tokenSet,
+        phrases: phraseSet,
+        normalizedText: textParts.join(' ')
+    };
 };
 
-const scoreSetupAssistantTemplateMatch = (tokens, blueprint) => {
+const scoreSetupAssistantTemplateMatch = (profile, blueprint) => {
+    const tokens = profile instanceof Set ? profile : profile?.tokens;
+    const phrases = profile?.phrases instanceof Set ? profile.phrases : new Set();
+    const normalizedText = String(profile?.normalizedText || '').trim();
     if (!(tokens instanceof Set) || tokens.size <= 0 || !blueprint || typeof blueprint !== 'object') {
         return 0;
     }
@@ -721,20 +754,36 @@ const scoreSetupAssistantTemplateMatch = (tokens, blueprint) => {
         ? blueprint.detect
         : [String(blueprint.name || '')];
     let score = 0;
-    const consumeKeyword = (keyword) => {
-        const normalized = String(keyword || '').trim().toLowerCase();
+    const consumeKeyword = (keyword, weight = 1) => {
+        const normalized = normalizeSetupAssistantMatchText(keyword);
         if (!normalized) {
             return;
         }
-        const parts = normalized.split(/[^a-z0-9]+/).filter((part) => part.length >= 3);
+        const parts = normalized.split(/\s+/).filter((part) => part.length >= 3);
+        if (parts.length <= 0) {
+            return;
+        }
+        let keywordScore = 0;
+        if (phrases.has(normalized)) {
+            keywordScore = Math.max(keywordScore, 12 * weight);
+        } else if (normalizedText.includes(normalized)) {
+            keywordScore = Math.max(keywordScore, 8 * weight);
+        }
+        let matchedParts = 0;
         parts.forEach((part) => {
             if (tokens.has(part)) {
-                score += 1;
+                matchedParts += 1;
             }
         });
+        if (matchedParts === parts.length) {
+            keywordScore = Math.max(keywordScore, (5 + (matchedParts * 2)) * weight);
+        } else if (matchedParts > 0) {
+            keywordScore = Math.max(keywordScore, matchedParts * weight);
+        }
+        score += keywordScore;
     };
-    detectKeywords.forEach(consumeKeyword);
-    consumeKeyword(blueprint.name);
+    detectKeywords.forEach((keyword) => consumeKeyword(keyword, 1));
+    consumeKeyword(blueprint.name, 0.6);
     return score;
 };
 
@@ -754,17 +803,17 @@ const buildSetupAssistantTemplateAssignmentPreview = (type, selectedBlueprints) 
     let matched = 0;
     let unmatched = 0;
     itemNames.forEach((itemName) => {
-        const tokens = collectSetupAssistantItemTokens(resolvedType, itemName, info[itemName] || {});
+        const profile = collectSetupAssistantItemMatchProfile(resolvedType, itemName, info[itemName] || {});
         let bestBlueprint = null;
         let bestScore = 0;
         blueprints.forEach((blueprint) => {
-            const score = scoreSetupAssistantTemplateMatch(tokens, blueprint);
+            const score = scoreSetupAssistantTemplateMatch(profile, blueprint);
             if (score > bestScore) {
                 bestScore = score;
                 bestBlueprint = blueprint;
             }
         });
-        if (!bestBlueprint || bestScore <= 0) {
+        if (!bestBlueprint || bestScore < 4) {
             unmatched += 1;
             return;
         }

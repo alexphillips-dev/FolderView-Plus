@@ -3908,37 +3908,37 @@ const STARTER_TEMPLATE_BLUEPRINTS = Object.freeze({
             name: 'Media',
             icon: '/plugins/folderview.plus/images/icons/folder-media.svg',
             categories: Object.freeze(['media', 'homelab']),
-            detect: Object.freeze(['plex', 'jellyfin', 'emby', 'sonarr', 'radarr', 'lidarr', 'readarr', 'bazarr', 'tautulli', 'audiobookshelf'])
+            detect: Object.freeze(['plex', 'jellyfin', 'emby', 'sonarr', 'radarr', 'lidarr', 'readarr', 'bazarr', 'tautulli', 'audiobookshelf', 'audiobook', 'prowlarr', 'overseerr', 'jellyseerr', 'whisparr', 'recyclarr', 'unpackerr', 'tdarr', 'fileflows', 'calibre', 'calibre-web', 'komga', 'kavita', 'navidrome', 'airsonic', 'tubearchivist', 'immich', 'photoprism', 'paperless', 'romm'])
         }),
         Object.freeze({
             name: 'Downloads',
             icon: '/plugins/folderview.plus/images/icons/folder-backup.svg',
             categories: Object.freeze(['media', 'minimal']),
-            detect: Object.freeze(['qbittorrent', 'transmission', 'deluge', 'sabnzbd', 'jdownloader', 'aria2', 'torrent', 'nzb'])
+            detect: Object.freeze(['qbittorrent', 'transmission', 'deluge', 'sabnzbd', 'nzbget', 'jdownloader', 'aria2', 'slskd', 'soulseek', 'cross-seed', 'torrent', 'nzb'])
         }),
         Object.freeze({
             name: 'Monitoring',
             icon: '/plugins/folderview.plus/images/icons/folder-cloud.svg',
             categories: Object.freeze(['ops', 'homelab', 'minimal']),
-            detect: Object.freeze(['grafana', 'prometheus', 'netdata', 'zabbix', 'telegraf', 'influx', 'loki', 'uptime', 'dozzle', 'glances'])
+            detect: Object.freeze(['grafana', 'prometheus', 'netdata', 'zabbix', 'telegraf', 'influx', 'influxdb', 'loki', 'promtail', 'uptime', 'uptime-kuma', 'dozzle', 'glances', 'beszel', 'scrutiny', 'cadvisor', 'healthchecks'])
         }),
         Object.freeze({
             name: 'Network',
             icon: '/plugins/folderview.plus/images/icons/folder-network.svg',
             categories: Object.freeze(['network', 'homelab', 'minimal']),
-            detect: Object.freeze(['nginx', 'traefik', 'proxy', 'caddy', 'dns', 'pihole', 'wireguard', 'tailscale', 'cloudflared', 'vpn'])
+            detect: Object.freeze(['nginx', 'traefik', 'proxy', 'caddy', 'dns', 'pihole', 'adguard', 'adguardhome', 'wireguard', 'tailscale', 'zerotier', 'cloudflared', 'ddns', 'vpn'])
         }),
         Object.freeze({
             name: 'Reverse Proxy',
             icon: '/plugins/folderview.plus/images/icons/folder-network.svg',
             categories: Object.freeze(['network', 'ops', 'homelab']),
-            detect: Object.freeze(['nginx-proxy-manager', 'traefik', 'caddy', 'swag', 'reverse-proxy'])
+            detect: Object.freeze(['nginx-proxy-manager', 'npm', 'traefik', 'caddy', 'swag', 'reverse-proxy'])
         }),
         Object.freeze({
             name: 'DNS & Routing',
             icon: '/plugins/folderview.plus/images/icons/folder-network.svg',
             categories: Object.freeze(['network', 'ops', 'homelab']),
-            detect: Object.freeze(['pihole', 'adguard', 'dns', 'unbound', 'bind', 'dhcp'])
+            detect: Object.freeze(['pihole', 'adguard', 'adguardhome', 'dns', 'unbound', 'bind', 'dhcp'])
         }),
         Object.freeze({
             name: 'Remote Access',
@@ -3950,7 +3950,7 @@ const STARTER_TEMPLATE_BLUEPRINTS = Object.freeze({
             name: 'Utilities',
             icon: '/plugins/folderview.plus/images/icons/folder-tools.svg',
             categories: Object.freeze(['utility', 'ops', 'minimal', 'homelab']),
-            detect: Object.freeze(['portainer', 'watchtower', 'filebrowser', 'homarr', 'homepage', 'dashy', 'utilities', 'tools'])
+            detect: Object.freeze(['portainer', 'watchtower', 'filebrowser', 'homarr', 'homepage', 'dashy', 'krusader', 'commander', 'mc', 'it-tools', 'utilities', 'tools'])
         }),
         Object.freeze({
             name: 'Dashboards',
@@ -3974,7 +3974,7 @@ const STARTER_TEMPLATE_BLUEPRINTS = Object.freeze({
             name: 'Automation',
             icon: '/plugins/folderview.plus/images/icons/folder-automation.svg',
             categories: Object.freeze(['automation', 'homelab']),
-            detect: Object.freeze(['homeassistant', 'home-assistant', 'node-red', 'n8n', 'automation', 'mosquitto', 'mqtt', 'zigbee'])
+            detect: Object.freeze(['homeassistant', 'home-assistant', 'openhab', 'node-red', 'n8n', 'automation', 'mosquitto', 'mqtt', 'zigbee', 'zwave', 'zwavejs', 'esphome', 'scrypted', 'deconz'])
         }),
         Object.freeze({
             name: 'Workflows',
@@ -3986,7 +3986,7 @@ const STARTER_TEMPLATE_BLUEPRINTS = Object.freeze({
             name: 'Database',
             icon: '/plugins/folderview.plus/images/icons/folder-database.svg',
             categories: Object.freeze(['database', 'ops', 'homelab']),
-            detect: Object.freeze(['postgres', 'postgresql', 'mysql', 'mariadb', 'mongo', 'mongodb', 'redis', 'influxdb', 'database'])
+            detect: Object.freeze(['postgres', 'postgresql', 'pgadmin', 'mysql', 'mariadb', 'mongo', 'mongodb', 'redis', 'redisinsight', 'adminer', 'influxdb', 'database'])
         }),
         Object.freeze({
             name: 'Cache & Queue',

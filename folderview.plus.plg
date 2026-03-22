@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.21.38">
-<!ENTITY md5 "25e5951678ea21c1ab8949215a895b2c">
+<!ENTITY version "2026.03.21.39">
+<!ENTITY md5 "b3503abd315c50f6a67443e14ef00a0a">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.21.39
+- Fix: Improved setup wizard smart-detect matching so more Docker containers are auto-assigned into generated starter folders during new-install onboarding.
+- Quality: Smart-detect now scores compose-project names, Docker template metadata, project/support URLs, and richer runtime signals instead of relying on basic name/image tokens alone.
+- Quality: Added regression coverage for compose-based and template-metadata based smart-detect assignment paths.
+
 
 ###2026.03.21.38
 - UX: Rebuilt the setup apply confirmation modal with compact metric cards, cleaner spacing, and consolidated summaries so it no longer feels stretched or cluttered.

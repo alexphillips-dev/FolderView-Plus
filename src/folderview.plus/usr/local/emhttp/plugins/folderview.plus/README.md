@@ -1,6 +1,6 @@
 ####FolderView Plus###
-<span id="folderviewplus-desc">Create folders to organize Docker containers and VMs with smart nesting, starter templates, dashboard views, and one-click folder actions.</span>
-Getting Started: A new button named "Add Folder" will appear at the bottom of the docker/VM tab next to "Add Container/VM".
+<span id="folderviewplus-desc">FolderView Plus adds powerful folder-based organization to Unraid Docker and VM tabs with nested folder trees, starter templates, smart assignment rules, custom icons, and one-click bulk actions.</span>
+Quick start: Open the Docker or VM tab, click "Add Folder", then move items manually or auto-assign them with rules.
 <script src="/plugins/folderview.plus/scripts/include/CLDRPluralRuleParser.js"></script>
 <script src="/plugins/folderview.plus/scripts/include/jquery.i18n.js"></script>
 <script src="/plugins/folderview.plus/scripts/include/jquery.i18n.messagestore.js"></script>

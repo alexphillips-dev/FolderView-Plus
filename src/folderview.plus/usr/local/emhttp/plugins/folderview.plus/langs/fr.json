@@ -161,5 +161,5 @@
     "folder-webui-tooltip": "Default folder WebUI URL.",
     "folder-webui-url": "WebUI URL:",
     "folder-webui-url-tooltip": "The URL to open when clicking the WebUI button in the folder context menu.",
-    "folderviewplus-desc": "Create folders to organize Docker containers and VMs with smart nesting, starter templates, dashboard views, and one-click folder actions."
+    "folderviewplus-desc": "FolderView Plus adds powerful folder-based organization to Unraid Docker and VM tabs with nested folder trees, starter templates, smart assignment rules, custom icons, and one-click bulk actions."
 }

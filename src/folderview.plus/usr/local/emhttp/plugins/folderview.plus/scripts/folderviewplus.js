@@ -3865,36 +3865,215 @@ const promptStarterFolderName = async (type, suggestedName) => {
 const DEFAULT_STARTER_FOLDER_ICON = '/plugins/folderview.plus/images/folder-icon.png';
 
 const STARTER_TEMPLATE_CATEGORY_META = Object.freeze({
+    smart: Object.freeze({ label: 'Smart' }),
     homelab: Object.freeze({ label: 'Homelab' }),
     media: Object.freeze({ label: 'Media' }),
     minimal: Object.freeze({ label: 'Minimal' }),
-    lab: Object.freeze({ label: 'Lab' })
+    network: Object.freeze({ label: 'Network' }),
+    automation: Object.freeze({ label: 'Automation' }),
+    database: Object.freeze({ label: 'Database' }),
+    security: Object.freeze({ label: 'Security' }),
+    ops: Object.freeze({ label: 'Ops' }),
+    dev: Object.freeze({ label: 'Dev' }),
+    gaming: Object.freeze({ label: 'Gaming' }),
+    lab: Object.freeze({ label: 'Lab' }),
+    server: Object.freeze({ label: 'Server' }),
+    desktop: Object.freeze({ label: 'Desktop' }),
+    utility: Object.freeze({ label: 'Utility' }),
+    backup: Object.freeze({ label: 'Backup' })
 });
 
 const normalizeStarterTemplateCategory = (value) => {
     const normalized = String(value || '').trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '-');
-    return normalized || 'homelab';
+    return normalized;
 };
 
 const STARTER_TEMPLATE_BLUEPRINTS = Object.freeze({
     docker: Object.freeze([
-        Object.freeze({ name: 'Media', icon: '/plugins/folderview.plus/images/icons/folder-media.svg', categories: Object.freeze(['homelab', 'media']) }),
-        Object.freeze({ name: 'Downloads', icon: '/plugins/folderview.plus/images/icons/folder-backup.svg', categories: Object.freeze(['homelab', 'media']) }),
-        Object.freeze({ name: 'Monitoring', icon: '/plugins/folderview.plus/images/icons/folder-cloud.svg', categories: Object.freeze(['homelab', 'minimal']) }),
-        Object.freeze({ name: 'Network', icon: '/plugins/folderview.plus/images/icons/folder-network.svg', categories: Object.freeze(['homelab', 'minimal']) }),
-        Object.freeze({ name: 'Utilities', icon: '/plugins/folderview.plus/images/icons/folder-tools.svg', categories: Object.freeze(['homelab', 'minimal']) }),
-        Object.freeze({ name: 'Automation', icon: '/plugins/folderview.plus/images/icons/folder-automation.svg', categories: Object.freeze(['homelab', 'media']) }),
-        Object.freeze({ name: 'Database', icon: '/plugins/folderview.plus/images/icons/folder-database.svg', categories: Object.freeze(['homelab', 'media']) }),
-        Object.freeze({ name: 'Security', icon: '/plugins/folderview.plus/images/icons/folder-security.svg', categories: Object.freeze(['homelab']) })
+        Object.freeze({
+            name: 'Media',
+            icon: '/plugins/folderview.plus/images/icons/folder-media.svg',
+            categories: Object.freeze(['media', 'homelab']),
+            detect: Object.freeze(['plex', 'jellyfin', 'emby', 'sonarr', 'radarr', 'lidarr', 'readarr', 'bazarr', 'tautulli', 'audiobookshelf'])
+        }),
+        Object.freeze({
+            name: 'Downloads',
+            icon: '/plugins/folderview.plus/images/icons/folder-backup.svg',
+            categories: Object.freeze(['media', 'minimal']),
+            detect: Object.freeze(['qbittorrent', 'transmission', 'deluge', 'sabnzbd', 'jdownloader', 'aria2', 'torrent', 'nzb'])
+        }),
+        Object.freeze({
+            name: 'Monitoring',
+            icon: '/plugins/folderview.plus/images/icons/folder-cloud.svg',
+            categories: Object.freeze(['ops', 'homelab', 'minimal']),
+            detect: Object.freeze(['grafana', 'prometheus', 'netdata', 'zabbix', 'telegraf', 'influx', 'loki', 'uptime', 'dozzle', 'glances'])
+        }),
+        Object.freeze({
+            name: 'Network',
+            icon: '/plugins/folderview.plus/images/icons/folder-network.svg',
+            categories: Object.freeze(['network', 'homelab', 'minimal']),
+            detect: Object.freeze(['nginx', 'traefik', 'proxy', 'caddy', 'dns', 'pihole', 'wireguard', 'tailscale', 'cloudflared', 'vpn'])
+        }),
+        Object.freeze({
+            name: 'Utilities',
+            icon: '/plugins/folderview.plus/images/icons/folder-tools.svg',
+            categories: Object.freeze(['utility', 'ops', 'minimal', 'homelab']),
+            detect: Object.freeze(['portainer', 'watchtower', 'filebrowser', 'homarr', 'homepage', 'dashy', 'utilities', 'tools'])
+        }),
+        Object.freeze({
+            name: 'Automation',
+            icon: '/plugins/folderview.plus/images/icons/folder-automation.svg',
+            categories: Object.freeze(['automation', 'homelab']),
+            detect: Object.freeze(['homeassistant', 'home-assistant', 'node-red', 'n8n', 'automation', 'mosquitto', 'mqtt', 'zigbee'])
+        }),
+        Object.freeze({
+            name: 'Database',
+            icon: '/plugins/folderview.plus/images/icons/folder-database.svg',
+            categories: Object.freeze(['database', 'ops', 'homelab']),
+            detect: Object.freeze(['postgres', 'postgresql', 'mysql', 'mariadb', 'mongo', 'mongodb', 'redis', 'influxdb', 'database'])
+        }),
+        Object.freeze({
+            name: 'Security',
+            icon: '/plugins/folderview.plus/images/icons/folder-security.svg',
+            categories: Object.freeze(['security', 'ops', 'homelab']),
+            detect: Object.freeze(['authentik', 'authelia', 'vaultwarden', 'crowdsec', 'fail2ban', 'wazuh', 'security'])
+        }),
+        Object.freeze({
+            name: 'Development',
+            icon: '/plugins/folderview.plus/images/icons/folder-dev.svg',
+            categories: Object.freeze(['dev', 'homelab']),
+            detect: Object.freeze(['gitlab', 'gitea', 'jenkins', 'runner', 'registry', 'npm', 'dev', 'code-server', 'vscode'])
+        }),
+        Object.freeze({
+            name: 'Gaming',
+            icon: '/plugins/folderview.plus/images/icons/folder-gaming.svg',
+            categories: Object.freeze(['gaming', 'homelab']),
+            detect: Object.freeze(['steam', 'minecraft', 'game', 'gaming', 'palworld', 'valheim', 'factorio'])
+        })
     ]),
     vm: Object.freeze([
-        Object.freeze({ name: 'Production VMs', icon: '/plugins/folderview.plus/images/icons/folder-default.svg', categories: Object.freeze(['homelab', 'minimal']) }),
-        Object.freeze({ name: 'Lab VMs', icon: '/plugins/folderview.plus/images/icons/folder-dev.svg', categories: Object.freeze(['homelab', 'lab']) }),
-        Object.freeze({ name: 'Utility VMs', icon: '/plugins/folderview.plus/images/icons/folder-tools.svg', categories: Object.freeze(['homelab', 'minimal']) }),
-        Object.freeze({ name: 'Network VMs', icon: '/plugins/folderview.plus/images/icons/folder-network.svg', categories: Object.freeze(['homelab']) }),
-        Object.freeze({ name: 'Backups', icon: '/plugins/folderview.plus/images/icons/folder-backup.svg', categories: Object.freeze(['homelab', 'media']) })
+        Object.freeze({
+            name: 'Production VMs',
+            icon: '/plugins/folderview.plus/images/icons/folder-default.svg',
+            categories: Object.freeze(['server', 'homelab', 'minimal']),
+            detect: Object.freeze(['prod', 'production', 'server', 'srv'])
+        }),
+        Object.freeze({
+            name: 'Desktop VMs',
+            icon: '/plugins/folderview.plus/images/icons/folder-home.svg',
+            categories: Object.freeze(['desktop', 'homelab']),
+            detect: Object.freeze(['desktop', 'workstation', 'windows', 'win11', 'ubuntu-desktop', 'macos'])
+        }),
+        Object.freeze({
+            name: 'Lab VMs',
+            icon: '/plugins/folderview.plus/images/icons/folder-dev.svg',
+            categories: Object.freeze(['lab', 'dev', 'homelab']),
+            detect: Object.freeze(['lab', 'test', 'dev', 'sandbox', 'staging'])
+        }),
+        Object.freeze({
+            name: 'Utility VMs',
+            icon: '/plugins/folderview.plus/images/icons/folder-tools.svg',
+            categories: Object.freeze(['utility', 'minimal', 'homelab']),
+            detect: Object.freeze(['utility', 'tools', 'helper', 'management'])
+        }),
+        Object.freeze({
+            name: 'Network VMs',
+            icon: '/plugins/folderview.plus/images/icons/folder-network.svg',
+            categories: Object.freeze(['network', 'homelab']),
+            detect: Object.freeze(['router', 'firewall', 'pfsense', 'opnsense', 'network', 'dns', 'proxy'])
+        }),
+        Object.freeze({
+            name: 'Backups',
+            icon: '/plugins/folderview.plus/images/icons/folder-backup.svg',
+            categories: Object.freeze(['backup', 'ops', 'homelab']),
+            detect: Object.freeze(['backup', 'vault', 'archive', 'replica'])
+        }),
+        Object.freeze({
+            name: 'Media VMs',
+            icon: '/plugins/folderview.plus/images/icons/folder-media.svg',
+            categories: Object.freeze(['media', 'homelab']),
+            detect: Object.freeze(['media', 'plex', 'jellyfin', 'emby'])
+        })
     ])
 });
+
+const collectStarterTemplateSmartSignals = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const infoByName = infoByType[resolvedType] && typeof infoByType[resolvedType] === 'object' ? infoByType[resolvedType] : {};
+    const signalSet = new Set();
+    const addTokens = (value) => {
+        const raw = String(value || '').toLowerCase();
+        if (!raw) {
+            return;
+        }
+        raw.split(/[^a-z0-9]+/).forEach((token) => {
+            const normalized = String(token || '').trim();
+            if (normalized.length >= 3) {
+                signalSet.add(normalized);
+            }
+        });
+    };
+    Object.entries(infoByName).forEach(([itemName, itemInfo]) => {
+        addTokens(itemName);
+        if (resolvedType === 'docker') {
+            addTokens(itemInfo?.Image);
+            addTokens(itemInfo?.info?.Config?.Image);
+            const labels = itemInfo?.Labels || itemInfo?.info?.Config?.Labels || {};
+            Object.entries(labels || {}).forEach(([key, value]) => {
+                addTokens(key);
+                addTokens(value);
+            });
+            addTokens(itemInfo?.composeProject);
+        } else {
+            addTokens(itemInfo?.domain);
+            addTokens(itemInfo?.description);
+            addTokens(itemInfo?.template);
+            addTokens(itemInfo?.os);
+        }
+    });
+    return signalSet;
+};
+
+const resolveStarterTemplateSmartIndexes = (type, templateList) => {
+    const list = Array.isArray(templateList) ? templateList : [];
+    const signals = collectStarterTemplateSmartSignals(type);
+    const matched = new Set();
+    const hasSignal = (keyword) => {
+        const normalized = String(keyword || '').trim().toLowerCase();
+        if (!normalized) {
+            return false;
+        }
+        const parts = normalized.split(/[^a-z0-9]+/).filter((part) => part.length >= 3);
+        if (parts.length <= 0) {
+            return false;
+        }
+        return parts.some((part) => signals.has(part));
+    };
+    list.forEach((entry, index) => {
+        const detectKeywords = Array.isArray(entry?.detect) ? entry.detect : [];
+        const fallbackKeywords = [entry?.name];
+        const keywords = detectKeywords.length > 0 ? detectKeywords : fallbackKeywords;
+        if (keywords.some((keyword) => hasSignal(keyword))) {
+            matched.add(index);
+        }
+    });
+    if (matched.size > 0) {
+        return matched;
+    }
+    list.forEach((entry, index) => {
+        const categories = Array.isArray(entry?.categories) ? entry.categories.map((value) => normalizeStarterTemplateCategory(value)) : [];
+        if (categories.includes('homelab') || categories.includes('minimal')) {
+            matched.add(index);
+        }
+    });
+    if (matched.size > 0) {
+        return matched;
+    }
+    list.forEach((_, index) => {
+        matched.add(index);
+    });
+    return matched;
+};
 
 const buildStarterFolderPayload = (name, iconPath = DEFAULT_STARTER_FOLDER_ICON) => ({
     name: String(name || '').trim(),
@@ -3946,42 +4125,45 @@ const promptStarterTemplateSelection = async (type, blueprints) => {
         return [];
     }
 
-    const categoryBuckets = new Map();
-    categoryBuckets.set('all', templateList.slice());
-    for (const entry of templateList) {
+    const categoryIndexBuckets = new Map();
+    const addCategoryIndex = (categoryId, index) => {
+        const normalizedId = normalizeStarterTemplateCategory(categoryId);
+        if (!normalizedId) {
+            return;
+        }
+        if (!categoryIndexBuckets.has(normalizedId)) {
+            categoryIndexBuckets.set(normalizedId, new Set());
+        }
+        categoryIndexBuckets.get(normalizedId).add(index);
+    };
+    const smartIndexes = resolveStarterTemplateSmartIndexes(resolvedType, templateList);
+    smartIndexes.forEach((index) => addCategoryIndex('smart', index));
+    templateList.forEach((entry, index) => {
         const entryCategories = Array.isArray(entry?.categories) ? entry.categories : [];
         for (const rawCategory of entryCategories) {
-            const categoryId = normalizeStarterTemplateCategory(rawCategory);
-            if (!categoryBuckets.has(categoryId)) {
-                categoryBuckets.set(categoryId, []);
-            }
-            categoryBuckets.get(categoryId).push(entry);
+            addCategoryIndex(rawCategory, index);
         }
-    }
-    const preferredCategoryOrder = ['homelab', 'media', 'minimal', 'lab'];
-    const categoryIds = ['all'];
+    });
+    const preferredCategoryOrder = ['smart', 'homelab', 'media', 'minimal', 'network', 'automation', 'database', 'security', 'ops', 'dev', 'gaming', 'server', 'desktop', 'utility', 'backup', 'lab'];
+    const categoryIds = [];
     for (const categoryId of preferredCategoryOrder) {
-        if (categoryBuckets.has(categoryId) && categoryId !== 'all') {
+        if (categoryIndexBuckets.has(categoryId)) {
             categoryIds.push(categoryId);
         }
     }
-    for (const categoryId of categoryBuckets.keys()) {
-        if (!categoryIds.includes(categoryId) && categoryId !== 'all') {
+    for (const categoryId of categoryIndexBuckets.keys()) {
+        if (!categoryIds.includes(categoryId)) {
             categoryIds.push(categoryId);
         }
     }
     const getCategoryLabel = (categoryId) => {
-        if (categoryId === 'all') {
-            return 'All';
-        }
         const fallback = categoryId.replace(/[-_]+/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
         return String(STARTER_TEMPLATE_CATEGORY_META[categoryId]?.label || fallback);
     };
-    const defaultCategoryId = categoryIds.includes('homelab') ? 'homelab' : 'all';
+    const defaultCategoryId = categoryIds.includes('smart') ? 'smart' : (categoryIds.includes('homelab') ? 'homelab' : (categoryIds[0] || 'smart'));
 
     if (typeof window.swal !== 'function') {
         const categoryChoices = categoryIds
-            .filter((categoryId) => categoryId !== 'all')
             .map((categoryId, index) => `${index + 1}. ${getCategoryLabel(categoryId)}`)
             .join('\n');
         const categoryRaw = window.prompt(
@@ -3995,14 +4177,14 @@ const promptStarterTemplateSelection = async (type, blueprints) => {
         const categoryIndex = Number(String(categoryRaw || '').trim());
         let activeCategoryId = defaultCategoryId;
         if (Number.isInteger(categoryIndex) && categoryIndex > 0) {
-            const mapped = categoryIds.filter((categoryId) => categoryId !== 'all')[categoryIndex - 1] || '';
+            const mapped = categoryIds[categoryIndex - 1] || '';
             if (mapped) {
                 activeCategoryId = mapped;
             }
         } else if (normalizedCategoryRaw && categoryIds.includes(normalizedCategoryRaw)) {
             activeCategoryId = normalizedCategoryRaw;
         }
-        const categoryTemplates = (categoryBuckets.get(activeCategoryId) || []).slice();
+        const categoryTemplates = Array.from(categoryIndexBuckets.get(activeCategoryId) || []).map((index) => templateList[index]).filter(Boolean);
         if (!categoryTemplates.length) {
             return [];
         }
@@ -4043,7 +4225,10 @@ const promptStarterTemplateSelection = async (type, blueprints) => {
             const name = String(entry.name || '').trim();
             const iconPath = String(entry.icon || '').trim() || DEFAULT_STARTER_FOLDER_ICON;
             const categories = Array.isArray(entry?.categories) ? entry.categories : [];
-            const normalizedCategories = ['all', ...categories.map((value) => normalizeStarterTemplateCategory(value))];
+            const normalizedCategories = [...categories.map((value) => normalizeStarterTemplateCategory(value))];
+            if (smartIndexes.has(index)) {
+                normalizedCategories.push('smart');
+            }
             return `<label class="fv-starter-template-option" data-fv-starter-template-categories="${escapeHtml(normalizedCategories.join(','))}"><input type="checkbox" class="fv-starter-template-checkbox" data-fv-starter-template-index="${index}" checked><img src="${escapeHtml(iconPath)}" alt="" class="fv-starter-template-option-icon"><span>${escapeHtml(name)}</span></label>`;
         }).join('');
 
@@ -4060,7 +4245,7 @@ const promptStarterTemplateSelection = async (type, blueprints) => {
                     .split(',')
                     .map((value) => normalizeStarterTemplateCategory(value))
                     .filter((value) => value !== '');
-                const isVisible = activeCategoryId === 'all' || categories.includes(activeCategoryId);
+                const isVisible = categories.includes(activeCategoryId);
                 $(node).toggle(isVisible);
                 const checkbox = $(node).find('.fv-starter-template-checkbox');
                 if (resetSelection) {
@@ -4079,7 +4264,7 @@ const promptStarterTemplateSelection = async (type, blueprints) => {
 
         swal({
             title: `Choose ${typeLabel} starter templates`,
-            text: `<div class="fv-starter-template-dialog"><div class="fv-starter-template-help">Pick a category, then choose the folders you want to deploy. Existing matching folder names will be skipped.</div><div class="fv-starter-template-categories">${categoryHtml}</div><div class="fv-starter-template-options">${optionsHtml}</div><div class="fv-starter-template-empty" style="display:none;">No templates in this category.</div></div>`,
+            text: `<div class="fv-starter-template-dialog"><div class="fv-starter-template-help"><strong>Smart</strong> uses detected ${typeLabel === 'Docker' ? 'container' : 'VM'} names to pre-pick relevant folders. Pick a category, then choose what to deploy. Existing matching folder names will be skipped.</div><div class="fv-starter-template-categories">${categoryHtml}</div><div class="fv-starter-template-options">${optionsHtml}</div><div class="fv-starter-template-empty" style="display:none;">No templates in this category.</div></div>`,
             html: true,
             type: 'info',
             showCancelButton: true,

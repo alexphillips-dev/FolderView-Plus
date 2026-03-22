@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.21.27">
-<!ENTITY md5 "74dc9fbb16757d550a4dcbc73d878543">
+<!ENTITY version "2026.03.21.29">
+<!ENTITY md5 "8ad55ce3a927567f4e353413bcf9a9d3">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.21.29
+- Feature: Replaced `All` with `Smart` starter-template detection that auto-suggests folders from detected Docker/VM workloads.
+- Feature: Expanded starter-template categories and remapped folder presets so `Homelab` is no longer the same as full coverage.
+- UX: Restyled starter-template category chips for cleaner alignment, spacing, and active/focus clarity.
+
 
 ###2026.03.21.27
 - Feature: add category-driven starter template picker.

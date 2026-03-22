@@ -165,7 +165,7 @@ test('empty-state actions are delegated and create-folder uses modal input inste
     assert.match(script, /normalizeStarterTemplateCategory = \(value\) =>/);
     assert.match(script, /fv-starter-template-category/);
     assert.match(script, /data-fv-starter-category/);
-    assert.match(script, /Pick a category, then choose the folders you want to deploy/);
+    assert.match(script, /Smart<\/strong> uses detected .* names to pre-pick relevant folders\./);
     assert.match(script, /fv-starter-template-option:visible \.fv-starter-template-checkbox:checked/);
     assert.match(script, /type:\s*'input'/);
     assert.match(script, /fv-starter-template-checkbox/);

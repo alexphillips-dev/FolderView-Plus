@@ -86,6 +86,42 @@ validate_manifest_branch_matrix() {
     done
 }
 
+apply_branch_channel_messaging() {
+    local package_root="${1:-}"
+    local target_branch="${2:-}"
+    local readme_file=""
+    local langs_dir=""
+    local channel_desc=""
+    local channel_quickstart=""
+    local lang_file=""
+    if [ -z "$package_root" ] || [ -z "$target_branch" ]; then
+        echo "ERROR: apply_branch_channel_messaging requires package root and branch." >&2
+        exit 1
+    fi
+    if [[ "$target_branch" != "dev" && "$target_branch" != "beta" ]]; then
+        return
+    fi
+    readme_file="$package_root/usr/local/emhttp/plugins/folderview.plus/README.md"
+    langs_dir="$package_root/usr/local/emhttp/plugins/folderview.plus/langs"
+    if [ "$target_branch" = "dev" ]; then
+        channel_desc="FolderView Plus dev branch includes preview builds for testing. Expect bugs, regressions, and in-progress changes before they reach main."
+        channel_quickstart="Dev branch: Test changes here before stable release. Update carefully and expect occasional breakage."
+    else
+        channel_desc="FolderView Plus beta branch includes pre-release builds for validation. Features may change before they land on main."
+        channel_quickstart="Beta branch: Validate upcoming changes before stable release and expect occasional issues."
+    fi
+    if [ -f "$readme_file" ]; then
+        perl -0pi -e 's{<span id="folderviewplus-desc">.*?</span>}{<span id="folderviewplus-desc">'"$channel_desc"'</span>}s' "$readme_file"
+        perl -0pi -e 's{Quick start:.*}{'"$channel_quickstart"'}s' "$readme_file"
+    fi
+    if [ -d "$langs_dir" ]; then
+        for lang_file in "$langs_dir"/*.json; do
+            [ -f "$lang_file" ] || continue
+            perl -0pi -e 's/"folderviewplus-desc"\s*:\s*"(?:[^"\\\\]|\\\\.)*"/"folderviewplus-desc": "'"$channel_desc"'"/g' "$lang_file"
+        done
+    fi
+}
+
 print_usage() {
     cat <<'EOF'
 Usage: pkg_build.sh [options]
@@ -484,6 +520,8 @@ while IFS= read -r -d '' file; do
     fi
     cp --parents -f "$file" "$tmpdir/"
 done < <(find . -type f ! \( -iname "pkg_build.sh" -o -iname "sftp-config.json" \) -print0)
+
+apply_branch_channel_messaging "$tmpdir" "$branch"
 
 # Set permissions for Unraid (only in temp dir, not the repo)
 chmod -R 0755 "$tmpdir"

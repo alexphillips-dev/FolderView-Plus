@@ -3077,6 +3077,18 @@ const normalizeDashboardOverflowMode = (value) => {
         : 'default';
 };
 
+const normalizePreviewRowLimit = (value) => {
+    const normalized = String(value ?? '').trim().toLowerCase();
+    if (normalized === '0' || normalized === 'auto' || normalized === 'unlimited') {
+        return 0;
+    }
+    const parsed = Number.parseInt(normalized, 10);
+    if (!Number.isFinite(parsed)) {
+        return 1;
+    }
+    return Math.max(1, Math.min(4, parsed));
+};
+
 const normalizeFolderRecordForEditor = (folder) => {
     const source = folder && typeof folder === 'object' ? folder : {};
     const settings = source.settings && typeof source.settings === 'object' ? source.settings : {};
@@ -3105,6 +3117,7 @@ const normalizeFolderRecordForEditor = (folder) => {
             folder_webui: settings.folder_webui === true,
             folder_webui_url: String(settings.folder_webui_url || ''),
             preview: Number.isFinite(Number(settings.preview)) ? toSafeInt(settings.preview, 1) : 1,
+            preview_rows: normalizePreviewRowLimit(settings.preview_rows),
             preview_hover: settings.preview_hover === true,
             preview_update: settings.preview_update === true,
             preview_text_width: String(settings.preview_text_width || ''),
@@ -4133,6 +4146,7 @@ resetStatusColorDefaults();
         form.folder_webui.checked = currFolder.settings.folder_webui || false;
         form.folder_webui_url.value = currFolder.settings.folder_webui_url || '';
         form.preview.value = String(currFolder.settings.preview);
+        form.preview_rows.value = String(normalizePreviewRowLimit(currFolder.settings.preview_rows));
         form.preview_hover.checked = currFolder.settings.preview_hover;
         form.preview_update.checked = currFolder.settings.preview_update;
         form.preview_text_width.value = currFolder.settings.preview_text_width || '';
@@ -4660,6 +4674,7 @@ const submitForm = async (e, saveAsCopy = false) => {
             folder_webui: e.folder_webui.checked,
             folder_webui_url: e.folder_webui_url.value.toString(),
             preview: parseInt(e.preview.value.toString()),
+            preview_rows: normalizePreviewRowLimit(e.preview_rows?.value),
             preview_hover: e.preview_hover.checked,
             preview_update: e.preview_update.checked,
             preview_text_width: e.preview_text_width.value,

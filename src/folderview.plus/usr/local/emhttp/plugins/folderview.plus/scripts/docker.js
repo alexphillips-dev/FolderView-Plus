@@ -230,6 +230,254 @@ const getPreviewContainerStatusMeta = (entry = {}) => {
     }
     return { key: 'stopped', icon: 'fa-square', className: 'fv-preview-status-stopped' };
 };
+const normalizeFolderPreviewRowLimit = (settings = {}) => {
+    const raw = String(settings?.preview_rows ?? '').trim().toLowerCase();
+    if (raw === '0' || raw === 'auto' || raw === 'unlimited') {
+        return 0;
+    }
+    const parsed = Number.parseInt(raw, 10);
+    if (!Number.isFinite(parsed)) {
+        return 1;
+    }
+    return Math.max(1, Math.min(4, parsed));
+};
+const applyFolderPreviewLayout = ($preview, settings = {}) => {
+    if (!$preview || !$preview.length) {
+        return;
+    }
+    const rowLimit = normalizeFolderPreviewRowLimit(settings);
+    const previewNode = $preview.get(0);
+    if (!previewNode || !previewNode.style) {
+        return;
+    }
+    previewNode.dataset.previewRows = String(rowLimit);
+    previewNode.style.setProperty('--fvplus-preview-row-limit', rowLimit === 0 ? '4' : String(rowLimit));
+    previewNode.style.setProperty('--fvplus-preview-max-height', rowLimit === 0 ? 'none' : `calc(${rowLimit} * var(--fvplus-preview-row-height, 3.5em))`);
+    previewNode.classList.toggle('fv-preview-unlimited-rows', rowLimit === 0);
+};
+const decorateDockerPreviewMemberTriggers = ($elements, folderId, containerName) => {
+    const safeFolderId = String(folderId || '').trim();
+    const safeContainerName = String(containerName || '').trim();
+    if (!$elements || !$elements.length || !safeFolderId || !safeContainerName) {
+        return;
+    }
+    $elements
+        .addClass('fv-docker-member-menu-trigger')
+        .attr('data-folder-id', safeFolderId)
+        .attr('data-container-name', safeContainerName)
+        .attr('title', 'Open container actions');
+};
+const decorateDockerFolderMemberRow = ($row, folderId, containerName) => {
+    if (!$row || !$row.length) {
+        return;
+    }
+    decorateDockerPreviewMemberTriggers(
+        $row.find('td.ct-name span.outer > span.hand, td.ct-name span.outer > span.inner > span.appname, td.ct-name span.outer > span.inner > span.appname > a.exec, td.ct-name span.outer > span.inner > i.folder-load-status, td.ct-name span.outer > span.inner > span.state'),
+        folderId,
+        containerName
+    );
+};
+const resolveDockerPreviewMemberEntry = (triggerEl) => {
+    const $trigger = $(triggerEl || []);
+    if (!$trigger.length) {
+        return null;
+    }
+    const folderId = String($trigger.attr('data-folder-id') || '').trim();
+    const containerName = String($trigger.attr('data-container-name') || '').trim();
+    if (!folderId || !containerName) {
+        return null;
+    }
+    const folder = globalFolders[folderId];
+    if (!folder || typeof folder !== 'object') {
+        return null;
+    }
+    const sourceMeta = folder?.containers?.[containerName] || folder?.runtimeContainers?.[containerName] || null;
+    const entry = buildRuntimeContainerEntry(containerName, sourceMeta);
+    return entry && entry.name
+        ? { ...entry, folderId }
+        : null;
+};
+const runDockerContainerMenuAction = async (entry, action) => {
+    if (!entry?.id || !action) {
+        return;
+    }
+    $('div.spinner.fixed').show('slow');
+    try {
+        const response = await $.post(eventURL, { action, container: entry.id }, null, 'json').promise();
+        if (response?.success !== true) {
+            throw new Error(String(response?.text || `Failed to ${action} container.`));
+        }
+        loadlist();
+    } catch (error) {
+        swal({
+            title: $.i18n('exec-error'),
+            text: escapeHtml(String(error?.message || `Failed to ${action} container.`)),
+            type: 'error',
+            html: true,
+            confirmButtonText: 'Ok'
+        });
+    } finally {
+        $('div.spinner.fixed').hide('slow');
+    }
+};
+let dockerPreviewMemberMenuRegistry = new Map();
+const clearDockerPreviewMemberMenuRegistry = () => {
+    dockerPreviewMemberMenuRegistry = new Map();
+    $(document).off('click.fvDockerMemberMenuAction');
+};
+const buildDockerPreviewMemberMenuActions = (entry) => {
+    const actions = [];
+    if (!entry) {
+        return actions;
+    }
+    if (!entry.state) {
+        actions.push({
+            key: 'start',
+            icon: 'fa-play',
+            label: $.i18n('start'),
+            run: () => runDockerContainerMenuAction(entry, 'start')
+        });
+    } else if (entry.pause) {
+        actions.push({
+            key: 'resume',
+            icon: 'fa-play-circle',
+            label: $.i18n('resume'),
+            run: () => runDockerContainerMenuAction(entry, 'resume')
+        });
+    } else {
+        actions.push({
+            key: 'stop',
+            icon: 'fa-stop',
+            label: $.i18n('stop'),
+            run: () => runDockerContainerMenuAction(entry, 'stop')
+        });
+        actions.push({
+            key: 'pause',
+            icon: 'fa-pause',
+            label: $.i18n('pause'),
+            run: () => runDockerContainerMenuAction(entry, 'pause')
+        });
+    }
+    if (entry.state) {
+        actions.push({
+            key: 'restart',
+            icon: 'fa-refresh',
+            label: $.i18n('restart'),
+            run: () => runDockerContainerMenuAction(entry, 'restart')
+        });
+    }
+    if (entry.webui) {
+        actions.push({
+            key: 'webui',
+            icon: 'fa-globe',
+            label: $.i18n('webui'),
+            run: () => {
+                const popup = window.open(entry.webui, '_blank', 'noopener,noreferrer');
+                if (popup) {
+                    popup.opener = null;
+                }
+            }
+        });
+    }
+    actions.push({
+        key: 'console',
+        icon: 'fa-terminal',
+        label: $.i18n('console'),
+        run: () => openTerminal('docker', entry.name, entry.shell || '/bin/sh')
+    });
+    actions.push({
+        key: 'logs',
+        icon: 'fa-bars',
+        label: $.i18n('logs'),
+        run: () => openTerminal('docker', entry.name, '.log')
+    });
+    if (entry.managed) {
+        actions.push({
+            key: 'update',
+            icon: 'fa-cloud-download',
+            label: entry.update ? $.i18n('apply-update') : $.i18n('force-update'),
+            run: () => updateContainer(entry.name)
+        });
+    }
+    return actions;
+};
+const showDockerPreviewMemberMenu = (entry) => {
+    if (!entry?.name) {
+        return;
+    }
+    const actions = buildDockerPreviewMemberMenuActions(entry);
+    if (!actions.length) {
+        return;
+    }
+    clearDockerPreviewMemberMenuRegistry();
+    dockerPreviewMemberMenuRegistry = new Map(actions.map((action) => [action.key, action.run]));
+    const statusMeta = getPreviewContainerStatusMeta(entry);
+    const statusLabel = escapeHtml($.i18n(statusMeta.key));
+    const safeName = escapeHtml(entry.name);
+    const safeIcon = sanitizeImageSrc(entry.icon || '/plugins/dynamix.docker.manager/images/question.png');
+    const actionsHtml = actions.map((action) => `
+        <button type="button" class="fv-docker-member-menu-action" data-action-key="${escapeHtml(action.key)}">
+            <i class="fa ${escapeHtml(action.icon)}" aria-hidden="true"></i>
+            <span>${escapeHtml(action.label)}</span>
+        </button>
+    `).join('');
+    swal({
+        title: '',
+        text: `
+            <div class="fv-docker-member-menu-sheet">
+                <div class="fv-docker-member-menu-header">
+                    <img src="${safeIcon}" class="fv-docker-member-menu-icon" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png'">
+                    <div class="fv-docker-member-menu-meta">
+                        <div class="fv-docker-member-menu-name">${safeName}</div>
+                        <div class="fv-docker-member-menu-status ${escapeHtml(statusMeta.className)}"><i class="fa ${escapeHtml(statusMeta.icon)}" aria-hidden="true"></i> ${statusLabel}</div>
+                    </div>
+                </div>
+                <div class="fv-docker-member-menu-actions">${actionsHtml}</div>
+            </div>
+        `,
+        html: true,
+        showConfirmButton: false,
+        showCancelButton: true,
+        cancelButtonText: 'Close',
+        customClass: 'fv-docker-member-menu-swal'
+    }, () => {
+        clearDockerPreviewMemberMenuRegistry();
+    });
+    window.setTimeout(() => {
+        $(document)
+            .off('click.fvDockerMemberMenuAction')
+            .on('click.fvDockerMemberMenuAction', '.fv-docker-member-menu-action', async function onDockerMemberMenuAction(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                const key = String($(this).attr('data-action-key') || '').trim();
+                const handler = dockerPreviewMemberMenuRegistry.get(key);
+                if (typeof handler !== 'function') {
+                    return;
+                }
+                clearDockerPreviewMemberMenuRegistry();
+                swal.close();
+                await handler();
+            });
+    }, 0);
+};
+$(document)
+    .off('click.fvDockerMemberMenuTrigger')
+    .on('click.fvDockerMemberMenuTrigger', '.fv-docker-member-menu-trigger', function onDockerMemberMenuTrigger(event) {
+        if ($(event.target).closest('.folder-element-custom-btn').length) {
+            return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        const entry = resolveDockerPreviewMemberEntry(this);
+        if (!entry) {
+            return;
+        }
+        showDockerPreviewMemberMenu(entry);
+    })
+    .off('click.fvDockerMemberQuickAction')
+    .on('click.fvDockerMemberQuickAction', '.folder-element-custom-btn a', (event) => {
+        event.stopPropagation();
+    });
 const clampDockerRuntimeColumnWidth = (value, columnIndex = 0) => {
     const parsed = Number(value);
     if (!Number.isFinite(parsed)) {
@@ -2496,6 +2744,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
 
     const previewNode = $(`tr.folder-id-${id} div.folder-preview`).get(0);
     applyPreviewBorderStyle(previewNode, folder.settings);
+    applyFolderPreviewLayout($(`tr.folder-id-${id} div.folder-preview`), folder.settings);
     $(`tr.folder-id-${id} div.folder-preview`).addClass(`folder-preview-${folder.settings.preview}`);
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Added class folder-preview-${folder.settings.preview} to preview div.`);
 
@@ -2631,6 +2880,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
             $(`tr.folder-id-${id} div.folder-storage`).append(
                 $containerTR.addClass(`folder-${id}-element folder-element`).removeClass('sortable ui-sortable-handle')
             );
+            decorateDockerFolderMemberRow($containerTR, id, ct.info.Name || container_name_in_folder);
             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Moved TR to folder storage.`);
 
             const currentIndexInLiveList = liveOrderArray.indexOf(container_name_in_folder);
@@ -3124,6 +3374,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Attached folderobserver to .folder-storage load icons.`);
     $(`tr.folder-id-${id} div.folder-preview > span`).wrap('<div class="folder-preview-wrapper"></div>');
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Wrapped preview spans with .folder-preview-wrapper.`);
+    applyFolderPreviewLayout($(`tr.folder-id-${id} div.folder-preview`), folder.settings);
     if(folder.settings.preview_vertical_bars) {
         const barsColor = folder.settings.preview_vertical_bars_color || folder.settings.preview_border_color;
         $(`tr.folder-id-${id} div.folder-preview > div`).after(`<div class="folder-preview-divider" style="border-color: ${barsColor};"></div>`);
@@ -3472,9 +3723,15 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
                 });
             $inner.append($('<span class="folder-element-custom-btn folder-element-logs"></span>').append($logsLink));
         }
+        decorateDockerPreviewMemberTriggers(
+            item.find('span.hand, span.inner > span.appname, span.inner > span.appname > a, span.inner > i.fa, span.inner > span.state'),
+            id,
+            containerName
+        );
         $preview.append(item);
     }
     $preview.children('span').wrap('<div class="folder-preview-wrapper"></div>');
+    applyFolderPreviewLayout($preview, folder?.settings || {});
     if (folder?.settings?.preview_vertical_bars) {
         const barsColor = folder.settings.preview_vertical_bars_color || folder.settings.preview_border_color || '';
         $preview.find('div.folder-preview-wrapper').after(`<div class="folder-preview-divider" ${barsColor ? `style="border-color: ${barsColor};"` : ''}></div>`);

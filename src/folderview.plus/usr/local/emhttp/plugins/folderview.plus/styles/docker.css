@@ -301,12 +301,22 @@ tr.folder.fv-parent-expanded div.folder-preview {
 }
 
 .folder-preview {
+    --fvplus-preview-row-height: 3.5em;
+    --fvplus-preview-row-limit: 1;
+    --fvplus-preview-max-height: calc(var(--fvplus-preview-row-limit) * var(--fvplus-preview-row-height));
     border-radius: 4px;
-    height: 3.5em;
+    min-height: var(--fvplus-preview-row-height);
+    max-height: var(--fvplus-preview-max-height);
     overflow: hidden;
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
+    align-items: flex-start;
+    align-content: flex-start;
+    row-gap: 0.35em;
+}
+
+.folder-preview.fv-preview-unlimited-rows {
+    max-height: none;
 }
 
 .folder-preview.fv-preview-border-off {
@@ -322,10 +332,14 @@ tr.folder.fv-parent-expanded div.folder-preview {
 }
 
 .folder-preview-wrapper {
-    float: left;
-    height: 100%;
+    float: none;
+    height: auto;
+    min-height: calc(var(--fvplus-preview-row-height) - 0.9em);
     margin-left: 10px;
     margin-top: 7px;
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
 }
 
 .folder-preview-status-icon {
@@ -364,12 +378,13 @@ tr.folder.fv-parent-expanded div.folder-preview {
 }
 
 .folder-preview-divider:not(:last-child) {
-    float: left;
+    float: none;
     height: 80%;
     width: 0;
     border-right: 1px solid;
     margin-left: 5px;
     margin-top: -7px;
+    align-self: center;
 }
 
 .folder-element-custom-btn {
@@ -378,6 +393,73 @@ tr.folder.fv-parent-expanded div.folder-preview {
 
 div.folder-preview img.img {
     margin-right: 4px;
+}
+
+.fv-docker-member-menu-trigger {
+    cursor: pointer;
+}
+
+.fv-docker-member-menu-sheet {
+    text-align: left;
+    min-width: min(520px, 78vw);
+}
+
+.fv-docker-member-menu-header {
+    display: flex;
+    align-items: center;
+    gap: 0.9em;
+    margin-bottom: 1em;
+}
+
+.fv-docker-member-menu-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    object-fit: cover;
+    flex: 0 0 44px;
+}
+
+.fv-docker-member-menu-name {
+    font-size: 1.05em;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.fv-docker-member-menu-status {
+    margin-top: 0.2em;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    font-size: 0.92em;
+}
+
+.fv-docker-member-menu-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.6em;
+}
+
+.fv-docker-member-menu-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.6em;
+    width: 100%;
+    min-height: 40px;
+    border: 1px solid rgba(255, 153, 64, 0.24);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    color: inherit;
+    padding: 0.65em 0.8em;
+    cursor: pointer;
+    text-align: left;
+}
+
+.fv-docker-member-menu-action:hover,
+.fv-docker-member-menu-action:focus {
+    border-color: rgba(255, 153, 64, 0.52);
+    background: rgba(255, 153, 64, 0.08);
+    outline: none;
 }
 
 .folder-cpu,

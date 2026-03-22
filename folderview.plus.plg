@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.22.27">
-<!ENTITY md5 "ca02da0bb59a737d070e43eed9830672">
+<!ENTITY version "2026.03.22.28">
+<!ENTITY md5 "191fa23dddf8bea83bf02c18591a09f1">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.22.28
+- Feature: Add per-folder Preview rows control so Docker folder previews can show multiple rows of members before clipping.
+- UX: Let expanded folder-member containers and nested preview members open a richer state-aware Docker action sheet with start, stop, pause, resume, restart, WebUI, console, logs, and update actions.
+- Regression guard: Cover the new preview-row setting, multi-row preview layout, and Docker member action-menu wiring in automated tests.
+
 
 ###2026.03.22.27
 - Refactor: Extract shared smart-detect configuration, runtime diagnostics helpers, and Docker/VM runtime helpers out of the remaining settings/runtime monoliths.

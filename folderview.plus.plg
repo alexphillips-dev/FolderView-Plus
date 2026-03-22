@@ -6,12 +6,21 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.21.42">
+<!ENTITY version "2026.03.21.43">
 <!ENTITY md5 "d85fda43a50dee3694be719db727fda9">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.21.43
+- Feature: Added category-driven starter-template onboarding for fresh installs across Docker and VMs, including dropdown category counts, smarter defaults, selective deployment, and built-in icon mapping.
+- Feature: Added a dedicated Templates step to the Setup Assistant so new installs can create starter folders and auto-assign existing Docker/VM workloads during guided setup.
+- Fix: Reworked smart-detect to use deterministic per-item best-match scoring with compose/template metadata, bind paths, aliases, and expanded VM heuristics, so mixed workloads land in the correct folders more reliably.
+- UX: Polished setup apply/completion/failure dialogs and added confidence, match-reason, and review-needed reporting so wizard smart-assign decisions are easier to understand before merging into production.
+- Compatibility: Fixed plugin install description/warning copy across all shipped language packs and hardened i18n/release guards to prevent placeholder or symbol regressions.
+- Regression guard: Added coverage for starter-template smart selection, mixed-workload assignment, review-path behavior, helper exports, and accepted performance-baseline updates for the new wizard logic.
+
 
 ###2026.03.21.42
 - UX: Setup assistant smart-detect now reports confidence, match reasons, and review-needed items instead of silently forcing weak matches into fallback assignment.

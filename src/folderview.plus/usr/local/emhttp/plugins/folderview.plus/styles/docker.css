@@ -302,30 +302,14 @@ tr.folder.fv-parent-expanded div.folder-preview {
 
 .folder-preview {
     --fvplus-preview-row-height: 3.5em;
-    --fvplus-preview-row-limit: 1;
-    --fvplus-preview-max-height: calc(var(--fvplus-preview-row-limit) * var(--fvplus-preview-row-height));
     border-radius: 4px;
-    min-height: var(--fvplus-preview-row-height);
-    max-height: var(--fvplus-preview-max-height);
+    height: 3.5em;
     overflow: hidden;
     display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    align-content: stretch;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    align-content: flex-start;
     row-gap: 0.35em;
-}
-
-.folder-preview-row {
-    min-height: var(--fvplus-preview-row-height);
-    display: flex;
-    align-items: center;
-    flex-wrap: nowrap;
-    column-gap: 10px;
-    overflow: hidden;
-}
-
-.folder-preview.fv-preview-unlimited-rows {
-    max-height: none;
 }
 
 .folder-preview.fv-preview-border-off {
@@ -344,12 +328,11 @@ tr.folder.fv-parent-expanded div.folder-preview {
     float: none;
     height: auto;
     min-height: calc(var(--fvplus-preview-row-height) - 0.9em);
-    margin: 0;
+    margin-left: 10px;
+    margin-top: 7px;
     display: flex;
     align-items: center;
     flex: 0 0 auto;
-    min-width: max-content;
-    max-width: none;
 }
 
 .folder-preview-status-icon {

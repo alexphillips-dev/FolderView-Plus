@@ -241,75 +241,18 @@ const normalizeFolderPreviewRowLimit = (settings = {}) => {
     }
     return Math.max(1, Math.min(4, parsed));
 };
-const getFolderPreviewItemsPerRow = (settings = {}) => {
-    switch (Number(settings?.preview || 0)) {
-        case 2:
-            return 12;
-        case 3:
-            return 5;
-        case 4:
-            return 4;
-        case 1:
-        default:
-            return 4;
-    }
-};
-const getFolderPreviewVisibleItemLimit = (settings = {}) => {
-    const rowLimit = normalizeFolderPreviewRowLimit(settings);
-    if (rowLimit === 0) {
-        return Number.POSITIVE_INFINITY;
-    }
-    return Math.max(1, rowLimit) * getFolderPreviewItemsPerRow(settings);
-};
 const applyFolderPreviewLayout = ($preview, settings = {}) => {
     if (!$preview || !$preview.length) {
         return;
     }
-    const rowLimit = normalizeFolderPreviewRowLimit(settings);
-    const visibleLimit = getFolderPreviewVisibleItemLimit(settings);
     const previewNode = $preview.get(0);
     if (!previewNode || !previewNode.style) {
         return;
     }
-    previewNode.dataset.previewRows = String(rowLimit);
-    previewNode.dataset.previewVisibleLimit = Number.isFinite(visibleLimit) ? String(visibleLimit) : 'unlimited';
-    previewNode.style.setProperty('--fvplus-preview-row-limit', rowLimit === 0 ? '4' : String(rowLimit));
-    previewNode.style.setProperty('--fvplus-preview-max-height', rowLimit === 0 ? 'none' : `calc(${rowLimit} * var(--fvplus-preview-row-height, 3.5em))`);
-    previewNode.classList.toggle('fv-preview-unlimited-rows', rowLimit === 0);
-};
-const layoutFolderPreviewRows = ($preview, settings = {}) => {
-    if (!$preview || !$preview.length) {
-        return;
-    }
-    const $existingRows = $preview.children('.folder-preview-row');
-    if ($existingRows.length) {
-        $existingRows.children('.folder-preview-wrapper, .folder-preview-divider').appendTo($preview);
-        $existingRows.remove();
-    }
-    const $wrappers = $preview.children('.folder-preview-wrapper');
-    if (!$wrappers.length) {
-        $preview.children('.folder-preview-divider').remove();
-        return;
-    }
-    $preview.children('.folder-preview-divider').remove();
-
-    const itemsPerRow = Math.max(1, getFolderPreviewItemsPerRow(settings));
-    const addDividers = settings?.preview_vertical_bars === true;
-    const wrappers = $wrappers.get();
-    $preview.empty();
-
-    for (let offset = 0; offset < wrappers.length; offset += itemsPerRow) {
-        const $row = $('<div class="folder-preview-row"></div>');
-        const slice = wrappers.slice(offset, offset + itemsPerRow);
-        slice.forEach((wrapper, index) => {
-            $row.append(wrapper);
-            if (addDividers && index < slice.length - 1) {
-                const barsColor = settings.preview_vertical_bars_color || settings.preview_border_color || '';
-                $row.append(`<div class="folder-preview-divider" ${barsColor ? `style="border-color: ${barsColor};"` : ''}></div>`);
-            }
-        });
-        $preview.append($row);
-    }
+    previewNode.dataset.previewRows = String(normalizeFolderPreviewRowLimit(settings));
+    previewNode.style.removeProperty('--fvplus-preview-row-limit');
+    previewNode.style.removeProperty('--fvplus-preview-max-height');
+    previewNode.classList.remove('fv-preview-unlimited-rows');
 };
 const decorateDockerPreviewMemberTriggers = ($elements, folderId, containerName) => {
     const safeFolderId = String(folderId || '').trim();
@@ -2754,8 +2697,6 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
             preview_grayscale: false
         };
     }
-    const previewVisibleLimit = getFolderPreviewVisibleItemLimit(folder?.settings || {});
-    let renderedPreviewItems = 0;
     // --- End of combinedContainers build ---
 
     const colspan = document.querySelector("#docker_containers > thead > tr").childElementCount - 5;
@@ -2999,12 +2940,8 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                  if (FOLDER_VIEW_DEBUG_MODE && charts.length > 0) console.log(`[FV3_DEBUG] graphListener (for ct: ${ct.shortId}): Updated ${charts.length} charts.`);
             };
 
-            let tooltip_trigger_element;
-            if (renderedPreviewItems < previewVisibleLimit) {
-                tooltip_trigger_element = addPreview(id, ct.shortId, !(ct.info.State.Autostart === false));
-                renderedPreviewItems++;
-                if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${ct.shortId}: Called addPreview. Returned tooltip_trigger_element:`, tooltip_trigger_element ? tooltip_trigger_element[0] : 'null/undefined');
-            }
+            const tooltip_trigger_element = addPreview(id, ct.shortId, !(ct.info.State.Autostart === false));
+            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${ct.shortId}: Called addPreview. Returned tooltip_trigger_element:`, tooltip_trigger_element ? tooltip_trigger_element[0] : 'null/undefined');
         
             $(`tr.folder-id-${id} div.folder-preview span.inner > span.appname`).css("width", folder.settings.preview_text_width || '');
             if (FOLDER_VIEW_DEBUG_MODE && folder.settings.preview_text_width) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Set preview text width to ${folder.settings.preview_text_width}.`);
@@ -3437,8 +3374,11 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     $(`tr.folder-id-${id} div.folder-preview > span`).wrap('<div class="folder-preview-wrapper"></div>');
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Wrapped preview spans with .folder-preview-wrapper.`);
     applyFolderPreviewLayout($(`tr.folder-id-${id} div.folder-preview`), folder.settings);
-    layoutFolderPreviewRows($(`tr.folder-id-${id} div.folder-preview`), folder.settings);
-    if (FOLDER_VIEW_DEBUG_MODE && folder.settings.preview_vertical_bars) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Added preview_vertical_bars.`);
+    if(folder.settings.preview_vertical_bars) {
+        const barsColor = folder.settings.preview_vertical_bars_color || folder.settings.preview_border_color;
+        $(`tr.folder-id-${id} div.folder-preview > div`).after(`<div class="folder-preview-divider" style="border-color: ${barsColor};"></div>`);
+        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Added preview_vertical_bars.`);
+    }
     if(folder.settings.update_column) {
         $(`tr.folder-id-${id} > td.updatecolumn`).next().attr('colspan',6).end().remove();
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Handled update_column setting (removed column).`);
@@ -3732,12 +3672,8 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
     const allowWebuiQuickAction = nestedParentPreview || quickActionPrefs.preview_webui === true;
     const allowConsoleQuickAction = nestedParentPreview || quickActionPrefs.preview_console === true;
     const allowLogsQuickAction = nestedParentPreview || quickActionPrefs.preview_logs === true;
-    const previewVisibleLimit = getFolderPreviewVisibleItemLimit(folder?.settings || {});
     $preview.empty();
-    for (const [index, entry] of entries.entries()) {
-        if (index >= previewVisibleLimit) {
-            break;
-        }
+    for (const entry of entries) {
         const safeName = escapeHtml(entry?.name || '');
         const safeIcon = sanitizeImageSrc(entry?.icon || '/plugins/dynamix.docker.manager/images/question.png');
         const isRunning = entry?.state === true;
@@ -3795,7 +3731,10 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
     }
     $preview.children('span').wrap('<div class="folder-preview-wrapper"></div>');
     applyFolderPreviewLayout($preview, folder?.settings || {});
-    layoutFolderPreviewRows($preview, folder?.settings || {});
+    if (folder?.settings?.preview_vertical_bars) {
+        const barsColor = folder.settings.preview_vertical_bars_color || folder.settings.preview_border_color || '';
+        $preview.find('div.folder-preview-wrapper').after(`<div class="folder-preview-divider" ${barsColor ? `style="border-color: ${barsColor};"` : ''}></div>`);
+    }
     $preview.find('span.inner > span.appname').css('width', folder?.settings?.preview_text_width || '');
 };
 

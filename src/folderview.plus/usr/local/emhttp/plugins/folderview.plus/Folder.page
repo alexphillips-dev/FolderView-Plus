@@ -311,27 +311,6 @@ emitRequestTokenMetaTag();
                     </blockquote>
                 </div>
             </li>
-            <li constraint="preview-1 preview-2 preview-3 preview-4">
-                <div class="basic">
-                    <dl>
-                        <dt>Preview rows:</dt>
-                        <dd>
-                            <select name="preview_rows">
-                                <option value="1" selected>1 row</option>
-                                <option value="2">2 rows</option>
-                                <option value="3">3 rows</option>
-                                <option value="4">4 rows</option>
-                                <option value="0">Unlimited</option>
-                            </select>
-                        </dd>
-                    </dl>
-                    <blockquote class="inline_help">
-                        <p>
-                            Controls how many rows worth of members are shown in the main Docker row preview before the rest stay in the folder overflow path. Use Unlimited if you want the full preview shown in the main row.
-                        </p>
-                    </blockquote>
-                </div>
-            </li>
             <li constraint="preview-1 preview-2">
                 <div class="basic">
                     <dl>

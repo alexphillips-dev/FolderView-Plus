@@ -1287,6 +1287,7 @@ const INSTANT_PERSIST_ONCHANGE_TOKENS = Object.freeze(
             'changehealthpref(',
             'changebackupschedulepref(',
             'changecolumnvisibility(',
+            'changesettingstablecolumnwidthpreset(',
             'togglerulekindfields(',
             'toggleallruleselections(',
             'togglealltemplateselections('

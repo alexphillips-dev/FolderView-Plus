@@ -103,6 +103,7 @@ test('import apply flow includes a dedicated progress dialog', () => {
 
 test('settings action dock tracks only explicit/manual fields and excludes instant or transient controls', () => {
     assert.match(script, /changebackupschedulepref\(/);
+    assert.match(script, /changesettingstablecolumnwidthpreset\(/);
     assert.match(script, /togglerulekindfields\(/);
     assert.match(script, /toggleallruleselections\(/);
     assert.match(script, /togglealltemplateselections\(/);
@@ -110,6 +111,13 @@ test('settings action dock tracks only explicit/manual fields and excludes insta
     assert.match(script, /if \(String\(input\.dataset\.fvTrackSave \|\| ''\) === '1'\) \{\s*return false;\s*\}/);
     assert.match(script, /const cancelActionBarChanges = \(\) =>/);
     assert.match(script, /\$\('#fv-action-cancel'\)\.off\('click\.fvui'\)\.on\('click\.fvui', \(\) => \{\s*cancelActionBarChanges\(\);/);
+});
+
+test('settings table width preset controls are wired as instant-persist inputs', () => {
+    assert.match(page, /id="docker-table-name-width" onchange="changeSettingsTableColumnWidthPreset\('docker', 'name', this\.value\)"/);
+    assert.match(page, /id="docker-table-actions-width" onchange="changeSettingsTableColumnWidthPreset\('docker', 'actions', this\.value\)"/);
+    assert.match(page, /id="vm-table-name-width" onchange="changeSettingsTableColumnWidthPreset\('vm', 'name', this\.value\)"/);
+    assert.match(page, /id="vm-table-actions-width" onchange="changeSettingsTableColumnWidthPreset\('vm', 'actions', this\.value\)"/);
 });
 
 test('settings sections render apply-mode badges for instant/save/mixed behavior', () => {

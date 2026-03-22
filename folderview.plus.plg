@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.22.23">
-<!ENTITY md5 "f5ed0ae8974891cfea48191ef47721c5">
+<!ENTITY version "2026.03.22.24">
+<!ENTITY md5 "9f7cfd3f2ca5591096a60abef3ca871b">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.22.24
+- Fix: Treat settings-table Name and Actions width controls as instant-persist settings instead of staged-save fields.
+- UX: Apply Sort mode and view settings column changes immediately so the Docker and VM settings tables no longer wait on the save action bar.
+- Regression guard: Cover the instant-persist wiring for Docker and VM column-width controls.
+
 
 ###2026.03.22.23
 - UX: Remove the floating save pill menu from plugin settings and replace it with a simpler fixed action bar.

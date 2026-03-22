@@ -8,6 +8,7 @@
         'changehealthpref(',
         'changebackupschedulepref(',
         'changecolumnvisibility(',
+        'changesettingstablecolumnwidthpreset(',
         'togglerulekindfields(',
         'toggleallruleselections(',
         'togglealltemplateselections('

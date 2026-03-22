@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.21.32">
-<!ENTITY md5 "aed126c8bf25587f9ccaedaea0cd9f68">
+<!ENTITY version "2026.03.21.33">
+<!ENTITY md5 "44335c8e38f9543aa34afba5631add66">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.21.33
+- Feature: Added a dedicated Templates step to the Setup Assistant `new install` route for both Docker and VMs.
+- Feature: Added starter-template category selection, per-folder template toggles, and Smart auto-assign previews during wizard setup.
+- Fix: Wired template folder creation into apply flow before starter-rule generation so rule folder IDs resolve reliably.
+- Quality: Extended setup verification/reporting to validate starter folder presence and include template/auto-assign outcomes.
+
 
 ###2026.03.21.32
 - Feature: Expanded Docker/VM starter template blueprints so each category has multiple logical folder options.

@@ -436,7 +436,7 @@ const ADVANCED_MODULE_KEYS_BY_TAB = Object.freeze({
 const BASIC_WORKSPACE_SECTION_KEYS = new Set(['docker', 'vms']);
 const SETUP_ASSISTANT_STEPS = ['welcome', 'profile', 'import', 'rules', 'behavior', 'review'];
 const SETUP_ASSISTANT_STEPS_BY_ROUTE = {
-    new: ['welcome', 'profile', 'rules', 'behavior', 'review'],
+    new: ['welcome', 'profile', 'templates', 'rules', 'behavior', 'review'],
     migrate: [...SETUP_ASSISTANT_STEPS],
     advanced: [...SETUP_ASSISTANT_STEPS]
 };
@@ -712,6 +712,20 @@ const setupAssistantState = {
     importPlans: {
         docker: null,
         vm: null
+    },
+    templateBootstrap: {
+        docker: {
+            enabled: true,
+            category: 'smart',
+            selectedTemplateNames: [],
+            autoAssignExisting: true
+        },
+        vm: {
+            enabled: true,
+            category: 'smart',
+            selectedTemplateNames: [],
+            autoAssignExisting: true
+        }
     },
     ruleBootstrap: {
         docker: {

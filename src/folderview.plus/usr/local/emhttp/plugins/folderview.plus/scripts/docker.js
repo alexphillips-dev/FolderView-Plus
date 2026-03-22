@@ -241,6 +241,19 @@ const normalizeFolderPreviewRowLimit = (settings = {}) => {
     }
     return Math.max(1, Math.min(4, parsed));
 };
+const getFolderPreviewItemsPerRow = (settings = {}) => {
+    switch (Number(settings?.preview || 0)) {
+        case 2:
+            return 10;
+        case 3:
+            return 5;
+        case 4:
+            return 4;
+        case 1:
+        default:
+            return 4;
+    }
+};
 const applyFolderPreviewLayout = ($preview, settings = {}) => {
     if (!$preview || !$preview.length) {
         return;
@@ -253,6 +266,107 @@ const applyFolderPreviewLayout = ($preview, settings = {}) => {
     previewNode.style.removeProperty('--fvplus-preview-row-limit');
     previewNode.style.removeProperty('--fvplus-preview-max-height');
     previewNode.classList.remove('fv-preview-unlimited-rows');
+};
+const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }) => {
+    const previewMode = Number(settings?.preview || 0);
+    const safeName = escapeHtml(entry?.name || '');
+    const safeIcon = sanitizeImageSrc(entry?.icon || '/plugins/dynamix.docker.manager/images/question.png');
+    const previewStateMeta = getPreviewContainerStatusMeta(entry);
+    const stateLabel = escapeHtml($.i18n(previewStateMeta.key));
+    const previewStatusTitle = stateLabel;
+    const imageStyle = settings?.preview_grayscale ? ' style="filter: grayscale(100%);"' : '';
+    const updateClass = settings?.preview_update && entry?.update === true ? ' orange-text' : '';
+    const textWidth = String(settings?.preview_text_width || '').trim();
+    const textWidthStyle = textWidth ? ` style="width:${escapeHtml(textWidth)};"` : '';
+    const autostartClass = autostart ? ' autostart' : '';
+    let itemMarkup = '';
+    let triggerSelector = '.fv-preview-trigger';
+
+    switch (previewMode) {
+        case 2:
+            itemMarkup = `
+                <span class="outer fv-docker-preview-card fv-docker-preview-mode-2${autostartClass}">
+                    <span class="hand fv-preview-trigger"><img src="${safeIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'${imageStyle}></span>
+                </span>
+            `;
+            triggerSelector = '.hand';
+            break;
+        case 3:
+            itemMarkup = `
+                <span class="outer fv-docker-preview-card fv-docker-preview-mode-3${autostartClass}">
+                    <span class="inner fv-preview-trigger">
+                        <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span><br>
+                        <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}"></i><span class="state ${previewStateMeta.className}"> ${stateLabel}</span>
+                    </span>
+                </span>
+            `;
+            triggerSelector = '.appname, .state, i.fa';
+            break;
+        case 4:
+            itemMarkup = `
+                <span class="outer fv-docker-preview-card fv-docker-preview-mode-4${autostartClass}">
+                    <span class="inner fv-preview-trigger">
+                        <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span><br>
+                        <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}" title="${previewStatusTitle}" aria-hidden="true"></i><span class="state ${previewStateMeta.className}"> ${stateLabel}</span>
+                    </span>
+                </span>
+            `;
+            triggerSelector = '.appname, .state, i.fa';
+            break;
+        case 1:
+        default:
+            itemMarkup = `
+                <span class="outer fv-docker-preview-card fv-docker-preview-mode-1${autostartClass}">
+                    <span class="hand fv-preview-trigger"><img src="${safeIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'${imageStyle}></span>
+                    <span class="inner fv-preview-trigger">
+                        <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span><br>
+                        <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}" title="${previewStatusTitle}" aria-hidden="true"></i><span class="state ${previewStateMeta.className}"> ${stateLabel}</span>
+                    </span>
+                </span>
+            `;
+            triggerSelector = '.hand, .appname, .state, i.fa';
+            break;
+    }
+
+    const $item = $(itemMarkup);
+    return {
+        $item,
+        $tooltipTrigger: $item.find(triggerSelector).first()
+    };
+};
+const layoutFolderPreviewRows = ($preview, settings = {}) => {
+    if (!$preview || !$preview.length) {
+        return;
+    }
+    const $existingRows = $preview.children('.folder-preview-row');
+    if ($existingRows.length) {
+        $existingRows.children('.folder-preview-wrapper, .folder-preview-divider').appendTo($preview);
+        $existingRows.remove();
+    }
+    const wrappers = $preview.children('.folder-preview-wrapper').get();
+    $preview.children('.folder-preview-divider').remove();
+    if (!wrappers.length) {
+        return;
+    }
+    const itemsPerRow = Math.max(1, getFolderPreviewItemsPerRow(settings));
+    const rowLimit = normalizeFolderPreviewRowLimit(settings);
+    const visibleCount = rowLimit === 0 ? wrappers.length : Math.min(wrappers.length, itemsPerRow * rowLimit);
+    const addDividers = settings?.preview_vertical_bars === true;
+    const barsColor = settings?.preview_vertical_bars_color || settings?.preview_border_color || '';
+    const visibleWrappers = wrappers.slice(0, visibleCount);
+    $preview.empty();
+
+    for (let offset = 0; offset < visibleWrappers.length; offset += itemsPerRow) {
+        const $row = $('<div class="folder-preview-row"></div>');
+        const slice = visibleWrappers.slice(offset, offset + itemsPerRow);
+        slice.forEach((wrapper, index) => {
+            $row.append(wrapper);
+            if (addDividers && index < slice.length - 1) {
+                $row.append(`<div class="folder-preview-divider" ${barsColor ? `style="border-color: ${barsColor};"` : ''}></div>`);
+            }
+        });
+        $preview.append($row);
+    }
 };
 const decorateDockerPreviewMemberTriggers = ($elements, folderId, containerName) => {
     const safeFolderId = String(folderId || '').trim();
@@ -2751,67 +2865,43 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Selecting addPreview function based on folder.settings.preview = ${folder.settings.preview}. Context setting: ${folder.settings.context}`);
     switch (folder.settings.preview) {
         case 1:
-            addPreview = (folderTrId, ctid, autostart) => {
+            addPreview = (folderTrId, ctid, autostart, previewEntry) => {
                 if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addPreview (case 1 for ${folderTrId}): ctid=${ctid}, autostart=${autostart}`);
-                let clone = $(`tr.folder-id-${folderTrId} div.folder-storage > tr > td.ct-name > span.outer:last`).clone();
-                clone.find(`span.state`)[0].innerHTML = clone.find(`span.state`)[0].innerHTML.split("<br>")[0];
-                $(`tr.folder-id-${folderTrId} div.folder-preview`).append(clone.addClass(`${autostart ? 'autostart' : ''}`));
-                let tmpId = $(`tr.folder-id-${folderTrId} div.folder-preview > span.outer:last`).find('i[id^="load-"]');
-                tmpId.attr("id", "folder-" + tmpId.attr("id"));
-                if(folder.settings.context === 2 || folder.settings.context === 0) {
-                    tmpId = $(`tr.folder-id-${folderTrId} div.folder-preview > span.outer:last > span.hand`);
-                    tmpId.attr("id", "folder-preview-" + ctid);
-                    tmpId.removeAttr("onclick");
-                    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addPreview (case 1 for ${folderTrId}): Context is ${folder.settings.context}. Modified preview element for tooltipster:`, tmpId);
-                    if(folder.settings.context === 2) { return tmpId; }
+                const { $item, $tooltipTrigger } = buildDockerPreviewItem({ entry: previewEntry, settings: folder.settings, autostart });
+                $(`tr.folder-id-${folderTrId} div.folder-preview`).append($item);
+                if (folder.settings.context === 2 || folder.settings.context === 0) {
+                    $tooltipTrigger.attr('id', `folder-preview-${ctid}`);
+                    return $tooltipTrigger;
                 }
             }; break;
         case 2:
-            addPreview = (folderTrId, ctid, autostart) => {
+            addPreview = (folderTrId, ctid, autostart, previewEntry) => {
                 if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addPreview (case 2 for ${folderTrId}): ctid=${ctid}, autostart=${autostart}`);
-                $(`tr.folder-id-${folderTrId} div.folder-preview`).append($(`tr.folder-id-${folderTrId} div.folder-storage > tr > td.ct-name > span.outer > span.hand:last`).clone().addClass(`${autostart ? 'autostart' : ''}`));
-                if(folder.settings.context === 2 || folder.settings.context === 0) {
-                    let tmpId = $(`tr.folder-id-${folderTrId} div.folder-preview > span.hand:last`);
-                    tmpId.attr("id", "folder-preview-" + ctid);
-                    tmpId.removeAttr("onclick");
-                    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addPreview (case 2 for ${folderTrId}): Context is ${folder.settings.context}. Modified preview element for tooltipster:`, tmpId);
-                    if(folder.settings.context === 2) { return tmpId; }
+                const { $item, $tooltipTrigger } = buildDockerPreviewItem({ entry: previewEntry, settings: folder.settings, autostart });
+                $(`tr.folder-id-${folderTrId} div.folder-preview`).append($item);
+                if (folder.settings.context === 2 || folder.settings.context === 0) {
+                    $tooltipTrigger.attr('id', `folder-preview-${ctid}`);
+                    return $tooltipTrigger;
                 }
             }; break;
         case 3:
-            addPreview = (folderTrId, ctid, autostart) => {
+            addPreview = (folderTrId, ctid, autostart, previewEntry) => {
                 if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addPreview (case 3 for ${folderTrId}): ctid=${ctid}, autostart=${autostart}`);
-                let clone = $(`tr.folder-id-${folderTrId} div.folder-storage > tr > td.ct-name > span.outer > span.inner:last`).clone();
-                clone.find(`span.state`)[0].innerHTML = clone.find(`span.state`)[0].innerHTML.split("<br>")[0];
-                $(`tr.folder-id-${folderTrId} div.folder-preview`).append(clone.addClass(`${autostart ? 'autostart' : ''}`));
-                let tmpId = $(`tr.folder-id-${folderTrId} div.folder-preview > span.inner:last`).find('i[id^="load-"]');
-                tmpId.attr("id", "folder-" + tmpId.attr("id"));
-                if(folder.settings.context === 2 || folder.settings.context === 0) {
-                    tmpId = $(`tr.folder-id-${folderTrId} div.folder-preview > span.inner:last > span.appname > a.exec`);
-                    tmpId.attr("id", "folder-preview-" + ctid);
-                    tmpId.removeAttr("onclick");
-                    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addPreview (case 3 for ${folderTrId}): Context is ${folder.settings.context}. Modified preview element for tooltipster:`, tmpId);
-                    if(folder.settings.context === 2) { return tmpId; }
+                const { $item, $tooltipTrigger } = buildDockerPreviewItem({ entry: previewEntry, settings: folder.settings, autostart });
+                $(`tr.folder-id-${folderTrId} div.folder-preview`).append($item);
+                if (folder.settings.context === 2 || folder.settings.context === 0) {
+                    $tooltipTrigger.attr('id', `folder-preview-${ctid}`);
+                    return $tooltipTrigger;
                 }
             }; break;
         case 4:
-            addPreview = (folderTrId, ctid, autostart) => {
+            addPreview = (folderTrId, ctid, autostart, previewEntry) => {
                 if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addPreview (case 4 for ${folderTrId}): ctid=${ctid}, autostart=${autostart}`);
-                let lstSpan = $(`tr.folder-id-${folderTrId} div.folder-preview > span.outer:last`);
-                if(!lstSpan[0] || lstSpan.children().length >= 2) {
-                    $(`tr.folder-id-${folderTrId} div.folder-preview`).append($('<span class="outer"></span>'));
-                    lstSpan = $(`tr.folder-id-${folderTrId} div.folder-preview > span.outer:last`);
-                }
-                lstSpan.append($('<span class="inner"></span>'));
-                lstSpan.children('span.inner:last').append($(`tr.folder-id-${folderTrId} div.folder-storage > tr > td.ct-name > span.outer > span.inner > span.appname:last`).clone().addClass(`${autostart ? 'autostart' : ''}`));
-                if(folder.settings.context === 2 || folder.settings.context === 0) {
-                    let tmpId = $(`tr.folder-id-${folderTrId} div.folder-preview span.inner:last > span.appname > a.exec`);
-                    tmpId.attr("id", "folder-preview-" + ctid);
-                    tmpId.removeAttr("onclick");
-                    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addPreview (case 4 for ${folderTrId}): Context is ${folder.settings.context}. Modified preview element for tooltipster:`, tmpId);
-                    if(folder.settings.context === 2) {
-                        return tmpId.length>0 ? tmpId : $(`tr.folder-id-${folderTrId} div.folder-preview span.inner:last > span.appname`).attr("id", "folder-preview-" + ctid);
-                    }
+                const { $item, $tooltipTrigger } = buildDockerPreviewItem({ entry: previewEntry, settings: folder.settings, autostart });
+                $(`tr.folder-id-${folderTrId} div.folder-preview`).append($item);
+                if (folder.settings.context === 2 || folder.settings.context === 0) {
+                    $tooltipTrigger.attr('id', `folder-preview-${ctid}`);
+                    return $tooltipTrigger;
                 }
             }; break;
         default:
@@ -2890,6 +2980,21 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                 if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolder (id: ${id}): Container ${container_name_in_folder} was MOVED FROM DOM but NOT FOUND IN liveOrderArray for splicing. This might indicate it was already spliced by a previous folder or logic error.`);
             }
 
+            newFolder[container_name_in_folder] = {
+                id: ct.shortId,
+                name: ct.info.Name || container_name_in_folder,
+                icon: ct.Labels?.['net.unraid.docker.icon'] || '/plugins/dynamix.docker.manager/images/question.png',
+                webui: ct.info.State.WebUi || '',
+                shell: ct.info.Shell || '/bin/sh',
+                pause: ct.info.State.Paused,
+                state: ct.info.State.Running,
+                autostart: !(ct.info.State.Autostart === false),
+                update: ct.info.State.Updated === false && ct.info.State.manager === 'dockerman',
+                managed: ct.info.State.manager === 'dockerman',
+                manager: ct.info.State.manager
+            };
+            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Stored in newFolder:`, JSON.parse(JSON.stringify(newFolder[container_name_in_folder])));
+
             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Container info (ct):`, JSON.parse(JSON.stringify(ct)));
 
 
@@ -2940,7 +3045,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                  if (FOLDER_VIEW_DEBUG_MODE && charts.length > 0) console.log(`[FV3_DEBUG] graphListener (for ct: ${ct.shortId}): Updated ${charts.length} charts.`);
             };
 
-            const tooltip_trigger_element = addPreview(id, ct.shortId, !(ct.info.State.Autostart === false));
+            const tooltip_trigger_element = addPreview(id, ct.shortId, !(ct.info.State.Autostart === false), newFolder[container_name_in_folder]);
             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${ct.shortId}: Called addPreview. Returned tooltip_trigger_element:`, tooltip_trigger_element ? tooltip_trigger_element[0] : 'null/undefined');
         
             $(`tr.folder-id-${id} div.folder-preview span.inner > span.appname`).css("width", folder.settings.preview_text_width || '');
@@ -3222,21 +3327,6 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                  if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolder (id: ${id}), container ${ct.shortId}: tooltip_trigger_element is NOT valid. Tooltipster NOT initialized. This is likely the problem if folder.settings.context === 2.`);
             }
 
-            newFolder[container_name_in_folder] = {
-                id: ct.shortId,
-                name: ct.info.Name || container_name_in_folder,
-                icon: ct.Labels?.['net.unraid.docker.icon'] || '/plugins/dynamix.docker.manager/images/question.png',
-                webui: ct.info.State.WebUi || '',
-                shell: ct.info.Shell || '/bin/sh',
-                pause: ct.info.State.Paused,
-                state: ct.info.State.Running,
-                autostart: !(ct.info.State.Autostart === false),
-                update: ct.info.State.Updated === false && ct.info.State.manager === 'dockerman',
-                managed: ct.info.State.manager === 'dockerman',
-                manager: ct.info.State.manager
-            };
-            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Stored in newFolder:`, JSON.parse(JSON.stringify(newFolder[container_name_in_folder])));
-
             const elementForPreviewOpts = $(`tr.folder-id-${id} div.folder-preview > span:last`); // Re-check if this is always correct
             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Preview element for options:`, elementForPreviewOpts[0]);
             let sel_preview_opt;
@@ -3374,11 +3464,8 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     $(`tr.folder-id-${id} div.folder-preview > span`).wrap('<div class="folder-preview-wrapper"></div>');
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Wrapped preview spans with .folder-preview-wrapper.`);
     applyFolderPreviewLayout($(`tr.folder-id-${id} div.folder-preview`), folder.settings);
-    if(folder.settings.preview_vertical_bars) {
-        const barsColor = folder.settings.preview_vertical_bars_color || folder.settings.preview_border_color;
-        $(`tr.folder-id-${id} div.folder-preview > div`).after(`<div class="folder-preview-divider" style="border-color: ${barsColor};"></div>`);
-        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Added preview_vertical_bars.`);
-    }
+    layoutFolderPreviewRows($(`tr.folder-id-${id} div.folder-preview`), folder.settings);
+    if (FOLDER_VIEW_DEBUG_MODE && folder.settings.preview_vertical_bars) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Added preview_vertical_bars.`);
     if(folder.settings.update_column) {
         $(`tr.folder-id-${id} > td.updatecolumn`).next().attr('colspan',6).end().remove();
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Handled update_column setting (removed column).`);
@@ -3674,21 +3761,12 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
     const allowLogsQuickAction = nestedParentPreview || quickActionPrefs.preview_logs === true;
     $preview.empty();
     for (const entry of entries) {
-        const safeName = escapeHtml(entry?.name || '');
-        const safeIcon = sanitizeImageSrc(entry?.icon || '/plugins/dynamix.docker.manager/images/question.png');
-        const isRunning = entry?.state === true;
-        const isPaused = entry?.pause === true;
-        const iconClass = isRunning ? (isPaused ? 'fa-pause paused orange-text' : 'fa-play started green-text') : 'fa-square stopped red-text';
-        const stateLabel = isRunning ? (isPaused ? $.i18n('paused') : $.i18n('started')) : $.i18n('stopped');
-        const item = $(`
-            <span class="outer fv-nested-preview-item ${entry?.autostart === true ? 'autostart' : ''}">
-                <span class="hand"><img src="${safeIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span>
-                <span class="inner">
-                    <span class="appname"><a>${safeName}</a></span><br>
-                    <i class="fa ${iconClass}"></i><span class="state"> ${stateLabel}</span>
-                </span>
-            </span>
-        `);
+        const { $item: item } = buildDockerPreviewItem({
+            entry,
+            settings: folder?.settings || {},
+            autostart: entry?.autostart === true
+        });
+        item.addClass('fv-nested-preview-item');
         const $inner = item.children('span.inner').last();
         const containerName = String(entry?.name || '');
         const shellValue = String(entry?.shell || '/bin/sh');
@@ -3731,10 +3809,7 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
     }
     $preview.children('span').wrap('<div class="folder-preview-wrapper"></div>');
     applyFolderPreviewLayout($preview, folder?.settings || {});
-    if (folder?.settings?.preview_vertical_bars) {
-        const barsColor = folder.settings.preview_vertical_bars_color || folder.settings.preview_border_color || '';
-        $preview.find('div.folder-preview-wrapper').after(`<div class="folder-preview-divider" ${barsColor ? `style="border-color: ${barsColor};"` : ''}></div>`);
-    }
+    layoutFolderPreviewRows($preview, folder?.settings || {});
     $preview.find('span.inner > span.appname').css('width', folder?.settings?.preview_text_width || '');
 };
 

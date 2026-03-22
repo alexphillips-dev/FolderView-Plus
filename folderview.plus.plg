@@ -6,12 +6,27 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.22.06">
+<!ENTITY version "2026.03.22.09">
 <!ENTITY md5 "85cb11dec24e4acc25b138f31fecd21e">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.22.09
+- Maintenance: Stabilize settings table column layout controls.
+- Maintenance: Release main 2026.03.22.07 with onboarding and preview rollup.
+- Maintenance: Fold preview detail behavior into preview mode.
+- Feature: Add per-folder preview member detail modes.
+- Maintenance: Prune superseded archive artifacts.
+- Maintenance: Refresh perf baseline for runtime globals.
+
+
+###2026.03.22.08
+- UX: Reworked Docker and VM settings table columns with width-mode controls, layout presets, and one-click reset actions.
+- Fix: Moved settings-table column visibility and width state into server-backed prefs and corrected default visibility handling so layouts stop snapping back or drifting.
+- Quality: Switched settings tables to schema-driven column definitions with regression coverage for layout controls and normalization.
+
 
 ###2026.03.22.06
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

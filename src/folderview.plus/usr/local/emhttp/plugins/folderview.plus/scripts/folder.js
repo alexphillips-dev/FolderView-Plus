@@ -147,7 +147,6 @@ const SMART_DEFAULT_FIELD_NAMES = new Set([
     'icon',
     'preview',
     'preview_hover',
-    'preview_member_display',
     'preview_border',
     'preview_border_color',
     'preview_vertical_bars',
@@ -3078,13 +3077,6 @@ const normalizeDashboardOverflowMode = (value) => {
         : 'default';
 };
 
-const normalizePreviewMemberDisplayMode = (value) => {
-    const normalized = String(value || '').trim().toLowerCase();
-    return ['full', 'compact', 'icons_only'].includes(normalized)
-        ? normalized
-        : 'full';
-};
-
 const normalizeFolderRecordForEditor = (folder) => {
     const source = folder && typeof folder === 'object' ? folder : {};
     const settings = source.settings && typeof source.settings === 'object' ? source.settings : {};
@@ -3116,7 +3108,6 @@ const normalizeFolderRecordForEditor = (folder) => {
             preview_hover: settings.preview_hover === true,
             preview_update: settings.preview_update === true,
             preview_text_width: String(settings.preview_text_width || ''),
-            preview_member_display: normalizePreviewMemberDisplayMode(settings.preview_member_display),
             preview_grayscale: settings.preview_grayscale === true,
             preview_webui: settings.preview_webui === true,
             preview_logs: settings.preview_logs === true,
@@ -4145,7 +4136,6 @@ resetStatusColorDefaults();
         form.preview_hover.checked = currFolder.settings.preview_hover;
         form.preview_update.checked = currFolder.settings.preview_update;
         form.preview_text_width.value = currFolder.settings.preview_text_width || '';
-        form.preview_member_display.value = normalizePreviewMemberDisplayMode(currFolder.settings.preview_member_display);
         form.preview_grayscale.checked = currFolder.settings.preview_grayscale;
         form.preview_webui.checked = currFolder.settings.preview_webui;
         form.preview_logs.checked = currFolder.settings.preview_logs;
@@ -4673,7 +4663,6 @@ const submitForm = async (e, saveAsCopy = false) => {
             preview_hover: e.preview_hover.checked,
             preview_update: e.preview_update.checked,
             preview_text_width: e.preview_text_width.value,
-            preview_member_display: normalizePreviewMemberDisplayMode(e.preview_member_display?.value),
             preview_grayscale: e.preview_grayscale.checked,
             preview_webui: e.preview_webui.checked,
             preview_logs: e.preview_logs.checked,

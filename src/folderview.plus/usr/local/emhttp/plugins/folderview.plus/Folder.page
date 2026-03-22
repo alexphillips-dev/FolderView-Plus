@@ -253,7 +253,7 @@ emitRequestTokenMetaTag();
                     <select name="preview" onchange="updateForm()">
                         <option value="0" data-i18n="preview-option-0">None</option>
                         <option value="1" data-i18n="preview-option-1" selected>Icon and label</option>
-                        <option value="2" data-i18n="preview-option-2">Only icon</option>
+                        <option value="2" data-i18n="preview-option-2">Only icon (clean)</option>
                         <option value="3" data-i18n="preview-option-3">Only label</option>
                         <option value="4" data-i18n="preview-option-4">List</option>
                     </select>
@@ -261,7 +261,7 @@ emitRequestTokenMetaTag();
             </dl>
             <blockquote class="inline_help">
                 <p data-i18n="[html]preview-tooltip">
-                    The preview type, not that difficult.
+                    Choose how folder members are shown in the row preview. Use <b>Only icon</b> for a clean icon-only layout without member names or started/stopped text.
                 </p>
             </blockquote>
         </div>
@@ -307,31 +307,6 @@ emitRequestTokenMetaTag();
                     <blockquote class="inline_help">
                         <p data-i18n="[html]preview-text-width-tooltip">
                         Will limit the width of the name of the container in the preview. <br>For example <b>12px</b>, <b>1rem</b> (Check <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/length">this</a> for more units). <br>Leave it blank and there is no limit.
-                        </p>
-                    </blockquote>
-                </div>
-            </li>
-            <li constraint="preview-1">
-                <div class="basic">
-                    <dl>
-                        <dt>Preview member details:</dt>
-                        <dd>
-                            <select name="preview_member_display">
-                                <option value="full">Full</option>
-                                <option value="compact">Compact</option>
-                                <option value="icons_only">Icons only</option>
-                            </select>
-                        </dd>
-                    </dl>
-                    <blockquote class="inline_help">
-                        <p>
-                            Controls how member details are shown inside the folder preview when using <b>Icon and label</b> mode.
-                            <br>
-                            <b>Full</b> keeps the current name + status display.
-                            <br>
-                            <b>Compact</b> hides the started/stopped text.
-                            <br>
-                            <b>Icons only</b> hides both the member name and status text for a cleaner icon-only look.
                         </p>
                     </blockquote>
                 </div>

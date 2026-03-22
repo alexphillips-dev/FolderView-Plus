@@ -285,20 +285,6 @@ const getPreviewContainerStatusMeta = (entry = {}) => {
     }
     return { key: 'stopped', icon: 'fa-square', className: 'fv-preview-status-stopped' };
 };
-const normalizePreviewMemberDisplayMode = (value) => {
-    const normalized = String(value || '').trim().toLowerCase();
-    return ['full', 'compact', 'icons_only'].includes(normalized)
-        ? normalized
-        : 'full';
-};
-const resolvePreviewMemberDisplayMode = (folder) => {
-    const previewMode = Number(folder?.settings?.preview || 0);
-    if (previewMode !== 1) {
-        return 'full';
-    }
-    return normalizePreviewMemberDisplayMode(folder?.settings?.preview_member_display);
-};
-
 const clampDockerRuntimeColumnWidth = (value, columnIndex = 0) => {
     const parsed = Number(value);
     if (!Number.isFinite(parsed)) {
@@ -2563,9 +2549,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
 
     const previewNode = $(`tr.folder-id-${id} div.folder-preview`).get(0);
     applyPreviewBorderStyle(previewNode, folder.settings);
-    $(`tr.folder-id-${id} div.folder-preview`)
-        .addClass(`folder-preview-${folder.settings.preview}`)
-        .addClass(`fv-preview-member-display-${resolvePreviewMemberDisplayMode(folder)}`);
+    $(`tr.folder-id-${id} div.folder-preview`).addClass(`folder-preview-${folder.settings.preview}`);
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Added class folder-preview-${folder.settings.preview} to preview div.`);
 
     let addPreview;
@@ -3067,15 +3051,6 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
             const previewMode = Number(folder?.settings?.preview || 0);
             const previewStateMeta = getPreviewContainerStatusMeta(newFolder[container_name_in_folder]);
             const previewStatusTitle = escapeHtml($.i18n(previewStateMeta.key));
-
-            if (previewMode === 2 && $previewElementTarget.length) {
-                const $existingPreviewStateIcon = $previewElementTarget.children('.folder-preview-status-icon');
-                if (!$existingPreviewStateIcon.length) {
-                    $previewElementTarget.append(
-                        $(`<span class="folder-preview-status-icon ${previewStateMeta.className}" title="${previewStatusTitle}"><i class="fa ${previewStateMeta.icon}" aria-hidden="true"></i></span>`)
-                    );
-                }
-            }
 
             if ((previewMode === 3 || previewMode === 4) && $previewElementTarget.length) {
                 const $previewAppName = $previewElementTarget.find('span.appname > a.exec').first();

@@ -153,16 +153,13 @@ test('dashboard css includes non-classic controls and overflow rendering modes',
 
 test('folder editor supports per-folder dashboard overflow mode', () => {
     assert.match(folderPage, /name="dashboard_overflow"/);
-    assert.match(folderPage, /name="preview_member_display"/);
-    assert.match(folderPage, /<option value="full">Full<\/option>/);
-    assert.match(folderPage, /<option value="compact">Compact<\/option>/);
-    assert.match(folderPage, /<option value="icons_only">Icons only<\/option>/);
     assert.match(folderPage, /<option value="default">Default<\/option>/);
     assert.match(folderPage, /<option value="expand_row">Expand row<\/option>/);
     assert.match(folderPage, /<option value="scroll">Scrollable panel<\/option>/);
+    assert.match(folderPage, /<option value="2" data-i18n="preview-option-2">Only icon \(clean\)<\/option>/);
     assert.match(folderScript, /const normalizeDashboardOverflowMode = \(value\) =>/);
     assert.match(folderScript, /form\.dashboard_overflow\.value = normalizeDashboardOverflowMode\(currFolder\.settings\.dashboard_overflow\);/);
-    assert.match(folderScript, /form\.preview_member_display\.value = normalizePreviewMemberDisplayMode\(currFolder\.settings\.preview_member_display\);/);
     assert.match(folderScript, /dashboard_overflow: normalizeDashboardOverflowMode\(e\.dashboard_overflow\?\.value\)/);
-    assert.match(folderScript, /preview_member_display:\s*normalizePreviewMemberDisplayMode\(e\.preview_member_display\?\.value\)/);
+    assert.doesNotMatch(folderPage, /name="preview_member_display"/);
+    assert.doesNotMatch(folderScript, /preview_member_display/);
 });

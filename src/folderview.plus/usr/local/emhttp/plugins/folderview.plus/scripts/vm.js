@@ -73,19 +73,6 @@ const applyPreviewBorderStyle = (previewNode, settings) => {
     const previewColor = normalizeStatusHexColor(source.preview_border_color, DEFAULT_PREVIEW_BORDER_COLOR);
     previewNode.style.setProperty('border', isPreviewBorderEnabled(source) ? `1px solid ${previewColor}` : 'none', 'important');
 };
-const normalizePreviewMemberDisplayMode = (value) => {
-    const normalized = String(value || '').trim().toLowerCase();
-    return ['full', 'compact', 'icons_only'].includes(normalized)
-        ? normalized
-        : 'full';
-};
-const resolvePreviewMemberDisplayMode = (folder) => {
-    const previewMode = Number(folder?.settings?.preview || 0);
-    if (previewMode !== 1) {
-        return 'full';
-    }
-    return normalizePreviewMemberDisplayMode(folder?.settings?.preview_member_display);
-};
 const utils = window.FolderViewPlusUtils || {
     normalizePrefs: () => ({
         sortMode: 'created',
@@ -1296,9 +1283,7 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
     const previewNode = $(`tr.folder-id-${id} div.folder-preview`).get(0);
     applyPreviewBorderStyle(previewNode, folder.settings);
 
-    $(`tr.folder-id-${id} div.folder-preview`)
-        .addClass(`folder-preview-${folder.settings.preview}`)
-        .addClass(`fv-preview-member-display-${resolvePreviewMemberDisplayMode(folder)}`);
+    $(`tr.folder-id-${id} div.folder-preview`).addClass(`folder-preview-${folder.settings.preview}`);
 
     // select the preview function to use
     let addPreview;

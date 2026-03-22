@@ -3292,7 +3292,18 @@ const toSetupAssistantDisplayText = (value, fallback = '-') => {
 
 const markSetupAssistantSwalModal = () => {
     setTimeout(() => {
-        $('.sweet-alert:visible').addClass('fv-setup-swal-modal');
+        const modal = $('.sweet-alert:visible');
+        modal.addClass('fv-setup-swal-modal');
+        modal.css({
+            overflow: 'visible',
+            maxHeight: 'none'
+        });
+        modal.find('p').css({
+            maxHeight: 'none',
+            overflow: 'visible',
+            margin: 0,
+            padding: 0
+        });
     }, 0);
 };
 
@@ -3307,7 +3318,12 @@ const renderSetupAssistantSwalSummaryHtml = ({
         ? `<div class="fv-setup-swal-meta">${metaRows.map((row) => `<span class="fv-setup-swal-chip"><strong>${escapeHtml(row.label)}:</strong><span>${escapeHtml(row.value)}</span></span>`).join('')}</div>`
         : '';
     const detailHtml = detailRows.length
-        ? `<div class="fv-setup-swal-table">${detailRows.map((row) => `<div class="fv-setup-swal-row"><span class="fv-setup-swal-row-label">${escapeHtml(row.label)}</span><span class="fv-setup-swal-row-value">${escapeHtml(row.value)}</span></div>`).join('')}</div>`
+        ? `<div class="fv-setup-swal-table">${detailRows.map((row) => {
+            const label = escapeHtml(row.label);
+            const value = escapeHtml(row.value);
+            const isWide = row?.wide === true || String(row?.value || '').length > 54;
+            return `<div class="fv-setup-swal-row${isWide ? ' is-wide' : ''}"><span class="fv-setup-swal-row-label">${label}</span><span class="fv-setup-swal-row-value">${value}</span></div>`;
+        }).join('')}</div>`
         : '';
     const warningHtml = warningLines.length
         ? `<div class="fv-setup-swal-listbox is-warning"><div class="fv-setup-swal-list-title">Warnings</div><ul class="fv-setup-swal-list">${warningLines.map((line) => `<li>${escapeHtml(line)}</li>`).join('')}</ul></div>`
@@ -3998,12 +4014,9 @@ const applySetupAssistantPlan = async () => {
                         { label: 'Safety mode', value: safetyMode }
                     ],
                     detailRows: [
-                        { label: 'Docker imports', value: `${importOutcomes.docker}` },
-                        { label: 'VM imports', value: `${importOutcomes.vm}` },
-                        { label: 'Docker starter folders', value: `${templateOutcomes.docker.created} created, ${templateOutcomes.docker.skippedExisting} skipped, ${Number(templateOutcomes.docker.assignment?.matched) || 0} auto-assigned` },
-                        { label: 'VM starter folders', value: `${templateOutcomes.vm.created} created, ${templateOutcomes.vm.skippedExisting} skipped, ${Number(templateOutcomes.vm.assignment?.matched) || 0} auto-assigned` },
-                        { label: 'Docker starter rules', value: `${ruleOutcomes.docker.created} added` },
-                        { label: 'VM starter rules', value: `${ruleOutcomes.vm.created} added` },
+                        { label: 'Imports', value: `Docker ${importOutcomes.docker} | VM ${importOutcomes.vm}` },
+                        { label: 'Starter folders', value: `Docker ${templateOutcomes.docker.created} created, ${templateOutcomes.docker.skippedExisting} skipped, ${Number(templateOutcomes.docker.assignment?.matched) || 0} auto-assigned | VM ${templateOutcomes.vm.created} created, ${templateOutcomes.vm.skippedExisting} skipped, ${Number(templateOutcomes.vm.assignment?.matched) || 0} auto-assigned`, wide: true },
+                        { label: 'Starter rules', value: `Docker ${ruleOutcomes.docker.created} added | VM ${ruleOutcomes.vm.created} added`, wide: true },
                         { label: 'Verification', value: `${verification.passed}/${verification.total} checks passed` },
                         { label: 'Retryable failures', value: `${applyFailures.length}` }
                     ],
@@ -4056,15 +4069,12 @@ const applySetupAssistantPlan = async () => {
             detailRows: [
                 { label: 'Profile defaults', value: setupAssistantState.applyProfileDefaults ? setupAssistantState.profile : 'not applied' },
                 { label: 'Environment defaults', value: setupAssistantState.applyEnvironmentDefaults ? (SETUP_ASSISTANT_ENV_PRESETS[setupAssistantState.environmentPreset]?.label || 'Home Lab') : 'not applied' },
-                { label: 'Docker imports', value: `${importOutcomes.docker}` },
-                { label: 'VM imports', value: `${importOutcomes.vm}` },
-                { label: 'Docker starter folders', value: `${templateOutcomes.docker.created} created, ${templateOutcomes.docker.skippedExisting} skipped, ${Number(templateOutcomes.docker.assignment?.matched) || 0} auto-assigned` },
-                { label: 'VM starter folders', value: `${templateOutcomes.vm.created} created, ${templateOutcomes.vm.skippedExisting} skipped, ${Number(templateOutcomes.vm.assignment?.matched) || 0} auto-assigned` },
-                { label: 'Docker starter rules', value: `${ruleOutcomes.docker.created} added` },
-                { label: 'VM starter rules', value: `${ruleOutcomes.vm.created} added` },
+                { label: 'Imports', value: `Docker ${importOutcomes.docker} | VM ${importOutcomes.vm}` },
+                { label: 'Starter folders', value: `Docker ${templateOutcomes.docker.created} created, ${templateOutcomes.docker.skippedExisting} skipped, ${Number(templateOutcomes.docker.assignment?.matched) || 0} auto-assigned | VM ${templateOutcomes.vm.created} created, ${templateOutcomes.vm.skippedExisting} skipped, ${Number(templateOutcomes.vm.assignment?.matched) || 0} auto-assigned`, wide: true },
+                { label: 'Starter rules', value: `Docker ${ruleOutcomes.docker.created} added | VM ${ruleOutcomes.vm.created} added`, wide: true },
                 { label: 'Preference changes', value: `${impactSummary.prefs.totalChanges}` },
                 { label: 'Verification', value: `${verification.passed}/${verification.total} checks passed` },
-                { label: 'Rollback checkpoint', value: setupAssistantState.rollbackCheckpointName || (rollbackCreated ? 'created' : 'skipped (Fast mode)') },
+                { label: 'Rollback checkpoint', value: setupAssistantState.rollbackCheckpointName || (rollbackCreated ? 'created' : 'skipped (Fast mode)'), wide: true },
                 { label: 'Duration', value: `${durationSeconds}s` }
             ],
             warningLines: validationWarnings.slice(0, 5)

@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.21.37">
-<!ENTITY md5 "c1ac6ff890ddb338756c12b6605a2385">
+<!ENTITY version "2026.03.21.38">
+<!ENTITY md5 "25e5951678ea21c1ab8949215a895b2c">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.21.38
+- UX: Rebuilt the setup apply confirmation modal with compact metric cards, cleaner spacing, and consolidated summaries so it no longer feels stretched or cluttered.
+- UX: Refreshed the setup complete / partial-failure dialogs to match the same clean layout and readable grouped outcomes.
+- Fix: Added stronger SweetAlert overflow guards so setup summary dialogs do not show unnecessary desktop scrollbars.
+
 
 ###2026.03.21.37
 - UX: Tightened setup-apply modal spacing and typography so the summary stays compact and readable without unnecessary vertical gaps.

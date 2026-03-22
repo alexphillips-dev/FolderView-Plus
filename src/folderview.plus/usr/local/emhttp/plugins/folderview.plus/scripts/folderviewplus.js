@@ -3908,7 +3908,7 @@ const STARTER_TEMPLATE_BLUEPRINTS = Object.freeze({
             name: 'Media',
             icon: '/plugins/folderview.plus/images/icons/folder-media.svg',
             categories: Object.freeze(['media', 'homelab']),
-            detect: Object.freeze(['plex', 'jellyfin', 'emby', 'sonarr', 'radarr', 'lidarr', 'readarr', 'bazarr', 'tautulli', 'audiobookshelf', 'audiobook', 'prowlarr', 'overseerr', 'jellyseerr', 'whisparr', 'recyclarr', 'unpackerr', 'tdarr', 'fileflows', 'calibre', 'calibre-web', 'komga', 'kavita', 'navidrome', 'airsonic', 'tubearchivist', 'immich', 'photoprism', 'paperless', 'romm'])
+            detect: Object.freeze(['plex', 'jellyfin', 'emby', 'sonarr', 'radarr', 'lidarr', 'readarr', 'bazarr', 'tautulli', 'audiobookshelf', 'audiobook', 'prowlarr', 'overseerr', 'jellyseerr', 'seerr', 'wizarr', 'listenarr', 'cleanuparr', 'agregarr', 'seekandwatch', 'whisparr', 'recyclarr', 'unpackerr', 'tdarr', 'fileflows', 'calibre', 'calibre-web', 'komga', 'kavita', 'navidrome', 'airsonic', 'tubearchivist', 'immich', 'photoprism', 'paperless', 'romm'])
         }),
         Object.freeze({
             name: 'Downloads',
@@ -3920,7 +3920,7 @@ const STARTER_TEMPLATE_BLUEPRINTS = Object.freeze({
             name: 'Monitoring',
             icon: '/plugins/folderview.plus/images/icons/folder-cloud.svg',
             categories: Object.freeze(['ops', 'homelab', 'minimal']),
-            detect: Object.freeze(['grafana', 'prometheus', 'netdata', 'zabbix', 'telegraf', 'influx', 'influxdb', 'loki', 'promtail', 'uptime', 'uptime-kuma', 'dozzle', 'glances', 'beszel', 'scrutiny', 'cadvisor', 'healthchecks'])
+            detect: Object.freeze(['grafana', 'prometheus', 'netdata', 'zabbix', 'telegraf', 'influx', 'influxdb', 'loki', 'promtail', 'uptime', 'uptime-kuma', 'dozzle', 'glances', 'beszel', 'scrutiny', 'cadvisor', 'healthchecks', 'myspeed', 'speedtest'])
         }),
         Object.freeze({
             name: 'Network',
@@ -3950,13 +3950,25 @@ const STARTER_TEMPLATE_BLUEPRINTS = Object.freeze({
             name: 'Utilities',
             icon: '/plugins/folderview.plus/images/icons/folder-tools.svg',
             categories: Object.freeze(['utility', 'ops', 'minimal', 'homelab']),
-            detect: Object.freeze(['portainer', 'watchtower', 'filebrowser', 'homarr', 'homepage', 'dashy', 'krusader', 'commander', 'mc', 'it-tools', 'utilities', 'tools'])
+            detect: Object.freeze(['portainer', 'watchtower', 'filebrowser', 'homarr', 'homepage', 'dashy', 'krusader', 'commander', 'mc', 'it-tools', 'utilities', 'tools', 'qdirstat', 'diskspeed', 'ncdu', 'baobab', 'icons', 'vm_custom_icons'])
         }),
         Object.freeze({
             name: 'Dashboards',
             icon: '/plugins/folderview.plus/images/icons/folder-home.svg',
             categories: Object.freeze(['utility', 'automation', 'homelab']),
             detect: Object.freeze(['homarr', 'homepage', 'dashy', 'organizr', 'heimdall', 'dashboard'])
+        }),
+        Object.freeze({
+            name: 'Cloud & Sync',
+            icon: '/plugins/folderview.plus/images/icons/folder-cloud.svg',
+            categories: Object.freeze(['utility', 'homelab', 'minimal']),
+            detect: Object.freeze(['nextcloud', 'owncloud', 'seafile', 'filerun', 'syncthing', 'resilio', 'cloud', 'drive', 'sync', 'collabora', 'onlyoffice'])
+        }),
+        Object.freeze({
+            name: 'Notifications',
+            icon: '/plugins/folderview.plus/images/icons/folder-automation.svg',
+            categories: Object.freeze(['automation', 'ops', 'homelab']),
+            detect: Object.freeze(['notify', 'notification', 'notifications', 'ntfy', 'gotify', 'apprise', 'notifiarr', 'pushover', 'pushbullet', 'webhook', 'discord', 'telegram', 'signal'])
         }),
         Object.freeze({
             name: 'Backup & Recovery',
@@ -3998,7 +4010,7 @@ const STARTER_TEMPLATE_BLUEPRINTS = Object.freeze({
             name: 'Security',
             icon: '/plugins/folderview.plus/images/icons/folder-security.svg',
             categories: Object.freeze(['security', 'ops', 'homelab']),
-            detect: Object.freeze(['authentik', 'authelia', 'vaultwarden', 'crowdsec', 'fail2ban', 'wazuh', 'security'])
+            detect: Object.freeze(['authentik', 'authelia', 'vaultwarden', 'crowdsec', 'fail2ban', 'wazuh', 'security', 'clamav', 'antivirus', 'malware'])
         }),
         Object.freeze({
             name: 'Identity & Access',
@@ -4010,7 +4022,7 @@ const STARTER_TEMPLATE_BLUEPRINTS = Object.freeze({
             name: 'Development',
             icon: '/plugins/folderview.plus/images/icons/folder-dev.svg',
             categories: Object.freeze(['dev', 'homelab']),
-            detect: Object.freeze(['gitlab', 'gitea', 'jenkins', 'runner', 'registry', 'npm', 'dev', 'code-server', 'vscode'])
+            detect: Object.freeze(['gitlab', 'gitea', 'jenkins', 'runner', 'registry', 'npm', 'dev', 'code-server', 'vscode', 'coder', 'devcontainer'])
         }),
         Object.freeze({
             name: 'CI/CD',
@@ -4022,13 +4034,13 @@ const STARTER_TEMPLATE_BLUEPRINTS = Object.freeze({
             name: 'Gaming',
             icon: '/plugins/folderview.plus/images/icons/folder-gaming.svg',
             categories: Object.freeze(['gaming', 'homelab']),
-            detect: Object.freeze(['steam', 'minecraft', 'game', 'gaming', 'palworld', 'valheim', 'factorio'])
+            detect: Object.freeze(['steam', 'minecraft', 'game', 'gaming', 'palworld', 'valheim', 'factorio', 'crafty', 'pterodactyl', 'pelican', 'satisfactory'])
         }),
         Object.freeze({
             name: 'Game Servers',
             icon: '/plugins/folderview.plus/images/icons/folder-gaming.svg',
             categories: Object.freeze(['gaming', 'homelab']),
-            detect: Object.freeze(['steamcmd', 'minecraft', 'palworld', 'valheim', 'ark', 'gameserver'])
+            detect: Object.freeze(['steamcmd', 'minecraft', 'palworld', 'valheim', 'ark', 'gameserver', 'crafty', 'crafty-controller', 'pterodactyl', 'pelican', 'satisfactory', 'satisfactory-server', 'terraria', 'enshrouded', 'project-zomboid'])
         })
     ]),
     vm: Object.freeze([
@@ -4137,33 +4149,97 @@ const STARTER_TEMPLATE_BLUEPRINTS = Object.freeze({
     ])
 });
 
+const STARTER_TEMPLATE_SMART_THRESHOLD = 4;
+const STARTER_TEMPLATE_FALLBACK_BY_TYPE = Object.freeze({
+    docker: 'Utilities',
+    vm: 'Utility VMs'
+});
+
+const normalizeStarterTemplateMatchText = (value) => (
+    String(value || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim()
+);
+
+const buildStarterTemplateHeuristicMap = (type, blueprintName) => {
+    const resolvedType = normalizeManagedType(type);
+    const normalizedName = normalizeStarterTemplateMatchText(blueprintName).replace(/\s+/g, '-');
+    if (resolvedType === 'docker') {
+        const dockerMap = {
+            media: { contains: ['seerr', 'wizarr', 'listenarr', 'cleanuparr', 'agregarr', 'watch', 'request', 'discover'], pathContains: ['media', 'movies', 'shows', 'tv', 'music', 'books', 'audiobooks', 'anime', 'comics', 'photos'] },
+            downloads: { contains: ['download', 'torrent', 'nzb', 'slsk', 'seed'] },
+            monitoring: { contains: ['myspeed', 'speedtest', 'latency', 'uptime', 'metrics', 'telemetry'] },
+            'cloud-&-sync': { contains: ['nextcloud', 'owncloud', 'seafile', 'cloud', 'sync', 'drive', 'collabora', 'onlyoffice'] },
+            notifications: { contains: ['notify', 'notification', 'ntfy', 'gotify', 'apprise', 'notifiarr', 'pushover', 'webhook'] },
+            utilities: { contains: ['qdirstat', 'diskspeed', 'ncdu', 'baobab', 'icons', 'icon', 'tool', 'utility', 'manager'], pathContains: ['appdata', 'storage', 'tools'] },
+            automation: { contains: ['homeassistant', 'node-red', 'n8n', 'mqtt', 'esphome', 'zigbee', 'zwave'] },
+            database: { contains: ['postgres', 'mysql', 'mariadb', 'mongo', 'redis', 'database', 'db'] },
+            security: { contains: ['clamav', 'antivirus', 'vaultwarden', 'authentik', 'authelia', 'crowdsec', 'fail2ban', 'security'] },
+            development: { contains: ['git', 'code', 'dev', 'build', 'registry', 'runner', 'vscode'] },
+            'ci-cd': { contains: ['jenkins', 'runner', 'drone', 'argocd', 'ci', 'cd'] },
+            gaming: { contains: ['crafty', 'minecraft', 'palworld', 'valheim', 'satisfactory', 'steam', 'gameserver', 'server'] },
+            'game-servers': { contains: ['crafty', 'pterodactyl', 'pelican', 'steamcmd', 'minecraft', 'palworld', 'valheim', 'satisfactory', 'terraria', 'enshrouded', 'gameserver', 'server'] }
+        };
+        return dockerMap[normalizedName] || null;
+    }
+    const vmMap = {
+        'utility-vms': { contains: ['utility', 'tools', 'helper', 'management', 'admin'] },
+        'network-vms': { contains: ['router', 'firewall', 'pfsense', 'opnsense', 'dns', 'proxy'] },
+        'security-vms': { contains: ['security', 'siem', 'wazuh', 'ids', 'ips', 'firewall'] },
+        'desktop-vms': { contains: ['desktop', 'workstation', 'windows', 'ubuntu', 'macos'] },
+        'gaming-vms': { contains: ['gaming', 'steam', 'parsec', 'moonlight', 'sunshine', 'gpu'] }
+    };
+    return vmMap[normalizedName] || null;
+};
+
 const collectStarterTemplateSmartSignals = (type) => {
     const resolvedType = normalizeManagedType(type);
     const infoByName = infoByType[resolvedType] && typeof infoByType[resolvedType] === 'object' ? infoByType[resolvedType] : {};
-    const signalSet = new Set();
-    const addTokens = (value) => {
-        const raw = String(value || '').toLowerCase();
-        if (!raw) {
+    const tokenSet = new Set();
+    const phraseSet = new Set();
+    const textParts = [];
+    const addTokens = (value, options = {}) => {
+        const normalizedText = normalizeStarterTemplateMatchText(value);
+        if (!normalizedText) {
             return;
         }
-        raw.split(/[^a-z0-9]+/).forEach((token) => {
+        if (options.allowPhrase !== false && normalizedText.length >= 3) {
+            phraseSet.add(normalizedText);
+            textParts.push(normalizedText);
+        }
+        normalizedText.split(/\s+/).forEach((token) => {
             const normalized = String(token || '').trim();
             if (normalized.length >= 3) {
-                signalSet.add(normalized);
+                tokenSet.add(normalized);
             }
         });
     };
     Object.entries(infoByName).forEach(([itemName, itemInfo]) => {
         addTokens(itemName);
         if (resolvedType === 'docker') {
+            const labels = itemInfo?.Labels || itemInfo?.info?.Config?.Labels || {};
             addTokens(itemInfo?.Image);
             addTokens(itemInfo?.info?.Config?.Image);
-            const labels = itemInfo?.Labels || itemInfo?.info?.Config?.Labels || {};
+            addTokens(itemInfo?.composeProject);
+            addTokens(itemInfo?.folderLabel);
+            addTokens(itemInfo?.manager);
+            addTokens(itemInfo?.info?.State?.manager);
+            addTokens(itemInfo?.info?.registry);
+            addTokens(itemInfo?.info?.Project);
+            addTokens(itemInfo?.info?.Support);
+            addTokens(itemInfo?.info?.ReadMe);
+            addTokens(itemInfo?.info?.template?.path);
+            (Array.isArray(itemInfo?.info?.HostConfig?.Binds) ? itemInfo.info.HostConfig.Binds : []).forEach((bind) => addTokens(bind));
+            (Array.isArray(itemInfo?.Mounts) ? itemInfo.Mounts : []).concat(Array.isArray(itemInfo?.info?.Mounts) ? itemInfo.info.Mounts : []).forEach((mount) => {
+                addTokens(mount?.Source);
+                addTokens(mount?.Destination);
+                addTokens(mount?.Name);
+            });
             Object.entries(labels || {}).forEach(([key, value]) => {
                 addTokens(key);
                 addTokens(value);
             });
-            addTokens(itemInfo?.composeProject);
         } else {
             addTokens(itemInfo?.domain);
             addTokens(itemInfo?.description);
@@ -4171,32 +4247,125 @@ const collectStarterTemplateSmartSignals = (type) => {
             addTokens(itemInfo?.os);
         }
     });
-    return signalSet;
+    return {
+        tokens: tokenSet,
+        phrases: phraseSet,
+        normalizedText: textParts.join(' ')
+    };
 };
 
 const resolveStarterTemplateSmartIndexes = (type, templateList) => {
     const list = Array.isArray(templateList) ? templateList : [];
-    const signals = collectStarterTemplateSmartSignals(type);
+    const profile = collectStarterTemplateSmartSignals(type);
+    const tokens = profile?.tokens instanceof Set ? profile.tokens : new Set();
+    const phrases = profile?.phrases instanceof Set ? profile.phrases : new Set();
+    const normalizedText = String(profile?.normalizedText || '').trim();
     const matched = new Set();
-    const hasSignal = (keyword) => {
-        const normalized = String(keyword || '').trim().toLowerCase();
+    const matchesKeyword = (keyword) => {
+        const normalized = normalizeStarterTemplateMatchText(keyword);
         if (!normalized) {
-            return false;
+            return 0;
         }
-        const parts = normalized.split(/[^a-z0-9]+/).filter((part) => part.length >= 3);
+        const parts = normalized.split(/\s+/).filter((part) => part.length >= 3);
         if (parts.length <= 0) {
+            return 0;
+        }
+        let score = 0;
+        if (phrases.has(normalized)) {
+            score = Math.max(score, 12);
+        } else if (normalizedText.includes(normalized)) {
+            score = Math.max(score, 8);
+        }
+        let matchedParts = 0;
+        for (const part of parts) {
+            if (tokens.has(part)) {
+                matchedParts += 1;
+                continue;
+            }
+            if (part.length >= 4) {
+                for (const token of tokens) {
+                    if (token.includes(part) || part.includes(token)) {
+                        matchedParts += 1;
+                        break;
+                    }
+                }
+            }
+        }
+        if (matchedParts === parts.length) {
+            score = Math.max(score, 5 + (matchedParts * 2));
+        } else if (matchedParts > 0) {
+            score = Math.max(score, matchedParts);
+        }
+        return score;
+    };
+    const hasTokenEndingWith = (suffix) => {
+        const normalizedSuffix = String(suffix || '').trim().toLowerCase();
+        if (!normalizedSuffix) {
             return false;
         }
-        return parts.some((part) => signals.has(part));
+        for (const token of tokens) {
+            if (token.endsWith(normalizedSuffix)) {
+                return true;
+            }
+        }
+        return false;
+    };
+    const hasTokenContainingAny = (values = []) => {
+        const safeValues = Array.isArray(values) ? values : [];
+        for (const rawValue of safeValues) {
+            const value = normalizeStarterTemplateMatchText(rawValue);
+            if (!value) {
+                continue;
+            }
+            for (const token of tokens) {
+                if (token === value || token.includes(value) || value.includes(token)) {
+                    return true;
+                }
+            }
+            if (normalizedText.includes(value)) {
+                return true;
+            }
+        }
+        return false;
+    };
+    const getHeuristicBoost = (entry) => {
+        const heuristic = buildStarterTemplateHeuristicMap(type, entry?.name);
+        if (!heuristic) {
+            return 0;
+        }
+        let score = 0;
+        if (type === 'docker' && normalizeStarterTemplateMatchText(entry?.name).replace(/\s+/g, '-') === 'media' && hasTokenEndingWith('arr')) {
+            score += 12;
+        }
+        if (hasTokenContainingAny(heuristic.contains)) {
+            score += 10;
+        }
+        if (hasTokenContainingAny(heuristic.pathContains)) {
+            score += 6;
+        }
+        return score;
     };
     list.forEach((entry, index) => {
-        const detectKeywords = Array.isArray(entry?.detect) ? entry.detect : [];
-        const fallbackKeywords = [entry?.name];
-        const keywords = detectKeywords.length > 0 ? detectKeywords : fallbackKeywords;
-        if (keywords.some((keyword) => hasSignal(keyword))) {
+        const detectKeywords = Array.isArray(entry?.detect) && entry.detect.length > 0
+            ? entry.detect
+            : [String(entry?.name || '')];
+        let bestScore = 0;
+        detectKeywords.forEach((keyword) => {
+            bestScore = Math.max(bestScore, matchesKeyword(keyword));
+        });
+        bestScore = Math.max(bestScore, matchesKeyword(entry?.name));
+        bestScore += getHeuristicBoost(entry);
+        if (bestScore >= STARTER_TEMPLATE_SMART_THRESHOLD) {
             matched.add(index);
         }
     });
+    if (matched.size === 0 && tokens.size > 0) {
+        const fallbackName = String(STARTER_TEMPLATE_FALLBACK_BY_TYPE[normalizeManagedType(type)] || '').trim().toLowerCase();
+        const fallbackIndex = list.findIndex((entry) => String(entry?.name || '').trim().toLowerCase() === fallbackName);
+        if (fallbackIndex >= 0) {
+            matched.add(fallbackIndex);
+        }
+    }
     if (matched.size > 0) {
         return matched;
     }

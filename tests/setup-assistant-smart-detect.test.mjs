@@ -24,6 +24,13 @@ const snippetEnd = wizardJs.indexOf(endMarker);
 assert.ok(snippetStart >= 0 && snippetEnd > snippetStart, 'Expected smart-detect helper block in wizard script.');
 const smartDetectSnippet = wizardJs.slice(snippetStart, snippetEnd);
 
+const settingsStartMarker = 'const STARTER_TEMPLATE_CATEGORY_META =';
+const settingsEndMarker = 'const buildStarterFolderPayload =';
+const settingsSnippetStart = settingsJs.indexOf(settingsStartMarker);
+const settingsSnippetEnd = settingsJs.indexOf(settingsEndMarker);
+assert.ok(settingsSnippetStart >= 0 && settingsSnippetEnd > settingsSnippetStart, 'Expected smart starter selection block in settings script.');
+const settingsSmartSnippet = settingsJs.slice(settingsSnippetStart, settingsSnippetEnd);
+
 const loadSmartDetectHelpers = (infoByType) => {
     const context = {
         infoByType,
@@ -60,16 +67,40 @@ const loadSmartDetectHelpers = (infoByType) => {
     };
     context.globalThis = context;
     vm.createContext(context);
-    new vm.Script(`
-${smartDetectSnippet}
-globalThis.__smartDetect = {
-    normalizeSetupAssistantMatchText,
-    collectSetupAssistantItemMatchProfile,
-    scoreSetupAssistantTemplateMatch,
-    buildSetupAssistantTemplateAssignmentPreview
-};
-`).runInContext(context);
+    new vm.Script([
+        smartDetectSnippet,
+        'globalThis.__smartDetect = {',
+        '    normalizeSetupAssistantMatchText,',
+        '    collectSetupAssistantItemMatchProfile,',
+        '    scoreSetupAssistantTemplateMatch,',
+        '    buildSetupAssistantTemplateAssignmentPreview',
+        '};'
+    ].join('\n')).runInContext(context);
     return context.__smartDetect;
+};
+
+const loadStarterSelectionHelpers = (infoByType) => {
+    const context = {
+        infoByType,
+        normalizeManagedType: (value) => String(value || '').trim().toLowerCase(),
+        normalizeStarterTemplateCategory: (value) => String(value || '').trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '-'),
+        Set,
+        Object,
+        String,
+        Number,
+        Array,
+        JSON
+    };
+    context.globalThis = context;
+    vm.createContext(context);
+    new vm.Script([
+        settingsSmartSnippet,
+        'globalThis.__starterSelection = {',
+        '    STARTER_TEMPLATE_BLUEPRINTS,',
+        '    resolveStarterTemplateSmartIndexes',
+        '};'
+    ].join('\n')).runInContext(context);
+    return context.__starterSelection;
 };
 
 test('wizard smart detect uses compose metadata and template metadata for docker assignment', () => {
@@ -134,4 +165,131 @@ test('starter template blueprints include broader docker smart-detect coverage f
     assert.ok(downloadsBlock.includes("'nzbget'") && downloadsBlock.includes("'cross-seed'") && downloadsBlock.includes("'slskd'"));
     assert.ok(monitoringBlock.includes("'beszel'") && monitoringBlock.includes("'scrutiny'") && monitoringBlock.includes("'healthchecks'"));
     assert.ok(networkBlock.includes("'adguardhome'") && networkBlock.includes("'zerotier'") && networkBlock.includes("'cloudflared'"));
+});
+
+test('wizard smart detect covers mixed real-world docker families without misses', () => {
+    const infoByType = {
+        docker: {
+            listenarr: {
+                info: {
+                    Config: { Image: 'ghcr.io/listenarr/listenarr:latest' },
+                    HostConfig: { Binds: ['/mnt/user/Plex-Data/Audiobooks:/data'] }
+                }
+            },
+            Cleanuparr: {
+                info: {
+                    Config: { Image: 'ghcr.io/cleanuparr/cleanuparr:latest' },
+                    HostConfig: { Binds: ['/mnt/user/downloads:/downloads'] }
+                }
+            },
+            vm_custom_icons: {
+                info: {
+                    Config: { Image: 'ghcr.io/custom/vm_custom_icons:latest' }
+                }
+            },
+            'satisfactory-server': {
+                info: {
+                    Config: { Image: 'wolveix/satisfactory-server:latest' }
+                }
+            },
+            ClamAV: {
+                info: {
+                    Config: { Image: 'clamav/clamav:latest' }
+                }
+            },
+            DiskSpeed: {
+                info: {
+                    Config: { Image: 'ghcr.io/dockur/diskspeed:latest' }
+                }
+            },
+            QDirStat: {
+                info: {
+                    Config: { Image: 'ghcr.io/linuxserver/qdirstat:latest' }
+                }
+            },
+            Seerr: {
+                info: {
+                    Config: { Image: 'ghcr.io/fallenbagel/jellyseerr:latest' }
+                }
+            },
+            Wizarr: {
+                info: {
+                    Config: { Image: 'ghcr.io/wizarrrr/wizarr:latest' }
+                }
+            },
+            agregarr: {
+                info: {
+                    Config: { Image: 'ghcr.io/agregarr/agregarr:latest' }
+                }
+            },
+            SeekAndWatch: {
+                info: {
+                    Config: { Image: 'ghcr.io/seekandwatch/seekandwatch:latest' }
+                }
+            },
+            'Crafty-4': {
+                info: {
+                    Config: { Image: 'registry.gitlab.com/crafty-controller/crafty-4:latest' }
+                }
+            },
+            MySpeed: {
+                info: {
+                    Config: { Image: 'germannewsmaker/myspeed:latest' }
+                }
+            },
+            nextcloud: {
+                info: {
+                    Config: { Image: 'nextcloud:latest' }
+                }
+            },
+            Notify: {
+                info: {
+                    Config: { Image: 'ghcr.io/notifiarr/notify:latest' }
+                }
+            }
+        }
+    };
+    const runtime = loadSmartDetectHelpers(infoByType);
+    const preview = runtime.buildSetupAssistantTemplateAssignmentPreview('docker', [
+        { name: 'Media', detect: ['overseerr', 'seerr', 'wizarr', 'listenarr', 'cleanuparr', 'agregarr', 'seekandwatch'] },
+        { name: 'Security', detect: ['vaultwarden', 'clamav'] },
+        { name: 'Utilities', detect: ['qdirstat', 'diskspeed', 'vm_custom_icons'] },
+        { name: 'Game Servers', detect: ['crafty', 'satisfactory-server'] },
+        { name: 'Monitoring', detect: ['myspeed'] },
+        { name: 'Cloud & Sync', detect: ['nextcloud'] },
+        { name: 'Notifications', detect: ['notify', 'notifiarr'] }
+    ]);
+
+    assert.equal(preview.totalItems, 15);
+    assert.equal(preview.unmatched, 0);
+    assert.deepEqual(Array.from(preview.assignedByTemplate.Media || []).sort(), ['Cleanuparr', 'SeekAndWatch', 'Seerr', 'Wizarr', 'agregarr', 'listenarr']);
+    assert.deepEqual(Array.from(preview.assignedByTemplate.Security || []), ['ClamAV']);
+    assert.deepEqual(Array.from(preview.assignedByTemplate.Utilities || []).sort(), ['DiskSpeed', 'QDirStat', 'vm_custom_icons']);
+    assert.deepEqual(Array.from(preview.assignedByTemplate['Game Servers'] || []).sort(), ['Crafty-4', 'satisfactory-server']);
+    assert.deepEqual(Array.from(preview.assignedByTemplate.Monitoring || []), ['MySpeed']);
+    assert.deepEqual(Array.from(preview.assignedByTemplate['Cloud & Sync'] || []), ['nextcloud']);
+    assert.deepEqual(Array.from(preview.assignedByTemplate.Notifications || []), ['Notify']);
+});
+
+test('smart starter selection surfaces the needed folders for mixed docker workloads', () => {
+    const infoByType = {
+        docker: {
+            listenarr: { info: { Config: { Image: 'ghcr.io/listenarr/listenarr:latest' } } },
+            ClamAV: { info: { Config: { Image: 'clamav/clamav:latest' } } },
+            'satisfactory-server': { info: { Config: { Image: 'wolveix/satisfactory-server:latest' } } },
+            nextcloud: { info: { Config: { Image: 'nextcloud:latest' } } },
+            Notify: { info: { Config: { Image: 'ghcr.io/notifiarr/notify:latest' } } },
+            QDirStat: { info: { Config: { Image: 'ghcr.io/linuxserver/qdirstat:latest' } } }
+        }
+    };
+    const runtime = loadStarterSelectionHelpers(infoByType);
+    const indexes = runtime.resolveStarterTemplateSmartIndexes('docker', runtime.STARTER_TEMPLATE_BLUEPRINTS.docker);
+    const names = Array.from(indexes).map((index) => runtime.STARTER_TEMPLATE_BLUEPRINTS.docker[index]?.name).filter(Boolean);
+
+    assert.ok(names.includes('Media'));
+    assert.ok(names.includes('Security'));
+    assert.ok(names.includes('Game Servers') || names.includes('Gaming'));
+    assert.ok(names.includes('Cloud & Sync'));
+    assert.ok(names.includes('Notifications'));
+    assert.ok(names.includes('Utilities'));
 });

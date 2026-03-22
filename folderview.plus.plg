@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.21.39">
-<!ENTITY md5 "b3503abd315c50f6a67443e14ef00a0a">
+<!ENTITY version "2026.03.21.40">
+<!ENTITY md5 "2d30f6054962dcf9c49c8c5e777e5608">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.21.40
+- Fix: Expanded smart-detect coverage for Docker starter folders so more real-world app families are recognized and auto-assigned during wizard onboarding.
+- Quality: Smart category selection now uses richer runtime signals, including compose stacks, template metadata, bind paths, project/support URLs, and broader fuzzy token matching.
+- Regression guard: Added coverage for mixed real-world workloads so media, gaming, cloud, notification, security, monitoring, and utility apps stay classified correctly.
+
 
 ###2026.03.21.39
 - Fix: Improved setup wizard smart-detect matching so more Docker containers are auto-assigned into generated starter folders during new-install onboarding.

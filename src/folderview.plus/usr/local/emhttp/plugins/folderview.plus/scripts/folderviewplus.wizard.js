@@ -687,6 +687,42 @@ const normalizeSetupAssistantMatchText = (value) => (
         .trim()
 );
 
+const SETUP_ASSISTANT_TEMPLATE_FALLBACK_BY_TYPE = Object.freeze({
+    docker: 'Utilities',
+    vm: 'Utility VMs'
+});
+
+const getSetupAssistantBlueprintHeuristicMap = (type, blueprintName) => {
+    const resolvedType = normalizeManagedType(type);
+    const normalizedName = normalizeSetupAssistantMatchText(blueprintName).replace(/\s+/g, '-');
+    if (resolvedType === 'docker') {
+        const dockerMap = {
+            media: { contains: ['seerr', 'wizarr', 'listenarr', 'cleanuparr', 'agregarr', 'watch', 'request', 'discover'], pathContains: ['media', 'movies', 'shows', 'tv', 'music', 'books', 'audiobooks', 'anime', 'comics', 'photos'] },
+            downloads: { contains: ['download', 'torrent', 'nzb', 'slsk', 'seed'] },
+            monitoring: { contains: ['myspeed', 'speedtest', 'latency', 'uptime', 'metrics', 'telemetry'] },
+            'cloud-&-sync': { contains: ['nextcloud', 'owncloud', 'seafile', 'cloud', 'sync', 'drive', 'collabora', 'onlyoffice'] },
+            notifications: { contains: ['notify', 'notification', 'ntfy', 'gotify', 'apprise', 'notifiarr', 'pushover', 'webhook'] },
+            utilities: { contains: ['qdirstat', 'diskspeed', 'ncdu', 'baobab', 'icons', 'icon', 'tool', 'utility', 'manager'], pathContains: ['appdata', 'storage', 'tools'] },
+            automation: { contains: ['homeassistant', 'node red', 'n8n', 'mqtt', 'esphome', 'zigbee', 'zwave'] },
+            database: { contains: ['postgres', 'mysql', 'mariadb', 'mongo', 'redis', 'database', 'db'] },
+            security: { contains: ['clamav', 'antivirus', 'vaultwarden', 'authentik', 'authelia', 'crowdsec', 'fail2ban', 'security'] },
+            development: { contains: ['git', 'code', 'dev', 'build', 'registry', 'runner', 'vscode'] },
+            'ci-cd': { contains: ['jenkins', 'runner', 'drone', 'argocd', 'ci', 'cd'] },
+            gaming: { contains: ['crafty', 'minecraft', 'palworld', 'valheim', 'satisfactory', 'steam', 'gameserver', 'server'] },
+            'game-servers': { contains: ['crafty', 'pterodactyl', 'pelican', 'steamcmd', 'minecraft', 'palworld', 'valheim', 'satisfactory', 'terraria', 'enshrouded', 'gameserver', 'server'] }
+        };
+        return dockerMap[normalizedName] || null;
+    }
+    const vmMap = {
+        'utility-vms': { contains: ['utility', 'tools', 'helper', 'management', 'admin'] },
+        'network-vms': { contains: ['router', 'firewall', 'pfsense', 'opnsense', 'dns', 'proxy'] },
+        'security-vms': { contains: ['security', 'siem', 'wazuh', 'ids', 'ips', 'firewall'] },
+        'desktop-vms': { contains: ['desktop', 'workstation', 'windows', 'ubuntu', 'macos'] },
+        'gaming-vms': { contains: ['gaming', 'steam', 'parsec', 'moonlight', 'sunshine', 'gpu'] }
+    };
+    return vmMap[normalizedName] || null;
+};
+
 const collectSetupAssistantItemMatchProfile = (type, itemName, itemInfo) => {
     const resolvedType = normalizeManagedType(type);
     const tokenSet = new Set();
@@ -723,6 +759,12 @@ const collectSetupAssistantItemMatchProfile = (type, itemName, itemInfo) => {
         addTokens(itemInfo?.info?.Support);
         addTokens(itemInfo?.info?.ReadMe);
         addTokens(itemInfo?.info?.template?.path);
+        (Array.isArray(itemInfo?.info?.HostConfig?.Binds) ? itemInfo.info.HostConfig.Binds : []).forEach((bind) => addTokens(bind));
+        (Array.isArray(itemInfo?.Mounts) ? itemInfo.Mounts : []).concat(Array.isArray(itemInfo?.info?.Mounts) ? itemInfo.info.Mounts : []).forEach((mount) => {
+            addTokens(mount?.Source);
+            addTokens(mount?.Destination);
+            addTokens(mount?.Name);
+        });
         if (utils && typeof utils.getComposeProjectFromLabels === 'function') {
             addTokens(utils.getComposeProjectFromLabels(labels));
         }
@@ -743,7 +785,7 @@ const collectSetupAssistantItemMatchProfile = (type, itemName, itemInfo) => {
     };
 };
 
-const scoreSetupAssistantTemplateMatch = (profile, blueprint) => {
+const scoreSetupAssistantTemplateMatch = (profile, blueprint, type = 'docker') => {
     const tokens = profile instanceof Set ? profile : profile?.tokens;
     const phrases = profile?.phrases instanceof Set ? profile.phrases : new Set();
     const normalizedText = String(profile?.normalizedText || '').trim();
@@ -773,6 +815,15 @@ const scoreSetupAssistantTemplateMatch = (profile, blueprint) => {
         parts.forEach((part) => {
             if (tokens.has(part)) {
                 matchedParts += 1;
+                return;
+            }
+            if (part.length >= 4) {
+                for (const token of tokens) {
+                    if (token.includes(part) || part.includes(token)) {
+                        matchedParts += 1;
+                        break;
+                    }
+                }
             }
         });
         if (matchedParts === parts.length) {
@@ -782,8 +833,50 @@ const scoreSetupAssistantTemplateMatch = (profile, blueprint) => {
         }
         score += keywordScore;
     };
+    const hasTokenEndingWith = (suffix) => {
+        const normalizedSuffix = String(suffix || '').trim().toLowerCase();
+        if (!normalizedSuffix) {
+            return false;
+        }
+        for (const token of tokens) {
+            if (token.endsWith(normalizedSuffix)) {
+                return true;
+            }
+        }
+        return false;
+    };
+    const hasTokenContainingAny = (values = []) => {
+        const safeValues = Array.isArray(values) ? values : [];
+        for (const rawValue of safeValues) {
+            const value = normalizeSetupAssistantMatchText(rawValue);
+            if (!value) {
+                continue;
+            }
+            for (const token of tokens) {
+                if (token === value || token.includes(value) || value.includes(token)) {
+                    return true;
+                }
+            }
+            if (normalizedText.includes(value)) {
+                return true;
+            }
+        }
+        return false;
+    };
     detectKeywords.forEach((keyword) => consumeKeyword(keyword, 1));
     consumeKeyword(blueprint.name, 0.6);
+    const heuristic = getSetupAssistantBlueprintHeuristicMap(type, blueprint?.name || '');
+    if (heuristic) {
+        if (normalizeSetupAssistantMatchText(blueprint?.name).replace(/\s+/g, '-') === 'media' && hasTokenEndingWith('arr')) {
+            score += 12;
+        }
+        if (hasTokenContainingAny(heuristic.contains)) {
+            score += 10;
+        }
+        if (hasTokenContainingAny(heuristic.pathContains)) {
+            score += 6;
+        }
+    }
     return score;
 };
 
@@ -799,6 +892,8 @@ const buildSetupAssistantTemplateAssignmentPreview = (type, selectedBlueprints) 
             assignedByTemplate[name] = [];
         }
     });
+    const fallbackTemplateName = String(SETUP_ASSISTANT_TEMPLATE_FALLBACK_BY_TYPE[resolvedType] || '').trim();
+    const fallbackBlueprint = blueprints.find((blueprint) => String(blueprint?.name || '').trim() === fallbackTemplateName) || null;
 
     let matched = 0;
     let unmatched = 0;
@@ -807,12 +902,16 @@ const buildSetupAssistantTemplateAssignmentPreview = (type, selectedBlueprints) 
         let bestBlueprint = null;
         let bestScore = 0;
         blueprints.forEach((blueprint) => {
-            const score = scoreSetupAssistantTemplateMatch(profile, blueprint);
+            const score = scoreSetupAssistantTemplateMatch(profile, blueprint, resolvedType);
             if (score > bestScore) {
                 bestScore = score;
                 bestBlueprint = blueprint;
             }
         });
+        if ((!bestBlueprint || bestScore < 4) && fallbackBlueprint) {
+            bestBlueprint = fallbackBlueprint;
+            bestScore = 4;
+        }
         if (!bestBlueprint || bestScore < 4) {
             unmatched += 1;
             return;
@@ -842,7 +941,18 @@ const buildSetupAssistantTemplatePlanForType = (type) => {
     const bootstrap = getSetupAssistantTemplateBootstrap(resolvedType);
     const categoryState = getSetupAssistantTemplateCategoryState(resolvedType);
     const selectedNames = new Set(serializeSetupAssistantTemplateSelections(bootstrap.selectedTemplateNames));
-    const selectedBlueprints = categoryState.blueprints.filter((entry) => selectedNames.has(String(entry?.name || '').trim()));
+    let selectedBlueprints = categoryState.blueprints.filter((entry) => selectedNames.has(String(entry?.name || '').trim()));
+    if (bootstrap.enabled === true && bootstrap.autoAssignExisting === true && bootstrap.category === 'smart' && selectedBlueprints.length > 0) {
+        const fallbackName = String(SETUP_ASSISTANT_TEMPLATE_FALLBACK_BY_TYPE[resolvedType] || '').trim();
+        const fallbackBlueprint = categoryState.blueprints.find((entry) => String(entry?.name || '').trim() === fallbackName) || null;
+        const hasFallbackSelected = fallbackBlueprint && selectedBlueprints.some((entry) => String(entry?.name || '').trim() === fallbackName);
+        if (fallbackBlueprint && !hasFallbackSelected) {
+            const previewWithoutFallback = buildSetupAssistantTemplateAssignmentPreview(resolvedType, selectedBlueprints);
+            if ((previewWithoutFallback.unmatched || 0) > 0) {
+                selectedBlueprints = [...selectedBlueprints, fallbackBlueprint];
+            }
+        }
+    }
     const existingFolders = getFolderMap(resolvedType);
     const existingNameSet = new Set(
         Object.values(existingFolders || {})

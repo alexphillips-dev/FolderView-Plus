@@ -94,9 +94,12 @@ test('pkg_build includes dependency preflight, safe temp cleanup, dry-run, and c
     assert.match(pkgBuild, /sha256=\$\(sha256sum "\$filename" \| awk '\{print \$1\}'\)/);
     assert.match(pkgBuild, /printf '%s  %s\\n' "\$sha256" "\$\(basename "\$filename"\)" > "\$sha256_file"/);
     assert.match(pkgBuild, /\^<!ENTITY pluginURL ".*">/);
-    assert.match(pkgBuild, /https:\/\/raw\.githubusercontent\.com\/\\&github;\/'"\$branch"'\/folderview\.plus\.plg/);
     assert.match(pkgBuild, /<URL>https:\/\/raw\.githubusercontent\.com\/\.\*\?\/archive\/\.\*<\/URL>/);
-    assert.match(pkgBuild, /https:\/\/raw\.githubusercontent\.com\/\\&github;\/'"\$branch"'\/archive\/\\&name;-\\&version;\.txz/);
+    assert.match(pkgBuild, /rewrite_manifest_branch_metadata/);
+    assert.match(pkgBuild, /validate_manifest_branch_matrix/);
+    assert.match(pkgBuild, /expected_entity_url="https:\/\/raw\.githubusercontent\.com\/&github;\/\$\{branch_name\}\/folderview\.plus\.plg"/);
+    assert.match(pkgBuild, /expected_archive_url="https:\/\/raw\.githubusercontent\.com\/&github;\/\$\{branch_name\}\/archive\/&name;-&version;\.txz"/);
+    assert.match(pkgBuild, /expected_tag_url="https:\/\/raw\.githubusercontent\.com\/alexphillips-dev\/FolderView-Plus\/\$\{branch_name\}\/folderview\.plus\.plg"/);
     assert.doesNotMatch(pkgBuild, /rm -R "\$CWD\/tmp"/);
 });
 
@@ -167,8 +170,10 @@ test('release_guard checks target blank and update-notes release contract', () =
 test('release_guard enforces branch-specific plugin and archive URLs for main\/dev\/beta', () => {
     assert.match(releaseGuard, /FVPLUS_EXPECT_PLUGIN_BRANCH/);
     assert.match(releaseGuard, /pluginURL branch mismatch/);
+    assert.match(releaseGuard, /<PLUGIN> tag pluginURL branch mismatch/);
     assert.match(releaseGuard, /archive URL branch mismatch/);
     assert.match(releaseGuard, /EXPECTED_PLUGIN_URL="https:\/\/raw\.githubusercontent\.com\/&github;\/\$\{EXPECTED_PLUGIN_BRANCH\}\/folderview\.plus\.plg"/);
+    assert.match(releaseGuard, /EXPECTED_PLUGIN_TAG_URL="https:\/\/raw\.githubusercontent\.com\/alexphillips-dev\/FolderView-Plus\/\$\{EXPECTED_PLUGIN_BRANCH\}\/folderview\.plus\.plg"/);
     assert.match(releaseGuard, /EXPECTED_ARCHIVE_URL="https:\/\/raw\.githubusercontent\.com\/&github;\/\$\{EXPECTED_PLUGIN_BRANCH\}\/archive\/&name;-&version;\.txz"/);
 });
 

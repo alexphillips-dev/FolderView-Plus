@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.22.41">
-<!ENTITY md5 "737f34a6a808746386f3d94948833ecb">
+<!ENTITY version "2026.03.22.42">
+<!ENTITY md5 "5b1f75678db6bc434f3c2dc4bbf1abea">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.22.42
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+
 
 ###2026.03.22.41
 - Refactor: Split Docker folder previews into separate single-row and compact multi-row render paths so `Preview rows > 1` no longer reuses the legacy single-row card template.

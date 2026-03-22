@@ -392,6 +392,24 @@ const layoutFolderPreviewRows = ($preview, settings = {}) => {
     if (!$preview || !$preview.length) {
         return;
     }
+    if (!isCompactMultiRowPreview(settings)) {
+        const $existingRows = $preview.children('.folder-preview-row');
+        if ($existingRows.length) {
+            $existingRows.children('.folder-preview-wrapper, .folder-preview-divider').appendTo($preview);
+            $existingRows.remove();
+        }
+        const wrappers = $preview.children('.folder-preview-wrapper').get();
+        $preview.children('.folder-preview-divider').remove();
+        if (settings?.preview_vertical_bars === true) {
+            const barsColor = settings?.preview_vertical_bars_color || settings?.preview_border_color || '';
+            wrappers.forEach((wrapper, index) => {
+                if (index < wrappers.length - 1) {
+                    $(wrapper).after(`<div class="folder-preview-divider" ${barsColor ? `style="border-color: ${barsColor};"` : ''}></div>`);
+                }
+            });
+        }
+        return;
+    }
     const $existingRows = $preview.children('.folder-preview-row');
     if ($existingRows.length) {
         $existingRows.children('.folder-preview-wrapper, .folder-preview-divider').appendTo($preview);
@@ -2917,10 +2935,25 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
 
     let addPreview;
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Selecting addPreview function based on folder.settings.preview = ${folder.settings.preview}. Context setting: ${folder.settings.context}`);
+    const compactMultiRowPreview = isCompactMultiRowPreview(folder.settings);
     switch (folder.settings.preview) {
         case 1:
             addPreview = (folderTrId, ctid, autostart, previewEntry) => {
                 if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addPreview (case 1 for ${folderTrId}): ctid=${ctid}, autostart=${autostart}`);
+                if (!compactMultiRowPreview) {
+                    let clone = $(`tr.folder-id-${folderTrId} div.folder-storage > tr > td.ct-name > span.outer:last`).clone();
+                    clone.find(`span.state`)[0].innerHTML = clone.find(`span.state`)[0].innerHTML.split("<br>")[0];
+                    $(`tr.folder-id-${folderTrId} div.folder-preview`).append(clone.addClass(`${autostart ? 'autostart' : ''}`));
+                    let tmpId = $(`tr.folder-id-${folderTrId} div.folder-preview > span.outer:last`).find('i[id^="load-"]');
+                    tmpId.attr("id", "folder-" + tmpId.attr("id"));
+                    if(folder.settings.context === 2 || folder.settings.context === 0) {
+                        tmpId = $(`tr.folder-id-${folderTrId} div.folder-preview > span.outer:last > span.hand`);
+                        tmpId.attr("id", "folder-preview-" + ctid);
+                        tmpId.removeAttr("onclick");
+                        if(folder.settings.context === 2) { return tmpId; }
+                    }
+                    return;
+                }
                 const { $item, $tooltipTrigger } = buildDockerPreviewItem({ entry: previewEntry, settings: folder.settings, autostart });
                 $(`tr.folder-id-${folderTrId} div.folder-preview`).append($item);
                 if (folder.settings.context === 2 || folder.settings.context === 0) {
@@ -2931,6 +2964,16 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
         case 2:
             addPreview = (folderTrId, ctid, autostart, previewEntry) => {
                 if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addPreview (case 2 for ${folderTrId}): ctid=${ctid}, autostart=${autostart}`);
+                if (!compactMultiRowPreview) {
+                    $(`tr.folder-id-${folderTrId} div.folder-preview`).append($(`tr.folder-id-${folderTrId} div.folder-storage > tr > td.ct-name > span.outer > span.hand:last`).clone().addClass(`${autostart ? 'autostart' : ''}`));
+                    if(folder.settings.context === 2 || folder.settings.context === 0) {
+                        let tmpId = $(`tr.folder-id-${folderTrId} div.folder-preview > span.hand:last`);
+                        tmpId.attr("id", "folder-preview-" + ctid);
+                        tmpId.removeAttr("onclick");
+                        if(folder.settings.context === 2) { return tmpId; }
+                    }
+                    return;
+                }
                 const { $item, $tooltipTrigger } = buildDockerPreviewItem({ entry: previewEntry, settings: folder.settings, autostart });
                 $(`tr.folder-id-${folderTrId} div.folder-preview`).append($item);
                 if (folder.settings.context === 2 || folder.settings.context === 0) {
@@ -2941,6 +2984,20 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
         case 3:
             addPreview = (folderTrId, ctid, autostart, previewEntry) => {
                 if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addPreview (case 3 for ${folderTrId}): ctid=${ctid}, autostart=${autostart}`);
+                if (!compactMultiRowPreview) {
+                    let clone = $(`tr.folder-id-${folderTrId} div.folder-storage > tr > td.ct-name > span.outer > span.inner:last`).clone();
+                    clone.find(`span.state`)[0].innerHTML = clone.find(`span.state`)[0].innerHTML.split("<br>")[0];
+                    $(`tr.folder-id-${folderTrId} div.folder-preview`).append(clone.addClass(`${autostart ? 'autostart' : ''}`));
+                    let tmpId = $(`tr.folder-id-${folderTrId} div.folder-preview > span.inner:last`).find('i[id^="load-"]');
+                    tmpId.attr("id", "folder-" + tmpId.attr("id"));
+                    if(folder.settings.context === 2 || folder.settings.context === 0) {
+                        tmpId = $(`tr.folder-id-${folderTrId} div.folder-preview > span.inner:last > span.appname > a.exec`);
+                        tmpId.attr("id", "folder-preview-" + ctid);
+                        tmpId.removeAttr("onclick");
+                        if(folder.settings.context === 2) { return tmpId; }
+                    }
+                    return;
+                }
                 const { $item, $tooltipTrigger } = buildDockerPreviewItem({ entry: previewEntry, settings: folder.settings, autostart });
                 $(`tr.folder-id-${folderTrId} div.folder-preview`).append($item);
                 if (folder.settings.context === 2 || folder.settings.context === 0) {
@@ -2951,6 +3008,24 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
         case 4:
             addPreview = (folderTrId, ctid, autostart, previewEntry) => {
                 if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addPreview (case 4 for ${folderTrId}): ctid=${ctid}, autostart=${autostart}`);
+                if (!compactMultiRowPreview) {
+                    let lstSpan = $(`tr.folder-id-${folderTrId} div.folder-preview > span.outer:last`);
+                    if(!lstSpan[0] || lstSpan.children().length >= 2) {
+                        $(`tr.folder-id-${folderTrId} div.folder-preview`).append($('<span class="outer"></span>'));
+                        lstSpan = $(`tr.folder-id-${folderTrId} div.folder-preview > span.outer:last`);
+                    }
+                    lstSpan.append($('<span class="inner"></span>'));
+                    lstSpan.children('span.inner:last').append($(`tr.folder-id-${folderTrId} div.folder-storage > tr > td.ct-name > span.outer > span.inner > span.appname:last`).clone().addClass(`${autostart ? 'autostart' : ''}`));
+                    if(folder.settings.context === 2 || folder.settings.context === 0) {
+                        let tmpId = $(`tr.folder-id-${folderTrId} div.folder-preview span.inner:last > span.appname > a.exec`);
+                        tmpId.attr("id", "folder-preview-" + ctid);
+                        tmpId.removeAttr("onclick");
+                        if(folder.settings.context === 2) {
+                            return tmpId.length>0 ? tmpId : $(`tr.folder-id-${folderTrId} div.folder-preview span.inner:last > span.appname`).attr("id", "folder-preview-" + ctid);
+                        }
+                    }
+                    return;
+                }
                 const { $item, $tooltipTrigger } = buildDockerPreviewItem({ entry: previewEntry, settings: folder.settings, autostart });
                 $(`tr.folder-id-${folderTrId} div.folder-preview`).append($item);
                 if (folder.settings.context === 2 || folder.settings.context === 0) {

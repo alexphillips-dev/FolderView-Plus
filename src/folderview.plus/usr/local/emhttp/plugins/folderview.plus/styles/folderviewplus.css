@@ -1364,10 +1364,8 @@ body.fv-mobile-compact #fv-settings-root .row-order-error {
     display: none !important;
 }
 
-#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-docker tbody#docker td:nth-child(1),
-#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-vm tbody#vms td:nth-child(1),
-body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-docker tbody#docker td:nth-child(1),
-body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-vm tbody#vms td:nth-child(1) {
+#fv-settings-root.fv-mobile-compact:is(.fv-mobile-tree-reorder-docker, .fv-mobile-tree-reorder-vm) :is(tbody#docker, tbody#vms) td:nth-child(1),
+body.fv-mobile-compact #fv-settings-root:is(.fv-mobile-tree-reorder-docker, .fv-mobile-tree-reorder-vm) :is(tbody#docker, tbody#vms) td:nth-child(1) {
     display: table-cell !important;
     width: 11% !important;
     min-width: 44px !important;
@@ -1375,35 +1373,23 @@ body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-vm tbody#vms td:
     padding: 0.22rem 0.15rem !important;
 }
 
-#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-docker .folder-table table td.actions-cell,
-#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-vm .folder-table table td.actions-cell,
-body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-docker .folder-table table td.actions-cell,
-body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-vm .folder-table table td.actions-cell {
+#fv-settings-root.fv-mobile-compact:is(.fv-mobile-tree-reorder-docker, .fv-mobile-tree-reorder-vm) .folder-table table td.actions-cell,
+body.fv-mobile-compact #fv-settings-root:is(.fv-mobile-tree-reorder-docker, .fv-mobile-tree-reorder-vm) .folder-table table td.actions-cell {
     width: 17% !important;
 }
 
-#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-docker .folder-table table th:nth-child(2),
-#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-docker .folder-table table td:nth-child(2),
-#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-vm .folder-table table th:nth-child(2),
-#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-vm .folder-table table td:nth-child(2),
-body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-docker .folder-table table th:nth-child(2),
-body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-docker .folder-table table td:nth-child(2),
-body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-vm .folder-table table th:nth-child(2),
-body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-vm .folder-table table td:nth-child(2) {
+#fv-settings-root.fv-mobile-compact:is(.fv-mobile-tree-reorder-docker, .fv-mobile-tree-reorder-vm) .folder-table table :is(th:nth-child(2), td:nth-child(2)),
+body.fv-mobile-compact #fv-settings-root:is(.fv-mobile-tree-reorder-docker, .fv-mobile-tree-reorder-vm) .folder-table table :is(th:nth-child(2), td:nth-child(2)) {
     width: 72% !important;
 }
 
-#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-docker tbody#docker .row-order-actions,
-#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-vm tbody#vms .row-order-actions,
-body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-docker tbody#docker .row-order-actions,
-body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-vm tbody#vms .row-order-actions {
+#fv-settings-root.fv-mobile-compact:is(.fv-mobile-tree-reorder-docker, .fv-mobile-tree-reorder-vm) :is(tbody#docker, tbody#vms) .row-order-actions,
+body.fv-mobile-compact #fv-settings-root:is(.fv-mobile-tree-reorder-docker, .fv-mobile-tree-reorder-vm) :is(tbody#docker, tbody#vms) .row-order-actions {
     display: inline-flex !important;
 }
 
-#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-docker tbody#docker .row-order-actions button,
-#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-vm tbody#vms .row-order-actions button,
-body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-docker tbody#docker .row-order-actions button,
-body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-vm tbody#vms .row-order-actions button {
+#fv-settings-root.fv-mobile-compact:is(.fv-mobile-tree-reorder-docker, .fv-mobile-tree-reorder-vm) :is(tbody#docker, tbody#vms) .row-order-actions button,
+body.fv-mobile-compact #fv-settings-root:is(.fv-mobile-tree-reorder-docker, .fv-mobile-tree-reorder-vm) :is(tbody#docker, tbody#vms) .row-order-actions button {
     display: inline-flex !important;
 }
 
@@ -3796,11 +3782,6 @@ body.fv-mobile-compact .fv-setup-field-grid {
     align-items: center;
     gap: 0.22rem;
     min-width: min(360px, 42vw);
-}
-
-.fv-settings-label {
-    font-weight: 600;
-    opacity: 0.9;
 }
 
 .fv-mode-toggle {

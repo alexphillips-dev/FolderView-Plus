@@ -20,6 +20,8 @@ test('vm runtime page loads shared runtime module before vm runtime script', () 
 test('vm runtime consumes shared state/perf/action modules and exposes telemetry snapshots', () => {
     assert.match(vmJs, /^\/\/ @ts-check/m);
     assert.match(vmJs, /const runtimeShared = window\.FolderViewDockerRuntimeShared \|\| \{\};/);
+    assert.match(vmJs, /const createRuntimeDebugLogger = typeof runtimeShared\.createDebugLogger === 'function'/);
+    assert.match(vmJs, /const vmDebug = createRuntimeDebugLogger\(VM_DEBUG_MODE, 'folderview\.plus vm'\);/);
     assert.match(vmJs, /const vmRuntimeStateStore = createVmRuntimeStateStore\(/);
     assert.match(vmJs, /const vmActionBoundary = createVmAsyncActionBoundary\(/);
     assert.match(vmJs, /const vmSafeUiActionRunner = createVmSafeUiActionRunner\(\);/);

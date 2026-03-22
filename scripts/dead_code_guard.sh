@@ -43,6 +43,10 @@ const nonCssFiles = allFiles.filter((file) => (
 ));
 
 const selectorUsage = new Map();
+const generatedSelectorPrefixes = [
+  '.fv-mobile-tree-reorder-',
+  '#fv-mobile-tree-reorder-'
+];
 const registerSelector = (selector, relFile) => {
   if (!selector) return;
   if (!selector.startsWith('.fv') && !selector.startsWith('#fv')) {
@@ -74,6 +78,9 @@ for (const file of nonCssFiles) {
 
 const suspects = [];
 for (const [selector, usage] of selectorUsage.entries()) {
+  if (generatedSelectorPrefixes.some((prefix) => selector.startsWith(prefix))) {
+    continue;
+  }
   if (usage.nonCssRefs.size === 0 && usage.cssRefs.size <= 1) {
     suspects.push({
       selector,

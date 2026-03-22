@@ -14,6 +14,93 @@
         return /** @type {T} */ ({ ...value });
     };
 
+    const DEFAULT_FOLDER_STATUS_COLORS = Object.freeze({
+        started: '#ffffff',
+        paused: '#b8860b',
+        stopped: '#ff4d4d'
+    });
+    const DEFAULT_PREVIEW_BORDER_COLOR = '#afa89e';
+    const FOLDER_STATUS_COLOR_STYLE_PROPS = Object.freeze({
+        started: '--fvplus-folder-status-started',
+        paused: '--fvplus-folder-status-paused',
+        stopped: '--fvplus-folder-status-stopped'
+    });
+
+    const normalizeStatusHexColor = (value, fallback) => {
+        if (typeof value !== 'string') {
+            return fallback;
+        }
+        const trimmed = value.trim();
+        if (!/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(trimmed)) {
+            return fallback;
+        }
+        if (trimmed.length === 4) {
+            return `#${trimmed[1]}${trimmed[1]}${trimmed[2]}${trimmed[2]}${trimmed[3]}${trimmed[3]}`.toLowerCase();
+        }
+        return trimmed.toLowerCase();
+    };
+
+    const isPreviewBorderEnabled = (settings) => {
+        const source = settings && typeof settings === 'object' ? settings : {};
+        if (Object.prototype.hasOwnProperty.call(source, 'preview_border')) {
+            const raw = String(source.preview_border ?? '').trim().toLowerCase();
+            const explicitOff = raw === '0' || raw === 'false' || raw === 'off' || raw === 'no';
+            return !explicitOff;
+        }
+        return true;
+    };
+
+    const getFolderStatusColors = (settings) => {
+        const source = settings && typeof settings === 'object' ? settings : {};
+        return {
+            started: normalizeStatusHexColor(source.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started),
+            paused: normalizeStatusHexColor(source.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused),
+            stopped: normalizeStatusHexColor(source.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped)
+        };
+    };
+
+    const getFolderStatusColorOverrides = (settings) => {
+        const colors = getFolderStatusColors(settings);
+        return {
+            started: colors.started !== DEFAULT_FOLDER_STATUS_COLORS.started ? colors.started : '',
+            paused: colors.paused !== DEFAULT_FOLDER_STATUS_COLORS.paused ? colors.paused : '',
+            stopped: colors.stopped !== DEFAULT_FOLDER_STATUS_COLORS.stopped ? colors.stopped : ''
+        };
+    };
+
+    const applyFolderStatusColorOverrides = ($folderRow, settings) => {
+        if (!$folderRow || !$folderRow.length || !$folderRow[0] || !$folderRow[0].style) {
+            return;
+        }
+        const style = $folderRow[0].style;
+        const overrides = getFolderStatusColorOverrides(settings);
+        style.removeProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.started);
+        style.removeProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.paused);
+        style.removeProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.stopped);
+        if (overrides.started) {
+            style.setProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.started, overrides.started);
+        }
+        if (overrides.paused) {
+            style.setProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.paused, overrides.paused);
+        }
+        if (overrides.stopped) {
+            style.setProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.stopped, overrides.stopped);
+        }
+    };
+
+    const applyPreviewBorderStyle = (previewNode, settings) => {
+        if (!previewNode) {
+            return;
+        }
+        const source = settings && typeof settings === 'object' ? settings : {};
+        const enabled = isPreviewBorderEnabled(source);
+        if (previewNode.classList && typeof previewNode.classList.toggle === 'function') {
+            previewNode.classList.toggle('fv-preview-border-off', !enabled);
+        }
+        const previewColor = normalizeStatusHexColor(source.preview_border_color, DEFAULT_PREVIEW_BORDER_COLOR);
+        previewNode.style.setProperty('border', enabled ? `1px solid ${previewColor}` : 'none', 'important');
+    };
+
     /**
      * Lightweight runtime store for Docker tab state.
      * @param {Record<string, any>} initialState
@@ -329,6 +416,22 @@
         };
     };
 
+    const createDebugLogger = (enabled = false, namespace = 'folderview.plus') => {
+        const shouldLog = enabled === true;
+        const prefix = String(namespace || 'folderview.plus').trim() || 'folderview.plus';
+        const emit = (method, args) => {
+            if (!shouldLog || typeof console?.[method] !== 'function') {
+                return;
+            }
+            console[method](`[${prefix}]`, ...args);
+        };
+        return Object.freeze({
+            log: (...args) => emit('log', args),
+            warn: (...args) => emit('warn', args),
+            error: (...args) => emit('error', args)
+        });
+    };
+
     const layoutTokens = Object.freeze({
         folderRightGutterPx: 28,
         folderOuterReservedPx: 106,
@@ -339,11 +442,21 @@
     });
 
     window.FolderViewDockerRuntimeShared = {
+        DEFAULT_FOLDER_STATUS_COLORS,
+        DEFAULT_PREVIEW_BORDER_COLOR,
+        FOLDER_STATUS_COLOR_STYLE_PROPS,
+        normalizeStatusHexColor,
+        isPreviewBorderEnabled,
+        getFolderStatusColors,
+        getFolderStatusColorOverrides,
+        applyFolderStatusColorOverrides,
+        applyPreviewBorderStyle,
         createRuntimeStateStore,
         createAsyncActionBoundary,
         createContextMenuQuickStripAdapter,
         createRuntimePerfTelemetry,
         createSafeUiActionRunner,
+        createDebugLogger,
         resolveRuntimePerformanceProfile,
         runtimeContracts,
         layoutTokens

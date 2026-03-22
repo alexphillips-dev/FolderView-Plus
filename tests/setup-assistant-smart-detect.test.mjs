@@ -9,12 +9,17 @@ const wizardJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js'
 );
+const smartDetectConfigPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js'
+);
 const settingsJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js'
 );
 
 const wizardJs = fs.readFileSync(wizardJsPath, 'utf8');
+const smartDetectConfigJs = fs.readFileSync(smartDetectConfigPath, 'utf8');
 const settingsJs = fs.readFileSync(settingsJsPath, 'utf8');
 
 const startMarker = 'const normalizeSetupAssistantMatchText =';
@@ -65,6 +70,7 @@ const loadSmartDetectHelpers = (infoByType) => {
         Array,
         JSON
     };
+    context.window = context;
     context.globalThis = context;
     vm.createContext(context);
     new vm.Script([
@@ -92,6 +98,7 @@ const loadStarterSelectionHelpers = (infoByType) => {
         Array,
         JSON
     };
+    context.window = context;
     context.globalThis = context;
     vm.createContext(context);
     new vm.Script([
@@ -154,6 +161,15 @@ test('wizard smart detect uses compose metadata and template metadata for docker
     assert.equal(preview.unmatched, 0);
     assert.deepEqual(Array.from(preview.assignedByTemplate.Media || []).sort(), ['overseerr', 'photos-app', 'tdarr-node']);
     assert.deepEqual(Array.from(preview.assignedByTemplate.Network || []), ['adguard-home']);
+});
+
+test('smart detect thresholds and aliases are centralized in the shared config module', () => {
+    assert.match(smartDetectConfigJs, /const FVPLUS_SMART_DETECT_MATCH_THRESHOLD = 4;/);
+    assert.match(smartDetectConfigJs, /const FVPLUS_SMART_DETECT_CONFIDENT_THRESHOLD = 8;/);
+    assert.match(smartDetectConfigJs, /const FVPLUS_SMART_DETECT_FALLBACK_BY_TYPE = Object\.freeze\(/);
+    assert.match(smartDetectConfigJs, /const FVPLUS_SMART_DETECT_MATCH_ALIASES = Object\.freeze\(/);
+    assert.match(wizardJs, /window\.FolderViewPlusSmartDetectConfig \|\| \{\}/);
+    assert.match(settingsJs, /window\.FolderViewPlusSmartDetectConfig \|\| \{\}/);
 });
 
 test('starter template blueprints include broader docker smart-detect coverage for common stacks', () => {

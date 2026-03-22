@@ -22,9 +22,10 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(sharedIndex < runtimeIndex, 'shared runtime must load before docker.js');
 });
 
-test('docker shared runtime module exports state store, async boundary, quick strip adapter, and telemetry', () => {
+test('docker shared runtime module exports state store, debug logger, async boundary, quick strip adapter, and telemetry', () => {
     assert.match(dockerSharedJs, /^\/\/ @ts-check/m);
     assert.match(dockerSharedJs, /const createRuntimeStateStore =/);
+    assert.match(dockerSharedJs, /const createDebugLogger = \(enabled = false, namespace = 'folderview\.plus'\) =>/);
     assert.match(dockerSharedJs, /const createAsyncActionBoundary =/);
     assert.match(dockerSharedJs, /const createContextMenuQuickStripAdapter =/);
     assert.match(dockerSharedJs, /const createRuntimePerfTelemetry =/);
@@ -36,6 +37,7 @@ test('docker shared runtime module exports state store, async boundary, quick st
 
 test('docker runtime consumes shared state store and guarded async action wrappers', () => {
     assert.match(dockerJs, /const dockerRuntimeShared = window\.FolderViewDockerRuntimeShared \|\| \{\};/);
+    assert.match(dockerJs, /dockerRuntimeShared\.createDebugLogger/);
     assert.match(dockerJs, /const dockerRuntimeStateStore = createDockerRuntimeStateStore\(/);
     assert.match(dockerJs, /const dockerActionBoundary = createDockerAsyncActionBoundary\(/);
     assert.match(dockerJs, /const runDockerGuardedAction = async \(actionName, action, context = \{\}\) =>/);

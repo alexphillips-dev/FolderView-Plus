@@ -48,6 +48,10 @@ const settingsJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
 );
+const diagnosticsJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js'
+);
 const folderEditorJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js'
@@ -76,10 +80,11 @@ const dockerCss = fs.readFileSync(dockerCssPath, 'utf8');
 const vmCss = fs.readFileSync(vmCssPath, 'utf8');
 const dockerModulesJs = fs.readFileSync(dockerModulesPath, 'utf8');
 const settingsJs = fs.readFileSync(settingsJsPath, 'utf8');
+const diagnosticsJs = fs.readFileSync(diagnosticsJsPath, 'utf8');
 const folderEditorJs = fs.readFileSync(folderEditorJsPath, 'utf8');
 const utilsJs = fs.readFileSync(utilsJsPath, 'utf8');
 const settingsImportJs = fs.readFileSync(settingsImportJsPath, 'utf8');
-const settingsRuntime = `${settingsJs}\n${settingsImportJs}`;
+const settingsRuntime = `${settingsJs}\n${settingsImportJs}\n${diagnosticsJs}`;
 const settingsPage = fs.readFileSync(settingsPagePath, 'utf8');
 
 test('read_info supports cached full/state payload retrieval', () => {

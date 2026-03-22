@@ -14,6 +14,8 @@ const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/
 const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js');
 const settingsCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css');
 const settingsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js');
+const diagnosticsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js');
+const sharedRuntimeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js');
 
 test('runtime css defines canonical fvplus status tokens and legacy graph aliases', () => {
     assert.match(dockerCss, /--fvplus-theme-foreground:\s*var\(--fvplus-runtime-theme-foreground,\s*var\(--text,\s*currentColor\)\)/);
@@ -43,9 +45,10 @@ test('dashboard quick action palette is tokenized', () => {
 });
 
 test('runtime scripts avoid inline status color painting and use row-level css variable overrides', () => {
-    assert.match(dockerJs, /const FOLDER_STATUS_COLOR_STYLE_PROPS = Object\.freeze/);
+    assert.match(sharedRuntimeJs, /const FOLDER_STATUS_COLOR_STYLE_PROPS = Object\.freeze/);
+    assert.match(sharedRuntimeJs, /const applyFolderStatusColorOverrides = \(\$folderRow, settings\) =>/);
     assert.match(dockerJs, /applyFolderStatusColorOverrides\(\$folderRow,\s*folder\.settings\)/);
-    assert.match(vmJs, /const FOLDER_STATUS_COLOR_STYLE_PROPS = Object\.freeze/);
+    assert.match(vmJs, /const applyFolderStatusColorOverrides = typeof runtimeShared\.applyFolderStatusColorOverrides === 'function'/);
     assert.match(vmJs, /applyFolderStatusColorOverrides\(\$folderRow,\s*folder\.settings\)/);
     assert.doesNotMatch(dockerJs, /\.css\('color',\s*statusColors\./);
     assert.doesNotMatch(vmJs, /\.css\('color',\s*statusColors\./);
@@ -62,5 +65,5 @@ test('theme-change observers trigger deterministic reflow across runtime and set
     assert.match(settingsJs, /const initThemeAwareSettingsReflow/);
     assert.match(settingsJs, /const buildResolvedThemeSnapshot = \(modeInput = null\) =>/);
     assert.match(settingsJs, /const applyResolvedThemeTokens = \(reason = 'runtime'\) =>/);
-    assert.match(settingsJs, /const runThemeSelfHeal = async \(\) =>/);
+    assert.match(diagnosticsJs, /const runThemeSelfHeal = async \(\) =>/);
 });

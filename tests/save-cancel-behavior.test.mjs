@@ -21,6 +21,7 @@ test('dirty tracker module exports reusable staged-save helpers', () => {
 
 test('settings save/cancel flow uses centralized dirty tracking and baseline restore', () => {
     assert.match(settingsJs, /const dirtyTracker = window\.FolderViewPlusDirtyTracker \|\| null;/);
+    assert.match(settingsJs, /const behaviorHint = String\(SECTION_APPLY_BEHAVIOR\?\.\[String\(section\.key \|\| ''\)\.trim\(\)\.toLowerCase\(\)\] \|\| ''\)\.trim\(\)\.toLowerCase\(\);/);
     assert.match(settingsJs, /const getChangedTrackedInputs = \(\) =>/);
     assert.match(settingsJs, /dirtyTracker\.getChangedInputs\(/);
     assert.match(settingsJs, /const saveActionBarChanges = async \(closeAfterSave = false\) =>/);

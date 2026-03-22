@@ -87,6 +87,55 @@ test('parseImportPayload requires explicit type metadata for schema exports', ()
     assert.match(parsed.error, /missing required type metadata/i);
 });
 
+test('parseImportPayload tolerates unresolved icon paths and nested parent references', () => {
+    const parsed = utils.parseImportPayload({
+        schemaVersion: utils.EXPORT_SCHEMA_VERSION,
+        pluginVersion: '2026.03.22.25',
+        exportedAt: '2026-03-22T16:10:00.000Z',
+        type: 'docker',
+        mode: 'full',
+        folders: {
+            media: {
+                name: 'Media',
+                icon: '/plugins/folderview.plus/images/third-party-icons/missing-pack/media.svg',
+                containers: ['plex']
+            },
+            books: {
+                name: 'Books',
+                icon: 'custom://missing-icons/books.svg',
+                parentId: 'media',
+                containers: ['audiobookshelf']
+            }
+        }
+    }, 'docker');
+
+    assert.equal(parsed.ok, true);
+    assert.equal(parsed.mode, 'full');
+    assert.equal(parsed.folders.media.icon, '/plugins/folderview.plus/images/third-party-icons/missing-pack/media.svg');
+    assert.equal(parsed.folders.books.icon, 'custom://missing-icons/books.svg');
+    assert.equal(parsed.folders.books.parentId, 'media');
+});
+
+test('parseImportPayload falls back to default icon when import icon payload is unreasonably large', () => {
+    const parsed = utils.parseImportPayload({
+        schemaVersion: utils.EXPORT_SCHEMA_VERSION,
+        pluginVersion: '2026.03.22.25',
+        exportedAt: '2026-03-22T16:10:00.000Z',
+        type: 'docker',
+        mode: 'full',
+        folders: {
+            huge: {
+                name: 'Oversized Icon',
+                icon: `data:image/svg+xml,${'x'.repeat(9000)}`,
+                containers: []
+            }
+        }
+    }, 'docker');
+
+    assert.equal(parsed.ok, true);
+    assert.equal(parsed.folders.huge.icon, '/plugins/folderview.plus/images/folder-icon.png');
+});
+
 test('normalizeFolderMap trims ids and heals member lists', () => {
     const normalized = utils.normalizeFolderMap({
         '  alpha  ': {

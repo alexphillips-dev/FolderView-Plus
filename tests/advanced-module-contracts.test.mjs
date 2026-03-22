@@ -8,6 +8,7 @@ const settingsScriptPaths = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js',
@@ -49,7 +50,9 @@ test('advanced backup and template mutations are lock-guarded', () => {
 test('split settings modules publish globals for cross-script browser compatibility', () => {
     assert.match(script, /Object\.assign\(window,\s*\{[\s\S]*tableIdByType/);
     assert.match(script, /Object\.assign\(window,\s*\{[\s\S]*ADVANCED_TAB_STORAGE_KEY/);
+    assert.match(script, /Object\.assign\(window,\s*\{[\s\S]*SECTION_APPLY_BEHAVIOR/);
     assert.match(script, /Object\.assign\(window,\s*\{[\s\S]*SETUP_ASSISTANT_DONE_STORAGE_KEY/);
+    assert.match(script, /Object\.assign\(window,\s*\{[\s\S]*FVPLUS_SMART_DETECT_MATCH_THRESHOLD/);
     assert.match(script, /Object\.assign\(window,\s*\{[\s\S]*STARTER_TEMPLATE_BLUEPRINTS/);
     assert.match(script, /Object\.assign\(window,\s*\{[\s\S]*postPrefs/);
     assert.match(script, /Object\.assign\(window,\s*\{[\s\S]*openFolderRowQuickActions/);

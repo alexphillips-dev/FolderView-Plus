@@ -7,6 +7,7 @@ today_version="$(date +"%Y.%m.%d")"
 version="${today_version}.01"
 plgfile="$CWD/folderview.plus.plg"
 xmlfile="$CWD/folderview.plus.xml"
+beta_xmlfile="$CWD/folderview.plus.beta.xml"
 release_guard_script="$CWD/scripts/release_guard.sh"
 install_smoke_script="$CWD/scripts/install_smoke.sh"
 ensure_changes_entry_script="$CWD/scripts/ensure_plg_changes_entry.sh"
@@ -181,10 +182,35 @@ ensure_repo_layout() {
         echo "ERROR: Missing CA template file: $xmlfile" >&2
         exit 1
     fi
+    if [ ! -f "$beta_xmlfile" ]; then
+        echo "ERROR: Missing beta CA template file: $beta_xmlfile" >&2
+        exit 1
+    fi
     if [ ! -d "$CWD/src/folderview.plus" ]; then
         echo "ERROR: Missing plugin source directory: $CWD/src/folderview.plus" >&2
         exit 1
     fi
+}
+
+sync_ca_template_metadata() {
+    local target_file="${1:-}"
+    local target_date="${2:-}"
+    local target_branch="${3:-}"
+    local beta_flag="${4:-False}"
+    local template_name="${5:-FolderView Plus}"
+    if [ -z "$target_file" ] || [ -z "$target_date" ] || [ -z "$target_branch" ]; then
+        echo "ERROR: sync_ca_template_metadata requires file, date, and branch." >&2
+        exit 1
+    fi
+    if [ ! -f "$target_file" ]; then
+        echo "ERROR: Missing CA template file: $target_file" >&2
+        exit 1
+    fi
+    sed -i "s|<Date>.*</Date>|<Date>${target_date}</Date>|" "$target_file"
+    sed -i "s|<PluginURL>.*</PluginURL>|<PluginURL>https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/${target_branch}/folderview.plus.plg</PluginURL>|" "$target_file"
+    sed -i "s|<Icon>.*</Icon>|<Icon>https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/${target_branch}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/images/folder-icon.png</Icon>|" "$target_file"
+    sed -i "s|<Beta>.*</Beta>|<Beta>${beta_flag}</Beta>|" "$target_file"
+    sed -i "s|<Name>.*</Name>|<Name>${template_name}</Name>|" "$target_file"
 }
 
 acquire_build_lock() {
@@ -546,11 +572,10 @@ sed -i "s/<!ENTITY md5.*>/<!ENTITY md5 \"$md5\">/" "$plgfile"
 
 # Keep CA template date aligned with the release version date.
 if [ -n "$xml_date" ]; then
-    if [ -f "$xmlfile" ]; then
-        sed -i "s|<Date>.*</Date>|<Date>${xml_date}</Date>|" "$xmlfile"
+    if [ "$branch" = "beta" ]; then
+        sync_ca_template_metadata "$beta_xmlfile" "$xml_date" "beta" "True" "FolderView Plus Beta"
     else
-        echo "ERROR: Missing CA template file: $xmlfile" >&2
-        exit 1
+        sync_ca_template_metadata "$xmlfile" "$xml_date" "main" "False" "FolderView Plus"
     fi
 fi
 

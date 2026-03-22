@@ -3,7 +3,9 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PLG_FILE="${ROOT_DIR}/folderview.plus.plg"
-CA_TEMPLATE_FILE="${ROOT_DIR}/folderview.plus.xml"
+PRIMARY_CA_TEMPLATE_FILE="${ROOT_DIR}/folderview.plus.xml"
+BETA_CA_TEMPLATE_FILE="${ROOT_DIR}/folderview.plus.beta.xml"
+CA_TEMPLATE_FILE="${PRIMARY_CA_TEMPLATE_FILE}"
 PLUGIN_SRC_DIR="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus"
 SERVER_DIR="${PLUGIN_SRC_DIR}/server"
 ARCHIVE_DIR="${FVPLUS_ARCHIVE_DIR:-${ROOT_DIR}/archive}"
@@ -11,7 +13,7 @@ MAX_ARCHIVE_BYTES="${FVPLUS_MAX_ARCHIVE_BYTES:-52428800}" # 50 MiB default ceili
 MAX_ARCHIVE_FILE_COUNT="${FVPLUS_MAX_ARCHIVE_FILE_COUNT:-10000}"
 
 packaging_sync_hint() {
-  echo "HINT: Run 'bash pkg_build.sh' and commit updated release artifacts (folderview.plus.plg + archive/*.txz + archive/*.sha256)." >&2
+  echo "HINT: Run 'bash pkg_build.sh' and commit updated release artifacts (folderview.plus.plg + folderview.plus.xml/folderview.plus.beta.xml + archive/*.txz + archive/*.sha256)." >&2
 }
 
 fail_packaged_source_mismatch() {
@@ -82,6 +84,18 @@ if [[ "${VERSION}" =~ ^([0-9]{4}\.[0-9]{2}\.[0-9]{2})(\.[0-9]{2,}|-beta[0-9]*)$ 
   fi
 fi
 
+EXPECTED_PLUGIN_BRANCH="${FVPLUS_EXPECT_PLUGIN_BRANCH:-}"
+if [[ -z "${EXPECTED_PLUGIN_BRANCH}" ]]; then
+  if [[ -n "${GITHUB_REF_NAME:-}" ]]; then
+    EXPECTED_PLUGIN_BRANCH="${GITHUB_REF_NAME#refs/heads/}"
+  elif command -v git >/dev/null 2>&1 && git -C "${ROOT_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    EXPECTED_PLUGIN_BRANCH="$(git -C "${ROOT_DIR}" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+  fi
+fi
+if [[ "${EXPECTED_PLUGIN_BRANCH}" == "beta" ]]; then
+  CA_TEMPLATE_FILE="${BETA_CA_TEMPLATE_FILE}"
+fi
+
 if [[ ! -f "${CA_TEMPLATE_FILE}" ]]; then
   echo "ERROR: Missing CA template file: ${CA_TEMPLATE_FILE}" >&2
   exit 1
@@ -98,13 +112,14 @@ if [[ "${CA_TEMPLATE_DATE}" != "${EXPECTED_CA_TEMPLATE_DATE}" ]]; then
   echo "ERROR: CA template <Date> mismatch. expected=${EXPECTED_CA_TEMPLATE_DATE}, found=${CA_TEMPLATE_DATE}" >&2
   exit 1
 fi
-
-EXPECTED_PLUGIN_BRANCH="${FVPLUS_EXPECT_PLUGIN_BRANCH:-}"
-if [[ -z "${EXPECTED_PLUGIN_BRANCH}" ]]; then
-  if [[ -n "${GITHUB_REF_NAME:-}" ]]; then
-    EXPECTED_PLUGIN_BRANCH="${GITHUB_REF_NAME#refs/heads/}"
-  elif command -v git >/dev/null 2>&1 && git -C "${ROOT_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    EXPECTED_PLUGIN_BRANCH="$(git -C "${ROOT_DIR}" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+if [[ "${EXPECTED_PLUGIN_BRANCH}" == "beta" ]]; then
+  if ! grep -q '<Beta>True</Beta>' "${CA_TEMPLATE_FILE}"; then
+    echo "ERROR: Beta CA template must advertise <Beta>True</Beta>." >&2
+    exit 1
+  fi
+  if ! grep -q '<PluginURL>https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/beta/folderview.plus.plg</PluginURL>' "${CA_TEMPLATE_FILE}"; then
+    echo "ERROR: Beta CA template PluginURL must target the beta branch." >&2
+    exit 1
   fi
 fi
 
@@ -167,6 +182,7 @@ SOURCE_SETTINGS_DIRTY_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugi
 SOURCE_SETTINGS_RUNTIME_PARITY_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js"
 SOURCE_SETTINGS_SECTIONS_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js"
 SOURCE_SETTINGS_SETUP_ASSISTANT_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js"
+SOURCE_SETTINGS_SMART_DETECT_CONFIG_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js"
 SOURCE_SETTINGS_STARTER_TEMPLATES_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js"
 SOURCE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js"
 SOURCE_SETTINGS_FOLDER_EDITOR_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js"
@@ -204,6 +220,10 @@ if [[ ! -f "${SOURCE_SETTINGS_SECTIONS_JS}" ]]; then
 fi
 if [[ ! -f "${SOURCE_SETTINGS_SETUP_ASSISTANT_JS}" ]]; then
   echo "ERROR: Missing source settings setup assistant support script: ${SOURCE_SETTINGS_SETUP_ASSISTANT_JS}" >&2
+  exit 1
+fi
+if [[ ! -f "${SOURCE_SETTINGS_SMART_DETECT_CONFIG_JS}" ]]; then
+  echo "ERROR: Missing source settings smart-detect config script: ${SOURCE_SETTINGS_SMART_DETECT_CONFIG_JS}" >&2
   exit 1
 fi
 if [[ ! -f "${SOURCE_SETTINGS_STARTER_TEMPLATES_JS}" ]]; then
@@ -285,6 +305,7 @@ REQUIRED_ARCHIVE_PATHS=(
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js"
@@ -459,6 +480,7 @@ TMP_ARCHIVE_SETTINGS_DIRTY_JS="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_RUNTIME_PARITY_JS="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_SECTIONS_JS="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_SETUP_ASSISTANT_JS="$(mktemp)"
+TMP_ARCHIVE_SETTINGS_SMART_DETECT_CONFIG_JS="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_STARTER_TEMPLATES_JS="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_FOLDER_EDITOR_JS="$(mktemp)"
@@ -469,7 +491,7 @@ TMP_ARCHIVE_FOLDER_PAGE="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_PAGE="$(mktemp)"
 TMP_ARCHIVE_SERVER_LIB="$(mktemp)"
 TMP_ARCHIVE_SERVER_UPDATE_NOTES="$(mktemp)"
-trap 'rm -f "${TMP_ARCHIVE_FOLDER_JS}" "${TMP_ARCHIVE_FOLDER_CSS}" "${TMP_ARCHIVE_SETTINGS_JS}" "${TMP_ARCHIVE_SETTINGS_DIRTY_JS}" "${TMP_ARCHIVE_SETTINGS_RUNTIME_PARITY_JS}" "${TMP_ARCHIVE_SETTINGS_SECTIONS_JS}" "${TMP_ARCHIVE_SETTINGS_SETUP_ASSISTANT_JS}" "${TMP_ARCHIVE_SETTINGS_STARTER_TEMPLATES_JS}" "${TMP_ARCHIVE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS}" "${TMP_ARCHIVE_SETTINGS_FOLDER_EDITOR_JS}" "${TMP_ARCHIVE_SETTINGS_WIZARD_JS}" "${TMP_ARCHIVE_SETTINGS_IMPORT_JS}" "${TMP_ARCHIVE_SETTINGS_CSS}" "${TMP_ARCHIVE_FOLDER_PAGE}" "${TMP_ARCHIVE_SETTINGS_PAGE}" "${TMP_ARCHIVE_SERVER_LIB}" "${TMP_ARCHIVE_SERVER_UPDATE_NOTES}"' EXIT
+trap 'rm -f "${TMP_ARCHIVE_FOLDER_JS}" "${TMP_ARCHIVE_FOLDER_CSS}" "${TMP_ARCHIVE_SETTINGS_JS}" "${TMP_ARCHIVE_SETTINGS_DIRTY_JS}" "${TMP_ARCHIVE_SETTINGS_RUNTIME_PARITY_JS}" "${TMP_ARCHIVE_SETTINGS_SECTIONS_JS}" "${TMP_ARCHIVE_SETTINGS_SETUP_ASSISTANT_JS}" "${TMP_ARCHIVE_SETTINGS_SMART_DETECT_CONFIG_JS}" "${TMP_ARCHIVE_SETTINGS_STARTER_TEMPLATES_JS}" "${TMP_ARCHIVE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS}" "${TMP_ARCHIVE_SETTINGS_FOLDER_EDITOR_JS}" "${TMP_ARCHIVE_SETTINGS_WIZARD_JS}" "${TMP_ARCHIVE_SETTINGS_IMPORT_JS}" "${TMP_ARCHIVE_SETTINGS_CSS}" "${TMP_ARCHIVE_FOLDER_PAGE}" "${TMP_ARCHIVE_SETTINGS_PAGE}" "${TMP_ARCHIVE_SERVER_LIB}" "${TMP_ARCHIVE_SERVER_UPDATE_NOTES}"' EXIT
 ARCHIVE_FOLDER_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folder.js"
 ARCHIVE_FOLDER_CSS_PATH="./usr/local/emhttp/plugins/folderview.plus/styles/folder.css"
 ARCHIVE_SETTINGS_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js"
@@ -477,6 +499,7 @@ ARCHIVE_SETTINGS_DIRTY_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scrip
 ARCHIVE_SETTINGS_RUNTIME_PARITY_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js"
 ARCHIVE_SETTINGS_SECTIONS_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js"
 ARCHIVE_SETTINGS_SETUP_ASSISTANT_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js"
+ARCHIVE_SETTINGS_SMART_DETECT_CONFIG_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js"
 ARCHIVE_SETTINGS_STARTER_TEMPLATES_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js"
 ARCHIVE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js"
 ARCHIVE_SETTINGS_FOLDER_EDITOR_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js"
@@ -507,6 +530,9 @@ if ! grep -Fxq "${ARCHIVE_SETTINGS_SECTIONS_JS_PATH}" <<< "${ARCHIVE_LIST}"; the
 fi
 if ! grep -Fxq "${ARCHIVE_SETTINGS_SETUP_ASSISTANT_JS_PATH}" <<< "${ARCHIVE_LIST}"; then
   ARCHIVE_SETTINGS_SETUP_ASSISTANT_JS_PATH="${ARCHIVE_SETTINGS_SETUP_ASSISTANT_JS_PATH#./}"
+fi
+if ! grep -Fxq "${ARCHIVE_SETTINGS_SMART_DETECT_CONFIG_JS_PATH}" <<< "${ARCHIVE_LIST}"; then
+  ARCHIVE_SETTINGS_SMART_DETECT_CONFIG_JS_PATH="${ARCHIVE_SETTINGS_SMART_DETECT_CONFIG_JS_PATH#./}"
 fi
 if ! grep -Fxq "${ARCHIVE_SETTINGS_STARTER_TEMPLATES_JS_PATH}" <<< "${ARCHIVE_LIST}"; then
   ARCHIVE_SETTINGS_STARTER_TEMPLATES_JS_PATH="${ARCHIVE_SETTINGS_STARTER_TEMPLATES_JS_PATH#./}"
@@ -545,6 +571,7 @@ tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_DIRTY_JS_PATH}" > "${TMP_ARCHIVE_
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_RUNTIME_PARITY_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_RUNTIME_PARITY_JS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_SECTIONS_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_SECTIONS_JS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_SETUP_ASSISTANT_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_SETUP_ASSISTANT_JS}"
+tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_SMART_DETECT_CONFIG_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_SMART_DETECT_CONFIG_JS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_STARTER_TEMPLATES_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_STARTER_TEMPLATES_JS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_FOLDER_EDITOR_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_FOLDER_EDITOR_JS}"
@@ -582,6 +609,9 @@ if ! text_files_match "${SOURCE_SETTINGS_SECTIONS_JS}" "${TMP_ARCHIVE_SETTINGS_S
 fi
 if ! text_files_match "${SOURCE_SETTINGS_SETUP_ASSISTANT_JS}" "${TMP_ARCHIVE_SETTINGS_SETUP_ASSISTANT_JS}"; then
   fail_packaged_source_mismatch "Packaged folderviewplus.setup-assistant.js does not match source folderviewplus.setup-assistant.js."
+fi
+if ! text_files_match "${SOURCE_SETTINGS_SMART_DETECT_CONFIG_JS}" "${TMP_ARCHIVE_SETTINGS_SMART_DETECT_CONFIG_JS}"; then
+  fail_packaged_source_mismatch "Packaged folderviewplus.smart-detect-config.js does not match source folderviewplus.smart-detect-config.js."
 fi
 if ! text_files_match "${SOURCE_SETTINGS_STARTER_TEMPLATES_JS}" "${TMP_ARCHIVE_SETTINGS_STARTER_TEMPLATES_JS}"; then
   fail_packaged_source_mismatch "Packaged folderviewplus.starter-templates.js does not match source folderviewplus.starter-templates.js."

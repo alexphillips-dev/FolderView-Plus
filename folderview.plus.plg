@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.22.25">
-<!ENTITY md5 "03a874751b5b595347364a6f1409d89d">
+<!ENTITY version "2026.03.22.27">
+<!ENTITY md5 "ca02da0bb59a737d070e43eed9830672">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.22.27
+- Refactor: Extract shared smart-detect configuration, runtime diagnostics helpers, and Docker/VM runtime helpers out of the remaining settings/runtime monoliths.
+- Maintenance: Add a first-class beta/testing channel manifest and harden release automation so stable, dev, and beta metadata stay isolated and validated.
+- Quality: Make dead-code checks strict in release prep, centralize smart-detect thresholds and aliases, and expand import/export contract coverage for legacy and edge-case payloads.
+- UX: Clarify section apply behavior, clean up settings CSS debt, and strengthen theme/mobile/dashboard regression coverage with performance telemetry baked into diagnostics and wizard apply flows.
+
 
 ###2026.03.22.25
 - UX: Remove the outdated `Mixed apply` section-header badge from settings now that the floating save pill menu is gone.

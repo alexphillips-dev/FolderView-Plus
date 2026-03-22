@@ -16,6 +16,7 @@ const settingsScriptPaths = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js',
@@ -64,6 +65,8 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
     assert.match(settingsPage, /folderviewplus\.request\.js/);
     assert.match(settingsPage, /folderviewplus\.chrome\.js/);
     assert.match(settingsPage, /folderviewplus\.dirty\.js/);
+    assert.match(settingsPage, /folderviewplus\.smart-detect-config\.js/);
+    assert.match(settingsPage, /folderviewplus\.activity-diagnostics\.js/);
     assert.match(settingsPage, /folderviewplus\.wizard\.js/);
     assert.match(settingsPage, /folderviewplus\.import\.js/);
     assert.match(settingsPage, /folderviewplus\.updates\.js/);

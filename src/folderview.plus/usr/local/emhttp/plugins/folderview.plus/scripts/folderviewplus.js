@@ -98,6 +98,9 @@ if (window.FolderViewPlusSettingsSectionsModuleLoaded !== true) {
 if (window.FolderViewPlusSetupAssistantSupportModuleLoaded !== true) {
     bootstrapMissingModules.push('folderviewplus.setup-assistant.js');
 }
+if (window.FolderViewPlusSmartDetectConfigModuleLoaded !== true) {
+    bootstrapMissingModules.push('folderviewplus.smart-detect-config.js');
+}
 if (window.FolderViewPlusStarterTemplatesModuleLoaded !== true) {
     bootstrapMissingModules.push('folderviewplus.starter-templates.js');
 }
@@ -388,36 +391,6 @@ const IMPORT_PRESET_BUILTINS = [
 ];
 const UPDATE_NOTES_CHANGELOG_URL = 'https://github.com/alexphillips-dev/FolderView-Plus/blob/main/folderview.plus.plg';
 const SUPPORT_THREAD_URL = 'https://forums.unraid.net/topic/197631-plugin-folderview-plus/';
-const PERF_DIAGNOSTICS_SAMPLE_LIMIT = 30;
-const performanceDiagnosticsState = {
-    refresh: { docker: [], vm: [] },
-    import: { docker: [], vm: [] },
-    updatedAt: 0
-};
-const REQUEST_ERROR_DIAGNOSTICS_LIMIT = 40;
-const requestErrorDiagnostics = [];
-const recordRequestErrorTelemetry = (method, url, error, extra = {}) => {
-    const statusMatch = String(error?.message || '').match(/\bHTTP\s+(\d{3})\b/i);
-    const statusCode = statusMatch ? Number(statusMatch[1]) : 0;
-    requestErrorDiagnostics.push({
-        at: new Date().toISOString(),
-        method: String(method || '').toUpperCase() || 'GET',
-        url: String(url || ''),
-        status: Number.isFinite(statusCode) ? Number(statusCode) : 0,
-        message: String(error?.message || error || 'Unknown request error'),
-        source: String(extra.source || ''),
-        retries: Number.isFinite(Number(extra.retries)) ? Number(extra.retries) : null,
-        timeoutMs: Number.isFinite(Number(extra.timeoutMs)) ? Number(extra.timeoutMs) : null
-    });
-    while (requestErrorDiagnostics.length > REQUEST_ERROR_DIAGNOSTICS_LIMIT) {
-        requestErrorDiagnostics.shift();
-    }
-};
-const getRequestErrorDiagnosticsSnapshot = () => ({
-    count: requestErrorDiagnostics.length,
-    last: requestErrorDiagnostics.length > 0 ? requestErrorDiagnostics[requestErrorDiagnostics.length - 1] : null,
-    samples: requestErrorDiagnostics.slice(-REQUEST_ERROR_DIAGNOSTICS_LIMIT)
-});
 const settingsUiState = {
     initialized: false,
     controlsInitialized: false,
@@ -1713,6 +1686,13 @@ const buildSettingsSections = () => {
 const getSectionApplyMode = (section) => {
     if (!section || !Array.isArray(section.nodes)) {
         return null;
+    }
+    const behaviorHint = String(SECTION_APPLY_BEHAVIOR?.[String(section.key || '').trim().toLowerCase()] || '').trim().toLowerCase();
+    if (behaviorHint === 'instant') {
+        return null;
+    }
+    if (behaviorHint === 'staged') {
+        return { id: 'staged', label: 'Requires Save' };
     }
     const seen = new Set();
     let hasInstantApply = false;
@@ -8858,84 +8838,6 @@ const renderTable = (type) => {
     enforceNoHorizontalOverflow();
 };
 
-const perfNowMs = () => ((window.performance && typeof window.performance.now === 'function')
-    ? window.performance.now()
-    : Date.now());
-
-const recordPerformanceDiagnosticsSample = (bucket, type, durationMs, details = {}) => {
-    const resolvedType = normalizeManagedType(type);
-    if (!performanceDiagnosticsState[bucket] || !Array.isArray(performanceDiagnosticsState[bucket][resolvedType])) {
-        return;
-    }
-    const duration = Number(durationMs);
-    if (!Number.isFinite(duration) || duration < 0) {
-        return;
-    }
-    const target = performanceDiagnosticsState[bucket][resolvedType];
-    target.push({
-        at: Date.now(),
-        durationMs: Number(duration.toFixed(2)),
-        details: details && typeof details === 'object' ? details : {}
-    });
-    if (target.length > PERF_DIAGNOSTICS_SAMPLE_LIMIT) {
-        target.splice(0, target.length - PERF_DIAGNOSTICS_SAMPLE_LIMIT);
-    }
-    performanceDiagnosticsState.updatedAt = Date.now();
-    renderPerformanceDiagnostics();
-};
-
-const summarizePerformanceDiagnosticsSamples = (samples) => {
-    const list = Array.isArray(samples) ? samples : [];
-    if (!list.length) {
-        return null;
-    }
-    const durations = list
-        .map((row) => Number(row?.durationMs))
-        .filter((value) => Number.isFinite(value) && value >= 0);
-    if (!durations.length) {
-        return null;
-    }
-    const total = durations.reduce((sum, value) => sum + value, 0);
-    return {
-        count: durations.length,
-        lastMs: Number(durations[durations.length - 1].toFixed(2)),
-        avgMs: Number((total / durations.length).toFixed(2)),
-        maxMs: Number(Math.max(...durations).toFixed(2))
-    };
-};
-
-const renderPerformanceDiagnostics = () => {
-    const host = $('#performance-diagnostics-output');
-    if (!host.length) {
-        return;
-    }
-    const renderRow = (label, summary) => {
-        if (!summary) {
-            return `<tr><th>${escapeHtml(label)}</th><td colspan="4">No samples yet</td></tr>`;
-        }
-        return `<tr><th>${escapeHtml(label)}</th><td>${summary.count}</td><td>${summary.lastMs}ms</td><td>${summary.avgMs}ms</td><td>${summary.maxMs}ms</td></tr>`;
-    };
-    const rows = [
-        renderRow('Docker refresh', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.refresh.docker)),
-        renderRow('VM refresh', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.refresh.vm)),
-        renderRow('Docker import', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.import.docker)),
-        renderRow('VM import', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.import.vm))
-    ].join('');
-    const updatedAt = performanceDiagnosticsState.updatedAt > 0
-        ? new Date(performanceDiagnosticsState.updatedAt).toLocaleString()
-        : 'Not yet sampled';
-    host.html(`
-        <div class="fv-perf-summary-note">Recent UI operation timings from this browser session.</div>
-        <table class="fv-perf-table">
-            <thead>
-                <tr><th>Operation</th><th>Samples</th><th>Last</th><th>Avg</th><th>Max</th></tr>
-            </thead>
-            <tbody>${rows}</tbody>
-        </table>
-        <div class="fv-perf-summary-note">Updated: ${escapeHtml(updatedAt)}</div>
-    `);
-};
-
 const refreshType = async (type) => {
     const startedAt = perfNowMs();
     const [folders, prefs, info] = await Promise.all([
@@ -9113,6 +9015,7 @@ const ensureAdvancedDataLoaded = async (options = {}) => {
 };
 
 const refreshCoreData = async () => {
+    const startedAt = perfNowMs();
     await Promise.all([refreshType('docker'), refreshType('vm')]);
     ensureRegexPresetUi('docker');
     ensureRegexPresetUi('vm');
@@ -9120,6 +9023,10 @@ const refreshCoreData = async () => {
     updateRuleLiveMatch('docker');
     updateRuleLiveMatch('vm');
     refreshSettingsUx();
+    recordPerformanceDiagnosticsSample('settings', 'bootstrap', perfNowMs() - startedAt, {
+        dockerFolders: Object.keys(getFolderMap('docker')).length,
+        vmFolders: Object.keys(getFolderMap('vm')).length
+    });
 };
 
 const refreshAll = async () => {
@@ -11157,266 +11064,6 @@ const runScheduledBackupNow = async (type) => {
             showError('Scheduler run failed', error);
         }
     });
-};
-
-const issueReportFromDiagnostics = (diagnostics) => {
-    const report = diagnostics || {};
-    const lines = [];
-    lines.push('# FolderView Plus Issue Report');
-    lines.push(`Generated: ${report.checkedAt || new Date().toISOString()}`);
-    lines.push(`Plugin version: ${report.pluginVersion || 'unknown'}`);
-    lines.push(`Privacy mode: ${report.privacyMode || 'sanitized'}`);
-    lines.push('');
-
-    const env = report.environment || {};
-    lines.push('## Environment');
-    lines.push(`- Unraid: ${env.unraidVersion || 'unknown'}`);
-    lines.push(`- PHP: ${env.phpVersion || 'unknown'}`);
-    lines.push(`- OS: ${env.os || 'unknown'}`);
-    lines.push('');
-
-    lines.push('## Type Summary');
-    for (const type of ['docker', 'vm']) {
-        const typeData = report.types?.[type] || {};
-        const integrity = typeData.integrityChecks || {};
-        const issueCount = Number.isFinite(Number(integrity.issuesCount))
-            ? Number(integrity.issuesCount)
-            : Number(integrity.issueCount || 0);
-        lines.push(`- ${type.toUpperCase()}: folders=${typeData.folderCount || 0}, rules=${typeData.ruleCount || 0}, backups=${typeData.backupCount || 0}, templates=${typeData.templateCount || 0}, issueCount=${issueCount}`);
-    }
-    lines.push('');
-
-    const timeline = Array.isArray(report.recentTimeline) ? report.recentTimeline.slice(0, 15) : [];
-    lines.push('## Recent Timeline');
-    if (!timeline.length) {
-        lines.push('- No recent timeline events available.');
-    } else {
-        for (const row of timeline) {
-            lines.push(`- ${row.timestamp || ''} | ${row.action || ''} | ${row.type || '-'} | ${row.status || 'ok'}${row.summary ? ` | ${row.summary}` : ''}`);
-        }
-    }
-    lines.push('');
-    lines.push('## Notes');
-    lines.push('- Attach `FolderView Plus Diagnostics.json` and support bundle export if available.');
-    return lines.join('\n');
-};
-
-const copyIssueReport = async () => {
-    try {
-        let diagnostics = lastDiagnostics;
-        if (!diagnostics) {
-            diagnostics = await getDiagnostics('sanitized');
-            renderDiagnostics(diagnostics);
-        }
-        const text = issueReportFromDiagnostics(diagnostics);
-
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            await navigator.clipboard.writeText(text);
-        } else {
-            const textarea = document.createElement('textarea');
-            textarea.value = text;
-            textarea.style.position = 'fixed';
-            textarea.style.opacity = '0';
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-        }
-        swal({
-            title: 'Copied',
-            text: 'Issue report copied to clipboard.',
-            type: 'success'
-        });
-    } catch (error) {
-        showError('Copy issue report failed', error);
-    }
-};
-
-const THEME_DIAGNOSTIC_TOKENS = Object.freeze([
-    '--fvplus-theme-foreground',
-    '--fvplus-runtime-theme-foreground',
-    '--fvplus-runtime-status-started',
-    '--fvplus-runtime-status-paused',
-    '--fvplus-runtime-status-stopped',
-    '--fvplus-status-started',
-    '--fvplus-status-paused',
-    '--fvplus-status-stopped',
-    '--fvplus-folder-status-started',
-    '--fvplus-folder-status-paused',
-    '--fvplus-folder-status-stopped',
-    '--fvplus-theme-text-primary',
-    '--fvplus-theme-text-muted',
-    '--fvplus-theme-text-dim',
-    '--fvplus-theme-border-subtle',
-    '--fvplus-theme-border-faint',
-    '--fvplus-theme-surface-muted',
-    '--fvplus-theme-surface-strong',
-    '--fvplus-theme-surface-panel',
-    '--fvplus-theme-accent',
-    '--fvplus-theme-accent-soft',
-    '--fvplus-theme-focus-ring',
-    '--fvplus-settings-text-primary',
-    '--fvplus-settings-text-muted',
-    '--fvplus-settings-surface-muted',
-    '--fvplus-settings-border-subtle'
-]);
-
-const readThemeTokenSnapshot = (styleDeclaration) => {
-    const output = {};
-    for (const token of THEME_DIAGNOSTIC_TOKENS) {
-        output[token] = styleDeclaration ? String(styleDeclaration.getPropertyValue(token) || '').trim() : '';
-    }
-    return output;
-};
-
-const collectThemeDiagnostics = () => {
-    const html = document.documentElement;
-    const body = document.body;
-    const root = document.getElementById('fv-settings-root');
-    const htmlStyle = html ? window.getComputedStyle(html) : null;
-    const bodyStyle = body ? window.getComputedStyle(body) : null;
-    const rootStyle = root ? window.getComputedStyle(root) : null;
-    const firstStartedState = document.querySelector('.folder-state.fv-folder-state-started');
-    const firstStoppedState = document.querySelector('.folder-state.fv-folder-state-stopped');
-    const firstStartedIcon = document.querySelector('i.folder-load-status.started');
-    const firstStoppedIcon = document.querySelector('i.folder-load-status.stopped');
-    const customStyleLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"][href]'))
-        .map((node) => String(node.getAttribute('href') || '').trim())
-        .filter((href) => href.includes('/plugins/folderview.plus/'));
-    const customScriptLinks = Array.from(document.querySelectorAll('script[src]'))
-        .map((node) => String(node.getAttribute('src') || '').trim())
-        .filter((src) => src.includes('/plugins/folderview.plus/'));
-
-    const warnings = [];
-    const htmlTokens = readThemeTokenSnapshot(htmlStyle);
-    if (!htmlTokens['--fvplus-status-started']) {
-        warnings.push('Missing --fvplus-status-started token value on document root.');
-    }
-    if (htmlTokens['--fvplus-status-started'] && htmlTokens['--fvplus-status-started'] === htmlTokens['--fvplus-status-stopped']) {
-        warnings.push('Started and stopped status tokens resolve to the same value.');
-    }
-    const startedSampleColor = firstStartedState ? window.getComputedStyle(firstStartedState).color : '';
-    const stoppedSampleColor = firstStoppedState ? window.getComputedStyle(firstStoppedState).color : '';
-    if (startedSampleColor && stoppedSampleColor && startedSampleColor === stoppedSampleColor) {
-        warnings.push('Runtime started/stopped state colors currently resolve to the same computed color.');
-    }
-    const resolverSnapshot = applyResolvedThemeTokens('diagnostics');
-    if (resolverSnapshot?.autoHealed) {
-        warnings.push(`Theme resolver auto-heal applied mode ${resolverSnapshot.appliedMode}.`);
-    }
-    if (Array.isArray(resolverSnapshot?.warnings)) {
-        warnings.push(...resolverSnapshot.warnings);
-    }
-
-    return {
-        generatedAt: new Date().toISOString(),
-        page: window.location.pathname || '',
-        htmlClassList: html ? Array.from(html.classList) : [],
-        bodyClassList: body ? Array.from(body.classList) : [],
-        htmlAttributes: html ? {
-            dataTheme: html.getAttribute('data-theme') || '',
-            dataBsTheme: html.getAttribute('data-bs-theme') || '',
-            theme: html.getAttribute('theme') || ''
-        } : {},
-        bodyAttributes: body ? {
-            dataTheme: body.getAttribute('data-theme') || '',
-            dataBsTheme: body.getAttribute('data-bs-theme') || '',
-            theme: body.getAttribute('theme') || ''
-        } : {},
-        tokens: {
-            html: htmlTokens,
-            body: readThemeTokenSnapshot(bodyStyle),
-            root: readThemeTokenSnapshot(rootStyle)
-        },
-        samples: {
-            rootBackgroundColor: rootStyle ? String(rootStyle.backgroundColor || '').trim() : '',
-            rootTextColor: rootStyle ? String(rootStyle.color || '').trim() : '',
-            startedStateColor: startedSampleColor,
-            stoppedStateColor: stoppedSampleColor,
-            startedIconColor: firstStartedIcon ? window.getComputedStyle(firstStartedIcon).color : '',
-            stoppedIconColor: firstStoppedIcon ? window.getComputedStyle(firstStoppedIcon).color : ''
-        },
-        modeByType: {
-            docker: normalizeThemeCompatibilityMode(prefsByType?.docker?.themeCompatibilityMode),
-            vm: normalizeThemeCompatibilityMode(prefsByType?.vm?.themeCompatibilityMode),
-            effective: normalizeThemeCompatibilityMode(getEffectiveThemeCompatibilityMode())
-        },
-        resolver: resolverSnapshot,
-        runtimeSelectors: {
-            startedStateCount: document.querySelectorAll('.folder-state.fv-folder-state-started').length,
-            stoppedStateCount: document.querySelectorAll('.folder-state.fv-folder-state-stopped').length,
-            startedIconCount: document.querySelectorAll('i.folder-load-status.started').length,
-            stoppedIconCount: document.querySelectorAll('i.folder-load-status.stopped').length
-        },
-        pluginAssets: {
-            stylesheets: customStyleLinks,
-            scripts: customScriptLinks
-        },
-        warnings
-    };
-};
-
-const runThemeDiagnostics = () => {
-    try {
-        const diagnostics = collectThemeDiagnostics();
-        $('#theme-diagnostics-output').text(toPrettyJson(diagnostics));
-        return diagnostics;
-    } catch (error) {
-        showError('Theme diagnostics failed', error);
-        return null;
-    }
-};
-
-const runThemeSelfHeal = async () => {
-    try {
-        const snapshot = buildResolvedThemeSnapshot('auto');
-        const contrastFailures = Array.isArray(snapshot?.contrastChecks)
-            ? snapshot.contrastChecks.filter((check) => !check.passed)
-            : [];
-        const statusFailures = [
-            snapshot?.statusChecks?.started,
-            snapshot?.statusChecks?.paused,
-            snapshot?.statusChecks?.stopped
-        ].filter((check) => check && Number(check.ratio || 0) < Number(check.minRatio || 0));
-        const needsHeal = contrastFailures.length > 0 || statusFailures.length > 0 || snapshot?.autoHealed === true;
-        if (!needsHeal) {
-            applyResolvedThemeTokens('self-heal-noop');
-            swal({
-                title: 'Theme looks healthy',
-                text: 'No fallback changes were needed.',
-                type: 'success',
-                timer: 1800,
-                showConfirmButton: false
-            });
-            runThemeDiagnostics();
-            return;
-        }
-        const targetMode = contrastFailures.some((check) => check.name === 'textPrimary')
-            ? 'highcontrast'
-            : 'safe';
-        for (const type of ['docker', 'vm']) {
-            const current = utils.normalizePrefs(prefsByType[type] || {});
-            if (normalizeThemeCompatibilityMode(current.themeCompatibilityMode) === targetMode) {
-                continue;
-            }
-            const next = {
-                ...current,
-                themeCompatibilityMode: targetMode
-            };
-            prefsByType[type] = await postPrefs(type, next);
-            renderRuntimeControls(type);
-        }
-        applyResolvedThemeTokens('self-heal-apply');
-        queueSettingsThemeAwareReflow('theme-self-heal');
-        runThemeDiagnostics();
-        swal({
-            title: 'Theme self-heal applied',
-            text: `Fallback mode switched to ${targetMode}.`,
-            type: 'success'
-        });
-    } catch (error) {
-        showError('Theme self-heal failed', error);
-    }
 };
 
 const runConflictInspector = async (type) => {

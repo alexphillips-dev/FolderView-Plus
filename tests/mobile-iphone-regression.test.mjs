@@ -8,6 +8,7 @@ const settingsScriptPaths = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js',
@@ -47,12 +48,10 @@ test('settings stylesheet keeps iPhone/touch control chrome reset guard', () => 
 test('mobile compact mode keeps optional tree reorder controls and path hints for narrow screens', () => {
     assert.match(settingsCss, /\.fv-tree-path-hint/);
     assert.match(settingsCss, /\.tree-management-controls > button\.is-active/);
-    assert.match(settingsCss, /fv-mobile-tree-reorder-docker/);
-    assert.match(settingsCss, /fv-mobile-tree-reorder-vm/);
-    assert.match(settingsCss, /tbody#docker td:nth-child\(1\)/);
-    assert.match(settingsCss, /tbody#vms td:nth-child\(1\)/);
-    assert.match(settingsCss, /tbody#docker \.row-order-actions/);
-    assert.match(settingsCss, /tbody#vms \.row-order-actions/);
+    assert.match(settingsCss, /\.fv-mobile-tree-reorder-docker/);
+    assert.match(settingsCss, /\.fv-mobile-tree-reorder-vm/);
+    assert.match(settingsCss, /:is\(tbody#docker, tbody#vms\) td:nth-child\(1\)/);
+    assert.match(settingsCss, /:is\(tbody#docker, tbody#vms\) \.row-order-actions/);
     assert.match(settingsJs, /let mobileTreeReorderModeByType = \{/);
     assert.match(settingsJs, /const toggleMobileTreeReorderMode = \(type\) =>/);
     assert.match(settingsJs, /window\.toggleMobileTreeReorderMode = toggleMobileTreeReorderMode;/);

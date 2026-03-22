@@ -353,7 +353,6 @@ const RUNTIME_CONFLICT_RESOLVED_PENDING_STORAGE_KEY = 'fv.runtimeConflict.resolv
 const IMPORT_PREVIEW_FIRST_STORAGE_KEY = 'fv.import.previewFirst.v1';
 const TABLE_UI_STATE_STORAGE_KEY = 'fv.settings.tableUiState.v1';
 const LONG_PRESS_DELAY_MS = 560;
-const ACTION_DOCK_AUTOCOLLAPSE_MS = 5000;
 const IMPORT_PRESET_DEFAULT_ID = 'builtin:merge';
 const UNDO_WINDOW_MS = 10000;
 const ROW_FOCUS_HIGHLIGHT_MS = 2200;
@@ -439,9 +438,7 @@ const settingsUiState = {
     knownAdvancedSections: new Set(),
     hasExpandedAdvancedPreference: false,
     wizardShown: false,
-    unsavedCount: 0,
-    actionDockExpanded: false,
-    actionDockMoreOpen: false
+    unsavedCount: 0
 };
 const createAdvancedModuleLoadEntry = () => ({
     loaded: false,
@@ -557,7 +554,6 @@ let mobileLayoutGuardBound = false;
 let settingsThemeReflowBound = false;
 let settingsThemeReflowObserver = null;
 let settingsThemeReflowTimer = null;
-let actionDockAutoCollapseTimer = null;
 let lastThemeResolverSnapshot = null;
 let themeColorParserCanvasContext = null;
 const MOBILE_SETTINGS_BREAKPOINT_PX = 760;
@@ -1544,57 +1540,11 @@ const setActionBarStatus = (text) => {
     status.toggleClass('is-visible', message !== '');
 };
 
-const clearActionDockAutoCollapseTimer = () => {
-    if (actionDockAutoCollapseTimer !== null) {
-        window.clearTimeout(actionDockAutoCollapseTimer);
-        actionDockAutoCollapseTimer = null;
-    }
-};
-
-const setActionDockMoreOpen = (open) => {
-    settingsUiState.actionDockMoreOpen = open === true;
-    $('#fv-save-dock').attr('data-more-open', settingsUiState.actionDockMoreOpen ? '1' : '0');
-    $('#fv-action-more').attr('aria-expanded', settingsUiState.actionDockMoreOpen ? 'true' : 'false');
-};
-
-const setActionDockExpanded = (expanded, { auto = false } = {}) => {
-    const nextExpanded = expanded === true && settingsUiState.unsavedCount > 0;
-    settingsUiState.actionDockExpanded = nextExpanded;
-    const dock = $('#fv-save-dock');
-    dock.attr('data-expanded', nextExpanded ? '1' : '0');
-    $('#fv-save-dock-chip').attr('aria-expanded', nextExpanded ? 'true' : 'false');
-    if (!nextExpanded) {
-        clearActionDockAutoCollapseTimer();
-        setActionDockMoreOpen(false);
-        return;
-    }
-    if (!settingsUiState.actionDockMoreOpen) {
-        setActionDockMoreOpen(false);
-    }
-    if (!auto) {
-        clearActionDockAutoCollapseTimer();
-        actionDockAutoCollapseTimer = window.setTimeout(() => {
-            setActionDockExpanded(false, { auto: true });
-        }, ACTION_DOCK_AUTOCOLLAPSE_MS);
-    }
-};
-
 const syncActionDockVisibility = () => {
     const count = Number(settingsUiState.unsavedCount || 0);
     const bar = $('#fv-settings-action-bar');
-    const dock = $('#fv-save-dock');
-    const chipText = $('#fv-save-dock-chip-text');
-    const chip = $('#fv-save-dock-chip');
-    const moreButton = $('#fv-action-more');
-
-    chipText.text(`Unsaved (${count})`);
-    chip.prop('disabled', count <= 0);
-    moreButton.prop('disabled', count <= 0);
     bar.toggleClass('is-hidden', count <= 0);
-    dock.attr('data-dirty', count > 0 ? '1' : '0');
-    if (count <= 0) {
-        setActionDockExpanded(false);
-    }
+    bar.attr('data-dirty', count > 0 ? '1' : '0');
 };
 
 const updateActionBarSaveState = () => {
@@ -2200,7 +2150,6 @@ const saveActionBarChanges = async (closeAfterSave = false) => {
     captureSettingsBaseline();
     refreshSectionHealthBadges();
     setActionBarStatus('Saved current settings snapshot.');
-    setActionDockExpanded(false);
     if (closeAfterSave) {
         setTimeout(() => {
             window.history.back();
@@ -2212,7 +2161,6 @@ const cancelActionBarChanges = () => {
     const changedInputs = getChangedTrackedInputs();
     if (changedInputs.length <= 0) {
         updateActionBarSaveState();
-        setActionDockExpanded(false);
         return;
     }
     const revertedInputs = dirtyTracker && typeof dirtyTracker.applyBaselineValues === 'function'
@@ -2234,7 +2182,6 @@ const cancelActionBarChanges = () => {
     refreshSectionHealthBadges();
     updateActionBarSaveState();
     setActionBarStatus('Reverted unsaved field changes.');
-    setActionDockExpanded(false);
 };
 
 const resetCurrentSectionToBaseline = () => {
@@ -2270,7 +2217,6 @@ const resetCurrentSectionToBaseline = () => {
     refreshInputInvalidStyles();
     refreshSectionHealthBadges();
     updateActionBarSaveState();
-    setActionDockExpanded(false);
     setActionBarStatus(`Reset section "${section.title}" to baseline snapshot.`);
 };
 
@@ -2504,31 +2450,17 @@ const initSettingsControls = () => {
     const actionBarHtml = settingsChrome && typeof settingsChrome.getActionBarHtml === 'function'
         ? settingsChrome.getActionBarHtml()
         : `
-            <div id="fv-save-dock" class="fv-save-dock" data-dirty="0" data-expanded="0" data-more-open="0">
-                <div class="fv-save-dock-panel">
-                    <div class="fv-action-buttons fv-action-buttons-primary">
-                        <button type="button" id="fv-action-save"><i class="fa fa-save"></i> Save</button>
-                        <button type="button" id="fv-action-cancel"><i class="fa fa-undo"></i> Cancel</button>
-                    </div>
-                    <button type="button" id="fv-action-more" class="fv-action-more" aria-expanded="false"><i class="fa fa-ellipsis-h"></i> More</button>
-                    <div class="fv-action-buttons fv-action-buttons-secondary">
-                        <button type="button" id="fv-action-save-close"><i class="fa fa-check"></i> Save &amp; Close</button>
-                        <button type="button" id="fv-action-reset-section"><i class="fa fa-refresh"></i> Reset section</button>
-                    </div>
-                    <span id="fv-action-status" class="fv-action-status" aria-live="polite"></span>
+            <div class="fv-settings-action-wrap">
+                <div class="fv-action-buttons">
+                    <button type="button" id="fv-action-save"><i class="fa fa-save"></i> Save</button>
+                    <button type="button" id="fv-action-cancel"><i class="fa fa-undo"></i> Cancel</button>
+                    <button type="button" id="fv-action-save-close"><i class="fa fa-check"></i> Save &amp; Close</button>
+                    <button type="button" id="fv-action-reset-section"><i class="fa fa-refresh"></i> Reset section</button>
                 </div>
-                <div class="fv-save-dock-head">
-                    <button type="button" id="fv-save-dock-chip" class="fv-save-dock-chip" aria-expanded="false" aria-label="Open save actions">
-                        <i class="fa fa-circle"></i>
-                        <span id="fv-save-dock-chip-text">Unsaved (0)</span>
-                        <i class="fa fa-chevron-up fv-save-dock-chevron"></i>
-                    </button>
-                </div>
+                <span id="fv-action-status" class="fv-action-status" aria-live="polite"></span>
             </div>
         `;
     actionBar.html(actionBarHtml);
-    setActionDockMoreOpen(false);
-    setActionDockExpanded(false);
 
     $('.fv-mode-btn').off('click.fvui').on('click.fvui', (event) => {
         const mode = String($(event.currentTarget).attr('data-mode') || 'basic');
@@ -2555,27 +2487,6 @@ const initSettingsControls = () => {
     });
     $('#fv-action-reset-section').off('click.fvui').on('click.fvui', () => {
         resetCurrentSectionToBaseline();
-    });
-    $('#fv-save-dock-chip').off('click.fvui').on('click.fvui', () => {
-        if (settingsUiState.unsavedCount <= 0) {
-            return;
-        }
-        setActionDockExpanded(!settingsUiState.actionDockExpanded);
-    });
-    $('#fv-action-more').off('click.fvui').on('click.fvui', () => {
-        if (settingsUiState.unsavedCount <= 0) {
-            return;
-        }
-        setActionDockMoreOpen(!settingsUiState.actionDockMoreOpen);
-        setActionDockExpanded(true);
-    });
-    $('#fv-settings-action-bar').off('pointerdown.fvui keydown.fvui click.fvui').on('pointerdown.fvui keydown.fvui click.fvui', () => {
-        if (settingsUiState.actionDockExpanded) {
-            clearActionDockAutoCollapseTimer();
-            actionDockAutoCollapseTimer = window.setTimeout(() => {
-                setActionDockExpanded(false, { auto: true });
-            }, ACTION_DOCK_AUTOCOLLAPSE_MS);
-        }
     });
     $('#fv-run-wizard').off('click.fvui').on('click.fvui', () => {
         runQuickSetupWizard(true);

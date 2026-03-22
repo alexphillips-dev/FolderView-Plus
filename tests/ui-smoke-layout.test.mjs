@@ -113,9 +113,7 @@ test('mobile action bar and import progress keep compact viewport guards', () =>
     assert.match(settingsCss, /@media \(max-width: 760px\)/);
     assert.match(settingsCss, /#fv-settings-action-bar\s*\{[\s\S]*max-width:\s*calc\(100%\s*-\s*1rem\)/);
     assert.doesNotMatch(settingsCss, /#fv-settings-action-bar\s*\{[^}]*max-width:\s*calc\(100vw/);
-    assert.match(settingsCss, /\.fv-save-dock\s*\{/);
-    assert.match(settingsCss, /\.fv-save-dock-chip\s*\{/);
-    assert.doesNotMatch(settingsCss, /\.fv-save-dock-handle\s*\{/);
+    assert.match(settingsCss, /\.fv-settings-action-wrap\s*\{/);
     assert.match(settingsCss, /#fv-settings-action-bar\.is-hidden/);
     assert.match(settingsCss, /\.fv-action-buttons\s*\{[\s\S]*overflow-x:\s*auto/);
     assert.match(settingsCss, /#import-apply-progress-dialog\s*\{[\s\S]*max-width:\s*min\([0-9]+px,\s*calc\(100vw\s*-\s*1\.5rem\)\)/);
@@ -269,7 +267,6 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const ensureAdvancedDataLoaded = async \(options = \{\}\) =>/);
     assert.doesNotMatch(settingsJs, /const ensureAdvancedDataLoaded = async \(\{ force = false \} = \{\}\) =>[\s\S]*arguments\[0\]/);
     assert.doesNotMatch(settingsJs, /const ACTION_DOCK_SIDE_STORAGE_KEY = 'fv\.settings\.actionDockSide\.v1';/);
-    assert.match(settingsJs, /const ACTION_DOCK_AUTOCOLLAPSE_MS = 5000;/);
     assert.match(settingsJs, /const INSTANT_PERSIST_ONCHANGE_TOKENS = Object\.freeze\(/);
     assert.match(settingsJs, /const isInstantPersistInput = \(input\) =>/);
     assert.match(settingsJs, /return INSTANT_PERSIST_ONCHANGE_TOKENS\.some\(\(token\) => handler\.includes\(token\)\);/);
@@ -281,10 +278,11 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const buildModuleEmptyTableRow = \(title, help, colspan = 1\) =>/);
     assert.match(settingsJs, /const focusFolderRow = \(type, folderId\) =>/);
     assert.match(settingsJs, /const showActionSummaryToast = \(\{/);
-    assert.match(settingsJs, /const setActionDockExpanded = \(expanded, \{ auto = false \} = \{\}\) =>/);
-    assert.doesNotMatch(settingsJs, /const bindActionDockDrag = \(\) =>/);
-    assert.doesNotMatch(settingsJs, /fv-save-dock-handle/);
-    assert.match(settingsJs, /<div class="fv-save-dock-panel">[\s\S]*<div class="fv-save-dock-head">/);
+    assert.doesNotMatch(settingsJs, /setActionDockExpanded/);
+    assert.doesNotMatch(settingsJs, /setActionDockMoreOpen/);
+    assert.doesNotMatch(settingsJs, /fv-save-dock/);
+    assert.doesNotMatch(settingsJs, /fv-action-more/);
+    assert.match(settingsJs, /<div class="fv-settings-action-wrap">[\s\S]*id="fv-action-reset-section"/);
     assert.match(settingsJs, /const getTrackedInputs = \(\) => \{/);
     assert.match(settingsJs, /dirtyTracker && typeof dirtyTracker\.getTrackedInputs === 'function'/);
     assert.match(settingsJs, /resolveAffectedFolderIdsFromOperations\(resolvedType, operations\)/);

@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.22.22">
-<!ENTITY md5 "03ac92dbeef3c05dfa6a6eb9770bf0e2">
+<!ENTITY version "2026.03.22.23">
+<!ENTITY md5 "f5ed0ae8974891cfea48191ef47721c5">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.22.23
+- UX: Remove the floating save pill menu from plugin settings and replace it with a simpler fixed action bar.
+- Fix: Keep staged save, cancel, save-and-close, and reset actions without the extra expand or overflow dock behavior.
+- Compatibility: Preserve compact horizontal scrolling for the settings action bar on narrow screens.
+
 
 ###2026.03.22.22
 - UX: Replace settings-table drag-resize controls with stable Name and Actions width presets plus layout/visibility controls.

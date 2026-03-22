@@ -309,10 +309,18 @@ tr.folder.fv-parent-expanded div.folder-preview {
     max-height: var(--fvplus-preview-max-height);
     overflow: hidden;
     display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    align-content: flex-start;
+    flex-direction: column;
+    align-items: stretch;
+    align-content: stretch;
     row-gap: 0.35em;
+}
+
+.folder-preview-row {
+    min-height: var(--fvplus-preview-row-height);
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    column-gap: 10px;
 }
 
 .folder-preview.fv-preview-unlimited-rows {
@@ -335,8 +343,7 @@ tr.folder.fv-parent-expanded div.folder-preview {
     float: none;
     height: auto;
     min-height: calc(var(--fvplus-preview-row-height) - 0.9em);
-    margin-left: 10px;
-    margin-top: 7px;
+    margin: 7px 0 0 0;
     display: flex;
     align-items: center;
     flex: 0 0 auto;
@@ -382,8 +389,7 @@ tr.folder.fv-parent-expanded div.folder-preview {
     height: 80%;
     width: 0;
     border-right: 1px solid;
-    margin-left: 5px;
-    margin-top: -7px;
+    margin: 0;
     align-self: center;
 }
 

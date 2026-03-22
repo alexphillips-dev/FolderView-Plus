@@ -277,6 +277,40 @@ const applyFolderPreviewLayout = ($preview, settings = {}) => {
     previewNode.style.setProperty('--fvplus-preview-max-height', rowLimit === 0 ? 'none' : `calc(${rowLimit} * var(--fvplus-preview-row-height, 3.5em))`);
     previewNode.classList.toggle('fv-preview-unlimited-rows', rowLimit === 0);
 };
+const layoutFolderPreviewRows = ($preview, settings = {}) => {
+    if (!$preview || !$preview.length) {
+        return;
+    }
+    const $existingRows = $preview.children('.folder-preview-row');
+    if ($existingRows.length) {
+        $existingRows.children('.folder-preview-wrapper, .folder-preview-divider').appendTo($preview);
+        $existingRows.remove();
+    }
+    const $wrappers = $preview.children('.folder-preview-wrapper');
+    if (!$wrappers.length) {
+        $preview.children('.folder-preview-divider').remove();
+        return;
+    }
+    $preview.children('.folder-preview-divider').remove();
+
+    const itemsPerRow = Math.max(1, getFolderPreviewItemsPerRow(settings));
+    const addDividers = settings?.preview_vertical_bars === true;
+    const wrappers = $wrappers.get();
+    $preview.empty();
+
+    for (let offset = 0; offset < wrappers.length; offset += itemsPerRow) {
+        const $row = $('<div class="folder-preview-row"></div>');
+        const slice = wrappers.slice(offset, offset + itemsPerRow);
+        slice.forEach((wrapper, index) => {
+            $row.append(wrapper);
+            if (addDividers && index < slice.length - 1) {
+                const barsColor = settings.preview_vertical_bars_color || settings.preview_border_color || '';
+                $row.append(`<div class="folder-preview-divider" ${barsColor ? `style="border-color: ${barsColor};"` : ''}></div>`);
+            }
+        });
+        $preview.append($row);
+    }
+};
 const decorateDockerPreviewMemberTriggers = ($elements, folderId, containerName) => {
     const safeFolderId = String(folderId || '').trim();
     const safeContainerName = String(containerName || '').trim();
@@ -3403,11 +3437,8 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     $(`tr.folder-id-${id} div.folder-preview > span`).wrap('<div class="folder-preview-wrapper"></div>');
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Wrapped preview spans with .folder-preview-wrapper.`);
     applyFolderPreviewLayout($(`tr.folder-id-${id} div.folder-preview`), folder.settings);
-    if(folder.settings.preview_vertical_bars) {
-        const barsColor = folder.settings.preview_vertical_bars_color || folder.settings.preview_border_color;
-        $(`tr.folder-id-${id} div.folder-preview > div`).after(`<div class="folder-preview-divider" style="border-color: ${barsColor};"></div>`);
-        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Added preview_vertical_bars.`);
-    }
+    layoutFolderPreviewRows($(`tr.folder-id-${id} div.folder-preview`), folder.settings);
+    if (FOLDER_VIEW_DEBUG_MODE && folder.settings.preview_vertical_bars) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Added preview_vertical_bars.`);
     if(folder.settings.update_column) {
         $(`tr.folder-id-${id} > td.updatecolumn`).next().attr('colspan',6).end().remove();
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Handled update_column setting (removed column).`);
@@ -3764,10 +3795,7 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
     }
     $preview.children('span').wrap('<div class="folder-preview-wrapper"></div>');
     applyFolderPreviewLayout($preview, folder?.settings || {});
-    if (folder?.settings?.preview_vertical_bars) {
-        const barsColor = folder.settings.preview_vertical_bars_color || folder.settings.preview_border_color || '';
-        $preview.find('div.folder-preview-wrapper').after(`<div class="folder-preview-divider" ${barsColor ? `style="border-color: ${barsColor};"` : ''}></div>`);
-    }
+    layoutFolderPreviewRows($preview, folder?.settings || {});
     $preview.find('span.inner > span.appname').css('width', folder?.settings?.preview_text_width || '');
 };
 

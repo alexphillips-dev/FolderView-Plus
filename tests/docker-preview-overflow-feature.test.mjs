@@ -25,10 +25,13 @@ test('docker runtime applies preview row layout limits and enhanced member actio
     assert.match(dockerJs, /const getFolderPreviewItemsPerRow = \(settings = \{\}\) =>/);
     assert.match(dockerJs, /const getFolderPreviewVisibleItemLimit = \(settings = \{\}\) =>/);
     assert.match(dockerJs, /const applyFolderPreviewLayout = \(\$preview, settings = \{\}\) =>/);
+    assert.match(dockerJs, /const layoutFolderPreviewRows = \(\$preview, settings = \{\}\) =>/);
     assert.match(dockerJs, /previewNode\.dataset\.previewVisibleLimit = Number\.isFinite\(visibleLimit\) \? String\(visibleLimit\) : 'unlimited'/);
     assert.match(dockerJs, /const previewVisibleLimit = getFolderPreviewVisibleItemLimit\(folder\?\.settings \|\| \{\}\);/);
     assert.match(dockerJs, /if \(renderedPreviewItems < previewVisibleLimit\) \{/);
     assert.match(dockerJs, /if \(index >= previewVisibleLimit\) \{/);
+    assert.match(dockerJs, /layoutFolderPreviewRows\(\$\(`tr\.folder-id-\$\{id\} div\.folder-preview`\), folder\.settings\);/);
+    assert.match(dockerJs, /layoutFolderPreviewRows\(\$preview, folder\?\.settings \|\| \{\}\);/);
     assert.match(dockerJs, /decorateDockerFolderMemberRow\(\$containerTR, id, ct\.info\.Name \|\| container_name_in_folder\)/);
     assert.match(dockerJs, /decorateDockerPreviewMemberTriggers\(/);
     assert.match(dockerJs, /const showDockerPreviewMemberMenu = \(entry\) =>/);
@@ -38,6 +41,7 @@ test('docker runtime applies preview row layout limits and enhanced member actio
 test('docker styles support multi-row previews and member action sheet styling', () => {
     assert.match(dockerCss, /--fvplus-preview-row-limit:/);
     assert.match(dockerCss, /\.folder-preview\.fv-preview-unlimited-rows/);
+    assert.match(dockerCss, /\.folder-preview-row \{/);
     assert.match(dockerCss, /\.fv-docker-member-menu-trigger/);
     assert.match(dockerCss, /\.fv-docker-member-menu-actions/);
     assert.match(dockerCss, /\.fv-docker-member-menu-action/);

@@ -253,7 +253,7 @@ emitRequestTokenMetaTag();
                     <select name="preview" onchange="updateForm()">
                         <option value="0" data-i18n="preview-option-0">None</option>
                         <option value="1" data-i18n="preview-option-1" selected>Icon and label</option>
-                        <option value="2" data-i18n="preview-option-2">Only icon</option>
+                        <option value="2" data-i18n="preview-option-2">Only icon (clean)</option>
                         <option value="3" data-i18n="preview-option-3">Only label</option>
                         <option value="4" data-i18n="preview-option-4">List</option>
                     </select>
@@ -261,7 +261,7 @@ emitRequestTokenMetaTag();
             </dl>
             <blockquote class="inline_help">
                 <p data-i18n="[html]preview-tooltip">
-                    The preview type, not that difficult.
+                    Choose how folder members are shown in the row preview. Use <b>Only icon</b> for a clean icon-only layout without member names or started/stopped text.
                 </p>
             </blockquote>
         </div>

@@ -18,6 +18,12 @@ const pluginDir = process.argv[2];
 const baselineFile = process.argv[3];
 
 const trackedAssets = [
+  'scripts/folderviewplus.runtime-parity.js',
+  'scripts/folderviewplus.settings-sections.js',
+  'scripts/folderviewplus.setup-assistant.js',
+  'scripts/folderviewplus.starter-templates.js',
+  'scripts/folderviewplus.activity-diagnostics.js',
+  'scripts/folderviewplus.folder-editor.js',
   'scripts/folderviewplus.js',
   'scripts/folderviewplus.wizard.js',
   'scripts/folderviewplus.import.js',
@@ -27,6 +33,12 @@ const trackedAssets = [
   'scripts/folder.js',
 ];
 const settingsRuntimePaths = [
+  'scripts/folderviewplus.runtime-parity.js',
+  'scripts/folderviewplus.settings-sections.js',
+  'scripts/folderviewplus.setup-assistant.js',
+  'scripts/folderviewplus.starter-templates.js',
+  'scripts/folderviewplus.activity-diagnostics.js',
+  'scripts/folderviewplus.folder-editor.js',
   'scripts/folderviewplus.js',
   'scripts/folderviewplus.wizard.js',
   'scripts/folderviewplus.import.js',

@@ -37,6 +37,7 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorScript, /context_graph_time:\s*Number\.isFinite\(Number\(settings\.context_graph_time\)\)/);
     assert.match(folderEditorScript, /folders\[safeId\] = normalizeFolderRecordForEditor\(folder\);/);
     assert.match(folderEditorScript, /form\.preview\.value = String\(currFolder\.settings\.preview\);/);
+    assert.doesNotMatch(folderEditorScript, /preview_member_display/);
 });
 
 test('folder editor includes parent default hint styles', () => {

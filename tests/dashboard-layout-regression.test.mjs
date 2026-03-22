@@ -8,10 +8,15 @@ const settingsPagePath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page'
 );
-const settingsScriptPath = path.join(
-    repoRoot,
+const settingsScriptPaths = [
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
-);
+].map((relativePath) => path.join(repoRoot, relativePath));
 const dashboardScriptPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js'
@@ -34,7 +39,7 @@ const libPhpPath = path.join(
 );
 
 const settingsPage = fs.readFileSync(settingsPagePath, 'utf8');
-const settingsScript = fs.readFileSync(settingsScriptPath, 'utf8');
+const settingsScript = settingsScriptPaths.map((scriptPath) => fs.readFileSync(scriptPath, 'utf8')).join('\n');
 const dashboardScript = fs.readFileSync(dashboardScriptPath, 'utf8');
 const dashboardCss = fs.readFileSync(dashboardCssPath, 'utf8');
 const folderPage = fs.readFileSync(folderPagePath, 'utf8');
@@ -151,7 +156,10 @@ test('folder editor supports per-folder dashboard overflow mode', () => {
     assert.match(folderPage, /<option value="default">Default<\/option>/);
     assert.match(folderPage, /<option value="expand_row">Expand row<\/option>/);
     assert.match(folderPage, /<option value="scroll">Scrollable panel<\/option>/);
+    assert.match(folderPage, /<option value="2" data-i18n="preview-option-2">Only icon \(clean\)<\/option>/);
     assert.match(folderScript, /const normalizeDashboardOverflowMode = \(value\) =>/);
     assert.match(folderScript, /form\.dashboard_overflow\.value = normalizeDashboardOverflowMode\(currFolder\.settings\.dashboard_overflow\);/);
     assert.match(folderScript, /dashboard_overflow: normalizeDashboardOverflowMode\(e\.dashboard_overflow\?\.value\)/);
+    assert.doesNotMatch(folderPage, /name="preview_member_display"/);
+    assert.doesNotMatch(folderScript, /preview_member_display/);
 });

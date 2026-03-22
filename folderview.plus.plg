@@ -5,13 +5,41 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.21.43">
-<!ENTITY md5 "d85fda43a50dee3694be719db727fda9">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
+<!ENTITY version "2026.03.22.05">
+<!ENTITY md5 "23aaf8a1d9f462eb94a63e9a3c4591d5">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.22.05
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.22.04
+- Maintenance: Prune superseded archive artifacts.
+- Maintenance: Refresh perf baseline for runtime globals.
+- Maintenance: Harden split settings runtime globals.
+- Maintenance: Update tests for split settings runtime.
+- Maintenance: Split settings monolith into owned modules.
+- Maintenance: Release main 2026.03.21.43 with smart-detect rollup notes.
+
+
+###2026.03.22.03
+- Maintenance: Prune superseded archive artifacts.
+- Maintenance: Refresh perf baseline for runtime globals.
+
+
+###2026.03.22.02
+- Maintenance: Update tests for split settings runtime.
+
+
+###2026.03.22.01
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
 
 ###2026.03.21.43
 - Feature: Added category-driven starter-template onboarding for fresh installs across Docker and VMs, including dropdown category counts, smarter defaults, selective deployment, and built-in icon mapping.
@@ -2465,7 +2493,7 @@
     </CHANGES>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

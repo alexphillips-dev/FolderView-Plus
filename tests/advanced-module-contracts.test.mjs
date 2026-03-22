@@ -4,11 +4,16 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const repoRoot = path.resolve(process.cwd());
-const scriptPath = path.join(
-    repoRoot,
+const settingsScriptPaths = [
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
-);
-const script = fs.readFileSync(scriptPath, 'utf8');
+].map((relativePath) => path.join(repoRoot, relativePath));
+const script = settingsScriptPaths.map((scriptPath) => fs.readFileSync(scriptPath, 'utf8')).join('\n');
 
 test('advanced module loader uses per-module stale state with scoped tab targeting', () => {
     assert.match(script, /const ADVANCED_MODULE_STALE_MS = 1000 \* 60 \* 2;/);
@@ -39,4 +44,13 @@ test('advanced backup and template mutations are lock-guarded', () => {
     assert.match(script, /const createTemplateFromFolder = async \(type\) => \{[\s\S]*withAdvancedOperationLock\(type, 'templates'/);
     assert.match(script, /const bulkTemplateAction = \(type, action\) => \{[\s\S]*withAdvancedOperationLock\(type, 'templates'/);
     assert.match(script, /const assignSelectedItems = async \(type, namesOverride = null\) => \{[\s\S]*claimAdvancedOperationLock\(resolvedType, 'bulk'/);
+});
+
+test('split settings modules publish globals for cross-script browser compatibility', () => {
+    assert.match(script, /Object\.assign\(window,\s*\{[\s\S]*tableIdByType/);
+    assert.match(script, /Object\.assign\(window,\s*\{[\s\S]*ADVANCED_TAB_STORAGE_KEY/);
+    assert.match(script, /Object\.assign\(window,\s*\{[\s\S]*SETUP_ASSISTANT_DONE_STORAGE_KEY/);
+    assert.match(script, /Object\.assign\(window,\s*\{[\s\S]*STARTER_TEMPLATE_BLUEPRINTS/);
+    assert.match(script, /Object\.assign\(window,\s*\{[\s\S]*postPrefs/);
+    assert.match(script, /Object\.assign\(window,\s*\{[\s\S]*openFolderRowQuickActions/);
 });

@@ -285,7 +285,6 @@ const getPreviewContainerStatusMeta = (entry = {}) => {
     }
     return { key: 'stopped', icon: 'fa-square', className: 'fv-preview-status-stopped' };
 };
-
 const clampDockerRuntimeColumnWidth = (value, columnIndex = 0) => {
     const parsed = Number(value);
     if (!Number.isFinite(parsed)) {
@@ -3052,15 +3051,6 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
             const previewMode = Number(folder?.settings?.preview || 0);
             const previewStateMeta = getPreviewContainerStatusMeta(newFolder[container_name_in_folder]);
             const previewStatusTitle = escapeHtml($.i18n(previewStateMeta.key));
-
-            if (previewMode === 2 && $previewElementTarget.length) {
-                const $existingPreviewStateIcon = $previewElementTarget.children('.folder-preview-status-icon');
-                if (!$existingPreviewStateIcon.length) {
-                    $previewElementTarget.append(
-                        $(`<span class="folder-preview-status-icon ${previewStateMeta.className}" title="${previewStatusTitle}"><i class="fa ${previewStateMeta.icon}" aria-hidden="true"></i></span>`)
-                    );
-                }
-            }
 
             if ((previewMode === 3 || previewMode === 4) && $previewElementTarget.length) {
                 const $previewAppName = $previewElementTarget.find('span.appname > a.exec').first();

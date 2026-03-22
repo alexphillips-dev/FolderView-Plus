@@ -806,45 +806,50 @@ body.fv-column-resize-active * {
 }
 
 .fv-starter-template-categories {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: stretch;
-    gap: 0.46rem;
+    display: block;
 }
 
-.fv-starter-template-category {
-    display: inline-flex;
+.fv-starter-template-category-row {
+    display: grid;
+    grid-template-columns: auto minmax(190px, 1fr);
     align-items: center;
-    justify-content: center;
+    gap: 0.5rem;
+}
+
+.fv-starter-template-category-label {
+    margin: 0;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    opacity: 0.86;
+}
+
+.fv-starter-template-category-select {
+    width: 100%;
     min-height: 34px;
-    padding: 0.28rem 0.82rem;
     border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: 999px;
+    border-radius: 8px;
     background: rgba(255, 255, 255, 0.05);
     color: inherit;
     font-size: 12px;
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
-    line-height: 1.2;
-    cursor: pointer;
-    user-select: none;
-    transition: border-color 120ms ease, background-color 120ms ease, color 120ms ease, box-shadow 120ms ease;
+    padding: 0.3rem 0.6rem;
 }
 
-.fv-starter-template-category:hover,
-.fv-starter-template-category:focus-visible {
-    border-color: rgba(255, 171, 90, 0.72);
-    background: rgba(255, 171, 90, 0.1);
-    box-shadow: 0 0 0 1px rgba(255, 171, 90, 0.18) inset;
+.fv-starter-template-category-select:focus {
+    border-color: rgba(255, 171, 90, 0.82);
+    box-shadow: 0 0 0 1px rgba(255, 171, 90, 0.24) inset;
     outline: none;
 }
 
-.fv-starter-template-category.is-active {
-    border-color: rgba(255, 171, 90, 0.92);
-    background: linear-gradient(180deg, rgba(255, 171, 90, 0.22), rgba(255, 171, 90, 0.12));
-    color: #ffd2a0;
-    box-shadow: 0 0 0 1px rgba(255, 171, 90, 0.28) inset, 0 4px 10px rgba(0, 0, 0, 0.25);
+@media (max-width: 680px) {
+    .fv-starter-template-category-row {
+        grid-template-columns: 1fr;
+        gap: 0.28rem;
+    }
 }
 
 .fv-starter-template-options {

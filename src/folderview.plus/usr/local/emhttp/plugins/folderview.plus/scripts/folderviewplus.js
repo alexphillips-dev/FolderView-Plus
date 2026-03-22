@@ -4160,11 +4160,15 @@ const promptStarterTemplateSelection = async (type, blueprints) => {
         const fallback = categoryId.replace(/[-_]+/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
         return String(STARTER_TEMPLATE_CATEGORY_META[categoryId]?.label || fallback);
     };
+    const getCategoryCount = (categoryId) => {
+        const indexes = categoryIndexBuckets.get(categoryId);
+        return indexes instanceof Set ? indexes.size : 0;
+    };
     const defaultCategoryId = categoryIds.includes('smart') ? 'smart' : (categoryIds.includes('homelab') ? 'homelab' : (categoryIds[0] || 'smart'));
 
     if (typeof window.swal !== 'function') {
         const categoryChoices = categoryIds
-            .map((categoryId, index) => `${index + 1}. ${getCategoryLabel(categoryId)}`)
+            .map((categoryId, index) => `${index + 1}. ${getCategoryLabel(categoryId)} (${getCategoryCount(categoryId)})`)
             .join('\n');
         const categoryRaw = window.prompt(
             `Choose ${typeLabel} template category:\n\n${categoryChoices}\n\nEnter number or category name. Leave blank for ${getCategoryLabel(defaultCategoryId)}.`,
@@ -4216,11 +4220,12 @@ const promptStarterTemplateSelection = async (type, blueprints) => {
     }
 
     return new Promise((resolve) => {
-        const categoryHtml = categoryIds.map((categoryId) => {
-            const label = getCategoryLabel(categoryId);
-            const activeClass = categoryId === defaultCategoryId ? ' is-active' : '';
-            return `<span class="fv-starter-template-category${activeClass}" data-fv-starter-category="${escapeHtml(categoryId)}" role="button" tabindex="0" aria-pressed="${categoryId === defaultCategoryId ? 'true' : 'false'}">${escapeHtml(label)}</span>`;
+        const categoryOptionsHtml = categoryIds.map((categoryId) => {
+            const label = `${getCategoryLabel(categoryId)} (${getCategoryCount(categoryId)})`;
+            const selected = categoryId === defaultCategoryId ? ' selected' : '';
+            return `<option value="${escapeHtml(categoryId)}"${selected}>${escapeHtml(label)}</option>`;
         }).join('');
+        const categoryHtml = `<div class="fv-starter-template-category-row"><label class="fv-starter-template-category-label" for="fv-starter-template-category-select">Category</label><select id="fv-starter-template-category-select" class="fv-starter-template-category-select">${categoryOptionsHtml}</select></div>`;
         const optionsHtml = templateList.map((entry, index) => {
             const name = String(entry.name || '').trim();
             const iconPath = String(entry.icon || '').trim() || DEFAULT_STARTER_FOLDER_ICON;
@@ -4234,11 +4239,7 @@ const promptStarterTemplateSelection = async (type, blueprints) => {
 
         const applyCategoryFilter = (requestedCategoryId, resetSelection = false) => {
             const activeCategoryId = categoryIds.includes(requestedCategoryId) ? requestedCategoryId : defaultCategoryId;
-            $('.fv-starter-template-category').removeClass('is-active').attr('aria-pressed', 'false').each((_, node) => {
-                if (String($(node).attr('data-fv-starter-category') || '') === activeCategoryId) {
-                    $(node).addClass('is-active').attr('aria-pressed', 'true');
-                }
-            });
+            $('.fv-starter-template-category-select').val(activeCategoryId);
             let visibleCount = 0;
             $('.fv-starter-template-option').each((_, node) => {
                 const categories = String($(node).attr('data-fv-starter-template-categories') || '')
@@ -4259,7 +4260,7 @@ const promptStarterTemplateSelection = async (type, blueprints) => {
         };
 
         const clearCategoryBindings = () => {
-            $(document).off('click.fvstartertemplatecategory keydown.fvstartertemplatecategory', '.fv-starter-template-category');
+            $(document).off('change.fvstartertemplatecategory', '.fv-starter-template-category-select');
         };
 
         swal({
@@ -4297,27 +4298,9 @@ const promptStarterTemplateSelection = async (type, blueprints) => {
             return true;
         });
 
-        $(document).off('click.fvstartertemplatecategory keydown.fvstartertemplatecategory', '.fv-starter-template-category')
-            .on('click.fvstartertemplatecategory', '.fv-starter-template-category', (event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                if (typeof event.stopImmediatePropagation === 'function') {
-                    event.stopImmediatePropagation();
-                }
-                const requestedCategoryId = normalizeStarterTemplateCategory($(event.currentTarget).attr('data-fv-starter-category'));
-                applyCategoryFilter(requestedCategoryId, true);
-            })
-            .on('keydown.fvstartertemplatecategory', '.fv-starter-template-category', (event) => {
-                const key = String(event.key || '').toLowerCase();
-                if (key !== 'enter' && key !== ' ') {
-                    return;
-                }
-                event.preventDefault();
-                event.stopPropagation();
-                if (typeof event.stopImmediatePropagation === 'function') {
-                    event.stopImmediatePropagation();
-                }
-                const requestedCategoryId = normalizeStarterTemplateCategory($(event.currentTarget).attr('data-fv-starter-category'));
+        $(document).off('change.fvstartertemplatecategory', '.fv-starter-template-category-select')
+            .on('change.fvstartertemplatecategory', '.fv-starter-template-category-select', (event) => {
+                const requestedCategoryId = normalizeStarterTemplateCategory($(event.currentTarget).val());
                 applyCategoryFilter(requestedCategoryId, true);
             });
         window.setTimeout(() => {

@@ -135,14 +135,18 @@ test('normalizePrefs preserves settings table layout preferences', () => {
             widthMode: 'custom',
             preset: 'detailed',
             columns: { members: true, status: false },
-            columnWidths: { name: 420, status: 260 }
+            columnWidths: { name: 420, status: 260 },
+            nameWidth: 'wide',
+            actionsWidth: 'compact'
         }
     });
 
-    assert.equal(prefs.settingsTable.widthMode, 'custom');
+    assert.equal(prefs.settingsTable.widthMode, 'auto');
     assert.equal(prefs.settingsTable.preset, 'detailed');
     assert.deepEqual(prefs.settingsTable.columns, { members: true, status: false });
-    assert.deepEqual(prefs.settingsTable.columnWidths, { name: 420, status: 260 });
+    assert.deepEqual(prefs.settingsTable.columnWidths, {});
+    assert.equal(prefs.settingsTable.nameWidth, 'wide');
+    assert.equal(prefs.settingsTable.actionsWidth, 'compact');
 });
 
 test('summarizeImport reports creates updates and deletes for replace mode', () => {

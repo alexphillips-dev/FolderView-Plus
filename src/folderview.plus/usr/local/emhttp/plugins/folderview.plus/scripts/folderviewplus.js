@@ -234,6 +234,10 @@ let columnPresetByType = {
     docker: 'balanced',
     vm: 'balanced'
 };
+let settingsTableWidthPresetByType = {
+    docker: { name: 'standard', actions: 'standard' },
+    vm: { name: 'standard', actions: 'standard' }
+};
 let columnWidthsByType = {
     docker: {},
     vm: {}
@@ -4080,6 +4084,14 @@ const TABLE_COLUMN_SELECTOR_MAP = Object.freeze({
 });
 
 const normalizedFilter = (value) => String(value || '').trim().toLowerCase();
+const normalizeSettingsTableColumnWidthPreset = (value) => {
+    const normalized = String(value || '').trim().toLowerCase();
+    return ['compact', 'standard', 'wide'].includes(normalized) ? normalized : 'standard';
+};
+const SETTINGS_TABLE_WIDTH_PRESET_VALUES = Object.freeze({
+    name: Object.freeze({ compact: 260, standard: 320, wide: 420 }),
+    actions: Object.freeze({ compact: 160, standard: 180, wide: 240 })
+});
 const normalizeSettingsTableWidthMode = (value) => (
     String(value || '').trim().toLowerCase() === 'custom' ? 'custom' : 'auto'
 );
@@ -4131,7 +4143,9 @@ const getSettingsTablePrefs = (type, prefsOverride = null) => {
         widthMode: normalizeSettingsTableWidthMode(incoming.widthMode),
         preset,
         columns,
-        columnWidths: widths
+        columnWidths: widths,
+        nameWidth: normalizeSettingsTableColumnWidthPreset(incoming.nameWidth),
+        actionsWidth: normalizeSettingsTableColumnWidthPreset(incoming.actionsWidth)
     };
 };
 const syncSettingsTableStateFromPrefs = (type, prefsOverride = null) => {
@@ -4141,6 +4155,10 @@ const syncSettingsTableStateFromPrefs = (type, prefsOverride = null) => {
     columnPresetByType[resolvedType] = settingsTable.preset;
     columnVisibilityByType[resolvedType] = settingsTable.columns;
     columnWidthsByType[resolvedType] = settingsTable.columnWidths;
+    settingsTableWidthPresetByType[resolvedType] = {
+        name: settingsTable.nameWidth,
+        actions: settingsTable.actionsWidth
+    };
     return settingsTable;
 };
 const buildNextSettingsTablePrefs = (type, patch = {}) => {
@@ -4167,7 +4185,13 @@ const buildNextSettingsTablePrefs = (type, patch = {}) => {
             widthMode: nextWidthMode,
             preset: nextPreset,
             columns: nextColumns,
-            columnWidths: nextColumnWidths
+            columnWidths: nextColumnWidths,
+            nameWidth: normalizeSettingsTableColumnWidthPreset(
+                Object.prototype.hasOwnProperty.call(patch, 'nameWidth') ? patch.nameWidth : currentSettingsTable.nameWidth
+            ),
+            actionsWidth: normalizeSettingsTableColumnWidthPreset(
+                Object.prototype.hasOwnProperty.call(patch, 'actionsWidth') ? patch.actionsWidth : currentSettingsTable.actionsWidth
+            )
         }
     });
 };
@@ -4490,9 +4514,8 @@ const applySingleColumnWidth = (type, key, widthPx) => {
     }
     const targets = table.querySelectorAll(`${config.header}, ${config.cell}`);
     const width = normalizeSingleColumnWidth(resolvedType, key, widthPx);
-    const useCustomWidths = normalizeSettingsTableWidthMode(columnWidthModeByType[resolvedType]) === 'custom';
     targets.forEach((element) => {
-        if (!width || shouldUseCompactMobileLayout() || !useCustomWidths) {
+        if (!width || shouldUseCompactMobileLayout()) {
             element.style.removeProperty('width');
             element.style.removeProperty('min-width');
             element.style.removeProperty('max-width');
@@ -4504,11 +4527,23 @@ const applySingleColumnWidth = (type, key, widthPx) => {
     });
 };
 
+const buildEffectiveSettingsTableWidths = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const next = buildDefaultColumnWidthsForType(resolvedType);
+    const widthPresets = settingsTableWidthPresetByType[resolvedType] || {};
+    const nameWidthPreset = normalizeSettingsTableColumnWidthPreset(widthPresets.name);
+    const actionsWidthPreset = normalizeSettingsTableColumnWidthPreset(widthPresets.actions);
+    next.name = normalizeSingleColumnWidth(resolvedType, 'name', SETTINGS_TABLE_WIDTH_PRESET_VALUES.name[nameWidthPreset]) || next.name;
+    next.actions = normalizeSingleColumnWidth(resolvedType, 'actions', SETTINGS_TABLE_WIDTH_PRESET_VALUES.actions[actionsWidthPreset]) || next.actions;
+    return next;
+};
+
 const applyColumnWidths = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    columnWidthsByType[resolvedType] = normalizeColumnWidthsForType(resolvedType, columnWidthsByType[resolvedType]);
+    columnWidthModeByType[resolvedType] = 'auto';
+    columnWidthsByType[resolvedType] = {};
     const keys = TABLE_COLUMN_RESIZE_KEYS_BY_TYPE[resolvedType] || [];
-    const widths = columnWidthsByType[resolvedType] || {};
+    const widths = buildEffectiveSettingsTableWidths(resolvedType);
     keys.forEach((key) => {
         applySingleColumnWidth(resolvedType, key, widths[key]);
     });
@@ -4697,46 +4732,7 @@ const bindTableColumnResizers = (type) => {
         return;
     }
     table.querySelectorAll('.fv-col-resizer').forEach((handle) => handle.remove());
-    const compact = shouldUseCompactMobileLayout();
-    const configByKey = TABLE_COLUMN_RESIZE_CONFIG_BY_TYPE[resolvedType] || {};
-    const keys = TABLE_COLUMN_RESIZE_KEYS_BY_TYPE[resolvedType] || [];
-    keys.forEach((key) => {
-        const config = configByKey[key];
-        const header = config ? table.querySelector(config.header) : null;
-        if (!header) {
-            return;
-        }
-        header.classList.add('fv-col-resizable');
-        if (compact) {
-            return;
-        }
-        const handle = document.createElement('button');
-        handle.type = 'button';
-        handle.className = 'fv-col-resizer';
-        handle.setAttribute('aria-hidden', 'true');
-        handle.tabIndex = -1;
-        handle.addEventListener('mousedown', (event) => {
-            beginTableColumnResize(resolvedType, key, event);
-        });
-        handle.addEventListener('dblclick', (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            if (!columnWidthsByType[resolvedType]) {
-                columnWidthsByType[resolvedType] = {};
-            }
-            delete columnWidthsByType[resolvedType][key];
-            columnWidthModeByType[resolvedType] = Object.keys(columnWidthsByType[resolvedType] || {}).length > 0 ? 'custom' : 'auto';
-            columnPresetByType[resolvedType] = 'custom';
-            applyColumnWidths(resolvedType);
-            renderSettingsTableLayoutControls(resolvedType);
-            persistSettingsTableState(resolvedType, {
-                widthMode: columnWidthModeByType[resolvedType],
-                preset: 'custom',
-                columnWidths: columnWidthsByType[resolvedType] || {}
-            });
-        });
-        header.appendChild(handle);
-    });
+    table.querySelectorAll('th.fv-col-resizable').forEach((header) => header.classList.remove('fv-col-resizable'));
 };
 
 const renderColumnVisibilityControls = (type) => {
@@ -4753,12 +4749,12 @@ const renderColumnVisibilityControls = (type) => {
 
 const renderSettingsTableLayoutControls = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const widthMode = normalizeSettingsTableWidthMode(columnWidthModeByType[resolvedType]);
     const preset = normalizeSettingsTablePreset(columnPresetByType[resolvedType]);
-    $(`#${resolvedType}-table-width-mode`).val(widthMode);
+    const widthPresets = settingsTableWidthPresetByType[resolvedType] || {};
     $(`[data-fv-table-preset^="${resolvedType}:"]`).removeClass('is-active');
     $(`[data-fv-table-preset="${resolvedType}:${preset}"]`).addClass('is-active');
-    $(`#${resolvedType}-table-reset-widths`).prop('disabled', widthMode !== 'custom' && Object.keys(columnWidthsByType[resolvedType] || {}).length <= 0);
+    $(`#${resolvedType}-table-name-width`).val(normalizeSettingsTableColumnWidthPreset(widthPresets.name));
+    $(`#${resolvedType}-table-actions-width`).val(normalizeSettingsTableColumnWidthPreset(widthPresets.actions));
 };
 
 const setFilterQuery = (section, type, value) => {
@@ -9670,30 +9666,23 @@ const changeColumnVisibility = async (type, key, checked) => {
     });
 };
 
-const changeSettingsTableWidthMode = async (type, value) => {
+const changeSettingsTableColumnWidthPreset = async (type, key, value) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const nextMode = normalizeSettingsTableWidthMode(value);
-    columnWidthModeByType[resolvedType] = nextMode;
-    if (nextMode === 'custom' && Object.keys(columnWidthsByType[resolvedType] || {}).length <= 0) {
-        const capturedWidths = captureCurrentColumnWidths(resolvedType);
-        columnWidthsByType[resolvedType] = normalizeColumnWidthsForType(
-            resolvedType,
-            Object.keys(capturedWidths).length > 0 ? capturedWidths : buildDefaultColumnWidthsForType(resolvedType)
-        );
-        columnPresetByType[resolvedType] = 'custom';
-    } else if (nextMode !== 'custom') {
-        columnWidthsByType[resolvedType] = {};
-        if (columnPresetByType[resolvedType] === 'custom') {
-            columnPresetByType[resolvedType] = 'balanced';
-        }
+    const targetKey = String(key || '').trim().toLowerCase();
+    if (targetKey !== 'name' && targetKey !== 'actions') {
+        return;
     }
+    if (!settingsTableWidthPresetByType[resolvedType] || typeof settingsTableWidthPresetByType[resolvedType] !== 'object') {
+        settingsTableWidthPresetByType[resolvedType] = { name: 'standard', actions: 'standard' };
+    }
+    settingsTableWidthPresetByType[resolvedType][targetKey] = normalizeSettingsTableColumnWidthPreset(value);
     renderSettingsTableLayoutControls(resolvedType);
     applyColumnWidths(resolvedType);
-    bindTableColumnResizers(resolvedType);
     await persistSettingsTableState(resolvedType, {
-        widthMode: nextMode,
-        preset: nextMode === 'custom' ? 'custom' : columnPresetByType[resolvedType],
-        columnWidths: columnWidthsByType[resolvedType] || {}
+        widthMode: 'auto',
+        columnWidths: {},
+        nameWidth: settingsTableWidthPresetByType[resolvedType].name,
+        actionsWidth: settingsTableWidthPresetByType[resolvedType].actions
     });
 };
 
@@ -9714,7 +9703,9 @@ const applySettingsTablePreset = async (type, preset) => {
         widthMode: 'auto',
         preset: nextPreset,
         columns: nextColumns,
-        columnWidths: {}
+        columnWidths: {},
+        nameWidth: settingsTableWidthPresetByType[resolvedType]?.name || 'standard',
+        actionsWidth: settingsTableWidthPresetByType[resolvedType]?.actions || 'standard'
     });
 };
 
@@ -9722,14 +9713,16 @@ const resetSettingsTableColumns = async (type, mode = 'visibility') => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     if (String(mode) === 'widths') {
         columnWidthModeByType[resolvedType] = 'auto';
-        columnPresetByType[resolvedType] = columnPresetByType[resolvedType] === 'custom' ? 'balanced' : columnPresetByType[resolvedType];
         columnWidthsByType[resolvedType] = {};
+        settingsTableWidthPresetByType[resolvedType] = { name: 'standard', actions: 'standard' };
         renderSettingsTableLayoutControls(resolvedType);
         applyColumnWidths(resolvedType);
         bindTableColumnResizers(resolvedType);
         await persistSettingsTableState(resolvedType, {
             widthMode: 'auto',
-            columnWidths: {}
+            columnWidths: {},
+            nameWidth: 'standard',
+            actionsWidth: 'standard'
         });
         return;
     }
@@ -9747,7 +9740,9 @@ const resetSettingsTableColumns = async (type, mode = 'visibility') => {
         widthMode: 'auto',
         preset: 'balanced',
         columns: resetColumns,
-        columnWidths: {}
+        columnWidths: {},
+        nameWidth: settingsTableWidthPresetByType[resolvedType]?.name || 'standard',
+        actionsWidth: settingsTableWidthPresetByType[resolvedType]?.actions || 'standard'
     });
 };
 
@@ -11731,7 +11726,7 @@ window.clearFolderTableFilters = clearFolderTableFilters;
 window.setQuickFolderFilter = setQuickFolderFilter;
 window.setHealthFolderFilter = setHealthFolderFilter;
 window.changeColumnVisibility = changeColumnVisibility;
-window.changeSettingsTableWidthMode = changeSettingsTableWidthMode;
+window.changeSettingsTableColumnWidthPreset = changeSettingsTableColumnWidthPreset;
 window.applySettingsTablePreset = applySettingsTablePreset;
 window.resetSettingsTableColumns = resetSettingsTableColumns;
 window.showFolderStatusBreakdown = showFolderStatusBreakdown;

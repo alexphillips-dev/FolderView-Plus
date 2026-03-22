@@ -715,13 +715,21 @@
         const settingsTableColumnWidths = isPlainObject(incomingSettingsTable.columnWidths)
             ? { ...incomingSettingsTable.columnWidths }
             : {};
+        const normalizedSettingsTableNameWidth = String(incomingSettingsTable.nameWidth || '').trim().toLowerCase();
+        const normalizedSettingsTableActionsWidth = String(incomingSettingsTable.actionsWidth || '').trim().toLowerCase();
         const settingsTable = {
-            widthMode: (normalizedSettingsTableWidthMode === 'custom' ? 'custom' : 'auto'),
+            widthMode: 'auto',
             preset: ['compact', 'balanced', 'detailed', 'custom'].includes(normalizedSettingsTablePreset)
                 ? normalizedSettingsTablePreset
                 : 'balanced',
             columns: settingsTableColumns,
-            columnWidths: settingsTableColumnWidths
+            columnWidths: {},
+            nameWidth: ['compact', 'standard', 'wide'].includes(normalizedSettingsTableNameWidth)
+                ? normalizedSettingsTableNameWidth
+                : 'standard',
+            actionsWidth: ['compact', 'standard', 'wide'].includes(normalizedSettingsTableActionsWidth)
+                ? normalizedSettingsTableActionsWidth
+                : 'standard'
         };
 
         return {

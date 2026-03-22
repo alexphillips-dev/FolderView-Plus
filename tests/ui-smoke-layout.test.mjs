@@ -79,7 +79,8 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
     assert.match(settingsPage, /id="docker-col-last-changed"/);
     assert.match(settingsPage, /id="docker-col-pinned"/);
     assert.match(settingsPage, /id="docker-col-signals"/);
-    assert.match(settingsPage, /id="docker-table-width-mode"/);
+    assert.match(settingsPage, /id="docker-table-name-width"/);
+    assert.match(settingsPage, /id="docker-table-actions-width"/);
     assert.match(settingsPage, /id="docker-table-reset-visibility"/);
     assert.match(settingsPage, /id="docker-table-reset-widths"/);
     assert.match(settingsPage, /id="docker-health-critical-threshold"/);
@@ -93,7 +94,8 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
     assert.match(settingsPage, /id="vm-col-pinned"/);
     assert.match(settingsPage, /id="vm-col-autostart"/);
     assert.match(settingsPage, /id="vm-col-resources"/);
-    assert.match(settingsPage, /id="vm-table-width-mode"/);
+    assert.match(settingsPage, /id="vm-table-name-width"/);
+    assert.match(settingsPage, /id="vm-table-actions-width"/);
     assert.match(settingsPage, /id="vm-table-reset-visibility"/);
     assert.match(settingsPage, /id="vm-table-reset-widths"/);
     assert.match(settingsPage, /id="vm-health-critical-threshold"/);
@@ -361,11 +363,11 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const bindTableColumnResizers = \(type\) =>/);
     assert.match(settingsJs, /const renderColumnVisibilityControls = \(type\) =>/);
     assert.match(settingsJs, /const changeColumnVisibility = async \(type, key, checked\) =>/);
-    assert.match(settingsJs, /const changeSettingsTableWidthMode = async \(type, value\) =>/);
+    assert.match(settingsJs, /const changeSettingsTableColumnWidthPreset = async \(type, key, value\) =>/);
     assert.match(settingsJs, /const applySettingsTablePreset = async \(type, preset\) =>/);
     assert.match(settingsJs, /const resetSettingsTableColumns = async \(type, mode = 'visibility'\) =>/);
     assert.match(settingsJs, /window\.changeColumnVisibility = changeColumnVisibility;/);
-    assert.match(settingsJs, /window\.changeSettingsTableWidthMode = changeSettingsTableWidthMode;/);
+    assert.match(settingsJs, /window\.changeSettingsTableColumnWidthPreset = changeSettingsTableColumnWidthPreset;/);
     assert.match(settingsJs, /window\.applySettingsTablePreset = applySettingsTablePreset;/);
     assert.match(settingsJs, /window\.resetSettingsTableColumns = resetSettingsTableColumns;/);
     assert.match(settingsJs, /toggleStatusFilter\('\$\{type\}','\$\{escapeHtml\(statusPrimaryKey\)\}'\)/);

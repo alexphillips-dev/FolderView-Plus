@@ -1617,7 +1617,9 @@
                 'widthMode' => 'auto',
                 'preset' => 'balanced',
                 'columns' => [],
-                'columnWidths' => []
+                'columnWidths' => [],
+                'nameWidth' => 'standard',
+                'actionsWidth' => 'standard'
             ],
             'backupSchedule' => [
                 'enabled' => false,
@@ -1872,12 +1874,21 @@
             $settingsTablePreset = 'balanced';
         }
         $settingsTableColumns = is_array($settingsTableIncoming['columns'] ?? null) ? $settingsTableIncoming['columns'] : [];
-        $settingsTableColumnWidths = is_array($settingsTableIncoming['columnWidths'] ?? null) ? $settingsTableIncoming['columnWidths'] : [];
+        $settingsTableNameWidth = strtolower(trim((string)($settingsTableIncoming['nameWidth'] ?? 'standard')));
+        if (!in_array($settingsTableNameWidth, ['compact', 'standard', 'wide'], true)) {
+            $settingsTableNameWidth = 'standard';
+        }
+        $settingsTableActionsWidth = strtolower(trim((string)($settingsTableIncoming['actionsWidth'] ?? 'standard')));
+        if (!in_array($settingsTableActionsWidth, ['compact', 'standard', 'wide'], true)) {
+            $settingsTableActionsWidth = 'standard';
+        }
         $normalized['settingsTable'] = [
-            'widthMode' => $settingsTableWidthMode,
+            'widthMode' => 'auto',
             'preset' => $settingsTablePreset,
             'columns' => $settingsTableColumns,
-            'columnWidths' => $settingsTableColumnWidths
+            'columnWidths' => [],
+            'nameWidth' => $settingsTableNameWidth,
+            'actionsWidth' => $settingsTableActionsWidth
         ];
 
         $scheduleIncoming = is_array($prefs['backupSchedule'] ?? null) ? $prefs['backupSchedule'] : [];

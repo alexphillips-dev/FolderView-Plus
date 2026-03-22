@@ -260,30 +260,24 @@ test('nested folder branch and integrity actions are reachable from quick action
     assert.match(script, /window\.runTreeIntegrityCheck = runTreeIntegrityCheck;/);
 });
 
-test('settings column resize keeps per-column widths stable without side-effects', () => {
+test('settings table layout uses preset-driven widths instead of drag-resize controls', () => {
     assert.match(script, /const captureCurrentColumnWidths = \(type\) =>/);
     assert.match(script, /const syncResizableTableLayout = \(type\) =>/);
     assert.match(script, /const hasCustomWidths = Object\.keys\(customWidths\)\.length > 0;/);
-    assert.match(script, /const frozenWidths = captureCurrentColumnWidths\(resolvedType\);/);
-    assert.match(script, /if \(!dragStarted && Math\.abs\(delta\) < 4\) \{/);
-    assert.match(script, /const startResize = \(\) => \{/);
-    assert.match(script, /window\.addEventListener\('mousemove', onMove, true\);/);
-    assert.match(script, /window\.addEventListener\('mouseup', onUp, true\);/);
-    assert.match(script, /if \(Number\(moveEvent\.buttons\) === 0\) \{/);
-    assert.match(script, /handle\.addEventListener\('mousedown', \(event\) => \{/);
-    assert.match(script, /const SETTINGS_TABLE_RESIZE_GUIDE_ID = 'fv-settings-col-resize-guide';/);
-    assert.match(script, /positionSettingsTableResizeGuide\(startBoundaryX, tableRect\.top, tableRect\.height\);/);
-    assert.match(script, /positionSettingsTableResizeGuide\(startBoundaryX \+ \(nextWidth - normalizedStart\), tableRect\.top, tableRect\.height\);/);
+    assert.match(script, /const SETTINGS_TABLE_WIDTH_PRESET_VALUES = Object\.freeze\(\{/);
+    assert.match(script, /const buildEffectiveSettingsTableWidths = \(type\) => \{/);
+    assert.match(script, /changeSettingsTableColumnWidthPreset = async \(type, key, value\) => \{/);
+    assert.match(script, /settingsTableWidthPresetByType\[resolvedType\]\[targetKey\] = normalizeSettingsTableColumnWidthPreset\(value\);/);
+    assert.match(script, /table\.querySelectorAll\('\.fv-col-resizer'\)\.forEach\(\(handle\) => handle\.remove\(\)\);/);
     assert.match(script, /table\.style\.setProperty\('table-layout', 'fixed'(,\s*'important')?\);/);
-    assert.match(script, /const delta = Number\(moveEvent\.clientX \|\| 0\) - startClientX;/);
     assert.match(script, /columnWidthsByType\[resolvedType\] = \{\};/);
     assert.match(script, /columnWidthModeByType\[resolvedType\] = 'auto';/);
     assert.match(script, /\$\(`\[data-fv-table-preset\^="\$\{resolvedType\}:"\]`\)\.removeClass\('is-active'\);/);
+    assert.match(page, /id="docker-table-name-width"/);
+    assert.match(page, /id="docker-table-actions-width"/);
+    assert.match(page, /id="vm-table-name-width"/);
+    assert.match(page, /id="vm-table-actions-width"/);
     assert.match(settingsCss, /Desktop widths are JS-driven/);
-    assert.match(settingsCss, /right:\s*-4px;/);
-    assert.match(settingsCss, /width:\s*8px;/);
-    assert.match(settingsCss, /touch-action:\s*none;/);
-    assert.match(settingsCss, /\.fv-col-resize-guide \{/);
     assert.match(settingsCss, /\.folder-table table th\.col-name \{\s*text-align:\s*center;/);
     assert.match(settingsCss, /\.folder-table table th\.col-signals \{\s*text-align:\s*center;/);
     assert.doesNotMatch(settingsCss, /\.folder-table table th:nth-child\(1\),[\s\S]*\.folder-table table td:nth-child\(10\) \{ width: 5%; \}/);

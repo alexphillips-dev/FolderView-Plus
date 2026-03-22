@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.22.21">
-<!ENTITY md5 "5c02a7626da2e2c9f90526ae7973789e">
+<!ENTITY version "2026.03.22.22">
+<!ENTITY md5 "03ac92dbeef3c05dfa6a6eb9770bf0e2">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.22.22
+- UX: Replace settings-table drag-resize controls with stable Name and Actions width presets plus layout/visibility controls.
+- Fix: Remove fragile manual column-width handling from settings tables so columns no longer depend on click-and-drag resizing.
+- UX: Keep settings-table header titles centered over their columns for cleaner alignment.
+
 
 ###2026.03.22.21
 - Fix: Change settings-table column resizing to use a guide-line drag preview and only commit widths on mouse release.

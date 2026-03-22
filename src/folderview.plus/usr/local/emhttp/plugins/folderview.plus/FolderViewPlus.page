@@ -225,11 +225,20 @@ if (!empty($fvplusRuntimeConflicts)) {
                 </div>
                 <div class="settings-mini-card">
                     <div class="settings-mini-title">Columns</div>
-                    <label class="setting-select">
-                        <span>Width mode</span>
-                        <select id="docker-table-width-mode" onchange="changeSettingsTableWidthMode('docker', this.value)">
-                            <option value="auto">Auto</option>
-                            <option value="custom">Custom</option>
+                    <label class="setting-select" for="docker-table-name-width">
+                        <span>Name width</span>
+                        <select id="docker-table-name-width" onchange="changeSettingsTableColumnWidthPreset('docker', 'name', this.value)">
+                            <option value="compact">Compact</option>
+                            <option value="standard">Standard</option>
+                            <option value="wide">Wide</option>
+                        </select>
+                    </label>
+                    <label class="setting-select" for="docker-table-actions-width">
+                        <span>Actions width</span>
+                        <select id="docker-table-actions-width" onchange="changeSettingsTableColumnWidthPreset('docker', 'actions', this.value)">
+                            <option value="compact">Compact</option>
+                            <option value="standard">Standard</option>
+                            <option value="wide">Wide</option>
                         </select>
                     </label>
                     <div class="setting-button-row setting-button-row-compact">
@@ -247,7 +256,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <label class="setting-toggle"><input id="docker-col-last-changed" type="checkbox" onchange="changeColumnVisibility('docker', 'lastChanged', this.checked)"> Last changed</label>
                     <label class="setting-toggle"><input id="docker-col-pinned" type="checkbox" onchange="changeColumnVisibility('docker', 'pinned', this.checked)"> Pinned</label>
                     <label class="setting-toggle"><input id="docker-col-signals" type="checkbox" onchange="changeColumnVisibility('docker', 'signals', this.checked)"> Alerts</label>
-                    <div class="setting-help">Auto uses the recommended layout. Switch to Custom to keep manual column widths.</div>
+                    <div class="setting-help">Use layout presets plus Name and Actions width presets. Manual drag-resize is intentionally disabled for stability.</div>
                 </div>
             </div>
         </div>
@@ -464,11 +473,20 @@ if (!empty($fvplusRuntimeConflicts)) {
                 </div>
                 <div class="settings-mini-card">
                     <div class="settings-mini-title">Columns</div>
-                    <label class="setting-select">
-                        <span>Width mode</span>
-                        <select id="vm-table-width-mode" onchange="changeSettingsTableWidthMode('vm', this.value)">
-                            <option value="auto">Auto</option>
-                            <option value="custom">Custom</option>
+                    <label class="setting-select" for="vm-table-name-width">
+                        <span>Name width</span>
+                        <select id="vm-table-name-width" onchange="changeSettingsTableColumnWidthPreset('vm', 'name', this.value)">
+                            <option value="compact">Compact</option>
+                            <option value="standard">Standard</option>
+                            <option value="wide">Wide</option>
+                        </select>
+                    </label>
+                    <label class="setting-select" for="vm-table-actions-width">
+                        <span>Actions width</span>
+                        <select id="vm-table-actions-width" onchange="changeSettingsTableColumnWidthPreset('vm', 'actions', this.value)">
+                            <option value="compact">Compact</option>
+                            <option value="standard">Standard</option>
+                            <option value="wide">Wide</option>
                         </select>
                     </label>
                     <div class="setting-button-row setting-button-row-compact">
@@ -487,7 +505,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                     <label class="setting-toggle"><input id="vm-col-pinned" type="checkbox" onchange="changeColumnVisibility('vm', 'pinned', this.checked)"> Pinned</label>
                     <label class="setting-toggle"><input id="vm-col-autostart" type="checkbox" onchange="changeColumnVisibility('vm', 'autostart', this.checked)"> Autostart</label>
                     <label class="setting-toggle"><input id="vm-col-resources" type="checkbox" onchange="changeColumnVisibility('vm', 'resources', this.checked)"> Resources</label>
-                    <div class="setting-help">Auto uses the recommended layout. Switch to Custom to keep manual column widths.</div>
+                    <div class="setting-help">Use layout presets plus Name and Actions width presets. Manual drag-resize is intentionally disabled for stability.</div>
                 </div>
             </div>
         </div>

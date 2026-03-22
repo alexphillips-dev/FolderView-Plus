@@ -8,6 +8,7 @@ const pagePath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugi
 const importScriptPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js');
 const backupPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/backup.php');
 const libPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
+const settingsCssPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css');
 
 const page = fs.readFileSync(pagePath, 'utf8');
 const settingsScriptPaths = [
@@ -24,6 +25,7 @@ const importScript = fs.readFileSync(importScriptPath, 'utf8');
 const runtimeScript = `${script}\n${importScript}`;
 const backupPhp = fs.readFileSync(backupPath, 'utf8');
 const libPhp = fs.readFileSync(libPath, 'utf8');
+const settingsCss = fs.readFileSync(settingsCssPath, 'utf8');
 
 test('settings page onclick handlers are exported on window', () => {
     const handlers = [
@@ -265,6 +267,11 @@ test('settings column resize keeps per-column widths stable without side-effects
     assert.match(script, /const frozenWidths = captureCurrentColumnWidths\(resolvedType\);/);
     assert.match(script, /table\.style\.setProperty\('table-layout', 'fixed'(,\s*'important')?\);/);
     assert.match(script, /const delta = Number\(moveEvent\.clientX \|\| 0\) - startClientX;/);
+    assert.match(script, /columnWidthsByType\[resolvedType\] = \{\};/);
+    assert.match(script, /columnWidthModeByType\[resolvedType\] = 'auto';/);
+    assert.match(script, /\$\(`\[data-fv-table-preset\^="\$\{resolvedType\}:"\]`\)\.removeClass\('is-active'\);/);
+    assert.match(settingsCss, /Desktop widths are JS-driven/);
+    assert.doesNotMatch(settingsCss, /\.folder-table table th:nth-child\(1\),[\s\S]*\.folder-table table td:nth-child\(10\) \{ width: 5%; \}/);
 });
 
 test('status detail controls support simple balanced and detailed modes', () => {

@@ -4705,7 +4705,7 @@ const renderSettingsTableLayoutControls = (type) => {
     const widthMode = normalizeSettingsTableWidthMode(columnWidthModeByType[resolvedType]);
     const preset = normalizeSettingsTablePreset(columnPresetByType[resolvedType]);
     $(`#${resolvedType}-table-width-mode`).val(widthMode);
-    $(`[data-fv-table-preset="${resolvedType}"]`).removeClass('is-active');
+    $(`[data-fv-table-preset^="${resolvedType}:"]`).removeClass('is-active');
     $(`[data-fv-table-preset="${resolvedType}:${preset}"]`).addClass('is-active');
     $(`#${resolvedType}-table-reset-widths`).prop('disabled', widthMode !== 'custom' && Object.keys(columnWidthsByType[resolvedType] || {}).length <= 0);
 };
@@ -9629,6 +9629,12 @@ const changeSettingsTableWidthMode = async (type, value) => {
             resolvedType,
             Object.keys(capturedWidths).length > 0 ? capturedWidths : buildDefaultColumnWidthsForType(resolvedType)
         );
+        columnPresetByType[resolvedType] = 'custom';
+    } else if (nextMode !== 'custom') {
+        columnWidthsByType[resolvedType] = {};
+        if (columnPresetByType[resolvedType] === 'custom') {
+            columnPresetByType[resolvedType] = 'balanced';
+        }
     }
     renderSettingsTableLayoutControls(resolvedType);
     applyColumnWidths(resolvedType);
@@ -9644,16 +9650,20 @@ const applySettingsTablePreset = async (type, preset) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     const nextPreset = normalizeSettingsTablePreset(preset);
     const nextColumns = buildPresetColumnVisibilityForType(resolvedType, nextPreset);
+    columnWidthModeByType[resolvedType] = 'auto';
     columnPresetByType[resolvedType] = nextPreset;
     columnVisibilityByType[resolvedType] = nextColumns;
+    columnWidthsByType[resolvedType] = {};
     renderSettingsTableLayoutControls(resolvedType);
     renderColumnVisibilityControls(resolvedType);
     applyColumnVisibility(resolvedType);
     applyColumnWidths(resolvedType);
     bindTableColumnResizers(resolvedType);
     await persistSettingsTableState(resolvedType, {
+        widthMode: 'auto',
         preset: nextPreset,
-        columns: nextColumns
+        columns: nextColumns,
+        columnWidths: {}
     });
 };
 
@@ -9673,16 +9683,20 @@ const resetSettingsTableColumns = async (type, mode = 'visibility') => {
         return;
     }
     const resetColumns = buildPresetColumnVisibilityForType(resolvedType, 'balanced');
+    columnWidthModeByType[resolvedType] = 'auto';
     columnPresetByType[resolvedType] = 'balanced';
     columnVisibilityByType[resolvedType] = resetColumns;
+    columnWidthsByType[resolvedType] = {};
     renderSettingsTableLayoutControls(resolvedType);
     renderColumnVisibilityControls(resolvedType);
     applyColumnVisibility(resolvedType);
     applyColumnWidths(resolvedType);
     bindTableColumnResizers(resolvedType);
     await persistSettingsTableState(resolvedType, {
+        widthMode: 'auto',
         preset: 'balanced',
-        columns: resetColumns
+        columns: resetColumns,
+        columnWidths: {}
     });
 };
 

@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.22.15">
-<!ENTITY md5 "bbc75a5bdd778710fa88ff01807f4340">
+<!ENTITY version "2026.03.22.16">
+<!ENTITY md5 "f926df2c450622bb636ab94e4a08422e">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.22.16
+- Fix: Remove the conflicting desktop `nth-child` settings-table widths so the column runtime stops fighting old CSS rules.
+- UX: Make settings-table presets and resets return to a true auto-layout state instead of leaving stale custom column widths behind.
+- Quality: Tighten settings-column regression coverage around preset state, width-mode resets, and CSS ownership.
+
 
 ###2026.03.22.15
 - Test: Bump the dev package again so Unraid plugin-update checks can be retested against a newer `dev` manifest version.

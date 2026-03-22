@@ -303,24 +303,24 @@ tr.folder.fv-parent-expanded div.folder-preview {
 .folder-preview {
     --fvplus-preview-row-height: 3.5em;
     border-radius: 4px;
-    min-height: 3.5em;
+    min-height: 0;
     overflow: hidden;
     display: flex;
     flex-direction: column;
     align-items: stretch;
     align-content: stretch;
-    row-gap: 0.15em;
-    padding: 0.15em 0;
+    row-gap: 2px;
+    padding: 2px 0;
 }
 
 .folder-preview-row {
-    min-height: var(--fvplus-preview-row-height);
+    min-height: calc(var(--fvplus-preview-row-height) - 0.9em);
     display: flex;
     align-items: center;
     flex-wrap: nowrap;
     column-gap: 12px;
     overflow: hidden;
-    padding-left: 10px;
+    padding: 2px 0 2px 10px;
 }
 
 .folder-preview.fv-preview-border-off {
@@ -338,7 +338,7 @@ tr.folder.fv-parent-expanded div.folder-preview {
 .folder-preview-wrapper {
     float: none;
     height: auto;
-    min-height: calc(var(--fvplus-preview-row-height) - 1.2em);
+    min-height: 0;
     margin: 0;
     display: flex;
     align-items: center;
@@ -350,7 +350,7 @@ tr.folder.fv-parent-expanded div.folder-preview {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    min-height: calc(var(--fvplus-preview-row-height) - 1em);
+    min-height: calc(var(--fvplus-preview-row-height) - 1.35em);
     max-width: 100%;
     min-width: 0;
 }

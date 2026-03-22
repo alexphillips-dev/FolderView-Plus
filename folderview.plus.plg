@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.22.34">
-<!ENTITY md5 "1c0e58d406baa1e6454eb5345a951f20">
+<!ENTITY version "2026.03.22.35">
+<!ENTITY md5 "eebed074d5c65be6b5b492289fa186eb">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.22.35
+- Fix: Tighten multi-row Docker preview row heights and inter-row spacing so preview cards no longer leave excess bottom padding or oversized gaps between rows.
+- Fix: Reduce compact preview card vertical size so multi-row previews stay dense without distorting the folder row height.
+- Compatibility: Fall back to `TSWebUi` for preview WebUI actions when a container does not expose a standard `WebUi` value.
+
 
 ###2026.03.22.34
 - Fix: Remove rigid preview-card minimum widths so multi-row Docker previews no longer look spaced like fixed columns.

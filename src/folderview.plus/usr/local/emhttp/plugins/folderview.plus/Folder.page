@@ -311,6 +311,31 @@ emitRequestTokenMetaTag();
                     </blockquote>
                 </div>
             </li>
+            <li constraint="preview-1">
+                <div class="basic">
+                    <dl>
+                        <dt>Preview member details:</dt>
+                        <dd>
+                            <select name="preview_member_display">
+                                <option value="full">Full</option>
+                                <option value="compact">Compact</option>
+                                <option value="icons_only">Icons only</option>
+                            </select>
+                        </dd>
+                    </dl>
+                    <blockquote class="inline_help">
+                        <p>
+                            Controls how member details are shown inside the folder preview when using <b>Icon and label</b> mode.
+                            <br>
+                            <b>Full</b> keeps the current name + status display.
+                            <br>
+                            <b>Compact</b> hides the started/stopped text.
+                            <br>
+                            <b>Icons only</b> hides both the member name and status text for a cleaner icon-only look.
+                        </p>
+                    </blockquote>
+                </div>
+            </li>
             <li constraint="preview-1 preview-2">
                 <div class="basic">
                     <dl>

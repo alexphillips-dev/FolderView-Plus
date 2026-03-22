@@ -6,12 +6,26 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.22.02">
-<!ENTITY md5 "17fd49f970141da321242e9f70ea7e07">
+<!ENTITY version "2026.03.22.04">
+<!ENTITY md5 "ffb2af11448a2e6033f8b550e8ac8220">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.22.04
+- Maintenance: Prune superseded archive artifacts.
+- Maintenance: Refresh perf baseline for runtime globals.
+- Maintenance: Harden split settings runtime globals.
+- Maintenance: Update tests for split settings runtime.
+- Maintenance: Split settings monolith into owned modules.
+- Maintenance: Release main 2026.03.21.43 with smart-detect rollup notes.
+
+
+###2026.03.22.03
+- Maintenance: Prune superseded archive artifacts.
+- Maintenance: Refresh perf baseline for runtime globals.
+
 
 ###2026.03.22.02
 - Maintenance: Update tests for split settings runtime.

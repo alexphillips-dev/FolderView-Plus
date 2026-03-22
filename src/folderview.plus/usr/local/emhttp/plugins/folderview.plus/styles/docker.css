@@ -363,6 +363,14 @@ tr.folder.fv-parent-expanded div.folder-preview {
     word-break: break-all;
 }
 
+div.folder-preview.fv-preview-member-display-compact .folder-preview-wrapper .state {
+    display: none !important;
+}
+
+div.folder-preview.fv-preview-member-display-icons-only .folder-preview-wrapper .inner {
+    display: none !important;
+}
+
 .folder-preview-divider:not(:last-child) {
     float: left;
     height: 80%;

@@ -6,12 +6,22 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.22.09">
+<!ENTITY version "2026.03.22.12">
 <!ENTITY md5 "85cb11dec24e4acc25b138f31fecd21e">
 ]>
 
-<PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
+<PLUGIN name="folderview.plus" author="alexphillips-dev" version="2026.03.22.12" launch="Settings/FolderViewPlus" pluginURL="https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/dev/folderview.plus.plg" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.22.12
+- Fix: Emit a fully literal top-level plugin manifest tag so Unraid and CA update checks never rely on XML entity expansion for `version` or `pluginURL`.
+- Quality: Harden release validation to fail builds when the top-level plugin metadata is malformed or points at the wrong branch.
+- Quality: Verify branch-specific dev/main manifest URLs stay aligned during packaging to prevent CA pull regressions.
+
+
+###2026.03.22.10
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
 
 ###2026.03.22.09
 - Maintenance: Stabilize settings table column layout controls.

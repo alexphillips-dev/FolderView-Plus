@@ -36,6 +36,57 @@ detect_git_branch() {
     printf '%s' "$detected"
 }
 
+rewrite_manifest_branch_metadata() {
+    local target_file="${1:-}"
+    local target_version="${2:-}"
+    local target_branch="${3:-}"
+    if [ -z "$target_file" ] || [ -z "$target_version" ] || [ -z "$target_branch" ]; then
+        echo "ERROR: rewrite_manifest_branch_metadata requires file, version, and branch." >&2
+        exit 1
+    fi
+    sed -E -i 's|^<!ENTITY pluginURL ".*">|<!ENTITY pluginURL "https://raw.githubusercontent.com/\&github;/'"$target_branch"'/folderview.plus.plg">|' "$target_file"
+    sed -E -i 's|<URL>https://raw.githubusercontent.com/.*?/archive/.*</URL>|<URL>https://raw.githubusercontent.com/\&github;/'"$target_branch"'/archive/\&name;-\&version;.txz</URL>|' "$target_file"
+    perl -0pi -e 's{<PLUGIN\s+name="[^"]*"\s+author="[^"]*"\s+version="[^"]*"\s+launch="[^"]*"\s+pluginURL="[^"]*"\s+icon="folder-icon\.png"\s+support="https://forums\.unraid\.net/topic/197631-plugin-folderview-plus/"\s+min="7\.0\.0">}{<PLUGIN name="folderview.plus" author="alexphillips-dev" version="'"$target_version"'" launch="Settings/FolderViewPlus" pluginURL="https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/'"$target_branch"'/folderview.plus.plg" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">}s' "$target_file"
+}
+
+validate_manifest_branch_matrix() {
+    local source_file="${1:-}"
+    local target_version="${2:-}"
+    local branch_name=""
+    if [ -z "$source_file" ] || [ -z "$target_version" ]; then
+        echo "ERROR: validate_manifest_branch_matrix requires source file and version." >&2
+        exit 1
+    fi
+    for branch_name in dev main beta; do
+        local probe_file=""
+        local entity_url=""
+        local archive_url=""
+        local plugin_tag=""
+        local expected_entity_url="https://raw.githubusercontent.com/&github;/${branch_name}/folderview.plus.plg"
+        local expected_archive_url="https://raw.githubusercontent.com/&github;/${branch_name}/archive/&name;-&version;.txz"
+        local expected_tag_url="https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/${branch_name}/folderview.plus.plg"
+        probe_file="$(mktemp)"
+        cp "$source_file" "$probe_file"
+        rewrite_manifest_branch_metadata "$probe_file" "$target_version" "$branch_name"
+        entity_url="$(sed -n 's/^<!ENTITY pluginURL "\([^"]*\)".*/\1/p' "$probe_file" | head -n 1 || true)"
+        archive_url="$(sed -n 's|.*<URL>\(https://raw.githubusercontent.com/&github;/[^<]*/archive/&name;-&version;.txz\)</URL>.*|\1|p' "$probe_file" | head -n 1 || true)"
+        plugin_tag="$(perl -0777 -ne 'if (/<PLUGIN\b[^>]*>/s) { my $tag = $&; $tag =~ s/\s+/ /g; print $tag; }' "$probe_file")"
+        rm -f "$probe_file"
+        if [ "$entity_url" != "$expected_entity_url" ]; then
+            echo "ERROR: Manifest branch matrix entity URL mismatch for ${branch_name}. expected=${expected_entity_url}, found=${entity_url}" >&2
+            exit 1
+        fi
+        if [ "$archive_url" != "$expected_archive_url" ]; then
+            echo "ERROR: Manifest branch matrix archive URL mismatch for ${branch_name}. expected=${expected_archive_url}, found=${archive_url}" >&2
+            exit 1
+        fi
+        if [[ "$plugin_tag" != *"version=\"${target_version}\""* ]] || [[ "$plugin_tag" != *"pluginURL=\"${expected_tag_url}\""* ]]; then
+            echo "ERROR: Manifest branch matrix plugin tag mismatch for ${branch_name}. tag=${plugin_tag}" >&2
+            exit 1
+        fi
+    done
+}
+
 print_usage() {
     cat <<'EOF'
 Usage: pkg_build.sh [options]
@@ -467,9 +518,8 @@ if [ -n "$xml_date" ]; then
 fi
 
 # Update branch references in plg file (URLs use XML entities like &github;).
-# Always rewrite canonical lines from scratch so dev/main stay separated permanently.
-sed -E -i 's|^<!ENTITY pluginURL ".*">|<!ENTITY pluginURL "https://raw.githubusercontent.com/\&github;/'"$branch"'/folderview.plus.plg">|' "$plgfile"
-sed -E -i 's|<URL>https://raw.githubusercontent.com/.*?/archive/.*</URL>|<URL>https://raw.githubusercontent.com/\&github;/'"$branch"'/archive/\&name;-\&version;.txz</URL>|' "$plgfile"
+rewrite_manifest_branch_metadata "$plgfile" "$version" "$branch"
+validate_manifest_branch_matrix "$plgfile" "$version"
 
 # Ensure a CHANGES block exists for the computed version so release validation
 # cannot fail after bumping version metadata.

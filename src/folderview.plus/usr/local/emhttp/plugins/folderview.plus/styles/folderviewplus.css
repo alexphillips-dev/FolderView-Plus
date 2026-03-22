@@ -454,8 +454,8 @@
 .folder-table table th.fv-col-resizable .fv-col-resizer {
     position: absolute;
     top: 0;
-    right: -6px;
-    width: 12px;
+    right: -4px;
+    width: 8px;
     height: 100%;
     border: 0;
     margin: 0;
@@ -463,6 +463,7 @@
     background: transparent;
     cursor: col-resize;
     z-index: 8;
+    touch-action: none;
 }
 
 .folder-table table th.fv-col-resizable .fv-col-resizer::before {

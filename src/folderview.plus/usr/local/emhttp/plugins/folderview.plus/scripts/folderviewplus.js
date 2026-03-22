@@ -4562,7 +4562,7 @@ const stopActiveTableColumnResize = (persist = true) => {
     window.removeEventListener('pointerup', active.onUp, true);
     window.removeEventListener('pointercancel', active.onCancel, true);
     activeTableColumnResize = null;
-    if (persist) {
+    if (persist && active.dragStarted === true) {
         persistSettingsTableState(active.type, {
             widthMode: 'custom',
             preset: 'custom',
@@ -4588,29 +4588,40 @@ const beginTableColumnResize = (type, key, event) => {
         return;
     }
     const startClientX = Number(event.clientX || 0);
-    const frozenWidths = captureCurrentColumnWidths(resolvedType);
-    if (Object.keys(frozenWidths).length > 0) {
-        columnWidthsByType[resolvedType] = normalizeColumnWidthsForType(resolvedType, {
-            ...(columnWidthsByType[resolvedType] || {}),
-            ...frozenWidths
-        });
-    }
-    columnWidthModeByType[resolvedType] = 'custom';
-    columnPresetByType[resolvedType] = 'custom';
-    applyColumnWidths(resolvedType);
     const header = table.querySelector(config.header);
     if (!header) {
         return;
     }
     const startWidth = header.getBoundingClientRect().width;
     const normalizedStart = normalizeSingleColumnWidth(resolvedType, key, startWidth) || startWidth;
-    columnWidthsByType[resolvedType] = normalizeColumnWidthsForType(resolvedType, {
-        ...(columnWidthsByType[resolvedType] || {}),
-        [key]: normalizedStart
-    });
-    applyColumnWidths(resolvedType);
+    let dragStarted = false;
+    const startResize = () => {
+        if (dragStarted) {
+            return;
+        }
+        dragStarted = true;
+        const frozenWidths = captureCurrentColumnWidths(resolvedType);
+        if (Object.keys(frozenWidths).length > 0) {
+            columnWidthsByType[resolvedType] = normalizeColumnWidthsForType(resolvedType, {
+                ...(columnWidthsByType[resolvedType] || {}),
+                ...frozenWidths
+            });
+        }
+        columnWidthModeByType[resolvedType] = 'custom';
+        columnPresetByType[resolvedType] = 'custom';
+        columnWidthsByType[resolvedType] = normalizeColumnWidthsForType(resolvedType, {
+            ...(columnWidthsByType[resolvedType] || {}),
+            [key]: normalizedStart
+        });
+        applyColumnWidths(resolvedType);
+        document.body.classList.add('fv-column-resize-active');
+    };
     const onMove = (moveEvent) => {
         const delta = Number(moveEvent.clientX || 0) - startClientX;
+        if (!dragStarted && Math.abs(delta) < 4) {
+            return;
+        }
+        startResize();
         const nextWidth = normalizeSingleColumnWidth(resolvedType, key, normalizedStart + delta);
         if (nextWidth === null) {
             return;
@@ -4627,11 +4638,17 @@ const beginTableColumnResize = (type, key, event) => {
     const onCancel = onUp;
     activeTableColumnResize = {
         type: resolvedType,
+        dragStarted: false,
         onMove,
         onUp,
         onCancel
     };
-    document.body.classList.add('fv-column-resize-active');
+    Object.defineProperty(activeTableColumnResize, 'dragStarted', {
+        get: () => dragStarted,
+        set: (value) => {
+            dragStarted = value === true;
+        }
+    });
     window.addEventListener('pointermove', onMove, true);
     window.addEventListener('pointerup', onUp, true);
     window.addEventListener('pointercancel', onCancel, true);

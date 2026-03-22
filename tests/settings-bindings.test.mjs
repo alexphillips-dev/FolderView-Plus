@@ -265,12 +265,17 @@ test('settings column resize keeps per-column widths stable without side-effects
     assert.match(script, /const syncResizableTableLayout = \(type\) =>/);
     assert.match(script, /const hasCustomWidths = Object\.keys\(customWidths\)\.length > 0;/);
     assert.match(script, /const frozenWidths = captureCurrentColumnWidths\(resolvedType\);/);
+    assert.match(script, /if \(!dragStarted && Math\.abs\(delta\) < 4\) \{/);
+    assert.match(script, /const startResize = \(\) => \{/);
     assert.match(script, /table\.style\.setProperty\('table-layout', 'fixed'(,\s*'important')?\);/);
     assert.match(script, /const delta = Number\(moveEvent\.clientX \|\| 0\) - startClientX;/);
     assert.match(script, /columnWidthsByType\[resolvedType\] = \{\};/);
     assert.match(script, /columnWidthModeByType\[resolvedType\] = 'auto';/);
     assert.match(script, /\$\(`\[data-fv-table-preset\^="\$\{resolvedType\}:"\]`\)\.removeClass\('is-active'\);/);
     assert.match(settingsCss, /Desktop widths are JS-driven/);
+    assert.match(settingsCss, /right:\s*-4px;/);
+    assert.match(settingsCss, /width:\s*8px;/);
+    assert.match(settingsCss, /touch-action:\s*none;/);
     assert.doesNotMatch(settingsCss, /\.folder-table table th:nth-child\(1\),[\s\S]*\.folder-table table td:nth-child\(10\) \{ width: 5%; \}/);
 });
 

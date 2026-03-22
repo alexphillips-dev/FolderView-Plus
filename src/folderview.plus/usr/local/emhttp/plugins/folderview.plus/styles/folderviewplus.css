@@ -502,13 +502,23 @@ body.fv-column-resize-active * {
 }
 
 .folder-table table th.col-name {
-    text-align: left;
-    padding-left: 0.44rem;
+    text-align: center;
+    padding-left: 0;
 }
 
 .folder-table table th.col-signals {
-    text-align: left;
-    padding-left: 0.28rem;
+    text-align: center;
+    padding-left: 0;
+}
+
+.fv-col-resize-guide {
+    position: fixed;
+    width: 2px;
+    background: rgba(84, 166, 255, 0.94);
+    box-shadow: 0 0 0 1px rgba(84, 166, 255, 0.22), 0 0 12px rgba(84, 166, 255, 0.24);
+    pointer-events: none;
+    z-index: 100000;
+    border-radius: 999px;
 }
 
 .name-cell-content {

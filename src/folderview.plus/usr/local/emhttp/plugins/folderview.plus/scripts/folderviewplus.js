@@ -4224,6 +4224,7 @@ const TABLE_COLUMN_RESIZE_KEYS_BY_TYPE = Object.freeze({
 });
 
 let activeTableColumnResize = null;
+const SETTINGS_TABLE_RESIZE_GUIDE_ID = 'fv-settings-col-resize-guide';
 
 const getSettingsTableElement = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
@@ -4557,6 +4558,7 @@ const stopActiveTableColumnResize = (persist = true) => {
     if (!active) {
         return;
     }
+    document.getElementById(SETTINGS_TABLE_RESIZE_GUIDE_ID)?.remove();
     document.body.classList.remove('fv-column-resize-active');
     window.removeEventListener('mousemove', active.onMove, true);
     window.removeEventListener('mouseup', active.onUp, true);
@@ -4568,6 +4570,24 @@ const stopActiveTableColumnResize = (persist = true) => {
             columnWidths: columnWidthsByType[active.type] || {}
         });
     }
+};
+
+const ensureSettingsTableResizeGuide = () => {
+    let guide = document.getElementById(SETTINGS_TABLE_RESIZE_GUIDE_ID);
+    if (!guide) {
+        guide = document.createElement('div');
+        guide.id = SETTINGS_TABLE_RESIZE_GUIDE_ID;
+        guide.className = 'fv-col-resize-guide';
+        document.body.appendChild(guide);
+    }
+    return guide;
+};
+
+const positionSettingsTableResizeGuide = (left, top, height) => {
+    const guide = ensureSettingsTableResizeGuide();
+    guide.style.left = `${Math.round(left)}px`;
+    guide.style.top = `${Math.round(top)}px`;
+    guide.style.height = `${Math.max(0, Math.round(height))}px`;
 };
 
 const beginTableColumnResize = (type, key, event) => {
@@ -4593,7 +4613,11 @@ const beginTableColumnResize = (type, key, event) => {
     }
     const startWidth = header.getBoundingClientRect().width;
     const normalizedStart = normalizeSingleColumnWidth(resolvedType, key, startWidth) || startWidth;
+    const tableRect = table.getBoundingClientRect();
+    const headerRect = header.getBoundingClientRect();
+    const startBoundaryX = headerRect.right;
     let dragStarted = false;
+    let nextWidth = normalizedStart;
     const startResize = () => {
         if (dragStarted) {
             return;
@@ -4612,11 +4636,21 @@ const beginTableColumnResize = (type, key, event) => {
             ...(columnWidthsByType[resolvedType] || {}),
             [key]: normalizedStart
         });
-        applyColumnWidths(resolvedType);
         document.body.classList.add('fv-column-resize-active');
+        positionSettingsTableResizeGuide(startBoundaryX, tableRect.top, tableRect.height);
+    };
+    const applyResolvedWidth = () => {
+        columnWidthsByType[resolvedType] = normalizeColumnWidthsForType(resolvedType, {
+            ...(columnWidthsByType[resolvedType] || {}),
+            [key]: nextWidth
+        });
+        applyColumnWidths(resolvedType);
     };
     const onMove = (moveEvent) => {
         if (Number(moveEvent.buttons) === 0) {
+            if (dragStarted) {
+                applyResolvedWidth();
+            }
             stopActiveTableColumnResize(true);
             return;
         }
@@ -4625,17 +4659,17 @@ const beginTableColumnResize = (type, key, event) => {
             return;
         }
         startResize();
-        const nextWidth = normalizeSingleColumnWidth(resolvedType, key, normalizedStart + delta);
-        if (nextWidth === null) {
+        const candidateWidth = normalizeSingleColumnWidth(resolvedType, key, normalizedStart + delta);
+        if (candidateWidth === null) {
             return;
         }
-        columnWidthsByType[resolvedType] = normalizeColumnWidthsForType(resolvedType, {
-            ...(columnWidthsByType[resolvedType] || {}),
-            [key]: nextWidth
-        });
-        applyColumnWidths(resolvedType);
+        nextWidth = candidateWidth;
+        positionSettingsTableResizeGuide(startBoundaryX + (nextWidth - normalizedStart), tableRect.top, tableRect.height);
     };
     const onUp = () => {
+        if (dragStarted) {
+            applyResolvedWidth();
+        }
         stopActiveTableColumnResize(true);
     };
     activeTableColumnResize = {

@@ -271,6 +271,9 @@ test('settings column resize keeps per-column widths stable without side-effects
     assert.match(script, /window\.addEventListener\('mouseup', onUp, true\);/);
     assert.match(script, /if \(Number\(moveEvent\.buttons\) === 0\) \{/);
     assert.match(script, /handle\.addEventListener\('mousedown', \(event\) => \{/);
+    assert.match(script, /const SETTINGS_TABLE_RESIZE_GUIDE_ID = 'fv-settings-col-resize-guide';/);
+    assert.match(script, /positionSettingsTableResizeGuide\(startBoundaryX, tableRect\.top, tableRect\.height\);/);
+    assert.match(script, /positionSettingsTableResizeGuide\(startBoundaryX \+ \(nextWidth - normalizedStart\), tableRect\.top, tableRect\.height\);/);
     assert.match(script, /table\.style\.setProperty\('table-layout', 'fixed'(,\s*'important')?\);/);
     assert.match(script, /const delta = Number\(moveEvent\.clientX \|\| 0\) - startClientX;/);
     assert.match(script, /columnWidthsByType\[resolvedType\] = \{\};/);
@@ -280,6 +283,9 @@ test('settings column resize keeps per-column widths stable without side-effects
     assert.match(settingsCss, /right:\s*-4px;/);
     assert.match(settingsCss, /width:\s*8px;/);
     assert.match(settingsCss, /touch-action:\s*none;/);
+    assert.match(settingsCss, /\.fv-col-resize-guide \{/);
+    assert.match(settingsCss, /\.folder-table table th\.col-name \{\s*text-align:\s*center;/);
+    assert.match(settingsCss, /\.folder-table table th\.col-signals \{\s*text-align:\s*center;/);
     assert.doesNotMatch(settingsCss, /\.folder-table table th:nth-child\(1\),[\s\S]*\.folder-table table td:nth-child\(10\) \{ width: 5%; \}/);
 });
 

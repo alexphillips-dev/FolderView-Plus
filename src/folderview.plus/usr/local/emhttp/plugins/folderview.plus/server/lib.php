@@ -1613,6 +1613,12 @@
                 'attentionAccent' => true,
                 'warnStoppedPercent' => 60
             ],
+            'settingsTable' => [
+                'widthMode' => 'auto',
+                'preset' => 'balanced',
+                'columns' => [],
+                'columnWidths' => []
+            ],
             'backupSchedule' => [
                 'enabled' => false,
                 'intervalHours' => 24,
@@ -1855,6 +1861,23 @@
                 ? true
                 : normalizeBool($statusIncoming['attentionAccent'], true),
             'warnStoppedPercent' => normalizeIntInRange($statusIncoming['warnStoppedPercent'] ?? 60, 0, 100, 60)
+        ];
+        $settingsTableIncoming = is_array($prefs['settingsTable'] ?? null) ? $prefs['settingsTable'] : [];
+        $settingsTableWidthMode = strtolower(trim((string)($settingsTableIncoming['widthMode'] ?? 'auto')));
+        if (!in_array($settingsTableWidthMode, ['auto', 'custom'], true)) {
+            $settingsTableWidthMode = 'auto';
+        }
+        $settingsTablePreset = strtolower(trim((string)($settingsTableIncoming['preset'] ?? 'balanced')));
+        if (!in_array($settingsTablePreset, ['compact', 'balanced', 'detailed', 'custom'], true)) {
+            $settingsTablePreset = 'balanced';
+        }
+        $settingsTableColumns = is_array($settingsTableIncoming['columns'] ?? null) ? $settingsTableIncoming['columns'] : [];
+        $settingsTableColumnWidths = is_array($settingsTableIncoming['columnWidths'] ?? null) ? $settingsTableIncoming['columnWidths'] : [];
+        $normalized['settingsTable'] = [
+            'widthMode' => $settingsTableWidthMode,
+            'preset' => $settingsTablePreset,
+            'columns' => $settingsTableColumns,
+            'columnWidths' => $settingsTableColumnWidths
         ];
 
         $scheduleIncoming = is_array($prefs['backupSchedule'] ?? null) ? $prefs['backupSchedule'] : [];

@@ -225,11 +225,29 @@ if (!empty($fvplusRuntimeConflicts)) {
                 </div>
                 <div class="settings-mini-card">
                     <div class="settings-mini-title">Columns</div>
+                    <label class="setting-select">
+                        <span>Width mode</span>
+                        <select id="docker-table-width-mode" onchange="changeSettingsTableWidthMode('docker', this.value)">
+                            <option value="auto">Auto</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                    </label>
+                    <div class="setting-button-row setting-button-row-compact">
+                        <button type="button" class="fv-mini-action-btn" data-fv-table-preset="docker:compact" onclick="applySettingsTablePreset('docker', 'compact')">Compact</button>
+                        <button type="button" class="fv-mini-action-btn" data-fv-table-preset="docker:balanced" onclick="applySettingsTablePreset('docker', 'balanced')">Balanced</button>
+                        <button type="button" class="fv-mini-action-btn" data-fv-table-preset="docker:detailed" onclick="applySettingsTablePreset('docker', 'detailed')">Detailed</button>
+                    </div>
+                    <div class="setting-button-row setting-button-row-compact">
+                        <button type="button" class="fv-mini-action-btn" id="docker-table-reset-visibility" onclick="resetSettingsTableColumns('docker', 'visibility')">Reset visibility</button>
+                        <button type="button" class="fv-mini-action-btn" id="docker-table-reset-widths" onclick="resetSettingsTableColumns('docker', 'widths')">Reset widths</button>
+                    </div>
+                    <label class="setting-toggle"><input id="docker-col-members" type="checkbox" onchange="changeColumnVisibility('docker', 'members', this.checked)"> Members</label>
                     <label class="setting-toggle"><input id="docker-col-status" type="checkbox" onchange="changeColumnVisibility('docker', 'status', this.checked)"> Status</label>
                     <label class="setting-toggle"><input id="docker-col-rules" type="checkbox" onchange="changeColumnVisibility('docker', 'rules', this.checked)"> Rules</label>
                     <label class="setting-toggle"><input id="docker-col-last-changed" type="checkbox" onchange="changeColumnVisibility('docker', 'lastChanged', this.checked)"> Last changed</label>
                     <label class="setting-toggle"><input id="docker-col-pinned" type="checkbox" onchange="changeColumnVisibility('docker', 'pinned', this.checked)"> Pinned</label>
                     <label class="setting-toggle"><input id="docker-col-signals" type="checkbox" onchange="changeColumnVisibility('docker', 'signals', this.checked)"> Alerts</label>
+                    <div class="setting-help">Auto uses the recommended layout. Switch to Custom to keep manual column widths.</div>
                 </div>
             </div>
         </div>
@@ -446,12 +464,30 @@ if (!empty($fvplusRuntimeConflicts)) {
                 </div>
                 <div class="settings-mini-card">
                     <div class="settings-mini-title">Columns</div>
+                    <label class="setting-select">
+                        <span>Width mode</span>
+                        <select id="vm-table-width-mode" onchange="changeSettingsTableWidthMode('vm', this.value)">
+                            <option value="auto">Auto</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                    </label>
+                    <div class="setting-button-row setting-button-row-compact">
+                        <button type="button" class="fv-mini-action-btn" data-fv-table-preset="vm:compact" onclick="applySettingsTablePreset('vm', 'compact')">Compact</button>
+                        <button type="button" class="fv-mini-action-btn" data-fv-table-preset="vm:balanced" onclick="applySettingsTablePreset('vm', 'balanced')">Balanced</button>
+                        <button type="button" class="fv-mini-action-btn" data-fv-table-preset="vm:detailed" onclick="applySettingsTablePreset('vm', 'detailed')">Detailed</button>
+                    </div>
+                    <div class="setting-button-row setting-button-row-compact">
+                        <button type="button" class="fv-mini-action-btn" id="vm-table-reset-visibility" onclick="resetSettingsTableColumns('vm', 'visibility')">Reset visibility</button>
+                        <button type="button" class="fv-mini-action-btn" id="vm-table-reset-widths" onclick="resetSettingsTableColumns('vm', 'widths')">Reset widths</button>
+                    </div>
+                    <label class="setting-toggle"><input id="vm-col-members" type="checkbox" onchange="changeColumnVisibility('vm', 'members', this.checked)"> Members</label>
                     <label class="setting-toggle"><input id="vm-col-status" type="checkbox" onchange="changeColumnVisibility('vm', 'status', this.checked)"> Status</label>
                     <label class="setting-toggle"><input id="vm-col-rules" type="checkbox" onchange="changeColumnVisibility('vm', 'rules', this.checked)"> Rules</label>
                     <label class="setting-toggle"><input id="vm-col-last-changed" type="checkbox" onchange="changeColumnVisibility('vm', 'lastChanged', this.checked)"> Last changed</label>
                     <label class="setting-toggle"><input id="vm-col-pinned" type="checkbox" onchange="changeColumnVisibility('vm', 'pinned', this.checked)"> Pinned</label>
                     <label class="setting-toggle"><input id="vm-col-autostart" type="checkbox" onchange="changeColumnVisibility('vm', 'autostart', this.checked)"> Autostart</label>
                     <label class="setting-toggle"><input id="vm-col-resources" type="checkbox" onchange="changeColumnVisibility('vm', 'resources', this.checked)"> Resources</label>
+                    <div class="setting-help">Auto uses the recommended layout. Switch to Custom to keep manual column widths.</div>
                 </div>
             </div>
         </div>

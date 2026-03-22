@@ -384,6 +384,23 @@
     line-height: 1.28;
 }
 
+.setting-button-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.setting-button-row-compact > button {
+    min-height: 28px;
+    padding: 0.12rem 0.48rem;
+    font-size: 1.01rem;
+}
+
+.fv-mini-action-btn.is-active {
+    box-shadow: inset 0 0 0 1px rgba(84, 166, 255, 0.48);
+    background: rgba(48, 96, 168, 0.22);
+}
+
 .runtime-dependent.is-hidden {
     display: none !important;
 }
@@ -409,7 +426,7 @@
 }
 
 .folder-table table {
-    table-layout: fixed;
+    table-layout: auto;
     width: 100%;
     max-width: 100%;
     min-width: 0;

@@ -708,6 +708,21 @@
         const appColumnWidth = normalizeAppColumnWidth(incoming.appColumnWidth);
         const setupWizardCompleted = incoming.setupWizardCompleted === true;
         const settingsMode = incoming.settingsMode === 'advanced' ? 'advanced' : 'basic';
+        const incomingSettingsTable = isPlainObject(incoming.settingsTable) ? incoming.settingsTable : {};
+        const normalizedSettingsTableWidthMode = String(incomingSettingsTable.widthMode || '').trim().toLowerCase();
+        const normalizedSettingsTablePreset = String(incomingSettingsTable.preset || '').trim().toLowerCase();
+        const settingsTableColumns = isPlainObject(incomingSettingsTable.columns) ? { ...incomingSettingsTable.columns } : {};
+        const settingsTableColumnWidths = isPlainObject(incomingSettingsTable.columnWidths)
+            ? { ...incomingSettingsTable.columnWidths }
+            : {};
+        const settingsTable = {
+            widthMode: (normalizedSettingsTableWidthMode === 'custom' ? 'custom' : 'auto'),
+            preset: ['compact', 'balanced', 'detailed', 'custom'].includes(normalizedSettingsTablePreset)
+                ? normalizedSettingsTablePreset
+                : 'balanced',
+            columns: settingsTableColumns,
+            columnWidths: settingsTableColumnWidths
+        };
 
         return {
             sortMode,
@@ -730,6 +745,7 @@
             dashboard,
             health,
             status,
+            settingsTable,
             backupSchedule,
             importPresets
         };

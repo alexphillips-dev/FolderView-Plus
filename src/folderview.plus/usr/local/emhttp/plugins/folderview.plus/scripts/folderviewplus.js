@@ -181,26 +181,58 @@ let quickFolderFilterByType = {
     docker: 'all',
     vm: 'all'
 };
+const SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE = Object.freeze({
+    docker: Object.freeze([
+        Object.freeze({ key: 'order', label: 'Order', fieldId: null, header: '.col-order', cell: '.order-cell', hideable: false, resizable: true, defaultWidth: 92, min: 64, max: 220 }),
+        Object.freeze({ key: 'name', label: 'Name', fieldId: null, header: '.col-name', cell: '.name-cell', hideable: false, resizable: true, defaultWidth: 320, min: 220, max: 820 }),
+        Object.freeze({ key: 'members', label: 'Members', fieldId: 'docker-col-members', header: '.col-members', cell: '.members-cell', hideable: true, resizable: true, defaultWidth: 112, min: 90, max: 260, presets: Object.freeze({ compact: false, balanced: false, detailed: true }) }),
+        Object.freeze({ key: 'status', label: 'Status', fieldId: 'docker-col-status', header: '.col-status', cell: '.status-cell', hideable: true, resizable: true, defaultWidth: 220, min: 170, max: 620, presets: Object.freeze({ compact: true, balanced: true, detailed: true }) }),
+        Object.freeze({ key: 'rules', label: 'Rules', fieldId: 'docker-col-rules', header: '.col-rules', cell: '.rules-cell', hideable: true, resizable: true, defaultWidth: 110, min: 80, max: 240, presets: Object.freeze({ compact: true, balanced: true, detailed: true }) }),
+        Object.freeze({ key: 'lastChanged', label: 'Last changed', fieldId: 'docker-col-last-changed', header: '.col-last-changed', cell: '.last-changed-cell', hideable: true, resizable: true, defaultWidth: 180, min: 150, max: 360, presets: Object.freeze({ compact: false, balanced: true, detailed: true }) }),
+        Object.freeze({ key: 'pinned', label: 'Pinned', fieldId: 'docker-col-pinned', header: '.col-pinned', cell: '.pinned-cell', hideable: true, resizable: true, defaultWidth: 96, min: 80, max: 200, presets: Object.freeze({ compact: false, balanced: true, detailed: true }) }),
+        Object.freeze({ key: 'signals', label: 'Alerts', fieldId: 'docker-col-signals', header: '.col-signals', cell: '.signals-cell', hideable: true, resizable: true, defaultWidth: 180, min: 120, max: 360, presets: Object.freeze({ compact: true, balanced: true, detailed: true }) }),
+        Object.freeze({ key: 'actions', label: 'Actions', fieldId: null, header: '.col-actions', cell: '.actions-cell', hideable: false, resizable: true, defaultWidth: 180, min: 160, max: 320 })
+    ]),
+    vm: Object.freeze([
+        Object.freeze({ key: 'order', label: 'Order', fieldId: null, header: '.col-order', cell: '.order-cell', hideable: false, resizable: true, defaultWidth: 92, min: 64, max: 220 }),
+        Object.freeze({ key: 'name', label: 'Name', fieldId: null, header: '.col-name', cell: '.name-cell', hideable: false, resizable: true, defaultWidth: 320, min: 220, max: 820 }),
+        Object.freeze({ key: 'members', label: 'Members', fieldId: 'vm-col-members', header: '.col-members', cell: '.members-cell', hideable: true, resizable: true, defaultWidth: 112, min: 90, max: 260, presets: Object.freeze({ compact: false, balanced: false, detailed: true }) }),
+        Object.freeze({ key: 'status', label: 'Status', fieldId: 'vm-col-status', header: '.col-status', cell: '.status-cell', hideable: true, resizable: true, defaultWidth: 220, min: 170, max: 620, presets: Object.freeze({ compact: false, balanced: false, detailed: true }) }),
+        Object.freeze({ key: 'rules', label: 'Rules', fieldId: 'vm-col-rules', header: '.col-rules', cell: '.rules-cell', hideable: true, resizable: true, defaultWidth: 110, min: 80, max: 240, presets: Object.freeze({ compact: false, balanced: false, detailed: true }) }),
+        Object.freeze({ key: 'lastChanged', label: 'Last changed', fieldId: 'vm-col-last-changed', header: '.col-last-changed', cell: '.last-changed-cell', hideable: true, resizable: true, defaultWidth: 180, min: 150, max: 360, presets: Object.freeze({ compact: false, balanced: false, detailed: true }) }),
+        Object.freeze({ key: 'pinned', label: 'Pinned', fieldId: 'vm-col-pinned', header: '.col-pinned', cell: '.pinned-cell', hideable: true, resizable: true, defaultWidth: 96, min: 80, max: 200, presets: Object.freeze({ compact: false, balanced: false, detailed: true }) }),
+        Object.freeze({ key: 'autostart', label: 'Autostart', fieldId: 'vm-col-autostart', header: '.col-autostart', cell: '.autostart-cell', hideable: true, resizable: true, defaultWidth: 160, min: 130, max: 300, presets: Object.freeze({ compact: true, balanced: true, detailed: true }) }),
+        Object.freeze({ key: 'resources', label: 'Resources', fieldId: 'vm-col-resources', header: '.col-resources', cell: '.resources-cell', hideable: true, resizable: true, defaultWidth: 210, min: 170, max: 420, presets: Object.freeze({ compact: true, balanced: true, detailed: true }) }),
+        Object.freeze({ key: 'actions', label: 'Actions', fieldId: null, header: '.col-actions', cell: '.actions-cell', hideable: false, resizable: true, defaultWidth: 180, min: 160, max: 320 })
+    ])
+});
+const SETTINGS_TABLE_COLUMN_SCHEMA_MAP_BY_TYPE = Object.freeze({
+    docker: Object.freeze(Object.fromEntries((SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE.docker || []).map((entry) => [entry.key, entry]))),
+    vm: Object.freeze(Object.fromEntries((SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE.vm || []).map((entry) => [entry.key, entry])))
+});
 const DEFAULT_COLUMN_VISIBILITY_BY_TYPE = Object.freeze({
-    docker: Object.freeze({
-        status: true,
-        rules: true,
-        lastChanged: true,
-        pinned: true,
-        signals: true
-    }),
-    vm: Object.freeze({
-        status: false,
-        rules: false,
-        lastChanged: false,
-        pinned: false,
-        autostart: true,
-        resources: true
-    })
+    docker: Object.freeze(Object.fromEntries(
+        (SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE.docker || [])
+            .filter((entry) => entry.hideable === true)
+            .map((entry) => [entry.key, entry.presets?.balanced !== false])
+    )),
+    vm: Object.freeze(Object.fromEntries(
+        (SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE.vm || [])
+            .filter((entry) => entry.hideable === true)
+            .map((entry) => [entry.key, entry.presets?.balanced !== false])
+    ))
 });
 let columnVisibilityByType = {
     docker: { ...DEFAULT_COLUMN_VISIBILITY_BY_TYPE.docker },
     vm: { ...DEFAULT_COLUMN_VISIBILITY_BY_TYPE.vm }
+};
+let columnWidthModeByType = {
+    docker: 'auto',
+    vm: 'auto'
+};
+let columnPresetByType = {
+    docker: 'balanced',
+    vm: 'balanced'
 };
 let columnWidthsByType = {
     docker: {},
@@ -4035,31 +4067,119 @@ const runtimePreviewText = (type, folderId, action, plan) => {
 };
 
 const TABLE_COLUMN_SELECTOR_MAP = Object.freeze({
-    docker: Object.freeze({
-        status: Object.freeze({ header: '.col-status', cell: '.status-cell' }),
-        rules: Object.freeze({ header: '.col-rules', cell: '.rules-cell' }),
-        lastChanged: Object.freeze({ header: '.col-last-changed', cell: '.last-changed-cell' }),
-        pinned: Object.freeze({ header: '.col-pinned', cell: '.pinned-cell' }),
-        signals: Object.freeze({ header: '.col-signals', cell: '.signals-cell' })
-    }),
-    vm: Object.freeze({
-        status: Object.freeze({ header: '.col-status', cell: '.status-cell' }),
-        rules: Object.freeze({ header: '.col-rules', cell: '.rules-cell' }),
-        lastChanged: Object.freeze({ header: '.col-last-changed', cell: '.last-changed-cell' }),
-        pinned: Object.freeze({ header: '.col-pinned', cell: '.pinned-cell' }),
-        autostart: Object.freeze({ header: '.col-autostart', cell: '.autostart-cell' }),
-        resources: Object.freeze({ header: '.col-resources', cell: '.resources-cell' })
-    })
+    docker: Object.freeze(Object.fromEntries(
+        (SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE.docker || [])
+            .filter((entry) => entry.hideable === true)
+            .map((entry) => [entry.key, Object.freeze({ header: entry.header, cell: entry.cell })])
+    )),
+    vm: Object.freeze(Object.fromEntries(
+        (SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE.vm || [])
+            .filter((entry) => entry.hideable === true)
+            .map((entry) => [entry.key, Object.freeze({ header: entry.header, cell: entry.cell })])
+    ))
 });
 
 const normalizedFilter = (value) => String(value || '').trim().toLowerCase();
+const normalizeSettingsTableWidthMode = (value) => (
+    String(value || '').trim().toLowerCase() === 'custom' ? 'custom' : 'auto'
+);
+const normalizeSettingsTablePreset = (value) => {
+    const normalized = String(value || '').trim().toLowerCase();
+    return ['compact', 'balanced', 'detailed', 'custom'].includes(normalized) ? normalized : 'balanced';
+};
+const buildPresetColumnVisibilityForType = (type, preset = 'balanced') => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const normalizedPreset = normalizeSettingsTablePreset(preset);
+    const schema = SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE[resolvedType] || [];
+    const defaults = {};
+    schema.forEach((entry) => {
+        if (entry.hideable !== true) {
+            return;
+        }
+        defaults[entry.key] = entry.presets?.[normalizedPreset] !== false;
+    });
+    return defaults;
+};
+const buildDefaultColumnWidthsForType = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const configByKey = TABLE_COLUMN_RESIZE_CONFIG_BY_TYPE[resolvedType] || {};
+    const widths = {};
+    Object.entries(configByKey).forEach(([key, config]) => {
+        const defaultWidth = normalizeSingleColumnWidth(resolvedType, key, config.defaultWidth);
+        if (defaultWidth !== null) {
+            widths[key] = defaultWidth;
+        }
+    });
+    return widths;
+};
+const getSettingsTablePrefs = (type, prefsOverride = null) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const sourcePrefs = prefsOverride ? utils.normalizePrefs(prefsOverride) : utils.normalizePrefs(prefsByType[resolvedType]);
+    const incoming = sourcePrefs && typeof sourcePrefs.settingsTable === 'object' ? sourcePrefs.settingsTable : {};
+    const preset = normalizeSettingsTablePreset(incoming.preset);
+    const columns = normalizeColumnVisibilityForType(
+        resolvedType,
+        incoming.columns && typeof incoming.columns === 'object'
+            ? incoming.columns
+            : buildPresetColumnVisibilityForType(resolvedType, preset)
+    );
+    const widths = normalizeColumnWidthsForType(
+        resolvedType,
+        incoming.columnWidths && typeof incoming.columnWidths === 'object' ? incoming.columnWidths : {}
+    );
+    return {
+        widthMode: normalizeSettingsTableWidthMode(incoming.widthMode),
+        preset,
+        columns,
+        columnWidths: widths
+    };
+};
+const syncSettingsTableStateFromPrefs = (type, prefsOverride = null) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const settingsTable = getSettingsTablePrefs(resolvedType, prefsOverride);
+    columnWidthModeByType[resolvedType] = settingsTable.widthMode;
+    columnPresetByType[resolvedType] = settingsTable.preset;
+    columnVisibilityByType[resolvedType] = settingsTable.columns;
+    columnWidthsByType[resolvedType] = settingsTable.columnWidths;
+    return settingsTable;
+};
+const buildNextSettingsTablePrefs = (type, patch = {}) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const current = utils.normalizePrefs(prefsByType[resolvedType] || {});
+    const currentSettingsTable = getSettingsTablePrefs(resolvedType, current);
+    const nextWidthMode = normalizeSettingsTableWidthMode(
+        Object.prototype.hasOwnProperty.call(patch, 'widthMode') ? patch.widthMode : currentSettingsTable.widthMode
+    );
+    const nextPreset = normalizeSettingsTablePreset(
+        Object.prototype.hasOwnProperty.call(patch, 'preset') ? patch.preset : currentSettingsTable.preset
+    );
+    const nextColumns = normalizeColumnVisibilityForType(
+        resolvedType,
+        Object.prototype.hasOwnProperty.call(patch, 'columns') ? patch.columns : currentSettingsTable.columns
+    );
+    const nextColumnWidths = normalizeColumnWidthsForType(
+        resolvedType,
+        Object.prototype.hasOwnProperty.call(patch, 'columnWidths') ? patch.columnWidths : currentSettingsTable.columnWidths
+    );
+    return utils.normalizePrefs({
+        ...current,
+        settingsTable: {
+            widthMode: nextWidthMode,
+            preset: nextPreset,
+            columns: nextColumns,
+            columnWidths: nextColumnWidths
+        }
+    });
+};
 const normalizeColumnVisibilityForType = (type, value = null) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     const defaults = DEFAULT_COLUMN_VISIBILITY_BY_TYPE[resolvedType] || {};
     const source = value && typeof value === 'object' ? value : {};
     const normalized = {};
     Object.keys(defaults).forEach((key) => {
-        normalized[key] = source[key] !== false;
+        normalized[key] = Object.prototype.hasOwnProperty.call(source, key)
+            ? source[key] !== false
+            : defaults[key] === true;
     });
     // Legacy bridge: old docker prefs used separate updates/health columns.
     // Preserve previous "both hidden" intent when migrating to unified Signals.
@@ -4074,29 +4194,28 @@ const normalizeColumnVisibilityForType = (type, value = null) => {
 };
 
 const TABLE_COLUMN_RESIZE_CONFIG_BY_TYPE = Object.freeze({
-    docker: Object.freeze({
-        order: Object.freeze({ header: '.col-order', cell: '.order-cell', min: 64, max: 220 }),
-        name: Object.freeze({ header: '.col-name', cell: '.name-cell', min: 220, max: 820 }),
-        members: Object.freeze({ header: '.col-members', cell: '.members-cell', min: 90, max: 260 }),
-        status: Object.freeze({ header: '.col-status', cell: '.status-cell', min: 170, max: 620 }),
-        rules: Object.freeze({ header: '.col-rules', cell: '.rules-cell', min: 80, max: 240 }),
-        lastChanged: Object.freeze({ header: '.col-last-changed', cell: '.last-changed-cell', min: 150, max: 360 }),
-        pinned: Object.freeze({ header: '.col-pinned', cell: '.pinned-cell', min: 80, max: 200 }),
-        signals: Object.freeze({ header: '.col-signals', cell: '.signals-cell', min: 120, max: 360 }),
-        actions: Object.freeze({ header: '.col-actions', cell: '.actions-cell', min: 160, max: 320 })
-    }),
-    vm: Object.freeze({
-        order: Object.freeze({ header: '.col-order', cell: '.order-cell', min: 64, max: 220 }),
-        name: Object.freeze({ header: '.col-name', cell: '.name-cell', min: 220, max: 820 }),
-        members: Object.freeze({ header: '.col-members', cell: '.members-cell', min: 90, max: 260 }),
-        status: Object.freeze({ header: '.col-status', cell: '.status-cell', min: 170, max: 620 }),
-        rules: Object.freeze({ header: '.col-rules', cell: '.rules-cell', min: 80, max: 240 }),
-        lastChanged: Object.freeze({ header: '.col-last-changed', cell: '.last-changed-cell', min: 150, max: 360 }),
-        pinned: Object.freeze({ header: '.col-pinned', cell: '.pinned-cell', min: 80, max: 200 }),
-        autostart: Object.freeze({ header: '.col-autostart', cell: '.autostart-cell', min: 130, max: 300 }),
-        resources: Object.freeze({ header: '.col-resources', cell: '.resources-cell', min: 170, max: 420 }),
-        actions: Object.freeze({ header: '.col-actions', cell: '.actions-cell', min: 160, max: 320 })
-    })
+    docker: Object.freeze(Object.fromEntries(
+        (SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE.docker || [])
+            .filter((entry) => entry.resizable !== false)
+            .map((entry) => [entry.key, Object.freeze({
+                header: entry.header,
+                cell: entry.cell,
+                min: entry.min,
+                max: entry.max,
+                defaultWidth: entry.defaultWidth
+            })])
+    )),
+    vm: Object.freeze(Object.fromEntries(
+        (SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE.vm || [])
+            .filter((entry) => entry.resizable !== false)
+            .map((entry) => [entry.key, Object.freeze({
+                header: entry.header,
+                cell: entry.cell,
+                min: entry.min,
+                max: entry.max,
+                defaultWidth: entry.defaultWidth
+            })])
+    ))
 });
 
 const TABLE_COLUMN_RESIZE_KEYS_BY_TYPE = Object.freeze({
@@ -4188,6 +4307,17 @@ const syncResizableTableLayout = (type) => {
         }
         return;
     }
+    const widthMode = normalizeSettingsTableWidthMode(columnWidthModeByType[resolvedType]);
+    if (widthMode !== 'custom') {
+        table.style.removeProperty('width');
+        table.style.removeProperty('max-width');
+        table.style.removeProperty('table-layout');
+        if (tableWrap && tableWrap.style) {
+            tableWrap.style.removeProperty('overflow-x');
+            tableWrap.style.removeProperty('overflow-y');
+        }
+        return;
+    }
     if (!hasCustomWidths) {
         table.style.removeProperty('width');
         table.style.removeProperty('max-width');
@@ -4256,14 +4386,6 @@ const buildTableUiStatePayload = () => ({
         docker: Array.from(collapsedTreeParentsByType.docker || []),
         vm: Array.from(collapsedTreeParentsByType.vm || [])
     },
-    columns: {
-        docker: { ...(columnVisibilityByType.docker || {}) },
-        vm: { ...(columnVisibilityByType.vm || {}) }
-    },
-    columnWidths: {
-        docker: { ...(columnWidthsByType.docker || {}) },
-        vm: { ...(columnWidthsByType.vm || {}) }
-    },
     treeReorderMode: {
         docker: mobileTreeReorderModeByType.docker === true,
         vm: mobileTreeReorderModeByType.vm === true
@@ -4297,8 +4419,6 @@ const restoreTableUiState = () => {
         const sourceHealthSeverity = source.healthSeverity && typeof source.healthSeverity === 'object' ? source.healthSeverity : {};
         const sourceStatus = source.status && typeof source.status === 'object' ? source.status : {};
         const sourceTreeCollapsed = source.treeCollapsed && typeof source.treeCollapsed === 'object' ? source.treeCollapsed : {};
-        const sourceColumns = source.columns && typeof source.columns === 'object' ? source.columns : {};
-        const sourceColumnWidths = source.columnWidths && typeof source.columnWidths === 'object' ? source.columnWidths : {};
         const sourceTreeReorderMode = source.treeReorderMode && typeof source.treeReorderMode === 'object' ? source.treeReorderMode : {};
         const sourceAdvancedSearch = source.advancedSearch && typeof source.advancedSearch === 'object' ? source.advancedSearch : {};
         ['docker', 'vm'].forEach((resolvedType) => {
@@ -4321,8 +4441,6 @@ const restoreTableUiState = () => {
                     ? sourceTreeCollapsed[resolvedType].map((id) => String(id || '').trim()).filter(Boolean)
                     : []
             );
-            columnVisibilityByType[resolvedType] = normalizeColumnVisibilityForType(resolvedType, sourceColumns[resolvedType]);
-            columnWidthsByType[resolvedType] = normalizeColumnWidthsForType(resolvedType, sourceColumnWidths[resolvedType]);
             mobileTreeReorderModeByType[resolvedType] = sourceTreeReorderMode[resolvedType] === true;
         });
         settingsUiState.advancedSearchByTab = normalizeAdvancedSearchMap(
@@ -4371,8 +4489,9 @@ const applySingleColumnWidth = (type, key, widthPx) => {
     }
     const targets = table.querySelectorAll(`${config.header}, ${config.cell}`);
     const width = normalizeSingleColumnWidth(resolvedType, key, widthPx);
+    const useCustomWidths = normalizeSettingsTableWidthMode(columnWidthModeByType[resolvedType]) === 'custom';
     targets.forEach((element) => {
-        if (!width || shouldUseCompactMobileLayout()) {
+        if (!width || shouldUseCompactMobileLayout() || !useCustomWidths) {
             element.style.removeProperty('width');
             element.style.removeProperty('min-width');
             element.style.removeProperty('max-width');
@@ -4395,6 +4514,44 @@ const applyColumnWidths = (type) => {
     syncResizableTableLayout(resolvedType);
 };
 
+const persistSettingsTableState = async (type, patch = {}, options = {}) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const rerender = options.rerender === true;
+    const currentPrefs = prefsByType[resolvedType] || utils.normalizePrefs({});
+    const previousState = {
+        widthMode: columnWidthModeByType[resolvedType],
+        preset: columnPresetByType[resolvedType],
+        columns: { ...(columnVisibilityByType[resolvedType] || {}) },
+        columnWidths: { ...(columnWidthsByType[resolvedType] || {}) }
+    };
+    try {
+        const nextPrefs = buildNextSettingsTablePrefs(resolvedType, patch);
+        prefsByType[resolvedType] = await postPrefs(resolvedType, nextPrefs);
+        syncSettingsTableStateFromPrefs(resolvedType, prefsByType[resolvedType]);
+        renderSettingsTableLayoutControls(resolvedType);
+        renderColumnVisibilityControls(resolvedType);
+        if (rerender) {
+            renderTable(resolvedType);
+        } else {
+            applyColumnVisibility(resolvedType);
+            applyColumnWidths(resolvedType);
+            bindTableColumnResizers(resolvedType);
+        }
+    } catch (error) {
+        prefsByType[resolvedType] = currentPrefs;
+        columnWidthModeByType[resolvedType] = previousState.widthMode;
+        columnPresetByType[resolvedType] = previousState.preset;
+        columnVisibilityByType[resolvedType] = previousState.columns;
+        columnWidthsByType[resolvedType] = previousState.columnWidths;
+        renderSettingsTableLayoutControls(resolvedType);
+        renderColumnVisibilityControls(resolvedType);
+        applyColumnVisibility(resolvedType);
+        applyColumnWidths(resolvedType);
+        bindTableColumnResizers(resolvedType);
+        showError('Settings table preferences save failed', error);
+    }
+};
+
 const stopActiveTableColumnResize = (persist = true) => {
     const active = activeTableColumnResize;
     if (!active) {
@@ -4406,7 +4563,11 @@ const stopActiveTableColumnResize = (persist = true) => {
     window.removeEventListener('pointercancel', active.onCancel, true);
     activeTableColumnResize = null;
     if (persist) {
-        persistTableUiState();
+        persistSettingsTableState(active.type, {
+            widthMode: 'custom',
+            preset: 'custom',
+            columnWidths: columnWidthsByType[active.type] || {}
+        });
     }
 };
 
@@ -4434,6 +4595,8 @@ const beginTableColumnResize = (type, key, event) => {
             ...frozenWidths
         });
     }
+    columnWidthModeByType[resolvedType] = 'custom';
+    columnPresetByType[resolvedType] = 'custom';
     applyColumnWidths(resolvedType);
     const header = table.querySelector(config.header);
     if (!header) {
@@ -4463,6 +4626,7 @@ const beginTableColumnResize = (type, key, event) => {
     };
     const onCancel = onUp;
     activeTableColumnResize = {
+        type: resolvedType,
         onMove,
         onUp,
         onCancel
@@ -4510,8 +4674,15 @@ const bindTableColumnResizers = (type) => {
                 columnWidthsByType[resolvedType] = {};
             }
             delete columnWidthsByType[resolvedType][key];
+            columnWidthModeByType[resolvedType] = Object.keys(columnWidthsByType[resolvedType] || {}).length > 0 ? 'custom' : 'auto';
+            columnPresetByType[resolvedType] = 'custom';
             applyColumnWidths(resolvedType);
-            persistTableUiState();
+            renderSettingsTableLayoutControls(resolvedType);
+            persistSettingsTableState(resolvedType, {
+                widthMode: columnWidthModeByType[resolvedType],
+                preset: 'custom',
+                columnWidths: columnWidthsByType[resolvedType] || {}
+            });
         });
         header.appendChild(handle);
     });
@@ -4520,10 +4691,23 @@ const bindTableColumnResizers = (type) => {
 const renderColumnVisibilityControls = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     const state = normalizeColumnVisibilityForType(resolvedType, columnVisibilityByType[resolvedType]);
-    Object.entries(state).forEach(([key, enabled]) => {
-        const fieldId = `${resolvedType}-col-${key === 'lastChanged' ? 'last-changed' : key}`;
-        $(`#${fieldId}`).prop('checked', enabled === true);
+    const schema = SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE[resolvedType] || [];
+    schema.forEach((entry) => {
+        if (!entry.fieldId) {
+            return;
+        }
+        $(`#${entry.fieldId}`).prop('checked', state[entry.key] === true);
     });
+};
+
+const renderSettingsTableLayoutControls = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const widthMode = normalizeSettingsTableWidthMode(columnWidthModeByType[resolvedType]);
+    const preset = normalizeSettingsTablePreset(columnPresetByType[resolvedType]);
+    $(`#${resolvedType}-table-width-mode`).val(widthMode);
+    $(`[data-fv-table-preset="${resolvedType}"]`).removeClass('is-active');
+    $(`[data-fv-table-preset="${resolvedType}:${preset}"]`).addClass('is-active');
+    $(`#${resolvedType}-table-reset-widths`).prop('disabled', widthMode !== 'custom' && Object.keys(columnWidthsByType[resolvedType] || {}).length <= 0);
 };
 
 const setFilterQuery = (section, type, value) => {
@@ -8680,6 +8864,7 @@ const renderTable = (type) => {
     }
     statusSnapshotByType[type] = nextStatusSnapshot;
     bindRowTouchQuickActions(type);
+    syncSettingsTableStateFromPrefs(type);
 
     renderFolderSelectOptions(type);
     renderBadgeToggles(type);
@@ -8691,6 +8876,7 @@ const renderTable = (type) => {
     renderBackupScheduleControls(type);
     renderFilterInputs(type);
     renderQuickFolderFilters(type);
+    renderSettingsTableLayoutControls(type);
     renderColumnVisibilityControls(type);
     applyColumnVisibility(type);
     applyColumnWidths(type);
@@ -9413,7 +9599,7 @@ const setHealthFolderFilter = (type, mode) => {
     renderTable(resolvedType);
 };
 
-const changeColumnVisibility = (type, key, checked) => {
+const changeColumnVisibility = async (type, key, checked) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     const normalized = normalizeColumnVisibilityForType(resolvedType, columnVisibilityByType[resolvedType]);
     if (!Object.prototype.hasOwnProperty.call(normalized, key)) {
@@ -9421,11 +9607,83 @@ const changeColumnVisibility = (type, key, checked) => {
     }
     normalized[key] = checked === true;
     columnVisibilityByType[resolvedType] = normalized;
+    columnPresetByType[resolvedType] = 'custom';
     renderColumnVisibilityControls(resolvedType);
     applyColumnVisibility(resolvedType);
     applyColumnWidths(resolvedType);
     bindTableColumnResizers(resolvedType);
-    persistTableUiState();
+    renderSettingsTableLayoutControls(resolvedType);
+    await persistSettingsTableState(resolvedType, {
+        preset: 'custom',
+        columns: normalized
+    });
+};
+
+const changeSettingsTableWidthMode = async (type, value) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const nextMode = normalizeSettingsTableWidthMode(value);
+    columnWidthModeByType[resolvedType] = nextMode;
+    if (nextMode === 'custom' && Object.keys(columnWidthsByType[resolvedType] || {}).length <= 0) {
+        const capturedWidths = captureCurrentColumnWidths(resolvedType);
+        columnWidthsByType[resolvedType] = normalizeColumnWidthsForType(
+            resolvedType,
+            Object.keys(capturedWidths).length > 0 ? capturedWidths : buildDefaultColumnWidthsForType(resolvedType)
+        );
+    }
+    renderSettingsTableLayoutControls(resolvedType);
+    applyColumnWidths(resolvedType);
+    bindTableColumnResizers(resolvedType);
+    await persistSettingsTableState(resolvedType, {
+        widthMode: nextMode,
+        preset: nextMode === 'custom' ? 'custom' : columnPresetByType[resolvedType],
+        columnWidths: columnWidthsByType[resolvedType] || {}
+    });
+};
+
+const applySettingsTablePreset = async (type, preset) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const nextPreset = normalizeSettingsTablePreset(preset);
+    const nextColumns = buildPresetColumnVisibilityForType(resolvedType, nextPreset);
+    columnPresetByType[resolvedType] = nextPreset;
+    columnVisibilityByType[resolvedType] = nextColumns;
+    renderSettingsTableLayoutControls(resolvedType);
+    renderColumnVisibilityControls(resolvedType);
+    applyColumnVisibility(resolvedType);
+    applyColumnWidths(resolvedType);
+    bindTableColumnResizers(resolvedType);
+    await persistSettingsTableState(resolvedType, {
+        preset: nextPreset,
+        columns: nextColumns
+    });
+};
+
+const resetSettingsTableColumns = async (type, mode = 'visibility') => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    if (String(mode) === 'widths') {
+        columnWidthModeByType[resolvedType] = 'auto';
+        columnPresetByType[resolvedType] = columnPresetByType[resolvedType] === 'custom' ? 'balanced' : columnPresetByType[resolvedType];
+        columnWidthsByType[resolvedType] = {};
+        renderSettingsTableLayoutControls(resolvedType);
+        applyColumnWidths(resolvedType);
+        bindTableColumnResizers(resolvedType);
+        await persistSettingsTableState(resolvedType, {
+            widthMode: 'auto',
+            columnWidths: {}
+        });
+        return;
+    }
+    const resetColumns = buildPresetColumnVisibilityForType(resolvedType, 'balanced');
+    columnPresetByType[resolvedType] = 'balanced';
+    columnVisibilityByType[resolvedType] = resetColumns;
+    renderSettingsTableLayoutControls(resolvedType);
+    renderColumnVisibilityControls(resolvedType);
+    applyColumnVisibility(resolvedType);
+    applyColumnWidths(resolvedType);
+    bindTableColumnResizers(resolvedType);
+    await persistSettingsTableState(resolvedType, {
+        preset: 'balanced',
+        columns: resetColumns
+    });
 };
 
 const changeHealthPref = async (type, key, value) => {
@@ -11408,6 +11666,9 @@ window.clearFolderTableFilters = clearFolderTableFilters;
 window.setQuickFolderFilter = setQuickFolderFilter;
 window.setHealthFolderFilter = setHealthFolderFilter;
 window.changeColumnVisibility = changeColumnVisibility;
+window.changeSettingsTableWidthMode = changeSettingsTableWidthMode;
+window.applySettingsTablePreset = applySettingsTablePreset;
+window.resetSettingsTableColumns = resetSettingsTableColumns;
 window.showFolderStatusBreakdown = showFolderStatusBreakdown;
 window.showFolderHealthBreakdown = showFolderHealthBreakdown;
 window.openFolderRowQuickActions = openFolderRowQuickActions;

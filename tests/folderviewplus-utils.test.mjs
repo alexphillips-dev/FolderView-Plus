@@ -129,6 +129,22 @@ test('normalizeFolderMembers is exported and normalizes arrays/objects', () => {
     );
 });
 
+test('normalizePrefs preserves settings table layout preferences', () => {
+    const prefs = utils.normalizePrefs({
+        settingsTable: {
+            widthMode: 'custom',
+            preset: 'detailed',
+            columns: { members: true, status: false },
+            columnWidths: { name: 420, status: 260 }
+        }
+    });
+
+    assert.equal(prefs.settingsTable.widthMode, 'custom');
+    assert.equal(prefs.settingsTable.preset, 'detailed');
+    assert.deepEqual(prefs.settingsTable.columns, { members: true, status: false });
+    assert.deepEqual(prefs.settingsTable.columnWidths, { name: 420, status: 260 });
+});
+
 test('summarizeImport reports creates updates and deletes for replace mode', () => {
     const existing = {
         a: { name: 'A', containers: ['x'] },

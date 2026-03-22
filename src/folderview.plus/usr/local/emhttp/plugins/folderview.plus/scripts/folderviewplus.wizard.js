@@ -3290,6 +3290,12 @@ const toSetupAssistantDisplayText = (value, fallback = '-') => {
     return text || fallback;
 };
 
+const markSetupAssistantSwalModal = () => {
+    setTimeout(() => {
+        $('.sweet-alert:visible').addClass('fv-setup-swal-modal');
+    }, 0);
+};
+
 const renderSetupAssistantSwalSummaryHtml = ({
     metaRows = [],
     detailRows = [],
@@ -3297,62 +3303,22 @@ const renderSetupAssistantSwalSummaryHtml = ({
     failureLines = [],
     footerText = ''
 } = {}) => {
-    const rowDivider = 'border-bottom:1px solid rgba(148, 170, 196, 0.18);';
     const metaHtml = metaRows.length
-        ? `
-            <div style="display:flex;flex-wrap:wrap;gap:6px 8px;margin-bottom:10px;">
-                ${metaRows.map((row) => `
-                    <span style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;border:1px solid rgba(148,170,196,0.3);background:rgba(18,28,42,0.72);font-size:12px;line-height:1.2;">
-                        <strong style="margin-right:5px;">${escapeHtml(row.label)}:</strong>${escapeHtml(row.value)}
-                    </span>
-                `).join('')}
-            </div>
-        `
+        ? `<div class="fv-setup-swal-meta">${metaRows.map((row) => `<span class="fv-setup-swal-chip"><strong>${escapeHtml(row.label)}:</strong><span>${escapeHtml(row.value)}</span></span>`).join('')}</div>`
         : '';
     const detailHtml = detailRows.length
-        ? `
-            <div style="border:1px solid rgba(148,170,196,0.28);border-radius:10px;background:rgba(9,16,24,0.74);overflow:hidden;">
-                ${detailRows.map((row, index) => `
-                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:7px 10px;${index < detailRows.length - 1 ? rowDivider : ''}">
-                        <span style="font-weight:600;color:#d9e5f6;">${escapeHtml(row.label)}</span>
-                        <span style="text-align:right;color:#eaf2ff;">${escapeHtml(row.value)}</span>
-                    </div>
-                `).join('')}
-            </div>
-        `
+        ? `<div class="fv-setup-swal-table">${detailRows.map((row) => `<div class="fv-setup-swal-row"><span class="fv-setup-swal-row-label">${escapeHtml(row.label)}</span><span class="fv-setup-swal-row-value">${escapeHtml(row.value)}</span></div>`).join('')}</div>`
         : '';
     const warningHtml = warningLines.length
-        ? `
-            <div style="margin-top:10px;padding:8px 10px;border-radius:9px;border:1px solid rgba(255,193,94,0.42);background:rgba(255,193,94,0.1);text-align:left;">
-                <div style="font-weight:700;margin-bottom:4px;color:#ffd494;">Warnings</div>
-                <ul style="margin:0 0 0 18px;padding:0;line-height:1.35;">
-                    ${warningLines.map((line) => `<li style="margin:2px 0;">${escapeHtml(line)}</li>`).join('')}
-                </ul>
-            </div>
-        `
+        ? `<div class="fv-setup-swal-listbox is-warning"><div class="fv-setup-swal-list-title">Warnings</div><ul class="fv-setup-swal-list">${warningLines.map((line) => `<li>${escapeHtml(line)}</li>`).join('')}</ul></div>`
         : '';
     const failureHtml = failureLines.length
-        ? `
-            <div style="margin-top:10px;padding:8px 10px;border-radius:9px;border:1px solid rgba(255,116,116,0.48);background:rgba(255,116,116,0.1);text-align:left;">
-                <div style="font-weight:700;margin-bottom:4px;color:#ffb4b4;">Failed tasks</div>
-                <ul style="margin:0 0 0 18px;padding:0;line-height:1.35;">
-                    ${failureLines.map((line) => `<li style="margin:2px 0;">${escapeHtml(line)}</li>`).join('')}
-                </ul>
-            </div>
-        `
+        ? `<div class="fv-setup-swal-listbox is-failure"><div class="fv-setup-swal-list-title">Failed tasks</div><ul class="fv-setup-swal-list">${failureLines.map((line) => `<li>${escapeHtml(line)}</li>`).join('')}</ul></div>`
         : '';
     const footerHtml = footerText
-        ? `<div style="margin-top:10px;font-weight:600;color:#d7e6fb;">${escapeHtml(footerText)}</div>`
+        ? `<div class="fv-setup-swal-footer">${escapeHtml(footerText)}</div>`
         : '';
-    return `
-        <div style="max-width:560px;margin:0 auto;text-align:left;line-height:1.35;">
-            ${metaHtml}
-            ${detailHtml}
-            ${warningHtml}
-            ${failureHtml}
-            ${footerHtml}
-        </div>
-    `;
+    return `<div class="fv-setup-swal">${metaHtml}${detailHtml}${warningHtml}${failureHtml}${footerHtml}</div>`;
 };
 
 const buildSetupAssistantVerificationReport = (importOutcomes, templateOutcomes, ruleOutcomes, validationWarnings = []) => {
@@ -3642,12 +3608,14 @@ const confirmSetupAssistantApply = async (impactSummary, reviewValidation) => (
             title: setupAssistantState.dryRunOnly ? 'Run setup dry run?' : 'Apply setup assistant changes?',
             text: html,
             html: true,
+            customClass: 'fv-setup-swal-modal',
             type: hasDeletes && setupAssistantState.dryRunOnly !== true ? 'warning' : 'info',
             showCancelButton: true,
             confirmButtonText: setupAssistantState.dryRunOnly ? 'Run dry run' : 'Apply now',
             cancelButtonText: 'Keep editing',
             closeOnConfirm: true
         }, (isConfirm) => resolve(isConfirm === true));
+        markSetupAssistantSwalModal();
     })
 );
 
@@ -3713,11 +3681,35 @@ const retrySetupAssistantFailures = async (failures = []) => {
     };
 };
 
-const confirmSetupAssistantUndo = async (summaryText, canUndo = true) => (
+const confirmSetupAssistantUndo = async (summaryPayload, canUndo = true) => (
     new Promise((resolve) => {
+        const html = typeof summaryPayload === 'string'
+            ? renderSetupAssistantSwalSummaryHtml({
+                detailRows: summaryPayload
+                    .split('\n')
+                    .map((line) => String(line || '').trim())
+                    .filter(Boolean)
+                    .map((line) => {
+                        const separator = line.indexOf(':');
+                        if (separator <= 0) {
+                            return { label: 'Info', value: line };
+                        }
+                        return {
+                            label: line.slice(0, separator).trim(),
+                            value: line.slice(separator + 1).trim()
+                        };
+                    }),
+                footerText: canUndo ? 'Undo this setup now?' : ''
+            })
+            : renderSetupAssistantSwalSummaryHtml({
+                ...(summaryPayload && typeof summaryPayload === 'object' ? summaryPayload : {}),
+                footerText: canUndo ? 'Undo this setup now?' : ''
+            });
         swal({
             title: 'Setup assistant complete',
-            text: canUndo ? `${summaryText}\n\nUndo this setup now?` : summaryText,
+            text: html,
+            html: true,
+            customClass: 'fv-setup-swal-modal',
             type: 'success',
             showCancelButton: canUndo === true,
             confirmButtonText: canUndo ? 'Undo setup' : 'Done',
@@ -3725,6 +3717,7 @@ const confirmSetupAssistantUndo = async (summaryText, canUndo = true) => (
             showLoaderOnConfirm: canUndo === true,
             closeOnConfirm: canUndo !== true
         }, (undoNow) => resolve(undoNow === true));
+        markSetupAssistantSwalModal();
     })
 );
 
@@ -4022,6 +4015,7 @@ const applySetupAssistantPlan = async () => {
                     title: 'Setup applied with partial failures',
                     text: failureSummaryHtml,
                     html: true,
+                    customClass: 'fv-setup-swal-modal',
                     type: 'warning',
                     showCancelButton: true,
                     confirmButtonText: 'Retry failures',
@@ -4029,6 +4023,7 @@ const applySetupAssistantPlan = async () => {
                     showLoaderOnConfirm: true,
                     closeOnConfirm: false
                 }, (isConfirm) => resolve(isConfirm === true));
+                markSetupAssistantSwalModal();
             });
 
             if (retryNow) {
@@ -4051,7 +4046,29 @@ const applySetupAssistantPlan = async () => {
             return;
         }
 
-        const undoNow = await confirmSetupAssistantUndo(summaryLines.join('\n'), rollbackCreated);
+        const undoNow = await confirmSetupAssistantUndo({
+            metaRows: [
+                { label: 'Mode', value: toSetupAssistantDisplayText(setupAssistantState.mode) },
+                { label: 'Route', value: toSetupAssistantDisplayText(setupAssistantState.route) },
+                { label: 'Wizard detail', value: normalizeSetupAssistantExperienceMode(setupAssistantState.experienceMode) },
+                { label: 'Safety mode', value: safetyMode }
+            ],
+            detailRows: [
+                { label: 'Profile defaults', value: setupAssistantState.applyProfileDefaults ? setupAssistantState.profile : 'not applied' },
+                { label: 'Environment defaults', value: setupAssistantState.applyEnvironmentDefaults ? (SETUP_ASSISTANT_ENV_PRESETS[setupAssistantState.environmentPreset]?.label || 'Home Lab') : 'not applied' },
+                { label: 'Docker imports', value: `${importOutcomes.docker}` },
+                { label: 'VM imports', value: `${importOutcomes.vm}` },
+                { label: 'Docker starter folders', value: `${templateOutcomes.docker.created} created, ${templateOutcomes.docker.skippedExisting} skipped, ${Number(templateOutcomes.docker.assignment?.matched) || 0} auto-assigned` },
+                { label: 'VM starter folders', value: `${templateOutcomes.vm.created} created, ${templateOutcomes.vm.skippedExisting} skipped, ${Number(templateOutcomes.vm.assignment?.matched) || 0} auto-assigned` },
+                { label: 'Docker starter rules', value: `${ruleOutcomes.docker.created} added` },
+                { label: 'VM starter rules', value: `${ruleOutcomes.vm.created} added` },
+                { label: 'Preference changes', value: `${impactSummary.prefs.totalChanges}` },
+                { label: 'Verification', value: `${verification.passed}/${verification.total} checks passed` },
+                { label: 'Rollback checkpoint', value: setupAssistantState.rollbackCheckpointName || (rollbackCreated ? 'created' : 'skipped (Fast mode)') },
+                { label: 'Duration', value: `${durationSeconds}s` }
+            ],
+            warningLines: validationWarnings.slice(0, 5)
+        }, rollbackCreated);
         if (!undoNow || !rollbackCreated) {
             return;
         }

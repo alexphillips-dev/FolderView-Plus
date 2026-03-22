@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.21.36">
-<!ENTITY md5 "569ac9456eac5448c1484a050aa5f0f7">
+<!ENTITY version "2026.03.21.37">
+<!ENTITY md5 "c1ac6ff890ddb338756c12b6605a2385">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.21.37
+- UX: Tightened setup-apply modal spacing and typography so the summary stays compact and readable without unnecessary vertical gaps.
+- UX: Added dedicated wizard modal styling to eliminate desktop scrollbar/overflow artifacts for setup confirmation and completion dialogs.
+- UX: Updated the setup-complete screen to the same structured summary layout used by setup apply for consistent visual quality.
+
 
 ###2026.03.21.36
 - Fix: Restored wizard template smart-assign execution by exporting `utils.normalizeFolderMembers`, so detected Docker/VM items move into newly created starter folders.

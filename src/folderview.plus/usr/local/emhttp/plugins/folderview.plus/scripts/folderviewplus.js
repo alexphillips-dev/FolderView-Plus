@@ -1712,7 +1712,7 @@ const buildSettingsSections = () => {
 
 const getSectionApplyMode = (section) => {
     if (!section || !Array.isArray(section.nodes)) {
-        return { id: 'instant', label: 'Applies instantly' };
+        return null;
     }
     const seen = new Set();
     let hasInstantApply = false;
@@ -1743,13 +1743,10 @@ const getSectionApplyMode = (section) => {
             }
         }
     }
-    if (hasStagedApply && hasInstantApply) {
-        return { id: 'mixed', label: 'Mixed apply' };
-    }
     if (hasStagedApply) {
         return { id: 'staged', label: 'Requires Save' };
     }
-    return { id: 'instant', label: 'Applies instantly' };
+    return null;
 };
 
 const refreshSectionApplyModeBadges = () => {
@@ -1758,8 +1755,15 @@ const refreshSectionApplyModeBadges = () => {
             continue;
         }
         const mode = getSectionApplyMode(section);
-        section.modeBadge.textContent = mode.label;
         section.modeBadge.classList.remove('is-instant', 'is-staged', 'is-mixed');
+        if (!mode) {
+            section.modeBadge.textContent = '';
+            section.modeBadge.hidden = true;
+            section.modeBadge.removeAttribute('title');
+            continue;
+        }
+        section.modeBadge.hidden = false;
+        section.modeBadge.textContent = mode.label;
         section.modeBadge.classList.add(`is-${mode.id}`);
         section.modeBadge.setAttribute('title', mode.label);
     }

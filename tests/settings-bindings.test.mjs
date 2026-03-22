@@ -120,11 +120,12 @@ test('settings table width preset controls are wired as instant-persist inputs',
     assert.match(page, /id="vm-table-actions-width" onchange="changeSettingsTableColumnWidthPreset\('vm', 'actions', this\.value\)"/);
 });
 
-test('settings sections render apply-mode badges for instant/save/mixed behavior', () => {
+test('settings sections only show section apply badges when save-required fields exist', () => {
     assert.match(script, /className = 'fv-section-mode is-instant'/);
     assert.match(script, /const getSectionApplyMode = \(section\) =>/);
-    assert.match(script, /return \{ id: 'mixed', label: 'Mixed apply' \};/);
     assert.match(script, /return \{ id: 'staged', label: 'Requires Save' \};/);
+    assert.match(script, /return null;/);
+    assert.match(script, /section\.modeBadge\.hidden = true;/);
     assert.match(script, /const refreshSectionApplyModeBadges = \(\) =>/);
 });
 

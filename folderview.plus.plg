@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.22.24">
-<!ENTITY md5 "9f7cfd3f2ca5591096a60abef3ca871b">
+<!ENTITY version "2026.03.22.25">
+<!ENTITY md5 "03a874751b5b595347364a6f1409d89d">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.22.25
+- UX: Remove the outdated `Mixed apply` section-header badge from settings now that the floating save pill menu is gone.
+- UX: Only show a section apply badge when that section truly contains save-required fields.
+- Regression guard: Cover the new section-header apply-badge behavior in settings bindings tests.
+
 
 ###2026.03.22.24
 - Fix: Treat settings-table Name and Actions width controls as instant-persist settings instead of staged-save fields.

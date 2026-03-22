@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.21.41">
-<!ENTITY md5 "f7495fd47195a61f75848f0360a72f29">
+<!ENTITY version "2026.03.21.42">
+<!ENTITY md5 "d85fda43a50dee3694be719db727fda9">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.21.42
+- UX: Setup assistant smart-detect now reports confidence, match reasons, and review-needed items instead of silently forcing weak matches into fallback assignment.
+- Fix: Expanded Docker and VM alias/heuristic coverage so template detection stays stronger for management, network, gaming, media, and utility workloads.
+- Regression guard: Added review-path and VM smart-detect coverage so wizard assignment and starter selection stay aligned before main merge.
+
 
 ###2026.03.21.41
 - Fix: Smart template creation in the setup wizard now derives folders from per-item best matches instead of weaker aggregate workload guesses.

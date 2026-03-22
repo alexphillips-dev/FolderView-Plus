@@ -272,6 +272,54 @@ test('wizard smart detect covers mixed real-world docker families without misses
     assert.deepEqual(Array.from(preview.assignedByTemplate.Notifications || []), ['Notify']);
 });
 
+test('wizard low-confidence matches are held for review instead of forced into fallback assignment', () => {
+    const infoByType = {
+        docker: {
+            mysteryapp: {
+                info: {
+                    Config: { Image: 'ghcr.io/example/mysteryapp:latest' }
+                }
+            }
+        }
+    };
+    const runtime = loadSmartDetectHelpers(infoByType);
+    const preview = runtime.buildSetupAssistantTemplateAssignmentPreview('docker', [
+        { name: 'Utilities', detect: ['tool', 'utility', 'manager'] }
+    ]);
+
+    assert.equal(preview.totalItems, 1);
+    assert.equal(preview.matched, 0);
+    assert.equal(preview.unmatched, 0);
+    assert.equal(preview.reviewNeededCount, 1);
+    assert.deepEqual(Array.from(preview.assignedByTemplate.Utilities || []), []);
+    assert.equal(preview.reviewItems[0]?.templateName, 'Utilities');
+    assert.match(String(preview.reviewItems[0]?.reason || ''), /fallback/i);
+});
+
+test('wizard smart detect expands VM heuristics for management, infrastructure, and gaming workloads', () => {
+    const infoByType = {
+        vm: {
+            'pve-node': { domain: 'pve-node', description: 'Proxmox management host' },
+            'truenas-core': { domain: 'truenas-core', description: 'TrueNAS storage server' },
+            'opnsense-fw': { domain: 'opnsense-fw', description: 'OPNsense firewall appliance' },
+            'steam-win11': { domain: 'steam-win11', description: 'Windows gaming VM with Sunshine' }
+        }
+    };
+    const runtime = loadSmartDetectHelpers(infoByType);
+    const preview = runtime.buildSetupAssistantTemplateAssignmentPreview('vm', [
+        { name: 'Management VMs', detect: ['management', 'controller', 'proxmox', 'pve', 'hypervisor'] },
+        { name: 'Utility VMs', detect: ['utility', 'tools', 'truenas', 'openmediavault'] },
+        { name: 'Network VMs', detect: ['router', 'firewall', 'opnsense', 'pfsense', 'vyos'] },
+        { name: 'Gaming VMs', detect: ['gaming', 'steam', 'parsec', 'sunshine', 'moonlight'] }
+    ]);
+
+    assert.equal(preview.matched, 4);
+    assert.deepEqual(Array.from(preview.assignedByTemplate['Management VMs'] || []), ['pve-node']);
+    assert.deepEqual(Array.from(preview.assignedByTemplate['Utility VMs'] || []), ['truenas-core']);
+    assert.deepEqual(Array.from(preview.assignedByTemplate['Network VMs'] || []), ['opnsense-fw']);
+    assert.deepEqual(Array.from(preview.assignedByTemplate['Gaming VMs'] || []), ['steam-win11']);
+});
+
 test('wizard smart starter selection derives folders from per-item best matches', () => {
     const infoByType = {
         docker: {
@@ -327,4 +375,21 @@ test('smart starter selection surfaces the needed folders for mixed docker workl
     assert.ok(names.includes('Cloud & Sync'));
     assert.ok(names.includes('Notifications'));
     assert.ok(names.includes('Utilities'));
+});
+
+test('smart starter selection expands VM coverage for management, network, and gaming workloads', () => {
+    const infoByType = {
+        vm: {
+            'pve-node': { domain: 'pve-node', description: 'Proxmox management host' },
+            'opnsense-fw': { domain: 'opnsense-fw', description: 'OPNsense firewall appliance' },
+            'steam-win11': { domain: 'steam-win11', description: 'Windows gaming VM with Sunshine' }
+        }
+    };
+    const runtime = loadStarterSelectionHelpers(infoByType);
+    const indexes = runtime.resolveStarterTemplateSmartIndexes('vm', runtime.STARTER_TEMPLATE_BLUEPRINTS.vm);
+    const names = Array.from(indexes).map((index) => runtime.STARTER_TEMPLATE_BLUEPRINTS.vm[index]?.name).filter(Boolean);
+
+    assert.ok(names.includes('Management VMs'));
+    assert.ok(names.includes('Network VMs'));
+    assert.ok(names.includes('Gaming VMs') || names.includes('Cloud Gaming VMs'));
 });

@@ -4054,7 +4054,7 @@ const STARTER_TEMPLATE_BLUEPRINTS = Object.freeze({
             name: 'Desktop VMs',
             icon: '/plugins/folderview.plus/images/icons/folder-home.svg',
             categories: Object.freeze(['desktop', 'homelab']),
-            detect: Object.freeze(['desktop', 'workstation', 'windows', 'win11', 'ubuntu-desktop', 'macos'])
+            detect: Object.freeze(['desktop', 'workstation', 'windows', 'win11', 'ubuntu-desktop', 'ubuntu desktop', 'macos', 'fedora-workstation', 'linuxmint'])
         }),
         Object.freeze({
             name: 'Windows VMs',
@@ -4078,37 +4078,37 @@ const STARTER_TEMPLATE_BLUEPRINTS = Object.freeze({
             name: 'Utility VMs',
             icon: '/plugins/folderview.plus/images/icons/folder-tools.svg',
             categories: Object.freeze(['utility', 'minimal', 'homelab']),
-            detect: Object.freeze(['utility', 'tools', 'helper', 'management'])
+            detect: Object.freeze(['utility', 'tools', 'helper', 'management', 'omv', 'openmediavault', 'truenas'])
         }),
         Object.freeze({
             name: 'Management VMs',
             icon: '/plugins/folderview.plus/images/icons/folder-tools.svg',
             categories: Object.freeze(['utility', 'ops', 'homelab']),
-            detect: Object.freeze(['management', 'controller', 'admin', 'jumpbox'])
+            detect: Object.freeze(['management', 'controller', 'admin', 'jumpbox', 'proxmox', 'pve', 'hypervisor'])
         }),
         Object.freeze({
             name: 'Infrastructure VMs',
             icon: '/plugins/folderview.plus/images/icons/folder-default.svg',
             categories: Object.freeze(['server', 'network', 'ops', 'homelab']),
-            detect: Object.freeze(['infra', 'domain', 'controller', 'gateway', 'dns', 'proxy'])
+            detect: Object.freeze(['infra', 'infrastructure', 'domain', 'controller', 'gateway', 'dns', 'proxy', 'unifi', 'k3s', 'k8s'])
         }),
         Object.freeze({
             name: 'Network VMs',
             icon: '/plugins/folderview.plus/images/icons/folder-network.svg',
             categories: Object.freeze(['network', 'homelab']),
-            detect: Object.freeze(['router', 'firewall', 'pfsense', 'opnsense', 'network', 'dns', 'proxy'])
+            detect: Object.freeze(['router', 'firewall', 'pfsense', 'opnsense', 'vyos', 'network', 'dns', 'proxy', 'unifi'])
         }),
         Object.freeze({
             name: 'Security VMs',
             icon: '/plugins/folderview.plus/images/icons/folder-security.svg',
             categories: Object.freeze(['security', 'ops', 'homelab']),
-            detect: Object.freeze(['security', 'siem', 'wazuh', 'ids', 'ips', 'firewall'])
+            detect: Object.freeze(['security', 'siem', 'wazuh', 'ids', 'ips', 'firewall', 'sentinel', 'edr'])
         }),
         Object.freeze({
             name: 'Identity VMs',
             icon: '/plugins/folderview.plus/images/icons/folder-security.svg',
             categories: Object.freeze(['security', 'server', 'homelab']),
-            detect: Object.freeze(['auth', 'identity', 'ldap', 'ad', 'domain-controller'])
+            detect: Object.freeze(['auth', 'identity', 'ldap', 'ad', 'domain-controller', 'freeipa', 'keycloak'])
         }),
         Object.freeze({
             name: 'Backups',
@@ -4144,7 +4144,7 @@ const STARTER_TEMPLATE_BLUEPRINTS = Object.freeze({
             name: 'Cloud Gaming VMs',
             icon: '/plugins/folderview.plus/images/icons/folder-gaming.svg',
             categories: Object.freeze(['gaming', 'desktop', 'homelab']),
-            detect: Object.freeze(['cloud-gaming', 'parsec', 'sunshine', 'moonlight', 'gaming'])
+            detect: Object.freeze(['cloud-gaming', 'parsec', 'sunshine', 'moonlight', 'gaming', 'steam'])
         })
     ])
 });
@@ -4153,6 +4153,27 @@ const STARTER_TEMPLATE_SMART_THRESHOLD = 4;
 const STARTER_TEMPLATE_FALLBACK_BY_TYPE = Object.freeze({
     docker: 'Utilities',
     vm: 'Utility VMs'
+});
+const STARTER_TEMPLATE_MATCH_ALIASES = Object.freeze({
+    docker: Object.freeze({
+        jellyseerr: Object.freeze(['seerr', 'overseerr', 'media', 'request']),
+        wizarrrr: Object.freeze(['wizarr', 'media', 'invite']),
+        'nginx-proxy-manager': Object.freeze(['reverse proxy', 'proxy', 'npm']),
+        cloudflared: Object.freeze(['cloudflare', 'tunnel', 'remote access']),
+        homeassistant: Object.freeze(['home assistant', 'automation', 'haos']),
+        haos: Object.freeze(['home assistant', 'automation']),
+        'code-server': Object.freeze(['development', 'vscode', 'coder']),
+        unifi: Object.freeze(['network', 'controller'])
+    }),
+    vm: Object.freeze({
+        pve: Object.freeze(['proxmox', 'management', 'hypervisor']),
+        proxmox: Object.freeze(['pve', 'management', 'hypervisor']),
+        haos: Object.freeze(['home assistant', 'automation']),
+        omv: Object.freeze(['openmediavault', 'utility', 'management']),
+        truenas: Object.freeze(['storage', 'server', 'management']),
+        unifi: Object.freeze(['network', 'controller']),
+        dc: Object.freeze(['domain controller', 'identity', 'infrastructure'])
+    })
 });
 
 const normalizeStarterTemplateMatchText = (value) => (
@@ -4184,11 +4205,23 @@ const buildStarterTemplateHeuristicMap = (type, blueprintName) => {
         return dockerMap[normalizedName] || null;
     }
     const vmMap = {
-        'utility-vms': { contains: ['utility', 'tools', 'helper', 'management', 'admin'] },
-        'network-vms': { contains: ['router', 'firewall', 'pfsense', 'opnsense', 'dns', 'proxy'] },
-        'security-vms': { contains: ['security', 'siem', 'wazuh', 'ids', 'ips', 'firewall'] },
-        'desktop-vms': { contains: ['desktop', 'workstation', 'windows', 'ubuntu', 'macos'] },
-        'gaming-vms': { contains: ['gaming', 'steam', 'parsec', 'moonlight', 'sunshine', 'gpu'] }
+        'production-vms': { contains: ['production', 'prod', 'server', 'srv', 'node'] },
+        'desktop-vms': { contains: ['desktop', 'workstation', 'windows', 'ubuntu', 'fedora', 'macos'] },
+        'windows-vms': { contains: ['windows', 'win10', 'win11', 'server2019', 'server2022', 'windows-server'] },
+        'lab-vms': { contains: ['lab', 'test', 'qa', 'sandbox', 'staging', 'dev'] },
+        'dev-test-vms': { contains: ['dev', 'test', 'qa', 'sandbox', 'build'] },
+        'utility-vms': { contains: ['utility', 'tools', 'helper', 'management', 'admin', 'openmediavault', 'omv', 'truenas'] },
+        'management-vms': { contains: ['management', 'controller', 'admin', 'jumpbox', 'proxmox', 'pve', 'hypervisor'] },
+        'infrastructure-vms': { contains: ['infra', 'infrastructure', 'domain', 'controller', 'gateway', 'dns', 'proxy', 'unifi', 'k3s', 'k8s'] },
+        'network-vms': { contains: ['router', 'firewall', 'pfsense', 'opnsense', 'vyos', 'dns', 'proxy', 'unifi'] },
+        'security-vms': { contains: ['security', 'siem', 'wazuh', 'ids', 'ips', 'firewall', 'sentinel', 'edr'] },
+        'identity-vms': { contains: ['security', 'identity', 'auth', 'ldap', 'ad', 'freeipa', 'keycloak', 'domain-controller'] },
+        backups: { contains: ['backup', 'vault', 'archive', 'replica'] },
+        'recovery-vms': { contains: ['recovery', 'restore', 'disaster', 'snapshot'] },
+        'media-vms': { contains: ['media', 'plex', 'jellyfin', 'emby'] },
+        'streaming-vms': { contains: ['stream', 'obs', 'media', 'encode', 'transcode'] },
+        'gaming-vms': { contains: ['gaming', 'steam', 'parsec', 'moonlight', 'sunshine', 'gpu'] },
+        'cloud-gaming-vms': { contains: ['cloud-gaming', 'parsec', 'sunshine', 'moonlight', 'gaming', 'steam'] }
     };
     return vmMap[normalizedName] || null;
 };
@@ -4214,6 +4247,18 @@ const collectStarterTemplateSmartSignals = (type) => {
                 tokenSet.add(normalized);
             }
         });
+        if (options.expandAliases !== false) {
+            const aliasMap = STARTER_TEMPLATE_MATCH_ALIASES[resolvedType] || {};
+            Object.entries(aliasMap).forEach(([token, aliases]) => {
+                if (!normalizedText.includes(token)) {
+                    return;
+                }
+                (Array.isArray(aliases) ? aliases : []).forEach((alias) => addTokens(alias, {
+                    allowPhrase: false,
+                    expandAliases: false
+                }));
+            });
+        }
     };
     Object.entries(infoByName).forEach(([itemName, itemInfo]) => {
         addTokens(itemName);

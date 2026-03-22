@@ -692,17 +692,59 @@ const SETUP_ASSISTANT_TEMPLATE_FALLBACK_BY_TYPE = Object.freeze({
     vm: 'Utility VMs'
 });
 const SETUP_ASSISTANT_TEMPLATE_MATCH_THRESHOLD = 4;
+const SETUP_ASSISTANT_TEMPLATE_CONFIDENT_THRESHOLD = 8;
+
+const SETUP_ASSISTANT_MATCH_ALIASES = Object.freeze({
+    docker: Object.freeze({
+        jellyseerr: Object.freeze(['seerr', 'overseerr', 'media', 'request']),
+        wizarrrr: Object.freeze(['wizarr', 'media', 'invite']),
+        'nginx-proxy-manager': Object.freeze(['reverse proxy', 'proxy', 'npm']),
+        cloudflared: Object.freeze(['cloudflare', 'tunnel', 'remote access']),
+        homeassistant: Object.freeze(['home assistant', 'automation', 'haos']),
+        haos: Object.freeze(['home assistant', 'automation']),
+        'code-server': Object.freeze(['development', 'vscode', 'coder']),
+        unifi: Object.freeze(['network', 'controller']),
+        wg: Object.freeze(['wireguard', 'remote access'])
+    }),
+    vm: Object.freeze({
+        pve: Object.freeze(['proxmox', 'management', 'hypervisor']),
+        proxmox: Object.freeze(['pve', 'management', 'hypervisor']),
+        haos: Object.freeze(['home assistant', 'automation']),
+        omv: Object.freeze(['openmediavault', 'utility', 'management']),
+        truenas: Object.freeze(['storage', 'server', 'management']),
+        unifi: Object.freeze(['network', 'controller']),
+        dc: Object.freeze(['domain controller', 'identity', 'infrastructure'])
+    })
+});
 
 const collectSetupAssistantItemMatchProfile = (type, itemName, itemInfo) => {
     const resolvedType = normalizeManagedType(type);
     const tokenSet = new Set();
     const phraseSet = new Set();
     const textParts = [];
+    const sourceTexts = {
+        name: [],
+        image: [],
+        path: [],
+        metadata: [],
+        labels: [],
+        template: []
+    };
+    const pushSourceText = (bucket, normalizedText) => {
+        const safeBucket = Object.prototype.hasOwnProperty.call(sourceTexts, bucket) ? bucket : 'metadata';
+        if (!normalizedText) {
+            return;
+        }
+        if (!sourceTexts[safeBucket].includes(normalizedText)) {
+            sourceTexts[safeBucket].push(normalizedText);
+        }
+    };
     const addTokens = (value, options = {}) => {
         const normalizedText = normalizeSetupAssistantMatchText(value);
         if (!normalizedText) {
             return;
         }
+        pushSourceText(options.bucket, normalizedText);
         const phraseEligible = options.allowPhrase !== false && normalizedText.length >= 3;
         if (phraseEligible) {
             phraseSet.add(normalizedText);
@@ -714,44 +756,58 @@ const collectSetupAssistantItemMatchProfile = (type, itemName, itemInfo) => {
                 tokenSet.add(normalized);
             }
         });
+        if (options.expandAliases !== false) {
+            const aliasMap = SETUP_ASSISTANT_MATCH_ALIASES[resolvedType] || {};
+            Object.entries(aliasMap).forEach(([token, aliases]) => {
+                if (!normalizedText.includes(token)) {
+                    return;
+                }
+                (Array.isArray(aliases) ? aliases : []).forEach((alias) => addTokens(alias, {
+                    allowPhrase: false,
+                    expandAliases: false,
+                    bucket: options.bucket || 'metadata'
+                }));
+            });
+        }
     };
-    addTokens(itemName);
+    addTokens(itemName, { bucket: 'name' });
     if (resolvedType === 'docker') {
         const labels = itemInfo?.Labels || itemInfo?.info?.Config?.Labels || {};
-        addTokens(itemInfo?.Image);
-        addTokens(itemInfo?.info?.Config?.Image);
-        addTokens(itemInfo?.composeProject);
-        addTokens(itemInfo?.folderLabel);
-        addTokens(itemInfo?.manager);
-        addTokens(itemInfo?.info?.State?.manager);
-        addTokens(itemInfo?.info?.registry);
-        addTokens(itemInfo?.info?.Project);
-        addTokens(itemInfo?.info?.Support);
-        addTokens(itemInfo?.info?.ReadMe);
-        addTokens(itemInfo?.info?.template?.path);
-        (Array.isArray(itemInfo?.info?.HostConfig?.Binds) ? itemInfo.info.HostConfig.Binds : []).forEach((bind) => addTokens(bind));
+        addTokens(itemInfo?.Image, { bucket: 'image' });
+        addTokens(itemInfo?.info?.Config?.Image, { bucket: 'image' });
+        addTokens(itemInfo?.composeProject, { bucket: 'metadata' });
+        addTokens(itemInfo?.folderLabel, { bucket: 'labels' });
+        addTokens(itemInfo?.manager, { bucket: 'metadata' });
+        addTokens(itemInfo?.info?.State?.manager, { bucket: 'metadata' });
+        addTokens(itemInfo?.info?.registry, { bucket: 'metadata' });
+        addTokens(itemInfo?.info?.Project, { bucket: 'metadata' });
+        addTokens(itemInfo?.info?.Support, { bucket: 'metadata' });
+        addTokens(itemInfo?.info?.ReadMe, { bucket: 'metadata' });
+        addTokens(itemInfo?.info?.template?.path, { bucket: 'template' });
+        (Array.isArray(itemInfo?.info?.HostConfig?.Binds) ? itemInfo.info.HostConfig.Binds : []).forEach((bind) => addTokens(bind, { bucket: 'path' }));
         (Array.isArray(itemInfo?.Mounts) ? itemInfo.Mounts : []).concat(Array.isArray(itemInfo?.info?.Mounts) ? itemInfo.info.Mounts : []).forEach((mount) => {
-            addTokens(mount?.Source);
-            addTokens(mount?.Destination);
-            addTokens(mount?.Name);
+            addTokens(mount?.Source, { bucket: 'path' });
+            addTokens(mount?.Destination, { bucket: 'path' });
+            addTokens(mount?.Name, { bucket: 'path' });
         });
         if (utils && typeof utils.getComposeProjectFromLabels === 'function') {
-            addTokens(utils.getComposeProjectFromLabels(labels));
+            addTokens(utils.getComposeProjectFromLabels(labels), { bucket: 'metadata' });
         }
         Object.entries(labels || {}).forEach(([key, value]) => {
-            addTokens(key);
-            addTokens(value);
+            addTokens(key, { bucket: 'labels' });
+            addTokens(value, { bucket: 'labels' });
         });
     } else {
-        addTokens(itemInfo?.domain);
-        addTokens(itemInfo?.description);
-        addTokens(itemInfo?.template);
-        addTokens(itemInfo?.os);
+        addTokens(itemInfo?.domain, { bucket: 'metadata' });
+        addTokens(itemInfo?.description, { bucket: 'metadata' });
+        addTokens(itemInfo?.template, { bucket: 'template' });
+        addTokens(itemInfo?.os, { bucket: 'metadata' });
     }
     return {
         tokens: tokenSet,
         phrases: phraseSet,
-        normalizedText: textParts.join(' ')
+        normalizedText: textParts.join(' '),
+        sourceTexts
     };
 };
 
@@ -835,10 +891,7 @@ const scoreSetupAssistantTemplateMatch = (profile, blueprint, type = 'docker') =
     };
     const getHeuristicBoost = () => {
         const normalizedName = normalizeSetupAssistantMatchText(blueprint?.name).replace(/\s+/g, '-');
-        if (type !== 'docker') {
-            return 0;
-        }
-        if (normalizedName === 'media') {
+        if (type === 'docker' && normalizedName === 'media') {
             let next = 0;
             if (hasTokenEndingWith('arr')) {
                 next += 12;
@@ -873,12 +926,124 @@ const scoreSetupAssistantTemplateMatch = (profile, blueprint, type = 'docker') =
         if (normalizedName === 'security') {
             return hasTokenContainingAny(['clamav', 'antivirus', 'vaultwarden', 'authentik', 'authelia', 'crowdsec', 'fail2ban', 'security']) ? 10 : 0;
         }
+        if (type !== 'vm') {
+            return 0;
+        }
+        if (normalizedName === 'production-vms') {
+            return hasTokenContainingAny(['production', 'prod', 'server', 'srv', 'node']) ? 10 : 0;
+        }
+        if (normalizedName === 'desktop-vms') {
+            return hasTokenContainingAny(['desktop', 'workstation', 'ubuntu', 'fedora', 'pop', 'linuxmint', 'macos']) ? 10 : 0;
+        }
+        if (normalizedName === 'windows-vms') {
+            return hasTokenContainingAny(['windows', 'win10', 'win11', 'server2019', 'server2022', 'windows-server']) ? 10 : 0;
+        }
+        if (normalizedName === 'lab-vms' || normalizedName === 'dev-test-vms') {
+            return hasTokenContainingAny(['lab', 'test', 'qa', 'sandbox', 'staging', 'dev']) ? 10 : 0;
+        }
+        if (normalizedName === 'utility-vms' || normalizedName === 'management-vms') {
+            return hasTokenContainingAny(['utility', 'tools', 'helper', 'management', 'admin', 'jumpbox', 'proxmox', 'pve', 'truenas', 'openmediavault']) ? 10 : 0;
+        }
+        if (normalizedName === 'infrastructure-vms' || normalizedName === 'network-vms') {
+            return hasTokenContainingAny(['infra', 'infrastructure', 'domain', 'controller', 'gateway', 'router', 'firewall', 'pfsense', 'opnsense', 'vyos', 'dns', 'proxy', 'unifi']) ? 10 : 0;
+        }
+        if (normalizedName === 'security-vms' || normalizedName === 'identity-vms') {
+            return hasTokenContainingAny(['security', 'siem', 'wazuh', 'ids', 'ips', 'identity', 'ldap', 'auth', 'freeipa', 'keycloak', 'domain controller']) ? 10 : 0;
+        }
+        if (normalizedName === 'backups' || normalizedName === 'recovery-vms') {
+            return hasTokenContainingAny(['backup', 'vault', 'archive', 'replica', 'recovery', 'restore', 'disaster', 'snapshot']) ? 10 : 0;
+        }
+        if (normalizedName === 'media-vms' || normalizedName === 'streaming-vms') {
+            return hasTokenContainingAny(['media', 'plex', 'jellyfin', 'emby', 'stream', 'obs', 'transcode']) ? 10 : 0;
+        }
+        if (normalizedName === 'gaming-vms' || normalizedName === 'cloud-gaming-vms') {
+            return hasTokenContainingAny(['gaming', 'steam', 'gpu', 'parsec', 'moonlight', 'sunshine']) ? 10 : 0;
+        }
         return 0;
     };
     detectKeywords.forEach((keyword) => consumeKeyword(keyword, 1));
     consumeKeyword(blueprint.name, 0.6);
     score += getHeuristicBoost();
     return score;
+};
+
+const describeSetupAssistantTemplateMatch = (profile, blueprint, type = 'docker', options = {}) => {
+    const resolvedType = normalizeManagedType(type);
+    const detectKeywords = Array.isArray(blueprint?.detect) && blueprint.detect.length > 0
+        ? blueprint.detect
+        : [String(blueprint?.name || '')];
+    const sourceTexts = profile?.sourceTexts && typeof profile.sourceTexts === 'object'
+        ? profile.sourceTexts
+        : {};
+    const safeSources = {
+        name: Array.isArray(sourceTexts.name) ? sourceTexts.name : [],
+        image: Array.isArray(sourceTexts.image) ? sourceTexts.image : [],
+        path: Array.isArray(sourceTexts.path) ? sourceTexts.path : [],
+        metadata: Array.isArray(sourceTexts.metadata) ? sourceTexts.metadata : [],
+        labels: Array.isArray(sourceTexts.labels) ? sourceTexts.labels : [],
+        template: Array.isArray(sourceTexts.template) ? sourceTexts.template : []
+    };
+    const findKeywordInBucket = (bucketName) => {
+        const bucket = safeSources[bucketName] || [];
+        for (const rawKeyword of detectKeywords.concat([String(blueprint?.name || '')])) {
+            const keyword = normalizeSetupAssistantMatchText(rawKeyword);
+            if (!keyword) {
+                continue;
+            }
+            for (const value of bucket) {
+                if (value.includes(keyword) || keyword.includes(value)) {
+                    return rawKeyword;
+                }
+            }
+        }
+        return '';
+    };
+    const fallbackTemplateName = String(SETUP_ASSISTANT_TEMPLATE_FALLBACK_BY_TYPE[resolvedType] || '').trim();
+    if (options.usedFallback === true) {
+        return fallbackTemplateName
+            ? `Suggested fallback: ${fallbackTemplateName}`
+            : 'Suggested fallback bucket';
+    }
+    const nameKeyword = findKeywordInBucket('name');
+    if (nameKeyword) {
+        return `Name match: ${nameKeyword}`;
+    }
+    const imageKeyword = findKeywordInBucket('image');
+    if (imageKeyword) {
+        return `Image match: ${imageKeyword}`;
+    }
+    const pathKeyword = findKeywordInBucket('path');
+    if (pathKeyword) {
+        return `Path match: ${pathKeyword}`;
+    }
+    const labelKeyword = findKeywordInBucket('labels');
+    if (labelKeyword) {
+        return `Label match: ${labelKeyword}`;
+    }
+    const metadataKeyword = findKeywordInBucket('metadata') || findKeywordInBucket('template');
+    if (metadataKeyword) {
+        return `Metadata match: ${metadataKeyword}`;
+    }
+    if (resolvedType === 'docker') {
+        const tokens = profile?.tokens instanceof Set ? profile.tokens : new Set();
+        for (const token of tokens) {
+            if (token.endsWith('arr')) {
+                return 'ARR-family heuristic';
+            }
+        }
+    }
+    return `Keyword score ${Math.round(Number(options.score) || 0)}`;
+};
+
+const getSetupAssistantTemplateConfidence = (score) => {
+    const safeScore = Number(score) || 0;
+    if (safeScore >= SETUP_ASSISTANT_TEMPLATE_CONFIDENT_THRESHOLD) {
+        return 'high';
+    }
+    if (safeScore >= SETUP_ASSISTANT_TEMPLATE_MATCH_THRESHOLD) {
+        return 'review';
+    }
+    return 'none';
 };
 
 const resolveSetupAssistantTemplateBestMatch = (type, profile, blueprints) => {
@@ -903,9 +1068,6 @@ const resolveSetupAssistantSmartBlueprintIndexes = (type, blueprints) => {
     const itemNames = getBulkAssignableNames(resolvedType);
     const info = infoByType[resolvedType] || {};
     const matchedIndexes = new Set();
-    const fallbackTemplateName = String(SETUP_ASSISTANT_TEMPLATE_FALLBACK_BY_TYPE[resolvedType] || '').trim();
-    const fallbackIndex = safeBlueprints.findIndex((blueprint) => String(blueprint?.name || '').trim() === fallbackTemplateName);
-
     let matched = 0;
     let unmatched = 0;
     itemNames.forEach((itemName) => {
@@ -913,11 +1075,6 @@ const resolveSetupAssistantSmartBlueprintIndexes = (type, blueprints) => {
         const { bestScore, bestIndex } = resolveSetupAssistantTemplateBestMatch(resolvedType, profile, safeBlueprints);
         if (bestIndex >= 0 && bestScore >= SETUP_ASSISTANT_TEMPLATE_MATCH_THRESHOLD) {
             matchedIndexes.add(bestIndex);
-            matched += 1;
-            return;
-        }
-        if (fallbackIndex >= 0) {
-            matchedIndexes.add(fallbackIndex);
             matched += 1;
             return;
         }
@@ -938,6 +1095,8 @@ const buildSetupAssistantTemplateAssignmentPreview = (type, selectedBlueprints) 
     const itemNames = getBulkAssignableNames(resolvedType);
     const info = infoByType[resolvedType] || {};
     const assignedByTemplate = {};
+    const itemDetails = [];
+    const reviewItems = [];
     blueprints.forEach((blueprint) => {
         const name = String(blueprint?.name || '').trim();
         if (name) {
@@ -952,17 +1111,54 @@ const buildSetupAssistantTemplateAssignmentPreview = (type, selectedBlueprints) 
     itemNames.forEach((itemName) => {
         const profile = collectSetupAssistantItemMatchProfile(resolvedType, itemName, info[itemName] || {});
         let { bestBlueprint, bestScore } = resolveSetupAssistantTemplateBestMatch(resolvedType, profile, blueprints);
-        if ((!bestBlueprint || bestScore < SETUP_ASSISTANT_TEMPLATE_MATCH_THRESHOLD) && fallbackBlueprint) {
+        let usedFallback = false;
+        if (!bestBlueprint && fallbackBlueprint) {
             bestBlueprint = fallbackBlueprint;
-            bestScore = SETUP_ASSISTANT_TEMPLATE_MATCH_THRESHOLD;
+            bestScore = 0;
+            usedFallback = true;
         }
-        if (!bestBlueprint || bestScore < SETUP_ASSISTANT_TEMPLATE_MATCH_THRESHOLD) {
+        const templateName = String(bestBlueprint?.name || '').trim();
+        const confidence = usedFallback ? 'review' : getSetupAssistantTemplateConfidence(bestScore);
+        const reason = bestBlueprint
+            ? describeSetupAssistantTemplateMatch(profile, bestBlueprint, resolvedType, { score: bestScore, usedFallback })
+            : 'No reliable match';
+        if (!bestBlueprint) {
+            itemDetails.push({
+                itemName,
+                templateName: '',
+                score: bestScore,
+                confidence: 'none',
+                reason
+            });
             unmatched += 1;
             return;
         }
-        const templateName = String(bestBlueprint.name || '').trim();
         if (!templateName) {
+            itemDetails.push({
+                itemName,
+                templateName: '',
+                score: bestScore,
+                confidence: 'none',
+                reason
+            });
             unmatched += 1;
+            return;
+        }
+        itemDetails.push({
+            itemName,
+            templateName,
+            score: bestScore,
+            confidence,
+            reason
+        });
+        if (usedFallback || confidence !== 'high') {
+            reviewItems.push({
+                itemName,
+                templateName,
+                score: bestScore,
+                confidence,
+                reason
+            });
             return;
         }
         if (!Array.isArray(assignedByTemplate[templateName])) {
@@ -976,7 +1172,10 @@ const buildSetupAssistantTemplateAssignmentPreview = (type, selectedBlueprints) 
         totalItems: itemNames.length,
         matched,
         unmatched,
-        assignedByTemplate
+        reviewNeededCount: reviewItems.length,
+        assignedByTemplate,
+        reviewItems,
+        itemDetails
     };
 };
 
@@ -1025,7 +1224,10 @@ const buildSetupAssistantTemplatePlanForType = (type) => {
             totalItems: 0,
             matched: 0,
             unmatched: 0,
-            assignedByTemplate: {}
+            reviewNeededCount: 0,
+            assignedByTemplate: {},
+            reviewItems: [],
+            itemDetails: []
         };
 
     return {
@@ -1946,7 +2148,8 @@ const buildSetupAssistantImpactSummary = () => {
         creatable: 0,
         skippedExisting: 0,
         autoAssignMatched: 0,
-        autoAssignUnmatched: 0
+        autoAssignUnmatched: 0,
+        autoAssignReviewNeeded: 0
     };
 
     for (const type of ['docker', 'vm']) {
@@ -1975,13 +2178,17 @@ const buildSetupAssistantImpactSummary = () => {
             skippedExisting: templatePlan.skippedExisting,
             autoAssignEnabled: templatePlan.autoAssignEnabled,
             autoAssignMatched: templatePlan.assignment?.matched || 0,
-            autoAssignUnmatched: templatePlan.assignment?.unmatched || 0
+            autoAssignUnmatched: templatePlan.assignment?.unmatched || 0,
+            autoAssignReviewNeeded: templatePlan.assignment?.reviewNeededCount || 0,
+            autoAssignReviewItems: Array.isArray(templatePlan.assignment?.reviewItems) ? templatePlan.assignment.reviewItems.slice(0, 8) : [],
+            autoAssignItemDetails: Array.isArray(templatePlan.assignment?.itemDetails) ? templatePlan.assignment.itemDetails.slice(0, 12) : []
         };
         templateTotals.selected += templateByType[type].selected;
         templateTotals.creatable += templateByType[type].creatable;
         templateTotals.skippedExisting += templateByType[type].skippedExisting;
         templateTotals.autoAssignMatched += templateByType[type].autoAssignMatched;
         templateTotals.autoAssignUnmatched += templateByType[type].autoAssignUnmatched;
+        templateTotals.autoAssignReviewNeeded += templateByType[type].autoAssignReviewNeeded;
     }
 
     const ruleDocker = previewSetupAssistantRuleOutcomesForType('docker');
@@ -2378,6 +2585,9 @@ const applySetupAssistantTemplateAssignmentsForType = async (type, plan) => {
             totalItems: 0,
             matched: 0,
             unmatched: 0,
+            reviewNeededCount: 0,
+            reviewItems: [],
+            itemDetails: [],
             updatedFolders: 0
         };
     }
@@ -2388,6 +2598,9 @@ const applySetupAssistantTemplateAssignmentsForType = async (type, plan) => {
             totalItems: 0,
             matched: 0,
             unmatched: 0,
+            reviewNeededCount: 0,
+            reviewItems: [],
+            itemDetails: [],
             updatedFolders: 0
         };
     }
@@ -2399,6 +2612,9 @@ const applySetupAssistantTemplateAssignmentsForType = async (type, plan) => {
             totalItems: preview.totalItems || 0,
             matched: 0,
             unmatched: preview.unmatched || 0,
+            reviewNeededCount: preview.reviewNeededCount || 0,
+            reviewItems: Array.isArray(preview.reviewItems) ? preview.reviewItems : [],
+            itemDetails: Array.isArray(preview.itemDetails) ? preview.itemDetails : [],
             updatedFolders: 0
         };
     }
@@ -2431,6 +2647,9 @@ const applySetupAssistantTemplateAssignmentsForType = async (type, plan) => {
             totalItems: preview.totalItems || 0,
             matched: 0,
             unmatched: preview.unmatched || 0,
+            reviewNeededCount: preview.reviewNeededCount || 0,
+            reviewItems: Array.isArray(preview.reviewItems) ? preview.reviewItems : [],
+            itemDetails: Array.isArray(preview.itemDetails) ? preview.itemDetails : [],
             updatedFolders: 0
         };
     }
@@ -2503,6 +2722,9 @@ const applySetupAssistantTemplateAssignmentsForType = async (type, plan) => {
         totalItems: preview.totalItems || 0,
         matched: preview.matched || 0,
         unmatched: preview.unmatched || 0,
+        reviewNeededCount: preview.reviewNeededCount || 0,
+        reviewItems: Array.isArray(preview.reviewItems) ? preview.reviewItems : [],
+        itemDetails: Array.isArray(preview.itemDetails) ? preview.itemDetails : [],
         updatedFolders: changedFolderIds.length
     };
 };
@@ -3317,7 +3539,7 @@ const buildSetupAssistantClipboardSummary = () => {
     const validation = getSetupAssistantStepValidation('review');
     const notes = buildSetupAssistantReviewNotes();
     const imports = impact?.imports?.totals || { totalOps: 0, creates: 0, updates: 0, deletes: 0 };
-    const templates = impact?.templates?.totals || { selected: 0, creatable: 0, skippedExisting: 0, autoAssignMatched: 0, autoAssignUnmatched: 0 };
+    const templates = impact?.templates?.totals || { selected: 0, creatable: 0, skippedExisting: 0, autoAssignMatched: 0, autoAssignUnmatched: 0, autoAssignReviewNeeded: 0 };
     const prefs = impact?.prefs || { totalChanges: 0, byType: { docker: { count: 0 }, vm: { count: 0 } } };
     const rules = impact?.rules || { creatable: 0, selected: 0, duplicates: 0, unresolvedFolder: 0, invalidPattern: 0 };
 
@@ -3334,7 +3556,7 @@ const buildSetupAssistantClipboardSummary = () => {
         `Dry run: ${setupAssistantState.dryRunOnly ? 'ON' : 'OFF'}`,
         '',
         `Import operations: ${imports.totalOps} (create ${imports.creates}, update ${imports.updates}, delete ${imports.deletes})`,
-        `Starter folders: ${templates.creatable} (selected ${templates.selected}, skip existing ${templates.skippedExisting}, auto-assign matches ${templates.autoAssignMatched})`,
+        `Starter folders: ${templates.creatable} (selected ${templates.selected}, skip existing ${templates.skippedExisting}, auto-assign matches ${templates.autoAssignMatched}, review needed ${templates.autoAssignReviewNeeded}, unmatched ${templates.autoAssignUnmatched})`,
         `Preference changes: ${prefs.totalChanges} (docker ${prefs.byType?.docker?.count || 0}, vm ${prefs.byType?.vm?.count || 0})`,
         `Starter rules: ${rules.creatable} (selected ${rules.selected}, duplicates ${rules.duplicates}, missing folder ${rules.unresolvedFolder}, invalid pattern ${rules.invalidPattern})`,
         `Total planned changes: ${impact.totalPlannedChanges}`,
@@ -3514,6 +3736,7 @@ const renderSetupAssistantSwalSummaryHtml = ({
     metaRows = [],
     detailRows = [],
     warningLines = [],
+    noteLines = [],
     failureLines = [],
     footerText = ''
 } = {}) => {
@@ -3531,13 +3754,67 @@ const renderSetupAssistantSwalSummaryHtml = ({
     const warningHtml = warningLines.length
         ? `<div class="fv-setup-swal-listbox is-warning"><div class="fv-setup-swal-list-title">Warnings</div><ul class="fv-setup-swal-list">${warningLines.map((line) => `<li>${escapeHtml(line)}</li>`).join('')}</ul></div>`
         : '';
+    const noteHtml = noteLines.length
+        ? `<div class="fv-setup-swal-listbox"><div class="fv-setup-swal-list-title">Match reasons</div><ul class="fv-setup-swal-list">${noteLines.map((line) => `<li>${escapeHtml(line)}</li>`).join('')}</ul></div>`
+        : '';
     const failureHtml = failureLines.length
         ? `<div class="fv-setup-swal-listbox is-failure"><div class="fv-setup-swal-list-title">Failed tasks</div><ul class="fv-setup-swal-list">${failureLines.map((line) => `<li>${escapeHtml(line)}</li>`).join('')}</ul></div>`
         : '';
     const footerHtml = footerText
         ? `<div class="fv-setup-swal-footer">${escapeHtml(footerText)}</div>`
         : '';
-    return `<div class="fv-setup-swal">${metaHtml}${detailHtml}${warningHtml}${failureHtml}${footerHtml}</div>`;
+    return `<div class="fv-setup-swal">${metaHtml}${detailHtml}${warningHtml}${noteHtml}${failureHtml}${footerHtml}</div>`;
+};
+
+const formatSetupAssistantTemplateSummaryValue = (label, entry = {}) => (
+    `${label ? `${label} ` : ''}${Number(entry.created ?? entry.creatable) || 0} created, `
+    + `${Number(entry.skippedExisting) || 0} skipped, `
+    + `${Number(entry.assignment?.matched ?? entry.autoAssignMatched) || 0} auto-assigned, `
+    + `${Number(entry.assignment?.reviewNeededCount ?? entry.autoAssignReviewNeeded) || 0} review needed, `
+    + `${Number(entry.assignment?.unmatched ?? entry.autoAssignUnmatched) || 0} unmatched`
+);
+
+const buildSetupAssistantTemplateReviewLines = (entries = {}) => {
+    const lines = [];
+    ['docker', 'vm'].forEach((type) => {
+        const entry = entries[type] || {};
+        const reviewItems = Array.isArray(entry.assignment?.reviewItems)
+            ? entry.assignment.reviewItems
+            : (Array.isArray(entry.autoAssignReviewItems) ? entry.autoAssignReviewItems : []);
+        reviewItems.slice(0, 4).forEach((item) => {
+            const itemName = String(item?.itemName || '').trim();
+            const templateName = String(item?.templateName || '').trim() || 'Needs review';
+            const reason = String(item?.reason || '').trim();
+            if (!itemName) {
+                return;
+            }
+            lines.push(`${type.toUpperCase()} ${itemName} -> ${templateName}${reason ? ` (${reason})` : ''}`);
+        });
+    });
+    return lines;
+};
+
+const buildSetupAssistantTemplateDecisionLines = (entries = {}) => {
+    const lines = [];
+    ['docker', 'vm'].forEach((type) => {
+        const entry = entries[type] || {};
+        const itemDetails = Array.isArray(entry.assignment?.itemDetails)
+            ? entry.assignment.itemDetails
+            : (Array.isArray(entry.autoAssignItemDetails) ? entry.autoAssignItemDetails : []);
+        itemDetails
+            .filter((item) => String(item?.confidence || '') === 'high')
+            .slice(0, 3)
+            .forEach((item) => {
+                const itemName = String(item?.itemName || '').trim();
+                const templateName = String(item?.templateName || '').trim();
+                const reason = String(item?.reason || '').trim();
+                if (!itemName || !templateName) {
+                    return;
+                }
+                lines.push(`${type.toUpperCase()} ${itemName} -> ${templateName}${reason ? ` (${reason})` : ''}`);
+            });
+    });
+    return lines;
 };
 
 const buildSetupAssistantVerificationReport = (importOutcomes, templateOutcomes, ruleOutcomes, validationWarnings = []) => {
@@ -3800,11 +4077,14 @@ const confirmSetupAssistantApply = async (impactSummary, reviewValidation) => (
             creatable: 0,
             skippedExisting: 0,
             autoAssignMatched: 0,
-            autoAssignUnmatched: 0
+            autoAssignUnmatched: 0,
+            autoAssignReviewNeeded: 0
         };
         const prefsTotal = Number(impactSummary?.prefs?.totalChanges) || 0;
         const rulesTotal = Number(impactSummary?.rules?.creatable) || 0;
         const hasDeletes = Number(totals.deletes) > 0;
+        const reviewLines = buildSetupAssistantTemplateReviewLines(impactSummary?.templates?.byType || {});
+        const decisionLines = buildSetupAssistantTemplateDecisionLines(impactSummary?.templates?.byType || {});
         const html = renderSetupAssistantSwalSummaryHtml({
             metaRows: [
                 { label: 'Route', value: toSetupAssistantDisplayText(setupAssistantState.route) },
@@ -3816,11 +4096,12 @@ const confirmSetupAssistantApply = async (impactSummary, reviewValidation) => (
             detailRows: [
                 { label: 'Imports', value: `${totals.totalOps} ops (create ${totals.creates}, update ${totals.updates}, delete ${totals.deletes})` },
                 { label: 'Starter folders', value: `${templateTotals.creatable} create (selected ${templateTotals.selected}, skip existing ${templateTotals.skippedExisting})` },
-                { label: 'Template auto-assign', value: `${templateTotals.autoAssignMatched} matched / ${templateTotals.autoAssignUnmatched} unmatched` },
+                { label: 'Template auto-assign', value: `${templateTotals.autoAssignMatched} matched / ${templateTotals.autoAssignReviewNeeded} review needed / ${templateTotals.autoAssignUnmatched} unmatched`, wide: true },
                 { label: 'Settings', value: `${prefsTotal} changes` },
                 { label: 'Starter rules', value: `${rulesTotal}` }
             ],
-            warningLines: Array.isArray(reviewValidation?.warnings) ? reviewValidation.warnings.slice(0, 5) : [],
+            warningLines: (Array.isArray(reviewValidation?.warnings) ? reviewValidation.warnings.slice(0, 5) : []).concat(reviewLines).slice(0, 8),
+            noteLines: decisionLines,
             footerText: 'Proceed to apply these changes?'
         });
         swal({
@@ -3988,6 +4269,9 @@ const applySetupAssistantPlan = async () => {
                 totalItems: 0,
                 matched: 0,
                 unmatched: 0,
+                reviewNeededCount: 0,
+                reviewItems: [],
+                itemDetails: [],
                 updatedFolders: 0
             }
         },
@@ -4000,6 +4284,9 @@ const applySetupAssistantPlan = async () => {
                 totalItems: 0,
                 matched: 0,
                 unmatched: 0,
+                reviewNeededCount: 0,
+                reviewItems: [],
+                itemDetails: [],
                 updatedFolders: 0
             }
         }
@@ -4017,7 +4304,7 @@ const applySetupAssistantPlan = async () => {
                 `Environment: ${SETUP_ASSISTANT_ENV_PRESETS[setupAssistantState.environmentPreset]?.label || 'Home Lab'}`,
                 `Preference changes planned: ${impactSummary.prefs.totalChanges}`,
                 `Import operations planned: ${impactSummary.imports.totals.totalOps}`,
-                `Starter folders planned: ${impactSummary.templates.totals.creatable} (selected ${impactSummary.templates.totals.selected}, auto-assign matches ${impactSummary.templates.totals.autoAssignMatched})`,
+                `Starter folders planned: ${impactSummary.templates.totals.creatable} (selected ${impactSummary.templates.totals.selected}, auto-assign matches ${impactSummary.templates.totals.autoAssignMatched}, review needed ${impactSummary.templates.totals.autoAssignReviewNeeded}, unmatched ${impactSummary.templates.totals.autoAssignUnmatched})`,
                 `Starter rules planned: ${impactSummary.rules.creatable}`,
                 `Warnings: ${reviewValidation.warnings.length ? reviewValidation.warnings.join(' | ') : 'None'}`
             ];
@@ -4178,8 +4465,8 @@ const applySetupAssistantPlan = async () => {
             `Environment defaults: ${setupAssistantState.applyEnvironmentDefaults ? (SETUP_ASSISTANT_ENV_PRESETS[setupAssistantState.environmentPreset]?.label || 'Home Lab') : 'not applied'}`,
             `Docker import operations: ${importOutcomes.docker}`,
             `VM import operations: ${importOutcomes.vm}`,
-            `Docker starter folders: ${templateOutcomes.docker.created} created, ${templateOutcomes.docker.skippedExisting} skipped, ${Number(templateOutcomes.docker.assignment?.matched) || 0} auto-assigned`,
-            `VM starter folders: ${templateOutcomes.vm.created} created, ${templateOutcomes.vm.skippedExisting} skipped, ${Number(templateOutcomes.vm.assignment?.matched) || 0} auto-assigned`,
+            `Docker starter folders: ${formatSetupAssistantTemplateSummaryValue('', templateOutcomes.docker)}`,
+            `VM starter folders: ${formatSetupAssistantTemplateSummaryValue('', templateOutcomes.vm)}`,
             `Docker starter rules added: ${ruleOutcomes.docker.created}`,
             `VM starter rules added: ${ruleOutcomes.vm.created}`,
             `Estimated preference changes: ${impactSummary.prefs.totalChanges}`,
@@ -4187,8 +4474,16 @@ const applySetupAssistantPlan = async () => {
             checkpointText,
             `Duration: ${durationSeconds}s`
         ];
+        const templateReviewLines = buildSetupAssistantTemplateReviewLines(templateOutcomes);
+        const templateDecisionLines = buildSetupAssistantTemplateDecisionLines(templateOutcomes);
         if (validationWarnings.length) {
             summaryLines.push(`Validation warnings: ${validationWarnings.join(' | ')}`);
+        }
+        if (templateReviewLines.length) {
+            summaryLines.push(`Needs review: ${templateReviewLines.join(' | ')}`);
+        }
+        if (templateDecisionLines.length) {
+            summaryLines.push(`Auto-assign highlights: ${templateDecisionLines.join(' | ')}`);
         }
         if (applyFailures.length) {
             summaryLines.push(`Retryable failures: ${applyFailures.length}`);
@@ -4206,6 +4501,12 @@ const applySetupAssistantPlan = async () => {
             templateOutcomes,
             verification
         };
+        if (typeof addActivityEntry === 'function') {
+            addActivityEntry(
+                `Setup assistant applied: Docker ${Number(templateOutcomes.docker.assignment?.matched) || 0} auto-assigned / ${Number(templateOutcomes.docker.assignment?.reviewNeededCount) || 0} review, VM ${Number(templateOutcomes.vm.assignment?.matched) || 0} auto-assigned / ${Number(templateOutcomes.vm.assignment?.reviewNeededCount) || 0} review.`,
+                applyFailures.length > 0 ? 'warning' : 'success'
+            );
+        }
 
         if (applyFailures.length > 0) {
             const retryNow = await new Promise((resolve) => {
@@ -4218,12 +4519,13 @@ const applySetupAssistantPlan = async () => {
                     ],
                     detailRows: [
                         { label: 'Imports', value: `Docker ${importOutcomes.docker} | VM ${importOutcomes.vm}` },
-                        { label: 'Starter folders', value: `Docker ${templateOutcomes.docker.created} created, ${templateOutcomes.docker.skippedExisting} skipped, ${Number(templateOutcomes.docker.assignment?.matched) || 0} auto-assigned | VM ${templateOutcomes.vm.created} created, ${templateOutcomes.vm.skippedExisting} skipped, ${Number(templateOutcomes.vm.assignment?.matched) || 0} auto-assigned`, wide: true },
+                        { label: 'Starter folders', value: `${formatSetupAssistantTemplateSummaryValue('Docker', templateOutcomes.docker)} | ${formatSetupAssistantTemplateSummaryValue('VM', templateOutcomes.vm)}`, wide: true },
                         { label: 'Starter rules', value: `Docker ${ruleOutcomes.docker.created} added | VM ${ruleOutcomes.vm.created} added`, wide: true },
                         { label: 'Verification', value: `${verification.passed}/${verification.total} checks passed` },
                         { label: 'Retryable failures', value: `${applyFailures.length}` }
                     ],
-                    warningLines: validationWarnings.slice(0, 5),
+                    warningLines: validationWarnings.slice(0, 5).concat(templateReviewLines).slice(0, 8),
+                    noteLines: templateDecisionLines,
                     failureLines: applyFailures.slice(0, 8).map((entry) => `${String(entry.phase || '').toUpperCase()} ${String(entry.type || '').toUpperCase()}: ${String(entry.message || '').trim()}`),
                     footerText: 'Retry failed tasks now?'
                 });
@@ -4273,14 +4575,15 @@ const applySetupAssistantPlan = async () => {
                 { label: 'Profile defaults', value: setupAssistantState.applyProfileDefaults ? setupAssistantState.profile : 'not applied' },
                 { label: 'Environment defaults', value: setupAssistantState.applyEnvironmentDefaults ? (SETUP_ASSISTANT_ENV_PRESETS[setupAssistantState.environmentPreset]?.label || 'Home Lab') : 'not applied' },
                 { label: 'Imports', value: `Docker ${importOutcomes.docker} | VM ${importOutcomes.vm}` },
-                { label: 'Starter folders', value: `Docker ${templateOutcomes.docker.created} created, ${templateOutcomes.docker.skippedExisting} skipped, ${Number(templateOutcomes.docker.assignment?.matched) || 0} auto-assigned | VM ${templateOutcomes.vm.created} created, ${templateOutcomes.vm.skippedExisting} skipped, ${Number(templateOutcomes.vm.assignment?.matched) || 0} auto-assigned`, wide: true },
+                { label: 'Starter folders', value: `${formatSetupAssistantTemplateSummaryValue('Docker', templateOutcomes.docker)} | ${formatSetupAssistantTemplateSummaryValue('VM', templateOutcomes.vm)}`, wide: true },
                 { label: 'Starter rules', value: `Docker ${ruleOutcomes.docker.created} added | VM ${ruleOutcomes.vm.created} added`, wide: true },
                 { label: 'Preference changes', value: `${impactSummary.prefs.totalChanges}` },
                 { label: 'Verification', value: `${verification.passed}/${verification.total} checks passed` },
                 { label: 'Rollback checkpoint', value: setupAssistantState.rollbackCheckpointName || (rollbackCreated ? 'created' : 'skipped (Fast mode)'), wide: true },
                 { label: 'Duration', value: `${durationSeconds}s` }
             ],
-            warningLines: validationWarnings.slice(0, 5)
+            warningLines: validationWarnings.slice(0, 5).concat(templateReviewLines).slice(0, 8),
+            noteLines: templateDecisionLines
         }, rollbackCreated);
         if (!undoNow || !rollbackCreated) {
             return;

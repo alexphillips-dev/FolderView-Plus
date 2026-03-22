@@ -1,31 +1,31 @@
 {
   "version": 1,
-  "generatedAt": "2026-03-22T04:10:23.768Z",
+  "generatedAt": "2026-03-22T04:29:03.243Z",
   "notes": "Baseline for perf ratchet guard. Update intentionally when expected growth is accepted.",
   "assets": {
     "scripts/folderviewplus.runtime-parity.js": {
-      "bytes": 1088,
-      "gzipBytes": 501
+      "bytes": 1282,
+      "gzipBytes": 537
     },
     "scripts/folderviewplus.settings-sections.js": {
-      "bytes": 2659,
-      "gzipBytes": 737
+      "bytes": 3118,
+      "gzipBytes": 797
     },
     "scripts/folderviewplus.setup-assistant.js": {
-      "bytes": 12237,
-      "gzipBytes": 2678
+      "bytes": 12976,
+      "gzipBytes": 2772
     },
     "scripts/folderviewplus.starter-templates.js": {
-      "bytes": 46002,
-      "gzipBytes": 9117
+      "bytes": 46570,
+      "gzipBytes": 9187
     },
     "scripts/folderviewplus.activity-diagnostics.js": {
-      "bytes": 19754,
-      "gzipBytes": 4462
+      "bytes": 20779,
+      "gzipBytes": 4636
     },
     "scripts/folderviewplus.folder-editor.js": {
-      "bytes": 40238,
-      "gzipBytes": 7828
+      "bytes": 40817,
+      "gzipBytes": 7926
     },
     "scripts/folderviewplus.js": {
       "bytes": 459862,
@@ -57,11 +57,11 @@
     }
   },
   "totals": {
-    "totalJs": 1697965,
+    "totalJs": 1701529,
     "totalCss": 220244,
-    "totalJsGzip": 330946,
+    "totalJsGzip": 331478,
     "totalCssGzip": 34030,
-    "settingsRuntimeJs": 865364,
-    "settingsRuntimeJsGzip": 166510
+    "settingsRuntimeJs": 868928,
+    "settingsRuntimeJsGzip": 167042
   }
 }

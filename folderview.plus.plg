@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.22.28">
-<!ENTITY md5 "191fa23dddf8bea83bf02c18591a09f1">
+<!ENTITY version "2026.03.22.29">
+<!ENTITY md5 "c6df136f5441e7bbc04fb283d88f6789">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.22.29
+- Fix: Make the new Preview rows control deterministic by capping how many Docker members render in the main row per selected row count instead of relying on browser-dependent height clipping.
+- UX: Clarify that Preview rows controls the main Docker row preview and leaves additional members in the folder overflow path unless Unlimited is selected.
+- Regression guard: Extend Docker preview overflow tests to lock the new visible-member limit behavior in place.
+
 
 ###2026.03.22.28
 - Feature: Add per-folder Preview rows control so Docker folder previews can show multiple rows of members before clipping.

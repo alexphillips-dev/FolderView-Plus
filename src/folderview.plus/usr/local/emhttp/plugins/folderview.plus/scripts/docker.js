@@ -241,16 +241,38 @@ const normalizeFolderPreviewRowLimit = (settings = {}) => {
     }
     return Math.max(1, Math.min(4, parsed));
 };
+const getFolderPreviewItemsPerRow = (settings = {}) => {
+    switch (Number(settings?.preview || 0)) {
+        case 2:
+            return 14;
+        case 3:
+            return 8;
+        case 4:
+            return 7;
+        case 1:
+        default:
+            return 5;
+    }
+};
+const getFolderPreviewVisibleItemLimit = (settings = {}) => {
+    const rowLimit = normalizeFolderPreviewRowLimit(settings);
+    if (rowLimit === 0) {
+        return Number.POSITIVE_INFINITY;
+    }
+    return Math.max(1, rowLimit) * getFolderPreviewItemsPerRow(settings);
+};
 const applyFolderPreviewLayout = ($preview, settings = {}) => {
     if (!$preview || !$preview.length) {
         return;
     }
     const rowLimit = normalizeFolderPreviewRowLimit(settings);
+    const visibleLimit = getFolderPreviewVisibleItemLimit(settings);
     const previewNode = $preview.get(0);
     if (!previewNode || !previewNode.style) {
         return;
     }
     previewNode.dataset.previewRows = String(rowLimit);
+    previewNode.dataset.previewVisibleLimit = Number.isFinite(visibleLimit) ? String(visibleLimit) : 'unlimited';
     previewNode.style.setProperty('--fvplus-preview-row-limit', rowLimit === 0 ? '4' : String(rowLimit));
     previewNode.style.setProperty('--fvplus-preview-max-height', rowLimit === 0 ? 'none' : `calc(${rowLimit} * var(--fvplus-preview-row-height, 3.5em))`);
     previewNode.classList.toggle('fv-preview-unlimited-rows', rowLimit === 0);
@@ -2698,6 +2720,8 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
             preview_grayscale: false
         };
     }
+    const previewVisibleLimit = getFolderPreviewVisibleItemLimit(folder?.settings || {});
+    let renderedPreviewItems = 0;
     // --- End of combinedContainers build ---
 
     const colspan = document.querySelector("#docker_containers > thead > tr").childElementCount - 5;
@@ -2941,8 +2965,12 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                  if (FOLDER_VIEW_DEBUG_MODE && charts.length > 0) console.log(`[FV3_DEBUG] graphListener (for ct: ${ct.shortId}): Updated ${charts.length} charts.`);
             };
 
-            const tooltip_trigger_element = addPreview(id, ct.shortId, !(ct.info.State.Autostart === false));
-            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${ct.shortId}: Called addPreview. Returned tooltip_trigger_element:`, tooltip_trigger_element ? tooltip_trigger_element[0] : 'null/undefined');
+            let tooltip_trigger_element;
+            if (renderedPreviewItems < previewVisibleLimit) {
+                tooltip_trigger_element = addPreview(id, ct.shortId, !(ct.info.State.Autostart === false));
+                renderedPreviewItems++;
+                if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${ct.shortId}: Called addPreview. Returned tooltip_trigger_element:`, tooltip_trigger_element ? tooltip_trigger_element[0] : 'null/undefined');
+            }
         
             $(`tr.folder-id-${id} div.folder-preview span.inner > span.appname`).css("width", folder.settings.preview_text_width || '');
             if (FOLDER_VIEW_DEBUG_MODE && folder.settings.preview_text_width) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Set preview text width to ${folder.settings.preview_text_width}.`);
@@ -3673,8 +3701,12 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
     const allowWebuiQuickAction = nestedParentPreview || quickActionPrefs.preview_webui === true;
     const allowConsoleQuickAction = nestedParentPreview || quickActionPrefs.preview_console === true;
     const allowLogsQuickAction = nestedParentPreview || quickActionPrefs.preview_logs === true;
+    const previewVisibleLimit = getFolderPreviewVisibleItemLimit(folder?.settings || {});
     $preview.empty();
-    for (const entry of entries) {
+    for (const [index, entry] of entries.entries()) {
+        if (index >= previewVisibleLimit) {
+            break;
+        }
         const safeName = escapeHtml(entry?.name || '');
         const safeIcon = sanitizeImageSrc(entry?.icon || '/plugins/dynamix.docker.manager/images/question.png');
         const isRunning = entry?.state === true;

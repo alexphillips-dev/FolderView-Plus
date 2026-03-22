@@ -22,7 +22,13 @@ test('folder editor exposes preview row limit control and persists the setting',
 
 test('docker runtime applies preview row layout limits and enhanced member action menus', () => {
     assert.match(dockerJs, /const normalizeFolderPreviewRowLimit = \(settings = \{\}\) =>/);
+    assert.match(dockerJs, /const getFolderPreviewItemsPerRow = \(settings = \{\}\) =>/);
+    assert.match(dockerJs, /const getFolderPreviewVisibleItemLimit = \(settings = \{\}\) =>/);
     assert.match(dockerJs, /const applyFolderPreviewLayout = \(\$preview, settings = \{\}\) =>/);
+    assert.match(dockerJs, /previewNode\.dataset\.previewVisibleLimit = Number\.isFinite\(visibleLimit\) \? String\(visibleLimit\) : 'unlimited'/);
+    assert.match(dockerJs, /const previewVisibleLimit = getFolderPreviewVisibleItemLimit\(folder\?\.settings \|\| \{\}\);/);
+    assert.match(dockerJs, /if \(renderedPreviewItems < previewVisibleLimit\) \{/);
+    assert.match(dockerJs, /if \(index >= previewVisibleLimit\) \{/);
     assert.match(dockerJs, /decorateDockerFolderMemberRow\(\$containerTR, id, ct\.info\.Name \|\| container_name_in_folder\)/);
     assert.match(dockerJs, /decorateDockerPreviewMemberTriggers\(/);
     assert.match(dockerJs, /const showDockerPreviewMemberMenu = \(entry\) =>/);

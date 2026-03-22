@@ -244,14 +244,14 @@ const normalizeFolderPreviewRowLimit = (settings = {}) => {
 const getFolderPreviewItemsPerRow = (settings = {}) => {
     switch (Number(settings?.preview || 0)) {
         case 2:
-            return 14;
+            return 12;
         case 3:
-            return 8;
+            return 5;
         case 4:
-            return 7;
+            return 4;
         case 1:
         default:
-            return 5;
+            return 4;
     }
 };
 const getFolderPreviewVisibleItemLimit = (settings = {}) => {

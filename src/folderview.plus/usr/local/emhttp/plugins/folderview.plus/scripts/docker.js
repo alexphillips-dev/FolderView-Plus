@@ -254,6 +254,10 @@ const getFolderPreviewItemsPerRow = (settings = {}) => {
             return 4;
     }
 };
+const isCompactMultiRowPreview = (settings = {}) => {
+    const normalizedRows = normalizeFolderPreviewRowLimit(settings);
+    return normalizedRows === 0 || normalizedRows > 1;
+};
 const applyFolderPreviewLayout = ($preview, settings = {}) => {
     if (!$preview || !$preview.length) {
         return;
@@ -275,6 +279,7 @@ const applyFolderPreviewLayout = ($preview, settings = {}) => {
 };
 const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }) => {
     const previewMode = Number(settings?.preview || 0);
+    const compactMultiRow = isCompactMultiRowPreview(settings);
     const safeName = escapeHtml(entry?.name || '');
     const safeIcon = sanitizeImageSrc(entry?.icon || '/plugins/dynamix.docker.manager/images/question.png');
     const previewStateMeta = getPreviewContainerStatusMeta(entry);
@@ -287,6 +292,49 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
     const autostartClass = autostart ? ' autostart' : '';
     let itemMarkup = '';
     let triggerSelector = '.fv-preview-trigger';
+
+    if (compactMultiRow) {
+        switch (previewMode) {
+            case 2:
+                itemMarkup = `
+                    <span class="outer fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-2${autostartClass}">
+                        <span class="hand fv-preview-trigger"><img src="${safeIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'${imageStyle}></span>
+                    </span>
+                `;
+                triggerSelector = '.hand';
+                break;
+            case 3:
+            case 4:
+                itemMarkup = `
+                    <span class="outer fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-${previewMode}${autostartClass}">
+                        <span class="inner fv-preview-trigger">
+                            <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}" title="${previewStatusTitle}" aria-hidden="true"></i>
+                            <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span>
+                        </span>
+                    </span>
+                `;
+                triggerSelector = '.appname, i.fa';
+                break;
+            case 1:
+            default:
+                itemMarkup = `
+                    <span class="outer fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-1${autostartClass}">
+                        <span class="hand fv-preview-trigger"><img src="${safeIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'${imageStyle}></span>
+                        <span class="inner fv-preview-trigger">
+                            <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}" title="${previewStatusTitle}" aria-hidden="true"></i>
+                            <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span>
+                        </span>
+                    </span>
+                `;
+                triggerSelector = '.hand, .appname, i.fa';
+                break;
+        }
+        const $compactItem = $(itemMarkup);
+        return {
+            $item: $compactItem,
+            $tooltipTrigger: $compactItem.find(triggerSelector).first()
+        };
+    }
 
     switch (previewMode) {
         case 2:

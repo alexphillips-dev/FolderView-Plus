@@ -222,6 +222,7 @@ test('nested folder expansion avoids duplicate parent previews and keeps child-o
     assert.match(dockerJs, /const allowWebuiQuickAction = nestedParentPreview \|\| quickActionPrefs\.preview_webui === true;/);
     assert.match(dockerJs, /const allowConsoleQuickAction = nestedParentPreview \|\| quickActionPrefs\.preview_console === true;/);
     assert.match(dockerJs, /const allowLogsQuickAction = nestedParentPreview \|\| quickActionPrefs\.preview_logs === true;/);
+    assert.match(dockerJs, /const previewWebuiUrl = String\(newFolder\[container_name_in_folder\]\?\.webui \|\| ct\.info\.State\.WebUi \|\| ct\.info\.State\.TSWebUi \|\| ''\)\.trim\(\);/);
     assert.match(dockerJs, /if \(allowWebuiQuickAction && webuiUrl\)/);
     assert.match(dockerJs, /if \(allowConsoleQuickAction\)/);
     assert.match(dockerJs, /if \(allowLogsQuickAction\)/);

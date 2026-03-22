@@ -3383,9 +3383,10 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                 $targetForAppend = $previewElementTarget; // Fallback to the main span if no inner span
             }
 
-            if (folder.settings.preview_webui && ct.info.State.WebUi) {
+            const previewWebuiUrl = String(newFolder[container_name_in_folder]?.webui || ct.info.State.WebUi || ct.info.State.TSWebUi || '').trim();
+            if (folder.settings.preview_webui && previewWebuiUrl) {
                 if ($targetForAppend.length) {
-                    $targetForAppend.append($(`<span class="folder-element-custom-btn folder-element-webui"><a href="${ct.info.State.WebUi}" target="_blank" rel="noopener noreferrer"><i class="fa fa-globe" aria-hidden="true"></i></a></span>`));
+                    $targetForAppend.append($(`<span class="folder-element-custom-btn folder-element-webui"><a href="${previewWebuiUrl}" target="_blank" rel="noopener noreferrer"><i class="fa fa-globe" aria-hidden="true"></i></a></span>`));
                     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Appended WebUI icon to preview.`);
                 } else {
                      if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: WebUI icon: Could not find target for append in preview element.`);

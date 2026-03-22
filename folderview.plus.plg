@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.22.36">
-<!ENTITY md5 "a75c59ac409a6519452a1b5a61dad051">
+<!ENTITY version "2026.03.22.37">
+<!ENTITY md5 "83817d1b05744f19a0e9cef2f6d6e617">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.22.37
+- UX: Add a dedicated compact density mode for multi-row Docker previews so stacked preview rows use smaller icons, tighter gaps, and reduced action spacing.
+- Fix: Mark multi-row and unlimited preview containers explicitly so the denser preview layout only applies when more than one row is enabled.
+- UX: Reduce row padding and card spacing in multi-row mode so the second preview row no longer feels like a full-height duplicate of the first.
+
 
 ###2026.03.22.36
 - Fix: Use the normalized preview WebUI URL in the main Docker row so preview globe icons stay available when a container only exposes fallback WebUI metadata.

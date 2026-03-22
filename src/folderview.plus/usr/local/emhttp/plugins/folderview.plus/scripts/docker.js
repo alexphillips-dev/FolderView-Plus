@@ -265,7 +265,13 @@ const applyFolderPreviewLayout = ($preview, settings = {}) => {
     previewNode.dataset.previewRows = String(normalizeFolderPreviewRowLimit(settings));
     previewNode.style.removeProperty('--fvplus-preview-row-limit');
     previewNode.style.removeProperty('--fvplus-preview-max-height');
-    previewNode.classList.remove('fv-preview-unlimited-rows');
+    previewNode.classList.remove('fv-preview-unlimited-rows', 'fv-preview-multirow');
+    const normalizedRows = normalizeFolderPreviewRowLimit(settings);
+    if (normalizedRows === 0) {
+        previewNode.classList.add('fv-preview-unlimited-rows', 'fv-preview-multirow');
+    } else if (normalizedRows > 1) {
+        previewNode.classList.add('fv-preview-multirow');
+    }
 };
 const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }) => {
     const previewMode = Number(settings?.preview || 0);

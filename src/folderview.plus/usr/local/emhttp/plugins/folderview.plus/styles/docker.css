@@ -323,6 +323,16 @@ tr.folder.fv-parent-expanded div.folder-preview {
     padding: 0 0 1px 10px;
 }
 
+.folder-preview.fv-preview-multirow {
+    row-gap: 0;
+    padding: 0;
+}
+
+.folder-preview.fv-preview-multirow .folder-preview-row {
+    column-gap: 8px;
+    padding: 0 0 0 8px;
+}
+
 .folder-preview.fv-preview-border-off {
     border: none !important;
     box-shadow: none !important;
@@ -375,6 +385,31 @@ tr.folder.fv-parent-expanded div.folder-preview {
 .fv-docker-preview-card .inner {
     min-width: 0;
     line-height: 1.05;
+}
+
+.folder-preview.fv-preview-multirow .fv-docker-preview-card {
+    gap: 4px;
+}
+
+.folder-preview.fv-preview-multirow .fv-docker-preview-card .inner {
+    font-size: 0.94em;
+    line-height: 1;
+}
+
+.folder-preview.fv-preview-multirow img.img.folder-img {
+    width: 24px;
+    height: 24px;
+}
+
+.folder-preview.fv-preview-multirow .folder-preview-status-icon,
+.folder-preview.fv-preview-multirow .fv-preview-status-inline,
+.folder-preview.fv-preview-multirow span.state,
+.folder-preview.fv-preview-multirow .folder-element-custom-btn a {
+    font-size: 0.92em;
+}
+
+.folder-preview.fv-preview-multirow .folder-element-custom-btn {
+    margin-left: 0.28em;
 }
 
 .folder-preview-status-icon {

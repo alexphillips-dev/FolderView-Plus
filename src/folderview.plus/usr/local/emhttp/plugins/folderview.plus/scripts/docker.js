@@ -308,12 +308,14 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
                 itemMarkup = `
                     <span class="outer fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-${previewMode}${autostartClass}">
                         <span class="inner fv-preview-trigger">
-                            <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}" title="${previewStatusTitle}" aria-hidden="true"></i>
                             <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span>
+                            <span class="fv-preview-status-compact ${previewStateMeta.className}" title="${previewStatusTitle}">
+                                <i class="fa ${previewStateMeta.icon}" aria-hidden="true"></i><span class="state ${previewStateMeta.className}"> ${stateLabel}</span>
+                            </span>
                         </span>
                     </span>
                 `;
-                triggerSelector = '.appname, i.fa';
+                triggerSelector = '.appname, .fv-preview-status-compact';
                 break;
             case 1:
             default:
@@ -321,12 +323,14 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
                     <span class="outer fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-1${autostartClass}">
                         <span class="hand fv-preview-trigger"><img src="${safeIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'${imageStyle}></span>
                         <span class="inner fv-preview-trigger">
-                            <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}" title="${previewStatusTitle}" aria-hidden="true"></i>
                             <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span>
+                            <span class="fv-preview-status-compact ${previewStateMeta.className}" title="${previewStatusTitle}">
+                                <i class="fa ${previewStateMeta.icon}" aria-hidden="true"></i><span class="state ${previewStateMeta.className}"> ${stateLabel}</span>
+                            </span>
                         </span>
                     </span>
                 `;
-                triggerSelector = '.hand, .appname, i.fa';
+                triggerSelector = '.hand, .appname, .fv-preview-status-compact';
                 break;
         }
         const $compactItem = $(itemMarkup);
@@ -3467,7 +3471,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
             const previewStateMeta = getPreviewContainerStatusMeta(newFolder[container_name_in_folder]);
             const previewStatusTitle = escapeHtml($.i18n(previewStateMeta.key));
 
-            if ((previewMode === 3 || previewMode === 4) && $previewElementTarget.length) {
+            if (!compactMultiRowPreview && (previewMode === 3 || previewMode === 4) && $previewElementTarget.length) {
                 const $previewAppName = $previewElementTarget.find('span.appname > a.exec').first();
                 if ($previewAppName.length) {
                     $previewAppName.addClass('fv-preview-status-name').addClass(previewStateMeta.className);

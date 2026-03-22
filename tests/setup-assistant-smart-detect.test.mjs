@@ -73,6 +73,7 @@ const loadSmartDetectHelpers = (infoByType) => {
         '    normalizeSetupAssistantMatchText,',
         '    collectSetupAssistantItemMatchProfile,',
         '    scoreSetupAssistantTemplateMatch,',
+        '    resolveSetupAssistantSmartBlueprintIndexes,',
         '    buildSetupAssistantTemplateAssignmentPreview',
         '};'
     ].join('\n')).runInContext(context);
@@ -269,6 +270,40 @@ test('wizard smart detect covers mixed real-world docker families without misses
     assert.deepEqual(Array.from(preview.assignedByTemplate.Monitoring || []), ['MySpeed']);
     assert.deepEqual(Array.from(preview.assignedByTemplate['Cloud & Sync'] || []), ['nextcloud']);
     assert.deepEqual(Array.from(preview.assignedByTemplate.Notifications || []), ['Notify']);
+});
+
+test('wizard smart starter selection derives folders from per-item best matches', () => {
+    const infoByType = {
+        docker: {
+            listenarr: { info: { Config: { Image: 'ghcr.io/listenarr/listenarr:latest' } } },
+            ClamAV: { info: { Config: { Image: 'clamav/clamav:latest' } } },
+            'satisfactory-server': { info: { Config: { Image: 'wolveix/satisfactory-server:latest' } } },
+            nextcloud: { info: { Config: { Image: 'nextcloud:latest' } } },
+            Notify: { info: { Config: { Image: 'ghcr.io/notifiarr/notify:latest' } } },
+            QDirStat: { info: { Config: { Image: 'ghcr.io/linuxserver/qdirstat:latest' } } }
+        }
+    };
+    const runtime = loadSmartDetectHelpers(infoByType);
+    const result = runtime.resolveSetupAssistantSmartBlueprintIndexes('docker', [
+        { name: 'Media', detect: ['listenarr', 'seerr', 'wizarr'] },
+        { name: 'Security', detect: ['vaultwarden', 'clamav'] },
+        { name: 'Utilities', detect: ['qdirstat', 'diskspeed', 'vm_custom_icons'] },
+        { name: 'Game Servers', detect: ['crafty', 'satisfactory-server'] },
+        { name: 'Cloud & Sync', detect: ['nextcloud'] },
+        { name: 'Notifications', detect: ['notify', 'notifiarr'] }
+    ]);
+    const names = Array.from(result.indexes)
+        .map((index) => ['Media', 'Security', 'Utilities', 'Game Servers', 'Cloud & Sync', 'Notifications'][index])
+        .filter(Boolean);
+
+    assert.equal(result.totalItems, 6);
+    assert.equal(result.unmatched, 0);
+    assert.ok(names.includes('Media'));
+    assert.ok(names.includes('Security'));
+    assert.ok(names.includes('Utilities'));
+    assert.ok(names.includes('Game Servers'));
+    assert.ok(names.includes('Cloud & Sync'));
+    assert.ok(names.includes('Notifications'));
 });
 
 test('smart starter selection surfaces the needed folders for mixed docker workloads', () => {

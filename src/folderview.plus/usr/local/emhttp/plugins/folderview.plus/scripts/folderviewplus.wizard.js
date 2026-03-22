@@ -603,7 +603,7 @@ const getSetupAssistantTemplateCategoryState = (type) => {
         categoryIndexBuckets.get(normalized).add(index);
     };
 
-    const smartIndexes = resolveStarterTemplateSmartIndexes(resolvedType, blueprints);
+    const smartIndexes = resolveSetupAssistantSmartBlueprintIndexes(resolvedType, blueprints).indexes;
     smartIndexes.forEach((index) => addCategoryIndex('smart', index));
     blueprints.forEach((entry, index) => {
         const categories = Array.isArray(entry?.categories) ? entry.categories : [];
@@ -691,37 +691,7 @@ const SETUP_ASSISTANT_TEMPLATE_FALLBACK_BY_TYPE = Object.freeze({
     docker: 'Utilities',
     vm: 'Utility VMs'
 });
-
-const getSetupAssistantBlueprintHeuristicMap = (type, blueprintName) => {
-    const resolvedType = normalizeManagedType(type);
-    const normalizedName = normalizeSetupAssistantMatchText(blueprintName).replace(/\s+/g, '-');
-    if (resolvedType === 'docker') {
-        const dockerMap = {
-            media: { contains: ['seerr', 'wizarr', 'listenarr', 'cleanuparr', 'agregarr', 'watch', 'request', 'discover'], pathContains: ['media', 'movies', 'shows', 'tv', 'music', 'books', 'audiobooks', 'anime', 'comics', 'photos'] },
-            downloads: { contains: ['download', 'torrent', 'nzb', 'slsk', 'seed'] },
-            monitoring: { contains: ['myspeed', 'speedtest', 'latency', 'uptime', 'metrics', 'telemetry'] },
-            'cloud-&-sync': { contains: ['nextcloud', 'owncloud', 'seafile', 'cloud', 'sync', 'drive', 'collabora', 'onlyoffice'] },
-            notifications: { contains: ['notify', 'notification', 'ntfy', 'gotify', 'apprise', 'notifiarr', 'pushover', 'webhook'] },
-            utilities: { contains: ['qdirstat', 'diskspeed', 'ncdu', 'baobab', 'icons', 'icon', 'tool', 'utility', 'manager'], pathContains: ['appdata', 'storage', 'tools'] },
-            automation: { contains: ['homeassistant', 'node red', 'n8n', 'mqtt', 'esphome', 'zigbee', 'zwave'] },
-            database: { contains: ['postgres', 'mysql', 'mariadb', 'mongo', 'redis', 'database', 'db'] },
-            security: { contains: ['clamav', 'antivirus', 'vaultwarden', 'authentik', 'authelia', 'crowdsec', 'fail2ban', 'security'] },
-            development: { contains: ['git', 'code', 'dev', 'build', 'registry', 'runner', 'vscode'] },
-            'ci-cd': { contains: ['jenkins', 'runner', 'drone', 'argocd', 'ci', 'cd'] },
-            gaming: { contains: ['crafty', 'minecraft', 'palworld', 'valheim', 'satisfactory', 'steam', 'gameserver', 'server'] },
-            'game-servers': { contains: ['crafty', 'pterodactyl', 'pelican', 'steamcmd', 'minecraft', 'palworld', 'valheim', 'satisfactory', 'terraria', 'enshrouded', 'gameserver', 'server'] }
-        };
-        return dockerMap[normalizedName] || null;
-    }
-    const vmMap = {
-        'utility-vms': { contains: ['utility', 'tools', 'helper', 'management', 'admin'] },
-        'network-vms': { contains: ['router', 'firewall', 'pfsense', 'opnsense', 'dns', 'proxy'] },
-        'security-vms': { contains: ['security', 'siem', 'wazuh', 'ids', 'ips', 'firewall'] },
-        'desktop-vms': { contains: ['desktop', 'workstation', 'windows', 'ubuntu', 'macos'] },
-        'gaming-vms': { contains: ['gaming', 'steam', 'parsec', 'moonlight', 'sunshine', 'gpu'] }
-    };
-    return vmMap[normalizedName] || null;
-};
+const SETUP_ASSISTANT_TEMPLATE_MATCH_THRESHOLD = 4;
 
 const collectSetupAssistantItemMatchProfile = (type, itemName, itemInfo) => {
     const resolvedType = normalizeManagedType(type);
@@ -863,21 +833,103 @@ const scoreSetupAssistantTemplateMatch = (profile, blueprint, type = 'docker') =
         }
         return false;
     };
+    const getHeuristicBoost = () => {
+        const normalizedName = normalizeSetupAssistantMatchText(blueprint?.name).replace(/\s+/g, '-');
+        if (type !== 'docker') {
+            return 0;
+        }
+        if (normalizedName === 'media') {
+            let next = 0;
+            if (hasTokenEndingWith('arr')) {
+                next += 12;
+            }
+            if (hasTokenContainingAny(['seerr', 'wizarr', 'listenarr', 'cleanuparr', 'agregarr', 'watch', 'request', 'discover'])) {
+                next += 10;
+            }
+            if (hasTokenContainingAny(['media', 'movies', 'shows', 'tv', 'music', 'books', 'audiobooks', 'anime', 'comics', 'photos'])) {
+                next += 6;
+            }
+            return next;
+        }
+        if (normalizedName === 'game-servers' || normalizedName === 'gaming') {
+            return hasTokenContainingAny(['crafty', 'pterodactyl', 'pelican', 'satisfactory', 'minecraft', 'palworld', 'valheim', 'steamcmd', 'gameserver', 'server']) ? 10 : 0;
+        }
+        if (normalizedName === 'monitoring') {
+            return hasTokenContainingAny(['myspeed', 'speedtest', 'latency', 'uptime', 'metrics']) ? 10 : 0;
+        }
+        if (normalizedName === 'cloud-&-sync') {
+            return hasTokenContainingAny(['nextcloud', 'owncloud', 'seafile', 'cloud', 'sync', 'drive', 'collabora', 'onlyoffice']) ? 10 : 0;
+        }
+        if (normalizedName === 'notifications') {
+            return hasTokenContainingAny(['notify', 'notification', 'ntfy', 'gotify', 'apprise', 'notifiarr', 'pushover', 'webhook']) ? 10 : 0;
+        }
+        if (normalizedName === 'utilities') {
+            let next = hasTokenContainingAny(['qdirstat', 'diskspeed', 'icons', 'icon', 'tool', 'utility', 'manager']) ? 10 : 0;
+            if (hasTokenContainingAny(['appdata', 'storage', 'tools'])) {
+                next += 6;
+            }
+            return next;
+        }
+        if (normalizedName === 'security') {
+            return hasTokenContainingAny(['clamav', 'antivirus', 'vaultwarden', 'authentik', 'authelia', 'crowdsec', 'fail2ban', 'security']) ? 10 : 0;
+        }
+        return 0;
+    };
     detectKeywords.forEach((keyword) => consumeKeyword(keyword, 1));
     consumeKeyword(blueprint.name, 0.6);
-    const heuristic = getSetupAssistantBlueprintHeuristicMap(type, blueprint?.name || '');
-    if (heuristic) {
-        if (normalizeSetupAssistantMatchText(blueprint?.name).replace(/\s+/g, '-') === 'media' && hasTokenEndingWith('arr')) {
-            score += 12;
-        }
-        if (hasTokenContainingAny(heuristic.contains)) {
-            score += 10;
-        }
-        if (hasTokenContainingAny(heuristic.pathContains)) {
-            score += 6;
-        }
-    }
+    score += getHeuristicBoost();
     return score;
+};
+
+const resolveSetupAssistantTemplateBestMatch = (type, profile, blueprints) => {
+    const resolvedType = normalizeManagedType(type);
+    let bestBlueprint = null;
+    let bestScore = 0;
+    let bestIndex = -1;
+    (Array.isArray(blueprints) ? blueprints : []).forEach((blueprint, index) => {
+        const score = scoreSetupAssistantTemplateMatch(profile, blueprint, resolvedType);
+        if (score > bestScore) {
+            bestBlueprint = blueprint;
+            bestScore = score;
+            bestIndex = index;
+        }
+    });
+    return { bestBlueprint, bestScore, bestIndex };
+};
+
+const resolveSetupAssistantSmartBlueprintIndexes = (type, blueprints) => {
+    const resolvedType = normalizeManagedType(type);
+    const safeBlueprints = Array.isArray(blueprints) ? blueprints : [];
+    const itemNames = getBulkAssignableNames(resolvedType);
+    const info = infoByType[resolvedType] || {};
+    const matchedIndexes = new Set();
+    const fallbackTemplateName = String(SETUP_ASSISTANT_TEMPLATE_FALLBACK_BY_TYPE[resolvedType] || '').trim();
+    const fallbackIndex = safeBlueprints.findIndex((blueprint) => String(blueprint?.name || '').trim() === fallbackTemplateName);
+
+    let matched = 0;
+    let unmatched = 0;
+    itemNames.forEach((itemName) => {
+        const profile = collectSetupAssistantItemMatchProfile(resolvedType, itemName, info[itemName] || {});
+        const { bestScore, bestIndex } = resolveSetupAssistantTemplateBestMatch(resolvedType, profile, safeBlueprints);
+        if (bestIndex >= 0 && bestScore >= SETUP_ASSISTANT_TEMPLATE_MATCH_THRESHOLD) {
+            matchedIndexes.add(bestIndex);
+            matched += 1;
+            return;
+        }
+        if (fallbackIndex >= 0) {
+            matchedIndexes.add(fallbackIndex);
+            matched += 1;
+            return;
+        }
+        unmatched += 1;
+    });
+
+    return {
+        indexes: matchedIndexes,
+        totalItems: itemNames.length,
+        matched,
+        unmatched
+    };
 };
 
 const buildSetupAssistantTemplateAssignmentPreview = (type, selectedBlueprints) => {
@@ -899,20 +951,12 @@ const buildSetupAssistantTemplateAssignmentPreview = (type, selectedBlueprints) 
     let unmatched = 0;
     itemNames.forEach((itemName) => {
         const profile = collectSetupAssistantItemMatchProfile(resolvedType, itemName, info[itemName] || {});
-        let bestBlueprint = null;
-        let bestScore = 0;
-        blueprints.forEach((blueprint) => {
-            const score = scoreSetupAssistantTemplateMatch(profile, blueprint, resolvedType);
-            if (score > bestScore) {
-                bestScore = score;
-                bestBlueprint = blueprint;
-            }
-        });
-        if ((!bestBlueprint || bestScore < 4) && fallbackBlueprint) {
+        let { bestBlueprint, bestScore } = resolveSetupAssistantTemplateBestMatch(resolvedType, profile, blueprints);
+        if ((!bestBlueprint || bestScore < SETUP_ASSISTANT_TEMPLATE_MATCH_THRESHOLD) && fallbackBlueprint) {
             bestBlueprint = fallbackBlueprint;
-            bestScore = 4;
+            bestScore = SETUP_ASSISTANT_TEMPLATE_MATCH_THRESHOLD;
         }
-        if (!bestBlueprint || bestScore < 4) {
+        if (!bestBlueprint || bestScore < SETUP_ASSISTANT_TEMPLATE_MATCH_THRESHOLD) {
             unmatched += 1;
             return;
         }

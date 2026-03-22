@@ -4,11 +4,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const repoRoot = path.resolve(process.cwd());
-const scriptPath = path.join(
-    repoRoot,
+const settingsScriptPaths = [
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
-);
-const script = fs.readFileSync(scriptPath, 'utf8');
+].map((relativePath) => path.join(repoRoot, relativePath));
+const script = settingsScriptPaths.map((scriptPath) => fs.readFileSync(scriptPath, 'utf8')).join('\n');
 
 test('advanced module loader uses per-module stale state with scoped tab targeting', () => {
     assert.match(script, /const ADVANCED_MODULE_STALE_MS = 1000 \* 60 \* 2;/);

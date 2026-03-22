@@ -18,13 +18,19 @@ const fs = require('fs');
 
 const pageFile = process.argv[2];
 const source = fs.readFileSync(pageFile, 'utf8');
-const includes = [...source.matchAll(/folderviewplus(?:\.[a-z]+)?\.js/g)].map((match) => match[0]);
+const includes = [...source.matchAll(/folderviewplus(?:\.[a-z-]+)?\.js/g)].map((match) => match[0]);
 
 const expectedOrder = [
   'folderviewplus.utils.js',
   'folderviewplus.request.js',
   'folderviewplus.chrome.js',
   'folderviewplus.dirty.js',
+  'folderviewplus.runtime-parity.js',
+  'folderviewplus.settings-sections.js',
+  'folderviewplus.setup-assistant.js',
+  'folderviewplus.starter-templates.js',
+  'folderviewplus.activity-diagnostics.js',
+  'folderviewplus.folder-editor.js',
   'folderviewplus.wizard.js',
   'folderviewplus.import.js',
   'folderviewplus.updates.js',

@@ -11,7 +11,7 @@ const wizardJsPath = path.join(
 );
 const settingsJsPath = path.join(
     repoRoot,
-    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js'
 );
 
 const wizardJs = fs.readFileSync(wizardJsPath, 'utf8');

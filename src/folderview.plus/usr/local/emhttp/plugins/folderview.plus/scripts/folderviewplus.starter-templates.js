@@ -886,6 +886,24 @@ const quickCreateStarterTemplates = async (type) => {
     }
 };
 
+Object.assign(window, {
+    DEFAULT_STARTER_FOLDER_ICON,
+    STARTER_TEMPLATE_CATEGORY_META,
+    normalizeStarterTemplateCategory,
+    STARTER_TEMPLATE_BLUEPRINTS,
+    STARTER_TEMPLATE_SMART_THRESHOLD,
+    STARTER_TEMPLATE_FALLBACK_BY_TYPE,
+    STARTER_TEMPLATE_MATCH_ALIASES,
+    normalizeStarterTemplateMatchText,
+    buildStarterTemplateHeuristicMap,
+    collectStarterTemplateSmartSignals,
+    resolveStarterTemplateSmartIndexes,
+    buildStarterFolderPayload,
+    promptStarterTemplateSelection,
+    quickCreateStarterFolder,
+    quickCreateStarterTemplates
+});
+
 window.FolderViewPlusStarterTemplates = Object.freeze({
     DEFAULT_STARTER_FOLDER_ICON,
     STARTER_TEMPLATE_CATEGORY_META,

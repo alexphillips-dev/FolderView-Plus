@@ -14,6 +14,16 @@ const typeFolders = (type) => (type === 'docker' ? dockers : vms);
 const getManagedTypeLabel = (type) => (normalizeManagedType(type) === 'docker' ? 'Docker' : 'VM');
 const getManagedTypePluralLabel = (type) => (normalizeManagedType(type) === 'docker' ? 'Docker' : 'VMs');
 
+Object.assign(window, {
+    tableIdByType,
+    parseJsonResponse,
+    VALID_MANAGED_TYPES,
+    normalizeManagedType,
+    typeFolders,
+    getManagedTypeLabel,
+    getManagedTypePluralLabel
+});
+
 window.FolderViewPlusRuntimeParity = Object.freeze({
     tableIdByType,
     parseJsonResponse,

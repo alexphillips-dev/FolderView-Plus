@@ -538,6 +538,47 @@ const exportSupportBundle = () => {
     });
 };
 
+Object.assign(window, {
+    lastDiagnostics,
+    ACTIVITY_FEED_MAX_ENTRIES,
+    getDiagnostics,
+    getSupportBundle,
+    runDiagnosticAction,
+    trackDiagnosticsEvent,
+    fetchPrefs,
+    postPrefs,
+    createBackup,
+    createGlobalRollbackCheckpointApi,
+    restorePreviousGlobalRollbackCheckpointApi,
+    restoreLatest,
+    restoreLatestUndo,
+    executeFolderRuntimeAction,
+    runScheduledBackup,
+    syncDockerOrder,
+    setUpdateStatus,
+    setRollbackStatus,
+    formatActivityTimestamp,
+    renderActivityFeed,
+    addActivityEntry,
+    clearActivityFeed,
+    ADVANCED_MODULE_STATUS_CONFIG,
+    ensureAdvancedModuleStatusHost,
+    renderAdvancedModuleStatus,
+    setAdvancedModuleStatus,
+    claimAdvancedOperationLock,
+    releaseAdvancedOperationLock,
+    withAdvancedOperationLock,
+    renderChangeHistory,
+    refreshChangeHistory,
+    renderDiagnostics,
+    runDiagnostics,
+    repairDiagnostics,
+    exportDiagnosticsByMode,
+    exportDiagnostics,
+    exportSupportBundleByMode,
+    exportSupportBundle
+});
+
 window.FolderViewPlusDiagnostics = Object.freeze({
     getDiagnostics,
     getSupportBundle,

@@ -319,6 +319,30 @@ const applyQuickProfilePreset = async (presetId) => {
     });
 };
 
+Object.assign(window, {
+    WIZARD_DONE_STORAGE_KEY,
+    SETUP_ASSISTANT_DONE_STORAGE_KEY,
+    SETUP_ASSISTANT_DRAFT_STORAGE_KEY,
+    SETUP_ASSISTANT_PRESETS_STORAGE_KEY,
+    SETUP_ASSISTANT_DRAFT_MAX_AGE_MS,
+    SETUP_ASSISTANT_PRESETS_MAX,
+    SETUP_ASSISTANT_VERSION,
+    QUICK_PRESET_ACTIVE_STORAGE_KEY,
+    SETUP_ASSISTANT_STEPS,
+    SETUP_ASSISTANT_STEPS_BY_ROUTE,
+    SETUP_ASSISTANT_EXPERIENCE_MODES,
+    SETUP_ASSISTANT_APPLY_SAFETY_MODES,
+    SETUP_ASSISTANT_ENV_PRESETS,
+    SETUP_ASSISTANT_PROFILE_PRESETS,
+    QUICK_PROFILE_PRESETS,
+    normalizeQuickProfilePresetId,
+    getActiveQuickPresetUi,
+    setActiveQuickPresetUi,
+    renderQuickProfilePresetButtons,
+    applyQuickProfileOverrides,
+    applyQuickProfilePreset
+});
+
 window.FolderViewPlusSetupAssistantSupport = Object.freeze({
     WIZARD_DONE_STORAGE_KEY,
     SETUP_ASSISTANT_DONE_STORAGE_KEY,

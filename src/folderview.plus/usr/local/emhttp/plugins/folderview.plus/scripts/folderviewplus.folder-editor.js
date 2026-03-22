@@ -844,6 +844,28 @@ const moveFolderUnderDialog = (type, folderId) => {
     openFolderTreeMoveDialog(type, folderId, { modeInsideOnly: true, placement: 'inside' });
 };
 
+Object.assign(window, {
+    buildFolderQuickActionSummary,
+    renderFolderQuickActionSummaryHtml,
+    closeVmRowDetailsDrawer,
+    runVmRowDrawerAction,
+    buildVmRowDetailsDrawerHtml,
+    toggleVmRowDetailsDrawer,
+    showFolderRowQuickActions,
+    openFolderRowQuickActions,
+    clearRowLongPressState,
+    bindRowTouchQuickActions,
+    copyTextToClipboard,
+    copyFolderId,
+    saveFolderRecord,
+    ensureFolderSortModeManual,
+    buildTreeMoveTargetOptions,
+    applyFolderTreeMove,
+    openFolderTreeMoveDialog,
+    moveFolderToRootQuick,
+    moveFolderUnderDialog
+});
+
 window.FolderViewPlusFolderEditor = Object.freeze({
     buildFolderQuickActionSummary,
     renderFolderQuickActionSummaryHtml,

@@ -5,13 +5,19 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.22.05">
-<!ENTITY md5 "23aaf8a1d9f462eb94a63e9a3c4591d5">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
+<!ENTITY version "2026.03.22.07">
+<!ENTITY md5 "58d683b5ef1686e6190587c10f5189bf">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.22.07
+- UX: Added clean icon-only folder preview behavior through the existing Preview mode and clarified preview help text.
+- Feature: Landed starter-template onboarding, setup-assistant template flow, and improved smart-detect auto-assignment for Docker and VMs.
+- Quality: Split large settings logic into owned modules, tightened theme/mobile/runtime parity, and expanded regression/performance guards.
+
 
 ###2026.03.22.05
 - UX: Refined settings and on-screen update messaging for clarity and consistency.
@@ -2493,7 +2499,7 @@
     </CHANGES>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

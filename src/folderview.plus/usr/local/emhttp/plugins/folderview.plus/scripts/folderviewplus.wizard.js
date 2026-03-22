@@ -3285,6 +3285,76 @@ const formatSetupAssistantSavedAt = (value) => {
     return formatted || raw;
 };
 
+const toSetupAssistantDisplayText = (value, fallback = '-') => {
+    const text = String(value ?? '').trim();
+    return text || fallback;
+};
+
+const renderSetupAssistantSwalSummaryHtml = ({
+    metaRows = [],
+    detailRows = [],
+    warningLines = [],
+    failureLines = [],
+    footerText = ''
+} = {}) => {
+    const rowDivider = 'border-bottom:1px solid rgba(148, 170, 196, 0.18);';
+    const metaHtml = metaRows.length
+        ? `
+            <div style="display:flex;flex-wrap:wrap;gap:6px 8px;margin-bottom:10px;">
+                ${metaRows.map((row) => `
+                    <span style="display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;border:1px solid rgba(148,170,196,0.3);background:rgba(18,28,42,0.72);font-size:12px;line-height:1.2;">
+                        <strong style="margin-right:5px;">${escapeHtml(row.label)}:</strong>${escapeHtml(row.value)}
+                    </span>
+                `).join('')}
+            </div>
+        `
+        : '';
+    const detailHtml = detailRows.length
+        ? `
+            <div style="border:1px solid rgba(148,170,196,0.28);border-radius:10px;background:rgba(9,16,24,0.74);overflow:hidden;">
+                ${detailRows.map((row, index) => `
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:7px 10px;${index < detailRows.length - 1 ? rowDivider : ''}">
+                        <span style="font-weight:600;color:#d9e5f6;">${escapeHtml(row.label)}</span>
+                        <span style="text-align:right;color:#eaf2ff;">${escapeHtml(row.value)}</span>
+                    </div>
+                `).join('')}
+            </div>
+        `
+        : '';
+    const warningHtml = warningLines.length
+        ? `
+            <div style="margin-top:10px;padding:8px 10px;border-radius:9px;border:1px solid rgba(255,193,94,0.42);background:rgba(255,193,94,0.1);text-align:left;">
+                <div style="font-weight:700;margin-bottom:4px;color:#ffd494;">Warnings</div>
+                <ul style="margin:0 0 0 18px;padding:0;line-height:1.35;">
+                    ${warningLines.map((line) => `<li style="margin:2px 0;">${escapeHtml(line)}</li>`).join('')}
+                </ul>
+            </div>
+        `
+        : '';
+    const failureHtml = failureLines.length
+        ? `
+            <div style="margin-top:10px;padding:8px 10px;border-radius:9px;border:1px solid rgba(255,116,116,0.48);background:rgba(255,116,116,0.1);text-align:left;">
+                <div style="font-weight:700;margin-bottom:4px;color:#ffb4b4;">Failed tasks</div>
+                <ul style="margin:0 0 0 18px;padding:0;line-height:1.35;">
+                    ${failureLines.map((line) => `<li style="margin:2px 0;">${escapeHtml(line)}</li>`).join('')}
+                </ul>
+            </div>
+        `
+        : '';
+    const footerHtml = footerText
+        ? `<div style="margin-top:10px;font-weight:600;color:#d7e6fb;">${escapeHtml(footerText)}</div>`
+        : '';
+    return `
+        <div style="max-width:560px;margin:0 auto;text-align:left;line-height:1.35;">
+            ${metaHtml}
+            ${detailHtml}
+            ${warningHtml}
+            ${failureHtml}
+            ${footerHtml}
+        </div>
+    `;
+};
+
 const buildSetupAssistantVerificationReport = (importOutcomes, templateOutcomes, ruleOutcomes, validationWarnings = []) => {
     const checks = [];
     const register = (label, ok, detail = '') => {
@@ -3550,24 +3620,28 @@ const confirmSetupAssistantApply = async (impactSummary, reviewValidation) => (
         const prefsTotal = Number(impactSummary?.prefs?.totalChanges) || 0;
         const rulesTotal = Number(impactSummary?.rules?.creatable) || 0;
         const hasDeletes = Number(totals.deletes) > 0;
-        const lines = [
-            `Route: ${setupAssistantState.route}`,
-            `Mode: ${setupAssistantState.mode}`,
-            `Wizard detail: ${normalizeSetupAssistantExperienceMode(setupAssistantState.experienceMode)}`,
-            `Safety mode: ${normalizeSetupAssistantSafetyMode(setupAssistantState.applySafetyMode)}`,
-            `Imports: ${totals.totalOps} ops (create ${totals.creates}, update ${totals.updates}, delete ${totals.deletes})`,
-            `Starter folders: ${templateTotals.creatable} create (selected ${templateTotals.selected}, skip existing ${templateTotals.skippedExisting})`,
-            `Template auto-assign: ${templateTotals.autoAssignMatched} matched / ${templateTotals.autoAssignUnmatched} unmatched`,
-            `Settings: ${prefsTotal} changes`,
-            `Starter rules: ${rulesTotal}`,
-            `Dry run: ${setupAssistantState.dryRunOnly ? 'ON' : 'OFF'}`
-        ];
-        if (reviewValidation?.warnings?.length) {
-            lines.push(`Warnings: ${reviewValidation.warnings.length}`);
-        }
+        const html = renderSetupAssistantSwalSummaryHtml({
+            metaRows: [
+                { label: 'Route', value: toSetupAssistantDisplayText(setupAssistantState.route) },
+                { label: 'Mode', value: toSetupAssistantDisplayText(setupAssistantState.mode) },
+                { label: 'Wizard detail', value: normalizeSetupAssistantExperienceMode(setupAssistantState.experienceMode) },
+                { label: 'Safety mode', value: normalizeSetupAssistantSafetyMode(setupAssistantState.applySafetyMode) },
+                { label: 'Dry run', value: setupAssistantState.dryRunOnly ? 'ON' : 'OFF' }
+            ],
+            detailRows: [
+                { label: 'Imports', value: `${totals.totalOps} ops (create ${totals.creates}, update ${totals.updates}, delete ${totals.deletes})` },
+                { label: 'Starter folders', value: `${templateTotals.creatable} create (selected ${templateTotals.selected}, skip existing ${templateTotals.skippedExisting})` },
+                { label: 'Template auto-assign', value: `${templateTotals.autoAssignMatched} matched / ${templateTotals.autoAssignUnmatched} unmatched` },
+                { label: 'Settings', value: `${prefsTotal} changes` },
+                { label: 'Starter rules', value: `${rulesTotal}` }
+            ],
+            warningLines: Array.isArray(reviewValidation?.warnings) ? reviewValidation.warnings.slice(0, 5) : [],
+            footerText: 'Proceed to apply these changes?'
+        });
         swal({
             title: setupAssistantState.dryRunOnly ? 'Run setup dry run?' : 'Apply setup assistant changes?',
-            text: lines.join('\n'),
+            text: html,
+            html: true,
             type: hasDeletes && setupAssistantState.dryRunOnly !== true ? 'warning' : 'info',
             showCancelButton: true,
             confirmButtonText: setupAssistantState.dryRunOnly ? 'Run dry run' : 'Apply now',
@@ -3923,9 +3997,31 @@ const applySetupAssistantPlan = async () => {
 
         if (applyFailures.length > 0) {
             const retryNow = await new Promise((resolve) => {
+                const failureSummaryHtml = renderSetupAssistantSwalSummaryHtml({
+                    metaRows: [
+                        { label: 'Mode', value: toSetupAssistantDisplayText(setupAssistantState.mode) },
+                        { label: 'Route', value: toSetupAssistantDisplayText(setupAssistantState.route) },
+                        { label: 'Wizard detail', value: normalizeSetupAssistantExperienceMode(setupAssistantState.experienceMode) },
+                        { label: 'Safety mode', value: safetyMode }
+                    ],
+                    detailRows: [
+                        { label: 'Docker imports', value: `${importOutcomes.docker}` },
+                        { label: 'VM imports', value: `${importOutcomes.vm}` },
+                        { label: 'Docker starter folders', value: `${templateOutcomes.docker.created} created, ${templateOutcomes.docker.skippedExisting} skipped, ${Number(templateOutcomes.docker.assignment?.matched) || 0} auto-assigned` },
+                        { label: 'VM starter folders', value: `${templateOutcomes.vm.created} created, ${templateOutcomes.vm.skippedExisting} skipped, ${Number(templateOutcomes.vm.assignment?.matched) || 0} auto-assigned` },
+                        { label: 'Docker starter rules', value: `${ruleOutcomes.docker.created} added` },
+                        { label: 'VM starter rules', value: `${ruleOutcomes.vm.created} added` },
+                        { label: 'Verification', value: `${verification.passed}/${verification.total} checks passed` },
+                        { label: 'Retryable failures', value: `${applyFailures.length}` }
+                    ],
+                    warningLines: validationWarnings.slice(0, 5),
+                    failureLines: applyFailures.slice(0, 8).map((entry) => `${String(entry.phase || '').toUpperCase()} ${String(entry.type || '').toUpperCase()}: ${String(entry.message || '').trim()}`),
+                    footerText: 'Retry failed tasks now?'
+                });
                 swal({
                     title: 'Setup applied with partial failures',
-                    text: `${summaryLines.join('\n')}\n\nRetry failed tasks now?`,
+                    text: failureSummaryHtml,
+                    html: true,
                     type: 'warning',
                     showCancelButton: true,
                     confirmButtonText: 'Retry failures',

@@ -63,16 +63,8 @@ if [[ -z "${PLUGIN_TAG_COMPACT}" ]]; then
   echo "ERROR: Could not locate <PLUGIN> tag in ${PLG_FILE}" >&2
   exit 1
 fi
-if [[ "${PLUGIN_TAG_COMPACT}" == *'version="&version;"'* ]]; then
-  echo "ERROR: <PLUGIN> tag still uses version entity reference; emit literal version for plugin check compatibility." >&2
-  exit 1
-fi
-if [[ "${PLUGIN_TAG_COMPACT}" == *'pluginURL="&pluginURL;"'* ]]; then
-  echo "ERROR: <PLUGIN> tag still uses pluginURL entity reference; emit literal pluginURL for plugin check compatibility." >&2
-  exit 1
-fi
-if [[ ! "${PLUGIN_TAG_COMPACT}" =~ version=\"${VERSION}\" ]]; then
-  echo "ERROR: <PLUGIN> tag version does not match version entity. tag=${PLUGIN_TAG_COMPACT}" >&2
+if [[ "${PLUGIN_TAG_COMPACT}" != *'name="&name;"'* ]] || [[ "${PLUGIN_TAG_COMPACT}" != *'author="&author;"'* ]] || [[ "${PLUGIN_TAG_COMPACT}" != *'version="&version;"'* ]] || [[ "${PLUGIN_TAG_COMPACT}" != *'launch="&launch;"'* ]] || [[ "${PLUGIN_TAG_COMPACT}" != *'pluginURL="&pluginURL;"'* ]]; then
+  echo "ERROR: <PLUGIN> tag must remain in canonical entity form for Unraid plugin-check compatibility. tag=${PLUGIN_TAG_COMPACT}" >&2
   exit 1
 fi
 
@@ -125,11 +117,6 @@ if [[ "${EXPECTED_PLUGIN_BRANCH}" =~ ^(main|dev|beta)$ ]]; then
   EXPECTED_PLUGIN_URL="https://raw.githubusercontent.com/&github;/${EXPECTED_PLUGIN_BRANCH}/folderview.plus.plg"
   if [[ "${PLUGIN_URL_ENTITY}" != "${EXPECTED_PLUGIN_URL}" ]]; then
     echo "ERROR: pluginURL branch mismatch. expected=${EXPECTED_PLUGIN_URL}, found=${PLUGIN_URL_ENTITY}" >&2
-    exit 1
-  fi
-  EXPECTED_PLUGIN_TAG_URL="https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/${EXPECTED_PLUGIN_BRANCH}/folderview.plus.plg"
-  if [[ ! "${PLUGIN_TAG_COMPACT}" =~ pluginURL=\"${EXPECTED_PLUGIN_TAG_URL}\" ]]; then
-    echo "ERROR: <PLUGIN> tag pluginURL branch mismatch. expected=${EXPECTED_PLUGIN_TAG_URL}, tag=${PLUGIN_TAG_COMPACT}" >&2
     exit 1
   fi
 

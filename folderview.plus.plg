@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.22.12">
+<!ENTITY version "2026.03.22.13">
 <!ENTITY md5 "85cb11dec24e4acc25b138f31fecd21e">
 ]>
 
-<PLUGIN name="folderview.plus" author="alexphillips-dev" version="2026.03.22.12" launch="Settings/FolderViewPlus" pluginURL="https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/dev/folderview.plus.plg" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
+<PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.22.13
+- Fix: Restore the canonical entity-based top-level plugin manifest tag used by earlier working releases so Unraid plugin status checks stop hanging on `checking...`.
+- Quality: Keep branch URL hardening, but validate it against the known-good manifest format instead of rewriting the top-level plugin tag.
+
 
 ###2026.03.22.12
 - Fix: Emit a fully literal top-level plugin manifest tag so Unraid and CA update checks never rely on XML entity expansion for `version` or `pluginURL`.

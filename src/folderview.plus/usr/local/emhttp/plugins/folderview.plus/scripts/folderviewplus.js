@@ -3915,10 +3915,46 @@ const STARTER_TEMPLATE_BLUEPRINTS = Object.freeze({
             detect: Object.freeze(['nginx', 'traefik', 'proxy', 'caddy', 'dns', 'pihole', 'wireguard', 'tailscale', 'cloudflared', 'vpn'])
         }),
         Object.freeze({
+            name: 'Reverse Proxy',
+            icon: '/plugins/folderview.plus/images/icons/folder-network.svg',
+            categories: Object.freeze(['network', 'ops', 'homelab']),
+            detect: Object.freeze(['nginx-proxy-manager', 'traefik', 'caddy', 'swag', 'reverse-proxy'])
+        }),
+        Object.freeze({
+            name: 'DNS & Routing',
+            icon: '/plugins/folderview.plus/images/icons/folder-network.svg',
+            categories: Object.freeze(['network', 'ops', 'homelab']),
+            detect: Object.freeze(['pihole', 'adguard', 'dns', 'unbound', 'bind', 'dhcp'])
+        }),
+        Object.freeze({
+            name: 'Remote Access',
+            icon: '/plugins/folderview.plus/images/icons/folder-security.svg',
+            categories: Object.freeze(['network', 'security', 'homelab']),
+            detect: Object.freeze(['wireguard', 'openvpn', 'tailscale', 'zerotier', 'wg-easy'])
+        }),
+        Object.freeze({
             name: 'Utilities',
             icon: '/plugins/folderview.plus/images/icons/folder-tools.svg',
             categories: Object.freeze(['utility', 'ops', 'minimal', 'homelab']),
             detect: Object.freeze(['portainer', 'watchtower', 'filebrowser', 'homarr', 'homepage', 'dashy', 'utilities', 'tools'])
+        }),
+        Object.freeze({
+            name: 'Dashboards',
+            icon: '/plugins/folderview.plus/images/icons/folder-home.svg',
+            categories: Object.freeze(['utility', 'automation', 'homelab']),
+            detect: Object.freeze(['homarr', 'homepage', 'dashy', 'organizr', 'heimdall', 'dashboard'])
+        }),
+        Object.freeze({
+            name: 'Backup & Recovery',
+            icon: '/plugins/folderview.plus/images/icons/folder-backup.svg',
+            categories: Object.freeze(['backup', 'ops', 'minimal', 'homelab']),
+            detect: Object.freeze(['duplicati', 'restic', 'borg', 'kopia', 'urbackup', 'rsync', 'backup'])
+        }),
+        Object.freeze({
+            name: 'Archives',
+            icon: '/plugins/folderview.plus/images/icons/folder-backup.svg',
+            categories: Object.freeze(['backup', 'media', 'homelab']),
+            detect: Object.freeze(['archive', 'cold', 'storage', 'rclone', 'syncthing', 'sftp'])
         }),
         Object.freeze({
             name: 'Automation',
@@ -3927,10 +3963,22 @@ const STARTER_TEMPLATE_BLUEPRINTS = Object.freeze({
             detect: Object.freeze(['homeassistant', 'home-assistant', 'node-red', 'n8n', 'automation', 'mosquitto', 'mqtt', 'zigbee'])
         }),
         Object.freeze({
+            name: 'Workflows',
+            icon: '/plugins/folderview.plus/images/icons/folder-automation.svg',
+            categories: Object.freeze(['automation', 'dev', 'homelab']),
+            detect: Object.freeze(['n8n', 'node-red', 'airflow', 'prefect', 'workflows'])
+        }),
+        Object.freeze({
             name: 'Database',
             icon: '/plugins/folderview.plus/images/icons/folder-database.svg',
             categories: Object.freeze(['database', 'ops', 'homelab']),
             detect: Object.freeze(['postgres', 'postgresql', 'mysql', 'mariadb', 'mongo', 'mongodb', 'redis', 'influxdb', 'database'])
+        }),
+        Object.freeze({
+            name: 'Cache & Queue',
+            icon: '/plugins/folderview.plus/images/icons/folder-database.svg',
+            categories: Object.freeze(['database', 'automation', 'ops', 'homelab']),
+            detect: Object.freeze(['redis', 'rabbitmq', 'kafka', 'nats', 'queue', 'cache'])
         }),
         Object.freeze({
             name: 'Security',
@@ -3939,16 +3987,34 @@ const STARTER_TEMPLATE_BLUEPRINTS = Object.freeze({
             detect: Object.freeze(['authentik', 'authelia', 'vaultwarden', 'crowdsec', 'fail2ban', 'wazuh', 'security'])
         }),
         Object.freeze({
+            name: 'Identity & Access',
+            icon: '/plugins/folderview.plus/images/icons/folder-security.svg',
+            categories: Object.freeze(['security', 'ops', 'homelab']),
+            detect: Object.freeze(['authentik', 'authelia', 'keycloak', 'ldap', 'sso', 'oauth'])
+        }),
+        Object.freeze({
             name: 'Development',
             icon: '/plugins/folderview.plus/images/icons/folder-dev.svg',
             categories: Object.freeze(['dev', 'homelab']),
             detect: Object.freeze(['gitlab', 'gitea', 'jenkins', 'runner', 'registry', 'npm', 'dev', 'code-server', 'vscode'])
         }),
         Object.freeze({
+            name: 'CI/CD',
+            icon: '/plugins/folderview.plus/images/icons/folder-dev.svg',
+            categories: Object.freeze(['dev', 'ops', 'homelab']),
+            detect: Object.freeze(['jenkins', 'gitlab-runner', 'drone', 'argocd', 'ci', 'cd', 'runner'])
+        }),
+        Object.freeze({
             name: 'Gaming',
             icon: '/plugins/folderview.plus/images/icons/folder-gaming.svg',
             categories: Object.freeze(['gaming', 'homelab']),
             detect: Object.freeze(['steam', 'minecraft', 'game', 'gaming', 'palworld', 'valheim', 'factorio'])
+        }),
+        Object.freeze({
+            name: 'Game Servers',
+            icon: '/plugins/folderview.plus/images/icons/folder-gaming.svg',
+            categories: Object.freeze(['gaming', 'homelab']),
+            detect: Object.freeze(['steamcmd', 'minecraft', 'palworld', 'valheim', 'ark', 'gameserver'])
         })
     ]),
     vm: Object.freeze([
@@ -3965,10 +4031,22 @@ const STARTER_TEMPLATE_BLUEPRINTS = Object.freeze({
             detect: Object.freeze(['desktop', 'workstation', 'windows', 'win11', 'ubuntu-desktop', 'macos'])
         }),
         Object.freeze({
+            name: 'Windows VMs',
+            icon: '/plugins/folderview.plus/images/icons/folder-home.svg',
+            categories: Object.freeze(['desktop', 'server', 'homelab']),
+            detect: Object.freeze(['windows', 'win10', 'win11', 'server2022', 'server2019'])
+        }),
+        Object.freeze({
             name: 'Lab VMs',
             icon: '/plugins/folderview.plus/images/icons/folder-dev.svg',
             categories: Object.freeze(['lab', 'dev', 'homelab']),
             detect: Object.freeze(['lab', 'test', 'dev', 'sandbox', 'staging'])
+        }),
+        Object.freeze({
+            name: 'Dev/Test VMs',
+            icon: '/plugins/folderview.plus/images/icons/folder-dev.svg',
+            categories: Object.freeze(['lab', 'dev', 'homelab']),
+            detect: Object.freeze(['dev', 'test', 'qa', 'sandbox', 'build'])
         }),
         Object.freeze({
             name: 'Utility VMs',
@@ -3977,22 +4055,70 @@ const STARTER_TEMPLATE_BLUEPRINTS = Object.freeze({
             detect: Object.freeze(['utility', 'tools', 'helper', 'management'])
         }),
         Object.freeze({
+            name: 'Management VMs',
+            icon: '/plugins/folderview.plus/images/icons/folder-tools.svg',
+            categories: Object.freeze(['utility', 'ops', 'homelab']),
+            detect: Object.freeze(['management', 'controller', 'admin', 'jumpbox'])
+        }),
+        Object.freeze({
+            name: 'Infrastructure VMs',
+            icon: '/plugins/folderview.plus/images/icons/folder-default.svg',
+            categories: Object.freeze(['server', 'network', 'ops', 'homelab']),
+            detect: Object.freeze(['infra', 'domain', 'controller', 'gateway', 'dns', 'proxy'])
+        }),
+        Object.freeze({
             name: 'Network VMs',
             icon: '/plugins/folderview.plus/images/icons/folder-network.svg',
             categories: Object.freeze(['network', 'homelab']),
             detect: Object.freeze(['router', 'firewall', 'pfsense', 'opnsense', 'network', 'dns', 'proxy'])
         }),
         Object.freeze({
+            name: 'Security VMs',
+            icon: '/plugins/folderview.plus/images/icons/folder-security.svg',
+            categories: Object.freeze(['security', 'ops', 'homelab']),
+            detect: Object.freeze(['security', 'siem', 'wazuh', 'ids', 'ips', 'firewall'])
+        }),
+        Object.freeze({
+            name: 'Identity VMs',
+            icon: '/plugins/folderview.plus/images/icons/folder-security.svg',
+            categories: Object.freeze(['security', 'server', 'homelab']),
+            detect: Object.freeze(['auth', 'identity', 'ldap', 'ad', 'domain-controller'])
+        }),
+        Object.freeze({
             name: 'Backups',
             icon: '/plugins/folderview.plus/images/icons/folder-backup.svg',
-            categories: Object.freeze(['backup', 'ops', 'homelab']),
+            categories: Object.freeze(['backup', 'ops', 'server', 'homelab']),
             detect: Object.freeze(['backup', 'vault', 'archive', 'replica'])
+        }),
+        Object.freeze({
+            name: 'Recovery VMs',
+            icon: '/plugins/folderview.plus/images/icons/folder-backup.svg',
+            categories: Object.freeze(['backup', 'ops', 'server', 'homelab']),
+            detect: Object.freeze(['recovery', 'restore', 'disaster', 'dr', 'snapshot'])
         }),
         Object.freeze({
             name: 'Media VMs',
             icon: '/plugins/folderview.plus/images/icons/folder-media.svg',
             categories: Object.freeze(['media', 'homelab']),
             detect: Object.freeze(['media', 'plex', 'jellyfin', 'emby'])
+        }),
+        Object.freeze({
+            name: 'Streaming VMs',
+            icon: '/plugins/folderview.plus/images/icons/folder-media.svg',
+            categories: Object.freeze(['media', 'desktop', 'homelab']),
+            detect: Object.freeze(['stream', 'obs', 'media', 'encode', 'transcode'])
+        }),
+        Object.freeze({
+            name: 'Gaming VMs',
+            icon: '/plugins/folderview.plus/images/icons/folder-gaming.svg',
+            categories: Object.freeze(['gaming', 'desktop', 'homelab']),
+            detect: Object.freeze(['gaming', 'steam', 'gpu', 'parsec', 'moonlight'])
+        }),
+        Object.freeze({
+            name: 'Cloud Gaming VMs',
+            icon: '/plugins/folderview.plus/images/icons/folder-gaming.svg',
+            categories: Object.freeze(['gaming', 'desktop', 'homelab']),
+            detect: Object.freeze(['cloud-gaming', 'parsec', 'sunshine', 'moonlight', 'gaming'])
         })
     ])
 });

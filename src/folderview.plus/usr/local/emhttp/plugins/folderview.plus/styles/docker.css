@@ -395,14 +395,14 @@ tr.folder.fv-parent-expanded div.folder-preview {
     display: inline-flex;
     align-items: center;
     flex-wrap: nowrap;
-    font-size: 0.94em;
+    font-size: 1em;
     line-height: 1;
     gap: 4px;
 }
 
 .folder-preview.fv-preview-multirow img.img.folder-img {
-    width: 20px;
-    height: 20px;
+    width: 28px;
+    height: 28px;
 }
 
 .folder-preview.fv-preview-multirow .folder-preview-status-icon,

@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.22.38">
-<!ENTITY md5 "1d329420e70b2a12475652cc32e8c7ba">
+<!ENTITY version "2026.03.22.39">
+<!ENTITY md5 "bc8d5f917460b8421e88ce9937113bf0">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.22.39
+- UX: Restore normal-sized preview icons in multi-row Docker mode so dense rows do not look shrunken while keeping the one-line compact layout.
+- Fix: Remove the overly aggressive font scaling from compact multi-row preview text so folders like Plex no longer render as the only visibly altered row.
+- UX: Keep multi-row density gains from the one-line layout without making preview cards feel visually undersized.
+
 
 ###2026.03.22.38
 - UX: Convert multi-row Docker previews to a true compact row layout by collapsing the second text line, shrinking preview icons, and tightening action spacing.

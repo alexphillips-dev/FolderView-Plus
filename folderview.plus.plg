@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.21.33">
-<!ENTITY md5 "44335c8e38f9543aa34afba5631add66">
+<!ENTITY version "2026.03.21.34">
+<!ENTITY md5 "b0696373a8c7182c98a11a369b113b25">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.21.34
+- Fix: Plugin tab install description no longer renders the raw `folderviewplus-desc` placeholder key.
+- Fix: Folder editor recommendation warnings no longer show mojibake prefix symbols (safe ASCII list markers).
+- Compatibility: Added `folderviewplus-desc` locale key across all shipped languages to keep locale packs aligned.
+- Quality: Extended language-usage guard coverage to include plugin `README.md` i18n keys and prevent future drift.
+
 
 ###2026.03.21.33
 - Feature: Added a dedicated Templates step to the Setup Assistant `new install` route for both Docker and VMs.

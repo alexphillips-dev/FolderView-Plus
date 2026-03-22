@@ -160,5 +160,6 @@
     "folder-webui": "Folder WebUI:",
     "folder-webui-tooltip": "Default folder WebUI URL.",
     "folder-webui-url": "WebUI URL:",
-    "folder-webui-url-tooltip": "The URL to open when clicking the WebUI button in the folder context menu."
+    "folder-webui-url-tooltip": "The URL to open when clicking the WebUI button in the folder context menu.",
+    "folderviewplus-desc": "Create folders to organize Docker containers and VMs with smart nesting, starter templates, dashboard views, and one-click folder actions."
 }

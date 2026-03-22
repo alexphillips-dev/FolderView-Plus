@@ -3344,7 +3344,7 @@ const validateForm = () => {
                 .addClass('invalid')
                 .text('Resolve highlighted field errors, then try saving again.');
         } else if (warnings.length > 0) {
-            const rendered = warnings.slice(0, 3).map((line) => `â€¢ ${line}`).join('\n');
+            const rendered = warnings.slice(0, 3).map((line) => `- ${line}`).join('\n');
             details
                 .removeClass('invalid ready')
                 .addClass('warning')

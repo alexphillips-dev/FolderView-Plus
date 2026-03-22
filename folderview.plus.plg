@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.22.19">
-<!ENTITY md5 "5869a0660244b8cb688c32158b7356bd">
+<!ENTITY version "2026.03.22.20">
+<!ENTITY md5 "3bb5035d900d72e9e364fc5cc2ba3cbb">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.22.20
+- Fix: Switched settings-table column resizing to a document-level mouse drag session so desktop drags no longer drop mid-hold.
+- UX: End active settings-table resize sessions when the primary mouse button is released instead of relying on pointer-capture continuity.
+
 
 ###2026.03.22.19
 - Fix: Fix settings table column drag activation.

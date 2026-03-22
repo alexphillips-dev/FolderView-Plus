@@ -309,7 +309,8 @@ tr.folder.fv-parent-expanded div.folder-preview {
     flex-direction: column;
     align-items: stretch;
     align-content: stretch;
-    row-gap: 0.3em;
+    row-gap: 0.15em;
+    padding: 0.15em 0;
 }
 
 .folder-preview-row {
@@ -317,8 +318,9 @@ tr.folder.fv-parent-expanded div.folder-preview {
     display: flex;
     align-items: center;
     flex-wrap: nowrap;
-    column-gap: 8px;
+    column-gap: 12px;
     overflow: hidden;
+    padding-left: 10px;
 }
 
 .folder-preview.fv-preview-border-off {
@@ -336,11 +338,11 @@ tr.folder.fv-parent-expanded div.folder-preview {
 .folder-preview-wrapper {
     float: none;
     height: auto;
-    min-height: calc(var(--fvplus-preview-row-height) - 0.9em);
-    margin: 0 0 0 10px;
+    min-height: calc(var(--fvplus-preview-row-height) - 1.2em);
+    margin: 0;
     display: flex;
     align-items: center;
-    flex: 0 0 auto;
+    flex: 0 1 auto;
     min-width: 0;
 }
 
@@ -350,22 +352,27 @@ tr.folder.fv-parent-expanded div.folder-preview {
     gap: 6px;
     min-height: calc(var(--fvplus-preview-row-height) - 1em);
     max-width: 100%;
+    min-width: 0;
 }
 
 .fv-docker-preview-mode-1 {
-    min-width: 205px;
+    max-width: clamp(150px, 15vw, 210px);
 }
 
 .fv-docker-preview-mode-2 {
-    min-width: 26px;
+    max-width: 26px;
 }
 
 .fv-docker-preview-mode-3 {
-    min-width: 155px;
+    max-width: clamp(120px, 13vw, 165px);
 }
 
 .fv-docker-preview-mode-4 {
-    min-width: 165px;
+    max-width: clamp(130px, 14vw, 175px);
+}
+
+.fv-docker-preview-card .inner {
+    min-width: 0;
 }
 
 .folder-preview-status-icon {

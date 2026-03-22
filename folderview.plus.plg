@@ -5,13 +5,112 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.21.24">
-<!ENTITY md5 "23aca1be94a47ac4339f7fde187420e1">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
+<!ENTITY version "2026.03.21.42">
+<!ENTITY md5 "d85fda43a50dee3694be719db727fda9">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.21.42
+- UX: Setup assistant smart-detect now reports confidence, match reasons, and review-needed items instead of silently forcing weak matches into fallback assignment.
+- Fix: Expanded Docker and VM alias/heuristic coverage so template detection stays stronger for management, network, gaming, media, and utility workloads.
+- Regression guard: Added review-path and VM smart-detect coverage so wizard assignment and starter selection stay aligned before main merge.
+
+
+###2026.03.21.41
+- Fix: Smart template creation in the setup wizard now derives folders from per-item best matches instead of weaker aggregate workload guesses.
+- Fix: Improved starter-folder auto-assignment reliability so mixed app stacks create and use the folders they actually need.
+- Regression guard: Added wizard coverage to ensure smart selection stays aligned with real container-to-folder matches.
+
+
+###2026.03.21.40
+- Fix: Expanded smart-detect coverage for Docker starter folders so more real-world app families are recognized and auto-assigned during wizard onboarding.
+- Quality: Smart category selection now uses richer runtime signals, including compose stacks, template metadata, bind paths, project/support URLs, and broader fuzzy token matching.
+- Regression guard: Added coverage for mixed real-world workloads so media, gaming, cloud, notification, security, monitoring, and utility apps stay classified correctly.
+
+
+###2026.03.21.39
+- Fix: Improved setup wizard smart-detect matching so more Docker containers are auto-assigned into generated starter folders during new-install onboarding.
+- Quality: Smart-detect now scores compose-project names, Docker template metadata, project/support URLs, and richer runtime signals instead of relying on basic name/image tokens alone.
+- Quality: Added regression coverage for compose-based and template-metadata based smart-detect assignment paths.
+
+
+###2026.03.21.38
+- UX: Rebuilt the setup apply confirmation modal with compact metric cards, cleaner spacing, and consolidated summaries so it no longer feels stretched or cluttered.
+- UX: Refreshed the setup complete / partial-failure dialogs to match the same clean layout and readable grouped outcomes.
+- Fix: Added stronger SweetAlert overflow guards so setup summary dialogs do not show unnecessary desktop scrollbars.
+
+
+###2026.03.21.37
+- UX: Tightened setup-apply modal spacing and typography so the summary stays compact and readable without unnecessary vertical gaps.
+- UX: Added dedicated wizard modal styling to eliminate desktop scrollbar/overflow artifacts for setup confirmation and completion dialogs.
+- UX: Updated the setup-complete screen to the same structured summary layout used by setup apply for consistent visual quality.
+
+
+###2026.03.21.36
+- Fix: Restored wizard template smart-assign execution by exporting `utils.normalizeFolderMembers`, so detected Docker/VM items move into newly created starter folders.
+- UX: Redesigned the setup apply confirmation modal with structured summary rows, warning blocks, and clearer apply intent.
+- UX: Redesigned the partial-failure modal with grouped outcomes and a focused failed-task list to make retry decisions clearer.
+- Quality: Added a utils contract test to prevent regression where member normalization helpers are used but not exported.
+
+
+###2026.03.21.35
+- UX: Rewrote plugin-tab description and quick-start copy so the install summary explains core FolderView Plus capabilities more clearly.
+- Compatibility: Updated `folderviewplus-desc` locale text across all shipped language packs for consistent plugin-tab rendering.
+
+
+###2026.03.21.34
+- Fix: Plugin tab install description no longer renders the raw `folderviewplus-desc` placeholder key.
+- Fix: Folder editor recommendation warnings no longer show mojibake prefix symbols (safe ASCII list markers).
+- Compatibility: Added `folderviewplus-desc` locale key across all shipped languages to keep locale packs aligned.
+- Quality: Extended language-usage guard coverage to include plugin `README.md` i18n keys and prevent future drift.
+
+
+###2026.03.21.33
+- Feature: Added a dedicated Templates step to the Setup Assistant `new install` route for both Docker and VMs.
+- Feature: Added starter-template category selection, per-folder template toggles, and Smart auto-assign previews during wizard setup.
+- Fix: Wired template folder creation into apply flow before starter-rule generation so rule folder IDs resolve reliably.
+- Quality: Extended setup verification/reporting to validate starter folder presence and include template/auto-assign outcomes.
+
+
+###2026.03.21.32
+- Feature: Expanded Docker/VM starter template blueprints so each category has multiple logical folder options.
+- UX: Rebalanced category coverage to reduce single-option buckets across network/automation/database/security/utility/backup/dev/gaming/media/server/desktop.
+
+
+###2026.03.21.30
+- UX: Starter-template category picker now uses a dropdown menu with per-category folder counts.
+- UX: Improved category selector layout and mobile behavior for clearer template onboarding.
+
+
+###2026.03.21.29
+- Feature: Replaced `All` with `Smart` starter-template detection that auto-suggests folders from detected Docker/VM workloads.
+- Feature: Expanded starter-template categories and remapped folder presets so `Homelab` is no longer the same as full coverage.
+- UX: Restyled starter-template category chips for cleaner alignment, spacing, and active/focus clarity.
+
+
+###2026.03.21.27
+- Feature: add category-driven starter template picker.
+- Maintenance: Release main 2026.03.21.24 with template rollup notes.
+- Maintenance: align starter template popup options across themes.
+- Maintenance: rebuild dev release artifacts for 2026.03.21.22.
+- Maintenance: make starter template popup selectable.
+- Maintenance: rebuild dev release artifacts for 2026.03.21.21.
+
+
+###2026.03.21.26
+- Fix: Starter-template category chips in the selection popup no longer close the dialog when clicked.
+- UX: Category chips now support keyboard activation (Enter/Space) with proper active-state accessibility (`aria-pressed`).
+
+
+###2026.03.21.25
+- Feature: Added starter-template categories (`Homelab`, `Media`, `Minimal`, `Lab`) in the new-user popup.
+- UX: Category chips now filter the folder list live so users see only folders for the selected category before deploying.
+- UX: Template deployment now applies only checked folders from the active category, enabling precise pick-and-choose onboarding.
+- Fix: Improved starter-template popup layout with stronger category/row structure across host themes.
+
 
 ###2026.03.21.24
 - Maintenance: Release rollup since main `2026.03.21.20`; merged all `dev` improvements through `2026.03.21.23` into `main`.
@@ -2357,7 +2456,7 @@
     </CHANGES>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

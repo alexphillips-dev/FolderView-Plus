@@ -61,7 +61,9 @@ while (queue.length > 0) {
       queue.push(fullPath);
       continue;
     }
-    if (!/\.(page|js)$/i.test(entry.name)) {
+    const isRuntimeSource = /\.(page|js)$/i.test(entry.name);
+    const isPluginReadme = relativePath === 'README.md';
+    if (!isRuntimeSource && !isPluginReadme) {
       continue;
     }
     sourceFiles.push(fullPath);

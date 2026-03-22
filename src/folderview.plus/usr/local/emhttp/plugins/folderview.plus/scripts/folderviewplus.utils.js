@@ -1928,6 +1928,7 @@
         createIdleTaskQueue,
         createBatchedStorageWriter,
         normalizeFolderMap,
+        normalizeFolderMembers,
         normalizeAppColumnWidth,
         normalizeDashboardLayout,
         normalizeThemeCompatibilityMode,

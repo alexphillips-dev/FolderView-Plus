@@ -117,6 +117,18 @@ test('normalizeFolderMap trims ids and heals member lists', () => {
     assert.deepEqual(normalized.alpha.actions, []);
 });
 
+test('normalizeFolderMembers is exported and normalizes arrays/objects', () => {
+    assert.equal(typeof utils.normalizeFolderMembers, 'function');
+    assert.deepEqual(
+        utils.normalizeFolderMembers([' plex ', 'plex', '', 'sonarr']),
+        ['plex', 'sonarr']
+    );
+    assert.deepEqual(
+        utils.normalizeFolderMembers({ '  qbittorrent ': true, '': true, bazarr: true }),
+        ['qbittorrent', 'bazarr']
+    );
+});
+
 test('summarizeImport reports creates updates and deletes for replace mode', () => {
     const existing = {
         a: { name: 'A', containers: ['x'] },

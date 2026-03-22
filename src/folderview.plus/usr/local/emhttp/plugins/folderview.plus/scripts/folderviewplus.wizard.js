@@ -538,6 +538,711 @@ const serializeSetupAssistantRuleSuggestions = (suggestions) => {
     })).filter((row) => row.folderName && row.pattern);
 };
 
+const serializeSetupAssistantTemplateSelections = (rows) => {
+    if (!Array.isArray(rows)) {
+        return [];
+    }
+    return rows
+        .map((value) => String(value || '').trim())
+        .filter((value) => value !== '')
+        .slice(0, 160);
+};
+
+const normalizeSetupAssistantTemplateCategory = (type, value, fallback = 'smart') => {
+    const resolvedType = normalizeManagedType(type);
+    const normalized = normalizeStarterTemplateCategory(value);
+    const fallbackNormalized = normalizeStarterTemplateCategory(fallback) || 'smart';
+    const blueprints = Array.isArray(STARTER_TEMPLATE_BLUEPRINTS?.[resolvedType]) ? STARTER_TEMPLATE_BLUEPRINTS[resolvedType] : [];
+    if (!blueprints.length) {
+        return fallbackNormalized;
+    }
+    const categoryState = getSetupAssistantTemplateCategoryState(resolvedType);
+    if (categoryState.categoryIds.includes(normalized)) {
+        return normalized;
+    }
+    if (categoryState.categoryIds.includes(fallbackNormalized)) {
+        return fallbackNormalized;
+    }
+    return categoryState.defaultCategoryId;
+};
+
+const getSetupAssistantTemplateBlueprints = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const blueprints = Array.isArray(STARTER_TEMPLATE_BLUEPRINTS?.[resolvedType]) ? STARTER_TEMPLATE_BLUEPRINTS[resolvedType] : [];
+    return blueprints.filter((entry) => String(entry?.name || '').trim() !== '');
+};
+
+const getSetupAssistantTemplateBootstrap = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    if (!setupAssistantState.templateBootstrap || typeof setupAssistantState.templateBootstrap !== 'object') {
+        setupAssistantState.templateBootstrap = {};
+    }
+    if (!setupAssistantState.templateBootstrap[resolvedType] || typeof setupAssistantState.templateBootstrap[resolvedType] !== 'object') {
+        setupAssistantState.templateBootstrap[resolvedType] = {
+            enabled: true,
+            category: 'smart',
+            selectedTemplateNames: [],
+            autoAssignExisting: true
+        };
+    }
+    return setupAssistantState.templateBootstrap[resolvedType];
+};
+
+const getSetupAssistantTemplateCategoryState = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const blueprints = getSetupAssistantTemplateBlueprints(resolvedType);
+    const categoryIndexBuckets = new Map();
+    const addCategoryIndex = (categoryId, index) => {
+        const normalized = normalizeStarterTemplateCategory(categoryId);
+        if (!normalized) {
+            return;
+        }
+        if (!categoryIndexBuckets.has(normalized)) {
+            categoryIndexBuckets.set(normalized, new Set());
+        }
+        categoryIndexBuckets.get(normalized).add(index);
+    };
+
+    const smartIndexes = resolveSetupAssistantSmartBlueprintIndexes(resolvedType, blueprints).indexes;
+    smartIndexes.forEach((index) => addCategoryIndex('smart', index));
+    blueprints.forEach((entry, index) => {
+        const categories = Array.isArray(entry?.categories) ? entry.categories : [];
+        categories.forEach((categoryId) => addCategoryIndex(categoryId, index));
+    });
+
+    const preferredCategoryOrder = ['smart', 'homelab', 'media', 'minimal', 'network', 'automation', 'database', 'security', 'ops', 'dev', 'gaming', 'server', 'desktop', 'utility', 'backup', 'lab'];
+    const categoryIds = [];
+    preferredCategoryOrder.forEach((categoryId) => {
+        if (categoryIndexBuckets.has(categoryId)) {
+            categoryIds.push(categoryId);
+        }
+    });
+    Array.from(categoryIndexBuckets.keys()).forEach((categoryId) => {
+        if (!categoryIds.includes(categoryId)) {
+            categoryIds.push(categoryId);
+        }
+    });
+
+    const defaultCategoryId = categoryIds.includes('smart')
+        ? 'smart'
+        : (categoryIds.includes('homelab') ? 'homelab' : (categoryIds[0] || 'smart'));
+
+    return {
+        blueprints,
+        categoryIds,
+        categoryIndexBuckets,
+        defaultCategoryId
+    };
+};
+
+const refreshSetupAssistantTemplateSelection = (type, options = {}) => {
+    const resolvedType = normalizeManagedType(type);
+    const bootstrap = getSetupAssistantTemplateBootstrap(resolvedType);
+    const categoryState = getSetupAssistantTemplateCategoryState(resolvedType);
+    const resetSelection = options.resetSelection === true;
+    const forceAllSelected = options.forceAllSelected === true;
+    const requestedCategory = String(options.category ?? bootstrap.category ?? '').trim();
+
+    bootstrap.category = normalizeSetupAssistantTemplateCategory(resolvedType, requestedCategory, categoryState.defaultCategoryId);
+    const visibleIndexes = Array.from(categoryState.categoryIndexBuckets.get(bootstrap.category) || []);
+    const visibleNames = visibleIndexes
+        .map((index) => String(categoryState.blueprints[index]?.name || '').trim())
+        .filter((name) => name !== '');
+    const allNames = new Set(categoryState.blueprints.map((entry) => String(entry?.name || '').trim()).filter(Boolean));
+
+    let selectedNames = serializeSetupAssistantTemplateSelections(bootstrap.selectedTemplateNames);
+    selectedNames = selectedNames.filter((name) => allNames.has(name));
+    if (forceAllSelected || resetSelection || !selectedNames.length) {
+        selectedNames = visibleNames.slice();
+    } else {
+        selectedNames = selectedNames.filter((name) => visibleNames.includes(name));
+        if (!selectedNames.length) {
+            selectedNames = visibleNames.slice();
+        }
+    }
+    bootstrap.selectedTemplateNames = selectedNames;
+
+    if (bootstrap.category !== 'smart') {
+        bootstrap.autoAssignExisting = false;
+    }
+
+    return {
+        categoryState,
+        visibleIndexes,
+        visibleNames,
+        selectedNames
+    };
+};
+
+const refreshSetupAssistantTemplateSelections = () => {
+    for (const type of ['docker', 'vm']) {
+        refreshSetupAssistantTemplateSelection(type);
+    }
+};
+
+const normalizeSetupAssistantMatchText = (value) => (
+    String(value || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim()
+);
+
+const SETUP_ASSISTANT_TEMPLATE_FALLBACK_BY_TYPE = Object.freeze({
+    docker: 'Utilities',
+    vm: 'Utility VMs'
+});
+const SETUP_ASSISTANT_TEMPLATE_MATCH_THRESHOLD = 4;
+const SETUP_ASSISTANT_TEMPLATE_CONFIDENT_THRESHOLD = 8;
+
+const SETUP_ASSISTANT_MATCH_ALIASES = Object.freeze({
+    docker: Object.freeze({
+        jellyseerr: Object.freeze(['seerr', 'overseerr', 'media', 'request']),
+        wizarrrr: Object.freeze(['wizarr', 'media', 'invite']),
+        'nginx-proxy-manager': Object.freeze(['reverse proxy', 'proxy', 'npm']),
+        cloudflared: Object.freeze(['cloudflare', 'tunnel', 'remote access']),
+        homeassistant: Object.freeze(['home assistant', 'automation', 'haos']),
+        haos: Object.freeze(['home assistant', 'automation']),
+        'code-server': Object.freeze(['development', 'vscode', 'coder']),
+        unifi: Object.freeze(['network', 'controller']),
+        wg: Object.freeze(['wireguard', 'remote access'])
+    }),
+    vm: Object.freeze({
+        pve: Object.freeze(['proxmox', 'management', 'hypervisor']),
+        proxmox: Object.freeze(['pve', 'management', 'hypervisor']),
+        haos: Object.freeze(['home assistant', 'automation']),
+        omv: Object.freeze(['openmediavault', 'utility', 'management']),
+        truenas: Object.freeze(['storage', 'server', 'management']),
+        unifi: Object.freeze(['network', 'controller']),
+        dc: Object.freeze(['domain controller', 'identity', 'infrastructure'])
+    })
+});
+
+const collectSetupAssistantItemMatchProfile = (type, itemName, itemInfo) => {
+    const resolvedType = normalizeManagedType(type);
+    const tokenSet = new Set();
+    const phraseSet = new Set();
+    const textParts = [];
+    const sourceTexts = {
+        name: [],
+        image: [],
+        path: [],
+        metadata: [],
+        labels: [],
+        template: []
+    };
+    const pushSourceText = (bucket, normalizedText) => {
+        const safeBucket = Object.prototype.hasOwnProperty.call(sourceTexts, bucket) ? bucket : 'metadata';
+        if (!normalizedText) {
+            return;
+        }
+        if (!sourceTexts[safeBucket].includes(normalizedText)) {
+            sourceTexts[safeBucket].push(normalizedText);
+        }
+    };
+    const addTokens = (value, options = {}) => {
+        const normalizedText = normalizeSetupAssistantMatchText(value);
+        if (!normalizedText) {
+            return;
+        }
+        pushSourceText(options.bucket, normalizedText);
+        const phraseEligible = options.allowPhrase !== false && normalizedText.length >= 3;
+        if (phraseEligible) {
+            phraseSet.add(normalizedText);
+            textParts.push(normalizedText);
+        }
+        normalizedText.split(/\s+/).forEach((token) => {
+            const normalized = String(token || '').trim();
+            if (normalized.length >= 3) {
+                tokenSet.add(normalized);
+            }
+        });
+        if (options.expandAliases !== false) {
+            const aliasMap = SETUP_ASSISTANT_MATCH_ALIASES[resolvedType] || {};
+            Object.entries(aliasMap).forEach(([token, aliases]) => {
+                if (!normalizedText.includes(token)) {
+                    return;
+                }
+                (Array.isArray(aliases) ? aliases : []).forEach((alias) => addTokens(alias, {
+                    allowPhrase: false,
+                    expandAliases: false,
+                    bucket: options.bucket || 'metadata'
+                }));
+            });
+        }
+    };
+    addTokens(itemName, { bucket: 'name' });
+    if (resolvedType === 'docker') {
+        const labels = itemInfo?.Labels || itemInfo?.info?.Config?.Labels || {};
+        addTokens(itemInfo?.Image, { bucket: 'image' });
+        addTokens(itemInfo?.info?.Config?.Image, { bucket: 'image' });
+        addTokens(itemInfo?.composeProject, { bucket: 'metadata' });
+        addTokens(itemInfo?.folderLabel, { bucket: 'labels' });
+        addTokens(itemInfo?.manager, { bucket: 'metadata' });
+        addTokens(itemInfo?.info?.State?.manager, { bucket: 'metadata' });
+        addTokens(itemInfo?.info?.registry, { bucket: 'metadata' });
+        addTokens(itemInfo?.info?.Project, { bucket: 'metadata' });
+        addTokens(itemInfo?.info?.Support, { bucket: 'metadata' });
+        addTokens(itemInfo?.info?.ReadMe, { bucket: 'metadata' });
+        addTokens(itemInfo?.info?.template?.path, { bucket: 'template' });
+        (Array.isArray(itemInfo?.info?.HostConfig?.Binds) ? itemInfo.info.HostConfig.Binds : []).forEach((bind) => addTokens(bind, { bucket: 'path' }));
+        (Array.isArray(itemInfo?.Mounts) ? itemInfo.Mounts : []).concat(Array.isArray(itemInfo?.info?.Mounts) ? itemInfo.info.Mounts : []).forEach((mount) => {
+            addTokens(mount?.Source, { bucket: 'path' });
+            addTokens(mount?.Destination, { bucket: 'path' });
+            addTokens(mount?.Name, { bucket: 'path' });
+        });
+        if (utils && typeof utils.getComposeProjectFromLabels === 'function') {
+            addTokens(utils.getComposeProjectFromLabels(labels), { bucket: 'metadata' });
+        }
+        Object.entries(labels || {}).forEach(([key, value]) => {
+            addTokens(key, { bucket: 'labels' });
+            addTokens(value, { bucket: 'labels' });
+        });
+    } else {
+        addTokens(itemInfo?.domain, { bucket: 'metadata' });
+        addTokens(itemInfo?.description, { bucket: 'metadata' });
+        addTokens(itemInfo?.template, { bucket: 'template' });
+        addTokens(itemInfo?.os, { bucket: 'metadata' });
+    }
+    return {
+        tokens: tokenSet,
+        phrases: phraseSet,
+        normalizedText: textParts.join(' '),
+        sourceTexts
+    };
+};
+
+const scoreSetupAssistantTemplateMatch = (profile, blueprint, type = 'docker') => {
+    const tokens = profile instanceof Set ? profile : profile?.tokens;
+    const phrases = profile?.phrases instanceof Set ? profile.phrases : new Set();
+    const normalizedText = String(profile?.normalizedText || '').trim();
+    if (!(tokens instanceof Set) || tokens.size <= 0 || !blueprint || typeof blueprint !== 'object') {
+        return 0;
+    }
+    const detectKeywords = Array.isArray(blueprint.detect) && blueprint.detect.length > 0
+        ? blueprint.detect
+        : [String(blueprint.name || '')];
+    let score = 0;
+    const consumeKeyword = (keyword, weight = 1) => {
+        const normalized = normalizeSetupAssistantMatchText(keyword);
+        if (!normalized) {
+            return;
+        }
+        const parts = normalized.split(/\s+/).filter((part) => part.length >= 3);
+        if (parts.length <= 0) {
+            return;
+        }
+        let keywordScore = 0;
+        if (phrases.has(normalized)) {
+            keywordScore = Math.max(keywordScore, 12 * weight);
+        } else if (normalizedText.includes(normalized)) {
+            keywordScore = Math.max(keywordScore, 8 * weight);
+        }
+        let matchedParts = 0;
+        parts.forEach((part) => {
+            if (tokens.has(part)) {
+                matchedParts += 1;
+                return;
+            }
+            if (part.length >= 4) {
+                for (const token of tokens) {
+                    if (token.includes(part) || part.includes(token)) {
+                        matchedParts += 1;
+                        break;
+                    }
+                }
+            }
+        });
+        if (matchedParts === parts.length) {
+            keywordScore = Math.max(keywordScore, (5 + (matchedParts * 2)) * weight);
+        } else if (matchedParts > 0) {
+            keywordScore = Math.max(keywordScore, matchedParts * weight);
+        }
+        score += keywordScore;
+    };
+    const hasTokenEndingWith = (suffix) => {
+        const normalizedSuffix = String(suffix || '').trim().toLowerCase();
+        if (!normalizedSuffix) {
+            return false;
+        }
+        for (const token of tokens) {
+            if (token.endsWith(normalizedSuffix)) {
+                return true;
+            }
+        }
+        return false;
+    };
+    const hasTokenContainingAny = (values = []) => {
+        const safeValues = Array.isArray(values) ? values : [];
+        for (const rawValue of safeValues) {
+            const value = normalizeSetupAssistantMatchText(rawValue);
+            if (!value) {
+                continue;
+            }
+            for (const token of tokens) {
+                if (token === value || token.includes(value) || value.includes(token)) {
+                    return true;
+                }
+            }
+            if (normalizedText.includes(value)) {
+                return true;
+            }
+        }
+        return false;
+    };
+    const getHeuristicBoost = () => {
+        const normalizedName = normalizeSetupAssistantMatchText(blueprint?.name).replace(/\s+/g, '-');
+        if (type === 'docker' && normalizedName === 'media') {
+            let next = 0;
+            if (hasTokenEndingWith('arr')) {
+                next += 12;
+            }
+            if (hasTokenContainingAny(['seerr', 'wizarr', 'listenarr', 'cleanuparr', 'agregarr', 'watch', 'request', 'discover'])) {
+                next += 10;
+            }
+            if (hasTokenContainingAny(['media', 'movies', 'shows', 'tv', 'music', 'books', 'audiobooks', 'anime', 'comics', 'photos'])) {
+                next += 6;
+            }
+            return next;
+        }
+        if (normalizedName === 'game-servers' || normalizedName === 'gaming') {
+            return hasTokenContainingAny(['crafty', 'pterodactyl', 'pelican', 'satisfactory', 'minecraft', 'palworld', 'valheim', 'steamcmd', 'gameserver', 'server']) ? 10 : 0;
+        }
+        if (normalizedName === 'monitoring') {
+            return hasTokenContainingAny(['myspeed', 'speedtest', 'latency', 'uptime', 'metrics']) ? 10 : 0;
+        }
+        if (normalizedName === 'cloud-&-sync') {
+            return hasTokenContainingAny(['nextcloud', 'owncloud', 'seafile', 'cloud', 'sync', 'drive', 'collabora', 'onlyoffice']) ? 10 : 0;
+        }
+        if (normalizedName === 'notifications') {
+            return hasTokenContainingAny(['notify', 'notification', 'ntfy', 'gotify', 'apprise', 'notifiarr', 'pushover', 'webhook']) ? 10 : 0;
+        }
+        if (normalizedName === 'utilities') {
+            let next = hasTokenContainingAny(['qdirstat', 'diskspeed', 'icons', 'icon', 'tool', 'utility', 'manager']) ? 10 : 0;
+            if (hasTokenContainingAny(['appdata', 'storage', 'tools'])) {
+                next += 6;
+            }
+            return next;
+        }
+        if (normalizedName === 'security') {
+            return hasTokenContainingAny(['clamav', 'antivirus', 'vaultwarden', 'authentik', 'authelia', 'crowdsec', 'fail2ban', 'security']) ? 10 : 0;
+        }
+        if (type !== 'vm') {
+            return 0;
+        }
+        if (normalizedName === 'production-vms') {
+            return hasTokenContainingAny(['production', 'prod', 'server', 'srv', 'node']) ? 10 : 0;
+        }
+        if (normalizedName === 'desktop-vms') {
+            return hasTokenContainingAny(['desktop', 'workstation', 'ubuntu', 'fedora', 'pop', 'linuxmint', 'macos']) ? 10 : 0;
+        }
+        if (normalizedName === 'windows-vms') {
+            return hasTokenContainingAny(['windows', 'win10', 'win11', 'server2019', 'server2022', 'windows-server']) ? 10 : 0;
+        }
+        if (normalizedName === 'lab-vms' || normalizedName === 'dev-test-vms') {
+            return hasTokenContainingAny(['lab', 'test', 'qa', 'sandbox', 'staging', 'dev']) ? 10 : 0;
+        }
+        if (normalizedName === 'utility-vms' || normalizedName === 'management-vms') {
+            return hasTokenContainingAny(['utility', 'tools', 'helper', 'management', 'admin', 'jumpbox', 'proxmox', 'pve', 'truenas', 'openmediavault']) ? 10 : 0;
+        }
+        if (normalizedName === 'infrastructure-vms' || normalizedName === 'network-vms') {
+            return hasTokenContainingAny(['infra', 'infrastructure', 'domain', 'controller', 'gateway', 'router', 'firewall', 'pfsense', 'opnsense', 'vyos', 'dns', 'proxy', 'unifi']) ? 10 : 0;
+        }
+        if (normalizedName === 'security-vms' || normalizedName === 'identity-vms') {
+            return hasTokenContainingAny(['security', 'siem', 'wazuh', 'ids', 'ips', 'identity', 'ldap', 'auth', 'freeipa', 'keycloak', 'domain controller']) ? 10 : 0;
+        }
+        if (normalizedName === 'backups' || normalizedName === 'recovery-vms') {
+            return hasTokenContainingAny(['backup', 'vault', 'archive', 'replica', 'recovery', 'restore', 'disaster', 'snapshot']) ? 10 : 0;
+        }
+        if (normalizedName === 'media-vms' || normalizedName === 'streaming-vms') {
+            return hasTokenContainingAny(['media', 'plex', 'jellyfin', 'emby', 'stream', 'obs', 'transcode']) ? 10 : 0;
+        }
+        if (normalizedName === 'gaming-vms' || normalizedName === 'cloud-gaming-vms') {
+            return hasTokenContainingAny(['gaming', 'steam', 'gpu', 'parsec', 'moonlight', 'sunshine']) ? 10 : 0;
+        }
+        return 0;
+    };
+    detectKeywords.forEach((keyword) => consumeKeyword(keyword, 1));
+    consumeKeyword(blueprint.name, 0.6);
+    score += getHeuristicBoost();
+    return score;
+};
+
+const describeSetupAssistantTemplateMatch = (profile, blueprint, type = 'docker', options = {}) => {
+    const resolvedType = normalizeManagedType(type);
+    const detectKeywords = Array.isArray(blueprint?.detect) && blueprint.detect.length > 0
+        ? blueprint.detect
+        : [String(blueprint?.name || '')];
+    const sourceTexts = profile?.sourceTexts && typeof profile.sourceTexts === 'object'
+        ? profile.sourceTexts
+        : {};
+    const safeSources = {
+        name: Array.isArray(sourceTexts.name) ? sourceTexts.name : [],
+        image: Array.isArray(sourceTexts.image) ? sourceTexts.image : [],
+        path: Array.isArray(sourceTexts.path) ? sourceTexts.path : [],
+        metadata: Array.isArray(sourceTexts.metadata) ? sourceTexts.metadata : [],
+        labels: Array.isArray(sourceTexts.labels) ? sourceTexts.labels : [],
+        template: Array.isArray(sourceTexts.template) ? sourceTexts.template : []
+    };
+    const findKeywordInBucket = (bucketName) => {
+        const bucket = safeSources[bucketName] || [];
+        for (const rawKeyword of detectKeywords.concat([String(blueprint?.name || '')])) {
+            const keyword = normalizeSetupAssistantMatchText(rawKeyword);
+            if (!keyword) {
+                continue;
+            }
+            for (const value of bucket) {
+                if (value.includes(keyword) || keyword.includes(value)) {
+                    return rawKeyword;
+                }
+            }
+        }
+        return '';
+    };
+    const fallbackTemplateName = String(SETUP_ASSISTANT_TEMPLATE_FALLBACK_BY_TYPE[resolvedType] || '').trim();
+    if (options.usedFallback === true) {
+        return fallbackTemplateName
+            ? `Suggested fallback: ${fallbackTemplateName}`
+            : 'Suggested fallback bucket';
+    }
+    const nameKeyword = findKeywordInBucket('name');
+    if (nameKeyword) {
+        return `Name match: ${nameKeyword}`;
+    }
+    const imageKeyword = findKeywordInBucket('image');
+    if (imageKeyword) {
+        return `Image match: ${imageKeyword}`;
+    }
+    const pathKeyword = findKeywordInBucket('path');
+    if (pathKeyword) {
+        return `Path match: ${pathKeyword}`;
+    }
+    const labelKeyword = findKeywordInBucket('labels');
+    if (labelKeyword) {
+        return `Label match: ${labelKeyword}`;
+    }
+    const metadataKeyword = findKeywordInBucket('metadata') || findKeywordInBucket('template');
+    if (metadataKeyword) {
+        return `Metadata match: ${metadataKeyword}`;
+    }
+    if (resolvedType === 'docker') {
+        const tokens = profile?.tokens instanceof Set ? profile.tokens : new Set();
+        for (const token of tokens) {
+            if (token.endsWith('arr')) {
+                return 'ARR-family heuristic';
+            }
+        }
+    }
+    return `Keyword score ${Math.round(Number(options.score) || 0)}`;
+};
+
+const getSetupAssistantTemplateConfidence = (score) => {
+    const safeScore = Number(score) || 0;
+    if (safeScore >= SETUP_ASSISTANT_TEMPLATE_CONFIDENT_THRESHOLD) {
+        return 'high';
+    }
+    if (safeScore >= SETUP_ASSISTANT_TEMPLATE_MATCH_THRESHOLD) {
+        return 'review';
+    }
+    return 'none';
+};
+
+const resolveSetupAssistantTemplateBestMatch = (type, profile, blueprints) => {
+    const resolvedType = normalizeManagedType(type);
+    let bestBlueprint = null;
+    let bestScore = 0;
+    let bestIndex = -1;
+    (Array.isArray(blueprints) ? blueprints : []).forEach((blueprint, index) => {
+        const score = scoreSetupAssistantTemplateMatch(profile, blueprint, resolvedType);
+        if (score > bestScore) {
+            bestBlueprint = blueprint;
+            bestScore = score;
+            bestIndex = index;
+        }
+    });
+    return { bestBlueprint, bestScore, bestIndex };
+};
+
+const resolveSetupAssistantSmartBlueprintIndexes = (type, blueprints) => {
+    const resolvedType = normalizeManagedType(type);
+    const safeBlueprints = Array.isArray(blueprints) ? blueprints : [];
+    const itemNames = getBulkAssignableNames(resolvedType);
+    const info = infoByType[resolvedType] || {};
+    const matchedIndexes = new Set();
+    let matched = 0;
+    let unmatched = 0;
+    itemNames.forEach((itemName) => {
+        const profile = collectSetupAssistantItemMatchProfile(resolvedType, itemName, info[itemName] || {});
+        const { bestScore, bestIndex } = resolveSetupAssistantTemplateBestMatch(resolvedType, profile, safeBlueprints);
+        if (bestIndex >= 0 && bestScore >= SETUP_ASSISTANT_TEMPLATE_MATCH_THRESHOLD) {
+            matchedIndexes.add(bestIndex);
+            matched += 1;
+            return;
+        }
+        unmatched += 1;
+    });
+
+    return {
+        indexes: matchedIndexes,
+        totalItems: itemNames.length,
+        matched,
+        unmatched
+    };
+};
+
+const buildSetupAssistantTemplateAssignmentPreview = (type, selectedBlueprints) => {
+    const resolvedType = normalizeManagedType(type);
+    const blueprints = Array.isArray(selectedBlueprints) ? selectedBlueprints : [];
+    const itemNames = getBulkAssignableNames(resolvedType);
+    const info = infoByType[resolvedType] || {};
+    const assignedByTemplate = {};
+    const itemDetails = [];
+    const reviewItems = [];
+    blueprints.forEach((blueprint) => {
+        const name = String(blueprint?.name || '').trim();
+        if (name) {
+            assignedByTemplate[name] = [];
+        }
+    });
+    const fallbackTemplateName = String(SETUP_ASSISTANT_TEMPLATE_FALLBACK_BY_TYPE[resolvedType] || '').trim();
+    const fallbackBlueprint = blueprints.find((blueprint) => String(blueprint?.name || '').trim() === fallbackTemplateName) || null;
+
+    let matched = 0;
+    let unmatched = 0;
+    itemNames.forEach((itemName) => {
+        const profile = collectSetupAssistantItemMatchProfile(resolvedType, itemName, info[itemName] || {});
+        let { bestBlueprint, bestScore } = resolveSetupAssistantTemplateBestMatch(resolvedType, profile, blueprints);
+        let usedFallback = false;
+        if (!bestBlueprint && fallbackBlueprint) {
+            bestBlueprint = fallbackBlueprint;
+            bestScore = 0;
+            usedFallback = true;
+        }
+        const templateName = String(bestBlueprint?.name || '').trim();
+        const confidence = usedFallback ? 'review' : getSetupAssistantTemplateConfidence(bestScore);
+        const reason = bestBlueprint
+            ? describeSetupAssistantTemplateMatch(profile, bestBlueprint, resolvedType, { score: bestScore, usedFallback })
+            : 'No reliable match';
+        if (!bestBlueprint) {
+            itemDetails.push({
+                itemName,
+                templateName: '',
+                score: bestScore,
+                confidence: 'none',
+                reason
+            });
+            unmatched += 1;
+            return;
+        }
+        if (!templateName) {
+            itemDetails.push({
+                itemName,
+                templateName: '',
+                score: bestScore,
+                confidence: 'none',
+                reason
+            });
+            unmatched += 1;
+            return;
+        }
+        itemDetails.push({
+            itemName,
+            templateName,
+            score: bestScore,
+            confidence,
+            reason
+        });
+        if (usedFallback || confidence !== 'high') {
+            reviewItems.push({
+                itemName,
+                templateName,
+                score: bestScore,
+                confidence,
+                reason
+            });
+            return;
+        }
+        if (!Array.isArray(assignedByTemplate[templateName])) {
+            assignedByTemplate[templateName] = [];
+        }
+        assignedByTemplate[templateName].push(itemName);
+        matched += 1;
+    });
+
+    return {
+        totalItems: itemNames.length,
+        matched,
+        unmatched,
+        reviewNeededCount: reviewItems.length,
+        assignedByTemplate,
+        reviewItems,
+        itemDetails
+    };
+};
+
+const buildSetupAssistantTemplatePlanForType = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const bootstrap = getSetupAssistantTemplateBootstrap(resolvedType);
+    const categoryState = getSetupAssistantTemplateCategoryState(resolvedType);
+    const selectedNames = new Set(serializeSetupAssistantTemplateSelections(bootstrap.selectedTemplateNames));
+    let selectedBlueprints = categoryState.blueprints.filter((entry) => selectedNames.has(String(entry?.name || '').trim()));
+    if (bootstrap.enabled === true && bootstrap.autoAssignExisting === true && bootstrap.category === 'smart' && selectedBlueprints.length > 0) {
+        const fallbackName = String(SETUP_ASSISTANT_TEMPLATE_FALLBACK_BY_TYPE[resolvedType] || '').trim();
+        const fallbackBlueprint = categoryState.blueprints.find((entry) => String(entry?.name || '').trim() === fallbackName) || null;
+        const hasFallbackSelected = fallbackBlueprint && selectedBlueprints.some((entry) => String(entry?.name || '').trim() === fallbackName);
+        if (fallbackBlueprint && !hasFallbackSelected) {
+            const previewWithoutFallback = buildSetupAssistantTemplateAssignmentPreview(resolvedType, selectedBlueprints);
+            if ((previewWithoutFallback.unmatched || 0) > 0) {
+                selectedBlueprints = [...selectedBlueprints, fallbackBlueprint];
+            }
+        }
+    }
+    const existingFolders = getFolderMap(resolvedType);
+    const existingNameSet = new Set(
+        Object.values(existingFolders || {})
+            .map((folder) => String(folder?.name || '').trim().toLowerCase())
+            .filter((name) => name !== '')
+    );
+    let creatable = 0;
+    let skippedExisting = 0;
+    selectedBlueprints.forEach((entry) => {
+        const safeName = String(entry?.name || '').trim().toLowerCase();
+        if (!safeName) {
+            return;
+        }
+        if (existingNameSet.has(safeName)) {
+            skippedExisting += 1;
+            return;
+        }
+        existingNameSet.add(safeName);
+        creatable += 1;
+    });
+
+    const autoAssignEnabled = bootstrap.enabled === true && bootstrap.autoAssignExisting === true && bootstrap.category === 'smart' && selectedBlueprints.length > 0;
+    const assignment = autoAssignEnabled
+        ? buildSetupAssistantTemplateAssignmentPreview(resolvedType, selectedBlueprints)
+        : {
+            totalItems: 0,
+            matched: 0,
+            unmatched: 0,
+            reviewNeededCount: 0,
+            assignedByTemplate: {},
+            reviewItems: [],
+            itemDetails: []
+        };
+
+    return {
+        type: resolvedType,
+        enabled: bootstrap.enabled === true,
+        category: bootstrap.category,
+        selectedBlueprints,
+        selectedCount: selectedBlueprints.length,
+        creatable,
+        skippedExisting,
+        autoAssignEnabled,
+        assignment
+    };
+};
+
 const serializeSetupAssistantDraft = () => ({
     version: SETUP_ASSISTANT_VERSION,
     savedAt: new Date().toISOString(),
@@ -576,6 +1281,20 @@ const serializeSetupAssistantDraft = () => ({
             fileSizeBytes: Number(setupAssistantState.importPlans?.vm?.fileSizeBytes) || 0,
             fileLastModified: String(setupAssistantState.importPlans?.vm?.fileLastModified || ''),
             parsed: setupAssistantState.importPlans?.vm?.parsed || null
+        }
+    },
+    templateBootstrap: {
+        docker: {
+            enabled: setupAssistantState.templateBootstrap?.docker?.enabled === true,
+            category: normalizeSetupAssistantTemplateCategory('docker', setupAssistantState.templateBootstrap?.docker?.category || 'smart'),
+            selectedTemplateNames: serializeSetupAssistantTemplateSelections(setupAssistantState.templateBootstrap?.docker?.selectedTemplateNames || []),
+            autoAssignExisting: setupAssistantState.templateBootstrap?.docker?.autoAssignExisting === true
+        },
+        vm: {
+            enabled: setupAssistantState.templateBootstrap?.vm?.enabled === true,
+            category: normalizeSetupAssistantTemplateCategory('vm', setupAssistantState.templateBootstrap?.vm?.category || 'smart'),
+            selectedTemplateNames: serializeSetupAssistantTemplateSelections(setupAssistantState.templateBootstrap?.vm?.selectedTemplateNames || []),
+            autoAssignExisting: setupAssistantState.templateBootstrap?.vm?.autoAssignExisting === true
         }
     },
     ruleBootstrap: {
@@ -668,6 +1387,20 @@ const buildSetupAssistantPresetPayload = () => ({
             mode: normalizeImportMode(setupAssistantState.importPlans?.vm?.mode)
         }
     },
+    templateBootstrap: {
+        docker: {
+            enabled: setupAssistantState.templateBootstrap?.docker?.enabled === true,
+            category: normalizeSetupAssistantTemplateCategory('docker', setupAssistantState.templateBootstrap?.docker?.category || 'smart'),
+            selectedTemplateNames: serializeSetupAssistantTemplateSelections(setupAssistantState.templateBootstrap?.docker?.selectedTemplateNames || []),
+            autoAssignExisting: setupAssistantState.templateBootstrap?.docker?.autoAssignExisting === true
+        },
+        vm: {
+            enabled: setupAssistantState.templateBootstrap?.vm?.enabled === true,
+            category: normalizeSetupAssistantTemplateCategory('vm', setupAssistantState.templateBootstrap?.vm?.category || 'smart'),
+            selectedTemplateNames: serializeSetupAssistantTemplateSelections(setupAssistantState.templateBootstrap?.vm?.selectedTemplateNames || []),
+            autoAssignExisting: setupAssistantState.templateBootstrap?.vm?.autoAssignExisting === true
+        }
+    },
     ruleBootstrap: {
         docker: {
             enabled: setupAssistantState.ruleBootstrap?.docker?.enabled === true
@@ -711,6 +1444,15 @@ const applySetupAssistantPresetPayload = (payload) => {
             setupAssistantState.importPlans[type].mode = normalizeImportMode(incomingPlan.mode);
             summarizeSetupAssistantImportPlan(type);
         }
+        const incomingTemplates = payload.templateBootstrap?.[type];
+        if (incomingTemplates && typeof incomingTemplates === 'object') {
+            const bootstrap = getSetupAssistantTemplateBootstrap(type);
+            bootstrap.enabled = incomingTemplates.enabled === true;
+            bootstrap.category = normalizeSetupAssistantTemplateCategory(type, incomingTemplates.category || 'smart');
+            bootstrap.selectedTemplateNames = serializeSetupAssistantTemplateSelections(incomingTemplates.selectedTemplateNames || []);
+            bootstrap.autoAssignExisting = incomingTemplates.autoAssignExisting === true;
+            refreshSetupAssistantTemplateSelection(type);
+        }
         const incomingRules = payload.ruleBootstrap?.[type];
         if (incomingRules && typeof incomingRules === 'object') {
             setupAssistantState.ruleBootstrap[type].enabled = incomingRules.enabled === true;
@@ -720,6 +1462,7 @@ const applySetupAssistantPresetPayload = (payload) => {
             setupAssistantState.behavior[type] = normalizeSetupAssistantBehaviorFromValue(type, incomingBehavior);
         }
     }
+    refreshSetupAssistantTemplateSelections();
     clampSetupAssistantStep();
     return true;
 };
@@ -842,6 +1585,15 @@ const restoreSetupAssistantDraftFromStorage = () => {
                     : null
             };
         }
+        const incomingTemplates = parsed.templateBootstrap?.[type];
+        if (incomingTemplates && typeof incomingTemplates === 'object') {
+            const bootstrap = getSetupAssistantTemplateBootstrap(type);
+            bootstrap.enabled = incomingTemplates.enabled === true;
+            bootstrap.category = normalizeSetupAssistantTemplateCategory(type, incomingTemplates.category || 'smart');
+            bootstrap.selectedTemplateNames = serializeSetupAssistantTemplateSelections(incomingTemplates.selectedTemplateNames || []);
+            bootstrap.autoAssignExisting = incomingTemplates.autoAssignExisting === true;
+            refreshSetupAssistantTemplateSelection(type);
+        }
         const incomingRules = parsed.ruleBootstrap?.[type];
         if (incomingRules && typeof incomingRules === 'object') {
             setupAssistantState.ruleBootstrap[type].enabled = incomingRules.enabled === true;
@@ -861,6 +1613,7 @@ const restoreSetupAssistantDraftFromStorage = () => {
             setupAssistantState.behavior[type] = normalizeSetupAssistantBehaviorFromValue(type, incomingBehavior);
         }
     }
+    refreshSetupAssistantTemplateSelections();
 
     setupAssistantState.draftRestored = true;
     setupAssistantState.restoredDraftSavedAt = String(parsed.savedAt || '');
@@ -900,6 +1653,15 @@ const applyDetectedSetupAssistantDefaults = () => {
     }
     setupAssistantState.applyProfileDefaults = setupAssistantState.route !== 'migrate';
     setupAssistantState.applyEnvironmentDefaults = setupAssistantState.route !== 'migrate';
+    for (const type of ['docker', 'vm']) {
+        const bootstrap = getSetupAssistantTemplateBootstrap(type);
+        bootstrap.enabled = setupAssistantState.route === 'new';
+        if (bootstrap.enabled) {
+            bootstrap.category = normalizeSetupAssistantTemplateCategory(type, 'smart');
+            bootstrap.autoAssignExisting = true;
+            refreshSetupAssistantTemplateSelection(type, { resetSelection: true, forceAllSelected: true });
+        }
+    }
     if (setupAssistantState.applyEnvironmentDefaults) {
         applySetupAssistantEnvironmentPresetToState();
     }
@@ -975,6 +1737,20 @@ const resetSetupAssistantState = (force = false) => {
         docker: createSetupAssistantImportPlan(),
         vm: createSetupAssistantImportPlan()
     };
+    setupAssistantState.templateBootstrap = {
+        docker: {
+            enabled: route === 'new',
+            category: 'smart',
+            selectedTemplateNames: [],
+            autoAssignExisting: true
+        },
+        vm: {
+            enabled: route === 'new',
+            category: 'smart',
+            selectedTemplateNames: [],
+            autoAssignExisting: true
+        }
+    };
     setupAssistantState.ruleBootstrap = {
         docker: {
             enabled: false,
@@ -1011,6 +1787,7 @@ const resetSetupAssistantState = (force = false) => {
     setupAssistantState.restoredDraftSavedAt = '';
     setupAssistantState.mobileSidebarSummaryOpen = false;
     setupAssistantState.collapsedChipRows = {};
+    refreshSetupAssistantTemplateSelections();
 };
 
 const clampSetupAssistantStep = () => {
@@ -1092,33 +1869,41 @@ const extractSetupAssistantSourceFolders = (type) => {
     const plan = setupAssistantState.importPlans?.[resolvedType];
     const parsed = plan?.parsed;
     const rows = [];
-    if (parsed?.mode === 'single' && parsed?.folder && typeof parsed.folder.name === 'string') {
+    const seenNames = new Set();
+    const pushRow = (folderId, folderName) => {
+        const safeName = String(folderName || '').trim();
+        if (!safeName) {
+            return;
+        }
+        const key = safeName.toLowerCase();
+        if (seenNames.has(key)) {
+            return;
+        }
+        seenNames.add(key);
         rows.push({
-            folderId: parsed.folderId || '',
-            folderName: String(parsed.folder.name || '').trim()
+            folderId: String(folderId || '').trim(),
+            folderName: safeName
         });
+    };
+    if (parsed?.mode === 'single' && parsed?.folder && typeof parsed.folder.name === 'string') {
+        pushRow(parsed.folderId || '', parsed.folder.name || '');
     } else if (parsed?.mode === 'full' && parsed?.folders && typeof parsed.folders === 'object') {
         for (const [folderId, folder] of Object.entries(parsed.folders)) {
-            const folderName = String(folder?.name || '').trim();
-            if (!folderName) {
-                continue;
-            }
-            rows.push({
-                folderId: String(folderId || '').trim(),
-                folderName
+            pushRow(folderId, folder?.name || '');
+        }
+    }
+    if (setupAssistantState.route === 'new') {
+        const templateBootstrap = getSetupAssistantTemplateBootstrap(resolvedType);
+        if (templateBootstrap.enabled === true) {
+            const selectedTemplateNames = serializeSetupAssistantTemplateSelections(templateBootstrap.selectedTemplateNames || []);
+            selectedTemplateNames.forEach((folderName) => {
+                pushRow('', folderName);
             });
         }
     }
     if (!rows.length) {
         for (const [folderId, folder] of Object.entries(getFolderMap(resolvedType))) {
-            const folderName = String(folder?.name || '').trim();
-            if (!folderName) {
-                continue;
-            }
-            rows.push({
-                folderId: String(folderId || '').trim(),
-                folderName
-            });
+            pushRow(folderId, folder?.name || '');
         }
     }
     return rows;
@@ -1271,7 +2056,8 @@ const previewSetupAssistantRuleOutcomesForType = (type) => {
         const folderId = resolveSetupAssistantFolderId(
             resolvedType,
             suggestion.folderName,
-            suggestion.folderIdHint || ''
+            suggestion.folderIdHint || '',
+            { allowPlanned: false }
         );
         if (!folderId) {
             unresolvedFolder += 1;
@@ -1356,6 +2142,15 @@ const buildSetupAssistantImpactSummary = () => {
     };
     const prefByType = {};
     let totalPrefChanges = 0;
+    const templateByType = {};
+    const templateTotals = {
+        selected: 0,
+        creatable: 0,
+        skippedExisting: 0,
+        autoAssignMatched: 0,
+        autoAssignUnmatched: 0,
+        autoAssignReviewNeeded: 0
+    };
 
     for (const type of ['docker', 'vm']) {
         const plan = setupAssistantState.importPlans[type];
@@ -1374,6 +2169,26 @@ const buildSetupAssistantImpactSummary = () => {
         const diff = buildSetupAssistantPrefsDiffForType(type);
         prefByType[type] = diff;
         totalPrefChanges += diff.count;
+
+        const templatePlan = buildSetupAssistantTemplatePlanForType(type);
+        templateByType[type] = {
+            enabled: templatePlan.enabled,
+            selected: templatePlan.selectedCount,
+            creatable: templatePlan.creatable,
+            skippedExisting: templatePlan.skippedExisting,
+            autoAssignEnabled: templatePlan.autoAssignEnabled,
+            autoAssignMatched: templatePlan.assignment?.matched || 0,
+            autoAssignUnmatched: templatePlan.assignment?.unmatched || 0,
+            autoAssignReviewNeeded: templatePlan.assignment?.reviewNeededCount || 0,
+            autoAssignReviewItems: Array.isArray(templatePlan.assignment?.reviewItems) ? templatePlan.assignment.reviewItems.slice(0, 8) : [],
+            autoAssignItemDetails: Array.isArray(templatePlan.assignment?.itemDetails) ? templatePlan.assignment.itemDetails.slice(0, 12) : []
+        };
+        templateTotals.selected += templateByType[type].selected;
+        templateTotals.creatable += templateByType[type].creatable;
+        templateTotals.skippedExisting += templateByType[type].skippedExisting;
+        templateTotals.autoAssignMatched += templateByType[type].autoAssignMatched;
+        templateTotals.autoAssignUnmatched += templateByType[type].autoAssignUnmatched;
+        templateTotals.autoAssignReviewNeeded += templateByType[type].autoAssignReviewNeeded;
     }
 
     const ruleDocker = previewSetupAssistantRuleOutcomesForType('docker');
@@ -1392,12 +2207,16 @@ const buildSetupAssistantImpactSummary = () => {
             byType: importByType,
             totals: importTotals
         },
+        templates: {
+            byType: templateByType,
+            totals: templateTotals
+        },
         prefs: {
             byType: prefByType,
             totalChanges: totalPrefChanges
         },
         rules,
-        totalPlannedChanges: importTotals.totalOps + totalPrefChanges + rules.creatable
+        totalPlannedChanges: importTotals.totalOps + totalPrefChanges + rules.creatable + templateTotals.creatable + templateTotals.autoAssignMatched
     };
 };
 
@@ -1409,21 +2228,25 @@ const getSetupAssistantImpactDelta = (currentImpact, baselineImpact = null) => {
         ? baselineImpact
         : (setupAssistantState.impactBaseline || {
             imports: { totals: { totalOps: 0, creates: 0, updates: 0, deletes: 0 } },
+            templates: { totals: { creatable: 0, autoAssignMatched: 0 } },
             prefs: { totalChanges: 0 },
             rules: { creatable: 0 },
             totalPlannedChanges: 0
         });
     const currentImports = Number(current.imports?.totals?.totalOps) || 0;
+    const currentTemplates = Number(current.templates?.totals?.creatable || 0) + Number(current.templates?.totals?.autoAssignMatched || 0);
     const currentPrefs = Number(current.prefs?.totalChanges) || 0;
     const currentRules = Number(current.rules?.creatable) || 0;
     const currentTotal = Number(current.totalPlannedChanges) || 0;
     const baselineImports = Number(baseline.imports?.totals?.totalOps) || 0;
+    const baselineTemplates = Number(baseline.templates?.totals?.creatable || 0) + Number(baseline.templates?.totals?.autoAssignMatched || 0);
     const baselinePrefs = Number(baseline.prefs?.totalChanges) || 0;
     const baselineRules = Number(baseline.rules?.creatable) || 0;
     const baselineTotal = Number(baseline.totalPlannedChanges) || 0;
 
     return {
         imports: currentImports - baselineImports,
+        templates: currentTemplates - baselineTemplates,
         prefs: currentPrefs - baselinePrefs,
         rules: currentRules - baselineRules,
         total: currentTotal - baselineTotal
@@ -1446,6 +2269,8 @@ const getSetupAssistantStepDeltaSummary = (stepKey, deltaSummary = null) => {
 
     if (stepKey === 'profile' || stepKey === 'behavior') {
         addChip('Settings', delta.prefs, 'is-update');
+    } else if (stepKey === 'templates') {
+        addChip('Starter folders', delta.templates, delta.templates < 0 ? 'is-delete' : 'is-create');
     } else if (stepKey === 'import') {
         addChip('Import ops', delta.imports, delta.imports < 0 ? 'is-delete' : 'is-update');
     } else if (stepKey === 'rules') {
@@ -1528,6 +2353,22 @@ const getSetupAssistantStepValidation = (stepKey = currentSetupAssistantStepKey(
         }
     }
 
+    if (step === 'templates' || step === 'review') {
+        for (const type of ['docker', 'vm']) {
+            const bootstrap = getSetupAssistantTemplateBootstrap(type);
+            if (bootstrap.enabled !== true) {
+                continue;
+            }
+            const plan = buildSetupAssistantTemplatePlanForType(type);
+            if (plan.selectedCount <= 0) {
+                blockers.push(`${type.toUpperCase()} templates are enabled with no selected folders.`);
+            }
+            if (bootstrap.autoAssignExisting === true && bootstrap.category !== 'smart') {
+                warnings.push(`${type.toUpperCase()} auto-assign works only with Smart category and is currently disabled.`);
+            }
+        }
+    }
+
     if (step === 'behavior' || step === 'review') {
         for (const type of ['docker', 'vm']) {
             const behavior = setupAssistantState.behavior?.[type] || {};
@@ -1601,6 +2442,10 @@ const buildSetupAssistantFixHints = (stepKey, validation) => {
             addHint('Choose a listed environment preset or disable "Apply environment defaults".');
             return;
         }
+        if (/templates are enabled with no selected folders/i.test(message)) {
+            addHint('Use the Templates step to select at least one starter folder per enabled type.');
+            return;
+        }
         addHint(`Resolve: ${message}`);
     });
 
@@ -1619,6 +2464,10 @@ const buildSetupAssistantFixHints = (stepKey, validation) => {
         }
         if (/dry run mode is on/i.test(message)) {
             addHint('Turn off Dry run only when you are ready to persist changes.');
+            return;
+        }
+        if (/auto-assign works only with smart category/i.test(message)) {
+            addHint('Switch category to Smart before enabling auto-assign for detected workloads.');
             return;
         }
     });
@@ -1699,9 +2548,10 @@ const applySetupAssistantBehaviorToPrefs = (prefs, behavior) => {
     });
 };
 
-const resolveSetupAssistantFolderId = (type, folderName, folderIdHint = '') => {
+const resolveSetupAssistantFolderId = (type, folderName, folderIdHint = '', options = {}) => {
     const folders = getFolderMap(type);
     const hint = String(folderIdHint || '').trim();
+    const allowPlanned = options.allowPlanned !== false;
     if (hint && Object.prototype.hasOwnProperty.call(folders, hint)) {
         return hint;
     }
@@ -1714,7 +2564,224 @@ const resolveSetupAssistantFolderId = (type, folderName, folderIdHint = '') => {
             return folderId;
         }
     }
+    if (allowPlanned && setupAssistantState.route === 'new') {
+        const bootstrap = getSetupAssistantTemplateBootstrap(type);
+        if (bootstrap.enabled === true) {
+            const selected = serializeSetupAssistantTemplateSelections(bootstrap.selectedTemplateNames || []).map((name) => name.toLowerCase());
+            if (selected.includes(targetName)) {
+                return `__planned__:${targetName}`;
+            }
+        }
+    }
     return '';
+};
+
+const applySetupAssistantTemplateAssignmentsForType = async (type, plan) => {
+    const resolvedType = normalizeManagedType(type);
+    const safePlan = plan && typeof plan === 'object' ? plan : buildSetupAssistantTemplatePlanForType(resolvedType);
+    if (safePlan.autoAssignEnabled !== true) {
+        return {
+            enabled: false,
+            totalItems: 0,
+            matched: 0,
+            unmatched: 0,
+            reviewNeededCount: 0,
+            reviewItems: [],
+            itemDetails: [],
+            updatedFolders: 0
+        };
+    }
+    const selectedBlueprints = Array.isArray(safePlan.selectedBlueprints) ? safePlan.selectedBlueprints : [];
+    if (!selectedBlueprints.length) {
+        return {
+            enabled: true,
+            totalItems: 0,
+            matched: 0,
+            unmatched: 0,
+            reviewNeededCount: 0,
+            reviewItems: [],
+            itemDetails: [],
+            updatedFolders: 0
+        };
+    }
+    const preview = buildSetupAssistantTemplateAssignmentPreview(resolvedType, selectedBlueprints);
+    const assignedByTemplate = preview.assignedByTemplate || {};
+    if (!preview.totalItems || !preview.matched) {
+        return {
+            enabled: true,
+            totalItems: preview.totalItems || 0,
+            matched: 0,
+            unmatched: preview.unmatched || 0,
+            reviewNeededCount: preview.reviewNeededCount || 0,
+            reviewItems: Array.isArray(preview.reviewItems) ? preview.reviewItems : [],
+            itemDetails: Array.isArray(preview.itemDetails) ? preview.itemDetails : [],
+            updatedFolders: 0
+        };
+    }
+
+    const folders = getFolderMap(resolvedType);
+    const targetFolderIdsByName = {};
+    selectedBlueprints.forEach((blueprint) => {
+        const templateName = String(blueprint?.name || '').trim();
+        if (!templateName) {
+            return;
+        }
+        const targetFolderId = resolveSetupAssistantFolderId(resolvedType, templateName, '', { allowPlanned: false });
+        if (targetFolderId) {
+            targetFolderIdsByName[templateName] = targetFolderId;
+        }
+    });
+
+    const assignedAll = new Set();
+    Object.values(assignedByTemplate).forEach((rows) => {
+        (Array.isArray(rows) ? rows : []).forEach((name) => {
+            const safeName = String(name || '').trim();
+            if (safeName) {
+                assignedAll.add(safeName);
+            }
+        });
+    });
+    if (!assignedAll.size) {
+        return {
+            enabled: true,
+            totalItems: preview.totalItems || 0,
+            matched: 0,
+            unmatched: preview.unmatched || 0,
+            reviewNeededCount: preview.reviewNeededCount || 0,
+            reviewItems: Array.isArray(preview.reviewItems) ? preview.reviewItems : [],
+            itemDetails: Array.isArray(preview.itemDetails) ? preview.itemDetails : [],
+            updatedFolders: 0
+        };
+    }
+
+    const nextFolders = {};
+    Object.entries(folders).forEach(([folderId, folder]) => {
+        nextFolders[folderId] = {
+            ...folder,
+            containers: utils.normalizeFolderMembers(folder?.containers || [])
+        };
+    });
+
+    Object.entries(nextFolders).forEach(([folderId, folder]) => {
+        const current = utils.normalizeFolderMembers(folder?.containers || []);
+        const filtered = current.filter((name) => !assignedAll.has(String(name || '').trim()));
+        if (filtered.length !== current.length) {
+            nextFolders[folderId] = {
+                ...folder,
+                containers: filtered
+            };
+        }
+    });
+
+    Object.entries(assignedByTemplate).forEach(([templateName, members]) => {
+        const targetFolderId = String(targetFolderIdsByName[templateName] || '').trim();
+        if (!targetFolderId || !Object.prototype.hasOwnProperty.call(nextFolders, targetFolderId)) {
+            return;
+        }
+        const folder = nextFolders[targetFolderId];
+        const current = utils.normalizeFolderMembers(folder?.containers || []);
+        const nextSet = new Set(current.map((name) => String(name || '').trim()).filter(Boolean));
+        (Array.isArray(members) ? members : []).forEach((name) => {
+            const safeName = String(name || '').trim();
+            if (safeName) {
+                nextSet.add(safeName);
+            }
+        });
+        nextFolders[targetFolderId] = {
+            ...folder,
+            containers: Array.from(nextSet)
+        };
+    });
+
+    const changedFolderIds = [];
+    Object.entries(nextFolders).forEach(([folderId, nextFolder]) => {
+        const currentFolder = folders[folderId] || {};
+        const currentMembers = utils.normalizeFolderMembers(currentFolder?.containers || []);
+        const nextMembers = utils.normalizeFolderMembers(nextFolder?.containers || []);
+        if (JSON.stringify(currentMembers) !== JSON.stringify(nextMembers)) {
+            changedFolderIds.push(folderId);
+        }
+    });
+
+    if (!changedFolderIds.length) {
+        return {
+            enabled: true,
+            totalItems: preview.totalItems || 0,
+            matched: preview.matched || 0,
+            unmatched: preview.unmatched || 0,
+            updatedFolders: 0
+        };
+    }
+
+    for (const folderId of changedFolderIds) {
+        await saveFolderRecord(resolvedType, folderId, nextFolders[folderId]);
+    }
+    await refreshType(resolvedType);
+    return {
+        enabled: true,
+        totalItems: preview.totalItems || 0,
+        matched: preview.matched || 0,
+        unmatched: preview.unmatched || 0,
+        reviewNeededCount: preview.reviewNeededCount || 0,
+        reviewItems: Array.isArray(preview.reviewItems) ? preview.reviewItems : [],
+        itemDetails: Array.isArray(preview.itemDetails) ? preview.itemDetails : [],
+        updatedFolders: changedFolderIds.length
+    };
+};
+
+const applySetupAssistantTemplatesForType = async (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const plan = buildSetupAssistantTemplatePlanForType(resolvedType);
+    if (!plan.enabled || !plan.selectedCount) {
+        return {
+            selected: 0,
+            created: 0,
+            skippedExisting: 0,
+            assignment: {
+                enabled: false,
+                totalItems: 0,
+                matched: 0,
+                unmatched: 0,
+                updatedFolders: 0
+            }
+        };
+    }
+
+    const existingNames = new Set(
+        Object.values(getFolderMap(resolvedType) || {})
+            .map((folder) => String(folder?.name || '').trim().toLowerCase())
+            .filter(Boolean)
+    );
+    const createdNames = [];
+    for (const blueprint of plan.selectedBlueprints) {
+        const folderName = String(blueprint?.name || '').trim();
+        if (!folderName) {
+            continue;
+        }
+        const normalizedName = folderName.toLowerCase();
+        if (existingNames.has(normalizedName)) {
+            continue;
+        }
+        existingNames.add(normalizedName);
+        const payload = buildStarterFolderPayload(folderName, String(blueprint?.icon || DEFAULT_STARTER_FOLDER_ICON));
+        await apiPostText('/plugins/folderview.plus/server/create.php', {
+            type: resolvedType,
+            content: JSON.stringify(payload)
+        });
+        createdNames.push(folderName);
+    }
+
+    if (createdNames.length > 0) {
+        await refreshType(resolvedType);
+    }
+
+    const assignment = await applySetupAssistantTemplateAssignmentsForType(resolvedType, plan);
+    return {
+        selected: plan.selectedCount,
+        created: createdNames.length,
+        skippedExisting: plan.skippedExisting,
+        assignment
+    };
 };
 
 const applySetupAssistantRulesForType = async (type) => {
@@ -1738,7 +2805,8 @@ const applySetupAssistantRulesForType = async (type) => {
         const folderId = resolveSetupAssistantFolderId(
             resolvedType,
             suggestion.folderName,
-            suggestion.folderIdHint || ''
+            suggestion.folderIdHint || '',
+            { allowPlanned: false }
         );
         if (!folderId) {
             skipped += 1;
@@ -1826,6 +2894,9 @@ const setupAssistantStepLabel = (stepKey) => {
     if (stepKey === 'profile') {
         return 'Profile';
     }
+    if (stepKey === 'templates') {
+        return 'Templates';
+    }
     if (stepKey === 'import') {
         return 'Import';
     }
@@ -1875,6 +2946,7 @@ const renderSetupAssistantSidebarSummary = (impactSummary) => {
         ? impactSummary
         : buildSetupAssistantImpactSummary();
     const importTotals = impact.imports?.totals || { totalOps: 0, creates: 0, updates: 0, deletes: 0 };
+    const templateTotals = impact.templates?.totals || { creatable: 0, autoAssignMatched: 0 };
     const prefsTotal = Number(impact.prefs?.totalChanges) || 0;
     const rulesTotal = Number(impact.rules?.creatable) || 0;
     const hasDeletes = Number(importTotals.deletes) > 0;
@@ -1894,9 +2966,11 @@ const renderSetupAssistantSidebarSummary = (impactSummary) => {
             </div>
             <div class="fv-setup-sidebar-stats">
                 <div><strong>${importTotals.totalOps}</strong><span>Import ops</span></div>
+                <div><strong>${templateTotals.creatable}</strong><span>Starter folders</span></div>
                 <div><strong>${prefsTotal}</strong><span>Setting changes</span></div>
                 <div><strong>${rulesTotal}</strong><span>Starter rules</span></div>
             </div>
+            ${templateTotals.autoAssignMatched > 0 ? `<p class="fv-setup-muted">Auto-assign matches: ${templateTotals.autoAssignMatched}</p>` : ''}
             ${hasDeletes ? '<p class="fv-setup-sidebar-alert"><i class="fa fa-exclamation-triangle"></i> Delete operations detected.</p>' : ''}
         </section>
     `;
@@ -2140,6 +3214,85 @@ const renderSetupAssistantImportStep = () => `
     </div>
 `;
 
+const getSetupAssistantTemplateCategoryLabel = (categoryId) => {
+    const normalized = normalizeStarterTemplateCategory(categoryId);
+    const fallback = normalized.replace(/[-_]+/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+    return String(STARTER_TEMPLATE_CATEGORY_META?.[normalized]?.label || fallback || 'Category');
+};
+
+const renderSetupAssistantTemplateTypeCard = (type) => {
+    const resolvedType = normalizeManagedType(type);
+    const title = resolvedType === 'docker' ? 'Docker' : 'VM';
+    const bootstrap = getSetupAssistantTemplateBootstrap(resolvedType);
+    const selection = refreshSetupAssistantTemplateSelection(resolvedType);
+    const categoryState = selection.categoryState;
+    const plan = buildSetupAssistantTemplatePlanForType(resolvedType);
+    const categoryOptions = categoryState.categoryIds.map((categoryId) => {
+        const count = (categoryState.categoryIndexBuckets.get(categoryId) || new Set()).size;
+        const label = `${getSetupAssistantTemplateCategoryLabel(categoryId)} (${count})`;
+        return `<option value="${escapeHtml(categoryId)}" ${bootstrap.category === categoryId ? 'selected' : ''}>${escapeHtml(label)}</option>`;
+    }).join('');
+    const selectedSet = new Set(serializeSetupAssistantTemplateSelections(bootstrap.selectedTemplateNames || []));
+    const visibleBlueprints = selection.visibleIndexes.map((index) => categoryState.blueprints[index]).filter(Boolean);
+    const rowsHtml = visibleBlueprints.map((blueprint) => {
+        const folderName = String(blueprint?.name || '').trim();
+        const iconPath = String(blueprint?.icon || '').trim() || DEFAULT_STARTER_FOLDER_ICON;
+        const checked = selectedSet.has(folderName);
+        return `
+            <label class="fv-setup-rule-row">
+                <input type="checkbox" data-fv-setup-template-item="${resolvedType}" data-fv-setup-template-name="${escapeHtml(folderName)}" ${checked ? 'checked' : ''} ${bootstrap.enabled ? '' : 'disabled'}>
+                <span class="fv-setup-rule-main"><img src="${escapeHtml(iconPath)}" alt="" style="width:14px;height:14px;object-fit:contain;margin-right:6px;vertical-align:text-bottom;">${escapeHtml(folderName)}</span>
+                <span class="fv-setup-rule-help">Template folder for ${escapeHtml(title)} workload grouping.</span>
+            </label>
+        `;
+    }).join('');
+    const autoAssignHint = plan.autoAssignEnabled
+        ? `${plan.assignment.matched} of ${plan.assignment.totalItems} detected ${resolvedType === 'docker' ? 'containers' : 'VMs'} match selected templates.`
+        : 'Enable Smart category + Auto-assign to map detected workloads into generated folders.';
+
+    return `
+        <section class="fv-setup-card" data-fv-card-tone="templates-${resolvedType}">
+            <label class="fv-setup-inline-toggle">
+                <input type="checkbox" data-fv-setup-templates-enable="${resolvedType}" ${bootstrap.enabled ? 'checked' : ''}>
+                Create ${title} starter folders (${plan.selectedCount} selected)
+            </label>
+            <div class="fv-setup-field-grid is-guided">
+                <label class="fv-setup-field">
+                    <span>Template category</span>
+                    <select data-fv-setup-template-category="${resolvedType}" ${bootstrap.enabled ? '' : 'disabled'}>
+                        ${categoryOptions}
+                    </select>
+                </label>
+            </div>
+            <div class="fv-setup-import-actions">
+                <button type="button" data-fv-setup-template-select-all="${resolvedType}" ${bootstrap.enabled ? '' : 'disabled'}><i class="fa fa-check-square-o"></i> Select visible</button>
+                <button type="button" data-fv-setup-template-clear-all="${resolvedType}" ${bootstrap.enabled ? '' : 'disabled'}><i class="fa fa-square-o"></i> Clear visible</button>
+            </div>
+            <div class="fv-setup-rule-list">
+                ${rowsHtml || '<div class="fv-setup-muted">No templates in this category.</div>'}
+            </div>
+            <label class="fv-setup-inline-toggle">
+                <input type="checkbox" data-fv-setup-template-autoassign="${resolvedType}" ${bootstrap.autoAssignExisting ? 'checked' : ''} ${bootstrap.enabled && bootstrap.category === 'smart' ? '' : 'disabled'}>
+                Smart auto-assign detected ${resolvedType === 'docker' ? 'containers' : 'VMs'} into generated folders
+            </label>
+            <div class="fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="4" data-fv-chip-key="templates-${resolvedType}-impact">
+                <span class="fv-setup-chip is-create">Create: ${plan.creatable}</span>
+                <span class="fv-setup-chip is-update">Selected: ${plan.selectedCount}</span>
+                <span class="fv-setup-chip">Skip existing: ${plan.skippedExisting}</span>
+                <span class="fv-setup-chip">${bootstrap.category === 'smart' ? `Auto-assign: ${plan.assignment.matched}/${plan.assignment.totalItems}` : 'Auto-assign: off'}</span>
+            </div>
+            <p class="fv-setup-muted">${escapeHtml(autoAssignHint)}</p>
+        </section>
+    `;
+};
+
+const renderSetupAssistantTemplatesStep = () => `
+    <div class="fv-setup-step-grid">
+        ${renderSetupAssistantTemplateTypeCard('docker')}
+        ${renderSetupAssistantTemplateTypeCard('vm')}
+    </div>
+`;
+
 const renderSetupAssistantRuleTypeCard = (type) => {
     const resolvedType = normalizeManagedType(type);
     const title = resolvedType === 'docker' ? 'Docker' : 'VM';
@@ -2169,7 +3322,7 @@ const renderSetupAssistantRuleTypeCard = (type) => {
                 <div class="fv-setup-rule-list">
                     ${rowsHtml}
                 </div>
-            ` : '<div class="fv-setup-muted">No suggestions available yet. Select import files first or create folders manually.</div>'}
+            ` : '<div class="fv-setup-muted">No suggestions available yet. Use the Templates step, import files, or create folders manually first.</div>'}
         </section>
     `;
 };
@@ -2243,6 +3396,7 @@ const renderSetupAssistantReviewStep = () => {
                 <span class="fv-setup-chip">Quick preset: ${escapeHtml(normalizeSetupAssistantQuickPresetState(setupAssistantState.quickPreset))}</span>
                 <span class="fv-setup-chip">Profile: ${escapeHtml(setupAssistantState.profile)}</span>
                 <span class="fv-setup-chip">Environment: ${escapeHtml(SETUP_ASSISTANT_ENV_PRESETS[setupAssistantState.environmentPreset]?.label || 'Home Lab')}</span>
+                <span class="fv-setup-chip">Starter folders: ${impact.templates.totals.creatable}</span>
                 <span class="fv-setup-chip">Dry run: ${setupAssistantState.dryRunOnly ? 'ON' : 'OFF'}</span>
             </div>
             <div class="fv-setup-impact-grid">
@@ -2261,6 +3415,15 @@ const renderSetupAssistantReviewStep = () => {
                         <span class="fv-setup-chip is-create">Create: ${impact.imports.totals.creates}</span>
                         <span class="fv-setup-chip is-update">Update: ${impact.imports.totals.updates}</span>
                         <span class="fv-setup-chip is-delete">Delete: ${impact.imports.totals.deletes}</span>
+                    </div>
+                </article>
+                <article class="fv-setup-impact-card" data-fv-card-tone="impact-templates">
+                    <h5>Starter folders</h5>
+                    <p>${impact.templates.totals.creatable} folder creates planned</p>
+                    <div class="fv-setup-chip-row" data-fv-chip-collapsible="1" data-fv-chip-max="3" data-fv-chip-key="review-impact-templates">
+                        <span class="fv-setup-chip">Selected: ${impact.templates.totals.selected}</span>
+                        <span class="fv-setup-chip">Skip existing: ${impact.templates.totals.skippedExisting}</span>
+                        <span class="fv-setup-chip">Auto-assign: ${impact.templates.totals.autoAssignMatched}</span>
                     </div>
                 </article>
                 <article class="fv-setup-impact-card" data-fv-card-tone="impact-rules">
@@ -2332,6 +3495,9 @@ const renderSetupAssistantStepBody = () => {
     if (step === 'profile') {
         return renderSetupAssistantProfileStep();
     }
+    if (step === 'templates') {
+        return renderSetupAssistantTemplatesStep();
+    }
     if (step === 'import') {
         return renderSetupAssistantImportStep();
     }
@@ -2373,6 +3539,7 @@ const buildSetupAssistantClipboardSummary = () => {
     const validation = getSetupAssistantStepValidation('review');
     const notes = buildSetupAssistantReviewNotes();
     const imports = impact?.imports?.totals || { totalOps: 0, creates: 0, updates: 0, deletes: 0 };
+    const templates = impact?.templates?.totals || { selected: 0, creatable: 0, skippedExisting: 0, autoAssignMatched: 0, autoAssignUnmatched: 0, autoAssignReviewNeeded: 0 };
     const prefs = impact?.prefs || { totalChanges: 0, byType: { docker: { count: 0 }, vm: { count: 0 } } };
     const rules = impact?.rules || { creatable: 0, selected: 0, duplicates: 0, unresolvedFolder: 0, invalidPattern: 0 };
 
@@ -2389,6 +3556,7 @@ const buildSetupAssistantClipboardSummary = () => {
         `Dry run: ${setupAssistantState.dryRunOnly ? 'ON' : 'OFF'}`,
         '',
         `Import operations: ${imports.totalOps} (create ${imports.creates}, update ${imports.updates}, delete ${imports.deletes})`,
+        `Starter folders: ${templates.creatable} (selected ${templates.selected}, skip existing ${templates.skippedExisting}, auto-assign matches ${templates.autoAssignMatched}, review needed ${templates.autoAssignReviewNeeded}, unmatched ${templates.autoAssignUnmatched})`,
         `Preference changes: ${prefs.totalChanges} (docker ${prefs.byType?.docker?.count || 0}, vm ${prefs.byType?.vm?.count || 0})`,
         `Starter rules: ${rules.creatable} (selected ${rules.selected}, duplicates ${rules.duplicates}, missing folder ${rules.unresolvedFolder}, invalid pattern ${rules.invalidPattern})`,
         `Total planned changes: ${impact.totalPlannedChanges}`,
@@ -2542,7 +3710,114 @@ const formatSetupAssistantSavedAt = (value) => {
     return formatted || raw;
 };
 
-const buildSetupAssistantVerificationReport = (importOutcomes, ruleOutcomes, validationWarnings = []) => {
+const toSetupAssistantDisplayText = (value, fallback = '-') => {
+    const text = String(value ?? '').trim();
+    return text || fallback;
+};
+
+const markSetupAssistantSwalModal = () => {
+    setTimeout(() => {
+        const modal = $('.sweet-alert:visible');
+        modal.addClass('fv-setup-swal-modal');
+        modal.css({
+            overflow: 'visible',
+            maxHeight: 'none'
+        });
+        modal.find('p').css({
+            maxHeight: 'none',
+            overflow: 'visible',
+            margin: 0,
+            padding: 0
+        });
+    }, 0);
+};
+
+const renderSetupAssistantSwalSummaryHtml = ({
+    metaRows = [],
+    detailRows = [],
+    warningLines = [],
+    noteLines = [],
+    failureLines = [],
+    footerText = ''
+} = {}) => {
+    const metaHtml = metaRows.length
+        ? `<div class="fv-setup-swal-meta">${metaRows.map((row) => `<span class="fv-setup-swal-chip"><strong>${escapeHtml(row.label)}:</strong><span>${escapeHtml(row.value)}</span></span>`).join('')}</div>`
+        : '';
+    const detailHtml = detailRows.length
+        ? `<div class="fv-setup-swal-table">${detailRows.map((row) => {
+            const label = escapeHtml(row.label);
+            const value = escapeHtml(row.value);
+            const isWide = row?.wide === true || String(row?.value || '').length > 54;
+            return `<div class="fv-setup-swal-row${isWide ? ' is-wide' : ''}"><span class="fv-setup-swal-row-label">${label}</span><span class="fv-setup-swal-row-value">${value}</span></div>`;
+        }).join('')}</div>`
+        : '';
+    const warningHtml = warningLines.length
+        ? `<div class="fv-setup-swal-listbox is-warning"><div class="fv-setup-swal-list-title">Warnings</div><ul class="fv-setup-swal-list">${warningLines.map((line) => `<li>${escapeHtml(line)}</li>`).join('')}</ul></div>`
+        : '';
+    const noteHtml = noteLines.length
+        ? `<div class="fv-setup-swal-listbox"><div class="fv-setup-swal-list-title">Match reasons</div><ul class="fv-setup-swal-list">${noteLines.map((line) => `<li>${escapeHtml(line)}</li>`).join('')}</ul></div>`
+        : '';
+    const failureHtml = failureLines.length
+        ? `<div class="fv-setup-swal-listbox is-failure"><div class="fv-setup-swal-list-title">Failed tasks</div><ul class="fv-setup-swal-list">${failureLines.map((line) => `<li>${escapeHtml(line)}</li>`).join('')}</ul></div>`
+        : '';
+    const footerHtml = footerText
+        ? `<div class="fv-setup-swal-footer">${escapeHtml(footerText)}</div>`
+        : '';
+    return `<div class="fv-setup-swal">${metaHtml}${detailHtml}${warningHtml}${noteHtml}${failureHtml}${footerHtml}</div>`;
+};
+
+const formatSetupAssistantTemplateSummaryValue = (label, entry = {}) => (
+    `${label ? `${label} ` : ''}${Number(entry.created ?? entry.creatable) || 0} created, `
+    + `${Number(entry.skippedExisting) || 0} skipped, `
+    + `${Number(entry.assignment?.matched ?? entry.autoAssignMatched) || 0} auto-assigned, `
+    + `${Number(entry.assignment?.reviewNeededCount ?? entry.autoAssignReviewNeeded) || 0} review needed, `
+    + `${Number(entry.assignment?.unmatched ?? entry.autoAssignUnmatched) || 0} unmatched`
+);
+
+const buildSetupAssistantTemplateReviewLines = (entries = {}) => {
+    const lines = [];
+    ['docker', 'vm'].forEach((type) => {
+        const entry = entries[type] || {};
+        const reviewItems = Array.isArray(entry.assignment?.reviewItems)
+            ? entry.assignment.reviewItems
+            : (Array.isArray(entry.autoAssignReviewItems) ? entry.autoAssignReviewItems : []);
+        reviewItems.slice(0, 4).forEach((item) => {
+            const itemName = String(item?.itemName || '').trim();
+            const templateName = String(item?.templateName || '').trim() || 'Needs review';
+            const reason = String(item?.reason || '').trim();
+            if (!itemName) {
+                return;
+            }
+            lines.push(`${type.toUpperCase()} ${itemName} -> ${templateName}${reason ? ` (${reason})` : ''}`);
+        });
+    });
+    return lines;
+};
+
+const buildSetupAssistantTemplateDecisionLines = (entries = {}) => {
+    const lines = [];
+    ['docker', 'vm'].forEach((type) => {
+        const entry = entries[type] || {};
+        const itemDetails = Array.isArray(entry.assignment?.itemDetails)
+            ? entry.assignment.itemDetails
+            : (Array.isArray(entry.autoAssignItemDetails) ? entry.autoAssignItemDetails : []);
+        itemDetails
+            .filter((item) => String(item?.confidence || '') === 'high')
+            .slice(0, 3)
+            .forEach((item) => {
+                const itemName = String(item?.itemName || '').trim();
+                const templateName = String(item?.templateName || '').trim();
+                const reason = String(item?.reason || '').trim();
+                if (!itemName || !templateName) {
+                    return;
+                }
+                lines.push(`${type.toUpperCase()} ${itemName} -> ${templateName}${reason ? ` (${reason})` : ''}`);
+            });
+    });
+    return lines;
+};
+
+const buildSetupAssistantVerificationReport = (importOutcomes, templateOutcomes, ruleOutcomes, validationWarnings = []) => {
     const checks = [];
     const register = (label, ok, detail = '') => {
         checks.push({
@@ -2557,6 +3832,30 @@ const buildSetupAssistantVerificationReport = (importOutcomes, ruleOutcomes, val
         register(`${type.toUpperCase()} mode persisted`, prefs.settingsMode === setupAssistantState.mode, `Expected ${setupAssistantState.mode}`);
         if ((importOutcomes?.[type] || 0) > 0) {
             register(`${type.toUpperCase()} import applied`, true, `${importOutcomes[type]} operations`);
+        }
+        const templateOutcome = templateOutcomes?.[type] || {};
+        const templateBootstrap = getSetupAssistantTemplateBootstrap(type);
+        const selectedTemplateNames = serializeSetupAssistantTemplateSelections(templateBootstrap?.selectedTemplateNames || []);
+        if (templateBootstrap?.enabled === true && selectedTemplateNames.length > 0) {
+            const folders = getFolderMap(type);
+            const folderNameSet = new Set(
+                Object.values(folders || {})
+                    .map((folder) => String(folder?.name || '').trim().toLowerCase())
+                    .filter(Boolean)
+            );
+            const missingNames = selectedTemplateNames.filter((name) => !folderNameSet.has(String(name || '').trim().toLowerCase()));
+            register(
+                `${type.toUpperCase()} starter folders present`,
+                missingNames.length === 0,
+                missingNames.length ? `Missing: ${missingNames.join(', ')}` : `${selectedTemplateNames.length} selected`
+            );
+            if (templateOutcome?.assignment?.enabled === true) {
+                register(
+                    `${type.toUpperCase()} smart auto-assign completed`,
+                    true,
+                    `${Number(templateOutcome.assignment.matched) || 0}/${Number(templateOutcome.assignment.totalItems) || 0} matched`
+                );
+            }
         }
         if ((ruleOutcomes?.[type]?.created || 0) > 0) {
             register(`${type.toUpperCase()} starter rules created`, true, `${ruleOutcomes[type].created} created`);
@@ -2773,31 +4072,50 @@ const openSetupAssistant = (force = false) => {
 const confirmSetupAssistantApply = async (impactSummary, reviewValidation) => (
     new Promise((resolve) => {
         const totals = impactSummary?.imports?.totals || { creates: 0, updates: 0, deletes: 0, totalOps: 0 };
+        const templateTotals = impactSummary?.templates?.totals || {
+            selected: 0,
+            creatable: 0,
+            skippedExisting: 0,
+            autoAssignMatched: 0,
+            autoAssignUnmatched: 0,
+            autoAssignReviewNeeded: 0
+        };
         const prefsTotal = Number(impactSummary?.prefs?.totalChanges) || 0;
         const rulesTotal = Number(impactSummary?.rules?.creatable) || 0;
         const hasDeletes = Number(totals.deletes) > 0;
-        const lines = [
-            `Route: ${setupAssistantState.route}`,
-            `Mode: ${setupAssistantState.mode}`,
-            `Wizard detail: ${normalizeSetupAssistantExperienceMode(setupAssistantState.experienceMode)}`,
-            `Safety mode: ${normalizeSetupAssistantSafetyMode(setupAssistantState.applySafetyMode)}`,
-            `Imports: ${totals.totalOps} ops (create ${totals.creates}, update ${totals.updates}, delete ${totals.deletes})`,
-            `Settings: ${prefsTotal} changes`,
-            `Starter rules: ${rulesTotal}`,
-            `Dry run: ${setupAssistantState.dryRunOnly ? 'ON' : 'OFF'}`
-        ];
-        if (reviewValidation?.warnings?.length) {
-            lines.push(`Warnings: ${reviewValidation.warnings.length}`);
-        }
+        const reviewLines = buildSetupAssistantTemplateReviewLines(impactSummary?.templates?.byType || {});
+        const decisionLines = buildSetupAssistantTemplateDecisionLines(impactSummary?.templates?.byType || {});
+        const html = renderSetupAssistantSwalSummaryHtml({
+            metaRows: [
+                { label: 'Route', value: toSetupAssistantDisplayText(setupAssistantState.route) },
+                { label: 'Mode', value: toSetupAssistantDisplayText(setupAssistantState.mode) },
+                { label: 'Wizard detail', value: normalizeSetupAssistantExperienceMode(setupAssistantState.experienceMode) },
+                { label: 'Safety mode', value: normalizeSetupAssistantSafetyMode(setupAssistantState.applySafetyMode) },
+                { label: 'Dry run', value: setupAssistantState.dryRunOnly ? 'ON' : 'OFF' }
+            ],
+            detailRows: [
+                { label: 'Imports', value: `${totals.totalOps} ops (create ${totals.creates}, update ${totals.updates}, delete ${totals.deletes})` },
+                { label: 'Starter folders', value: `${templateTotals.creatable} create (selected ${templateTotals.selected}, skip existing ${templateTotals.skippedExisting})` },
+                { label: 'Template auto-assign', value: `${templateTotals.autoAssignMatched} matched / ${templateTotals.autoAssignReviewNeeded} review needed / ${templateTotals.autoAssignUnmatched} unmatched`, wide: true },
+                { label: 'Settings', value: `${prefsTotal} changes` },
+                { label: 'Starter rules', value: `${rulesTotal}` }
+            ],
+            warningLines: (Array.isArray(reviewValidation?.warnings) ? reviewValidation.warnings.slice(0, 5) : []).concat(reviewLines).slice(0, 8),
+            noteLines: decisionLines,
+            footerText: 'Proceed to apply these changes?'
+        });
         swal({
             title: setupAssistantState.dryRunOnly ? 'Run setup dry run?' : 'Apply setup assistant changes?',
-            text: lines.join('\n'),
+            text: html,
+            html: true,
+            customClass: 'fv-setup-swal-modal',
             type: hasDeletes && setupAssistantState.dryRunOnly !== true ? 'warning' : 'info',
             showCancelButton: true,
             confirmButtonText: setupAssistantState.dryRunOnly ? 'Run dry run' : 'Apply now',
             cancelButtonText: 'Keep editing',
             closeOnConfirm: true
         }, (isConfirm) => resolve(isConfirm === true));
+        markSetupAssistantSwalModal();
     })
 );
 
@@ -2836,6 +4154,13 @@ const retrySetupAssistantFailures = async (failures = []) => {
                 renderSetupAssistant();
                 await applySetupAssistantRulesForType(type);
                 resolved += 1;
+            } else if (phase === 'templates') {
+                setSetupAssistantProgress(`Retrying ${type.toUpperCase()} starter templates...`, progressBase);
+                renderSetupAssistant();
+                await applySetupAssistantTemplatesForType(type);
+                await refreshType(type);
+                refreshSetupAssistantRuleSuggestions();
+                resolved += 1;
             } else {
                 remaining.push(entry);
             }
@@ -2856,11 +4181,35 @@ const retrySetupAssistantFailures = async (failures = []) => {
     };
 };
 
-const confirmSetupAssistantUndo = async (summaryText, canUndo = true) => (
+const confirmSetupAssistantUndo = async (summaryPayload, canUndo = true) => (
     new Promise((resolve) => {
+        const html = typeof summaryPayload === 'string'
+            ? renderSetupAssistantSwalSummaryHtml({
+                detailRows: summaryPayload
+                    .split('\n')
+                    .map((line) => String(line || '').trim())
+                    .filter(Boolean)
+                    .map((line) => {
+                        const separator = line.indexOf(':');
+                        if (separator <= 0) {
+                            return { label: 'Info', value: line };
+                        }
+                        return {
+                            label: line.slice(0, separator).trim(),
+                            value: line.slice(separator + 1).trim()
+                        };
+                    }),
+                footerText: canUndo ? 'Undo this setup now?' : ''
+            })
+            : renderSetupAssistantSwalSummaryHtml({
+                ...(summaryPayload && typeof summaryPayload === 'object' ? summaryPayload : {}),
+                footerText: canUndo ? 'Undo this setup now?' : ''
+            });
         swal({
             title: 'Setup assistant complete',
-            text: canUndo ? `${summaryText}\n\nUndo this setup now?` : summaryText,
+            text: html,
+            html: true,
+            customClass: 'fv-setup-swal-modal',
             type: 'success',
             showCancelButton: canUndo === true,
             confirmButtonText: canUndo ? 'Undo setup' : 'Done',
@@ -2868,6 +4217,7 @@ const confirmSetupAssistantUndo = async (summaryText, canUndo = true) => (
             showLoaderOnConfirm: canUndo === true,
             closeOnConfirm: canUndo !== true
         }, (undoNow) => resolve(undoNow === true));
+        markSetupAssistantSwalModal();
     })
 );
 
@@ -2909,6 +4259,38 @@ const applySetupAssistantPlan = async () => {
     const applyFailures = [];
     const ruleOutcomes = { docker: { created: 0, skipped: 0 }, vm: { created: 0, skipped: 0 } };
     const importOutcomes = { docker: 0, vm: 0 };
+    const templateOutcomes = {
+        docker: {
+            selected: 0,
+            created: 0,
+            skippedExisting: 0,
+            assignment: {
+                enabled: false,
+                totalItems: 0,
+                matched: 0,
+                unmatched: 0,
+                reviewNeededCount: 0,
+                reviewItems: [],
+                itemDetails: [],
+                updatedFolders: 0
+            }
+        },
+        vm: {
+            selected: 0,
+            created: 0,
+            skippedExisting: 0,
+            assignment: {
+                enabled: false,
+                totalItems: 0,
+                matched: 0,
+                unmatched: 0,
+                reviewNeededCount: 0,
+                reviewItems: [],
+                itemDetails: [],
+                updatedFolders: 0
+            }
+        }
+    };
     try {
         if (setupAssistantState.dryRunOnly === true) {
             await new Promise((resolve) => setTimeout(resolve, 140));
@@ -2922,6 +4304,7 @@ const applySetupAssistantPlan = async () => {
                 `Environment: ${SETUP_ASSISTANT_ENV_PRESETS[setupAssistantState.environmentPreset]?.label || 'Home Lab'}`,
                 `Preference changes planned: ${impactSummary.prefs.totalChanges}`,
                 `Import operations planned: ${impactSummary.imports.totals.totalOps}`,
+                `Starter folders planned: ${impactSummary.templates.totals.creatable} (selected ${impactSummary.templates.totals.selected}, auto-assign matches ${impactSummary.templates.totals.autoAssignMatched}, review needed ${impactSummary.templates.totals.autoAssignReviewNeeded}, unmatched ${impactSummary.templates.totals.autoAssignUnmatched})`,
                 `Starter rules planned: ${impactSummary.rules.creatable}`,
                 `Warnings: ${reviewValidation.warnings.length ? reviewValidation.warnings.join(' | ') : 'None'}`
             ];
@@ -2996,10 +4379,31 @@ const applySetupAssistantPlan = async () => {
             }
         }
 
-        setSetupAssistantProgress('Applying starter rules...', 72);
+        setSetupAssistantProgress('Creating starter folders...', 72);
         renderSetupAssistant();
         for (const type of ['docker', 'vm']) {
             try {
+                const startPercent = type === 'docker' ? 74 : 82;
+                setSetupAssistantProgress(`Creating ${type.toUpperCase()} starter folders...`, startPercent);
+                renderSetupAssistant();
+                templateOutcomes[type] = await applySetupAssistantTemplatesForType(type);
+            } catch (error) {
+                applyFailures.push({
+                    phase: 'templates',
+                    type,
+                    message: String(error?.message || error)
+                });
+            }
+        }
+        refreshSetupAssistantRuleSuggestions();
+
+        setSetupAssistantProgress('Applying starter rules...', 88);
+        renderSetupAssistant();
+        for (const type of ['docker', 'vm']) {
+            try {
+                const startPercent = type === 'docker' ? 90 : 93;
+                setSetupAssistantProgress(`Applying ${type.toUpperCase()} starter rules...`, startPercent);
+                renderSetupAssistant();
                 ruleOutcomes[type] = await applySetupAssistantRulesForType(type);
             } catch (error) {
                 applyFailures.push({
@@ -3010,13 +4414,13 @@ const applySetupAssistantPlan = async () => {
             }
         }
 
-        setSetupAssistantProgress('Refreshing settings...', 86);
+        setSetupAssistantProgress('Refreshing settings...', 95);
         renderSetupAssistant();
         await refreshAll();
         refreshSettingsUx();
         captureSettingsBaseline();
 
-        setSetupAssistantProgress('Running validation checks...', 95);
+        setSetupAssistantProgress('Running validation checks...', 97);
         renderSetupAssistant();
         const validationWarnings = [];
         for (const type of ['docker', 'vm']) {
@@ -3029,7 +4433,7 @@ const applySetupAssistantPlan = async () => {
             }
         }
 
-        const verification = buildSetupAssistantVerificationReport(importOutcomes, ruleOutcomes, validationWarnings);
+        const verification = buildSetupAssistantVerificationReport(importOutcomes, templateOutcomes, ruleOutcomes, validationWarnings);
         if (safetyMode === 'strict' && (validationWarnings.length > 0 || applyFailures.length > 0 || verification.passed < verification.total)) {
             throw new Error('Strict safety checks failed after apply. Rolling back to previous checkpoint.');
         }
@@ -3061,6 +4465,8 @@ const applySetupAssistantPlan = async () => {
             `Environment defaults: ${setupAssistantState.applyEnvironmentDefaults ? (SETUP_ASSISTANT_ENV_PRESETS[setupAssistantState.environmentPreset]?.label || 'Home Lab') : 'not applied'}`,
             `Docker import operations: ${importOutcomes.docker}`,
             `VM import operations: ${importOutcomes.vm}`,
+            `Docker starter folders: ${formatSetupAssistantTemplateSummaryValue('', templateOutcomes.docker)}`,
+            `VM starter folders: ${formatSetupAssistantTemplateSummaryValue('', templateOutcomes.vm)}`,
             `Docker starter rules added: ${ruleOutcomes.docker.created}`,
             `VM starter rules added: ${ruleOutcomes.vm.created}`,
             `Estimated preference changes: ${impactSummary.prefs.totalChanges}`,
@@ -3068,8 +4474,16 @@ const applySetupAssistantPlan = async () => {
             checkpointText,
             `Duration: ${durationSeconds}s`
         ];
+        const templateReviewLines = buildSetupAssistantTemplateReviewLines(templateOutcomes);
+        const templateDecisionLines = buildSetupAssistantTemplateDecisionLines(templateOutcomes);
         if (validationWarnings.length) {
             summaryLines.push(`Validation warnings: ${validationWarnings.join(' | ')}`);
+        }
+        if (templateReviewLines.length) {
+            summaryLines.push(`Needs review: ${templateReviewLines.join(' | ')}`);
+        }
+        if (templateDecisionLines.length) {
+            summaryLines.push(`Auto-assign highlights: ${templateDecisionLines.join(' | ')}`);
         }
         if (applyFailures.length) {
             summaryLines.push(`Retryable failures: ${applyFailures.length}`);
@@ -3084,14 +4498,42 @@ const applySetupAssistantPlan = async () => {
             summaryLines,
             validationWarnings,
             failures: applyFailures,
+            templateOutcomes,
             verification
         };
+        if (typeof addActivityEntry === 'function') {
+            addActivityEntry(
+                `Setup assistant applied: Docker ${Number(templateOutcomes.docker.assignment?.matched) || 0} auto-assigned / ${Number(templateOutcomes.docker.assignment?.reviewNeededCount) || 0} review, VM ${Number(templateOutcomes.vm.assignment?.matched) || 0} auto-assigned / ${Number(templateOutcomes.vm.assignment?.reviewNeededCount) || 0} review.`,
+                applyFailures.length > 0 ? 'warning' : 'success'
+            );
+        }
 
         if (applyFailures.length > 0) {
             const retryNow = await new Promise((resolve) => {
+                const failureSummaryHtml = renderSetupAssistantSwalSummaryHtml({
+                    metaRows: [
+                        { label: 'Mode', value: toSetupAssistantDisplayText(setupAssistantState.mode) },
+                        { label: 'Route', value: toSetupAssistantDisplayText(setupAssistantState.route) },
+                        { label: 'Wizard detail', value: normalizeSetupAssistantExperienceMode(setupAssistantState.experienceMode) },
+                        { label: 'Safety mode', value: safetyMode }
+                    ],
+                    detailRows: [
+                        { label: 'Imports', value: `Docker ${importOutcomes.docker} | VM ${importOutcomes.vm}` },
+                        { label: 'Starter folders', value: `${formatSetupAssistantTemplateSummaryValue('Docker', templateOutcomes.docker)} | ${formatSetupAssistantTemplateSummaryValue('VM', templateOutcomes.vm)}`, wide: true },
+                        { label: 'Starter rules', value: `Docker ${ruleOutcomes.docker.created} added | VM ${ruleOutcomes.vm.created} added`, wide: true },
+                        { label: 'Verification', value: `${verification.passed}/${verification.total} checks passed` },
+                        { label: 'Retryable failures', value: `${applyFailures.length}` }
+                    ],
+                    warningLines: validationWarnings.slice(0, 5).concat(templateReviewLines).slice(0, 8),
+                    noteLines: templateDecisionLines,
+                    failureLines: applyFailures.slice(0, 8).map((entry) => `${String(entry.phase || '').toUpperCase()} ${String(entry.type || '').toUpperCase()}: ${String(entry.message || '').trim()}`),
+                    footerText: 'Retry failed tasks now?'
+                });
                 swal({
                     title: 'Setup applied with partial failures',
-                    text: `${summaryLines.join('\n')}\n\nRetry failed tasks now?`,
+                    text: failureSummaryHtml,
+                    html: true,
+                    customClass: 'fv-setup-swal-modal',
                     type: 'warning',
                     showCancelButton: true,
                     confirmButtonText: 'Retry failures',
@@ -3099,6 +4541,7 @@ const applySetupAssistantPlan = async () => {
                     showLoaderOnConfirm: true,
                     closeOnConfirm: false
                 }, (isConfirm) => resolve(isConfirm === true));
+                markSetupAssistantSwalModal();
             });
 
             if (retryNow) {
@@ -3121,7 +4564,27 @@ const applySetupAssistantPlan = async () => {
             return;
         }
 
-        const undoNow = await confirmSetupAssistantUndo(summaryLines.join('\n'), rollbackCreated);
+        const undoNow = await confirmSetupAssistantUndo({
+            metaRows: [
+                { label: 'Mode', value: toSetupAssistantDisplayText(setupAssistantState.mode) },
+                { label: 'Route', value: toSetupAssistantDisplayText(setupAssistantState.route) },
+                { label: 'Wizard detail', value: normalizeSetupAssistantExperienceMode(setupAssistantState.experienceMode) },
+                { label: 'Safety mode', value: safetyMode }
+            ],
+            detailRows: [
+                { label: 'Profile defaults', value: setupAssistantState.applyProfileDefaults ? setupAssistantState.profile : 'not applied' },
+                { label: 'Environment defaults', value: setupAssistantState.applyEnvironmentDefaults ? (SETUP_ASSISTANT_ENV_PRESETS[setupAssistantState.environmentPreset]?.label || 'Home Lab') : 'not applied' },
+                { label: 'Imports', value: `Docker ${importOutcomes.docker} | VM ${importOutcomes.vm}` },
+                { label: 'Starter folders', value: `${formatSetupAssistantTemplateSummaryValue('Docker', templateOutcomes.docker)} | ${formatSetupAssistantTemplateSummaryValue('VM', templateOutcomes.vm)}`, wide: true },
+                { label: 'Starter rules', value: `Docker ${ruleOutcomes.docker.created} added | VM ${ruleOutcomes.vm.created} added`, wide: true },
+                { label: 'Preference changes', value: `${impactSummary.prefs.totalChanges}` },
+                { label: 'Verification', value: `${verification.passed}/${verification.total} checks passed` },
+                { label: 'Rollback checkpoint', value: setupAssistantState.rollbackCheckpointName || (rollbackCreated ? 'created' : 'skipped (Fast mode)'), wide: true },
+                { label: 'Duration', value: `${durationSeconds}s` }
+            ],
+            warningLines: validationWarnings.slice(0, 5).concat(templateReviewLines).slice(0, 8),
+            noteLines: templateDecisionLines
+        }, rollbackCreated);
         if (!undoNow || !rollbackCreated) {
             return;
         }
@@ -3233,6 +4696,16 @@ const bindSetupAssistantEvents = () => {
             setupAssistantState.applyProfileDefaults = true;
             setupAssistantState.applyEnvironmentDefaults = true;
         }
+        for (const type of ['docker', 'vm']) {
+            const bootstrap = getSetupAssistantTemplateBootstrap(type);
+            bootstrap.enabled = setupAssistantState.route === 'new';
+            if (bootstrap.enabled) {
+                refreshSetupAssistantTemplateSelection(type, { forceAllSelected: true });
+            } else {
+                bootstrap.autoAssignExisting = false;
+            }
+        }
+        refreshSetupAssistantRuleSuggestions();
         clampSetupAssistantStep();
         rerender();
     });
@@ -3418,6 +4891,68 @@ const bindSetupAssistantEvents = () => {
             clearSetupAssistantProgress();
             rerender();
         }
+    });
+    root.find('[data-fv-setup-templates-enable]').off('change.fvsetup').on('change.fvsetup', (event) => {
+        const type = normalizeManagedType($(event.currentTarget).attr('data-fv-setup-templates-enable'));
+        const bootstrap = getSetupAssistantTemplateBootstrap(type);
+        bootstrap.enabled = $(event.currentTarget).prop('checked') === true;
+        if (bootstrap.enabled) {
+            refreshSetupAssistantTemplateSelection(type, { forceAllSelected: true });
+        } else {
+            bootstrap.autoAssignExisting = false;
+        }
+        refreshSetupAssistantRuleSuggestions();
+        rerender();
+    });
+    root.find('[data-fv-setup-template-category]').off('change.fvsetup').on('change.fvsetup', (event) => {
+        const type = normalizeManagedType($(event.currentTarget).attr('data-fv-setup-template-category'));
+        const bootstrap = getSetupAssistantTemplateBootstrap(type);
+        bootstrap.category = normalizeSetupAssistantTemplateCategory(type, $(event.currentTarget).val());
+        refreshSetupAssistantTemplateSelection(type, { resetSelection: true, forceAllSelected: true, category: bootstrap.category });
+        refreshSetupAssistantRuleSuggestions();
+        rerender();
+    });
+    root.find('[data-fv-setup-template-select-all]').off('click.fvsetup').on('click.fvsetup', (event) => {
+        const type = normalizeManagedType($(event.currentTarget).attr('data-fv-setup-template-select-all'));
+        const selection = refreshSetupAssistantTemplateSelection(type);
+        const bootstrap = getSetupAssistantTemplateBootstrap(type);
+        bootstrap.selectedTemplateNames = selection.visibleNames.slice();
+        refreshSetupAssistantRuleSuggestions();
+        rerender();
+    });
+    root.find('[data-fv-setup-template-clear-all]').off('click.fvsetup').on('click.fvsetup', (event) => {
+        const type = normalizeManagedType($(event.currentTarget).attr('data-fv-setup-template-clear-all'));
+        const bootstrap = getSetupAssistantTemplateBootstrap(type);
+        bootstrap.selectedTemplateNames = [];
+        refreshSetupAssistantRuleSuggestions();
+        rerender();
+    });
+    root.find('[data-fv-setup-template-item]').off('change.fvsetup').on('change.fvsetup', (event) => {
+        const type = normalizeManagedType($(event.currentTarget).attr('data-fv-setup-template-item'));
+        const templateName = String($(event.currentTarget).attr('data-fv-setup-template-name') || '').trim();
+        if (!templateName) {
+            return;
+        }
+        const bootstrap = getSetupAssistantTemplateBootstrap(type);
+        const selected = new Set(serializeSetupAssistantTemplateSelections(bootstrap.selectedTemplateNames || []));
+        if ($(event.currentTarget).prop('checked') === true) {
+            selected.add(templateName);
+        } else {
+            selected.delete(templateName);
+        }
+        bootstrap.selectedTemplateNames = Array.from(selected);
+        refreshSetupAssistantRuleSuggestions();
+        rerender();
+    });
+    root.find('[data-fv-setup-template-autoassign]').off('change.fvsetup').on('change.fvsetup', (event) => {
+        const type = normalizeManagedType($(event.currentTarget).attr('data-fv-setup-template-autoassign'));
+        const bootstrap = getSetupAssistantTemplateBootstrap(type);
+        if (bootstrap.category !== 'smart') {
+            bootstrap.autoAssignExisting = false;
+        } else {
+            bootstrap.autoAssignExisting = $(event.currentTarget).prop('checked') === true;
+        }
+        rerender();
     });
     root.find('[data-fv-setup-rules-enable]').off('change.fvsetup').on('change.fvsetup', (event) => {
         const type = normalizeManagedType($(event.currentTarget).attr('data-fv-setup-rules-enable'));

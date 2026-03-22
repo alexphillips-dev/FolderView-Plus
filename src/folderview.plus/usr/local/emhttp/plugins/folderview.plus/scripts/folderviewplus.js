@@ -4557,6 +4557,13 @@ const stopActiveTableColumnResize = (persist = true) => {
     if (!active) {
         return;
     }
+    if (active.handle && active.pointerId !== null && typeof active.handle.releasePointerCapture === 'function') {
+        try {
+            if (typeof active.handle.hasPointerCapture !== 'function' || active.handle.hasPointerCapture(active.pointerId)) {
+                active.handle.releasePointerCapture(active.pointerId);
+            }
+        } catch (_error) {}
+    }
     document.body.classList.remove('fv-column-resize-active');
     window.removeEventListener('pointermove', active.onMove, true);
     window.removeEventListener('pointerup', active.onUp, true);
@@ -4587,6 +4594,8 @@ const beginTableColumnResize = (type, key, event) => {
     if (!config) {
         return;
     }
+    const handle = event.currentTarget instanceof Element ? event.currentTarget : null;
+    const pointerId = Number.isFinite(Number(event.pointerId)) ? Number(event.pointerId) : null;
     const startClientX = Number(event.clientX || 0);
     const header = table.querySelector(config.header);
     if (!header) {
@@ -4617,6 +4626,9 @@ const beginTableColumnResize = (type, key, event) => {
         document.body.classList.add('fv-column-resize-active');
     };
     const onMove = (moveEvent) => {
+        if (pointerId !== null && Number(moveEvent.pointerId) !== pointerId) {
+            return;
+        }
         const delta = Number(moveEvent.clientX || 0) - startClientX;
         if (!dragStarted && Math.abs(delta) < 4) {
             return;
@@ -4632,13 +4644,18 @@ const beginTableColumnResize = (type, key, event) => {
         });
         applyColumnWidths(resolvedType);
     };
-    const onUp = () => {
+    const onUp = (upEvent) => {
+        if (pointerId !== null && Number(upEvent?.pointerId) !== pointerId) {
+            return;
+        }
         stopActiveTableColumnResize(true);
     };
     const onCancel = onUp;
     activeTableColumnResize = {
         type: resolvedType,
         dragStarted: false,
+        handle,
+        pointerId,
         onMove,
         onUp,
         onCancel
@@ -4652,6 +4669,11 @@ const beginTableColumnResize = (type, key, event) => {
     window.addEventListener('pointermove', onMove, true);
     window.addEventListener('pointerup', onUp, true);
     window.addEventListener('pointercancel', onCancel, true);
+    if (handle && pointerId !== null && typeof handle.setPointerCapture === 'function') {
+        try {
+            handle.setPointerCapture(pointerId);
+        } catch (_error) {}
+    }
     event.preventDefault();
     event.stopPropagation();
 };

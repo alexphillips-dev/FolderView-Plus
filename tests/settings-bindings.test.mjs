@@ -267,6 +267,9 @@ test('settings column resize keeps per-column widths stable without side-effects
     assert.match(script, /const frozenWidths = captureCurrentColumnWidths\(resolvedType\);/);
     assert.match(script, /if \(!dragStarted && Math\.abs\(delta\) < 4\) \{/);
     assert.match(script, /const startResize = \(\) => \{/);
+    assert.match(script, /handle\.setPointerCapture\(pointerId\)/);
+    assert.match(script, /handle\.releasePointerCapture\(active\.pointerId\)/);
+    assert.match(script, /if \(pointerId !== null && Number\(moveEvent\.pointerId\) !== pointerId\) \{/);
     assert.match(script, /table\.style\.setProperty\('table-layout', 'fixed'(,\s*'important')?\);/);
     assert.match(script, /const delta = Number\(moveEvent\.clientX \|\| 0\) - startClientX;/);
     assert.match(script, /columnWidthsByType\[resolvedType\] = \{\};/);

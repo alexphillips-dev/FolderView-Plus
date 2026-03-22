@@ -6,12 +6,26 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.22.17">
-<!ENTITY md5 "d025de443b371918f471edb18a62d3e7">
+<!ENTITY version "2026.03.22.19">
+<!ENTITY md5 "5869a0660244b8cb688c32158b7356bd">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.22.19
+- Fix: Fix settings table column drag activation.
+- Fix: Fix settings table column layout drift.
+- Maintenance: Mark dev builds as preview channel.
+- Maintenance: Restore canonical plugin manifest metadata.
+- Maintenance: Update manifest hardening guard coverage.
+- Maintenance: Harden plugin manifest update metadata.
+
+
+###2026.03.22.18
+- Fix: Keep settings-table column drags active for the full pointer hold by capturing the resize pointer on the handle until release.
+- UX: Ignore unrelated pointer events during settings-table resize so long drags no longer stall mid-adjustment.
+
 
 ###2026.03.22.17
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

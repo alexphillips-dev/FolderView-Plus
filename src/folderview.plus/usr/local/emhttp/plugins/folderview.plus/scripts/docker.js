@@ -242,16 +242,17 @@ const normalizeFolderPreviewRowLimit = (settings = {}) => {
     return Math.max(1, Math.min(4, parsed));
 };
 const getFolderPreviewItemsPerRow = (settings = {}) => {
+    const compactMultiRow = isCompactMultiRowPreview(settings);
     switch (Number(settings?.preview || 0)) {
         case 2:
             return 10;
         case 3:
-            return 5;
+            return compactMultiRow ? 4 : 5;
         case 4:
             return 4;
         case 1:
         default:
-            return 4;
+            return compactMultiRow ? 3 : 4;
     }
 };
 const isCompactMultiRowPreview = (settings = {}) => {
@@ -309,8 +310,11 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
                     <span class="outer fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-${previewMode}${autostartClass}">
                         <span class="inner fv-preview-trigger">
                             <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span>
+                            <span class="fv-preview-meta-compact">
                             <span class="fv-preview-status-compact ${previewStateMeta.className}" title="${previewStatusTitle}">
                                 <i class="fa ${previewStateMeta.icon}" aria-hidden="true"></i><span class="state ${previewStateMeta.className}"> ${stateLabel}</span>
+                            </span>
+                            <span class="fv-preview-actions-compact"></span>
                             </span>
                         </span>
                     </span>
@@ -324,8 +328,11 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
                         <span class="hand fv-preview-trigger"><img src="${safeIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'${imageStyle}></span>
                         <span class="inner fv-preview-trigger">
                             <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span>
+                            <span class="fv-preview-meta-compact">
                             <span class="fv-preview-status-compact ${previewStateMeta.className}" title="${previewStatusTitle}">
                                 <i class="fa ${previewStateMeta.icon}" aria-hidden="true"></i><span class="state ${previewStateMeta.className}"> ${stateLabel}</span>
+                            </span>
+                            <span class="fv-preview-actions-compact"></span>
                             </span>
                         </span>
                     </span>
@@ -3511,7 +3518,9 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
             }
 
             // Determine the element to append WebUI/Console/Logs icons to
-            $targetForAppend = $previewElementTarget.children('span.inner').last();
+            $targetForAppend = compactMultiRowPreview
+                ? $previewElementTarget.find('.fv-preview-actions-compact').first()
+                : $previewElementTarget.children('span.inner').last();
             if (!$targetForAppend.length) {
                 $targetForAppend = $previewElementTarget; // Fallback to the main span if no inner span
             }

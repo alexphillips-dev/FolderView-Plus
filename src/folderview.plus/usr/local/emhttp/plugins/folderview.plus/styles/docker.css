@@ -420,27 +420,43 @@ tr.folder.fv-parent-expanded div.folder-preview {
 
 .folder-preview.fv-preview-multirow .fv-docker-preview-card-compact .appname {
     display: inline-block;
-    max-width: clamp(88px, 10vw, 132px);
+    max-width: clamp(96px, 11vw, 148px);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.folder-preview.fv-preview-multirow .fv-preview-meta-compact {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    white-space: nowrap;
 }
 
 .folder-preview.fv-preview-multirow .fv-preview-status-compact {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    margin-left: 2px;
     white-space: nowrap;
     font-size: 0.92em;
+    flex: 0 0 auto;
 }
 
 .folder-preview.fv-preview-multirow .fv-preview-status-compact .state {
     white-space: nowrap;
 }
 
+.folder-preview.fv-preview-multirow .fv-preview-actions-compact {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: 2px;
+    flex: 0 0 auto;
+}
+
 .folder-preview.fv-preview-multirow .fv-docker-preview-card-compact .folder-element-custom-btn {
-    margin-left: 0.38em;
+    margin-left: 0;
 }
 
 .folder-preview.fv-preview-multirow .fv-docker-preview-card-compact .folder-element-custom-btn a {

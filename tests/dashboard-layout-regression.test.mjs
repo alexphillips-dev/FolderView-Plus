@@ -84,6 +84,9 @@ test('server normalizes compact matrix dashboard layout', () => {
 test('dashboard runtime supports layout classes, accordion guards, and overflow metadata', () => {
     assert.match(dashboardScript, /const DASHBOARD_LAYOUT_MODES = \['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'\]/);
     assert.match(dashboardScript, /const isDashboardLegacyLayoutForType = \(type\) =>/);
+    assert.match(dashboardScript, /const restoreDashboardNativeRowsForType = async \(type\) =>/);
+    assert.match(dashboardScript, /const rerenderDashboardWidgetStructureForType = async \(type\) =>/);
+    assert.match(dashboardScript, /const prepareDashboardFolderRequestsForType = \(type\) =>/);
     assert.match(dashboardScript, /const ensureDashboardWidgetLayoutQuickSwitchForType = \(type\) =>/);
     assert.match(dashboardScript, /const resolveDashboardWidgetInlineHostForType = \(type\) =>/);
     assert.match(dashboardScript, /const isDashboardWidgetCollapsedForType = \(type\) =>/);
@@ -114,10 +117,13 @@ test('dashboard runtime supports layout classes, accordion guards, and overflow 
     assert.match(dashboardScript, /prefsResponse = parseJsonPayloadSafe\(prom\[4\]\);/);
     assert.match(dashboardScript, /ensureQuickAction\('layout-cycle', 'fa-columns', 'Cycle layout view', 'fv-dashboard-layout-quick'\)/);
     assert.match(dashboardScript, /const normalizeDashboardOverflowMode = \(value\) =>/);
+    assert.match(dashboardScript, /const createFolders = async \(types = \['docker', 'vm'\]\) =>/);
+    assert.match(dashboardScript, /if \(renderTypes\.has\('docker'\) && \$\('tbody#docker_view'\)\.length > 0\) \{/);
+    assert.match(dashboardScript, /if \(renderTypes\.has\('vm'\) && \$\('tbody#vm_view'\)\.length > 0\) \{/);
     assert.match(dashboardScript, /const applyDashboardLayoutStateForType = \(type\) =>/);
     assert.match(dashboardScript, /const scheduleDashboardLayoutApplyForType = \(type\) =>/);
     assert.match(dashboardScript, /const requiresStructureReload = previousDashboard\.layout === 'legacy' \|\| nextLayout === 'legacy';/);
-    assert.match(dashboardScript, /if \(requiresStructureReload && typeof window\.loadlist === 'function'\) \{/);
+    assert.match(dashboardScript, /await rerenderDashboardWidgetStructureForType\(resolvedType\);/);
     assert.match(dashboardScript, /if \(isDashboardLegacyLayoutForType\('docker'\)\) \{/);
     assert.match(dashboardScript, /if \(isDashboardLegacyLayoutForType\('vm'\)\) \{/);
     assert.match(dashboardScript, /\|\| isDashboardLegacyLayoutForType\(resolvedType\)/);

@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.23.05">
-<!ENTITY md5 "127b706e598c5d4fe5ae754e0be01ff0">
+<!ENTITY version "2026.03.23.06">
+<!ENTITY md5 "c717f290c3bd116b976961b6ba528534">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.23.06
+- Fix: Reworked Dashboard widget `Legacy` transitions to restore native rows locally instead of forcing a full `loadlist()` refresh, removing the extra delay when cycling in and out of bypass mode.
+- Fix: Prevented one widget entering `Legacy` from short-circuiting the other widget's folder render path by scoping dashboard rebuilds to the affected type.
+- Test: Expanded dashboard layout regression coverage for the local `Legacy` rerender path and type-scoped widget rebuilds.
+
 
 ###2026.03.23.05
 - Feature: Added `Legacy` as a Dashboard widget layout for Docker and VM widgets so they can show native Unraid rows without FolderView Plus folder grouping.

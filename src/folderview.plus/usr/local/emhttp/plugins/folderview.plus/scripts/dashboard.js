@@ -282,6 +282,101 @@ const writeDashboardCompactDensityStateForType = (type, enabled) => {
 };
 const getDashboardStartedOnlySelectorForType = (type) => (type === 'vm' ? 'input#vms' : 'input#apps');
 const isDashboardLegacyLayoutForType = (type) => normalizeDashboardPrefsForType(type).layout === 'legacy';
+const getDashboardNativeRowSelectorForType = (type) => (
+    type === 'vm'
+        ? 'span.outer.vms:not(.folder-vm)'
+        : 'span.outer.apps:not(.folder-docker)'
+);
+const getDashboardNativeRowName = ($row) => String(
+    $row?.find('span.inner').contents().first().text() || ''
+).trim();
+const stripDashboardFolderizedStateFromRow = ($row) => {
+    if (!$row || !$row.length) {
+        return;
+    }
+    $row.find('span.fv-dashboard-member-actions').remove();
+    $row.removeClass((_, className = '') => className
+        .split(/\s+/)
+        .filter((token) => {
+            if (!token) {
+                return false;
+            }
+            if (token === 'folder-element-docker' || token === 'folder-element-vm' || token === 'autostart') {
+                return true;
+            }
+            return /^folder-[A-Za-z0-9._-]+-element$/.test(token);
+        })
+        .join(' '));
+};
+const readDashboardNativeOrderSnapshotForType = async (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const existingReq = Array.isArray(folderReq?.[resolvedType]) ? folderReq[resolvedType][3] : null;
+    if (existingReq && typeof existingReq.then === 'function') {
+        try {
+            return Object.values(JSON.parse(await existingReq));
+        } catch (_error) {
+            // Fall through to a fresh fetch.
+        }
+    }
+    try {
+        const payload = await $.get(`/plugins/folderview.plus/server/read_unraid_order.php?type=${resolvedType}`).promise();
+        return Object.values(JSON.parse(payload));
+    } catch (_error) {
+        return [];
+    }
+};
+const restoreDashboardNativeRowsForType = async (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const $container = resolveDashboardWidgetInlineHostForType(resolvedType).first();
+    if (!$container.length) {
+        return;
+    }
+    const selector = getDashboardNativeRowSelectorForType(resolvedType);
+    const rowEntries = [];
+    $container.find(selector).each((_, node) => {
+        const $row = $(node);
+        if ($row.closest('.fv-dashboard-layout-inline-host').length) {
+            return;
+        }
+        rowEntries.push({
+            $row,
+            name: getDashboardNativeRowName($row)
+        });
+    });
+    rowEntries.forEach((entry) => {
+        stripDashboardFolderizedStateFromRow(entry.$row);
+        entry.$row.detach();
+    });
+    $container.children('.folder-showcase-outer').remove();
+    const orderSnapshot = await readDashboardNativeOrderSnapshotForType(resolvedType);
+    const rowMap = new Map();
+    const appended = new Set();
+    for (const entry of rowEntries) {
+        if (entry.name && !rowMap.has(entry.name)) {
+            rowMap.set(entry.name, entry);
+        }
+    }
+    for (const name of orderSnapshot) {
+        const key = String(name || '').trim();
+        if (!key || !rowMap.has(key) || appended.has(key)) {
+            continue;
+        }
+        appended.add(key);
+        $container.append(rowMap.get(key).$row);
+    }
+    for (const entry of rowEntries) {
+        const key = String(entry.name || '').trim();
+        if (key && appended.has(key)) {
+            continue;
+        }
+        $container.append(entry.$row);
+    }
+    if (resolvedType === 'vm') {
+        globalFolders.vms = {};
+    } else {
+        globalFolders.docker = {};
+    }
+};
 const isDashboardStartedOnlyEnabledForType = (type) => {
     const selector = getDashboardStartedOnlySelectorForType(type);
     const $toggle = $(selector).first();
@@ -620,6 +715,19 @@ const saveDashboardLayoutPrefForType = async (type, prefsPayload) => {
     }).promise();
     return parseJsonPayloadSafe(payload);
 };
+const rerenderDashboardWidgetStructureForType = async (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    await restoreDashboardNativeRowsForType(resolvedType);
+    if (isDashboardLegacyLayoutForType(resolvedType)) {
+        scheduleDashboardLayoutApplyForType(resolvedType);
+        syncDashboardWidgetLayoutQuickControlForType(resolvedType);
+        scheduleDashboardWidgetVisibilitySyncForType(resolvedType, 0);
+        return;
+    }
+    prepareDashboardFolderRequestsForType(resolvedType);
+    await createFolders([resolvedType]);
+    scheduleDashboardWidgetVisibilitySyncForType(resolvedType, 0);
+};
 const handleDashboardWidgetLayoutQuickSwitch = async (type, value) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     const nextLayout = normalizeDashboardLayoutMode(value);
@@ -653,9 +761,8 @@ const handleDashboardWidgetLayoutQuickSwitch = async (type, value) => {
             throw new Error(response?.error || 'Failed to save dashboard preferences.');
         }
         folderTypePrefs[resolvedType] = utils.normalizePrefs(response.prefs || nextPrefs);
-        if (requiresStructureReload && typeof window.loadlist === 'function') {
-            loadedFolder = false;
-            window.loadlist();
+        if (requiresStructureReload) {
+            await rerenderDashboardWidgetStructureForType(resolvedType);
             return;
         }
         scheduleDashboardLayoutApplyForType(resolvedType);
@@ -1368,13 +1475,17 @@ let createFoldersQueued = false;
 /**
  * Handles the creation of all folders
  */
-const createFolders = async () => {
+const createFolders = async (types = ['docker', 'vm']) => {
+    const renderTypes = new Set(
+        (Array.isArray(types) ? types : [types])
+            .map((type) => (type === 'vm' ? 'vm' : 'docker'))
+    );
     // ########################################
     // ##########       DOCKER       ##########
     // ########################################
 
     // if docker is enabled
-    if($('tbody#docker_view').length > 0) {
+    if (renderTypes.has('docker') && $('tbody#docker_view').length > 0) {
         showDashboardRuntimeLoadingRow('docker');
         try {
         let prom = await Promise.all(folderReq.docker);
@@ -1402,9 +1513,7 @@ const createFolders = async () => {
             globalFolders.docker = {};
             scheduleDashboardLayoutApplyForType('docker');
             syncDashboardWidgetLayoutQuickControlForType('docker');
-            return;
-        }
-    
+        } else {
         // Filter the order to get the container that aren't in the order, this happen when a new container is created
         let newOnes = order.filter(x => !unraidOrder.includes(x));
 
@@ -1569,6 +1678,7 @@ const createFolders = async () => {
         // Assing the folder done to the global object
         globalFolders.docker = foldersDone;
         scheduleDashboardLayoutApplyForType('docker');
+        }
         } finally {
             hideDashboardRuntimeLoadingRow('docker');
         }
@@ -1580,7 +1690,7 @@ const createFolders = async () => {
     // ########################################
 
     // if vm is enabled
-    if($('tbody#vm_view').length > 0) {
+    if (renderTypes.has('vm') && $('tbody#vm_view').length > 0) {
         showDashboardRuntimeLoadingRow('vm');
         try {
         const prom = await Promise.all(folderReq.vm);
@@ -1608,9 +1718,7 @@ const createFolders = async () => {
             globalFolders.vms = {};
             scheduleDashboardLayoutApplyForType('vm');
             syncDashboardWidgetLayoutQuickControlForType('vm');
-            return;
-        }
-    
+        } else {
         // Filter the webui order to get the container that aren't in the order, this happen when a new container is created
         let newOnes = order.filter(x => !unraidOrder.includes(x));
 
@@ -1774,6 +1882,7 @@ const createFolders = async () => {
 
         globalFolders.vms = foldersDone;
         scheduleDashboardLayoutApplyForType('vm');
+        }
         } finally {
             hideDashboardRuntimeLoadingRow('vm');
         }
@@ -3401,44 +3510,45 @@ const queueCreateFoldersRender = () => {
             }
         });
 };
+const prepareDashboardFolderRequestsForType = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const hasWidget = resolvedType === 'vm'
+        ? $('tbody#vm_view').length > 0
+        : $('tbody#docker_view').length > 0;
+    if (!hasWidget) {
+        folderReq[resolvedType] = [];
+        return [];
+    }
+    if (resolvedType === 'docker') {
+        const safeDockerPrefsReq = $.get('/plugins/folderview.plus/server/prefs.php?type=docker')
+            .then((data) => data, () => JSON.stringify({ ok: false, prefs: {} }));
+        folderReq.docker = [
+            $.get('/plugins/folderview.plus/server/read.php?type=docker').promise(),
+            $.get('/plugins/folderview.plus/server/read_order.php?type=docker').promise(),
+            $.get('/plugins/folderview.plus/server/read_info.php?type=docker').promise(),
+            $.get('/plugins/folderview.plus/server/read_unraid_order.php?type=docker').promise(),
+            safeDockerPrefsReq
+        ];
+        return folderReq.docker;
+    }
+    const safeVmPrefsReq = $.get('/plugins/folderview.plus/server/prefs.php?type=vm')
+        .then((data) => data, () => JSON.stringify({ ok: false, prefs: {} }));
+    folderReq.vm = [
+        $.get('/plugins/folderview.plus/server/read.php?type=vm').promise(),
+        $.get('/plugins/folderview.plus/server/read_order.php?type=vm').promise(),
+        $.get('/plugins/folderview.plus/server/read_info.php?type=vm').promise(),
+        $.get('/plugins/folderview.plus/server/read_unraid_order.php?type=vm').promise(),
+        safeVmPrefsReq
+    ];
+    return folderReq.vm;
+};
 
 // Patching the original function to make sure the containers are rendered before insering the folder
 window.loadlist_original = loadlist;
 window.loadlist = (x) => {
     loadedFolder = false;
-    if($('tbody#docker_view').length > 0) { 
-        const safeDockerPrefsReq = $.get('/plugins/folderview.plus/server/prefs.php?type=docker')
-            .then((data) => data, () => JSON.stringify({ ok: false, prefs: {} }));
-        folderReq.docker = [
-            // Get the folders
-            $.get('/plugins/folderview.plus/server/read.php?type=docker').promise(),
-            // Get the order as unraid sees it
-            $.get('/plugins/folderview.plus/server/read_order.php?type=docker').promise(),
-            // Get the info on containers, needed for autostart, update and started
-            $.get('/plugins/folderview.plus/server/read_info.php?type=docker').promise(),
-            // Get the order that is shown in the webui
-            $.get('/plugins/folderview.plus/server/read_unraid_order.php?type=docker').promise(),
-            // Get sort and auto-assignment preferences
-            safeDockerPrefsReq
-        ];
-    }
-
-    if($('tbody#vm_view').length > 0) {
-        const safeVmPrefsReq = $.get('/plugins/folderview.plus/server/prefs.php?type=vm')
-            .then((data) => data, () => JSON.stringify({ ok: false, prefs: {} }));
-        folderReq.vm = [
-            // Get the folders
-            $.get('/plugins/folderview.plus/server/read.php?type=vm').promise(),
-            // Get the order as unraid sees it
-            $.get('/plugins/folderview.plus/server/read_order.php?type=vm').promise(),
-            // Get the info on VMs, needed for autostart and started
-            $.get('/plugins/folderview.plus/server/read_info.php?type=vm').promise(),
-            // Get the order that is shown in the webui
-            $.get('/plugins/folderview.plus/server/read_unraid_order.php?type=vm').promise(),
-            // Get sort and auto-assignment preferences
-            safeVmPrefsReq
-        ];
-    }
+    prepareDashboardFolderRequestsForType('docker');
+    prepareDashboardFolderRequestsForType('vm');
     loadlist_original(x);
 };
 

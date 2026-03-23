@@ -763,6 +763,10 @@ const handleDashboardWidgetLayoutQuickSwitch = async (type, value) => {
     };
     const saveToken = (dashboardLayoutPersistTokenByType[resolvedType] || 0) + 1;
     dashboardLayoutPersistTokenByType[resolvedType] = saveToken;
+    if (requiresStructureReload) {
+        dashboardLayoutTransitionInFlightByType[resolvedType] = true;
+        scheduleDashboardWidgetVisibilitySyncForType(resolvedType, 0);
+    }
     folderTypePrefs[resolvedType] = utils.normalizePrefs(nextPrefs);
     scheduleDashboardLayoutApplyForType(resolvedType);
     syncDashboardWidgetLayoutQuickControlForType(resolvedType);
@@ -784,7 +788,15 @@ const handleDashboardWidgetLayoutQuickSwitch = async (type, value) => {
         syncDashboardWidgetLayoutQuickControlForType(resolvedType);
     } catch (_error) {
         if (dashboardLayoutPersistTokenByType[resolvedType] !== saveToken) {
+            if (requiresStructureReload) {
+                dashboardLayoutTransitionInFlightByType[resolvedType] = false;
+                scheduleDashboardWidgetVisibilitySyncForType(resolvedType, 0);
+            }
             return;
+        }
+        if (requiresStructureReload) {
+            dashboardLayoutTransitionInFlightByType[resolvedType] = false;
+            scheduleDashboardWidgetVisibilitySyncForType(resolvedType, 0);
         }
         folderTypePrefs[resolvedType] = previousPrefs;
         scheduleDashboardLayoutApplyForType(resolvedType);

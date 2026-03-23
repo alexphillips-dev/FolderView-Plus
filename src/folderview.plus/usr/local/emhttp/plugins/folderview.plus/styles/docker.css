@@ -336,6 +336,7 @@ tr.folder.fv-parent-expanded div.folder-preview {
 
 .folder-preview.fv-preview-multirow .folder-preview-row {
     align-items: center;
+    min-height: calc(var(--fvplus-preview-row-height) - 0.45em);
     padding: 0 0 0 8px;
 }
 
@@ -364,7 +365,7 @@ tr.folder.fv-parent-expanded div.folder-preview {
 }
 
 .folder-preview.fv-preview-multirow .folder-preview-wrapper {
-    min-height: 0;
+    min-height: calc(var(--fvplus-preview-row-height) - 0.9em);
     margin: 0;
     align-items: center;
     flex: 0 1 auto;

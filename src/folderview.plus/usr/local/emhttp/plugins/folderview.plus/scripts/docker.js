@@ -247,12 +247,12 @@ const getFolderPreviewItemsPerRow = (settings = {}) => {
         case 2:
             return 10;
         case 3:
-            return compactMultiRow ? 4 : 5;
+            return compactMultiRow ? 5 : 5;
         case 4:
             return 4;
         case 1:
         default:
-            return 4;
+            return compactMultiRow ? 5 : 4;
     }
 };
 const isCompactMultiRowPreview = (settings = {}) => {

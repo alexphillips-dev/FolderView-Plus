@@ -422,10 +422,13 @@ tr.folder.fv-parent-expanded div.folder-preview {
 
 .folder-preview.fv-preview-multirow .fv-docker-preview-card-compact .inner {
     display: inline-flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
     flex-wrap: nowrap;
-    gap: 6px;
+    gap: 2px;
     line-height: 1;
+    white-space: normal;
 }
 
 .folder-preview.fv-preview-multirow .fv-docker-preview-card-compact img.img.folder-img {
@@ -447,6 +450,7 @@ tr.folder.fv-parent-expanded div.folder-preview {
     gap: 6px;
     min-width: 0;
     white-space: nowrap;
+    line-height: 1;
 }
 
 .folder-preview.fv-preview-multirow .fv-preview-status-compact {

@@ -156,9 +156,10 @@ const dashboardDebugLog = (...args) => {
         console.log(...args);
     }
 };
-const DASHBOARD_LAYOUT_MODES = ['classic', 'fullwidth', 'accordion', 'inset', 'compactmatrix'];
+const DASHBOARD_LAYOUT_MODES = ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'];
 const DASHBOARD_LAYOUT_LABELS = Object.freeze({
     classic: 'Classic',
+    legacy: 'Legacy',
     fullwidth: 'Full Width',
     accordion: 'Accordion',
     inset: 'Inset',
@@ -280,6 +281,7 @@ const writeDashboardCompactDensityStateForType = (type, enabled) => {
     }
 };
 const getDashboardStartedOnlySelectorForType = (type) => (type === 'vm' ? 'input#vms' : 'input#apps');
+const isDashboardLegacyLayoutForType = (type) => normalizeDashboardPrefsForType(type).layout === 'legacy';
 const isDashboardStartedOnlyEnabledForType = (type) => {
     const selector = getDashboardStartedOnlySelectorForType(type);
     const $toggle = $(selector).first();
@@ -464,7 +466,7 @@ const syncDashboardWidgetQuickRailVisibilityForType = (type) => {
     const shouldShow = !!parentNode
         && isDashboardNodeVisible(parentNode)
         && isDashboardWidgetCollapsedForType(resolvedType) !== true
-        && hasVisibleDashboardFolderCardsForType(resolvedType);
+        && (hasVisibleDashboardFolderCardsForType(resolvedType) || isDashboardLegacyLayoutForType(resolvedType));
     $host.toggleClass('is-hidden', !shouldShow);
     if (shouldShow) {
         syncDashboardWidgetQuickRailAlignmentForType(resolvedType);
@@ -623,6 +625,7 @@ const handleDashboardWidgetLayoutQuickSwitch = async (type, value) => {
     const nextLayout = normalizeDashboardLayoutMode(value);
     const previousPrefs = utils.normalizePrefs(folderTypePrefs?.[resolvedType] || {});
     const previousDashboard = normalizeDashboardPrefsForType(resolvedType);
+    const requiresStructureReload = previousDashboard.layout === 'legacy' || nextLayout === 'legacy';
     if (previousDashboard.layout === nextLayout) {
         syncDashboardWidgetLayoutQuickControlForType(resolvedType);
         return;
@@ -650,6 +653,11 @@ const handleDashboardWidgetLayoutQuickSwitch = async (type, value) => {
             throw new Error(response?.error || 'Failed to save dashboard preferences.');
         }
         folderTypePrefs[resolvedType] = utils.normalizePrefs(response.prefs || nextPrefs);
+        if (requiresStructureReload && typeof window.loadlist === 'function') {
+            loadedFolder = false;
+            window.loadlist();
+            return;
+        }
         scheduleDashboardLayoutApplyForType(resolvedType);
         syncDashboardWidgetLayoutQuickControlForType(resolvedType);
     } catch (_error) {
@@ -905,13 +913,13 @@ const applyDashboardLayoutStateForType = (type) => {
     }
     const dashboardPrefs = normalizeDashboardPrefsForType(meta.type);
     const layout = normalizeDashboardLayoutMode(dashboardPrefs.layout);
-    const nonClassicLayout = layout !== 'classic';
+    const folderCardLayout = !['classic', 'legacy'].includes(layout);
     $tbody.attr('data-fv-dashboard-layout', layout);
-    $tbody.removeClass('fv-dashboard-layout-classic fv-dashboard-layout-fullwidth fv-dashboard-layout-accordion fv-dashboard-layout-inset fv-dashboard-layout-compactmatrix');
+    $tbody.removeClass('fv-dashboard-layout-classic fv-dashboard-layout-legacy fv-dashboard-layout-fullwidth fv-dashboard-layout-accordion fv-dashboard-layout-inset fv-dashboard-layout-compactmatrix');
     $tbody.addClass(`fv-dashboard-layout-${layout}`);
-    $tbody.toggleClass('fv-dashboard-show-expand-toggle', nonClassicLayout && dashboardPrefs.expandToggle === true);
-    $tbody.toggleClass('fv-dashboard-greyscale-enabled', nonClassicLayout && dashboardPrefs.greyscale === true);
-    $tbody.toggleClass('fv-dashboard-hide-folder-label', nonClassicLayout && dashboardPrefs.folderLabel === false);
+    $tbody.toggleClass('fv-dashboard-show-expand-toggle', folderCardLayout && dashboardPrefs.expandToggle === true);
+    $tbody.toggleClass('fv-dashboard-greyscale-enabled', folderCardLayout && dashboardPrefs.greyscale === true);
+    $tbody.toggleClass('fv-dashboard-hide-folder-label', folderCardLayout && dashboardPrefs.folderLabel === false);
     $tbody.toggleClass('fv-dashboard-health-emphasis-enabled', readDashboardHealthEmphasisStateForType(meta.type));
     $tbody.toggleClass('fv-dashboard-density-compact', readDashboardCompactDensityStateForType(meta.type));
     ensureDashboardWidgetLayoutQuickSwitchForType(meta.type);
@@ -1390,6 +1398,12 @@ const createFolders = async () => {
         unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs.docker);
         applyDashboardRuntimePrefs();
         lastDashboardStateSignatures.docker = buildDockerStateSignature(containersInfo, false);
+        if (isDashboardLegacyLayoutForType('docker')) {
+            globalFolders.docker = {};
+            scheduleDashboardLayoutApplyForType('docker');
+            syncDashboardWidgetLayoutQuickControlForType('docker');
+            return;
+        }
     
         // Filter the order to get the container that aren't in the order, this happen when a new container is created
         let newOnes = order.filter(x => !unraidOrder.includes(x));
@@ -1590,6 +1604,12 @@ const createFolders = async () => {
         unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs.vm);
         applyDashboardRuntimePrefs();
         lastDashboardStateSignatures.vm = buildVmStateSignature(vmInfo, false);
+        if (isDashboardLegacyLayoutForType('vm')) {
+            globalFolders.vms = {};
+            scheduleDashboardLayoutApplyForType('vm');
+            syncDashboardWidgetLayoutQuickControlForType('vm');
+            return;
+        }
     
         // Filter the webui order to get the container that aren't in the order, this happen when a new container is created
         let newOnes = order.filter(x => !unraidOrder.includes(x));

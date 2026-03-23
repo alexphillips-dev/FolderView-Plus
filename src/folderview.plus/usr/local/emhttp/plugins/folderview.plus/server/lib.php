@@ -1728,7 +1728,7 @@
 
     function normalizeDashboardLayout($value): string {
         $normalized = strtolower(trim((string)$value));
-        if (in_array($normalized, ['classic', 'fullwidth', 'accordion', 'inset', 'compactmatrix'], true)) {
+        if (in_array($normalized, ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'], true)) {
             return $normalized;
         }
         return 'classic';

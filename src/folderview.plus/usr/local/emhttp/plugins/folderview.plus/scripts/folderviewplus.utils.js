@@ -387,7 +387,7 @@
 
     const normalizeDashboardLayout = (value) => {
         const normalized = String(value || '').trim().toLowerCase();
-        return ['classic', 'fullwidth', 'accordion', 'inset', 'compactmatrix'].includes(normalized)
+        return ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'].includes(normalized)
             ? normalized
             : DEFAULT_DASHBOARD_PREFS.layout;
     };

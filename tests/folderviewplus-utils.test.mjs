@@ -339,6 +339,12 @@ test('normalizePrefs sanitizes dashboard layout preferences', () => {
         }
     });
     assert.equal(matrix.dashboard.layout, 'compactmatrix');
+    const legacy = utils.normalizePrefs({
+        dashboard: {
+            layout: 'legacy'
+        }
+    });
+    assert.equal(legacy.dashboard.layout, 'legacy');
     const fallback = utils.normalizePrefs({
         dashboard: {
             layout: 'invalid-value'

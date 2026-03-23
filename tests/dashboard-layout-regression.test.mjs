@@ -49,6 +49,7 @@ const libPhp = fs.readFileSync(libPhpPath, 'utf8');
 
 test('settings exposes dashboard layout controls for docker and vm', () => {
     assert.match(settingsPage, /id="docker-dashboard-layout"/);
+    assert.match(settingsPage, /<option value="legacy">Legacy<\/option>/);
     assert.match(settingsPage, /<option value="compactmatrix">Compact Matrix<\/option>/);
     assert.match(settingsPage, /id="docker-dashboard-expand-toggle"/);
     assert.match(settingsPage, /id="docker-dashboard-greyscale"/);
@@ -63,6 +64,7 @@ test('settings exposes dashboard layout controls for docker and vm', () => {
 
 test('settings runtime persists dashboard prefs and exports handler', () => {
     assert.match(settingsScript, /const normalizeDashboardPrefsForType = \(type, prefsOverride = null\) =>/);
+    assert.match(settingsScript, /legacy/);
     assert.match(settingsScript, /compactmatrix/);
     assert.match(settingsScript, /const renderDashboardControls = \(type\) =>/);
     assert.match(settingsScript, /const changeDashboardPref = async \(type, key, value\) =>/);
@@ -73,14 +75,15 @@ test('settings runtime persists dashboard prefs and exports handler', () => {
 
 test('server normalizes compact matrix dashboard layout', () => {
     assert.match(libPhp, /function normalizeDashboardLayout\(\$value\): string/);
-    assert.match(libPhp, /\['classic', 'fullwidth', 'accordion', 'inset', 'compactmatrix'\]/);
+    assert.match(libPhp, /\['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'\]/);
     assert.match(libPhp, /function normalizeThemeCompatibilityMode\(\$value\): string/);
     assert.match(libPhp, /\['auto', 'host', 'safe', 'highcontrast'\]/);
     assert.match(libPhp, /'themeCompatibilityMode'\s*=>\s*'auto'/);
 });
 
 test('dashboard runtime supports layout classes, accordion guards, and overflow metadata', () => {
-    assert.match(dashboardScript, /const DASHBOARD_LAYOUT_MODES = \['classic', 'fullwidth', 'accordion', 'inset', 'compactmatrix'\]/);
+    assert.match(dashboardScript, /const DASHBOARD_LAYOUT_MODES = \['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'\]/);
+    assert.match(dashboardScript, /const isDashboardLegacyLayoutForType = \(type\) =>/);
     assert.match(dashboardScript, /const ensureDashboardWidgetLayoutQuickSwitchForType = \(type\) =>/);
     assert.match(dashboardScript, /const resolveDashboardWidgetInlineHostForType = \(type\) =>/);
     assert.match(dashboardScript, /const isDashboardWidgetCollapsedForType = \(type\) =>/);
@@ -103,6 +106,7 @@ test('dashboard runtime supports layout classes, accordion guards, and overflow 
     assert.match(dashboardScript, /const openFolderViewPlusSettings = \(\) =>/);
     assert.match(dashboardScript, /fv-dashboard-health-emphasis-enabled/);
     assert.match(dashboardScript, /fv-dashboard-density-compact/);
+    assert.match(dashboardScript, /fv-dashboard-layout-legacy/);
     assert.match(dashboardScript, /fv-dashboard-layout-compactmatrix/);
     assert.match(dashboardScript, /handleDashboardWidgetLayoutQuickSwitch/);
     assert.match(dashboardScript, /FolderViewPlusRequest/);
@@ -112,6 +116,11 @@ test('dashboard runtime supports layout classes, accordion guards, and overflow 
     assert.match(dashboardScript, /const normalizeDashboardOverflowMode = \(value\) =>/);
     assert.match(dashboardScript, /const applyDashboardLayoutStateForType = \(type\) =>/);
     assert.match(dashboardScript, /const scheduleDashboardLayoutApplyForType = \(type\) =>/);
+    assert.match(dashboardScript, /const requiresStructureReload = previousDashboard\.layout === 'legacy' \|\| nextLayout === 'legacy';/);
+    assert.match(dashboardScript, /if \(requiresStructureReload && typeof window\.loadlist === 'function'\) \{/);
+    assert.match(dashboardScript, /if \(isDashboardLegacyLayoutForType\('docker'\)\) \{/);
+    assert.match(dashboardScript, /if \(isDashboardLegacyLayoutForType\('vm'\)\) \{/);
+    assert.match(dashboardScript, /\|\| isDashboardLegacyLayoutForType\(resolvedType\)/);
     assert.match(dashboardScript, /\$host\.parent\(\)\.is\(\$container\)/);
     assert.match(dashboardScript, /\$container\.prepend\(\$host\)/);
     assert.match(dashboardScript, /if \(layout === 'accordion'\) \{/);
@@ -136,6 +145,7 @@ test('dashboard css includes non-classic controls and overflow rendering modes',
     assert.match(dashboardCss, /\.fv-dashboard-layout-quick-rail\.is-clamped/);
     assert.match(dashboardCss, /\.fv-dashboard-layout-quick-rail\.is-compact-grid/);
     assert.match(dashboardCss, /\.fv-dashboard-quick-action/);
+    assert.match(dashboardCss, /data-fv-layout="legacy"/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-health-emphasis-enabled/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-density-compact/);
     assert.match(dashboardCss, /data-fv-layout="accordion"/);

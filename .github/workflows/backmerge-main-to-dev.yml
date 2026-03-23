@@ -30,7 +30,6 @@ jobs:
 
       - name: Sync main into dev
         run: |
-          chmod +x scripts/sync_main_to_dev.sh
           bash scripts/sync_main_to_dev.sh
 
       - name: Push dev when updated
@@ -43,4 +42,3 @@ jobs:
             exit 0
           fi
           git push origin dev
-

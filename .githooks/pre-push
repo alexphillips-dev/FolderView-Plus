@@ -4,6 +4,9 @@ set -euo pipefail
 ROOT_DIR="$(git rev-parse --show-toplevel)"
 cd "${ROOT_DIR}"
 
+echo "[pre-push] Running main branch history guard..."
+bash scripts/main_branch_history_guard.sh
+
 echo "[pre-push] Running release guard checks..."
 bash scripts/release_guard.sh
 

@@ -12,11 +12,16 @@ const folderScriptPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js'
 );
+const folderIconApiScriptPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icon-api.js'
+);
 const folderPagePath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page'
 );
 const folderScript = fs.readFileSync(folderScriptPath, 'utf8');
+const folderIconApiScript = fs.readFileSync(folderIconApiScriptPath, 'utf8');
 const folderPage = fs.readFileSync(folderPagePath, 'utf8');
 
 test('icon picker runtime: paginateItems clamps page and returns ranges', () => {
@@ -75,8 +80,11 @@ test('icon picker runtime: filterIconsByQuery matches names and tags case-insens
 
 test('folder.js integration keeps using shared icon picker runtime helpers', () => {
     assert.match(folderScript, /window\.FolderViewIconPickerRuntime/);
+    assert.match(folderScript, /window\.FolderViewPlusFolderIconApi/);
     assert.match(folderScript, /iconPickerRuntime\.paginateItems/);
     assert.match(folderScript, /iconPickerRuntime\.filterIconsByQuery/);
+    assert.match(folderScript, /folderIconApiModule\.createApi/);
+    assert.match(folderPage, /folder\.editor\.icon-api\.js[\s\S]*folder\.js/);
 });
 
 test('folder editor markup exposes custom icon manager controls', () => {
@@ -146,26 +154,26 @@ test('folder.js third-party icon picker supports advanced filtering and duplicat
 });
 
 test('folder.js icon upload parsing is resilient to empty and noisy endpoint responses', () => {
-    assert.match(folderScript, /const parseJsonPayload = \(value, context = 'response'\) =>/);
+    assert.match(folderIconApiScript, /const parseJsonPayload = \(value, context = 'response'\) =>/);
     assert.match(folderScript, /returned an empty response/);
     assert.match(folderScript, /const ICON_UPLOAD_ENDPOINT_CONTEXT = 'icon upload endpoint';/);
     assert.match(folderScript, /const CUSTOM_ICON_MANAGER_CONTEXT = 'custom icon manager';/);
-    assert.match(folderScript, /const start = normalized\.indexOf\('\{'\)/);
-    assert.match(folderScript, /const end = normalized\.lastIndexOf\('\}'\)/);
-    assert.match(folderScript, /const extractAjaxErrorMessage = \(error, context = 'request'\) =>/);
-    assert.match(folderScript, /dataType:\s*'text'/);
-    assert.match(folderScript, /parseJsonPayload\(response, ICON_UPLOAD_ENDPOINT_CONTEXT\)/);
-    assert.match(folderScript, /extractAjaxErrorMessage\(error, ICON_UPLOAD_ENDPOINT_CONTEXT\)/);
-    assert.match(folderScript, /const readFileAsDataUrl = \(file\) => new Promise/);
-    assert.match(folderScript, /const shouldUseInlineUploadFallback = \(error\) =>/);
-    assert.match(folderScript, /const uploadCustomIconFileInline = async \(file, token, options = \{\}\) =>/);
-    assert.match(folderScript, /icon_inline_name/);
-    assert.match(folderScript, /icon_inline_data/);
-    assert.match(folderScript, /contentType:\s*'application\/x-www-form-urlencoded; charset=UTF-8'/);
-    assert.match(folderScript, /shouldUseInlineUploadFallback\(primaryError\)/);
-    assert.match(folderScript, /replace:\s*options\?\.replace \? '1' : '0'/);
-    assert.match(folderScript, /dedupe:\s*options\?\.dedupe === false \? '0' : '1'/);
-    assert.match(folderScript, /const validateCustomIconFileBeforeUpload = \(file\) =>/);
+    assert.match(folderIconApiScript, /const start = normalized\.indexOf\('\{'\)/);
+    assert.match(folderIconApiScript, /const end = normalized\.lastIndexOf\('\}'\)/);
+    assert.match(folderIconApiScript, /const extractAjaxErrorMessage = \(error, context = 'request'\) =>/);
+    assert.match(folderIconApiScript, /dataType:\s*'text'/);
+    assert.match(folderIconApiScript, /parseJsonPayload\(response, uploadContext\)/);
+    assert.match(folderIconApiScript, /extractAjaxErrorMessage\(error, uploadContext\)/);
+    assert.match(folderIconApiScript, /const readFileAsDataUrl = \(file\) => new Promise/);
+    assert.match(folderIconApiScript, /const shouldUseInlineUploadFallback = \(error\) =>/);
+    assert.match(folderIconApiScript, /const uploadCustomIconFileInline = async \(file, token, options = \{\}\) =>/);
+    assert.match(folderIconApiScript, /icon_inline_name/);
+    assert.match(folderIconApiScript, /icon_inline_data/);
+    assert.match(folderIconApiScript, /contentType:\s*'application\/x-www-form-urlencoded; charset=UTF-8'/);
+    assert.match(folderIconApiScript, /shouldUseInlineUploadFallback\(primaryError\)/);
+    assert.match(folderIconApiScript, /replace:\s*options\?\.replace \? '1' : '0'/);
+    assert.match(folderIconApiScript, /dedupe:\s*options\?\.dedupe === false \? '0' : '1'/);
+    assert.match(folderIconApiScript, /const validateCustomIconFileBeforeUpload = \(file\) =>/);
     assert.match(folderScript, /customIconUploadRequest\.abort\(/);
     assert.match(folderScript, /const setCustomIconPickerOpen = \(open\) =>/);
     assert.match(folderScript, /const refreshCustomIconManager = async \(\) =>/);

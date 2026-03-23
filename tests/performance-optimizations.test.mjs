@@ -28,6 +28,10 @@ const dashboardJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js'
 );
+const dashboardFolderMatchCachePath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.folder-match-cache.js'
+);
 const dashboardCssPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/dashboard.css'
@@ -75,6 +79,7 @@ const thirdPartyIconsPhp = fs.readFileSync(thirdPartyIconsPath, 'utf8');
 const dockerJs = fs.readFileSync(dockerJsPath, 'utf8');
 const vmJs = fs.readFileSync(vmJsPath, 'utf8');
 const dashboardJs = fs.readFileSync(dashboardJsPath, 'utf8');
+const dashboardFolderMatchCacheJs = fs.readFileSync(dashboardFolderMatchCachePath, 'utf8');
 const dashboardCss = fs.readFileSync(dashboardCssPath, 'utf8');
 const dockerCss = fs.readFileSync(dockerCssPath, 'utf8');
 const vmCss = fs.readFileSync(vmCssPath, 'utf8');
@@ -140,18 +145,18 @@ test('performance mode limits auto-restored expanded branches on runtime views',
 });
 
 test('dashboard widget renders root-level folders only when nested folders exist', () => {
-    assert.match(dashboardJs, /const filterDashboardToRootFolders = \(folders\) =>/);
+    assert.match(dashboardFolderMatchCacheJs, /const filterDashboardToRootFolders = \(folders\) =>/);
+    assert.match(dashboardFolderMatchCacheJs, /const normalizeFolderParentId = \(value\) =>/);
+    assert.match(dashboardFolderMatchCacheJs, /Object\.keys\(rootOnly\)\.length/);
+    assert.match(dashboardFolderMatchCacheJs, /Object\.keys\(source\)\.length/);
+    assert.match(dashboardFolderMatchCacheJs, /const aggregateRootMatchCache = \(fullFolders,\s*rootFolders,\s*fullCache\) =>/);
     assert.match(dashboardJs, /const dockerRootFolders = filterDashboardToRootFolders\(allDockerFolders\);/);
     assert.match(dashboardJs, /const vmRootFolders = filterDashboardToRootFolders\(allVmFolders\);/);
-    assert.match(dashboardJs, /const parentId = normalizeFolderParentId\(folder\?\.parentId \|\| folder\?\.parent_id \|\| ''\);/);
-    assert.match(dashboardJs, /Object\.keys\(rootOnly\)\.length/);
-    assert.match(dashboardJs, /Object\.keys\(source\)\.length/);
-    assert.match(dashboardJs, /const aggregateRootMatchCache = \(fullFolders,\s*rootFolders,\s*fullCache\) =>/);
     assert.match(dashboardJs, /const dockerMatchCache = aggregateRootMatchCache\(allDockerFolders,\s*folders,\s*dockerFullMatchCache\);/);
 });
 
 test('dashboard widget supports nested child folders and constrains expanded trays', () => {
-    assert.match(dashboardJs, /const sortFolderIdsByPrefs = \(ids,\s*folders,\s*prefs\) =>/);
+    assert.match(dashboardFolderMatchCacheJs, /const sortFolderIdsByPrefs = \(ids,\s*folders,\s*prefs\) =>/);
     assert.match(dashboardJs, /const renderDockerChildren = \(parentId\) =>/);
     assert.match(dashboardJs, /const renderVmChildren = \(parentId\) =>/);
     assert.match(dashboardJs, /appendTo: `\.folder-showcase-outer-\$\{parentKey\} > \.folder-showcase-\$\{parentKey\}`/);

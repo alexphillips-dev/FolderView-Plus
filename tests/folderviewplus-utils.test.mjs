@@ -353,6 +353,17 @@ test('normalizePrefs sanitizes dashboard layout preferences', () => {
     assert.equal(fallback.dashboard.layout, 'classic');
 });
 
+test('utils exports shared dashboard metadata and runtime-safe escaping helpers', () => {
+    assert.deepEqual(utils.DASHBOARD_LAYOUT_OPTIONS, ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix']);
+    assert.equal(utils.DASHBOARD_LAYOUT_LABELS.legacy, 'Legacy');
+    assert.deepEqual(utils.DASHBOARD_OVERFLOW_OPTIONS, ['default', 'expand_row', 'scroll']);
+    assert.equal(utils.normalizeDashboardOverflowMode('expand_row'), 'expand_row');
+    assert.equal(utils.normalizeDashboardOverflowMode('bad-value'), 'default');
+    assert.equal(utils.escapeHtml(`a<"b"&'c'`), 'a&lt;&quot;b&quot;&amp;&#39;c&#39;');
+    assert.equal(utils.sanitizeImageSrc('javascript:alert(1)'), '/plugins/dynamix.docker.manager/images/question.png');
+    assert.equal(utils.sanitizeImageSrc('/plugins/folderview.plus/images/folder-icon.png'), '/plugins/folderview.plus/images/folder-icon.png');
+});
+
 test('orderFoldersByPrefs keeps child folders nested after parent in sorted output', () => {
     const folders = {
         rootA: { name: 'Zulu Root' },

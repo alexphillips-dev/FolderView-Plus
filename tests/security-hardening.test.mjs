@@ -12,6 +12,7 @@ const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.p
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js');
 const folderJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js');
+const folderIconApiJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icon-api.js');
 const folderViewPlusJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js');
 const folderPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page');
 const settingsPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page');
@@ -45,6 +46,28 @@ test('plugin pages emit request token meta tag', () => {
     }
 });
 
+test('dashboard page loads quick-rail controller before dashboard runtime', () => {
+    assert.match(dashboardPage, /dashboard\.layout-quickrail\.js/);
+    assert.match(dashboardPage, /dashboard\.layout-quickrail\.js[\s\S]*dashboard\.js/);
+});
+
+test('settings and folder pages load extracted support modules before their main runtimes', () => {
+    assert.match(settingsPage, /folderviewplus\.row-details\.js/);
+    assert.match(settingsPage, /folderviewplus\.wizard-smart-detect\.js/);
+    assert.match(settingsPage, /folderviewplus\.actions-support\.js/);
+    assert.match(settingsPage, /folderviewplus\.row-details\.js[\s\S]*folderviewplus\.wizard-smart-detect\.js[\s\S]*folderviewplus\.wizard\.js/);
+    assert.match(settingsPage, /folderviewplus\.actions-support\.js[\s\S]*folderviewplus\.js/);
+    assert.match(folderPage, /folder\.editor\.hierarchy\.js/);
+    assert.match(folderPage, /folder\.editor\.icon-api\.js/);
+    assert.match(folderPage, /folder\.editor\.hierarchy\.js[\s\S]*folder\.editor\.icon-api\.js[\s\S]*folder\.js/);
+    assert.match(dashboardPage, /dashboard\.folder-match-cache\.js/);
+    assert.match(dashboardPage, /dashboard\.layout-quickrail\.js[\s\S]*dashboard\.folder-match-cache\.js[\s\S]*dashboard\.js/);
+    assert.match(dockerPage, /folder\.runtime\.state-observers\.js/);
+    assert.match(dockerPage, /docker\.member-menu\.js/);
+    assert.match(dockerPage, /folder\.runtime\.state-observers\.js[\s\S]*docker\.js/);
+    assert.match(vmPage, /folder\.runtime\.state-observers\.js[\s\S]*vm\.js/);
+});
+
 test('runtime pages halt safely when conflicting folder view plugins are detected', () => {
     for (const source of [dockerPage, vmPage, dashboardPage]) {
         assert.match(source, /\$fvplusRuntimeConflicts\s*=\s*fvplus_detect_runtime_plugin_conflicts\(\);/);
@@ -72,8 +95,8 @@ test('folder editor supports unicode names and secure guarded create/update post
     assert.match(folderJs, /const INVALID_FOLDER_NAME_CHAR_REGEX =/);
     assert.match(folderJs, /Name cannot contain control characters or <>:"\/\\\\\|\?\*\./);
     assert.match(folderJs, /const securePost = async \(url, data = \{\}\) =>/);
-    assert.match(folderJs, /payload\._fv_request = '1';/);
-    assert.match(folderJs, /'X-FV-Request': '1'/);
+    assert.match(folderIconApiJs, /payload\._fv_request = '1';/);
+    assert.match(folderIconApiJs, /'X-FV-Request': '1'/);
     assert.match(folderJs, /await securePost\('\/plugins\/folderview\.plus\/server\/create\.php'/);
     assert.match(folderJs, /await securePost\('\/plugins\/folderview\.plus\/server\/update\.php'/);
 });

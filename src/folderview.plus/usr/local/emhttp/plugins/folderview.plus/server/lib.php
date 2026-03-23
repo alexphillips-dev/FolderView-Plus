@@ -921,6 +921,40 @@
         if (!is_array($normalized['settings'] ?? null)) {
             $normalized['settings'] = [];
         }
+        $rawPreviewRows = $normalized['settings']['preview_rows']
+            ?? ($normalized['settings']['previewRows']
+                ?? ($normalized['preview_rows']
+                    ?? ($normalized['previewRows'] ?? null)));
+        if ($rawPreviewRows !== null) {
+            $normalized['settings']['preview_rows'] = is_numeric($rawPreviewRows)
+                ? (int)$rawPreviewRows
+                : truncateUtf8String(trim((string)$rawPreviewRows), 16);
+            $normalized['settings']['previewRows'] = $normalized['settings']['preview_rows'];
+        }
+        unset(
+            $normalized['preview_rows'],
+            $normalized['previewRows']
+        );
+        $rawDropdownStyle = $normalized['settings']['dropdown_style']
+            ?? ($normalized['settings']['dropdownStyle']
+                ?? ($normalized['settings']['chevron_style']
+                    ?? ($normalized['settings']['chevronStyle']
+                        ?? ($normalized['dropdown_style']
+                            ?? ($normalized['dropdownStyle']
+                                ?? ($normalized['chevron_style']
+                                    ?? ($normalized['chevronStyle'] ?? null)))))));
+        if ($rawDropdownStyle !== null) {
+            $normalized['settings']['dropdown_style'] = truncateUtf8String(trim((string)$rawDropdownStyle), 32);
+            $normalized['settings']['dropdownStyle'] = $normalized['settings']['dropdown_style'];
+            $normalized['settings']['chevron_style'] = $normalized['settings']['dropdown_style'];
+            $normalized['settings']['chevronStyle'] = $normalized['settings']['dropdown_style'];
+        }
+        unset(
+            $normalized['dropdown_style'],
+            $normalized['dropdownStyle'],
+            $normalized['chevron_style'],
+            $normalized['chevronStyle']
+        );
         if (!is_array($normalized['actions'] ?? null)) {
             $normalized['actions'] = [];
         } else {

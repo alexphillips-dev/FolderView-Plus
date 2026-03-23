@@ -24,6 +24,7 @@ emitRequestTokenMetaTag();
 <?php endif; ?>
 <link type="text/css" rel="stylesheet" href="<?autov("/plugins/folderview.plus/styles/include/jquery.multiselect.css")?>">
 <script src="<?autov('/plugins/folderview.plus/scripts/include/jquery.multiselect.js')?>"></script>
+<script src="<?autov('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>"></script>
 <script src="<?autov('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>
 
 <div class="canvas">
@@ -452,11 +453,13 @@ emitRequestTokenMetaTag();
                             <dl>
                                 <dt data-i18n="border-color">Border color:</dt>
                                 <dd>
-                                    <input type="color" name="preview_border_color" style="height:28px;vertical-align:middle;">
-                                    <input type="number" name="preview_border_width" min="1" max="4" step="1" value="1" style="width:64px;height:28px;margin-left:0.5em;vertical-align:middle;">
-                                    <button onclick="event.preventDefault(); $('div.canvas > form')[0].preview_border_color.value = '#afa89e';" style="width:44px;height:28px;min-width:0;padding:0;margin:0;margin-left:0.5em;vertical-align:middle;">
-                                        <i class="fa fa-repeat" aria-hidden="true"></i>
-                                    </button>
+                                    <div class="fv-inline-control-row">
+                                        <input type="color" name="preview_border_color" style="height:28px;vertical-align:middle;">
+                                        <input type="number" name="preview_border_width" min="1" max="4" step="1" value="1" style="width:64px;height:28px;vertical-align:middle;">
+                                        <button type="button" class="fv-inline-reset-btn" onclick="event.preventDefault(); resetPreviewBorderDefaults();">
+                                            <i class="fa fa-repeat" aria-hidden="true"></i>
+                                        </button>
+                                    </div>
                                 </dd>
                             </dl>
                             <blockquote class="inline_help">
@@ -465,7 +468,7 @@ emitRequestTokenMetaTag();
                                     <br>
                                     Use the number field to increase border thickness from 1px to 4px.
                                     <br>
-                                    The <i class="fa fa-repeat" aria-hidden="true"></i> button will reset to the current font color.
+                                    The <i class="fa fa-repeat" aria-hidden="true"></i> button resets both the border color and thickness to defaults.
                                 </p>
                             </blockquote>
                         </div>
@@ -496,13 +499,20 @@ emitRequestTokenMetaTag();
                             <dl>
                                 <dt>Chevron colors:</dt>
                                 <dd>
-                                    <input type="color" name="dropdown_color" style="height:28px;vertical-align:middle;">
-                                    <input type="color" name="dropdown_hover_color" style="height:28px;vertical-align:middle;margin-left:0.5em;">
+                                    <div class="fv-inline-control-row">
+                                        <input type="color" name="dropdown_color" style="height:28px;vertical-align:middle;">
+                                        <input type="color" name="dropdown_hover_color" style="height:28px;vertical-align:middle;">
+                                        <button type="button" class="fv-inline-reset-btn" onclick="event.preventDefault(); resetDropdownColorDefaults();">
+                                            <i class="fa fa-repeat" aria-hidden="true"></i>
+                                        </button>
+                                    </div>
                                 </dd>
                             </dl>
                             <blockquote class="inline_help">
                                 <p>
                                     First picker sets the normal chevron and box color. Second picker sets the hover color.
+                                    <br>
+                                    The <i class="fa fa-repeat" aria-hidden="true"></i> button resets both chevron colors to defaults.
                                 </p>
                             </blockquote>
                         </div>
@@ -899,6 +909,8 @@ emitRequestTokenMetaTag();
 </div>
 
 <script src="<?autov('/plugins/folderview.plus/scripts/icon-picker.runtime.js')?>"></script>
+<script src="<?autov('/plugins/folderview.plus/scripts/folder.editor.hierarchy.js')?>"></script>
+<script src="<?autov('/plugins/folderview.plus/scripts/folder.editor.icon-api.js')?>"></script>
 <script src="<?autov('/plugins/folderview.plus/scripts/folder.js')?>" defer></script>
 
 <div class="dialogCustomAction" style="display:none"></div>

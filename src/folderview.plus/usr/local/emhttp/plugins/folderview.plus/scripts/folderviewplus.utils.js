@@ -53,6 +53,16 @@
         greyscale: false,
         folderLabel: true
     };
+    const DASHBOARD_LAYOUT_OPTIONS = Object.freeze(['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix']);
+    const DASHBOARD_LAYOUT_LABELS = Object.freeze({
+        classic: 'Classic',
+        legacy: 'Legacy',
+        fullwidth: 'Full Width',
+        accordion: 'Accordion',
+        inset: 'Inset',
+        compactmatrix: 'Compact Matrix'
+    });
+    const DASHBOARD_OVERFLOW_OPTIONS = Object.freeze(['default', 'expand_row', 'scroll']);
     const RUNTIME_ACTIONS_BY_TYPE = {
         docker: ['start', 'stop', 'pause', 'resume'],
         vm: ['start', 'stop', 'pause', 'resume']
@@ -308,6 +318,21 @@
         return trimmed.toLowerCase();
     };
 
+    const escapeHtml = (value) => String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
+    const sanitizeImageSrc = (value, fallback = '/plugins/dynamix.docker.manager/images/question.png') => {
+        const raw = String(value || '').trim();
+        if (!raw || /^javascript:/i.test(raw)) {
+            return fallback;
+        }
+        return escapeHtml(raw);
+    };
+
     const getFolderStatusColors = (settings) => {
         const source = isPlainObject(settings) ? settings : {};
         return {
@@ -387,9 +412,14 @@
 
     const normalizeDashboardLayout = (value) => {
         const normalized = String(value || '').trim().toLowerCase();
-        return ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'].includes(normalized)
+        return DASHBOARD_LAYOUT_OPTIONS.includes(normalized)
             ? normalized
             : DEFAULT_DASHBOARD_PREFS.layout;
+    };
+
+    const normalizeDashboardOverflowMode = (value) => {
+        const normalized = String(value || '').trim().toLowerCase();
+        return DASHBOARD_OVERFLOW_OPTIONS.includes(normalized) ? normalized : 'default';
     };
 
     const normalizeThemeCompatibilityMode = (value) => {
@@ -1947,14 +1977,20 @@
         DEFAULT_FOLDER_STATUS_COLORS,
         DEFAULT_HEALTH_PREFS,
         DEFAULT_DASHBOARD_PREFS,
+        DASHBOARD_LAYOUT_OPTIONS,
+        DASHBOARD_LAYOUT_LABELS,
+        DASHBOARD_OVERFLOW_OPTIONS,
         bindEventOnce,
         createFrameScheduler,
         createIdleTaskQueue,
         createBatchedStorageWriter,
+        escapeHtml,
+        sanitizeImageSrc,
         normalizeFolderMap,
         normalizeFolderMembers,
         normalizeAppColumnWidth,
         normalizeDashboardLayout,
+        normalizeDashboardOverflowMode,
         normalizeThemeCompatibilityMode,
         normalizePrefs,
         orderFoldersByPrefs,

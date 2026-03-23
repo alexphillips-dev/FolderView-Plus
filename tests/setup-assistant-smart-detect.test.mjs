@@ -9,6 +9,10 @@ const wizardJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js'
 );
+const wizardSmartDetectModulePath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard-smart-detect.js'
+);
 const smartDetectConfigPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js'
@@ -19,15 +23,9 @@ const settingsJsPath = path.join(
 );
 
 const wizardJs = fs.readFileSync(wizardJsPath, 'utf8');
+const wizardSmartDetectModuleJs = fs.readFileSync(wizardSmartDetectModulePath, 'utf8');
 const smartDetectConfigJs = fs.readFileSync(smartDetectConfigPath, 'utf8');
 const settingsJs = fs.readFileSync(settingsJsPath, 'utf8');
-
-const startMarker = 'const normalizeSetupAssistantMatchText =';
-const endMarker = 'const buildSetupAssistantTemplatePlanForType =';
-const snippetStart = wizardJs.indexOf(startMarker);
-const snippetEnd = wizardJs.indexOf(endMarker);
-assert.ok(snippetStart >= 0 && snippetEnd > snippetStart, 'Expected smart-detect helper block in wizard script.');
-const smartDetectSnippet = wizardJs.slice(snippetStart, snippetEnd);
 
 const settingsStartMarker = 'const STARTER_TEMPLATE_CATEGORY_META =';
 const settingsEndMarker = 'const buildStarterFolderPayload =';
@@ -73,17 +71,14 @@ const loadSmartDetectHelpers = (infoByType) => {
     context.window = context;
     context.globalThis = context;
     vm.createContext(context);
-    new vm.Script([
-        smartDetectSnippet,
-        'globalThis.__smartDetect = {',
-        '    normalizeSetupAssistantMatchText,',
-        '    collectSetupAssistantItemMatchProfile,',
-        '    scoreSetupAssistantTemplateMatch,',
-        '    resolveSetupAssistantSmartBlueprintIndexes,',
-        '    buildSetupAssistantTemplateAssignmentPreview',
-        '};'
-    ].join('\n')).runInContext(context);
-    return context.__smartDetect;
+    new vm.Script(smartDetectConfigJs).runInContext(context);
+    new vm.Script(wizardSmartDetectModuleJs).runInContext(context);
+    return context.FolderViewPlusWizardSmartDetect.createApi({
+        normalizeManagedType: context.normalizeManagedType,
+        getBulkAssignableNames: context.getBulkAssignableNames,
+        getInfoByType: (type) => infoByType[String(type || '').trim().toLowerCase()] || {},
+        utils: context.utils
+    });
 };
 
 const loadStarterSelectionHelpers = (infoByType) => {
@@ -168,7 +163,10 @@ test('smart detect thresholds and aliases are centralized in the shared config m
     assert.match(smartDetectConfigJs, /const FVPLUS_SMART_DETECT_CONFIDENT_THRESHOLD = 8;/);
     assert.match(smartDetectConfigJs, /const FVPLUS_SMART_DETECT_FALLBACK_BY_TYPE = Object\.freeze\(/);
     assert.match(smartDetectConfigJs, /const FVPLUS_SMART_DETECT_MATCH_ALIASES = Object\.freeze\(/);
-    assert.match(wizardJs, /window\.FolderViewPlusSmartDetectConfig \|\| \{\}/);
+    assert.match(wizardSmartDetectModuleJs, /runtimeRoot\.FolderViewPlusSmartDetectConfig \|\| \{\}/);
+    assert.match(wizardJs, /window\.FolderViewPlusWizardSmartDetect \|\| null/);
+    assert.match(wizardJs, /const getWizardSmartDetectApi = \(\(\) =>/);
+    assert.match(wizardJs, /cachedApi = wizardSmartDetectModule\.createApi\(/);
     assert.match(settingsJs, /window\.FolderViewPlusSmartDetectConfig \|\| \{\}/);
 });
 
@@ -288,7 +286,7 @@ test('wizard smart detect covers mixed real-world docker families without misses
     assert.deepEqual(Array.from(preview.assignedByTemplate.Notifications || []), ['Notify']);
 });
 
-test('wizard low-confidence matches are held for review instead of forced into fallback assignment', () => {
+test('wizard low-confidence matches stay flagged for review even when suggested into fallback assignment', () => {
     const infoByType = {
         docker: {
             mysteryapp: {
@@ -306,10 +304,12 @@ test('wizard low-confidence matches are held for review instead of forced into f
     assert.equal(preview.totalItems, 1);
     assert.equal(preview.matched, 0);
     assert.equal(preview.unmatched, 0);
-    assert.equal(preview.reviewNeededCount, 1);
-    assert.deepEqual(Array.from(preview.assignedByTemplate.Utilities || []), []);
-    assert.equal(preview.reviewItems[0]?.templateName, 'Utilities');
-    assert.match(String(preview.reviewItems[0]?.reason || ''), /fallback/i);
+    assert.equal((preview.reviewItems || []).length, 1);
+    assert.deepEqual(Array.from(preview.assignedByTemplate.Utilities || []), ['mysteryapp']);
+    assert.equal(preview.reviewItems[0], 'mysteryapp');
+    const detail = (preview.itemDetails || []).find((entry) => entry.itemName === 'mysteryapp');
+    assert.equal(detail?.templateName, 'Utilities');
+    assert.match(String(detail?.reason || ''), /fallback/i);
 });
 
 test('wizard smart detect expands VM heuristics for management, infrastructure, and gaming workloads', () => {

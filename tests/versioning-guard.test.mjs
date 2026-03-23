@@ -27,6 +27,7 @@ const themeScopeGuardPath = path.join(repoRoot, 'scripts/theme_scope_guard.sh');
 const themeRuntimeGuardPath = path.join(repoRoot, 'scripts/theme_runtime_guard.sh');
 const perfBudgetGuardPath = path.join(repoRoot, 'scripts/perf_budget_guard.sh');
 const reproBuildGuardPath = path.join(repoRoot, 'scripts/repro_build_guard.sh');
+const mainBranchHistoryGuardPath = path.join(repoRoot, 'scripts/main_branch_history_guard.sh');
 const pruneArchivesPath = path.join(repoRoot, 'scripts/prune_archives.sh');
 const unraidMatrixSmokePath = path.join(repoRoot, 'scripts/unraid_matrix_smoke.sh');
 const ensureChangesPath = path.join(repoRoot, 'scripts/ensure_plg_changes_entry.sh');
@@ -56,6 +57,7 @@ const themeScopeGuard = fs.readFileSync(themeScopeGuardPath, 'utf8');
 const themeRuntimeGuard = fs.readFileSync(themeRuntimeGuardPath, 'utf8');
 const perfBudgetGuard = fs.readFileSync(perfBudgetGuardPath, 'utf8');
 const reproBuildGuard = fs.readFileSync(reproBuildGuardPath, 'utf8');
+const mainBranchHistoryGuard = fs.readFileSync(mainBranchHistoryGuardPath, 'utf8');
 const pruneArchives = fs.readFileSync(pruneArchivesPath, 'utf8');
 const unraidMatrixSmoke = fs.readFileSync(unraidMatrixSmokePath, 'utf8');
 const ensureChanges = fs.readFileSync(ensureChangesPath, 'utf8');
@@ -206,16 +208,22 @@ test('browser smoke scripts support optional and required modes and include core
     assert.match(browserSmokeNode, /#import-preview-dialog/);
     assert.match(browserSmokeNode, /FVPLUS_BROWSER_SMOKE_DOCKER_URL/);
     assert.match(browserSmokeNode, /FVPLUS_BROWSER_SMOKE_VM_URL/);
+    assert.match(browserSmokeNode, /FVPLUS_BROWSER_SMOKE_DASHBOARD_URL/);
     assert.match(browserSmokeNode, /FVPLUS_BROWSER_SMOKE_ARTIFACT_DIR/);
     assert.match(browserSmokeNode, /FVPLUS_BROWSER_SMOKE_REQUIRE_RUNTIME_ROWS/);
     assert.match(browserSmokeNode, /FVPLUS_BROWSER_SMOKE_RUNTIME_GAP_MAX/);
+    assert.match(browserSmokeNode, /resolveDashboardUrl/);
     assert.match(browserSmokeNode, /runRuntimeLayoutSmoke/);
+    assert.match(browserSmokeNode, /runDashboardQuickRailSmoke/);
     assert.match(browserSmokeNode, /shortest/);
     assert.match(browserSmokeNode, /longest/);
     assert.match(browserSmokeNode, /excessiveVersionGap/);
     assert.match(browserSmokeNode, /Runtime visual check passed/);
     assert.match(browserSmokeNode, /Runtime layout overlap detected/);
     assert.match(browserSmokeNode, /Failed rows:/);
+    assert.match(browserSmokeNode, /Dashboard quick-rail target:/);
+    assert.match(browserSmokeNode, /fv-dashboard-layout-inline-host/);
+    assert.match(browserSmokeNode, /dashboardReports/);
     assert.match(browserSmokeNode, /page\.screenshot\(\{ path: screenshotPath, fullPage: true \}\)/);
     assert.match(browserSmokeNode, /runBrowserSmoke\('chromium'/);
     assert.match(browserSmokeNode, /runBrowserSmoke\('firefox'/);
@@ -232,7 +240,10 @@ test('theme matrix smoke scripts are optional, URL-gated, and include wizard/the
     assert.match(themeMatrixSmokeNode, /FVPLUS_THEME_SMOKE_BROWSERS/);
     assert.match(themeMatrixSmokeNode, /FVPLUS_THEME_SMOKE_ZOOMS/);
     assert.match(themeMatrixSmokeNode, /FVPLUS_THEME_SMOKE_ARTIFACT_DIR/);
+    assert.match(themeMatrixSmokeNode, /resolveRuntimeUrl/);
+    assert.match(themeMatrixSmokeNode, /resolveDashboardUrl/);
     assert.match(themeMatrixSmokeNode, /runSettingsSurfaceChecks/);
+    assert.match(themeMatrixSmokeNode, /runRuntimeThemeChecks/);
     assert.match(themeMatrixSmokeNode, /captureScenarioScreenshot/);
     assert.match(themeMatrixSmokeNode, /page\.screenshot\(\{ path: screenshotPath, fullPage: true \}\)/);
     assert.match(themeMatrixSmokeNode, /h2\[data-fv-section="docker"\]/);
@@ -243,12 +254,16 @@ test('theme matrix smoke scripts are optional, URL-gated, and include wizard/the
     assert.match(themeMatrixSmokeNode, /tbody#vm_view/);
     assert.match(themeMatrixSmokeNode, /#fv-run-wizard/);
     assert.match(themeMatrixSmokeNode, /#fv-setup-assistant-dialog/);
+    assert.match(themeMatrixSmokeNode, /button\.folder-dropdown/);
+    assert.match(themeMatrixSmokeNode, /fv-dashboard-layout-inline-host/);
+    assert.match(themeMatrixSmokeNode, /stage: `\$\{target\.type\}-runtime`/);
     assert.match(themeMatrixSmokeNode, /Focus-visible ring is not present/);
     assert.match(themeMatrixSmokeNode, /horizontal overflow/);
     assert.match(themeMatrixSmokeNode, /screenshot=/);
 });
 
 test('validation workflows enforce standards guards and release-required browser smoke', () => {
+    const guardedWorkflows = [ciWorkflow, releaseOnMainWorkflow];
     const allWorkflows = [ciWorkflow, releaseMainWorkflow, releaseStableWorkflow, releaseBetaWorkflow, releaseOnMainWorkflow];
     for (const workflow of allWorkflows) {
         assert.match(workflow, /Standards guard checks/);
@@ -275,6 +290,10 @@ test('validation workflows enforce standards guards and release-required browser
         assert.match(workflow, /bash scripts\/theme_matrix_smoke\.sh/);
         assert.match(workflow, /actions\/upload-artifact@v4/);
         assert.match(workflow, /tmp\/browser-smoke-artifacts/);
+    }
+    for (const workflow of guardedWorkflows) {
+        assert.match(workflow, /bash scripts\/main_branch_history_guard\.sh/);
+        assert.match(workflow, /FVPLUS_MAIN_HISTORY_BASE_REF/);
     }
     assert.match(ciWorkflow, /Optional browser smoke checks/);
     for (const workflow of [releaseMainWorkflow, releaseStableWorkflow, releaseBetaWorkflow, releaseOnMainWorkflow]) {
@@ -403,6 +422,11 @@ test('standards guard scripts exist with expected core checks', () => {
     assert.match(reproBuildGuard, /Deterministic build guard passed/);
     assert.match(reproBuildGuard, /FVPLUS_REPRO_VERSION_OVERRIDE/);
     assert.match(reproBuildGuard, /FVPLUS_REPRO_ALLOW_STALE_STABLE/);
+    assert.match(mainBranchHistoryGuard, /Main branch history guard skipped/);
+    assert.match(mainBranchHistoryGuard, /FVPLUS_MAIN_HISTORY_BASE_REF/);
+    assert.match(mainBranchHistoryGuard, /@\{upstream\}\.\.HEAD/);
+    assert.match(mainBranchHistoryGuard, /merge commits are not allowed/);
+    assert.match(mainBranchHistoryGuard, /Main branch history guard passed/);
     assert.match(unraidMatrixSmoke, /FVPLUS_UNRAID_MATRIX/);
     assert.match(unraidMatrixSmoke, /Skipping Unraid matrix smoke checks/);
     assert.match(unraidMatrixSmoke, /FVPLUS_UNRAID_MATRIX_REQUIRED/);

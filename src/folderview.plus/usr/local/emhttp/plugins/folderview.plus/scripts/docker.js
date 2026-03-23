@@ -1,6 +1,8 @@
 // @ts-check
 const FOLDER_VIEW_DEBUG_MODE = false;
 const dockerRuntimeShared = window.FolderViewDockerRuntimeShared || {};
+const runtimeStateObserverModule = window.FolderViewPlusRuntimeStateObservers || null;
+const dockerPreviewMemberMenuModule = window.FolderViewDockerPreviewMemberMenu || null;
 const localDefaultFolderStatusColors = dockerRuntimeShared.DEFAULT_FOLDER_STATUS_COLORS || {
     started: '#ffffff',
     paused: '#b8860b',
@@ -56,8 +58,49 @@ const utils = window.FolderViewPlusUtils || {
                 paused: localDefaultFolderStatusColors.paused,
                 stopped: localDefaultFolderStatusColors.stopped
             };
+    },
+    escapeHtml: (value) => String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;'),
+    sanitizeImageSrc: (value, fallback = '/plugins/dynamix.docker.manager/images/question.png') => {
+        const raw = String(value || '').trim();
+        if (!raw || /^javascript:/i.test(raw)) {
+            return fallback;
+        }
+        return String(raw)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
     }
 };
+const dockerBootstrapMissingModules = [];
+if (!window.FolderViewPlusUtils || typeof window.FolderViewPlusUtils.normalizePrefs !== 'function') {
+    dockerBootstrapMissingModules.push('folderviewplus.utils.js');
+}
+if (
+    !window.FolderViewPlusRequest
+    || typeof window.FolderViewPlusRequest.getJson !== 'function'
+    || typeof window.FolderViewPlusRequest.postJson !== 'function'
+) {
+    dockerBootstrapMissingModules.push('folderviewplus.request.js');
+}
+if (
+    !window.FolderViewDockerRuntimeShared
+    || typeof window.FolderViewDockerRuntimeShared.createAsyncActionBoundary !== 'function'
+    || typeof window.FolderViewDockerRuntimeShared.applyFolderDropdownStyle !== 'function'
+) {
+    dockerBootstrapMissingModules.push('docker.runtime.shared.js');
+}
+if (dockerBootstrapMissingModules.length > 0) {
+    const error = new Error(`FolderView Plus Docker runtime bootstrap failed. Missing modules: ${dockerBootstrapMissingModules.join(', ')}`);
+    error.fvplusBannerShown = true;
+    throw error;
+}
 const dockerStorageWriter = typeof utils.createBatchedStorageWriter === 'function'
     ? utils.createBatchedStorageWriter(window.localStorage, {
         defaultDelayMs: 72,
@@ -174,16 +217,12 @@ const dockerRuntimeColumnLayoutEngine = runtimeColumnLayout && typeof runtimeCol
     : null;
 let dockerRuntimeColumnResizeSession = null;
 let lastAppliedRuntimePrefs = null;
-let dockerRuntimeResizeViewportBound = false;
 let dockerRuntimeResizerBindTimer = null;
 let dockerRuntimeResizerRetryTimer = null;
 let dockerRuntimeResizerRetryCount = 0;
 let dockerRuntimeResizerObserver = null;
 let dockerRuntimeAutoAppWidthFloor = null;
 let dockerRuntimeAutoAppWidthFloorMode = null;
-let dockerRuntimeThemeReflowBound = false;
-let dockerRuntimeThemeReflowObserver = null;
-let dockerRuntimeThemeReflowTimer = null;
 let dockerRuntimeInfoByName = {};
 const DOCKER_RUNTIME_WIDTH_PHASES = Object.freeze({
     idle: 'idle',
@@ -209,19 +248,23 @@ const getFolderLabelValue = (labels) => {
     }
     return '';
 };
-const escapeHtml = (value) => String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-const sanitizeImageSrc = (value, fallback = '/plugins/dynamix.docker.manager/images/question.png') => {
-    const raw = String(value || '').trim();
-    if (!raw || /^javascript:/i.test(raw)) {
-        return fallback;
-    }
-    return escapeHtml(raw);
-};
+const escapeHtml = typeof utils.escapeHtml === 'function'
+    ? utils.escapeHtml
+    : ((value) => String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;'));
+const sanitizeImageSrc = typeof utils.sanitizeImageSrc === 'function'
+    ? utils.sanitizeImageSrc
+    : ((value, fallback = '/plugins/dynamix.docker.manager/images/question.png') => {
+        const raw = String(value || '').trim();
+        if (!raw || /^javascript:/i.test(raw)) {
+            return fallback;
+        }
+        return escapeHtml(raw);
+    });
 const getPreviewContainerStatusMeta = (entry = {}) => {
     const running = entry?.state === true;
     const paused = running && entry?.pause === true;
@@ -233,8 +276,13 @@ const getPreviewContainerStatusMeta = (entry = {}) => {
     }
     return { key: 'stopped', icon: 'fa-square', className: 'fv-preview-status-stopped' };
 };
+const getPreviewRowLimitValue = (settings = {}) => (
+    settings?.preview_rows
+    ?? settings?.previewRows
+    ?? ''
+);
 const normalizeFolderPreviewRowLimit = (settings = {}) => {
-    const raw = String(settings?.preview_rows ?? '').trim().toLowerCase();
+    const raw = String(getPreviewRowLimitValue(settings)).trim().toLowerCase();
     if (raw === '0' || raw === 'auto' || raw === 'unlimited') {
         return 0;
     }
@@ -499,206 +547,37 @@ const decorateDockerFolderMemberRow = ($row, folderId, containerName) => {
     );
 };
 const resolveDockerPreviewMemberEntry = (triggerEl) => {
-    const $trigger = $(triggerEl || []);
-    if (!$trigger.length) {
-        return null;
-    }
-    const folderId = String($trigger.attr('data-folder-id') || '').trim();
-    const containerName = String($trigger.attr('data-container-name') || '').trim();
-    if (!folderId || !containerName) {
-        return null;
-    }
-    const folder = globalFolders[folderId];
-    if (!folder || typeof folder !== 'object') {
-        return null;
-    }
-    const sourceMeta = folder?.containers?.[containerName] || folder?.runtimeContainers?.[containerName] || null;
-    const entry = buildRuntimeContainerEntry(containerName, sourceMeta);
-    return entry && entry.name
-        ? { ...entry, folderId }
+    return dockerPreviewMemberMenuController
+        ? dockerPreviewMemberMenuController.resolvePreviewMemberEntry(triggerEl)
         : null;
 };
-const runDockerContainerMenuAction = async (entry, action) => {
-    if (!entry?.id || !action) {
-        return;
-    }
-    $('div.spinner.fixed').show('slow');
-    try {
-        const response = await $.post(eventURL, { action, container: entry.id }, null, 'json').promise();
-        if (response?.success !== true) {
-            throw new Error(String(response?.text || `Failed to ${action} container.`));
-        }
-        loadlist();
-    } catch (error) {
-        swal({
-            title: $.i18n('exec-error'),
-            text: escapeHtml(String(error?.message || `Failed to ${action} container.`)),
-            type: 'error',
-            html: true,
-            confirmButtonText: 'Ok'
-        });
-    } finally {
-        $('div.spinner.fixed').hide('slow');
-    }
-};
-let dockerPreviewMemberMenuRegistry = new Map();
+const dockerPreviewMemberMenuController = dockerPreviewMemberMenuModule && typeof dockerPreviewMemberMenuModule.createController === 'function'
+    ? dockerPreviewMemberMenuModule.createController({
+        window,
+        $,
+        getGlobalFolders: () => globalFolders,
+        buildRuntimeContainerEntry: (...args) => buildRuntimeContainerEntry(...args),
+        loadlist: (...args) => loadlist(...args),
+        escapeHtml,
+        sanitizeImageSrc,
+        getPreviewContainerStatusMeta,
+        openTerminal: (...args) => openTerminal(...args),
+        updateContainer: (...args) => updateContainer(...args),
+        swal
+    })
+    : null;
 const clearDockerPreviewMemberMenuRegistry = () => {
-    dockerPreviewMemberMenuRegistry = new Map();
-    $(document).off('click.fvDockerMemberMenuAction');
+    dockerPreviewMemberMenuController?.clearMenuRegistry();
 };
 const buildDockerPreviewMemberMenuActions = (entry) => {
-    const actions = [];
-    if (!entry) {
-        return actions;
-    }
-    if (!entry.state) {
-        actions.push({
-            key: 'start',
-            icon: 'fa-play',
-            label: $.i18n('start'),
-            run: () => runDockerContainerMenuAction(entry, 'start')
-        });
-    } else if (entry.pause) {
-        actions.push({
-            key: 'resume',
-            icon: 'fa-play-circle',
-            label: $.i18n('resume'),
-            run: () => runDockerContainerMenuAction(entry, 'resume')
-        });
-    } else {
-        actions.push({
-            key: 'stop',
-            icon: 'fa-stop',
-            label: $.i18n('stop'),
-            run: () => runDockerContainerMenuAction(entry, 'stop')
-        });
-        actions.push({
-            key: 'pause',
-            icon: 'fa-pause',
-            label: $.i18n('pause'),
-            run: () => runDockerContainerMenuAction(entry, 'pause')
-        });
-    }
-    if (entry.state) {
-        actions.push({
-            key: 'restart',
-            icon: 'fa-refresh',
-            label: $.i18n('restart'),
-            run: () => runDockerContainerMenuAction(entry, 'restart')
-        });
-    }
-    if (entry.webui) {
-        actions.push({
-            key: 'webui',
-            icon: 'fa-globe',
-            label: $.i18n('webui'),
-            run: () => {
-                const popup = window.open(entry.webui, '_blank', 'noopener,noreferrer');
-                if (popup) {
-                    popup.opener = null;
-                }
-            }
-        });
-    }
-    actions.push({
-        key: 'console',
-        icon: 'fa-terminal',
-        label: $.i18n('console'),
-        run: () => openTerminal('docker', entry.name, entry.shell || '/bin/sh')
-    });
-    actions.push({
-        key: 'logs',
-        icon: 'fa-bars',
-        label: $.i18n('logs'),
-        run: () => openTerminal('docker', entry.name, '.log')
-    });
-    if (entry.managed) {
-        actions.push({
-            key: 'update',
-            icon: 'fa-cloud-download',
-            label: entry.update ? $.i18n('apply-update') : $.i18n('force-update'),
-            run: () => updateContainer(entry.name)
-        });
-    }
-    return actions;
+    return dockerPreviewMemberMenuController
+        ? dockerPreviewMemberMenuController.buildMenuActions(entry)
+        : [];
 };
 const showDockerPreviewMemberMenu = (entry) => {
-    if (!entry?.name) {
-        return;
-    }
-    const actions = buildDockerPreviewMemberMenuActions(entry);
-    if (!actions.length) {
-        return;
-    }
-    clearDockerPreviewMemberMenuRegistry();
-    dockerPreviewMemberMenuRegistry = new Map(actions.map((action) => [action.key, action.run]));
-    const statusMeta = getPreviewContainerStatusMeta(entry);
-    const statusLabel = escapeHtml($.i18n(statusMeta.key));
-    const safeName = escapeHtml(entry.name);
-    const safeIcon = sanitizeImageSrc(entry.icon || '/plugins/dynamix.docker.manager/images/question.png');
-    const actionsHtml = actions.map((action) => `
-        <button type="button" class="fv-docker-member-menu-action" data-action-key="${escapeHtml(action.key)}">
-            <i class="fa ${escapeHtml(action.icon)}" aria-hidden="true"></i>
-            <span>${escapeHtml(action.label)}</span>
-        </button>
-    `).join('');
-    swal({
-        title: '',
-        text: `
-            <div class="fv-docker-member-menu-sheet">
-                <div class="fv-docker-member-menu-header">
-                    <img src="${safeIcon}" class="fv-docker-member-menu-icon" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png'">
-                    <div class="fv-docker-member-menu-meta">
-                        <div class="fv-docker-member-menu-name">${safeName}</div>
-                        <div class="fv-docker-member-menu-status ${escapeHtml(statusMeta.className)}"><i class="fa ${escapeHtml(statusMeta.icon)}" aria-hidden="true"></i> ${statusLabel}</div>
-                    </div>
-                </div>
-                <div class="fv-docker-member-menu-actions">${actionsHtml}</div>
-            </div>
-        `,
-        html: true,
-        showConfirmButton: false,
-        showCancelButton: true,
-        cancelButtonText: 'Close',
-        customClass: 'fv-docker-member-menu-swal'
-    }, () => {
-        clearDockerPreviewMemberMenuRegistry();
-    });
-    window.setTimeout(() => {
-        $(document)
-            .off('click.fvDockerMemberMenuAction')
-            .on('click.fvDockerMemberMenuAction', '.fv-docker-member-menu-action', async function onDockerMemberMenuAction(event) {
-                event.preventDefault();
-                event.stopPropagation();
-                const key = String($(this).attr('data-action-key') || '').trim();
-                const handler = dockerPreviewMemberMenuRegistry.get(key);
-                if (typeof handler !== 'function') {
-                    return;
-                }
-                clearDockerPreviewMemberMenuRegistry();
-                swal.close();
-                await handler();
-            });
-    }, 0);
+    dockerPreviewMemberMenuController?.showMenu(entry);
 };
-$(document)
-    .off('click.fvDockerMemberMenuTrigger')
-    .on('click.fvDockerMemberMenuTrigger', '.fv-docker-member-menu-trigger', function onDockerMemberMenuTrigger(event) {
-        if ($(event.target).closest('.folder-element-custom-btn').length) {
-            return;
-        }
-        event.preventDefault();
-        event.stopPropagation();
-        const entry = resolveDockerPreviewMemberEntry(this);
-        if (!entry) {
-            return;
-        }
-        showDockerPreviewMemberMenu(entry);
-    })
-    .off('click.fvDockerMemberQuickAction')
-    .on('click.fvDockerMemberQuickAction', '.folder-element-custom-btn a', (event) => {
-        event.stopPropagation();
-    });
+dockerPreviewMemberMenuController?.bindMenu();
 const clampDockerRuntimeColumnWidth = (value, columnIndex = 0) => {
     const parsed = Number(value);
     if (!Number.isFinite(parsed)) {
@@ -1318,67 +1197,28 @@ const beginDockerRuntimeColumnWidthResize = (columnIndex, event) => {
     */
 };
 
+const dockerRuntimeThemeReflowController = runtimeStateObserverModule && typeof runtimeStateObserverModule.createThemeReflowController === 'function'
+    ? runtimeStateObserverModule.createThemeReflowController({
+        window,
+        document,
+        viewportReason: 'viewport-change',
+        viewportDelayMs: DOCKER_RUNTIME_WIDTH_REFLOW_DEBOUNCE_MS,
+        themeReasonPrefix: 'theme',
+        themeDelayMs: 40,
+        scheduleReflow: (reason, delayMs) => scheduleDockerRuntimeWidthReflow(reason, delayMs)
+    })
+    : null;
+
 const bindDockerRuntimeViewportWidthSync = () => {
-    if (dockerRuntimeResizeViewportBound) {
-        return;
-    }
-    dockerRuntimeResizeViewportBound = true;
-    const reapply = () => scheduleDockerRuntimeWidthReflow('viewport-change', DOCKER_RUNTIME_WIDTH_REFLOW_DEBOUNCE_MS);
-    window.addEventListener('resize', reapply, { passive: true });
-    window.addEventListener('orientationchange', reapply, { passive: true });
+    dockerRuntimeThemeReflowController?.bindViewportWidthSync();
 };
 
 const queueDockerRuntimeThemeReflow = (reason = 'theme-change') => {
-    const nextReason = String(reason || 'theme-change');
-    if (dockerRuntimeThemeReflowTimer !== null) {
-        window.clearTimeout(dockerRuntimeThemeReflowTimer);
-    }
-    dockerRuntimeThemeReflowTimer = window.setTimeout(() => {
-        dockerRuntimeThemeReflowTimer = null;
-        scheduleDockerRuntimeWidthReflow(`theme:${nextReason}`, 20);
-    }, 40);
+    dockerRuntimeThemeReflowController?.queueThemeReflow(reason);
 };
 
 const bindDockerRuntimeThemeReflow = () => {
-    if (dockerRuntimeThemeReflowBound) {
-        return;
-    }
-    dockerRuntimeThemeReflowBound = true;
-    const onThemeChange = () => queueDockerRuntimeThemeReflow('observer');
-    if (typeof MutationObserver === 'function') {
-        dockerRuntimeThemeReflowObserver = new MutationObserver((mutations) => {
-            for (const mutation of mutations || []) {
-                if (mutation.type !== 'attributes') {
-                    continue;
-                }
-                const attr = String(mutation.attributeName || '').toLowerCase();
-                if (!attr || attr === 'class' || attr === 'style' || attr.includes('theme')) {
-                    onThemeChange();
-                    return;
-                }
-            }
-        });
-        if (document.documentElement) {
-            dockerRuntimeThemeReflowObserver.observe(document.documentElement, {
-                attributes: true,
-                attributeFilter: ['class', 'style', 'data-theme', 'theme', 'data-color-scheme', 'data-bs-theme']
-            });
-        }
-        if (document.body) {
-            dockerRuntimeThemeReflowObserver.observe(document.body, {
-                attributes: true,
-                attributeFilter: ['class', 'style', 'data-theme', 'theme', 'data-color-scheme', 'data-bs-theme']
-            });
-        }
-    }
-    if (typeof window.matchMedia === 'function') {
-        const media = window.matchMedia('(prefers-color-scheme: dark)');
-        if (media && typeof media.addEventListener === 'function') {
-            media.addEventListener('change', () => queueDockerRuntimeThemeReflow('prefers-color-scheme'));
-        } else if (media && typeof media.addListener === 'function') {
-            media.addListener(() => queueDockerRuntimeThemeReflow('prefers-color-scheme'));
-        }
-    }
+    dockerRuntimeThemeReflowController?.bindThemeReflow();
 };
 
 const scheduleDockerRuntimeResizerRetry = () => {
@@ -2232,24 +2072,22 @@ const folderViewPerfFromStorage = (() => {
 })();
 const DOCKER_EXPANDED_STATE_KEY = 'fvplus.runtime.expand.docker.v1';
 const DOCKER_EXPANDED_STATE_SYNC_DELAY_MS = 220;
-let dockerExpandedStateSyncTimer = null;
-let dockerExpandedStateSyncInFlight = false;
-let dockerExpandedStateSyncQueued = false;
-let dockerExpandedStateLastSyncedPayload = '';
-const normalizeExpandedStateMap = (value) => {
-    if (!value || typeof value !== 'object' || Array.isArray(value)) {
-        return {};
-    }
-    const next = {};
-    for (const [rawId, expanded] of Object.entries(value)) {
-        const id = String(rawId || '').trim();
-        if (!id) {
-            continue;
+const normalizeExpandedStateMap = runtimeStateObserverModule && typeof runtimeStateObserverModule.createExpandedStateController === 'function'
+    ? runtimeStateObserverModule.createExpandedStateController({}).normalizeExpandedStateMap
+    : ((value) => {
+        if (!value || typeof value !== 'object' || Array.isArray(value)) {
+            return {};
         }
-        next[id] = expanded === true;
-    }
-    return next;
-};
+        const next = {};
+        for (const [rawId, expanded] of Object.entries(value)) {
+            const id = String(rawId || '').trim();
+            if (!id) {
+                continue;
+            }
+            next[id] = expanded === true;
+        }
+        return next;
+    });
 const readDockerServerExpandedStateMap = () => normalizeExpandedStateMap(folderTypePrefs?.expandedFolderState || {});
 const writeDockerServerExpandedStateMap = (map) => {
     const normalized = normalizeExpandedStateMap(map);
@@ -2258,156 +2096,38 @@ const writeDockerServerExpandedStateMap = (map) => {
         expandedFolderState: normalized
     });
 };
-const readDockerExpandedStateMap = () => {
-    try {
-        const raw = window.localStorage && window.localStorage.getItem(DOCKER_EXPANDED_STATE_KEY);
-        if (!raw) {
-            return {};
-        }
-        return normalizeExpandedStateMap(JSON.parse(raw));
-    } catch (_error) {
-        return {};
-    }
-};
-const writeDockerExpandedStateMap = (map) => {
-    try {
-        const payload = map && typeof map === 'object' ? map : {};
-        if (window.localStorage) {
-            const serialized = JSON.stringify(payload);
-            if (dockerStorageWriter && typeof dockerStorageWriter.setItem === 'function') {
-                dockerStorageWriter.setItem(DOCKER_EXPANDED_STATE_KEY, serialized, { delayMs: 80, idle: true });
-            } else {
-                window.localStorage.setItem(DOCKER_EXPANDED_STATE_KEY, serialized);
-            }
-        }
-    } catch (_error) {
-        // Ignore storage failures so runtime rendering never breaks.
-    }
-};
-const syncDockerExpandedStateToServer = async () => {
-    const request = window.FolderViewPlusRequest;
-    if (!request || typeof request.postJson !== 'function') {
-        return;
-    }
-    if (dockerExpandedStateSyncInFlight) {
-        dockerExpandedStateSyncQueued = true;
-        return;
-    }
-
-    const payloadMap = readDockerServerExpandedStateMap();
-    const payloadString = JSON.stringify(payloadMap);
-    if (payloadString === dockerExpandedStateLastSyncedPayload) {
-        return;
-    }
-
-    dockerExpandedStateSyncInFlight = true;
-    try {
-        const response = await request.postJson('/plugins/folderview.plus/server/prefs.php', {
-            type: 'docker',
-            prefs: JSON.stringify({
-                expandedFolderState: payloadMap
-            })
-        }, {
-            retries: 1,
-            retryDelayMs: 260
-        });
-        const nextPrefs = utils.normalizePrefs(response?.prefs || {});
-        writeDockerServerExpandedStateMap(nextPrefs.expandedFolderState || payloadMap);
-        dockerExpandedStateLastSyncedPayload = JSON.stringify(readDockerServerExpandedStateMap());
-    } catch (_error) {
-        // Best effort only. LocalStorage fallback still retains behavior.
-    } finally {
-        dockerExpandedStateSyncInFlight = false;
-        if (dockerExpandedStateSyncQueued) {
-            dockerExpandedStateSyncQueued = false;
-            scheduleDockerExpandedStateSync();
-        }
-    }
-};
-const scheduleDockerExpandedStateSync = () => {
-    if (dockerExpandedStateSyncTimer) {
-        clearTimeout(dockerExpandedStateSyncTimer);
-    }
-    dockerExpandedStateSyncTimer = setTimeout(() => {
-        dockerExpandedStateSyncTimer = null;
-        syncDockerExpandedStateToServer();
-    }, DOCKER_EXPANDED_STATE_SYNC_DELAY_MS);
-};
-const buildDockerExpandedStateMap = (folders, previousFolders = {}, serverMap = {}) => {
-    const source = folders && typeof folders === 'object' ? folders : {};
-    const previous = previousFolders && typeof previousFolders === 'object' ? previousFolders : {};
-    const persistedServer = normalizeExpandedStateMap(serverMap);
-    const persisted = readDockerExpandedStateMap();
-    const resolved = {};
-    for (const [id, folder] of Object.entries(source)) {
-        if (Object.prototype.hasOwnProperty.call(persistedServer, id)) {
-            resolved[id] = persistedServer[id] === true;
-            continue;
-        }
-        if (Object.prototype.hasOwnProperty.call(persisted, id)) {
-            resolved[id] = persisted[id] === true;
-            continue;
-        }
-        resolved[id] = (previous[id]?.status?.expanded === true) || folder?.settings?.expand_tab === true;
-    }
-    writeDockerExpandedStateMap(resolved);
-    writeDockerServerExpandedStateMap(resolved);
-    return resolved;
-};
-const persistDockerExpandedStateMap = (map, syncServer = true) => {
-    const normalized = normalizeExpandedStateMap(map);
-    writeDockerExpandedStateMap(normalized);
-    writeDockerServerExpandedStateMap(normalized);
-    if (syncServer) {
-        scheduleDockerExpandedStateSync();
-    }
-};
-const persistDockerExpandedStateFromGlobal = (syncServer = true) => {
-    const map = {};
-    for (const [id, folder] of Object.entries(globalFolders || {})) {
-        map[id] = folder?.status?.expanded === true;
-    }
-    persistDockerExpandedStateMap(map, syncServer);
-};
-const readDockerExpandedStateFromDom = () => {
-    const map = {};
-    const seen = new Set();
-    $('button.folder-dropdown').each((_, node) => {
-        const className = String(node.className || '');
-        const match = className.match(/\bdropDown-([A-Za-z0-9_-]+)\b/);
-        if (!match || !match[1]) {
-            return;
-        }
-        const id = String(match[1]);
-        if (seen.has(id)) {
-            return;
-        }
-        seen.add(id);
-        map[id] = String($(node).attr('active') || '').toLowerCase() === 'true';
-    });
-    return map;
-};
-const persistDockerExpandedStateFromDom = () => {
-    const domState = readDockerExpandedStateFromDom();
-    if (!Object.keys(domState).length) {
-        return;
-    }
-    const current = readDockerExpandedStateMap();
-    persistDockerExpandedStateMap({ ...current, ...domState }, true);
-};
-const ensureDockerExpandedStateLifecycleHooks = () => {
-    if (window.__fvDockerExpandedStateHooksBound) {
-        return;
-    }
-    window.__fvDockerExpandedStateHooksBound = true;
-    window.addEventListener('pagehide', persistDockerExpandedStateFromDom, { passive: true });
-    window.addEventListener('beforeunload', persistDockerExpandedStateFromDom, { passive: true });
-    document.addEventListener('visibilitychange', () => {
-        if (document.hidden) {
-            persistDockerExpandedStateFromDom();
-        }
-    });
-};
+const dockerExpandedStateController = runtimeStateObserverModule && typeof runtimeStateObserverModule.createExpandedStateController === 'function'
+    ? runtimeStateObserverModule.createExpandedStateController({
+        window,
+        document,
+        $,
+        type: 'docker',
+        storageKey: DOCKER_EXPANDED_STATE_KEY,
+        storageWriter: dockerStorageWriter,
+        syncDelayMs: DOCKER_EXPANDED_STATE_SYNC_DELAY_MS,
+        normalizePrefs: (prefs) => utils.normalizePrefs(prefs || {}),
+        readServerMap: () => folderTypePrefs?.expandedFolderState || {},
+        writeServerMap: (map) => {
+            folderTypePrefs = utils.normalizePrefs({
+                ...(folderTypePrefs || {}),
+                expandedFolderState: normalizeExpandedStateMap(map)
+            });
+        },
+        readFolders: () => globalFolders || {}
+    })
+    : null;
+const readDockerExpandedStateMap = () => dockerExpandedStateController ? dockerExpandedStateController.readLocalMap() : {};
+const writeDockerExpandedStateMap = (map) => dockerExpandedStateController?.persistStateMap(map, false);
+const syncDockerExpandedStateToServer = async () => dockerExpandedStateController?.syncExpandedStateToServer();
+const scheduleDockerExpandedStateSync = () => dockerExpandedStateController?.scheduleExpandedStateSync();
+const buildDockerExpandedStateMap = (folders, previousFolders = {}, serverMap = {}) => dockerExpandedStateController
+    ? dockerExpandedStateController.buildStateMap(folders, previousFolders, serverMap)
+    : {};
+const persistDockerExpandedStateMap = (map, syncServer = true) => dockerExpandedStateController?.persistStateMap(map, syncServer);
+const persistDockerExpandedStateFromGlobal = (syncServer = true) => dockerExpandedStateController?.persistStateFromGlobal(syncServer);
+const readDockerExpandedStateFromDom = () => dockerExpandedStateController ? dockerExpandedStateController.readStateFromDom() : {};
+const persistDockerExpandedStateFromDom = () => dockerExpandedStateController?.persistStateFromDom();
+const ensureDockerExpandedStateLifecycleHooks = () => dockerExpandedStateController?.ensureLifecycleHooks();
 const FOLDER_VIEW_PERF_MODE = folderViewPerfFromQuery || folderViewPerfFromStorage;
 const FOLDER_VIEW_TOUCH_MODE = (() => {
     try {
@@ -2519,7 +2239,6 @@ const createFolders = async () => {
     dockerRuntimeStateStore.set({
         pinnedFolderIds: Array.isArray(folderTypePrefs?.pinnedFolderIds) ? [...folderTypePrefs.pinnedFolderIds] : []
     });
-    dockerExpandedStateLastSyncedPayload = JSON.stringify(readDockerServerExpandedStateMap());
     const folderDepthById = buildFolderDepthById(folders);
     unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs);
     applyRuntimePrefs(folderTypePrefs);
@@ -2937,7 +2656,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     const lockedClass = locked ? 'fv-folder-locked' : '';
     const pinnedClass = pinned ? 'fv-folder-pinned' : '';
     const focusedClass = focused ? 'fv-folder-focused' : '';
-    const fld = `<tr class="sortable folder-id-${id} ${hoverClass} ${lockedClass} ${pinnedClass} ${focusedClass} folder"><td class="ct-name folder-name"><div class="folder-name-sub"><i class="fa fa-arrows-v mover orange-text"></i><span class="outer folder-outer"><span id="${id}" onclick="addDockerFolderContext('${id}')" class="hand folder-hand"><img src="${safeFolderIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span><span class="inner folder-inner"><span class="appname" style="display: none;"><a>folder-${id}</a></span><a class="exec folder-appname" onclick='editFolder("${id}")'>${safeFolderName}</a><br><i id="load-folder-${id}" class="fa fa-square stopped folder-load-status"></i><span class="state folder-state fv-folder-state-stopped"> ${$.i18n('stopped')}</span></span></span><button class="dropDown-${id} folder-dropdown" onclick="dropDownButton('${id}')" ><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div></td><td class="updatecolumn folder-update"><span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i> ${$.i18n('up-to-date')}</span><div class="advanced" style="display: ${advanced ? 'block' : 'none'};"><a class="exec" onclick="forceUpdateFolder('${id}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i> ${$.i18n('force-update')}</span></a></div></td><td colspan="${colspan}"><div class="folder-storage"></div><div class="folder-preview"></div></td><td class="advanced folder-advanced" ${advanced ? 'style="display: table-cell;"' : ''}><span class="cpu-folder-${id} folder-cpu">0%</span><div class="usage-disk mm folder-load"><span id="cpu-folder-${id}" class="folder-cpu-bar" style="width:0%"></span><span></span></div><br><span class="mem-folder-${id} folder-mem">0 / 0</span></td><td class="folder-autostart"><input type="checkbox" id="folder-${id}-auto" class="autostart" style="display:none"><div style="clear:left"></div></td><td></td></tr>`;
+    const fld = `<tr class="sortable folder-id-${id} ${hoverClass} ${lockedClass} ${pinnedClass} ${focusedClass} folder"><td class="ct-name folder-name"><div class="folder-name-sub"><i class="fa fa-arrows-v mover orange-text"></i><span class="outer folder-outer"><span id="${id}" onclick="addDockerFolderContext('${id}')" class="hand folder-hand"><img src="${safeFolderIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span><span class="inner folder-inner"><span class="appname" style="display: none;"><a>folder-${id}</a></span><a class="exec folder-appname" onclick='editFolder("${id}")'>${safeFolderName}</a><br><i id="load-folder-${id}" class="fa fa-square stopped folder-load-status"></i><span class="state folder-state fv-folder-state-stopped"> ${$.i18n('stopped')}</span></span></span><button class="dropDown-${id} folder-dropdown" onclick="dropDownButton('${id}')" ><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div></td><td class="updatecolumn folder-update"><span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i> ${$.i18n('up-to-date')}</span><div class="advanced" style="display: ${advanced ? 'block' : 'none'};"><a class="exec" onclick="forceUpdateFolder('${id}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i> ${$.i18n('force-update')}</span></a></div></td><td colspan="${colspan}" class="folder-preview-cell"><div class="folder-storage"></div><div class="folder-preview"></div></td><td class="advanced folder-advanced" ${advanced ? 'style="display: table-cell;"' : ''}><span class="cpu-folder-${id} folder-cpu">0%</span><div class="usage-disk mm folder-load"><span id="cpu-folder-${id}" class="folder-cpu-bar" style="width:0%"></span><span></span></div><br><span class="mem-folder-${id} folder-mem">0 / 0</span></td><td class="folder-autostart"><input type="checkbox" id="folder-${id}-auto" class="autostart" style="display:none"><div style="clear:left"></div></td><td></td></tr>`;
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): colspan=${colspan}. Generated folder HTML (fld).`);
 
     if (positionInMainOrder === 0) {

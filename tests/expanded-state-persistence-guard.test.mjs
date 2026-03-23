@@ -11,6 +11,7 @@ const utilsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.pl
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js');
+const runtimeStateObserverJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.runtime.state-observers.js');
 
 test('server prefs contract keeps expandedFolderState default and normalization', () => {
     assert.match(libPhp, /'expandedFolderState'\s*=>\s*\[\]/);
@@ -34,20 +35,22 @@ test('shared prefs normalizer keeps expandedFolderState map support', () => {
 test('docker runtime keeps server-backed expanded state sync contract', () => {
     assert.match(dockerJs, /const readDockerServerExpandedStateMap = \(\) =>/);
     assert.match(dockerJs, /const syncDockerExpandedStateToServer = async \(\) =>/);
-    assert.match(dockerJs, /window\.FolderViewPlusRequest/);
-    assert.match(dockerJs, /\/plugins\/folderview\.plus\/server\/prefs\.php/);
+    assert.match(dockerJs, /createExpandedStateController\(/);
     assert.match(dockerJs, /type:\s*'docker'/);
-    assert.match(dockerJs, /expandedFolderState:\s*payloadMap/);
+    assert.match(runtimeStateObserverJs, /win\.FolderViewPlusRequest/);
+    assert.match(runtimeStateObserverJs, /\/plugins\/folderview\.plus\/server\/prefs\.php/);
+    assert.match(runtimeStateObserverJs, /expandedFolderState:\s*payloadMap/);
     assert.match(dockerJs, /buildDockerExpandedStateMap\(\s*foldersDone,\s*previousFolders,\s*readDockerServerExpandedStateMap\(\)\s*\)/);
 });
 
 test('vm runtime keeps server-backed expanded state sync contract', () => {
     assert.match(vmJs, /const readVmServerExpandedStateMap = \(\) =>/);
     assert.match(vmJs, /const syncVmExpandedStateToServer = async \(\) =>/);
-    assert.match(vmJs, /window\.FolderViewPlusRequest/);
-    assert.match(vmJs, /\/plugins\/folderview\.plus\/server\/prefs\.php/);
+    assert.match(vmJs, /createExpandedStateController\(/);
     assert.match(vmJs, /type:\s*'vm'/);
-    assert.match(vmJs, /expandedFolderState:\s*payloadMap/);
+    assert.match(runtimeStateObserverJs, /win\.FolderViewPlusRequest/);
+    assert.match(runtimeStateObserverJs, /\/plugins\/folderview\.plus\/server\/prefs\.php/);
+    assert.match(runtimeStateObserverJs, /expandedFolderState:\s*payloadMap/);
     assert.match(vmJs, /buildVmExpandedStateMap\(\s*foldersDone,\s*previousFolders,\s*readVmServerExpandedStateMap\(\)\s*\)/);
 });
 

@@ -88,6 +88,14 @@ body.fvplus-performance-mode .hover div.folder-preview div {
     box-sizing: border-box;
 }
 
+td.vm-name.folder-name {
+    position: relative;
+    display: table-cell;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    vertical-align: middle !important;
+}
+
 .folder-name-sub {
     display: flex;
     position: relative;
@@ -101,10 +109,14 @@ body.fvplus-performance-mode .hover div.folder-preview div {
 }
 
 td.vm-name.folder-name > .folder-name-sub {
-    width: 100%;
-    box-sizing: border-box;
-    position: relative;
+    position: absolute;
+    top: 50%;
+    left: 8px;
     right: var(--fvplus-vm-folder-right-gutter, 18px);
+    transform: translateY(-50%);
+    min-height: 0;
+    width: auto;
+    box-sizing: border-box;
 }
 
 .folder-outer {
@@ -262,7 +274,7 @@ i.folder-load-status.stopped {
     word-break: break-all;
 }
 
-.folder-preview-divider:not(:last-child) {
+.folder-preview-divider {
     float: left;
     height: 80%;
     width: 0;
@@ -335,6 +347,7 @@ div.folder-preview-4 span.outer{
     }
 
     td.vm-name.folder-name > .folder-name-sub {
+        left: 8px;
         right: 10px;
     }
 

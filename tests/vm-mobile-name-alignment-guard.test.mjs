@@ -20,7 +20,11 @@ test('vm app-name and dropdown spacing contract preserves right-side gutter', ()
     assert.match(vmCss, /--fvplus-vm-folder-right-gutter:\s*18px/);
     assert.match(vmCss, /--fvplus-vm-folder-outer-reserved-width:\s*88px/);
     assert.match(vmCss, /--fvplus-vm-folder-dropdown-right-margin:\s*10px/);
+    assert.match(vmCss, /td\.vm-name\.folder-name\s*\{[\s\S]*position:\s*relative/);
+    assert.match(vmCss, /td\.vm-name\.folder-name > \.folder-name-sub\s*\{[\s\S]*position:\s*absolute/);
+    assert.match(vmCss, /td\.vm-name\.folder-name > \.folder-name-sub\s*\{[\s\S]*left:\s*8px/);
     assert.match(vmCss, /td\.vm-name\.folder-name > \.folder-name-sub\s*\{[\s\S]*right:\s*var\(--fvplus-vm-folder-right-gutter,\s*18px\)/);
+    assert.match(vmCss, /td\.vm-name\.folder-name > \.folder-name-sub\s*\{[\s\S]*transform:\s*translateY\(-50%\)/);
     assert.match(vmCss, /\.folder-outer\s*\{[\s\S]*max-width:\s*calc\(var\(--fvplus-vm-app-column-width\)\s*-\s*var\(--fvplus-vm-folder-outer-reserved-width,\s*88px\)\)/);
     assert.match(vmCss, /\.folder-dropdown\s*\{[\s\S]*width:\s*auto/);
     assert.match(vmCss, /\.folder-dropdown\s*\{[\s\S]*margin:\s*0 var\(--fvplus-vm-folder-dropdown-right-margin,\s*10px\) 0 auto/);

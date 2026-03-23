@@ -12,22 +12,29 @@ const folderEditorStyles = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folder.css'),
     'utf8'
 );
+const folderHierarchyScript = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.hierarchy.js'),
+    'utf8'
+);
 const settingsScript = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'),
     'utf8'
 );
 
 test('folder editor validates duplicate names within the selected parent path', () => {
-    assert.match(folderEditorScript, /const getSiblingNameCollision = \(nameValue, parentId, excludeFolderId = ''\) =>/);
-    assert.match(folderEditorScript, /const suggestSiblingName = \(baseName, parentId, excludeFolderId = ''\) =>/);
+    assert.match(folderHierarchyScript, /const getSiblingNameCollision = \(nameValue, parentId, excludeFolderId = ''\) =>/);
+    assert.match(folderHierarchyScript, /const suggestSiblingName = \(baseName, parentId, excludeFolderId = ''\) =>/);
+    assert.match(folderEditorScript, /const getFolderHierarchyApi = \(\(\) =>/);
+    assert.match(folderEditorScript, /cachedApi = folderHierarchyModule\.createApi\(/);
     assert.match(folderEditorScript, /form\.parent_folder_id\?\.value/);
     assert.match(folderEditorScript, /A sibling with this name already exists under/);
 });
 
 test('folder editor supports parent smart-default inheritance on new child folders', () => {
     assert.match(folderEditorScript, /const SMART_DEFAULT_FIELD_NAMES = new Set\(\[/);
-    assert.match(folderEditorScript, /const applySmartDefaultsFromParent = \(parentId, \{ force = false \} = \{\}\) =>/);
-    assert.match(folderEditorScript, /Inherited \$\{applied\} default/);
+    assert.match(folderHierarchyScript, /const applySmartDefaultsFromParent = \(parentId, config = \{\}\) =>/);
+    assert.match(folderHierarchyScript, /Inherited \$\{applied\} default/);
+    assert.match(folderEditorScript, /getParentDefaults: \(parentFolder\) => buildParentSmartDefaults\(parentFolder\)/);
     assert.match(folderEditorScript, /fieldName === 'parent_folder_id' && event\.type === 'change'/);
 });
 

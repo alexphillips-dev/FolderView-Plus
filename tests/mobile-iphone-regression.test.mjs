@@ -6,12 +6,14 @@ import path from 'node:path';
 const repoRoot = path.resolve(process.cwd());
 const settingsScriptPaths = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-metadata.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.actions-support.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
 ].map((relativePath) => path.join(repoRoot, relativePath));
 const settingsCssPath = path.join(
@@ -54,7 +56,7 @@ test('mobile compact mode keeps optional tree reorder controls and path hints fo
     assert.match(settingsCss, /:is\(tbody#docker, tbody#vms\) \.row-order-actions/);
     assert.match(settingsJs, /let mobileTreeReorderModeByType = \{/);
     assert.match(settingsJs, /const toggleMobileTreeReorderMode = \(type\) =>/);
-    assert.match(settingsJs, /window\.toggleMobileTreeReorderMode = toggleMobileTreeReorderMode;/);
+    assert.match(settingsJs, /registerWindowActions\(window,\s*\{[\s\S]*toggleMobileTreeReorderMode[\s\S]*\}\);/);
 });
 
 test('quick-actions modal remains iPhone safe-area bounded and scroll-safe', () => {

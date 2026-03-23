@@ -1,5 +1,6 @@
 // @ts-check
 const runtimeShared = window.FolderViewDockerRuntimeShared || {};
+const runtimeStateObserverModule = window.FolderViewPlusRuntimeStateObservers || null;
 const localDefaultFolderStatusColors = runtimeShared.DEFAULT_FOLDER_STATUS_COLORS || {
     started: '#ffffff',
     paused: '#b8860b',
@@ -62,8 +63,49 @@ const utils = window.FolderViewPlusUtils || {
                 paused: localDefaultFolderStatusColors.paused,
                 stopped: localDefaultFolderStatusColors.stopped
             };
+    },
+    escapeHtml: (value) => String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;'),
+    sanitizeImageSrc: (value, fallback = '/plugins/dynamix.docker.manager/images/question.png') => {
+        const raw = String(value || '').trim();
+        if (!raw || /^javascript:/i.test(raw)) {
+            return fallback;
+        }
+        return String(raw)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
     }
 };
+const vmBootstrapMissingModules = [];
+if (!window.FolderViewPlusUtils || typeof window.FolderViewPlusUtils.normalizePrefs !== 'function') {
+    vmBootstrapMissingModules.push('folderviewplus.utils.js');
+}
+if (
+    !window.FolderViewPlusRequest
+    || typeof window.FolderViewPlusRequest.getJson !== 'function'
+    || typeof window.FolderViewPlusRequest.postJson !== 'function'
+) {
+    vmBootstrapMissingModules.push('folderviewplus.request.js');
+}
+if (
+    !window.FolderViewDockerRuntimeShared
+    || typeof window.FolderViewDockerRuntimeShared.createAsyncActionBoundary !== 'function'
+    || typeof window.FolderViewDockerRuntimeShared.applyFolderDropdownStyle !== 'function'
+) {
+    vmBootstrapMissingModules.push('docker.runtime.shared.js');
+}
+if (vmBootstrapMissingModules.length > 0) {
+    const error = new Error(`FolderView Plus VM runtime bootstrap failed. Missing modules: ${vmBootstrapMissingModules.join(', ')}`);
+    error.fvplusBannerShown = true;
+    throw error;
+}
 const vmStorageWriter = typeof utils.createBatchedStorageWriter === 'function'
     ? utils.createBatchedStorageWriter(window.localStorage, {
         defaultDelayMs: 72,
@@ -200,10 +242,6 @@ const vmRuntimeColumnLayoutEngine = runtimeColumnLayout && typeof runtimeColumnL
         mobileMin: 156
     })
     : null;
-let vmRuntimeViewportBound = false;
-let vmRuntimeThemeReflowBound = false;
-let vmRuntimeThemeReflowObserver = null;
-let vmRuntimeThemeReflowTimer = null;
 let vmRuntimeWidthReflowTimer = null;
 let vmRuntimeLastWidthReflowReason = 'init';
 const VM_DEBUG_MODE = false;
@@ -223,24 +261,22 @@ const FV_VM_TOUCH_MODE = (() => {
 })();
 const VM_EXPANDED_STATE_KEY = 'fvplus.runtime.expand.vm.v1';
 const VM_EXPANDED_STATE_SYNC_DELAY_MS = 220;
-let vmExpandedStateSyncTimer = null;
-let vmExpandedStateSyncInFlight = false;
-let vmExpandedStateSyncQueued = false;
-let vmExpandedStateLastSyncedPayload = '';
-const normalizeExpandedStateMap = (value) => {
-    if (!value || typeof value !== 'object' || Array.isArray(value)) {
-        return {};
-    }
-    const next = {};
-    for (const [rawId, expanded] of Object.entries(value)) {
-        const id = String(rawId || '').trim();
-        if (!id) {
-            continue;
+const normalizeExpandedStateMap = runtimeStateObserverModule && typeof runtimeStateObserverModule.createExpandedStateController === 'function'
+    ? runtimeStateObserverModule.createExpandedStateController({}).normalizeExpandedStateMap
+    : ((value) => {
+        if (!value || typeof value !== 'object' || Array.isArray(value)) {
+            return {};
         }
-        next[id] = expanded === true;
-    }
-    return next;
-};
+        const next = {};
+        for (const [rawId, expanded] of Object.entries(value)) {
+            const id = String(rawId || '').trim();
+            if (!id) {
+                continue;
+            }
+            next[id] = expanded === true;
+        }
+        return next;
+    });
 const readVmServerExpandedStateMap = () => normalizeExpandedStateMap(folderTypePrefs?.expandedFolderState || {});
 const writeVmServerExpandedStateMap = (map) => {
     const normalized = normalizeExpandedStateMap(map);
@@ -249,159 +285,43 @@ const writeVmServerExpandedStateMap = (map) => {
         expandedFolderState: normalized
     });
 };
-const readVmExpandedStateMap = () => {
-    try {
-        const raw = window.localStorage && window.localStorage.getItem(VM_EXPANDED_STATE_KEY);
-        if (!raw) {
-            return {};
+const vmExpandedStateController = runtimeStateObserverModule && typeof runtimeStateObserverModule.createExpandedStateController === 'function'
+    ? runtimeStateObserverModule.createExpandedStateController({
+        window,
+        document,
+        $,
+        type: 'vm',
+        storageKey: VM_EXPANDED_STATE_KEY,
+        storageWriter: vmStorageWriter,
+        syncDelayMs: VM_EXPANDED_STATE_SYNC_DELAY_MS,
+        normalizePrefs: (prefs) => utils.normalizePrefs(prefs || {}),
+        readServerMap: () => folderTypePrefs?.expandedFolderState || {},
+        writeServerMap: (map) => {
+            folderTypePrefs = utils.normalizePrefs({
+                ...(folderTypePrefs || {}),
+                expandedFolderState: normalizeExpandedStateMap(map)
+            });
+        },
+        readFolders: () => globalFolders || {},
+        onPersistFromGlobal: (map) => {
+            vmRuntimeStateStore.set({
+                expandedFolderIds: Object.entries(map).filter(([, expanded]) => expanded === true).map(([id]) => String(id || ''))
+            });
         }
-        return normalizeExpandedStateMap(JSON.parse(raw));
-    } catch (_error) {
-        return {};
-    }
-};
-const writeVmExpandedStateMap = (map) => {
-    try {
-        const payload = map && typeof map === 'object' ? map : {};
-        if (window.localStorage) {
-            const serialized = JSON.stringify(payload);
-            if (vmStorageWriter && typeof vmStorageWriter.setItem === 'function') {
-                vmStorageWriter.setItem(VM_EXPANDED_STATE_KEY, serialized, { delayMs: 80, idle: true });
-            } else {
-                window.localStorage.setItem(VM_EXPANDED_STATE_KEY, serialized);
-            }
-        }
-    } catch (_error) {
-        // Ignore storage failures so runtime rendering never breaks.
-    }
-};
-const syncVmExpandedStateToServer = async () => {
-    const request = window.FolderViewPlusRequest;
-    if (!request || typeof request.postJson !== 'function') {
-        return;
-    }
-    if (vmExpandedStateSyncInFlight) {
-        vmExpandedStateSyncQueued = true;
-        return;
-    }
-
-    const payloadMap = readVmServerExpandedStateMap();
-    const payloadString = JSON.stringify(payloadMap);
-    if (payloadString === vmExpandedStateLastSyncedPayload) {
-        return;
-    }
-
-    vmExpandedStateSyncInFlight = true;
-    try {
-        const response = await request.postJson('/plugins/folderview.plus/server/prefs.php', {
-            type: 'vm',
-            prefs: JSON.stringify({
-                expandedFolderState: payloadMap
-            })
-        }, {
-            retries: 1,
-            retryDelayMs: 260
-        });
-        const nextPrefs = utils.normalizePrefs(response?.prefs || {});
-        writeVmServerExpandedStateMap(nextPrefs.expandedFolderState || payloadMap);
-        vmExpandedStateLastSyncedPayload = JSON.stringify(readVmServerExpandedStateMap());
-    } catch (_error) {
-        // Best effort only. LocalStorage fallback still retains behavior.
-    } finally {
-        vmExpandedStateSyncInFlight = false;
-        if (vmExpandedStateSyncQueued) {
-            vmExpandedStateSyncQueued = false;
-            scheduleVmExpandedStateSync();
-        }
-    }
-};
-const scheduleVmExpandedStateSync = () => {
-    if (vmExpandedStateSyncTimer) {
-        clearTimeout(vmExpandedStateSyncTimer);
-    }
-    vmExpandedStateSyncTimer = setTimeout(() => {
-        vmExpandedStateSyncTimer = null;
-        syncVmExpandedStateToServer();
-    }, VM_EXPANDED_STATE_SYNC_DELAY_MS);
-};
-const buildVmExpandedStateMap = (folders, previousFolders = {}, serverMap = {}) => {
-    const source = folders && typeof folders === 'object' ? folders : {};
-    const previous = previousFolders && typeof previousFolders === 'object' ? previousFolders : {};
-    const persistedServer = normalizeExpandedStateMap(serverMap);
-    const persisted = readVmExpandedStateMap();
-    const resolved = {};
-    for (const [id, folder] of Object.entries(source)) {
-        if (Object.prototype.hasOwnProperty.call(persistedServer, id)) {
-            resolved[id] = persistedServer[id] === true;
-            continue;
-        }
-        if (Object.prototype.hasOwnProperty.call(persisted, id)) {
-            resolved[id] = persisted[id] === true;
-            continue;
-        }
-        resolved[id] = (previous[id]?.status?.expanded === true) || folder?.settings?.expand_tab === true;
-    }
-    writeVmExpandedStateMap(resolved);
-    writeVmServerExpandedStateMap(resolved);
-    return resolved;
-};
-const persistVmExpandedStateMap = (map, syncServer = true) => {
-    const normalized = normalizeExpandedStateMap(map);
-    writeVmExpandedStateMap(normalized);
-    writeVmServerExpandedStateMap(normalized);
-    if (syncServer) {
-        scheduleVmExpandedStateSync();
-    }
-};
-const persistVmExpandedStateFromGlobal = (syncServer = true) => {
-    const map = {};
-    for (const [id, folder] of Object.entries(globalFolders || {})) {
-        map[id] = folder?.status?.expanded === true;
-    }
-    vmRuntimeStateStore.set({
-        expandedFolderIds: Object.entries(map).filter(([, expanded]) => expanded === true).map(([id]) => String(id || ''))
-    });
-    persistVmExpandedStateMap(map, syncServer);
-};
-const readVmExpandedStateFromDom = () => {
-    const map = {};
-    const seen = new Set();
-    $('button.folder-dropdown').each((_, node) => {
-        const className = String(node.className || '');
-        const match = className.match(/\bdropDown-([A-Za-z0-9_-]+)\b/);
-        if (!match || !match[1]) {
-            return;
-        }
-        const id = String(match[1]);
-        if (seen.has(id)) {
-            return;
-        }
-        seen.add(id);
-        map[id] = String($(node).attr('active') || '').toLowerCase() === 'true';
-    });
-    return map;
-};
-const persistVmExpandedStateFromDom = () => {
-    const domState = readVmExpandedStateFromDom();
-    if (!Object.keys(domState).length) {
-        return;
-    }
-    const current = readVmExpandedStateMap();
-    persistVmExpandedStateMap({ ...current, ...domState }, true);
-};
-const ensureVmExpandedStateLifecycleHooks = () => {
-    if (window.__fvVmExpandedStateHooksBound) {
-        return;
-    }
-    window.__fvVmExpandedStateHooksBound = true;
-    window.addEventListener('pagehide', persistVmExpandedStateFromDom, { passive: true });
-    window.addEventListener('beforeunload', persistVmExpandedStateFromDom, { passive: true });
-    document.addEventListener('visibilitychange', () => {
-        if (document.hidden) {
-            persistVmExpandedStateFromDom();
-        }
-    });
-};
+    })
+    : null;
+const readVmExpandedStateMap = () => vmExpandedStateController ? vmExpandedStateController.readLocalMap() : {};
+const writeVmExpandedStateMap = (map) => vmExpandedStateController?.persistStateMap(map, false);
+const syncVmExpandedStateToServer = async () => vmExpandedStateController?.syncExpandedStateToServer();
+const scheduleVmExpandedStateSync = () => vmExpandedStateController?.scheduleExpandedStateSync();
+const buildVmExpandedStateMap = (folders, previousFolders = {}, serverMap = {}) => vmExpandedStateController
+    ? vmExpandedStateController.buildStateMap(folders, previousFolders, serverMap)
+    : {};
+const persistVmExpandedStateMap = (map, syncServer = true) => vmExpandedStateController?.persistStateMap(map, syncServer);
+const persistVmExpandedStateFromGlobal = (syncServer = true) => vmExpandedStateController?.persistStateFromGlobal(syncServer);
+const readVmExpandedStateFromDom = () => vmExpandedStateController ? vmExpandedStateController.readStateFromDom() : {};
+const persistVmExpandedStateFromDom = () => vmExpandedStateController?.persistStateFromDom();
+const ensureVmExpandedStateLifecycleHooks = () => vmExpandedStateController?.ensureLifecycleHooks();
 const VM_LOCKED_STATE_KEY = 'fvplus.runtime.locked.vm.v1';
 let vmFocusedFolderId = String(vmRuntimeStateStore.get('focusedFolderId', '') || '').trim();
 const normalizeLockedFolderIdList = (value) => {
@@ -654,19 +574,23 @@ const ensureVmFolderUnlocked = (id, actionLabel = 'This action') => {
     });
     return false;
 };
-const escapeHtml = (value) => String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-const sanitizeImageSrc = (value, fallback = '/plugins/dynamix.docker.manager/images/question.png') => {
-    const raw = String(value || '').trim();
-    if (!raw || /^javascript:/i.test(raw)) {
-        return fallback;
-    }
-    return escapeHtml(raw);
-};
+const escapeHtml = typeof utils.escapeHtml === 'function'
+    ? utils.escapeHtml
+    : ((value) => String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;'));
+const sanitizeImageSrc = typeof utils.sanitizeImageSrc === 'function'
+    ? utils.sanitizeImageSrc
+    : ((value, fallback = '/plugins/dynamix.docker.manager/images/question.png') => {
+        const raw = String(value || '').trim();
+        if (!raw || /^javascript:/i.test(raw)) {
+            return fallback;
+        }
+        return escapeHtml(raw);
+    });
 if (FV_VM_TOUCH_MODE) {
     document.body.classList.add('fv-touch-device');
 }
@@ -919,7 +843,6 @@ const createFolders = async () => {
     folderTypePrefs = utils.normalizePrefs(prefsResponse?.prefs || {});
     resolveVmStrictPerformanceProfile(folderTypePrefs, folders, vmInfo);
     applyVmPinnedFolderIds(Array.isArray(folderTypePrefs?.pinnedFolderIds) ? folderTypePrefs.pinnedFolderIds : []);
-    vmExpandedStateLastSyncedPayload = JSON.stringify(readVmServerExpandedStateMap());
     const folderDepthById = buildFolderDepthById(folders);
     unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs);
     applyRuntimePrefs(folderTypePrefs);
@@ -1215,7 +1138,7 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
     const lockedClass = locked ? 'fv-folder-locked' : '';
     const pinnedClass = pinned ? 'fv-folder-pinned' : '';
     const focusedClass = focused ? 'fv-folder-focused' : '';
-    const fld = `<tr parent-id="${id}" class="sortable folder-id-${id} ${hoverClass} ${lockedClass} ${pinnedClass} ${focusedClass} folder"><td class="vm-name folder-name"><div class="folder-name-sub"><i class="fa fa-arrows-v mover orange-text"></i><span class="outer folder-outer"><span id="${id}" onclick='addVMFolderContext("${id}")' class="hand folder-hand"><img src="${safeFolderIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span><span class="inner folder-inner"><a class="folder-appname" href="#" onclick='editFolder("${id}")'>${safeFolderName}</a><a class="folder-appname-id">folder-${id}</a><br><i id="load-folder-${id}" class="fa fa-square stopped folder-load-status"></i><span class="state folder-state fv-folder-state-stopped"> ${$.i18n('stopped')}</span></span></span><button class="dropDown-${id} folder-dropdown" onclick='dropDownButton("${id}")'><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div></td><td colspan="${colspan}"><div class="folder-storage"></div><div class="folder-preview"></div></td><td class="folder-autostart"><input class="autostart" type="checkbox" id="folder-${id}-auto" style="display:none"></td></tr><tr child-id="${id}" id="name-${id}" style="display:none"><td colspan="${totalCols}" style="margin:0;padding:0"></td></tr>`;
+    const fld = `<tr parent-id="${id}" class="sortable folder-id-${id} ${hoverClass} ${lockedClass} ${pinnedClass} ${focusedClass} folder"><td class="vm-name folder-name"><div class="folder-name-sub"><i class="fa fa-arrows-v mover orange-text"></i><span class="outer folder-outer"><span id="${id}" onclick='addVMFolderContext("${id}")' class="hand folder-hand"><img src="${safeFolderIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span><span class="inner folder-inner"><a class="folder-appname" href="#" onclick='editFolder("${id}")'>${safeFolderName}</a><a class="folder-appname-id">folder-${id}</a><br><i id="load-folder-${id}" class="fa fa-square stopped folder-load-status"></i><span class="state folder-state fv-folder-state-stopped"> ${$.i18n('stopped')}</span></span></span><button class="dropDown-${id} folder-dropdown" onclick='dropDownButton("${id}")'><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div></td><td colspan="${colspan}" class="folder-preview-cell"><div class="folder-storage"></div><div class="folder-preview"></div></td><td class="folder-autostart"><input class="autostart" type="checkbox" id="folder-${id}-auto" style="display:none"></td></tr><tr child-id="${id}" id="name-${id}" style="display:none"><td colspan="${totalCols}" style="margin:0;padding:0"></td></tr>`;
 
     // insertion at position of the folder
     if (position === 0) {
@@ -2472,70 +2395,29 @@ const applyVmRuntimeAppWidthVariables = (desktopWidthPx = null) => {
     document.body.style.setProperty('--fvplus-vm-app-column-width-mobile', `${mobileWidth}px`);
 };
 
+const vmRuntimeThemeReflowController = runtimeStateObserverModule && typeof runtimeStateObserverModule.createThemeReflowController === 'function'
+    ? runtimeStateObserverModule.createThemeReflowController({
+        window,
+        document,
+        viewportReason: 'viewport-resize',
+        viewportDelayMs: 48,
+        themeReasonPrefix: 'theme-change',
+        themeDelayMs: 40,
+        scheduleReflow: (reason, delayMs) => scheduleVmRuntimeWidthReflow(reason, delayMs),
+        onQueueReason: (reason) => vmDebugLog(`theme-reflow:${reason}`)
+    })
+    : null;
+
 const bindVmRuntimeViewportWidthSync = () => {
-    if (vmRuntimeViewportBound) {
-        return;
-    }
-    vmRuntimeViewportBound = true;
-    const reapply = () => {
-        scheduleVmRuntimeWidthReflow('viewport-resize', 48);
-    };
-    window.addEventListener('resize', reapply, { passive: true });
-    window.addEventListener('orientationchange', reapply, { passive: true });
+    vmRuntimeThemeReflowController?.bindViewportWidthSync();
 };
 
 const queueVmRuntimeThemeReflow = (reason = 'theme-change') => {
-    const nextReason = String(reason || 'theme-change');
-    if (vmRuntimeThemeReflowTimer !== null) {
-        window.clearTimeout(vmRuntimeThemeReflowTimer);
-    }
-    vmRuntimeThemeReflowTimer = window.setTimeout(() => {
-        vmRuntimeThemeReflowTimer = null;
-        vmDebugLog(`theme-reflow:${nextReason}`);
-        scheduleVmRuntimeWidthReflow(`theme-change:${nextReason}`, 40);
-    }, 40);
+    vmRuntimeThemeReflowController?.queueThemeReflow(reason);
 };
 
 const bindVmRuntimeThemeReflow = () => {
-    if (vmRuntimeThemeReflowBound) {
-        return;
-    }
-    vmRuntimeThemeReflowBound = true;
-    const onThemeChange = () => queueVmRuntimeThemeReflow('observer');
-    if (typeof MutationObserver === 'function') {
-        vmRuntimeThemeReflowObserver = new MutationObserver((mutations) => {
-            for (const mutation of mutations || []) {
-                if (mutation.type !== 'attributes') {
-                    continue;
-                }
-                const attr = String(mutation.attributeName || '').toLowerCase();
-                if (!attr || attr === 'class' || attr === 'style' || attr.includes('theme')) {
-                    onThemeChange();
-                    return;
-                }
-            }
-        });
-        if (document.documentElement) {
-            vmRuntimeThemeReflowObserver.observe(document.documentElement, {
-                attributes: true,
-                attributeFilter: ['class', 'style', 'data-theme', 'theme', 'data-color-scheme', 'data-bs-theme']
-            });
-        }
-        if (document.body) {
-            vmRuntimeThemeReflowObserver.observe(document.body, {
-                attributes: true,
-                attributeFilter: ['class', 'style', 'data-theme', 'theme', 'data-color-scheme', 'data-bs-theme']
-            });
-        }
-    }
-    if (typeof window.matchMedia === 'function') {
-        const media = window.matchMedia('(prefers-color-scheme: dark)');
-        if (media && typeof media.addEventListener === 'function') {
-            media.addEventListener('change', () => queueVmRuntimeThemeReflow('prefers-color-scheme'));
-        } else if (media && typeof media.addListener === 'function') {
-            media.addListener(() => queueVmRuntimeThemeReflow('prefers-color-scheme'));
-        }
-    }
+    vmRuntimeThemeReflowController?.bindThemeReflow();
 };
 
 const applyRuntimePrefs = (prefs) => {

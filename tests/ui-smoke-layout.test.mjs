@@ -14,15 +14,20 @@ const settingsCssPath = path.join(
 );
 const settingsScriptPaths = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-metadata.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js',
-    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.row-details.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard-smart-detect.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js',
-    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js'
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.updates.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.actions-support.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
 ].map((relativePath) => path.join(repoRoot, relativePath));
 const folderCssPath = path.join(
     repoRoot,
@@ -67,6 +72,8 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
     assert.match(settingsPage, /folderviewplus\.dirty\.js/);
     assert.match(settingsPage, /folderviewplus\.smart-detect-config\.js/);
     assert.match(settingsPage, /folderviewplus\.activity-diagnostics\.js/);
+    assert.match(settingsPage, /folderviewplus\.row-details\.js/);
+    assert.match(settingsPage, /folderviewplus\.wizard-smart-detect\.js/);
     assert.match(settingsPage, /folderviewplus\.wizard\.js/);
     assert.match(settingsPage, /folderviewplus\.import\.js/);
     assert.match(settingsPage, /folderviewplus\.updates\.js/);
@@ -191,7 +198,7 @@ test('mobile folder table hides Order column and routes controls to overflow men
     assert.match(settingsJs, /const hideOrderControls = compactMobileLayout && !mobileTreeReorderMode;/);
     assert.match(settingsJs, /const orderCellHtml = hideOrderControls[\s\S]*\?\s*''/);
     assert.match(settingsJs, /const openFolderRowQuickActions = \(type, folderId, event = null\) =>/);
-    assert.match(settingsJs, /window\.openFolderRowQuickActions = openFolderRowQuickActions;/);
+    assert.match(settingsJs, /registerWindowActions\(window,\s*\{[\s\S]*openFolderRowQuickActions[\s\S]*\}\);/);
     assert.match(settingsJs, /const renderFolderQuickActionSummaryHtml = \(summary\) =>/);
     assert.match(settingsJs, /const toggleVmRowDetailsDrawer = \(folderId\) =>/);
     assert.match(settingsJs, /data-fv-vm-drawer-action/);
@@ -341,15 +348,16 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /window\.addEventListener\('resize', enforceNoHorizontalOverflow\)/);
     assert.match(settingsJs, /initOverflowGuard\(\);/);
     assert.match(settingsJs, /syncRuntimeConflictResolutionBanner\(\);/);
-    assert.match(settingsJs, /window\.compareBackupSnapshots = compareBackupSnapshots;/);
-    assert.match(settingsJs, /window\.copyFolderId = copyFolderId;/);
-    assert.match(settingsJs, /window\.toggleDockerUpdatesFilter = toggleDockerUpdatesFilter;/);
+    assert.match(settingsJs, /registerWindowActions\(window,\s*\{[\s\S]*compareBackupSnapshots[\s\S]*copyFolderId[\s\S]*toggleDockerUpdatesFilter[\s\S]*\}\);/);
     assert.match(settingsJs, /const evaluateDockerFolderHealth = \(folder, members, countsByState, updateCount, fallbackWarnThreshold\) =>/);
     assert.match(settingsJs, /const toggleHealthSeverityFilter = \(type = 'docker', severity = 'all'\) =>/);
-    assert.match(settingsJs, /window\.toggleHealthSeverityFilter = toggleHealthSeverityFilter;/);
+    assert.match(settingsJs, /registerWindowActions\(window,\s*\{[\s\S]*toggleHealthSeverityFilter[\s\S]*\}\);/);
     assert.match(settingsJs, /toggleHealthSeverityFilter\('\$\{type\}','\$\{escapeHtml\(healthStatus\.filterSeverity\)\}'\)/);
-    assert.match(settingsJs, /const showFolderHealthBreakdown = \(type, folderId\) =>/);
-    assert.match(settingsJs, /window\.showFolderHealthBreakdown = showFolderHealthBreakdown;/);
+    assert.match(settingsJs, /root\.FolderViewPlusRowDetails = factory\(\);/);
+    assert.match(settingsJs, /const getRowDetailsApi = \(\(\) =>/);
+    assert.match(settingsJs, /cachedApi = rowDetailsModule\.createApi\(/);
+    assert.match(settingsJs, /const showFolderHealthBreakdown = \(\.\.\.args\) => getRowDetailsApi\(\)\.showFolderHealthBreakdown\(\.\.\.args\);/);
+    assert.match(settingsJs, /registerWindowActions\(window,\s*\{[\s\S]*showFolderHealthBreakdown[\s\S]*\}\);/);
     assert.match(settingsJs, /class="health-breakdown-btn"/);
     assert.match(settingsJs, /const compactHoverLabel = 'Compact tab';/);
     assert.match(settingsJs, /id="fv-advanced-compact" class="fv-advanced-compact" title="\$\{escapeHtml\(compactHoverLabel\)\}" aria-label="\$\{escapeHtml\(compactLabel\)\}"/);
@@ -368,10 +376,7 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const changeSettingsTableColumnWidthPreset = async \(type, key, value\) =>/);
     assert.match(settingsJs, /const applySettingsTablePreset = async \(type, preset\) =>/);
     assert.match(settingsJs, /const resetSettingsTableColumns = async \(type, mode = 'visibility'\) =>/);
-    assert.match(settingsJs, /window\.changeColumnVisibility = changeColumnVisibility;/);
-    assert.match(settingsJs, /window\.changeSettingsTableColumnWidthPreset = changeSettingsTableColumnWidthPreset;/);
-    assert.match(settingsJs, /window\.applySettingsTablePreset = applySettingsTablePreset;/);
-    assert.match(settingsJs, /window\.resetSettingsTableColumns = resetSettingsTableColumns;/);
+    assert.match(settingsJs, /registerWindowActions\(window,\s*\{[\s\S]*changeColumnVisibility[\s\S]*changeSettingsTableColumnWidthPreset[\s\S]*applySettingsTablePreset[\s\S]*resetSettingsTableColumns[\s\S]*\}\);/);
     assert.match(settingsJs, /toggleStatusFilter\('\$\{type\}','\$\{escapeHtml\(statusPrimaryKey\)\}'\)/);
     assert.match(settingsJs, /return 'good health';/);
     assert.match(settingsJs, /return 'warn health';/);
@@ -396,7 +401,7 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsRuntime, /is-trust-\$\{trust\.level\}/);
     assert.match(settingsJs, /const ensureAdvancedDataLoaded = async \(options = \{\}\) =>/);
     assert.match(settingsJs, /const refreshCoreData = async \(\) =>/);
-    assert.match(settingsJs, /if \(settingsUiState\.mode === 'advanced'\) \{\s*await refreshAll\(\);\s*\} else \{\s*await refreshCoreData\(\);\s*\}/);
+    assert.match(settingsJs, /if \(settingsUiState\.mode === 'advanced'\) \{[\s\S]*await refreshAll\(\);[\s\S]*\} else \{[\s\S]*await refreshCoreData\(\);[\s\S]*\}/);
     assert.match(settingsCss, /\.folder-action-btn\s*\{/);
     assert.match(settingsCss, /\.fv-col-resizer/);
     assert.match(settingsCss, /body\.fv-column-resize-active/);

@@ -330,7 +330,7 @@ tr.folder.fv-parent-expanded div.folder-preview {
     overflow: hidden;
     display: flex;
     flex-wrap: wrap;
-    align-items: flex-start;
+    align-items: center;
     align-content: flex-start;
     row-gap: 0.35em;
 }
@@ -388,6 +388,11 @@ tr.folder.fv-parent-expanded div.folder-preview {
     align-items: center;
     flex: 0 0 auto;
     min-width: 0;
+}
+
+.folder-preview-wrapper > span.outer {
+    display: inline-flex;
+    align-items: center;
 }
 
 .folder-preview.fv-preview-multirow .folder-preview-wrapper {
@@ -546,13 +551,20 @@ tr.folder.fv-parent-expanded div.folder-preview {
     word-break: break-all;
 }
 
-.folder-preview-divider:not(:last-child) {
+.folder-preview-divider {
     float: none;
-    height: 80%;
+    display: block;
+    flex: 0 0 auto;
+    align-self: stretch;
+    min-height: calc(var(--fvplus-preview-row-height) - 1.2em);
     width: 0;
     border-right: var(--fvplus-preview-divider-width, 1px) solid;
-    margin: 0;
-    align-self: center;
+    margin: 0.35em 0 0.35em 6px;
+}
+
+.folder-preview.fv-preview-multirow .folder-preview-divider {
+    min-height: 1.35em;
+    margin: 2px 0;
 }
 
 .folder-element-custom-btn {

@@ -53,9 +53,22 @@
         return Math.max(min, Math.min(max, Math.round(parsed)));
     };
 
+    const extractDropdownStyleValue = (value) => {
+        if (value && typeof value === 'object') {
+            return value.dropdown_style
+                ?? value.dropdownStyle
+                ?? value.chevron_style
+                ?? value.chevronStyle
+                ?? '';
+        }
+        return value;
+    };
+
     const normalizeDropdownStyle = (value) => {
-        const normalized = String(value || '').trim().toLowerCase();
-        return normalized === 'minimal' ? 'minimal' : DEFAULT_DROPDOWN_STYLE;
+        const normalized = String(extractDropdownStyleValue(value) || '').trim().toLowerCase();
+        return normalized === 'boxed' || normalized === 'minimal'
+            ? normalized
+            : DEFAULT_DROPDOWN_STYLE;
     };
 
     const hexToRgba = (hex, alpha) => {
@@ -139,7 +152,7 @@
         }
         const source = settings && typeof settings === 'object' ? settings : {};
         const rowStyle = $folderRow[0].style;
-        const dropdownStyle = normalizeDropdownStyle(source.dropdown_style);
+        const dropdownStyle = normalizeDropdownStyle(source);
         const normalColor = normalizeStatusHexColor(source.dropdown_color, DEFAULT_DROPDOWN_COLOR);
         const hoverColor = normalizeStatusHexColor(source.dropdown_hover_color, DEFAULT_DROPDOWN_HOVER_COLOR);
         rowStyle.setProperty('--fvplus-folder-dropdown-color', normalColor);

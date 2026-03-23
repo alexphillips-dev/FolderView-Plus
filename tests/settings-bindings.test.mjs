@@ -13,12 +13,14 @@ const settingsCssPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhtt
 const page = fs.readFileSync(pagePath, 'utf8');
 const settingsScriptPaths = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-metadata.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.actions-support.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
 ].map((relativePath) => path.join(repoRoot, relativePath));
 const script = settingsScriptPaths.map((scriptPath) => fs.readFileSync(scriptPath, 'utf8')).join('\n');
@@ -35,9 +37,24 @@ test('settings page onclick handlers are exported on window', () => {
         ...[...page.matchAll(/onchange="([A-Za-z0-9_]+)\(/g)].map((m) => m[1])
     ];
     const onclickUnique = [...new Set(handlers)];
-    const exported = new Set([...script.matchAll(/window\.([A-Za-z0-9_]+)\s*=/g)].map((m) => m[1]));
+    const exported = new Set([
+        ...[...script.matchAll(/window\.([A-Za-z0-9_]+)\s*=/g)].map((m) => m[1]),
+        ...[...script.matchAll(/registerWindowActions\(window,\s*\{([\s\S]*?)\}\);/g)]
+            .flatMap((match) => [...match[1].matchAll(/^\s*([A-Za-z0-9_]+)\s*(?::|,)/gm)].map((entry) => entry[1]))
+    ]);
     const missing = onclickUnique.filter((name) => !exported.has(name));
     assert.deepEqual(missing, []);
+});
+
+test('settings page loads extracted settings metadata before the main runtime', () => {
+    assert.match(page, /folderviewplus\.runtime-parity\.js/);
+    assert.match(page, /folderviewplus\.settings-metadata\.js/);
+    assert.match(page, /folderviewplus\.settings-sections\.js/);
+    assert.match(page, /folderviewplus\.settings-metadata\.js[\s\S]*folderviewplus\.settings-sections\.js[\s\S]*folderviewplus\.actions-support\.js[\s\S]*folderviewplus\.js/);
+    assert.match(script, /FolderViewPlusSettingsMetadataModuleLoaded = true/);
+    assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.settings-metadata\.js'\)/);
+    assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.actions-support\.js'\)/);
+    assert.match(script, /const SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE = settingsMetadata\?\./);
 });
 
 test('settings page exposes theme fallback controls and runtime self-heal action', () => {
@@ -50,7 +67,7 @@ test('settings page exposes theme fallback controls and runtime self-heal action
     assert.match(script, /const normalizeThemeCompatibilityMode = \(value\) =>/);
     assert.match(script, /const getEffectiveThemeCompatibilityMode = \(\) =>/);
     assert.match(script, /const runThemeSelfHeal = async \(\) =>/);
-    assert.match(script, /window\.runThemeSelfHeal = runThemeSelfHeal;/);
+    assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*runThemeSelfHeal[\s\S]*\}\);/);
     assert.match(script, /else if \(key === 'themeCompatibilityMode'\) \{/);
 });
 
@@ -231,12 +248,7 @@ test('tree runtime persists collapse state and guards tree operations', () => {
     assert.match(script, /treeCollapsed:\s*\{/);
     assert.match(script, /collapsedTreeParentsByType\[resolvedType\] = new Set/);
     assert.match(script, /const canFolderUseTreeMove = \(type, sourceFolderId, hierarchyMeta = null\) =>/);
-    assert.match(script, /window\.toggleFolderTreeCollapse = toggleFolderTreeCollapse;/);
-    assert.match(script, /window\.expandAllFolderTrees = expandAllFolderTrees;/);
-    assert.match(script, /window\.collapseAllFolderTrees = collapseAllFolderTrees;/);
-    assert.match(script, /window\.applyTreeMoveUndo = applyTreeMoveUndo;/);
-    assert.match(script, /window\.applyTreeMoveRedo = applyTreeMoveRedo;/);
-    assert.match(script, /window\.toggleMobileTreeReorderMode = toggleMobileTreeReorderMode;/);
+    assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*applyTreeMoveUndo[\s\S]*applyTreeMoveRedo[\s\S]*toggleFolderTreeCollapse[\s\S]*expandAllFolderTrees[\s\S]*collapseAllFolderTrees[\s\S]*toggleMobileTreeReorderMode[\s\S]*\}\);/);
     assert.match(script, /const recordTreeMoveHistoryFromBackup = async \(type, beforeBackupName, actionLabel, focusFolderId = ''\) =>/);
     assert.match(script, /pushTreeMoveHistoryEntry\(resolvedType,/);
     assert.match(script, /History: \$\{historyDepth\.undo\} undo \/ \$\{historyDepth\.redo\} redo\./);
@@ -263,11 +275,7 @@ test('nested folder branch and integrity actions are reachable from quick action
     assert.match(script, /const exportFolderBranch = async \(type, folderId\) =>/);
     assert.match(script, /const importFolderBranch = async \(type, targetFolderId\) =>/);
     assert.match(script, /const runTreeIntegrityCheck = async \(type, options = \{\}\) =>/);
-    assert.match(script, /window\.setFolderBranchCollapse = setFolderBranchCollapse;/);
-    assert.match(script, /window\.setFolderBranchPinned = setFolderBranchPinned;/);
-    assert.match(script, /window\.exportFolderBranch = exportFolderBranch;/);
-    assert.match(script, /window\.importFolderBranch = importFolderBranch;/);
-    assert.match(script, /window\.runTreeIntegrityCheck = runTreeIntegrityCheck;/);
+    assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*setFolderBranchCollapse[\s\S]*setFolderBranchPinned[\s\S]*exportFolderBranch[\s\S]*importFolderBranch[\s\S]*runTreeIntegrityCheck[\s\S]*\}\);/);
 });
 
 test('settings table layout uses preset-driven widths instead of drag-resize controls', () => {
@@ -332,10 +340,7 @@ test('bulk assignment advanced UX includes filtering, selection helpers, and com
     assert.match(script, /const filterBulkItems = \(type, value = ''\) =>/);
     assert.match(script, /const bulkItemSelectionAction = \(type, action = 'all'\) =>/);
     assert.match(script, /const updateBulkSelectedCount = \(type\) =>/);
-    assert.match(script, /window\.retryFailedBulkItems = retryFailedBulkItems;/);
-    assert.match(script, /window\.filterBulkItems = filterBulkItems;/);
-    assert.match(script, /window\.bulkItemSelectionAction = bulkItemSelectionAction;/);
-    assert.match(script, /window\.updateBulkSelectedCount = updateBulkSelectedCount;/);
+    assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*retryFailedBulkItems[\s\S]*filterBulkItems[\s\S]*bulkItemSelectionAction[\s\S]*updateBulkSelectedCount[\s\S]*\}\);/);
     assert.match(script, /utils && typeof utils\.normalizeFolderMembers === 'function'/);
     assert.match(script, /utils\.normalizeFolderMembers\(folder\?\.containers \|\| \[\]\)/);
     assert.match(libPhp, /foreach \(\$folders as \$folder\) \{[\s\S]*normalizeFolderMembers\(\$folder\['containers'\] \?\? \[\]\)/);

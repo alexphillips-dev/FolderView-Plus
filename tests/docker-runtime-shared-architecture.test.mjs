@@ -13,12 +13,20 @@ const dockerCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.
 
 test('docker runtime page loads shared runtime module before docker modules/runtime', () => {
     const sharedIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.shared.js');
+    const stateObserverIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/folder.runtime.state-observers.js');
     const modulesIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.modules.js');
+    const menuIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.member-menu.js');
     const runtimeIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.js');
+    assert.equal(dockerPage.includes('/plugins/folderview.plus/scripts/folderviewplus.fatal-banner.js'), false, 'docker page should not load settings fatal banner');
     assert.ok(sharedIndex >= 0, 'shared runtime script include is missing');
+    assert.ok(stateObserverIndex >= 0, 'runtime state observer script include is missing');
     assert.ok(modulesIndex >= 0, 'docker modules script include is missing');
+    assert.ok(menuIndex >= 0, 'docker member menu script include is missing');
     assert.ok(runtimeIndex >= 0, 'docker runtime script include is missing');
     assert.ok(sharedIndex < modulesIndex, 'shared runtime must load before docker.modules.js');
+    assert.ok(sharedIndex < stateObserverIndex, 'shared runtime must load before runtime state observer module');
+    assert.ok(stateObserverIndex < runtimeIndex, 'runtime state observer module must load before docker.js');
+    assert.ok(menuIndex < runtimeIndex, 'docker member menu module must load before docker.js');
     assert.ok(sharedIndex < runtimeIndex, 'shared runtime must load before docker.js');
 });
 
@@ -38,9 +46,18 @@ test('docker shared runtime module exports state store, debug logger, async boun
 
 test('docker runtime consumes shared state store and guarded async action wrappers', () => {
     assert.match(dockerJs, /const dockerRuntimeShared = window\.FolderViewDockerRuntimeShared \|\| \{\};/);
+    assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('folderviewplus\.utils\.js'\)/);
+    assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('folderviewplus\.request\.js'\)/);
+    assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('docker\.runtime\.shared\.js'\)/);
+    assert.match(dockerJs, /FolderView Plus Docker runtime bootstrap failed/);
+    assert.match(dockerJs, /const runtimeStateObserverModule = window\.FolderViewPlusRuntimeStateObservers \|\| null;/);
+    assert.match(dockerJs, /const dockerPreviewMemberMenuModule = window\.FolderViewDockerPreviewMemberMenu \|\| null;/);
     assert.match(dockerJs, /dockerRuntimeShared\.createDebugLogger/);
     assert.match(dockerJs, /const dockerRuntimeStateStore = createDockerRuntimeStateStore\(/);
     assert.match(dockerJs, /const dockerActionBoundary = createDockerAsyncActionBoundary\(/);
+    assert.match(dockerJs, /const dockerExpandedStateController = runtimeStateObserverModule/);
+    assert.match(dockerJs, /const dockerRuntimeThemeReflowController = runtimeStateObserverModule/);
+    assert.match(dockerJs, /dockerPreviewMemberMenuModule\.createController/);
     assert.match(dockerJs, /const runDockerGuardedAction = async \(actionName, action, context = \{\}\) =>/);
     assert.match(dockerJs, /window\.getDockerRuntimePerfTelemetrySnapshot =/);
 });

@@ -4,6 +4,153 @@ const REQUEST_TOKEN_STORAGE_KEY = 'fv.request.token';
 const requestClient = window.FolderViewPlusRequest || null;
 const settingsChrome = window.FolderViewPlusSettingsChrome || null;
 const dirtyTracker = window.FolderViewPlusDirtyTracker || null;
+const settingsMetadata = window.FolderViewPlusSettingsMetadata || null;
+const settingsActionSupportModule = window.FolderViewPlusSettingsActionSupport || null;
+const rowDetailsModule = window.FolderViewPlusRowDetails || null;
+const fatalBanner = window.FolderViewPlusFatalBanner || null;
+const markFatalBannerStep = (step) => {
+    if (fatalBanner && typeof fatalBanner.markStep === 'function') {
+        fatalBanner.markStep(step);
+    }
+};
+const setFatalBannerModuleStatus = (name, status, detail = '') => {
+    if (fatalBanner && typeof fatalBanner.setModuleStatus === 'function') {
+        fatalBanner.setModuleStatus(name, status, detail);
+    }
+};
+const recordFatalBannerRequest = (entry = {}) => {
+    if (fatalBanner && typeof fatalBanner.recordRequest === 'function') {
+        fatalBanner.recordRequest(entry);
+    }
+};
+const setFatalBannerPrefsStatus = (patch = {}) => {
+    if (fatalBanner && typeof fatalBanner.setPrefsStatus === 'function') {
+        fatalBanner.setPrefsStatus(patch);
+    }
+};
+const setFatalBannerEnvironment = (patch = {}) => {
+    if (fatalBanner && typeof fatalBanner.setEnvironment === 'function') {
+        fatalBanner.setEnvironment(patch);
+    }
+};
+const setFatalBannerPhase = (phase) => {
+    if (fatalBanner && typeof fatalBanner.setPhase === 'function') {
+        fatalBanner.setPhase(phase);
+    }
+};
+const recordFatalBannerAction = (action) => {
+    if (fatalBanner && typeof fatalBanner.recordAction === 'function') {
+        fatalBanner.recordAction(action);
+    }
+};
+const reportFatalBannerDegradedState = (error, options = {}) => {
+    if (fatalBanner && typeof fatalBanner.reportDegradedState === 'function') {
+        fatalBanner.reportDegradedState(error, options);
+    }
+};
+const trimFatalBannerDiagnosticString = (value) => String(value ?? '').trim();
+const extractFatalBannerTraceId = (error) => {
+    const direct = trimFatalBannerDiagnosticString(error?.traceId);
+    if (direct) {
+        return direct;
+    }
+    const message = trimFatalBannerDiagnosticString(error?.message || error);
+    const match = message.match(/\(trace:\s*([^)]+)\)/i);
+    return match ? trimFatalBannerDiagnosticString(match[1]) : '';
+};
+const extractFatalBannerStatus = (error) => {
+    const direct = Number(error?.jqXHR?.status || error?.status || 0);
+    if (Number.isFinite(direct) && direct > 0) {
+        return String(direct);
+    }
+    const message = trimFatalBannerDiagnosticString(error?.message || error);
+    const match = message.match(/\bHTTP\s+(\d{3})\b/i);
+    return match ? trimFatalBannerDiagnosticString(match[1]) : '';
+};
+const extractFatalBannerResponseSnippet = (error) => {
+    const responseText = trimFatalBannerDiagnosticString(error?.jqXHR?.responseText || error?.responseText || '');
+    if (!responseText) {
+        return '';
+    }
+    const normalized = responseText.replace(/\s+/g, ' ').trim();
+    if (!normalized) {
+        return '';
+    }
+    return normalized.length > 180 ? `${normalized.slice(0, 177)}...` : normalized;
+};
+const inferFatalBannerCategory = (error, fallbackCategory = 'runtime-failed') => {
+    const message = trimFatalBannerDiagnosticString(error?.message || error).toLowerCase();
+    if (!message) {
+        return fallbackCategory;
+    }
+    if (message.includes('missing modules') || message.includes('module did not load')) {
+        return 'missing-module';
+    }
+    if (message.includes('invalid json response') || message.includes('unexpected json response type')) {
+        return 'invalid-response';
+    }
+    if (message.includes('json response') && message.includes('empty')) {
+        return 'invalid-response';
+    }
+    if (message.includes('request failed for ')) {
+        return 'request-failed';
+    }
+    if (message.includes('prefs')) {
+        return 'prefs-corrupt';
+    }
+    if (message.includes('render')) {
+        return 'render-failed';
+    }
+    return fallbackCategory;
+};
+const annotateFatalBannerError = (error, {
+    phase = '',
+    category = '',
+    action = ''
+} = {}) => {
+    if (!error || typeof error !== 'object') {
+        return error;
+    }
+    if (phase && !error.fvplusPhase) {
+        error.fvplusPhase = phase;
+    }
+    if (category && !error.fvplusCategory) {
+        error.fvplusCategory = category;
+    }
+    if (action && !error.fvplusAction) {
+        error.fvplusAction = action;
+    }
+    return error;
+};
+const withFatalBannerPhase = async ({
+    phase = '',
+    step = '',
+    action = '',
+    category = 'runtime-failed'
+} = {}, callback) => {
+    if (phase) {
+        setFatalBannerPhase(phase);
+    }
+    if (step) {
+        markFatalBannerStep(step);
+    }
+    if (action) {
+        recordFatalBannerAction(action);
+    }
+    try {
+        return await callback();
+    } catch (error) {
+        throw annotateFatalBannerError(error, { phase, category, action });
+    }
+};
+setFatalBannerEnvironment({
+    page: 'Settings',
+    url: window.location?.href || '',
+    userAgent: window.navigator?.userAgent || ''
+});
+setFatalBannerPhase('module-load');
+recordFatalBannerAction('Load Settings runtime');
+markFatalBannerStep('Loaded settings runtime');
 const settingsStorageWriter = utils && typeof utils.createBatchedStorageWriter === 'function'
     ? utils.createBatchedStorageWriter(window.localStorage, {
         defaultDelayMs: 80,
@@ -41,46 +188,36 @@ const removeSettingsStorage = (key, options = {}) => {
     }
 };
 const renderBootstrapDependencyBanner = (missingModules) => {
-    const host = document.getElementById('fv-settings-root') || document.body;
-    if (!host) {
+    if (fatalBanner && typeof fatalBanner.reportMissingModules === 'function') {
+        fatalBanner.reportMissingModules(missingModules, {
+            context: 'Settings',
+            hostSelector: '#fv-settings-root',
+            message: 'FolderView Plus could not start because required settings modules failed to load.',
+            code: 'FVPLUS-SET-BOOT-001',
+            phase: 'module-load'
+        });
         return;
     }
-    const escapeInline = (value) => String(value ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-    const panelId = 'fv-bootstrap-missing-modules';
-    const existing = document.getElementById(panelId);
-    if (existing) {
-        existing.remove();
-    }
-    const listHtml = missingModules
-        .map((name) => `<li>${escapeInline(String(name || 'Unknown module'))}</li>`)
-        .join('');
-    const panel = document.createElement('div');
-    panel.id = panelId;
-    panel.className = 'fv-runtime-conflict-panel fv-bootstrap-warning';
-    panel.innerHTML = `
-        <div class="fv-runtime-conflict-title"><i class="fa fa-exclamation-triangle"></i> Settings bootstrap failed</div>
-        <div class="fv-runtime-conflict-text">FolderView Plus could not start because required settings modules failed to load.</div>
-        <div class="fv-runtime-conflict-list-title">Missing modules</div>
-        <ul class="fv-runtime-conflict-list">${listHtml}</ul>
-        <div class="fv-runtime-conflict-help">Try a hard refresh. If this persists, reinstall the plugin package to restore missing files.</div>
-    `;
-    host.prepend(panel);
 };
 
 const bootstrapMissingModules = [];
 if (!utils || typeof utils.normalizePrefs !== 'function') {
     bootstrapMissingModules.push('folderviewplus.utils.js');
+    setFatalBannerModuleStatus('folderviewplus.utils.js', 'missing', 'normalizePrefs unavailable');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.utils.js', 'ok', 'normalizePrefs available');
 }
 if (!requestClient || typeof requestClient.getJson !== 'function' || typeof requestClient.postJson !== 'function') {
     bootstrapMissingModules.push('folderviewplus.request.js');
+    setFatalBannerModuleStatus('folderviewplus.request.js', 'missing', 'request client unavailable');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.request.js', 'ok', 'request client ready');
 }
 if (!settingsChrome || typeof settingsChrome.getTopbarHtml !== 'function' || typeof settingsChrome.getActionBarHtml !== 'function') {
     bootstrapMissingModules.push('folderviewplus.chrome.js');
+    setFatalBannerModuleStatus('folderviewplus.chrome.js', 'missing', 'settings chrome exports unavailable');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.chrome.js', 'ok', 'settings chrome ready');
 }
 if (
     !dirtyTracker
@@ -88,38 +225,103 @@ if (
     || typeof dirtyTracker.captureBaseline !== 'function'
 ) {
     bootstrapMissingModules.push('folderviewplus.dirty.js');
+    setFatalBannerModuleStatus('folderviewplus.dirty.js', 'missing', 'dirty tracking exports unavailable');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.dirty.js', 'ok', 'dirty tracking ready');
 }
 if (window.FolderViewPlusRuntimeParityModuleLoaded !== true) {
     bootstrapMissingModules.push('folderviewplus.runtime-parity.js');
+    setFatalBannerModuleStatus('folderviewplus.runtime-parity.js', 'missing');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.runtime-parity.js', 'ok');
+}
+if (!settingsMetadata || !settingsMetadata.SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE) {
+    bootstrapMissingModules.push('folderviewplus.settings-metadata.js');
+    setFatalBannerModuleStatus('folderviewplus.settings-metadata.js', 'missing', 'column schema unavailable');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.settings-metadata.js', 'ok', 'column schema loaded');
 }
 if (window.FolderViewPlusSettingsSectionsModuleLoaded !== true) {
     bootstrapMissingModules.push('folderviewplus.settings-sections.js');
+    setFatalBannerModuleStatus('folderviewplus.settings-sections.js', 'missing');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.settings-sections.js', 'ok');
 }
 if (window.FolderViewPlusSetupAssistantSupportModuleLoaded !== true) {
     bootstrapMissingModules.push('folderviewplus.setup-assistant.js');
+    setFatalBannerModuleStatus('folderviewplus.setup-assistant.js', 'missing');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.setup-assistant.js', 'ok');
 }
 if (window.FolderViewPlusSmartDetectConfigModuleLoaded !== true) {
     bootstrapMissingModules.push('folderviewplus.smart-detect-config.js');
+    setFatalBannerModuleStatus('folderviewplus.smart-detect-config.js', 'missing');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.smart-detect-config.js', 'ok');
 }
 if (window.FolderViewPlusStarterTemplatesModuleLoaded !== true) {
     bootstrapMissingModules.push('folderviewplus.starter-templates.js');
+    setFatalBannerModuleStatus('folderviewplus.starter-templates.js', 'missing');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.starter-templates.js', 'ok');
 }
 if (window.FolderViewPlusDiagnosticsModuleLoaded !== true) {
     bootstrapMissingModules.push('folderviewplus.activity-diagnostics.js');
+    setFatalBannerModuleStatus('folderviewplus.activity-diagnostics.js', 'missing');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.activity-diagnostics.js', 'ok');
 }
 if (window.FolderViewPlusFolderEditorModuleLoaded !== true) {
     bootstrapMissingModules.push('folderviewplus.folder-editor.js');
+    setFatalBannerModuleStatus('folderviewplus.folder-editor.js', 'missing');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.folder-editor.js', 'ok');
+}
+if (!rowDetailsModule || window.FolderViewPlusRowDetailsModuleLoaded !== true || typeof rowDetailsModule.createApi !== 'function') {
+    bootstrapMissingModules.push('folderviewplus.row-details.js');
+    setFatalBannerModuleStatus('folderviewplus.row-details.js', 'missing', 'row detail api unavailable');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.row-details.js', 'ok', 'row detail api ready');
+}
+if (window.FolderViewPlusWizardSmartDetectModuleLoaded !== true) {
+    bootstrapMissingModules.push('folderviewplus.wizard-smart-detect.js');
+    setFatalBannerModuleStatus('folderviewplus.wizard-smart-detect.js', 'missing');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.wizard-smart-detect.js', 'ok');
 }
 if (window.FolderViewPlusWizardModuleLoaded !== true) {
     bootstrapMissingModules.push('folderviewplus.wizard.js');
+    setFatalBannerModuleStatus('folderviewplus.wizard.js', 'missing');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.wizard.js', 'ok');
 }
 if (window.FolderViewPlusImportModuleLoaded !== true) {
     bootstrapMissingModules.push('folderviewplus.import.js');
+    setFatalBannerModuleStatus('folderviewplus.import.js', 'missing');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.import.js', 'ok');
+}
+if (
+    !settingsActionSupportModule
+    || window.FolderViewPlusSettingsActionSupportModuleLoaded !== true
+    || typeof settingsActionSupportModule.createSupportActions !== 'function'
+) {
+    bootstrapMissingModules.push('folderviewplus.actions-support.js');
+    setFatalBannerModuleStatus('folderviewplus.actions-support.js', 'missing', 'support action exports unavailable');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.actions-support.js', 'ok', 'support actions ready');
 }
 if (bootstrapMissingModules.length > 0) {
     renderBootstrapDependencyBanner(bootstrapMissingModules);
-    throw new Error(`FolderView Plus bootstrap failed. Missing modules: ${bootstrapMissingModules.join(', ')}`);
+    const error = new Error(`FolderView Plus bootstrap failed. Missing modules: ${bootstrapMissingModules.join(', ')}`);
+    error.fvplusBannerShown = true;
+    error.fvplusPhase = 'module-load';
+    error.fvplusCategory = 'missing-module';
+    throw error;
 }
+setFatalBannerPhase('bootstrap-state');
+recordFatalBannerAction('Validated required Settings modules');
+markFatalBannerStep('Validated required settings modules');
 
 let dockers = {};
 let vms = {};
@@ -184,46 +386,17 @@ let quickFolderFilterByType = {
     docker: 'all',
     vm: 'all'
 };
-const SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE = Object.freeze({
-    docker: Object.freeze([
-        Object.freeze({ key: 'order', label: 'Order', fieldId: null, header: '.col-order', cell: '.order-cell', hideable: false, resizable: true, defaultWidth: 92, min: 64, max: 220 }),
-        Object.freeze({ key: 'name', label: 'Name', fieldId: null, header: '.col-name', cell: '.name-cell', hideable: false, resizable: true, defaultWidth: 320, min: 220, max: 820 }),
-        Object.freeze({ key: 'members', label: 'Members', fieldId: 'docker-col-members', header: '.col-members', cell: '.members-cell', hideable: true, resizable: true, defaultWidth: 112, min: 90, max: 260, presets: Object.freeze({ compact: false, balanced: false, detailed: true }) }),
-        Object.freeze({ key: 'status', label: 'Status', fieldId: 'docker-col-status', header: '.col-status', cell: '.status-cell', hideable: true, resizable: true, defaultWidth: 220, min: 170, max: 620, presets: Object.freeze({ compact: true, balanced: true, detailed: true }) }),
-        Object.freeze({ key: 'rules', label: 'Rules', fieldId: 'docker-col-rules', header: '.col-rules', cell: '.rules-cell', hideable: true, resizable: true, defaultWidth: 110, min: 80, max: 240, presets: Object.freeze({ compact: true, balanced: true, detailed: true }) }),
-        Object.freeze({ key: 'lastChanged', label: 'Last changed', fieldId: 'docker-col-last-changed', header: '.col-last-changed', cell: '.last-changed-cell', hideable: true, resizable: true, defaultWidth: 180, min: 150, max: 360, presets: Object.freeze({ compact: false, balanced: true, detailed: true }) }),
-        Object.freeze({ key: 'pinned', label: 'Pinned', fieldId: 'docker-col-pinned', header: '.col-pinned', cell: '.pinned-cell', hideable: true, resizable: true, defaultWidth: 96, min: 80, max: 200, presets: Object.freeze({ compact: false, balanced: true, detailed: true }) }),
-        Object.freeze({ key: 'signals', label: 'Alerts', fieldId: 'docker-col-signals', header: '.col-signals', cell: '.signals-cell', hideable: true, resizable: true, defaultWidth: 180, min: 120, max: 360, presets: Object.freeze({ compact: true, balanced: true, detailed: true }) }),
-        Object.freeze({ key: 'actions', label: 'Actions', fieldId: null, header: '.col-actions', cell: '.actions-cell', hideable: false, resizable: true, defaultWidth: 180, min: 160, max: 320 })
-    ]),
-    vm: Object.freeze([
-        Object.freeze({ key: 'order', label: 'Order', fieldId: null, header: '.col-order', cell: '.order-cell', hideable: false, resizable: true, defaultWidth: 92, min: 64, max: 220 }),
-        Object.freeze({ key: 'name', label: 'Name', fieldId: null, header: '.col-name', cell: '.name-cell', hideable: false, resizable: true, defaultWidth: 320, min: 220, max: 820 }),
-        Object.freeze({ key: 'members', label: 'Members', fieldId: 'vm-col-members', header: '.col-members', cell: '.members-cell', hideable: true, resizable: true, defaultWidth: 112, min: 90, max: 260, presets: Object.freeze({ compact: false, balanced: false, detailed: true }) }),
-        Object.freeze({ key: 'status', label: 'Status', fieldId: 'vm-col-status', header: '.col-status', cell: '.status-cell', hideable: true, resizable: true, defaultWidth: 220, min: 170, max: 620, presets: Object.freeze({ compact: false, balanced: false, detailed: true }) }),
-        Object.freeze({ key: 'rules', label: 'Rules', fieldId: 'vm-col-rules', header: '.col-rules', cell: '.rules-cell', hideable: true, resizable: true, defaultWidth: 110, min: 80, max: 240, presets: Object.freeze({ compact: false, balanced: false, detailed: true }) }),
-        Object.freeze({ key: 'lastChanged', label: 'Last changed', fieldId: 'vm-col-last-changed', header: '.col-last-changed', cell: '.last-changed-cell', hideable: true, resizable: true, defaultWidth: 180, min: 150, max: 360, presets: Object.freeze({ compact: false, balanced: false, detailed: true }) }),
-        Object.freeze({ key: 'pinned', label: 'Pinned', fieldId: 'vm-col-pinned', header: '.col-pinned', cell: '.pinned-cell', hideable: true, resizable: true, defaultWidth: 96, min: 80, max: 200, presets: Object.freeze({ compact: false, balanced: false, detailed: true }) }),
-        Object.freeze({ key: 'autostart', label: 'Autostart', fieldId: 'vm-col-autostart', header: '.col-autostart', cell: '.autostart-cell', hideable: true, resizable: true, defaultWidth: 160, min: 130, max: 300, presets: Object.freeze({ compact: true, balanced: true, detailed: true }) }),
-        Object.freeze({ key: 'resources', label: 'Resources', fieldId: 'vm-col-resources', header: '.col-resources', cell: '.resources-cell', hideable: true, resizable: true, defaultWidth: 210, min: 170, max: 420, presets: Object.freeze({ compact: true, balanced: true, detailed: true }) }),
-        Object.freeze({ key: 'actions', label: 'Actions', fieldId: null, header: '.col-actions', cell: '.actions-cell', hideable: false, resizable: true, defaultWidth: 180, min: 160, max: 320 })
-    ])
+const SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE = settingsMetadata?.SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE || Object.freeze({
+    docker: Object.freeze([]),
+    vm: Object.freeze([])
 });
-const SETTINGS_TABLE_COLUMN_SCHEMA_MAP_BY_TYPE = Object.freeze({
-    docker: Object.freeze(Object.fromEntries((SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE.docker || []).map((entry) => [entry.key, entry]))),
-    vm: Object.freeze(Object.fromEntries((SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE.vm || []).map((entry) => [entry.key, entry])))
+const SETTINGS_TABLE_COLUMN_SCHEMA_MAP_BY_TYPE = settingsMetadata?.SETTINGS_TABLE_COLUMN_SCHEMA_MAP_BY_TYPE || Object.freeze({
+    docker: Object.freeze({}),
+    vm: Object.freeze({})
 });
-const DEFAULT_COLUMN_VISIBILITY_BY_TYPE = Object.freeze({
-    docker: Object.freeze(Object.fromEntries(
-        (SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE.docker || [])
-            .filter((entry) => entry.hideable === true)
-            .map((entry) => [entry.key, entry.presets?.balanced !== false])
-    )),
-    vm: Object.freeze(Object.fromEntries(
-        (SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE.vm || [])
-            .filter((entry) => entry.hideable === true)
-            .map((entry) => [entry.key, entry.presets?.balanced !== false])
-    ))
+const DEFAULT_COLUMN_VISIBILITY_BY_TYPE = settingsMetadata?.DEFAULT_COLUMN_VISIBILITY_BY_TYPE || Object.freeze({
+    docker: Object.freeze({}),
+    vm: Object.freeze({})
 });
 let columnVisibilityByType = {
     docker: { ...DEFAULT_COLUMN_VISIBILITY_BY_TYPE.docker },
@@ -359,7 +532,9 @@ const LONG_PRESS_DELAY_MS = 560;
 const IMPORT_PRESET_DEFAULT_ID = 'builtin:merge';
 const UNDO_WINDOW_MS = 10000;
 const ROW_FOCUS_HIGHLIGHT_MS = 2200;
-const SETTINGS_TABLE_COLUMN_COUNT = 10;
+const SETTINGS_TABLE_COLUMN_COUNT = Number.isFinite(Number(settingsMetadata?.SETTINGS_TABLE_COLUMN_COUNT))
+    ? Number(settingsMetadata.SETTINGS_TABLE_COLUMN_COUNT)
+    : 10;
 const BULK_ASSIGN_CHUNK_SIZE = 40;
 const BULK_ASSIGN_CHUNK_PAUSE_MS = 20;
 const BULK_LIST_RENDER_CHUNK_SIZE = 120;
@@ -1989,6 +2164,7 @@ const scrollToSectionKey = (key) => {
 
 const setSettingsMode = (mode) => {
     settingsUiState.mode = mode === 'advanced' ? 'advanced' : 'basic';
+    recordFatalBannerAction(`Switch Settings mode to ${settingsUiState.mode}`);
     writeSettingsStorage(UI_MODE_STORAGE_KEY, settingsUiState.mode, { delayMs: 60, idle: true });
     if (settingsUiState.mode === 'advanced') {
         const activeSection = settingsUiState.sections.find((section) => section.key === settingsUiState.activeSectionKey);
@@ -3227,162 +3403,33 @@ const summarizeStatusMembers = (label, names, maxItems = 6) => {
     const extra = list.length > maxItems ? ` (+${list.length - maxItems} more)` : '';
     return `${label}: ${preview}${extra}`;
 };
-
-const getFolderStatusBreakdown = (type, folderId) => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const folders = getFolderMap(resolvedType);
-    const folder = folders[folderId];
-    if (!folder) {
-        return null;
-    }
-    const memberSnapshot = getEffectiveMemberSnapshot(resolvedType, folders);
-    const members = Array.isArray(memberSnapshot[folderId]?.members) ? memberSnapshot[folderId].members : [];
-    const infoByName = infoByType[resolvedType] || {};
-    const countsByState = { started: 0, paused: 0, stopped: 0 };
-    const namesByState = { started: [], paused: [], stopped: [] };
-    for (const member of members) {
-        const runtimeState = getItemRuntimeStateKind(resolvedType, infoByName[member] || {});
-        if (runtimeState === 'started') {
-            countsByState.started += 1;
-            namesByState.started.push(String(member));
-        } else if (runtimeState === 'paused') {
-            countsByState.paused += 1;
-            namesByState.paused.push(String(member));
-        } else {
-            countsByState.stopped += 1;
-            namesByState.stopped.push(String(member));
+const getRowDetailsApi = (() => {
+    let cachedApi = null;
+    return () => {
+        if (cachedApi) {
+            return cachedApi;
         }
-    }
-    const dominantStatus = deriveFolderStatusKey(countsByState, members.length);
-    let updateCount = 0;
-    if (resolvedType === 'docker') {
-        for (const member of members) {
-            if (isDockerUpdateAvailable(infoByName[member] || {})) {
-                updateCount += 1;
-            }
-        }
-    }
-    return {
-        type: resolvedType,
-        folderId,
-        folderName: String(folder.name || folderId),
-        members,
-        countsByState,
-        namesByState,
-        dominantStatus,
-        updateCount
-    };
-};
-
-const showFolderStatusBreakdown = (type, folderId) => {
-    const details = getFolderStatusBreakdown(type, folderId);
-    if (!details) {
-        return;
-    }
-    const total = details.members.length;
-    const stoppedPercent = total > 0 ? Math.round((details.countsByState.stopped / total) * 100) : 0;
-    const suggestions = [];
-    if (total <= 0) {
-        suggestions.push('Add members to this folder to track runtime status.');
-    }
-    if (details.countsByState.started <= 0 && details.countsByState.paused <= 0 && details.countsByState.stopped > 0) {
-        suggestions.push('All members are stopped. Consider running Start from Folder runtime actions.');
-    }
-    if (details.countsByState.paused > 0) {
-        suggestions.push('Paused members detected. Resume them from Folder runtime actions if needed.');
-    }
-    if (details.type === 'docker' && details.updateCount > 0) {
-        suggestions.push(`Updates available in ${details.updateCount} container${details.updateCount === 1 ? '' : 's'}.`);
-    }
-    if (stoppedPercent >= normalizeStatusPrefs(details.type).warnStoppedPercent) {
-        suggestions.push(`Stopped percentage (${stoppedPercent}%) is above current warn threshold.`);
-    }
-    if (!suggestions.length) {
-        suggestions.push('No action needed. This folder status looks healthy.');
-    }
-    const summaryLines = [
-        `Folder: ${details.folderName}`,
-        `Members: ${total}`,
-        `${details.countsByState.started} started, ${details.countsByState.paused} paused, ${details.countsByState.stopped} stopped`,
-        `Dominant status: ${statusLabelForKey(details.dominantStatus)}`,
-        details.type === 'docker' ? `Updates: ${details.updateCount}` : '',
-        '',
-        'Suggestions:',
-        ...suggestions.map((line) => `- ${line}`)
-    ].filter(Boolean);
-
-    swal({
-        title: 'Status breakdown',
-        text: summaryLines.join('\n'),
-        type: 'info',
-        showCancelButton: true,
-        confirmButtonText: `Filter ${statusLabelForKey(details.dominantStatus)}`,
-        cancelButtonText: 'Close'
-    }, (confirmed) => {
-        if (!confirmed) {
-            return;
-        }
-        toggleStatusFilter(details.type, details.dominantStatus);
-    });
-};
-
-const showFolderHealthBreakdown = (type, folderId) => {
-    const details = getFolderStatusBreakdown(type, folderId);
-    if (!details) {
-        return;
-    }
-    if (details.type !== 'docker') {
-        swal({
-            title: 'Health details',
-            text: 'Detailed health scoring is currently available for Docker folders.',
-            type: 'info'
+        cachedApi = rowDetailsModule.createApi({
+            swal,
+            getFolderMap: (type) => getFolderMap(type),
+            getEffectiveMemberSnapshot: (type, folders) => getEffectiveMemberSnapshot(type, folders),
+            getInfoByType: (type) => infoByType[type === 'vm' ? 'vm' : 'docker'] || {},
+            getItemRuntimeStateKind,
+            deriveFolderStatusKey,
+            isDockerUpdateAvailable,
+            statusLabelForKey,
+            normalizeStatusPrefs,
+            normalizeHealthPrefs,
+            evaluateDockerFolderHealth,
+            toggleStatusFilter,
+            toggleHealthSeverityFilter
         });
-        return;
-    }
-    const folders = getFolderMap(details.type);
-    const folder = folders[folderId];
-    if (!folder) {
-        return;
-    }
-    const healthPrefs = normalizeHealthPrefs('docker');
-    const health = evaluateDockerFolderHealth(
-        folder,
-        details.members.length,
-        details.countsByState,
-        details.updateCount,
-        Number(healthPrefs.warnStoppedPercent) || 60
-    );
-    const reasonLines = Array.isArray(health.reasons)
-        ? health.reasons.map((reason, index) => `${index + 1}. ${reason.label}: ${reason.message}`)
-        : [];
-    const summaryLines = [
-        `Folder: ${details.folderName}`,
-        `Health: ${health.text} (${health.severity})`,
-        `Score: ${health.score}/100`,
-        `Members: ${details.members.length}`,
-        `${details.countsByState.started} started, ${details.countsByState.paused} paused, ${details.countsByState.stopped} stopped`,
-        `Updates: ${details.updateCount}`,
-        `Policy: ${health.policy.profile} | updates ${health.policy.updatesMode} | all-stopped ${health.policy.allStoppedMode}`,
-        `Thresholds: warn ${health.policy.warnThreshold}% (${health.policy.warnSource}), critical ${health.policy.criticalThreshold}% (${health.policy.criticalSource})`,
-        '',
-        'Reasons:',
-        ...(reasonLines.length ? reasonLines : ['- No health reasons available.'])
-    ];
-
-    swal({
-        title: 'Health details',
-        text: summaryLines.join('\n'),
-        type: health.severity === 'critical' ? 'error' : (health.severity === 'warn' ? 'warning' : 'info'),
-        showCancelButton: true,
-        confirmButtonText: `Filter ${health.text}`,
-        cancelButtonText: 'Close'
-    }, (confirmed) => {
-        if (!confirmed) {
-            return;
-        }
-        toggleHealthSeverityFilter(details.type, health.filterSeverity || health.severity);
-    });
-};
+        return cachedApi;
+    };
+})();
+const getFolderStatusBreakdown = (...args) => getRowDetailsApi().getFolderStatusBreakdown(...args);
+const showFolderStatusBreakdown = (...args) => getRowDetailsApi().showFolderStatusBreakdown(...args);
+const showFolderHealthBreakdown = (...args) => getRowDetailsApi().showFolderHealthBreakdown(...args);
 
 const setInlineValidationHint = (targetId, text = '', level = 'info') => {
     const hint = $(`#${targetId}`);
@@ -3984,7 +4031,7 @@ const normalizeSettingsTableColumnWidthPreset = (value) => {
     const normalized = String(value || '').trim().toLowerCase();
     return ['compact', 'standard', 'wide'].includes(normalized) ? normalized : 'standard';
 };
-const SETTINGS_TABLE_WIDTH_PRESET_VALUES = Object.freeze({
+const SETTINGS_TABLE_WIDTH_PRESET_VALUES = settingsMetadata?.SETTINGS_TABLE_WIDTH_PRESET_VALUES || Object.freeze({
     name: Object.freeze({ compact: 260, standard: 320, wide: 420 }),
     actions: Object.freeze({ compact: 160, standard: 180, wide: 240 })
 });
@@ -5061,13 +5108,38 @@ const clearFolderTableFilters = (type = 'docker') => {
     renderTable(resolvedType);
 };
 
+const recordFatalBannerRequestResult = (method, url, source, outcome, error = null) => {
+    const message = trimFatalBannerDiagnosticString(error?.message || error);
+    recordFatalBannerRequest({
+        method,
+        url,
+        outcome,
+        source,
+        status: extractFatalBannerStatus(error),
+        traceId: extractFatalBannerTraceId(error),
+        category: error ? inferFatalBannerCategory(error, 'request-failed') : 'ok',
+        detail: message,
+        responseSnippet: extractFatalBannerResponseSnippet(error)
+    });
+};
+
 const apiGetText = async (url, options = {}) => {
     try {
         if (requestClient && typeof requestClient.getText === 'function') {
-            return await requestClient.getText(url, options);
+            const response = await requestClient.getText(url, options);
+            recordFatalBannerRequestResult('GET', url, 'apiGetText', 'ok');
+            return response;
         }
-        return await $.get(url, options?.data).promise();
+        const response = await $.get(url, options?.data).promise();
+        recordFatalBannerRequestResult('GET', url, 'apiGetText', 'ok');
+        return response;
     } catch (error) {
+        annotateFatalBannerError(error, {
+            phase: 'request',
+            category: inferFatalBannerCategory(error, 'request-failed'),
+            action: `GET ${url}`
+        });
+        recordFatalBannerRequestResult('GET', url, 'apiGetText', 'error', error);
         recordRequestErrorTelemetry('GET', url, error, {
             source: 'apiGetText',
             retries: options?.retries,
@@ -5110,10 +5182,20 @@ const buildMutationRequestPayload = (data = {}) => {
 const apiPostText = async (url, data = {}, options = {}) => {
     try {
         if (requestClient && typeof requestClient.postText === 'function') {
-            return await requestClient.postText(url, data, options);
+            const response = await requestClient.postText(url, data, options);
+            recordFatalBannerRequestResult('POST', url, 'apiPostText', 'ok');
+            return response;
         }
-        return await $.post(url, buildMutationRequestPayload(data)).promise();
+        const response = await $.post(url, buildMutationRequestPayload(data)).promise();
+        recordFatalBannerRequestResult('POST', url, 'apiPostText', 'ok');
+        return response;
     } catch (error) {
+        annotateFatalBannerError(error, {
+            phase: 'request',
+            category: inferFatalBannerCategory(error, 'request-failed'),
+            action: `POST ${url}`
+        });
+        recordFatalBannerRequestResult('POST', url, 'apiPostText', 'error', error);
         recordRequestErrorTelemetry('POST', url, error, {
             source: 'apiPostText',
             retries: options?.retries,
@@ -5126,10 +5208,20 @@ const apiPostText = async (url, data = {}, options = {}) => {
 const apiGetJson = async (url, options = {}) => {
     try {
         if (requestClient && typeof requestClient.getJson === 'function') {
-            return await requestClient.getJson(url, options);
+            const response = await requestClient.getJson(url, options);
+            recordFatalBannerRequestResult('GET', url, 'apiGetJson', 'ok');
+            return response;
         }
-        return parseJsonResponse(await $.get(url, options?.data).promise());
+        const response = parseJsonResponse(await $.get(url, options?.data).promise());
+        recordFatalBannerRequestResult('GET', url, 'apiGetJson', 'ok');
+        return response;
     } catch (error) {
+        annotateFatalBannerError(error, {
+            phase: 'request',
+            category: inferFatalBannerCategory(error, 'request-failed'),
+            action: `GET ${url}`
+        });
+        recordFatalBannerRequestResult('GET', url, 'apiGetJson', 'error', error);
         recordRequestErrorTelemetry('GET', url, error, {
             source: 'apiGetJson',
             retries: options?.retries,
@@ -5142,10 +5234,20 @@ const apiGetJson = async (url, options = {}) => {
 const apiPostJson = async (url, data = {}, options = {}) => {
     try {
         if (requestClient && typeof requestClient.postJson === 'function') {
-            return await requestClient.postJson(url, data, options);
+            const response = await requestClient.postJson(url, data, options);
+            recordFatalBannerRequestResult('POST', url, 'apiPostJson', 'ok');
+            return response;
         }
-        return parseJsonResponse(await $.post(url, buildMutationRequestPayload(data)).promise());
+        const response = parseJsonResponse(await $.post(url, buildMutationRequestPayload(data)).promise());
+        recordFatalBannerRequestResult('POST', url, 'apiPostJson', 'ok');
+        return response;
     } catch (error) {
+        annotateFatalBannerError(error, {
+            phase: 'request',
+            category: inferFatalBannerCategory(error, 'request-failed'),
+            action: `POST ${url}`
+        });
+        recordFatalBannerRequestResult('POST', url, 'apiPostJson', 'error', error);
         recordRequestErrorTelemetry('POST', url, error, {
             source: 'apiPostJson',
             retries: options?.retries,
@@ -5157,9 +5259,23 @@ const apiPostJson = async (url, data = {}, options = {}) => {
 
 const fetchPluginVersion = async () => {
     try {
+        setFatalBannerPhase('version-fetch');
+        recordFatalBannerAction('Fetch plugin version');
         pluginVersion = String(await apiGetText('/plugins/folderview.plus/server/version.php')).trim() || '0.0.0';
+        setFatalBannerEnvironment({
+            pluginVersion
+        });
+        markFatalBannerStep('Loaded plugin version');
     } catch (error) {
+        annotateFatalBannerError(error, {
+            phase: 'version-fetch',
+            category: inferFatalBannerCategory(error, 'request-failed'),
+            action: 'Fetch plugin version'
+        });
         pluginVersion = '0.0.0';
+        setFatalBannerEnvironment({
+            pluginVersion
+        });
     }
 };
 
@@ -5929,9 +6045,16 @@ const describeTrackedEvent = (eventType, type, details = {}) => {
 
 const showError = (title, error) => {
     const message = error?.message || String(error);
+    const safeTitle = String(title || 'Error');
+    recordFatalBannerAction(`Error: ${safeTitle}`);
+    annotateFatalBannerError(error, {
+        phase: error?.fvplusPhase || 'runtime',
+        category: error?.fvplusCategory || inferFatalBannerCategory(error, 'runtime-failed'),
+        action: error?.fvplusAction || safeTitle
+    });
     addActivityEntry(`${String(title || 'Error')}: ${message}`, 'error');
     showToastMessage({
-        title: String(title || 'Error'),
+        title: safeTitle,
         message,
         level: 'error',
         durationMs: 7000
@@ -8840,20 +8963,71 @@ const renderTable = (type) => {
 
 const refreshType = async (type) => {
     const startedAt = perfNowMs();
-    const [folders, prefs, info] = await Promise.all([
-        fetchFolders(type).catch(() => ({})),
-        fetchPrefs(type).catch(() => (utils.normalizePrefs({}))),
-        fetchTypeInfo(type).catch(() => ({}))
+    recordFatalBannerAction(`Refresh ${type.toUpperCase()} Settings data`);
+    setFatalBannerPhase('prefs-fetch');
+    markFatalBannerStep(`Fetching ${type} folders and preferences`);
+    const results = await Promise.allSettled([
+        fetchFolders(type),
+        fetchPrefs(type),
+        fetchTypeInfo(type)
     ]);
+    const degradedReasons = [];
+    const foldersResult = results[0];
+    const prefsResult = results[1];
+    const infoResult = results[2];
+    const folders = foldersResult.status === 'fulfilled' ? foldersResult.value : {};
+    const rawPrefs = prefsResult.status === 'fulfilled' ? (prefsResult.value || {}) : {};
+    const info = infoResult.status === 'fulfilled' ? infoResult.value : {};
+    if (foldersResult.status !== 'fulfilled') {
+        degradedReasons.push(`${type.toUpperCase()} folders failed to load`);
+    }
+    if (prefsResult.status !== 'fulfilled') {
+        degradedReasons.push(`${type.toUpperCase()} preferences failed to load`);
+    }
+    if (infoResult.status !== 'fulfilled') {
+        degradedReasons.push(`${type.toUpperCase()} runtime info failed to load`);
+    }
 
-    prefsByType[type] = utils.normalizePrefs(prefs || {});
+    let normalizedPrefs = utils.normalizePrefs({});
+    let normalizeErrorMessage = '';
+    try {
+        normalizedPrefs = utils.normalizePrefs(rawPrefs || {});
+    } catch (error) {
+        normalizeErrorMessage = error?.message || String(error);
+        degradedReasons.push(`${type.toUpperCase()} preferences could not be normalized`);
+        recordFatalBannerAction(`Normalize ${type.toUpperCase()} preferences failed`);
+        normalizedPrefs = utils.normalizePrefs({});
+        annotateFatalBannerError(error, {
+            phase: 'prefs-normalize',
+            category: 'prefs-corrupt',
+            action: `Normalize ${type.toUpperCase()} preferences`
+        });
+    }
+
+    prefsByType[type] = normalizedPrefs;
+    setFatalBannerPrefsStatus({
+        fetched: prefsResult.status === 'fulfilled',
+        normalized: true,
+        sourceType: type,
+        rawSchemaVersion: String(rawPrefs?.runtimePrefsSchema || 'unknown'),
+        normalizedSchemaVersion: String(prefsByType[type]?.runtimePrefsSchema || 'unknown'),
+        fallbackUsed: prefsResult.status !== 'fulfilled' || normalizeErrorMessage !== '',
+        migrationApplied: String(rawPrefs?.runtimePrefsSchema || '') !== String(prefsByType[type]?.runtimePrefsSchema || ''),
+        normalizeError: normalizeErrorMessage
+    });
+    setFatalBannerPhase('render');
     infoByType[type] = info && typeof info === 'object' ? info : {};
     setTypeFolders(type, utils.normalizeFolderMap(folders || {}));
     renderTable(type);
+    markFatalBannerStep(`Rendered ${type} settings table`);
     recordPerformanceDiagnosticsSample('refresh', type, perfNowMs() - startedAt, {
         folderCount: Object.keys(utils.normalizeFolderMap(folders || {})).length,
         infoCount: Object.keys(info || {}).length
     });
+    return {
+        hasErrors: degradedReasons.length > 0,
+        degradedReasons
+    };
 };
 
 const getAdvancedModuleLoadEntry = (moduleKey) => {
@@ -9003,8 +9177,9 @@ const ensureAdvancedDataLoaded = async (options = {}) => {
 
     const pending = Promise.allSettled(requestedModules.map((moduleKey) => runModuleRefresh(moduleKey)));
     advancedDataLoadState.pending = pending;
+    let results = [];
     try {
-        await pending;
+        results = await pending;
     } finally {
         if (advancedDataLoadState.pending === pending) {
             advancedDataLoadState.pending = null;
@@ -9012,11 +9187,21 @@ const ensureAdvancedDataLoaded = async (options = {}) => {
         advancedDataLoadState.loaded = ADVANCED_MODULE_KEYS.every((key) => advancedDataLoadState.modules[key]?.loaded === true);
     }
     renderFolderHealthCards();
+    return results.flatMap((result, index) => {
+        const moduleKey = requestedModules[index];
+        if (result.status === 'rejected') {
+            return [`${moduleKey} failed to load`];
+        }
+        if (result.value === false) {
+            return [`${moduleKey} returned an incomplete result`];
+        }
+        return [];
+    });
 };
 
 const refreshCoreData = async () => {
     const startedAt = perfNowMs();
-    await Promise.all([refreshType('docker'), refreshType('vm')]);
+    const refreshResults = await Promise.all([refreshType('docker'), refreshType('vm')]);
     ensureRegexPresetUi('docker');
     ensureRegexPresetUi('vm');
     toggleRuleKindFields('docker');
@@ -9027,12 +9212,21 @@ const refreshCoreData = async () => {
         dockerFolders: Object.keys(getFolderMap('docker')).length,
         vmFolders: Object.keys(getFolderMap('vm')).length
     });
+    return {
+        degradedReasons: refreshResults.flatMap((entry) => Array.isArray(entry?.degradedReasons) ? entry.degradedReasons : [])
+    };
 };
 
 const refreshAll = async () => {
-    await refreshCoreData();
-    await ensureAdvancedDataLoaded({ force: true });
+    const coreResult = await refreshCoreData();
+    const advancedFailures = await ensureAdvancedDataLoaded({ force: true });
     refreshSettingsUx();
+    return {
+        degradedReasons: [
+            ...(Array.isArray(coreResult?.degradedReasons) ? coreResult.degradedReasons : []),
+            ...(Array.isArray(advancedFailures) ? advancedFailures : [])
+        ]
+    };
 };
 
 const downloadType = async (type, id) => {
@@ -11050,343 +11244,292 @@ const bulkTemplateAction = (type, action) => {
     });
 };
 
-const runScheduledBackupNow = async (type) => {
-    await withAdvancedOperationLock(type, 'backups', `${type.toUpperCase()} scheduled backup run`, async () => {
-        try {
-            await runScheduledBackup(type);
-            await Promise.all([refreshType(type), refreshBackups(type)]);
-            swal({
-                title: 'Scheduler run complete',
-                text: `Scheduled backup check executed for ${type.toUpperCase()}.`,
-                type: 'success'
-            });
-        } catch (error) {
-            showError('Scheduler run failed', error);
-        }
-    });
-};
-
-const runConflictInspector = async (type) => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const folders = getFolderMap(resolvedType);
-    const prefs = prefsByType[resolvedType] || utils.normalizePrefs({});
-    const info = infoByType[resolvedType] || {};
-
-    const report = utils.getConflictReport({
-        type: resolvedType,
-        folders,
-        prefs,
-        infoByName: info
-    });
-
-    const conflicts = report.rows.filter((row) => row.hasConflict);
-    const blocked = report.rows.filter((row) => row.blockedByRule);
-    const output = {
-        type: resolvedType,
-        scannedAt: new Date().toISOString(),
-        summary: {
-            totalItems: report.totalItems,
-            conflictingItems: report.conflictingItems,
-            blockedByExcludeRules: blocked.length
-        },
-        conflictingRows: conflicts,
-        blockedRows: blocked
-    };
-
-    $('#conflict-output').text(toPrettyJson(output));
-    await trackDiagnosticsEvent({
-        eventType: 'conflict_scan',
-        type: resolvedType,
-        details: {
-            totalItems: report.totalItems,
-            conflictingItems: report.conflictingItems,
-            blockedByExcludeRules: blocked.length
-        }
-    });
-};
-
 const updateTools = window.FolderViewPlusUpdateTools || null;
+const settingsSupportActions = settingsActionSupportModule.createSupportActions({
+    window,
+    $,
+    utils,
+    swal,
+    withAdvancedOperationLock,
+    runScheduledBackup,
+    refreshType,
+    refreshBackups,
+    getFolderMap,
+    prefsByType,
+    infoByType,
+    toPrettyJson,
+    trackDiagnosticsEvent,
+    apiGetJson,
+    apiGetText,
+    setUpdateStatus,
+    setRollbackStatus,
+    showError,
+    updateTools,
+    createGlobalRollbackCheckpointApi,
+    restorePreviousGlobalRollbackCheckpointApi,
+    refreshAll,
+    downloadType,
+    importType,
+    clearType
+});
+const {
+    runScheduledBackupNow,
+    runConflictInspector,
+    checkForUpdatesNow,
+    showDevForceRefreshHelper,
+    createRollbackCheckpoint,
+    rollbackLatestCheckpoint,
+    fileManager,
+    downloadDocker,
+    downloadVm,
+    importDocker,
+    importVm,
+    clearDocker,
+    clearVm
+} = settingsSupportActions;
 
-const checkForUpdatesNow = async () => {
-    if (updateTools && typeof updateTools.checkForUpdatesNow === 'function') {
-        return updateTools.checkForUpdatesNow({
-            apiGetJson,
-            setUpdateStatus,
-            showError,
-            swalFn: swal
-        });
-    }
-    setUpdateStatus('Update helper module unavailable.');
-    swal({
-        title: 'Update helper unavailable',
-        text: 'Reload the page to load update helper scripts.',
-        type: 'warning'
-    });
-    return null;
-};
-
-const showDevForceRefreshHelper = async () => {
-    if (updateTools && typeof updateTools.showDevForceRefreshHelper === 'function') {
-        return updateTools.showDevForceRefreshHelper({
-            apiGetJson,
-            apiGetText,
-            setUpdateStatus,
-            showError,
-            swalFn: swal
-        });
-    }
-    setUpdateStatus('Force-refresh helper unavailable.');
-    swal({
-        title: 'Force-refresh helper unavailable',
-        text: 'Reload the page to load helper scripts.',
-        type: 'warning'
-    });
-    return null;
-};
-
-const createRollbackCheckpoint = async () => {
-    try {
-        const checkpoint = await createGlobalRollbackCheckpointApi('manual');
-        const message = checkpoint?.name ? `Created: ${checkpoint.name}` : 'Rollback checkpoint created.';
-        setRollbackStatus(message);
-        swal({
-            title: 'Rollback checkpoint created',
-            text: message,
-            type: 'success'
-        });
-    } catch (error) {
-        setRollbackStatus('Rollback checkpoint failed.');
-        showError('Rollback checkpoint failed', error);
-    }
-};
-
-const rollbackLatestCheckpoint = () => {
-    swal({
-        title: 'Rollback plugin settings?',
-        text: 'This restores Docker + VM folders and settings from the previous rollback snapshot.',
-        type: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Rollback now',
-        cancelButtonText: 'Cancel',
-        showLoaderOnConfirm: true
-    }, async (confirmed) => {
-        if (!confirmed) {
-            return;
-        }
-        try {
-            const restore = await restorePreviousGlobalRollbackCheckpointApi();
-            await refreshAll();
-            const target = restore?.targetName || restore?.name || 'previous snapshot';
-            const undo = restore?.undoSnapshot ? `\nUndo snapshot created: ${restore.undoSnapshot}` : '';
-            const status = `Restored ${target}`;
-            setRollbackStatus(status);
-            swal({
-                title: 'Rollback complete',
-                text: `${status}${undo}`,
-                type: 'success'
-            });
-        } catch (error) {
-            setRollbackStatus('Rollback failed.');
-            showError('Rollback failed', error);
-        }
-    });
-};
-
-const fileManager = () => {
-    location.href = `${location.pathname}/Browse?dir=/boot/config/plugins/folderview.plus`;
-};
-
-const downloadDocker = (id) => downloadType('docker', id);
-const downloadVm = (id) => downloadType('vm', id);
-const importDocker = () => importType('docker');
-const importVm = () => importType('vm');
-const clearDocker = (id) => clearType('docker', id);
-const clearVm = (id) => clearType('vm', id);
-
-window.downloadDocker = downloadDocker;
-window.downloadVm = downloadVm;
-window.importDocker = importDocker;
-window.importVm = importVm;
-window.clearDocker = clearDocker;
-window.clearVm = clearVm;
-window.fileManager = fileManager;
-window.createRollbackCheckpoint = createRollbackCheckpoint;
-window.rollbackLatestCheckpoint = rollbackLatestCheckpoint;
-window.changeSortMode = changeSortMode;
-window.changeBadgePref = changeBadgePref;
-window.changeVisibilityPref = changeVisibilityPref;
-window.changeStatusPref = changeStatusPref;
-window.changeRuntimePref = changeRuntimePref;
-window.changeDashboardPref = changeDashboardPref;
-window.changeHealthPref = changeHealthPref;
-window.changeBackupSchedulePref = changeBackupSchedulePref;
-window.setFilterQuery = setFilterQuery;
-window.addAutoRule = addAutoRule;
-window.toggleAutoRule = toggleAutoRule;
-window.deleteAutoRule = deleteAutoRule;
-window.moveAutoRule = moveAutoRule;
-window.toggleRuleSelection = toggleRuleSelection;
-window.toggleAllRuleSelections = toggleAllRuleSelections;
-window.bulkRuleAction = bulkRuleAction;
-window.runRuleSimulator = runRuleSimulator;
-window.toggleRuleKindFields = toggleRuleKindFields;
-window.testAutoRule = testAutoRule;
-window.assignSelectedItems = assignSelectedItems;
-window.retryFailedBulkItems = retryFailedBulkItems;
-window.filterBulkItems = filterBulkItems;
-window.bulkItemSelectionAction = bulkItemSelectionAction;
-window.updateBulkSelectedCount = updateBulkSelectedCount;
-window.createManualBackup = createManualBackup;
-window.refreshBackups = refreshBackups;
-window.runScheduledBackupNow = runScheduledBackupNow;
-window.restoreLatestBackup = restoreLatestBackup;
-window.compareBackupSnapshots = compareBackupSnapshots;
-window.restoreBackupEntry = restoreBackupEntry;
-window.downloadBackupEntry = downloadBackupEntry;
-window.deleteBackupEntry = deleteBackupEntry;
-window.previewFolderRuntimeAction = previewFolderRuntimeAction;
-window.applyFolderRuntimeAction = applyFolderRuntimeAction;
-window.refreshChangeHistory = refreshChangeHistory;
-window.undoLatestChange = undoLatestChange;
-window.createTemplateFromFolder = createTemplateFromFolder;
-window.applyTemplateToFolder = applyTemplateToFolder;
-window.deleteTemplateEntry = deleteTemplateEntry;
-window.toggleTemplateSelection = toggleTemplateSelection;
-window.toggleAllTemplateSelections = toggleAllTemplateSelections;
-window.bulkTemplateAction = bulkTemplateAction;
-window.runDiagnostics = runDiagnostics;
-window.runThemeDiagnostics = runThemeDiagnostics;
-window.runThemeSelfHeal = runThemeSelfHeal;
-window.repairDiagnostics = repairDiagnostics;
-window.exportDiagnostics = exportDiagnostics;
-window.exportSupportBundle = exportSupportBundle;
-window.copyIssueReport = copyIssueReport;
-window.runConflictInspector = runConflictInspector;
-window.checkForUpdatesNow = checkForUpdatesNow;
-window.showDevForceRefreshHelper = showDevForceRefreshHelper;
-window.moveFolderRow = moveFolderRow;
-window.moveFolderToRootQuick = moveFolderToRootQuick;
-window.moveFolderUnderDialog = moveFolderUnderDialog;
-window.openFolderTreeMoveDialog = openFolderTreeMoveDialog;
-window.applyTreeMoveUndo = applyTreeMoveUndo;
-window.applyTreeMoveRedo = applyTreeMoveRedo;
-window.toggleFolderTreeCollapse = toggleFolderTreeCollapse;
-window.expandAllFolderTrees = expandAllFolderTrees;
-window.collapseAllFolderTrees = collapseAllFolderTrees;
-window.toggleMobileTreeReorderMode = toggleMobileTreeReorderMode;
-window.setFolderBranchCollapse = setFolderBranchCollapse;
-window.setFolderBranchPinned = setFolderBranchPinned;
-window.exportFolderBranch = exportFolderBranch;
-window.importFolderBranch = importFolderBranch;
-window.runTreeIntegrityCheck = runTreeIntegrityCheck;
-window.handleFolderRowKeydown = handleFolderRowKeydown;
-window.toggleFolderPin = toggleFolderPin;
-window.copyFolderId = copyFolderId;
-window.toggleDockerUpdatesFilter = toggleDockerUpdatesFilter;
-window.toggleHealthSeverityFilter = toggleHealthSeverityFilter;
-window.toggleStatusFilter = toggleStatusFilter;
-window.clearFolderTableFilters = clearFolderTableFilters;
-window.setQuickFolderFilter = setQuickFolderFilter;
-window.setHealthFolderFilter = setHealthFolderFilter;
-window.changeColumnVisibility = changeColumnVisibility;
-window.changeSettingsTableColumnWidthPreset = changeSettingsTableColumnWidthPreset;
-window.applySettingsTablePreset = applySettingsTablePreset;
-window.resetSettingsTableColumns = resetSettingsTableColumns;
-window.showFolderStatusBreakdown = showFolderStatusBreakdown;
-window.showFolderHealthBreakdown = showFolderHealthBreakdown;
-window.openFolderRowQuickActions = openFolderRowQuickActions;
-window.quickCreateStarterFolder = quickCreateStarterFolder;
-window.quickCreateStarterTemplates = quickCreateStarterTemplates;
-window.applyQuickProfilePreset = applyQuickProfilePreset;
-window.applyRuleTestSample = applyRuleTestSample;
-window.clearActivityFeed = clearActivityFeed;
-window.refreshPerformanceDiagnostics = renderPerformanceDiagnostics;
-window.runQuickSetupWizard = runQuickSetupWizard;
-window.setSettingsMode = setSettingsMode;
+settingsActionSupportModule.registerWindowActions(window, {
+    downloadDocker,
+    downloadVm,
+    importDocker,
+    importVm,
+    clearDocker,
+    clearVm,
+    fileManager,
+    createRollbackCheckpoint,
+    rollbackLatestCheckpoint,
+    changeSortMode,
+    changeBadgePref,
+    changeVisibilityPref,
+    changeStatusPref,
+    changeRuntimePref,
+    changeDashboardPref,
+    changeHealthPref,
+    changeBackupSchedulePref,
+    setFilterQuery,
+    addAutoRule,
+    toggleAutoRule,
+    deleteAutoRule,
+    moveAutoRule,
+    toggleRuleSelection,
+    toggleAllRuleSelections,
+    bulkRuleAction,
+    runRuleSimulator,
+    toggleRuleKindFields,
+    testAutoRule,
+    assignSelectedItems,
+    retryFailedBulkItems,
+    filterBulkItems,
+    bulkItemSelectionAction,
+    updateBulkSelectedCount,
+    createManualBackup,
+    refreshBackups,
+    runScheduledBackupNow,
+    restoreLatestBackup,
+    compareBackupSnapshots,
+    restoreBackupEntry,
+    downloadBackupEntry,
+    deleteBackupEntry,
+    previewFolderRuntimeAction,
+    applyFolderRuntimeAction,
+    refreshChangeHistory,
+    undoLatestChange,
+    createTemplateFromFolder,
+    applyTemplateToFolder,
+    deleteTemplateEntry,
+    toggleTemplateSelection,
+    toggleAllTemplateSelections,
+    bulkTemplateAction,
+    runDiagnostics,
+    runThemeDiagnostics,
+    runThemeSelfHeal,
+    repairDiagnostics,
+    exportDiagnostics,
+    exportSupportBundle,
+    copyIssueReport,
+    runConflictInspector,
+    checkForUpdatesNow,
+    showDevForceRefreshHelper,
+    moveFolderRow,
+    moveFolderToRootQuick,
+    moveFolderUnderDialog,
+    openFolderTreeMoveDialog,
+    applyTreeMoveUndo,
+    applyTreeMoveRedo,
+    toggleFolderTreeCollapse,
+    expandAllFolderTrees,
+    collapseAllFolderTrees,
+    toggleMobileTreeReorderMode,
+    setFolderBranchCollapse,
+    setFolderBranchPinned,
+    exportFolderBranch,
+    importFolderBranch,
+    runTreeIntegrityCheck,
+    handleFolderRowKeydown,
+    toggleFolderPin,
+    copyFolderId,
+    toggleDockerUpdatesFilter,
+    toggleHealthSeverityFilter,
+    toggleStatusFilter,
+    clearFolderTableFilters,
+    setQuickFolderFilter,
+    setHealthFolderFilter,
+    changeColumnVisibility,
+    changeSettingsTableColumnWidthPreset,
+    applySettingsTablePreset,
+    resetSettingsTableColumns,
+    showFolderStatusBreakdown,
+    showFolderHealthBreakdown,
+    openFolderRowQuickActions,
+    quickCreateStarterFolder,
+    quickCreateStarterTemplates,
+    applyQuickProfilePreset,
+    applyRuleTestSample,
+    clearActivityFeed,
+    refreshPerformanceDiagnostics: renderPerformanceDiagnostics,
+    runQuickSetupWizard,
+    setSettingsMode
+});
 
 (async () => {
     try {
-        settingsUiState.mode = localStorage.getItem(UI_MODE_STORAGE_KEY) === 'advanced' ? 'advanced' : 'basic';
-        setAdvancedTab(localStorage.getItem(ADVANCED_TAB_STORAGE_KEY) || 'automation', false);
-        settingsUiState.searchAllAdvanced = localStorage.getItem(SEARCH_ALL_ADVANCED_STORAGE_KEY) === '1';
-        settingsUiState.activeSectionKey = String(localStorage.getItem(ADVANCED_SECTION_STORAGE_KEY) || '').trim();
-        const expandedRaw = localStorage.getItem(ADVANCED_EXPANDED_STORAGE_KEY);
-        const knownRaw = localStorage.getItem(ADVANCED_KNOWN_STORAGE_KEY);
-        settingsUiState.hasExpandedAdvancedPreference = expandedRaw !== null;
-        if (expandedRaw !== null) {
-            try {
-                const expanded = JSON.parse(expandedRaw);
-                settingsUiState.expandedAdvancedSections = new Set(
-                    Array.isArray(expanded) ? expanded.map((key) => String(key || '').trim()).filter((key) => key !== '') : []
-                );
-            } catch (_error) {
-                settingsUiState.hasExpandedAdvancedPreference = false;
+        await withFatalBannerPhase({
+            phase: 'bootstrap-state',
+            step: 'Restored local settings UI state',
+            action: 'Restore local Settings UI state',
+            category: 'bootstrap-state'
+        }, async () => {
+            settingsUiState.mode = localStorage.getItem(UI_MODE_STORAGE_KEY) === 'advanced' ? 'advanced' : 'basic';
+            setAdvancedTab(localStorage.getItem(ADVANCED_TAB_STORAGE_KEY) || 'automation', false);
+            settingsUiState.searchAllAdvanced = localStorage.getItem(SEARCH_ALL_ADVANCED_STORAGE_KEY) === '1';
+            settingsUiState.activeSectionKey = String(localStorage.getItem(ADVANCED_SECTION_STORAGE_KEY) || '').trim();
+            const expandedRaw = localStorage.getItem(ADVANCED_EXPANDED_STORAGE_KEY);
+            const knownRaw = localStorage.getItem(ADVANCED_KNOWN_STORAGE_KEY);
+            settingsUiState.hasExpandedAdvancedPreference = expandedRaw !== null;
+            if (expandedRaw !== null) {
+                try {
+                    const expanded = JSON.parse(expandedRaw);
+                    settingsUiState.expandedAdvancedSections = new Set(
+                        Array.isArray(expanded) ? expanded.map((key) => String(key || '').trim()).filter((key) => key !== '') : []
+                    );
+                } catch (_error) {
+                    settingsUiState.hasExpandedAdvancedPreference = false;
+                    settingsUiState.expandedAdvancedSections = new Set();
+                }
+            } else {
                 settingsUiState.expandedAdvancedSections = new Set();
             }
-        } else {
-            settingsUiState.expandedAdvancedSections = new Set();
-        }
-        if (knownRaw !== null) {
-            try {
-                const known = JSON.parse(knownRaw);
-                settingsUiState.knownAdvancedSections = new Set(
-                    Array.isArray(known) ? known.map((key) => String(key || '').trim()).filter((key) => key !== '') : []
-                );
-            } catch (_error) {
+            if (knownRaw !== null) {
+                try {
+                    const known = JSON.parse(knownRaw);
+                    settingsUiState.knownAdvancedSections = new Set(
+                        Array.isArray(known) ? known.map((key) => String(key || '').trim()).filter((key) => key !== '') : []
+                    );
+                } catch (_error) {
+                    settingsUiState.knownAdvancedSections = new Set();
+                }
+            } else {
                 settingsUiState.knownAdvancedSections = new Set();
             }
-        } else {
-            settingsUiState.knownAdvancedSections = new Set();
-        }
-        restoreTableUiState();
-        initSettingsControls();
-        initOverflowGuard();
-        initCompactMobileLayoutGuard();
-        initThemeAwareSettingsReflow();
-        renderPerformanceDiagnostics();
+            restoreTableUiState();
+        });
+        await withFatalBannerPhase({
+            phase: 'bootstrap-ui',
+            step: 'Initialized settings controls',
+            action: 'Initialize Settings controls',
+            category: 'render-failed'
+        }, async () => {
+            initSettingsControls();
+            initOverflowGuard();
+            initCompactMobileLayoutGuard();
+            initThemeAwareSettingsReflow();
+            renderPerformanceDiagnostics();
+        });
         await fetchPluginVersion();
+        let bootstrapDegradedReasons = [];
         try {
             if (settingsUiState.mode === 'advanced') {
-                await refreshAll();
+                setFatalBannerPhase('advanced-data');
+                recordFatalBannerAction('Start advanced Settings bootstrap');
+                markFatalBannerStep('Starting advanced settings bootstrap');
+                const result = await refreshAll();
+                bootstrapDegradedReasons = Array.isArray(result?.degradedReasons) ? result.degradedReasons : [];
             } else {
-                await refreshCoreData();
+                setFatalBannerPhase('bootstrap-data');
+                recordFatalBannerAction('Start basic Settings bootstrap');
+                markFatalBannerStep('Starting basic settings bootstrap');
+                const result = await refreshCoreData();
+                bootstrapDegradedReasons = Array.isArray(result?.degradedReasons) ? result.degradedReasons : [];
+            }
+            if (bootstrapDegradedReasons.length > 0) {
+                reportFatalBannerDegradedState(new Error('Some Settings data could not be loaded during bootstrap.'), {
+                    context: 'Settings',
+                    hostSelector: '#fv-settings-root',
+                    title: 'Settings loaded in degraded mode',
+                    message: 'FolderView Plus kept the Settings page open, but some data or advanced modules failed to load.',
+                    code: settingsUiState.mode === 'advanced' ? 'FVPLUS-SET-BOOT-004' : 'FVPLUS-SET-BOOT-003',
+                    phase: settingsUiState.mode === 'advanced' ? 'advanced-data' : 'bootstrap-data',
+                    category: 'degraded-mode',
+                    detailLabel: 'Affected areas',
+                    details: bootstrapDegradedReasons
+                });
             }
         } catch (error) {
             // Keep initial settings sections visible on first-load API hiccups.
             refreshSettingsUx();
             showError('Initial data load failed', error);
         }
-        const serverMode = getServerSettingsMode();
-        if (serverMode) {
-            settingsUiState.mode = serverMode;
-        }
-        refreshSettingsUx();
-        captureSettingsBaseline();
-        if (settingsUiState.mode) {
-            setSettingsMode(settingsUiState.mode);
-        }
-        if (isWizardCompletedServerSide()) {
-            markSetupAssistantCompletedLocal();
-        } else if (hasExistingPluginData()) {
-            markSetupAssistantCompletedLocal();
-            await persistSetupPrefsToServer({
-                mode: settingsUiState.mode,
-                completed: true
-            });
-        }
-        const shouldRunWizard = !isWizardCompletedServerSide() && !isSetupAssistantCompletedLocal();
-        if (shouldRunWizard) {
-            runQuickSetupWizard(false);
-        } else {
-            await maybeShowUpdateNotesPanel();
-        }
-        syncRuntimeConflictResolutionBanner();
+        await withFatalBannerPhase({
+            phase: 'finalize',
+            action: 'Finalize Settings bootstrap',
+            category: 'render-failed'
+        }, async () => {
+            const serverMode = getServerSettingsMode();
+            if (serverMode) {
+                settingsUiState.mode = serverMode;
+            }
+            refreshSettingsUx();
+            captureSettingsBaseline();
+            if (settingsUiState.mode) {
+                setSettingsMode(settingsUiState.mode);
+            }
+            if (isWizardCompletedServerSide()) {
+                markSetupAssistantCompletedLocal();
+            } else if (hasExistingPluginData()) {
+                markSetupAssistantCompletedLocal();
+                await persistSetupPrefsToServer({
+                    mode: settingsUiState.mode,
+                    completed: true
+                });
+            }
+            const shouldRunWizard = !isWizardCompletedServerSide() && !isSetupAssistantCompletedLocal();
+            if (shouldRunWizard) {
+                runQuickSetupWizard(false);
+            } else {
+                await maybeShowUpdateNotesPanel();
+            }
+            syncRuntimeConflictResolutionBanner();
+        });
         settingsUiState.initialized = true;
+        setFatalBannerPhase('ready');
+        recordFatalBannerAction('Settings bootstrap completed');
+        markFatalBannerStep('Settings bootstrap completed');
     } catch (error) {
         try {
             refreshSettingsUx();
         } catch (_ignored) {
             // Best effort only; do not shadow the original initialization error.
+        }
+        if (fatalBanner && typeof fatalBanner.reportFatalError === 'function') {
+            fatalBanner.reportFatalError(error, {
+                context: 'Settings',
+                hostSelector: '#fv-settings-root',
+                title: 'Settings bootstrap failed',
+                message: 'FolderView Plus could not finish initializing the Settings page.',
+                code: 'FVPLUS-SET-BOOT-002',
+                phase: error?.fvplusPhase || 'bootstrap',
+                category: error?.fvplusCategory || inferFatalBannerCategory(error, 'runtime-failed')
+            });
         }
         showError('Initialization failed', error);
     }

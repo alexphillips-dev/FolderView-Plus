@@ -5,6 +5,7 @@ import path from 'node:path';
 const targetUrl = String(process.env.FVPLUS_BROWSER_SMOKE_URL || '').trim();
 const dockerRuntimeUrlEnv = String(process.env.FVPLUS_BROWSER_SMOKE_DOCKER_URL || '').trim();
 const vmRuntimeUrlEnv = String(process.env.FVPLUS_BROWSER_SMOKE_VM_URL || '').trim();
+const dashboardUrlEnv = String(process.env.FVPLUS_BROWSER_SMOKE_DASHBOARD_URL || '').trim();
 const targetLabel = String(process.env.FVPLUS_BROWSER_SMOKE_LABEL || '').trim();
 const unraidVersionHint = String(process.env.FVPLUS_UNRAID_VERSION_HINT || '').trim();
 const themeHint = String(process.env.FVPLUS_THEME_HINT || '').trim();
@@ -49,6 +50,7 @@ const sanitizeToken = (value) => String(value || '')
     .slice(0, 80) || 'token';
 
 const runtimeReports = [];
+const dashboardReports = [];
 
 const resolveRuntimeUrl = (baseUrl, type) => {
     try {
@@ -64,6 +66,20 @@ const resolveRuntimeUrl = (baseUrl, type) => {
         }
         if (/\/vms$/i.test(rawPath) && type === 'docker') {
             parsed.pathname = '/Docker';
+            return parsed.toString();
+        }
+    } catch (_error) {
+        return '';
+    }
+    return '';
+};
+
+const resolveDashboardUrl = (baseUrl) => {
+    try {
+        const parsed = new URL(baseUrl);
+        const rawPath = parsed.pathname || '';
+        if (/\/settings\/folderviewplus$/i.test(rawPath) || /\/docker$/i.test(rawPath) || /\/vms$/i.test(rawPath)) {
+            parsed.pathname = '/Dashboard';
             return parsed.toString();
         }
     } catch (_error) {
@@ -148,6 +164,7 @@ const compareAgainstBaseline = (currentReports, baselinePayload = {}) => {
 
 const dockerRuntimeUrl = dockerRuntimeUrlEnv || resolveRuntimeUrl(targetUrl, 'docker');
 const vmRuntimeUrl = vmRuntimeUrlEnv || resolveRuntimeUrl(targetUrl, 'vm');
+const dashboardUrl = dashboardUrlEnv || resolveDashboardUrl(targetUrl);
 const runtimeTargets = [
     dockerRuntimeUrl ? { type: 'docker', url: dockerRuntimeUrl } : null,
     vmRuntimeUrl ? { type: 'vm', url: vmRuntimeUrl } : null
@@ -341,6 +358,126 @@ const runRuntimeLayoutSmoke = async (page, { browserName, type, url }) => {
     };
 };
 
+const runDashboardQuickRailSmoke = async (page, { browserName, url }) => {
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: timeoutMs });
+    await page.waitForTimeout(1200);
+
+    const report = await page.evaluate(() => {
+        const widgetSelectors = {
+            docker: {
+                rail: '.fv-dashboard-layout-inline-host[data-fv-dashboard-type="docker"] .fv-dashboard-layout-quick-rail',
+                button: '.fv-dashboard-layout-inline-host[data-fv-dashboard-type="docker"] [data-fv-quick-action="layout-cycle"]',
+                tbody: 'tbody#docker_view'
+            },
+            vm: {
+                rail: '.fv-dashboard-layout-inline-host[data-fv-dashboard-type="vm"] .fv-dashboard-layout-quick-rail',
+                button: '.fv-dashboard-layout-inline-host[data-fv-dashboard-type="vm"] [data-fv-quick-action="layout-cycle"]',
+                tbody: 'tbody#vm_view'
+            }
+        };
+        const isVisible = (node) => {
+            if (!node) {
+                return false;
+            }
+            const style = window.getComputedStyle(node);
+            if (style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity) <= 0.01) {
+                return false;
+            }
+            const rect = node.getBoundingClientRect();
+            return rect.width > 1 && rect.height > 1;
+        };
+        const widgets = Object.entries(widgetSelectors).map(([type, selectors]) => {
+            const rail = document.querySelector(selectors.rail);
+            const button = document.querySelector(selectors.button);
+            const tbody = document.querySelector(selectors.tbody);
+            return {
+                type,
+                railVisible: isVisible(rail),
+                buttonVisible: isVisible(button),
+                layout: String(tbody?.getAttribute('data-fv-dashboard-layout') || '').trim().toLowerCase()
+            };
+        }).filter((entry) => entry.railVisible || entry.buttonVisible || entry.layout !== '');
+        return {
+            widgets
+        };
+    });
+
+    const screenshotName = `${sanitizeToken(scenarioLabel)}-${sanitizeToken(browserName)}-dashboard.png`;
+    const screenshotPath = path.join(artifactRoot, screenshotName);
+    await page.screenshot({ path: screenshotPath, fullPage: true });
+
+    if (!Array.isArray(report?.widgets) || report.widgets.length === 0) {
+        console.warn(`Dashboard quick-rail smoke skipped for ${browserName}: no dashboard widget controls detected.`);
+        return {
+            browserName,
+            url,
+            skipped: true,
+            pass: false,
+            widgets: [],
+            screenshotPath
+        };
+    }
+
+    const widgetReports = [];
+    for (const widget of report.widgets) {
+        const type = widget.type === 'vm' ? 'vm' : 'docker';
+        const rail = page.locator(`.fv-dashboard-layout-inline-host[data-fv-dashboard-type="${type}"] .fv-dashboard-layout-quick-rail`).first();
+        const button = rail.locator('[data-fv-quick-action="layout-cycle"]').first();
+        if (await button.count() === 0) {
+            continue;
+        }
+        const visitedLayouts = [];
+        for (let index = 0; index < 6; index += 1) {
+            const snapshot = await page.evaluate((widgetType) => {
+                const railNode = document.querySelector(`.fv-dashboard-layout-inline-host[data-fv-dashboard-type="${widgetType}"] .fv-dashboard-layout-quick-rail`);
+                const tbody = document.querySelector(widgetType === 'vm' ? 'tbody#vm_view' : 'tbody#docker_view');
+                const isVisible = (node) => {
+                    if (!node) {
+                        return false;
+                    }
+                    const style = window.getComputedStyle(node);
+                    if (style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity) <= 0.01) {
+                        return false;
+                    }
+                    const rect = node.getBoundingClientRect();
+                    return rect.width > 1 && rect.height > 1;
+                };
+                return {
+                    layout: String(tbody?.getAttribute('data-fv-dashboard-layout') || '').trim().toLowerCase(),
+                    railVisible: isVisible(railNode)
+                };
+            }, type);
+            visitedLayouts.push(snapshot.layout || '');
+            if (snapshot.railVisible !== true) {
+                throw new Error(`Dashboard quick rail hidden during ${type} layout cycling. Screenshot: ${screenshotPath}`);
+            }
+            await button.click({ timeout: timeoutMs });
+            await page.waitForTimeout(220);
+        }
+        const uniqueLayouts = Array.from(new Set(visitedLayouts.filter(Boolean)));
+        if (uniqueLayouts.length < 2) {
+            throw new Error(`Dashboard layout cycle did not change layout for ${type}. Visited: ${JSON.stringify(visitedLayouts)}. Screenshot: ${screenshotPath}`);
+        }
+        if (!uniqueLayouts.includes('legacy')) {
+            throw new Error(`Dashboard layout cycle did not reach legacy for ${type}. Visited: ${JSON.stringify(uniqueLayouts)}. Screenshot: ${screenshotPath}`);
+        }
+        widgetReports.push({
+            type,
+            visitedLayouts: uniqueLayouts
+        });
+    }
+
+    console.log(`Dashboard quick-rail smoke passed: ${browserName} ${JSON.stringify(widgetReports)}`);
+    return {
+        browserName,
+        url,
+        skipped: false,
+        pass: true,
+        widgets: widgetReports,
+        screenshotPath
+    };
+};
+
 const runBrowserSmoke = async (browserName, browserType) => {
     const browser = await browserType.launch({ headless: true });
     const context = await browser.newContext({ ignoreHTTPSErrors: ignoreHttpsErrors });
@@ -377,6 +514,16 @@ const runBrowserSmoke = async (browserName, browserType) => {
             }
         }
 
+        if (dashboardUrl) {
+            const dashboardReport = await runDashboardQuickRailSmoke(page, {
+                browserName,
+                url: dashboardUrl
+            });
+            if (dashboardReport) {
+                dashboardReports.push(dashboardReport);
+            }
+        }
+
         console.log(`Browser smoke passed: ${browserName} (${scenarioLabel})`);
     } finally {
         await context.close();
@@ -393,6 +540,7 @@ try {
     } else {
         console.log('Runtime visual target: none (set FVPLUS_BROWSER_SMOKE_DOCKER_URL/FVPLUS_BROWSER_SMOKE_VM_URL or use settings URL auto-derivation).');
     }
+    console.log(`Dashboard quick-rail target: ${dashboardUrl || 'none'}`);
     console.log(`Browser smoke artifacts directory: ${artifactRoot}`);
     await runBrowserSmoke('chromium', playwright.chromium);
     await runBrowserSmoke('firefox', playwright.firefox);
@@ -402,7 +550,8 @@ try {
         version: 1,
         generatedAt: new Date().toISOString(),
         scenarioLabel,
-        reports: runtimeReports
+        reports: runtimeReports,
+        dashboardReports
     };
     const reportPath = path.join(artifactRoot, 'browser-smoke-report.json');
     fs.writeFileSync(reportPath, JSON.stringify(reportPayload, null, 2), 'utf8');

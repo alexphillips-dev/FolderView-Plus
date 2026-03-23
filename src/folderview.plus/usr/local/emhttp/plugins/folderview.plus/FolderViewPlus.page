@@ -18,6 +18,15 @@ $fvplusRuntimeConflicts = fvplus_detect_runtime_plugin_conflicts();
         $('body').i18n();
     }
 </script>
+<script>
+    window.FolderViewPlusFatalRuntimeContext = {
+        page: 'Settings',
+        hostSelector: '#fv-settings-root',
+        unraidVersion: <?=json_encode(readUnraidVersionString() ?: 'unknown')?>,
+        channel: 'unknown'
+    };
+</script>
+<script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.fatal-banner.js')?>"></script>
 <link rel="stylesheet" href="<?=autov('/plugins/folderview.plus/styles/folderviewplus.css')?>">
 
 <div id="fv-settings-root" class="fv-theme-safe">
@@ -1066,13 +1075,17 @@ if (!empty($fvplusRuntimeConflicts)) {
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.chrome.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.dirty.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js')?>"></script>
+<script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.settings-metadata.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js')?>"></script>
+<script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.row-details.js')?>"></script>
+<script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.wizard-smart-detect.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.wizard.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.import.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.updates.js')?>"></script>
+<script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.actions-support.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.js')?>"></script>

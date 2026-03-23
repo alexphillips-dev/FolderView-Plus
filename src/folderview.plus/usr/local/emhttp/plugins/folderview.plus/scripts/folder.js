@@ -8,6 +8,9 @@ let selected = [];
 const type = new URLSearchParams(location.search).get('type');
 //id of the folder if present
 const folderId = new URLSearchParams(location.search).get('id');
+const utils = window.FolderViewPlusUtils || null;
+const folderHierarchyModule = window.FolderViewPlusFolderHierarchy || null;
+const folderIconApiModule = window.FolderViewPlusFolderIconApi || null;
 const DEFAULT_FOLDER_STATUS_COLORS = {
     started: '#ffffff',
     paused: '#b8860b',
@@ -85,9 +88,20 @@ const BUILT_IN_ICON_FALLBACK = [{
     path: DEFAULT_FOLDER_ICON_PATH,
     tags: ['default', 'folder']
 }];
+const folderEditorBootstrapMissingModules = [];
+if (!utils || typeof utils.normalizeDashboardOverflowMode !== 'function') {
+    folderEditorBootstrapMissingModules.push('folderviewplus.utils.js');
+}
+if (!folderHierarchyModule || typeof folderHierarchyModule.createApi !== 'function') {
+    folderEditorBootstrapMissingModules.push('folder.editor.hierarchy.js');
+}
+if (folderEditorBootstrapMissingModules.length > 0) {
+    const error = new Error(`FolderView Plus folder editor bootstrap failed. Missing modules: ${folderEditorBootstrapMissingModules.join(', ')}`);
+    error.fvplusBannerShown = true;
+    throw error;
+}
 
 let allFoldersById = {};
-let currentFolderDescendantIds = new Set();
 let currentFolderName = '';
 let initialSnapshot = '';
 let isFormInitialized = false;
@@ -145,8 +159,6 @@ let customIconSearchTimer = null;
 let customIconUploadRequest = null;
 let editorMode = 'basic';
 let advancedSectionCollapsedState = {};
-let isApplyingParentDefaults = false;
-let smartDefaultTouchedFields = new Set();
 
 const SMART_DEFAULT_FIELD_NAMES = new Set([
     'icon',
@@ -245,9 +257,29 @@ const normalizePositiveInt = (value, fallback, min = 1, max = 4) => {
     return Math.max(min, Math.min(max, Math.round(parsed)));
 };
 
-const normalizeDropdownStyle = (value) => {
-    const normalized = String(value || '').trim().toLowerCase();
-    return normalized === 'minimal' ? 'minimal' : DEFAULT_DROPDOWN_STYLE;
+const extractDropdownStyleValue = (value, fallbackSource = null) => {
+    const sources = [value, fallbackSource];
+    for (const source of sources) {
+        if (source && typeof source === 'object') {
+            const candidate = source.dropdown_style
+                ?? source.dropdownStyle
+                ?? source.chevron_style
+                ?? source.chevronStyle;
+            if (candidate !== undefined && candidate !== null && String(candidate).trim() !== '') {
+                return candidate;
+            }
+        } else if (source !== undefined && source !== null && String(source).trim() !== '') {
+            return source;
+        }
+    }
+    return '';
+};
+
+const normalizeDropdownStyle = (value, fallbackSource = null) => {
+    const normalized = String(extractDropdownStyleValue(value, fallbackSource) || '').trim().toLowerCase();
+    return normalized === 'boxed' || normalized === 'minimal'
+        ? normalized
+        : DEFAULT_DROPDOWN_STYLE;
 };
 
 const isLegacyPreviewBorderEnabled = (settings) => {
@@ -263,269 +295,6 @@ const isLegacyPreviewBorderEnabled = (settings) => {
 
 const getForm = () => $('div.canvas > form')[0];
 
-const normalizeParentFolderId = (value) => String(value || '').trim();
-
-const computeFolderDescendantIds = (foldersMap, rootId) => {
-    const source = foldersMap && typeof foldersMap === 'object' ? foldersMap : {};
-    const root = normalizeParentFolderId(rootId);
-    if (!root) {
-        return new Set();
-    }
-    const descendants = new Set();
-    const queue = [root];
-    while (queue.length > 0) {
-        const current = queue.shift();
-        for (const [id, folder] of Object.entries(source)) {
-            const parentId = normalizeParentFolderId(folder?.parentId || '');
-            if (parentId !== current || descendants.has(id)) {
-                continue;
-            }
-            descendants.add(id);
-            queue.push(id);
-        }
-    }
-    descendants.delete(root);
-    return descendants;
-};
-
-const buildNestedFolderOrder = (foldersMap) => {
-    const source = foldersMap && typeof foldersMap === 'object' ? foldersMap : {};
-    const ids = Object.keys(source);
-    if (ids.length <= 0) {
-        return [];
-    }
-    const indexById = new Map(ids.map((id, idx) => [id, idx]));
-    const childrenByParent = new Map();
-    for (const id of ids) {
-        const parentIdRaw = normalizeParentFolderId(source[id]?.parentId || '');
-        const parentId = parentIdRaw && parentIdRaw !== id && indexById.has(parentIdRaw) ? parentIdRaw : '';
-        const key = parentId || '__root__';
-        if (!childrenByParent.has(key)) {
-            childrenByParent.set(key, []);
-        }
-        childrenByParent.get(key).push(id);
-    }
-    const sortBySourceIndex = (a, b) => (indexById.get(a) || 0) - (indexById.get(b) || 0);
-    for (const list of childrenByParent.values()) {
-        list.sort(sortBySourceIndex);
-    }
-    const rows = [];
-    const visiting = new Set();
-    const visited = new Set();
-    const visit = (id, depth) => {
-        if (!id || visited.has(id) || visiting.has(id)) {
-            return;
-        }
-        visiting.add(id);
-        rows.push({ id, folder: source[id], depth: Math.max(0, depth) });
-        for (const childId of (childrenByParent.get(id) || [])) {
-            visit(childId, depth + 1);
-        }
-        visiting.delete(id);
-        visited.add(id);
-    };
-    for (const rootId of (childrenByParent.get('__root__') || [])) {
-        visit(rootId, 0);
-    }
-    for (const id of ids) {
-        visit(id, 0);
-    }
-    return rows;
-};
-
-const populateParentFolderOptions = (foldersMap, selectedParentId = '', blockedIds = new Set()) => {
-    const form = getForm();
-    const select = form?.parent_folder_id;
-    if (!select) {
-        return;
-    }
-    const selected = normalizeParentFolderId(selectedParentId);
-    const blocked = blockedIds instanceof Set ? blockedIds : new Set();
-    const rows = buildNestedFolderOrder(foldersMap);
-    const options = ['<option value="">No parent (top level)</option>'];
-    for (const row of rows) {
-        const id = normalizeParentFolderId(row?.id || '');
-        if (!id || blocked.has(id)) {
-            continue;
-        }
-        const depth = Math.max(0, Number(row?.depth || 0));
-        const indent = depth > 0 ? `${'  '.repeat(depth)}- ` : '';
-        const label = escapeHtml(`${indent}${String(row?.folder?.name || id)}`);
-        options.push(`<option value="${escapeHtml(id)}">${label}</option>`);
-    }
-    $(select).html(options.join(''));
-    if (selected && !blocked.has(selected)) {
-        select.value = selected;
-    } else {
-        select.value = '';
-    }
-};
-
-const getSiblingNameCollision = (nameValue, parentId, excludeFolderId = '') => {
-    const nameNeedle = String(nameValue || '').trim().toLowerCase();
-    if (!nameNeedle) {
-        return null;
-    }
-    const targetParent = normalizeParentFolderId(parentId);
-    const excludeId = normalizeParentFolderId(excludeFolderId);
-    for (const [id, folder] of Object.entries(allFoldersById || {})) {
-        const safeId = normalizeParentFolderId(id);
-        if (!safeId || (excludeId && safeId === excludeId)) {
-            continue;
-        }
-        const folderName = String(folder?.name || '').trim().toLowerCase();
-        if (!folderName || folderName !== nameNeedle) {
-            continue;
-        }
-        const folderParent = normalizeParentFolderId(folder?.parentId || folder?.parent_id || '');
-        if (folderParent === targetParent) {
-            return {
-                id: safeId,
-                name: String(folder?.name || '').trim() || safeId
-            };
-        }
-    }
-    return null;
-};
-
-const suggestSiblingName = (baseName, parentId, excludeFolderId = '') => {
-    const trimmedBase = String(baseName || '').trim() || 'Folder';
-    if (!getSiblingNameCollision(trimmedBase, parentId, excludeFolderId)) {
-        return trimmedBase;
-    }
-    let index = 2;
-    while (index < 500) {
-        const candidate = `${trimmedBase} (${index})`;
-        if (!getSiblingNameCollision(candidate, parentId, excludeFolderId)) {
-            return candidate;
-        }
-        index += 1;
-    }
-    return `${trimmedBase} ${Date.now()}`;
-};
-
-const setParentDefaultsNote = (message = '', level = 'info') => {
-    const form = getForm();
-    const select = $(form?.elements?.parent_folder_id);
-    if (!select.length) {
-        return;
-    }
-    const dd = select.closest('dd');
-    if (!dd.length) {
-        return;
-    }
-    let note = dd.find('.fv-parent-defaults-note');
-    if (!note.length) {
-        note = $('<div class="fv-parent-defaults-note" style="display:none;"></div>');
-        dd.append(note);
-    }
-    note.removeClass('is-info is-success is-warning').addClass(
-        level === 'success' ? 'is-success' : (level === 'warning' ? 'is-warning' : 'is-info')
-    );
-    const safeMessage = String(message || '').trim();
-    if (!safeMessage) {
-        note.hide().text('');
-        return;
-    }
-    note.text(safeMessage).show();
-};
-
-const applySmartDefaultsFromParent = (parentId, { force = false } = {}) => {
-    if (folderId) {
-        return 0;
-    }
-    const safeParentId = normalizeParentFolderId(parentId);
-    if (!safeParentId) {
-        setParentDefaultsNote('');
-        return 0;
-    }
-    const parentFolder = allFoldersById?.[safeParentId];
-    if (!parentFolder || typeof parentFolder !== 'object') {
-        setParentDefaultsNote('');
-        return 0;
-    }
-
-    const form = getForm();
-    if (!form) {
-        return 0;
-    }
-    const settings = parentFolder?.settings && typeof parentFolder.settings === 'object' ? parentFolder.settings : {};
-    const candidateDefaults = {
-        icon: String(parentFolder?.icon || '').trim(),
-        preview: Number.isFinite(Number(settings.preview)) ? String(settings.preview) : '',
-        preview_hover: settings.preview_hover === true,
-        preview_border: isLegacyPreviewBorderEnabled(settings),
-        preview_border_color: normalizeHexColor(settings.preview_border_color, DEFAULT_BORDER_COLOR),
-        preview_border_width: normalizePositiveInt(settings.preview_border_width, DEFAULT_PREVIEW_BORDER_WIDTH, 1, 4),
-        preview_vertical_bars: settings.preview_vertical_bars === true,
-        preview_vertical_bars_color: normalizeHexColor(
-            settings.preview_vertical_bars_color || settings.preview_border_color,
-            DEFAULT_BORDER_COLOR
-        ),
-        preview_vertical_bars_width: normalizePositiveInt(settings.preview_vertical_bars_width, DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH, 1, 4),
-        dropdown_style: normalizeDropdownStyle(settings.dropdown_style),
-        dropdown_color: normalizeHexColor(settings.dropdown_color, DEFAULT_DROPDOWN_COLOR),
-        dropdown_hover_color: normalizeHexColor(settings.dropdown_hover_color, DEFAULT_DROPDOWN_HOVER_COLOR),
-        status_color_started: normalizeHexColor(settings.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started),
-        status_color_paused: normalizeHexColor(settings.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused),
-        status_color_stopped: normalizeHexColor(settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped)
-    };
-
-    let applied = 0;
-    isApplyingParentDefaults = true;
-    try {
-        for (const [fieldName, value] of Object.entries(candidateDefaults)) {
-            if (!SMART_DEFAULT_FIELD_NAMES.has(fieldName)) {
-                continue;
-            }
-            if (!force && smartDefaultTouchedFields.has(fieldName)) {
-                continue;
-            }
-            const input = form.elements?.[fieldName];
-            if (!input) {
-                continue;
-            }
-            if (typeof value === 'boolean') {
-                input.checked = value;
-                applied += 1;
-                continue;
-            }
-            const nextValue = String(value || '');
-            if (nextValue === '') {
-                continue;
-            }
-            input.value = nextValue;
-            applied += 1;
-        }
-    } finally {
-        isApplyingParentDefaults = false;
-    }
-
-    if (applied > 0) {
-        const parentName = String(parentFolder?.name || safeParentId).trim() || safeParentId;
-        setParentDefaultsNote(`Inherited ${applied} default${applied === 1 ? '' : 's'} from parent "${parentName}".`, 'success');
-    } else {
-        setParentDefaultsNote('Parent selected. Existing custom values were kept.', 'info');
-    }
-
-    updateForm();
-    validateForm();
-    updateLiveSummary();
-    updateRegexSimulator();
-    return applied;
-};
-
-const markSmartDefaultFieldTouched = (fieldName) => {
-    const safeName = String(fieldName || '').trim();
-    if (!safeName || !SMART_DEFAULT_FIELD_NAMES.has(safeName)) {
-        return;
-    }
-    if (isApplyingParentDefaults) {
-        return;
-    }
-    smartDefaultTouchedFields.add(safeName);
-};
-
 const escapeHtml = (value) => {
     if (value === undefined || value === null) {
         return '';
@@ -539,6 +308,31 @@ const escapeHtml = (value) => {
 };
 
 const asArray = (value) => (Array.isArray(value) ? value : []);
+
+const buildParentSmartDefaults = (parentFolder) => {
+    const source = parentFolder && typeof parentFolder === 'object' ? parentFolder : {};
+    const settings = source?.settings && typeof source.settings === 'object' ? source.settings : {};
+    return {
+        icon: String(source?.icon || '').trim(),
+        preview: Number.isFinite(Number(settings.preview)) ? String(settings.preview) : '',
+        preview_hover: settings.preview_hover === true,
+        preview_border: isLegacyPreviewBorderEnabled(settings),
+        preview_border_color: normalizeHexColor(settings.preview_border_color, DEFAULT_BORDER_COLOR),
+        preview_border_width: normalizePositiveInt(settings.preview_border_width, DEFAULT_PREVIEW_BORDER_WIDTH, 1, 4),
+        preview_vertical_bars: settings.preview_vertical_bars === true,
+        preview_vertical_bars_color: normalizeHexColor(
+            settings.preview_vertical_bars_color || settings.preview_border_color,
+            DEFAULT_BORDER_COLOR
+        ),
+        preview_vertical_bars_width: normalizePositiveInt(settings.preview_vertical_bars_width, DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH, 1, 4),
+        dropdown_style: normalizeDropdownStyle(settings),
+        dropdown_color: normalizeHexColor(settings.dropdown_color, DEFAULT_DROPDOWN_COLOR),
+        dropdown_hover_color: normalizeHexColor(settings.dropdown_hover_color, DEFAULT_DROPDOWN_HOVER_COLOR),
+        status_color_started: normalizeHexColor(settings.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started),
+        status_color_paused: normalizeHexColor(settings.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused),
+        status_color_stopped: normalizeHexColor(settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped)
+    };
+};
 
 const parseJsonPayload = (value, context = 'response') => {
     if (value && typeof value === 'object') {
@@ -646,76 +440,30 @@ const iconPickerRuntime = window.FolderViewIconPickerRuntime || {
     paginateItems: fallbackPaginateItems,
     filterIconsByQuery: fallbackFilterIconsByQuery
 };
+const folderIconApi = folderIconApiModule && typeof folderIconApiModule.createApi === 'function'
+    ? folderIconApiModule.createApi({
+        window,
+        document,
+        $,
+        asArray,
+        requestTokenStorageKey: REQUEST_TOKEN_STORAGE_KEY,
+        iconUploadApiPath: CUSTOM_ICON_UPLOAD_API_PATH,
+        uploadMaxBytes: CUSTOM_ICON_UPLOAD_MAX_BYTES,
+        allowedExtensions: CUSTOM_ICON_ALLOWED_EXTENSIONS,
+        uploadContext: ICON_UPLOAD_ENDPOINT_CONTEXT,
+        managerContext: CUSTOM_ICON_MANAGER_CONTEXT,
+        builtInIconFallback: BUILT_IN_ICON_FALLBACK
+    })
+    : null;
 
 const paginateItems = (items, page, pageSize) => iconPickerRuntime.paginateItems(items, page, pageSize);
 const filterIconItems = (icons, query) => iconPickerRuntime.filterIconsByQuery(icons, query);
 
-const getOptionalRequestToken = () => {
-    const metaToken = document.querySelector('meta[name="fv-request-token"]');
-    if (metaToken instanceof HTMLMetaElement) {
-        return String(metaToken.content || '').trim();
-    }
-    try {
-        return String(localStorage.getItem(REQUEST_TOKEN_STORAGE_KEY) || '').trim();
-    } catch (_error) {
-        return '';
-    }
-};
-
-const buildMutationHeaders = (token) => ({
-    'X-FV-Request': '1',
-    ...(token ? { 'X-FV-Token': token } : {})
-});
-
-const securePost = async (url, data = {}) => {
-    const token = getOptionalRequestToken();
-    const payload = {
-        ...(data && typeof data === 'object' ? data : {})
-    };
-    if (!Object.prototype.hasOwnProperty.call(payload, '_fv_request')) {
-        payload._fv_request = '1';
-    }
-    if (token) {
-        payload.token = token;
-    }
-    return $.ajax({
-        url,
-        type: 'POST',
-        data: payload,
-        headers: buildMutationHeaders(token)
-    });
-};
-
-const normalizeBuiltInIconEntry = (entry, basePath) => {
-    if (!entry || typeof entry !== 'object') {
-        return null;
-    }
-    const id = String(entry.id || entry.name || '').trim().toLowerCase().replace(/[^a-z0-9._-]+/g, '-');
-    if (!id) {
-        return null;
-    }
-    const file = String(entry.file || '').trim();
-    const path = String(entry.path || '').trim() || (file ? `${basePath}${file}` : '');
-    if (!path) {
-        return null;
-    }
-    const name = String(entry.name || id).trim() || id;
-    const tags = asArray(entry.tags).map((tag) => String(tag || '').trim().toLowerCase()).filter((tag) => tag !== '');
-    return { id, name, path, tags };
-};
-
-const normalizeBuiltInIconManifest = (payload) => {
-    const source = (payload && typeof payload === 'object') ? payload : {};
-    const basePath = String(source.basePath || '/plugins/folderview.plus/images/icons/').trim();
-    const normalizedBase = basePath.endsWith('/') ? basePath : `${basePath}/`;
-    const icons = asArray(source.icons)
-        .map((entry) => normalizeBuiltInIconEntry(entry, normalizedBase))
-        .filter(Boolean);
-    if (icons.length === 0) {
-        return [...BUILT_IN_ICON_FALLBACK];
-    }
-    return icons;
-};
+const getOptionalRequestToken = () => folderIconApi.getOptionalRequestToken();
+const buildMutationHeaders = (token) => folderIconApi.buildMutationHeaders(token);
+const securePost = async (url, data = {}) => folderIconApi.securePost(url, data);
+const normalizeBuiltInIconEntry = (entry, basePath) => folderIconApi.normalizeBuiltInIconEntry(entry, basePath);
+const normalizeBuiltInIconManifest = (payload) => folderIconApi.normalizeBuiltInIconManifest(payload);
 
 const getIconInput = () => $(getForm()?.icon);
 
@@ -744,21 +492,7 @@ const setIconUploadStatus = (message, isError = false) => {
     status.addClass(isError ? 'is-error' : 'is-success');
 };
 
-const formatByteCount = (bytes) => {
-    const value = Number(bytes || 0);
-    if (!Number.isFinite(value) || value <= 0) {
-        return '0 B';
-    }
-    const units = ['B', 'KB', 'MB', 'GB'];
-    let current = value;
-    let idx = 0;
-    while (current >= 1024 && idx < units.length - 1) {
-        current /= 1024;
-        idx += 1;
-    }
-    const precision = current >= 100 || idx === 0 ? 0 : (current >= 10 ? 1 : 2);
-    return `${current.toFixed(precision)} ${units[idx]}`;
-};
+const formatByteCount = (bytes) => folderIconApi.formatByteCount(bytes);
 
 const setIconUploadProgressVisible = (visible) => {
     const box = $('#fv-icon-upload-progress');
@@ -791,169 +525,16 @@ const resetIconUploadProgress = () => {
     setIconUploadProgressVisible(false);
 };
 
-const validateCustomIconFileBeforeUpload = (file) => {
-    if (!(file instanceof File)) {
-        throw new Error('No icon file selected.');
+const validateCustomIconFileBeforeUpload = (file) => folderIconApi.validateCustomIconFileBeforeUpload(file);
+const readFileAsDataUrl = (file) => folderIconApi.readFileAsDataUrl(file);
+const shouldUseInlineUploadFallback = (error) => folderIconApi.shouldUseInlineUploadFallback(error);
+const uploadCustomIconFileInline = async (file, token, options = {}) => folderIconApi.uploadCustomIconFileInline(file, token, options);
+const uploadCustomIconFile = async (file, options = {}) => folderIconApi.uploadCustomIconFile(file, {
+    ...options,
+    setActiveRequest: (request) => {
+        customIconUploadRequest = request;
     }
-    const name = String(file.name || '').trim();
-    const extension = String(name.split('.').pop() || '').toLowerCase();
-    if (!extension || !CUSTOM_ICON_ALLOWED_EXTENSIONS.includes(extension)) {
-        throw new Error('Unsupported icon format.');
-    }
-    const size = Number(file.size || 0);
-    if (!Number.isFinite(size) || size <= 0) {
-        throw new Error('Uploaded file is empty.');
-    }
-    if (size > CUSTOM_ICON_UPLOAD_MAX_BYTES) {
-        throw new Error('Uploaded file exceeds 4MB limit.');
-    }
-};
-
-const readFileAsDataUrl = (file) => new Promise((resolve, reject) => {
-    if (!(file instanceof File)) {
-        reject(new Error('No icon file selected.'));
-        return;
-    }
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error('Unable to read selected file.'));
-    reader.onload = () => {
-        const result = String(reader.result || '').trim();
-        if (!result) {
-            reject(new Error('Unable to read selected file.'));
-            return;
-        }
-        resolve(result);
-    };
-    reader.readAsDataURL(file);
 });
-
-const shouldUseInlineUploadFallback = (error) => {
-    const message = String(error?.message || '').toLowerCase();
-    if (!message) {
-        return false;
-    }
-    return message.includes('empty response')
-        || message.includes('invalid json')
-        || message.includes('unexpected');
-};
-
-const uploadCustomIconFileInline = async (file, token, options = {}) => {
-    const inlinePayload = await readFileAsDataUrl(file);
-    const body = {
-        action: 'upload',
-        icon_inline_name: String(file.name || 'icon').trim() || 'icon',
-        icon_inline_data: inlinePayload,
-        replace: options?.replace ? '1' : '0',
-        dedupe: options?.dedupe === false ? '0' : '1'
-    };
-    if (token) {
-        body.token = token;
-    }
-
-    const response = await $.ajax({
-        url: CUSTOM_ICON_UPLOAD_API_PATH,
-        method: 'POST',
-        data: body,
-        processData: true,
-        contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
-        cache: false,
-        dataType: 'text',
-        headers: {
-            'X-FV-Request': '1',
-            ...(token ? { 'X-FV-Token': token } : {})
-        }
-    }).promise();
-
-    return parseJsonPayload(response, ICON_UPLOAD_ENDPOINT_CONTEXT);
-};
-
-const uploadCustomIconFile = async (file, options = {}) => {
-    if (!file || typeof file.name !== 'string') {
-        throw new Error('No icon file selected.');
-    }
-    validateCustomIconFileBeforeUpload(file);
-
-    const token = getOptionalRequestToken();
-    const formData = new FormData();
-    formData.append('action', 'upload');
-    formData.append('icon', file);
-    formData.append('replace', options?.replace ? '1' : '0');
-    formData.append('dedupe', options?.dedupe === false ? '0' : '1');
-    if (token) {
-        formData.append('token', token);
-    }
-
-    const headers = { 'X-FV-Request': '1' };
-    if (token) {
-        headers['X-FV-Token'] = token;
-    }
-
-    let payload;
-    const onProgress = typeof options?.onProgress === 'function' ? options.onProgress : null;
-    try {
-        customIconUploadRequest = $.ajax({
-            url: CUSTOM_ICON_UPLOAD_API_PATH,
-            method: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            cache: false,
-            dataType: 'text',
-            headers,
-            xhr: () => {
-                const xhr = $.ajaxSettings.xhr();
-                if (xhr && xhr.upload && onProgress) {
-                    xhr.upload.addEventListener('progress', (event) => {
-                        if (!event || event.lengthComputable !== true) {
-                            return;
-                        }
-                        onProgress(Number(event.loaded || 0), Number(event.total || 0));
-                    });
-                }
-                return xhr;
-            }
-        });
-        const response = await customIconUploadRequest.promise();
-        payload = parseJsonPayload(response, ICON_UPLOAD_ENDPOINT_CONTEXT);
-    } catch (error) {
-        const aborted = String(error?.textStatus || '').toLowerCase() === 'abort'
-            || String(error?.statusText || '').toLowerCase() === 'abort';
-        if (aborted) {
-            throw new Error('Upload cancelled.');
-        }
-        const primaryError = (error instanceof Error)
-            ? error
-            : new Error(extractAjaxErrorMessage(error, ICON_UPLOAD_ENDPOINT_CONTEXT));
-        if (!shouldUseInlineUploadFallback(primaryError)) {
-            throw new Error(extractAjaxErrorMessage(error, ICON_UPLOAD_ENDPOINT_CONTEXT));
-        }
-        try {
-            payload = await uploadCustomIconFileInline(file, token, options);
-        } catch (inlineError) {
-            throw new Error(extractAjaxErrorMessage(inlineError, ICON_UPLOAD_ENDPOINT_CONTEXT));
-        }
-    } finally {
-        customIconUploadRequest = null;
-    }
-    if (!payload || payload.ok !== true) {
-        throw new Error(String(payload?.error || 'Upload failed.'));
-    }
-
-    const url = String(payload.url || '').trim();
-    if (!url) {
-        throw new Error('Upload did not return an icon URL.');
-    }
-
-    return {
-        name: String(payload.name || file.name).trim() || file.name,
-        url,
-        duplicate: payload?.duplicate === true,
-        replaced: payload?.replaced === true,
-        message: String(payload?.message || '').trim(),
-        metadata: payload?.metadata || null,
-        stats: payload?.stats || null
-    };
-};
 
 const setBuiltInIconPickerOpen = (open) => {
     const panel = $('#fv-icon-picker-panel');
@@ -1039,43 +620,7 @@ const renderCustomIconStats = () => {
     el.text(`Quota: ${summary} | ${healthText}${healthHint} | ${warnings.join(' ')}`);
 };
 
-const requestCustomIconApi = async (action, payload = {}, method = 'GET') => {
-    const token = getOptionalRequestToken();
-    const normalizedMethod = String(method || 'GET').toUpperCase();
-    const data = {
-        action: String(action || '').trim(),
-        ...(payload && typeof payload === 'object' ? payload : {})
-    };
-    if (normalizedMethod === 'GET') {
-        const response = await $.get(CUSTOM_ICON_UPLOAD_API_PATH, data).promise();
-        const parsed = parseJsonPayload(response, CUSTOM_ICON_MANAGER_CONTEXT);
-        if (!parsed || parsed.ok !== true) {
-            throw new Error(String(parsed?.error || 'Request failed.'));
-        }
-        return parsed;
-    }
-    if (token) {
-        data.token = token;
-    }
-    const response = await $.ajax({
-        url: CUSTOM_ICON_UPLOAD_API_PATH,
-        method: 'POST',
-        data,
-        processData: true,
-        contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
-        cache: false,
-        dataType: 'text',
-        headers: {
-            'X-FV-Request': '1',
-            ...(token ? { 'X-FV-Token': token } : {})
-        }
-    }).promise();
-    const parsed = parseJsonPayload(response, CUSTOM_ICON_MANAGER_CONTEXT);
-    if (!parsed || parsed.ok !== true) {
-        throw new Error(String(parsed?.error || 'Request failed.'));
-    }
-    return parsed;
-};
+const requestCustomIconApi = async (action, payload = {}, method = 'GET') => folderIconApi.requestCustomIconApi(action, payload, method);
 
 const renderCustomIconList = () => {
     const list = $('#fv-custom-icon-list');
@@ -2967,6 +2512,26 @@ const resetStatusColorDefaults = () => {
 };
 window.resetStatusColorDefaults = resetStatusColorDefaults;
 
+const resetPreviewBorderDefaults = () => {
+    const form = $('div.canvas > form')[0];
+    form.preview_border_color.value = DEFAULT_BORDER_COLOR;
+    form.preview_border_width.value = String(DEFAULT_PREVIEW_BORDER_WIDTH);
+    if (typeof scheduleEditorRecalculation === 'function') {
+        scheduleEditorRecalculation(0);
+    }
+};
+window.resetPreviewBorderDefaults = resetPreviewBorderDefaults;
+
+const resetDropdownColorDefaults = () => {
+    const form = $('div.canvas > form')[0];
+    form.dropdown_color.value = DEFAULT_DROPDOWN_COLOR;
+    form.dropdown_hover_color.value = DEFAULT_DROPDOWN_HOVER_COLOR;
+    if (typeof scheduleEditorRecalculation === 'function') {
+        scheduleEditorRecalculation(0);
+    }
+};
+window.resetDropdownColorDefaults = resetDropdownColorDefaults;
+
 const setFieldError = (fieldName, message) => {
     const form = getForm();
     const input = $(form?.elements?.[fieldName]);
@@ -3098,15 +2663,33 @@ const parseOptionalThresholdInput = (value) => {
     return Math.min(100, Math.max(0, Math.round(parsed)));
 };
 
-const normalizeDashboardOverflowMode = (value) => {
-    const normalized = String(value || '').trim().toLowerCase();
-    return ['default', 'expand_row', 'scroll'].includes(normalized)
-        ? normalized
-        : 'default';
+const normalizeDashboardOverflowMode = typeof utils?.normalizeDashboardOverflowMode === 'function'
+    ? utils.normalizeDashboardOverflowMode
+    : ((value) => {
+        const normalized = String(value || '').trim().toLowerCase();
+        return ['default', 'expand_row', 'scroll'].includes(normalized)
+            ? normalized
+            : 'default';
+    });
+
+const extractPreviewRowLimitValue = (value, fallbackSource = null) => {
+    const sources = [value, fallbackSource];
+    for (const source of sources) {
+        if (source && typeof source === 'object') {
+            const candidate = source.preview_rows
+                ?? source.previewRows;
+            if (candidate !== undefined && candidate !== null && String(candidate).trim() !== '') {
+                return candidate;
+            }
+        } else if (source !== undefined && source !== null && String(source).trim() !== '') {
+            return source;
+        }
+    }
+    return '';
 };
 
-const normalizePreviewRowLimit = (value) => {
-    const normalized = String(value ?? '').trim().toLowerCase();
+const normalizePreviewRowLimit = (value, fallbackSource = null) => {
+    const normalized = String(extractPreviewRowLimitValue(value, fallbackSource) ?? '').trim().toLowerCase();
     if (normalized === '0' || normalized === 'auto' || normalized === 'unlimited') {
         return 0;
     }
@@ -3145,7 +2728,8 @@ const normalizeFolderRecordForEditor = (folder) => {
             folder_webui: settings.folder_webui === true,
             folder_webui_url: String(settings.folder_webui_url || ''),
             preview: Number.isFinite(Number(settings.preview)) ? toSafeInt(settings.preview, 1) : 1,
-            preview_rows: normalizePreviewRowLimit(settings.preview_rows),
+            preview_rows: normalizePreviewRowLimit(settings, source),
+            previewRows: normalizePreviewRowLimit(settings, source),
             preview_hover: settings.preview_hover === true,
             preview_update: settings.preview_update === true,
             preview_text_width: String(settings.preview_text_width || ''),
@@ -3166,7 +2750,10 @@ const normalizeFolderRecordForEditor = (folder) => {
                 DEFAULT_BORDER_COLOR
             ),
             preview_vertical_bars_width: normalizePositiveInt(settings.preview_vertical_bars_width, DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH, 1, 4),
-            dropdown_style: normalizeDropdownStyle(settings.dropdown_style),
+            dropdown_style: normalizeDropdownStyle(settings, source),
+            dropdownStyle: normalizeDropdownStyle(settings, source),
+            chevron_style: normalizeDropdownStyle(settings, source),
+            chevronStyle: normalizeDropdownStyle(settings, source),
             dropdown_color: normalizeHexColor(settings.dropdown_color, DEFAULT_DROPDOWN_COLOR),
             dropdown_hover_color: normalizeHexColor(settings.dropdown_hover_color, DEFAULT_DROPDOWN_HOVER_COLOR),
             status_color_started: normalizeHexColor(settings.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started),
@@ -3288,7 +2875,7 @@ const validateParentFolderSelection = () => {
         setFieldError('parent_folder_id', 'A folder cannot be its own parent.');
         return false;
     }
-    if (currentFolderDescendantIds.has(parentId)) {
+    if (folderHierarchyState.currentFolderDescendantIds.has(parentId)) {
         setFieldError('parent_folder_id', 'A folder cannot be nested under one of its own children.');
         return false;
     }
@@ -4168,7 +3755,7 @@ resetStatusColorDefaults();
     if (folderId) {
         // select the folder and delete it from the list
         const currFolder = normalizeFolderRecordForEditor(folders[folderId] || {});
-        currentFolderDescendantIds = computeFolderDescendantIds(allFoldersById, folderId);
+        folderHierarchyState.currentFolderDescendantIds = computeFolderDescendantIds(allFoldersById, folderId);
         currentFolderName = currFolder.name || '';
         delete folders[folderId];
 
@@ -4178,13 +3765,13 @@ resetStatusColorDefaults();
         populateParentFolderOptions(
             folders,
             normalizeParentFolderId(currFolder.parentId || ''),
-            new Set([folderId, ...Array.from(currentFolderDescendantIds)])
+            new Set([folderId, ...Array.from(folderHierarchyState.currentFolderDescendantIds)])
         );
         form.icon.value = currFolder.icon;
         form.folder_webui.checked = currFolder.settings.folder_webui || false;
         form.folder_webui_url.value = currFolder.settings.folder_webui_url || '';
         form.preview.value = String(currFolder.settings.preview);
-        form.preview_rows.value = String(normalizePreviewRowLimit(currFolder.settings.preview_rows));
+        form.preview_rows.value = String(normalizePreviewRowLimit(currFolder.settings, currFolder));
         form.preview_hover.checked = currFolder.settings.preview_hover;
         form.preview_update.checked = currFolder.settings.preview_update;
         form.preview_text_width.value = currFolder.settings.preview_text_width || '';
@@ -4205,7 +3792,7 @@ resetStatusColorDefaults();
             DEFAULT_BORDER_COLOR
         );
         form.preview_vertical_bars_width.value = String(normalizePositiveInt(currFolder.settings.preview_vertical_bars_width, DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH, 1, 4));
-        form.dropdown_style.value = normalizeDropdownStyle(currFolder.settings.dropdown_style);
+        form.dropdown_style.value = normalizeDropdownStyle(currFolder.settings, currFolder);
         form.dropdown_color.value = normalizeHexColor(currFolder.settings.dropdown_color, DEFAULT_DROPDOWN_COLOR);
         form.dropdown_hover_color.value = normalizeHexColor(currFolder.settings.dropdown_hover_color, DEFAULT_DROPDOWN_HOVER_COLOR);
         form.status_color_started.value = normalizeHexColor(currFolder.settings.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started);
@@ -4255,7 +3842,7 @@ resetStatusColorDefaults();
         updateIcon(form.icon);
         setParentDefaultsNote('');
     } else {
-        currentFolderDescendantIds = new Set();
+        folderHierarchyState.currentFolderDescendantIds = new Set();
         populateParentFolderOptions(folders, '', new Set());
         setParentDefaultsNote('Select a parent to inherit preview/icon defaults automatically.', 'info');
     }
@@ -4590,6 +4177,48 @@ const updateForm = () => {
     enforceLeftAlignedSettingsLayout();
 };
 
+if (!folderHierarchyModule || typeof folderHierarchyModule.createApi !== 'function') {
+    throw new Error('FolderView Plus folder editor bootstrap failed: missing folder.editor.hierarchy.js');
+}
+const getFolderHierarchyApi = (() => {
+    let cachedApi = null;
+    return () => {
+        if (cachedApi) {
+            return cachedApi;
+        }
+        cachedApi = folderHierarchyModule.createApi({
+            $,
+            getForm,
+            getFolderId: () => folderId,
+            getAllFolders: () => allFoldersById,
+            updateForm,
+            validateForm,
+            updateLiveSummary,
+            updateRegexSimulator,
+            escapeHtml,
+            smartDefaultFieldNames: SMART_DEFAULT_FIELD_NAMES,
+            getParentDefaults: (parentFolder) => buildParentSmartDefaults(parentFolder)
+        });
+        return cachedApi;
+    };
+})();
+const folderHierarchyState = {
+    get currentFolderDescendantIds() {
+        return getFolderHierarchyApi().state.currentFolderDescendantIds;
+    },
+    set currentFolderDescendantIds(value) {
+        getFolderHierarchyApi().state.currentFolderDescendantIds = value;
+    }
+};
+const normalizeParentFolderId = (...args) => getFolderHierarchyApi().normalizeParentFolderId(...args);
+const computeFolderDescendantIds = (...args) => getFolderHierarchyApi().computeFolderDescendantIds(...args);
+const populateParentFolderOptions = (...args) => getFolderHierarchyApi().populateParentFolderOptions(...args);
+const getSiblingNameCollision = (...args) => getFolderHierarchyApi().getSiblingNameCollision(...args);
+const suggestSiblingName = (...args) => getFolderHierarchyApi().suggestSiblingName(...args);
+const setParentDefaultsNote = (...args) => getFolderHierarchyApi().setParentDefaultsNote(...args);
+const applySmartDefaultsFromParent = (...args) => getFolderHierarchyApi().applySmartDefaultsFromParent(...args);
+const markSmartDefaultFieldTouched = (...args) => getFolderHierarchyApi().markSmartDefaultFieldTouched(...args);
+
 /**
  * Create the element select table
  */
@@ -4709,15 +4338,24 @@ const submitForm = async (e, saveAsCopy = false) => {
     const healthAllStoppedMode = normalizeOptionalHealthSelect(e.health_all_stopped_mode?.value, FOLDER_HEALTH_ALL_STOPPED_MODE_VALUES);
     const statusWarnThresholdRaw = String(e.status_warn_stopped_percent?.value || '').trim();
     const statusWarnThreshold = parseOptionalThresholdInput(statusWarnThresholdRaw);
+    const normalizedPreviewRows = normalizePreviewRowLimit(e.preview_rows?.value);
+    const normalizedDropdownStyle = normalizeDropdownStyle(e.dropdown_style.value.toString());
     const folder = {
         name: e.name.value.toString().trim(),
         parentId: normalizeParentFolderId(e.parent_folder_id?.value || ''),
         icon: e.icon.value.toString(),
+        preview_rows: normalizedPreviewRows,
+        previewRows: normalizedPreviewRows,
+        dropdown_style: normalizedDropdownStyle,
+        dropdownStyle: normalizedDropdownStyle,
+        chevron_style: normalizedDropdownStyle,
+        chevronStyle: normalizedDropdownStyle,
         settings: {
             folder_webui: e.folder_webui.checked,
             folder_webui_url: e.folder_webui_url.value.toString(),
             preview: parseInt(e.preview.value.toString()),
-            preview_rows: normalizePreviewRowLimit(e.preview_rows?.value),
+            preview_rows: normalizedPreviewRows,
+            previewRows: normalizedPreviewRows,
             preview_hover: e.preview_hover.checked,
             preview_update: e.preview_update.checked,
             preview_text_width: e.preview_text_width.value,
@@ -4735,7 +4373,10 @@ const submitForm = async (e, saveAsCopy = false) => {
             preview_border_width: normalizePositiveInt(e.preview_border_width.value.toString(), DEFAULT_PREVIEW_BORDER_WIDTH, 1, 4),
             preview_vertical_bars_color: e.preview_vertical_bars_color.value.toString(),
             preview_vertical_bars_width: normalizePositiveInt(e.preview_vertical_bars_width.value.toString(), DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH, 1, 4),
-            dropdown_style: normalizeDropdownStyle(e.dropdown_style.value.toString()),
+            dropdown_style: normalizedDropdownStyle,
+            dropdownStyle: normalizedDropdownStyle,
+            chevron_style: normalizedDropdownStyle,
+            chevronStyle: normalizedDropdownStyle,
             dropdown_color: normalizeHexColor(e.dropdown_color.value.toString(), DEFAULT_DROPDOWN_COLOR),
             dropdown_hover_color: normalizeHexColor(e.dropdown_hover_color.value.toString(), DEFAULT_DROPDOWN_HOVER_COLOR),
             status_color_started: normalizeHexColor(e.status_color_started.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.started),

@@ -58,6 +58,43 @@ const utils = window.FolderViewPlusUtils || {
             paused: normalizeStatusHexColor(incoming.status_color_paused, localDefaultFolderStatusColors.paused),
             stopped: normalizeStatusHexColor(incoming.status_color_stopped, localDefaultFolderStatusColors.stopped)
         };
+    },
+    escapeHtml: (value) => String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;'),
+    sanitizeImageSrc: (value, fallback = '/plugins/dynamix.docker.manager/images/question.png') => {
+        const raw = String(value || '').trim();
+        if (!raw || /^javascript:/i.test(raw)) {
+            return fallback;
+        }
+        return String(raw)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    },
+    DASHBOARD_LAYOUT_OPTIONS: Object.freeze(['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix']),
+    DASHBOARD_LAYOUT_LABELS: Object.freeze({
+        classic: 'Classic',
+        legacy: 'Legacy',
+        fullwidth: 'Full Width',
+        accordion: 'Accordion',
+        inset: 'Inset',
+        compactmatrix: 'Compact Matrix'
+    }),
+    normalizeDashboardLayout: (value) => {
+        const normalized = String(value || '').trim().toLowerCase();
+        return ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'].includes(normalized)
+            ? normalized
+            : 'classic';
+    },
+    normalizeDashboardOverflowMode: (value) => {
+        const normalized = String(value || '').trim().toLowerCase();
+        return ['default', 'expand_row', 'scroll'].includes(normalized) ? normalized : 'default';
     }
 };
 const dashboardStorageWriter = typeof utils.createBatchedStorageWriter === 'function'
@@ -76,19 +113,65 @@ const getFolderLabelValue = (labels) => {
     }
     return '';
 };
-const escapeHtml = (value) => String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-const sanitizeImageSrc = (value, fallback = '/plugins/dynamix.docker.manager/images/question.png') => {
-    const raw = String(value || '').trim();
-    if (!raw || /^javascript:/i.test(raw)) {
-        return fallback;
-    }
-    return escapeHtml(raw);
-};
+const dashboardFolderMatchCacheModule = window.FolderViewPlusDashboardFolderMatchCache || null;
+const dashboardBootstrapMissingModules = [];
+if (!window.FolderViewPlusUtils || typeof window.FolderViewPlusUtils.normalizePrefs !== 'function') {
+    dashboardBootstrapMissingModules.push('folderviewplus.utils.js');
+}
+if (
+    !window.FolderViewPlusRequest
+    || typeof window.FolderViewPlusRequest.getJson !== 'function'
+    || typeof window.FolderViewPlusRequest.postJson !== 'function'
+) {
+    dashboardBootstrapMissingModules.push('folderviewplus.request.js');
+}
+if (!window.FolderViewPlusDashboardFolderMatchCache || typeof window.FolderViewPlusDashboardFolderMatchCache.createApi !== 'function') {
+    dashboardBootstrapMissingModules.push('dashboard.folder-match-cache.js');
+}
+if (dashboardBootstrapMissingModules.length > 0) {
+    const error = new Error(`FolderView Plus Dashboard bootstrap failed. Missing modules: ${dashboardBootstrapMissingModules.join(', ')}`);
+    error.fvplusBannerShown = true;
+    throw error;
+}
+if (!dashboardFolderMatchCacheModule || typeof dashboardFolderMatchCacheModule.createApi !== 'function') {
+    console.error('folderview.plus dashboard: missing dashboard.folder-match-cache.js');
+    return;
+}
+const dashboardFolderMatchCacheApi = dashboardFolderMatchCacheModule.createApi({
+    utils,
+    folderRegex: /^folder-/,
+    getFolderLabelValue
+});
+const {
+    getPrefsOrderedFolderMap,
+    sortFolderIdsByPrefs,
+    filterDashboardToRootFolders,
+    buildFolderChildrenIndex,
+    aggregateRootMatchCache,
+    reorderFolderSlotsInBaseOrder,
+    parseJsonPayloadSafe,
+    buildDockerStateSignature,
+    buildVmStateSignature,
+    buildDashboardDockerFolderMatchCache,
+    buildDashboardVmFolderMatchCache
+} = dashboardFolderMatchCacheApi;
+const escapeHtml = typeof utils.escapeHtml === 'function'
+    ? utils.escapeHtml
+    : ((value) => String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;'));
+const sanitizeImageSrc = typeof utils.sanitizeImageSrc === 'function'
+    ? utils.sanitizeImageSrc
+    : ((value, fallback = '/plugins/dynamix.docker.manager/images/question.png') => {
+        const raw = String(value || '').trim();
+        if (!raw || /^javascript:/i.test(raw)) {
+            return fallback;
+        }
+        return escapeHtml(raw);
+    });
 const appendDashboardDockerMemberQuickActions = ($containerEl, ct) => {
     if (!$containerEl || !$containerEl.length || !ct || typeof ct !== 'object') {
         return;
@@ -156,8 +239,10 @@ const dashboardDebugLog = (...args) => {
         console.log(...args);
     }
 };
-const DASHBOARD_LAYOUT_MODES = ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'];
-const DASHBOARD_LAYOUT_LABELS = Object.freeze({
+const DASHBOARD_LAYOUT_MODES = Array.isArray(utils.DASHBOARD_LAYOUT_OPTIONS)
+    ? utils.DASHBOARD_LAYOUT_OPTIONS
+    : ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'];
+const DASHBOARD_LAYOUT_LABELS = utils.DASHBOARD_LAYOUT_LABELS || Object.freeze({
     classic: 'Classic',
     legacy: 'Legacy',
     fullwidth: 'Full Width',
@@ -165,14 +250,19 @@ const DASHBOARD_LAYOUT_LABELS = Object.freeze({
     inset: 'Inset',
     compactmatrix: 'Compact Matrix'
 });
-const normalizeDashboardLayoutMode = (value) => {
-    const normalized = String(value || '').trim().toLowerCase();
-    return DASHBOARD_LAYOUT_MODES.includes(normalized) ? normalized : 'classic';
-};
-const normalizeDashboardOverflowMode = (value) => {
-    const normalized = String(value || '').trim().toLowerCase();
-    return ['default', 'expand_row', 'scroll'].includes(normalized) ? normalized : 'default';
-};
+const normalizeDashboardLayoutMode = typeof utils.normalizeDashboardLayout === 'function'
+    ? utils.normalizeDashboardLayout
+    : ((value) => {
+        const normalized = String(value || '').trim().toLowerCase();
+        return DASHBOARD_LAYOUT_MODES.includes(normalized) ? normalized : 'classic';
+    });
+const normalizeDashboardOverflowMode = typeof utils.normalizeDashboardOverflowMode === 'function'
+    ? utils.normalizeDashboardOverflowMode
+    : ((value) => {
+        const normalized = String(value || '').trim().toLowerCase();
+        return ['default', 'expand_row', 'scroll'].includes(normalized) ? normalized : 'default';
+    });
+const dashboardLayoutQuickRailModule = window.FolderViewPlusDashboardLayoutQuickRail || null;
 const normalizeDashboardPrefsForType = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     const prefs = utils.normalizePrefs(folderTypePrefs?.[resolvedType] || {});
@@ -196,17 +286,48 @@ const dashboardTypeMeta = (type) => {
         outerSelector: resolvedType === 'vm' ? 'span.outer.vms.folder-vm' : 'span.outer.apps.folder-docker'
     };
 };
+let dashboardQuickRailController = null;
+const getDashboardQuickRailController = () => {
+    if (dashboardQuickRailController) {
+        return dashboardQuickRailController;
+    }
+    if (!dashboardLayoutQuickRailModule || typeof dashboardLayoutQuickRailModule.createController !== 'function') {
+        return null;
+    }
+    dashboardQuickRailController = dashboardLayoutQuickRailModule.createController({
+        window,
+        $,
+        dashboardTypeMeta,
+        dashboardLayoutModes: DASHBOARD_LAYOUT_MODES,
+        dashboardLayoutLabels: DASHBOARD_LAYOUT_LABELS,
+        normalizeDashboardPrefsForType,
+        getDashboardStartedOnlySelectorForType,
+        isDashboardStartedOnlyEnabledForType: (type) => isDashboardStartedOnlyEnabledForType(type),
+        readDashboardHealthEmphasisStateForType: (type) => readDashboardHealthEmphasisStateForType(type),
+        readDashboardCompactDensityStateForType: (type) => readDashboardCompactDensityStateForType(type),
+        isDashboardLegacyLayoutForType: (type) => isDashboardLegacyLayoutForType(type),
+        isDashboardLayoutTransitionInFlightForType: (type) => isDashboardLayoutTransitionInFlightForType(type),
+        resolveFolderIdFromCard: ($card) => resolveFolderIdFromCard($card),
+        updateExpandToggleIcon: ($card, expanded) => updateExpandToggleIcon($card, expanded),
+        onLayoutCycle: (type, nextLayout) => handleDashboardWidgetLayoutQuickSwitch(type, nextLayout),
+        onToggleExpandAll: (type) => toggleDashboardExpandAllForType(type),
+        onSetStartedOnlyEnabled: (type, enabled) => setDashboardStartedOnlyEnabledForType(type, enabled),
+        onToggleHealthEmphasis: (type, enabled) => {
+            writeDashboardHealthEmphasisStateForType(type, enabled);
+            scheduleDashboardLayoutApplyForType(type);
+        },
+        onToggleDensity: (type, enabled) => {
+            writeDashboardCompactDensityStateForType(type, enabled);
+            scheduleDashboardLayoutApplyForType(type);
+        },
+        onResetView: (type) => resetDashboardWidgetViewStateForType(type),
+        onOpenSettings: () => openFolderViewPlusSettings()
+    });
+    return dashboardQuickRailController;
+};
 const resolveDashboardWidgetInlineHostForType = (type) => {
-    const meta = dashboardTypeMeta(type);
-    const $tbody = $(meta.tbodySelector).first();
-    if (!$tbody.length) {
-        return $();
-    }
-    const $targetCell = $tbody.children('tr.updated').children('td').first();
-    if ($targetCell.length) {
-        return $targetCell;
-    }
-    return $tbody;
+    const controller = getDashboardQuickRailController();
+    return controller ? controller.resolveDashboardWidgetInlineHostForType(type) : $();
 };
 const DASHBOARD_HEALTH_EMPHASIS_STORAGE_KEYS = Object.freeze({
     docker: 'fvplus.runtime.dashboard.health-emphasis.docker.v1',
@@ -402,207 +523,46 @@ const setDashboardStartedOnlyEnabledForType = (type, enabled) => {
     return true;
 };
 const getDashboardFolderCardsForType = (type) => {
-    const meta = dashboardTypeMeta(type);
-    return $(`${meta.tbodySelector} .folder-showcase-outer`);
+    const controller = getDashboardQuickRailController();
+    return controller ? controller.getDashboardFolderCardsForType(type) : $();
 };
 const getDashboardWidgetBodyForType = (type) => {
-    const meta = dashboardTypeMeta(type);
-    return $(meta.tbodySelector).first();
+    const controller = getDashboardQuickRailController();
+    return controller ? controller.getDashboardWidgetBodyForType(type) : $();
 };
 const getDashboardWidgetUpdatedRowForType = (type) => {
-    const $tbody = getDashboardWidgetBodyForType(type);
-    if (!$tbody.length) {
-        return $();
-    }
-    return $tbody.children('tr.updated').first();
+    const controller = getDashboardQuickRailController();
+    return controller ? controller.getDashboardWidgetUpdatedRowForType(type) : $();
 };
 const isDashboardNodeVisible = (node) => {
-    if (!node || !(node instanceof Element)) {
-        return false;
-    }
-    if (node.hidden === true) {
-        return false;
-    }
-    const win = node.ownerDocument && node.ownerDocument.defaultView
-        ? node.ownerDocument.defaultView
-        : window;
-    let current = node;
-    while (current && current instanceof Element) {
-        const style = win.getComputedStyle(current);
-        if (!style || style.display === 'none' || style.visibility === 'hidden') {
-            return false;
-        }
-        current = current.parentElement;
-    }
-    return node.getClientRects().length > 0;
+    const controller = getDashboardQuickRailController();
+    return controller ? controller.isDashboardNodeVisible(node) : false;
 };
 const isDashboardWidgetCollapsedForType = (type) => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const $tbody = getDashboardWidgetBodyForType(resolvedType);
-    if (!$tbody.length) {
-        return true;
-    }
-    const $updatedRow = getDashboardWidgetUpdatedRowForType(resolvedType);
-    if (!$updatedRow.length) {
-        return true;
-    }
-    const updatedNode = $updatedRow.get(0);
-    if (!updatedNode) {
-        return true;
-    }
-    const style = window.getComputedStyle(updatedNode);
-    if (!style || style.display === 'none' || style.visibility === 'hidden') {
-        return true;
-    }
-    return !isDashboardNodeVisible(updatedNode);
+    const controller = getDashboardQuickRailController();
+    return controller ? controller.isDashboardWidgetCollapsedForType(type) : true;
 };
 const getFirstVisibleDashboardFolderCardForType = (type) => {
-    const $cards = getDashboardFolderCardsForType(type);
-    if (!$cards.length) {
-        return null;
-    }
-    let firstVisible = null;
-    $cards.each((_, node) => {
-        if (isDashboardNodeVisible(node)) {
-            firstVisible = node;
-            return false;
-        }
-        return true;
-    });
-    return firstVisible;
+    const controller = getDashboardQuickRailController();
+    return controller ? controller.getFirstVisibleDashboardFolderCardForType(type) : null;
 };
 const ensureDashboardWidgetInlineHostMountForType = (type, hostOverride = null) => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const $container = resolveDashboardWidgetInlineHostForType(resolvedType);
-    const $host = hostOverride && hostOverride.length
-        ? hostOverride
-        : $(`.fv-dashboard-layout-inline-host[data-fv-dashboard-type="${resolvedType}"]`).first();
-    if (!$container.length || !$host.length) {
-        return $container;
-    }
-    if (!$host.parent().is($container)) {
-        $container.prepend($host);
-    }
-    $container.addClass('fv-dashboard-layout-inline-container');
-    return $container;
+    const controller = getDashboardQuickRailController();
+    return controller ? controller.ensureDashboardWidgetInlineHostMountForType(type, hostOverride) : $();
 };
-const hasVisibleDashboardFolderCardsForType = (type) => !!getFirstVisibleDashboardFolderCardForType(type);
 const syncDashboardWidgetQuickRailFitForType = (type, parentRect, offsetTop) => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const $host = $(`.fv-dashboard-layout-inline-host[data-fv-dashboard-type="${resolvedType}"]`).first();
-    if (!$host.length) {
-        return;
+    const controller = getDashboardQuickRailController();
+    if (controller) {
+        controller.syncDashboardWidgetQuickRailFitForType(type, parentRect, offsetTop);
     }
-    const $rail = $host.children('.fv-dashboard-layout-quick-rail').first();
-    if (!$rail.length) {
-        return;
-    }
-    const availableHeight = Math.max(0, Math.floor((parentRect?.height || 0) - offsetTop - 2));
-    if (availableHeight <= 0) {
-        $host.css('max-height', '');
-        $rail.css('max-height', '');
-        $rail.removeClass('is-clamped is-compact-grid');
-        return;
-    }
-    $host.css('max-height', `${availableHeight}px`);
-    $rail.css('max-height', `${availableHeight}px`);
-
-    const $buttons = $rail.children('button.fv-dashboard-quick-action');
-    const buttonCount = $buttons.length;
-    const buttonNode = $buttons.first().get(0);
-    const buttonStyle = buttonNode ? window.getComputedStyle(buttonNode) : null;
-    const buttonHeight = buttonStyle
-        ? Math.max(10, Math.round(parseFloat(buttonStyle.height) || 16))
-        : 16;
-    const railNode = $rail.get(0);
-    const railStyle = railNode ? window.getComputedStyle(railNode) : null;
-    const rowGap = railStyle
-        ? Math.max(0, Math.round(parseFloat(railStyle.rowGap || railStyle.gap || '2') || 2))
-        : 2;
-    const singleRows = buttonCount;
-    const singleHeight = singleRows > 0
-        ? (singleRows * buttonHeight) + (Math.max(0, singleRows - 1) * rowGap)
-        : 0;
-    const gridRows = Math.ceil(buttonCount / 2);
-    const gridHeight = gridRows > 0
-        ? (gridRows * buttonHeight) + (Math.max(0, gridRows - 1) * rowGap)
-        : 0;
-    const useCompactGrid = availableHeight < singleHeight && availableHeight >= gridHeight;
-    $rail.toggleClass('is-compact-grid', useCompactGrid);
-    const requiredHeight = useCompactGrid ? gridHeight : singleHeight;
-    $rail.toggleClass('is-clamped', requiredHeight > availableHeight);
-};
-const syncDashboardWidgetQuickRailAlignmentForType = (type) => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const $host = $(`.fv-dashboard-layout-inline-host[data-fv-dashboard-type="${resolvedType}"]`).first();
-    if (!$host.length) {
-        return;
-    }
-    const hostNode = $host.get(0);
-    const parentNode = hostNode && hostNode.parentElement ? hostNode.parentElement : null;
-    const firstVisibleCard = getFirstVisibleDashboardFolderCardForType(resolvedType);
-    if (!parentNode || !firstVisibleCard || !isDashboardNodeVisible(parentNode)) {
-        $host.css('top', '');
-        $host.css('max-height', '');
-        $host.children('.fv-dashboard-layout-quick-rail').first().css('max-height', '').removeClass('is-clamped is-compact-grid');
-        return;
-    }
-    const parentRect = parentNode.getBoundingClientRect();
-    const cardRect = firstVisibleCard.getBoundingClientRect();
-    const offsetTop = Math.max(0, Math.round(cardRect.top - parentRect.top));
-    $host.css('top', `${offsetTop}px`);
-    syncDashboardWidgetQuickRailFitForType(resolvedType, parentRect, offsetTop);
-};
-const syncDashboardWidgetQuickRailVisibilityForType = (type) => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const $host = $(`.fv-dashboard-layout-inline-host[data-fv-dashboard-type="${resolvedType}"]`).first();
-    if (!$host.length) {
-        return;
-    }
-    ensureDashboardWidgetInlineHostMountForType(resolvedType, $host);
-    const hostNode = $host.get(0);
-    const parentNode = hostNode && hostNode.parentElement ? hostNode.parentElement : null;
-    const shouldShow = !!parentNode
-        && isDashboardNodeVisible(parentNode)
-        && isDashboardWidgetCollapsedForType(resolvedType) !== true
-        && (
-            hasVisibleDashboardFolderCardsForType(resolvedType)
-            || isDashboardLegacyLayoutForType(resolvedType)
-            || isDashboardLayoutTransitionInFlightForType(resolvedType)
-        );
-    $host.toggleClass('is-hidden', !shouldShow);
-    if (shouldShow) {
-        syncDashboardWidgetQuickRailAlignmentForType(resolvedType);
-        return;
-    }
-    $host.css('top', '');
-    $host.css('max-height', '');
-    $host.children('.fv-dashboard-layout-quick-rail').first().css('max-height', '').removeClass('is-clamped is-compact-grid');
 };
 const getDashboardFolderIdsForType = (type) => {
-    const ids = [];
-    getDashboardFolderCardsForType(type).each((_, node) => {
-        const id = resolveFolderIdFromCard($(node));
-        if (id) {
-            ids.push(id);
-        }
-    });
-    return ids;
+    const controller = getDashboardQuickRailController();
+    return controller ? controller.getDashboardFolderIdsForType(type) : [];
 };
 const areAllDashboardFoldersExpandedForType = (type) => {
-    const $cards = getDashboardFolderCardsForType(type);
-    if (!$cards.length) {
-        return false;
-    }
-    let allExpanded = true;
-    $cards.each((_, node) => {
-        if ($(node).attr('expanded') !== 'true') {
-            allExpanded = false;
-            return false;
-        }
-        return true;
-    });
-    return allExpanded;
+    const controller = getDashboardQuickRailController();
+    return controller ? controller.areAllDashboardFoldersExpandedForType(type) : false;
 };
 const toggleDashboardExpandAllForType = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
@@ -641,69 +601,10 @@ const resetDashboardWidgetViewStateForType = (type) => {
     syncDashboardWidgetLayoutQuickControlForType(resolvedType);
 };
 const syncDashboardWidgetLayoutQuickControlForType = (type) => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const widgetLabel = resolvedType === 'vm' ? 'VM' : 'Docker';
-    const currentLayout = normalizeDashboardPrefsForType(resolvedType).layout;
-    const layoutLabel = DASHBOARD_LAYOUT_LABELS[currentLayout] || currentLayout;
-    const $host = $(`.fv-dashboard-layout-inline-host[data-fv-dashboard-type="${resolvedType}"]`).first();
-    if (!$host.length) {
-        return;
+    const controller = getDashboardQuickRailController();
+    if (controller) {
+        controller.syncDashboardWidgetLayoutQuickControlForType(type);
     }
-
-    const $layoutControl = $host.children('.fv-dashboard-layout-quick-rail').children('[data-fv-quick-action="layout-cycle"]').first();
-    if ($layoutControl.length) {
-        $layoutControl.attr('data-fv-layout', currentLayout);
-        $layoutControl.attr('title', `${widgetLabel} view: ${layoutLabel} (click to switch)`);
-        $layoutControl.attr('aria-label', `${widgetLabel} dashboard view: ${layoutLabel}. Click to switch.`);
-    }
-
-    const allExpanded = areAllDashboardFoldersExpandedForType(resolvedType);
-    const folderCount = getDashboardFolderCardsForType(resolvedType).length;
-    const $expandControl = $host.children('.fv-dashboard-layout-quick-rail').children('[data-fv-quick-action="expand-toggle"]').first();
-    if ($expandControl.length) {
-        $expandControl.toggleClass('is-active', allExpanded === true);
-        $expandControl.prop('disabled', folderCount === 0);
-        $expandControl.attr('title', allExpanded ? `${widgetLabel}: Collapse all folders` : `${widgetLabel}: Expand all folders`);
-        $expandControl.attr('aria-label', allExpanded ? `${widgetLabel}: collapse all folders` : `${widgetLabel}: expand all folders`);
-        const $icon = $expandControl.children('i.fa').first();
-        $icon.toggleClass('fa-angle-double-down', allExpanded !== true);
-        $icon.toggleClass('fa-angle-double-up', allExpanded === true);
-    }
-
-    const selector = getDashboardStartedOnlySelectorForType(resolvedType);
-    const hasStartedOnlyToggle = $(selector).length > 0;
-    const startedOnlyEnabled = hasStartedOnlyToggle && isDashboardStartedOnlyEnabledForType(resolvedType);
-    const $runningControl = $host.children('.fv-dashboard-layout-quick-rail').children('[data-fv-quick-action="running-only"]').first();
-    if ($runningControl.length) {
-        $runningControl.toggleClass('is-active', startedOnlyEnabled);
-        $runningControl.prop('disabled', !hasStartedOnlyToggle);
-        $runningControl.attr('title', `${widgetLabel}: Running-only ${startedOnlyEnabled ? 'enabled' : 'disabled'}`);
-        $runningControl.attr('aria-label', `${widgetLabel}: running-only ${startedOnlyEnabled ? 'enabled' : 'disabled'}`);
-    }
-
-    const healthEnabled = readDashboardHealthEmphasisStateForType(resolvedType);
-    const $healthControl = $host.children('.fv-dashboard-layout-quick-rail').children('[data-fv-quick-action="health-emphasis"]').first();
-    if ($healthControl.length) {
-        $healthControl.toggleClass('is-active', healthEnabled);
-        $healthControl.attr('title', `${widgetLabel}: Health emphasis ${healthEnabled ? 'enabled' : 'disabled'}`);
-        $healthControl.attr('aria-label', `${widgetLabel}: health emphasis ${healthEnabled ? 'enabled' : 'disabled'}`);
-    }
-
-    const compactDensityEnabled = readDashboardCompactDensityStateForType(resolvedType);
-    const $densityControl = $host.children('.fv-dashboard-layout-quick-rail').children('[data-fv-quick-action="density-toggle"]').first();
-    if ($densityControl.length) {
-        $densityControl.toggleClass('is-active', compactDensityEnabled);
-        $densityControl.attr('title', `${widgetLabel}: Compact density ${compactDensityEnabled ? 'enabled' : 'disabled'}`);
-        $densityControl.attr('aria-label', `${widgetLabel}: compact density ${compactDensityEnabled ? 'enabled' : 'disabled'}`);
-    }
-
-    const $resetControl = $host.children('.fv-dashboard-layout-quick-rail').children('[data-fv-quick-action="reset-view"]').first();
-    if ($resetControl.length) {
-        $resetControl.attr('title', `${widgetLabel}: Reset quick view state`);
-        $resetControl.attr('aria-label', `${widgetLabel}: reset quick view state`);
-    }
-
-    syncDashboardWidgetQuickRailVisibilityForType(resolvedType);
 };
 const saveDashboardLayoutPrefForType = async (type, prefsPayload) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
@@ -811,109 +712,10 @@ const handleDashboardWidgetLayoutQuickSwitch = async (type, value) => {
     }
 };
 const ensureDashboardWidgetLayoutQuickSwitchForType = (type) => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const $container = resolveDashboardWidgetInlineHostForType(resolvedType);
-    if (!$container.length) {
-        if (dashboardQuickSwitchRetryTimerByType[resolvedType]) {
-            return;
-        }
-        dashboardQuickSwitchRetryTimerByType[resolvedType] = window.setTimeout(() => {
-            dashboardQuickSwitchRetryTimerByType[resolvedType] = 0;
-            ensureDashboardWidgetLayoutQuickSwitchForType(resolvedType);
-        }, 320);
-        return;
+    const controller = getDashboardQuickRailController();
+    if (controller) {
+        controller.ensureDashboardWidgetLayoutQuickSwitchForType(type);
     }
-    const hostSelector = `.fv-dashboard-layout-inline-host[data-fv-dashboard-type="${resolvedType}"]`;
-    let $host = $(hostSelector).first();
-    if (!$host.length) {
-        $host = $(`<div class="fv-dashboard-layout-inline-host fv-dashboard-quick-rail-host" data-fv-dashboard-type="${resolvedType}"></div>`);
-    }
-    ensureDashboardWidgetInlineHostMountForType(resolvedType, $host);
-    if (!$host.hasClass('fv-dashboard-quick-rail-host')) {
-        $host.addClass('fv-dashboard-quick-rail-host');
-    }
-    let $rail = $host.children('.fv-dashboard-layout-quick-rail').first();
-    if (!$rail.length) {
-        $rail = $('<div class="fv-dashboard-layout-quick-rail" role="group" aria-label="Dashboard quick actions"></div>');
-        $host.append($rail);
-    }
-
-    const ensureQuickAction = (action, iconClass, label, extraClass = '') => {
-        let $button = $rail.children(`button[data-fv-quick-action="${action}"]`).first();
-        if (!$button.length) {
-            const className = `fv-dashboard-quick-action ${extraClass}`.trim();
-            $button = $(
-                `<button type="button" class="${className}" data-fv-dashboard-type="${resolvedType}" data-fv-quick-action="${action}" aria-label="${label}" title="${label}">` +
-                    `<i class="fa ${iconClass}" aria-hidden="true"></i>` +
-                '</button>'
-            );
-            $rail.append($button);
-        }
-        return $button;
-    };
-
-    ensureQuickAction('layout-cycle', 'fa-columns', 'Cycle layout view', 'fv-dashboard-layout-quick');
-    ensureQuickAction('expand-toggle', 'fa-angle-double-down', 'Expand all folders');
-    ensureQuickAction('running-only', 'fa-play-circle', 'Toggle running-only filter');
-    ensureQuickAction('health-emphasis', 'fa-heartbeat', 'Toggle health emphasis');
-    ensureQuickAction('density-toggle', 'fa-compress', 'Toggle compact density');
-    ensureQuickAction('reset-view', 'fa-undo', 'Reset widget view');
-    ensureQuickAction('open-settings', 'fa-cog', 'Open FolderView Plus settings');
-
-    if (!$rail.data('fvQuickActionBound')) {
-        $rail.on('click.fvplusdashboardquick', 'button.fv-dashboard-quick-action', (event) => {
-            const $button = $(event.currentTarget);
-            const action = String($button.attr('data-fv-quick-action') || '').trim();
-            const buttonType = String($button.attr('data-fv-dashboard-type') || '').trim() === 'vm' ? 'vm' : 'docker';
-            if (!action) {
-                return;
-            }
-            if (action === 'layout-cycle') {
-                const currentLayout = normalizeDashboardPrefsForType(buttonType).layout;
-                const currentIndex = DASHBOARD_LAYOUT_MODES.indexOf(currentLayout);
-                const nextIndex = currentIndex < 0 ? 0 : ((currentIndex + 1) % DASHBOARD_LAYOUT_MODES.length);
-                void handleDashboardWidgetLayoutQuickSwitch(buttonType, DASHBOARD_LAYOUT_MODES[nextIndex]);
-                return;
-            }
-            if (action === 'expand-toggle') {
-                toggleDashboardExpandAllForType(buttonType);
-                syncDashboardWidgetLayoutQuickControlForType(buttonType);
-                return;
-            }
-            if (action === 'running-only') {
-                const current = isDashboardStartedOnlyEnabledForType(buttonType);
-                setDashboardStartedOnlyEnabledForType(buttonType, !current);
-                syncDashboardWidgetLayoutQuickControlForType(buttonType);
-                return;
-            }
-            if (action === 'health-emphasis') {
-                const current = readDashboardHealthEmphasisStateForType(buttonType);
-                writeDashboardHealthEmphasisStateForType(buttonType, !current);
-                scheduleDashboardLayoutApplyForType(buttonType);
-                syncDashboardWidgetLayoutQuickControlForType(buttonType);
-                return;
-            }
-            if (action === 'density-toggle') {
-                const current = readDashboardCompactDensityStateForType(buttonType);
-                writeDashboardCompactDensityStateForType(buttonType, !current);
-                scheduleDashboardLayoutApplyForType(buttonType);
-                syncDashboardWidgetLayoutQuickControlForType(buttonType);
-                return;
-            }
-            if (action === 'reset-view') {
-                resetDashboardWidgetViewStateForType(buttonType);
-                return;
-            }
-            if (action === 'open-settings') {
-                openFolderViewPlusSettings();
-            }
-        });
-        $rail.data('fvQuickActionBound', true);
-    }
-
-    bindDashboardWidgetVisibilityObserverForType(resolvedType);
-    syncDashboardWidgetLayoutQuickControlForType(resolvedType);
-    scheduleDashboardWidgetVisibilitySyncForType(resolvedType, 0);
 };
 const getDashboardCard = (type, id) => {
     const meta = dashboardTypeMeta(type);
@@ -1040,443 +842,34 @@ const resolveFolderIdFromCard = ($card) => {
     return match ? String(match[1] || '').trim() : '';
 };
 const applyDashboardLayoutStateForType = (type) => {
-    const meta = dashboardTypeMeta(type);
-    const $tbody = $(meta.tbodySelector);
-    if (!$tbody.length) {
-        return;
+    const controller = getDashboardQuickRailController();
+    if (controller) {
+        controller.applyDashboardLayoutStateForType(type);
     }
-    const dashboardPrefs = normalizeDashboardPrefsForType(meta.type);
-    const layout = normalizeDashboardLayoutMode(dashboardPrefs.layout);
-    const folderCardLayout = !['classic', 'legacy'].includes(layout);
-    $tbody.attr('data-fv-dashboard-layout', layout);
-    $tbody.removeClass('fv-dashboard-layout-classic fv-dashboard-layout-legacy fv-dashboard-layout-fullwidth fv-dashboard-layout-accordion fv-dashboard-layout-inset fv-dashboard-layout-compactmatrix');
-    $tbody.addClass(`fv-dashboard-layout-${layout}`);
-    $tbody.toggleClass('fv-dashboard-show-expand-toggle', folderCardLayout && dashboardPrefs.expandToggle === true);
-    $tbody.toggleClass('fv-dashboard-greyscale-enabled', folderCardLayout && dashboardPrefs.greyscale === true);
-    $tbody.toggleClass('fv-dashboard-hide-folder-label', folderCardLayout && dashboardPrefs.folderLabel === false);
-    $tbody.toggleClass('fv-dashboard-health-emphasis-enabled', readDashboardHealthEmphasisStateForType(meta.type));
-    $tbody.toggleClass('fv-dashboard-density-compact', readDashboardCompactDensityStateForType(meta.type));
-    ensureDashboardWidgetLayoutQuickSwitchForType(meta.type);
-    $tbody.find('.folder-showcase-outer').each((_, node) => {
-        const $card = $(node);
-        const isExpanded = $card.attr('expanded') === 'true';
-        $card.toggleClass('fv-dashboard-card-expanded', isExpanded);
-        $card.toggleClass('fv-dashboard-card-collapsed', !isExpanded);
-        updateExpandToggleIcon($card, isExpanded);
-    });
 };
 const scheduleDashboardLayoutApplyForType = (type) => {
-    const meta = dashboardTypeMeta(type);
-    const resolvedType = meta.type;
-    dashboardLayoutApplyTokenByType[resolvedType] = (dashboardLayoutApplyTokenByType[resolvedType] || 0) + 1;
-    const token = dashboardLayoutApplyTokenByType[resolvedType];
-    if (dashboardLayoutRafByType[resolvedType]) {
-        return;
+    const controller = getDashboardQuickRailController();
+    if (controller) {
+        controller.scheduleDashboardLayoutApplyForType(type);
     }
-    const runApply = () => {
-        dashboardLayoutRafByType[resolvedType] = 0;
-        if (token !== dashboardLayoutApplyTokenByType[resolvedType]) {
-            scheduleDashboardLayoutApplyForType(resolvedType);
-            return;
-        }
-        applyDashboardLayoutStateForType(resolvedType);
-    };
-    if (typeof window.requestAnimationFrame === 'function') {
-        dashboardLayoutRafByType[resolvedType] = window.requestAnimationFrame(runApply);
-        return;
-    }
-    dashboardLayoutRafByType[resolvedType] = window.setTimeout(runApply, 16);
 };
 const scheduleDashboardWidgetVisibilitySyncForType = (type, delayMs = 40) => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const delay = Number.isFinite(Number(delayMs)) ? Math.max(0, Number(delayMs)) : 40;
-    if (dashboardWidgetVisibilitySyncTimerByType[resolvedType]) {
-        window.clearTimeout(dashboardWidgetVisibilitySyncTimerByType[resolvedType]);
+    const controller = getDashboardQuickRailController();
+    if (controller) {
+        controller.scheduleDashboardWidgetVisibilitySyncForType(type, delayMs);
     }
-    dashboardWidgetVisibilitySyncTimerByType[resolvedType] = window.setTimeout(() => {
-        dashboardWidgetVisibilitySyncTimerByType[resolvedType] = 0;
-        syncDashboardWidgetQuickRailVisibilityForType(resolvedType);
-    }, delay);
 };
 const bindDashboardWidgetVisibilityObserverForType = (type) => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const $container = resolveDashboardWidgetInlineHostForType(resolvedType);
-    if (!$container.length || typeof MutationObserver !== 'function') {
-        return;
+    const controller = getDashboardQuickRailController();
+    if (controller) {
+        controller.bindDashboardWidgetVisibilityObserverForType(type);
     }
-    const containerNode = $container.get(0);
-    if (!containerNode) {
-        return;
-    }
-    if (dashboardWidgetVisibilityObserverByType[resolvedType]) {
-        dashboardWidgetVisibilityObserverByType[resolvedType].disconnect();
-        dashboardWidgetVisibilityObserverByType[resolvedType] = null;
-    }
-    const observer = new MutationObserver(() => {
-        scheduleDashboardWidgetVisibilitySyncForType(resolvedType, 30);
-    });
-    const nodesToObserve = [];
-    let current = containerNode;
-    for (let depth = 0; current && depth < 16; depth += 1) {
-        if (current instanceof Element) {
-            nodesToObserve.push(current);
-        }
-        current = current.parentElement;
-    }
-    for (const node of nodesToObserve) {
-        observer.observe(node, {
-            attributes: true,
-            attributeFilter: ['class', 'style', 'hidden', 'aria-hidden']
-        });
-    }
-    observer.observe(containerNode, {
-        attributes: true,
-        attributeFilter: ['class', 'style', 'hidden', 'aria-hidden'],
-        childList: true,
-        subtree: true
-    });
-    dashboardWidgetVisibilityObserverByType[resolvedType] = observer;
-    scheduleDashboardWidgetVisibilitySyncForType(resolvedType, 0);
 };
 const bindDashboardQuickActionSyncHandlers = () => {
-    if (dashboardQuickActionSyncBound) {
-        return;
+    const controller = getDashboardQuickRailController();
+    if (controller) {
+        controller.bindDashboardQuickActionSyncHandlers();
     }
-    $(document).on('change.fvplusdashboardquick', 'input#apps, input#vms', (event) => {
-        const id = String(event?.currentTarget?.id || '').trim().toLowerCase();
-        if (id === 'apps') {
-            syncDashboardWidgetLayoutQuickControlForType('docker');
-            scheduleDashboardWidgetVisibilitySyncForType('docker', 0);
-            return;
-        }
-        if (id === 'vms') {
-            syncDashboardWidgetLayoutQuickControlForType('vm');
-            scheduleDashboardWidgetVisibilitySyncForType('vm', 0);
-        }
-    });
-    $(document).on('click.fvplusdashboardquickcollapse', 'a.switch, .switch', () => {
-        scheduleDashboardWidgetVisibilitySyncForType('docker', 0);
-        scheduleDashboardWidgetVisibilitySyncForType('vm', 0);
-        scheduleDashboardWidgetVisibilitySyncForType('docker', 80);
-        scheduleDashboardWidgetVisibilitySyncForType('vm', 80);
-        scheduleDashboardWidgetVisibilitySyncForType('docker', 220);
-        scheduleDashboardWidgetVisibilitySyncForType('vm', 220);
-    });
-    $(window).on('resize.fvplusdashboardquick orientationchange.fvplusdashboardquick', () => {
-        scheduleDashboardWidgetVisibilitySyncForType('docker', 0);
-        scheduleDashboardWidgetVisibilitySyncForType('vm', 0);
-    });
-    dashboardQuickActionSyncBound = true;
-};
-
-const getPrefsOrderedFolderMap = (folders, prefs) => {
-    const source = folders && typeof folders === 'object' ? folders : {};
-    if (typeof utils.orderFoldersByPrefs === 'function') {
-        return utils.orderFoldersByPrefs(source, prefs || {});
-    }
-    return source;
-};
-
-const sortFolderIdsByPrefs = (ids, folders, prefs) => {
-    const list = Array.isArray(ids) ? ids.map((id) => String(id || '')) : [];
-    if (!list.length) {
-        return [];
-    }
-    const source = folders && typeof folders === 'object' ? folders : {};
-    const scoped = {};
-    for (const id of list) {
-        if (Object.prototype.hasOwnProperty.call(source, id)) {
-            scoped[id] = source[id];
-        }
-    }
-    const ordered = Object.keys(getPrefsOrderedFolderMap(scoped, prefs));
-    if (ordered.length) {
-        return ordered;
-    }
-    return list.filter((id) => Object.prototype.hasOwnProperty.call(scoped, id));
-};
-
-const normalizeFolderParentId = (value) => String(value || '').trim();
-const filterDashboardToRootFolders = (folders) => {
-    const source = folders && typeof folders === 'object' ? folders : {};
-    const ids = new Set(Object.keys(source));
-    const rootOnly = {};
-    for (const [id, folder] of Object.entries(source)) {
-        const parentId = normalizeFolderParentId(folder?.parentId || folder?.parent_id || '');
-        const isRoot = !parentId || parentId === id || !ids.has(parentId);
-        if (isRoot) {
-            rootOnly[id] = folder;
-        }
-    }
-    if (!Object.keys(rootOnly).length && Object.keys(source).length) return source;
-    return rootOnly;
-};
-
-const buildFolderChildrenIndex = (folders) => {
-    const source = folders && typeof folders === 'object' ? folders : {};
-    const ids = Object.keys(source);
-    const idSet = new Set(ids);
-    const childrenByParent = {};
-    const rootIds = [];
-    for (const id of ids) {
-        childrenByParent[id] = [];
-    }
-    for (const id of ids) {
-        const folder = source[id] || {};
-        const rawParent = normalizeFolderParentId(folder?.parentId || folder?.parent_id || '');
-        const parentId = rawParent && rawParent !== id && idSet.has(rawParent) ? rawParent : '';
-        if (parentId) {
-            childrenByParent[parentId].push(id);
-        } else {
-            rootIds.push(id);
-        }
-    }
-    return { rootIds, childrenByParent };
-};
-
-const buildFolderDescendantsByRoot = (folders) => {
-    const source = folders && typeof folders === 'object' ? folders : {};
-    const { rootIds, childrenByParent } = buildFolderChildrenIndex(source);
-    const descendantsByRoot = {};
-    const visit = (id, bucket, trail) => {
-        if (!id || trail.has(id)) {
-            return;
-        }
-        trail.add(id);
-        bucket.push(id);
-        const children = childrenByParent[id] || [];
-        for (const childId of children) {
-            visit(childId, bucket, trail);
-        }
-        trail.delete(id);
-    };
-    for (const rootId of rootIds) {
-        const bucket = [];
-        visit(rootId, bucket, new Set());
-        descendantsByRoot[rootId] = bucket;
-    }
-    return descendantsByRoot;
-};
-
-const mergeUniqueNames = (target, source, seen) => {
-    if (!Array.isArray(source)) return;
-    for (const rawName of source) {
-        const name = String(rawName || '').trim();
-        if (!name || seen.has(name)) continue;
-        seen.add(name);
-        target.push(name);
-    }
-};
-
-const aggregateRootMatchCache = (fullFolders, rootFolders, fullCache) => {
-    const descendantsByRoot = buildFolderDescendantsByRoot(fullFolders);
-    const output = {};
-    for (const rootId of Object.keys(rootFolders || {})) {
-        const subtreeIds = descendantsByRoot[rootId]?.length ? descendantsByRoot[rootId] : [rootId];
-        const explicit = [];
-        const regex = [];
-        const label = [];
-        const rules = [];
-        const explicitSeen = new Set();
-        const regexSeen = new Set();
-        const labelSeen = new Set();
-        const rulesSeen = new Set();
-        for (const folderId of subtreeIds) {
-            const entry = fullCache?.[folderId] || {};
-            mergeUniqueNames(explicit, entry.explicit, explicitSeen);
-            mergeUniqueNames(regex, entry.regex, regexSeen);
-            mergeUniqueNames(label, entry.label, labelSeen);
-            mergeUniqueNames(rules, entry.rules, rulesSeen);
-        }
-        output[rootId] = { explicit, regex, label, rules };
-    }
-    return output;
-};
-
-const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs) => {
-    const order = Array.isArray(baseOrder)
-        ? baseOrder.map((item) => String(item || ''))
-        : Object.values(baseOrder || {}).map((item) => String(item || ''));
-    const folderMap = folders && typeof folders === 'object' ? folders : {};
-    const desiredFolderTokens = Object.keys(getPrefsOrderedFolderMap(folderMap, prefs))
-        .map((id) => `folder-${id}`);
-    if (!desiredFolderTokens.length) {
-        return order;
-    }
-    let desiredIndex = 0;
-    return order.map((entry) => {
-        if (!folderRegex.test(entry)) {
-            return entry;
-        }
-        while (desiredIndex < desiredFolderTokens.length) {
-            const candidate = desiredFolderTokens[desiredIndex++];
-            const candidateId = candidate.replace(folderRegex, '');
-            if (Object.prototype.hasOwnProperty.call(folderMap, candidateId)) {
-                return candidate;
-            }
-        }
-        return entry;
-    });
-};
-
-const parseJsonPayloadSafe = (payload) => {
-    if (payload && typeof payload === 'object') {
-        return payload;
-    }
-    if (typeof payload === 'string') {
-        const trimmed = payload.trim();
-        if (!trimmed) {
-            return {};
-        }
-        try {
-            return JSON.parse(trimmed);
-        } catch (_error) {
-            return {};
-        }
-    }
-    return {};
-};
-
-const normalizeDockerStateToken = (entry, fromStateMode = false) => {
-    if (!entry || typeof entry !== 'object') {
-        return 's:0::';
-    }
-    if (fromStateMode) {
-        const running = entry.running === true;
-        const paused = entry.paused === true;
-        const status = running ? (paused ? 'p' : 'r') : 's';
-        const autostart = entry.autostart === true ? '1' : '0';
-        const manager = String(entry.manager || '').trim();
-        const label = String(entry.folderLabel || '').trim();
-        return `${status}:${autostart}:${manager}:${label}`;
-    }
-    const info = entry.info && typeof entry.info === 'object' ? entry.info : {};
-    const state = info.State && typeof info.State === 'object' ? info.State : {};
-    const labels = entry.Labels && typeof entry.Labels === 'object' ? entry.Labels : {};
-    const running = state.Running === true;
-    const paused = state.Paused === true;
-    const status = running ? (paused ? 'p' : 'r') : 's';
-    const manager = String(state.manager || '').trim();
-    const autostart = !(state.Autostart === false) ? '1' : '0';
-    const label = getFolderLabelValue(labels);
-    return `${status}:${autostart}:${manager}:${label}`;
-};
-
-const buildDockerStateSignature = (source, fromStateMode = false) => {
-    const map = source && typeof source === 'object' ? source : {};
-    const names = Object.keys(map).sort((a, b) => a.localeCompare(b));
-    if (!names.length) {
-        return '';
-    }
-    const tokens = names.map((name) => `${name}:${normalizeDockerStateToken(map[name], fromStateMode)}`);
-    return tokens.join('|');
-};
-
-const normalizeVmStateToken = (entry, fromStateMode = false) => {
-    if (!entry || typeof entry !== 'object') {
-        return 'stopped:0';
-    }
-    const state = String(entry.state || '').toLowerCase() || 'stopped';
-    const autostart = entry.autostart ? '1' : '0';
-    return `${state}:${autostart}`;
-};
-
-const buildVmStateSignature = (source, fromStateMode = false) => {
-    const map = source && typeof source === 'object' ? source : {};
-    const names = Object.keys(map).sort((a, b) => a.localeCompare(b));
-    if (!names.length) {
-        return '';
-    }
-    const tokens = names.map((name) => `${name}:${normalizeVmStateToken(map[name], fromStateMode)}`);
-    return tokens.join('|');
-};
-
-const buildDashboardDockerFolderMatchCache = (orderSnapshot, containersInfo, folders, prefs) => {
-    const folderMap = folders && typeof folders === 'object' ? folders : {};
-    const infoByName = containersInfo && typeof containersInfo === 'object' ? containersInfo : {};
-    const names = (Array.isArray(orderSnapshot) ? orderSnapshot : [])
-        .filter((entry) => entry && !folderRegex.test(entry) && Object.prototype.hasOwnProperty.call(infoByName, entry));
-    const labelBuckets = new Map();
-    for (const name of names) {
-        const labels = infoByName[name]?.Labels || {};
-        const labelValue = getFolderLabelValue(labels);
-        if (!labelValue) {
-            continue;
-        }
-        if (!labelBuckets.has(labelValue)) {
-            labelBuckets.set(labelValue, []);
-        }
-        labelBuckets.get(labelValue).push(name);
-    }
-    const rules = Array.isArray(prefs?.autoRules) ? prefs.autoRules : [];
-    const cache = {};
-    for (const [folderId, folder] of Object.entries(folderMap)) {
-        const explicit = Array.isArray(folder?.containers)
-            ? folder.containers.filter((name) => infoByName[name])
-            : [];
-        let regexMatches = [];
-        const regexRaw = String(folder?.regex || '').trim();
-        if (regexRaw) {
-            try {
-                const regex = new RegExp(regexRaw);
-                regexMatches = names.filter((name) => regex.test(name));
-            } catch (_error) {
-                regexMatches = [];
-            }
-        }
-        const labelMatches = [...(labelBuckets.get(String(folder?.name || '')) || [])];
-        const ruleMatches = utils.getAutoRuleMatches({
-            rules,
-            folderId,
-            names,
-            infoByName,
-            type: 'docker'
-        });
-        cache[folderId] = {
-            explicit,
-            regex: regexMatches,
-            label: labelMatches,
-            rules: ruleMatches
-        };
-    }
-    return cache;
-};
-
-const buildDashboardVmFolderMatchCache = (orderSnapshot, vmInfo, folders, prefs) => {
-    const folderMap = folders && typeof folders === 'object' ? folders : {};
-    const infoByName = vmInfo && typeof vmInfo === 'object' ? vmInfo : {};
-    const names = (Array.isArray(orderSnapshot) ? orderSnapshot : [])
-        .filter((entry) => entry && !folderRegex.test(entry) && Object.prototype.hasOwnProperty.call(infoByName, entry));
-    const rules = Array.isArray(prefs?.autoRules) ? prefs.autoRules : [];
-    const cache = {};
-    for (const [folderId, folder] of Object.entries(folderMap)) {
-        const explicit = Array.isArray(folder?.containers)
-            ? folder.containers.filter((name) => infoByName[name])
-            : [];
-        let regexMatches = [];
-        const regexRaw = String(folder?.regex || '').trim();
-        if (regexRaw) {
-            try {
-                const regex = new RegExp(regexRaw);
-                regexMatches = names.filter((name) => regex.test(name));
-            } catch (_error) {
-                regexMatches = [];
-            }
-        }
-        const ruleMatches = utils.getAutoRuleMatches({
-            rules,
-            folderId,
-            names,
-            infoByName,
-            type: 'vm'
-        });
-        cache[folderId] = {
-            explicit,
-            regex: regexMatches,
-            rules: ruleMatches
-        };
-    }
-    return cache;
 };
 
 const showDashboardRuntimeLoadingRow = (type) => {
@@ -3318,27 +2711,7 @@ let lastDashboardStateSignatures = {
 const LOADLIST_REFRESH_DEBOUNCE_MS = 90;
 const LOADLIST_REFRESH_MIN_GAP_MS = 420;
 const PERFORMANCE_MODE_MIN_REFRESH_SECONDS = 20;
-let dashboardLayoutRafByType = {
-    docker: 0,
-    vm: 0
-};
-let dashboardLayoutApplyTokenByType = {
-    docker: 0,
-    vm: 0
-};
 let dashboardLayoutPersistTokenByType = {
-    docker: 0,
-    vm: 0
-};
-let dashboardQuickSwitchRetryTimerByType = {
-    docker: 0,
-    vm: 0
-};
-let dashboardWidgetVisibilityObserverByType = {
-    docker: null,
-    vm: null
-};
-let dashboardWidgetVisibilitySyncTimerByType = {
     docker: 0,
     vm: 0
 };
@@ -3346,7 +2719,6 @@ let dashboardLayoutTransitionInFlightByType = {
     docker: false,
     vm: false
 };
-let dashboardQuickActionSyncBound = false;
 let dashboardThemeReflowBound = false;
 let dashboardThemeReflowObserver = null;
 let dashboardThemeReflowTimer = 0;

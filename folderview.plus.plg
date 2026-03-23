@@ -6,12 +6,163 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.23.09">
-<!ENTITY md5 "a0a62822eac6bb4721c5ae494b02268e">
+<!ENTITY version "2026.03.23.33">
+<!ENTITY md5 "517f0221f1fea6e7abe826c2cdb1807c">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.23.33
+- Feature: Added the Dashboard `Legacy` view for both Docker and VMs, expanded Docker multi-row preview capabilities, richer preview member actions, and new per-folder chevron, preview border, and divider styling controls.
+- Fix: Resolved Dashboard `Legacy` switching/action-rail regressions, restored boxed chevron and preview-row persistence, fixed single-row Docker/VM preview alignment, and corrected preview divider, count-clipping, and folder editor reset-control behavior.
+- Maintenance: Split major runtime/settings modules into smaller units, kept fatal diagnostics scoped to Settings, and expanded browser/bootstrap/theme/regression guard coverage plus release automation hardening.
+
+
+###2026.03.23.32
+- Fix: Tightened the folder editor inline-control layout so preview border and chevron reset buttons stay anchored beside their related fields instead of stretching or drifting across the row.
+- Fix: Reduced the reset buttons back to compact icon size and forced grouped control rows to ignore the editor's generic auto-margin field rules.
+- UX: Resetting preview border or chevron colors now triggers the normal editor recalculation flow so the change is reflected immediately.
+
+
+###2026.03.23.31
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.23.30
+- Fix: Reverted the last single-row Docker and VM preview alignment overrides back to the prior runtime layout so folder preview members sit in the correct vertical position again.
+- Fix: Removed the extra single-row preview container overrides that were stretching and shifting preview content within the folder row after recent centering experiments.
+- Test: Updated preview layout regressions to lock the restored single-row Docker and VM preview wrapper contract in place.
+
+
+###2026.03.23.29
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Fix: Improved backend release-note parsing and category detection for accurate summaries.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.23.28
+- Fix: Canonicalized legacy top-level `dropdown_style`/`chevron_style` and `preview_rows` aliases back into `settings` so existing folders no longer reopen with boxed chevrons or multi-row preview limits silently falling back to defaults.
+- Fix: Tightened folder editor normalization to honor both canonical and legacy chevron/preview-row keys during edit-page reloads.
+- Fix: Re-centered Docker and VM single-row preview members by anchoring the preview cell and stretching single-row wrappers instead of relying on the earlier broad flex alignment tweak.
+- Test: Expanded chevron and preview-row regressions to cover legacy alias recovery plus the new single-row preview centering contract.
+
+
+###2026.03.23.27
+- Fix: Fix chevron persistence and preview row centering.
+- Maintenance: Improve settings fatal banner diagnostics.
+- Maintenance: Expand settings fatal banner diagnostics.
+- Maintenance: Limit fatal banner to settings page.
+- Fix: Fix preview dividers and add fatal runtime banner.
+- Fix: Fix dashboard widget render and vm folder alignment.
+
+
+###2026.03.23.26
+- Fix: Restored Docker and VM single-row preview alignment after the last row-centering regression by switching to a narrower wrapper-level centering fix instead of the broader preview container override.
+- Fix: Canonicalized `preview_rows` from both `preview_rows` and legacy `previewRows` keys across the folder editor, server normalization, and Docker runtime so existing multi-row folders do not collapse back to the 1-row default.
+- Quality: Expanded preview persistence regression checks to cover alias-safe preview row loading plus the single-row preview wrapper centering contract.
+
+
+###2026.03.23.25
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Fix: Improved backend release-note parsing and category detection for accurate summaries.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.23.24
+- UX: Expanded the Settings-only fatal banner with phase, severity, category, recent-action history, richer request diagnostics, and deeper prefs normalization context in the copied support report.
+- UX: Added a Settings-only degraded-mode banner path so the page can stay open while clearly reporting partial bootstrap failures and affected areas.
+- Quality: Instrumented the Settings bootstrap and request wrappers with explicit phase/action tracking so failures are categorized more precisely without reintroducing banners on Dashboard, Docker, VMs, or the folder editor.
+
+
+###2026.03.23.23
+- UX: Expanded the Settings-only fatal banner with error codes, failure phase, last successful step, expandable technical details, and a one-click copy diagnostics action.
+- Quality: Added Settings bootstrap diagnostics for required module status, recent request outcomes, prefs normalization state, and environment snapshot data so support reports only appear when the banner is shown for a real issue.
+
+
+###2026.03.23.22
+- Fix: Reverted the fatal runtime banner to Settings-only so Dashboard, Docker, VMs, and the Folder editor no longer inject on-page failure panels.
+- Quality: Kept runtime bootstrap guards in place while removing the runtime-page fatal-banner dependency wiring and updating page-contract regressions to lock that behavior down.
+
+
+###2026.03.23.21
+- Fix: Restored boxed chevron preference persistence by accepting and saving both `minimal` and `boxed` dropdown style values in the folder editor and shared runtime normalizers.
+- Fix: Reworked Docker preview divider spacing so multi-row previews keep visible dividers, single-row dividers stay vertically centered, and action menus no longer sit flush against the divider.
+- UX: Added a shared fatal runtime banner across Settings, Docker, VMs, Dashboard, and the Folder editor so uncaught bootstrap/runtime failures surface a clear on-page error instead of silently breaking.
+- Quality: Added early bootstrap dependency guards and plugin asset load detection for page-critical runtimes, then removed the obsolete Settings-only bootstrap banner styling.
+
+
+###2026.03.23.20
+- Fix: Fix dashboard widget render and vm folder alignment.
+- Fix: Fix extracted helper bootstrap fallbacks.
+- Fix: Fix settings and editor lazy bootstrap ordering.
+- Fix: Fix settings wizard bootstrap ordering.
+- Maintenance: Extract dashboard wizard and editor helper modules.
+- Maintenance: Extract runtime support modules.
+
+
+###2026.03.23.19
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.23.18
+- Fix: Restored Dashboard folder cards and the widget action rail by wiring `buildFolderChildrenIndex` back into the extracted dashboard folder-match-cache runtime path.
+- Fix: Corrected VM folder row name-cell anchoring so folder labels no longer shift left and clip against the edge of the table.
+- Test: Added regression coverage for the dashboard tree-index dependency and the VM anchored name-cell layout contract.
+
+
+###2026.03.23.17
+- Fix: Restored Docker and VM folder rendering by correcting extracted helper modules that were falling back to an out-of-scope `root` reference during runtime bootstrap.
+- Fix: Hardened extracted settings and runtime support modules to resolve global window/location state safely across page contexts.
+- Test: Added bootstrap guards for extracted helper modules so future refactors cannot reintroduce top-level runtime aborts.
+
+
+###2026.03.23.16
+- Fix: Deferred settings row-details and folder-editor hierarchy module creation until their dependent runtime helpers are initialized, restoring the settings tabs/basic layout and preventing folder runtime regressions from partial script aborts.
+- Fix: Hardened the refactor bootstrap path so extracted helper modules no longer trigger top-level temporal-dead-zone failures during page load.
+- Test: Added and updated regression coverage for lazy row-details and hierarchy module bootstrap behavior.
+
+
+###2026.03.23.15
+- Maintenance: Extract dashboard wizard and editor helper modules.
+- Maintenance: Extract runtime support modules.
+- Maintenance: Extract dashboard quick-rail controller.
+- Maintenance: Build dev package 2026.03.23.10.
+- Refactor: Refactor settings metadata and runtime smoke guards.
+- Maintenance: Release main 2026.03.23.09 with dashboard and preview rollup.
+
+
+###2026.03.23.14
+- Fix: Deferred setup-assistant smart-detect API creation until the main settings runtime globals are ready, preventing the settings page from aborting with a false `folderviewplus.wizard.js` missing-module error.
+- Test: Added bootstrap coverage for the lazy wizard smart-detect path and updated smart-detect regressions to match the extracted module boundary.
+
+
+###2026.03.23.13
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.23.12
+- Refactor: Extracted settings support actions into `folderviewplus.actions-support.js` so the main settings runtime no longer owns the backup, rollback, import/export, diagnostics, and window-action export wall inline.
+- Refactor: Extracted shared Docker/VM expanded-state lifecycle and theme/viewport reflow observers into `folder.runtime.state-observers.js`, then rewired both runtimes through controller wrappers instead of duplicating sync timers and DOM lifecycle hooks.
+- Refactor: Extracted Docker preview member action handling into `docker.member-menu.js` and folder editor icon upload/request helpers into `folder.editor.icon-api.js` to reduce DOM/event and request plumbing inside `docker.js` and `folder.js`.
+- Test: Updated architecture, mobile, security, expanded-state, preview, and UI smoke regressions to follow the extracted module boundaries and keep include-order/browser-compat contracts enforced.
+
+
+###2026.03.23.11
+- Refactor: Extracted the Dashboard quick-rail and layout DOM controller into `dashboard.layout-quickrail.js` so `dashboard.js` no longer owns quick-rail timers, observers, or inline host plumbing directly.
+- Quality: Kept Dashboard business logic in `dashboard.js` behind thin controller wrappers while moving quick-rail visibility, alignment, and layout-apply state orchestration into the dedicated module.
+- Test: Added regression coverage for Dashboard page load order and updated layout-contract assertions to follow the extracted quick-rail controller boundary.
+
+
+###2026.03.23.10
+- Refactor: Extracted settings table schema and width metadata into `folderviewplus.settings-metadata.js` so the main settings runtime no longer owns the full table contract inline.
+- Quality: Centralized dashboard layout metadata, dashboard overflow normalization, and runtime-safe escaping/image sanitization helpers in `folderviewplus.utils.js`, then reused them across Dashboard, Docker, VM, and the folder editor.
+- Test: Expanded browser smoke coverage for Dashboard quick-rail layout cycling and extended theme-matrix runtime checks to inspect Docker, VM, and Dashboard surfaces for visibility and contrast regressions.
+- Quality: Added a main-branch history guard and wired it into CI, pre-push, and release workflows to catch fresh merge commits before release automation runs.
+
 
 ###2026.03.23.09
 - Maintenance: Release main `2026.03.23.09` with the full `dev` rollup since main `2026.03.22.07`, including Dashboard, preview, settings, and packaging improvements.

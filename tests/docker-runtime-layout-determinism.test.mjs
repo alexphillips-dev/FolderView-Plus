@@ -16,6 +16,10 @@ const runtimeColumnLayoutPath = path.join(
 
 const dockerJs = fs.readFileSync(dockerJsPath, 'utf8');
 const runtimeColumnLayoutJs = fs.readFileSync(runtimeColumnLayoutPath, 'utf8');
+const runtimeStateObserverJs = fs.readFileSync(path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.runtime.state-observers.js'
+), 'utf8');
 
 test('docker runtime width reflow scheduler remains deterministic under rapid events', () => {
     assert.match(dockerJs, /const DOCKER_RUNTIME_WIDTH_REFLOW_DEBOUNCE_MS = 72;/);
@@ -30,9 +34,12 @@ test('docker runtime width reflow scheduler remains deterministic under rapid ev
 });
 
 test('docker runtime width reflow keeps refresh and resize trigger contracts', () => {
-    assert.match(dockerJs, /const reapply = \(\) => scheduleDockerRuntimeWidthReflow\('viewport-change', DOCKER_RUNTIME_WIDTH_REFLOW_DEBOUNCE_MS\)/);
-    assert.match(dockerJs, /window\.addEventListener\('resize', reapply,\s*\{\s*passive:\s*true\s*\}\)/);
-    assert.match(dockerJs, /window\.addEventListener\('orientationchange', reapply,\s*\{\s*passive:\s*true\s*\}\)/);
+    assert.match(dockerJs, /createThemeReflowController\(/);
+    assert.match(dockerJs, /viewportReason:\s*'viewport-change'/);
+    assert.match(dockerJs, /viewportDelayMs:\s*DOCKER_RUNTIME_WIDTH_REFLOW_DEBOUNCE_MS/);
+    assert.match(runtimeStateObserverJs, /const reapply = \(\) => scheduleReflow\(viewportReason, viewportDelayMs\)/);
+    assert.match(runtimeStateObserverJs, /win\.addEventListener\('resize', reapply,\s*\{\s*passive:\s*true\s*\}\)/);
+    assert.match(runtimeStateObserverJs, /win\.addEventListener\('orientationchange', reapply,\s*\{\s*passive:\s*true\s*\}\)/);
     assert.match(dockerJs, /scheduleDockerRuntimeWidthReflow\('table-bind', 0\)/);
     assert.match(dockerJs, /scheduleDockerRuntimeWidthReflow\('render-complete', 0\)/);
     assert.match(dockerJs, /scheduleDockerRuntimeWidthReflow\('folder-toggle', 24\)/);

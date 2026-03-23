@@ -219,6 +219,34 @@
     min-width: 0;
 }
 
+.fv-inline-control-row {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.5em;
+    flex-wrap: wrap;
+    width: auto !important;
+    max-width: max-content;
+}
+
+.fv-inline-control-row > input,
+.fv-inline-control-row > select,
+.fv-inline-control-row > button {
+    margin: 0 !important;
+    margin-right: 0 !important;
+    flex: 0 0 auto;
+}
+
+.fv-inline-reset-btn {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    max-width: 28px !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
 /* Runtime-enforced left alignment guard */
 .canvas form.folder-editor-form.fv-force-left-v3 .basic:not(.order-section) > dl {
     display: grid !important;

@@ -5,13 +5,24 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.23.08">
-<!ENTITY md5 "cb1fb4fda2eb6c3709b71d6b80f83dbc">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
+<!ENTITY version "2026.03.23.09">
+<!ENTITY md5 "a0a62822eac6bb4721c5ae494b02268e">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.23.09
+- Maintenance: Release main `2026.03.23.09` with the full `dev` rollup since main `2026.03.22.07`, including Dashboard, preview, settings, and packaging improvements.
+- Feature: Added a Dashboard widget `Legacy` layout for both Docker and VM widgets so each widget can show native Unraid rows without FolderView Plus grouping.
+- Feature: Added per-folder Docker `Preview rows` plus a richer member action sheet for preview and expanded-folder actions.
+- UX: Added per-folder chevron style/color controls and adjustable preview border and vertical-bar thickness for better visibility on stock Unraid themes.
+- Fix: Rebuilt Docker multi-row previews to resolve clipping, wrapping, spacing, status-text, and action-placement regressions, including truncated counts like `9/9 started`.
+- Fix: Reworked Dashboard `Legacy` transitions so they rebuild locally and keep the action rail visible while switching in or out of bypass mode.
+- UX: Simplified plugin settings with a fixed action bar, instant-persist table width/layout controls, and cleaner section apply indicators.
+- Quality: Hardened branch-aware packaging, manifest/update metadata, release validation, and regression coverage across Dashboard, preview, settings, and runtime paths.
+
 
 ###2026.03.23.08
 - Fix: Kept the Dashboard widget action rail visible from the start of `Legacy` view exits instead of waiting for the async widget rebuild to begin.
@@ -2796,7 +2807,7 @@
     </CHANGES>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

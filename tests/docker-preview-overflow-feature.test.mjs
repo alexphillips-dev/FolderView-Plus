@@ -15,6 +15,7 @@ test('folder editor exposes preview row limit control and persists the setting',
     assert.match(folderPage, /<select name="preview_rows">/);
     assert.match(folderPage, /<option value="0">Unlimited<\/option>/);
     assert.match(folderJs, /const normalizePreviewRowLimit = \(value\) =>/);
+    assert.match(folderJs, /if \(!Number\.isFinite\(parsed\)\) \{\s*return 1;\s*\}/);
     assert.match(folderJs, /preview_rows: normalizePreviewRowLimit\(settings\.preview_rows\)/);
     assert.match(folderJs, /form\.preview_rows\.value = String\(normalizePreviewRowLimit\(currFolder\.settings\.preview_rows\)\)/);
     assert.match(folderJs, /preview_rows: normalizePreviewRowLimit\(e\.preview_rows\?\.value\)/);
@@ -39,9 +40,13 @@ test('docker runtime applies preview row layout limits and enhanced member actio
 test('docker styles support multi-row previews and member action sheet styling', () => {
     assert.match(dockerCss, /\.folder-preview \{/);
     assert.match(dockerCss, /\.folder-preview-row \{/);
+    assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \{/);
+    assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-row \{/);
+    assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-wrapper \{/);
     assert.match(dockerCss, /\.fv-docker-preview-card \{/);
     assert.match(dockerCss, /\.fv-docker-preview-mode-1 \{/);
     assert.match(dockerCss, /\.fv-docker-member-menu-trigger/);
     assert.match(dockerCss, /\.fv-docker-member-menu-actions/);
     assert.match(dockerCss, /\.fv-docker-member-menu-action/);
+    assert.doesNotMatch(dockerCss, /tr\.folder > td\[colspan\]/);
 });

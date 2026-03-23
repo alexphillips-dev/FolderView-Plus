@@ -10,6 +10,32 @@ DEV_REF="origin/dev"
 
 git fetch origin main dev --tags
 
+release_only_path() {
+  local path="${1:-}"
+  case "${path}" in
+    folderview.plus.plg|archive/folderview.plus-*.txz|archive/folderview.plus-*.txz.sha256)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+main_differs_from_dev_only_by_release_artifacts() {
+  local path=""
+  mapfile -t DIFF_PATHS < <(git diff --name-only "${DEV_REF}..${MAIN_REF}" || true)
+  if [ "${#DIFF_PATHS[@]}" -eq 0 ]; then
+    return 1
+  fi
+  for path in "${DIFF_PATHS[@]}"; do
+    if ! release_only_path "${path}"; then
+      return 1
+    fi
+  done
+  return 0
+}
+
 if git show-ref --verify --quiet "refs/heads/${DEV_BRANCH}"; then
   git checkout "${DEV_BRANCH}"
 else
@@ -18,6 +44,11 @@ fi
 
 if git merge-base --is-ancestor "${MAIN_REF}" "${DEV_BRANCH}"; then
   echo "Dev already includes main. Nothing to sync."
+  exit 0
+fi
+
+if main_differs_from_dev_only_by_release_artifacts; then
+  echo "Main differs from dev only by release artifacts/manifest. Skipping back-merge."
   exit 0
 fi
 
@@ -35,21 +66,15 @@ if [ "${MERGED_CLEANLY}" -eq 0 ]; then
   fi
 
   for FILE in "${CONFLICTS[@]}"; do
-    case "${FILE}" in
-      folderview.plus.plg|archive/folderview.plus-*.txz|archive/folderview.plus-*.txz.sha256)
-        ;;
-      *)
-        echo "Unexpected merge conflict in ${FILE}; aborting auto back-merge." >&2
-        git merge --abort
-        exit 1
-        ;;
-    esac
+    if ! release_only_path "${FILE}"; then
+      echo "Unexpected merge conflict in ${FILE}; aborting auto back-merge." >&2
+      git merge --abort
+      exit 1
+    fi
   done
 
-  for FILE in "${CONFLICTS[@]}"; do
-    git checkout --ours -- "${FILE}"
-    git add "${FILE}"
-  done
+  git checkout HEAD -- archive folderview.plus.plg
+  git add archive folderview.plus.plg
 fi
 
 # Always force dev channel URLs in case main touched these lines without conflicts.
@@ -67,4 +92,3 @@ if git rev-parse -q --verify MERGE_HEAD >/dev/null; then
 else
   echo "No merge head present; nothing to commit."
 fi
-

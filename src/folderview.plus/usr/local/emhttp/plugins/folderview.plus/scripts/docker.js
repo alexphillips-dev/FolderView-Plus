@@ -2968,11 +2968,33 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
 
     let addPreview;
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Selecting addPreview function based on folder.settings.preview = ${folder.settings.preview}. Context setting: ${folder.settings.context}`);
-    const compactMultiRowPreview = false;
+    const compactMultiRowPreview = isCompactMultiRowPreview(folder.settings);
+    const appendCompactPreview = (folderTrId, ctid, autostart, previewEntry) => {
+        const { $item, $tooltipTrigger } = buildDockerPreviewItem({
+            entry: previewEntry || {},
+            settings: folder.settings,
+            autostart
+        });
+        $(`tr.folder-id-${folderTrId} div.folder-preview`).append($item);
+        if (folder.settings.context === 2 || folder.settings.context === 0) {
+            const $triggerTarget = $tooltipTrigger && $tooltipTrigger.length ? $tooltipTrigger : $item.find('.fv-preview-trigger').first();
+            if ($triggerTarget.length) {
+                $triggerTarget.attr("id", "folder-preview-" + ctid);
+                $triggerTarget.removeAttr("onclick");
+                if (folder.settings.context === 2) {
+                    return $triggerTarget;
+                }
+            }
+        }
+        return $tooltipTrigger;
+    };
     switch (folder.settings.preview) {
         case 1:
             addPreview = (folderTrId, ctid, autostart, previewEntry) => {
                 if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addPreview (case 1 for ${folderTrId}): ctid=${ctid}, autostart=${autostart}`);
+                if (compactMultiRowPreview) {
+                    return appendCompactPreview(folderTrId, ctid, autostart, previewEntry);
+                }
                 let clone = $(`tr.folder-id-${folderTrId} div.folder-storage > tr > td.ct-name > span.outer:last`).clone();
                 clone.find(`span.state`)[0].innerHTML = clone.find(`span.state`)[0].innerHTML.split("<br>")[0];
                 $(`tr.folder-id-${folderTrId} div.folder-preview`).append(clone.addClass(`${autostart ? 'autostart' : ''}`));
@@ -2988,6 +3010,9 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
         case 2:
             addPreview = (folderTrId, ctid, autostart, previewEntry) => {
                 if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addPreview (case 2 for ${folderTrId}): ctid=${ctid}, autostart=${autostart}`);
+                if (compactMultiRowPreview) {
+                    return appendCompactPreview(folderTrId, ctid, autostart, previewEntry);
+                }
                 $(`tr.folder-id-${folderTrId} div.folder-preview`).append($(`tr.folder-id-${folderTrId} div.folder-storage > tr > td.ct-name > span.outer > span.hand:last`).clone().addClass(`${autostart ? 'autostart' : ''}`));
                 if(folder.settings.context === 2 || folder.settings.context === 0) {
                     let tmpId = $(`tr.folder-id-${folderTrId} div.folder-preview > span.hand:last`);
@@ -2999,6 +3024,9 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
         case 3:
             addPreview = (folderTrId, ctid, autostart, previewEntry) => {
                 if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addPreview (case 3 for ${folderTrId}): ctid=${ctid}, autostart=${autostart}`);
+                if (compactMultiRowPreview) {
+                    return appendCompactPreview(folderTrId, ctid, autostart, previewEntry);
+                }
                 let clone = $(`tr.folder-id-${folderTrId} div.folder-storage > tr > td.ct-name > span.outer > span.inner:last`).clone();
                 clone.find(`span.state`)[0].innerHTML = clone.find(`span.state`)[0].innerHTML.split("<br>")[0];
                 $(`tr.folder-id-${folderTrId} div.folder-preview`).append(clone.addClass(`${autostart ? 'autostart' : ''}`));
@@ -3014,6 +3042,9 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
         case 4:
             addPreview = (folderTrId, ctid, autostart, previewEntry) => {
                 if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addPreview (case 4 for ${folderTrId}): ctid=${ctid}, autostart=${autostart}`);
+                if (compactMultiRowPreview) {
+                    return appendCompactPreview(folderTrId, ctid, autostart, previewEntry);
+                }
                 let lstSpan = $(`tr.folder-id-${folderTrId} div.folder-preview > span.outer:last`);
                 if(!lstSpan[0] || lstSpan.children().length >= 2) {
                     $(`tr.folder-id-${folderTrId} div.folder-preview`).append($('<span class="outer"></span>'));
@@ -3896,7 +3927,11 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
             autostart: entry?.autostart === true
         });
         item.addClass('fv-nested-preview-item');
+        const compactMultiRowPreview = isCompactMultiRowPreview(folder?.settings || {});
         const $inner = item.children('span.inner').last();
+        const $actionsTarget = compactMultiRowPreview
+            ? item.find('.fv-preview-actions-compact').first()
+            : $inner;
         const containerName = String(entry?.name || '');
         const shellValue = String(entry?.shell || '/bin/sh');
         const webuiUrl = String(entry?.webui || '').trim();
@@ -3907,7 +3942,7 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
                 .attr('target', '_blank')
                 .attr('rel', 'noopener noreferrer')
                 .append('<i class="fa fa-globe" aria-hidden="true"></i>');
-            $inner.append($('<span class="folder-element-custom-btn folder-element-webui"></span>').append($webuiLink));
+            $actionsTarget.append($('<span class="folder-element-custom-btn folder-element-webui"></span>').append($webuiLink));
         }
 
         if (allowConsoleQuickAction) {
@@ -3917,7 +3952,7 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
                     event.preventDefault();
                     openTerminal('docker', containerName, shellValue);
                 });
-            $inner.append($('<span class="folder-element-custom-btn folder-element-console"></span>').append($consoleLink));
+            $actionsTarget.append($('<span class="folder-element-custom-btn folder-element-console"></span>').append($consoleLink));
         }
 
         if (allowLogsQuickAction) {
@@ -3927,7 +3962,7 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
                     event.preventDefault();
                     openTerminal('docker', containerName, '.log');
                 });
-            $inner.append($('<span class="folder-element-custom-btn folder-element-logs"></span>').append($logsLink));
+            $actionsTarget.append($('<span class="folder-element-custom-btn folder-element-logs"></span>').append($logsLink));
         }
         decorateDockerPreviewMemberTriggers(
             item.find('span.hand, span.inner > span.appname, span.inner > span.appname > a, span.inner > i.fa, span.inner > span.state'),

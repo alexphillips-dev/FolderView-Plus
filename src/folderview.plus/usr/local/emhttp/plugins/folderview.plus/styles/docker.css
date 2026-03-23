@@ -368,7 +368,8 @@ tr.folder.fv-parent-expanded div.folder-preview {
     min-height: calc(var(--fvplus-preview-row-height) - 0.9em);
     margin: 0;
     align-items: center;
-    flex: 0 1 auto;
+    flex: 0 0 auto;
+    min-width: max-content;
 }
 
 .folder-preview.fv-preview-multirow .fv-docker-preview-card {
@@ -379,6 +380,16 @@ tr.folder.fv-parent-expanded div.folder-preview {
     max-width: 100%;
     min-width: 0;
     line-height: 1.05;
+}
+
+.folder-preview.fv-preview-multirow .folder-preview-wrapper > span.outer {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.folder-preview.fv-preview-multirow .folder-preview-wrapper > span.outer > span.inner {
+    white-space: nowrap;
 }
 
 .folder-preview.fv-preview-multirow .fv-docker-preview-mode-1 {

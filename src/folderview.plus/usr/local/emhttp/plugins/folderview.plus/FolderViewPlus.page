@@ -174,6 +174,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                         <span>Layout mode</span>
                         <select id="docker-dashboard-layout" onchange="changeDashboardPref('docker', 'layout', this.value)">
                             <option value="classic">Classic</option>
+                            <option value="legacy">Legacy</option>
                             <option value="fullwidth">Fullwidth</option>
                             <option value="accordion">Accordion</option>
                             <option value="inset">Inset</option>
@@ -225,11 +226,38 @@ if (!empty($fvplusRuntimeConflicts)) {
                 </div>
                 <div class="settings-mini-card">
                     <div class="settings-mini-title">Columns</div>
+                    <label class="setting-select" for="docker-table-name-width">
+                        <span>Name width</span>
+                        <select id="docker-table-name-width" onchange="changeSettingsTableColumnWidthPreset('docker', 'name', this.value)">
+                            <option value="compact">Compact</option>
+                            <option value="standard">Standard</option>
+                            <option value="wide">Wide</option>
+                        </select>
+                    </label>
+                    <label class="setting-select" for="docker-table-actions-width">
+                        <span>Actions width</span>
+                        <select id="docker-table-actions-width" onchange="changeSettingsTableColumnWidthPreset('docker', 'actions', this.value)">
+                            <option value="compact">Compact</option>
+                            <option value="standard">Standard</option>
+                            <option value="wide">Wide</option>
+                        </select>
+                    </label>
+                    <div class="setting-button-row setting-button-row-compact">
+                        <button type="button" class="fv-mini-action-btn" data-fv-table-preset="docker:compact" onclick="applySettingsTablePreset('docker', 'compact')">Compact</button>
+                        <button type="button" class="fv-mini-action-btn" data-fv-table-preset="docker:balanced" onclick="applySettingsTablePreset('docker', 'balanced')">Balanced</button>
+                        <button type="button" class="fv-mini-action-btn" data-fv-table-preset="docker:detailed" onclick="applySettingsTablePreset('docker', 'detailed')">Detailed</button>
+                    </div>
+                    <div class="setting-button-row setting-button-row-compact">
+                        <button type="button" class="fv-mini-action-btn" id="docker-table-reset-visibility" onclick="resetSettingsTableColumns('docker', 'visibility')">Reset visibility</button>
+                        <button type="button" class="fv-mini-action-btn" id="docker-table-reset-widths" onclick="resetSettingsTableColumns('docker', 'widths')">Reset widths</button>
+                    </div>
+                    <label class="setting-toggle"><input id="docker-col-members" type="checkbox" onchange="changeColumnVisibility('docker', 'members', this.checked)"> Members</label>
                     <label class="setting-toggle"><input id="docker-col-status" type="checkbox" onchange="changeColumnVisibility('docker', 'status', this.checked)"> Status</label>
                     <label class="setting-toggle"><input id="docker-col-rules" type="checkbox" onchange="changeColumnVisibility('docker', 'rules', this.checked)"> Rules</label>
                     <label class="setting-toggle"><input id="docker-col-last-changed" type="checkbox" onchange="changeColumnVisibility('docker', 'lastChanged', this.checked)"> Last changed</label>
                     <label class="setting-toggle"><input id="docker-col-pinned" type="checkbox" onchange="changeColumnVisibility('docker', 'pinned', this.checked)"> Pinned</label>
                     <label class="setting-toggle"><input id="docker-col-signals" type="checkbox" onchange="changeColumnVisibility('docker', 'signals', this.checked)"> Alerts</label>
+                    <div class="setting-help">Use layout presets plus Name and Actions width presets. Manual drag-resize is intentionally disabled for stability.</div>
                 </div>
             </div>
         </div>
@@ -379,6 +407,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                         <span>Layout mode</span>
                         <select id="vm-dashboard-layout" onchange="changeDashboardPref('vm', 'layout', this.value)">
                             <option value="classic">Classic</option>
+                            <option value="legacy">Legacy</option>
                             <option value="fullwidth">Fullwidth</option>
                             <option value="accordion">Accordion</option>
                             <option value="inset">Inset</option>
@@ -446,12 +475,39 @@ if (!empty($fvplusRuntimeConflicts)) {
                 </div>
                 <div class="settings-mini-card">
                     <div class="settings-mini-title">Columns</div>
+                    <label class="setting-select" for="vm-table-name-width">
+                        <span>Name width</span>
+                        <select id="vm-table-name-width" onchange="changeSettingsTableColumnWidthPreset('vm', 'name', this.value)">
+                            <option value="compact">Compact</option>
+                            <option value="standard">Standard</option>
+                            <option value="wide">Wide</option>
+                        </select>
+                    </label>
+                    <label class="setting-select" for="vm-table-actions-width">
+                        <span>Actions width</span>
+                        <select id="vm-table-actions-width" onchange="changeSettingsTableColumnWidthPreset('vm', 'actions', this.value)">
+                            <option value="compact">Compact</option>
+                            <option value="standard">Standard</option>
+                            <option value="wide">Wide</option>
+                        </select>
+                    </label>
+                    <div class="setting-button-row setting-button-row-compact">
+                        <button type="button" class="fv-mini-action-btn" data-fv-table-preset="vm:compact" onclick="applySettingsTablePreset('vm', 'compact')">Compact</button>
+                        <button type="button" class="fv-mini-action-btn" data-fv-table-preset="vm:balanced" onclick="applySettingsTablePreset('vm', 'balanced')">Balanced</button>
+                        <button type="button" class="fv-mini-action-btn" data-fv-table-preset="vm:detailed" onclick="applySettingsTablePreset('vm', 'detailed')">Detailed</button>
+                    </div>
+                    <div class="setting-button-row setting-button-row-compact">
+                        <button type="button" class="fv-mini-action-btn" id="vm-table-reset-visibility" onclick="resetSettingsTableColumns('vm', 'visibility')">Reset visibility</button>
+                        <button type="button" class="fv-mini-action-btn" id="vm-table-reset-widths" onclick="resetSettingsTableColumns('vm', 'widths')">Reset widths</button>
+                    </div>
+                    <label class="setting-toggle"><input id="vm-col-members" type="checkbox" onchange="changeColumnVisibility('vm', 'members', this.checked)"> Members</label>
                     <label class="setting-toggle"><input id="vm-col-status" type="checkbox" onchange="changeColumnVisibility('vm', 'status', this.checked)"> Status</label>
                     <label class="setting-toggle"><input id="vm-col-rules" type="checkbox" onchange="changeColumnVisibility('vm', 'rules', this.checked)"> Rules</label>
                     <label class="setting-toggle"><input id="vm-col-last-changed" type="checkbox" onchange="changeColumnVisibility('vm', 'lastChanged', this.checked)"> Last changed</label>
                     <label class="setting-toggle"><input id="vm-col-pinned" type="checkbox" onchange="changeColumnVisibility('vm', 'pinned', this.checked)"> Pinned</label>
                     <label class="setting-toggle"><input id="vm-col-autostart" type="checkbox" onchange="changeColumnVisibility('vm', 'autostart', this.checked)"> Autostart</label>
                     <label class="setting-toggle"><input id="vm-col-resources" type="checkbox" onchange="changeColumnVisibility('vm', 'resources', this.checked)"> Resources</label>
+                    <div class="setting-help">Use layout presets plus Name and Actions width presets. Manual drag-resize is intentionally disabled for stability.</div>
                 </div>
             </div>
         </div>
@@ -1012,6 +1068,7 @@ if (!empty($fvplusRuntimeConflicts)) {
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js')?>"></script>
+<script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js')?>"></script>

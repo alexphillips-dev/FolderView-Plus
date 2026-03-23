@@ -22,6 +22,17 @@
     --fvplus-docker-folder-right-gutter: 28px;
     --fvplus-docker-folder-outer-reserved-width: 106px;
     --fvplus-docker-folder-dropdown-right-margin: 16px;
+    --fvplus-folder-dropdown-color: #ff9a3c;
+    --fvplus-folder-dropdown-hover-color: #111111;
+    --fvplus-folder-dropdown-bg: rgba(255, 154, 60, 0.1);
+    --fvplus-folder-dropdown-hover-bg: rgba(255, 154, 60, 0.82);
+    --fvplus-folder-dropdown-border-color: rgba(255, 154, 60, 0.52);
+    --fvplus-folder-dropdown-hover-border-color: #111111;
+    --fvplus-folder-dropdown-border-width: 0px;
+    --fvplus-folder-dropdown-min-width: 12px;
+    --fvplus-folder-dropdown-height: 16px;
+    --fvplus-folder-dropdown-padding: 0 2px;
+    --fvplus-folder-dropdown-radius: 0px;
     --fvplus-docker-context-quick-item-width: 34px;
     --fvplus-docker-context-quick-link-width: 30px;
     --fvplus-docker-context-quick-link-height: 26px;
@@ -196,6 +207,7 @@ td.ct-name.folder-name > .folder-name-sub {
     display: inline-flex;
     flex-direction: column;
     min-width: 0;
+    align-items: flex-start;
 }
 
 .folder-appname {
@@ -209,9 +221,9 @@ td.ct-name.folder-name > .folder-name-sub {
 }
 
 .folder-dropdown {
-    padding: 0 4px;
-    min-width: 18px;
-    height: 18px;
+    padding: var(--fvplus-folder-dropdown-padding, 0 2px);
+    min-width: var(--fvplus-folder-dropdown-min-width, 12px);
+    height: var(--fvplus-folder-dropdown-height, 16px);
     margin: 0 16px 0 auto;
     margin: 0 var(--fvplus-docker-folder-dropdown-right-margin, 16px) 0 auto;
     flex: 0 0 auto;
@@ -219,9 +231,12 @@ td.ct-name.folder-name > .folder-name-sub {
     align-items: center;
     justify-content: center;
     line-height: 1;
-    border: 0 !important;
-    background: transparent !important;
+    border: var(--fvplus-folder-dropdown-border-width, 1px) solid var(--fvplus-folder-dropdown-border-color, rgba(255, 154, 60, 0.52)) !important;
+    border-radius: var(--fvplus-folder-dropdown-radius, 0px);
+    background: var(--fvplus-folder-dropdown-bg, rgba(255, 154, 60, 0.1)) !important;
     box-shadow: none !important;
+    color: var(--fvplus-folder-dropdown-color, #ff9a3c) !important;
+    transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease;
 }
 
 tr.fv-folder-focused td.ct-name.folder-name {
@@ -245,13 +260,15 @@ tr.fv-folder-locked .folder-appname {
 .folder-dropdown:hover,
 .folder-dropdown:focus,
 .folder-dropdown:active {
-    border: 0 !important;
-    background: transparent !important;
+    border-color: var(--fvplus-folder-dropdown-hover-border-color, #111111) !important;
+    background: var(--fvplus-folder-dropdown-hover-bg, rgba(255, 154, 60, 0.82)) !important;
     box-shadow: none !important;
+    color: var(--fvplus-folder-dropdown-hover-color, #111111) !important;
 }
 
 .folder-dropdown > i {
     font-size: 12px;
+    color: inherit !important;
 }
 
 .folder-update-text {
@@ -260,6 +277,12 @@ tr.fv-folder-locked .folder-appname {
 
 span.folder-state.fv-folder-state-started {
     color: var(--fvplus-folder-status-started, var(--fvplus-status-started));
+}
+
+span.folder-state {
+    display: inline-block;
+    max-width: 100%;
+    white-space: nowrap;
 }
 
 span.folder-state.fv-folder-state-paused {
@@ -301,12 +324,46 @@ tr.folder.fv-parent-expanded div.folder-preview {
 }
 
 .folder-preview {
+    --fvplus-preview-row-height: 3.5em;
     border-radius: 4px;
     height: 3.5em;
     overflow: hidden;
     display: flex;
     flex-wrap: wrap;
+    align-items: flex-start;
+    align-content: flex-start;
+    row-gap: 0.35em;
+}
+
+.folder-preview-row {
+    min-height: 0;
+    display: flex;
+    align-items: flex-start;
+    flex-wrap: nowrap;
+    column-gap: 8px;
+    overflow: hidden;
+    padding: 0 0 0 8px;
+}
+
+.folder-preview.fv-preview-multirow {
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    row-gap: 4px;
+    padding: 6px 0;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    align-content: flex-start;
+    justify-content: center;
+}
+
+.folder-preview.fv-preview-multirow .folder-preview-row {
+    width: 100%;
+    box-sizing: border-box;
     align-items: center;
+    min-height: 0;
+    padding: 1px 0 1px 8px;
 }
 
 .folder-preview.fv-preview-border-off {
@@ -322,10 +379,136 @@ tr.folder.fv-parent-expanded div.folder-preview {
 }
 
 .folder-preview-wrapper {
-    float: left;
-    height: 100%;
+    float: none;
+    height: auto;
+    min-height: calc(var(--fvplus-preview-row-height) - 0.9em);
     margin-left: 10px;
     margin-top: 7px;
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    min-width: 0;
+}
+
+.folder-preview.fv-preview-multirow .folder-preview-wrapper {
+    min-height: 0;
+    margin: 0;
+    align-items: center;
+    flex: 0 0 auto;
+    min-width: max-content;
+}
+
+.folder-preview.fv-preview-multirow .fv-docker-preview-card {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 0;
+    max-width: 100%;
+    min-width: 0;
+    line-height: 1.05;
+}
+
+.folder-preview.fv-preview-multirow .folder-preview-wrapper > span.outer {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.folder-preview.fv-preview-multirow .folder-preview-wrapper > span.outer > span.inner {
+    white-space: nowrap;
+}
+
+.folder-preview.fv-preview-multirow .fv-docker-preview-mode-1 {
+    max-width: clamp(150px, 15vw, 210px);
+}
+
+.folder-preview.fv-preview-multirow .fv-docker-preview-mode-2 {
+    max-width: 26px;
+}
+
+.folder-preview.fv-preview-multirow .fv-docker-preview-mode-3 {
+    max-width: clamp(120px, 13vw, 165px);
+}
+
+.folder-preview.fv-preview-multirow .fv-docker-preview-mode-4 {
+    max-width: clamp(130px, 14vw, 175px);
+}
+
+.folder-preview.fv-preview-multirow .fv-docker-preview-card .inner {
+    min-width: 0;
+    line-height: 1.05;
+}
+
+.folder-preview.fv-preview-multirow .fv-docker-preview-card-compact {
+    align-items: center;
+    gap: 6px;
+}
+
+.folder-preview.fv-preview-multirow .fv-docker-preview-card-compact .inner {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    flex-wrap: nowrap;
+    gap: 2px;
+    line-height: 1;
+    white-space: normal;
+}
+
+.folder-preview.fv-preview-multirow .fv-docker-preview-card-compact img.img.folder-img {
+    width: 28px;
+    height: 28px;
+}
+
+.folder-preview.fv-preview-multirow .fv-docker-preview-card-compact .appname {
+    display: inline-block;
+    max-width: clamp(96px, 11vw, 148px);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.folder-preview.fv-preview-multirow .fv-preview-meta-compact {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    white-space: nowrap;
+    line-height: 1;
+}
+
+.folder-preview.fv-preview-multirow .fv-preview-status-compact {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    font-size: 0.92em;
+    flex: 0 0 auto;
+}
+
+.folder-preview.fv-preview-multirow .fv-preview-status-compact .state {
+    white-space: nowrap;
+}
+
+.folder-preview.fv-preview-multirow .fv-preview-actions-compact {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: 2px;
+    flex: 0 0 auto;
+}
+
+.folder-preview.fv-preview-multirow .fv-docker-preview-card-compact .folder-element-custom-btn {
+    margin-left: 0;
+}
+
+.folder-preview.fv-preview-multirow .fv-docker-preview-card-compact .folder-element-custom-btn a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 13px;
+    height: 13px;
+    font-size: 0.96em;
 }
 
 .folder-preview-status-icon {
@@ -364,12 +547,12 @@ tr.folder.fv-parent-expanded div.folder-preview {
 }
 
 .folder-preview-divider:not(:last-child) {
-    float: left;
+    float: none;
     height: 80%;
     width: 0;
-    border-right: 1px solid;
-    margin-left: 5px;
-    margin-top: -7px;
+    border-right: var(--fvplus-preview-divider-width, 1px) solid;
+    margin: 0;
+    align-self: center;
 }
 
 .folder-element-custom-btn {
@@ -378,6 +561,73 @@ tr.folder.fv-parent-expanded div.folder-preview {
 
 div.folder-preview img.img {
     margin-right: 4px;
+}
+
+.fv-docker-member-menu-trigger {
+    cursor: pointer;
+}
+
+.fv-docker-member-menu-sheet {
+    text-align: left;
+    min-width: min(520px, 78vw);
+}
+
+.fv-docker-member-menu-header {
+    display: flex;
+    align-items: center;
+    gap: 0.9em;
+    margin-bottom: 1em;
+}
+
+.fv-docker-member-menu-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    object-fit: cover;
+    flex: 0 0 44px;
+}
+
+.fv-docker-member-menu-name {
+    font-size: 1.05em;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.fv-docker-member-menu-status {
+    margin-top: 0.2em;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    font-size: 0.92em;
+}
+
+.fv-docker-member-menu-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.6em;
+}
+
+.fv-docker-member-menu-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.6em;
+    width: 100%;
+    min-height: 40px;
+    border: 1px solid rgba(255, 153, 64, 0.24);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    color: inherit;
+    padding: 0.65em 0.8em;
+    cursor: pointer;
+    text-align: left;
+}
+
+.fv-docker-member-menu-action:hover,
+.fv-docker-member-menu-action:focus {
+    border-color: rgba(255, 153, 64, 0.52);
+    background: rgba(255, 153, 64, 0.08);
+    outline: none;
 }
 
 .folder-cpu,

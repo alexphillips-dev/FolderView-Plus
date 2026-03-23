@@ -387,7 +387,7 @@
 
     const normalizeDashboardLayout = (value) => {
         const normalized = String(value || '').trim().toLowerCase();
-        return ['classic', 'fullwidth', 'accordion', 'inset', 'compactmatrix'].includes(normalized)
+        return ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'].includes(normalized)
             ? normalized
             : DEFAULT_DASHBOARD_PREFS.layout;
     };
@@ -708,6 +708,29 @@
         const appColumnWidth = normalizeAppColumnWidth(incoming.appColumnWidth);
         const setupWizardCompleted = incoming.setupWizardCompleted === true;
         const settingsMode = incoming.settingsMode === 'advanced' ? 'advanced' : 'basic';
+        const incomingSettingsTable = isPlainObject(incoming.settingsTable) ? incoming.settingsTable : {};
+        const normalizedSettingsTableWidthMode = String(incomingSettingsTable.widthMode || '').trim().toLowerCase();
+        const normalizedSettingsTablePreset = String(incomingSettingsTable.preset || '').trim().toLowerCase();
+        const settingsTableColumns = isPlainObject(incomingSettingsTable.columns) ? { ...incomingSettingsTable.columns } : {};
+        const settingsTableColumnWidths = isPlainObject(incomingSettingsTable.columnWidths)
+            ? { ...incomingSettingsTable.columnWidths }
+            : {};
+        const normalizedSettingsTableNameWidth = String(incomingSettingsTable.nameWidth || '').trim().toLowerCase();
+        const normalizedSettingsTableActionsWidth = String(incomingSettingsTable.actionsWidth || '').trim().toLowerCase();
+        const settingsTable = {
+            widthMode: 'auto',
+            preset: ['compact', 'balanced', 'detailed', 'custom'].includes(normalizedSettingsTablePreset)
+                ? normalizedSettingsTablePreset
+                : 'balanced',
+            columns: settingsTableColumns,
+            columnWidths: {},
+            nameWidth: ['compact', 'standard', 'wide'].includes(normalizedSettingsTableNameWidth)
+                ? normalizedSettingsTableNameWidth
+                : 'standard',
+            actionsWidth: ['compact', 'standard', 'wide'].includes(normalizedSettingsTableActionsWidth)
+                ? normalizedSettingsTableActionsWidth
+                : 'standard'
+        };
 
         return {
             sortMode,
@@ -730,6 +753,7 @@
             dashboard,
             health,
             status,
+            settingsTable,
             backupSchedule,
             importPresets
         };

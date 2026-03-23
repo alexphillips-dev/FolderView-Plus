@@ -11,6 +11,7 @@
     --fvplus-dashboard-accent-soft-active: rgba(240, 163, 10, 0.2);
     --fvplus-dashboard-accent-border-active: rgba(240, 163, 10, 0.6);
     --fvplus-dashboard-layout-fullwidth: #6fb1ff;
+    --fvplus-dashboard-layout-legacy: #b7c0cf;
     --fvplus-dashboard-layout-accordion: #ffd36c;
     --fvplus-dashboard-layout-inset: #8ddf9f;
     --fvplus-dashboard-layout-compactmatrix: #7ce4ff;
@@ -169,6 +170,10 @@
 
 .fv-dashboard-layout-quick[data-fv-layout="fullwidth"] {
     color: var(--fvplus-dashboard-layout-fullwidth);
+}
+
+.fv-dashboard-layout-quick[data-fv-layout="legacy"] {
+    color: var(--fvplus-dashboard-layout-legacy);
 }
 
 .fv-dashboard-layout-quick[data-fv-layout="accordion"] {

@@ -272,31 +272,17 @@ const STARTER_TEMPLATE_BLUEPRINTS = Object.freeze({
     ])
 });
 
-const STARTER_TEMPLATE_SMART_THRESHOLD = 4;
+const sharedSmartDetectConfig = window.FolderViewPlusSmartDetectConfig || {};
+const STARTER_TEMPLATE_SMART_THRESHOLD = Number(sharedSmartDetectConfig.matchThreshold) > 0
+    ? Number(sharedSmartDetectConfig.matchThreshold)
+    : 4;
 const STARTER_TEMPLATE_FALLBACK_BY_TYPE = Object.freeze({
-    docker: 'Utilities',
-    vm: 'Utility VMs'
+    docker: String(sharedSmartDetectConfig.fallbackByType?.docker || 'Utilities'),
+    vm: String(sharedSmartDetectConfig.fallbackByType?.vm || 'Utility VMs')
 });
 const STARTER_TEMPLATE_MATCH_ALIASES = Object.freeze({
-    docker: Object.freeze({
-        jellyseerr: Object.freeze(['seerr', 'overseerr', 'media', 'request']),
-        wizarrrr: Object.freeze(['wizarr', 'media', 'invite']),
-        'nginx-proxy-manager': Object.freeze(['reverse proxy', 'proxy', 'npm']),
-        cloudflared: Object.freeze(['cloudflare', 'tunnel', 'remote access']),
-        homeassistant: Object.freeze(['home assistant', 'automation', 'haos']),
-        haos: Object.freeze(['home assistant', 'automation']),
-        'code-server': Object.freeze(['development', 'vscode', 'coder']),
-        unifi: Object.freeze(['network', 'controller'])
-    }),
-    vm: Object.freeze({
-        pve: Object.freeze(['proxmox', 'management', 'hypervisor']),
-        proxmox: Object.freeze(['pve', 'management', 'hypervisor']),
-        haos: Object.freeze(['home assistant', 'automation']),
-        omv: Object.freeze(['openmediavault', 'utility', 'management']),
-        truenas: Object.freeze(['storage', 'server', 'management']),
-        unifi: Object.freeze(['network', 'controller']),
-        dc: Object.freeze(['domain controller', 'identity', 'infrastructure'])
-    })
+    docker: Object.freeze({ ...(sharedSmartDetectConfig.matchAliases?.docker || {}) }),
+    vm: Object.freeze({ ...(sharedSmartDetectConfig.matchAliases?.vm || {}) })
 });
 
 const normalizeStarterTemplateMatchText = (value) => (

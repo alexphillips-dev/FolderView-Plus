@@ -384,6 +384,23 @@
     line-height: 1.28;
 }
 
+.setting-button-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.setting-button-row-compact > button {
+    min-height: 28px;
+    padding: 0.12rem 0.48rem;
+    font-size: 1.01rem;
+}
+
+.fv-mini-action-btn.is-active {
+    box-shadow: inset 0 0 0 1px rgba(84, 166, 255, 0.48);
+    background: rgba(48, 96, 168, 0.22);
+}
+
 .runtime-dependent.is-hidden {
     display: none !important;
 }
@@ -409,7 +426,7 @@
 }
 
 .folder-table table {
-    table-layout: fixed;
+    table-layout: auto;
     width: 100%;
     max-width: 100%;
     min-width: 0;
@@ -437,8 +454,8 @@
 .folder-table table th.fv-col-resizable .fv-col-resizer {
     position: absolute;
     top: 0;
-    right: -6px;
-    width: 12px;
+    right: -4px;
+    width: 8px;
     height: 100%;
     border: 0;
     margin: 0;
@@ -446,6 +463,7 @@
     background: transparent;
     cursor: col-resize;
     z-index: 8;
+    touch-action: none;
 }
 
 .folder-table table th.fv-col-resizable .fv-col-resizer::before {
@@ -484,13 +502,23 @@ body.fv-column-resize-active * {
 }
 
 .folder-table table th.col-name {
-    text-align: left;
-    padding-left: 0.44rem;
+    text-align: center;
+    padding-left: 0;
 }
 
 .folder-table table th.col-signals {
-    text-align: left;
-    padding-left: 0.28rem;
+    text-align: center;
+    padding-left: 0;
+}
+
+.fv-col-resize-guide {
+    position: fixed;
+    width: 2px;
+    background: rgba(84, 166, 255, 0.94);
+    box-shadow: 0 0 0 1px rgba(84, 166, 255, 0.22), 0 0 12px rgba(84, 166, 255, 0.24);
+    pointer-events: none;
+    z-index: 100000;
+    border-radius: 999px;
 }
 
 .name-cell-content {
@@ -927,27 +955,9 @@ body.fv-column-resize-active * {
     white-space: normal;
 }
 
-/* Desktop widths: remove Parent column and redistribute space to core signals. */
-.folder-table table th:nth-child(1),
-.folder-table table td:nth-child(1) { width: 7%; }
-.folder-table table th:nth-child(2),
-.folder-table table td:nth-child(2) { width: 26%; }
-.folder-table table th:nth-child(3),
-.folder-table table td:nth-child(3) { width: 5%; }
-.folder-table table th:nth-child(4),
-.folder-table table td:nth-child(4) { width: 16%; }
-.folder-table table th:nth-child(5),
-.folder-table table td:nth-child(5) { width: 7%; }
-.folder-table table th:nth-child(6),
-.folder-table table td:nth-child(6) { width: 12%; }
-.folder-table table th:nth-child(7),
-.folder-table table td:nth-child(7) { width: 7%; }
-.folder-table table th:nth-child(8),
-.folder-table table td:nth-child(8) { width: 10%; }
-.folder-table table th:nth-child(9),
-.folder-table table td:nth-child(9) { width: 5%; }
-.folder-table table th:nth-child(10),
-.folder-table table td:nth-child(10) { width: 5%; }
+/* Desktop widths are JS-driven. Do not reintroduce fixed nth-child widths here,
+   or the browser will fight the column runtime when users switch between auto,
+   presets, and custom resize mode. */
 
 .folder-table table th.col-order,
 .folder-table table td.order-cell {
@@ -1354,10 +1364,8 @@ body.fv-mobile-compact #fv-settings-root .row-order-error {
     display: none !important;
 }
 
-#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-docker tbody#docker td:nth-child(1),
-#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-vm tbody#vms td:nth-child(1),
-body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-docker tbody#docker td:nth-child(1),
-body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-vm tbody#vms td:nth-child(1) {
+#fv-settings-root.fv-mobile-compact:is(.fv-mobile-tree-reorder-docker, .fv-mobile-tree-reorder-vm) :is(tbody#docker, tbody#vms) td:nth-child(1),
+body.fv-mobile-compact #fv-settings-root:is(.fv-mobile-tree-reorder-docker, .fv-mobile-tree-reorder-vm) :is(tbody#docker, tbody#vms) td:nth-child(1) {
     display: table-cell !important;
     width: 11% !important;
     min-width: 44px !important;
@@ -1365,35 +1373,23 @@ body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-vm tbody#vms td:
     padding: 0.22rem 0.15rem !important;
 }
 
-#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-docker .folder-table table td.actions-cell,
-#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-vm .folder-table table td.actions-cell,
-body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-docker .folder-table table td.actions-cell,
-body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-vm .folder-table table td.actions-cell {
+#fv-settings-root.fv-mobile-compact:is(.fv-mobile-tree-reorder-docker, .fv-mobile-tree-reorder-vm) .folder-table table td.actions-cell,
+body.fv-mobile-compact #fv-settings-root:is(.fv-mobile-tree-reorder-docker, .fv-mobile-tree-reorder-vm) .folder-table table td.actions-cell {
     width: 17% !important;
 }
 
-#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-docker .folder-table table th:nth-child(2),
-#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-docker .folder-table table td:nth-child(2),
-#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-vm .folder-table table th:nth-child(2),
-#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-vm .folder-table table td:nth-child(2),
-body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-docker .folder-table table th:nth-child(2),
-body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-docker .folder-table table td:nth-child(2),
-body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-vm .folder-table table th:nth-child(2),
-body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-vm .folder-table table td:nth-child(2) {
+#fv-settings-root.fv-mobile-compact:is(.fv-mobile-tree-reorder-docker, .fv-mobile-tree-reorder-vm) .folder-table table :is(th:nth-child(2), td:nth-child(2)),
+body.fv-mobile-compact #fv-settings-root:is(.fv-mobile-tree-reorder-docker, .fv-mobile-tree-reorder-vm) .folder-table table :is(th:nth-child(2), td:nth-child(2)) {
     width: 72% !important;
 }
 
-#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-docker tbody#docker .row-order-actions,
-#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-vm tbody#vms .row-order-actions,
-body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-docker tbody#docker .row-order-actions,
-body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-vm tbody#vms .row-order-actions {
+#fv-settings-root.fv-mobile-compact:is(.fv-mobile-tree-reorder-docker, .fv-mobile-tree-reorder-vm) :is(tbody#docker, tbody#vms) .row-order-actions,
+body.fv-mobile-compact #fv-settings-root:is(.fv-mobile-tree-reorder-docker, .fv-mobile-tree-reorder-vm) :is(tbody#docker, tbody#vms) .row-order-actions {
     display: inline-flex !important;
 }
 
-#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-docker tbody#docker .row-order-actions button,
-#fv-settings-root.fv-mobile-compact.fv-mobile-tree-reorder-vm tbody#vms .row-order-actions button,
-body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-docker tbody#docker .row-order-actions button,
-body.fv-mobile-compact #fv-settings-root.fv-mobile-tree-reorder-vm tbody#vms .row-order-actions button {
+#fv-settings-root.fv-mobile-compact:is(.fv-mobile-tree-reorder-docker, .fv-mobile-tree-reorder-vm) :is(tbody#docker, tbody#vms) .row-order-actions button,
+body.fv-mobile-compact #fv-settings-root:is(.fv-mobile-tree-reorder-docker, .fv-mobile-tree-reorder-vm) :is(tbody#docker, tbody#vms) .row-order-actions button {
     display: inline-flex !important;
 }
 
@@ -3470,8 +3466,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
     #fv-settings-root .folder-tree-toggle,
     #fv-settings-root .status-breakdown-btn,
     #fv-settings-root .health-breakdown-btn,
-    #fv-settings-action-bar button,
-    #fv-save-dock button {
+    #fv-settings-action-bar button {
         -webkit-appearance: none !important;
         appearance: none !important;
         background-image: none !important;
@@ -3486,9 +3481,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
     #fv-settings-root .folder-tree-toggle::before,
     #fv-settings-root .folder-tree-toggle::after,
     #fv-settings-action-bar button::before,
-    #fv-settings-action-bar button::after,
-    #fv-save-dock button::before,
-    #fv-save-dock button::after {
+    #fv-settings-action-bar button::after {
         content: none !important;
         box-shadow: none !important;
         border: 0 !important;
@@ -3789,11 +3782,6 @@ body.fv-mobile-compact .fv-setup-field-grid {
     align-items: center;
     gap: 0.22rem;
     min-width: min(360px, 42vw);
-}
-
-.fv-settings-label {
-    font-weight: 600;
-    opacity: 0.9;
 }
 
 .fv-mode-toggle {
@@ -5692,7 +5680,7 @@ tr.is-long-press-active {
     display: none !important;
 }
 
-.fv-save-dock {
+.fv-settings-action-wrap {
     border: 1px solid rgba(255, 255, 255, 0.14);
     border-radius: 12px;
     background: rgba(11, 14, 18, 0.96);
@@ -5703,65 +5691,6 @@ tr.is-long-press-active {
     max-width: min(720px, calc(100vw - 1.6rem));
     display: grid;
     gap: 0.3rem;
-}
-
-.fv-save-dock-head {
-    display: inline-flex;
-    align-items: center;
-    justify-content: flex-start;
-}
-
-.fv-save-dock-chip {
-    flex: 1 1 auto;
-    min-height: 32px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.45rem;
-    border-radius: 999px;
-    padding: 0.18rem 0.6rem;
-    font-size: 1.03rem;
-}
-
-.fv-save-dock-chip .fa-circle {
-    color: #ff9f45;
-    font-size: 0.8em;
-}
-
-.fv-save-dock-chevron {
-    transition: transform 160ms ease;
-}
-
-.fv-save-dock[data-expanded="1"] .fv-save-dock-chevron {
-    transform: rotate(180deg);
-}
-
-.fv-save-dock-panel {
-    display: none;
-}
-
-.fv-save-dock[data-expanded="1"] .fv-save-dock-panel {
-    display: grid;
-    gap: 0.36rem;
-}
-
-.fv-action-buttons-primary,
-.fv-action-buttons-secondary {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.45rem;
-}
-
-.fv-action-more {
-    display: none;
-    min-height: 32px;
-    align-items: center;
-    justify-content: center;
-    gap: 0.35rem;
-}
-
-.fv-save-dock[data-more-open="1"] .fv-action-more i {
-    transform: rotate(90deg);
 }
 
 .fv-action-buttons {
@@ -6051,7 +5980,7 @@ tr.is-long-press-active {
         max-width: calc(100% - 1rem);
     }
 
-    .fv-save-dock {
+    .fv-settings-action-wrap {
         min-width: 0;
         width: min(92vw, 420px);
         max-width: calc(100vw - 1rem);
@@ -6060,30 +5989,18 @@ tr.is-long-press-active {
         gap: 0.25rem;
     }
 
-    .fv-save-dock-chip {
-        min-height: 30px;
-        padding: 0.18rem 0.5rem;
-    }
-
-    .fv-action-more {
-        display: inline-flex;
-        width: 100%;
-    }
-
-    .fv-action-buttons-primary {
-        display: flex;
-    }
-
-    .fv-action-buttons-secondary {
-        display: none;
-    }
-
-    .fv-save-dock[data-more-open="1"] .fv-action-buttons-secondary {
-        display: flex;
-    }
-
     .fv-action-status {
         display: none !important;
+    }
+
+    .fv-action-buttons {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 0.05rem;
+    }
+
+    .fv-action-buttons > button {
+        flex: 0 0 auto;
     }
 
     #fv-settings-topbar {

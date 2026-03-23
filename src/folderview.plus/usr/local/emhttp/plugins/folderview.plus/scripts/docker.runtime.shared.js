@@ -14,6 +14,147 @@
         return /** @type {T} */ ({ ...value });
     };
 
+    const DEFAULT_FOLDER_STATUS_COLORS = Object.freeze({
+        started: '#ffffff',
+        paused: '#b8860b',
+        stopped: '#ff4d4d'
+    });
+    const DEFAULT_PREVIEW_BORDER_COLOR = '#afa89e';
+    const DEFAULT_PREVIEW_BORDER_WIDTH = 1;
+    const DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH = 1;
+    const DEFAULT_DROPDOWN_STYLE = 'minimal';
+    const DEFAULT_DROPDOWN_COLOR = '#ff9a3c';
+    const DEFAULT_DROPDOWN_HOVER_COLOR = '#111111';
+    const FOLDER_STATUS_COLOR_STYLE_PROPS = Object.freeze({
+        started: '--fvplus-folder-status-started',
+        paused: '--fvplus-folder-status-paused',
+        stopped: '--fvplus-folder-status-stopped'
+    });
+
+    const normalizeStatusHexColor = (value, fallback) => {
+        if (typeof value !== 'string') {
+            return fallback;
+        }
+        const trimmed = value.trim();
+        if (!/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(trimmed)) {
+            return fallback;
+        }
+        if (trimmed.length === 4) {
+            return `#${trimmed[1]}${trimmed[1]}${trimmed[2]}${trimmed[2]}${trimmed[3]}${trimmed[3]}`.toLowerCase();
+        }
+        return trimmed.toLowerCase();
+    };
+
+    const normalizePositiveInt = (value, fallback, min = 1, max = 4) => {
+        const parsed = Number(value);
+        if (!Number.isFinite(parsed)) {
+            return fallback;
+        }
+        return Math.max(min, Math.min(max, Math.round(parsed)));
+    };
+
+    const normalizeDropdownStyle = (value) => {
+        const normalized = String(value || '').trim().toLowerCase();
+        return normalized === 'minimal' ? 'minimal' : DEFAULT_DROPDOWN_STYLE;
+    };
+
+    const hexToRgba = (hex, alpha) => {
+        const normalized = normalizeStatusHexColor(hex, DEFAULT_DROPDOWN_COLOR);
+        const safeAlpha = Number.isFinite(Number(alpha)) ? Math.max(0, Math.min(1, Number(alpha))) : 1;
+        const value = normalized.slice(1);
+        const r = parseInt(value.slice(0, 2), 16);
+        const g = parseInt(value.slice(2, 4), 16);
+        const b = parseInt(value.slice(4, 6), 16);
+        return `rgba(${r}, ${g}, ${b}, ${safeAlpha})`;
+    };
+
+    const isPreviewBorderEnabled = (settings) => {
+        const source = settings && typeof settings === 'object' ? settings : {};
+        if (Object.prototype.hasOwnProperty.call(source, 'preview_border')) {
+            const raw = String(source.preview_border ?? '').trim().toLowerCase();
+            const explicitOff = raw === '0' || raw === 'false' || raw === 'off' || raw === 'no';
+            return !explicitOff;
+        }
+        return true;
+    };
+
+    const getFolderStatusColors = (settings) => {
+        const source = settings && typeof settings === 'object' ? settings : {};
+        return {
+            started: normalizeStatusHexColor(source.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started),
+            paused: normalizeStatusHexColor(source.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused),
+            stopped: normalizeStatusHexColor(source.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped)
+        };
+    };
+
+    const getFolderStatusColorOverrides = (settings) => {
+        const colors = getFolderStatusColors(settings);
+        return {
+            started: colors.started !== DEFAULT_FOLDER_STATUS_COLORS.started ? colors.started : '',
+            paused: colors.paused !== DEFAULT_FOLDER_STATUS_COLORS.paused ? colors.paused : '',
+            stopped: colors.stopped !== DEFAULT_FOLDER_STATUS_COLORS.stopped ? colors.stopped : ''
+        };
+    };
+
+    const applyFolderStatusColorOverrides = ($folderRow, settings) => {
+        if (!$folderRow || !$folderRow.length || !$folderRow[0] || !$folderRow[0].style) {
+            return;
+        }
+        const style = $folderRow[0].style;
+        const overrides = getFolderStatusColorOverrides(settings);
+        style.removeProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.started);
+        style.removeProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.paused);
+        style.removeProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.stopped);
+        if (overrides.started) {
+            style.setProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.started, overrides.started);
+        }
+        if (overrides.paused) {
+            style.setProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.paused, overrides.paused);
+        }
+        if (overrides.stopped) {
+            style.setProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.stopped, overrides.stopped);
+        }
+    };
+
+    const applyPreviewBorderStyle = (previewNode, settings) => {
+        if (!previewNode) {
+            return;
+        }
+        const source = settings && typeof settings === 'object' ? settings : {};
+        const enabled = isPreviewBorderEnabled(source);
+        if (previewNode.classList && typeof previewNode.classList.toggle === 'function') {
+            previewNode.classList.toggle('fv-preview-border-off', !enabled);
+        }
+        const previewColor = normalizeStatusHexColor(source.preview_border_color, DEFAULT_PREVIEW_BORDER_COLOR);
+        const previewBorderWidth = normalizePositiveInt(source.preview_border_width, DEFAULT_PREVIEW_BORDER_WIDTH, 1, 4);
+        const previewBarsWidth = normalizePositiveInt(source.preview_vertical_bars_width, DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH, 1, 4);
+        previewNode.style.setProperty('--fvplus-preview-border-width', `${previewBorderWidth}px`);
+        previewNode.style.setProperty('--fvplus-preview-divider-width', `${previewBarsWidth}px`);
+        previewNode.style.setProperty('border', enabled ? `${previewBorderWidth}px solid ${previewColor}` : 'none', 'important');
+    };
+
+    const applyFolderDropdownStyle = ($folderRow, settings) => {
+        if (!$folderRow || !$folderRow.length || !$folderRow[0] || !$folderRow[0].style) {
+            return;
+        }
+        const source = settings && typeof settings === 'object' ? settings : {};
+        const rowStyle = $folderRow[0].style;
+        const dropdownStyle = normalizeDropdownStyle(source.dropdown_style);
+        const normalColor = normalizeStatusHexColor(source.dropdown_color, DEFAULT_DROPDOWN_COLOR);
+        const hoverColor = normalizeStatusHexColor(source.dropdown_hover_color, DEFAULT_DROPDOWN_HOVER_COLOR);
+        rowStyle.setProperty('--fvplus-folder-dropdown-color', normalColor);
+        rowStyle.setProperty('--fvplus-folder-dropdown-hover-color', hoverColor);
+        rowStyle.setProperty('--fvplus-folder-dropdown-border-width', dropdownStyle === 'boxed' ? '1px' : '0px');
+        rowStyle.setProperty('--fvplus-folder-dropdown-border-color', dropdownStyle === 'boxed' ? hexToRgba(normalColor, 0.52) : 'transparent');
+        rowStyle.setProperty('--fvplus-folder-dropdown-hover-border-color', dropdownStyle === 'boxed' ? hoverColor : 'transparent');
+        rowStyle.setProperty('--fvplus-folder-dropdown-bg', dropdownStyle === 'boxed' ? hexToRgba(normalColor, 0.10) : 'transparent');
+        rowStyle.setProperty('--fvplus-folder-dropdown-hover-bg', dropdownStyle === 'boxed' ? hexToRgba(normalColor, 0.82) : 'transparent');
+        rowStyle.setProperty('--fvplus-folder-dropdown-min-width', dropdownStyle === 'boxed' ? '22px' : '12px');
+        rowStyle.setProperty('--fvplus-folder-dropdown-height', dropdownStyle === 'boxed' ? '22px' : '16px');
+        rowStyle.setProperty('--fvplus-folder-dropdown-padding', dropdownStyle === 'boxed' ? '0 6px' : '0 2px');
+        rowStyle.setProperty('--fvplus-folder-dropdown-radius', dropdownStyle === 'boxed' ? '4px' : '0px');
+    };
+
     /**
      * Lightweight runtime store for Docker tab state.
      * @param {Record<string, any>} initialState
@@ -329,6 +470,22 @@
         };
     };
 
+    const createDebugLogger = (enabled = false, namespace = 'folderview.plus') => {
+        const shouldLog = enabled === true;
+        const prefix = String(namespace || 'folderview.plus').trim() || 'folderview.plus';
+        const emit = (method, args) => {
+            if (!shouldLog || typeof console?.[method] !== 'function') {
+                return;
+            }
+            console[method](`[${prefix}]`, ...args);
+        };
+        return Object.freeze({
+            log: (...args) => emit('log', args),
+            warn: (...args) => emit('warn', args),
+            error: (...args) => emit('error', args)
+        });
+    };
+
     const layoutTokens = Object.freeze({
         folderRightGutterPx: 28,
         folderOuterReservedPx: 106,
@@ -339,11 +496,29 @@
     });
 
     window.FolderViewDockerRuntimeShared = {
+        DEFAULT_FOLDER_STATUS_COLORS,
+        DEFAULT_PREVIEW_BORDER_COLOR,
+        DEFAULT_PREVIEW_BORDER_WIDTH,
+        DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH,
+        DEFAULT_DROPDOWN_STYLE,
+        DEFAULT_DROPDOWN_COLOR,
+        DEFAULT_DROPDOWN_HOVER_COLOR,
+        FOLDER_STATUS_COLOR_STYLE_PROPS,
+        normalizeStatusHexColor,
+        normalizePositiveInt,
+        normalizeDropdownStyle,
+        isPreviewBorderEnabled,
+        getFolderStatusColors,
+        getFolderStatusColorOverrides,
+        applyFolderStatusColorOverrides,
+        applyPreviewBorderStyle,
+        applyFolderDropdownStyle,
         createRuntimeStateStore,
         createAsyncActionBoundary,
         createContextMenuQuickStripAdapter,
         createRuntimePerfTelemetry,
         createSafeUiActionRunner,
+        createDebugLogger,
         resolveRuntimePerformanceProfile,
         runtimeContracts,
         layoutTokens

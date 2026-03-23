@@ -1,67 +1,71 @@
 {
   "version": 1,
-  "generatedAt": "2026-03-22T04:29:03.243Z",
+  "generatedAt": "2026-03-22T23:35:06.300Z",
   "notes": "Baseline for perf ratchet guard. Update intentionally when expected growth is accepted.",
   "assets": {
     "scripts/folderviewplus.runtime-parity.js": {
-      "bytes": 1282,
-      "gzipBytes": 537
+      "bytes": 1256,
+      "gzipBytes": 508
     },
     "scripts/folderviewplus.settings-sections.js": {
-      "bytes": 3118,
-      "gzipBytes": 797
+      "bytes": 3188,
+      "gzipBytes": 795
     },
     "scripts/folderviewplus.setup-assistant.js": {
-      "bytes": 12976,
-      "gzipBytes": 2772
+      "bytes": 12631,
+      "gzipBytes": 2688
+    },
+    "scripts/folderviewplus.smart-detect-config.js": {
+      "bytes": 2085,
+      "gzipBytes": 682
     },
     "scripts/folderviewplus.starter-templates.js": {
-      "bytes": 46570,
-      "gzipBytes": 9187
+      "bytes": 45030,
+      "gzipBytes": 8978
     },
     "scripts/folderviewplus.activity-diagnostics.js": {
-      "bytes": 20779,
-      "gzipBytes": 4636
+      "bytes": 40655,
+      "gzipBytes": 8787
     },
     "scripts/folderviewplus.folder-editor.js": {
-      "bytes": 40817,
-      "gzipBytes": 7926
+      "bytes": 39957,
+      "gzipBytes": 7856
     },
     "scripts/folderviewplus.js": {
-      "bytes": 459862,
-      "gzipBytes": 89207
+      "bytes": 458323,
+      "gzipBytes": 87520
     },
     "scripts/folderviewplus.wizard.js": {
-      "bytes": 235530,
-      "gzipBytes": 41373
+      "bytes": 235741,
+      "gzipBytes": 41315
     },
     "scripts/folderviewplus.import.js": {
       "bytes": 47994,
       "gzipBytes": 10607
     },
     "styles/folderviewplus.css": {
-      "bytes": 148290,
-      "gzipBytes": 20113
+      "bytes": 145789,
+      "gzipBytes": 19920
     },
     "scripts/docker.js": {
-      "bytes": 253323,
-      "gzipBytes": 49857
+      "bytes": 270485,
+      "gzipBytes": 52704
     },
     "scripts/vm.js": {
-      "bytes": 107236,
-      "gzipBytes": 23170
+      "bytes": 105003,
+      "gzipBytes": 22671
     },
     "scripts/folder.js": {
-      "bytes": 195335,
-      "gzipBytes": 40160
+      "bytes": 195968,
+      "gzipBytes": 40292
     }
   },
   "totals": {
-    "totalJs": 1701529,
-    "totalCss": 220244,
-    "totalJsGzip": 331478,
-    "totalCssGzip": 34030,
-    "settingsRuntimeJs": 868928,
-    "settingsRuntimeJsGzip": 167042
+    "totalJs": 1740706,
+    "totalCss": 221742,
+    "totalJsGzip": 337755,
+    "totalCssGzip": 34464,
+    "settingsRuntimeJs": 886860,
+    "settingsRuntimeJsGzip": 169736
   }
 }

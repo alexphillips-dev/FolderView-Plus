@@ -1,78 +1,26 @@
 // @ts-check
 const FOLDER_VIEW_DEBUG_MODE = false;
-const localDefaultFolderStatusColors = {
+const dockerRuntimeShared = window.FolderViewDockerRuntimeShared || {};
+const localDefaultFolderStatusColors = dockerRuntimeShared.DEFAULT_FOLDER_STATUS_COLORS || {
     started: '#ffffff',
     paused: '#b8860b',
     stopped: '#ff4d4d'
 };
-const DEFAULT_PREVIEW_BORDER_COLOR = '#afa89e';
-const isPreviewBorderEnabled = (settings) => {
-    const source = settings && typeof settings === 'object' ? settings : {};
-    let enabled = true;
-    if (Object.prototype.hasOwnProperty.call(source, 'preview_border')) {
-        const raw = String(source.preview_border ?? '').trim().toLowerCase();
-        const explicitOff = raw === '0' || raw === 'false' || raw === 'off' || raw === 'no';
-        enabled = !explicitOff;
-    }
-    return enabled;
-};
-const normalizeStatusHexColor = (value, fallback) => {
-    if (typeof value !== 'string') {
-        return fallback;
-    }
-    const trimmed = value.trim();
-    if (!/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(trimmed)) {
-        return fallback;
-    }
-    if (trimmed.length === 4) {
-        return `#${trimmed[1]}${trimmed[1]}${trimmed[2]}${trimmed[2]}${trimmed[3]}${trimmed[3]}`.toLowerCase();
-    }
-    return trimmed.toLowerCase();
-};
-const FOLDER_STATUS_COLOR_STYLE_PROPS = Object.freeze({
-    started: '--fvplus-folder-status-started',
-    paused: '--fvplus-folder-status-paused',
-    stopped: '--fvplus-folder-status-stopped'
-});
-const getFolderStatusColorOverrides = (settings) => {
-    const source = settings && typeof settings === 'object' ? settings : {};
-    const parsedStarted = normalizeStatusHexColor(source.status_color_started, '');
-    const parsedPaused = normalizeStatusHexColor(source.status_color_paused, '');
-    const parsedStopped = normalizeStatusHexColor(source.status_color_stopped, '');
-    return {
-        started: parsedStarted && parsedStarted !== localDefaultFolderStatusColors.started ? parsedStarted : '',
-        paused: parsedPaused && parsedPaused !== localDefaultFolderStatusColors.paused ? parsedPaused : '',
-        stopped: parsedStopped && parsedStopped !== localDefaultFolderStatusColors.stopped ? parsedStopped : ''
-    };
-};
-const applyFolderStatusColorOverrides = ($folderRow, settings) => {
-    if (!$folderRow || !$folderRow.length || !$folderRow[0] || !$folderRow[0].style) {
-        return;
-    }
-    const style = $folderRow[0].style;
-    const overrides = getFolderStatusColorOverrides(settings);
-    style.removeProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.started);
-    style.removeProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.paused);
-    style.removeProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.stopped);
-    if (overrides.started) {
-        style.setProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.started, overrides.started);
-    }
-    if (overrides.paused) {
-        style.setProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.paused, overrides.paused);
-    }
-    if (overrides.stopped) {
-        style.setProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.stopped, overrides.stopped);
-    }
-};
-const applyPreviewBorderStyle = (previewNode, settings) => {
-    if (!previewNode) return;
-    const source = settings && typeof settings === 'object' ? settings : {};
-    const enabled = isPreviewBorderEnabled(source);
-    if (previewNode.classList && typeof previewNode.classList.toggle === 'function') {
-        previewNode.classList.toggle('fv-preview-border-off', !enabled);
-    }
-    previewNode.style.setProperty('border', enabled ? `1px solid ${normalizeStatusHexColor(source.preview_border_color, DEFAULT_PREVIEW_BORDER_COLOR)}` : 'none', 'important');
-};
+const normalizeStatusHexColor = typeof dockerRuntimeShared.normalizeStatusHexColor === 'function'
+    ? dockerRuntimeShared.normalizeStatusHexColor
+    : ((value, fallback) => fallback);
+const getFolderStatusColorOverrides = typeof dockerRuntimeShared.getFolderStatusColorOverrides === 'function'
+    ? dockerRuntimeShared.getFolderStatusColorOverrides
+    : (() => ({ started: '', paused: '', stopped: '' }));
+const applyFolderStatusColorOverrides = typeof dockerRuntimeShared.applyFolderStatusColorOverrides === 'function'
+    ? dockerRuntimeShared.applyFolderStatusColorOverrides
+    : (() => {});
+const applyPreviewBorderStyle = typeof dockerRuntimeShared.applyPreviewBorderStyle === 'function'
+    ? dockerRuntimeShared.applyPreviewBorderStyle
+    : (() => {});
+const applyFolderDropdownStyle = typeof dockerRuntimeShared.applyFolderDropdownStyle === 'function'
+    ? dockerRuntimeShared.applyFolderDropdownStyle
+    : (() => {});
 const utils = window.FolderViewPlusUtils || {
     normalizePrefs: () => ({
         sortMode: 'created',
@@ -101,15 +49,15 @@ const utils = window.FolderViewPlusUtils || {
     getAutoRuleMatches: () => [],
     DEFAULT_FOLDER_STATUS_COLORS: localDefaultFolderStatusColors,
     getFolderStatusColors: (settings) => {
-        const incoming = settings && typeof settings === 'object' ? settings : {};
-        return {
-            started: normalizeStatusHexColor(incoming.status_color_started, localDefaultFolderStatusColors.started),
-            paused: normalizeStatusHexColor(incoming.status_color_paused, localDefaultFolderStatusColors.paused),
-            stopped: normalizeStatusHexColor(incoming.status_color_stopped, localDefaultFolderStatusColors.stopped)
-        };
+        return typeof dockerRuntimeShared.getFolderStatusColors === 'function'
+            ? dockerRuntimeShared.getFolderStatusColors(settings)
+            : {
+                started: localDefaultFolderStatusColors.started,
+                paused: localDefaultFolderStatusColors.paused,
+                stopped: localDefaultFolderStatusColors.stopped
+            };
     }
 };
-const dockerRuntimeShared = window.FolderViewDockerRuntimeShared || {};
 const dockerStorageWriter = typeof utils.createBatchedStorageWriter === 'function'
     ? utils.createBatchedStorageWriter(window.localStorage, {
         defaultDelayMs: 72,
@@ -285,6 +233,472 @@ const getPreviewContainerStatusMeta = (entry = {}) => {
     }
     return { key: 'stopped', icon: 'fa-square', className: 'fv-preview-status-stopped' };
 };
+const normalizeFolderPreviewRowLimit = (settings = {}) => {
+    const raw = String(settings?.preview_rows ?? '').trim().toLowerCase();
+    if (raw === '0' || raw === 'auto' || raw === 'unlimited') {
+        return 0;
+    }
+    const parsed = Number.parseInt(raw, 10);
+    if (!Number.isFinite(parsed)) {
+        return 1;
+    }
+    return Math.max(1, Math.min(4, parsed));
+};
+const getFolderPreviewItemsPerRow = (settings = {}) => {
+    const compactMultiRow = isCompactMultiRowPreview(settings);
+    switch (Number(settings?.preview || 0)) {
+        case 2:
+            return 10;
+        case 3:
+            return compactMultiRow ? 5 : 5;
+        case 4:
+            return 4;
+        case 1:
+        default:
+            return compactMultiRow ? 5 : 4;
+    }
+};
+const isCompactMultiRowPreview = (settings = {}) => {
+    const normalizedRows = normalizeFolderPreviewRowLimit(settings);
+    return normalizedRows === 0 || normalizedRows > 1;
+};
+const applyFolderPreviewLayout = ($preview, settings = {}) => {
+    if (!$preview || !$preview.length) {
+        return;
+    }
+    const previewNode = $preview.get(0);
+    if (!previewNode || !previewNode.style) {
+        return;
+    }
+    previewNode.dataset.previewRows = String(normalizeFolderPreviewRowLimit(settings));
+    previewNode.style.removeProperty('--fvplus-preview-row-limit');
+    previewNode.style.removeProperty('--fvplus-preview-max-height');
+    previewNode.classList.remove('fv-preview-unlimited-rows', 'fv-preview-multirow');
+    const normalizedRows = normalizeFolderPreviewRowLimit(settings);
+    if (normalizedRows === 0) {
+        previewNode.classList.add('fv-preview-unlimited-rows', 'fv-preview-multirow');
+    } else if (normalizedRows > 1) {
+        previewNode.classList.add('fv-preview-multirow');
+    }
+};
+const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }) => {
+    const previewMode = Number(settings?.preview || 0);
+    const compactMultiRow = isCompactMultiRowPreview(settings);
+    const safeName = escapeHtml(entry?.name || '');
+    const safeIcon = sanitizeImageSrc(entry?.icon || '/plugins/dynamix.docker.manager/images/question.png');
+    const previewStateMeta = getPreviewContainerStatusMeta(entry);
+    const stateLabel = escapeHtml($.i18n(previewStateMeta.key));
+    const previewStatusTitle = stateLabel;
+    const imageStyle = settings?.preview_grayscale ? ' style="filter: grayscale(100%);"' : '';
+    const updateClass = settings?.preview_update && entry?.update === true ? ' orange-text' : '';
+    const textWidth = String(settings?.preview_text_width || '').trim();
+    const textWidthStyle = textWidth ? ` style="width:${escapeHtml(textWidth)};"` : '';
+    const autostartClass = autostart ? ' autostart' : '';
+    let itemMarkup = '';
+    let triggerSelector = '.fv-preview-trigger';
+
+    if (compactMultiRow) {
+        switch (previewMode) {
+            case 2:
+                itemMarkup = `
+                    <span class="outer fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-2${autostartClass}">
+                        <span class="hand fv-preview-trigger"><img src="${safeIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'${imageStyle}></span>
+                    </span>
+                `;
+                triggerSelector = '.hand';
+                break;
+            case 3:
+            case 4:
+                itemMarkup = `
+                    <span class="outer fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-${previewMode}${autostartClass}">
+                        <span class="inner fv-preview-trigger">
+                            <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span>
+                            <span class="fv-preview-meta-compact">
+                            <span class="fv-preview-status-compact" title="${previewStatusTitle}">
+                                <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}" aria-hidden="true"></i><span class="state"> ${stateLabel}</span>
+                            </span>
+                            <span class="fv-preview-actions-compact"></span>
+                            </span>
+                        </span>
+                    </span>
+                `;
+                triggerSelector = '.appname, .fv-preview-status-compact';
+                break;
+            case 1:
+            default:
+                itemMarkup = `
+                    <span class="outer fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-1${autostartClass}">
+                        <span class="hand fv-preview-trigger"><img src="${safeIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'${imageStyle}></span>
+                        <span class="inner fv-preview-trigger">
+                            <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span>
+                            <span class="fv-preview-meta-compact">
+                            <span class="fv-preview-status-compact" title="${previewStatusTitle}">
+                                <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}" aria-hidden="true"></i><span class="state"> ${stateLabel}</span>
+                            </span>
+                            <span class="fv-preview-actions-compact"></span>
+                            </span>
+                        </span>
+                    </span>
+                `;
+                triggerSelector = '.hand, .appname, .fv-preview-status-compact';
+                break;
+        }
+        const $compactItem = $(itemMarkup);
+        return {
+            $item: $compactItem,
+            $tooltipTrigger: $compactItem.find(triggerSelector).first()
+        };
+    }
+
+    switch (previewMode) {
+        case 2:
+            itemMarkup = `
+                <span class="outer fv-docker-preview-card fv-docker-preview-mode-2${autostartClass}">
+                    <span class="hand fv-preview-trigger"><img src="${safeIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'${imageStyle}></span>
+                </span>
+            `;
+            triggerSelector = '.hand';
+            break;
+        case 3:
+            itemMarkup = `
+                <span class="outer fv-docker-preview-card fv-docker-preview-mode-3${autostartClass}">
+                    <span class="inner fv-preview-trigger">
+                        <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span><br>
+                        <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}"></i><span class="state ${previewStateMeta.className}"> ${stateLabel}</span>
+                    </span>
+                </span>
+            `;
+            triggerSelector = '.appname, .state, i.fa';
+            break;
+        case 4:
+            itemMarkup = `
+                <span class="outer fv-docker-preview-card fv-docker-preview-mode-4${autostartClass}">
+                    <span class="inner fv-preview-trigger">
+                        <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span><br>
+                        <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}" title="${previewStatusTitle}" aria-hidden="true"></i><span class="state ${previewStateMeta.className}"> ${stateLabel}</span>
+                    </span>
+                </span>
+            `;
+            triggerSelector = '.appname, .state, i.fa';
+            break;
+        case 1:
+        default:
+            itemMarkup = `
+                <span class="outer fv-docker-preview-card fv-docker-preview-mode-1${autostartClass}">
+                    <span class="hand fv-preview-trigger"><img src="${safeIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'${imageStyle}></span>
+                    <span class="inner fv-preview-trigger">
+                        <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span><br>
+                        <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}" title="${previewStatusTitle}" aria-hidden="true"></i><span class="state ${previewStateMeta.className}"> ${stateLabel}</span>
+                    </span>
+                </span>
+            `;
+            triggerSelector = '.hand, .appname, .state, i.fa';
+            break;
+    }
+
+    const $item = $(itemMarkup);
+    return {
+        $item,
+        $tooltipTrigger: $item.find(triggerSelector).first()
+    };
+};
+const layoutFolderPreviewRows = ($preview, settings = {}) => {
+    if (!$preview || !$preview.length) {
+        return;
+    }
+    if (!isCompactMultiRowPreview(settings)) {
+        const $existingRows = $preview.children('.folder-preview-row');
+        if ($existingRows.length) {
+            $existingRows.children('.folder-preview-wrapper, .folder-preview-divider').appendTo($preview);
+            $existingRows.remove();
+        }
+        const wrappers = $preview.children('.folder-preview-wrapper').get();
+        $preview.children('.folder-preview-divider').remove();
+        if (settings?.preview_vertical_bars === true) {
+            const barsColor = settings?.preview_vertical_bars_color || settings?.preview_border_color || '';
+            wrappers.forEach((wrapper, index) => {
+                if (index < wrappers.length - 1) {
+                    $(wrapper).after(`<div class="folder-preview-divider" ${barsColor ? `style="border-color: ${barsColor};"` : ''}></div>`);
+                }
+            });
+        }
+        return;
+    }
+    const $existingRows = $preview.children('.folder-preview-row');
+    if ($existingRows.length) {
+        $existingRows.children('.folder-preview-wrapper, .folder-preview-divider').appendTo($preview);
+        $existingRows.remove();
+    }
+    const wrappers = $preview.children('.folder-preview-wrapper').get();
+    $preview.children('.folder-preview-divider').remove();
+    if (!wrappers.length) {
+        return;
+    }
+    const rowLimit = normalizeFolderPreviewRowLimit(settings);
+    const addDividers = settings?.preview_vertical_bars === true;
+    const barsColor = settings?.preview_vertical_bars_color || settings?.preview_border_color || '';
+    const previewElement = $preview.get(0);
+    const availableWidth = Math.max(0, Math.floor($preview.innerWidth() || previewElement?.clientWidth || 0) - 12);
+    const gapWidth = 8;
+    const dividerWidth = addDividers ? 1 : 0;
+    const rows = [];
+    let currentRow = [];
+    let currentWidth = 0;
+
+    wrappers.forEach((wrapper) => {
+        const measuredWidth = Math.max(1, Math.ceil(wrapper.getBoundingClientRect?.().width || $(wrapper).outerWidth() || 0));
+        const extraWidth = currentRow.length ? gapWidth + dividerWidth : 0;
+        const nextWidth = currentWidth + extraWidth + measuredWidth;
+        const canWrap = availableWidth > 0 && currentRow.length > 0 && nextWidth > availableWidth;
+        if (canWrap && (rowLimit === 0 || rows.length + 1 < rowLimit)) {
+            rows.push(currentRow);
+            currentRow = [wrapper];
+            currentWidth = measuredWidth;
+            return;
+        }
+        currentRow.push(wrapper);
+        currentWidth = nextWidth;
+    });
+    if (currentRow.length) {
+        rows.push(currentRow);
+    }
+    const visibleRows = rowLimit === 0 ? rows : rows.slice(0, rowLimit);
+    $preview.empty();
+
+    visibleRows.forEach((slice) => {
+        const $row = $('<div class="folder-preview-row"></div>');
+        slice.forEach((wrapper, index) => {
+            $row.append(wrapper);
+            if (addDividers && index < slice.length - 1) {
+                $row.append(`<div class="folder-preview-divider" ${barsColor ? `style="border-color: ${barsColor};"` : ''}></div>`);
+            }
+        });
+        $preview.append($row);
+    });
+};
+const decorateDockerPreviewMemberTriggers = ($elements, folderId, containerName) => {
+    const safeFolderId = String(folderId || '').trim();
+    const safeContainerName = String(containerName || '').trim();
+    if (!$elements || !$elements.length || !safeFolderId || !safeContainerName) {
+        return;
+    }
+    $elements
+        .addClass('fv-docker-member-menu-trigger')
+        .attr('data-folder-id', safeFolderId)
+        .attr('data-container-name', safeContainerName)
+        .attr('title', 'Open container actions');
+};
+const decorateDockerFolderMemberRow = ($row, folderId, containerName) => {
+    if (!$row || !$row.length) {
+        return;
+    }
+    decorateDockerPreviewMemberTriggers(
+        $row.find('td.ct-name span.outer > span.hand, td.ct-name span.outer > span.inner > span.appname, td.ct-name span.outer > span.inner > span.appname > a.exec, td.ct-name span.outer > span.inner > i.folder-load-status, td.ct-name span.outer > span.inner > span.state'),
+        folderId,
+        containerName
+    );
+};
+const resolveDockerPreviewMemberEntry = (triggerEl) => {
+    const $trigger = $(triggerEl || []);
+    if (!$trigger.length) {
+        return null;
+    }
+    const folderId = String($trigger.attr('data-folder-id') || '').trim();
+    const containerName = String($trigger.attr('data-container-name') || '').trim();
+    if (!folderId || !containerName) {
+        return null;
+    }
+    const folder = globalFolders[folderId];
+    if (!folder || typeof folder !== 'object') {
+        return null;
+    }
+    const sourceMeta = folder?.containers?.[containerName] || folder?.runtimeContainers?.[containerName] || null;
+    const entry = buildRuntimeContainerEntry(containerName, sourceMeta);
+    return entry && entry.name
+        ? { ...entry, folderId }
+        : null;
+};
+const runDockerContainerMenuAction = async (entry, action) => {
+    if (!entry?.id || !action) {
+        return;
+    }
+    $('div.spinner.fixed').show('slow');
+    try {
+        const response = await $.post(eventURL, { action, container: entry.id }, null, 'json').promise();
+        if (response?.success !== true) {
+            throw new Error(String(response?.text || `Failed to ${action} container.`));
+        }
+        loadlist();
+    } catch (error) {
+        swal({
+            title: $.i18n('exec-error'),
+            text: escapeHtml(String(error?.message || `Failed to ${action} container.`)),
+            type: 'error',
+            html: true,
+            confirmButtonText: 'Ok'
+        });
+    } finally {
+        $('div.spinner.fixed').hide('slow');
+    }
+};
+let dockerPreviewMemberMenuRegistry = new Map();
+const clearDockerPreviewMemberMenuRegistry = () => {
+    dockerPreviewMemberMenuRegistry = new Map();
+    $(document).off('click.fvDockerMemberMenuAction');
+};
+const buildDockerPreviewMemberMenuActions = (entry) => {
+    const actions = [];
+    if (!entry) {
+        return actions;
+    }
+    if (!entry.state) {
+        actions.push({
+            key: 'start',
+            icon: 'fa-play',
+            label: $.i18n('start'),
+            run: () => runDockerContainerMenuAction(entry, 'start')
+        });
+    } else if (entry.pause) {
+        actions.push({
+            key: 'resume',
+            icon: 'fa-play-circle',
+            label: $.i18n('resume'),
+            run: () => runDockerContainerMenuAction(entry, 'resume')
+        });
+    } else {
+        actions.push({
+            key: 'stop',
+            icon: 'fa-stop',
+            label: $.i18n('stop'),
+            run: () => runDockerContainerMenuAction(entry, 'stop')
+        });
+        actions.push({
+            key: 'pause',
+            icon: 'fa-pause',
+            label: $.i18n('pause'),
+            run: () => runDockerContainerMenuAction(entry, 'pause')
+        });
+    }
+    if (entry.state) {
+        actions.push({
+            key: 'restart',
+            icon: 'fa-refresh',
+            label: $.i18n('restart'),
+            run: () => runDockerContainerMenuAction(entry, 'restart')
+        });
+    }
+    if (entry.webui) {
+        actions.push({
+            key: 'webui',
+            icon: 'fa-globe',
+            label: $.i18n('webui'),
+            run: () => {
+                const popup = window.open(entry.webui, '_blank', 'noopener,noreferrer');
+                if (popup) {
+                    popup.opener = null;
+                }
+            }
+        });
+    }
+    actions.push({
+        key: 'console',
+        icon: 'fa-terminal',
+        label: $.i18n('console'),
+        run: () => openTerminal('docker', entry.name, entry.shell || '/bin/sh')
+    });
+    actions.push({
+        key: 'logs',
+        icon: 'fa-bars',
+        label: $.i18n('logs'),
+        run: () => openTerminal('docker', entry.name, '.log')
+    });
+    if (entry.managed) {
+        actions.push({
+            key: 'update',
+            icon: 'fa-cloud-download',
+            label: entry.update ? $.i18n('apply-update') : $.i18n('force-update'),
+            run: () => updateContainer(entry.name)
+        });
+    }
+    return actions;
+};
+const showDockerPreviewMemberMenu = (entry) => {
+    if (!entry?.name) {
+        return;
+    }
+    const actions = buildDockerPreviewMemberMenuActions(entry);
+    if (!actions.length) {
+        return;
+    }
+    clearDockerPreviewMemberMenuRegistry();
+    dockerPreviewMemberMenuRegistry = new Map(actions.map((action) => [action.key, action.run]));
+    const statusMeta = getPreviewContainerStatusMeta(entry);
+    const statusLabel = escapeHtml($.i18n(statusMeta.key));
+    const safeName = escapeHtml(entry.name);
+    const safeIcon = sanitizeImageSrc(entry.icon || '/plugins/dynamix.docker.manager/images/question.png');
+    const actionsHtml = actions.map((action) => `
+        <button type="button" class="fv-docker-member-menu-action" data-action-key="${escapeHtml(action.key)}">
+            <i class="fa ${escapeHtml(action.icon)}" aria-hidden="true"></i>
+            <span>${escapeHtml(action.label)}</span>
+        </button>
+    `).join('');
+    swal({
+        title: '',
+        text: `
+            <div class="fv-docker-member-menu-sheet">
+                <div class="fv-docker-member-menu-header">
+                    <img src="${safeIcon}" class="fv-docker-member-menu-icon" onerror="this.src='/plugins/dynamix.docker.manager/images/question.png'">
+                    <div class="fv-docker-member-menu-meta">
+                        <div class="fv-docker-member-menu-name">${safeName}</div>
+                        <div class="fv-docker-member-menu-status ${escapeHtml(statusMeta.className)}"><i class="fa ${escapeHtml(statusMeta.icon)}" aria-hidden="true"></i> ${statusLabel}</div>
+                    </div>
+                </div>
+                <div class="fv-docker-member-menu-actions">${actionsHtml}</div>
+            </div>
+        `,
+        html: true,
+        showConfirmButton: false,
+        showCancelButton: true,
+        cancelButtonText: 'Close',
+        customClass: 'fv-docker-member-menu-swal'
+    }, () => {
+        clearDockerPreviewMemberMenuRegistry();
+    });
+    window.setTimeout(() => {
+        $(document)
+            .off('click.fvDockerMemberMenuAction')
+            .on('click.fvDockerMemberMenuAction', '.fv-docker-member-menu-action', async function onDockerMemberMenuAction(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                const key = String($(this).attr('data-action-key') || '').trim();
+                const handler = dockerPreviewMemberMenuRegistry.get(key);
+                if (typeof handler !== 'function') {
+                    return;
+                }
+                clearDockerPreviewMemberMenuRegistry();
+                swal.close();
+                await handler();
+            });
+    }, 0);
+};
+$(document)
+    .off('click.fvDockerMemberMenuTrigger')
+    .on('click.fvDockerMemberMenuTrigger', '.fv-docker-member-menu-trigger', function onDockerMemberMenuTrigger(event) {
+        if ($(event.target).closest('.folder-element-custom-btn').length) {
+            return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        const entry = resolveDockerPreviewMemberEntry(this);
+        if (!entry) {
+            return;
+        }
+        showDockerPreviewMemberMenu(entry);
+    })
+    .off('click.fvDockerMemberQuickAction')
+    .on('click.fvDockerMemberQuickAction', '.folder-element-custom-btn a', (event) => {
+        event.stopPropagation();
+    });
 const clampDockerRuntimeColumnWidth = (value, columnIndex = 0) => {
     const parsed = Number(value);
     if (!Number.isFinite(parsed)) {
@@ -648,6 +1062,7 @@ const estimateDockerRuntimeAutoAppWidth = () => {
             rows,
             baseline,
             nameSelector: '.folder-appname',
+            auxSelectors: ['.folder-state'],
             indentSelector: '.folder-name-sub',
             hiddenClass: 'fv-nested-hidden',
             chromeWidth: DOCKER_RUNTIME_APP_CHROME_WIDTH,
@@ -670,25 +1085,30 @@ const adjustDockerRuntimeAppWidthForRenderedOverflow = (baseWidth = null) => {
         if (!row || row.offsetParent === null || row.classList.contains('fv-nested-hidden')) {
             return;
         }
-        const label = row.querySelector('.folder-appname');
-        if (!label) {
+        const widthNodes = [
+            row.querySelector('.folder-appname'),
+            row.querySelector('.folder-state')
+        ].filter(Boolean);
+        if (!widthNodes.length) {
             return;
         }
-        const clientWidth = Math.max(0, Math.ceil(label.clientWidth || 0));
-        if (clientWidth <= 0) {
-            return;
-        }
-        const rawOverflow = Math.ceil((label.scrollWidth || 0) - clientWidth);
-        if (clientWidth < DOCKER_RUNTIME_APP_OVERFLOW_CLIENT_WIDTH_MIN && rawOverflow <= 0) {
-            return;
-        }
-        if (rawOverflow <= 0) {
-            return;
-        }
-        const overflow = Math.min(rawOverflow, DOCKER_RUNTIME_APP_OVERFLOW_NUDGE_MAX);
-        if (overflow > maxOverflow) {
-            maxOverflow = overflow;
-        }
+        widthNodes.forEach((node) => {
+            const clientWidth = Math.max(0, Math.ceil(node.clientWidth || 0));
+            if (clientWidth <= 0) {
+                return;
+            }
+            const rawOverflow = Math.ceil((node.scrollWidth || 0) - clientWidth);
+            if (clientWidth < DOCKER_RUNTIME_APP_OVERFLOW_CLIENT_WIDTH_MIN && rawOverflow <= 0) {
+                return;
+            }
+            if (rawOverflow <= 0) {
+                return;
+            }
+            const overflow = Math.min(rawOverflow, DOCKER_RUNTIME_APP_OVERFLOW_NUDGE_MAX);
+            if (overflow > maxOverflow) {
+                maxOverflow = overflow;
+            }
+        });
     });
     if (maxOverflow <= 0) {
         return startingWidth;
@@ -1481,7 +1901,7 @@ const buildRuntimeContainerEntry = (name, sourceMeta = null) => {
         id: source.id || String(runtime?.shortId || '').trim(),
         name: String(runtime?.info?.Name || source.name || key).trim() || key,
         icon: source.icon || runtime?.Labels?.['net.unraid.docker.icon'] || '/plugins/dynamix.docker.manager/images/question.png',
-        webui: String(source.webui || runtimeState.WebUi || '').trim(),
+        webui: String(source.webui || runtimeState.WebUi || runtimeState.TSWebUi || '').trim(),
         shell: source.shell || runtime?.info?.Shell || '/bin/sh',
         pause: hasRuntimePause ? (runtimeState.Paused === true) : (source.pause === true),
         state: hasRuntimeState ? (runtimeState.Running === true) : (source.state === true),
@@ -1784,13 +2204,15 @@ const renderRuntimeHealthBadge = (folders, prefs) => {
 };
 
 const dockerModules = window.FolderViewDockerModules || {};
-const dockerDebug = typeof dockerModules.createDebugLogger === 'function'
-    ? dockerModules.createDebugLogger(FOLDER_VIEW_DEBUG_MODE)
+const dockerDebug = typeof dockerRuntimeShared.createDebugLogger === 'function'
+    ? dockerRuntimeShared.createDebugLogger(FOLDER_VIEW_DEBUG_MODE, 'folderview.plus docker')
+    : (typeof dockerModules.createDebugLogger === 'function'
+        ? dockerModules.createDebugLogger(FOLDER_VIEW_DEBUG_MODE)
     : {
         log: (...args) => { if (FOLDER_VIEW_DEBUG_MODE) console.log(...args); },
         warn: (...args) => { if (FOLDER_VIEW_DEBUG_MODE) console.warn(...args); },
         error: (...args) => { if (FOLDER_VIEW_DEBUG_MODE) console.error(...args); }
-    };
+    });
 const folderViewPerfFromQuery = (() => {
     try {
         if (!window.location || typeof window.location.search !== 'string' || typeof URLSearchParams !== 'function') {
@@ -2549,15 +2971,40 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
 
     const previewNode = $(`tr.folder-id-${id} div.folder-preview`).get(0);
     applyPreviewBorderStyle(previewNode, folder.settings);
+    applyFolderDropdownStyle($(`tr.folder-id-${id}`), folder.settings);
+    applyFolderPreviewLayout($(`tr.folder-id-${id} div.folder-preview`), folder.settings);
     $(`tr.folder-id-${id} div.folder-preview`).addClass(`folder-preview-${folder.settings.preview}`);
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Added class folder-preview-${folder.settings.preview} to preview div.`);
 
     let addPreview;
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Selecting addPreview function based on folder.settings.preview = ${folder.settings.preview}. Context setting: ${folder.settings.context}`);
+    const compactMultiRowPreview = isCompactMultiRowPreview(folder.settings);
+    const appendCompactPreview = (folderTrId, ctid, autostart, previewEntry) => {
+        const { $item, $tooltipTrigger } = buildDockerPreviewItem({
+            entry: previewEntry || {},
+            settings: folder.settings,
+            autostart
+        });
+        $(`tr.folder-id-${folderTrId} div.folder-preview`).append($item);
+        if (folder.settings.context === 2 || folder.settings.context === 0) {
+            const $triggerTarget = $tooltipTrigger && $tooltipTrigger.length ? $tooltipTrigger : $item.find('.fv-preview-trigger').first();
+            if ($triggerTarget.length) {
+                $triggerTarget.attr("id", "folder-preview-" + ctid);
+                $triggerTarget.removeAttr("onclick");
+                if (folder.settings.context === 2) {
+                    return $triggerTarget;
+                }
+            }
+        }
+        return $tooltipTrigger;
+    };
     switch (folder.settings.preview) {
         case 1:
-            addPreview = (folderTrId, ctid, autostart) => {
+            addPreview = (folderTrId, ctid, autostart, previewEntry) => {
                 if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addPreview (case 1 for ${folderTrId}): ctid=${ctid}, autostart=${autostart}`);
+                if (compactMultiRowPreview) {
+                    return appendCompactPreview(folderTrId, ctid, autostart, previewEntry);
+                }
                 let clone = $(`tr.folder-id-${folderTrId} div.folder-storage > tr > td.ct-name > span.outer:last`).clone();
                 clone.find(`span.state`)[0].innerHTML = clone.find(`span.state`)[0].innerHTML.split("<br>")[0];
                 $(`tr.folder-id-${folderTrId} div.folder-preview`).append(clone.addClass(`${autostart ? 'autostart' : ''}`));
@@ -2567,25 +3014,29 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                     tmpId = $(`tr.folder-id-${folderTrId} div.folder-preview > span.outer:last > span.hand`);
                     tmpId.attr("id", "folder-preview-" + ctid);
                     tmpId.removeAttr("onclick");
-                    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addPreview (case 1 for ${folderTrId}): Context is ${folder.settings.context}. Modified preview element for tooltipster:`, tmpId);
                     if(folder.settings.context === 2) { return tmpId; }
                 }
             }; break;
         case 2:
-            addPreview = (folderTrId, ctid, autostart) => {
+            addPreview = (folderTrId, ctid, autostart, previewEntry) => {
                 if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addPreview (case 2 for ${folderTrId}): ctid=${ctid}, autostart=${autostart}`);
+                if (compactMultiRowPreview) {
+                    return appendCompactPreview(folderTrId, ctid, autostart, previewEntry);
+                }
                 $(`tr.folder-id-${folderTrId} div.folder-preview`).append($(`tr.folder-id-${folderTrId} div.folder-storage > tr > td.ct-name > span.outer > span.hand:last`).clone().addClass(`${autostart ? 'autostart' : ''}`));
                 if(folder.settings.context === 2 || folder.settings.context === 0) {
                     let tmpId = $(`tr.folder-id-${folderTrId} div.folder-preview > span.hand:last`);
                     tmpId.attr("id", "folder-preview-" + ctid);
                     tmpId.removeAttr("onclick");
-                    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addPreview (case 2 for ${folderTrId}): Context is ${folder.settings.context}. Modified preview element for tooltipster:`, tmpId);
                     if(folder.settings.context === 2) { return tmpId; }
                 }
             }; break;
         case 3:
-            addPreview = (folderTrId, ctid, autostart) => {
+            addPreview = (folderTrId, ctid, autostart, previewEntry) => {
                 if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addPreview (case 3 for ${folderTrId}): ctid=${ctid}, autostart=${autostart}`);
+                if (compactMultiRowPreview) {
+                    return appendCompactPreview(folderTrId, ctid, autostart, previewEntry);
+                }
                 let clone = $(`tr.folder-id-${folderTrId} div.folder-storage > tr > td.ct-name > span.outer > span.inner:last`).clone();
                 clone.find(`span.state`)[0].innerHTML = clone.find(`span.state`)[0].innerHTML.split("<br>")[0];
                 $(`tr.folder-id-${folderTrId} div.folder-preview`).append(clone.addClass(`${autostart ? 'autostart' : ''}`));
@@ -2595,13 +3046,15 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                     tmpId = $(`tr.folder-id-${folderTrId} div.folder-preview > span.inner:last > span.appname > a.exec`);
                     tmpId.attr("id", "folder-preview-" + ctid);
                     tmpId.removeAttr("onclick");
-                    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addPreview (case 3 for ${folderTrId}): Context is ${folder.settings.context}. Modified preview element for tooltipster:`, tmpId);
                     if(folder.settings.context === 2) { return tmpId; }
                 }
             }; break;
         case 4:
-            addPreview = (folderTrId, ctid, autostart) => {
+            addPreview = (folderTrId, ctid, autostart, previewEntry) => {
                 if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addPreview (case 4 for ${folderTrId}): ctid=${ctid}, autostart=${autostart}`);
+                if (compactMultiRowPreview) {
+                    return appendCompactPreview(folderTrId, ctid, autostart, previewEntry);
+                }
                 let lstSpan = $(`tr.folder-id-${folderTrId} div.folder-preview > span.outer:last`);
                 if(!lstSpan[0] || lstSpan.children().length >= 2) {
                     $(`tr.folder-id-${folderTrId} div.folder-preview`).append($('<span class="outer"></span>'));
@@ -2613,7 +3066,6 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                     let tmpId = $(`tr.folder-id-${folderTrId} div.folder-preview span.inner:last > span.appname > a.exec`);
                     tmpId.attr("id", "folder-preview-" + ctid);
                     tmpId.removeAttr("onclick");
-                    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addPreview (case 4 for ${folderTrId}): Context is ${folder.settings.context}. Modified preview element for tooltipster:`, tmpId);
                     if(folder.settings.context === 2) {
                         return tmpId.length>0 ? tmpId : $(`tr.folder-id-${folderTrId} div.folder-preview span.inner:last > span.appname`).attr("id", "folder-preview-" + ctid);
                     }
@@ -2684,6 +3136,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
             $(`tr.folder-id-${id} div.folder-storage`).append(
                 $containerTR.addClass(`folder-${id}-element folder-element`).removeClass('sortable ui-sortable-handle')
             );
+            decorateDockerFolderMemberRow($containerTR, id, ct.info.Name || container_name_in_folder);
             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Moved TR to folder storage.`);
 
             const currentIndexInLiveList = liveOrderArray.indexOf(container_name_in_folder);
@@ -2693,6 +3146,21 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
             } else {
                 if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolder (id: ${id}): Container ${container_name_in_folder} was MOVED FROM DOM but NOT FOUND IN liveOrderArray for splicing. This might indicate it was already spliced by a previous folder or logic error.`);
             }
+
+            newFolder[container_name_in_folder] = {
+                id: ct.shortId,
+                name: ct.info.Name || container_name_in_folder,
+                icon: ct.Labels?.['net.unraid.docker.icon'] || '/plugins/dynamix.docker.manager/images/question.png',
+                webui: ct.info.State.WebUi || ct.info.State.TSWebUi || '',
+                shell: ct.info.Shell || '/bin/sh',
+                pause: ct.info.State.Paused,
+                state: ct.info.State.Running,
+                autostart: !(ct.info.State.Autostart === false),
+                update: ct.info.State.Updated === false && ct.info.State.manager === 'dockerman',
+                managed: ct.info.State.manager === 'dockerman',
+                manager: ct.info.State.manager
+            };
+            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Stored in newFolder:`, JSON.parse(JSON.stringify(newFolder[container_name_in_folder])));
 
             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Container info (ct):`, JSON.parse(JSON.stringify(ct)));
 
@@ -2744,7 +3212,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                  if (FOLDER_VIEW_DEBUG_MODE && charts.length > 0) console.log(`[FV3_DEBUG] graphListener (for ct: ${ct.shortId}): Updated ${charts.length} charts.`);
             };
 
-            const tooltip_trigger_element = addPreview(id, ct.shortId, !(ct.info.State.Autostart === false));
+            const tooltip_trigger_element = addPreview(id, ct.shortId, !(ct.info.State.Autostart === false), newFolder[container_name_in_folder]);
             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${ct.shortId}: Called addPreview. Returned tooltip_trigger_element:`, tooltip_trigger_element ? tooltip_trigger_element[0] : 'null/undefined');
         
             $(`tr.folder-id-${id} div.folder-preview span.inner > span.appname`).css("width", folder.settings.preview_text_width || '');
@@ -3026,21 +3494,6 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                  if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolder (id: ${id}), container ${ct.shortId}: tooltip_trigger_element is NOT valid. Tooltipster NOT initialized. This is likely the problem if folder.settings.context === 2.`);
             }
 
-            newFolder[container_name_in_folder] = {
-                id: ct.shortId,
-                name: ct.info.Name || container_name_in_folder,
-                icon: ct.Labels?.['net.unraid.docker.icon'] || '/plugins/dynamix.docker.manager/images/question.png',
-                webui: ct.info.State.WebUi || '',
-                shell: ct.info.Shell || '/bin/sh',
-                pause: ct.info.State.Paused,
-                state: ct.info.State.Running,
-                autostart: !(ct.info.State.Autostart === false),
-                update: ct.info.State.Updated === false && ct.info.State.manager === 'dockerman',
-                managed: ct.info.State.manager === 'dockerman',
-                manager: ct.info.State.manager
-            };
-            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Stored in newFolder:`, JSON.parse(JSON.stringify(newFolder[container_name_in_folder])));
-
             const elementForPreviewOpts = $(`tr.folder-id-${id} div.folder-preview > span:last`); // Re-check if this is always correct
             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Preview element for options:`, elementForPreviewOpts[0]);
             let sel_preview_opt;
@@ -3052,7 +3505,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
             const previewStateMeta = getPreviewContainerStatusMeta(newFolder[container_name_in_folder]);
             const previewStatusTitle = escapeHtml($.i18n(previewStateMeta.key));
 
-            if ((previewMode === 3 || previewMode === 4) && $previewElementTarget.length) {
+            if (!compactMultiRowPreview && (previewMode === 3 || previewMode === 4) && $previewElementTarget.length) {
                 const $previewAppName = $previewElementTarget.find('span.appname > a.exec').first();
                 if ($previewAppName.length) {
                     $previewAppName.addClass('fv-preview-status-name').addClass(previewStateMeta.className);
@@ -3092,14 +3545,17 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
             }
 
             // Determine the element to append WebUI/Console/Logs icons to
-            $targetForAppend = $previewElementTarget.children('span.inner').last();
+            $targetForAppend = compactMultiRowPreview
+                ? $previewElementTarget.find('.fv-preview-actions-compact').first()
+                : $previewElementTarget.children('span.inner').last();
             if (!$targetForAppend.length) {
                 $targetForAppend = $previewElementTarget; // Fallback to the main span if no inner span
             }
 
-            if (folder.settings.preview_webui && ct.info.State.WebUi) {
+            const previewWebuiUrl = String(newFolder[container_name_in_folder]?.webui || ct.info.State.WebUi || ct.info.State.TSWebUi || '').trim();
+            if (folder.settings.preview_webui && previewWebuiUrl) {
                 if ($targetForAppend.length) {
-                    $targetForAppend.append($(`<span class="folder-element-custom-btn folder-element-webui"><a href="${ct.info.State.WebUi}" target="_blank" rel="noopener noreferrer"><i class="fa fa-globe" aria-hidden="true"></i></a></span>`));
+                    $targetForAppend.append($(`<span class="folder-element-custom-btn folder-element-webui"><a href="${previewWebuiUrl}" target="_blank" rel="noopener noreferrer"><i class="fa fa-globe" aria-hidden="true"></i></a></span>`));
                     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Appended WebUI icon to preview.`);
                 } else {
                      if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: WebUI icon: Could not find target for append in preview element.`);
@@ -3177,11 +3633,9 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Attached folderobserver to .folder-storage load icons.`);
     $(`tr.folder-id-${id} div.folder-preview > span`).wrap('<div class="folder-preview-wrapper"></div>');
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Wrapped preview spans with .folder-preview-wrapper.`);
-    if(folder.settings.preview_vertical_bars) {
-        const barsColor = folder.settings.preview_vertical_bars_color || folder.settings.preview_border_color;
-        $(`tr.folder-id-${id} div.folder-preview > div`).after(`<div class="folder-preview-divider" style="border-color: ${barsColor};"></div>`);
-        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Added preview_vertical_bars.`);
-    }
+    applyFolderPreviewLayout($(`tr.folder-id-${id} div.folder-preview`), folder.settings);
+    layoutFolderPreviewRows($(`tr.folder-id-${id} div.folder-preview`), folder.settings);
+    if (FOLDER_VIEW_DEBUG_MODE && folder.settings.preview_vertical_bars) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Added preview_vertical_bars.`);
     if(folder.settings.update_column) {
         $(`tr.folder-id-${id} > td.updatecolumn`).next().attr('colspan',6).end().remove();
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Handled update_column setting (removed column).`);
@@ -3226,6 +3680,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     }
     const $folderRow = $(`tr.folder-id-${id}`);
     applyFolderStatusColorOverrides($folderRow, folder.settings);
+    applyFolderDropdownStyle($folderRow, folder.settings);
     const $folderIcon = $folderRow.find(`i#load-folder-${id}`);
     const $folderState = $folderRow.find('span.folder-state');
     $folderState.removeClass('fv-folder-state-started fv-folder-state-paused fv-folder-state-stopped');
@@ -3438,6 +3893,7 @@ const updateFolderRowStatusFromContainers = (id, folder, runtimeContainers) => {
     const total = containerEntries.length;
     const $folderRow = $(`tr.folder-id-${id}`);
     applyFolderStatusColorOverrides($folderRow, folder.settings);
+    applyFolderDropdownStyle($folderRow, folder.settings);
     const $folderIcon = $folderRow.find(`i#load-folder-${id}`);
     const $folderState = $folderRow.find('span.folder-state');
     $folderState.removeClass('fv-folder-state-started fv-folder-state-paused fv-folder-state-stopped');
@@ -3477,22 +3933,17 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
     const allowLogsQuickAction = nestedParentPreview || quickActionPrefs.preview_logs === true;
     $preview.empty();
     for (const entry of entries) {
-        const safeName = escapeHtml(entry?.name || '');
-        const safeIcon = sanitizeImageSrc(entry?.icon || '/plugins/dynamix.docker.manager/images/question.png');
-        const isRunning = entry?.state === true;
-        const isPaused = entry?.pause === true;
-        const iconClass = isRunning ? (isPaused ? 'fa-pause paused orange-text' : 'fa-play started green-text') : 'fa-square stopped red-text';
-        const stateLabel = isRunning ? (isPaused ? $.i18n('paused') : $.i18n('started')) : $.i18n('stopped');
-        const item = $(`
-            <span class="outer fv-nested-preview-item ${entry?.autostart === true ? 'autostart' : ''}">
-                <span class="hand"><img src="${safeIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></span>
-                <span class="inner">
-                    <span class="appname"><a>${safeName}</a></span><br>
-                    <i class="fa ${iconClass}"></i><span class="state"> ${stateLabel}</span>
-                </span>
-            </span>
-        `);
+        const { $item: item } = buildDockerPreviewItem({
+            entry,
+            settings: folder?.settings || {},
+            autostart: entry?.autostart === true
+        });
+        item.addClass('fv-nested-preview-item');
+        const compactMultiRowPreview = isCompactMultiRowPreview(folder?.settings || {});
         const $inner = item.children('span.inner').last();
+        const $actionsTarget = compactMultiRowPreview
+            ? item.find('.fv-preview-actions-compact').first()
+            : $inner;
         const containerName = String(entry?.name || '');
         const shellValue = String(entry?.shell || '/bin/sh');
         const webuiUrl = String(entry?.webui || '').trim();
@@ -3503,7 +3954,7 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
                 .attr('target', '_blank')
                 .attr('rel', 'noopener noreferrer')
                 .append('<i class="fa fa-globe" aria-hidden="true"></i>');
-            $inner.append($('<span class="folder-element-custom-btn folder-element-webui"></span>').append($webuiLink));
+            $actionsTarget.append($('<span class="folder-element-custom-btn folder-element-webui"></span>').append($webuiLink));
         }
 
         if (allowConsoleQuickAction) {
@@ -3513,7 +3964,7 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
                     event.preventDefault();
                     openTerminal('docker', containerName, shellValue);
                 });
-            $inner.append($('<span class="folder-element-custom-btn folder-element-console"></span>').append($consoleLink));
+            $actionsTarget.append($('<span class="folder-element-custom-btn folder-element-console"></span>').append($consoleLink));
         }
 
         if (allowLogsQuickAction) {
@@ -3523,15 +3974,18 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
                     event.preventDefault();
                     openTerminal('docker', containerName, '.log');
                 });
-            $inner.append($('<span class="folder-element-custom-btn folder-element-logs"></span>').append($logsLink));
+            $actionsTarget.append($('<span class="folder-element-custom-btn folder-element-logs"></span>').append($logsLink));
         }
+        decorateDockerPreviewMemberTriggers(
+            item.find('span.hand, span.inner > span.appname, span.inner > span.appname > a, span.inner > i.fa, span.inner > span.state'),
+            id,
+            containerName
+        );
         $preview.append(item);
     }
     $preview.children('span').wrap('<div class="folder-preview-wrapper"></div>');
-    if (folder?.settings?.preview_vertical_bars) {
-        const barsColor = folder.settings.preview_vertical_bars_color || folder.settings.preview_border_color || '';
-        $preview.find('div.folder-preview-wrapper').after(`<div class="folder-preview-divider" ${barsColor ? `style="border-color: ${barsColor};"` : ''}></div>`);
-    }
+    applyFolderPreviewLayout($preview, folder?.settings || {});
+    layoutFolderPreviewRows($preview, folder?.settings || {});
     $preview.find('span.inner > span.appname').css('width', folder?.settings?.preview_text_width || '');
 };
 

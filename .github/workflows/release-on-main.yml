@@ -66,6 +66,7 @@ jobs:
           FVPLUS_UNRAID_REQUIRED_VERSIONS: '7.0.x,7.1.x,7.2.x'
           FVPLUS_UNRAID_REQUIRED_THEMES: 'black,white'
           FVPLUS_I18N_STRICT: '1'
+          FVPLUS_DEAD_CODE_STRICT: '1'
           FVPLUS_REQUIRE_PERF_BASELINE: '1'
         run: |
           chmod +x scripts/api_contract_guard.sh scripts/legacy_support_guard.sh scripts/i18n_guard.sh scripts/lang_usage_guard.sh scripts/include_order_guard.sh scripts/theme_scope_guard.sh scripts/theme_runtime_guard.sh scripts/perf_budget_guard.sh scripts/repro_build_guard.sh scripts/dead_code_guard.sh scripts/unraid_matrix_smoke.sh

@@ -5,18 +5,315 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.22.07">
-<!ENTITY md5 "58d683b5ef1686e6190587c10f5189bf">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
+<!ENTITY version "2026.03.23.08">
+<!ENTITY md5 "cb1fb4fda2eb6c3709b71d6b80f83dbc">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
 
-###2026.03.22.07
-- UX: Added clean icon-only folder preview behavior through the existing Preview mode and clarified preview help text.
-- Feature: Landed starter-template onboarding, setup-assistant template flow, and improved smart-detect auto-assignment for Docker and VMs.
-- Quality: Split large settings logic into owned modules, tightened theme/mobile/runtime parity, and expanded regression/performance guards.
+###2026.03.23.08
+- Fix: Kept the Dashboard widget action rail visible from the start of `Legacy` view exits instead of waiting for the async widget rebuild to begin.
+- Quality: Cleared per-widget `Legacy` transition state on failed or superseded view switches so quick-rail visibility does not get stuck.
+- Test: Expanded Dashboard layout regression coverage for early transition-state activation during `Legacy` view switches.
+
+
+###2026.03.23.07
+- Fix: Kept the Dashboard widget action rail visible during `Legacy` view transitions by tracking per-widget layout rebuild state instead of hiding the rail while cards are temporarily absent.
+- Quality: Hardened the Dashboard quick-rail visibility logic so it treats local widget rebuilds as an active state rather than a collapsed/empty widget.
+- Test: Added regression coverage for transition-in-flight handling in the Dashboard layout runtime.
+
+
+###2026.03.23.06
+- Fix: Reworked Dashboard widget `Legacy` transitions to restore native rows locally instead of forcing a full `loadlist()` refresh, removing the extra delay when cycling in and out of bypass mode.
+- Fix: Prevented one widget entering `Legacy` from short-circuiting the other widget's folder render path by scoping dashboard rebuilds to the affected type.
+- Test: Expanded dashboard layout regression coverage for the local `Legacy` rerender path and type-scoped widget rebuilds.
+
+
+###2026.03.23.05
+- Feature: Added `Legacy` as a Dashboard widget layout for Docker and VM widgets so they can show native Unraid rows without FolderView Plus folder grouping.
+- Quality: Persisted the new `Legacy` layout across settings, runtime normalization, and manifest-backed preferences, with a safe widget reload when switching in or out of bypass mode.
+- Test: Added regression coverage for `Legacy` dashboard layout normalization and runtime wiring.
+
+
+###2026.03.23.04
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.23.03
+- Feature: Add docker multi-row preview regression guards.
+
+
+###2026.03.23.02
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+
+
+###2026.03.23.01
+- Maintenance: Center docker multi-row preview rows.
+- Maintenance: Align docker multi-row metadata under name.
+- Fix: Fix docker multi-row wrap and status color.
+- Fix: Fix docker multi-row preview renderer.
+- Maintenance: Wrap multi-row docker previews by width.
+- Maintenance: Show full icon-label multi-row previews.
+
+
+###2026.03.22.54
+- Fix: Remove leftover multi-row preview row and wrapper minimum heights so wrapped Docker previews center off real content height instead of reserved single-row space.
+- UX: Tighten multi-row preview box padding and row gap so wrapped containers sit more naturally in the middle of the folder row.
+
+
+###2026.03.22.53
+- UX: Center multi-row Docker preview content with balanced vertical padding and tighter row height.
+- Fix: Reduce the top-heavy row stack bias in multi-row previews so wrapped rows sit more like the normal preview box.
+
+
+###2026.03.22.52
+- Fix: Stack compact multi-row Docker preview cards like the normal preview, with status and quick actions on the second line under the name.
+- UX: Keep multi-row preview metadata grouped beneath the name instead of inline on the first row.
+
+
+###2026.03.22.51
+- Fix: Measure Docker multi-row preview items at natural width so the first row fills before wrapping.
+- Fix: Keep compact multi-row status text on the normal text color while only the status icon uses the started/stopped color.
+- UX: Align multi-row preview rows to the same horizontal flow model as the normal single-row preview.
+
+
+###2026.03.22.50
+- Fix: Route Docker multi-row previews through the real preview renderer instead of legacy cloned markup.
+- Fix: Keep multi-row member names horizontal beside the icon and send quick actions into the dedicated trailing action cluster.
+- UX: Preserve the stable single-row preview path while keeping multi-row wrapping isolated to folders that opt into it.
+
+
+###2026.03.22.49
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+
+
+###2026.03.22.48
+- Fix: Multi-row Docker previews now fill each row by available width before wrapping instead of stopping at a fixed item count.
+- UX: Added light vertical row padding so wrapped preview rows sit closer to the same centered feel as the normal single-row preview.
+- Fix: Prevented wide folders like Plex from leaving avoidable unused space at the end of the first row before wrapping.
+
+
+###2026.03.22.47
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+
+
+###2026.03.22.46
+- Fix: Restored `Icon and label` multi-row previews to 4 items per row so two-row folders can show full sets like `8/10 started` Plex instead of clipping at 6.
+- UX: Centered multi-row preview wrappers and cards to match the vertical alignment of the normal single-row preview.
+- Fix: Kept the legacy single-row preview styling intact while only adjusting multi-row row grouping and alignment.
+
+
+###2026.03.22.45
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.22.44
+- UX: Reworked compact multi-row Docker preview cards into separate name, status, and action clusters so `started/stopped` and quick actions no longer collapse into one stream.
+- Fix: Reduced multi-row preview density for `Icon and label` mode to stop names from truncating as aggressively in folders like Plex.
+- UX: Aligned compact multi-row action spacing with the restored single-row preview behavior while leaving one-row folders unchanged.
+
+
+###2026.03.22.43
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.22.42
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+
+
+###2026.03.22.41
+- Refactor: Split Docker folder previews into separate single-row and compact multi-row render paths so `Preview rows > 1` no longer reuses the legacy single-row card template.
+- Fix: Keep single-row previews on the original richer layout while multi-row previews use a dedicated one-line compact card with normalized actions and status.
+- UX: Restore normal-sized icons in multi-row mode and remove the hybrid CSS tweaks that only changed some folders without producing a coherent multi-row layout.
+
+
+###2026.03.22.39
+- UX: Restore normal-sized preview icons in multi-row Docker mode so dense rows do not look shrunken while keeping the one-line compact layout.
+- Fix: Remove the overly aggressive font scaling from compact multi-row preview text so folders like Plex no longer render as the only visibly altered row.
+- UX: Keep multi-row density gains from the one-line layout without making preview cards feel visually undersized.
+
+
+###2026.03.22.38
+- UX: Convert multi-row Docker previews to a true compact row layout by collapsing the second text line, shrinking preview icons, and tightening action spacing.
+- Fix: Make multi-row preview cards render as single-line compact entries so enabling more than one row visibly reduces wasted height instead of repeating full-size cards.
+- UX: Cap multi-row preview name width so compact rows stay dense and consistent across mixed container-name lengths.
+
+
+###2026.03.22.37
+- UX: Add a dedicated compact density mode for multi-row Docker previews so stacked preview rows use smaller icons, tighter gaps, and reduced action spacing.
+- Fix: Mark multi-row and unlimited preview containers explicitly so the denser preview layout only applies when more than one row is enabled.
+- UX: Reduce row padding and card spacing in multi-row mode so the second preview row no longer feels like a full-height duplicate of the first.
+
+
+###2026.03.22.36
+- Fix: Use the normalized preview WebUI URL in the main Docker row so preview globe icons stay available when a container only exposes fallback WebUI metadata.
+- UX: Remove oversized row-height centering from multi-row Docker previews so rows hug their content instead of leaving extra bottom space.
+- Fix: Tighten wrapper and card alignment so the vertical gap between preview rows is reduced without changing the multi-row renderer.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.22.35
+- Fix: Tighten multi-row Docker preview row heights and inter-row spacing so preview cards no longer leave excess bottom padding or oversized gaps between rows.
+- Fix: Reduce compact preview card vertical size so multi-row previews stay dense without distorting the folder row height.
+- Compatibility: Fall back to `TSWebUi` for preview WebUI actions when a container does not expose a standard `WebUi` value.
+
+
+###2026.03.22.34
+- Fix: Remove rigid preview-card minimum widths so multi-row Docker previews no longer look spaced like fixed columns.
+- UX: Move the left preview gutter to the row container and tighten row/card spacing so compact preview cards pack naturally.
+- Fix: Let preview card content shrink from the inner text block instead of forcing oversized gaps between member cards.
+
+
+###2026.03.22.33
+- Feature: Reintroduce `Preview rows` with a dedicated compact Docker preview renderer instead of cloned container-row markup.
+- Fix: Render multi-row Docker previews as stable compact cards so row count changes no longer distort spacing or collapse the tail of a row into orphaned quick-action icons.
+- UX: Keep the richer member action sheet while aligning nested/aggregate previews to the same compact card renderer and row-grouping logic.
+
+
+###2026.03.22.32
+- Fix: Roll back the experimental Docker Preview rows layout after it destabilized row spacing and clipped preview cards in the main Docker view.
+- UX: Restore the prior single-row Docker preview behavior while keeping the new detailed member action sheet for expanded folder members and nested preview entries.
+- Maintenance: Remove the unfinished Preview rows editor control until a dedicated compact preview renderer replaces the current cloned-row preview markup.
+
+
+###2026.03.22.31
+- Fix: Reduce Docker preview row capacity for text-heavy preview modes and prevent preview cards from shrinking so the last item in a row no longer collapses into orphaned WebUI, console, and log icons.
+- UX: Restore tighter single-row spacing in Docker folder previews by removing the extra wrapper margin introduced by the first explicit-row renderer.
+- Regression guard: Lock the new per-mode preview row capacities and no-shrink row styling into the Docker preview overflow test coverage.
+
+
+###2026.03.22.30
+- Fix: Rebuild Docker folder previews into explicit row groups so the Preview rows setting actually controls the visible row layout instead of depending on browser flex wrapping.
+- Fix: Prevent clipped container labels/icons in wide folder previews by laying out preview members in deterministic per-row slices before the overflow path.
+- Regression guard: Extend preview overflow tests to cover row grouping and deterministic preview-row rendering behavior.
+
+
+###2026.03.22.29
+- Fix: Make the new Preview rows control deterministic by capping how many Docker members render in the main row per selected row count instead of relying on browser-dependent height clipping.
+- UX: Clarify that Preview rows controls the main Docker row preview and leaves additional members in the folder overflow path unless Unlimited is selected.
+- Regression guard: Extend Docker preview overflow tests to lock the new visible-member limit behavior in place.
+
+
+###2026.03.22.28
+- Feature: Add per-folder Preview rows control so Docker folder previews can show multiple rows of members before clipping.
+- UX: Let expanded folder-member containers and nested preview members open a richer state-aware Docker action sheet with start, stop, pause, resume, restart, WebUI, console, logs, and update actions.
+- Regression guard: Cover the new preview-row setting, multi-row preview layout, and Docker member action-menu wiring in automated tests.
+
+
+###2026.03.22.27
+- Refactor: Extract shared smart-detect configuration, runtime diagnostics helpers, and Docker/VM runtime helpers out of the remaining settings/runtime monoliths.
+- Maintenance: Add a first-class beta/testing channel manifest and harden release automation so stable, dev, and beta metadata stay isolated and validated.
+- Quality: Make dead-code checks strict in release prep, centralize smart-detect thresholds and aliases, and expand import/export contract coverage for legacy and edge-case payloads.
+- UX: Clarify section apply behavior, clean up settings CSS debt, and strengthen theme/mobile/dashboard regression coverage with performance telemetry baked into diagnostics and wizard apply flows.
+
+
+###2026.03.22.25
+- UX: Remove the outdated `Mixed apply` section-header badge from settings now that the floating save pill menu is gone.
+- UX: Only show a section apply badge when that section truly contains save-required fields.
+- Regression guard: Cover the new section-header apply-badge behavior in settings bindings tests.
+
+
+###2026.03.22.24
+- Fix: Treat settings-table Name and Actions width controls as instant-persist settings instead of staged-save fields.
+- UX: Apply Sort mode and view settings column changes immediately so the Docker and VM settings tables no longer wait on the save action bar.
+- Regression guard: Cover the instant-persist wiring for Docker and VM column-width controls.
+
+
+###2026.03.22.23
+- UX: Remove the floating save pill menu from plugin settings and replace it with a simpler fixed action bar.
+- Fix: Keep staged save, cancel, save-and-close, and reset actions without the extra expand or overflow dock behavior.
+- Compatibility: Preserve compact horizontal scrolling for the settings action bar on narrow screens.
+
+
+###2026.03.22.22
+- UX: Replace settings-table drag-resize controls with stable Name and Actions width presets plus layout/visibility controls.
+- Fix: Remove fragile manual column-width handling from settings tables so columns no longer depend on click-and-drag resizing.
+- UX: Keep settings-table header titles centered over their columns for cleaner alignment.
+
+
+###2026.03.22.21
+- Fix: Change settings-table column resizing to use a guide-line drag preview and only commit widths on mouse release.
+- UX: Center settings-table `Name` and `Alerts` column titles so headers align with their columns again.
+
+
+###2026.03.22.20
+- Fix: Switched settings-table column resizing to a document-level mouse drag session so desktop drags no longer drop mid-hold.
+- UX: End active settings-table resize sessions when the primary mouse button is released instead of relying on pointer-capture continuity.
+
+
+###2026.03.22.19
+- Fix: Fix settings table column drag activation.
+- Fix: Fix settings table column layout drift.
+- Maintenance: Mark dev builds as preview channel.
+- Maintenance: Restore canonical plugin manifest metadata.
+- Maintenance: Update manifest hardening guard coverage.
+- Maintenance: Harden plugin manifest update metadata.
+
+
+###2026.03.22.18
+- Fix: Keep settings-table column drags active for the full pointer hold by capturing the resize pointer on the handle until release.
+- UX: Ignore unrelated pointer events during settings-table resize so long drags no longer stall mid-adjustment.
+
+
+###2026.03.22.17
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.22.16
+- Fix: Remove the conflicting desktop `nth-child` settings-table widths so the column runtime stops fighting old CSS rules.
+- UX: Make settings-table presets and resets return to a true auto-layout state instead of leaving stale custom column widths behind.
+- Quality: Tighten settings-column regression coverage around preset state, width-mode resets, and CSS ownership.
+
+
+###2026.03.22.15
+- Test: Bump the dev package again so Unraid plugin-update checks can be retested against a newer `dev` manifest version.
+- UX: Label the packaged dev branch description clearly as a preview/testing build that may contain bugs or regressions.
+
+
+###2026.03.22.14
+- Test: Bump the dev manifest and package version to verify whether Unraid can detect branch-head updates from the installed `dev` plugin URL.
+
+
+###2026.03.22.13
+- Fix: Restore the canonical entity-based top-level plugin manifest tag used by earlier working releases so Unraid plugin status checks stop hanging on `checking...`.
+- Quality: Keep branch URL hardening, but validate it against the known-good manifest format instead of rewriting the top-level plugin tag.
+
+
+###2026.03.22.12
+- Fix: Emit a fully literal top-level plugin manifest tag so Unraid and CA update checks never rely on XML entity expansion for `version` or `pluginURL`.
+- Quality: Harden release validation to fail builds when the top-level plugin metadata is malformed or points at the wrong branch.
+- Quality: Verify branch-specific dev/main manifest URLs stay aligned during packaging to prevent CA pull regressions.
+
+
+###2026.03.22.10
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.22.09
+- Maintenance: Stabilize settings table column layout controls.
+- Maintenance: Release main 2026.03.22.07 with onboarding and preview rollup.
+- Maintenance: Fold preview detail behavior into preview mode.
+- Feature: Add per-folder preview member detail modes.
+- Maintenance: Prune superseded archive artifacts.
+- Maintenance: Refresh perf baseline for runtime globals.
+
+
+###2026.03.22.08
+- UX: Reworked Docker and VM settings table columns with width-mode controls, layout presets, and one-click reset actions.
+- Fix: Moved settings-table column visibility and width state into server-backed prefs and corrected default visibility handling so layouts stop snapping back or drifting.
+- Quality: Switched settings tables to schema-driven column definitions with regression coverage for layout controls and normalization.
+
+
+###2026.03.22.06
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Fix: Improved backend release-note parsing and category detection for accurate summaries.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
 
 
 ###2026.03.22.05
@@ -2499,7 +2796,7 @@
     </CHANGES>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

@@ -14,6 +14,17 @@
     --fvplus-vm-folder-right-gutter: 18px;
     --fvplus-vm-folder-outer-reserved-width: 88px;
     --fvplus-vm-folder-dropdown-right-margin: 10px;
+    --fvplus-folder-dropdown-color: #ff9a3c;
+    --fvplus-folder-dropdown-hover-color: #111111;
+    --fvplus-folder-dropdown-bg: rgba(255, 154, 60, 0.1);
+    --fvplus-folder-dropdown-hover-bg: rgba(255, 154, 60, 0.82);
+    --fvplus-folder-dropdown-border-color: rgba(255, 154, 60, 0.52);
+    --fvplus-folder-dropdown-hover-border-color: #111111;
+    --fvplus-folder-dropdown-border-width: 0px;
+    --fvplus-folder-dropdown-min-width: 12px;
+    --fvplus-folder-dropdown-height: 16px;
+    --fvplus-folder-dropdown-padding: 0 2px;
+    --fvplus-folder-dropdown-radius: 0px;
 }
 
 body[data-fvplus-vm-app-width="compact"] {
@@ -115,6 +126,7 @@ td.vm-name.folder-name > .folder-name-sub {
     flex-direction: column;
     min-width: 0;
     max-width: 100%;
+    align-items: flex-start;
 }
 
 .folder-appname {
@@ -130,32 +142,37 @@ td.vm-name.folder-name > .folder-name-sub {
 }
 
 .folder-dropdown {
-    width: 16px;
-    height: 16px;
-    min-width: 16px;
-    padding: 0;
+    width: auto;
+    height: var(--fvplus-folder-dropdown-height, 16px);
+    min-width: var(--fvplus-folder-dropdown-min-width, 12px);
+    padding: var(--fvplus-folder-dropdown-padding, 0 2px);
     margin: 0 var(--fvplus-vm-folder-dropdown-right-margin, 10px) 0 auto;
     flex-shrink: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     line-height: 1;
-    border: 0 !important;
-    background: transparent !important;
+    border: var(--fvplus-folder-dropdown-border-width, 1px) solid var(--fvplus-folder-dropdown-border-color, rgba(255, 154, 60, 0.52)) !important;
+    border-radius: var(--fvplus-folder-dropdown-radius, 0px);
+    background: var(--fvplus-folder-dropdown-bg, rgba(255, 154, 60, 0.1)) !important;
     box-shadow: none !important;
+    color: var(--fvplus-folder-dropdown-color, #ff9a3c) !important;
+    transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease;
 }
 
 .folder-dropdown:hover,
 .folder-dropdown:focus,
 .folder-dropdown:active {
-    border: 0 !important;
-    background: transparent !important;
+    border-color: var(--fvplus-folder-dropdown-hover-border-color, #111111) !important;
+    background: var(--fvplus-folder-dropdown-hover-bg, rgba(255, 154, 60, 0.82)) !important;
     box-shadow: none !important;
+    color: var(--fvplus-folder-dropdown-hover-color, #111111) !important;
 }
 
 .folder-dropdown > i {
     font-size: 11px !important;
     line-height: 1;
+    color: inherit !important;
 }
 
 tr.fv-folder-focused td.vm-name.folder-name {
@@ -178,6 +195,12 @@ tr.fv-folder-locked .folder-appname {
 
 span.folder-state.fv-folder-state-started {
     color: var(--fvplus-folder-status-started, var(--fvplus-status-started));
+}
+
+span.folder-state {
+    display: inline-block;
+    max-width: 100%;
+    white-space: nowrap;
 }
 
 span.folder-state.fv-folder-state-paused {
@@ -243,7 +266,7 @@ i.folder-load-status.stopped {
     float: left;
     height: 80%;
     width: 0;
-    border-right: 1px solid;
+    border-right: var(--fvplus-preview-divider-width, 1px) solid;
     margin-left: 5px;
     margin-top: -7px;
 }

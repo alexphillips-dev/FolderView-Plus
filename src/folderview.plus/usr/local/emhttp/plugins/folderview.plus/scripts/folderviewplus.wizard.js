@@ -687,34 +687,21 @@ const normalizeSetupAssistantMatchText = (value) => (
         .trim()
 );
 
+const wizardSmartDetectConfig = window.FolderViewPlusSmartDetectConfig || {};
 const SETUP_ASSISTANT_TEMPLATE_FALLBACK_BY_TYPE = Object.freeze({
-    docker: 'Utilities',
-    vm: 'Utility VMs'
+    docker: String(wizardSmartDetectConfig.fallbackByType?.docker || 'Utilities'),
+    vm: String(wizardSmartDetectConfig.fallbackByType?.vm || 'Utility VMs')
 });
-const SETUP_ASSISTANT_TEMPLATE_MATCH_THRESHOLD = 4;
-const SETUP_ASSISTANT_TEMPLATE_CONFIDENT_THRESHOLD = 8;
+const SETUP_ASSISTANT_TEMPLATE_MATCH_THRESHOLD = Number(wizardSmartDetectConfig.matchThreshold) > 0
+    ? Number(wizardSmartDetectConfig.matchThreshold)
+    : 4;
+const SETUP_ASSISTANT_TEMPLATE_CONFIDENT_THRESHOLD = Number(wizardSmartDetectConfig.confidentThreshold) > 0
+    ? Number(wizardSmartDetectConfig.confidentThreshold)
+    : 8;
 
 const SETUP_ASSISTANT_MATCH_ALIASES = Object.freeze({
-    docker: Object.freeze({
-        jellyseerr: Object.freeze(['seerr', 'overseerr', 'media', 'request']),
-        wizarrrr: Object.freeze(['wizarr', 'media', 'invite']),
-        'nginx-proxy-manager': Object.freeze(['reverse proxy', 'proxy', 'npm']),
-        cloudflared: Object.freeze(['cloudflare', 'tunnel', 'remote access']),
-        homeassistant: Object.freeze(['home assistant', 'automation', 'haos']),
-        haos: Object.freeze(['home assistant', 'automation']),
-        'code-server': Object.freeze(['development', 'vscode', 'coder']),
-        unifi: Object.freeze(['network', 'controller']),
-        wg: Object.freeze(['wireguard', 'remote access'])
-    }),
-    vm: Object.freeze({
-        pve: Object.freeze(['proxmox', 'management', 'hypervisor']),
-        proxmox: Object.freeze(['pve', 'management', 'hypervisor']),
-        haos: Object.freeze(['home assistant', 'automation']),
-        omv: Object.freeze(['openmediavault', 'utility', 'management']),
-        truenas: Object.freeze(['storage', 'server', 'management']),
-        unifi: Object.freeze(['network', 'controller']),
-        dc: Object.freeze(['domain controller', 'identity', 'infrastructure'])
-    })
+    docker: Object.freeze({ ...(wizardSmartDetectConfig.matchAliases?.docker || {}) }),
+    vm: Object.freeze({ ...(wizardSmartDetectConfig.matchAliases?.vm || {}) })
 });
 
 const collectSetupAssistantItemMatchProfile = (type, itemName, itemInfo) => {
@@ -4456,6 +4443,15 @@ const applySetupAssistantPlan = async () => {
             : 'Rollback checkpoint skipped (Fast mode).';
         const durationMs = Math.max(0, Date.now() - applyStartedAt);
         const durationSeconds = (durationMs / 1000).toFixed(1);
+        if (typeof recordPerformanceDiagnosticsSample === 'function') {
+            recordPerformanceDiagnosticsSample('wizard', 'apply', durationMs, {
+                mode: setupAssistantState.mode,
+                route: setupAssistantState.route,
+                failures: applyFailures.length,
+                warnings: validationWarnings.length,
+                dryRun: false
+            });
+        }
         const summaryLines = [
             `Mode: ${setupAssistantState.mode}`,
             `Route: ${setupAssistantState.route}`,
@@ -4603,6 +4599,14 @@ const applySetupAssistantPlan = async () => {
             showError('Setup undo failed', error);
         }
     } catch (error) {
+        if (typeof recordPerformanceDiagnosticsSample === 'function') {
+            recordPerformanceDiagnosticsSample('wizard', 'apply', Math.max(0, Date.now() - applyStartedAt), {
+                mode: setupAssistantState.mode,
+                route: setupAssistantState.route,
+                failed: true,
+                dryRun: setupAssistantState.dryRunOnly === true
+            });
+        }
         let rollbackMessage = '';
         if (rollbackCreated) {
             try {

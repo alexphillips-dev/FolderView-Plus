@@ -8,12 +8,14 @@ const pagePath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugi
 const importScriptPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js');
 const backupPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/backup.php');
 const libPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
+const settingsCssPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css');
 
 const page = fs.readFileSync(pagePath, 'utf8');
 const settingsScriptPaths = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js',
@@ -24,6 +26,7 @@ const importScript = fs.readFileSync(importScriptPath, 'utf8');
 const runtimeScript = `${script}\n${importScript}`;
 const backupPhp = fs.readFileSync(backupPath, 'utf8');
 const libPhp = fs.readFileSync(libPath, 'utf8');
+const settingsCss = fs.readFileSync(settingsCssPath, 'utf8');
 
 test('settings page onclick handlers are exported on window', () => {
     const handlers = [
@@ -101,6 +104,7 @@ test('import apply flow includes a dedicated progress dialog', () => {
 
 test('settings action dock tracks only explicit/manual fields and excludes instant or transient controls', () => {
     assert.match(script, /changebackupschedulepref\(/);
+    assert.match(script, /changesettingstablecolumnwidthpreset\(/);
     assert.match(script, /togglerulekindfields\(/);
     assert.match(script, /toggleallruleselections\(/);
     assert.match(script, /togglealltemplateselections\(/);
@@ -110,11 +114,19 @@ test('settings action dock tracks only explicit/manual fields and excludes insta
     assert.match(script, /\$\('#fv-action-cancel'\)\.off\('click\.fvui'\)\.on\('click\.fvui', \(\) => \{\s*cancelActionBarChanges\(\);/);
 });
 
-test('settings sections render apply-mode badges for instant/save/mixed behavior', () => {
+test('settings table width preset controls are wired as instant-persist inputs', () => {
+    assert.match(page, /id="docker-table-name-width" onchange="changeSettingsTableColumnWidthPreset\('docker', 'name', this\.value\)"/);
+    assert.match(page, /id="docker-table-actions-width" onchange="changeSettingsTableColumnWidthPreset\('docker', 'actions', this\.value\)"/);
+    assert.match(page, /id="vm-table-name-width" onchange="changeSettingsTableColumnWidthPreset\('vm', 'name', this\.value\)"/);
+    assert.match(page, /id="vm-table-actions-width" onchange="changeSettingsTableColumnWidthPreset\('vm', 'actions', this\.value\)"/);
+});
+
+test('settings sections only show section apply badges when save-required fields exist', () => {
     assert.match(script, /className = 'fv-section-mode is-instant'/);
     assert.match(script, /const getSectionApplyMode = \(section\) =>/);
-    assert.match(script, /return \{ id: 'mixed', label: 'Mixed apply' \};/);
     assert.match(script, /return \{ id: 'staged', label: 'Requires Save' \};/);
+    assert.match(script, /return null;/);
+    assert.match(script, /section\.modeBadge\.hidden = true;/);
     assert.match(script, /const refreshSectionApplyModeBadges = \(\) =>/);
 });
 
@@ -258,13 +270,27 @@ test('nested folder branch and integrity actions are reachable from quick action
     assert.match(script, /window\.runTreeIntegrityCheck = runTreeIntegrityCheck;/);
 });
 
-test('settings column resize keeps per-column widths stable without side-effects', () => {
+test('settings table layout uses preset-driven widths instead of drag-resize controls', () => {
     assert.match(script, /const captureCurrentColumnWidths = \(type\) =>/);
     assert.match(script, /const syncResizableTableLayout = \(type\) =>/);
     assert.match(script, /const hasCustomWidths = Object\.keys\(customWidths\)\.length > 0;/);
-    assert.match(script, /const frozenWidths = captureCurrentColumnWidths\(resolvedType\);/);
+    assert.match(script, /const SETTINGS_TABLE_WIDTH_PRESET_VALUES = Object\.freeze\(\{/);
+    assert.match(script, /const buildEffectiveSettingsTableWidths = \(type\) => \{/);
+    assert.match(script, /changeSettingsTableColumnWidthPreset = async \(type, key, value\) => \{/);
+    assert.match(script, /settingsTableWidthPresetByType\[resolvedType\]\[targetKey\] = normalizeSettingsTableColumnWidthPreset\(value\);/);
+    assert.match(script, /table\.querySelectorAll\('\.fv-col-resizer'\)\.forEach\(\(handle\) => handle\.remove\(\)\);/);
     assert.match(script, /table\.style\.setProperty\('table-layout', 'fixed'(,\s*'important')?\);/);
-    assert.match(script, /const delta = Number\(moveEvent\.clientX \|\| 0\) - startClientX;/);
+    assert.match(script, /columnWidthsByType\[resolvedType\] = \{\};/);
+    assert.match(script, /columnWidthModeByType\[resolvedType\] = 'auto';/);
+    assert.match(script, /\$\(`\[data-fv-table-preset\^="\$\{resolvedType\}:"\]`\)\.removeClass\('is-active'\);/);
+    assert.match(page, /id="docker-table-name-width"/);
+    assert.match(page, /id="docker-table-actions-width"/);
+    assert.match(page, /id="vm-table-name-width"/);
+    assert.match(page, /id="vm-table-actions-width"/);
+    assert.match(settingsCss, /Desktop widths are JS-driven/);
+    assert.match(settingsCss, /\.folder-table table th\.col-name \{\s*text-align:\s*center;/);
+    assert.match(settingsCss, /\.folder-table table th\.col-signals \{\s*text-align:\s*center;/);
+    assert.doesNotMatch(settingsCss, /\.folder-table table th:nth-child\(1\),[\s\S]*\.folder-table table td:nth-child\(10\) \{ width: 5%; \}/);
 });
 
 test('status detail controls support simple balanced and detailed modes', () => {

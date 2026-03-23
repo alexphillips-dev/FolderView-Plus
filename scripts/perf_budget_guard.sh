@@ -71,6 +71,13 @@ const budgets = [
     maxGzipBytes: envInt('FVPLUS_MAX_FOLDERVIEWPLUS_SETUP_ASSISTANT_JS_GZIP_BYTES', 7000),
   },
   {
+    path: 'scripts/folderviewplus.smart-detect-config.js',
+    maxBytesEnv: 'FVPLUS_MAX_FOLDERVIEWPLUS_SMART_DETECT_CONFIG_JS_BYTES',
+    maxGzipBytesEnv: 'FVPLUS_MAX_FOLDERVIEWPLUS_SMART_DETECT_CONFIG_JS_GZIP_BYTES',
+    maxBytes: envInt('FVPLUS_MAX_FOLDERVIEWPLUS_SMART_DETECT_CONFIG_JS_BYTES', 12000),
+    maxGzipBytes: envInt('FVPLUS_MAX_FOLDERVIEWPLUS_SMART_DETECT_CONFIG_JS_GZIP_BYTES', 3000),
+  },
+  {
     path: 'scripts/folderviewplus.starter-templates.js',
     maxBytesEnv: 'FVPLUS_MAX_FOLDERVIEWPLUS_STARTER_TEMPLATES_JS_BYTES',
     maxGzipBytesEnv: 'FVPLUS_MAX_FOLDERVIEWPLUS_STARTER_TEMPLATES_JS_GZIP_BYTES',
@@ -147,6 +154,7 @@ const settingsRuntimePaths = [
   'scripts/folderviewplus.runtime-parity.js',
   'scripts/folderviewplus.settings-sections.js',
   'scripts/folderviewplus.setup-assistant.js',
+  'scripts/folderviewplus.smart-detect-config.js',
   'scripts/folderviewplus.starter-templates.js',
   'scripts/folderviewplus.activity-diagnostics.js',
   'scripts/folderviewplus.folder-editor.js',

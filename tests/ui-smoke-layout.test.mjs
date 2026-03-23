@@ -16,6 +16,7 @@ const settingsScriptPaths = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js',
@@ -64,6 +65,8 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
     assert.match(settingsPage, /folderviewplus\.request\.js/);
     assert.match(settingsPage, /folderviewplus\.chrome\.js/);
     assert.match(settingsPage, /folderviewplus\.dirty\.js/);
+    assert.match(settingsPage, /folderviewplus\.smart-detect-config\.js/);
+    assert.match(settingsPage, /folderviewplus\.activity-diagnostics\.js/);
     assert.match(settingsPage, /folderviewplus\.wizard\.js/);
     assert.match(settingsPage, /folderviewplus\.import\.js/);
     assert.match(settingsPage, /folderviewplus\.updates\.js/);
@@ -74,20 +77,30 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
     assert.match(settingsPage, /Autostart/);
     assert.match(settingsPage, /Resources/);
     assert.match(settingsPage, /id="docker-col-status"/);
+    assert.match(settingsPage, /id="docker-col-members"/);
     assert.match(settingsPage, /id="docker-col-rules"/);
     assert.match(settingsPage, /id="docker-col-last-changed"/);
     assert.match(settingsPage, /id="docker-col-pinned"/);
     assert.match(settingsPage, /id="docker-col-signals"/);
+    assert.match(settingsPage, /id="docker-table-name-width"/);
+    assert.match(settingsPage, /id="docker-table-actions-width"/);
+    assert.match(settingsPage, /id="docker-table-reset-visibility"/);
+    assert.match(settingsPage, /id="docker-table-reset-widths"/);
     assert.match(settingsPage, /id="docker-health-critical-threshold"/);
     assert.match(settingsPage, /id="docker-health-profile"/);
     assert.match(settingsPage, /id="docker-health-updates-mode"/);
     assert.match(settingsPage, /id="docker-health-all-stopped-mode"/);
     assert.match(settingsPage, /id="vm-col-status"/);
+    assert.match(settingsPage, /id="vm-col-members"/);
     assert.match(settingsPage, /id="vm-col-rules"/);
     assert.match(settingsPage, /id="vm-col-last-changed"/);
     assert.match(settingsPage, /id="vm-col-pinned"/);
     assert.match(settingsPage, /id="vm-col-autostart"/);
     assert.match(settingsPage, /id="vm-col-resources"/);
+    assert.match(settingsPage, /id="vm-table-name-width"/);
+    assert.match(settingsPage, /id="vm-table-actions-width"/);
+    assert.match(settingsPage, /id="vm-table-reset-visibility"/);
+    assert.match(settingsPage, /id="vm-table-reset-widths"/);
     assert.match(settingsPage, /id="vm-health-critical-threshold"/);
     assert.match(settingsPage, /id="vm-health-profile"/);
     assert.match(settingsPage, /id="vm-health-updates-mode"/);
@@ -103,9 +116,7 @@ test('mobile action bar and import progress keep compact viewport guards', () =>
     assert.match(settingsCss, /@media \(max-width: 760px\)/);
     assert.match(settingsCss, /#fv-settings-action-bar\s*\{[\s\S]*max-width:\s*calc\(100%\s*-\s*1rem\)/);
     assert.doesNotMatch(settingsCss, /#fv-settings-action-bar\s*\{[^}]*max-width:\s*calc\(100vw/);
-    assert.match(settingsCss, /\.fv-save-dock\s*\{/);
-    assert.match(settingsCss, /\.fv-save-dock-chip\s*\{/);
-    assert.doesNotMatch(settingsCss, /\.fv-save-dock-handle\s*\{/);
+    assert.match(settingsCss, /\.fv-settings-action-wrap\s*\{/);
     assert.match(settingsCss, /#fv-settings-action-bar\.is-hidden/);
     assert.match(settingsCss, /\.fv-action-buttons\s*\{[\s\S]*overflow-x:\s*auto/);
     assert.match(settingsCss, /#import-apply-progress-dialog\s*\{[\s\S]*max-width:\s*min\([0-9]+px,\s*calc\(100vw\s*-\s*1\.5rem\)\)/);
@@ -129,6 +140,7 @@ test('folder tables avoid unnecessary horizontal scrollbar in basic view', () =>
     assert.match(settingsCss, /\.table-wrap\s*\{[\s\S]*overflow-x:\s*hidden/);
     assert.match(settingsCss, /\.folder-table \.table-wrap\s*\{[\s\S]*overflow-x:\s*hidden !important/);
     assert.match(settingsCss, /\.folder-table \.table-wrap::-webkit-scrollbar\s*\{[\s\S]*display:\s*none/);
+    assert.match(settingsCss, /\.folder-table table\s*\{[\s\S]*table-layout:\s*auto/);
     assert.match(settingsCss, /\.folder-table table\s*\{[\s\S]*max-width:\s*100%/);
     assert.match(settingsCss, /\.folder-table table\s*\{[\s\S]*min-width:\s*0/);
     assert.match(settingsCss, /\.folder-table table th,\s*[\s\S]*\.folder-table table td\s*\{[\s\S]*min-width:\s*0/);
@@ -202,7 +214,7 @@ test('nested folder expansion avoids duplicate parent previews and keeps child-o
     assert.match(dockerJs, /\$folderRow\.after\(\$directMemberRows\);/);
     assert.match(dockerJs, /Expanded parent folder\. Showing direct members, then nested children\./);
     assert.match(dockerJs, /\.addClass\('fv-nested-hidden'\)\.hide\(\);/);
-    assert.match(dockerJs, /webui:\s*ct\.info\.State\.WebUi \|\| ''/);
+    assert.match(dockerJs, /webui:\s*ct\.info\.State\.WebUi \|\| ct\.info\.State\.TSWebUi \|\| ''/);
     assert.match(dockerJs, /shell:\s*ct\.info\.Shell \|\| '\/bin\/sh'/);
     assert.match(dockerJs, /openTerminal\('docker', containerName, shellValue\);/);
     assert.match(dockerJs, /openTerminal\('docker', containerName, '\.log'\);/);
@@ -210,6 +222,7 @@ test('nested folder expansion avoids duplicate parent previews and keeps child-o
     assert.match(dockerJs, /const allowWebuiQuickAction = nestedParentPreview \|\| quickActionPrefs\.preview_webui === true;/);
     assert.match(dockerJs, /const allowConsoleQuickAction = nestedParentPreview \|\| quickActionPrefs\.preview_console === true;/);
     assert.match(dockerJs, /const allowLogsQuickAction = nestedParentPreview \|\| quickActionPrefs\.preview_logs === true;/);
+    assert.match(dockerJs, /const previewWebuiUrl = String\(newFolder\[container_name_in_folder\]\?\.webui \|\| ct\.info\.State\.WebUi \|\| ct\.info\.State\.TSWebUi \|\| ''\)\.trim\(\);/);
     assert.match(dockerJs, /if \(allowWebuiQuickAction && webuiUrl\)/);
     assert.match(dockerJs, /if \(allowConsoleQuickAction\)/);
     assert.match(dockerJs, /if \(allowLogsQuickAction\)/);
@@ -258,7 +271,6 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const ensureAdvancedDataLoaded = async \(options = \{\}\) =>/);
     assert.doesNotMatch(settingsJs, /const ensureAdvancedDataLoaded = async \(\{ force = false \} = \{\}\) =>[\s\S]*arguments\[0\]/);
     assert.doesNotMatch(settingsJs, /const ACTION_DOCK_SIDE_STORAGE_KEY = 'fv\.settings\.actionDockSide\.v1';/);
-    assert.match(settingsJs, /const ACTION_DOCK_AUTOCOLLAPSE_MS = 5000;/);
     assert.match(settingsJs, /const INSTANT_PERSIST_ONCHANGE_TOKENS = Object\.freeze\(/);
     assert.match(settingsJs, /const isInstantPersistInput = \(input\) =>/);
     assert.match(settingsJs, /return INSTANT_PERSIST_ONCHANGE_TOKENS\.some\(\(token\) => handler\.includes\(token\)\);/);
@@ -270,10 +282,11 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const buildModuleEmptyTableRow = \(title, help, colspan = 1\) =>/);
     assert.match(settingsJs, /const focusFolderRow = \(type, folderId\) =>/);
     assert.match(settingsJs, /const showActionSummaryToast = \(\{/);
-    assert.match(settingsJs, /const setActionDockExpanded = \(expanded, \{ auto = false \} = \{\}\) =>/);
-    assert.doesNotMatch(settingsJs, /const bindActionDockDrag = \(\) =>/);
-    assert.doesNotMatch(settingsJs, /fv-save-dock-handle/);
-    assert.match(settingsJs, /<div class="fv-save-dock-panel">[\s\S]*<div class="fv-save-dock-head">/);
+    assert.doesNotMatch(settingsJs, /setActionDockExpanded/);
+    assert.doesNotMatch(settingsJs, /setActionDockMoreOpen/);
+    assert.doesNotMatch(settingsJs, /fv-save-dock/);
+    assert.doesNotMatch(settingsJs, /fv-action-more/);
+    assert.match(settingsJs, /<div class="fv-settings-action-wrap">[\s\S]*id="fv-action-reset-section"/);
     assert.match(settingsJs, /const getTrackedInputs = \(\) => \{/);
     assert.match(settingsJs, /dirtyTracker && typeof dirtyTracker\.getTrackedInputs === 'function'/);
     assert.match(settingsJs, /resolveAffectedFolderIdsFromOperations\(resolvedType, operations\)/);
@@ -342,14 +355,23 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /id="fv-advanced-compact" class="fv-advanced-compact" title="\$\{escapeHtml\(compactHoverLabel\)\}" aria-label="\$\{escapeHtml\(compactLabel\)\}"/);
     assert.match(settingsJs, /const folderMatchesStatusFilter = \(statusFilterMode, countsByState, totalMembers\) =>/);
     assert.match(settingsJs, /const applyColumnVisibility = \(type\) =>/);
+    assert.match(settingsJs, /const SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE = Object\.freeze\(/);
+    assert.match(settingsJs, /const buildPresetColumnVisibilityForType = \(type, preset = 'balanced'\) =>/);
+    assert.match(settingsJs, /const getSettingsTablePrefs = \(type, prefsOverride = null\) =>/);
+    assert.match(settingsJs, /const syncSettingsTableStateFromPrefs = \(type, prefsOverride = null\) =>/);
+    assert.match(settingsJs, /const renderSettingsTableLayoutControls = \(type\) =>/);
     assert.match(settingsJs, /const TABLE_COLUMN_RESIZE_CONFIG_BY_TYPE = Object\.freeze\(/);
-    assert.match(settingsJs, /columnWidths:\s*\{\s*docker:\s*\{\s*\.\.\.\(columnWidthsByType\.docker/);
-    assert.match(settingsJs, /columnWidthsByType\[resolvedType\] = normalizeColumnWidthsForType\(resolvedType, sourceColumnWidths\[resolvedType\]\);/);
     assert.match(settingsJs, /const applyColumnWidths = \(type\) =>/);
     assert.match(settingsJs, /const bindTableColumnResizers = \(type\) =>/);
     assert.match(settingsJs, /const renderColumnVisibilityControls = \(type\) =>/);
-    assert.match(settingsJs, /const changeColumnVisibility = \(type, key, checked\) =>/);
+    assert.match(settingsJs, /const changeColumnVisibility = async \(type, key, checked\) =>/);
+    assert.match(settingsJs, /const changeSettingsTableColumnWidthPreset = async \(type, key, value\) =>/);
+    assert.match(settingsJs, /const applySettingsTablePreset = async \(type, preset\) =>/);
+    assert.match(settingsJs, /const resetSettingsTableColumns = async \(type, mode = 'visibility'\) =>/);
     assert.match(settingsJs, /window\.changeColumnVisibility = changeColumnVisibility;/);
+    assert.match(settingsJs, /window\.changeSettingsTableColumnWidthPreset = changeSettingsTableColumnWidthPreset;/);
+    assert.match(settingsJs, /window\.applySettingsTablePreset = applySettingsTablePreset;/);
+    assert.match(settingsJs, /window\.resetSettingsTableColumns = resetSettingsTableColumns;/);
     assert.match(settingsJs, /toggleStatusFilter\('\$\{type\}','\$\{escapeHtml\(statusPrimaryKey\)\}'\)/);
     assert.match(settingsJs, /return 'good health';/);
     assert.match(settingsJs, /return 'warn health';/);

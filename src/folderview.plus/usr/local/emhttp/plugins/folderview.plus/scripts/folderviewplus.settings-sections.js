@@ -33,6 +33,10 @@ const ADVANCED_GROUP_LABELS = {
     operations: 'Operations',
     diagnostics: 'Diagnostics'
 };
+const SECTION_APPLY_BEHAVIOR = Object.freeze({
+    docker: 'instant',
+    vms: 'instant'
+});
 const ADVANCED_GROUP_BY_SECTION = {
     'auto-assignment': 'automation',
     'bulk-assignment': 'automation',
@@ -70,6 +74,7 @@ Object.assign(window, {
     ADVANCED_SECTION_KEYS,
     ADVANCED_GROUPS,
     ADVANCED_GROUP_LABELS,
+    SECTION_APPLY_BEHAVIOR,
     ADVANCED_GROUP_BY_SECTION,
     ADVANCED_MODULE_STALE_MS,
     ADVANCED_MODULE_KEYS,
@@ -87,6 +92,7 @@ window.FolderViewPlusSettingsSections = Object.freeze({
     ADVANCED_SECTION_KEYS,
     ADVANCED_GROUPS,
     ADVANCED_GROUP_LABELS,
+    SECTION_APPLY_BEHAVIOR,
     ADVANCED_GROUP_BY_SECTION,
     ADVANCED_MODULE_STALE_MS,
     ADVANCED_MODULE_KEYS,

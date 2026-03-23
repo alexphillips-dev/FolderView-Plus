@@ -22,20 +22,23 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(sharedIndex < runtimeIndex, 'shared runtime must load before docker.js');
 });
 
-test('docker shared runtime module exports state store, async boundary, quick strip adapter, and telemetry', () => {
+test('docker shared runtime module exports state store, debug logger, async boundary, quick strip adapter, and telemetry', () => {
     assert.match(dockerSharedJs, /^\/\/ @ts-check/m);
     assert.match(dockerSharedJs, /const createRuntimeStateStore =/);
+    assert.match(dockerSharedJs, /const createDebugLogger = \(enabled = false, namespace = 'folderview\.plus'\) =>/);
     assert.match(dockerSharedJs, /const createAsyncActionBoundary =/);
     assert.match(dockerSharedJs, /const createContextMenuQuickStripAdapter =/);
     assert.match(dockerSharedJs, /const createRuntimePerfTelemetry =/);
     assert.match(dockerSharedJs, /const createSafeUiActionRunner =/);
     assert.match(dockerSharedJs, /const resolveRuntimePerformanceProfile =/);
+    assert.match(dockerSharedJs, /const applyFolderDropdownStyle =/);
     assert.match(dockerSharedJs, /const runtimeContracts = Object\.freeze\(/);
     assert.match(dockerSharedJs, /window\.FolderViewDockerRuntimeShared =/);
 });
 
 test('docker runtime consumes shared state store and guarded async action wrappers', () => {
     assert.match(dockerJs, /const dockerRuntimeShared = window\.FolderViewDockerRuntimeShared \|\| \{\};/);
+    assert.match(dockerJs, /dockerRuntimeShared\.createDebugLogger/);
     assert.match(dockerJs, /const dockerRuntimeStateStore = createDockerRuntimeStateStore\(/);
     assert.match(dockerJs, /const dockerActionBoundary = createDockerAsyncActionBoundary\(/);
     assert.match(dockerJs, /const runDockerGuardedAction = async \(actionName, action, context = \{\}\) =>/);
@@ -46,7 +49,11 @@ test('docker CSS exposes centralized layout tokens with compatibility fallbacks'
     assert.match(dockerCss, /--fvplus-docker-folder-right-gutter:\s*28px/);
     assert.match(dockerCss, /--fvplus-docker-folder-outer-reserved-width:\s*106px/);
     assert.match(dockerCss, /--fvplus-docker-folder-dropdown-right-margin:\s*16px/);
+    assert.match(dockerCss, /--fvplus-folder-dropdown-color:\s*#ff9a3c/);
+    assert.match(dockerCss, /--fvplus-folder-dropdown-min-width:\s*12px/);
     assert.match(dockerCss, /right:\s*var\(--fvplus-docker-folder-right-gutter,\s*28px\)/);
     assert.match(dockerCss, /max-width:\s*calc\(var\(--fvplus-docker-app-column-width\)\s*-\s*var\(--fvplus-docker-folder-outer-reserved-width,\s*106px\)\)/);
     assert.match(dockerCss, /margin:\s*0 var\(--fvplus-docker-folder-dropdown-right-margin,\s*16px\) 0 auto/);
+    assert.match(dockerCss, /border:\s*var\(--fvplus-folder-dropdown-border-width,\s*1px\) solid var\(--fvplus-folder-dropdown-border-color/);
+    assert.match(dockerCss, /border-right:\s*var\(--fvplus-preview-divider-width,\s*1px\) solid/);
 });

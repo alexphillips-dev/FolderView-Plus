@@ -48,6 +48,10 @@ const settingsJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
 );
+const diagnosticsJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js'
+);
 const folderEditorJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js'
@@ -76,10 +80,11 @@ const dockerCss = fs.readFileSync(dockerCssPath, 'utf8');
 const vmCss = fs.readFileSync(vmCssPath, 'utf8');
 const dockerModulesJs = fs.readFileSync(dockerModulesPath, 'utf8');
 const settingsJs = fs.readFileSync(settingsJsPath, 'utf8');
+const diagnosticsJs = fs.readFileSync(diagnosticsJsPath, 'utf8');
 const folderEditorJs = fs.readFileSync(folderEditorJsPath, 'utf8');
 const utilsJs = fs.readFileSync(utilsJsPath, 'utf8');
 const settingsImportJs = fs.readFileSync(settingsImportJsPath, 'utf8');
-const settingsRuntime = `${settingsJs}\n${settingsImportJs}`;
+const settingsRuntime = `${settingsJs}\n${settingsImportJs}\n${diagnosticsJs}`;
 const settingsPage = fs.readFileSync(settingsPagePath, 'utf8');
 
 test('read_info supports cached full/state payload retrieval', () => {
@@ -213,8 +218,9 @@ test('docker runtime app column auto-sizes based on folder names and rebinds aft
     assert.match(dockerJs, /const DOCKER_RUNTIME_VERSION_GAP_MIN = 8;/);
     assert.match(dockerJs, /const DOCKER_RUNTIME_VERSION_GAP_MAX = 26;/);
     assert.match(dockerJs, /const applyDockerRuntimeGapContract = \(widthPx, metrics = null\) =>/);
-    assert.match(dockerJs, /label\.scrollWidth/);
-    assert.match(dockerJs, /label\.clientWidth/);
+    assert.match(dockerJs, /widthNodes = \[/);
+    assert.match(dockerJs, /node\.scrollWidth/);
+    assert.match(dockerJs, /node\.clientWidth/);
     assert.match(dockerJs, /if \(clientWidth <= 0\) \{\s*return;\s*\}/);
     assert.match(dockerJs, /if \(clientWidth < DOCKER_RUNTIME_APP_OVERFLOW_CLIENT_WIDTH_MIN && rawOverflow <= 0\) \{\s*return;\s*\}/);
     assert.match(dockerJs, /Math\.min\(rawOverflow, DOCKER_RUNTIME_APP_OVERFLOW_NUDGE_MAX\)/);

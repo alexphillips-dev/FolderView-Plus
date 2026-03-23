@@ -7,6 +7,7 @@ today_version="$(date +"%Y.%m.%d")"
 version="${today_version}.01"
 plgfile="$CWD/folderview.plus.plg"
 xmlfile="$CWD/folderview.plus.xml"
+beta_xmlfile="$CWD/folderview.plus.beta.xml"
 release_guard_script="$CWD/scripts/release_guard.sh"
 install_smoke_script="$CWD/scripts/install_smoke.sh"
 ensure_changes_entry_script="$CWD/scripts/ensure_plg_changes_entry.sh"
@@ -34,6 +35,92 @@ detect_git_branch() {
         fi
     fi
     printf '%s' "$detected"
+}
+
+rewrite_manifest_branch_metadata() {
+    local target_file="${1:-}"
+    local target_version="${2:-}"
+    local target_branch="${3:-}"
+    if [ -z "$target_file" ] || [ -z "$target_version" ] || [ -z "$target_branch" ]; then
+        echo "ERROR: rewrite_manifest_branch_metadata requires file, version, and branch." >&2
+        exit 1
+    fi
+    sed -E -i 's|^<!ENTITY pluginURL ".*">|<!ENTITY pluginURL "https://raw.githubusercontent.com/\&github;/'"$target_branch"'/folderview.plus.plg">|' "$target_file"
+    sed -E -i 's|<URL>https://raw.githubusercontent.com/.*?/archive/.*</URL>|<URL>https://raw.githubusercontent.com/\&github;/'"$target_branch"'/archive/\&name;-\&version;.txz</URL>|' "$target_file"
+    perl -0pi -e 's{<PLUGIN\s+name="[^"]*"\s+author="[^"]*"\s+version="[^"]*"\s+launch="[^"]*"\s+pluginURL="[^"]*"\s+icon="folder-icon\.png"\s+support="https://forums\.unraid\.net/topic/197631-plugin-folderview-plus/"\s+min="7\.0\.0">}{<PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">}s' "$target_file"
+}
+
+validate_manifest_branch_matrix() {
+    local source_file="${1:-}"
+    local target_version="${2:-}"
+    local branch_name=""
+    if [ -z "$source_file" ] || [ -z "$target_version" ]; then
+        echo "ERROR: validate_manifest_branch_matrix requires source file and version." >&2
+        exit 1
+    fi
+    for branch_name in dev main beta; do
+        local probe_file=""
+        local entity_url=""
+        local archive_url=""
+        local plugin_tag=""
+        local expected_entity_url="https://raw.githubusercontent.com/&github;/${branch_name}/folderview.plus.plg"
+        local expected_archive_url="https://raw.githubusercontent.com/&github;/${branch_name}/archive/&name;-&version;.txz"
+        probe_file="$(mktemp)"
+        cp "$source_file" "$probe_file"
+        rewrite_manifest_branch_metadata "$probe_file" "$target_version" "$branch_name"
+        entity_url="$(sed -n 's/^<!ENTITY pluginURL "\([^"]*\)".*/\1/p' "$probe_file" | head -n 1 || true)"
+        archive_url="$(sed -n 's|.*<URL>\(https://raw.githubusercontent.com/&github;/[^<]*/archive/&name;-&version;.txz\)</URL>.*|\1|p' "$probe_file" | head -n 1 || true)"
+        plugin_tag="$(perl -0777 -ne 'if (/<PLUGIN\b[^>]*>/s) { my $tag = $&; $tag =~ s/\s+/ /g; print $tag; }' "$probe_file")"
+        rm -f "$probe_file"
+        if [ "$entity_url" != "$expected_entity_url" ]; then
+            echo "ERROR: Manifest branch matrix entity URL mismatch for ${branch_name}. expected=${expected_entity_url}, found=${entity_url}" >&2
+            exit 1
+        fi
+        if [ "$archive_url" != "$expected_archive_url" ]; then
+            echo "ERROR: Manifest branch matrix archive URL mismatch for ${branch_name}. expected=${expected_archive_url}, found=${archive_url}" >&2
+            exit 1
+        fi
+        if [[ "$plugin_tag" != *'name="&name;"'* ]] || [[ "$plugin_tag" != *'author="&author;"'* ]] || [[ "$plugin_tag" != *'version="&version;"'* ]] || [[ "$plugin_tag" != *'launch="&launch;"'* ]] || [[ "$plugin_tag" != *'pluginURL="&pluginURL;"'* ]]; then
+            echo "ERROR: Manifest branch matrix plugin tag lost canonical entity form for ${branch_name}. tag=${plugin_tag}" >&2
+            exit 1
+        fi
+    done
+}
+
+apply_branch_channel_messaging() {
+    local package_root="${1:-}"
+    local target_branch="${2:-}"
+    local readme_file=""
+    local langs_dir=""
+    local channel_desc=""
+    local channel_quickstart=""
+    local lang_file=""
+    if [ -z "$package_root" ] || [ -z "$target_branch" ]; then
+        echo "ERROR: apply_branch_channel_messaging requires package root and branch." >&2
+        exit 1
+    fi
+    if [[ "$target_branch" != "dev" && "$target_branch" != "beta" ]]; then
+        return
+    fi
+    readme_file="$package_root/usr/local/emhttp/plugins/folderview.plus/README.md"
+    langs_dir="$package_root/usr/local/emhttp/plugins/folderview.plus/langs"
+    if [ "$target_branch" = "dev" ]; then
+        channel_desc="FolderView Plus dev branch includes preview builds for testing. Expect bugs, regressions, and in-progress changes before they reach main."
+        channel_quickstart="Dev branch: Test changes here before stable release. Update carefully and expect occasional breakage."
+    else
+        channel_desc="FolderView Plus beta branch includes pre-release builds for validation. Features may change before they land on main."
+        channel_quickstart="Beta branch: Validate upcoming changes before stable release and expect occasional issues."
+    fi
+    if [ -f "$readme_file" ]; then
+        perl -0pi -e 's{<span id="folderviewplus-desc">.*?</span>}{<span id="folderviewplus-desc">'"$channel_desc"'</span>}s' "$readme_file"
+        perl -0pi -e 's{Quick start:.*}{'"$channel_quickstart"'}s' "$readme_file"
+    fi
+    if [ -d "$langs_dir" ]; then
+        for lang_file in "$langs_dir"/*.json; do
+            [ -f "$lang_file" ] || continue
+            perl -0pi -e 's/"folderviewplus-desc"\s*:\s*"(?:[^"\\\\]|\\\\.)*"/"folderviewplus-desc": "'"$channel_desc"'"/g' "$lang_file"
+        done
+    fi
 }
 
 print_usage() {
@@ -95,10 +182,35 @@ ensure_repo_layout() {
         echo "ERROR: Missing CA template file: $xmlfile" >&2
         exit 1
     fi
+    if [ ! -f "$beta_xmlfile" ]; then
+        echo "ERROR: Missing beta CA template file: $beta_xmlfile" >&2
+        exit 1
+    fi
     if [ ! -d "$CWD/src/folderview.plus" ]; then
         echo "ERROR: Missing plugin source directory: $CWD/src/folderview.plus" >&2
         exit 1
     fi
+}
+
+sync_ca_template_metadata() {
+    local target_file="${1:-}"
+    local target_date="${2:-}"
+    local target_branch="${3:-}"
+    local beta_flag="${4:-False}"
+    local template_name="${5:-FolderView Plus}"
+    if [ -z "$target_file" ] || [ -z "$target_date" ] || [ -z "$target_branch" ]; then
+        echo "ERROR: sync_ca_template_metadata requires file, date, and branch." >&2
+        exit 1
+    fi
+    if [ ! -f "$target_file" ]; then
+        echo "ERROR: Missing CA template file: $target_file" >&2
+        exit 1
+    fi
+    sed -i "s|<Date>.*</Date>|<Date>${target_date}</Date>|" "$target_file"
+    sed -i "s|<PluginURL>.*</PluginURL>|<PluginURL>https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/${target_branch}/folderview.plus.plg</PluginURL>|" "$target_file"
+    sed -i "s|<Icon>.*</Icon>|<Icon>https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/${target_branch}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/images/folder-icon.png</Icon>|" "$target_file"
+    sed -i "s|<Beta>.*</Beta>|<Beta>${beta_flag}</Beta>|" "$target_file"
+    sed -i "s|<Name>.*</Name>|<Name>${template_name}</Name>|" "$target_file"
 }
 
 acquire_build_lock() {
@@ -435,6 +547,8 @@ while IFS= read -r -d '' file; do
     cp --parents -f "$file" "$tmpdir/"
 done < <(find . -type f ! \( -iname "pkg_build.sh" -o -iname "sftp-config.json" \) -print0)
 
+apply_branch_channel_messaging "$tmpdir" "$branch"
+
 # Set permissions for Unraid (only in temp dir, not the repo)
 chmod -R 0755 "$tmpdir"
 
@@ -458,18 +572,16 @@ sed -i "s/<!ENTITY md5.*>/<!ENTITY md5 \"$md5\">/" "$plgfile"
 
 # Keep CA template date aligned with the release version date.
 if [ -n "$xml_date" ]; then
-    if [ -f "$xmlfile" ]; then
-        sed -i "s|<Date>.*</Date>|<Date>${xml_date}</Date>|" "$xmlfile"
+    if [ "$branch" = "beta" ]; then
+        sync_ca_template_metadata "$beta_xmlfile" "$xml_date" "beta" "True" "FolderView Plus Beta"
     else
-        echo "ERROR: Missing CA template file: $xmlfile" >&2
-        exit 1
+        sync_ca_template_metadata "$xmlfile" "$xml_date" "main" "False" "FolderView Plus"
     fi
 fi
 
 # Update branch references in plg file (URLs use XML entities like &github;).
-# Always rewrite canonical lines from scratch so dev/main stay separated permanently.
-sed -E -i 's|^<!ENTITY pluginURL ".*">|<!ENTITY pluginURL "https://raw.githubusercontent.com/\&github;/'"$branch"'/folderview.plus.plg">|' "$plgfile"
-sed -E -i 's|<URL>https://raw.githubusercontent.com/.*?/archive/.*</URL>|<URL>https://raw.githubusercontent.com/\&github;/'"$branch"'/archive/\&name;-\&version;.txz</URL>|' "$plgfile"
+rewrite_manifest_branch_metadata "$plgfile" "$version" "$branch"
+validate_manifest_branch_matrix "$plgfile" "$version"
 
 # Ensure a CHANGES block exists for the computed version so release validation
 # cannot fail after bumping version metadata.

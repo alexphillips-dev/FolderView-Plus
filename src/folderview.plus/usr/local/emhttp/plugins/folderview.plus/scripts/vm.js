@@ -1,78 +1,32 @@
 // @ts-check
-const localDefaultFolderStatusColors = {
+const runtimeShared = window.FolderViewDockerRuntimeShared || {};
+const localDefaultFolderStatusColors = runtimeShared.DEFAULT_FOLDER_STATUS_COLORS || {
     started: '#ffffff',
     paused: '#b8860b',
     stopped: '#ff4d4d'
 };
-const DEFAULT_PREVIEW_BORDER_COLOR = '#afa89e';
-const normalizeStatusHexColor = (value, fallback) => {
-    if (typeof value !== 'string') {
-        return fallback;
-    }
-    const trimmed = value.trim();
-    if (!/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(trimmed)) {
-        return fallback;
-    }
-    if (trimmed.length === 4) {
-        return `#${trimmed[1]}${trimmed[1]}${trimmed[2]}${trimmed[2]}${trimmed[3]}${trimmed[3]}`.toLowerCase();
-    }
-    return trimmed.toLowerCase();
-};
-const FOLDER_STATUS_COLOR_STYLE_PROPS = Object.freeze({
-    started: '--fvplus-folder-status-started',
-    paused: '--fvplus-folder-status-paused',
-    stopped: '--fvplus-folder-status-stopped'
-});
-const getFolderStatusColorOverrides = (settings) => {
-    const source = settings && typeof settings === 'object' ? settings : {};
-    const parsedStarted = normalizeStatusHexColor(source.status_color_started, '');
-    const parsedPaused = normalizeStatusHexColor(source.status_color_paused, '');
-    const parsedStopped = normalizeStatusHexColor(source.status_color_stopped, '');
-    return {
-        started: parsedStarted && parsedStarted !== localDefaultFolderStatusColors.started ? parsedStarted : '',
-        paused: parsedPaused && parsedPaused !== localDefaultFolderStatusColors.paused ? parsedPaused : '',
-        stopped: parsedStopped && parsedStopped !== localDefaultFolderStatusColors.stopped ? parsedStopped : ''
-    };
-};
-const applyFolderStatusColorOverrides = ($folderRow, settings) => {
-    if (!$folderRow || !$folderRow.length || !$folderRow[0] || !$folderRow[0].style) {
-        return;
-    }
-    const style = $folderRow[0].style;
-    const overrides = getFolderStatusColorOverrides(settings);
-    style.removeProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.started);
-    style.removeProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.paused);
-    style.removeProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.stopped);
-    if (overrides.started) {
-        style.setProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.started, overrides.started);
-    }
-    if (overrides.paused) {
-        style.setProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.paused, overrides.paused);
-    }
-    if (overrides.stopped) {
-        style.setProperty(FOLDER_STATUS_COLOR_STYLE_PROPS.stopped, overrides.stopped);
-    }
-};
-const isPreviewBorderEnabled = (settings) => {
-    const source = settings && typeof settings === 'object' ? settings : {};
-    if (Object.prototype.hasOwnProperty.call(source, 'preview_border')) {
-        const raw = String(source.preview_border ?? '').trim().toLowerCase();
-        const explicitOff = raw === '0' || raw === 'false' || raw === 'off' || raw === 'no';
-        return !explicitOff;
-    }
-    return true;
-};
-const applyPreviewBorderStyle = (previewNode, settings) => {
-    if (!previewNode) {
-        return;
-    }
-    const source = settings && typeof settings === 'object' ? settings : {};
-    if (previewNode.classList && typeof previewNode.classList.toggle === 'function') {
-        previewNode.classList.toggle('fv-preview-border-off', !isPreviewBorderEnabled(source));
-    }
-    const previewColor = normalizeStatusHexColor(source.preview_border_color, DEFAULT_PREVIEW_BORDER_COLOR);
-    previewNode.style.setProperty('border', isPreviewBorderEnabled(source) ? `1px solid ${previewColor}` : 'none', 'important');
-};
+const normalizeStatusHexColor = typeof runtimeShared.normalizeStatusHexColor === 'function'
+    ? runtimeShared.normalizeStatusHexColor
+    : ((value, fallback) => fallback);
+const getFolderStatusColorOverrides = typeof runtimeShared.getFolderStatusColorOverrides === 'function'
+    ? runtimeShared.getFolderStatusColorOverrides
+    : (() => ({ started: '', paused: '', stopped: '' }));
+const applyFolderStatusColorOverrides = typeof runtimeShared.applyFolderStatusColorOverrides === 'function'
+    ? runtimeShared.applyFolderStatusColorOverrides
+    : (() => {});
+const applyPreviewBorderStyle = typeof runtimeShared.applyPreviewBorderStyle === 'function'
+    ? runtimeShared.applyPreviewBorderStyle
+    : (() => {});
+const applyFolderDropdownStyle = typeof runtimeShared.applyFolderDropdownStyle === 'function'
+    ? runtimeShared.applyFolderDropdownStyle
+    : (() => {});
+const createRuntimeDebugLogger = typeof runtimeShared.createDebugLogger === 'function'
+    ? runtimeShared.createDebugLogger
+    : ((enabled = false) => ({
+        log: (...args) => { if (enabled) console.log(...args); },
+        warn: (...args) => { if (enabled) console.warn(...args); },
+        error: (...args) => { if (enabled) console.error(...args); }
+    }));
 const utils = window.FolderViewPlusUtils || {
     normalizePrefs: () => ({
         sortMode: 'created',
@@ -101,15 +55,15 @@ const utils = window.FolderViewPlusUtils || {
     getAutoRuleMatches: () => [],
     DEFAULT_FOLDER_STATUS_COLORS: localDefaultFolderStatusColors,
     getFolderStatusColors: (settings) => {
-        const incoming = settings && typeof settings === 'object' ? settings : {};
-        return {
-            started: normalizeStatusHexColor(incoming.status_color_started, localDefaultFolderStatusColors.started),
-            paused: normalizeStatusHexColor(incoming.status_color_paused, localDefaultFolderStatusColors.paused),
-            stopped: normalizeStatusHexColor(incoming.status_color_stopped, localDefaultFolderStatusColors.stopped)
-        };
+        return typeof runtimeShared.getFolderStatusColors === 'function'
+            ? runtimeShared.getFolderStatusColors(settings)
+            : {
+                started: localDefaultFolderStatusColors.started,
+                paused: localDefaultFolderStatusColors.paused,
+                stopped: localDefaultFolderStatusColors.stopped
+            };
     }
 };
-const runtimeShared = window.FolderViewDockerRuntimeShared || {};
 const vmStorageWriter = typeof utils.createBatchedStorageWriter === 'function'
     ? utils.createBatchedStorageWriter(window.localStorage, {
         defaultDelayMs: 72,
@@ -253,11 +207,8 @@ let vmRuntimeThemeReflowTimer = null;
 let vmRuntimeWidthReflowTimer = null;
 let vmRuntimeLastWidthReflowReason = 'init';
 const VM_DEBUG_MODE = false;
-const vmDebugLog = (...args) => {
-    if (VM_DEBUG_MODE) {
-        console.log(...args);
-    }
-};
+const vmDebug = createRuntimeDebugLogger(VM_DEBUG_MODE, 'folderview.plus vm');
+const vmDebugLog = (...args) => vmDebug.log(...args);
 const FV_VM_TOUCH_MODE = (() => {
     try {
         const hasMatchMedia = typeof window.matchMedia === 'function';
@@ -1282,6 +1233,7 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
 
     const previewNode = $(`tr.folder-id-${id} div.folder-preview`).get(0);
     applyPreviewBorderStyle(previewNode, folder.settings);
+    applyFolderDropdownStyle($(`tr.folder-id-${id}`), folder.settings);
 
     $(`tr.folder-id-${id} div.folder-preview`).addClass(`folder-preview-${folder.settings.preview}`);
 
@@ -1463,6 +1415,7 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
     }
     const $folderRow = $(`tr.folder-id-${id}`);
     applyFolderStatusColorOverrides($folderRow, folder.settings);
+    applyFolderDropdownStyle($folderRow, folder.settings);
     const $folderIcon = $folderRow.find(`i#load-folder-${id}`);
     const $folderState = $folderRow.find('span.folder-state');
     $folderState.removeClass('fv-folder-state-started fv-folder-state-paused fv-folder-state-stopped');
@@ -2421,6 +2374,7 @@ const estimateVmRuntimeAutoAppWidth = () => {
             rows,
             baseline,
             nameSelector: '.folder-appname',
+            auxSelectors: ['.folder-state'],
             indentSelector: '.folder-name-sub',
             hiddenClass: 'fv-nested-hidden',
             chromeWidth: VM_RUNTIME_APP_CHROME_WIDTH,
@@ -2445,25 +2399,30 @@ const adjustVmRuntimeAppWidthForRenderedOverflow = (baseWidth = null) => {
         if (!row || row.offsetParent === null || row.classList.contains('fv-nested-hidden') || row.classList.contains('fv-folder-focus-hidden')) {
             return;
         }
-        const label = row.querySelector('.folder-appname');
-        if (!label) {
+        const widthNodes = [
+            row.querySelector('.folder-appname'),
+            row.querySelector('.folder-state')
+        ].filter(Boolean);
+        if (!widthNodes.length) {
             return;
         }
-        const clientWidth = Math.max(0, Math.ceil(label.clientWidth || 0));
-        if (clientWidth <= 0) {
-            return;
-        }
-        const rawOverflow = Math.ceil((label.scrollWidth || 0) - clientWidth);
-        if (clientWidth < VM_RUNTIME_APP_OVERFLOW_CLIENT_WIDTH_MIN && rawOverflow <= 0) {
-            return;
-        }
-        if (rawOverflow <= 0) {
-            return;
-        }
-        const overflow = Math.min(rawOverflow, VM_RUNTIME_APP_OVERFLOW_NUDGE_MAX);
-        if (overflow > maxOverflow) {
-            maxOverflow = overflow;
-        }
+        widthNodes.forEach((node) => {
+            const clientWidth = Math.max(0, Math.ceil(node.clientWidth || 0));
+            if (clientWidth <= 0) {
+                return;
+            }
+            const rawOverflow = Math.ceil((node.scrollWidth || 0) - clientWidth);
+            if (clientWidth < VM_RUNTIME_APP_OVERFLOW_CLIENT_WIDTH_MIN && rawOverflow <= 0) {
+                return;
+            }
+            if (rawOverflow <= 0) {
+                return;
+            }
+            const overflow = Math.min(rawOverflow, VM_RUNTIME_APP_OVERFLOW_NUDGE_MAX);
+            if (overflow > maxOverflow) {
+                maxOverflow = overflow;
+            }
+        });
     });
     if (maxOverflow <= 0) {
         return startingWidth;

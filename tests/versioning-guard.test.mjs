@@ -5,6 +5,8 @@ import path from 'node:path';
 
 const repoRoot = path.resolve(process.cwd());
 const pkgBuildPath = path.join(repoRoot, 'pkg_build.sh');
+const stableTemplatePath = path.join(repoRoot, 'folderview.plus.xml');
+const betaTemplatePath = path.join(repoRoot, 'folderview.plus.beta.xml');
 const releaseGuardPath = path.join(repoRoot, 'scripts/release_guard.sh');
 const releasePreparePath = path.join(repoRoot, 'scripts/release_prepare.sh');
 const ciWorkflowPath = path.join(repoRoot, '.github/workflows/ci.yml');
@@ -32,6 +34,8 @@ const doctorPath = path.join(repoRoot, 'scripts/doctor.sh');
 const sharedLibPath = path.join(repoRoot, 'scripts/lib.sh');
 const perfBaselinePath = path.join(repoRoot, 'scripts/perf_baseline.json');
 const pkgBuild = fs.readFileSync(pkgBuildPath, 'utf8');
+const stableTemplate = fs.readFileSync(stableTemplatePath, 'utf8');
+const betaTemplate = fs.readFileSync(betaTemplatePath, 'utf8');
 const releaseGuard = fs.readFileSync(releaseGuardPath, 'utf8');
 const releasePrepare = fs.readFileSync(releasePreparePath, 'utf8');
 const ciWorkflow = fs.readFileSync(ciWorkflowPath, 'utf8');
@@ -63,6 +67,19 @@ test('pkg_build computes stable versions per current date only', () => {
     assert.match(pkgBuild, /next_stable_version_for_date/);
     assert.match(pkgBuild, /highest_stable_archive_version_for_date/);
     assert.match(pkgBuild, /version="\$\(next_stable_version_for_date \"\$today_version\"\)"/);
+    assert.match(pkgBuild, /beta_xmlfile="\$CWD\/folderview\.plus\.beta\.xml"/);
+    assert.match(pkgBuild, /sync_ca_template_metadata/);
+});
+
+test('beta channel metadata is tracked separately from stable CA metadata', () => {
+    assert.match(stableTemplate, /<PluginURL>https:\/\/raw\.githubusercontent\.com\/alexphillips-dev\/FolderView-Plus\/main\/folderview\.plus\.plg<\/PluginURL>/);
+    assert.match(stableTemplate, /<Beta>False<\/Beta>/);
+    assert.match(betaTemplate, /<PluginURL>https:\/\/raw\.githubusercontent\.com\/alexphillips-dev\/FolderView-Plus\/beta\/folderview\.plus\.plg<\/PluginURL>/);
+    assert.match(betaTemplate, /<Beta>True<\/Beta>/);
+    assert.match(betaTemplate, /<Name>FolderView Plus Beta<\/Name>/);
+    assert.match(releaseGuard, /BETA_CA_TEMPLATE_FILE/);
+    assert.match(releaseGuard, /Beta CA template must advertise <Beta>True<\/Beta>/);
+    assert.match(releaseGuard, /Beta CA template PluginURL must target the beta branch/);
 });
 
 test('pkg_build blocks stable override dates that are not today', () => {
@@ -94,9 +111,12 @@ test('pkg_build includes dependency preflight, safe temp cleanup, dry-run, and c
     assert.match(pkgBuild, /sha256=\$\(sha256sum "\$filename" \| awk '\{print \$1\}'\)/);
     assert.match(pkgBuild, /printf '%s  %s\\n' "\$sha256" "\$\(basename "\$filename"\)" > "\$sha256_file"/);
     assert.match(pkgBuild, /\^<!ENTITY pluginURL ".*">/);
-    assert.match(pkgBuild, /https:\/\/raw\.githubusercontent\.com\/\\&github;\/'"\$branch"'\/folderview\.plus\.plg/);
     assert.match(pkgBuild, /<URL>https:\/\/raw\.githubusercontent\.com\/\.\*\?\/archive\/\.\*<\/URL>/);
-    assert.match(pkgBuild, /https:\/\/raw\.githubusercontent\.com\/\\&github;\/'"\$branch"'\/archive\/\\&name;-\\&version;\.txz/);
+    assert.match(pkgBuild, /rewrite_manifest_branch_metadata/);
+    assert.match(pkgBuild, /validate_manifest_branch_matrix/);
+    assert.match(pkgBuild, /expected_entity_url="https:\/\/raw\.githubusercontent\.com\/&github;\/\$\{branch_name\}\/folderview\.plus\.plg"/);
+    assert.match(pkgBuild, /expected_archive_url="https:\/\/raw\.githubusercontent\.com\/&github;\/\$\{branch_name\}\/archive\/&name;-&version;\.txz"/);
+    assert.match(pkgBuild, /canonical entity form/);
     assert.doesNotMatch(pkgBuild, /rm -R "\$CWD\/tmp"/);
 });
 
@@ -170,6 +190,7 @@ test('release_guard enforces branch-specific plugin and archive URLs for main\/d
     assert.match(releaseGuard, /archive URL branch mismatch/);
     assert.match(releaseGuard, /EXPECTED_PLUGIN_URL="https:\/\/raw\.githubusercontent\.com\/&github;\/\$\{EXPECTED_PLUGIN_BRANCH\}\/folderview\.plus\.plg"/);
     assert.match(releaseGuard, /EXPECTED_ARCHIVE_URL="https:\/\/raw\.githubusercontent\.com\/&github;\/\$\{EXPECTED_PLUGIN_BRANCH\}\/archive\/&name;-&version;\.txz"/);
+    assert.match(releaseGuard, /canonical entity form/);
 });
 
 test('browser smoke scripts support optional and required modes and include core UI checks', () => {
@@ -241,6 +262,7 @@ test('validation workflows enforce standards guards and release-required browser
         assert.match(workflow, /bash scripts\/repro_build_guard\.sh/);
         assert.match(workflow, /bash scripts\/unraid_matrix_smoke\.sh/);
         assert.match(workflow, /FVPLUS_I18N_STRICT/);
+        assert.match(workflow, /FVPLUS_DEAD_CODE_STRICT/);
         assert.match(workflow, /FVPLUS_REQUIRE_PERF_BASELINE/);
         assert.match(workflow, /FVPLUS_BROWSER_SMOKE_URL/);
         assert.match(workflow, /FVPLUS_BROWSER_SMOKE_REQUIRE_RUNTIME_ROWS/);
@@ -269,6 +291,7 @@ test('validation workflows enforce standards guards and release-required browser
     assert.match(releasePrepare, /bash scripts\/perf_budget_guard\.sh/);
     assert.match(releasePrepare, /bash scripts\/repro_build_guard\.sh/);
     assert.match(releasePrepare, /scripts\/prune_archives\.sh/);
+    assert.match(releasePrepare, /FVPLUS_DEAD_CODE_STRICT=1 bash scripts\/dead_code_guard\.sh/);
     assert.match(releasePrepare, /bash scripts\/unraid_matrix_smoke\.sh/);
     assert.match(releasePrepare, /bash scripts\/theme_matrix_smoke\.sh/);
     assert.match(releasePrepare, /bash scripts\/browser_smoke\.sh/);
@@ -336,7 +359,7 @@ test('ensure changes entry seeds category-signaling release note text', () => {
 
 test('release workflows keep checksum assets and metadata changes', () => {
     assert.match(releaseBetaWorkflow, /CHECKSUM="\$\{FILENAME\}\.sha256"/);
-    assert.match(releaseBetaWorkflow, /git add archive\/ folderview\.plus\.plg folderview\.plus\.xml/);
+    assert.match(releaseBetaWorkflow, /git add archive\/ folderview\.plus\.plg folderview\.plus\.beta\.xml/);
     assert.match(releaseStableWorkflow, /CHECKSUM_FILENAME="\$\{FILENAME\}\.sha256"/);
     assert.match(releaseStableWorkflow, /archive\/\$\{\{ steps\.version\.outputs\.checksum_filename \}\}/);
 });

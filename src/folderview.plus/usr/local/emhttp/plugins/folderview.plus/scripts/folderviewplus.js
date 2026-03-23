@@ -98,6 +98,9 @@ if (window.FolderViewPlusSettingsSectionsModuleLoaded !== true) {
 if (window.FolderViewPlusSetupAssistantSupportModuleLoaded !== true) {
     bootstrapMissingModules.push('folderviewplus.setup-assistant.js');
 }
+if (window.FolderViewPlusSmartDetectConfigModuleLoaded !== true) {
+    bootstrapMissingModules.push('folderviewplus.smart-detect-config.js');
+}
 if (window.FolderViewPlusStarterTemplatesModuleLoaded !== true) {
     bootstrapMissingModules.push('folderviewplus.starter-templates.js');
 }
@@ -181,26 +184,62 @@ let quickFolderFilterByType = {
     docker: 'all',
     vm: 'all'
 };
+const SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE = Object.freeze({
+    docker: Object.freeze([
+        Object.freeze({ key: 'order', label: 'Order', fieldId: null, header: '.col-order', cell: '.order-cell', hideable: false, resizable: true, defaultWidth: 92, min: 64, max: 220 }),
+        Object.freeze({ key: 'name', label: 'Name', fieldId: null, header: '.col-name', cell: '.name-cell', hideable: false, resizable: true, defaultWidth: 320, min: 220, max: 820 }),
+        Object.freeze({ key: 'members', label: 'Members', fieldId: 'docker-col-members', header: '.col-members', cell: '.members-cell', hideable: true, resizable: true, defaultWidth: 112, min: 90, max: 260, presets: Object.freeze({ compact: false, balanced: false, detailed: true }) }),
+        Object.freeze({ key: 'status', label: 'Status', fieldId: 'docker-col-status', header: '.col-status', cell: '.status-cell', hideable: true, resizable: true, defaultWidth: 220, min: 170, max: 620, presets: Object.freeze({ compact: true, balanced: true, detailed: true }) }),
+        Object.freeze({ key: 'rules', label: 'Rules', fieldId: 'docker-col-rules', header: '.col-rules', cell: '.rules-cell', hideable: true, resizable: true, defaultWidth: 110, min: 80, max: 240, presets: Object.freeze({ compact: true, balanced: true, detailed: true }) }),
+        Object.freeze({ key: 'lastChanged', label: 'Last changed', fieldId: 'docker-col-last-changed', header: '.col-last-changed', cell: '.last-changed-cell', hideable: true, resizable: true, defaultWidth: 180, min: 150, max: 360, presets: Object.freeze({ compact: false, balanced: true, detailed: true }) }),
+        Object.freeze({ key: 'pinned', label: 'Pinned', fieldId: 'docker-col-pinned', header: '.col-pinned', cell: '.pinned-cell', hideable: true, resizable: true, defaultWidth: 96, min: 80, max: 200, presets: Object.freeze({ compact: false, balanced: true, detailed: true }) }),
+        Object.freeze({ key: 'signals', label: 'Alerts', fieldId: 'docker-col-signals', header: '.col-signals', cell: '.signals-cell', hideable: true, resizable: true, defaultWidth: 180, min: 120, max: 360, presets: Object.freeze({ compact: true, balanced: true, detailed: true }) }),
+        Object.freeze({ key: 'actions', label: 'Actions', fieldId: null, header: '.col-actions', cell: '.actions-cell', hideable: false, resizable: true, defaultWidth: 180, min: 160, max: 320 })
+    ]),
+    vm: Object.freeze([
+        Object.freeze({ key: 'order', label: 'Order', fieldId: null, header: '.col-order', cell: '.order-cell', hideable: false, resizable: true, defaultWidth: 92, min: 64, max: 220 }),
+        Object.freeze({ key: 'name', label: 'Name', fieldId: null, header: '.col-name', cell: '.name-cell', hideable: false, resizable: true, defaultWidth: 320, min: 220, max: 820 }),
+        Object.freeze({ key: 'members', label: 'Members', fieldId: 'vm-col-members', header: '.col-members', cell: '.members-cell', hideable: true, resizable: true, defaultWidth: 112, min: 90, max: 260, presets: Object.freeze({ compact: false, balanced: false, detailed: true }) }),
+        Object.freeze({ key: 'status', label: 'Status', fieldId: 'vm-col-status', header: '.col-status', cell: '.status-cell', hideable: true, resizable: true, defaultWidth: 220, min: 170, max: 620, presets: Object.freeze({ compact: false, balanced: false, detailed: true }) }),
+        Object.freeze({ key: 'rules', label: 'Rules', fieldId: 'vm-col-rules', header: '.col-rules', cell: '.rules-cell', hideable: true, resizable: true, defaultWidth: 110, min: 80, max: 240, presets: Object.freeze({ compact: false, balanced: false, detailed: true }) }),
+        Object.freeze({ key: 'lastChanged', label: 'Last changed', fieldId: 'vm-col-last-changed', header: '.col-last-changed', cell: '.last-changed-cell', hideable: true, resizable: true, defaultWidth: 180, min: 150, max: 360, presets: Object.freeze({ compact: false, balanced: false, detailed: true }) }),
+        Object.freeze({ key: 'pinned', label: 'Pinned', fieldId: 'vm-col-pinned', header: '.col-pinned', cell: '.pinned-cell', hideable: true, resizable: true, defaultWidth: 96, min: 80, max: 200, presets: Object.freeze({ compact: false, balanced: false, detailed: true }) }),
+        Object.freeze({ key: 'autostart', label: 'Autostart', fieldId: 'vm-col-autostart', header: '.col-autostart', cell: '.autostart-cell', hideable: true, resizable: true, defaultWidth: 160, min: 130, max: 300, presets: Object.freeze({ compact: true, balanced: true, detailed: true }) }),
+        Object.freeze({ key: 'resources', label: 'Resources', fieldId: 'vm-col-resources', header: '.col-resources', cell: '.resources-cell', hideable: true, resizable: true, defaultWidth: 210, min: 170, max: 420, presets: Object.freeze({ compact: true, balanced: true, detailed: true }) }),
+        Object.freeze({ key: 'actions', label: 'Actions', fieldId: null, header: '.col-actions', cell: '.actions-cell', hideable: false, resizable: true, defaultWidth: 180, min: 160, max: 320 })
+    ])
+});
+const SETTINGS_TABLE_COLUMN_SCHEMA_MAP_BY_TYPE = Object.freeze({
+    docker: Object.freeze(Object.fromEntries((SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE.docker || []).map((entry) => [entry.key, entry]))),
+    vm: Object.freeze(Object.fromEntries((SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE.vm || []).map((entry) => [entry.key, entry])))
+});
 const DEFAULT_COLUMN_VISIBILITY_BY_TYPE = Object.freeze({
-    docker: Object.freeze({
-        status: true,
-        rules: true,
-        lastChanged: true,
-        pinned: true,
-        signals: true
-    }),
-    vm: Object.freeze({
-        status: false,
-        rules: false,
-        lastChanged: false,
-        pinned: false,
-        autostart: true,
-        resources: true
-    })
+    docker: Object.freeze(Object.fromEntries(
+        (SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE.docker || [])
+            .filter((entry) => entry.hideable === true)
+            .map((entry) => [entry.key, entry.presets?.balanced !== false])
+    )),
+    vm: Object.freeze(Object.fromEntries(
+        (SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE.vm || [])
+            .filter((entry) => entry.hideable === true)
+            .map((entry) => [entry.key, entry.presets?.balanced !== false])
+    ))
 });
 let columnVisibilityByType = {
     docker: { ...DEFAULT_COLUMN_VISIBILITY_BY_TYPE.docker },
     vm: { ...DEFAULT_COLUMN_VISIBILITY_BY_TYPE.vm }
+};
+let columnWidthModeByType = {
+    docker: 'auto',
+    vm: 'auto'
+};
+let columnPresetByType = {
+    docker: 'balanced',
+    vm: 'balanced'
+};
+let settingsTableWidthPresetByType = {
+    docker: { name: 'standard', actions: 'standard' },
+    vm: { name: 'standard', actions: 'standard' }
 };
 let columnWidthsByType = {
     docker: {},
@@ -317,7 +356,6 @@ const RUNTIME_CONFLICT_RESOLVED_PENDING_STORAGE_KEY = 'fv.runtimeConflict.resolv
 const IMPORT_PREVIEW_FIRST_STORAGE_KEY = 'fv.import.previewFirst.v1';
 const TABLE_UI_STATE_STORAGE_KEY = 'fv.settings.tableUiState.v1';
 const LONG_PRESS_DELAY_MS = 560;
-const ACTION_DOCK_AUTOCOLLAPSE_MS = 5000;
 const IMPORT_PRESET_DEFAULT_ID = 'builtin:merge';
 const UNDO_WINDOW_MS = 10000;
 const ROW_FOCUS_HIGHLIGHT_MS = 2200;
@@ -353,36 +391,6 @@ const IMPORT_PRESET_BUILTINS = [
 ];
 const UPDATE_NOTES_CHANGELOG_URL = 'https://github.com/alexphillips-dev/FolderView-Plus/blob/main/folderview.plus.plg';
 const SUPPORT_THREAD_URL = 'https://forums.unraid.net/topic/197631-plugin-folderview-plus/';
-const PERF_DIAGNOSTICS_SAMPLE_LIMIT = 30;
-const performanceDiagnosticsState = {
-    refresh: { docker: [], vm: [] },
-    import: { docker: [], vm: [] },
-    updatedAt: 0
-};
-const REQUEST_ERROR_DIAGNOSTICS_LIMIT = 40;
-const requestErrorDiagnostics = [];
-const recordRequestErrorTelemetry = (method, url, error, extra = {}) => {
-    const statusMatch = String(error?.message || '').match(/\bHTTP\s+(\d{3})\b/i);
-    const statusCode = statusMatch ? Number(statusMatch[1]) : 0;
-    requestErrorDiagnostics.push({
-        at: new Date().toISOString(),
-        method: String(method || '').toUpperCase() || 'GET',
-        url: String(url || ''),
-        status: Number.isFinite(statusCode) ? Number(statusCode) : 0,
-        message: String(error?.message || error || 'Unknown request error'),
-        source: String(extra.source || ''),
-        retries: Number.isFinite(Number(extra.retries)) ? Number(extra.retries) : null,
-        timeoutMs: Number.isFinite(Number(extra.timeoutMs)) ? Number(extra.timeoutMs) : null
-    });
-    while (requestErrorDiagnostics.length > REQUEST_ERROR_DIAGNOSTICS_LIMIT) {
-        requestErrorDiagnostics.shift();
-    }
-};
-const getRequestErrorDiagnosticsSnapshot = () => ({
-    count: requestErrorDiagnostics.length,
-    last: requestErrorDiagnostics.length > 0 ? requestErrorDiagnostics[requestErrorDiagnostics.length - 1] : null,
-    samples: requestErrorDiagnostics.slice(-REQUEST_ERROR_DIAGNOSTICS_LIMIT)
-});
 const settingsUiState = {
     initialized: false,
     controlsInitialized: false,
@@ -403,9 +411,7 @@ const settingsUiState = {
     knownAdvancedSections: new Set(),
     hasExpandedAdvancedPreference: false,
     wizardShown: false,
-    unsavedCount: 0,
-    actionDockExpanded: false,
-    actionDockMoreOpen: false
+    unsavedCount: 0
 };
 const createAdvancedModuleLoadEntry = () => ({
     loaded: false,
@@ -521,7 +527,6 @@ let mobileLayoutGuardBound = false;
 let settingsThemeReflowBound = false;
 let settingsThemeReflowObserver = null;
 let settingsThemeReflowTimer = null;
-let actionDockAutoCollapseTimer = null;
 let lastThemeResolverSnapshot = null;
 let themeColorParserCanvasContext = null;
 const MOBILE_SETTINGS_BREAKPOINT_PX = 760;
@@ -1255,6 +1260,7 @@ const INSTANT_PERSIST_ONCHANGE_TOKENS = Object.freeze(
             'changehealthpref(',
             'changebackupschedulepref(',
             'changecolumnvisibility(',
+            'changesettingstablecolumnwidthpreset(',
             'togglerulekindfields(',
             'toggleallruleselections(',
             'togglealltemplateselections('
@@ -1508,57 +1514,11 @@ const setActionBarStatus = (text) => {
     status.toggleClass('is-visible', message !== '');
 };
 
-const clearActionDockAutoCollapseTimer = () => {
-    if (actionDockAutoCollapseTimer !== null) {
-        window.clearTimeout(actionDockAutoCollapseTimer);
-        actionDockAutoCollapseTimer = null;
-    }
-};
-
-const setActionDockMoreOpen = (open) => {
-    settingsUiState.actionDockMoreOpen = open === true;
-    $('#fv-save-dock').attr('data-more-open', settingsUiState.actionDockMoreOpen ? '1' : '0');
-    $('#fv-action-more').attr('aria-expanded', settingsUiState.actionDockMoreOpen ? 'true' : 'false');
-};
-
-const setActionDockExpanded = (expanded, { auto = false } = {}) => {
-    const nextExpanded = expanded === true && settingsUiState.unsavedCount > 0;
-    settingsUiState.actionDockExpanded = nextExpanded;
-    const dock = $('#fv-save-dock');
-    dock.attr('data-expanded', nextExpanded ? '1' : '0');
-    $('#fv-save-dock-chip').attr('aria-expanded', nextExpanded ? 'true' : 'false');
-    if (!nextExpanded) {
-        clearActionDockAutoCollapseTimer();
-        setActionDockMoreOpen(false);
-        return;
-    }
-    if (!settingsUiState.actionDockMoreOpen) {
-        setActionDockMoreOpen(false);
-    }
-    if (!auto) {
-        clearActionDockAutoCollapseTimer();
-        actionDockAutoCollapseTimer = window.setTimeout(() => {
-            setActionDockExpanded(false, { auto: true });
-        }, ACTION_DOCK_AUTOCOLLAPSE_MS);
-    }
-};
-
 const syncActionDockVisibility = () => {
     const count = Number(settingsUiState.unsavedCount || 0);
     const bar = $('#fv-settings-action-bar');
-    const dock = $('#fv-save-dock');
-    const chipText = $('#fv-save-dock-chip-text');
-    const chip = $('#fv-save-dock-chip');
-    const moreButton = $('#fv-action-more');
-
-    chipText.text(`Unsaved (${count})`);
-    chip.prop('disabled', count <= 0);
-    moreButton.prop('disabled', count <= 0);
     bar.toggleClass('is-hidden', count <= 0);
-    dock.attr('data-dirty', count > 0 ? '1' : '0');
-    if (count <= 0) {
-        setActionDockExpanded(false);
-    }
+    bar.attr('data-dirty', count > 0 ? '1' : '0');
 };
 
 const updateActionBarSaveState = () => {
@@ -1725,7 +1685,14 @@ const buildSettingsSections = () => {
 
 const getSectionApplyMode = (section) => {
     if (!section || !Array.isArray(section.nodes)) {
-        return { id: 'instant', label: 'Applies instantly' };
+        return null;
+    }
+    const behaviorHint = String(SECTION_APPLY_BEHAVIOR?.[String(section.key || '').trim().toLowerCase()] || '').trim().toLowerCase();
+    if (behaviorHint === 'instant') {
+        return null;
+    }
+    if (behaviorHint === 'staged') {
+        return { id: 'staged', label: 'Requires Save' };
     }
     const seen = new Set();
     let hasInstantApply = false;
@@ -1756,13 +1723,10 @@ const getSectionApplyMode = (section) => {
             }
         }
     }
-    if (hasStagedApply && hasInstantApply) {
-        return { id: 'mixed', label: 'Mixed apply' };
-    }
     if (hasStagedApply) {
         return { id: 'staged', label: 'Requires Save' };
     }
-    return { id: 'instant', label: 'Applies instantly' };
+    return null;
 };
 
 const refreshSectionApplyModeBadges = () => {
@@ -1771,8 +1735,15 @@ const refreshSectionApplyModeBadges = () => {
             continue;
         }
         const mode = getSectionApplyMode(section);
-        section.modeBadge.textContent = mode.label;
         section.modeBadge.classList.remove('is-instant', 'is-staged', 'is-mixed');
+        if (!mode) {
+            section.modeBadge.textContent = '';
+            section.modeBadge.hidden = true;
+            section.modeBadge.removeAttribute('title');
+            continue;
+        }
+        section.modeBadge.hidden = false;
+        section.modeBadge.textContent = mode.label;
         section.modeBadge.classList.add(`is-${mode.id}`);
         section.modeBadge.setAttribute('title', mode.label);
     }
@@ -2164,7 +2135,6 @@ const saveActionBarChanges = async (closeAfterSave = false) => {
     captureSettingsBaseline();
     refreshSectionHealthBadges();
     setActionBarStatus('Saved current settings snapshot.');
-    setActionDockExpanded(false);
     if (closeAfterSave) {
         setTimeout(() => {
             window.history.back();
@@ -2176,7 +2146,6 @@ const cancelActionBarChanges = () => {
     const changedInputs = getChangedTrackedInputs();
     if (changedInputs.length <= 0) {
         updateActionBarSaveState();
-        setActionDockExpanded(false);
         return;
     }
     const revertedInputs = dirtyTracker && typeof dirtyTracker.applyBaselineValues === 'function'
@@ -2198,7 +2167,6 @@ const cancelActionBarChanges = () => {
     refreshSectionHealthBadges();
     updateActionBarSaveState();
     setActionBarStatus('Reverted unsaved field changes.');
-    setActionDockExpanded(false);
 };
 
 const resetCurrentSectionToBaseline = () => {
@@ -2234,7 +2202,6 @@ const resetCurrentSectionToBaseline = () => {
     refreshInputInvalidStyles();
     refreshSectionHealthBadges();
     updateActionBarSaveState();
-    setActionDockExpanded(false);
     setActionBarStatus(`Reset section "${section.title}" to baseline snapshot.`);
 };
 
@@ -2468,31 +2435,17 @@ const initSettingsControls = () => {
     const actionBarHtml = settingsChrome && typeof settingsChrome.getActionBarHtml === 'function'
         ? settingsChrome.getActionBarHtml()
         : `
-            <div id="fv-save-dock" class="fv-save-dock" data-dirty="0" data-expanded="0" data-more-open="0">
-                <div class="fv-save-dock-panel">
-                    <div class="fv-action-buttons fv-action-buttons-primary">
-                        <button type="button" id="fv-action-save"><i class="fa fa-save"></i> Save</button>
-                        <button type="button" id="fv-action-cancel"><i class="fa fa-undo"></i> Cancel</button>
-                    </div>
-                    <button type="button" id="fv-action-more" class="fv-action-more" aria-expanded="false"><i class="fa fa-ellipsis-h"></i> More</button>
-                    <div class="fv-action-buttons fv-action-buttons-secondary">
-                        <button type="button" id="fv-action-save-close"><i class="fa fa-check"></i> Save &amp; Close</button>
-                        <button type="button" id="fv-action-reset-section"><i class="fa fa-refresh"></i> Reset section</button>
-                    </div>
-                    <span id="fv-action-status" class="fv-action-status" aria-live="polite"></span>
+            <div class="fv-settings-action-wrap">
+                <div class="fv-action-buttons">
+                    <button type="button" id="fv-action-save"><i class="fa fa-save"></i> Save</button>
+                    <button type="button" id="fv-action-cancel"><i class="fa fa-undo"></i> Cancel</button>
+                    <button type="button" id="fv-action-save-close"><i class="fa fa-check"></i> Save &amp; Close</button>
+                    <button type="button" id="fv-action-reset-section"><i class="fa fa-refresh"></i> Reset section</button>
                 </div>
-                <div class="fv-save-dock-head">
-                    <button type="button" id="fv-save-dock-chip" class="fv-save-dock-chip" aria-expanded="false" aria-label="Open save actions">
-                        <i class="fa fa-circle"></i>
-                        <span id="fv-save-dock-chip-text">Unsaved (0)</span>
-                        <i class="fa fa-chevron-up fv-save-dock-chevron"></i>
-                    </button>
-                </div>
+                <span id="fv-action-status" class="fv-action-status" aria-live="polite"></span>
             </div>
         `;
     actionBar.html(actionBarHtml);
-    setActionDockMoreOpen(false);
-    setActionDockExpanded(false);
 
     $('.fv-mode-btn').off('click.fvui').on('click.fvui', (event) => {
         const mode = String($(event.currentTarget).attr('data-mode') || 'basic');
@@ -2519,27 +2472,6 @@ const initSettingsControls = () => {
     });
     $('#fv-action-reset-section').off('click.fvui').on('click.fvui', () => {
         resetCurrentSectionToBaseline();
-    });
-    $('#fv-save-dock-chip').off('click.fvui').on('click.fvui', () => {
-        if (settingsUiState.unsavedCount <= 0) {
-            return;
-        }
-        setActionDockExpanded(!settingsUiState.actionDockExpanded);
-    });
-    $('#fv-action-more').off('click.fvui').on('click.fvui', () => {
-        if (settingsUiState.unsavedCount <= 0) {
-            return;
-        }
-        setActionDockMoreOpen(!settingsUiState.actionDockMoreOpen);
-        setActionDockExpanded(true);
-    });
-    $('#fv-settings-action-bar').off('pointerdown.fvui keydown.fvui click.fvui').on('pointerdown.fvui keydown.fvui click.fvui', () => {
-        if (settingsUiState.actionDockExpanded) {
-            clearActionDockAutoCollapseTimer();
-            actionDockAutoCollapseTimer = window.setTimeout(() => {
-                setActionDockExpanded(false, { auto: true });
-            }, ACTION_DOCK_AUTOCOLLAPSE_MS);
-        }
     });
     $('#fv-run-wizard').off('click.fvui').on('click.fvui', () => {
         runQuickSetupWizard(true);
@@ -4035,31 +3967,139 @@ const runtimePreviewText = (type, folderId, action, plan) => {
 };
 
 const TABLE_COLUMN_SELECTOR_MAP = Object.freeze({
-    docker: Object.freeze({
-        status: Object.freeze({ header: '.col-status', cell: '.status-cell' }),
-        rules: Object.freeze({ header: '.col-rules', cell: '.rules-cell' }),
-        lastChanged: Object.freeze({ header: '.col-last-changed', cell: '.last-changed-cell' }),
-        pinned: Object.freeze({ header: '.col-pinned', cell: '.pinned-cell' }),
-        signals: Object.freeze({ header: '.col-signals', cell: '.signals-cell' })
-    }),
-    vm: Object.freeze({
-        status: Object.freeze({ header: '.col-status', cell: '.status-cell' }),
-        rules: Object.freeze({ header: '.col-rules', cell: '.rules-cell' }),
-        lastChanged: Object.freeze({ header: '.col-last-changed', cell: '.last-changed-cell' }),
-        pinned: Object.freeze({ header: '.col-pinned', cell: '.pinned-cell' }),
-        autostart: Object.freeze({ header: '.col-autostart', cell: '.autostart-cell' }),
-        resources: Object.freeze({ header: '.col-resources', cell: '.resources-cell' })
-    })
+    docker: Object.freeze(Object.fromEntries(
+        (SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE.docker || [])
+            .filter((entry) => entry.hideable === true)
+            .map((entry) => [entry.key, Object.freeze({ header: entry.header, cell: entry.cell })])
+    )),
+    vm: Object.freeze(Object.fromEntries(
+        (SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE.vm || [])
+            .filter((entry) => entry.hideable === true)
+            .map((entry) => [entry.key, Object.freeze({ header: entry.header, cell: entry.cell })])
+    ))
 });
 
 const normalizedFilter = (value) => String(value || '').trim().toLowerCase();
+const normalizeSettingsTableColumnWidthPreset = (value) => {
+    const normalized = String(value || '').trim().toLowerCase();
+    return ['compact', 'standard', 'wide'].includes(normalized) ? normalized : 'standard';
+};
+const SETTINGS_TABLE_WIDTH_PRESET_VALUES = Object.freeze({
+    name: Object.freeze({ compact: 260, standard: 320, wide: 420 }),
+    actions: Object.freeze({ compact: 160, standard: 180, wide: 240 })
+});
+const normalizeSettingsTableWidthMode = (value) => (
+    String(value || '').trim().toLowerCase() === 'custom' ? 'custom' : 'auto'
+);
+const normalizeSettingsTablePreset = (value) => {
+    const normalized = String(value || '').trim().toLowerCase();
+    return ['compact', 'balanced', 'detailed', 'custom'].includes(normalized) ? normalized : 'balanced';
+};
+const buildPresetColumnVisibilityForType = (type, preset = 'balanced') => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const normalizedPreset = normalizeSettingsTablePreset(preset);
+    const schema = SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE[resolvedType] || [];
+    const defaults = {};
+    schema.forEach((entry) => {
+        if (entry.hideable !== true) {
+            return;
+        }
+        defaults[entry.key] = entry.presets?.[normalizedPreset] !== false;
+    });
+    return defaults;
+};
+const buildDefaultColumnWidthsForType = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const configByKey = TABLE_COLUMN_RESIZE_CONFIG_BY_TYPE[resolvedType] || {};
+    const widths = {};
+    Object.entries(configByKey).forEach(([key, config]) => {
+        const defaultWidth = normalizeSingleColumnWidth(resolvedType, key, config.defaultWidth);
+        if (defaultWidth !== null) {
+            widths[key] = defaultWidth;
+        }
+    });
+    return widths;
+};
+const getSettingsTablePrefs = (type, prefsOverride = null) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const sourcePrefs = prefsOverride ? utils.normalizePrefs(prefsOverride) : utils.normalizePrefs(prefsByType[resolvedType]);
+    const incoming = sourcePrefs && typeof sourcePrefs.settingsTable === 'object' ? sourcePrefs.settingsTable : {};
+    const preset = normalizeSettingsTablePreset(incoming.preset);
+    const columns = normalizeColumnVisibilityForType(
+        resolvedType,
+        incoming.columns && typeof incoming.columns === 'object'
+            ? incoming.columns
+            : buildPresetColumnVisibilityForType(resolvedType, preset)
+    );
+    const widths = normalizeColumnWidthsForType(
+        resolvedType,
+        incoming.columnWidths && typeof incoming.columnWidths === 'object' ? incoming.columnWidths : {}
+    );
+    return {
+        widthMode: normalizeSettingsTableWidthMode(incoming.widthMode),
+        preset,
+        columns,
+        columnWidths: widths,
+        nameWidth: normalizeSettingsTableColumnWidthPreset(incoming.nameWidth),
+        actionsWidth: normalizeSettingsTableColumnWidthPreset(incoming.actionsWidth)
+    };
+};
+const syncSettingsTableStateFromPrefs = (type, prefsOverride = null) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const settingsTable = getSettingsTablePrefs(resolvedType, prefsOverride);
+    columnWidthModeByType[resolvedType] = settingsTable.widthMode;
+    columnPresetByType[resolvedType] = settingsTable.preset;
+    columnVisibilityByType[resolvedType] = settingsTable.columns;
+    columnWidthsByType[resolvedType] = settingsTable.columnWidths;
+    settingsTableWidthPresetByType[resolvedType] = {
+        name: settingsTable.nameWidth,
+        actions: settingsTable.actionsWidth
+    };
+    return settingsTable;
+};
+const buildNextSettingsTablePrefs = (type, patch = {}) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const current = utils.normalizePrefs(prefsByType[resolvedType] || {});
+    const currentSettingsTable = getSettingsTablePrefs(resolvedType, current);
+    const nextWidthMode = normalizeSettingsTableWidthMode(
+        Object.prototype.hasOwnProperty.call(patch, 'widthMode') ? patch.widthMode : currentSettingsTable.widthMode
+    );
+    const nextPreset = normalizeSettingsTablePreset(
+        Object.prototype.hasOwnProperty.call(patch, 'preset') ? patch.preset : currentSettingsTable.preset
+    );
+    const nextColumns = normalizeColumnVisibilityForType(
+        resolvedType,
+        Object.prototype.hasOwnProperty.call(patch, 'columns') ? patch.columns : currentSettingsTable.columns
+    );
+    const nextColumnWidths = normalizeColumnWidthsForType(
+        resolvedType,
+        Object.prototype.hasOwnProperty.call(patch, 'columnWidths') ? patch.columnWidths : currentSettingsTable.columnWidths
+    );
+    return utils.normalizePrefs({
+        ...current,
+        settingsTable: {
+            widthMode: nextWidthMode,
+            preset: nextPreset,
+            columns: nextColumns,
+            columnWidths: nextColumnWidths,
+            nameWidth: normalizeSettingsTableColumnWidthPreset(
+                Object.prototype.hasOwnProperty.call(patch, 'nameWidth') ? patch.nameWidth : currentSettingsTable.nameWidth
+            ),
+            actionsWidth: normalizeSettingsTableColumnWidthPreset(
+                Object.prototype.hasOwnProperty.call(patch, 'actionsWidth') ? patch.actionsWidth : currentSettingsTable.actionsWidth
+            )
+        }
+    });
+};
 const normalizeColumnVisibilityForType = (type, value = null) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     const defaults = DEFAULT_COLUMN_VISIBILITY_BY_TYPE[resolvedType] || {};
     const source = value && typeof value === 'object' ? value : {};
     const normalized = {};
     Object.keys(defaults).forEach((key) => {
-        normalized[key] = source[key] !== false;
+        normalized[key] = Object.prototype.hasOwnProperty.call(source, key)
+            ? source[key] !== false
+            : defaults[key] === true;
     });
     // Legacy bridge: old docker prefs used separate updates/health columns.
     // Preserve previous "both hidden" intent when migrating to unified Signals.
@@ -4074,29 +4114,28 @@ const normalizeColumnVisibilityForType = (type, value = null) => {
 };
 
 const TABLE_COLUMN_RESIZE_CONFIG_BY_TYPE = Object.freeze({
-    docker: Object.freeze({
-        order: Object.freeze({ header: '.col-order', cell: '.order-cell', min: 64, max: 220 }),
-        name: Object.freeze({ header: '.col-name', cell: '.name-cell', min: 220, max: 820 }),
-        members: Object.freeze({ header: '.col-members', cell: '.members-cell', min: 90, max: 260 }),
-        status: Object.freeze({ header: '.col-status', cell: '.status-cell', min: 170, max: 620 }),
-        rules: Object.freeze({ header: '.col-rules', cell: '.rules-cell', min: 80, max: 240 }),
-        lastChanged: Object.freeze({ header: '.col-last-changed', cell: '.last-changed-cell', min: 150, max: 360 }),
-        pinned: Object.freeze({ header: '.col-pinned', cell: '.pinned-cell', min: 80, max: 200 }),
-        signals: Object.freeze({ header: '.col-signals', cell: '.signals-cell', min: 120, max: 360 }),
-        actions: Object.freeze({ header: '.col-actions', cell: '.actions-cell', min: 160, max: 320 })
-    }),
-    vm: Object.freeze({
-        order: Object.freeze({ header: '.col-order', cell: '.order-cell', min: 64, max: 220 }),
-        name: Object.freeze({ header: '.col-name', cell: '.name-cell', min: 220, max: 820 }),
-        members: Object.freeze({ header: '.col-members', cell: '.members-cell', min: 90, max: 260 }),
-        status: Object.freeze({ header: '.col-status', cell: '.status-cell', min: 170, max: 620 }),
-        rules: Object.freeze({ header: '.col-rules', cell: '.rules-cell', min: 80, max: 240 }),
-        lastChanged: Object.freeze({ header: '.col-last-changed', cell: '.last-changed-cell', min: 150, max: 360 }),
-        pinned: Object.freeze({ header: '.col-pinned', cell: '.pinned-cell', min: 80, max: 200 }),
-        autostart: Object.freeze({ header: '.col-autostart', cell: '.autostart-cell', min: 130, max: 300 }),
-        resources: Object.freeze({ header: '.col-resources', cell: '.resources-cell', min: 170, max: 420 }),
-        actions: Object.freeze({ header: '.col-actions', cell: '.actions-cell', min: 160, max: 320 })
-    })
+    docker: Object.freeze(Object.fromEntries(
+        (SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE.docker || [])
+            .filter((entry) => entry.resizable !== false)
+            .map((entry) => [entry.key, Object.freeze({
+                header: entry.header,
+                cell: entry.cell,
+                min: entry.min,
+                max: entry.max,
+                defaultWidth: entry.defaultWidth
+            })])
+    )),
+    vm: Object.freeze(Object.fromEntries(
+        (SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE.vm || [])
+            .filter((entry) => entry.resizable !== false)
+            .map((entry) => [entry.key, Object.freeze({
+                header: entry.header,
+                cell: entry.cell,
+                min: entry.min,
+                max: entry.max,
+                defaultWidth: entry.defaultWidth
+            })])
+    ))
 });
 
 const TABLE_COLUMN_RESIZE_KEYS_BY_TYPE = Object.freeze({
@@ -4105,6 +4144,7 @@ const TABLE_COLUMN_RESIZE_KEYS_BY_TYPE = Object.freeze({
 });
 
 let activeTableColumnResize = null;
+const SETTINGS_TABLE_RESIZE_GUIDE_ID = 'fv-settings-col-resize-guide';
 
 const getSettingsTableElement = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
@@ -4188,6 +4228,17 @@ const syncResizableTableLayout = (type) => {
         }
         return;
     }
+    const widthMode = normalizeSettingsTableWidthMode(columnWidthModeByType[resolvedType]);
+    if (widthMode !== 'custom') {
+        table.style.removeProperty('width');
+        table.style.removeProperty('max-width');
+        table.style.removeProperty('table-layout');
+        if (tableWrap && tableWrap.style) {
+            tableWrap.style.removeProperty('overflow-x');
+            tableWrap.style.removeProperty('overflow-y');
+        }
+        return;
+    }
     if (!hasCustomWidths) {
         table.style.removeProperty('width');
         table.style.removeProperty('max-width');
@@ -4256,14 +4307,6 @@ const buildTableUiStatePayload = () => ({
         docker: Array.from(collapsedTreeParentsByType.docker || []),
         vm: Array.from(collapsedTreeParentsByType.vm || [])
     },
-    columns: {
-        docker: { ...(columnVisibilityByType.docker || {}) },
-        vm: { ...(columnVisibilityByType.vm || {}) }
-    },
-    columnWidths: {
-        docker: { ...(columnWidthsByType.docker || {}) },
-        vm: { ...(columnWidthsByType.vm || {}) }
-    },
     treeReorderMode: {
         docker: mobileTreeReorderModeByType.docker === true,
         vm: mobileTreeReorderModeByType.vm === true
@@ -4297,8 +4340,6 @@ const restoreTableUiState = () => {
         const sourceHealthSeverity = source.healthSeverity && typeof source.healthSeverity === 'object' ? source.healthSeverity : {};
         const sourceStatus = source.status && typeof source.status === 'object' ? source.status : {};
         const sourceTreeCollapsed = source.treeCollapsed && typeof source.treeCollapsed === 'object' ? source.treeCollapsed : {};
-        const sourceColumns = source.columns && typeof source.columns === 'object' ? source.columns : {};
-        const sourceColumnWidths = source.columnWidths && typeof source.columnWidths === 'object' ? source.columnWidths : {};
         const sourceTreeReorderMode = source.treeReorderMode && typeof source.treeReorderMode === 'object' ? source.treeReorderMode : {};
         const sourceAdvancedSearch = source.advancedSearch && typeof source.advancedSearch === 'object' ? source.advancedSearch : {};
         ['docker', 'vm'].forEach((resolvedType) => {
@@ -4321,8 +4362,6 @@ const restoreTableUiState = () => {
                     ? sourceTreeCollapsed[resolvedType].map((id) => String(id || '').trim()).filter(Boolean)
                     : []
             );
-            columnVisibilityByType[resolvedType] = normalizeColumnVisibilityForType(resolvedType, sourceColumns[resolvedType]);
-            columnWidthsByType[resolvedType] = normalizeColumnWidthsForType(resolvedType, sourceColumnWidths[resolvedType]);
             mobileTreeReorderModeByType[resolvedType] = sourceTreeReorderMode[resolvedType] === true;
         });
         settingsUiState.advancedSearchByTab = normalizeAdvancedSearchMap(
@@ -4384,15 +4423,65 @@ const applySingleColumnWidth = (type, key, widthPx) => {
     });
 };
 
+const buildEffectiveSettingsTableWidths = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const next = buildDefaultColumnWidthsForType(resolvedType);
+    const widthPresets = settingsTableWidthPresetByType[resolvedType] || {};
+    const nameWidthPreset = normalizeSettingsTableColumnWidthPreset(widthPresets.name);
+    const actionsWidthPreset = normalizeSettingsTableColumnWidthPreset(widthPresets.actions);
+    next.name = normalizeSingleColumnWidth(resolvedType, 'name', SETTINGS_TABLE_WIDTH_PRESET_VALUES.name[nameWidthPreset]) || next.name;
+    next.actions = normalizeSingleColumnWidth(resolvedType, 'actions', SETTINGS_TABLE_WIDTH_PRESET_VALUES.actions[actionsWidthPreset]) || next.actions;
+    return next;
+};
+
 const applyColumnWidths = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    columnWidthsByType[resolvedType] = normalizeColumnWidthsForType(resolvedType, columnWidthsByType[resolvedType]);
+    columnWidthModeByType[resolvedType] = 'auto';
+    columnWidthsByType[resolvedType] = {};
     const keys = TABLE_COLUMN_RESIZE_KEYS_BY_TYPE[resolvedType] || [];
-    const widths = columnWidthsByType[resolvedType] || {};
+    const widths = buildEffectiveSettingsTableWidths(resolvedType);
     keys.forEach((key) => {
         applySingleColumnWidth(resolvedType, key, widths[key]);
     });
     syncResizableTableLayout(resolvedType);
+};
+
+const persistSettingsTableState = async (type, patch = {}, options = {}) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const rerender = options.rerender === true;
+    const currentPrefs = prefsByType[resolvedType] || utils.normalizePrefs({});
+    const previousState = {
+        widthMode: columnWidthModeByType[resolvedType],
+        preset: columnPresetByType[resolvedType],
+        columns: { ...(columnVisibilityByType[resolvedType] || {}) },
+        columnWidths: { ...(columnWidthsByType[resolvedType] || {}) }
+    };
+    try {
+        const nextPrefs = buildNextSettingsTablePrefs(resolvedType, patch);
+        prefsByType[resolvedType] = await postPrefs(resolvedType, nextPrefs);
+        syncSettingsTableStateFromPrefs(resolvedType, prefsByType[resolvedType]);
+        renderSettingsTableLayoutControls(resolvedType);
+        renderColumnVisibilityControls(resolvedType);
+        if (rerender) {
+            renderTable(resolvedType);
+        } else {
+            applyColumnVisibility(resolvedType);
+            applyColumnWidths(resolvedType);
+            bindTableColumnResizers(resolvedType);
+        }
+    } catch (error) {
+        prefsByType[resolvedType] = currentPrefs;
+        columnWidthModeByType[resolvedType] = previousState.widthMode;
+        columnPresetByType[resolvedType] = previousState.preset;
+        columnVisibilityByType[resolvedType] = previousState.columns;
+        columnWidthsByType[resolvedType] = previousState.columnWidths;
+        renderSettingsTableLayoutControls(resolvedType);
+        renderColumnVisibilityControls(resolvedType);
+        applyColumnVisibility(resolvedType);
+        applyColumnWidths(resolvedType);
+        bindTableColumnResizers(resolvedType);
+        showError('Settings table preferences save failed', error);
+    }
 };
 
 const stopActiveTableColumnResize = (persist = true) => {
@@ -4400,14 +4489,36 @@ const stopActiveTableColumnResize = (persist = true) => {
     if (!active) {
         return;
     }
+    document.getElementById(SETTINGS_TABLE_RESIZE_GUIDE_ID)?.remove();
     document.body.classList.remove('fv-column-resize-active');
-    window.removeEventListener('pointermove', active.onMove, true);
-    window.removeEventListener('pointerup', active.onUp, true);
-    window.removeEventListener('pointercancel', active.onCancel, true);
+    window.removeEventListener('mousemove', active.onMove, true);
+    window.removeEventListener('mouseup', active.onUp, true);
     activeTableColumnResize = null;
-    if (persist) {
-        persistTableUiState();
+    if (persist && active.dragStarted === true) {
+        persistSettingsTableState(active.type, {
+            widthMode: 'custom',
+            preset: 'custom',
+            columnWidths: columnWidthsByType[active.type] || {}
+        });
     }
+};
+
+const ensureSettingsTableResizeGuide = () => {
+    let guide = document.getElementById(SETTINGS_TABLE_RESIZE_GUIDE_ID);
+    if (!guide) {
+        guide = document.createElement('div');
+        guide.id = SETTINGS_TABLE_RESIZE_GUIDE_ID;
+        guide.className = 'fv-col-resize-guide';
+        document.body.appendChild(guide);
+    }
+    return guide;
+};
+
+const positionSettingsTableResizeGuide = (left, top, height) => {
+    const guide = ensureSettingsTableResizeGuide();
+    guide.style.left = `${Math.round(left)}px`;
+    guide.style.top = `${Math.round(top)}px`;
+    guide.style.height = `${Math.max(0, Math.round(height))}px`;
 };
 
 const beginTableColumnResize = (type, key, event) => {
@@ -4427,50 +4538,85 @@ const beginTableColumnResize = (type, key, event) => {
         return;
     }
     const startClientX = Number(event.clientX || 0);
-    const frozenWidths = captureCurrentColumnWidths(resolvedType);
-    if (Object.keys(frozenWidths).length > 0) {
-        columnWidthsByType[resolvedType] = normalizeColumnWidthsForType(resolvedType, {
-            ...(columnWidthsByType[resolvedType] || {}),
-            ...frozenWidths
-        });
-    }
-    applyColumnWidths(resolvedType);
     const header = table.querySelector(config.header);
     if (!header) {
         return;
     }
     const startWidth = header.getBoundingClientRect().width;
     const normalizedStart = normalizeSingleColumnWidth(resolvedType, key, startWidth) || startWidth;
-    columnWidthsByType[resolvedType] = normalizeColumnWidthsForType(resolvedType, {
-        ...(columnWidthsByType[resolvedType] || {}),
-        [key]: normalizedStart
-    });
-    applyColumnWidths(resolvedType);
-    const onMove = (moveEvent) => {
-        const delta = Number(moveEvent.clientX || 0) - startClientX;
-        const nextWidth = normalizeSingleColumnWidth(resolvedType, key, normalizedStart + delta);
-        if (nextWidth === null) {
+    const tableRect = table.getBoundingClientRect();
+    const headerRect = header.getBoundingClientRect();
+    const startBoundaryX = headerRect.right;
+    let dragStarted = false;
+    let nextWidth = normalizedStart;
+    const startResize = () => {
+        if (dragStarted) {
             return;
         }
+        dragStarted = true;
+        const frozenWidths = captureCurrentColumnWidths(resolvedType);
+        if (Object.keys(frozenWidths).length > 0) {
+            columnWidthsByType[resolvedType] = normalizeColumnWidthsForType(resolvedType, {
+                ...(columnWidthsByType[resolvedType] || {}),
+                ...frozenWidths
+            });
+        }
+        columnWidthModeByType[resolvedType] = 'custom';
+        columnPresetByType[resolvedType] = 'custom';
+        columnWidthsByType[resolvedType] = normalizeColumnWidthsForType(resolvedType, {
+            ...(columnWidthsByType[resolvedType] || {}),
+            [key]: normalizedStart
+        });
+        document.body.classList.add('fv-column-resize-active');
+        positionSettingsTableResizeGuide(startBoundaryX, tableRect.top, tableRect.height);
+    };
+    const applyResolvedWidth = () => {
         columnWidthsByType[resolvedType] = normalizeColumnWidthsForType(resolvedType, {
             ...(columnWidthsByType[resolvedType] || {}),
             [key]: nextWidth
         });
         applyColumnWidths(resolvedType);
     };
+    const onMove = (moveEvent) => {
+        if (Number(moveEvent.buttons) === 0) {
+            if (dragStarted) {
+                applyResolvedWidth();
+            }
+            stopActiveTableColumnResize(true);
+            return;
+        }
+        const delta = Number(moveEvent.clientX || 0) - startClientX;
+        if (!dragStarted && Math.abs(delta) < 4) {
+            return;
+        }
+        startResize();
+        const candidateWidth = normalizeSingleColumnWidth(resolvedType, key, normalizedStart + delta);
+        if (candidateWidth === null) {
+            return;
+        }
+        nextWidth = candidateWidth;
+        positionSettingsTableResizeGuide(startBoundaryX + (nextWidth - normalizedStart), tableRect.top, tableRect.height);
+    };
     const onUp = () => {
+        if (dragStarted) {
+            applyResolvedWidth();
+        }
         stopActiveTableColumnResize(true);
     };
-    const onCancel = onUp;
     activeTableColumnResize = {
+        type: resolvedType,
+        dragStarted: false,
         onMove,
-        onUp,
-        onCancel
+        onUp
     };
-    document.body.classList.add('fv-column-resize-active');
-    window.addEventListener('pointermove', onMove, true);
-    window.addEventListener('pointerup', onUp, true);
-    window.addEventListener('pointercancel', onCancel, true);
+    Object.defineProperty(activeTableColumnResize, 'dragStarted', {
+        get: () => dragStarted,
+        set: (value) => {
+            dragStarted = value === true;
+        }
+    });
+    window.addEventListener('mousemove', onMove, true);
+    window.addEventListener('mouseup', onUp, true);
     event.preventDefault();
     event.stopPropagation();
 };
@@ -4482,48 +4628,29 @@ const bindTableColumnResizers = (type) => {
         return;
     }
     table.querySelectorAll('.fv-col-resizer').forEach((handle) => handle.remove());
-    const compact = shouldUseCompactMobileLayout();
-    const configByKey = TABLE_COLUMN_RESIZE_CONFIG_BY_TYPE[resolvedType] || {};
-    const keys = TABLE_COLUMN_RESIZE_KEYS_BY_TYPE[resolvedType] || [];
-    keys.forEach((key) => {
-        const config = configByKey[key];
-        const header = config ? table.querySelector(config.header) : null;
-        if (!header) {
-            return;
-        }
-        header.classList.add('fv-col-resizable');
-        if (compact) {
-            return;
-        }
-        const handle = document.createElement('button');
-        handle.type = 'button';
-        handle.className = 'fv-col-resizer';
-        handle.setAttribute('aria-hidden', 'true');
-        handle.tabIndex = -1;
-        handle.addEventListener('pointerdown', (event) => {
-            beginTableColumnResize(resolvedType, key, event);
-        });
-        handle.addEventListener('dblclick', (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            if (!columnWidthsByType[resolvedType]) {
-                columnWidthsByType[resolvedType] = {};
-            }
-            delete columnWidthsByType[resolvedType][key];
-            applyColumnWidths(resolvedType);
-            persistTableUiState();
-        });
-        header.appendChild(handle);
-    });
+    table.querySelectorAll('th.fv-col-resizable').forEach((header) => header.classList.remove('fv-col-resizable'));
 };
 
 const renderColumnVisibilityControls = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     const state = normalizeColumnVisibilityForType(resolvedType, columnVisibilityByType[resolvedType]);
-    Object.entries(state).forEach(([key, enabled]) => {
-        const fieldId = `${resolvedType}-col-${key === 'lastChanged' ? 'last-changed' : key}`;
-        $(`#${fieldId}`).prop('checked', enabled === true);
+    const schema = SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE[resolvedType] || [];
+    schema.forEach((entry) => {
+        if (!entry.fieldId) {
+            return;
+        }
+        $(`#${entry.fieldId}`).prop('checked', state[entry.key] === true);
     });
+};
+
+const renderSettingsTableLayoutControls = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const preset = normalizeSettingsTablePreset(columnPresetByType[resolvedType]);
+    const widthPresets = settingsTableWidthPresetByType[resolvedType] || {};
+    $(`[data-fv-table-preset^="${resolvedType}:"]`).removeClass('is-active');
+    $(`[data-fv-table-preset="${resolvedType}:${preset}"]`).addClass('is-active');
+    $(`#${resolvedType}-table-name-width`).val(normalizeSettingsTableColumnWidthPreset(widthPresets.name));
+    $(`#${resolvedType}-table-actions-width`).val(normalizeSettingsTableColumnWidthPreset(widthPresets.actions));
 };
 
 const setFilterQuery = (section, type, value) => {
@@ -7852,7 +7979,7 @@ const normalizeDashboardPrefsForType = (type, prefsOverride = null) => {
         ? utils.normalizeDashboardLayout
         : ((value) => {
             const normalized = String(value || '').trim().toLowerCase();
-            return ['classic', 'fullwidth', 'accordion', 'inset', 'compactmatrix'].includes(normalized) ? normalized : 'classic';
+            return ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'].includes(normalized) ? normalized : 'classic';
         });
     return {
         layout: normalizeLayout(dashboard.layout),
@@ -7864,7 +7991,7 @@ const normalizeDashboardPrefsForType = (type, prefsOverride = null) => {
 
 const syncDashboardDependentFields = (type) => {
     const prefs = normalizeDashboardPrefsForType(type);
-    const showNonClassicControls = prefs.layout !== 'classic';
+    const showNonClassicControls = !['classic', 'legacy'].includes(prefs.layout);
     $(`#${type}-dashboard-expand-toggle-row`).toggleClass('is-hidden', !showNonClassicControls);
     $(`#${type}-dashboard-greyscale-row`).toggleClass('is-hidden', !showNonClassicControls);
     $(`#${type}-dashboard-folder-label-row`).toggleClass('is-hidden', !showNonClassicControls);
@@ -8680,6 +8807,7 @@ const renderTable = (type) => {
     }
     statusSnapshotByType[type] = nextStatusSnapshot;
     bindRowTouchQuickActions(type);
+    syncSettingsTableStateFromPrefs(type);
 
     renderFolderSelectOptions(type);
     renderBadgeToggles(type);
@@ -8691,6 +8819,7 @@ const renderTable = (type) => {
     renderBackupScheduleControls(type);
     renderFilterInputs(type);
     renderQuickFolderFilters(type);
+    renderSettingsTableLayoutControls(type);
     renderColumnVisibilityControls(type);
     applyColumnVisibility(type);
     applyColumnWidths(type);
@@ -8707,84 +8836,6 @@ const renderTable = (type) => {
     updateRuleLiveMatch(type);
     refreshSettingsUx();
     enforceNoHorizontalOverflow();
-};
-
-const perfNowMs = () => ((window.performance && typeof window.performance.now === 'function')
-    ? window.performance.now()
-    : Date.now());
-
-const recordPerformanceDiagnosticsSample = (bucket, type, durationMs, details = {}) => {
-    const resolvedType = normalizeManagedType(type);
-    if (!performanceDiagnosticsState[bucket] || !Array.isArray(performanceDiagnosticsState[bucket][resolvedType])) {
-        return;
-    }
-    const duration = Number(durationMs);
-    if (!Number.isFinite(duration) || duration < 0) {
-        return;
-    }
-    const target = performanceDiagnosticsState[bucket][resolvedType];
-    target.push({
-        at: Date.now(),
-        durationMs: Number(duration.toFixed(2)),
-        details: details && typeof details === 'object' ? details : {}
-    });
-    if (target.length > PERF_DIAGNOSTICS_SAMPLE_LIMIT) {
-        target.splice(0, target.length - PERF_DIAGNOSTICS_SAMPLE_LIMIT);
-    }
-    performanceDiagnosticsState.updatedAt = Date.now();
-    renderPerformanceDiagnostics();
-};
-
-const summarizePerformanceDiagnosticsSamples = (samples) => {
-    const list = Array.isArray(samples) ? samples : [];
-    if (!list.length) {
-        return null;
-    }
-    const durations = list
-        .map((row) => Number(row?.durationMs))
-        .filter((value) => Number.isFinite(value) && value >= 0);
-    if (!durations.length) {
-        return null;
-    }
-    const total = durations.reduce((sum, value) => sum + value, 0);
-    return {
-        count: durations.length,
-        lastMs: Number(durations[durations.length - 1].toFixed(2)),
-        avgMs: Number((total / durations.length).toFixed(2)),
-        maxMs: Number(Math.max(...durations).toFixed(2))
-    };
-};
-
-const renderPerformanceDiagnostics = () => {
-    const host = $('#performance-diagnostics-output');
-    if (!host.length) {
-        return;
-    }
-    const renderRow = (label, summary) => {
-        if (!summary) {
-            return `<tr><th>${escapeHtml(label)}</th><td colspan="4">No samples yet</td></tr>`;
-        }
-        return `<tr><th>${escapeHtml(label)}</th><td>${summary.count}</td><td>${summary.lastMs}ms</td><td>${summary.avgMs}ms</td><td>${summary.maxMs}ms</td></tr>`;
-    };
-    const rows = [
-        renderRow('Docker refresh', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.refresh.docker)),
-        renderRow('VM refresh', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.refresh.vm)),
-        renderRow('Docker import', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.import.docker)),
-        renderRow('VM import', summarizePerformanceDiagnosticsSamples(performanceDiagnosticsState.import.vm))
-    ].join('');
-    const updatedAt = performanceDiagnosticsState.updatedAt > 0
-        ? new Date(performanceDiagnosticsState.updatedAt).toLocaleString()
-        : 'Not yet sampled';
-    host.html(`
-        <div class="fv-perf-summary-note">Recent UI operation timings from this browser session.</div>
-        <table class="fv-perf-table">
-            <thead>
-                <tr><th>Operation</th><th>Samples</th><th>Last</th><th>Avg</th><th>Max</th></tr>
-            </thead>
-            <tbody>${rows}</tbody>
-        </table>
-        <div class="fv-perf-summary-note">Updated: ${escapeHtml(updatedAt)}</div>
-    `);
 };
 
 const refreshType = async (type) => {
@@ -8964,6 +9015,7 @@ const ensureAdvancedDataLoaded = async (options = {}) => {
 };
 
 const refreshCoreData = async () => {
+    const startedAt = perfNowMs();
     await Promise.all([refreshType('docker'), refreshType('vm')]);
     ensureRegexPresetUi('docker');
     ensureRegexPresetUi('vm');
@@ -8971,6 +9023,10 @@ const refreshCoreData = async () => {
     updateRuleLiveMatch('docker');
     updateRuleLiveMatch('vm');
     refreshSettingsUx();
+    recordPerformanceDiagnosticsSample('settings', 'bootstrap', perfNowMs() - startedAt, {
+        dockerFolders: Object.keys(getFolderMap('docker')).length,
+        vmFolders: Object.keys(getFolderMap('vm')).length
+    });
 };
 
 const refreshAll = async () => {
@@ -9413,7 +9469,7 @@ const setHealthFolderFilter = (type, mode) => {
     renderTable(resolvedType);
 };
 
-const changeColumnVisibility = (type, key, checked) => {
+const changeColumnVisibility = async (type, key, checked) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     const normalized = normalizeColumnVisibilityForType(resolvedType, columnVisibilityByType[resolvedType]);
     if (!Object.prototype.hasOwnProperty.call(normalized, key)) {
@@ -9421,11 +9477,96 @@ const changeColumnVisibility = (type, key, checked) => {
     }
     normalized[key] = checked === true;
     columnVisibilityByType[resolvedType] = normalized;
+    columnPresetByType[resolvedType] = 'custom';
     renderColumnVisibilityControls(resolvedType);
     applyColumnVisibility(resolvedType);
     applyColumnWidths(resolvedType);
     bindTableColumnResizers(resolvedType);
-    persistTableUiState();
+    renderSettingsTableLayoutControls(resolvedType);
+    await persistSettingsTableState(resolvedType, {
+        preset: 'custom',
+        columns: normalized
+    });
+};
+
+const changeSettingsTableColumnWidthPreset = async (type, key, value) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const targetKey = String(key || '').trim().toLowerCase();
+    if (targetKey !== 'name' && targetKey !== 'actions') {
+        return;
+    }
+    if (!settingsTableWidthPresetByType[resolvedType] || typeof settingsTableWidthPresetByType[resolvedType] !== 'object') {
+        settingsTableWidthPresetByType[resolvedType] = { name: 'standard', actions: 'standard' };
+    }
+    settingsTableWidthPresetByType[resolvedType][targetKey] = normalizeSettingsTableColumnWidthPreset(value);
+    renderSettingsTableLayoutControls(resolvedType);
+    applyColumnWidths(resolvedType);
+    await persistSettingsTableState(resolvedType, {
+        widthMode: 'auto',
+        columnWidths: {},
+        nameWidth: settingsTableWidthPresetByType[resolvedType].name,
+        actionsWidth: settingsTableWidthPresetByType[resolvedType].actions
+    });
+};
+
+const applySettingsTablePreset = async (type, preset) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const nextPreset = normalizeSettingsTablePreset(preset);
+    const nextColumns = buildPresetColumnVisibilityForType(resolvedType, nextPreset);
+    columnWidthModeByType[resolvedType] = 'auto';
+    columnPresetByType[resolvedType] = nextPreset;
+    columnVisibilityByType[resolvedType] = nextColumns;
+    columnWidthsByType[resolvedType] = {};
+    renderSettingsTableLayoutControls(resolvedType);
+    renderColumnVisibilityControls(resolvedType);
+    applyColumnVisibility(resolvedType);
+    applyColumnWidths(resolvedType);
+    bindTableColumnResizers(resolvedType);
+    await persistSettingsTableState(resolvedType, {
+        widthMode: 'auto',
+        preset: nextPreset,
+        columns: nextColumns,
+        columnWidths: {},
+        nameWidth: settingsTableWidthPresetByType[resolvedType]?.name || 'standard',
+        actionsWidth: settingsTableWidthPresetByType[resolvedType]?.actions || 'standard'
+    });
+};
+
+const resetSettingsTableColumns = async (type, mode = 'visibility') => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    if (String(mode) === 'widths') {
+        columnWidthModeByType[resolvedType] = 'auto';
+        columnWidthsByType[resolvedType] = {};
+        settingsTableWidthPresetByType[resolvedType] = { name: 'standard', actions: 'standard' };
+        renderSettingsTableLayoutControls(resolvedType);
+        applyColumnWidths(resolvedType);
+        bindTableColumnResizers(resolvedType);
+        await persistSettingsTableState(resolvedType, {
+            widthMode: 'auto',
+            columnWidths: {},
+            nameWidth: 'standard',
+            actionsWidth: 'standard'
+        });
+        return;
+    }
+    const resetColumns = buildPresetColumnVisibilityForType(resolvedType, 'balanced');
+    columnWidthModeByType[resolvedType] = 'auto';
+    columnPresetByType[resolvedType] = 'balanced';
+    columnVisibilityByType[resolvedType] = resetColumns;
+    columnWidthsByType[resolvedType] = {};
+    renderSettingsTableLayoutControls(resolvedType);
+    renderColumnVisibilityControls(resolvedType);
+    applyColumnVisibility(resolvedType);
+    applyColumnWidths(resolvedType);
+    bindTableColumnResizers(resolvedType);
+    await persistSettingsTableState(resolvedType, {
+        widthMode: 'auto',
+        preset: 'balanced',
+        columns: resetColumns,
+        columnWidths: {},
+        nameWidth: settingsTableWidthPresetByType[resolvedType]?.name || 'standard',
+        actionsWidth: settingsTableWidthPresetByType[resolvedType]?.actions || 'standard'
+    });
 };
 
 const changeHealthPref = async (type, key, value) => {
@@ -9590,7 +9731,7 @@ const changeDashboardPref = async (type, key, value) => {
             ? utils.normalizeDashboardLayout
             : ((layoutValue) => {
                 const normalized = String(layoutValue || '').trim().toLowerCase();
-                return ['classic', 'fullwidth', 'accordion', 'inset', 'compactmatrix'].includes(normalized) ? normalized : 'classic';
+                return ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'].includes(normalized) ? normalized : 'classic';
             });
         nextDashboard.layout = normalizeLayout(value);
     } else if (key === 'expandToggle') {
@@ -10925,266 +11066,6 @@ const runScheduledBackupNow = async (type) => {
     });
 };
 
-const issueReportFromDiagnostics = (diagnostics) => {
-    const report = diagnostics || {};
-    const lines = [];
-    lines.push('# FolderView Plus Issue Report');
-    lines.push(`Generated: ${report.checkedAt || new Date().toISOString()}`);
-    lines.push(`Plugin version: ${report.pluginVersion || 'unknown'}`);
-    lines.push(`Privacy mode: ${report.privacyMode || 'sanitized'}`);
-    lines.push('');
-
-    const env = report.environment || {};
-    lines.push('## Environment');
-    lines.push(`- Unraid: ${env.unraidVersion || 'unknown'}`);
-    lines.push(`- PHP: ${env.phpVersion || 'unknown'}`);
-    lines.push(`- OS: ${env.os || 'unknown'}`);
-    lines.push('');
-
-    lines.push('## Type Summary');
-    for (const type of ['docker', 'vm']) {
-        const typeData = report.types?.[type] || {};
-        const integrity = typeData.integrityChecks || {};
-        const issueCount = Number.isFinite(Number(integrity.issuesCount))
-            ? Number(integrity.issuesCount)
-            : Number(integrity.issueCount || 0);
-        lines.push(`- ${type.toUpperCase()}: folders=${typeData.folderCount || 0}, rules=${typeData.ruleCount || 0}, backups=${typeData.backupCount || 0}, templates=${typeData.templateCount || 0}, issueCount=${issueCount}`);
-    }
-    lines.push('');
-
-    const timeline = Array.isArray(report.recentTimeline) ? report.recentTimeline.slice(0, 15) : [];
-    lines.push('## Recent Timeline');
-    if (!timeline.length) {
-        lines.push('- No recent timeline events available.');
-    } else {
-        for (const row of timeline) {
-            lines.push(`- ${row.timestamp || ''} | ${row.action || ''} | ${row.type || '-'} | ${row.status || 'ok'}${row.summary ? ` | ${row.summary}` : ''}`);
-        }
-    }
-    lines.push('');
-    lines.push('## Notes');
-    lines.push('- Attach `FolderView Plus Diagnostics.json` and support bundle export if available.');
-    return lines.join('\n');
-};
-
-const copyIssueReport = async () => {
-    try {
-        let diagnostics = lastDiagnostics;
-        if (!diagnostics) {
-            diagnostics = await getDiagnostics('sanitized');
-            renderDiagnostics(diagnostics);
-        }
-        const text = issueReportFromDiagnostics(diagnostics);
-
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            await navigator.clipboard.writeText(text);
-        } else {
-            const textarea = document.createElement('textarea');
-            textarea.value = text;
-            textarea.style.position = 'fixed';
-            textarea.style.opacity = '0';
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-        }
-        swal({
-            title: 'Copied',
-            text: 'Issue report copied to clipboard.',
-            type: 'success'
-        });
-    } catch (error) {
-        showError('Copy issue report failed', error);
-    }
-};
-
-const THEME_DIAGNOSTIC_TOKENS = Object.freeze([
-    '--fvplus-theme-foreground',
-    '--fvplus-runtime-theme-foreground',
-    '--fvplus-runtime-status-started',
-    '--fvplus-runtime-status-paused',
-    '--fvplus-runtime-status-stopped',
-    '--fvplus-status-started',
-    '--fvplus-status-paused',
-    '--fvplus-status-stopped',
-    '--fvplus-folder-status-started',
-    '--fvplus-folder-status-paused',
-    '--fvplus-folder-status-stopped',
-    '--fvplus-theme-text-primary',
-    '--fvplus-theme-text-muted',
-    '--fvplus-theme-text-dim',
-    '--fvplus-theme-border-subtle',
-    '--fvplus-theme-border-faint',
-    '--fvplus-theme-surface-muted',
-    '--fvplus-theme-surface-strong',
-    '--fvplus-theme-surface-panel',
-    '--fvplus-theme-accent',
-    '--fvplus-theme-accent-soft',
-    '--fvplus-theme-focus-ring',
-    '--fvplus-settings-text-primary',
-    '--fvplus-settings-text-muted',
-    '--fvplus-settings-surface-muted',
-    '--fvplus-settings-border-subtle'
-]);
-
-const readThemeTokenSnapshot = (styleDeclaration) => {
-    const output = {};
-    for (const token of THEME_DIAGNOSTIC_TOKENS) {
-        output[token] = styleDeclaration ? String(styleDeclaration.getPropertyValue(token) || '').trim() : '';
-    }
-    return output;
-};
-
-const collectThemeDiagnostics = () => {
-    const html = document.documentElement;
-    const body = document.body;
-    const root = document.getElementById('fv-settings-root');
-    const htmlStyle = html ? window.getComputedStyle(html) : null;
-    const bodyStyle = body ? window.getComputedStyle(body) : null;
-    const rootStyle = root ? window.getComputedStyle(root) : null;
-    const firstStartedState = document.querySelector('.folder-state.fv-folder-state-started');
-    const firstStoppedState = document.querySelector('.folder-state.fv-folder-state-stopped');
-    const firstStartedIcon = document.querySelector('i.folder-load-status.started');
-    const firstStoppedIcon = document.querySelector('i.folder-load-status.stopped');
-    const customStyleLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"][href]'))
-        .map((node) => String(node.getAttribute('href') || '').trim())
-        .filter((href) => href.includes('/plugins/folderview.plus/'));
-    const customScriptLinks = Array.from(document.querySelectorAll('script[src]'))
-        .map((node) => String(node.getAttribute('src') || '').trim())
-        .filter((src) => src.includes('/plugins/folderview.plus/'));
-
-    const warnings = [];
-    const htmlTokens = readThemeTokenSnapshot(htmlStyle);
-    if (!htmlTokens['--fvplus-status-started']) {
-        warnings.push('Missing --fvplus-status-started token value on document root.');
-    }
-    if (htmlTokens['--fvplus-status-started'] && htmlTokens['--fvplus-status-started'] === htmlTokens['--fvplus-status-stopped']) {
-        warnings.push('Started and stopped status tokens resolve to the same value.');
-    }
-    const startedSampleColor = firstStartedState ? window.getComputedStyle(firstStartedState).color : '';
-    const stoppedSampleColor = firstStoppedState ? window.getComputedStyle(firstStoppedState).color : '';
-    if (startedSampleColor && stoppedSampleColor && startedSampleColor === stoppedSampleColor) {
-        warnings.push('Runtime started/stopped state colors currently resolve to the same computed color.');
-    }
-    const resolverSnapshot = applyResolvedThemeTokens('diagnostics');
-    if (resolverSnapshot?.autoHealed) {
-        warnings.push(`Theme resolver auto-heal applied mode ${resolverSnapshot.appliedMode}.`);
-    }
-    if (Array.isArray(resolverSnapshot?.warnings)) {
-        warnings.push(...resolverSnapshot.warnings);
-    }
-
-    return {
-        generatedAt: new Date().toISOString(),
-        page: window.location.pathname || '',
-        htmlClassList: html ? Array.from(html.classList) : [],
-        bodyClassList: body ? Array.from(body.classList) : [],
-        htmlAttributes: html ? {
-            dataTheme: html.getAttribute('data-theme') || '',
-            dataBsTheme: html.getAttribute('data-bs-theme') || '',
-            theme: html.getAttribute('theme') || ''
-        } : {},
-        bodyAttributes: body ? {
-            dataTheme: body.getAttribute('data-theme') || '',
-            dataBsTheme: body.getAttribute('data-bs-theme') || '',
-            theme: body.getAttribute('theme') || ''
-        } : {},
-        tokens: {
-            html: htmlTokens,
-            body: readThemeTokenSnapshot(bodyStyle),
-            root: readThemeTokenSnapshot(rootStyle)
-        },
-        samples: {
-            rootBackgroundColor: rootStyle ? String(rootStyle.backgroundColor || '').trim() : '',
-            rootTextColor: rootStyle ? String(rootStyle.color || '').trim() : '',
-            startedStateColor: startedSampleColor,
-            stoppedStateColor: stoppedSampleColor,
-            startedIconColor: firstStartedIcon ? window.getComputedStyle(firstStartedIcon).color : '',
-            stoppedIconColor: firstStoppedIcon ? window.getComputedStyle(firstStoppedIcon).color : ''
-        },
-        modeByType: {
-            docker: normalizeThemeCompatibilityMode(prefsByType?.docker?.themeCompatibilityMode),
-            vm: normalizeThemeCompatibilityMode(prefsByType?.vm?.themeCompatibilityMode),
-            effective: normalizeThemeCompatibilityMode(getEffectiveThemeCompatibilityMode())
-        },
-        resolver: resolverSnapshot,
-        runtimeSelectors: {
-            startedStateCount: document.querySelectorAll('.folder-state.fv-folder-state-started').length,
-            stoppedStateCount: document.querySelectorAll('.folder-state.fv-folder-state-stopped').length,
-            startedIconCount: document.querySelectorAll('i.folder-load-status.started').length,
-            stoppedIconCount: document.querySelectorAll('i.folder-load-status.stopped').length
-        },
-        pluginAssets: {
-            stylesheets: customStyleLinks,
-            scripts: customScriptLinks
-        },
-        warnings
-    };
-};
-
-const runThemeDiagnostics = () => {
-    try {
-        const diagnostics = collectThemeDiagnostics();
-        $('#theme-diagnostics-output').text(toPrettyJson(diagnostics));
-        return diagnostics;
-    } catch (error) {
-        showError('Theme diagnostics failed', error);
-        return null;
-    }
-};
-
-const runThemeSelfHeal = async () => {
-    try {
-        const snapshot = buildResolvedThemeSnapshot('auto');
-        const contrastFailures = Array.isArray(snapshot?.contrastChecks)
-            ? snapshot.contrastChecks.filter((check) => !check.passed)
-            : [];
-        const statusFailures = [
-            snapshot?.statusChecks?.started,
-            snapshot?.statusChecks?.paused,
-            snapshot?.statusChecks?.stopped
-        ].filter((check) => check && Number(check.ratio || 0) < Number(check.minRatio || 0));
-        const needsHeal = contrastFailures.length > 0 || statusFailures.length > 0 || snapshot?.autoHealed === true;
-        if (!needsHeal) {
-            applyResolvedThemeTokens('self-heal-noop');
-            swal({
-                title: 'Theme looks healthy',
-                text: 'No fallback changes were needed.',
-                type: 'success',
-                timer: 1800,
-                showConfirmButton: false
-            });
-            runThemeDiagnostics();
-            return;
-        }
-        const targetMode = contrastFailures.some((check) => check.name === 'textPrimary')
-            ? 'highcontrast'
-            : 'safe';
-        for (const type of ['docker', 'vm']) {
-            const current = utils.normalizePrefs(prefsByType[type] || {});
-            if (normalizeThemeCompatibilityMode(current.themeCompatibilityMode) === targetMode) {
-                continue;
-            }
-            const next = {
-                ...current,
-                themeCompatibilityMode: targetMode
-            };
-            prefsByType[type] = await postPrefs(type, next);
-            renderRuntimeControls(type);
-        }
-        applyResolvedThemeTokens('self-heal-apply');
-        queueSettingsThemeAwareReflow('theme-self-heal');
-        runThemeDiagnostics();
-        swal({
-            title: 'Theme self-heal applied',
-            text: `Fallback mode switched to ${targetMode}.`,
-            type: 'success'
-        });
-    } catch (error) {
-        showError('Theme self-heal failed', error);
-    }
-};
-
 const runConflictInspector = async (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     const folders = getFolderMap(resolvedType);
@@ -11408,6 +11289,9 @@ window.clearFolderTableFilters = clearFolderTableFilters;
 window.setQuickFolderFilter = setQuickFolderFilter;
 window.setHealthFolderFilter = setHealthFolderFilter;
 window.changeColumnVisibility = changeColumnVisibility;
+window.changeSettingsTableColumnWidthPreset = changeSettingsTableColumnWidthPreset;
+window.applySettingsTablePreset = applySettingsTablePreset;
+window.resetSettingsTableColumns = resetSettingsTableColumns;
 window.showFolderStatusBreakdown = showFolderStatusBreakdown;
 window.showFolderHealthBreakdown = showFolderHealthBreakdown;
 window.openFolderRowQuickActions = openFolderRowQuickActions;

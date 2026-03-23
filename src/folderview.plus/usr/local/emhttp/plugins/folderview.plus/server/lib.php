@@ -1613,6 +1613,14 @@
                 'attentionAccent' => true,
                 'warnStoppedPercent' => 60
             ],
+            'settingsTable' => [
+                'widthMode' => 'auto',
+                'preset' => 'balanced',
+                'columns' => [],
+                'columnWidths' => [],
+                'nameWidth' => 'standard',
+                'actionsWidth' => 'standard'
+            ],
             'backupSchedule' => [
                 'enabled' => false,
                 'intervalHours' => 24,
@@ -1720,7 +1728,7 @@
 
     function normalizeDashboardLayout($value): string {
         $normalized = strtolower(trim((string)$value));
-        if (in_array($normalized, ['classic', 'fullwidth', 'accordion', 'inset', 'compactmatrix'], true)) {
+        if (in_array($normalized, ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'], true)) {
             return $normalized;
         }
         return 'classic';
@@ -1855,6 +1863,32 @@
                 ? true
                 : normalizeBool($statusIncoming['attentionAccent'], true),
             'warnStoppedPercent' => normalizeIntInRange($statusIncoming['warnStoppedPercent'] ?? 60, 0, 100, 60)
+        ];
+        $settingsTableIncoming = is_array($prefs['settingsTable'] ?? null) ? $prefs['settingsTable'] : [];
+        $settingsTableWidthMode = strtolower(trim((string)($settingsTableIncoming['widthMode'] ?? 'auto')));
+        if (!in_array($settingsTableWidthMode, ['auto', 'custom'], true)) {
+            $settingsTableWidthMode = 'auto';
+        }
+        $settingsTablePreset = strtolower(trim((string)($settingsTableIncoming['preset'] ?? 'balanced')));
+        if (!in_array($settingsTablePreset, ['compact', 'balanced', 'detailed', 'custom'], true)) {
+            $settingsTablePreset = 'balanced';
+        }
+        $settingsTableColumns = is_array($settingsTableIncoming['columns'] ?? null) ? $settingsTableIncoming['columns'] : [];
+        $settingsTableNameWidth = strtolower(trim((string)($settingsTableIncoming['nameWidth'] ?? 'standard')));
+        if (!in_array($settingsTableNameWidth, ['compact', 'standard', 'wide'], true)) {
+            $settingsTableNameWidth = 'standard';
+        }
+        $settingsTableActionsWidth = strtolower(trim((string)($settingsTableIncoming['actionsWidth'] ?? 'standard')));
+        if (!in_array($settingsTableActionsWidth, ['compact', 'standard', 'wide'], true)) {
+            $settingsTableActionsWidth = 'standard';
+        }
+        $normalized['settingsTable'] = [
+            'widthMode' => 'auto',
+            'preset' => $settingsTablePreset,
+            'columns' => $settingsTableColumns,
+            'columnWidths' => [],
+            'nameWidth' => $settingsTableNameWidth,
+            'actionsWidth' => $settingsTableActionsWidth
         ];
 
         $scheduleIncoming = is_array($prefs['backupSchedule'] ?? null) ? $prefs['backupSchedule'] : [];

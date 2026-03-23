@@ -479,8 +479,8 @@ emitRequestTokenMetaTag();
                         <dd>
                             <img class="img" style="visibility: hidden;">
                             <select name="dropdown_style" onchange="updateForm()">
-                                <option value="boxed" selected>Boxed</option>
-                                <option value="minimal">Minimal</option>
+                                <option value="minimal" selected>Minimal</option>
+                                <option value="boxed">Boxed</option>
                             </select>
                         </dd>
                     </dl>

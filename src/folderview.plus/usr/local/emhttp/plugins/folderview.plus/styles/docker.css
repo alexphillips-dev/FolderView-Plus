@@ -28,7 +28,11 @@
     --fvplus-folder-dropdown-hover-bg: rgba(255, 154, 60, 0.82);
     --fvplus-folder-dropdown-border-color: rgba(255, 154, 60, 0.52);
     --fvplus-folder-dropdown-hover-border-color: #111111;
-    --fvplus-folder-dropdown-border-width: 1px;
+    --fvplus-folder-dropdown-border-width: 0px;
+    --fvplus-folder-dropdown-min-width: 12px;
+    --fvplus-folder-dropdown-height: 16px;
+    --fvplus-folder-dropdown-padding: 0 2px;
+    --fvplus-folder-dropdown-radius: 0px;
     --fvplus-docker-context-quick-item-width: 34px;
     --fvplus-docker-context-quick-link-width: 30px;
     --fvplus-docker-context-quick-link-height: 26px;
@@ -217,9 +221,9 @@ td.ct-name.folder-name > .folder-name-sub {
 }
 
 .folder-dropdown {
-    padding: 0 6px;
-    min-width: 22px;
-    height: 22px;
+    padding: var(--fvplus-folder-dropdown-padding, 0 2px);
+    min-width: var(--fvplus-folder-dropdown-min-width, 12px);
+    height: var(--fvplus-folder-dropdown-height, 16px);
     margin: 0 16px 0 auto;
     margin: 0 var(--fvplus-docker-folder-dropdown-right-margin, 16px) 0 auto;
     flex: 0 0 auto;
@@ -228,7 +232,7 @@ td.ct-name.folder-name > .folder-name-sub {
     justify-content: center;
     line-height: 1;
     border: var(--fvplus-folder-dropdown-border-width, 1px) solid var(--fvplus-folder-dropdown-border-color, rgba(255, 154, 60, 0.52)) !important;
-    border-radius: 4px;
+    border-radius: var(--fvplus-folder-dropdown-radius, 0px);
     background: var(--fvplus-folder-dropdown-bg, rgba(255, 154, 60, 0.1)) !important;
     box-shadow: none !important;
     color: var(--fvplus-folder-dropdown-color, #ff9a3c) !important;

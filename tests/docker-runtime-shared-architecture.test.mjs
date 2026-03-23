@@ -50,6 +50,7 @@ test('docker CSS exposes centralized layout tokens with compatibility fallbacks'
     assert.match(dockerCss, /--fvplus-docker-folder-outer-reserved-width:\s*106px/);
     assert.match(dockerCss, /--fvplus-docker-folder-dropdown-right-margin:\s*16px/);
     assert.match(dockerCss, /--fvplus-folder-dropdown-color:\s*#ff9a3c/);
+    assert.match(dockerCss, /--fvplus-folder-dropdown-min-width:\s*12px/);
     assert.match(dockerCss, /right:\s*var\(--fvplus-docker-folder-right-gutter,\s*28px\)/);
     assert.match(dockerCss, /max-width:\s*calc\(var\(--fvplus-docker-app-column-width\)\s*-\s*var\(--fvplus-docker-folder-outer-reserved-width,\s*106px\)\)/);
     assert.match(dockerCss, /margin:\s*0 var\(--fvplus-docker-folder-dropdown-right-margin,\s*16px\) 0 auto/);

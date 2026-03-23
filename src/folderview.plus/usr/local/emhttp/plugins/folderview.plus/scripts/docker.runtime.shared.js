@@ -22,7 +22,7 @@
     const DEFAULT_PREVIEW_BORDER_COLOR = '#afa89e';
     const DEFAULT_PREVIEW_BORDER_WIDTH = 1;
     const DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH = 1;
-    const DEFAULT_DROPDOWN_STYLE = 'boxed';
+    const DEFAULT_DROPDOWN_STYLE = 'minimal';
     const DEFAULT_DROPDOWN_COLOR = '#ff9a3c';
     const DEFAULT_DROPDOWN_HOVER_COLOR = '#111111';
     const FOLDER_STATUS_COLOR_STYLE_PROPS = Object.freeze({
@@ -149,6 +149,10 @@
         rowStyle.setProperty('--fvplus-folder-dropdown-hover-border-color', dropdownStyle === 'boxed' ? hoverColor : 'transparent');
         rowStyle.setProperty('--fvplus-folder-dropdown-bg', dropdownStyle === 'boxed' ? hexToRgba(normalColor, 0.10) : 'transparent');
         rowStyle.setProperty('--fvplus-folder-dropdown-hover-bg', dropdownStyle === 'boxed' ? hexToRgba(normalColor, 0.82) : 'transparent');
+        rowStyle.setProperty('--fvplus-folder-dropdown-min-width', dropdownStyle === 'boxed' ? '22px' : '12px');
+        rowStyle.setProperty('--fvplus-folder-dropdown-height', dropdownStyle === 'boxed' ? '22px' : '16px');
+        rowStyle.setProperty('--fvplus-folder-dropdown-padding', dropdownStyle === 'boxed' ? '0 6px' : '0 2px');
+        rowStyle.setProperty('--fvplus-folder-dropdown-radius', dropdownStyle === 'boxed' ? '4px' : '0px');
     };
 
     /**

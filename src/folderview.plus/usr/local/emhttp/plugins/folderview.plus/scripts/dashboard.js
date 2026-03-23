@@ -282,6 +282,10 @@ const writeDashboardCompactDensityStateForType = (type, enabled) => {
 };
 const getDashboardStartedOnlySelectorForType = (type) => (type === 'vm' ? 'input#vms' : 'input#apps');
 const isDashboardLegacyLayoutForType = (type) => normalizeDashboardPrefsForType(type).layout === 'legacy';
+const isDashboardLayoutTransitionInFlightForType = (type) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    return dashboardLayoutTransitionInFlightByType?.[resolvedType] === true;
+};
 const getDashboardNativeRowSelectorForType = (type) => (
     type === 'vm'
         ? 'span.outer.vms:not(.folder-vm)'
@@ -561,7 +565,11 @@ const syncDashboardWidgetQuickRailVisibilityForType = (type) => {
     const shouldShow = !!parentNode
         && isDashboardNodeVisible(parentNode)
         && isDashboardWidgetCollapsedForType(resolvedType) !== true
-        && (hasVisibleDashboardFolderCardsForType(resolvedType) || isDashboardLegacyLayoutForType(resolvedType));
+        && (
+            hasVisibleDashboardFolderCardsForType(resolvedType)
+            || isDashboardLegacyLayoutForType(resolvedType)
+            || isDashboardLayoutTransitionInFlightForType(resolvedType)
+        );
     $host.toggleClass('is-hidden', !shouldShow);
     if (shouldShow) {
         syncDashboardWidgetQuickRailAlignmentForType(resolvedType);
@@ -717,16 +725,23 @@ const saveDashboardLayoutPrefForType = async (type, prefsPayload) => {
 };
 const rerenderDashboardWidgetStructureForType = async (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    await restoreDashboardNativeRowsForType(resolvedType);
-    if (isDashboardLegacyLayoutForType(resolvedType)) {
-        scheduleDashboardLayoutApplyForType(resolvedType);
-        syncDashboardWidgetLayoutQuickControlForType(resolvedType);
-        scheduleDashboardWidgetVisibilitySyncForType(resolvedType, 0);
-        return;
-    }
-    prepareDashboardFolderRequestsForType(resolvedType);
-    await createFolders([resolvedType]);
+    dashboardLayoutTransitionInFlightByType[resolvedType] = true;
     scheduleDashboardWidgetVisibilitySyncForType(resolvedType, 0);
+    try {
+        await restoreDashboardNativeRowsForType(resolvedType);
+        if (isDashboardLegacyLayoutForType(resolvedType)) {
+            scheduleDashboardLayoutApplyForType(resolvedType);
+            syncDashboardWidgetLayoutQuickControlForType(resolvedType);
+            scheduleDashboardWidgetVisibilitySyncForType(resolvedType, 0);
+            return;
+        }
+        prepareDashboardFolderRequestsForType(resolvedType);
+        await createFolders([resolvedType]);
+        scheduleDashboardWidgetVisibilitySyncForType(resolvedType, 0);
+    } finally {
+        dashboardLayoutTransitionInFlightByType[resolvedType] = false;
+        scheduleDashboardWidgetVisibilitySyncForType(resolvedType, 0);
+    }
 };
 const handleDashboardWidgetLayoutQuickSwitch = async (type, value) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
@@ -3314,6 +3329,10 @@ let dashboardWidgetVisibilityObserverByType = {
 let dashboardWidgetVisibilitySyncTimerByType = {
     docker: 0,
     vm: 0
+};
+let dashboardLayoutTransitionInFlightByType = {
+    docker: false,
+    vm: false
 };
 let dashboardQuickActionSyncBound = false;
 let dashboardThemeReflowBound = false;

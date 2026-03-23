@@ -84,6 +84,7 @@ test('server normalizes compact matrix dashboard layout', () => {
 test('dashboard runtime supports layout classes, accordion guards, and overflow metadata', () => {
     assert.match(dashboardScript, /const DASHBOARD_LAYOUT_MODES = \['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'\]/);
     assert.match(dashboardScript, /const isDashboardLegacyLayoutForType = \(type\) =>/);
+    assert.match(dashboardScript, /const isDashboardLayoutTransitionInFlightForType = \(type\) =>/);
     assert.match(dashboardScript, /const restoreDashboardNativeRowsForType = async \(type\) =>/);
     assert.match(dashboardScript, /const rerenderDashboardWidgetStructureForType = async \(type\) =>/);
     assert.match(dashboardScript, /const prepareDashboardFolderRequestsForType = \(type\) =>/);
@@ -123,9 +124,12 @@ test('dashboard runtime supports layout classes, accordion guards, and overflow 
     assert.match(dashboardScript, /const applyDashboardLayoutStateForType = \(type\) =>/);
     assert.match(dashboardScript, /const scheduleDashboardLayoutApplyForType = \(type\) =>/);
     assert.match(dashboardScript, /const requiresStructureReload = previousDashboard\.layout === 'legacy' \|\| nextLayout === 'legacy';/);
+    assert.match(dashboardScript, /dashboardLayoutTransitionInFlightByType\[resolvedType\] = true;/);
+    assert.match(dashboardScript, /dashboardLayoutTransitionInFlightByType\[resolvedType\] = false;/);
     assert.match(dashboardScript, /await rerenderDashboardWidgetStructureForType\(resolvedType\);/);
     assert.match(dashboardScript, /if \(isDashboardLegacyLayoutForType\('docker'\)\) \{/);
     assert.match(dashboardScript, /if \(isDashboardLegacyLayoutForType\('vm'\)\) \{/);
+    assert.match(dashboardScript, /\|\| isDashboardLayoutTransitionInFlightForType\(resolvedType\)/);
     assert.match(dashboardScript, /\|\| isDashboardLegacyLayoutForType\(resolvedType\)/);
     assert.match(dashboardScript, /\$host\.parent\(\)\.is\(\$container\)/);
     assert.match(dashboardScript, /\$container\.prepend\(\$host\)/);

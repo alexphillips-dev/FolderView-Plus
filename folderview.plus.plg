@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.22.45">
-<!ENTITY md5 "00ca7a21aa5e39cc443ace75bc2cd4c7">
+<!ENTITY version "2026.03.22.46">
+<!ENTITY md5 "51584b092ac342303e86f2493f04a6c4">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.22.46
+- Fix: Restored `Icon and label` multi-row previews to 4 items per row so two-row folders can show full sets like `8/10 started` Plex instead of clipping at 6.
+- UX: Centered multi-row preview wrappers and cards to match the vertical alignment of the normal single-row preview.
+- Fix: Kept the legacy single-row preview styling intact while only adjusting multi-row row grouping and alignment.
+
 
 ###2026.03.22.45
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

@@ -154,12 +154,6 @@ tr[class*="folder-id-"] > td {
     vertical-align: middle !important;
 }
 
-tr.folder > td[colspan] {
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-    vertical-align: middle !important;
-}
-
 /* Unraid table styles can force top visual placement.
    Center the left folder block explicitly within the row height. */
 td.ct-name.folder-name {
@@ -332,8 +326,8 @@ tr.folder.fv-parent-expanded div.folder-preview {
     height: auto;
     min-height: 0;
     max-height: none;
-    row-gap: 2px;
-    padding: 2px 0;
+    row-gap: 4px;
+    padding: 6px 0;
     flex-direction: column;
     flex-wrap: nowrap;
     align-items: flex-start;
@@ -346,7 +340,7 @@ tr.folder.fv-parent-expanded div.folder-preview {
     box-sizing: border-box;
     align-items: center;
     min-height: 0;
-    padding: 0 0 0 8px;
+    padding: 1px 0 1px 8px;
 }
 
 .folder-preview.fv-preview-border-off {

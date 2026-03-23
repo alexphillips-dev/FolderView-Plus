@@ -330,11 +330,13 @@ tr.folder.fv-parent-expanded div.folder-preview {
     padding: 0;
     flex-direction: column;
     flex-wrap: nowrap;
-    align-items: stretch;
-    align-content: stretch;
+    align-items: flex-start;
+    align-content: flex-start;
 }
 
 .folder-preview.fv-preview-multirow .folder-preview-row {
+    width: 100%;
+    box-sizing: border-box;
     align-items: center;
     min-height: calc(var(--fvplus-preview-row-height) - 0.45em);
     padding: 2px 0 2px 8px;

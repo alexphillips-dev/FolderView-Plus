@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.22.50">
-<!ENTITY md5 "c9e9c9d695741228fef35b380995c629">
+<!ENTITY version "2026.03.22.51">
+<!ENTITY md5 "25c5c4b81f8b43cbd2cf6520750e97d4">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.22.51
+- Fix: Measure Docker multi-row preview items at natural width so the first row fills before wrapping.
+- Fix: Keep compact multi-row status text on the normal text color while only the status icon uses the started/stopped color.
+- UX: Align multi-row preview rows to the same horizontal flow model as the normal single-row preview.
+
 
 ###2026.03.22.50
 - Fix: Route Docker multi-row previews through the real preview renderer instead of legacy cloned markup.

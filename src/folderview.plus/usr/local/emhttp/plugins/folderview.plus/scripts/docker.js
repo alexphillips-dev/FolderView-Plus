@@ -311,8 +311,8 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
                         <span class="inner fv-preview-trigger">
                             <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span>
                             <span class="fv-preview-meta-compact">
-                            <span class="fv-preview-status-compact ${previewStateMeta.className}" title="${previewStatusTitle}">
-                                <i class="fa ${previewStateMeta.icon}" aria-hidden="true"></i><span class="state ${previewStateMeta.className}"> ${stateLabel}</span>
+                            <span class="fv-preview-status-compact" title="${previewStatusTitle}">
+                                <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}" aria-hidden="true"></i><span class="state"> ${stateLabel}</span>
                             </span>
                             <span class="fv-preview-actions-compact"></span>
                             </span>
@@ -329,8 +329,8 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
                         <span class="inner fv-preview-trigger">
                             <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span>
                             <span class="fv-preview-meta-compact">
-                            <span class="fv-preview-status-compact ${previewStateMeta.className}" title="${previewStatusTitle}">
-                                <i class="fa ${previewStateMeta.icon}" aria-hidden="true"></i><span class="state ${previewStateMeta.className}"> ${stateLabel}</span>
+                            <span class="fv-preview-status-compact" title="${previewStatusTitle}">
+                                <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}" aria-hidden="true"></i><span class="state"> ${stateLabel}</span>
                             </span>
                             <span class="fv-preview-actions-compact"></span>
                             </span>

@@ -18,6 +18,9 @@ const applyFolderStatusColorOverrides = typeof dockerRuntimeShared.applyFolderSt
 const applyPreviewBorderStyle = typeof dockerRuntimeShared.applyPreviewBorderStyle === 'function'
     ? dockerRuntimeShared.applyPreviewBorderStyle
     : (() => {});
+const applyFolderDropdownStyle = typeof dockerRuntimeShared.applyFolderDropdownStyle === 'function'
+    ? dockerRuntimeShared.applyFolderDropdownStyle
+    : (() => {});
 const utils = window.FolderViewPlusUtils || {
     normalizePrefs: () => ({
         sortMode: 'created',
@@ -1059,6 +1062,7 @@ const estimateDockerRuntimeAutoAppWidth = () => {
             rows,
             baseline,
             nameSelector: '.folder-appname',
+            auxSelectors: ['.folder-state'],
             indentSelector: '.folder-name-sub',
             hiddenClass: 'fv-nested-hidden',
             chromeWidth: DOCKER_RUNTIME_APP_CHROME_WIDTH,
@@ -1081,25 +1085,30 @@ const adjustDockerRuntimeAppWidthForRenderedOverflow = (baseWidth = null) => {
         if (!row || row.offsetParent === null || row.classList.contains('fv-nested-hidden')) {
             return;
         }
-        const label = row.querySelector('.folder-appname');
-        if (!label) {
+        const widthNodes = [
+            row.querySelector('.folder-appname'),
+            row.querySelector('.folder-state')
+        ].filter(Boolean);
+        if (!widthNodes.length) {
             return;
         }
-        const clientWidth = Math.max(0, Math.ceil(label.clientWidth || 0));
-        if (clientWidth <= 0) {
-            return;
-        }
-        const rawOverflow = Math.ceil((label.scrollWidth || 0) - clientWidth);
-        if (clientWidth < DOCKER_RUNTIME_APP_OVERFLOW_CLIENT_WIDTH_MIN && rawOverflow <= 0) {
-            return;
-        }
-        if (rawOverflow <= 0) {
-            return;
-        }
-        const overflow = Math.min(rawOverflow, DOCKER_RUNTIME_APP_OVERFLOW_NUDGE_MAX);
-        if (overflow > maxOverflow) {
-            maxOverflow = overflow;
-        }
+        widthNodes.forEach((node) => {
+            const clientWidth = Math.max(0, Math.ceil(node.clientWidth || 0));
+            if (clientWidth <= 0) {
+                return;
+            }
+            const rawOverflow = Math.ceil((node.scrollWidth || 0) - clientWidth);
+            if (clientWidth < DOCKER_RUNTIME_APP_OVERFLOW_CLIENT_WIDTH_MIN && rawOverflow <= 0) {
+                return;
+            }
+            if (rawOverflow <= 0) {
+                return;
+            }
+            const overflow = Math.min(rawOverflow, DOCKER_RUNTIME_APP_OVERFLOW_NUDGE_MAX);
+            if (overflow > maxOverflow) {
+                maxOverflow = overflow;
+            }
+        });
     });
     if (maxOverflow <= 0) {
         return startingWidth;
@@ -2962,6 +2971,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
 
     const previewNode = $(`tr.folder-id-${id} div.folder-preview`).get(0);
     applyPreviewBorderStyle(previewNode, folder.settings);
+    applyFolderDropdownStyle($(`tr.folder-id-${id}`), folder.settings);
     applyFolderPreviewLayout($(`tr.folder-id-${id} div.folder-preview`), folder.settings);
     $(`tr.folder-id-${id} div.folder-preview`).addClass(`folder-preview-${folder.settings.preview}`);
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Added class folder-preview-${folder.settings.preview} to preview div.`);
@@ -3670,6 +3680,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     }
     const $folderRow = $(`tr.folder-id-${id}`);
     applyFolderStatusColorOverrides($folderRow, folder.settings);
+    applyFolderDropdownStyle($folderRow, folder.settings);
     const $folderIcon = $folderRow.find(`i#load-folder-${id}`);
     const $folderState = $folderRow.find('span.folder-state');
     $folderState.removeClass('fv-folder-state-started fv-folder-state-paused fv-folder-state-stopped');
@@ -3882,6 +3893,7 @@ const updateFolderRowStatusFromContainers = (id, folder, runtimeContainers) => {
     const total = containerEntries.length;
     const $folderRow = $(`tr.folder-id-${id}`);
     applyFolderStatusColorOverrides($folderRow, folder.settings);
+    applyFolderDropdownStyle($folderRow, folder.settings);
     const $folderIcon = $folderRow.find(`i#load-folder-${id}`);
     const $folderState = $folderRow.find('span.folder-state');
     $folderState.removeClass('fv-folder-state-started fv-folder-state-paused fv-folder-state-stopped');

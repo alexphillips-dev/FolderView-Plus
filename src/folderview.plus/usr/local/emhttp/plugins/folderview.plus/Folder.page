@@ -413,6 +413,7 @@ emitRequestTokenMetaTag();
                                 <dt data-i18n="bars-color">Vertical bars color:</dt>
                                 <dd>
                                     <input type="color" name="preview_vertical_bars_color" style="height:28px;vertical-align:middle;">
+                                    <input type="number" name="preview_vertical_bars_width" min="1" max="4" step="1" value="1" style="width:64px;height:28px;margin-left:0.5em;vertical-align:middle;">
                                     <button onclick="event.preventDefault(); $('div.canvas > form')[0].preview_vertical_bars_color.value = rgbToHex($('body').css('color'));" style="width:44px;height:28px;min-width:0;padding:0;margin:0;margin-left:0.5em;vertical-align:middle;">
                                         <i class="fa fa-repeat" aria-hidden="true"></i>
                                     </button>
@@ -421,6 +422,8 @@ emitRequestTokenMetaTag();
                             <blockquote class="inline_help">
                                 <p data-i18n="[html]bars-color-tooltip">
                                     Set the color of the vertical bars between containers.
+                                    <br>
+                                    Use the number field to increase bar thickness from 1px to 4px.
                                     <br>
                                     The <i class="fa fa-repeat" aria-hidden="true"></i> button will reset to the current font color.
                                 </p>
@@ -450,6 +453,7 @@ emitRequestTokenMetaTag();
                                 <dt data-i18n="border-color">Border color:</dt>
                                 <dd>
                                     <input type="color" name="preview_border_color" style="height:28px;vertical-align:middle;">
+                                    <input type="number" name="preview_border_width" min="1" max="4" step="1" value="1" style="width:64px;height:28px;margin-left:0.5em;vertical-align:middle;">
                                     <button onclick="event.preventDefault(); $('div.canvas > form')[0].preview_border_color.value = '#afa89e';" style="width:44px;height:28px;min-width:0;padding:0;margin:0;margin-left:0.5em;vertical-align:middle;">
                                         <i class="fa fa-repeat" aria-hidden="true"></i>
                                     </button>
@@ -459,7 +463,46 @@ emitRequestTokenMetaTag();
                                 <p data-i18n="[html]border-color-tooltip">
                                     Set the color of the preview border.
                                     <br>
+                                    Use the number field to increase border thickness from 1px to 4px.
+                                    <br>
                                     The <i class="fa fa-repeat" aria-hidden="true"></i> button will reset to the current font color.
+                                </p>
+                            </blockquote>
+                        </div>
+                    </li>
+                </ul>
+            </li>
+            <li constraint="preview-1 preview-2 preview-3 preview-4">
+                <div class="basic">
+                    <dl>
+                        <dt>Chevron style:</dt>
+                        <dd>
+                            <img class="img" style="visibility: hidden;">
+                            <select name="dropdown_style" onchange="updateForm()">
+                                <option value="boxed" selected>Boxed</option>
+                                <option value="minimal">Minimal</option>
+                            </select>
+                        </dd>
+                    </dl>
+                    <blockquote class="inline_help">
+                        <p>
+                            Choose whether the folder chevron uses a boxed button or the lighter minimal style.
+                        </p>
+                    </blockquote>
+                </div>
+                <ul>
+                    <li>
+                        <div class="basic">
+                            <dl>
+                                <dt>Chevron colors:</dt>
+                                <dd>
+                                    <input type="color" name="dropdown_color" style="height:28px;vertical-align:middle;">
+                                    <input type="color" name="dropdown_hover_color" style="height:28px;vertical-align:middle;margin-left:0.5em;">
+                                </dd>
+                            </dl>
+                            <blockquote class="inline_help">
+                                <p>
+                                    First picker sets the normal chevron and box color. Second picker sets the hover color.
                                 </p>
                             </blockquote>
                         </div>

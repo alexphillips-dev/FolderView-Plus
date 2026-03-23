@@ -22,7 +22,7 @@ test('vm app-name and dropdown spacing contract preserves right-side gutter', ()
     assert.match(vmCss, /--fvplus-vm-folder-dropdown-right-margin:\s*10px/);
     assert.match(vmCss, /td\.vm-name\.folder-name > \.folder-name-sub\s*\{[\s\S]*right:\s*var\(--fvplus-vm-folder-right-gutter,\s*18px\)/);
     assert.match(vmCss, /\.folder-outer\s*\{[\s\S]*max-width:\s*calc\(var\(--fvplus-vm-app-column-width\)\s*-\s*var\(--fvplus-vm-folder-outer-reserved-width,\s*88px\)\)/);
-    assert.match(vmCss, /\.folder-dropdown\s*\{[\s\S]*width:\s*16px/);
+    assert.match(vmCss, /\.folder-dropdown\s*\{[\s\S]*width:\s*22px/);
     assert.match(vmCss, /\.folder-dropdown\s*\{[\s\S]*margin:\s*0 var\(--fvplus-vm-folder-dropdown-right-margin,\s*10px\) 0 auto/);
 });
 
@@ -39,7 +39,7 @@ test('vm runtime width scheduler keeps deterministic reflow hooks for name/dropd
     assert.match(vmJs, /const adjustVmRuntimeAppWidthForRenderedOverflow = \(baseWidth = null\) =>/);
     assert.match(vmJs, /const runVmRuntimeWidthReflow = \(reason = 'direct'\) =>/);
     assert.match(vmJs, /const scheduleVmRuntimeWidthReflow = \(reason = 'event', delayMs = VM_RUNTIME_WIDTH_REFLOW_DEBOUNCE_MS\) =>/);
+    assert.match(vmJs, /auxSelectors:\s*\['\.folder-state'\]/);
     assert.match(vmJs, /scheduleVmRuntimeWidthReflow\('folder-expand-toggle', 32\)/);
     assert.match(vmJs, /scheduleVmRuntimeWidthReflow\('runtime-prefs', 0\)/);
 });
-

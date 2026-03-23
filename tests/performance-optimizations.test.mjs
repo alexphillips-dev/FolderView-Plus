@@ -218,8 +218,9 @@ test('docker runtime app column auto-sizes based on folder names and rebinds aft
     assert.match(dockerJs, /const DOCKER_RUNTIME_VERSION_GAP_MIN = 8;/);
     assert.match(dockerJs, /const DOCKER_RUNTIME_VERSION_GAP_MAX = 26;/);
     assert.match(dockerJs, /const applyDockerRuntimeGapContract = \(widthPx, metrics = null\) =>/);
-    assert.match(dockerJs, /label\.scrollWidth/);
-    assert.match(dockerJs, /label\.clientWidth/);
+    assert.match(dockerJs, /widthNodes = \[/);
+    assert.match(dockerJs, /node\.scrollWidth/);
+    assert.match(dockerJs, /node\.clientWidth/);
     assert.match(dockerJs, /if \(clientWidth <= 0\) \{\s*return;\s*\}/);
     assert.match(dockerJs, /if \(clientWidth < DOCKER_RUNTIME_APP_OVERFLOW_CLIENT_WIDTH_MIN && rawOverflow <= 0\) \{\s*return;\s*\}/);
     assert.match(dockerJs, /Math\.min\(rawOverflow, DOCKER_RUNTIME_APP_OVERFLOW_NUDGE_MAX\)/);

@@ -58,6 +58,7 @@
             rows = [],
             baseline = null,
             nameSelector = '.folder-appname',
+            auxSelectors = [],
             indentSelector = '.folder-name-sub',
             hiddenClass = 'fv-nested-hidden',
             chromeWidth = 78,
@@ -84,17 +85,31 @@
                 if (!nameNode) {
                     return;
                 }
-                const text = String(nameNode.textContent || '').trim();
-                if (!text) {
+                const selectors = [nameSelector].concat(Array.isArray(auxSelectors) ? auxSelectors : []);
+                let maxTextWidth = 0;
+                selectors.forEach((selector) => {
+                    const node = selector === nameSelector ? nameNode : row.querySelector(selector);
+                    if (!node) {
+                        return;
+                    }
+                    const text = String(node.textContent || '').trim();
+                    if (!text) {
+                        return;
+                    }
+                    const style = window.getComputedStyle(node);
+                    ctx.font = `${style.fontStyle} ${style.fontVariant} ${style.fontWeight} ${style.fontSize} / ${style.lineHeight} ${style.fontFamily}`;
+                    const measuredWidth = ctx.measureText(text).width;
+                    if (measuredWidth > maxTextWidth) {
+                        maxTextWidth = measuredWidth;
+                    }
+                });
+                if (maxTextWidth <= 0) {
                     return;
                 }
-                const style = window.getComputedStyle(nameNode);
-                ctx.font = `${style.fontStyle} ${style.fontVariant} ${style.fontWeight} ${style.fontSize} / ${style.lineHeight} ${style.fontFamily}`;
-                const textWidth = ctx.measureText(text).width;
                 const indentNode = indentSelector ? row.querySelector(indentSelector) : null;
                 const indentStyle = indentNode ? window.getComputedStyle(indentNode) : null;
                 const indentWidth = indentStyle ? Math.max(0, Math.round(parseFloat(indentStyle.paddingLeft) || 0)) : 0;
-                const estimated = Math.ceil(textWidth + indentWidth + Number(chromeWidth || 0) + Number(textBuffer || 0));
+                const estimated = Math.ceil(maxTextWidth + indentWidth + Number(chromeWidth || 0) + Number(textBuffer || 0));
                 if (estimated > maxWidth) {
                     maxWidth = estimated;
                 }

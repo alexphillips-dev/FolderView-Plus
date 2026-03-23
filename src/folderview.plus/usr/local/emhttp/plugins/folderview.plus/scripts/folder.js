@@ -14,6 +14,11 @@ const DEFAULT_FOLDER_STATUS_COLORS = {
     stopped: '#ff4d4d'
 };
 const DEFAULT_BORDER_COLOR = '#afa89e';
+const DEFAULT_PREVIEW_BORDER_WIDTH = 1;
+const DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH = 1;
+const DEFAULT_DROPDOWN_STYLE = 'boxed';
+const DEFAULT_DROPDOWN_COLOR = '#ff9a3c';
+const DEFAULT_DROPDOWN_HOVER_COLOR = '#111111';
 const FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
 const PREVIEW_MODE_LABELS = {
     0: 'None',
@@ -149,8 +154,13 @@ const SMART_DEFAULT_FIELD_NAMES = new Set([
     'preview_hover',
     'preview_border',
     'preview_border_color',
+    'preview_border_width',
     'preview_vertical_bars',
     'preview_vertical_bars_color',
+    'preview_vertical_bars_width',
+    'dropdown_style',
+    'dropdown_color',
+    'dropdown_hover_color',
     'status_color_started',
     'status_color_paused',
     'status_color_stopped'
@@ -225,6 +235,19 @@ const normalizeHexColor = (value, fallback) => {
         return `#${trimmed[1]}${trimmed[1]}${trimmed[2]}${trimmed[2]}${trimmed[3]}${trimmed[3]}`.toLowerCase();
     }
     return trimmed.toLowerCase();
+};
+
+const normalizePositiveInt = (value, fallback, min = 1, max = 4) => {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) {
+        return fallback;
+    }
+    return Math.max(min, Math.min(max, Math.round(parsed)));
+};
+
+const normalizeDropdownStyle = (value) => {
+    const normalized = String(value || '').trim().toLowerCase();
+    return normalized === 'minimal' ? 'minimal' : DEFAULT_DROPDOWN_STYLE;
 };
 
 const isLegacyPreviewBorderEnabled = (settings) => {
@@ -433,11 +456,16 @@ const applySmartDefaultsFromParent = (parentId, { force = false } = {}) => {
         preview_hover: settings.preview_hover === true,
         preview_border: isLegacyPreviewBorderEnabled(settings),
         preview_border_color: normalizeHexColor(settings.preview_border_color, DEFAULT_BORDER_COLOR),
+        preview_border_width: normalizePositiveInt(settings.preview_border_width, DEFAULT_PREVIEW_BORDER_WIDTH, 1, 4),
         preview_vertical_bars: settings.preview_vertical_bars === true,
         preview_vertical_bars_color: normalizeHexColor(
             settings.preview_vertical_bars_color || settings.preview_border_color,
             DEFAULT_BORDER_COLOR
         ),
+        preview_vertical_bars_width: normalizePositiveInt(settings.preview_vertical_bars_width, DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH, 1, 4),
+        dropdown_style: normalizeDropdownStyle(settings.dropdown_style),
+        dropdown_color: normalizeHexColor(settings.dropdown_color, DEFAULT_DROPDOWN_COLOR),
+        dropdown_hover_color: normalizeHexColor(settings.dropdown_hover_color, DEFAULT_DROPDOWN_HOVER_COLOR),
         status_color_started: normalizeHexColor(settings.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started),
         status_color_paused: normalizeHexColor(settings.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused),
         status_color_stopped: normalizeHexColor(settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped)
@@ -3132,10 +3160,15 @@ const normalizeFolderRecordForEditor = (folder) => {
             context_graph_time: Number.isFinite(Number(settings.context_graph_time)) ? toSafeInt(settings.context_graph_time, 60) : 60,
             preview_border: isLegacyPreviewBorderEnabled(settings),
             preview_border_color: normalizeHexColor(settings.preview_border_color, DEFAULT_BORDER_COLOR),
+            preview_border_width: normalizePositiveInt(settings.preview_border_width, DEFAULT_PREVIEW_BORDER_WIDTH, 1, 4),
             preview_vertical_bars_color: normalizeHexColor(
                 settings.preview_vertical_bars_color || settings.preview_border_color,
                 DEFAULT_BORDER_COLOR
             ),
+            preview_vertical_bars_width: normalizePositiveInt(settings.preview_vertical_bars_width, DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH, 1, 4),
+            dropdown_style: normalizeDropdownStyle(settings.dropdown_style),
+            dropdown_color: normalizeHexColor(settings.dropdown_color, DEFAULT_DROPDOWN_COLOR),
+            dropdown_hover_color: normalizeHexColor(settings.dropdown_hover_color, DEFAULT_DROPDOWN_HOVER_COLOR),
             status_color_started: normalizeHexColor(settings.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started),
             status_color_paused: normalizeHexColor(settings.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused),
             status_color_stopped: normalizeHexColor(settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped),
@@ -4075,7 +4108,12 @@ const initEditorChrome = () => {
 
 getForm().preview_border.checked = true;
 getForm().preview_border_color.value = DEFAULT_BORDER_COLOR;
+getForm().preview_border_width.value = String(DEFAULT_PREVIEW_BORDER_WIDTH);
 getForm().preview_vertical_bars_color.value = rgbToHex($('body').css('color'));
+getForm().preview_vertical_bars_width.value = String(DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH);
+getForm().dropdown_style.value = DEFAULT_DROPDOWN_STYLE;
+getForm().dropdown_color.value = DEFAULT_DROPDOWN_COLOR;
+getForm().dropdown_hover_color.value = DEFAULT_DROPDOWN_HOVER_COLOR;
 resetStatusColorDefaults();
 
 (async () => {
@@ -4161,10 +4199,15 @@ resetStatusColorDefaults();
         form.context_graph_time.value = currFolder.settings.context_graph_time?.toString() || '60';
         form.preview_border.checked = isLegacyPreviewBorderEnabled(currFolder.settings || {});
         form.preview_border_color.value = normalizeHexColor(currFolder.settings.preview_border_color, DEFAULT_BORDER_COLOR);
+        form.preview_border_width.value = String(normalizePositiveInt(currFolder.settings.preview_border_width, DEFAULT_PREVIEW_BORDER_WIDTH, 1, 4));
         form.preview_vertical_bars_color.value = normalizeHexColor(
             currFolder.settings.preview_vertical_bars_color || currFolder.settings.preview_border_color,
             DEFAULT_BORDER_COLOR
         );
+        form.preview_vertical_bars_width.value = String(normalizePositiveInt(currFolder.settings.preview_vertical_bars_width, DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH, 1, 4));
+        form.dropdown_style.value = normalizeDropdownStyle(currFolder.settings.dropdown_style);
+        form.dropdown_color.value = normalizeHexColor(currFolder.settings.dropdown_color, DEFAULT_DROPDOWN_COLOR);
+        form.dropdown_hover_color.value = normalizeHexColor(currFolder.settings.dropdown_hover_color, DEFAULT_DROPDOWN_HOVER_COLOR);
         form.status_color_started.value = normalizeHexColor(currFolder.settings.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started);
         form.status_color_paused.value = normalizeHexColor(currFolder.settings.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused);
         form.status_color_stopped.value = normalizeHexColor(currFolder.settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped);
@@ -4689,7 +4732,12 @@ const submitForm = async (e, saveAsCopy = false) => {
             context_graph_time: parseInt(e.context_graph_time.value.toString()),
             preview_border: e.preview_border.checked,
             preview_border_color: e.preview_border_color.value.toString(),
+            preview_border_width: normalizePositiveInt(e.preview_border_width.value.toString(), DEFAULT_PREVIEW_BORDER_WIDTH, 1, 4),
             preview_vertical_bars_color: e.preview_vertical_bars_color.value.toString(),
+            preview_vertical_bars_width: normalizePositiveInt(e.preview_vertical_bars_width.value.toString(), DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH, 1, 4),
+            dropdown_style: normalizeDropdownStyle(e.dropdown_style.value.toString()),
+            dropdown_color: normalizeHexColor(e.dropdown_color.value.toString(), DEFAULT_DROPDOWN_COLOR),
+            dropdown_hover_color: normalizeHexColor(e.dropdown_hover_color.value.toString(), DEFAULT_DROPDOWN_HOVER_COLOR),
             status_color_started: normalizeHexColor(e.status_color_started.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.started),
             status_color_paused: normalizeHexColor(e.status_color_paused.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.paused),
             status_color_stopped: normalizeHexColor(e.status_color_stopped.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.stopped),

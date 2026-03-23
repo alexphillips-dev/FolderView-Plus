@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.22.52">
-<!ENTITY md5 "d8df6fbd1354b086a94ce1c281aa3288">
+<!ENTITY version "2026.03.22.53">
+<!ENTITY md5 "a446ad4cb58064b9814526470965ee5c">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.22.53
+- UX: Center multi-row Docker preview content with balanced vertical padding and tighter row height.
+- Fix: Reduce the top-heavy row stack bias in multi-row previews so wrapped rows sit more like the normal preview box.
+
 
 ###2026.03.22.52
 - Fix: Stack compact multi-row Docker preview cards like the normal preview, with status and quick actions on the second line under the name.

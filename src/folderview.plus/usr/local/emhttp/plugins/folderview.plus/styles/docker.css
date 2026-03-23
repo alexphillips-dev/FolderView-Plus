@@ -327,19 +327,20 @@ tr.folder.fv-parent-expanded div.folder-preview {
     min-height: 0;
     max-height: none;
     row-gap: 0;
-    padding: 0;
+    padding: 3px 0;
     flex-direction: column;
     flex-wrap: nowrap;
     align-items: flex-start;
     align-content: flex-start;
+    justify-content: center;
 }
 
 .folder-preview.fv-preview-multirow .folder-preview-row {
     width: 100%;
     box-sizing: border-box;
     align-items: center;
-    min-height: calc(var(--fvplus-preview-row-height) - 0.45em);
-    padding: 2px 0 2px 8px;
+    min-height: calc(var(--fvplus-preview-row-height) - 0.85em);
+    padding: 1px 0 1px 8px;
 }
 
 .folder-preview.fv-preview-border-off {

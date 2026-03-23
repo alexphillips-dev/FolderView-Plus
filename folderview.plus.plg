@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.22.47">
-<!ENTITY md5 "69102decc05a1c9f2d417fc800a2913f">
+<!ENTITY version "2026.03.22.48">
+<!ENTITY md5 "d632fa48da1b4a092fc18a43a459a0e9">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.22.48
+- Fix: Multi-row Docker previews now fill each row by available width before wrapping instead of stopping at a fixed item count.
+- UX: Added light vertical row padding so wrapped preview rows sit closer to the same centered feel as the normal single-row preview.
+- Fix: Prevented wide folders like Plex from leaving avoidable unused space at the end of the first row before wrapping.
+
 
 ###2026.03.22.47
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

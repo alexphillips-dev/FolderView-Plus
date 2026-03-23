@@ -431,17 +431,39 @@ const layoutFolderPreviewRows = ($preview, settings = {}) => {
     if (!wrappers.length) {
         return;
     }
-    const itemsPerRow = Math.max(1, getFolderPreviewItemsPerRow(settings));
     const rowLimit = normalizeFolderPreviewRowLimit(settings);
-    const visibleCount = rowLimit === 0 ? wrappers.length : Math.min(wrappers.length, itemsPerRow * rowLimit);
     const addDividers = settings?.preview_vertical_bars === true;
     const barsColor = settings?.preview_vertical_bars_color || settings?.preview_border_color || '';
-    const visibleWrappers = wrappers.slice(0, visibleCount);
+    const previewElement = $preview.get(0);
+    const availableWidth = Math.max(0, Math.floor($preview.innerWidth() || previewElement?.clientWidth || 0) - 12);
+    const gapWidth = 8;
+    const dividerWidth = addDividers ? 1 : 0;
+    const rows = [];
+    let currentRow = [];
+    let currentWidth = 0;
+
+    wrappers.forEach((wrapper) => {
+        const measuredWidth = Math.max(1, Math.ceil(wrapper.getBoundingClientRect?.().width || $(wrapper).outerWidth() || 0));
+        const extraWidth = currentRow.length ? gapWidth + dividerWidth : 0;
+        const nextWidth = currentWidth + extraWidth + measuredWidth;
+        const canWrap = availableWidth > 0 && currentRow.length > 0 && nextWidth > availableWidth;
+        if (canWrap && (rowLimit === 0 || rows.length + 1 < rowLimit)) {
+            rows.push(currentRow);
+            currentRow = [wrapper];
+            currentWidth = measuredWidth;
+            return;
+        }
+        currentRow.push(wrapper);
+        currentWidth = nextWidth;
+    });
+    if (currentRow.length) {
+        rows.push(currentRow);
+    }
+    const visibleRows = rowLimit === 0 ? rows : rows.slice(0, rowLimit);
     $preview.empty();
 
-    for (let offset = 0; offset < visibleWrappers.length; offset += itemsPerRow) {
+    visibleRows.forEach((slice) => {
         const $row = $('<div class="folder-preview-row"></div>');
-        const slice = visibleWrappers.slice(offset, offset + itemsPerRow);
         slice.forEach((wrapper, index) => {
             $row.append(wrapper);
             if (addDividers && index < slice.length - 1) {
@@ -449,7 +471,7 @@ const layoutFolderPreviewRows = ($preview, settings = {}) => {
             }
         });
         $preview.append($row);
-    }
+    });
 };
 const decorateDockerPreviewMemberTriggers = ($elements, folderId, containerName) => {
     const safeFolderId = String(folderId || '').trim();

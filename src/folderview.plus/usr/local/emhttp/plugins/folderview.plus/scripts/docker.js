@@ -3975,6 +3975,15 @@ const rmFolder = (id) => {
  * @param {string} id the id of the folder
  */
 const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
+const clearFolderEditorPrefill = () => {
+    try {
+        if (typeof sessionStorage !== 'undefined') {
+            sessionStorage.removeItem(EDITOR_PREFILL_STORAGE_KEY);
+        }
+    } catch (_error) {
+        // Editor prefill cleanup is best-effort only.
+    }
+};
 const seedFolderEditorPrefill = (folderType, id) => {
     try {
         const normalizedId = String(id || '').trim();
@@ -5157,6 +5166,7 @@ if (FOLDER_VIEW_DEBUG_MODE) {
 // Add the button for creating a folder
 const createFolderBtn = () => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolderBtn: Clicked. Redirecting.');
+    clearFolderEditorPrefill();
     location.href = "/Docker/Folder?type=docker"
 };
 

@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.23.43">
-<!ENTITY md5 "bd4b80019b24bebe28fed24835ea9a74">
+<!ENTITY version "2026.03.23.44">
+<!ENTITY md5 "992538a6e8500da3dbac1d0135561f0b">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.23.44
+- Fix: The folder editor now accepts legacy folder query keys and can recover the requested folder from recent edit context even when the edit page arrives without a usable `id` in the URL.
+- Fix: Docker and VM create-folder routes now clear stale editor prefill so new-folder flows cannot accidentally inherit the last edited folder.
+- Test: Added regression coverage for legacy query-key and prefill-based folder editor recovery.
+
 
 ###2026.03.23.43
 - Fix: Existing-folder edits now carry the clicked folder record from Docker, VMs, and Dashboard into the redesigned folder editor, so edit sessions no longer fall back to a blank new-folder form when the saved folder id cannot be resolved from `read.php` alone.

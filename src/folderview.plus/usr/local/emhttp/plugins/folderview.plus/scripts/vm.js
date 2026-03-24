@@ -1590,6 +1590,15 @@ const rmFolder = (id) => {
  * @param {string} id the id of the folder
  */
 const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
+const clearFolderEditorPrefill = () => {
+    try {
+        if (typeof sessionStorage !== 'undefined') {
+            sessionStorage.removeItem(EDITOR_PREFILL_STORAGE_KEY);
+        }
+    } catch (_error) {
+        // Editor prefill cleanup is best-effort only.
+    }
+};
 const seedFolderEditorPrefill = (folderType, id) => {
     try {
         const normalizedId = String(id || '').trim();
@@ -2490,7 +2499,10 @@ window.loadlist = (x) => {
 };
 
 // Add the button for creating a folder
-const createFolderBtn = () => { location.href = "/VMs/Folder?type=vm" };
+const createFolderBtn = () => {
+    clearFolderEditorPrefill();
+    location.href = "/VMs/Folder?type=vm"
+};
 
 
 $.ajaxPrefilter((options, originalOptions, jqXHR) => {

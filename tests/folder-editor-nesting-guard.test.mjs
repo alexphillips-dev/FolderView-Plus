@@ -39,17 +39,21 @@ test('folder editor supports parent smart-default inheritance on new child folde
 });
 
 test('folder editor normalizes sparse folder payloads before binding controls', () => {
+    assert.match(folderEditorScript, /const folderEditorQueryParams = new URLSearchParams\(location\.search\);/);
+    assert.match(folderEditorScript, /folderEditorQueryParams\.get\('folderId'\)/);
+    assert.match(folderEditorScript, /folderEditorQueryParams\.get\('folder'\)/);
     assert.match(folderEditorScript, /const normalizeFolderRecordForEditor = \(folder\) =>/);
     assert.match(folderEditorScript, /const resolveCurrentEditFolder = \(folderMap,\s*requestedId\) =>/);
     assert.match(folderEditorScript, /const EDITOR_PREFILL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.v1';/);
-    assert.match(folderEditorScript, /const readEditorNavigationPrefill = \(expectedType,\s*expectedId\) =>/);
+    assert.match(folderEditorScript, /const readEditorNavigationPrefill = \(expectedType,\s*expectedId = ''\) =>/);
     assert.match(folderEditorScript, /const clearEditorNavigationPrefill = \(\) =>/);
     assert.match(folderEditorScript, /preview:\s*Number\.isFinite\(Number\(settings\.preview\)\)/);
     assert.match(folderEditorScript, /context_graph_time:\s*Number\.isFinite\(Number\(settings\.context_graph_time\)\)/);
     assert.match(folderEditorScript, /folders\[safeId\] = normalizeFolderRecordForEditor\(folder\);/);
     assert.match(folderEditorScript, /let currentEditFolder = null;/);
-    assert.match(folderEditorScript, /const resolvedEditFolder = resolveCurrentEditFolder\(folders,\s*folderId\);/);
-    assert.match(folderEditorScript, /const navigationPrefill = !resolvedEditFolder \? readEditorNavigationPrefill\(type,\s*folderId\) : null;/);
+    assert.match(folderEditorScript, /const navigationPrefill = readEditorNavigationPrefill\(type,\s*folderId\);/);
+    assert.match(folderEditorScript, /const requestedFolderRef = String\(folderId \|\| navigationPrefill\?\.id \|\| ''\)\.trim\(\);/);
+    assert.match(folderEditorScript, /const resolvedEditFolder = resolveCurrentEditFolder\(folders,\s*requestedFolderRef\);/);
     assert.match(folderEditorScript, /currentEditFolder = resolvedEditFolder\?\.folder \|\| navigationPrefill\?\.folder \|\| null;/);
     assert.match(folderEditorScript, /setValidationBannerState\(\s*'Warning: requested folder could not be loaded\.'/);
     assert.match(folderEditorScript, /Recovered requested folder from navigation context\./);

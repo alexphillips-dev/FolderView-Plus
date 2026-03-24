@@ -4,10 +4,21 @@ let choose = [];
 let selectedRegex = [];
 // element selected manually
 let selected = [];
+const folderEditorQueryParams = new URLSearchParams(location.search);
 // docker or vm?
-const type = new URLSearchParams(location.search).get('type');
-//id of the folder if present
-const folderId = String(new URLSearchParams(location.search).get('id') || '').trim();
+const type = String(
+    folderEditorQueryParams.get('type')
+    || folderEditorQueryParams.get('mode')
+    || ''
+).trim();
+// id of the folder if present
+const folderId = String(
+    folderEditorQueryParams.get('id')
+    || folderEditorQueryParams.get('folderId')
+    || folderEditorQueryParams.get('folder')
+    || folderEditorQueryParams.get('name')
+    || ''
+).trim();
 const utils = window.FolderViewPlusUtils || null;
 const folderHierarchyModule = window.FolderViewPlusFolderHierarchy || null;
 const folderIconApiModule = window.FolderViewPlusFolderIconApi || null;
@@ -631,7 +642,7 @@ const resolveCurrentEditFolder = (folderMap, requestedId) => {
 
     return null;
 };
-const readEditorNavigationPrefill = (expectedType, expectedId) => {
+const readEditorNavigationPrefill = (expectedType, expectedId = '') => {
     try {
         if (typeof sessionStorage === 'undefined') {
             return null;
@@ -643,11 +654,15 @@ const readEditorNavigationPrefill = (expectedType, expectedId) => {
         const payload = JSON.parse(raw);
         const normalizedType = String(payload?.type || '').trim();
         const normalizedId = String(payload?.id || '').trim();
+        const normalizedExpectedId = String(expectedId || '').trim();
         const storedAt = Number(payload?.storedAt || 0);
         if (!normalizedType || !normalizedId || !payload?.folder || typeof payload.folder !== 'object') {
             return null;
         }
-        if (normalizedType !== String(expectedType || '').trim() || normalizedId !== String(expectedId || '').trim()) {
+        if (normalizedType !== String(expectedType || '').trim()) {
+            return null;
+        }
+        if (normalizedExpectedId && normalizedId !== normalizedExpectedId) {
             return null;
         }
         if (Number.isFinite(storedAt) && storedAt > 0 && (Date.now() - storedAt) > EDITOR_PREFILL_MAX_AGE_MS) {
@@ -4592,15 +4607,17 @@ resetStatusColorDefaults();
     let currentEditFolder = null;
     let currentEditFolderId = '';
 
-    if (folderId) {
-        const resolvedEditFolder = resolveCurrentEditFolder(folders, folderId);
-        const navigationPrefill = !resolvedEditFolder ? readEditorNavigationPrefill(type, folderId) : null;
+    const navigationPrefill = readEditorNavigationPrefill(type, folderId);
+    const requestedFolderRef = String(folderId || navigationPrefill?.id || '').trim();
+
+    if (requestedFolderRef) {
+        const resolvedEditFolder = resolveCurrentEditFolder(folders, requestedFolderRef);
         currentEditFolder = resolvedEditFolder?.folder || navigationPrefill?.folder || null;
         currentEditFolderId = String(resolvedEditFolder?.id || navigationPrefill?.id || '').trim();
         if (!currentEditFolder || !currentEditFolderId) {
             setValidationBannerState(
                 'Warning: requested folder could not be loaded.',
-                `Folder id "${folderId}" was not found in the saved folder map. The editor stayed in new-folder mode instead of silently hydrating the wrong data.`,
+                `Folder reference "${requestedFolderRef}" was not found in the saved folder map or recent edit context. The editor stayed in new-folder mode instead of silently hydrating the wrong data.`,
                 'warning'
             );
             folderHierarchyState.currentFolderDescendantIds = new Set();
@@ -4612,7 +4629,7 @@ resetStatusColorDefaults();
             allFoldersById[currentEditFolderId] = currentEditFolder;
             setValidationBannerState(
                 'Recovered requested folder from navigation context.',
-                `Folder id "${folderId}" was restored from the folder you clicked before the editor loaded. Saved member and display data should now be available immediately.`,
+                `Folder reference "${requestedFolderRef}" was restored from the folder you clicked before the editor loaded. Saved member and display data should now be available immediately.`,
                 'warning'
             );
         }

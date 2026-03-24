@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.24.04">
-<!ENTITY md5 "a6c81059c12fbf01b081589f0fe2d4a1">
+<!ENTITY version "2026.03.24.05">
+<!ENTITY md5 "8ffa2be670eb02c48f7db79542d511f1">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.24.05
+- Fix: Legacy folder settings mode now loads a dedicated pre-redesign editor runtime instead of sharing the redesigned `folder.js` path, so the old form no longer inherits modern editor chrome and mixed save logic.
+- Fix: `Folder.page` now boots the modern editor stack only when `folderEditorMode` is `modern`; legacy mode skips the redesign chrome and loads `folder.legacy.js` directly.
+- UX: This restores a clean separation between the old and new folder settings pages while the redesigned editor continues behind the opt-in toggle.
+- Test: Added page-smoke and security regression coverage for the split legacy/modern editor runtime loading contract.
+
 
 ###2026.03.24.04
 - Fix: Folder editor type detection now falls back to the page path, so legacy editor loads still resolve as Docker or VM even when the query string is incomplete or stripped by navigation.

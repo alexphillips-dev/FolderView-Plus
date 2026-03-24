@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-03-24T00:33:49.066Z",
+  "generatedAt": "2026-03-24T13:11:11.995Z",
   "notes": "Baseline for perf ratchet guard. Update intentionally when expected growth is accepted.",
   "assets": {
     "scripts/folderviewplus.runtime-parity.js": {
@@ -32,8 +32,8 @@
       "gzipBytes": 7856
     },
     "scripts/folderviewplus.js": {
-      "bytes": 459812,
-      "gzipBytes": 88096
+      "bytes": 460431,
+      "gzipBytes": 88216
     },
     "scripts/folderviewplus.wizard.js": {
       "bytes": 216972,
@@ -48,24 +48,24 @@
       "gzipBytes": 19796
     },
     "scripts/docker.js": {
-      "bytes": 262832,
-      "gzipBytes": 51343
+      "bytes": 264516,
+      "gzipBytes": 51726
     },
     "scripts/vm.js": {
-      "bytes": 102199,
-      "gzipBytes": 22191
+      "bytes": 103878,
+      "gzipBytes": 22538
     },
     "scripts/folder.js": {
-      "bytes": 223072,
-      "gzipBytes": 45311
+      "bytes": 234845,
+      "gzipBytes": 47407
     }
   },
   "totals": {
-    "totalJs": 1905508,
-    "totalCss": 239098,
-    "totalJsGzip": 371728,
-    "totalCssGzip": 36938,
-    "settingsRuntimeJs": 869580,
-    "settingsRuntimeJsGzip": 166448
+    "totalJs": 2147270,
+    "totalCss": 239338,
+    "totalJsGzip": 420474,
+    "totalCssGzip": 36956,
+    "settingsRuntimeJs": 870199,
+    "settingsRuntimeJsGzip": 166568
   }
 }

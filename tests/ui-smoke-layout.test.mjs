@@ -41,6 +41,10 @@ const folderJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js'
 );
+const folderLegacyJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.legacy.js'
+);
 const dockerJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js'
@@ -57,6 +61,7 @@ const settingsJs = settingsRuntime;
 const folderPage = fs.readFileSync(folderPagePath, 'utf8');
 const folderCss = fs.readFileSync(folderCssPath, 'utf8');
 const folderJs = fs.readFileSync(folderJsPath, 'utf8');
+const folderLegacyJs = fs.readFileSync(folderLegacyJsPath, 'utf8');
 const folderChromeJs = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js'),
     'utf8'
@@ -129,6 +134,17 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
     assert.match(settingsPage, /id="docker-folder-editor-modern"/);
     assert.match(settingsPage, /id="vm-folder-editor-modern"/);
     assert.match(settingsPage, /Use new folder settings page/);
+});
+
+test('folder page ships separate legacy and modern editor runtimes', () => {
+    assert.match(folderPage, /\$folderEditorPageMode === 'modern'/);
+    assert.match(folderPage, /folder\.editor\.chrome\.js/);
+    assert.match(folderPage, /folder\.js/);
+    assert.match(folderPage, /folder\.legacy\.js/);
+    assert.match(folderJs, /modernFolderEditorEnabled/);
+    assert.doesNotMatch(folderLegacyJs, /modernFolderEditorEnabled/);
+    assert.match(folderLegacyJs, /const type = new URLSearchParams\(location\.search\)\.get\('type'\);/);
+    assert.match(folderLegacyJs, /const folderId = new URLSearchParams\(location\.search\)\.get\('id'\);/);
 });
 
 test('mobile action bar and import progress keep compact viewport guards', () => {

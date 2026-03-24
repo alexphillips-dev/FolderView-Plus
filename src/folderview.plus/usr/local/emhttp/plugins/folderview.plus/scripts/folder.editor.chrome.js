@@ -88,18 +88,11 @@
                             <strong>Live folder preview</strong>
                             <p>The editor runtime will keep this preview in sync as settings change.</p>
                         </div>
-                        <div class="fv-live-preview-head-actions">
-                            <div class="fv-preview-surface-switch" role="group" aria-label="Preview surface">
-                                <button type="button" class="fv-preview-surface-btn is-active" data-surface="tab">Tab</button>
-                                <button type="button" class="fv-preview-surface-btn" data-surface="dashboard">Dashboard</button>
-                                <button type="button" class="fv-preview-surface-btn" data-surface="nested">Nested</button>
-                            </div>
-                            <span id="fvLivePreviewMeta" class="fv-live-preview-meta-chip">Loading preview</span>
-                        </div>
+                        <span id="fvLivePreviewMeta" class="fv-live-preview-meta-chip">Loading preview</span>
                     </div>
                     <div id="fvLivePreviewCanvas" class="fv-live-preview-canvas">
-                        <div class="fv-live-preview-surface surface-tab">
-                            <div class="fv-live-preview-row surface-tab">
+                        <div class="fv-live-preview-surface">
+                            <div class="fv-live-preview-row">
                                 <div class="fv-live-folder-head">
                                     <div class="fv-live-folder-anchor">
                                         <img class="fv-live-folder-icon" src="${DEFAULT_FOLDER_ICON_PATH}" alt="">
@@ -136,13 +129,6 @@
                         <div class="fv-live-stat-card">
                             <span class="fv-live-stat-label">Members</span>
                             <strong id="fvLiveMembers" class="fv-live-stat-value">0/0 included</strong>
-                        </div>
-                    </div>
-                    <div class="fv-live-chip-panel">
-                        <div class="fv-live-chip-panel-head">Preview surface</div>
-                        <div class="fv-live-surface-copy">
-                            <strong id="fvLiveSurfaceLabel">Tab row</strong>
-                            <span id="fvLiveSurfaceHint">Matches the Docker / VM tab row layout.</span>
                         </div>
                     </div>
                     <div class="fv-live-chip-panel">
@@ -310,10 +296,10 @@
                 return;
             }
             if (row.querySelector('.fv-icon-dd')) {
-                row.classList.add('is-icon-row', 'is-wide-row');
+                row.classList.add('is-icon-row');
             }
             if (row.querySelector('.folder-status-colors-dd')) {
-                row.classList.add('is-status-row', 'is-wide-row');
+                row.classList.add('is-status-row');
             }
             if (row.querySelector('.custom-action-wrapper') || row.querySelector('a.custom-action')) {
                 row.classList.add('is-actions-row', 'is-wide-row');
@@ -321,7 +307,7 @@
             if (row.querySelector('[name="name"]') || row.querySelector('[name="regex"]')) {
                 row.classList.add('is-wide-row');
             }
-            if (row.querySelector('[name="folder_webui_url"]') || row.querySelector('[name="preview_text_width"]')) {
+            if (row.querySelector('[name="folder_webui_url"]')) {
                 row.classList.add('is-wide-row');
             }
             if (row.querySelector('input.basic-switch, .switch-button')) {
@@ -334,6 +320,12 @@
 
         Array.from(form.querySelectorAll('.fv-section-shell ul')).forEach((list) => {
             list.classList.add('fv-modern-group-list');
+            if (list.querySelector('.folder-status-colors-dd')) {
+                list.classList.add('is-status-list');
+            }
+            if (list.querySelector('.fv-inline-control-row')) {
+                list.classList.add('is-inline-control-list');
+            }
             Array.from(list.children).forEach((item) => {
                 if (item instanceof root.HTMLElement) {
                     item.classList.add('fv-modern-group-item');

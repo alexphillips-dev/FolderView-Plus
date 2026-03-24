@@ -348,13 +348,6 @@ let editorMode = 'basic';
 let activeEditorSection = 'general';
 let advancedSectionCollapsedState = {};
 let editorLayoutPrepared = false;
-const LIVE_PREVIEW_SURFACE_STORAGE_KEY = 'fv.folder.editor.livePreviewSurface.v1';
-const LIVE_PREVIEW_SURFACES = Object.freeze({
-    tab: { label: 'Tab row', subtitle: 'Matches the Docker / VM tab row layout.' },
-    dashboard: { label: 'Dashboard card', subtitle: 'Approximates the dashboard widget card surface.' },
-    nested: { label: 'Nested child', subtitle: 'Shows how this folder will read when nested under a parent.' }
-});
-let livePreviewSurface = 'tab';
 
 const SMART_DEFAULT_FIELD_NAMES = new Set([
     'icon',
@@ -3154,9 +3147,6 @@ const renderLivePreviewCanvas = () => {
     const dropdownHoverColor = normalizeHexColor(form.dropdown_hover_color.value, DEFAULT_DROPDOWN_HOVER_COLOR);
     const icon = String(form.icon.value || '').trim() || DEFAULT_FOLDER_ICON_PATH;
     const name = (form.name.value || '').trim() || 'Unnamed folder';
-    const previewSurface = normalizeLivePreviewSurface(livePreviewSurface);
-    const previewSurfaceMeta = LIVE_PREVIEW_SURFACES[previewSurface] || LIVE_PREVIEW_SURFACES.tab;
-
     const membersHtml = previewMode === 0
         ? '<div class="fv-live-preview-empty">Preview is currently disabled. The folder row will show the title and chevron only.</div>'
         : (sampleMembers.length > 0
@@ -3177,9 +3167,9 @@ const renderLivePreviewCanvas = () => {
             : '<div class="fv-live-preview-empty">Select or match at least one member to see how the row preview will render.</div>');
 
     const dropdownTokens = getDropdownStyleTokens(dropdownStyle, dropdownColor, dropdownHoverColor);
-    const rowClass = `fv-live-preview-row preview-${previewMode}${borderEnabled ? ' has-border' : ''} is-${dropdownStyle}${rowsLimit !== 1 ? ' is-multi-row' : ' is-single-row'} surface-${previewSurface}`;
+    const rowClass = `fv-live-preview-row preview-${previewMode}${borderEnabled ? ' has-border' : ''} is-${dropdownStyle}${rowsLimit !== 1 ? ' is-multi-row' : ' is-single-row'}`;
     canvas.html(`
-        <div class="fv-live-preview-surface surface-${previewSurface}">
+        <div class="fv-live-preview-surface">
             <div class="${rowClass}" style="--fv-preview-border-color:${borderColor};--fv-preview-border-width:${borderWidth}px;--fv-chevron-color:${dropdownColor};--fv-chevron-hover:${dropdownHoverColor};--fv-live-chevron-min-width:${dropdownTokens.minWidth};--fv-live-chevron-height:${dropdownTokens.height};--fv-live-chevron-padding:${dropdownTokens.padding};--fv-live-chevron-radius:${dropdownTokens.radius};--fv-live-chevron-border:${dropdownTokens.border};--fv-live-chevron-hover-border:${dropdownTokens.hoverBorder};--fv-live-chevron-bg:${dropdownTokens.background};--fv-live-chevron-hover-bg:${dropdownTokens.hoverBackground};--fv-live-chevron-shadow:${dropdownTokens.shadow};--fv-live-chevron-hover-shadow:${dropdownTokens.hoverShadow};">
                 <div class="fv-live-folder-head">
                     <div class="fv-live-folder-anchor">
@@ -3195,8 +3185,6 @@ const renderLivePreviewCanvas = () => {
                 </div>
                 <div class="fv-live-member-lane">${membersHtml}</div>
             </div>
-            ${previewSurface === 'nested' ? '<div class="fv-live-preview-nested-label">Nested child preview</div>' : ''}
-            ${previewSurface === 'dashboard' ? '<div class="fv-live-preview-dashboard-label">Dashboard card approximation</div>' : ''}
         </div>
     `);
     const livePreviewRow = canvas.find('.fv-live-preview-row').get(0);
@@ -3991,37 +3979,6 @@ const saveAdvancedCollapseState = () => {
     }
 };
 
-const normalizeLivePreviewSurface = (value) => {
-    const normalized = String(value || '').trim().toLowerCase();
-    return Object.prototype.hasOwnProperty.call(LIVE_PREVIEW_SURFACES, normalized)
-        ? normalized
-        : 'tab';
-};
-
-const loadLivePreviewSurfacePreference = () => {
-    try {
-        return normalizeLivePreviewSurface(localStorage.getItem(LIVE_PREVIEW_SURFACE_STORAGE_KEY));
-    } catch (_error) {
-        return 'tab';
-    }
-};
-
-const saveLivePreviewSurfacePreference = () => {
-    try {
-        localStorage.setItem(LIVE_PREVIEW_SURFACE_STORAGE_KEY, normalizeLivePreviewSurface(livePreviewSurface));
-    } catch (_error) {
-        // Ignore storage failures.
-    }
-};
-
-const setLivePreviewSurface = (surface) => {
-    livePreviewSurface = normalizeLivePreviewSurface(surface);
-    saveLivePreviewSurfacePreference();
-    $('.fv-preview-surface-btn').removeClass('is-active');
-    $(`.fv-preview-surface-btn[data-surface="${livePreviewSurface}"]`).addClass('is-active');
-    updateLiveSummary();
-};
-
 const clearFieldToInheritedValue = (fieldName) => {
     const form = getForm();
     const field = getFormField(form, fieldName);
@@ -4402,7 +4359,6 @@ const updateLiveSummary = () => {
     const selectedMembers = memberNames.map((name) => memberMap.get(name)).filter(Boolean);
     const folderName = (form.name.value || '').trim() || '(unnamed)';
     const previewLabel = PREVIEW_MODE_LABELS[Number(form.preview.value)] || 'Unknown';
-    const previewSurfaceMeta = LIVE_PREVIEW_SURFACES[normalizeLivePreviewSurface(livePreviewSurface)] || LIVE_PREVIEW_SURFACES.tab;
     const contextLabel = type === 'docker'
         ? (CONTEXT_MODE_LABELS[Number(form.context.value)] || 'Unknown')
         : 'Not used for VMs';
@@ -4421,11 +4377,9 @@ const updateLiveSummary = () => {
     $('#fvHeroDefaults').text($('#fvHeroDefaults').text() || 'Checking inherited defaults');
     $('#fvLivePreviewMeta').text(
         Number(form.preview.value) === 0
-            ? `${previewSurfaceMeta.label} • Preview disabled`
-            : `${previewSurfaceMeta.label} • ${previewLabel} • ${normalizePreviewRowLimit(form.preview_rows?.value) === 0 ? 'Unlimited rows' : `${normalizePreviewRowLimit(form.preview_rows?.value)} row${normalizePreviewRowLimit(form.preview_rows?.value) === 1 ? '' : 's'}`}`
+            ? 'Preview disabled'
+            : `${previewLabel} • ${normalizePreviewRowLimit(form.preview_rows?.value) === 0 ? 'Unlimited rows' : `${normalizePreviewRowLimit(form.preview_rows?.value)} row${normalizePreviewRowLimit(form.preview_rows?.value) === 1 ? '' : 's'}`}`
     );
-    $('#fvLiveSurfaceLabel').text(previewSurfaceMeta.label);
-    $('#fvLiveSurfaceHint').text(previewSurfaceMeta.subtitle);
     $('#fvSwatchStarted').css('background-color', normalizeHexColor(form.status_color_started.value, DEFAULT_FOLDER_STATUS_COLORS.started));
     $('#fvSwatchPaused').css('background-color', normalizeHexColor(form.status_color_paused.value, DEFAULT_FOLDER_STATUS_COLORS.paused));
     $('#fvSwatchStopped').css('background-color', normalizeHexColor(form.status_color_stopped.value, DEFAULT_FOLDER_STATUS_COLORS.stopped));
@@ -4638,8 +4592,6 @@ const initEditorChrome = () => {
         || !$('#fvSuggestDefaults').length
         || !$('#fvLivePanel').length
         || !$('#fvHeroDefaults').length
-        || !$('#fvLiveSurfaceLabel').length
-        || !$('.fv-preview-surface-btn[data-surface="dashboard"]').length
         || !$('.fv-editor-mode > button[data-mode="basic"]').length
         || !$('.fv-editor-mode > button[data-mode="advanced"]').length;
 
@@ -4693,36 +4645,22 @@ const initEditorChrome = () => {
             </div>
             <div id="fvLivePanel" class="fv-live-panel">
                 <div class="fv-live-panel-grid">
-                    <div class="fv-live-preview-card">
-                        <div class="fv-live-preview-card-head">
-                            <div class="fv-live-preview-copy">
-                                <strong>Live folder preview</strong>
-                                <p>Updates immediately while you change preview, chevron, status, and folder display settings.</p>
-                            </div>
-                            <div class="fv-live-preview-head-actions">
-                                <div class="fv-preview-surface-switch" role="group" aria-label="Preview surface">
-                                    <button type="button" class="fv-preview-surface-btn is-active" data-surface="tab">Tab</button>
-                                    <button type="button" class="fv-preview-surface-btn" data-surface="dashboard">Dashboard</button>
-                                    <button type="button" class="fv-preview-surface-btn" data-surface="nested">Nested</button>
+                        <div class="fv-live-preview-card">
+                            <div class="fv-live-preview-card-head">
+                                <div class="fv-live-preview-copy">
+                                    <strong>Live folder preview</strong>
+                                    <p>Updates immediately while you change preview, chevron, status, and folder display settings.</p>
                                 </div>
                                 <span id="fvLivePreviewMeta" class="fv-live-preview-meta-chip">Preview disabled</span>
                             </div>
+                            <div id="fvLivePreviewCanvas" class="fv-live-preview-canvas"></div>
                         </div>
-                        <div id="fvLivePreviewCanvas" class="fv-live-preview-canvas"></div>
-                    </div>
                     <div class="fv-live-insights">
                         <div class="fv-live-grid">
                             <span><strong>Name:</strong> <span id="fvLiveName">-</span></span>
                             <span><strong>Preview:</strong> <span id="fvLivePreview">-</span></span>
                             <span><strong>Context:</strong> <span id="fvLiveContext">-</span></span>
                             <span><strong>Members:</strong> <span id="fvLiveMembers">0/0 included</span></span>
-                        </div>
-                        <div class="fv-live-chip-panel">
-                            <div class="fv-live-chip-panel-head">Preview surface</div>
-                            <div class="fv-live-surface-copy">
-                                <strong id="fvLiveSurfaceLabel">Tab row</strong>
-                                <span id="fvLiveSurfaceHint">Matches the Docker / VM tab row layout.</span>
-                            </div>
                         </div>
                         <div class="fv-live-swatches">
                             <span class="fv-swatch-item"><em>Started</em><i id="fvSwatchStarted"></i></span>
@@ -4840,9 +4778,6 @@ const initEditorChrome = () => {
     $('.fv-editor-mode > button').off('click').on('click', function onModeClick() {
         setEditorMode($(this).attr('data-mode'));
     });
-    $('.fv-preview-surface-btn').off('click').on('click', function onPreviewSurfaceClick() {
-        setLivePreviewSurface($(this).attr('data-surface'));
-    });
     $('.fv-section-collapse').off('click').on('click', function onCollapseClick() {
         toggleAdvancedSectionCollapse($(this).attr('data-section'));
     });
@@ -4863,8 +4798,6 @@ const initEditorChrome = () => {
 
     enforceLeftAlignedSettingsLayout();
     ensureInheritedFieldControls();
-    livePreviewSurface = loadLivePreviewSurfacePreference();
-    setLivePreviewSurface(livePreviewSurface);
     setTimeout(enforceLeftAlignedSettingsLayout, 50);
     setTimeout(enforceLeftAlignedSettingsLayout, 250);
     editorLayoutPrepared = true;

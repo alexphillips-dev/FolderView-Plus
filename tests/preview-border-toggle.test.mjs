@@ -27,7 +27,7 @@ test('folder editor keeps border and chevron reset controls grouped with their f
     assert.match(folderPage, /<div class="fv-inline-control-row">[\s\S]*name="dropdown_color"[\s\S]*name="dropdown_hover_color"[\s\S]*resetDropdownColorDefaults\(\)/);
     assert.match(folderCss, /\.fv-inline-control-row\s*\{[\s\S]*display:\s*inline-flex !important;[\s\S]*align-items:\s*center !important;[\s\S]*max-width:\s*max-content;/);
     assert.match(folderCss, /\.fv-inline-control-row > input,[\s\S]*margin-right:\s*0 !important;[\s\S]*flex:\s*0 0 auto;/);
-    assert.match(folderCss, /\.fv-inline-reset-btn\s*\{[\s\S]*width:\s*28px !important;[\s\S]*height:\s*28px !important;[\s\S]*display:\s*inline-flex !important;/);
+    assert.match(folderCss, /\.fv-inline-reset-btn\s*\{[\s\S]*display:\s*inline-flex !important;[\s\S]*border:\s*0 !important;[\s\S]*background:\s*transparent !important;/);
     assert.match(folderJs, /const resetPreviewBorderDefaults = \(\) =>/);
     assert.match(folderJs, /form\.preview_border_color\.value = DEFAULT_BORDER_COLOR;/);
     assert.match(folderJs, /form\.preview_border_width\.value = String\(DEFAULT_PREVIEW_BORDER_WIDTH\);/);

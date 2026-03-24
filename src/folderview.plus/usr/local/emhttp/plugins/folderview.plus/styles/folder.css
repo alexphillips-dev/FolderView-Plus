@@ -462,38 +462,6 @@
     min-width: 0;
 }
 
-.fv-live-preview-head-actions {
-    display: grid;
-    gap: 0.4em;
-    justify-items: end;
-}
-
-.fv-preview-surface-switch {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.22em;
-    padding: 0.18em;
-    border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    background: rgba(255, 255, 255, 0.03);
-}
-
-.fv-preview-surface-btn {
-    min-width: 72px;
-    min-height: 28px;
-    padding: 0.18em 0.6em;
-    border-radius: 999px;
-    border: 1px solid transparent;
-    background: transparent;
-    color: inherit;
-}
-
-.fv-preview-surface-btn.is-active {
-    border-color: rgba(255, 140, 42, 0.5);
-    background: rgba(255, 140, 42, 0.14);
-    box-shadow: inset 0 0 0 1px rgba(255, 140, 42, 0.22);
-}
-
 .fv-live-preview-canvas {
     min-height: 82px;
 }
@@ -513,35 +481,6 @@
     grid-template-columns: max-content minmax(0, 1fr);
     gap: 1rem;
     align-items: center;
-}
-
-.fv-live-preview-row.surface-dashboard {
-    max-width: 92%;
-    background: linear-gradient(180deg, rgba(26, 26, 26, 0.86), rgba(10, 10, 10, 0.9));
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
-}
-
-.fv-live-preview-row.surface-nested {
-    margin-left: 1.25rem;
-    position: relative;
-}
-
-.fv-live-preview-row.surface-nested::before {
-    content: "";
-    position: absolute;
-    left: -0.7rem;
-    top: 12%;
-    bottom: 12%;
-    width: 2px;
-    border-radius: 999px;
-    background: rgba(255, 154, 60, 0.34);
-}
-
-.fv-live-preview-nested-label,
-.fv-live-preview-dashboard-label {
-    font-size: 0.95rem;
-    color: var(--fv-editor-muted);
-    padding-left: 0.2rem;
 }
 
 .fv-live-preview-row.has-border {
@@ -887,15 +826,38 @@
 }
 
 .fv-inline-reset-btn {
-    width: 28px !important;
-    height: 28px !important;
-    min-width: 28px !important;
-    max-width: 28px !important;
-    padding: 0 !important;
+    width: auto !important;
+    height: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    padding: 0 0.08em !important;
     display: inline-flex !important;
     align-items: center;
     justify-content: center;
-    border-radius: 8px !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+}
+
+.fv-inline-reset-btn:hover,
+.fv-inline-reset-btn:focus,
+#fv-third-party-refresh:hover,
+#fv-third-party-refresh:focus,
+#fv-custom-icon-refresh:hover,
+#fv-custom-icon-refresh:focus {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+#fv-third-party-refresh,
+#fv-custom-icon-refresh {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    min-width: 0 !important;
+    padding: 0 0.08em !important;
 }
 
 /* Runtime-enforced left alignment guard */
@@ -1723,16 +1685,6 @@
     cursor: default;
 }
 
-.fv-live-surface-copy {
-    display: grid;
-    gap: 0.2em;
-}
-
-.fv-live-surface-copy > span {
-    color: var(--fv-editor-muted);
-    line-height: 1.35;
-}
-
 .fv-live-swatches {
     margin-top: 0;
     display: flex;
@@ -1879,9 +1831,10 @@
 
 .fv-modern-section-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(260px, 380px));
     gap: 0.72em;
     align-items: start;
+    justify-content: flex-start;
 }
 
 .fv-section-shell .basic,
@@ -1903,8 +1856,17 @@
     padding: 0;
     list-style: none;
     display: grid;
-    gap: 0.75em;
-    grid-column: 1 / -1;
+    gap: 0.72em;
+    width: 100%;
+    max-width: 380px;
+}
+
+.fv-modern-group-list.is-status-list {
+    max-width: 780px;
+}
+
+.fv-modern-group-list.is-inline-control-list {
+    max-width: 380px;
 }
 
 .fv-modern-group-item {
@@ -1927,6 +1889,12 @@
 .fv-modern-field-row.is-wide-row,
 .fv-modern-order-row {
     grid-column: 1 / -1;
+}
+
+.fv-modern-field-row.is-icon-row,
+.fv-modern-field-row.is-status-row {
+    grid-column: span 2;
+    max-width: 780px;
 }
 
 .fv-modern-field-row > dl,

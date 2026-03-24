@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.24.41">
-<!ENTITY md5 "b42a42ef6198c353ca902e60f0c51f62">
+<!ENTITY version "2026.03.24.42">
+<!ENTITY md5 "de80f0493eb135c2c17b1c5da7c9ff9a">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.24.42
+- UX: Removed the modern folder editor live-preview surface switch so the preview stays focused on the real row layout instead of alternate dashboard or nested mockups.
+- UX: Tightened General, Preview, and Status card sizing in the modern editor so compact controls stop stretching into random full-width modules.
+- UX: Reset icon buttons in the folder editor now render as icon-only controls with no bordered button chrome.
+- Quality: Updated the modern editor bootstrap shell and regression guards to match the simplified live-preview and compact-card layout contract.
+
 
 ###2026.03.24.41
 - UX: Expanded the modern Docker and VM folder editors with richer member tools, including state filters, quick include/exclude actions for visible rows, and live member summary chips.

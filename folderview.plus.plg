@@ -5,13 +5,18 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.23.33">
-<!ENTITY md5 "517f0221f1fea6e7abe826c2cdb1807c">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
+<!ENTITY version "2026.03.23.34">
+<!ENTITY md5 "667dc98e4a91f14c25dd1a866bdc8ec9">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.23.34
+- Fix: Fix backmerge workflow dirty checkout regression.
+- Fix: Fix main CI history checkout and release-only backmerge.
+
 
 ###2026.03.23.33
 - Feature: Added the Dashboard `Legacy` view for both Docker and VMs, expanded Docker multi-row preview capabilities, richer preview member actions, and new per-folder chevron, preview border, and divider styling controls.
@@ -2958,7 +2963,7 @@
     </CHANGES>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

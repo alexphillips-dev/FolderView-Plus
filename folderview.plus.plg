@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.24.47">
-<!ENTITY md5 "320984c1a32d9d09c2e11edc5388ce34">
+<!ENTITY version "2026.03.24.48">
+<!ENTITY md5 "e2a2b96b15e341f5244a926316ab1d2d">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.24.48
+- UX: Moved the modern editor field titles higher inside each module so the header sits closer to the top edge instead of crowding the input box.
+- UX: Increased the title-to-control gap in modern field cards without changing the new fixed input and dropdown heights.
+
 
 ###2026.03.24.47
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

@@ -141,15 +141,6 @@
                         <span id="fvDockerUpdateSummary" class="fv-docker-signal-chip">Updates: loading…</span>
                     </div>
                         </div>
-                    <div class="fv-change-summary-panel">
-                        <div class="fv-change-summary-head">
-                            <strong id="fvChangeSummaryLabel">No pending changes</strong>
-                            <span id="fvLiveInheritance" class="fv-live-preview-meta-chip">Review saved vs default behavior before you save.</span>
-                        </div>
-                        <p id="fvChangeSummaryText">This folder currently matches the saved values.</p>
-                        <ul id="fvChangeSummaryList" class="fv-change-summary-list"></ul>
-                        <span id="fvChangeSummaryOverflow" class="fv-change-summary-overflow"></span>
-                    </div>
                 </div>
             </div>
         </div>

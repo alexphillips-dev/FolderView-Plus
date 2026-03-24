@@ -4275,14 +4275,6 @@ const updateLiveSummary = () => {
             ? 'Preview disabled'
             : `${previewLabel} • ${normalizePreviewRowLimit(form.preview_rows?.value) === 0 ? 'Unlimited rows' : `${normalizePreviewRowLimit(form.preview_rows?.value)} row${normalizePreviewRowLimit(form.preview_rows?.value) === 1 ? '' : 's'}`}`
     );
-    $('#fvLiveInheritance').text(
-        Object.keys(INHERITED_FIELD_HINTS).some((fieldName) => {
-            const field = form.elements?.[fieldName];
-            return field && String($(field).val() || '').trim() === '';
-        })
-            ? 'Some fields are inheriting global defaults.'
-            : 'All shown overrides are local to this folder.'
-    );
     $('#fvSwatchStarted').css('background-color', normalizeHexColor(form.status_color_started.value, DEFAULT_FOLDER_STATUS_COLORS.started));
     $('#fvSwatchPaused').css('background-color', normalizeHexColor(form.status_color_paused.value, DEFAULT_FOLDER_STATUS_COLORS.paused));
     $('#fvSwatchStopped').css('background-color', normalizeHexColor(form.status_color_stopped.value, DEFAULT_FOLDER_STATUS_COLORS.stopped));
@@ -4571,15 +4563,6 @@ const initEditorChrome = () => {
                         <div id="fvDockerSignals" class="fv-docker-signals" style="display:none;">
                             <span id="fvDockerComposeSummary" class="fv-docker-signal-chip">Compose: none detected</span>
                             <span id="fvDockerUpdateSummary" class="fv-docker-signal-chip">Updates: 0/0</span>
-                        </div>
-                        <div class="fv-change-summary-panel">
-                            <div class="fv-change-summary-head">
-                                <strong id="fvChangeSummaryLabel">No pending changes</strong>
-                                <span id="fvLiveInheritance" class="fv-live-preview-meta-chip">Review saved vs default behavior before you save.</span>
-                            </div>
-                            <p id="fvChangeSummaryText">This folder currently matches the saved values.</p>
-                            <ul id="fvChangeSummaryList" class="fv-change-summary-list"></ul>
-                            <span id="fvChangeSummaryOverflow" class="fv-change-summary-overflow"></span>
                         </div>
                         <div class="fv-regex-simulator">
                             <label for="fvRegexSimulatorInput"><strong>Regex simulator</strong></label>

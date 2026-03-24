@@ -324,7 +324,6 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderCss, /\.fv-live-preview-row\.is-minimal \.fv-live-chevron\s*\{[\s\S]*color:\s*var\(--fv-live-chevron-color, var\(--fv-chevron-color\)\) !important;/);
     assert.match(folderCss, /\.fv-live-chevron\s*\{[\s\S]*min-width:\s*var\(--fv-live-chevron-min-width, 12px\);[\s\S]*height:\s*var\(--fv-live-chevron-height, 16px\);[\s\S]*padding:\s*var\(--fv-live-chevron-padding, 0 2px\);/);
     assert.match(folderCss, /\.fv-live-insights\s*\{\s*display:\s*grid;\s*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
-    assert.match(folderCss, /\.fv-change-summary-panel\s*\{\s*grid-column:\s*1 \/ -1/);
     assert.match(folderCss, /\.fv-validation-details/);
     assert.match(folderCss, /\.fv-validation-summary\.info/);
     assert.match(folderCss, /\.fv-validation-details\.info/);
@@ -351,6 +350,8 @@ test('folder editor page ships the redesign bootstrap and chrome anchors', () =>
     assert.match(folderPage, /scripts\/folder\.editor\.chrome\.js/);
     assert.match(folderLegacyJs, /const initEditorChrome = \(\) =>/);
     assert.match(folderLegacyJs, /const applyEditorPluginDefaults = \(\) =>/);
+    assert.doesNotMatch(folderChromeJs, /fvChangeSummaryLabel/);
+    assert.doesNotMatch(folderChromeJs, /fvLiveInheritance/);
     assert.match(folderLegacyJs, /window\.applyEditorPluginDefaults = applyEditorPluginDefaults;/);
     assert.match(folderLegacyJs, /window\.suggestDefaultsFromMembers = suggestDefaultsFromMembers;/);
     assert.match(folderLegacyJs, /<div class="fv-live-folder-head">/);

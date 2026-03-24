@@ -5,11 +5,22 @@ let selectedRegex = [];
 // element selected manually
 let selected = [];
 const folderEditorQueryParams = new URLSearchParams(location.search);
+const inferFolderEditorTypeFromPath = () => {
+    const pathname = String(window.location?.pathname || '').toLowerCase();
+    if (pathname.includes('/docker/')) {
+        return 'docker';
+    }
+    if (pathname.includes('/vms/')) {
+        return 'vm';
+    }
+    return '';
+};
 // docker or vm?
 const type = String(
     folderEditorQueryParams.get('type')
     || folderEditorQueryParams.get('mode')
     || window.FolderViewPlusFolderEditorPageType
+    || inferFolderEditorTypeFromPath()
     || ''
 ).trim();
 // id of the folder if present
@@ -37,6 +48,7 @@ const DEFAULT_DROPDOWN_STYLE = 'minimal';
 const DEFAULT_DROPDOWN_COLOR = '#ff9a3c';
 const DEFAULT_DROPDOWN_HOVER_COLOR = '#111111';
 const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
+const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv.folder.editor.prefill.persist.v1';
 const EDITOR_PREFILL_MAX_AGE_MS = 10 * 60 * 1000;
 const FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
 const PREVIEW_MODE_LABELS = {
@@ -646,43 +658,62 @@ const resolveCurrentEditFolder = (folderMap, requestedId) => {
     return null;
 };
 const readEditorNavigationPrefill = (expectedType, expectedId = '') => {
-    try {
-        if (typeof sessionStorage === 'undefined') {
-            return null;
-        }
-        const raw = String(sessionStorage.getItem(EDITOR_PREFILL_STORAGE_KEY) || '').trim();
+    const parsePrefillPayload = (rawValue) => {
+        const raw = String(rawValue || '').trim();
         if (!raw) {
             return null;
         }
-        const payload = JSON.parse(raw);
-        const normalizedType = String(payload?.type || '').trim();
-        const normalizedId = String(payload?.id || '').trim();
-        const normalizedExpectedId = String(expectedId || '').trim();
-        const storedAt = Number(payload?.storedAt || 0);
-        if (!normalizedType || !normalizedId || !payload?.folder || typeof payload.folder !== 'object') {
+        try {
+            const payload = JSON.parse(raw);
+            const normalizedType = String(payload?.type || '').trim();
+            const normalizedId = String(payload?.id || '').trim();
+            const normalizedExpectedId = String(expectedId || '').trim();
+            const storedAt = Number(payload?.storedAt || 0);
+            if (!normalizedType || !normalizedId || !payload?.folder || typeof payload.folder !== 'object') {
+                return null;
+            }
+            if (normalizedType !== String(expectedType || '').trim()) {
+                return null;
+            }
+            if (normalizedExpectedId && normalizedId !== normalizedExpectedId) {
+                return null;
+            }
+            if (Number.isFinite(storedAt) && storedAt > 0 && (Date.now() - storedAt) > EDITOR_PREFILL_MAX_AGE_MS) {
+                return null;
+            }
+            return {
+                id: normalizedId,
+                folder: normalizeFolderRecordForEditor(payload.folder)
+            };
+        } catch (_error) {
             return null;
         }
-        if (normalizedType !== String(expectedType || '').trim()) {
-            return null;
+    };
+    try {
+        if (typeof sessionStorage !== 'undefined') {
+            const sessionPayload = parsePrefillPayload(sessionStorage.getItem(EDITOR_PREFILL_STORAGE_KEY));
+            if (sessionPayload) {
+                return sessionPayload;
+            }
         }
-        if (normalizedExpectedId && normalizedId !== normalizedExpectedId) {
-            return null;
+        if (typeof localStorage !== 'undefined') {
+            const localPayload = parsePrefillPayload(localStorage.getItem(EDITOR_PREFILL_LOCAL_STORAGE_KEY));
+            if (localPayload) {
+                return localPayload;
+            }
         }
-        if (Number.isFinite(storedAt) && storedAt > 0 && (Date.now() - storedAt) > EDITOR_PREFILL_MAX_AGE_MS) {
-            return null;
-        }
-        return {
-            id: normalizedId,
-            folder: normalizeFolderRecordForEditor(payload.folder)
-        };
     } catch (_error) {
         return null;
     }
+    return null;
 };
 const clearEditorNavigationPrefill = () => {
     try {
         if (typeof sessionStorage !== 'undefined') {
             sessionStorage.removeItem(EDITOR_PREFILL_STORAGE_KEY);
+        }
+        if (typeof localStorage !== 'undefined') {
+            localStorage.removeItem(EDITOR_PREFILL_LOCAL_STORAGE_KEY);
         }
     } catch (_error) {
         // Ignore storage cleanup issues.

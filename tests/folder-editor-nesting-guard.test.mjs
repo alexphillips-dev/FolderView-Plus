@@ -47,6 +47,7 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorScript, /const normalizeFolderRecordForEditor = \(folder\) =>/);
     assert.match(folderEditorScript, /const resolveCurrentEditFolder = \(folderMap,\s*requestedId\) =>/);
     assert.match(folderEditorScript, /const EDITOR_PREFILL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.v1';/);
+    assert.match(folderEditorScript, /const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.persist\.v1';/);
     assert.match(folderEditorScript, /const readEditorNavigationPrefill = \(expectedType,\s*expectedId = ''\) =>/);
     assert.match(folderEditorScript, /const clearEditorNavigationPrefill = \(\) =>/);
     assert.match(folderEditorScript, /preview:\s*Number\.isFinite\(Number\(settings\.preview\)\)/);
@@ -82,6 +83,9 @@ test('runtime folder editor redirects include a cache-busting query marker', () 
     assert.match(dockerScript, /const buildDockerFolderEditorUrl = \(id = ''\) =>/);
     assert.match(vmScript, /const buildVmFolderEditorUrl = \(id = ''\) =>/);
     assert.match(dashboardScript, /const buildDashboardFolderEditorUrl = \(folderType,\s*id = ''\) =>/);
+    assert.match(dockerScript, /const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.persist\.v1';/);
+    assert.match(vmScript, /const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.persist\.v1';/);
+    assert.match(dashboardScript, /const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.persist\.v1';/);
     assert.match(dockerScript, /params\.set\('_', String\(Date\.now\(\)\)\);/);
     assert.match(vmScript, /params\.set\('_', String\(Date\.now\(\)\)\);/);
     assert.match(dashboardScript, /params\.set\('_', String\(Date\.now\(\)\)\);/);

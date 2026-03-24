@@ -3975,10 +3975,14 @@ const rmFolder = (id) => {
  * @param {string} id the id of the folder
  */
 const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
+const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv.folder.editor.prefill.persist.v1';
 const clearFolderEditorPrefill = () => {
     try {
         if (typeof sessionStorage !== 'undefined') {
             sessionStorage.removeItem(EDITOR_PREFILL_STORAGE_KEY);
+        }
+        if (typeof localStorage !== 'undefined') {
+            localStorage.removeItem(EDITOR_PREFILL_LOCAL_STORAGE_KEY);
         }
     } catch (_error) {
         // Editor prefill cleanup is best-effort only.
@@ -3987,15 +3991,21 @@ const clearFolderEditorPrefill = () => {
 const seedFolderEditorPrefill = (folderType, id) => {
     try {
         const normalizedId = String(id || '').trim();
-        if (!normalizedId || !globalFolders[normalizedId] || typeof sessionStorage === 'undefined') {
+        if (!normalizedId || !globalFolders[normalizedId]) {
             return;
         }
-        sessionStorage.setItem(EDITOR_PREFILL_STORAGE_KEY, JSON.stringify({
+        const payload = JSON.stringify({
             type: folderType,
             id: normalizedId,
             folder: globalFolders[normalizedId],
             storedAt: Date.now()
-        }));
+        });
+        if (typeof sessionStorage !== 'undefined') {
+            sessionStorage.setItem(EDITOR_PREFILL_STORAGE_KEY, payload);
+        }
+        if (typeof localStorage !== 'undefined') {
+            localStorage.setItem(EDITOR_PREFILL_LOCAL_STORAGE_KEY, payload);
+        }
     } catch (_error) {
         // Editor prefill is best-effort only.
     }

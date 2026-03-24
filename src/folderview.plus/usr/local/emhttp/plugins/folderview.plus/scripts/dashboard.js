@@ -2052,21 +2052,28 @@ const rmVMFolder = (id) => {
  * @param {string} id the id of the folder
  */
 const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
+const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv.folder.editor.prefill.persist.v1';
 const seedDashboardFolderEditorPrefill = (folderType, id) => {
     try {
         const normalizedType = String(folderType || '').trim();
         const normalizedId = String(id || '').trim();
         const folderMap = normalizedType === 'vm' ? globalFolders?.vms : globalFolders?.docker;
         const folder = folderMap && typeof folderMap === 'object' ? folderMap[normalizedId] : null;
-        if (!normalizedType || !normalizedId || !folder || typeof sessionStorage === 'undefined') {
+        if (!normalizedType || !normalizedId || !folder) {
             return;
         }
-        sessionStorage.setItem(EDITOR_PREFILL_STORAGE_KEY, JSON.stringify({
+        const payload = JSON.stringify({
             type: normalizedType,
             id: normalizedId,
             folder,
             storedAt: Date.now()
-        }));
+        });
+        if (typeof sessionStorage !== 'undefined') {
+            sessionStorage.setItem(EDITOR_PREFILL_STORAGE_KEY, payload);
+        }
+        if (typeof localStorage !== 'undefined') {
+            localStorage.setItem(EDITOR_PREFILL_LOCAL_STORAGE_KEY, payload);
+        }
     } catch (_error) {
         // Editor prefill is best-effort only.
     }

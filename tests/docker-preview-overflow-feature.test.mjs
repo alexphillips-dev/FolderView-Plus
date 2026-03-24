@@ -45,6 +45,11 @@ test('docker runtime applies preview row layout limits and enhanced member actio
     assert.match(dockerMemberMenuJs, /\.on\('click\.fvDockerMemberMenuTrigger', '\.fv-docker-member-menu-trigger'/);
     assert.match(dockerMemberMenuJs, /const eventUrl = String\(deps\.eventURL \|\| win\.eventURL \|\| ''\)\.trim\(\);/);
     assert.match(dockerMemberMenuJs, /const bindMenu = \(\) =>/);
+    assert.match(dockerMemberMenuJs, /const shouldSuppressPreviewMemberMenu = \(entry\) =>/);
+    assert.match(dockerMemberMenuJs, /const contextMode = Number\(folder\?\.settings\?\.context \?\? -1\);/);
+    assert.match(dockerMemberMenuJs, /const contextTrigger = Number\(folder\?\.settings\?\.context_trigger \?\? 0\);/);
+    assert.match(dockerMemberMenuJs, /return contextMode === 2 && contextTrigger !== 1;/);
+    assert.match(dockerMemberMenuJs, /if \(shouldSuppressPreviewMemberMenu\(entry\)\) \{\s*return;\s*\}/);
 });
 
 test('docker styles support multi-row previews and member action sheet styling', () => {

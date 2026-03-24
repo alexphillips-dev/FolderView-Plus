@@ -568,10 +568,10 @@
 
 .fv-live-preview-row .fv-live-chevron {
     width: auto;
-    min-width: 12px;
-    height: 16px;
-    padding: 0 2px;
-    border-radius: 0;
+    min-width: var(--fv-live-chevron-min-width, 12px);
+    height: var(--fv-live-chevron-height, 16px);
+    padding: var(--fv-live-chevron-padding, 0 2px);
+    border-radius: var(--fv-live-chevron-radius, 0);
     border: 1px solid transparent !important;
     color: var(--fv-live-chevron-color, var(--fv-chevron-color)) !important;
     background: var(--fv-live-chevron-bg, transparent) !important;
@@ -586,13 +586,8 @@
     -webkit-appearance: none !important;
     pointer-events: none;
     user-select: none;
-    transition: color 120ms ease, border-color 120ms ease, background-color 120ms ease;
-}
-
-.fv-live-preview-row .fv-live-chevron-boxed {
-    border-color: var(--fv-live-chevron-border, var(--fv-chevron-color));
-    background: var(--fv-live-chevron-bg, rgba(255, 255, 255, 0.03));
-    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
+    box-shadow: var(--fv-live-chevron-shadow, none) !important;
+    transition: color 120ms ease, border-color 120ms ease, background-color 120ms ease, box-shadow 120ms ease;
 }
 
 .fv-live-preview-row .fv-live-chevron:hover,
@@ -601,6 +596,7 @@
     color: var(--fv-live-chevron-hover, var(--fv-chevron-hover)) !important;
     border-color: var(--fv-live-chevron-hover-border, var(--fv-live-chevron-hover, var(--fv-chevron-hover))) !important;
     background: var(--fv-live-chevron-hover-bg, var(--fv-live-chevron-bg, transparent)) !important;
+    box-shadow: var(--fv-live-chevron-hover-shadow, var(--fv-live-chevron-shadow, none)) !important;
 }
 
 .fv-live-preview-row.is-minimal .fv-live-chevron {
@@ -610,20 +606,28 @@
     color: var(--fv-live-chevron-color, var(--fv-chevron-color)) !important;
 }
 
-.fv-live-preview-row.is-boxed .fv-live-chevron {
-    min-width: 22px;
-    height: 22px;
-    padding: 0 6px;
-    border-radius: 4px;
+.fv-live-preview-row.is-boxed .fv-live-chevron,
+.fv-live-preview-row.is-ghost .fv-live-chevron,
+.fv-live-preview-row.is-pill .fv-live-chevron,
+.fv-live-preview-row.is-filled .fv-live-chevron {
     border-color: var(--fv-live-chevron-border, var(--fv-chevron-color)) !important;
-    background: var(--fv-live-chevron-bg, rgba(255, 255, 255, 0.03)) !important;
+    background: var(--fv-live-chevron-bg, transparent) !important;
     color: var(--fv-live-chevron-color, var(--fv-chevron-color)) !important;
 }
 
 .fv-live-preview-row.is-boxed .fv-live-chevron:hover,
 .fv-live-preview-row.is-boxed .fv-live-chevron:focus,
-.fv-live-preview-row.is-boxed .fv-live-chevron:active {
-    background: var(--fv-live-chevron-hover-bg, rgba(255, 255, 255, 0.06)) !important;
+.fv-live-preview-row.is-boxed .fv-live-chevron:active,
+.fv-live-preview-row.is-ghost .fv-live-chevron:hover,
+.fv-live-preview-row.is-ghost .fv-live-chevron:focus,
+.fv-live-preview-row.is-ghost .fv-live-chevron:active,
+.fv-live-preview-row.is-pill .fv-live-chevron:hover,
+.fv-live-preview-row.is-pill .fv-live-chevron:focus,
+.fv-live-preview-row.is-pill .fv-live-chevron:active,
+.fv-live-preview-row.is-filled .fv-live-chevron:hover,
+.fv-live-preview-row.is-filled .fv-live-chevron:focus,
+.fv-live-preview-row.is-filled .fv-live-chevron:active {
+    background: var(--fv-live-chevron-hover-bg, var(--fv-live-chevron-bg, transparent)) !important;
     color: var(--fv-live-chevron-hover, var(--fv-chevron-hover)) !important;
 }
 

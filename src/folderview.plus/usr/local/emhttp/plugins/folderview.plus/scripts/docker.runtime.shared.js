@@ -25,6 +25,7 @@
     const DEFAULT_DROPDOWN_STYLE = 'minimal';
     const DEFAULT_DROPDOWN_COLOR = '#ff9a3c';
     const DEFAULT_DROPDOWN_HOVER_COLOR = '#111111';
+    const SUPPORTED_DROPDOWN_STYLES = Object.freeze(['minimal', 'boxed', 'ghost', 'pill', 'filled']);
     const FOLDER_STATUS_COLOR_STYLE_PROPS = Object.freeze({
         started: '--fvplus-folder-status-started',
         paused: '--fvplus-folder-status-paused',
@@ -66,7 +67,7 @@
 
     const normalizeDropdownStyle = (value) => {
         const normalized = String(extractDropdownStyleValue(value) || '').trim().toLowerCase();
-        return normalized === 'boxed' || normalized === 'minimal'
+        return SUPPORTED_DROPDOWN_STYLES.includes(normalized)
             ? normalized
             : DEFAULT_DROPDOWN_STYLE;
     };
@@ -79,6 +80,22 @@
         const g = parseInt(value.slice(2, 4), 16);
         const b = parseInt(value.slice(4, 6), 16);
         return `rgba(${r}, ${g}, ${b}, ${safeAlpha})`;
+    };
+
+    const getDropdownStyleTokens = (style, normalColor, hoverColor) => {
+        switch (style) {
+            case 'boxed':
+                return { borderWidth: '1px', borderColor: hexToRgba(normalColor, 0.52), hoverBorderColor: hoverColor, background: hexToRgba(normalColor, 0.10), hoverBackground: hexToRgba(normalColor, 0.82), minWidth: '22px', height: '22px', padding: '0 6px', radius: '4px', shadow: 'inset 0 0 0 1px rgba(0, 0, 0, 0.18)', hoverShadow: 'inset 0 0 0 1px rgba(0, 0, 0, 0.18)' };
+            case 'ghost':
+                return { borderWidth: '1px', borderColor: 'transparent', hoverBorderColor: hoverColor, background: 'transparent', hoverBackground: hexToRgba(normalColor, 0.08), minWidth: '20px', height: '20px', padding: '0 5px', radius: '4px', shadow: 'none', hoverShadow: 'none' };
+            case 'pill':
+                return { borderWidth: '1px', borderColor: hexToRgba(normalColor, 0.42), hoverBorderColor: hoverColor, background: hexToRgba(normalColor, 0.10), hoverBackground: hexToRgba(normalColor, 0.18), minWidth: '24px', height: '20px', padding: '0 7px', radius: '999px', shadow: 'none', hoverShadow: 'none' };
+            case 'filled':
+                return { borderWidth: '1px', borderColor: hexToRgba(normalColor, 0.65), hoverBorderColor: hoverColor, background: hexToRgba(normalColor, 0.22), hoverBackground: hexToRgba(normalColor, 0.34), minWidth: '22px', height: '22px', padding: '0 6px', radius: '4px', shadow: 'none', hoverShadow: 'none' };
+            case 'minimal':
+            default:
+                return { borderWidth: '0px', borderColor: 'transparent', hoverBorderColor: 'transparent', background: 'transparent', hoverBackground: 'transparent', minWidth: '12px', height: '16px', padding: '0 2px', radius: '0px', shadow: 'none', hoverShadow: 'none' };
+        }
     };
 
     const isPreviewBorderEnabled = (settings) => {
@@ -155,17 +172,20 @@
         const dropdownStyle = normalizeDropdownStyle(source);
         const normalColor = normalizeStatusHexColor(source.dropdown_color, DEFAULT_DROPDOWN_COLOR);
         const hoverColor = normalizeStatusHexColor(source.dropdown_hover_color, DEFAULT_DROPDOWN_HOVER_COLOR);
+        const tokens = getDropdownStyleTokens(dropdownStyle, normalColor, hoverColor);
         rowStyle.setProperty('--fvplus-folder-dropdown-color', normalColor);
         rowStyle.setProperty('--fvplus-folder-dropdown-hover-color', hoverColor);
-        rowStyle.setProperty('--fvplus-folder-dropdown-border-width', dropdownStyle === 'boxed' ? '1px' : '0px');
-        rowStyle.setProperty('--fvplus-folder-dropdown-border-color', dropdownStyle === 'boxed' ? hexToRgba(normalColor, 0.52) : 'transparent');
-        rowStyle.setProperty('--fvplus-folder-dropdown-hover-border-color', dropdownStyle === 'boxed' ? hoverColor : 'transparent');
-        rowStyle.setProperty('--fvplus-folder-dropdown-bg', dropdownStyle === 'boxed' ? hexToRgba(normalColor, 0.10) : 'transparent');
-        rowStyle.setProperty('--fvplus-folder-dropdown-hover-bg', dropdownStyle === 'boxed' ? hexToRgba(normalColor, 0.82) : 'transparent');
-        rowStyle.setProperty('--fvplus-folder-dropdown-min-width', dropdownStyle === 'boxed' ? '22px' : '12px');
-        rowStyle.setProperty('--fvplus-folder-dropdown-height', dropdownStyle === 'boxed' ? '22px' : '16px');
-        rowStyle.setProperty('--fvplus-folder-dropdown-padding', dropdownStyle === 'boxed' ? '0 6px' : '0 2px');
-        rowStyle.setProperty('--fvplus-folder-dropdown-radius', dropdownStyle === 'boxed' ? '4px' : '0px');
+        rowStyle.setProperty('--fvplus-folder-dropdown-border-width', tokens.borderWidth);
+        rowStyle.setProperty('--fvplus-folder-dropdown-border-color', tokens.borderColor);
+        rowStyle.setProperty('--fvplus-folder-dropdown-hover-border-color', tokens.hoverBorderColor);
+        rowStyle.setProperty('--fvplus-folder-dropdown-bg', tokens.background);
+        rowStyle.setProperty('--fvplus-folder-dropdown-hover-bg', tokens.hoverBackground);
+        rowStyle.setProperty('--fvplus-folder-dropdown-min-width', tokens.minWidth);
+        rowStyle.setProperty('--fvplus-folder-dropdown-height', tokens.height);
+        rowStyle.setProperty('--fvplus-folder-dropdown-padding', tokens.padding);
+        rowStyle.setProperty('--fvplus-folder-dropdown-radius', tokens.radius);
+        rowStyle.setProperty('--fvplus-folder-dropdown-shadow', tokens.shadow);
+        rowStyle.setProperty('--fvplus-folder-dropdown-hover-shadow', tokens.hoverShadow);
     };
 
     /**

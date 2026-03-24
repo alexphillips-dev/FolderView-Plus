@@ -33,6 +33,8 @@
     --fvplus-folder-dropdown-height: 16px;
     --fvplus-folder-dropdown-padding: 0 2px;
     --fvplus-folder-dropdown-radius: 0px;
+    --fvplus-folder-dropdown-shadow: none;
+    --fvplus-folder-dropdown-hover-shadow: none;
     --fvplus-docker-context-quick-item-width: 34px;
     --fvplus-docker-context-quick-link-width: 30px;
     --fvplus-docker-context-quick-link-height: 26px;
@@ -234,7 +236,7 @@ td.ct-name.folder-name > .folder-name-sub {
     border: var(--fvplus-folder-dropdown-border-width, 1px) solid var(--fvplus-folder-dropdown-border-color, rgba(255, 154, 60, 0.52)) !important;
     border-radius: var(--fvplus-folder-dropdown-radius, 0px);
     background: var(--fvplus-folder-dropdown-bg, rgba(255, 154, 60, 0.1)) !important;
-    box-shadow: none !important;
+    box-shadow: var(--fvplus-folder-dropdown-shadow, none) !important;
     color: var(--fvplus-folder-dropdown-color, #ff9a3c) !important;
     transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease;
 }
@@ -262,7 +264,7 @@ tr.fv-folder-locked .folder-appname {
 .folder-dropdown:active {
     border-color: var(--fvplus-folder-dropdown-hover-border-color, #111111) !important;
     background: var(--fvplus-folder-dropdown-hover-bg, rgba(255, 154, 60, 0.82)) !important;
-    box-shadow: none !important;
+    box-shadow: var(--fvplus-folder-dropdown-hover-shadow, var(--fvplus-folder-dropdown-shadow, none)) !important;
     color: var(--fvplus-folder-dropdown-hover-color, #111111) !important;
 }
 

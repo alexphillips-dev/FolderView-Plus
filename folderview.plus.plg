@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.24.31">
-<!ENTITY md5 "aafb58121b770a47dc94edf6a3cb1b56">
+<!ENTITY version "2026.03.24.32">
+<!ENTITY md5 "5a001309bb1d39a3f38c0130a44949ea">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.24.32
+- Feature: Added `Ghost`, `Pill`, and `Filled` chevron style options alongside the existing `Minimal` and `Boxed` styles in the folder editor.
+- UX: Docker rows, VM rows, and the modern folder editor live preview now share the same chevron style-token contract so the new styles render consistently across the real runtime and the editor preview.
+- Quality: Expanded chevron-style regression coverage to lock in the extended dropdown-style normalization and the new live-preview/runtime style hooks.
+
 
 ###2026.03.24.31
 - Fix: Modern folder editor live preview now renders the chevron as display chrome instead of a real button, preventing theme button styles from overriding boxed and minimal chevron previews.

@@ -542,12 +542,15 @@ try {
                             <select name="dropdown_style" onchange="updateForm()">
                                 <option value="minimal" selected>Minimal</option>
                                 <option value="boxed">Boxed</option>
+                                <option value="ghost">Ghost</option>
+                                <option value="pill">Pill</option>
+                                <option value="filled">Filled</option>
                             </select>
                         </dd>
                     </dl>
                     <blockquote class="inline_help">
                         <p>
-                            Choose whether the folder chevron uses a boxed button or the lighter minimal style.
+                            Choose whether the folder chevron uses the lighter minimal style, a boxed frame, or one of the newer ghost, pill, or filled styles.
                         </p>
                     </blockquote>
                 </div>

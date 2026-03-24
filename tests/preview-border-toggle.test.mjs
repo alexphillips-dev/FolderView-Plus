@@ -38,7 +38,7 @@ test('folder editor keeps border and chevron reset controls grouped with their f
     assert.match(folderJs, /form\.dropdown_hover_color\.value = DEFAULT_DROPDOWN_HOVER_COLOR;/);
 });
 
-test('legacy folder editor exposes grouped reset helpers and boxed chevron compatibility', () => {
+test('legacy folder editor exposes grouped reset helpers and extended chevron compatibility', () => {
     assert.match(folderLegacyJs, /const resetPreviewBorderDefaults = \(\) =>/);
     assert.match(folderLegacyJs, /window\.resetPreviewBorderDefaults = resetPreviewBorderDefaults;/);
     assert.match(folderLegacyJs, /form\.preview_border_color\.value = DEFAULT_BORDER_COLOR;/);
@@ -52,7 +52,8 @@ test('legacy folder editor exposes grouped reset helpers and boxed chevron compa
     assert.match(folderLegacyJs, /fieldName === 'dropdown_style' \|\| fieldName === 'dropdown_color' \|\| fieldName === 'dropdown_hover_color'/);
     assert.match(folderLegacyJs, /const extractDropdownStyleValue = \(value,\s*fallbackSource = null\) =>/);
     assert.match(folderLegacyJs, /source\.dropdown_style\s*\?\?\s*source\.dropdownStyle\s*\?\?\s*source\.chevron_style\s*\?\?\s*source\.chevronStyle/);
-    assert.match(folderLegacyJs, /if \(normalized === 'boxed' \|\| normalized === 'minimal'\)/);
+    assert.match(folderLegacyJs, /const SUPPORTED_DROPDOWN_STYLES = Object\.freeze\(\['minimal', 'boxed', 'ghost', 'pill', 'filled'\]\);/);
+    assert.match(folderLegacyJs, /if \(SUPPORTED_DROPDOWN_STYLES\.includes\(normalized\)\)/);
     assert.match(folderLegacyJs, /form\.dropdown_style\.value = normalizeDropdownStyle\(currFolder\.settings,\s*currFolder\);/);
     assert.match(folderLegacyJs, /dropdownStyle:\s*normalizeDropdownStyle\(e\.dropdown_style\.value\.toString\(\)\),/);
     assert.match(folderLegacyJs, /chevron_style:\s*normalizeDropdownStyle\(e\.dropdown_style\.value\.toString\(\)\),/);
@@ -64,7 +65,8 @@ test('folder editor normalizes legacy preview border values when loading existin
     assert.match(folderJs, /const extractPreviewRowLimitValue = \(value,\s*fallbackSource = null\) =>/);
     assert.match(folderJs, /source\.preview_rows\s*\?\?\s*source\.previewRows/);
     assert.match(folderJs, /const isLegacyPreviewBorderEnabled = \(settings\) =>/);
-    assert.match(folderJs, /return normalized === 'boxed' \|\| normalized === 'minimal'/);
+    assert.match(folderJs, /const SUPPORTED_DROPDOWN_STYLES = Object\.freeze\(\['minimal', 'boxed', 'ghost', 'pill', 'filled'\]\);/);
+    assert.match(folderJs, /return SUPPORTED_DROPDOWN_STYLES\.includes\(normalized\)/);
     assert.match(folderJs, /setFieldChecked\('preview_border',\s*isLegacyPreviewBorderEnabled\(normalizedFolder\.settings \|\| \{\}\)\);/);
     assert.match(folderJs, /preview_border_width:\s*normalizePositiveInt\(settings\.preview_border_width,\s*DEFAULT_PREVIEW_BORDER_WIDTH,\s*1,\s*4\)/);
     assert.match(folderJs, /preview_vertical_bars_width:\s*normalizePositiveInt\(settings\.preview_vertical_bars_width,\s*DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH,\s*1,\s*4\)/);
@@ -87,13 +89,18 @@ test('docker preview renderer respects preview border toggle', () => {
     assert.match(sharedRuntimeJs, /const explicitOff = raw === '0' \|\| raw === 'false' \|\| raw === 'off' \|\| raw === 'no';/);
     assert.match(sharedRuntimeJs, /const extractDropdownStyleValue = \(value\) =>/);
     assert.match(sharedRuntimeJs, /value\.dropdown_style\s*\?\?\s*value\.dropdownStyle\s*\?\?\s*value\.chevron_style\s*\?\?\s*value\.chevronStyle/);
-    assert.match(sharedRuntimeJs, /return normalized === 'boxed' \|\| normalized === 'minimal'/);
+    assert.match(sharedRuntimeJs, /const SUPPORTED_DROPDOWN_STYLES = Object\.freeze\(\['minimal', 'boxed', 'ghost', 'pill', 'filled'\]\);/);
+    assert.match(sharedRuntimeJs, /return SUPPORTED_DROPDOWN_STYLES\.includes\(normalized\)/);
     assert.match(sharedRuntimeJs, /const applyPreviewBorderStyle = \(previewNode, settings\) =>/);
     assert.match(sharedRuntimeJs, /previewNode\.style\.setProperty\('--fvplus-preview-border-width', `\$\{previewBorderWidth\}px`\)/);
     assert.match(sharedRuntimeJs, /previewNode\.style\.setProperty\('--fvplus-preview-divider-width', `\$\{previewBarsWidth\}px`\)/);
     assert.match(sharedRuntimeJs, /previewNode\.style\.setProperty\('border', enabled \? `\$\{previewBorderWidth\}px solid \$\{previewColor\}` : 'none', 'important'\)/);
     assert.match(sharedRuntimeJs, /const dropdownStyle = normalizeDropdownStyle\(source\);/);
     assert.match(sharedRuntimeJs, /const applyFolderDropdownStyle = \(\$folderRow, settings\) =>/);
+    assert.match(sharedRuntimeJs, /const getDropdownStyleTokens = \(style, normalColor, hoverColor\) =>/);
+    assert.match(sharedRuntimeJs, /case 'ghost':/);
+    assert.match(sharedRuntimeJs, /case 'pill':/);
+    assert.match(sharedRuntimeJs, /case 'filled':/);
     assert.match(dockerJs, /const applyPreviewBorderStyle = typeof dockerRuntimeShared\.applyPreviewBorderStyle === 'function'/);
     assert.match(dockerJs, /const applyFolderDropdownStyle = typeof dockerRuntimeShared\.applyFolderDropdownStyle === 'function'/);
     assert.match(dockerJs, /applyPreviewBorderStyle\(previewNode,\s*folder\.settings\)/);

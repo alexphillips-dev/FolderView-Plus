@@ -62,6 +62,7 @@ const DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH = 1;
 const DEFAULT_DROPDOWN_STYLE = 'minimal';
 const DEFAULT_DROPDOWN_COLOR = '#ff9a3c';
 const DEFAULT_DROPDOWN_HOVER_COLOR = '#111111';
+const SUPPORTED_DROPDOWN_STYLES = Object.freeze(['minimal', 'boxed', 'ghost', 'pill', 'filled']);
 const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
 const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv.folder.editor.prefill.persist.v1';
 const EDITOR_PREFILL_MAX_AGE_MS = 10 * 60 * 1000;
@@ -576,9 +577,25 @@ const extractDropdownStyleValue = (value, fallbackSource = null) => {
 
 const normalizeDropdownStyle = (value, fallbackSource = null) => {
     const normalized = String(extractDropdownStyleValue(value, fallbackSource) || '').trim().toLowerCase();
-    return normalized === 'boxed' || normalized === 'minimal'
+    return SUPPORTED_DROPDOWN_STYLES.includes(normalized)
         ? normalized
         : DEFAULT_DROPDOWN_STYLE;
+};
+
+const getDropdownStyleTokens = (style, normalColor, hoverColor) => {
+    switch (style) {
+        case 'boxed':
+            return { border: hexColorToRgba(normalColor, 0.52), hoverBorder: hoverColor, background: hexColorToRgba(normalColor, 0.10), hoverBackground: hexColorToRgba(normalColor, 0.82), minWidth: '22px', height: '22px', padding: '0 6px', radius: '4px', shadow: 'inset 0 0 0 1px rgba(0, 0, 0, 0.18)', hoverShadow: 'inset 0 0 0 1px rgba(0, 0, 0, 0.18)' };
+        case 'ghost':
+            return { border: 'transparent', hoverBorder: hoverColor, background: 'transparent', hoverBackground: hexColorToRgba(normalColor, 0.08), minWidth: '20px', height: '20px', padding: '0 5px', radius: '4px', shadow: 'none', hoverShadow: 'none' };
+        case 'pill':
+            return { border: hexColorToRgba(normalColor, 0.42), hoverBorder: hoverColor, background: hexColorToRgba(normalColor, 0.10), hoverBackground: hexColorToRgba(normalColor, 0.18), minWidth: '24px', height: '20px', padding: '0 7px', radius: '999px', shadow: 'none', hoverShadow: 'none' };
+        case 'filled':
+            return { border: hexColorToRgba(normalColor, 0.65), hoverBorder: hoverColor, background: hexColorToRgba(normalColor, 0.22), hoverBackground: hexColorToRgba(normalColor, 0.34), minWidth: '22px', height: '22px', padding: '0 6px', radius: '4px', shadow: 'none', hoverShadow: 'none' };
+        case 'minimal':
+        default:
+            return { border: 'transparent', hoverBorder: 'transparent', background: 'transparent', hoverBackground: 'transparent', minWidth: '12px', height: '16px', padding: '0 2px', radius: '0px', shadow: 'none', hoverShadow: 'none' };
+    }
 };
 
 const isLegacyPreviewBorderEnabled = (settings) => {
@@ -3133,9 +3150,10 @@ const renderLivePreviewCanvas = () => {
             }).join('')
             : '<div class="fv-live-preview-empty">Select or match at least one member to see how the row preview will render.</div>');
 
-    const rowClass = `fv-live-preview-row preview-${previewMode}${borderEnabled ? ' has-border' : ''}${dropdownStyle === 'boxed' ? ' is-boxed' : ' is-minimal'}${rowsLimit !== 1 ? ' is-multi-row' : ' is-single-row'}`;
+    const dropdownTokens = getDropdownStyleTokens(dropdownStyle, dropdownColor, dropdownHoverColor);
+    const rowClass = `fv-live-preview-row preview-${previewMode}${borderEnabled ? ' has-border' : ''} is-${dropdownStyle}${rowsLimit !== 1 ? ' is-multi-row' : ' is-single-row'}`;
     canvas.html(`
-        <div class="${rowClass}" style="--fv-preview-border-color:${borderColor};--fv-preview-border-width:${borderWidth}px;--fv-chevron-color:${dropdownColor};--fv-chevron-hover:${dropdownHoverColor};">
+        <div class="${rowClass}" style="--fv-preview-border-color:${borderColor};--fv-preview-border-width:${borderWidth}px;--fv-chevron-color:${dropdownColor};--fv-chevron-hover:${dropdownHoverColor};--fv-live-chevron-min-width:${dropdownTokens.minWidth};--fv-live-chevron-height:${dropdownTokens.height};--fv-live-chevron-padding:${dropdownTokens.padding};--fv-live-chevron-radius:${dropdownTokens.radius};--fv-live-chevron-border:${dropdownTokens.border};--fv-live-chevron-hover-border:${dropdownTokens.hoverBorder};--fv-live-chevron-bg:${dropdownTokens.background};--fv-live-chevron-hover-bg:${dropdownTokens.hoverBackground};--fv-live-chevron-shadow:${dropdownTokens.shadow};--fv-live-chevron-hover-shadow:${dropdownTokens.hoverShadow};">
             <div class="fv-live-folder-head">
                 <div class="fv-live-folder-anchor">
                     <img class="fv-live-folder-icon" src="${escapeHtml(icon)}" alt="" onerror="this.src='${DEFAULT_FOLDER_ICON_PATH}';">
@@ -3154,20 +3172,28 @@ const renderLivePreviewCanvas = () => {
     const livePreviewRow = canvas.find('.fv-live-preview-row').get(0);
     const liveChevron = canvas.find('.fv-live-chevron').get(0);
     if (livePreviewRow && liveChevron) {
-        livePreviewRow.classList.toggle('is-boxed', dropdownStyle === 'boxed');
-        livePreviewRow.classList.toggle('is-minimal', dropdownStyle !== 'boxed');
+        SUPPORTED_DROPDOWN_STYLES.forEach((styleName) => livePreviewRow.classList.remove(`is-${styleName}`));
+        livePreviewRow.classList.add(`is-${dropdownStyle}`);
         livePreviewRow.style.setProperty('--fv-live-chevron-color', dropdownColor);
         livePreviewRow.style.setProperty('--fv-live-chevron-hover', dropdownHoverColor);
-        livePreviewRow.style.setProperty('--fv-live-chevron-border', dropdownStyle === 'boxed' ? hexColorToRgba(dropdownColor, 0.52) : 'transparent');
-        livePreviewRow.style.setProperty('--fv-live-chevron-hover-border', dropdownStyle === 'boxed' ? dropdownHoverColor : 'transparent');
-        livePreviewRow.style.setProperty('--fv-live-chevron-bg', dropdownStyle === 'boxed' ? hexColorToRgba(dropdownColor, 0.10) : 'transparent');
-        livePreviewRow.style.setProperty('--fv-live-chevron-hover-bg', dropdownStyle === 'boxed' ? hexColorToRgba(dropdownColor, 0.82) : 'transparent');
+        livePreviewRow.style.setProperty('--fv-live-chevron-border', dropdownTokens.border);
+        livePreviewRow.style.setProperty('--fv-live-chevron-hover-border', dropdownTokens.hoverBorder);
+        livePreviewRow.style.setProperty('--fv-live-chevron-bg', dropdownTokens.background);
+        livePreviewRow.style.setProperty('--fv-live-chevron-hover-bg', dropdownTokens.hoverBackground);
+        livePreviewRow.style.setProperty('--fv-live-chevron-min-width', dropdownTokens.minWidth);
+        livePreviewRow.style.setProperty('--fv-live-chevron-height', dropdownTokens.height);
+        livePreviewRow.style.setProperty('--fv-live-chevron-padding', dropdownTokens.padding);
+        livePreviewRow.style.setProperty('--fv-live-chevron-radius', dropdownTokens.radius);
+        livePreviewRow.style.setProperty('--fv-live-chevron-shadow', dropdownTokens.shadow);
+        livePreviewRow.style.setProperty('--fv-live-chevron-hover-shadow', dropdownTokens.hoverShadow);
         liveChevron.style.setProperty('--fv-live-chevron-color', dropdownColor);
         liveChevron.style.setProperty('--fv-live-chevron-hover', dropdownHoverColor);
-        liveChevron.style.setProperty('--fv-live-chevron-border', dropdownStyle === 'boxed' ? hexColorToRgba(dropdownColor, 0.52) : 'transparent');
-        liveChevron.style.setProperty('--fv-live-chevron-hover-border', dropdownStyle === 'boxed' ? dropdownHoverColor : 'transparent');
-        liveChevron.style.setProperty('--fv-live-chevron-bg', dropdownStyle === 'boxed' ? hexColorToRgba(dropdownColor, 0.10) : 'transparent');
-        liveChevron.style.setProperty('--fv-live-chevron-hover-bg', dropdownStyle === 'boxed' ? hexColorToRgba(dropdownColor, 0.82) : 'transparent');
+        liveChevron.style.setProperty('--fv-live-chevron-border', dropdownTokens.border);
+        liveChevron.style.setProperty('--fv-live-chevron-hover-border', dropdownTokens.hoverBorder);
+        liveChevron.style.setProperty('--fv-live-chevron-bg', dropdownTokens.background);
+        liveChevron.style.setProperty('--fv-live-chevron-hover-bg', dropdownTokens.hoverBackground);
+        liveChevron.style.setProperty('--fv-live-chevron-shadow', dropdownTokens.shadow);
+        liveChevron.style.setProperty('--fv-live-chevron-hover-shadow', dropdownTokens.hoverShadow);
     }
 };
 

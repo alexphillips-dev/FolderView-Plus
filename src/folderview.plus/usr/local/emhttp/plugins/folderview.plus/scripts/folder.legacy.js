@@ -3043,6 +3043,33 @@ const getAllMembers = () => {
     return [...map.values()];
 };
 
+const buildSampleMemberState = (member, index = 0) => {
+    const rawState = String(member?.State?.Status || member?.RawState?.Status || member?.status || '').trim().toLowerCase();
+    if (rawState.includes('pause')) {
+        return {
+            label: 'paused',
+            color: normalizeHexColor(getForm()?.status_color_paused?.value, DEFAULT_FOLDER_STATUS_COLORS.paused)
+        };
+    }
+    if (rawState.includes('run') || rawState.includes('start')) {
+        return {
+            label: type === 'vm' ? 'running' : 'started',
+            color: normalizeHexColor(getForm()?.status_color_started?.value, DEFAULT_FOLDER_STATUS_COLORS.started)
+        };
+    }
+    if (rawState.includes('stop') || rawState.includes('exit') || rawState.includes('dead')) {
+        return {
+            label: 'stopped',
+            color: normalizeHexColor(getForm()?.status_color_stopped?.value, DEFAULT_FOLDER_STATUS_COLORS.stopped)
+        };
+    }
+    return index % 3 === 1
+        ? { label: 'paused', color: normalizeHexColor(getForm()?.status_color_paused?.value, DEFAULT_FOLDER_STATUS_COLORS.paused) }
+        : (index % 2 === 0
+            ? { label: type === 'vm' ? 'running' : 'started', color: normalizeHexColor(getForm()?.status_color_started?.value, DEFAULT_FOLDER_STATUS_COLORS.started) }
+            : { label: 'stopped', color: normalizeHexColor(getForm()?.status_color_stopped?.value, DEFAULT_FOLDER_STATUS_COLORS.stopped) });
+};
+
 const computeFormSnapshot = () => {
     const form = getForm();
     const state = {
@@ -3690,6 +3717,72 @@ const updateMemberStats = () => {
     $('#fvLiveMembers').text(text);
 };
 
+const renderLivePreviewCanvas = () => {
+    if (!modernFolderEditorEnabled) {
+        return;
+    }
+    const form = getForm();
+    const canvas = $('#fvLivePreviewCanvas');
+    if (!form || !canvas.length) {
+        return;
+    }
+
+    const memberNames = getIncludedMemberNames();
+    const memberMap = getMemberMapByName();
+    const selectedMembers = memberNames.map((name) => memberMap.get(name)).filter(Boolean);
+    const previewMode = Number(form.preview.value || 0);
+    const rowsLimit = normalizePreviewRowLimit(form.preview_rows?.value);
+    const renderLimit = rowsLimit === 0 ? 10 : Math.max(4, Math.min(10, rowsLimit * 4));
+    const sampleMembers = selectedMembers.slice(0, renderLimit);
+    const dropdownStyle = normalizeDropdownStyle(form.dropdown_style?.value);
+    const borderEnabled = previewMode !== 0 && form.preview_border.checked;
+    const borderColor = normalizeHexColor(form.preview_border_color.value, DEFAULT_BORDER_COLOR);
+    const borderWidth = String(normalizePositiveInt(form.preview_border_width.value, DEFAULT_PREVIEW_BORDER_WIDTH, 1, 4));
+    const dividerEnabled = previewMode !== 0 && form.preview_vertical_bars.checked;
+    const dividerColor = normalizeHexColor(form.preview_vertical_bars_color.value || rgbToHex($('body').css('color')), rgbToHex($('body').css('color')));
+    const dividerWidth = String(normalizePositiveInt(form.preview_vertical_bars_width.value, DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH, 1, 4));
+    const dropdownColor = normalizeHexColor(form.dropdown_color.value, DEFAULT_DROPDOWN_COLOR);
+    const dropdownHoverColor = normalizeHexColor(form.dropdown_hover_color.value, DEFAULT_DROPDOWN_HOVER_COLOR);
+    const icon = String(form.icon.value || '').trim() || DEFAULT_FOLDER_ICON_PATH;
+    const name = (form.name.value || '').trim() || 'Unnamed folder';
+
+    const membersHtml = previewMode === 0
+        ? '<div class="fv-live-preview-empty">Preview is currently disabled. The folder row will show the title and chevron only.</div>'
+        : (sampleMembers.length > 0
+            ? sampleMembers.map((member, index) => {
+                const memberName = escapeHtml(member?.Name || `Member ${index + 1}`);
+                const memberIcon = escapeHtml(member?.Icon || ICON_FALLBACK_PATH);
+                const state = buildSampleMemberState(member, index);
+                const stateLabel = escapeHtml(state.label);
+                const stateColor = escapeHtml(state.color);
+                return `
+                    <span class="fv-live-member fv-live-member-preview-${previewMode}" style="${dividerEnabled && index < sampleMembers.length - 1 ? `--fv-divider-color:${dividerColor};--fv-divider-width:${dividerWidth}px;` : ''}">
+                        <img src="${memberIcon}" alt="" onerror="this.src='${ICON_FALLBACK_PATH}';">
+                        ${previewMode === 2 ? '' : `<span class="fv-live-member-name">${memberName}</span>`}
+                        ${previewMode === 2 ? '' : `<span class="fv-live-member-status" style="color:${stateColor};">${stateLabel}</span>`}
+                    </span>
+                `;
+            }).join('')
+            : '<div class="fv-live-preview-empty">Select or match at least one member to see how the row preview will render.</div>');
+
+    const rowClass = `fv-live-preview-row preview-${previewMode}${borderEnabled ? ' has-border' : ''}${dropdownStyle === 'boxed' ? ' is-boxed' : ' is-minimal'}${rowsLimit !== 1 ? ' is-multi-row' : ' is-single-row'}`;
+    canvas.html(`
+        <div class="${rowClass}" style="--fv-preview-border-color:${borderColor};--fv-preview-border-width:${borderWidth}px;--fv-chevron-color:${dropdownColor};--fv-chevron-hover:${dropdownHoverColor};">
+            <div class="fv-live-folder-anchor">
+                <img class="fv-live-folder-icon" src="${escapeHtml(icon)}" alt="" onerror="this.src='${DEFAULT_FOLDER_ICON_PATH}';">
+                <div class="fv-live-folder-copy">
+                    <strong>${escapeHtml(name)}</strong>
+                    <span>${PREVIEW_MODE_LABELS[previewMode] || 'Unknown'} preview</span>
+                </div>
+            </div>
+            <div class="fv-live-member-lane">${membersHtml}</div>
+            <button type="button" class="fv-live-chevron fv-live-chevron-${dropdownStyle}" aria-label="Chevron preview">
+                <i class="fa fa-chevron-down" aria-hidden="true"></i>
+            </button>
+        </div>
+    `);
+};
+
 const applyMemberFilters = () => {
     const query = ($('#fvMemberSearch').val() || '').trim().toLowerCase();
     const filter = $('#fvMemberFilter').val() || 'all';
@@ -4129,15 +4222,34 @@ const updateLiveSummary = () => {
     if (!form) {
         return;
     }
-    $('#fvLiveName').text((form.name.value || '').trim() || '(unnamed)');
-    $('#fvLivePreview').text(PREVIEW_MODE_LABELS[Number(form.preview.value)] || 'Unknown');
-    $('#fvLiveContext').text(CONTEXT_MODE_LABELS[Number(form.context.value)] || 'Unknown');
-    $('#fvSwatchStarted').css('background-color', normalizeHexColor(form.status_color_started.value, DEFAULT_FOLDER_STATUS_COLORS.started));
-    $('#fvSwatchPaused').css('background-color', normalizeHexColor(form.status_color_paused.value, DEFAULT_FOLDER_STATUS_COLORS.paused));
-    $('#fvSwatchStopped').css('background-color', normalizeHexColor(form.status_color_stopped.value, DEFAULT_FOLDER_STATUS_COLORS.stopped));
     const memberNames = getIncludedMemberNames();
     const memberMap = getMemberMapByName();
     const selectedMembers = memberNames.map((name) => memberMap.get(name)).filter(Boolean);
+    const folderName = (form.name.value || '').trim() || '(unnamed)';
+    const previewLabel = PREVIEW_MODE_LABELS[Number(form.preview.value)] || 'Unknown';
+    const contextLabel = type === 'docker'
+        ? (CONTEXT_MODE_LABELS[Number(form.context.value)] || 'Unknown')
+        : 'Not used for VMs';
+
+    $('#fvLiveName').text(folderName);
+    $('#fvLivePreview').text(previewLabel);
+    $('#fvLiveContext').text(contextLabel);
+    $('#fvHeroTitle').text(folderName);
+    $('#fvHeroIcon').attr('src', (form.icon.value || '').trim() || DEFAULT_FOLDER_ICON_PATH);
+    $('#fvHeroScope').text(
+        normalizeParentFolderId(form.parent_folder_id?.value || '')
+            ? `Nested under ${$('select[name="parent_folder_id"] option:selected').text() || 'parent folder'}`
+            : 'Top-level folder'
+    );
+    $('#fvHeroMembers').text(`${memberNames.length}/${getAllMembers().length} included`);
+    $('#fvLivePreviewMeta').text(
+        Number(form.preview.value) === 0
+            ? 'Preview disabled'
+            : `${previewLabel} • ${normalizePreviewRowLimit(form.preview_rows?.value) === 0 ? 'Unlimited rows' : `${normalizePreviewRowLimit(form.preview_rows?.value)} row${normalizePreviewRowLimit(form.preview_rows?.value) === 1 ? '' : 's'}`}`
+    );
+    $('#fvSwatchStarted').css('background-color', normalizeHexColor(form.status_color_started.value, DEFAULT_FOLDER_STATUS_COLORS.started));
+    $('#fvSwatchPaused').css('background-color', normalizeHexColor(form.status_color_paused.value, DEFAULT_FOLDER_STATUS_COLORS.paused));
+    $('#fvSwatchStopped').css('background-color', normalizeHexColor(form.status_color_stopped.value, DEFAULT_FOLDER_STATUS_COLORS.stopped));
     const dockerSignals = $('#fvDockerSignals');
     if (type === 'docker' && dockerSignals.length) {
         const composeProjects = Array.from(new Set(
@@ -4159,6 +4271,7 @@ const updateLiveSummary = () => {
         dockerSignals.hide();
     }
     updateMemberStats();
+    renderLivePreviewCanvas();
 };
 
 const updateRegexSimulator = () => {

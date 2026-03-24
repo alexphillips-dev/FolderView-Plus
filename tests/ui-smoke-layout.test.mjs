@@ -144,6 +144,9 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderLegacyJs, /const modernFolderEditorEnabled = String\(window\.FolderViewPlusFolderEditorPageMode \|\| 'legacy'\)/);
     assert.match(folderLegacyJs, /window\.FolderViewPlusFolderEditorPageType/);
     assert.match(folderLegacyJs, /window\.FolderViewPlusFolderEditorRequestedId/);
+    assert.match(folderLegacyJs, /const renderLivePreviewCanvas = \(\) =>/);
+    assert.match(folderLegacyJs, /#fvLivePreviewCanvas/);
+    assert.match(folderLegacyJs, /renderLivePreviewCanvas\(\);/);
 });
 
 test('mobile action bar and import progress keep compact viewport guards', () => {

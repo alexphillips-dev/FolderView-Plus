@@ -29,6 +29,7 @@ $fvplusRuntimeConflicts = fvplus_detect_runtime_plugin_conflicts();
 </script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.fatal-banner.js')?>"></script>
 <?php emitNoCacheMetaTags(); ?>
+<?php emitPluginPageVersionSentinelScript('settings'); ?>
 <link rel="stylesheet" href="<?=autov('/plugins/folderview.plus/styles/folderviewplus.css')?>">
 
 <div id="fv-settings-root" class="fv-theme-safe">

@@ -17,6 +17,7 @@ if (!empty($fvplusRuntimeConflicts)) {
 }
 ?>
 <?php emitNoCacheMetaTags(); ?>
+<?php emitPluginPageVersionSentinelScript('dashboard'); ?>
 <script src="/plugins/folderview.plus/scripts/include/customEvents.js"></script>
 <?php
 require_once('/usr/local/emhttp/plugins/folderview.plus/scripts/custom.php');

@@ -671,6 +671,34 @@
         echo '<meta http-equiv="Expires" content="0">' . "\n";
     }
 
+    function emitPluginPageVersionSentinelScript(string $pageKey): void {
+        $safePageKey = trim($pageKey);
+        if ($safePageKey === '') {
+            $safePageKey = 'page';
+        }
+        $version = readInstalledVersion();
+        echo '<script>(function(){try{' .
+            'const win=window;' .
+            'if(!win||!win.sessionStorage){return;}' .
+            'const currentVersion=' . json_encode($version, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . ';' .
+            'const pageKey=' . json_encode($safePageKey, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . ';' .
+            'const path=String(win.location&&win.location.pathname||pageKey);' .
+            'const storageKey=`fvplus.page-version:${pageKey}:${path}`;' .
+            'const reloadKey=`${storageKey}:reloaded`; ' .
+            'const previousVersion=String(win.sessionStorage.getItem(storageKey)||"").trim();' .
+            'const lastReloadedVersion=String(win.sessionStorage.getItem(reloadKey)||"").trim();' .
+            'win.sessionStorage.setItem(storageKey,currentVersion);' .
+            'if(previousVersion&&previousVersion!==currentVersion&&lastReloadedVersion!==currentVersion){' .
+                'win.sessionStorage.setItem(reloadKey,currentVersion);' .
+                'win.location.reload();' .
+                'return;' .
+            '}' .
+            'if(previousVersion===currentVersion&&lastReloadedVersion===currentVersion){' .
+                'win.sessionStorage.removeItem(reloadKey);' .
+            '}' .
+        '}catch(_error){}})();</script>' . "\n";
+    }
+
     function validateOptionalRequestToken(): bool {
         $mode = getRequestTokenEnforcementMode();
         if ($mode === 'off') {

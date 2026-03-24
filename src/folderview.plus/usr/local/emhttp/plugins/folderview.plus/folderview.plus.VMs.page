@@ -17,6 +17,7 @@ if (!empty($fvplusRuntimeConflicts)) {
 }
 ?>
 <?php emitNoCacheMetaTags(); ?>
+<?php emitPluginPageVersionSentinelScript('vms'); ?>
 <script>
     $(document).ready(() => {
         folderi18n = () => {

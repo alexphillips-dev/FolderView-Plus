@@ -45,6 +45,7 @@ try {
     window.FolderViewPlusFolderEditorRequestedId = <?php echo json_encode($folderEditorRequestedId, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
 </script>
 <?php emitNoCacheMetaTags(); ?>
+<?php emitPluginPageVersionSentinelScript('folder-editor'); ?>
 <script src="<?autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.switchbutton.css')?>">
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.ui.css')?>">

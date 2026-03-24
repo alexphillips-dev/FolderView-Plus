@@ -60,9 +60,13 @@ test('all plugin page entrypoints emit no-cache document guards', () => {
         assert.match(source, /emitNoCachePageHeaders\(\)/);
         assert.match(source, /emitNoCacheMetaTags\(\)/);
         assert.match(source, /emitRequestTokenMetaTag\(\)/, `missing request token meta in ${file}`);
+        assert.match(source, /emitPluginPageVersionSentinelScript\(/, `missing page version sentinel in ${file}`);
     }
     assert.match(libPhp, /function emitNoCachePageHeaders\(\): void/);
     assert.match(libPhp, /function emitNoCacheMetaTags\(\): void/);
+    assert.match(libPhp, /function emitPluginPageVersionSentinelScript\(string \$pageKey\): void/);
+    assert.match(libPhp, /fvplus\.page-version:/);
+    assert.match(libPhp, /win\.location\.reload\(\);/);
 });
 
 test('dashboard page loads quick-rail controller before dashboard runtime', () => {

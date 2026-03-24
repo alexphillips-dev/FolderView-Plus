@@ -17,6 +17,7 @@ if (!empty($fvplusRuntimeConflicts)) {
 }
 ?>
 <?php emitNoCacheMetaTags(); ?>
+<?php emitPluginPageVersionSentinelScript('docker'); ?>
 <script>
     $(document).ready(() => {
         folderi18n = () => {

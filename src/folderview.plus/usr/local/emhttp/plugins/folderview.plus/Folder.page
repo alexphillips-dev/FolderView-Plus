@@ -17,6 +17,7 @@ emitNoCachePageHeaders();
 emitRequestTokenMetaTag();
 $folderEditorPageType = '';
 $folderEditorPageMode = 'legacy';
+$folderEditorPageModeSource = 'error';
 $folderEditorRequestedId = '';
 $folderEditorResolvedId = '';
 $folderEditorBootstrapContext = [
@@ -27,8 +28,9 @@ $folderEditorBootstrapContext = [
 ];
 try {
     $folderEditorPageType = ensureType((string)($_GET['type'] ?? $_REQUEST['type'] ?? ''));
-    $folderEditorPagePrefs = readTypePrefs($folderEditorPageType);
-    $folderEditorPageMode = normalizeFolderEditorMode((string)($folderEditorPagePrefs['folderEditorMode'] ?? 'modern'));
+    $folderEditorModePreference = resolveTypeFolderEditorModePreference($folderEditorPageType);
+    $folderEditorPageMode = normalizeFolderEditorMode((string)($folderEditorModePreference['mode'] ?? 'modern'));
+    $folderEditorPageModeSource = trim((string)($folderEditorModePreference['source'] ?? 'default-modern')) ?: 'default-modern';
     $folderEditorRequestedId = trim((string)(
         $_GET['id']
         ?? $_REQUEST['id']
@@ -47,6 +49,7 @@ try {
 } catch (Throwable $folderEditorPageError) {
     $folderEditorPageType = '';
     $folderEditorPageMode = 'legacy';
+    $folderEditorPageModeSource = 'error';
     $folderEditorRequestedId = '';
     $folderEditorResolvedId = '';
     $folderEditorBootstrapContext = [
@@ -60,6 +63,8 @@ try {
 <script>
     window.FolderViewPlusFolderEditorPageType = <?php echo json_encode($folderEditorPageType, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
     window.FolderViewPlusFolderEditorPageMode = <?php echo json_encode($folderEditorPageMode, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
+    window.FolderViewPlusFolderEditorResolvedMode = <?php echo json_encode($folderEditorPageMode, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
+    window.FolderViewPlusFolderEditorModeSource = <?php echo json_encode($folderEditorPageModeSource, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
     window.FolderViewPlusFolderEditorRequestedId = <?php echo json_encode($folderEditorRequestedId, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
     window.FolderViewPlusFolderEditorResolvedId = <?php echo json_encode($folderEditorResolvedId, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
     window.FolderViewPlusFolderEditorBootstrapContext = <?php echo json_encode($folderEditorBootstrapContext, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;

@@ -143,8 +143,11 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
 
 test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderPage, /\$folderEditorPageMode === 'modern'/);
+    assert.match(folderPage, /resolveTypeFolderEditorModePreference\(\$folderEditorPageType\)/);
     assert.match(folderPage, /folder\.editor\.chrome\.js/);
     assert.match(folderPage, /folder\.legacy\.js/);
+    assert.match(folderPage, /window\.FolderViewPlusFolderEditorResolvedMode =/);
+    assert.match(folderPage, /window\.FolderViewPlusFolderEditorModeSource =/);
     assert.match(folderJs, /modernFolderEditorEnabled/);
     assert.match(folderLegacyJs, /const modernFolderEditorEnabled = String\(window\.FolderViewPlusFolderEditorPageMode \|\| 'legacy'\)/);
     assert.match(folderLegacyJs, /window\.FolderViewPlusFolderEditorPageType/);
@@ -311,8 +314,11 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
 test('folder editor page ships the redesign bootstrap and chrome anchors', () => {
     assert.match(folderPage, /<form class="folder-editor-form"/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorPageMode =/);
+    assert.match(folderPage, /window\.FolderViewPlusFolderEditorResolvedMode =/);
+    assert.match(folderPage, /window\.FolderViewPlusFolderEditorModeSource =/);
     assert.doesNotMatch(folderPage, /\$_GET\['editor'\]/);
     assert.doesNotMatch(folderPage, /\$_GET\['editorMode'\]/);
+    assert.doesNotMatch(folderPage, /\$_GET\['mode'\]/);
     assert.doesNotMatch(folderPage, /readTypePrefs\('docker'\)/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorPageType =/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorRequestedId =/);

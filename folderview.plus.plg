@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.24.22">
-<!ENTITY md5 "dce794ff1e9ab56461d62ee54eca12ab">
+<!ENTITY version "2026.03.24.23">
+<!ENTITY md5 "28fc94ac5745ddaa34df23a0439622d3">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.24.23
+- Fix: Centralized Docker and VM folder editor mode resolution in the shared server helper so `Folder.page` consistently follows the saved per-type preference.
+- Quality: Folder.page now exposes resolved editor mode and mode source debug markers while continuing to ignore stale query-string editor overrides.
+- Quality: Added stronger regression coverage and browser smoke checks for Docker and VM `Use new folder settings page` toggle persistence and folder-editor mode resolution.
+
 
 ###2026.03.24.22
 - Fix: Folder.page no longer honors query-string editor mode overrides, so stale VM or Docker tabs cannot force the wrong folder editor after the saved setting changes.

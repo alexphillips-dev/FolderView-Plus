@@ -303,6 +303,7 @@ let customIconPage = 1;
 let customIconSearchTimer = null;
 let customIconUploadRequest = null;
 let editorMode = 'basic';
+let activeEditorSection = 'general';
 let advancedSectionCollapsedState = {};
 let editorLayoutPrepared = false;
 
@@ -3610,12 +3611,21 @@ const moveMemberRow = (button, direction) => {
 
 const normalizeEditorMode = (value) => (String(value || '').trim().toLowerCase() === 'advanced' ? 'advanced' : 'basic');
 
-const loadEditorModePreference = () => {
-    try {
-        return normalizeEditorMode(localStorage.getItem(EDITOR_MODE_STORAGE_KEY) || 'basic');
-    } catch (_error) {
-        return 'basic';
+const getVisibleEditorSectionKeys = (mode = editorMode) => Object.entries(SECTION_META)
+    .filter(([, section]) => normalizeEditorMode(mode) === 'advanced' || section?.advanced !== true)
+    .map(([key]) => key);
+
+const normalizeActiveEditorSection = (sectionKey, mode = editorMode) => {
+    const visibleSections = getVisibleEditorSectionKeys(mode);
+    const preferredSection = String(sectionKey || '').trim();
+    if (visibleSections.includes(preferredSection)) {
+        return preferredSection;
     }
+    return visibleSections[0] || 'general';
+};
+
+const loadEditorModePreference = () => {
+    return 'basic';
 };
 
 const saveEditorModePreference = (mode) => {
@@ -3653,7 +3663,13 @@ const saveAdvancedCollapseState = () => {
 
 const setEditorMode = (mode) => {
     editorMode = normalizeEditorMode(mode);
+    activeEditorSection = normalizeActiveEditorSection(activeEditorSection, editorMode);
     saveEditorModePreference(editorMode);
+    applyAdvancedMode();
+};
+
+const setActiveEditorSection = (sectionKey) => {
+    activeEditorSection = normalizeActiveEditorSection(sectionKey, editorMode);
     applyAdvancedMode();
 };
 
@@ -3669,6 +3685,7 @@ const toggleAdvancedSectionCollapse = (sectionKey) => {
 const applyAdvancedMode = () => {
     editorMode = normalizeEditorMode(editorMode);
     const showAdvanced = editorMode === 'advanced';
+    activeEditorSection = normalizeActiveEditorSection(activeEditorSection, editorMode);
     $('.fv-editor-mode > button').removeClass('is-active');
     $(`.fv-editor-mode > button[data-mode="${showAdvanced ? 'advanced' : 'basic'}"]`).addClass('is-active');
     $('#fvHeroMode').text(showAdvanced ? 'Advanced editor' : 'Basic editor');
@@ -3687,8 +3704,10 @@ const applyAdvancedMode = () => {
             return;
         }
 
-        shell.show();
+        const isActiveSection = activeEditorSection === key;
+        shell.toggle(isActiveSection);
         navButton.show();
+        navButton.toggleClass('is-active', isActiveSection);
         const collapsed = showAdvanced && isAdvancedSection && advancedSectionCollapsedState[key] === true;
         heading.toggleClass('is-collapsed', collapsed);
         shell.toggleClass('is-collapsed', collapsed);
@@ -4085,6 +4104,7 @@ const applySectionTags = () => {
     const markAdvanced = (selector) => $(selector).addClass('fv-advanced-setting');
 
     markSection('div.basic:has([name="name"])', 'general');
+    markSection('div.basic:has([name="parent_folder_id"])', 'general');
     markSection('div.basic:has([name="icon"])', 'general');
     markSection('div.basic:has([name="folder_webui"])', 'general');
     markSection('ul[constraint*="folder-webui"]', 'general');
@@ -4172,13 +4192,39 @@ const pruneEmptyEditorContainers = () => {
     });
 };
 
+const hideUnsectionedEditorRows = () => {
+    const form = $('div.canvas > form.folder-editor-form');
+    if (!form.length) {
+        return;
+    }
+    form.children('.basic, ul').each((_, element) => {
+        const row = $(element);
+        if (row.closest('.fv-section-shell').length > 0) {
+            return;
+        }
+        if (row.is('.basic.order-section')) {
+            return;
+        }
+        row.addClass('fv-orphan-editor-row').hide();
+    });
+};
+
 const initEditorChrome = () => {
     const form = $('div.canvas > form');
     if (!form.length) {
         return;
     }
 
-    if (!$('#fvEditorChrome').length) {
+    const shouldRebuildChrome = !$('#fvEditorChrome').length
+        || !$('#fvRestoreSavedValues').length
+        || !$('#fvApplyPluginDefaults').length
+        || !$('#fvSuggestDefaults').length
+        || !$('#fvLivePanel').length
+        || !$('.fv-editor-mode > button[data-mode="basic"]').length
+        || !$('.fv-editor-mode > button[data-mode="advanced"]').length;
+
+    if (shouldRebuildChrome) {
+        $('#fvEditorChrome, #fvLivePanel').remove();
         const navButtons = Object.entries(SECTION_META)
             .map(([key, section]) => `
                 <button type="button" data-target="${key}">
@@ -4320,17 +4366,11 @@ const initEditorChrome = () => {
 
     buildSectionCards();
     pruneEmptyEditorContainers();
+    hideUnsectionedEditorRows();
     buildEditorActionBar();
 
     $('.fv-section-nav button').off('click').on('click', function onSectionClick() {
-        const target = $(this).data('target');
-        const heading = document.getElementById(`fv-section-${target}`);
-        if (!heading) {
-            return;
-        }
-        const offset = 110;
-        const top = heading.getBoundingClientRect().top + window.pageYOffset - offset;
-        window.scrollTo({ top, behavior: 'smooth' });
+        setActiveEditorSection($(this).data('target'));
     });
 
     $('#fvMemberSearch').off('input').on('input', applyMemberFilters);
@@ -4342,6 +4382,7 @@ const initEditorChrome = () => {
     });
 
     editorMode = loadEditorModePreference();
+    activeEditorSection = normalizeActiveEditorSection('general', editorMode);
     advancedSectionCollapsedState = loadAdvancedCollapseState();
     $('#fvRegexSimulatorInput').off('input').on('input', updateRegexSimulator);
     $('#fvSuggestDefaults').off('click').on('click', suggestDefaultsFromMembers);

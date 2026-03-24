@@ -1,235 +1,148 @@
 (function folderEditorChromeBootstrap(root) {
     const SECTION_META = {
-        general: { title: 'General', icon: 'fa-folder-open-o', advanced: false },
-        members: { title: 'Members', icon: 'fa-th-large', advanced: false },
-        preview: { title: 'Preview', icon: 'fa-eye', advanced: false },
-        chevron: { title: 'Chevron', icon: 'fa-chevron-down', advanced: false },
-        status: { title: 'Status', icon: 'fa-heartbeat', advanced: false },
-        rules: { title: 'Rules', icon: 'fa-code', advanced: true },
-        actions: { title: 'Actions', icon: 'fa-bolt', advanced: true },
-        advanced: { title: 'Advanced', icon: 'fa-sliders', advanced: true }
+        general: { title: 'General', icon: 'fa-folder-open-o' },
+        members: { title: 'Members', icon: 'fa-th-large' },
+        preview: { title: 'Preview', icon: 'fa-eye' },
+        chevron: { title: 'Chevron', icon: 'fa-chevron-down' },
+        status: { title: 'Status', icon: 'fa-heartbeat' },
+        rules: { title: 'Rules', icon: 'fa-code' },
+        actions: { title: 'Actions', icon: 'fa-bolt' },
+        advanced: { title: 'Advanced', icon: 'fa-sliders' }
     };
+    const DEFAULT_FOLDER_ICON_PATH = '/plugins/folderview.plus/images/folder-icon.png';
 
-    const findBasicByFieldName = (form, fieldName) => Array.from(form.querySelectorAll('.basic'))
-        .find((entry) => entry.querySelector(`[name="${fieldName}"]`));
+    const buildNavButtons = () => Object.entries(SECTION_META)
+        .map(([key, section], index) => `
+            <button type="button" data-target="${key}"${index === 0 ? ' class="is-active"' : ''}>
+                <i class="fa ${section.icon}" aria-hidden="true"></i>
+                <span>${section.title}</span>
+                <em class="fv-nav-count" style="display:none;"></em>
+            </button>
+        `)
+        .join('');
+
+    const buildChromeMarkup = () => `
+        <div id="fvEditorChrome" class="fv-editor-chrome">
+            <div class="fv-editor-hero">
+                <div class="fv-editor-hero-main">
+                    <div class="fv-editor-hero-icon">
+                        <img id="fvHeroIcon" src="${DEFAULT_FOLDER_ICON_PATH}" alt="">
+                    </div>
+                    <div class="fv-editor-hero-copy">
+                        <span class="fv-editor-kicker">Folder editor</span>
+                        <h2 id="fvHeroTitle">Configure folder</h2>
+                        <p id="fvHeroSubtitle">Grouped controls, live preview, and tabbed sections are loading.</p>
+                        <div class="fv-hero-meta">
+                            <span id="fvHeroScope">Top-level folder</span>
+                            <span id="fvHeroMembers">0/0 included</span>
+                            <span id="fvHeroMode">Basic editor</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="fv-editor-hero-actions">
+                    <button type="button" id="fvRestoreSavedValues"><i class="fa fa-history" aria-hidden="true"></i> Restore saved values</button>
+                    <button type="button" id="fvApplyPluginDefaults"><i class="fa fa-repeat" aria-hidden="true"></i> Apply plugin defaults</button>
+                    <button type="button" id="fvSuggestDefaults"><i class="fa fa-magic" aria-hidden="true"></i> Suggest defaults</button>
+                </div>
+            </div>
+            <div class="fv-editor-nav-row">
+                <div class="fv-section-nav">${buildNavButtons()}</div>
+                <div class="fv-editor-mode" role="group" aria-label="Editor mode">
+                    <button type="button" data-mode="basic" class="is-active">Basic</button>
+                    <button type="button" data-mode="advanced">Advanced</button>
+                </div>
+            </div>
+            <div class="fv-editor-status-row">
+                <span id="fvValidationSummary" class="fv-validation-summary ready">Folder editor chrome loaded.</span>
+                <pre id="fvValidationDetails" class="fv-validation-details ready">The main editor runtime is attaching the live controls now.</pre>
+            </div>
+        </div>
+        <div id="fvLivePanel" class="fv-live-panel">
+            <div class="fv-live-panel-grid">
+                <div class="fv-live-preview-card">
+                    <div class="fv-live-preview-card-head">
+                        <div>
+                            <strong>Live folder preview</strong>
+                            <p>The runtime editor will keep this preview updated as you change settings.</p>
+                        </div>
+                        <span id="fvLivePreviewMeta" class="fv-live-preview-meta-chip">Loading preview</span>
+                    </div>
+                    <div id="fvLivePreviewCanvas" class="fv-live-preview-canvas">
+                        <div class="fv-live-preview-row">
+                            <div class="fv-live-folder-anchor">
+                                <img class="fv-live-folder-icon" src="${DEFAULT_FOLDER_ICON_PATH}" alt="">
+                                <div class="fv-live-folder-copy">
+                                    <strong>Folder preview</strong>
+                                    <span>Waiting for folder data</span>
+                                </div>
+                            </div>
+                            <div class="fv-live-member-lane">
+                                <div class="fv-live-preview-empty">Preview data will appear here when the editor finishes loading.</div>
+                            </div>
+                            <button type="button" class="fv-live-chevron" aria-label="Chevron preview">
+                                <i class="fa fa-chevron-down" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="fv-live-insights">
+                    <div class="fv-live-grid">
+                        <span><strong>Name:</strong> <span id="fvLiveName">-</span></span>
+                        <span><strong>Preview:</strong> <span id="fvLivePreview">-</span></span>
+                        <span><strong>Context:</strong> <span id="fvLiveContext">-</span></span>
+                        <span><strong>Members:</strong> <span id="fvLiveMembers">0/0 included</span></span>
+                    </div>
+                    <div class="fv-live-swatches">
+                        <span class="fv-swatch-item"><em>Started</em><i id="fvSwatchStarted"></i></span>
+                        <span class="fv-swatch-item"><em>Paused</em><i id="fvSwatchPaused"></i></span>
+                        <span class="fv-swatch-item"><em>Stopped</em><i id="fvSwatchStopped"></i></span>
+                    </div>
+                    <div id="fvDockerSignals" class="fv-docker-signals" style="display:none;">
+                        <span id="fvDockerComposeSummary" class="fv-docker-signal-chip">Compose: loading…</span>
+                        <span id="fvDockerUpdateSummary" class="fv-docker-signal-chip">Updates: loading…</span>
+                    </div>
+                    <div class="fv-change-summary-panel">
+                        <div class="fv-change-summary-head">
+                            <strong id="fvChangeSummaryLabel">No pending changes</strong>
+                            <span id="fvLiveInheritance" class="fv-live-preview-meta-chip">Review saved vs default behavior before you save.</span>
+                        </div>
+                        <p id="fvChangeSummaryText">This folder currently matches the saved values.</p>
+                        <ul id="fvChangeSummaryList" class="fv-change-summary-list"></ul>
+                        <span id="fvChangeSummaryOverflow" class="fv-change-summary-overflow"></span>
+                    </div>
+                    <div class="fv-regex-simulator">
+                        <label for="fvRegexSimulatorInput"><strong>Regex simulator</strong></label>
+                        <input type="text" id="fvRegexSimulatorInput" placeholder="Test a container or VM name">
+                        <span id="fvRegexSimulatorResult" class="fv-regex-result">No regex configured.</span>
+                        <div id="fvRegexSimulatorMeta" class="fv-regex-meta"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
 
     const ensureTopChrome = (form) => {
-        if (form.querySelector('#fvEditorChrome')) {
+        if (form.querySelector('#fvEditorChrome') && form.querySelector('#fvLivePanel')) {
             return;
         }
-        form.insertAdjacentHTML('afterbegin', `
-            <div id="fvEditorChrome" class="fv-editor-chrome">
-                <div class="fv-editor-hero">
-                    <div class="fv-editor-hero-main">
-                        <div class="fv-editor-hero-icon">
-                            <img src="/plugins/folderview.plus/images/folder-icon.png" alt="">
-                        </div>
-                        <div class="fv-editor-hero-copy">
-                            <span class="fv-editor-kicker">Folder editor</span>
-                            <h2>Configure folder</h2>
-                            <p>Edit the folder with grouped controls, a cleaner layout, and a dedicated preview surface.</p>
-                            <div class="fv-hero-meta">
-                                <span>Grouped editor</span>
-                                <span>Live preview</span>
-                                <span>Sticky action bar</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="fv-editor-hero-actions">
-                        <button type="button">Restore saved values</button>
-                        <button type="button">Apply plugin defaults</button>
-                        <button type="button">Suggest defaults</button>
-                    </div>
-                </div>
-                <div class="fv-editor-nav-row">
-                    <div class="fv-section-nav"></div>
-                    <div class="fv-editor-mode">
-                        <button type="button" class="is-active">Basic</button>
-                        <button type="button">Advanced</button>
-                    </div>
-                </div>
-                <div class="fv-editor-status-row">
-                    <span class="fv-validation-summary ready">Editor shell loaded.</span>
-                    <pre class="fv-validation-details ready">Live folder summary and section cards are active on this page.</pre>
-                </div>
-            </div>
-            <div id="fvLivePanel" class="fv-live-panel">
-                <div class="fv-live-panel-grid">
-                    <div class="fv-live-preview-card">
-                        <div class="fv-live-preview-card-head">
-                            <div>
-                                <strong>Live folder preview</strong>
-                                <p>The runtime editor will keep this panel updated as settings change.</p>
-                            </div>
-                            <span class="fv-live-preview-meta-chip">Editor preview</span>
-                        </div>
-                        <div class="fv-live-preview-canvas">
-                            <div class="fv-live-preview-row">
-                                <div class="fv-live-folder-anchor">
-                                    <img class="fv-live-folder-icon" src="/plugins/folderview.plus/images/folder-icon.png" alt="">
-                                    <div class="fv-live-folder-copy">
-                                        <strong>Folder preview</strong>
-                                        <span>Waiting for runtime data</span>
-                                    </div>
-                                </div>
-                                <div class="fv-live-member-lane">
-                                    <div class="fv-live-preview-empty">The enhanced preview surface is loaded. Runtime data will fill in after the editor initializes.</div>
-                                </div>
-                                <button type="button" class="fv-live-chevron"><i class="fa fa-chevron-down" aria-hidden="true"></i></button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="fv-live-insights">
-                        <div class="fv-change-summary-panel">
-                            <div class="fv-change-summary-head">
-                                <strong>No pending changes</strong>
-                                <span class="fv-live-preview-meta-chip">Chrome bootstrap active</span>
-                            </div>
-                            <p id="fvChromeBootstrapNotice">This page is using the redesigned folder editor shell.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `);
+        form.insertAdjacentHTML('afterbegin', buildChromeMarkup());
     };
 
     const ensureActionBar = (form) => {
-        let actionBar = form.querySelector('#fvEditorActionBar');
-        if (!actionBar) {
-            actionBar = document.createElement('div');
-            actionBar.id = 'fvEditorActionBar';
-            actionBar.className = 'fv-editor-actionbar';
-            actionBar.innerHTML = `
-                <div class="fv-editor-actionbar-main"></div>
-                <div class="fv-editor-actionbar-meta">
-                    <span class="fv-actionbar-dirty">Use the buttons below to save, copy, reset, or cancel.</span>
-                </div>
-            `;
-            form.appendChild(actionBar);
-        }
-        const actionBarMain = actionBar.querySelector('.fv-editor-actionbar-main');
-        Array.from(form.querySelectorAll('.folder-btn-submit, .folder-btn-copy, .folder-btn-reset, .folder-btn-cancel, #unsavedIndicator')).forEach((entry) => {
-            actionBarMain.appendChild(entry);
-        });
-    };
-
-    const collectSectionRows = (form) => ({
-        general: [
-            findBasicByFieldName(form, 'name'),
-            findBasicByFieldName(form, 'parent_folder_id'),
-            findBasicByFieldName(form, 'icon'),
-            findBasicByFieldName(form, 'folder_webui'),
-            form.querySelector('ul[constraint*="folder-webui"]')
-        ],
-        members: [
-            form.querySelector('.basic.order-section')
-        ],
-        preview: [
-            findBasicByFieldName(form, 'preview'),
-            findBasicByFieldName(form, 'preview_hover'),
-            findBasicByFieldName(form, 'preview_update'),
-            findBasicByFieldName(form, 'preview_text_width'),
-            findBasicByFieldName(form, 'preview_rows'),
-            findBasicByFieldName(form, 'preview_grayscale'),
-            findBasicByFieldName(form, 'preview_webui'),
-            findBasicByFieldName(form, 'preview_logs'),
-            findBasicByFieldName(form, 'preview_console'),
-            findBasicByFieldName(form, 'preview_vertical_bars'),
-            form.querySelector('ul[constraint*="bars-color"]'),
-            findBasicByFieldName(form, 'preview_border'),
-            form.querySelector('ul[constraint*="border-color"]'),
-            findBasicByFieldName(form, 'context'),
-            form.querySelector('ul[constraint*="context-2"]')
-        ],
-        chevron: [
-            findBasicByFieldName(form, 'dropdown_style'),
-            findBasicByFieldName(form, 'dropdown_color')
-        ],
-        status: [
-            findBasicByFieldName(form, 'status_color_started'),
-            findBasicByFieldName(form, 'health_warn_stopped_percent'),
-            findBasicByFieldName(form, 'health_critical_stopped_percent'),
-            findBasicByFieldName(form, 'health_profile'),
-            findBasicByFieldName(form, 'health_updates_mode'),
-            findBasicByFieldName(form, 'health_all_stopped_mode'),
-            findBasicByFieldName(form, 'status_warn_stopped_percent')
-        ],
-        rules: [
-            findBasicByFieldName(form, 'regex')
-        ],
-        actions: [
-            form.querySelector('.basic.custom-action-wrapper-parent'),
-            Array.from(form.querySelectorAll('.basic')).find((entry) => entry.querySelector('a.custom-action'))
-        ],
-        advanced: [
-            findBasicByFieldName(form, 'update_column'),
-            findBasicByFieldName(form, 'override_default_actions'),
-            findBasicByFieldName(form, 'default_action'),
-            findBasicByFieldName(form, 'expand_tab'),
-            findBasicByFieldName(form, 'expand_dashboard'),
-            findBasicByFieldName(form, 'dashboard_overflow')
-        ]
-    });
-
-    const ensureSectionShells = (form) => {
-        if (form.querySelector('.fv-section-shell')) {
+        if (form.querySelector('#fvEditorActionBar')) {
             return;
         }
-        const sectionRows = collectSectionRows(form);
-        const actionBar = form.querySelector('#fvEditorActionBar');
-        Object.entries(SECTION_META).forEach(([sectionKey, meta]) => {
-            const rows = (sectionRows[sectionKey] || []).filter(Boolean);
-            if (!rows.length) {
-                return;
-            }
-            const shell = document.createElement('section');
-            shell.className = `fv-section-shell${meta.advanced ? ' is-advanced-shell' : ''}`;
-            shell.setAttribute('data-section-shell', sectionKey);
-            shell.innerHTML = `
-                <div class="fv-section-heading" id="fv-section-${sectionKey}" data-section-key="${sectionKey}">
-                    <div class="fv-section-heading-title-row">
-                        <div class="fv-section-heading-copy">
-                            <div class="fv-section-heading-kicker">
-                                <i class="fa ${meta.icon}" aria-hidden="true"></i>
-                                <span>${meta.advanced ? 'Advanced section' : 'Core section'}</span>
-                            </div>
-                            <h3>${meta.title}${meta.advanced ? ' <span class="fv-section-badge">advanced</span>' : ''}</h3>
-                        </div>
-                    </div>
-                </div>
-                <div class="fv-section-shell-body"></div>
-            `;
-            const body = shell.querySelector('.fv-section-shell-body');
-            rows.forEach((row) => body.appendChild(row));
-            if (actionBar) {
-                form.insertBefore(shell, actionBar);
-            } else {
-                form.appendChild(shell);
-            }
-        });
-    };
-
-    const ensureSectionNav = (form) => {
-        const nav = form.querySelector('#fvEditorChrome .fv-section-nav');
-        if (!nav || nav.children.length > 0) {
-            return;
-        }
-        Object.entries(SECTION_META).forEach(([sectionKey, meta]) => {
-            if (!form.querySelector(`.fv-section-shell[data-section-shell="${sectionKey}"]`)) {
-                return;
-            }
-            const button = document.createElement('button');
-            button.type = 'button';
-            button.setAttribute('data-target', sectionKey);
-            button.innerHTML = `<i class="fa ${meta.icon}" aria-hidden="true"></i><span>${meta.title}</span>`;
-            button.addEventListener('click', () => {
-                const target = form.querySelector(`#fv-section-${sectionKey}`);
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            });
-            nav.appendChild(button);
-        });
+        const actionBar = root.document.createElement('div');
+        actionBar.id = 'fvEditorActionBar';
+        actionBar.className = 'fv-editor-actionbar';
+        actionBar.innerHTML = `
+            <div class="fv-editor-actionbar-main"></div>
+            <div class="fv-editor-actionbar-meta">
+                <span id="fvActionBarDirty" class="fv-actionbar-dirty">No pending changes</span>
+                <span id="fvActionBarHint" class="fv-actionbar-hint">Save, copy, reset, or cancel from here.</span>
+            </div>
+        `;
+        form.appendChild(actionBar);
     };
 
     const init = () => {
@@ -239,8 +152,6 @@
         }
         ensureTopChrome(form);
         ensureActionBar(form);
-        ensureSectionShells(form);
-        ensureSectionNav(form);
     };
 
     if (root.document.readyState === 'loading') {

@@ -57,6 +57,10 @@ const settingsJs = settingsRuntime;
 const folderPage = fs.readFileSync(folderPagePath, 'utf8');
 const folderCss = fs.readFileSync(folderCssPath, 'utf8');
 const folderJs = fs.readFileSync(folderJsPath, 'utf8');
+const folderChromeJs = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js'),
+    'utf8'
+);
 const dockerJs = fs.readFileSync(dockerJsPath, 'utf8');
 const vmJs = fs.readFileSync(vmJsPath, 'utf8');
 
@@ -268,6 +272,8 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderCss, /\.fv-section-collapse/);
     assert.match(folderCss, /\.fv-docker-signals/);
     assert.match(folderCss, /\.fv-validation-details/);
+    assert.match(folderCss, /\.fv-section-nav > button\.is-active/);
+    assert.match(folderCss, /\.fv-orphan-editor-row/);
 });
 
 test('folder editor page ships the redesign bootstrap and chrome anchors', () => {
@@ -276,6 +282,12 @@ test('folder editor page ships the redesign bootstrap and chrome anchors', () =>
     assert.match(folderJs, /id="fvEditorChrome"/);
     assert.match(folderJs, /id="fvLivePanel"/);
     assert.match(folderJs, /id="fvEditorActionBar"/);
+    assert.match(folderChromeJs, /id="fvRestoreSavedValues"/);
+    assert.match(folderChromeJs, /data-mode="basic"/);
+    assert.match(folderChromeJs, /id="fvLivePreviewCanvas"/);
+    assert.match(folderJs, /markSection\('div\.basic:has\(\[name="parent_folder_id"\]\)', 'general'\);/);
+    assert.match(folderJs, /const setActiveEditorSection = \(sectionKey\) =>/);
+    assert.match(folderJs, /shell\.toggle\(isActiveSection\);/);
 });
 
 test('settings runtime uses extracted chrome module and shared request wrapper', () => {

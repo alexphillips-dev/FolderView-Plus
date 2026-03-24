@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.23.37">
-<!ENTITY md5 "ebbfdda4d848b7adf97365fdc6907c7f">
+<!ENTITY version "2026.03.23.38">
+<!ENTITY md5 "2e88999508c2c25319596a4832419d2e">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.23.38
+- Fix: Reworked the folder editor chrome bootstrap so the main runtime can bind the new buttons, live preview, and mode controls instead of leaving a dead placeholder shell behind.
+- UX: Converted the folder editor section pills into real tabs, defaulted the editor back to `Basic` on open, and hid any leftover unsectioned legacy rows so the old flat form no longer bleeds through underneath.
+- Test: Expanded folder editor UI smoke coverage for tab activation, parent-folder section tagging, and shipped bootstrap control anchors.
+
 
 ###2026.03.23.37
 - Fix: Added a dedicated `folder.editor.chrome.js` page bootstrap so the redesigned folder editor shell renders immediately instead of depending only on the later `folder.js` hydration path.

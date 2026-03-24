@@ -5,6 +5,10 @@ let selectedRegex = [];
 // element selected manually
 let selected = [];
 const folderEditorQueryParams = new URLSearchParams(location.search);
+const folderEditorBootstrapContext = window.FolderViewPlusFolderEditorBootstrapContext
+    && typeof window.FolderViewPlusFolderEditorBootstrapContext === 'object'
+    ? window.FolderViewPlusFolderEditorBootstrapContext
+    : {};
 const inferFolderEditorTypeFromPath = () => {
     const pathname = String(window.location?.pathname || '').toLowerCase();
     if (pathname.includes('/docker/')) {
@@ -29,9 +33,20 @@ const folderId = String(
     || folderEditorQueryParams.get('folderId')
     || folderEditorQueryParams.get('folder')
     || folderEditorQueryParams.get('name')
+    || folderEditorBootstrapContext.resolvedId
     || window.FolderViewPlusFolderEditorRequestedId
+    || folderEditorBootstrapContext.requestedId
     || ''
 ).trim();
+const folderEditorResolvedId = String(
+    folderEditorBootstrapContext.resolvedId
+    || window.FolderViewPlusFolderEditorResolvedId
+    || ''
+).trim();
+const folderEditorBootstrapFolder = folderEditorBootstrapContext.folder
+    && typeof folderEditorBootstrapContext.folder === 'object'
+    ? folderEditorBootstrapContext.folder
+    : null;
 const utils = window.FolderViewPlusUtils || null;
 const folderHierarchyModule = window.FolderViewPlusFolderHierarchy || null;
 const folderIconApiModule = window.FolderViewPlusFolderIconApi || null;
@@ -264,9 +279,6 @@ const BUILT_IN_ICON_FALLBACK = [{
 const folderEditorBootstrapMissingModules = [];
 if (!utils || typeof utils.normalizeDashboardOverflowMode !== 'function') {
     folderEditorBootstrapMissingModules.push('folderviewplus.utils.js');
-}
-if (!folderHierarchyModule || typeof folderHierarchyModule.createApi !== 'function') {
-    folderEditorBootstrapMissingModules.push('folder.editor.hierarchy.js');
 }
 if (folderEditorBootstrapMissingModules.length > 0) {
     const error = new Error(`FolderView Plus folder editor bootstrap failed. Missing modules: ${folderEditorBootstrapMissingModules.join(', ')}`);
@@ -4631,6 +4643,117 @@ getForm().dropdown_color.value = DEFAULT_DROPDOWN_COLOR;
 getForm().dropdown_hover_color.value = DEFAULT_DROPDOWN_HOVER_COLOR;
 resetStatusColorDefaults();
 
+const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {}, options = {}) => {
+    const safeFolderId = String(folderRecordId || '').trim();
+    const normalizedFolder = normalizeFolderRecordForEditor(folderRecord || {});
+    const folders = foldersMap && typeof foldersMap === 'object' ? { ...foldersMap } : {};
+    if (safeFolderId && Object.prototype.hasOwnProperty.call(folders, safeFolderId)) {
+        delete folders[safeFolderId];
+    }
+
+    folderHierarchyState.currentFolderDescendantIds = safeFolderId
+        ? computeFolderDescendantIds(allFoldersById, safeFolderId)
+        : new Set();
+    currentFolderName = normalizedFolder.name || '';
+
+    const form = getForm();
+    const setFieldValue = (fieldName, value) => {
+        const field = getFormField(form, fieldName);
+        if (field) {
+            $(field).val(value);
+        }
+    };
+    const setFieldChecked = (fieldName, checked) => {
+        const field = getFormField(form, fieldName);
+        if (field) {
+            field.checked = checked === true;
+        }
+    };
+
+    setFieldValue('name', normalizedFolder.name);
+    populateParentFolderOptions(
+        folders,
+        normalizeParentFolderId(normalizedFolder.parentId || ''),
+        safeFolderId ? new Set([safeFolderId, ...Array.from(folderHierarchyState.currentFolderDescendantIds)]) : new Set()
+    );
+    setFieldValue('icon', normalizedFolder.icon);
+    setFieldChecked('folder_webui', normalizedFolder.settings.folder_webui || false);
+    setFieldValue('folder_webui_url', normalizedFolder.settings.folder_webui_url || '');
+    setFieldValue('preview', String(normalizedFolder.settings.preview));
+    setFieldValue('preview_rows', String(normalizePreviewRowLimit(normalizedFolder.settings, normalizedFolder)));
+    setFieldChecked('preview_hover', normalizedFolder.settings.preview_hover);
+    setFieldChecked('preview_update', normalizedFolder.settings.preview_update);
+    setFieldValue('preview_text_width', normalizedFolder.settings.preview_text_width || '');
+    setFieldChecked('preview_grayscale', normalizedFolder.settings.preview_grayscale);
+    setFieldChecked('preview_webui', normalizedFolder.settings.preview_webui);
+    setFieldChecked('preview_logs', normalizedFolder.settings.preview_logs);
+    setFieldChecked('preview_console', normalizedFolder.settings.preview_console || false);
+    setFieldChecked('preview_vertical_bars', normalizedFolder.settings.preview_vertical_bars || false);
+    setFieldValue('context', normalizedFolder.settings.context?.toString() || '1');
+    setFieldValue('context_trigger', normalizedFolder.settings.context_trigger?.toString() || '0');
+    setFieldValue('context_graph', normalizedFolder.settings.context_graph?.toString() || '1');
+    setFieldValue('context_graph_time', normalizedFolder.settings.context_graph_time?.toString() || '60');
+    setFieldChecked('preview_border', isLegacyPreviewBorderEnabled(normalizedFolder.settings || {}));
+    setFieldValue('preview_border_color', normalizeHexColor(normalizedFolder.settings.preview_border_color, DEFAULT_BORDER_COLOR));
+    setFieldValue('preview_border_width', String(normalizePositiveInt(normalizedFolder.settings.preview_border_width, DEFAULT_PREVIEW_BORDER_WIDTH, 1, 4)));
+    setFieldValue('preview_vertical_bars_color', normalizeHexColor(
+        normalizedFolder.settings.preview_vertical_bars_color || normalizedFolder.settings.preview_border_color,
+        DEFAULT_BORDER_COLOR
+    ));
+    setFieldValue('preview_vertical_bars_width', String(normalizePositiveInt(normalizedFolder.settings.preview_vertical_bars_width, DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH, 1, 4)));
+    setFieldValue('dropdown_style', normalizeDropdownStyle(normalizedFolder.settings, normalizedFolder));
+    setFieldValue('dropdown_color', normalizeHexColor(normalizedFolder.settings.dropdown_color, DEFAULT_DROPDOWN_COLOR));
+    setFieldValue('dropdown_hover_color', normalizeHexColor(normalizedFolder.settings.dropdown_hover_color, DEFAULT_DROPDOWN_HOVER_COLOR));
+    setFieldValue('status_color_started', normalizeHexColor(normalizedFolder.settings.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started));
+    setFieldValue('status_color_paused', normalizeHexColor(normalizedFolder.settings.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused));
+    setFieldValue('status_color_stopped', normalizeHexColor(normalizedFolder.settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped));
+    setFieldValue('health_warn_stopped_percent', normalizedFolder.settings.health_warn_stopped_percent === undefined
+        || normalizedFolder.settings.health_warn_stopped_percent === null
+        || normalizedFolder.settings.health_warn_stopped_percent === ''
+        ? ''
+        : String(normalizedFolder.settings.health_warn_stopped_percent));
+    setFieldValue('health_critical_stopped_percent', normalizedFolder.settings.health_critical_stopped_percent === undefined
+        || normalizedFolder.settings.health_critical_stopped_percent === null
+        || normalizedFolder.settings.health_critical_stopped_percent === ''
+        ? ''
+        : String(normalizedFolder.settings.health_critical_stopped_percent));
+    setFieldValue('health_profile', normalizeOptionalHealthSelect(normalizedFolder.settings.health_profile, FOLDER_HEALTH_PROFILE_VALUES));
+    setFieldValue('health_updates_mode', normalizeOptionalHealthSelect(normalizedFolder.settings.health_updates_mode, FOLDER_HEALTH_UPDATES_MODE_VALUES));
+    setFieldValue('health_all_stopped_mode', normalizeOptionalHealthSelect(normalizedFolder.settings.health_all_stopped_mode, FOLDER_HEALTH_ALL_STOPPED_MODE_VALUES));
+    setFieldValue('status_warn_stopped_percent', normalizedFolder.settings.status_warn_stopped_percent === undefined
+        || normalizedFolder.settings.status_warn_stopped_percent === null
+        || normalizedFolder.settings.status_warn_stopped_percent === ''
+        ? ''
+        : String(normalizedFolder.settings.status_warn_stopped_percent));
+    setFieldChecked('update_column', normalizedFolder.settings.update_column || false);
+    setFieldChecked('default_action', normalizedFolder.settings.default_action || false);
+    setFieldChecked('expand_tab', normalizedFolder.settings.expand_tab);
+    setFieldChecked('override_default_actions', normalizedFolder.settings.override_default_actions);
+    setFieldChecked('expand_dashboard', normalizedFolder.settings.expand_dashboard);
+    setFieldValue('dashboard_overflow', normalizeDashboardOverflowMode(normalizedFolder.settings.dashboard_overflow));
+    setFieldValue('regex', normalizedFolder.regex);
+
+    const customActionWrapper = $('.custom-action-wrapper');
+    if (customActionWrapper.length) {
+        customActionWrapper.empty();
+        normalizedFolder.actions?.forEach((entry, index) => {
+            const safeActionName = escapeHtml(entry?.name || '');
+            customActionWrapper.append(`<div class="custom-action-n-${index}">${safeActionName} <button onclick="return customAction(${index});"><i class="fa fa-pencil" aria-hidden="true"></i></button><button onclick="return rCcustomAction(${index});"><i class="fa fa-trash" aria-hidden="true"></i></button><input type="hidden" name="custom_action[]" value="${btoa(JSON.stringify(entry))}"></div>`);
+        });
+    }
+
+    updateForm();
+    updateIcon(getFormField(form, 'icon'));
+    if (options.clearPrefill === true) {
+        clearEditorNavigationPrefill();
+    }
+    setParentDefaultsNote('');
+    return {
+        folder: normalizedFolder,
+        id: safeFolderId
+    };
+};
+
 (async () => {
     registerBeforeUnloadGuard();
     applySectionTags();
@@ -4641,6 +4764,17 @@ resetStatusColorDefaults();
     validateForm();
     updateLiveSummary();
     updateRegexSimulator();
+    const bootstrapFolderId = String(folderId || folderEditorResolvedId || '').trim();
+    const bootstrapFolderRecord = folderEditorBootstrapFolder && typeof folderEditorBootstrapFolder === 'object'
+        ? normalizeFolderRecordForEditor(folderEditorBootstrapFolder)
+        : null;
+    if (bootstrapFolderRecord && bootstrapFolderId) {
+        allFoldersById = {
+            ...allFoldersById,
+            [bootstrapFolderId]: bootstrapFolderRecord
+        };
+        hydrateCurrentEditFolder(bootstrapFolderRecord, bootstrapFolderId, {}, { clearPrefill: false });
+    }
     const cacheBust = Date.now();
     // if editing a vm hide docker related settings
     if (type !== 'docker') {
@@ -4663,23 +4797,27 @@ resetStatusColorDefaults();
     let currentEditFolderId = '';
 
     const navigationPrefill = readEditorNavigationPrefill(type, folderId);
-    const requestedFolderRef = String(folderId || navigationPrefill?.id || '').trim();
+    const requestedFolderRef = String(folderId || folderEditorResolvedId || navigationPrefill?.id || '').trim();
 
     if (requestedFolderRef) {
         const resolvedEditFolder = resolveCurrentEditFolder(folders, requestedFolderRef);
-        currentEditFolder = resolvedEditFolder?.folder || navigationPrefill?.folder || null;
-        currentEditFolderId = String(resolvedEditFolder?.id || navigationPrefill?.id || '').trim();
+        currentEditFolder = resolvedEditFolder?.folder || bootstrapFolderRecord || navigationPrefill?.folder || null;
+        currentEditFolderId = String(resolvedEditFolder?.id || folderEditorResolvedId || navigationPrefill?.id || '').trim();
         if (!currentEditFolder || !currentEditFolderId) {
             setValidationBannerState(
                 'Warning: requested folder could not be loaded.',
-                `Folder reference "${requestedFolderRef}" was not found in the saved folder map or recent edit context. The editor stayed in new-folder mode instead of silently hydrating the wrong data.`,
+                `Folder reference "${requestedFolderRef}" was not found in the saved folder map, server bootstrap context, or recent edit context. The editor stayed in new-folder mode instead of silently hydrating the wrong data.`,
                 'warning'
             );
             folderHierarchyState.currentFolderDescendantIds = new Set();
             populateParentFolderOptions(folders, '', new Set());
             setParentDefaultsNote('Select a parent to inherit preview/icon defaults automatically.', 'info');
         } else {
-        if (!resolvedEditFolder && navigationPrefill) {
+        if (!resolvedEditFolder && bootstrapFolderRecord) {
+            folders[currentEditFolderId] = currentEditFolder;
+            allFoldersById[currentEditFolderId] = currentEditFolder;
+        }
+        if (!resolvedEditFolder && navigationPrefill && !bootstrapFolderRecord) {
             folders[currentEditFolderId] = currentEditFolder;
             allFoldersById[currentEditFolderId] = currentEditFolder;
             setValidationBannerState(
@@ -4688,96 +4826,7 @@ resetStatusColorDefaults();
                 'warning'
             );
         }
-        folderHierarchyState.currentFolderDescendantIds = computeFolderDescendantIds(allFoldersById, currentEditFolderId);
-        currentFolderName = currentEditFolder.name || '';
-        delete folders[currentEditFolderId];
-
-        const form = getForm();
-        const setFieldValue = (fieldName, value) => {
-            const field = getFormField(form, fieldName);
-            if (field) {
-                $(field).val(value);
-            }
-        };
-        const setFieldChecked = (fieldName, checked) => {
-            const field = getFormField(form, fieldName);
-            if (field) {
-                field.checked = checked === true;
-            }
-        };
-
-        setFieldValue('name', currentEditFolder.name);
-        populateParentFolderOptions(
-            folders,
-            normalizeParentFolderId(currentEditFolder.parentId || ''),
-            new Set([currentEditFolderId, ...Array.from(folderHierarchyState.currentFolderDescendantIds)])
-        );
-        setFieldValue('icon', currentEditFolder.icon);
-        setFieldChecked('folder_webui', currentEditFolder.settings.folder_webui || false);
-        setFieldValue('folder_webui_url', currentEditFolder.settings.folder_webui_url || '');
-        setFieldValue('preview', String(currentEditFolder.settings.preview));
-        setFieldValue('preview_rows', String(normalizePreviewRowLimit(currentEditFolder.settings, currentEditFolder)));
-        setFieldChecked('preview_hover', currentEditFolder.settings.preview_hover);
-        setFieldChecked('preview_update', currentEditFolder.settings.preview_update);
-        setFieldValue('preview_text_width', currentEditFolder.settings.preview_text_width || '');
-        setFieldChecked('preview_grayscale', currentEditFolder.settings.preview_grayscale);
-        setFieldChecked('preview_webui', currentEditFolder.settings.preview_webui);
-        setFieldChecked('preview_logs', currentEditFolder.settings.preview_logs);
-        setFieldChecked('preview_console', currentEditFolder.settings.preview_console || false);
-        setFieldChecked('preview_vertical_bars', currentEditFolder.settings.preview_vertical_bars || false);
-        setFieldValue('context', currentEditFolder.settings.context?.toString() || '1');
-        setFieldValue('context_trigger', currentEditFolder.settings.context_trigger?.toString() || '0');
-        setFieldValue('context_graph', currentEditFolder.settings.context_graph?.toString() || '1');
-        setFieldValue('context_graph_time', currentEditFolder.settings.context_graph_time?.toString() || '60');
-        setFieldChecked('preview_border', isLegacyPreviewBorderEnabled(currentEditFolder.settings || {}));
-        setFieldValue('preview_border_color', normalizeHexColor(currentEditFolder.settings.preview_border_color, DEFAULT_BORDER_COLOR));
-        setFieldValue('preview_border_width', String(normalizePositiveInt(currentEditFolder.settings.preview_border_width, DEFAULT_PREVIEW_BORDER_WIDTH, 1, 4)));
-        setFieldValue('preview_vertical_bars_color', normalizeHexColor(
-            currentEditFolder.settings.preview_vertical_bars_color || currentEditFolder.settings.preview_border_color,
-            DEFAULT_BORDER_COLOR
-        ));
-        setFieldValue('preview_vertical_bars_width', String(normalizePositiveInt(currentEditFolder.settings.preview_vertical_bars_width, DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH, 1, 4)));
-        setFieldValue('dropdown_style', normalizeDropdownStyle(currentEditFolder.settings, currentEditFolder));
-        setFieldValue('dropdown_color', normalizeHexColor(currentEditFolder.settings.dropdown_color, DEFAULT_DROPDOWN_COLOR));
-        setFieldValue('dropdown_hover_color', normalizeHexColor(currentEditFolder.settings.dropdown_hover_color, DEFAULT_DROPDOWN_HOVER_COLOR));
-        setFieldValue('status_color_started', normalizeHexColor(currentEditFolder.settings.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started));
-        setFieldValue('status_color_paused', normalizeHexColor(currentEditFolder.settings.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused));
-        setFieldValue('status_color_stopped', normalizeHexColor(currentEditFolder.settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped));
-        setFieldValue('health_warn_stopped_percent', currentEditFolder.settings.health_warn_stopped_percent === undefined
-            || currentEditFolder.settings.health_warn_stopped_percent === null
-            || currentEditFolder.settings.health_warn_stopped_percent === ''
-            ? ''
-            : String(currentEditFolder.settings.health_warn_stopped_percent));
-        setFieldValue('health_critical_stopped_percent', currentEditFolder.settings.health_critical_stopped_percent === undefined
-            || currentEditFolder.settings.health_critical_stopped_percent === null
-            || currentEditFolder.settings.health_critical_stopped_percent === ''
-            ? ''
-            : String(currentEditFolder.settings.health_critical_stopped_percent));
-        setFieldValue('health_profile', normalizeOptionalHealthSelect(currentEditFolder.settings.health_profile, FOLDER_HEALTH_PROFILE_VALUES));
-        setFieldValue('health_updates_mode', normalizeOptionalHealthSelect(currentEditFolder.settings.health_updates_mode, FOLDER_HEALTH_UPDATES_MODE_VALUES));
-        setFieldValue('health_all_stopped_mode', normalizeOptionalHealthSelect(currentEditFolder.settings.health_all_stopped_mode, FOLDER_HEALTH_ALL_STOPPED_MODE_VALUES));
-        setFieldValue('status_warn_stopped_percent', currentEditFolder.settings.status_warn_stopped_percent === undefined
-            || currentEditFolder.settings.status_warn_stopped_percent === null
-            || currentEditFolder.settings.status_warn_stopped_percent === ''
-            ? ''
-            : String(currentEditFolder.settings.status_warn_stopped_percent));
-        setFieldChecked('update_column', currentEditFolder.settings.update_column || false);
-        setFieldChecked('default_action', currentEditFolder.settings.default_action || false);
-        setFieldChecked('expand_tab', currentEditFolder.settings.expand_tab);
-        setFieldChecked('override_default_actions', currentEditFolder.settings.override_default_actions);
-        setFieldChecked('expand_dashboard', currentEditFolder.settings.expand_dashboard);
-        setFieldValue('dashboard_overflow', normalizeDashboardOverflowMode(currentEditFolder.settings.dashboard_overflow));
-        setFieldValue('regex', currentEditFolder.regex);
-
-        currentEditFolder.actions?.forEach((entry, index) => {
-            const safeActionName = escapeHtml(entry?.name || '');
-            $('.custom-action-wrapper').append(`<div class="custom-action-n-${index}">${safeActionName} <button onclick="return customAction(${index});"><i class="fa fa-pencil" aria-hidden="true"></i></button><button onclick="return rCcustomAction(${index});"><i class="fa fa-trash" aria-hidden="true"></i></button><input type="hidden" name="custom_action[]" value="${btoa(JSON.stringify(entry))}"></div>`);
-        });
-
-        updateForm();
-        updateIcon(getFormField(form, 'icon'));
-        setParentDefaultsNote('');
-        clearEditorNavigationPrefill();
+        hydrateCurrentEditFolder(currentEditFolder, currentEditFolderId, folders, { clearPrefill: true });
         }
     } else {
         clearEditorNavigationPrefill();
@@ -4896,7 +4945,15 @@ resetStatusColorDefaults();
     });
 
     window.addEventListener('resize', enforceLeftAlignedSettingsLayout);
-})();
+})().catch((error) => {
+    const safeError = error instanceof Error ? error : new Error(String(error || 'Unknown folder editor bootstrap failure.'));
+    setValidationBannerState(
+        'Folder editor failed to finish loading.',
+        safeError.message || 'Unknown folder editor bootstrap failure.',
+        'invalid'
+    );
+    throw safeError;
+});
 
 /**
  * Update the folder icon when editing the respective field
@@ -5173,16 +5230,279 @@ const updateForm = () => {
     renderLivePreviewCanvas();
 };
 
-if (!folderHierarchyModule || typeof folderHierarchyModule.createApi !== 'function') {
-    throw new Error('FolderView Plus folder editor bootstrap failed: missing folder.editor.hierarchy.js');
-}
+const createFallbackFolderHierarchyApi = (deps = {}) => {
+    const jq = deps.$;
+    const getFallbackForm = typeof deps.getForm === 'function' ? deps.getForm : (() => null);
+    const getFolderIdRef = typeof deps.getFolderId === 'function' ? deps.getFolderId : (() => '');
+    const getAllFoldersRef = typeof deps.getAllFolders === 'function' ? deps.getAllFolders : (() => ({}));
+    const updateFormRef = typeof deps.updateForm === 'function' ? deps.updateForm : (() => {});
+    const validateFormRef = typeof deps.validateForm === 'function' ? deps.validateForm : (() => {});
+    const updateLiveSummaryRef = typeof deps.updateLiveSummary === 'function' ? deps.updateLiveSummary : (() => {});
+    const updateRegexSimulatorRef = typeof deps.updateRegexSimulator === 'function' ? deps.updateRegexSimulator : (() => {});
+    const escapeHtmlRef = typeof deps.escapeHtml === 'function' ? deps.escapeHtml : ((value) => String(value || ''));
+    const smartDefaultFieldNames = deps.smartDefaultFieldNames instanceof Set ? deps.smartDefaultFieldNames : new Set();
+    const getParentDefaultsRef = typeof deps.getParentDefaults === 'function' ? deps.getParentDefaults : (() => ({}));
+
+    const state = {
+        currentFolderDescendantIds: new Set(),
+        smartDefaultTouchedFields: new Set(),
+        isApplyingParentDefaults: false
+    };
+
+    const normalizeParentFolderId = (value) => String(value || '').trim();
+    const computeFolderDescendantIds = (foldersMap, rootId) => {
+        const source = foldersMap && typeof foldersMap === 'object' ? foldersMap : {};
+        const rootFolderId = normalizeParentFolderId(rootId);
+        if (!rootFolderId) {
+            return new Set();
+        }
+        const descendants = new Set();
+        const queue = [rootFolderId];
+        while (queue.length > 0) {
+            const current = queue.shift();
+            for (const [id, folder] of Object.entries(source)) {
+                const parentId = normalizeParentFolderId(folder?.parentId || folder?.parent_id || '');
+                if (parentId !== current || descendants.has(id)) {
+                    continue;
+                }
+                descendants.add(id);
+                queue.push(id);
+            }
+        }
+        descendants.delete(rootFolderId);
+        return descendants;
+    };
+    const buildNestedFolderOrder = (foldersMap) => {
+        const source = foldersMap && typeof foldersMap === 'object' ? foldersMap : {};
+        const ids = Object.keys(source);
+        if (ids.length <= 0) {
+            return [];
+        }
+        const indexById = new Map(ids.map((id, idx) => [id, idx]));
+        const childrenByParent = new Map();
+        for (const id of ids) {
+            const parentIdRaw = normalizeParentFolderId(source[id]?.parentId || source[id]?.parent_id || '');
+            const parentId = parentIdRaw && parentIdRaw !== id && indexById.has(parentIdRaw) ? parentIdRaw : '';
+            const key = parentId || '__root__';
+            if (!childrenByParent.has(key)) {
+                childrenByParent.set(key, []);
+            }
+            childrenByParent.get(key).push(id);
+        }
+        const sortBySourceIndex = (a, b) => (indexById.get(a) || 0) - (indexById.get(b) || 0);
+        for (const list of childrenByParent.values()) {
+            list.sort(sortBySourceIndex);
+        }
+        const rows = [];
+        const visiting = new Set();
+        const visited = new Set();
+        const visit = (id, depth) => {
+            if (!id || visited.has(id) || visiting.has(id)) {
+                return;
+            }
+            visiting.add(id);
+            rows.push({ id, folder: source[id], depth: Math.max(0, depth) });
+            for (const childId of (childrenByParent.get(id) || [])) {
+                visit(childId, depth + 1);
+            }
+            visiting.delete(id);
+            visited.add(id);
+        };
+        for (const rootId of (childrenByParent.get('__root__') || [])) {
+            visit(rootId, 0);
+        }
+        for (const id of ids) {
+            visit(id, 0);
+        }
+        return rows;
+    };
+    const populateParentFolderOptions = (foldersMap, selectedParentId = '', blockedIds = new Set()) => {
+        const form = getFallbackForm();
+        const select = form?.parent_folder_id;
+        if (!select || typeof jq !== 'function') {
+            return;
+        }
+        const selected = normalizeParentFolderId(selectedParentId);
+        const blocked = blockedIds instanceof Set ? blockedIds : new Set();
+        const rows = buildNestedFolderOrder(foldersMap);
+        const options = ['<option value="">No parent (top level)</option>'];
+        for (const row of rows) {
+            const id = normalizeParentFolderId(row?.id || '');
+            if (!id || blocked.has(id)) {
+                continue;
+            }
+            const depth = Math.max(0, Number(row?.depth || 0));
+            const indent = depth > 0 ? `${'  '.repeat(depth)}- ` : '';
+            options.push(`<option value="${escapeHtmlRef(id)}">${escapeHtmlRef(`${indent}${String(row?.folder?.name || id)}`)}</option>`);
+        }
+        jq(select).html(options.join(''));
+        select.value = (selected && !blocked.has(selected)) ? selected : '';
+    };
+    const getSiblingNameCollision = (nameValue, parentId, excludeFolderId = '') => {
+        const nameNeedle = String(nameValue || '').trim().toLowerCase();
+        if (!nameNeedle) {
+            return null;
+        }
+        const targetParent = normalizeParentFolderId(parentId);
+        const excludeId = normalizeParentFolderId(excludeFolderId);
+        for (const [id, folder] of Object.entries(getAllFoldersRef() || {})) {
+            const safeId = normalizeParentFolderId(id);
+            if (!safeId || (excludeId && safeId === excludeId)) {
+                continue;
+            }
+            const folderName = String(folder?.name || '').trim().toLowerCase();
+            if (!folderName || folderName !== nameNeedle) {
+                continue;
+            }
+            const folderParent = normalizeParentFolderId(folder?.parentId || folder?.parent_id || '');
+            if (folderParent === targetParent) {
+                return {
+                    id: safeId,
+                    name: String(folder?.name || '').trim() || safeId
+                };
+            }
+        }
+        return null;
+    };
+    const suggestSiblingName = (baseName, parentId, excludeFolderId = '') => {
+        const trimmedBase = String(baseName || '').trim() || 'Folder';
+        if (!getSiblingNameCollision(trimmedBase, parentId, excludeFolderId)) {
+            return trimmedBase;
+        }
+        let index = 2;
+        while (index < 500) {
+            const candidate = `${trimmedBase} (${index})`;
+            if (!getSiblingNameCollision(candidate, parentId, excludeFolderId)) {
+                return candidate;
+            }
+            index += 1;
+        }
+        return `${trimmedBase} ${Date.now()}`;
+    };
+    const setParentDefaultsNote = (message = '', level = 'info') => {
+        if (typeof jq !== 'function') {
+            return;
+        }
+        const form = getFallbackForm();
+        const select = jq(form?.elements?.parent_folder_id);
+        if (!select.length) {
+            return;
+        }
+        const dd = select.closest('dd');
+        if (!dd.length) {
+            return;
+        }
+        let note = dd.find('.fv-parent-defaults-note');
+        if (!note.length) {
+            note = jq('<div class="fv-parent-defaults-note" style="display:none;"></div>');
+            dd.append(note);
+        }
+        note.removeClass('is-info is-success is-warning').addClass(
+            level === 'success' ? 'is-success' : (level === 'warning' ? 'is-warning' : 'is-info')
+        );
+        const safeMessage = String(message || '').trim();
+        if (!safeMessage) {
+            note.hide().text('');
+            return;
+        }
+        note.text(safeMessage).show();
+    };
+    const applySmartDefaultsFromParent = (parentId, config = {}) => {
+        if (getFolderIdRef()) {
+            return 0;
+        }
+        const safeParentId = normalizeParentFolderId(parentId);
+        if (!safeParentId) {
+            setParentDefaultsNote('');
+            return 0;
+        }
+        const parentFolder = getAllFoldersRef()?.[safeParentId];
+        if (!parentFolder || typeof parentFolder !== 'object') {
+            setParentDefaultsNote('');
+            return 0;
+        }
+        const form = getFallbackForm();
+        if (!form) {
+            return 0;
+        }
+        const defaults = config.defaults && typeof config.defaults === 'object'
+            ? config.defaults
+            : getParentDefaultsRef(parentFolder, safeParentId, config);
+
+        let applied = 0;
+        state.isApplyingParentDefaults = true;
+        try {
+            for (const [fieldName, value] of Object.entries(defaults)) {
+                if (!smartDefaultFieldNames.has(fieldName)) {
+                    continue;
+                }
+                if (config.force !== true && state.smartDefaultTouchedFields.has(fieldName)) {
+                    continue;
+                }
+                const input = form.elements?.[fieldName];
+                if (!input) {
+                    continue;
+                }
+                if (typeof value === 'boolean') {
+                    input.checked = value;
+                    applied += 1;
+                    continue;
+                }
+                const nextValue = String(value || '');
+                if (!nextValue) {
+                    continue;
+                }
+                input.value = nextValue;
+                applied += 1;
+            }
+        } finally {
+            state.isApplyingParentDefaults = false;
+        }
+
+        if (applied > 0) {
+            const parentName = String(parentFolder?.name || safeParentId).trim() || safeParentId;
+            setParentDefaultsNote(`Inherited ${applied} default${applied === 1 ? '' : 's'} from parent "${parentName}".`, 'success');
+        } else {
+            setParentDefaultsNote('Parent selected. Existing custom values were kept.', 'info');
+        }
+
+        updateFormRef();
+        validateFormRef();
+        updateLiveSummaryRef();
+        updateRegexSimulatorRef();
+        return applied;
+    };
+    const markSmartDefaultFieldTouched = (fieldName) => {
+        const safeName = String(fieldName || '').trim();
+        if (!safeName || !smartDefaultFieldNames.has(safeName) || state.isApplyingParentDefaults) {
+            return;
+        }
+        state.smartDefaultTouchedFields.add(safeName);
+    };
+
+    return Object.freeze({
+        state,
+        normalizeParentFolderId,
+        computeFolderDescendantIds,
+        buildNestedFolderOrder,
+        populateParentFolderOptions,
+        getSiblingNameCollision,
+        suggestSiblingName,
+        setParentDefaultsNote,
+        applySmartDefaultsFromParent,
+        markSmartDefaultFieldTouched
+    });
+};
+const createFolderHierarchyApi = typeof folderHierarchyModule?.createApi === 'function'
+    ? folderHierarchyModule.createApi
+    : createFallbackFolderHierarchyApi;
 const getFolderHierarchyApi = (() => {
     let cachedApi = null;
     return () => {
         if (cachedApi) {
             return cachedApi;
         }
-        cachedApi = folderHierarchyModule.createApi({
+        cachedApi = createFolderHierarchyApi({
             $,
             getForm,
             getFolderId: () => folderId,

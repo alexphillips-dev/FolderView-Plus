@@ -1514,6 +1514,89 @@
         return normalizeFolderParentLinks($normalized);
     }
 
+    function resolveFolderEditorRequestedContext(string $type, string $requestedRef): array {
+        $safeType = ensureType($type);
+        $safeRequestedRef = trim((string)$requestedRef);
+        if ($safeRequestedRef === '') {
+            return [
+                'requestedId' => '',
+                'resolvedId' => '',
+                'resolvedBy' => '',
+                'folder' => null
+            ];
+        }
+
+        $candidateIds = array_values(array_unique(array_filter([
+            $safeRequestedRef,
+            urldecode($safeRequestedRef)
+        ], static fn($value) => trim((string)$value) !== '')));
+
+        $folders = readRawFolderMap($safeType);
+
+        foreach ($candidateIds as $candidateId) {
+            $safeCandidateId = trim((string)$candidateId);
+            if ($safeCandidateId !== '' && array_key_exists($safeCandidateId, $folders)) {
+                return [
+                    'requestedId' => $safeRequestedRef,
+                    'resolvedId' => $safeCandidateId,
+                    'resolvedBy' => 'key',
+                    'folder' => normalizeFolderContentPayload($folders[$safeCandidateId] ?? [])
+                ];
+            }
+        }
+
+        foreach ($candidateIds as $candidateId) {
+            $safeCandidateId = trim((string)$candidateId);
+            if ($safeCandidateId === '') {
+                continue;
+            }
+            foreach ($folders as $folderId => $folder) {
+                $safeFolderId = trim((string)$folderId);
+                $folderMetaId = trim((string)($folder['id'] ?? $folder['folderId'] ?? ''));
+                if ($safeFolderId === $safeCandidateId || $folderMetaId === $safeCandidateId) {
+                    return [
+                        'requestedId' => $safeRequestedRef,
+                        'resolvedId' => $safeFolderId,
+                        'resolvedBy' => 'metadata',
+                        'folder' => normalizeFolderContentPayload($folder)
+                    ];
+                }
+            }
+        }
+
+        foreach ($candidateIds as $candidateId) {
+            $safeCandidateId = trim((string)$candidateId);
+            if ($safeCandidateId === '') {
+                continue;
+            }
+            $matches = [];
+            foreach ($folders as $folderId => $folder) {
+                if (trim((string)($folder['name'] ?? '')) !== $safeCandidateId) {
+                    continue;
+                }
+                $matches[] = [
+                    'id' => trim((string)$folderId),
+                    'folder' => normalizeFolderContentPayload($folder)
+                ];
+            }
+            if (count($matches) === 1) {
+                return [
+                    'requestedId' => $safeRequestedRef,
+                    'resolvedId' => $matches[0]['id'],
+                    'resolvedBy' => 'name',
+                    'folder' => $matches[0]['folder']
+                ];
+            }
+        }
+
+        return [
+            'requestedId' => $safeRequestedRef,
+            'resolvedId' => '',
+            'resolvedBy' => '',
+            'folder' => null
+        ];
+    }
+
     function jsonObjectsDiffer(array $a, array $b): bool {
         return json_encode($a, JSON_UNESCAPED_SLASHES) !== json_encode($b, JSON_UNESCAPED_SLASHES);
     }

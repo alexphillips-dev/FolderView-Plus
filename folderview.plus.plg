@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.24.08">
-<!ENTITY md5 "07ca124dfa443d9cde8437f93507936c">
+<!ENTITY version "2026.03.24.09">
+<!ENTITY md5 "3753a49c887b3668230a1617bd107d33">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.24.09
+- Fix: Modern folder editor now receives a server-resolved requested-folder bootstrap context, so editing an existing Docker or VM folder can hydrate from the saved record immediately instead of opening as a blank new-folder form.
+- Fix: Modern folder editor no longer hard-fails just because `folder.editor.hierarchy.js` is stale or missing; it falls back to an inline hierarchy controller so the form can still load, bind buttons, and populate parent-folder options.
+- UX: Existing-folder values are now applied to the new editor as soon as the page boots, before slower runtime lookups finish, which makes the modern form much more resilient during partial loads.
+- Fix: Added explicit modern-editor load failure reporting in the in-page validation panel so future bootstrap failures do not silently leave the redesign shell half-loaded.
+- Test: Added regression coverage for modern editor bootstrap context emission and the hierarchy-fallback hydration path.
 
 ###2026.03.24.08
 - Fix: Added a page-version sentinel to Settings, Folder editor, Docker, VMs, and Dashboard so plugin pages force one automatic reload when the installed FolderView Plus version changes during the current browser session.

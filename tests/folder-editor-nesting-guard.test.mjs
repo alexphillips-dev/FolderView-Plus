@@ -25,7 +25,8 @@ test('folder editor validates duplicate names within the selected parent path', 
     assert.match(folderHierarchyScript, /const getSiblingNameCollision = \(nameValue, parentId, excludeFolderId = ''\) =>/);
     assert.match(folderHierarchyScript, /const suggestSiblingName = \(baseName, parentId, excludeFolderId = ''\) =>/);
     assert.match(folderEditorScript, /const getFolderHierarchyApi = \(\(\) =>/);
-    assert.match(folderEditorScript, /cachedApi = folderHierarchyModule\.createApi\(/);
+    assert.match(folderEditorScript, /cachedApi = createFolderHierarchyApi\(/);
+    assert.match(folderEditorScript, /const createFallbackFolderHierarchyApi = \(deps = \{\}\) =>/);
     assert.match(folderEditorScript, /form\.parent_folder_id\?\.value/);
     assert.match(folderEditorScript, /A sibling with this name already exists under/);
 });
@@ -44,7 +45,10 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorScript, /folderEditorQueryParams\.get\('folder'\)/);
     assert.match(folderEditorScript, /window\.FolderViewPlusFolderEditorPageType/);
     assert.match(folderEditorScript, /window\.FolderViewPlusFolderEditorRequestedId/);
+    assert.match(folderEditorScript, /window\.FolderViewPlusFolderEditorResolvedId/);
+    assert.match(folderEditorScript, /const folderEditorBootstrapContext = window\.FolderViewPlusFolderEditorBootstrapContext/);
     assert.match(folderEditorScript, /const normalizeFolderRecordForEditor = \(folder\) =>/);
+    assert.match(folderEditorScript, /const hydrateCurrentEditFolder = \(folderRecord, folderRecordId, foldersMap = \{\}, options = \{\}\) =>/);
     assert.match(folderEditorScript, /const resolveCurrentEditFolder = \(folderMap,\s*requestedId\) =>/);
     assert.match(folderEditorScript, /const EDITOR_PREFILL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.v1';/);
     assert.match(folderEditorScript, /const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.persist\.v1';/);
@@ -55,12 +59,12 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorScript, /folders\[safeId\] = normalizeFolderRecordForEditor\(folder\);/);
     assert.match(folderEditorScript, /let currentEditFolder = null;/);
     assert.match(folderEditorScript, /const navigationPrefill = readEditorNavigationPrefill\(type,\s*folderId\);/);
-    assert.match(folderEditorScript, /const requestedFolderRef = String\(folderId \|\| navigationPrefill\?\.id \|\| ''\)\.trim\(\);/);
+    assert.match(folderEditorScript, /const requestedFolderRef = String\(folderId \|\| folderEditorResolvedId \|\| navigationPrefill\?\.id \|\| ''\)\.trim\(\);/);
     assert.match(folderEditorScript, /const resolvedEditFolder = resolveCurrentEditFolder\(folders,\s*requestedFolderRef\);/);
-    assert.match(folderEditorScript, /currentEditFolder = resolvedEditFolder\?\.folder \|\| navigationPrefill\?\.folder \|\| null;/);
+    assert.match(folderEditorScript, /currentEditFolder = resolvedEditFolder\?\.folder \|\| bootstrapFolderRecord \|\| navigationPrefill\?\.folder \|\| null;/);
     assert.match(folderEditorScript, /setValidationBannerState\(\s*'Warning: requested folder could not be loaded\.'/);
     assert.match(folderEditorScript, /Recovered requested folder from navigation context\./);
-    assert.match(folderEditorScript, /setFieldValue\('preview',\s*String\(currentEditFolder\.settings\.preview\)\);/);
+    assert.match(folderEditorScript, /hydrateCurrentEditFolder\(currentEditFolder,\s*currentEditFolderId,\s*folders,\s*\{\s*clearPrefill:\s*true\s*\}\);/);
     assert.match(folderEditorScript, /clearEditorNavigationPrefill\(\);/);
     assert.doesNotMatch(folderEditorScript, /preview_member_display/);
 });

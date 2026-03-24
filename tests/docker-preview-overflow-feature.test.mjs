@@ -20,7 +20,7 @@ test('folder editor exposes preview row limit control and persists the setting',
     assert.match(folderJs, /const normalizePreviewRowLimit = \(value,\s*fallbackSource = null\) =>/);
     assert.match(folderJs, /if \(!Number\.isFinite\(parsed\)\) \{\s*return 1;\s*\}/);
     assert.match(folderJs, /preview_rows:\s*normalizePreviewRowLimit\(settings,\s*source\)/);
-    assert.match(folderJs, /setFieldValue\('preview_rows',\s*String\(normalizePreviewRowLimit\(currentEditFolder\.settings,\s*currentEditFolder\)\)\);/);
+    assert.match(folderJs, /setFieldValue\('preview_rows',\s*String\(normalizePreviewRowLimit\(normalizedFolder\.settings,\s*normalizedFolder\)\)\);/);
     assert.match(folderJs, /const normalizedPreviewRows = normalizePreviewRowLimit\(e\.preview_rows\?\.value\);/);
     assert.match(folderJs, /preview_rows:\s*normalizedPreviewRows,/);
     assert.match(folderJs, /previewRows:\s*normalizedPreviewRows,/);

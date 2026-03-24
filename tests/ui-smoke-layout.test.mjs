@@ -300,6 +300,8 @@ test('folder editor page ships the redesign bootstrap and chrome anchors', () =>
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorPageMode =/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorPageType =/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorRequestedId =/);
+    assert.match(folderPage, /window\.FolderViewPlusFolderEditorResolvedId =/);
+    assert.match(folderPage, /window\.FolderViewPlusFolderEditorBootstrapContext =/);
     assert.match(folderPage, /scripts\/folder\.editor\.chrome\.js/);
     assert.match(folderJs, /id="fvEditorChrome"/);
     assert.match(folderJs, /id="fvLivePanel"/);
@@ -308,6 +310,12 @@ test('folder editor page ships the redesign bootstrap and chrome anchors', () =>
     assert.match(folderChromeJs, /editorPageMode !== 'modern'/);
     assert.match(folderChromeJs, /data-mode="basic"/);
     assert.match(folderChromeJs, /id="fvLivePreviewCanvas"/);
+    assert.match(folderJs, /const folderEditorBootstrapContext = window\.FolderViewPlusFolderEditorBootstrapContext/);
+    assert.match(folderJs, /const createFallbackFolderHierarchyApi = \(deps = \{\}\) =>/);
+    assert.match(folderJs, /const hydrateCurrentEditFolder = \(folderRecord, folderRecordId, foldersMap = \{\}, options = \{\}\) =>/);
+    assert.match(folderJs, /currentEditFolder = resolvedEditFolder\?\.folder \|\| bootstrapFolderRecord \|\| navigationPrefill\?\.folder \|\| null;/);
+    assert.match(folderJs, /\}\)\(\)\.catch\(\(error\) => \{/);
+    assert.doesNotMatch(folderJs, /folder editor bootstrap failed: missing folder\.editor\.hierarchy\.js/);
     assert.match(folderJs, /const modernFolderEditorEnabled = String\(window\.FolderViewPlusFolderEditorPageMode \|\| 'legacy'\)/);
     assert.match(folderJs, /if \(!modernFolderEditorEnabled\)\s*\{\s*return;\s*\}/);
     assert.match(folderJs, /markSection\('div\.basic:has\(\[name="parent_folder_id"\]\)', 'general'\);/);

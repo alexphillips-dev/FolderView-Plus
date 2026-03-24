@@ -102,3 +102,11 @@ test('lib.php diagnostics include custom icon storage and usage health', () => {
     assert.match(libPhp, /'orphanedIconCount'\s*=>/);
     assert.match(libPhp, /'repairHint'\s*=>/);
 });
+
+test('lib.php can resolve requested folder editor context for bootstrap hydration', () => {
+    assert.match(libPhp, /function resolveFolderEditorRequestedContext\(string \$type, string \$requestedRef\): array/);
+    assert.match(libPhp, /'resolvedBy'\s*=>\s*'key'/);
+    assert.match(libPhp, /'resolvedBy'\s*=>\s*'metadata'/);
+    assert.match(libPhp, /'resolvedBy'\s*=>\s*'name'/);
+    assert.match(libPhp, /normalizeFolderContentPayload\(\$folders\[\$safeCandidateId\] \?\? \[\]\)/);
+});

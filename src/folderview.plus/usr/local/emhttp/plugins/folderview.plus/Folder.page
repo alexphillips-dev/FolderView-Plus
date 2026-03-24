@@ -18,6 +18,13 @@ emitRequestTokenMetaTag();
 $folderEditorPageType = '';
 $folderEditorPageMode = 'legacy';
 $folderEditorRequestedId = '';
+$folderEditorResolvedId = '';
+$folderEditorBootstrapContext = [
+    'requestedId' => '',
+    'resolvedId' => '',
+    'resolvedBy' => '',
+    'folder' => null
+];
 try {
     $folderEditorPageType = ensureType((string)($_GET['type'] ?? $_REQUEST['type'] ?? ''));
     $folderEditorPagePrefs = readTypePrefs($folderEditorPageType);
@@ -33,16 +40,29 @@ try {
         ?? $_REQUEST['name']
         ?? ''
     ));
+    if ($folderEditorRequestedId !== '') {
+        $folderEditorBootstrapContext = resolveFolderEditorRequestedContext($folderEditorPageType, $folderEditorRequestedId);
+        $folderEditorResolvedId = trim((string)($folderEditorBootstrapContext['resolvedId'] ?? ''));
+    }
 } catch (Throwable $folderEditorPageError) {
     $folderEditorPageType = '';
     $folderEditorPageMode = 'legacy';
     $folderEditorRequestedId = '';
+    $folderEditorResolvedId = '';
+    $folderEditorBootstrapContext = [
+        'requestedId' => '',
+        'resolvedId' => '',
+        'resolvedBy' => '',
+        'folder' => null
+    ];
 }
 ?>
 <script>
     window.FolderViewPlusFolderEditorPageType = <?php echo json_encode($folderEditorPageType, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
     window.FolderViewPlusFolderEditorPageMode = <?php echo json_encode($folderEditorPageMode, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
     window.FolderViewPlusFolderEditorRequestedId = <?php echo json_encode($folderEditorRequestedId, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
+    window.FolderViewPlusFolderEditorResolvedId = <?php echo json_encode($folderEditorResolvedId, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
+    window.FolderViewPlusFolderEditorBootstrapContext = <?php echo json_encode($folderEditorBootstrapContext, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
 </script>
 <?php emitNoCacheMetaTags(); ?>
 <?php emitPluginPageVersionSentinelScript('folder-editor'); ?>

@@ -6,20 +6,28 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.23.35">
-<!ENTITY md5 "9a03a026f8d269fe634025e3f7d77543">
+<!ENTITY version "2026.03.23.37">
+<!ENTITY md5 "ebbfdda4d848b7adf97365fdc6907c7f">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
 
+###2026.03.23.37
+- Fix: Added a dedicated `folder.editor.chrome.js` page bootstrap so the redesigned folder editor shell renders immediately instead of depending only on the later `folder.js` hydration path.
+- UX: The folder editor now has a guaranteed bootstrap path for the top chrome, live preview panel, grouped section shells, and sticky action bar.
+- Test: Added a page-contract regression check so the redesign bootstrap script and required chrome anchors stay shipped together.
+
+
 ###2026.03.23.35
-- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Fix: Moved the folder editor shell initialization earlier in the editor bootstrap so the redesigned chrome appears before the icon/member async setup runs.
+- Quality: Kept the new folder editor layout path idempotent so later runtime hydration can rebind controls without duplicating the editor chrome.
 
 
 ###2026.03.23.34
-- Fix: Fix backmerge workflow dirty checkout regression.
-- Fix: Fix main CI history checkout and release-only backmerge.
+- UX: Redesigned the folder editor with a richer hero/header, grouped section cards, per-section reset/default actions, a sticky action bar, and a live folder-row preview surface.
+- UX: Added change summary messaging, inheritance/default indicators, compact grouped reset controls, and cleaner mobile/editor spacing for the folder settings page.
+- Quality: Refreshed the performance baseline after the intentional folder editor runtime growth introduced by the redesign.
 
 
 ###2026.03.23.33

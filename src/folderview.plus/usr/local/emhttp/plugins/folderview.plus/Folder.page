@@ -915,6 +915,7 @@ emitRequestTokenMetaTag();
 <script src="<?autov('/plugins/folderview.plus/scripts/icon-picker.runtime.js')?>"></script>
 <script src="<?autov('/plugins/folderview.plus/scripts/folder.editor.hierarchy.js')?>"></script>
 <script src="<?autov('/plugins/folderview.plus/scripts/folder.editor.icon-api.js')?>"></script>
+<script src="<?autov('/plugins/folderview.plus/scripts/folder.editor.chrome.js')?>"></script>
 <script src="<?autov('/plugins/folderview.plus/scripts/folder.js')?>" defer></script>
 
 <div class="dialogCustomAction" style="display:none"></div>

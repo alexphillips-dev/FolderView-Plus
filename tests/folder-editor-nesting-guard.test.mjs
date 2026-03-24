@@ -40,11 +40,14 @@ test('folder editor supports parent smart-default inheritance on new child folde
 
 test('folder editor normalizes sparse folder payloads before binding controls', () => {
     assert.match(folderEditorScript, /const normalizeFolderRecordForEditor = \(folder\) =>/);
+    assert.match(folderEditorScript, /const resolveCurrentEditFolder = \(folderMap,\s*requestedId\) =>/);
     assert.match(folderEditorScript, /preview:\s*Number\.isFinite\(Number\(settings\.preview\)\)/);
     assert.match(folderEditorScript, /context_graph_time:\s*Number\.isFinite\(Number\(settings\.context_graph_time\)\)/);
     assert.match(folderEditorScript, /folders\[safeId\] = normalizeFolderRecordForEditor\(folder\);/);
     assert.match(folderEditorScript, /let currentEditFolder = null;/);
-    assert.match(folderEditorScript, /form\.preview\.value = String\(currentEditFolder\.settings\.preview\);/);
+    assert.match(folderEditorScript, /const resolvedEditFolder = resolveCurrentEditFolder\(folders,\s*folderId\);/);
+    assert.match(folderEditorScript, /setValidationBannerState\(\s*'Warning: requested folder could not be loaded\.'/);
+    assert.match(folderEditorScript, /setFieldValue\('preview',\s*String\(currentEditFolder\.settings\.preview\)\);/);
     assert.doesNotMatch(folderEditorScript, /preview_member_display/);
 });
 

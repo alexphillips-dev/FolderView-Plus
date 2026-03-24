@@ -263,7 +263,7 @@ test('folder editor supports per-folder dashboard overflow mode', () => {
     assert.match(folderPage, /<option value="2" data-i18n="preview-option-2">Only icon \(clean\)<\/option>/);
     assert.match(folderScript, /const utils = window\.FolderViewPlusUtils \|\| null;/);
     assert.match(folderScript, /const normalizeDashboardOverflowMode = typeof utils\?\.normalizeDashboardOverflowMode === 'function'/);
-    assert.match(folderScript, /form\.dashboard_overflow\.value = normalizeDashboardOverflowMode\(currentEditFolder\.settings\.dashboard_overflow\);/);
+    assert.match(folderScript, /setFieldValue\('dashboard_overflow',\s*normalizeDashboardOverflowMode\(currentEditFolder\.settings\.dashboard_overflow\)\);/);
     assert.match(folderScript, /dashboard_overflow: normalizeDashboardOverflowMode\(e\.dashboard_overflow\?\.value\)/);
     assert.doesNotMatch(folderPage, /name="preview_member_display"/);
     assert.doesNotMatch(folderScript, /preview_member_display/);

@@ -7,7 +7,7 @@ let selected = [];
 // docker or vm?
 const type = new URLSearchParams(location.search).get('type');
 //id of the folder if present
-const folderId = new URLSearchParams(location.search).get('id');
+const folderId = String(new URLSearchParams(location.search).get('id') || '').trim();
 const utils = window.FolderViewPlusUtils || null;
 const folderHierarchyModule = window.FolderViewPlusFolderHierarchy || null;
 const folderIconApiModule = window.FolderViewPlusFolderIconApi || null;
@@ -543,6 +543,92 @@ const isLegacyPreviewBorderEnabled = (settings) => {
 };
 
 const getForm = () => $('div.canvas > form')[0];
+const getFormField = (form, fieldName) => {
+    if (!form || !fieldName) {
+        return null;
+    }
+    if (typeof form.elements?.namedItem === 'function') {
+        return form.elements.namedItem(fieldName);
+    }
+    return form.elements?.[fieldName] || null;
+};
+const setValidationBannerState = (summaryText, detailsText, state = 'ready') => {
+    const summary = $('#fvValidationSummary');
+    const details = $('#fvValidationDetails');
+    if (summary.length) {
+        summary
+            .removeClass('invalid warning ready')
+            .addClass(state === 'invalid' ? 'invalid' : state === 'warning' ? 'warning' : 'ready')
+            .text(summaryText);
+    }
+    if (details.length) {
+        details
+            .removeClass('invalid warning ready')
+            .addClass(state === 'invalid' ? 'invalid' : state === 'warning' ? 'warning' : 'ready')
+            .text(detailsText);
+    }
+};
+const decodeFolderQueryValue = (value) => {
+    const raw = String(value || '').trim();
+    if (!raw) {
+        return '';
+    }
+    try {
+        return decodeURIComponent(raw);
+    } catch (_error) {
+        return raw;
+    }
+};
+const resolveCurrentEditFolder = (folderMap, requestedId) => {
+    const normalizedRequestedId = String(requestedId || '').trim();
+    if (!normalizedRequestedId || !folderMap || typeof folderMap !== 'object') {
+        return null;
+    }
+
+    const candidateIds = Array.from(new Set([
+        normalizedRequestedId,
+        decodeFolderQueryValue(normalizedRequestedId)
+    ].filter(Boolean)));
+
+    for (const candidateId of candidateIds) {
+        if (Object.prototype.hasOwnProperty.call(folderMap, candidateId)) {
+            return {
+                id: candidateId,
+                folder: normalizeFolderRecordForEditor(folderMap[candidateId] || {}),
+                resolvedBy: 'key'
+            };
+        }
+    }
+
+    const entries = Object.entries(folderMap);
+    for (const candidateId of candidateIds) {
+        const metaMatch = entries.find(([id, folder]) => {
+            const normalizedKey = String(id || '').trim();
+            const normalizedMetaId = String(folder?.id || folder?.folderId || '').trim();
+            return normalizedKey === candidateId || normalizedMetaId === candidateId;
+        });
+        if (metaMatch) {
+            return {
+                id: String(metaMatch[0] || '').trim(),
+                folder: normalizeFolderRecordForEditor(metaMatch[1] || {}),
+                resolvedBy: 'metadata'
+            };
+        }
+    }
+
+    for (const candidateId of candidateIds) {
+        const nameMatches = entries.filter(([, folder]) => String(folder?.name || '').trim() === candidateId);
+        if (nameMatches.length === 1) {
+            return {
+                id: String(nameMatches[0][0] || '').trim(),
+                folder: normalizeFolderRecordForEditor(nameMatches[0][1] || {}),
+                resolvedBy: 'name'
+            };
+        }
+    }
+
+    return null;
+};
 
 const escapeHtml = (value) => {
     if (value === undefined || value === null) {
@@ -4463,76 +4549,102 @@ resetStatusColorDefaults();
     }
     allFoldersById = { ...folders };
     let currentEditFolder = null;
+    let currentEditFolderId = '';
 
     if (folderId) {
-        currentEditFolder = normalizeFolderRecordForEditor(folders[folderId] || {});
-        folderHierarchyState.currentFolderDescendantIds = computeFolderDescendantIds(allFoldersById, folderId);
+        const resolvedEditFolder = resolveCurrentEditFolder(folders, folderId);
+        currentEditFolder = resolvedEditFolder?.folder || null;
+        currentEditFolderId = String(resolvedEditFolder?.id || '').trim();
+        if (!currentEditFolder || !currentEditFolderId) {
+            setValidationBannerState(
+                'Warning: requested folder could not be loaded.',
+                `Folder id "${folderId}" was not found in the saved folder map. The editor stayed in new-folder mode instead of silently hydrating the wrong data.`,
+                'warning'
+            );
+            folderHierarchyState.currentFolderDescendantIds = new Set();
+            populateParentFolderOptions(folders, '', new Set());
+            setParentDefaultsNote('Select a parent to inherit preview/icon defaults automatically.', 'info');
+        } else {
+        folderHierarchyState.currentFolderDescendantIds = computeFolderDescendantIds(allFoldersById, currentEditFolderId);
         currentFolderName = currentEditFolder.name || '';
-        delete folders[folderId];
+        delete folders[currentEditFolderId];
 
-        const form = $('div.canvas > form')[0];
-        form.name.value = currentEditFolder.name;
+        const form = getForm();
+        const setFieldValue = (fieldName, value) => {
+            const field = getFormField(form, fieldName);
+            if (field) {
+                $(field).val(value);
+            }
+        };
+        const setFieldChecked = (fieldName, checked) => {
+            const field = getFormField(form, fieldName);
+            if (field) {
+                field.checked = checked === true;
+            }
+        };
+
+        setFieldValue('name', currentEditFolder.name);
         populateParentFolderOptions(
             folders,
             normalizeParentFolderId(currentEditFolder.parentId || ''),
-            new Set([folderId, ...Array.from(folderHierarchyState.currentFolderDescendantIds)])
+            new Set([currentEditFolderId, ...Array.from(folderHierarchyState.currentFolderDescendantIds)])
         );
-        form.icon.value = currentEditFolder.icon;
-        form.folder_webui.checked = currentEditFolder.settings.folder_webui || false;
-        form.folder_webui_url.value = currentEditFolder.settings.folder_webui_url || '';
-        form.preview.value = String(currentEditFolder.settings.preview);
-        form.preview_rows.value = String(normalizePreviewRowLimit(currentEditFolder.settings, currentEditFolder));
-        form.preview_hover.checked = currentEditFolder.settings.preview_hover;
-        form.preview_update.checked = currentEditFolder.settings.preview_update;
-        form.preview_text_width.value = currentEditFolder.settings.preview_text_width || '';
-        form.preview_grayscale.checked = currentEditFolder.settings.preview_grayscale;
-        form.preview_webui.checked = currentEditFolder.settings.preview_webui;
-        form.preview_logs.checked = currentEditFolder.settings.preview_logs;
-        form.preview_console.checked = currentEditFolder.settings.preview_console || false;
-        form.preview_vertical_bars.checked = currentEditFolder.settings.preview_vertical_bars || false;
-        form.context.value = currentEditFolder.settings.context?.toString() || '1';
-        form.context_trigger.value = currentEditFolder.settings.context_trigger?.toString() || '0';
-        form.context_graph.value = currentEditFolder.settings.context_graph?.toString() || '1';
-        form.context_graph_time.value = currentEditFolder.settings.context_graph_time?.toString() || '60';
-        form.preview_border.checked = isLegacyPreviewBorderEnabled(currentEditFolder.settings || {});
-        form.preview_border_color.value = normalizeHexColor(currentEditFolder.settings.preview_border_color, DEFAULT_BORDER_COLOR);
-        form.preview_border_width.value = String(normalizePositiveInt(currentEditFolder.settings.preview_border_width, DEFAULT_PREVIEW_BORDER_WIDTH, 1, 4));
-        form.preview_vertical_bars_color.value = normalizeHexColor(
+        setFieldValue('icon', currentEditFolder.icon);
+        setFieldChecked('folder_webui', currentEditFolder.settings.folder_webui || false);
+        setFieldValue('folder_webui_url', currentEditFolder.settings.folder_webui_url || '');
+        setFieldValue('preview', String(currentEditFolder.settings.preview));
+        setFieldValue('preview_rows', String(normalizePreviewRowLimit(currentEditFolder.settings, currentEditFolder)));
+        setFieldChecked('preview_hover', currentEditFolder.settings.preview_hover);
+        setFieldChecked('preview_update', currentEditFolder.settings.preview_update);
+        setFieldValue('preview_text_width', currentEditFolder.settings.preview_text_width || '');
+        setFieldChecked('preview_grayscale', currentEditFolder.settings.preview_grayscale);
+        setFieldChecked('preview_webui', currentEditFolder.settings.preview_webui);
+        setFieldChecked('preview_logs', currentEditFolder.settings.preview_logs);
+        setFieldChecked('preview_console', currentEditFolder.settings.preview_console || false);
+        setFieldChecked('preview_vertical_bars', currentEditFolder.settings.preview_vertical_bars || false);
+        setFieldValue('context', currentEditFolder.settings.context?.toString() || '1');
+        setFieldValue('context_trigger', currentEditFolder.settings.context_trigger?.toString() || '0');
+        setFieldValue('context_graph', currentEditFolder.settings.context_graph?.toString() || '1');
+        setFieldValue('context_graph_time', currentEditFolder.settings.context_graph_time?.toString() || '60');
+        setFieldChecked('preview_border', isLegacyPreviewBorderEnabled(currentEditFolder.settings || {}));
+        setFieldValue('preview_border_color', normalizeHexColor(currentEditFolder.settings.preview_border_color, DEFAULT_BORDER_COLOR));
+        setFieldValue('preview_border_width', String(normalizePositiveInt(currentEditFolder.settings.preview_border_width, DEFAULT_PREVIEW_BORDER_WIDTH, 1, 4)));
+        setFieldValue('preview_vertical_bars_color', normalizeHexColor(
             currentEditFolder.settings.preview_vertical_bars_color || currentEditFolder.settings.preview_border_color,
             DEFAULT_BORDER_COLOR
-        );
-        form.preview_vertical_bars_width.value = String(normalizePositiveInt(currentEditFolder.settings.preview_vertical_bars_width, DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH, 1, 4));
-        form.dropdown_style.value = normalizeDropdownStyle(currentEditFolder.settings, currentEditFolder);
-        form.dropdown_color.value = normalizeHexColor(currentEditFolder.settings.dropdown_color, DEFAULT_DROPDOWN_COLOR);
-        form.dropdown_hover_color.value = normalizeHexColor(currentEditFolder.settings.dropdown_hover_color, DEFAULT_DROPDOWN_HOVER_COLOR);
-        form.status_color_started.value = normalizeHexColor(currentEditFolder.settings.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started);
-        form.status_color_paused.value = normalizeHexColor(currentEditFolder.settings.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused);
-        form.status_color_stopped.value = normalizeHexColor(currentEditFolder.settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped);
-        form.health_warn_stopped_percent.value = currentEditFolder.settings.health_warn_stopped_percent === undefined
+        ));
+        setFieldValue('preview_vertical_bars_width', String(normalizePositiveInt(currentEditFolder.settings.preview_vertical_bars_width, DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH, 1, 4)));
+        setFieldValue('dropdown_style', normalizeDropdownStyle(currentEditFolder.settings, currentEditFolder));
+        setFieldValue('dropdown_color', normalizeHexColor(currentEditFolder.settings.dropdown_color, DEFAULT_DROPDOWN_COLOR));
+        setFieldValue('dropdown_hover_color', normalizeHexColor(currentEditFolder.settings.dropdown_hover_color, DEFAULT_DROPDOWN_HOVER_COLOR));
+        setFieldValue('status_color_started', normalizeHexColor(currentEditFolder.settings.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started));
+        setFieldValue('status_color_paused', normalizeHexColor(currentEditFolder.settings.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused));
+        setFieldValue('status_color_stopped', normalizeHexColor(currentEditFolder.settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped));
+        setFieldValue('health_warn_stopped_percent', currentEditFolder.settings.health_warn_stopped_percent === undefined
             || currentEditFolder.settings.health_warn_stopped_percent === null
             || currentEditFolder.settings.health_warn_stopped_percent === ''
             ? ''
-            : String(currentEditFolder.settings.health_warn_stopped_percent);
-        form.health_critical_stopped_percent.value = currentEditFolder.settings.health_critical_stopped_percent === undefined
+            : String(currentEditFolder.settings.health_warn_stopped_percent));
+        setFieldValue('health_critical_stopped_percent', currentEditFolder.settings.health_critical_stopped_percent === undefined
             || currentEditFolder.settings.health_critical_stopped_percent === null
             || currentEditFolder.settings.health_critical_stopped_percent === ''
             ? ''
-            : String(currentEditFolder.settings.health_critical_stopped_percent);
-        form.health_profile.value = normalizeOptionalHealthSelect(currentEditFolder.settings.health_profile, FOLDER_HEALTH_PROFILE_VALUES);
-        form.health_updates_mode.value = normalizeOptionalHealthSelect(currentEditFolder.settings.health_updates_mode, FOLDER_HEALTH_UPDATES_MODE_VALUES);
-        form.health_all_stopped_mode.value = normalizeOptionalHealthSelect(currentEditFolder.settings.health_all_stopped_mode, FOLDER_HEALTH_ALL_STOPPED_MODE_VALUES);
-        form.status_warn_stopped_percent.value = currentEditFolder.settings.status_warn_stopped_percent === undefined
+            : String(currentEditFolder.settings.health_critical_stopped_percent));
+        setFieldValue('health_profile', normalizeOptionalHealthSelect(currentEditFolder.settings.health_profile, FOLDER_HEALTH_PROFILE_VALUES));
+        setFieldValue('health_updates_mode', normalizeOptionalHealthSelect(currentEditFolder.settings.health_updates_mode, FOLDER_HEALTH_UPDATES_MODE_VALUES));
+        setFieldValue('health_all_stopped_mode', normalizeOptionalHealthSelect(currentEditFolder.settings.health_all_stopped_mode, FOLDER_HEALTH_ALL_STOPPED_MODE_VALUES));
+        setFieldValue('status_warn_stopped_percent', currentEditFolder.settings.status_warn_stopped_percent === undefined
             || currentEditFolder.settings.status_warn_stopped_percent === null
             || currentEditFolder.settings.status_warn_stopped_percent === ''
             ? ''
-            : String(currentEditFolder.settings.status_warn_stopped_percent);
-        form.update_column.checked = currentEditFolder.settings.update_column || false;
-        form.default_action.checked = currentEditFolder.settings.default_action || false;
-        form.expand_tab.checked = currentEditFolder.settings.expand_tab;
-        form.override_default_actions.checked = currentEditFolder.settings.override_default_actions;
-        form.expand_dashboard.checked = currentEditFolder.settings.expand_dashboard;
-        form.dashboard_overflow.value = normalizeDashboardOverflowMode(currentEditFolder.settings.dashboard_overflow);
-        form.regex.value = currentEditFolder.regex;
+            : String(currentEditFolder.settings.status_warn_stopped_percent));
+        setFieldChecked('update_column', currentEditFolder.settings.update_column || false);
+        setFieldChecked('default_action', currentEditFolder.settings.default_action || false);
+        setFieldChecked('expand_tab', currentEditFolder.settings.expand_tab);
+        setFieldChecked('override_default_actions', currentEditFolder.settings.override_default_actions);
+        setFieldChecked('expand_dashboard', currentEditFolder.settings.expand_dashboard);
+        setFieldValue('dashboard_overflow', normalizeDashboardOverflowMode(currentEditFolder.settings.dashboard_overflow));
+        setFieldValue('regex', currentEditFolder.regex);
 
         currentEditFolder.actions?.forEach((entry, index) => {
             const safeActionName = escapeHtml(entry?.name || '');
@@ -4540,8 +4652,9 @@ resetStatusColorDefaults();
         });
 
         updateForm();
-        updateIcon(form.icon);
+        updateIcon(getFormField(form, 'icon'));
         setParentDefaultsNote('');
+        }
     } else {
         folderHierarchyState.currentFolderDescendantIds = new Set();
         populateParentFolderOptions(folders, '', new Set());
@@ -4577,8 +4690,8 @@ resetStatusColorDefaults();
     choose = Object.values(JSON.parse(await $.get(`/plugins/folderview.plus/server/read_info.php?type=${type}&nocache=1&_=${cacheBust}`).promise())).map(typeFilter);
 
     // if editing a folder and not creating one
-    if (currentEditFolder) {
-        const form = $('div.canvas > form')[0];
+    if (currentEditFolder && currentEditFolderId) {
+        const form = getForm();
         for (const ct of currentEditFolder.containers) {
             const index = choose.findIndex((e) => e.Name === ct);
             if (index > -1) {
@@ -4588,8 +4701,8 @@ resetStatusColorDefaults();
 
         // make the ui respond to the previus changes
         updateForm();
-        updateRegex(form.regex);
-        updateIcon(form.icon);
+        updateRegex(getFormField(form, 'regex'));
+        updateIcon(getFormField(form, 'icon'));
         setParentDefaultsNote('');
     }
 

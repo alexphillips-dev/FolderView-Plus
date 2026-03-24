@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.23.40">
-<!ENTITY md5 "057e45de81158a04e918a6a1758027cc">
+<!ENTITY version "2026.03.23.41">
+<!ENTITY md5 "7de82304f3e125a8fd80bef1dfc94eed">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.23.41
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
 
 ###2026.03.23.40
 - Fix: Existing folder settings now hydrate from `read.php` before the member catalog request runs, so editing a saved folder no longer opens with a blank form when `read_info.php` is slow or fails.

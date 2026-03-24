@@ -3144,9 +3144,9 @@ const renderLivePreviewCanvas = () => {
                         <span>${PREVIEW_MODE_LABELS[previewMode] || 'Unknown'} preview</span>
                     </div>
                 </div>
-                <button type="button" class="fv-live-chevron fv-live-chevron-${dropdownStyle}" aria-label="Chevron preview">
+                <span class="fv-live-chevron fv-live-chevron-${dropdownStyle}" aria-hidden="true">
                     <i class="fa fa-chevron-down" aria-hidden="true"></i>
-                </button>
+                </span>
             </div>
             <div class="fv-live-member-lane">${membersHtml}</div>
         </div>
@@ -3156,6 +3156,12 @@ const renderLivePreviewCanvas = () => {
     if (livePreviewRow && liveChevron) {
         livePreviewRow.classList.toggle('is-boxed', dropdownStyle === 'boxed');
         livePreviewRow.classList.toggle('is-minimal', dropdownStyle !== 'boxed');
+        livePreviewRow.style.setProperty('--fv-live-chevron-color', dropdownColor);
+        livePreviewRow.style.setProperty('--fv-live-chevron-hover', dropdownHoverColor);
+        livePreviewRow.style.setProperty('--fv-live-chevron-border', dropdownStyle === 'boxed' ? hexColorToRgba(dropdownColor, 0.52) : 'transparent');
+        livePreviewRow.style.setProperty('--fv-live-chevron-hover-border', dropdownStyle === 'boxed' ? dropdownHoverColor : 'transparent');
+        livePreviewRow.style.setProperty('--fv-live-chevron-bg', dropdownStyle === 'boxed' ? hexColorToRgba(dropdownColor, 0.10) : 'transparent');
+        livePreviewRow.style.setProperty('--fv-live-chevron-hover-bg', dropdownStyle === 'boxed' ? hexColorToRgba(dropdownColor, 0.82) : 'transparent');
         liveChevron.style.setProperty('--fv-live-chevron-color', dropdownColor);
         liveChevron.style.setProperty('--fv-live-chevron-hover', dropdownHoverColor);
         liveChevron.style.setProperty('--fv-live-chevron-border', dropdownStyle === 'boxed' ? hexColorToRgba(dropdownColor, 0.52) : 'transparent');

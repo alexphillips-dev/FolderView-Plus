@@ -309,6 +309,10 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderCss, /\.fv-live-preview-row\.is-boxed \.fv-live-chevron/);
     assert.match(folderCss, /--fv-live-chevron-color/);
     assert.match(folderCss, /--fv-live-chevron-hover-bg/);
+    assert.match(folderCss, /\.fv-live-preview-row \.fv-live-chevron\s*\{[\s\S]*background:\s*var\(--fv-live-chevron-bg, transparent\) !important;/);
+    assert.match(folderCss, /\.fv-live-preview-row \.fv-live-chevron\s*\{[\s\S]*appearance:\s*none !important;/);
+    assert.match(folderCss, /\.fv-live-preview-row\.is-minimal \.fv-live-chevron\s*\{[\s\S]*color:\s*var\(--fv-live-chevron-color, var\(--fv-chevron-color\)\) !important;/);
+    assert.match(folderCss, /\.fv-live-preview-row\.is-boxed \.fv-live-chevron\s*\{[\s\S]*background:\s*var\(--fv-live-chevron-bg, rgba\(255, 255, 255, 0\.03\)\) !important;/);
     assert.match(folderCss, /\.fv-live-chevron\s*\{[\s\S]*min-width:\s*12px;[\s\S]*height:\s*16px;[\s\S]*padding:\s*0 2px;/);
     assert.match(folderCss, /\.fv-live-preview-row\.is-boxed \.fv-live-chevron\s*\{[\s\S]*min-width:\s*22px;[\s\S]*height:\s*22px;[\s\S]*padding:\s*0 6px;/);
     assert.match(folderCss, /\.fv-live-insights\s*\{\s*display:\s*grid;\s*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
@@ -337,8 +341,10 @@ test('folder editor page ships the redesign bootstrap and chrome anchors', () =>
     assert.match(folderLegacyJs, /window\.applyEditorPluginDefaults = applyEditorPluginDefaults;/);
     assert.match(folderLegacyJs, /window\.suggestDefaultsFromMembers = suggestDefaultsFromMembers;/);
     assert.match(folderLegacyJs, /<div class="fv-live-folder-head">/);
-    assert.match(folderLegacyJs, /class="fv-live-chevron fv-live-chevron-\$\{dropdownStyle\}"/);
+    assert.match(folderLegacyJs, /<span class="fv-live-chevron fv-live-chevron-\$\{dropdownStyle\}" aria-hidden="true">/);
+    assert.match(folderJs, /<span class="fv-live-chevron fv-live-chevron-\$\{dropdownStyle\}" aria-hidden="true">/);
     assert.match(folderLegacyJs, /liveChevron\.style\.setProperty\('--fv-live-chevron-color'/);
+    assert.match(folderLegacyJs, /livePreviewRow\.style\.setProperty\('--fv-live-chevron-color'/);
     assert.match(folderChromeJs, /id="fvRestoreSavedValues"/);
     assert.match(folderChromeJs, /editorPageMode !== 'modern'/);
     assert.match(folderChromeJs, /data-mode="basic"/);

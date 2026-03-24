@@ -6,12 +6,23 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.24.29">
-<!ENTITY md5 "48048585d2ef3afbc6b69b87044ce4b8">
+<!ENTITY version "2026.03.24.31">
+<!ENTITY md5 "aafb58121b770a47dc94edf6a3cb1b56">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.24.31
+- Fix: Modern folder editor live preview now renders the chevron as display chrome instead of a real button, preventing theme button styles from overriding boxed and minimal chevron previews.
+- Fix: Live preview chevron color, border, and background variables now sync on the preview row itself as well as the chevron element, keeping boxed and minimal states aligned with the current editor values.
+- Quality: Added regression coverage to lock the non-button chevron preview markup and live chevron style-state sync into the editor runtime.
+
+
+###2026.03.24.30
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
 
 ###2026.03.24.29
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

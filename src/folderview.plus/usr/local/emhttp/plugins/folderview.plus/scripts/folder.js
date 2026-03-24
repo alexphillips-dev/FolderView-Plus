@@ -4967,6 +4967,11 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
             }
             scheduleNameDrivenRegexSync('immediate');
         }
+        if (fieldName === 'dropdown_style' || fieldName === 'dropdown_color' || fieldName === 'dropdown_hover_color'
+            || fieldName === 'preview_border' || fieldName === 'preview_border_color' || fieldName === 'preview_border_width') {
+            scheduleEditorRecalculation(0);
+            return;
+        }
         scheduleEditorRecalculation(event.type === 'input' ? EDITOR_INPUT_RECALC_DEBOUNCE_MS : 0);
     });
 

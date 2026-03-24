@@ -44,10 +44,12 @@ test('legacy folder editor exposes grouped reset helpers and boxed chevron compa
     assert.match(folderLegacyJs, /form\.preview_border_color\.value = DEFAULT_BORDER_COLOR;/);
     assert.match(folderLegacyJs, /form\.preview_border_width\.value = String\(DEFAULT_PREVIEW_BORDER_WIDTH\);/);
     assert.match(folderLegacyJs, /updateLiveSummary\(\);/);
+    assert.match(folderLegacyJs, /if \(modernFolderEditorEnabled\) \{\s*updateLiveSummary\(\);\s*\}/);
     assert.match(folderLegacyJs, /const resetDropdownColorDefaults = \(\) =>/);
     assert.match(folderLegacyJs, /window\.resetDropdownColorDefaults = resetDropdownColorDefaults;/);
     assert.match(folderLegacyJs, /form\.dropdown_color\.value = DEFAULT_DROPDOWN_COLOR;/);
     assert.match(folderLegacyJs, /form\.dropdown_hover_color\.value = DEFAULT_DROPDOWN_HOVER_COLOR;/);
+    assert.match(folderLegacyJs, /fieldName === 'dropdown_style' \|\| fieldName === 'dropdown_color' \|\| fieldName === 'dropdown_hover_color'/);
     assert.match(folderLegacyJs, /const extractDropdownStyleValue = \(value,\s*fallbackSource = null\) =>/);
     assert.match(folderLegacyJs, /source\.dropdown_style\s*\?\?\s*source\.dropdownStyle\s*\?\?\s*source\.chevron_style\s*\?\?\s*source\.chevronStyle/);
     assert.match(folderLegacyJs, /if \(normalized === 'boxed' \|\| normalized === 'minimal'\)/);
@@ -72,6 +74,7 @@ test('folder editor normalizes legacy preview border values when loading existin
     assert.match(folderJs, /dropdown_hover_color:\s*normalizeHexColor\(settings\.dropdown_hover_color,\s*DEFAULT_DROPDOWN_HOVER_COLOR\)/);
     assert.match(folderJs, /setFieldValue\('preview_rows',\s*String\(normalizePreviewRowLimit\(normalizedFolder\.settings,\s*normalizedFolder\)\)\);/);
     assert.match(folderJs, /setFieldValue\('dropdown_style',\s*normalizeDropdownStyle\(normalizedFolder\.settings,\s*normalizedFolder\)\);/);
+    assert.match(folderJs, /fieldName === 'dropdown_style' \|\| fieldName === 'dropdown_color' \|\| fieldName === 'dropdown_hover_color'/);
     assert.match(folderJs, /preview_rows:\s*normalizedPreviewRows,/);
     assert.match(folderJs, /previewRows:\s*normalizedPreviewRows,/);
     assert.match(folderJs, /dropdown_style:\s*normalizedDropdownStyle,/);

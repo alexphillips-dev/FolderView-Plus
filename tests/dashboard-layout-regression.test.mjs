@@ -115,6 +115,10 @@ test('server normalizes compact matrix dashboard layout', () => {
 
 test('dashboard runtime supports layout classes, accordion guards, and overflow metadata', () => {
     assert.match(dashboardScript, /const DASHBOARD_LAYOUT_MODES = Array\.isArray\(utils\.DASHBOARD_LAYOUT_OPTIONS\)/);
+    assert.match(dashboardScript, /const EDITOR_PREFILL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.v1';/);
+    assert.match(dashboardScript, /const seedDashboardFolderEditorPrefill = \(folderType,\s*id\) =>/);
+    assert.match(dashboardScript, /seedDashboardFolderEditorPrefill\('docker', id\);/);
+    assert.match(dashboardScript, /seedDashboardFolderEditorPrefill\('vm', id\);/);
     assert.match(dashboardScript, /DASHBOARD_LAYOUT_OPTIONS: Object\.freeze\(\['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'\]\)/);
     assert.match(dashboardScript, /const DASHBOARD_LAYOUT_LABELS = utils\.DASHBOARD_LAYOUT_LABELS \|\| Object\.freeze\(/);
     assert.match(dashboardScript, /const dashboardLayoutQuickRailModule = window\.FolderViewPlusDashboardLayoutQuickRail \|\| null;/);

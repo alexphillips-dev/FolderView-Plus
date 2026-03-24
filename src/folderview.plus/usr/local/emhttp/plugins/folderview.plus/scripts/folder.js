@@ -22,6 +22,8 @@ const DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH = 1;
 const DEFAULT_DROPDOWN_STYLE = 'minimal';
 const DEFAULT_DROPDOWN_COLOR = '#ff9a3c';
 const DEFAULT_DROPDOWN_HOVER_COLOR = '#111111';
+const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
+const EDITOR_PREFILL_MAX_AGE_MS = 10 * 60 * 1000;
 const FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
 const PREVIEW_MODE_LABELS = {
     0: 'None',
@@ -628,6 +630,45 @@ const resolveCurrentEditFolder = (folderMap, requestedId) => {
     }
 
     return null;
+};
+const readEditorNavigationPrefill = (expectedType, expectedId) => {
+    try {
+        if (typeof sessionStorage === 'undefined') {
+            return null;
+        }
+        const raw = String(sessionStorage.getItem(EDITOR_PREFILL_STORAGE_KEY) || '').trim();
+        if (!raw) {
+            return null;
+        }
+        const payload = JSON.parse(raw);
+        const normalizedType = String(payload?.type || '').trim();
+        const normalizedId = String(payload?.id || '').trim();
+        const storedAt = Number(payload?.storedAt || 0);
+        if (!normalizedType || !normalizedId || !payload?.folder || typeof payload.folder !== 'object') {
+            return null;
+        }
+        if (normalizedType !== String(expectedType || '').trim() || normalizedId !== String(expectedId || '').trim()) {
+            return null;
+        }
+        if (Number.isFinite(storedAt) && storedAt > 0 && (Date.now() - storedAt) > EDITOR_PREFILL_MAX_AGE_MS) {
+            return null;
+        }
+        return {
+            id: normalizedId,
+            folder: normalizeFolderRecordForEditor(payload.folder)
+        };
+    } catch (_error) {
+        return null;
+    }
+};
+const clearEditorNavigationPrefill = () => {
+    try {
+        if (typeof sessionStorage !== 'undefined') {
+            sessionStorage.removeItem(EDITOR_PREFILL_STORAGE_KEY);
+        }
+    } catch (_error) {
+        // Ignore storage cleanup issues.
+    }
 };
 
 const escapeHtml = (value) => {
@@ -4553,8 +4594,9 @@ resetStatusColorDefaults();
 
     if (folderId) {
         const resolvedEditFolder = resolveCurrentEditFolder(folders, folderId);
-        currentEditFolder = resolvedEditFolder?.folder || null;
-        currentEditFolderId = String(resolvedEditFolder?.id || '').trim();
+        const navigationPrefill = !resolvedEditFolder ? readEditorNavigationPrefill(type, folderId) : null;
+        currentEditFolder = resolvedEditFolder?.folder || navigationPrefill?.folder || null;
+        currentEditFolderId = String(resolvedEditFolder?.id || navigationPrefill?.id || '').trim();
         if (!currentEditFolder || !currentEditFolderId) {
             setValidationBannerState(
                 'Warning: requested folder could not be loaded.',
@@ -4565,6 +4607,15 @@ resetStatusColorDefaults();
             populateParentFolderOptions(folders, '', new Set());
             setParentDefaultsNote('Select a parent to inherit preview/icon defaults automatically.', 'info');
         } else {
+        if (!resolvedEditFolder && navigationPrefill) {
+            folders[currentEditFolderId] = currentEditFolder;
+            allFoldersById[currentEditFolderId] = currentEditFolder;
+            setValidationBannerState(
+                'Recovered requested folder from navigation context.',
+                `Folder id "${folderId}" was restored from the folder you clicked before the editor loaded. Saved member and display data should now be available immediately.`,
+                'warning'
+            );
+        }
         folderHierarchyState.currentFolderDescendantIds = computeFolderDescendantIds(allFoldersById, currentEditFolderId);
         currentFolderName = currentEditFolder.name || '';
         delete folders[currentEditFolderId];
@@ -4654,8 +4705,10 @@ resetStatusColorDefaults();
         updateForm();
         updateIcon(getFormField(form, 'icon'));
         setParentDefaultsNote('');
+        clearEditorNavigationPrefill();
         }
     } else {
+        clearEditorNavigationPrefill();
         folderHierarchyState.currentFolderDescendantIds = new Set();
         populateParentFolderOptions(folders, '', new Set());
         setParentDefaultsNote('Select a parent to inherit preview/icon defaults automatically.', 'info');

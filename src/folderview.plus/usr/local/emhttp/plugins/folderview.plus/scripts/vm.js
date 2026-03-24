@@ -1589,10 +1589,28 @@ const rmFolder = (id) => {
  * Redirect to the page to edit the folder
  * @param {string} id the id of the folder
  */
+const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
+const seedFolderEditorPrefill = (folderType, id) => {
+    try {
+        const normalizedId = String(id || '').trim();
+        if (!normalizedId || !globalFolders[normalizedId] || typeof sessionStorage === 'undefined') {
+            return;
+        }
+        sessionStorage.setItem(EDITOR_PREFILL_STORAGE_KEY, JSON.stringify({
+            type: folderType,
+            id: normalizedId,
+            folder: globalFolders[normalizedId],
+            storedAt: Date.now()
+        }));
+    } catch (_error) {
+        // Editor prefill is best-effort only.
+    }
+};
 const editFolder = (id) => {
     if (!ensureVmFolderUnlocked(id, 'Edit folder')) {
         return;
     }
+    seedFolderEditorPrefill('vm', id);
     location.href = "/VMs/Folder?type=vm&id=" + id;
 };
 

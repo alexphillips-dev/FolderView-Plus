@@ -6,12 +6,24 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.23.41">
-<!ENTITY md5 "7de82304f3e125a8fd80bef1dfc94eed">
+<!ENTITY version "2026.03.23.43">
+<!ENTITY md5 "bd4b80019b24bebe28fed24835ea9a74">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.23.43
+- Fix: Existing-folder edits now carry the clicked folder record from Docker, VMs, and Dashboard into the redesigned folder editor, so edit sessions no longer fall back to a blank new-folder form when the saved folder id cannot be resolved from `read.php` alone.
+- UX: The folder editor now reports when it recovered the requested folder from navigation context instead of silently opening with default values.
+- Test: Added regression coverage for editor navigation-prefill recovery and Dashboard edit redirects.
+
+
+###2026.03.23.42
+- Fix: Existing-folder edits now recover folder data from the clicked Docker, VM, or Dashboard folder before redirecting, so the redesigned editor no longer opens blank when the saved folder id cannot be resolved from `read.php` alone.
+- UX: The folder editor now surfaces recovered edit sessions from navigation context instead of silently falling back to a new-folder form.
+- Test: Added regression coverage for folder-editor navigation prefill handling in the editor runtime and Dashboard edit actions.
+
 
 ###2026.03.23.41
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

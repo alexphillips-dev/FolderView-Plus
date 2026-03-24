@@ -3974,11 +3974,29 @@ const rmFolder = (id) => {
  * Redirect to the page to edit the folder
  * @param {string} id the id of the folder
  */
+const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
+const seedFolderEditorPrefill = (folderType, id) => {
+    try {
+        const normalizedId = String(id || '').trim();
+        if (!normalizedId || !globalFolders[normalizedId] || typeof sessionStorage === 'undefined') {
+            return;
+        }
+        sessionStorage.setItem(EDITOR_PREFILL_STORAGE_KEY, JSON.stringify({
+            type: folderType,
+            id: normalizedId,
+            folder: globalFolders[normalizedId],
+            storedAt: Date.now()
+        }));
+    } catch (_error) {
+        // Editor prefill is best-effort only.
+    }
+};
 const editFolder = (id) => {
     if (!ensureDockerFolderUnlocked(id, 'Edit folder')) {
         return;
     }
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] editFolder (id: ${id}): Redirecting to edit page.`);
+    seedFolderEditorPrefill('docker', id);
     location.href = "/Docker/Folder?type=docker&id=" + id;
 };
 

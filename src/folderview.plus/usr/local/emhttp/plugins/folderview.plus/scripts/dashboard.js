@@ -2051,7 +2051,28 @@ const rmVMFolder = (id) => {
  * Redirect to the page to edit the folder
  * @param {string} id the id of the folder
  */
+const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
+const seedDashboardFolderEditorPrefill = (folderType, id) => {
+    try {
+        const normalizedType = String(folderType || '').trim();
+        const normalizedId = String(id || '').trim();
+        const folderMap = normalizedType === 'vm' ? globalFolders?.vms : globalFolders?.docker;
+        const folder = folderMap && typeof folderMap === 'object' ? folderMap[normalizedId] : null;
+        if (!normalizedType || !normalizedId || !folder || typeof sessionStorage === 'undefined') {
+            return;
+        }
+        sessionStorage.setItem(EDITOR_PREFILL_STORAGE_KEY, JSON.stringify({
+            type: normalizedType,
+            id: normalizedId,
+            folder,
+            storedAt: Date.now()
+        }));
+    } catch (_error) {
+        // Editor prefill is best-effort only.
+    }
+};
 const editDockerFolder = (id) => {
+    seedDashboardFolderEditorPrefill('docker', id);
     location.href = location.pathname + "/Folder?type=docker&id=" + id;
 };
 
@@ -2060,6 +2081,7 @@ const editDockerFolder = (id) => {
  * @param {string} id the id of the folder
  */
 const editVMFolder = (id) => {
+    seedDashboardFolderEditorPrefill('vm', id);
     location.href = location.pathname + "/Folder?type=vm&id=" + id;
 };
 

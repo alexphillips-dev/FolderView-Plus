@@ -32,6 +32,7 @@ test('folder editor keeps border and chevron reset controls grouped with their f
     assert.match(folderJs, /form\.preview_border_color\.value = DEFAULT_BORDER_COLOR;/);
     assert.match(folderJs, /form\.preview_border_width\.value = String\(DEFAULT_PREVIEW_BORDER_WIDTH\);/);
     assert.match(folderJs, /scheduleEditorRecalculation\(0\);/);
+    assert.match(folderJs, /updateLiveSummary\(\);/);
     assert.match(folderJs, /const resetDropdownColorDefaults = \(\) =>/);
     assert.match(folderJs, /form\.dropdown_color\.value = DEFAULT_DROPDOWN_COLOR;/);
     assert.match(folderJs, /form\.dropdown_hover_color\.value = DEFAULT_DROPDOWN_HOVER_COLOR;/);
@@ -42,6 +43,7 @@ test('legacy folder editor exposes grouped reset helpers and boxed chevron compa
     assert.match(folderLegacyJs, /window\.resetPreviewBorderDefaults = resetPreviewBorderDefaults;/);
     assert.match(folderLegacyJs, /form\.preview_border_color\.value = DEFAULT_BORDER_COLOR;/);
     assert.match(folderLegacyJs, /form\.preview_border_width\.value = String\(DEFAULT_PREVIEW_BORDER_WIDTH\);/);
+    assert.match(folderLegacyJs, /updateLiveSummary\(\);/);
     assert.match(folderLegacyJs, /const resetDropdownColorDefaults = \(\) =>/);
     assert.match(folderLegacyJs, /window\.resetDropdownColorDefaults = resetDropdownColorDefaults;/);
     assert.match(folderLegacyJs, /form\.dropdown_color\.value = DEFAULT_DROPDOWN_COLOR;/);

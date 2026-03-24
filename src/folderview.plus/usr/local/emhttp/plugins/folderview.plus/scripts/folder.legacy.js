@@ -3201,6 +3201,10 @@ const resetPreviewBorderDefaults = () => {
     form.preview_border_width.value = String(DEFAULT_PREVIEW_BORDER_WIDTH);
     updateForm();
     validateForm();
+    updateLiveSummary();
+    if (isFormInitialized) {
+        updateUnsavedIndicator();
+    }
 };
 window.resetPreviewBorderDefaults = resetPreviewBorderDefaults;
 
@@ -3213,6 +3217,10 @@ const resetDropdownColorDefaults = () => {
     form.dropdown_hover_color.value = DEFAULT_DROPDOWN_HOVER_COLOR;
     updateForm();
     validateForm();
+    updateLiveSummary();
+    if (isFormInitialized) {
+        updateUnsavedIndicator();
+    }
 };
 window.resetDropdownColorDefaults = resetDropdownColorDefaults;
 

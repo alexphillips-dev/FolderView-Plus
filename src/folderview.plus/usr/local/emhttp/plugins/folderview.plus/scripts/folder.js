@@ -3227,6 +3227,7 @@ const resetPreviewBorderDefaults = () => {
     if (typeof scheduleEditorRecalculation === 'function') {
         scheduleEditorRecalculation(0);
     }
+    updateLiveSummary();
 };
 window.resetPreviewBorderDefaults = resetPreviewBorderDefaults;
 
@@ -3247,6 +3248,7 @@ const resetDropdownColorDefaults = () => {
     if (typeof scheduleEditorRecalculation === 'function') {
         scheduleEditorRecalculation(0);
     }
+    updateLiveSummary();
 };
 window.resetDropdownColorDefaults = resetDropdownColorDefaults;
 

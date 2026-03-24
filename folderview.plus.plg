@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.24.23">
-<!ENTITY md5 "28fc94ac5745ddaa34df23a0439622d3">
+<!ENTITY version "2026.03.24.24">
+<!ENTITY md5 "872d4d8243ec08e4455bcac111705ad9">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.24.24
+- Fix: Resetting preview border defaults now refreshes the folder editor live preview immediately instead of leaving the old border styling on screen.
+- Fix: Resetting chevron colors now also refreshes the live preview immediately so the preview stays in sync with the saved field values.
+- Quality: Added regression coverage to keep folder editor reset helpers driving the live preview refresh path in both modern and legacy runtimes.
+
 
 ###2026.03.24.23
 - Fix: Centralized Docker and VM folder editor mode resolution in the shared server helper so `Folder.page` consistently follows the saved per-type preference.

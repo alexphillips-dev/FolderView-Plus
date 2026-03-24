@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.24.32">
-<!ENTITY md5 "5a001309bb1d39a3f38c0130a44949ea">
+<!ENTITY version "2026.03.24.33">
+<!ENTITY md5 "51835b398b8d8ce4feee30530231c219">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.24.33
+- UX: Removed the folder editor recommendation that pushed users toward regex just because the regex field was empty; folders can now stay manual without showing that advisory.
+- UX: The “no members selected” editor message now renders as an informational blue note instead of a warning banner.
+- Quality: Added regression coverage for the removed regex advisory string and the new validation-banner info state.
+
 
 ###2026.03.24.32
 - Feature: Added `Ghost`, `Pill`, and `Filled` chevron style options alongside the existing `Minimal` and `Boxed` styles in the folder editor.

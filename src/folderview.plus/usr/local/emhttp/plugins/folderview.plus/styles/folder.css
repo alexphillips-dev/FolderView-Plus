@@ -252,6 +252,10 @@
     color: #ffbe76;
 }
 
+.fv-validation-summary.info {
+    color: #7ecbff;
+}
+
 .fv-validation-summary.ready {
     color: #8ce69b;
 }
@@ -271,6 +275,10 @@
 
 .fv-validation-details.warning {
     color: #ffbe76;
+}
+
+.fv-validation-details.info {
+    color: #b8e2ff;
 }
 
 .fv-validation-details.ready {

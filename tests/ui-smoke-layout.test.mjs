@@ -287,6 +287,12 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderJs, /health_updates_mode/);
     assert.match(folderJs, /health_all_stopped_mode/);
     assert.match(folderJs, /const collectValidationWarnings = \(\) =>/);
+    assert.match(folderJs, /const NO_MEMBERS_SELECTED_INFO = 'No members are currently selected in this folder\.';/);
+    assert.doesNotMatch(folderJs, /Regex is empty, so only manual assignment will be used for this folder\./);
+    assert.doesNotMatch(folderLegacyJs, /Regex is empty, so only manual assignment will be used for this folder\./);
+    assert.match(folderJs, /summary\.removeClass\('invalid warning info ready'\)/);
+    assert.match(folderJs, /summary\.addClass\('info'\)\.text\(`Info: \$\{infoWarnings\.length\} note/);
+    assert.match(folderLegacyJs, /summary\.addClass\('info'\)\.text\(`Info: \$\{infoWarnings\.length\} note/);
     assert.match(folderJs, /const suggestDefaultsFromMembers = \(\) =>/);
     assert.match(folderJs, /const buildRegexSuggestionFromNames = \(names\) =>/);
     assert.match(folderJs, /const applyAdvancedMode = \(\) =>/);
@@ -320,6 +326,8 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderCss, /\.fv-live-insights\s*\{\s*display:\s*grid;\s*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
     assert.match(folderCss, /\.fv-change-summary-panel\s*\{\s*grid-column:\s*1 \/ -1/);
     assert.match(folderCss, /\.fv-validation-details/);
+    assert.match(folderCss, /\.fv-validation-summary\.info/);
+    assert.match(folderCss, /\.fv-validation-details\.info/);
     assert.match(folderCss, /\.fv-section-nav > button\.is-active/);
     assert.match(folderCss, /\.fv-orphan-editor-row/);
 });

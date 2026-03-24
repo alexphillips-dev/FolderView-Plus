@@ -61,6 +61,7 @@ const DEFAULT_DROPDOWN_STYLE = 'minimal';
 const DEFAULT_DROPDOWN_COLOR = '#ff9a3c';
 const DEFAULT_DROPDOWN_HOVER_COLOR = '#111111';
 const SUPPORTED_DROPDOWN_STYLES = Object.freeze(['minimal', 'boxed', 'ghost', 'pill', 'filled']);
+const NO_MEMBERS_SELECTED_INFO = 'No members are currently selected in this folder.';
 const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
 const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv.folder.editor.prefill.persist.v1';
 const EDITOR_PREFILL_MAX_AGE_MS = 10 * 60 * 1000;
@@ -3659,7 +3660,6 @@ const collectValidationWarnings = () => {
         return [];
     }
     const warnings = [];
-    const regexValue = String(form.regex.value || '').trim();
     const iconValue = String(form.icon.value || '').trim();
     const checkedCount = Number($('input[name*="containers"]:checked').length || 0);
     const statusThresholdRaw = String(form.status_warn_stopped_percent?.value || '').trim();
@@ -3667,14 +3667,11 @@ const collectValidationWarnings = () => {
     const healthCriticalThresholdRaw = String(form.health_critical_stopped_percent?.value || '').trim();
     const updatesMode = normalizeOptionalHealthSelect(form.health_updates_mode?.value, FOLDER_HEALTH_UPDATES_MODE_VALUES);
 
-    if (!regexValue) {
-        warnings.push('Regex is empty, so only manual assignment will be used for this folder.');
-    }
     if (iconValue && !isLikelyIconPath(iconValue)) {
         warnings.push('Icon path looks unusual. Use /plugins/, http(s)://, or data:image/* for best compatibility.');
     }
     if (checkedCount === 0) {
-        warnings.push('No members are currently selected in this folder.');
+        warnings.push(NO_MEMBERS_SELECTED_INFO);
     }
     if (statusThresholdRaw && Number(statusThresholdRaw) >= 95) {
         warnings.push('Status warn threshold is very high and may hide stopped-state alerts.');
@@ -3706,15 +3703,19 @@ const validateForm = () => {
     const valid = checks.every(Boolean);
     const blockedCount = checks.filter((ok) => !ok).length;
     const warnings = collectValidationWarnings();
+    const infoWarnings = warnings.filter((line) => line === NO_MEMBERS_SELECTED_INFO);
+    const advisoryWarnings = warnings.filter((line) => line !== NO_MEMBERS_SELECTED_INFO);
 
     const summary = $('#fvValidationSummary');
     const details = $('#fvValidationDetails');
     if (summary.length) {
-        summary.removeClass('invalid warning ready');
+        summary.removeClass('invalid warning info ready');
         if (!valid) {
             summary.addClass('invalid').text(`Blocked: fix ${blockedCount} field issue${blockedCount === 1 ? '' : 's'} before saving.`);
-        } else if (warnings.length > 0) {
-            summary.addClass('warning').text(`Warning: ${warnings.length} recommendation${warnings.length === 1 ? '' : 's'} available.`);
+        } else if (advisoryWarnings.length > 0) {
+            summary.addClass('warning').text(`Warning: ${advisoryWarnings.length} recommendation${advisoryWarnings.length === 1 ? '' : 's'} available.`);
+        } else if (infoWarnings.length > 0) {
+            summary.addClass('info').text(`Info: ${infoWarnings.length} note${infoWarnings.length === 1 ? '' : 's'} available.`);
         } else {
             summary.addClass('ready').text('Ready: all checks passed.');
         }
@@ -3722,18 +3723,24 @@ const validateForm = () => {
     if (details.length) {
         if (!valid) {
             details
-                .removeClass('warning ready')
+                .removeClass('warning info ready')
                 .addClass('invalid')
                 .text('Resolve highlighted field errors, then try saving again.');
-        } else if (warnings.length > 0) {
-            const rendered = warnings.slice(0, 3).map((line) => `- ${line}`).join('\n');
+        } else if (advisoryWarnings.length > 0) {
+            const rendered = advisoryWarnings.slice(0, 3).map((line) => `- ${line}`).join('\n');
             details
-                .removeClass('invalid ready')
+                .removeClass('invalid info ready')
                 .addClass('warning')
+                .text(rendered);
+        } else if (infoWarnings.length > 0) {
+            const rendered = infoWarnings.slice(0, 3).map((line) => `- ${line}`).join('\n');
+            details
+                .removeClass('invalid warning ready')
+                .addClass('info')
                 .text(rendered);
         } else {
             details
-                .removeClass('invalid warning')
+                .removeClass('invalid warning info')
                 .addClass('ready')
                 .text('No warnings.');
         }

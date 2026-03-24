@@ -567,17 +567,19 @@
 }
 
 .fv-live-chevron {
-    width: 28px;
-    height: 28px;
-    min-width: 28px;
-    padding: 0;
-    border-radius: 8px;
+    width: auto;
+    min-width: 12px;
+    height: 16px;
+    padding: 0 2px;
+    border-radius: 0;
     border: 1px solid transparent;
     color: var(--fv-live-chevron-color, var(--fv-chevron-color));
     background: var(--fv-live-chevron-bg, transparent);
     display: inline-flex;
+    flex: 0 0 auto;
     align-items: center;
     justify-content: center;
+    line-height: 1;
     transition: color 120ms ease, border-color 120ms ease, background-color 120ms ease;
 }
 
@@ -600,12 +602,22 @@
 }
 
 .fv-live-preview-row.is-boxed .fv-live-chevron {
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 4px;
     border-color: var(--fv-live-chevron-border, var(--fv-chevron-color));
     background: var(--fv-live-chevron-bg, rgba(255, 255, 255, 0.03));
 }
 
 .fv-live-preview-row.is-boxed .fv-live-chevron:hover {
     background: var(--fv-live-chevron-hover-bg, rgba(255, 255, 255, 0.06));
+}
+
+.fv-live-chevron > i {
+    font-size: 12px;
+    line-height: 1;
+    color: inherit !important;
 }
 
 .fv-live-insights {

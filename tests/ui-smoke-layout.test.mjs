@@ -309,6 +309,8 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderCss, /\.fv-live-preview-row\.is-boxed \.fv-live-chevron/);
     assert.match(folderCss, /--fv-live-chevron-color/);
     assert.match(folderCss, /--fv-live-chevron-hover-bg/);
+    assert.match(folderCss, /\.fv-live-chevron\s*\{[\s\S]*min-width:\s*12px;[\s\S]*height:\s*16px;[\s\S]*padding:\s*0 2px;/);
+    assert.match(folderCss, /\.fv-live-preview-row\.is-boxed \.fv-live-chevron\s*\{[\s\S]*min-width:\s*22px;[\s\S]*height:\s*22px;[\s\S]*padding:\s*0 6px;/);
     assert.match(folderCss, /\.fv-live-insights\s*\{\s*display:\s*grid;\s*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
     assert.match(folderCss, /\.fv-change-summary-panel\s*\{\s*grid-column:\s*1 \/ -1/);
     assert.match(folderCss, /\.fv-validation-details/);

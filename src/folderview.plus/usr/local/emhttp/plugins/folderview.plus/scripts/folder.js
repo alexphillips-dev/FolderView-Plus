@@ -3126,17 +3126,19 @@ const renderLivePreviewCanvas = () => {
     const rowClass = `fv-live-preview-row preview-${previewMode}${borderEnabled ? ' has-border' : ''}${dropdownStyle === 'boxed' ? ' is-boxed' : ' is-minimal'}${rowsLimit !== 1 ? ' is-multi-row' : ' is-single-row'}`;
     canvas.html(`
         <div class="${rowClass}" style="--fv-preview-border-color:${borderColor};--fv-preview-border-width:${borderWidth}px;--fv-chevron-color:${dropdownColor};--fv-chevron-hover:${dropdownHoverColor};">
-            <div class="fv-live-folder-anchor">
-                <img class="fv-live-folder-icon" src="${escapeHtml(icon)}" alt="" onerror="this.src='${DEFAULT_FOLDER_ICON_PATH}';">
-                <div class="fv-live-folder-copy">
-                    <strong>${escapeHtml(name)}</strong>
-                    <span>${PREVIEW_MODE_LABELS[previewMode] || 'Unknown'} preview</span>
+            <div class="fv-live-folder-head">
+                <div class="fv-live-folder-anchor">
+                    <img class="fv-live-folder-icon" src="${escapeHtml(icon)}" alt="" onerror="this.src='${DEFAULT_FOLDER_ICON_PATH}';">
+                    <div class="fv-live-folder-copy">
+                        <strong>${escapeHtml(name)}</strong>
+                        <span>${PREVIEW_MODE_LABELS[previewMode] || 'Unknown'} preview</span>
+                    </div>
                 </div>
+                <button type="button" class="fv-live-chevron fv-live-chevron-${dropdownStyle}" aria-label="Chevron preview">
+                    <i class="fa fa-chevron-down" aria-hidden="true"></i>
+                </button>
             </div>
             <div class="fv-live-member-lane">${membersHtml}</div>
-            <button type="button" class="fv-live-chevron fv-live-chevron-${dropdownStyle}" aria-label="Chevron preview">
-                <i class="fa fa-chevron-down" aria-hidden="true"></i>
-            </button>
         </div>
     `);
 };

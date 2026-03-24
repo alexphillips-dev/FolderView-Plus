@@ -49,6 +49,7 @@
                         <div class="fv-hero-meta">
                             <span id="fvHeroScope">Top-level folder</span>
                             <span id="fvHeroMembers">0/0 included</span>
+                            <span id="fvHeroDefaults">Checking inherited defaults</span>
                             <span id="fvHeroMode">Basic editor</span>
                         </div>
                     </div>
@@ -83,27 +84,38 @@
             <div class="fv-live-panel-grid">
                 <div class="fv-live-preview-card">
                     <div class="fv-live-preview-card-head">
-                        <div>
+                        <div class="fv-live-preview-copy">
                             <strong>Live folder preview</strong>
                             <p>The editor runtime will keep this preview in sync as settings change.</p>
                         </div>
-                        <span id="fvLivePreviewMeta" class="fv-live-preview-meta-chip">Loading preview</span>
+                        <div class="fv-live-preview-head-actions">
+                            <div class="fv-preview-surface-switch" role="group" aria-label="Preview surface">
+                                <button type="button" class="fv-preview-surface-btn is-active" data-surface="tab">Tab</button>
+                                <button type="button" class="fv-preview-surface-btn" data-surface="dashboard">Dashboard</button>
+                                <button type="button" class="fv-preview-surface-btn" data-surface="nested">Nested</button>
+                            </div>
+                            <span id="fvLivePreviewMeta" class="fv-live-preview-meta-chip">Loading preview</span>
+                        </div>
                     </div>
                     <div id="fvLivePreviewCanvas" class="fv-live-preview-canvas">
-                        <div class="fv-live-preview-row">
-                            <div class="fv-live-folder-anchor">
-                                <img class="fv-live-folder-icon" src="${DEFAULT_FOLDER_ICON_PATH}" alt="">
-                                <div class="fv-live-folder-copy">
-                                    <strong>Folder preview</strong>
-                                    <span>Waiting for folder data</span>
+                        <div class="fv-live-preview-surface surface-tab">
+                            <div class="fv-live-preview-row surface-tab">
+                                <div class="fv-live-folder-head">
+                                    <div class="fv-live-folder-anchor">
+                                        <img class="fv-live-folder-icon" src="${DEFAULT_FOLDER_ICON_PATH}" alt="">
+                                        <div class="fv-live-folder-copy">
+                                            <strong>Folder preview</strong>
+                                            <span>Waiting for folder data</span>
+                                        </div>
+                                    </div>
+                                    <span class="fv-live-chevron fv-live-chevron-minimal" aria-hidden="true">
+                                        <i class="fa fa-chevron-down" aria-hidden="true"></i>
+                                    </span>
+                                </div>
+                                <div class="fv-live-member-lane">
+                                    <div class="fv-live-preview-empty">Preview data will appear here once the folder runtime finishes loading.</div>
                                 </div>
                             </div>
-                            <div class="fv-live-member-lane">
-                                <div class="fv-live-preview-empty">Preview data will appear here once the folder runtime finishes loading.</div>
-                            </div>
-                            <button type="button" class="fv-live-chevron" aria-label="Chevron preview">
-                                <i class="fa fa-chevron-down" aria-hidden="true"></i>
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -124,6 +136,13 @@
                         <div class="fv-live-stat-card">
                             <span class="fv-live-stat-label">Members</span>
                             <strong id="fvLiveMembers" class="fv-live-stat-value">0/0 included</strong>
+                        </div>
+                    </div>
+                    <div class="fv-live-chip-panel">
+                        <div class="fv-live-chip-panel-head">Preview surface</div>
+                        <div class="fv-live-surface-copy">
+                            <strong id="fvLiveSurfaceLabel">Tab row</strong>
+                            <span id="fvLiveSurfaceHint">Matches the Docker / VM tab row layout.</span>
                         </div>
                     </div>
                     <div class="fv-live-chip-panel">

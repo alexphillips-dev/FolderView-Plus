@@ -348,6 +348,13 @@ let editorMode = 'basic';
 let activeEditorSection = 'general';
 let advancedSectionCollapsedState = {};
 let editorLayoutPrepared = false;
+const LIVE_PREVIEW_SURFACE_STORAGE_KEY = 'fv.folder.editor.livePreviewSurface.v1';
+const LIVE_PREVIEW_SURFACES = Object.freeze({
+    tab: { label: 'Tab row', subtitle: 'Matches the Docker / VM tab row layout.' },
+    dashboard: { label: 'Dashboard card', subtitle: 'Approximates the dashboard widget card surface.' },
+    nested: { label: 'Nested child', subtitle: 'Shows how this folder will read when nested under a parent.' }
+});
+let livePreviewSurface = 'tab';
 
 const SMART_DEFAULT_FIELD_NAMES = new Set([
     'icon',
@@ -2988,6 +2995,7 @@ const updateInheritedFieldIndicators = () => {
     if (!form) {
         return;
     }
+    let inheritedCount = 0;
     Object.entries(INHERITED_FIELD_HINTS).forEach(([fieldName, hint]) => {
         const field = form.elements?.[fieldName];
         const row = $(form).find(`.basic:has([name="${fieldName}"])`).first();
@@ -2998,6 +3006,9 @@ const updateInheritedFieldIndicators = () => {
             ? field.checked !== true
             : String($(field).val() || '').trim() === '';
         row.toggleClass('fv-using-inherited', isInherited);
+        if (isInherited) {
+            inheritedCount += 1;
+        }
         let marker = row.find('.fv-inherited-badge').first();
         if (!marker.length) {
             marker = $('<span class="fv-inherited-badge"></span>');
@@ -3012,7 +3023,19 @@ const updateInheritedFieldIndicators = () => {
             .toggle(isInherited)
             .text(isInherited ? 'inherits global default' : '')
             .attr('title', isInherited ? hint : '');
+        const button = row.find(`.fv-inherit-btn[data-field="${fieldName}"]`).first();
+        if (button.length) {
+            button.prop('disabled', isInherited);
+            button.toggleClass('is-inherited', isInherited);
+            button.text(isInherited ? 'Using global' : 'Use global');
+            button.attr('title', isInherited ? hint : 'Clear this override and use the global default again.');
+        }
     });
+    $('#fvHeroDefaults').text(
+        inheritedCount > 0
+            ? `${inheritedCount} inherited default${inheritedCount === 1 ? '' : 's'}`
+            : 'All key fields overridden locally'
+    );
 };
 
 const restoreSectionSavedValues = (sectionKey) => {
@@ -3131,6 +3154,8 @@ const renderLivePreviewCanvas = () => {
     const dropdownHoverColor = normalizeHexColor(form.dropdown_hover_color.value, DEFAULT_DROPDOWN_HOVER_COLOR);
     const icon = String(form.icon.value || '').trim() || DEFAULT_FOLDER_ICON_PATH;
     const name = (form.name.value || '').trim() || 'Unnamed folder';
+    const previewSurface = normalizeLivePreviewSurface(livePreviewSurface);
+    const previewSurfaceMeta = LIVE_PREVIEW_SURFACES[previewSurface] || LIVE_PREVIEW_SURFACES.tab;
 
     const membersHtml = previewMode === 0
         ? '<div class="fv-live-preview-empty">Preview is currently disabled. The folder row will show the title and chevron only.</div>'
@@ -3152,22 +3177,26 @@ const renderLivePreviewCanvas = () => {
             : '<div class="fv-live-preview-empty">Select or match at least one member to see how the row preview will render.</div>');
 
     const dropdownTokens = getDropdownStyleTokens(dropdownStyle, dropdownColor, dropdownHoverColor);
-    const rowClass = `fv-live-preview-row preview-${previewMode}${borderEnabled ? ' has-border' : ''} is-${dropdownStyle}${rowsLimit !== 1 ? ' is-multi-row' : ' is-single-row'}`;
+    const rowClass = `fv-live-preview-row preview-${previewMode}${borderEnabled ? ' has-border' : ''} is-${dropdownStyle}${rowsLimit !== 1 ? ' is-multi-row' : ' is-single-row'} surface-${previewSurface}`;
     canvas.html(`
-        <div class="${rowClass}" style="--fv-preview-border-color:${borderColor};--fv-preview-border-width:${borderWidth}px;--fv-chevron-color:${dropdownColor};--fv-chevron-hover:${dropdownHoverColor};--fv-live-chevron-min-width:${dropdownTokens.minWidth};--fv-live-chevron-height:${dropdownTokens.height};--fv-live-chevron-padding:${dropdownTokens.padding};--fv-live-chevron-radius:${dropdownTokens.radius};--fv-live-chevron-border:${dropdownTokens.border};--fv-live-chevron-hover-border:${dropdownTokens.hoverBorder};--fv-live-chevron-bg:${dropdownTokens.background};--fv-live-chevron-hover-bg:${dropdownTokens.hoverBackground};--fv-live-chevron-shadow:${dropdownTokens.shadow};--fv-live-chevron-hover-shadow:${dropdownTokens.hoverShadow};">
-            <div class="fv-live-folder-head">
-                <div class="fv-live-folder-anchor">
-                    <img class="fv-live-folder-icon" src="${escapeHtml(icon)}" alt="" onerror="this.src='${DEFAULT_FOLDER_ICON_PATH}';">
-                    <div class="fv-live-folder-copy">
-                        <strong>${escapeHtml(name)}</strong>
-                        <span>${PREVIEW_MODE_LABELS[previewMode] || 'Unknown'} preview</span>
+        <div class="fv-live-preview-surface surface-${previewSurface}">
+            <div class="${rowClass}" style="--fv-preview-border-color:${borderColor};--fv-preview-border-width:${borderWidth}px;--fv-chevron-color:${dropdownColor};--fv-chevron-hover:${dropdownHoverColor};--fv-live-chevron-min-width:${dropdownTokens.minWidth};--fv-live-chevron-height:${dropdownTokens.height};--fv-live-chevron-padding:${dropdownTokens.padding};--fv-live-chevron-radius:${dropdownTokens.radius};--fv-live-chevron-border:${dropdownTokens.border};--fv-live-chevron-hover-border:${dropdownTokens.hoverBorder};--fv-live-chevron-bg:${dropdownTokens.background};--fv-live-chevron-hover-bg:${dropdownTokens.hoverBackground};--fv-live-chevron-shadow:${dropdownTokens.shadow};--fv-live-chevron-hover-shadow:${dropdownTokens.hoverShadow};">
+                <div class="fv-live-folder-head">
+                    <div class="fv-live-folder-anchor">
+                        <img class="fv-live-folder-icon" src="${escapeHtml(icon)}" alt="" onerror="this.src='${DEFAULT_FOLDER_ICON_PATH}';">
+                        <div class="fv-live-folder-copy">
+                            <strong>${escapeHtml(name)}</strong>
+                            <span>${PREVIEW_MODE_LABELS[previewMode] || 'Unknown'} preview</span>
+                        </div>
                     </div>
+                    <span class="fv-live-chevron fv-live-chevron-${dropdownStyle}" aria-hidden="true">
+                        <i class="fa fa-chevron-down" aria-hidden="true"></i>
+                    </span>
                 </div>
-                <span class="fv-live-chevron fv-live-chevron-${dropdownStyle}" aria-hidden="true">
-                    <i class="fa fa-chevron-down" aria-hidden="true"></i>
-                </span>
+                <div class="fv-live-member-lane">${membersHtml}</div>
             </div>
-            <div class="fv-live-member-lane">${membersHtml}</div>
+            ${previewSurface === 'nested' ? '<div class="fv-live-preview-nested-label">Nested child preview</div>' : ''}
+            ${previewSurface === 'dashboard' ? '<div class="fv-live-preview-dashboard-label">Dashboard card approximation</div>' : ''}
         </div>
     `);
     const livePreviewRow = canvas.find('.fv-live-preview-row').get(0);
@@ -3776,26 +3805,47 @@ const validateForm = () => {
     return valid;
 };
 
+const getMemberStateKey = (member, index = 0) => {
+    const state = buildSampleMemberState(member, index);
+    const normalized = String(state?.label || '').trim().toLowerCase();
+    if (normalized === 'running' || normalized === 'started') {
+        return 'running';
+    }
+    if (normalized === 'paused') {
+        return 'paused';
+    }
+    return 'stopped';
+};
+
 const updateMemberStats = () => {
     const rows = $('table.sortable > tbody > tr');
     const total = rows.length;
     const included = rows.find('input.container-switch:checked').length;
     const visible = rows.filter(':visible').length;
+    const manual = rows.filter('[data-membership="manual"]').length;
+    const regex = rows.filter('[data-membership="regex"]').length;
+    const available = rows.filter('[data-membership="available"]').length;
     const text = `${included}/${total} included` + (visible !== total ? ` (${visible} shown)` : '');
     $('#fvMemberStats').text(text);
     $('#fvLiveMembers').text(text);
     $('#fvHeroMembers').text(text);
+    $('#fvMemberChipIncluded').text(`${included} included`);
+    $('#fvMemberChipManual').text(`${manual} manual`);
+    $('#fvMemberChipRegex').text(`${regex} regex`);
+    $('#fvMemberChipAvailable').text(`${available} available`);
 };
 
 const applyMemberFilters = () => {
     const query = ($('#fvMemberSearch').val() || '').trim().toLowerCase();
     const filter = $('#fvMemberFilter').val() || 'all';
+    const stateFilter = $('#fvMemberStateFilter').val() || 'all';
 
     $('table.sortable > tbody > tr').each((_, row) => {
         const $row = $(row);
         const name = ($row.attr('data-name') || '').toLowerCase();
         const membership = $row.attr('data-membership');
         const included = $row.find('input.container-switch').prop('checked');
+        const state = String($row.attr('data-state') || 'stopped').trim().toLowerCase();
         const matchesQuery = !query || name.includes(query);
 
         let matchesFilter = true;
@@ -3809,10 +3859,31 @@ const applyMemberFilters = () => {
             matchesFilter = membership === 'manual';
         }
 
-        $row.toggle(matchesQuery && matchesFilter);
+        let matchesState = true;
+        if (stateFilter !== 'all') {
+            matchesState = state === stateFilter;
+        }
+
+        $row.toggle(matchesQuery && matchesFilter && matchesState);
     });
 
     updateMemberStats();
+};
+
+const setVisibleMemberSelection = (checked) => {
+    $('table.sortable > tbody > tr:visible').each((_, row) => {
+        const input = $(row).find('input.container-switch').get(0);
+        if (!input || input.disabled) {
+            return;
+        }
+        input.checked = checked === true;
+        $(input).trigger('change');
+    });
+    applyMemberFilters();
+    if (isFormInitialized) {
+        validateForm();
+        updateUnsavedIndicator();
+    }
 };
 
 const syncMemberArraysFromTable = () => {
@@ -3918,6 +3989,82 @@ const saveAdvancedCollapseState = () => {
     } catch (_error) {
         // Ignore storage failures.
     }
+};
+
+const normalizeLivePreviewSurface = (value) => {
+    const normalized = String(value || '').trim().toLowerCase();
+    return Object.prototype.hasOwnProperty.call(LIVE_PREVIEW_SURFACES, normalized)
+        ? normalized
+        : 'tab';
+};
+
+const loadLivePreviewSurfacePreference = () => {
+    try {
+        return normalizeLivePreviewSurface(localStorage.getItem(LIVE_PREVIEW_SURFACE_STORAGE_KEY));
+    } catch (_error) {
+        return 'tab';
+    }
+};
+
+const saveLivePreviewSurfacePreference = () => {
+    try {
+        localStorage.setItem(LIVE_PREVIEW_SURFACE_STORAGE_KEY, normalizeLivePreviewSurface(livePreviewSurface));
+    } catch (_error) {
+        // Ignore storage failures.
+    }
+};
+
+const setLivePreviewSurface = (surface) => {
+    livePreviewSurface = normalizeLivePreviewSurface(surface);
+    saveLivePreviewSurfacePreference();
+    $('.fv-preview-surface-btn').removeClass('is-active');
+    $(`.fv-preview-surface-btn[data-surface="${livePreviewSurface}"]`).addClass('is-active');
+    updateLiveSummary();
+};
+
+const clearFieldToInheritedValue = (fieldName) => {
+    const form = getForm();
+    const field = getFormField(form, fieldName);
+    if (!field) {
+        return;
+    }
+    if (field.type === 'checkbox') {
+        field.checked = false;
+    } else {
+        $(field).val('');
+    }
+    updateForm();
+    scheduleEditorRecalculation(0);
+};
+
+const ensureInheritedFieldControls = () => {
+    const form = getForm();
+    if (!form) {
+        return;
+    }
+    Object.keys(INHERITED_FIELD_HINTS).forEach((fieldName) => {
+        const row = $(form).find(`.basic:has([name="${fieldName}"])`).first();
+        const dt = row.find('dt').first();
+        if (!row.length || !dt.length) {
+            return;
+        }
+        let actions = dt.find('.fv-field-inherit-tools').first();
+        if (!actions.length) {
+            actions = $(`
+                <span class="fv-field-inherit-tools">
+                    <button type="button" class="fv-inherit-btn" data-field="${fieldName}">Use global</button>
+                </span>
+            `);
+            dt.append(actions);
+        }
+    });
+    $('.fv-inherit-btn').off('click').on('click', function onInheritClick() {
+        const fieldName = String($(this).attr('data-field') || '').trim();
+        if (!fieldName) {
+            return;
+        }
+        clearFieldToInheritedValue(fieldName);
+    });
 };
 
 const setEditorMode = (mode) => {
@@ -4255,6 +4402,7 @@ const updateLiveSummary = () => {
     const selectedMembers = memberNames.map((name) => memberMap.get(name)).filter(Boolean);
     const folderName = (form.name.value || '').trim() || '(unnamed)';
     const previewLabel = PREVIEW_MODE_LABELS[Number(form.preview.value)] || 'Unknown';
+    const previewSurfaceMeta = LIVE_PREVIEW_SURFACES[normalizeLivePreviewSurface(livePreviewSurface)] || LIVE_PREVIEW_SURFACES.tab;
     const contextLabel = type === 'docker'
         ? (CONTEXT_MODE_LABELS[Number(form.context.value)] || 'Unknown')
         : 'Not used for VMs';
@@ -4270,11 +4418,14 @@ const updateLiveSummary = () => {
             : 'Top-level folder'
     );
     $('#fvHeroMembers').text(`${memberNames.length}/${getAllMembers().length} included`);
+    $('#fvHeroDefaults').text($('#fvHeroDefaults').text() || 'Checking inherited defaults');
     $('#fvLivePreviewMeta').text(
         Number(form.preview.value) === 0
-            ? 'Preview disabled'
-            : `${previewLabel} • ${normalizePreviewRowLimit(form.preview_rows?.value) === 0 ? 'Unlimited rows' : `${normalizePreviewRowLimit(form.preview_rows?.value)} row${normalizePreviewRowLimit(form.preview_rows?.value) === 1 ? '' : 's'}`}`
+            ? `${previewSurfaceMeta.label} • Preview disabled`
+            : `${previewSurfaceMeta.label} • ${previewLabel} • ${normalizePreviewRowLimit(form.preview_rows?.value) === 0 ? 'Unlimited rows' : `${normalizePreviewRowLimit(form.preview_rows?.value)} row${normalizePreviewRowLimit(form.preview_rows?.value) === 1 ? '' : 's'}`}`
     );
+    $('#fvLiveSurfaceLabel').text(previewSurfaceMeta.label);
+    $('#fvLiveSurfaceHint').text(previewSurfaceMeta.subtitle);
     $('#fvSwatchStarted').css('background-color', normalizeHexColor(form.status_color_started.value, DEFAULT_FOLDER_STATUS_COLORS.started));
     $('#fvSwatchPaused').css('background-color', normalizeHexColor(form.status_color_paused.value, DEFAULT_FOLDER_STATUS_COLORS.paused));
     $('#fvSwatchStopped').css('background-color', normalizeHexColor(form.status_color_stopped.value, DEFAULT_FOLDER_STATUS_COLORS.stopped));
@@ -4486,6 +4637,9 @@ const initEditorChrome = () => {
         || !$('#fvApplyPluginDefaults').length
         || !$('#fvSuggestDefaults').length
         || !$('#fvLivePanel').length
+        || !$('#fvHeroDefaults').length
+        || !$('#fvLiveSurfaceLabel').length
+        || !$('.fv-preview-surface-btn[data-surface="dashboard"]').length
         || !$('.fv-editor-mode > button[data-mode="basic"]').length
         || !$('.fv-editor-mode > button[data-mode="advanced"]').length;
 
@@ -4514,6 +4668,7 @@ const initEditorChrome = () => {
                             <div class="fv-hero-meta">
                                 <span id="fvHeroScope">Top-level folder</span>
                                 <span id="fvHeroMembers">0/0 included</span>
+                                <span id="fvHeroDefaults">Checking inherited defaults</span>
                                 <span id="fvHeroMode">Basic editor</span>
                             </div>
                         </div>
@@ -4540,11 +4695,18 @@ const initEditorChrome = () => {
                 <div class="fv-live-panel-grid">
                     <div class="fv-live-preview-card">
                         <div class="fv-live-preview-card-head">
-                            <div>
+                            <div class="fv-live-preview-copy">
                                 <strong>Live folder preview</strong>
                                 <p>Updates immediately while you change preview, chevron, status, and folder display settings.</p>
                             </div>
-                            <span id="fvLivePreviewMeta" class="fv-live-preview-meta-chip">Preview disabled</span>
+                            <div class="fv-live-preview-head-actions">
+                                <div class="fv-preview-surface-switch" role="group" aria-label="Preview surface">
+                                    <button type="button" class="fv-preview-surface-btn is-active" data-surface="tab">Tab</button>
+                                    <button type="button" class="fv-preview-surface-btn" data-surface="dashboard">Dashboard</button>
+                                    <button type="button" class="fv-preview-surface-btn" data-surface="nested">Nested</button>
+                                </div>
+                                <span id="fvLivePreviewMeta" class="fv-live-preview-meta-chip">Preview disabled</span>
+                            </div>
                         </div>
                         <div id="fvLivePreviewCanvas" class="fv-live-preview-canvas"></div>
                     </div>
@@ -4555,6 +4717,13 @@ const initEditorChrome = () => {
                             <span><strong>Context:</strong> <span id="fvLiveContext">-</span></span>
                             <span><strong>Members:</strong> <span id="fvLiveMembers">0/0 included</span></span>
                         </div>
+                        <div class="fv-live-chip-panel">
+                            <div class="fv-live-chip-panel-head">Preview surface</div>
+                            <div class="fv-live-surface-copy">
+                                <strong id="fvLiveSurfaceLabel">Tab row</strong>
+                                <span id="fvLiveSurfaceHint">Matches the Docker / VM tab row layout.</span>
+                            </div>
+                        </div>
                         <div class="fv-live-swatches">
                             <span class="fv-swatch-item"><em>Started</em><i id="fvSwatchStarted"></i></span>
                             <span class="fv-swatch-item"><em>Paused</em><i id="fvSwatchPaused"></i></span>
@@ -4563,12 +4732,6 @@ const initEditorChrome = () => {
                         <div id="fvDockerSignals" class="fv-docker-signals" style="display:none;">
                             <span id="fvDockerComposeSummary" class="fv-docker-signal-chip">Compose: none detected</span>
                             <span id="fvDockerUpdateSummary" class="fv-docker-signal-chip">Updates: 0/0</span>
-                        </div>
-                        <div class="fv-regex-simulator">
-                            <label for="fvRegexSimulatorInput"><strong>Regex simulator</strong></label>
-                            <input type="text" id="fvRegexSimulatorInput" placeholder="Test a container or VM name">
-                            <span id="fvRegexSimulatorResult" class="fv-regex-result">No regex configured.</span>
-                            <div id="fvRegexSimulatorMeta" class="fv-regex-meta"></div>
                         </div>
                     </div>
                 </div>
@@ -4579,16 +4742,32 @@ const initEditorChrome = () => {
     if (!$('#fvMemberTools').length) {
         $('.basic.order-section dd').prepend(`
             <div id="fvMemberTools" class="fv-member-tools">
-                <input type="text" id="fvMemberSearch" placeholder="Search members">
-                <select id="fvMemberFilter">
-                    <option value="all">All</option>
-                    <option value="included">Included</option>
-                    <option value="excluded">Excluded</option>
-                    <option value="regex">Regex included</option>
-                    <option value="manual">Manually included</option>
-                </select>
-                <button type="button" id="fvMemberClear">Clear</button>
-                <span id="fvMemberStats" class="fv-member-stats">0/0 included</span>
+                <div class="fv-member-tools-main">
+                    <input type="text" id="fvMemberSearch" placeholder="Search members">
+                    <select id="fvMemberFilter">
+                        <option value="all">All membership</option>
+                        <option value="included">Included</option>
+                        <option value="excluded">Excluded</option>
+                        <option value="regex">Regex included</option>
+                        <option value="manual">Manual only</option>
+                    </select>
+                    <select id="fvMemberStateFilter">
+                        <option value="all">All states</option>
+                        <option value="running">${type === 'vm' ? 'Running' : 'Started / Running'}</option>
+                        <option value="paused">Paused</option>
+                        <option value="stopped">Stopped</option>
+                    </select>
+                    <button type="button" id="fvMemberIncludeVisible">Include shown</button>
+                    <button type="button" id="fvMemberExcludeVisible">Exclude shown</button>
+                    <button type="button" id="fvMemberClear">Reset filters</button>
+                    <span id="fvMemberStats" class="fv-member-stats">0/0 included</span>
+                </div>
+                <div class="fv-member-chip-row">
+                    <span id="fvMemberChipIncluded" class="fv-member-chip is-accent">0 included</span>
+                    <span id="fvMemberChipManual" class="fv-member-chip">0 manual</span>
+                    <span id="fvMemberChipRegex" class="fv-member-chip">0 regex</span>
+                    <span id="fvMemberChipAvailable" class="fv-member-chip">0 available</span>
+                </div>
             </div>
         `);
     }
@@ -4632,9 +4811,13 @@ const initEditorChrome = () => {
 
     $('#fvMemberSearch').off('input').on('input', applyMemberFilters);
     $('#fvMemberFilter').off('change').on('change', applyMemberFilters);
+    $('#fvMemberStateFilter').off('change').on('change', applyMemberFilters);
+    $('#fvMemberIncludeVisible').off('click').on('click', () => setVisibleMemberSelection(true));
+    $('#fvMemberExcludeVisible').off('click').on('click', () => setVisibleMemberSelection(false));
     $('#fvMemberClear').off('click').on('click', () => {
         $('#fvMemberSearch').val('');
         $('#fvMemberFilter').val('all');
+        $('#fvMemberStateFilter').val('all');
         applyMemberFilters();
     });
 
@@ -4657,6 +4840,9 @@ const initEditorChrome = () => {
     $('.fv-editor-mode > button').off('click').on('click', function onModeClick() {
         setEditorMode($(this).attr('data-mode'));
     });
+    $('.fv-preview-surface-btn').off('click').on('click', function onPreviewSurfaceClick() {
+        setLivePreviewSurface($(this).attr('data-surface'));
+    });
     $('.fv-section-collapse').off('click').on('click', function onCollapseClick() {
         toggleAdvancedSectionCollapse($(this).attr('data-section'));
     });
@@ -4676,6 +4862,9 @@ const initEditorChrome = () => {
     });
 
     enforceLeftAlignedSettingsLayout();
+    ensureInheritedFieldControls();
+    livePreviewSurface = loadLivePreviewSurfacePreference();
+    setLivePreviewSurface(livePreviewSurface);
     setTimeout(enforceLeftAlignedSettingsLayout, 50);
     setTimeout(enforceLeftAlignedSettingsLayout, 250);
     editorLayoutPrepared = true;
@@ -5603,11 +5792,12 @@ const updateList = () => {
     const renderRowHtml = ({ member, membership, checked, locked }) => {
         const icon = escapeHtml(member.Icon || ICON_FALLBACK_PATH);
         const name = escapeHtml(member.Name);
+        const stateKey = getMemberStateKey(member);
         const orderControls = locked
             ? '<span class="order-lock" title="Auto-included by regex or label"><i class="fa fa-lock" aria-hidden="true"></i></span>'
             : '<div class="order-buttons"><button type="button" class="member-move" data-direction="up" title="Move up"><i class="fa fa-chevron-up" aria-hidden="true"></i></button><button type="button" class="member-move" data-direction="down" title="Move down"><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div>';
         return `
-            <tr class="item" data-name="${name}" data-membership="${membership}">
+            <tr class="item" data-name="${name}" data-membership="${membership}" data-state="${stateKey}">
                 <td class="order-col">${orderControls}</td>
                 <td class="name-col"><span style="cursor: pointer;" onclick="setIconAsContainer(this)"><img src="${icon}" class="img" onerror="this.src='${ICON_FALLBACK_PATH}';"></span>${name}</td>
                 <td><input class="container-switch" ${checked ? 'checked' : ''} ${locked ? 'disabled' : ''} type="checkbox" name="containers[]" value="${name}" style="display: none;"></td>

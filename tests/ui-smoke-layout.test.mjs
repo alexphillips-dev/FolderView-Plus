@@ -276,6 +276,17 @@ test('nested folder expansion avoids duplicate parent previews and keeps child-o
 
 test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderJs, /const enforceLeftAlignedSettingsLayout = \(\) =>/);
+    assert.match(folderJs, /const LIVE_PREVIEW_SURFACES = Object\.freeze\(/);
+    assert.match(folderJs, /const setVisibleMemberSelection = \(checked\) =>/);
+    assert.match(folderJs, /const ensureInheritedFieldControls = \(\) =>/);
+    assert.match(folderJs, /id="fvHeroDefaults"/);
+    assert.match(folderJs, /id="fvLiveSurfaceLabel"/);
+    assert.match(folderJs, /class="fv-preview-surface-btn/);
+    assert.match(folderJs, /id="fvMemberStateFilter"/);
+    assert.match(folderJs, /id="fvMemberIncludeVisible"/);
+    assert.match(folderJs, /id="fvMemberExcludeVisible"/);
+    assert.match(folderJs, /id="fvMemberChipIncluded"/);
+    assert.match(folderJs, /class="fv-inherit-btn"/);
     assert.match(folderJs, /fv-force-left-v2 marker/);
     assert.match(folderJs, /fv-force-left-v3 marker/);
     assert.match(folderJs, /const validateHealthWarnThreshold = \(\) =>/);
@@ -303,6 +314,9 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderChromeJs, /id="fvDockerSignalsShell"/);
     assert.match(folderChromeJs, /class="fv-live-stat-card"/);
     assert.doesNotMatch(folderChromeJs, /Regex simulator/);
+    assert.match(folderChromeJs, /id="fvHeroDefaults"/);
+    assert.match(folderChromeJs, /id="fvLiveSurfaceLabel"/);
+    assert.match(folderChromeJs, /data-surface="dashboard"/);
     assert.match(folderCss, /\.canvas form\.folder-editor-form\.fv-force-left-v3/);
     assert.match(folderCss, /Runtime-enforced left alignment guard/);
     assert.match(folderCss, /\.fv-editor-mode/);
@@ -328,6 +342,15 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderCss, /\.fv-live-preview-row\.is-minimal \.fv-live-chevron\s*\{[\s\S]*color:\s*var\(--fv-live-chevron-color, var\(--fv-chevron-color\)\) !important;/);
     assert.match(folderCss, /\.fv-live-chevron\s*\{[\s\S]*min-width:\s*var\(--fv-live-chevron-min-width, 12px\);[\s\S]*height:\s*var\(--fv-live-chevron-height, 16px\);[\s\S]*padding:\s*var\(--fv-live-chevron-padding, 0 2px\);/);
     assert.match(folderCss, /\.fv-live-insights\s*\{\s*display:\s*grid;\s*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
+    assert.match(folderCss, /\.fv-preview-surface-switch/);
+    assert.match(folderCss, /\.fv-preview-surface-btn/);
+    assert.match(folderCss, /\.fv-live-preview-row\.surface-dashboard/);
+    assert.match(folderCss, /\.fv-live-preview-row\.surface-nested/);
+    assert.match(folderCss, /\.fv-field-inherit-tools/);
+    assert.match(folderCss, /\.fv-inherit-btn/);
+    assert.match(folderCss, /\.fv-member-tools-main/);
+    assert.match(folderCss, /\.fv-member-chip-row/);
+    assert.match(folderCss, /\.fv-member-chip/);
     assert.match(folderCss, /\.fv-validation-details/);
     assert.match(folderCss, /\.fv-validation-summary\.info/);
     assert.match(folderCss, /\.fv-validation-details\.info/);

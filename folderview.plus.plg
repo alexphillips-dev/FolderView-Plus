@@ -6,12 +6,21 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.24.39">
-<!ENTITY md5 "cc02c2b1c16737b3b501fd22a7a307da">
+<!ENTITY version "2026.03.24.41">
+<!ENTITY md5 "b42a42ef6198c353ca902e60f0c51f62">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.24.41
+- UX: Expanded the modern Docker and VM folder editors with richer member tools, including state filters, quick include/exclude actions for visible rows, and live member summary chips.
+- UX: Added inherited-default indicators and one-click `Use global` controls for key folder fields in the modern editor.
+- UX: Added live preview surface switching so the modern editor can preview the folder as a tab row, dashboard card, or nested child row.
+- UX: Tightened the modern editor chrome, preview panel, and section-card spacing so more controls stay visible higher on the page.
+- UX: Aligned the modern VM editor preview path with the Docker editor so both use the same preview border and row-layout contract.
+- Quality: Updated the modern editor bootstrap shell and regression guards so the new preview-surface and inheritance controls stay shipped and aligned with the runtime.
+
 
 ###2026.03.24.39
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

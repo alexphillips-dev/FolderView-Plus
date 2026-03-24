@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.24.06">
-<!ENTITY md5 "8ffa2be670eb02c48f7db79542d511f1">
+<!ENTITY version "2026.03.24.07">
+<!ENTITY md5 "3d4eb1cfd6b26e396f9de9eb0b64675f">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.24.07
+- Fix: Restored legacy folder editor reset helpers for preview border and chevron colors, so the grouped reset buttons work again on the old form.
+- Fix: Legacy folder editor chevron-style normalization now accepts `boxed` and legacy chevron aliases instead of collapsing everything back to `minimal`.
+- Fix: Legacy folder editor now reloads and saves chevron style compatibility aliases, so reopening a folder preserves `Boxed` correctly.
+- Test: Added regression coverage for legacy editor reset helpers and boxed chevron compatibility on the split legacy runtime.
+
 
 ###2026.03.24.06
 - Test: Expanded the no-cache page guard to discover plugin page entrypoints automatically instead of checking only a fixed hardcoded list.

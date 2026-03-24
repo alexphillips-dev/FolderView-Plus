@@ -286,12 +286,16 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderJs, /ComposeProject/);
     assert.match(folderJs, /UpdateAvailable/);
     assert.match(folderJs, /id="fvSuggestDefaults"/);
-    assert.match(folderJs, /id="fvDockerSignals"/);
+    assert.match(folderChromeJs, /id="fvDockerSignalsShell"/);
+    assert.match(folderChromeJs, /class="fv-live-stat-card"/);
+    assert.doesNotMatch(folderChromeJs, /Regex simulator/);
     assert.match(folderCss, /\.canvas form\.folder-editor-form\.fv-force-left-v3/);
     assert.match(folderCss, /Runtime-enforced left alignment guard/);
     assert.match(folderCss, /\.fv-editor-mode/);
     assert.match(folderCss, /\.fv-section-collapse/);
     assert.match(folderCss, /\.fv-docker-signals/);
+    assert.match(folderCss, /\.fv-live-chip-panel/);
+    assert.match(folderCss, /\.fv-live-stat-card/);
     assert.match(folderCss, /\.fv-validation-details/);
     assert.match(folderCss, /\.fv-section-nav > button\.is-active/);
     assert.match(folderCss, /\.fv-orphan-editor-row/);

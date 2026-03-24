@@ -109,20 +109,38 @@
                 </div>
                 <div class="fv-live-insights">
                     <div class="fv-live-grid">
-                        <span><strong>Name:</strong> <span id="fvLiveName">-</span></span>
-                        <span><strong>Preview:</strong> <span id="fvLivePreview">-</span></span>
-                        <span><strong>Context:</strong> <span id="fvLiveContext">-</span></span>
-                        <span><strong>Members:</strong> <span id="fvLiveMembers">0/0 included</span></span>
+                        <div class="fv-live-stat-card">
+                            <span class="fv-live-stat-label">Name</span>
+                            <strong id="fvLiveName" class="fv-live-stat-value">-</strong>
+                        </div>
+                        <div class="fv-live-stat-card">
+                            <span class="fv-live-stat-label">Preview</span>
+                            <strong id="fvLivePreview" class="fv-live-stat-value">-</strong>
+                        </div>
+                        <div class="fv-live-stat-card">
+                            <span class="fv-live-stat-label">Context</span>
+                            <strong id="fvLiveContext" class="fv-live-stat-value">-</strong>
+                        </div>
+                        <div class="fv-live-stat-card">
+                            <span class="fv-live-stat-label">Members</span>
+                            <strong id="fvLiveMembers" class="fv-live-stat-value">0/0 included</strong>
+                        </div>
                     </div>
-                    <div class="fv-live-swatches">
-                        <span class="fv-swatch-item"><em>Started</em><i id="fvSwatchStarted"></i></span>
-                        <span class="fv-swatch-item"><em>Paused</em><i id="fvSwatchPaused"></i></span>
-                        <span class="fv-swatch-item"><em>Stopped</em><i id="fvSwatchStopped"></i></span>
+                    <div class="fv-live-chip-panel">
+                        <div class="fv-live-chip-panel-head">Status colors</div>
+                        <div class="fv-live-swatches">
+                            <span class="fv-swatch-item"><em>Started</em><i id="fvSwatchStarted"></i></span>
+                            <span class="fv-swatch-item"><em>Paused</em><i id="fvSwatchPaused"></i></span>
+                            <span class="fv-swatch-item"><em>Stopped</em><i id="fvSwatchStopped"></i></span>
+                        </div>
                     </div>
-                    <div id="fvDockerSignals" class="fv-docker-signals" style="display:none;">
+                    <div id="fvDockerSignalsShell" class="fv-live-chip-panel" style="display:none;">
+                        <div class="fv-live-chip-panel-head">Docker signals</div>
+                        <div id="fvDockerSignals" class="fv-docker-signals">
                         <span id="fvDockerComposeSummary" class="fv-docker-signal-chip">Compose: loading…</span>
                         <span id="fvDockerUpdateSummary" class="fv-docker-signal-chip">Updates: loading…</span>
                     </div>
+                        </div>
                     <div class="fv-change-summary-panel">
                         <div class="fv-change-summary-head">
                             <strong id="fvChangeSummaryLabel">No pending changes</strong>
@@ -131,12 +149,6 @@
                         <p id="fvChangeSummaryText">This folder currently matches the saved values.</p>
                         <ul id="fvChangeSummaryList" class="fv-change-summary-list"></ul>
                         <span id="fvChangeSummaryOverflow" class="fv-change-summary-overflow"></span>
-                    </div>
-                    <div class="fv-regex-simulator">
-                        <label for="fvRegexSimulatorInput"><strong>Regex simulator</strong></label>
-                        <input type="text" id="fvRegexSimulatorInput" placeholder="Test a container or VM name">
-                        <span id="fvRegexSimulatorResult" class="fv-regex-result">No regex configured.</span>
-                        <div id="fvRegexSimulatorMeta" class="fv-regex-meta"></div>
                     </div>
                 </div>
             </div>

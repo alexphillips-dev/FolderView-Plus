@@ -586,7 +586,9 @@
 }
 
 .fv-change-summary-panel {
-    padding: 0.9em;
+    padding: 1em 1.05em;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.025));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
 .fv-change-summary-head {
@@ -602,7 +604,7 @@
 }
 
 #fvChangeSummaryText {
-    margin: 0.45em 0 0;
+    margin: 0.5em 0 0;
     color: var(--fv-editor-muted);
     line-height: 1.45;
 }
@@ -1503,33 +1505,73 @@
 
 .fv-live-grid {
     display: grid;
-    gap: 0.5em 1em;
+    gap: 0.75em;
     grid-template-columns: repeat(2, minmax(220px, 1fr));
+}
+
+.fv-live-stat-card,
+.fv-live-chip-panel {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.02));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.fv-live-stat-card {
+    min-height: 72px;
+    padding: 0.8em 0.95em;
+    display: grid;
+    gap: 0.32em;
+    align-content: start;
+}
+
+.fv-live-stat-label,
+.fv-live-chip-panel-head {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.9rem;
+    color: var(--fv-editor-muted);
+}
+
+.fv-live-stat-value {
+    display: block;
+    font-size: 1.18rem;
+    line-height: 1.35;
+    color: #fff;
+}
+
+.fv-live-chip-panel {
+    margin-top: 0;
+    padding: 0.72em 0.85em 0.8em;
+}
+
+.fv-live-chip-panel-head {
+    margin-bottom: 0.58em;
 }
 
 .fv-live-swatches {
     margin-top: 0;
     display: flex;
     flex-wrap: wrap;
-    gap: 0.8em;
+    gap: 0.65em;
 }
 
 .fv-docker-signals {
-    margin-top: 0.62em;
     display: flex;
     flex-wrap: wrap;
-    gap: 0.42em;
+    gap: 0.5em;
 }
 
 .fv-docker-signal-chip {
     display: inline-flex;
     align-items: center;
-    min-height: 26px;
-    padding: 0.18em 0.6em;
+    min-height: 28px;
+    padding: 0.22em 0.68em;
     border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.03);
-    font-size: 1.03rem;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.04);
+    font-size: 0.98rem;
+    line-height: 1.2;
 }
 
 .fv-smart-defaults-row {
@@ -1543,19 +1585,23 @@
 .fv-swatch-item {
     display: inline-flex;
     align-items: center;
-    gap: 0.35em;
+    gap: 0.42em;
+    padding: 0.2em 0.4em;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.03);
 }
 
 .fv-swatch-item > em {
     font-style: normal;
-    opacity: 0.85;
+    opacity: 0.9;
+    font-size: 0.97rem;
 }
 
 .fv-swatch-item > i {
-    width: 20px;
-    height: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    border-radius: 3px;
+    width: 22px;
+    height: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 4px;
     display: inline-block;
 }
 

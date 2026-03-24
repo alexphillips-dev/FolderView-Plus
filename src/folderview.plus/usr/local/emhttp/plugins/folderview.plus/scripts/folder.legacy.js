@@ -4296,6 +4296,7 @@ const updateLiveSummary = () => {
     $('#fvSwatchStarted').css('background-color', normalizeHexColor(form.status_color_started.value, DEFAULT_FOLDER_STATUS_COLORS.started));
     $('#fvSwatchPaused').css('background-color', normalizeHexColor(form.status_color_paused.value, DEFAULT_FOLDER_STATUS_COLORS.paused));
     $('#fvSwatchStopped').css('background-color', normalizeHexColor(form.status_color_stopped.value, DEFAULT_FOLDER_STATUS_COLORS.stopped));
+    const dockerSignalsShell = $('#fvDockerSignalsShell');
     const dockerSignals = $('#fvDockerSignals');
     if (type === 'docker' && dockerSignals.length) {
         const composeProjects = Array.from(new Set(
@@ -4312,7 +4313,13 @@ const updateLiveSummary = () => {
         const updateSummary = `Updates: ${updateCount}/${selectedMembers.length || 0}`;
         $('#fvDockerComposeSummary').text(composeSummary);
         $('#fvDockerUpdateSummary').text(updateSummary);
-        dockerSignals.show();
+        if (dockerSignalsShell.length) {
+            dockerSignalsShell.show();
+        } else {
+            dockerSignals.show();
+        }
+    } else if (dockerSignalsShell.length) {
+        dockerSignalsShell.hide();
     } else if (dockerSignals.length) {
         dockerSignals.hide();
     }

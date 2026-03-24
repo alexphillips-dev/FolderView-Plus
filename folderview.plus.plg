@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.24.14">
-<!ENTITY md5 "98e4b17a9e868486ff29349acd9f4d62">
+<!ENTITY version "2026.03.24.15">
+<!ENTITY md5 "7b6a4fbfd53a873dacb7d031e0c3ccaf">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.24.15
+- UX: Removed the Regex simulator from the modern folder editor overview so the General flow stays focused on the live preview and summary.
+- UX: Restyled the modern folder editor summary area with stat cards, status color chips, cleaner Docker signal pills, and a more polished change summary panel.
+- Fix: Updated the shared folder editor runtime so the modern overview still shows and hides Docker-specific summary chips correctly with the new chrome layout.
+
 
 ###2026.03.24.14
 - Fix: Fix modern folder editor live preview.

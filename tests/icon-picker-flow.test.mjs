@@ -12,6 +12,10 @@ const folderScriptPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js'
 );
+const folderLegacyScriptPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.legacy.js'
+);
 const folderIconApiScriptPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icon-api.js'
@@ -21,6 +25,7 @@ const folderPagePath = path.join(
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page'
 );
 const folderScript = fs.readFileSync(folderScriptPath, 'utf8');
+const folderLegacyScript = fs.readFileSync(folderLegacyScriptPath, 'utf8');
 const folderIconApiScript = fs.readFileSync(folderIconApiScriptPath, 'utf8');
 const folderPage = fs.readFileSync(folderPagePath, 'utf8');
 
@@ -78,13 +83,13 @@ test('icon picker runtime: filterIconsByQuery matches names and tags case-insens
     assert.deepEqual(byTag.map((icon) => icon.name), ['Home Automation']);
 });
 
-test('folder.js integration keeps using shared icon picker runtime helpers', () => {
-    assert.match(folderScript, /window\.FolderViewIconPickerRuntime/);
+test('folder editor runtime keeps using shared icon picker helpers in the shipped editor path', () => {
+    assert.match(folderLegacyScript, /window\.FolderViewIconPickerRuntime/);
+    assert.match(folderLegacyScript, /iconPickerRuntime\.paginateItems/);
+    assert.match(folderLegacyScript, /iconPickerRuntime\.filterIconsByQuery/);
     assert.match(folderScript, /window\.FolderViewPlusFolderIconApi/);
-    assert.match(folderScript, /iconPickerRuntime\.paginateItems/);
-    assert.match(folderScript, /iconPickerRuntime\.filterIconsByQuery/);
     assert.match(folderScript, /folderIconApiModule\.createApi/);
-    assert.match(folderPage, /folder\.editor\.icon-api\.js[\s\S]*folder\.js/);
+    assert.match(folderPage, /folder\.editor\.chrome\.js[\s\S]*folder\.legacy\.js/);
 });
 
 test('folder editor markup exposes custom icon manager controls', () => {

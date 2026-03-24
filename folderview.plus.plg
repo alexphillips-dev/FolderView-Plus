@@ -6,12 +6,27 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.24.09">
-<!ENTITY md5 "3753a49c887b3668230a1617bd107d33">
+<!ENTITY version "2026.03.24.11">
+<!ENTITY md5 "e81f5412132b799ac59ea9949d49656e">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.24.11
+- Fix: Fix modern folder editor bootstrap hydration.
+- Maintenance: Auto-reload plugin pages after version change.
+- Fix: Fix legacy folder editor chevron and reset controls.
+- Maintenance: Guard no-cache headers on plugin pages.
+- Maintenance: Restore dedicated legacy folder editor runtime.
+- Maintenance: Harden legacy folder editor prefill recovery.
+
+
+###2026.03.24.10
+- Fix: Reworked the modern folder settings page to use the proven legacy folder-editor runtime underneath the new chrome, so existing-folder load/save behavior now comes from the same path that already works on the classic editor.
+- UX: The new folder settings page is now a true UI overlay on top of the shared form state instead of a second competing bootstrap path, which avoids blank-folder loads when editing existing Docker or VM folders.
+- Fix: Modern editor buttons now resolve their actions lazily through the legacy runtime exports, and the legacy runtime now exposes the modern top-bar actions needed by the new chrome.
+- Test: Updated folder-editor smoke coverage so modern mode must ship the chrome layer while still relying on the legacy runtime wiring.
 
 ###2026.03.24.09
 - Fix: Modern folder editor now receives a server-resolved requested-folder bootstrap context, so editing an existing Docker or VM folder can hydrate from the saved record immediately instead of opening as a blank new-folder form.

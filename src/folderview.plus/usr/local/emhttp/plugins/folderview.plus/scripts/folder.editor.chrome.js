@@ -336,20 +336,25 @@
                 fn();
                 return;
             }
-            if (fallbackSelector) {
-                form.querySelector(fallbackSelector)?.click();
+            const fallback = fallbackSelector ? form.querySelector(fallbackSelector) : null;
+            if (fallback) {
+                fallback.click();
             }
         };
 
-        form.querySelector('#fvRestoreSavedValues')?.addEventListener('click', () => {
-            runIfAvailable('resetUnsavedChanges', '.folder-btn-reset');
-        });
-        form.querySelector('#fvApplyPluginDefaults')?.addEventListener('click', () => {
-            runIfAvailable('applyEditorPluginDefaults');
-        });
-        form.querySelector('#fvSuggestDefaults')?.addEventListener('click', () => {
-            runIfAvailable('suggestDefaultsFromMembers');
-        });
+        const bindButton = (selector, fnName, fallbackSelector = '') => {
+            const button = form.querySelector(selector);
+            if (!button) {
+                return;
+            }
+            button.addEventListener('click', () => {
+                runIfAvailable(fnName, fallbackSelector);
+            });
+        };
+
+        bindButton('#fvRestoreSavedValues', 'resetUnsavedChanges', '.folder-btn-reset');
+        bindButton('#fvApplyPluginDefaults', 'applyEditorPluginDefaults');
+        bindButton('#fvSuggestDefaults', 'suggestDefaultsFromMembers');
     };
 
     const bindSectionControls = (form) => {

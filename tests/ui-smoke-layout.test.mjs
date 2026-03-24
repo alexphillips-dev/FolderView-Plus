@@ -139,12 +139,11 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
 test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderPage, /\$folderEditorPageMode === 'modern'/);
     assert.match(folderPage, /folder\.editor\.chrome\.js/);
-    assert.match(folderPage, /folder\.js/);
     assert.match(folderPage, /folder\.legacy\.js/);
     assert.match(folderJs, /modernFolderEditorEnabled/);
-    assert.doesNotMatch(folderLegacyJs, /modernFolderEditorEnabled/);
-    assert.match(folderLegacyJs, /const type = new URLSearchParams\(location\.search\)\.get\('type'\);/);
-    assert.match(folderLegacyJs, /const folderId = new URLSearchParams\(location\.search\)\.get\('id'\);/);
+    assert.match(folderLegacyJs, /const modernFolderEditorEnabled = String\(window\.FolderViewPlusFolderEditorPageMode \|\| 'legacy'\)/);
+    assert.match(folderLegacyJs, /window\.FolderViewPlusFolderEditorPageType/);
+    assert.match(folderLegacyJs, /window\.FolderViewPlusFolderEditorRequestedId/);
 });
 
 test('mobile action bar and import progress keep compact viewport guards', () => {
@@ -303,28 +302,25 @@ test('folder editor page ships the redesign bootstrap and chrome anchors', () =>
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorResolvedId =/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorBootstrapContext =/);
     assert.match(folderPage, /scripts\/folder\.editor\.chrome\.js/);
-    assert.match(folderJs, /id="fvEditorChrome"/);
-    assert.match(folderJs, /id="fvLivePanel"/);
-    assert.match(folderJs, /id="fvEditorActionBar"/);
+    assert.match(folderLegacyJs, /const initEditorChrome = \(\) =>/);
+    assert.match(folderLegacyJs, /const applyEditorPluginDefaults = \(\) =>/);
+    assert.match(folderLegacyJs, /window\.applyEditorPluginDefaults = applyEditorPluginDefaults;/);
+    assert.match(folderLegacyJs, /window\.suggestDefaultsFromMembers = suggestDefaultsFromMembers;/);
     assert.match(folderChromeJs, /id="fvRestoreSavedValues"/);
     assert.match(folderChromeJs, /editorPageMode !== 'modern'/);
     assert.match(folderChromeJs, /data-mode="basic"/);
     assert.match(folderChromeJs, /id="fvLivePreviewCanvas"/);
-    assert.match(folderJs, /const folderEditorBootstrapContext = window\.FolderViewPlusFolderEditorBootstrapContext/);
-    assert.match(folderJs, /const createFallbackFolderHierarchyApi = \(deps = \{\}\) =>/);
-    assert.match(folderJs, /const hydrateCurrentEditFolder = \(folderRecord, folderRecordId, foldersMap = \{\}, options = \{\}\) =>/);
-    assert.match(folderJs, /currentEditFolder = resolvedEditFolder\?\.folder \|\| bootstrapFolderRecord \|\| navigationPrefill\?\.folder \|\| null;/);
-    assert.match(folderJs, /\}\)\(\)\.catch\(\(error\) => \{/);
-    assert.doesNotMatch(folderJs, /folder editor bootstrap failed: missing folder\.editor\.hierarchy\.js/);
-    assert.match(folderJs, /const modernFolderEditorEnabled = String\(window\.FolderViewPlusFolderEditorPageMode \|\| 'legacy'\)/);
-    assert.match(folderJs, /if \(!modernFolderEditorEnabled\)\s*\{\s*return;\s*\}/);
-    assert.match(folderJs, /markSection\('div\.basic:has\(\[name="parent_folder_id"\]\)', 'general'\);/);
-    assert.match(folderJs, /const setActiveEditorSection = \(sectionKey\) =>/);
-    assert.match(folderJs, /shell\.toggle\(isActiveSection\);/);
-    assert.ok(
-        folderJs.indexOf('let currentEditFolder = null;') < folderJs.indexOf("choose = Object.values(JSON.parse(await $.get(`/plugins/folderview.plus/server/read_info.php?type=${type}&nocache=1&_=${cacheBust}`).promise())).map(typeFilter);"),
-        'existing folder hydration should be staged before member-catalog fetch'
-    );
+    assert.match(folderChromeJs, /const bindTopButtons = \(form\) =>/);
+    assert.match(folderChromeJs, /const runIfAvailable = \(fnName, fallbackSelector = ''\) =>/);
+    assert.match(folderChromeJs, /bindButton\('#fvRestoreSavedValues', 'resetUnsavedChanges', '\.folder-btn-reset'\);/);
+    assert.match(folderChromeJs, /bindButton\('#fvApplyPluginDefaults', 'applyEditorPluginDefaults'\);/);
+    assert.match(folderChromeJs, /bindButton\('#fvSuggestDefaults', 'suggestDefaultsFromMembers'\);/);
+    assert.match(folderChromeJs, /data-target="\$\{key\}"/);
+    assert.match(folderChromeJs, /data-mode="advanced"/);
+    assert.match(folderLegacyJs, /if \(modernFolderEditorEnabled\) \{/);
+    assert.match(folderLegacyJs, /\$\('#fvRegexSimulatorInput'\)\.off\('input'\)\.on\('input', updateRegexSimulator\);/);
+    assert.match(folderLegacyJs, /\$\('#fvSuggestDefaults'\)\.off\('click'\)\.on\('click', suggestDefaultsFromMembers\);/);
+    assert.doesNotMatch(folderPage, /scripts\/folder\.js[^?]*"\s*defer/);
 });
 
 test('settings runtime uses extracted chrome module and shared request wrapper', () => {

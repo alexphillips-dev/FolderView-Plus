@@ -43,7 +43,8 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorScript, /preview:\s*Number\.isFinite\(Number\(settings\.preview\)\)/);
     assert.match(folderEditorScript, /context_graph_time:\s*Number\.isFinite\(Number\(settings\.context_graph_time\)\)/);
     assert.match(folderEditorScript, /folders\[safeId\] = normalizeFolderRecordForEditor\(folder\);/);
-    assert.match(folderEditorScript, /form\.preview\.value = String\(currFolder\.settings\.preview\);/);
+    assert.match(folderEditorScript, /let currentEditFolder = null;/);
+    assert.match(folderEditorScript, /form\.preview\.value = String\(currentEditFolder\.settings\.preview\);/);
     assert.doesNotMatch(folderEditorScript, /preview_member_display/);
 });
 

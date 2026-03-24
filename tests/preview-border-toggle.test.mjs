@@ -43,15 +43,15 @@ test('folder editor normalizes legacy preview border values when loading existin
     assert.match(folderJs, /source\.preview_rows\s*\?\?\s*source\.previewRows/);
     assert.match(folderJs, /const isLegacyPreviewBorderEnabled = \(settings\) =>/);
     assert.match(folderJs, /return normalized === 'boxed' \|\| normalized === 'minimal'/);
-    assert.match(folderJs, /form\.preview_border\.checked = isLegacyPreviewBorderEnabled\(currFolder\.settings \|\| \{\}\);/);
+    assert.match(folderJs, /form\.preview_border\.checked = isLegacyPreviewBorderEnabled\(currentEditFolder\.settings \|\| \{\}\);/);
     assert.match(folderJs, /preview_border_width:\s*normalizePositiveInt\(settings\.preview_border_width,\s*DEFAULT_PREVIEW_BORDER_WIDTH,\s*1,\s*4\)/);
     assert.match(folderJs, /preview_vertical_bars_width:\s*normalizePositiveInt\(settings\.preview_vertical_bars_width,\s*DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH,\s*1,\s*4\)/);
     assert.match(folderJs, /preview_rows:\s*normalizePreviewRowLimit\(settings,\s*source\)/);
     assert.match(folderJs, /dropdown_style:\s*normalizeDropdownStyle\(settings,\s*source\)/);
     assert.match(folderJs, /dropdown_color:\s*normalizeHexColor\(settings\.dropdown_color,\s*DEFAULT_DROPDOWN_COLOR\)/);
     assert.match(folderJs, /dropdown_hover_color:\s*normalizeHexColor\(settings\.dropdown_hover_color,\s*DEFAULT_DROPDOWN_HOVER_COLOR\)/);
-    assert.match(folderJs, /form\.preview_rows\.value = String\(normalizePreviewRowLimit\(currFolder\.settings,\s*currFolder\)\);/);
-    assert.match(folderJs, /form\.dropdown_style\.value = normalizeDropdownStyle\(currFolder\.settings,\s*currFolder\);/);
+    assert.match(folderJs, /form\.preview_rows\.value = String\(normalizePreviewRowLimit\(currentEditFolder\.settings,\s*currentEditFolder\)\);/);
+    assert.match(folderJs, /form\.dropdown_style\.value = normalizeDropdownStyle\(currentEditFolder\.settings,\s*currentEditFolder\);/);
     assert.match(folderJs, /preview_rows:\s*normalizedPreviewRows,/);
     assert.match(folderJs, /previewRows:\s*normalizedPreviewRows,/);
     assert.match(folderJs, /dropdown_style:\s*normalizedDropdownStyle,/);

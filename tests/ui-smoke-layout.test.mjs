@@ -288,6 +288,10 @@ test('folder editor page ships the redesign bootstrap and chrome anchors', () =>
     assert.match(folderJs, /markSection\('div\.basic:has\(\[name="parent_folder_id"\]\)', 'general'\);/);
     assert.match(folderJs, /const setActiveEditorSection = \(sectionKey\) =>/);
     assert.match(folderJs, /shell\.toggle\(isActiveSection\);/);
+    assert.ok(
+        folderJs.indexOf('let currentEditFolder = null;') < folderJs.indexOf("choose = Object.values(JSON.parse(await $.get(`/plugins/folderview.plus/server/read_info.php?type=${type}&nocache=1&_=${cacheBust}`).promise())).map(typeFilter);"),
+        'existing folder hydration should be staged before member-catalog fetch'
+    );
 });
 
 test('settings runtime uses extracted chrome module and shared request wrapper', () => {

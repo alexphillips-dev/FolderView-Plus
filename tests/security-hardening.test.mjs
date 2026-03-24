@@ -86,7 +86,7 @@ test('folder display scripts sanitize folder icon and name in HTML templates', (
 });
 
 test('folder editor escapes custom action labels when rendering HTML', () => {
-    assert.match(folderJs, /const safeActionName = escapeHtml\(e\?\.name \|\| ''\)/);
+    assert.match(folderJs, /const safeActionName = escapeHtml\(entry\?\.name \|\| ''\)/);
     assert.match(folderJs, /const safeCfgName = escapeHtml\(cfg\.name \|\| ''\)/);
 });
 

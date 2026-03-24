@@ -53,6 +53,10 @@ const vmJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js'
 );
+const dashboardJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js'
+);
 
 const settingsPage = fs.readFileSync(settingsPagePath, 'utf8');
 const settingsCss = fs.readFileSync(settingsCssPath, 'utf8');
@@ -68,6 +72,7 @@ const folderChromeJs = fs.readFileSync(
 );
 const dockerJs = fs.readFileSync(dockerJsPath, 'utf8');
 const vmJs = fs.readFileSync(vmJsPath, 'utf8');
+const dashboardJs = fs.readFileSync(dashboardJsPath, 'utf8');
 
 test('settings page includes smoke-test-critical containers and scripts', () => {
     assert.match(settingsPage, /id="import-preview-dialog"/);
@@ -306,6 +311,8 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
 test('folder editor page ships the redesign bootstrap and chrome anchors', () => {
     assert.match(folderPage, /<form class="folder-editor-form"/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorPageMode =/);
+    assert.match(folderPage, /\$_GET\['editor'\]/);
+    assert.match(folderPage, /\$_GET\['editorMode'\]/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorPageType =/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorRequestedId =/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorResolvedId =/);
@@ -330,6 +337,13 @@ test('folder editor page ships the redesign bootstrap and chrome anchors', () =>
     assert.match(folderLegacyJs, /\$\('#fvRegexSimulatorInput'\)\.off\('input'\)\.on\('input', updateRegexSimulator\);/);
     assert.match(folderLegacyJs, /\$\('#fvSuggestDefaults'\)\.off\('click'\)\.on\('click', suggestDefaultsFromMembers\);/);
     assert.doesNotMatch(folderPage, /scripts\/folder\.js[^?]*"\s*defer/);
+});
+
+test('runtime folder editor routes carry the resolved editor mode for docker, vm, and dashboard', () => {
+    assert.match(dockerJs, /params\.set\(\s*'editor'/);
+    assert.match(vmJs, /params\.set\(\s*'editor'/);
+    assert.match(dashboardJs, /params\.set\(\s*'editor'/);
+    assert.match(dashboardJs, /const resolvedPrefs = utils\.normalizePrefs\(folderTypePrefs\?\.\[resolvedType\] \|\| \{\}\);/);
 });
 
 test('settings runtime uses extracted chrome module and shared request wrapper', () => {

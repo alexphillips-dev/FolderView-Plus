@@ -2079,8 +2079,14 @@ const seedDashboardFolderEditorPrefill = (folderType, id) => {
     }
 };
 const buildDashboardFolderEditorUrl = (folderType, id = '') => {
+    const resolvedType = String(folderType || '').trim() === 'vm' ? 'vm' : 'docker';
+    const resolvedPrefs = utils.normalizePrefs(folderTypePrefs?.[resolvedType] || {});
     const params = new URLSearchParams();
-    params.set('type', String(folderType || '').trim() === 'vm' ? 'vm' : 'docker');
+    params.set('type', resolvedType);
+    params.set(
+        'editor',
+        String(resolvedPrefs?.folderEditorMode || '').trim().toLowerCase() === 'modern' ? 'modern' : 'legacy'
+    );
     if (String(id || '').trim()) {
         params.set('id', String(id || '').trim());
     }

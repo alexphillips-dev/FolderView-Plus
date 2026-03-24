@@ -4395,6 +4395,14 @@ resetStatusColorDefaults();
 
 (async () => {
     registerBeforeUnloadGuard();
+    applySectionTags();
+    initEditorChrome();
+    updateForm();
+    applyAdvancedMode();
+    enforceLeftAlignedSettingsLayout();
+    validateForm();
+    updateLiveSummary();
+    updateRegexSimulator();
     const cacheBust = Date.now();
     // if editing a vm hide docker related settings
     if (type !== 'docker') {

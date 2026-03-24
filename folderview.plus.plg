@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.23.34">
-<!ENTITY md5 "667dc98e4a91f14c25dd1a866bdc8ec9">
+<!ENTITY version "2026.03.23.35">
+<!ENTITY md5 "9a03a026f8d269fe634025e3f7d77543">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.23.35
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+
 
 ###2026.03.23.34
 - Fix: Fix backmerge workflow dirty checkout regression.

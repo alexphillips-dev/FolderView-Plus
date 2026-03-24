@@ -314,6 +314,9 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderChromeJs, /id="fvHeroDefaults"/);
     assert.doesNotMatch(folderChromeJs, /fvLiveSurfaceLabel/);
     assert.doesNotMatch(folderChromeJs, /data-surface="dashboard"/);
+    assert.match(folderChromeJs, /if \(row\.querySelector\('\[name="regex"\]'\)\) \{/);
+    assert.match(folderChromeJs, /if \(row\.querySelector\('\[name="name"\]'\)\) \{/);
+    assert.match(folderChromeJs, /row\.classList\.remove\('fv-modern-order-row', 'is-wide-row', 'is-icon-row', 'is-status-row', 'is-actions-row', 'is-toggle-row', 'is-color-row', 'is-name-row', 'is-url-row', 'is-compact-text-row'\);/);
     assert.match(folderCss, /\.canvas form\.folder-editor-form\.fv-force-left-v3/);
     assert.match(folderCss, /Runtime-enforced left alignment guard/);
     assert.match(folderCss, /\.fv-editor-mode/);
@@ -351,6 +354,8 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderCss, /\.fv-modern-section-grid\s*\{[\s\S]*minmax\(260px,\s*380px\)/);
     assert.match(folderCss, /\.fv-modern-field-row\.is-icon-row,\s*[\s\S]*\.fv-modern-field-row\.is-status-row\s*\{[\s\S]*max-width:\s*780px;/);
     assert.match(folderCss, /\.fv-modern-group-list\.is-status-list\s*\{[\s\S]*max-width:\s*780px;/);
+    assert.match(folderCss, /\.fv-modern-field-row\.is-name-row input\[type="text"\]\s*\{[\s\S]*520px/);
+    assert.match(folderCss, /\.fv-modern-field-row\.is-compact-text-row input\[type="text"\],/);
     assert.match(folderCss, /\.fv-inline-reset-btn\s*\{[\s\S]*border:\s*0 !important;[\s\S]*background:\s*transparent !important;/);
     assert.match(folderCss, /\.fv-validation-details/);
     assert.match(folderCss, /\.fv-validation-summary\.info/);

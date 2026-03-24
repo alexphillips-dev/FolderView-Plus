@@ -1954,17 +1954,39 @@
 .fv-modern-field-row input[type="number"],
 .fv-modern-field-row select,
 .fv-modern-field-row textarea {
-    width: 100%;
-    max-width: 100%;
+    width: min(100%, 420px);
+    max-width: min(100%, 420px);
     min-height: 38px;
     border-radius: 10px;
     border: 1px solid rgba(255, 255, 255, 0.12);
     background: rgba(10, 10, 10, 0.34);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    box-sizing: border-box;
 }
 
 .fv-modern-field-row textarea {
     min-height: 92px;
+}
+
+.fv-modern-field-row.is-name-row input[type="text"] {
+    width: min(100%, 520px);
+    max-width: min(100%, 520px);
+}
+
+.fv-modern-field-row.is-icon-row input[type="text"],
+.fv-modern-field-row.is-url-row input[type="text"],
+.fv-modern-field-row.is-wide-row input[type="text"],
+.fv-modern-field-row.is-wide-row input[type="number"],
+.fv-modern-field-row.is-wide-row select,
+.fv-modern-field-row.is-wide-row textarea {
+    width: min(100%, 640px);
+    max-width: min(100%, 640px);
+}
+
+.fv-modern-field-row.is-compact-text-row input[type="text"],
+.fv-modern-field-row.is-compact-text-row input[type="number"] {
+    width: min(100%, 260px);
+    max-width: min(100%, 260px);
 }
 
 .fv-modern-field-row input[type="color"] {

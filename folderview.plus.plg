@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.24.42">
-<!ENTITY md5 "de80f0493eb135c2c17b1c5da7c9ff9a">
+<!ENTITY version "2026.03.24.43">
+<!ENTITY md5 "3191ea493e03ec7e5617f8cade83b2b3">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.24.43
+- UX: Tightened the modern General section so the name field no longer spans an unnecessary full-width card and text fields stay aligned to compact card widths.
+- UX: Narrowed modern text, number, select, and textarea controls so they stop filling cards edge-to-edge and clipping visually into section headers.
+- UX: Added cleaner compact sizing rules for General, Preview, and Status field cards, while keeping URL and icon rows wider where that extra width is actually useful.
+- Quality: Reset modern field-card class decoration before reapplying layout tags so stale wide-row classes do not survive into reopened editor sessions.
+
 
 ###2026.03.24.42
 - UX: Removed the modern folder editor live-preview surface switch so the preview stays focused on the real row layout instead of alternate dashboard or nested mockups.

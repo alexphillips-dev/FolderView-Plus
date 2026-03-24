@@ -291,6 +291,7 @@
         Array.from(form.querySelectorAll('.fv-section-shell .basic')).forEach((row) => {
             row.classList.add('fv-modern-field-row');
             row.classList.remove('fv-orphan-editor-row');
+            row.classList.remove('fv-modern-order-row', 'is-wide-row', 'is-icon-row', 'is-status-row', 'is-actions-row', 'is-toggle-row', 'is-color-row', 'is-name-row', 'is-url-row', 'is-compact-text-row');
             if (row.classList.contains('order-section')) {
                 row.classList.add('fv-modern-order-row', 'is-wide-row');
                 return;
@@ -304,11 +305,18 @@
             if (row.querySelector('.custom-action-wrapper') || row.querySelector('a.custom-action')) {
                 row.classList.add('is-actions-row', 'is-wide-row');
             }
-            if (row.querySelector('[name="name"]') || row.querySelector('[name="regex"]')) {
+            if (row.querySelector('[name="regex"]')) {
                 row.classList.add('is-wide-row');
+            }
+            if (row.querySelector('[name="name"]')) {
+                row.classList.add('is-name-row');
             }
             if (row.querySelector('[name="folder_webui_url"]')) {
                 row.classList.add('is-wide-row');
+                row.classList.add('is-url-row');
+            }
+            if (row.querySelector('[name="preview_text_width"]')) {
+                row.classList.add('is-compact-text-row');
             }
             if (row.querySelector('input.basic-switch, .switch-button')) {
                 row.classList.add('is-toggle-row');

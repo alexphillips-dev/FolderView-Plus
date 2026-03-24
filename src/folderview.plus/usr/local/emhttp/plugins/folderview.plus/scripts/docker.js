@@ -4000,13 +4000,22 @@ const seedFolderEditorPrefill = (folderType, id) => {
         // Editor prefill is best-effort only.
     }
 };
+const buildDockerFolderEditorUrl = (id = '') => {
+    const params = new URLSearchParams();
+    params.set('type', 'docker');
+    if (String(id || '').trim()) {
+        params.set('id', String(id || '').trim());
+    }
+    params.set('_', String(Date.now()));
+    return `/Docker/Folder?${params.toString()}`;
+};
 const editFolder = (id) => {
     if (!ensureDockerFolderUnlocked(id, 'Edit folder')) {
         return;
     }
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] editFolder (id: ${id}): Redirecting to edit page.`);
     seedFolderEditorPrefill('docker', id);
-    location.href = "/Docker/Folder?type=docker&id=" + id;
+    location.href = buildDockerFolderEditorUrl(id);
 };
 
 /**
@@ -5167,7 +5176,7 @@ if (FOLDER_VIEW_DEBUG_MODE) {
 const createFolderBtn = () => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolderBtn: Clicked. Redirecting.');
     clearFolderEditorPrefill();
-    location.href = "/Docker/Folder?type=docker"
+    location.href = buildDockerFolderEditorUrl();
 };
 
 // This is needed because unraid don't like the folder and the number are set incorrectly, this intercept the request and change the numbers to make the order appear right, this is important for the autostart and to draw the folders

@@ -8,6 +8,7 @@ Markdown="false"
 $type = 'vm';
 require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 require_once('/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
+emitNoCachePageHeaders();
 emitRequestTokenMetaTag();
 $fvplusRuntimeConflicts = fvplus_detect_runtime_plugin_conflicts();
 if (!empty($fvplusRuntimeConflicts)) {
@@ -15,6 +16,7 @@ if (!empty($fvplusRuntimeConflicts)) {
     return;
 }
 ?>
+<?php emitNoCacheMetaTags(); ?>
 <script>
     $(document).ready(() => {
         folderi18n = () => {

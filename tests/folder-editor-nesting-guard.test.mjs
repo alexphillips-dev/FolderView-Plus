@@ -64,6 +64,29 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.doesNotMatch(folderEditorScript, /preview_member_display/);
 });
 
+test('runtime folder editor redirects include a cache-busting query marker', () => {
+    assert.match(folderEditorScript, /window\.FolderViewPlusFolderEditorRequestedId/);
+    assert.match(settingsScript, /changeVisibilityPref/);
+    const dockerScript = fs.readFileSync(
+        path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js'),
+        'utf8'
+    );
+    const vmScript = fs.readFileSync(
+        path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js'),
+        'utf8'
+    );
+    const dashboardScript = fs.readFileSync(
+        path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js'),
+        'utf8'
+    );
+    assert.match(dockerScript, /const buildDockerFolderEditorUrl = \(id = ''\) =>/);
+    assert.match(vmScript, /const buildVmFolderEditorUrl = \(id = ''\) =>/);
+    assert.match(dashboardScript, /const buildDashboardFolderEditorUrl = \(folderType,\s*id = ''\) =>/);
+    assert.match(dockerScript, /params\.set\('_', String\(Date\.now\(\)\)\);/);
+    assert.match(vmScript, /params\.set\('_', String\(Date\.now\(\)\)\);/);
+    assert.match(dashboardScript, /params\.set\('_', String\(Date\.now\(\)\)\);/);
+});
+
 test('folder editor includes parent default hint styles', () => {
     assert.match(folderEditorStyles, /\.fv-parent-defaults-note/);
     assert.match(folderEditorStyles, /\.fv-parent-defaults-note\.is-success/);

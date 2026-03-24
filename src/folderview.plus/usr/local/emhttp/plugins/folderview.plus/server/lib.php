@@ -656,6 +656,21 @@
             . '">' . "\n";
     }
 
+    function emitNoCachePageHeaders(): void {
+        if (headers_sent()) {
+            return;
+        }
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+    }
+
+    function emitNoCacheMetaTags(): void {
+        echo '<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">' . "\n";
+        echo '<meta http-equiv="Pragma" content="no-cache">' . "\n";
+        echo '<meta http-equiv="Expires" content="0">' . "\n";
+    }
+
     function validateOptionalRequestToken(): bool {
         $mode = getRequestTokenEnforcementMode();
         if ($mode === 'off') {

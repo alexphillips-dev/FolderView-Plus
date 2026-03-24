@@ -1615,12 +1615,21 @@ const seedFolderEditorPrefill = (folderType, id) => {
         // Editor prefill is best-effort only.
     }
 };
+const buildVmFolderEditorUrl = (id = '') => {
+    const params = new URLSearchParams();
+    params.set('type', 'vm');
+    if (String(id || '').trim()) {
+        params.set('id', String(id || '').trim());
+    }
+    params.set('_', String(Date.now()));
+    return `/VMs/Folder?${params.toString()}`;
+};
 const editFolder = (id) => {
     if (!ensureVmFolderUnlocked(id, 'Edit folder')) {
         return;
     }
     seedFolderEditorPrefill('vm', id);
-    location.href = "/VMs/Folder?type=vm&id=" + id;
+    location.href = buildVmFolderEditorUrl(id);
 };
 
 /**
@@ -2501,7 +2510,7 @@ window.loadlist = (x) => {
 // Add the button for creating a folder
 const createFolderBtn = () => {
     clearFolderEditorPrefill();
-    location.href = "/VMs/Folder?type=vm"
+    location.href = buildVmFolderEditorUrl();
 };
 
 

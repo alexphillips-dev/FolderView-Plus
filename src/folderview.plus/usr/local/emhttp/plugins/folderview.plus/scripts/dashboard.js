@@ -2071,9 +2071,18 @@ const seedDashboardFolderEditorPrefill = (folderType, id) => {
         // Editor prefill is best-effort only.
     }
 };
+const buildDashboardFolderEditorUrl = (folderType, id = '') => {
+    const params = new URLSearchParams();
+    params.set('type', String(folderType || '').trim() === 'vm' ? 'vm' : 'docker');
+    if (String(id || '').trim()) {
+        params.set('id', String(id || '').trim());
+    }
+    params.set('_', String(Date.now()));
+    return `${location.pathname}/Folder?${params.toString()}`;
+};
 const editDockerFolder = (id) => {
     seedDashboardFolderEditorPrefill('docker', id);
-    location.href = location.pathname + "/Folder?type=docker&id=" + id;
+    location.href = buildDashboardFolderEditorUrl('docker', id);
 };
 
 /**
@@ -2082,7 +2091,7 @@ const editDockerFolder = (id) => {
  */
 const editVMFolder = (id) => {
     seedDashboardFolderEditorPrefill('vm', id);
-    location.href = location.pathname + "/Folder?type=vm&id=" + id;
+    location.href = buildDashboardFolderEditorUrl('vm', id);
 };
 
 /**

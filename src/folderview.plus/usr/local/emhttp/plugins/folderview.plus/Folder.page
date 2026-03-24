@@ -13,6 +13,7 @@ Markdown="false"
 <?php
 require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 require_once('/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
+emitNoCachePageHeaders();
 emitRequestTokenMetaTag();
 $folderEditorPageType = '';
 $folderEditorPageMode = 'legacy';
@@ -43,6 +44,7 @@ try {
     window.FolderViewPlusFolderEditorPageMode = <?php echo json_encode($folderEditorPageMode, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
     window.FolderViewPlusFolderEditorRequestedId = <?php echo json_encode($folderEditorRequestedId, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
 </script>
+<?php emitNoCacheMetaTags(); ?>
 <script src="<?autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.switchbutton.css')?>">
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.ui.css')?>">

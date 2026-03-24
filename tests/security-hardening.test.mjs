@@ -46,6 +46,15 @@ test('plugin pages emit request token meta tag', () => {
     }
 });
 
+test('plugin pages emit no-cache document guards', () => {
+    for (const source of [folderPage, settingsPage, dockerPage, vmPage, dashboardPage]) {
+        assert.match(source, /emitNoCachePageHeaders\(\)/);
+        assert.match(source, /emitNoCacheMetaTags\(\)/);
+    }
+    assert.match(libPhp, /function emitNoCachePageHeaders\(\): void/);
+    assert.match(libPhp, /function emitNoCacheMetaTags\(\): void/);
+});
+
 test('dashboard page loads quick-rail controller before dashboard runtime', () => {
     assert.match(dashboardPage, /dashboard\.layout-quickrail\.js/);
     assert.match(dashboardPage, /dashboard\.layout-quickrail\.js[\s\S]*dashboard\.js/);

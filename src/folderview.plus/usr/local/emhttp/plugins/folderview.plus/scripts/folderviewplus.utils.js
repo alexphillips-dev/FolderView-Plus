@@ -741,7 +741,10 @@
         const expandedFolderState = normalizeExpandedFolderStateMap(incoming.expandedFolderState);
         const hideEmptyFolders = incoming.hideEmptyFolders === true;
         const appColumnWidth = normalizeAppColumnWidth(incoming.appColumnWidth);
-        const folderEditorMode = normalizeFolderEditorMode(incoming.folderEditorMode);
+        const folderEditorModeExplicit = incoming.folderEditorModeExplicit === true;
+        const folderEditorMode = folderEditorModeExplicit
+            ? normalizeFolderEditorMode(incoming.folderEditorMode)
+            : 'modern';
         const setupWizardCompleted = incoming.setupWizardCompleted === true;
         const settingsMode = incoming.settingsMode === 'advanced' ? 'advanced' : 'basic';
         const incomingSettingsTable = isPlainObject(incoming.settingsTable) ? incoming.settingsTable : {};
@@ -776,6 +779,7 @@
             hideEmptyFolders,
             appColumnWidth,
             folderEditorMode,
+            folderEditorModeExplicit,
             setupWizardCompleted,
             settingsMode,
             autoRules,

@@ -9610,6 +9610,7 @@ const changeVisibilityPref = async (type, key, value) => {
         next.folderEditorMode = typeof utils.normalizeFolderEditorMode === 'function'
             ? utils.normalizeFolderEditorMode(value)
             : (String(value || '').trim().toLowerCase() === 'modern' ? 'modern' : 'legacy');
+        next.folderEditorModeExplicit = true;
     } else {
         return;
     }

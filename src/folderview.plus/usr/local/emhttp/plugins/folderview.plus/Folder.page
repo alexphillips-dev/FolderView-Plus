@@ -37,15 +37,9 @@ try {
         ?? $_REQUEST['editorMode']
         ?? ''
     ));
-    $folderEditorPageMode = $folderEditorRequestedMode === 'modern'
-        ? 'modern'
-        : normalizeFolderEditorMode((string)($folderEditorPagePrefs['folderEditorMode'] ?? 'legacy'));
-    if ($folderEditorPageMode !== 'modern' && $folderEditorPageType === 'vm') {
-        $dockerEditorPrefs = readTypePrefs('docker');
-        if (normalizeFolderEditorMode((string)($dockerEditorPrefs['folderEditorMode'] ?? 'legacy')) === 'modern') {
-            $folderEditorPageMode = 'modern';
-        }
-    }
+    $folderEditorPageMode = ($folderEditorRequestedMode === 'modern' || $folderEditorRequestedMode === 'legacy')
+        ? $folderEditorRequestedMode
+        : normalizeFolderEditorMode((string)($folderEditorPagePrefs['folderEditorMode'] ?? 'modern'));
     $folderEditorRequestedId = trim((string)(
         $_GET['id']
         ?? $_REQUEST['id']

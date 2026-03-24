@@ -1735,7 +1735,8 @@
             'expandedFolderState' => [],
             'hideEmptyFolders' => false,
             'appColumnWidth' => 'standard',
-            'folderEditorMode' => 'legacy',
+            'folderEditorMode' => 'modern',
+            'folderEditorModeExplicit' => false,
             'setupWizardCompleted' => false,
             'settingsMode' => 'basic',
             'autoRules' => [],
@@ -1928,7 +1929,11 @@
         $normalized['expandedFolderState'] = normalizeExpandedStateMap($prefs['expandedFolderState'] ?? []);
         $normalized['hideEmptyFolders'] = normalizeBool($prefs['hideEmptyFolders'] ?? false, false);
         $normalized['appColumnWidth'] = normalizeAppColumnWidth($prefs['appColumnWidth'] ?? 'standard');
-        $normalized['folderEditorMode'] = normalizeFolderEditorMode($prefs['folderEditorMode'] ?? 'legacy');
+        $folderEditorModeExplicit = normalizeBool($prefs['folderEditorModeExplicit'] ?? false, false);
+        $normalized['folderEditorModeExplicit'] = $folderEditorModeExplicit;
+        $normalized['folderEditorMode'] = $folderEditorModeExplicit
+            ? normalizeFolderEditorMode($prefs['folderEditorMode'] ?? 'legacy')
+            : 'modern';
         $normalized['setupWizardCompleted'] = normalizeBool($prefs['setupWizardCompleted'] ?? false, false);
         $settingsMode = (string)($prefs['settingsMode'] ?? 'basic');
         $normalized['settingsMode'] = $settingsMode === 'advanced' ? 'advanced' : 'basic';

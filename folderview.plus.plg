@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.24.21">
-<!ENTITY md5 "d6506c0a434e4362d2e3436e57b25a98">
+<!ENTITY version "2026.03.24.22">
+<!ENTITY md5 "dce794ff1e9ab56461d62ee54eca12ab">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.24.22
+- Fix: Folder.page no longer honors query-string editor mode overrides, so stale VM or Docker tabs cannot force the wrong folder editor after the saved setting changes.
+- Fix: Opening a folder editor now always resolves modern vs legacy from the latest saved server-side prefs for that type, even if an older page shell still appends `editor=modern` in the URL.
+- Quality: Added regression coverage to keep query-based folder-editor mode overrides disabled in the shared folder editor page bootstrap.
+
 
 ###2026.03.24.21
 - Fix: Docker, VM, and Dashboard folder editor routes no longer pass a stale page-cached `editor` override, so opening the folder editor now follows the latest saved server-side editor setting immediately.

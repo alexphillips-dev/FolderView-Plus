@@ -311,8 +311,8 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
 test('folder editor page ships the redesign bootstrap and chrome anchors', () => {
     assert.match(folderPage, /<form class="folder-editor-form"/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorPageMode =/);
-    assert.match(folderPage, /\$_GET\['editor'\]/);
-    assert.match(folderPage, /\$_GET\['editorMode'\]/);
+    assert.doesNotMatch(folderPage, /\$_GET\['editor'\]/);
+    assert.doesNotMatch(folderPage, /\$_GET\['editorMode'\]/);
     assert.doesNotMatch(folderPage, /readTypePrefs\('docker'\)/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorPageType =/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorRequestedId =/);

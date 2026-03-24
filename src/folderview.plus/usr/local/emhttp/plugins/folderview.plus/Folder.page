@@ -28,18 +28,7 @@ $folderEditorBootstrapContext = [
 try {
     $folderEditorPageType = ensureType((string)($_GET['type'] ?? $_REQUEST['type'] ?? ''));
     $folderEditorPagePrefs = readTypePrefs($folderEditorPageType);
-    $folderEditorRequestedMode = normalizeFolderEditorMode((string)(
-        $_GET['editor']
-        ?? $_REQUEST['editor']
-        ?? $_GET['mode']
-        ?? $_REQUEST['mode']
-        ?? $_GET['editorMode']
-        ?? $_REQUEST['editorMode']
-        ?? ''
-    ));
-    $folderEditorPageMode = ($folderEditorRequestedMode === 'modern' || $folderEditorRequestedMode === 'legacy')
-        ? $folderEditorRequestedMode
-        : normalizeFolderEditorMode((string)($folderEditorPagePrefs['folderEditorMode'] ?? 'modern'));
+    $folderEditorPageMode = normalizeFolderEditorMode((string)($folderEditorPagePrefs['folderEditorMode'] ?? 'modern'));
     $folderEditorRequestedId = trim((string)(
         $_GET['id']
         ?? $_REQUEST['id']

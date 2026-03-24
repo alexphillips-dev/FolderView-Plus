@@ -114,8 +114,17 @@ test('vm preview renderer honors explicit preview border OFF values', () => {
     assert.match(sharedRuntimeJs, /const applyPreviewBorderStyle = \(previewNode, settings\) =>/);
     assert.match(vmJs, /const applyPreviewBorderStyle = typeof runtimeShared\.applyPreviewBorderStyle === 'function'/);
     assert.match(vmJs, /const applyFolderDropdownStyle = typeof runtimeShared\.applyFolderDropdownStyle === 'function'/);
+    assert.match(vmJs, /const normalizeFolderPreviewRowLimit = \(settings = \{\}\) =>/);
+    assert.match(vmJs, /const applyFolderPreviewLayout = \(\$preview, settings = \{\}\) =>/);
+    assert.match(vmJs, /const layoutFolderPreviewRows = \(\$preview, settings = \{\}\) =>/);
     assert.match(vmJs, /applyPreviewBorderStyle\(previewNode,\s*folder\.settings\);/);
+    assert.match(vmJs, /applyFolderPreviewLayout\(\$preview,\s*folder\.settings\);/);
+    assert.match(vmJs, /layoutFolderPreviewRows\(\$preview,\s*folder\.settings\);/);
     assert.match(vmJs, /applyFolderDropdownStyle\(\$folderRow,\s*folder\.settings\);/);
+    assert.match(vmCss, /tr\.folder\.fv-parent-collapsed div\.folder-preview,\s*[\s\S]*tr\.folder\.fv-folder-is-child div\.folder-preview\s*\{/);
+    assert.match(vmCss, /\.folder-preview-row\s*\{/);
+    assert.match(vmCss, /\.folder-preview\.fv-preview-multirow\s*\{/);
+    assert.match(vmCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-row\s*\{/);
 });
 
 test('server normalizes legacy chevron aliases into dropdown_style', () => {
@@ -143,6 +152,7 @@ test('single-row Docker and VM previews stay vertically centered', () => {
     assert.match(dockerCss, /\.folder-preview-wrapper\s*\{[\s\S]*margin-top:\s*7px;[\s\S]*align-items:\s*center;/);
     assert.match(dockerCss, /\.folder-preview-wrapper > span\.outer\s*\{[\s\S]*display:\s*inline-flex;[\s\S]*align-items:\s*center;/);
     assert.match(dockerCss, /\.folder-preview\s*\{[\s\S]*width:\s*100%;[\s\S]*box-sizing:\s*border-box;/);
-    assert.match(vmCss, /\.folder-preview-wrapper\s*\{[\s\S]*float:\s*left;[\s\S]*margin-top:\s*7px;/);
+    assert.match(vmCss, /\.folder-preview-wrapper\s*\{[\s\S]*margin-top:\s*7px;[\s\S]*align-items:\s*center;/);
+    assert.match(vmCss, /\.folder-preview-wrapper > span\.outer\s*\{[\s\S]*display:\s*inline-flex;[\s\S]*align-items:\s*center;/);
     assert.match(vmCss, /\.folder-preview\s*\{[\s\S]*width:\s*100%;[\s\S]*box-sizing:\s*border-box;/);
 });

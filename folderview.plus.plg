@@ -6,12 +6,26 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.24.35">
-<!ENTITY md5 "a4537ffd506b49b065edba3e2a9ba6ae">
+<!ENTITY version "2026.03.24.37">
+<!ENTITY md5 "e39a23e821d5002a844e0208990036a8">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.24.37
+- UX: Tightened the modern folder editor live preview so member containers sit inline to the right of the chevron with better spacing.
+- UX: Increased live preview member icon and text sizing so the preview row reads closer to the real Docker row.
+- Test: Added regression coverage for the modern live preview row alignment and member sizing contract.
+- Fix: Fix live preview chevron chrome.
+- Maintenance: Match live preview chevron to runtime sizing.
+
+
+###2026.03.24.36
+- UX: Tightened the modern folder editor live preview so member containers sit inline to the right of the chevron with clearer spacing.
+- UX: Increased live preview member icon and text sizing so the preview row matches the real runtime row more closely.
+- Test: Added regression coverage for the modern live preview row alignment and member sizing contract.
+
 
 ###2026.03.24.35
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

@@ -464,13 +464,13 @@
 
 .fv-live-preview-row {
     min-height: 100px;
-    padding: 0.9em 1em;
+    padding: 0.95em 1.1em;
     border-radius: 14px;
     border: 1px solid transparent;
     background: linear-gradient(180deg, rgba(7, 7, 7, 0.3), rgba(255, 255, 255, 0.02));
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: 0.8em;
+    grid-template-columns: max-content minmax(0, 1fr);
+    gap: 1rem;
     align-items: center;
 }
 
@@ -484,7 +484,7 @@
     align-items: center;
     gap: 0.75em;
     min-width: 0;
-    align-self: start;
+    align-self: center;
 }
 
 .fv-live-folder-anchor {
@@ -514,19 +514,22 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.5em;
+    align-content: center;
+    gap: 0.7em;
     min-width: 0;
     align-self: center;
+    padding-left: 0.45rem;
 }
 
 .fv-live-member {
     position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 0.38em;
-    padding-right: 0.7em;
-    min-height: 34px;
+    gap: 0.48em;
+    padding-right: 0.9em;
+    min-height: 40px;
     max-width: 100%;
+    font-size: 1rem;
 }
 
 .fv-live-member::after {
@@ -541,22 +544,25 @@
 }
 
 .fv-live-member > img {
-    width: 26px;
-    height: 26px;
+    width: 32px;
+    height: 32px;
     object-fit: contain;
     flex: 0 0 auto;
 }
 
 .fv-live-member-name {
-    max-width: 11rem;
+    max-width: 12rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-size: 1rem;
+    line-height: 1.1;
 }
 
 .fv-live-member-status {
-    font-size: 0.95em;
+    font-size: 1em;
     text-transform: lowercase;
+    line-height: 1.1;
 }
 
 .fv-live-member-preview-2 .fv-live-member-name,
@@ -565,7 +571,7 @@
 }
 
 .fv-live-member-preview-4 {
-    min-width: 220px;
+    min-width: 240px;
     justify-content: flex-start;
 }
 

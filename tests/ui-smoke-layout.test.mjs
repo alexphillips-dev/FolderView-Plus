@@ -311,6 +311,10 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderCss, /\.fv-live-chip-panel/);
     assert.match(folderCss, /\.fv-live-stat-card/);
     assert.match(folderCss, /\.fv-live-folder-head\s*\{/);
+    assert.match(folderCss, /\.fv-live-folder-head\s*\{[\s\S]*align-self:\s*center;/);
+    assert.match(folderCss, /\.fv-live-preview-row\s*\{[\s\S]*grid-template-columns:\s*max-content minmax\(0, 1fr\);/);
+    assert.match(folderCss, /\.fv-live-member-lane\s*\{[\s\S]*padding-left:\s*0\.45rem;/);
+    assert.match(folderCss, /\.fv-live-member > img\s*\{[\s\S]*width:\s*32px;[\s\S]*height:\s*32px;/);
     assert.match(folderCss, /\.fv-live-preview-row\.is-minimal \.fv-live-chevron/);
     assert.match(folderCss, /\.fv-live-preview-row\.is-boxed \.fv-live-chevron/);
     assert.match(folderCss, /\.fv-live-preview-row\.is-ghost \.fv-live-chevron/);

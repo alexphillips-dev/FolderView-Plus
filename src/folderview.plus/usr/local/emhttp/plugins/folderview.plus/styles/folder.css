@@ -1924,7 +1924,7 @@
     display: block;
     margin-bottom: 0.42em !important;
     color: #ffd7ab;
-    font-size: 0.92rem;
+    font-size: 1rem;
     font-weight: 700;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -1961,8 +1961,8 @@
 .fv-modern-field-row textarea {
     width: min(100%, 360px);
     max-width: min(100%, 360px);
-    min-height: 34px;
-    padding: 0.38em 0.72em;
+    min-height: 32px;
+    padding: 0.28em 0.68em;
     border-radius: 9px;
     border: 1px solid rgba(255, 255, 255, 0.12);
     background: rgba(10, 10, 10, 0.34);
@@ -2010,7 +2010,7 @@
 .fv-modern-field-row.is-toggle-row > dl > dd {
     display: flex;
     align-items: center;
-    min-height: 34px;
+    min-height: 32px;
 }
 
 .fv-modern-field-row.is-icon-row .fv-icon-dd,

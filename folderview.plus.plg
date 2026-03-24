@@ -6,12 +6,24 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.24.44">
-<!ENTITY md5 "818b44e4b9c09ca38e8d0d7f6fd9003e">
+<!ENTITY version "2026.03.24.46">
+<!ENTITY md5 "f33bf1bcdd909aad2d208c96bc1765ee">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.24.46
+- UX: Reverted the accidental module-title typography downgrade in the modern folder editor so field headers render at the original size again.
+- UX: Tightened the modern text and dropdown control chrome further by trimming the actual box height and inner padding instead of shrinking the labels.
+- Test: Updated the modern editor smoke guard to assert the restored `1rem` field-title size alongside the smaller `32px` control-height contract.
+
+
+###2026.03.24.45
+- UX: Restored the modern folder editor field-title text sizing after the previous pass reduced it too far.
+- UX: Reduced the actual text input, number input, and dropdown control height in the modern editor so labels no longer feel clipped by oversized fields.
+- Test: Updated the modern editor smoke guard to lock the corrected field-title size and compact control-height contract.
+
 
 ###2026.03.24.44
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

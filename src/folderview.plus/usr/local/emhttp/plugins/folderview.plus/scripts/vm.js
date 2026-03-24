@@ -1628,10 +1628,6 @@ const seedFolderEditorPrefill = (folderType, id) => {
 const buildVmFolderEditorUrl = (id = '') => {
     const params = new URLSearchParams();
     params.set('type', 'vm');
-    params.set(
-        'editor',
-        String(folderTypePrefs?.folderEditorMode || '').trim().toLowerCase() === 'modern' ? 'modern' : 'legacy'
-    );
     if (String(id || '').trim()) {
         params.set('id', String(id || '').trim());
     }

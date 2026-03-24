@@ -4013,10 +4013,6 @@ const seedFolderEditorPrefill = (folderType, id) => {
 const buildDockerFolderEditorUrl = (id = '') => {
     const params = new URLSearchParams();
     params.set('type', 'docker');
-    params.set(
-        'editor',
-        String(folderTypePrefs?.folderEditorMode || '').trim().toLowerCase() === 'modern' ? 'modern' : 'legacy'
-    );
     if (String(id || '').trim()) {
         params.set('id', String(id || '').trim());
     }

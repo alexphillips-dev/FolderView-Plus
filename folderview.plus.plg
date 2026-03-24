@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.24.20">
-<!ENTITY md5 "760ee22d52840ee299c855f75bbb0deb">
+<!ENTITY version "2026.03.24.21">
+<!ENTITY md5 "d6506c0a434e4362d2e3436e57b25a98">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.24.21
+- Fix: Docker, VM, and Dashboard folder editor routes no longer pass a stale page-cached `editor` override, so opening the folder editor now follows the latest saved server-side editor setting immediately.
+- Fix: VM folder edits now respect an unchecked `Use new folder settings page` toggle even if the VM runtime page itself was loaded before that setting changed.
+- Quality: Added regression coverage to keep runtime folder editor routes deferring editor-mode resolution to `Folder.page`.
+
 
 ###2026.03.24.20
 - Fix: Folder editor mode saves now force an explicit user-choice flag server-side, so unchecking `Use new folder settings page` persists correctly even if a stale Settings page still posts the older folder-editor payload shape.

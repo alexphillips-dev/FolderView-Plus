@@ -349,11 +349,13 @@ test('prefs endpoint upgrades folder editor mode writes into explicit user choic
     assert.match(prefsPhp, /\$decoded\['folderEditorModeExplicit'\] = true;/);
 });
 
-test('runtime folder editor routes carry the resolved editor mode for docker, vm, and dashboard', () => {
-    assert.match(dockerJs, /params\.set\(\s*'editor'/);
-    assert.match(vmJs, /params\.set\(\s*'editor'/);
-    assert.match(dashboardJs, /params\.set\(\s*'editor'/);
-    assert.match(dashboardJs, /const resolvedPrefs = utils\.normalizePrefs\(folderTypePrefs\?\.\[resolvedType\] \|\| \{\}\);/);
+test('runtime folder editor routes defer editor mode resolution to Folder.page server prefs', () => {
+    assert.doesNotMatch(dockerJs, /params\.set\(\s*'editor'/);
+    assert.doesNotMatch(vmJs, /params\.set\(\s*'editor'/);
+    assert.doesNotMatch(dashboardJs, /params\.set\(\s*'editor'/);
+    assert.match(dockerJs, /params\.set\(\s*'type',\s*'docker'/);
+    assert.match(vmJs, /params\.set\(\s*'type',\s*'vm'/);
+    assert.match(dashboardJs, /params\.set\(\s*'type',\s*resolvedType/);
 });
 
 test('settings runtime uses extracted chrome module and shared request wrapper', () => {

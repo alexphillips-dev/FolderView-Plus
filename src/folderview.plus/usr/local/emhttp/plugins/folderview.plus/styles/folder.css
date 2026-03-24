@@ -573,8 +573,8 @@
     padding: 0;
     border-radius: 8px;
     border: 1px solid transparent;
-    color: var(--fv-chevron-color);
-    background: transparent;
+    color: var(--fv-live-chevron-color, var(--fv-chevron-color));
+    background: var(--fv-live-chevron-bg, transparent);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -582,14 +582,15 @@
 }
 
 .fv-live-chevron-boxed {
-    border-color: var(--fv-chevron-color);
-    background: rgba(255, 255, 255, 0.03);
+    border-color: var(--fv-live-chevron-border, var(--fv-chevron-color));
+    background: var(--fv-live-chevron-bg, rgba(255, 255, 255, 0.03));
     box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
 }
 
 .fv-live-chevron:hover {
-    color: var(--fv-chevron-hover);
-    border-color: var(--fv-chevron-hover);
+    color: var(--fv-live-chevron-hover, var(--fv-chevron-hover));
+    border-color: var(--fv-live-chevron-hover-border, var(--fv-live-chevron-hover, var(--fv-chevron-hover)));
+    background: var(--fv-live-chevron-hover-bg, var(--fv-live-chevron-bg, transparent));
 }
 
 .fv-live-preview-row.is-minimal .fv-live-chevron {
@@ -599,12 +600,12 @@
 }
 
 .fv-live-preview-row.is-boxed .fv-live-chevron {
-    border-color: var(--fv-chevron-color);
-    background: rgba(255, 255, 255, 0.03);
+    border-color: var(--fv-live-chevron-border, var(--fv-chevron-color));
+    background: var(--fv-live-chevron-bg, rgba(255, 255, 255, 0.03));
 }
 
 .fv-live-preview-row.is-boxed .fv-live-chevron:hover {
-    background: rgba(255, 255, 255, 0.06);
+    background: var(--fv-live-chevron-hover-bg, rgba(255, 255, 255, 0.06));
 }
 
 .fv-live-insights {

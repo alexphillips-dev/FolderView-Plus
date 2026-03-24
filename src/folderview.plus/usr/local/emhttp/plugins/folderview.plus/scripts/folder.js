@@ -538,6 +538,16 @@ const normalizeHexColor = (value, fallback) => {
     return trimmed.toLowerCase();
 };
 
+const hexColorToRgba = (hex, alpha) => {
+    const normalized = normalizeHexColor(hex, DEFAULT_DROPDOWN_COLOR);
+    const safeAlpha = Number.isFinite(Number(alpha)) ? Math.max(0, Math.min(1, Number(alpha))) : 1;
+    const value = normalized.slice(1);
+    const r = parseInt(value.slice(0, 2), 16);
+    const g = parseInt(value.slice(2, 4), 16);
+    const b = parseInt(value.slice(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${safeAlpha})`;
+};
+
 const normalizePositiveInt = (value, fallback, min = 1, max = 4) => {
     const parsed = Number(value);
     if (!Number.isFinite(parsed)) {
@@ -3141,6 +3151,18 @@ const renderLivePreviewCanvas = () => {
             <div class="fv-live-member-lane">${membersHtml}</div>
         </div>
     `);
+    const livePreviewRow = canvas.find('.fv-live-preview-row').get(0);
+    const liveChevron = canvas.find('.fv-live-chevron').get(0);
+    if (livePreviewRow && liveChevron) {
+        livePreviewRow.classList.toggle('is-boxed', dropdownStyle === 'boxed');
+        livePreviewRow.classList.toggle('is-minimal', dropdownStyle !== 'boxed');
+        liveChevron.style.setProperty('--fv-live-chevron-color', dropdownColor);
+        liveChevron.style.setProperty('--fv-live-chevron-hover', dropdownHoverColor);
+        liveChevron.style.setProperty('--fv-live-chevron-border', dropdownStyle === 'boxed' ? hexColorToRgba(dropdownColor, 0.52) : 'transparent');
+        liveChevron.style.setProperty('--fv-live-chevron-hover-border', dropdownStyle === 'boxed' ? dropdownHoverColor : 'transparent');
+        liveChevron.style.setProperty('--fv-live-chevron-bg', dropdownStyle === 'boxed' ? hexColorToRgba(dropdownColor, 0.10) : 'transparent');
+        liveChevron.style.setProperty('--fv-live-chevron-hover-bg', dropdownStyle === 'boxed' ? hexColorToRgba(dropdownColor, 0.82) : 'transparent');
+    }
 };
 
 const markUnsavedIndicatorDirty = () => {

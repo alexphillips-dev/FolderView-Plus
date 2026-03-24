@@ -1877,7 +1877,7 @@
 
 .fv-modern-field-row {
     margin: 0 !important;
-    padding: 0.6em 0.92em 0.82em;
+    padding: 0.3em 0.92em 0.82em;
     border-radius: 14px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     background:
@@ -1906,7 +1906,7 @@
     display: flex !important;
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.78em;
+    gap: 1.05em;
     width: 100% !important;
     max-width: none !important;
     margin: 0 !important;

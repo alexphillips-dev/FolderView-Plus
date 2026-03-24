@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.24.49">
-<!ENTITY md5 "fdc3dae2681e58bfb763f50eee8d1cf3">
+<!ENTITY version "2026.03.24.50">
+<!ENTITY md5 "e163b998c3c0e3fd6537af7c525a0acb">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.24.50
+- UX: Moved modern module titles noticeably closer to the top-left edge of each card instead of leaving them visually centered between the border and the field content.
+- UX: Increased the title-to-content separation further so the module heading no longer reads like it belongs inside the control area.
+- Test: Updated the modern field-card layout smoke guard to lock the stronger header-spacing contract.
+
 
 ###2026.03.24.49
 - UX: Switched modern field cards to an explicit stacked header/content layout so every module title sits clearly in the top-left instead of drifting toward the control area.

@@ -340,6 +340,15 @@ test('folder editor page ships the redesign bootstrap and chrome anchors', () =>
     assert.doesNotMatch(folderPage, /scripts\/folder\.js[^?]*"\s*defer/);
 });
 
+test('prefs endpoint upgrades folder editor mode writes into explicit user choices', () => {
+    const prefsPhp = fs.readFileSync(
+        path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/prefs.php'),
+        'utf8'
+    );
+    assert.match(prefsPhp, /array_key_exists\('folderEditorMode', \$decoded\)/);
+    assert.match(prefsPhp, /\$decoded\['folderEditorModeExplicit'\] = true;/);
+});
+
 test('runtime folder editor routes carry the resolved editor mode for docker, vm, and dashboard', () => {
     assert.match(dockerJs, /params\.set\(\s*'editor'/);
     assert.match(vmJs, /params\.set\(\s*'editor'/);

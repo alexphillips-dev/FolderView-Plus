@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.24.37">
-<!ENTITY md5 "e39a23e821d5002a844e0208990036a8">
+<!ENTITY version "2026.03.24.38">
+<!ENTITY md5 "06144f1f5c72317158cca4c60d0ec681">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.24.38
+- UX: Reduced the extra empty space inside the modern folder editor live preview border so the row sits tighter.
+- UX: Increased the live preview member icon size again so previewed containers read closer to the real row.
+- Test: Updated live preview layout smoke coverage for the larger preview member icon contract.
+
 
 ###2026.03.24.37
 - UX: Tightened the modern folder editor live preview so member containers sit inline to the right of the chevron with better spacing.

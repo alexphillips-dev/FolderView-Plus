@@ -459,12 +459,12 @@
 }
 
 .fv-live-preview-canvas {
-    min-height: 124px;
+    min-height: 96px;
 }
 
 .fv-live-preview-row {
-    min-height: 100px;
-    padding: 0.95em 1.1em;
+    min-height: 78px;
+    padding: 0.6em 0.9em;
     border-radius: 14px;
     border: 1px solid transparent;
     background: linear-gradient(180deg, rgba(7, 7, 7, 0.3), rgba(255, 255, 255, 0.02));
@@ -527,7 +527,7 @@
     align-items: center;
     gap: 0.48em;
     padding-right: 0.9em;
-    min-height: 40px;
+    min-height: 38px;
     max-width: 100%;
     font-size: 1rem;
 }
@@ -544,8 +544,8 @@
 }
 
 .fv-live-member > img {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     object-fit: contain;
     flex: 0 0 auto;
 }

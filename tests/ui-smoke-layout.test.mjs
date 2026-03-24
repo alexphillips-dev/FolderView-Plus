@@ -296,6 +296,8 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderCss, /\.fv-docker-signals/);
     assert.match(folderCss, /\.fv-live-chip-panel/);
     assert.match(folderCss, /\.fv-live-stat-card/);
+    assert.match(folderCss, /\.fv-live-insights\s*\{\s*display:\s*grid;\s*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
+    assert.match(folderCss, /\.fv-change-summary-panel\s*\{\s*grid-column:\s*1 \/ -1/);
     assert.match(folderCss, /\.fv-validation-details/);
     assert.match(folderCss, /\.fv-section-nav > button\.is-active/);
     assert.match(folderCss, /\.fv-orphan-editor-row/);

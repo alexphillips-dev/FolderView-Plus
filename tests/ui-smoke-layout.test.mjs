@@ -283,6 +283,7 @@ test('folder editor page ships the redesign bootstrap and chrome anchors', () =>
     assert.match(folderPage, /<form class="folder-editor-form"/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorPageMode =/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorPageType =/);
+    assert.match(folderPage, /window\.FolderViewPlusFolderEditorRequestedId =/);
     assert.match(folderPage, /scripts\/folder\.editor\.chrome\.js/);
     assert.match(folderJs, /id="fvEditorChrome"/);
     assert.match(folderJs, /id="fvLivePanel"/);

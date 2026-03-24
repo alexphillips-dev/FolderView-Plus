@@ -16,18 +16,32 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
 emitRequestTokenMetaTag();
 $folderEditorPageType = '';
 $folderEditorPageMode = 'legacy';
+$folderEditorRequestedId = '';
 try {
     $folderEditorPageType = ensureType((string)($_GET['type'] ?? $_REQUEST['type'] ?? ''));
     $folderEditorPagePrefs = readTypePrefs($folderEditorPageType);
     $folderEditorPageMode = normalizeFolderEditorMode((string)($folderEditorPagePrefs['folderEditorMode'] ?? 'legacy'));
+    $folderEditorRequestedId = trim((string)(
+        $_GET['id']
+        ?? $_REQUEST['id']
+        ?? $_GET['folderId']
+        ?? $_REQUEST['folderId']
+        ?? $_GET['folder']
+        ?? $_REQUEST['folder']
+        ?? $_GET['name']
+        ?? $_REQUEST['name']
+        ?? ''
+    ));
 } catch (Throwable $folderEditorPageError) {
     $folderEditorPageType = '';
     $folderEditorPageMode = 'legacy';
+    $folderEditorRequestedId = '';
 }
 ?>
 <script>
     window.FolderViewPlusFolderEditorPageType = <?php echo json_encode($folderEditorPageType, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
     window.FolderViewPlusFolderEditorPageMode = <?php echo json_encode($folderEditorPageMode, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
+    window.FolderViewPlusFolderEditorRequestedId = <?php echo json_encode($folderEditorRequestedId, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
 </script>
 <script src="<?autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.switchbutton.css')?>">

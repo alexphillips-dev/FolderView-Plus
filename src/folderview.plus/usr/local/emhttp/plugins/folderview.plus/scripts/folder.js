@@ -9,6 +9,7 @@ const folderEditorQueryParams = new URLSearchParams(location.search);
 const type = String(
     folderEditorQueryParams.get('type')
     || folderEditorQueryParams.get('mode')
+    || window.FolderViewPlusFolderEditorPageType
     || ''
 ).trim();
 // id of the folder if present
@@ -17,6 +18,7 @@ const folderId = String(
     || folderEditorQueryParams.get('folderId')
     || folderEditorQueryParams.get('folder')
     || folderEditorQueryParams.get('name')
+    || window.FolderViewPlusFolderEditorRequestedId
     || ''
 ).trim();
 const utils = window.FolderViewPlusUtils || null;

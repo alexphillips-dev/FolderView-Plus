@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.24.01">
-<!ENTITY md5 "24cace345f2c64b5984d8d6fbf3157a8">
+<!ENTITY version "2026.03.24.02">
+<!ENTITY md5 "5542273feec1cf49084c120fec927258">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.24.02
+- Fix: The legacy folder settings page now falls back to server-emitted editor context for `type` and requested folder id instead of depending only on the URL query string.
+- Fix: Existing-folder edits in legacy mode now resolve the saved folder record again, so the original editor loads the current name, icon, preview, chevron, and other saved settings instead of opening as a blank new-folder form.
+- UX: With the saved folder binding restored, the legacy submit, save-as-copy, reset, and cancel controls work through the original form flow again instead of being blocked by an empty required name field.
+- Test: Added editor context coverage for the server-emitted requested folder id and legacy hydration fallback path.
+
 
 ###2026.03.24.01
 - Feature: Added a per-type settings toggle under Sort mode and view settings so Docker and VM users can choose the new folder settings page or keep the legacy editor.

@@ -42,6 +42,8 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorScript, /const folderEditorQueryParams = new URLSearchParams\(location\.search\);/);
     assert.match(folderEditorScript, /folderEditorQueryParams\.get\('folderId'\)/);
     assert.match(folderEditorScript, /folderEditorQueryParams\.get\('folder'\)/);
+    assert.match(folderEditorScript, /window\.FolderViewPlusFolderEditorPageType/);
+    assert.match(folderEditorScript, /window\.FolderViewPlusFolderEditorRequestedId/);
     assert.match(folderEditorScript, /const normalizeFolderRecordForEditor = \(folder\) =>/);
     assert.match(folderEditorScript, /const resolveCurrentEditFolder = \(folderMap,\s*requestedId\) =>/);
     assert.match(folderEditorScript, /const EDITOR_PREFILL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.v1';/);

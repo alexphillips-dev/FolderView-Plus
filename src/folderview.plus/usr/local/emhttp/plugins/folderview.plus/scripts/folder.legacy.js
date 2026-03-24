@@ -3973,6 +3973,52 @@ const enforceLeftAlignedSettingsLayout = () => {
             return;
         }
 
+        if (modernFolderEditorEnabled) {
+            form.classList.add('fv-modern-editor-layout');
+            const setImportant = (el, property, value) => {
+                if (!el) {
+                    return;
+                }
+                el.style.setProperty(property, value, 'important');
+            };
+
+            Array.from(form.querySelectorAll('.fv-section-shell .basic')).forEach((row) => {
+                setImportant(row, 'width', '100%');
+                setImportant(row, 'max-width', 'none');
+                setImportant(row, 'margin-left', '0');
+                setImportant(row, 'margin-right', '0');
+                setImportant(row, 'box-sizing', 'border-box');
+            });
+
+            form.querySelectorAll('.fv-section-shell .basic > dl').forEach((dl) => {
+                setImportant(dl, 'display', 'block');
+                setImportant(dl, 'width', '100%');
+                setImportant(dl, 'max-width', 'none');
+                setImportant(dl, 'margin-left', '0');
+                setImportant(dl, 'margin-right', '0');
+            });
+
+            form.querySelectorAll('.fv-section-shell .basic > dl > dt, .fv-section-shell .basic > dl > dd').forEach((entry) => {
+                setImportant(entry, 'float', 'none');
+                setImportant(entry, 'width', 'auto');
+                setImportant(entry, 'margin', '0');
+                setImportant(entry, 'text-align', 'left');
+            });
+
+            form.querySelectorAll('.fv-section-shell .basic > dl > dd').forEach((dd) => {
+                setImportant(dd, 'display', 'block');
+                setImportant(dd, 'min-width', '0');
+            });
+
+            form.querySelectorAll('.fv-section-shell > .fv-section-shell-body > ul').forEach((list) => {
+                setImportant(list, 'margin-left', '0');
+                setImportant(list, 'margin-right', '0');
+                setImportant(list, 'padding-left', '0');
+            });
+
+            return;
+        }
+
         // fv-force-left-v2 marker: retained for release guard compatibility.
         // fv-force-left-v3 marker: hard-force stable left grid layout.
         form.classList.add('fv-force-left-v3');

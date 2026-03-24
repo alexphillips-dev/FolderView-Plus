@@ -1615,6 +1615,11 @@
     gap: 0.65em;
 }
 
+.fv-modern-section-grid {
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    align-items: start;
+}
+
 .fv-section-shell .basic,
 .fv-section-shell > ul,
 .fv-section-shell-body > ul {
@@ -1627,6 +1632,174 @@
 
 .fv-orphan-editor-row {
     display: none !important;
+}
+
+.fv-modern-group-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 0.75em;
+    grid-column: 1 / -1;
+}
+
+.fv-modern-group-item {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.fv-modern-field-row {
+    margin: 0 !important;
+    padding: 0.95em 1em;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015)),
+        radial-gradient(circle at top right, rgba(255, 154, 60, 0.09), transparent 48%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.fv-modern-field-row.is-wide-row,
+.fv-modern-order-row {
+    grid-column: 1 / -1;
+}
+
+.fv-modern-field-row > dl,
+.canvas form.folder-editor-form.fv-force-left-v3 .fv-modern-field-row > dl {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+}
+
+.fv-modern-field-row > dl > dt,
+.fv-modern-field-row > dl > dd,
+.canvas form.folder-editor-form.fv-force-left-v3 .fv-modern-field-row > dl > dt,
+.canvas form.folder-editor-form.fv-force-left-v3 .fv-modern-field-row > dl > dd {
+    float: none !important;
+    width: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    text-align: left !important;
+}
+
+.fv-modern-field-row > dl > dt {
+    display: block;
+    margin-bottom: 0.55em !important;
+    color: #ffd7ab;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.fv-modern-field-row > dl > dd {
+    display: block;
+    min-width: 0;
+}
+
+.fv-modern-field-row > dl > dd > .img:first-child {
+    display: none;
+}
+
+.fv-modern-field-row > blockquote.inline_help {
+    margin: 0.7em 0 0 !important;
+    padding: 0.7em 0.8em !important;
+    border-left: 3px solid rgba(255, 154, 60, 0.22);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    color: rgba(255, 255, 255, 0.76);
+}
+
+.fv-modern-field-row > blockquote.inline_help > p,
+.fv-modern-field-row > blockquote.inline_help > span {
+    margin: 0;
+    line-height: 1.45;
+}
+
+.fv-modern-field-row input[type="text"],
+.fv-modern-field-row input[type="number"],
+.fv-modern-field-row select,
+.fv-modern-field-row textarea {
+    width: 100%;
+    max-width: 100%;
+    min-height: 38px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(10, 10, 10, 0.34);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.fv-modern-field-row textarea {
+    min-height: 92px;
+}
+
+.fv-modern-field-row input[type="color"] {
+    min-width: 54px;
+    width: 54px;
+    height: 32px;
+    padding: 2px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(10, 10, 10, 0.34);
+}
+
+.fv-modern-field-row.is-toggle-row > dl > dd {
+    display: flex;
+    align-items: center;
+    min-height: 38px;
+}
+
+.fv-modern-field-row.is-icon-row .fv-icon-dd,
+.fv-modern-field-row.is-actions-row .custom-action-wrapper {
+    width: 100%;
+}
+
+.fv-modern-field-row.is-icon-row .fv-icon-dd {
+    display: grid;
+    gap: 0.8em;
+}
+
+.fv-modern-field-row.is-icon-row .fv-icon-dd > img.img {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    padding: 0.35em;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.03);
+    visibility: visible !important;
+}
+
+.fv-modern-field-row.is-icon-row .fv-icon-input-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em;
+}
+
+.fv-modern-field-row.is-status-row .folder-status-colors-dd {
+    display: block;
+    width: 100%;
+}
+
+.fv-modern-field-row.is-actions-row .custom-action-wrapper {
+    min-height: 42px;
+    padding: 0.65em 0.8em;
+    border-radius: 10px;
+    border: 1px dashed rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.025);
+}
+
+.fv-modern-order-row {
+    padding: 1em 1.05em;
+}
+
+.fv-modern-order-row > dl > dt {
+    display: none;
+}
+
+.fv-modern-order-row > blockquote.inline_help {
+    margin-top: 0.85em !important;
 }
 
 .folder-status-colors {

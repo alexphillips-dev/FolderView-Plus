@@ -6,12 +6,27 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.24.12">
-<!ENTITY md5 "6d5c187432efadaceac4b6ffb295fb27">
+<!ENTITY version "2026.03.24.14">
+<!ENTITY md5 "98e4b17a9e868486ff29349acd9f4d62">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.24.14
+- Fix: Fix modern folder editor live preview.
+- Maintenance: Use legacy runtime for modern folder editor.
+- Fix: Fix modern folder editor bootstrap hydration.
+- Maintenance: Auto-reload plugin pages after version change.
+- Fix: Fix legacy folder editor chevron and reset controls.
+- Maintenance: Guard no-cache headers on plugin pages.
+
+
+###2026.03.24.13
+- UX: Reworked the modern folder editor section bodies into card-style panels so the new editor no longer exposes the raw legacy left-label form layout.
+- UX: Added per-section descriptions, wider field cards for icon, actions, regex, and member controls, and cleaner grouped list styling for nested preview and advanced options.
+- Fix: Updated the shared editor runtime layout enforcement so modern mode preserves the redesigned card layout instead of reapplying the legacy left-aligned row grid.
+
 
 ###2026.03.24.12
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

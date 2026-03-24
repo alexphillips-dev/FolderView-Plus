@@ -4,14 +4,14 @@
         return;
     }
     const SECTION_META = {
-        general: { title: 'General', icon: 'fa-folder-open-o', advanced: false },
-        members: { title: 'Members', icon: 'fa-th-large', advanced: false },
-        preview: { title: 'Preview', icon: 'fa-eye', advanced: false },
-        chevron: { title: 'Chevron', icon: 'fa-chevron-down', advanced: false },
-        status: { title: 'Status', icon: 'fa-heartbeat', advanced: false },
-        rules: { title: 'Rules', icon: 'fa-code', advanced: true },
-        actions: { title: 'Actions', icon: 'fa-bolt', advanced: true },
-        advanced: { title: 'Advanced', icon: 'fa-sliders', advanced: true }
+        general: { title: 'General', icon: 'fa-folder-open-o', advanced: false, description: 'Name, parent, icon, and folder-level WebUI behavior.' },
+        members: { title: 'Members', icon: 'fa-th-large', advanced: false, description: 'Choose which containers or VMs belong in this folder and tune the visible order.' },
+        preview: { title: 'Preview', icon: 'fa-eye', advanced: false, description: 'Control preview layout, context, borders, dividers, and inline preview actions.' },
+        chevron: { title: 'Chevron', icon: 'fa-chevron-down', advanced: false, description: 'Pick the dropdown style and the primary / hover colors used in folder rows.' },
+        status: { title: 'Status', icon: 'fa-heartbeat', advanced: false, description: 'Adjust status colors and optional health or warning thresholds for the folder.' },
+        rules: { title: 'Rules', icon: 'fa-code', advanced: true, description: 'Use regex matching and related automation rules to keep this folder populated.' },
+        actions: { title: 'Actions', icon: 'fa-bolt', advanced: true, description: 'Configure custom folder actions and menu behavior for the folder context menu.' },
+        advanced: { title: 'Advanced', icon: 'fa-sliders', advanced: true, description: 'Tune Docker / VM / Dashboard specific behavior and other advanced defaults.' }
     };
     const DEFAULT_FOLDER_ICON_PATH = '/plugins/folderview.plus/images/folder-icon.png';
     const BASIC_MODE = 'basic';
@@ -254,6 +254,7 @@
                                     <span>${meta.advanced ? 'Advanced section' : 'Core section'}</span>
                                 </div>
                                 <h3>${meta.title}${meta.advanced ? ' <span class="fv-section-badge">advanced</span>' : ''}</h3>
+                                <p>${meta.description}</p>
                             </div>
                         </div>
                     </div>
@@ -269,9 +270,51 @@
             if (!body) {
                 return;
             }
+            body.classList.add('fv-modern-section-grid');
             rows.forEach((row) => {
                 if (row && row.parentElement !== body) {
                     body.appendChild(row);
+                }
+            });
+        });
+    };
+
+    const decorateSectionRows = (form) => {
+        Array.from(form.querySelectorAll('.fv-section-shell .basic')).forEach((row) => {
+            row.classList.add('fv-modern-field-row');
+            row.classList.remove('fv-orphan-editor-row');
+            if (row.classList.contains('order-section')) {
+                row.classList.add('fv-modern-order-row', 'is-wide-row');
+                return;
+            }
+            if (row.querySelector('.fv-icon-dd')) {
+                row.classList.add('is-icon-row', 'is-wide-row');
+            }
+            if (row.querySelector('.folder-status-colors-dd')) {
+                row.classList.add('is-status-row', 'is-wide-row');
+            }
+            if (row.querySelector('.custom-action-wrapper') || row.querySelector('a.custom-action')) {
+                row.classList.add('is-actions-row', 'is-wide-row');
+            }
+            if (row.querySelector('[name="name"]') || row.querySelector('[name="regex"]')) {
+                row.classList.add('is-wide-row');
+            }
+            if (row.querySelector('[name="folder_webui_url"]') || row.querySelector('[name="preview_text_width"]')) {
+                row.classList.add('is-wide-row');
+            }
+            if (row.querySelector('input.basic-switch, .switch-button')) {
+                row.classList.add('is-toggle-row');
+            }
+            if (row.querySelector('input[type="color"]')) {
+                row.classList.add('is-color-row');
+            }
+        });
+
+        Array.from(form.querySelectorAll('.fv-section-shell ul')).forEach((list) => {
+            list.classList.add('fv-modern-group-list');
+            Array.from(list.children).forEach((item) => {
+                if (item instanceof root.HTMLElement) {
+                    item.classList.add('fv-modern-group-item');
                 }
             });
         });
@@ -383,6 +426,7 @@
         ensureTopChrome(form);
         ensureActionBar(form);
         ensureSectionShells(form);
+        decorateSectionRows(form);
         hideOrphanRows(form);
         bindTopButtons(form);
         bindSectionControls(form);

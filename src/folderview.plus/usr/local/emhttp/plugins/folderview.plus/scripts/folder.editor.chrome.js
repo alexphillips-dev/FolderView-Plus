@@ -186,8 +186,8 @@
         general: [
             findBasicByFieldName(form, 'name'),
             findBasicByFieldName(form, 'parent_folder_id'),
-            findBasicByFieldName(form, 'icon'),
             findBasicByFieldName(form, 'folder_webui'),
+            findBasicByFieldName(form, 'icon'),
             form.querySelector('ul[constraint*="folder-webui"]')
         ],
         members: [
@@ -291,13 +291,13 @@
         Array.from(form.querySelectorAll('.fv-section-shell .basic')).forEach((row) => {
             row.classList.add('fv-modern-field-row');
             row.classList.remove('fv-orphan-editor-row');
-            row.classList.remove('fv-modern-order-row', 'is-wide-row', 'is-icon-row', 'is-status-row', 'is-actions-row', 'is-toggle-row', 'is-color-row', 'is-name-row', 'is-url-row', 'is-compact-text-row');
+            row.classList.remove('fv-modern-order-row', 'is-wide-row', 'is-icon-row', 'is-status-row', 'is-actions-row', 'is-toggle-row', 'is-color-row', 'is-name-row', 'is-url-row', 'is-compact-text-row', 'is-webui-row');
             if (row.classList.contains('order-section')) {
                 row.classList.add('fv-modern-order-row', 'is-wide-row');
                 return;
             }
             if (row.querySelector('.fv-icon-dd')) {
-                row.classList.add('is-icon-row');
+                row.classList.add('is-icon-row', 'is-wide-row');
             }
             if (row.querySelector('.folder-status-colors-dd')) {
                 row.classList.add('is-status-row');
@@ -310,6 +310,9 @@
             }
             if (row.querySelector('[name="name"]')) {
                 row.classList.add('is-name-row');
+            }
+            if (row.querySelector('[name="folder_webui"]')) {
+                row.classList.add('is-webui-row');
             }
             if (row.querySelector('[name="folder_webui_url"]')) {
                 row.classList.add('is-wide-row');

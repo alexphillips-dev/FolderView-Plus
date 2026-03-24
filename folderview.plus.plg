@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.24.17">
-<!ENTITY md5 "30c4ce81968637da8ebe6a3eebaf697c">
+<!ENTITY version "2026.03.24.18">
+<!ENTITY md5 "b494b41122bf0dcc805dffd5ae8517c2">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.24.18
+- Fix: VM folder editor pages now inherit the active Docker modern editor mode instead of dropping back to the legacy editor when the VM path would otherwise resolve legacy.
+- Fix: Folder.page now promotes VM folder editor loads to modern when Docker is already configured for the new editor, keeping both runtime tabs on the same editor experience.
+- Quality: Added regression coverage for the VM modern-editor fallback in the shared folder editor page bootstrap.
+
 
 ###2026.03.24.17
 - Fix: VM folder edit routes now pass the resolved editor mode explicitly so the VMs tab opens the same new or legacy folder editor that is active for that type.

@@ -40,6 +40,12 @@ try {
     $folderEditorPageMode = $folderEditorRequestedMode === 'modern'
         ? 'modern'
         : normalizeFolderEditorMode((string)($folderEditorPagePrefs['folderEditorMode'] ?? 'legacy'));
+    if ($folderEditorPageMode !== 'modern' && $folderEditorPageType === 'vm') {
+        $dockerEditorPrefs = readTypePrefs('docker');
+        if (normalizeFolderEditorMode((string)($dockerEditorPrefs['folderEditorMode'] ?? 'legacy')) === 'modern') {
+            $folderEditorPageMode = 'modern';
+        }
+    }
     $folderEditorRequestedId = trim((string)(
         $_GET['id']
         ?? $_REQUEST['id']

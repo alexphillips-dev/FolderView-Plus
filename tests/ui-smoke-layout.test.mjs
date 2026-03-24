@@ -313,6 +313,8 @@ test('folder editor page ships the redesign bootstrap and chrome anchors', () =>
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorPageMode =/);
     assert.match(folderPage, /\$_GET\['editor'\]/);
     assert.match(folderPage, /\$_GET\['editorMode'\]/);
+    assert.match(folderPage, /\$folderEditorPageType === 'vm'/);
+    assert.match(folderPage, /readTypePrefs\('docker'\)/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorPageType =/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorRequestedId =/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorResolvedId =/);

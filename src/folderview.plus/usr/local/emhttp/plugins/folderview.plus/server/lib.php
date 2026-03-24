@@ -1609,6 +1609,7 @@
             'expandedFolderState' => [],
             'hideEmptyFolders' => false,
             'appColumnWidth' => 'standard',
+            'folderEditorMode' => 'legacy',
             'setupWizardCompleted' => false,
             'settingsMode' => 'basic',
             'autoRules' => [],
@@ -1760,6 +1761,14 @@
         return 'standard';
     }
 
+    function normalizeFolderEditorMode($value): string {
+        $normalized = strtolower(trim((string)$value));
+        if ($normalized === 'modern') {
+            return 'modern';
+        }
+        return 'legacy';
+    }
+
     function normalizeDashboardLayout($value): string {
         $normalized = strtolower(trim((string)$value));
         if (in_array($normalized, ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'], true)) {
@@ -1793,6 +1802,7 @@
         $normalized['expandedFolderState'] = normalizeExpandedStateMap($prefs['expandedFolderState'] ?? []);
         $normalized['hideEmptyFolders'] = normalizeBool($prefs['hideEmptyFolders'] ?? false, false);
         $normalized['appColumnWidth'] = normalizeAppColumnWidth($prefs['appColumnWidth'] ?? 'standard');
+        $normalized['folderEditorMode'] = normalizeFolderEditorMode($prefs['folderEditorMode'] ?? 'legacy');
         $normalized['setupWizardCompleted'] = normalizeBool($prefs['setupWizardCompleted'] ?? false, false);
         $settingsMode = (string)($prefs['settingsMode'] ?? 'basic');
         $normalized['settingsMode'] = $settingsMode === 'advanced' ? 'advanced' : 'basic';

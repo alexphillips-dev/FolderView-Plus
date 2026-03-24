@@ -14,7 +14,21 @@ Markdown="false"
 require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 require_once('/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
 emitRequestTokenMetaTag();
+$folderEditorPageType = '';
+$folderEditorPageMode = 'legacy';
+try {
+    $folderEditorPageType = ensureType((string)($_GET['type'] ?? $_REQUEST['type'] ?? ''));
+    $folderEditorPagePrefs = readTypePrefs($folderEditorPageType);
+    $folderEditorPageMode = normalizeFolderEditorMode((string)($folderEditorPagePrefs['folderEditorMode'] ?? 'legacy'));
+} catch (Throwable $folderEditorPageError) {
+    $folderEditorPageType = '';
+    $folderEditorPageMode = 'legacy';
+}
 ?>
+<script>
+    window.FolderViewPlusFolderEditorPageType = <?php echo json_encode($folderEditorPageType, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
+    window.FolderViewPlusFolderEditorPageMode = <?php echo json_encode($folderEditorPageMode, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
+</script>
 <script src="<?autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.switchbutton.css')?>">
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.ui.css')?>">

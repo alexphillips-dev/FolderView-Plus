@@ -1,4 +1,8 @@
 (function folderEditorChromeBootstrap(root) {
+    const editorPageMode = String(root.FolderViewPlusFolderEditorPageMode || 'legacy').trim().toLowerCase();
+    if (editorPageMode !== 'modern') {
+        return;
+    }
     const SECTION_META = {
         general: { title: 'General', icon: 'fa-folder-open-o', advanced: false },
         members: { title: 'Members', icon: 'fa-th-large', advanced: false },

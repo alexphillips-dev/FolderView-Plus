@@ -198,6 +198,19 @@ test('normalizePrefs preserves settings table layout preferences', () => {
     assert.equal(prefs.settingsTable.actionsWidth, 'compact');
 });
 
+test('normalizePrefs keeps legacy folder editor by default and sanitizes invalid editor modes', () => {
+    const defaults = utils.normalizePrefs({});
+    const modern = utils.normalizePrefs({ folderEditorMode: 'modern' });
+    const fallback = utils.normalizePrefs({ folderEditorMode: 'beta-ish' });
+
+    assert.equal(defaults.folderEditorMode, 'legacy');
+    assert.equal(modern.folderEditorMode, 'modern');
+    assert.equal(fallback.folderEditorMode, 'legacy');
+    assert.equal(utils.normalizeFolderEditorMode('modern'), 'modern');
+    assert.equal(utils.normalizeFolderEditorMode('legacy'), 'legacy');
+    assert.equal(utils.normalizeFolderEditorMode('broken'), 'legacy');
+});
+
 test('summarizeImport reports creates updates and deletes for replace mode', () => {
     const existing = {
         a: { name: 'A', containers: ['x'] },

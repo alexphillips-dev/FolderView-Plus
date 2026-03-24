@@ -410,6 +410,11 @@
         return APP_COLUMN_WIDTH_OPTIONS.includes(normalized) ? normalized : 'standard';
     };
 
+    const normalizeFolderEditorMode = (value) => {
+        const normalized = String(value || '').trim().toLowerCase();
+        return normalized === 'modern' ? 'modern' : 'legacy';
+    };
+
     const normalizeDashboardLayout = (value) => {
         const normalized = String(value || '').trim().toLowerCase();
         return DASHBOARD_LAYOUT_OPTIONS.includes(normalized)
@@ -736,6 +741,7 @@
         const expandedFolderState = normalizeExpandedFolderStateMap(incoming.expandedFolderState);
         const hideEmptyFolders = incoming.hideEmptyFolders === true;
         const appColumnWidth = normalizeAppColumnWidth(incoming.appColumnWidth);
+        const folderEditorMode = normalizeFolderEditorMode(incoming.folderEditorMode);
         const setupWizardCompleted = incoming.setupWizardCompleted === true;
         const settingsMode = incoming.settingsMode === 'advanced' ? 'advanced' : 'basic';
         const incomingSettingsTable = isPlainObject(incoming.settingsTable) ? incoming.settingsTable : {};
@@ -769,6 +775,7 @@
             expandedFolderState,
             hideEmptyFolders,
             appColumnWidth,
+            folderEditorMode,
             setupWizardCompleted,
             settingsMode,
             autoRules,
@@ -1989,6 +1996,7 @@
         normalizeFolderMap,
         normalizeFolderMembers,
         normalizeAppColumnWidth,
+        normalizeFolderEditorMode,
         normalizeDashboardLayout,
         normalizeDashboardOverflowMode,
         normalizeThemeCompatibilityMode,

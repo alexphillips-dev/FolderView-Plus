@@ -126,6 +126,9 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
     assert.match(settingsPage, /id="vm-resource-warn-gib"/);
     assert.match(settingsPage, /id="vm-resource-critical-gib"/);
     assert.match(settingsPage, /id="fv-first-run-panel"/);
+    assert.match(settingsPage, /id="docker-folder-editor-modern"/);
+    assert.match(settingsPage, /id="vm-folder-editor-modern"/);
+    assert.match(settingsPage, /Use new folder settings page/);
 });
 
 test('mobile action bar and import progress keep compact viewport guards', () => {
@@ -278,13 +281,18 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
 
 test('folder editor page ships the redesign bootstrap and chrome anchors', () => {
     assert.match(folderPage, /<form class="folder-editor-form"/);
+    assert.match(folderPage, /window\.FolderViewPlusFolderEditorPageMode =/);
+    assert.match(folderPage, /window\.FolderViewPlusFolderEditorPageType =/);
     assert.match(folderPage, /scripts\/folder\.editor\.chrome\.js/);
     assert.match(folderJs, /id="fvEditorChrome"/);
     assert.match(folderJs, /id="fvLivePanel"/);
     assert.match(folderJs, /id="fvEditorActionBar"/);
     assert.match(folderChromeJs, /id="fvRestoreSavedValues"/);
+    assert.match(folderChromeJs, /editorPageMode !== 'modern'/);
     assert.match(folderChromeJs, /data-mode="basic"/);
     assert.match(folderChromeJs, /id="fvLivePreviewCanvas"/);
+    assert.match(folderJs, /const modernFolderEditorEnabled = String\(window\.FolderViewPlusFolderEditorPageMode \|\| 'legacy'\)/);
+    assert.match(folderJs, /if \(!modernFolderEditorEnabled\)\s*\{\s*return;\s*\}/);
     assert.match(folderJs, /markSection\('div\.basic:has\(\[name="parent_folder_id"\]\)', 'general'\);/);
     assert.match(folderJs, /const setActiveEditorSection = \(sectionKey\) =>/);
     assert.match(folderJs, /shell\.toggle\(isActiveSection\);/);

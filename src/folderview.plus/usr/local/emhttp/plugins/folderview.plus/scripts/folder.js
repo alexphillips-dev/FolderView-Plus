@@ -22,6 +22,7 @@ const folderId = String(
 const utils = window.FolderViewPlusUtils || null;
 const folderHierarchyModule = window.FolderViewPlusFolderHierarchy || null;
 const folderIconApiModule = window.FolderViewPlusFolderIconApi || null;
+const modernFolderEditorEnabled = String(window.FolderViewPlusFolderEditorPageMode || 'legacy').trim().toLowerCase() === 'modern';
 const DEFAULT_FOLDER_STATUS_COLORS = {
     started: '#ffffff',
     paused: '#b8860b',
@@ -2974,6 +2975,9 @@ const applyEditorPluginDefaults = () => {
 };
 
 const buildEditorActionBar = () => {
+    if (!modernFolderEditorEnabled) {
+        return;
+    }
     const form = $('div.canvas > form');
     if (!form.length) {
         return;
@@ -3027,6 +3031,9 @@ const buildSectionCards = () => {
 };
 
 const renderLivePreviewCanvas = () => {
+    if (!modernFolderEditorEnabled) {
+        return;
+    }
     const form = getForm();
     const canvas = $('#fvLivePreviewCanvas');
     if (!form || !canvas.length) {
@@ -3825,6 +3832,9 @@ const toggleAdvancedSectionCollapse = (sectionKey) => {
 };
 
 const applyAdvancedMode = () => {
+    if (!modernFolderEditorEnabled) {
+        return;
+    }
     editorMode = normalizeEditorMode(editorMode);
     const showAdvanced = editorMode === 'advanced';
     activeEditorSection = normalizeActiveEditorSection(activeEditorSection, editorMode);
@@ -3864,6 +3874,9 @@ const applyAdvancedMode = () => {
 };
 
 const enforceLeftAlignedSettingsLayout = () => {
+    if (!modernFolderEditorEnabled) {
+        return;
+    }
     try {
         const isMobile = window.innerWidth <= 980;
         const form = document.querySelector('div.canvas > form.folder-editor-form');
@@ -4120,6 +4133,9 @@ const suggestDefaultsFromMembers = () => {
 };
 
 const updateLiveSummary = () => {
+    if (!modernFolderEditorEnabled) {
+        return;
+    }
     const form = getForm();
     if (!form) {
         return;
@@ -4239,6 +4255,9 @@ const updateRegexSimulator = () => {
 };
 
 const applySectionTags = () => {
+    if (!modernFolderEditorEnabled) {
+        return;
+    }
     $('[data-editor-section]').removeAttr('data-editor-section');
     $('.fv-advanced-setting').removeClass('fv-advanced-setting');
 
@@ -4352,6 +4371,9 @@ const hideUnsectionedEditorRows = () => {
 };
 
 const initEditorChrome = () => {
+    if (!modernFolderEditorEnabled) {
+        return;
+    }
     const form = $('div.canvas > form');
     if (!form.length) {
         return;
@@ -4829,7 +4851,9 @@ resetStatusColorDefaults();
         }
         if (fieldName === 'name') {
             if (event.type === 'input') {
-                $('#fvLiveName').text((form.name?.value || '').trim() || '(unnamed)');
+                if (modernFolderEditorEnabled) {
+                    $('#fvLiveName').text((form.name?.value || '').trim() || '(unnamed)');
+                }
                 markUnsavedIndicatorDirty();
                 return;
             }

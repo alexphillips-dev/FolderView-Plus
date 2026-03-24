@@ -5,6 +5,14 @@ import path from 'node:path';
 
 const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
+const pluginPageDir = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus');
+const pluginPageFiles = fs.readdirSync(pluginPageDir)
+    .filter((entry) => entry.endsWith('.page'))
+    .sort();
+const pluginPageSources = pluginPageFiles.map((entry) => ({
+    file: entry,
+    source: fs.readFileSync(path.join(pluginPageDir, entry), 'utf8')
+}));
 
 const libPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
 const backupPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/backup.php');
@@ -41,15 +49,17 @@ test('backup endpoint supports guarded POST download and legacy fallback', () =>
 });
 
 test('plugin pages emit request token meta tag', () => {
-    for (const source of [folderPage, settingsPage, dockerPage, vmPage, dashboardPage]) {
+    for (const { source } of pluginPageSources) {
         assert.match(source, /emitRequestTokenMetaTag\(\)/);
     }
 });
 
-test('plugin pages emit no-cache document guards', () => {
-    for (const source of [folderPage, settingsPage, dockerPage, vmPage, dashboardPage]) {
+test('all plugin page entrypoints emit no-cache document guards', () => {
+    assert.ok(pluginPageFiles.length >= 5);
+    for (const { file, source } of pluginPageSources) {
         assert.match(source, /emitNoCachePageHeaders\(\)/);
         assert.match(source, /emitNoCacheMetaTags\(\)/);
+        assert.match(source, /emitRequestTokenMetaTag\(\)/, `missing request token meta in ${file}`);
     }
     assert.match(libPhp, /function emitNoCachePageHeaders\(\): void/);
     assert.match(libPhp, /function emitNoCacheMetaTags\(\): void/);

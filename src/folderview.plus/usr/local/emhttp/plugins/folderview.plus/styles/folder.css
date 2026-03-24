@@ -1903,7 +1903,10 @@
 
 .fv-modern-field-row > dl,
 .canvas form.folder-editor-form.fv-force-left-v3 .fv-modern-field-row > dl {
-    display: block !important;
+    display: flex !important;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.78em;
     width: 100% !important;
     max-width: none !important;
     margin: 0 !important;
@@ -1922,7 +1925,7 @@
 
 .fv-modern-field-row > dl > dt {
     display: block;
-    margin-bottom: 0.52em !important;
+    margin-bottom: 0 !important;
     color: #ffd7ab;
     font-size: 1rem;
     font-weight: 700;
@@ -1934,6 +1937,8 @@
 .fv-modern-field-row > dl > dd {
     display: block;
     min-width: 0;
+    width: 100%;
+    padding-top: 0.04em !important;
 }
 
 .fv-modern-field-row > dl > dd > .img:first-child {

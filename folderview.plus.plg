@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.25.43">
-<!ENTITY md5 "ca6d47db841a312d3f19135c4da513f3">
+<!ENTITY version "2026.03.25.44">
+<!ENTITY md5 "88726f70f6783fe894f055e9db817521">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.25.44
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
 
 ###2026.03.25.43
 - Fix: Stamp the active Unraid host theme onto the folder-editor page shell so White mode can force light editor chrome and action-bar surfaces instead of falling back to dark defaults.

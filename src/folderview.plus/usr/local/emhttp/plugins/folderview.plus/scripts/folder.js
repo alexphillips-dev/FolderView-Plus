@@ -7,6 +7,7 @@ let selected = [];
 const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
 const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv.folder.editor.prefill.persist.v1';
 const EDITOR_WINDOW_NAME_PREFIX = 'fv.folder.editor.v1:';
+const EDITOR_BOOTSTRAP_COOKIE_NAME = 'fv_folder_editor_bootstrap';
 const readFolderEditorBootstrapSeed = () => {
     const parsePrefill = (rawValue) => {
         const raw = String(rawValue || '').trim();
@@ -615,6 +616,7 @@ const setBootstrapDiagnostics = (details = {}) => {
         `bootstrapContextResolvedBy=${String(folderEditorBootstrapContext?.resolvedBy || '(none)')}`,
         `storageSeed=${folderEditorStorageBootstrap ? 'yes' : 'no'}`,
         `windowNameSeed=${folderEditorWindowNameBootstrap ? 'yes' : 'no'}`,
+        `cookieSeed=${String(document.cookie || '').includes(`${EDITOR_BOOTSTRAP_COOKIE_NAME}=`) ? 'yes' : 'no'}`,
         `hostTheme=${String(window.FolderViewPlusHostThemeName || '(empty)')}`,
         `htmlTheme=${String(document.documentElement?.getAttribute('data-fvplus-host-theme') || '(empty)')}`,
         `mode=${String(details.mode || 'boot')}`,
@@ -744,6 +746,7 @@ const clearEditorNavigationPrefill = () => {
         if (String(window.name || '').startsWith(EDITOR_WINDOW_NAME_PREFIX)) {
             window.name = '';
         }
+        document.cookie = `${EDITOR_BOOTSTRAP_COOKIE_NAME}=; path=/; max-age=0; SameSite=Lax`;
     } catch (_error) {
         // Ignore storage cleanup issues.
     }

@@ -1737,6 +1737,7 @@ const rmFolder = (id) => {
 const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
 const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv.folder.editor.prefill.persist.v1';
 const EDITOR_WINDOW_NAME_PREFIX = 'fv.folder.editor.v1:';
+const EDITOR_BOOTSTRAP_COOKIE_NAME = 'fv_folder_editor_bootstrap';
 const clearFolderEditorPrefill = () => {
     try {
         if (typeof sessionStorage !== 'undefined') {
@@ -1748,6 +1749,7 @@ const clearFolderEditorPrefill = () => {
         if (String(window.name || '').startsWith(EDITOR_WINDOW_NAME_PREFIX)) {
             window.name = '';
         }
+        document.cookie = `${EDITOR_BOOTSTRAP_COOKIE_NAME}=; path=/; max-age=0; SameSite=Lax`;
     } catch (_error) {
         // Editor prefill cleanup is best-effort only.
     }
@@ -1771,6 +1773,11 @@ const seedFolderEditorPrefill = (folderType, id) => {
             localStorage.setItem(EDITOR_PREFILL_LOCAL_STORAGE_KEY, payload);
         }
         window.name = `${EDITOR_WINDOW_NAME_PREFIX}${payload}`;
+        document.cookie = `${EDITOR_BOOTSTRAP_COOKIE_NAME}=${encodeURIComponent(JSON.stringify({
+            type: folderType,
+            id: normalizedId,
+            storedAt: Date.now()
+        }))}; path=/; max-age=900; SameSite=Lax`;
     } catch (_error) {
         // Editor prefill is best-effort only.
     }

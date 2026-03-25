@@ -20,6 +20,8 @@ $folderEditorPageMode = 'legacy';
 $folderEditorPageModeSource = 'error';
 $folderEditorRequestedId = '';
 $folderEditorResolvedId = '';
+$folderEditorCookieType = '';
+$folderEditorCookieId = '';
 $folderEditorBootstrapContext = [
     'requestedId' => '',
     'resolvedId' => '',
@@ -27,7 +29,20 @@ $folderEditorBootstrapContext = [
     'folder' => null
 ];
 try {
-    $folderEditorPageType = ensureType((string)($_GET['type'] ?? $_REQUEST['type'] ?? ''));
+    $folderEditorCookieRaw = trim((string)($_COOKIE['fv_folder_editor_bootstrap'] ?? ''));
+    if ($folderEditorCookieRaw !== '') {
+        $folderEditorCookiePayload = json_decode(rawurldecode($folderEditorCookieRaw), true);
+        if (is_array($folderEditorCookiePayload)) {
+            $folderEditorCookieType = trim((string)($folderEditorCookiePayload['type'] ?? ''));
+            $folderEditorCookieId = trim((string)($folderEditorCookiePayload['id'] ?? ''));
+        }
+    }
+} catch (Throwable $folderEditorCookieError) {
+    $folderEditorCookieType = '';
+    $folderEditorCookieId = '';
+}
+try {
+    $folderEditorPageType = ensureType((string)($_GET['type'] ?? $_REQUEST['type'] ?? $folderEditorCookieType ?? ''));
     $folderEditorModePreference = resolveTypeFolderEditorModePreference($folderEditorPageType);
     $folderEditorPageMode = normalizeFolderEditorMode((string)($folderEditorModePreference['mode'] ?? 'modern'));
     $folderEditorPageModeSource = trim((string)($folderEditorModePreference['source'] ?? 'default-modern')) ?: 'default-modern';
@@ -40,6 +55,7 @@ try {
         ?? $_REQUEST['folder']
         ?? $_GET['name']
         ?? $_REQUEST['name']
+        ?? $folderEditorCookieId
         ?? ''
     ));
     if ($folderEditorRequestedId !== '') {

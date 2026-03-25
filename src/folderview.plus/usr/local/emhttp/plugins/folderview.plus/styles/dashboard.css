@@ -130,9 +130,9 @@
     max-height: 16px !important;
     margin: 0 !important;
     padding: 0 !important;
-    border: 1px solid var(--fvplus-dashboard-quick-action-border);
-    border-radius: 4px;
-    background: var(--fvplus-dashboard-quick-action-bg);
+    border: 0 !important;
+    border-radius: 0;
+    background: transparent !important;
     color: var(--fvplus-dashboard-quick-action-fg);
     cursor: pointer;
     line-height: 1;
@@ -147,15 +147,15 @@
 .fv-dashboard-quick-action:focus {
     text-decoration: none;
     color: var(--fvplus-dashboard-accent);
-    border-color: var(--fvplus-dashboard-accent-border);
-    background: var(--fvplus-dashboard-accent-soft);
+    border-color: transparent !important;
+    background: transparent !important;
     outline: none;
 }
 
 .fv-dashboard-quick-action.is-active {
     color: var(--fvplus-dashboard-accent);
-    border-color: var(--fvplus-dashboard-accent-border-active);
-    background: var(--fvplus-dashboard-accent-soft-active);
+    border-color: transparent !important;
+    background: transparent !important;
 }
 
 .fv-dashboard-quick-action:disabled {

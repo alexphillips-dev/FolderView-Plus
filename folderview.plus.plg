@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.24.51">
-<!ENTITY md5 "3adf6b995b312ff148f6049a2dfef9b3">
+<!ENTITY version "2026.03.24.52">
+<!ENTITY md5 "f620fbf0ed6c61d11610cbeee547acb7">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.24.52
+- UX: Standardized the modern folder editor card grid so Preview and other sections use evenly sized modules instead of content-sized cards that drift out of alignment.
+- UX: Removed the special narrow modern `Folder WebUI` card width and made normal field cards stretch to a shared column contract with consistent base height.
+- Test: Updated the modern editor smoke guard to lock the new unified card-grid sizing contract.
+
 
 ###2026.03.24.51
 - UX: Lowered the modern field-card content block explicitly so module titles stay visually separated from the control area instead of sharing the same vertical band.

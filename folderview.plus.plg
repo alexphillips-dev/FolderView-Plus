@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.25.55">
-<!ENTITY md5 "fae98acad60927def213caddeb0be395">
+<!ENTITY version "2026.03.25.57">
+<!ENTITY md5 "d68fa651e78406df58faa79e7baaf1f7">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.25.57
+- Fix: Delay modern folder editor preview API creation until its helper functions are initialized, preventing the early `getIncludedMemberNames` bootstrap crash before hydration.
+- Regression guard: Lock the lazy modern preview bootstrap path into the folder editor smoke test so eager preview initialization does not slip back in.
+
 
 ###2026.03.25.55
 - Fix: Move the folder editor runtime boot into a page-owned script loader so `Folder.page` can force fresh modern or legacy editor scripts into the active xmenu window on every open.

@@ -3176,8 +3176,12 @@ const buildSectionCards = () => {
     });
 };
 
-const folderEditorPreviewApi = typeof folderEditorPreview?.createApi === 'function'
-    ? folderEditorPreview.createApi({
+let folderEditorPreviewApi = null;
+const getFolderEditorPreviewApi = () => {
+    if (folderEditorPreviewApi || typeof folderEditorPreview?.createApi !== 'function') {
+        return folderEditorPreviewApi;
+    }
+    folderEditorPreviewApi = folderEditorPreview.createApi({
         $,
         type,
         shouldRender: () => modernFolderEditorEnabled,
@@ -3213,11 +3217,12 @@ const folderEditorPreviewApi = typeof folderEditorPreview?.createApi === 'functi
         contextModeLabels: CONTEXT_MODE_LABELS,
         supportedDropdownStyles: SUPPORTED_DROPDOWN_STYLES,
         defaultDividerColor: rgbToHex($('body').css('color'))
-    })
-    : null;
+    });
+    return folderEditorPreviewApi;
+};
 
 const renderLivePreviewCanvas = () => {
-    folderEditorPreviewApi?.renderLivePreviewCanvas();
+    getFolderEditorPreviewApi()?.renderLivePreviewCanvas();
 };
 
 const markUnsavedIndicatorDirty = () => {
@@ -4340,7 +4345,7 @@ const suggestDefaultsFromMembers = () => {
 };
 
 const updateLiveSummary = () => {
-    folderEditorPreviewApi?.updateLiveSummary();
+    getFolderEditorPreviewApi()?.updateLiveSummary();
 };
 
 const updateRegexSimulator = () => {

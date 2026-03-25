@@ -3788,9 +3788,6 @@ body.fv-mobile-compact .fv-setup-field-grid {
     align-items: center;
     gap: 0.22rem;
     min-width: min(360px, 42vw);
-    margin-right: 0.35rem;
-    padding-right: 0.25rem;
-    border-right: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .fv-mode-toggle {
@@ -3842,7 +3839,8 @@ body.fv-mobile-compact .fv-setup-field-grid {
     font-size: 1.03rem;
     opacity: 0.9;
     white-space: nowrap;
-    justify-self: start;
+    justify-self: end;
+    margin-left: auto;
 }
 
 .fv-search-scope input[type="checkbox"] {

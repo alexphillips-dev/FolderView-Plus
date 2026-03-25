@@ -310,12 +310,11 @@ const isCompactMultiRowPreview = (settings = {}) => {
     const normalizedRows = normalizeFolderPreviewRowLimit(settings);
     return normalizedRows === 0 || normalizedRows > 1;
 };
-const shouldRenderCompactPreviewWebuiPlaceholder = (settings = {}, webuiQuickActionEnabled = false) =>
-    isCompactMultiRowPreview(settings)
-    && settings?.preview_vertical_bars === true
+const shouldRenderPreviewWebuiPlaceholder = (settings = {}, webuiQuickActionEnabled = false) =>
+    settings?.preview_vertical_bars === true
     && webuiQuickActionEnabled === true;
 
-const appendCompactPreviewWebuiPlaceholder = ($target) => {
+const appendPreviewWebuiPlaceholder = ($target) => {
     if (!$target || !$target.length) {
         return;
     }
@@ -3294,8 +3293,8 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                 } else {
                      if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: WebUI icon: Could not find target for append in preview element.`);
                 }
-            } else if (shouldRenderCompactPreviewWebuiPlaceholder(folder.settings, folder.settings.preview_webui === true)) {
-                appendCompactPreviewWebuiPlaceholder($targetForAppend);
+            } else if (shouldRenderPreviewWebuiPlaceholder(folder.settings, folder.settings.preview_webui === true)) {
+                appendPreviewWebuiPlaceholder($targetForAppend);
             }
 
             if (folder.settings.preview_console) {
@@ -3691,8 +3690,8 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
                 .attr('rel', 'noopener noreferrer')
                 .append('<i class="fa fa-globe" aria-hidden="true"></i>');
             $actionsTarget.append($('<span class="folder-element-custom-btn folder-element-webui"></span>').append($webuiLink));
-        } else if (shouldRenderCompactPreviewWebuiPlaceholder(folder?.settings || {}, allowWebuiQuickAction)) {
-            appendCompactPreviewWebuiPlaceholder($actionsTarget);
+        } else if (shouldRenderPreviewWebuiPlaceholder(folder?.settings || {}, allowWebuiQuickAction)) {
+            appendPreviewWebuiPlaceholder($actionsTarget);
         }
 
         if (allowConsoleQuickAction) {

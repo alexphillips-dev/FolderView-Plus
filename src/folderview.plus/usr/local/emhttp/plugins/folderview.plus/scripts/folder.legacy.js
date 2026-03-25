@@ -1,4 +1,5 @@
 ﻿// list of element to select
+(function fvplusLegacyFolderEditorRuntimeScope(window, $) {
 let choose = [];
 // element selected by the regex string
 let selectedRegex = [];
@@ -5621,3 +5622,4 @@ window.suggestDefaultsFromMembers = suggestDefaultsFromMembers;
 window.setIconAsContainer = setIconAsContainer;
 window.customAction = customAction;
 window.rCcustomAction = rCcustomAction;
+})(window, window.jQuery || window.$);

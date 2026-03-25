@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.25.53">
-<!ENTITY md5 "c5f3431b6e4327d76f3f179e64f3bf90">
+<!ENTITY version "2026.03.25.54">
+<!ENTITY md5 "36e8631a86d23bf960bac65dbc9cc988">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.25.54
+- Fix: Scope the modern and legacy folder editor runtimes so Unraid can execute them repeatedly in the same xmenu window without global redeclaration collisions.
+- Quality: Reset the folder editor bootstrap sentinels on every page load so the on-page runtime diagnostics reflect the current editor launch instead of stale global state.
+
 
 ###2026.03.25.53
 - Fix: Force the folder editor page to request build-versioned runtime assets so updated `folder.js` and `folder.editor.chrome.js` cannot be masked by stale browser cache.

@@ -164,11 +164,14 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorResolvedMode =/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorModeSource =/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorPageBuildVersion =/);
+    assert.match(folderPage, /window\.FolderViewPlusFolderEditorRuntimeLoaded = false;/);
+    assert.match(folderPage, /window\.FolderViewPlusFolderEditorRuntimeBootStage = 'page-bootstrap';/);
     assert.match(folderPage, /FolderViewPlusMarkFolderEditorRuntimeScriptEvent/);
     assert.match(folderPage, /runtime-script-still-pending/);
     assert.match(folderPage, /folder\.editor\.chrome\.js\?v=<\?php echo \$folderEditorAssetVersion; \?>/);
     assert.match(folderPage, /folder\.js\?v=<\?php echo \$folderEditorAssetVersion; \?>/);
     assert.match(folderPage, /folder\.legacy\.js\?v=<\?php echo \$folderEditorAssetVersion; \?>/);
+    assert.match(folderJs, /\(function fvplusFolderEditorRuntimeScope\(window, \$\) \{/);
     assert.match(folderJs, /modernFolderEditorEnabled/);
     assert.match(folderJs, /const folderEditorShared = window\.FolderViewPlusFolderEditorShared \|\| null;/);
     assert.match(folderJs, /const folderEditorSchema = window\.FolderViewPlusFolderEditorSchema \|\| null;/);
@@ -180,6 +183,7 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderJs, /FolderViewPlusReportFolderEditorBootstrap/);
     assert.match(folderJs, /summary:\s*'Folder editor runtime script loaded\.'/);
     assert.match(folderLegacyJs, /const modernFolderEditorEnabled = String\(window\.FolderViewPlusFolderEditorPageMode \|\| 'legacy'\)/);
+    assert.match(folderLegacyJs, /\(function fvplusLegacyFolderEditorRuntimeScope\(window, \$\) \{/);
     assert.match(folderLegacyJs, /const folderEditorShared = window\.FolderViewPlusFolderEditorShared \|\| null;/);
     assert.match(folderLegacyJs, /const folderEditorSchema = window\.FolderViewPlusFolderEditorSchema \|\| null;/);
     assert.match(folderLegacyJs, /const folderEditorPreview = window\.FolderViewPlusFolderEditorPreview \|\| null;/);

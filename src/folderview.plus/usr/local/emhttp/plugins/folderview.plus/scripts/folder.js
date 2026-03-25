@@ -1,4 +1,5 @@
 ﻿// list of element to select
+(function fvplusFolderEditorRuntimeScope(window, $) {
 window.FolderViewPlusFolderEditorRuntimeLoaded = true;
 window.FolderViewPlusFolderEditorRuntimeBootStage = 'script-evaluated';
 let choose = [];
@@ -6120,3 +6121,4 @@ window.suggestDefaultsFromMembers = suggestDefaultsFromMembers;
 window.setIconAsContainer = setIconAsContainer;
 window.customAction = customAction;
 window.rCcustomAction = rCcustomAction;
+})(window, window.jQuery || window.$);

@@ -87,6 +87,9 @@ try {
     window.FolderViewPlusFolderEditorResolvedId = <?php echo json_encode($folderEditorResolvedId, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
     window.FolderViewPlusFolderEditorBootstrapContext = <?php echo json_encode($folderEditorBootstrapContext, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
     window.FolderViewPlusFolderEditorPageBuildVersion = <?php echo json_encode($folderEditorPageBuildVersion, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
+    window.FolderViewPlusFolderEditorRuntimeLoaded = false;
+    window.FolderViewPlusFolderEditorRuntimeBootStage = 'page-bootstrap';
+    window.FolderViewPlusFolderEditorRuntimeLastError = '';
     window.FolderViewPlusFolderEditorRuntimeScriptState = 'not-registered';
     window.FolderViewPlusFolderEditorRuntimeScriptSource = '';
     window.FolderViewPlusMarkFolderEditorRuntimeScriptEvent = function markFolderEditorRuntimeScriptEvent(state, source) {

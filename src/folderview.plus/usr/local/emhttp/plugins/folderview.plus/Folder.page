@@ -84,6 +84,8 @@ try {
 <script src="<?autov('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>
 <script src="<?autov('/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js')?>"></script>
 <script src="<?autov('/plugins/folderview.plus/scripts/folder.editor.shared.js')?>"></script>
+<script src="<?autov('/plugins/folderview.plus/scripts/folder.editor.schema.js')?>"></script>
+<script src="<?autov('/plugins/folderview.plus/scripts/folder.editor.preview.js')?>"></script>
 
 <div class="canvas">
     <form class="folder-editor-form" onsubmit="submitForm(this, false); return false">

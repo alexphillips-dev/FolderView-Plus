@@ -29,6 +29,7 @@ const expectedOrder = [
   'folderviewplus.runtime-parity.js',
   'folderviewplus.settings-metadata.js',
   'folderviewplus.settings-sections.js',
+  'folderviewplus.settings-table.js',
   'folderviewplus.setup-assistant.js',
   'folderviewplus.smart-detect-config.js',
   'folderviewplus.starter-templates.js',

@@ -12,6 +12,14 @@ const folderEditorSharedScript = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.shared.js'),
     'utf8'
 );
+const folderEditorSchemaScript = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.schema.js'),
+    'utf8'
+);
+const folderEditorPreviewScript = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.preview.js'),
+    'utf8'
+);
 const folderEditorStyles = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folder.css'),
     'utf8'
@@ -52,10 +60,18 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorScript, /window\.FolderViewPlusFolderEditorResolvedId/);
     assert.match(folderEditorScript, /const folderEditorBootstrapContext = window\.FolderViewPlusFolderEditorBootstrapContext/);
     assert.match(folderEditorScript, /const folderEditorShared = window\.FolderViewPlusFolderEditorShared \|\| null;/);
+    assert.match(folderEditorScript, /const folderEditorSchema = window\.FolderViewPlusFolderEditorSchema \|\| null;/);
+    assert.match(folderEditorScript, /const folderEditorPreview = window\.FolderViewPlusFolderEditorPreview \|\| null;/);
     assert.match(folderEditorScript, /const folderEditorSharedApi = typeof folderEditorShared\?\.createApi === 'function'/);
+    assert.match(folderEditorScript, /const modernEditorSchema = typeof folderEditorSchema\?\.createModernSchema === 'function'/);
+    assert.match(folderEditorScript, /const folderEditorPreviewApi = typeof folderEditorPreview\?\.createApi === 'function'/);
     assert.match(folderEditorScript, /const normalizeFolderRecordForEditor = typeof folderEditorSharedApi\?\.normalizeFolderRecordForEditor === 'function'/);
     assert.match(folderEditorSharedScript, /preview:\s*Number\.isFinite\(Number\(settings\.preview\)\)/);
     assert.match(folderEditorSharedScript, /context_graph_time:\s*Number\.isFinite\(Number\(settings\.context_graph_time\)\)/);
+    assert.match(folderEditorSchemaScript, /window\.FolderViewPlusFolderEditorSchema = Object\.freeze\(\{/);
+    assert.match(folderEditorSchemaScript, /window\.FolderViewPlusFolderEditorSchemaModuleLoaded = true/);
+    assert.match(folderEditorPreviewScript, /window\.FolderViewPlusFolderEditorPreview = Object\.freeze\(\{/);
+    assert.match(folderEditorPreviewScript, /window\.FolderViewPlusFolderEditorPreviewModuleLoaded = true/);
     assert.match(folderEditorScript, /const hydrateCurrentEditFolder = \(folderRecord, folderRecordId, foldersMap = \{\}, options = \{\}\) =>/);
     assert.match(folderEditorScript, /const resolveCurrentEditFolder = \(folderMap,\s*requestedId\) =>/);
     assert.match(folderEditorScript, /const EDITOR_PREFILL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.v1';/);

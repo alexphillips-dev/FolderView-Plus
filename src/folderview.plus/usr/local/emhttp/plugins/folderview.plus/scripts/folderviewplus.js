@@ -5,6 +5,7 @@ const requestClient = window.FolderViewPlusRequest || null;
 const settingsChrome = window.FolderViewPlusSettingsChrome || null;
 const dirtyTracker = window.FolderViewPlusDirtyTracker || null;
 const settingsMetadata = window.FolderViewPlusSettingsMetadata || null;
+const settingsTableModule = window.FolderViewPlusSettingsTable || null;
 const settingsActionSupportModule = window.FolderViewPlusSettingsActionSupport || null;
 const rowDetailsModule = window.FolderViewPlusRowDetails || null;
 const fatalBanner = window.FolderViewPlusFatalBanner || null;
@@ -246,6 +247,12 @@ if (window.FolderViewPlusSettingsSectionsModuleLoaded !== true) {
     setFatalBannerModuleStatus('folderviewplus.settings-sections.js', 'missing');
 } else {
     setFatalBannerModuleStatus('folderviewplus.settings-sections.js', 'ok');
+}
+if (!settingsTableModule || typeof settingsTableModule.normalizeSettingsTablePreset !== 'function') {
+    bootstrapMissingModules.push('folderviewplus.settings-table.js');
+    setFatalBannerModuleStatus('folderviewplus.settings-table.js', 'missing', 'settings table helpers unavailable');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.settings-table.js', 'ok', 'settings table helpers loaded');
 }
 if (window.FolderViewPlusSetupAssistantSupportModuleLoaded !== true) {
     bootstrapMissingModules.push('folderviewplus.setup-assistant.js');
@@ -4008,60 +4015,56 @@ const runtimePreviewText = (type, folderId, action, plan) => {
     return `${lines.join('\n')}\n`;
 };
 
-const TABLE_COLUMN_SELECTOR_MAP = Object.freeze({
-    docker: Object.freeze(Object.fromEntries(
-        (SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE.docker || [])
-            .filter((entry) => entry.hideable === true)
-            .map((entry) => [entry.key, Object.freeze({ header: entry.header, cell: entry.cell })])
-    )),
-    vm: Object.freeze(Object.fromEntries(
-        (SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE.vm || [])
-            .filter((entry) => entry.hideable === true)
-            .map((entry) => [entry.key, Object.freeze({ header: entry.header, cell: entry.cell })])
-    ))
-});
-
 const normalizedFilter = (value) => String(value || '').trim().toLowerCase();
-const normalizeSettingsTableColumnWidthPreset = (value) => {
-    const normalized = String(value || '').trim().toLowerCase();
-    return ['compact', 'standard', 'wide'].includes(normalized) ? normalized : 'standard';
-};
-const SETTINGS_TABLE_WIDTH_PRESET_VALUES = settingsMetadata?.SETTINGS_TABLE_WIDTH_PRESET_VALUES || Object.freeze({
+const TABLE_COLUMN_SELECTOR_MAP = settingsTableModule?.TABLE_COLUMN_SELECTOR_MAP || Object.freeze({ docker: Object.freeze({}), vm: Object.freeze({}) });
+const normalizeSettingsTableColumnWidthPreset = typeof settingsTableModule?.normalizeSettingsTableColumnWidthPreset === 'function'
+    ? settingsTableModule.normalizeSettingsTableColumnWidthPreset
+    : ((value) => {
+        const normalized = String(value || '').trim().toLowerCase();
+        return ['compact', 'standard', 'wide'].includes(normalized) ? normalized : 'standard';
+    });
+const SETTINGS_TABLE_WIDTH_PRESET_VALUES = settingsTableModule?.SETTINGS_TABLE_WIDTH_PRESET_VALUES || settingsMetadata?.SETTINGS_TABLE_WIDTH_PRESET_VALUES || Object.freeze({
     name: Object.freeze({ compact: 260, standard: 320, wide: 420 }),
     actions: Object.freeze({ compact: 160, standard: 180, wide: 240 })
 });
-const normalizeSettingsTableWidthMode = (value) => (
-    String(value || '').trim().toLowerCase() === 'custom' ? 'custom' : 'auto'
-);
-const normalizeSettingsTablePreset = (value) => {
-    const normalized = String(value || '').trim().toLowerCase();
-    return ['compact', 'balanced', 'detailed', 'custom'].includes(normalized) ? normalized : 'balanced';
-};
-const buildPresetColumnVisibilityForType = (type, preset = 'balanced') => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const normalizedPreset = normalizeSettingsTablePreset(preset);
-    const schema = SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE[resolvedType] || [];
-    const defaults = {};
-    schema.forEach((entry) => {
-        if (entry.hideable !== true) {
-            return;
-        }
-        defaults[entry.key] = entry.presets?.[normalizedPreset] !== false;
+const normalizeSettingsTableWidthMode = typeof settingsTableModule?.normalizeSettingsTableWidthMode === 'function'
+    ? settingsTableModule.normalizeSettingsTableWidthMode
+    : ((value) => (String(value || '').trim().toLowerCase() === 'custom' ? 'custom' : 'auto'));
+const normalizeSettingsTablePreset = typeof settingsTableModule?.normalizeSettingsTablePreset === 'function'
+    ? settingsTableModule.normalizeSettingsTablePreset
+    : ((value) => {
+        const normalized = String(value || '').trim().toLowerCase();
+        return ['compact', 'balanced', 'detailed', 'custom'].includes(normalized) ? normalized : 'balanced';
     });
-    return defaults;
-};
-const buildDefaultColumnWidthsForType = (type) => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const configByKey = TABLE_COLUMN_RESIZE_CONFIG_BY_TYPE[resolvedType] || {};
-    const widths = {};
-    Object.entries(configByKey).forEach(([key, config]) => {
-        const defaultWidth = normalizeSingleColumnWidth(resolvedType, key, config.defaultWidth);
-        if (defaultWidth !== null) {
-            widths[key] = defaultWidth;
-        }
+const buildPresetColumnVisibilityForType = typeof settingsTableModule?.buildPresetColumnVisibilityForType === 'function'
+    ? settingsTableModule.buildPresetColumnVisibilityForType
+    : ((type, preset = 'balanced') => {
+        const resolvedType = type === 'vm' ? 'vm' : 'docker';
+        const normalizedPreset = normalizeSettingsTablePreset(preset);
+        const schema = SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE[resolvedType] || [];
+        const defaults = {};
+        schema.forEach((entry) => {
+            if (entry.hideable !== true) {
+                return;
+            }
+            defaults[entry.key] = entry.presets?.[normalizedPreset] !== false;
+        });
+        return defaults;
     });
-    return widths;
-};
+const buildDefaultColumnWidthsForType = typeof settingsTableModule?.buildDefaultColumnWidthsForType === 'function'
+    ? settingsTableModule.buildDefaultColumnWidthsForType
+    : ((type) => {
+        const resolvedType = type === 'vm' ? 'vm' : 'docker';
+        const configByKey = TABLE_COLUMN_RESIZE_CONFIG_BY_TYPE[resolvedType] || {};
+        const widths = {};
+        Object.entries(configByKey).forEach(([key, config]) => {
+            const defaultWidth = normalizeSingleColumnWidth(resolvedType, key, config.defaultWidth);
+            if (defaultWidth !== null) {
+                widths[key] = defaultWidth;
+            }
+        });
+        return widths;
+    });
 const getSettingsTablePrefs = (type, prefsOverride = null) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     const sourcePrefs = prefsOverride ? utils.normalizePrefs(prefsOverride) : utils.normalizePrefs(prefsByType[resolvedType]);
@@ -4133,56 +4136,36 @@ const buildNextSettingsTablePrefs = (type, patch = {}) => {
         }
     });
 };
-const normalizeColumnVisibilityForType = (type, value = null) => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const defaults = DEFAULT_COLUMN_VISIBILITY_BY_TYPE[resolvedType] || {};
-    const source = value && typeof value === 'object' ? value : {};
-    const normalized = {};
-    Object.keys(defaults).forEach((key) => {
-        normalized[key] = Object.prototype.hasOwnProperty.call(source, key)
-            ? source[key] !== false
-            : defaults[key] === true;
-    });
-    // Legacy bridge: old docker prefs used separate updates/health columns.
-    // Preserve previous "both hidden" intent when migrating to unified Signals.
-    if (resolvedType === 'docker' && !Object.prototype.hasOwnProperty.call(source, 'signals')) {
-        const updatesHidden = source.updates === false;
-        const healthHidden = source.health === false;
-        if (updatesHidden && healthHidden) {
-            normalized.signals = false;
+const normalizeColumnVisibilityForType = typeof settingsTableModule?.normalizeColumnVisibilityForType === 'function'
+    ? settingsTableModule.normalizeColumnVisibilityForType
+    : ((type, value = null) => {
+        const resolvedType = type === 'vm' ? 'vm' : 'docker';
+        const defaults = DEFAULT_COLUMN_VISIBILITY_BY_TYPE[resolvedType] || {};
+        const source = value && typeof value === 'object' ? value : {};
+        const normalized = {};
+        Object.keys(defaults).forEach((key) => {
+            normalized[key] = Object.prototype.hasOwnProperty.call(source, key)
+                ? source[key] !== false
+                : defaults[key] === true;
+        });
+        if (resolvedType === 'docker' && !Object.prototype.hasOwnProperty.call(source, 'signals')) {
+            const updatesHidden = source.updates === false;
+            const healthHidden = source.health === false;
+            if (updatesHidden && healthHidden) {
+                normalized.signals = false;
+            }
         }
-    }
-    return normalized;
-};
+        return normalized;
+    });
 
-const TABLE_COLUMN_RESIZE_CONFIG_BY_TYPE = Object.freeze({
-    docker: Object.freeze(Object.fromEntries(
-        (SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE.docker || [])
-            .filter((entry) => entry.resizable !== false)
-            .map((entry) => [entry.key, Object.freeze({
-                header: entry.header,
-                cell: entry.cell,
-                min: entry.min,
-                max: entry.max,
-                defaultWidth: entry.defaultWidth
-            })])
-    )),
-    vm: Object.freeze(Object.fromEntries(
-        (SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE.vm || [])
-            .filter((entry) => entry.resizable !== false)
-            .map((entry) => [entry.key, Object.freeze({
-                header: entry.header,
-                cell: entry.cell,
-                min: entry.min,
-                max: entry.max,
-                defaultWidth: entry.defaultWidth
-            })])
-    ))
+const TABLE_COLUMN_RESIZE_CONFIG_BY_TYPE = settingsTableModule?.TABLE_COLUMN_RESIZE_CONFIG_BY_TYPE || Object.freeze({
+    docker: Object.freeze({}),
+    vm: Object.freeze({})
 });
 
-const TABLE_COLUMN_RESIZE_KEYS_BY_TYPE = Object.freeze({
-    docker: Object.freeze(Object.keys(TABLE_COLUMN_RESIZE_CONFIG_BY_TYPE.docker)),
-    vm: Object.freeze(Object.keys(TABLE_COLUMN_RESIZE_CONFIG_BY_TYPE.vm))
+const TABLE_COLUMN_RESIZE_KEYS_BY_TYPE = settingsTableModule?.TABLE_COLUMN_RESIZE_KEYS_BY_TYPE || Object.freeze({
+    docker: Object.freeze([]),
+    vm: Object.freeze([])
 });
 
 let activeTableColumnResize = null;
@@ -4198,34 +4181,38 @@ const getSettingsTableElement = (type) => {
     return tbody.closest('table');
 };
 
-const normalizeSingleColumnWidth = (type, key, value) => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const config = TABLE_COLUMN_RESIZE_CONFIG_BY_TYPE[resolvedType]?.[key];
-    if (!config) {
-        return null;
-    }
-    const parsed = Number(value);
-    if (!Number.isFinite(parsed)) {
-        return null;
-    }
-    const min = Number(config.min) || 60;
-    const max = Number(config.max) || 900;
-    return Math.round(Math.min(max, Math.max(min, parsed)));
-};
-
-const normalizeColumnWidthsForType = (type, value = null) => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const keys = TABLE_COLUMN_RESIZE_KEYS_BY_TYPE[resolvedType] || [];
-    const source = value && typeof value === 'object' ? value : {};
-    const normalized = {};
-    keys.forEach((key) => {
-        const width = normalizeSingleColumnWidth(resolvedType, key, source[key]);
-        if (width !== null) {
-            normalized[key] = width;
+const normalizeSingleColumnWidth = typeof settingsTableModule?.normalizeSingleColumnWidth === 'function'
+    ? settingsTableModule.normalizeSingleColumnWidth
+    : ((type, key, value) => {
+        const resolvedType = type === 'vm' ? 'vm' : 'docker';
+        const config = TABLE_COLUMN_RESIZE_CONFIG_BY_TYPE[resolvedType]?.[key];
+        if (!config) {
+            return null;
         }
+        const parsed = Number(value);
+        if (!Number.isFinite(parsed)) {
+            return null;
+        }
+        const min = Number(config.min) || 60;
+        const max = Number(config.max) || 900;
+        return Math.round(Math.min(max, Math.max(min, parsed)));
     });
-    return normalized;
-};
+
+const normalizeColumnWidthsForType = typeof settingsTableModule?.normalizeColumnWidthsForType === 'function'
+    ? settingsTableModule.normalizeColumnWidthsForType
+    : ((type, value = null) => {
+        const resolvedType = type === 'vm' ? 'vm' : 'docker';
+        const keys = TABLE_COLUMN_RESIZE_KEYS_BY_TYPE[resolvedType] || [];
+        const source = value && typeof value === 'object' ? value : {};
+        const normalized = {};
+        keys.forEach((key) => {
+            const width = normalizeSingleColumnWidth(resolvedType, key, source[key]);
+            if (width !== null) {
+                normalized[key] = width;
+            }
+        });
+        return normalized;
+    });
 
 const captureCurrentColumnWidths = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
@@ -4467,6 +4454,9 @@ const applySingleColumnWidth = (type, key, widthPx) => {
 
 const buildEffectiveSettingsTableWidths = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    if (typeof settingsTableModule?.buildEffectiveSettingsTableWidths === 'function') {
+        return settingsTableModule.buildEffectiveSettingsTableWidths(resolvedType, settingsTableWidthPresetByType[resolvedType] || {});
+    }
     const next = buildDefaultColumnWidthsForType(resolvedType);
     const widthPresets = settingsTableWidthPresetByType[resolvedType] || {};
     const nameWidthPreset = normalizeSettingsTableColumnWidthPreset(widthPresets.name);

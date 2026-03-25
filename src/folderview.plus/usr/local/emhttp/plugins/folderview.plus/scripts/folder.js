@@ -49,6 +49,8 @@ const folderEditorBootstrapFolder = folderEditorBootstrapContext.folder
     : null;
 const folderContract = window.FolderViewPlusFolderContract || null;
 const folderEditorShared = window.FolderViewPlusFolderEditorShared || null;
+const folderEditorSchema = window.FolderViewPlusFolderEditorSchema || null;
+const folderEditorPreview = window.FolderViewPlusFolderEditorPreview || null;
 const utils = window.FolderViewPlusUtils || null;
 const folderHierarchyModule = window.FolderViewPlusFolderHierarchy || null;
 const folderIconApiModule = window.FolderViewPlusFolderIconApi || null;
@@ -70,178 +72,39 @@ const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
 const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv.folder.editor.prefill.persist.v1';
 const EDITOR_PREFILL_MAX_AGE_MS = 10 * 60 * 1000;
 const FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
-const PREVIEW_MODE_LABELS = {
+const PREVIEW_MODE_LABELS = folderEditorSchema?.PREVIEW_MODE_LABELS || Object.freeze({
     0: 'None',
     1: 'Icon and label',
     2: 'Only icon',
     3: 'Only label',
     4: 'List'
-};
-const CONTEXT_MODE_LABELS = {
+});
+const CONTEXT_MODE_LABELS = folderEditorSchema?.CONTEXT_MODE_LABELS || Object.freeze({
     0: 'None',
     1: 'Default',
     2: 'Advanced'
-};
-const FOLDER_HEALTH_PROFILE_VALUES = ['strict', 'balanced', 'lenient'];
-const FOLDER_HEALTH_UPDATES_MODE_VALUES = ['maintenance', 'warn', 'ignore'];
-const FOLDER_HEALTH_ALL_STOPPED_MODE_VALUES = ['critical', 'warn'];
-const INVALID_FOLDER_NAME_CHAR_REGEX = /[\u0000-\u001f\u007f<>:"/\\|?*]/;
-const SECTION_META = {
-    general: { title: 'General', description: 'Name, hierarchy, icon, and the folder identity shown across the plugin.', icon: 'fa-folder-open-o', advanced: false, supportsDefaults: false, supportsRevert: true },
-    members: { title: 'Members', description: 'Search, assign, and order containers or VMs in this folder.', icon: 'fa-th-large', advanced: false, supportsDefaults: false, supportsRevert: false },
-    preview: { title: 'Preview', description: 'How the folder row, preview layout, borders, and context surface render.', icon: 'fa-eye', advanced: false, supportsDefaults: true, supportsRevert: true },
-    chevron: { title: 'Chevron', description: 'Chevron style, normal color, hover color, and interaction styling.', icon: 'fa-chevron-down', advanced: false, supportsDefaults: true, supportsRevert: true },
-    status: { title: 'Status', description: 'Status palette and optional folder health or status thresholds.', icon: 'fa-heartbeat', advanced: false, supportsDefaults: true, supportsRevert: true },
-    rules: { title: 'Rules', description: 'Regex auto-assignment and matching rules that keep the folder populated.', icon: 'fa-code', advanced: true, supportsDefaults: true, supportsRevert: true },
-    actions: { title: 'Actions', description: 'Quick actions and custom folder actions available from the folder menu.', icon: 'fa-bolt', advanced: true, supportsDefaults: false, supportsRevert: false },
-    advanced: { title: 'Advanced', description: 'Override behavior, expansion defaults, dashboard behavior, and niche controls.', icon: 'fa-sliders', advanced: true, supportsDefaults: true, supportsRevert: true }
-};
-const SECTION_FIELD_NAMES = {
-    general: ['name', 'parent_folder_id', 'icon', 'folder_webui', 'folder_webui_url'],
-    preview: [
-        'preview',
-        'preview_hover',
-        'preview_update',
-        'preview_text_width',
-        'preview_rows',
-        'preview_grayscale',
-        'preview_webui',
-        'preview_logs',
-        'preview_console',
-        'preview_vertical_bars',
-        'preview_vertical_bars_color',
-        'preview_vertical_bars_width',
-        'preview_border',
-        'preview_border_color',
-        'preview_border_width',
-        'context',
-        'context_trigger',
-        'context_graph',
-        'context_graph_time'
-    ],
-    chevron: ['dropdown_style', 'dropdown_color', 'dropdown_hover_color'],
-    status: [
-        'status_color_started',
-        'status_color_paused',
-        'status_color_stopped',
-        'health_warn_stopped_percent',
-        'health_critical_stopped_percent',
-        'health_profile',
-        'health_updates_mode',
-        'health_all_stopped_mode',
-        'status_warn_stopped_percent'
-    ],
-    rules: ['regex'],
-    advanced: ['update_column', 'override_default_actions', 'default_action', 'expand_tab', 'expand_dashboard', 'dashboard_overflow']
-};
-const SECTION_DEFAULT_VALUES = {
-    preview: {
-        preview: '1',
-        preview_hover: false,
-        preview_update: false,
-        preview_text_width: '',
-        preview_rows: '1',
-        preview_grayscale: false,
-        preview_webui: false,
-        preview_logs: false,
-        preview_console: false,
-        preview_vertical_bars: false,
-        preview_vertical_bars_color: '',
-        preview_vertical_bars_width: String(DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH),
-        preview_border: true,
-        preview_border_color: DEFAULT_BORDER_COLOR,
-        preview_border_width: String(DEFAULT_PREVIEW_BORDER_WIDTH),
-        context: '1',
-        context_trigger: '0',
-        context_graph: '1',
-        context_graph_time: '60'
-    },
-    chevron: {
-        dropdown_style: DEFAULT_DROPDOWN_STYLE,
-        dropdown_color: DEFAULT_DROPDOWN_COLOR,
-        dropdown_hover_color: DEFAULT_DROPDOWN_HOVER_COLOR
-    },
-    status: {
-        status_color_started: DEFAULT_FOLDER_STATUS_COLORS.started,
-        status_color_paused: DEFAULT_FOLDER_STATUS_COLORS.paused,
-        status_color_stopped: DEFAULT_FOLDER_STATUS_COLORS.stopped,
-        health_warn_stopped_percent: '',
-        health_critical_stopped_percent: '',
-        health_profile: '',
-        health_updates_mode: '',
-        health_all_stopped_mode: '',
-        status_warn_stopped_percent: ''
-    },
-    rules: {
-        regex: ''
-    },
-    advanced: {
-        update_column: false,
-        override_default_actions: false,
-        default_action: false,
-        expand_tab: false,
-        expand_dashboard: false,
-        dashboard_overflow: 'default'
-    }
-};
-const INHERITED_FIELD_HINTS = {
-    folder_webui_url: 'Using the folder default WebUI behavior until you set a custom URL here.',
-    preview_text_width: 'Using automatic text width until you set a folder override here.',
-    health_warn_stopped_percent: 'Using the global health warning threshold.',
-    health_critical_stopped_percent: 'Using the global or profile-based critical threshold.',
-    health_profile: 'Using the global health profile.',
-    health_updates_mode: 'Using the global update-health policy.',
-    health_all_stopped_mode: 'Using the global all-stopped health policy.',
-    status_warn_stopped_percent: 'Using the global status warning threshold.'
-};
-const ADVANCED_SECTION_KEYS = Object.entries(SECTION_META)
-    .filter(([, section]) => section?.advanced === true)
-    .map(([key]) => key);
-const SECTION_CHANGE_LABELS = {
-    name: 'Folder name',
-    parent_folder_id: 'Parent folder',
-    icon: 'Folder icon',
-    folder_webui: 'Folder WebUI',
-    folder_webui_url: 'Folder WebUI URL',
-    preview: 'Preview mode',
-    preview_hover: 'Hover-only preview',
-    preview_update: 'Update highlighting',
-    preview_text_width: 'Preview text width',
-    preview_rows: 'Preview rows',
-    preview_grayscale: 'Preview grayscale',
-    preview_webui: 'Preview WebUI action',
-    preview_logs: 'Preview logs action',
-    preview_console: 'Preview console action',
-    preview_vertical_bars: 'Preview dividers',
-    preview_vertical_bars_color: 'Divider color',
-    preview_vertical_bars_width: 'Divider thickness',
-    preview_border: 'Preview border',
-    preview_border_color: 'Preview border color',
-    preview_border_width: 'Preview border thickness',
-    dropdown_style: 'Chevron style',
-    dropdown_color: 'Chevron color',
-    dropdown_hover_color: 'Chevron hover color',
-    context: 'Preview context',
-    context_trigger: 'Advanced context trigger',
-    context_graph: 'Context graph mode',
-    context_graph_time: 'Context graph time',
-    status_color_started: 'Started color',
-    status_color_paused: 'Paused color',
-    status_color_stopped: 'Stopped color',
-    health_warn_stopped_percent: 'Health warn threshold',
-    health_critical_stopped_percent: 'Health critical threshold',
-    health_profile: 'Health profile',
-    health_updates_mode: 'Health updates mode',
-    health_all_stopped_mode: 'All-stopped health policy',
-    status_warn_stopped_percent: 'Status warn threshold',
-    regex: 'Regex rule',
-    update_column: 'Update column',
-    override_default_actions: 'Override default actions',
-    default_action: 'Default action',
-    expand_tab: 'Expand in tab',
-    expand_dashboard: 'Expand on dashboard',
-    dashboard_overflow: 'Dashboard overflow mode'
-};
+});
+const FOLDER_HEALTH_PROFILE_VALUES = folderEditorSchema?.FOLDER_HEALTH_PROFILE_VALUES || Object.freeze(['strict', 'balanced', 'lenient']);
+const FOLDER_HEALTH_UPDATES_MODE_VALUES = folderEditorSchema?.FOLDER_HEALTH_UPDATES_MODE_VALUES || Object.freeze(['maintenance', 'warn', 'ignore']);
+const FOLDER_HEALTH_ALL_STOPPED_MODE_VALUES = folderEditorSchema?.FOLDER_HEALTH_ALL_STOPPED_MODE_VALUES || Object.freeze(['critical', 'warn']);
+const INVALID_FOLDER_NAME_CHAR_REGEX = folderEditorSchema?.INVALID_FOLDER_NAME_CHAR_REGEX || /[\u0000-\u001f\u007f<>:"/\\|?*]/;
+const modernEditorSchema = typeof folderEditorSchema?.createModernSchema === 'function'
+    ? folderEditorSchema.createModernSchema({
+        defaultBorderColor: DEFAULT_BORDER_COLOR,
+        defaultPreviewBorderWidth: DEFAULT_PREVIEW_BORDER_WIDTH,
+        defaultPreviewVerticalBarsWidth: DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH,
+        defaultDropdownStyle: DEFAULT_DROPDOWN_STYLE,
+        defaultDropdownColor: DEFAULT_DROPDOWN_COLOR,
+        defaultDropdownHoverColor: DEFAULT_DROPDOWN_HOVER_COLOR,
+        defaultFolderStatusColors: DEFAULT_FOLDER_STATUS_COLORS
+    })
+    : null;
+const SECTION_META = modernEditorSchema?.SECTION_META || Object.freeze({});
+const SECTION_FIELD_NAMES = modernEditorSchema?.SECTION_FIELD_NAMES || Object.freeze({});
+const SECTION_DEFAULT_VALUES = modernEditorSchema?.SECTION_DEFAULT_VALUES || Object.freeze({});
+const INHERITED_FIELD_HINTS = modernEditorSchema?.INHERITED_FIELD_HINTS || Object.freeze({});
+const ADVANCED_SECTION_KEYS = modernEditorSchema?.ADVANCED_SECTION_KEYS || Object.freeze([]);
+const SECTION_CHANGE_LABELS = modernEditorSchema?.SECTION_CHANGE_LABELS || Object.freeze({});
 const DEFAULT_FOLDER_ICON_PATH = '/plugins/folderview.plus/images/folder-icon.png';
 const BUILT_IN_ICON_MANIFEST_PATH = '/plugins/folderview.plus/images/icons/icons.json';
 const THIRD_PARTY_ICON_API_PATH = '/plugins/folderview.plus/server/third_party_icons.php';
@@ -3142,100 +3005,48 @@ const buildSectionCards = () => {
     });
 };
 
+const folderEditorPreviewApi = typeof folderEditorPreview?.createApi === 'function'
+    ? folderEditorPreview.createApi({
+        $,
+        type,
+        shouldRender: () => modernFolderEditorEnabled,
+        shouldUpdate: () => modernFolderEditorEnabled,
+        getForm,
+        getIncludedMemberNames,
+        getMemberMapByName,
+        getAllMembers,
+        normalizePreviewRowLimit,
+        normalizeDropdownStyle,
+        normalizeHexColor,
+        normalizePositiveInt,
+        getDropdownStyleTokens,
+        buildSampleMemberState,
+        normalizeParentFolderId,
+        isDockerUpdateAvailableInEditor,
+        escapeHtml,
+        updateMemberStats: () => updateMemberStats(),
+        onAfterSummaryUpdate: () => {
+            updateInheritedFieldIndicators();
+            updateChangeSummaryPanel();
+            updateSectionStateIndicators();
+        },
+        defaultBorderColor: DEFAULT_BORDER_COLOR,
+        defaultPreviewBorderWidth: DEFAULT_PREVIEW_BORDER_WIDTH,
+        defaultPreviewVerticalBarsWidth: DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH,
+        defaultDropdownColor: DEFAULT_DROPDOWN_COLOR,
+        defaultDropdownHoverColor: DEFAULT_DROPDOWN_HOVER_COLOR,
+        defaultFolderIconPath: DEFAULT_FOLDER_ICON_PATH,
+        defaultFolderStatusColors: DEFAULT_FOLDER_STATUS_COLORS,
+        iconFallbackPath: ICON_FALLBACK_PATH,
+        previewModeLabels: PREVIEW_MODE_LABELS,
+        contextModeLabels: CONTEXT_MODE_LABELS,
+        supportedDropdownStyles: SUPPORTED_DROPDOWN_STYLES,
+        defaultDividerColor: rgbToHex($('body').css('color'))
+    })
+    : null;
+
 const renderLivePreviewCanvas = () => {
-    if (!modernFolderEditorEnabled) {
-        return;
-    }
-    const form = getForm();
-    const canvas = $('#fvLivePreviewCanvas');
-    if (!form || !canvas.length) {
-        return;
-    }
-
-    const memberNames = getIncludedMemberNames();
-    const memberMap = getMemberMapByName();
-    const selectedMembers = memberNames.map((name) => memberMap.get(name)).filter(Boolean);
-    const previewMode = Number(form.preview.value || 0);
-    const rowsLimit = normalizePreviewRowLimit(form.preview_rows?.value);
-    const renderLimit = rowsLimit === 0 ? 10 : Math.max(4, Math.min(10, rowsLimit * 4));
-    const sampleMembers = selectedMembers.slice(0, renderLimit);
-    const dropdownStyle = normalizeDropdownStyle(form.dropdown_style?.value);
-    const borderEnabled = previewMode !== 0 && form.preview_border.checked;
-    const borderColor = normalizeHexColor(form.preview_border_color.value, DEFAULT_BORDER_COLOR);
-    const borderWidth = String(normalizePositiveInt(form.preview_border_width.value, DEFAULT_PREVIEW_BORDER_WIDTH, 1, 4));
-    const dividerEnabled = previewMode !== 0 && form.preview_vertical_bars.checked;
-    const dividerColor = normalizeHexColor(form.preview_vertical_bars_color.value || rgbToHex($('body').css('color')), rgbToHex($('body').css('color')));
-    const dividerWidth = String(normalizePositiveInt(form.preview_vertical_bars_width.value, DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH, 1, 4));
-    const dropdownColor = normalizeHexColor(form.dropdown_color.value, DEFAULT_DROPDOWN_COLOR);
-    const dropdownHoverColor = normalizeHexColor(form.dropdown_hover_color.value, DEFAULT_DROPDOWN_HOVER_COLOR);
-    const icon = String(form.icon.value || '').trim() || DEFAULT_FOLDER_ICON_PATH;
-    const name = (form.name.value || '').trim() || 'Unnamed folder';
-    const membersHtml = previewMode === 0
-        ? '<div class="fv-live-preview-empty">Preview is currently disabled. The folder row will show the title and chevron only.</div>'
-        : (sampleMembers.length > 0
-            ? sampleMembers.map((member, index) => {
-                const memberName = escapeHtml(member?.Name || `Member ${index + 1}`);
-                const memberIcon = escapeHtml(member?.Icon || ICON_FALLBACK_PATH);
-                const state = buildSampleMemberState(member, index);
-                const stateLabel = escapeHtml(state.label);
-                const stateColor = escapeHtml(state.color);
-                return `
-                    <span class="fv-live-member fv-live-member-preview-${previewMode}" style="${dividerEnabled && index < sampleMembers.length - 1 ? `--fv-divider-color:${dividerColor};--fv-divider-width:${dividerWidth}px;` : ''}">
-                        <img src="${memberIcon}" alt="" onerror="this.src='${ICON_FALLBACK_PATH}';">
-                        ${previewMode === 2 ? '' : `<span class="fv-live-member-name">${memberName}</span>`}
-                        ${previewMode === 2 ? '' : `<span class="fv-live-member-status" style="color:${stateColor};">${stateLabel}</span>`}
-                    </span>
-                `;
-            }).join('')
-            : '<div class="fv-live-preview-empty">Select or match at least one member to see how the row preview will render.</div>');
-
-    const dropdownTokens = getDropdownStyleTokens(dropdownStyle, dropdownColor, dropdownHoverColor);
-    const rowClass = `fv-live-preview-row preview-${previewMode}${borderEnabled ? ' has-border' : ''} is-${dropdownStyle}${rowsLimit !== 1 ? ' is-multi-row' : ' is-single-row'}`;
-    canvas.html(`
-        <div class="fv-live-preview-surface">
-            <div class="${rowClass}" style="--fv-preview-border-color:${borderColor};--fv-preview-border-width:${borderWidth}px;--fv-chevron-color:${dropdownColor};--fv-chevron-hover:${dropdownHoverColor};--fv-live-chevron-min-width:${dropdownTokens.minWidth};--fv-live-chevron-height:${dropdownTokens.height};--fv-live-chevron-padding:${dropdownTokens.padding};--fv-live-chevron-radius:${dropdownTokens.radius};--fv-live-chevron-border:${dropdownTokens.border};--fv-live-chevron-hover-border:${dropdownTokens.hoverBorder};--fv-live-chevron-bg:${dropdownTokens.background};--fv-live-chevron-hover-bg:${dropdownTokens.hoverBackground};--fv-live-chevron-shadow:${dropdownTokens.shadow};--fv-live-chevron-hover-shadow:${dropdownTokens.hoverShadow};">
-                <div class="fv-live-folder-head">
-                    <div class="fv-live-folder-anchor">
-                        <img class="fv-live-folder-icon" src="${escapeHtml(icon)}" alt="" onerror="this.src='${DEFAULT_FOLDER_ICON_PATH}';">
-                        <div class="fv-live-folder-copy">
-                            <strong>${escapeHtml(name)}</strong>
-                            <span>${PREVIEW_MODE_LABELS[previewMode] || 'Unknown'} preview</span>
-                        </div>
-                    </div>
-                    <span class="fv-live-chevron fv-live-chevron-${dropdownStyle}" aria-hidden="true">
-                        <i class="fa fa-chevron-down" aria-hidden="true"></i>
-                    </span>
-                </div>
-                <div class="fv-live-member-lane">${membersHtml}</div>
-            </div>
-        </div>
-    `);
-    const livePreviewRow = canvas.find('.fv-live-preview-row').get(0);
-    const liveChevron = canvas.find('.fv-live-chevron').get(0);
-    if (livePreviewRow && liveChevron) {
-        SUPPORTED_DROPDOWN_STYLES.forEach((styleName) => livePreviewRow.classList.remove(`is-${styleName}`));
-        livePreviewRow.classList.add(`is-${dropdownStyle}`);
-        livePreviewRow.style.setProperty('--fv-live-chevron-color', dropdownColor);
-        livePreviewRow.style.setProperty('--fv-live-chevron-hover', dropdownHoverColor);
-        livePreviewRow.style.setProperty('--fv-live-chevron-border', dropdownTokens.border);
-        livePreviewRow.style.setProperty('--fv-live-chevron-hover-border', dropdownTokens.hoverBorder);
-        livePreviewRow.style.setProperty('--fv-live-chevron-bg', dropdownTokens.background);
-        livePreviewRow.style.setProperty('--fv-live-chevron-hover-bg', dropdownTokens.hoverBackground);
-        livePreviewRow.style.setProperty('--fv-live-chevron-min-width', dropdownTokens.minWidth);
-        livePreviewRow.style.setProperty('--fv-live-chevron-height', dropdownTokens.height);
-        livePreviewRow.style.setProperty('--fv-live-chevron-padding', dropdownTokens.padding);
-        livePreviewRow.style.setProperty('--fv-live-chevron-radius', dropdownTokens.radius);
-        livePreviewRow.style.setProperty('--fv-live-chevron-shadow', dropdownTokens.shadow);
-        livePreviewRow.style.setProperty('--fv-live-chevron-hover-shadow', dropdownTokens.hoverShadow);
-        liveChevron.style.setProperty('--fv-live-chevron-color', dropdownColor);
-        liveChevron.style.setProperty('--fv-live-chevron-hover', dropdownHoverColor);
-        liveChevron.style.setProperty('--fv-live-chevron-border', dropdownTokens.border);
-        liveChevron.style.setProperty('--fv-live-chevron-hover-border', dropdownTokens.hoverBorder);
-        liveChevron.style.setProperty('--fv-live-chevron-bg', dropdownTokens.background);
-        liveChevron.style.setProperty('--fv-live-chevron-hover-bg', dropdownTokens.hoverBackground);
-        liveChevron.style.setProperty('--fv-live-chevron-shadow', dropdownTokens.shadow);
-        liveChevron.style.setProperty('--fv-live-chevron-hover-shadow', dropdownTokens.hoverShadow);
-    }
+    folderEditorPreviewApi?.renderLivePreviewCanvas();
 };
 
 const markUnsavedIndicatorDirty = () => {
@@ -4358,67 +4169,7 @@ const suggestDefaultsFromMembers = () => {
 };
 
 const updateLiveSummary = () => {
-    if (!modernFolderEditorEnabled) {
-        return;
-    }
-    const form = getForm();
-    if (!form) {
-        return;
-    }
-    const memberNames = getIncludedMemberNames();
-    const memberMap = getMemberMapByName();
-    const selectedMembers = memberNames.map((name) => memberMap.get(name)).filter(Boolean);
-    const folderName = (form.name.value || '').trim() || '(unnamed)';
-    const previewLabel = PREVIEW_MODE_LABELS[Number(form.preview.value)] || 'Unknown';
-    const contextLabel = type === 'docker'
-        ? (CONTEXT_MODE_LABELS[Number(form.context.value)] || 'Unknown')
-        : 'Not used for VMs';
-
-    $('#fvLiveName').text(folderName);
-    $('#fvLivePreview').text(previewLabel);
-    $('#fvLiveContext').text(contextLabel);
-    $('#fvHeroTitle').text(folderName);
-    $('#fvHeroIcon').attr('src', (form.icon.value || '').trim() || DEFAULT_FOLDER_ICON_PATH);
-    $('#fvHeroScope').text(
-        normalizeParentFolderId(form.parent_folder_id?.value || '')
-            ? `Nested under ${$('select[name="parent_folder_id"] option:selected').text() || 'parent folder'}`
-            : 'Top-level folder'
-    );
-    $('#fvHeroMembers').text(`${memberNames.length}/${getAllMembers().length} included`);
-    $('#fvHeroDefaults').text($('#fvHeroDefaults').text() || 'Checking inherited defaults');
-    $('#fvLivePreviewMeta').text(
-        Number(form.preview.value) === 0
-            ? 'Preview disabled'
-            : `${previewLabel} • ${normalizePreviewRowLimit(form.preview_rows?.value) === 0 ? 'Unlimited rows' : `${normalizePreviewRowLimit(form.preview_rows?.value)} row${normalizePreviewRowLimit(form.preview_rows?.value) === 1 ? '' : 's'}`}`
-    );
-    $('#fvSwatchStarted').css('background-color', normalizeHexColor(form.status_color_started.value, DEFAULT_FOLDER_STATUS_COLORS.started));
-    $('#fvSwatchPaused').css('background-color', normalizeHexColor(form.status_color_paused.value, DEFAULT_FOLDER_STATUS_COLORS.paused));
-    $('#fvSwatchStopped').css('background-color', normalizeHexColor(form.status_color_stopped.value, DEFAULT_FOLDER_STATUS_COLORS.stopped));
-    const dockerSignals = $('#fvDockerSignals');
-    if (type === 'docker' && dockerSignals.length) {
-        const composeProjects = Array.from(new Set(
-            selectedMembers
-                .map((member) => String(member?.ComposeProject || '').trim())
-                .filter((value) => value !== '')
-        ));
-        const updateCount = selectedMembers.filter((member) => isDockerUpdateAvailableInEditor(member)).length;
-        const composeSummary = composeProjects.length === 0
-            ? 'Compose: none detected'
-            : (composeProjects.length === 1
-                ? `Compose: ${composeProjects[0]}`
-                : `Compose: ${composeProjects.length} projects`);
-        const updateSummary = `Updates: ${updateCount}/${selectedMembers.length || 0}`;
-        $('#fvDockerComposeSummary').text(composeSummary);
-        $('#fvDockerUpdateSummary').text(updateSummary);
-        dockerSignals.show();
-    } else if (dockerSignals.length) {
-        dockerSignals.hide();
-    }
-    updateMemberStats();
-    updateInheritedFieldIndicators();
-    updateChangeSummaryPanel();
-    updateSectionStateIndicators();
-    renderLivePreviewCanvas();
+    folderEditorPreviewApi?.updateLiveSummary();
 };
 
 const updateRegexSimulator = () => {

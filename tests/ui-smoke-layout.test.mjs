@@ -16,6 +16,7 @@ const settingsScriptPaths = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-metadata.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-table.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js',
@@ -70,6 +71,10 @@ const folderChromeJs = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js'),
     'utf8'
 );
+const folderPreviewJs = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.preview.js'),
+    'utf8'
+);
 const dockerJs = fs.readFileSync(dockerJsPath, 'utf8');
 const vmJs = fs.readFileSync(vmJsPath, 'utf8');
 const dashboardJs = fs.readFileSync(dashboardJsPath, 'utf8');
@@ -89,6 +94,7 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
     assert.match(settingsPage, /folderviewplus\.request\.js/);
     assert.match(settingsPage, /folderviewplus\.chrome\.js/);
     assert.match(settingsPage, /folderviewplus\.dirty\.js/);
+    assert.match(settingsPage, /folderviewplus\.settings-table\.js/);
     assert.match(settingsPage, /folderviewplus\.smart-detect-config\.js/);
     assert.match(settingsPage, /folderviewplus\.activity-diagnostics\.js/);
     assert.match(settingsPage, /folderviewplus\.row-details\.js/);
@@ -145,23 +151,35 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderPage, /\$folderEditorPageMode === 'modern'/);
     assert.match(folderPage, /resolveTypeFolderEditorModePreference\(\$folderEditorPageType\)/);
     assert.match(folderPage, /folder\.editor\.shared\.js/);
+    assert.match(folderPage, /folder\.editor\.schema\.js/);
+    assert.match(folderPage, /folder\.editor\.preview\.js/);
     assert.match(folderPage, /folder\.editor\.chrome\.js/);
     assert.match(folderPage, /folder\.legacy\.js/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorResolvedMode =/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorModeSource =/);
     assert.match(folderJs, /modernFolderEditorEnabled/);
     assert.match(folderJs, /const folderEditorShared = window\.FolderViewPlusFolderEditorShared \|\| null;/);
+    assert.match(folderJs, /const folderEditorSchema = window\.FolderViewPlusFolderEditorSchema \|\| null;/);
+    assert.match(folderJs, /const folderEditorPreview = window\.FolderViewPlusFolderEditorPreview \|\| null;/);
     assert.match(folderJs, /const folderEditorSharedApi = typeof folderEditorShared\?\.createApi === 'function'/);
     assert.match(folderJs, /const folderEditorResetHelpers = typeof folderEditorShared\?\.createResetHelpers === 'function'/);
+    assert.match(folderJs, /const modernEditorSchema = typeof folderEditorSchema\?\.createModernSchema === 'function'/);
+    assert.match(folderJs, /const folderEditorPreviewApi = typeof folderEditorPreview\?\.createApi === 'function'/);
     assert.match(folderLegacyJs, /const modernFolderEditorEnabled = String\(window\.FolderViewPlusFolderEditorPageMode \|\| 'legacy'\)/);
     assert.match(folderLegacyJs, /const folderEditorShared = window\.FolderViewPlusFolderEditorShared \|\| null;/);
+    assert.match(folderLegacyJs, /const folderEditorSchema = window\.FolderViewPlusFolderEditorSchema \|\| null;/);
+    assert.match(folderLegacyJs, /const folderEditorPreview = window\.FolderViewPlusFolderEditorPreview \|\| null;/);
     assert.match(folderLegacyJs, /const folderEditorSharedApi = typeof folderEditorShared\?\.createApi === 'function'/);
     assert.match(folderLegacyJs, /const folderEditorResetHelpers = typeof folderEditorShared\?\.createResetHelpers === 'function'/);
+    assert.match(folderLegacyJs, /const legacyEditorSchema = typeof folderEditorSchema\?\.createLegacySchema === 'function'/);
+    assert.match(folderLegacyJs, /const folderEditorPreviewApi = typeof folderEditorPreview\?\.createApi === 'function'/);
     assert.match(folderLegacyJs, /window\.FolderViewPlusFolderEditorPageType/);
     assert.match(folderLegacyJs, /window\.FolderViewPlusFolderEditorRequestedId/);
     assert.match(folderLegacyJs, /const renderLivePreviewCanvas = \(\) =>/);
-    assert.match(folderLegacyJs, /#fvLivePreviewCanvas/);
+    assert.match(folderPreviewJs, /#fvLivePreviewCanvas/);
     assert.match(folderLegacyJs, /renderLivePreviewCanvas\(\);/);
+    assert.match(settingsJs, /const settingsTableModule = window\.FolderViewPlusSettingsTable \|\| null;/);
+    assert.match(settingsJs, /bootstrapMissingModules\.push\('folderviewplus\.settings-table\.js'\)/);
 });
 
 test('mobile action bar and import progress keep compact viewport guards', () => {
@@ -430,11 +448,10 @@ test('folder editor page ships the redesign bootstrap and chrome anchors', () =>
     assert.doesNotMatch(folderChromeJs, /fvLiveInheritance/);
     assert.match(folderLegacyJs, /window\.applyEditorPluginDefaults = applyEditorPluginDefaults;/);
     assert.match(folderLegacyJs, /window\.suggestDefaultsFromMembers = suggestDefaultsFromMembers;/);
-    assert.match(folderLegacyJs, /<div class="fv-live-folder-head">/);
-    assert.match(folderLegacyJs, /<span class="fv-live-chevron fv-live-chevron-\$\{dropdownStyle\}" aria-hidden="true">/);
-    assert.match(folderJs, /<span class="fv-live-chevron fv-live-chevron-\$\{dropdownStyle\}" aria-hidden="true">/);
-    assert.match(folderLegacyJs, /liveChevron\.style\.setProperty\('--fv-live-chevron-color'/);
-    assert.match(folderLegacyJs, /livePreviewRow\.style\.setProperty\('--fv-live-chevron-color'/);
+    assert.match(folderPreviewJs, /<div class="fv-live-folder-head">/);
+    assert.match(folderPreviewJs, /<span class="fv-live-chevron fv-live-chevron-\$\{dropdownStyle\}" aria-hidden="true">/);
+    assert.match(folderPreviewJs, /liveChevron\.style\.setProperty\('--fv-live-chevron-color'/);
+    assert.match(folderPreviewJs, /livePreviewRow\.style\.setProperty\('--fv-live-chevron-color'/);
     assert.match(folderChromeJs, /id="fvRestoreSavedValues"/);
     assert.match(folderChromeJs, /editorPageMode !== 'modern'/);
     assert.match(folderChromeJs, /data-mode="basic"/);

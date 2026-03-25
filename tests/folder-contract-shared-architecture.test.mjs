@@ -8,6 +8,8 @@ const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath)
 
 const folderContractJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
 const folderEditorSharedJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.shared.js');
+const folderEditorSchemaJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.schema.js');
+const folderEditorPreviewJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.preview.js');
 const dockerPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Docker.page');
 const vmPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.VMs.page');
 const folderPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page');
@@ -49,6 +51,22 @@ test('shared folder editor module owns normalization and reset helper primitives
     assert.match(folderEditorSharedJs, /window\.FolderViewPlusFolderEditorShared = Object\.freeze\(\{/);
 });
 
+test('shared folder editor schema and preview modules publish the editor-facing contracts', () => {
+    assert.match(folderEditorSchemaJs, /^\/\/ @ts-check/m);
+    assert.match(folderEditorSchemaJs, /\(function fvplusFolderEditorSchemaScope\(window\) \{/);
+    assert.match(folderEditorSchemaJs, /const createModernSchema = \(deps = \{\}\) =>/);
+    assert.match(folderEditorSchemaJs, /const createLegacySchema = \(\) =>/);
+    assert.match(folderEditorSchemaJs, /window\.FolderViewPlusFolderEditorSchema = Object\.freeze\(\{/);
+    assert.match(folderEditorSchemaJs, /window\.FolderViewPlusFolderEditorSchemaModuleLoaded = true/);
+    assert.match(folderEditorPreviewJs, /^\/\/ @ts-check/m);
+    assert.match(folderEditorPreviewJs, /\(function fvplusFolderEditorPreviewScope\(window\) \{/);
+    assert.match(folderEditorPreviewJs, /const createApi = \(deps = \{\}\) =>/);
+    assert.match(folderEditorPreviewJs, /const renderLivePreviewCanvas = \(\) =>/);
+    assert.match(folderEditorPreviewJs, /const updateLiveSummary = \(\) =>/);
+    assert.match(folderEditorPreviewJs, /window\.FolderViewPlusFolderEditorPreview = Object\.freeze\(\{/);
+    assert.match(folderEditorPreviewJs, /window\.FolderViewPlusFolderEditorPreviewModuleLoaded = true/);
+});
+
 test('runtime pages and folder editor load the shared contract before their consumers', () => {
     const dockerContractIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
     const dockerSharedRuntimeIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.shared.js');
@@ -62,6 +80,8 @@ test('runtime pages and folder editor load the shared contract before their cons
     const vmTypeCssIndex = vmPage.indexOf('/plugins/folderview.plus/styles/vm.css');
     const folderContractIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
     const folderSharedEditorIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.shared.js');
+    const folderSchemaIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.schema.js');
+    const folderPreviewIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.preview.js');
     const folderLegacyIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.legacy.js');
     const folderChromeIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.chrome.js');
 
@@ -85,9 +105,15 @@ test('runtime pages and folder editor load the shared contract before their cons
 
     assert.ok(folderContractIndex >= 0, 'folder editor page missing shared folder contract include');
     assert.ok(folderSharedEditorIndex >= 0, 'folder editor page missing shared editor include');
+    assert.ok(folderSchemaIndex >= 0, 'folder editor page missing shared schema include');
+    assert.ok(folderPreviewIndex >= 0, 'folder editor page missing shared preview include');
     assert.ok(folderLegacyIndex >= 0, 'folder editor page missing legacy runtime include');
     assert.ok(folderChromeIndex >= 0, 'folder editor page missing chrome runtime include');
     assert.ok(folderContractIndex < folderSharedEditorIndex, 'shared contract must load before folder.editor.shared.js');
+    assert.ok(folderSharedEditorIndex < folderSchemaIndex, 'shared editor module must load before folder.editor.schema.js');
+    assert.ok(folderSchemaIndex < folderPreviewIndex, 'shared schema must load before folder.editor.preview.js');
+    assert.ok(folderPreviewIndex < folderChromeIndex, 'shared preview must load before folder editor chrome');
+    assert.ok(folderPreviewIndex < folderLegacyIndex, 'shared preview must load before folder legacy runtime');
     assert.ok(folderSharedEditorIndex < folderChromeIndex, 'shared editor module must load before folder editor chrome');
     assert.ok(folderSharedEditorIndex < folderLegacyIndex, 'shared editor module must load before folder legacy runtime');
     assert.ok(folderContractIndex < folderChromeIndex, 'shared contract must load before folder editor chrome');

@@ -15,6 +15,7 @@ const settingsScriptPaths = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-metadata.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-table.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js',
@@ -50,11 +51,14 @@ test('settings page loads extracted settings metadata before the main runtime', 
     assert.match(page, /folderviewplus\.runtime-parity\.js/);
     assert.match(page, /folderviewplus\.settings-metadata\.js/);
     assert.match(page, /folderviewplus\.settings-sections\.js/);
-    assert.match(page, /folderviewplus\.settings-metadata\.js[\s\S]*folderviewplus\.settings-sections\.js[\s\S]*folderviewplus\.actions-support\.js[\s\S]*folderviewplus\.js/);
+    assert.match(page, /folderviewplus\.settings-table\.js/);
+    assert.match(page, /folderviewplus\.settings-metadata\.js[\s\S]*folderviewplus\.settings-sections\.js[\s\S]*folderviewplus\.settings-table\.js[\s\S]*folderviewplus\.actions-support\.js[\s\S]*folderviewplus\.js/);
     assert.match(script, /FolderViewPlusSettingsMetadataModuleLoaded = true/);
+    assert.match(script, /FolderViewPlusSettingsTableModuleLoaded = true/);
     assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.settings-metadata\.js'\)/);
+    assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.settings-table\.js'\)/);
     assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.actions-support\.js'\)/);
-    assert.match(script, /const SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE = settingsMetadata\?\./);
+    assert.match(script, /const settingsTableModule = window\.FolderViewPlusSettingsTable \|\| null;/);
 });
 
 test('settings page exposes theme fallback controls and runtime self-heal action', () => {

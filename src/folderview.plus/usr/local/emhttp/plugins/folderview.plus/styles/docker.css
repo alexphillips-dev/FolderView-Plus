@@ -535,40 +535,6 @@ tr.folder.fv-parent-expanded div.folder-preview {
     font-size: 0.96em;
 }
 
-.folder-preview .fv-preview-meta-inline {
-    display: inline-flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 2px;
-}
-
-.folder-preview .fv-preview-status-inline-row {
-    display: inline-flex;
-    align-items: center;
-}
-
-.folder-preview .fv-preview-actions-inline {
-    display: inline-flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 5px;
-    min-width: var(--fvplus-preview-action-strip-width, 0);
-    margin-left: 2px;
-}
-
-.folder-preview .fv-preview-actions-inline .folder-element-custom-btn {
-    margin-left: 0;
-}
-
-.folder-preview .fv-preview-actions-inline .folder-element-custom-btn a {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 13px;
-    height: 13px;
-    font-size: 0.96em;
-}
-
 .folder-preview-status-icon {
     margin-left: 6px;
     display: inline-flex;

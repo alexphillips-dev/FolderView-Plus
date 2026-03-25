@@ -314,7 +314,7 @@ const getFolderPreviewActionSlotCount = (settings = {}) =>
     Number(settings?.preview_webui === true) + Number(settings?.preview_console === true) + Number(settings?.preview_logs === true);
 
 const getFolderPreviewActionStripWidth = (settings = {}) => {
-    if (settings?.preview_vertical_bars !== true) {
+    if (settings?.preview_vertical_bars !== true || !isCompactMultiRowPreview(settings)) {
         return 0;
     }
     const slotCount = getFolderPreviewActionSlotCount(settings);
@@ -433,32 +433,22 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
                 <span class="outer fv-docker-preview-card fv-docker-preview-mode-3${autostartClass}">
                     <span class="inner fv-preview-trigger">
                         <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span><br>
-                        <span class="fv-preview-meta-inline">
-                            <span class="fv-preview-status-inline-row">
-                                <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}"></i><span class="state ${previewStateMeta.className}"> ${stateLabel}</span>
-                            </span>
-                            <span class="fv-preview-actions-inline"></span>
-                        </span>
+                        <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}"></i><span class="state ${previewStateMeta.className}"> ${stateLabel}</span>
                     </span>
                 </span>
             `;
-            triggerSelector = '.appname, .fv-preview-status-inline-row, .state, i.fa';
+            triggerSelector = '.appname, .state, i.fa';
             break;
         case 4:
             itemMarkup = `
                 <span class="outer fv-docker-preview-card fv-docker-preview-mode-4${autostartClass}">
                     <span class="inner fv-preview-trigger">
                         <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span><br>
-                        <span class="fv-preview-meta-inline">
-                            <span class="fv-preview-status-inline-row">
-                                <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}" title="${previewStatusTitle}" aria-hidden="true"></i><span class="state ${previewStateMeta.className}"> ${stateLabel}</span>
-                            </span>
-                            <span class="fv-preview-actions-inline"></span>
-                        </span>
+                        <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}" title="${previewStatusTitle}" aria-hidden="true"></i><span class="state ${previewStateMeta.className}"> ${stateLabel}</span>
                     </span>
                 </span>
             `;
-            triggerSelector = '.appname, .fv-preview-status-inline-row, .state, i.fa';
+            triggerSelector = '.appname, .state, i.fa';
             break;
         case 1:
         default:
@@ -467,16 +457,11 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
                     <span class="hand fv-preview-trigger"><img src="${safeIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'${imageStyle}></span>
                     <span class="inner fv-preview-trigger">
                         <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span><br>
-                        <span class="fv-preview-meta-inline">
-                            <span class="fv-preview-status-inline-row">
-                                <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}" title="${previewStatusTitle}" aria-hidden="true"></i><span class="state ${previewStateMeta.className}"> ${stateLabel}</span>
-                            </span>
-                            <span class="fv-preview-actions-inline"></span>
-                        </span>
+                        <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}" title="${previewStatusTitle}" aria-hidden="true"></i><span class="state ${previewStateMeta.className}"> ${stateLabel}</span>
                     </span>
                 </span>
             `;
-            triggerSelector = '.hand, .appname, .fv-preview-status-inline-row, .state, i.fa';
+            triggerSelector = '.hand, .appname, .state, i.fa';
             break;
     }
 
@@ -3302,10 +3287,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
             // Determine the element to append WebUI/Console/Logs icons to
             $targetForAppend = compactMultiRowPreview
                 ? $previewElementTarget.find('.fv-preview-actions-compact').first()
-                : $previewElementTarget.find('.fv-preview-actions-inline').first();
-            if (!$targetForAppend.length) {
-                $targetForAppend = $previewElementTarget.children('span.inner').last();
-            }
+                : $previewElementTarget.children('span.inner').last();
             if (!$targetForAppend.length) {
                 $targetForAppend = $previewElementTarget;
             }
@@ -3701,7 +3683,7 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
         const $inner = item.children('span.inner').last();
         const $actionsTarget = compactMultiRowPreview
             ? item.find('.fv-preview-actions-compact').first()
-            : item.find('.fv-preview-actions-inline').first();
+            : $inner;
         const containerName = String(entry?.name || '');
         const shellValue = String(entry?.shell || '/bin/sh');
         const webuiUrl = String(entry?.webui || '').trim();
@@ -3735,7 +3717,7 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
             $actionsTarget.append($('<span class="folder-element-custom-btn folder-element-logs"></span>').append($logsLink));
         }
         decorateDockerPreviewMemberTriggers(
-            item.find('span.hand, span.inner > span.appname, span.inner > span.appname > a, span.inner .fv-preview-status-inline-row, span.inner i.fa, span.inner span.state'),
+            item.find('span.hand, span.inner > span.appname, span.inner > span.appname > a, span.inner > i.fa, span.inner > span.state'),
             id,
             containerName
         );

@@ -149,8 +149,8 @@ test('server normalizes legacy chevron aliases into dropdown_style', () => {
 });
 
 test('single-row Docker and VM previews stay vertically centered', () => {
-    assert.match(dockerCss, /\.folder-preview\s*\{[\s\S]*width:\s*100%;[\s\S]*box-sizing:\s*border-box;[\s\S]*align-items:\s*stretch;/);
-    assert.match(dockerCss, /\.folder-preview-wrapper\s*\{[\s\S]*align-items:\s*stretch;[\s\S]*justify-content:\s*center;[\s\S]*margin:\s*0;/);
+    assert.match(dockerCss, /\.folder-preview\s*\{[\s\S]*width:\s*100%;[\s\S]*box-sizing:\s*border-box;[\s\S]*align-items:\s*center;/);
+    assert.match(dockerCss, /\.folder-preview-wrapper\s*\{[\s\S]*align-items:\s*center;[\s\S]*justify-content:\s*center;[\s\S]*margin:\s*0;/);
     assert.match(dockerCss, /\.folder-preview-wrapper > span\.outer\s*\{[\s\S]*display:\s*inline-flex;[\s\S]*align-items:\s*center;[\s\S]*justify-content:\s*center;/);
     assert.match(vmCss, /\.folder-preview-wrapper\s*\{[\s\S]*margin-top:\s*7px;[\s\S]*align-items:\s*center;/);
     assert.match(vmCss, /\.folder-preview-wrapper > span\.outer\s*\{[\s\S]*display:\s*inline-flex;[\s\S]*align-items:\s*center;/);

@@ -267,13 +267,11 @@ test('nested folder expansion avoids duplicate parent previews and keeps child-o
     assert.match(dockerJs, /const allowWebuiQuickAction = nestedParentPreview \|\| quickActionPrefs\.preview_webui === true;/);
     assert.match(dockerJs, /const allowConsoleQuickAction = nestedParentPreview \|\| quickActionPrefs\.preview_console === true;/);
     assert.match(dockerJs, /const allowLogsQuickAction = nestedParentPreview \|\| quickActionPrefs\.preview_logs === true;/);
-    assert.match(dockerJs, /const shouldReservePreviewWebuiSlot = \(settings = \{\}, webuiQuickActionEnabled = false\) =>/);
-    assert.match(dockerJs, /settings\?\.preview_vertical_bars === true && webuiQuickActionEnabled === true/);
-    assert.match(dockerJs, /const appendPreviewWebuiPlaceholder = \(\$target\) =>/);
-    assert.match(dockerJs, /folder-element-webui-placeholder/);
+    assert.match(dockerJs, /const getFolderPreviewActionSlotCount = \(settings = \{\}\) =>/);
+    assert.match(dockerJs, /const getFolderPreviewActionStripWidth = \(settings = \{\}\) =>/);
+    assert.match(dockerJs, /previewNode\.style\.setProperty\('--fvplus-preview-action-strip-width', `\$\{previewActionStripWidth\}px`\)/);
+    assert.match(dockerJs, /fv-preview-actions-inline/);
     assert.match(dockerJs, /const previewWebuiUrl = String\(newFolder\[container_name_in_folder\]\?\.webui \|\| ct\.info\.State\.WebUi \|\| ct\.info\.State\.TSWebUi \|\| ''\)\.trim\(\);/);
-    assert.match(dockerJs, /else if \(shouldReservePreviewWebuiSlot\(folder\.settings,\s*folder\.settings\.preview_webui === true\)\)/);
-    assert.match(dockerJs, /else if \(shouldReservePreviewWebuiSlot\(folder\?\.settings \|\| \{\},\s*allowWebuiQuickAction\)\)/);
     assert.match(dockerJs, /if \(allowWebuiQuickAction && webuiUrl\)/);
     assert.match(dockerJs, /if \(allowConsoleQuickAction\)/);
     assert.match(dockerJs, /if \(allowLogsQuickAction\)/);

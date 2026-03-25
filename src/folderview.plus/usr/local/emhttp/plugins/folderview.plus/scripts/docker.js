@@ -310,6 +310,22 @@ const isCompactMultiRowPreview = (settings = {}) => {
     const normalizedRows = normalizeFolderPreviewRowLimit(settings);
     return normalizedRows === 0 || normalizedRows > 1;
 };
+const getFolderPreviewActionSlotCount = (settings = {}) =>
+    Number(settings?.preview_webui === true) + Number(settings?.preview_console === true) + Number(settings?.preview_logs === true);
+
+const getFolderPreviewActionStripWidth = (settings = {}) => {
+    if (settings?.preview_vertical_bars !== true) {
+        return 0;
+    }
+    const slotCount = getFolderPreviewActionSlotCount(settings);
+    if (slotCount <= 0) {
+        return 0;
+    }
+    const iconWidth = 13;
+    const iconGap = 5;
+    return (slotCount * iconWidth) + ((slotCount - 1) * iconGap);
+};
+
 const applyFolderPreviewLayout = ($preview, settings = {}) => {
     if (!$preview || !$preview.length) {
         return;
@@ -321,8 +337,13 @@ const applyFolderPreviewLayout = ($preview, settings = {}) => {
     previewNode.dataset.previewRows = String(normalizeFolderPreviewRowLimit(settings));
     previewNode.style.removeProperty('--fvplus-preview-row-limit');
     previewNode.style.removeProperty('--fvplus-preview-max-height');
+    previewNode.style.removeProperty('--fvplus-preview-action-strip-width');
     previewNode.classList.remove('fv-preview-unlimited-rows', 'fv-preview-multirow');
     const normalizedRows = normalizeFolderPreviewRowLimit(settings);
+    const previewActionStripWidth = getFolderPreviewActionStripWidth(settings);
+    if (previewActionStripWidth > 0) {
+        previewNode.style.setProperty('--fvplus-preview-action-strip-width', `${previewActionStripWidth}px`);
+    }
     if (normalizedRows === 0) {
         previewNode.classList.add('fv-preview-unlimited-rows', 'fv-preview-multirow');
     } else if (normalizedRows > 1) {
@@ -412,22 +433,32 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
                 <span class="outer fv-docker-preview-card fv-docker-preview-mode-3${autostartClass}">
                     <span class="inner fv-preview-trigger">
                         <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span><br>
-                        <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}"></i><span class="state ${previewStateMeta.className}"> ${stateLabel}</span>
+                        <span class="fv-preview-meta-inline">
+                            <span class="fv-preview-status-inline-row">
+                                <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}"></i><span class="state ${previewStateMeta.className}"> ${stateLabel}</span>
+                            </span>
+                            <span class="fv-preview-actions-inline"></span>
+                        </span>
                     </span>
                 </span>
             `;
-            triggerSelector = '.appname, .state, i.fa';
+            triggerSelector = '.appname, .fv-preview-status-inline-row, .state, i.fa';
             break;
         case 4:
             itemMarkup = `
                 <span class="outer fv-docker-preview-card fv-docker-preview-mode-4${autostartClass}">
                     <span class="inner fv-preview-trigger">
                         <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span><br>
-                        <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}" title="${previewStatusTitle}" aria-hidden="true"></i><span class="state ${previewStateMeta.className}"> ${stateLabel}</span>
+                        <span class="fv-preview-meta-inline">
+                            <span class="fv-preview-status-inline-row">
+                                <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}" title="${previewStatusTitle}" aria-hidden="true"></i><span class="state ${previewStateMeta.className}"> ${stateLabel}</span>
+                            </span>
+                            <span class="fv-preview-actions-inline"></span>
+                        </span>
                     </span>
                 </span>
             `;
-            triggerSelector = '.appname, .state, i.fa';
+            triggerSelector = '.appname, .fv-preview-status-inline-row, .state, i.fa';
             break;
         case 1:
         default:
@@ -436,11 +467,16 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
                     <span class="hand fv-preview-trigger"><img src="${safeIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'${imageStyle}></span>
                     <span class="inner fv-preview-trigger">
                         <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span><br>
-                        <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}" title="${previewStatusTitle}" aria-hidden="true"></i><span class="state ${previewStateMeta.className}"> ${stateLabel}</span>
+                        <span class="fv-preview-meta-inline">
+                            <span class="fv-preview-status-inline-row">
+                                <i class="fa ${previewStateMeta.icon} ${previewStateMeta.className}" title="${previewStatusTitle}" aria-hidden="true"></i><span class="state ${previewStateMeta.className}"> ${stateLabel}</span>
+                            </span>
+                            <span class="fv-preview-actions-inline"></span>
+                        </span>
                     </span>
                 </span>
             `;
-            triggerSelector = '.hand, .appname, .state, i.fa';
+            triggerSelector = '.hand, .appname, .fv-preview-status-inline-row, .state, i.fa';
             break;
     }
 
@@ -450,16 +486,6 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
         $tooltipTrigger: $item.find(triggerSelector).first()
     };
 };
-const shouldReservePreviewWebuiSlot = (settings = {}, webuiQuickActionEnabled = false) =>
-    settings?.preview_vertical_bars === true && webuiQuickActionEnabled === true;
-
-const appendPreviewWebuiPlaceholder = ($target) => {
-    if (!$target || !$target.length) {
-        return;
-    }
-    $target.append('<span class="folder-element-custom-btn folder-element-webui folder-element-webui-placeholder" aria-hidden="true"></span>');
-};
-
 const layoutFolderPreviewRows = ($preview, settings = {}) => {
     if (!$preview || !$preview.length) {
         return;
@@ -3276,9 +3302,12 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
             // Determine the element to append WebUI/Console/Logs icons to
             $targetForAppend = compactMultiRowPreview
                 ? $previewElementTarget.find('.fv-preview-actions-compact').first()
-                : $previewElementTarget.children('span.inner').last();
+                : $previewElementTarget.find('.fv-preview-actions-inline').first();
             if (!$targetForAppend.length) {
-                $targetForAppend = $previewElementTarget; // Fallback to the main span if no inner span
+                $targetForAppend = $previewElementTarget.children('span.inner').last();
+            }
+            if (!$targetForAppend.length) {
+                $targetForAppend = $previewElementTarget;
             }
 
             const previewWebuiUrl = String(newFolder[container_name_in_folder]?.webui || ct.info.State.WebUi || ct.info.State.TSWebUi || '').trim();
@@ -3289,8 +3318,6 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                 } else {
                      if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: WebUI icon: Could not find target for append in preview element.`);
                 }
-            } else if (shouldReservePreviewWebuiSlot(folder.settings, folder.settings.preview_webui === true)) {
-                appendPreviewWebuiPlaceholder($targetForAppend);
             }
 
             if (folder.settings.preview_console) {
@@ -3674,7 +3701,7 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
         const $inner = item.children('span.inner').last();
         const $actionsTarget = compactMultiRowPreview
             ? item.find('.fv-preview-actions-compact').first()
-            : $inner;
+            : item.find('.fv-preview-actions-inline').first();
         const containerName = String(entry?.name || '');
         const shellValue = String(entry?.shell || '/bin/sh');
         const webuiUrl = String(entry?.webui || '').trim();
@@ -3686,8 +3713,6 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
                 .attr('rel', 'noopener noreferrer')
                 .append('<i class="fa fa-globe" aria-hidden="true"></i>');
             $actionsTarget.append($('<span class="folder-element-custom-btn folder-element-webui"></span>').append($webuiLink));
-        } else if (shouldReservePreviewWebuiSlot(folder?.settings || {}, allowWebuiQuickAction)) {
-            appendPreviewWebuiPlaceholder($actionsTarget);
         }
 
         if (allowConsoleQuickAction) {
@@ -3710,7 +3735,7 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
             $actionsTarget.append($('<span class="folder-element-custom-btn folder-element-logs"></span>').append($logsLink));
         }
         decorateDockerPreviewMemberTriggers(
-            item.find('span.hand, span.inner > span.appname, span.inner > span.appname > a, span.inner > i.fa, span.inner > span.state'),
+            item.find('span.hand, span.inner > span.appname, span.inner > span.appname > a, span.inner .fv-preview-status-inline-row, span.inner i.fa, span.inner span.state'),
             id,
             containerName
         );

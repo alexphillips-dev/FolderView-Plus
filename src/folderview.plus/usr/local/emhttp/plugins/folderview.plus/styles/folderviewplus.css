@@ -1503,8 +1503,37 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 }
 
 .health-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0 !important;
+    border-radius: 7px !important;
+    background: rgba(255, 255, 255, 0.04);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
     cursor: pointer;
-    background: transparent;
+}
+
+.health-chip.folder-metric-chip.is-ok {
+    color: #93e19f;
+    background: rgba(147, 225, 159, 0.14);
+}
+
+.health-chip.folder-metric-chip.is-warning,
+.health-chip.folder-metric-chip.is-paused {
+    color: #ffc15e;
+    background: rgba(255, 193, 94, 0.14);
+}
+
+.health-chip.folder-metric-chip.is-danger {
+    color: #ff7474;
+    background: rgba(255, 116, 116, 0.14);
+}
+
+.health-chip.folder-metric-chip.is-empty {
+    color: rgba(240, 240, 240, 0.86);
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .folder-table table td.signals-cell {

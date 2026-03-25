@@ -2587,7 +2587,6 @@ const initSettingsControls = () => {
                     <div class="fv-settings-search-block">
                         <div class="fv-settings-search-wrap">
                             <input type="text" id="fv-settings-search" placeholder="Search settings" aria-label="Search settings">
-                            <button type="button" id="fv-settings-clear-search" title="Clear search" aria-label="Clear search"><i class="fa fa-times"></i></button>
                         </div>
                         <label class="fv-search-scope" title="Limit search to currently selected advanced tab">
                             <input type="checkbox" id="fv-search-all-advanced">
@@ -2632,10 +2631,6 @@ const initSettingsControls = () => {
     });
     $('#fv-search-all-advanced').off('change.fvui').on('change.fvui', (event) => {
         setSearchAllAdvanced($(event.currentTarget).prop('checked') === true);
-    });
-    $('#fv-settings-clear-search').off('click.fvui').on('click.fvui', () => {
-        $('#fv-settings-search').val('');
-        setSettingsSearchQuery('');
     });
     $('#fv-action-save').off('click.fvui').on('click.fvui', () => {
         void saveActionBarChanges(false);

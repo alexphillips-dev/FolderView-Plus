@@ -5,7 +5,6 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PKG_BUILD_SCRIPT="${ROOT_DIR}/pkg_build.sh"
 PLG_FILE="${ROOT_DIR}/folderview.plus.plg"
 XML_FILE="${ROOT_DIR}/folderview.plus.xml"
-BETA_XML_FILE="${ROOT_DIR}/folderview.plus.beta.xml"
 VERSION="$(sed -n 's/^<!ENTITY version "\([^"]*\)".*/\1/p' "${PLG_FILE}" | head -n 1 || true)"
 VERSION_OVERRIDE="${FVPLUS_REPRO_VERSION_OVERRIDE:-${VERSION}}"
 ALLOW_STALE_STABLE_RAW="${FVPLUS_REPRO_ALLOW_STALE_STABLE:-0}"
@@ -47,13 +46,9 @@ out_a="${tmp_dir}/build-a"
 out_b="${tmp_dir}/build-b"
 backup_plg="${tmp_dir}/folderview.plus.plg.bak"
 backup_xml="${tmp_dir}/folderview.plus.xml.bak"
-backup_beta_xml="${tmp_dir}/folderview.plus.beta.xml.bak"
 mkdir -p "${out_a}" "${out_b}"
 cp "${PLG_FILE}" "${backup_plg}"
 cp "${XML_FILE}" "${backup_xml}"
-if [[ -f "${BETA_XML_FILE}" ]]; then
-  cp "${BETA_XML_FILE}" "${backup_beta_xml}"
-fi
 
 cleanup() {
   if [[ -f "${backup_plg}" ]]; then
@@ -61,9 +56,6 @@ cleanup() {
   fi
   if [[ -f "${backup_xml}" ]]; then
     cp "${backup_xml}" "${XML_FILE}"
-  fi
-  if [[ -f "${backup_beta_xml}" ]]; then
-    cp "${backup_beta_xml}" "${BETA_XML_FILE}"
   fi
   rm -rf "${tmp_dir}"
 }

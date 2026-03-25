@@ -310,6 +310,20 @@ const isCompactMultiRowPreview = (settings = {}) => {
     const normalizedRows = normalizeFolderPreviewRowLimit(settings);
     return normalizedRows === 0 || normalizedRows > 1;
 };
+const shouldRenderPreviewWebuiPlaceholder = (settings = {}, webuiQuickActionEnabled = false) =>
+    settings?.preview_vertical_bars === true
+    && webuiQuickActionEnabled === true;
+
+const appendPreviewWebuiPlaceholder = ($target) => {
+    if (!$target || !$target.length) {
+        return;
+    }
+    $target.append(
+        $('<span class="folder-element-custom-btn folder-element-webui fv-preview-webui-placeholder" aria-hidden="true"></span>')
+            .append('<span class="fv-preview-webui-placeholder-icon"><i class="fa fa-globe" aria-hidden="true"></i></span>')
+    );
+};
+
 const applyFolderPreviewLayout = ($preview, settings = {}) => {
     if (!$preview || !$preview.length) {
         return;
@@ -483,32 +497,77 @@ const layoutFolderPreviewRows = ($preview, settings = {}) => {
         return;
     }
     const rowLimit = normalizeFolderPreviewRowLimit(settings);
+    const maxItemsPerRow = Math.max(1, getFolderPreviewItemsPerRow(settings));
     const addDividers = settings?.preview_vertical_bars === true;
     const barsColor = settings?.preview_vertical_bars_color || settings?.preview_border_color || '';
     const previewElement = $preview.get(0);
-    const availableWidth = Math.max(0, Math.floor($preview.innerWidth() || previewElement?.clientWidth || 0) - 12);
-    const gapWidth = 8;
-    const dividerWidth = addDividers ? 1 : 0;
+    const availableWidth = Math.max(0, Math.floor($preview.innerWidth() || previewElement?.clientWidth || 0));
     const rows = [];
     let currentRow = [];
-    let currentWidth = 0;
-
-    wrappers.forEach((wrapper) => {
-        const measuredWidth = Math.max(1, Math.ceil(wrapper.getBoundingClientRect?.().width || $(wrapper).outerWidth() || 0));
-        const extraWidth = currentRow.length ? gapWidth + dividerWidth : 0;
-        const nextWidth = currentWidth + extraWidth + measuredWidth;
-        const canWrap = availableWidth > 0 && currentRow.length > 0 && nextWidth > availableWidth;
-        if (canWrap && (rowLimit === 0 || rows.length + 1 < rowLimit)) {
+    const $measurement = availableWidth > 0
+        ? $('<div class="folder-preview fv-preview-multirow fv-preview-row-measure"></div>')
+            .css({
+                position: 'absolute',
+                left: '-99999px',
+                top: '0',
+                visibility: 'hidden',
+                pointerEvents: 'none',
+                width: `${availableWidth}px`,
+                height: 'auto',
+                maxHeight: 'none',
+                overflow: 'visible',
+                display: 'flex',
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                alignContent: 'flex-start',
+                padding: '0',
+                border: '0',
+                background: 'transparent'
+            })
+            .appendTo(document.body)
+        : null;
+    if ($measurement) {
+        const measurementWrappers = wrappers.map((wrapper, index) => {
+            const $clone = $(wrapper).clone();
+            $measurement.append($clone);
+            if (addDividers && index < wrappers.length - 1) {
+                $measurement.append(`<div class="folder-preview-divider" ${barsColor ? `style="border-color: ${barsColor};"` : ''}></div>`);
+            }
+            return $clone.get(0);
+        });
+        let currentTop = null;
+        measurementWrappers.forEach((measurementWrapper, index) => {
+            const wrapperTop = Number(measurementWrapper?.offsetTop ?? 0);
+            const startsNewRow = currentRow.length > 0
+                && wrapperTop > (currentTop ?? wrapperTop)
+                && (rowLimit === 0 || rows.length + 1 < rowLimit);
+            if (startsNewRow) {
+                rows.push(currentRow);
+                currentRow = [];
+            }
+            currentTop = wrapperTop;
+            currentRow.push(wrappers[index]);
+        });
+        if (currentRow.length) {
             rows.push(currentRow);
-            currentRow = [wrapper];
-            currentWidth = measuredWidth;
-            return;
         }
-        currentRow.push(wrapper);
-        currentWidth = nextWidth;
-    });
-    if (currentRow.length) {
-        rows.push(currentRow);
+    } else {
+        wrappers.forEach((wrapper) => {
+            const exceedsItemCap = currentRow.length >= maxItemsPerRow;
+            if (exceedsItemCap && (rowLimit === 0 || rows.length + 1 < rowLimit)) {
+                rows.push(currentRow);
+                currentRow = [wrapper];
+                return;
+            }
+            currentRow.push(wrapper);
+        });
+        if (currentRow.length) {
+            rows.push(currentRow);
+        }
+    }
+    if ($measurement) {
+        $measurement.remove();
     }
     const visibleRows = rowLimit === 0 ? rows : rows.slice(0, rowLimit);
     $preview.empty();
@@ -3268,7 +3327,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                 ? $previewElementTarget.find('.fv-preview-actions-compact').first()
                 : $previewElementTarget.children('span.inner').last();
             if (!$targetForAppend.length) {
-                $targetForAppend = $previewElementTarget; // Fallback to the main span if no inner span
+                $targetForAppend = $previewElementTarget;
             }
 
             const previewWebuiUrl = String(newFolder[container_name_in_folder]?.webui || ct.info.State.WebUi || ct.info.State.TSWebUi || '').trim();
@@ -3279,6 +3338,8 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                 } else {
                      if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: WebUI icon: Could not find target for append in preview element.`);
                 }
+            } else if (shouldRenderPreviewWebuiPlaceholder(folder.settings, folder.settings.preview_webui === true)) {
+                appendPreviewWebuiPlaceholder($targetForAppend);
             }
 
             if (folder.settings.preview_console) {
@@ -3674,6 +3735,8 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
                 .attr('rel', 'noopener noreferrer')
                 .append('<i class="fa fa-globe" aria-hidden="true"></i>');
             $actionsTarget.append($('<span class="folder-element-custom-btn folder-element-webui"></span>').append($webuiLink));
+        } else if (shouldRenderPreviewWebuiPlaceholder(folder?.settings || {}, allowWebuiQuickAction)) {
+            appendPreviewWebuiPlaceholder($actionsTarget);
         }
 
         if (allowConsoleQuickAction) {

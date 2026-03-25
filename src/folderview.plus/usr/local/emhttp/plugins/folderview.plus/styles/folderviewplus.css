@@ -1479,7 +1479,9 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     justify-content: center;
     gap: 0;
     cursor: pointer;
-    background: transparent;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
     border-radius: 5px !important;
 }
 
@@ -1488,13 +1490,50 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     line-height: 1;
 }
 
+.updates-chip:hover,
+.updates-chip:active,
+.updates-chip:focus {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+}
+
 .updates-chip.is-filter-active {
     box-shadow: 0 0 0 1px rgba(77, 163, 255, 0.45) inset;
 }
 
 .health-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0 !important;
+    border-radius: 7px !important;
+    background: rgba(255, 255, 255, 0.04);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
     cursor: pointer;
-    background: transparent;
+}
+
+.health-chip.folder-metric-chip.is-ok {
+    color: #93e19f;
+    background: rgba(147, 225, 159, 0.14);
+}
+
+.health-chip.folder-metric-chip.is-warning,
+.health-chip.folder-metric-chip.is-paused {
+    color: #ffc15e;
+    background: rgba(255, 193, 94, 0.14);
+}
+
+.health-chip.folder-metric-chip.is-danger {
+    color: #ff7474;
+    background: rgba(255, 116, 116, 0.14);
+}
+
+.health-chip.folder-metric-chip.is-empty {
+    color: rgba(240, 240, 240, 0.86);
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .folder-table table td.signals-cell {
@@ -1532,15 +1571,18 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     align-items: center;
     justify-content: center;
     padding: 0 !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border: 0 !important;
     border-radius: 5px !important;
-    background: rgba(255, 255, 255, 0.04) !important;
+    background: transparent !important;
+    box-shadow: none !important;
     color: rgba(226, 236, 248, 0.9) !important;
     cursor: pointer;
 }
 
 .health-breakdown-btn:hover {
-    border-color: rgba(113, 184, 255, 0.7) !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
     color: #cfe7ff !important;
 }
 
@@ -3746,6 +3788,9 @@ body.fv-mobile-compact .fv-setup-field-grid {
     align-items: center;
     gap: 0.22rem;
     min-width: min(360px, 42vw);
+    margin-right: 0.35rem;
+    padding-right: 0.25rem;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .fv-mode-toggle {
@@ -3779,9 +3824,9 @@ body.fv-mobile-compact .fv-setup-field-grid {
 
 .fv-settings-search-wrap {
     display: inline-grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr);
     align-items: center;
-    gap: 0.35rem;
+    gap: 0;
     width: 100%;
 }
 
@@ -3806,12 +3851,6 @@ body.fv-mobile-compact .fv-setup-field-grid {
 
 .fv-search-scope.is-disabled {
     opacity: 0.45;
-}
-
-#fv-settings-clear-search {
-    min-width: 32px;
-    width: 32px;
-    padding: 0;
 }
 
 #fv-run-wizard {
@@ -5356,11 +5395,25 @@ h2[data-fv-section].fv-search-match {
     min-height: 22px !important;
     max-height: 22px;
     flex: 0 0 22px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.03);
+    background: transparent;
+    box-shadow: none;
     padding: 0;
     line-height: 1;
+    vertical-align: middle;
+}
+
+#fv-settings-root .status-breakdown-btn,
+#fv-settings-root .status-breakdown-btn:hover,
+#fv-settings-root .status-breakdown-btn:active,
+#fv-settings-root .status-breakdown-btn:focus {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
 }
 
 .status-breakdown-btn > i {
@@ -6011,6 +6064,10 @@ tr.is-long-press-active {
         width: 100%;
         min-width: 0;
         grid-column: 1 / -1;
+        margin-left: 0;
+        margin-right: 0;
+        padding-right: 0;
+        border-right: 0;
     }
 
     .fv-settings-search-wrap input[type="text"] {

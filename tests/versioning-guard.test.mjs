@@ -6,13 +6,10 @@ import path from 'node:path';
 const repoRoot = path.resolve(process.cwd());
 const pkgBuildPath = path.join(repoRoot, 'pkg_build.sh');
 const stableTemplatePath = path.join(repoRoot, 'folderview.plus.xml');
-const betaTemplatePath = path.join(repoRoot, 'folderview.plus.beta.xml');
 const releaseGuardPath = path.join(repoRoot, 'scripts/release_guard.sh');
 const releasePreparePath = path.join(repoRoot, 'scripts/release_prepare.sh');
 const ciWorkflowPath = path.join(repoRoot, '.github/workflows/ci.yml');
 const releaseMainWorkflowPath = path.join(repoRoot, '.github/workflows/release-main.yml');
-const releaseStableWorkflowPath = path.join(repoRoot, '.github/workflows/release-stable.yml');
-const releaseBetaWorkflowPath = path.join(repoRoot, '.github/workflows/release-beta.yml');
 const releaseOnMainWorkflowPath = path.join(repoRoot, '.github/workflows/release-on-main.yml');
 const browserSmokeShellPath = path.join(repoRoot, 'scripts/browser_smoke.sh');
 const browserSmokeNodePath = path.join(repoRoot, 'scripts/browser_smoke.mjs');
@@ -36,13 +33,10 @@ const sharedLibPath = path.join(repoRoot, 'scripts/lib.sh');
 const perfBaselinePath = path.join(repoRoot, 'scripts/perf_baseline.json');
 const pkgBuild = fs.readFileSync(pkgBuildPath, 'utf8');
 const stableTemplate = fs.readFileSync(stableTemplatePath, 'utf8');
-const betaTemplate = fs.readFileSync(betaTemplatePath, 'utf8');
 const releaseGuard = fs.readFileSync(releaseGuardPath, 'utf8');
 const releasePrepare = fs.readFileSync(releasePreparePath, 'utf8');
 const ciWorkflow = fs.readFileSync(ciWorkflowPath, 'utf8');
 const releaseMainWorkflow = fs.readFileSync(releaseMainWorkflowPath, 'utf8');
-const releaseStableWorkflow = fs.readFileSync(releaseStableWorkflowPath, 'utf8');
-const releaseBetaWorkflow = fs.readFileSync(releaseBetaWorkflowPath, 'utf8');
 const releaseOnMainWorkflow = fs.readFileSync(releaseOnMainWorkflowPath, 'utf8');
 const browserSmokeShell = fs.readFileSync(browserSmokeShellPath, 'utf8');
 const browserSmokeNode = fs.readFileSync(browserSmokeNodePath, 'utf8');
@@ -69,19 +63,15 @@ test('pkg_build computes stable versions per current date only', () => {
     assert.match(pkgBuild, /next_stable_version_for_date/);
     assert.match(pkgBuild, /highest_stable_archive_version_for_date/);
     assert.match(pkgBuild, /version="\$\(next_stable_version_for_date \"\$today_version\"\)"/);
-    assert.match(pkgBuild, /beta_xmlfile="\$CWD\/folderview\.plus\.beta\.xml"/);
     assert.match(pkgBuild, /sync_ca_template_metadata/);
 });
 
-test('beta channel metadata is tracked separately from stable CA metadata', () => {
+test('stable channel metadata remains main-branch only', () => {
     assert.match(stableTemplate, /<PluginURL>https:\/\/raw\.githubusercontent\.com\/alexphillips-dev\/FolderView-Plus\/main\/folderview\.plus\.plg<\/PluginURL>/);
     assert.match(stableTemplate, /<Beta>False<\/Beta>/);
-    assert.match(betaTemplate, /<PluginURL>https:\/\/raw\.githubusercontent\.com\/alexphillips-dev\/FolderView-Plus\/beta\/folderview\.plus\.plg<\/PluginURL>/);
-    assert.match(betaTemplate, /<Beta>True<\/Beta>/);
-    assert.match(betaTemplate, /<Name>FolderView Plus Beta<\/Name>/);
-    assert.match(releaseGuard, /BETA_CA_TEMPLATE_FILE/);
-    assert.match(releaseGuard, /Beta CA template must advertise <Beta>True<\/Beta>/);
-    assert.match(releaseGuard, /Beta CA template PluginURL must target the beta branch/);
+    assert.doesNotMatch(pkgBuild, /folderview\.plus\.beta\.xml/);
+    assert.doesNotMatch(releaseGuard, /BETA_CA_TEMPLATE_FILE/);
+    assert.doesNotMatch(releaseGuard, /Beta CA template/);
 });
 
 test('pkg_build blocks stable override dates that are not today', () => {
@@ -186,7 +176,7 @@ test('release_guard checks target blank and update-notes release contract', () =
     assert.match(releaseGuard, /must disable fallback so \\\"What Changed\\\" only shows current-version notes/);
 });
 
-test('release_guard enforces branch-specific plugin and archive URLs for main\/dev\/beta', () => {
+test('release_guard enforces branch-specific plugin and archive URLs for main\/dev', () => {
     assert.match(releaseGuard, /FVPLUS_EXPECT_PLUGIN_BRANCH/);
     assert.match(releaseGuard, /pluginURL branch mismatch/);
     assert.match(releaseGuard, /archive URL branch mismatch/);
@@ -264,7 +254,7 @@ test('theme matrix smoke scripts are optional, URL-gated, and include wizard/the
 
 test('validation workflows enforce standards guards and release-required browser smoke', () => {
     const guardedWorkflows = [ciWorkflow, releaseOnMainWorkflow];
-    const allWorkflows = [ciWorkflow, releaseMainWorkflow, releaseStableWorkflow, releaseBetaWorkflow, releaseOnMainWorkflow];
+    const allWorkflows = [ciWorkflow, releaseMainWorkflow, releaseOnMainWorkflow];
     for (const workflow of allWorkflows) {
         assert.match(workflow, /Standards guard checks/);
         assert.match(workflow, /bash scripts\/api_contract_guard\.sh/);
@@ -296,7 +286,7 @@ test('validation workflows enforce standards guards and release-required browser
         assert.match(workflow, /FVPLUS_MAIN_HISTORY_BASE_REF/);
     }
     assert.match(ciWorkflow, /Optional browser smoke checks/);
-    for (const workflow of [releaseMainWorkflow, releaseStableWorkflow, releaseBetaWorkflow, releaseOnMainWorkflow]) {
+    for (const workflow of [releaseMainWorkflow, releaseOnMainWorkflow]) {
         assert.match(workflow, /Browser smoke checks \(required on release\)/);
         assert.match(workflow, /FVPLUS_BROWSER_SMOKE_REQUIRED:\s*(?:'1'|\$\{\{[^}]+\}\})/);
         assert.match(workflow, /Skipping browser smoke checks \(FVPLUS_BROWSER_SMOKE_URL not configured\)\./);
@@ -316,11 +306,11 @@ test('validation workflows enforce standards guards and release-required browser
     assert.match(releasePrepare, /bash scripts\/browser_smoke\.sh/);
     assert.match(releasePrepare, /bash scripts\/doctor\.sh/);
     assert.match(releasePrepare, /bash pkg_build\.sh --no-validate/);
-    assert.match(releasePrepare, /bash pkg_build\.sh --beta .* --no-validate/);
+    assert.doesNotMatch(releasePrepare, /--beta/);
 });
 
 test('release workflows serialize concurrent runs with shared release concurrency group', () => {
-    for (const workflow of [releaseMainWorkflow, releaseStableWorkflow, releaseBetaWorkflow, releaseOnMainWorkflow]) {
+    for (const workflow of [releaseMainWorkflow, releaseOnMainWorkflow]) {
         assert.match(workflow, /concurrency:/);
         assert.match(workflow, /group:\s*folderview-plus-release/);
         assert.match(workflow, /cancel-in-progress:\s*false/);
@@ -331,7 +321,7 @@ test('release workflows serialize concurrent runs with shared release concurrenc
 });
 
 test('release workflows avoid failing when no files changed for commit step', () => {
-    for (const workflow of [releaseMainWorkflow, releaseStableWorkflow, releaseBetaWorkflow]) {
+    for (const workflow of [releaseMainWorkflow]) {
         assert.match(workflow, /git diff --cached --quiet/);
         assert.match(workflow, /No release file changes to commit/);
     }
@@ -377,10 +367,8 @@ test('ensure changes entry seeds category-signaling release note text', () => {
 });
 
 test('release workflows keep checksum assets and metadata changes', () => {
-    assert.match(releaseBetaWorkflow, /CHECKSUM="\$\{FILENAME\}\.sha256"/);
-    assert.match(releaseBetaWorkflow, /git add archive\/ folderview\.plus\.plg folderview\.plus\.beta\.xml/);
-    assert.match(releaseStableWorkflow, /CHECKSUM_FILENAME="\$\{FILENAME\}\.sha256"/);
-    assert.match(releaseStableWorkflow, /archive\/\$\{\{ steps\.version\.outputs\.checksum_filename \}\}/);
+    assert.match(releaseOnMainWorkflow, /CHECKSUM="\$\{ARCHIVE\}\.sha256"/);
+    assert.match(releaseOnMainWorkflow, /gh release upload "\$\{TAG\}" "\$\{ARCHIVE\}" "\$\{CHECKSUM\}" --clobber/);
 });
 
 test('CI includes shellcheck linting for repository shell scripts', () => {
@@ -427,7 +415,7 @@ test('standards guard scripts exist with expected core checks', () => {
     assert.match(mainBranchHistoryGuard, /@\{upstream\}\.\.HEAD/);
     assert.match(mainBranchHistoryGuard, /merge_commit_allowed/);
     assert.match(mainBranchHistoryGuard, /Merge\\ pull\\ request\\ #\[0-9\]\+/);
-    assert.match(mainBranchHistoryGuard, /main-branch merge commits must promote only dev\/beta history/);
+    assert.match(mainBranchHistoryGuard, /main-branch merge commits must promote only dev history/);
     assert.match(mainBranchHistoryGuard, /Main branch history guard passed/);
     assert.match(unraidMatrixSmoke, /FVPLUS_UNRAID_MATRIX/);
     assert.match(unraidMatrixSmoke, /Skipping Unraid matrix smoke checks/);

@@ -5,27 +5,123 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.25.04">
-<!ENTITY md5 "4fbaa276a494052e78c686ff2f44a694">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
+<!ENTITY version "2026.03.25.27">
+<!ENTITY md5 "2acdd29f36b35572ecaf38f82ae6b46e">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
 
-###2026.03.25.04
+###2026.03.25.27
+- Maintenance: Recenter single-row docker preview cards.
+
+
+###2026.03.25.26
+- Maintenance: Lift multi-row docker preview cards for centering.
+- Maintenance: Build dev package 2026.03.25.23.
+- Maintenance: Center docker cards in multi-row preview rows.
+- Maintenance: Build dev package 2026.03.25.22.
+- Maintenance: Keep settings search left of mode toggle.
+- Maintenance: Build dev package 2026.03.25.21.
+
+
+###2026.03.25.25
+- Maintenance: Build dev package 2026.03.25.23.
+- Maintenance: Center docker cards in multi-row preview rows.
+- Maintenance: Build dev package 2026.03.25.22.
+- Maintenance: Keep settings search left of mode toggle.
+- Maintenance: Build dev package 2026.03.25.21.
+- Fix: Fix multi-row measurement and settings search layout.
+
+
+###2026.03.25.24
+- Docker multi-row preview rows keep the corrected wrap behavior while removing the low card offset.
+
+
+###2026.03.25.23
+- Maintenance: Center docker cards in multi-row preview rows.
+
+
+###2026.03.25.22
+- Maintenance: Keep settings search left of mode toggle.
+
+
+###2026.03.25.21
+- Fix: Fix multi-row measurement and settings search layout.
+
+
+###2026.03.25.20
+- Maintenance: Match multi-row row geometry to single-row.
+
+
+###2026.03.25.19
+- Maintenance: Center multi-row preview items within rows.
+
+
+###2026.03.25.18
+- Maintenance: Restyle alerts chips to match status pills.
+
+
+###2026.03.25.17
+- Maintenance: Use wrapped row positions for multi-row previews.
+
+
+###2026.03.25.16
+- Maintenance: Match multi-row wrapping to single-row flow.
+
+
+###2026.03.25.15
+- Maintenance: Align multi-row preview wrapping with single-row.
+
+
+###2026.03.25.14
+- Fix: Fix preview row wrapping and status info icon.
+
+
+###2026.03.25.13
+- Maintenance: Clamp multi-row preview rows by width and item cap.
+
+
+###2026.03.25.12
+- Fix: Fix divider width budgeting and hover visibility.
+
+
+###2026.03.25.11
+- Fix: Fix multi-row preview wrap width budgeting.
+
+
+###2026.03.25.10
+- Maintenance: Restore preview row layout and keep WebUI placeholders.
+
+
+###2026.03.25.09
+- Maintenance: Use hidden WebUI placeholders for multi-row bars.
+
+
+###2026.03.25.08
+- Maintenance: Scope preview bar alignment to multi-row only.
+
+
+###2026.03.25.07
+- Maintenance: Narrow preview bar alignment to action strips.
+
+
+###2026.03.25.06
+- Maintenance: Reserve WebUI slots when preview bars are enabled.
+
+
+###2026.03.25.05
+- Maintenance: Center docker preview cells and dividers.
+- Maintenance: Allow GitHub PR merges in main history guard.
+- Maintenance: Update history guard regression expectations.
+- Maintenance: Allow main promotion merges in history guard.
+- Maintenance: Build 2026.03.25.04 release artifacts.
 - Fix: Fix setup assistant fallback bootstrap.
 
 
-###2026.03.25.03
-- Fix: Removed dead folder editor stylesheet selectors that were no longer used after the modern editor cleanup, which was causing the strict dead-code guard to fail in GitHub quality and release workflows.
-- Quality: Release and CI strict checks now pass locally with dead-code enforcement enabled, while the shipped stable package and checksums have been rebuilt for the cleaned stylesheet contract.
-
-
 ###2026.03.25.02
-- Feature: Added the new modern folder editor for Docker and VMs with a redesigned sectioned UI, live folder preview, modern/legacy editor toggle, expanded chevron styles, and stronger VM/Docker editor parity.
-- Fix: Resolved editor hydration, save, preview, chevron, reset-control, nested-folder, and action-dialog regressions across both the modern and legacy folder settings pages, plus fixed the Docker advanced-preview click conflict and remaining stale-response endpoints.
-- Maintenance: Hardened plugin page freshness with document no-cache guards, auto-reload version sentinels, and additional no-cache coverage on live GET endpoints, while expanding browser/bootstrap/security regression coverage and release automation checks.
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
 
 
 ###2026.03.25.01
@@ -3426,7 +3522,7 @@
     </CHANGES>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

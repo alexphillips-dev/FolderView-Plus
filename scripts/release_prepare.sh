@@ -30,15 +30,7 @@ chmod +x \
   scripts/theme_matrix_smoke.sh
 bash scripts/doctor.sh
 
-if [[ "${1:-}" == "--beta" ]]; then
-  if [[ -n "${2:-}" ]]; then
-    bash pkg_build.sh --beta "${2}" --no-validate
-  else
-    bash pkg_build.sh --beta --no-validate
-  fi
-else
-  bash pkg_build.sh --no-validate
-fi
+bash pkg_build.sh --no-validate
 
 bash scripts/ensure_plg_changes_entry.sh
 bash scripts/release_guard.sh

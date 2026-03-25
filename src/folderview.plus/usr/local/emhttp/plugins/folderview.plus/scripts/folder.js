@@ -4,8 +4,45 @@ let choose = [];
 let selectedRegex = [];
 // element selected manually
 let selected = [];
+const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
+const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv.folder.editor.prefill.persist.v1';
+const readFolderEditorBootstrapSeed = () => {
+    const parsePrefill = (rawValue) => {
+        const raw = String(rawValue || '').trim();
+        if (!raw) {
+            return null;
+        }
+        try {
+            const payload = JSON.parse(raw);
+            const safeType = String(payload?.type || '').trim();
+            const safeId = String(payload?.id || '').trim();
+            const folder = payload?.folder && typeof payload.folder === 'object' ? payload.folder : null;
+            return safeType && safeId && folder ? { type: safeType, id: safeId, folder } : null;
+        } catch (_error) {
+            return null;
+        }
+    };
+    try {
+        if (typeof sessionStorage !== 'undefined') {
+            const sessionPayload = parsePrefill(sessionStorage.getItem(EDITOR_PREFILL_STORAGE_KEY));
+            if (sessionPayload) {
+                return sessionPayload;
+            }
+        }
+        if (typeof localStorage !== 'undefined') {
+            const localPayload = parsePrefill(localStorage.getItem(EDITOR_PREFILL_LOCAL_STORAGE_KEY));
+            if (localPayload) {
+                return localPayload;
+            }
+        }
+    } catch (_error) {
+        return null;
+    }
+    return null;
+};
 const folderEditorQueryParams = new URLSearchParams(location.search);
 const folderEditorHashParams = new URLSearchParams(String(window.location?.hash || '').replace(/^#/, ''));
+const folderEditorStorageBootstrap = readFolderEditorBootstrapSeed();
 const folderEditorBootstrapContext = window.FolderViewPlusFolderEditorBootstrapContext
     && typeof window.FolderViewPlusFolderEditorBootstrapContext === 'object'
     ? window.FolderViewPlusFolderEditorBootstrapContext
@@ -27,6 +64,7 @@ const type = String(
     || folderEditorQueryParams.get('mode')
     || folderEditorHashParams.get('mode')
     || window.FolderViewPlusFolderEditorPageType
+    || folderEditorStorageBootstrap?.type
     || inferFolderEditorTypeFromPath()
     || ''
 ).trim();
@@ -43,17 +81,21 @@ const folderId = String(
     || folderEditorBootstrapContext.resolvedId
     || window.FolderViewPlusFolderEditorRequestedId
     || folderEditorBootstrapContext.requestedId
+    || folderEditorStorageBootstrap?.id
     || ''
 ).trim();
 const folderEditorResolvedId = String(
     folderEditorBootstrapContext.resolvedId
+    || folderEditorStorageBootstrap?.id
     || window.FolderViewPlusFolderEditorResolvedId
     || ''
 ).trim();
 const folderEditorBootstrapFolder = folderEditorBootstrapContext.folder
     && typeof folderEditorBootstrapContext.folder === 'object'
     ? folderEditorBootstrapContext.folder
-    : null;
+    : (folderEditorStorageBootstrap?.folder && typeof folderEditorStorageBootstrap.folder === 'object'
+        ? folderEditorStorageBootstrap.folder
+        : null);
 const folderContract = window.FolderViewPlusFolderContract || null;
 const folderEditorShared = window.FolderViewPlusFolderEditorShared || null;
 const folderEditorSchema = window.FolderViewPlusFolderEditorSchema || null;
@@ -88,8 +130,6 @@ const DEFAULT_DROPDOWN_COLOR = folderContract?.DEFAULT_DROPDOWN_COLOR || '#ff9a3
 const DEFAULT_DROPDOWN_HOVER_COLOR = folderContract?.DEFAULT_DROPDOWN_HOVER_COLOR || '#111111';
 const SUPPORTED_DROPDOWN_STYLES = folderContract?.SUPPORTED_DROPDOWN_STYLES || Object.freeze(['minimal', 'boxed', 'ghost', 'pill', 'filled']);
 const NO_MEMBERS_SELECTED_INFO = 'No members are currently selected in this folder.';
-const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
-const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv.folder.editor.prefill.persist.v1';
 const EDITOR_PREFILL_MAX_AGE_MS = 10 * 60 * 1000;
 const FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
 const PREVIEW_MODE_LABELS = folderEditorSchema?.PREVIEW_MODE_LABELS || Object.freeze({

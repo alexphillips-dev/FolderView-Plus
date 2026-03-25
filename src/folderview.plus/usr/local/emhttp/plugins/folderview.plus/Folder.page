@@ -68,6 +68,7 @@ try {
     window.FolderViewPlusFolderEditorRequestedId = <?php echo json_encode($folderEditorRequestedId, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
     window.FolderViewPlusFolderEditorResolvedId = <?php echo json_encode($folderEditorResolvedId, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
     window.FolderViewPlusFolderEditorBootstrapContext = <?php echo json_encode($folderEditorBootstrapContext, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
+    window.FolderViewPlusHostThemeName = <?php echo json_encode((string)($display['theme'] ?? ''), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
 </script>
 <?php emitNoCacheMetaTags(); ?>
 <?php emitPluginPageVersionSentinelScript('folder-editor'); ?>

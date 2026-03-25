@@ -402,6 +402,20 @@
         return 'auto';
     };
 
+    const inferThemeClassificationFromHostTheme = (themeName) => {
+        const normalized = String(themeName || '').trim().toLowerCase();
+        if (!normalized) {
+            return '';
+        }
+        if (normalized.includes('white') || normalized.includes('light')) {
+            return 'light';
+        }
+        if (normalized.includes('black') || normalized.includes('gray') || normalized.includes('grey') || normalized.includes('azure')) {
+            return 'dark';
+        }
+        return '';
+    };
+
     const buildEditorThemeTokenStrings = (classification, palette) => {
         const isLight = classification === 'light';
         return {
@@ -471,6 +485,12 @@
         const styleSources = [rootStyle, bodyStyle, htmlStyle].filter(Boolean);
 
         const requestedMode = resolveRequestedMode(modeInput, options);
+        const hostThemeName = String(
+            options.hostThemeName
+            || window.FolderViewPlusHostThemeName
+            || doc.documentElement?.getAttribute?.('data-fv-host-theme')
+            || ''
+        ).trim();
         const rootBackground = parseThemeColorToRgba(rootStyle?.backgroundColor)
             || parseThemeColorToRgba(bodyStyle?.backgroundColor)
             || parseThemeColorToRgba(htmlStyle?.backgroundColor)
@@ -487,9 +507,10 @@
         );
         const backgroundLuminance = themeRgbaLuminance(rootBackground);
         const foregroundLuminance = themeRgbaLuminance(hostForeground);
-        const classification = backgroundLuminance <= 0.45
+        const hostThemeClassification = inferThemeClassificationFromHostTheme(hostThemeName);
+        const classification = hostThemeClassification || (backgroundLuminance <= 0.45
             ? 'dark'
-            : (backgroundLuminance >= 0.58 ? 'light' : 'mixed');
+            : (backgroundLuminance >= 0.58 ? 'light' : 'mixed'));
         const hostContrast = themeContrastRatio(hostForeground, rootBackground);
         const prefersDark = typeof win.matchMedia === 'function'
             && win.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -587,6 +608,7 @@
             appliedMode: modeApplied,
             prefersDark,
             classification,
+            hostThemeName,
             sampleRootSelector: typeof options.sampleRoot === 'string' ? options.sampleRoot : '',
             rootLuminance: Number(backgroundLuminance.toFixed(4)),
             hostTextLuminance: Number(foregroundLuminance.toFixed(4)),

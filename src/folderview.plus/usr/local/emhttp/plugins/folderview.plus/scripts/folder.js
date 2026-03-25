@@ -1,4 +1,6 @@
 ﻿// list of element to select
+window.FolderViewPlusFolderEditorRuntimeLoaded = true;
+window.FolderViewPlusFolderEditorRuntimeBootStage = 'script-evaluated';
 let choose = [];
 // element selected by the regex string
 let selectedRegex = [];
@@ -236,6 +238,19 @@ if (!utils || typeof utils.normalizeDashboardOverflowMode !== 'function') {
 if (folderEditorBootstrapMissingModules.length > 0) {
     const error = new Error(`FolderView Plus folder editor bootstrap failed. Missing modules: ${folderEditorBootstrapMissingModules.join(', ')}`);
     error.fvplusBannerShown = true;
+    window.FolderViewPlusFolderEditorRuntimeLastError = error.message;
+    if (typeof window.FolderViewPlusReportFolderEditorBootstrap === 'function') {
+        window.FolderViewPlusReportFolderEditorBootstrap({
+            summary: 'Folder editor bootstrap is missing required modules.',
+            details: 'The modern editor runtime stopped before hydration because one or more shared scripts were unavailable.',
+            debug: [
+                `stage=${String(window.FolderViewPlusFolderEditorRuntimeBootStage || '(empty)')}`,
+                `missingModules=${folderEditorBootstrapMissingModules.join(', ')}`
+            ].join('\n'),
+            tone: 'invalid',
+            stage: 'missing-modules'
+        });
+    }
     throw error;
 }
 
@@ -4831,6 +4846,7 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
 };
 
 (async () => {
+    window.FolderViewPlusFolderEditorRuntimeBootStage = 'runtime-start';
     folderThemeSurfaceBinding?.bind();
     registerBeforeUnloadGuard();
     applySectionTags();
@@ -4840,6 +4856,7 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
         mode: 'boot',
         result: 'shell-ready'
     });
+    window.FolderViewPlusFolderEditorRuntimeBootStage = 'shell-ready';
     updateForm();
     applyAdvancedMode();
     enforceLeftAlignedSettingsLayout();
@@ -4864,6 +4881,7 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     }
     // get folders
     const foldersResponse = JSON.parse(await $.get(`/plugins/folderview.plus/server/read.php?type=${type}&nocache=1&_=${cacheBust}`).promise());
+    window.FolderViewPlusFolderEditorRuntimeBootStage = 'folders-loaded';
     const folders = {};
     if (foldersResponse && typeof foldersResponse === 'object') {
         for (const [id, folder] of Object.entries(foldersResponse)) {
@@ -4975,6 +4993,7 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     }
 
     choose = Object.values(JSON.parse(await $.get(`/plugins/folderview.plus/server/read_info.php?type=${type}&nocache=1&_=${cacheBust}`).promise())).map(typeFilter);
+    window.FolderViewPlusFolderEditorRuntimeBootStage = 'members-loaded';
     setBootstrapDiagnostics({
         mode: 'post-read-info',
         requestedRef: requestedFolderRef,

@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.25.46">
-<!ENTITY md5 "b9e7fc3d257169b49dd799b675b89a8f">
+<!ENTITY version "2026.03.25.47">
+<!ENTITY md5 "91f41e2d3a63ad3157b6c56d7c1abce9">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.25.47
+- Quality: Added a chrome-level folder editor bootstrap watchdog that reports top-level script crashes, unhandled rejections, and missing runtime startup directly in the on-page debug panel.
+- Regression guard: Locked the new early-runtime reporter and boot-stage sentinels into the folder editor route guard so blank placeholder output becomes actionable diagnostics.
+
 
 ###2026.03.25.46
 - Quality: Expanded the modern folder editor bootstrap panel to show page mode, seed summaries, navigation prefill, folder-map load count, member load count, and the final hydrate resolver path.

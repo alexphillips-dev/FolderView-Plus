@@ -3,6 +3,7 @@
     if (editorPageMode !== 'modern') {
         return;
     }
+    root.FolderViewPlusFolderEditorRuntimeBootStage = 'chrome-bootstrap';
     const SECTION_META = {
         general: { title: 'General', icon: 'fa-folder-open-o', advanced: false, description: 'Name, parent, icon, and folder-level WebUI behavior.' },
         members: { title: 'Members', icon: 'fa-th-large', advanced: false, description: 'Search, filter, bulk-manage, and order the containers or VMs shown in this folder.' },
@@ -18,6 +19,109 @@
     const ADVANCED_MODE = 'advanced';
     let currentMode = BASIC_MODE;
     let currentSection = 'general';
+    let bootstrapWatchdogArmed = false;
+
+    const setBootstrapSurfaceState = ({
+        summary = '',
+        details = '',
+        debug = '',
+        tone = 'warning'
+    } = {}) => {
+        const summaryNode = root.document.getElementById('fvValidationSummary');
+        const detailsNode = root.document.getElementById('fvValidationDetails');
+        const debugNode = root.document.getElementById('fvEditorBootstrapDebug');
+        const className = tone === 'ready' ? 'ready' : tone === 'info' ? 'info' : tone === 'invalid' ? 'invalid' : 'warning';
+        [summaryNode, detailsNode].forEach((node) => {
+            if (!node) {
+                return;
+            }
+            node.classList.remove('invalid', 'warning', 'info', 'ready');
+            node.classList.add(className);
+        });
+        if (summaryNode && summary) {
+            summaryNode.textContent = summary;
+        }
+        if (detailsNode && details) {
+            detailsNode.textContent = details;
+        }
+        if (debugNode && debug) {
+            debugNode.textContent = debug;
+        }
+    };
+
+    root.FolderViewPlusReportFolderEditorBootstrap = ({
+        summary = '',
+        details = '',
+        debug = '',
+        tone = 'warning',
+        stage = ''
+    } = {}) => {
+        if (stage) {
+            root.FolderViewPlusFolderEditorRuntimeBootStage = String(stage);
+        }
+        setBootstrapSurfaceState({ summary, details, debug, tone });
+    };
+
+    const armBootstrapWatchdog = () => {
+        if (bootstrapWatchdogArmed) {
+            return;
+        }
+        bootstrapWatchdogArmed = true;
+        root.setTimeout(() => {
+            const stage = String(root.FolderViewPlusFolderEditorRuntimeBootStage || '').trim();
+            if (stage && stage !== 'chrome-bootstrap') {
+                return;
+            }
+            root.FolderViewPlusReportFolderEditorBootstrap({
+                summary: 'Folder editor runtime did not start.',
+                details: 'The modern editor shell rendered, but folder.js did not report its first bootstrap step.',
+                debug: [
+                    `pageMode=${editorPageMode}`,
+                    `stage=${stage || '(empty)'}`,
+                    `scriptLoaded=${root.FolderViewPlusFolderEditorRuntimeLoaded === true ? 'yes' : 'no'}`,
+                    `lastError=${String(root.FolderViewPlusFolderEditorRuntimeLastError || '(none)')}`
+                ].join('\n'),
+                tone: 'invalid',
+                stage: 'watchdog-timeout'
+            });
+        }, 1500);
+    };
+
+    root.addEventListener('error', (event) => {
+        const message = String(event?.error?.message || event?.message || '(unknown error)').trim();
+        root.FolderViewPlusFolderEditorRuntimeLastError = message;
+        root.FolderViewPlusReportFolderEditorBootstrap({
+            summary: 'Folder editor runtime crashed before hydration.',
+            details: 'A script error occurred before the editor could finish booting.',
+            debug: [
+                `pageMode=${editorPageMode}`,
+                `stage=${String(root.FolderViewPlusFolderEditorRuntimeBootStage || '(empty)')}`,
+                `error=${message}`,
+                `source=${String(event?.filename || '(unknown)')}`,
+                `line=${String(event?.lineno || 0)}`,
+                `column=${String(event?.colno || 0)}`
+            ].join('\n'),
+            tone: 'invalid',
+            stage: 'runtime-error'
+        });
+    });
+
+    root.addEventListener('unhandledrejection', (event) => {
+        const reason = event?.reason;
+        const message = String(reason?.message || reason || '(unknown rejection)').trim();
+        root.FolderViewPlusFolderEditorRuntimeLastError = message;
+        root.FolderViewPlusReportFolderEditorBootstrap({
+            summary: 'Folder editor runtime rejected during bootstrap.',
+            details: 'An async error occurred before the editor could finish loading saved folder data.',
+            debug: [
+                `pageMode=${editorPageMode}`,
+                `stage=${String(root.FolderViewPlusFolderEditorRuntimeBootStage || '(empty)')}`,
+                `rejection=${message}`
+            ].join('\n'),
+            tone: 'invalid',
+            stage: 'runtime-rejection'
+        });
+    });
 
     const findBasicByFieldName = (form, fieldName) => Array.from(form.querySelectorAll('.basic'))
         .find((entry) => entry.querySelector(`[name="${fieldName}"]`));
@@ -157,6 +261,7 @@
             return;
         }
         form.insertAdjacentHTML('afterbegin', buildTopChrome());
+        armBootstrapWatchdog();
     };
 
     const ensureActionBar = (form) => {

@@ -12,6 +12,7 @@ const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.p
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js');
 const folderPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page');
+const folderEditorChromeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js');
 
 test('folder editor runtimes accept query and hash bootstrap identity fallbacks', () => {
     assert.match(folderJs, /const readFolderEditorBootstrapSeed = \(\) =>/);
@@ -34,6 +35,8 @@ test('folder editor runtimes accept query and hash bootstrap identity fallbacks'
     assert.match(folderJs, /resolvedBy=/);
     assert.match(folderJs, /return safeType && safeId \? \{ type: safeType, id: safeId, folder \} : null;/);
     assert.match(folderJs, /folder:\s*payload\?\.folder && typeof payload\.folder === 'object'/);
+    assert.match(folderJs, /window\.FolderViewPlusFolderEditorRuntimeLoaded = true;/);
+    assert.match(folderJs, /window\.FolderViewPlusFolderEditorRuntimeBootStage = 'script-evaluated';/);
     assert.match(folderPage, /\$_COOKIE\['fv_folder_editor_bootstrap'\]/);
     assert.match(folderPage, /\$folderEditorCookieType = trim/);
     assert.match(folderPage, /\$folderEditorCookieId = trim/);
@@ -47,6 +50,10 @@ test('folder editor runtimes accept query and hash bootstrap identity fallbacks'
     assert.match(folderLegacyJs, /folderEditorHashParams\.get\('type'\)/);
     assert.match(folderLegacyJs, /folderEditorHashParams\.get\('id'\)/);
     assert.match(folderLegacyJs, /sampleRoot:\s*'body'/);
+    assert.match(folderEditorChromeJs, /root\.FolderViewPlusReportFolderEditorBootstrap =/);
+    assert.match(folderEditorChromeJs, /Folder editor runtime did not start\./);
+    assert.match(folderEditorChromeJs, /root\.addEventListener\('error'/);
+    assert.match(folderEditorChromeJs, /root\.addEventListener\('unhandledrejection'/);
 });
 
 test('folder editor URLs duplicate folder identity into the hash for navigation-safe fallback', () => {

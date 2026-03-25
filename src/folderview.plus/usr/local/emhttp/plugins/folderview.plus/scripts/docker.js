@@ -502,7 +502,8 @@ const layoutFolderPreviewRows = ($preview, settings = {}) => {
     const previewElement = $preview.get(0);
     const availableWidth = Math.max(0, Math.floor($preview.innerWidth() || previewElement?.clientWidth || 0) - 12);
     const gapWidth = 8;
-    const dividerWidth = addDividers ? 1 : 0;
+    const configuredDividerWidth = Math.max(1, Math.min(4, Number.parseInt(settings?.preview_vertical_bars_width ?? '1', 10) || 1));
+    const dividerWidth = addDividers ? configuredDividerWidth : 0;
     const rows = [];
     let currentRow = [];
     let currentWidth = 0;

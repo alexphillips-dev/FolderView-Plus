@@ -40,6 +40,7 @@ test('docker runtime applies preview row layout limits and enhanced member actio
     assert.match(dockerJs, /const layoutFolderPreviewRows = \(\$preview, settings = \{\}\) =>/);
     assert.match(dockerJs, /let clone = \$\(`tr\.folder-id-\$\{folderTrId\} div\.folder-storage > tr > td\.ct-name > span\.outer:last`\)\.clone\(\)/);
     assert.match(dockerJs, /\$previewElementTarget\.children\('span\.inner'\)\.last\(\)/);
+    assert.match(dockerJs, /const configuredDividerWidth = Math\.max\(1,\s*Math\.min\(4,\s*Number\.parseInt\(settings\?\.preview_vertical_bars_width \?\? '1',\s*10\) \|\| 1\)\)/);
     assert.match(dockerJs, /const extraWidth = currentRow\.length\s*\?\s*\(addDividers \? \(gapWidth \* 2\) \+ dividerWidth : gapWidth\)\s*:\s*0/);
     assert.match(dockerJs, /layoutFolderPreviewRows\(\$\(`tr\.folder-id-\$\{id\} div\.folder-preview`\), folder\.settings\)/);
     assert.match(dockerJs, /layoutFolderPreviewRows\(\$preview, folder\?\.settings \|\| \{\}\)/);
@@ -58,6 +59,8 @@ test('docker runtime applies preview row layout limits and enhanced member actio
 });
 
 test('docker styles support multi-row previews and member action sheet styling', () => {
+    assert.match(dockerCss, /\.hover:hover div\.folder-preview div:not\(\.folder-preview-row\):not\(\.folder-preview-divider\) \{/);
+    assert.match(dockerCss, /\.hover div\.folder-preview div:not\(\.folder-preview-row\):not\(\.folder-preview-divider\) \{/);
     assert.match(dockerCss, /\.folder-preview \{/);
     assert.match(dockerCss, /\.folder-preview \{[\s\S]*align-items:\s*center/);
     assert.match(dockerCss, /\.folder-preview \{[\s\S]*flex-wrap:\s*wrap/);

@@ -125,11 +125,11 @@ body.fvplus-docker-column-resize-active th.fvplus-runtime-resizable .fvplus-runt
 }
 
 /* --- General Folder Styles --- */
-.hover:hover div.folder-preview div {
+.hover:hover div.folder-preview div:not(.folder-preview-row):not(.folder-preview-divider) {
     visibility: visible;
 }
 
-.hover div.folder-preview div {
+.hover div.folder-preview div:not(.folder-preview-row):not(.folder-preview-divider) {
     visibility: hidden;
 }
 
@@ -143,7 +143,7 @@ body.fvplus-performance-mode .folder-dropdown > i {
     transition: none !important;
 }
 
-body.fvplus-performance-mode .hover div.folder-preview div {
+body.fvplus-performance-mode .hover div.folder-preview div:not(.folder-preview-row):not(.folder-preview-divider) {
     visibility: hidden !important;
 }
 
@@ -1044,7 +1044,7 @@ div.folder-preview-4 span.outer {
 
 /* Touch/mobile behavior: avoid hover-only interactions. */
 @media (hover: none), (pointer: coarse) {
-    .hover div.folder-preview div {
+    .hover div.folder-preview div:not(.folder-preview-row):not(.folder-preview-divider) {
         visibility: visible;
     }
 }

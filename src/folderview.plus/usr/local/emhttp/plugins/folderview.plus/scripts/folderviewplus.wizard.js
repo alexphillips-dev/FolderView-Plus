@@ -707,6 +707,11 @@ const resolveSetupAssistantTemplateBestMatch = (...args) => getWizardSmartDetect
 const resolveSetupAssistantSmartBlueprintIndexes = (...args) => getWizardSmartDetectApi().resolveSetupAssistantSmartBlueprintIndexes(...args);
 const buildSetupAssistantTemplateAssignmentPreview = (...args) => getWizardSmartDetectApi().buildSetupAssistantTemplateAssignmentPreview(...args);
 
+const SETUP_ASSISTANT_TEMPLATE_FALLBACK_BY_TYPE = Object.freeze({
+    docker: String((window.FolderViewPlusSmartDetectConfig || {}).fallbackByType?.docker || 'Utilities'),
+    vm: String((window.FolderViewPlusSmartDetectConfig || {}).fallbackByType?.vm || 'Utility VMs')
+});
+
 const buildSetupAssistantTemplatePlanForType = (type) => {
     const resolvedType = normalizeManagedType(type);
     const bootstrap = getSetupAssistantTemplateBootstrap(resolvedType);

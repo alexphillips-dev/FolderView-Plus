@@ -98,9 +98,8 @@ test('settings and folder pages load extracted support modules before their main
     assert.match(settingsPage, /folderviewplus\.actions-support\.js[\s\S]*folderviewplus\.js/);
     assert.match(folderPage, /\$folderEditorPageMode === 'modern'/);
     assert.match(folderPage, /folder\.editor\.chrome\.js/);
-    assert.match(folderPage, /folder\.js/);
     assert.match(folderPage, /folder\.legacy\.js/);
-    assert.match(folderPage, /folder\.editor\.chrome\.js[\s\S]*folder\.js/);
+    assert.match(folderPage, /folder\.editor\.chrome\.js[\s\S]*folder\.legacy\.js/);
     assert.match(dashboardPage, /dashboard\.folder-match-cache\.js/);
     assert.match(dashboardPage, /dashboard\.layout-quickrail\.js[\s\S]*dashboard\.folder-match-cache\.js[\s\S]*dashboard\.js/);
     assert.match(dockerPage, /folder\.runtime\.state-observers\.js/);

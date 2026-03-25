@@ -896,15 +896,15 @@ try {
             </dl>
             <blockquote class="inline_help">
                 <p data-i18n="[html]regex-tooltip">
-                    Regex... <b>Lasciate ogne speranza, voi ch'intrate</b>
+                    Regex matching will automatically add matching containers or VMs to this folder.
                     <br>
-                    Any container name the regex matches will be added to folder.
+                    Any container or VM name the regex matches will be added to the folder.
                     <br>
-                    Example for adding pterodactyl egg: <b>[0-9a-zA-Z]{8}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{12}</b>.
+                    Example for matching a Pterodactyl egg ID: <b>[0-9a-zA-Z]{8}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{12}</b>.
                     <br>
-                    <a href="https://regex101.com/">Site for testing your regex</a>.
+                    <a href="https://regex101.com/">Use regex101 to test your expression</a>.
                     <br>
-                    When you edit the regex anything selected manually will be deselected.
+                    Editing the regex will clear any manual member selections for this folder.
                 </p>
             </blockquote>
         </div>

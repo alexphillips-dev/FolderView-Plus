@@ -303,10 +303,10 @@
                 row.classList.add('is-status-row');
             }
             if (row.querySelector('.custom-action-wrapper') || row.querySelector('a.custom-action')) {
-                row.classList.add('is-actions-row', 'is-wide-row');
+                row.classList.add('is-actions-row');
             }
             if (row.querySelector('[name="regex"]')) {
-                row.classList.add('is-wide-row');
+                row.classList.add('is-compact-text-row');
             }
             if (row.querySelector('[name="name"]')) {
                 row.classList.add('is-name-row');

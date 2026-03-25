@@ -314,10 +314,14 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderChromeJs, /id="fvHeroDefaults"/);
     assert.doesNotMatch(folderChromeJs, /fvLiveSurfaceLabel/);
     assert.doesNotMatch(folderChromeJs, /data-surface="dashboard"/);
-    assert.match(folderChromeJs, /if \(row\.querySelector\('\[name="regex"\]'\)\) \{/);
+    assert.match(folderChromeJs, /if \(row\.querySelector\('\[name="regex"\]'\)\) \{\s*row\.classList\.add\('is-compact-text-row'\);/);
     assert.match(folderChromeJs, /if \(row\.querySelector\('\[name="name"\]'\)\) \{/);
     assert.match(folderChromeJs, /row\.classList\.remove\('fv-modern-order-row', 'is-wide-row', 'is-icon-row', 'is-status-row', 'is-actions-row', 'is-toggle-row', 'is-color-row', 'is-name-row', 'is-url-row', 'is-compact-text-row', 'is-webui-row'\);/);
     assert.match(folderChromeJs, /if \(row\.querySelector\('\[name="folder_webui"\]'\)\) \{/);
+    assert.doesNotMatch(folderChromeJs, /row\.classList\.add\('is-actions-row', 'is-wide-row'\);/);
+    assert.doesNotMatch(folderChromeJs, /if \(row\.querySelector\('\[name="regex"\]'\)\) \{\s*row\.classList\.add\('is-wide-row'\);/);
+    assert.doesNotMatch(folderPage, /Lasciate ogne speranza/);
+    assert.doesNotMatch(folderPage, /Site for testing your regex/);
     assert.match(folderCss, /\.canvas form\.folder-editor-form\.fv-force-left-v3/);
     assert.match(folderCss, /Runtime-enforced left alignment guard/);
     assert.match(folderCss, /\.fv-editor-mode/);

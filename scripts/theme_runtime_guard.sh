@@ -14,6 +14,7 @@ WIZARD_JS="${PLUGIN_DIR}/scripts/folderviewplus.wizard.js"
 SETTINGS_PAGE="${PLUGIN_DIR}/FolderViewPlus.page"
 DOCKER_JS="${PLUGIN_DIR}/scripts/docker.js"
 VM_JS="${PLUGIN_DIR}/scripts/vm.js"
+THEME_RESOLVER_JS="${PLUGIN_DIR}/scripts/folderviewplus.theme-resolver.js"
 STYLES_CUSTOM_PHP="${PLUGIN_DIR}/styles/custom.php"
 SCRIPTS_CUSTOM_PHP="${PLUGIN_DIR}/scripts/custom.php"
 
@@ -55,6 +56,7 @@ require_file "${WIZARD_JS}"
 require_file "${SETTINGS_PAGE}"
 require_file "${DOCKER_JS}"
 require_file "${VM_JS}"
+require_file "${THEME_RESOLVER_JS}"
 require_file "${STYLES_CUSTOM_PHP}"
 require_file "${SCRIPTS_CUSTOM_PHP}"
 
@@ -84,8 +86,12 @@ require_contains "${SETTINGS_CSS}" '#fv-setup-assistant-dialog\[data-fv-wizard-c
 require_absent "${SETTINGS_CSS}" '\.fv-setup-step-grid > \.fv-setup-card:nth-child' 'wizard should not use positional tone mapping'
 require_absent "${SETTINGS_CSS}" '--fv-wizard-text-primary:[[:space:]]*var\(--text' 'wizard text token must not follow host text token directly'
 require_absent "${SETTINGS_CSS}" '--fv-wizard-text-primary:[[:space:]]*var\(--fvplus-settings-text-primary\)' 'wizard text token must not follow settings token directly'
-require_contains "${SETTINGS_JS}" 'const buildResolvedThemeSnapshot = \(modeInput = null\) =>' 'theme resolver snapshot helper'
-require_contains "${SETTINGS_JS}" 'const applyResolvedThemeTokens = \(reason = '\''runtime'\''\) =>' 'theme resolver apply helper'
+require_contains "${SETTINGS_PAGE}" 'folderviewplus\.theme-resolver\.js' 'theme resolver page include'
+require_contains "${THEME_RESOLVER_JS}" 'window\.FolderViewPlusThemeResolver = Object\.freeze' 'shared theme resolver export'
+require_contains "${THEME_RESOLVER_JS}" 'const buildResolvedThemeSnapshot = \(modeInput = null, options = \{\}\) =>' 'theme resolver snapshot helper'
+require_contains "${THEME_RESOLVER_JS}" 'const applyResolvedThemeTokens = \(reason = '\''runtime'\'', options = \{\}\) =>' 'theme resolver apply helper'
+require_contains "${SETTINGS_JS}" 'const buildThemeResolverSnapshot = \(modeInput = null, options = \{\}\) =>' 'settings theme snapshot wrapper'
+require_contains "${SETTINGS_JS}" 'const applyThemeResolverTokens = \(reason = '\''runtime'\'', options = \{\}\) =>' 'settings theme apply wrapper'
 require_contains "${DIAGNOSTICS_JS}" 'const runThemeSelfHeal = async \(\) =>' 'theme self-heal action'
 require_contains "${WIZARD_JS}" 'const normalizeSetupAssistantContrastPreference = \(value\) =>' 'wizard contrast preference normalizer'
 require_contains "${WIZARD_JS}" 'const applySetupAssistantContrastTier = \(\) =>' 'wizard contrast apply helper'

@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.25.57">
-<!ENTITY md5 "d68fa651e78406df58faa79e7baaf1f7">
+<!ENTITY version "2026.03.25.58">
+<!ENTITY md5 "4fec156ffb4a8025abfd30b117ef71a5">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.25.58
+- Fix: Delay modern folder editor shared helper API creation until the folder hierarchy helpers are initialized, preventing the early `normalizeParentFolderId` bootstrap crash before hydration.
+- Regression guard: Lock the lazy shared-editor bootstrap path into the folder editor guards so eager helper initialization does not regress.
+
 
 ###2026.03.25.57
 - Fix: Delay modern folder editor preview API creation until its helper functions are initialized, preventing the early `getIncludedMemberNames` bootstrap crash before hydration.

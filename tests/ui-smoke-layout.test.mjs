@@ -177,7 +177,9 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderJs, /const folderEditorShared = window\.FolderViewPlusFolderEditorShared \|\| null;/);
     assert.match(folderJs, /const folderEditorSchema = window\.FolderViewPlusFolderEditorSchema \|\| null;/);
     assert.match(folderJs, /const folderEditorPreview = window\.FolderViewPlusFolderEditorPreview \|\| null;/);
-    assert.match(folderJs, /const folderEditorSharedApi = typeof folderEditorShared\?\.createApi === 'function'/);
+    assert.match(folderJs, /let folderEditorSharedApi = null;/);
+    assert.match(folderJs, /const getFolderEditorSharedApi = \(\) =>/);
+    assert.match(folderJs, /folderEditorSharedApi = folderEditorShared\.createApi\(/);
     assert.match(folderJs, /const folderEditorResetHelpers = typeof folderEditorShared\?\.createResetHelpers === 'function'/);
     assert.match(folderJs, /const modernEditorSchema = typeof folderEditorSchema\?\.createModernSchema === 'function'/);
     assert.match(folderJs, /let folderEditorPreviewApi = null;/);

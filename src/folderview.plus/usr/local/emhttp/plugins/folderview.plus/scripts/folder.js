@@ -3496,8 +3496,12 @@ const normalizeDashboardOverflowMode = typeof utils?.normalizeDashboardOverflowM
             : 'default';
     });
 
-const folderEditorSharedApi = typeof folderEditorShared?.createApi === 'function'
-    ? folderEditorShared.createApi({
+let folderEditorSharedApi = null;
+const getFolderEditorSharedApi = () => {
+    if (folderEditorSharedApi || typeof folderEditorShared?.createApi !== 'function') {
+        return folderEditorSharedApi;
+    }
+    folderEditorSharedApi = folderEditorShared.createApi({
         defaultFolderName: 'Folder',
         defaultFolderIconPath: DEFAULT_FOLDER_ICON_PATH,
         defaultBorderColor: DEFAULT_BORDER_COLOR,
@@ -3519,53 +3523,60 @@ const folderEditorSharedApi = typeof folderEditorShared?.createApi === 'function
         normalizePositiveInt,
         normalizeDropdownStyle,
         isPreviewBorderEnabled: isLegacyPreviewBorderEnabled
-    })
-    : null;
+    });
+    return folderEditorSharedApi;
+};
 
-const extractPreviewRowLimitValue = typeof folderEditorSharedApi?.extractPreviewRowLimitValue === 'function'
-    ? folderEditorSharedApi.extractPreviewRowLimitValue
-    : ((value, fallbackSource = null) => {
-        const sources = [value, fallbackSource];
-        for (const source of sources) {
-            if (source && typeof source === 'object') {
-                const candidate = source.preview_rows
-                    ?? source.previewRows;
-                if (candidate !== undefined && candidate !== null && String(candidate).trim() !== '') {
-                    return candidate;
-                }
-            } else if (source !== undefined && source !== null && String(source).trim() !== '') {
-                return source;
+const extractPreviewRowLimitValue = (value, fallbackSource = null) => {
+    const sharedApi = getFolderEditorSharedApi();
+    if (typeof sharedApi?.extractPreviewRowLimitValue === 'function') {
+        return sharedApi.extractPreviewRowLimitValue(value, fallbackSource);
+    }
+    const sources = [value, fallbackSource];
+    for (const source of sources) {
+        if (source && typeof source === 'object') {
+            const candidate = source.preview_rows
+                ?? source.previewRows;
+            if (candidate !== undefined && candidate !== null && String(candidate).trim() !== '') {
+                return candidate;
             }
+        } else if (source !== undefined && source !== null && String(source).trim() !== '') {
+            return source;
         }
-        return '';
-    });
+    }
+    return '';
+};
 
-const normalizePreviewRowLimit = typeof folderEditorSharedApi?.normalizePreviewRowLimit === 'function'
-    ? folderEditorSharedApi.normalizePreviewRowLimit
-    : ((value, fallbackSource = null) => {
-        const normalized = String(extractPreviewRowLimitValue(value, fallbackSource) ?? '').trim().toLowerCase();
-        if (normalized === '0' || normalized === 'auto' || normalized === 'unlimited') {
-            return 0;
-        }
-        const parsed = Number.parseInt(normalized, 10);
-        if (!Number.isFinite(parsed)) {
-            return 1;
-        }
-        return Math.max(1, Math.min(4, parsed));
-    });
+const normalizePreviewRowLimit = (value, fallbackSource = null) => {
+    const sharedApi = getFolderEditorSharedApi();
+    if (typeof sharedApi?.normalizePreviewRowLimit === 'function') {
+        return sharedApi.normalizePreviewRowLimit(value, fallbackSource);
+    }
+    const normalized = String(extractPreviewRowLimitValue(value, fallbackSource) ?? '').trim().toLowerCase();
+    if (normalized === '0' || normalized === 'auto' || normalized === 'unlimited') {
+        return 0;
+    }
+    const parsed = Number.parseInt(normalized, 10);
+    if (!Number.isFinite(parsed)) {
+        return 1;
+    }
+    return Math.max(1, Math.min(4, parsed));
+};
 
-const normalizeFolderRecordForEditor = typeof folderEditorSharedApi?.normalizeFolderRecordForEditor === 'function'
-    ? ((folder) => {
-        const normalized = folderEditorSharedApi.normalizeFolderRecordForEditor(folder);
-        normalized.settings = {
-            ...normalized.settings,
-            dropdownStyle: normalized.settings.dropdown_style,
-            chevron_style: normalized.settings.dropdown_style,
-            chevronStyle: normalized.settings.dropdown_style
-        };
-        return normalized;
-    })
-    : ((folder) => folder);
+const normalizeFolderRecordForEditor = (folder) => {
+    const sharedApi = getFolderEditorSharedApi();
+    if (typeof sharedApi?.normalizeFolderRecordForEditor !== 'function') {
+        return folder;
+    }
+    const normalized = sharedApi.normalizeFolderRecordForEditor(folder);
+    normalized.settings = {
+        ...normalized.settings,
+        dropdownStyle: normalized.settings.dropdown_style,
+        chevron_style: normalized.settings.dropdown_style,
+        chevronStyle: normalized.settings.dropdown_style
+    };
+    return normalized;
+};
 
 const validateHealthWarnThreshold = () => {
     const form = getForm();

@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.25.08">
-<!ENTITY md5 "0b7a5d358346ed7857c6668dbece2899">
+<!ENTITY version "2026.03.25.09">
+<!ENTITY md5 "83f09572a1332aa9c008a9de8af17296">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.25.09
+- Maintenance: Use hidden WebUI placeholders for multi-row bars.
+
 
 ###2026.03.25.08
 - Maintenance: Scope preview bar alignment to multi-row only.

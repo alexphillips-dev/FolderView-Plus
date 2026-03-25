@@ -40,6 +40,7 @@ test('docker runtime applies preview row layout limits and enhanced member actio
     assert.match(dockerJs, /const layoutFolderPreviewRows = \(\$preview, settings = \{\}\) =>/);
     assert.match(dockerJs, /let clone = \$\(`tr\.folder-id-\$\{folderTrId\} div\.folder-storage > tr > td\.ct-name > span\.outer:last`\)\.clone\(\)/);
     assert.match(dockerJs, /\$previewElementTarget\.children\('span\.inner'\)\.last\(\)/);
+    assert.match(dockerJs, /const extraWidth = currentRow\.length\s*\?\s*\(addDividers \? \(gapWidth \* 2\) \+ dividerWidth : gapWidth\)\s*:\s*0/);
     assert.match(dockerJs, /layoutFolderPreviewRows\(\$\(`tr\.folder-id-\$\{id\} div\.folder-preview`\), folder\.settings\)/);
     assert.match(dockerJs, /layoutFolderPreviewRows\(\$preview, folder\?\.settings \|\| \{\}\)/);
     assert.match(dockerJs, /decorateDockerFolderMemberRow\(\$containerTR, id, ct\.info\.Name \|\| container_name_in_folder\)/);

@@ -509,7 +509,9 @@ const layoutFolderPreviewRows = ($preview, settings = {}) => {
 
     wrappers.forEach((wrapper) => {
         const measuredWidth = Math.max(1, Math.ceil(wrapper.getBoundingClientRect?.().width || $(wrapper).outerWidth() || 0));
-        const extraWidth = currentRow.length ? gapWidth + dividerWidth : 0;
+        const extraWidth = currentRow.length
+            ? (addDividers ? (gapWidth * 2) + dividerWidth : gapWidth)
+            : 0;
         const nextWidth = currentWidth + extraWidth + measuredWidth;
         const canWrap = availableWidth > 0 && currentRow.length > 0 && nextWidth > availableWidth;
         if (canWrap && (rowLimit === 0 || rows.length + 1 < rowLimit)) {

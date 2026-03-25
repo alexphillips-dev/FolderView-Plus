@@ -310,20 +310,19 @@ const isCompactMultiRowPreview = (settings = {}) => {
     const normalizedRows = normalizeFolderPreviewRowLimit(settings);
     return normalizedRows === 0 || normalizedRows > 1;
 };
-const getFolderPreviewActionSlotCount = (settings = {}) =>
-    Number(settings?.preview_webui === true) + Number(settings?.preview_console === true) + Number(settings?.preview_logs === true);
+const shouldRenderCompactPreviewWebuiPlaceholder = (settings = {}, webuiQuickActionEnabled = false) =>
+    isCompactMultiRowPreview(settings)
+    && settings?.preview_vertical_bars === true
+    && webuiQuickActionEnabled === true;
 
-const getFolderPreviewActionStripWidth = (settings = {}) => {
-    if (settings?.preview_vertical_bars !== true || !isCompactMultiRowPreview(settings)) {
-        return 0;
+const appendCompactPreviewWebuiPlaceholder = ($target) => {
+    if (!$target || !$target.length) {
+        return;
     }
-    const slotCount = getFolderPreviewActionSlotCount(settings);
-    if (slotCount <= 0) {
-        return 0;
-    }
-    const iconWidth = 13;
-    const iconGap = 5;
-    return (slotCount * iconWidth) + ((slotCount - 1) * iconGap);
+    $target.append(
+        $('<span class="folder-element-custom-btn folder-element-webui fv-preview-webui-placeholder" aria-hidden="true"></span>')
+            .append('<span class="fv-preview-webui-placeholder-icon"><i class="fa fa-globe" aria-hidden="true"></i></span>')
+    );
 };
 
 const applyFolderPreviewLayout = ($preview, settings = {}) => {
@@ -337,13 +336,8 @@ const applyFolderPreviewLayout = ($preview, settings = {}) => {
     previewNode.dataset.previewRows = String(normalizeFolderPreviewRowLimit(settings));
     previewNode.style.removeProperty('--fvplus-preview-row-limit');
     previewNode.style.removeProperty('--fvplus-preview-max-height');
-    previewNode.style.removeProperty('--fvplus-preview-action-strip-width');
     previewNode.classList.remove('fv-preview-unlimited-rows', 'fv-preview-multirow');
     const normalizedRows = normalizeFolderPreviewRowLimit(settings);
-    const previewActionStripWidth = getFolderPreviewActionStripWidth(settings);
-    if (previewActionStripWidth > 0) {
-        previewNode.style.setProperty('--fvplus-preview-action-strip-width', `${previewActionStripWidth}px`);
-    }
     if (normalizedRows === 0) {
         previewNode.classList.add('fv-preview-unlimited-rows', 'fv-preview-multirow');
     } else if (normalizedRows > 1) {
@@ -3300,6 +3294,8 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                 } else {
                      if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: WebUI icon: Could not find target for append in preview element.`);
                 }
+            } else if (shouldRenderCompactPreviewWebuiPlaceholder(folder.settings, folder.settings.preview_webui === true)) {
+                appendCompactPreviewWebuiPlaceholder($targetForAppend);
             }
 
             if (folder.settings.preview_console) {
@@ -3695,6 +3691,8 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
                 .attr('rel', 'noopener noreferrer')
                 .append('<i class="fa fa-globe" aria-hidden="true"></i>');
             $actionsTarget.append($('<span class="folder-element-custom-btn folder-element-webui"></span>').append($webuiLink));
+        } else if (shouldRenderCompactPreviewWebuiPlaceholder(folder?.settings || {}, allowWebuiQuickAction)) {
+            appendCompactPreviewWebuiPlaceholder($actionsTarget);
         }
 
         if (allowConsoleQuickAction) {

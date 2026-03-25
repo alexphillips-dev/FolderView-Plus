@@ -31,12 +31,13 @@ test('docker runtime applies preview row layout limits and enhanced member actio
     assert.match(dockerJs, /settings\?\.preview_rows\s*\?\?\s*settings\?\.previewRows/);
     assert.match(dockerJs, /const normalizeFolderPreviewRowLimit = \(settings = \{\}\) =>/);
     assert.match(dockerJs, /const getFolderPreviewItemsPerRow = \(settings = \{\}\) =>/);
-    assert.match(dockerJs, /const getFolderPreviewActionSlotCount = \(settings = \{\}\) =>/);
-    assert.match(dockerJs, /const getFolderPreviewActionStripWidth = \(settings = \{\}\) =>/);
-    assert.match(dockerJs, /settings\?\.preview_vertical_bars !== true \|\| !isCompactMultiRowPreview\(settings\)/);
+    assert.match(dockerJs, /const shouldRenderCompactPreviewWebuiPlaceholder = \(settings = \{\}, webuiQuickActionEnabled = false\) =>/);
+    assert.match(dockerJs, /isCompactMultiRowPreview\(settings\)/);
+    assert.match(dockerJs, /settings\?\.preview_vertical_bars === true/);
+    assert.match(dockerJs, /const appendCompactPreviewWebuiPlaceholder = \(\$target\) =>/);
+    assert.match(dockerJs, /fv-preview-webui-placeholder/);
     assert.match(dockerJs, /const buildDockerPreviewItem = \(\{ entry = \{\}, settings = \{\}, autostart = false \}\) =>/);
     assert.match(dockerJs, /const applyFolderPreviewLayout = \(\$preview, settings = \{\}\) =>/);
-    assert.match(dockerJs, /previewNode\.style\.setProperty\('--fvplus-preview-action-strip-width', `\$\{previewActionStripWidth\}px`\)/);
     assert.match(dockerJs, /const layoutFolderPreviewRows = \(\$preview, settings = \{\}\) =>/);
     assert.match(dockerJs, /let clone = \$\(`tr\.folder-id-\$\{folderTrId\} div\.folder-storage > tr > td\.ct-name > span\.outer:last`\)\.clone\(\)/);
     assert.match(dockerJs, /\$previewElementTarget\.children\('span\.inner'\)\.last\(\)/);
@@ -74,7 +75,9 @@ test('docker styles support multi-row previews and member action sheet styling',
     assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-divider \{/);
     assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-divider \{[\s\S]*align-self:\s*stretch/);
     assert.match(dockerCss, /\.fv-docker-preview-card \{/);
-    assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.fv-preview-actions-compact \{[\s\S]*min-width:\s*var\(--fvplus-preview-action-strip-width,\s*0\)/);
+    assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.fv-preview-webui-placeholder \{/);
+    assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.fv-preview-webui-placeholder \{[\s\S]*visibility:\s*hidden/);
+    assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.fv-preview-webui-placeholder-icon \{/);
     assert.match(dockerCss, /\.fv-docker-preview-mode-1 \{/);
     assert.match(dockerCss, /\.fv-docker-member-menu-trigger/);
     assert.match(dockerCss, /\.fv-docker-member-menu-actions/);

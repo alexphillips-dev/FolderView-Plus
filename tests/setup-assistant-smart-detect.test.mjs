@@ -167,6 +167,8 @@ test('smart detect thresholds and aliases are centralized in the shared config m
     assert.match(wizardJs, /window\.FolderViewPlusWizardSmartDetect \|\| null/);
     assert.match(wizardJs, /const getWizardSmartDetectApi = \(\(\) =>/);
     assert.match(wizardJs, /cachedApi = wizardSmartDetectModule\.createApi\(/);
+    assert.match(wizardJs, /const SETUP_ASSISTANT_TEMPLATE_FALLBACK_BY_TYPE = Object\.freeze\(/);
+    assert.match(wizardJs, /window\.FolderViewPlusSmartDetectConfig \|\| \{\}/);
     assert.match(settingsJs, /window\.FolderViewPlusSmartDetectConfig \|\| \{\}/);
 });
 

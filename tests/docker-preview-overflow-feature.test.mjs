@@ -21,8 +21,10 @@ test('folder editor exposes preview row limit control and persists the setting',
     assert.match(folderPage, /<option value="0">Unlimited<\/option>/);
     assert.match(folderContractJs, /const extractPreviewRowLimitValue = \(value,\s*fallbackSource = null\) =>/);
     assert.match(folderContractJs, /source\.preview_rows\s*\?\?\s*source\.previewRows/);
-    assert.match(folderJs, /const folderEditorSharedApi = typeof folderEditorShared\?\.createApi === 'function'/);
-    assert.match(folderJs, /const normalizePreviewRowLimit = typeof folderEditorSharedApi\?\.normalizePreviewRowLimit === 'function'/);
+    assert.match(folderJs, /let folderEditorSharedApi = null;/);
+    assert.match(folderJs, /const getFolderEditorSharedApi = \(\) =>/);
+    assert.match(folderJs, /folderEditorSharedApi = folderEditorShared\.createApi\(/);
+    assert.match(folderJs, /const normalizePreviewRowLimit = \(value,\s*fallbackSource = null\) =>/);
     assert.match(folderEditorSharedJs, /preview_rows:\s*normalizePreviewRowLimit\(settings,\s*source\)/);
     assert.match(folderJs, /if \(!Number\.isFinite\(parsed\)\) \{\s*return 1;\s*\}/);
     assert.match(folderJs, /setFieldValue\('preview_rows',\s*String\(normalizePreviewRowLimit\(normalizedFolder\.settings,\s*normalizedFolder\)\)\);/);

@@ -144,12 +144,19 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
 test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderPage, /\$folderEditorPageMode === 'modern'/);
     assert.match(folderPage, /resolveTypeFolderEditorModePreference\(\$folderEditorPageType\)/);
+    assert.match(folderPage, /folder\.editor\.shared\.js/);
     assert.match(folderPage, /folder\.editor\.chrome\.js/);
     assert.match(folderPage, /folder\.legacy\.js/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorResolvedMode =/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorModeSource =/);
     assert.match(folderJs, /modernFolderEditorEnabled/);
+    assert.match(folderJs, /const folderEditorShared = window\.FolderViewPlusFolderEditorShared \|\| null;/);
+    assert.match(folderJs, /const folderEditorSharedApi = typeof folderEditorShared\?\.createApi === 'function'/);
+    assert.match(folderJs, /const folderEditorResetHelpers = typeof folderEditorShared\?\.createResetHelpers === 'function'/);
     assert.match(folderLegacyJs, /const modernFolderEditorEnabled = String\(window\.FolderViewPlusFolderEditorPageMode \|\| 'legacy'\)/);
+    assert.match(folderLegacyJs, /const folderEditorShared = window\.FolderViewPlusFolderEditorShared \|\| null;/);
+    assert.match(folderLegacyJs, /const folderEditorSharedApi = typeof folderEditorShared\?\.createApi === 'function'/);
+    assert.match(folderLegacyJs, /const folderEditorResetHelpers = typeof folderEditorShared\?\.createResetHelpers === 'function'/);
     assert.match(folderLegacyJs, /window\.FolderViewPlusFolderEditorPageType/);
     assert.match(folderLegacyJs, /window\.FolderViewPlusFolderEditorRequestedId/);
     assert.match(folderLegacyJs, /const renderLivePreviewCanvas = \(\) =>/);
@@ -691,6 +698,7 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsCss, /\.fv-search-scope\s*\{[\s\S]*justify-content:\s*flex-end/);
     assert.match(settingsCss, /\.fv-search-scope\s*\{[\s\S]*width:\s*100%/);
     assert.match(settingsCss, /\.fv-search-scope\s*\{[\s\S]*margin-left:\s*auto/);
+    assert.match(settingsCss, /\.fv-settings-right\s*\{[\s\S]*gap:\s*0\.4rem/);
     assert.doesNotMatch(settingsJs, /fv-settings-clear-search/);
     assert.match(settingsCss, /\.backup-compare-row\s*\{/);
     assert.match(settingsCss, /\.ui-dialog\.fv-backup-compare-modal #backup-compare-dialog/);

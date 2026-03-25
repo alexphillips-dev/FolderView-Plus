@@ -14,6 +14,7 @@ const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.p
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 const sharedRuntimeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js');
 const folderContractJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
+const folderEditorSharedJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.shared.js');
 const runtimeSharedCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/runtime.shared.css');
 const dockerCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css');
 const vmCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/vm.css');
@@ -30,24 +31,26 @@ test('folder editor keeps border and chevron reset controls grouped with their f
     assert.match(folderCss, /\.fv-inline-control-row\s*\{[\s\S]*display:\s*inline-flex !important;[\s\S]*align-items:\s*center !important;[\s\S]*max-width:\s*max-content;/);
     assert.match(folderCss, /\.fv-inline-control-row > input,[\s\S]*margin-right:\s*0 !important;[\s\S]*flex:\s*0 0 auto;/);
     assert.match(folderCss, /\.fv-inline-reset-btn\s*\{[\s\S]*display:\s*inline-flex !important;[\s\S]*border:\s*0 !important;[\s\S]*background:\s*transparent !important;/);
-    assert.match(folderJs, /const resetPreviewBorderDefaults = \(\) =>/);
+    assert.match(folderJs, /const folderEditorResetHelpers = typeof folderEditorShared\?\.createResetHelpers === 'function'/);
+    assert.match(folderJs, /const resetPreviewBorderDefaults = typeof folderEditorResetHelpers\?\.resetPreviewBorderDefaults === 'function'/);
     assert.match(folderJs, /form\.preview_border_color\.value = DEFAULT_BORDER_COLOR;/);
     assert.match(folderJs, /form\.preview_border_width\.value = String\(DEFAULT_PREVIEW_BORDER_WIDTH\);/);
     assert.match(folderJs, /scheduleEditorRecalculation\(0\);/);
     assert.match(folderJs, /updateLiveSummary\(\);/);
-    assert.match(folderJs, /const resetDropdownColorDefaults = \(\) =>/);
+    assert.match(folderJs, /const resetDropdownColorDefaults = typeof folderEditorResetHelpers\?\.resetDropdownColorDefaults === 'function'/);
     assert.match(folderJs, /form\.dropdown_color\.value = DEFAULT_DROPDOWN_COLOR;/);
     assert.match(folderJs, /form\.dropdown_hover_color\.value = DEFAULT_DROPDOWN_HOVER_COLOR;/);
 });
 
 test('legacy folder editor exposes grouped reset helpers and extended chevron compatibility', () => {
-    assert.match(folderLegacyJs, /const resetPreviewBorderDefaults = \(\) =>/);
+    assert.match(folderLegacyJs, /const folderEditorResetHelpers = typeof folderEditorShared\?\.createResetHelpers === 'function'/);
+    assert.match(folderLegacyJs, /const resetPreviewBorderDefaults = typeof folderEditorResetHelpers\?\.resetPreviewBorderDefaults === 'function'/);
     assert.match(folderLegacyJs, /window\.resetPreviewBorderDefaults = resetPreviewBorderDefaults;/);
     assert.match(folderLegacyJs, /form\.preview_border_color\.value = DEFAULT_BORDER_COLOR;/);
     assert.match(folderLegacyJs, /form\.preview_border_width\.value = String\(DEFAULT_PREVIEW_BORDER_WIDTH\);/);
     assert.match(folderLegacyJs, /updateLiveSummary\(\);/);
     assert.match(folderLegacyJs, /if \(modernFolderEditorEnabled\) \{\s*updateLiveSummary\(\);\s*\}/);
-    assert.match(folderLegacyJs, /const resetDropdownColorDefaults = \(\) =>/);
+    assert.match(folderLegacyJs, /const resetDropdownColorDefaults = typeof folderEditorResetHelpers\?\.resetDropdownColorDefaults === 'function'/);
     assert.match(folderLegacyJs, /window\.resetDropdownColorDefaults = resetDropdownColorDefaults;/);
     assert.match(folderLegacyJs, /form\.dropdown_color\.value = DEFAULT_DROPDOWN_COLOR;/);
     assert.match(folderLegacyJs, /form\.dropdown_hover_color\.value = DEFAULT_DROPDOWN_HOVER_COLOR;/);
@@ -67,12 +70,12 @@ test('folder editor normalizes legacy preview border values when loading existin
     assert.match(folderContractJs, /const isPreviewBorderEnabled = \(settings\) =>/);
     assert.match(folderJs, /const SUPPORTED_DROPDOWN_STYLES = folderContract\?\.SUPPORTED_DROPDOWN_STYLES \|\| Object\.freeze\(\['minimal', 'boxed', 'ghost', 'pill', 'filled'\]\);/);
     assert.match(folderJs, /setFieldChecked\('preview_border',\s*isLegacyPreviewBorderEnabled\(normalizedFolder\.settings \|\| \{\}\)\);/);
-    assert.match(folderJs, /preview_border_width:\s*normalizePositiveInt\(settings\.preview_border_width,\s*DEFAULT_PREVIEW_BORDER_WIDTH,\s*1,\s*4\)/);
-    assert.match(folderJs, /preview_vertical_bars_width:\s*normalizePositiveInt\(settings\.preview_vertical_bars_width,\s*DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH,\s*1,\s*4\)/);
-    assert.match(folderJs, /preview_rows:\s*normalizePreviewRowLimit\(settings,\s*source\)/);
-    assert.match(folderJs, /dropdown_style:\s*normalizeDropdownStyle\(settings,\s*source\)/);
-    assert.match(folderJs, /dropdown_color:\s*normalizeHexColor\(settings\.dropdown_color,\s*DEFAULT_DROPDOWN_COLOR\)/);
-    assert.match(folderJs, /dropdown_hover_color:\s*normalizeHexColor\(settings\.dropdown_hover_color,\s*DEFAULT_DROPDOWN_HOVER_COLOR\)/);
+    assert.match(folderEditorSharedJs, /preview_border_width:\s*typeof deps\.normalizePositiveInt === 'function'/);
+    assert.match(folderEditorSharedJs, /preview_vertical_bars_width:\s*typeof deps\.normalizePositiveInt === 'function'/);
+    assert.match(folderEditorSharedJs, /preview_rows:\s*normalizePreviewRowLimit\(settings,\s*source\)/);
+    assert.match(folderEditorSharedJs, /dropdown_style:\s*typeof deps\.normalizeDropdownStyle === 'function'/);
+    assert.match(folderEditorSharedJs, /dropdown_color:\s*typeof deps\.normalizeHexColor === 'function'/);
+    assert.match(folderEditorSharedJs, /dropdown_hover_color:\s*typeof deps\.normalizeHexColor === 'function'/);
     assert.match(folderJs, /setFieldValue\('preview_rows',\s*String\(normalizePreviewRowLimit\(normalizedFolder\.settings,\s*normalizedFolder\)\)\);/);
     assert.match(folderJs, /setFieldValue\('dropdown_style',\s*normalizeDropdownStyle\(normalizedFolder\.settings,\s*normalizedFolder\)\);/);
     assert.match(folderJs, /fieldName === 'dropdown_style' \|\| fieldName === 'dropdown_color' \|\| fieldName === 'dropdown_hover_color'/);

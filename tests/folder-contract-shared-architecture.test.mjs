@@ -7,6 +7,7 @@ const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 
 const folderContractJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
+const folderEditorSharedJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.shared.js');
 const dockerPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Docker.page');
 const vmPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.VMs.page');
 const folderPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page');
@@ -33,6 +34,21 @@ test('shared folder contract exports the canonical row, dropdown, and preview no
     assert.match(folderContractJs, /window\.FolderViewPlusFolderContract = \{/);
 });
 
+test('shared folder editor module owns normalization and reset helper primitives', () => {
+    assert.match(folderEditorSharedJs, /^\/\/ @ts-check/m);
+    assert.match(folderEditorSharedJs, /\(function fvplusFolderEditorSharedScope\(window\) \{/);
+    assert.match(folderEditorSharedJs, /const createApi = \(deps = \{\}\) =>/);
+    assert.match(folderEditorSharedJs, /const normalizeOptionalHealthSelect = \(value,\s*allowedValues\) =>/);
+    assert.match(folderEditorSharedJs, /const parseOptionalThresholdInput = \(value\) =>/);
+    assert.match(folderEditorSharedJs, /const extractPreviewRowLimitValue = typeof deps\.extractPreviewRowLimitValue === 'function'/);
+    assert.match(folderEditorSharedJs, /const normalizePreviewRowLimit = typeof deps\.normalizePreviewRowLimit === 'function'/);
+    assert.match(folderEditorSharedJs, /const normalizeFolderRecordForEditor = \(folder\) =>/);
+    assert.match(folderEditorSharedJs, /const createResetHelpers = \(deps = \{\}\) =>/);
+    assert.match(folderEditorSharedJs, /const resetPreviewBorderDefaults = \(\) =>/);
+    assert.match(folderEditorSharedJs, /const resetDropdownColorDefaults = \(\) =>/);
+    assert.match(folderEditorSharedJs, /window\.FolderViewPlusFolderEditorShared = Object\.freeze\(\{/);
+});
+
 test('runtime pages and folder editor load the shared contract before their consumers', () => {
     const dockerContractIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
     const dockerSharedRuntimeIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.shared.js');
@@ -45,6 +61,7 @@ test('runtime pages and folder editor load the shared contract before their cons
     const vmSharedCssIndex = vmPage.indexOf('/plugins/folderview.plus/styles/runtime.shared.css');
     const vmTypeCssIndex = vmPage.indexOf('/plugins/folderview.plus/styles/vm.css');
     const folderContractIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
+    const folderSharedEditorIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.shared.js');
     const folderLegacyIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.legacy.js');
     const folderChromeIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.chrome.js');
 
@@ -67,8 +84,12 @@ test('runtime pages and folder editor load the shared contract before their cons
     assert.ok(vmSharedCssIndex < vmTypeCssIndex, 'shared runtime stylesheet must load before vm.css');
 
     assert.ok(folderContractIndex >= 0, 'folder editor page missing shared folder contract include');
+    assert.ok(folderSharedEditorIndex >= 0, 'folder editor page missing shared editor include');
     assert.ok(folderLegacyIndex >= 0, 'folder editor page missing legacy runtime include');
     assert.ok(folderChromeIndex >= 0, 'folder editor page missing chrome runtime include');
+    assert.ok(folderContractIndex < folderSharedEditorIndex, 'shared contract must load before folder.editor.shared.js');
+    assert.ok(folderSharedEditorIndex < folderChromeIndex, 'shared editor module must load before folder editor chrome');
+    assert.ok(folderSharedEditorIndex < folderLegacyIndex, 'shared editor module must load before folder legacy runtime');
     assert.ok(folderContractIndex < folderChromeIndex, 'shared contract must load before folder editor chrome');
     assert.ok(folderContractIndex < folderLegacyIndex, 'shared contract must load before folder legacy runtime');
 });

@@ -8,6 +8,10 @@ const folderEditorScript = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js'),
     'utf8'
 );
+const folderEditorSharedScript = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.shared.js'),
+    'utf8'
+);
 const folderEditorStyles = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folder.css'),
     'utf8'
@@ -47,21 +51,24 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorScript, /window\.FolderViewPlusFolderEditorRequestedId/);
     assert.match(folderEditorScript, /window\.FolderViewPlusFolderEditorResolvedId/);
     assert.match(folderEditorScript, /const folderEditorBootstrapContext = window\.FolderViewPlusFolderEditorBootstrapContext/);
-    assert.match(folderEditorScript, /const normalizeFolderRecordForEditor = \(folder\) =>/);
+    assert.match(folderEditorScript, /const folderEditorShared = window\.FolderViewPlusFolderEditorShared \|\| null;/);
+    assert.match(folderEditorScript, /const folderEditorSharedApi = typeof folderEditorShared\?\.createApi === 'function'/);
+    assert.match(folderEditorScript, /const normalizeFolderRecordForEditor = typeof folderEditorSharedApi\?\.normalizeFolderRecordForEditor === 'function'/);
+    assert.match(folderEditorSharedScript, /preview:\s*Number\.isFinite\(Number\(settings\.preview\)\)/);
+    assert.match(folderEditorSharedScript, /context_graph_time:\s*Number\.isFinite\(Number\(settings\.context_graph_time\)\)/);
     assert.match(folderEditorScript, /const hydrateCurrentEditFolder = \(folderRecord, folderRecordId, foldersMap = \{\}, options = \{\}\) =>/);
     assert.match(folderEditorScript, /const resolveCurrentEditFolder = \(folderMap,\s*requestedId\) =>/);
     assert.match(folderEditorScript, /const EDITOR_PREFILL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.v1';/);
     assert.match(folderEditorScript, /const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.persist\.v1';/);
     assert.match(folderEditorScript, /const readEditorNavigationPrefill = \(expectedType,\s*expectedId = ''\) =>/);
     assert.match(folderEditorScript, /const clearEditorNavigationPrefill = \(\) =>/);
-    assert.match(folderEditorScript, /preview:\s*Number\.isFinite\(Number\(settings\.preview\)\)/);
-    assert.match(folderEditorScript, /context_graph_time:\s*Number\.isFinite\(Number\(settings\.context_graph_time\)\)/);
     assert.match(folderEditorScript, /folders\[safeId\] = normalizeFolderRecordForEditor\(folder\);/);
     assert.match(folderEditorScript, /let currentEditFolder = null;/);
     assert.match(folderEditorScript, /const navigationPrefill = readEditorNavigationPrefill\(type,\s*folderId\);/);
     assert.match(folderEditorScript, /const requestedFolderRef = String\(folderId \|\| folderEditorResolvedId \|\| navigationPrefill\?\.id \|\| ''\)\.trim\(\);/);
     assert.match(folderEditorScript, /const resolvedEditFolder = resolveCurrentEditFolder\(folders,\s*requestedFolderRef\);/);
     assert.match(folderEditorScript, /currentEditFolder = resolvedEditFolder\?\.folder \|\| bootstrapFolderRecord \|\| navigationPrefill\?\.folder \|\| null;/);
+    assert.match(folderEditorScript, /folders\[safeId\] = normalizeFolderRecordForEditor\(folder\);/);
     assert.match(folderEditorScript, /setValidationBannerState\(\s*'Warning: requested folder could not be loaded\.'/);
     assert.match(folderEditorScript, /Recovered requested folder from navigation context\./);
     assert.match(folderEditorScript, /hydrateCurrentEditFolder\(currentEditFolder,\s*currentEditFolderId,\s*folders,\s*\{\s*clearPrefill:\s*true\s*\}\);/);

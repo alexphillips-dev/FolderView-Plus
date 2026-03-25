@@ -49,6 +49,7 @@ const folderEditorBootstrapFolder = folderEditorBootstrapContext.folder
     ? folderEditorBootstrapContext.folder
     : null;
 const folderContract = window.FolderViewPlusFolderContract || null;
+const folderEditorShared = window.FolderViewPlusFolderEditorShared || null;
 const modernFolderEditorEnabled = String(window.FolderViewPlusFolderEditorPageMode || 'legacy').trim().toLowerCase() === 'modern';
 const DEFAULT_FOLDER_STATUS_COLORS = folderContract?.DEFAULT_FOLDER_STATUS_COLORS || {
     started: '#ffffff',
@@ -3245,36 +3246,58 @@ const resetStatusColorDefaults = () => {
 };
 window.resetStatusColorDefaults = resetStatusColorDefaults;
 
-const resetPreviewBorderDefaults = () => {
-    const form = getForm();
-    if (!form) {
-        return;
-    }
-    form.preview_border_color.value = DEFAULT_BORDER_COLOR;
-    form.preview_border_width.value = String(DEFAULT_PREVIEW_BORDER_WIDTH);
-    updateForm();
-    validateForm();
-    updateLiveSummary();
-    if (isFormInitialized) {
-        updateUnsavedIndicator();
-    }
-};
+const folderEditorResetHelpers = typeof folderEditorShared?.createResetHelpers === 'function'
+    ? folderEditorShared.createResetHelpers({
+        getForm,
+        defaultBorderColor: DEFAULT_BORDER_COLOR,
+        defaultPreviewBorderWidth: DEFAULT_PREVIEW_BORDER_WIDTH,
+        defaultDropdownColor: DEFAULT_DROPDOWN_COLOR,
+        defaultDropdownHoverColor: DEFAULT_DROPDOWN_HOVER_COLOR,
+        afterVisualChange: () => {
+            updateForm();
+            validateForm();
+            if (isFormInitialized) {
+                updateUnsavedIndicator();
+            }
+        },
+        updateLiveSummary: () => updateLiveSummary()
+    })
+    : null;
+
+const resetPreviewBorderDefaults = typeof folderEditorResetHelpers?.resetPreviewBorderDefaults === 'function'
+    ? folderEditorResetHelpers.resetPreviewBorderDefaults
+    : (() => {
+        const form = getForm();
+        if (!form) {
+            return;
+        }
+        form.preview_border_color.value = DEFAULT_BORDER_COLOR;
+        form.preview_border_width.value = String(DEFAULT_PREVIEW_BORDER_WIDTH);
+        updateForm();
+        validateForm();
+        updateLiveSummary();
+        if (isFormInitialized) {
+            updateUnsavedIndicator();
+        }
+    });
 window.resetPreviewBorderDefaults = resetPreviewBorderDefaults;
 
-const resetDropdownColorDefaults = () => {
-    const form = getForm();
-    if (!form) {
-        return;
-    }
-    form.dropdown_color.value = DEFAULT_DROPDOWN_COLOR;
-    form.dropdown_hover_color.value = DEFAULT_DROPDOWN_HOVER_COLOR;
-    updateForm();
-    validateForm();
-    updateLiveSummary();
-    if (isFormInitialized) {
-        updateUnsavedIndicator();
-    }
-};
+const resetDropdownColorDefaults = typeof folderEditorResetHelpers?.resetDropdownColorDefaults === 'function'
+    ? folderEditorResetHelpers.resetDropdownColorDefaults
+    : (() => {
+        const form = getForm();
+        if (!form) {
+            return;
+        }
+        form.dropdown_color.value = DEFAULT_DROPDOWN_COLOR;
+        form.dropdown_hover_color.value = DEFAULT_DROPDOWN_HOVER_COLOR;
+        updateForm();
+        validateForm();
+        updateLiveSummary();
+        if (isFormInitialized) {
+            updateUnsavedIndicator();
+        }
+    });
 window.resetDropdownColorDefaults = resetDropdownColorDefaults;
 
 const applyEditorPluginDefaults = () => {
@@ -3467,8 +3490,34 @@ const normalizeDashboardOverflowMode = (value) => {
         : 'default';
 };
 
-const extractPreviewRowLimitValue = typeof folderContract?.extractPreviewRowLimitValue === 'function'
-    ? folderContract.extractPreviewRowLimitValue
+const folderEditorSharedApi = typeof folderEditorShared?.createApi === 'function'
+    ? folderEditorShared.createApi({
+        defaultFolderName: 'Folder',
+        defaultFolderIconPath: DEFAULT_FOLDER_ICON_PATH,
+        defaultBorderColor: DEFAULT_BORDER_COLOR,
+        defaultPreviewBorderWidth: DEFAULT_PREVIEW_BORDER_WIDTH,
+        defaultPreviewVerticalBarsWidth: DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH,
+        defaultDropdownStyle: DEFAULT_DROPDOWN_STYLE,
+        defaultDropdownColor: DEFAULT_DROPDOWN_COLOR,
+        defaultDropdownHoverColor: DEFAULT_DROPDOWN_HOVER_COLOR,
+        defaultFolderStatusColors: DEFAULT_FOLDER_STATUS_COLORS,
+        healthProfileValues: FOLDER_HEALTH_PROFILE_VALUES,
+        healthUpdatesModeValues: FOLDER_HEALTH_UPDATES_MODE_VALUES,
+        healthAllStoppedModeValues: FOLDER_HEALTH_ALL_STOPPED_MODE_VALUES,
+        normalizeDashboardOverflowMode,
+        extractPreviewRowLimitValue: typeof folderContract?.extractPreviewRowLimitValue === 'function' ? folderContract.extractPreviewRowLimitValue : null,
+        normalizePreviewRowLimit: typeof folderContract?.normalizePreviewRowLimit === 'function' ? folderContract.normalizePreviewRowLimit : null,
+        normalizeParentFolderId,
+        asArray,
+        normalizeHexColor,
+        normalizePositiveInt,
+        normalizeDropdownStyle,
+        isPreviewBorderEnabled: isLegacyPreviewBorderEnabled
+    })
+    : null;
+
+const extractPreviewRowLimitValue = typeof folderEditorSharedApi?.extractPreviewRowLimitValue === 'function'
+    ? folderEditorSharedApi.extractPreviewRowLimitValue
     : ((value, fallbackSource = null) => {
         const sources = [value, fallbackSource];
         for (const source of sources) {
@@ -3485,8 +3534,8 @@ const extractPreviewRowLimitValue = typeof folderContract?.extractPreviewRowLimi
         return '';
     });
 
-const normalizePreviewRowLimit = typeof folderContract?.normalizePreviewRowLimit === 'function'
-    ? folderContract.normalizePreviewRowLimit
+const normalizePreviewRowLimit = typeof folderEditorSharedApi?.normalizePreviewRowLimit === 'function'
+    ? folderEditorSharedApi.normalizePreviewRowLimit
     : ((value, fallbackSource = null) => {
         const normalized = String(extractPreviewRowLimitValue(value, fallbackSource) ?? '').trim().toLowerCase();
         if (normalized === '0' || normalized === 'auto' || normalized === 'unlimited') {
@@ -3499,77 +3548,9 @@ const normalizePreviewRowLimit = typeof folderContract?.normalizePreviewRowLimit
         return Math.max(1, Math.min(4, parsed));
     });
 
-const normalizeFolderRecordForEditor = (folder) => {
-    const source = folder && typeof folder === 'object' ? folder : {};
-    const settings = source.settings && typeof source.settings === 'object' ? source.settings : {};
-
-    const toSafeInt = (value, fallback) => {
-        const parsed = Number.parseInt(String(value ?? ''), 10);
-        return Number.isFinite(parsed) ? parsed : fallback;
-    };
-
-    return {
-        ...source,
-        name: String(source.name || '').trim() || 'Folder',
-        icon: String(source.icon || '').trim() || DEFAULT_FOLDER_ICON_PATH,
-        regex: String(source.regex || ''),
-        parentId: normalizeParentFolderId(source.parentId || source.parent_id || ''),
-        containers: Array.from(
-            new Set(
-                asArray(source.containers)
-                    .map((entry) => String(entry || '').trim())
-                    .filter(Boolean)
-            )
-        ),
-        actions: asArray(source.actions),
-        settings: {
-            ...settings,
-            folder_webui: settings.folder_webui === true,
-            folder_webui_url: String(settings.folder_webui_url || ''),
-            preview: Number.isFinite(Number(settings.preview)) ? toSafeInt(settings.preview, 1) : 1,
-            preview_rows: normalizePreviewRowLimit(settings, source),
-            previewRows: normalizePreviewRowLimit(settings, source),
-            preview_hover: settings.preview_hover === true,
-            preview_update: settings.preview_update === true,
-            preview_text_width: String(settings.preview_text_width || ''),
-            preview_grayscale: settings.preview_grayscale === true,
-            preview_webui: settings.preview_webui === true,
-            preview_logs: settings.preview_logs === true,
-            preview_console: settings.preview_console === true,
-            preview_vertical_bars: settings.preview_vertical_bars === true,
-            context: Number.isFinite(Number(settings.context)) ? toSafeInt(settings.context, 1) : 1,
-            context_trigger: Number.isFinite(Number(settings.context_trigger)) ? toSafeInt(settings.context_trigger, 0) : 0,
-            context_graph: Number.isFinite(Number(settings.context_graph)) ? toSafeInt(settings.context_graph, 1) : 1,
-            context_graph_time: Number.isFinite(Number(settings.context_graph_time)) ? toSafeInt(settings.context_graph_time, 60) : 60,
-            preview_border: isLegacyPreviewBorderEnabled(settings),
-            preview_border_color: normalizeHexColor(settings.preview_border_color, DEFAULT_BORDER_COLOR),
-            preview_border_width: normalizePositiveInt(settings.preview_border_width, DEFAULT_PREVIEW_BORDER_WIDTH, 1, 4),
-            preview_vertical_bars_color: normalizeHexColor(
-                settings.preview_vertical_bars_color || settings.preview_border_color,
-                DEFAULT_BORDER_COLOR
-            ),
-            preview_vertical_bars_width: normalizePositiveInt(settings.preview_vertical_bars_width, DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH, 1, 4),
-            dropdown_style: normalizeDropdownStyle(settings, source),
-            dropdown_color: normalizeHexColor(settings.dropdown_color, DEFAULT_DROPDOWN_COLOR),
-            dropdown_hover_color: normalizeHexColor(settings.dropdown_hover_color, DEFAULT_DROPDOWN_HOVER_COLOR),
-            status_color_started: normalizeHexColor(settings.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started),
-            status_color_paused: normalizeHexColor(settings.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused),
-            status_color_stopped: normalizeHexColor(settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped),
-            health_warn_stopped_percent: parseOptionalThresholdInput(settings.health_warn_stopped_percent),
-            health_critical_stopped_percent: parseOptionalThresholdInput(settings.health_critical_stopped_percent),
-            health_profile: normalizeOptionalHealthSelect(settings.health_profile, FOLDER_HEALTH_PROFILE_VALUES),
-            health_updates_mode: normalizeOptionalHealthSelect(settings.health_updates_mode, FOLDER_HEALTH_UPDATES_MODE_VALUES),
-            health_all_stopped_mode: normalizeOptionalHealthSelect(settings.health_all_stopped_mode, FOLDER_HEALTH_ALL_STOPPED_MODE_VALUES),
-            status_warn_stopped_percent: parseOptionalThresholdInput(settings.status_warn_stopped_percent),
-            update_column: settings.update_column === true,
-            default_action: settings.default_action === true,
-            expand_tab: settings.expand_tab === true,
-            override_default_actions: settings.override_default_actions === true,
-            expand_dashboard: settings.expand_dashboard === true,
-            dashboard_overflow: normalizeDashboardOverflowMode(settings.dashboard_overflow)
-        }
-    };
-};
+const normalizeFolderRecordForEditor = typeof folderEditorSharedApi?.normalizeFolderRecordForEditor === 'function'
+    ? folderEditorSharedApi.normalizeFolderRecordForEditor
+    : ((folder) => folder);
 
 const validateHealthWarnThreshold = () => {
     const form = getForm();

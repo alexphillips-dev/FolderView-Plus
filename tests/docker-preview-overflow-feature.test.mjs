@@ -9,6 +9,7 @@ const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath)
 const folderPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page');
 const folderJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js');
 const folderContractJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
+const folderEditorSharedJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.shared.js');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 const dockerMemberMenuJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.member-menu.js');
 const dockerCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css');
@@ -19,9 +20,10 @@ test('folder editor exposes preview row limit control and persists the setting',
     assert.match(folderPage, /<option value="0">Unlimited<\/option>/);
     assert.match(folderContractJs, /const extractPreviewRowLimitValue = \(value,\s*fallbackSource = null\) =>/);
     assert.match(folderContractJs, /source\.preview_rows\s*\?\?\s*source\.previewRows/);
-    assert.match(folderJs, /const normalizePreviewRowLimit = typeof folderContract\?\.normalizePreviewRowLimit === 'function'/);
+    assert.match(folderJs, /const folderEditorSharedApi = typeof folderEditorShared\?\.createApi === 'function'/);
+    assert.match(folderJs, /const normalizePreviewRowLimit = typeof folderEditorSharedApi\?\.normalizePreviewRowLimit === 'function'/);
+    assert.match(folderEditorSharedJs, /preview_rows:\s*normalizePreviewRowLimit\(settings,\s*source\)/);
     assert.match(folderJs, /if \(!Number\.isFinite\(parsed\)\) \{\s*return 1;\s*\}/);
-    assert.match(folderJs, /preview_rows:\s*normalizePreviewRowLimit\(settings,\s*source\)/);
     assert.match(folderJs, /setFieldValue\('preview_rows',\s*String\(normalizePreviewRowLimit\(normalizedFolder\.settings,\s*normalizedFolder\)\)\);/);
     assert.match(folderJs, /const normalizedPreviewRows = normalizePreviewRowLimit\(e\.preview_rows\?\.value\);/);
     assert.match(folderJs, /preview_rows:\s*normalizedPreviewRows,/);

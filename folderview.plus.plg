@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.25.35">
-<!ENTITY md5 "2becbd68e31502ea725955c5e6157a21">
+<!ENTITY version "2026.03.25.36">
+<!ENTITY md5 "bdfaf5ed6f07fd3488c45d1724df8726">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.25.36
+- Fix: Fix release notes for dashboard rail style update.
+
 
 ###2026.03.25.35
 - UX: Removed the boxed chrome from dashboard widget action-rail buttons for Docker and VM widgets.

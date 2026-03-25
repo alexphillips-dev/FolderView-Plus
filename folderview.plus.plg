@@ -14,8 +14,8 @@
     <CHANGES>
 
 ###2026.03.25.35
-- UX: Refined settings and on-screen update messaging for clarity and consistency.
-- Quality: Strengthened release automation and regression guards to prevent note drift.
+- UX: Removed the boxed chrome from dashboard widget action-rail buttons for Docker and VM widgets.
+- Quality: Added regression coverage so dashboard quick-action rails stay borderless.
 
 
 ###2026.03.25.34

@@ -151,6 +151,8 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
 test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderPage, /\$folderEditorPageMode === 'modern'/);
     assert.match(folderPage, /resolveTypeFolderEditorModePreference\(\$folderEditorPageType\)/);
+    assert.match(folderPage, /\$folderEditorPageBuildVersion = readInstalledVersion\(\);/);
+    assert.match(folderPage, /\$folderEditorAssetVersion = rawurlencode\(\$folderEditorPageBuildVersion\);/);
     assert.match(folderPage, /folderviewplus\.theme-resolver\.js/);
     assert.match(folderPage, /folder\.editor\.shared\.js/);
     assert.match(folderPage, /folder\.editor\.schema\.js/);
@@ -161,6 +163,12 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderPage, /folder\.legacy\.js/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorResolvedMode =/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorModeSource =/);
+    assert.match(folderPage, /window\.FolderViewPlusFolderEditorPageBuildVersion =/);
+    assert.match(folderPage, /FolderViewPlusMarkFolderEditorRuntimeScriptEvent/);
+    assert.match(folderPage, /runtime-script-still-pending/);
+    assert.match(folderPage, /folder\.editor\.chrome\.js\?v=<\?php echo \$folderEditorAssetVersion; \?>/);
+    assert.match(folderPage, /folder\.js\?v=<\?php echo \$folderEditorAssetVersion; \?>/);
+    assert.match(folderPage, /folder\.legacy\.js\?v=<\?php echo \$folderEditorAssetVersion; \?>/);
     assert.match(folderJs, /modernFolderEditorEnabled/);
     assert.match(folderJs, /const folderEditorShared = window\.FolderViewPlusFolderEditorShared \|\| null;/);
     assert.match(folderJs, /const folderEditorSchema = window\.FolderViewPlusFolderEditorSchema \|\| null;/);

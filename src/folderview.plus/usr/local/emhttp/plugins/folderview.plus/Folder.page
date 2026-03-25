@@ -20,6 +20,8 @@ $folderEditorPageMode = 'legacy';
 $folderEditorPageModeSource = 'error';
 $folderEditorRequestedId = '';
 $folderEditorResolvedId = '';
+$folderEditorPageBuildVersion = readInstalledVersion();
+$folderEditorAssetVersion = rawurlencode($folderEditorPageBuildVersion);
 $folderEditorCookieType = '';
 $folderEditorCookieId = '';
 $folderEditorBootstrapContext = [
@@ -84,6 +86,43 @@ try {
     window.FolderViewPlusFolderEditorRequestedId = <?php echo json_encode($folderEditorRequestedId, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
     window.FolderViewPlusFolderEditorResolvedId = <?php echo json_encode($folderEditorResolvedId, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
     window.FolderViewPlusFolderEditorBootstrapContext = <?php echo json_encode($folderEditorBootstrapContext, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
+    window.FolderViewPlusFolderEditorPageBuildVersion = <?php echo json_encode($folderEditorPageBuildVersion, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
+    window.FolderViewPlusFolderEditorRuntimeScriptState = 'not-registered';
+    window.FolderViewPlusFolderEditorRuntimeScriptSource = '';
+    window.FolderViewPlusMarkFolderEditorRuntimeScriptEvent = function markFolderEditorRuntimeScriptEvent(state, source) {
+        try {
+            window.FolderViewPlusFolderEditorRuntimeScriptState = String(state || '').trim() || 'unknown';
+            window.FolderViewPlusFolderEditorRuntimeScriptSource = String(source || '').trim();
+            if (typeof window.FolderViewPlusReportFolderEditorBootstrap === 'function'
+                && window.FolderViewPlusFolderEditorRuntimeLoaded !== true
+                && (window.FolderViewPlusFolderEditorRuntimeScriptState === 'load'
+                    || window.FolderViewPlusFolderEditorRuntimeScriptState === 'error')) {
+                window.FolderViewPlusReportFolderEditorBootstrap({
+                    summary: window.FolderViewPlusFolderEditorRuntimeScriptState === 'error'
+                        ? 'Folder editor runtime script failed to load.'
+                        : 'Folder editor runtime script loaded but did not start.',
+                    details: window.FolderViewPlusFolderEditorRuntimeScriptState === 'error'
+                        ? 'The editor page could not load its runtime script file.'
+                        : 'The editor page loaded the runtime script file, but the runtime marker is still missing.',
+                    debug: [
+                        'build=' + String(window.FolderViewPlusFolderEditorPageBuildVersion || '(empty)'),
+                        'pageMode=' + String(window.FolderViewPlusFolderEditorPageMode || '(empty)'),
+                        'pageType=' + String(window.FolderViewPlusFolderEditorPageType || '(empty)'),
+                        'pageRequested=' + String(window.FolderViewPlusFolderEditorRequestedId || '(empty)'),
+                        'pageResolved=' + String(window.FolderViewPlusFolderEditorResolvedId || '(empty)'),
+                        'runtimeState=' + String(window.FolderViewPlusFolderEditorRuntimeScriptState || '(empty)'),
+                        'runtimeSrc=' + String(window.FolderViewPlusFolderEditorRuntimeScriptSource || '(empty)'),
+                        'runtimeLoaded=' + (window.FolderViewPlusFolderEditorRuntimeLoaded === true ? 'yes' : 'no'),
+                        'stage=' + String(window.FolderViewPlusFolderEditorRuntimeBootStage || '(empty)')
+                    ].join('\n'),
+                    tone: window.FolderViewPlusFolderEditorRuntimeScriptState === 'error' ? 'invalid' : 'warning',
+                    stage: window.FolderViewPlusFolderEditorRuntimeScriptState === 'error' ? 'runtime-script-error' : 'runtime-script-loaded'
+                });
+            }
+        } catch (_error) {
+            // Best effort only.
+        }
+    };
     window.FolderViewPlusHostThemeName = <?php echo json_encode((string)($display['theme'] ?? ''), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
     (function applyFolderEditorHostThemeName(rawThemeName) {
         const safeThemeName = String(rawThemeName || '').trim().toLowerCase();
@@ -1014,14 +1053,88 @@ try {
     </form>
 </div>
 
-<script src="<?autov('/plugins/folderview.plus/scripts/icon-picker.runtime.js')?>"></script>
+<script src="/plugins/folderview.plus/scripts/icon-picker.runtime.js?v=<?php echo $folderEditorAssetVersion; ?>"></script>
 <?php if ($folderEditorPageMode === 'modern'): ?>
-<script src="<?autov('/plugins/folderview.plus/scripts/folder.editor.hierarchy.js')?>"></script>
-<script src="<?autov('/plugins/folderview.plus/scripts/folder.editor.chrome.js')?>"></script>
-<script src="<?autov('/plugins/folderview.plus/scripts/folder.js')?>" defer></script>
+<script src="/plugins/folderview.plus/scripts/folder.editor.hierarchy.js?v=<?php echo $folderEditorAssetVersion; ?>"></script>
+<script src="/plugins/folderview.plus/scripts/folder.editor.chrome.js?v=<?php echo $folderEditorAssetVersion; ?>"></script>
+<script id="fv-folder-editor-runtime-script" data-runtime="modern" src="/plugins/folderview.plus/scripts/folder.js?v=<?php echo $folderEditorAssetVersion; ?>" onload="window.FolderViewPlusMarkFolderEditorRuntimeScriptEvent('load', this.src)" onerror="window.FolderViewPlusMarkFolderEditorRuntimeScriptEvent('error', this.src)"></script>
 <?php else: ?>
-<script src="<?autov('/plugins/folderview.plus/scripts/folder.legacy.js')?>" defer></script>
+<script id="fv-folder-editor-runtime-script" data-runtime="legacy" src="/plugins/folderview.plus/scripts/folder.legacy.js?v=<?php echo $folderEditorAssetVersion; ?>" onload="window.FolderViewPlusMarkFolderEditorRuntimeScriptEvent('load', this.src)" onerror="window.FolderViewPlusMarkFolderEditorRuntimeScriptEvent('error', this.src)"></script>
 <?php endif; ?>
+<script>
+    (function monitorFolderEditorRuntimeShell(win) {
+        const formatBootstrapDebug = function formatBootstrapDebug() {
+            return [
+                'build=' + String(win.FolderViewPlusFolderEditorPageBuildVersion || '(empty)'),
+                'pageMode=' + String(win.FolderViewPlusFolderEditorPageMode || '(empty)'),
+                'pageType=' + String(win.FolderViewPlusFolderEditorPageType || '(empty)'),
+                'pageRequested=' + String(win.FolderViewPlusFolderEditorRequestedId || '(empty)'),
+                'pageResolved=' + String(win.FolderViewPlusFolderEditorResolvedId || '(empty)'),
+                'runtimeState=' + String(win.FolderViewPlusFolderEditorRuntimeScriptState || '(empty)'),
+                'runtimeSrc=' + String(win.FolderViewPlusFolderEditorRuntimeScriptSource || '(empty)'),
+                'runtimeLoaded=' + (win.FolderViewPlusFolderEditorRuntimeLoaded === true ? 'yes' : 'no'),
+                'stage=' + String(win.FolderViewPlusFolderEditorRuntimeBootStage || '(empty)')
+            ].join('\n');
+        };
+        const applyFallbackSurface = function applyFallbackSurface(summary, details, tone, stage) {
+            if (win.FolderViewPlusFolderEditorRuntimeLoaded === true) {
+                return;
+            }
+            if (typeof win.FolderViewPlusReportFolderEditorBootstrap === 'function') {
+                win.FolderViewPlusReportFolderEditorBootstrap({
+                    summary: summary,
+                    details: details,
+                    debug: formatBootstrapDebug(),
+                    tone: tone,
+                    stage: stage
+                });
+                return;
+            }
+            const apply = function apply() {
+                const summaryNode = document.getElementById('fvValidationSummary');
+                const detailsNode = document.getElementById('fvValidationDetails');
+                const debugNode = document.getElementById('fvEditorBootstrapDebug');
+                [summaryNode, detailsNode].forEach(function (node) {
+                    if (!node) {
+                        return;
+                    }
+                    node.classList.remove('invalid', 'warning', 'info', 'ready');
+                    node.classList.add(tone === 'invalid' ? 'invalid' : (tone === 'warning' ? 'warning' : 'info'));
+                });
+                if (summaryNode) {
+                    summaryNode.textContent = summary;
+                }
+                if (detailsNode) {
+                    detailsNode.textContent = details;
+                }
+                if (debugNode) {
+                    debugNode.textContent = formatBootstrapDebug();
+                }
+            };
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', apply, { once: true });
+            } else {
+                apply();
+            }
+        };
+        win.setTimeout(function () {
+            applyFallbackSurface(
+                'Folder editor runtime has not started yet.',
+                'The page shell loaded, but the folder editor runtime marker is still missing.',
+                'warning',
+                'runtime-script-pending'
+            );
+        }, 900);
+        win.setTimeout(function () {
+            applyFallbackSurface(
+                'Folder editor runtime still has not started.',
+                'This usually means the editor page is serving stale assets or the runtime file is blocked before execution.',
+                'invalid',
+                'runtime-script-still-pending'
+            );
+        }, 2500);
+    })(window);
+</script>
 
 <div class="dialogCustomAction" style="display:none"></div>
 

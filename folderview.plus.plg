@@ -14,8 +14,8 @@
     <CHANGES>
 
 ###2026.03.25.52
-- Diagnostics: The modern folder editor bootstrap panel now reports as soon as `folder.js` executes, including page, query, hash, and fallback seed identity values.
-- Quality: Added a regression guard so the explicit modern-runtime bootstrap marker stays present in the shipped editor runtime.
+- Quality: The modern folder editor bootstrap panel now reports as soon as `folder.js` executes, including page, query, hash, and fallback seed identity values.
+- Regression guard: Added a check so the explicit modern-runtime bootstrap marker stays present in the shipped editor runtime.
 
 
 ###2026.03.25.51

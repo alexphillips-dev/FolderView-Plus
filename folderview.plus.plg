@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.25.47">
-<!ENTITY md5 "91f41e2d3a63ad3157b6c56d7c1abce9">
+<!ENTITY version "2026.03.25.48">
+<!ENTITY md5 "129c7b10cd517c798deaa595530adfbf">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.25.48
+- Quality: Tightened the folder editor bootstrap watchdog so `script-evaluated` and other stalled early stages now render a failure block instead of leaving the static waiting placeholder.
+- Regression guard: Added route-guard coverage for the explicit `runtime-ready` stage and the stalled-bootstrap reporter text so early runtime failures stay visible on-page.
+
 
 ###2026.03.25.47
 - Quality: Added a chrome-level folder editor bootstrap watchdog that reports top-level script crashes, unhandled rejections, and missing runtime startup directly in the on-page debug panel.

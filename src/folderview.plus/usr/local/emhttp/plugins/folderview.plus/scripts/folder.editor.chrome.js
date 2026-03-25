@@ -69,12 +69,21 @@
         bootstrapWatchdogArmed = true;
         root.setTimeout(() => {
             const stage = String(root.FolderViewPlusFolderEditorRuntimeBootStage || '').trim();
-            if (stage && stage !== 'chrome-bootstrap') {
+            if ([
+                'shell-ready',
+                'folders-loaded',
+                'members-loaded',
+                'runtime-ready',
+                'missing-modules',
+                'runtime-error',
+                'runtime-rejection',
+                'watchdog-timeout'
+            ].includes(stage)) {
                 return;
             }
             root.FolderViewPlusReportFolderEditorBootstrap({
-                summary: 'Folder editor runtime did not start.',
-                details: 'The modern editor shell rendered, but folder.js did not report its first bootstrap step.',
+                summary: 'Folder editor runtime stalled during bootstrap.',
+                details: 'The modern editor shell rendered, but the runtime never reached its first ready checkpoint.',
                 debug: [
                     `pageMode=${editorPageMode}`,
                     `stage=${stage || '(empty)'}`,

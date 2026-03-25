@@ -5010,6 +5010,7 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
             : '(none)',
         result: currentEditFolderId ? 'post-read-info-ready' : 'post-read-info-no-target'
     });
+    window.FolderViewPlusFolderEditorRuntimeBootStage = 'runtime-ready';
 
     // if editing a folder and not creating one
     if (currentEditFolder && currentEditFolderId) {

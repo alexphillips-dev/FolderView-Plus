@@ -37,6 +37,7 @@ test('folder editor runtimes accept query and hash bootstrap identity fallbacks'
     assert.match(folderJs, /folder:\s*payload\?\.folder && typeof payload\.folder === 'object'/);
     assert.match(folderJs, /window\.FolderViewPlusFolderEditorRuntimeLoaded = true;/);
     assert.match(folderJs, /window\.FolderViewPlusFolderEditorRuntimeBootStage = 'script-evaluated';/);
+    assert.match(folderJs, /window\.FolderViewPlusFolderEditorRuntimeBootStage = 'runtime-ready';/);
     assert.match(folderPage, /\$_COOKIE\['fv_folder_editor_bootstrap'\]/);
     assert.match(folderPage, /\$folderEditorCookieType = trim/);
     assert.match(folderPage, /\$folderEditorCookieId = trim/);
@@ -51,7 +52,7 @@ test('folder editor runtimes accept query and hash bootstrap identity fallbacks'
     assert.match(folderLegacyJs, /folderEditorHashParams\.get\('id'\)/);
     assert.match(folderLegacyJs, /sampleRoot:\s*'body'/);
     assert.match(folderEditorChromeJs, /root\.FolderViewPlusReportFolderEditorBootstrap =/);
-    assert.match(folderEditorChromeJs, /Folder editor runtime did not start\./);
+    assert.match(folderEditorChromeJs, /Folder editor runtime stalled during bootstrap\./);
     assert.match(folderEditorChromeJs, /root\.addEventListener\('error'/);
     assert.match(folderEditorChromeJs, /root\.addEventListener\('unhandledrejection'/);
 });

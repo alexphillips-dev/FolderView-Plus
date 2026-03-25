@@ -156,6 +156,7 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderPage, /folder\.editor\.schema\.js/);
     assert.match(folderPage, /folder\.editor\.preview\.js/);
     assert.match(folderPage, /folder\.editor\.chrome\.js/);
+    assert.doesNotMatch(folderPage, /folder\.js'\)\?>" defer><\/script>/);
     assert.match(folderPage, /folder\.legacy\.js/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorResolvedMode =/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorModeSource =/);
@@ -446,7 +447,7 @@ test('folder editor page ships the redesign bootstrap and chrome anchors', () =>
     assert.match(folderPage, /<option value="ghost">Ghost<\/option>/);
     assert.match(folderPage, /<option value="pill">Pill<\/option>/);
     assert.match(folderPage, /<option value="filled">Filled<\/option>/);
-    assert.match(folderPage, /if \(\$folderEditorPageMode === 'modern'\):[\s\S]*scripts\/folder\.editor\.chrome\.js[\s\S]*scripts\/folder\.js/);
+    assert.match(folderPage, /if \(\$folderEditorPageMode === 'modern'\):[\s\S]*scripts\/folder\.editor\.chrome\.js[\s\S]*scripts\/folder\.legacy\.js/);
     assert.match(folderJs, /const initEditorChrome = \(\) =>/);
     assert.match(folderJs, /const applyEditorPluginDefaults = \(\) =>/);
     assert.doesNotMatch(folderChromeJs, /fvChangeSummaryLabel/);

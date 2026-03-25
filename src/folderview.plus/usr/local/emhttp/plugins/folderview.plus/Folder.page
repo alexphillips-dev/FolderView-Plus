@@ -1017,7 +1017,7 @@ try {
 <script src="<?autov('/plugins/folderview.plus/scripts/icon-picker.runtime.js')?>"></script>
 <?php if ($folderEditorPageMode === 'modern'): ?>
 <script src="<?autov('/plugins/folderview.plus/scripts/folder.editor.chrome.js')?>"></script>
-<script src="<?autov('/plugins/folderview.plus/scripts/folder.js')?>" defer></script>
+<script src="<?autov('/plugins/folderview.plus/scripts/folder.legacy.js')?>" defer></script>
 <?php else: ?>
 <script src="<?autov('/plugins/folderview.plus/scripts/folder.legacy.js')?>" defer></script>
 <?php endif; ?>

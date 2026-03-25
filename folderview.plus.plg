@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.25.48">
-<!ENTITY md5 "129c7b10cd517c798deaa595530adfbf">
+<!ENTITY version "2026.03.25.49">
+<!ENTITY md5 "e52c697ffc3394926155051f124df42c">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.25.49
+- Fix: Restored the proven modern-folder-editor runtime path by keeping the new editor chrome but routing existing-folder hydration back through `folder.legacy.js`.
+- Compatibility: Updated architecture and page-smoke guards to lock the modern-shell plus legacy-hydration include order so future refactors do not silently break existing-folder editing again.
+
 
 ###2026.03.25.48
 - Quality: Tightened the folder editor bootstrap watchdog so `script-evaluated` and other stalled early stages now render a failure block instead of leaving the static waiting placeholder.

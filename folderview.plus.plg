@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.24.57">
-<!ENTITY md5 "c5bb9d6578fff834527520373e903f50">
+<!ENTITY version "2026.03.24.58">
+<!ENTITY md5 "df476f69e584651e6fa376c8d80d840a">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.24.58
+- UX: Overrode the legacy folder-row width rule for the modern Rules and Actions sections so compact advanced cards no longer inherit the old full-width shell sizing.
+- UX: Reduced the custom action dialog to a narrower 500px presentation and forced the dialog form to anchor left with compact field widths instead of centering in the modal.
+- Test: Added stronger smoke coverage for the exact Rules-section width override and the smaller action-dialog contract.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
 
 ###2026.03.24.57
 - UX: Forced the modern Rules section card to use a compact fixed-width advanced-card layout so the regex module no longer stretches across the full editor width.

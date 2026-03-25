@@ -346,11 +346,12 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderCss, /\.fv-modern-field-row\.is-actions-row,\s*[\s\S]*\.fv-modern-field-row\.is-compact-text-row\s*\{[\s\S]*width:\s*min\(100%, 560px\);[\s\S]*max-width:\s*560px;/);
     assert.match(folderCss, /\.fv-modern-field-row \.custom-action\s*\{/);
     assert.match(folderCss, /\.fv-folder-action-dialog\.ui-dialog\s*\{/);
+    assert.match(folderCss, /\.canvas form\.folder-editor-form \.fv-section-shell\[data-section-shell="rules"\] > \.fv-section-shell-body > \.basic\.fv-modern-field-row/);
     assert.match(folderCss, /\.fv-folder-action-dialog \.dialogCustomAction dl\s*\{[\s\S]*grid-template-columns:\s*92px minmax\(0, 1fr\);/);
     assert.match(folderJs, /dialogWidget\.addClass\('fv-folder-action-dialog'\);/);
     assert.match(folderLegacyJs, /dialogWidget\.addClass\('fv-folder-action-dialog'\);/);
-    assert.match(folderJs, /width:\s*620,/);
-    assert.match(folderLegacyJs, /width:\s*620,/);
+    assert.match(folderJs, /width:\s*500,/);
+    assert.match(folderLegacyJs, /width:\s*500,/);
     assert.match(folderCss, /\.fv-live-preview-row \.fv-live-chevron\s*\{[\s\S]*background:\s*var\(--fv-live-chevron-bg, transparent\) !important;/);
     assert.match(folderCss, /\.fv-live-preview-row \.fv-live-chevron\s*\{[\s\S]*appearance:\s*none !important;/);
     assert.match(folderCss, /\.fv-live-preview-row\.is-minimal \.fv-live-chevron\s*\{[\s\S]*color:\s*var\(--fv-live-chevron-color, var\(--fv-chevron-color\)\) !important;/);

@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.25.32">
-<!ENTITY md5 "886400f44b8ac8ab841a1249989d34d4">
+<!ENTITY version "2026.03.25.33">
+<!ENTITY md5 "25d53aca7c89f99a46369ef4e502dff3">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.25.33
+- Maintenance: Align VM preview row centering.
+
 
 ###2026.03.25.32
 - Maintenance: Tighten settings search and dropdown hover behavior.

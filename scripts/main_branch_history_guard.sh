@@ -56,7 +56,7 @@ fi
 ensure_allowed_merge_refs() {
   local missing=()
   local branch=""
-  for branch in dev beta; do
+  for branch in dev; do
     if git rev-parse --verify "refs/remotes/origin/${branch}^{commit}" >/dev/null 2>&1; then
       continue
     fi
@@ -93,7 +93,7 @@ merge_commit_allowed() {
   read -r -a parent_list <<< "${parent_refs}"
   for (( parent_index=1; parent_index<${#parent_list[@]}; parent_index++ )); do
     parent_commit="${parent_list[$parent_index]}"
-    for allowed_ref in refs/remotes/origin/dev refs/heads/dev refs/remotes/origin/beta refs/heads/beta; do
+    for allowed_ref in refs/remotes/origin/dev refs/heads/dev; do
       if ! git rev-parse --verify "${allowed_ref}^{commit}" >/dev/null 2>&1; then
         continue
       fi
@@ -121,7 +121,7 @@ if [[ -n "${MERGES}" ]]; then
   done <<< "${MERGES}"
 
   if [[ "${#BAD_MERGES[@]}" -gt 0 ]]; then
-    echo "ERROR: main-branch merge commits must promote only dev/beta history in the checked range (${RANGE})." >&2
+    echo "ERROR: main-branch merge commits must promote only dev history in the checked range (${RANGE})." >&2
     printf '%s\n' "${BAD_MERGES[@]}" >&2
     exit 1
   fi

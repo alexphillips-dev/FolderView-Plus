@@ -4,11 +4,9 @@ on:
   push:
     branches:
       - main
-      - beta
   pull_request:
     branches:
       - main
-      - beta
   schedule:
     - cron: '17 6 * * 1'
 
@@ -41,4 +39,3 @@ jobs:
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
-

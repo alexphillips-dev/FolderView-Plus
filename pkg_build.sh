@@ -7,7 +7,6 @@ today_version="$(date +"%Y.%m.%d")"
 version="${today_version}.01"
 plgfile="$CWD/folderview.plus.plg"
 xmlfile="$CWD/folderview.plus.xml"
-beta_xmlfile="$CWD/folderview.plus.beta.xml"
 release_guard_script="$CWD/scripts/release_guard.sh"
 install_smoke_script="$CWD/scripts/install_smoke.sh"
 ensure_changes_entry_script="$CWD/scripts/ensure_plg_changes_entry.sh"
@@ -58,7 +57,7 @@ validate_manifest_branch_matrix() {
         echo "ERROR: validate_manifest_branch_matrix requires source file and version." >&2
         exit 1
     fi
-    for branch_name in dev main beta; do
+    for branch_name in dev main; do
         local probe_file=""
         local entity_url=""
         local archive_url=""
@@ -99,18 +98,13 @@ apply_branch_channel_messaging() {
         echo "ERROR: apply_branch_channel_messaging requires package root and branch." >&2
         exit 1
     fi
-    if [[ "$target_branch" != "dev" && "$target_branch" != "beta" ]]; then
+    if [[ "$target_branch" != "dev" ]]; then
         return
     fi
     readme_file="$package_root/usr/local/emhttp/plugins/folderview.plus/README.md"
     langs_dir="$package_root/usr/local/emhttp/plugins/folderview.plus/langs"
-    if [ "$target_branch" = "dev" ]; then
-        channel_desc="FolderView Plus dev branch includes preview builds for testing. Expect bugs, regressions, and in-progress changes before they reach main."
-        channel_quickstart="Dev branch: Test changes here before stable release. Update carefully and expect occasional breakage."
-    else
-        channel_desc="FolderView Plus beta branch includes pre-release builds for validation. Features may change before they land on main."
-        channel_quickstart="Beta branch: Validate upcoming changes before stable release and expect occasional issues."
-    fi
+    channel_desc="FolderView Plus dev branch includes preview builds for testing. Expect bugs, regressions, and in-progress changes before they reach main."
+    channel_quickstart="Dev branch: Test changes here before stable release. Update carefully and expect occasional breakage."
     if [ -f "$readme_file" ]; then
         perl -0pi -e 's{<span id="folderviewplus-desc">.*?</span>}{<span id="folderviewplus-desc">'"$channel_desc"'</span>}s' "$readme_file"
         perl -0pi -e 's{Quick start:.*}{'"$channel_quickstart"'}s' "$readme_file"
@@ -126,7 +120,6 @@ apply_branch_channel_messaging() {
 print_usage() {
     cat <<'EOF'
 Usage: pkg_build.sh [options]
-  --beta [N]      Build beta package version (YYYY.MM.DD-beta or -betaN)
   --branch NAME   Force update URLs to use branch NAME (default: auto dev/main)
   --dry-run       Show computed version/output paths without writing files
   --keep-archives N
@@ -182,10 +175,6 @@ ensure_repo_layout() {
         echo "ERROR: Missing CA template file: $xmlfile" >&2
         exit 1
     fi
-    if [ ! -f "$beta_xmlfile" ]; then
-        echo "ERROR: Missing beta CA template file: $beta_xmlfile" >&2
-        exit 1
-    fi
     if [ ! -d "$CWD/src/folderview.plus" ]; then
         echo "ERROR: Missing plugin source directory: $CWD/src/folderview.plus" >&2
         exit 1
@@ -196,8 +185,6 @@ sync_ca_template_metadata() {
     local target_file="${1:-}"
     local target_date="${2:-}"
     local target_branch="${3:-}"
-    local beta_flag="${4:-False}"
-    local template_name="${5:-FolderView Plus}"
     if [ -z "$target_file" ] || [ -z "$target_date" ] || [ -z "$target_branch" ]; then
         echo "ERROR: sync_ca_template_metadata requires file, date, and branch." >&2
         exit 1
@@ -209,8 +196,8 @@ sync_ca_template_metadata() {
     sed -i "s|<Date>.*</Date>|<Date>${target_date}</Date>|" "$target_file"
     sed -i "s|<PluginURL>.*</PluginURL>|<PluginURL>https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/${target_branch}/folderview.plus.plg</PluginURL>|" "$target_file"
     sed -i "s|<Icon>.*</Icon>|<Icon>https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/${target_branch}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/images/folder-icon.png</Icon>|" "$target_file"
-    sed -i "s|<Beta>.*</Beta>|<Beta>${beta_flag}</Beta>|" "$target_file"
-    sed -i "s|<Name>.*</Name>|<Name>${template_name}</Name>|" "$target_file"
+    sed -i "s|<Beta>.*</Beta>|<Beta>False</Beta>|" "$target_file"
+    sed -i "s|<Name>.*</Name>|<Name>FolderView Plus</Name>|" "$target_file"
 }
 
 acquire_build_lock() {
@@ -349,22 +336,11 @@ should_package_file() {
 }
 
 # Parse flags
-# Usage: pkg_build.sh [--beta [N]] [--dry-run] [--validate|--no-validate]
-#   --beta     -> YYYY.MM.DD-beta (beta branch)
-#   --beta 2   -> YYYY.MM.DD-beta2 (beta branch)
+# Usage: pkg_build.sh [--dry-run] [--validate|--no-validate]
 #   --dry-run  -> Print build plan without writing files
-#   (no --beta)-> YYYY.MM.DD.UU (main branch, stable; zero-padded update suffix)
-BETA=false
-BETA_NUM=""
+#   (default)  -> YYYY.MM.DD.UU (main/dev branch, zero-padded update suffix)
 while [[ $# -gt 0 ]]; do
     case "${1:-}" in
-        --beta)
-            BETA=true
-            if [[ -n "${2:-}" && "${2:-}" =~ ^[0-9]+$ ]]; then
-                BETA_NUM="${2:-}"
-                shift
-            fi
-            ;;
         --dry-run)
             dry_run=true
             ;;
@@ -455,19 +431,14 @@ if [ "$run_install_smoke" = true ]; then
 fi
 
 # Set branch and base version by build type
-if [ "$BETA" = true ]; then
-    branch="beta"
-    version="${today_version}-beta${BETA_NUM}"
+if [ -n "$branch_override" ]; then
+    branch="$branch_override"
 else
-    if [ -n "$branch_override" ]; then
-        branch="$branch_override"
+    detected_branch="$(detect_git_branch)"
+    if [ "$detected_branch" = "dev" ]; then
+        branch="dev"
     else
-        detected_branch="$(detect_git_branch)"
-        if [ "$detected_branch" = "dev" ]; then
-            branch="dev"
-        else
-            branch="main"
-        fi
+        branch="main"
     fi
 fi
 
@@ -477,11 +448,11 @@ if ! [[ "$branch" =~ ^[A-Za-z0-9._/-]+$ ]]; then
 fi
 
 if [ -n "$version_override" ]; then
-    if [[ ! "$version_override" =~ ^[0-9]{4}\.[0-9]{2}\.[0-9]{2}([.-][0-9]+|-beta[0-9]*)?$ ]]; then
+    if [[ ! "$version_override" =~ ^[0-9]{4}\.[0-9]{2}\.[0-9]{2}(\.[0-9]+)?$ ]]; then
         echo "Invalid FVPLUS_VERSION_OVERRIDE: $version_override" >&2
         exit 1
     fi
-    if [ "$BETA" = false ] && is_stable_version "$version_override"; then
+    if is_stable_version "$version_override"; then
         version_override="$(normalize_stable_version_for_unraid "$version_override")"
         override_date="$(stable_date_part "$version_override")"
         if [ "$override_date" != "$today_version" ]; then
@@ -489,7 +460,7 @@ if [ -n "$version_override" ]; then
             exit 1
         fi
     fi
-    if [ "$BETA" = false ] && is_stable_version "$version_override"; then
+    if is_stable_version "$version_override"; then
         highest_for_today="$(highest_stable_archive_version_for_date "$today_version" || true)"
         if [ -n "$highest_for_today" ]; then
             max_ver="$(printf '%s\n%s\n' "$version_override" "$highest_for_today" | sort -V | tail -n1)"
@@ -500,7 +471,7 @@ if [ -n "$version_override" ]; then
         fi
     fi
     version="$version_override"
-elif [ "$BETA" = false ]; then
+else
     version="$(next_stable_version_for_date "$today_version")"
 fi
 
@@ -515,7 +486,7 @@ while [ -f "$filename" ]; do
 done
 
 xml_date=""
-if [[ "$version" =~ ^([0-9]{4})\.([0-9]{2})\.([0-9]{2})(\.[0-9]+|-beta[0-9]*)?$ ]]; then
+if [[ "$version" =~ ^([0-9]{4})\.([0-9]{2})\.([0-9]{2})(\.[0-9]+)?$ ]]; then
     xml_date="${BASH_REMATCH[1]}-${BASH_REMATCH[2]}-${BASH_REMATCH[3]}"
 fi
 
@@ -572,11 +543,7 @@ sed -i "s/<!ENTITY md5.*>/<!ENTITY md5 \"$md5\">/" "$plgfile"
 
 # Keep CA template date aligned with the release version date.
 if [ -n "$xml_date" ]; then
-    if [ "$branch" = "beta" ]; then
-        sync_ca_template_metadata "$beta_xmlfile" "$xml_date" "beta" "True" "FolderView Plus Beta"
-    else
-        sync_ca_template_metadata "$xmlfile" "$xml_date" "main" "False" "FolderView Plus"
-    fi
+    sync_ca_template_metadata "$xmlfile" "$xml_date" "$branch"
 fi
 
 # Update branch references in plg file (URLs use XML entities like &github;).

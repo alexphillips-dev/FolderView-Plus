@@ -4,7 +4,6 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PLG_FILE="${ROOT_DIR}/folderview.plus.plg"
 PRIMARY_CA_TEMPLATE_FILE="${ROOT_DIR}/folderview.plus.xml"
-BETA_CA_TEMPLATE_FILE="${ROOT_DIR}/folderview.plus.beta.xml"
 CA_TEMPLATE_FILE="${PRIMARY_CA_TEMPLATE_FILE}"
 PLUGIN_SRC_DIR="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus"
 SERVER_DIR="${PLUGIN_SRC_DIR}/server"
@@ -13,7 +12,7 @@ MAX_ARCHIVE_BYTES="${FVPLUS_MAX_ARCHIVE_BYTES:-52428800}" # 50 MiB default ceili
 MAX_ARCHIVE_FILE_COUNT="${FVPLUS_MAX_ARCHIVE_FILE_COUNT:-10000}"
 
 packaging_sync_hint() {
-  echo "HINT: Run 'bash pkg_build.sh' and commit updated release artifacts (folderview.plus.plg + folderview.plus.xml/folderview.plus.beta.xml + archive/*.txz + archive/*.sha256)." >&2
+  echo "HINT: Run 'bash pkg_build.sh' and commit updated release artifacts (folderview.plus.plg + folderview.plus.xml + archive/*.txz + archive/*.sha256)." >&2
 }
 
 fail_packaged_source_mismatch() {
@@ -70,12 +69,12 @@ if [[ "${PLUGIN_TAG_COMPACT}" != *'name="&name;"'* ]] || [[ "${PLUGIN_TAG_COMPAC
   exit 1
 fi
 
-if ! [[ "${VERSION}" =~ ^[0-9]{4}\.[0-9]{2}\.[0-9]{2}(\.[0-9]{2,}|-beta[0-9]*)$ ]]; then
+if ! [[ "${VERSION}" =~ ^[0-9]{4}\.[0-9]{2}\.[0-9]{2}(\.[0-9]{2,})$ ]]; then
   echo "ERROR: Version has unexpected format: ${VERSION}" >&2
   exit 1
 fi
 
-if [[ "${VERSION}" =~ ^([0-9]{4}\.[0-9]{2}\.[0-9]{2})(\.[0-9]{2,}|-beta[0-9]*)$ ]]; then
+if [[ "${VERSION}" =~ ^([0-9]{4}\.[0-9]{2}\.[0-9]{2})(\.[0-9]{2,})$ ]]; then
   VERSION_DATE="${BASH_REMATCH[1]}"
   TODAY_DATE="$(date +"%Y.%m.%d")"
   if [[ "${VERSION_DATE}" > "${TODAY_DATE}" ]]; then
@@ -92,10 +91,6 @@ if [[ -z "${EXPECTED_PLUGIN_BRANCH}" ]]; then
     EXPECTED_PLUGIN_BRANCH="$(git -C "${ROOT_DIR}" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
   fi
 fi
-if [[ "${EXPECTED_PLUGIN_BRANCH}" == "beta" ]]; then
-  CA_TEMPLATE_FILE="${BETA_CA_TEMPLATE_FILE}"
-fi
-
 if [[ ! -f "${CA_TEMPLATE_FILE}" ]]; then
   echo "ERROR: Missing CA template file: ${CA_TEMPLATE_FILE}" >&2
   exit 1
@@ -112,18 +107,7 @@ if [[ "${CA_TEMPLATE_DATE}" != "${EXPECTED_CA_TEMPLATE_DATE}" ]]; then
   echo "ERROR: CA template <Date> mismatch. expected=${EXPECTED_CA_TEMPLATE_DATE}, found=${CA_TEMPLATE_DATE}" >&2
   exit 1
 fi
-if [[ "${EXPECTED_PLUGIN_BRANCH}" == "beta" ]]; then
-  if ! grep -q '<Beta>True</Beta>' "${CA_TEMPLATE_FILE}"; then
-    echo "ERROR: Beta CA template must advertise <Beta>True</Beta>." >&2
-    exit 1
-  fi
-  if ! grep -q '<PluginURL>https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/beta/folderview.plus.plg</PluginURL>' "${CA_TEMPLATE_FILE}"; then
-    echo "ERROR: Beta CA template PluginURL must target the beta branch." >&2
-    exit 1
-  fi
-fi
-
-if [[ "${EXPECTED_PLUGIN_BRANCH}" =~ ^(main|dev|beta)$ ]]; then
+if [[ "${EXPECTED_PLUGIN_BRANCH}" =~ ^(main|dev)$ ]]; then
   PLUGIN_URL_ENTITY="$(sed -n 's/^<!ENTITY pluginURL "\([^"]*\)".*/\1/p' "${PLG_FILE}" | head -n 1 || true)"
   if [[ -z "${PLUGIN_URL_ENTITY}" ]]; then
     echo "ERROR: Could not parse pluginURL entity from folderview.plus.plg" >&2

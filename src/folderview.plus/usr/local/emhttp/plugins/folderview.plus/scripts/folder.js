@@ -605,18 +605,36 @@ const setBootstrapDiagnostics = (details = {}) => {
     if (!debug.length) {
         return;
     }
+    const formatSeedSummary = (seed) => {
+        if (!seed || typeof seed !== 'object') {
+            return '(none)';
+        }
+        const seedType = String(seed.type || '(empty)').trim() || '(empty)';
+        const seedId = String(seed.id || '(empty)').trim() || '(empty)';
+        const hasFolder = seed.folder && typeof seed.folder === 'object' ? 'yes' : 'no';
+        return `type=${seedType};id=${seedId};folder=${hasFolder}`;
+    };
     const lines = [
         `type=${String(details.type || type || '(empty)')}`,
         `folderId=${String(details.folderId || folderId || '(empty)')}`,
         `resolvedId=${String(details.resolvedId || folderEditorResolvedId || '(empty)')}`,
         `requestedRef=${String(details.requestedRef || '(empty)')}`,
         `pageType=${String(window.FolderViewPlusFolderEditorPageType || '(empty)')}`,
+        `pageMode=${String(window.FolderViewPlusFolderEditorPageMode || '(empty)')}`,
         `pageRequested=${String(window.FolderViewPlusFolderEditorRequestedId || '(empty)')}`,
         `pageResolved=${String(window.FolderViewPlusFolderEditorResolvedId || '(empty)')}`,
         `bootstrapContextResolvedBy=${String(folderEditorBootstrapContext?.resolvedBy || '(none)')}`,
+        `bootstrapContextHasFolder=${folderEditorBootstrapFolder ? 'yes' : 'no'}`,
         `storageSeed=${folderEditorStorageBootstrap ? 'yes' : 'no'}`,
+        `storageSeedSummary=${String(details.storageSeedSummary || formatSeedSummary(folderEditorStorageBootstrap))}`,
         `windowNameSeed=${folderEditorWindowNameBootstrap ? 'yes' : 'no'}`,
+        `windowNameSeedSummary=${String(details.windowNameSeedSummary || formatSeedSummary(folderEditorWindowNameBootstrap))}`,
         `cookieSeed=${String(document.cookie || '').includes(`${EDITOR_BOOTSTRAP_COOKIE_NAME}=`) ? 'yes' : 'no'}`,
+        `navigationPrefillId=${String(details.navigationPrefillId || '(empty)')}`,
+        `navigationPrefillHasFolder=${String(details.navigationPrefillHasFolder || 'no')}`,
+        `foldersLoaded=${String(details.foldersLoaded || '0')}`,
+        `membersLoaded=${String(details.membersLoaded || '0')}`,
+        `resolvedBy=${String(details.resolvedBy || '(none)')}`,
         `hostTheme=${String(window.FolderViewPlusHostThemeName || '(empty)')}`,
         `htmlTheme=${String(document.documentElement?.getAttribute('data-fvplus-host-theme') || '(empty)')}`,
         `mode=${String(details.mode || 'boot')}`,
@@ -4862,6 +4880,7 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
 
     const navigationPrefill = readEditorNavigationPrefill(type, folderId);
     const requestedFolderRef = String(folderId || folderEditorResolvedId || navigationPrefill?.id || '').trim();
+    const folderCount = Object.keys(folders).length;
 
     if (requestedFolderRef) {
         const resolvedEditFolder = resolveCurrentEditFolder(folders, requestedFolderRef);
@@ -4876,6 +4895,9 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
             setBootstrapDiagnostics({
                 mode: 'hydrate',
                 requestedRef: requestedFolderRef,
+                navigationPrefillId: String(navigationPrefill?.id || '(empty)'),
+                navigationPrefillHasFolder: navigationPrefill?.folder ? 'yes' : 'no',
+                foldersLoaded: String(folderCount),
                 result: 'missing-target'
             });
             folderHierarchyState.currentFolderDescendantIds = new Set();
@@ -4900,6 +4922,10 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
             mode: 'hydrate',
             requestedRef: requestedFolderRef,
             resolvedId: currentEditFolderId,
+            navigationPrefillId: String(navigationPrefill?.id || '(empty)'),
+            navigationPrefillHasFolder: navigationPrefill?.folder ? 'yes' : 'no',
+            foldersLoaded: String(folderCount),
+            resolvedBy: String(resolvedEditFolder?.resolvedBy || (bootstrapFolderRecord ? 'server-bootstrap-folder' : navigationPrefill?.folder ? 'navigation-folder' : folderEditorResolvedId ? 'server-resolved-id' : '(none)')),
             result: 'hydrated'
         });
         }
@@ -4911,6 +4937,9 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
         );
         setBootstrapDiagnostics({
             mode: 'hydrate',
+            navigationPrefillId: String(navigationPrefill?.id || '(empty)'),
+            navigationPrefillHasFolder: navigationPrefill?.folder ? 'yes' : 'no',
+            foldersLoaded: String(folderCount),
             result: 'no-target'
         });
         clearEditorNavigationPrefill();
@@ -4946,6 +4975,22 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     }
 
     choose = Object.values(JSON.parse(await $.get(`/plugins/folderview.plus/server/read_info.php?type=${type}&nocache=1&_=${cacheBust}`).promise())).map(typeFilter);
+    setBootstrapDiagnostics({
+        mode: 'post-read-info',
+        requestedRef: requestedFolderRef,
+        resolvedId: currentEditFolderId,
+        navigationPrefillId: String(navigationPrefill?.id || '(empty)'),
+        navigationPrefillHasFolder: navigationPrefill?.folder ? 'yes' : 'no',
+        foldersLoaded: String(folderCount),
+        membersLoaded: String(Array.isArray(choose) ? choose.length : 0),
+        resolvedBy: currentEditFolderId
+            ? String(
+                resolveCurrentEditFolder(folders, requestedFolderRef)?.resolvedBy
+                || (bootstrapFolderRecord ? 'server-bootstrap-folder' : navigationPrefill?.folder ? 'navigation-folder' : folderEditorResolvedId ? 'server-resolved-id' : '(none)')
+            )
+            : '(none)',
+        result: currentEditFolderId ? 'post-read-info-ready' : 'post-read-info-no-target'
+    });
 
     // if editing a folder and not creating one
     if (currentEditFolder && currentEditFolderId) {

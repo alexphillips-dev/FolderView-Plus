@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.25.45">
-<!ENTITY md5 "5ba100ab1e1a55cac6eb001d5137eca7">
+<!ENTITY version "2026.03.25.46">
+<!ENTITY md5 "b9e7fc3d257169b49dd799b675b89a8f">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.25.46
+- Diagnostics: Expanded the modern folder editor bootstrap panel to show page mode, seed summaries, navigation prefill, folder-map load count, member load count, and the final hydrate resolver path.
+- Quality: Locked the new bootstrap debug fields into the route guard so future editor-launch regressions are visible on-page instead of failing silently.
+
 
 ###2026.03.25.45
 - Fix: Modern and legacy folder editors now keep `type/id` bootstrap identity even when the launch payload does not include an embedded folder object.

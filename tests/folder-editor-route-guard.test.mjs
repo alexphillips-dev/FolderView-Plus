@@ -25,7 +25,13 @@ test('folder editor runtimes accept query and hash bootstrap identity fallbacks'
     assert.match(folderJs, /folderThemeSurfaceBinding\?\.runApply\('chrome-ready'\)/);
     assert.match(folderJs, /sampleRoot:\s*'body'/);
     assert.match(folderJs, /windowNameSeed=/);
+    assert.match(folderJs, /storageSeedSummary=/);
+    assert.match(folderJs, /windowNameSeedSummary=/);
     assert.match(folderJs, /cookieSeed=/);
+    assert.match(folderJs, /navigationPrefillId=/);
+    assert.match(folderJs, /foldersLoaded=/);
+    assert.match(folderJs, /membersLoaded=/);
+    assert.match(folderJs, /resolvedBy=/);
     assert.match(folderJs, /return safeType && safeId \? \{ type: safeType, id: safeId, folder \} : null;/);
     assert.match(folderJs, /folder:\s*payload\?\.folder && typeof payload\.folder === 'object'/);
     assert.match(folderPage, /\$_COOKIE\['fv_folder_editor_bootstrap'\]/);

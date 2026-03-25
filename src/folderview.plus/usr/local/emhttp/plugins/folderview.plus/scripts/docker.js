@@ -515,7 +515,7 @@ const layoutFolderPreviewRows = ($preview, settings = {}) => {
             ? (addDividers ? (gapWidth * 2) + dividerWidth : gapWidth)
             : 0;
         const nextWidth = currentWidth + extraWidth + measuredWidth;
-        const exceedsItemCap = currentRow.length >= maxItemsPerRow;
+        const exceedsItemCap = availableWidth <= 0 && currentRow.length >= maxItemsPerRow;
         const exceedsMeasuredWidth = availableWidth > 0 && currentRow.length > 0 && nextWidth > availableWidth;
         const canWrap = exceedsItemCap || exceedsMeasuredWidth;
         if (canWrap && (rowLimit === 0 || rows.length + 1 < rowLimit)) {

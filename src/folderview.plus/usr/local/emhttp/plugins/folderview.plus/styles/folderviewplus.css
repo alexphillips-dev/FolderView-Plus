@@ -5356,11 +5356,16 @@ h2[data-fv-section].fv-search-match {
     min-height: 22px !important;
     max-height: 22px;
     flex: 0 0 22px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.03);
+    background: transparent;
+    box-shadow: none;
     padding: 0;
     line-height: 1;
+    vertical-align: middle;
 }
 
 .status-breakdown-btn > i {

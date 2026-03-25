@@ -55,13 +55,9 @@ fi
 
 ensure_allowed_merge_refs() {
   local missing=()
-  local branch=""
-  for branch in dev; do
-    if git rev-parse --verify "refs/remotes/origin/${branch}^{commit}" >/dev/null 2>&1; then
-      continue
-    fi
-    missing+=("${branch}")
-  done
+  if ! git rev-parse --verify "refs/remotes/origin/dev^{commit}" >/dev/null 2>&1; then
+    missing+=("dev")
+  fi
 
   if [[ "${#missing[@]}" -eq 0 ]]; then
     return

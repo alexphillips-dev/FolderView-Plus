@@ -27,6 +27,10 @@ const settingsPage = read('src/folderview.plus/usr/local/emhttp/plugins/foldervi
 const dockerPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Docker.page');
 const vmPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.VMs.page');
 const dashboardPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Dashboard.page');
+const versionPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/version.php');
+const cpuPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/cpu.php');
+const readOrderPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/read_order.php');
+const readUnraidOrderPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/read_unraid_order.php');
 
 test('lib.php keeps token rollout controls and secure API headers', () => {
     assert.match(libPhp, /const FVPLUS_REQUEST_TOKEN_ENFORCEMENT = 'strict';/);
@@ -67,6 +71,18 @@ test('all plugin page entrypoints emit no-cache document guards', () => {
     assert.match(libPhp, /function emitPluginPageVersionSentinelScript\(string \$pageKey\): void/);
     assert.match(libPhp, /fvplus\.page-version:/);
     assert.match(libPhp, /win\.location\.reload\(\);/);
+});
+
+test('live GET endpoints that drive page freshness emit no-cache headers', () => {
+    assert.match(versionPhp, /header\('Content-Type: text\/plain'\);/);
+    assert.match(versionPhp, /emitNoCachePageHeaders\(\);/);
+    assert.match(readOrderPhp, /header\('Content-Type: text\/plain'\);/);
+    assert.match(readOrderPhp, /emitNoCachePageHeaders\(\);/);
+    assert.match(readUnraidOrderPhp, /header\('Content-Type: text\/plain'\);/);
+    assert.match(readUnraidOrderPhp, /emitNoCachePageHeaders\(\);/);
+    assert.match(cpuPhp, /header\('Cache-Control: no-store, no-cache, must-revalidate, max-age=0'\);/);
+    assert.match(cpuPhp, /header\('Pragma: no-cache'\);/);
+    assert.match(cpuPhp, /header\('Expires: 0'\);/);
 });
 
 test('dashboard page loads quick-rail controller before dashboard runtime', () => {

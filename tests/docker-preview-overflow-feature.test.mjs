@@ -85,10 +85,10 @@ test('docker styles support multi-row previews and member action sheet styling',
     assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-row \{[\s\S]*padding:\s*0/);
     assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-wrapper \{/);
     assert.match(dockerCss, /\.folder-preview-wrapper \{[\s\S]*margin-left:\s*10px/);
-    assert.match(dockerCss, /\.folder-preview-wrapper \{[\s\S]*margin-top:\s*5px/);
+    assert.match(dockerCss, /\.folder-preview-wrapper \{[\s\S]*margin-top:\s*6px/);
     assert.match(dockerCss, /\.folder-preview-wrapper \{[\s\S]*flex:\s*0 0 auto/);
     assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-wrapper \{[\s\S]*min-height:\s*calc\(var\(--fvplus-preview-row-height\) - 0\.9em\)/);
-    assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-wrapper \{[\s\S]*margin:\s*0 0 0 10px/);
+    assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-wrapper \{[\s\S]*margin:\s*6px 0 0 10px/);
     assert.doesNotMatch(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-wrapper \{[\s\S]*transform:\s*translateY\(/);
     assert.match(dockerCss, /\.folder-preview-divider \{/);
     assert.match(dockerCss, /\.folder-preview-divider \{[\s\S]*align-self:\s*stretch/);

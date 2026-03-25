@@ -367,7 +367,7 @@ tr.folder.fv-parent-expanded div.folder-preview {
     width: 100%;
     box-sizing: border-box;
     align-items: center;
-    min-height: 0;
+    min-height: 34px;
     padding: 0;
 }
 
@@ -401,7 +401,7 @@ tr.folder.fv-parent-expanded div.folder-preview {
 }
 
 .folder-preview.fv-preview-multirow .folder-preview-wrapper {
-    min-height: 0;
+    min-height: 28px;
     margin: 0 0 0 10px;
     align-items: center;
     flex: 0 0 auto;
@@ -452,6 +452,7 @@ tr.folder.fv-parent-expanded div.folder-preview {
 .folder-preview.fv-preview-multirow .fv-docker-preview-card-compact {
     align-items: center;
     gap: 6px;
+    min-height: 28px;
 }
 
 .folder-preview.fv-preview-multirow .fv-docker-preview-card-compact .inner {
@@ -583,8 +584,10 @@ tr.folder.fv-parent-expanded div.folder-preview {
 }
 
 .folder-preview.fv-preview-multirow .folder-preview-divider {
+    align-self: center;
+    height: 1.35em;
     min-height: 1.35em;
-    margin: 2px 0;
+    margin: 0 0 0 6px;
 }
 
 .folder-element-custom-btn {

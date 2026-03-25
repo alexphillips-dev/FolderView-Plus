@@ -64,7 +64,9 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorScript, /const folderEditorPreview = window\.FolderViewPlusFolderEditorPreview \|\| null;/);
     assert.match(folderEditorScript, /const folderEditorSharedApi = typeof folderEditorShared\?\.createApi === 'function'/);
     assert.match(folderEditorScript, /const modernEditorSchema = typeof folderEditorSchema\?\.createModernSchema === 'function'/);
-    assert.match(folderEditorScript, /const folderEditorPreviewApi = typeof folderEditorPreview\?\.createApi === 'function'/);
+    assert.match(folderEditorScript, /let folderEditorPreviewApi = null;/);
+    assert.match(folderEditorScript, /const getFolderEditorPreviewApi = \(\) =>/);
+    assert.match(folderEditorScript, /folderEditorPreviewApi = folderEditorPreview\.createApi\(/);
     assert.match(folderEditorScript, /const normalizeFolderRecordForEditor = typeof folderEditorSharedApi\?\.normalizeFolderRecordForEditor === 'function'/);
     assert.match(folderEditorSharedScript, /preview:\s*Number\.isFinite\(Number\(settings\.preview\)\)/);
     assert.match(folderEditorSharedScript, /context_graph_time:\s*Number\.isFinite\(Number\(settings\.context_graph_time\)\)/);

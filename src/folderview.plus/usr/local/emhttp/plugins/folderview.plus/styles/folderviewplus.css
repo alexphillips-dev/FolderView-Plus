@@ -3788,9 +3788,9 @@ body.fv-mobile-compact .fv-setup-field-grid {
     align-items: center;
     gap: 0.22rem;
     min-width: min(360px, 42vw);
-    margin-left: 0.35rem;
-    padding-left: 0.25rem;
-    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    margin-right: 0.35rem;
+    padding-right: 0.25rem;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .fv-mode-toggle {
@@ -3851,12 +3851,6 @@ body.fv-mobile-compact .fv-setup-field-grid {
 
 .fv-search-scope.is-disabled {
     opacity: 0.45;
-}
-
-#fv-settings-clear-search {
-    min-width: 32px;
-    width: 32px;
-    padding: 0;
 }
 
 #fv-run-wizard {
@@ -6071,8 +6065,9 @@ tr.is-long-press-active {
         min-width: 0;
         grid-column: 1 / -1;
         margin-left: 0;
-        padding-left: 0;
-        border-left: 0;
+        margin-right: 0;
+        padding-right: 0;
+        border-right: 0;
     }
 
     .fv-settings-search-wrap input[type="text"] {

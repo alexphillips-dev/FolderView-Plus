@@ -89,6 +89,7 @@ test('docker styles support multi-row previews and member action sheet styling',
     assert.match(dockerCss, /\.folder-preview-wrapper \{[\s\S]*flex:\s*0 0 auto/);
     assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-wrapper \{[\s\S]*min-height:\s*calc\(var\(--fvplus-preview-row-height\) - 0\.9em\)/);
     assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-wrapper \{[\s\S]*margin:\s*0 0 0 10px/);
+    assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-wrapper \{[\s\S]*transform:\s*translateY\(-2px\)/);
     assert.match(dockerCss, /\.folder-preview-divider \{/);
     assert.match(dockerCss, /\.folder-preview-divider \{[\s\S]*align-self:\s*stretch/);
     assert.match(dockerCss, /\.folder-preview-divider \{[\s\S]*min-height:\s*calc\(var\(--fvplus-preview-row-height\) - 1\.2em\)/);

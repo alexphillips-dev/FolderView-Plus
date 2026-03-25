@@ -6,12 +6,26 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.25.28">
-<!ENTITY md5 "e8148377f43b83c7fbde7d1c78ff1148">
+<!ENTITY version "2026.03.25.31">
+<!ENTITY md5 "630c0e0353fd000ee0df03a4c87b2391">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.25.31
+- UX: Keep the settings search field tight to the Basic/Advanced mode toggle and right-align the advanced-scope checkbox.
+- UX: Recenter Docker preview cards within folder rows for cleaner single-row and multi-row alignment.
+- Quality: Update layout smoke coverage for the revised search placement and preview centering rules.
+
+
+###2026.03.25.30
+- Maintenance: Refine settings search alignment and preview centering.
+
+
+###2026.03.25.29
+- Maintenance: Sync stable main packaging and beta-channel removal back into dev.
+
 
 ###2026.03.25.28
 - Fix: Fix shellcheck issue in main history guard.

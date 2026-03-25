@@ -446,13 +446,13 @@ test('folder editor page ships the redesign bootstrap and chrome anchors', () =>
     assert.match(folderPage, /<option value="ghost">Ghost<\/option>/);
     assert.match(folderPage, /<option value="pill">Pill<\/option>/);
     assert.match(folderPage, /<option value="filled">Filled<\/option>/);
-    assert.match(folderPage, /scripts\/folder\.editor\.chrome\.js/);
-    assert.match(folderLegacyJs, /const initEditorChrome = \(\) =>/);
-    assert.match(folderLegacyJs, /const applyEditorPluginDefaults = \(\) =>/);
+    assert.match(folderPage, /if \(\$folderEditorPageMode === 'modern'\):[\s\S]*scripts\/folder\.editor\.chrome\.js[\s\S]*scripts\/folder\.js/);
+    assert.match(folderJs, /const initEditorChrome = \(\) =>/);
+    assert.match(folderJs, /const applyEditorPluginDefaults = \(\) =>/);
     assert.doesNotMatch(folderChromeJs, /fvChangeSummaryLabel/);
     assert.doesNotMatch(folderChromeJs, /fvLiveInheritance/);
-    assert.match(folderLegacyJs, /window\.applyEditorPluginDefaults = applyEditorPluginDefaults;/);
-    assert.match(folderLegacyJs, /window\.suggestDefaultsFromMembers = suggestDefaultsFromMembers;/);
+    assert.match(folderJs, /window\.applyEditorPluginDefaults = applyEditorPluginDefaults;/);
+    assert.match(folderJs, /window\.suggestDefaultsFromMembers = suggestDefaultsFromMembers;/);
     assert.match(folderPreviewJs, /<div class="fv-live-folder-head">/);
     assert.match(folderPreviewJs, /<span class="fv-live-chevron fv-live-chevron-\$\{dropdownStyle\}" aria-hidden="true">/);
     assert.match(folderPreviewJs, /liveChevron\.style\.setProperty\('--fv-live-chevron-color'/);

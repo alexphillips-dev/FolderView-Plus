@@ -59,6 +59,8 @@ const bindFolderThemeAwareSurface = typeof themeResolver?.bindThemeAwareSurface 
 const folderThemeSurfaceBinding = bindFolderThemeAwareSurface
     ? bindFolderThemeAwareSurface({
         root: '.canvas form.folder-editor-form',
+        sampleRoot: '.canvas',
+        extraTargets: ['#fvEditorChrome', '#fvLivePanel', '#fvEditorActionBar'],
         modeInput: 'auto',
         reasonPrefix: 'folder-editor'
     })

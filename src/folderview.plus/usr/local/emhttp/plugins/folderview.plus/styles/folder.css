@@ -1596,10 +1596,10 @@
 
 .fv-live-stat-card,
 .fv-live-chip-panel {
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--fv-editor-control-border);
     border-radius: 14px;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.02));
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    background: var(--fv-editor-panel);
+    box-shadow: inset 0 1px 0 var(--fv-editor-inset-surface);
 }
 
 .fv-live-stat-card {
@@ -1622,7 +1622,7 @@
     display: block;
     font-size: 1.08rem;
     line-height: 1.28;
-    color: #fff;
+    color: var(--fv-editor-text-primary);
 }
 
 .fv-live-chip-panel {
@@ -1644,8 +1644,8 @@
     min-height: 24px;
     padding: 0.1em 0.55em;
     border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--fv-editor-control-border);
+    background: var(--fv-editor-control-surface);
     color: var(--fv-editor-muted);
     font-size: 0.92rem;
     line-height: 1.1;
@@ -1653,8 +1653,9 @@
 
 .fv-inherit-btn:hover,
 .fv-inherit-btn:focus {
-    border-color: rgba(255, 140, 42, 0.4);
-    color: #fff;
+    border-color: var(--fv-editor-border-strong);
+    background: var(--fv-editor-control-surface-hover);
+    color: var(--fv-editor-text-primary);
 }
 
 .fv-inherit-btn.is-inherited,
@@ -1682,8 +1683,8 @@
     min-height: 28px;
     padding: 0.22em 0.68em;
     border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--fv-editor-control-border);
+    background: var(--fv-editor-control-surface);
     font-size: 0.98rem;
     line-height: 1.2;
 }
@@ -1702,7 +1703,7 @@
     gap: 0.42em;
     padding: 0.2em 0.4em;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--fv-editor-control-surface);
 }
 
 .fv-swatch-item > em {
@@ -1714,7 +1715,7 @@
 .fv-swatch-item > i {
     width: 22px;
     height: 15px;
-    border: 1px solid rgba(255, 255, 255, 0.22);
+    border: 1px solid var(--fv-editor-control-border);
     border-radius: 4px;
     display: inline-block;
 }
@@ -1730,15 +1731,15 @@
 }
 
 .fv-regex-result.match {
-    color: #8ce69b;
+    color: var(--fv-editor-success);
 }
 
 .fv-regex-result.no-match {
-    color: #ffbe76;
+    color: var(--fv-editor-warning);
 }
 
 .fv-regex-result.error {
-    color: #ff7f7f;
+    color: var(--fv-editor-danger);
 }
 
 .fv-regex-meta {
@@ -1753,12 +1754,12 @@
     padding: 0.78em 0.82em;
     display: grid;
     gap: 0.72em;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--fv-editor-control-border);
     border-radius: 14px;
     background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.02)),
-        radial-gradient(circle at top right, rgba(255, 154, 60, 0.08), transparent 48%);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+        linear-gradient(180deg, var(--fv-editor-panel), var(--fv-editor-inset-surface)),
+        radial-gradient(circle at top right, var(--fv-editor-accent-soft), transparent 48%);
+    box-shadow: inset 0 1px 0 var(--fv-editor-inset-surface);
 }
 
 .fv-member-tools-main {
@@ -1796,7 +1797,7 @@
     justify-self: end;
     font-weight: 600;
     opacity: 0.9;
-    color: rgba(255, 255, 255, 0.92);
+    color: var(--fv-editor-text-primary);
 }
 
 .fv-member-chip-row {
@@ -1811,17 +1812,17 @@
     min-height: 26px;
     padding: 0.16em 0.62em;
     border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--fv-editor-control-border);
+    background: var(--fv-editor-control-surface);
     color: var(--fv-editor-muted);
     font-size: 0.95rem;
     line-height: 1.2;
 }
 
 .fv-member-chip.is-accent {
-    border-color: rgba(255, 140, 42, 0.34);
-    background: rgba(255, 140, 42, 0.12);
-    color: #fff;
+    border-color: var(--fv-editor-border-strong);
+    background: var(--fv-editor-accent-soft);
+    color: var(--fv-editor-text-primary);
 }
 
 .fv-section-shell-body {
@@ -2094,8 +2095,8 @@
     height: 56px;
     border-radius: 14px;
     padding: 0.35em;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--fv-editor-control-border);
+    background: var(--fv-editor-control-surface);
     visibility: visible !important;
 }
 
@@ -2114,8 +2115,8 @@
     min-height: 42px;
     padding: 0.65em 0.8em;
     border-radius: 10px;
-    border: 1px dashed rgba(255, 255, 255, 0.14);
-    background: rgba(255, 255, 255, 0.025);
+    border: 1px dashed var(--fv-editor-control-border);
+    background: var(--fv-editor-inset-surface);
     box-sizing: border-box;
     max-width: 100%;
     min-width: 0;
@@ -2148,20 +2149,20 @@
     min-height: 34px;
     padding: 0.4em 0.9em;
     border-radius: 8px;
-    border: 1px solid rgba(255, 154, 60, 0.32);
-    background: rgba(255, 154, 60, 0.12);
-    color: #ffd7ab;
+    border: 1px solid var(--fv-editor-border);
+    background: var(--fv-editor-accent-soft);
+    color: var(--fv-editor-accent);
     font-weight: 700;
     text-decoration: none;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    box-shadow: inset 0 1px 0 var(--fv-editor-inset-surface);
     transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease;
 }
 
 .fv-modern-field-row .custom-action:hover,
 .fv-modern-field-row .custom-action:focus {
-    background: rgba(255, 154, 60, 0.18);
-    border-color: rgba(255, 154, 60, 0.48);
-    color: #ffe2bf;
+    background: var(--fv-editor-control-surface-hover);
+    border-color: var(--fv-editor-border-strong);
+    color: var(--fv-editor-text-primary);
     text-decoration: none;
 }
 
@@ -2183,10 +2184,10 @@
 
 .fv-modern-order-row.is-members-row {
     border-radius: 16px;
-    border-color: rgba(255, 255, 255, 0.12);
+    border-color: var(--fv-editor-control-border);
     background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015)),
-        radial-gradient(circle at top right, rgba(255, 154, 60, 0.07), transparent 44%);
+        linear-gradient(180deg, var(--fv-editor-panel), var(--fv-editor-inset-surface)),
+        radial-gradient(circle at top right, var(--fv-editor-accent-soft), transparent 44%);
 }
 
 .folder-status-colors {
@@ -2203,7 +2204,7 @@
 }
 
 .folder-status-color-item > span {
-    color: rgba(255, 255, 255, 0.82);
+    color: var(--fv-editor-text-primary);
 }
 
 table.sortable {

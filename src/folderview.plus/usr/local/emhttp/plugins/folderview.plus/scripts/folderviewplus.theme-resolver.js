@@ -364,6 +364,30 @@
         return doc.body || doc.documentElement;
     };
 
+    const resolveThemeTargets = (rootCandidate = null, extraTargets = [], doc = document) => {
+        const seen = new Set();
+        const targets = [];
+        const pushTarget = (candidate) => {
+            const resolved = resolveThemeRoot(candidate, doc);
+            if (!resolved || seen.has(resolved)) {
+                return;
+            }
+            seen.add(resolved);
+            targets.push(resolved);
+        };
+        pushTarget(rootCandidate);
+        const extras = Array.isArray(extraTargets) ? extraTargets : [extraTargets];
+        for (const candidate of extras) {
+            if (!candidate) {
+                continue;
+            }
+            pushTarget(candidate);
+        }
+        pushTarget(doc.body || null);
+        pushTarget(doc.documentElement || null);
+        return targets;
+    };
+
     const resolveRequestedMode = (modeInput = null, options = {}) => {
         const hasExplicitMode = modeInput !== null && modeInput !== undefined && String(modeInput).trim() !== '';
         if (hasExplicitMode) {
@@ -438,10 +462,10 @@
     const buildResolvedThemeSnapshot = (modeInput = null, options = {}) => {
         const doc = options.document || document;
         const win = options.window || window;
-        const root = resolveThemeRoot(options.root, doc);
+        const sampleRoot = resolveThemeRoot(options.sampleRoot ?? options.root, doc);
         const html = doc.documentElement;
         const body = doc.body;
-        const rootStyle = root ? win.getComputedStyle(root) : null;
+        const rootStyle = sampleRoot ? win.getComputedStyle(sampleRoot) : null;
         const htmlStyle = html ? win.getComputedStyle(html) : null;
         const bodyStyle = body ? win.getComputedStyle(body) : null;
         const styleSources = [rootStyle, bodyStyle, htmlStyle].filter(Boolean);
@@ -563,6 +587,7 @@
             appliedMode: modeApplied,
             prefersDark,
             classification,
+            sampleRootSelector: typeof options.sampleRoot === 'string' ? options.sampleRoot : '',
             rootLuminance: Number(backgroundLuminance.toFixed(4)),
             hostTextLuminance: Number(foregroundLuminance.toFixed(4)),
             hostContrast: Number(hostContrast.toFixed(3)),
@@ -580,11 +605,9 @@
 
     const applyResolvedThemeTokens = (reason = 'runtime', options = {}) => {
         const doc = options.document || document;
-        const root = resolveThemeRoot(options.root, doc);
-        const html = doc.documentElement;
-        const body = doc.body;
         const snapshot = buildResolvedThemeSnapshot(options.modeInput ?? null, options);
-        if (!root || !html) {
+        const targets = resolveThemeTargets(options.root, options.extraTargets, doc);
+        if (targets.length === 0) {
             return snapshot;
         }
         const tokens = snapshot.tokens || {};
@@ -642,7 +665,6 @@
             '--fvplus-editor-nav-count-text': tokens.editorNavCountText || '',
             '--fvplus-editor-info': tokens.editorInfo || ''
         };
-        const targets = [root, body, html].filter(Boolean);
         for (const target of targets) {
             for (const [token, value] of Object.entries(rootTokenMap)) {
                 target.style.setProperty(token, value);

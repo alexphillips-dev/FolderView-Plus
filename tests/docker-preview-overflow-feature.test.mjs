@@ -79,7 +79,7 @@ test('docker styles support multi-row previews and member action sheet styling',
     assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \{[\s\S]*row-gap:\s*2px/);
     assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \{[\s\S]*padding:\s*2px 0/);
     assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-row \{/);
-    assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-row \{[\s\S]*align-items:\s*flex-start/);
+    assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-row \{[\s\S]*align-items:\s*center/);
     assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-row \{[\s\S]*justify-content:\s*flex-start/);
     assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-row \{[\s\S]*min-height:\s*var\(--fvplus-preview-row-height\)/);
     assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-row \{[\s\S]*padding:\s*0/);
@@ -88,15 +88,15 @@ test('docker styles support multi-row previews and member action sheet styling',
     assert.match(dockerCss, /\.folder-preview-wrapper \{[\s\S]*margin-top:\s*7px/);
     assert.match(dockerCss, /\.folder-preview-wrapper \{[\s\S]*flex:\s*0 0 auto/);
     assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-wrapper \{[\s\S]*min-height:\s*calc\(var\(--fvplus-preview-row-height\) - 0\.9em\)/);
-    assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-wrapper \{[\s\S]*margin:\s*7px 0 0 10px/);
+    assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-wrapper \{[\s\S]*margin:\s*0 0 0 10px/);
     assert.match(dockerCss, /\.folder-preview-divider \{/);
     assert.match(dockerCss, /\.folder-preview-divider \{[\s\S]*align-self:\s*stretch/);
     assert.match(dockerCss, /\.folder-preview-divider \{[\s\S]*min-height:\s*calc\(var\(--fvplus-preview-row-height\) - 1\.2em\)/);
     assert.match(dockerCss, /\.folder-preview-divider \{[\s\S]*margin:\s*0\.35em 0 0\.35em 6px/);
     assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-divider \{/);
-    assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-divider \{[\s\S]*align-self:\s*stretch/);
-    assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-divider \{[\s\S]*height:\s*auto/);
-    assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-divider \{[\s\S]*margin:\s*0\.35em 0 0\.35em 6px/);
+    assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-divider \{[\s\S]*align-self:\s*center/);
+    assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-divider \{[\s\S]*height:\s*1\.35em/);
+    assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-divider \{[\s\S]*margin:\s*0 0 0 6px/);
     assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.fv-docker-preview-card \{/);
     assert.match(dockerCss, /\.folder-preview \.fv-preview-webui-placeholder \{/);
     assert.match(dockerCss, /\.folder-preview \.fv-preview-webui-placeholder \{[\s\S]*visibility:\s*hidden/);

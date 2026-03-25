@@ -14,8 +14,9 @@
     <CHANGES>
 
 ###2026.03.25.45
-- UX: Refined settings and on-screen update messaging for clarity and consistency.
-- Quality: Strengthened release automation and regression guards to prevent note drift.
+- Fix: Modern and legacy folder editors now keep `type/id` bootstrap identity even when the launch payload does not include an embedded folder object.
+- Fix: Existing-folder hydration can now resolve from storage and window-name identity fallbacks after query or hash state is stripped during navigation.
+- Quality: Route guard coverage now locks the identity-only bootstrap contract so folder-edit launches do not silently regress back to blank-editor mode.
 
 
 ###2026.03.25.44

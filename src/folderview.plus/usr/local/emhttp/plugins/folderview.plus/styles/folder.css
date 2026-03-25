@@ -1907,6 +1907,13 @@
     justify-self: start;
 }
 
+.fv-section-shell[data-section-shell="rules"] .fv-modern-field-row,
+.fv-section-shell[data-section-shell="actions"] .fv-modern-field-row {
+    width: min(100%, 560px) !important;
+    max-width: 560px !important;
+    justify-self: start !important;
+}
+
 .fv-modern-field-row > dl,
 .canvas form.folder-editor-form.fv-force-left-v3 .fv-modern-field-row > dl {
     display: flex !important;
@@ -2236,50 +2243,59 @@ table.sortable td:nth-child(3) {
     background: transparent;
     color: rgba(255, 255, 255, 0.9);
     padding: 1.15em 1.15em 0.4em !important;
+    text-align: left !important;
 }
 
-.fv-folder-action-dialog .ui-dialog-content > div {
+.fv-folder-action-dialog .dialogCustomAction {
+    width: min(100%, 430px);
+    margin: 0 auto;
     display: grid;
     gap: 0.85em;
 }
 
-.fv-folder-action-dialog .ui-dialog-content > div > div,
-.fv-folder-action-dialog .ui-dialog-content > div > .standard > div,
-.fv-folder-action-dialog .ui-dialog-content > div > .custom > dl,
-.fv-folder-action-dialog .ui-dialog-content > div > dl {
+.fv-folder-action-dialog .dialogCustomAction > div,
+.fv-folder-action-dialog .dialogCustomAction > .standard > div,
+.fv-folder-action-dialog .dialogCustomAction > .custom > dl,
+.fv-folder-action-dialog .dialogCustomAction > dl {
     display: block;
-}
-
-.fv-folder-action-dialog .ui-dialog-content dl {
-    display: grid;
-    grid-template-columns: 100px minmax(0, 1fr);
-    align-items: center;
-    column-gap: 0.9em;
-    row-gap: 0.35em;
     margin: 0;
 }
 
-.fv-folder-action-dialog .ui-dialog-content dl > dt {
+.fv-folder-action-dialog .dialogCustomAction dl {
+    display: grid !important;
+    grid-template-columns: 92px minmax(0, 1fr);
+    align-items: center;
+    column-gap: 0.7em;
+    row-gap: 0.35em;
+    margin: 0 !important;
+    width: 100% !important;
+    text-align: left !important;
+}
+
+.fv-folder-action-dialog .dialogCustomAction dl > dt {
     color: #ffd7ab;
     font-weight: 700;
     width: auto !important;
     text-align: left !important;
     margin: 0 !important;
     padding: 0 !important;
+    float: none !important;
 }
 
-.fv-folder-action-dialog .ui-dialog-content dl > dd {
+.fv-folder-action-dialog .dialogCustomAction dl > dd {
     width: auto !important;
     margin: 0 !important;
     padding: 0 !important;
     text-align: left !important;
+    float: none !important;
 }
 
-.fv-folder-action-dialog .ui-dialog-content input[type="text"],
-.fv-folder-action-dialog .ui-dialog-content select,
-.fv-folder-action-dialog .ui-dialog-content textarea,
-.fv-folder-action-dialog .ui-dialog-content .ui-multiselect {
-    width: min(100%, 320px);
+.fv-folder-action-dialog .dialogCustomAction input[type="text"],
+.fv-folder-action-dialog .dialogCustomAction select,
+.fv-folder-action-dialog .dialogCustomAction textarea,
+.fv-folder-action-dialog .dialogCustomAction .ui-multiselect {
+    width: 100% !important;
+    max-width: 100% !important;
     border-radius: 9px;
     border: 1px solid rgba(255, 255, 255, 0.12);
     background: rgba(10, 10, 10, 0.34);
@@ -2287,12 +2303,12 @@ table.sortable td:nth-child(3) {
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
-.fv-folder-action-dialog .ui-dialog-content .ui-multiselect {
+.fv-folder-action-dialog .dialogCustomAction .ui-multiselect {
     min-height: 34px;
 }
 
 .fv-folder-action-dialog .action-subject .ui-multiselect {
-    width: min(100%, 320px) !important;
+    width: 100% !important;
 }
 
 .fv-folder-action-dialog .ui-dialog-buttonpane {

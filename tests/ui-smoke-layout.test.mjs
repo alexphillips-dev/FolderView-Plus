@@ -346,7 +346,7 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderCss, /\.fv-modern-field-row\.is-actions-row,\s*[\s\S]*\.fv-modern-field-row\.is-compact-text-row\s*\{[\s\S]*width:\s*min\(100%, 560px\);[\s\S]*max-width:\s*560px;/);
     assert.match(folderCss, /\.fv-modern-field-row \.custom-action\s*\{/);
     assert.match(folderCss, /\.fv-folder-action-dialog\.ui-dialog\s*\{/);
-    assert.match(folderCss, /\.fv-folder-action-dialog \.ui-dialog-content dl\s*\{[\s\S]*grid-template-columns:\s*100px minmax\(0, 1fr\);/);
+    assert.match(folderCss, /\.fv-folder-action-dialog \.dialogCustomAction dl\s*\{[\s\S]*grid-template-columns:\s*92px minmax\(0, 1fr\);/);
     assert.match(folderJs, /dialogWidget\.addClass\('fv-folder-action-dialog'\);/);
     assert.match(folderLegacyJs, /dialogWidget\.addClass\('fv-folder-action-dialog'\);/);
     assert.match(folderJs, /width:\s*620,/);

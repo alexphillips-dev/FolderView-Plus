@@ -450,6 +450,16 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
         $tooltipTrigger: $item.find(triggerSelector).first()
     };
 };
+const shouldReservePreviewWebuiSlot = (settings = {}, webuiQuickActionEnabled = false) =>
+    settings?.preview_vertical_bars === true && webuiQuickActionEnabled === true;
+
+const appendPreviewWebuiPlaceholder = ($target) => {
+    if (!$target || !$target.length) {
+        return;
+    }
+    $target.append('<span class="folder-element-custom-btn folder-element-webui folder-element-webui-placeholder" aria-hidden="true"></span>');
+};
+
 const layoutFolderPreviewRows = ($preview, settings = {}) => {
     if (!$preview || !$preview.length) {
         return;
@@ -3279,6 +3289,8 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                 } else {
                      if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: WebUI icon: Could not find target for append in preview element.`);
                 }
+            } else if (shouldReservePreviewWebuiSlot(folder.settings, folder.settings.preview_webui === true)) {
+                appendPreviewWebuiPlaceholder($targetForAppend);
             }
 
             if (folder.settings.preview_console) {
@@ -3674,6 +3686,8 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
                 .attr('rel', 'noopener noreferrer')
                 .append('<i class="fa fa-globe" aria-hidden="true"></i>');
             $actionsTarget.append($('<span class="folder-element-custom-btn folder-element-webui"></span>').append($webuiLink));
+        } else if (shouldReservePreviewWebuiSlot(folder?.settings || {}, allowWebuiQuickAction)) {
+            appendPreviewWebuiPlaceholder($actionsTarget);
         }
 
         if (allowConsoleQuickAction) {

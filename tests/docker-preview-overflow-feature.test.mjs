@@ -70,6 +70,9 @@ test('docker styles support multi-row previews and member action sheet styling',
     assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-divider \{/);
     assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-divider \{[\s\S]*align-self:\s*stretch/);
     assert.match(dockerCss, /\.fv-docker-preview-card \{/);
+    assert.match(dockerCss, /\.folder-preview \.folder-element-webui-placeholder \{/);
+    assert.match(dockerCss, /\.folder-preview \.folder-element-webui-placeholder \{[\s\S]*visibility:\s*hidden/);
+    assert.match(dockerCss, /\.folder-preview \.folder-element-webui-placeholder \{[\s\S]*pointer-events:\s*none/);
     assert.match(dockerCss, /\.fv-docker-preview-mode-1 \{/);
     assert.match(dockerCss, /\.fv-docker-member-menu-trigger/);
     assert.match(dockerCss, /\.fv-docker-member-menu-actions/);

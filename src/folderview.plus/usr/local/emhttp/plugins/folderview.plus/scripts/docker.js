@@ -4119,12 +4119,15 @@ const seedFolderEditorPrefill = (folderType, id) => {
 };
 const buildDockerFolderEditorUrl = (id = '') => {
     const params = new URLSearchParams();
+    const hashParams = new URLSearchParams();
     params.set('type', 'docker');
+    hashParams.set('type', 'docker');
     if (String(id || '').trim()) {
         params.set('id', String(id || '').trim());
+        hashParams.set('id', String(id || '').trim());
     }
     params.set('_', String(Date.now()));
-    return `/Docker/Folder?${params.toString()}`;
+    return `/Docker/Folder?${params.toString()}#${hashParams.toString()}`;
 };
 const editFolder = (id) => {
     if (!ensureDockerFolderUnlocked(id, 'Edit folder')) {

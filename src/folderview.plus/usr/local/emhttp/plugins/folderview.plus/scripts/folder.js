@@ -5,6 +5,7 @@ let selectedRegex = [];
 // element selected manually
 let selected = [];
 const folderEditorQueryParams = new URLSearchParams(location.search);
+const folderEditorHashParams = new URLSearchParams(String(window.location?.hash || '').replace(/^#/, ''));
 const folderEditorBootstrapContext = window.FolderViewPlusFolderEditorBootstrapContext
     && typeof window.FolderViewPlusFolderEditorBootstrapContext === 'object'
     ? window.FolderViewPlusFolderEditorBootstrapContext
@@ -22,7 +23,9 @@ const inferFolderEditorTypeFromPath = () => {
 // docker or vm?
 const type = String(
     folderEditorQueryParams.get('type')
+    || folderEditorHashParams.get('type')
     || folderEditorQueryParams.get('mode')
+    || folderEditorHashParams.get('mode')
     || window.FolderViewPlusFolderEditorPageType
     || inferFolderEditorTypeFromPath()
     || ''
@@ -30,9 +33,13 @@ const type = String(
 // id of the folder if present
 const folderId = String(
     folderEditorQueryParams.get('id')
+    || folderEditorHashParams.get('id')
     || folderEditorQueryParams.get('folderId')
+    || folderEditorHashParams.get('folderId')
     || folderEditorQueryParams.get('folder')
+    || folderEditorHashParams.get('folder')
     || folderEditorQueryParams.get('name')
+    || folderEditorHashParams.get('name')
     || folderEditorBootstrapContext.resolvedId
     || window.FolderViewPlusFolderEditorRequestedId
     || folderEditorBootstrapContext.requestedId
@@ -58,7 +65,7 @@ const bindFolderThemeAwareSurface = typeof themeResolver?.bindThemeAwareSurface 
 const folderThemeSurfaceBinding = bindFolderThemeAwareSurface
     ? bindFolderThemeAwareSurface({
         root: '.canvas form.folder-editor-form',
-        sampleRoot: '.canvas',
+        sampleRoot: 'body',
         extraTargets: ['#fvEditorChrome', '#fvLivePanel', '#fvEditorActionBar'],
         modeInput: 'auto',
         reasonPrefix: 'folder-editor'
@@ -4714,6 +4721,7 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     registerBeforeUnloadGuard();
     applySectionTags();
     initEditorChrome();
+    folderThemeSurfaceBinding?.runApply('chrome-ready');
     updateForm();
     applyAdvancedMode();
     enforceLeftAlignedSettingsLayout();

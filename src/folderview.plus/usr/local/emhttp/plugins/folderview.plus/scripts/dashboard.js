@@ -2091,12 +2091,15 @@ const seedDashboardFolderEditorPrefill = (folderType, id) => {
 const buildDashboardFolderEditorUrl = (folderType, id = '') => {
     const resolvedType = String(folderType || '').trim() === 'vm' ? 'vm' : 'docker';
     const params = new URLSearchParams();
+    const hashParams = new URLSearchParams();
     params.set('type', resolvedType);
+    hashParams.set('type', resolvedType);
     if (String(id || '').trim()) {
         params.set('id', String(id || '').trim());
+        hashParams.set('id', String(id || '').trim());
     }
     params.set('_', String(Date.now()));
-    return `${location.pathname}/Folder?${params.toString()}`;
+    return `${location.pathname}/Folder?${params.toString()}#${hashParams.toString()}`;
 };
 const editDockerFolder = (id) => {
     seedDashboardFolderEditorPrefill('docker', id);

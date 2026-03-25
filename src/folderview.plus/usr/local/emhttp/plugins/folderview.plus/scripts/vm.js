@@ -1772,12 +1772,15 @@ const seedFolderEditorPrefill = (folderType, id) => {
 };
 const buildVmFolderEditorUrl = (id = '') => {
     const params = new URLSearchParams();
+    const hashParams = new URLSearchParams();
     params.set('type', 'vm');
+    hashParams.set('type', 'vm');
     if (String(id || '').trim()) {
         params.set('id', String(id || '').trim());
+        hashParams.set('id', String(id || '').trim());
     }
     params.set('_', String(Date.now()));
-    return `/VMs/Folder?${params.toString()}`;
+    return `/VMs/Folder?${params.toString()}#${hashParams.toString()}`;
 };
 const editFolder = (id) => {
     if (!ensureVmFolderUnlocked(id, 'Edit folder')) {

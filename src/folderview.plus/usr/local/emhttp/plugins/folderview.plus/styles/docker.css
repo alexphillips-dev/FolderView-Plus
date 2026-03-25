@@ -393,7 +393,7 @@ tr.folder.fv-parent-expanded div.folder-preview {
     flex: 0 0 auto;
     min-width: 0;
     margin-left: 10px;
-    margin-top: 7px;
+    margin-top: 5px;
 }
 
 .folder-preview-wrapper > span.outer {
@@ -407,7 +407,6 @@ tr.folder.fv-parent-expanded div.folder-preview {
     align-items: center;
     flex: 0 0 auto;
     min-width: max-content;
-    transform: translateY(-2px);
 }
 
 .folder-preview.fv-preview-multirow .fv-docker-preview-card {

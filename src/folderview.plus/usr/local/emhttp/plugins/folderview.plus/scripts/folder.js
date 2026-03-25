@@ -6077,6 +6077,7 @@ const customAction = (action = undefined) => {
         resizable: false,
         width: 800,
         modal: true,
+        position: { my: 'center top+72', at: 'center top', of: window },
         show: { effect: 'fade', duration: 250 },
         hide: { effect: 'fade', duration: 250 },
         buttons,
@@ -6085,10 +6086,11 @@ const customAction = (action = undefined) => {
         }
     });
     const dialogWidget = dialog.closest('.ui-dialog');
+    dialogWidget.addClass('fv-folder-action-dialog');
     dialogWidget.find('.ui-dialog-titlebar').addClass('menu');
     dialogWidget.find('.ui-dialog-titlebar-close').css({ display: 'none' });
     dialogWidget.find('.ui-dialog-title').css({ 'text-align': 'center', width: '100%' });
-    dialogWidget.find('.ui-dialog-content').css({ 'padding-top': '15px', 'vertical-align': 'bottom' });
+    dialogWidget.find('.ui-dialog-content').css({ 'vertical-align': 'bottom' });
     dialogWidget.find('.ui-button-text').css({ padding: '0px 5px' });
     return false;
 };

@@ -209,7 +209,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.32em;
-    padding: 0.24em;
+    padding: 0.24em 0.42em;
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.12);
     background: rgba(255, 255, 255, 0.03);
@@ -1900,6 +1900,12 @@
     max-width: 780px;
 }
 
+.fv-modern-field-row.is-actions-row,
+.fv-modern-field-row.is-compact-text-row {
+    max-width: 560px;
+    justify-self: start;
+}
+
 .fv-modern-field-row > dl,
 .canvas form.folder-editor-form.fv-force-left-v3 .fv-modern-field-row > dl {
     display: flex !important;
@@ -2067,6 +2073,39 @@
     border-radius: 10px;
     border: 1px dashed rgba(255, 255, 255, 0.14);
     background: rgba(255, 255, 255, 0.025);
+    box-sizing: border-box;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.fv-modern-field-row .custom-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45em;
+    min-height: 34px;
+    padding: 0.4em 0.9em;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 154, 60, 0.32);
+    background: rgba(255, 154, 60, 0.12);
+    color: #ffd7ab;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+.fv-modern-field-row .custom-action:hover,
+.fv-modern-field-row .custom-action:focus {
+    background: rgba(255, 154, 60, 0.18);
+    border-color: rgba(255, 154, 60, 0.48);
+    color: #ffe2bf;
+    text-decoration: none;
+}
+
+.fv-modern-field-row .custom-action:active {
+    transform: translateY(1px);
 }
 
 .fv-modern-order-row {
@@ -2165,6 +2204,76 @@ table.sortable td:nth-child(3) {
 .custom-action-wrapper {
     display: flex;
     flex-direction: column;
+}
+
+.fv-folder-action-dialog.ui-dialog {
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background:
+        linear-gradient(180deg, rgba(28, 24, 20, 0.98), rgba(18, 18, 18, 0.98)),
+        radial-gradient(circle at top right, rgba(255, 154, 60, 0.12), transparent 50%);
+    box-shadow: 0 28px 80px rgba(0, 0, 0, 0.55);
+    overflow: hidden;
+}
+
+.fv-folder-action-dialog .ui-dialog-titlebar {
+    border: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+    color: #f7f1e8;
+    padding: 0.9em 1.1em;
+}
+
+.fv-folder-action-dialog .ui-dialog-title {
+    color: #f7f1e8;
+    font-size: 1.08rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.fv-folder-action-dialog .ui-dialog-content {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.9);
+    padding: 1.15em 1.15em 0.4em !important;
+}
+
+.fv-folder-action-dialog .ui-dialog-content dl > dt {
+    color: #ffd7ab;
+    font-weight: 700;
+}
+
+.fv-folder-action-dialog .ui-dialog-content input[type="text"],
+.fv-folder-action-dialog .ui-dialog-content select,
+.fv-folder-action-dialog .ui-dialog-content textarea,
+.fv-folder-action-dialog .ui-dialog-content .ui-multiselect {
+    border-radius: 9px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(10, 10, 10, 0.34);
+    color: #f6f2eb;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.fv-folder-action-dialog .ui-dialog-content .ui-multiselect {
+    min-height: 34px;
+}
+
+.fv-folder-action-dialog .ui-dialog-buttonpane {
+    margin: 0;
+    padding: 0.85em 1.1em 1.05em;
+    border: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.025);
+}
+
+.fv-folder-action-dialog .ui-dialog-buttonset {
+    display: inline-flex;
+    gap: 0.55em;
+}
+
+.fv-folder-action-dialog .ui-dialog-buttonpane button {
+    min-height: 34px;
+    padding: 0.42em 1.1em;
+    border-radius: 8px;
 }
 
 .multiselect-container {

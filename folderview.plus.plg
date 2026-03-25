@@ -6,12 +6,28 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.24.53">
-<!ENTITY md5 "3fbd748434c8064751fba7e5946a3957">
+<!ENTITY version "2026.03.24.55">
+<!ENTITY md5 "d9425578c42de876578aa16d75f15302">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.24.55
+- UX: Polish modern rules/actions editor cards.
+- Maintenance: Standardize modern editor card sizing.
+- Maintenance: Separate modern field headers from content.
+- Maintenance: Move modern field headers up.
+- Maintenance: Refine modern field card header layout.
+- Maintenance: Adjust modern editor header spacing.
+
+
+###2026.03.24.54
+- UX: Constrained the modern Rules and Actions cards so sparse advanced controls no longer stretch across the full editor width.
+- UX: Restyled the `Add a custom action` trigger as a real button, fixed the custom-action wrapper overflow, and aligned the modern Basic/Advanced toggle padding symmetrically.
+- UX: Skinned the custom action dialog to match the active folder editor theme and moved it higher on the page instead of leaving the legacy white centered modal.
+- Test: Added regression coverage for the compact advanced-card sizing, themed custom-action dialog hook, and updated editor mode control padding.
+
 
 ###2026.03.24.53
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

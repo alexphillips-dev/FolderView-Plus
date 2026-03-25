@@ -3544,8 +3544,10 @@ body.fv-mobile-compact .fv-setup-field-grid {
 #fv-settings-topbar {
     margin: 0 0 0.65rem 0;
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
+    gap: 0.65rem 0.85rem;
+    flex-wrap: wrap;
     min-width: 0;
 }
 
@@ -3753,6 +3755,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
     justify-content: center;
     gap: 0.08rem;
     min-width: 0;
+    margin-right: auto;
 }
 
 .fv-settings-title {
@@ -3774,20 +3777,24 @@ body.fv-mobile-compact .fv-setup-field-grid {
 .fv-settings-right {
     display: inline-flex;
     align-items: center;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 0.35rem 0.45rem;
 }
 
 .fv-settings-right {
-    margin-left: auto;
+    margin-left: 0;
+    flex: 0 0 auto;
 }
 
 .fv-settings-search-block {
     display: inline-grid;
     grid-template-columns: minmax(0, 1fr);
+    justify-items: stretch;
     align-items: center;
     gap: 0.22rem;
-    min-width: min(360px, 42vw);
+    flex: 0 0 auto;
+    width: clamp(180px, 15vw, 220px);
+    min-width: 0;
 }
 
 .fv-mode-toggle {
@@ -3828,14 +3835,16 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-settings-search-wrap input[type="text"] {
-    width: clamp(170px, 22vw, 280px);
+    width: 100%;
     min-height: 32px;
 }
 
 .fv-search-scope {
     display: inline-flex;
     align-items: center;
+    justify-content: flex-end;
     gap: 0.35rem;
+    width: 100%;
     font-size: 1.03rem;
     opacity: 0.9;
     white-space: nowrap;

@@ -67,10 +67,14 @@ test('docker CSS exposes centralized layout tokens with compatibility fallbacks'
     assert.match(dockerCss, /--fvplus-docker-folder-outer-reserved-width:\s*106px/);
     assert.match(dockerCss, /--fvplus-docker-folder-dropdown-right-margin:\s*16px/);
     assert.match(dockerCss, /--fvplus-folder-dropdown-color:\s*#ff9a3c/);
+    assert.match(dockerCss, /--fvplus-folder-dropdown-hover-color:\s*#ff9a3c/);
+    assert.match(dockerCss, /--fvplus-folder-dropdown-hover-bg:\s*rgba\(255,\s*154,\s*60,\s*0\.18\)/);
     assert.match(dockerCss, /--fvplus-folder-dropdown-min-width:\s*12px/);
     assert.match(dockerCss, /right:\s*var\(--fvplus-docker-folder-right-gutter,\s*28px\)/);
     assert.match(dockerCss, /max-width:\s*calc\(var\(--fvplus-docker-app-column-width\)\s*-\s*var\(--fvplus-docker-folder-outer-reserved-width,\s*106px\)\)/);
     assert.match(dockerCss, /margin:\s*0 var\(--fvplus-docker-folder-dropdown-right-margin,\s*16px\) 0 auto/);
     assert.match(dockerCss, /border:\s*var\(--fvplus-folder-dropdown-border-width,\s*1px\) solid var\(--fvplus-folder-dropdown-border-color/);
+    assert.match(dockerCss, /\.folder-dropdown:hover,\s*[\s\S]*visibility:\s*visible !important/);
+    assert.match(dockerCss, /\.folder-dropdown:hover > i,\s*[\s\S]*opacity:\s*1 !important/);
     assert.match(dockerCss, /border-right:\s*var\(--fvplus-preview-divider-width,\s*1px\) solid/);
 });

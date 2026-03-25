@@ -425,7 +425,8 @@ test('standards guard scripts exist with expected core checks', () => {
     assert.match(mainBranchHistoryGuard, /Main branch history guard skipped/);
     assert.match(mainBranchHistoryGuard, /FVPLUS_MAIN_HISTORY_BASE_REF/);
     assert.match(mainBranchHistoryGuard, /@\{upstream\}\.\.HEAD/);
-    assert.match(mainBranchHistoryGuard, /merge commits are not allowed/);
+    assert.match(mainBranchHistoryGuard, /merge_commit_allowed/);
+    assert.match(mainBranchHistoryGuard, /main-branch merge commits must promote only dev\/beta history/);
     assert.match(mainBranchHistoryGuard, /Main branch history guard passed/);
     assert.match(unraidMatrixSmoke, /FVPLUS_UNRAID_MATRIX/);
     assert.match(unraidMatrixSmoke, /Skipping Unraid matrix smoke checks/);

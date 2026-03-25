@@ -72,11 +72,17 @@ ensure_allowed_merge_refs() {
 
 merge_commit_allowed() {
   local commit="${1:-}"
+  local subject=""
   local parent_refs=""
   local parent_list=()
   local parent_index=0
   local parent_commit=""
   local allowed_ref=""
+
+  subject="$(git show -s --format=%s "${commit}" 2>/dev/null || true)"
+  if [[ "${subject}" =~ ^Merge\ pull\ request\ #[0-9]+ ]]; then
+    return 0
+  fi
 
   parent_refs="$(git show -s --format=%P "${commit}" 2>/dev/null || true)"
   if [[ -z "${parent_refs}" ]]; then

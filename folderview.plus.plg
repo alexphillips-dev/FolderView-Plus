@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.25.02">
-<!ENTITY md5 "d835eda2b8742365ee8e53b6064343f3">
+<!ENTITY version "2026.03.25.03">
+<!ENTITY md5 "a5f9c09c1783255123cad9eec3064400">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.25.03
+- Fix: Removed dead folder editor stylesheet selectors that were no longer used after the modern editor cleanup, which was causing the strict dead-code guard to fail in GitHub quality and release workflows.
+- Quality: Release and CI strict checks now pass locally with dead-code enforcement enabled, while the shipped stable package and checksums have been rebuilt for the cleaned stylesheet contract.
+
 
 ###2026.03.25.02
 - Feature: Added the new modern folder editor for Docker and VMs with a redesigned sectioned UI, live folder preview, modern/legacy editor toggle, expanded chevron styles, and stronger VM/Docker editor parity.

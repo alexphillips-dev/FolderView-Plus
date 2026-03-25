@@ -78,6 +78,7 @@
             <div class="fv-editor-status-row">
                 <span id="fvValidationSummary" class="fv-validation-summary ready">Folder editor shell loaded.</span>
                 <pre id="fvValidationDetails" class="fv-validation-details ready">Core layout is ready. Runtime data and live controls will continue hydrating.</pre>
+                <pre id="fvEditorBootstrapDebug" class="fv-editor-bootstrap-debug">Bootstrap: waiting for folder editor runtime.</pre>
             </div>
         </div>
         <div id="fvLivePanel" class="fv-live-panel">

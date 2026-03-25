@@ -302,6 +302,58 @@
     color: var(--fv-editor-success);
 }
 
+.fv-editor-bootstrap-debug {
+    margin: 0;
+    padding: 0.65em 0.75em;
+    border: 1px dashed var(--fv-editor-control-border);
+    border-radius: 10px;
+    background: var(--fv-editor-control-surface);
+    color: var(--fv-editor-dim);
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 0.9rem;
+    line-height: 1.35;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+html[data-fvplus-host-theme="white"] .canvas form.folder-editor-form,
+body[data-fvplus-host-theme="white"] .canvas form.folder-editor-form,
+html[data-fvplus-host-theme="white"] #fvEditorChrome,
+body[data-fvplus-host-theme="white"] #fvEditorChrome,
+html[data-fvplus-host-theme="white"] #fvLivePanel,
+body[data-fvplus-host-theme="white"] #fvLivePanel,
+html[data-fvplus-host-theme="white"] #fvEditorActionBar,
+body[data-fvplus-host-theme="white"] #fvEditorActionBar,
+.canvas form.folder-editor-form[data-fv-theme-class="light"],
+#fvEditorChrome[data-fv-theme-class="light"],
+#fvLivePanel[data-fv-theme-class="light"],
+#fvEditorActionBar[data-fv-theme-class="light"] {
+    --fv-editor-bg: linear-gradient(145deg, rgba(255, 255, 255, 0.985), rgba(244, 248, 252, 0.99));
+    --fv-editor-panel: linear-gradient(180deg, rgba(250, 252, 255, 0.96), rgba(244, 248, 252, 0.98));
+    --fv-editor-border: rgba(207, 144, 68, 0.24);
+    --fv-editor-border-strong: rgba(207, 144, 68, 0.46);
+    --fv-editor-text-primary: #27313d;
+    --fv-editor-muted: rgba(39, 49, 61, 0.78);
+    --fv-editor-dim: rgba(39, 49, 61, 0.62);
+    --fv-editor-accent: #be6b18;
+    --fv-editor-accent-soft: rgba(190, 107, 24, 0.12);
+    --fv-editor-success: #19713c;
+    --fv-editor-warning: #9a6400;
+    --fv-editor-danger: #bb3030;
+    --fv-editor-control-border: rgba(62, 74, 89, 0.14);
+    --fv-editor-control-surface: rgba(255, 255, 255, 0.82);
+    --fv-editor-control-surface-hover: rgba(190, 107, 24, 0.08);
+    --fv-editor-control-surface-active: rgba(190, 107, 24, 0.14);
+    --fv-editor-input-bg: rgba(248, 250, 252, 0.98);
+    --fv-editor-inset-surface: rgba(255, 255, 255, 0.7);
+    --fv-editor-shadow: 0 16px 38px rgba(34, 41, 51, 0.12);
+    --fv-editor-focus-ring: rgba(84, 162, 255, 0.28);
+    --fv-editor-nav-count-bg: rgba(190, 107, 24, 0.14);
+    --fv-editor-nav-count-text: #6d4417;
+    --fv-editor-info: #1e5f9f;
+    color-scheme: light;
+}
+
 .fv-runtime-loading-row > td {
     text-align: center !important;
     padding: 0.5em 0.7em !important;

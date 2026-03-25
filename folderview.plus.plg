@@ -6,12 +6,24 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.25.41">
-<!ENTITY md5 "709171084efbcb6bcf40d6a9fa903b97">
+<!ENTITY version "2026.03.25.43">
+<!ENTITY md5 "ca6d47db841a312d3f19135c4da513f3">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.25.43
+- Fix: Stamp the active Unraid host theme onto the folder-editor page shell so White mode can force light editor chrome and action-bar surfaces instead of falling back to dark defaults.
+- Fix: Carry modern folder-editor bootstrap state through `window.name` in addition to query, hash, and storage fallback paths so existing folder edits survive more navigation flows.
+- Quality: Show live bootstrap diagnostics in the modern editor shell so missing folder target state is visible immediately instead of silently opening as a blank new folder.
+
+
+###2026.03.25.42
+- Fix: Modern folder editor now carries folder bootstrap data through query, hash, storage, and `window.name` fallback so editing an existing folder is more resilient when Unraid navigation strips route state.
+- Fix: White-theme folder editor chrome, live panel, and action bar now inherit explicit light tokens from the active Unraid host theme instead of falling back to dark header/footer surfaces.
+- Quality: Added visible folder-editor bootstrap diagnostics plus stronger route guard coverage so missing target state is obvious instead of silently opening in blank new-folder mode.
+
 
 ###2026.03.25.41
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

@@ -14,14 +14,16 @@ const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/foldervie
 
 test('folder editor runtimes accept query and hash bootstrap identity fallbacks', () => {
     assert.match(folderJs, /const readFolderEditorBootstrapSeed = \(\) =>/);
-    assert.match(folderJs, /folderEditorStorageBootstrap\?\.type/);
-    assert.match(folderJs, /folderEditorStorageBootstrap\?\.id/);
-    assert.match(folderJs, /folderEditorStorageBootstrap\?\.folder/);
+    assert.match(folderJs, /const readWindowNameFolderEditorBootstrapSeed = \(\) =>/);
+    assert.match(folderJs, /folderEditorBootstrapSeed\?\.type/);
+    assert.match(folderJs, /folderEditorBootstrapSeed\?\.id/);
+    assert.match(folderJs, /folderEditorBootstrapSeed\?\.folder/);
     assert.match(folderJs, /const folderEditorHashParams = new URLSearchParams/);
     assert.match(folderJs, /folderEditorHashParams\.get\('type'\)/);
     assert.match(folderJs, /folderEditorHashParams\.get\('id'\)/);
     assert.match(folderJs, /folderThemeSurfaceBinding\?\.runApply\('chrome-ready'\)/);
     assert.match(folderJs, /sampleRoot:\s*'body'/);
+    assert.match(folderJs, /windowNameSeed=/);
     assert.match(folderLegacyJs, /const readFolderEditorBootstrapSeed = \(\) =>/);
     assert.match(folderLegacyJs, /folderEditorStorageBootstrap\?\.type/);
     assert.match(folderLegacyJs, /folderEditorStorageBootstrap\?\.id/);
@@ -33,6 +35,10 @@ test('folder editor runtimes accept query and hash bootstrap identity fallbacks'
 });
 
 test('folder editor URLs duplicate folder identity into the hash for navigation-safe fallback', () => {
+    assert.match(dockerJs, /const EDITOR_WINDOW_NAME_PREFIX = 'fv\.folder\.editor\.v1:'/);
+    assert.match(dockerJs, /window\.name = `\$\{EDITOR_WINDOW_NAME_PREFIX\}\$\{payload\}`;/);
+    assert.match(vmJs, /const EDITOR_WINDOW_NAME_PREFIX = 'fv\.folder\.editor\.v1:'/);
+    assert.match(vmJs, /window\.name = `\$\{EDITOR_WINDOW_NAME_PREFIX\}\$\{payload\}`;/);
     assert.match(dockerJs, /return `\/Docker\/Folder\?\$\{params\.toString\(\)\}#\$\{hashParams\.toString\(\)\}`;/);
     assert.match(vmJs, /return `\/VMs\/Folder\?\$\{params\.toString\(\)\}#\$\{hashParams\.toString\(\)\}`;/);
     assert.match(dashboardJs, /return `\$\{location\.pathname\}\/Folder\?\$\{params\.toString\(\)\}#\$\{hashParams\.toString\(\)\}`;/);

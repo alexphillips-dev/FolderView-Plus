@@ -1736,6 +1736,7 @@ const rmFolder = (id) => {
  */
 const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
 const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv.folder.editor.prefill.persist.v1';
+const EDITOR_WINDOW_NAME_PREFIX = 'fv.folder.editor.v1:';
 const clearFolderEditorPrefill = () => {
     try {
         if (typeof sessionStorage !== 'undefined') {
@@ -1743,6 +1744,9 @@ const clearFolderEditorPrefill = () => {
         }
         if (typeof localStorage !== 'undefined') {
             localStorage.removeItem(EDITOR_PREFILL_LOCAL_STORAGE_KEY);
+        }
+        if (String(window.name || '').startsWith(EDITOR_WINDOW_NAME_PREFIX)) {
+            window.name = '';
         }
     } catch (_error) {
         // Editor prefill cleanup is best-effort only.
@@ -1766,6 +1770,7 @@ const seedFolderEditorPrefill = (folderType, id) => {
         if (typeof localStorage !== 'undefined') {
             localStorage.setItem(EDITOR_PREFILL_LOCAL_STORAGE_KEY, payload);
         }
+        window.name = `${EDITOR_WINDOW_NAME_PREFIX}${payload}`;
     } catch (_error) {
         // Editor prefill is best-effort only.
     }

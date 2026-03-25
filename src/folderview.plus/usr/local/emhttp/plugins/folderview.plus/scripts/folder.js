@@ -6,6 +6,7 @@ let selectedRegex = [];
 let selected = [];
 const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
 const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv.folder.editor.prefill.persist.v1';
+const EDITOR_WINDOW_NAME_PREFIX = 'fv.folder.editor.v1:';
 const readFolderEditorBootstrapSeed = () => {
     const parsePrefill = (rawValue) => {
         const raw = String(rawValue || '').trim();
@@ -40,9 +41,33 @@ const readFolderEditorBootstrapSeed = () => {
     }
     return null;
 };
+const readWindowNameFolderEditorBootstrapSeed = () => {
+    const parsePrefill = (rawValue) => {
+        const raw = String(rawValue || '').trim();
+        if (!raw || !raw.startsWith(EDITOR_WINDOW_NAME_PREFIX)) {
+            return null;
+        }
+        try {
+            const payload = JSON.parse(raw.slice(EDITOR_WINDOW_NAME_PREFIX.length));
+            const safeType = String(payload?.type || '').trim();
+            const safeId = String(payload?.id || '').trim();
+            const folder = payload?.folder && typeof payload.folder === 'object' ? payload.folder : null;
+            return safeType && safeId && folder ? { type: safeType, id: safeId, folder } : null;
+        } catch (_error) {
+            return null;
+        }
+    };
+    try {
+        return parsePrefill(window.name);
+    } catch (_error) {
+        return null;
+    }
+};
 const folderEditorQueryParams = new URLSearchParams(location.search);
 const folderEditorHashParams = new URLSearchParams(String(window.location?.hash || '').replace(/^#/, ''));
 const folderEditorStorageBootstrap = readFolderEditorBootstrapSeed();
+const folderEditorWindowNameBootstrap = readWindowNameFolderEditorBootstrapSeed();
+const folderEditorBootstrapSeed = folderEditorWindowNameBootstrap || folderEditorStorageBootstrap;
 const folderEditorBootstrapContext = window.FolderViewPlusFolderEditorBootstrapContext
     && typeof window.FolderViewPlusFolderEditorBootstrapContext === 'object'
     ? window.FolderViewPlusFolderEditorBootstrapContext
@@ -64,7 +89,7 @@ const type = String(
     || folderEditorQueryParams.get('mode')
     || folderEditorHashParams.get('mode')
     || window.FolderViewPlusFolderEditorPageType
-    || folderEditorStorageBootstrap?.type
+    || folderEditorBootstrapSeed?.type
     || inferFolderEditorTypeFromPath()
     || ''
 ).trim();
@@ -81,20 +106,20 @@ const folderId = String(
     || folderEditorBootstrapContext.resolvedId
     || window.FolderViewPlusFolderEditorRequestedId
     || folderEditorBootstrapContext.requestedId
-    || folderEditorStorageBootstrap?.id
+    || folderEditorBootstrapSeed?.id
     || ''
 ).trim();
 const folderEditorResolvedId = String(
     folderEditorBootstrapContext.resolvedId
-    || folderEditorStorageBootstrap?.id
+    || folderEditorBootstrapSeed?.id
     || window.FolderViewPlusFolderEditorResolvedId
     || ''
 ).trim();
 const folderEditorBootstrapFolder = folderEditorBootstrapContext.folder
     && typeof folderEditorBootstrapContext.folder === 'object'
     ? folderEditorBootstrapContext.folder
-    : (folderEditorStorageBootstrap?.folder && typeof folderEditorStorageBootstrap.folder === 'object'
-        ? folderEditorStorageBootstrap.folder
+    : (folderEditorBootstrapSeed?.folder && typeof folderEditorBootstrapSeed.folder === 'object'
+        ? folderEditorBootstrapSeed.folder
         : null);
 const folderContract = window.FolderViewPlusFolderContract || null;
 const folderEditorShared = window.FolderViewPlusFolderEditorShared || null;
@@ -574,6 +599,29 @@ const setValidationBannerState = (summaryText, detailsText, state = 'ready') => 
             .text(detailsText);
     }
 };
+const setBootstrapDiagnostics = (details = {}) => {
+    const debug = $('#fvEditorBootstrapDebug');
+    if (!debug.length) {
+        return;
+    }
+    const lines = [
+        `type=${String(details.type || type || '(empty)')}`,
+        `folderId=${String(details.folderId || folderId || '(empty)')}`,
+        `resolvedId=${String(details.resolvedId || folderEditorResolvedId || '(empty)')}`,
+        `requestedRef=${String(details.requestedRef || '(empty)')}`,
+        `pageType=${String(window.FolderViewPlusFolderEditorPageType || '(empty)')}`,
+        `pageRequested=${String(window.FolderViewPlusFolderEditorRequestedId || '(empty)')}`,
+        `pageResolved=${String(window.FolderViewPlusFolderEditorResolvedId || '(empty)')}`,
+        `bootstrapContextResolvedBy=${String(folderEditorBootstrapContext?.resolvedBy || '(none)')}`,
+        `storageSeed=${folderEditorStorageBootstrap ? 'yes' : 'no'}`,
+        `windowNameSeed=${folderEditorWindowNameBootstrap ? 'yes' : 'no'}`,
+        `hostTheme=${String(window.FolderViewPlusHostThemeName || '(empty)')}`,
+        `htmlTheme=${String(document.documentElement?.getAttribute('data-fvplus-host-theme') || '(empty)')}`,
+        `mode=${String(details.mode || 'boot')}`,
+        `result=${String(details.result || '(pending)')}`
+    ];
+    debug.text(lines.join('\n'));
+};
 const decodeFolderQueryValue = (value) => {
     const raw = String(value || '').trim();
     if (!raw) {
@@ -692,6 +740,9 @@ const clearEditorNavigationPrefill = () => {
         }
         if (typeof localStorage !== 'undefined') {
             localStorage.removeItem(EDITOR_PREFILL_LOCAL_STORAGE_KEY);
+        }
+        if (String(window.name || '').startsWith(EDITOR_WINDOW_NAME_PREFIX)) {
+            window.name = '';
         }
     } catch (_error) {
         // Ignore storage cleanup issues.
@@ -4762,6 +4813,10 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     applySectionTags();
     initEditorChrome();
     folderThemeSurfaceBinding?.runApply('chrome-ready');
+    setBootstrapDiagnostics({
+        mode: 'boot',
+        result: 'shell-ready'
+    });
     updateForm();
     applyAdvancedMode();
     enforceLeftAlignedSettingsLayout();
@@ -4813,6 +4868,11 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
                 `Folder reference "${requestedFolderRef}" was not found in the saved folder map, server bootstrap context, or recent edit context. The editor stayed in new-folder mode instead of silently hydrating the wrong data.`,
                 'warning'
             );
+            setBootstrapDiagnostics({
+                mode: 'hydrate',
+                requestedRef: requestedFolderRef,
+                result: 'missing-target'
+            });
             folderHierarchyState.currentFolderDescendantIds = new Set();
             populateParentFolderOptions(folders, '', new Set());
             setParentDefaultsNote('Select a parent to inherit preview/icon defaults automatically.', 'info');
@@ -4831,8 +4891,23 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
             );
         }
         hydrateCurrentEditFolder(currentEditFolder, currentEditFolderId, folders, { clearPrefill: true });
+        setBootstrapDiagnostics({
+            mode: 'hydrate',
+            requestedRef: requestedFolderRef,
+            resolvedId: currentEditFolderId,
+            result: 'hydrated'
+        });
         }
     } else {
+        setValidationBannerState(
+            'Folder editor opened without a folder target.',
+            'No folder reference was found in query, hash, page bootstrap, storage bootstrap, window.name bootstrap, or recent edit context. The editor stayed in new-folder mode.',
+            'warning'
+        );
+        setBootstrapDiagnostics({
+            mode: 'hydrate',
+            result: 'no-target'
+        });
         clearEditorNavigationPrefill();
         folderHierarchyState.currentFolderDescendantIds = new Set();
         populateParentFolderOptions(folders, '', new Set());

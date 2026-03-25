@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.25.05">
-<!ENTITY md5 "4c6a61ab424ecb336f5ee81916833993">
+<!ENTITY version "2026.03.25.06">
+<!ENTITY md5 "73651290f84a5636f8eabb0e911f7588">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.25.06
+- Maintenance: Reserve WebUI slots when preview bars are enabled.
+
 
 ###2026.03.25.05
 - Maintenance: Center docker preview cells and dividers.

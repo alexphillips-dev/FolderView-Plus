@@ -5497,9 +5497,9 @@ const customAction = (action = undefined) => {
     dialog.dialog({
         title: (action !== undefined) ? $.i18n('action-edit') : $.i18n('action-add'),
         resizable: false,
-        width: 800,
+        width: 620,
         modal: true,
-        position: { my: 'center top+72', at: 'center top', of: window },
+        position: { my: 'center top+44', at: 'center top', of: window },
         show: { effect: 'fade', duration: 250 },
         hide: { effect: 'fade', duration: 250 },
         buttons,
@@ -5511,7 +5511,7 @@ const customAction = (action = undefined) => {
     dialogWidget.addClass('fv-folder-action-dialog');
     dialogWidget.find('.ui-dialog-titlebar').addClass('menu');
     dialogWidget.find('.ui-dialog-titlebar-close').css({ display: 'none' });
-    dialogWidget.find('.ui-dialog-title').css({ 'text-align': 'center', width: '100%' });
+    dialogWidget.find('.ui-dialog-title').css({ 'text-align': 'left', width: '100%' });
     dialogWidget.find('.ui-dialog-content').css({ 'vertical-align': 'bottom' });
     dialogWidget.find('.ui-button-text').css({ padding: '0px 5px' });
     return false;

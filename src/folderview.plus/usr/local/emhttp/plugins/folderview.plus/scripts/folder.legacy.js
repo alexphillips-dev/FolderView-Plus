@@ -7,6 +7,8 @@ let selected = [];
 // docker or vm?
 const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
 const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv.folder.editor.prefill.persist.v1';
+const EDITOR_WINDOW_NAME_PREFIX = 'fv.folder.editor.v1:';
+const EDITOR_BOOTSTRAP_COOKIE_NAME = 'fv_folder_editor_bootstrap';
 const readFolderEditorBootstrapSeed = () => {
     const parsePrefill = (rawValue) => {
         const raw = String(rawValue || '').trim();
@@ -41,9 +43,33 @@ const readFolderEditorBootstrapSeed = () => {
     }
     return null;
 };
+const readWindowNameFolderEditorBootstrapSeed = () => {
+    const parsePrefill = (rawValue) => {
+        const raw = String(rawValue || '').trim();
+        if (!raw || !raw.startsWith(EDITOR_WINDOW_NAME_PREFIX)) {
+            return null;
+        }
+        try {
+            const payload = JSON.parse(raw.slice(EDITOR_WINDOW_NAME_PREFIX.length));
+            const safeType = String(payload?.type || '').trim();
+            const safeId = String(payload?.id || '').trim();
+            const folder = payload?.folder && typeof payload.folder === 'object' ? payload.folder : null;
+            return safeType && safeId ? { type: safeType, id: safeId, folder } : null;
+        } catch (_error) {
+            return null;
+        }
+    };
+    try {
+        return parsePrefill(window.name);
+    } catch (_error) {
+        return null;
+    }
+};
 const folderEditorQueryParams = new URLSearchParams(location.search);
 const folderEditorHashParams = new URLSearchParams(String(window.location?.hash || '').replace(/^#/, ''));
 const folderEditorStorageBootstrap = readFolderEditorBootstrapSeed();
+const folderEditorWindowNameBootstrap = readWindowNameFolderEditorBootstrapSeed();
+const folderEditorBootstrapSeed = folderEditorWindowNameBootstrap || folderEditorStorageBootstrap;
 const folderEditorBootstrapContext = window.FolderViewPlusFolderEditorBootstrapContext
     && typeof window.FolderViewPlusFolderEditorBootstrapContext === 'object'
     ? window.FolderViewPlusFolderEditorBootstrapContext
@@ -64,7 +90,7 @@ const type = String(
     || folderEditorQueryParams.get('mode')
     || folderEditorHashParams.get('mode')
     || window.FolderViewPlusFolderEditorPageType
-    || folderEditorStorageBootstrap?.type
+    || folderEditorBootstrapSeed?.type
     || inferFolderEditorTypeFromPath()
     || ''
 ).trim();
@@ -82,20 +108,20 @@ const folderId = String(
     || window.FolderViewPlusFolderEditorResolvedId
     || window.FolderViewPlusFolderEditorRequestedId
     || folderEditorBootstrapContext.requestedId
-    || folderEditorStorageBootstrap?.id
+    || folderEditorBootstrapSeed?.id
     || ''
 ).trim();
 const folderEditorResolvedId = String(
     folderEditorBootstrapContext.resolvedId
-    || folderEditorStorageBootstrap?.id
+    || folderEditorBootstrapSeed?.id
     || window.FolderViewPlusFolderEditorResolvedId
     || ''
 ).trim();
 const folderEditorBootstrapFolder = folderEditorBootstrapContext.folder
     && typeof folderEditorBootstrapContext.folder === 'object'
     ? folderEditorBootstrapContext.folder
-    : (folderEditorStorageBootstrap?.folder && typeof folderEditorStorageBootstrap.folder === 'object'
-        ? folderEditorStorageBootstrap.folder
+    : (folderEditorBootstrapSeed?.folder && typeof folderEditorBootstrapSeed.folder === 'object'
+        ? folderEditorBootstrapSeed.folder
         : null);
 const folderContract = window.FolderViewPlusFolderContract || null;
 const folderEditorShared = window.FolderViewPlusFolderEditorShared || null;
@@ -545,6 +571,14 @@ const readEditorNavigationPrefill = (expectedType, expectedId = '') => {
                 return localPayload;
             }
         }
+        const windowNamePayload = parsePrefillPayload(
+            String(window.name || '').startsWith(EDITOR_WINDOW_NAME_PREFIX)
+                ? String(window.name || '').slice(EDITOR_WINDOW_NAME_PREFIX.length)
+                : ''
+        );
+        if (windowNamePayload) {
+            return windowNamePayload;
+        }
     } catch (_error) {
         return null;
     }
@@ -559,6 +593,10 @@ const clearEditorNavigationPrefill = () => {
         if (typeof localStorage !== 'undefined') {
             localStorage.removeItem(EDITOR_PREFILL_LOCAL_STORAGE_KEY);
         }
+        if (String(window.name || '').startsWith(EDITOR_WINDOW_NAME_PREFIX)) {
+            window.name = '';
+        }
+        document.cookie = `${EDITOR_BOOTSTRAP_COOKIE_NAME}=; path=/; max-age=0; SameSite=Lax`;
     } catch (_error) {
         // Ignore storage cleanup issues.
     }

@@ -51,6 +51,17 @@ const folderContract = window.FolderViewPlusFolderContract || null;
 const folderEditorShared = window.FolderViewPlusFolderEditorShared || null;
 const folderEditorSchema = window.FolderViewPlusFolderEditorSchema || null;
 const folderEditorPreview = window.FolderViewPlusFolderEditorPreview || null;
+const themeResolver = window.FolderViewPlusThemeResolver || null;
+const bindFolderThemeAwareSurface = typeof themeResolver?.bindThemeAwareSurface === 'function'
+    ? themeResolver.bindThemeAwareSurface.bind(themeResolver)
+    : null;
+const folderThemeSurfaceBinding = bindFolderThemeAwareSurface
+    ? bindFolderThemeAwareSurface({
+        root: '.canvas form.folder-editor-form',
+        modeInput: 'auto',
+        reasonPrefix: 'folder-editor'
+    })
+    : null;
 const utils = window.FolderViewPlusUtils || null;
 const folderHierarchyModule = window.FolderViewPlusFolderHierarchy || null;
 const folderIconApiModule = window.FolderViewPlusFolderIconApi || null;
@@ -4697,6 +4708,7 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
 };
 
 (async () => {
+    folderThemeSurfaceBinding?.bind();
     registerBeforeUnloadGuard();
     applySectionTags();
     initEditorChrome();

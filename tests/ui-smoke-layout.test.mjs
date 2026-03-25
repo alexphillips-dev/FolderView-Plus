@@ -92,6 +92,7 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
     assert.match(settingsPage, /id="fv-settings-action-bar"/);
     assert.match(settingsPage, /id="fv-runtime-resolved-panel"/);
     assert.match(settingsPage, /folderviewplus\.request\.js/);
+    assert.match(settingsPage, /folderviewplus\.theme-resolver\.js/);
     assert.match(settingsPage, /folderviewplus\.chrome\.js/);
     assert.match(settingsPage, /folderviewplus\.dirty\.js/);
     assert.match(settingsPage, /folderviewplus\.settings-table\.js/);
@@ -150,6 +151,7 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
 test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderPage, /\$folderEditorPageMode === 'modern'/);
     assert.match(folderPage, /resolveTypeFolderEditorModePreference\(\$folderEditorPageType\)/);
+    assert.match(folderPage, /folderviewplus\.theme-resolver\.js/);
     assert.match(folderPage, /folder\.editor\.shared\.js/);
     assert.match(folderPage, /folder\.editor\.schema\.js/);
     assert.match(folderPage, /folder\.editor\.preview\.js/);
@@ -169,6 +171,7 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderLegacyJs, /const folderEditorShared = window\.FolderViewPlusFolderEditorShared \|\| null;/);
     assert.match(folderLegacyJs, /const folderEditorSchema = window\.FolderViewPlusFolderEditorSchema \|\| null;/);
     assert.match(folderLegacyJs, /const folderEditorPreview = window\.FolderViewPlusFolderEditorPreview \|\| null;/);
+    assert.match(folderLegacyJs, /const bindFolderThemeAwareSurface = typeof themeResolver\?\.bindThemeAwareSurface === 'function'/);
     assert.match(folderLegacyJs, /const folderEditorSharedApi = typeof folderEditorShared\?\.createApi === 'function'/);
     assert.match(folderLegacyJs, /const folderEditorResetHelpers = typeof folderEditorShared\?\.createResetHelpers === 'function'/);
     assert.match(folderLegacyJs, /const legacyEditorSchema = typeof folderEditorSchema\?\.createLegacySchema === 'function'/);
@@ -180,6 +183,8 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderLegacyJs, /renderLivePreviewCanvas\(\);/);
     assert.match(settingsJs, /const settingsTableModule = window\.FolderViewPlusSettingsTable \|\| null;/);
     assert.match(settingsJs, /bootstrapMissingModules\.push\('folderviewplus\.settings-table\.js'\)/);
+    assert.match(folderCss, /\.canvas form\.folder-editor-form,\s*[\s\S]*#fvEditorChrome\s*\{[\s\S]*--fv-editor-text-primary:\s*var\(--fvplus-editor-text-primary/);
+    assert.match(folderCss, /\.fv-modern-field-row input\[type="text"\],[\s\S]*background:\s*var\(--fv-editor-input-bg\)/);
 });
 
 test('mobile action bar and import progress keep compact viewport guards', () => {

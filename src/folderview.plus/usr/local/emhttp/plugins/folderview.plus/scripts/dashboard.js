@@ -8,6 +8,16 @@ const localDefaultFolderStatusColors = {
     paused: '#b8860b',
     stopped: '#ff4d4d'
 };
+const themeResolver = window.FolderViewPlusThemeResolver || null;
+const applyDashboardResolvedThemeTokens = (reason = 'dashboard:initial') => {
+    if (window.FolderViewPlusThemeResolverModuleLoaded !== true || !themeResolver) {
+        return null;
+    }
+    return themeResolver.applyResolvedThemeTokens(reason, {
+        root: document.body,
+        modeInput: 'auto'
+    });
+};
 const normalizeStatusHexColor = (value, fallback) => {
     if (typeof value !== 'string') {
         return fallback;
@@ -2771,6 +2781,7 @@ const queueDashboardThemeReflow = (reason = 'theme-change') => {
     dashboardThemeReflowTimer = window.setTimeout(() => {
         dashboardThemeReflowTimer = 0;
         dashboardDebugLog(`theme-reflow:${nextReason}`);
+        applyDashboardResolvedThemeTokens(`dashboard:${nextReason}`);
         scheduleDashboardLayoutApplyForType('docker');
         scheduleDashboardLayoutApplyForType('vm');
         syncDashboardWidgetLayoutQuickControlForType('docker');
@@ -2821,6 +2832,7 @@ const bindDashboardThemeReflowHandlers = () => {
     }
 };
 bindDashboardThemeReflowHandlers();
+applyDashboardResolvedThemeTokens('dashboard:bind');
 
 const queueLoadlistRefresh = () => {
     if (queuedLoadlistTimer) {

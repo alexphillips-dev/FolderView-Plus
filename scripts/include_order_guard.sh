@@ -24,6 +24,7 @@ const expectedOrder = [
   'folderviewplus.fatal-banner.js',
   'folderviewplus.utils.js',
   'folderviewplus.request.js',
+  'folderviewplus.theme-resolver.js',
   'folderviewplus.chrome.js',
   'folderviewplus.dirty.js',
   'folderviewplus.runtime-parity.js',

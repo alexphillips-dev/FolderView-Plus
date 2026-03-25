@@ -1,6 +1,12 @@
 // @ts-check
 const runtimeShared = window.FolderViewDockerRuntimeShared || {};
 const runtimeStateObserverModule = window.FolderViewPlusRuntimeStateObservers || null;
+const themeResolver = window.FolderViewPlusThemeResolver || null;
+const applyVmThemeResolverTokens = (reason = 'vm-runtime:initial', options = {}) => (
+    themeResolver && typeof themeResolver.applyResolvedThemeTokens === 'function'
+        ? themeResolver.applyResolvedThemeTokens(reason, options)
+        : null
+);
 const localDefaultFolderStatusColors = runtimeShared.DEFAULT_FOLDER_STATUS_COLORS || {
     started: '#ffffff',
     paused: '#b8860b',
@@ -179,6 +185,9 @@ const utils = window.FolderViewPlusUtils || {
 const vmBootstrapMissingModules = [];
 if (!window.FolderViewPlusUtils || typeof window.FolderViewPlusUtils.normalizePrefs !== 'function') {
     vmBootstrapMissingModules.push('folderviewplus.utils.js');
+}
+if (window.FolderViewPlusThemeResolverModuleLoaded !== true || !themeResolver) {
+    vmBootstrapMissingModules.push('folderviewplus.theme-resolver.js');
 }
 if (
     !window.FolderViewPlusRequest
@@ -2586,9 +2595,20 @@ const vmRuntimeThemeReflowController = runtimeStateObserverModule && typeof runt
         themeReasonPrefix: 'theme-change',
         themeDelayMs: 40,
         scheduleReflow: (reason, delayMs) => scheduleVmRuntimeWidthReflow(reason, delayMs),
-        onQueueReason: (reason) => vmDebugLog(`theme-reflow:${reason}`)
+        onQueueReason: (reason) => {
+            vmDebugLog(`theme-reflow:${reason}`);
+            applyVmThemeResolverTokens(`vm-runtime:${reason}`, {
+                root: document.body,
+                modeInput: 'auto'
+            });
+        }
     })
     : null;
+
+const applyVmRuntimeResolvedThemeTokens = (reason = 'vm-runtime:initial') => applyVmThemeResolverTokens(reason, {
+    root: document.body,
+    modeInput: 'auto'
+});
 
 const bindVmRuntimeViewportWidthSync = () => {
     vmRuntimeThemeReflowController?.bindViewportWidthSync();
@@ -2599,6 +2619,7 @@ const queueVmRuntimeThemeReflow = (reason = 'theme-change') => {
 };
 
 const bindVmRuntimeThemeReflow = () => {
+    applyVmRuntimeResolvedThemeTokens('vm-runtime:bind');
     vmRuntimeThemeReflowController?.bindThemeReflow();
 };
 

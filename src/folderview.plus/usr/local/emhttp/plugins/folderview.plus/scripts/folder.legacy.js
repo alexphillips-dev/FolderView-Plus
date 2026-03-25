@@ -52,6 +52,17 @@ const folderContract = window.FolderViewPlusFolderContract || null;
 const folderEditorShared = window.FolderViewPlusFolderEditorShared || null;
 const folderEditorSchema = window.FolderViewPlusFolderEditorSchema || null;
 const folderEditorPreview = window.FolderViewPlusFolderEditorPreview || null;
+const themeResolver = window.FolderViewPlusThemeResolver || null;
+const bindFolderThemeAwareSurface = typeof themeResolver?.bindThemeAwareSurface === 'function'
+    ? themeResolver.bindThemeAwareSurface.bind(themeResolver)
+    : null;
+const folderThemeSurfaceBinding = bindFolderThemeAwareSurface
+    ? bindFolderThemeAwareSurface({
+        root: '.canvas form.folder-editor-form',
+        modeInput: 'auto',
+        reasonPrefix: 'folder-editor'
+    })
+    : null;
 const modernFolderEditorEnabled = String(window.FolderViewPlusFolderEditorPageMode || 'legacy').trim().toLowerCase() === 'modern';
 const DEFAULT_FOLDER_STATUS_COLORS = folderContract?.DEFAULT_FOLDER_STATUS_COLORS || {
     started: '#ffffff',
@@ -4624,6 +4635,7 @@ getForm().dropdown_hover_color.value = DEFAULT_DROPDOWN_HOVER_COLOR;
 resetStatusColorDefaults();
 
 (async () => {
+    folderThemeSurfaceBinding?.bind();
     registerBeforeUnloadGuard();
     const cacheBust = Date.now();
     // if editing a vm hide docker related settings

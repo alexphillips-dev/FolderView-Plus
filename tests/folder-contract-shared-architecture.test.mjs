@@ -68,16 +68,19 @@ test('shared folder editor schema and preview modules publish the editor-facing 
 });
 
 test('runtime pages and folder editor load the shared contract before their consumers', () => {
+    const dockerThemeResolverIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js');
     const dockerContractIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
     const dockerSharedRuntimeIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.shared.js');
     const dockerRuntimeIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.js');
     const dockerSharedCssIndex = dockerPage.indexOf('/plugins/folderview.plus/styles/runtime.shared.css');
     const dockerTypeCssIndex = dockerPage.indexOf('/plugins/folderview.plus/styles/docker.css');
+    const vmThemeResolverIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js');
     const vmContractIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
     const vmSharedRuntimeIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.shared.js');
     const vmRuntimeIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/vm.js');
     const vmSharedCssIndex = vmPage.indexOf('/plugins/folderview.plus/styles/runtime.shared.css');
     const vmTypeCssIndex = vmPage.indexOf('/plugins/folderview.plus/styles/vm.css');
+    const folderThemeResolverIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js');
     const folderContractIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
     const folderSharedEditorIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.shared.js');
     const folderSchemaIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.schema.js');
@@ -85,30 +88,40 @@ test('runtime pages and folder editor load the shared contract before their cons
     const folderLegacyIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.legacy.js');
     const folderChromeIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.chrome.js');
 
+    assert.ok(dockerThemeResolverIndex >= 0, 'docker page missing shared theme resolver include');
     assert.ok(dockerContractIndex >= 0, 'docker page missing shared folder contract include');
     assert.ok(dockerSharedRuntimeIndex >= 0, 'docker page missing shared runtime include');
     assert.ok(dockerRuntimeIndex >= 0, 'docker page missing docker runtime include');
+    assert.ok(dockerThemeResolverIndex < dockerSharedRuntimeIndex, 'theme resolver must load before docker.runtime.shared.js');
+    assert.ok(dockerThemeResolverIndex < dockerRuntimeIndex, 'theme resolver must load before docker.js');
     assert.ok(dockerContractIndex < dockerSharedRuntimeIndex, 'shared contract must load before docker.runtime.shared.js');
     assert.ok(dockerContractIndex < dockerRuntimeIndex, 'shared contract must load before docker.js');
     assert.ok(dockerSharedCssIndex >= 0, 'docker page missing shared runtime stylesheet');
     assert.ok(dockerTypeCssIndex >= 0, 'docker page missing docker stylesheet');
     assert.ok(dockerSharedCssIndex < dockerTypeCssIndex, 'shared runtime stylesheet must load before docker.css');
 
+    assert.ok(vmThemeResolverIndex >= 0, 'vm page missing shared theme resolver include');
     assert.ok(vmContractIndex >= 0, 'vm page missing shared folder contract include');
     assert.ok(vmSharedRuntimeIndex >= 0, 'vm page missing shared runtime include');
     assert.ok(vmRuntimeIndex >= 0, 'vm page missing vm runtime include');
+    assert.ok(vmThemeResolverIndex < vmSharedRuntimeIndex, 'theme resolver must load before shared runtime on VMs page');
+    assert.ok(vmThemeResolverIndex < vmRuntimeIndex, 'theme resolver must load before vm.js');
     assert.ok(vmContractIndex < vmSharedRuntimeIndex, 'shared contract must load before shared runtime on VMs page');
     assert.ok(vmContractIndex < vmRuntimeIndex, 'shared contract must load before vm.js');
     assert.ok(vmSharedCssIndex >= 0, 'vm page missing shared runtime stylesheet');
     assert.ok(vmTypeCssIndex >= 0, 'vm page missing vm stylesheet');
     assert.ok(vmSharedCssIndex < vmTypeCssIndex, 'shared runtime stylesheet must load before vm.css');
 
+    assert.ok(folderThemeResolverIndex >= 0, 'folder editor page missing shared theme resolver include');
     assert.ok(folderContractIndex >= 0, 'folder editor page missing shared folder contract include');
     assert.ok(folderSharedEditorIndex >= 0, 'folder editor page missing shared editor include');
     assert.ok(folderSchemaIndex >= 0, 'folder editor page missing shared schema include');
     assert.ok(folderPreviewIndex >= 0, 'folder editor page missing shared preview include');
     assert.ok(folderLegacyIndex >= 0, 'folder editor page missing legacy runtime include');
     assert.ok(folderChromeIndex >= 0, 'folder editor page missing chrome runtime include');
+    assert.ok(folderThemeResolverIndex < folderSharedEditorIndex, 'theme resolver must load before folder.editor.shared.js');
+    assert.ok(folderThemeResolverIndex < folderChromeIndex, 'theme resolver must load before folder editor chrome');
+    assert.ok(folderThemeResolverIndex < folderLegacyIndex, 'theme resolver must load before folder legacy runtime');
     assert.ok(folderContractIndex < folderSharedEditorIndex, 'shared contract must load before folder.editor.shared.js');
     assert.ok(folderSharedEditorIndex < folderSchemaIndex, 'shared editor module must load before folder.editor.schema.js');
     assert.ok(folderSchemaIndex < folderPreviewIndex, 'shared schema must load before folder.editor.preview.js');

@@ -2,6 +2,12 @@
 const FOLDER_VIEW_DEBUG_MODE = false;
 const dockerRuntimeShared = window.FolderViewDockerRuntimeShared || {};
 const runtimeStateObserverModule = window.FolderViewPlusRuntimeStateObservers || null;
+const themeResolver = window.FolderViewPlusThemeResolver || null;
+const applyDockerThemeResolverTokens = (reason = 'docker-runtime:initial', options = {}) => (
+    themeResolver && typeof themeResolver.applyResolvedThemeTokens === 'function'
+        ? themeResolver.applyResolvedThemeTokens(reason, options)
+        : null
+);
 const dockerPreviewMemberMenuModule = window.FolderViewDockerPreviewMemberMenu || null;
 const localDefaultFolderStatusColors = dockerRuntimeShared.DEFAULT_FOLDER_STATUS_COLORS || {
     started: '#ffffff',
@@ -174,6 +180,9 @@ const utils = window.FolderViewPlusUtils || {
 const dockerBootstrapMissingModules = [];
 if (!window.FolderViewPlusUtils || typeof window.FolderViewPlusUtils.normalizePrefs !== 'function') {
     dockerBootstrapMissingModules.push('folderviewplus.utils.js');
+}
+if (window.FolderViewPlusThemeResolverModuleLoaded !== true || !themeResolver) {
+    dockerBootstrapMissingModules.push('folderviewplus.theme-resolver.js');
 }
 if (
     !window.FolderViewPlusRequest
@@ -1287,9 +1296,20 @@ const dockerRuntimeThemeReflowController = runtimeStateObserverModule && typeof 
         viewportDelayMs: DOCKER_RUNTIME_WIDTH_REFLOW_DEBOUNCE_MS,
         themeReasonPrefix: 'theme',
         themeDelayMs: 40,
-        scheduleReflow: (reason, delayMs) => scheduleDockerRuntimeWidthReflow(reason, delayMs)
+        scheduleReflow: (reason, delayMs) => scheduleDockerRuntimeWidthReflow(reason, delayMs),
+        onQueueReason: (reason) => {
+            applyDockerThemeResolverTokens(`docker-runtime:${reason}`, {
+                root: document.body,
+                modeInput: 'auto'
+            });
+        }
     })
     : null;
+
+const applyDockerRuntimeResolvedThemeTokens = (reason = 'docker-runtime:initial') => applyDockerThemeResolverTokens(reason, {
+    root: document.body,
+    modeInput: 'auto'
+});
 
 const bindDockerRuntimeViewportWidthSync = () => {
     dockerRuntimeThemeReflowController?.bindViewportWidthSync();
@@ -1300,6 +1320,7 @@ const queueDockerRuntimeThemeReflow = (reason = 'theme-change') => {
 };
 
 const bindDockerRuntimeThemeReflow = () => {
+    applyDockerRuntimeResolvedThemeTokens('docker-runtime:bind');
     dockerRuntimeThemeReflowController?.bindThemeReflow();
 };
 

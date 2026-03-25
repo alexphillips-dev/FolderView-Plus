@@ -1,4 +1,26 @@
 /* Activity feed and diagnostics helpers extracted from folderviewplus.js. */
+const diagnosticsThemeResolver = window.FolderViewPlusThemeResolver || null;
+const diagnosticsUtils = window.FolderViewPlusUtils || null;
+const normalizeDiagnosticsThemeMode = (value) => {
+    if (diagnosticsThemeResolver && typeof diagnosticsThemeResolver.normalizeThemeCompatibilityMode === 'function') {
+        return diagnosticsThemeResolver.normalizeThemeCompatibilityMode(value);
+    }
+    if (diagnosticsUtils && typeof diagnosticsUtils.normalizeThemeCompatibilityMode === 'function') {
+        return diagnosticsUtils.normalizeThemeCompatibilityMode(value);
+    }
+    const normalized = String(value || '').trim().toLowerCase();
+    return ['auto', 'host', 'safe', 'highcontrast'].includes(normalized) ? normalized : 'auto';
+};
+const buildDiagnosticsThemeSnapshot = (modeInput = null, options = {}) => (
+    diagnosticsThemeResolver && typeof diagnosticsThemeResolver.buildResolvedThemeSnapshot === 'function'
+        ? diagnosticsThemeResolver.buildResolvedThemeSnapshot(modeInput, options)
+        : { requestedMode: 'auto', appliedMode: 'auto', classification: 'mixed', autoHealed: false, contrastChecks: [], statusChecks: {}, tokens: {}, warnings: [] }
+);
+const applyDiagnosticsThemeTokens = (reason = 'runtime', options = {}) => (
+    diagnosticsThemeResolver && typeof diagnosticsThemeResolver.applyResolvedThemeTokens === 'function'
+        ? diagnosticsThemeResolver.applyResolvedThemeTokens(reason, options)
+        : buildDiagnosticsThemeSnapshot(options.modeInput ?? null, options)
+);
 let lastDiagnostics = null;
 const ACTIVITY_FEED_MAX_ENTRIES = 12;
 const PERF_DIAGNOSTICS_SAMPLE_LIMIT = 30;
@@ -814,7 +836,14 @@ const THEME_DIAGNOSTIC_TOKENS = Object.freeze([
     '--fvplus-settings-text-primary',
     '--fvplus-settings-text-muted',
     '--fvplus-settings-surface-muted',
-    '--fvplus-settings-border-subtle'
+    '--fvplus-settings-border-subtle',
+    '--fvplus-editor-bg',
+    '--fvplus-editor-panel',
+    '--fvplus-editor-text-primary',
+    '--fvplus-editor-muted',
+    '--fvplus-editor-border',
+    '--fvplus-editor-control-border',
+    '--fvplus-editor-input-bg'
 ]);
 
 const readThemeTokenSnapshot = (styleDeclaration) => {
@@ -856,7 +885,7 @@ const collectThemeDiagnostics = () => {
     if (startedSampleColor && stoppedSampleColor && startedSampleColor === stoppedSampleColor) {
         warnings.push('Runtime started/stopped state colors currently resolve to the same computed color.');
     }
-    const resolverSnapshot = applyResolvedThemeTokens('diagnostics');
+    const resolverSnapshot = applyDiagnosticsThemeTokens('diagnostics');
     if (resolverSnapshot?.autoHealed) {
         warnings.push(`Theme resolver auto-heal applied mode ${resolverSnapshot.appliedMode}.`);
     }
@@ -893,9 +922,9 @@ const collectThemeDiagnostics = () => {
             stoppedIconColor: firstStoppedIcon ? window.getComputedStyle(firstStoppedIcon).color : ''
         },
         modeByType: {
-            docker: normalizeThemeCompatibilityMode(prefsByType?.docker?.themeCompatibilityMode),
-            vm: normalizeThemeCompatibilityMode(prefsByType?.vm?.themeCompatibilityMode),
-            effective: normalizeThemeCompatibilityMode(getEffectiveThemeCompatibilityMode())
+            docker: normalizeDiagnosticsThemeMode(prefsByType?.docker?.themeCompatibilityMode),
+            vm: normalizeDiagnosticsThemeMode(prefsByType?.vm?.themeCompatibilityMode),
+            effective: normalizeDiagnosticsThemeMode(getEffectiveThemeCompatibilityMode())
         },
         resolver: resolverSnapshot,
         runtimeSelectors: {
@@ -925,7 +954,7 @@ const runThemeDiagnostics = () => {
 
 const runThemeSelfHeal = async () => {
     try {
-        const snapshot = buildResolvedThemeSnapshot('auto');
+        const snapshot = buildDiagnosticsThemeSnapshot('auto');
         const contrastFailures = Array.isArray(snapshot?.contrastChecks)
             ? snapshot.contrastChecks.filter((check) => !check.passed)
             : [];
@@ -936,7 +965,7 @@ const runThemeSelfHeal = async () => {
         ].filter((check) => check && Number(check.ratio || 0) < Number(check.minRatio || 0));
         const needsHeal = contrastFailures.length > 0 || statusFailures.length > 0 || snapshot?.autoHealed === true;
         if (!needsHeal) {
-            applyResolvedThemeTokens('self-heal-noop');
+            applyDiagnosticsThemeTokens('self-heal-noop');
             swal({
                 title: 'Theme looks healthy',
                 text: 'No fallback changes were needed.',
@@ -952,7 +981,7 @@ const runThemeSelfHeal = async () => {
             : 'safe';
         for (const type of ['docker', 'vm']) {
             const current = utils.normalizePrefs(prefsByType[type] || {});
-            if (normalizeThemeCompatibilityMode(current.themeCompatibilityMode) === targetMode) {
+            if (normalizeDiagnosticsThemeMode(current.themeCompatibilityMode) === targetMode) {
                 continue;
             }
             const next = {
@@ -962,7 +991,7 @@ const runThemeSelfHeal = async () => {
             prefsByType[type] = await postPrefs(type, next);
             renderRuntimeControls(type);
         }
-        applyResolvedThemeTokens('self-heal-apply');
+        applyDiagnosticsThemeTokens('self-heal-apply');
         queueSettingsThemeAwareReflow('theme-self-heal');
         runThemeDiagnostics();
         swal({

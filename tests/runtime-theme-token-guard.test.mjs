@@ -16,6 +16,7 @@ const settingsCss = read('src/folderview.plus/usr/local/emhttp/plugins/foldervie
 const settingsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js');
 const diagnosticsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js');
 const sharedRuntimeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js');
+const themeResolverJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js');
 
 test('runtime css defines canonical fvplus status tokens and legacy graph aliases', () => {
     assert.match(dockerCss, /--fvplus-theme-foreground:\s*var\(--fvplus-runtime-theme-foreground,\s*var\(--text,\s*currentColor\)\)/);
@@ -58,13 +59,24 @@ test('runtime scripts avoid inline status color painting and use row-level css v
 test('theme-change observers trigger deterministic reflow across runtime and settings surfaces', () => {
     assert.match(dockerJs, /const queueDockerRuntimeThemeReflow/);
     assert.match(dockerJs, /const bindDockerRuntimeThemeReflow/);
+    assert.match(dockerJs, /const applyDockerThemeResolverTokens = \(reason = 'docker-runtime:initial', options = \{\}\) =>/);
     assert.match(vmJs, /const queueVmRuntimeThemeReflow/);
     assert.match(vmJs, /const bindVmRuntimeThemeReflow/);
+    assert.match(vmJs, /const applyVmThemeResolverTokens = \(reason = 'vm-runtime:initial', options = \{\}\) =>/);
     assert.match(dashboardJs, /const queueDashboardThemeReflow/);
     assert.match(dashboardJs, /const bindDashboardThemeReflowHandlers/);
     assert.match(settingsJs, /const queueSettingsThemeAwareReflow/);
     assert.match(settingsJs, /const initThemeAwareSettingsReflow/);
-    assert.match(settingsJs, /const buildResolvedThemeSnapshot = \(modeInput = null\) =>/);
-    assert.match(settingsJs, /const applyResolvedThemeTokens = \(reason = 'runtime'\) =>/);
+    assert.match(settingsJs, /const resolveThemeCompatibilityMode = \(value\) =>/);
+    assert.match(settingsJs, /const buildThemeResolverSnapshot = \(modeInput = null, options = \{\}\) =>/);
+    assert.match(settingsJs, /const applyThemeResolverTokens = \(reason = 'runtime', options = \{\}\) =>/);
+    assert.match(settingsJs, /const configureThemeResolverRuntimeApi = \(options = \{\}\) =>/);
+    assert.match(themeResolverJs, /window\.FolderViewPlusThemeResolver = Object\.freeze\(\{/);
+    assert.match(themeResolverJs, /buildResolvedThemeSnapshot,/);
+    assert.match(themeResolverJs, /applyResolvedThemeTokens,/);
+    assert.match(themeResolverJs, /bindThemeAwareSurface/);
+    assert.match(themeResolverJs, /window\.FolderViewPlusThemeResolverModuleLoaded = true;/);
+    assert.match(diagnosticsJs, /const applyDiagnosticsThemeTokens = \(reason = 'runtime', options = \{\}\) =>/);
+    assert.match(diagnosticsJs, /const buildDiagnosticsThemeSnapshot = \(modeInput = null, options = \{\}\) =>/);
     assert.match(diagnosticsJs, /const runThemeSelfHeal = async \(\) =>/);
 });

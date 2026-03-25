@@ -1,22 +1,39 @@
 /* Editor chrome */
+.canvas form.folder-editor-form,
 #fvEditorChrome {
-    --fv-editor-bg: linear-gradient(145deg, rgba(30, 30, 30, 0.96), rgba(16, 16, 16, 0.96));
-    --fv-editor-panel: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.015));
-    --fv-editor-border: rgba(255, 167, 88, 0.22);
-    --fv-editor-border-strong: rgba(255, 167, 88, 0.5);
-    --fv-editor-muted: rgba(255, 255, 255, 0.72);
-    --fv-editor-dim: rgba(255, 255, 255, 0.5);
-    --fv-editor-accent: #ff9a3c;
-    --fv-editor-accent-soft: rgba(255, 154, 60, 0.14);
-    --fv-editor-success: #8ce69b;
-    --fv-editor-warning: #ffbe76;
-    --fv-editor-danger: #ff7f7f;
+    --fv-editor-bg: var(--fvplus-editor-bg, linear-gradient(145deg, rgba(30, 30, 30, 0.96), rgba(16, 16, 16, 0.96)));
+    --fv-editor-panel: var(--fvplus-editor-panel, linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.015)));
+    --fv-editor-border: var(--fvplus-editor-border, rgba(255, 167, 88, 0.22));
+    --fv-editor-border-strong: var(--fvplus-editor-border-strong, rgba(255, 167, 88, 0.5));
+    --fv-editor-text-primary: var(--fvplus-editor-text-primary, var(--fvplus-theme-text-primary, currentColor));
+    --fv-editor-muted: var(--fvplus-editor-muted, rgba(255, 255, 255, 0.72));
+    --fv-editor-dim: var(--fvplus-editor-dim, rgba(255, 255, 255, 0.5));
+    --fv-editor-accent: var(--fvplus-editor-accent, #ff9a3c);
+    --fv-editor-accent-soft: var(--fvplus-editor-accent-soft, rgba(255, 154, 60, 0.14));
+    --fv-editor-success: var(--fvplus-editor-success, #8ce69b);
+    --fv-editor-warning: var(--fvplus-editor-warning, #ffbe76);
+    --fv-editor-danger: var(--fvplus-editor-danger, #ff7f7f);
+    --fv-editor-control-border: var(--fvplus-editor-control-border, rgba(255, 255, 255, 0.12));
+    --fv-editor-control-surface: var(--fvplus-editor-control-surface, rgba(255, 255, 255, 0.03));
+    --fv-editor-control-surface-hover: var(--fvplus-editor-control-surface-hover, rgba(255, 154, 60, 0.08));
+    --fv-editor-control-surface-active: var(--fvplus-editor-control-surface-active, rgba(255, 140, 42, 0.14));
+    --fv-editor-input-bg: var(--fvplus-editor-input-bg, rgba(10, 10, 10, 0.34));
+    --fv-editor-inset-surface: var(--fvplus-editor-inset-surface, rgba(255, 255, 255, 0.025));
+    --fv-editor-shadow: var(--fvplus-editor-shadow, 0 16px 38px rgba(0, 0, 0, 0.26));
+    --fv-editor-focus-ring: var(--fvplus-editor-focus-ring, rgba(103, 214, 255, 0.42));
+    --fv-editor-nav-count-bg: var(--fvplus-editor-nav-count-bg, rgba(255, 154, 60, 0.16));
+    --fv-editor-nav-count-text: var(--fvplus-editor-nav-count-text, #ffd7ab);
+    --fv-editor-info: var(--fvplus-editor-info, #a6d8ff);
+    color: var(--fv-editor-text-primary);
+}
+
+#fvEditorChrome {
     margin: 0 1em 1em;
     padding: 1.1em 1.15em 1em;
     border: 1px solid var(--fv-editor-border);
     border-radius: 16px;
     background: var(--fv-editor-bg);
-    box-shadow: 0 16px 38px rgba(0, 0, 0, 0.26);
+    box-shadow: var(--fv-editor-shadow);
     position: sticky;
     top: 12px;
     z-index: 5;
@@ -41,8 +58,8 @@
     width: 72px;
     height: 72px;
     border-radius: 18px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    background: radial-gradient(circle at top left, rgba(255, 166, 67, 0.18), rgba(255, 255, 255, 0.03));
+    border: 1px solid var(--fvplus-editor-hero-icon-border, var(--fv-editor-control-border));
+    background: var(--fvplus-editor-hero-icon-bg, radial-gradient(circle at top left, rgba(255, 166, 67, 0.18), rgba(255, 255, 255, 0.03)));
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -93,8 +110,8 @@
     min-height: 28px;
     padding: 0.2em 0.7em;
     border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--fv-editor-control-border);
+    background: var(--fv-editor-control-surface);
     color: var(--fv-editor-muted);
     font-size: 1.02rem;
 }
@@ -117,8 +134,8 @@
 .fv-icon-input-actions > button {
     min-height: 34px;
     border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--fv-editor-control-border);
+    background: var(--fv-editor-control-surface);
     color: inherit;
     transition: border-color 120ms ease, transform 120ms ease, background-color 120ms ease, box-shadow 120ms ease;
 }
@@ -134,7 +151,7 @@
 .fv-smart-defaults-row > button:hover,
 .fv-icon-input-actions > button:hover {
     border-color: var(--fv-editor-border-strong);
-    background: rgba(255, 154, 60, 0.08);
+    background: var(--fv-editor-control-surface-hover);
     transform: translateY(-1px);
 }
 
@@ -175,8 +192,8 @@
     min-height: 34px;
     padding: 0.35em 0.8em;
     border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--fv-editor-control-border);
+    background: var(--fv-editor-control-surface);
     color: inherit;
     display: inline-flex;
     align-items: center;
@@ -185,22 +202,22 @@
 }
 
 .fv-section-nav > button.is-dirty {
-    border-color: rgba(255, 154, 60, 0.4);
-    background: rgba(255, 154, 60, 0.08);
+    border-color: var(--fv-editor-border-strong);
+    background: var(--fv-editor-control-surface-hover);
 }
 
 .fv-section-nav > button.is-active {
-    border-color: rgba(255, 140, 42, 0.5);
-    background: rgba(255, 140, 42, 0.14);
-    box-shadow: inset 0 0 0 1px rgba(255, 140, 42, 0.22);
+    border-color: var(--fv-editor-border-strong);
+    background: var(--fv-editor-control-surface-active);
+    box-shadow: inset 0 0 0 1px var(--fv-editor-border);
 }
 
 .fv-nav-count {
     min-width: 1.3em;
     padding: 0 0.35em;
     border-radius: 999px;
-    background: rgba(255, 154, 60, 0.16);
-    color: #ffd7ab;
+    background: var(--fv-editor-nav-count-bg);
+    color: var(--fv-editor-nav-count-text);
     font-style: normal;
     font-size: 0.92em;
 }
@@ -211,8 +228,8 @@
     gap: 0.32em;
     padding: 0.24em 0.72em 0.24em 0.98em;
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--fv-editor-control-border);
+    background: var(--fv-editor-control-surface);
 }
 
 .fv-editor-mode > button {
@@ -225,9 +242,9 @@
 }
 
 .fv-editor-mode > button.is-active {
-    border-color: rgba(255, 140, 42, 0.5);
-    background: rgba(255, 140, 42, 0.14);
-    box-shadow: inset 0 0 0 1px rgba(255, 140, 42, 0.22);
+    border-color: var(--fv-editor-border-strong);
+    background: var(--fv-editor-control-surface-active);
+    box-shadow: inset 0 0 0 1px var(--fv-editor-border);
 }
 
 .fv-editor-status-row {
@@ -235,29 +252,29 @@
     display: grid;
     gap: 0.32em;
     padding-top: 0.75em;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-top: 1px solid var(--fv-editor-control-border);
 }
 
 .fv-validation-summary {
-    color: #a6d8ff;
+    color: var(--fv-editor-info);
     font-size: 1.03rem;
     font-weight: 600;
 }
 
 .fv-validation-summary.invalid {
-    color: #ff7f7f;
+    color: var(--fv-editor-danger);
 }
 
 .fv-validation-summary.warning {
-    color: #ffbe76;
+    color: var(--fv-editor-warning);
 }
 
 .fv-validation-summary.info {
-    color: #7ecbff;
+    color: var(--fv-editor-info);
 }
 
 .fv-validation-summary.ready {
-    color: #8ce69b;
+    color: var(--fv-editor-success);
 }
 
 .fv-validation-details {
@@ -270,28 +287,28 @@
 }
 
 .fv-validation-details.invalid {
-    color: #ff7f7f;
+    color: var(--fv-editor-danger);
 }
 
 .fv-validation-details.warning {
-    color: #ffbe76;
+    color: var(--fv-editor-warning);
 }
 
 .fv-validation-details.info {
-    color: #b8e2ff;
+    color: var(--fv-editor-info);
 }
 
 .fv-validation-details.ready {
-    color: #8ce69b;
+    color: var(--fv-editor-success);
 }
 
 .fv-runtime-loading-row > td {
     text-align: center !important;
     padding: 0.5em 0.7em !important;
     font-size: 1.03rem;
-    color: rgba(255, 255, 255, 0.84);
-    border: 1px dashed rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.02);
+    color: var(--fv-editor-text-primary);
+    border: 1px dashed var(--fv-editor-control-border);
+    background: var(--fv-editor-control-surface);
 }
 
 .fv-runtime-loading-row > td i {
@@ -302,15 +319,15 @@
     margin: 0 1em 1em;
     padding: 1em 1em 1.1em;
     border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--fv-editor-control-border);
     background: var(--fv-editor-panel);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+    box-shadow: var(--fv-editor-shadow);
     transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease, background-color 150ms ease;
 }
 
 .fv-section-shell.is-dirty {
-    border-color: rgba(255, 154, 60, 0.32);
-    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.18);
+    border-color: var(--fv-editor-border-strong);
+    box-shadow: var(--fv-editor-shadow);
 }
 
 .fv-section-shell.is-collapsed {
@@ -324,7 +341,7 @@
 .fv-section-heading {
     margin: 0 0 0.7em;
     padding-bottom: 0.8em;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid var(--fv-editor-control-border);
 }
 
 .fv-section-heading-title-row {
@@ -363,9 +380,9 @@
     border-radius: 999px;
     font-size: 1.03rem;
     letter-spacing: 0.02em;
-    background: rgba(255, 140, 42, 0.14);
-    border: 1px solid rgba(255, 140, 42, 0.42);
-    color: #ffbe76;
+    background: var(--fv-editor-control-surface-active);
+    border: 1px solid var(--fv-editor-border-strong);
+    color: var(--fv-editor-warning);
 }
 
 .fv-section-heading-tools {
@@ -389,16 +406,16 @@
     min-height: 30px;
     padding: 0.15em 0.7em;
     border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--fv-editor-control-border);
+    background: var(--fv-editor-control-surface);
     font-size: 1.02rem;
     color: var(--fv-editor-muted);
 }
 
 .fv-section-state-badge.is-dirty {
-    border-color: rgba(255, 154, 60, 0.36);
-    background: rgba(255, 154, 60, 0.14);
-    color: #ffd7ab;
+    border-color: var(--fv-editor-border-strong);
+    background: var(--fv-editor-control-surface-active);
+    color: var(--fv-editor-warning);
 }
 
 .fv-section-state-badge.is-clean {
@@ -420,10 +437,10 @@
 #fvLivePanel {
     margin: 0 1em 1.1em;
     padding: 0.8em 0.85em;
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    border: 1px solid var(--fv-editor-control-border);
     border-radius: 16px;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.02));
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.14);
+    background: var(--fv-editor-panel);
+    box-shadow: var(--fv-editor-shadow);
 }
 
 .fv-live-panel-grid {
@@ -434,9 +451,9 @@
 }
 
 .fv-live-preview-card {
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--fv-editor-control-border);
     border-radius: 14px;
-    background: rgba(255, 255, 255, 0.025);
+    background: var(--fv-editor-control-surface);
 }
 
 .fv-live-preview-card {
@@ -475,7 +492,7 @@
     padding: 0.45em 0.75em;
     border-radius: 14px;
     border: 1px solid transparent;
-    background: linear-gradient(180deg, rgba(7, 7, 7, 0.3), rgba(255, 255, 255, 0.02));
+    background: var(--fv-editor-inset-surface);
     display: grid;
     grid-template-columns: max-content minmax(0, 1fr);
     gap: 1rem;
@@ -657,7 +674,7 @@
 }
 
 #fvChangeSummaryLabel.is-dirty {
-    color: #ffd7ab;
+    color: var(--fv-editor-warning);
 }
 
 #fvChangeSummaryText {
@@ -673,9 +690,9 @@
     margin: 0 1em 1.2em;
     padding: 0.85em 1em;
     border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    background: linear-gradient(180deg, rgba(18, 18, 18, 0.96), rgba(10, 10, 10, 0.96));
-    box-shadow: 0 18px 34px rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--fv-editor-control-border);
+    background: var(--fv-editor-bg);
+    box-shadow: var(--fv-editor-shadow);
     backdrop-filter: blur(10px);
 }
 
@@ -696,7 +713,7 @@
 
 .fv-actionbar-dirty.is-dirty,
 #unsavedIndicator {
-    color: #ffd7ab;
+    color: var(--fv-editor-warning);
     font-weight: 600;
 }
 
@@ -705,15 +722,15 @@
     margin-left: 0.55em;
     padding: 0.08em 0.42em;
     border-radius: 999px;
-    border: 1px solid rgba(140, 200, 255, 0.22);
-    background: rgba(140, 200, 255, 0.08);
-    color: #a6d8ff;
+    border: 1px solid var(--fv-editor-focus-ring);
+    background: var(--fv-editor-control-surface);
+    color: var(--fv-editor-info);
     font-size: 0.85em;
     vertical-align: middle;
 }
 
 .fv-using-inherited > blockquote.inline_help {
-    border-left: 2px solid rgba(140, 200, 255, 0.3);
+    border-left: 2px solid var(--fv-editor-focus-ring);
     padding-left: 0.7em;
 }
 
@@ -1977,10 +1994,10 @@
 .fv-modern-field-row > blockquote.inline_help {
     margin: 0.7em 0 0 !important;
     padding: 0.7em 0.8em !important;
-    border-left: 3px solid rgba(255, 154, 60, 0.22);
+    border-left: 3px solid var(--fv-editor-border);
     border-radius: 12px;
-    background: rgba(255, 255, 255, 0.03);
-    color: rgba(255, 255, 255, 0.76);
+    background: var(--fv-editor-control-surface);
+    color: var(--fv-editor-muted);
 }
 
 .fv-modern-field-row > blockquote.inline_help > p,
@@ -1998,12 +2015,13 @@
     min-height: 30px;
     padding: 0.18em 0.62em;
     border-radius: 9px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    background: rgba(10, 10, 10, 0.34);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--fv-editor-control-border);
+    background: var(--fv-editor-input-bg);
+    box-shadow: inset 0 1px 0 var(--fv-editor-inset-surface);
     box-sizing: border-box;
     line-height: 1.1;
     font-size: 0.96rem;
+    color: var(--fv-editor-text-primary);
 }
 
 .fv-modern-field-row textarea {
@@ -2011,12 +2029,13 @@
     max-width: min(100%, 360px);
     padding: 0.4em 0.68em;
     border-radius: 9px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    background: rgba(10, 10, 10, 0.34);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--fv-editor-control-border);
+    background: var(--fv-editor-input-bg);
+    box-shadow: inset 0 1px 0 var(--fv-editor-inset-surface);
     box-sizing: border-box;
     line-height: 1.25;
     font-size: 0.96rem;
+    color: var(--fv-editor-text-primary);
 }
 
 .fv-modern-field-row textarea {
@@ -2050,8 +2069,8 @@
     height: 32px;
     padding: 2px;
     border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    background: rgba(10, 10, 10, 0.34);
+    border: 1px solid var(--fv-editor-control-border);
+    background: var(--fv-editor-input-bg);
 }
 
 .fv-modern-field-row.is-toggle-row > dl > dd {

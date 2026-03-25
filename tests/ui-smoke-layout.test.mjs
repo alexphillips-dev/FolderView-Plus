@@ -155,8 +155,9 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderPage, /folder\.editor\.shared\.js/);
     assert.match(folderPage, /folder\.editor\.schema\.js/);
     assert.match(folderPage, /folder\.editor\.preview\.js/);
+    assert.match(folderPage, /folder\.editor\.hierarchy\.js/);
     assert.match(folderPage, /folder\.editor\.chrome\.js/);
-    assert.doesNotMatch(folderPage, /folder\.js'\)\?>" defer><\/script>/);
+    assert.match(folderPage, /folder\.js/);
     assert.match(folderPage, /folder\.legacy\.js/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorResolvedMode =/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorModeSource =/);

@@ -3974,12 +3974,58 @@ const rmFolder = (id) => {
  * Redirect to the page to edit the folder
  * @param {string} id the id of the folder
  */
+const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
+const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv.folder.editor.prefill.persist.v1';
+const clearFolderEditorPrefill = () => {
+    try {
+        if (typeof sessionStorage !== 'undefined') {
+            sessionStorage.removeItem(EDITOR_PREFILL_STORAGE_KEY);
+        }
+        if (typeof localStorage !== 'undefined') {
+            localStorage.removeItem(EDITOR_PREFILL_LOCAL_STORAGE_KEY);
+        }
+    } catch (_error) {
+        // Editor prefill cleanup is best-effort only.
+    }
+};
+const seedFolderEditorPrefill = (folderType, id) => {
+    try {
+        const normalizedId = String(id || '').trim();
+        if (!normalizedId || !globalFolders[normalizedId]) {
+            return;
+        }
+        const payload = JSON.stringify({
+            type: folderType,
+            id: normalizedId,
+            folder: globalFolders[normalizedId],
+            storedAt: Date.now()
+        });
+        if (typeof sessionStorage !== 'undefined') {
+            sessionStorage.setItem(EDITOR_PREFILL_STORAGE_KEY, payload);
+        }
+        if (typeof localStorage !== 'undefined') {
+            localStorage.setItem(EDITOR_PREFILL_LOCAL_STORAGE_KEY, payload);
+        }
+    } catch (_error) {
+        // Editor prefill is best-effort only.
+    }
+};
+const buildDockerFolderEditorUrl = (id = '') => {
+    const params = new URLSearchParams();
+    params.set('type', 'docker');
+    if (String(id || '').trim()) {
+        params.set('id', String(id || '').trim());
+    }
+    params.set('_', String(Date.now()));
+    return `/Docker/Folder?${params.toString()}`;
+};
 const editFolder = (id) => {
     if (!ensureDockerFolderUnlocked(id, 'Edit folder')) {
         return;
     }
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] editFolder (id: ${id}): Redirecting to edit page.`);
-    location.href = "/Docker/Folder?type=docker&id=" + id;
+    seedFolderEditorPrefill('docker', id);
+    location.href = buildDockerFolderEditorUrl(id);
 };
 
 /**
@@ -5139,7 +5185,8 @@ if (FOLDER_VIEW_DEBUG_MODE) {
 // Add the button for creating a folder
 const createFolderBtn = () => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolderBtn: Clicked. Redirecting.');
-    location.href = "/Docker/Folder?type=docker"
+    clearFolderEditorPrefill();
+    location.href = buildDockerFolderEditorUrl();
 };
 
 // This is needed because unraid don't like the folder and the number are set incorrectly, this intercept the request and change the numbers to make the order appear right, this is important for the autostart and to draw the folders

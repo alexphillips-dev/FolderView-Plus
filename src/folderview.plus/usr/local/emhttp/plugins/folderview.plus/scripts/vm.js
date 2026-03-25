@@ -168,6 +168,122 @@ const vmRuntimeStateStore = createVmRuntimeStateStore({
     pinnedFolderIds: [],
     performanceProfile: null
 });
+const getPreviewRowLimitValue = (settings = {}) => (
+    settings?.preview_rows
+    ?? settings?.previewRows
+    ?? ''
+);
+const normalizeFolderPreviewRowLimit = (settings = {}) => {
+    const raw = String(getPreviewRowLimitValue(settings)).trim().toLowerCase();
+    if (raw === '0' || raw === 'auto' || raw === 'unlimited') {
+        return 0;
+    }
+    const parsed = Number.parseInt(raw, 10);
+    if (!Number.isFinite(parsed)) {
+        return 1;
+    }
+    return Math.max(1, Math.min(4, parsed));
+};
+const isCompactMultiRowPreview = (settings = {}) => {
+    const normalizedRows = normalizeFolderPreviewRowLimit(settings);
+    return normalizedRows === 0 || normalizedRows > 1;
+};
+const applyFolderPreviewLayout = ($preview, settings = {}) => {
+    if (!$preview || !$preview.length) {
+        return;
+    }
+    const previewNode = $preview.get(0);
+    if (!previewNode || !previewNode.style) {
+        return;
+    }
+    previewNode.dataset.previewRows = String(normalizeFolderPreviewRowLimit(settings));
+    previewNode.style.removeProperty('--fvplus-preview-row-limit');
+    previewNode.style.removeProperty('--fvplus-preview-max-height');
+    previewNode.classList.remove('fv-preview-unlimited-rows', 'fv-preview-multirow');
+    const normalizedRows = normalizeFolderPreviewRowLimit(settings);
+    if (normalizedRows === 0) {
+        previewNode.classList.add('fv-preview-unlimited-rows', 'fv-preview-multirow');
+    } else if (normalizedRows > 1) {
+        previewNode.classList.add('fv-preview-multirow');
+    }
+};
+const layoutFolderPreviewRows = ($preview, settings = {}) => {
+    if (!$preview || !$preview.length) {
+        return;
+    }
+    if (!isCompactMultiRowPreview(settings)) {
+        const $existingRows = $preview.children('.folder-preview-row');
+        if ($existingRows.length) {
+            $existingRows.children('.folder-preview-wrapper, .folder-preview-divider').appendTo($preview);
+            $existingRows.remove();
+        }
+        const wrappers = $preview.children('.folder-preview-wrapper').get();
+        $preview.children('.folder-preview-divider').remove();
+        if (settings?.preview_vertical_bars === true) {
+            const barsColor = settings?.preview_vertical_bars_color || settings?.preview_border_color || '';
+            wrappers.forEach((wrapper, index) => {
+                if (index < wrappers.length - 1) {
+                    $(wrapper).after(`<div class="folder-preview-divider" ${barsColor ? `style="border-color: ${barsColor};"` : ''}></div>`);
+                }
+            });
+        }
+        return;
+    }
+
+    const $existingRows = $preview.children('.folder-preview-row');
+    if ($existingRows.length) {
+        $existingRows.children('.folder-preview-wrapper, .folder-preview-divider').appendTo($preview);
+        $existingRows.remove();
+    }
+    const wrappers = $preview.children('.folder-preview-wrapper').get();
+    $preview.children('.folder-preview-divider').remove();
+    if (!wrappers.length) {
+        return;
+    }
+
+    const rowLimit = normalizeFolderPreviewRowLimit(settings);
+    const addDividers = settings?.preview_vertical_bars === true;
+    const barsColor = settings?.preview_vertical_bars_color || settings?.preview_border_color || '';
+    const previewElement = $preview.get(0);
+    const availableWidth = Math.max(0, Math.floor($preview.innerWidth() || previewElement?.clientWidth || 0) - 12);
+    const gapWidth = 8;
+    const dividerWidth = addDividers ? 1 : 0;
+    const rows = [];
+    let currentRow = [];
+    let currentWidth = 0;
+
+    wrappers.forEach((wrapper) => {
+        const measuredWidth = Math.max(1, Math.ceil(wrapper.getBoundingClientRect?.().width || $(wrapper).outerWidth() || 0));
+        const extraWidth = currentRow.length ? gapWidth + dividerWidth : 0;
+        const nextWidth = currentWidth + extraWidth + measuredWidth;
+        const canWrap = availableWidth > 0 && currentRow.length > 0 && nextWidth > availableWidth;
+        if (canWrap && (rowLimit === 0 || rows.length + 1 < rowLimit)) {
+            rows.push(currentRow);
+            currentRow = [wrapper];
+            currentWidth = measuredWidth;
+            return;
+        }
+        currentRow.push(wrapper);
+        currentWidth = nextWidth;
+    });
+    if (currentRow.length) {
+        rows.push(currentRow);
+    }
+
+    const visibleRows = rowLimit === 0 ? rows : rows.slice(0, rowLimit);
+    $preview.empty();
+
+    visibleRows.forEach((slice) => {
+        const $row = $('<div class="folder-preview-row"></div>');
+        slice.forEach((wrapper, index) => {
+            $row.append(wrapper);
+            if (addDividers && index < slice.length - 1) {
+                $row.append(`<div class="folder-preview-divider" ${barsColor ? `style="border-color: ${barsColor};"` : ''}></div>`);
+            }
+        });
+        $preview.append($row);
+    });
+};
 const folderViewPerfFromQuery = (() => {
     try {
         if (!window.location || typeof window.location.search !== 'string' || typeof URLSearchParams !== 'function') {
@@ -1154,11 +1270,12 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
         .css('padding-left', `${depthIndentPx}px`);
     applyVmFolderQuickActionState(id);
 
-    const previewNode = $(`tr.folder-id-${id} div.folder-preview`).get(0);
+    const $preview = $(`tr.folder-id-${id} div.folder-preview`);
+    const previewNode = $preview.get(0);
     applyPreviewBorderStyle(previewNode, folder.settings);
     applyFolderDropdownStyle($(`tr.folder-id-${id}`), folder.settings);
-
-    $(`tr.folder-id-${id} div.folder-preview`).addClass(`folder-preview-${folder.settings.preview}`);
+    $preview.addClass(`folder-preview-${folder.settings.preview}`);
+    applyFolderPreviewLayout($preview, folder.settings);
 
     // select the preview function to use
     let addPreview;
@@ -1321,12 +1438,9 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
     folder.containers = newFolder;
 
     // wrap the preview with a div
-    $(`tr.folder-id-${id} div.folder-preview > span`).wrap('<div class="folder-preview-wrapper"></div>');
-
-    if(folder.settings.preview_vertical_bars) {
-        const barsColor = folder.settings.preview_vertical_bars_color || folder.settings.preview_border_color;
-        $(`tr.folder-id-${id} div.folder-preview > div`).not(':last').after(`<div class="folder-preview-divider" style="border-color: ${barsColor};"></div>`);
-    }
+    $preview.children('span').wrap('<div class="folder-preview-wrapper"></div>');
+    applyFolderPreviewLayout($preview, folder.settings);
+    layoutFolderPreviewRows($preview, folder.settings);
 
     //set tehe status of a folder
 
@@ -1589,11 +1703,57 @@ const rmFolder = (id) => {
  * Redirect to the page to edit the folder
  * @param {string} id the id of the folder
  */
+const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
+const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv.folder.editor.prefill.persist.v1';
+const clearFolderEditorPrefill = () => {
+    try {
+        if (typeof sessionStorage !== 'undefined') {
+            sessionStorage.removeItem(EDITOR_PREFILL_STORAGE_KEY);
+        }
+        if (typeof localStorage !== 'undefined') {
+            localStorage.removeItem(EDITOR_PREFILL_LOCAL_STORAGE_KEY);
+        }
+    } catch (_error) {
+        // Editor prefill cleanup is best-effort only.
+    }
+};
+const seedFolderEditorPrefill = (folderType, id) => {
+    try {
+        const normalizedId = String(id || '').trim();
+        if (!normalizedId || !globalFolders[normalizedId]) {
+            return;
+        }
+        const payload = JSON.stringify({
+            type: folderType,
+            id: normalizedId,
+            folder: globalFolders[normalizedId],
+            storedAt: Date.now()
+        });
+        if (typeof sessionStorage !== 'undefined') {
+            sessionStorage.setItem(EDITOR_PREFILL_STORAGE_KEY, payload);
+        }
+        if (typeof localStorage !== 'undefined') {
+            localStorage.setItem(EDITOR_PREFILL_LOCAL_STORAGE_KEY, payload);
+        }
+    } catch (_error) {
+        // Editor prefill is best-effort only.
+    }
+};
+const buildVmFolderEditorUrl = (id = '') => {
+    const params = new URLSearchParams();
+    params.set('type', 'vm');
+    if (String(id || '').trim()) {
+        params.set('id', String(id || '').trim());
+    }
+    params.set('_', String(Date.now()));
+    return `/VMs/Folder?${params.toString()}`;
+};
 const editFolder = (id) => {
     if (!ensureVmFolderUnlocked(id, 'Edit folder')) {
         return;
     }
-    location.href = "/VMs/Folder?type=vm&id=" + id;
+    seedFolderEditorPrefill('vm', id);
+    location.href = buildVmFolderEditorUrl(id);
 };
 
 /**
@@ -2472,7 +2632,10 @@ window.loadlist = (x) => {
 };
 
 // Add the button for creating a folder
-const createFolderBtn = () => { location.href = "/VMs/Folder?type=vm" };
+const createFolderBtn = () => {
+    clearFolderEditorPrefill();
+    location.href = buildVmFolderEditorUrl();
+};
 
 
 $.ajaxPrefilter((options, originalOptions, jqXHR) => {

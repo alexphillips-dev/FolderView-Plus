@@ -115,6 +115,10 @@ test('server normalizes compact matrix dashboard layout', () => {
 
 test('dashboard runtime supports layout classes, accordion guards, and overflow metadata', () => {
     assert.match(dashboardScript, /const DASHBOARD_LAYOUT_MODES = Array\.isArray\(utils\.DASHBOARD_LAYOUT_OPTIONS\)/);
+    assert.match(dashboardScript, /const EDITOR_PREFILL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.v1';/);
+    assert.match(dashboardScript, /const seedDashboardFolderEditorPrefill = \(folderType,\s*id\) =>/);
+    assert.match(dashboardScript, /seedDashboardFolderEditorPrefill\('docker', id\);/);
+    assert.match(dashboardScript, /seedDashboardFolderEditorPrefill\('vm', id\);/);
     assert.match(dashboardScript, /DASHBOARD_LAYOUT_OPTIONS: Object\.freeze\(\['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'\]\)/);
     assert.match(dashboardScript, /const DASHBOARD_LAYOUT_LABELS = utils\.DASHBOARD_LAYOUT_LABELS \|\| Object\.freeze\(/);
     assert.match(dashboardScript, /const dashboardLayoutQuickRailModule = window\.FolderViewPlusDashboardLayoutQuickRail \|\| null;/);
@@ -263,7 +267,7 @@ test('folder editor supports per-folder dashboard overflow mode', () => {
     assert.match(folderPage, /<option value="2" data-i18n="preview-option-2">Only icon \(clean\)<\/option>/);
     assert.match(folderScript, /const utils = window\.FolderViewPlusUtils \|\| null;/);
     assert.match(folderScript, /const normalizeDashboardOverflowMode = typeof utils\?\.normalizeDashboardOverflowMode === 'function'/);
-    assert.match(folderScript, /form\.dashboard_overflow\.value = normalizeDashboardOverflowMode\(currFolder\.settings\.dashboard_overflow\);/);
+    assert.match(folderScript, /setFieldValue\('dashboard_overflow',\s*normalizeDashboardOverflowMode\(normalizedFolder\.settings\.dashboard_overflow\)\);/);
     assert.match(folderScript, /dashboard_overflow: normalizeDashboardOverflowMode\(e\.dashboard_overflow\?\.value\)/);
     assert.doesNotMatch(folderPage, /name="preview_member_display"/);
     assert.doesNotMatch(folderScript, /preview_member_display/);

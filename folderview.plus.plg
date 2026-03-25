@@ -6,12 +6,471 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.23.33">
-<!ENTITY md5 "517f0221f1fea6e7abe826c2cdb1807c">
+<!ENTITY version "2026.03.25.02">
+<!ENTITY md5 "d835eda2b8742365ee8e53b6064343f3">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.25.02
+- Feature: Added the new modern folder editor for Docker and VMs with a redesigned sectioned UI, live folder preview, modern/legacy editor toggle, expanded chevron styles, and stronger VM/Docker editor parity.
+- Fix: Resolved editor hydration, save, preview, chevron, reset-control, nested-folder, and action-dialog regressions across both the modern and legacy folder settings pages, plus fixed the Docker advanced-preview click conflict and remaining stale-response endpoints.
+- Maintenance: Hardened plugin page freshness with document no-cache guards, auto-reload version sentinels, and additional no-cache coverage on live GET endpoints, while expanding browser/bootstrap/security regression coverage and release automation checks.
+
+
+###2026.03.25.01
+- Fix: Improved backend release-note parsing and category detection for accurate summaries.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.24.62
+- Maintenance: Tighten modern rules layout and action dialog.
+- Maintenance: Tighten modern rules card and dialog layout.
+- Maintenance: Refine modern rules and action dialog sizing.
+- Maintenance: Refine modern editor action dialog layout.
+- Maintenance: Tighten modern advanced editor cards.
+- UX: Polish modern rules/actions editor cards.
+
+
+###2026.03.24.61
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.24.60
+- Maintenance: Tighten modern rules card and dialog layout.
+- Maintenance: Refine modern rules and action dialog sizing.
+- Maintenance: Refine modern editor action dialog layout.
+- Maintenance: Tighten modern advanced editor cards.
+- UX: Polish modern rules/actions editor cards.
+- Maintenance: Standardize modern editor card sizing.
+
+
+###2026.03.24.59
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.24.58
+- UX: Overrode the legacy folder-row width rule for the modern Rules and Actions sections so compact advanced cards no longer inherit the old full-width shell sizing.
+- UX: Reduced the custom action dialog to a narrower 500px presentation and forced the dialog form to anchor left with compact field widths instead of centering in the modal.
+- Test: Added stronger smoke coverage for the exact Rules-section width override and the smaller action-dialog contract.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.24.57
+- UX: Forced the modern Rules section card to use a compact fixed-width advanced-card layout so the regex module no longer stretches across the full editor width.
+- UX: Refined the custom action dialog into a narrower single-column form with left-aligned labels and fields instead of the old centered layout.
+- UX: Kept the modern Basic/Advanced mode toggle spacing slightly wider on the left edge so the Basic button does not crowd the outer border.
+- Test: Updated the modern editor smoke guard to lock the compact Rules card width override and the new custom action dialog grid contract.
+
+
+###2026.03.24.56
+- UX: Fixed the modern Rules card and other compact advanced cards by overriding the base full-width card contract so they render as true compact modules instead of stretching across the editor.
+- UX: Tightened the custom action dialog with a smaller themed layout, left-aligned form labels/fields, and a higher page position so it no longer uses the oversized centered legacy presentation.
+- UX: Increased left-side padding on the modern Basic/Advanced mode control so the Basic button no longer sits too close to the outer edge.
+- Test: Expanded modern editor smoke coverage for the compact advanced-card width override, smaller custom action dialog contract, and updated mode-control padding.
+
+
+###2026.03.24.55
+- UX: Polish modern rules/actions editor cards.
+- Maintenance: Standardize modern editor card sizing.
+- Maintenance: Separate modern field headers from content.
+- Maintenance: Move modern field headers up.
+- Maintenance: Refine modern field card header layout.
+- Maintenance: Adjust modern editor header spacing.
+
+
+###2026.03.24.54
+- UX: Constrained the modern Rules and Actions cards so sparse advanced controls no longer stretch across the full editor width.
+- UX: Restyled the `Add a custom action` trigger as a real button, fixed the custom-action wrapper overflow, and aligned the modern Basic/Advanced toggle padding symmetrically.
+- UX: Skinned the custom action dialog to match the active folder editor theme and moved it higher on the page instead of leaving the legacy white centered modal.
+- Test: Added regression coverage for the compact advanced-card sizing, themed custom-action dialog hook, and updated editor mode control padding.
+
+
+###2026.03.24.53
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.24.52
+- UX: Standardized the modern folder editor card grid so Preview and other sections use evenly sized modules instead of content-sized cards that drift out of alignment.
+- UX: Removed the special narrow modern `Folder WebUI` card width and made normal field cards stretch to a shared column contract with consistent base height.
+- Test: Updated the modern editor smoke guard to lock the new unified card-grid sizing contract.
+
+
+###2026.03.24.51
+- UX: Lowered the modern field-card content block explicitly so module titles stay visually separated from the control area instead of sharing the same vertical band.
+- UX: Reduced the modern card top padding again while adding explicit top padding on the content block, so titles read closer to the top-left edge and fields sit lower.
+- Test: Added a regression check for the modern field-card content offset contract.
+
+
+###2026.03.24.50
+- UX: Moved modern module titles noticeably closer to the top-left edge of each card instead of leaving them visually centered between the border and the field content.
+- UX: Increased the title-to-content separation further so the module heading no longer reads like it belongs inside the control area.
+- Test: Updated the modern field-card layout smoke guard to lock the stronger header-spacing contract.
+
+
+###2026.03.24.49
+- UX: Switched modern field cards to an explicit stacked header/content layout so every module title sits clearly in the top-left instead of drifting toward the control area.
+- UX: Increased the consistent header-to-content separation inside modern field cards without changing the fixed-height input and dropdown sizing.
+- Test: Added a modern editor smoke assertion for the new flex-column field-card layout contract.
+
+
+###2026.03.24.48
+- UX: Moved the modern editor field titles higher inside each module so the header sits closer to the top edge instead of crowding the input box.
+- UX: Increased the title-to-control gap in modern field cards without changing the new fixed input and dropdown heights.
+
+
+###2026.03.24.47
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.24.46
+- UX: Reverted the accidental module-title typography downgrade in the modern folder editor so field headers render at the original size again.
+- UX: Tightened the modern text and dropdown control chrome further by trimming the actual box height and inner padding instead of shrinking the labels.
+- Test: Updated the modern editor smoke guard to assert the restored `1rem` field-title size alongside the smaller `32px` control-height contract.
+
+
+###2026.03.24.45
+- UX: Restored the modern folder editor field-title text sizing after the previous pass reduced it too far.
+- UX: Reduced the actual text input, number input, and dropdown control height in the modern editor so labels no longer feel clipped by oversized fields.
+- Test: Updated the modern editor smoke guard to lock the corrected field-title size and compact control-height contract.
+
+
+###2026.03.24.44
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.24.43
+- UX: Tightened the modern General section so the name field no longer spans an unnecessary full-width card and text fields stay aligned to compact card widths.
+- UX: Narrowed modern text, number, select, and textarea controls so they stop filling cards edge-to-edge and clipping visually into section headers.
+- UX: Added cleaner compact sizing rules for General, Preview, and Status field cards, while keeping URL and icon rows wider where that extra width is actually useful.
+- Quality: Reset modern field-card class decoration before reapplying layout tags so stale wide-row classes do not survive into reopened editor sessions.
+
+
+###2026.03.24.42
+- UX: Removed the modern folder editor live-preview surface switch so the preview stays focused on the real row layout instead of alternate dashboard or nested mockups.
+- UX: Tightened General, Preview, and Status card sizing in the modern editor so compact controls stop stretching into random full-width modules.
+- UX: Reset icon buttons in the folder editor now render as icon-only controls with no bordered button chrome.
+- Quality: Updated the modern editor bootstrap shell and regression guards to match the simplified live-preview and compact-card layout contract.
+
+
+###2026.03.24.41
+- UX: Expanded the modern Docker and VM folder editors with richer member tools, including state filters, quick include/exclude actions for visible rows, and live member summary chips.
+- UX: Added inherited-default indicators and one-click `Use global` controls for key folder fields in the modern editor.
+- UX: Added live preview surface switching so the modern editor can preview the folder as a tab row, dashboard card, or nested child row.
+- UX: Tightened the modern editor chrome, preview panel, and section-card spacing so more controls stay visible higher on the page.
+- UX: Aligned the modern VM editor preview path with the Docker editor so both use the same preview border and row-layout contract.
+- Quality: Updated the modern editor bootstrap shell and regression guards so the new preview-surface and inheritance controls stay shipped and aligned with the runtime.
+
+
+###2026.03.24.39
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.24.38
+- UX: Reduced the extra empty space inside the modern folder editor live preview border so the row sits tighter.
+- UX: Increased the live preview member icon size again so previewed containers read closer to the real row.
+- Test: Updated live preview layout smoke coverage for the larger preview member icon contract.
+
+
+###2026.03.24.37
+- UX: Tightened the modern folder editor live preview so member containers sit inline to the right of the chevron with better spacing.
+- UX: Increased live preview member icon and text sizing so the preview row reads closer to the real Docker row.
+- Test: Added regression coverage for the modern live preview row alignment and member sizing contract.
+- Fix: Fix live preview chevron chrome.
+- Maintenance: Match live preview chevron to runtime sizing.
+
+
+###2026.03.24.36
+- UX: Tightened the modern folder editor live preview so member containers sit inline to the right of the chevron with clearer spacing.
+- UX: Increased live preview member icon and text sizing so the preview row matches the real runtime row more closely.
+- Test: Added regression coverage for the modern live preview row alignment and member sizing contract.
+
+
+###2026.03.24.35
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.24.34
+- UX: Removed the modern folder editor’s pending-changes summary panel from the live preview area to keep the new UI tighter and less cluttered.
+- UX: The modern editor still keeps dirty state in the action bar, but no longer repeats that status in a separate summary card.
+- Quality: Added regression coverage to keep the removed pending-changes chrome out of the modern folder editor shell.
+
+
+###2026.03.24.33
+- UX: Removed the folder editor recommendation that pushed users toward regex just because the regex field was empty; folders can now stay manual without showing that advisory.
+- UX: The “no members selected” editor message now renders as an informational blue note instead of a warning banner.
+- Quality: Added regression coverage for the removed regex advisory string and the new validation-banner info state.
+
+
+###2026.03.24.32
+- Feature: Added `Ghost`, `Pill`, and `Filled` chevron style options alongside the existing `Minimal` and `Boxed` styles in the folder editor.
+- UX: Docker rows, VM rows, and the modern folder editor live preview now share the same chevron style-token contract so the new styles render consistently across the real runtime and the editor preview.
+- Quality: Expanded chevron-style regression coverage to lock in the extended dropdown-style normalization and the new live-preview/runtime style hooks.
+
+
+###2026.03.24.31
+- Fix: Modern folder editor live preview now renders the chevron as display chrome instead of a real button, preventing theme button styles from overriding boxed and minimal chevron previews.
+- Fix: Live preview chevron color, border, and background variables now sync on the preview row itself as well as the chevron element, keeping boxed and minimal states aligned with the current editor values.
+- Quality: Added regression coverage to lock the non-button chevron preview markup and live chevron style-state sync into the editor runtime.
+
+
+###2026.03.24.30
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.24.29
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.24.28
+- Fix: Fix live preview chevron sync and nested preview borders.
+- Maintenance: Align live preview chevron with folder row.
+- Maintenance: Refresh live preview after editor resets.
+- Maintenance: Harden folder editor mode resolution.
+- Maintenance: Ignore folder editor mode query overrides.
+- Fix: Resolve folder editor mode on server.
+
+
+###2026.03.24.27
+- Fix: Modern folder editor now refreshes the live preview immediately when chevron style, chevron colors, or preview border fields change instead of waiting on the generic recalculation debounce.
+- Quality: Added regression coverage to keep the chevron-specific editor refresh path immediate in both the shared modern runtime and the legacy-backed editor runtime.
+
+
+###2026.03.24.26
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.24.25
+- Fix: Modern folder editor live preview now renders the chevron beside the folder name instead of isolating it at the far-right edge, matching the real runtime row layout more closely.
+- UX: Live preview chevron styling now reflects `Minimal` vs `Boxed` changes more clearly, including the active normal and hover colors used by the folder row.
+- Quality: Added regression coverage to lock in the live preview folder-head layout and chevron style states for the new editor.
+
+
+###2026.03.24.24
+- Fix: Resetting preview border defaults now refreshes the folder editor live preview immediately instead of leaving the old border styling on screen.
+- Fix: Resetting chevron colors now also refreshes the live preview immediately so the preview stays in sync with the saved field values.
+- Quality: Added regression coverage to keep folder editor reset helpers driving the live preview refresh path in both modern and legacy runtimes.
+
+
+###2026.03.24.23
+- Fix: Centralized Docker and VM folder editor mode resolution in the shared server helper so `Folder.page` consistently follows the saved per-type preference.
+- Quality: Folder.page now exposes resolved editor mode and mode source debug markers while continuing to ignore stale query-string editor overrides.
+- Quality: Added stronger regression coverage and browser smoke checks for Docker and VM `Use new folder settings page` toggle persistence and folder-editor mode resolution.
+
+
+###2026.03.24.22
+- Fix: Folder.page no longer honors query-string editor mode overrides, so stale VM or Docker tabs cannot force the wrong folder editor after the saved setting changes.
+- Fix: Opening a folder editor now always resolves modern vs legacy from the latest saved server-side prefs for that type, even if an older page shell still appends `editor=modern` in the URL.
+- Quality: Added regression coverage to keep query-based folder-editor mode overrides disabled in the shared folder editor page bootstrap.
+
+
+###2026.03.24.21
+- Fix: Docker, VM, and Dashboard folder editor routes no longer pass a stale page-cached `editor` override, so opening the folder editor now follows the latest saved server-side editor setting immediately.
+- Fix: VM folder edits now respect an unchecked `Use new folder settings page` toggle even if the VM runtime page itself was loaded before that setting changed.
+- Quality: Added regression coverage to keep runtime folder editor routes deferring editor-mode resolution to `Folder.page`.
+
+
+###2026.03.24.20
+- Fix: Folder editor mode saves now force an explicit user-choice flag server-side, so unchecking `Use new folder settings page` persists correctly even if a stale Settings page still posts the older folder-editor payload shape.
+- Fix: Docker and VM folder editor toggles no longer bounce back to checked on refresh just because the browser submitted `folderEditorMode` without the newer explicit-choice field.
+- Quality: Added regression coverage to keep the prefs endpoint upgrading folder-editor mode writes into explicit saved choices.
+
+
+###2026.03.24.19
+- Fix: VM folder editor pages now follow the saved VM editor setting again instead of being forced into the new editor by Docker's mode.
+- UX: New installs and upgrades now default both Docker and VM folder editor settings to the new editor unless the user explicitly switches back to the old editor.
+- Fix: Legacy editor opt-outs now persist across future upgrades through an explicit folder-editor mode preference flag for both Docker and VMs.
+- Quality: Added regression coverage for the new default-modern preference contract and removed the old VM-to-Docker forced-editor fallback path.
+
+
+###2026.03.24.18
+- Fix: VM folder editor pages now inherit the active Docker modern editor mode instead of dropping back to the legacy editor when the VM path would otherwise resolve legacy.
+- Fix: Folder.page now promotes VM folder editor loads to modern when Docker is already configured for the new editor, keeping both runtime tabs on the same editor experience.
+- Quality: Added regression coverage for the VM modern-editor fallback in the shared folder editor page bootstrap.
+
+
+###2026.03.24.17
+- Fix: VM folder edit routes now pass the resolved editor mode explicitly so the VMs tab opens the same new or legacy folder editor that is active for that type.
+- Fix: Folder.page now honors explicit editor-mode query overrides for Docker, VMs, and Dashboard folder editor entry points instead of falling back to legacy unexpectedly.
+- Quality: Added regression coverage so Docker, VMs, and Dashboard keep forwarding the resolved folder editor mode into the shared folder editor page.
+
+
+###2026.03.24.16
+- UX: Compacted the modern folder editor summary column so the right-side preview details consume less vertical space and keep the editable sections closer to the top of the page.
+- UX: Rearranged the modern summary into a denser two-column insights layout with narrower stat cards, side-by-side chip panels, and a tighter change summary card.
+- Quality: Added a regression guard so the modern folder editor keeps the compact insights grid instead of drifting back to a tall stacked summary layout.
+
+
+###2026.03.24.15
+- UX: Removed the Regex simulator from the modern folder editor overview so the General flow stays focused on the live preview and summary.
+- UX: Restyled the modern folder editor summary area with stat cards, status color chips, cleaner Docker signal pills, and a more polished change summary panel.
+- Fix: Updated the shared folder editor runtime so the modern overview still shows and hides Docker-specific summary chips correctly with the new chrome layout.
+
+
+###2026.03.24.14
+- Fix: Fix modern folder editor live preview.
+- Maintenance: Use legacy runtime for modern folder editor.
+- Fix: Fix modern folder editor bootstrap hydration.
+- Maintenance: Auto-reload plugin pages after version change.
+- Fix: Fix legacy folder editor chevron and reset controls.
+- Maintenance: Guard no-cache headers on plugin pages.
+
+
+###2026.03.24.13
+- UX: Reworked the modern folder editor section bodies into card-style panels so the new editor no longer exposes the raw legacy left-label form layout.
+- UX: Added per-section descriptions, wider field cards for icon, actions, regex, and member controls, and cleaner grouped list styling for nested preview and advanced options.
+- Fix: Updated the shared editor runtime layout enforcement so modern mode preserves the redesigned card layout instead of reapplying the legacy left-aligned row grid.
+
+
+###2026.03.24.12
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.24.11
+- Fix: Fix modern folder editor bootstrap hydration.
+- Maintenance: Auto-reload plugin pages after version change.
+- Fix: Fix legacy folder editor chevron and reset controls.
+- Maintenance: Guard no-cache headers on plugin pages.
+- Maintenance: Restore dedicated legacy folder editor runtime.
+- Maintenance: Harden legacy folder editor prefill recovery.
+
+
+###2026.03.24.10
+- Fix: Reworked the modern folder settings page to use the proven legacy folder-editor runtime underneath the new chrome, so existing-folder load/save behavior now comes from the same path that already works on the classic editor.
+- UX: The new folder settings page is now a true UI overlay on top of the shared form state instead of a second competing bootstrap path, which avoids blank-folder loads when editing existing Docker or VM folders.
+- Fix: Modern editor buttons now resolve their actions lazily through the legacy runtime exports, and the legacy runtime now exposes the modern top-bar actions needed by the new chrome.
+- Test: Updated folder-editor smoke coverage so modern mode must ship the chrome layer while still relying on the legacy runtime wiring.
+
+###2026.03.24.09
+- Fix: Modern folder editor now receives a server-resolved requested-folder bootstrap context, so editing an existing Docker or VM folder can hydrate from the saved record immediately instead of opening as a blank new-folder form.
+- Fix: Modern folder editor no longer hard-fails just because `folder.editor.hierarchy.js` is stale or missing; it falls back to an inline hierarchy controller so the form can still load, bind buttons, and populate parent-folder options.
+- UX: Existing-folder values are now applied to the new editor as soon as the page boots, before slower runtime lookups finish, which makes the modern form much more resilient during partial loads.
+- Fix: Added explicit modern-editor load failure reporting in the in-page validation panel so future bootstrap failures do not silently leave the redesign shell half-loaded.
+- Test: Added regression coverage for modern editor bootstrap context emission and the hierarchy-fallback hydration path.
+
+###2026.03.24.08
+- Fix: Added a page-version sentinel to Settings, Folder editor, Docker, VMs, and Dashboard so plugin pages force one automatic reload when the installed FolderView Plus version changes during the current browser session.
+- UX: This reduces the need for manual `Ctrl+Shift+F5` refreshes after updates by self-healing stale in-memory page shells on the next page load.
+- Test: Added security regression coverage so every plugin page must emit the version sentinel along with the no-cache guards and request-token meta tag.
+
+
+###2026.03.24.07
+- Fix: Restored legacy folder editor reset helpers for preview border and chevron colors, so the grouped reset buttons work again on the old form.
+- Fix: Legacy folder editor chevron-style normalization now accepts `boxed` and legacy chevron aliases instead of collapsing everything back to `minimal`.
+- Fix: Legacy folder editor now reloads and saves chevron style compatibility aliases, so reopening a folder preserves `Boxed` correctly.
+- Test: Added regression coverage for legacy editor reset helpers and boxed chevron compatibility on the split legacy runtime.
+
+
+###2026.03.24.06
+- Test: Expanded the no-cache page guard to discover plugin page entrypoints automatically instead of checking only a fixed hardcoded list.
+- Quality: Newly added plugin `.page` files must now emit the document no-cache headers, no-cache meta tags, and request-token meta tag or the security regression suite will fail.
+
+
+###2026.03.24.05
+- Fix: Legacy folder settings mode now loads a dedicated pre-redesign editor runtime instead of sharing the redesigned `folder.js` path, so the old form no longer inherits modern editor chrome and mixed save logic.
+- Fix: `Folder.page` now boots the modern editor stack only when `folderEditorMode` is `modern`; legacy mode skips the redesign chrome and loads `folder.legacy.js` directly.
+- UX: This restores a clean separation between the old and new folder settings pages while the redesigned editor continues behind the opt-in toggle.
+- Test: Added page-smoke and security regression coverage for the split legacy/modern editor runtime loading contract.
+
+
+###2026.03.24.04
+- Fix: Folder editor type detection now falls back to the page path, so legacy editor loads still resolve as Docker or VM even when the query string is incomplete or stripped by navigation.
+- Fix: Existing-folder editor prefill is now stored in both `sessionStorage` and `localStorage`, and the editor reads either source when recovering the clicked folder record.
+- UX: This gives the legacy folder settings page a more robust edit recovery path instead of dropping into a blank new-folder form when one storage/path route fails.
+- Test: Added regression coverage for persistent folder-editor prefill storage and the cache-busted redirect helpers.
+
+
+###2026.03.24.03
+- Fix: Added document-level no-cache headers and no-cache meta tags to the Settings, Folder editor, Docker, VM, and Dashboard plugin pages so updated page shells stop sticking in browser cache after installs.
+- Fix: Folder-editor redirects from Docker, VMs, and Dashboard now append a cache-busting query marker so opening the editor requests a fresh page document immediately after an update.
+- UX: This reduces the need for manual browser cache clears after plugin updates and helps newly shipped folder editor fixes show up on the next navigation instead of after a hard refresh.
+- Test: Added regression coverage for no-cache page guards and cache-busted folder-editor redirects.
+
+
+###2026.03.24.02
+- Fix: The legacy folder settings page now falls back to server-emitted editor context for `type` and requested folder id instead of depending only on the URL query string.
+- Fix: Existing-folder edits in legacy mode now resolve the saved folder record again, so the original editor loads the current name, icon, preview, chevron, and other saved settings instead of opening as a blank new-folder form.
+- UX: With the saved folder binding restored, the legacy submit, save-as-copy, reset, and cancel controls work through the original form flow again instead of being blocked by an empty required name field.
+- Test: Added editor context coverage for the server-emitted requested folder id and legacy hydration fallback path.
+
+
+###2026.03.24.01
+- Feature: Added a per-type settings toggle under Sort mode and view settings so Docker and VM users can choose the new folder settings page or keep the legacy editor.
+- Fix: The folder editor page now emits the selected editor mode before runtime bootstrap, and the redesign chrome only loads when that mode is explicitly set to `modern`.
+- UX: Legacy mode now stays on the original folder settings form instead of rendering a mixed old/new editor shell with modern tabs, preview chrome, and layout overrides on top.
+- Test: Added normalization and page-smoke coverage for the new `folderEditorMode` preference, shipped settings toggles, and modern-editor gating.
+
+
+###2026.03.23.44
+- Fix: The folder editor now accepts legacy folder query keys and can recover the requested folder from recent edit context even when the edit page arrives without a usable `id` in the URL.
+- Fix: Docker and VM create-folder routes now clear stale editor prefill so new-folder flows cannot accidentally inherit the last edited folder.
+- Test: Added regression coverage for legacy query-key and prefill-based folder editor recovery.
+
+
+###2026.03.23.43
+- Fix: Existing-folder edits now carry the clicked folder record from Docker, VMs, and Dashboard into the redesigned folder editor, so edit sessions no longer fall back to a blank new-folder form when the saved folder id cannot be resolved from `read.php` alone.
+- UX: The folder editor now reports when it recovered the requested folder from navigation context instead of silently opening with default values.
+- Test: Added regression coverage for editor navigation-prefill recovery and Dashboard edit redirects.
+
+
+###2026.03.23.42
+- Fix: Existing-folder edits now recover folder data from the clicked Docker, VM, or Dashboard folder before redirecting, so the redesigned editor no longer opens blank when the saved folder id cannot be resolved from `read.php` alone.
+- UX: The folder editor now surfaces recovered edit sessions from navigation context instead of silently falling back to a new-folder form.
+- Test: Added regression coverage for folder-editor navigation prefill handling in the editor runtime and Dashboard edit actions.
+
+
+###2026.03.23.41
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.23.40
+- Fix: Existing folder settings now hydrate from `read.php` before the member catalog request runs, so editing a saved folder no longer opens with a blank form when `read_info.php` is slow or fails.
+- UX: The redesigned folder editor keeps its tabbed shell while loading, but now the saved folder name, icon, preview, chevron, status, and advanced values bind immediately for edit sessions.
+- Test: Added regression coverage for the pre-member-catalog edit hydration order in the folder editor runtime.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.23.39
+- Fix: Moved the folder editor’s section grouping, tab visibility, and old-row hiding into the dedicated chrome bootstrap so the redesigned layout no longer depends on the later editor runtime to become usable.
+- UX: The new folder editor now opens in `Basic`, uses real section tabs even during early bootstrap, and wires the top restore/default/suggest actions through the shared runtime hooks.
+- Test: Kept the shipped-folder-editor chrome contract covered so bootstrap anchors, tab controls, and grouped layout selectors stay in the package together.
+
+
+###2026.03.23.38
+- Fix: Reworked the folder editor chrome bootstrap so the main runtime can bind the new buttons, live preview, and mode controls instead of leaving a dead placeholder shell behind.
+- UX: Converted the folder editor section pills into real tabs, defaulted the editor back to `Basic` on open, and hid any leftover unsectioned legacy rows so the old flat form no longer bleeds through underneath.
+- Test: Expanded folder editor UI smoke coverage for tab activation, parent-folder section tagging, and shipped bootstrap control anchors.
+
+
+###2026.03.23.37
+- Fix: Added a dedicated `folder.editor.chrome.js` page bootstrap so the redesigned folder editor shell renders immediately instead of depending only on the later `folder.js` hydration path.
+- UX: The folder editor now has a guaranteed bootstrap path for the top chrome, live preview panel, grouped section shells, and sticky action bar.
+- Test: Added a page-contract regression check so the redesign bootstrap script and required chrome anchors stay shipped together.
+
+
+###2026.03.23.35
+- Fix: Moved the folder editor shell initialization earlier in the editor bootstrap so the redesigned chrome appears before the icon/member async setup runs.
+- Quality: Kept the new folder editor layout path idempotent so later runtime hydration can rebind controls without duplicating the editor chrome.
+
+
+###2026.03.23.34
+- UX: Redesigned the folder editor with a richer hero/header, grouped section cards, per-section reset/default actions, a sticky action bar, and a live folder-row preview surface.
+- UX: Added change summary messaging, inheritance/default indicators, compact grouped reset controls, and cleaner mobile/editor spacing for the folder settings page.
+- Quality: Refreshed the performance baseline after the intentional folder editor runtime growth introduced by the redesign.
+
 
 ###2026.03.23.33
 - Feature: Added the Dashboard `Legacy` view for both Docker and VMs, expanded Docker multi-row preview capabilities, richer preview member actions, and new per-folder chevron, preview border, and divider styling controls.

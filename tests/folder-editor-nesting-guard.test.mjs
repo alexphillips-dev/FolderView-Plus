@@ -25,7 +25,8 @@ test('folder editor validates duplicate names within the selected parent path', 
     assert.match(folderHierarchyScript, /const getSiblingNameCollision = \(nameValue, parentId, excludeFolderId = ''\) =>/);
     assert.match(folderHierarchyScript, /const suggestSiblingName = \(baseName, parentId, excludeFolderId = ''\) =>/);
     assert.match(folderEditorScript, /const getFolderHierarchyApi = \(\(\) =>/);
-    assert.match(folderEditorScript, /cachedApi = folderHierarchyModule\.createApi\(/);
+    assert.match(folderEditorScript, /cachedApi = createFolderHierarchyApi\(/);
+    assert.match(folderEditorScript, /const createFallbackFolderHierarchyApi = \(deps = \{\}\) =>/);
     assert.match(folderEditorScript, /form\.parent_folder_id\?\.value/);
     assert.match(folderEditorScript, /A sibling with this name already exists under/);
 });
@@ -39,12 +40,59 @@ test('folder editor supports parent smart-default inheritance on new child folde
 });
 
 test('folder editor normalizes sparse folder payloads before binding controls', () => {
+    assert.match(folderEditorScript, /const folderEditorQueryParams = new URLSearchParams\(location\.search\);/);
+    assert.match(folderEditorScript, /folderEditorQueryParams\.get\('folderId'\)/);
+    assert.match(folderEditorScript, /folderEditorQueryParams\.get\('folder'\)/);
+    assert.match(folderEditorScript, /window\.FolderViewPlusFolderEditorPageType/);
+    assert.match(folderEditorScript, /window\.FolderViewPlusFolderEditorRequestedId/);
+    assert.match(folderEditorScript, /window\.FolderViewPlusFolderEditorResolvedId/);
+    assert.match(folderEditorScript, /const folderEditorBootstrapContext = window\.FolderViewPlusFolderEditorBootstrapContext/);
     assert.match(folderEditorScript, /const normalizeFolderRecordForEditor = \(folder\) =>/);
+    assert.match(folderEditorScript, /const hydrateCurrentEditFolder = \(folderRecord, folderRecordId, foldersMap = \{\}, options = \{\}\) =>/);
+    assert.match(folderEditorScript, /const resolveCurrentEditFolder = \(folderMap,\s*requestedId\) =>/);
+    assert.match(folderEditorScript, /const EDITOR_PREFILL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.v1';/);
+    assert.match(folderEditorScript, /const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.persist\.v1';/);
+    assert.match(folderEditorScript, /const readEditorNavigationPrefill = \(expectedType,\s*expectedId = ''\) =>/);
+    assert.match(folderEditorScript, /const clearEditorNavigationPrefill = \(\) =>/);
     assert.match(folderEditorScript, /preview:\s*Number\.isFinite\(Number\(settings\.preview\)\)/);
     assert.match(folderEditorScript, /context_graph_time:\s*Number\.isFinite\(Number\(settings\.context_graph_time\)\)/);
     assert.match(folderEditorScript, /folders\[safeId\] = normalizeFolderRecordForEditor\(folder\);/);
-    assert.match(folderEditorScript, /form\.preview\.value = String\(currFolder\.settings\.preview\);/);
+    assert.match(folderEditorScript, /let currentEditFolder = null;/);
+    assert.match(folderEditorScript, /const navigationPrefill = readEditorNavigationPrefill\(type,\s*folderId\);/);
+    assert.match(folderEditorScript, /const requestedFolderRef = String\(folderId \|\| folderEditorResolvedId \|\| navigationPrefill\?\.id \|\| ''\)\.trim\(\);/);
+    assert.match(folderEditorScript, /const resolvedEditFolder = resolveCurrentEditFolder\(folders,\s*requestedFolderRef\);/);
+    assert.match(folderEditorScript, /currentEditFolder = resolvedEditFolder\?\.folder \|\| bootstrapFolderRecord \|\| navigationPrefill\?\.folder \|\| null;/);
+    assert.match(folderEditorScript, /setValidationBannerState\(\s*'Warning: requested folder could not be loaded\.'/);
+    assert.match(folderEditorScript, /Recovered requested folder from navigation context\./);
+    assert.match(folderEditorScript, /hydrateCurrentEditFolder\(currentEditFolder,\s*currentEditFolderId,\s*folders,\s*\{\s*clearPrefill:\s*true\s*\}\);/);
+    assert.match(folderEditorScript, /clearEditorNavigationPrefill\(\);/);
     assert.doesNotMatch(folderEditorScript, /preview_member_display/);
+});
+
+test('runtime folder editor redirects include a cache-busting query marker', () => {
+    assert.match(folderEditorScript, /window\.FolderViewPlusFolderEditorRequestedId/);
+    assert.match(settingsScript, /changeVisibilityPref/);
+    const dockerScript = fs.readFileSync(
+        path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js'),
+        'utf8'
+    );
+    const vmScript = fs.readFileSync(
+        path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js'),
+        'utf8'
+    );
+    const dashboardScript = fs.readFileSync(
+        path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js'),
+        'utf8'
+    );
+    assert.match(dockerScript, /const buildDockerFolderEditorUrl = \(id = ''\) =>/);
+    assert.match(vmScript, /const buildVmFolderEditorUrl = \(id = ''\) =>/);
+    assert.match(dashboardScript, /const buildDashboardFolderEditorUrl = \(folderType,\s*id = ''\) =>/);
+    assert.match(dockerScript, /const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.persist\.v1';/);
+    assert.match(vmScript, /const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.persist\.v1';/);
+    assert.match(dashboardScript, /const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.persist\.v1';/);
+    assert.match(dockerScript, /params\.set\('_', String\(Date\.now\(\)\)\);/);
+    assert.match(vmScript, /params\.set\('_', String\(Date\.now\(\)\)\);/);
+    assert.match(dashboardScript, /params\.set\('_', String\(Date\.now\(\)\)\);/);
 });
 
 test('folder editor includes parent default hint styles', () => {

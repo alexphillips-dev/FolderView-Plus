@@ -33,9 +33,17 @@ const folderCssPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folder.css'
 );
+const folderPagePath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page'
+);
 const folderJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js'
+);
+const folderLegacyJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.legacy.js'
 );
 const dockerJsPath = path.join(
     repoRoot,
@@ -45,15 +53,26 @@ const vmJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js'
 );
+const dashboardJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js'
+);
 
 const settingsPage = fs.readFileSync(settingsPagePath, 'utf8');
 const settingsCss = fs.readFileSync(settingsCssPath, 'utf8');
 const settingsRuntime = settingsScriptPaths.map((scriptPath) => fs.readFileSync(scriptPath, 'utf8')).join('\n');
 const settingsJs = settingsRuntime;
+const folderPage = fs.readFileSync(folderPagePath, 'utf8');
 const folderCss = fs.readFileSync(folderCssPath, 'utf8');
 const folderJs = fs.readFileSync(folderJsPath, 'utf8');
+const folderLegacyJs = fs.readFileSync(folderLegacyJsPath, 'utf8');
+const folderChromeJs = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js'),
+    'utf8'
+);
 const dockerJs = fs.readFileSync(dockerJsPath, 'utf8');
 const vmJs = fs.readFileSync(vmJsPath, 'utf8');
+const dashboardJs = fs.readFileSync(dashboardJsPath, 'utf8');
 
 test('settings page includes smoke-test-critical containers and scripts', () => {
     assert.match(settingsPage, /id="import-preview-dialog"/);
@@ -117,6 +136,25 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
     assert.match(settingsPage, /id="vm-resource-warn-gib"/);
     assert.match(settingsPage, /id="vm-resource-critical-gib"/);
     assert.match(settingsPage, /id="fv-first-run-panel"/);
+    assert.match(settingsPage, /id="docker-folder-editor-modern"/);
+    assert.match(settingsPage, /id="vm-folder-editor-modern"/);
+    assert.match(settingsPage, /Use new folder settings page/);
+});
+
+test('folder page ships separate legacy and modern editor runtimes', () => {
+    assert.match(folderPage, /\$folderEditorPageMode === 'modern'/);
+    assert.match(folderPage, /resolveTypeFolderEditorModePreference\(\$folderEditorPageType\)/);
+    assert.match(folderPage, /folder\.editor\.chrome\.js/);
+    assert.match(folderPage, /folder\.legacy\.js/);
+    assert.match(folderPage, /window\.FolderViewPlusFolderEditorResolvedMode =/);
+    assert.match(folderPage, /window\.FolderViewPlusFolderEditorModeSource =/);
+    assert.match(folderJs, /modernFolderEditorEnabled/);
+    assert.match(folderLegacyJs, /const modernFolderEditorEnabled = String\(window\.FolderViewPlusFolderEditorPageMode \|\| 'legacy'\)/);
+    assert.match(folderLegacyJs, /window\.FolderViewPlusFolderEditorPageType/);
+    assert.match(folderLegacyJs, /window\.FolderViewPlusFolderEditorRequestedId/);
+    assert.match(folderLegacyJs, /const renderLivePreviewCanvas = \(\) =>/);
+    assert.match(folderLegacyJs, /#fvLivePreviewCanvas/);
+    assert.match(folderLegacyJs, /renderLivePreviewCanvas\(\);/);
 });
 
 test('mobile action bar and import progress keep compact viewport guards', () => {
@@ -238,6 +276,14 @@ test('nested folder expansion avoids duplicate parent previews and keeps child-o
 
 test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderJs, /const enforceLeftAlignedSettingsLayout = \(\) =>/);
+    assert.match(folderJs, /const setVisibleMemberSelection = \(checked\) =>/);
+    assert.match(folderJs, /const ensureInheritedFieldControls = \(\) =>/);
+    assert.match(folderJs, /id="fvHeroDefaults"/);
+    assert.match(folderJs, /id="fvMemberStateFilter"/);
+    assert.match(folderJs, /id="fvMemberIncludeVisible"/);
+    assert.match(folderJs, /id="fvMemberExcludeVisible"/);
+    assert.match(folderJs, /id="fvMemberChipIncluded"/);
+    assert.match(folderJs, /class="fv-inherit-btn"/);
     assert.match(folderJs, /fv-force-left-v2 marker/);
     assert.match(folderJs, /fv-force-left-v3 marker/);
     assert.match(folderJs, /const validateHealthWarnThreshold = \(\) =>/);
@@ -249,6 +295,12 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderJs, /health_updates_mode/);
     assert.match(folderJs, /health_all_stopped_mode/);
     assert.match(folderJs, /const collectValidationWarnings = \(\) =>/);
+    assert.match(folderJs, /const NO_MEMBERS_SELECTED_INFO = 'No members are currently selected in this folder\.';/);
+    assert.doesNotMatch(folderJs, /Regex is empty, so only manual assignment will be used for this folder\./);
+    assert.doesNotMatch(folderLegacyJs, /Regex is empty, so only manual assignment will be used for this folder\./);
+    assert.match(folderJs, /summary\.removeClass\('invalid warning info ready'\)/);
+    assert.match(folderJs, /summary\.addClass\('info'\)\.text\(`Info: \$\{infoWarnings\.length\} note/);
+    assert.match(folderLegacyJs, /summary\.addClass\('info'\)\.text\(`Info: \$\{infoWarnings\.length\} note/);
     assert.match(folderJs, /const suggestDefaultsFromMembers = \(\) =>/);
     assert.match(folderJs, /const buildRegexSuggestionFromNames = \(names\) =>/);
     assert.match(folderJs, /const applyAdvancedMode = \(\) =>/);
@@ -256,13 +308,155 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderJs, /ComposeProject/);
     assert.match(folderJs, /UpdateAvailable/);
     assert.match(folderJs, /id="fvSuggestDefaults"/);
-    assert.match(folderJs, /id="fvDockerSignals"/);
+    assert.match(folderChromeJs, /id="fvDockerSignalsShell"/);
+    assert.match(folderChromeJs, /class="fv-live-stat-card"/);
+    assert.doesNotMatch(folderChromeJs, /Regex simulator/);
+    assert.match(folderChromeJs, /id="fvHeroDefaults"/);
+    assert.doesNotMatch(folderChromeJs, /fvLiveSurfaceLabel/);
+    assert.doesNotMatch(folderChromeJs, /data-surface="dashboard"/);
+    assert.match(folderChromeJs, /if \(row\.querySelector\('\[name="regex"\]'\)\) \{\s*row\.classList\.add\('is-compact-text-row'/);
+    assert.match(folderChromeJs, /shell\.classList\.toggle\('is-members-shell', sectionKey === 'members'\)/);
+    assert.match(folderChromeJs, /if \(row\.querySelector\('\[name="name"\]'\)\) \{/);
+    assert.match(folderChromeJs, /row\.classList\.remove\('fv-modern-order-row', 'is-wide-row', 'is-icon-row', 'is-status-row', 'is-actions-row', 'is-toggle-row', 'is-color-row', 'is-name-row', 'is-url-row', 'is-compact-text-row', 'is-webui-row', 'is-members-row', 'is-rules-row', 'is-actions-list-row', 'is-actions-launch-row'\);/);
+    assert.match(folderChromeJs, /if \(row\.querySelector\('\[name="folder_webui"\]'\)\) \{/);
+    assert.match(folderChromeJs, /if \(row\.querySelector\('\.custom-action-wrapper'\)\) \{\s*row\.classList\.add\('is-actions-list-row'\);/);
+    assert.match(folderChromeJs, /if \(row\.querySelector\('a\.custom-action'\)\) \{\s*row\.classList\.add\('is-actions-launch-row'\);/);
+    assert.doesNotMatch(folderChromeJs, /row\.classList\.add\('is-actions-row', 'is-wide-row'\);/);
+    assert.doesNotMatch(folderChromeJs, /if \(row\.querySelector\('\[name="regex"\]'\)\) \{\s*row\.classList\.add\('is-wide-row'\);/);
+    assert.doesNotMatch(folderPage, /Lasciate ogne speranza/);
+    assert.doesNotMatch(folderPage, /Site for testing your regex/);
     assert.match(folderCss, /\.canvas form\.folder-editor-form\.fv-force-left-v3/);
     assert.match(folderCss, /Runtime-enforced left alignment guard/);
     assert.match(folderCss, /\.fv-editor-mode/);
+    assert.match(folderCss, /\.fv-editor-mode\s*\{[\s\S]*padding:\s*0\.24em 0\.72em 0\.24em 0\.98em;/);
     assert.match(folderCss, /\.fv-section-collapse/);
     assert.match(folderCss, /\.fv-docker-signals/);
+    assert.match(folderCss, /\.fv-live-chip-panel/);
+    assert.match(folderCss, /\.fv-live-stat-card/);
+    assert.match(folderCss, /\.fv-live-folder-head\s*\{/);
+    assert.match(folderCss, /\.fv-live-folder-head\s*\{[\s\S]*align-self:\s*center;/);
+    assert.match(folderCss, /\.fv-live-preview-row\s*\{[\s\S]*grid-template-columns:\s*max-content minmax\(0, 1fr\);/);
+    assert.match(folderCss, /\.fv-live-member-lane\s*\{[\s\S]*padding-left:\s*0\.45rem;/);
+    assert.match(folderCss, /\.fv-live-member > img\s*\{[\s\S]*width:\s*36px;[\s\S]*height:\s*36px;/);
+    assert.match(folderCss, /\.fv-live-preview-row\.is-minimal \.fv-live-chevron/);
+    assert.match(folderCss, /\.fv-live-preview-row\.is-boxed \.fv-live-chevron/);
+    assert.match(folderCss, /\.fv-live-preview-row\.is-ghost \.fv-live-chevron/);
+    assert.match(folderCss, /\.fv-live-preview-row\.is-pill \.fv-live-chevron/);
+    assert.match(folderCss, /\.fv-live-preview-row\.is-filled \.fv-live-chevron/);
+    assert.match(folderCss, /--fv-live-chevron-color/);
+    assert.match(folderCss, /--fv-live-chevron-hover-bg/);
+    assert.match(folderCss, /--fv-live-chevron-min-width/);
+    assert.match(folderCss, /\.fv-modern-field-row\.is-actions-row,\s*[\s\S]*\.fv-modern-field-row\.is-compact-text-row\s*\{[\s\S]*width:\s*min\(100%, 560px\);[\s\S]*max-width:\s*560px;/);
+    assert.match(folderCss, /\.fv-modern-field-row \.custom-action\s*\{/);
+    assert.match(folderCss, /\.fv-folder-action-dialog\.ui-dialog\s*\{/);
+    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="rules"\] \.fv-section-shell-body,\s*[\s\S]*display:\s*flex !important;/);
+    assert.match(folderCss, /\.fv-folder-action-dialog \.dialogCustomAction dl\s*\{[\s\S]*flex-direction:\s*column;/);
+    assert.match(folderJs, /dialogWidget\.addClass\('fv-folder-action-dialog'\);/);
+    assert.match(folderLegacyJs, /dialogWidget\.addClass\('fv-folder-action-dialog'\);/);
+    assert.match(folderJs, /width:\s*420,/);
+    assert.match(folderLegacyJs, /width:\s*420,/);
+    assert.match(folderCss, /\.fv-live-preview-row \.fv-live-chevron\s*\{[\s\S]*background:\s*var\(--fv-live-chevron-bg, transparent\) !important;/);
+    assert.match(folderCss, /\.fv-live-preview-row \.fv-live-chevron\s*\{[\s\S]*appearance:\s*none !important;/);
+    assert.match(folderCss, /\.fv-live-preview-row\.is-minimal \.fv-live-chevron\s*\{[\s\S]*color:\s*var\(--fv-live-chevron-color, var\(--fv-chevron-color\)\) !important;/);
+    assert.match(folderCss, /\.fv-live-chevron\s*\{[\s\S]*min-width:\s*var\(--fv-live-chevron-min-width, 12px\);[\s\S]*height:\s*var\(--fv-live-chevron-height, 16px\);[\s\S]*padding:\s*var\(--fv-live-chevron-padding, 0 2px\);/);
+    assert.match(folderCss, /\.fv-live-insights\s*\{\s*display:\s*grid;\s*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
+    assert.doesNotMatch(folderCss, /\.fv-preview-surface-switch/);
+    assert.doesNotMatch(folderCss, /\.fv-preview-surface-btn/);
+    assert.doesNotMatch(folderCss, /\.fv-live-preview-row\.surface-dashboard/);
+    assert.doesNotMatch(folderCss, /\.fv-live-preview-row\.surface-nested/);
+    assert.match(folderCss, /\.fv-field-inherit-tools/);
+    assert.match(folderCss, /\.fv-inherit-btn/);
+    assert.match(folderCss, /\.fv-member-tools-main/);
+    assert.match(folderCss, /\.fv-member-tools-filters/);
+    assert.match(folderCss, /\.fv-member-tools-actions/);
+    assert.match(folderCss, /\.fv-member-chip-row/);
+    assert.match(folderCss, /\.fv-member-chip/);
+    assert.match(folderCss, /\.fv-section-shell\.is-members-shell \.fv-section-shell-body/);
+    assert.match(folderCss, /\.custom-action-wrapper > div/);
+    assert.match(folderCss, /\.fv-modern-section-grid\s*\{[\s\S]*minmax\(280px,\s*1fr\)/);
+    assert.match(folderCss, /\.fv-modern-field-row\.is-icon-row,\s*[\s\S]*\.fv-modern-field-row\.is-status-row\s*\{[\s\S]*max-width:\s*780px;/);
+    assert.match(folderCss, /\.fv-modern-field-row\s*\{[\s\S]*min-height:\s*108px;[\s\S]*box-sizing:\s*border-box;/);
+    assert.match(folderCss, /\.fv-modern-group-list\.is-status-list\s*\{[\s\S]*max-width:\s*780px;/);
+    assert.match(folderCss, /\.fv-modern-field-row\.is-name-row input\[type="text"\]\s*\{[\s\S]*360px/);
+    assert.match(folderCss, /\.fv-modern-field-row\.is-compact-text-row input\[type="text"\],/);
+    assert.match(folderCss, /\.fv-modern-field-row input\[type="text"\],\s*[\s\S]*height:\s*30px;[\s\S]*min-height:\s*30px;/);
+    assert.match(folderCss, /\.fv-modern-field-row > dl > dt\s*\{[\s\S]*font-size:\s*1rem;/);
+    assert.match(folderCss, /\.fv-modern-field-row > dl,\s*[\s\S]*display:\s*flex !important;[\s\S]*flex-direction:\s*column;[\s\S]*gap:\s*1\.05em;/);
+    assert.match(folderCss, /\.fv-modern-field-row > dl > dd\s*\{[\s\S]*padding-top:\s*0\.42em !important;/);
+    assert.match(folderCss, /\.fv-modern-field-row\.is-actions-launch-row > dl > dt\s*\{[\s\S]*display:\s*none;/);
+    assert.match(folderCss, /\.fv-inline-reset-btn\s*\{[\s\S]*border:\s*0 !important;[\s\S]*background:\s*transparent !important;/);
     assert.match(folderCss, /\.fv-validation-details/);
+    assert.match(folderCss, /\.fv-validation-summary\.info/);
+    assert.match(folderCss, /\.fv-validation-details\.info/);
+    assert.match(folderCss, /\.fv-section-nav > button\.is-active/);
+    assert.match(folderCss, /\.fv-orphan-editor-row/);
+    assert.match(folderLegacyJs, /const setVisibleMemberSelection = \(checked\) =>/);
+    assert.match(folderLegacyJs, /#fvMemberStateFilter/);
+    assert.match(folderLegacyJs, /#fvMemberIncludeVisible/);
+    assert.match(folderLegacyJs, /All changes saved/);
+});
+
+test('folder editor page ships the redesign bootstrap and chrome anchors', () => {
+    assert.match(folderPage, /<form class="folder-editor-form"/);
+    assert.match(folderPage, /window\.FolderViewPlusFolderEditorPageMode =/);
+    assert.match(folderPage, /window\.FolderViewPlusFolderEditorResolvedMode =/);
+    assert.match(folderPage, /window\.FolderViewPlusFolderEditorModeSource =/);
+    assert.doesNotMatch(folderPage, /\$_GET\['editor'\]/);
+    assert.doesNotMatch(folderPage, /\$_GET\['editorMode'\]/);
+    assert.doesNotMatch(folderPage, /\$_GET\['mode'\]/);
+    assert.doesNotMatch(folderPage, /readTypePrefs\('docker'\)/);
+    assert.match(folderPage, /window\.FolderViewPlusFolderEditorPageType =/);
+    assert.match(folderPage, /window\.FolderViewPlusFolderEditorRequestedId =/);
+    assert.match(folderPage, /window\.FolderViewPlusFolderEditorResolvedId =/);
+    assert.match(folderPage, /window\.FolderViewPlusFolderEditorBootstrapContext =/);
+    assert.match(folderPage, /<option value="ghost">Ghost<\/option>/);
+    assert.match(folderPage, /<option value="pill">Pill<\/option>/);
+    assert.match(folderPage, /<option value="filled">Filled<\/option>/);
+    assert.match(folderPage, /scripts\/folder\.editor\.chrome\.js/);
+    assert.match(folderLegacyJs, /const initEditorChrome = \(\) =>/);
+    assert.match(folderLegacyJs, /const applyEditorPluginDefaults = \(\) =>/);
+    assert.doesNotMatch(folderChromeJs, /fvChangeSummaryLabel/);
+    assert.doesNotMatch(folderChromeJs, /fvLiveInheritance/);
+    assert.match(folderLegacyJs, /window\.applyEditorPluginDefaults = applyEditorPluginDefaults;/);
+    assert.match(folderLegacyJs, /window\.suggestDefaultsFromMembers = suggestDefaultsFromMembers;/);
+    assert.match(folderLegacyJs, /<div class="fv-live-folder-head">/);
+    assert.match(folderLegacyJs, /<span class="fv-live-chevron fv-live-chevron-\$\{dropdownStyle\}" aria-hidden="true">/);
+    assert.match(folderJs, /<span class="fv-live-chevron fv-live-chevron-\$\{dropdownStyle\}" aria-hidden="true">/);
+    assert.match(folderLegacyJs, /liveChevron\.style\.setProperty\('--fv-live-chevron-color'/);
+    assert.match(folderLegacyJs, /livePreviewRow\.style\.setProperty\('--fv-live-chevron-color'/);
+    assert.match(folderChromeJs, /id="fvRestoreSavedValues"/);
+    assert.match(folderChromeJs, /editorPageMode !== 'modern'/);
+    assert.match(folderChromeJs, /data-mode="basic"/);
+    assert.match(folderChromeJs, /id="fvLivePreviewCanvas"/);
+    assert.match(folderChromeJs, /const bindTopButtons = \(form\) =>/);
+    assert.match(folderChromeJs, /const runIfAvailable = \(fnName, fallbackSelector = ''\) =>/);
+    assert.match(folderChromeJs, /bindButton\('#fvRestoreSavedValues', 'resetUnsavedChanges', '\.folder-btn-reset'\);/);
+    assert.match(folderChromeJs, /bindButton\('#fvApplyPluginDefaults', 'applyEditorPluginDefaults'\);/);
+    assert.match(folderChromeJs, /bindButton\('#fvSuggestDefaults', 'suggestDefaultsFromMembers'\);/);
+    assert.match(folderChromeJs, /data-target="\$\{key\}"/);
+    assert.match(folderChromeJs, /data-mode="advanced"/);
+    assert.match(folderLegacyJs, /if \(modernFolderEditorEnabled\) \{/);
+    assert.match(folderLegacyJs, /\$\('#fvRegexSimulatorInput'\)\.off\('input'\)\.on\('input', updateRegexSimulator\);/);
+    assert.match(folderLegacyJs, /\$\('#fvSuggestDefaults'\)\.off\('click'\)\.on\('click', suggestDefaultsFromMembers\);/);
+    assert.doesNotMatch(folderPage, /scripts\/folder\.js[^?]*"\s*defer/);
+});
+
+test('prefs endpoint upgrades folder editor mode writes into explicit user choices', () => {
+    const prefsPhp = fs.readFileSync(
+        path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/prefs.php'),
+        'utf8'
+    );
+    assert.match(prefsPhp, /array_key_exists\('folderEditorMode', \$decoded\)/);
+    assert.match(prefsPhp, /\$decoded\['folderEditorModeExplicit'\] = true;/);
+});
+
+test('runtime folder editor routes defer editor mode resolution to Folder.page server prefs', () => {
+    assert.doesNotMatch(dockerJs, /params\.set\(\s*'editor'/);
+    assert.doesNotMatch(vmJs, /params\.set\(\s*'editor'/);
+    assert.doesNotMatch(dashboardJs, /params\.set\(\s*'editor'/);
+    assert.match(dockerJs, /params\.set\(\s*'type',\s*'docker'/);
+    assert.match(vmJs, /params\.set\(\s*'type',\s*'vm'/);
+    assert.match(dashboardJs, /params\.set\(\s*'type',\s*resolvedType/);
 });
 
 test('settings runtime uses extracted chrome module and shared request wrapper', () => {

@@ -9,6 +9,7 @@ Markdown="false"
 <?php
 require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 require_once('/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
+emitNoCachePageHeaders();
 emitRequestTokenMetaTag();
 $fvplusRuntimeConflicts = fvplus_detect_runtime_plugin_conflicts();
 ?>
@@ -27,6 +28,8 @@ $fvplusRuntimeConflicts = fvplus_detect_runtime_plugin_conflicts();
     };
 </script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.fatal-banner.js')?>"></script>
+<?php emitNoCacheMetaTags(); ?>
+<?php emitPluginPageVersionSentinelScript('settings'); ?>
 <link rel="stylesheet" href="<?=autov('/plugins/folderview.plus/styles/folderviewplus.css')?>">
 
 <div id="fv-settings-root" class="fv-theme-safe">
@@ -123,6 +126,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <option value="wide">Wide</option>
                         </select>
                     </label>
+                    <label class="setting-toggle"><input id="docker-folder-editor-modern" type="checkbox" onchange="changeVisibilityPref('docker', 'folderEditorMode', this.checked ? 'modern' : 'legacy')"> Use new folder settings page</label>
                     <label class="setting-select" for="docker-status-mode">
                         <span>Status mode</span>
                         <select id="docker-status-mode" onchange="changeStatusPref('docker', 'mode', this.value)">
@@ -357,6 +361,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <option value="wide">Wide</option>
                         </select>
                     </label>
+                    <label class="setting-toggle"><input id="vm-folder-editor-modern" type="checkbox" onchange="changeVisibilityPref('vm', 'folderEditorMode', this.checked ? 'modern' : 'legacy')"> Use new folder settings page</label>
                     <label class="setting-select" for="vm-status-mode">
                         <span>Status mode</span>
                         <select id="vm-status-mode" onchange="changeStatusPref('vm', 'mode', this.value)">

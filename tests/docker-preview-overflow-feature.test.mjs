@@ -20,7 +20,7 @@ test('folder editor exposes preview row limit control and persists the setting',
     assert.match(folderJs, /const normalizePreviewRowLimit = \(value,\s*fallbackSource = null\) =>/);
     assert.match(folderJs, /if \(!Number\.isFinite\(parsed\)\) \{\s*return 1;\s*\}/);
     assert.match(folderJs, /preview_rows:\s*normalizePreviewRowLimit\(settings,\s*source\)/);
-    assert.match(folderJs, /form\.preview_rows\.value = String\(normalizePreviewRowLimit\(currFolder\.settings,\s*currFolder\)\)/);
+    assert.match(folderJs, /setFieldValue\('preview_rows',\s*String\(normalizePreviewRowLimit\(normalizedFolder\.settings,\s*normalizedFolder\)\)\);/);
     assert.match(folderJs, /const normalizedPreviewRows = normalizePreviewRowLimit\(e\.preview_rows\?\.value\);/);
     assert.match(folderJs, /preview_rows:\s*normalizedPreviewRows,/);
     assert.match(folderJs, /previewRows:\s*normalizedPreviewRows,/);
@@ -45,6 +45,11 @@ test('docker runtime applies preview row layout limits and enhanced member actio
     assert.match(dockerMemberMenuJs, /\.on\('click\.fvDockerMemberMenuTrigger', '\.fv-docker-member-menu-trigger'/);
     assert.match(dockerMemberMenuJs, /const eventUrl = String\(deps\.eventURL \|\| win\.eventURL \|\| ''\)\.trim\(\);/);
     assert.match(dockerMemberMenuJs, /const bindMenu = \(\) =>/);
+    assert.match(dockerMemberMenuJs, /const shouldSuppressPreviewMemberMenu = \(entry\) =>/);
+    assert.match(dockerMemberMenuJs, /const contextMode = Number\(folder\?\.settings\?\.context \?\? -1\);/);
+    assert.match(dockerMemberMenuJs, /const contextTrigger = Number\(folder\?\.settings\?\.context_trigger \?\? 0\);/);
+    assert.match(dockerMemberMenuJs, /return contextMode === 2 && contextTrigger !== 1;/);
+    assert.match(dockerMemberMenuJs, /if \(shouldSuppressPreviewMemberMenu\(entry\)\) \{\s*return;\s*\}/);
 });
 
 test('docker styles support multi-row previews and member action sheet styling', () => {

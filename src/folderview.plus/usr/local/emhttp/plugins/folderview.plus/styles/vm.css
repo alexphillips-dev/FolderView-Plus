@@ -14,6 +14,7 @@
     --fvplus-vm-folder-right-gutter: 18px;
     --fvplus-vm-folder-outer-reserved-width: 88px;
     --fvplus-vm-folder-dropdown-right-margin: 10px;
+    --fvplus-preview-border-muted: 1px solid rgba(224, 230, 239, 0.22);
     --fvplus-folder-dropdown-color: #ff9a3c;
     --fvplus-folder-dropdown-hover-color: #111111;
     --fvplus-folder-dropdown-bg: rgba(255, 154, 60, 0.1);
@@ -25,6 +26,8 @@
     --fvplus-folder-dropdown-height: 16px;
     --fvplus-folder-dropdown-padding: 0 2px;
     --fvplus-folder-dropdown-radius: 0px;
+    --fvplus-folder-dropdown-shadow: none;
+    --fvplus-folder-dropdown-hover-shadow: none;
 }
 
 body[data-fvplus-vm-app-width="compact"] {
@@ -167,7 +170,7 @@ td.vm-name.folder-name > .folder-name-sub {
     border: var(--fvplus-folder-dropdown-border-width, 1px) solid var(--fvplus-folder-dropdown-border-color, rgba(255, 154, 60, 0.52)) !important;
     border-radius: var(--fvplus-folder-dropdown-radius, 0px);
     background: var(--fvplus-folder-dropdown-bg, rgba(255, 154, 60, 0.1)) !important;
-    box-shadow: none !important;
+    box-shadow: var(--fvplus-folder-dropdown-shadow, none) !important;
     color: var(--fvplus-folder-dropdown-color, #ff9a3c) !important;
     transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease;
 }
@@ -177,7 +180,7 @@ td.vm-name.folder-name > .folder-name-sub {
 .folder-dropdown:active {
     border-color: var(--fvplus-folder-dropdown-hover-border-color, #111111) !important;
     background: var(--fvplus-folder-dropdown-hover-bg, rgba(255, 154, 60, 0.82)) !important;
-    box-shadow: none !important;
+    box-shadow: var(--fvplus-folder-dropdown-hover-shadow, var(--fvplus-folder-dropdown-shadow, none)) !important;
     color: var(--fvplus-folder-dropdown-hover-color, #111111) !important;
 }
 
@@ -239,13 +242,60 @@ i.folder-load-status.stopped {
     display: none;
 }
 
+tr.folder.fv-parent-collapsed div.folder-preview,
+tr.folder.fv-folder-is-child div.folder-preview {
+    border: var(--fvplus-preview-border-muted);
+}
+
+tr.folder.fv-parent-expanded div.folder-preview {
+    border-color: transparent;
+    background: transparent;
+}
+
 .folder-preview {
+    --fvplus-preview-row-height: 3.5em;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
     border-radius: 4px;
     height: 3.5em;
     overflow: hidden;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    align-content: flex-start;
+    row-gap: 0.35em;
+}
+
+.folder-preview-row {
+    min-height: 0;
+    display: flex;
+    align-items: flex-start;
+    flex-wrap: nowrap;
+    column-gap: 8px;
+    overflow: hidden;
+    padding: 0 0 0 8px;
+}
+
+.folder-preview.fv-preview-multirow {
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    row-gap: 4px;
+    padding: 6px 0;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    align-content: flex-start;
+    justify-content: center;
+}
+
+.folder-preview.fv-preview-multirow .folder-preview-row {
+    width: 100%;
+    box-sizing: border-box;
+    align-items: center;
+    min-height: 0;
+    padding: 1px 0 1px 8px;
 }
 
 .folder-preview.fv-preview-border-off {
@@ -261,10 +311,28 @@ i.folder-load-status.stopped {
 }
 
 .folder-preview-wrapper {
-    float: left;
-    height: 100%;
+    float: none;
+    height: auto;
+    min-height: calc(var(--fvplus-preview-row-height) - 0.9em);
     margin-left: 10px;
     margin-top: 7px;
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    min-width: 0;
+}
+
+.folder-preview-wrapper > span.outer {
+    display: inline-flex;
+    align-items: center;
+}
+
+.folder-preview.fv-preview-multirow .folder-preview-wrapper {
+    min-height: 0;
+    margin: 0;
+    align-items: center;
+    flex: 0 0 auto;
+    min-width: max-content;
 }
 
 .folder-preview-wrapper .inner > a {
@@ -275,12 +343,19 @@ i.folder-load-status.stopped {
 }
 
 .folder-preview-divider {
-    float: left;
-    height: 80%;
+    float: none;
+    display: block;
+    flex: 0 0 auto;
+    align-self: stretch;
+    min-height: calc(var(--fvplus-preview-row-height) - 1.2em);
     width: 0;
     border-right: var(--fvplus-preview-divider-width, 1px) solid;
-    margin-left: 5px;
-    margin-top: -7px;
+    margin: 0.35em 0 0.35em 6px;
+}
+
+.folder-preview.fv-preview-multirow .folder-preview-divider {
+    min-height: 1.35em;
+    margin: 2px 0;
 }
 
 .folder-element .ct-name {

@@ -656,6 +656,49 @@
             . '">' . "\n";
     }
 
+    function emitNoCachePageHeaders(): void {
+        if (headers_sent()) {
+            return;
+        }
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+    }
+
+    function emitNoCacheMetaTags(): void {
+        echo '<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">' . "\n";
+        echo '<meta http-equiv="Pragma" content="no-cache">' . "\n";
+        echo '<meta http-equiv="Expires" content="0">' . "\n";
+    }
+
+    function emitPluginPageVersionSentinelScript(string $pageKey): void {
+        $safePageKey = trim($pageKey);
+        if ($safePageKey === '') {
+            $safePageKey = 'page';
+        }
+        $version = readInstalledVersion();
+        echo '<script>(function(){try{' .
+            'const win=window;' .
+            'if(!win||!win.sessionStorage){return;}' .
+            'const currentVersion=' . json_encode($version, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . ';' .
+            'const pageKey=' . json_encode($safePageKey, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . ';' .
+            'const path=String(win.location&&win.location.pathname||pageKey);' .
+            'const storageKey=`fvplus.page-version:${pageKey}:${path}`;' .
+            'const reloadKey=`${storageKey}:reloaded`; ' .
+            'const previousVersion=String(win.sessionStorage.getItem(storageKey)||"").trim();' .
+            'const lastReloadedVersion=String(win.sessionStorage.getItem(reloadKey)||"").trim();' .
+            'win.sessionStorage.setItem(storageKey,currentVersion);' .
+            'if(previousVersion&&previousVersion!==currentVersion&&lastReloadedVersion!==currentVersion){' .
+                'win.sessionStorage.setItem(reloadKey,currentVersion);' .
+                'win.location.reload();' .
+                'return;' .
+            '}' .
+            'if(previousVersion===currentVersion&&lastReloadedVersion===currentVersion){' .
+                'win.sessionStorage.removeItem(reloadKey);' .
+            '}' .
+        '}catch(_error){}})();</script>' . "\n";
+    }
+
     function validateOptionalRequestToken(): bool {
         $mode = getRequestTokenEnforcementMode();
         if ($mode === 'off') {
@@ -1471,6 +1514,89 @@
         return normalizeFolderParentLinks($normalized);
     }
 
+    function resolveFolderEditorRequestedContext(string $type, string $requestedRef): array {
+        $safeType = ensureType($type);
+        $safeRequestedRef = trim((string)$requestedRef);
+        if ($safeRequestedRef === '') {
+            return [
+                'requestedId' => '',
+                'resolvedId' => '',
+                'resolvedBy' => '',
+                'folder' => null
+            ];
+        }
+
+        $candidateIds = array_values(array_unique(array_filter([
+            $safeRequestedRef,
+            urldecode($safeRequestedRef)
+        ], static fn($value) => trim((string)$value) !== '')));
+
+        $folders = readRawFolderMap($safeType);
+
+        foreach ($candidateIds as $candidateId) {
+            $safeCandidateId = trim((string)$candidateId);
+            if ($safeCandidateId !== '' && array_key_exists($safeCandidateId, $folders)) {
+                return [
+                    'requestedId' => $safeRequestedRef,
+                    'resolvedId' => $safeCandidateId,
+                    'resolvedBy' => 'key',
+                    'folder' => normalizeFolderContentPayload($folders[$safeCandidateId] ?? [])
+                ];
+            }
+        }
+
+        foreach ($candidateIds as $candidateId) {
+            $safeCandidateId = trim((string)$candidateId);
+            if ($safeCandidateId === '') {
+                continue;
+            }
+            foreach ($folders as $folderId => $folder) {
+                $safeFolderId = trim((string)$folderId);
+                $folderMetaId = trim((string)($folder['id'] ?? $folder['folderId'] ?? ''));
+                if ($safeFolderId === $safeCandidateId || $folderMetaId === $safeCandidateId) {
+                    return [
+                        'requestedId' => $safeRequestedRef,
+                        'resolvedId' => $safeFolderId,
+                        'resolvedBy' => 'metadata',
+                        'folder' => normalizeFolderContentPayload($folder)
+                    ];
+                }
+            }
+        }
+
+        foreach ($candidateIds as $candidateId) {
+            $safeCandidateId = trim((string)$candidateId);
+            if ($safeCandidateId === '') {
+                continue;
+            }
+            $matches = [];
+            foreach ($folders as $folderId => $folder) {
+                if (trim((string)($folder['name'] ?? '')) !== $safeCandidateId) {
+                    continue;
+                }
+                $matches[] = [
+                    'id' => trim((string)$folderId),
+                    'folder' => normalizeFolderContentPayload($folder)
+                ];
+            }
+            if (count($matches) === 1) {
+                return [
+                    'requestedId' => $safeRequestedRef,
+                    'resolvedId' => $matches[0]['id'],
+                    'resolvedBy' => 'name',
+                    'folder' => $matches[0]['folder']
+                ];
+            }
+        }
+
+        return [
+            'requestedId' => $safeRequestedRef,
+            'resolvedId' => '',
+            'resolvedBy' => '',
+            'folder' => null
+        ];
+    }
+
     function jsonObjectsDiffer(array $a, array $b): bool {
         return json_encode($a, JSON_UNESCAPED_SLASHES) !== json_encode($b, JSON_UNESCAPED_SLASHES);
     }
@@ -1609,6 +1735,8 @@
             'expandedFolderState' => [],
             'hideEmptyFolders' => false,
             'appColumnWidth' => 'standard',
+            'folderEditorMode' => 'modern',
+            'folderEditorModeExplicit' => false,
             'setupWizardCompleted' => false,
             'settingsMode' => 'basic',
             'autoRules' => [],
@@ -1760,6 +1888,33 @@
         return 'standard';
     }
 
+    function normalizeFolderEditorMode($value): string {
+        $normalized = strtolower(trim((string)$value));
+        if ($normalized === 'modern') {
+            return 'modern';
+        }
+        return 'legacy';
+    }
+
+    function resolveFolderEditorModePreference(array $prefs): array {
+        $explicit = normalizeBool($prefs['folderEditorModeExplicit'] ?? false, false);
+        if ($explicit) {
+            return [
+                'mode' => normalizeFolderEditorMode($prefs['folderEditorMode'] ?? 'legacy'),
+                'source' => 'explicit'
+            ];
+        }
+
+        return [
+            'mode' => 'modern',
+            'source' => 'default-modern'
+        ];
+    }
+
+    function resolveTypeFolderEditorModePreference(string $type): array {
+        return resolveFolderEditorModePreference(readTypePrefs($type));
+    }
+
     function normalizeDashboardLayout($value): string {
         $normalized = strtolower(trim((string)$value));
         if (in_array($normalized, ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'], true)) {
@@ -1793,6 +1948,9 @@
         $normalized['expandedFolderState'] = normalizeExpandedStateMap($prefs['expandedFolderState'] ?? []);
         $normalized['hideEmptyFolders'] = normalizeBool($prefs['hideEmptyFolders'] ?? false, false);
         $normalized['appColumnWidth'] = normalizeAppColumnWidth($prefs['appColumnWidth'] ?? 'standard');
+        $resolvedFolderEditorMode = resolveFolderEditorModePreference($prefs);
+        $normalized['folderEditorModeExplicit'] = ($resolvedFolderEditorMode['source'] ?? 'default-modern') === 'explicit';
+        $normalized['folderEditorMode'] = (string)($resolvedFolderEditorMode['mode'] ?? 'modern');
         $normalized['setupWizardCompleted'] = normalizeBool($prefs['setupWizardCompleted'] ?? false, false);
         $settingsMode = (string)($prefs['settingsMode'] ?? 'basic');
         $normalized['settingsMode'] = $settingsMode === 'advanced' ? 'advanced' : 'basic';

@@ -8,6 +8,7 @@ Markdown="false"
 $type = 'dashboard';
 require_once('/usr/local/emhttp/plugins/folderview.plus/langs/script.php');
 require_once('/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
+emitNoCachePageHeaders();
 emitRequestTokenMetaTag();
 $fvplusRuntimeConflicts = fvplus_detect_runtime_plugin_conflicts();
 if (!empty($fvplusRuntimeConflicts)) {
@@ -15,6 +16,8 @@ if (!empty($fvplusRuntimeConflicts)) {
     return;
 }
 ?>
+<?php emitNoCacheMetaTags(); ?>
+<?php emitPluginPageVersionSentinelScript('dashboard'); ?>
 <script src="/plugins/folderview.plus/scripts/include/customEvents.js"></script>
 <?php
 require_once('/usr/local/emhttp/plugins/folderview.plus/scripts/custom.php');

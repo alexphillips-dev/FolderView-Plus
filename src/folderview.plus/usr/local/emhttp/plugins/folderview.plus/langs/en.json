@@ -106,7 +106,7 @@
     "expand-dashboard": "Expanded on Dashboard tab:",
     "expand-dashboard-tooltip": "Will make the folder start expanded on the Dashboard.",
     "regex": "Regex:",
-    "regex-tooltip": "Regex... <b>Lasciate ogne speranza, voi ch'intrate</b><br>Any container name the regex matches will be added to folder.<br>Example for adding pterodactyl egg: <b>[0-9a-zA-Z]{8}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{12}</b>.<br><a href=\"https://regex101.com/\">Site for testing your regex</a>.<br>When you edit the regex anything selected manually will be deselected.",
+    "regex-tooltip": "Regex matching will automatically add matching containers or VMs to this folder.<br>Any container or VM name the regex matches will be added to the folder.<br>Example for matching a Pterodactyl egg ID: <b>[0-9a-zA-Z]{8}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{12}</b>.<br><a href=\"https://regex101.com/\">Use regex101 to test your expression</a>.<br>Editing the regex will clear any manual member selections for this folder.",
     "submit": "Submit",
     "cancel": "Cancel",
     "order": "Order:",

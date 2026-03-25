@@ -5,6 +5,14 @@ import path from 'node:path';
 
 const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
+const pluginPageDir = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus');
+const pluginPageFiles = fs.readdirSync(pluginPageDir)
+    .filter((entry) => entry.endsWith('.page'))
+    .sort();
+const pluginPageSources = pluginPageFiles.map((entry) => ({
+    file: entry,
+    source: fs.readFileSync(path.join(pluginPageDir, entry), 'utf8')
+}));
 
 const libPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
 const backupPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/backup.php');
@@ -19,6 +27,10 @@ const settingsPage = read('src/folderview.plus/usr/local/emhttp/plugins/foldervi
 const dockerPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Docker.page');
 const vmPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.VMs.page');
 const dashboardPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Dashboard.page');
+const versionPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/version.php');
+const cpuPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/cpu.php');
+const readOrderPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/read_order.php');
+const readUnraidOrderPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/read_unraid_order.php');
 
 test('lib.php keeps token rollout controls and secure API headers', () => {
     assert.match(libPhp, /const FVPLUS_REQUEST_TOKEN_ENFORCEMENT = 'strict';/);
@@ -41,9 +53,36 @@ test('backup endpoint supports guarded POST download and legacy fallback', () =>
 });
 
 test('plugin pages emit request token meta tag', () => {
-    for (const source of [folderPage, settingsPage, dockerPage, vmPage, dashboardPage]) {
+    for (const { source } of pluginPageSources) {
         assert.match(source, /emitRequestTokenMetaTag\(\)/);
     }
+});
+
+test('all plugin page entrypoints emit no-cache document guards', () => {
+    assert.ok(pluginPageFiles.length >= 5);
+    for (const { file, source } of pluginPageSources) {
+        assert.match(source, /emitNoCachePageHeaders\(\)/);
+        assert.match(source, /emitNoCacheMetaTags\(\)/);
+        assert.match(source, /emitRequestTokenMetaTag\(\)/, `missing request token meta in ${file}`);
+        assert.match(source, /emitPluginPageVersionSentinelScript\(/, `missing page version sentinel in ${file}`);
+    }
+    assert.match(libPhp, /function emitNoCachePageHeaders\(\): void/);
+    assert.match(libPhp, /function emitNoCacheMetaTags\(\): void/);
+    assert.match(libPhp, /function emitPluginPageVersionSentinelScript\(string \$pageKey\): void/);
+    assert.match(libPhp, /fvplus\.page-version:/);
+    assert.match(libPhp, /win\.location\.reload\(\);/);
+});
+
+test('live GET endpoints that drive page freshness emit no-cache headers', () => {
+    assert.match(versionPhp, /header\('Content-Type: text\/plain'\);/);
+    assert.match(versionPhp, /emitNoCachePageHeaders\(\);/);
+    assert.match(readOrderPhp, /header\('Content-Type: text\/plain'\);/);
+    assert.match(readOrderPhp, /emitNoCachePageHeaders\(\);/);
+    assert.match(readUnraidOrderPhp, /header\('Content-Type: text\/plain'\);/);
+    assert.match(readUnraidOrderPhp, /emitNoCachePageHeaders\(\);/);
+    assert.match(cpuPhp, /header\('Cache-Control: no-store, no-cache, must-revalidate, max-age=0'\);/);
+    assert.match(cpuPhp, /header\('Pragma: no-cache'\);/);
+    assert.match(cpuPhp, /header\('Expires: 0'\);/);
 });
 
 test('dashboard page loads quick-rail controller before dashboard runtime', () => {
@@ -57,9 +96,11 @@ test('settings and folder pages load extracted support modules before their main
     assert.match(settingsPage, /folderviewplus\.actions-support\.js/);
     assert.match(settingsPage, /folderviewplus\.row-details\.js[\s\S]*folderviewplus\.wizard-smart-detect\.js[\s\S]*folderviewplus\.wizard\.js/);
     assert.match(settingsPage, /folderviewplus\.actions-support\.js[\s\S]*folderviewplus\.js/);
-    assert.match(folderPage, /folder\.editor\.hierarchy\.js/);
-    assert.match(folderPage, /folder\.editor\.icon-api\.js/);
-    assert.match(folderPage, /folder\.editor\.hierarchy\.js[\s\S]*folder\.editor\.icon-api\.js[\s\S]*folder\.js/);
+    assert.match(folderPage, /\$folderEditorPageMode === 'modern'/);
+    assert.match(folderPage, /folder\.editor\.chrome\.js/);
+    assert.match(folderPage, /folder\.legacy\.js/);
+    assert.match(folderPage, /folder\.editor\.chrome\.js[\s\S]*folder\.legacy\.js/);
+    assert.doesNotMatch(folderPage, /folder\.js/);
     assert.match(dashboardPage, /dashboard\.folder-match-cache\.js/);
     assert.match(dashboardPage, /dashboard\.layout-quickrail\.js[\s\S]*dashboard\.folder-match-cache\.js[\s\S]*dashboard\.js/);
     assert.match(dockerPage, /folder\.runtime\.state-observers\.js/);
@@ -86,7 +127,7 @@ test('folder display scripts sanitize folder icon and name in HTML templates', (
 });
 
 test('folder editor escapes custom action labels when rendering HTML', () => {
-    assert.match(folderJs, /const safeActionName = escapeHtml\(e\?\.name \|\| ''\)/);
+    assert.match(folderJs, /const safeActionName = escapeHtml\(entry\?\.name \|\| ''\)/);
     assert.match(folderJs, /const safeCfgName = escapeHtml\(cfg\.name \|\| ''\)/);
 });
 

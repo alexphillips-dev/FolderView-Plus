@@ -2051,8 +2051,46 @@ const rmVMFolder = (id) => {
  * Redirect to the page to edit the folder
  * @param {string} id the id of the folder
  */
+const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
+const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv.folder.editor.prefill.persist.v1';
+const seedDashboardFolderEditorPrefill = (folderType, id) => {
+    try {
+        const normalizedType = String(folderType || '').trim();
+        const normalizedId = String(id || '').trim();
+        const folderMap = normalizedType === 'vm' ? globalFolders?.vms : globalFolders?.docker;
+        const folder = folderMap && typeof folderMap === 'object' ? folderMap[normalizedId] : null;
+        if (!normalizedType || !normalizedId || !folder) {
+            return;
+        }
+        const payload = JSON.stringify({
+            type: normalizedType,
+            id: normalizedId,
+            folder,
+            storedAt: Date.now()
+        });
+        if (typeof sessionStorage !== 'undefined') {
+            sessionStorage.setItem(EDITOR_PREFILL_STORAGE_KEY, payload);
+        }
+        if (typeof localStorage !== 'undefined') {
+            localStorage.setItem(EDITOR_PREFILL_LOCAL_STORAGE_KEY, payload);
+        }
+    } catch (_error) {
+        // Editor prefill is best-effort only.
+    }
+};
+const buildDashboardFolderEditorUrl = (folderType, id = '') => {
+    const resolvedType = String(folderType || '').trim() === 'vm' ? 'vm' : 'docker';
+    const params = new URLSearchParams();
+    params.set('type', resolvedType);
+    if (String(id || '').trim()) {
+        params.set('id', String(id || '').trim());
+    }
+    params.set('_', String(Date.now()));
+    return `${location.pathname}/Folder?${params.toString()}`;
+};
 const editDockerFolder = (id) => {
-    location.href = location.pathname + "/Folder?type=docker&id=" + id;
+    seedDashboardFolderEditorPrefill('docker', id);
+    location.href = buildDashboardFolderEditorUrl('docker', id);
 };
 
 /**
@@ -2060,7 +2098,8 @@ const editDockerFolder = (id) => {
  * @param {string} id the id of the folder
  */
 const editVMFolder = (id) => {
-    location.href = location.pathname + "/Folder?type=vm&id=" + id;
+    seedDashboardFolderEditorPrefill('vm', id);
+    location.href = buildDashboardFolderEditorUrl('vm', id);
 };
 
 /**

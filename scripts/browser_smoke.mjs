@@ -51,6 +51,7 @@ const sanitizeToken = (value) => String(value || '')
 
 const runtimeReports = [];
 const dashboardReports = [];
+const folderEditorReports = [];
 
 const resolveRuntimeUrl = (baseUrl, type) => {
     try {
@@ -80,6 +81,23 @@ const resolveDashboardUrl = (baseUrl) => {
         const rawPath = parsed.pathname || '';
         if (/\/settings\/folderviewplus$/i.test(rawPath) || /\/docker$/i.test(rawPath) || /\/vms$/i.test(rawPath)) {
             parsed.pathname = '/Dashboard';
+            return parsed.toString();
+        }
+    } catch (_error) {
+        return '';
+    }
+    return '';
+};
+
+const resolveFolderEditorUrl = (baseUrl, type) => {
+    try {
+        const parsed = new URL(baseUrl);
+        const rawPath = parsed.pathname || '';
+        if (/\/settings\/folderviewplus$/i.test(rawPath) || /\/docker$/i.test(rawPath) || /\/vms$/i.test(rawPath) || /\/dashboard$/i.test(rawPath)) {
+            parsed.pathname = type === 'vm' ? '/VMs/Folder' : '/Docker/Folder';
+            parsed.search = '';
+            parsed.searchParams.set('type', type === 'vm' ? 'vm' : 'docker');
+            parsed.searchParams.set('_', String(Date.now()));
             return parsed.toString();
         }
     } catch (_error) {
@@ -478,14 +496,106 @@ const runDashboardQuickRailSmoke = async (page, { browserName, url }) => {
     };
 };
 
+const waitForSettingsShell = async (page) => {
+    await page.locator('#fv-settings-topbar').waitFor({ state: 'visible', timeout: timeoutMs });
+    await page.locator('#fv-settings-action-bar').waitFor({ state: 'visible', timeout: timeoutMs });
+};
+
+const runFolderEditorToggleSmoke = async (page, { browserName, settingsUrl, type }) => {
+    const settingId = `#${type}-folder-editor-modern`;
+    const expectedPageType = type === 'vm' ? 'vm' : 'docker';
+    const editorUrlBase = resolveFolderEditorUrl(settingsUrl, expectedPageType);
+    if (!editorUrlBase) {
+        console.warn(`Folder editor mode smoke skipped for ${type} (${browserName}): could not derive folder editor URL from ${settingsUrl}`);
+        return {
+            browserName,
+            type,
+            skipped: true,
+            pass: false,
+            reason: 'Could not derive folder editor URL.'
+        };
+    }
+
+    const setting = page.locator(settingId).first();
+    if (await setting.count() === 0) {
+        throw new Error(`Folder editor mode toggle not found for ${type} (${browserName}): ${settingId}`);
+    }
+
+    const statesVisited = [];
+    const originalChecked = await setting.isChecked();
+    const setToggleState = async (checked) => {
+        const current = await setting.isChecked();
+        if (current !== checked) {
+            await setting.click({ timeout: timeoutMs });
+            await page.waitForTimeout(500);
+        }
+    };
+    const verifyPersistedState = async (checked) => {
+        await page.goto(settingsUrl, { waitUntil: 'domcontentloaded', timeout: timeoutMs });
+        await waitForSettingsShell(page);
+        const persistedChecked = await page.locator(settingId).first().isChecked();
+        if (persistedChecked !== checked) {
+            throw new Error(`Folder editor toggle did not persist for ${type} (${browserName}). Expected ${checked ? 'checked' : 'unchecked'}.`);
+        }
+    };
+    const verifyEditorMode = async (expectedMode) => {
+        const editorUrl = `${editorUrlBase}${editorUrlBase.includes('?') ? '&' : '?'}smoke=${Date.now()}`;
+        await page.goto(editorUrl, { waitUntil: 'domcontentloaded', timeout: timeoutMs });
+        await page.waitForTimeout(600);
+        const details = await page.evaluate(() => ({
+            pageType: String(window.FolderViewPlusFolderEditorPageType || '').trim().toLowerCase(),
+            pageMode: String(window.FolderViewPlusFolderEditorPageMode || '').trim().toLowerCase(),
+            resolvedMode: String(window.FolderViewPlusFolderEditorResolvedMode || '').trim().toLowerCase(),
+            source: String(window.FolderViewPlusFolderEditorModeSource || '').trim().toLowerCase()
+        }));
+        if (details.pageType !== expectedPageType) {
+            throw new Error(`Folder editor page type mismatch for ${type} (${browserName}). Got ${JSON.stringify(details)}.`);
+        }
+        if (details.pageMode !== expectedMode || details.resolvedMode !== expectedMode) {
+            throw new Error(`Folder editor mode mismatch for ${type} (${browserName}). Expected ${expectedMode}, got ${JSON.stringify(details)}.`);
+        }
+        statesVisited.push(details);
+    };
+
+    try {
+        await verifyPersistedState(originalChecked);
+
+        await setToggleState(false);
+        await verifyPersistedState(false);
+        await verifyEditorMode('legacy');
+
+        await verifyPersistedState(false);
+        await setToggleState(true);
+        await verifyPersistedState(true);
+        await verifyEditorMode('modern');
+
+        return {
+            browserName,
+            type,
+            skipped: false,
+            pass: true,
+            statesVisited
+        };
+    } finally {
+        await page.goto(settingsUrl, { waitUntil: 'domcontentloaded', timeout: timeoutMs });
+        await waitForSettingsShell(page);
+        const restoreToggle = page.locator(settingId).first();
+        const restoreChecked = await restoreToggle.isChecked();
+        if (restoreChecked !== originalChecked) {
+            await restoreToggle.click({ timeout: timeoutMs });
+            await page.waitForTimeout(500);
+        }
+        await verifyPersistedState(originalChecked);
+    }
+};
+
 const runBrowserSmoke = async (browserName, browserType) => {
     const browser = await browserType.launch({ headless: true });
     const context = await browser.newContext({ ignoreHTTPSErrors: ignoreHttpsErrors });
     const page = await context.newPage();
     try {
         await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: timeoutMs });
-        await page.locator('#fv-settings-topbar').waitFor({ state: 'visible', timeout: timeoutMs });
-        await page.locator('#fv-settings-action-bar').waitFor({ state: 'visible', timeout: timeoutMs });
+        await waitForSettingsShell(page);
 
         const importButton = page.getByRole('button', { name: /import/i }).first();
         const [chooser] = await Promise.all([
@@ -524,6 +634,17 @@ const runBrowserSmoke = async (browserName, browserType) => {
             }
         }
 
+        for (const type of ['docker', 'vm']) {
+            const folderEditorReport = await runFolderEditorToggleSmoke(page, {
+                browserName,
+                settingsUrl: targetUrl,
+                type
+            });
+            if (folderEditorReport) {
+                folderEditorReports.push(folderEditorReport);
+            }
+        }
+
         console.log(`Browser smoke passed: ${browserName} (${scenarioLabel})`);
     } finally {
         await context.close();
@@ -551,7 +672,8 @@ try {
         generatedAt: new Date().toISOString(),
         scenarioLabel,
         reports: runtimeReports,
-        dashboardReports
+        dashboardReports,
+        folderEditorReports
     };
     const reportPath = path.join(artifactRoot, 'browser-smoke-report.json');
     fs.writeFileSync(reportPath, JSON.stringify(reportPayload, null, 2), 'utf8');

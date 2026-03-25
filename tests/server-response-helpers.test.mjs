@@ -102,3 +102,22 @@ test('lib.php diagnostics include custom icon storage and usage health', () => {
     assert.match(libPhp, /'orphanedIconCount'\s*=>/);
     assert.match(libPhp, /'repairHint'\s*=>/);
 });
+
+test('lib.php can resolve requested folder editor context for bootstrap hydration', () => {
+    assert.match(libPhp, /function resolveFolderEditorRequestedContext\(string \$type, string \$requestedRef\): array/);
+    assert.match(libPhp, /'resolvedBy'\s*=>\s*'key'/);
+    assert.match(libPhp, /'resolvedBy'\s*=>\s*'metadata'/);
+    assert.match(libPhp, /'resolvedBy'\s*=>\s*'name'/);
+    assert.match(libPhp, /normalizeFolderContentPayload\(\$folders\[\$safeCandidateId\] \?\? \[\]\)/);
+});
+
+test('lib.php centralizes folder editor mode preference resolution', () => {
+    assert.match(libPhp, /function resolveFolderEditorModePreference\(array \$prefs\): array/);
+    assert.match(libPhp, /function resolveTypeFolderEditorModePreference\(string \$type\): array/);
+    assert.match(libPhp, /'source'\s*=>\s*'explicit'/);
+    assert.match(libPhp, /'source'\s*=>\s*'default-modern'/);
+    assert.match(libPhp, /return resolveFolderEditorModePreference\(readTypePrefs\(\$type\)\);/);
+    assert.match(libPhp, /\$resolvedFolderEditorMode = resolveFolderEditorModePreference\(\$prefs\);/);
+    assert.match(libPhp, /\$normalized\['folderEditorModeExplicit'\] = \(\$resolvedFolderEditorMode\['source'\] \?\? 'default-modern'\) === 'explicit';/);
+    assert.match(libPhp, /\$normalized\['folderEditorMode'\] = \(string\)\(\$resolvedFolderEditorMode\['mode'\] \?\? 'modern'\);/);
+});

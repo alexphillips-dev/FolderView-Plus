@@ -45,6 +45,20 @@
             return entry && entry.name ? { ...entry, folderId } : null;
         };
 
+        const shouldSuppressPreviewMemberMenu = (entry) => {
+            if (!entry?.folderId) {
+                return false;
+            }
+            const folderMap = typeof deps.getGlobalFolders === 'function' ? deps.getGlobalFolders() : deps.globalFolders;
+            const folder = folderMap?.[entry.folderId];
+            if (!folder || typeof folder !== 'object') {
+                return false;
+            }
+            const contextMode = Number(folder?.settings?.context ?? -1);
+            const contextTrigger = Number(folder?.settings?.context_trigger ?? 0);
+            return contextMode === 2 && contextTrigger !== 1;
+        };
+
         const runContainerMenuAction = async (entry, action) => {
             if (!entry?.id || !action) {
                 return;
@@ -186,6 +200,9 @@
                     event.stopPropagation();
                     const entry = resolvePreviewMemberEntry(this);
                     if (!entry) {
+                        return;
+                    }
+                    if (shouldSuppressPreviewMemberMenu(entry)) {
                         return;
                     }
                     showMenu(entry);

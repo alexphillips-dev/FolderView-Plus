@@ -314,10 +314,13 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderChromeJs, /id="fvHeroDefaults"/);
     assert.doesNotMatch(folderChromeJs, /fvLiveSurfaceLabel/);
     assert.doesNotMatch(folderChromeJs, /data-surface="dashboard"/);
-    assert.match(folderChromeJs, /if \(row\.querySelector\('\[name="regex"\]'\)\) \{\s*row\.classList\.add\('is-compact-text-row'\);/);
+    assert.match(folderChromeJs, /if \(row\.querySelector\('\[name="regex"\]'\)\) \{\s*row\.classList\.add\('is-compact-text-row'/);
+    assert.match(folderChromeJs, /shell\.classList\.toggle\('is-members-shell', sectionKey === 'members'\)/);
     assert.match(folderChromeJs, /if \(row\.querySelector\('\[name="name"\]'\)\) \{/);
-    assert.match(folderChromeJs, /row\.classList\.remove\('fv-modern-order-row', 'is-wide-row', 'is-icon-row', 'is-status-row', 'is-actions-row', 'is-toggle-row', 'is-color-row', 'is-name-row', 'is-url-row', 'is-compact-text-row', 'is-webui-row'\);/);
+    assert.match(folderChromeJs, /row\.classList\.remove\('fv-modern-order-row', 'is-wide-row', 'is-icon-row', 'is-status-row', 'is-actions-row', 'is-toggle-row', 'is-color-row', 'is-name-row', 'is-url-row', 'is-compact-text-row', 'is-webui-row', 'is-members-row', 'is-rules-row', 'is-actions-list-row', 'is-actions-launch-row'\);/);
     assert.match(folderChromeJs, /if \(row\.querySelector\('\[name="folder_webui"\]'\)\) \{/);
+    assert.match(folderChromeJs, /if \(row\.querySelector\('\.custom-action-wrapper'\)\) \{\s*row\.classList\.add\('is-actions-list-row'\);/);
+    assert.match(folderChromeJs, /if \(row\.querySelector\('a\.custom-action'\)\) \{\s*row\.classList\.add\('is-actions-launch-row'\);/);
     assert.doesNotMatch(folderChromeJs, /row\.classList\.add\('is-actions-row', 'is-wide-row'\);/);
     assert.doesNotMatch(folderChromeJs, /if \(row\.querySelector\('\[name="regex"\]'\)\) \{\s*row\.classList\.add\('is-wide-row'\);/);
     assert.doesNotMatch(folderPage, /Lasciate ogne speranza/);
@@ -364,8 +367,12 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderCss, /\.fv-field-inherit-tools/);
     assert.match(folderCss, /\.fv-inherit-btn/);
     assert.match(folderCss, /\.fv-member-tools-main/);
+    assert.match(folderCss, /\.fv-member-tools-filters/);
+    assert.match(folderCss, /\.fv-member-tools-actions/);
     assert.match(folderCss, /\.fv-member-chip-row/);
     assert.match(folderCss, /\.fv-member-chip/);
+    assert.match(folderCss, /\.fv-section-shell\.is-members-shell \.fv-section-shell-body/);
+    assert.match(folderCss, /\.custom-action-wrapper > div/);
     assert.match(folderCss, /\.fv-modern-section-grid\s*\{[\s\S]*minmax\(280px,\s*1fr\)/);
     assert.match(folderCss, /\.fv-modern-field-row\.is-icon-row,\s*[\s\S]*\.fv-modern-field-row\.is-status-row\s*\{[\s\S]*max-width:\s*780px;/);
     assert.match(folderCss, /\.fv-modern-field-row\s*\{[\s\S]*min-height:\s*108px;[\s\S]*box-sizing:\s*border-box;/);
@@ -376,12 +383,17 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderCss, /\.fv-modern-field-row > dl > dt\s*\{[\s\S]*font-size:\s*1rem;/);
     assert.match(folderCss, /\.fv-modern-field-row > dl,\s*[\s\S]*display:\s*flex !important;[\s\S]*flex-direction:\s*column;[\s\S]*gap:\s*1\.05em;/);
     assert.match(folderCss, /\.fv-modern-field-row > dl > dd\s*\{[\s\S]*padding-top:\s*0\.42em !important;/);
+    assert.match(folderCss, /\.fv-modern-field-row\.is-actions-launch-row > dl > dt\s*\{[\s\S]*display:\s*none;/);
     assert.match(folderCss, /\.fv-inline-reset-btn\s*\{[\s\S]*border:\s*0 !important;[\s\S]*background:\s*transparent !important;/);
     assert.match(folderCss, /\.fv-validation-details/);
     assert.match(folderCss, /\.fv-validation-summary\.info/);
     assert.match(folderCss, /\.fv-validation-details\.info/);
     assert.match(folderCss, /\.fv-section-nav > button\.is-active/);
     assert.match(folderCss, /\.fv-orphan-editor-row/);
+    assert.match(folderLegacyJs, /const setVisibleMemberSelection = \(checked\) =>/);
+    assert.match(folderLegacyJs, /#fvMemberStateFilter/);
+    assert.match(folderLegacyJs, /#fvMemberIncludeVisible/);
+    assert.match(folderLegacyJs, /All changes saved/);
 });
 
 test('folder editor page ships the redesign bootstrap and chrome anchors', () => {

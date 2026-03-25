@@ -5,12 +5,12 @@
     }
     const SECTION_META = {
         general: { title: 'General', icon: 'fa-folder-open-o', advanced: false, description: 'Name, parent, icon, and folder-level WebUI behavior.' },
-        members: { title: 'Members', icon: 'fa-th-large', advanced: false, description: 'Choose which containers or VMs belong in this folder and tune the visible order.' },
+        members: { title: 'Members', icon: 'fa-th-large', advanced: false, description: 'Search, filter, bulk-manage, and order the containers or VMs shown in this folder.' },
         preview: { title: 'Preview', icon: 'fa-eye', advanced: false, description: 'Control preview layout, context, borders, dividers, and inline preview actions.' },
         chevron: { title: 'Chevron', icon: 'fa-chevron-down', advanced: false, description: 'Pick the dropdown style and the primary / hover colors used in folder rows.' },
         status: { title: 'Status', icon: 'fa-heartbeat', advanced: false, description: 'Adjust status colors and optional health or warning thresholds for the folder.' },
-        rules: { title: 'Rules', icon: 'fa-code', advanced: true, description: 'Use regex matching and related automation rules to keep this folder populated.' },
-        actions: { title: 'Actions', icon: 'fa-bolt', advanced: true, description: 'Configure custom folder actions and menu behavior for the folder context menu.' },
+        rules: { title: 'Rules', icon: 'fa-code', advanced: true, description: 'Optional automation rules for auto-including matching containers or VMs.' },
+        actions: { title: 'Actions', icon: 'fa-bolt', advanced: true, description: 'Optional custom actions that appear in this folder’s context menu.' },
         advanced: { title: 'Advanced', icon: 'fa-sliders', advanced: true, description: 'Tune Docker / VM / Dashboard specific behavior and other advanced defaults.' }
     };
     const DEFAULT_FOLDER_ICON_PATH = '/plugins/folderview.plus/images/folder-icon.png';
@@ -278,6 +278,8 @@
             if (!body) {
                 return;
             }
+            shell.classList.toggle('is-compact-shell', sectionKey === 'rules' || sectionKey === 'actions');
+            shell.classList.toggle('is-members-shell', sectionKey === 'members');
             body.classList.add('fv-modern-section-grid');
             rows.forEach((row) => {
                 if (row && row.parentElement !== body) {
@@ -291,9 +293,9 @@
         Array.from(form.querySelectorAll('.fv-section-shell .basic')).forEach((row) => {
             row.classList.add('fv-modern-field-row');
             row.classList.remove('fv-orphan-editor-row');
-            row.classList.remove('fv-modern-order-row', 'is-wide-row', 'is-icon-row', 'is-status-row', 'is-actions-row', 'is-toggle-row', 'is-color-row', 'is-name-row', 'is-url-row', 'is-compact-text-row', 'is-webui-row');
+            row.classList.remove('fv-modern-order-row', 'is-wide-row', 'is-icon-row', 'is-status-row', 'is-actions-row', 'is-toggle-row', 'is-color-row', 'is-name-row', 'is-url-row', 'is-compact-text-row', 'is-webui-row', 'is-members-row', 'is-rules-row', 'is-actions-list-row', 'is-actions-launch-row');
             if (row.classList.contains('order-section')) {
-                row.classList.add('fv-modern-order-row', 'is-wide-row');
+                row.classList.add('fv-modern-order-row', 'is-wide-row', 'is-members-row');
                 return;
             }
             if (row.querySelector('.fv-icon-dd')) {
@@ -306,7 +308,13 @@
                 row.classList.add('is-actions-row');
             }
             if (row.querySelector('[name="regex"]')) {
-                row.classList.add('is-compact-text-row');
+                row.classList.add('is-compact-text-row', 'is-rules-row');
+            }
+            if (row.querySelector('.custom-action-wrapper')) {
+                row.classList.add('is-actions-list-row');
+            }
+            if (row.querySelector('a.custom-action')) {
+                row.classList.add('is-actions-launch-row');
             }
             if (row.querySelector('[name="name"]')) {
                 row.classList.add('is-name-row');

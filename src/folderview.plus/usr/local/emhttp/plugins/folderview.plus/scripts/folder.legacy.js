@@ -3138,6 +3138,17 @@ const updateUnsavedIndicator = () => {
     const current = computeFormSnapshot();
     const dirty = Boolean(initialSnapshot) && current !== initialSnapshot;
     $('#unsavedIndicator').toggle(dirty);
+    const changedCount = dirty && typeof getAllChangedItems === 'function' ? getAllChangedItems().length : 0;
+    $('#fvActionBarDirty')
+        .toggleClass('is-dirty', dirty)
+        .text(dirty ? `${changedCount || 1} unsaved change${changedCount === 1 ? '' : 's'}` : 'All changes saved');
+    $('#fvActionBarHint')
+        .toggleClass('is-dirty', dirty)
+        .text(
+            dirty
+                ? 'Save or copy this folder when you are ready.'
+                : 'Changes apply live in the preview while saved values stay in sync below.'
+        );
     return dirty;
 };
 
@@ -3754,9 +3765,29 @@ const updateMemberStats = () => {
     const total = rows.length;
     const included = rows.find('input.container-switch:checked').length;
     const visible = rows.filter(':visible').length;
+    const manual = rows.filter('[data-membership="manual"]').length;
+    const regex = rows.filter('[data-membership="regex"]').length;
+    const available = rows.filter('[data-membership="available"]').length;
     const text = `${included}/${total} included` + (visible !== total ? ` (${visible} shown)` : '');
     $('#fvMemberStats').text(text);
     $('#fvLiveMembers').text(text);
+    $('#fvHeroMembers').text(text);
+    $('#fvMemberChipIncluded').text(`${included} included`);
+    $('#fvMemberChipManual').text(`${manual} manual`);
+    $('#fvMemberChipRegex').text(`${regex} regex`);
+    $('#fvMemberChipAvailable').text(`${available} available`);
+};
+
+const getMemberStateKey = (member, index = 0) => {
+    const state = buildSampleMemberState(member, index);
+    const normalized = String(state?.label || '').trim().toLowerCase();
+    if (normalized === 'running' || normalized === 'started') {
+        return 'running';
+    }
+    if (normalized === 'paused') {
+        return 'paused';
+    }
+    return 'stopped';
 };
 
 const renderLivePreviewCanvas = () => {
@@ -3857,12 +3888,14 @@ const renderLivePreviewCanvas = () => {
 const applyMemberFilters = () => {
     const query = ($('#fvMemberSearch').val() || '').trim().toLowerCase();
     const filter = $('#fvMemberFilter').val() || 'all';
+    const stateFilter = $('#fvMemberStateFilter').val() || 'all';
 
     $('table.sortable > tbody > tr').each((_, row) => {
         const $row = $(row);
         const name = ($row.attr('data-name') || '').toLowerCase();
         const membership = $row.attr('data-membership');
         const included = $row.find('input.container-switch').prop('checked');
+        const state = String($row.attr('data-state') || 'stopped').trim().toLowerCase();
         const matchesQuery = !query || name.includes(query);
 
         let matchesFilter = true;
@@ -3876,10 +3909,31 @@ const applyMemberFilters = () => {
             matchesFilter = membership === 'manual';
         }
 
-        $row.toggle(matchesQuery && matchesFilter);
+        let matchesState = true;
+        if (stateFilter !== 'all') {
+            matchesState = state === stateFilter;
+        }
+
+        $row.toggle(matchesQuery && matchesFilter && matchesState);
     });
 
     updateMemberStats();
+};
+
+const setVisibleMemberSelection = (checked) => {
+    $('table.sortable > tbody > tr:visible').each((_, row) => {
+        const input = $(row).find('input.container-switch').get(0);
+        if (!input || input.disabled) {
+            return;
+        }
+        input.checked = checked === true;
+        $(input).trigger('change');
+    });
+    applyMemberFilters();
+    if (isFormInitialized) {
+        validateForm();
+        updateUnsavedIndicator();
+    }
 };
 
 const syncMemberArraysFromTable = () => {
@@ -4568,16 +4622,36 @@ const initEditorChrome = () => {
     if (!$('#fvMemberTools').length) {
         $('.basic.order-section dd').prepend(`
             <div id="fvMemberTools" class="fv-member-tools">
-                <input type="text" id="fvMemberSearch" placeholder="Search members">
-                <select id="fvMemberFilter">
-                    <option value="all">All</option>
-                    <option value="included">Included</option>
-                    <option value="excluded">Excluded</option>
-                    <option value="regex">Regex included</option>
-                    <option value="manual">Manually included</option>
-                </select>
-                <button type="button" id="fvMemberClear">Clear</button>
-                <span id="fvMemberStats" class="fv-member-stats">0/0 included</span>
+                <div class="fv-member-tools-main">
+                    <div class="fv-member-tools-filters">
+                        <input type="text" id="fvMemberSearch" placeholder="Search members">
+                        <select id="fvMemberFilter">
+                            <option value="all">All membership</option>
+                            <option value="included">Included</option>
+                            <option value="excluded">Excluded</option>
+                            <option value="regex">Regex included</option>
+                            <option value="manual">Manual only</option>
+                        </select>
+                        <select id="fvMemberStateFilter">
+                            <option value="all">All states</option>
+                            <option value="running">${type === 'vm' ? 'Running' : 'Started / Running'}</option>
+                            <option value="paused">Paused</option>
+                            <option value="stopped">Stopped</option>
+                        </select>
+                    </div>
+                    <div class="fv-member-tools-actions">
+                        <button type="button" id="fvMemberIncludeVisible">Include shown</button>
+                        <button type="button" id="fvMemberExcludeVisible">Exclude shown</button>
+                        <button type="button" id="fvMemberClear">Reset filters</button>
+                    </div>
+                    <span id="fvMemberStats" class="fv-member-stats">0/0 included</span>
+                </div>
+                <div class="fv-member-chip-row">
+                    <span id="fvMemberChipIncluded" class="fv-member-chip is-accent">0 included</span>
+                    <span id="fvMemberChipManual" class="fv-member-chip">0 manual</span>
+                    <span id="fvMemberChipRegex" class="fv-member-chip">0 regex</span>
+                    <span id="fvMemberChipAvailable" class="fv-member-chip">0 available</span>
+                </div>
             </div>
         `);
     }
@@ -4612,11 +4686,20 @@ const initEditorChrome = () => {
 
     $('#fvMemberSearch').off('input').on('input', applyMemberFilters);
     $('#fvMemberFilter').off('change').on('change', applyMemberFilters);
+    $('#fvMemberStateFilter').off('change').on('change', applyMemberFilters);
+    $('#fvMemberIncludeVisible').off('click').on('click', () => setVisibleMemberSelection(true));
+    $('#fvMemberExcludeVisible').off('click').on('click', () => setVisibleMemberSelection(false));
     $('#fvMemberClear').off('click').on('click', () => {
         $('#fvMemberSearch').val('');
         $('#fvMemberFilter').val('all');
+        $('#fvMemberStateFilter').val('all');
         applyMemberFilters();
     });
+    $('#fvMemberSearch')
+        .attr('aria-label', 'Search folder members')
+        .attr('autocomplete', 'off');
+    $('#fvMemberFilter').attr('aria-label', 'Filter member inclusion');
+    $('#fvMemberStateFilter').attr('aria-label', 'Filter member state');
 
     editorMode = loadEditorModePreference();
     advancedSectionCollapsedState = loadAdvancedCollapseState();
@@ -5161,7 +5244,7 @@ const updateList = () => {
             ? '<span class="order-lock" title="Auto-included by regex or label"><i class="fa fa-lock" aria-hidden="true"></i></span>'
             : '<div class="order-buttons"><button type="button" class="member-move" data-direction="up" title="Move up"><i class="fa fa-chevron-up" aria-hidden="true"></i></button><button type="button" class="member-move" data-direction="down" title="Move down"><i class="fa fa-chevron-down" aria-hidden="true"></i></button></div>';
         return `
-            <tr class="item" data-name="${name}" data-membership="${membership}">
+            <tr class="item" data-name="${name}" data-membership="${membership}" data-state="${getMemberStateKey(member)}">
                 <td class="order-col">${orderControls}</td>
                 <td class="name-col"><span style="cursor: pointer;" onclick="setIconAsContainer(this)"><img src="${icon}" class="img" onerror="this.src='${ICON_FALLBACK_PATH}';"></span>${name}</td>
                 <td><input class="container-switch" ${checked ? 'checked' : ''} ${locked ? 'disabled' : ''} type="checkbox" name="containers[]" value="${name}" style="display: none;"></td>

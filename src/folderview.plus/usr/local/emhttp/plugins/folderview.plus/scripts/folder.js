@@ -2894,10 +2894,18 @@ const computeFormSnapshot = () => {
 const updateUnsavedIndicator = () => {
     const current = computeFormSnapshot();
     const dirty = Boolean(initialSnapshot) && current !== initialSnapshot;
+    const changedCount = dirty && typeof getAllChangedItems === 'function' ? getAllChangedItems().length : 0;
     $('#unsavedIndicator').toggle(dirty);
     $('#fvActionBarDirty')
         .toggleClass('is-dirty', dirty)
-        .text(dirty ? 'Unsaved changes are waiting to be saved.' : 'No pending changes');
+        .text(dirty ? `${changedCount || 1} unsaved change${changedCount === 1 ? '' : 's'}` : 'All changes saved');
+    $('#fvActionBarHint')
+        .toggleClass('is-dirty', dirty)
+        .text(
+            dirty
+                ? 'Save or copy this folder when you are ready.'
+                : 'Changes apply live in the preview while saved values stay in sync below.'
+        );
     return dirty;
 };
 
@@ -4681,23 +4689,27 @@ const initEditorChrome = () => {
         $('.basic.order-section dd').prepend(`
             <div id="fvMemberTools" class="fv-member-tools">
                 <div class="fv-member-tools-main">
-                    <input type="text" id="fvMemberSearch" placeholder="Search members">
-                    <select id="fvMemberFilter">
-                        <option value="all">All membership</option>
-                        <option value="included">Included</option>
-                        <option value="excluded">Excluded</option>
-                        <option value="regex">Regex included</option>
-                        <option value="manual">Manual only</option>
-                    </select>
-                    <select id="fvMemberStateFilter">
-                        <option value="all">All states</option>
-                        <option value="running">${type === 'vm' ? 'Running' : 'Started / Running'}</option>
-                        <option value="paused">Paused</option>
-                        <option value="stopped">Stopped</option>
-                    </select>
-                    <button type="button" id="fvMemberIncludeVisible">Include shown</button>
-                    <button type="button" id="fvMemberExcludeVisible">Exclude shown</button>
-                    <button type="button" id="fvMemberClear">Reset filters</button>
+                    <div class="fv-member-tools-filters">
+                        <input type="text" id="fvMemberSearch" placeholder="Search members">
+                        <select id="fvMemberFilter">
+                            <option value="all">All membership</option>
+                            <option value="included">Included</option>
+                            <option value="excluded">Excluded</option>
+                            <option value="regex">Regex included</option>
+                            <option value="manual">Manual only</option>
+                        </select>
+                        <select id="fvMemberStateFilter">
+                            <option value="all">All states</option>
+                            <option value="running">${type === 'vm' ? 'Running' : 'Started / Running'}</option>
+                            <option value="paused">Paused</option>
+                            <option value="stopped">Stopped</option>
+                        </select>
+                    </div>
+                    <div class="fv-member-tools-actions">
+                        <button type="button" id="fvMemberIncludeVisible">Include shown</button>
+                        <button type="button" id="fvMemberExcludeVisible">Exclude shown</button>
+                        <button type="button" id="fvMemberClear">Reset filters</button>
+                    </div>
                     <span id="fvMemberStats" class="fv-member-stats">0/0 included</span>
                 </div>
                 <div class="fv-member-chip-row">
@@ -4758,6 +4770,12 @@ const initEditorChrome = () => {
         $('#fvMemberStateFilter').val('all');
         applyMemberFilters();
     });
+
+    $('#fvMemberSearch')
+        .attr('aria-label', 'Search folder members')
+        .attr('autocomplete', 'off');
+    $('#fvMemberFilter').attr('aria-label', 'Filter member inclusion');
+    $('#fvMemberStateFilter').attr('aria-label', 'Filter member state');
 
     editorMode = loadEditorModePreference();
     activeEditorSection = normalizeActiveEditorSection('general', editorMode);

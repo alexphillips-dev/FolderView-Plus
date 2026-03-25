@@ -334,20 +334,24 @@ tr.folder.fv-parent-expanded div.folder-preview {
     height: 3.5em;
     overflow: hidden;
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    align-content: flex-start;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    align-content: stretch;
+    padding: 0 8px;
+    gap: 0;
     row-gap: 0.35em;
 }
 
 .folder-preview-row {
     min-height: 0;
     display: flex;
-    align-items: flex-start;
+    align-items: stretch;
     flex-wrap: nowrap;
-    column-gap: 8px;
     overflow: hidden;
-    padding: 0 0 0 8px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 8px;
+    gap: 0;
 }
 
 .folder-preview.fv-preview-multirow {
@@ -358,17 +362,15 @@ tr.folder.fv-parent-expanded div.folder-preview {
     padding: 6px 0;
     flex-direction: column;
     flex-wrap: nowrap;
-    align-items: flex-start;
-    align-content: flex-start;
+    align-items: stretch;
+    align-content: stretch;
     justify-content: center;
 }
 
 .folder-preview.fv-preview-multirow .folder-preview-row {
-    width: 100%;
-    box-sizing: border-box;
-    align-items: center;
     min-height: 0;
-    padding: 1px 0 1px 8px;
+    align-items: stretch;
+    padding: 1px 8px;
 }
 
 .folder-preview.fv-preview-border-off {
@@ -387,30 +389,39 @@ tr.folder.fv-parent-expanded div.folder-preview {
     float: none;
     height: auto;
     min-height: calc(var(--fvplus-preview-row-height) - 0.9em);
-    margin-left: 10px;
-    margin-top: 7px;
     display: flex;
-    align-items: center;
-    flex: 0 0 auto;
+    align-items: stretch;
+    justify-content: center;
+    flex: 1 1 0;
     min-width: 0;
+    margin: 0;
+    overflow: hidden;
 }
 
 .folder-preview-wrapper > span.outer {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
+    max-width: 100%;
 }
 
 .folder-preview.fv-preview-multirow .folder-preview-wrapper {
     min-height: 0;
     margin: 0;
+    align-items: stretch;
+    justify-content: center;
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.folder-preview .fv-docker-preview-card {
+    display: inline-flex;
     align-items: center;
-    flex: 0 0 auto;
-    min-width: max-content;
+    justify-content: center;
+    max-width: 100%;
 }
 
 .folder-preview.fv-preview-multirow .fv-docker-preview-card {
-    display: inline-flex;
-    align-items: center;
     gap: 6px;
     min-height: 0;
     max-width: 100%;
@@ -422,6 +433,7 @@ tr.folder.fv-parent-expanded div.folder-preview {
     display: inline-flex;
     align-items: center;
     white-space: nowrap;
+    max-width: 100%;
 }
 
 .folder-preview.fv-preview-multirow .folder-preview-wrapper > span.outer > span.inner {
@@ -560,14 +572,15 @@ tr.folder.fv-parent-expanded div.folder-preview {
     float: none;
     display: block;
     flex: 0 0 auto;
-    align-self: stretch;
+    align-self: center;
     min-height: calc(var(--fvplus-preview-row-height) - 1.2em);
     width: 0;
     border-right: var(--fvplus-preview-divider-width, 1px) solid;
-    margin: 0.35em 0 0.35em 6px;
+    margin: 0.35em 0;
 }
 
 .folder-preview.fv-preview-multirow .folder-preview-divider {
+    align-self: stretch;
     min-height: 1.35em;
     margin: 2px 0;
 }

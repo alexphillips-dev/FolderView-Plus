@@ -274,6 +274,9 @@ const runRuntimeLayoutSmoke = async (page, { browserName, type, url }) => {
             const row = entry.row;
             const appCell = row.querySelector('td.ct-name.folder-name, td.vm-name.folder-name, td.folder-name');
             const dropdown = row.querySelector('button.folder-dropdown');
+            const preview = row.querySelector('.folder-preview');
+            const previewWrapper = preview?.querySelector('.folder-preview-wrapper');
+            const dropdownIcon = dropdown?.querySelector('i');
             if (!appCell || !dropdown) {
                 return {
                     role: idx === 0 ? 'shortest' : 'longest',
@@ -284,6 +287,22 @@ const runRuntimeLayoutSmoke = async (page, { browserName, type, url }) => {
             const appRect = appCell.getBoundingClientRect();
             const dropdownRect = dropdown.getBoundingClientRect();
             const appBoundaryGap = appRect.right - dropdownRect.right;
+            const dropdownStyle = window.getComputedStyle(dropdown);
+            const dropdownIconStyle = dropdownIcon ? window.getComputedStyle(dropdownIcon) : null;
+            const chevronVisible = dropdownStyle.visibility !== 'hidden'
+                && Number(dropdownStyle.opacity) > 0.01
+                && (!dropdownIconStyle || (dropdownIconStyle.visibility !== 'hidden' && Number(dropdownIconStyle.opacity) > 0.01));
+            let previewCenterDelta = null;
+            let previewOverflowPx = null;
+            if (preview && previewWrapper) {
+                const previewRect = preview.getBoundingClientRect();
+                const previewWrapperRect = previewWrapper.getBoundingClientRect();
+                previewCenterDelta = Math.abs(
+                    (previewRect.top + (previewRect.height / 2))
+                    - (previewWrapperRect.top + (previewWrapperRect.height / 2))
+                );
+                previewOverflowPx = Math.max(0, previewWrapperRect.right - previewRect.right);
+            }
             let versionGap = null;
             if (context.type === 'docker') {
                 const versionCell = row.querySelector('td.updatecolumn.folder-update');
@@ -292,9 +311,23 @@ const runRuntimeLayoutSmoke = async (page, { browserName, type, url }) => {
                     versionGap = versionRect.left - dropdownRect.right;
                 }
             }
+            const multirowRows = preview && preview.classList.contains('fv-preview-multirow')
+                ? Array.from(preview.querySelectorAll('.folder-preview-row'))
+                : [];
+            const multirowOverflowPx = multirowRows.reduce((max, rowNode) => {
+                const rowRect = rowNode.getBoundingClientRect();
+                let localMax = max;
+                rowNode.querySelectorAll('.folder-preview-wrapper, .folder-preview-divider').forEach((node) => {
+                    const rect = node.getBoundingClientRect();
+                    localMax = Math.max(localMax, Math.max(0, rect.right - rowRect.right));
+                });
+                return localMax;
+            }, 0);
             const crossesAppBoundary = appBoundaryGap < context.minGap;
             const overlapsVersion = versionGap !== null && versionGap < context.minGap;
             const excessiveVersionGap = versionGap !== null && versionGap > context.maxGap;
+            const misalignedCenter = previewCenterDelta !== null && previewCenterDelta > 8;
+            const overflowedPreview = (previewOverflowPx !== null && previewOverflowPx > 1.5) || multirowOverflowPx > 1.5;
             return {
                 role: idx === 0 ? 'shortest' : 'longest',
                 skipped: false,
@@ -304,10 +337,16 @@ const runRuntimeLayoutSmoke = async (page, { browserName, type, url }) => {
                 maxGap: context.maxGap,
                 appBoundaryGap: toMetric(appBoundaryGap),
                 versionGap: toMetric(versionGap),
+                chevronVisible,
+                previewCenterDelta: toMetric(previewCenterDelta),
+                previewOverflowPx: toMetric(previewOverflowPx),
+                multirowOverflowPx: toMetric(multirowOverflowPx),
                 crossesAppBoundary,
                 overlapsVersion,
                 excessiveVersionGap,
-                pass: !crossesAppBoundary && !overlapsVersion && !excessiveVersionGap
+                misalignedCenter,
+                overflowedPreview,
+                pass: chevronVisible && !crossesAppBoundary && !overlapsVersion && !excessiveVersionGap && !misalignedCenter && !overflowedPreview
             };
         });
 
@@ -355,7 +394,7 @@ const runRuntimeLayoutSmoke = async (page, { browserName, type, url }) => {
             ? report.checks.filter((item) => !item.skipped && item.pass !== true)
             : [];
         throw new Error(
-            `Runtime layout overlap detected for ${type} (${browserName}). `
+            `Runtime layout contract failure detected for ${type} (${browserName}). `
             + `Failed rows: ${JSON.stringify(failedChecks)}. `
             + `Screenshot: ${screenshotPath}`
         );

@@ -8,12 +8,22 @@ const vmCssPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/vm.css'
 );
+const runtimeSharedCssPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/runtime.shared.css'
+);
+const vmPagePath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.VMs.page'
+);
 const vmJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js'
 );
 
 const vmCss = fs.readFileSync(vmCssPath, 'utf8');
+const runtimeSharedCss = fs.readFileSync(runtimeSharedCssPath, 'utf8');
+const vmPage = fs.readFileSync(vmPagePath, 'utf8');
 const vmJs = fs.readFileSync(vmJsPath, 'utf8');
 
 test('vm app-name and dropdown spacing contract preserves right-side gutter', () => {
@@ -29,10 +39,11 @@ test('vm app-name and dropdown spacing contract preserves right-side gutter', ()
     assert.match(vmCss, /td\.vm-name\.folder-name > \.folder-name-sub\s*\{[\s\S]*right:\s*var\(--fvplus-vm-folder-right-gutter,\s*18px\)/);
     assert.match(vmCss, /td\.vm-name\.folder-name > \.folder-name-sub\s*\{[\s\S]*transform:\s*translateY\(-50%\)/);
     assert.match(vmCss, /\.folder-outer\s*\{[\s\S]*max-width:\s*calc\(var\(--fvplus-vm-app-column-width\)\s*-\s*var\(--fvplus-vm-folder-outer-reserved-width,\s*88px\)\)/);
-    assert.match(vmCss, /\.folder-dropdown\s*\{[\s\S]*width:\s*auto/);
-    assert.match(vmCss, /\.folder-dropdown\s*\{[\s\S]*margin:\s*0 var\(--fvplus-vm-folder-dropdown-right-margin,\s*10px\) 0 auto/);
-    assert.match(vmCss, /\.folder-dropdown:hover,\s*[\s\S]*visibility:\s*visible !important/);
-    assert.match(vmCss, /\.folder-dropdown:hover > i,\s*[\s\S]*opacity:\s*1 !important/);
+    assert.match(vmPage, /runtime\.shared\.css/);
+    assert.match(runtimeSharedCss, /\.folder-dropdown\s*\{[\s\S]*margin:\s*0 var\(--fvplus-folder-dropdown-right-margin,\s*16px\) 0 auto/);
+    assert.match(runtimeSharedCss, /\.folder-dropdown\s*\{[\s\S]*display:\s*inline-flex/);
+    assert.match(runtimeSharedCss, /\.folder-dropdown:hover,\s*[\s\S]*visibility:\s*visible !important/);
+    assert.match(runtimeSharedCss, /\.folder-dropdown:hover > i,\s*[\s\S]*opacity:\s*1 !important/);
 });
 
 test('vm mobile width contract keeps names visible before truncation and dropdown compact', () => {

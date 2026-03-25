@@ -18,7 +18,7 @@
 FolderView Plus gives Unraid a cleaner, folder-first way to manage Docker containers and VMs.  
 It is built for real libraries: easier organization, safer imports, faster recovery, and better day-to-day control.
 
-Quick links: [Install](#install) | [Feature Highlights](#feature-highlights) | [Screenshots](#screenshots) | [Rules Quick Guide](#rules-quick-guide) | [Import, Export, and Backups](#import-export-and-backups) | [Troubleshooting](#troubleshooting) | [Edge Cases + Test Matrix](docs/edge-cases-test-matrix.md) | [Support](#support)
+Quick links: [Install](#install) | [Feature Highlights](#feature-highlights) | [Screenshots](#screenshots) | [Rules Quick Guide](#rules-quick-guide) | [Import, Export, and Backups](#import-export-and-backups) | [Troubleshooting](#troubleshooting) | [Visual Runtime Contract](docs/visual-runtime-contract.md) | [Edge Cases + Test Matrix](docs/edge-cases-test-matrix.md) | [Support](#support)
 
 ## Screenshots
 
@@ -207,6 +207,13 @@ Not supported:
   - `--fvplus-graph-cpu`
   - `--fvplus-graph-mem`
 - Settings diagnostics includes **Theme diagnostics** to inspect resolved tokens and runtime selector state.
+
+## Dev Workflow
+- Generate the local runtime fixture when working on Docker/VM row layout:
+  - `node scripts/generate_runtime_fixture.mjs`
+- Use the deterministic finalize path for shared UI/runtime work:
+  - `bash scripts/dev_finalize.sh --open-fixture`
+- Visual/runtime rules that should not regress are documented in [docs/visual-runtime-contract.md](docs/visual-runtime-contract.md).
 
 ## Legacy CSS/JS Migration (FolderView2/3)
 FolderView Plus keeps legacy override directory support so older custom tweaks can continue working.

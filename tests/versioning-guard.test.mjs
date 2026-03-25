@@ -208,8 +208,11 @@ test('browser smoke scripts support optional and required modes and include core
     assert.match(browserSmokeNode, /shortest/);
     assert.match(browserSmokeNode, /longest/);
     assert.match(browserSmokeNode, /excessiveVersionGap/);
+    assert.match(browserSmokeNode, /chevronVisible/);
+    assert.match(browserSmokeNode, /previewCenterDelta/);
+    assert.match(browserSmokeNode, /multirowOverflowPx/);
     assert.match(browserSmokeNode, /Runtime visual check passed/);
-    assert.match(browserSmokeNode, /Runtime layout overlap detected/);
+    assert.match(browserSmokeNode, /Runtime layout contract failure detected/);
     assert.match(browserSmokeNode, /Failed rows:/);
     assert.match(browserSmokeNode, /Dashboard quick-rail target:/);
     assert.match(browserSmokeNode, /fv-dashboard-layout-inline-host/);

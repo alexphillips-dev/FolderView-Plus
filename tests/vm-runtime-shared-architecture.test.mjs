@@ -8,17 +8,27 @@ const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath)
 
 const vmPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.VMs.page');
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
+const vmCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/vm.css');
+const runtimeSharedCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/runtime.shared.css');
 
 test('vm runtime page loads shared runtime module before vm runtime script', () => {
+    const contractIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
     const sharedIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.shared.js');
     const stateObserverIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/folder.runtime.state-observers.js');
     const runtimeIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/vm.js');
+    const sharedCssIndex = vmPage.indexOf('/plugins/folderview.plus/styles/runtime.shared.css');
+    const vmCssIndex = vmPage.indexOf('/plugins/folderview.plus/styles/vm.css');
     assert.equal(vmPage.includes('/plugins/folderview.plus/scripts/folderviewplus.fatal-banner.js'), false, 'vm page should not load settings fatal banner');
+    assert.ok(contractIndex >= 0, 'shared folder contract include missing from VMs page');
     assert.ok(sharedIndex >= 0, 'shared runtime include missing from VMs page');
     assert.ok(stateObserverIndex >= 0, 'runtime state observer include missing from VMs page');
     assert.ok(runtimeIndex >= 0, 'vm runtime include missing from VMs page');
+    assert.ok(sharedCssIndex >= 0, 'shared runtime stylesheet missing from VMs page');
+    assert.ok(vmCssIndex >= 0, 'vm stylesheet missing from VMs page');
+    assert.ok(contractIndex < sharedIndex, 'shared contract must load before shared runtime on VMs page');
     assert.ok(stateObserverIndex < runtimeIndex, 'runtime state observer must load before vm.js');
     assert.ok(sharedIndex < runtimeIndex, 'shared runtime must load before vm.js');
+    assert.ok(sharedCssIndex < vmCssIndex, 'shared runtime stylesheet must load before vm.css');
 });
 
 test('vm runtime consumes shared state/perf/action modules and exposes telemetry snapshots', () => {
@@ -40,4 +50,16 @@ test('vm runtime consumes shared state/perf/action modules and exposes telemetry
     assert.match(vmJs, /let vmRuntimePerformanceProfile = resolveVmRuntimePerformanceProfile\(/);
     assert.match(vmJs, /window\.getVmRuntimePerfTelemetrySnapshot =/);
     assert.match(vmJs, /window\.getVmRuntimeStateSnapshot =/);
+});
+
+test('vm CSS keeps VM-specific gutter tokens while shared stylesheet owns shared preview and dropdown rules', () => {
+    assert.match(vmCss, /--fvplus-vm-folder-right-gutter:\s*18px/);
+    assert.match(vmCss, /--fvplus-vm-folder-outer-reserved-width:\s*88px/);
+    assert.match(vmCss, /--fvplus-vm-folder-dropdown-right-margin:\s*10px/);
+    assert.match(vmCss, /--fvplus-folder-dropdown-right-margin:\s*var\(--fvplus-vm-folder-dropdown-right-margin,\s*10px\)/);
+    assert.match(vmCss, /--fvplus-folder-dropdown-icon-size:\s*11px/);
+    assert.match(vmCss, /--fvplus-preview-wrapper-margin-top:\s*6px/);
+    assert.doesNotMatch(vmCss, /^\.folder-dropdown\s*\{/m);
+    assert.match(runtimeSharedCss, /\.folder-preview\s*\{[\s\S]*align-items:\s*center;/);
+    assert.match(runtimeSharedCss, /\.folder-preview-wrapper\s*\{[\s\S]*margin-top:\s*var\(--fvplus-preview-wrapper-margin-top,\s*6px\)/);
 });

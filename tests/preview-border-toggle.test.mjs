@@ -13,6 +13,8 @@ const folderCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 const sharedRuntimeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js');
+const folderContractJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
+const runtimeSharedCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/runtime.shared.css');
 const dockerCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css');
 const vmCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/vm.css');
 const serverLibPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
@@ -50,23 +52,20 @@ test('legacy folder editor exposes grouped reset helpers and extended chevron co
     assert.match(folderLegacyJs, /form\.dropdown_color\.value = DEFAULT_DROPDOWN_COLOR;/);
     assert.match(folderLegacyJs, /form\.dropdown_hover_color\.value = DEFAULT_DROPDOWN_HOVER_COLOR;/);
     assert.match(folderLegacyJs, /fieldName === 'dropdown_style' \|\| fieldName === 'dropdown_color' \|\| fieldName === 'dropdown_hover_color'/);
-    assert.match(folderLegacyJs, /const extractDropdownStyleValue = \(value,\s*fallbackSource = null\) =>/);
-    assert.match(folderLegacyJs, /source\.dropdown_style\s*\?\?\s*source\.dropdownStyle\s*\?\?\s*source\.chevron_style\s*\?\?\s*source\.chevronStyle/);
-    assert.match(folderLegacyJs, /const SUPPORTED_DROPDOWN_STYLES = Object\.freeze\(\['minimal', 'boxed', 'ghost', 'pill', 'filled'\]\);/);
-    assert.match(folderLegacyJs, /if \(SUPPORTED_DROPDOWN_STYLES\.includes\(normalized\)\)/);
+    assert.match(folderLegacyJs, /const extractDropdownStyleValue = typeof folderContract\?\.extractDropdownStyleValue === 'function'/);
+    assert.match(folderLegacyJs, /const SUPPORTED_DROPDOWN_STYLES = folderContract\?\.SUPPORTED_DROPDOWN_STYLES \|\| Object\.freeze\(\['minimal', 'boxed', 'ghost', 'pill', 'filled'\]\);/);
     assert.match(folderLegacyJs, /form\.dropdown_style\.value = normalizeDropdownStyle\(currFolder\.settings,\s*currFolder\);/);
     assert.match(folderLegacyJs, /dropdownStyle:\s*normalizeDropdownStyle\(e\.dropdown_style\.value\.toString\(\)\),/);
     assert.match(folderLegacyJs, /chevron_style:\s*normalizeDropdownStyle\(e\.dropdown_style\.value\.toString\(\)\),/);
 });
 
 test('folder editor normalizes legacy preview border values when loading existing folders', () => {
-    assert.match(folderJs, /const extractDropdownStyleValue = \(value,\s*fallbackSource = null\) =>/);
-    assert.match(folderJs, /source\.dropdown_style\s*\?\?\s*source\.dropdownStyle\s*\?\?\s*source\.chevron_style\s*\?\?\s*source\.chevronStyle/);
-    assert.match(folderJs, /const extractPreviewRowLimitValue = \(value,\s*fallbackSource = null\) =>/);
-    assert.match(folderJs, /source\.preview_rows\s*\?\?\s*source\.previewRows/);
-    assert.match(folderJs, /const isLegacyPreviewBorderEnabled = \(settings\) =>/);
-    assert.match(folderJs, /const SUPPORTED_DROPDOWN_STYLES = Object\.freeze\(\['minimal', 'boxed', 'ghost', 'pill', 'filled'\]\);/);
-    assert.match(folderJs, /return SUPPORTED_DROPDOWN_STYLES\.includes\(normalized\)/);
+    assert.match(folderContractJs, /const extractDropdownStyleValue = \(value,\s*fallbackSource = null\) =>/);
+    assert.match(folderContractJs, /source\.dropdown_style\s*\?\?\s*source\.dropdownStyle\s*\?\?\s*source\.chevron_style\s*\?\?\s*source\.chevronStyle/);
+    assert.match(folderContractJs, /const extractPreviewRowLimitValue = \(value,\s*fallbackSource = null\) =>/);
+    assert.match(folderContractJs, /source\.preview_rows\s*\?\?\s*source\.previewRows/);
+    assert.match(folderContractJs, /const isPreviewBorderEnabled = \(settings\) =>/);
+    assert.match(folderJs, /const SUPPORTED_DROPDOWN_STYLES = folderContract\?\.SUPPORTED_DROPDOWN_STYLES \|\| Object\.freeze\(\['minimal', 'boxed', 'ghost', 'pill', 'filled'\]\);/);
     assert.match(folderJs, /setFieldChecked\('preview_border',\s*isLegacyPreviewBorderEnabled\(normalizedFolder\.settings \|\| \{\}\)\);/);
     assert.match(folderJs, /preview_border_width:\s*normalizePositiveInt\(settings\.preview_border_width,\s*DEFAULT_PREVIEW_BORDER_WIDTH,\s*1,\s*4\)/);
     assert.match(folderJs, /preview_vertical_bars_width:\s*normalizePositiveInt\(settings\.preview_vertical_bars_width,\s*DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH,\s*1,\s*4\)/);
@@ -87,17 +86,15 @@ test('folder editor normalizes legacy preview border values when loading existin
 
 test('docker preview renderer respects preview border toggle', () => {
     assert.match(sharedRuntimeJs, /const explicitOff = raw === '0' \|\| raw === 'false' \|\| raw === 'off' \|\| raw === 'no';/);
-    assert.match(sharedRuntimeJs, /const extractDropdownStyleValue = \(value\) =>/);
-    assert.match(sharedRuntimeJs, /value\.dropdown_style\s*\?\?\s*value\.dropdownStyle\s*\?\?\s*value\.chevron_style\s*\?\?\s*value\.chevronStyle/);
-    assert.match(sharedRuntimeJs, /const SUPPORTED_DROPDOWN_STYLES = Object\.freeze\(\['minimal', 'boxed', 'ghost', 'pill', 'filled'\]\);/);
-    assert.match(sharedRuntimeJs, /return SUPPORTED_DROPDOWN_STYLES\.includes\(normalized\)/);
+    assert.match(sharedRuntimeJs, /const extractDropdownStyleValue = typeof folderContract\?\.extractDropdownStyleValue === 'function'/);
+    assert.match(sharedRuntimeJs, /const SUPPORTED_DROPDOWN_STYLES = folderContract\?\.SUPPORTED_DROPDOWN_STYLES \|\| Object\.freeze\(\['minimal', 'boxed', 'ghost', 'pill', 'filled'\]\);/);
     assert.match(sharedRuntimeJs, /const applyPreviewBorderStyle = \(previewNode, settings\) =>/);
     assert.match(sharedRuntimeJs, /previewNode\.style\.setProperty\('--fvplus-preview-border-width', `\$\{previewBorderWidth\}px`\)/);
     assert.match(sharedRuntimeJs, /previewNode\.style\.setProperty\('--fvplus-preview-divider-width', `\$\{previewBarsWidth\}px`\)/);
     assert.match(sharedRuntimeJs, /previewNode\.style\.setProperty\('border', enabled \? `\$\{previewBorderWidth\}px solid \$\{previewColor\}` : 'none', 'important'\)/);
     assert.match(sharedRuntimeJs, /const dropdownStyle = normalizeDropdownStyle\(source\);/);
     assert.match(sharedRuntimeJs, /const applyFolderDropdownStyle = \(\$folderRow, settings\) =>/);
-    assert.match(sharedRuntimeJs, /const getDropdownStyleTokens = \(style, normalColor, hoverColor\) =>/);
+    assert.match(sharedRuntimeJs, /const getDropdownStyleTokens = typeof folderContract\?\.getDropdownStyleTokens === 'function'/);
     assert.match(sharedRuntimeJs, /case 'ghost':/);
     assert.match(sharedRuntimeJs, /case 'pill':/);
     assert.match(sharedRuntimeJs, /case 'filled':/);
@@ -108,7 +105,7 @@ test('docker preview renderer respects preview border toggle', () => {
 });
 
 test('vm preview renderer honors explicit preview border OFF values', () => {
-    assert.match(sharedRuntimeJs, /const isPreviewBorderEnabled = \(settings\) =>/);
+    assert.match(sharedRuntimeJs, /const isPreviewBorderEnabled = typeof folderContract\?\.isPreviewBorderEnabled === 'function'/);
     assert.match(sharedRuntimeJs, /const explicitOff = raw === '0' \|\| raw === 'false' \|\| raw === 'off' \|\| raw === 'no';/);
     assert.match(sharedRuntimeJs, /return !explicitOff;/);
     assert.match(sharedRuntimeJs, /const applyPreviewBorderStyle = \(previewNode, settings\) =>/);
@@ -149,10 +146,9 @@ test('server normalizes legacy chevron aliases into dropdown_style', () => {
 });
 
 test('single-row Docker and VM previews stay vertically centered', () => {
-    assert.match(dockerCss, /\.folder-preview\s*\{[\s\S]*width:\s*100%;[\s\S]*box-sizing:\s*border-box;[\s\S]*align-items:\s*center;/);
-    assert.match(dockerCss, /\.folder-preview-wrapper\s*\{[\s\S]*margin-top:\s*6px;[\s\S]*align-items:\s*center;/);
-    assert.match(dockerCss, /\.folder-preview-wrapper > span\.outer\s*\{[\s\S]*display:\s*inline-flex;[\s\S]*align-items:\s*center;/);
-    assert.match(vmCss, /\.folder-preview-wrapper\s*\{[\s\S]*margin-top:\s*6px;[\s\S]*align-items:\s*center;/);
-    assert.match(vmCss, /\.folder-preview-wrapper > span\.outer\s*\{[\s\S]*display:\s*inline-flex;[\s\S]*align-items:\s*center;/);
-    assert.match(vmCss, /\.folder-preview\s*\{[\s\S]*width:\s*100%;[\s\S]*box-sizing:\s*border-box;/);
+    assert.match(runtimeSharedCss, /\.folder-preview\s*\{[\s\S]*width:\s*100%;[\s\S]*box-sizing:\s*border-box;[\s\S]*align-items:\s*center;/);
+    assert.match(runtimeSharedCss, /\.folder-preview-wrapper\s*\{[\s\S]*margin-top:\s*var\(--fvplus-preview-wrapper-margin-top,\s*6px\);[\s\S]*align-items:\s*center;/);
+    assert.match(runtimeSharedCss, /\.folder-preview-wrapper > span\.outer\s*\{[\s\S]*display:\s*inline-flex;[\s\S]*align-items:\s*center;/);
+    assert.match(dockerCss, /--fvplus-preview-wrapper-margin-top:\s*6px/);
+    assert.match(vmCss, /--fvplus-preview-wrapper-margin-top:\s*6px/);
 });

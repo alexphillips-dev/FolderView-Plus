@@ -6,12 +6,21 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.25.02">
-<!ENTITY md5 "b29bc31c0f8fb5ef63386f40b72bd0f3">
+<!ENTITY version "2026.03.25.05">
+<!ENTITY md5 "4c6a61ab424ecb336f5ee81916833993">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.25.05
+- Maintenance: Center docker preview cells and dividers.
+- Maintenance: Allow GitHub PR merges in main history guard.
+- Maintenance: Update history guard regression expectations.
+- Maintenance: Allow main promotion merges in history guard.
+- Maintenance: Build 2026.03.25.04 release artifacts.
+- Fix: Fix setup assistant fallback bootstrap.
+
 
 ###2026.03.25.02
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

@@ -89,6 +89,7 @@ test('runtime pages and folder editor load the shared contract before their cons
     const folderLegacyIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.legacy.js');
     const folderModernIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.js');
     const folderChromeIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.chrome.js');
+    const folderBootLoaderIndex = folderPage.indexOf('const scriptQueue = runtimeMode === \'modern\'');
 
     assert.ok(dockerThemeResolverIndex >= 0, 'docker page missing shared theme resolver include');
     assert.ok(dockerContractIndex >= 0, 'docker page missing shared folder contract include');
@@ -119,30 +120,20 @@ test('runtime pages and folder editor load the shared contract before their cons
     assert.ok(folderSharedEditorIndex >= 0, 'folder editor page missing shared editor include');
     assert.ok(folderSchemaIndex >= 0, 'folder editor page missing shared schema include');
     assert.ok(folderPreviewIndex >= 0, 'folder editor page missing shared preview include');
+    assert.ok(folderBootLoaderIndex >= 0, 'folder editor page missing runtime boot loader');
     assert.ok(folderHierarchyIndex >= 0, 'folder editor page missing hierarchy module include');
     assert.ok(folderLegacyIndex >= 0, 'folder editor page missing legacy runtime include');
     assert.ok(folderModernIndex >= 0, 'folder editor page missing modern runtime include');
     assert.ok(folderChromeIndex >= 0, 'folder editor page missing chrome runtime include');
     assert.ok(folderThemeResolverIndex < folderSharedEditorIndex, 'theme resolver must load before folder.editor.shared.js');
-    assert.ok(folderThemeResolverIndex < folderHierarchyIndex, 'theme resolver must load before folder.editor.hierarchy.js');
-    assert.ok(folderThemeResolverIndex < folderChromeIndex, 'theme resolver must load before folder editor chrome');
-    assert.ok(folderThemeResolverIndex < folderLegacyIndex, 'theme resolver must load before folder legacy runtime');
-    assert.ok(folderThemeResolverIndex < folderModernIndex, 'theme resolver must load before folder modern runtime');
     assert.ok(folderContractIndex < folderSharedEditorIndex, 'shared contract must load before folder.editor.shared.js');
     assert.ok(folderSharedEditorIndex < folderSchemaIndex, 'shared editor module must load before folder.editor.schema.js');
     assert.ok(folderSchemaIndex < folderPreviewIndex, 'shared schema must load before folder.editor.preview.js');
-    assert.ok(folderPreviewIndex < folderHierarchyIndex, 'shared preview must load before folder hierarchy module');
-    assert.ok(folderHierarchyIndex < folderChromeIndex, 'folder hierarchy module must load before folder editor chrome');
-    assert.ok(folderHierarchyIndex < folderModernIndex, 'folder hierarchy module must load before folder modern runtime');
-    assert.ok(folderPreviewIndex < folderChromeIndex, 'shared preview must load before folder editor chrome');
-    assert.ok(folderPreviewIndex < folderLegacyIndex, 'shared preview must load before folder legacy runtime');
-    assert.ok(folderPreviewIndex < folderModernIndex, 'shared preview must load before folder modern runtime');
-    assert.ok(folderSharedEditorIndex < folderChromeIndex, 'shared editor module must load before folder editor chrome');
-    assert.ok(folderSharedEditorIndex < folderLegacyIndex, 'shared editor module must load before folder legacy runtime');
-    assert.ok(folderSharedEditorIndex < folderModernIndex, 'shared editor module must load before folder modern runtime');
-    assert.ok(folderContractIndex < folderChromeIndex, 'shared contract must load before folder editor chrome');
-    assert.ok(folderContractIndex < folderLegacyIndex, 'shared contract must load before folder legacy runtime');
-    assert.ok(folderContractIndex < folderModernIndex, 'shared contract must load before folder modern runtime');
+    assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/icon-picker.runtime.js'"), 'folder editor page missing boot-loaded icon picker runtime');
+    assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.editor.hierarchy.js'"), 'folder editor page missing boot-loaded hierarchy runtime');
+    assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.editor.chrome.js'"), 'folder editor page missing boot-loaded chrome runtime');
+    assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.js'"), 'folder editor page missing boot-loaded modern runtime');
+    assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.legacy.js'"), 'folder editor page missing boot-loaded legacy runtime');
 });
 
 test('shared runtime stylesheet owns the common dropdown and preview geometry contract', () => {

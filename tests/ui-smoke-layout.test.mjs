@@ -149,7 +149,6 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
 });
 
 test('folder page ships separate legacy and modern editor runtimes', () => {
-    assert.match(folderPage, /\$folderEditorPageMode === 'modern'/);
     assert.match(folderPage, /resolveTypeFolderEditorModePreference\(\$folderEditorPageType\)/);
     assert.match(folderPage, /\$folderEditorPageBuildVersion = readInstalledVersion\(\);/);
     assert.match(folderPage, /\$folderEditorAssetVersion = rawurlencode\(\$folderEditorPageBuildVersion\);/);
@@ -167,10 +166,12 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorRuntimeLoaded = false;/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorRuntimeBootStage = 'page-bootstrap';/);
     assert.match(folderPage, /FolderViewPlusMarkFolderEditorRuntimeScriptEvent/);
+    assert.match(folderPage, /bootFolderEditorRuntimePage/);
+    assert.match(folderPage, /data-fv-folder-editor-boot-managed="1"/);
+    assert.match(folderPage, /icon-picker\.runtime\.js/);
     assert.match(folderPage, /runtime-script-still-pending/);
-    assert.match(folderPage, /folder\.editor\.chrome\.js\?v=<\?php echo \$folderEditorAssetVersion; \?>/);
-    assert.match(folderPage, /folder\.js\?v=<\?php echo \$folderEditorAssetVersion; \?>/);
-    assert.match(folderPage, /folder\.legacy\.js\?v=<\?php echo \$folderEditorAssetVersion; \?>/);
+    assert.match(folderPage, /scriptQueue = runtimeMode === 'modern'[\s\S]*icon-picker\.runtime\.js[\s\S]*folder\.editor\.hierarchy\.js[\s\S]*folder\.editor\.chrome\.js[\s\S]*folder\.js[\s\S]*folder\.legacy\.js/);
+    assert.match(folderPage, /boot=\$\{encodeURIComponent\(bootNonce\)\}/);
     assert.match(folderJs, /\(function fvplusFolderEditorRuntimeScope\(window, \$\) \{/);
     assert.match(folderJs, /modernFolderEditorEnabled/);
     assert.match(folderJs, /const folderEditorShared = window\.FolderViewPlusFolderEditorShared \|\| null;/);
@@ -462,7 +463,7 @@ test('folder editor page ships the redesign bootstrap and chrome anchors', () =>
     assert.match(folderPage, /<option value="ghost">Ghost<\/option>/);
     assert.match(folderPage, /<option value="pill">Pill<\/option>/);
     assert.match(folderPage, /<option value="filled">Filled<\/option>/);
-    assert.match(folderPage, /if \(\$folderEditorPageMode === 'modern'\):[\s\S]*scripts\/folder\.editor\.chrome\.js[\s\S]*scripts\/folder\.legacy\.js/);
+    assert.match(folderPage, /scriptQueue = runtimeMode === 'modern'[\s\S]*folder\.editor\.chrome\.js[\s\S]*folder\.legacy\.js/);
     assert.match(folderJs, /const initEditorChrome = \(\) =>/);
     assert.match(folderJs, /const applyEditorPluginDefaults = \(\) =>/);
     assert.doesNotMatch(folderChromeJs, /fvChangeSummaryLabel/);

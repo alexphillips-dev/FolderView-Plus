@@ -148,6 +148,151 @@ try {
         }
     })(window.FolderViewPlusHostThemeName);
 </script>
+<script>
+    (function bootFolderEditorRuntimePage(win, doc) {
+        const buildVersion = String(win.FolderViewPlusFolderEditorPageBuildVersion || '').trim() || String(Date.now());
+        const assetVersion = encodeURIComponent(buildVersion);
+        const runtimeMode = String(win.FolderViewPlusFolderEditorPageMode || 'legacy').trim().toLowerCase() === 'modern'
+            ? 'modern'
+            : 'legacy';
+        const bootNonce = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        const managedSelector = 'script[data-fv-folder-editor-boot-managed="1"]';
+        const scriptQueue = runtimeMode === 'modern'
+            ? [
+                '/plugins/folderview.plus/scripts/icon-picker.runtime.js',
+                '/plugins/folderview.plus/scripts/folder.editor.hierarchy.js',
+                '/plugins/folderview.plus/scripts/folder.editor.chrome.js',
+                '/plugins/folderview.plus/scripts/folder.js'
+            ]
+            : [
+                '/plugins/folderview.plus/scripts/icon-picker.runtime.js',
+                '/plugins/folderview.plus/scripts/folder.legacy.js'
+            ];
+        const formatDebug = () => [
+            'build=' + buildVersion,
+            'bootNonce=' + bootNonce,
+            'pageMode=' + String(win.FolderViewPlusFolderEditorPageMode || '(empty)'),
+            'pageType=' + String(win.FolderViewPlusFolderEditorPageType || '(empty)'),
+            'pageRequested=' + String(win.FolderViewPlusFolderEditorRequestedId || '(empty)'),
+            'pageResolved=' + String(win.FolderViewPlusFolderEditorResolvedId || '(empty)'),
+            'runtimeState=' + String(win.FolderViewPlusFolderEditorRuntimeScriptState || '(empty)'),
+            'runtimeSrc=' + String(win.FolderViewPlusFolderEditorRuntimeScriptSource || '(empty)'),
+            'runtimeLoaded=' + (win.FolderViewPlusFolderEditorRuntimeLoaded === true ? 'yes' : 'no'),
+            'stage=' + String(win.FolderViewPlusFolderEditorRuntimeBootStage || '(empty)')
+        ].join('\n');
+        const report = (summary, details, tone, stage) => {
+            if (typeof win.FolderViewPlusReportFolderEditorBootstrap === 'function') {
+                win.FolderViewPlusReportFolderEditorBootstrap({
+                    summary,
+                    details,
+                    debug: formatDebug(),
+                    tone,
+                    stage
+                });
+                return;
+            }
+            const apply = () => {
+                const summaryNode = doc.getElementById('fvValidationSummary');
+                const detailsNode = doc.getElementById('fvValidationDetails');
+                const debugNode = doc.getElementById('fvEditorBootstrapDebug');
+                [summaryNode, detailsNode].forEach((node) => {
+                    if (!node) {
+                        return;
+                    }
+                    node.classList.remove('invalid', 'warning', 'info', 'ready');
+                    node.classList.add(tone === 'invalid' ? 'invalid' : (tone === 'warning' ? 'warning' : 'info'));
+                });
+                if (summaryNode) {
+                    summaryNode.textContent = summary;
+                }
+                if (detailsNode) {
+                    detailsNode.textContent = details;
+                }
+                if (debugNode) {
+                    debugNode.textContent = formatDebug();
+                }
+            };
+            if (doc.readyState === 'loading') {
+                doc.addEventListener('DOMContentLoaded', apply, { once: true });
+            } else {
+                apply();
+            }
+        };
+        const loadScript = (relativePath, isRuntimeScript) => new Promise((resolve, reject) => {
+            const script = doc.createElement('script');
+            const separator = relativePath.includes('?') ? '&' : '?';
+            const src = `${relativePath}${separator}v=${assetVersion}&boot=${encodeURIComponent(bootNonce)}`;
+            script.src = src;
+            script.async = false;
+            script.defer = false;
+            script.dataset.fvFolderEditorBootManaged = '1';
+            if (isRuntimeScript) {
+                script.id = 'fv-folder-editor-runtime-script';
+                script.dataset.runtime = runtimeMode;
+            }
+            script.onload = () => {
+                if (isRuntimeScript && typeof win.FolderViewPlusMarkFolderEditorRuntimeScriptEvent === 'function') {
+                    win.FolderViewPlusMarkFolderEditorRuntimeScriptEvent('load', src);
+                }
+                resolve();
+            };
+            script.onerror = () => {
+                if (isRuntimeScript && typeof win.FolderViewPlusMarkFolderEditorRuntimeScriptEvent === 'function') {
+                    win.FolderViewPlusMarkFolderEditorRuntimeScriptEvent('error', src);
+                }
+                reject(new Error(`Failed to load ${relativePath}`));
+            };
+            doc.body.appendChild(script);
+        });
+        const run = () => {
+            win.FolderViewPlusFolderEditorRuntimeLoaded = false;
+            win.FolderViewPlusFolderEditorRuntimeBootStage = 'page-boot-loader';
+            win.FolderViewPlusFolderEditorRuntimeLastError = '';
+            win.FolderViewPlusFolderEditorRuntimeScriptState = 'injecting';
+            win.FolderViewPlusFolderEditorRuntimeScriptSource = '';
+            doc.querySelectorAll(managedSelector).forEach((node) => node.remove());
+            let chain = Promise.resolve();
+            scriptQueue.forEach((relativePath, index) => {
+                chain = chain.then(() => loadScript(relativePath, index === scriptQueue.length - 1));
+            });
+            chain.catch((error) => {
+                report(
+                    'Folder editor runtime assets failed to load.',
+                    String(error?.message || error || 'Unknown runtime asset failure.'),
+                    'invalid',
+                    'runtime-asset-load-failed'
+                );
+            });
+        };
+        if (doc.readyState === 'loading') {
+            doc.addEventListener('DOMContentLoaded', run, { once: true });
+        } else {
+            run();
+        }
+        win.setTimeout(() => {
+            if (win.FolderViewPlusFolderEditorRuntimeLoaded === true) {
+                return;
+            }
+            report(
+                'Folder editor runtime has not started yet.',
+                'The page boot loader injected the editor runtime scripts, but the runtime marker is still missing.',
+                'warning',
+                'runtime-script-pending'
+            );
+        }, 900);
+        win.setTimeout(() => {
+            if (win.FolderViewPlusFolderEditorRuntimeLoaded === true) {
+                return;
+            }
+            report(
+                'Folder editor runtime still has not started.',
+                'The editor page has now attempted a direct runtime script injection and still did not receive a startup marker.',
+                'invalid',
+                'runtime-script-still-pending'
+            );
+        }, 2500);
+    })(window, document);
+</script>
 <?php emitNoCacheMetaTags(); ?>
 <?php emitPluginPageVersionSentinelScript('folder-editor'); ?>
 <script src="<?autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
@@ -1056,88 +1201,6 @@ try {
     </form>
 </div>
 
-<script src="/plugins/folderview.plus/scripts/icon-picker.runtime.js?v=<?php echo $folderEditorAssetVersion; ?>"></script>
-<?php if ($folderEditorPageMode === 'modern'): ?>
-<script src="/plugins/folderview.plus/scripts/folder.editor.hierarchy.js?v=<?php echo $folderEditorAssetVersion; ?>"></script>
-<script src="/plugins/folderview.plus/scripts/folder.editor.chrome.js?v=<?php echo $folderEditorAssetVersion; ?>"></script>
-<script id="fv-folder-editor-runtime-script" data-runtime="modern" src="/plugins/folderview.plus/scripts/folder.js?v=<?php echo $folderEditorAssetVersion; ?>" onload="window.FolderViewPlusMarkFolderEditorRuntimeScriptEvent('load', this.src)" onerror="window.FolderViewPlusMarkFolderEditorRuntimeScriptEvent('error', this.src)"></script>
-<?php else: ?>
-<script id="fv-folder-editor-runtime-script" data-runtime="legacy" src="/plugins/folderview.plus/scripts/folder.legacy.js?v=<?php echo $folderEditorAssetVersion; ?>" onload="window.FolderViewPlusMarkFolderEditorRuntimeScriptEvent('load', this.src)" onerror="window.FolderViewPlusMarkFolderEditorRuntimeScriptEvent('error', this.src)"></script>
-<?php endif; ?>
-<script>
-    (function monitorFolderEditorRuntimeShell(win) {
-        const formatBootstrapDebug = function formatBootstrapDebug() {
-            return [
-                'build=' + String(win.FolderViewPlusFolderEditorPageBuildVersion || '(empty)'),
-                'pageMode=' + String(win.FolderViewPlusFolderEditorPageMode || '(empty)'),
-                'pageType=' + String(win.FolderViewPlusFolderEditorPageType || '(empty)'),
-                'pageRequested=' + String(win.FolderViewPlusFolderEditorRequestedId || '(empty)'),
-                'pageResolved=' + String(win.FolderViewPlusFolderEditorResolvedId || '(empty)'),
-                'runtimeState=' + String(win.FolderViewPlusFolderEditorRuntimeScriptState || '(empty)'),
-                'runtimeSrc=' + String(win.FolderViewPlusFolderEditorRuntimeScriptSource || '(empty)'),
-                'runtimeLoaded=' + (win.FolderViewPlusFolderEditorRuntimeLoaded === true ? 'yes' : 'no'),
-                'stage=' + String(win.FolderViewPlusFolderEditorRuntimeBootStage || '(empty)')
-            ].join('\n');
-        };
-        const applyFallbackSurface = function applyFallbackSurface(summary, details, tone, stage) {
-            if (win.FolderViewPlusFolderEditorRuntimeLoaded === true) {
-                return;
-            }
-            if (typeof win.FolderViewPlusReportFolderEditorBootstrap === 'function') {
-                win.FolderViewPlusReportFolderEditorBootstrap({
-                    summary: summary,
-                    details: details,
-                    debug: formatBootstrapDebug(),
-                    tone: tone,
-                    stage: stage
-                });
-                return;
-            }
-            const apply = function apply() {
-                const summaryNode = document.getElementById('fvValidationSummary');
-                const detailsNode = document.getElementById('fvValidationDetails');
-                const debugNode = document.getElementById('fvEditorBootstrapDebug');
-                [summaryNode, detailsNode].forEach(function (node) {
-                    if (!node) {
-                        return;
-                    }
-                    node.classList.remove('invalid', 'warning', 'info', 'ready');
-                    node.classList.add(tone === 'invalid' ? 'invalid' : (tone === 'warning' ? 'warning' : 'info'));
-                });
-                if (summaryNode) {
-                    summaryNode.textContent = summary;
-                }
-                if (detailsNode) {
-                    detailsNode.textContent = details;
-                }
-                if (debugNode) {
-                    debugNode.textContent = formatBootstrapDebug();
-                }
-            };
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', apply, { once: true });
-            } else {
-                apply();
-            }
-        };
-        win.setTimeout(function () {
-            applyFallbackSurface(
-                'Folder editor runtime has not started yet.',
-                'The page shell loaded, but the folder editor runtime marker is still missing.',
-                'warning',
-                'runtime-script-pending'
-            );
-        }, 900);
-        win.setTimeout(function () {
-            applyFallbackSurface(
-                'Folder editor runtime still has not started.',
-                'This usually means the editor page is serving stale assets or the runtime file is blocked before execution.',
-                'invalid',
-                'runtime-script-still-pending'
-            );
-        }, 2500);
-    })(window);
-</script>
 
 <div class="dialogCustomAction" style="display:none"></div>
 

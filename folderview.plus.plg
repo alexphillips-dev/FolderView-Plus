@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.25.54">
-<!ENTITY md5 "36e8631a86d23bf960bac65dbc9cc988">
+<!ENTITY version "2026.03.25.55">
+<!ENTITY md5 "fae98acad60927def213caddeb0be395">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.25.55
+- Fix: Move the folder editor runtime boot into a page-owned script loader so `Folder.page` can force fresh modern or legacy editor scripts into the active xmenu window on every open.
+- Quality: Lock the new injected runtime boot path into the folder page architecture and security guards so the editor no longer depends on passive bottom-of-page script tags.
+
 
 ###2026.03.25.54
 - Fix: Scope the modern and legacy folder editor runtimes so Unraid can execute them repeatedly in the same xmenu window without global redeclaration collisions.

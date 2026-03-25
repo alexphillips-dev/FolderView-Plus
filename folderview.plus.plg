@@ -14,8 +14,9 @@
     <CHANGES>
 
 ###2026.03.25.38
-- UX: Refined settings and on-screen update messaging for clarity and consistency.
-- Quality: Strengthened release automation and regression guards to prevent note drift.
+- UX: Detect and adapt to the active Unraid host theme across settings, dashboard, Docker, VMs, and the folder editor.
+- Fix: Rework folder editor chrome and preview surfaces to stay readable under light host themes, including Unraid White.
+- Quality: Add shared theme-resolver coverage and theme-matrix smoke checks for the folder editor.
 
 
 ###2026.03.25.37

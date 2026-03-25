@@ -327,7 +327,7 @@ tr.folder.fv-parent-expanded div.folder-preview {
     height: auto;
     min-height: calc(var(--fvplus-preview-row-height) - 0.9em);
     margin-left: 10px;
-    margin-top: 7px;
+    margin-top: 6px;
     display: flex;
     align-items: center;
     flex: 0 0 auto;

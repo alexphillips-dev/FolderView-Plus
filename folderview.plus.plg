@@ -14,7 +14,7 @@
     <CHANGES>
 
 ###2026.03.25.46
-- Diagnostics: Expanded the modern folder editor bootstrap panel to show page mode, seed summaries, navigation prefill, folder-map load count, member load count, and the final hydrate resolver path.
+- Quality: Expanded the modern folder editor bootstrap panel to show page mode, seed summaries, navigation prefill, folder-map load count, member load count, and the final hydrate resolver path.
 - Quality: Locked the new bootstrap debug fields into the route guard so future editor-launch regressions are visible on-page instead of failing silently.
 
 

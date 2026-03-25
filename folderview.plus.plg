@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.25.13">
-<!ENTITY md5 "36dd9438aae14386e8d3c91638718e67">
+<!ENTITY version "2026.03.25.14">
+<!ENTITY md5 "d9da98bcfb5a0007e6673bcfc2d82e48">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.25.14
+- Fix: Fix preview row wrapping and status info icon.
+
 
 ###2026.03.25.13
 - Maintenance: Clamp multi-row preview rows by width and item cap.

@@ -497,6 +497,7 @@ const layoutFolderPreviewRows = ($preview, settings = {}) => {
         return;
     }
     const rowLimit = normalizeFolderPreviewRowLimit(settings);
+    const maxItemsPerRow = Math.max(1, getFolderPreviewItemsPerRow(settings));
     const addDividers = settings?.preview_vertical_bars === true;
     const barsColor = settings?.preview_vertical_bars_color || settings?.preview_border_color || '';
     const previewElement = $preview.get(0);
@@ -514,7 +515,9 @@ const layoutFolderPreviewRows = ($preview, settings = {}) => {
             ? (addDividers ? (gapWidth * 2) + dividerWidth : gapWidth)
             : 0;
         const nextWidth = currentWidth + extraWidth + measuredWidth;
-        const canWrap = availableWidth > 0 && currentRow.length > 0 && nextWidth > availableWidth;
+        const exceedsItemCap = currentRow.length >= maxItemsPerRow;
+        const exceedsMeasuredWidth = availableWidth > 0 && currentRow.length > 0 && nextWidth > availableWidth;
+        const canWrap = exceedsItemCap || exceedsMeasuredWidth;
         if (canWrap && (rowLimit === 0 || rows.length + 1 < rowLimit)) {
             rows.push(currentRow);
             currentRow = [wrapper];

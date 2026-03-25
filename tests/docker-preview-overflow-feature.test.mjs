@@ -40,8 +40,11 @@ test('docker runtime applies preview row layout limits and enhanced member actio
     assert.match(dockerJs, /const layoutFolderPreviewRows = \(\$preview, settings = \{\}\) =>/);
     assert.match(dockerJs, /let clone = \$\(`tr\.folder-id-\$\{folderTrId\} div\.folder-storage > tr > td\.ct-name > span\.outer:last`\)\.clone\(\)/);
     assert.match(dockerJs, /\$previewElementTarget\.children\('span\.inner'\)\.last\(\)/);
+    assert.match(dockerJs, /const maxItemsPerRow = Math\.max\(1,\s*getFolderPreviewItemsPerRow\(settings\)\)/);
     assert.match(dockerJs, /const configuredDividerWidth = Math\.max\(1,\s*Math\.min\(4,\s*Number\.parseInt\(settings\?\.preview_vertical_bars_width \?\? '1',\s*10\) \|\| 1\)\)/);
     assert.match(dockerJs, /const extraWidth = currentRow\.length\s*\?\s*\(addDividers \? \(gapWidth \* 2\) \+ dividerWidth : gapWidth\)\s*:\s*0/);
+    assert.match(dockerJs, /const exceedsItemCap = currentRow\.length >= maxItemsPerRow/);
+    assert.match(dockerJs, /const canWrap = exceedsItemCap \|\| exceedsMeasuredWidth/);
     assert.match(dockerJs, /layoutFolderPreviewRows\(\$\(`tr\.folder-id-\$\{id\} div\.folder-preview`\), folder\.settings\)/);
     assert.match(dockerJs, /layoutFolderPreviewRows\(\$preview, folder\?\.settings \|\| \{\}\)/);
     assert.match(dockerJs, /decorateDockerFolderMemberRow\(\$containerTR, id, ct\.info\.Name \|\| container_name_in_folder\)/);
@@ -69,7 +72,10 @@ test('docker styles support multi-row previews and member action sheet styling',
     assert.match(dockerCss, /\.folder-preview-row \{[\s\S]*align-items:\s*flex-start/);
     assert.match(dockerCss, /\.folder-preview-row \{[\s\S]*column-gap:\s*8px/);
     assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \{/);
+    assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \{[\s\S]*row-gap:\s*2px/);
+    assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \{[\s\S]*padding:\s*2px 0/);
     assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-row \{/);
+    assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-row \{[\s\S]*padding:\s*0 0 0 8px/);
     assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-wrapper \{/);
     assert.match(dockerCss, /\.folder-preview-wrapper \{[\s\S]*margin-left:\s*10px/);
     assert.match(dockerCss, /\.folder-preview-wrapper \{[\s\S]*margin-top:\s*7px/);

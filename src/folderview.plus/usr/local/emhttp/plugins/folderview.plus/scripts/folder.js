@@ -6075,7 +6075,7 @@ const customAction = (action = undefined) => {
     dialog.dialog({
         title: (action !== undefined) ? $.i18n('action-edit') : $.i18n('action-add'),
         resizable: false,
-        width: 500,
+        width: 420,
         modal: true,
         position: { my: 'center top+44', at: 'center top', of: window },
         show: { effect: 'fade', duration: 250 },
@@ -6087,11 +6087,11 @@ const customAction = (action = undefined) => {
     });
     const dialogWidget = dialog.closest('.ui-dialog');
     dialogWidget.addClass('fv-folder-action-dialog');
-    dialogWidget.css({ width: '500px', maxWidth: 'calc(100vw - 24px)' });
+    dialogWidget.css({ width: '420px', maxWidth: 'calc(100vw - 24px)' });
     dialogWidget.find('.ui-dialog-titlebar').addClass('menu');
     dialogWidget.find('.ui-dialog-titlebar-close').css({ display: 'none' });
     dialogWidget.find('.ui-dialog-title').css({ 'text-align': 'left', width: '100%' });
-    dialogWidget.find('.ui-dialog-content').css({ 'vertical-align': 'bottom' });
+    dialogWidget.find('.ui-dialog-content').css({ 'vertical-align': 'bottom', display: 'flex', 'justify-content': 'flex-start' });
     dialogWidget.find('.ui-button-text').css({ padding: '0px 5px' });
     return false;
 };

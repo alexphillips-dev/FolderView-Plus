@@ -325,7 +325,7 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderCss, /\.canvas form\.folder-editor-form\.fv-force-left-v3/);
     assert.match(folderCss, /Runtime-enforced left alignment guard/);
     assert.match(folderCss, /\.fv-editor-mode/);
-    assert.match(folderCss, /\.fv-editor-mode\s*\{[\s\S]*padding:\s*0\.24em 0\.62em;/);
+    assert.match(folderCss, /\.fv-editor-mode\s*\{[\s\S]*padding:\s*0\.24em 0\.72em 0\.24em 0\.98em;/);
     assert.match(folderCss, /\.fv-section-collapse/);
     assert.match(folderCss, /\.fv-docker-signals/);
     assert.match(folderCss, /\.fv-live-chip-panel/);
@@ -346,12 +346,12 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderCss, /\.fv-modern-field-row\.is-actions-row,\s*[\s\S]*\.fv-modern-field-row\.is-compact-text-row\s*\{[\s\S]*width:\s*min\(100%, 560px\);[\s\S]*max-width:\s*560px;/);
     assert.match(folderCss, /\.fv-modern-field-row \.custom-action\s*\{/);
     assert.match(folderCss, /\.fv-folder-action-dialog\.ui-dialog\s*\{/);
-    assert.match(folderCss, /\.canvas form\.folder-editor-form \.fv-section-shell\[data-section-shell="rules"\] > \.fv-section-shell-body > \.basic\.fv-modern-field-row/);
-    assert.match(folderCss, /\.fv-folder-action-dialog \.dialogCustomAction dl\s*\{[\s\S]*grid-template-columns:\s*92px minmax\(0, 1fr\);/);
+    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="rules"\] \.fv-section-shell-body,\s*[\s\S]*display:\s*flex !important;/);
+    assert.match(folderCss, /\.fv-folder-action-dialog \.dialogCustomAction dl\s*\{[\s\S]*flex-direction:\s*column;/);
     assert.match(folderJs, /dialogWidget\.addClass\('fv-folder-action-dialog'\);/);
     assert.match(folderLegacyJs, /dialogWidget\.addClass\('fv-folder-action-dialog'\);/);
-    assert.match(folderJs, /width:\s*500,/);
-    assert.match(folderLegacyJs, /width:\s*500,/);
+    assert.match(folderJs, /width:\s*420,/);
+    assert.match(folderLegacyJs, /width:\s*420,/);
     assert.match(folderCss, /\.fv-live-preview-row \.fv-live-chevron\s*\{[\s\S]*background:\s*var\(--fv-live-chevron-bg, transparent\) !important;/);
     assert.match(folderCss, /\.fv-live-preview-row \.fv-live-chevron\s*\{[\s\S]*appearance:\s*none !important;/);
     assert.match(folderCss, /\.fv-live-preview-row\.is-minimal \.fv-live-chevron\s*\{[\s\S]*color:\s*var\(--fv-live-chevron-color, var\(--fv-chevron-color\)\) !important;/);

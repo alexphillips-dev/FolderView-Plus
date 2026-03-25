@@ -209,7 +209,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.32em;
-    padding: 0.24em 0.62em;
+    padding: 0.24em 0.72em 0.24em 0.98em;
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.12);
     background: rgba(255, 255, 255, 0.03);
@@ -1907,19 +1907,30 @@
     justify-self: start;
 }
 
-.fv-section-shell[data-section-shell="rules"] .fv-modern-field-row,
-.fv-section-shell[data-section-shell="actions"] .fv-modern-field-row {
-    width: min(100%, 560px) !important;
-    max-width: 560px !important;
-    justify-self: start !important;
+.fv-section-shell[data-section-shell="rules"] .fv-section-shell-body,
+.fv-section-shell[data-section-shell="actions"] .fv-section-shell-body {
+    display: flex !important;
+    flex-wrap: wrap;
+    gap: 0.68em;
+    justify-content: flex-start;
+    align-items: flex-start;
 }
 
+.fv-section-shell[data-section-shell="rules"] .fv-modern-field-row,
+.fv-section-shell[data-section-shell="actions"] .fv-modern-field-row,
 .canvas form.folder-editor-form .fv-section-shell[data-section-shell="rules"] > .fv-section-shell-body > .basic.fv-modern-field-row,
 .canvas form.folder-editor-form .fv-section-shell[data-section-shell="actions"] > .fv-section-shell-body > .basic.fv-modern-field-row {
+    flex: 0 1 560px !important;
     width: min(100%, 560px) !important;
     max-width: 560px !important;
     margin-left: 0 !important;
     margin-right: auto !important;
+    justify-self: auto !important;
+}
+
+.fv-section-shell[data-section-shell="rules"] .fv-modern-field-row > blockquote.inline_help,
+.fv-section-shell[data-section-shell="actions"] .fv-modern-field-row > blockquote.inline_help {
+    max-width: 100% !important;
 }
 
 .fv-modern-field-row > dl,
@@ -2250,31 +2261,39 @@ table.sortable td:nth-child(3) {
 .fv-folder-action-dialog .ui-dialog-content {
     background: transparent;
     color: rgba(255, 255, 255, 0.9);
-    padding: 1.15em 1.15em 0.4em !important;
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding: 1em 1.1em 0.35em !important;
     text-align: left !important;
 }
 
 .fv-folder-action-dialog .dialogCustomAction {
-    width: min(100%, 400px);
+    width: min(100%, 360px);
+    max-width: 360px;
     margin: 0;
     display: grid;
-    gap: 0.85em;
+    gap: 0.72em;
 }
 
 .fv-folder-action-dialog .dialogCustomAction > div,
+.fv-folder-action-dialog .dialogCustomAction > .standard,
+.fv-folder-action-dialog .dialogCustomAction > .custom,
 .fv-folder-action-dialog .dialogCustomAction > .standard > div,
 .fv-folder-action-dialog .dialogCustomAction > .custom > dl,
 .fv-folder-action-dialog .dialogCustomAction > dl {
-    display: block;
+    display: grid;
+    gap: 0.52em;
     margin: 0;
+    width: 100% !important;
+    justify-items: start;
 }
 
 .fv-folder-action-dialog .dialogCustomAction dl {
-    display: grid !important;
-    grid-template-columns: 92px minmax(0, 1fr);
-    align-items: center;
-    column-gap: 0.7em;
-    row-gap: 0.35em;
+    display: flex !important;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.32em;
     margin: 0 !important;
     width: 100% !important;
     text-align: left !important;
@@ -2291,7 +2310,7 @@ table.sortable td:nth-child(3) {
 }
 
 .fv-folder-action-dialog .dialogCustomAction dl > dd {
-    width: auto !important;
+    width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
     text-align: left !important;
@@ -2303,8 +2322,8 @@ table.sortable td:nth-child(3) {
 .fv-folder-action-dialog .dialogCustomAction select,
 .fv-folder-action-dialog .dialogCustomAction textarea,
 .fv-folder-action-dialog .dialogCustomAction .ui-multiselect {
-    width: min(100%, 280px) !important;
-    max-width: min(100%, 280px) !important;
+    width: 100% !important;
+    max-width: 100% !important;
     border-radius: 9px;
     border: 1px solid rgba(255, 255, 255, 0.12);
     background: rgba(10, 10, 10, 0.34);
@@ -2317,7 +2336,7 @@ table.sortable td:nth-child(3) {
 }
 
 .fv-folder-action-dialog .action-subject .ui-multiselect {
-    width: min(100%, 280px) !important;
+    width: 100% !important;
 }
 
 .fv-folder-action-dialog .ui-dialog-buttonpane {

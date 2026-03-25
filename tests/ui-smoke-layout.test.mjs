@@ -606,6 +606,8 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsCss, /\.fv-runtime-resolved-panel\s*\{/);
     assert.match(settingsCss, /\.fv-runtime-resolved-actions\s*\{/);
     assert.match(settingsCss, /\.updates-chip\s*\{/);
+    assert.match(settingsCss, /\.updates-chip\s*\{[\s\S]*border:\s*0 !important/);
+    assert.match(settingsCss, /\.updates-chip\s*\{[\s\S]*background:\s*transparent !important/);
     assert.match(settingsCss, /\.health-chip\s*\{/);
     assert.match(settingsCss, /\.folder-metric-chip\.is-maintenance\s*\{/);
     assert.match(settingsCss, /\.health-breakdown-btn\s*\{/);

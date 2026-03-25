@@ -42,11 +42,12 @@ test('docker runtime applies preview row layout limits and enhanced member actio
     assert.match(dockerJs, /\$previewElementTarget\.children\('span\.inner'\)\.last\(\)/);
     assert.match(dockerJs, /const maxItemsPerRow = Math\.max\(1,\s*getFolderPreviewItemsPerRow\(settings\)\)/);
     assert.match(dockerJs, /const \$measurement = availableWidth > 0/);
+    assert.match(dockerJs, /fv-preview-multirow fv-preview-row-measure/);
     assert.match(dockerJs, /\.appendTo\(document\.body\)/);
-    assert.match(dockerJs, /const appendMeasurementWrapper = \(wrapper\) =>/);
-    assert.match(dockerJs, /measurementNode && measurementNode\.scrollWidth > measurementNode\.clientWidth \+ 1/);
-    assert.match(dockerJs, /const exceedsItemCap = availableWidth <= 0 && currentRow\.length >= maxItemsPerRow/);
-    assert.match(dockerJs, /const canWrap = exceedsItemCap \|\| exceedsMeasuredWidth/);
+    assert.match(dockerJs, /const measurementWrappers = wrappers\.map\(\(wrapper,\s*index\) =>/);
+    assert.match(dockerJs, /const wrapperTop = Number\(measurementWrapper\?\.offsetTop \?\? 0\)/);
+    assert.match(dockerJs, /const startsNewRow = currentRow\.length > 0/);
+    assert.match(dockerJs, /const exceedsItemCap = currentRow\.length >= maxItemsPerRow/);
     assert.match(dockerJs, /layoutFolderPreviewRows\(\$\(`tr\.folder-id-\$\{id\} div\.folder-preview`\), folder\.settings\)/);
     assert.match(dockerJs, /layoutFolderPreviewRows\(\$preview, folder\?\.settings \|\| \{\}\)/);
     assert.match(dockerJs, /decorateDockerFolderMemberRow\(\$containerTR, id, ct\.info\.Name \|\| container_name_in_folder\)/);

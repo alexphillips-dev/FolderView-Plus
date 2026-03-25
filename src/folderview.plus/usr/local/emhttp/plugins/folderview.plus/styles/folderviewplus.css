@@ -1479,13 +1479,23 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     justify-content: center;
     gap: 0;
     cursor: pointer;
-    background: transparent;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
     border-radius: 5px !important;
 }
 
 .updates-chip i {
     font-size: 0.92em;
     line-height: 1;
+}
+
+.updates-chip:hover,
+.updates-chip:active,
+.updates-chip:focus {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
 }
 
 .updates-chip.is-filter-active {

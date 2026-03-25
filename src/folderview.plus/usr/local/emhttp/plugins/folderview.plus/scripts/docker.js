@@ -505,7 +505,7 @@ const layoutFolderPreviewRows = ($preview, settings = {}) => {
     const rows = [];
     let currentRow = [];
     const $measurement = availableWidth > 0
-        ? $('<div class="folder-preview fv-preview-row-measure"></div>')
+        ? $('<div class="folder-preview fv-preview-multirow fv-preview-row-measure"></div>')
             .css({
                 position: 'absolute',
                 left: '-99999px',
@@ -515,9 +515,9 @@ const layoutFolderPreviewRows = ($preview, settings = {}) => {
                 width: `${availableWidth}px`,
                 height: 'auto',
                 maxHeight: 'none',
-                overflow: 'hidden',
+                overflow: 'visible',
                 display: 'flex',
-                flexWrap: 'nowrap',
+                flexWrap: 'wrap',
                 alignItems: 'center',
                 alignContent: 'flex-start',
                 padding: '0',
@@ -526,48 +526,44 @@ const layoutFolderPreviewRows = ($preview, settings = {}) => {
             })
             .appendTo(document.body)
         : null;
-    const measurementNode = $measurement?.get(0) || null;
-    const resetMeasurementRow = () => {
-        if ($measurement) {
-            $measurement.empty();
-        }
-    };
-    const appendMeasurementWrapper = (wrapper) => {
-        if (!$measurement) {
-            return false;
-        }
-        if ($measurement.children().length && addDividers) {
-            $measurement.append(`<div class="folder-preview-divider" ${barsColor ? `style="border-color: ${barsColor};"` : ''}></div>`);
-        }
-        $measurement.append($(wrapper).clone());
-        return measurementNode && measurementNode.scrollWidth > measurementNode.clientWidth + 1;
-    };
-
-    wrappers.forEach((wrapper) => {
-        const exceedsItemCap = availableWidth <= 0 && currentRow.length >= maxItemsPerRow;
-        let exceedsMeasuredWidth = false;
-        if (availableWidth > 0) {
-            if (!currentRow.length) {
-                resetMeasurementRow();
-                appendMeasurementWrapper(wrapper);
-            } else {
-                exceedsMeasuredWidth = appendMeasurementWrapper(wrapper);
-                if (exceedsMeasuredWidth) {
-                    resetMeasurementRow();
-                    appendMeasurementWrapper(wrapper);
-                }
+    if ($measurement) {
+        const measurementWrappers = wrappers.map((wrapper, index) => {
+            const $clone = $(wrapper).clone();
+            $measurement.append($clone);
+            if (addDividers && index < wrappers.length - 1) {
+                $measurement.append(`<div class="folder-preview-divider" ${barsColor ? `style="border-color: ${barsColor};"` : ''}></div>`);
             }
-        }
-        const canWrap = exceedsItemCap || exceedsMeasuredWidth;
-        if (canWrap && (rowLimit === 0 || rows.length + 1 < rowLimit)) {
+            return $clone.get(0);
+        });
+        let currentTop = null;
+        measurementWrappers.forEach((measurementWrapper, index) => {
+            const wrapperTop = Number(measurementWrapper?.offsetTop ?? 0);
+            const startsNewRow = currentRow.length > 0
+                && wrapperTop > (currentTop ?? wrapperTop)
+                && (rowLimit === 0 || rows.length + 1 < rowLimit);
+            if (startsNewRow) {
+                rows.push(currentRow);
+                currentRow = [];
+            }
+            currentTop = wrapperTop;
+            currentRow.push(wrappers[index]);
+        });
+        if (currentRow.length) {
             rows.push(currentRow);
-            currentRow = [wrapper];
-            return;
         }
-        currentRow.push(wrapper);
-    });
-    if (currentRow.length) {
-        rows.push(currentRow);
+    } else {
+        wrappers.forEach((wrapper) => {
+            const exceedsItemCap = currentRow.length >= maxItemsPerRow;
+            if (exceedsItemCap && (rowLimit === 0 || rows.length + 1 < rowLimit)) {
+                rows.push(currentRow);
+                currentRow = [wrapper];
+                return;
+            }
+            currentRow.push(wrapper);
+        });
+        if (currentRow.length) {
+            rows.push(currentRow);
+        }
     }
     if ($measurement) {
         $measurement.remove();

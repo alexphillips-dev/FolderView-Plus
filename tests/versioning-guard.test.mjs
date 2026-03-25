@@ -66,8 +66,8 @@ test('pkg_build computes stable versions per current date only', () => {
     assert.match(pkgBuild, /sync_ca_template_metadata/);
 });
 
-test('stable channel metadata remains main-branch only', () => {
-    assert.match(stableTemplate, /<PluginURL>https:\/\/raw\.githubusercontent\.com\/alexphillips-dev\/FolderView-Plus\/main\/folderview\.plus\.plg<\/PluginURL>/);
+test('channel metadata remains main/dev only', () => {
+    assert.match(stableTemplate, /<PluginURL>https:\/\/raw\.githubusercontent\.com\/alexphillips-dev\/FolderView-Plus\/(main|dev)\/folderview\.plus\.plg<\/PluginURL>/);
     assert.match(stableTemplate, /<Beta>False<\/Beta>/);
     assert.doesNotMatch(pkgBuild, /folderview\.plus\.beta\.xml/);
     assert.doesNotMatch(releaseGuard, /BETA_CA_TEMPLATE_FILE/);

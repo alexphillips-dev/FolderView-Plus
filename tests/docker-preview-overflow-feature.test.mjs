@@ -44,6 +44,7 @@ test('docker runtime applies preview row layout limits and enhanced member actio
     assert.match(dockerJs, /const \$measurement = availableWidth > 0/);
     assert.match(dockerJs, /fv-preview-multirow fv-preview-row-measure/);
     assert.match(dockerJs, /\.appendTo\(document\.body\)/);
+    assert.match(dockerJs, /flexDirection:\s*'row'/);
     assert.match(dockerJs, /const measurementWrappers = wrappers\.map\(\(wrapper,\s*index\) =>/);
     assert.match(dockerJs, /const wrapperTop = Number\(measurementWrapper\?\.offsetTop \?\? 0\)/);
     assert.match(dockerJs, /const startsNewRow = currentRow\.length > 0/);

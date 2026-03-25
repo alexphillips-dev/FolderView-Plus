@@ -2584,20 +2584,19 @@ const initSettingsControls = () => {
                     <span class="fv-settings-subtitle">Plugin settings</span>
                 </div>
                 <div class="fv-settings-right">
+                    <span class="fv-mode-toggle" title="Settings mode">
+                        <button type="button" class="fv-mode-btn" data-mode="basic" aria-label="Use basic settings mode">Basic</button>
+                        <button type="button" class="fv-mode-btn" data-mode="advanced" aria-label="Use advanced settings mode">Advanced</button>
+                    </span>
                     <div class="fv-settings-search-block">
                         <div class="fv-settings-search-wrap">
                             <input type="text" id="fv-settings-search" placeholder="Search settings" aria-label="Search settings">
-                            <button type="button" id="fv-settings-clear-search" title="Clear search" aria-label="Clear search"><i class="fa fa-times"></i></button>
                         </div>
                         <label class="fv-search-scope" title="Limit search to currently selected advanced tab">
                             <input type="checkbox" id="fv-search-all-advanced">
                             Search all advanced
                         </label>
                     </div>
-                    <span class="fv-mode-toggle" title="Settings mode">
-                        <button type="button" class="fv-mode-btn" data-mode="basic" aria-label="Use basic settings mode">Basic</button>
-                        <button type="button" class="fv-mode-btn" data-mode="advanced" aria-label="Use advanced settings mode">Advanced</button>
-                    </span>
                     <button type="button" id="fv-run-wizard" title="Run setup assistant"><i class="fa fa-magic"></i> Wizard</button>
                 </div>
             </div>
@@ -2632,10 +2631,6 @@ const initSettingsControls = () => {
     });
     $('#fv-search-all-advanced').off('change.fvui').on('change.fvui', (event) => {
         setSearchAllAdvanced($(event.currentTarget).prop('checked') === true);
-    });
-    $('#fv-settings-clear-search').off('click.fvui').on('click.fvui', () => {
-        $('#fv-settings-search').val('');
-        setSettingsSearchQuery('');
     });
     $('#fv-action-save').off('click.fvui').on('click.fvui', () => {
         void saveActionBarChanges(false);

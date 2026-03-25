@@ -679,6 +679,10 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsCss, /\.folder-metric-chip\.is-danger\s*\{/);
     assert.match(settingsCss, /\.folder-metric-chip\s*\{/);
     assert.match(settingsCss, /\.folder-pin-state,\s*[\s\S]*\.folder-metric-chip\s*\{/);
+    assert.match(settingsJs, /class="fv-mode-toggle"[\s\S]*class="fv-settings-search-block"/);
+    assert.match(settingsCss, /\.fv-settings-search-block\s*\{[\s\S]*margin-left:\s*0\.35rem/);
+    assert.match(settingsCss, /\.fv-settings-search-block\s*\{[\s\S]*border-left:\s*1px solid rgba\(255,\s*255,\s*255,\s*0\.08\)/);
+    assert.doesNotMatch(settingsJs, /fv-settings-clear-search/);
     assert.match(settingsCss, /\.backup-compare-row\s*\{/);
     assert.match(settingsCss, /\.ui-dialog\.fv-backup-compare-modal #backup-compare-dialog/);
     assert.match(settingsCss, /\.module-empty-note\s*\{/);

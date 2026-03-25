@@ -517,6 +517,7 @@ const layoutFolderPreviewRows = ($preview, settings = {}) => {
                 maxHeight: 'none',
                 overflow: 'visible',
                 display: 'flex',
+                flexDirection: 'row',
                 flexWrap: 'wrap',
                 alignItems: 'center',
                 alignContent: 'flex-start',

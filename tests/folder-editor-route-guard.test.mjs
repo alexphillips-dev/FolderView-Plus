@@ -26,6 +26,8 @@ test('folder editor runtimes accept query and hash bootstrap identity fallbacks'
     assert.match(folderJs, /sampleRoot:\s*'body'/);
     assert.match(folderJs, /windowNameSeed=/);
     assert.match(folderJs, /cookieSeed=/);
+    assert.match(folderJs, /return safeType && safeId \? \{ type: safeType, id: safeId, folder \} : null;/);
+    assert.match(folderJs, /folder:\s*payload\?\.folder && typeof payload\.folder === 'object'/);
     assert.match(folderPage, /\$_COOKIE\['fv_folder_editor_bootstrap'\]/);
     assert.match(folderPage, /\$folderEditorCookieType = trim/);
     assert.match(folderPage, /\$folderEditorCookieId = trim/);
@@ -33,6 +35,8 @@ test('folder editor runtimes accept query and hash bootstrap identity fallbacks'
     assert.match(folderLegacyJs, /folderEditorStorageBootstrap\?\.type/);
     assert.match(folderLegacyJs, /folderEditorStorageBootstrap\?\.id/);
     assert.match(folderLegacyJs, /folderEditorStorageBootstrap\?\.folder/);
+    assert.match(folderLegacyJs, /return safeType && safeId \? \{ type: safeType, id: safeId, folder \} : null;/);
+    assert.match(folderLegacyJs, /folder:\s*payload\?\.folder && typeof payload\.folder === 'object'/);
     assert.match(folderLegacyJs, /const folderEditorHashParams = new URLSearchParams/);
     assert.match(folderLegacyJs, /folderEditorHashParams\.get\('type'\)/);
     assert.match(folderLegacyJs, /folderEditorHashParams\.get\('id'\)/);

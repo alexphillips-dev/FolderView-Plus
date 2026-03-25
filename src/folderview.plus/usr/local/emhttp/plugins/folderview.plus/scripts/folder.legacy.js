@@ -18,7 +18,7 @@ const readFolderEditorBootstrapSeed = () => {
             const safeType = String(payload?.type || '').trim();
             const safeId = String(payload?.id || '').trim();
             const folder = payload?.folder && typeof payload.folder === 'object' ? payload.folder : null;
-            return safeType && safeId && folder ? { type: safeType, id: safeId, folder } : null;
+            return safeType && safeId ? { type: safeType, id: safeId, folder } : null;
         } catch (_error) {
             return null;
         }
@@ -510,7 +510,7 @@ const readEditorNavigationPrefill = (expectedType, expectedId = '') => {
             const normalizedId = String(payload?.id || '').trim();
             const normalizedExpectedId = String(expectedId || '').trim();
             const storedAt = Number(payload?.storedAt || 0);
-            if (!normalizedType || !normalizedId || !payload?.folder || typeof payload.folder !== 'object') {
+            if (!normalizedType || !normalizedId) {
                 return null;
             }
             if (normalizedType !== String(expectedType || '').trim()) {
@@ -524,7 +524,9 @@ const readEditorNavigationPrefill = (expectedType, expectedId = '') => {
             }
             return {
                 id: normalizedId,
-                folder: normalizeFolderRecordForEditor(payload.folder)
+                folder: payload?.folder && typeof payload.folder === 'object'
+                    ? normalizeFolderRecordForEditor(payload.folder)
+                    : null
             };
         } catch (_error) {
             return null;

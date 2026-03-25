@@ -609,6 +609,8 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsCss, /\.health-chip\s*\{/);
     assert.match(settingsCss, /\.folder-metric-chip\.is-maintenance\s*\{/);
     assert.match(settingsCss, /\.health-breakdown-btn\s*\{/);
+    assert.match(settingsCss, /\.health-breakdown-btn\s*\{[\s\S]*border:\s*0 !important/);
+    assert.match(settingsCss, /\.health-breakdown-btn\s*\{[\s\S]*background:\s*transparent !important/);
     assert.match(settingsCss, /\.health-chip\.is-filter-active\s*\{/);
     assert.match(settingsCss, /\.autostart-chip\s*\{/);
     assert.match(settingsCss, /\.vm-resource-stack\s*\{/);

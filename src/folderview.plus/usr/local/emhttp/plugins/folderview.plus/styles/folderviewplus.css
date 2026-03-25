@@ -1532,15 +1532,18 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
     align-items: center;
     justify-content: center;
     padding: 0 !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border: 0 !important;
     border-radius: 5px !important;
-    background: rgba(255, 255, 255, 0.04) !important;
+    background: transparent !important;
+    box-shadow: none !important;
     color: rgba(226, 236, 248, 0.9) !important;
     cursor: pointer;
 }
 
 .health-breakdown-btn:hover {
-    border-color: rgba(113, 184, 255, 0.7) !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
     color: #cfe7ff !important;
 }
 

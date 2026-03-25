@@ -501,35 +501,76 @@ const layoutFolderPreviewRows = ($preview, settings = {}) => {
     const addDividers = settings?.preview_vertical_bars === true;
     const barsColor = settings?.preview_vertical_bars_color || settings?.preview_border_color || '';
     const previewElement = $preview.get(0);
-    const availableWidth = Math.max(0, Math.floor($preview.innerWidth() || previewElement?.clientWidth || 0) - 12);
-    const gapWidth = 8;
-    const configuredDividerWidth = Math.max(1, Math.min(4, Number.parseInt(settings?.preview_vertical_bars_width ?? '1', 10) || 1));
-    const dividerWidth = addDividers ? configuredDividerWidth : 0;
-    const dividerMarginWidth = addDividers ? 6 : 0;
+    const availableWidth = Math.max(0, Math.floor($preview.innerWidth() || previewElement?.clientWidth || 0));
     const rows = [];
     let currentRow = [];
-    let currentWidth = 0;
+    const $measurement = availableWidth > 0
+        ? $('<div class="folder-preview fv-preview-row-measure"></div>')
+            .css({
+                position: 'absolute',
+                left: '-99999px',
+                top: '0',
+                visibility: 'hidden',
+                pointerEvents: 'none',
+                width: `${availableWidth}px`,
+                height: 'auto',
+                maxHeight: 'none',
+                overflow: 'hidden',
+                display: 'flex',
+                flexWrap: 'nowrap',
+                alignItems: 'center',
+                alignContent: 'flex-start',
+                padding: '0',
+                border: '0',
+                background: 'transparent'
+            })
+            .appendTo(document.body)
+        : null;
+    const measurementNode = $measurement?.get(0) || null;
+    const resetMeasurementRow = () => {
+        if ($measurement) {
+            $measurement.empty();
+        }
+    };
+    const appendMeasurementWrapper = (wrapper) => {
+        if (!$measurement) {
+            return false;
+        }
+        if ($measurement.children().length && addDividers) {
+            $measurement.append(`<div class="folder-preview-divider" ${barsColor ? `style="border-color: ${barsColor};"` : ''}></div>`);
+        }
+        $measurement.append($(wrapper).clone());
+        return measurementNode && measurementNode.scrollWidth > measurementNode.clientWidth + 1;
+    };
 
     wrappers.forEach((wrapper) => {
-        const measuredWidth = Math.max(1, Math.ceil(wrapper.getBoundingClientRect?.().width || $(wrapper).outerWidth() || 0));
-        const extraWidth = currentRow.length
-            ? (addDividers ? (gapWidth * 2) + dividerMarginWidth + dividerWidth : gapWidth)
-            : 0;
-        const nextWidth = currentWidth + extraWidth + measuredWidth;
         const exceedsItemCap = availableWidth <= 0 && currentRow.length >= maxItemsPerRow;
-        const exceedsMeasuredWidth = availableWidth > 0 && currentRow.length > 0 && nextWidth > availableWidth;
+        let exceedsMeasuredWidth = false;
+        if (availableWidth > 0) {
+            if (!currentRow.length) {
+                resetMeasurementRow();
+                appendMeasurementWrapper(wrapper);
+            } else {
+                exceedsMeasuredWidth = appendMeasurementWrapper(wrapper);
+                if (exceedsMeasuredWidth) {
+                    resetMeasurementRow();
+                    appendMeasurementWrapper(wrapper);
+                }
+            }
+        }
         const canWrap = exceedsItemCap || exceedsMeasuredWidth;
         if (canWrap && (rowLimit === 0 || rows.length + 1 < rowLimit)) {
             rows.push(currentRow);
             currentRow = [wrapper];
-            currentWidth = measuredWidth;
             return;
         }
         currentRow.push(wrapper);
-        currentWidth = nextWidth;
     });
     if (currentRow.length) {
         rows.push(currentRow);
+    }
+    if ($measurement) {
+        $measurement.remove();
     }
     const visibleRows = rowLimit === 0 ? rows : rows.slice(0, rowLimit);
     $preview.empty();

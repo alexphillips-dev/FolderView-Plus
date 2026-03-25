@@ -361,6 +361,7 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderCss, /\.fv-modern-field-row input\[type="text"\],\s*[\s\S]*height:\s*30px;[\s\S]*min-height:\s*30px;/);
     assert.match(folderCss, /\.fv-modern-field-row > dl > dt\s*\{[\s\S]*font-size:\s*1rem;/);
     assert.match(folderCss, /\.fv-modern-field-row > dl,\s*[\s\S]*display:\s*flex !important;[\s\S]*flex-direction:\s*column;[\s\S]*gap:\s*1\.05em;/);
+    assert.match(folderCss, /\.fv-modern-field-row > dl > dd\s*\{[\s\S]*padding-top:\s*0\.42em !important;/);
     assert.match(folderCss, /\.fv-inline-reset-btn\s*\{[\s\S]*border:\s*0 !important;[\s\S]*background:\s*transparent !important;/);
     assert.match(folderCss, /\.fv-validation-details/);
     assert.match(folderCss, /\.fv-validation-summary\.info/);

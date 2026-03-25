@@ -1877,7 +1877,7 @@
 
 .fv-modern-field-row {
     margin: 0 !important;
-    padding: 0.3em 0.92em 0.82em;
+    padding: 0.18em 0.92em 0.82em;
     border-radius: 14px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     background:
@@ -1938,7 +1938,7 @@
     display: block;
     min-width: 0;
     width: 100%;
-    padding-top: 0.04em !important;
+    padding-top: 0.42em !important;
 }
 
 .fv-modern-field-row > dl > dd > .img:first-child {

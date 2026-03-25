@@ -124,6 +124,27 @@ const folderEditorBootstrapFolder = folderEditorBootstrapContext.folder
     : (folderEditorBootstrapSeed?.folder && typeof folderEditorBootstrapSeed.folder === 'object'
         ? folderEditorBootstrapSeed.folder
         : null);
+if (typeof window.FolderViewPlusReportFolderEditorBootstrap === 'function') {
+    window.FolderViewPlusReportFolderEditorBootstrap({
+        summary: 'Folder editor runtime script loaded.',
+        details: 'The modern editor runtime file executed and is beginning bootstrap.',
+        debug: [
+            `pageMode=${String(window.FolderViewPlusFolderEditorPageMode || '(empty)')}`,
+            `pageType=${String(window.FolderViewPlusFolderEditorPageType || '(empty)')}`,
+            `pageRequested=${String(window.FolderViewPlusFolderEditorRequestedId || '(empty)')}`,
+            `pageResolved=${String(window.FolderViewPlusFolderEditorResolvedId || '(empty)')}`,
+            `queryType=${String(folderEditorQueryParams.get('type') || '(empty)')}`,
+            `queryId=${String(folderEditorQueryParams.get('id') || folderEditorQueryParams.get('folderId') || folderEditorQueryParams.get('folder') || '(empty)')}`,
+            `hashType=${String(folderEditorHashParams.get('type') || '(empty)')}`,
+            `hashId=${String(folderEditorHashParams.get('id') || folderEditorHashParams.get('folderId') || folderEditorHashParams.get('folder') || '(empty)')}`,
+            `seedType=${String(folderEditorBootstrapSeed?.type || '(empty)')}`,
+            `seedId=${String(folderEditorBootstrapSeed?.id || '(empty)')}`,
+            `seedHasFolder=${folderEditorBootstrapFolder ? 'yes' : 'no'}`
+        ].join('\n'),
+        tone: 'info',
+        stage: 'script-evaluated'
+    });
+}
 const folderContract = window.FolderViewPlusFolderContract || null;
 const folderEditorShared = window.FolderViewPlusFolderEditorShared || null;
 const folderEditorSchema = window.FolderViewPlusFolderEditorSchema || null;

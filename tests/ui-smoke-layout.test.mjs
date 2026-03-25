@@ -169,6 +169,8 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderJs, /const folderEditorResetHelpers = typeof folderEditorShared\?\.createResetHelpers === 'function'/);
     assert.match(folderJs, /const modernEditorSchema = typeof folderEditorSchema\?\.createModernSchema === 'function'/);
     assert.match(folderJs, /const folderEditorPreviewApi = typeof folderEditorPreview\?\.createApi === 'function'/);
+    assert.match(folderJs, /FolderViewPlusReportFolderEditorBootstrap/);
+    assert.match(folderJs, /summary:\s*'Folder editor runtime script loaded\.'/);
     assert.match(folderLegacyJs, /const modernFolderEditorEnabled = String\(window\.FolderViewPlusFolderEditorPageMode \|\| 'legacy'\)/);
     assert.match(folderLegacyJs, /const folderEditorShared = window\.FolderViewPlusFolderEditorShared \|\| null;/);
     assert.match(folderLegacyJs, /const folderEditorSchema = window\.FolderViewPlusFolderEditorSchema \|\| null;/);

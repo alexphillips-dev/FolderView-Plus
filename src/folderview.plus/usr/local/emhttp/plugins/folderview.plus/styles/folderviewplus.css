@@ -5368,6 +5368,15 @@ h2[data-fv-section].fv-search-match {
     vertical-align: middle;
 }
 
+#fv-settings-root .status-breakdown-btn,
+#fv-settings-root .status-breakdown-btn:hover,
+#fv-settings-root .status-breakdown-btn:active,
+#fv-settings-root .status-breakdown-btn:focus {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
 .status-breakdown-btn > i {
     font-size: 1.03rem;
 }

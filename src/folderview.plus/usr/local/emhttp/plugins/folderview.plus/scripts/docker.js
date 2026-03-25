@@ -505,6 +505,7 @@ const layoutFolderPreviewRows = ($preview, settings = {}) => {
     const gapWidth = 8;
     const configuredDividerWidth = Math.max(1, Math.min(4, Number.parseInt(settings?.preview_vertical_bars_width ?? '1', 10) || 1));
     const dividerWidth = addDividers ? configuredDividerWidth : 0;
+    const dividerMarginWidth = addDividers ? 6 : 0;
     const rows = [];
     let currentRow = [];
     let currentWidth = 0;
@@ -512,7 +513,7 @@ const layoutFolderPreviewRows = ($preview, settings = {}) => {
     wrappers.forEach((wrapper) => {
         const measuredWidth = Math.max(1, Math.ceil(wrapper.getBoundingClientRect?.().width || $(wrapper).outerWidth() || 0));
         const extraWidth = currentRow.length
-            ? (addDividers ? (gapWidth * 2) + dividerWidth : gapWidth)
+            ? (addDividers ? (gapWidth * 2) + dividerMarginWidth + dividerWidth : gapWidth)
             : 0;
         const nextWidth = currentWidth + extraWidth + measuredWidth;
         const exceedsItemCap = availableWidth <= 0 && currentRow.length >= maxItemsPerRow;

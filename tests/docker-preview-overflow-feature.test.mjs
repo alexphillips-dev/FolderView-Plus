@@ -42,7 +42,8 @@ test('docker runtime applies preview row layout limits and enhanced member actio
     assert.match(dockerJs, /\$previewElementTarget\.children\('span\.inner'\)\.last\(\)/);
     assert.match(dockerJs, /const maxItemsPerRow = Math\.max\(1,\s*getFolderPreviewItemsPerRow\(settings\)\)/);
     assert.match(dockerJs, /const configuredDividerWidth = Math\.max\(1,\s*Math\.min\(4,\s*Number\.parseInt\(settings\?\.preview_vertical_bars_width \?\? '1',\s*10\) \|\| 1\)\)/);
-    assert.match(dockerJs, /const extraWidth = currentRow\.length\s*\?\s*\(addDividers \? \(gapWidth \* 2\) \+ dividerWidth : gapWidth\)\s*:\s*0/);
+    assert.match(dockerJs, /const dividerMarginWidth = addDividers \? 6 : 0/);
+    assert.match(dockerJs, /const extraWidth = currentRow\.length\s*\?\s*\(addDividers \? \(gapWidth \* 2\) \+ dividerMarginWidth \+ dividerWidth : gapWidth\)\s*:\s*0/);
     assert.match(dockerJs, /const exceedsItemCap = availableWidth <= 0 && currentRow\.length >= maxItemsPerRow/);
     assert.match(dockerJs, /const canWrap = exceedsItemCap \|\| exceedsMeasuredWidth/);
     assert.match(dockerJs, /layoutFolderPreviewRows\(\$\(`tr\.folder-id-\$\{id\} div\.folder-preview`\), folder\.settings\)/);

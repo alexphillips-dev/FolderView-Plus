@@ -667,6 +667,7 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsCss, /\.status-breakdown-list\s*\{/);
     assert.match(settingsCss, /\.status-breakdown-chip\s*\{/);
     assert.match(settingsCss, /\.status-breakdown-btn\s*\{[\s\S]*width:\s*22px !important/);
+    assert.match(settingsCss, /#fv-settings-root \.status-breakdown-btn,\s*[\s\S]*border:\s*0 !important/);
     assert.match(settingsJs, /class="status-cell"><span class="status-cell-content \$\{statusDisplayClass\}"><button type="button" class="status-breakdown-btn"[\s\S]*\$\{statusSummaryChipHtml\}\$\{statusBreakdownHtml\}\$\{statusTrendHtml\}/);
     assert.match(settingsCss, /\.folder-metric-chip\.is-danger\s*\{/);
     assert.match(settingsCss, /\.folder-metric-chip\s*\{/);

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Containers>
 <Plugin>True</Plugin>
-<PluginURL>https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/beta/folderview.plus.plg</PluginURL>
+<PluginURL>https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/dev/folderview.plus.plg</PluginURL>
 <PluginAuthor>alexphillips-dev</PluginAuthor>
 <Beta>True</Beta>
 <Category>Tools:System</Category>

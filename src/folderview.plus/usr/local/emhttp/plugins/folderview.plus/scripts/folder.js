@@ -125,6 +125,11 @@ const folderEditorBootstrapFolder = folderEditorBootstrapContext.folder
     : (folderEditorBootstrapSeed?.folder && typeof folderEditorBootstrapSeed.folder === 'object'
         ? folderEditorBootstrapSeed.folder
         : null);
+const buildFolderEditorRefCandidates = (...values) => Array.from(new Set(
+    values
+        .map((value) => String(value || '').trim())
+        .filter(Boolean)
+));
 if (typeof window.FolderViewPlusReportFolderEditorBootstrap === 'function') {
     window.FolderViewPlusReportFolderEditorBootstrap({
         summary: 'Folder editor runtime script loaded.',
@@ -5030,7 +5035,15 @@ const startFolderEditorRuntime = async () => {
     validateForm();
     updateLiveSummary();
     updateRegexSimulator();
-    const bootstrapFolderId = String(folderId || folderEditorResolvedId || '').trim();
+    const bootstrapFolderId = buildFolderEditorRefCandidates(
+        folderEditorResolvedId,
+        folderEditorBootstrapContext.resolvedId,
+        window.FolderViewPlusFolderEditorResolvedId,
+        folderEditorBootstrapSeed?.id,
+        folderEditorBootstrapContext.requestedId,
+        window.FolderViewPlusFolderEditorRequestedId,
+        folderId
+    )[0] || '';
     const bootstrapFolderRecord = folderEditorBootstrapFolder && typeof folderEditorBootstrapFolder === 'object'
         ? normalizeFolderRecordForEditor(folderEditorBootstrapFolder)
         : null;
@@ -5063,14 +5076,45 @@ const startFolderEditorRuntime = async () => {
     let currentEditFolder = null;
     let currentEditFolderId = '';
 
-    const navigationPrefill = readEditorNavigationPrefill(type, folderId);
-    const requestedFolderRef = String(folderId || folderEditorResolvedId || navigationPrefill?.id || '').trim();
+    const preferredNavigationRef = buildFolderEditorRefCandidates(
+        folderEditorResolvedId,
+        folderEditorBootstrapContext.resolvedId,
+        window.FolderViewPlusFolderEditorResolvedId,
+        folderEditorBootstrapSeed?.id,
+        folderId
+    )[0] || '';
+    const navigationPrefill = readEditorNavigationPrefill(type, preferredNavigationRef);
+    const requestedFolderRefs = buildFolderEditorRefCandidates(
+        folderEditorResolvedId,
+        folderEditorBootstrapContext.resolvedId,
+        window.FolderViewPlusFolderEditorResolvedId,
+        folderEditorBootstrapSeed?.id,
+        navigationPrefill?.id,
+        window.FolderViewPlusFolderEditorRequestedId,
+        folderEditorBootstrapContext.requestedId,
+        folderId
+    );
+    let requestedFolderRef = requestedFolderRefs[0] || '';
     const folderCount = Object.keys(folders).length;
 
     if (requestedFolderRef) {
-        const resolvedEditFolder = resolveCurrentEditFolder(folders, requestedFolderRef);
+        let resolvedEditFolder = null;
+        for (const candidateRef of requestedFolderRefs) {
+            const resolvedCandidate = resolveCurrentEditFolder(folders, candidateRef);
+            if (resolvedCandidate) {
+                resolvedEditFolder = resolvedCandidate;
+                requestedFolderRef = candidateRef;
+                break;
+            }
+        }
         currentEditFolder = resolvedEditFolder?.folder || bootstrapFolderRecord || navigationPrefill?.folder || null;
-        currentEditFolderId = String(resolvedEditFolder?.id || folderEditorResolvedId || navigationPrefill?.id || '').trim();
+        currentEditFolderId = String(
+            resolvedEditFolder?.id
+            || navigationPrefill?.id
+            || bootstrapFolderId
+            || requestedFolderRef
+            || ''
+        ).trim();
         if (!currentEditFolder || !currentEditFolderId) {
             setValidationBannerState(
                 'Warning: requested folder could not be loaded.',

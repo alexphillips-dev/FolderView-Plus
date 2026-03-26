@@ -93,10 +93,13 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorScript, /const clearEditorNavigationPrefill = \(\) =>/);
     assert.match(folderEditorScript, /folders\[safeId\] = normalizeFolderRecordForEditor\(folder\);/);
     assert.match(folderEditorScript, /let currentEditFolder = null;/);
-    assert.match(folderEditorScript, /const navigationPrefill = readEditorNavigationPrefill\(type,\s*folderId\);/);
-    assert.match(folderEditorScript, /const requestedFolderRef = String\(folderId \|\| folderEditorResolvedId \|\| navigationPrefill\?\.id \|\| ''\)\.trim\(\);/);
-    assert.match(folderEditorScript, /const resolvedEditFolder = resolveCurrentEditFolder\(folders,\s*requestedFolderRef\);/);
+    assert.match(folderEditorScript, /const buildFolderEditorRefCandidates = \(\.\.\.values\) => Array\.from\(new Set/);
+    assert.match(folderEditorScript, /const preferredNavigationRef = buildFolderEditorRefCandidates\(/);
+    assert.match(folderEditorScript, /const navigationPrefill = readEditorNavigationPrefill\(type,\s*preferredNavigationRef\);/);
+    assert.match(folderEditorScript, /const requestedFolderRefs = buildFolderEditorRefCandidates\(/);
+    assert.match(folderEditorScript, /for \(const candidateRef of requestedFolderRefs\) \{/);
     assert.match(folderEditorScript, /currentEditFolder = resolvedEditFolder\?\.folder \|\| bootstrapFolderRecord \|\| navigationPrefill\?\.folder \|\| null;/);
+    assert.match(folderEditorScript, /currentEditFolderId = String\(\s*resolvedEditFolder\?\.id[\s\S]*\|\| bootstrapFolderId/);
     assert.match(folderEditorScript, /folders\[safeId\] = normalizeFolderRecordForEditor\(folder\);/);
     assert.match(folderEditorScript, /setValidationBannerState\(\s*'Warning: requested folder could not be loaded\.'/);
     assert.match(folderEditorScript, /Recovered requested folder from navigation context\./);

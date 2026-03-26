@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.28">
-<!ENTITY md5 "0d62572759bf3a8dcdf0c33c3fcd2bd6">
+<!ENTITY version "2026.03.26.29">
+<!ENTITY md5 "c4b9e2b6aeb7e95b6b6f24b88af609ac">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.29
+- Fix: Legacy folder editor now resolves the folder you clicked even when the incoming edit reference is stale or stripped, by falling back across the full bootstrap, resolved-id, and navigation-prefill candidate set.
+- UX: Both folder editor runtimes now keep the bootstrap folder record and ID aligned during edit hydration, preventing blank new-folder forms when reopening an existing folder through legacy paths or reused xmenu windows.
+- Quality: Expanded folder editor route/nesting guards so candidate-based edit resolution and bootstrap-ID fallback stay locked in.
+
 
 ###2026.03.26.28
 - Performance: Folder editor submit now returns immediately after save instead of waiting on Docker host-order sync to finish before redirecting back to the runtime page.

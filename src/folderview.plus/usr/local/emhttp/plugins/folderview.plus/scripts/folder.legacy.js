@@ -124,6 +124,11 @@ const folderEditorBootstrapFolder = folderEditorBootstrapContext.folder
     : (folderEditorBootstrapSeed?.folder && typeof folderEditorBootstrapSeed.folder === 'object'
         ? folderEditorBootstrapSeed.folder
         : null);
+const buildFolderEditorRefCandidates = (...values) => Array.from(new Set(
+    values
+        .map((value) => String(value || '').trim())
+        .filter(Boolean)
+));
 const folderContract = window.FolderViewPlusFolderContract || null;
 const folderEditorShared = window.FolderViewPlusFolderEditorShared || null;
 const folderEditorSchema = window.FolderViewPlusFolderEditorSchema || null;
@@ -4793,6 +4798,25 @@ resetStatusColorDefaults();
 (async () => {
     folderThemeSurfaceBinding?.bind();
     registerBeforeUnloadGuard();
+    const bootstrapFolderId = buildFolderEditorRefCandidates(
+        folderEditorResolvedId,
+        folderEditorBootstrapContext.resolvedId,
+        window.FolderViewPlusFolderEditorResolvedId,
+        folderEditorBootstrapSeed?.id,
+        folderEditorBootstrapContext.requestedId,
+        window.FolderViewPlusFolderEditorRequestedId,
+        folderId
+    )[0] || '';
+    const bootstrapFolderRecord = folderEditorBootstrapFolder
+        ? normalizeFolderRecordForEditor(folderEditorBootstrapFolder)
+        : null;
+    if (bootstrapFolderRecord && bootstrapFolderId) {
+        allFoldersById = {
+            ...allFoldersById,
+            [bootstrapFolderId]: bootstrapFolderRecord
+        };
+        hydrateCurrentEditFolder(bootstrapFolderRecord, bootstrapFolderId, {}, { clearPrefill: false });
+    }
     const cacheBust = Date.now();
     // if editing a vm hide docker related settings
     if (type !== 'docker') {
@@ -4811,9 +4835,6 @@ resetStatusColorDefaults();
         }
     }
     allFoldersById = { ...folders };
-    const bootstrapFolderRecord = folderEditorBootstrapFolder
-        ? normalizeFolderRecordForEditor(folderEditorBootstrapFolder)
-        : null;
     let currentEditFolder = null;
     let currentEditFolderId = '';
     // get the list of element docker/vm
@@ -4845,12 +4866,43 @@ resetStatusColorDefaults();
     choose = Object.values(JSON.parse(await $.get(`/plugins/folderview.plus/server/read_info.php?type=${type}&nocache=1&_=${cacheBust}`).promise())).map(typeFilter);
 
     // if editing a folder and not creating one
-    const navigationPrefill = readEditorNavigationPrefill(type, folderId);
-    const requestedFolderRef = String(folderId || folderEditorResolvedId || navigationPrefill?.id || '').trim();
+    const preferredNavigationRef = buildFolderEditorRefCandidates(
+        folderEditorResolvedId,
+        folderEditorBootstrapContext.resolvedId,
+        window.FolderViewPlusFolderEditorResolvedId,
+        folderEditorBootstrapSeed?.id,
+        folderId
+    )[0] || '';
+    const navigationPrefill = readEditorNavigationPrefill(type, preferredNavigationRef);
+    const requestedFolderRefs = buildFolderEditorRefCandidates(
+        folderEditorResolvedId,
+        folderEditorBootstrapContext.resolvedId,
+        window.FolderViewPlusFolderEditorResolvedId,
+        folderEditorBootstrapSeed?.id,
+        navigationPrefill?.id,
+        window.FolderViewPlusFolderEditorRequestedId,
+        folderEditorBootstrapContext.requestedId,
+        folderId
+    );
+    let requestedFolderRef = requestedFolderRefs[0] || '';
     if (requestedFolderRef) {
-        const resolvedEditFolder = resolveCurrentEditFolder(folders, requestedFolderRef);
+        let resolvedEditFolder = null;
+        for (const candidateRef of requestedFolderRefs) {
+            const resolvedCandidate = resolveCurrentEditFolder(folders, candidateRef);
+            if (resolvedCandidate) {
+                resolvedEditFolder = resolvedCandidate;
+                requestedFolderRef = candidateRef;
+                break;
+            }
+        }
         currentEditFolder = resolvedEditFolder?.folder || bootstrapFolderRecord || navigationPrefill?.folder || null;
-        currentEditFolderId = String(resolvedEditFolder?.id || folderEditorResolvedId || navigationPrefill?.id || '').trim();
+        currentEditFolderId = String(
+            resolvedEditFolder?.id
+            || navigationPrefill?.id
+            || bootstrapFolderId
+            || requestedFolderRef
+            || ''
+        ).trim();
     }
 
     if (currentEditFolder && currentEditFolderId) {

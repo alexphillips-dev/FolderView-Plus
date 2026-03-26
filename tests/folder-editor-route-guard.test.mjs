@@ -17,6 +17,7 @@ const folderEditorChromeJs = read('src/folderview.plus/usr/local/emhttp/plugins/
 test('folder editor runtimes accept query and hash bootstrap identity fallbacks', () => {
     assert.match(folderJs, /const readFolderEditorBootstrapSeed = \(\) =>/);
     assert.match(folderJs, /const readWindowNameFolderEditorBootstrapSeed = \(\) =>/);
+    assert.match(folderJs, /const buildFolderEditorRefCandidates = \(\.\.\.values\) => Array\.from\(new Set/);
     assert.match(folderJs, /folderEditorBootstrapSeed\?\.type/);
     assert.match(folderJs, /folderEditorBootstrapSeed\?\.id/);
     assert.match(folderJs, /folderEditorBootstrapSeed\?\.folder/);
@@ -38,11 +39,15 @@ test('folder editor runtimes accept query and hash bootstrap identity fallbacks'
     assert.match(folderJs, /window\.FolderViewPlusFolderEditorRuntimeLoaded = true;/);
     assert.match(folderJs, /window\.FolderViewPlusFolderEditorRuntimeBootStage = 'script-evaluated';/);
     assert.match(folderJs, /window\.FolderViewPlusFolderEditorRuntimeBootStage = 'runtime-ready';/);
+    assert.match(folderJs, /const requestedFolderRefs = buildFolderEditorRefCandidates\(/);
+    assert.match(folderJs, /for \(const candidateRef of requestedFolderRefs\) \{/);
+    assert.match(folderJs, /currentEditFolderId = String\(\s*resolvedEditFolder\?\.id[\s\S]*\|\| bootstrapFolderId/);
     assert.match(folderPage, /\$_COOKIE\['fv_folder_editor_bootstrap'\]/);
     assert.match(folderPage, /\$folderEditorCookieType = trim/);
     assert.match(folderPage, /\$folderEditorCookieId = trim/);
     assert.match(folderLegacyJs, /const readFolderEditorBootstrapSeed = \(\) =>/);
     assert.match(folderLegacyJs, /const readWindowNameFolderEditorBootstrapSeed = \(\) =>/);
+    assert.match(folderLegacyJs, /const buildFolderEditorRefCandidates = \(\.\.\.values\) => Array\.from\(new Set/);
     assert.match(folderLegacyJs, /folderEditorBootstrapSeed\?\.type/);
     assert.match(folderLegacyJs, /folderEditorBootstrapSeed\?\.id/);
     assert.match(folderLegacyJs, /folderEditorBootstrapSeed\?\.folder/);
@@ -53,6 +58,9 @@ test('folder editor runtimes accept query and hash bootstrap identity fallbacks'
     assert.match(folderLegacyJs, /const folderEditorHashParams = new URLSearchParams/);
     assert.match(folderLegacyJs, /folderEditorHashParams\.get\('type'\)/);
     assert.match(folderLegacyJs, /folderEditorHashParams\.get\('id'\)/);
+    assert.match(folderLegacyJs, /const requestedFolderRefs = buildFolderEditorRefCandidates\(/);
+    assert.match(folderLegacyJs, /for \(const candidateRef of requestedFolderRefs\) \{/);
+    assert.match(folderLegacyJs, /currentEditFolderId = String\(\s*resolvedEditFolder\?\.id[\s\S]*\|\| bootstrapFolderId/);
     assert.match(folderLegacyJs, /sampleRoot:\s*'body'/);
     assert.match(folderEditorChromeJs, /root\.FolderViewPlusReportFolderEditorBootstrap =/);
     assert.match(folderEditorChromeJs, /Folder editor runtime stalled during bootstrap\./);

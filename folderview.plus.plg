@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.14">
-<!ENTITY md5 "d6f454e0f1cef0acb0be3b2af96c94bb">
+<!ENTITY version "2026.03.26.15">
+<!ENTITY md5 "bd3b99bcc369e079d39a30ba2f66c41d">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.15
+- UI/UX: Removed the boxed square chrome from the row action buttons in the basic settings tables so the standard actions render as clean orange icons instead of outlined mini-buttons.
+- UI/UX: Kept the trailing overflow `...` action boxed so the expandable action affordance still reads as a separate control.
+- Regression guard: Added a layout assertion covering the unboxed action-button rule for non-overflow row actions.
+
 
 ###2026.03.26.14
 - Fix: The settings page now exports the host theme name like the folder editor so white and other light themes enter the correct readable settings palette on the basic page.

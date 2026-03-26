@@ -727,6 +727,7 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /const refreshCoreData = async \(\) =>/);
     assert.match(settingsJs, /if \(settingsUiState\.mode === 'advanced'\) \{[\s\S]*await refreshAll\(\);[\s\S]*\} else \{[\s\S]*await refreshCoreData\(\);[\s\S]*\}/);
     assert.match(settingsCss, /\.folder-action-btn\s*\{/);
+    assert.match(settingsCss, /\.folder-table table td\.actions-cell \.folder-action-btn:not\(\.folder-overflow-btn\)\s*\{[\s\S]*border:\s*0 !important;[\s\S]*background:\s*transparent !important;[\s\S]*box-shadow:\s*none !important;/);
     assert.match(settingsCss, /\.fv-col-resizer/);
     assert.match(settingsCss, /body\.fv-column-resize-active/);
     assert.match(settingsCss, /\.fv-runtime-resolved-panel\s*\{/);

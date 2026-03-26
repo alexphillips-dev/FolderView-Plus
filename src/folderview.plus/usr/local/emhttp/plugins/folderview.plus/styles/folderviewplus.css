@@ -914,6 +914,14 @@ body.fv-column-resize-active * {
     line-height: 1 !important;
 }
 
+.folder-table table td.actions-cell .folder-action-btn:not(.folder-overflow-btn) {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    color: var(--fvplus-settings-accent) !important;
+}
+
 .folder-action-btn > i {
     font-size: 0.88em;
     line-height: 1;

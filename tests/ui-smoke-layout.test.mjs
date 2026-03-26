@@ -153,6 +153,7 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderPage, /\$folderEditorPageBuildVersion = readInstalledVersion\(\);/);
     assert.match(folderPage, /\$folderEditorAssetVersion = rawurlencode\(\$folderEditorPageBuildVersion\);/);
     assert.match(folderPage, /folderviewplus\.theme-resolver\.js/);
+    assert.match(folderPage, /folder\.editor\.icon-api\.js/);
     assert.match(folderPage, /folder\.editor\.shared\.js/);
     assert.match(folderPage, /folder\.editor\.schema\.js/);
     assert.match(folderPage, /folder\.editor\.preview\.js/);
@@ -187,6 +188,7 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderJs, /let folderEditorSharedApi = null;/);
     assert.match(folderJs, /const getFolderEditorSharedApi = \(\) =>/);
     assert.match(folderJs, /folderEditorSharedApi = folderEditorShared\.createApi\(/);
+    assert.match(folderJs, /folderEditorBootstrapMissingModules\.push\('folder\.editor\.icon-api\.js'\)/);
     assert.match(folderJs, /const normalizeParentFolderId = \(value\) => String\(value \|\| ''\)\.trim\(\);/);
     assert.match(folderJs, /const folderEditorResetHelpers = typeof folderEditorShared\?\.createResetHelpers === 'function'/);
     assert.match(folderJs, /const modernEditorSchema = typeof folderEditorSchema\?\.createModernSchema === 'function'/);

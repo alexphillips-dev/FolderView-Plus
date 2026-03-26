@@ -308,6 +308,7 @@ try {
 <script src="<?autov('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>
 <script src="<?autov('/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js')?>"></script>
 <script src="<?autov('/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js')?>"></script>
+<script src="<?autov('/plugins/folderview.plus/scripts/folder.editor.icon-api.js')?>"></script>
 <script src="<?autov('/plugins/folderview.plus/scripts/folder.editor.shared.js')?>"></script>
 <script src="<?autov('/plugins/folderview.plus/scripts/folder.editor.schema.js')?>"></script>
 <script src="<?autov('/plugins/folderview.plus/scripts/folder.editor.preview.js')?>"></script>

@@ -257,6 +257,9 @@ const folderEditorBootstrapMissingModules = [];
 if (!utils || typeof utils.normalizeDashboardOverflowMode !== 'function') {
     folderEditorBootstrapMissingModules.push('folderviewplus.utils.js');
 }
+if (!folderIconApiModule || typeof folderIconApiModule.createApi !== 'function') {
+    folderEditorBootstrapMissingModules.push('folder.editor.icon-api.js');
+}
 if (folderEditorBootstrapMissingModules.length > 0) {
     const error = new Error(`FolderView Plus folder editor bootstrap failed. Missing modules: ${folderEditorBootstrapMissingModules.join(', ')}`);
     error.fvplusBannerShown = true;

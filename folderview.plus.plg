@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.02">
-<!ENTITY md5 "486b52a2e41c8f3b975561d6cc3ad4a7">
+<!ENTITY version "2026.03.26.03">
+<!ENTITY md5 "82399df65eb5f219fcac7694c341244f">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.03
+- Fix: Restored the missing `folder.editor.icon-api.js` dependency on the folder editor page so member reordering and any other folder save path no longer fail in the modern editor with `Cannot read properties of null (reading 'securePost')`.
+- Regression guard: The modern folder editor bootstrap now treats the icon API helper as a required module and the editor smoke coverage checks that the page ships it before runtime save handlers execute.
+
 
 ###2026.03.26.02
 - Fix: Rebuilt the modern folder editor Preview layout around real constraint-aware field cards, which removes the broken gaps, restores the correct row order, and hides advanced preview controls unless their parent options are enabled.

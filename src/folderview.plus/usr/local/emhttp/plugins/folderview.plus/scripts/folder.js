@@ -3176,6 +3176,8 @@ const buildSectionCards = () => {
     });
 };
 
+const normalizeParentFolderId = (value) => String(value || '').trim();
+
 let folderEditorPreviewApi = null;
 const getFolderEditorPreviewApi = () => {
     if (folderEditorPreviewApi || typeof folderEditorPreview?.createApi !== 'function') {
@@ -5718,7 +5720,6 @@ const folderHierarchyState = {
         getFolderHierarchyApi().state.currentFolderDescendantIds = value;
     }
 };
-const normalizeParentFolderId = (...args) => getFolderHierarchyApi().normalizeParentFolderId(...args);
 const computeFolderDescendantIds = (...args) => getFolderHierarchyApi().computeFolderDescendantIds(...args);
 const populateParentFolderOptions = (...args) => getFolderHierarchyApi().populateParentFolderOptions(...args);
 const getSiblingNameCollision = (...args) => getFolderHierarchyApi().getSiblingNameCollision(...args);

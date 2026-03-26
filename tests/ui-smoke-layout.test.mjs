@@ -180,6 +180,7 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderJs, /let folderEditorSharedApi = null;/);
     assert.match(folderJs, /const getFolderEditorSharedApi = \(\) =>/);
     assert.match(folderJs, /folderEditorSharedApi = folderEditorShared\.createApi\(/);
+    assert.match(folderJs, /const normalizeParentFolderId = \(value\) => String\(value \|\| ''\)\.trim\(\);/);
     assert.match(folderJs, /const folderEditorResetHelpers = typeof folderEditorShared\?\.createResetHelpers === 'function'/);
     assert.match(folderJs, /const modernEditorSchema = typeof folderEditorSchema\?\.createModernSchema === 'function'/);
     assert.match(folderJs, /let folderEditorPreviewApi = null;/);

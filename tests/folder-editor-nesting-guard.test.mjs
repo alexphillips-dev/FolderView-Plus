@@ -65,6 +65,7 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorScript, /let folderEditorSharedApi = null;/);
     assert.match(folderEditorScript, /const getFolderEditorSharedApi = \(\) =>/);
     assert.match(folderEditorScript, /folderEditorSharedApi = folderEditorShared\.createApi\(/);
+    assert.match(folderEditorScript, /const normalizeParentFolderId = \(value\) => String\(value \|\| ''\)\.trim\(\);/);
     assert.match(folderEditorScript, /const modernEditorSchema = typeof folderEditorSchema\?\.createModernSchema === 'function'/);
     assert.match(folderEditorScript, /let folderEditorPreviewApi = null;/);
     assert.match(folderEditorScript, /const getFolderEditorPreviewApi = \(\) =>/);

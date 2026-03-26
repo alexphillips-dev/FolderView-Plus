@@ -316,40 +316,11 @@
     overflow-wrap: anywhere;
 }
 
-.fv-editor-bootstrap-disclosure {
-    margin: 0;
-}
-
-.fv-editor-bootstrap-summary {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5em;
-    cursor: pointer;
-    color: var(--fv-editor-dim);
-    font-size: 0.95rem;
-    user-select: none;
-    list-style: none;
-}
-
-.fv-editor-bootstrap-summary::-webkit-details-marker {
-    display: none;
-}
-
-.fv-editor-bootstrap-summary::before {
-    content: '▸';
-    color: var(--fv-editor-border-strong);
-    font-size: 0.9rem;
-    line-height: 1;
-    transition: transform 0.14s ease;
-}
-
-.fv-editor-bootstrap-disclosure[open] > .fv-editor-bootstrap-summary::before {
-    transform: rotate(90deg);
-}
-
-.fv-editor-bootstrap-disclosure[open] > .fv-editor-bootstrap-debug {
-    margin-top: 0.5em;
-}
+.fv-editor-bootstrap-summary{display:inline-flex;align-items:center;gap:.5em;cursor:pointer;color:var(--fv-editor-dim);font-size:.95rem;user-select:none;list-style:none}
+.fv-editor-bootstrap-summary::-webkit-details-marker{display:none}
+.fv-editor-bootstrap-summary::before{content:'▸';color:var(--fv-editor-border-strong);font-size:.9rem;line-height:1;transition:transform .14s ease}
+.fv-editor-bootstrap-disclosure[open]>.fv-editor-bootstrap-summary::before{transform:rotate(90deg)}
+.fv-editor-bootstrap-disclosure[open]>.fv-editor-bootstrap-debug{margin-top:.5em}
 
 html[data-fvplus-host-theme="white"] .canvas form.folder-editor-form,
 body[data-fvplus-host-theme="white"] .canvas form.folder-editor-form,

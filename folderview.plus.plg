@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.25.62">
-<!ENTITY md5 "d37eb54e1a83cac1bdbb0ff657a4510b">
+<!ENTITY version "2026.03.25.63">
+<!ENTITY md5 "ea79f5e35e546f1b019537c3b60abd6f">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.25.63
+- Maintenance: Compress the folder editor bootstrap disclosure styles to stay within the CSS perf budget without changing the new collapsed-by-default diagnostics behavior.
+
 
 ###2026.03.25.62
 - UX: Collapse the folder editor bootstrap diagnostics by default behind a `Bootstrap diagnostics` disclosure so routine editing stays clean while full runtime details remain available for troubleshooting.

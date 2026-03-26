@@ -11,6 +11,35 @@ const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
 const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv.folder.editor.prefill.persist.v1';
 const EDITOR_WINDOW_NAME_PREFIX = 'fv.folder.editor.v1:';
 const EDITOR_BOOTSTRAP_COOKIE_NAME = 'fv_folder_editor_bootstrap';
+const readCookieFolderEditorBootstrapSeed = () => {
+    try {
+        const cookieSource = String(document.cookie || '');
+        if (!cookieSource) {
+            return null;
+        }
+        const cookieParts = cookieSource.split(';');
+        for (const rawPart of cookieParts) {
+            const part = String(rawPart || '').trim();
+            if (!part || !part.startsWith(`${EDITOR_BOOTSTRAP_COOKIE_NAME}=`)) {
+                continue;
+            }
+            const rawValue = part.slice(EDITOR_BOOTSTRAP_COOKIE_NAME.length + 1);
+            if (!rawValue) {
+                continue;
+            }
+            const payload = JSON.parse(decodeURIComponent(rawValue));
+            const safeType = String(payload?.type || '').trim();
+            const safeId = String(payload?.id || '').trim();
+            const folder = payload?.folder && typeof payload.folder === 'object' ? payload.folder : null;
+            if (safeType && safeId) {
+                return { type: safeType, id: safeId, folder };
+            }
+        }
+    } catch (_error) {
+        return null;
+    }
+    return null;
+};
 const readFolderEditorBootstrapSeed = () => {
     const parsePrefill = (rawValue) => {
         const raw = String(rawValue || '').trim();
@@ -71,7 +100,8 @@ const folderEditorQueryParams = new URLSearchParams(location.search);
 const folderEditorHashParams = new URLSearchParams(String(window.location?.hash || '').replace(/^#/, ''));
 const folderEditorStorageBootstrap = readFolderEditorBootstrapSeed();
 const folderEditorWindowNameBootstrap = readWindowNameFolderEditorBootstrapSeed();
-const folderEditorBootstrapSeed = folderEditorWindowNameBootstrap || folderEditorStorageBootstrap;
+const folderEditorCookieBootstrap = readCookieFolderEditorBootstrapSeed();
+const folderEditorBootstrapSeed = folderEditorWindowNameBootstrap || folderEditorStorageBootstrap || folderEditorCookieBootstrap;
 const folderEditorBootstrapContext = window.FolderViewPlusFolderEditorBootstrapContext
     && typeof window.FolderViewPlusFolderEditorBootstrapContext === 'object'
     ? window.FolderViewPlusFolderEditorBootstrapContext
@@ -759,12 +789,13 @@ const readEditorNavigationPrefill = (expectedType, expectedId = '') => {
             const payload = JSON.parse(raw);
             const normalizedType = String(payload?.type || '').trim();
             const normalizedId = String(payload?.id || '').trim();
+            const normalizedExpectedType = String(expectedType || '').trim();
             const normalizedExpectedId = String(expectedId || '').trim();
             const storedAt = Number(payload?.storedAt || 0);
             if (!normalizedType || !normalizedId) {
                 return null;
             }
-            if (normalizedType !== String(expectedType || '').trim()) {
+            if (normalizedExpectedType && normalizedType !== normalizedExpectedType) {
                 return null;
             }
             if (normalizedExpectedId && normalizedId !== normalizedExpectedId) {
@@ -774,6 +805,7 @@ const readEditorNavigationPrefill = (expectedType, expectedId = '') => {
                 return null;
             }
             return {
+                type: normalizedType,
                 id: normalizedId,
                 folder: payload?.folder && typeof payload.folder === 'object'
                     ? normalizeFolderRecordForEditor(payload.folder)

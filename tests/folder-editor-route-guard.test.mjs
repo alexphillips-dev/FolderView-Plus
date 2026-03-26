@@ -17,11 +17,16 @@ const folderEditorChromeJs = read('src/folderview.plus/usr/local/emhttp/plugins/
 test('folder editor runtimes accept query and hash bootstrap identity fallbacks', () => {
     assert.match(folderJs, /const readFolderEditorBootstrapSeed = \(\) =>/);
     assert.match(folderJs, /const readWindowNameFolderEditorBootstrapSeed = \(\) =>/);
+    assert.match(folderJs, /const readCookieFolderEditorBootstrapSeed = \(\) =>/);
     assert.match(folderJs, /const buildFolderEditorRefCandidates = \(\.\.\.values\) => Array\.from\(new Set/);
     assert.match(folderJs, /folderEditorBootstrapSeed\?\.type/);
     assert.match(folderJs, /folderEditorBootstrapSeed\?\.id/);
     assert.match(folderJs, /folderEditorBootstrapSeed\?\.folder/);
+    assert.match(folderJs, /const folderEditorCookieBootstrap = readCookieFolderEditorBootstrapSeed\(\);/);
+    assert.match(folderJs, /const folderEditorBootstrapSeed = folderEditorWindowNameBootstrap \|\| folderEditorStorageBootstrap \|\| folderEditorCookieBootstrap;/);
     assert.match(folderJs, /const folderEditorHashParams = new URLSearchParams/);
+    assert.match(folderJs, /const normalizedExpectedType = String\(expectedType \|\| ''\)\.trim\(\);/);
+    assert.match(folderJs, /if \(normalizedExpectedType && normalizedType !== normalizedExpectedType\) \{/);
     assert.match(folderJs, /folderEditorHashParams\.get\('type'\)/);
     assert.match(folderJs, /folderEditorHashParams\.get\('id'\)/);
     assert.match(folderJs, /folderThemeSurfaceBinding\?\.runApply\('chrome-ready'\)/);
@@ -47,15 +52,19 @@ test('folder editor runtimes accept query and hash bootstrap identity fallbacks'
     assert.match(folderPage, /\$folderEditorCookieId = trim/);
     assert.match(folderLegacyJs, /const readFolderEditorBootstrapSeed = \(\) =>/);
     assert.match(folderLegacyJs, /const readWindowNameFolderEditorBootstrapSeed = \(\) =>/);
+    assert.match(folderLegacyJs, /const readCookieFolderEditorBootstrapSeed = \(\) =>/);
     assert.match(folderLegacyJs, /const buildFolderEditorRefCandidates = \(\.\.\.values\) => Array\.from\(new Set/);
     assert.match(folderLegacyJs, /folderEditorBootstrapSeed\?\.type/);
     assert.match(folderLegacyJs, /folderEditorBootstrapSeed\?\.id/);
     assert.match(folderLegacyJs, /folderEditorBootstrapSeed\?\.folder/);
     assert.match(folderLegacyJs, /folderEditorWindowNameBootstrap/);
-    assert.match(folderLegacyJs, /folderEditorBootstrapSeed = folderEditorWindowNameBootstrap \|\| folderEditorStorageBootstrap/);
+    assert.match(folderLegacyJs, /const folderEditorCookieBootstrap = readCookieFolderEditorBootstrapSeed\(\);/);
+    assert.match(folderLegacyJs, /folderEditorBootstrapSeed = folderEditorWindowNameBootstrap \|\| folderEditorStorageBootstrap \|\| folderEditorCookieBootstrap/);
     assert.match(folderLegacyJs, /return safeType && safeId \? \{ type: safeType, id: safeId, folder \} : null;/);
     assert.match(folderLegacyJs, /folder:\s*payload\?\.folder && typeof payload\.folder === 'object'/);
     assert.match(folderLegacyJs, /const folderEditorHashParams = new URLSearchParams/);
+    assert.match(folderLegacyJs, /const normalizedExpectedType = String\(expectedType \|\| ''\)\.trim\(\);/);
+    assert.match(folderLegacyJs, /if \(normalizedExpectedType && normalizedType !== normalizedExpectedType\) \{/);
     assert.match(folderLegacyJs, /folderEditorHashParams\.get\('type'\)/);
     assert.match(folderLegacyJs, /folderEditorHashParams\.get\('id'\)/);
     assert.match(folderLegacyJs, /const getFormField = \(form, fieldName\) =>/);
@@ -70,6 +79,8 @@ test('folder editor runtimes accept query and hash bootstrap identity fallbacks'
     assert.match(folderLegacyJs, /document\.addEventListener\('visibilitychange', \(\) => \{/);
     assert.match(folderLegacyJs, /window\.setInterval\(\(\) => \{/);
     assert.match(folderLegacyJs, /maybeRefreshLegacyEditorTargetFromPrefill\(\);\s*\}, 500\);/);
+    assert.match(folderLegacyJs, /const latestPrefill = readEditorNavigationPrefill\(type,\s*''\)\s*\|\|\s*readEditorNavigationPrefill\('',\s*''\)\s*\|\|\s*folderEditorCookieBootstrap;/);
+    assert.match(folderLegacyJs, /const nextType = String\(type \|\| latestPrefill\?\.type \|\| folderEditorCookieBootstrap\?\.type \|\| ''\)\.trim\(\);/);
     assert.match(folderLegacyJs, /window\.location\.replace\(nextUrl\);/);
     assert.match(folderLegacyJs, /const requestedFolderRefs = buildFolderEditorRefCandidates\(/);
     assert.match(folderLegacyJs, /for \(const candidateRef of requestedFolderRefs\) \{/);

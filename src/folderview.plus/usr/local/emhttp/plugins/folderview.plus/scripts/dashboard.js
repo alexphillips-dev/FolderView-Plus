@@ -8,6 +8,16 @@ const localDefaultFolderStatusColors = {
     paused: '#b8860b',
     stopped: '#ff4d4d'
 };
+const themeResolver = window.FolderViewPlusThemeResolver || null;
+const applyDashboardResolvedThemeTokens = (reason = 'dashboard:initial') => {
+    if (window.FolderViewPlusThemeResolverModuleLoaded !== true || !themeResolver) {
+        return null;
+    }
+    return themeResolver.applyResolvedThemeTokens(reason, {
+        root: document.body,
+        modeInput: 'auto'
+    });
+};
 const normalizeStatusHexColor = (value, fallback) => {
     if (typeof value !== 'string') {
         return fallback;
@@ -2053,6 +2063,8 @@ const rmVMFolder = (id) => {
  */
 const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
 const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv.folder.editor.prefill.persist.v1';
+const EDITOR_WINDOW_NAME_PREFIX = 'fv.folder.editor.v1:';
+const EDITOR_BOOTSTRAP_COOKIE_NAME = 'fv_folder_editor_bootstrap';
 const seedDashboardFolderEditorPrefill = (folderType, id) => {
     try {
         const normalizedType = String(folderType || '').trim();
@@ -2074,6 +2086,12 @@ const seedDashboardFolderEditorPrefill = (folderType, id) => {
         if (typeof localStorage !== 'undefined') {
             localStorage.setItem(EDITOR_PREFILL_LOCAL_STORAGE_KEY, payload);
         }
+        window.name = `${EDITOR_WINDOW_NAME_PREFIX}${payload}`;
+        document.cookie = `${EDITOR_BOOTSTRAP_COOKIE_NAME}=${encodeURIComponent(JSON.stringify({
+            type: normalizedType,
+            id: normalizedId,
+            storedAt: Date.now()
+        }))}; path=/; max-age=900; SameSite=Lax`;
     } catch (_error) {
         // Editor prefill is best-effort only.
     }
@@ -2081,12 +2099,15 @@ const seedDashboardFolderEditorPrefill = (folderType, id) => {
 const buildDashboardFolderEditorUrl = (folderType, id = '') => {
     const resolvedType = String(folderType || '').trim() === 'vm' ? 'vm' : 'docker';
     const params = new URLSearchParams();
+    const hashParams = new URLSearchParams();
     params.set('type', resolvedType);
+    hashParams.set('type', resolvedType);
     if (String(id || '').trim()) {
         params.set('id', String(id || '').trim());
+        hashParams.set('id', String(id || '').trim());
     }
     params.set('_', String(Date.now()));
-    return `${location.pathname}/Folder?${params.toString()}`;
+    return `${location.pathname}/Folder?${params.toString()}#${hashParams.toString()}`;
 };
 const editDockerFolder = (id) => {
     seedDashboardFolderEditorPrefill('docker', id);
@@ -2771,6 +2792,7 @@ const queueDashboardThemeReflow = (reason = 'theme-change') => {
     dashboardThemeReflowTimer = window.setTimeout(() => {
         dashboardThemeReflowTimer = 0;
         dashboardDebugLog(`theme-reflow:${nextReason}`);
+        applyDashboardResolvedThemeTokens(`dashboard:${nextReason}`);
         scheduleDashboardLayoutApplyForType('docker');
         scheduleDashboardLayoutApplyForType('vm');
         syncDashboardWidgetLayoutQuickControlForType('docker');
@@ -2821,6 +2843,7 @@ const bindDashboardThemeReflowHandlers = () => {
     }
 };
 bindDashboardThemeReflowHandlers();
+applyDashboardResolvedThemeTokens('dashboard:bind');
 
 const queueLoadlistRefresh = () => {
     if (queuedLoadlistTimer) {

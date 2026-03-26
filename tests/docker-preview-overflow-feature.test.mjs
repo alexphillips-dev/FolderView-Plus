@@ -8,18 +8,25 @@ const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath)
 
 const folderPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page');
 const folderJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js');
+const folderContractJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
+const folderEditorSharedJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.shared.js');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
+const sharedRuntimeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js');
 const dockerMemberMenuJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.member-menu.js');
 const dockerCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css');
+const runtimeSharedCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/runtime.shared.css');
 
 test('folder editor exposes preview row limit control and persists the setting', () => {
     assert.match(folderPage, /<select name="preview_rows">/);
     assert.match(folderPage, /<option value="0">Unlimited<\/option>/);
-    assert.match(folderJs, /const extractPreviewRowLimitValue = \(value,\s*fallbackSource = null\) =>/);
-    assert.match(folderJs, /source\.preview_rows\s*\?\?\s*source\.previewRows/);
+    assert.match(folderContractJs, /const extractPreviewRowLimitValue = \(value,\s*fallbackSource = null\) =>/);
+    assert.match(folderContractJs, /source\.preview_rows\s*\?\?\s*source\.previewRows/);
+    assert.match(folderJs, /let folderEditorSharedApi = null;/);
+    assert.match(folderJs, /const getFolderEditorSharedApi = \(\) =>/);
+    assert.match(folderJs, /folderEditorSharedApi = folderEditorShared\.createApi\(/);
     assert.match(folderJs, /const normalizePreviewRowLimit = \(value,\s*fallbackSource = null\) =>/);
+    assert.match(folderEditorSharedJs, /preview_rows:\s*normalizePreviewRowLimit\(settings,\s*source\)/);
     assert.match(folderJs, /if \(!Number\.isFinite\(parsed\)\) \{\s*return 1;\s*\}/);
-    assert.match(folderJs, /preview_rows:\s*normalizePreviewRowLimit\(settings,\s*source\)/);
     assert.match(folderJs, /setFieldValue\('preview_rows',\s*String\(normalizePreviewRowLimit\(normalizedFolder\.settings,\s*normalizedFolder\)\)\);/);
     assert.match(folderJs, /const normalizedPreviewRows = normalizePreviewRowLimit\(e\.preview_rows\?\.value\);/);
     assert.match(folderJs, /preview_rows:\s*normalizedPreviewRows,/);
@@ -27,17 +34,25 @@ test('folder editor exposes preview row limit control and persists the setting',
 });
 
 test('docker runtime applies preview row layout limits and enhanced member action menus', () => {
-    assert.match(dockerJs, /const getPreviewRowLimitValue = \(settings = \{\}\) =>/);
-    assert.match(dockerJs, /settings\?\.preview_rows\s*\?\?\s*settings\?\.previewRows/);
-    assert.match(dockerJs, /const normalizeFolderPreviewRowLimit = \(settings = \{\}\) =>/);
+    assert.match(sharedRuntimeJs, /const getPreviewRowLimitValue = \(settings = \{\}\) =>/);
+    assert.match(sharedRuntimeJs, /settings\?\.preview_rows\s*\?\?\s*settings\?\.previewRows/);
+    assert.match(sharedRuntimeJs, /const normalizeFolderPreviewRowLimit = \(settings = \{\}\) =>/);
+    assert.match(sharedRuntimeJs, /const isCompactMultiRowPreview = \(settings = \{\}\) =>/);
+    assert.match(sharedRuntimeJs, /const applyFolderPreviewLayout = \(\$preview,\s*settings = \{\}\) =>/);
+    assert.match(sharedRuntimeJs, /const flattenPreviewWrappers = \(\$preview\) =>/);
+    assert.match(sharedRuntimeJs, /const restoreLinearPreviewLayout = \(\$preview,\s*settings = \{\}\) =>/);
+    assert.match(sharedRuntimeJs, /const finalizePreviewRows = \(\$preview,\s*rowSlices = \[\],\s*settings = \{\}\) =>/);
     assert.match(dockerJs, /const getFolderPreviewItemsPerRow = \(settings = \{\}\) =>/);
     assert.match(dockerJs, /const shouldRenderPreviewWebuiPlaceholder = \(settings = \{\}, webuiQuickActionEnabled = false\) =>/);
     assert.match(dockerJs, /settings\?\.preview_vertical_bars === true/);
     assert.match(dockerJs, /const appendPreviewWebuiPlaceholder = \(\$target\) =>/);
     assert.match(dockerJs, /fv-preview-webui-placeholder/);
     assert.match(dockerJs, /const buildDockerPreviewItem = \(\{ entry = \{\}, settings = \{\}, autostart = false \}\) =>/);
-    assert.match(dockerJs, /const applyFolderPreviewLayout = \(\$preview, settings = \{\}\) =>/);
     assert.match(dockerJs, /const layoutFolderPreviewRows = \(\$preview, settings = \{\}\) =>/);
+    assert.match(dockerJs, /const applyFolderPreviewLayout = typeof dockerRuntimeShared\.applyFolderPreviewLayout === 'function'/);
+    assert.match(dockerJs, /const flattenPreviewWrappers = typeof dockerRuntimeShared\.flattenPreviewWrappers === 'function'/);
+    assert.match(dockerJs, /const restoreLinearPreviewLayout = typeof dockerRuntimeShared\.restoreLinearPreviewLayout === 'function'/);
+    assert.match(dockerJs, /const finalizePreviewRows = typeof dockerRuntimeShared\.finalizePreviewRows === 'function'/);
     assert.match(dockerJs, /let clone = \$\(`tr\.folder-id-\$\{folderTrId\} div\.folder-storage > tr > td\.ct-name > span\.outer:last`\)\.clone\(\)/);
     assert.match(dockerJs, /\$previewElementTarget\.children\('span\.inner'\)\.last\(\)/);
     assert.match(dockerJs, /const maxItemsPerRow = Math\.max\(1,\s*getFolderPreviewItemsPerRow\(settings\)\)/);
@@ -49,6 +64,9 @@ test('docker runtime applies preview row layout limits and enhanced member actio
     assert.match(dockerJs, /const wrapperTop = Number\(measurementWrapper\?\.offsetTop \?\? 0\)/);
     assert.match(dockerJs, /const startsNewRow = currentRow\.length > 0/);
     assert.match(dockerJs, /const exceedsItemCap = currentRow\.length >= maxItemsPerRow/);
+    assert.match(dockerJs, /restoreLinearPreviewLayout\(\$preview,\s*settings\);/);
+    assert.match(dockerJs, /const wrappers = flattenPreviewWrappers\(\$preview\);/);
+    assert.match(dockerJs, /finalizePreviewRows\(\$preview,\s*visibleRows,\s*settings\);/);
     assert.match(dockerJs, /layoutFolderPreviewRows\(\$\(`tr\.folder-id-\$\{id\} div\.folder-preview`\), folder\.settings\)/);
     assert.match(dockerJs, /layoutFolderPreviewRows\(\$preview, folder\?\.settings \|\| \{\}\)/);
     assert.match(dockerJs, /decorateDockerFolderMemberRow\(\$containerTR, id, ct\.info\.Name \|\| container_name_in_folder\)/);
@@ -68,10 +86,10 @@ test('docker runtime applies preview row layout limits and enhanced member actio
 test('docker styles support multi-row previews and member action sheet styling', () => {
     assert.match(dockerCss, /\.hover:hover div\.folder-preview div:not\(\.folder-preview-row\):not\(\.folder-preview-divider\) \{/);
     assert.match(dockerCss, /\.hover div\.folder-preview div:not\(\.folder-preview-row\):not\(\.folder-preview-divider\) \{/);
-    assert.match(dockerCss, /\.folder-preview \{/);
-    assert.match(dockerCss, /\.folder-preview \{[\s\S]*align-items:\s*center/);
-    assert.match(dockerCss, /\.folder-preview \{[\s\S]*flex-wrap:\s*wrap/);
-    assert.match(dockerCss, /\.folder-preview \{[\s\S]*align-content:\s*flex-start/);
+    assert.match(runtimeSharedCss, /\.folder-preview \{/);
+    assert.match(runtimeSharedCss, /\.folder-preview \{[\s\S]*align-items:\s*center/);
+    assert.match(runtimeSharedCss, /\.folder-preview \{[\s\S]*flex-wrap:\s*wrap/);
+    assert.match(runtimeSharedCss, /\.folder-preview \{[\s\S]*align-content:\s*flex-start/);
     assert.match(dockerCss, /\.folder-preview-row \{/);
     assert.match(dockerCss, /\.folder-preview-row \{[\s\S]*align-items:\s*flex-start/);
     assert.match(dockerCss, /\.folder-preview-row \{[\s\S]*column-gap:\s*0/);
@@ -84,9 +102,9 @@ test('docker styles support multi-row previews and member action sheet styling',
     assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-row \{[\s\S]*min-height:\s*var\(--fvplus-preview-row-height\)/);
     assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-row \{[\s\S]*padding:\s*0/);
     assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-wrapper \{/);
-    assert.match(dockerCss, /\.folder-preview-wrapper \{[\s\S]*margin-left:\s*10px/);
-    assert.match(dockerCss, /\.folder-preview-wrapper \{[\s\S]*margin-top:\s*6px/);
-    assert.match(dockerCss, /\.folder-preview-wrapper \{[\s\S]*flex:\s*0 0 auto/);
+    assert.match(runtimeSharedCss, /\.folder-preview-wrapper \{[\s\S]*margin-left:\s*10px/);
+    assert.match(runtimeSharedCss, /\.folder-preview-wrapper \{[\s\S]*margin-top:\s*var\(--fvplus-preview-wrapper-margin-top,\s*6px\)/);
+    assert.match(runtimeSharedCss, /\.folder-preview-wrapper \{[\s\S]*flex:\s*0 0 auto/);
     assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-wrapper \{[\s\S]*min-height:\s*calc\(var\(--fvplus-preview-row-height\) - 0\.9em\)/);
     assert.match(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-wrapper \{[\s\S]*margin:\s*6px 0 0 10px/);
     assert.doesNotMatch(dockerCss, /\.folder-preview\.fv-preview-multirow \.folder-preview-wrapper \{[\s\S]*transform:\s*translateY\(/);

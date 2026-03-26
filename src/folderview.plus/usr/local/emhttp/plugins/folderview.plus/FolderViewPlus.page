@@ -31,6 +31,29 @@ $fvplusRuntimeConflicts = fvplus_detect_runtime_plugin_conflicts();
 <?php emitNoCacheMetaTags(); ?>
 <?php emitPluginPageVersionSentinelScript('settings'); ?>
 <link rel="stylesheet" href="<?=autov('/plugins/folderview.plus/styles/folderviewplus.css')?>">
+<script>
+    window.FolderViewPlusHostThemeName = <?php echo json_encode((string)($display['theme'] ?? ''), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
+    (function applySettingsHostThemeName(rawThemeName) {
+        const safeThemeName = String(rawThemeName || '').trim().toLowerCase();
+        if (!safeThemeName) {
+            return;
+        }
+        const applyAttrs = () => {
+            try {
+                document.documentElement?.setAttribute('data-fvplus-host-theme', safeThemeName);
+                document.documentElement?.setAttribute('data-fv-host-theme', safeThemeName);
+                document.body?.setAttribute('data-fvplus-host-theme', safeThemeName);
+                document.body?.setAttribute('data-fv-host-theme', safeThemeName);
+            } catch (_error) {
+                // Best effort only.
+            }
+        };
+        applyAttrs();
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', applyAttrs, { once: true });
+        }
+    })(window.FolderViewPlusHostThemeName);
+</script>
 
 <div id="fv-settings-root" class="fv-theme-safe">
 <div id="fv-settings-topbar"></div>
@@ -1077,11 +1100,13 @@ if (!empty($fvplusRuntimeConflicts)) {
 
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>
+<script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.chrome.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.dirty.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.settings-metadata.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js')?>"></script>
+<script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.settings-table.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js')?>"></script>

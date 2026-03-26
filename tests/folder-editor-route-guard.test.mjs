@@ -1,0 +1,78 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+
+const repoRoot = process.cwd();
+const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
+
+const folderJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js');
+const folderLegacyJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.legacy.js');
+const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
+const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
+const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js');
+const folderPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page');
+const folderEditorChromeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js');
+
+test('folder editor runtimes accept query and hash bootstrap identity fallbacks', () => {
+    assert.match(folderJs, /const readFolderEditorBootstrapSeed = \(\) =>/);
+    assert.match(folderJs, /const readWindowNameFolderEditorBootstrapSeed = \(\) =>/);
+    assert.match(folderJs, /folderEditorBootstrapSeed\?\.type/);
+    assert.match(folderJs, /folderEditorBootstrapSeed\?\.id/);
+    assert.match(folderJs, /folderEditorBootstrapSeed\?\.folder/);
+    assert.match(folderJs, /const folderEditorHashParams = new URLSearchParams/);
+    assert.match(folderJs, /folderEditorHashParams\.get\('type'\)/);
+    assert.match(folderJs, /folderEditorHashParams\.get\('id'\)/);
+    assert.match(folderJs, /folderThemeSurfaceBinding\?\.runApply\('chrome-ready'\)/);
+    assert.match(folderJs, /sampleRoot:\s*'body'/);
+    assert.match(folderJs, /windowNameSeed=/);
+    assert.match(folderJs, /storageSeedSummary=/);
+    assert.match(folderJs, /windowNameSeedSummary=/);
+    assert.match(folderJs, /cookieSeed=/);
+    assert.match(folderJs, /navigationPrefillId=/);
+    assert.match(folderJs, /foldersLoaded=/);
+    assert.match(folderJs, /membersLoaded=/);
+    assert.match(folderJs, /resolvedBy=/);
+    assert.match(folderJs, /return safeType && safeId \? \{ type: safeType, id: safeId, folder \} : null;/);
+    assert.match(folderJs, /folder:\s*payload\?\.folder && typeof payload\.folder === 'object'/);
+    assert.match(folderJs, /window\.FolderViewPlusFolderEditorRuntimeLoaded = true;/);
+    assert.match(folderJs, /window\.FolderViewPlusFolderEditorRuntimeBootStage = 'script-evaluated';/);
+    assert.match(folderJs, /window\.FolderViewPlusFolderEditorRuntimeBootStage = 'runtime-ready';/);
+    assert.match(folderPage, /\$_COOKIE\['fv_folder_editor_bootstrap'\]/);
+    assert.match(folderPage, /\$folderEditorCookieType = trim/);
+    assert.match(folderPage, /\$folderEditorCookieId = trim/);
+    assert.match(folderLegacyJs, /const readFolderEditorBootstrapSeed = \(\) =>/);
+    assert.match(folderLegacyJs, /const readWindowNameFolderEditorBootstrapSeed = \(\) =>/);
+    assert.match(folderLegacyJs, /folderEditorBootstrapSeed\?\.type/);
+    assert.match(folderLegacyJs, /folderEditorBootstrapSeed\?\.id/);
+    assert.match(folderLegacyJs, /folderEditorBootstrapSeed\?\.folder/);
+    assert.match(folderLegacyJs, /folderEditorWindowNameBootstrap/);
+    assert.match(folderLegacyJs, /folderEditorBootstrapSeed = folderEditorWindowNameBootstrap \|\| folderEditorStorageBootstrap/);
+    assert.match(folderLegacyJs, /return safeType && safeId \? \{ type: safeType, id: safeId, folder \} : null;/);
+    assert.match(folderLegacyJs, /folder:\s*payload\?\.folder && typeof payload\.folder === 'object'/);
+    assert.match(folderLegacyJs, /const folderEditorHashParams = new URLSearchParams/);
+    assert.match(folderLegacyJs, /folderEditorHashParams\.get\('type'\)/);
+    assert.match(folderLegacyJs, /folderEditorHashParams\.get\('id'\)/);
+    assert.match(folderLegacyJs, /sampleRoot:\s*'body'/);
+    assert.match(folderEditorChromeJs, /root\.FolderViewPlusReportFolderEditorBootstrap =/);
+    assert.match(folderEditorChromeJs, /Folder editor runtime stalled during bootstrap\./);
+    assert.match(folderEditorChromeJs, /<details id="fvEditorBootstrapDetails" class="fv-editor-bootstrap-disclosure">/);
+    assert.match(folderEditorChromeJs, /<summary id="fvEditorBootstrapSummary" class="fv-editor-bootstrap-summary">Bootstrap diagnostics<\/summary>/);
+    assert.match(folderEditorChromeJs, /root\.addEventListener\('error'/);
+    assert.match(folderEditorChromeJs, /root\.addEventListener\('unhandledrejection'/);
+});
+
+test('folder editor URLs duplicate folder identity into the hash for navigation-safe fallback', () => {
+    assert.match(dockerJs, /const EDITOR_WINDOW_NAME_PREFIX = 'fv\.folder\.editor\.v1:'/);
+    assert.match(dockerJs, /const EDITOR_BOOTSTRAP_COOKIE_NAME = 'fv_folder_editor_bootstrap';/);
+    assert.match(dockerJs, /window\.name = `\$\{EDITOR_WINDOW_NAME_PREFIX\}\$\{payload\}`;/);
+    assert.match(vmJs, /const EDITOR_WINDOW_NAME_PREFIX = 'fv\.folder\.editor\.v1:'/);
+    assert.match(vmJs, /const EDITOR_BOOTSTRAP_COOKIE_NAME = 'fv_folder_editor_bootstrap';/);
+    assert.match(vmJs, /window\.name = `\$\{EDITOR_WINDOW_NAME_PREFIX\}\$\{payload\}`;/);
+    assert.match(dashboardJs, /const EDITOR_WINDOW_NAME_PREFIX = 'fv\.folder\.editor\.v1:'/);
+    assert.match(dashboardJs, /const EDITOR_BOOTSTRAP_COOKIE_NAME = 'fv_folder_editor_bootstrap';/);
+    assert.match(dashboardJs, /window\.name = `\$\{EDITOR_WINDOW_NAME_PREFIX\}\$\{payload\}`;/);
+    assert.match(dockerJs, /return `\/Docker\/Folder\?\$\{params\.toString\(\)\}#\$\{hashParams\.toString\(\)\}`;/);
+    assert.match(vmJs, /return `\/VMs\/Folder\?\$\{params\.toString\(\)\}#\$\{hashParams\.toString\(\)\}`;/);
+    assert.match(dashboardJs, /return `\$\{location\.pathname\}\/Folder\?\$\{params\.toString\(\)\}#\$\{hashParams\.toString\(\)\}`;/);
+});

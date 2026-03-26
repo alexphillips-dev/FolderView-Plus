@@ -16,6 +16,7 @@ const settingsCss = read('src/folderview.plus/usr/local/emhttp/plugins/foldervie
 const settingsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js');
 const diagnosticsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js');
 const sharedRuntimeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js');
+const themeResolverJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js');
 
 test('runtime css defines canonical fvplus status tokens and legacy graph aliases', () => {
     assert.match(dockerCss, /--fvplus-theme-foreground:\s*var\(--fvplus-runtime-theme-foreground,\s*var\(--text,\s*currentColor\)\)/);
@@ -39,6 +40,7 @@ test('status state classes resolve through css variables instead of hardcoded ru
 test('dashboard quick action palette is tokenized', () => {
     assert.match(dashboardCss, /--fvplus-dashboard-quick-action-border/);
     assert.match(dashboardCss, /--fvplus-dashboard-accent/);
+    assert.match(dashboardCss, /\.fv-dashboard-quick-action\s*\{[\s\S]*background:\s*transparent !important/);
     assert.match(dashboardCss, /\.fv-dashboard-quick-action:hover[\s\S]*var\(--fvplus-dashboard-accent\)/);
     assert.match(settingsCss, /--fvplus-settings-surface-muted/);
     assert.match(settingsCss, /--fvplus-settings-accent/);
@@ -57,13 +59,55 @@ test('runtime scripts avoid inline status color painting and use row-level css v
 test('theme-change observers trigger deterministic reflow across runtime and settings surfaces', () => {
     assert.match(dockerJs, /const queueDockerRuntimeThemeReflow/);
     assert.match(dockerJs, /const bindDockerRuntimeThemeReflow/);
+    assert.match(dockerJs, /const applyDockerThemeResolverTokens = \(reason = 'docker-runtime:initial', options = \{\}\) =>/);
     assert.match(vmJs, /const queueVmRuntimeThemeReflow/);
     assert.match(vmJs, /const bindVmRuntimeThemeReflow/);
+    assert.match(vmJs, /const applyVmThemeResolverTokens = \(reason = 'vm-runtime:initial', options = \{\}\) =>/);
     assert.match(dashboardJs, /const queueDashboardThemeReflow/);
     assert.match(dashboardJs, /const bindDashboardThemeReflowHandlers/);
     assert.match(settingsJs, /const queueSettingsThemeAwareReflow/);
     assert.match(settingsJs, /const initThemeAwareSettingsReflow/);
-    assert.match(settingsJs, /const buildResolvedThemeSnapshot = \(modeInput = null\) =>/);
-    assert.match(settingsJs, /const applyResolvedThemeTokens = \(reason = 'runtime'\) =>/);
+    assert.match(settingsJs, /const resolveThemeCompatibilityMode = \(value\) =>/);
+    assert.match(settingsJs, /const buildThemeResolverSnapshot = \(modeInput = null, options = \{\}\) =>/);
+    assert.match(settingsJs, /const applyThemeResolverTokens = \(reason = 'runtime', options = \{\}\) =>/);
+    assert.match(settingsJs, /const configureThemeResolverRuntimeApi = \(options = \{\}\) =>/);
+    assert.match(themeResolverJs, /window\.FolderViewPlusThemeResolver = Object\.freeze\(\{/);
+    assert.match(themeResolverJs, /buildResolvedThemeSnapshot,/);
+    assert.match(themeResolverJs, /applyResolvedThemeTokens,/);
+    assert.match(themeResolverJs, /bindThemeAwareSurface/);
+    assert.match(themeResolverJs, /window\.FolderViewPlusThemeResolverModuleLoaded = true;/);
+    assert.match(diagnosticsJs, /const applyDiagnosticsThemeTokens = \(reason = 'runtime', options = \{\}\) =>/);
+    assert.match(diagnosticsJs, /const buildDiagnosticsThemeSnapshot = \(modeInput = null, options = \{\}\) =>/);
     assert.match(diagnosticsJs, /const runThemeSelfHeal = async \(\) =>/);
+});
+
+test('theme resolver keeps folder editor outlines aligned to accent borders', () => {
+    assert.match(themeResolverJs, /const editorOutline = themeRgbaToCss\(palette\.accent,\s*isLight \? 0\.24 : 0\.22\);/);
+    assert.match(themeResolverJs, /const editorOutlineStrong = themeRgbaToCss\(palette\.accent,\s*isLight \? 0\.44 : 0\.5\);/);
+    assert.match(themeResolverJs, /editorBorder:\s*editorOutline,/);
+    assert.match(themeResolverJs, /editorBorderStrong:\s*editorOutlineStrong,/);
+    assert.match(themeResolverJs, /editorHeroIconBorder:\s*editorOutline,/);
+    assert.match(themeResolverJs, /editorControlBorder:\s*editorOutline,/);
+});
+
+test('theme resolver exports settings semantic tokens for readable light and dark surfaces', () => {
+    assert.match(themeResolverJs, /const buildSettingsSemanticTokenStrings = \(classification\) =>/);
+    assert.match(themeResolverJs, /settingsTreeGuide:\s*isLight \? 'rgba\(129, 140, 154, 0\.48\)' : 'rgba\(173, 178, 192, 0\.55\)'/);
+    assert.match(themeResolverJs, /settingsBreadcrumbText:\s*isLight \? 'rgba\(89, 103, 120, 0\.86\)' : 'rgba\(180, 197, 221, 0\.88\)'/);
+    assert.match(themeResolverJs, /settingsChipEmpty:\s*isLight \? '#667385' : 'rgba\(240, 240, 240, 0\.86\)'/);
+    assert.match(themeResolverJs, /buildThemeTokenMap[\s\S]*buildSettingsSemanticTokenStrings\(snapshot\.classification\)/);
+    assert.match(themeResolverJs, /'--fvplus-settings-tree-guide':\s*tokens\.settingsTreeGuide \|\| ''/);
+    assert.match(themeResolverJs, /'--fvplus-settings-breadcrumb-text':\s*tokens\.settingsBreadcrumbText \|\| ''/);
+    assert.match(themeResolverJs, /'--fvplus-settings-chip-empty':\s*tokens\.settingsChipEmpty \|\| ''/);
+    assert.match(themeResolverJs, /'--fvplus-settings-chip-empty-bg':\s*tokens\.settingsChipEmptyBg \|\| ''/);
+});
+
+test('theme resolver ignores transparent surfaces and only hard-forces explicit black host themes dark', () => {
+    assert.match(themeResolverJs, /const isThemeSurfaceColorUsable = \(color, minAlpha = 0\.08\) =>/);
+    assert.match(themeResolverJs, /const resolveThemeSurfaceColor = \(\.\.\.candidates\) =>/);
+    assert.match(themeResolverJs, /const rootBackground = resolveThemeSurfaceColor\(\s*parseThemeColorToRgba\(rootStyle\?\.backgroundColor\),\s*parseThemeColorToRgba\(bodyStyle\?\.backgroundColor\),\s*parseThemeColorToRgba\(htmlStyle\?\.backgroundColor\),\s*parseThemeColorToRgba\('#0f1825'\)\s*\)/);
+    assert.match(themeResolverJs, /if \(normalized\.includes\('black'\)\) \{/);
+    assert.doesNotMatch(themeResolverJs, /normalized\.includes\('azure'\)/);
+    assert.doesNotMatch(themeResolverJs, /normalized\.includes\('gray'\)/);
+    assert.doesNotMatch(themeResolverJs, /normalized\.includes\('grey'\)/);
 });

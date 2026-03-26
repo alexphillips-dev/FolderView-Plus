@@ -8,12 +8,17 @@ const dockerCssPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css'
 );
+const runtimeSharedCssPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/runtime.shared.css'
+);
 const dockerJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js'
 );
 
 const dockerCss = fs.readFileSync(dockerCssPath, 'utf8');
+const runtimeSharedCss = fs.readFileSync(runtimeSharedCssPath, 'utf8');
 const dockerJs = fs.readFileSync(dockerJsPath, 'utf8');
 
 test('docker mobile app-name width contract keeps long names visible before ellipsis', () => {
@@ -24,10 +29,11 @@ test('docker mobile app-name width contract keeps long names visible before elli
 });
 
 test('docker folder dropdown keeps right gutter to avoid version-column clipping', () => {
-    assert.match(dockerCss, /\.folder-dropdown\s*\{[\s\S]*min-width:\s*var\(--fvplus-folder-dropdown-min-width,\s*12px\)/);
-    assert.match(dockerCss, /\.folder-dropdown\s*\{[\s\S]*margin:\s*0 16px 0 auto/);
+    assert.match(runtimeSharedCss, /\.folder-dropdown\s*\{[\s\S]*min-width:\s*var\(--fvplus-folder-dropdown-min-width,\s*12px\)/);
+    assert.match(runtimeSharedCss, /\.folder-dropdown\s*\{[\s\S]*margin:\s*0 var\(--fvplus-folder-dropdown-right-margin,\s*16px\) 0 auto/);
     assert.match(dockerCss, /td\.ct-name\.folder-name > \.folder-name-sub\s*\{[\s\S]*right:\s*28px/);
-    assert.match(dockerCss, /\.folder-dropdown > i\s*\{[\s\S]*font-size:\s*12px/);
+    assert.match(runtimeSharedCss, /\.folder-dropdown > i\s*\{[\s\S]*font-size:\s*var\(--fvplus-folder-dropdown-icon-size,\s*12px\) !important/);
+    assert.match(dockerCss, /--fvplus-folder-dropdown-icon-size:\s*12px/);
 });
 
 test('docker runtime keeps width-gap guardrails for long-name and version alignment balance', () => {

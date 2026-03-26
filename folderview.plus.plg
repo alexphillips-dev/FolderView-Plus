@@ -5,13 +5,297 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.25.31">
-<!ENTITY md5 "630c0e0353fd000ee0df03a4c87b2391">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
+<!ENTITY version "2026.03.26.16">
+<!ENTITY md5 "86c835b13b5594c012127dc43dbedb43">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.16
+- Fix: The shared theme resolver no longer hard-forces the Unraid Azure host theme into the dark compatibility path, so the new folder editor now follows the actual page luminance instead of rendering a mismatched dark shell on Azure.
+- Fix: Azure and other non-black named host themes now fall back to computed surface brightness for folder editor theme classification, keeping light host pages on the light editor palette.
+- Regression guard: Updated the resolver contract test so only explicit black themes are pinned dark while transparent-surface and light-host inference stays enforced.
+
+
+###2026.03.26.15
+- UI/UX: Removed the boxed square chrome from the row action buttons in the basic settings tables so the standard actions render as clean orange icons instead of outlined mini-buttons.
+- UI/UX: Kept the trailing overflow `...` action boxed so the expandable action affordance still reads as a separate control.
+- Regression guard: Added a layout assertion covering the unboxed action-button rule for non-overflow row actions.
+
+
+###2026.03.26.14
+- Fix: The settings page now exports the host theme name like the folder editor so white and other light themes enter the correct readable settings palette on the basic page.
+- Fix: The shared theme resolver now ignores transparent root backgrounds and no longer hard-forces grey-named themes dark, preventing white-theme settings tables from inheriting unreadable dark tokens.
+- Regression guard: Added resolver and settings-page bootstrap assertions to lock the light-theme classification path and prevent another unreadable basic-page regression.
+
+
+###2026.03.26.13
+- Fix: Hardened the modern folder editor field sizing with force-win input rules and class-based inherited-row hiding so health and status controls no longer collapse into tiny clipped placeholders on the live page.
+- Fix: Added direct white-theme settings table overrides for nested folder metadata, pin/runtime chips, and empty-state status or alert chips so those cells stay readable even when host page styles outrank the softer token path.
+- Regression guard: Extended the folder editor and settings light-theme layout assertions to cover the forced input widths, inherited-row hide rule, and direct readability overrides.
+
+
+###2026.03.26.12
+- Fix: Moved the settings page white-theme breadcrumb, nested metadata, and empty-chip colors onto resolver-applied semantic tokens so light themes no longer fall back to the unreadable dark palette.
+- UI/UX: Enlarged the folder editor `Use global` inherit control so the label no longer clips into a tiny `Use g` pill in the modern settings blocks.
+- Regression guard: Added runtime token and layout assertions covering the settings semantic palette plus the larger inherit button sizing.
+
+
+###2026.03.26.11
+- Fix: Re-themed the light settings page tree meta, nested folder hints, and neutral status or alert chips so white themes keep readable folder text and empty-state indicators.
+- UI/UX: Increased the modern folder editor field control sizes so text, number, select, and textarea inputs are easier to read while editing settings blocks.
+- Regression guard: Added light-theme settings contrast and modern editor control sizing assertions to keep these readability fixes from regressing.
+
+
+###2026.03.26.10
+- UX: Removed the duplicate `Using global` inherit control from inherited folder-editor rows so only the inherited-default notice remains visible.
+- UI/UX: Shrunk the blue inherited-default badge so it reads as a compact notice instead of a large pill next to the field title.
+
+
+###2026.03.26.09
+- UX: Tightened modern folder editor inheritance notices so `Using global` renders as a compact blue info label instead of a large gray control.
+- UI/UX: Applied the orange editor outline treatment across both light and dark modern folder editor surfaces, including cards, controls, settings blocks, and the hero/icon framing.
+- Fix: Re-themed the Members section table to use editor surface tokens so light themes no longer render the member list as a flat gray slab.
+
+
+###2026.03.26.08
+- Fix: Restyled inherited folder-editor notices so `Using global` reads as a compact blue info label instead of a full gray button.
+- Fix: Extended the modern folder editor orange outline treatment across both light and dark themes, including control borders, hero icon framing, and the remaining settings blocks.
+- Fix: Re-themed the Members section table to use the editor surface tokens so light themes no longer render the member list as a flat gray slab.
+
+
+###2026.03.26.07
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.26.06
+- Fix: Member reordering in the folder editor now refreshes the live preview immediately and keeps the in-memory member order synchronized before save in both the modern and legacy runtimes.
+- Regression guard: Browser smoke now exercises real modern folder editor interactions, including preview section revert/defaults, member reorder-to-preview verification, custom action add/remove, save, and smoke-folder cleanup.
+- Quality: Added a remote raw publish guard for the live `.plg`, archive, and checksum, and trimmed redundant regression guard coverage by keeping only the higher-signal workflow and layout contracts.
+
+
+###2026.03.26.05
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.26.04
+- Quality: Audited the remaining modern folder editor settings contract so every schema-backed field is present in the page markup, bound during load, serialized during save, and covered by section restore/default metadata.
+- Regression guard: Added a dedicated modern folder editor settings contract test to catch future mismatches between the schema, page controls, and runtime save/load paths before they ship.
+
+
+###2026.03.26.03
+- Fix: Restored the missing `folder.editor.icon-api.js` dependency on the folder editor page so member reordering and any other folder save path no longer fail in the modern editor with `Cannot read properties of null (reading 'securePost')`.
+- Regression guard: The modern folder editor bootstrap now treats the icon API helper as a required module and the editor smoke coverage checks that the page ships it before runtime save handlers execute.
+
+
+###2026.03.26.02
+- Fix: Rebuilt the modern folder editor Preview layout around real constraint-aware field cards, which removes the broken gaps, restores the correct row order, and hides advanced preview controls unless their parent options are enabled.
+- Fix: Reworked the modern Status and Actions modules so the status palette card keeps the same row height as neighboring cards, the custom-actions area becomes one full-width module, and the add-action control sits under the action list instead of in a separate fake button card.
+
+
+###2026.03.26.01
+- Fix: Restored the original orange heading treatment for the modern folder editor and settings module titles on darker themes, avoiding black-on-black title regressions.
+- Quality: Added regression coverage for dark-theme title accents across the folder editor and settings surfaces.
+
+
+###2026.03.25.71
+- Fix: Keep the modern folder editor shell hidden behind the loading placeholder until runtime hydration completes, so existing-folder edits no longer flash the blank generic shell first.
+- Fix: Reveal the modern editor stage only after runtime-ready or on bootstrap failure, which preserves diagnostics while removing the intermediate empty-state repaint during normal loads.
+
+
+###2026.03.25.70
+- Fix: Finalize the shipped modern folder editor stage/scaffold boot path so the old legacy form no longer flashes before existing-folder hydration completes.
+- Fix: Keep modern section titles and field-card layout on the modern theme/layout contract by loading folder editor styles after the host theme and scoping legacy alignment rules to legacy mode only.
+- Quality: Rebuild the packaged dev archive and smoke guards around the mode-scoped modern editor root.
+
+
+###2026.03.25.69
+- Fix: Render the modern folder editor through its own visible stage while keeping the legacy scaffold hidden, so the legacy form no longer flashes before the modern editor hydrates.
+- Fix: Stop legacy runtime left-alignment overrides from applying to modern editor rows, which keeps modern field cards and section spacing under the modern layout contract.
+- Quality: Load folder editor styles after the host theme and lock the modern-stage/scaffold split into the editor smoke guards.
+
+
+###2026.03.25.68
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.25.67
+- Maintenance: Refresh perf baseline for folder editor UI update.
+
+
+###2026.03.25.66
+- Maintenance: Update release notes for modern editor field row fix.
+
+
+###2026.03.25.65
+- Fix: Keep the modern folder editor field cards on their intended stacked `dt/dd` layout instead of letting the legacy left-alignment runtime force them back into a two-column grid.
+- Fix: Preserve the modern section-card control geometry so toggles, text inputs, and inline controls stay aligned inside each editor card after runtime refreshes.
+
+
+###2026.03.25.64
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.25.63
+- Maintenance: Compress the folder editor bootstrap disclosure styles to stay within the CSS perf budget without changing the new collapsed-by-default diagnostics behavior.
+
+
+###2026.03.25.62
+- UX: Collapse the folder editor bootstrap diagnostics by default behind a `Bootstrap diagnostics` disclosure so routine editing stays clean while full runtime details remain available for troubleshooting.
+- Regression guard: Enforce that the modern editor startup begins only after late runtime helpers like `folderHierarchyState` are declared, preventing future bootstrap-order regressions from creeping back in unnoticed.
+
+
+###2026.03.25.61
+- Fix: Defer the modern folder editor startup bootstrap until the end of `folder.js`, so saved-folder hydration no longer executes before later runtime helpers like `folderHierarchyState` are initialized.
+- Regression guard: Lock the deferred `startFolderEditorRuntime()` bootstrap path into the modern editor smoke and nesting guards so early-start TDZ failures do not regress.
+
+
+###2026.03.25.60
+- Fix: Hoist `updateForm` into a function declaration so the modern editor bootstrap can safely call it before later layout helpers finish loading, preventing the `updateForm` initialization crash during saved-folder hydration.
+- Regression guard: Lock the hoisted `updateForm` bootstrap shape into the modern editor smoke and nesting guards so the late `const updateForm` path does not regress.
+
+
+###2026.03.25.59
+- Fix: Promote `normalizeParentFolderId` to a plain top-level editor helper so modern validation can run before the folder hierarchy module is initialized, preventing the remaining parent-folder bootstrap crash before hydration.
+- Regression guard: Lock the direct parent-id helper into the modern editor smoke and nesting guards so the late hierarchy alias does not regress.
+
+
+###2026.03.25.58
+- Fix: Delay modern folder editor shared helper API creation until the folder hierarchy helpers are initialized, preventing the early `normalizeParentFolderId` bootstrap crash before hydration.
+- Regression guard: Lock the lazy shared-editor bootstrap path into the folder editor guards so eager helper initialization does not regress.
+
+
+###2026.03.25.57
+- Fix: Delay modern folder editor preview API creation until its helper functions are initialized, preventing the early `getIncludedMemberNames` bootstrap crash before hydration.
+- Regression guard: Lock the lazy modern preview bootstrap path into the folder editor smoke test so eager preview initialization does not slip back in.
+
+
+###2026.03.25.55
+- Fix: Move the folder editor runtime boot into a page-owned script loader so `Folder.page` can force fresh modern or legacy editor scripts into the active xmenu window on every open.
+- Quality: Lock the new injected runtime boot path into the folder page architecture and security guards so the editor no longer depends on passive bottom-of-page script tags.
+
+
+###2026.03.25.54
+- Fix: Scope the modern and legacy folder editor runtimes so Unraid can execute them repeatedly in the same xmenu window without global redeclaration collisions.
+- Quality: Reset the folder editor bootstrap sentinels on every page load so the on-page runtime diagnostics reflect the current editor launch instead of stale global state.
+
+
+###2026.03.25.53
+- Fix: Force the folder editor page to request build-versioned runtime assets so updated `folder.js` and `folder.editor.chrome.js` cannot be masked by stale browser cache.
+- Quality: Ship the page-level folder editor runtime script monitor and visible bootstrap watchdog directly from `Folder.page` so stalled editor boots surface actionable diagnostics on the live page.
+
+
+###2026.03.25.52
+- Quality: The modern folder editor bootstrap panel now reports as soon as `folder.js` executes, including page, query, hash, and fallback seed identity values.
+- Regression guard: Added a check so the explicit modern-runtime bootstrap marker stays present in the shipped editor runtime.
+
+
+###2026.03.25.51
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.25.50
+- Fix: Brought `window.name` bootstrap recovery into the restored legacy folder-editor runtime so it can consume the same launcher fallback path as Docker, VM, and Dashboard edit actions.
+- Quality: Updated the route guard to lock the shared bootstrap seed path for the legacy runtime and prevent storage-only regressions.
+
+
+###2026.03.25.49
+- Fix: Restored the proven modern-folder-editor runtime path by keeping the new editor chrome but routing existing-folder hydration back through `folder.legacy.js`.
+- Compatibility: Updated architecture and page-smoke guards to lock the modern-shell plus legacy-hydration include order so future refactors do not silently break existing-folder editing again.
+
+
+###2026.03.25.48
+- Quality: Tightened the folder editor bootstrap watchdog so `script-evaluated` and other stalled early stages now render a failure block instead of leaving the static waiting placeholder.
+- Regression guard: Added route-guard coverage for the explicit `runtime-ready` stage and the stalled-bootstrap reporter text so early runtime failures stay visible on-page.
+
+
+###2026.03.25.47
+- Quality: Added a chrome-level folder editor bootstrap watchdog that reports top-level script crashes, unhandled rejections, and missing runtime startup directly in the on-page debug panel.
+- Regression guard: Locked the new early-runtime reporter and boot-stage sentinels into the folder editor route guard so blank placeholder output becomes actionable diagnostics.
+
+
+###2026.03.25.46
+- Quality: Expanded the modern folder editor bootstrap panel to show page mode, seed summaries, navigation prefill, folder-map load count, member load count, and the final hydrate resolver path.
+- Quality: Locked the new bootstrap debug fields into the route guard so future editor-launch regressions are visible on-page instead of failing silently.
+
+
+###2026.03.25.45
+- Fix: Modern and legacy folder editors now keep `type/id` bootstrap identity even when the launch payload does not include an embedded folder object.
+- Fix: Existing-folder hydration can now resolve from storage and window-name identity fallbacks after query or hash state is stripped during navigation.
+- Quality: Route guard coverage now locks the identity-only bootstrap contract so folder-edit launches do not silently regress back to blank-editor mode.
+
+
+###2026.03.25.44
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.25.43
+- Fix: Stamp the active Unraid host theme onto the folder-editor page shell so White mode can force light editor chrome and action-bar surfaces instead of falling back to dark defaults.
+- Fix: Carry modern folder-editor bootstrap state through `window.name` in addition to query, hash, and storage fallback paths so existing folder edits survive more navigation flows.
+- Quality: Show live bootstrap diagnostics in the modern editor shell so missing folder target state is visible immediately instead of silently opening as a blank new folder.
+
+
+###2026.03.25.42
+- Fix: Modern folder editor now carries folder bootstrap data through query, hash, storage, and `window.name` fallback so editing an existing folder is more resilient when Unraid navigation strips route state.
+- Fix: White-theme folder editor chrome, live panel, and action bar now inherit explicit light tokens from the active Unraid host theme instead of falling back to dark header/footer surfaces.
+- Quality: Added visible folder-editor bootstrap diagnostics plus stronger route guard coverage so missing target state is obvious instead of silently opening in blank new-folder mode.
+
+
+###2026.03.25.41
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.25.40
+- Maintenance: Update folder editor runtime security guard.
+
+
+###2026.03.25.39
+- Maintenance: Update release notes for theme resolver rollout.
+- Maintenance: Update theme runtime guard for shared resolver.
+
+
+###2026.03.25.38
+- UX: Detect and adapt to the active Unraid host theme across settings, dashboard, Docker, VMs, and the folder editor.
+- Fix: Rework folder editor chrome and preview surfaces to stay readable under light host themes, including Unraid White.
+- Quality: Add shared theme-resolver coverage and theme-matrix smoke checks for the folder editor.
+
+
+###2026.03.25.37
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.25.36
+- Fix: Fix release notes for dashboard rail style update.
+
+
+###2026.03.25.35
+- UX: Removed the boxed chrome from dashboard widget action-rail buttons for Docker and VM widgets.
+- Quality: Added regression coverage so dashboard quick-action rails stay borderless.
+
+
+###2026.03.25.34
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+- Docs: Updated project documentation to match the latest behavior.
+
+
+###2026.03.25.33
+- Maintenance: Align VM preview row centering.
+
+
+###2026.03.25.32
+- Maintenance: Tighten settings search and dropdown hover behavior.
+
 
 ###2026.03.25.31
 - UX: Keep the settings search field tight to the Basic/Advanced mode toggle and right-align the advanced-scope checkbox.
@@ -3541,7 +3825,7 @@
     </CHANGES>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

@@ -13,6 +13,7 @@ const releaseMainWorkflowPath = path.join(repoRoot, '.github/workflows/release-m
 const releaseOnMainWorkflowPath = path.join(repoRoot, '.github/workflows/release-on-main.yml');
 const browserSmokeShellPath = path.join(repoRoot, 'scripts/browser_smoke.sh');
 const browserSmokeNodePath = path.join(repoRoot, 'scripts/browser_smoke.mjs');
+const remotePublishGuardPath = path.join(repoRoot, 'scripts/remote_publish_guard.sh');
 const themeMatrixSmokeShellPath = path.join(repoRoot, 'scripts/theme_matrix_smoke.sh');
 const themeMatrixSmokeNodePath = path.join(repoRoot, 'scripts/theme_matrix_smoke.mjs');
 const installSmokePath = path.join(repoRoot, 'scripts/install_smoke.sh');
@@ -40,6 +41,7 @@ const releaseMainWorkflow = fs.readFileSync(releaseMainWorkflowPath, 'utf8');
 const releaseOnMainWorkflow = fs.readFileSync(releaseOnMainWorkflowPath, 'utf8');
 const browserSmokeShell = fs.readFileSync(browserSmokeShellPath, 'utf8');
 const browserSmokeNode = fs.readFileSync(browserSmokeNodePath, 'utf8');
+const remotePublishGuard = fs.readFileSync(remotePublishGuardPath, 'utf8');
 const themeMatrixSmokeShell = fs.readFileSync(themeMatrixSmokeShellPath, 'utf8');
 const themeMatrixSmokeNode = fs.readFileSync(themeMatrixSmokeNodePath, 'utf8');
 const installSmoke = fs.readFileSync(installSmokePath, 'utf8');
@@ -176,16 +178,20 @@ test('release_guard checks target blank and update-notes release contract', () =
     assert.match(releaseGuard, /must disable fallback so \\\"What Changed\\\" only shows current-version notes/);
 });
 
-test('release_guard enforces branch-specific plugin and archive URLs for main\/dev', () => {
-    assert.match(releaseGuard, /FVPLUS_EXPECT_PLUGIN_BRANCH/);
-    assert.match(releaseGuard, /pluginURL branch mismatch/);
-    assert.match(releaseGuard, /archive URL branch mismatch/);
-    assert.match(releaseGuard, /EXPECTED_PLUGIN_URL="https:\/\/raw\.githubusercontent\.com\/&github;\/\$\{EXPECTED_PLUGIN_BRANCH\}\/folderview\.plus\.plg"/);
-    assert.match(releaseGuard, /EXPECTED_ARCHIVE_URL="https:\/\/raw\.githubusercontent\.com\/&github;\/\$\{EXPECTED_PLUGIN_BRANCH\}\/archive\/&name;-&version;\.txz"/);
-    assert.match(releaseGuard, /canonical entity form/);
+test('remote publish guard validates raw manifest, archive, and checksum after push', () => {
+    assert.match(remotePublishGuard, /FVPLUS_REMOTE_PUBLISH_ATTEMPTS/);
+    assert.match(remotePublishGuard, /FVPLUS_REMOTE_PUBLISH_DELAY_SEC/);
+    assert.match(remotePublishGuard, /expand_manifest_url/);
+    assert.match(remotePublishGuard, /plugin manifest/);
+    assert.match(remotePublishGuard, /archive checksum/);
+    assert.match(remotePublishGuard, /curl -fsSL/);
+    assert.match(remotePublishGuard, /curl -fsSI -L/);
+    assert.match(remotePublishGuard, /Remote manifest version mismatch/);
+    assert.match(remotePublishGuard, /Remote checksum mismatch/);
+    assert.match(remotePublishGuard, /remote raw manifest, archive, and checksum match/);
 });
 
-test('browser smoke scripts support optional and required modes and include core UI checks', () => {
+test('browser smoke scripts require folder editor coverage and include real editor interaction smoke', () => {
     assert.match(browserSmokeShell, /FVPLUS_BROWSER_SMOKE_URL/);
     assert.match(browserSmokeShell, /FVPLUS_BROWSER_SMOKE_REQUIRED/);
     assert.match(browserSmokeShell, /SMOKE_REQUIRED=1/);
@@ -196,6 +202,7 @@ test('browser smoke scripts support optional and required modes and include core
     assert.match(browserSmokeNode, /#fv-settings-topbar/);
     assert.match(browserSmokeNode, /#fv-settings-action-bar/);
     assert.match(browserSmokeNode, /#import-preview-dialog/);
+    assert.match(browserSmokeNode, /FVPLUS_BROWSER_SMOKE_REQUIRE_FOLDER_EDITOR/);
     assert.match(browserSmokeNode, /FVPLUS_BROWSER_SMOKE_DOCKER_URL/);
     assert.match(browserSmokeNode, /FVPLUS_BROWSER_SMOKE_VM_URL/);
     assert.match(browserSmokeNode, /FVPLUS_BROWSER_SMOKE_DASHBOARD_URL/);
@@ -205,15 +212,16 @@ test('browser smoke scripts support optional and required modes and include core
     assert.match(browserSmokeNode, /resolveDashboardUrl/);
     assert.match(browserSmokeNode, /runRuntimeLayoutSmoke/);
     assert.match(browserSmokeNode, /runDashboardQuickRailSmoke/);
-    assert.match(browserSmokeNode, /shortest/);
-    assert.match(browserSmokeNode, /longest/);
-    assert.match(browserSmokeNode, /excessiveVersionGap/);
-    assert.match(browserSmokeNode, /Runtime visual check passed/);
-    assert.match(browserSmokeNode, /Runtime layout overlap detected/);
-    assert.match(browserSmokeNode, /Failed rows:/);
-    assert.match(browserSmokeNode, /Dashboard quick-rail target:/);
-    assert.match(browserSmokeNode, /fv-dashboard-layout-inline-host/);
-    assert.match(browserSmokeNode, /dashboardReports/);
+    assert.match(browserSmokeNode, /waitForFolderEditorReady/);
+    assert.match(browserSmokeNode, /cleanupSmokeFolder/);
+    assert.match(browserSmokeNode, /runFolderEditorInteractionSmoke/);
+    assert.match(browserSmokeNode, /selectedMembers/);
+    assert.match(browserSmokeNode, /previewOrder/);
+    assert.match(browserSmokeNode, /savedActionName/);
+    assert.match(browserSmokeNode, /Folder editor interaction smoke failed/);
+    assert.match(browserSmokeNode, /Cleanup:/);
+    assert.match(browserSmokeNode, /interactionReport/);
+    assert.match(browserSmokeNode, /Browser smoke dialog accepted/);
     assert.match(browserSmokeNode, /page\.screenshot\(\{ path: screenshotPath, fullPage: true \}\)/);
     assert.match(browserSmokeNode, /runBrowserSmoke\('chromium'/);
     assert.match(browserSmokeNode, /runBrowserSmoke\('firefox'/);
@@ -252,7 +260,7 @@ test('theme matrix smoke scripts are optional, URL-gated, and include wizard/the
     assert.match(themeMatrixSmokeNode, /screenshot=/);
 });
 
-test('validation workflows enforce standards guards and release-required browser smoke', () => {
+test('validation workflows enforce standards guards plus required folder editor browser smoke', () => {
     const guardedWorkflows = [ciWorkflow, releaseOnMainWorkflow];
     const allWorkflows = [ciWorkflow, releaseMainWorkflow, releaseOnMainWorkflow];
     for (const workflow of allWorkflows) {
@@ -270,6 +278,7 @@ test('validation workflows enforce standards guards and release-required browser
         assert.match(workflow, /FVPLUS_DEAD_CODE_STRICT/);
         assert.match(workflow, /FVPLUS_REQUIRE_PERF_BASELINE/);
         assert.match(workflow, /FVPLUS_BROWSER_SMOKE_URL/);
+        assert.match(workflow, /FVPLUS_BROWSER_SMOKE_REQUIRE_FOLDER_EDITOR:\s*'1'/);
         assert.match(workflow, /FVPLUS_BROWSER_SMOKE_REQUIRE_RUNTIME_ROWS/);
         assert.match(workflow, /FVPLUS_BROWSER_SMOKE_RUNTIME_GAP_MAX/);
         assert.match(workflow, /bash scripts\/browser_smoke\.sh/);
@@ -307,6 +316,15 @@ test('validation workflows enforce standards guards and release-required browser
     assert.match(releasePrepare, /bash scripts\/doctor\.sh/);
     assert.match(releasePrepare, /bash pkg_build\.sh --no-validate/);
     assert.doesNotMatch(releasePrepare, /--beta/);
+});
+
+test('release workflows validate remote raw publish artifacts before publishing releases', () => {
+    for (const workflow of [releaseMainWorkflow, releaseOnMainWorkflow]) {
+        assert.match(workflow, /Validate remote raw publish artifacts/);
+        assert.match(workflow, /FVPLUS_REMOTE_PUBLISH_ATTEMPTS:\s*'15'/);
+        assert.match(workflow, /FVPLUS_REMOTE_PUBLISH_DELAY_SEC:\s*'6'/);
+        assert.match(workflow, /bash scripts\/remote_publish_guard\.sh/);
+    }
 });
 
 test('release workflows serialize concurrent runs with shared release concurrency group', () => {

@@ -8,6 +8,18 @@ const folderEditorScript = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js'),
     'utf8'
 );
+const folderEditorSharedScript = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.shared.js'),
+    'utf8'
+);
+const folderEditorSchemaScript = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.schema.js'),
+    'utf8'
+);
+const folderEditorPreviewScript = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.preview.js'),
+    'utf8'
+);
 const folderEditorStyles = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folder.css'),
     'utf8'
@@ -47,25 +59,52 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorScript, /window\.FolderViewPlusFolderEditorRequestedId/);
     assert.match(folderEditorScript, /window\.FolderViewPlusFolderEditorResolvedId/);
     assert.match(folderEditorScript, /const folderEditorBootstrapContext = window\.FolderViewPlusFolderEditorBootstrapContext/);
+    assert.match(folderEditorScript, /const folderEditorShared = window\.FolderViewPlusFolderEditorShared \|\| null;/);
+    assert.match(folderEditorScript, /const folderEditorSchema = window\.FolderViewPlusFolderEditorSchema \|\| null;/);
+    assert.match(folderEditorScript, /const folderEditorPreview = window\.FolderViewPlusFolderEditorPreview \|\| null;/);
+    assert.match(folderEditorScript, /let folderEditorSharedApi = null;/);
+    assert.match(folderEditorScript, /const getFolderEditorSharedApi = \(\) =>/);
+    assert.match(folderEditorScript, /folderEditorSharedApi = folderEditorShared\.createApi\(/);
+    assert.match(folderEditorScript, /const normalizeParentFolderId = \(value\) => String\(value \|\| ''\)\.trim\(\);/);
+    assert.match(folderEditorScript, /const modernEditorSchema = typeof folderEditorSchema\?\.createModernSchema === 'function'/);
+    assert.match(folderEditorScript, /let folderEditorPreviewApi = null;/);
+    assert.match(folderEditorScript, /const getFolderEditorPreviewApi = \(\) =>/);
+    assert.match(folderEditorScript, /folderEditorPreviewApi = folderEditorPreview\.createApi\(/);
+    assert.match(folderEditorScript, /function updateForm\(\) \{/);
+    assert.match(folderEditorScript, /const startFolderEditorRuntime = async \(\) => \{/);
+    assert.match(folderEditorScript, /void startFolderEditorRuntime\(\)\.catch\(\(error\) => \{/);
+    assert.match(folderEditorScript, /if \(modernFolderEditorEnabled\) \{[\s\S]*FolderViewPlusRefreshModernEditorChromeLayout[\s\S]*\} else \{[\s\S]*\$\('\.fv-section-heading'\)\.remove\(\);/);
     assert.match(folderEditorScript, /const normalizeFolderRecordForEditor = \(folder\) =>/);
+    assert.match(folderEditorScript, /const modernFieldRow = dl\.closest\('\.fv-modern-field-row'\);/);
+    assert.match(folderEditorScript, /if \(modernFieldRow\) \{[\s\S]*setImportant\(dl, 'display', 'flex'\);[\s\S]*setImportant\(dl, 'flex-direction', 'column'\);[\s\S]*setImportant\(dl, 'gap', '0\.52em'\);/);
+    assert.match(folderEditorScript, /if \(modernFieldRow\) \{[\s\S]*setImportant\(dd, 'padding-top', '0\.08em'\);/);
+    assert.match(folderEditorScript, /const modernToggleRow = Boolean\(modernFieldRow && modernFieldRow\.classList\.contains\('is-toggle-row'\)\);/);
+    assert.match(folderEditorSharedScript, /preview:\s*Number\.isFinite\(Number\(settings\.preview\)\)/);
+    assert.match(folderEditorSharedScript, /context_graph_time:\s*Number\.isFinite\(Number\(settings\.context_graph_time\)\)/);
+    assert.match(folderEditorSchemaScript, /window\.FolderViewPlusFolderEditorSchema = Object\.freeze\(\{/);
+    assert.match(folderEditorSchemaScript, /window\.FolderViewPlusFolderEditorSchemaModuleLoaded = true/);
+    assert.match(folderEditorPreviewScript, /window\.FolderViewPlusFolderEditorPreview = Object\.freeze\(\{/);
+    assert.match(folderEditorPreviewScript, /window\.FolderViewPlusFolderEditorPreviewModuleLoaded = true/);
     assert.match(folderEditorScript, /const hydrateCurrentEditFolder = \(folderRecord, folderRecordId, foldersMap = \{\}, options = \{\}\) =>/);
     assert.match(folderEditorScript, /const resolveCurrentEditFolder = \(folderMap,\s*requestedId\) =>/);
     assert.match(folderEditorScript, /const EDITOR_PREFILL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.v1';/);
     assert.match(folderEditorScript, /const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.persist\.v1';/);
     assert.match(folderEditorScript, /const readEditorNavigationPrefill = \(expectedType,\s*expectedId = ''\) =>/);
     assert.match(folderEditorScript, /const clearEditorNavigationPrefill = \(\) =>/);
-    assert.match(folderEditorScript, /preview:\s*Number\.isFinite\(Number\(settings\.preview\)\)/);
-    assert.match(folderEditorScript, /context_graph_time:\s*Number\.isFinite\(Number\(settings\.context_graph_time\)\)/);
     assert.match(folderEditorScript, /folders\[safeId\] = normalizeFolderRecordForEditor\(folder\);/);
     assert.match(folderEditorScript, /let currentEditFolder = null;/);
     assert.match(folderEditorScript, /const navigationPrefill = readEditorNavigationPrefill\(type,\s*folderId\);/);
     assert.match(folderEditorScript, /const requestedFolderRef = String\(folderId \|\| folderEditorResolvedId \|\| navigationPrefill\?\.id \|\| ''\)\.trim\(\);/);
     assert.match(folderEditorScript, /const resolvedEditFolder = resolveCurrentEditFolder\(folders,\s*requestedFolderRef\);/);
     assert.match(folderEditorScript, /currentEditFolder = resolvedEditFolder\?\.folder \|\| bootstrapFolderRecord \|\| navigationPrefill\?\.folder \|\| null;/);
+    assert.match(folderEditorScript, /folders\[safeId\] = normalizeFolderRecordForEditor\(folder\);/);
     assert.match(folderEditorScript, /setValidationBannerState\(\s*'Warning: requested folder could not be loaded\.'/);
     assert.match(folderEditorScript, /Recovered requested folder from navigation context\./);
     assert.match(folderEditorScript, /hydrateCurrentEditFolder\(currentEditFolder,\s*currentEditFolderId,\s*folders,\s*\{\s*clearPrefill:\s*true\s*\}\);/);
     assert.match(folderEditorScript, /clearEditorNavigationPrefill\(\);/);
+    const hierarchyStateIndex = folderEditorScript.indexOf('const folderHierarchyState = {');
+    const startupInvokeIndex = folderEditorScript.lastIndexOf('void startFolderEditorRuntime().catch((error) => {');
+    assert.ok(hierarchyStateIndex !== -1 && startupInvokeIndex > hierarchyStateIndex, 'modern editor startup must run after folder hierarchy state is declared');
     assert.doesNotMatch(folderEditorScript, /preview_member_display/);
 });
 

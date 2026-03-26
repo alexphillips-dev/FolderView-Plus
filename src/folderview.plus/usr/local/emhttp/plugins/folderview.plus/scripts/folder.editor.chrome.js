@@ -3,7 +3,12 @@
     if (editorPageMode !== 'modern') {
         return;
     }
-    const SECTION_META = {
+    root.FolderViewPlusFolderEditorRuntimeBootStage = 'chrome-bootstrap';
+    const sharedModernSchemaFactory = root.FolderViewPlusFolderEditorSchema?.createModernSchema;
+    const sharedSectionMeta = typeof sharedModernSchemaFactory === 'function'
+        ? sharedModernSchemaFactory().SECTION_META
+        : null;
+    const FALLBACK_SECTION_META = {
         general: { title: 'General', icon: 'fa-folder-open-o', advanced: false, description: 'Name, parent, icon, and folder-level WebUI behavior.' },
         members: { title: 'Members', icon: 'fa-th-large', advanced: false, description: 'Search, filter, bulk-manage, and order the containers or VMs shown in this folder.' },
         preview: { title: 'Preview', icon: 'fa-eye', advanced: false, description: 'Control preview layout, context, borders, dividers, and inline preview actions.' },
@@ -13,14 +18,183 @@
         actions: { title: 'Actions', icon: 'fa-bolt', advanced: true, description: 'Optional custom actions that appear in this folder’s context menu.' },
         advanced: { title: 'Advanced', icon: 'fa-sliders', advanced: true, description: 'Tune Docker / VM / Dashboard specific behavior and other advanced defaults.' }
     };
+    const SECTION_META = sharedSectionMeta && typeof sharedSectionMeta === 'object'
+        ? sharedSectionMeta
+        : FALLBACK_SECTION_META;
     const DEFAULT_FOLDER_ICON_PATH = '/plugins/folderview.plus/images/folder-icon.png';
     const BASIC_MODE = 'basic';
     const ADVANCED_MODE = 'advanced';
     let currentMode = BASIC_MODE;
     let currentSection = 'general';
+    let bootstrapWatchdogArmed = false;
+
+    const setBootstrapSurfaceState = ({
+        summary = '',
+        details = '',
+        debug = '',
+        tone = 'warning'
+    } = {}) => {
+        const summaryNode = root.document.getElementById('fvValidationSummary');
+        const detailsNode = root.document.getElementById('fvValidationDetails');
+        const debugNode = root.document.getElementById('fvEditorBootstrapDebug');
+        const className = tone === 'ready' ? 'ready' : tone === 'info' ? 'info' : tone === 'invalid' ? 'invalid' : 'warning';
+        [summaryNode, detailsNode].forEach((node) => {
+            if (!node) {
+                return;
+            }
+            node.classList.remove('invalid', 'warning', 'info', 'ready');
+            node.classList.add(className);
+        });
+        if (summaryNode && summary) {
+            summaryNode.textContent = summary;
+        }
+        if (detailsNode && details) {
+            detailsNode.textContent = details;
+        }
+        if (debugNode && debug) {
+            debugNode.textContent = debug;
+        }
+        if (tone === 'invalid') {
+            const form = root.document.querySelector('div.canvas > form.folder-editor-form');
+            if (form instanceof root.HTMLElement) {
+                revealModernStage(form, { preservePlaceholder: false });
+            }
+        }
+    };
+
+    root.FolderViewPlusReportFolderEditorBootstrap = ({
+        summary = '',
+        details = '',
+        debug = '',
+        tone = 'warning',
+        stage = ''
+    } = {}) => {
+        if (stage) {
+            root.FolderViewPlusFolderEditorRuntimeBootStage = String(stage);
+        }
+        setBootstrapSurfaceState({ summary, details, debug, tone });
+    };
+
+    const armBootstrapWatchdog = () => {
+        if (bootstrapWatchdogArmed) {
+            return;
+        }
+        bootstrapWatchdogArmed = true;
+        root.setTimeout(() => {
+            const stage = String(root.FolderViewPlusFolderEditorRuntimeBootStage || '').trim();
+            if ([
+                'shell-ready',
+                'folders-loaded',
+                'members-loaded',
+                'runtime-ready',
+                'missing-modules',
+                'runtime-error',
+                'runtime-rejection',
+                'watchdog-timeout'
+            ].includes(stage)) {
+                return;
+            }
+            root.FolderViewPlusReportFolderEditorBootstrap({
+                summary: 'Folder editor runtime stalled during bootstrap.',
+                details: 'The modern editor shell rendered, but the runtime never reached its first ready checkpoint.',
+                debug: [
+                    `pageMode=${editorPageMode}`,
+                    `stage=${stage || '(empty)'}`,
+                    `scriptLoaded=${root.FolderViewPlusFolderEditorRuntimeLoaded === true ? 'yes' : 'no'}`,
+                    `lastError=${String(root.FolderViewPlusFolderEditorRuntimeLastError || '(none)')}`
+                ].join('\n'),
+                tone: 'invalid',
+                stage: 'watchdog-timeout'
+            });
+        }, 1500);
+    };
+
+    root.addEventListener('error', (event) => {
+        const message = String(event?.error?.message || event?.message || '(unknown error)').trim();
+        root.FolderViewPlusFolderEditorRuntimeLastError = message;
+        root.FolderViewPlusReportFolderEditorBootstrap({
+            summary: 'Folder editor runtime crashed before hydration.',
+            details: 'A script error occurred before the editor could finish booting.',
+            debug: [
+                `pageMode=${editorPageMode}`,
+                `stage=${String(root.FolderViewPlusFolderEditorRuntimeBootStage || '(empty)')}`,
+                `error=${message}`,
+                `source=${String(event?.filename || '(unknown)')}`,
+                `line=${String(event?.lineno || 0)}`,
+                `column=${String(event?.colno || 0)}`
+            ].join('\n'),
+            tone: 'invalid',
+            stage: 'runtime-error'
+        });
+    });
+
+    root.addEventListener('unhandledrejection', (event) => {
+        const reason = event?.reason;
+        const message = String(reason?.message || reason || '(unknown rejection)').trim();
+        root.FolderViewPlusFolderEditorRuntimeLastError = message;
+        root.FolderViewPlusReportFolderEditorBootstrap({
+            summary: 'Folder editor runtime rejected during bootstrap.',
+            details: 'An async error occurred before the editor could finish loading saved folder data.',
+            debug: [
+                `pageMode=${editorPageMode}`,
+                `stage=${String(root.FolderViewPlusFolderEditorRuntimeBootStage || '(empty)')}`,
+                `rejection=${message}`
+            ].join('\n'),
+            tone: 'invalid',
+            stage: 'runtime-rejection'
+        });
+    });
 
     const findBasicByFieldName = (form, fieldName) => Array.from(form.querySelectorAll('.basic'))
         .find((entry) => entry.querySelector(`[name="${fieldName}"]`));
+
+    const collectInheritedConstraintTokens = (row, boundary) => {
+        const tokens = [];
+        let cursor = row;
+        while (cursor && cursor instanceof root.HTMLElement && cursor !== boundary) {
+            const rawConstraint = String(cursor.getAttribute('constraint') || '').trim();
+            if (rawConstraint) {
+                rawConstraint.split(/\s+/).forEach((token) => {
+                    if (token && !tokens.includes(token)) {
+                        tokens.push(token);
+                    }
+                });
+            }
+            cursor = cursor.parentElement;
+        }
+        return tokens.join(' ');
+    };
+
+    const primeModernSectionRow = (form, row) => {
+        if (!(row instanceof root.HTMLElement)) {
+            return row;
+        }
+        if (!row.hasAttribute('data-fv-row-constraint')) {
+            const inheritedConstraint = collectInheritedConstraintTokens(row, form);
+            if (inheritedConstraint) {
+                row.setAttribute('data-fv-row-constraint', inheritedConstraint);
+            }
+        }
+        const cachedConstraint = String(row.getAttribute('data-fv-row-constraint') || '').trim();
+        if (cachedConstraint) {
+            row.setAttribute('constraint', cachedConstraint);
+        } else {
+            row.removeAttribute('constraint');
+        }
+        return row;
+    };
+
+    const findActionLaunchRow = (form) => {
+        const cachedRow = form.querySelector('.basic[data-fv-actions-launch-source="1"]');
+        if (cachedRow) {
+            return cachedRow;
+        }
+        const sourceRow = Array.from(form.querySelectorAll('.basic')).find((entry) => entry.querySelector('a.custom-action'));
+        if (sourceRow) {
+            sourceRow.setAttribute('data-fv-actions-launch-source', '1');
+        }
+        return sourceRow;
+    };
 
     const getVisibleSectionKeys = (mode = currentMode) => Object.entries(SECTION_META)
         .filter(([, meta]) => mode === ADVANCED_MODE || meta.advanced !== true)
@@ -43,7 +217,7 @@
                         <img id="fvHeroIcon" src="${DEFAULT_FOLDER_ICON_PATH}" alt="">
                     </div>
                     <div class="fv-editor-hero-copy">
-                        <span class="fv-editor-kicker">Folder editor</span>
+                        <span class="fv-editor-kicker" style="color: var(--fv-editor-title-accent, var(--fv-editor-accent));">Folder editor</span>
                         <h2 id="fvHeroTitle">Configure folder</h2>
                         <p id="fvHeroSubtitle">A fully grouped folder editor with tabbed sections, live preview, and a dedicated action bar.</p>
                         <div class="fv-hero-meta">
@@ -78,6 +252,10 @@
             <div class="fv-editor-status-row">
                 <span id="fvValidationSummary" class="fv-validation-summary ready">Folder editor shell loaded.</span>
                 <pre id="fvValidationDetails" class="fv-validation-details ready">Core layout is ready. Runtime data and live controls will continue hydrating.</pre>
+                <details id="fvEditorBootstrapDetails" class="fv-editor-bootstrap-disclosure">
+                    <summary id="fvEditorBootstrapSummary" class="fv-editor-bootstrap-summary">Bootstrap diagnostics</summary>
+                    <pre id="fvEditorBootstrapDebug" class="fv-editor-bootstrap-debug">Bootstrap: waiting for folder editor runtime.</pre>
+                </details>
             </div>
         </div>
         <div id="fvLivePanel" class="fv-live-panel">
@@ -151,15 +329,62 @@
         </div>
     `;
 
-    const ensureTopChrome = (form) => {
-        if (form.querySelector('#fvEditorChrome') && form.querySelector('#fvLivePanel')) {
+    const getModernStage = (form) => {
+        if (!(form instanceof root.HTMLElement)) {
+            return null;
+        }
+        let stage = form.querySelector('#fvModernEditorStage');
+        if (!stage) {
+            stage = root.document.createElement('div');
+            stage.id = 'fvModernEditorStage';
+            stage.className = 'fv-modern-editor-stage';
+            form.insertBefore(stage, form.firstChild);
+        }
+        return stage;
+    };
+
+    const getLegacyScaffold = (form) => {
+        if (!(form instanceof root.HTMLElement)) {
+            return null;
+        }
+        return form.querySelector('#fvLegacyEditorScaffold');
+    };
+
+    const revealModernStage = (form, { preservePlaceholder = false } = {}) => {
+        const stage = getModernStage(form);
+        if (!stage) {
             return;
         }
-        form.insertAdjacentHTML('afterbegin', buildTopChrome());
+        if (preservePlaceholder !== true) {
+            const bootPlaceholder = stage.querySelector('#fvEditorBootPlaceholder');
+            if (bootPlaceholder) {
+                bootPlaceholder.remove();
+            }
+        }
+        stage.classList.remove('is-pending');
+        stage.classList.add('is-ready');
+        form.classList.remove('fv-modern-editor-booting');
+        form.classList.add('fv-modern-editor-ready');
+    };
+
+    const ensureTopChrome = (form) => {
+        const stage = getModernStage(form);
+        if (!stage) {
+            return;
+        }
+        if (stage.querySelector('#fvEditorChrome') && stage.querySelector('#fvLivePanel')) {
+            return;
+        }
+        stage.insertAdjacentHTML('afterbegin', buildTopChrome());
+        armBootstrapWatchdog();
     };
 
     const ensureActionBar = (form) => {
-        let actionBar = form.querySelector('#fvEditorActionBar');
+        const stage = getModernStage(form);
+        if (!stage) {
+            return;
+        }
+        let actionBar = stage.querySelector('#fvEditorActionBar');
         if (!actionBar) {
             actionBar = root.document.createElement('div');
             actionBar.id = 'fvEditorActionBar';
@@ -171,7 +396,7 @@
                     <span id="fvActionBarHint" class="fv-actionbar-hint">Save, copy, reset, or cancel from here.</span>
                 </div>
             `;
-            form.appendChild(actionBar);
+            stage.appendChild(actionBar);
         }
         const actionBarMain = actionBar.querySelector('.fv-editor-actionbar-main');
         if (!actionBarMain) {
@@ -188,7 +413,7 @@
             findBasicByFieldName(form, 'parent_folder_id'),
             findBasicByFieldName(form, 'folder_webui'),
             findBasicByFieldName(form, 'icon'),
-            form.querySelector('ul[constraint*="folder-webui"]')
+            findBasicByFieldName(form, 'folder_webui_url')
         ],
         members: [
             form.querySelector('.basic.order-section')
@@ -204,11 +429,13 @@
             findBasicByFieldName(form, 'preview_logs'),
             findBasicByFieldName(form, 'preview_console'),
             findBasicByFieldName(form, 'preview_vertical_bars'),
-            form.querySelector('ul[constraint*="bars-color"]'),
+            findBasicByFieldName(form, 'preview_vertical_bars_color'),
             findBasicByFieldName(form, 'preview_border'),
-            form.querySelector('ul[constraint*="border-color"]'),
+            findBasicByFieldName(form, 'preview_border_color'),
             findBasicByFieldName(form, 'context'),
-            form.querySelector('ul[constraint*="context-2"]')
+            findBasicByFieldName(form, 'context_trigger'),
+            findBasicByFieldName(form, 'context_graph'),
+            findBasicByFieldName(form, 'context_graph_time')
         ],
         chevron: [
             findBasicByFieldName(form, 'dropdown_style'),
@@ -227,8 +454,7 @@
             findBasicByFieldName(form, 'regex')
         ],
         actions: [
-            form.querySelector('.basic.custom-action-wrapper-parent'),
-            Array.from(form.querySelectorAll('.basic')).find((entry) => entry.querySelector('a.custom-action'))
+            form.querySelector('.basic.custom-action-wrapper-parent')
         ],
         advanced: [
             findBasicByFieldName(form, 'update_column'),
@@ -240,15 +466,41 @@
         ]
     });
 
+    const syncActionLaunchPlacement = (form) => {
+        const actionsRow = form.querySelector('.basic.custom-action-wrapper-parent');
+        const actionsList = actionsRow?.querySelector('.custom-action-wrapper');
+        const actionsValueCell = actionsRow?.querySelector('dl > dd');
+        const launchRow = findActionLaunchRow(form);
+        const launchLink = launchRow?.querySelector('a.custom-action')
+            || actionsRow?.querySelector('.fv-custom-action-launch > a.custom-action');
+        if (!actionsRow || !actionsList || !actionsValueCell || !launchLink) {
+            return;
+        }
+        let launchHost = actionsRow.querySelector('.fv-custom-action-launch');
+        if (!launchHost) {
+            launchHost = root.document.createElement('div');
+            launchHost.className = 'fv-custom-action-launch';
+            actionsValueCell.appendChild(launchHost);
+        }
+        launchLink.classList.add('fv-custom-action-link');
+        launchHost.appendChild(launchLink);
+    };
+
     const ensureSectionShells = (form) => {
+        const stage = getModernStage(form);
+        if (!stage) {
+            return;
+        }
         const sectionRows = collectSectionRows(form);
-        const actionBar = form.querySelector('#fvEditorActionBar');
+        const actionBar = stage.querySelector('#fvEditorActionBar');
         Object.entries(SECTION_META).forEach(([sectionKey, meta]) => {
-            const rows = (sectionRows[sectionKey] || []).filter(Boolean);
+            const rows = (sectionRows[sectionKey] || [])
+                .filter(Boolean)
+                .map((row) => primeModernSectionRow(form, row));
             if (!rows.length) {
                 return;
             }
-            let shell = form.querySelector(`.fv-section-shell[data-section-shell="${sectionKey}"]`);
+            let shell = stage.querySelector(`.fv-section-shell[data-section-shell="${sectionKey}"]`);
             if (!shell) {
                 shell = root.document.createElement('section');
                 shell.className = `fv-section-shell${meta.advanced ? ' is-advanced-shell' : ''}`;
@@ -261,17 +513,23 @@
                                     <i class="fa ${meta.icon}" aria-hidden="true"></i>
                                     <span>${meta.advanced ? 'Advanced section' : 'Core section'}</span>
                                 </div>
-                                <h3>${meta.title}${meta.advanced ? ' <span class="fv-section-badge">advanced</span>' : ''}</h3>
+                                <h3 style="color: var(--fv-editor-title-accent, var(--fv-editor-accent));">${meta.title}${meta.advanced ? ' <span class="fv-section-badge">advanced</span>' : ''}</h3>
                                 <p>${meta.description}</p>
+                            </div>
+                            <div class="fv-section-heading-tools">
+                                <span id="fvSectionState-${sectionKey}" class="fv-section-state-badge is-clean">Saved</span>
+                                ${meta.supportsRevert ? `<button type="button" class="fv-section-tool" data-section-action="revert" data-section="${sectionKey}"><i class="fa fa-history" aria-hidden="true"></i> Restore saved</button>` : ''}
+                                ${meta.supportsDefaults ? `<button type="button" class="fv-section-tool" data-section-action="defaults" data-section="${sectionKey}"><i class="fa fa-repeat" aria-hidden="true"></i> Plugin defaults</button>` : ''}
+                                ${meta.advanced ? `<button type="button" class="fv-section-collapse" data-section="${sectionKey}" aria-pressed="false"><i class="fa fa-minus-square-o" aria-hidden="true"></i> Collapse</button>` : ''}
                             </div>
                         </div>
                     </div>
                     <div class="fv-section-shell-body"></div>
                 `;
                 if (actionBar) {
-                    form.insertBefore(shell, actionBar);
+                    stage.insertBefore(shell, actionBar);
                 } else {
-                    form.appendChild(shell);
+                    stage.appendChild(shell);
                 }
             }
             const body = shell.querySelector('.fv-section-shell-body');
@@ -287,6 +545,7 @@
                 }
             });
         });
+        syncActionLaunchPlacement(form);
     };
 
     const decorateSectionRows = (form) => {
@@ -311,9 +570,9 @@
                 row.classList.add('is-compact-text-row', 'is-rules-row');
             }
             if (row.querySelector('.custom-action-wrapper')) {
-                row.classList.add('is-actions-list-row');
+                row.classList.add('is-actions-list-row', 'is-wide-row');
             }
-            if (row.querySelector('a.custom-action')) {
+            if (row.querySelector('a.custom-action') && !row.querySelector('.custom-action-wrapper')) {
                 row.classList.add('is-actions-launch-row');
             }
             if (row.querySelector('[name="name"]')) {
@@ -354,11 +613,16 @@
     };
 
     const hideOrphanRows = (form) => {
+        const scaffold = getLegacyScaffold(form);
+        if (scaffold) {
+            scaffold.hidden = true;
+            scaffold.setAttribute('aria-hidden', 'true');
+        }
         Array.from(form.children).forEach((child) => {
             if (!(child instanceof root.HTMLElement)) {
                 return;
             }
-            if (child.id === 'fvEditorChrome' || child.id === 'fvLivePanel' || child.id === 'fvEditorActionBar') {
+            if (child.id === 'fvModernEditorStage' || child.id === 'fvLegacyEditorScaffold') {
                 return;
             }
             if (child.matches('.fv-section-shell')) {
@@ -449,6 +713,28 @@
         });
     };
 
+    const refreshModernEditorChromeLayout = () => {
+        const form = root.document && root.document.querySelector('div.canvas > form.folder-editor-form');
+        if (!form) {
+            return;
+        }
+        ensureTopChrome(form);
+        ensureActionBar(form);
+        ensureSectionShells(form);
+        decorateSectionRows(form);
+        hideOrphanRows(form);
+        applySectionVisibility(form);
+    };
+
+    root.FolderViewPlusRefreshModernEditorChromeLayout = refreshModernEditorChromeLayout;
+    root.FolderViewPlusRevealModernEditorStage = (options = {}) => {
+        const form = root.document && root.document.querySelector('div.canvas > form.folder-editor-form');
+        if (!form) {
+            return;
+        }
+        revealModernStage(form, options);
+    };
+
     const init = () => {
         const form = root.document && root.document.querySelector('div.canvas > form.folder-editor-form');
         if (!form) {
@@ -456,14 +742,9 @@
         }
         currentMode = BASIC_MODE;
         currentSection = 'general';
-        ensureTopChrome(form);
-        ensureActionBar(form);
-        ensureSectionShells(form);
-        decorateSectionRows(form);
-        hideOrphanRows(form);
+        refreshModernEditorChromeLayout();
         bindTopButtons(form);
         bindSectionControls(form);
-        applySectionVisibility(form);
     };
 
     if (root.document.readyState === 'loading') {

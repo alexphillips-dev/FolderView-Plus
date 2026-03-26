@@ -82,3 +82,30 @@ test('theme compatibility: semantic settings tokens use resolver-first fallback 
     assert.match(settingsCss, /--fvplus-settings-surface-muted:\s*var\(--fvplus-theme-surface-muted,\s*var\(--fvplus-settings-safe-surface-muted\)\)/);
     assert.match(settingsCss, /--fvplus-settings-accent:\s*var\(--fvplus-theme-accent,\s*var\(--fvplus-settings-safe-accent\)\)/);
 });
+
+test('theme compatibility: light settings surfaces keep readable tree meta and empty chips', () => {
+    assert.match(settingsCss, /html\[data-fv-host-theme="white"\] #fv-settings-root,/);
+    assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\][\s\S]*--fvplus-settings-breadcrumb-text:\s*rgba\(89,\s*103,\s*120,\s*0\.86\)/);
+    assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\][\s\S]*--fvplus-settings-members-meta-text:\s*rgba\(95,\s*108,\s*123,\s*0\.82\)/);
+    assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\][\s\S]*--fvplus-settings-nested-meta-text:\s*rgba\(105,\s*117,\s*133,\s*0\.86\)/);
+    assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\][\s\S]*--fvplus-settings-chip-empty:\s*#667385/);
+    assert.match(settingsCss, /\.name-cell-breadcrumb\s*\{[\s\S]*color:\s*var\(--fvplus-settings-breadcrumb-text\);/);
+    assert.match(settingsCss, /\.name-cell-members-meta\s*\{[\s\S]*color:\s*var\(--fvplus-settings-members-meta-text\);/);
+    assert.match(settingsCss, /\.name-cell-nested-meta\s*\{[\s\S]*color:\s*var\(--fvplus-settings-nested-meta-text\);/);
+    assert.match(settingsCss, /\.folder-runtime-status\s*\{[\s\S]*border:\s*1px solid var\(--fvplus-settings-border-subtle\);[\s\S]*background:\s*var\(--fvplus-settings-surface-muted\);[\s\S]*color:\s*var\(--fvplus-settings-text-primary\);/);
+    assert.match(settingsCss, /\.folder-metric-chip\.is-empty\s*\{[\s\S]*color:\s*var\(--fvplus-settings-chip-empty\);[\s\S]*background:\s*var\(--fvplus-settings-chip-empty-bg\);/);
+    assert.match(settingsCss, /\.folder-runtime-status\.is-empty\s*\{[\s\S]*color:\s*var\(--fvplus-settings-chip-empty\);[\s\S]*background:\s*var\(--fvplus-settings-chip-empty-bg\);/);
+    assert.match(settingsCss, /\.status-trend\.is-neutral\s*\{[\s\S]*color:\s*var\(--fvplus-settings-chip-empty\);[\s\S]*border-color:\s*var\(--fvplus-settings-chip-empty-border\);[\s\S]*background:\s*var\(--fvplus-settings-chip-empty-bg\);/);
+    assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\] \.name-cell-breadcrumb \{[\s\S]*color:\s*#5a6678 !important;[\s\S]*opacity:\s*1 !important;/);
+    assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\] \.name-cell-members-meta,[\s\S]*#fv-settings-root\[data-fv-theme-class="light"\] \.name-cell-nested-meta \{[\s\S]*color:\s*#617082 !important;[\s\S]*opacity:\s*1 !important;/);
+    assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\] \.folder-pin-state,[\s\S]*#fv-settings-root\[data-fv-theme-class="light"\] \.folder-runtime-status \{[\s\S]*color:\s*#4f5d70 !important;[\s\S]*opacity:\s*1 !important;/);
+    assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\] \.status-breakdown-chip\.is-empty \{[\s\S]*color:\s*#5f6d80 !important;[\s\S]*opacity:\s*1 !important;/);
+});
+
+test('settings page exports host theme name and stamps theme attributes for resolver consumers', () => {
+    assert.match(settingsPage, /window\.FolderViewPlusHostThemeName = <\?php echo json_encode\(\(string\)\(\$display\['theme'\] \?\? ''\), JSON_UNESCAPED_SLASHES \| JSON_UNESCAPED_UNICODE\); \?>;/);
+    assert.match(settingsPage, /document\.documentElement\?\.setAttribute\('data-fvplus-host-theme', safeThemeName\);/);
+    assert.match(settingsPage, /document\.documentElement\?\.setAttribute\('data-fv-host-theme', safeThemeName\);/);
+    assert.match(settingsPage, /document\.body\?\.setAttribute\('data-fvplus-host-theme', safeThemeName\);/);
+    assert.match(settingsPage, /document\.body\?\.setAttribute\('data-fv-host-theme', safeThemeName\);/);
+});

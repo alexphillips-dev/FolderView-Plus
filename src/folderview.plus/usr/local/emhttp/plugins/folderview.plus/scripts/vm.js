@@ -1,6 +1,12 @@
 // @ts-check
 const runtimeShared = window.FolderViewDockerRuntimeShared || {};
 const runtimeStateObserverModule = window.FolderViewPlusRuntimeStateObservers || null;
+const themeResolver = window.FolderViewPlusThemeResolver || null;
+const applyVmThemeResolverTokens = (reason = 'vm-runtime:initial', options = {}) => (
+    themeResolver && typeof themeResolver.applyResolvedThemeTokens === 'function'
+        ? themeResolver.applyResolvedThemeTokens(reason, options)
+        : null
+);
 const localDefaultFolderStatusColors = runtimeShared.DEFAULT_FOLDER_STATUS_COLORS || {
     started: '#ffffff',
     paused: '#b8860b',
@@ -21,6 +27,99 @@ const applyPreviewBorderStyle = typeof runtimeShared.applyPreviewBorderStyle ===
 const applyFolderDropdownStyle = typeof runtimeShared.applyFolderDropdownStyle === 'function'
     ? runtimeShared.applyFolderDropdownStyle
     : (() => {});
+const getPreviewRowLimitValue = typeof runtimeShared.getPreviewRowLimitValue === 'function'
+    ? runtimeShared.getPreviewRowLimitValue
+    : ((settings = {}) => (settings?.preview_rows ?? settings?.previewRows ?? ''));
+const normalizeFolderPreviewRowLimit = typeof runtimeShared.normalizeFolderPreviewRowLimit === 'function'
+    ? runtimeShared.normalizeFolderPreviewRowLimit
+    : ((settings = {}) => {
+        const raw = String(getPreviewRowLimitValue(settings)).trim().toLowerCase();
+        if (raw === '0' || raw === 'auto' || raw === 'unlimited') {
+            return 0;
+        }
+        const parsed = Number.parseInt(raw, 10);
+        if (!Number.isFinite(parsed)) {
+            return 1;
+        }
+        return Math.max(1, Math.min(4, parsed));
+    });
+const isCompactMultiRowPreview = typeof runtimeShared.isCompactMultiRowPreview === 'function'
+    ? runtimeShared.isCompactMultiRowPreview
+    : ((settings = {}) => {
+        const normalizedRows = normalizeFolderPreviewRowLimit(settings);
+        return normalizedRows === 0 || normalizedRows > 1;
+    });
+const applyFolderPreviewLayout = typeof runtimeShared.applyFolderPreviewLayout === 'function'
+    ? runtimeShared.applyFolderPreviewLayout
+    : (($preview, settings = {}) => {
+        if (!$preview || !$preview.length) {
+            return;
+        }
+        const previewNode = $preview.get(0);
+        if (!previewNode || !previewNode.style) {
+            return;
+        }
+        previewNode.dataset.previewRows = String(normalizeFolderPreviewRowLimit(settings));
+        previewNode.style.removeProperty('--fvplus-preview-row-limit');
+        previewNode.style.removeProperty('--fvplus-preview-max-height');
+        previewNode.classList.remove('fv-preview-unlimited-rows', 'fv-preview-multirow');
+        const normalizedRows = normalizeFolderPreviewRowLimit(settings);
+        if (normalizedRows === 0) {
+            previewNode.classList.add('fv-preview-unlimited-rows', 'fv-preview-multirow');
+        } else if (normalizedRows > 1) {
+            previewNode.classList.add('fv-preview-multirow');
+        }
+    });
+const flattenPreviewWrappers = typeof runtimeShared.flattenPreviewWrappers === 'function'
+    ? runtimeShared.flattenPreviewWrappers
+    : (($preview) => {
+        if (!$preview || !$preview.length) {
+            return [];
+        }
+        const $existingRows = $preview.children('.folder-preview-row');
+        if ($existingRows.length) {
+            $existingRows.children('.folder-preview-wrapper, .folder-preview-divider').appendTo($preview);
+            $existingRows.remove();
+        }
+        const wrappers = $preview.children('.folder-preview-wrapper').get();
+        $preview.children('.folder-preview-divider').remove();
+        return wrappers;
+    });
+const restoreLinearPreviewLayout = typeof runtimeShared.restoreLinearPreviewLayout === 'function'
+    ? runtimeShared.restoreLinearPreviewLayout
+    : (($preview, settings = {}) => {
+        const wrappers = flattenPreviewWrappers($preview);
+        if (settings?.preview_vertical_bars !== true) {
+            return wrappers;
+        }
+        const barsColor = settings?.preview_vertical_bars_color || settings?.preview_border_color || '';
+        wrappers.forEach((wrapper, index) => {
+            if (index < wrappers.length - 1) {
+                $(wrapper).after(`<div class="folder-preview-divider" ${barsColor ? `style="border-color: ${barsColor};"` : ''}></div>`);
+            }
+        });
+        return wrappers;
+    });
+const finalizePreviewRows = typeof runtimeShared.finalizePreviewRows === 'function'
+    ? runtimeShared.finalizePreviewRows
+    : (($preview, rowSlices = [], settings = {}) => {
+        if (!$preview || !$preview.length) {
+            return;
+        }
+        const addDividers = settings?.preview_vertical_bars === true;
+        const barsColor = settings?.preview_vertical_bars_color || settings?.preview_border_color || '';
+        $preview.empty();
+        rowSlices.forEach((slice) => {
+            const $row = $('<div class="folder-preview-row"></div>');
+            slice.forEach((wrapper, index) => {
+                $row.append(wrapper);
+                if (addDividers && index < slice.length - 1) {
+                    $row.append(`<div class="folder-preview-divider" ${barsColor ? `style="border-color: ${barsColor};"` : ''}></div>`);
+                }
+            });
+            $preview.append($row);
+        });
+    });
 const createRuntimeDebugLogger = typeof runtimeShared.createDebugLogger === 'function'
     ? runtimeShared.createDebugLogger
     : ((enabled = false) => ({
@@ -86,6 +185,9 @@ const utils = window.FolderViewPlusUtils || {
 const vmBootstrapMissingModules = [];
 if (!window.FolderViewPlusUtils || typeof window.FolderViewPlusUtils.normalizePrefs !== 'function') {
     vmBootstrapMissingModules.push('folderviewplus.utils.js');
+}
+if (window.FolderViewPlusThemeResolverModuleLoaded !== true || !themeResolver) {
+    vmBootstrapMissingModules.push('folderviewplus.theme-resolver.js');
 }
 if (
     !window.FolderViewPlusRequest
@@ -168,75 +270,15 @@ const vmRuntimeStateStore = createVmRuntimeStateStore({
     pinnedFolderIds: [],
     performanceProfile: null
 });
-const getPreviewRowLimitValue = (settings = {}) => (
-    settings?.preview_rows
-    ?? settings?.previewRows
-    ?? ''
-);
-const normalizeFolderPreviewRowLimit = (settings = {}) => {
-    const raw = String(getPreviewRowLimitValue(settings)).trim().toLowerCase();
-    if (raw === '0' || raw === 'auto' || raw === 'unlimited') {
-        return 0;
-    }
-    const parsed = Number.parseInt(raw, 10);
-    if (!Number.isFinite(parsed)) {
-        return 1;
-    }
-    return Math.max(1, Math.min(4, parsed));
-};
-const isCompactMultiRowPreview = (settings = {}) => {
-    const normalizedRows = normalizeFolderPreviewRowLimit(settings);
-    return normalizedRows === 0 || normalizedRows > 1;
-};
-const applyFolderPreviewLayout = ($preview, settings = {}) => {
-    if (!$preview || !$preview.length) {
-        return;
-    }
-    const previewNode = $preview.get(0);
-    if (!previewNode || !previewNode.style) {
-        return;
-    }
-    previewNode.dataset.previewRows = String(normalizeFolderPreviewRowLimit(settings));
-    previewNode.style.removeProperty('--fvplus-preview-row-limit');
-    previewNode.style.removeProperty('--fvplus-preview-max-height');
-    previewNode.classList.remove('fv-preview-unlimited-rows', 'fv-preview-multirow');
-    const normalizedRows = normalizeFolderPreviewRowLimit(settings);
-    if (normalizedRows === 0) {
-        previewNode.classList.add('fv-preview-unlimited-rows', 'fv-preview-multirow');
-    } else if (normalizedRows > 1) {
-        previewNode.classList.add('fv-preview-multirow');
-    }
-};
 const layoutFolderPreviewRows = ($preview, settings = {}) => {
     if (!$preview || !$preview.length) {
         return;
     }
     if (!isCompactMultiRowPreview(settings)) {
-        const $existingRows = $preview.children('.folder-preview-row');
-        if ($existingRows.length) {
-            $existingRows.children('.folder-preview-wrapper, .folder-preview-divider').appendTo($preview);
-            $existingRows.remove();
-        }
-        const wrappers = $preview.children('.folder-preview-wrapper').get();
-        $preview.children('.folder-preview-divider').remove();
-        if (settings?.preview_vertical_bars === true) {
-            const barsColor = settings?.preview_vertical_bars_color || settings?.preview_border_color || '';
-            wrappers.forEach((wrapper, index) => {
-                if (index < wrappers.length - 1) {
-                    $(wrapper).after(`<div class="folder-preview-divider" ${barsColor ? `style="border-color: ${barsColor};"` : ''}></div>`);
-                }
-            });
-        }
+        restoreLinearPreviewLayout($preview, settings);
         return;
     }
-
-    const $existingRows = $preview.children('.folder-preview-row');
-    if ($existingRows.length) {
-        $existingRows.children('.folder-preview-wrapper, .folder-preview-divider').appendTo($preview);
-        $existingRows.remove();
-    }
-    const wrappers = $preview.children('.folder-preview-wrapper').get();
-    $preview.children('.folder-preview-divider').remove();
+    const wrappers = flattenPreviewWrappers($preview);
     if (!wrappers.length) {
         return;
     }
@@ -271,18 +313,7 @@ const layoutFolderPreviewRows = ($preview, settings = {}) => {
     }
 
     const visibleRows = rowLimit === 0 ? rows : rows.slice(0, rowLimit);
-    $preview.empty();
-
-    visibleRows.forEach((slice) => {
-        const $row = $('<div class="folder-preview-row"></div>');
-        slice.forEach((wrapper, index) => {
-            $row.append(wrapper);
-            if (addDividers && index < slice.length - 1) {
-                $row.append(`<div class="folder-preview-divider" ${barsColor ? `style="border-color: ${barsColor};"` : ''}></div>`);
-            }
-        });
-        $preview.append($row);
-    });
+    finalizePreviewRows($preview, visibleRows, settings);
 };
 const folderViewPerfFromQuery = (() => {
     try {
@@ -1705,6 +1736,8 @@ const rmFolder = (id) => {
  */
 const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
 const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv.folder.editor.prefill.persist.v1';
+const EDITOR_WINDOW_NAME_PREFIX = 'fv.folder.editor.v1:';
+const EDITOR_BOOTSTRAP_COOKIE_NAME = 'fv_folder_editor_bootstrap';
 const clearFolderEditorPrefill = () => {
     try {
         if (typeof sessionStorage !== 'undefined') {
@@ -1713,6 +1746,10 @@ const clearFolderEditorPrefill = () => {
         if (typeof localStorage !== 'undefined') {
             localStorage.removeItem(EDITOR_PREFILL_LOCAL_STORAGE_KEY);
         }
+        if (String(window.name || '').startsWith(EDITOR_WINDOW_NAME_PREFIX)) {
+            window.name = '';
+        }
+        document.cookie = `${EDITOR_BOOTSTRAP_COOKIE_NAME}=; path=/; max-age=0; SameSite=Lax`;
     } catch (_error) {
         // Editor prefill cleanup is best-effort only.
     }
@@ -1735,18 +1772,27 @@ const seedFolderEditorPrefill = (folderType, id) => {
         if (typeof localStorage !== 'undefined') {
             localStorage.setItem(EDITOR_PREFILL_LOCAL_STORAGE_KEY, payload);
         }
+        window.name = `${EDITOR_WINDOW_NAME_PREFIX}${payload}`;
+        document.cookie = `${EDITOR_BOOTSTRAP_COOKIE_NAME}=${encodeURIComponent(JSON.stringify({
+            type: folderType,
+            id: normalizedId,
+            storedAt: Date.now()
+        }))}; path=/; max-age=900; SameSite=Lax`;
     } catch (_error) {
         // Editor prefill is best-effort only.
     }
 };
 const buildVmFolderEditorUrl = (id = '') => {
     const params = new URLSearchParams();
+    const hashParams = new URLSearchParams();
     params.set('type', 'vm');
+    hashParams.set('type', 'vm');
     if (String(id || '').trim()) {
         params.set('id', String(id || '').trim());
+        hashParams.set('id', String(id || '').trim());
     }
     params.set('_', String(Date.now()));
-    return `/VMs/Folder?${params.toString()}`;
+    return `/VMs/Folder?${params.toString()}#${hashParams.toString()}`;
 };
 const editFolder = (id) => {
     if (!ensureVmFolderUnlocked(id, 'Edit folder')) {
@@ -2564,9 +2610,20 @@ const vmRuntimeThemeReflowController = runtimeStateObserverModule && typeof runt
         themeReasonPrefix: 'theme-change',
         themeDelayMs: 40,
         scheduleReflow: (reason, delayMs) => scheduleVmRuntimeWidthReflow(reason, delayMs),
-        onQueueReason: (reason) => vmDebugLog(`theme-reflow:${reason}`)
+        onQueueReason: (reason) => {
+            vmDebugLog(`theme-reflow:${reason}`);
+            applyVmThemeResolverTokens(`vm-runtime:${reason}`, {
+                root: document.body,
+                modeInput: 'auto'
+            });
+        }
     })
     : null;
+
+const applyVmRuntimeResolvedThemeTokens = (reason = 'vm-runtime:initial') => applyVmThemeResolverTokens(reason, {
+    root: document.body,
+    modeInput: 'auto'
+});
 
 const bindVmRuntimeViewportWidthSync = () => {
     vmRuntimeThemeReflowController?.bindViewportWidthSync();
@@ -2577,6 +2634,7 @@ const queueVmRuntimeThemeReflow = (reason = 'theme-change') => {
 };
 
 const bindVmRuntimeThemeReflow = () => {
+    applyVmRuntimeResolvedThemeTokens('vm-runtime:bind');
     vmRuntimeThemeReflowController?.bindThemeReflow();
 };
 

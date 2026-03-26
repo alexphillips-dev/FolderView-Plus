@@ -1,10 +1,77 @@
 ﻿// list of element to select
+(function fvplusFolderEditorRuntimeScope(window, $) {
+window.FolderViewPlusFolderEditorRuntimeLoaded = true;
+window.FolderViewPlusFolderEditorRuntimeBootStage = 'script-evaluated';
 let choose = [];
 // element selected by the regex string
 let selectedRegex = [];
 // element selected manually
 let selected = [];
+const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
+const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv.folder.editor.prefill.persist.v1';
+const EDITOR_WINDOW_NAME_PREFIX = 'fv.folder.editor.v1:';
+const EDITOR_BOOTSTRAP_COOKIE_NAME = 'fv_folder_editor_bootstrap';
+const readFolderEditorBootstrapSeed = () => {
+    const parsePrefill = (rawValue) => {
+        const raw = String(rawValue || '').trim();
+        if (!raw) {
+            return null;
+        }
+        try {
+            const payload = JSON.parse(raw);
+            const safeType = String(payload?.type || '').trim();
+            const safeId = String(payload?.id || '').trim();
+            const folder = payload?.folder && typeof payload.folder === 'object' ? payload.folder : null;
+            return safeType && safeId ? { type: safeType, id: safeId, folder } : null;
+        } catch (_error) {
+            return null;
+        }
+    };
+    try {
+        if (typeof sessionStorage !== 'undefined') {
+            const sessionPayload = parsePrefill(sessionStorage.getItem(EDITOR_PREFILL_STORAGE_KEY));
+            if (sessionPayload) {
+                return sessionPayload;
+            }
+        }
+        if (typeof localStorage !== 'undefined') {
+            const localPayload = parsePrefill(localStorage.getItem(EDITOR_PREFILL_LOCAL_STORAGE_KEY));
+            if (localPayload) {
+                return localPayload;
+            }
+        }
+    } catch (_error) {
+        return null;
+    }
+    return null;
+};
+const readWindowNameFolderEditorBootstrapSeed = () => {
+    const parsePrefill = (rawValue) => {
+        const raw = String(rawValue || '').trim();
+        if (!raw || !raw.startsWith(EDITOR_WINDOW_NAME_PREFIX)) {
+            return null;
+        }
+        try {
+            const payload = JSON.parse(raw.slice(EDITOR_WINDOW_NAME_PREFIX.length));
+            const safeType = String(payload?.type || '').trim();
+            const safeId = String(payload?.id || '').trim();
+            const folder = payload?.folder && typeof payload.folder === 'object' ? payload.folder : null;
+            return safeType && safeId ? { type: safeType, id: safeId, folder } : null;
+        } catch (_error) {
+            return null;
+        }
+    };
+    try {
+        return parsePrefill(window.name);
+    } catch (_error) {
+        return null;
+    }
+};
 const folderEditorQueryParams = new URLSearchParams(location.search);
+const folderEditorHashParams = new URLSearchParams(String(window.location?.hash || '').replace(/^#/, ''));
+const folderEditorStorageBootstrap = readFolderEditorBootstrapSeed();
+const folderEditorWindowNameBootstrap = readWindowNameFolderEditorBootstrapSeed();
+const folderEditorBootstrapSeed = folderEditorWindowNameBootstrap || folderEditorStorageBootstrap;
 const folderEditorBootstrapContext = window.FolderViewPlusFolderEditorBootstrapContext
     && typeof window.FolderViewPlusFolderEditorBootstrapContext === 'object'
     ? window.FolderViewPlusFolderEditorBootstrapContext
@@ -22,224 +89,132 @@ const inferFolderEditorTypeFromPath = () => {
 // docker or vm?
 const type = String(
     folderEditorQueryParams.get('type')
+    || folderEditorHashParams.get('type')
     || folderEditorQueryParams.get('mode')
+    || folderEditorHashParams.get('mode')
     || window.FolderViewPlusFolderEditorPageType
+    || folderEditorBootstrapSeed?.type
     || inferFolderEditorTypeFromPath()
     || ''
 ).trim();
 // id of the folder if present
 const folderId = String(
     folderEditorQueryParams.get('id')
+    || folderEditorHashParams.get('id')
     || folderEditorQueryParams.get('folderId')
+    || folderEditorHashParams.get('folderId')
     || folderEditorQueryParams.get('folder')
+    || folderEditorHashParams.get('folder')
     || folderEditorQueryParams.get('name')
+    || folderEditorHashParams.get('name')
     || folderEditorBootstrapContext.resolvedId
     || window.FolderViewPlusFolderEditorRequestedId
     || folderEditorBootstrapContext.requestedId
+    || folderEditorBootstrapSeed?.id
     || ''
 ).trim();
 const folderEditorResolvedId = String(
     folderEditorBootstrapContext.resolvedId
+    || folderEditorBootstrapSeed?.id
     || window.FolderViewPlusFolderEditorResolvedId
     || ''
 ).trim();
 const folderEditorBootstrapFolder = folderEditorBootstrapContext.folder
     && typeof folderEditorBootstrapContext.folder === 'object'
     ? folderEditorBootstrapContext.folder
+    : (folderEditorBootstrapSeed?.folder && typeof folderEditorBootstrapSeed.folder === 'object'
+        ? folderEditorBootstrapSeed.folder
+        : null);
+if (typeof window.FolderViewPlusReportFolderEditorBootstrap === 'function') {
+    window.FolderViewPlusReportFolderEditorBootstrap({
+        summary: 'Folder editor runtime script loaded.',
+        details: 'The modern editor runtime file executed and is beginning bootstrap.',
+        debug: [
+            `pageMode=${String(window.FolderViewPlusFolderEditorPageMode || '(empty)')}`,
+            `pageType=${String(window.FolderViewPlusFolderEditorPageType || '(empty)')}`,
+            `pageRequested=${String(window.FolderViewPlusFolderEditorRequestedId || '(empty)')}`,
+            `pageResolved=${String(window.FolderViewPlusFolderEditorResolvedId || '(empty)')}`,
+            `queryType=${String(folderEditorQueryParams.get('type') || '(empty)')}`,
+            `queryId=${String(folderEditorQueryParams.get('id') || folderEditorQueryParams.get('folderId') || folderEditorQueryParams.get('folder') || '(empty)')}`,
+            `hashType=${String(folderEditorHashParams.get('type') || '(empty)')}`,
+            `hashId=${String(folderEditorHashParams.get('id') || folderEditorHashParams.get('folderId') || folderEditorHashParams.get('folder') || '(empty)')}`,
+            `seedType=${String(folderEditorBootstrapSeed?.type || '(empty)')}`,
+            `seedId=${String(folderEditorBootstrapSeed?.id || '(empty)')}`,
+            `seedHasFolder=${folderEditorBootstrapFolder ? 'yes' : 'no'}`
+        ].join('\n'),
+        tone: 'info',
+        stage: 'script-evaluated'
+    });
+}
+const folderContract = window.FolderViewPlusFolderContract || null;
+const folderEditorShared = window.FolderViewPlusFolderEditorShared || null;
+const folderEditorSchema = window.FolderViewPlusFolderEditorSchema || null;
+const folderEditorPreview = window.FolderViewPlusFolderEditorPreview || null;
+const themeResolver = window.FolderViewPlusThemeResolver || null;
+const bindFolderThemeAwareSurface = typeof themeResolver?.bindThemeAwareSurface === 'function'
+    ? themeResolver.bindThemeAwareSurface.bind(themeResolver)
+    : null;
+const folderThemeSurfaceBinding = bindFolderThemeAwareSurface
+    ? bindFolderThemeAwareSurface({
+        root: '.canvas form.folder-editor-form',
+        sampleRoot: 'body',
+        extraTargets: ['#fvEditorChrome', '#fvLivePanel', '#fvEditorActionBar'],
+        modeInput: 'auto',
+        reasonPrefix: 'folder-editor'
+    })
     : null;
 const utils = window.FolderViewPlusUtils || null;
 const folderHierarchyModule = window.FolderViewPlusFolderHierarchy || null;
 const folderIconApiModule = window.FolderViewPlusFolderIconApi || null;
 const modernFolderEditorEnabled = String(window.FolderViewPlusFolderEditorPageMode || 'legacy').trim().toLowerCase() === 'modern';
-const DEFAULT_FOLDER_STATUS_COLORS = {
+const DEFAULT_FOLDER_STATUS_COLORS = folderContract?.DEFAULT_FOLDER_STATUS_COLORS || {
     started: '#ffffff',
     paused: '#b8860b',
     stopped: '#ff4d4d'
 };
-const DEFAULT_BORDER_COLOR = '#afa89e';
-const DEFAULT_PREVIEW_BORDER_WIDTH = 1;
-const DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH = 1;
-const DEFAULT_DROPDOWN_STYLE = 'minimal';
-const DEFAULT_DROPDOWN_COLOR = '#ff9a3c';
-const DEFAULT_DROPDOWN_HOVER_COLOR = '#111111';
-const SUPPORTED_DROPDOWN_STYLES = Object.freeze(['minimal', 'boxed', 'ghost', 'pill', 'filled']);
+const DEFAULT_BORDER_COLOR = folderContract?.DEFAULT_PREVIEW_BORDER_COLOR || '#afa89e';
+const DEFAULT_PREVIEW_BORDER_WIDTH = folderContract?.DEFAULT_PREVIEW_BORDER_WIDTH || 1;
+const DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH = folderContract?.DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH || 1;
+const DEFAULT_DROPDOWN_STYLE = folderContract?.DEFAULT_DROPDOWN_STYLE || 'minimal';
+const DEFAULT_DROPDOWN_COLOR = folderContract?.DEFAULT_DROPDOWN_COLOR || '#ff9a3c';
+const DEFAULT_DROPDOWN_HOVER_COLOR = folderContract?.DEFAULT_DROPDOWN_HOVER_COLOR || '#111111';
+const SUPPORTED_DROPDOWN_STYLES = folderContract?.SUPPORTED_DROPDOWN_STYLES || Object.freeze(['minimal', 'boxed', 'ghost', 'pill', 'filled']);
 const NO_MEMBERS_SELECTED_INFO = 'No members are currently selected in this folder.';
-const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
-const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv.folder.editor.prefill.persist.v1';
 const EDITOR_PREFILL_MAX_AGE_MS = 10 * 60 * 1000;
 const FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
-const PREVIEW_MODE_LABELS = {
+const PREVIEW_MODE_LABELS = folderEditorSchema?.PREVIEW_MODE_LABELS || Object.freeze({
     0: 'None',
     1: 'Icon and label',
     2: 'Only icon',
     3: 'Only label',
     4: 'List'
-};
-const CONTEXT_MODE_LABELS = {
+});
+const CONTEXT_MODE_LABELS = folderEditorSchema?.CONTEXT_MODE_LABELS || Object.freeze({
     0: 'None',
     1: 'Default',
     2: 'Advanced'
-};
-const FOLDER_HEALTH_PROFILE_VALUES = ['strict', 'balanced', 'lenient'];
-const FOLDER_HEALTH_UPDATES_MODE_VALUES = ['maintenance', 'warn', 'ignore'];
-const FOLDER_HEALTH_ALL_STOPPED_MODE_VALUES = ['critical', 'warn'];
-const INVALID_FOLDER_NAME_CHAR_REGEX = /[\u0000-\u001f\u007f<>:"/\\|?*]/;
-const SECTION_META = {
-    general: { title: 'General', description: 'Name, hierarchy, icon, and the folder identity shown across the plugin.', icon: 'fa-folder-open-o', advanced: false, supportsDefaults: false, supportsRevert: true },
-    members: { title: 'Members', description: 'Search, assign, and order containers or VMs in this folder.', icon: 'fa-th-large', advanced: false, supportsDefaults: false, supportsRevert: false },
-    preview: { title: 'Preview', description: 'How the folder row, preview layout, borders, and context surface render.', icon: 'fa-eye', advanced: false, supportsDefaults: true, supportsRevert: true },
-    chevron: { title: 'Chevron', description: 'Chevron style, normal color, hover color, and interaction styling.', icon: 'fa-chevron-down', advanced: false, supportsDefaults: true, supportsRevert: true },
-    status: { title: 'Status', description: 'Status palette and optional folder health or status thresholds.', icon: 'fa-heartbeat', advanced: false, supportsDefaults: true, supportsRevert: true },
-    rules: { title: 'Rules', description: 'Regex auto-assignment and matching rules that keep the folder populated.', icon: 'fa-code', advanced: true, supportsDefaults: true, supportsRevert: true },
-    actions: { title: 'Actions', description: 'Quick actions and custom folder actions available from the folder menu.', icon: 'fa-bolt', advanced: true, supportsDefaults: false, supportsRevert: false },
-    advanced: { title: 'Advanced', description: 'Override behavior, expansion defaults, dashboard behavior, and niche controls.', icon: 'fa-sliders', advanced: true, supportsDefaults: true, supportsRevert: true }
-};
-const SECTION_FIELD_NAMES = {
-    general: ['name', 'parent_folder_id', 'icon', 'folder_webui', 'folder_webui_url'],
-    preview: [
-        'preview',
-        'preview_hover',
-        'preview_update',
-        'preview_text_width',
-        'preview_rows',
-        'preview_grayscale',
-        'preview_webui',
-        'preview_logs',
-        'preview_console',
-        'preview_vertical_bars',
-        'preview_vertical_bars_color',
-        'preview_vertical_bars_width',
-        'preview_border',
-        'preview_border_color',
-        'preview_border_width',
-        'context',
-        'context_trigger',
-        'context_graph',
-        'context_graph_time'
-    ],
-    chevron: ['dropdown_style', 'dropdown_color', 'dropdown_hover_color'],
-    status: [
-        'status_color_started',
-        'status_color_paused',
-        'status_color_stopped',
-        'health_warn_stopped_percent',
-        'health_critical_stopped_percent',
-        'health_profile',
-        'health_updates_mode',
-        'health_all_stopped_mode',
-        'status_warn_stopped_percent'
-    ],
-    rules: ['regex'],
-    advanced: ['update_column', 'override_default_actions', 'default_action', 'expand_tab', 'expand_dashboard', 'dashboard_overflow']
-};
-const SECTION_DEFAULT_VALUES = {
-    preview: {
-        preview: '1',
-        preview_hover: false,
-        preview_update: false,
-        preview_text_width: '',
-        preview_rows: '1',
-        preview_grayscale: false,
-        preview_webui: false,
-        preview_logs: false,
-        preview_console: false,
-        preview_vertical_bars: false,
-        preview_vertical_bars_color: '',
-        preview_vertical_bars_width: String(DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH),
-        preview_border: true,
-        preview_border_color: DEFAULT_BORDER_COLOR,
-        preview_border_width: String(DEFAULT_PREVIEW_BORDER_WIDTH),
-        context: '1',
-        context_trigger: '0',
-        context_graph: '1',
-        context_graph_time: '60'
-    },
-    chevron: {
-        dropdown_style: DEFAULT_DROPDOWN_STYLE,
-        dropdown_color: DEFAULT_DROPDOWN_COLOR,
-        dropdown_hover_color: DEFAULT_DROPDOWN_HOVER_COLOR
-    },
-    status: {
-        status_color_started: DEFAULT_FOLDER_STATUS_COLORS.started,
-        status_color_paused: DEFAULT_FOLDER_STATUS_COLORS.paused,
-        status_color_stopped: DEFAULT_FOLDER_STATUS_COLORS.stopped,
-        health_warn_stopped_percent: '',
-        health_critical_stopped_percent: '',
-        health_profile: '',
-        health_updates_mode: '',
-        health_all_stopped_mode: '',
-        status_warn_stopped_percent: ''
-    },
-    rules: {
-        regex: ''
-    },
-    advanced: {
-        update_column: false,
-        override_default_actions: false,
-        default_action: false,
-        expand_tab: false,
-        expand_dashboard: false,
-        dashboard_overflow: 'default'
-    }
-};
-const INHERITED_FIELD_HINTS = {
-    folder_webui_url: 'Using the folder default WebUI behavior until you set a custom URL here.',
-    preview_text_width: 'Using automatic text width until you set a folder override here.',
-    health_warn_stopped_percent: 'Using the global health warning threshold.',
-    health_critical_stopped_percent: 'Using the global or profile-based critical threshold.',
-    health_profile: 'Using the global health profile.',
-    health_updates_mode: 'Using the global update-health policy.',
-    health_all_stopped_mode: 'Using the global all-stopped health policy.',
-    status_warn_stopped_percent: 'Using the global status warning threshold.'
-};
-const ADVANCED_SECTION_KEYS = Object.entries(SECTION_META)
-    .filter(([, section]) => section?.advanced === true)
-    .map(([key]) => key);
-const SECTION_CHANGE_LABELS = {
-    name: 'Folder name',
-    parent_folder_id: 'Parent folder',
-    icon: 'Folder icon',
-    folder_webui: 'Folder WebUI',
-    folder_webui_url: 'Folder WebUI URL',
-    preview: 'Preview mode',
-    preview_hover: 'Hover-only preview',
-    preview_update: 'Update highlighting',
-    preview_text_width: 'Preview text width',
-    preview_rows: 'Preview rows',
-    preview_grayscale: 'Preview grayscale',
-    preview_webui: 'Preview WebUI action',
-    preview_logs: 'Preview logs action',
-    preview_console: 'Preview console action',
-    preview_vertical_bars: 'Preview dividers',
-    preview_vertical_bars_color: 'Divider color',
-    preview_vertical_bars_width: 'Divider thickness',
-    preview_border: 'Preview border',
-    preview_border_color: 'Preview border color',
-    preview_border_width: 'Preview border thickness',
-    dropdown_style: 'Chevron style',
-    dropdown_color: 'Chevron color',
-    dropdown_hover_color: 'Chevron hover color',
-    context: 'Preview context',
-    context_trigger: 'Advanced context trigger',
-    context_graph: 'Context graph mode',
-    context_graph_time: 'Context graph time',
-    status_color_started: 'Started color',
-    status_color_paused: 'Paused color',
-    status_color_stopped: 'Stopped color',
-    health_warn_stopped_percent: 'Health warn threshold',
-    health_critical_stopped_percent: 'Health critical threshold',
-    health_profile: 'Health profile',
-    health_updates_mode: 'Health updates mode',
-    health_all_stopped_mode: 'All-stopped health policy',
-    status_warn_stopped_percent: 'Status warn threshold',
-    regex: 'Regex rule',
-    update_column: 'Update column',
-    override_default_actions: 'Override default actions',
-    default_action: 'Default action',
-    expand_tab: 'Expand in tab',
-    expand_dashboard: 'Expand on dashboard',
-    dashboard_overflow: 'Dashboard overflow mode'
-};
+});
+const FOLDER_HEALTH_PROFILE_VALUES = folderEditorSchema?.FOLDER_HEALTH_PROFILE_VALUES || Object.freeze(['strict', 'balanced', 'lenient']);
+const FOLDER_HEALTH_UPDATES_MODE_VALUES = folderEditorSchema?.FOLDER_HEALTH_UPDATES_MODE_VALUES || Object.freeze(['maintenance', 'warn', 'ignore']);
+const FOLDER_HEALTH_ALL_STOPPED_MODE_VALUES = folderEditorSchema?.FOLDER_HEALTH_ALL_STOPPED_MODE_VALUES || Object.freeze(['critical', 'warn']);
+const INVALID_FOLDER_NAME_CHAR_REGEX = folderEditorSchema?.INVALID_FOLDER_NAME_CHAR_REGEX || /[\u0000-\u001f\u007f<>:"/\\|?*]/;
+const modernEditorSchema = typeof folderEditorSchema?.createModernSchema === 'function'
+    ? folderEditorSchema.createModernSchema({
+        defaultBorderColor: DEFAULT_BORDER_COLOR,
+        defaultPreviewBorderWidth: DEFAULT_PREVIEW_BORDER_WIDTH,
+        defaultPreviewVerticalBarsWidth: DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH,
+        defaultDropdownStyle: DEFAULT_DROPDOWN_STYLE,
+        defaultDropdownColor: DEFAULT_DROPDOWN_COLOR,
+        defaultDropdownHoverColor: DEFAULT_DROPDOWN_HOVER_COLOR,
+        defaultFolderStatusColors: DEFAULT_FOLDER_STATUS_COLORS
+    })
+    : null;
+const SECTION_META = modernEditorSchema?.SECTION_META || Object.freeze({});
+const SECTION_FIELD_NAMES = modernEditorSchema?.SECTION_FIELD_NAMES || Object.freeze({});
+const SECTION_DEFAULT_VALUES = modernEditorSchema?.SECTION_DEFAULT_VALUES || Object.freeze({});
+const INHERITED_FIELD_HINTS = modernEditorSchema?.INHERITED_FIELD_HINTS || Object.freeze({});
+const ADVANCED_SECTION_KEYS = modernEditorSchema?.ADVANCED_SECTION_KEYS || Object.freeze([]);
+const SECTION_CHANGE_LABELS = modernEditorSchema?.SECTION_CHANGE_LABELS || Object.freeze({});
 const DEFAULT_FOLDER_ICON_PATH = '/plugins/folderview.plus/images/folder-icon.png';
 const BUILT_IN_ICON_MANIFEST_PATH = '/plugins/folderview.plus/images/icons/icons.json';
 const THIRD_PARTY_ICON_API_PATH = '/plugins/folderview.plus/server/third_party_icons.php';
@@ -282,9 +257,25 @@ const folderEditorBootstrapMissingModules = [];
 if (!utils || typeof utils.normalizeDashboardOverflowMode !== 'function') {
     folderEditorBootstrapMissingModules.push('folderviewplus.utils.js');
 }
+if (!folderIconApiModule || typeof folderIconApiModule.createApi !== 'function') {
+    folderEditorBootstrapMissingModules.push('folder.editor.icon-api.js');
+}
 if (folderEditorBootstrapMissingModules.length > 0) {
     const error = new Error(`FolderView Plus folder editor bootstrap failed. Missing modules: ${folderEditorBootstrapMissingModules.join(', ')}`);
     error.fvplusBannerShown = true;
+    window.FolderViewPlusFolderEditorRuntimeLastError = error.message;
+    if (typeof window.FolderViewPlusReportFolderEditorBootstrap === 'function') {
+        window.FolderViewPlusReportFolderEditorBootstrap({
+            summary: 'Folder editor bootstrap is missing required modules.',
+            details: 'The modern editor runtime stopped before hydration because one or more shared scripts were unavailable.',
+            debug: [
+                `stage=${String(window.FolderViewPlusFolderEditorRuntimeBootStage || '(empty)')}`,
+                `missingModules=${folderEditorBootstrapMissingModules.join(', ')}`
+            ].join('\n'),
+            tone: 'invalid',
+            stage: 'missing-modules'
+        });
+    }
     throw error;
 }
 
@@ -299,6 +290,7 @@ let builtInIconSearchQuery = '';
 let builtInIconPage = 1;
 let builtInIconSearchTimer = null;
 let editorRecalcTimer = null;
+let editorPreviewRenderTimer = null;
 let nameRegexSyncTimer = null;
 let lastNameRegexSyncValue = '';
 let memberListRenderToken = 0;
@@ -526,89 +518,102 @@ const rgbToHex = (rgb) => {
     return "#" + (1 << 24 | rgb[0] << 16 | rgb[1] << 8 | rgb[2]).toString(16).slice(1);
 }
 
-const normalizeHexColor = (value, fallback) => {
-    if (typeof value !== 'string') {
-        return fallback;
-    }
-    const trimmed = value.trim();
-    if (!/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(trimmed)) {
-        return fallback;
-    }
-    if (trimmed.length === 4) {
-        return `#${trimmed[1]}${trimmed[1]}${trimmed[2]}${trimmed[2]}${trimmed[3]}${trimmed[3]}`.toLowerCase();
-    }
-    return trimmed.toLowerCase();
-};
-
-const hexColorToRgba = (hex, alpha) => {
-    const normalized = normalizeHexColor(hex, DEFAULT_DROPDOWN_COLOR);
-    const safeAlpha = Number.isFinite(Number(alpha)) ? Math.max(0, Math.min(1, Number(alpha))) : 1;
-    const value = normalized.slice(1);
-    const r = parseInt(value.slice(0, 2), 16);
-    const g = parseInt(value.slice(2, 4), 16);
-    const b = parseInt(value.slice(4, 6), 16);
-    return `rgba(${r}, ${g}, ${b}, ${safeAlpha})`;
-};
-
-const normalizePositiveInt = (value, fallback, min = 1, max = 4) => {
-    const parsed = Number(value);
-    if (!Number.isFinite(parsed)) {
-        return fallback;
-    }
-    return Math.max(min, Math.min(max, Math.round(parsed)));
-};
-
-const extractDropdownStyleValue = (value, fallbackSource = null) => {
-    const sources = [value, fallbackSource];
-    for (const source of sources) {
-        if (source && typeof source === 'object') {
-            const candidate = source.dropdown_style
-                ?? source.dropdownStyle
-                ?? source.chevron_style
-                ?? source.chevronStyle;
-            if (candidate !== undefined && candidate !== null && String(candidate).trim() !== '') {
-                return candidate;
-            }
-        } else if (source !== undefined && source !== null && String(source).trim() !== '') {
-            return source;
+const normalizeHexColor = typeof folderContract?.normalizeHexColor === 'function'
+    ? folderContract.normalizeHexColor
+    : ((value, fallback) => {
+        if (typeof value !== 'string') {
+            return fallback;
         }
-    }
-    return '';
-};
+        const trimmed = value.trim();
+        if (!/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(trimmed)) {
+            return fallback;
+        }
+        if (trimmed.length === 4) {
+            return `#${trimmed[1]}${trimmed[1]}${trimmed[2]}${trimmed[2]}${trimmed[3]}${trimmed[3]}`.toLowerCase();
+        }
+        return trimmed.toLowerCase();
+    });
 
-const normalizeDropdownStyle = (value, fallbackSource = null) => {
-    const normalized = String(extractDropdownStyleValue(value, fallbackSource) || '').trim().toLowerCase();
-    return SUPPORTED_DROPDOWN_STYLES.includes(normalized)
-        ? normalized
-        : DEFAULT_DROPDOWN_STYLE;
-};
+const hexColorToRgba = typeof folderContract?.hexColorToRgba === 'function'
+    ? folderContract.hexColorToRgba
+    : ((hex, alpha) => {
+        const normalized = normalizeHexColor(hex, DEFAULT_DROPDOWN_COLOR);
+        const safeAlpha = Number.isFinite(Number(alpha)) ? Math.max(0, Math.min(1, Number(alpha))) : 1;
+        const value = normalized.slice(1);
+        const r = parseInt(value.slice(0, 2), 16);
+        const g = parseInt(value.slice(2, 4), 16);
+        const b = parseInt(value.slice(4, 6), 16);
+        return `rgba(${r}, ${g}, ${b}, ${safeAlpha})`;
+    });
 
-const getDropdownStyleTokens = (style, normalColor, hoverColor) => {
-    switch (style) {
-        case 'boxed':
-            return { border: hexColorToRgba(normalColor, 0.52), hoverBorder: hoverColor, background: hexColorToRgba(normalColor, 0.10), hoverBackground: hexColorToRgba(normalColor, 0.82), minWidth: '22px', height: '22px', padding: '0 6px', radius: '4px', shadow: 'inset 0 0 0 1px rgba(0, 0, 0, 0.18)', hoverShadow: 'inset 0 0 0 1px rgba(0, 0, 0, 0.18)' };
-        case 'ghost':
-            return { border: 'transparent', hoverBorder: hoverColor, background: 'transparent', hoverBackground: hexColorToRgba(normalColor, 0.08), minWidth: '20px', height: '20px', padding: '0 5px', radius: '4px', shadow: 'none', hoverShadow: 'none' };
-        case 'pill':
-            return { border: hexColorToRgba(normalColor, 0.42), hoverBorder: hoverColor, background: hexColorToRgba(normalColor, 0.10), hoverBackground: hexColorToRgba(normalColor, 0.18), minWidth: '24px', height: '20px', padding: '0 7px', radius: '999px', shadow: 'none', hoverShadow: 'none' };
-        case 'filled':
-            return { border: hexColorToRgba(normalColor, 0.65), hoverBorder: hoverColor, background: hexColorToRgba(normalColor, 0.22), hoverBackground: hexColorToRgba(normalColor, 0.34), minWidth: '22px', height: '22px', padding: '0 6px', radius: '4px', shadow: 'none', hoverShadow: 'none' };
-        case 'minimal':
-        default:
-            return { border: 'transparent', hoverBorder: 'transparent', background: 'transparent', hoverBackground: 'transparent', minWidth: '12px', height: '16px', padding: '0 2px', radius: '0px', shadow: 'none', hoverShadow: 'none' };
-    }
-};
+const normalizePositiveInt = typeof folderContract?.normalizePositiveInt === 'function'
+    ? folderContract.normalizePositiveInt
+    : ((value, fallback, min = 1, max = 4) => {
+        const parsed = Number(value);
+        if (!Number.isFinite(parsed)) {
+            return fallback;
+        }
+        return Math.max(min, Math.min(max, Math.round(parsed)));
+    });
 
-const isLegacyPreviewBorderEnabled = (settings) => {
-    const source = settings && typeof settings === 'object' ? settings : {};
-    if (Object.prototype.hasOwnProperty.call(source, 'preview_border')) {
-        const raw = String(source.preview_border ?? '').trim().toLowerCase();
-        const explicitOff = raw === '0' || raw === 'false' || raw === 'off' || raw === 'no';
-        return !explicitOff;
-    }
-    // Legacy fallback: older payloads without preview_border should keep border visible.
-    return true;
-};
+const extractDropdownStyleValue = typeof folderContract?.extractDropdownStyleValue === 'function'
+    ? folderContract.extractDropdownStyleValue
+    : ((value, fallbackSource = null) => {
+        const sources = [value, fallbackSource];
+        for (const source of sources) {
+            if (source && typeof source === 'object') {
+                const candidate = source.dropdown_style
+                    ?? source.dropdownStyle
+                    ?? source.chevron_style
+                    ?? source.chevronStyle;
+                if (candidate !== undefined && candidate !== null && String(candidate).trim() !== '') {
+                    return candidate;
+                }
+            } else if (source !== undefined && source !== null && String(source).trim() !== '') {
+                return source;
+            }
+        }
+        return '';
+    });
+
+const normalizeDropdownStyle = typeof folderContract?.normalizeDropdownStyle === 'function'
+    ? folderContract.normalizeDropdownStyle
+    : ((value, fallbackSource = null) => {
+        const normalized = String(extractDropdownStyleValue(value, fallbackSource) || '').trim().toLowerCase();
+        return SUPPORTED_DROPDOWN_STYLES.includes(normalized)
+            ? normalized
+            : DEFAULT_DROPDOWN_STYLE;
+    });
+
+const getDropdownStyleTokens = typeof folderContract?.getDropdownStyleTokens === 'function'
+    ? folderContract.getDropdownStyleTokens
+    : ((style, normalColor, hoverColor) => {
+        switch (style) {
+            case 'boxed':
+                return { border: hexColorToRgba(normalColor, 0.52), hoverBorder: hoverColor, background: hexColorToRgba(normalColor, 0.10), hoverBackground: hexColorToRgba(normalColor, 0.82), minWidth: '22px', height: '22px', padding: '0 6px', radius: '4px', shadow: 'inset 0 0 0 1px rgba(0, 0, 0, 0.18)', hoverShadow: 'inset 0 0 0 1px rgba(0, 0, 0, 0.18)' };
+            case 'ghost':
+                return { border: 'transparent', hoverBorder: hoverColor, background: 'transparent', hoverBackground: hexColorToRgba(normalColor, 0.08), minWidth: '20px', height: '20px', padding: '0 5px', radius: '4px', shadow: 'none', hoverShadow: 'none' };
+            case 'pill':
+                return { border: hexColorToRgba(normalColor, 0.42), hoverBorder: hoverColor, background: hexColorToRgba(normalColor, 0.10), hoverBackground: hexColorToRgba(normalColor, 0.18), minWidth: '24px', height: '20px', padding: '0 7px', radius: '999px', shadow: 'none', hoverShadow: 'none' };
+            case 'filled':
+                return { border: hexColorToRgba(normalColor, 0.65), hoverBorder: hoverColor, background: hexColorToRgba(normalColor, 0.22), hoverBackground: hexColorToRgba(normalColor, 0.34), minWidth: '22px', height: '22px', padding: '0 6px', radius: '4px', shadow: 'none', hoverShadow: 'none' };
+            case 'minimal':
+            default:
+                return { border: 'transparent', hoverBorder: 'transparent', background: 'transparent', hoverBackground: 'transparent', minWidth: '12px', height: '16px', padding: '0 2px', radius: '0px', shadow: 'none', hoverShadow: 'none' };
+        }
+    });
+
+const isLegacyPreviewBorderEnabled = typeof folderContract?.isPreviewBorderEnabled === 'function'
+    ? folderContract.isPreviewBorderEnabled
+    : ((settings) => {
+        const source = settings && typeof settings === 'object' ? settings : {};
+        if (Object.prototype.hasOwnProperty.call(source, 'preview_border')) {
+            const raw = String(source.preview_border ?? '').trim().toLowerCase();
+            const explicitOff = raw === '0' || raw === 'false' || raw === 'off' || raw === 'no';
+            return !explicitOff;
+        }
+        return true;
+    });
 
 const getForm = () => $('div.canvas > form')[0];
 const getFormField = (form, fieldName) => {
@@ -635,6 +640,48 @@ const setValidationBannerState = (summaryText, detailsText, state = 'ready') => 
             .addClass(state === 'invalid' ? 'invalid' : state === 'warning' ? 'warning' : state === 'info' ? 'info' : 'ready')
             .text(detailsText);
     }
+};
+const setBootstrapDiagnostics = (details = {}) => {
+    const debug = $('#fvEditorBootstrapDebug');
+    if (!debug.length) {
+        return;
+    }
+    const formatSeedSummary = (seed) => {
+        if (!seed || typeof seed !== 'object') {
+            return '(none)';
+        }
+        const seedType = String(seed.type || '(empty)').trim() || '(empty)';
+        const seedId = String(seed.id || '(empty)').trim() || '(empty)';
+        const hasFolder = seed.folder && typeof seed.folder === 'object' ? 'yes' : 'no';
+        return `type=${seedType};id=${seedId};folder=${hasFolder}`;
+    };
+    const lines = [
+        `type=${String(details.type || type || '(empty)')}`,
+        `folderId=${String(details.folderId || folderId || '(empty)')}`,
+        `resolvedId=${String(details.resolvedId || folderEditorResolvedId || '(empty)')}`,
+        `requestedRef=${String(details.requestedRef || '(empty)')}`,
+        `pageType=${String(window.FolderViewPlusFolderEditorPageType || '(empty)')}`,
+        `pageMode=${String(window.FolderViewPlusFolderEditorPageMode || '(empty)')}`,
+        `pageRequested=${String(window.FolderViewPlusFolderEditorRequestedId || '(empty)')}`,
+        `pageResolved=${String(window.FolderViewPlusFolderEditorResolvedId || '(empty)')}`,
+        `bootstrapContextResolvedBy=${String(folderEditorBootstrapContext?.resolvedBy || '(none)')}`,
+        `bootstrapContextHasFolder=${folderEditorBootstrapFolder ? 'yes' : 'no'}`,
+        `storageSeed=${folderEditorStorageBootstrap ? 'yes' : 'no'}`,
+        `storageSeedSummary=${String(details.storageSeedSummary || formatSeedSummary(folderEditorStorageBootstrap))}`,
+        `windowNameSeed=${folderEditorWindowNameBootstrap ? 'yes' : 'no'}`,
+        `windowNameSeedSummary=${String(details.windowNameSeedSummary || formatSeedSummary(folderEditorWindowNameBootstrap))}`,
+        `cookieSeed=${String(document.cookie || '').includes(`${EDITOR_BOOTSTRAP_COOKIE_NAME}=`) ? 'yes' : 'no'}`,
+        `navigationPrefillId=${String(details.navigationPrefillId || '(empty)')}`,
+        `navigationPrefillHasFolder=${String(details.navigationPrefillHasFolder || 'no')}`,
+        `foldersLoaded=${String(details.foldersLoaded || '0')}`,
+        `membersLoaded=${String(details.membersLoaded || '0')}`,
+        `resolvedBy=${String(details.resolvedBy || '(none)')}`,
+        `hostTheme=${String(window.FolderViewPlusHostThemeName || '(empty)')}`,
+        `htmlTheme=${String(document.documentElement?.getAttribute('data-fvplus-host-theme') || '(empty)')}`,
+        `mode=${String(details.mode || 'boot')}`,
+        `result=${String(details.result || '(pending)')}`
+    ];
+    debug.text(lines.join('\n'));
 };
 const decodeFolderQueryValue = (value) => {
     const raw = String(value || '').trim();
@@ -709,7 +756,7 @@ const readEditorNavigationPrefill = (expectedType, expectedId = '') => {
             const normalizedId = String(payload?.id || '').trim();
             const normalizedExpectedId = String(expectedId || '').trim();
             const storedAt = Number(payload?.storedAt || 0);
-            if (!normalizedType || !normalizedId || !payload?.folder || typeof payload.folder !== 'object') {
+            if (!normalizedType || !normalizedId) {
                 return null;
             }
             if (normalizedType !== String(expectedType || '').trim()) {
@@ -723,7 +770,9 @@ const readEditorNavigationPrefill = (expectedType, expectedId = '') => {
             }
             return {
                 id: normalizedId,
-                folder: normalizeFolderRecordForEditor(payload.folder)
+                folder: payload?.folder && typeof payload.folder === 'object'
+                    ? normalizeFolderRecordForEditor(payload.folder)
+                    : null
             };
         } catch (_error) {
             return null;
@@ -755,6 +804,10 @@ const clearEditorNavigationPrefill = () => {
         if (typeof localStorage !== 'undefined') {
             localStorage.removeItem(EDITOR_PREFILL_LOCAL_STORAGE_KEY);
         }
+        if (String(window.name || '').startsWith(EDITOR_WINDOW_NAME_PREFIX)) {
+            window.name = '';
+        }
+        document.cookie = `${EDITOR_BOOTSTRAP_COOKIE_NAME}=; path=/; max-age=0; SameSite=Lax`;
     } catch (_error) {
         // Ignore storage cleanup issues.
     }
@@ -3026,10 +3079,14 @@ const updateInheritedFieldIndicators = () => {
             .attr('title', isInherited ? hint : '');
         const button = row.find(`.fv-inherit-btn[data-field="${fieldName}"]`).first();
         if (button.length) {
-            button.prop('disabled', isInherited);
-            button.toggleClass('is-inherited', isInherited);
-            button.text(isInherited ? 'Using global' : 'Use global');
-            button.attr('title', isInherited ? hint : 'Clear this override and use the global default again.');
+            const actions = button.closest('.fv-field-inherit-tools');
+            if (actions.length) {
+                actions.prop('hidden', isInherited);
+            }
+            button.prop('disabled', false);
+            button.removeClass('is-inherited');
+            button.text('Use global');
+            button.attr('title', 'Clear this override and use the global default again.');
         }
     });
     $('#fvHeroDefaults').text(
@@ -3127,100 +3184,55 @@ const buildSectionCards = () => {
     });
 };
 
+const normalizeParentFolderId = (value) => String(value || '').trim();
+
+let folderEditorPreviewApi = null;
+const getFolderEditorPreviewApi = () => {
+    if (folderEditorPreviewApi || typeof folderEditorPreview?.createApi !== 'function') {
+        return folderEditorPreviewApi;
+    }
+    folderEditorPreviewApi = folderEditorPreview.createApi({
+        $,
+        type,
+        shouldRender: () => modernFolderEditorEnabled,
+        shouldUpdate: () => modernFolderEditorEnabled,
+        getForm,
+        getIncludedMemberNames,
+        getMemberMapByName,
+        getAllMembers,
+        normalizePreviewRowLimit,
+        normalizeDropdownStyle,
+        normalizeHexColor,
+        normalizePositiveInt,
+        getDropdownStyleTokens,
+        buildSampleMemberState,
+        normalizeParentFolderId,
+        isDockerUpdateAvailableInEditor,
+        escapeHtml,
+        updateMemberStats: () => updateMemberStats(),
+        onAfterSummaryUpdate: () => {
+            updateInheritedFieldIndicators();
+            updateChangeSummaryPanel();
+            updateSectionStateIndicators();
+        },
+        defaultBorderColor: DEFAULT_BORDER_COLOR,
+        defaultPreviewBorderWidth: DEFAULT_PREVIEW_BORDER_WIDTH,
+        defaultPreviewVerticalBarsWidth: DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH,
+        defaultDropdownColor: DEFAULT_DROPDOWN_COLOR,
+        defaultDropdownHoverColor: DEFAULT_DROPDOWN_HOVER_COLOR,
+        defaultFolderIconPath: DEFAULT_FOLDER_ICON_PATH,
+        defaultFolderStatusColors: DEFAULT_FOLDER_STATUS_COLORS,
+        iconFallbackPath: ICON_FALLBACK_PATH,
+        previewModeLabels: PREVIEW_MODE_LABELS,
+        contextModeLabels: CONTEXT_MODE_LABELS,
+        supportedDropdownStyles: SUPPORTED_DROPDOWN_STYLES,
+        defaultDividerColor: rgbToHex($('body').css('color'))
+    });
+    return folderEditorPreviewApi;
+};
+
 const renderLivePreviewCanvas = () => {
-    if (!modernFolderEditorEnabled) {
-        return;
-    }
-    const form = getForm();
-    const canvas = $('#fvLivePreviewCanvas');
-    if (!form || !canvas.length) {
-        return;
-    }
-
-    const memberNames = getIncludedMemberNames();
-    const memberMap = getMemberMapByName();
-    const selectedMembers = memberNames.map((name) => memberMap.get(name)).filter(Boolean);
-    const previewMode = Number(form.preview.value || 0);
-    const rowsLimit = normalizePreviewRowLimit(form.preview_rows?.value);
-    const renderLimit = rowsLimit === 0 ? 10 : Math.max(4, Math.min(10, rowsLimit * 4));
-    const sampleMembers = selectedMembers.slice(0, renderLimit);
-    const dropdownStyle = normalizeDropdownStyle(form.dropdown_style?.value);
-    const borderEnabled = previewMode !== 0 && form.preview_border.checked;
-    const borderColor = normalizeHexColor(form.preview_border_color.value, DEFAULT_BORDER_COLOR);
-    const borderWidth = String(normalizePositiveInt(form.preview_border_width.value, DEFAULT_PREVIEW_BORDER_WIDTH, 1, 4));
-    const dividerEnabled = previewMode !== 0 && form.preview_vertical_bars.checked;
-    const dividerColor = normalizeHexColor(form.preview_vertical_bars_color.value || rgbToHex($('body').css('color')), rgbToHex($('body').css('color')));
-    const dividerWidth = String(normalizePositiveInt(form.preview_vertical_bars_width.value, DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH, 1, 4));
-    const dropdownColor = normalizeHexColor(form.dropdown_color.value, DEFAULT_DROPDOWN_COLOR);
-    const dropdownHoverColor = normalizeHexColor(form.dropdown_hover_color.value, DEFAULT_DROPDOWN_HOVER_COLOR);
-    const icon = String(form.icon.value || '').trim() || DEFAULT_FOLDER_ICON_PATH;
-    const name = (form.name.value || '').trim() || 'Unnamed folder';
-    const membersHtml = previewMode === 0
-        ? '<div class="fv-live-preview-empty">Preview is currently disabled. The folder row will show the title and chevron only.</div>'
-        : (sampleMembers.length > 0
-            ? sampleMembers.map((member, index) => {
-                const memberName = escapeHtml(member?.Name || `Member ${index + 1}`);
-                const memberIcon = escapeHtml(member?.Icon || ICON_FALLBACK_PATH);
-                const state = buildSampleMemberState(member, index);
-                const stateLabel = escapeHtml(state.label);
-                const stateColor = escapeHtml(state.color);
-                return `
-                    <span class="fv-live-member fv-live-member-preview-${previewMode}" style="${dividerEnabled && index < sampleMembers.length - 1 ? `--fv-divider-color:${dividerColor};--fv-divider-width:${dividerWidth}px;` : ''}">
-                        <img src="${memberIcon}" alt="" onerror="this.src='${ICON_FALLBACK_PATH}';">
-                        ${previewMode === 2 ? '' : `<span class="fv-live-member-name">${memberName}</span>`}
-                        ${previewMode === 2 ? '' : `<span class="fv-live-member-status" style="color:${stateColor};">${stateLabel}</span>`}
-                    </span>
-                `;
-            }).join('')
-            : '<div class="fv-live-preview-empty">Select or match at least one member to see how the row preview will render.</div>');
-
-    const dropdownTokens = getDropdownStyleTokens(dropdownStyle, dropdownColor, dropdownHoverColor);
-    const rowClass = `fv-live-preview-row preview-${previewMode}${borderEnabled ? ' has-border' : ''} is-${dropdownStyle}${rowsLimit !== 1 ? ' is-multi-row' : ' is-single-row'}`;
-    canvas.html(`
-        <div class="fv-live-preview-surface">
-            <div class="${rowClass}" style="--fv-preview-border-color:${borderColor};--fv-preview-border-width:${borderWidth}px;--fv-chevron-color:${dropdownColor};--fv-chevron-hover:${dropdownHoverColor};--fv-live-chevron-min-width:${dropdownTokens.minWidth};--fv-live-chevron-height:${dropdownTokens.height};--fv-live-chevron-padding:${dropdownTokens.padding};--fv-live-chevron-radius:${dropdownTokens.radius};--fv-live-chevron-border:${dropdownTokens.border};--fv-live-chevron-hover-border:${dropdownTokens.hoverBorder};--fv-live-chevron-bg:${dropdownTokens.background};--fv-live-chevron-hover-bg:${dropdownTokens.hoverBackground};--fv-live-chevron-shadow:${dropdownTokens.shadow};--fv-live-chevron-hover-shadow:${dropdownTokens.hoverShadow};">
-                <div class="fv-live-folder-head">
-                    <div class="fv-live-folder-anchor">
-                        <img class="fv-live-folder-icon" src="${escapeHtml(icon)}" alt="" onerror="this.src='${DEFAULT_FOLDER_ICON_PATH}';">
-                        <div class="fv-live-folder-copy">
-                            <strong>${escapeHtml(name)}</strong>
-                            <span>${PREVIEW_MODE_LABELS[previewMode] || 'Unknown'} preview</span>
-                        </div>
-                    </div>
-                    <span class="fv-live-chevron fv-live-chevron-${dropdownStyle}" aria-hidden="true">
-                        <i class="fa fa-chevron-down" aria-hidden="true"></i>
-                    </span>
-                </div>
-                <div class="fv-live-member-lane">${membersHtml}</div>
-            </div>
-        </div>
-    `);
-    const livePreviewRow = canvas.find('.fv-live-preview-row').get(0);
-    const liveChevron = canvas.find('.fv-live-chevron').get(0);
-    if (livePreviewRow && liveChevron) {
-        SUPPORTED_DROPDOWN_STYLES.forEach((styleName) => livePreviewRow.classList.remove(`is-${styleName}`));
-        livePreviewRow.classList.add(`is-${dropdownStyle}`);
-        livePreviewRow.style.setProperty('--fv-live-chevron-color', dropdownColor);
-        livePreviewRow.style.setProperty('--fv-live-chevron-hover', dropdownHoverColor);
-        livePreviewRow.style.setProperty('--fv-live-chevron-border', dropdownTokens.border);
-        livePreviewRow.style.setProperty('--fv-live-chevron-hover-border', dropdownTokens.hoverBorder);
-        livePreviewRow.style.setProperty('--fv-live-chevron-bg', dropdownTokens.background);
-        livePreviewRow.style.setProperty('--fv-live-chevron-hover-bg', dropdownTokens.hoverBackground);
-        livePreviewRow.style.setProperty('--fv-live-chevron-min-width', dropdownTokens.minWidth);
-        livePreviewRow.style.setProperty('--fv-live-chevron-height', dropdownTokens.height);
-        livePreviewRow.style.setProperty('--fv-live-chevron-padding', dropdownTokens.padding);
-        livePreviewRow.style.setProperty('--fv-live-chevron-radius', dropdownTokens.radius);
-        livePreviewRow.style.setProperty('--fv-live-chevron-shadow', dropdownTokens.shadow);
-        livePreviewRow.style.setProperty('--fv-live-chevron-hover-shadow', dropdownTokens.hoverShadow);
-        liveChevron.style.setProperty('--fv-live-chevron-color', dropdownColor);
-        liveChevron.style.setProperty('--fv-live-chevron-hover', dropdownHoverColor);
-        liveChevron.style.setProperty('--fv-live-chevron-border', dropdownTokens.border);
-        liveChevron.style.setProperty('--fv-live-chevron-hover-border', dropdownTokens.hoverBorder);
-        liveChevron.style.setProperty('--fv-live-chevron-bg', dropdownTokens.background);
-        liveChevron.style.setProperty('--fv-live-chevron-hover-bg', dropdownTokens.hoverBackground);
-        liveChevron.style.setProperty('--fv-live-chevron-shadow', dropdownTokens.shadow);
-        liveChevron.style.setProperty('--fv-live-chevron-hover-shadow', dropdownTokens.hoverShadow);
-    }
+    getFolderEditorPreviewApi()?.renderLivePreviewCanvas();
 };
 
 const markUnsavedIndicatorDirty = () => {
@@ -3237,6 +3249,26 @@ const runEditorRecalculation = () => {
     updateUnsavedIndicator();
     updateSectionStateIndicators();
     updateChangeSummaryPanel();
+};
+
+const scheduleEditorPreviewRender = () => {
+    const run = () => {
+        editorPreviewRenderTimer = null;
+        renderLivePreviewCanvas();
+    };
+    if (editorPreviewRenderTimer !== null) {
+        if (typeof window.cancelAnimationFrame === 'function') {
+            window.cancelAnimationFrame(editorPreviewRenderTimer);
+        } else {
+            clearTimeout(editorPreviewRenderTimer);
+        }
+        editorPreviewRenderTimer = null;
+    }
+    if (typeof window.requestAnimationFrame === 'function') {
+        editorPreviewRenderTimer = window.requestAnimationFrame(run);
+        return;
+    }
+    editorPreviewRenderTimer = setTimeout(run, 16);
 };
 
 const scheduleEditorRecalculation = (delayMs = 0) => {
@@ -3302,15 +3334,33 @@ const resetStatusColorDefaults = () => {
 };
 window.resetStatusColorDefaults = resetStatusColorDefaults;
 
-const resetPreviewBorderDefaults = () => {
-    const form = $('div.canvas > form')[0];
-    form.preview_border_color.value = DEFAULT_BORDER_COLOR;
-    form.preview_border_width.value = String(DEFAULT_PREVIEW_BORDER_WIDTH);
-    if (typeof scheduleEditorRecalculation === 'function') {
-        scheduleEditorRecalculation(0);
-    }
-    updateLiveSummary();
-};
+const folderEditorResetHelpers = typeof folderEditorShared?.createResetHelpers === 'function'
+    ? folderEditorShared.createResetHelpers({
+        getForm: () => $('div.canvas > form')[0] || null,
+        defaultBorderColor: DEFAULT_BORDER_COLOR,
+        defaultPreviewBorderWidth: DEFAULT_PREVIEW_BORDER_WIDTH,
+        defaultDropdownColor: DEFAULT_DROPDOWN_COLOR,
+        defaultDropdownHoverColor: DEFAULT_DROPDOWN_HOVER_COLOR,
+        afterVisualChange: () => {
+            if (typeof scheduleEditorRecalculation === 'function') {
+                scheduleEditorRecalculation(0);
+            }
+        },
+        updateLiveSummary: () => updateLiveSummary()
+    })
+    : null;
+
+const resetPreviewBorderDefaults = typeof folderEditorResetHelpers?.resetPreviewBorderDefaults === 'function'
+    ? folderEditorResetHelpers.resetPreviewBorderDefaults
+    : (() => {
+        const form = $('div.canvas > form')[0];
+        form.preview_border_color.value = DEFAULT_BORDER_COLOR;
+        form.preview_border_width.value = String(DEFAULT_PREVIEW_BORDER_WIDTH);
+        if (typeof scheduleEditorRecalculation === 'function') {
+            scheduleEditorRecalculation(0);
+        }
+        updateLiveSummary();
+    });
 window.resetPreviewBorderDefaults = resetPreviewBorderDefaults;
 
 const resetPreviewBarDefaults = () => {
@@ -3323,15 +3373,17 @@ const resetPreviewBarDefaults = () => {
 };
 window.resetPreviewBarDefaults = resetPreviewBarDefaults;
 
-const resetDropdownColorDefaults = () => {
-    const form = $('div.canvas > form')[0];
-    form.dropdown_color.value = DEFAULT_DROPDOWN_COLOR;
-    form.dropdown_hover_color.value = DEFAULT_DROPDOWN_HOVER_COLOR;
-    if (typeof scheduleEditorRecalculation === 'function') {
-        scheduleEditorRecalculation(0);
-    }
-    updateLiveSummary();
-};
+const resetDropdownColorDefaults = typeof folderEditorResetHelpers?.resetDropdownColorDefaults === 'function'
+    ? folderEditorResetHelpers.resetDropdownColorDefaults
+    : (() => {
+        const form = $('div.canvas > form')[0];
+        form.dropdown_color.value = DEFAULT_DROPDOWN_COLOR;
+        form.dropdown_hover_color.value = DEFAULT_DROPDOWN_HOVER_COLOR;
+        if (typeof scheduleEditorRecalculation === 'function') {
+            scheduleEditorRecalculation(0);
+        }
+        updateLiveSummary();
+    });
 window.resetDropdownColorDefaults = resetDropdownColorDefaults;
 
 const setFieldError = (fieldName, message) => {
@@ -3474,7 +3526,42 @@ const normalizeDashboardOverflowMode = typeof utils?.normalizeDashboardOverflowM
             : 'default';
     });
 
+let folderEditorSharedApi = null;
+const getFolderEditorSharedApi = () => {
+    if (folderEditorSharedApi || typeof folderEditorShared?.createApi !== 'function') {
+        return folderEditorSharedApi;
+    }
+    folderEditorSharedApi = folderEditorShared.createApi({
+        defaultFolderName: 'Folder',
+        defaultFolderIconPath: DEFAULT_FOLDER_ICON_PATH,
+        defaultBorderColor: DEFAULT_BORDER_COLOR,
+        defaultPreviewBorderWidth: DEFAULT_PREVIEW_BORDER_WIDTH,
+        defaultPreviewVerticalBarsWidth: DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH,
+        defaultDropdownStyle: DEFAULT_DROPDOWN_STYLE,
+        defaultDropdownColor: DEFAULT_DROPDOWN_COLOR,
+        defaultDropdownHoverColor: DEFAULT_DROPDOWN_HOVER_COLOR,
+        defaultFolderStatusColors: DEFAULT_FOLDER_STATUS_COLORS,
+        healthProfileValues: FOLDER_HEALTH_PROFILE_VALUES,
+        healthUpdatesModeValues: FOLDER_HEALTH_UPDATES_MODE_VALUES,
+        healthAllStoppedModeValues: FOLDER_HEALTH_ALL_STOPPED_MODE_VALUES,
+        normalizeDashboardOverflowMode,
+        extractPreviewRowLimitValue: typeof folderContract?.extractPreviewRowLimitValue === 'function' ? folderContract.extractPreviewRowLimitValue : null,
+        normalizePreviewRowLimit: typeof folderContract?.normalizePreviewRowLimit === 'function' ? folderContract.normalizePreviewRowLimit : null,
+        normalizeParentFolderId,
+        asArray,
+        normalizeHexColor,
+        normalizePositiveInt,
+        normalizeDropdownStyle,
+        isPreviewBorderEnabled: isLegacyPreviewBorderEnabled
+    });
+    return folderEditorSharedApi;
+};
+
 const extractPreviewRowLimitValue = (value, fallbackSource = null) => {
+    const sharedApi = getFolderEditorSharedApi();
+    if (typeof sharedApi?.extractPreviewRowLimitValue === 'function') {
+        return sharedApi.extractPreviewRowLimitValue(value, fallbackSource);
+    }
     const sources = [value, fallbackSource];
     for (const source of sources) {
         if (source && typeof source === 'object') {
@@ -3491,6 +3578,10 @@ const extractPreviewRowLimitValue = (value, fallbackSource = null) => {
 };
 
 const normalizePreviewRowLimit = (value, fallbackSource = null) => {
+    const sharedApi = getFolderEditorSharedApi();
+    if (typeof sharedApi?.normalizePreviewRowLimit === 'function') {
+        return sharedApi.normalizePreviewRowLimit(value, fallbackSource);
+    }
     const normalized = String(extractPreviewRowLimitValue(value, fallbackSource) ?? '').trim().toLowerCase();
     if (normalized === '0' || normalized === 'auto' || normalized === 'unlimited') {
         return 0;
@@ -3503,78 +3594,18 @@ const normalizePreviewRowLimit = (value, fallbackSource = null) => {
 };
 
 const normalizeFolderRecordForEditor = (folder) => {
-    const source = folder && typeof folder === 'object' ? folder : {};
-    const settings = source.settings && typeof source.settings === 'object' ? source.settings : {};
-
-    const toSafeInt = (value, fallback) => {
-        const parsed = Number.parseInt(String(value ?? ''), 10);
-        return Number.isFinite(parsed) ? parsed : fallback;
+    const sharedApi = getFolderEditorSharedApi();
+    if (typeof sharedApi?.normalizeFolderRecordForEditor !== 'function') {
+        return folder;
+    }
+    const normalized = sharedApi.normalizeFolderRecordForEditor(folder);
+    normalized.settings = {
+        ...normalized.settings,
+        dropdownStyle: normalized.settings.dropdown_style,
+        chevron_style: normalized.settings.dropdown_style,
+        chevronStyle: normalized.settings.dropdown_style
     };
-
-    return {
-        ...source,
-        name: String(source.name || '').trim() || 'Folder',
-        icon: String(source.icon || '').trim() || DEFAULT_FOLDER_ICON_PATH,
-        regex: String(source.regex || ''),
-        parentId: normalizeParentFolderId(source.parentId || source.parent_id || ''),
-        containers: Array.from(
-            new Set(
-                asArray(source.containers)
-                    .map((entry) => String(entry || '').trim())
-                    .filter(Boolean)
-            )
-        ),
-        actions: asArray(source.actions),
-        settings: {
-            ...settings,
-            folder_webui: settings.folder_webui === true,
-            folder_webui_url: String(settings.folder_webui_url || ''),
-            preview: Number.isFinite(Number(settings.preview)) ? toSafeInt(settings.preview, 1) : 1,
-            preview_rows: normalizePreviewRowLimit(settings, source),
-            previewRows: normalizePreviewRowLimit(settings, source),
-            preview_hover: settings.preview_hover === true,
-            preview_update: settings.preview_update === true,
-            preview_text_width: String(settings.preview_text_width || ''),
-            preview_grayscale: settings.preview_grayscale === true,
-            preview_webui: settings.preview_webui === true,
-            preview_logs: settings.preview_logs === true,
-            preview_console: settings.preview_console === true,
-            preview_vertical_bars: settings.preview_vertical_bars === true,
-            context: Number.isFinite(Number(settings.context)) ? toSafeInt(settings.context, 1) : 1,
-            context_trigger: Number.isFinite(Number(settings.context_trigger)) ? toSafeInt(settings.context_trigger, 0) : 0,
-            context_graph: Number.isFinite(Number(settings.context_graph)) ? toSafeInt(settings.context_graph, 1) : 1,
-            context_graph_time: Number.isFinite(Number(settings.context_graph_time)) ? toSafeInt(settings.context_graph_time, 60) : 60,
-            preview_border: isLegacyPreviewBorderEnabled(settings),
-            preview_border_color: normalizeHexColor(settings.preview_border_color, DEFAULT_BORDER_COLOR),
-            preview_border_width: normalizePositiveInt(settings.preview_border_width, DEFAULT_PREVIEW_BORDER_WIDTH, 1, 4),
-            preview_vertical_bars_color: normalizeHexColor(
-                settings.preview_vertical_bars_color || settings.preview_border_color,
-                DEFAULT_BORDER_COLOR
-            ),
-            preview_vertical_bars_width: normalizePositiveInt(settings.preview_vertical_bars_width, DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH, 1, 4),
-            dropdown_style: normalizeDropdownStyle(settings, source),
-            dropdownStyle: normalizeDropdownStyle(settings, source),
-            chevron_style: normalizeDropdownStyle(settings, source),
-            chevronStyle: normalizeDropdownStyle(settings, source),
-            dropdown_color: normalizeHexColor(settings.dropdown_color, DEFAULT_DROPDOWN_COLOR),
-            dropdown_hover_color: normalizeHexColor(settings.dropdown_hover_color, DEFAULT_DROPDOWN_HOVER_COLOR),
-            status_color_started: normalizeHexColor(settings.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started),
-            status_color_paused: normalizeHexColor(settings.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused),
-            status_color_stopped: normalizeHexColor(settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped),
-            health_warn_stopped_percent: parseOptionalThresholdInput(settings.health_warn_stopped_percent),
-            health_critical_stopped_percent: parseOptionalThresholdInput(settings.health_critical_stopped_percent),
-            health_profile: normalizeOptionalHealthSelect(settings.health_profile, FOLDER_HEALTH_PROFILE_VALUES),
-            health_updates_mode: normalizeOptionalHealthSelect(settings.health_updates_mode, FOLDER_HEALTH_UPDATES_MODE_VALUES),
-            health_all_stopped_mode: normalizeOptionalHealthSelect(settings.health_all_stopped_mode, FOLDER_HEALTH_ALL_STOPPED_MODE_VALUES),
-            status_warn_stopped_percent: parseOptionalThresholdInput(settings.status_warn_stopped_percent),
-            update_column: settings.update_column === true,
-            default_action: settings.default_action === true,
-            expand_tab: settings.expand_tab === true,
-            override_default_actions: settings.override_default_actions === true,
-            expand_dashboard: settings.expand_dashboard === true,
-            dashboard_overflow: normalizeDashboardOverflowMode(settings.dashboard_overflow)
-        }
-    };
+    return normalized;
 };
 
 const validateHealthWarnThreshold = () => {
@@ -3919,17 +3950,25 @@ const moveMemberRow = (button, direction) => {
     if (!row.length) {
         return;
     }
+    let moved = false;
     if (direction === 'up') {
         const prev = row.prev('tr');
         if (prev.length) {
             prev.before(row);
+            moved = true;
         }
     } else {
         const next = row.next('tr');
         if (next.length) {
             next.after(row);
+            moved = true;
         }
     }
+    if (!moved) {
+        return;
+    }
+    syncMemberArraysFromTable();
+    updateLiveSummary();
     if (isFormInitialized) {
         updateUnsavedIndicator();
     }
@@ -4096,7 +4135,7 @@ const applyAdvancedMode = () => {
 };
 
 const enforceLeftAlignedSettingsLayout = () => {
-    if (!modernFolderEditorEnabled) {
+    if (modernFolderEditorEnabled) {
         return;
     }
     try {
@@ -4145,16 +4184,32 @@ const enforceLeftAlignedSettingsLayout = () => {
         });
 
         form.querySelectorAll('.basic:not(.order-section) > dl').forEach((dl) => {
-            setImportant(dl, 'display', 'grid');
-            setImportant(dl, 'grid-template-columns', isMobile ? '1fr' : 'minmax(150px, 200px) minmax(280px, 640px)');
-            setImportant(dl, 'column-gap', isMobile ? '0.4em' : '0.85em');
-            setImportant(dl, 'row-gap', isMobile ? '0.4em' : '0');
-            setImportant(dl, 'align-items', 'center');
-            setImportant(dl, 'justify-content', 'start');
-            setImportant(dl, 'width', '100%');
-            setImportant(dl, 'max-width', 'none');
-            setImportant(dl, 'margin-left', '0');
-            setImportant(dl, 'margin-right', '0');
+            const modernFieldRow = dl.closest('.fv-modern-field-row');
+            if (modernFieldRow) {
+                setImportant(dl, 'display', 'flex');
+                setImportant(dl, 'flex-direction', 'column');
+                setImportant(dl, 'align-items', 'flex-start');
+                setImportant(dl, 'justify-content', 'flex-start');
+                setImportant(dl, 'grid-template-columns', 'none');
+                setImportant(dl, 'column-gap', '0');
+                setImportant(dl, 'row-gap', '0');
+                setImportant(dl, 'gap', '0.52em');
+                setImportant(dl, 'width', '100%');
+                setImportant(dl, 'max-width', 'none');
+                setImportant(dl, 'margin-left', '0');
+                setImportant(dl, 'margin-right', '0');
+            } else {
+                setImportant(dl, 'display', 'grid');
+                setImportant(dl, 'grid-template-columns', isMobile ? '1fr' : 'minmax(150px, 200px) minmax(280px, 640px)');
+                setImportant(dl, 'column-gap', isMobile ? '0.4em' : '0.85em');
+                setImportant(dl, 'row-gap', isMobile ? '0.4em' : '0');
+                setImportant(dl, 'align-items', 'center');
+                setImportant(dl, 'justify-content', 'start');
+                setImportant(dl, 'width', '100%');
+                setImportant(dl, 'max-width', 'none');
+                setImportant(dl, 'margin-left', '0');
+                setImportant(dl, 'margin-right', '0');
+            }
 
             const dt = dl.getElementsByTagName('dt')[0];
             setImportant(dt, 'float', 'none');
@@ -4165,19 +4220,30 @@ const enforceLeftAlignedSettingsLayout = () => {
 
             const dd = dl.getElementsByTagName('dd')[0];
             setImportant(dd, 'float', 'none');
-            setImportant(dd, 'width', 'auto');
+            const modernToggleRow = Boolean(modernFieldRow && modernFieldRow.classList.contains('is-toggle-row'));
+            setImportant(dd, 'width', modernFieldRow ? (modernToggleRow ? 'auto' : '100%') : 'auto');
             setImportant(dd, 'margin', '0');
             setImportant(dd, 'min-width', '0');
             setImportant(dd, 'text-align', 'left');
+            if (modernFieldRow) {
+                setImportant(dd, 'padding-top', '0.08em');
+            }
+            if (modernToggleRow) {
+                setImportant(dd, 'display', 'inline-flex');
+                setImportant(dd, 'align-items', 'flex-start');
+                setImportant(dd, 'flex-wrap', 'wrap');
+                setImportant(dd, 'gap', '0.42em');
+                setImportant(dd, 'max-width', '100%');
+            }
 
             if (dd) {
                 dd.querySelectorAll('input[type="text"], input[type="number"], select, textarea').forEach((field) => {
                     setImportant(field, 'margin-left', '0');
                     setImportant(field, 'margin-right', 'auto');
                 });
-                dd.querySelectorAll('.switch-button, .switch-button-background, .switch-button-button').forEach((toggle) => {
+                dd.querySelectorAll('.switch-button').forEach((toggle) => {
                     setImportant(toggle, 'margin-left', '0');
-                    setImportant(toggle, 'margin-right', 'auto');
+                    setImportant(toggle, 'margin-right', modernToggleRow ? '0' : 'auto');
                     setImportant(toggle, 'float', 'none');
                 });
             }
@@ -4355,67 +4421,7 @@ const suggestDefaultsFromMembers = () => {
 };
 
 const updateLiveSummary = () => {
-    if (!modernFolderEditorEnabled) {
-        return;
-    }
-    const form = getForm();
-    if (!form) {
-        return;
-    }
-    const memberNames = getIncludedMemberNames();
-    const memberMap = getMemberMapByName();
-    const selectedMembers = memberNames.map((name) => memberMap.get(name)).filter(Boolean);
-    const folderName = (form.name.value || '').trim() || '(unnamed)';
-    const previewLabel = PREVIEW_MODE_LABELS[Number(form.preview.value)] || 'Unknown';
-    const contextLabel = type === 'docker'
-        ? (CONTEXT_MODE_LABELS[Number(form.context.value)] || 'Unknown')
-        : 'Not used for VMs';
-
-    $('#fvLiveName').text(folderName);
-    $('#fvLivePreview').text(previewLabel);
-    $('#fvLiveContext').text(contextLabel);
-    $('#fvHeroTitle').text(folderName);
-    $('#fvHeroIcon').attr('src', (form.icon.value || '').trim() || DEFAULT_FOLDER_ICON_PATH);
-    $('#fvHeroScope').text(
-        normalizeParentFolderId(form.parent_folder_id?.value || '')
-            ? `Nested under ${$('select[name="parent_folder_id"] option:selected').text() || 'parent folder'}`
-            : 'Top-level folder'
-    );
-    $('#fvHeroMembers').text(`${memberNames.length}/${getAllMembers().length} included`);
-    $('#fvHeroDefaults').text($('#fvHeroDefaults').text() || 'Checking inherited defaults');
-    $('#fvLivePreviewMeta').text(
-        Number(form.preview.value) === 0
-            ? 'Preview disabled'
-            : `${previewLabel} • ${normalizePreviewRowLimit(form.preview_rows?.value) === 0 ? 'Unlimited rows' : `${normalizePreviewRowLimit(form.preview_rows?.value)} row${normalizePreviewRowLimit(form.preview_rows?.value) === 1 ? '' : 's'}`}`
-    );
-    $('#fvSwatchStarted').css('background-color', normalizeHexColor(form.status_color_started.value, DEFAULT_FOLDER_STATUS_COLORS.started));
-    $('#fvSwatchPaused').css('background-color', normalizeHexColor(form.status_color_paused.value, DEFAULT_FOLDER_STATUS_COLORS.paused));
-    $('#fvSwatchStopped').css('background-color', normalizeHexColor(form.status_color_stopped.value, DEFAULT_FOLDER_STATUS_COLORS.stopped));
-    const dockerSignals = $('#fvDockerSignals');
-    if (type === 'docker' && dockerSignals.length) {
-        const composeProjects = Array.from(new Set(
-            selectedMembers
-                .map((member) => String(member?.ComposeProject || '').trim())
-                .filter((value) => value !== '')
-        ));
-        const updateCount = selectedMembers.filter((member) => isDockerUpdateAvailableInEditor(member)).length;
-        const composeSummary = composeProjects.length === 0
-            ? 'Compose: none detected'
-            : (composeProjects.length === 1
-                ? `Compose: ${composeProjects[0]}`
-                : `Compose: ${composeProjects.length} projects`);
-        const updateSummary = `Updates: ${updateCount}/${selectedMembers.length || 0}`;
-        $('#fvDockerComposeSummary').text(composeSummary);
-        $('#fvDockerUpdateSummary').text(updateSummary);
-        dockerSignals.show();
-    } else if (dockerSignals.length) {
-        dockerSignals.hide();
-    }
-    updateMemberStats();
-    updateInheritedFieldIndicators();
-    updateChangeSummaryPanel();
-    updateSectionStateIndicators();
-    renderLivePreviewCanvas();
+    getFolderEditorPreviewApi()?.updateLiveSummary();
 };
 
 const updateRegexSimulator = () => {
@@ -4722,42 +4728,48 @@ const initEditorChrome = () => {
         `);
     }
 
-    $('.fv-section-heading').remove();
-    Object.entries(SECTION_META).forEach(([key, section]) => {
-        const first = $(`[data-editor-section="${key}"]`).first();
-        if (!first.length) {
-            return;
+    if (modernFolderEditorEnabled) {
+        if (typeof window.FolderViewPlusRefreshModernEditorChromeLayout === 'function') {
+            window.FolderViewPlusRefreshModernEditorChromeLayout();
         }
-        first.before(`
-            <div class="fv-section-heading${section.advanced ? ' is-advanced' : ''}" id="fv-section-${key}" data-section-key="${key}">
-                <div class="fv-section-heading-title-row">
-                    <div class="fv-section-heading-copy">
-                        <div class="fv-section-heading-kicker">
-                            <i class="fa ${section.icon}" aria-hidden="true"></i>
-                            <span>${section.advanced ? 'Advanced section' : 'Core section'}</span>
+    } else {
+        $('.fv-section-heading').remove();
+        Object.entries(SECTION_META).forEach(([key, section]) => {
+            const first = $(`[data-editor-section="${key}"]`).first();
+            if (!first.length) {
+                return;
+            }
+            first.before(`
+                <div class="fv-section-heading${section.advanced ? ' is-advanced' : ''}" id="fv-section-${key}" data-section-key="${key}">
+                    <div class="fv-section-heading-title-row">
+                        <div class="fv-section-heading-copy">
+                            <div class="fv-section-heading-kicker">
+                                <i class="fa ${section.icon}" aria-hidden="true"></i>
+                                <span>${section.advanced ? 'Advanced section' : 'Core section'}</span>
+                            </div>
+                            <h3>${section.title}${section.advanced ? ' <span class="fv-section-badge">advanced</span>' : ''}</h3>
+                            <p>${section.description}</p>
                         </div>
-                        <h3>${section.title}${section.advanced ? ' <span class="fv-section-badge">advanced</span>' : ''}</h3>
-                        <p>${section.description}</p>
-                    </div>
-                    <div class="fv-section-heading-tools">
-                        <span id="fvSectionState-${key}" class="fv-section-state-badge is-clean">Saved</span>
-                        ${section.supportsRevert ? `<button type="button" class="fv-section-tool" data-section-action="revert" data-section="${key}"><i class="fa fa-history" aria-hidden="true"></i> Restore saved</button>` : ''}
-                        ${section.supportsDefaults ? `<button type="button" class="fv-section-tool" data-section-action="defaults" data-section="${key}"><i class="fa fa-repeat" aria-hidden="true"></i> Plugin defaults</button>` : ''}
-                        ${section.advanced ? `<button type="button" class="fv-section-collapse" data-section="${key}" aria-pressed="false"><i class="fa fa-minus-square-o" aria-hidden="true"></i> Collapse</button>` : ''}
+                        <div class="fv-section-heading-tools">
+                            <span id="fvSectionState-${key}" class="fv-section-state-badge is-clean">Saved</span>
+                            ${section.supportsRevert ? `<button type="button" class="fv-section-tool" data-section-action="revert" data-section="${key}"><i class="fa fa-history" aria-hidden="true"></i> Restore saved</button>` : ''}
+                            ${section.supportsDefaults ? `<button type="button" class="fv-section-tool" data-section-action="defaults" data-section="${key}"><i class="fa fa-repeat" aria-hidden="true"></i> Plugin defaults</button>` : ''}
+                            ${section.advanced ? `<button type="button" class="fv-section-collapse" data-section="${key}" aria-pressed="false"><i class="fa fa-minus-square-o" aria-hidden="true"></i> Collapse</button>` : ''}
+                        </div>
                     </div>
                 </div>
-            </div>
-        `);
-    });
+            `);
+        });
 
-    buildSectionCards();
-    pruneEmptyEditorContainers();
-    hideUnsectionedEditorRows();
-    buildEditorActionBar();
+        buildSectionCards();
+        pruneEmptyEditorContainers();
+        hideUnsectionedEditorRows();
+        buildEditorActionBar();
 
-    $('.fv-section-nav button').off('click').on('click', function onSectionClick() {
-        setActiveEditorSection($(this).data('target'));
-    });
+        $('.fv-section-nav button').off('click').on('click', function onSectionClick() {
+            setActiveEditorSection($(this).data('target'));
+        });
+    }
 
     $('#fvMemberSearch').off('input').on('input', applyMemberFilters);
     $('#fvMemberFilter').off('change').on('change', applyMemberFilters);
@@ -4942,10 +4954,18 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     };
 };
 
-(async () => {
+const startFolderEditorRuntime = async () => {
+    window.FolderViewPlusFolderEditorRuntimeBootStage = 'runtime-start';
+    folderThemeSurfaceBinding?.bind();
     registerBeforeUnloadGuard();
     applySectionTags();
     initEditorChrome();
+    folderThemeSurfaceBinding?.runApply('chrome-ready');
+    setBootstrapDiagnostics({
+        mode: 'boot',
+        result: 'shell-ready'
+    });
+    window.FolderViewPlusFolderEditorRuntimeBootStage = 'shell-ready';
     updateForm();
     applyAdvancedMode();
     enforceLeftAlignedSettingsLayout();
@@ -4970,6 +4990,7 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     }
     // get folders
     const foldersResponse = JSON.parse(await $.get(`/plugins/folderview.plus/server/read.php?type=${type}&nocache=1&_=${cacheBust}`).promise());
+    window.FolderViewPlusFolderEditorRuntimeBootStage = 'folders-loaded';
     const folders = {};
     if (foldersResponse && typeof foldersResponse === 'object') {
         for (const [id, folder] of Object.entries(foldersResponse)) {
@@ -4986,6 +5007,7 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
 
     const navigationPrefill = readEditorNavigationPrefill(type, folderId);
     const requestedFolderRef = String(folderId || folderEditorResolvedId || navigationPrefill?.id || '').trim();
+    const folderCount = Object.keys(folders).length;
 
     if (requestedFolderRef) {
         const resolvedEditFolder = resolveCurrentEditFolder(folders, requestedFolderRef);
@@ -4997,6 +5019,14 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
                 `Folder reference "${requestedFolderRef}" was not found in the saved folder map, server bootstrap context, or recent edit context. The editor stayed in new-folder mode instead of silently hydrating the wrong data.`,
                 'warning'
             );
+            setBootstrapDiagnostics({
+                mode: 'hydrate',
+                requestedRef: requestedFolderRef,
+                navigationPrefillId: String(navigationPrefill?.id || '(empty)'),
+                navigationPrefillHasFolder: navigationPrefill?.folder ? 'yes' : 'no',
+                foldersLoaded: String(folderCount),
+                result: 'missing-target'
+            });
             folderHierarchyState.currentFolderDescendantIds = new Set();
             populateParentFolderOptions(folders, '', new Set());
             setParentDefaultsNote('Select a parent to inherit preview/icon defaults automatically.', 'info');
@@ -5015,8 +5045,30 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
             );
         }
         hydrateCurrentEditFolder(currentEditFolder, currentEditFolderId, folders, { clearPrefill: true });
+        setBootstrapDiagnostics({
+            mode: 'hydrate',
+            requestedRef: requestedFolderRef,
+            resolvedId: currentEditFolderId,
+            navigationPrefillId: String(navigationPrefill?.id || '(empty)'),
+            navigationPrefillHasFolder: navigationPrefill?.folder ? 'yes' : 'no',
+            foldersLoaded: String(folderCount),
+            resolvedBy: String(resolvedEditFolder?.resolvedBy || (bootstrapFolderRecord ? 'server-bootstrap-folder' : navigationPrefill?.folder ? 'navigation-folder' : folderEditorResolvedId ? 'server-resolved-id' : '(none)')),
+            result: 'hydrated'
+        });
         }
     } else {
+        setValidationBannerState(
+            'Folder editor opened without a folder target.',
+            'No folder reference was found in query, hash, page bootstrap, storage bootstrap, window.name bootstrap, or recent edit context. The editor stayed in new-folder mode.',
+            'warning'
+        );
+        setBootstrapDiagnostics({
+            mode: 'hydrate',
+            navigationPrefillId: String(navigationPrefill?.id || '(empty)'),
+            navigationPrefillHasFolder: navigationPrefill?.folder ? 'yes' : 'no',
+            foldersLoaded: String(folderCount),
+            result: 'no-target'
+        });
         clearEditorNavigationPrefill();
         folderHierarchyState.currentFolderDescendantIds = new Set();
         populateParentFolderOptions(folders, '', new Set());
@@ -5050,6 +5102,24 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     }
 
     choose = Object.values(JSON.parse(await $.get(`/plugins/folderview.plus/server/read_info.php?type=${type}&nocache=1&_=${cacheBust}`).promise())).map(typeFilter);
+    window.FolderViewPlusFolderEditorRuntimeBootStage = 'members-loaded';
+    setBootstrapDiagnostics({
+        mode: 'post-read-info',
+        requestedRef: requestedFolderRef,
+        resolvedId: currentEditFolderId,
+        navigationPrefillId: String(navigationPrefill?.id || '(empty)'),
+        navigationPrefillHasFolder: navigationPrefill?.folder ? 'yes' : 'no',
+        foldersLoaded: String(folderCount),
+        membersLoaded: String(Array.isArray(choose) ? choose.length : 0),
+        resolvedBy: currentEditFolderId
+            ? String(
+                resolveCurrentEditFolder(folders, requestedFolderRef)?.resolvedBy
+                || (bootstrapFolderRecord ? 'server-bootstrap-folder' : navigationPrefill?.folder ? 'navigation-folder' : folderEditorResolvedId ? 'server-resolved-id' : '(none)')
+            )
+            : '(none)',
+        result: currentEditFolderId ? 'post-read-info-ready' : 'post-read-info-no-target'
+    });
+    window.FolderViewPlusFolderEditorRuntimeBootStage = 'runtime-ready';
 
     // if editing a folder and not creating one
     if (currentEditFolder && currentEditFolderId) {
@@ -5107,6 +5177,9 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     updateRegexSimulator();
     markCleanState();
     isFormInitialized = true;
+    if (modernFolderEditorEnabled && typeof window.FolderViewPlusRevealModernEditorStage === 'function') {
+        window.FolderViewPlusRevealModernEditorStage();
+    }
 
     const form = getForm();
     lastNameRegexSyncValue = String(form?.name?.value || '').trim();
@@ -5115,6 +5188,10 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
             return;
         }
         const fieldName = String(event?.target?.name || '').trim();
+        const isLivePreviewColorField = fieldName === 'dropdown_color'
+            || fieldName === 'dropdown_hover_color'
+            || fieldName === 'preview_border_color'
+            || fieldName === 'preview_vertical_bars_color';
         markSmartDefaultFieldTouched(fieldName);
         if (!folderId && fieldName === 'parent_folder_id' && event.type === 'change') {
             void applySmartDefaultsFromParent(normalizeParentFolderId(form.parent_folder_id?.value || ''));
@@ -5131,6 +5208,11 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
         }
         if (fieldName === 'dropdown_style' || fieldName === 'dropdown_color' || fieldName === 'dropdown_hover_color'
             || fieldName === 'preview_border' || fieldName === 'preview_border_color' || fieldName === 'preview_border_width') {
+            if (event.type === 'input' && isLivePreviewColorField) {
+                scheduleEditorPreviewRender();
+                markUnsavedIndicatorDirty();
+                return;
+            }
             scheduleEditorRecalculation(0);
             return;
         }
@@ -5138,15 +5220,7 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     });
 
     window.addEventListener('resize', enforceLeftAlignedSettingsLayout);
-})().catch((error) => {
-    const safeError = error instanceof Error ? error : new Error(String(error || 'Unknown folder editor bootstrap failure.'));
-    setValidationBannerState(
-        'Folder editor failed to finish loading.',
-        safeError.message || 'Unknown folder editor bootstrap failure.',
-        'invalid'
-    );
-    throw safeError;
-});
+};
 
 /**
  * Update the folder icon when editing the respective field
@@ -5389,15 +5463,19 @@ const previewChange = (e) => {
 /**
  * Update the setting visibility according to the changin of settings
  */
-const updateForm = () => {
+function updateForm() {
     const form = $('div.canvas > form')[0];
     $('[constraint*="preview-"]').hide();
     $(`[constraint*="preview-${form.preview.value}"]`).show();
     $('[constraint*="context-"]').hide();
     $(`[constraint*="context-${form.context.value}"]`).show();
+    $('[constraint*="context_graph-"]').hide();
     $('[constraint*="border-color"]').hide();
     $('[constraint*="bars-color"]').hide();
-    if (form.preview.value !== '0') $('[constraint*="border-color"]').show();
+    if (String(form.context.value) === '2') {
+        $(`[constraint*="context_graph-${form.context_graph.value}"]`).show();
+    }
+    if (form.preview.value !== '0' && form.preview_border.checked) $('[constraint*="border-color"]').show();
     if(form.preview_vertical_bars.checked) {
         $('[constraint*="bars-color"]').show();
     }
@@ -5421,7 +5499,7 @@ const updateForm = () => {
     enforceLeftAlignedSettingsLayout();
     updateInheritedFieldIndicators();
     renderLivePreviewCanvas();
-};
+}
 
 const createFallbackFolderHierarchyApi = (deps = {}) => {
     const jq = deps.$;
@@ -5719,7 +5797,6 @@ const folderHierarchyState = {
         getFolderHierarchyApi().state.currentFolderDescendantIds = value;
     }
 };
-const normalizeParentFolderId = (...args) => getFolderHierarchyApi().normalizeParentFolderId(...args);
 const computeFolderDescendantIds = (...args) => getFolderHierarchyApi().computeFolderDescendantIds(...args);
 const populateParentFolderOptions = (...args) => getFolderHierarchyApi().populateParentFolderOptions(...args);
 const getSiblingNameCollision = (...args) => getFolderHierarchyApi().getSiblingNameCollision(...args);
@@ -6138,3 +6215,13 @@ window.suggestDefaultsFromMembers = suggestDefaultsFromMembers;
 window.setIconAsContainer = setIconAsContainer;
 window.customAction = customAction;
 window.rCcustomAction = rCcustomAction;
+void startFolderEditorRuntime().catch((error) => {
+    const safeError = error instanceof Error ? error : new Error(String(error || 'Unknown folder editor bootstrap failure.'));
+    setValidationBannerState(
+        'Folder editor failed to finish loading.',
+        safeError.message || 'Unknown folder editor bootstrap failure.',
+        'invalid'
+    );
+    throw safeError;
+});
+})(window, window.jQuery || window.$);

@@ -2,6 +2,9 @@
 (function fvplusDockerRuntimeSharedScope(window) {
     'use strict';
 
+    const folderContract = window.FolderViewPlusFolderContract || null;
+    const runtimeJquery = window.jQuery || window.$ || null;
+
     /**
      * @template T
      * @param {T} value
@@ -14,99 +17,125 @@
         return /** @type {T} */ ({ ...value });
     };
 
-    const DEFAULT_FOLDER_STATUS_COLORS = Object.freeze({
+    const DEFAULT_FOLDER_STATUS_COLORS = folderContract?.DEFAULT_FOLDER_STATUS_COLORS || Object.freeze({
         started: '#ffffff',
         paused: '#b8860b',
         stopped: '#ff4d4d'
     });
-    const DEFAULT_PREVIEW_BORDER_COLOR = '#afa89e';
-    const DEFAULT_PREVIEW_BORDER_WIDTH = 1;
-    const DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH = 1;
-    const DEFAULT_DROPDOWN_STYLE = 'minimal';
-    const DEFAULT_DROPDOWN_COLOR = '#ff9a3c';
-    const DEFAULT_DROPDOWN_HOVER_COLOR = '#111111';
-    const SUPPORTED_DROPDOWN_STYLES = Object.freeze(['minimal', 'boxed', 'ghost', 'pill', 'filled']);
+    const DEFAULT_PREVIEW_BORDER_COLOR = folderContract?.DEFAULT_PREVIEW_BORDER_COLOR || '#afa89e';
+    const DEFAULT_PREVIEW_BORDER_WIDTH = folderContract?.DEFAULT_PREVIEW_BORDER_WIDTH || 1;
+    const DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH = folderContract?.DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH || 1;
+    const DEFAULT_DROPDOWN_STYLE = folderContract?.DEFAULT_DROPDOWN_STYLE || 'minimal';
+    const DEFAULT_DROPDOWN_COLOR = folderContract?.DEFAULT_DROPDOWN_COLOR || '#ff9a3c';
+    const DEFAULT_DROPDOWN_HOVER_COLOR = folderContract?.DEFAULT_DROPDOWN_HOVER_COLOR || '#111111';
+    const SUPPORTED_DROPDOWN_STYLES = folderContract?.SUPPORTED_DROPDOWN_STYLES || Object.freeze(['minimal', 'boxed', 'ghost', 'pill', 'filled']);
     const FOLDER_STATUS_COLOR_STYLE_PROPS = Object.freeze({
         started: '--fvplus-folder-status-started',
         paused: '--fvplus-folder-status-paused',
         stopped: '--fvplus-folder-status-stopped'
     });
 
-    const normalizeStatusHexColor = (value, fallback) => {
-        if (typeof value !== 'string') {
-            return fallback;
-        }
-        const trimmed = value.trim();
-        if (!/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(trimmed)) {
-            return fallback;
-        }
-        if (trimmed.length === 4) {
-            return `#${trimmed[1]}${trimmed[1]}${trimmed[2]}${trimmed[2]}${trimmed[3]}${trimmed[3]}`.toLowerCase();
-        }
-        return trimmed.toLowerCase();
-    };
+    const normalizeStatusHexColor = typeof folderContract?.normalizeHexColor === 'function'
+        ? folderContract.normalizeHexColor
+        : ((value, fallback) => {
+            if (typeof value !== 'string') {
+                return fallback;
+            }
+            const trimmed = value.trim();
+            if (!/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(trimmed)) {
+                return fallback;
+            }
+            if (trimmed.length === 4) {
+                return `#${trimmed[1]}${trimmed[1]}${trimmed[2]}${trimmed[2]}${trimmed[3]}${trimmed[3]}`.toLowerCase();
+            }
+            return trimmed.toLowerCase();
+        });
 
-    const normalizePositiveInt = (value, fallback, min = 1, max = 4) => {
-        const parsed = Number(value);
-        if (!Number.isFinite(parsed)) {
-            return fallback;
-        }
-        return Math.max(min, Math.min(max, Math.round(parsed)));
-    };
+    const normalizePositiveInt = typeof folderContract?.normalizePositiveInt === 'function'
+        ? folderContract.normalizePositiveInt
+        : ((value, fallback, min = 1, max = 4) => {
+            const parsed = Number(value);
+            if (!Number.isFinite(parsed)) {
+                return fallback;
+            }
+            return Math.max(min, Math.min(max, Math.round(parsed)));
+        });
 
-    const extractDropdownStyleValue = (value) => {
-        if (value && typeof value === 'object') {
-            return value.dropdown_style
-                ?? value.dropdownStyle
-                ?? value.chevron_style
-                ?? value.chevronStyle
-                ?? '';
-        }
-        return value;
-    };
+    const extractDropdownStyleValue = typeof folderContract?.extractDropdownStyleValue === 'function'
+        ? folderContract.extractDropdownStyleValue
+        : ((value) => {
+            if (value && typeof value === 'object') {
+                return value.dropdown_style
+                    ?? value.dropdownStyle
+                    ?? value.chevron_style
+                    ?? value.chevronStyle
+                    ?? '';
+            }
+            return value;
+        });
 
-    const normalizeDropdownStyle = (value) => {
-        const normalized = String(extractDropdownStyleValue(value) || '').trim().toLowerCase();
-        return SUPPORTED_DROPDOWN_STYLES.includes(normalized)
-            ? normalized
-            : DEFAULT_DROPDOWN_STYLE;
-    };
+    const normalizeDropdownStyle = typeof folderContract?.normalizeDropdownStyle === 'function'
+        ? folderContract.normalizeDropdownStyle
+        : ((value) => {
+            const normalized = String(extractDropdownStyleValue(value) || '').trim().toLowerCase();
+            return SUPPORTED_DROPDOWN_STYLES.includes(normalized)
+                ? normalized
+                : DEFAULT_DROPDOWN_STYLE;
+        });
 
-    const hexToRgba = (hex, alpha) => {
-        const normalized = normalizeStatusHexColor(hex, DEFAULT_DROPDOWN_COLOR);
-        const safeAlpha = Number.isFinite(Number(alpha)) ? Math.max(0, Math.min(1, Number(alpha))) : 1;
-        const value = normalized.slice(1);
-        const r = parseInt(value.slice(0, 2), 16);
-        const g = parseInt(value.slice(2, 4), 16);
-        const b = parseInt(value.slice(4, 6), 16);
-        return `rgba(${r}, ${g}, ${b}, ${safeAlpha})`;
-    };
+    const getDropdownStyleTokens = typeof folderContract?.getDropdownStyleTokens === 'function'
+        ? ((style, normalColor, hoverColor) => {
+            const tokens = folderContract.getDropdownStyleTokens(style, normalColor, hoverColor);
+            return {
+                borderWidth: style === 'minimal' ? '0px' : '1px',
+                borderColor: tokens.border,
+                hoverBorderColor: tokens.hoverBorder,
+                background: tokens.background,
+                hoverBackground: tokens.hoverBackground,
+                minWidth: tokens.minWidth,
+                height: tokens.height,
+                padding: tokens.padding,
+                radius: tokens.radius,
+                shadow: tokens.shadow,
+                hoverShadow: tokens.hoverShadow
+            };
+        })
+        : ((style, normalColor, hoverColor) => {
+            const hexToRgba = (hex, alpha) => {
+                const normalized = normalizeStatusHexColor(hex, DEFAULT_DROPDOWN_COLOR);
+                const safeAlpha = Number.isFinite(Number(alpha)) ? Math.max(0, Math.min(1, Number(alpha))) : 1;
+                const value = normalized.slice(1);
+                const r = parseInt(value.slice(0, 2), 16);
+                const g = parseInt(value.slice(2, 4), 16);
+                const b = parseInt(value.slice(4, 6), 16);
+                return `rgba(${r}, ${g}, ${b}, ${safeAlpha})`;
+            };
+            switch (style) {
+                case 'boxed':
+                    return { borderWidth: '1px', borderColor: hexToRgba(normalColor, 0.52), hoverBorderColor: hoverColor, background: hexToRgba(normalColor, 0.10), hoverBackground: hexToRgba(normalColor, 0.82), minWidth: '22px', height: '22px', padding: '0 6px', radius: '4px', shadow: 'inset 0 0 0 1px rgba(0, 0, 0, 0.18)', hoverShadow: 'inset 0 0 0 1px rgba(0, 0, 0, 0.18)' };
+                case 'ghost':
+                    return { borderWidth: '1px', borderColor: 'transparent', hoverBorderColor: hoverColor, background: 'transparent', hoverBackground: hexToRgba(normalColor, 0.08), minWidth: '20px', height: '20px', padding: '0 5px', radius: '4px', shadow: 'none', hoverShadow: 'none' };
+                case 'pill':
+                    return { borderWidth: '1px', borderColor: hexToRgba(normalColor, 0.42), hoverBorderColor: hoverColor, background: hexToRgba(normalColor, 0.10), hoverBackground: hexToRgba(normalColor, 0.18), minWidth: '24px', height: '20px', padding: '0 7px', radius: '999px', shadow: 'none', hoverShadow: 'none' };
+                case 'filled':
+                    return { borderWidth: '1px', borderColor: hexToRgba(normalColor, 0.65), hoverBorderColor: hoverColor, background: hexToRgba(normalColor, 0.22), hoverBackground: hexToRgba(normalColor, 0.34), minWidth: '22px', height: '22px', padding: '0 6px', radius: '4px', shadow: 'none', hoverShadow: 'none' };
+                case 'minimal':
+                default:
+                    return { borderWidth: '0px', borderColor: 'transparent', hoverBorderColor: 'transparent', background: 'transparent', hoverBackground: 'transparent', minWidth: '12px', height: '16px', padding: '0 2px', radius: '0px', shadow: 'none', hoverShadow: 'none' };
+            }
+        });
 
-    const getDropdownStyleTokens = (style, normalColor, hoverColor) => {
-        switch (style) {
-            case 'boxed':
-                return { borderWidth: '1px', borderColor: hexToRgba(normalColor, 0.52), hoverBorderColor: hoverColor, background: hexToRgba(normalColor, 0.10), hoverBackground: hexToRgba(normalColor, 0.82), minWidth: '22px', height: '22px', padding: '0 6px', radius: '4px', shadow: 'inset 0 0 0 1px rgba(0, 0, 0, 0.18)', hoverShadow: 'inset 0 0 0 1px rgba(0, 0, 0, 0.18)' };
-            case 'ghost':
-                return { borderWidth: '1px', borderColor: 'transparent', hoverBorderColor: hoverColor, background: 'transparent', hoverBackground: hexToRgba(normalColor, 0.08), minWidth: '20px', height: '20px', padding: '0 5px', radius: '4px', shadow: 'none', hoverShadow: 'none' };
-            case 'pill':
-                return { borderWidth: '1px', borderColor: hexToRgba(normalColor, 0.42), hoverBorderColor: hoverColor, background: hexToRgba(normalColor, 0.10), hoverBackground: hexToRgba(normalColor, 0.18), minWidth: '24px', height: '20px', padding: '0 7px', radius: '999px', shadow: 'none', hoverShadow: 'none' };
-            case 'filled':
-                return { borderWidth: '1px', borderColor: hexToRgba(normalColor, 0.65), hoverBorderColor: hoverColor, background: hexToRgba(normalColor, 0.22), hoverBackground: hexToRgba(normalColor, 0.34), minWidth: '22px', height: '22px', padding: '0 6px', radius: '4px', shadow: 'none', hoverShadow: 'none' };
-            case 'minimal':
-            default:
-                return { borderWidth: '0px', borderColor: 'transparent', hoverBorderColor: 'transparent', background: 'transparent', hoverBackground: 'transparent', minWidth: '12px', height: '16px', padding: '0 2px', radius: '0px', shadow: 'none', hoverShadow: 'none' };
-        }
-    };
-
-    const isPreviewBorderEnabled = (settings) => {
-        const source = settings && typeof settings === 'object' ? settings : {};
-        if (Object.prototype.hasOwnProperty.call(source, 'preview_border')) {
-            const raw = String(source.preview_border ?? '').trim().toLowerCase();
-            const explicitOff = raw === '0' || raw === 'false' || raw === 'off' || raw === 'no';
-            return !explicitOff;
-        }
-        return true;
-    };
+    const isPreviewBorderEnabled = typeof folderContract?.isPreviewBorderEnabled === 'function'
+        ? folderContract.isPreviewBorderEnabled
+        : ((settings) => {
+            const source = settings && typeof settings === 'object' ? settings : {};
+            if (Object.prototype.hasOwnProperty.call(source, 'preview_border')) {
+                const raw = String(source.preview_border ?? '').trim().toLowerCase();
+                const explicitOff = raw === '0' || raw === 'false' || raw === 'off' || raw === 'no';
+                return !explicitOff;
+            }
+            return true;
+        });
 
     const getFolderStatusColors = (settings) => {
         const source = settings && typeof settings === 'object' ? settings : {};
@@ -161,6 +190,99 @@
         previewNode.style.setProperty('--fvplus-preview-border-width', `${previewBorderWidth}px`);
         previewNode.style.setProperty('--fvplus-preview-divider-width', `${previewBarsWidth}px`);
         previewNode.style.setProperty('border', enabled ? `${previewBorderWidth}px solid ${previewColor}` : 'none', 'important');
+    };
+
+    const getPreviewRowLimitValue = (settings = {}) => (
+        settings?.preview_rows
+        ?? settings?.previewRows
+        ?? ''
+    );
+
+    const normalizeFolderPreviewRowLimit = (settings = {}) => {
+        const raw = String(getPreviewRowLimitValue(settings)).trim().toLowerCase();
+        if (raw === '0' || raw === 'auto' || raw === 'unlimited') {
+            return 0;
+        }
+        const parsed = Number.parseInt(raw, 10);
+        if (!Number.isFinite(parsed)) {
+            return 1;
+        }
+        return Math.max(1, Math.min(4, parsed));
+    };
+
+    const isCompactMultiRowPreview = (settings = {}) => {
+        const normalizedRows = normalizeFolderPreviewRowLimit(settings);
+        return normalizedRows === 0 || normalizedRows > 1;
+    };
+
+    const applyFolderPreviewLayout = ($preview, settings = {}) => {
+        if (!$preview || !$preview.length) {
+            return;
+        }
+        const previewNode = $preview.get(0);
+        if (!previewNode || !previewNode.style) {
+            return;
+        }
+        previewNode.dataset.previewRows = String(normalizeFolderPreviewRowLimit(settings));
+        previewNode.style.removeProperty('--fvplus-preview-row-limit');
+        previewNode.style.removeProperty('--fvplus-preview-max-height');
+        previewNode.classList.remove('fv-preview-unlimited-rows', 'fv-preview-multirow');
+        const normalizedRows = normalizeFolderPreviewRowLimit(settings);
+        if (normalizedRows === 0) {
+            previewNode.classList.add('fv-preview-unlimited-rows', 'fv-preview-multirow');
+        } else if (normalizedRows > 1) {
+            previewNode.classList.add('fv-preview-multirow');
+        }
+    };
+
+    const flattenPreviewWrappers = ($preview) => {
+        if (!$preview || !$preview.length) {
+            return [];
+        }
+        const $existingRows = $preview.children('.folder-preview-row');
+        if ($existingRows.length) {
+            $existingRows.children('.folder-preview-wrapper, .folder-preview-divider').appendTo($preview);
+            $existingRows.remove();
+        }
+        const wrappers = $preview.children('.folder-preview-wrapper').get();
+        $preview.children('.folder-preview-divider').remove();
+        return wrappers;
+    };
+
+    const restoreLinearPreviewLayout = ($preview, settings = {}) => {
+        const wrappers = flattenPreviewWrappers($preview);
+        if (!settings?.preview_vertical_bars || !runtimeJquery) {
+            return wrappers;
+        }
+        const barsColor = settings?.preview_vertical_bars_color || settings?.preview_border_color || '';
+        wrappers.forEach((wrapper, index) => {
+            if (index < wrappers.length - 1) {
+                runtimeJquery(wrapper).after(`<div class="folder-preview-divider" ${barsColor ? `style="border-color: ${barsColor};"` : ''}></div>`);
+            }
+        });
+        return wrappers;
+    };
+
+    const finalizePreviewRows = ($preview, rowSlices = [], settings = {}) => {
+        if (!$preview || !$preview.length) {
+            return;
+        }
+        const addDividers = settings?.preview_vertical_bars === true;
+        const barsColor = settings?.preview_vertical_bars_color || settings?.preview_border_color || '';
+        $preview.empty();
+        rowSlices.forEach((slice) => {
+            const $row = runtimeJquery ? runtimeJquery('<div class="folder-preview-row"></div>') : null;
+            if (!$row || !$row.length) {
+                return;
+            }
+            slice.forEach((wrapper, index) => {
+                $row.append(wrapper);
+                if (addDividers && index < slice.length - 1) {
+                    $row.append(`<div class="folder-preview-divider" ${barsColor ? `style="border-color: ${barsColor};"` : ''}></div>`);
+                }
+            });
+            $preview.append($row);
+        });
     };
 
     const applyFolderDropdownStyle = ($folderRow, settings) => {
@@ -545,6 +667,13 @@
         getFolderStatusColorOverrides,
         applyFolderStatusColorOverrides,
         applyPreviewBorderStyle,
+        getPreviewRowLimitValue,
+        normalizeFolderPreviewRowLimit,
+        isCompactMultiRowPreview,
+        applyFolderPreviewLayout,
+        flattenPreviewWrappers,
+        restoreLinearPreviewLayout,
+        finalizePreviewRows,
         applyFolderDropdownStyle,
         createRuntimeStateStore,
         createAsyncActionBoundary,

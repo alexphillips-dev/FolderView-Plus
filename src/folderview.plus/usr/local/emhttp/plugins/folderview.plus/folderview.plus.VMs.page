@@ -33,10 +33,13 @@ if (!empty($fvplusRuntimeConflicts)) {
 
 <script src="<?php autov('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>"></script>
 <script src="<?php autov('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>
+<script src="<?php autov('/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js')?>"></script>
+<script src="<?php autov('/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js')?>"></script>
 <script src="<?php autov('/plugins/folderview.plus/scripts/runtime.column-layout.js')?>"></script>
 <script src="<?php autov('/plugins/folderview.plus/scripts/docker.runtime.shared.js')?>"></script>
 <script src="<?php autov('/plugins/folderview.plus/scripts/folder.runtime.state-observers.js')?>"></script>
 <script src="<?php autov('/plugins/folderview.plus/scripts/vm.js')?>"></script>
 
+<link rel="stylesheet" href="<?php autov('/plugins/folderview.plus/styles/runtime.shared.css')?>">
 <link rel="stylesheet" href="<?php autov('/plugins/folderview.plus/styles/vm.css')?>">
 <?php require_once('/usr/local/emhttp/plugins/folderview.plus/styles/custom.php') ?>

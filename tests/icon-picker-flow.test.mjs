@@ -87,6 +87,7 @@ test('folder editor runtime keeps using shared icon picker helpers in the shippe
     assert.match(folderLegacyScript, /window\.FolderViewIconPickerRuntime/);
     assert.match(folderLegacyScript, /iconPickerRuntime\.paginateItems/);
     assert.match(folderLegacyScript, /iconPickerRuntime\.filterIconsByQuery/);
+    assert.match(folderPage, /folder\.editor\.icon-api\.js/);
     assert.match(folderScript, /window\.FolderViewPlusFolderIconApi/);
     assert.match(folderScript, /folderIconApiModule\.createApi/);
     assert.match(folderPage, /folder\.editor\.chrome\.js[\s\S]*folder\.legacy\.js/);

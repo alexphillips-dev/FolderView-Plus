@@ -3079,10 +3079,14 @@ const updateInheritedFieldIndicators = () => {
             .attr('title', isInherited ? hint : '');
         const button = row.find(`.fv-inherit-btn[data-field="${fieldName}"]`).first();
         if (button.length) {
-            button.prop('disabled', isInherited);
-            button.toggleClass('is-inherited', isInherited);
-            button.text(isInherited ? 'Using global' : 'Use global');
-            button.attr('title', isInherited ? hint : 'Clear this override and use the global default again.');
+            const actions = button.closest('.fv-field-inherit-tools');
+            if (actions.length) {
+                actions.prop('hidden', isInherited);
+            }
+            button.prop('disabled', false);
+            button.removeClass('is-inherited');
+            button.text('Use global');
+            button.attr('title', 'Clear this override and use the global default again.');
         }
     });
     $('#fvHeroDefaults').text(

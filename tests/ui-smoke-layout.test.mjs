@@ -239,7 +239,7 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderCss, /\.fv-section-heading-copy > p\s*\{[\s\S]*color:\s*var\(--fv-editor-muted\);/);
     assert.match(folderCss, /\.fv-modern-field-row input\[type="text"\],[\s\S]*background:\s*var\(--fv-editor-input-bg\)/);
     assert.match(folderCss, /\.fv-editor-hero-icon\s*\{[\s\S]*border:\s*1px solid var\(--fv-editor-hero-icon-border\);/);
-    assert.match(folderCss, /\.fv-inherit-btn\.is-inherited,\s*[\s\S]*\.fv-inherit-btn:disabled\s*\{[\s\S]*border:\s*0;[\s\S]*background:\s*transparent;[\s\S]*color:\s*var\(--fv-editor-info\);/);
+    assert.match(folderCss, /\.fv-inherited-badge\s*\{[\s\S]*padding:\s*0\.02em 0\.32em;[\s\S]*font-size:\s*0\.68rem;[\s\S]*text-transform:\s*uppercase;/);
 });
 
 test('mobile action bar and import progress keep compact viewport guards', () => {
@@ -373,6 +373,8 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderJs, /id="fvMemberExcludeVisible"/);
     assert.match(folderJs, /id="fvMemberChipIncluded"/);
     assert.match(folderJs, /class="fv-inherit-btn"/);
+    assert.match(folderJs, /actions\.prop\('hidden', isInherited\);/);
+    assert.doesNotMatch(folderJs, /Using global/);
     assert.match(folderJs, /fv-force-left-v2 marker/);
     assert.match(folderJs, /fv-force-left-v3 marker/);
     assert.match(folderJs, /const validateHealthWarnThreshold = \(\) =>/);
@@ -471,6 +473,7 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.doesNotMatch(folderCss, /\.fv-live-preview-row\.surface-dashboard/);
     assert.doesNotMatch(folderCss, /\.fv-live-preview-row\.surface-nested/);
     assert.match(folderCss, /\.fv-field-inherit-tools/);
+    assert.match(folderCss, /\.fv-field-inherit-tools\[hidden\]\s*\{[\s\S]*display:\s*none !important;/);
     assert.match(folderCss, /\.fv-inherit-btn/);
     assert.match(folderCss, /\.fv-member-tools-main/);
     assert.match(folderCss, /\.fv-member-tools-filters/);

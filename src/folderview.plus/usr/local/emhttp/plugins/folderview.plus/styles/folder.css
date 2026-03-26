@@ -830,12 +830,16 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 .fv-inherited-badge {
     display: inline-flex;
     margin-left: 0.55em;
-    padding: 0.08em 0.42em;
+    padding: 0.02em 0.32em;
     border-radius: 999px;
     border: 1px solid var(--fv-editor-focus-ring);
     background: var(--fv-editor-control-surface);
     color: var(--fv-editor-info);
-    font-size: 0.85em;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    line-height: 1.1;
+    text-transform: uppercase;
     vertical-align: middle;
 }
 
@@ -1799,6 +1803,10 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     margin-left: 0.55em;
 }
 
+.fv-field-inherit-tools[hidden] {
+    display: none !important;
+}
+
 .fv-inherit-btn {
     min-height: 24px;
     padding: 0.1em 0.55em;
@@ -1815,24 +1823,6 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     border-color: var(--fv-editor-border-strong);
     background: var(--fv-editor-control-surface-hover);
     color: var(--fv-editor-text-primary);
-}
-
-.fv-inherit-btn.is-inherited,
-.fv-inherit-btn:disabled {
-    min-height: auto;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: var(--fv-editor-info);
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    line-height: 1;
-    text-transform: uppercase;
-    box-shadow: none;
-    opacity: 0.92;
-    cursor: default;
-    pointer-events: none;
 }
 
 .fv-live-swatches {

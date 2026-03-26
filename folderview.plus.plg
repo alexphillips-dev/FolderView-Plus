@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.09">
-<!ENTITY md5 "f7f8362e06ced3689a93afb355d31465">
+<!ENTITY version "2026.03.26.10">
+<!ENTITY md5 "1b518e228c2912b1be3ea127122d80e8">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.10
+- UX: Removed the duplicate `Using global` inherit control from inherited folder-editor rows so only the inherited-default notice remains visible.
+- UI/UX: Shrunk the blue inherited-default badge so it reads as a compact notice instead of a large pill next to the field title.
+
 
 ###2026.03.26.09
 - UX: Tightened modern folder editor inheritance notices so `Using global` renders as a compact blue info label instead of a large gray control.

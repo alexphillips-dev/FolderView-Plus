@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.27">
-<!ENTITY md5 "a3ac841d0532d91be1f805e3b3f4cbfe">
+<!ENTITY version "2026.03.26.28">
+<!ENTITY md5 "0d62572759bf3a8dcdf0c33c3fcd2bd6">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.28
+- Performance: Folder editor submit now returns immediately after save instead of waiting on Docker host-order sync to finish before redirecting back to the runtime page.
+- UX: Docker folder edits in both the modern and legacy editors now feel faster because post-save order sync is queued in the background with browser-safe keepalive transport.
+- Quality: Added regression coverage so Docker post-save sync stays off the folder editor submit critical path in both runtimes.
+
 
 ###2026.03.26.27
 - Performance: Docker folder rendering now paints from lightweight runtime state first, derives host order from the live DOM, and defers heavy runtime detail hydration until after the initial folder view is visible.

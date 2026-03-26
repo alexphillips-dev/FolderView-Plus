@@ -1005,6 +1005,64 @@ const buildMutationHeaders = (token) => ({
     ...(token ? { 'X-FV-Token': token } : {})
 });
 
+const queueBackgroundMutationPost = (url, data = {}) => {
+    const safeUrl = String(url || '').trim();
+    if (!safeUrl || typeof FormData === 'undefined') {
+        return false;
+    }
+    const token = getOptionalRequestToken();
+    const body = new FormData();
+    const payload = (data && typeof data === 'object') ? data : {};
+    Object.entries(payload).forEach(([key, value]) => {
+        if (value === undefined || value === null) {
+            return;
+        }
+        body.append(key, String(value));
+    });
+    if (!body.has('_fv_request')) {
+        body.append('_fv_request', '1');
+    }
+    if (token && !body.has('token')) {
+        body.append('token', token);
+    }
+
+    try {
+        if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+            return navigator.sendBeacon(safeUrl, body);
+        }
+    } catch (_error) {
+        // Fall through to fetch keepalive.
+    }
+
+    if (typeof fetch !== 'function') {
+        return false;
+    }
+
+    try {
+        void fetch(safeUrl, {
+            method: 'POST',
+            body,
+            keepalive: true,
+            credentials: 'same-origin',
+            headers: buildMutationHeaders(token)
+        }).catch(() => {});
+        return true;
+    } catch (_error) {
+        return false;
+    }
+};
+
+const flushPostSaveDockerSync = async () => {
+    if (type !== 'docker') {
+        return;
+    }
+    const scheduled = queueBackgroundMutationPost('/plugins/folderview.plus/server/sync_order.php', { type });
+    if (scheduled) {
+        return;
+    }
+    await securePost('/plugins/folderview.plus/server/sync_order.php', { type });
+};
+
 const securePost = async (url, data = {}) => {
     const token = getOptionalRequestToken();
     const payload = {
@@ -5427,9 +5485,7 @@ const submitForm = async (e, saveAsCopy = false) => {
             });
         }
 
-        if (type === 'docker') {
-            await securePost('/plugins/folderview.plus/server/sync_order.php', { type: type });
-        }
+        await flushPostSaveDockerSync();
     } catch (error) {
         const message = extractAjaxErrorMessage(error, 'folder save');
         if (typeof swal === 'function') {

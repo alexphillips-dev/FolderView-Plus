@@ -60,6 +60,10 @@ const folderEditorJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js'
 );
+const folderEditorLegacyJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.legacy.js'
+);
 const settingsImportJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js'
@@ -87,6 +91,7 @@ const dockerModulesJs = fs.readFileSync(dockerModulesPath, 'utf8');
 const settingsJs = fs.readFileSync(settingsJsPath, 'utf8');
 const diagnosticsJs = fs.readFileSync(diagnosticsJsPath, 'utf8');
 const folderEditorJs = fs.readFileSync(folderEditorJsPath, 'utf8');
+const folderEditorLegacyJs = fs.readFileSync(folderEditorLegacyJsPath, 'utf8');
 const utilsJs = fs.readFileSync(utilsJsPath, 'utf8');
 const settingsImportJs = fs.readFileSync(settingsImportJsPath, 'utf8');
 const settingsRuntime = `${settingsJs}\n${settingsImportJs}\n${diagnosticsJs}`;
@@ -292,4 +297,24 @@ test('folder editor avoids synchronous large-list stalls via chunking and worker
     assert.match(folderEditorJs, /const mergeMembersByName = \(baseMembers,\s*candidateMembers\) =>/);
     assert.match(folderEditorJs, /if \(rows\.length <= MEMBER_LIST_RENDER_CHUNK_SIZE\) \{/);
     assert.match(folderEditorJs, /scheduleAnimationFrameTask\(appendChunk\)/);
+});
+
+test('folder editor save queues docker order sync off the submit critical path in both runtimes', () => {
+    assert.match(folderEditorJs, /const queueBackgroundMutationPost = \(url,\s*data = \{\}\) =>/);
+    assert.match(folderEditorJs, /navigator\.sendBeacon/);
+    assert.match(folderEditorJs, /keepalive:\s*true/);
+    assert.match(folderEditorJs, /const flushPostSaveDockerSync = async \(\) =>/);
+    assert.match(folderEditorJs, /if \(type !== 'docker'\) \{\s*return;\s*\}/);
+    const modernSubmitBlock = folderEditorJs.match(/const submitForm = async \(e, saveAsCopy = false\) => \{([\s\S]*?)\n\}/)?.[1] || '';
+    assert.match(modernSubmitBlock, /await flushPostSaveDockerSync\(\);/);
+    assert.doesNotMatch(modernSubmitBlock, /await securePost\('\/plugins\/folderview\.plus\/server\/sync_order\.php'/);
+
+    assert.match(folderEditorLegacyJs, /const queueBackgroundMutationPost = \(url,\s*data = \{\}\) =>/);
+    assert.match(folderEditorLegacyJs, /navigator\.sendBeacon/);
+    assert.match(folderEditorLegacyJs, /keepalive:\s*true/);
+    assert.match(folderEditorLegacyJs, /const flushPostSaveDockerSync = async \(\) =>/);
+    assert.match(folderEditorLegacyJs, /if \(type !== 'docker'\) \{\s*return;\s*\}/);
+    const legacySubmitBlock = folderEditorLegacyJs.match(/const submitForm = async \(e, saveAsCopy = false\) => \{([\s\S]*?)\n\}/)?.[1] || '';
+    assert.match(legacySubmitBlock, /await flushPostSaveDockerSync\(\);/);
+    assert.doesNotMatch(legacySubmitBlock, /await securePost\('\/plugins\/folderview\.plus\/server\/sync_order\.php'/);
 });

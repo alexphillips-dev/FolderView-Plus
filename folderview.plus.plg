@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.16">
-<!ENTITY md5 "86c835b13b5594c012127dc43dbedb43">
+<!ENTITY version "2026.03.26.17">
+<!ENTITY md5 "d4235b38c3b25edf7435a8aa12f818da">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.17
+- Feature: Roll up the promoted `dev` line since main `2026.03.25.31`, including the modern folder editor rollout with grouped sections, live preview, richer icon handling, and stronger runtime/bootstrap wiring.
+- Fix: Resolve the promoted editor regressions across save/bootstrap flow, member reorder preview sync, tab and settings-block layouts, inheritance controls, and light, dark, and Azure theme rendering.
+- UI/UX: Refine folder and settings surfaces with stronger title accents, shared outline treatment, larger editor field controls, improved light-theme readability, and cleaner row action button chrome.
+- Quality: Expand regression coverage with editor settings-contract checks, runtime theme guards, real browser smoke interactions, and remote raw publish validation for release artifacts.
+
 
 ###2026.03.26.16
 - Fix: The shared theme resolver no longer hard-forces the Unraid Azure host theme into the dark compatibility path, so the new folder editor now follows the actual page luminance instead of rendering a mismatched dark shell on Azure.

@@ -160,6 +160,10 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderPage, /folder\.editor\.chrome\.js/);
     assert.match(folderPage, /folder\.js/);
     assert.match(folderPage, /folder\.legacy\.js/);
+    assert.match(folderChromeJs, /FolderViewPlusRefreshModernEditorChromeLayout/);
+    assert.match(folderChromeJs, /id="fvSectionState-\$\{sectionKey\}"/);
+    assert.match(folderChromeJs, /data-section-action="revert"/);
+    assert.match(folderChromeJs, /data-section-action="defaults"/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorResolvedMode =/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorModeSource =/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorPageBuildVersion =/);
@@ -186,6 +190,7 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderJs, /let folderEditorPreviewApi = null;/);
     assert.match(folderJs, /const getFolderEditorPreviewApi = \(\) =>/);
     assert.match(folderJs, /folderEditorPreviewApi = folderEditorPreview\.createApi\(/);
+    assert.match(folderJs, /if \(modernFolderEditorEnabled\) \{[\s\S]*FolderViewPlusRefreshModernEditorChromeLayout/);
     assert.match(folderJs, /function updateForm\(\) \{/);
     assert.match(folderJs, /const startFolderEditorRuntime = async \(\) => \{/);
     assert.match(folderJs, /void startFolderEditorRuntime\(\)\.catch\(\(error\) => \{/);

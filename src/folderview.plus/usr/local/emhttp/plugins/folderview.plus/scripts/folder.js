@@ -4665,42 +4665,48 @@ const initEditorChrome = () => {
         `);
     }
 
-    $('.fv-section-heading').remove();
-    Object.entries(SECTION_META).forEach(([key, section]) => {
-        const first = $(`[data-editor-section="${key}"]`).first();
-        if (!first.length) {
-            return;
+    if (modernFolderEditorEnabled) {
+        if (typeof window.FolderViewPlusRefreshModernEditorChromeLayout === 'function') {
+            window.FolderViewPlusRefreshModernEditorChromeLayout();
         }
-        first.before(`
-            <div class="fv-section-heading${section.advanced ? ' is-advanced' : ''}" id="fv-section-${key}" data-section-key="${key}">
-                <div class="fv-section-heading-title-row">
-                    <div class="fv-section-heading-copy">
-                        <div class="fv-section-heading-kicker">
-                            <i class="fa ${section.icon}" aria-hidden="true"></i>
-                            <span>${section.advanced ? 'Advanced section' : 'Core section'}</span>
+    } else {
+        $('.fv-section-heading').remove();
+        Object.entries(SECTION_META).forEach(([key, section]) => {
+            const first = $(`[data-editor-section="${key}"]`).first();
+            if (!first.length) {
+                return;
+            }
+            first.before(`
+                <div class="fv-section-heading${section.advanced ? ' is-advanced' : ''}" id="fv-section-${key}" data-section-key="${key}">
+                    <div class="fv-section-heading-title-row">
+                        <div class="fv-section-heading-copy">
+                            <div class="fv-section-heading-kicker">
+                                <i class="fa ${section.icon}" aria-hidden="true"></i>
+                                <span>${section.advanced ? 'Advanced section' : 'Core section'}</span>
+                            </div>
+                            <h3>${section.title}${section.advanced ? ' <span class="fv-section-badge">advanced</span>' : ''}</h3>
+                            <p>${section.description}</p>
                         </div>
-                        <h3>${section.title}${section.advanced ? ' <span class="fv-section-badge">advanced</span>' : ''}</h3>
-                        <p>${section.description}</p>
-                    </div>
-                    <div class="fv-section-heading-tools">
-                        <span id="fvSectionState-${key}" class="fv-section-state-badge is-clean">Saved</span>
-                        ${section.supportsRevert ? `<button type="button" class="fv-section-tool" data-section-action="revert" data-section="${key}"><i class="fa fa-history" aria-hidden="true"></i> Restore saved</button>` : ''}
-                        ${section.supportsDefaults ? `<button type="button" class="fv-section-tool" data-section-action="defaults" data-section="${key}"><i class="fa fa-repeat" aria-hidden="true"></i> Plugin defaults</button>` : ''}
-                        ${section.advanced ? `<button type="button" class="fv-section-collapse" data-section="${key}" aria-pressed="false"><i class="fa fa-minus-square-o" aria-hidden="true"></i> Collapse</button>` : ''}
+                        <div class="fv-section-heading-tools">
+                            <span id="fvSectionState-${key}" class="fv-section-state-badge is-clean">Saved</span>
+                            ${section.supportsRevert ? `<button type="button" class="fv-section-tool" data-section-action="revert" data-section="${key}"><i class="fa fa-history" aria-hidden="true"></i> Restore saved</button>` : ''}
+                            ${section.supportsDefaults ? `<button type="button" class="fv-section-tool" data-section-action="defaults" data-section="${key}"><i class="fa fa-repeat" aria-hidden="true"></i> Plugin defaults</button>` : ''}
+                            ${section.advanced ? `<button type="button" class="fv-section-collapse" data-section="${key}" aria-pressed="false"><i class="fa fa-minus-square-o" aria-hidden="true"></i> Collapse</button>` : ''}
+                        </div>
                     </div>
                 </div>
-            </div>
-        `);
-    });
+            `);
+        });
 
-    buildSectionCards();
-    pruneEmptyEditorContainers();
-    hideUnsectionedEditorRows();
-    buildEditorActionBar();
+        buildSectionCards();
+        pruneEmptyEditorContainers();
+        hideUnsectionedEditorRows();
+        buildEditorActionBar();
 
-    $('.fv-section-nav button').off('click').on('click', function onSectionClick() {
-        setActiveEditorSection($(this).data('target'));
-    });
+        $('.fv-section-nav button').off('click').on('click', function onSectionClick() {
+            setActiveEditorSection($(this).data('target'));
+        });
+    }
 
     $('#fvMemberSearch').off('input').on('input', applyMemberFilters);
     $('#fvMemberFilter').off('change').on('change', applyMemberFilters);

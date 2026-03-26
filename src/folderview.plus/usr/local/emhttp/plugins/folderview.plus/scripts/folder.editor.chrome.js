@@ -4,7 +4,11 @@
         return;
     }
     root.FolderViewPlusFolderEditorRuntimeBootStage = 'chrome-bootstrap';
-    const SECTION_META = {
+    const sharedModernSchemaFactory = root.FolderViewPlusFolderEditorSchema?.createModernSchema;
+    const sharedSectionMeta = typeof sharedModernSchemaFactory === 'function'
+        ? sharedModernSchemaFactory().SECTION_META
+        : null;
+    const FALLBACK_SECTION_META = {
         general: { title: 'General', icon: 'fa-folder-open-o', advanced: false, description: 'Name, parent, icon, and folder-level WebUI behavior.' },
         members: { title: 'Members', icon: 'fa-th-large', advanced: false, description: 'Search, filter, bulk-manage, and order the containers or VMs shown in this folder.' },
         preview: { title: 'Preview', icon: 'fa-eye', advanced: false, description: 'Control preview layout, context, borders, dividers, and inline preview actions.' },
@@ -14,6 +18,9 @@
         actions: { title: 'Actions', icon: 'fa-bolt', advanced: true, description: 'Optional custom actions that appear in this folder’s context menu.' },
         advanced: { title: 'Advanced', icon: 'fa-sliders', advanced: true, description: 'Tune Docker / VM / Dashboard specific behavior and other advanced defaults.' }
     };
+    const SECTION_META = sharedSectionMeta && typeof sharedSectionMeta === 'object'
+        ? sharedSectionMeta
+        : FALLBACK_SECTION_META;
     const DEFAULT_FOLDER_ICON_PATH = '/plugins/folderview.plus/images/folder-icon.png';
     const BASIC_MODE = 'basic';
     const ADVANCED_MODE = 'advanced';
@@ -382,6 +389,12 @@
                                 <h3>${meta.title}${meta.advanced ? ' <span class="fv-section-badge">advanced</span>' : ''}</h3>
                                 <p>${meta.description}</p>
                             </div>
+                            <div class="fv-section-heading-tools">
+                                <span id="fvSectionState-${sectionKey}" class="fv-section-state-badge is-clean">Saved</span>
+                                ${meta.supportsRevert ? `<button type="button" class="fv-section-tool" data-section-action="revert" data-section="${sectionKey}"><i class="fa fa-history" aria-hidden="true"></i> Restore saved</button>` : ''}
+                                ${meta.supportsDefaults ? `<button type="button" class="fv-section-tool" data-section-action="defaults" data-section="${sectionKey}"><i class="fa fa-repeat" aria-hidden="true"></i> Plugin defaults</button>` : ''}
+                                ${meta.advanced ? `<button type="button" class="fv-section-collapse" data-section="${sectionKey}" aria-pressed="false"><i class="fa fa-minus-square-o" aria-hidden="true"></i> Collapse</button>` : ''}
+                            </div>
                         </div>
                     </div>
                     <div class="fv-section-shell-body"></div>
@@ -567,6 +580,21 @@
         });
     };
 
+    const refreshModernEditorChromeLayout = () => {
+        const form = root.document && root.document.querySelector('div.canvas > form.folder-editor-form');
+        if (!form) {
+            return;
+        }
+        ensureTopChrome(form);
+        ensureActionBar(form);
+        ensureSectionShells(form);
+        decorateSectionRows(form);
+        hideOrphanRows(form);
+        applySectionVisibility(form);
+    };
+
+    root.FolderViewPlusRefreshModernEditorChromeLayout = refreshModernEditorChromeLayout;
+
     const init = () => {
         const form = root.document && root.document.querySelector('div.canvas > form.folder-editor-form');
         if (!form) {
@@ -574,14 +602,9 @@
         }
         currentMode = BASIC_MODE;
         currentSection = 'general';
-        ensureTopChrome(form);
-        ensureActionBar(form);
-        ensureSectionShells(form);
-        decorateSectionRows(form);
-        hideOrphanRows(form);
+        refreshModernEditorChromeLayout();
         bindTopButtons(form);
         bindSectionControls(form);
-        applySectionVisibility(form);
     };
 
     if (root.document.readyState === 'loading') {

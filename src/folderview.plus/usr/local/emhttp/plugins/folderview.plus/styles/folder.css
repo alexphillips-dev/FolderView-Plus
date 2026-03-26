@@ -15,6 +15,8 @@
     --fv-editor-warning: var(--fvplus-editor-warning, #ffbe76);
     --fv-editor-danger: var(--fvplus-editor-danger, #ff7f7f);
     --fv-editor-control-border: var(--fvplus-editor-control-border, rgba(255, 255, 255, 0.12));
+    --fv-editor-block-border: var(--fvplus-editor-block-border, rgba(255, 255, 255, 0.1));
+    --fv-editor-block-border-strong: var(--fvplus-editor-block-border-strong, rgba(255, 255, 255, 0.28));
     --fv-editor-control-surface: var(--fvplus-editor-control-surface, rgba(255, 255, 255, 0.03));
     --fv-editor-control-surface-hover: var(--fvplus-editor-control-surface-hover, rgba(255, 154, 60, 0.08));
     --fv-editor-control-surface-active: var(--fvplus-editor-control-surface-active, rgba(255, 140, 42, 0.14));
@@ -25,6 +27,7 @@
     --fv-editor-nav-count-bg: var(--fvplus-editor-nav-count-bg, rgba(255, 154, 60, 0.16));
     --fv-editor-nav-count-text: var(--fvplus-editor-nav-count-text, #ffd7ab);
     --fv-editor-info: var(--fvplus-editor-info, #a6d8ff);
+    --fv-editor-hero-icon-border: var(--fvplus-editor-hero-icon-border, var(--fv-editor-control-border));
     color: var(--fv-editor-text-primary);
 }
 
@@ -59,7 +62,7 @@
     width: 72px;
     height: 72px;
     border-radius: 18px;
-    border: 1px solid var(--fvplus-editor-hero-icon-border, var(--fv-editor-control-border));
+    border: 1px solid var(--fv-editor-hero-icon-border);
     background: var(--fvplus-editor-hero-icon-bg, radial-gradient(circle at top left, rgba(255, 166, 67, 0.18), rgba(255, 255, 255, 0.03)));
     display: inline-flex;
     align-items: center;
@@ -374,7 +377,9 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     --fv-editor-success: #19713c;
     --fv-editor-warning: #9a6400;
     --fv-editor-danger: #bb3030;
-    --fv-editor-control-border: rgba(62, 74, 89, 0.14);
+    --fv-editor-control-border: var(--fv-editor-border);
+    --fv-editor-block-border: var(--fv-editor-border);
+    --fv-editor-block-border-strong: var(--fv-editor-border-strong);
     --fv-editor-control-surface: rgba(255, 255, 255, 0.82);
     --fv-editor-control-surface-hover: rgba(190, 107, 24, 0.08);
     --fv-editor-control-surface-active: rgba(190, 107, 24, 0.14);
@@ -385,6 +390,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     --fv-editor-nav-count-bg: rgba(190, 107, 24, 0.14);
     --fv-editor-nav-count-text: #6d4417;
     --fv-editor-info: #1e5f9f;
+    --fv-editor-hero-icon-border: var(--fv-editor-border);
     color-scheme: light;
 }
 
@@ -1072,7 +1078,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
 .fv-icon-upload-progress {
     width: min(100%, 640px);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--fv-editor-block-border);
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.02);
     padding: 0.45em 0.55em;
@@ -1132,7 +1138,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
 .fv-icon-picker-panel {
     width: min(100%, 640px);
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    border: 1px solid var(--fv-editor-block-border);
     border-radius: 8px;
     padding: 0.55em 0.6em;
     background: rgba(255, 255, 255, 0.02);
@@ -1175,7 +1181,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     grid-template-columns: 24px 1fr;
     align-items: center;
     gap: 0.35em;
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    border: 1px solid var(--fv-editor-block-border);
     border-radius: 6px;
     background: rgba(0, 0, 0, 0.16);
     min-height: 34px;
@@ -1184,7 +1190,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-icon-picker-item:hover {
-    border-color: rgba(255, 255, 255, 0.32);
+    border-color: var(--fv-editor-block-border-strong);
 }
 
 .fv-icon-picker-item.is-selected {
@@ -1207,7 +1213,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
 .fv-icon-picker-empty {
     grid-column: 1 / -1;
-    border: 1px dashed rgba(255, 255, 255, 0.2);
+    border: 1px dashed var(--fv-editor-block-border);
     border-radius: 6px;
     padding: 0.5em 0.6em;
     opacity: 0.8;
@@ -1286,7 +1292,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-third-party-section {
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--fv-editor-block-border);
     border-radius: 6px;
     background: rgba(0, 0, 0, 0.12);
     padding: 0.4em 0.44em;
@@ -1378,7 +1384,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-third-party-pack-actions-panel {
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--fv-editor-block-border);
     border-radius: 6px;
     background: rgba(0, 0, 0, 0.16);
     padding: 0.3em;
@@ -1394,7 +1400,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-third-party-filter-sheet {
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--fv-editor-block-border);
     border-radius: 6px;
     background: rgba(0, 0, 0, 0.14);
     padding: 0.42em 0.46em;
@@ -1450,7 +1456,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     gap: 0.28em;
     min-height: 24px;
     padding: 0.1em 0.38em;
-    border: 1px solid rgba(255, 255, 255, 0.13);
+    border: 1px solid var(--fv-editor-block-border);
     border-radius: 6px;
     background: rgba(255, 255, 255, 0.03);
     font-size: 1.03rem;
@@ -1481,7 +1487,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-third-party-preview {
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--fv-editor-block-border);
     border-radius: 6px;
     background: rgba(0, 0, 0, 0.16);
     padding: 0.45em 0.5em;
@@ -1544,7 +1550,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     grid-template-columns: 24px minmax(0, 1fr) auto;
     align-items: center;
     gap: 0.35em;
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    border: 1px solid var(--fv-editor-block-border);
     border-radius: 6px;
     background: rgba(0, 0, 0, 0.16);
     min-height: 36px;
@@ -1554,7 +1560,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
 .fv-third-party-icon-item:hover,
 .fv-third-party-icon-item:focus-visible {
-    border-color: rgba(255, 255, 255, 0.28);
+    border-color: var(--fv-editor-block-border-strong);
     outline: none;
 }
 
@@ -1590,7 +1596,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     min-height: 24px !important;
     height: 24px !important;
     padding: 0 !important;
-    border: 1px solid rgba(255, 255, 255, 0.13);
+    border: 1px solid var(--fv-editor-block-border);
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.02);
     display: inline-flex !important;
@@ -1627,7 +1633,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     display: inline-flex;
     align-items: center;
     border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.22);
+    border: 1px solid var(--fv-editor-block-border-strong);
     padding: 0.02em 0.42em;
     font-size: 1.03rem;
     opacity: 0.82;
@@ -1680,7 +1686,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     grid-template-columns: 24px 1fr auto;
     align-items: center;
     gap: 0.42em;
-    border: 1px solid rgba(255, 255, 255, 0.13);
+    border: 1px solid var(--fv-editor-block-border);
     border-radius: 6px;
     background: rgba(0, 0, 0, 0.16);
     min-height: 34px;
@@ -2046,7 +2052,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     height: auto;
     align-self: start;
     border-radius: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--fv-editor-block-border);
     background:
         linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015)),
         radial-gradient(circle at top right, rgba(255, 154, 60, 0.09), transparent 48%);
@@ -2440,7 +2446,7 @@ table.sortable {
     border-spacing: 0;
     overflow: hidden;
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--fv-editor-block-border);
     background: rgba(12, 12, 12, 0.24);
 }
 
@@ -2452,7 +2458,7 @@ table.sortable td {
 table.sortable thead th {
     background: rgba(255, 255, 255, 0.035);
     color: rgba(255, 255, 255, 0.88);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid var(--fv-editor-block-border);
 }
 
 table.sortable tbody tr:hover {
@@ -2527,7 +2533,7 @@ table.sortable td:nth-child(3) {
     padding: 0.38em 0.55em;
     border-radius: 10px;
     background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--fv-editor-block-border);
     box-sizing: border-box;
 }
 
@@ -2548,7 +2554,7 @@ table.sortable td:nth-child(3) {
 
 .fv-folder-action-dialog.ui-dialog {
     border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--fv-editor-block-border);
     background:
         linear-gradient(180deg, rgba(28, 24, 20, 0.98), rgba(18, 18, 18, 0.98)),
         radial-gradient(circle at top right, rgba(255, 154, 60, 0.12), transparent 50%);
@@ -2558,7 +2564,7 @@ table.sortable td:nth-child(3) {
 
 .fv-folder-action-dialog .ui-dialog-titlebar {
     border: 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid var(--fv-editor-block-border);
     background: rgba(255, 255, 255, 0.03);
     color: #f7f1e8;
     padding: 0.9em 1.1em;
@@ -2638,7 +2644,7 @@ table.sortable td:nth-child(3) {
     width: 100% !important;
     max-width: 100% !important;
     border-radius: 9px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--fv-editor-block-border);
     background: rgba(10, 10, 10, 0.34);
     color: #f6f2eb;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
@@ -2656,7 +2662,7 @@ table.sortable td:nth-child(3) {
     margin: 0;
     padding: 0.85em 1.1em 1.05em;
     border: 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-top: 1px solid var(--fv-editor-block-border);
     background: rgba(255, 255, 255, 0.025);
 }
 

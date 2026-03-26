@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.25.65">
-<!ENTITY md5 "a92f5bf17ca14a81e1925d5a25505fd6">
+<!ENTITY version "2026.03.25.66">
+<!ENTITY md5 "62970365494bff36c5aad991bf7d8ef8">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.25.66
+- Maintenance: Update release notes for modern editor field row fix.
+
 
 ###2026.03.25.65
 - Fix: Keep the modern folder editor field cards on their intended stacked `dt/dd` layout instead of letting the legacy left-alignment runtime force them back into a two-column grid.

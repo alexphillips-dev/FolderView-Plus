@@ -31,12 +31,16 @@ test('folder editor keeps border and chevron reset controls grouped with their f
     assert.match(folderCss, /\.fv-inline-control-row\s*\{[\s\S]*display:\s*inline-flex !important;[\s\S]*align-items:\s*center !important;[\s\S]*max-width:\s*max-content;/);
     assert.match(folderCss, /\.fv-inline-control-row > input,[\s\S]*margin-right:\s*0 !important;[\s\S]*flex:\s*0 0 auto;/);
     assert.match(folderCss, /\.fv-inline-reset-btn\s*\{[\s\S]*display:\s*inline-flex !important;[\s\S]*border:\s*0 !important;[\s\S]*background:\s*transparent !important;/);
+    assert.match(folderCss, /\.fv-modern-field-row\.is-toggle-row > dl > dd \.switch-button\s*\{[\s\S]*display:\s*inline-flex !important;/);
     assert.match(folderJs, /const folderEditorResetHelpers = typeof folderEditorShared\?\.createResetHelpers === 'function'/);
     assert.match(folderJs, /const resetPreviewBorderDefaults = typeof folderEditorResetHelpers\?\.resetPreviewBorderDefaults === 'function'/);
     assert.match(folderJs, /form\.preview_border_color\.value = DEFAULT_BORDER_COLOR;/);
     assert.match(folderJs, /form\.preview_border_width\.value = String\(DEFAULT_PREVIEW_BORDER_WIDTH\);/);
     assert.match(folderJs, /scheduleEditorRecalculation\(0\);/);
     assert.match(folderJs, /updateLiveSummary\(\);/);
+    assert.match(folderJs, /const scheduleEditorPreviewRender = \(\) =>/);
+    assert.match(folderJs, /const isLivePreviewColorField = fieldName === 'dropdown_color'/);
+    assert.match(folderJs, /if \(event\.type === 'input' && isLivePreviewColorField\) \{[\s\S]*scheduleEditorPreviewRender\(\);[\s\S]*markUnsavedIndicatorDirty\(\);/);
     assert.match(folderJs, /const resetDropdownColorDefaults = typeof folderEditorResetHelpers\?\.resetDropdownColorDefaults === 'function'/);
     assert.match(folderJs, /form\.dropdown_color\.value = DEFAULT_DROPDOWN_COLOR;/);
     assert.match(folderJs, /form\.dropdown_hover_color\.value = DEFAULT_DROPDOWN_HOVER_COLOR;/);

@@ -287,6 +287,7 @@ let builtInIconSearchQuery = '';
 let builtInIconPage = 1;
 let builtInIconSearchTimer = null;
 let editorRecalcTimer = null;
+let editorPreviewRenderTimer = null;
 let nameRegexSyncTimer = null;
 let lastNameRegexSyncValue = '';
 let memberListRenderToken = 0;
@@ -3243,6 +3244,26 @@ const runEditorRecalculation = () => {
     updateChangeSummaryPanel();
 };
 
+const scheduleEditorPreviewRender = () => {
+    const run = () => {
+        editorPreviewRenderTimer = null;
+        renderLivePreviewCanvas();
+    };
+    if (editorPreviewRenderTimer !== null) {
+        if (typeof window.cancelAnimationFrame === 'function') {
+            window.cancelAnimationFrame(editorPreviewRenderTimer);
+        } else {
+            clearTimeout(editorPreviewRenderTimer);
+        }
+        editorPreviewRenderTimer = null;
+    }
+    if (typeof window.requestAnimationFrame === 'function') {
+        editorPreviewRenderTimer = window.requestAnimationFrame(run);
+        return;
+    }
+    editorPreviewRenderTimer = setTimeout(run, 16);
+};
+
 const scheduleEditorRecalculation = (delayMs = 0) => {
     const run = () => {
         editorRecalcTimer = null;
@@ -4157,7 +4178,7 @@ const enforceLeftAlignedSettingsLayout = () => {
                 setImportant(dl, 'grid-template-columns', 'none');
                 setImportant(dl, 'column-gap', '0');
                 setImportant(dl, 'row-gap', '0');
-                setImportant(dl, 'gap', '1.05em');
+                setImportant(dl, 'gap', '0.68em');
                 setImportant(dl, 'width', '100%');
                 setImportant(dl, 'max-width', 'none');
                 setImportant(dl, 'margin-left', '0');
@@ -4189,7 +4210,7 @@ const enforceLeftAlignedSettingsLayout = () => {
             setImportant(dd, 'min-width', '0');
             setImportant(dd, 'text-align', 'left');
             if (modernFieldRow) {
-                setImportant(dd, 'padding-top', '0.42em');
+                setImportant(dd, 'padding-top', '0.16em');
             }
 
             if (dd) {
@@ -4197,7 +4218,7 @@ const enforceLeftAlignedSettingsLayout = () => {
                     setImportant(field, 'margin-left', '0');
                     setImportant(field, 'margin-right', 'auto');
                 });
-                dd.querySelectorAll('.switch-button, .switch-button-background, .switch-button-button').forEach((toggle) => {
+                dd.querySelectorAll('.switch-button').forEach((toggle) => {
                     setImportant(toggle, 'margin-left', '0');
                     setImportant(toggle, 'margin-right', 'auto');
                     setImportant(toggle, 'float', 'none');
@@ -5141,6 +5162,10 @@ const startFolderEditorRuntime = async () => {
             return;
         }
         const fieldName = String(event?.target?.name || '').trim();
+        const isLivePreviewColorField = fieldName === 'dropdown_color'
+            || fieldName === 'dropdown_hover_color'
+            || fieldName === 'preview_border_color'
+            || fieldName === 'preview_vertical_bars_color';
         markSmartDefaultFieldTouched(fieldName);
         if (!folderId && fieldName === 'parent_folder_id' && event.type === 'change') {
             void applySmartDefaultsFromParent(normalizeParentFolderId(form.parent_folder_id?.value || ''));
@@ -5157,6 +5182,11 @@ const startFolderEditorRuntime = async () => {
         }
         if (fieldName === 'dropdown_style' || fieldName === 'dropdown_color' || fieldName === 'dropdown_hover_color'
             || fieldName === 'preview_border' || fieldName === 'preview_border_color' || fieldName === 'preview_border_width') {
+            if (event.type === 'input' && isLivePreviewColorField) {
+                scheduleEditorPreviewRender();
+                markUnsavedIndicatorDirty();
+                return;
+            }
             scheduleEditorRecalculation(0);
             return;
         }

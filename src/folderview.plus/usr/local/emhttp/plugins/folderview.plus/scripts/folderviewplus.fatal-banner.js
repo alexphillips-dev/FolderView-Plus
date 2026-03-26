@@ -106,6 +106,7 @@
         state.environment.page = trimString(config.page || state.environment.page || 'Settings') || 'Settings';
         state.environment.url = trimString(win.location?.href || state.environment.url || '');
         state.environment.userAgent = trimString(win.navigator?.userAgent || state.environment.userAgent || '');
+        state.environment.pluginVersion = trimString(config.pluginVersion || state.environment.pluginVersion || 'unknown') || 'unknown';
         state.environment.unraidVersion = trimString(config.unraidVersion || state.environment.unraidVersion || 'unknown') || 'unknown';
         state.environment.channel = trimString(config.channel || state.environment.channel || 'unknown') || 'unknown';
     };

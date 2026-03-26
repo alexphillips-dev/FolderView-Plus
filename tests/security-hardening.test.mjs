@@ -166,6 +166,11 @@ test('dashboard script is wrapped in a private scope to avoid global symbol coll
     assert.match(dashboardJs, /\}\)\(window, window\.jQuery \|\| window\.\$\);\s*$/);
 });
 
+test('docker runtime script is wrapped in a private scope to avoid host-page plugin collisions', () => {
+    assert.match(dockerJs, /^\/\/ @ts-check\s*\n\(function fvplusDockerRuntimeScope\(window, \$\) \{/);
+    assert.match(dockerJs, /\}\)\(window, window\.jQuery \|\| window\.\$\);\s*$/);
+});
+
 test('dashboard folder cards are click-to-expand for docker and vm widgets', () => {
     assert.match(dashboardJs, /onclick='expandFolderDocker\("\$\{id\}"\)'/);
     assert.match(dashboardJs, /onclick='expandFolderVM\("\$\{id\}"\)'/);

@@ -1,4 +1,7 @@
 // @ts-check
+(function fvplusDockerRuntimeScope(window, $) {
+'use strict';
+
 const FOLDER_VIEW_DEBUG_MODE = false;
 const dockerRuntimeShared = window.FolderViewDockerRuntimeShared || {};
 const runtimeStateObserverModule = window.FolderViewPlusRuntimeStateObservers || null;
@@ -181,7 +184,7 @@ const fatalBanner = window.FolderViewPlusFatalBanner || null;
 const dockerFatalBannerRuntimeConfig = (window.FolderViewPlusFatalRuntimeContext && typeof window.FolderViewPlusFatalRuntimeContext === 'object')
     ? window.FolderViewPlusFatalRuntimeContext
     : {};
-const DOCKER_FATAL_BANNER_HOST_SELECTOR = String(dockerFatalBannerRuntimeConfig.hostSelector || '#fvplus-docker-runtime-banner-host').trim() || '#fvplus-docker-runtime-banner-host';
+const DOCKER_FATAL_BANNER_HOST_SELECTOR = String(dockerFatalBannerRuntimeConfig.hostSelector || '.canvas, #fvplus-docker-runtime-banner-host').trim() || '.canvas, #fvplus-docker-runtime-banner-host';
 const createDockerRuntimeDiagnosticsBridge = typeof dockerRuntimeShared.createRuntimeDiagnosticsBridge === 'function'
     ? dockerRuntimeShared.createRuntimeDiagnosticsBridge
     : null;
@@ -5817,3 +5820,4 @@ addEventListener("keydown", (e) => {
 });
 
 if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] docker.js: End of script execution.');
+})(window, window.jQuery || window.$);

@@ -34,7 +34,7 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(dockerCssIndex >= 0, 'docker stylesheet include is missing');
     assert.match(dockerPage, /window\.FolderViewPlusFatalRuntimeContext = \{/);
     assert.match(dockerPage, /page:\s*'Docker'/);
-    assert.match(dockerPage, /hostSelector:\s*'#fvplus-docker-runtime-banner-host'/);
+    assert.match(dockerPage, /hostSelector:\s*'\.canvas,\s*#fvplus-docker-runtime-banner-host'/);
     assert.match(dockerPage, /<div id="fvplus-docker-runtime-banner-host" aria-live="polite"><\/div>/);
     assert.ok(fatalBannerIndex < contractIndex, 'docker fatal banner must load before folder contract/runtime scripts');
     assert.ok(contractIndex < sharedIndex, 'shared contract must load before docker.runtime.shared.js');
@@ -70,7 +70,7 @@ test('docker shared runtime module binds to the shared folder contract and expor
 test('docker runtime consumes shared state store and guarded async action wrappers', () => {
     assert.match(dockerJs, /const dockerRuntimeShared = window\.FolderViewDockerRuntimeShared \|\| \{\};/);
     assert.match(dockerJs, /const fatalBanner = window\.FolderViewPlusFatalBanner \|\| null;/);
-    assert.match(dockerJs, /const DOCKER_FATAL_BANNER_HOST_SELECTOR = String\(dockerFatalBannerRuntimeConfig\.hostSelector \|\| '#fvplus-docker-runtime-banner-host'\)/);
+    assert.match(dockerJs, /const DOCKER_FATAL_BANNER_HOST_SELECTOR = String\(dockerFatalBannerRuntimeConfig\.hostSelector \|\| '\.canvas, #fvplus-docker-runtime-banner-host'\)/);
     assert.match(dockerJs, /const createDockerRuntimeDiagnosticsBridge = typeof dockerRuntimeShared\.createRuntimeDiagnosticsBridge === 'function'/);
     assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('folderviewplus\.utils\.js'\)/);
     assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('folderviewplus\.request\.js'\)/);

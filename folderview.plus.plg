@@ -6,12 +6,24 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.25">
-<!ENTITY md5 "2d818b3f70c4447ec4bd88dcd65b6228">
+<!ENTITY version "2026.03.26.27">
+<!ENTITY md5 "a3ac841d0532d91be1f805e3b3f4cbfe">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.27
+- Performance: Docker folder rendering now paints from lightweight runtime state first, derives host order from the live DOM, and defers heavy runtime detail hydration until after the initial folder view is visible.
+- UX: Docker now shows an earlier loading shell while folders are building, and preview tooltips initialize on first interaction instead of during the initial render pass.
+- Quality: Expanded Docker perf guards and lightweight state payload coverage so staged bootstrap, deferred hydration, and first-paint loading behavior stay locked in.
+
+
+###2026.03.26.26
+- Performance: Docker folder rendering now paints from lightweight runtime state first, derives host order from the live DOM, and defers heavy runtime detail hydration until after the initial folder view is visible.
+- UX: Docker now shows an earlier loading shell while folders are building, and preview tooltips initialize on first interaction instead of during the initial render pass.
+- Quality: Expanded Docker perf guards and state payload coverage so staged bootstrap, deferred hydration, and first-paint loading behavior stay locked in.
+
 
 ###2026.03.26.25
 - Fix: Hardened Docker `read_info` template scanning so Unraid template-directory errors no longer break the Settings page or Docker runtime info bootstrap.

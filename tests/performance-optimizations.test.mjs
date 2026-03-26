@@ -118,6 +118,11 @@ test('runtime refresh uses lightweight state mode checks before re-rendering', (
     assert.match(dockerJs, /const queueCreateFoldersRender = \(\) =>/);
     assert.match(vmJs, /const queueCreateFoldersRender = \(\) =>/);
     assert.match(dashboardJs, /const queueCreateFoldersRender = \(\) =>/);
+    assert.match(dockerJs, /const readDockerHostOrderFromDom = \(\) =>/);
+    assert.match(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoPromise = null\) =>/);
+    assert.match(dockerJs, /const yieldDockerRenderLoop = async \(processedCount,\s*totalCount\) =>/);
+    assert.match(dockerJs, /render:\s*\[[\s\S]*read_info\.php\?type=docker&mode=state/);
+    assert.match(dockerJs, /fullInfo:\s*createDockerRuntimeRequest\('\/plugins\/folderview\.plus\/server\/read_info\.php\?type=docker'/);
 });
 
 test('performance mode applies stricter refresh cadence and reduced motion guards', () => {
@@ -205,6 +210,17 @@ test('docker tooltip payload is lazy-built on first open', () => {
     assert.match(dockerJs, /const buildDockerTooltipContent\s*=\s*\(ct\)\s*=>/);
     assert.match(dockerJs, /fvTooltipLazyBuilt/);
     assert.match(dockerJs, /Loading preview\.\.\./);
+    assert.match(dockerJs, /const initializeDockerTooltipOnDemand = \(\$target,\s*init\) =>/);
+    assert.match(dockerJs, /one\('mouseenter\.fvLazyTooltip click\.fvLazyTooltip touchstart\.fvLazyTooltip'/);
+});
+
+test('docker first paint keeps a lightweight loading shell and enriches state payload fields', () => {
+    assert.match(dockerJs, /const ensureDockerRuntimeLoadingOverlay = \(\) =>/);
+    assert.match(dockerJs, /showDockerRuntimeLoadingOverlay\(\);/);
+    assert.match(dockerCss, /\.fvplus-docker-runtime-loading-overlay\s*\{/);
+    assert.match(libPhp, /'Labels'\s*=>\s*\$labels/);
+    assert.match(libPhp, /'Image'\s*=>\s*trim\(\(string\)\(\$container\['Image'\] \?\? ''\)\)/);
+    assert.match(libPhp, /'shortImageId'\s*=>\s*substr\(str_replace\('sha256:', '', \(string\)\(\$container\['ImageID'\] \?\? ''\)\), 0, 12\)/);
 });
 
 test('docker runtime app column auto-sizes based on folder names and rebinds after render', () => {
@@ -241,7 +257,7 @@ test('docker runtime app column auto-sizes based on folder names and rebinds aft
     assert.match(dockerJs, /tbody#docker_list > tr > td:nth-child\(\$\{index\}\),\s*tbody#docker_view > tr > td:nth-child\(\$\{index\}\)/);
     assert.match(dockerJs, /bindDockerRuntimeAppColumnResizer\(\);/);
     assert.match(dockerJs, /queueDockerRuntimeResizerBind\(\);/);
-    assert.match(dockerJs, /scheduleDockerRuntimeWidthReflow\('render-complete', 0\)/);
+    assert.match(dockerJs, /scheduleDockerRuntimeWidthReflow\('render-complete', 12\)/);
     assert.match(dockerJs, /scheduleDockerRuntimeWidthReflow\('folder-toggle', 24\)/);
     assert.match(dockerJs, /scheduleDockerRuntimeWidthReflow\('prefs-change', 0\)/);
 });

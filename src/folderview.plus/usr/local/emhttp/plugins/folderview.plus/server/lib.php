@@ -5307,6 +5307,10 @@
                 $info[$name] = [
                     'name' => $name,
                     'id' => substr(str_replace('sha256:', '', (string)($container['Id'] ?? '')), 0, 12),
+                    'shortImageId' => substr(str_replace('sha256:', '', (string)($container['ImageID'] ?? '')), 0, 12),
+                    'Image' => trim((string)($container['Image'] ?? '')),
+                    'Labels' => $labels,
+                    'Mounts' => is_array($container['Mounts'] ?? null) ? $container['Mounts'] : [],
                     'state' => $stateKind,
                     'running' => $running,
                     'paused' => $paused,

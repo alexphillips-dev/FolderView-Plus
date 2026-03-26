@@ -454,6 +454,78 @@ const getFolderLabelValue = (labels) => {
     }
     return '';
 };
+const isDockerRuntimeInfoEntryFull = (entry) => !!(entry && typeof entry === 'object' && entry.info && typeof entry.info === 'object' && entry.info.State && typeof entry.info.State === 'object');
+const buildDockerRuntimeInfoFallbackLabels = (entry = {}, previousEntry = null) => {
+    const source = entry && typeof entry === 'object' ? entry : {};
+    const previous = previousEntry && typeof previousEntry === 'object' ? previousEntry : null;
+    const labels = {
+        ...((previous?.Labels && typeof previous.Labels === 'object') ? previous.Labels : {}),
+        ...((source.Labels && typeof source.Labels === 'object') ? source.Labels : {})
+    };
+    const folderLabel = String(source.folderLabel || '').trim();
+    if (folderLabel && !getFolderLabelValue(labels) && FOLDER_LABEL_KEYS.length > 0) {
+        labels[FOLDER_LABEL_KEYS[0]] = folderLabel;
+    }
+    return labels;
+};
+const buildDockerRuntimeInfoRenderEntry = (name, entry = {}, previousEntry = null) => {
+    const safeName = String(name || '').trim();
+    const source = entry && typeof entry === 'object' ? entry : {};
+    const previous = previousEntry && typeof previousEntry === 'object' ? previousEntry : null;
+    if (isDockerRuntimeInfoEntryFull(source)) {
+        return source;
+    }
+    const labels = buildDockerRuntimeInfoFallbackLabels(source, previous);
+    const previousInfo = previous?.info && typeof previous.info === 'object' ? previous.info : {};
+    const previousState = previousInfo.State && typeof previousInfo.State === 'object' ? previousInfo.State : {};
+    const previousConfig = previousInfo.Config && typeof previousInfo.Config === 'object' ? previousInfo.Config : {};
+    const stateKind = String(source.state || '').trim().toLowerCase();
+    const running = source.running === true || stateKind === 'running';
+    const paused = source.paused === true || stateKind === 'paused';
+    const manager = String(source.manager || previousState.manager || '').trim();
+    const nextEntry = previous ? { ...previous } : {};
+    nextEntry.shortId = String(source.id || previous?.shortId || '').trim();
+    nextEntry.shortImageId = String(source.shortImageId || previous?.shortImageId || '').trim();
+    nextEntry.Labels = labels;
+    nextEntry.Mounts = Array.isArray(source.Mounts) ? source.Mounts : (Array.isArray(previous?.Mounts) ? previous.Mounts : []);
+    nextEntry.info = {
+        ...previousInfo,
+        Name: safeName || String(previousInfo.Name || '').trim(),
+        Shell: String(labels['net.unraid.docker.shell'] || previousInfo.Shell || 'sh').trim() || 'sh',
+        Config: {
+            ...previousConfig,
+            Image: String(source.Image || previousConfig.Image || '').trim(),
+            Labels: labels
+        },
+        State: {
+            ...previousState,
+            Running: running,
+            Paused: paused,
+            Status: String(source.status || previousState.Status || '').trim(),
+            Autostart: source.autostart === true,
+            Updated: (typeof previousState.Updated === 'boolean') ? previousState.Updated : null,
+            manager,
+            WebUi: String(labels['net.unraid.docker.webui'] || previousState.WebUi || '').trim(),
+            TSWebUi: String(labels['net.unraid.docker.tailscale.webui'] || previousState.TSWebUi || '').trim()
+        },
+        Ports: Array.isArray(previousInfo.Ports) ? previousInfo.Ports : [],
+        template: previousInfo.template || null
+    };
+    return nextEntry;
+};
+const normalizeDockerRuntimeInfoMap = (source, previousMap = null) => {
+    const rawMap = source && typeof source === 'object' ? source : {};
+    const fallbackMap = previousMap && typeof previousMap === 'object' ? previousMap : dockerRuntimeInfoByName;
+    const normalized = {};
+    Object.entries(rawMap).forEach(([name, entry]) => {
+        const safeName = String(name || '').trim();
+        if (!safeName || !entry || typeof entry !== 'object') {
+            return;
+        }
+        normalized[safeName] = buildDockerRuntimeInfoRenderEntry(safeName, entry, fallbackMap?.[safeName] || null);
+    });
+    return normalized;
+};
 const escapeHtml = typeof utils.escapeHtml === 'function'
     ? utils.escapeHtml
     : ((value) => String(value ?? '')
@@ -1498,21 +1570,33 @@ const bindDockerRuntimeColumnResizers = () => {
 const bindDockerRuntimeAppColumnResizer = () => bindDockerRuntimeColumnResizers();
 const applySavedDockerRuntimeAppWidth = () => applySavedDockerRuntimeColumnWidths();
 
-const buildDockerTooltipContent = (ct) => $(`
+const resolveDockerTooltipRuntimeEntry = (entry) => {
+    const name = String(entry?.info?.Name || entry?.name || '').trim();
+    if (!name) {
+        return entry;
+    }
+    const latest = getDockerRuntimeContainerInfo(name);
+    return latest && typeof latest === 'object' ? buildDockerRuntimeInfoRenderEntry(name, latest, entry) : entry;
+};
+
+const buildDockerTooltipContent = (ct) => {
+    const runtimeEntry = resolveDockerTooltipRuntimeEntry(ct);
+    const labels = runtimeEntry?.Labels && typeof runtimeEntry.Labels === 'object' ? runtimeEntry.Labels : {};
+    return $(`
     <div class="preview-outbox preview-outbox-${ct.shortId}">
         <div class="first-row">
             <div class="preview-name">
-                <div class="preview-img"><img src="${ct.Labels['net.unraid.docker.icon'] || ''}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></div>
+                <div class="preview-img"><img src="${labels['net.unraid.docker.icon'] || ''}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'></div>
                 <div class="preview-actual-name">
-                    <span class="blue-text appname">${ct.info.Name}</span><br>
-                    <i class="fa fa-${ct.info.State.Running ? (ct.info.State.Paused ? 'pause' : 'play') : 'square'} ${ct.info.State.Running ? (ct.info.State.Paused ? 'paused' : 'started') : 'stopped'} ${ct.info.State.Running ? (ct.info.State.Paused ? 'orange-text' : 'green-text') : 'red-text'}"></i>
-                    <span class="state"> ${ct.info.State.Running ? (ct.info.State.Paused ? $.i18n('paused') : $.i18n('started')) : $.i18n('stopped')}</span>
+                    <span class="blue-text appname">${runtimeEntry.info.Name}</span><br>
+                    <i class="fa fa-${runtimeEntry.info.State.Running ? (runtimeEntry.info.State.Paused ? 'pause' : 'play') : 'square'} ${runtimeEntry.info.State.Running ? (runtimeEntry.info.State.Paused ? 'paused' : 'started') : 'stopped'} ${runtimeEntry.info.State.Running ? (runtimeEntry.info.State.Paused ? 'orange-text' : 'green-text') : 'red-text'}"></i>
+                    <span class="state"> ${runtimeEntry.info.State.Running ? (runtimeEntry.info.State.Paused ? $.i18n('paused') : $.i18n('started')) : $.i18n('stopped')}</span>
                 </div>
             </div>
             <table class="preview-status">
                 <thead class="status-header"><tr><th class="status-header-version">${$.i18n('version')}</th><th class="status-header-stats">CPU/MEM</th><th class="status-header-autostart">${$.i18n('autostart')}</th></tr></thead>
                 <tbody><tr>
-                    <td><div class="status-version">${ct.info.State.manager === 'composeman' ? `<span class="folder-update-text"><i class="fa fa-docker fa-fw"></i> ${$.i18n('compose')}</span>` : ct.info.State.manager !== 'dockerman' ? `<span class="folder-update-text"><i class="fa fa-docker fa-fw"></i> ${$.i18n('third-party')}</span>` : ct.info.State.Updated !== false ? `<span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i>${$.i18n('up-to-date')}</span><br><a class="exec" onclick="hideAllTips(); updateContainer('${ct.info.Name}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i>${$.i18n('force-update')}</span></a>` : `<span class="orange-text folder-update-text" style="white-space:nowrap;"><i class="fa fa-flash fa-fw"></i>${$.i18n('update-ready')}</span><br><a class="exec" onclick="hideAllTips(); updateContainer('${ct.info.Name}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i>${$.i18n('apply-update')}</span></a>`}<br><i class="fa fa-info-circle fa-fw"></i> ${ct.info.Config.Image.split(':').pop()}</div></td>
+                    <td><div class="status-version">${runtimeEntry.info.State.manager === 'composeman' ? `<span class="folder-update-text"><i class="fa fa-docker fa-fw"></i> ${$.i18n('compose')}</span>` : runtimeEntry.info.State.manager !== 'dockerman' ? `<span class="folder-update-text"><i class="fa fa-docker fa-fw"></i> ${$.i18n('third-party')}</span>` : runtimeEntry.info.State.Updated !== false ? `<span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i>${$.i18n('up-to-date')}</span><br><a class="exec" onclick="hideAllTips(); updateContainer('${runtimeEntry.info.Name}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i>${$.i18n('force-update')}</span></a>` : `<span class="orange-text folder-update-text" style="white-space:nowrap;"><i class="fa fa-flash fa-fw"></i>${$.i18n('update-ready')}</span><br><a class="exec" onclick="hideAllTips(); updateContainer('${runtimeEntry.info.Name}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i>${$.i18n('apply-update')}</span></a>`}<br><i class="fa fa-info-circle fa-fw"></i> ${runtimeEntry.info.Config.Image.split(':').pop()}</div></td>
                     <td><div class="status-stats"><span class="cpu-${ct.shortId}">0%</span><div class="usage-disk mm"><span id="cpu-${ct.shortId}" style="width: 0%;"></span><span></span></div><br><span class="mem-${ct.shortId}">0 / 0</span></div></td>
                     <td><div class="status-autostart"><input type="checkbox" style="display:none" class="staus-autostart-checkbox"></div></td>
                 </tr></tbody>
@@ -1523,34 +1607,34 @@ const buildDockerTooltipContent = (ct) => $(`
                 <div class="action">
                     <div class="action-left">
                         <ul class="fa-ul">
-                            ${(ct.info.State.Running && !ct.info.State.Paused) ? 
-                                `${ct.info.State.WebUi ? `<li><a href="${ct.info.State.WebUi}" target="_blank" rel="noopener noreferrer"><i class="fa fa-globe" aria-hidden="true"></i> ${$.i18n('webui')}</a></li>` : ''}
-                                 ${ct.info.State.TSWebUi ? `<li><a href="${ct.info.State.TSWebUi}" target="_blank" rel="noopener noreferrer"><i class="fa fa-shield" aria-hidden="true"></i> ${$.i18n('tailscale-webui')}</a></li>` : ''}
-                                 <li><a onclick="event.preventDefault(); openTerminal('docker', '${ct.info.Name}', '${ct.info.Shell}');"><i class="fa fa-terminal" aria-hidden="true"></i> ${$.i18n('console')}</a></li>`
+                            ${(runtimeEntry.info.State.Running && !runtimeEntry.info.State.Paused) ? 
+                                `${runtimeEntry.info.State.WebUi ? `<li><a href="${runtimeEntry.info.State.WebUi}" target="_blank" rel="noopener noreferrer"><i class="fa fa-globe" aria-hidden="true"></i> ${$.i18n('webui')}</a></li>` : ''}
+                                 ${runtimeEntry.info.State.TSWebUi ? `<li><a href="${runtimeEntry.info.State.TSWebUi}" target="_blank" rel="noopener noreferrer"><i class="fa fa-shield" aria-hidden="true"></i> ${$.i18n('tailscale-webui')}</a></li>` : ''}
+                                 <li><a onclick="event.preventDefault(); openTerminal('docker', '${runtimeEntry.info.Name}', '${runtimeEntry.info.Shell}');"><i class="fa fa-terminal" aria-hidden="true"></i> ${$.i18n('console')}</a></li>`
                             : ''}
-                            ${!ct.info.State.Running ? `<li><a onclick="event.preventDefault(); eventControl({action:'start', container:'${ct.shortId}'}, 'loadlist');"><i class="fa fa-play" aria-hidden="true"></i> ${$.i18n('start')}</a></li>` : 
-                                `${ct.info.State.Paused ? `<li><a onclick="event.preventDefault(); eventControl({action:'resume', container:'${ct.shortId}'}, 'loadlist');"><i class="fa fa-play" aria-hidden="true"></i> ${$.i18n('resume')}</a></li>` : 
+                            ${!runtimeEntry.info.State.Running ? `<li><a onclick="event.preventDefault(); eventControl({action:'start', container:'${ct.shortId}'}, 'loadlist');"><i class="fa fa-play" aria-hidden="true"></i> ${$.i18n('start')}</a></li>` : 
+                                `${runtimeEntry.info.State.Paused ? `<li><a onclick="event.preventDefault(); eventControl({action:'resume', container:'${ct.shortId}'}, 'loadlist');"><i class="fa fa-play" aria-hidden="true"></i> ${$.i18n('resume')}</a></li>` : 
                                     `<li><a onclick="event.preventDefault(); eventControl({action:'stop', container:'${ct.shortId}'}, 'loadlist');"><i class="fa fa-stop" aria-hidden="true"></i> ${$.i18n('stop')}</a></li>
                                      <li><a onclick="event.preventDefault(); eventControl({action:'pause', container:'${ct.shortId}'}, 'loadlist');"><i class="fa fa-pause" aria-hidden="true"></i> ${$.i18n('pause')}</a></li>`}
                             <li><a onclick="event.preventDefault(); eventControl({action:'restart', container:'${ct.shortId}'}, 'loadlist');"><i class="fa fa-refresh" aria-hidden="true"></i> ${$.i18n('restart')}</a></li>`}
-                            <li><a onclick="event.preventDefault(); openTerminal('docker', '${ct.info.Name}', '.log');"><i class="fa fa-navicon" aria-hidden="true"></i> ${$.i18n('logs')}</a></li>
-                            ${ct.info.template ? `<li><a onclick="event.preventDefault(); editContainer('${ct.info.Name}', '${ct.info.template.path}');"><i class="fa fa-wrench" aria-hidden="true"></i> ${$.i18n('edit')}</a></li>` : ''}
-                            <li><a onclick="event.preventDefault(); rmContainer('${ct.info.Name}', '${ct.shortImageId}', '${ct.shortId}');"><i class="fa fa-trash" aria-hidden="true"></i> ${$.i18n('remove')}</a></li>
+                            <li><a onclick="event.preventDefault(); openTerminal('docker', '${runtimeEntry.info.Name}', '.log');"><i class="fa fa-navicon" aria-hidden="true"></i> ${$.i18n('logs')}</a></li>
+                            ${runtimeEntry.info.template ? `<li><a onclick="event.preventDefault(); editContainer('${runtimeEntry.info.Name}', '${runtimeEntry.info.template.path}');"><i class="fa fa-wrench" aria-hidden="true"></i> ${$.i18n('edit')}</a></li>` : ''}
+                            <li><a onclick="event.preventDefault(); rmContainer('${runtimeEntry.info.Name}', '${runtimeEntry.shortImageId}', '${runtimeEntry.shortId}');"><i class="fa fa-trash" aria-hidden="true"></i> ${$.i18n('remove')}</a></li>
                         </ul>
                     </div>
                     <div class="action-right">
                         <ul class="fa-ul">
-                            ${ct.info.ReadMe ? `<li><a href="${ct.info.ReadMe}" target="_blank" rel="noopener noreferrer"><i class="fa fa-book" aria-hidden="true"></i> ${$.i18n('read-me-first')}</a></li>` : ''}
-                            ${ct.info.Project ? `<li><a href="${ct.info.Project}" target="_blank" rel="noopener noreferrer"><i class="fa fa-life-ring" aria-hidden="true"></i> ${$.i18n('project-page')}</a></li>` : ''}
-                            ${ct.info.Support ? `<li><a href="${ct.info.Support}" target="_blank" rel="noopener noreferrer"><i class="fa fa-question" aria-hidden="true"></i> ${$.i18n('support')}</a></li>` : ''}
-                            ${ct.info.registry ? `<li><a href="${ct.info.registry}" target="_blank" rel="noopener noreferrer"><i class="fa fa-info-circle" aria-hidden="true"></i> ${$.i18n('more-info')}</a></li>` : ''}
-                            ${ct.info.DonateLink ? `<li><a href="${ct.info.DonateLink}" target="_blank" rel="noopener noreferrer"><i class="fa fa-usd" aria-hidden="true"></i> ${$.i18n('donate')}</a></li>` : ''}
+                            ${runtimeEntry.info.ReadMe ? `<li><a href="${runtimeEntry.info.ReadMe}" target="_blank" rel="noopener noreferrer"><i class="fa fa-book" aria-hidden="true"></i> ${$.i18n('read-me-first')}</a></li>` : ''}
+                            ${runtimeEntry.info.Project ? `<li><a href="${runtimeEntry.info.Project}" target="_blank" rel="noopener noreferrer"><i class="fa fa-life-ring" aria-hidden="true"></i> ${$.i18n('project-page')}</a></li>` : ''}
+                            ${runtimeEntry.info.Support ? `<li><a href="${runtimeEntry.info.Support}" target="_blank" rel="noopener noreferrer"><i class="fa fa-question" aria-hidden="true"></i> ${$.i18n('support')}</a></li>` : ''}
+                            ${runtimeEntry.info.registry ? `<li><a href="${runtimeEntry.info.registry}" target="_blank" rel="noopener noreferrer"><i class="fa fa-info-circle" aria-hidden="true"></i> ${$.i18n('more-info')}</a></li>` : ''}
+                            ${runtimeEntry.info.DonateLink ? `<li><a href="${runtimeEntry.info.DonateLink}" target="_blank" rel="noopener noreferrer"><i class="fa fa-usd" aria-hidden="true"></i> ${$.i18n('donate')}</a></li>` : ''}
                         </ul>
                     </div>
                 </div>
                 <div class="info-ct">
-                    <span class="container-id">${$.i18n('container-id')}: ${ct.shortId}</span><br>
-                    <span class="repo">${$.i18n('by')}: <a target="_blank" rel="noopener noreferrer" ${ct.info.registry ? `href="${ct.info.registry}"` : ''} >${ct.info.Config.Image.split(':').shift()}</a></span>
+                    <span class="container-id">${$.i18n('container-id')}: ${runtimeEntry.shortId}</span><br>
+                    <span class="repo">${$.i18n('by')}: <a target="_blank" rel="noopener noreferrer" ${runtimeEntry.info.registry ? `href="${runtimeEntry.info.registry}"` : ''} >${runtimeEntry.info.Config.Image.split(':').shift()}</a></span>
                 </div>
             </div>
             <div class="info-section">
@@ -1564,12 +1648,42 @@ const buildDockerTooltipContent = (ct) => $(`
                 <div class="comb-grapth-${ct.shortId} comb-stat-grapth" id="comb-grapth-${ct.shortId}" style="display: none;"><canvas></canvas></div>
                 <div class="cpu-grapth-${ct.shortId} cpu-stat-grapth" id="cpu-grapth-${ct.shortId}" style="display: none;"><canvas></canvas></div>
                 <div class="mem-grapth-${ct.shortId} mem-stat-grapth" id="mem-grapth-${ct.shortId}" style="display: none;"><canvas></canvas></div>
-                <div class="info-ports" id="info-ports-${ct.shortId}" style="display: none;">${ct.info.Ports?.length > 10 ? (`<span class="info-ports-more" style="display: none;">${ct.info.Ports?.map(e=>`${e.PrivateIP ? e.PrivateIP + ':' : ''}${e.PrivatePort}/${e.Type.toUpperCase()} <i class="fa fa-arrows-h"></i> ${e.PublicIP ? e.PublicIP + ':' : ''}${e.PublicPort}`).join('<br>') || ''}<br><a onclick="event.preventDefault(); $(this).parent().css('display', 'none').siblings('.info-ports-less').css('display', 'inline')">${$.i18n('compress')}</a></span><span class="info-ports-less">${ct.info.Ports?.slice(0,10).map(e=>`${e.PrivateIP ? e.PrivateIP + ':' : ''}${e.PrivatePort}/${e.Type.toUpperCase()} <i class="fa fa-arrows-h"></i> ${e.PublicIP ? e.PublicIP + ':' : ''}${e.PublicPort}`).join('<br>') || ''}<br><a onclick="event.preventDefault(); $(this).parent().css('display', 'none').siblings('.info-ports-more').css('display', 'inline')">${$.i18n('expand')}</a></span>`) : (`<span class="info-ports-mono">${ct.info.Ports?.map(e=>`${e.PrivateIP ? e.PrivateIP + ':' : ''}${e.PrivatePort}/${e.Type.toUpperCase()} <i class="fa fa-arrows-h"></i> ${e.PublicIP ? e.PublicIP + ':' : ''}${e.PublicPort}`).join('<br>') || ''}</span>`)}</div>
-                <div class="info-volumes" id="info-volumes-${ct.shortId}" style="display: none;">${ct.Mounts?.filter(e => e.Type==='bind').length > 10 ? (`<span class="info-volumes-more" style="display: none;">${ct.Mounts?.filter(e => e.Type==='bind').map(e=>`${e.Destination} <i class="fa fa-arrows-h"></i> ${e.Source}`).join('<br>') || ''}<br><a onclick="event.preventDefault(); $(this).parent().css('display', 'none').siblings('.info-volumes-less').css('display', 'inline')">${$.i18n('compress')}</a></span><span class="info-volumes-less">${ct.Mounts?.filter(e => e.Type==='bind').slice(0,10).map(e=>`${e.Destination} <i class="fa fa-arrows-h"></i> ${e.Source}`).join('<br>') || ''}<br><a onclick="event.preventDefault(); $(this).parent().css('display', 'none').siblings('.info-volumes-more').css('display', 'inline')">${$.i18n('expand')}</a></span>`) : (`<span class="info-volumes-mono">${ct.Mounts?.filter(e => e.Type==='bind').map(e=>`${e.Destination} <i class="fa fa-arrows-h"></i> ${e.Source}`).join('<br>') || ''}</span>`)}</div>
+                <div class="info-ports" id="info-ports-${ct.shortId}" style="display: none;">${runtimeEntry.info.Ports?.length > 10 ? (`<span class="info-ports-more" style="display: none;">${runtimeEntry.info.Ports?.map(e=>`${e.PrivateIP ? e.PrivateIP + ':' : ''}${e.PrivatePort}/${e.Type.toUpperCase()} <i class="fa fa-arrows-h"></i> ${e.PublicIP ? e.PublicIP + ':' : ''}${e.PublicPort}`).join('<br>') || ''}<br><a onclick="event.preventDefault(); $(this).parent().css('display', 'none').siblings('.info-ports-less').css('display', 'inline')">${$.i18n('compress')}</a></span><span class="info-ports-less">${runtimeEntry.info.Ports?.slice(0,10).map(e=>`${e.PrivateIP ? e.PrivateIP + ':' : ''}${e.PrivatePort}/${e.Type.toUpperCase()} <i class="fa fa-arrows-h"></i> ${e.PublicIP ? e.PublicIP + ':' : ''}${e.PublicPort}`).join('<br>') || ''}<br><a onclick="event.preventDefault(); $(this).parent().css('display', 'none').siblings('.info-ports-more').css('display', 'inline')">${$.i18n('expand')}</a></span>`) : (`<span class="info-ports-mono">${runtimeEntry.info.Ports?.map(e=>`${e.PrivateIP ? e.PrivateIP + ':' : ''}${e.PrivatePort}/${e.Type.toUpperCase()} <i class="fa fa-arrows-h"></i> ${e.PublicIP ? e.PublicIP + ':' : ''}${e.PublicPort}`).join('<br>') || ''}</span>`)}</div>
+                <div class="info-volumes" id="info-volumes-${ct.shortId}" style="display: none;">${runtimeEntry.Mounts?.filter(e => e.Type==='bind').length > 10 ? (`<span class="info-volumes-more" style="display: none;">${runtimeEntry.Mounts?.filter(e => e.Type==='bind').map(e=>`${e.Destination} <i class="fa fa-arrows-h"></i> ${e.Source}`).join('<br>') || ''}<br><a onclick="event.preventDefault(); $(this).parent().css('display', 'none').siblings('.info-volumes-less').css('display', 'inline')">${$.i18n('compress')}</a></span><span class="info-volumes-less">${runtimeEntry.Mounts?.filter(e => e.Type==='bind').slice(0,10).map(e=>`${e.Destination} <i class="fa fa-arrows-h"></i> ${e.Source}`).join('<br>') || ''}<br><a onclick="event.preventDefault(); $(this).parent().css('display', 'none').siblings('.info-volumes-more').css('display', 'inline')">${$.i18n('expand')}</a></span>`) : (`<span class="info-volumes-mono">${runtimeEntry.Mounts?.filter(e => e.Type==='bind').map(e=>`${e.Destination} <i class="fa fa-arrows-h"></i> ${e.Source}`).join('<br>') || ''}</span>`)}</div>
             </div>
         </div>
     </div>
 `);
+};
+
+const initializeDockerTooltipOnDemand = ($target, init) => {
+    if (!$target || !$target.length || typeof init !== 'function') {
+        return;
+    }
+    if ($target.data('fvTooltipsterDeferred') === true) {
+        return;
+    }
+    $target.data('fvTooltipsterDeferred', true);
+    const ensureInitialized = (eventType = '') => {
+        if ($target.data('fvTooltipsterInitialized') === true) {
+            return;
+        }
+        $target.data('fvTooltipsterInitialized', true);
+        init();
+        if (eventType === 'mouseenter' || eventType === 'click' || eventType === 'touchstart') {
+            setTimeout(() => {
+                try {
+                    $target.tooltipster('open');
+                } catch (_error) {
+                    // Ignore eager-open failures and let the next interaction open naturally.
+                }
+            }, 0);
+        }
+    };
+    $target.one('mouseenter.fvLazyTooltip click.fvLazyTooltip touchstart.fvLazyTooltip', (event) => {
+        ensureInitialized(String(event?.type || '').trim().toLowerCase());
+    });
+};
 
 const getPrefsOrderedFolderMap = (folders, prefs) => {
     const source = folders && typeof folders === 'object' ? folders : {};
@@ -1928,8 +2042,8 @@ const getDockerRuntimeContainerInfo = (name) => {
     if (Array.isArray(window.docker)) {
         const match = window.docker.find((entry) => String(entry?.info?.Name || '').trim() === key);
         if (match && typeof match === 'object') {
-            dockerRuntimeInfoByName[key] = match;
-            return match;
+            dockerRuntimeInfoByName[key] = buildDockerRuntimeInfoRenderEntry(key, match, dockerRuntimeInfoByName[key] || null);
+            return dockerRuntimeInfoByName[key];
         }
     }
     return null;
@@ -2397,7 +2511,7 @@ if (FOLDER_VIEW_TOUCH_MODE) {
 }
 
 const showDockerRuntimeLoadingRow = () => {
-    const tbody = $('tbody#docker_view');
+    const tbody = $('tbody#docker_list');
     if (!tbody.length || tbody.find('tr.fv-runtime-loading-row').length) {
         return;
     }
@@ -2405,7 +2519,115 @@ const showDockerRuntimeLoadingRow = () => {
 };
 
 const hideDockerRuntimeLoadingRow = () => {
-    $('tbody#docker_view tr.fv-runtime-loading-row').remove();
+    $('tbody#docker_list tr.fv-runtime-loading-row').remove();
+};
+
+const ensureDockerRuntimeLoadingOverlay = () => {
+    let overlay = document.getElementById('fvplus-docker-runtime-loading-overlay');
+    if (overlay) {
+        return overlay;
+    }
+    const table = document.querySelector('table#docker_containers');
+    if (!table || !table.parentNode) {
+        return null;
+    }
+    overlay = document.createElement('div');
+    overlay.id = 'fvplus-docker-runtime-loading-overlay';
+    overlay.className = 'fvplus-docker-runtime-loading-overlay';
+    overlay.setAttribute('aria-live', 'polite');
+    overlay.innerHTML = '<span class="fvplus-docker-runtime-loading-spinner"><i class="fa fa-circle-o-notch fa-spin" aria-hidden="true"></i></span><span class="fvplus-docker-runtime-loading-text">Loading Docker folders...</span>';
+    table.parentNode.insertBefore(overlay, table);
+    return overlay;
+};
+
+const showDockerRuntimeLoadingOverlay = () => {
+    const overlay = ensureDockerRuntimeLoadingOverlay();
+    if (!overlay) {
+        return;
+    }
+    overlay.classList.add('is-active');
+};
+
+const hideDockerRuntimeLoadingOverlay = () => {
+    const overlay = document.getElementById('fvplus-docker-runtime-loading-overlay');
+    if (!overlay) {
+        return;
+    }
+    overlay.classList.remove('is-active');
+};
+
+const scheduleDockerPostRenderPolish = (folderIds = []) => {
+    const safeFolderIds = Array.isArray(folderIds) ? folderIds.slice() : [];
+    const run = () => {
+        startFolderRowCenterObserver();
+        safeFolderIds.forEach((folderId) => forceFolderRowVerticalCenter(folderId));
+        queueForceAllFolderRowsVerticalCenter();
+        bindDockerRuntimeAppColumnResizer();
+        scheduleDockerRuntimeWidthReflow('render-complete', 12);
+        setTimeout(() => {
+            safeFolderIds.forEach((folderId) => forceFolderRowVerticalCenter(folderId));
+            queueForceAllFolderRowsVerticalCenter();
+        }, 48);
+        setTimeout(() => scheduleDockerRuntimeWidthReflow('render-post-80ms', 18), 80);
+        setTimeout(() => scheduleDockerRuntimeWidthReflow('render-post-260ms', 18), 260);
+    };
+    if (typeof window.requestAnimationFrame === 'function') {
+        window.requestAnimationFrame(() => run());
+        return;
+    }
+    window.setTimeout(run, 0);
+};
+
+const syncDockerVisibleFoldersFromRuntimeCache = () => {
+    Object.entries(globalFolders || {}).forEach(([id, folder]) => {
+        if (!folder || typeof folder !== 'object') {
+            return;
+        }
+        const runtimeContainers = folderHasChildren(id)
+            ? buildRuntimeContainerMapForFolder(id, true)
+            : getFolderRuntimeContainers(folder);
+        if (folderHasChildren(id)) {
+            folder.runtimeContainers = runtimeContainers;
+            syncParentFolderVisualState(id, folder?.status?.expanded === true);
+        }
+        updateFolderRowStatusFromContainers(id, folder, runtimeContainers);
+    });
+    renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
+    refreshDockerFolderQuickActionStates();
+    applyDockerFocusedFolderState();
+};
+
+const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, fullInfoPromise = null) => {
+    const requestPromise = fullInfoPromise && typeof fullInfoPromise.then === 'function'
+        ? fullInfoPromise
+        : createDockerRuntimeRequest('/plugins/folderview.plus/server/read_info.php?type=docker', {
+            source: 'runtime-info-full',
+            label: 'Docker runtime details',
+            allowFallback: true,
+            fallbackValue: JSON.stringify({}),
+            fallbackTitle: 'Docker runtime details were partially unavailable',
+            fallbackMessage: 'FolderView Plus rendered the Docker page, but advanced Docker runtime details had to fall back after the initial folder view loaded.',
+            fallbackLead: 'Docker runtime detail hydration fell back to the lightweight state payload.'
+        });
+    const hydrationGeneration = generation;
+    Promise.resolve(requestPromise)
+        .then((payload) => {
+            if (hydrationGeneration !== dockerBootstrapGeneration) {
+                return;
+            }
+            const parsed = parseJsonPayloadSafe(payload);
+            if (!parsed || Object.keys(parsed).length <= 0) {
+                return;
+            }
+            dockerRuntimeInfoByName = normalizeDockerRuntimeInfoMap(parsed, dockerRuntimeInfoByName);
+            if (stateSignature) {
+                lastLiveRefreshStateSignature = stateSignature;
+            }
+            markDockerFatalBannerStep('Docker runtime details hydrated');
+            recordDockerFatalBannerAction('Docker runtime details hydrated');
+            syncDockerVisibleFoldersFromRuntimeCache();
+        })
+        .catch(() => {});
 };
 
 let createFoldersInFlight = false;
@@ -2421,26 +2643,31 @@ const createFolders = async () => {
     ensureDockerExpandedStateLifecycleHooks();
     markDockerFatalBannerStep('Docker runtime lifecycle hooks ready');
     persistDockerExpandedStateFromDom();
+    showDockerRuntimeLoadingOverlay();
     showDockerRuntimeLoadingRow();
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Entry');
     const previousFolders = (globalFolders && typeof globalFolders === 'object') ? globalFolders : {};
+    const requestBundle = (folderReq && typeof folderReq === 'object') ? folderReq : { render: [], fullInfo: null, generation: dockerBootstrapGeneration };
+    const renderRequests = Array.isArray(requestBundle.render) ? requestBundle.render : [];
+    const renderGeneration = Number(requestBundle.generation || dockerBootstrapGeneration || 0);
     dockerPerf.begin('createFolders.requests');
-    const prom = await Promise.all(folderReq);
-    dockerPerf.end('createFolders.requests', { requestCount: Array.isArray(folderReq) ? folderReq.length : 0 });
+    const prom = await Promise.all(renderRequests);
+    dockerPerf.end('createFolders.requests', { requestCount: renderRequests.length });
     markDockerFatalBannerStep('Docker runtime request bundle resolved');
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Promises resolved', prom);
 
     // Parse the results
     let folders = JSON.parse(prom[0]);
     let unraidOrder = Object.values(JSON.parse(prom[1]));
-    const containersInfo = JSON.parse(prom[2]);
+    const containersStateInfo = parseJsonPayloadSafe(prom[2]);
+    const containersInfo = normalizeDockerRuntimeInfoMap(containersStateInfo);
     dockerRuntimeInfoByName = (containersInfo && typeof containersInfo === 'object' && !Array.isArray(containersInfo))
         ? { ...containersInfo }
         : {};
-    let order = Object.values(JSON.parse(prom[3]));
+    let order = readDockerHostOrderFromDom();
     let prefsResponse = {};
     try {
-        prefsResponse = prom[4] ? JSON.parse(prom[4]) : {};
+        prefsResponse = prom[3] ? JSON.parse(prom[3]) : {};
     } catch (error) {
         prefsResponse = {};
     }
@@ -2452,12 +2679,15 @@ const createFolders = async () => {
     const folderDepthById = buildFolderDepthById(folders);
     unraidOrder = reorderFolderSlotsInBaseOrder(unraidOrder, folders, folderTypePrefs);
     applyRuntimePrefs(folderTypePrefs);
-    lastLiveRefreshStateSignature = buildDockerStateSignature(containersInfo, false);
+    lastLiveRefreshStateSignature = buildDockerStateSignature(containersStateInfo, true);
+    if (order.length <= 0) {
+        order = [...unraidOrder];
+    }
 
     if (FOLDER_VIEW_DEBUG_MODE) {
         console.log('[FV3_DEBUG] createFolders: --- INITIAL ORDERS ---');
         console.log('[FV3_DEBUG] createFolders: Raw `unraidOrder` (from read_order.php):', JSON.parse(JSON.stringify(unraidOrder)));
-        console.log('[FV3_DEBUG] createFolders: Raw `order` (from read_unraid_order.php - UI order):', JSON.parse(JSON.stringify(order)));
+        console.log('[FV3_DEBUG] createFolders: Raw `order` (from host DOM order):', JSON.parse(JSON.stringify(order)));
         console.log('[FV3_DEBUG] createFolders: Loaded prefs:', JSON.parse(JSON.stringify(folderTypePrefs)));
         console.log('[FV3_DEBUG] createFolders: Initial `folders` data:', JSON.parse(JSON.stringify(folders)));
         console.log('[FV3_DEBUG] createFolders: Initial `containersInfo` keys:', Object.keys(containersInfo));
@@ -2488,7 +2718,7 @@ const createFolders = async () => {
             version: (await $.get('/plugins/folderview.plus/server/version.php').promise()).trim(),
             folders,
             unraidOrder,
-            originalOrder: JSON.parse(await $.get('/plugins/folderview.plus/server/read_unraid_order.php?type=docker').promise()),
+            originalOrder: order,
             newOnes,
             order,
             containersInfo
@@ -2539,6 +2769,7 @@ const createFolders = async () => {
     // Draw the folders in the order
     dockerPerf.begin('createFolders.renderOrdered');
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Starting loop to draw folders in order.');
+    let orderedFolderRenderCount = 0;
     for (let key = 0; key < order.length; key++) {
         const container = order[key];
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Loop iteration: key=${key}, container=${container}`);
@@ -2564,6 +2795,8 @@ const createFolders = async () => {
                 foldersDone[id] = folders[id];
                 delete folders[id];
                 if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Folder ${id} moved to foldersDone. Updated foldersDone:`, {...foldersDone}, "Remaining folders:", {...folders});
+                orderedFolderRenderCount += 1;
+                await yieldDockerRenderLoop(orderedFolderRenderCount, order.length);
             } else {
                 if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolders: Folder ${id} (from order) not found in folders data.`);
             }
@@ -2577,6 +2810,7 @@ const createFolders = async () => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Starting loop to draw folders outside of order (remaining).');
     // Preserve original folder order when inserting at the top with unshift.
     const remainingFolders = Object.entries(getPrefsOrderedFolderMap(folders, folderTypePrefs)).reverse();
+    let remainingFolderRenderCount = 0;
     for (const [id, value] of remainingFolders) {
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Processing remaining folder: id=${id}`);
         // Add the folder on top of the array
@@ -2596,6 +2830,8 @@ const createFolders = async () => {
         foldersDone[id] = folders[id];
         delete folders[id];
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolders: Remaining folder ${id} moved to foldersDone. Updated foldersDone:`, {...foldersDone}, "Remaining folders:", {...folders});
+        remainingFolderRenderCount += 1;
+        await yieldDockerRenderLoop(remainingFolderRenderCount, remainingFolders.length);
     }
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Finished loop for remaining folders.');
     dockerPerf.end('createFolders.renderRemaining', { remainingCount: Object.keys(folders).length });
@@ -2666,18 +2902,8 @@ const createFolders = async () => {
     renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
     refreshDockerFolderQuickActionStates();
     applyDockerFocusedFolderState();
-
-    startFolderRowCenterObserver();
-    Object.keys(globalFolders).forEach((folderId) => forceFolderRowVerticalCenter(folderId));
-    queueForceAllFolderRowsVerticalCenter();
-    setTimeout(() => {
-        Object.keys(globalFolders).forEach((folderId) => forceFolderRowVerticalCenter(folderId));
-        queueForceAllFolderRowsVerticalCenter();
-    }, 50);
-    bindDockerRuntimeAppColumnResizer();
-    scheduleDockerRuntimeWidthReflow('render-complete', 0);
-    setTimeout(() => scheduleDockerRuntimeWidthReflow('render-post-80ms', 18), 80);
-    setTimeout(() => scheduleDockerRuntimeWidthReflow('render-post-260ms', 18), 260);
+    scheduleDockerPostRenderPolish(Object.keys(globalFolders));
+    queueDockerDeferredRuntimeInfoHydration(renderGeneration, lastLiveRefreshStateSignature, requestBundle.fullInfo);
 
     folderDebugMode = false; // Existing flag
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Set folderDebugMode (existing) to false.');
@@ -2693,6 +2919,7 @@ const createFolders = async () => {
     });
     throw error;
     } finally {
+    hideDockerRuntimeLoadingOverlay();
     hideDockerRuntimeLoadingRow();
     dockerPerf.end('createFolders.total', {
         folderCount: Object.keys(globalFolders || {}).length,
@@ -3165,9 +3392,9 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
             if (FOLDER_VIEW_DEBUG_MODE && folder.settings.preview_text_width) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Set preview text width to ${folder.settings.preview_text_width}.`);
 
             if(tooltip_trigger_element && tooltip_trigger_element.length > 0) {
-                if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${ct.shortId}: tooltip_trigger_element is valid. Initializing tooltipster.`);
+                if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${ct.shortId}: tooltip_trigger_element is valid. Deferring tooltipster initialization until first interaction.`);
                 const triggerMode = folder.settings.context_trigger === 1 && !FOLDER_VIEW_TOUCH_MODE ? 'hover' : 'click';
-                $(tooltip_trigger_element).tooltipster({
+                initializeDockerTooltipOnDemand($(tooltip_trigger_element), () => $(tooltip_trigger_element).tooltipster({
                     interactive: true,
                     theme: ['tooltipster-docker-folder'],
                     trigger: triggerMode,
@@ -3435,7 +3662,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                         }
                     },
                     content: $('<div class="fv-tooltip-lazy-loading">Loading preview...</div>')
-                });
+                }));
             } else {
                  if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolder (id: ${id}), container ${ct.shortId}: tooltip_trigger_element is NOT valid. Tooltipster NOT initialized. This is likely the problem if folder.settings.context === 2.`);
             }
@@ -5095,9 +5322,10 @@ window.listview = () => {
     if (!loadedFolder) {
         // Some Unraid builds can invoke listview before loadlist.
         // Ensure requests exist so createFolders has data to render imported folders.
-        if (!Array.isArray(folderReq) || folderReq.length === 0) {
+        if (!folderReq || !Array.isArray(folderReq.render) || folderReq.render.length === 0) {
             folderReq = buildDockerFolderReq();
         }
+        showDockerRuntimeLoadingOverlay();
         if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched listview: loadedFolder is false. Queueing createFolders render.');
         queueCreateFoldersRender();
         loadedFolder = true;
@@ -5125,7 +5353,8 @@ window.loadlist = () => {
     loadedFolder = false;
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: Set loadedFolder to false.');
     folderReq = buildDockerFolderReq();
-    if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: folderReq initialized with 5 promises.');
+    showDockerRuntimeLoadingOverlay();
+    if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: folderReq initialized with a staged Docker runtime request bundle.');
 
     if (typeof window.loadlist_original === 'function') {
         window.loadlist_original();
@@ -5275,7 +5504,7 @@ let folderobserverConfig = {
     attributes: true,
     attributeFilter: ['class']
 };
-let folderReq = [];
+let folderReq = { render: [], fullInfo: null, generation: 0 };
 let folderTypePrefs = utils.normalizePrefs({});
 let liveRefreshTimer = null;
 let liveRefreshMs = 0;
@@ -5283,10 +5512,12 @@ let liveRefreshInFlight = false;
 let queuedLoadlistTimer = null;
 let queuedLoadlistRequestedAt = 0;
 let lastLiveRefreshStateSignature = '';
+let dockerBootstrapGeneration = 0;
 const LOADLIST_REFRESH_DEBOUNCE_MS = 90;
 const LOADLIST_REFRESH_MIN_GAP_MS = 420;
 const PERFORMANCE_MODE_MIN_REFRESH_SECONDS = 20;
 const PERFORMANCE_MODE_EXPAND_RESTORE_LIMIT = 12;
+const DOCKER_RENDER_YIELD_BATCH_SIZE = 6;
 let dockerRuntimePerformanceProfile = resolveDockerRuntimePerformanceProfile(folderTypePrefs, {
     folderCount: 0,
     itemCount: 0
@@ -5321,6 +5552,48 @@ const fetchDockerStateSignature = async () => {
     const payload = await $.get('/plugins/folderview.plus/server/read_info.php?type=docker&mode=state').promise();
     const parsed = parseJsonPayloadSafe(payload);
     return buildDockerStateSignature(parsed, true);
+};
+
+const readDockerHostOrderFromDom = () => {
+    const order = [];
+    document.querySelectorAll('#docker_list > tr.sortable').forEach((row) => {
+        const safeRow = row instanceof HTMLElement ? row : null;
+        if (!safeRow || safeRow.classList.contains('folder')) {
+            return;
+        }
+        const rawId = String(safeRow.id || '').trim();
+        if (rawId.startsWith('ct-')) {
+            const nameFromId = rawId.slice(3).trim();
+            if (nameFromId) {
+                order.push(nameFromId);
+                return;
+            }
+        }
+        const textName = String($(safeRow).find('td.ct-name .appname').first().text() || '').trim();
+        if (textName) {
+            order.push(textName);
+        }
+    });
+    return order;
+};
+
+const waitForDockerRenderFrame = () => new Promise((resolve) => {
+    if (typeof window.requestAnimationFrame === 'function') {
+        window.requestAnimationFrame(() => resolve());
+        return;
+    }
+    window.setTimeout(resolve, 0);
+});
+
+const yieldDockerRenderLoop = async (processedCount, totalCount) => {
+    if (
+        processedCount <= 0
+        || processedCount >= totalCount
+        || processedCount % DOCKER_RENDER_YIELD_BATCH_SIZE !== 0
+    ) {
+        return;
+    }
+    await waitForDockerRenderFrame();
 };
 
 const clearLiveRefreshTimer = () => {
@@ -5427,30 +5700,34 @@ function buildDockerFolderReq() {
         allowFallback: true,
         fallbackValue: JSON.stringify({ ok: false, prefs: {} })
     });
-    return [
-        // Get the folders
-        createDockerRuntimeRequest('/plugins/folderview.plus/server/read.php?type=docker', {
-            source: 'folders',
-            label: 'Docker folder definitions'
-        }),
-        // Get the order as unraid sees it
-        createDockerRuntimeRequest('/plugins/folderview.plus/server/read_order.php?type=docker', {
-            source: 'folder-order',
-            label: 'Docker folder order'
-        }),
-        // Get the info on containers, needed for autostart, update and started
-        createDockerRuntimeRequest('/plugins/folderview.plus/server/read_info.php?type=docker', {
-            source: 'runtime-info',
-            label: 'Docker runtime info'
-        }),
-        // Get the order that is shown in the webui
-        createDockerRuntimeRequest('/plugins/folderview.plus/server/read_unraid_order.php?type=docker', {
-            source: 'host-order',
-            label: 'Docker host order'
-        }),
-        // Get sort and auto-assignment preferences
-        safePrefsReq
-    ];
+    const generation = ++dockerBootstrapGeneration;
+    return {
+        generation,
+        render: [
+            createDockerRuntimeRequest('/plugins/folderview.plus/server/read.php?type=docker', {
+                source: 'folders',
+                label: 'Docker folder definitions'
+            }),
+            createDockerRuntimeRequest('/plugins/folderview.plus/server/read_order.php?type=docker', {
+                source: 'folder-order',
+                label: 'Docker folder order'
+            }),
+            createDockerRuntimeRequest('/plugins/folderview.plus/server/read_info.php?type=docker&mode=state', {
+                source: 'runtime-info-state',
+                label: 'Docker runtime state'
+            }),
+            safePrefsReq
+        ],
+        fullInfo: createDockerRuntimeRequest('/plugins/folderview.plus/server/read_info.php?type=docker', {
+            source: 'runtime-info-full',
+            label: 'Docker runtime details',
+            allowFallback: true,
+            fallbackValue: JSON.stringify({}),
+            fallbackTitle: 'Docker runtime details were partially unavailable',
+            fallbackMessage: 'FolderView Plus rendered the Docker page, but advanced Docker runtime details had to fall back after the initial folder view loaded.',
+            fallbackLead: 'Docker runtime detail hydration fell back to the lightweight state payload.'
+        })
+    };
 }
 
 // Prime requests for environments where loadlist isn't called first.
@@ -5461,7 +5738,12 @@ if (FOLDER_VIEW_DEBUG_MODE) {
     console.log('[FV3_DEBUG] Global variables initialized:', {
         cpus, loadedFolder, globalFolders: {...globalFolders}, folderRegex: folderRegex.toString(),
         folderDebugMode, folderDebugModeWindow: [...folderDebugModeWindow],
-        folderobserverConfig: {...folderobserverConfig}, folderReq: [...folderReq]
+        folderobserverConfig: {...folderobserverConfig},
+        folderReq: {
+            generation: folderReq?.generation || 0,
+            renderCount: Array.isArray(folderReq?.render) ? folderReq.render.length : 0,
+            hasFullInfo: !!folderReq?.fullInfo
+        }
     });
 }
 

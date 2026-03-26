@@ -60,6 +60,11 @@ test('folder editor runtimes accept query and hash bootstrap identity fallbacks'
     assert.match(folderLegacyJs, /folderEditorHashParams\.get\('id'\)/);
     assert.match(folderLegacyJs, /const getFormField = \(form, fieldName\) =>/);
     assert.match(folderLegacyJs, /const hydrateCurrentEditFolder = \(folderRecord, folderRecordId, foldersMap = \{\}, options = \{\}\) =>/);
+    assert.match(folderLegacyJs, /const buildFolderEditorRuntimeUrl = \(folderType, id = ''\) =>/);
+    assert.match(folderLegacyJs, /const maybeRefreshLegacyEditorTargetFromPrefill = \(\) =>/);
+    assert.match(folderLegacyJs, /window\.addEventListener\('storage', \(event\) => \{/);
+    assert.match(folderLegacyJs, /if \(String\(event\?\.key \|\| ''\) !== EDITOR_PREFILL_LOCAL_STORAGE_KEY\)/);
+    assert.match(folderLegacyJs, /window\.location\.replace\(nextUrl\);/);
     assert.match(folderLegacyJs, /const requestedFolderRefs = buildFolderEditorRefCandidates\(/);
     assert.match(folderLegacyJs, /for \(const candidateRef of requestedFolderRefs\) \{/);
     assert.match(folderLegacyJs, /currentEditFolderId = String\(\s*resolvedEditFolder\?\.id[\s\S]*\|\| bootstrapFolderId/);
@@ -67,6 +72,7 @@ test('folder editor runtimes accept query and hash bootstrap identity fallbacks'
     assert.match(folderLegacyJs, /let readInfoResponse = \{\};/);
     assert.match(folderLegacyJs, /console\.error\('\[FolderView Plus\] Legacy folder editor member inventory load failed\.'/);
     assert.match(folderLegacyJs, /choose = Object\.values\(readInfoResponse && typeof readInfoResponse === 'object' \? readInfoResponse : \{\}\)\s*\.map\(typeFilter\)\s*\.filter\(Boolean\);/);
+    assert.match(folderLegacyJs, /Legacy editor opened without an edit target\./);
     assert.match(folderLegacyJs, /sampleRoot:\s*'body'/);
     assert.match(folderEditorChromeJs, /root\.FolderViewPlusReportFolderEditorBootstrap =/);
     assert.match(folderEditorChromeJs, /Folder editor runtime stalled during bootstrap\./);

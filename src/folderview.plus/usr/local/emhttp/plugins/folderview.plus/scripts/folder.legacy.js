@@ -129,6 +129,20 @@ const buildFolderEditorRefCandidates = (...values) => Array.from(new Set(
         .map((value) => String(value || '').trim())
         .filter(Boolean)
 ));
+const setLegacyEditorBannerState = (summaryText, detailsText, state = 'info') => {
+    const summary = $('#fvValidationSummary');
+    const details = $('#fvValidationDetails');
+    if (summary.length) {
+        summary.removeClass('invalid warning info ready').addClass(
+            state === 'invalid' ? 'invalid' : state === 'warning' ? 'warning' : 'info'
+        ).text(summaryText);
+    }
+    if (details.length) {
+        details.removeClass('invalid warning info ready').addClass(
+            state === 'invalid' ? 'invalid' : state === 'warning' ? 'warning' : 'info'
+        ).text(detailsText);
+    }
+};
 const folderContract = window.FolderViewPlusFolderContract || null;
 const folderEditorShared = window.FolderViewPlusFolderEditorShared || null;
 const folderEditorSchema = window.FolderViewPlusFolderEditorSchema || null;
@@ -616,6 +630,54 @@ const clearEditorNavigationPrefill = () => {
         // Ignore storage cleanup issues.
     }
 };
+
+const buildFolderEditorRuntimeUrl = (folderType, id = '') => {
+    const resolvedType = String(folderType || '').trim().toLowerCase() === 'vm' ? 'vm' : 'docker';
+    const basePath = resolvedType === 'vm' ? '/VMs/Folder' : '/Docker/Folder';
+    const params = new URLSearchParams();
+    const hashParams = new URLSearchParams();
+    params.set('type', resolvedType);
+    hashParams.set('type', resolvedType);
+    if (String(id || '').trim()) {
+        params.set('id', String(id || '').trim());
+        hashParams.set('id', String(id || '').trim());
+    }
+    params.set('_', String(Date.now()));
+    return `${basePath}?${params.toString()}#${hashParams.toString()}`;
+};
+
+const maybeRefreshLegacyEditorTargetFromPrefill = () => {
+    const latestPrefill = readEditorNavigationPrefill(type, '');
+    const latestId = String(latestPrefill?.id || '').trim();
+    if (!latestId) {
+        return false;
+    }
+    const currentRefs = buildFolderEditorRefCandidates(
+        folderEditorResolvedId,
+        folderEditorBootstrapContext.resolvedId,
+        window.FolderViewPlusFolderEditorResolvedId,
+        window.FolderViewPlusFolderEditorRequestedId,
+        folderEditorBootstrapContext.requestedId,
+        folderId
+    );
+    if (currentRefs.includes(latestId)) {
+        return false;
+    }
+    const nextUrl = buildFolderEditorRuntimeUrl(type, latestId);
+    try {
+        window.location.replace(nextUrl);
+    } catch (_error) {
+        window.location.href = nextUrl;
+    }
+    return true;
+};
+
+window.addEventListener('storage', (event) => {
+    if (String(event?.key || '') !== EDITOR_PREFILL_LOCAL_STORAGE_KEY) {
+        return;
+    }
+    maybeRefreshLegacyEditorTargetFromPrefill();
+});
 
 const computeFolderDescendantIds = (foldersMap, rootId) => {
     const source = foldersMap && typeof foldersMap === 'object' ? foldersMap : {};
@@ -5036,6 +5098,14 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     if (currentEditFolder && currentEditFolderId) {
         hydrateCurrentEditFolder(currentEditFolder, currentEditFolderId, folders, { clearPrefill: true });
     } else {
+        const expectedTarget = requestedFolderRef
+            ? `Requested folder "${requestedFolderRef}" was not found in the saved folder map or recent editor bootstrap data.`
+            : 'No folder target was present in query, hash, page bootstrap, or recent editor bootstrap data.';
+        setLegacyEditorBannerState(
+            'Legacy editor opened without an edit target.',
+            `${expectedTarget} If another Unraid tab just requested an edit, this page will auto-refresh when the shared editor prefill updates.`,
+            'warning'
+        );
         clearEditorNavigationPrefill();
         currentFolderDescendantIds = new Set();
         populateParentFolderOptions(folders, '', new Set());

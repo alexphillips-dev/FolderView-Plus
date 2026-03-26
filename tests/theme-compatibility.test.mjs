@@ -96,4 +96,8 @@ test('theme compatibility: light settings surfaces keep readable tree meta and e
     assert.match(settingsCss, /\.folder-metric-chip\.is-empty\s*\{[\s\S]*color:\s*var\(--fvplus-settings-chip-empty\);[\s\S]*background:\s*var\(--fvplus-settings-chip-empty-bg\);/);
     assert.match(settingsCss, /\.folder-runtime-status\.is-empty\s*\{[\s\S]*color:\s*var\(--fvplus-settings-chip-empty\);[\s\S]*background:\s*var\(--fvplus-settings-chip-empty-bg\);/);
     assert.match(settingsCss, /\.status-trend\.is-neutral\s*\{[\s\S]*color:\s*var\(--fvplus-settings-chip-empty\);[\s\S]*border-color:\s*var\(--fvplus-settings-chip-empty-border\);[\s\S]*background:\s*var\(--fvplus-settings-chip-empty-bg\);/);
+    assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\] \.name-cell-breadcrumb \{[\s\S]*color:\s*#5a6678 !important;[\s\S]*opacity:\s*1 !important;/);
+    assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\] \.name-cell-members-meta,[\s\S]*#fv-settings-root\[data-fv-theme-class="light"\] \.name-cell-nested-meta \{[\s\S]*color:\s*#617082 !important;[\s\S]*opacity:\s*1 !important;/);
+    assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\] \.folder-pin-state,[\s\S]*#fv-settings-root\[data-fv-theme-class="light"\] \.folder-runtime-status \{[\s\S]*color:\s*#4f5d70 !important;[\s\S]*opacity:\s*1 !important;/);
+    assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\] \.status-breakdown-chip\.is-empty \{[\s\S]*color:\s*#5f6d80 !important;[\s\S]*opacity:\s*1 !important;/);
 });

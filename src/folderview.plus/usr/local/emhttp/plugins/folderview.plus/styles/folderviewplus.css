@@ -89,6 +89,97 @@ body[data-fv-host-theme="white"] #fv-settings-root,
     --fvplus-settings-chip-empty-bg: rgba(102, 115, 133, 0.10);
 }
 
+html[data-fvplus-host-theme="white"] #fv-settings-root .name-cell-breadcrumb,
+body[data-fvplus-host-theme="white"] #fv-settings-root .name-cell-breadcrumb,
+html[data-fv-host-theme="white"] #fv-settings-root .name-cell-breadcrumb,
+body[data-fv-host-theme="white"] #fv-settings-root .name-cell-breadcrumb,
+#fv-settings-root[data-fv-theme-class="light"] .name-cell-breadcrumb {
+    color: #5a6678 !important;
+    opacity: 1 !important;
+}
+
+html[data-fvplus-host-theme="white"] #fv-settings-root .name-cell-members-meta,
+body[data-fvplus-host-theme="white"] #fv-settings-root .name-cell-members-meta,
+html[data-fv-host-theme="white"] #fv-settings-root .name-cell-members-meta,
+body[data-fv-host-theme="white"] #fv-settings-root .name-cell-members-meta,
+#fv-settings-root[data-fv-theme-class="light"] .name-cell-members-meta,
+html[data-fvplus-host-theme="white"] #fv-settings-root .name-cell-nested-meta,
+body[data-fvplus-host-theme="white"] #fv-settings-root .name-cell-nested-meta,
+html[data-fv-host-theme="white"] #fv-settings-root .name-cell-nested-meta,
+body[data-fv-host-theme="white"] #fv-settings-root .name-cell-nested-meta,
+#fv-settings-root[data-fv-theme-class="light"] .name-cell-nested-meta {
+    color: #617082 !important;
+    opacity: 1 !important;
+}
+
+html[data-fvplus-host-theme="white"] #fv-settings-root .name-cell-content.is-nested::before,
+body[data-fvplus-host-theme="white"] #fv-settings-root .name-cell-content.is-nested::before,
+html[data-fv-host-theme="white"] #fv-settings-root .name-cell-content.is-nested::before,
+body[data-fv-host-theme="white"] #fv-settings-root .name-cell-content.is-nested::before,
+#fv-settings-root[data-fv-theme-class="light"] .name-cell-content.is-nested::before {
+    border-left-color: rgba(129, 140, 154, 0.48) !important;
+}
+
+html[data-fvplus-host-theme="white"] #fv-settings-root .folder-tree-toggle,
+body[data-fvplus-host-theme="white"] #fv-settings-root .folder-tree-toggle,
+html[data-fv-host-theme="white"] #fv-settings-root .folder-tree-toggle,
+body[data-fv-host-theme="white"] #fv-settings-root .folder-tree-toggle,
+#fv-settings-root[data-fv-theme-class="light"] .folder-tree-toggle {
+    color: #5a6678 !important;
+}
+
+html[data-fvplus-host-theme="white"] #fv-settings-root .folder-pin-state,
+body[data-fvplus-host-theme="white"] #fv-settings-root .folder-pin-state,
+html[data-fv-host-theme="white"] #fv-settings-root .folder-pin-state,
+body[data-fv-host-theme="white"] #fv-settings-root .folder-pin-state,
+#fv-settings-root[data-fv-theme-class="light"] .folder-pin-state,
+html[data-fvplus-host-theme="white"] #fv-settings-root .folder-runtime-status,
+body[data-fvplus-host-theme="white"] #fv-settings-root .folder-runtime-status,
+html[data-fv-host-theme="white"] #fv-settings-root .folder-runtime-status,
+body[data-fv-host-theme="white"] #fv-settings-root .folder-runtime-status,
+#fv-settings-root[data-fv-theme-class="light"] .folder-runtime-status {
+    color: #4f5d70 !important;
+    border-color: rgba(102, 115, 133, 0.28) !important;
+    background: rgba(102, 115, 133, 0.08) !important;
+    opacity: 1 !important;
+}
+
+html[data-fvplus-host-theme="white"] #fv-settings-root .folder-metric-chip.is-empty,
+body[data-fvplus-host-theme="white"] #fv-settings-root .folder-metric-chip.is-empty,
+html[data-fv-host-theme="white"] #fv-settings-root .folder-metric-chip.is-empty,
+body[data-fv-host-theme="white"] #fv-settings-root .folder-metric-chip.is-empty,
+#fv-settings-root[data-fv-theme-class="light"] .folder-metric-chip.is-empty,
+html[data-fvplus-host-theme="white"] #fv-settings-root .health-chip.folder-metric-chip.is-empty,
+body[data-fvplus-host-theme="white"] #fv-settings-root .health-chip.folder-metric-chip.is-empty,
+html[data-fv-host-theme="white"] #fv-settings-root .health-chip.folder-metric-chip.is-empty,
+body[data-fv-host-theme="white"] #fv-settings-root .health-chip.folder-metric-chip.is-empty,
+#fv-settings-root[data-fv-theme-class="light"] .health-chip.folder-metric-chip.is-empty,
+html[data-fvplus-host-theme="white"] #fv-settings-root .folder-runtime-status.is-empty,
+body[data-fvplus-host-theme="white"] #fv-settings-root .folder-runtime-status.is-empty,
+html[data-fv-host-theme="white"] #fv-settings-root .folder-runtime-status.is-empty,
+body[data-fv-host-theme="white"] #fv-settings-root .folder-runtime-status.is-empty,
+#fv-settings-root[data-fv-theme-class="light"] .folder-runtime-status.is-empty,
+html[data-fvplus-host-theme="white"] #fv-settings-root .vm-resource-chip.is-empty,
+body[data-fvplus-host-theme="white"] #fv-settings-root .vm-resource-chip.is-empty,
+html[data-fv-host-theme="white"] #fv-settings-root .vm-resource-chip.is-empty,
+body[data-fv-host-theme="white"] #fv-settings-root .vm-resource-chip.is-empty,
+#fv-settings-root[data-fv-theme-class="light"] .vm-resource-chip.is-empty,
+html[data-fvplus-host-theme="white"] #fv-settings-root .status-trend.is-neutral,
+body[data-fvplus-host-theme="white"] #fv-settings-root .status-trend.is-neutral,
+html[data-fv-host-theme="white"] #fv-settings-root .status-trend.is-neutral,
+body[data-fv-host-theme="white"] #fv-settings-root .status-trend.is-neutral,
+#fv-settings-root[data-fv-theme-class="light"] .status-trend.is-neutral,
+html[data-fvplus-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-empty,
+body[data-fvplus-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-empty,
+html[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-empty,
+body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-empty,
+#fv-settings-root[data-fv-theme-class="light"] .status-breakdown-chip.is-empty {
+    color: #5f6d80 !important;
+    border-color: rgba(102, 115, 133, 0.34) !important;
+    background: rgba(102, 115, 133, 0.12) !important;
+    opacity: 1 !important;
+}
+
 .custom-css {
     display: flex;
     flex-direction: row;

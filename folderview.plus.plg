@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.12">
-<!ENTITY md5 "eb835cbe62574639a183ef373357395b">
+<!ENTITY version "2026.03.26.13">
+<!ENTITY md5 "7d4572af82feafc943398b1b8c7bd7eb">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.13
+- Fix: Hardened the modern folder editor field sizing with force-win input rules and class-based inherited-row hiding so health and status controls no longer collapse into tiny clipped placeholders on the live page.
+- Fix: Added direct white-theme settings table overrides for nested folder metadata, pin/runtime chips, and empty-state status or alert chips so those cells stay readable even when host page styles outrank the softer token path.
+- Regression guard: Extended the folder editor and settings light-theme layout assertions to cover the forced input widths, inherited-row hide rule, and direct readability overrides.
+
 
 ###2026.03.26.12
 - Fix: Moved the settings page white-theme breadcrumb, nested metadata, and empty-chip colors onto resolver-applied semantic tokens so light themes no longer fall back to the unreadable dark palette.

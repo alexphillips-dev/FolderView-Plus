@@ -848,6 +848,10 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     padding-left: 0.7em;
 }
 
+.fv-using-inherited .fv-field-inherit-tools {
+    display: none !important;
+}
+
 /* Align setting rows with section headers instead of centered card width */
 .canvas form.folder-editor-form[data-fv-page-mode="legacy"] > .basic:not(.order-section),
 .canvas form.folder-editor-form[data-fv-page-mode="legacy"] > ul {
@@ -2195,11 +2199,13 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 .fv-modern-field-row input[type="text"],
 .fv-modern-field-row input[type="number"],
 .fv-modern-field-row select {
-    width: min(100%, 420px);
-    max-width: min(100%, 420px);
-    height: 38px;
-    min-height: 38px;
-    padding: 0.32em 0.74em;
+    display: inline-block !important;
+    width: min(100%, 420px) !important;
+    max-width: min(100%, 420px) !important;
+    min-width: 180px !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    padding: 0.32em 0.74em !important;
     border-radius: 10px;
     border: 1px solid var(--fv-editor-control-border);
     background: var(--fv-editor-input-bg);
@@ -2211,9 +2217,11 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-modern-field-row textarea {
-    width: min(100%, 420px);
-    max-width: min(100%, 420px);
-    padding: 0.5em 0.76em;
+    display: inline-block !important;
+    width: min(100%, 420px) !important;
+    max-width: min(100%, 420px) !important;
+    min-width: 220px !important;
+    padding: 0.5em 0.76em !important;
     border-radius: 10px;
     border: 1px solid var(--fv-editor-control-border);
     background: var(--fv-editor-input-bg);
@@ -2225,12 +2233,12 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-modern-field-row textarea {
-    min-height: 108px;
+    min-height: 108px !important;
 }
 
 .fv-modern-field-row.is-name-row input[type="text"] {
-    width: min(100%, 420px);
-    max-width: min(100%, 420px);
+    width: min(100%, 420px) !important;
+    max-width: min(100%, 420px) !important;
 }
 
 .fv-modern-field-row.is-icon-row input[type="text"],
@@ -2239,14 +2247,15 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 .fv-modern-field-row.is-wide-row input[type="number"],
 .fv-modern-field-row.is-wide-row select,
 .fv-modern-field-row.is-wide-row textarea {
-    width: min(100%, 640px);
-    max-width: min(100%, 640px);
+    width: min(100%, 640px) !important;
+    max-width: min(100%, 640px) !important;
 }
 
 .fv-modern-field-row.is-compact-text-row input[type="text"],
 .fv-modern-field-row.is-compact-text-row input[type="number"] {
-    width: min(100%, 280px);
-    max-width: min(100%, 280px);
+    width: min(100%, 280px) !important;
+    max-width: min(100%, 280px) !important;
+    min-width: 220px !important;
 }
 
 .fv-modern-field-row input[type="color"] {

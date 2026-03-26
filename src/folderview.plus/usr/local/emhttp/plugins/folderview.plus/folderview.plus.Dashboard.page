@@ -28,6 +28,7 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/scripts/custom.php');
 <script src="<?php autov('/plugins/folderview.plus/scripts/dashboard.layout-quickrail.js')?>"></script>
 <script src="<?php autov('/plugins/folderview.plus/scripts/dashboard.folder-match-cache.js')?>"></script>
 <script src="<?php autov('/plugins/folderview.plus/scripts/dashboard.js')?>"></script>
+<link rel="stylesheet" href="<?php autov('/plugins/folderview.plus/styles/runtime.shared.css')?>">
 <link rel="stylesheet" href="<?php autov('/plugins/folderview.plus/styles/dashboard.css')?>">
 <?php
 require_once('/usr/local/emhttp/plugins/folderview.plus/styles/custom.php');

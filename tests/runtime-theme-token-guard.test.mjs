@@ -9,6 +9,7 @@ const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath)
 const dockerCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css');
 const vmCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/vm.css');
 const dashboardCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/dashboard.css');
+const runtimeSharedCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/runtime.shared.css');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js');
@@ -17,6 +18,7 @@ const settingsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview
 const diagnosticsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js');
 const sharedRuntimeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js');
 const themeResolverJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js');
+const dashboardPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Dashboard.page');
 
 test('runtime css defines canonical fvplus status tokens and legacy graph aliases', () => {
     assert.match(dockerCss, /--fvplus-theme-foreground:\s*var\(--fvplus-runtime-theme-foreground,\s*var\(--text,\s*currentColor\)\)/);
@@ -44,6 +46,17 @@ test('dashboard quick action palette is tokenized', () => {
     assert.match(dashboardCss, /\.fv-dashboard-quick-action:hover[\s\S]*var\(--fvplus-dashboard-accent\)/);
     assert.match(settingsCss, /--fvplus-settings-surface-muted/);
     assert.match(settingsCss, /--fvplus-settings-accent/);
+});
+
+test('runtime context menus follow resolved dark and light theme tokens', () => {
+    assert.match(runtimeSharedCss, /--fvplus-runtime-menu-bg:\s*rgba\(22,\s*20,\s*18,\s*0\.985\)/);
+    assert.match(runtimeSharedCss, /body\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fvplus-runtime-menu-bg:\s*rgba\(248,\s*249,\s*251,\s*0\.985\)/);
+    assert.match(runtimeSharedCss, /body ul\.context-menu-list,[\s\S]*body ul\.dropdown-menu \{/);
+    assert.match(runtimeSharedCss, /background:\s*var\(--fvplus-runtime-menu-bg\) !important;/);
+    assert.match(runtimeSharedCss, /border:\s*1px solid var\(--fvplus-runtime-menu-border\) !important;/);
+    assert.match(runtimeSharedCss, /body ul\.context-menu-list > li\.divider,[\s\S]*context-menu-separator/);
+    assert.match(runtimeSharedCss, /body ul\.context-menu-list \.dropdown-header,[\s\S]*var\(--fvplus-runtime-menu-header-bg\)/);
+    assert.match(dashboardPage, /runtime\.shared\.css/);
 });
 
 test('runtime scripts avoid inline status color painting and use row-level css variable overrides', () => {

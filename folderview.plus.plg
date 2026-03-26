@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.41">
-<!ENTITY md5 "5eeff4b6b73eca3e4484174705abaa46">
+<!ENTITY version "2026.03.26.42">
+<!ENTITY md5 "10ecc0c00415ef9bf5b1a18769107c0e">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.42
+- Fix: Docker and VM runtime dropdown/context menus now follow the active host theme instead of falling back to the default light menu skin on dark themes like Black.
+- Fix: Folder icon menus now use the same themed runtime menu styling, so container menus and folder menus stay visually consistent on dark and light surfaces.
+- Quality: Shared runtime menu theming is now reused on Dashboard too, with regression coverage for the runtime menu token contract.
+
 
 ###2026.03.26.41
 - Fix: Legacy folder editor no longer crashes during preview bootstrap when binding member helper callbacks before initialization.

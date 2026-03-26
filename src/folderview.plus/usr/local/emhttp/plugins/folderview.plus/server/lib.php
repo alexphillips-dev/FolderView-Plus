@@ -5240,7 +5240,12 @@
     }
 
     function getDockerTemplateIndexCached(DockerTemplates $dockerTemplates): array {
-        $templateFiles = $dockerTemplates->getTemplates('all');
+        try {
+            $templateFiles = $dockerTemplates->getTemplates('all');
+        } catch (Throwable $error) {
+            fv3_debug_log("getDockerTemplateIndexCached: DockerTemplates->getTemplates('all') failed: " . $error->getMessage());
+            return [];
+        }
         if (!is_array($templateFiles) || empty($templateFiles)) {
             return [];
         }
@@ -5249,7 +5254,12 @@
         if (is_array($cached)) {
             return $cached;
         }
-        $templates = buildDockerTemplateIndex($templateFiles);
+        try {
+            $templates = buildDockerTemplateIndex($templateFiles);
+        } catch (Throwable $error) {
+            fv3_debug_log("getDockerTemplateIndexCached: buildDockerTemplateIndex failed: " . $error->getMessage());
+            return [];
+        }
         writeDockerTemplateCache($signature, $templates);
         return $templates;
     }

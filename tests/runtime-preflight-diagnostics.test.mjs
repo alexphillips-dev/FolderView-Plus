@@ -63,6 +63,9 @@ test('docker and vm runtimes report host-page structure drift explicitly', () =>
 
 test('read_info hardens Docker and VM data reads against missing host fields', () => {
     assert.match(libPhp, /\$cts = \$dockerClient->getDockerJSON\(\"\/containers\/json\?all=1\"\);[\s\S]*if \(!is_array\(\$cts\)\) \{/);
+    assert.match(libPhp, /function getDockerTemplateIndexCached\(DockerTemplates \$dockerTemplates\): array \{[\s\S]*try \{[\s\S]*\$templateFiles = \$dockerTemplates->getTemplates\('all'\);[\s\S]*\} catch \(Throwable \$error\) \{/);
+    assert.match(libPhp, /getDockerTemplateIndexCached: DockerTemplates->getTemplates\('all'\) failed:/);
+    assert.match(libPhp, /try \{[\s\S]*\$templates = buildDockerTemplateIndex\(\$templateFiles\);[\s\S]*\} catch \(Throwable \$error\) \{/);
     assert.match(libPhp, /\$containerLabels = is_array\(\$ct\['Labels'\] \?\? null\) \? \$ct\['Labels'\] : \[\];/);
     assert.match(libPhp, /\$configLabels = is_array\(\$ct\['info'\]\['Config'\]\['Labels'\] \?\? null\) \? \$ct\['info'\]\['Config'\]\['Labels'\] : \[\];/);
     assert.match(libPhp, /\$tailscaleFunnelEnabled = strtolower\(trim\(\(string\)\(\$containerLabels\['net\.unraid\.docker\.tailscale\.funnel'\] \?\? 'false'\)\)\) === 'true';/);

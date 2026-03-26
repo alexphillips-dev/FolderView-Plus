@@ -425,6 +425,12 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     font-size: 0.96rem;
 }
 
+.canvas form.folder-editor-form .fv-section-heading-kicker,
+.canvas form.folder-editor-form .fv-section-heading-kicker > i,
+.canvas form.folder-editor-form .fv-section-heading-kicker > span {
+    color: var(--fv-editor-accent) !important;
+}
+
 .fv-section-heading-kicker > i,
 .fv-section-heading-kicker > span {
     color: inherit;
@@ -435,6 +441,11 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     margin: 0;
     font-size: 1.2em;
     color: var(--fv-editor-accent);
+}
+
+.canvas form.folder-editor-form .fv-section-heading > h3,
+.canvas form.folder-editor-form .fv-section-heading-copy > h3 {
+    color: var(--fv-editor-accent) !important;
 }
 
 .fv-section-badge {
@@ -1891,7 +1902,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
 .fv-section-shell-body {
     display: grid;
-    gap: 0.48em;
+    gap: 0.4em;
 }
 
 .fv-section-shell.is-members-shell .fv-section-shell-body {
@@ -1901,9 +1912,9 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 .fv-modern-section-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 0.52em;
-    align-items: stretch;
-    justify-content: stretch;
+    gap: 0.4em;
+    align-items: start;
+    justify-content: start;
 }
 
 .fv-section-shell .basic,
@@ -1925,7 +1936,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     padding: 0;
     list-style: none;
     display: grid;
-    gap: 0.52em;
+    gap: 0.4em;
     width: 100%;
     max-width: 380px;
 }
@@ -1946,9 +1957,11 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
 .fv-modern-field-row {
     margin: 0 !important;
-    padding: 0.14em 0.8em 0.58em;
+    padding: 0.12em 0.72em 0.44em;
     width: 100%;
-    min-height: 88px;
+    min-height: 72px;
+    height: auto;
+    align-self: start;
     border-radius: 14px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     background:
@@ -2009,7 +2022,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 .fv-modern-field-row.is-rules-row,
 .fv-modern-field-row.is-actions-list-row,
 .fv-modern-field-row.is-actions-launch-row {
-    min-height: 80px;
+    min-height: 72px;
 }
 
 .fv-modern-field-row > dl,

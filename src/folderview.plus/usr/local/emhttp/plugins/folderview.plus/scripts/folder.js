@@ -4178,7 +4178,7 @@ const enforceLeftAlignedSettingsLayout = () => {
                 setImportant(dl, 'grid-template-columns', 'none');
                 setImportant(dl, 'column-gap', '0');
                 setImportant(dl, 'row-gap', '0');
-                setImportant(dl, 'gap', '0.68em');
+                setImportant(dl, 'gap', '0.52em');
                 setImportant(dl, 'width', '100%');
                 setImportant(dl, 'max-width', 'none');
                 setImportant(dl, 'margin-left', '0');
@@ -4205,12 +4205,20 @@ const enforceLeftAlignedSettingsLayout = () => {
 
             const dd = dl.getElementsByTagName('dd')[0];
             setImportant(dd, 'float', 'none');
-            setImportant(dd, 'width', modernFieldRow ? '100%' : 'auto');
+            const modernToggleRow = Boolean(modernFieldRow && modernFieldRow.classList.contains('is-toggle-row'));
+            setImportant(dd, 'width', modernFieldRow ? (modernToggleRow ? 'auto' : '100%') : 'auto');
             setImportant(dd, 'margin', '0');
             setImportant(dd, 'min-width', '0');
             setImportant(dd, 'text-align', 'left');
             if (modernFieldRow) {
-                setImportant(dd, 'padding-top', '0.16em');
+                setImportant(dd, 'padding-top', '0.08em');
+            }
+            if (modernToggleRow) {
+                setImportant(dd, 'display', 'inline-flex');
+                setImportant(dd, 'align-items', 'flex-start');
+                setImportant(dd, 'flex-wrap', 'wrap');
+                setImportant(dd, 'gap', '0.42em');
+                setImportant(dd, 'max-width', '100%');
             }
 
             if (dd) {
@@ -4220,7 +4228,7 @@ const enforceLeftAlignedSettingsLayout = () => {
                 });
                 dd.querySelectorAll('.switch-button').forEach((toggle) => {
                     setImportant(toggle, 'margin-left', '0');
-                    setImportant(toggle, 'margin-right', 'auto');
+                    setImportant(toggle, 'margin-right', modernToggleRow ? '0' : 'auto');
                     setImportant(toggle, 'float', 'none');
                 });
             }

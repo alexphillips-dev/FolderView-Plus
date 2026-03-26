@@ -434,7 +434,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 .fv-section-heading-copy > h3 {
     margin: 0;
     font-size: 1.2em;
-    color: var(--fv-editor-text-primary);
+    color: var(--fv-editor-accent);
 }
 
 .fv-section-badge {
@@ -467,19 +467,19 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 .fv-section-state-badge {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    min-height: 30px;
-    padding: 0.15em 0.7em;
-    border-radius: 999px;
-    border: 1px solid var(--fv-editor-control-border);
-    background: var(--fv-editor-control-surface);
-    font-size: 1.02rem;
-    color: var(--fv-editor-muted);
+    justify-content: flex-end;
+    min-height: auto;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--fv-editor-success);
 }
 
 .fv-section-state-badge.is-dirty {
-    border-color: var(--fv-editor-border-strong);
-    background: var(--fv-editor-control-surface-active);
     color: var(--fv-editor-warning);
 }
 
@@ -1891,7 +1891,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
 .fv-section-shell-body {
     display: grid;
-    gap: 0.65em;
+    gap: 0.48em;
 }
 
 .fv-section-shell.is-members-shell .fv-section-shell-body {
@@ -1901,7 +1901,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 .fv-modern-section-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 0.68em;
+    gap: 0.52em;
     align-items: stretch;
     justify-content: stretch;
 }
@@ -1925,7 +1925,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     padding: 0;
     list-style: none;
     display: grid;
-    gap: 0.72em;
+    gap: 0.52em;
     width: 100%;
     max-width: 380px;
 }
@@ -1946,9 +1946,9 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
 .fv-modern-field-row {
     margin: 0 !important;
-    padding: 0.18em 0.92em 0.82em;
+    padding: 0.14em 0.8em 0.58em;
     width: 100%;
-    min-height: 108px;
+    min-height: 88px;
     border-radius: 14px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     background:
@@ -2009,7 +2009,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 .fv-modern-field-row.is-rules-row,
 .fv-modern-field-row.is-actions-list-row,
 .fv-modern-field-row.is-actions-launch-row {
-    min-height: 96px;
+    min-height: 80px;
 }
 
 .fv-modern-field-row > dl,
@@ -2017,7 +2017,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     display: flex !important;
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.68em;
+    gap: 0.52em;
     width: 100% !important;
     max-width: none !important;
     margin: 0 !important;
@@ -2049,7 +2049,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     display: block;
     min-width: 0;
     width: 100%;
-    padding-top: 0.16em !important;
+    padding-top: 0.08em !important;
 }
 
 .fv-modern-field-row > dl > dd > .img:first-child {
@@ -2139,19 +2139,21 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-modern-field-row.is-toggle-row > dl > dd {
-    display: flex;
+    display: inline-flex;
     align-items: flex-start;
-    gap: 0.55em;
+    width: auto;
+    max-width: 100%;
+    gap: 0.42em;
     flex-wrap: wrap;
     min-height: 30px;
-    padding-top: 0.1em !important;
+    padding-top: 0.08em !important;
 }
 
 .fv-modern-field-row.is-toggle-row > dl > dd .switch-button {
     display: inline-flex !important;
     align-items: center !important;
     margin-left: 0 !important;
-    margin-right: auto !important;
+    margin-right: 0 !important;
     float: none !important;
 }
 

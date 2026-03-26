@@ -216,7 +216,7 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderCss, /\.canvas form\.folder-editor-form,\s*[\s\S]*#fvEditorChrome\s*\{[\s\S]*--fv-editor-text-primary:\s*var\(--fvplus-editor-text-primary/);
     assert.match(folderCss, /\.fv-section-nav > button\s*\{[\s\S]*color:\s*var\(--fv-editor-text-primary\);/);
     assert.match(folderCss, /\.fv-editor-mode > button\s*\{[\s\S]*color:\s*var\(--fv-editor-text-primary\);/);
-    assert.match(folderCss, /\.fv-section-heading-copy > h3\s*\{[\s\S]*color:\s*var\(--fv-editor-text-primary\);/);
+    assert.match(folderCss, /\.fv-section-heading-copy > h3\s*\{[\s\S]*color:\s*var\(--fv-editor-accent\);/);
     assert.match(folderCss, /\.fv-section-heading-copy > p\s*\{[\s\S]*color:\s*var\(--fv-editor-muted\);/);
     assert.match(folderCss, /\.fv-modern-field-row input\[type="text"\],[\s\S]*background:\s*var\(--fv-editor-input-bg\)/);
 });
@@ -443,14 +443,15 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderCss, /\.custom-action-wrapper > div/);
     assert.match(folderCss, /\.fv-modern-section-grid\s*\{[\s\S]*minmax\(280px,\s*1fr\)/);
     assert.match(folderCss, /\.fv-modern-field-row\.is-icon-row,\s*[\s\S]*\.fv-modern-field-row\.is-status-row\s*\{[\s\S]*max-width:\s*780px;/);
-    assert.match(folderCss, /\.fv-modern-field-row\s*\{[\s\S]*min-height:\s*108px;[\s\S]*box-sizing:\s*border-box;/);
+    assert.match(folderCss, /\.fv-modern-field-row\s*\{[\s\S]*min-height:\s*88px;[\s\S]*box-sizing:\s*border-box;/);
     assert.match(folderCss, /\.fv-modern-group-list\.is-status-list\s*\{[\s\S]*max-width:\s*780px;/);
     assert.match(folderCss, /\.fv-modern-field-row\.is-name-row input\[type="text"\]\s*\{[\s\S]*360px/);
     assert.match(folderCss, /\.fv-modern-field-row\.is-compact-text-row input\[type="text"\],/);
     assert.match(folderCss, /\.fv-modern-field-row input\[type="text"\],\s*[\s\S]*height:\s*30px;[\s\S]*min-height:\s*30px;/);
     assert.match(folderCss, /\.fv-modern-field-row > dl > dt\s*\{[\s\S]*font-size:\s*1rem;/);
-    assert.match(folderCss, /\.fv-modern-field-row > dl,\s*[\s\S]*display:\s*flex !important;[\s\S]*flex-direction:\s*column;[\s\S]*gap:\s*0\.68em;/);
-    assert.match(folderCss, /\.fv-modern-field-row > dl > dd\s*\{[\s\S]*padding-top:\s*0\.16em !important;/);
+    assert.match(folderCss, /\.fv-modern-field-row > dl,\s*[\s\S]*display:\s*flex !important;[\s\S]*flex-direction:\s*column;[\s\S]*gap:\s*0\.52em;/);
+    assert.match(folderCss, /\.fv-modern-field-row > dl > dd\s*\{[\s\S]*padding-top:\s*0\.08em !important;/);
+    assert.match(folderCss, /\.fv-section-state-badge\s*\{[\s\S]*border:\s*0;[\s\S]*background:\s*transparent;/);
     assert.match(folderCss, /\.fv-modern-field-row\.is-actions-launch-row > dl > dt\s*\{[\s\S]*display:\s*none;/);
     assert.match(folderCss, /\.fv-inline-reset-btn\s*\{[\s\S]*border:\s*0 !important;[\s\S]*background:\s*transparent !important;/);
     assert.match(folderCss, /\.fv-validation-details/);

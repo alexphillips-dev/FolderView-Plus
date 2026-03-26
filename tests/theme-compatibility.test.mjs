@@ -101,3 +101,11 @@ test('theme compatibility: light settings surfaces keep readable tree meta and e
     assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\] \.folder-pin-state,[\s\S]*#fv-settings-root\[data-fv-theme-class="light"\] \.folder-runtime-status \{[\s\S]*color:\s*#4f5d70 !important;[\s\S]*opacity:\s*1 !important;/);
     assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\] \.status-breakdown-chip\.is-empty \{[\s\S]*color:\s*#5f6d80 !important;[\s\S]*opacity:\s*1 !important;/);
 });
+
+test('settings page exports host theme name and stamps theme attributes for resolver consumers', () => {
+    assert.match(settingsPage, /window\.FolderViewPlusHostThemeName = <\?php echo json_encode\(\(string\)\(\$display\['theme'\] \?\? ''\), JSON_UNESCAPED_SLASHES \| JSON_UNESCAPED_UNICODE\); \?>;/);
+    assert.match(settingsPage, /document\.documentElement\?\.setAttribute\('data-fvplus-host-theme', safeThemeName\);/);
+    assert.match(settingsPage, /document\.documentElement\?\.setAttribute\('data-fv-host-theme', safeThemeName\);/);
+    assert.match(settingsPage, /document\.body\?\.setAttribute\('data-fvplus-host-theme', safeThemeName\);/);
+    assert.match(settingsPage, /document\.body\?\.setAttribute\('data-fv-host-theme', safeThemeName\);/);
+});

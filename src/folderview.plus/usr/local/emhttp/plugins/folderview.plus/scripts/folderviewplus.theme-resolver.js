@@ -158,6 +158,19 @@
         return (bright + 0.05) / (dark + 0.05);
     };
 
+    const isThemeSurfaceColorUsable = (color, minAlpha = 0.08) => (
+        !!color && clampThemeAlpha(color.a ?? 1) >= clampThemeAlpha(minAlpha)
+    );
+
+    const resolveThemeSurfaceColor = (...candidates) => {
+        for (const candidate of candidates) {
+            if (isThemeSurfaceColorUsable(candidate)) {
+                return candidate;
+            }
+        }
+        return candidates.find(Boolean) || null;
+    };
+
     const themeBlendColors = (foreground, background, alpha = 0.65) => {
         if (!foreground && !background) {
             return null;
@@ -410,7 +423,7 @@
         if (normalized.includes('white') || normalized.includes('light')) {
             return 'light';
         }
-        if (normalized.includes('black') || normalized.includes('gray') || normalized.includes('grey') || normalized.includes('azure')) {
+        if (normalized.includes('black') || normalized.includes('azure')) {
             return 'dark';
         }
         return '';
@@ -519,10 +532,12 @@
             || doc.documentElement?.getAttribute?.('data-fv-host-theme')
             || ''
         ).trim();
-        const rootBackground = parseThemeColorToRgba(rootStyle?.backgroundColor)
-            || parseThemeColorToRgba(bodyStyle?.backgroundColor)
-            || parseThemeColorToRgba(htmlStyle?.backgroundColor)
-            || parseThemeColorToRgba('#0f1825');
+        const rootBackground = resolveThemeSurfaceColor(
+            parseThemeColorToRgba(rootStyle?.backgroundColor),
+            parseThemeColorToRgba(bodyStyle?.backgroundColor),
+            parseThemeColorToRgba(htmlStyle?.backgroundColor),
+            parseThemeColorToRgba('#0f1825')
+        );
         const hostForeground = resolveThemeColorCandidate(
             styleSources,
             ['--text', '--fvplus-theme-foreground'],

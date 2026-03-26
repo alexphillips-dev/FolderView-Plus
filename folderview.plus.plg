@@ -5,13 +5,19 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.20">
-<!ENTITY md5 "b67ba14670bcaec0aeef0353ce5fe6f0">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
+<!ENTITY version "2026.03.26.21">
+<!ENTITY md5 "893765d2ad939c59fcdcd830350cbfd7">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.21
+- Fix: Roll up the promoted `dev` line since main `2026.03.26.17`, adding top-of-page runtime diagnostics banners on the Docker and VMs pages so bootstrap, request, and render failures no longer fail silently.
+- Fix: Restore the page-level Docker and VM `Add Folder` actions by exposing the runtime handler globally, keeping the inline host-page buttons working after update.
+- Quality: Extract the shared runtime diagnostics bridge into the common Docker/VM runtime module and expand architecture guards so diagnostics stay visible without tripping the performance ratchet.
+
 
 ###2026.03.26.20
 - Fix: Added a top-of-page runtime diagnostics banner on the Docker and VMs pages so bootstrap, request, and render failures now surface with copyable details instead of silently failing.
@@ -3842,7 +3848,7 @@
     </CHANGES>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

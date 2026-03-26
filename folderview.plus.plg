@@ -15,7 +15,7 @@
 
 ###2026.03.26.09
 - UX: Tightened modern folder editor inheritance notices so `Using global` renders as a compact blue info label instead of a large gray control.
-- Theme: Applied the orange editor outline treatment across both light and dark modern folder editor surfaces, including cards, controls, settings blocks, and the hero/icon framing.
+- UI/UX: Applied the orange editor outline treatment across both light and dark modern folder editor surfaces, including cards, controls, settings blocks, and the hero/icon framing.
 - Fix: Re-themed the Members section table to use editor surface tokens so light themes no longer render the member list as a flat gray slab.
 
 

@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.03">
+<!ENTITY version "2026.03.26.04">
 <!ENTITY md5 "82399df65eb5f219fcac7694c341244f">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.04
+- Quality: Audited the remaining modern folder editor settings contract so every schema-backed field is present in the page markup, bound during load, serialized during save, and covered by section restore/default metadata.
+- Regression guard: Added a dedicated modern folder editor settings contract test to catch future mismatches between the schema, page controls, and runtime save/load paths before they ship.
+
 
 ###2026.03.26.03
 - Fix: Restored the missing `folder.editor.icon-api.js` dependency on the folder editor page so member reordering and any other folder save path no longer fail in the modern editor with `Cannot read properties of null (reading 'securePost')`.

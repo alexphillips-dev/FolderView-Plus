@@ -4029,17 +4029,25 @@ const moveMemberRow = (button, direction) => {
     if (!row.length) {
         return;
     }
+    let moved = false;
     if (direction === 'up') {
         const prev = row.prev('tr');
         if (prev.length) {
             prev.before(row);
+            moved = true;
         }
     } else {
         const next = row.next('tr');
         if (next.length) {
             next.after(row);
+            moved = true;
         }
     }
+    if (!moved) {
+        return;
+    }
+    syncMemberArraysFromTable();
+    updateLiveSummary();
     if (isFormInitialized) {
         updateUnsavedIndicator();
     }

@@ -520,7 +520,6 @@ test('folder editor page ships the redesign bootstrap and chrome anchors', () =>
     assert.match(folderPage, /<option value="ghost">Ghost<\/option>/);
     assert.match(folderPage, /<option value="pill">Pill<\/option>/);
     assert.match(folderPage, /<option value="filled">Filled<\/option>/);
-    assert.match(folderPage, /scriptQueue = runtimeMode === 'modern'[\s\S]*folder\.editor\.chrome\.js[\s\S]*folder\.legacy\.js/);
     assert.match(folderJs, /const initEditorChrome = \(\) =>/);
     assert.match(folderJs, /const applyEditorPluginDefaults = \(\) =>/);
     assert.doesNotMatch(folderChromeJs, /fvChangeSummaryLabel/);

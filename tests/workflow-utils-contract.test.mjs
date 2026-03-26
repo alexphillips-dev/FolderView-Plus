@@ -47,7 +47,7 @@ const restoreStateSnapshot = (state, snapshot) => {
 };
 
 for (const type of ['docker', 'vm']) {
-    test(`${type} e2e workflow: create/edit/delete, import, backup/restore, and ordering`, () => {
+    test(`${type} workflow utils contract: create/edit/delete, import, backup/restore, and ordering`, () => {
         const state = {
             type,
             folders: {},

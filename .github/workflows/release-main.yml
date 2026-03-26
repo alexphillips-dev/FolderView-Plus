@@ -88,6 +88,7 @@ jobs:
           FVPLUS_BROWSER_SMOKE_REQUIRED: ${{ secrets.FVPLUS_BROWSER_SMOKE_URL != '' && '1' || '0' }}
           FVPLUS_BROWSER_SMOKE_TIMEOUT_MS: '90000'
           FVPLUS_BROWSER_SMOKE_IGNORE_HTTPS: '1'
+          FVPLUS_BROWSER_SMOKE_REQUIRE_FOLDER_EDITOR: '1'
           FVPLUS_BROWSER_SMOKE_REQUIRE_RUNTIME_ROWS: '1'
           FVPLUS_BROWSER_SMOKE_RUNTIME_GAP_MAX: '30'
           FVPLUS_BROWSER_SMOKE_ARTIFACT_DIR: ${{ github.workspace }}/tmp/browser-smoke-artifacts
@@ -140,6 +141,14 @@ jobs:
 
       - name: Push main
         run: git push origin main
+
+      - name: Validate remote raw publish artifacts
+        env:
+          FVPLUS_REMOTE_PUBLISH_ATTEMPTS: '15'
+          FVPLUS_REMOTE_PUBLISH_DELAY_SEC: '6'
+        run: |
+          chmod +x scripts/remote_publish_guard.sh
+          bash scripts/remote_publish_guard.sh
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

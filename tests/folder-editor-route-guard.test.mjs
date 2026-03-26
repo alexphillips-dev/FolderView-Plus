@@ -93,6 +93,9 @@ test('folder editor runtimes accept query and hash bootstrap identity fallbacks'
     assert.match(folderLegacyJs, /const getFormField = \(form, fieldName\) =>/);
     assert.match(folderLegacyJs, /const hydrateCurrentEditFolder = \(folderRecord, folderRecordId, foldersMap = \{\}, options = \{\}\) =>/);
     assert.match(folderLegacyJs, /const buildFolderEditorRuntimeUrl = \(folderType, id = ''\) =>/);
+    assert.match(folderLegacyJs, /function getIncludedMemberNames\(\) \{/);
+    assert.match(folderLegacyJs, /function getMemberMapByName\(\) \{/);
+    assert.match(folderLegacyJs, /function isDockerUpdateAvailableInEditor\(member\) \{/);
     assert.match(folderLegacyJs, /const maybeRefreshLegacyEditorTargetFromPrefill = \(\) =>/);
     assert.match(folderLegacyJs, /let legacyEditorPrefillMonitorLastId = '';/);
     assert.match(folderLegacyJs, /window\.addEventListener\('storage', \(event\) => \{/);

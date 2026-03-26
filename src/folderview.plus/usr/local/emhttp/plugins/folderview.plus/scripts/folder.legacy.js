@@ -4770,9 +4770,13 @@ const enforceLeftAlignedSettingsLayout = () => {
     }
 };
 
-const getIncludedMemberNames = () => $('input[name*="containers"]:checked').map((_, el) => String($(el).val() || '')).get();
+function getIncludedMemberNames() {
+    return $('input[name*="containers"]:checked').map((_, el) => String($(el).val() || '')).get();
+}
 
-const getMemberMapByName = () => new Map(getAllMembers().map((member) => [String(member?.Name || ''), member]));
+function getMemberMapByName() {
+    return new Map(getAllMembers().map((member) => [String(member?.Name || ''), member]));
+}
 
 const escapeRegexLiteral = (value) => String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -4825,11 +4829,11 @@ const buildRegexSuggestionFromNames = (names) => {
     return `^${escapeRegexLiteral(topToken)}`;
 };
 
-const isDockerUpdateAvailableInEditor = (member) => {
+function isDockerUpdateAvailableInEditor(member) {
     const source = member && typeof member === 'object' ? member : {};
     const state = source?.State || source?.RawState || {};
     return state?.manager === 'dockerman' && state?.Updated === false;
-};
+}
 
 const suggestDefaultsFromMembers = () => {
     const form = getForm();

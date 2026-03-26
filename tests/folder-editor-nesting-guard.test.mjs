@@ -75,6 +75,8 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorScript, /void startFolderEditorRuntime\(\)\.catch\(\(error\) => \{/);
     assert.match(folderEditorScript, /if \(modernFolderEditorEnabled\) \{[\s\S]*FolderViewPlusRefreshModernEditorChromeLayout[\s\S]*\} else \{[\s\S]*\$\('\.fv-section-heading'\)\.remove\(\);/);
     assert.match(folderEditorScript, /const normalizeFolderRecordForEditor = \(folder\) =>/);
+    assert.match(folderEditorScript, /const modernFieldRow = dl\.closest\('\.fv-modern-field-row'\);/);
+    assert.match(folderEditorScript, /if \(modernFieldRow\) \{[\s\S]*setImportant\(dl, 'display', 'flex'\);[\s\S]*setImportant\(dl, 'flex-direction', 'column'\);/);
     assert.match(folderEditorSharedScript, /preview:\s*Number\.isFinite\(Number\(settings\.preview\)\)/);
     assert.match(folderEditorSharedScript, /context_graph_time:\s*Number\.isFinite\(Number\(settings\.context_graph_time\)\)/);
     assert.match(folderEditorSchemaScript, /window\.FolderViewPlusFolderEditorSchema = Object\.freeze\(\{/);

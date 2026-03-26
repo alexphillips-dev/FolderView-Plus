@@ -4148,16 +4148,32 @@ const enforceLeftAlignedSettingsLayout = () => {
         });
 
         form.querySelectorAll('.basic:not(.order-section) > dl').forEach((dl) => {
-            setImportant(dl, 'display', 'grid');
-            setImportant(dl, 'grid-template-columns', isMobile ? '1fr' : 'minmax(150px, 200px) minmax(280px, 640px)');
-            setImportant(dl, 'column-gap', isMobile ? '0.4em' : '0.85em');
-            setImportant(dl, 'row-gap', isMobile ? '0.4em' : '0');
-            setImportant(dl, 'align-items', 'center');
-            setImportant(dl, 'justify-content', 'start');
-            setImportant(dl, 'width', '100%');
-            setImportant(dl, 'max-width', 'none');
-            setImportant(dl, 'margin-left', '0');
-            setImportant(dl, 'margin-right', '0');
+            const modernFieldRow = dl.closest('.fv-modern-field-row');
+            if (modernFieldRow) {
+                setImportant(dl, 'display', 'flex');
+                setImportant(dl, 'flex-direction', 'column');
+                setImportant(dl, 'align-items', 'flex-start');
+                setImportant(dl, 'justify-content', 'flex-start');
+                setImportant(dl, 'grid-template-columns', 'none');
+                setImportant(dl, 'column-gap', '0');
+                setImportant(dl, 'row-gap', '0');
+                setImportant(dl, 'gap', '1.05em');
+                setImportant(dl, 'width', '100%');
+                setImportant(dl, 'max-width', 'none');
+                setImportant(dl, 'margin-left', '0');
+                setImportant(dl, 'margin-right', '0');
+            } else {
+                setImportant(dl, 'display', 'grid');
+                setImportant(dl, 'grid-template-columns', isMobile ? '1fr' : 'minmax(150px, 200px) minmax(280px, 640px)');
+                setImportant(dl, 'column-gap', isMobile ? '0.4em' : '0.85em');
+                setImportant(dl, 'row-gap', isMobile ? '0.4em' : '0');
+                setImportant(dl, 'align-items', 'center');
+                setImportant(dl, 'justify-content', 'start');
+                setImportant(dl, 'width', '100%');
+                setImportant(dl, 'max-width', 'none');
+                setImportant(dl, 'margin-left', '0');
+                setImportant(dl, 'margin-right', '0');
+            }
 
             const dt = dl.getElementsByTagName('dt')[0];
             setImportant(dt, 'float', 'none');
@@ -4168,10 +4184,13 @@ const enforceLeftAlignedSettingsLayout = () => {
 
             const dd = dl.getElementsByTagName('dd')[0];
             setImportant(dd, 'float', 'none');
-            setImportant(dd, 'width', 'auto');
+            setImportant(dd, 'width', modernFieldRow ? '100%' : 'auto');
             setImportant(dd, 'margin', '0');
             setImportant(dd, 'min-width', '0');
             setImportant(dd, 'text-align', 'left');
+            if (modernFieldRow) {
+                setImportant(dd, 'padding-top', '0.42em');
+            }
 
             if (dd) {
                 dd.querySelectorAll('input[type="text"], input[type="number"], select, textarea').forEach((field) => {

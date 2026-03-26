@@ -6,16 +6,21 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.25.69">
+<!ENTITY version "2026.03.25.70">
 <!ENTITY md5 "ff450ce9a080ff3e5676ffc2c4266381">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
 
+###2026.03.25.70
+- Maintenance: Release metadata and packaging sync.
+
+
 ###2026.03.25.69
-- UX: Refined settings and on-screen update messaging for clarity and consistency.
-- Quality: Strengthened release automation and regression guards to prevent note drift.
+- Fix: Render the modern folder editor through its own visible stage while keeping the legacy scaffold hidden, so the legacy form no longer flashes before the modern editor hydrates.
+- Fix: Stop legacy runtime left-alignment overrides from applying to modern editor rows, which keeps modern field cards and section spacing under the modern layout contract.
+- Quality: Load folder editor styles after the host theme and lock the modern-stage/scaffold split into the editor smoke guards.
 
 
 ###2026.03.25.68

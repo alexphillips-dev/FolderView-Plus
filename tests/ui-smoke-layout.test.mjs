@@ -474,7 +474,7 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.doesNotMatch(folderCss, /\.fv-live-preview-row\.surface-nested/);
     assert.match(folderCss, /\.fv-field-inherit-tools/);
     assert.match(folderCss, /\.fv-field-inherit-tools\[hidden\]\s*\{[\s\S]*display:\s*none !important;/);
-    assert.match(folderCss, /\.fv-inherit-btn/);
+    assert.match(folderCss, /\.fv-inherit-btn\s*\{[\s\S]*min-width:\s*108px;[\s\S]*min-height:\s*34px;[\s\S]*font-size:\s*0\.98rem;[\s\S]*white-space:\s*nowrap;/);
     assert.match(folderCss, /\.fv-member-tools-main/);
     assert.match(folderCss, /\.fv-member-tools-filters/);
     assert.match(folderCss, /\.fv-member-tools-actions/);

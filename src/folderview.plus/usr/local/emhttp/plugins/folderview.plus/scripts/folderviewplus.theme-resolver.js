@@ -455,6 +455,31 @@
         };
     };
 
+    const buildSettingsSemanticTokenStrings = (classification) => {
+        const isLight = classification === 'light';
+        return {
+            settingsTreeGuide: isLight ? 'rgba(129, 140, 154, 0.48)' : 'rgba(173, 178, 192, 0.55)',
+            settingsBreadcrumbText: isLight ? 'rgba(89, 103, 120, 0.86)' : 'rgba(180, 197, 221, 0.88)',
+            settingsMembersMetaText: isLight ? 'rgba(95, 108, 123, 0.82)' : 'rgba(187, 199, 219, 0.82)',
+            settingsNestedMetaText: isLight ? 'rgba(105, 117, 133, 0.86)' : 'rgba(194, 206, 224, 0.86)',
+            settingsChipInfo: isLight ? '#2f6ea6' : '#9ecbff',
+            settingsChipInfoBorder: isLight ? 'rgba(47, 110, 166, 0.34)' : 'rgba(113, 184, 255, 0.58)',
+            settingsChipInfoBg: isLight ? 'rgba(47, 110, 166, 0.10)' : 'rgba(113, 184, 255, 0.12)',
+            settingsChipSuccess: isLight ? '#287a43' : '#93e19f',
+            settingsChipSuccessBorder: isLight ? 'rgba(40, 122, 67, 0.34)' : 'rgba(147, 225, 159, 0.55)',
+            settingsChipSuccessBg: isLight ? 'rgba(40, 122, 67, 0.10)' : 'rgba(147, 225, 159, 0.14)',
+            settingsChipWarning: isLight ? '#9a6400' : '#ffc15e',
+            settingsChipWarningBorder: isLight ? 'rgba(154, 100, 0, 0.34)' : 'rgba(255, 193, 94, 0.58)',
+            settingsChipWarningBg: isLight ? 'rgba(154, 100, 0, 0.12)' : 'rgba(255, 193, 94, 0.14)',
+            settingsChipDanger: isLight ? '#b63737' : '#ff7474',
+            settingsChipDangerBorder: isLight ? 'rgba(182, 55, 55, 0.34)' : 'rgba(255, 116, 116, 0.62)',
+            settingsChipDangerBg: isLight ? 'rgba(182, 55, 55, 0.10)' : 'rgba(255, 116, 116, 0.14)',
+            settingsChipEmpty: isLight ? '#667385' : 'rgba(240, 240, 240, 0.86)',
+            settingsChipEmptyBorder: isLight ? 'rgba(102, 115, 133, 0.32)' : 'rgba(192, 192, 192, 0.45)',
+            settingsChipEmptyBg: isLight ? 'rgba(102, 115, 133, 0.10)' : 'rgba(255, 255, 255, 0.08)'
+        };
+    };
+
     const buildThemeTokenMap = (snapshot, palette) => {
         const baseTokens = stringifyThemeTokens(palette);
         return {
@@ -471,6 +496,7 @@
             settingsAccent: baseTokens.accent,
             settingsAccentSoft: baseTokens.accentSoft,
             settingsFocusRing: baseTokens.focusRing,
+            ...buildSettingsSemanticTokenStrings(snapshot.classification),
             ...buildEditorThemeTokenStrings(snapshot.classification, palette)
         };
     };
@@ -663,6 +689,25 @@
             '--fvplus-settings-accent': tokens.settingsAccent || '',
             '--fvplus-settings-accent-soft': tokens.settingsAccentSoft || '',
             '--fvplus-settings-focus-ring': tokens.settingsFocusRing || '',
+            '--fvplus-settings-tree-guide': tokens.settingsTreeGuide || '',
+            '--fvplus-settings-breadcrumb-text': tokens.settingsBreadcrumbText || '',
+            '--fvplus-settings-members-meta-text': tokens.settingsMembersMetaText || '',
+            '--fvplus-settings-nested-meta-text': tokens.settingsNestedMetaText || '',
+            '--fvplus-settings-chip-info': tokens.settingsChipInfo || '',
+            '--fvplus-settings-chip-info-border': tokens.settingsChipInfoBorder || '',
+            '--fvplus-settings-chip-info-bg': tokens.settingsChipInfoBg || '',
+            '--fvplus-settings-chip-success': tokens.settingsChipSuccess || '',
+            '--fvplus-settings-chip-success-border': tokens.settingsChipSuccessBorder || '',
+            '--fvplus-settings-chip-success-bg': tokens.settingsChipSuccessBg || '',
+            '--fvplus-settings-chip-warning': tokens.settingsChipWarning || '',
+            '--fvplus-settings-chip-warning-border': tokens.settingsChipWarningBorder || '',
+            '--fvplus-settings-chip-warning-bg': tokens.settingsChipWarningBg || '',
+            '--fvplus-settings-chip-danger': tokens.settingsChipDanger || '',
+            '--fvplus-settings-chip-danger-border': tokens.settingsChipDangerBorder || '',
+            '--fvplus-settings-chip-danger-bg': tokens.settingsChipDangerBg || '',
+            '--fvplus-settings-chip-empty': tokens.settingsChipEmpty || '',
+            '--fvplus-settings-chip-empty-border': tokens.settingsChipEmptyBorder || '',
+            '--fvplus-settings-chip-empty-bg': tokens.settingsChipEmptyBg || '',
             '--fvplus-editor-bg': tokens.editorBg || '',
             '--fvplus-editor-panel': tokens.editorPanel || '',
             '--fvplus-editor-border': tokens.editorBorder || '',

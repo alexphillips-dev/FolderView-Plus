@@ -64,6 +64,8 @@
 
 html[data-fvplus-host-theme="white"] #fv-settings-root,
 body[data-fvplus-host-theme="white"] #fv-settings-root,
+html[data-fv-host-theme="white"] #fv-settings-root,
+body[data-fv-host-theme="white"] #fv-settings-root,
 #fv-settings-root[data-fv-theme-class="light"] {
     --fvplus-settings-title-accent: #be6b18;
     --fvplus-settings-tree-guide: rgba(129, 140, 154, 0.48);

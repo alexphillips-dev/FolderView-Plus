@@ -84,6 +84,7 @@ test('theme compatibility: semantic settings tokens use resolver-first fallback 
 });
 
 test('theme compatibility: light settings surfaces keep readable tree meta and empty chips', () => {
+    assert.match(settingsCss, /html\[data-fv-host-theme="white"\] #fv-settings-root,/);
     assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\][\s\S]*--fvplus-settings-breadcrumb-text:\s*rgba\(89,\s*103,\s*120,\s*0\.86\)/);
     assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\][\s\S]*--fvplus-settings-members-meta-text:\s*rgba\(95,\s*108,\s*123,\s*0\.82\)/);
     assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\][\s\S]*--fvplus-settings-nested-meta-text:\s*rgba\(105,\s*117,\s*133,\s*0\.86\)/);

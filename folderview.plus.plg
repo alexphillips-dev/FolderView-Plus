@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.11">
-<!ENTITY md5 "d1df7ac6fe9028448995f439578d9ed3">
+<!ENTITY version "2026.03.26.12">
+<!ENTITY md5 "eb835cbe62574639a183ef373357395b">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.12
+- Fix: Moved the settings page white-theme breadcrumb, nested metadata, and empty-chip colors onto resolver-applied semantic tokens so light themes no longer fall back to the unreadable dark palette.
+- UI/UX: Enlarged the folder editor `Use global` inherit control so the label no longer clips into a tiny `Use g` pill in the modern settings blocks.
+- Regression guard: Added runtime token and layout assertions covering the settings semantic palette plus the larger inherit button sizing.
+
 
 ###2026.03.26.11
 - Fix: Re-themed the light settings page tree meta, nested folder hints, and neutral status or alert chips so white themes keep readable folder text and empty-state indicators.

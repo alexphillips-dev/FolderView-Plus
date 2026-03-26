@@ -89,3 +89,15 @@ test('theme resolver keeps folder editor outlines aligned to accent borders', ()
     assert.match(themeResolverJs, /editorHeroIconBorder:\s*editorOutline,/);
     assert.match(themeResolverJs, /editorControlBorder:\s*editorOutline,/);
 });
+
+test('theme resolver exports settings semantic tokens for readable light and dark surfaces', () => {
+    assert.match(themeResolverJs, /const buildSettingsSemanticTokenStrings = \(classification\) =>/);
+    assert.match(themeResolverJs, /settingsTreeGuide:\s*isLight \? 'rgba\(129, 140, 154, 0\.48\)' : 'rgba\(173, 178, 192, 0\.55\)'/);
+    assert.match(themeResolverJs, /settingsBreadcrumbText:\s*isLight \? 'rgba\(89, 103, 120, 0\.86\)' : 'rgba\(180, 197, 221, 0\.88\)'/);
+    assert.match(themeResolverJs, /settingsChipEmpty:\s*isLight \? '#667385' : 'rgba\(240, 240, 240, 0\.86\)'/);
+    assert.match(themeResolverJs, /buildThemeTokenMap[\s\S]*buildSettingsSemanticTokenStrings\(snapshot\.classification\)/);
+    assert.match(themeResolverJs, /'--fvplus-settings-tree-guide':\s*tokens\.settingsTreeGuide \|\| ''/);
+    assert.match(themeResolverJs, /'--fvplus-settings-breadcrumb-text':\s*tokens\.settingsBreadcrumbText \|\| ''/);
+    assert.match(themeResolverJs, /'--fvplus-settings-chip-empty':\s*tokens\.settingsChipEmpty \|\| ''/);
+    assert.match(themeResolverJs, /'--fvplus-settings-chip-empty-bg':\s*tokens\.settingsChipEmptyBg \|\| ''/);
+});

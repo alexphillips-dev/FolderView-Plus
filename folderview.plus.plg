@@ -14,8 +14,8 @@
     <CHANGES>
 
 ###2026.03.25.65
-- UX: Refined settings and on-screen update messaging for clarity and consistency.
-- Quality: Strengthened release automation and regression guards to prevent note drift.
+- Fix: Keep the modern folder editor field cards on their intended stacked `dt/dd` layout instead of letting the legacy left-alignment runtime force them back into a two-column grid.
+- Fix: Preserve the modern section-card control geometry so toggles, text inputs, and inline controls stay aligned inside each editor card after runtime refreshes.
 
 
 ###2026.03.25.64

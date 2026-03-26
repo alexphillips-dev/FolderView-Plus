@@ -263,7 +263,50 @@ if (dockerBootstrapMissingModules.length > 0) {
     }
     throw error;
 }
+const DOCKER_HOST_PAGE_REQUIRED_SELECTORS = Object.freeze([
+    { label: 'Docker table shell', selector: 'table#docker_containers' },
+    { label: 'Docker table body', selector: 'tbody#docker_list' },
+    { label: 'Docker header row', selector: '#docker_containers > thead > tr' }
+]);
+const collectDockerHostPageStructureIssues = () => {
+    const missing = [];
+    DOCKER_HOST_PAGE_REQUIRED_SELECTORS.forEach((entry) => {
+        if (!entry || !entry.selector) {
+            return;
+        }
+        if (!document.querySelector(entry.selector)) {
+            missing.push(`${entry.label}: ${entry.selector}`);
+        }
+    });
+    return missing;
+};
+const ensureDockerHostPageStructure = () => {
+    const missing = collectDockerHostPageStructureIssues();
+    if (missing.length <= 0) {
+        setDockerFatalBannerModuleStatus('host-page-structure', 'ok', 'expected Docker host selectors detected');
+        return;
+    }
+    setDockerFatalBannerModuleStatus('host-page-structure', 'missing', missing.join(' | '));
+    const error = new Error(`Expected Docker host page selectors were not found: ${missing.join(', ')}`);
+    error.fvplusPhase = 'host-dom';
+    error.fvplusCategory = 'host-page-structure';
+    reportDockerFatalRuntimeError(error, {
+        title: 'Docker page structure changed',
+        message: 'FolderView Plus expected the standard Unraid Docker table markup, but required host page elements were missing.',
+        code: 'FVPLUS-DKR-DOM-001',
+        phase: 'host-dom',
+        category: 'host-page-structure',
+        detailLabel: 'Missing selectors',
+        details: missing
+    });
+    if (fatalBanner) {
+        error.fvplusBannerShown = true;
+    }
+    throw error;
+};
 markDockerFatalBannerStep('Docker runtime modules resolved');
+ensureDockerHostPageStructure();
+markDockerFatalBannerStep('Docker host page signature verified');
 const dockerStorageWriter = typeof utils.createBatchedStorageWriter === 'function'
     ? utils.createBatchedStorageWriter(window.localStorage, {
         defaultDelayMs: 72,

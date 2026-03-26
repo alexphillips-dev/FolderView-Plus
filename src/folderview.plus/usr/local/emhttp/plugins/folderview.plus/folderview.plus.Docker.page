@@ -15,6 +15,8 @@ if (!empty($fvplusRuntimeConflicts)) {
     fvplus_render_runtime_conflict_notice('Docker');
     return;
 }
+$fvplusRuntimePreflight = collectRuntimePreflight($type);
+$fvplusRuntimePreflightHasFatal = runtimePreflightHasFatal($fvplusRuntimePreflight);
 ?>
 <?php emitNoCacheMetaTags(); ?>
 <?php emitPluginPageVersionSentinelScript('docker'); ?>
@@ -24,11 +26,14 @@ if (!empty($fvplusRuntimeConflicts)) {
         hostSelector: '#fvplus-docker-runtime-banner-host',
         pluginVersion: <?=json_encode(readInstalledVersion() ?: 'unknown')?>,
         unraidVersion: <?=json_encode(readUnraidVersionString() ?: 'unknown')?>,
-        channel: 'unknown'
+        channel: 'unknown',
+        preflight: <?=json_encode($fvplusRuntimePreflight, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)?>
     };
 </script>
 <script src="<?php autov('/plugins/folderview.plus/scripts/folderviewplus.fatal-banner.js')?>"></script>
 <div id="fvplus-docker-runtime-banner-host" aria-live="polite"></div>
+<?php emitRuntimePreflightBannerBootstrap($fvplusRuntimePreflight, 'Docker'); ?>
+<?php if ($fvplusRuntimePreflightHasFatal) { return; } ?>
 <script>
     $(document).ready(() => {
         folderi18n = () => {

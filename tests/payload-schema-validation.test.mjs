@@ -11,7 +11,8 @@ const prefsPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.p
 const validationPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.validation.php');
 
 test('server wires dedicated validation helpers for API payload boundaries', () => {
-    assert.match(libPhp, /require_once\('\/usr\/local\/emhttp\/plugins\/folderview\.plus\/server\/lib\.validation\.php'\);/);
+    assert.match(libPhp, /function fvplus_safe_require_once\(string \$key, string \$path\): bool/);
+    assert.match(libPhp, /fvplus_safe_require_once\('validation', '\/usr\/local\/emhttp\/plugins\/folderview\.plus\/server\/lib\.validation\.php'\);/);
     assert.match(libPhp, /fvplus_assert_folder_payload_shape\(\$decodedContent\);/);
     assert.match(prefsPhp, /fvplus_assert_prefs_payload_shape\(\$decoded\);/);
     assert.match(prefsPhp, /Invalid prefs payload: expected JSON object\./);

@@ -21,11 +21,57 @@
     $configDir = "/boot/config/plugins/folderview.plus";
     $sourceDir = "/usr/local/emhttp/plugins/folderview.plus";
     $documentRoot = $_SERVER['DOCUMENT_ROOT'] ?? '/usr/local/emhttp';
+    $fvplusHostDependencyStatus = [];
 
-    require_once("$documentRoot/webGui/include/Helpers.php");
-    require_once("$documentRoot/plugins/dynamix.docker.manager/include/DockerClient.php");
-    require_once ("$documentRoot/plugins/dynamix.vm.manager/include/libvirt_helpers.php");
-    require_once('/usr/local/emhttp/plugins/folderview.plus/server/lib.validation.php');
+    function fvplus_register_host_dependency_status(string $key, string $path, bool $loaded, string $detail = ''): void {
+        global $fvplusHostDependencyStatus;
+        $safeKey = trim($key);
+        if ($safeKey === '') {
+            return;
+        }
+        $fvplusHostDependencyStatus[$safeKey] = [
+            'path' => $path,
+            'loaded' => $loaded,
+            'detail' => trim($detail)
+        ];
+    }
+
+    function fvplus_safe_require_once(string $key, string $path): bool {
+        $safePath = trim($path);
+        if ($safePath === '') {
+            fvplus_register_host_dependency_status($key, $safePath, false, 'Empty dependency path.');
+            return false;
+        }
+        if (!is_file($safePath)) {
+            fvplus_register_host_dependency_status($key, $safePath, false, 'Dependency file not found.');
+            return false;
+        }
+        try {
+            require_once($safePath);
+            fvplus_register_host_dependency_status($key, $safePath, true, 'Loaded.');
+            return true;
+        } catch (Throwable $error) {
+            fvplus_register_host_dependency_status($key, $safePath, false, 'Failed to load: ' . trim((string)$error->getMessage()));
+            fv3_debug_log("Host dependency failed to load [$key] at $safePath: " . $error->getMessage());
+            return false;
+        }
+    }
+
+    function fvplus_get_host_dependency_status(): array {
+        global $fvplusHostDependencyStatus;
+        return is_array($fvplusHostDependencyStatus) ? $fvplusHostDependencyStatus : [];
+    }
+
+    fvplus_safe_require_once('helpers', "$documentRoot/webGui/include/Helpers.php");
+    fvplus_safe_require_once('docker', "$documentRoot/plugins/dynamix.docker.manager/include/DockerClient.php");
+    fvplus_safe_require_once('libvirt', "$documentRoot/plugins/dynamix.vm.manager/include/libvirt_helpers.php");
+    fvplus_safe_require_once('validation', '/usr/local/emhttp/plugins/folderview.plus/server/lib.validation.php');
+
+    if (!function_exists('autov')) {
+        function autov($path): void {
+            echo htmlspecialchars((string)$path, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        }
+    }
 
     function fv3_cache_root(): string {
         static $cacheRoot = null;
@@ -696,6 +742,67 @@
             'if(previousVersion===currentVersion&&lastReloadedVersion===currentVersion){' .
                 'win.sessionStorage.removeItem(reloadKey);' .
             '}' .
+        '}catch(_error){}})();</script>' . "\n";
+    }
+
+    function emitRuntimePreflightBannerBootstrap(array $preflight, string $contextLabel = 'Runtime'): void {
+        $issues = is_array($preflight['issues'] ?? null) ? array_values($preflight['issues']) : [];
+        if (count($issues) === 0) {
+            return;
+        }
+        $encodedIssues = json_encode($issues, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        $encodedContext = json_encode(trim($contextLabel) !== '' ? trim($contextLabel) : 'Runtime', JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        if (!is_string($encodedIssues) || !is_string($encodedContext)) {
+            return;
+        }
+        echo '<script>(function(){try{' .
+            'const win=window;' .
+            'const banner=win.FolderViewPlusFatalBanner||null;' .
+            'const issues=' . $encodedIssues . ';' .
+            'const context=' . $encodedContext . ';' .
+            'if(!Array.isArray(issues)||issues.length===0){return;}' .
+            'const runtimeContext=(win.FolderViewPlusFatalRuntimeContext&&typeof win.FolderViewPlusFatalRuntimeContext==="object")?win.FolderViewPlusFatalRuntimeContext:{};' .
+            'runtimeContext.preflight={issues:issues};' .
+            'win.FolderViewPlusFatalRuntimeContext=runtimeContext;' .
+            'if(!banner){return;}' .
+            'if(typeof banner.setPhase==="function"){banner.setPhase("server-preflight");}' .
+            'if(typeof banner.recordAction==="function"){banner.recordAction(context+" runtime preflight reported diagnostics");}' .
+            'const fatalIssue=issues.find((issue)=>String(issue&&issue.severity||"").toLowerCase()==="fatal")||null;' .
+            'if(fatalIssue){' .
+                'const error=new Error(String(fatalIssue.message||fatalIssue.title||context+" runtime preflight failed"));' .
+                'error.fvplusBannerShown=true;' .
+                'banner.reportFatalError(error,{' .
+                    'context:context,' .
+                    'title:String(fatalIssue.title||context+" runtime preflight failed"),' .
+                    'message:String(fatalIssue.message||"FolderView Plus detected a fatal environment issue before the runtime could start."),' .
+                    'code:String(fatalIssue.code||"FVPLUS-RUN-ENV-001"),' .
+                    'phase:"server-preflight",' .
+                    'category:String(fatalIssue.category||"environment"),' .
+                    'detailLabel:"Diagnostics",' .
+                    'details:Array.isArray(fatalIssue.details)?fatalIssue.details:[]' .
+                '});' .
+                'return;' .
+            '}' .
+            'const details=[];' .
+            'issues.forEach((issue)=>{' .
+                'const title=String(issue&&issue.title||"Notice").trim();' .
+                'if(title){details.push(title);}' .
+                'const lines=Array.isArray(issue&&issue.details)?issue.details:[];' .
+                'lines.forEach((line)=>{' .
+                    'const normalized=String(line||"").trim();' .
+                    'if(normalized){details.push(normalized);}' .
+                '});' .
+            '});' .
+            'banner.reportDegradedState("Preflight warnings detected",{' .
+                'context:context,' .
+                'title:context+" troubleshooting notice",' .
+                'message:"FolderView Plus detected page conditions that may affect runtime behavior or supportability.",' .
+                'code:"FVPLUS-RUN-ENV-002",' .
+                'phase:"server-preflight",' .
+                'category:"environment-warning",' .
+                'detailLabel:"Checks to review",' .
+                'details:details' .
+            '});' .
         '}catch(_error){}})();</script>' . "\n";
     }
 
@@ -1684,6 +1791,252 @@
         }
 
         return array_values(array_unique($dirs));
+    }
+
+    function collectRuntimeOverrideEntries(string $type): array {
+        $safeType = ensureType($type);
+        $entries = [];
+        $patterns = [
+            'scripts' => "/\..*{$safeType}.*\.js$/",
+            'styles' => "/\..*{$safeType}.*\.css$/"
+        ];
+
+        foreach ($patterns as $kind => $filePattern) {
+            foreach (getCustomOverrideDirs($kind) as $overrideDir) {
+                $baseDir = realpath($overrideDir);
+                if ($baseDir === false) {
+                    continue;
+                }
+                $files = dirToArrayOfFiles(pathToMultiDimArray($overrideDir), $filePattern, "/.*\.disabled$/");
+                foreach ($files as $file) {
+                    if (!is_array($file) || empty($file['path'])) {
+                        continue;
+                    }
+                    $resolved = realpath($file['path']);
+                    if ($resolved === false || strpos($resolved, $baseDir . '/') !== 0) {
+                        continue;
+                    }
+                    $relativePath = ltrim(substr($resolved, strlen($baseDir)), '/');
+                    $displayPath = ($relativePath === '' || $relativePath === false)
+                        ? basename($resolved)
+                        : str_replace('\\', '/', $relativePath);
+                    $key = $kind . ':' . $resolved;
+                    $entries[$key] = [
+                        'kind' => $kind,
+                        'path' => $displayPath,
+                        'sourceDir' => str_replace('\\', '/', $baseDir)
+                    ];
+                }
+            }
+        }
+
+        return array_values($entries);
+    }
+
+    function appendRuntimePreflightIssue(array &$issues, string $severity, string $code, string $title, string $message, array $details = [], string $category = 'environment'): void {
+        $normalizedSeverity = strtolower(trim($severity));
+        if (!in_array($normalizedSeverity, ['fatal', 'degraded'], true)) {
+            $normalizedSeverity = 'degraded';
+        }
+        $detailLines = [];
+        foreach ($details as $detail) {
+            $normalized = trim((string)$detail);
+            if ($normalized !== '') {
+                $detailLines[] = $normalized;
+            }
+        }
+        $issues[] = [
+            'severity' => $normalizedSeverity,
+            'code' => trim($code),
+            'title' => trim($title),
+            'message' => trim($message),
+            'details' => $detailLines,
+            'category' => trim($category) !== '' ? trim($category) : 'environment'
+        ];
+    }
+
+    function collectRuntimePreflight(string $type): array {
+        $safeType = ensureType($type);
+        $surface = $safeType === 'docker' ? 'Docker' : 'VMs';
+        $codePrefix = $safeType === 'docker' ? 'FVPLUS-DKR' : 'FVPLUS-VM';
+        $issues = [];
+
+        $unraidVersion = readUnraidVersionString();
+        if (is_string($unraidVersion) && trim($unraidVersion) !== '') {
+            if (version_compare($unraidVersion, '7.0.0', '<')) {
+                appendRuntimePreflightIssue(
+                    $issues,
+                    'fatal',
+                    $codePrefix . '-ENV-001',
+                    "$surface runtime is not supported on this Unraid version",
+                    "FolderView Plus requires Unraid 7.0.0 or newer for the $surface runtime.",
+                    ["Detected Unraid version: $unraidVersion"],
+                    'unsupported-unraid-version'
+                );
+            }
+        }
+
+        $dependencyStatus = fvplus_get_host_dependency_status();
+        $dependencyDetails = [];
+        $requiredDependencyLabels = [
+            'helpers' => 'Unraid Helpers.php',
+            'validation' => 'FolderView Plus validation library'
+        ];
+        if ($safeType === 'docker') {
+            $requiredDependencyLabels['docker'] = 'Dynamix Docker helper';
+        } else {
+            $requiredDependencyLabels['libvirt'] = 'Dynamix VM libvirt helper';
+        }
+        foreach ($requiredDependencyLabels as $key => $label) {
+            $entry = is_array($dependencyStatus[$key] ?? null) ? $dependencyStatus[$key] : [];
+            if (($entry['loaded'] ?? false) === true) {
+                continue;
+            }
+            $path = trim((string)($entry['path'] ?? ''));
+            $detail = trim((string)($entry['detail'] ?? 'Dependency did not load.'));
+            $dependencyDetails[] = $path !== ''
+                ? "$label: $detail ($path)"
+                : "$label: $detail";
+        }
+        if (count($dependencyDetails) > 0) {
+            appendRuntimePreflightIssue(
+                $issues,
+                'fatal',
+                $codePrefix . '-ENV-002',
+                "$surface runtime dependencies are unavailable",
+                "FolderView Plus could not load one or more required host dependencies for the $surface runtime.",
+                $dependencyDetails,
+                'missing-host-dependency'
+            );
+        }
+
+        if ($safeType === 'docker') {
+            $missingClasses = [];
+            foreach (['DockerClient', 'DockerUpdate', 'DockerTemplates', 'DockerUtil'] as $className) {
+                if (!class_exists($className)) {
+                    $missingClasses[] = "Missing PHP class: $className";
+                }
+            }
+            if (count($missingClasses) > 0) {
+                appendRuntimePreflightIssue(
+                    $issues,
+                    'fatal',
+                    $codePrefix . '-ENV-003',
+                    'Docker runtime helpers are incomplete',
+                    'FolderView Plus could not find the Unraid Docker runtime classes it needs.',
+                    $missingClasses,
+                    'missing-runtime-class'
+                );
+            } elseif (!array_filter($issues, static fn(array $issue): bool => ($issue['severity'] ?? '') === 'fatal')) {
+                try {
+                    $dockerClient = new DockerClient();
+                    $probe = $dockerClient->getDockerJSON("/containers/json?all=1");
+                    if (!is_array($probe)) {
+                        appendRuntimePreflightIssue(
+                            $issues,
+                            'fatal',
+                            $codePrefix . '-ENV-004',
+                            'Docker API probe failed',
+                            'FolderView Plus could not read Docker container data from the host runtime.',
+                            ['DockerClient::getDockerJSON("/containers/json?all=1") did not return an array.'],
+                            'docker-api-unavailable'
+                        );
+                    }
+                } catch (Throwable $error) {
+                    appendRuntimePreflightIssue(
+                        $issues,
+                        'fatal',
+                        $codePrefix . '-ENV-004',
+                        'Docker API probe failed',
+                        'FolderView Plus could not contact the Docker runtime on this page load.',
+                        [trim((string)$error->getMessage()) ?: 'DockerClient probe threw an unknown error.'],
+                        'docker-api-unavailable'
+                    );
+                }
+            }
+        } else {
+            if (!class_exists('Libvirt')) {
+                appendRuntimePreflightIssue(
+                    $issues,
+                    'fatal',
+                    $codePrefix . '-ENV-003',
+                    'VM runtime helpers are incomplete',
+                    'FolderView Plus could not find the Unraid libvirt runtime class it needs.',
+                    ['Missing PHP class: Libvirt'],
+                    'missing-runtime-class'
+                );
+            } elseif (!array_filter($issues, static fn(array $issue): bool => ($issue['severity'] ?? '') === 'fatal')) {
+                try {
+                    $lv = new Libvirt();
+                    if (!$lv->connect()) {
+                        appendRuntimePreflightIssue(
+                            $issues,
+                            'fatal',
+                            $codePrefix . '-ENV-004',
+                            'Libvirt connection failed',
+                            'FolderView Plus could not connect to the Unraid libvirt service for the VMs runtime.',
+                            ['Libvirt::connect() returned false.'],
+                            'libvirt-unavailable'
+                        );
+                    }
+                } catch (Throwable $error) {
+                    appendRuntimePreflightIssue(
+                        $issues,
+                        'fatal',
+                        $codePrefix . '-ENV-004',
+                        'Libvirt connection failed',
+                        'FolderView Plus could not initialize the libvirt helper for the VMs runtime.',
+                        [trim((string)$error->getMessage()) ?: 'Libvirt probe threw an unknown error.'],
+                        'libvirt-unavailable'
+                    );
+                }
+            }
+        }
+
+        $overrideEntries = collectRuntimeOverrideEntries($safeType);
+        if (count($overrideEntries) > 0) {
+            $overrideDetails = [];
+            $visibleEntries = array_slice($overrideEntries, 0, 8);
+            foreach ($visibleEntries as $entry) {
+                $kind = trim((string)($entry['kind'] ?? 'override'));
+                $path = trim((string)($entry['path'] ?? ''));
+                if ($path === '') {
+                    continue;
+                }
+                $overrideDetails[] = strtoupper(rtrim($kind, 's')) . ': ' . $path;
+            }
+            $remaining = count($overrideEntries) - count($visibleEntries);
+            if ($remaining > 0) {
+                $overrideDetails[] = "... and $remaining more override file(s).";
+            }
+            appendRuntimePreflightIssue(
+                $issues,
+                'degraded',
+                $codePrefix . '-OVR-001',
+                'Custom FolderView Plus overrides are active',
+                "Custom scripts or styles are active on the $surface page and can change or break runtime behavior.",
+                $overrideDetails,
+                'custom-overrides'
+            );
+        }
+
+        return [
+            'type' => $safeType,
+            'surface' => $surface,
+            'issues' => $issues
+        ];
+    }
+
+    function runtimePreflightHasFatal(array $preflight): bool {
+        foreach (($preflight['issues'] ?? []) as $issue) {
+            if (!is_array($issue)) {
+                continue;
+            }
+            if (strtolower(trim((string)($issue['severity'] ?? ''))) === 'fatal') {
+                return true;
+            }
+        }
+        return false;
     }
 
     function getFolderFilePath(string $type): string {

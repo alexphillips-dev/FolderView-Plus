@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.21">
-<!ENTITY md5 "893765d2ad939c59fcdcd830350cbfd7">
+<!ENTITY version "2026.03.26.22">
+<!ENTITY md5 "857510274e238ac1199fbf0db98f7c7c">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.22
+- Fix: Add Docker and VMs runtime preflight diagnostics so unsupported Unraid versions, missing host dependencies, Docker/libvirt probe failures, and active override files surface in a top-of-page troubleshooting banner before the runtime starts.
+- Fix: Detect Docker and VM host-table signature drift explicitly, so missing `#docker_containers` / `#docker_list` or `#kvm_table` / `#kvm_list` markup now reports as a named page-structure failure instead of a vague runtime break.
+- Quality: Harden server bootstrap with safe host dependency loading plus new runtime preflight regression coverage, keeping Docker/VM troubleshooting visible even when old or broken hosts would previously fatal before the banner loaded.
+
 
 ###2026.03.26.21
 - Fix: Roll up the promoted `dev` line since main `2026.03.26.17`, adding top-of-page runtime diagnostics banners on the Docker and VMs pages so bootstrap, request, and render failures no longer fail silently.

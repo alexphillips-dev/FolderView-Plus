@@ -268,7 +268,50 @@ if (vmBootstrapMissingModules.length > 0) {
     }
     throw error;
 }
+const VM_HOST_PAGE_REQUIRED_SELECTORS = Object.freeze([
+    { label: 'VM table shell', selector: 'table#kvm_table' },
+    { label: 'VM table body', selector: 'tbody#kvm_list' },
+    { label: 'VM header row', selector: '#kvm_table > thead > tr' }
+]);
+const collectVmHostPageStructureIssues = () => {
+    const missing = [];
+    VM_HOST_PAGE_REQUIRED_SELECTORS.forEach((entry) => {
+        if (!entry || !entry.selector) {
+            return;
+        }
+        if (!document.querySelector(entry.selector)) {
+            missing.push(`${entry.label}: ${entry.selector}`);
+        }
+    });
+    return missing;
+};
+const ensureVmHostPageStructure = () => {
+    const missing = collectVmHostPageStructureIssues();
+    if (missing.length <= 0) {
+        setVmFatalBannerModuleStatus('host-page-structure', 'ok', 'expected VM host selectors detected');
+        return;
+    }
+    setVmFatalBannerModuleStatus('host-page-structure', 'missing', missing.join(' | '));
+    const error = new Error(`Expected VM host page selectors were not found: ${missing.join(', ')}`);
+    error.fvplusPhase = 'host-dom';
+    error.fvplusCategory = 'host-page-structure';
+    reportVmFatalRuntimeError(error, {
+        title: 'VM page structure changed',
+        message: 'FolderView Plus expected the standard Unraid VM table markup, but required host page elements were missing.',
+        code: 'FVPLUS-VM-DOM-001',
+        phase: 'host-dom',
+        category: 'host-page-structure',
+        detailLabel: 'Missing selectors',
+        details: missing
+    });
+    if (fatalBanner) {
+        error.fvplusBannerShown = true;
+    }
+    throw error;
+};
 markVmFatalBannerStep('VM runtime modules resolved');
+ensureVmHostPageStructure();
+markVmFatalBannerStep('VM host page signature verified');
 const vmStorageWriter = typeof utils.createBatchedStorageWriter === 'function'
     ? utils.createBatchedStorageWriter(window.localStorage, {
         defaultDelayMs: 72,

@@ -5390,7 +5390,7 @@ const previewChange = (e) => {
 /**
  * Update the setting visibility according to the changin of settings
  */
-const updateForm = () => {
+function updateForm() {
     const form = $('div.canvas > form')[0];
     $('[constraint*="preview-"]').hide();
     $(`[constraint*="preview-${form.preview.value}"]`).show();
@@ -5422,7 +5422,7 @@ const updateForm = () => {
     enforceLeftAlignedSettingsLayout();
     updateInheritedFieldIndicators();
     renderLivePreviewCanvas();
-};
+}
 
 const createFallbackFolderHierarchyApi = (deps = {}) => {
     const jq = deps.$;

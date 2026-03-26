@@ -186,6 +186,7 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderJs, /let folderEditorPreviewApi = null;/);
     assert.match(folderJs, /const getFolderEditorPreviewApi = \(\) =>/);
     assert.match(folderJs, /folderEditorPreviewApi = folderEditorPreview\.createApi\(/);
+    assert.match(folderJs, /function updateForm\(\) \{/);
     assert.match(folderJs, /FolderViewPlusReportFolderEditorBootstrap/);
     assert.match(folderJs, /summary:\s*'Folder editor runtime script loaded\.'/);
     assert.match(folderLegacyJs, /const modernFolderEditorEnabled = String\(window\.FolderViewPlusFolderEditorPageMode \|\| 'legacy'\)/);

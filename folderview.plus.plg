@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.25.61">
-<!ENTITY md5 "b53ea6795311140b65ccba564831aa94">
+<!ENTITY version "2026.03.25.62">
+<!ENTITY md5 "d37eb54e1a83cac1bdbb0ff657a4510b">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.25.62
+- UX: Collapse the folder editor bootstrap diagnostics by default behind a `Bootstrap diagnostics` disclosure so routine editing stays clean while full runtime details remain available for troubleshooting.
+- Regression guard: Enforce that the modern editor startup begins only after late runtime helpers like `folderHierarchyState` are declared, preventing future bootstrap-order regressions from creeping back in unnoticed.
+
 
 ###2026.03.25.61
 - Fix: Defer the modern folder editor startup bootstrap until the end of `folder.js`, so saved-folder hydration no longer executes before later runtime helpers like `folderHierarchyState` are initialized.

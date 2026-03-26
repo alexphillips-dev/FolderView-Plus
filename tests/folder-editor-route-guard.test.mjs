@@ -56,6 +56,8 @@ test('folder editor runtimes accept query and hash bootstrap identity fallbacks'
     assert.match(folderLegacyJs, /sampleRoot:\s*'body'/);
     assert.match(folderEditorChromeJs, /root\.FolderViewPlusReportFolderEditorBootstrap =/);
     assert.match(folderEditorChromeJs, /Folder editor runtime stalled during bootstrap\./);
+    assert.match(folderEditorChromeJs, /<details id="fvEditorBootstrapDetails" class="fv-editor-bootstrap-disclosure">/);
+    assert.match(folderEditorChromeJs, /<summary id="fvEditorBootstrapSummary" class="fv-editor-bootstrap-summary">Bootstrap diagnostics<\/summary>/);
     assert.match(folderEditorChromeJs, /root\.addEventListener\('error'/);
     assert.match(folderEditorChromeJs, /root\.addEventListener\('unhandledrejection'/);
 });

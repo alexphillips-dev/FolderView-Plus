@@ -97,6 +97,9 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorScript, /Recovered requested folder from navigation context\./);
     assert.match(folderEditorScript, /hydrateCurrentEditFolder\(currentEditFolder,\s*currentEditFolderId,\s*folders,\s*\{\s*clearPrefill:\s*true\s*\}\);/);
     assert.match(folderEditorScript, /clearEditorNavigationPrefill\(\);/);
+    const hierarchyStateIndex = folderEditorScript.indexOf('const folderHierarchyState = {');
+    const startupInvokeIndex = folderEditorScript.lastIndexOf('void startFolderEditorRuntime().catch((error) => {');
+    assert.ok(hierarchyStateIndex !== -1 && startupInvokeIndex > hierarchyStateIndex, 'modern editor startup must run after folder hierarchy state is declared');
     assert.doesNotMatch(folderEditorScript, /preview_member_display/);
 });
 

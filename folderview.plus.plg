@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.31">
-<!ENTITY md5 "2f84d5a74fef3a770648b46694cc3981">
+<!ENTITY version "2026.03.26.32">
+<!ENTITY md5 "1cd4a31ceefad3323f2b90f76d327b36">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.32
+- Fix: Legacy folder editor now keeps watching shared edit-prefill state after load, so it can recover the requested folder even when Unraid reuses the existing Folder tab without a fresh document bootstrap.
+- Fix: Legacy no-target recovery no longer clears the shared editor prefill before it has a chance to refresh onto the folder you clicked.
+- Quality: Expanded legacy route guards so polling, visibility/focus refresh, and persistent prefill recovery stay covered.
+
 
 ###2026.03.26.31
 - Fix: Legacy folder editor now listens for shared edit-prefill updates from Docker and VM pages, so reused Unraid xmenu tabs can refresh onto the correct folder instead of staying in blank new-folder mode.

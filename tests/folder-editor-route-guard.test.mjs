@@ -62,8 +62,14 @@ test('folder editor runtimes accept query and hash bootstrap identity fallbacks'
     assert.match(folderLegacyJs, /const hydrateCurrentEditFolder = \(folderRecord, folderRecordId, foldersMap = \{\}, options = \{\}\) =>/);
     assert.match(folderLegacyJs, /const buildFolderEditorRuntimeUrl = \(folderType, id = ''\) =>/);
     assert.match(folderLegacyJs, /const maybeRefreshLegacyEditorTargetFromPrefill = \(\) =>/);
+    assert.match(folderLegacyJs, /let legacyEditorPrefillMonitorLastId = '';/);
     assert.match(folderLegacyJs, /window\.addEventListener\('storage', \(event\) => \{/);
     assert.match(folderLegacyJs, /if \(String\(event\?\.key \|\| ''\) !== EDITOR_PREFILL_LOCAL_STORAGE_KEY\)/);
+    assert.match(folderLegacyJs, /window\.addEventListener\('focus', \(\) => \{/);
+    assert.match(folderLegacyJs, /window\.addEventListener\('pageshow', \(\) => \{/);
+    assert.match(folderLegacyJs, /document\.addEventListener\('visibilitychange', \(\) => \{/);
+    assert.match(folderLegacyJs, /window\.setInterval\(\(\) => \{/);
+    assert.match(folderLegacyJs, /maybeRefreshLegacyEditorTargetFromPrefill\(\);\s*\}, 500\);/);
     assert.match(folderLegacyJs, /window\.location\.replace\(nextUrl\);/);
     assert.match(folderLegacyJs, /const requestedFolderRefs = buildFolderEditorRefCandidates\(/);
     assert.match(folderLegacyJs, /for \(const candidateRef of requestedFolderRefs\) \{/);
@@ -73,6 +79,7 @@ test('folder editor runtimes accept query and hash bootstrap identity fallbacks'
     assert.match(folderLegacyJs, /console\.error\('\[FolderView Plus\] Legacy folder editor member inventory load failed\.'/);
     assert.match(folderLegacyJs, /choose = Object\.values\(readInfoResponse && typeof readInfoResponse === 'object' \? readInfoResponse : \{\}\)\s*\.map\(typeFilter\)\s*\.filter\(Boolean\);/);
     assert.match(folderLegacyJs, /Legacy editor opened without an edit target\./);
+    assert.match(folderLegacyJs, /will keep watching the shared editor prefill and auto-refresh when that target arrives\./);
     assert.match(folderLegacyJs, /sampleRoot:\s*'body'/);
     assert.match(folderEditorChromeJs, /root\.FolderViewPlusReportFolderEditorBootstrap =/);
     assert.match(folderEditorChromeJs, /Folder editor runtime stalled during bootstrap\./);

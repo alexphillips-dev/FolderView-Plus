@@ -646,10 +646,15 @@ const buildFolderEditorRuntimeUrl = (folderType, id = '') => {
     return `${basePath}?${params.toString()}#${hashParams.toString()}`;
 };
 
+let legacyEditorPrefillMonitorLastId = '';
 const maybeRefreshLegacyEditorTargetFromPrefill = () => {
     const latestPrefill = readEditorNavigationPrefill(type, '');
     const latestId = String(latestPrefill?.id || '').trim();
     if (!latestId) {
+        legacyEditorPrefillMonitorLastId = '';
+        return false;
+    }
+    if (legacyEditorPrefillMonitorLastId === latestId) {
         return false;
     }
     const currentRefs = buildFolderEditorRefCandidates(
@@ -661,8 +666,10 @@ const maybeRefreshLegacyEditorTargetFromPrefill = () => {
         folderId
     );
     if (currentRefs.includes(latestId)) {
+        legacyEditorPrefillMonitorLastId = latestId;
         return false;
     }
+    legacyEditorPrefillMonitorLastId = latestId;
     const nextUrl = buildFolderEditorRuntimeUrl(type, latestId);
     try {
         window.location.replace(nextUrl);
@@ -678,6 +685,20 @@ window.addEventListener('storage', (event) => {
     }
     maybeRefreshLegacyEditorTargetFromPrefill();
 });
+window.addEventListener('focus', () => {
+    maybeRefreshLegacyEditorTargetFromPrefill();
+});
+window.addEventListener('pageshow', () => {
+    maybeRefreshLegacyEditorTargetFromPrefill();
+});
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        maybeRefreshLegacyEditorTargetFromPrefill();
+    }
+});
+window.setInterval(() => {
+    maybeRefreshLegacyEditorTargetFromPrefill();
+}, 500);
 
 const computeFolderDescendantIds = (foldersMap, rootId) => {
     const source = foldersMap && typeof foldersMap === 'object' ? foldersMap : {};
@@ -5103,10 +5124,9 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
             : 'No folder target was present in query, hash, page bootstrap, or recent editor bootstrap data.';
         setLegacyEditorBannerState(
             'Legacy editor opened without an edit target.',
-            `${expectedTarget} If another Unraid tab just requested an edit, this page will auto-refresh when the shared editor prefill updates.`,
+            `${expectedTarget} If another Unraid tab just requested an edit, this page will keep watching the shared editor prefill and auto-refresh when that target arrives.`,
             'warning'
         );
-        clearEditorNavigationPrefill();
         currentFolderDescendantIds = new Set();
         populateParentFolderOptions(folders, '', new Set());
         setParentDefaultsNote('Select a parent to inherit preview/icon defaults automatically.', 'info');

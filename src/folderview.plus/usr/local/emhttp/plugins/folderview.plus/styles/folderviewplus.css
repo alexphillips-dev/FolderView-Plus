@@ -40,6 +40,13 @@
     --fvplus-settings-danger-border: rgba(255, 116, 116, 0.5);
     --fvplus-settings-focus-ring: var(--fvplus-theme-focus-ring, var(--fvplus-settings-safe-focus-ring));
     --fvplus-settings-surface-panel: var(--fvplus-theme-surface-panel, var(--fvplus-settings-safe-surface-panel));
+    --fvplus-settings-title-accent: #ff9a3c;
+}
+
+html[data-fvplus-host-theme="white"] #fv-settings-root,
+body[data-fvplus-host-theme="white"] #fv-settings-root,
+#fv-settings-root[data-fv-theme-class="light"] {
+    --fvplus-settings-title-accent: #be6b18;
 }
 
 .custom-css {
@@ -325,6 +332,16 @@
     letter-spacing: 0.04em;
     opacity: 0.8;
     font-weight: 600;
+}
+
+#fv-settings-root h2[data-fv-section],
+#fv-settings-root .settings-mini-title,
+#fv-settings-root .rules-header h3,
+#fv-settings-root .fv-first-run-title,
+#fv-settings-root .module-empty-title,
+#fv-settings-root .fv-runtime-resolved-title,
+#fv-settings-root .fv-update-notes-title-wrap > h3 {
+    color: var(--fvplus-settings-title-accent) !important;
 }
 
 .setting-toggle {

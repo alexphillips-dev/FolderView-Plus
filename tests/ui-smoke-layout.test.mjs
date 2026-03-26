@@ -222,9 +222,12 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderCss, /\.fv-legacy-editor-scaffold\[hidden\]\s*\{/);
     assert.match(folderCss, /\.fv-section-nav > button\s*\{[\s\S]*color:\s*var\(--fv-editor-text-primary\);/);
     assert.match(folderCss, /\.fv-editor-mode > button\s*\{[\s\S]*color:\s*var\(--fv-editor-text-primary\);/);
-    assert.match(folderCss, /#fvEditorChrome \.fv-editor-kicker,\s*[\s\S]*color:\s*var\(--fv-editor-accent\) !important;/);
-    assert.match(folderCss, /\.fv-section-heading-copy > h3\s*\{[\s\S]*color:\s*var\(--fv-editor-accent\);/);
-    assert.match(folderCss, /\.canvas form\.folder-editor-form \.fv-section-heading-copy > h3\s*\{[\s\S]*color:\s*var\(--fv-editor-accent\) !important;/);
+    assert.match(folderCss, /--fv-editor-title-accent:\s*var\(--fvplus-editor-title-accent,\s*#ff9a3c\)/);
+    assert.match(folderCss, /--fv-editor-title-accent:\s*var\(--fvplus-editor-title-accent,\s*#be6b18\)/);
+    assert.match(folderCss, /#fvEditorChrome \.fv-editor-kicker,\s*[\s\S]*color:\s*var\(--fv-editor-title-accent\) !important;/);
+    assert.match(folderCss, /\.fv-section-heading-copy > h3\s*\{[\s\S]*color:\s*var\(--fv-editor-title-accent\);/);
+    assert.match(folderCss, /\.canvas form\.folder-editor-form \.fv-section-heading-copy > h3\s*\{[\s\S]*color:\s*var\(--fv-editor-title-accent\) !important;/);
+    assert.match(folderCss, /\.fv-modern-field-row > dl > dt\s*\{[\s\S]*color:\s*var\(--fv-editor-title-accent\);/);
     assert.match(folderCss, /\.fv-section-heading-copy > p\s*\{[\s\S]*color:\s*var\(--fv-editor-muted\);/);
     assert.match(folderCss, /\.fv-modern-field-row input\[type="text"\],[\s\S]*background:\s*var\(--fv-editor-input-bg\)/);
 });

@@ -169,7 +169,7 @@
                         <img id="fvHeroIcon" src="${DEFAULT_FOLDER_ICON_PATH}" alt="">
                     </div>
                     <div class="fv-editor-hero-copy">
-                        <span class="fv-editor-kicker" style="color: var(--fv-editor-accent);">Folder editor</span>
+                        <span class="fv-editor-kicker" style="color: var(--fv-editor-title-accent, var(--fv-editor-accent));">Folder editor</span>
                         <h2 id="fvHeroTitle">Configure folder</h2>
                         <p id="fvHeroSubtitle">A fully grouped folder editor with tabbed sections, live preview, and a dedicated action bar.</p>
                         <div class="fv-hero-meta">
@@ -442,7 +442,7 @@
                                     <i class="fa ${meta.icon}" aria-hidden="true"></i>
                                     <span>${meta.advanced ? 'Advanced section' : 'Core section'}</span>
                                 </div>
-                                <h3 style="color: var(--fv-editor-accent);">${meta.title}${meta.advanced ? ' <span class="fv-section-badge">advanced</span>' : ''}</h3>
+                                <h3 style="color: var(--fv-editor-title-accent, var(--fv-editor-accent));">${meta.title}${meta.advanced ? ' <span class="fv-section-badge">advanced</span>' : ''}</h3>
                                 <p>${meta.description}</p>
                             </div>
                             <div class="fv-section-heading-tools">

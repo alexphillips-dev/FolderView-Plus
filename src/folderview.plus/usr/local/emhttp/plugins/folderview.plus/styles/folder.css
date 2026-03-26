@@ -9,6 +9,7 @@
     --fv-editor-muted: var(--fvplus-editor-muted, rgba(255, 255, 255, 0.72));
     --fv-editor-dim: var(--fvplus-editor-dim, rgba(255, 255, 255, 0.5));
     --fv-editor-accent: var(--fvplus-editor-accent, #ff9a3c);
+    --fv-editor-title-accent: var(--fvplus-editor-title-accent, #ff9a3c);
     --fv-editor-accent-soft: var(--fvplus-editor-accent-soft, rgba(255, 154, 60, 0.14));
     --fv-editor-success: var(--fvplus-editor-success, #8ce69b);
     --fv-editor-warning: var(--fvplus-editor-warning, #ffbe76);
@@ -89,7 +90,7 @@
 #fvModernEditorStage .fv-section-heading-kicker > i,
 #fvModernEditorStage .fv-section-heading-kicker > span,
 #fvModernEditorStage .fv-section-heading-copy > h3 {
-    color: var(--fv-editor-accent) !important;
+    color: var(--fv-editor-title-accent) !important;
 }
 
 .fv-modern-editor-stage {
@@ -368,6 +369,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     --fv-editor-muted: rgba(39, 49, 61, 0.78);
     --fv-editor-dim: rgba(39, 49, 61, 0.62);
     --fv-editor-accent: #be6b18;
+    --fv-editor-title-accent: var(--fvplus-editor-title-accent, #be6b18);
     --fv-editor-accent-soft: rgba(190, 107, 24, 0.12);
     --fv-editor-success: #19713c;
     --fv-editor-warning: #9a6400;
@@ -444,7 +446,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     align-items: center;
     gap: 0.45em;
     margin-bottom: 0.35em;
-    color: var(--fv-editor-accent);
+    color: var(--fv-editor-title-accent);
     letter-spacing: 0.06em;
     text-transform: uppercase;
     font-size: 0.96rem;
@@ -453,7 +455,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 .canvas form.folder-editor-form .fv-section-heading-kicker,
 .canvas form.folder-editor-form .fv-section-heading-kicker > i,
 .canvas form.folder-editor-form .fv-section-heading-kicker > span {
-    color: var(--fv-editor-accent) !important;
+    color: var(--fv-editor-title-accent) !important;
 }
 
 .fv-section-heading-kicker > i,
@@ -465,12 +467,12 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 .fv-section-heading-copy > h3 {
     margin: 0;
     font-size: 1.2em;
-    color: var(--fv-editor-accent);
+    color: var(--fv-editor-title-accent);
 }
 
 .canvas form.folder-editor-form .fv-section-heading > h3,
 .canvas form.folder-editor-form .fv-section-heading-copy > h3 {
-    color: var(--fv-editor-accent) !important;
+    color: var(--fv-editor-title-accent) !important;
 }
 
 .fv-section-badge {
@@ -2126,7 +2128,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 .fv-modern-field-row > dl > dt {
     display: block;
     margin-bottom: 0 !important;
-    color: var(--fv-editor-accent);
+    color: var(--fv-editor-title-accent);
     font-size: 1rem;
     font-weight: 700;
     letter-spacing: 0.04em;

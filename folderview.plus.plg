@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.25.71">
-<!ENTITY md5 "a19dd19535864c64d0e7203b8e2d9e0c">
+<!ENTITY version "2026.03.26.01">
+<!ENTITY md5 "6795c23b7a6d601bff53cf55ccc90770">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.01
+- Fix: Restored the original orange heading treatment for the modern folder editor and settings module titles on darker themes, avoiding black-on-black title regressions.
+- Quality: Added regression coverage for dark-theme title accents across the folder editor and settings surfaces.
+
 
 ###2026.03.25.71
 - Fix: Keep the modern folder editor shell hidden behind the loading placeholder until runtime hydration completes, so existing-folder edits no longer flash the blank generic shell first.

@@ -2065,6 +2065,7 @@ const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
 const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv.folder.editor.prefill.persist.v1';
 const EDITOR_WINDOW_NAME_PREFIX = 'fv.folder.editor.v1:';
 const EDITOR_BOOTSTRAP_COOKIE_NAME = 'fv_folder_editor_bootstrap';
+const EDITOR_DEBUG_LAUNCH_STORAGE_KEY = 'fv.folder.editor.debug.launch.v1';
 const seedDashboardFolderEditorPrefill = (folderType, id) => {
     try {
         const normalizedType = String(folderType || '').trim();
@@ -2096,6 +2097,32 @@ const seedDashboardFolderEditorPrefill = (folderType, id) => {
         // Editor prefill is best-effort only.
     }
 };
+const recordDashboardFolderEditorLaunchDebug = (sourcePage, folderType, id, targetUrl) => {
+    try {
+        if (typeof localStorage === 'undefined') {
+            return;
+        }
+        const resolvedType = String(folderType || '').trim() === 'vm' ? 'vm' : 'docker';
+        const normalizedId = String(id || '').trim();
+        const folderMap = resolvedType === 'vm' ? globalFolders?.vms : globalFolders?.docker;
+        const folder = folderMap && typeof folderMap === 'object' ? folderMap[normalizedId] : null;
+        localStorage.setItem(EDITOR_DEBUG_LAUNCH_STORAGE_KEY, JSON.stringify({
+            storedAt: new Date().toISOString(),
+            source: String(sourcePage || 'dashboard').trim() || 'dashboard',
+            type: resolvedType,
+            id: normalizedId,
+            folderName: String(folder?.name || normalizedId || '').trim(),
+            currentUrl: String(window.location?.href || ''),
+            targetUrl: String(targetUrl || '').trim(),
+            hasFolderRecord: Boolean(folder && typeof folder === 'object'),
+            sessionStorageAvailable: typeof sessionStorage !== 'undefined',
+            localStorageAvailable: typeof localStorage !== 'undefined',
+            cookiePresent: String(document.cookie || '').includes(`${EDITOR_BOOTSTRAP_COOKIE_NAME}=`)
+        }));
+    } catch (_error) {
+        // Folder editor launch diagnostics are best-effort only.
+    }
+};
 const buildDashboardFolderEditorUrl = (folderType, id = '') => {
     const resolvedType = String(folderType || '').trim() === 'vm' ? 'vm' : 'docker';
     const params = new URLSearchParams();
@@ -2111,7 +2138,9 @@ const buildDashboardFolderEditorUrl = (folderType, id = '') => {
 };
 const editDockerFolder = (id) => {
     seedDashboardFolderEditorPrefill('docker', id);
-    location.href = buildDashboardFolderEditorUrl('docker', id);
+    const targetUrl = buildDashboardFolderEditorUrl('docker', id);
+    recordDashboardFolderEditorLaunchDebug('dashboard', 'docker', id, targetUrl);
+    location.href = targetUrl;
 };
 
 /**
@@ -2120,7 +2149,9 @@ const editDockerFolder = (id) => {
  */
 const editVMFolder = (id) => {
     seedDashboardFolderEditorPrefill('vm', id);
-    location.href = buildDashboardFolderEditorUrl('vm', id);
+    const targetUrl = buildDashboardFolderEditorUrl('vm', id);
+    recordDashboardFolderEditorLaunchDebug('dashboard', 'vm', id, targetUrl);
+    location.href = targetUrl;
 };
 
 /**

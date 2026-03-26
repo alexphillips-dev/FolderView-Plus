@@ -33,6 +33,98 @@ const performanceDiagnosticsState = {
     updatedAt: 0
 };
 const requestErrorDiagnostics = [];
+const EDITOR_DEBUG_LAUNCH_STORAGE_KEY = 'fv.folder.editor.debug.launch.v1';
+const EDITOR_DEBUG_BOOTSTRAP_STORAGE_KEY = 'fv.folder.editor.debug.bootstrap.v1';
+
+const readClientDiagnosticsStorageRecord = (storageKey) => {
+    try {
+        if (typeof localStorage === 'undefined') {
+            return null;
+        }
+        const raw = String(localStorage.getItem(storageKey) || '').trim();
+        if (!raw) {
+            return null;
+        }
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === 'object' ? parsed : null;
+    } catch (_error) {
+        return null;
+    }
+};
+
+const collectFolderEditorDebugDiagnostics = () => {
+    const launch = readClientDiagnosticsStorageRecord(EDITOR_DEBUG_LAUNCH_STORAGE_KEY);
+    const bootstrap = readClientDiagnosticsStorageRecord(EDITOR_DEBUG_BOOTSTRAP_STORAGE_KEY);
+    const launchId = String(launch?.id || '').trim();
+    const launchType = String(launch?.type || '').trim();
+    const bootstrapRouteId = String(bootstrap?.routeFolderId || '').trim();
+    const bootstrapEffectiveId = String(bootstrap?.effectiveFolderId || '').trim();
+    const bootstrapType = String(bootstrap?.routeType || bootstrap?.pageType || '').trim();
+    const launchMatchedBootstrap = Boolean(
+        launchId
+        && bootstrapEffectiveId
+        && launchId === bootstrapEffectiveId
+        && (!launchType || !bootstrapType || launchType === bootstrapType)
+    );
+    return {
+        checkedAt: new Date().toISOString(),
+        currentPage: String(location?.href || ''),
+        launch,
+        bootstrap,
+        comparison: {
+            launchId,
+            launchType,
+            bootstrapRouteId,
+            bootstrapEffectiveId,
+            bootstrapType,
+            bootstrapResult: String(bootstrap?.result || '').trim(),
+            launchMatchedBootstrap,
+            routeTargetRecovered: bootstrap?.routeTargetRecovered === true,
+            routeTargetMismatch: bootstrap?.routeTargetMismatch === true,
+            summary: !launch && !bootstrap
+                ? 'No folder editor debug records have been captured in this browser yet.'
+                : (launchMatchedBootstrap
+                    ? 'Last folder editor launch and bootstrap targets match.'
+                    : 'Last folder editor launch and bootstrap targets do not fully match.')
+        }
+    };
+};
+
+const renderFolderEditorDebugDiagnostics = () => {
+    const host = $('#folder-editor-diagnostics-output');
+    const snapshot = collectFolderEditorDebugDiagnostics();
+    if (!host.length) {
+        return snapshot;
+    }
+    host.text(toPrettyJson(snapshot));
+    return snapshot;
+};
+
+const copyFolderEditorDebugDiagnostics = async () => {
+    try {
+        const snapshot = renderFolderEditorDebugDiagnostics();
+        const text = toPrettyJson(snapshot);
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(text);
+        } else {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+        }
+        swal({
+            title: 'Copied',
+            text: 'Folder editor diagnostics copied to clipboard.',
+            type: 'success'
+        });
+    } catch (error) {
+        showError('Copy folder editor diagnostics failed', error);
+    }
+};
 
 const perfNowMs = () => ((window.performance && typeof window.performance.now === 'function')
     ? window.performance.now()
@@ -601,10 +693,12 @@ const renderDiagnostics = (diagnostics) => {
     if (!diagnostics) {
         $('#diagnostics-output').text('No diagnostics data.');
         renderChangeHistory(null);
+        renderFolderEditorDebugDiagnostics();
         return;
     }
     $('#diagnostics-output').text(toPrettyJson(diagnostics));
     renderChangeHistory(diagnostics);
+    renderFolderEditorDebugDiagnostics();
 };
 
 const runDiagnostics = async () => {
@@ -669,6 +763,7 @@ const exportDiagnosticsByMode = async (privacy = 'sanitized') => {
     ) ? { ...payload.clientTelemetry } : {};
     existingClientTelemetry.performance = collectClientPerformanceTelemetry();
     existingClientTelemetry.requestErrors = getRequestErrorDiagnosticsSnapshot();
+    existingClientTelemetry.folderEditorDebug = collectFolderEditorDebugDiagnostics();
     payload.clientTelemetry = existingClientTelemetry;
 
     downloadFile('FolderView Plus Diagnostics.json', toPrettyJson(payload));
@@ -706,6 +801,7 @@ const exportSupportBundleByMode = async (privacy = 'sanitized') => {
         ) ? { ...bundle.clientTelemetry } : {};
         existingClientTelemetry.performance = collectClientPerformanceTelemetry();
         existingClientTelemetry.requestErrors = getRequestErrorDiagnosticsSnapshot();
+        existingClientTelemetry.folderEditorDebug = collectFolderEditorDebugDiagnostics();
         bundle.clientTelemetry = existingClientTelemetry;
         const generatedAt = String(bundle.generatedAt || '').replace(/[:]/g, '-');
         const suffix = generatedAt ? `-${generatedAt}` : '';
@@ -774,10 +870,38 @@ const issueReportFromDiagnostics = (diagnostics) => {
         }
     }
     lines.push('');
+    const folderEditorDebug = report.clientTelemetry?.folderEditorDebug || null;
+    lines.push('## Folder Editor Debug');
+    if (!folderEditorDebug) {
+        lines.push('- No folder editor debug snapshot available.');
+    } else {
+        const comparison = folderEditorDebug.comparison || {};
+        lines.push(`- Summary: ${comparison.summary || 'No summary available.'}`);
+        lines.push(`- Launch target: ${comparison.launchType || '?'} / ${comparison.launchId || '(empty)'}`);
+        lines.push(`- Bootstrap route target: ${comparison.bootstrapType || '?'} / ${comparison.bootstrapRouteId || '(empty)'}`);
+        lines.push(`- Bootstrap effective target: ${comparison.bootstrapEffectiveId || '(empty)'}`);
+        lines.push(`- Bootstrap result: ${comparison.bootstrapResult || '(empty)'}`);
+    }
+    lines.push('');
     lines.push('## Notes');
     lines.push('- Attach `FolderView Plus Diagnostics.json` and support bundle export if available.');
     return lines.join('\n');
 };
+
+const initializeClientDiagnosticsPanels = () => {
+    renderPerformanceDiagnostics();
+    renderFolderEditorDebugDiagnostics();
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeClientDiagnosticsPanels, { once: true });
+} else {
+    initializeClientDiagnosticsPanels();
+}
+
+window.collectFolderEditorDebugDiagnostics = collectFolderEditorDebugDiagnostics;
+window.renderFolderEditorDebugDiagnostics = renderFolderEditorDebugDiagnostics;
+window.copyFolderEditorDebugDiagnostics = copyFolderEditorDebugDiagnostics;
 
 const copyIssueReport = async () => {
     try {
@@ -1055,7 +1179,10 @@ Object.assign(window, {
     copyIssueReport,
     collectThemeDiagnostics,
     runThemeDiagnostics,
-    runThemeSelfHeal
+    runThemeSelfHeal,
+    collectFolderEditorDebugDiagnostics,
+    renderFolderEditorDebugDiagnostics,
+    copyFolderEditorDebugDiagnostics
 });
 
 window.FolderViewPlusDiagnostics = Object.freeze({
@@ -1084,6 +1211,9 @@ window.FolderViewPlusDiagnostics = Object.freeze({
     collectThemeDiagnostics,
     runThemeDiagnostics,
     runThemeSelfHeal,
+    collectFolderEditorDebugDiagnostics,
+    renderFolderEditorDebugDiagnostics,
+    copyFolderEditorDebugDiagnostics,
     perfNowMs,
     recordPerformanceDiagnosticsSample,
     renderPerformanceDiagnostics,

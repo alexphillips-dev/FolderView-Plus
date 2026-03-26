@@ -1000,6 +1000,17 @@ if (!empty($fvplusRuntimeConflicts)) {
         </div>
         <div id="performance-diagnostics-output" class="fv-perf-output">No samples yet. Run refresh/import actions to populate timings.</div>
     </div>
+    <div class="fv-perf-panel">
+        <div class="fv-perf-panel-head">
+            <strong>Folder editor diagnostics</strong>
+            <span class="rules-help">Shows the last folder editor launch request and the last editor bootstrap result captured by this browser.</span>
+        </div>
+        <div class="backup-actions">
+            <button type="button" onclick="renderFolderEditorDebugDiagnostics()"><i class="fa fa-refresh"></i> Refresh folder editor debug</button>
+            <button type="button" onclick="copyFolderEditorDebugDiagnostics()"><i class="fa fa-copy"></i> Copy folder editor debug</button>
+        </div>
+        <pre id="folder-editor-diagnostics-output" class="diagnostics-output compact-output">No folder editor debug records have been captured in this browser yet.</pre>
+    </div>
     <pre id="diagnostics-output" class="diagnostics-output">Run health check to view diagnostics.</pre>
     <pre id="theme-diagnostics-output" class="diagnostics-output compact-output">Run theme diagnostics to inspect active tokens and runtime selectors.</pre>
 </div>

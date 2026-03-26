@@ -11,6 +11,7 @@ const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
 const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv.folder.editor.prefill.persist.v1';
 const EDITOR_WINDOW_NAME_PREFIX = 'fv.folder.editor.v1:';
 const EDITOR_BOOTSTRAP_COOKIE_NAME = 'fv_folder_editor_bootstrap';
+const EDITOR_DEBUG_BOOTSTRAP_STORAGE_KEY = 'fv.folder.editor.debug.bootstrap.v1';
 const readCookieFolderEditorBootstrapSeed = () => {
     try {
         const cookieSource = String(document.cookie || '');
@@ -160,6 +161,21 @@ const buildFolderEditorRefCandidates = (...values) => Array.from(new Set(
         .map((value) => String(value || '').trim())
         .filter(Boolean)
 ));
+const summarizeFolderEditorSeed = (seed) => {
+    if (!seed || typeof seed !== 'object') {
+        return null;
+    }
+    const safeType = String(seed.type || '').trim();
+    const safeId = String(seed.id || '').trim();
+    if (!safeType && !safeId) {
+        return null;
+    }
+    return {
+        type: safeType,
+        id: safeId,
+        hasFolder: Boolean(seed.folder && typeof seed.folder === 'object')
+    };
+};
 if (typeof window.FolderViewPlusReportFolderEditorBootstrap === 'function') {
     window.FolderViewPlusReportFolderEditorBootstrap({
         summary: 'Folder editor runtime script loaded.',
@@ -676,7 +692,52 @@ const setValidationBannerState = (summaryText, detailsText, state = 'ready') => 
             .text(detailsText);
     }
 };
+const recordFolderEditorBootstrapDebug = (details = {}) => {
+    try {
+        if (typeof localStorage === 'undefined') {
+            return;
+        }
+        localStorage.setItem(EDITOR_DEBUG_BOOTSTRAP_STORAGE_KEY, JSON.stringify({
+            storedAt: new Date().toISOString(),
+            runtime: 'modern',
+            pageUrl: String(window.location?.href || ''),
+            pagePath: String(window.location?.pathname || ''),
+            pageMode: String(window.FolderViewPlusFolderEditorPageMode || '').trim(),
+            pageType: String(window.FolderViewPlusFolderEditorPageType || '').trim(),
+            routeType: String(type || '').trim(),
+            routeFolderId: String(folderId || '').trim(),
+            resolvedRouteId: String(folderEditorResolvedId || '').trim(),
+            pageRequestedId: String(window.FolderViewPlusFolderEditorRequestedId || '').trim(),
+            pageResolvedId: String(window.FolderViewPlusFolderEditorResolvedId || '').trim(),
+            queryType: String(folderEditorQueryParams.get('type') || folderEditorQueryParams.get('mode') || '').trim(),
+            queryId: String(folderEditorQueryParams.get('id') || folderEditorQueryParams.get('folderId') || folderEditorQueryParams.get('folder') || folderEditorQueryParams.get('name') || '').trim(),
+            hashType: String(folderEditorHashParams.get('type') || folderEditorHashParams.get('mode') || '').trim(),
+            hashId: String(folderEditorHashParams.get('id') || folderEditorHashParams.get('folderId') || folderEditorHashParams.get('folder') || folderEditorHashParams.get('name') || '').trim(),
+            storageSeed: summarizeFolderEditorSeed(folderEditorStorageBootstrap),
+            windowNameSeed: summarizeFolderEditorSeed(folderEditorWindowNameBootstrap),
+            cookieSeed: summarizeFolderEditorSeed(folderEditorCookieBootstrap),
+            ...details
+        }));
+    } catch (_error) {
+        // Bootstrap diagnostics are best-effort only.
+    }
+};
 const setBootstrapDiagnostics = (details = {}) => {
+    recordFolderEditorBootstrapDebug({
+        result: String(details.result || '').trim(),
+        mode: String(details.mode || 'boot').trim(),
+        requestedRef: String(details.requestedRef || '').trim(),
+        requestedRefs: Array.isArray(details.requestedFolderRefs) ? details.requestedFolderRefs : [],
+        effectiveFolderId: String(details.effectiveFolderId || '').trim(),
+        preferredNavigationRef: String(details.preferredNavigationRef || '').trim(),
+        navigationPrefillId: String(details.navigationPrefillId || '').trim(),
+        navigationPrefillHasFolder: details.navigationPrefillHasFolder === 'yes' || details.navigationPrefillHasFolder === true,
+        foldersLoaded: String(details.foldersLoaded || '0'),
+        membersLoaded: String(details.membersLoaded || '0'),
+        resolvedBy: String(details.resolvedBy || '').trim(),
+        routeTargetRecovered: details.routeTargetRecovered === true,
+        routeTargetMismatch: details.routeTargetMismatch === true
+    });
     const debug = $('#fvEditorBootstrapDebug');
     if (!debug.length) {
         return;
@@ -5156,10 +5217,14 @@ const startFolderEditorRuntime = async () => {
             setBootstrapDiagnostics({
                 mode: 'hydrate',
                 requestedRef: requestedFolderRef,
+                requestedFolderRefs,
                 navigationPrefillId: String(navigationPrefill?.id || '(empty)'),
                 navigationPrefillHasFolder: navigationPrefill?.folder ? 'yes' : 'no',
                 foldersLoaded: String(folderCount),
-                result: 'missing-target'
+                result: 'missing-target',
+                effectiveFolderId: '',
+                routeTargetRecovered: false,
+                routeTargetMismatch: false
             });
             folderHierarchyState.currentFolderDescendantIds = new Set();
             populateParentFolderOptions(folders, '', new Set());
@@ -5182,12 +5247,16 @@ const startFolderEditorRuntime = async () => {
         setBootstrapDiagnostics({
             mode: 'hydrate',
             requestedRef: requestedFolderRef,
+            requestedFolderRefs,
             resolvedId: currentEditFolderId,
             navigationPrefillId: String(navigationPrefill?.id || '(empty)'),
             navigationPrefillHasFolder: navigationPrefill?.folder ? 'yes' : 'no',
             foldersLoaded: String(folderCount),
             resolvedBy: String(resolvedEditFolder?.resolvedBy || (bootstrapFolderRecord ? 'server-bootstrap-folder' : navigationPrefill?.folder ? 'navigation-folder' : folderEditorResolvedId ? 'server-resolved-id' : '(none)')),
-            result: 'hydrated'
+            result: 'hydrated',
+            effectiveFolderId: currentEditFolderId,
+            routeTargetRecovered: !folderId && Boolean(currentEditFolderId),
+            routeTargetMismatch: Boolean(folderId && currentEditFolderId && folderId !== currentEditFolderId)
         });
         }
     } else {
@@ -5198,10 +5267,14 @@ const startFolderEditorRuntime = async () => {
         );
         setBootstrapDiagnostics({
             mode: 'hydrate',
+            requestedFolderRefs,
             navigationPrefillId: String(navigationPrefill?.id || '(empty)'),
             navigationPrefillHasFolder: navigationPrefill?.folder ? 'yes' : 'no',
             foldersLoaded: String(folderCount),
-            result: 'no-target'
+            result: 'no-target',
+            effectiveFolderId: '',
+            routeTargetRecovered: false,
+            routeTargetMismatch: false
         });
         clearEditorNavigationPrefill();
         folderHierarchyState.currentFolderDescendantIds = new Set();
@@ -5240,6 +5313,7 @@ const startFolderEditorRuntime = async () => {
     setBootstrapDiagnostics({
         mode: 'post-read-info',
         requestedRef: requestedFolderRef,
+        requestedFolderRefs,
         resolvedId: currentEditFolderId,
         navigationPrefillId: String(navigationPrefill?.id || '(empty)'),
         navigationPrefillHasFolder: navigationPrefill?.folder ? 'yes' : 'no',
@@ -5251,7 +5325,10 @@ const startFolderEditorRuntime = async () => {
                 || (bootstrapFolderRecord ? 'server-bootstrap-folder' : navigationPrefill?.folder ? 'navigation-folder' : folderEditorResolvedId ? 'server-resolved-id' : '(none)')
             )
             : '(none)',
-        result: currentEditFolderId ? 'post-read-info-ready' : 'post-read-info-no-target'
+        result: currentEditFolderId ? 'post-read-info-ready' : 'post-read-info-no-target',
+        effectiveFolderId: currentEditFolderId,
+        routeTargetRecovered: !folderId && Boolean(currentEditFolderId),
+        routeTargetMismatch: Boolean(folderId && currentEditFolderId && folderId !== currentEditFolderId)
     });
     window.FolderViewPlusFolderEditorRuntimeBootStage = 'runtime-ready';
 

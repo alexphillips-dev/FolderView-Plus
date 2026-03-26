@@ -18,12 +18,16 @@ test('folder editor runtimes accept query and hash bootstrap identity fallbacks'
     assert.match(folderJs, /const readFolderEditorBootstrapSeed = \(\) =>/);
     assert.match(folderJs, /const readWindowNameFolderEditorBootstrapSeed = \(\) =>/);
     assert.match(folderJs, /const readCookieFolderEditorBootstrapSeed = \(\) =>/);
+    assert.match(folderJs, /const EDITOR_DEBUG_BOOTSTRAP_STORAGE_KEY = 'fv\.folder\.editor\.debug\.bootstrap\.v1';/);
+    assert.match(folderJs, /const recordFolderEditorBootstrapDebug = \(details = \{\}\) =>/);
     assert.match(folderJs, /const buildFolderEditorRefCandidates = \(\.\.\.values\) => Array\.from\(new Set/);
     assert.match(folderJs, /folderEditorBootstrapSeed\?\.type/);
     assert.match(folderJs, /folderEditorBootstrapSeed\?\.id/);
     assert.match(folderJs, /folderEditorBootstrapSeed\?\.folder/);
     assert.match(folderJs, /const folderEditorCookieBootstrap = readCookieFolderEditorBootstrapSeed\(\);/);
     assert.match(folderJs, /const folderEditorBootstrapSeed = folderEditorWindowNameBootstrap \|\| folderEditorStorageBootstrap \|\| folderEditorCookieBootstrap;/);
+    assert.match(folderJs, /routeTargetRecovered: details\.routeTargetRecovered === true,/);
+    assert.match(folderJs, /routeTargetMismatch: details\.routeTargetMismatch === true/);
     assert.match(folderJs, /const folderEditorHashParams = new URLSearchParams/);
     assert.match(folderJs, /const normalizedExpectedType = String\(expectedType \|\| ''\)\.trim\(\);/);
     assert.match(folderJs, /if \(normalizedExpectedType && normalizedType !== normalizedExpectedType\) \{/);
@@ -53,6 +57,8 @@ test('folder editor runtimes accept query and hash bootstrap identity fallbacks'
     assert.match(folderLegacyJs, /const readFolderEditorBootstrapSeed = \(\) =>/);
     assert.match(folderLegacyJs, /const readWindowNameFolderEditorBootstrapSeed = \(\) =>/);
     assert.match(folderLegacyJs, /const readCookieFolderEditorBootstrapSeed = \(\) =>/);
+    assert.match(folderLegacyJs, /const EDITOR_DEBUG_BOOTSTRAP_STORAGE_KEY = 'fv\.folder\.editor\.debug\.bootstrap\.v1';/);
+    assert.match(folderLegacyJs, /const recordFolderEditorBootstrapDebug = \(details = \{\}\) =>/);
     assert.match(folderLegacyJs, /const buildFolderEditorRefCandidates = \(\.\.\.values\) => Array\.from\(new Set/);
     assert.match(folderLegacyJs, /folderEditorBootstrapSeed\?\.type/);
     assert.match(folderLegacyJs, /folderEditorBootstrapSeed\?\.id/);
@@ -82,6 +88,8 @@ test('folder editor runtimes accept query and hash bootstrap identity fallbacks'
     assert.match(folderLegacyJs, /const latestPrefill = readEditorNavigationPrefill\(type,\s*''\)\s*\|\|\s*readEditorNavigationPrefill\('',\s*''\)\s*\|\|\s*folderEditorCookieBootstrap;/);
     assert.match(folderLegacyJs, /const nextType = String\(type \|\| latestPrefill\?\.type \|\| folderEditorCookieBootstrap\?\.type \|\| ''\)\.trim\(\);/);
     assert.match(folderLegacyJs, /window\.location\.replace\(nextUrl\);/);
+    assert.match(folderLegacyJs, /routeTargetRecovered: !folderId && Boolean\(currentEditFolderId\),/);
+    assert.match(folderLegacyJs, /routeTargetMismatch: Boolean\(folderId && currentEditFolderId && folderId !== currentEditFolderId\)/);
     assert.match(folderLegacyJs, /const requestedFolderRefs = buildFolderEditorRefCandidates\(/);
     assert.match(folderLegacyJs, /for \(const candidateRef of requestedFolderRefs\) \{/);
     assert.match(folderLegacyJs, /currentEditFolderId = String\(\s*resolvedEditFolder\?\.id[\s\S]*\|\| bootstrapFolderId/);
@@ -103,12 +111,17 @@ test('folder editor runtimes accept query and hash bootstrap identity fallbacks'
 test('folder editor URLs duplicate folder identity into the hash for navigation-safe fallback', () => {
     assert.match(dockerJs, /const EDITOR_WINDOW_NAME_PREFIX = 'fv\.folder\.editor\.v1:'/);
     assert.match(dockerJs, /const EDITOR_BOOTSTRAP_COOKIE_NAME = 'fv_folder_editor_bootstrap';/);
+    assert.match(dockerJs, /const EDITOR_DEBUG_LAUNCH_STORAGE_KEY = 'fv\.folder\.editor\.debug\.launch\.v1';/);
+    assert.match(dockerJs, /const recordFolderEditorLaunchDebug = \(sourcePage, folderType, id, targetUrl\) =>/);
     assert.match(dockerJs, /window\.name = `\$\{EDITOR_WINDOW_NAME_PREFIX\}\$\{payload\}`;/);
     assert.match(vmJs, /const EDITOR_WINDOW_NAME_PREFIX = 'fv\.folder\.editor\.v1:'/);
     assert.match(vmJs, /const EDITOR_BOOTSTRAP_COOKIE_NAME = 'fv_folder_editor_bootstrap';/);
+    assert.match(vmJs, /const EDITOR_DEBUG_LAUNCH_STORAGE_KEY = 'fv\.folder\.editor\.debug\.launch\.v1';/);
+    assert.match(vmJs, /const recordFolderEditorLaunchDebug = \(sourcePage, folderType, id, targetUrl\) =>/);
     assert.match(vmJs, /window\.name = `\$\{EDITOR_WINDOW_NAME_PREFIX\}\$\{payload\}`;/);
     assert.match(dashboardJs, /const EDITOR_WINDOW_NAME_PREFIX = 'fv\.folder\.editor\.v1:'/);
     assert.match(dashboardJs, /const EDITOR_BOOTSTRAP_COOKIE_NAME = 'fv_folder_editor_bootstrap';/);
+    assert.match(dashboardJs, /const EDITOR_DEBUG_LAUNCH_STORAGE_KEY = 'fv\.folder\.editor\.debug\.launch\.v1';/);
     assert.match(dashboardJs, /window\.name = `\$\{EDITOR_WINDOW_NAME_PREFIX\}\$\{payload\}`;/);
     assert.match(dockerJs, /return `\/Docker\/Folder\?\$\{params\.toString\(\)\}#\$\{hashParams\.toString\(\)\}`;/);
     assert.match(vmJs, /return `\/VMs\/Folder\?\$\{params\.toString\(\)\}#\$\{hashParams\.toString\(\)\}`;/);

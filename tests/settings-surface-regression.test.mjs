@@ -24,11 +24,18 @@ test('settings page loads smart-detect config before starter templates and diagn
 
 test('settings diagnostics exports client perf and theme telemetry helpers', () => {
     assert.match(diagnosticsJs, /const collectClientPerformanceTelemetry = \(\) =>/);
+    assert.match(diagnosticsJs, /const collectFolderEditorDebugDiagnostics = \(\) =>/);
+    assert.match(diagnosticsJs, /const renderFolderEditorDebugDiagnostics = \(\) =>/);
+    assert.match(diagnosticsJs, /const copyFolderEditorDebugDiagnostics = async \(\) =>/);
     assert.match(diagnosticsJs, /const renderPerformanceDiagnostics = \(\) =>/);
     assert.match(diagnosticsJs, /const collectThemeDiagnostics = \(\) =>/);
     assert.match(diagnosticsJs, /const runThemeDiagnostics = \(\) =>/);
+    assert.match(settingsPage, /id="folder-editor-diagnostics-output"/);
+    assert.match(settingsPage, /renderFolderEditorDebugDiagnostics\(\)/);
+    assert.match(settingsPage, /copyFolderEditorDebugDiagnostics\(\)/);
     assert.match(diagnosticsJs, /window\.FolderViewPlusDiagnostics = Object\.freeze\(\{/);
     assert.match(diagnosticsJs, /collectClientPerformanceTelemetry/);
+    assert.match(diagnosticsJs, /collectFolderEditorDebugDiagnostics/);
     assert.match(diagnosticsJs, /runThemeSelfHeal/);
 });
 

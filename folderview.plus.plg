@@ -6,12 +6,24 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.33">
-<!ENTITY md5 "d66b6e7007188921b61dff0b86a0e2be">
+<!ENTITY version "2026.03.26.35">
+<!ENTITY md5 "995711873198ef13f57f039308cd365a">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.35
+- Fix: Added a Folder Editor Diagnostics panel to Settings so this browser now shows the last folder-editor launch target beside the last modern or legacy editor bootstrap result.
+- Fix: Docker, VMs, and Dashboard edit actions now persist launcher telemetry, while both folder-editor runtimes persist bootstrap telemetry, making route-target mismatches and recovery paths visible instead of silent.
+- Quality: Extended diagnostics exports, support bundles, and route or dashboard regression guards so future legacy editor failures leave a copyable troubleshooting trail.
+
+
+###2026.03.26.34
+- Fix: Added a Folder Editor Diagnostics panel to the Settings page so this browser now shows the last folder-editor launch request and the last editor bootstrap result side by side.
+- Fix: Docker, VMs, and Dashboard folder edit actions now record launch telemetry, and both the modern and legacy editors record bootstrap telemetry, making route-target mismatches visible instead of silent.
+- Quality: Added diagnostics export/support-bundle coverage plus route and dashboard regression guards so folder-editor troubleshooting data stays available in future dev builds.
+
 
 ###2026.03.26.33
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

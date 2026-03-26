@@ -10,6 +10,7 @@ const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
 const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv.folder.editor.prefill.persist.v1';
 const EDITOR_WINDOW_NAME_PREFIX = 'fv.folder.editor.v1:';
 const EDITOR_BOOTSTRAP_COOKIE_NAME = 'fv_folder_editor_bootstrap';
+const EDITOR_DEBUG_BOOTSTRAP_STORAGE_KEY = 'fv.folder.editor.debug.bootstrap.v1';
 const readCookieFolderEditorBootstrapSeed = () => {
     try {
         const cookieSource = String(document.cookie || '');
@@ -159,6 +160,51 @@ const buildFolderEditorRefCandidates = (...values) => Array.from(new Set(
         .map((value) => String(value || '').trim())
         .filter(Boolean)
 ));
+const summarizeFolderEditorSeed = (seed) => {
+    if (!seed || typeof seed !== 'object') {
+        return null;
+    }
+    const safeType = String(seed.type || '').trim();
+    const safeId = String(seed.id || '').trim();
+    if (!safeType && !safeId) {
+        return null;
+    }
+    return {
+        type: safeType,
+        id: safeId,
+        hasFolder: Boolean(seed.folder && typeof seed.folder === 'object')
+    };
+};
+const recordFolderEditorBootstrapDebug = (details = {}) => {
+    try {
+        if (typeof localStorage === 'undefined') {
+            return;
+        }
+        localStorage.setItem(EDITOR_DEBUG_BOOTSTRAP_STORAGE_KEY, JSON.stringify({
+            storedAt: new Date().toISOString(),
+            runtime: 'legacy',
+            pageUrl: String(window.location?.href || ''),
+            pagePath: String(window.location?.pathname || ''),
+            pageMode: String(window.FolderViewPlusFolderEditorPageMode || '').trim(),
+            pageType: String(window.FolderViewPlusFolderEditorPageType || '').trim(),
+            routeType: String(type || '').trim(),
+            routeFolderId: String(folderId || '').trim(),
+            resolvedRouteId: String(folderEditorResolvedId || '').trim(),
+            pageRequestedId: String(window.FolderViewPlusFolderEditorRequestedId || '').trim(),
+            pageResolvedId: String(window.FolderViewPlusFolderEditorResolvedId || '').trim(),
+            queryType: String(folderEditorQueryParams.get('type') || folderEditorQueryParams.get('mode') || '').trim(),
+            queryId: String(folderEditorQueryParams.get('id') || folderEditorQueryParams.get('folderId') || folderEditorQueryParams.get('folder') || folderEditorQueryParams.get('name') || '').trim(),
+            hashType: String(folderEditorHashParams.get('type') || folderEditorHashParams.get('mode') || '').trim(),
+            hashId: String(folderEditorHashParams.get('id') || folderEditorHashParams.get('folderId') || folderEditorHashParams.get('folder') || folderEditorHashParams.get('name') || '').trim(),
+            storageSeed: summarizeFolderEditorSeed(folderEditorStorageBootstrap),
+            windowNameSeed: summarizeFolderEditorSeed(folderEditorWindowNameBootstrap),
+            cookieSeed: summarizeFolderEditorSeed(folderEditorCookieBootstrap),
+            ...details
+        }));
+    } catch (_error) {
+        // Bootstrap diagnostics are best-effort only.
+    }
+};
 const setLegacyEditorBannerState = (summaryText, detailsText, state = 'info') => {
     const summary = $('#fvValidationSummary');
     const details = $('#fvValidationDetails');
@@ -5153,6 +5199,19 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
 
     if (currentEditFolder && currentEditFolderId) {
         hydrateCurrentEditFolder(currentEditFolder, currentEditFolderId, folders, { clearPrefill: true });
+        recordFolderEditorBootstrapDebug({
+            result: 'hydrated',
+            effectiveFolderId: currentEditFolderId,
+            requestedRef: requestedFolderRef,
+            requestedRefs: requestedFolderRefs,
+            navigationPrefillId: String(navigationPrefill?.id || '').trim(),
+            navigationPrefillHasFolder: Boolean(navigationPrefill?.folder),
+            resolvedBy: resolvedEditFolder?.resolvedBy || (navigationPrefill?.folder ? 'navigation-prefill' : (bootstrapFolderRecord ? 'bootstrap-context' : 'unknown')),
+            foldersLoaded: String(Object.keys(folders).length),
+            membersLoaded: '0',
+            routeTargetRecovered: !folderId && Boolean(currentEditFolderId),
+            routeTargetMismatch: Boolean(folderId && currentEditFolderId && folderId !== currentEditFolderId)
+        });
     } else {
         const expectedTarget = requestedFolderRef
             ? `Requested folder "${requestedFolderRef}" was not found in the saved folder map or recent editor bootstrap data.`
@@ -5165,6 +5224,19 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
         currentFolderDescendantIds = new Set();
         populateParentFolderOptions(folders, '', new Set());
         setParentDefaultsNote('Select a parent to inherit preview/icon defaults automatically.', 'info');
+        recordFolderEditorBootstrapDebug({
+            result: 'missing-target',
+            effectiveFolderId: '',
+            requestedRef: requestedFolderRef,
+            requestedRefs: requestedFolderRefs,
+            navigationPrefillId: String(navigationPrefill?.id || '').trim(),
+            navigationPrefillHasFolder: Boolean(navigationPrefill?.folder),
+            resolvedBy: '',
+            foldersLoaded: String(Object.keys(folders).length),
+            membersLoaded: '0',
+            routeTargetRecovered: false,
+            routeTargetMismatch: false
+        });
     }
 
     let readInfoResponse = {};
@@ -5197,6 +5269,19 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
                 });
             }
         }
+        recordFolderEditorBootstrapDebug({
+            result: 'members-hydrated',
+            effectiveFolderId: currentEditFolderId,
+            requestedRef: requestedFolderRef,
+            requestedRefs: requestedFolderRefs,
+            navigationPrefillId: String(navigationPrefill?.id || '').trim(),
+            navigationPrefillHasFolder: Boolean(navigationPrefill?.folder),
+            resolvedBy: 'member-selection',
+            foldersLoaded: String(Object.keys(folders).length),
+            membersLoaded: String(selected.length + choose.length),
+            routeTargetRecovered: !folderId && Boolean(currentEditFolderId),
+            routeTargetMismatch: Boolean(folderId && currentEditFolderId && folderId !== currentEditFolderId)
+        });
     }
 
     // create the *cool* unraid button for the autostart

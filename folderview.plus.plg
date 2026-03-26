@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.39">
-<!ENTITY md5 "5ae5a2683d6967c8eff3302eabdd2e5e">
+<!ENTITY version "2026.03.26.40">
+<!ENTITY md5 "75ffa9ca94a0059ceaff3b2f2d7196f4">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.40
+- Fix: Folder.page now renders a dedicated top-of-page folder editor bootstrap diagnostics banner, so legacy startup failures can still be copied even when the legacy chrome never initializes.
+- UX: Legacy editor bootstrap state now mirrors into the page-level diagnostics banner, including copyable launch-vs-bootstrap details for missing edit-target reports.
+
 
 ###2026.03.26.39
 - Fix: Legacy folder editor now shows a real top bootstrap diagnostics banner with copyable debug output when edit-target bootstrap fails or the runtime hits an early error.

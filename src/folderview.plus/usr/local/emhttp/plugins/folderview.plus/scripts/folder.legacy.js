@@ -232,6 +232,9 @@ const formatFolderEditorSeedSummary = (seed) => {
     const hasFolder = seed.folder && typeof seed.folder === 'object' ? 'yes' : 'no';
     return `type=${seedType};id=${seedId};folder=${hasFolder}`;
 };
+const pageReportFolderEditorBootstrap = typeof window.FolderViewPlusReportFolderEditorBootstrap === 'function'
+    ? window.FolderViewPlusReportFolderEditorBootstrap.bind(window)
+    : null;
 const legacyEditorBootstrapSurfaceState = {
     summary: 'Legacy editor shell loaded.',
     details: 'Core layout is ready. Runtime data and live controls will continue hydrating.',
@@ -261,6 +264,15 @@ const applyLegacyEditorBootstrapSurfaceState = () => {
     }
     if (disclosure.length && (legacyEditorBootstrapSurfaceState.tone === 'warning' || legacyEditorBootstrapSurfaceState.tone === 'invalid')) {
         disclosure.prop('open', true);
+    }
+    if (typeof pageReportFolderEditorBootstrap === 'function') {
+        pageReportFolderEditorBootstrap({
+            summary: legacyEditorBootstrapSurfaceState.summary,
+            details: legacyEditorBootstrapSurfaceState.details,
+            debug: legacyEditorBootstrapSurfaceState.debug,
+            tone: legacyEditorBootstrapSurfaceState.tone,
+            stage: String(window.FolderViewPlusFolderEditorRuntimeBootStage || '')
+        });
     }
 };
 const setLegacyEditorBannerState = (summaryText, detailsText, state = 'info') => {

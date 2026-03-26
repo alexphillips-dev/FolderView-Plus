@@ -44,6 +44,25 @@
     backdrop-filter: blur(10px);
 }
 
+.fv-folder-editor-bootstrap-banner[hidden] {
+    display: none !important;
+}
+
+.fv-folder-editor-bootstrap-banner {
+    margin: 0 1em 1em;
+    padding: 0.95em 1em;
+    border: 1px solid var(--fv-editor-border-strong);
+    border-radius: 14px;
+    background: var(--fv-editor-panel);
+    box-shadow: var(--fv-editor-shadow);
+}
+
+.fv-folder-editor-bootstrap-banner > .fv-editor-status-row {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+}
+
 .fv-editor-hero {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;

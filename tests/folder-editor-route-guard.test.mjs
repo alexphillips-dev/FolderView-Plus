@@ -54,6 +54,14 @@ test('folder editor runtimes accept query and hash bootstrap identity fallbacks'
     assert.match(folderPage, /\$_COOKIE\['fv_folder_editor_bootstrap'\]/);
     assert.match(folderPage, /\$folderEditorCookieType = trim/);
     assert.match(folderPage, /\$folderEditorCookieId = trim/);
+    assert.match(folderPage, /win\.FolderViewPlusCopyFolderEditorBootstrapDiagnostics = async function copyFolderEditorBootstrapDiagnostics\(\)/);
+    assert.match(folderPage, /win\.FolderViewPlusReportFolderEditorBootstrap = function reportFolderEditorBootstrap\(\{/);
+    assert.match(folderPage, /id="fvFolderEditorBootstrapBanner"/);
+    assert.match(folderPage, /id="fvFolderEditorBootstrapSummary"/);
+    assert.match(folderPage, /id="fvFolderEditorBootstrapDetailsText"/);
+    assert.match(folderPage, /id="fvFolderEditorBootstrapDebug"/);
+    assert.match(folderPage, /id="fvFolderEditorBootstrapCopy"/);
+    assert.match(folderPage, /id="fvFolderEditorBootstrapDisclosure"/);
     assert.match(folderLegacyJs, /const readFolderEditorBootstrapSeed = \(\) =>/);
     assert.match(folderLegacyJs, /const readWindowNameFolderEditorBootstrapSeed = \(\) =>/);
     assert.match(folderLegacyJs, /const readCookieFolderEditorBootstrapSeed = \(\) =>/);
@@ -71,6 +79,7 @@ test('folder editor runtimes accept query and hash bootstrap identity fallbacks'
     assert.match(folderLegacyJs, /window\.FolderViewPlusReportFolderEditorBootstrap = \(\{/);
     assert.match(folderLegacyJs, /window\.addEventListener\('error', \(event\) => \{/);
     assert.match(folderLegacyJs, /window\.addEventListener\('unhandledrejection', \(event\) => \{/);
+    assert.match(folderLegacyJs, /const pageReportFolderEditorBootstrap = typeof window\.FolderViewPlusReportFolderEditorBootstrap === 'function'/);
     assert.match(folderLegacyJs, /folderEditorWindowNameBootstrap/);
     assert.match(folderLegacyJs, /const folderEditorCookieBootstrap = readCookieFolderEditorBootstrapSeed\(\);/);
     assert.match(folderLegacyJs, /folderEditorBootstrapSeed = folderEditorWindowNameBootstrap \|\| folderEditorStorageBootstrap \|\| folderEditorCookieBootstrap/);

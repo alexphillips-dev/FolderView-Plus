@@ -149,6 +149,145 @@ try {
     })(window.FolderViewPlusHostThemeName);
 </script>
 <script>
+    (function bootstrapFolderEditorDiagnosticsSurface(win, doc) {
+        const bannerState = {
+            summary: 'Folder editor bootstrap diagnostics are idle.',
+            details: 'No startup issues have been reported yet.',
+            debug: 'Bootstrap: waiting for folder editor runtime.',
+            tone: 'info'
+        };
+        const buildDiagnosticsText = () => [
+            'FolderView Plus Folder Editor Bootstrap Diagnostics',
+            `summary: ${String(bannerState.summary || '(empty)')}`,
+            `details: ${String(bannerState.details || '(empty)')}`,
+            `severity: ${String(bannerState.tone || '(empty)')}`,
+            '',
+            '[environment]',
+            `pageMode: ${String(win.FolderViewPlusFolderEditorPageMode || '(empty)')}`,
+            `pageType: ${String(win.FolderViewPlusFolderEditorPageType || '(empty)')}`,
+            `requestedId: ${String(win.FolderViewPlusFolderEditorRequestedId || '(empty)')}`,
+            `resolvedId: ${String(win.FolderViewPlusFolderEditorResolvedId || '(empty)')}`,
+            `pluginVersion: ${String(win.FolderViewPlusFolderEditorPageBuildVersion || '(empty)')}`,
+            `runtimeLoaded: ${win.FolderViewPlusFolderEditorRuntimeLoaded === true ? 'yes' : 'no'}`,
+            `runtimeStage: ${String(win.FolderViewPlusFolderEditorRuntimeBootStage || '(empty)')}`,
+            `runtimeState: ${String(win.FolderViewPlusFolderEditorRuntimeScriptState || '(empty)')}`,
+            `runtimeSrc: ${String(win.FolderViewPlusFolderEditorRuntimeScriptSource || '(empty)')}`,
+            `url: ${String(win.location?.href || '(empty)')}`,
+            '',
+            '[debug]',
+            String(bannerState.debug || 'none')
+        ].join('\n');
+        const applySurfaceState = () => {
+            const host = doc.getElementById('fvFolderEditorBootstrapBanner');
+            const summaryNode = doc.getElementById('fvFolderEditorBootstrapSummary');
+            const detailsNode = doc.getElementById('fvFolderEditorBootstrapDetailsText');
+            const debugNode = doc.getElementById('fvFolderEditorBootstrapDebug');
+            const disclosure = doc.getElementById('fvFolderEditorBootstrapDisclosure');
+            if (!host || !summaryNode || !detailsNode || !debugNode || !disclosure) {
+                return;
+            }
+            const className = bannerState.tone === 'invalid'
+                ? 'invalid'
+                : bannerState.tone === 'warning'
+                    ? 'warning'
+                    : bannerState.tone === 'ready'
+                        ? 'ready'
+                        : 'info';
+            [summaryNode, detailsNode].forEach((node) => {
+                node.classList.remove('invalid', 'warning', 'info', 'ready');
+                node.classList.add(className);
+            });
+            summaryNode.textContent = String(bannerState.summary || '');
+            detailsNode.textContent = String(bannerState.details || '');
+            debugNode.textContent = String(bannerState.debug || '');
+            const shouldShow = bannerState.tone === 'invalid' || bannerState.tone === 'warning';
+            host.hidden = !shouldShow;
+            if (shouldShow) {
+                disclosure.open = true;
+            }
+        };
+        const syncSurfaceState = () => {
+            if (doc.readyState === 'loading') {
+                doc.addEventListener('DOMContentLoaded', applySurfaceState, { once: true });
+            } else {
+                applySurfaceState();
+            }
+        };
+        win.FolderViewPlusCopyFolderEditorBootstrapDiagnostics = async function copyFolderEditorBootstrapDiagnostics() {
+            const text = buildDiagnosticsText();
+            try {
+                if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                    await navigator.clipboard.writeText(text);
+                } else {
+                    const textarea = doc.createElement('textarea');
+                    textarea.value = text;
+                    textarea.style.position = 'fixed';
+                    textarea.style.opacity = '0';
+                    doc.body.appendChild(textarea);
+                    textarea.select();
+                    doc.execCommand('copy');
+                    doc.body.removeChild(textarea);
+                }
+                const button = doc.getElementById('fvFolderEditorBootstrapCopy');
+                if (button) {
+                    const originalHtml = button.getAttribute('data-default-html') || button.innerHTML;
+                    button.setAttribute('data-default-html', originalHtml);
+                    button.textContent = 'Copied';
+                    win.setTimeout(() => {
+                        button.innerHTML = originalHtml;
+                    }, 1400);
+                }
+            } catch (_error) {
+                const button = doc.getElementById('fvFolderEditorBootstrapCopy');
+                if (button) {
+                    const originalHtml = button.getAttribute('data-default-html') || button.innerHTML;
+                    button.setAttribute('data-default-html', originalHtml);
+                    button.textContent = 'Copy failed';
+                    win.setTimeout(() => {
+                        button.innerHTML = originalHtml;
+                    }, 1800);
+                }
+            }
+        };
+        win.FolderViewPlusReportFolderEditorBootstrap = function reportFolderEditorBootstrap({
+            summary = '',
+            details = '',
+            debug = '',
+            tone = 'warning',
+            stage = ''
+        } = {}) {
+            if (summary) {
+                bannerState.summary = String(summary);
+            }
+            if (details) {
+                bannerState.details = String(details);
+            }
+            if (debug) {
+                bannerState.debug = String(debug);
+            }
+            bannerState.tone = tone === 'invalid'
+                ? 'invalid'
+                : tone === 'warning'
+                    ? 'warning'
+                    : tone === 'ready'
+                        ? 'ready'
+                        : 'info';
+            if (stage) {
+                win.FolderViewPlusFolderEditorRuntimeBootStage = String(stage);
+            }
+            syncSurfaceState();
+        };
+        doc.addEventListener('click', (event) => {
+            const target = event.target instanceof Element ? event.target.closest('#fvFolderEditorBootstrapCopy') : null;
+            if (!target) {
+                return;
+            }
+            event.preventDefault();
+            void win.FolderViewPlusCopyFolderEditorBootstrapDiagnostics();
+        });
+    })(window, document);
+</script>
+<script>
     (function bootFolderEditorRuntimePage(win, doc) {
         const buildVersion = String(win.FolderViewPlusFolderEditorPageBuildVersion || '').trim() || String(Date.now());
         const assetVersion = encodeURIComponent(buildVersion);
@@ -315,6 +454,19 @@ try {
 
 <div class="canvas">
     <form class="folder-editor-form<?php echo $folderEditorPageMode === 'modern' ? ' fv-modern-editor-booting' : ''; ?>" data-fv-page-mode="<?php echo htmlspecialchars($folderEditorPageMode, ENT_QUOTES); ?>" onsubmit="submitForm(this, false); return false">
+        <div id="fvFolderEditorBootstrapBanner" class="fv-folder-editor-bootstrap-banner" hidden>
+            <div class="fv-editor-status-row">
+                <span id="fvFolderEditorBootstrapSummary" class="fv-validation-summary warning">Folder editor runtime reported a startup problem.</span>
+                <pre id="fvFolderEditorBootstrapDetailsText" class="fv-validation-details warning">Copy the diagnostics below if the folder editor failed to open the requested folder.</pre>
+                <div class="fv-editor-status-tools">
+                    <button type="button" id="fvFolderEditorBootstrapCopy" class="fv-section-tool" data-default-html="<i class=&quot;fa fa-clipboard&quot; aria-hidden=&quot;true&quot;></i> Copy diagnostics"><i class="fa fa-clipboard" aria-hidden="true"></i> Copy diagnostics</button>
+                </div>
+                <details id="fvFolderEditorBootstrapDisclosure" class="fv-editor-bootstrap-disclosure">
+                    <summary class="fv-editor-bootstrap-summary">Bootstrap diagnostics</summary>
+                    <pre id="fvFolderEditorBootstrapDebug" class="fv-editor-bootstrap-debug">Bootstrap: waiting for folder editor runtime.</pre>
+                </details>
+            </div>
+        </div>
         <?php if ($folderEditorPageMode === 'modern'): ?>
         <div id="fvModernEditorStage" class="fv-modern-editor-stage is-pending" aria-live="polite">
             <div id="fvEditorBootPlaceholder" class="fv-editor-boot-placeholder">

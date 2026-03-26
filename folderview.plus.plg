@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.15">
-<!ENTITY md5 "bd3b99bcc369e079d39a30ba2f66c41d">
+<!ENTITY version "2026.03.26.16">
+<!ENTITY md5 "86c835b13b5594c012127dc43dbedb43">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.16
+- Fix: The shared theme resolver no longer hard-forces the Unraid Azure host theme into the dark compatibility path, so the new folder editor now follows the actual page luminance instead of rendering a mismatched dark shell on Azure.
+- Fix: Azure and other non-black named host themes now fall back to computed surface brightness for folder editor theme classification, keeping light host pages on the light editor palette.
+- Regression guard: Updated the resolver contract test so only explicit black themes are pinned dark while transparent-surface and light-host inference stays enforced.
+
 
 ###2026.03.26.15
 - UI/UX: Removed the boxed square chrome from the row action buttons in the basic settings tables so the standard actions render as clean orange icons instead of outlined mini-buttons.

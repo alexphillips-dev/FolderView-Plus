@@ -102,11 +102,12 @@ test('theme resolver exports settings semantic tokens for readable light and dar
     assert.match(themeResolverJs, /'--fvplus-settings-chip-empty-bg':\s*tokens\.settingsChipEmptyBg \|\| ''/);
 });
 
-test('theme resolver ignores transparent surfaces and does not hard-force grey host themes dark', () => {
+test('theme resolver ignores transparent surfaces and only hard-forces explicit black host themes dark', () => {
     assert.match(themeResolverJs, /const isThemeSurfaceColorUsable = \(color, minAlpha = 0\.08\) =>/);
     assert.match(themeResolverJs, /const resolveThemeSurfaceColor = \(\.\.\.candidates\) =>/);
     assert.match(themeResolverJs, /const rootBackground = resolveThemeSurfaceColor\(\s*parseThemeColorToRgba\(rootStyle\?\.backgroundColor\),\s*parseThemeColorToRgba\(bodyStyle\?\.backgroundColor\),\s*parseThemeColorToRgba\(htmlStyle\?\.backgroundColor\),\s*parseThemeColorToRgba\('#0f1825'\)\s*\)/);
-    assert.match(themeResolverJs, /if \(normalized\.includes\('black'\) \|\| normalized\.includes\('azure'\)\) \{/);
+    assert.match(themeResolverJs, /if \(normalized\.includes\('black'\)\) \{/);
+    assert.doesNotMatch(themeResolverJs, /normalized\.includes\('azure'\)/);
     assert.doesNotMatch(themeResolverJs, /normalized\.includes\('gray'\)/);
     assert.doesNotMatch(themeResolverJs, /normalized\.includes\('grey'\)/);
 });

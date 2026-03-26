@@ -423,7 +423,7 @@
         if (normalized.includes('white') || normalized.includes('light')) {
             return 'light';
         }
-        if (normalized.includes('black') || normalized.includes('azure')) {
+        if (normalized.includes('black')) {
             return 'dark';
         }
         return '';

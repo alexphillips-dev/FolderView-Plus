@@ -1,5 +1,7 @@
 ﻿// list of element to select
 (function fvplusLegacyFolderEditorRuntimeScope(window, $) {
+window.FolderViewPlusFolderEditorRuntimeLoaded = true;
+window.FolderViewPlusFolderEditorRuntimeBootStage = 'script-evaluated';
 let choose = [];
 // element selected by the regex string
 let selectedRegex = [];
@@ -10,6 +12,7 @@ const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
 const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv.folder.editor.prefill.persist.v1';
 const EDITOR_WINDOW_NAME_PREFIX = 'fv.folder.editor.v1:';
 const EDITOR_BOOTSTRAP_COOKIE_NAME = 'fv_folder_editor_bootstrap';
+const EDITOR_DEBUG_LAUNCH_STORAGE_KEY = 'fv.folder.editor.debug.launch.v1';
 const EDITOR_DEBUG_BOOTSTRAP_STORAGE_KEY = 'fv.folder.editor.debug.bootstrap.v1';
 const readCookieFolderEditorBootstrapSeed = () => {
     try {
@@ -205,20 +208,247 @@ const recordFolderEditorBootstrapDebug = (details = {}) => {
         // Bootstrap diagnostics are best-effort only.
     }
 };
-const setLegacyEditorBannerState = (summaryText, detailsText, state = 'info') => {
-    const summary = $('#fvValidationSummary');
-    const details = $('#fvValidationDetails');
-    if (summary.length) {
-        summary.removeClass('invalid warning info ready').addClass(
-            state === 'invalid' ? 'invalid' : state === 'warning' ? 'warning' : 'info'
-        ).text(summaryText);
-    }
-    if (details.length) {
-        details.removeClass('invalid warning info ready').addClass(
-            state === 'invalid' ? 'invalid' : state === 'warning' ? 'warning' : 'info'
-        ).text(detailsText);
+const readFolderEditorDebugStorageRecord = (storageKey) => {
+    try {
+        if (typeof localStorage === 'undefined') {
+            return null;
+        }
+        const raw = String(localStorage.getItem(storageKey) || '').trim();
+        if (!raw) {
+            return null;
+        }
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === 'object' ? parsed : null;
+    } catch (_error) {
+        return null;
     }
 };
+const formatFolderEditorSeedSummary = (seed) => {
+    if (!seed || typeof seed !== 'object') {
+        return '(none)';
+    }
+    const seedType = String(seed.type || '(empty)').trim() || '(empty)';
+    const seedId = String(seed.id || '(empty)').trim() || '(empty)';
+    const hasFolder = seed.folder && typeof seed.folder === 'object' ? 'yes' : 'no';
+    return `type=${seedType};id=${seedId};folder=${hasFolder}`;
+};
+const legacyEditorBootstrapSurfaceState = {
+    summary: 'Legacy editor shell loaded.',
+    details: 'Core layout is ready. Runtime data and live controls will continue hydrating.',
+    debug: 'Bootstrap: waiting for legacy folder editor runtime.',
+    tone: 'ready'
+};
+const applyLegacyEditorBootstrapSurfaceState = () => {
+    const summary = $('#fvValidationSummary');
+    const details = $('#fvValidationDetails');
+    const debug = $('#fvEditorBootstrapDebug');
+    const disclosure = $('#fvEditorBootstrapDetails');
+    const className = legacyEditorBootstrapSurfaceState.tone === 'invalid'
+        ? 'invalid'
+        : legacyEditorBootstrapSurfaceState.tone === 'warning'
+            ? 'warning'
+            : legacyEditorBootstrapSurfaceState.tone === 'info'
+                ? 'info'
+                : 'ready';
+    if (summary.length) {
+        summary.removeClass('invalid warning info ready').addClass(className).text(legacyEditorBootstrapSurfaceState.summary);
+    }
+    if (details.length) {
+        details.removeClass('invalid warning info ready').addClass(className).text(legacyEditorBootstrapSurfaceState.details);
+    }
+    if (debug.length) {
+        debug.text(legacyEditorBootstrapSurfaceState.debug);
+    }
+    if (disclosure.length && (legacyEditorBootstrapSurfaceState.tone === 'warning' || legacyEditorBootstrapSurfaceState.tone === 'invalid')) {
+        disclosure.prop('open', true);
+    }
+};
+const setLegacyEditorBannerState = (summaryText, detailsText, state = 'info') => {
+    legacyEditorBootstrapSurfaceState.summary = String(summaryText || '').trim() || legacyEditorBootstrapSurfaceState.summary;
+    legacyEditorBootstrapSurfaceState.details = String(detailsText || '').trim() || legacyEditorBootstrapSurfaceState.details;
+    legacyEditorBootstrapSurfaceState.tone = state === 'invalid'
+        ? 'invalid'
+        : state === 'warning'
+            ? 'warning'
+            : state === 'info'
+                ? 'info'
+                : 'ready';
+    applyLegacyEditorBootstrapSurfaceState();
+};
+const setLegacyEditorBootstrapDiagnostics = (details = {}) => {
+    recordFolderEditorBootstrapDebug({
+        result: String(details.result || '').trim(),
+        mode: String(details.mode || 'boot').trim(),
+        requestedRef: String(details.requestedRef || '').trim(),
+        requestedRefs: Array.isArray(details.requestedFolderRefs) ? details.requestedFolderRefs : [],
+        effectiveFolderId: String(details.effectiveFolderId || '').trim(),
+        preferredNavigationRef: String(details.preferredNavigationRef || '').trim(),
+        navigationPrefillId: String(details.navigationPrefillId || '').trim(),
+        navigationPrefillHasFolder: details.navigationPrefillHasFolder === 'yes' || details.navigationPrefillHasFolder === true,
+        foldersLoaded: String(details.foldersLoaded || '0'),
+        membersLoaded: String(details.membersLoaded || '0'),
+        resolvedBy: String(details.resolvedBy || '').trim(),
+        routeTargetRecovered: details.routeTargetRecovered === true,
+        routeTargetMismatch: details.routeTargetMismatch === true
+    });
+    const launchRecord = readFolderEditorDebugStorageRecord(EDITOR_DEBUG_LAUNCH_STORAGE_KEY);
+    legacyEditorBootstrapSurfaceState.debug = [
+        `type=${String(details.type || type || '(empty)')}`,
+        `folderId=${String(details.folderId || folderId || '(empty)')}`,
+        `resolvedId=${String(details.resolvedId || folderEditorResolvedId || '(empty)')}`,
+        `requestedRef=${String(details.requestedRef || '(empty)')}`,
+        `pageType=${String(window.FolderViewPlusFolderEditorPageType || '(empty)')}`,
+        `pageMode=${String(window.FolderViewPlusFolderEditorPageMode || '(empty)')}`,
+        `pageRequested=${String(window.FolderViewPlusFolderEditorRequestedId || '(empty)')}`,
+        `pageResolved=${String(window.FolderViewPlusFolderEditorResolvedId || '(empty)')}`,
+        `bootstrapContextResolvedBy=${String(folderEditorBootstrapContext?.resolvedBy || '(none)')}`,
+        `bootstrapContextHasFolder=${folderEditorBootstrapFolder ? 'yes' : 'no'}`,
+        `storageSeed=${folderEditorStorageBootstrap ? 'yes' : 'no'}`,
+        `storageSeedSummary=${String(details.storageSeedSummary || formatFolderEditorSeedSummary(folderEditorStorageBootstrap))}`,
+        `windowNameSeed=${folderEditorWindowNameBootstrap ? 'yes' : 'no'}`,
+        `windowNameSeedSummary=${String(details.windowNameSeedSummary || formatFolderEditorSeedSummary(folderEditorWindowNameBootstrap))}`,
+        `cookieSeed=${String(document.cookie || '').includes(`${EDITOR_BOOTSTRAP_COOKIE_NAME}=`) ? 'yes' : 'no'}`,
+        `cookieSeedSummary=${String(details.cookieSeedSummary || formatFolderEditorSeedSummary(folderEditorCookieBootstrap))}`,
+        `preferredNavigationRef=${String(details.preferredNavigationRef || '(empty)')}`,
+        `navigationPrefillId=${String(details.navigationPrefillId || '(empty)')}`,
+        `navigationPrefillHasFolder=${String(details.navigationPrefillHasFolder || 'no')}`,
+        `foldersLoaded=${String(details.foldersLoaded || '0')}`,
+        `membersLoaded=${String(details.membersLoaded || '0')}`,
+        `resolvedBy=${String(details.resolvedBy || '(none)')}`,
+        `routeTargetRecovered=${details.routeTargetRecovered === true ? 'yes' : 'no'}`,
+        `routeTargetMismatch=${details.routeTargetMismatch === true ? 'yes' : 'no'}`,
+        `launchSource=${String(launchRecord?.sourcePage || '(none)')}`,
+        `launchType=${String(launchRecord?.type || '(empty)')}`,
+        `launchId=${String(launchRecord?.id || '(empty)')}`,
+        `launchTargetUrl=${String(launchRecord?.targetUrl || '(empty)')}`,
+        `hostTheme=${String(window.FolderViewPlusHostThemeName || '(empty)')}`,
+        `htmlTheme=${String(document.documentElement?.getAttribute('data-fvplus-host-theme') || '(empty)')}`,
+        `mode=${String(details.mode || 'boot')}`,
+        `result=${String(details.result || '(pending)')}`
+    ].join('\n');
+    applyLegacyEditorBootstrapSurfaceState();
+};
+const buildLegacyEditorBootstrapDiagnosticsText = () => {
+    const launchRecord = readFolderEditorDebugStorageRecord(EDITOR_DEBUG_LAUNCH_STORAGE_KEY);
+    const bootstrapRecord = readFolderEditorDebugStorageRecord(EDITOR_DEBUG_BOOTSTRAP_STORAGE_KEY);
+    return [
+        'FolderView Plus Legacy Folder Editor Diagnostics',
+        `summary: ${String(legacyEditorBootstrapSurfaceState.summary || '(empty)')}`,
+        `details: ${String(legacyEditorBootstrapSurfaceState.details || '(empty)')}`,
+        `severity: ${String(legacyEditorBootstrapSurfaceState.tone || '(empty)')}`,
+        '',
+        '[environment]',
+        'page: Legacy Folder Editor',
+        `pluginVersion: ${String(window.FolderViewPlusFolderEditorPageBuildVersion || '(empty)')}`,
+        `runtimeStage: ${String(window.FolderViewPlusFolderEditorRuntimeBootStage || '(empty)')}`,
+        `url: ${String(window.location?.href || '(empty)')}`,
+        '',
+        '[debug]',
+        String(legacyEditorBootstrapSurfaceState.debug || 'none'),
+        '',
+        '[launch-record]',
+        launchRecord ? JSON.stringify(launchRecord, null, 2) : 'none',
+        '',
+        '[bootstrap-record]',
+        bootstrapRecord ? JSON.stringify(bootstrapRecord, null, 2) : 'none'
+    ].join('\n');
+};
+const copyLegacyEditorBootstrapDiagnostics = async () => {
+    const text = buildLegacyEditorBootstrapDiagnosticsText();
+    try {
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+            await navigator.clipboard.writeText(text);
+        } else {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+        }
+        const button = $('#fvEditorCopyBootstrapDebug');
+        if (button.length) {
+            const originalHtml = button.attr('data-default-html') || button.html();
+            button.attr('data-default-html', originalHtml).text('Copied');
+            window.setTimeout(() => {
+                button.html(originalHtml);
+            }, 1400);
+        }
+    } catch (_error) {
+        const button = $('#fvEditorCopyBootstrapDebug');
+        if (button.length) {
+            const originalHtml = button.attr('data-default-html') || button.html();
+            button.attr('data-default-html', originalHtml).text('Copy failed');
+            window.setTimeout(() => {
+                button.html(originalHtml);
+            }, 1800);
+        }
+    }
+};
+window.FolderViewPlusReportFolderEditorBootstrap = ({
+    summary = '',
+    details = '',
+    debug = '',
+    tone = 'warning',
+    stage = ''
+} = {}) => {
+    if (stage) {
+        window.FolderViewPlusFolderEditorRuntimeBootStage = String(stage);
+    }
+    if (summary) {
+        legacyEditorBootstrapSurfaceState.summary = String(summary);
+    }
+    if (details) {
+        legacyEditorBootstrapSurfaceState.details = String(details);
+    }
+    if (debug) {
+        legacyEditorBootstrapSurfaceState.debug = String(debug);
+    }
+    legacyEditorBootstrapSurfaceState.tone = tone === 'invalid'
+        ? 'invalid'
+        : tone === 'warning'
+            ? 'warning'
+            : tone === 'info'
+                ? 'info'
+                : 'ready';
+    applyLegacyEditorBootstrapSurfaceState();
+};
+window.addEventListener('error', (event) => {
+    const message = String(event?.error?.message || event?.message || '(unknown error)').trim();
+    window.FolderViewPlusFolderEditorRuntimeLastError = message;
+    window.FolderViewPlusReportFolderEditorBootstrap({
+        summary: 'Legacy folder editor runtime crashed before hydration.',
+        details: 'A script error occurred before the legacy editor could finish booting.',
+        debug: [
+            `pageMode=${String(window.FolderViewPlusFolderEditorPageMode || '(empty)')}`,
+            `stage=${String(window.FolderViewPlusFolderEditorRuntimeBootStage || '(empty)')}`,
+            `error=${message}`,
+            `source=${String(event?.filename || '(unknown)')}`,
+            `line=${String(event?.lineno || 0)}`,
+            `column=${String(event?.colno || 0)}`
+        ].join('\n'),
+        tone: 'invalid',
+        stage: 'runtime-error'
+    });
+});
+window.addEventListener('unhandledrejection', (event) => {
+    const reason = event?.reason;
+    const message = String(reason?.message || reason || '(unknown rejection)').trim();
+    window.FolderViewPlusFolderEditorRuntimeLastError = message;
+    window.FolderViewPlusReportFolderEditorBootstrap({
+        summary: 'Legacy folder editor rejected during bootstrap.',
+        details: 'An async error occurred before the legacy editor could finish loading saved folder data.',
+        debug: [
+            `pageMode=${String(window.FolderViewPlusFolderEditorPageMode || '(empty)')}`,
+            `stage=${String(window.FolderViewPlusFolderEditorRuntimeBootStage || '(empty)')}`,
+            `rejection=${message}`
+        ].join('\n'),
+        tone: 'invalid',
+        stage: 'runtime-rejection'
+    });
+});
 const folderContract = window.FolderViewPlusFolderContract || null;
 const folderEditorShared = window.FolderViewPlusFolderEditorShared || null;
 const folderEditorSchema = window.FolderViewPlusFolderEditorSchema || null;
@@ -4826,8 +5056,15 @@ const initEditorChrome = () => {
                     </div>
                 </div>
                 <div class="fv-editor-status-row">
-                    <span id="fvValidationSummary" class="fv-validation-summary">All checks passed.</span>
-                    <pre id="fvValidationDetails" class="fv-validation-details">No warnings.</pre>
+                    <span id="fvValidationSummary" class="fv-validation-summary ready">Legacy editor shell loaded.</span>
+                    <pre id="fvValidationDetails" class="fv-validation-details ready">Core layout is ready. Runtime data and live controls will continue hydrating.</pre>
+                    <div class="fv-editor-status-tools">
+                        <button type="button" id="fvEditorCopyBootstrapDebug" class="fv-section-tool" data-default-label="Copy diagnostics"><i class="fa fa-clipboard" aria-hidden="true"></i> Copy diagnostics</button>
+                    </div>
+                    <details id="fvEditorBootstrapDetails" class="fv-editor-bootstrap-disclosure">
+                        <summary id="fvEditorBootstrapSummary" class="fv-editor-bootstrap-summary">Bootstrap diagnostics</summary>
+                        <pre id="fvEditorBootstrapDebug" class="fv-editor-bootstrap-debug">Bootstrap: waiting for legacy folder editor runtime.</pre>
+                    </details>
                 </div>
             </div>
             <div id="fvLivePanel" class="fv-live-panel">
@@ -4858,6 +5095,12 @@ const initEditorChrome = () => {
             </div>
         `);
     }
+
+    $('#fvEditorCopyBootstrapDebug').off('click').on('click', () => {
+        copyLegacyEditorBootstrapDiagnostics();
+    });
+    applyLegacyEditorBootstrapSurfaceState();
+    window.FolderViewPlusFolderEditorRuntimeBootStage = 'shell-ready';
 
     if (!$('#fvMemberTools').length) {
         $('.basic.order-section dd').prepend(`
@@ -5199,11 +5442,17 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
 
     if (currentEditFolder && currentEditFolderId) {
         hydrateCurrentEditFolder(currentEditFolder, currentEditFolderId, folders, { clearPrefill: true });
-        recordFolderEditorBootstrapDebug({
+        setLegacyEditorBannerState(
+            'Legacy editor loaded the requested folder.',
+            'Saved folder values are loaded. Member inventory and preview data are still hydrating.',
+            'ready'
+        );
+        setLegacyEditorBootstrapDiagnostics({
             result: 'hydrated',
             effectiveFolderId: currentEditFolderId,
             requestedRef: requestedFolderRef,
-            requestedRefs: requestedFolderRefs,
+            requestedFolderRefs: requestedFolderRefs,
+            preferredNavigationRef,
             navigationPrefillId: String(navigationPrefill?.id || '').trim(),
             navigationPrefillHasFolder: Boolean(navigationPrefill?.folder),
             resolvedBy: resolvedEditFolder?.resolvedBy || (navigationPrefill?.folder ? 'navigation-prefill' : (bootstrapFolderRecord ? 'bootstrap-context' : 'unknown')),
@@ -5224,11 +5473,12 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
         currentFolderDescendantIds = new Set();
         populateParentFolderOptions(folders, '', new Set());
         setParentDefaultsNote('Select a parent to inherit preview/icon defaults automatically.', 'info');
-        recordFolderEditorBootstrapDebug({
+        setLegacyEditorBootstrapDiagnostics({
             result: 'missing-target',
             effectiveFolderId: '',
             requestedRef: requestedFolderRef,
-            requestedRefs: requestedFolderRefs,
+            requestedFolderRefs: requestedFolderRefs,
+            preferredNavigationRef,
             navigationPrefillId: String(navigationPrefill?.id || '').trim(),
             navigationPrefillHasFolder: Boolean(navigationPrefill?.folder),
             resolvedBy: '',
@@ -5269,11 +5519,12 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
                 });
             }
         }
-        recordFolderEditorBootstrapDebug({
+        setLegacyEditorBootstrapDiagnostics({
             result: 'members-hydrated',
             effectiveFolderId: currentEditFolderId,
             requestedRef: requestedFolderRef,
-            requestedRefs: requestedFolderRefs,
+            requestedFolderRefs: requestedFolderRefs,
+            preferredNavigationRef,
             navigationPrefillId: String(navigationPrefill?.id || '').trim(),
             navigationPrefillHasFolder: Boolean(navigationPrefill?.folder),
             resolvedBy: 'member-selection',
@@ -5323,6 +5574,7 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     updateRegexSimulator();
     markCleanState();
     isFormInitialized = true;
+    window.FolderViewPlusFolderEditorRuntimeBootStage = 'runtime-ready';
 
     const form = getForm();
     lastNameRegexSyncValue = String(form?.name?.value || '').trim();

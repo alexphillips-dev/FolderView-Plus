@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.38">
-<!ENTITY md5 "4a419d6e66f36867c0b5f0a1bb10d68f">
+<!ENTITY version "2026.03.26.39">
+<!ENTITY md5 "5ae5a2683d6967c8eff3302eabdd2e5e">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.39
+- Fix: Legacy folder editor now shows a real top bootstrap diagnostics banner with copyable debug output when edit-target bootstrap fails or the runtime hits an early error.
+- UX: Added launch-vs-bootstrap details to the legacy editor banner so missing edit-target reports can be copied directly from the page without going through Settings.
+
 
 ###2026.03.26.38
 - Fix: Restored folder edit clicks on the Docker and VM pages by re-exporting the inline folder-row handlers after the runtime scripts were moved into private scopes.

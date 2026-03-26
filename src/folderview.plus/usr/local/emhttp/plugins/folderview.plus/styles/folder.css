@@ -285,6 +285,13 @@
     border-top: 1px solid var(--fv-editor-control-border);
 }
 
+.fv-editor-status-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45em;
+    align-items: center;
+}
+
 .fv-validation-summary {
     color: var(--fv-editor-info);
     font-size: 1.03rem;

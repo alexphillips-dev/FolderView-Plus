@@ -91,6 +91,12 @@ test('docker runtime consumes shared state store and guarded async action wrappe
     assert.match(dockerJs, /dockerPreviewMemberMenuModule\.createController/);
     assert.match(dockerJs, /const runDockerGuardedAction = async \(actionName, action, context = \{\}\) =>/);
     assert.match(dockerJs, /window\.getDockerRuntimePerfTelemetrySnapshot =/);
+    assert.match(dockerJs, /window\.hideAllTips = hideAllTips;/);
+    assert.match(dockerJs, /window\.addDockerFolderContext = addDockerFolderContext;/);
+    assert.match(dockerJs, /window\.dropDownButton = dropDownButton;/);
+    assert.match(dockerJs, /window\.editFolder = editFolder;/);
+    assert.match(dockerJs, /window\.forceUpdateFolder = forceUpdateFolder;/);
+    assert.match(dockerJs, /window\.updateFolder = updateFolder;/);
     assert.match(dockerJs, /window\.createFolderBtn = createFolderBtn;/);
 });
 

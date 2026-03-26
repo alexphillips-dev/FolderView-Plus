@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.36">
-<!ENTITY md5 "58d9e0609347a1a1304b0f362e125c0d">
+<!ENTITY version "2026.03.26.38">
+<!ENTITY md5 "4a419d6e66f36867c0b5f0a1bb10d68f">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.38
+- Fix: Restored folder edit clicks on the Docker and VM pages by re-exporting the inline folder-row handlers after the runtime scripts were moved into private scopes.
+- Fix: Docker folder rows now expose the required global runtime actions for edit, dropdown, context menu, and update links without reopening the Compose Manager symbol collision.
+- Quality: Added runtime architecture guards so host-page handler exports stay intact while the Docker and VM runtimes remain collision-safe.
 
 ###2026.03.26.36
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

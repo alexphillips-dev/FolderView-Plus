@@ -5784,6 +5784,12 @@ const createFolderBtn = () => {
     clearFolderEditorPrefill();
     location.href = buildDockerFolderEditorUrl();
 };
+window.hideAllTips = hideAllTips;
+window.addDockerFolderContext = addDockerFolderContext;
+window.dropDownButton = dropDownButton;
+window.editFolder = editFolder;
+window.forceUpdateFolder = forceUpdateFolder;
+window.updateFolder = updateFolder;
 window.createFolderBtn = createFolderBtn;
 
 // This is needed because unraid don't like the folder and the number are set incorrectly, this intercept the request and change the numbers to make the order appear right, this is important for the autostart and to draw the folders

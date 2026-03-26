@@ -64,6 +64,9 @@ test('vm runtime consumes shared state/perf/action modules and exposes telemetry
     assert.match(vmJs, /let vmRuntimePerformanceProfile = resolveVmRuntimePerformanceProfile\(/);
     assert.match(vmJs, /window\.getVmRuntimePerfTelemetrySnapshot =/);
     assert.match(vmJs, /window\.getVmRuntimeStateSnapshot =/);
+    assert.match(vmJs, /window\.addVMFolderContext = addVMFolderContext;/);
+    assert.match(vmJs, /window\.dropDownButton = dropDownButton;/);
+    assert.match(vmJs, /window\.editFolder = editFolder;/);
     assert.match(vmJs, /window\.createFolderBtn = createFolderBtn;/);
 });
 

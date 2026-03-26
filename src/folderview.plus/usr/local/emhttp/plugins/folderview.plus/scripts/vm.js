@@ -2882,6 +2882,9 @@ const createFolderBtn = () => {
     clearFolderEditorPrefill();
     location.href = buildVmFolderEditorUrl();
 };
+window.addVMFolderContext = addVMFolderContext;
+window.dropDownButton = dropDownButton;
+window.editFolder = editFolder;
 window.createFolderBtn = createFolderBtn;
 
 

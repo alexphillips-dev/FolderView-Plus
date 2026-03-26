@@ -418,6 +418,8 @@
 
     const buildEditorThemeTokenStrings = (classification, palette) => {
         const isLight = classification === 'light';
+        const editorOutline = themeRgbaToCss(palette.accent, isLight ? 0.24 : 0.22);
+        const editorOutlineStrong = themeRgbaToCss(palette.accent, isLight ? 0.44 : 0.5);
         return {
             editorBg: isLight
                 ? 'linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(244, 248, 252, 0.99))'
@@ -425,8 +427,8 @@
             editorPanel: isLight
                 ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(242, 247, 252, 0.98))'
                 : 'linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.015))',
-            editorBorder: themeRgbaToCss(palette.accent, isLight ? 0.24 : 0.22),
-            editorBorderStrong: themeRgbaToCss(palette.accent, isLight ? 0.44 : 0.5),
+            editorBorder: editorOutline,
+            editorBorderStrong: editorOutlineStrong,
             editorTextPrimary: themeRgbaToCss(palette.textPrimary),
             editorMuted: themeRgbaToCss(palette.textMuted),
             editorDim: themeRgbaToCss(palette.textDim),
@@ -435,11 +437,11 @@
             editorSuccess: isLight ? '#287a43' : '#8ce69b',
             editorWarning: isLight ? '#9a6b00' : '#ffbe76',
             editorDanger: isLight ? '#b63737' : '#ff7f7f',
-            editorHeroIconBorder: isLight ? 'rgba(16, 25, 38, 0.12)' : 'rgba(255, 255, 255, 0.12)',
+            editorHeroIconBorder: editorOutline,
             editorHeroIconBg: isLight
                 ? `radial-gradient(circle at top left, ${themeRgbaToCss(palette.accent, 0.18)}, rgba(255, 255, 255, 0.72))`
                 : `radial-gradient(circle at top left, ${themeRgbaToCss(palette.accent, 0.18)}, rgba(255, 255, 255, 0.03))`,
-            editorControlBorder: isLight ? 'rgba(16, 25, 38, 0.18)' : 'rgba(255, 255, 255, 0.12)',
+            editorControlBorder: editorOutline,
             editorControlSurface: isLight ? 'rgba(255, 255, 255, 0.74)' : 'rgba(255, 255, 255, 0.03)',
             editorControlSurfaceHover: themeRgbaToCss(palette.accent, 0.08),
             editorControlSurfaceActive: themeRgbaToCss(palette.accent, 0.14),

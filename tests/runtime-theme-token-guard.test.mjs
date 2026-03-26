@@ -80,3 +80,12 @@ test('theme-change observers trigger deterministic reflow across runtime and set
     assert.match(diagnosticsJs, /const buildDiagnosticsThemeSnapshot = \(modeInput = null, options = \{\}\) =>/);
     assert.match(diagnosticsJs, /const runThemeSelfHeal = async \(\) =>/);
 });
+
+test('theme resolver keeps folder editor outlines aligned to accent borders', () => {
+    assert.match(themeResolverJs, /const editorOutline = themeRgbaToCss\(palette\.accent,\s*isLight \? 0\.24 : 0\.22\);/);
+    assert.match(themeResolverJs, /const editorOutlineStrong = themeRgbaToCss\(palette\.accent,\s*isLight \? 0\.44 : 0\.5\);/);
+    assert.match(themeResolverJs, /editorBorder:\s*editorOutline,/);
+    assert.match(themeResolverJs, /editorBorderStrong:\s*editorOutlineStrong,/);
+    assert.match(themeResolverJs, /editorHeroIconBorder:\s*editorOutline,/);
+    assert.match(themeResolverJs, /editorControlBorder:\s*editorOutline,/);
+});

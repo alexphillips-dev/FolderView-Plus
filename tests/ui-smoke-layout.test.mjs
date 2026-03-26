@@ -224,8 +224,9 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderCss, /\.fv-legacy-editor-scaffold\[hidden\]\s*\{/);
     assert.match(folderCss, /\.fv-section-nav > button\s*\{[\s\S]*color:\s*var\(--fv-editor-text-primary\);/);
     assert.match(folderCss, /\.fv-editor-mode > button\s*\{[\s\S]*color:\s*var\(--fv-editor-text-primary\);/);
-    assert.match(folderCss, /--fv-editor-block-border:\s*var\(--fvplus-editor-block-border,\s*rgba\(255,\s*255,\s*255,\s*0\.1\)\)/);
-    assert.match(folderCss, /--fv-editor-hero-icon-border:\s*var\(--fvplus-editor-hero-icon-border,\s*var\(--fv-editor-control-border\)\)/);
+    assert.match(folderCss, /--fv-editor-control-border:\s*var\(--fvplus-editor-control-border,\s*var\(--fv-editor-border\)\)/);
+    assert.match(folderCss, /--fv-editor-block-border:\s*var\(--fvplus-editor-block-border,\s*var\(--fv-editor-border\)\)/);
+    assert.match(folderCss, /--fv-editor-hero-icon-border:\s*var\(--fvplus-editor-hero-icon-border,\s*var\(--fv-editor-border\)\)/);
     assert.match(folderCss, /--fv-editor-title-accent:\s*var\(--fvplus-editor-title-accent,\s*#ff9a3c\)/);
     assert.match(folderCss, /--fv-editor-title-accent:\s*var\(--fvplus-editor-title-accent,\s*#be6b18\)/);
     assert.match(folderCss, /#fvEditorActionBar\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fv-editor-control-border:\s*var\(--fv-editor-border\);/);
@@ -238,6 +239,7 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderCss, /\.fv-section-heading-copy > p\s*\{[\s\S]*color:\s*var\(--fv-editor-muted\);/);
     assert.match(folderCss, /\.fv-modern-field-row input\[type="text"\],[\s\S]*background:\s*var\(--fv-editor-input-bg\)/);
     assert.match(folderCss, /\.fv-editor-hero-icon\s*\{[\s\S]*border:\s*1px solid var\(--fv-editor-hero-icon-border\);/);
+    assert.match(folderCss, /\.fv-inherit-btn\.is-inherited,\s*[\s\S]*\.fv-inherit-btn:disabled\s*\{[\s\S]*border:\s*0;[\s\S]*background:\s*transparent;[\s\S]*color:\s*var\(--fv-editor-info\);/);
 });
 
 test('mobile action bar and import progress keep compact viewport guards', () => {
@@ -491,8 +493,10 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderCss, /\.fv-modern-field-row > dl > dd\s*\{[\s\S]*padding-top:\s*0\.08em !important;/);
     assert.match(folderCss, /\.fv-modern-field-row\.is-actions-list-row\s*\{[\s\S]*grid-column:\s*1 \/ -1;[\s\S]*min-height:\s*112px;/);
     assert.match(folderCss, /\.fv-modern-field-row\.is-actions-list-row \.custom-action-wrapper:empty::before/);
-    assert.match(folderCss, /table\.sortable\s*\{[\s\S]*border:\s*1px solid var\(--fv-editor-block-border\);/);
-    assert.match(folderCss, /table\.sortable thead th\s*\{[\s\S]*border-bottom:\s*1px solid var\(--fv-editor-block-border\);/);
+    assert.match(folderCss, /table\.sortable\s*\{[\s\S]*border:\s*1px solid var\(--fv-editor-block-border\);[\s\S]*background:\s*[\s\S]*var\(--fv-editor-panel\)[\s\S]*color:\s*var\(--fv-editor-text-primary\);/);
+    assert.match(folderCss, /table\.sortable thead th\s*\{[\s\S]*background:\s*var\(--fv-editor-control-surface\);[\s\S]*color:\s*var\(--fv-editor-muted\);[\s\S]*border-bottom:\s*1px solid var\(--fv-editor-block-border\);/);
+    assert.match(folderCss, /table\.sortable tbody tr:hover\s*\{[\s\S]*background:\s*var\(--fv-editor-control-surface-hover\);/);
+    assert.match(folderCss, /\.item\s*\{[\s\S]*border-bottom:\s*1px solid var\(--fv-editor-block-border\);/);
     assert.match(folderCss, /\.custom-action-wrapper > div\s*\{[\s\S]*border:\s*1px solid var\(--fv-editor-block-border\);/);
     assert.match(folderCss, /\.fv-section-state-badge\s*\{[\s\S]*border:\s*0;[\s\S]*background:\s*transparent;/);
     assert.match(folderCss, /\.fv-modern-field-row\.is-actions-launch-row > dl > dt\s*\{[\s\S]*display:\s*none;/);

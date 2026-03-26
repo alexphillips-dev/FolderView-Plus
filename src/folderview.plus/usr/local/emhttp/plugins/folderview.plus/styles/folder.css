@@ -14,9 +14,9 @@
     --fv-editor-success: var(--fvplus-editor-success, #8ce69b);
     --fv-editor-warning: var(--fvplus-editor-warning, #ffbe76);
     --fv-editor-danger: var(--fvplus-editor-danger, #ff7f7f);
-    --fv-editor-control-border: var(--fvplus-editor-control-border, rgba(255, 255, 255, 0.12));
-    --fv-editor-block-border: var(--fvplus-editor-block-border, rgba(255, 255, 255, 0.1));
-    --fv-editor-block-border-strong: var(--fvplus-editor-block-border-strong, rgba(255, 255, 255, 0.28));
+    --fv-editor-control-border: var(--fvplus-editor-control-border, var(--fv-editor-border));
+    --fv-editor-block-border: var(--fvplus-editor-block-border, var(--fv-editor-border));
+    --fv-editor-block-border-strong: var(--fvplus-editor-block-border-strong, var(--fv-editor-border-strong));
     --fv-editor-control-surface: var(--fvplus-editor-control-surface, rgba(255, 255, 255, 0.03));
     --fv-editor-control-surface-hover: var(--fvplus-editor-control-surface-hover, rgba(255, 154, 60, 0.08));
     --fv-editor-control-surface-active: var(--fvplus-editor-control-surface-active, rgba(255, 140, 42, 0.14));
@@ -27,7 +27,7 @@
     --fv-editor-nav-count-bg: var(--fvplus-editor-nav-count-bg, rgba(255, 154, 60, 0.16));
     --fv-editor-nav-count-text: var(--fvplus-editor-nav-count-text, #ffd7ab);
     --fv-editor-info: var(--fvplus-editor-info, #a6d8ff);
-    --fv-editor-hero-icon-border: var(--fvplus-editor-hero-icon-border, var(--fv-editor-control-border));
+    --fv-editor-hero-icon-border: var(--fvplus-editor-hero-icon-border, var(--fv-editor-border));
     color: var(--fv-editor-text-primary);
 }
 
@@ -1819,8 +1819,20 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
 .fv-inherit-btn.is-inherited,
 .fv-inherit-btn:disabled {
-    opacity: 0.78;
+    min-height: auto;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--fv-editor-info);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    line-height: 1;
+    text-transform: uppercase;
+    box-shadow: none;
+    opacity: 0.92;
     cursor: default;
+    pointer-events: none;
 }
 
 .fv-live-swatches {
@@ -2447,22 +2459,26 @@ table.sortable {
     overflow: hidden;
     border-radius: 12px;
     border: 1px solid var(--fv-editor-block-border);
-    background: rgba(12, 12, 12, 0.24);
+    background:
+        linear-gradient(180deg, var(--fv-editor-panel), var(--fv-editor-inset-surface)),
+        radial-gradient(circle at top right, var(--fv-editor-accent-soft), transparent 44%);
+    color: var(--fv-editor-text-primary);
 }
 
 table.sortable th,
 table.sortable td {
     padding: 0.5em;
+    color: var(--fv-editor-text-primary);
 }
 
 table.sortable thead th {
-    background: rgba(255, 255, 255, 0.035);
-    color: rgba(255, 255, 255, 0.88);
+    background: var(--fv-editor-control-surface);
+    color: var(--fv-editor-muted);
     border-bottom: 1px solid var(--fv-editor-block-border);
 }
 
 table.sortable tbody tr:hover {
-    background: rgba(255, 255, 255, 0.025);
+    background: var(--fv-editor-control-surface-hover);
 }
 
 table.sortable th:nth-child(1),
@@ -2485,7 +2501,8 @@ table.sortable td:nth-child(3) {
 
 .item {
     height: 4.35em;
-    border-bottom: 1px solid;
+    border-bottom: 1px solid var(--fv-editor-block-border);
+    background: transparent;
 }
 
 .item img {

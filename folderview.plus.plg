@@ -6,12 +6,24 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.07">
-<!ENTITY md5 "c6511992a3f5ed9720989b67f88605f3">
+<!ENTITY version "2026.03.26.09">
+<!ENTITY md5 "f7f8362e06ced3689a93afb355d31465">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.09
+- UX: Tightened modern folder editor inheritance notices so `Using global` renders as a compact blue info label instead of a large gray control.
+- Theme: Applied the orange editor outline treatment across both light and dark modern folder editor surfaces, including cards, controls, settings blocks, and the hero/icon framing.
+- Fix: Re-themed the Members section table to use editor surface tokens so light themes no longer render the member list as a flat gray slab.
+
+
+###2026.03.26.08
+- Fix: Restyled inherited folder-editor notices so `Using global` reads as a compact blue info label instead of a full gray button.
+- Fix: Extended the modern folder editor orange outline treatment across both light and dark themes, including control borders, hero icon framing, and the remaining settings blocks.
+- Fix: Re-themed the Members section table to use the editor surface tokens so light themes no longer render the member list as a flat gray slab.
+
 
 ###2026.03.26.07
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

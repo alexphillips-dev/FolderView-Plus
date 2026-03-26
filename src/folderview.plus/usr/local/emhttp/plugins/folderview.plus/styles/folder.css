@@ -2185,42 +2185,42 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 .fv-modern-field-row input[type="text"],
 .fv-modern-field-row input[type="number"],
 .fv-modern-field-row select {
-    width: min(100%, 360px);
-    max-width: min(100%, 360px);
-    height: 30px;
-    min-height: 30px;
-    padding: 0.18em 0.62em;
-    border-radius: 9px;
+    width: min(100%, 420px);
+    max-width: min(100%, 420px);
+    height: 38px;
+    min-height: 38px;
+    padding: 0.32em 0.74em;
+    border-radius: 10px;
     border: 1px solid var(--fv-editor-control-border);
     background: var(--fv-editor-input-bg);
     box-shadow: inset 0 1px 0 var(--fv-editor-inset-surface);
     box-sizing: border-box;
-    line-height: 1.1;
-    font-size: 0.96rem;
+    line-height: 1.2;
+    font-size: 1.02rem;
     color: var(--fv-editor-text-primary);
 }
 
 .fv-modern-field-row textarea {
-    width: min(100%, 360px);
-    max-width: min(100%, 360px);
-    padding: 0.4em 0.68em;
-    border-radius: 9px;
+    width: min(100%, 420px);
+    max-width: min(100%, 420px);
+    padding: 0.5em 0.76em;
+    border-radius: 10px;
     border: 1px solid var(--fv-editor-control-border);
     background: var(--fv-editor-input-bg);
     box-shadow: inset 0 1px 0 var(--fv-editor-inset-surface);
     box-sizing: border-box;
-    line-height: 1.25;
-    font-size: 0.96rem;
+    line-height: 1.35;
+    font-size: 1.02rem;
     color: var(--fv-editor-text-primary);
 }
 
 .fv-modern-field-row textarea {
-    min-height: 92px;
+    min-height: 108px;
 }
 
 .fv-modern-field-row.is-name-row input[type="text"] {
-    width: min(100%, 360px);
-    max-width: min(100%, 360px);
+    width: min(100%, 420px);
+    max-width: min(100%, 420px);
 }
 
 .fv-modern-field-row.is-icon-row input[type="text"],
@@ -2229,14 +2229,14 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 .fv-modern-field-row.is-wide-row input[type="number"],
 .fv-modern-field-row.is-wide-row select,
 .fv-modern-field-row.is-wide-row textarea {
-    width: min(100%, 560px);
-    max-width: min(100%, 560px);
+    width: min(100%, 640px);
+    max-width: min(100%, 640px);
 }
 
 .fv-modern-field-row.is-compact-text-row input[type="text"],
 .fv-modern-field-row.is-compact-text-row input[type="number"] {
-    width: min(100%, 220px);
-    max-width: min(100%, 220px);
+    width: min(100%, 280px);
+    max-width: min(100%, 280px);
 }
 
 .fv-modern-field-row input[type="color"] {

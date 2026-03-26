@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.10">
-<!ENTITY md5 "1b518e228c2912b1be3ea127122d80e8">
+<!ENTITY version "2026.03.26.11">
+<!ENTITY md5 "d1df7ac6fe9028448995f439578d9ed3">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.11
+- Fix: Re-themed the light settings page tree meta, nested folder hints, and neutral status or alert chips so white themes keep readable folder text and empty-state indicators.
+- UI/UX: Increased the modern folder editor field control sizes so text, number, select, and textarea inputs are easier to read while editing settings blocks.
+- Regression guard: Added light-theme settings contrast and modern editor control sizing assertions to keep these readability fixes from regressing.
+
 
 ###2026.03.26.10
 - UX: Removed the duplicate `Using global` inherit control from inherited folder-editor rows so only the inherited-default notice remains visible.

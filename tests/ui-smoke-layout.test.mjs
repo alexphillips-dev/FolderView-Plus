@@ -488,9 +488,11 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderCss, /\.fv-modern-field-row\.is-icon-row,\s*[\s\S]*\.fv-modern-field-row\.is-status-row\s*\{[\s\S]*max-width:\s*780px;/);
     assert.match(folderCss, /\.fv-modern-field-row\s*\{[\s\S]*min-height:\s*72px;[\s\S]*align-self:\s*start;[\s\S]*border:\s*1px solid var\(--fv-editor-block-border\);[\s\S]*box-sizing:\s*border-box;/);
     assert.match(folderCss, /\.fv-modern-group-list\.is-status-list\s*\{[\s\S]*max-width:\s*780px;/);
-    assert.match(folderCss, /\.fv-modern-field-row\.is-name-row input\[type="text"\]\s*\{[\s\S]*360px/);
-    assert.match(folderCss, /\.fv-modern-field-row\.is-compact-text-row input\[type="text"\],/);
-    assert.match(folderCss, /\.fv-modern-field-row input\[type="text"\],\s*[\s\S]*height:\s*30px;[\s\S]*min-height:\s*30px;/);
+    assert.match(folderCss, /\.fv-modern-field-row\.is-name-row input\[type="text"\]\s*\{[\s\S]*420px/);
+    assert.match(folderCss, /\.fv-modern-field-row\.is-compact-text-row input\[type="text"\],\s*[\s\S]*280px/);
+    assert.match(folderCss, /\.fv-modern-field-row input\[type="text"\],\s*[\s\S]*width:\s*min\(100%, 420px\);[\s\S]*height:\s*38px;[\s\S]*min-height:\s*38px;[\s\S]*font-size:\s*1\.02rem;/);
+    assert.match(folderCss, /\.fv-modern-field-row textarea\s*\{[\s\S]*width:\s*min\(100%, 420px\);[\s\S]*font-size:\s*1\.02rem;/);
+    assert.match(folderCss, /\.fv-modern-field-row textarea\s*\{[\s\S]*min-height:\s*108px;/);
     assert.match(folderCss, /\.fv-modern-field-row > dl > dt\s*\{[\s\S]*font-size:\s*1rem;/);
     assert.match(folderCss, /\.fv-modern-field-row > dl,\s*[\s\S]*display:\s*flex !important;[\s\S]*flex-direction:\s*column;[\s\S]*gap:\s*0\.52em;/);
     assert.match(folderCss, /\.fv-modern-field-row > dl > dd\s*\{[\s\S]*padding-top:\s*0\.08em !important;/);

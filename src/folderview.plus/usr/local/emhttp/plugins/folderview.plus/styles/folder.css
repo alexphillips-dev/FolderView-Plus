@@ -1995,6 +1995,11 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     justify-content: start;
 }
 
+.fv-section-shell[data-section-shell="preview"] .fv-modern-section-grid,
+.fv-section-shell[data-section-shell="status"] .fv-modern-section-grid {
+    align-items: stretch;
+}
+
 .fv-section-shell .basic,
 .fv-section-shell > ul,
 .fv-section-shell-body > ul {
@@ -2049,6 +2054,11 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     box-sizing: border-box;
 }
 
+.fv-section-shell[data-section-shell="preview"] .fv-modern-field-row,
+.fv-section-shell[data-section-shell="status"] .fv-modern-field-row {
+    align-self: stretch;
+}
+
 .fv-modern-field-row.is-wide-row,
 .fv-modern-order-row {
     grid-column: 1 / -1;
@@ -2060,7 +2070,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     max-width: 780px;
 }
 
-.fv-modern-field-row.is-actions-row,
+.fv-modern-field-row.is-actions-launch-row,
 .fv-modern-field-row.is-compact-text-row {
     width: min(100%, 560px);
     max-width: 560px;
@@ -2071,8 +2081,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     max-width: none;
 }
 
-.fv-section-shell[data-section-shell="rules"] .fv-section-shell-body,
-.fv-section-shell[data-section-shell="actions"] .fv-section-shell-body {
+.fv-section-shell[data-section-shell="rules"] .fv-section-shell-body {
     display: flex !important;
     flex-wrap: wrap;
     gap: 0.68em;
@@ -2081,9 +2090,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-section-shell[data-section-shell="rules"] .fv-modern-field-row,
-.fv-section-shell[data-section-shell="actions"] .fv-modern-field-row,
-.canvas form.folder-editor-form .fv-section-shell[data-section-shell="rules"] > .fv-section-shell-body > .basic.fv-modern-field-row,
-.canvas form.folder-editor-form .fv-section-shell[data-section-shell="actions"] > .fv-section-shell-body > .basic.fv-modern-field-row {
+.canvas form.folder-editor-form .fv-section-shell[data-section-shell="rules"] > .fv-section-shell-body > .basic.fv-modern-field-row {
     flex: 0 1 560px !important;
     width: min(100%, 560px) !important;
     max-width: 560px !important;
@@ -2092,15 +2099,20 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     justify-self: auto !important;
 }
 
-.fv-section-shell[data-section-shell="rules"] .fv-modern-field-row > blockquote.inline_help,
-.fv-section-shell[data-section-shell="actions"] .fv-modern-field-row > blockquote.inline_help {
+.fv-section-shell[data-section-shell="rules"] .fv-modern-field-row > blockquote.inline_help {
     max-width: 100% !important;
 }
 
 .fv-modern-field-row.is-rules-row,
-.fv-modern-field-row.is-actions-list-row,
 .fv-modern-field-row.is-actions-launch-row {
     min-height: 72px;
+}
+
+.fv-modern-field-row.is-actions-list-row {
+    grid-column: 1 / -1;
+    width: 100%;
+    max-width: none;
+    min-height: 112px;
 }
 
 .fv-modern-field-row > dl,
@@ -2249,7 +2261,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-modern-field-row.is-icon-row .fv-icon-dd,
-.fv-modern-field-row.is-actions-row .custom-action-wrapper {
+.fv-modern-field-row.is-actions-list-row .custom-action-wrapper {
     width: 100%;
 }
 
@@ -2279,9 +2291,19 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     width: 100%;
 }
 
-.fv-modern-field-row.is-actions-row .custom-action-wrapper {
-    min-height: 42px;
-    padding: 0.65em 0.8em;
+.fv-modern-field-row.is-actions-list-row > dl > dd {
+    display: grid;
+    gap: 0.72em;
+    width: 100%;
+}
+
+.fv-modern-field-row.is-actions-list-row .custom-action-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.55em;
+    min-height: 96px;
+    padding: 0.78em 0.85em;
     border-radius: 10px;
     border: 1px dashed var(--fv-editor-control-border);
     background: var(--fv-editor-inset-surface);
@@ -2289,6 +2311,18 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     max-width: 100%;
     min-width: 0;
     overflow: hidden;
+}
+
+.fv-modern-field-row.is-actions-list-row .custom-action-wrapper:empty::before {
+    content: 'No custom actions added yet.';
+    color: var(--fv-editor-muted);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.fv-modern-field-row.is-actions-list-row .fv-custom-action-launch {
+    display: flex;
+    align-items: center;
 }
 
 .fv-modern-field-row.is-actions-launch-row > dl > dt {
@@ -2301,6 +2335,29 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
 .fv-modern-field-row.is-actions-launch-row .custom-action {
     justify-content: flex-start;
+}
+
+.fv-modern-field-row.is-actions-list-row .custom-action {
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    color: var(--fv-editor-title-accent);
+    justify-content: flex-start;
+}
+
+.fv-modern-field-row.is-actions-list-row .custom-action:hover,
+.fv-modern-field-row.is-actions-list-row .custom-action:focus {
+    background: transparent;
+    border-color: transparent;
+    color: var(--fv-editor-text-primary);
+    transform: none;
+}
+
+.fv-modern-field-row.is-actions-list-row .custom-action:active {
+    transform: none;
 }
 
 .fv-modern-field-row.is-rules-row > blockquote.inline_help,
@@ -2465,6 +2522,7 @@ table.sortable td:nth-child(3) {
     display: flex;
     align-items: center;
     gap: 0.48em;
+    width: 100%;
     min-height: 34px;
     padding: 0.38em 0.55em;
     border-radius: 10px;

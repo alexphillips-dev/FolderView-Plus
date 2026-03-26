@@ -148,6 +148,54 @@
     const findBasicByFieldName = (form, fieldName) => Array.from(form.querySelectorAll('.basic'))
         .find((entry) => entry.querySelector(`[name="${fieldName}"]`));
 
+    const collectInheritedConstraintTokens = (row, boundary) => {
+        const tokens = [];
+        let cursor = row;
+        while (cursor && cursor instanceof root.HTMLElement && cursor !== boundary) {
+            const rawConstraint = String(cursor.getAttribute('constraint') || '').trim();
+            if (rawConstraint) {
+                rawConstraint.split(/\s+/).forEach((token) => {
+                    if (token && !tokens.includes(token)) {
+                        tokens.push(token);
+                    }
+                });
+            }
+            cursor = cursor.parentElement;
+        }
+        return tokens.join(' ');
+    };
+
+    const primeModernSectionRow = (form, row) => {
+        if (!(row instanceof root.HTMLElement)) {
+            return row;
+        }
+        if (!row.hasAttribute('data-fv-row-constraint')) {
+            const inheritedConstraint = collectInheritedConstraintTokens(row, form);
+            if (inheritedConstraint) {
+                row.setAttribute('data-fv-row-constraint', inheritedConstraint);
+            }
+        }
+        const cachedConstraint = String(row.getAttribute('data-fv-row-constraint') || '').trim();
+        if (cachedConstraint) {
+            row.setAttribute('constraint', cachedConstraint);
+        } else {
+            row.removeAttribute('constraint');
+        }
+        return row;
+    };
+
+    const findActionLaunchRow = (form) => {
+        const cachedRow = form.querySelector('.basic[data-fv-actions-launch-source="1"]');
+        if (cachedRow) {
+            return cachedRow;
+        }
+        const sourceRow = Array.from(form.querySelectorAll('.basic')).find((entry) => entry.querySelector('a.custom-action'));
+        if (sourceRow) {
+            sourceRow.setAttribute('data-fv-actions-launch-source', '1');
+        }
+        return sourceRow;
+    };
+
     const getVisibleSectionKeys = (mode = currentMode) => Object.entries(SECTION_META)
         .filter(([, meta]) => mode === ADVANCED_MODE || meta.advanced !== true)
         .map(([key]) => key);
@@ -365,7 +413,7 @@
             findBasicByFieldName(form, 'parent_folder_id'),
             findBasicByFieldName(form, 'folder_webui'),
             findBasicByFieldName(form, 'icon'),
-            form.querySelector('ul[constraint*="folder-webui"]')
+            findBasicByFieldName(form, 'folder_webui_url')
         ],
         members: [
             form.querySelector('.basic.order-section')
@@ -381,11 +429,13 @@
             findBasicByFieldName(form, 'preview_logs'),
             findBasicByFieldName(form, 'preview_console'),
             findBasicByFieldName(form, 'preview_vertical_bars'),
-            form.querySelector('ul[constraint*="bars-color"]'),
+            findBasicByFieldName(form, 'preview_vertical_bars_color'),
             findBasicByFieldName(form, 'preview_border'),
-            form.querySelector('ul[constraint*="border-color"]'),
+            findBasicByFieldName(form, 'preview_border_color'),
             findBasicByFieldName(form, 'context'),
-            form.querySelector('ul[constraint*="context-2"]')
+            findBasicByFieldName(form, 'context_trigger'),
+            findBasicByFieldName(form, 'context_graph'),
+            findBasicByFieldName(form, 'context_graph_time')
         ],
         chevron: [
             findBasicByFieldName(form, 'dropdown_style'),
@@ -404,8 +454,7 @@
             findBasicByFieldName(form, 'regex')
         ],
         actions: [
-            form.querySelector('.basic.custom-action-wrapper-parent'),
-            Array.from(form.querySelectorAll('.basic')).find((entry) => entry.querySelector('a.custom-action'))
+            form.querySelector('.basic.custom-action-wrapper-parent')
         ],
         advanced: [
             findBasicByFieldName(form, 'update_column'),
@@ -417,6 +466,26 @@
         ]
     });
 
+    const syncActionLaunchPlacement = (form) => {
+        const actionsRow = form.querySelector('.basic.custom-action-wrapper-parent');
+        const actionsList = actionsRow?.querySelector('.custom-action-wrapper');
+        const actionsValueCell = actionsRow?.querySelector('dl > dd');
+        const launchRow = findActionLaunchRow(form);
+        const launchLink = launchRow?.querySelector('a.custom-action')
+            || actionsRow?.querySelector('.fv-custom-action-launch > a.custom-action');
+        if (!actionsRow || !actionsList || !actionsValueCell || !launchLink) {
+            return;
+        }
+        let launchHost = actionsRow.querySelector('.fv-custom-action-launch');
+        if (!launchHost) {
+            launchHost = root.document.createElement('div');
+            launchHost.className = 'fv-custom-action-launch';
+            actionsValueCell.appendChild(launchHost);
+        }
+        launchLink.classList.add('fv-custom-action-link');
+        launchHost.appendChild(launchLink);
+    };
+
     const ensureSectionShells = (form) => {
         const stage = getModernStage(form);
         if (!stage) {
@@ -425,7 +494,9 @@
         const sectionRows = collectSectionRows(form);
         const actionBar = stage.querySelector('#fvEditorActionBar');
         Object.entries(SECTION_META).forEach(([sectionKey, meta]) => {
-            const rows = (sectionRows[sectionKey] || []).filter(Boolean);
+            const rows = (sectionRows[sectionKey] || [])
+                .filter(Boolean)
+                .map((row) => primeModernSectionRow(form, row));
             if (!rows.length) {
                 return;
             }
@@ -474,6 +545,7 @@
                 }
             });
         });
+        syncActionLaunchPlacement(form);
     };
 
     const decorateSectionRows = (form) => {
@@ -498,9 +570,9 @@
                 row.classList.add('is-compact-text-row', 'is-rules-row');
             }
             if (row.querySelector('.custom-action-wrapper')) {
-                row.classList.add('is-actions-list-row');
+                row.classList.add('is-actions-list-row', 'is-wide-row');
             }
-            if (row.querySelector('a.custom-action')) {
+            if (row.querySelector('a.custom-action') && !row.querySelector('.custom-action-wrapper')) {
                 row.classList.add('is-actions-launch-row');
             }
             if (row.querySelector('[name="name"]')) {

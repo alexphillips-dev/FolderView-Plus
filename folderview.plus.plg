@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.01">
-<!ENTITY md5 "6795c23b7a6d601bff53cf55ccc90770">
+<!ENTITY version "2026.03.26.02">
+<!ENTITY md5 "486b52a2e41c8f3b975561d6cc3ad4a7">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.02
+- Fix: Rebuilt the modern folder editor Preview layout around real constraint-aware field cards, which removes the broken gaps, restores the correct row order, and hides advanced preview controls unless their parent options are enabled.
+- Fix: Reworked the modern Status and Actions modules so the status palette card keeps the same row height as neighboring cards, the custom-actions area becomes one full-width module, and the add-action control sits under the action list instead of in a separate fake button card.
+
 
 ###2026.03.26.01
 - Fix: Restored the original orange heading treatment for the modern folder editor and settings module titles on darker themes, avoiding black-on-black title regressions.

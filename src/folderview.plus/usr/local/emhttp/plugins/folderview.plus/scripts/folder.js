@@ -5454,9 +5454,13 @@ function updateForm() {
     $(`[constraint*="preview-${form.preview.value}"]`).show();
     $('[constraint*="context-"]').hide();
     $(`[constraint*="context-${form.context.value}"]`).show();
+    $('[constraint*="context_graph-"]').hide();
     $('[constraint*="border-color"]').hide();
     $('[constraint*="bars-color"]').hide();
-    if (form.preview.value !== '0') $('[constraint*="border-color"]').show();
+    if (String(form.context.value) === '2') {
+        $(`[constraint*="context_graph-${form.context_graph.value}"]`).show();
+    }
+    if (form.preview.value !== '0' && form.preview_border.checked) $('[constraint*="border-color"]').show();
     if(form.preview_vertical_bars.checked) {
         $('[constraint*="bars-color"]').show();
     }

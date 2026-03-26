@@ -12,19 +12,25 @@ const vmCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus
 const runtimeSharedCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/runtime.shared.css');
 
 test('vm runtime page loads shared runtime module before vm runtime script', () => {
+    const fatalBannerIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.fatal-banner.js');
     const contractIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
     const sharedIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.shared.js');
     const stateObserverIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/folder.runtime.state-observers.js');
     const runtimeIndex = vmPage.indexOf('/plugins/folderview.plus/scripts/vm.js');
     const sharedCssIndex = vmPage.indexOf('/plugins/folderview.plus/styles/runtime.shared.css');
     const vmCssIndex = vmPage.indexOf('/plugins/folderview.plus/styles/vm.css');
-    assert.equal(vmPage.includes('/plugins/folderview.plus/scripts/folderviewplus.fatal-banner.js'), false, 'vm page should not load settings fatal banner');
+    assert.ok(fatalBannerIndex >= 0, 'vm page should load the shared fatal banner runtime');
     assert.ok(contractIndex >= 0, 'shared folder contract include missing from VMs page');
     assert.ok(sharedIndex >= 0, 'shared runtime include missing from VMs page');
     assert.ok(stateObserverIndex >= 0, 'runtime state observer include missing from VMs page');
     assert.ok(runtimeIndex >= 0, 'vm runtime include missing from VMs page');
     assert.ok(sharedCssIndex >= 0, 'shared runtime stylesheet missing from VMs page');
     assert.ok(vmCssIndex >= 0, 'vm stylesheet missing from VMs page');
+    assert.match(vmPage, /window\.FolderViewPlusFatalRuntimeContext = \{/);
+    assert.match(vmPage, /page:\s*'VMs'/);
+    assert.match(vmPage, /hostSelector:\s*'#fvplus-vm-runtime-banner-host'/);
+    assert.match(vmPage, /<div id="fvplus-vm-runtime-banner-host" aria-live="polite"><\/div>/);
+    assert.ok(fatalBannerIndex < contractIndex, 'vm fatal banner must load before folder contract/runtime scripts');
     assert.ok(contractIndex < sharedIndex, 'shared contract must load before shared runtime on VMs page');
     assert.ok(stateObserverIndex < runtimeIndex, 'runtime state observer must load before vm.js');
     assert.ok(sharedIndex < runtimeIndex, 'shared runtime must load before vm.js');
@@ -34,10 +40,17 @@ test('vm runtime page loads shared runtime module before vm runtime script', () 
 test('vm runtime consumes shared state/perf/action modules and exposes telemetry snapshots', () => {
     assert.match(vmJs, /^\/\/ @ts-check/m);
     assert.match(vmJs, /const runtimeShared = window\.FolderViewDockerRuntimeShared \|\| \{\};/);
+    assert.match(vmJs, /const fatalBanner = window\.FolderViewPlusFatalBanner \|\| null;/);
+    assert.match(vmJs, /const VM_FATAL_BANNER_HOST_SELECTOR = String\(vmFatalBannerRuntimeConfig\.hostSelector \|\| '#fvplus-vm-runtime-banner-host'\)/);
     assert.match(vmJs, /vmBootstrapMissingModules\.push\('folderviewplus\.utils\.js'\)/);
     assert.match(vmJs, /vmBootstrapMissingModules\.push\('folderviewplus\.request\.js'\)/);
     assert.match(vmJs, /vmBootstrapMissingModules\.push\('docker\.runtime\.shared\.js'\)/);
+    assert.match(vmJs, /const reportVmBootstrapDependencyBanner = \(missingModules\) =>/);
+    assert.match(vmJs, /const reportVmFatalRuntimeError = \(error, options = \{\}\) =>/);
+    assert.match(vmJs, /const reportVmDegradedRuntimeState = \(error, options = \{\}\) =>/);
+    assert.match(vmJs, /const createVmRuntimeRequest = \(url, options = \{\}\) =>/);
     assert.match(vmJs, /FolderView Plus VM runtime bootstrap failed/);
+    assert.match(vmJs, /reportVmBootstrapDependencyBanner\(vmBootstrapMissingModules\);/);
     assert.match(vmJs, /const runtimeStateObserverModule = window\.FolderViewPlusRuntimeStateObservers \|\| null;/);
     assert.match(vmJs, /const createRuntimeDebugLogger = typeof runtimeShared\.createDebugLogger === 'function'/);
     assert.match(vmJs, /const vmDebug = createRuntimeDebugLogger\(VM_DEBUG_MODE, 'folderview\.plus vm'\);/);
@@ -50,6 +63,7 @@ test('vm runtime consumes shared state/perf/action modules and exposes telemetry
     assert.match(vmJs, /let vmRuntimePerformanceProfile = resolveVmRuntimePerformanceProfile\(/);
     assert.match(vmJs, /window\.getVmRuntimePerfTelemetrySnapshot =/);
     assert.match(vmJs, /window\.getVmRuntimeStateSnapshot =/);
+    assert.match(vmJs, /window\.createFolderBtn = createFolderBtn;/);
 });
 
 test('vm CSS keeps VM-specific gutter tokens while shared stylesheet owns shared preview and dropdown rules', () => {

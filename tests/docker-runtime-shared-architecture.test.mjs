@@ -14,6 +14,7 @@ const dockerCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.
 const runtimeSharedCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/runtime.shared.css');
 
 test('docker runtime page loads shared runtime module before docker modules/runtime', () => {
+    const fatalBannerIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.fatal-banner.js');
     const contractIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
     const sharedIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.shared.js');
     const stateObserverIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/folder.runtime.state-observers.js');
@@ -22,7 +23,7 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     const runtimeIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.js');
     const sharedCssIndex = dockerPage.indexOf('/plugins/folderview.plus/styles/runtime.shared.css');
     const dockerCssIndex = dockerPage.indexOf('/plugins/folderview.plus/styles/docker.css');
-    assert.equal(dockerPage.includes('/plugins/folderview.plus/scripts/folderviewplus.fatal-banner.js'), false, 'docker page should not load settings fatal banner');
+    assert.ok(fatalBannerIndex >= 0, 'docker page should load the shared fatal banner runtime');
     assert.ok(contractIndex >= 0, 'shared folder contract include is missing');
     assert.ok(sharedIndex >= 0, 'shared runtime script include is missing');
     assert.ok(stateObserverIndex >= 0, 'runtime state observer script include is missing');
@@ -31,6 +32,11 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(runtimeIndex >= 0, 'docker runtime script include is missing');
     assert.ok(sharedCssIndex >= 0, 'shared runtime stylesheet include is missing');
     assert.ok(dockerCssIndex >= 0, 'docker stylesheet include is missing');
+    assert.match(dockerPage, /window\.FolderViewPlusFatalRuntimeContext = \{/);
+    assert.match(dockerPage, /page:\s*'Docker'/);
+    assert.match(dockerPage, /hostSelector:\s*'#fvplus-docker-runtime-banner-host'/);
+    assert.match(dockerPage, /<div id="fvplus-docker-runtime-banner-host" aria-live="polite"><\/div>/);
+    assert.ok(fatalBannerIndex < contractIndex, 'docker fatal banner must load before folder contract/runtime scripts');
     assert.ok(contractIndex < sharedIndex, 'shared contract must load before docker.runtime.shared.js');
     assert.ok(sharedIndex < modulesIndex, 'shared runtime must load before docker.modules.js');
     assert.ok(sharedIndex < stateObserverIndex, 'shared runtime must load before runtime state observer module');
@@ -62,10 +68,17 @@ test('docker shared runtime module binds to the shared folder contract and expor
 
 test('docker runtime consumes shared state store and guarded async action wrappers', () => {
     assert.match(dockerJs, /const dockerRuntimeShared = window\.FolderViewDockerRuntimeShared \|\| \{\};/);
+    assert.match(dockerJs, /const fatalBanner = window\.FolderViewPlusFatalBanner \|\| null;/);
+    assert.match(dockerJs, /const DOCKER_FATAL_BANNER_HOST_SELECTOR = String\(dockerFatalBannerRuntimeConfig\.hostSelector \|\| '#fvplus-docker-runtime-banner-host'\)/);
     assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('folderviewplus\.utils\.js'\)/);
     assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('folderviewplus\.request\.js'\)/);
     assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('docker\.runtime\.shared\.js'\)/);
+    assert.match(dockerJs, /const reportDockerBootstrapDependencyBanner = \(missingModules\) =>/);
+    assert.match(dockerJs, /const reportDockerFatalRuntimeError = \(error, options = \{\}\) =>/);
+    assert.match(dockerJs, /const reportDockerDegradedRuntimeState = \(error, options = \{\}\) =>/);
+    assert.match(dockerJs, /const createDockerRuntimeRequest = \(url, options = \{\}\) =>/);
     assert.match(dockerJs, /FolderView Plus Docker runtime bootstrap failed/);
+    assert.match(dockerJs, /reportDockerBootstrapDependencyBanner\(dockerBootstrapMissingModules\);/);
     assert.match(dockerJs, /const runtimeStateObserverModule = window\.FolderViewPlusRuntimeStateObservers \|\| null;/);
     assert.match(dockerJs, /const dockerPreviewMemberMenuModule = window\.FolderViewDockerPreviewMemberMenu \|\| null;/);
     assert.match(dockerJs, /dockerRuntimeShared\.createDebugLogger/);
@@ -76,6 +89,7 @@ test('docker runtime consumes shared state store and guarded async action wrappe
     assert.match(dockerJs, /dockerPreviewMemberMenuModule\.createController/);
     assert.match(dockerJs, /const runDockerGuardedAction = async \(actionName, action, context = \{\}\) =>/);
     assert.match(dockerJs, /window\.getDockerRuntimePerfTelemetrySnapshot =/);
+    assert.match(dockerJs, /window\.createFolderBtn = createFolderBtn;/);
 });
 
 test('docker CSS keeps docker-specific layout tokens while shared stylesheet owns shared dropdown geometry', () => {

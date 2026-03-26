@@ -37,6 +37,14 @@ const dashboardPagePath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Dashboard.page'
 );
+const dockerPagePath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Docker.page'
+);
+const vmPagePath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.VMs.page'
+);
 const folderPagePath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page'
@@ -56,6 +64,8 @@ const dashboardScript = fs.readFileSync(dashboardScriptPath, 'utf8');
 const dashboardQuickRailScript = fs.readFileSync(dashboardQuickRailScriptPath, 'utf8');
 const dashboardCss = fs.readFileSync(dashboardCssPath, 'utf8');
 const dashboardPage = fs.readFileSync(dashboardPagePath, 'utf8');
+const dockerPage = fs.readFileSync(dockerPagePath, 'utf8');
+const vmPage = fs.readFileSync(vmPagePath, 'utf8');
 const folderPage = fs.readFileSync(folderPagePath, 'utf8');
 const folderScript = fs.readFileSync(folderScriptPath, 'utf8');
 const libPhp = fs.readFileSync(libPhpPath, 'utf8');
@@ -195,12 +205,16 @@ test('dashboard quick-rail module is loaded before dashboard runtime and owns qu
     assert.match(dashboardQuickRailScript, /bindDashboardQuickActionSyncHandlers/);
 });
 
-test('shared fatal banner runtime is settings-only and exposes fatal reporting helpers', () => {
+test('shared fatal banner runtime is exposed on settings and runtime pages and exposes fatal reporting helpers', () => {
     const fatalBannerScript = fs.readFileSync(
         path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.fatal-banner.js'),
         'utf8'
     );
     assert.match(settingsPage, /folderviewplus\.fatal-banner\.js[\s\S]*folderviewplus\.utils\.js/);
+    assert.match(dockerPage, /folderviewplus\.fatal-banner\.js[\s\S]*folderviewplus\.utils\.js/);
+    assert.match(vmPage, /folderviewplus\.fatal-banner\.js[\s\S]*folderviewplus\.utils\.js/);
+    assert.match(dockerPage, /hostSelector:\s*'#fvplus-docker-runtime-banner-host'/);
+    assert.match(vmPage, /hostSelector:\s*'#fvplus-vm-runtime-banner-host'/);
     assert.match(settingsPage, /unraidVersion:/);
     assert.doesNotMatch(folderPage, /folderviewplus\.fatal-banner\.js/);
     assert.doesNotMatch(dashboardPage, /folderviewplus\.fatal-banner\.js/);

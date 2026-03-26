@@ -177,12 +177,240 @@ const utils = window.FolderViewPlusUtils || {
             .replace(/'/g, '&#39;');
     }
 };
+const fatalBanner = window.FolderViewPlusFatalBanner || null;
+const dockerFatalBannerRuntimeConfig = (window.FolderViewPlusFatalRuntimeContext && typeof window.FolderViewPlusFatalRuntimeContext === 'object')
+    ? window.FolderViewPlusFatalRuntimeContext
+    : {};
+const DOCKER_FATAL_BANNER_HOST_SELECTOR = String(dockerFatalBannerRuntimeConfig.hostSelector || '#fvplus-docker-runtime-banner-host').trim() || '#fvplus-docker-runtime-banner-host';
+const trimFatalBannerDiagnosticString = (value) => String(value ?? '').trim();
+const extractFatalBannerTraceId = (error) => {
+    const jqXhrTrace = trimFatalBannerDiagnosticString(
+        typeof error?.jqXHR?.getResponseHeader === 'function'
+            ? error.jqXHR.getResponseHeader('X-FV-Trace')
+            : ''
+    );
+    if (jqXhrTrace) {
+        return jqXhrTrace;
+    }
+    const direct = trimFatalBannerDiagnosticString(error?.traceId);
+    if (direct) {
+        return direct;
+    }
+    const message = trimFatalBannerDiagnosticString(error?.message || error);
+    const match = message.match(/\(trace:\s*([^)]+)\)/i);
+    return match ? trimFatalBannerDiagnosticString(match[1]) : '';
+};
+const extractFatalBannerStatus = (error) => {
+    const direct = Number(error?.jqXHR?.status || error?.status || 0);
+    if (Number.isFinite(direct) && direct > 0) {
+        return String(direct);
+    }
+    const message = trimFatalBannerDiagnosticString(error?.message || error);
+    const match = message.match(/\bHTTP\s+(\d{3})\b/i);
+    return match ? trimFatalBannerDiagnosticString(match[1]) : '';
+};
+const extractFatalBannerResponseSnippet = (error) => {
+    const responseText = trimFatalBannerDiagnosticString(error?.jqXHR?.responseText || error?.responseText || '');
+    if (!responseText) {
+        return '';
+    }
+    const normalized = responseText.replace(/\s+/g, ' ').trim();
+    if (!normalized) {
+        return '';
+    }
+    return normalized.length > 180 ? `${normalized.slice(0, 177)}...` : normalized;
+};
+const inferFatalBannerCategory = (error, fallbackCategory = 'runtime-failed') => {
+    const message = trimFatalBannerDiagnosticString(error?.message || error).toLowerCase();
+    if (!message) {
+        return fallbackCategory;
+    }
+    if (message.includes('missing modules') || message.includes('module did not load')) {
+        return 'missing-module';
+    }
+    if (message.includes('http 401') || message.includes('invalid request token')) {
+        return 'auth-failed';
+    }
+    if (message.includes('http 403') || message.includes('blocked by request guard')) {
+        return 'request-guard';
+    }
+    if (message.includes('http 404')) {
+        return 'missing-endpoint';
+    }
+    if (message.includes('http 5')) {
+        return 'server-error';
+    }
+    if (message.includes('json') && message.includes('parse')) {
+        return 'invalid-response';
+    }
+    return fallbackCategory;
+};
+const setDockerFatalBannerEnvironment = (patch = {}) => {
+    if (fatalBanner && typeof fatalBanner.setEnvironment === 'function') {
+        fatalBanner.setEnvironment({
+            page: 'Docker',
+            pluginVersion: trimFatalBannerDiagnosticString(dockerFatalBannerRuntimeConfig.pluginVersion || 'unknown') || 'unknown',
+            channel: trimFatalBannerDiagnosticString(dockerFatalBannerRuntimeConfig.channel || 'unknown') || 'unknown',
+            unraidVersion: trimFatalBannerDiagnosticString(dockerFatalBannerRuntimeConfig.unraidVersion || 'unknown') || 'unknown',
+            url: trimFatalBannerDiagnosticString(window.location?.href || ''),
+            userAgent: trimFatalBannerDiagnosticString(window.navigator?.userAgent || ''),
+            ...patch
+        });
+    }
+};
+const markDockerFatalBannerStep = (step) => {
+    if (fatalBanner && typeof fatalBanner.markStep === 'function') {
+        fatalBanner.markStep(step);
+    }
+};
+const setDockerFatalBannerPhase = (phase) => {
+    if (fatalBanner && typeof fatalBanner.setPhase === 'function') {
+        fatalBanner.setPhase(phase);
+    }
+};
+const recordDockerFatalBannerAction = (action) => {
+    if (fatalBanner && typeof fatalBanner.recordAction === 'function') {
+        fatalBanner.recordAction(action);
+    }
+};
+const setDockerFatalBannerModuleStatus = (name, status, detail = '') => {
+    if (fatalBanner && typeof fatalBanner.setModuleStatus === 'function') {
+        fatalBanner.setModuleStatus(name, status, detail);
+    }
+};
+const recordDockerFatalBannerRequest = (entry = {}) => {
+    if (fatalBanner && typeof fatalBanner.recordRequest === 'function') {
+        fatalBanner.recordRequest(entry);
+    }
+};
+const reportDockerBootstrapDependencyBanner = (missingModules) => {
+    if (fatalBanner && typeof fatalBanner.reportMissingModules === 'function') {
+        fatalBanner.reportMissingModules(missingModules, {
+            context: 'Docker',
+            hostSelector: DOCKER_FATAL_BANNER_HOST_SELECTOR,
+            message: 'FolderView Plus could not start because required Docker runtime modules failed to load.',
+            code: 'FVPLUS-DKR-BOOT-001',
+            phase: 'module-load'
+        });
+    }
+};
+const reportDockerFatalRuntimeError = (error, options = {}) => {
+    if (fatalBanner && typeof fatalBanner.reportFatalError === 'function') {
+        fatalBanner.reportFatalError(error, {
+            context: 'Docker',
+            hostSelector: DOCKER_FATAL_BANNER_HOST_SELECTOR,
+            title: 'Docker runtime failed',
+            message: 'FolderView Plus could not finish rendering folders on the Docker page.',
+            code: 'FVPLUS-DKR-BOOT-002',
+            phase: options.phase || error?.fvplusPhase || 'runtime',
+            category: options.category || error?.fvplusCategory || inferFatalBannerCategory(error, 'runtime-failed'),
+            ...options
+        });
+    }
+};
+const reportDockerDegradedRuntimeState = (error, options = {}) => {
+    if (fatalBanner && typeof fatalBanner.reportDegradedState === 'function') {
+        fatalBanner.reportDegradedState(error, {
+            context: 'Docker',
+            hostSelector: DOCKER_FATAL_BANNER_HOST_SELECTOR,
+            title: 'Docker page loaded in degraded mode',
+            message: 'FolderView Plus kept the Docker page open, but part of the folder runtime did not load.',
+            code: 'FVPLUS-DKR-BOOT-003',
+            phase: options.phase || error?.fvplusPhase || 'bootstrap-data',
+            category: options.category || error?.fvplusCategory || 'degraded-mode',
+            ...options
+        });
+    }
+};
+const buildDockerRuntimeRequestError = (label, url, jqXHR, textStatus, errorThrown) => {
+    const status = trimFatalBannerDiagnosticString(
+        typeof jqXHR?.status === 'number' && jqXHR.status > 0 ? jqXHR.status : ''
+    );
+    const traceId = trimFatalBannerDiagnosticString(
+        typeof jqXHR?.getResponseHeader === 'function'
+            ? jqXHR.getResponseHeader('X-FV-Trace')
+            : ''
+    );
+    const detail = trimFatalBannerDiagnosticString(errorThrown || textStatus || 'request failed');
+    const messageParts = [`${label} request failed for ${url}`];
+    if (status) {
+        messageParts.push(`HTTP ${status}`);
+    }
+    if (detail && detail.toLowerCase() !== 'error') {
+        messageParts.push(detail);
+    }
+    if (traceId) {
+        messageParts.push(`trace: ${traceId}`);
+    }
+    const error = new Error(messageParts.join(' | '));
+    error.jqXHR = jqXHR;
+    error.status = status;
+    error.traceId = traceId;
+    error.responseText = jqXHR?.responseText || '';
+    error.fvplusPhase = 'bootstrap-data';
+    error.fvplusCategory = inferFatalBannerCategory(error, 'request-failed');
+    return error;
+};
+const createDockerRuntimeRequest = (url, options = {}) => {
+    const method = trimFatalBannerDiagnosticString(options.method || 'GET') || 'GET';
+    const source = trimFatalBannerDiagnosticString(options.source || 'docker-runtime');
+    const detail = trimFatalBannerDiagnosticString(options.detail || '');
+    const label = trimFatalBannerDiagnosticString(options.label || source || url);
+    const allowFallback = options.allowFallback === true;
+    const fallbackValue = options.fallbackValue;
+    return $.get(url).promise().then(
+        (data, _textStatus, jqXHR) => {
+            recordDockerFatalBannerRequest({
+                method,
+                url,
+                source,
+                outcome: 'ok',
+                status: trimFatalBannerDiagnosticString(jqXHR?.status || ''),
+                detail
+            });
+            return data;
+        },
+        (jqXHR, textStatus, errorThrown) => {
+            const error = buildDockerRuntimeRequestError(label, url, jqXHR, textStatus, errorThrown);
+            recordDockerFatalBannerRequest({
+                method,
+                url,
+                source,
+                outcome: allowFallback ? 'fallback' : 'error',
+                status: extractFatalBannerStatus(error),
+                traceId: extractFatalBannerTraceId(error),
+                category: inferFatalBannerCategory(error, allowFallback ? 'degraded-mode' : 'request-failed'),
+                detail: trimFatalBannerDiagnosticString(error.message),
+                responseSnippet: extractFatalBannerResponseSnippet(error)
+            });
+            if (allowFallback) {
+                reportDockerDegradedRuntimeState(error, {
+                    title: 'Docker runtime preferences could not be loaded',
+                    message: 'FolderView Plus kept the Docker page open, but the runtime had to fall back to default Docker folder preferences.',
+                    detailLabel: 'Fallback request',
+                    details: [`${label} request fell back to defaults.`, trimFatalBannerDiagnosticString(error.message)].filter(Boolean)
+                });
+                return fallbackValue;
+            }
+            throw error;
+        }
+    );
+};
+setDockerFatalBannerEnvironment();
+setDockerFatalBannerPhase('bootstrap');
+recordDockerFatalBannerAction('Docker runtime bootstrap started');
 const dockerBootstrapMissingModules = [];
 if (!window.FolderViewPlusUtils || typeof window.FolderViewPlusUtils.normalizePrefs !== 'function') {
     dockerBootstrapMissingModules.push('folderviewplus.utils.js');
+    setDockerFatalBannerModuleStatus('folderviewplus.utils.js', 'missing', 'normalizePrefs unavailable');
+} else {
+    setDockerFatalBannerModuleStatus('folderviewplus.utils.js', 'ok', 'normalizePrefs available');
 }
 if (window.FolderViewPlusThemeResolverModuleLoaded !== true || !themeResolver) {
     dockerBootstrapMissingModules.push('folderviewplus.theme-resolver.js');
+    setDockerFatalBannerModuleStatus('folderviewplus.theme-resolver.js', 'missing', 'theme resolver unavailable');
+} else {
+    setDockerFatalBannerModuleStatus('folderviewplus.theme-resolver.js', 'ok', 'theme resolver ready');
 }
 if (
     !window.FolderViewPlusRequest
@@ -190,6 +418,9 @@ if (
     || typeof window.FolderViewPlusRequest.postJson !== 'function'
 ) {
     dockerBootstrapMissingModules.push('folderviewplus.request.js');
+    setDockerFatalBannerModuleStatus('folderviewplus.request.js', 'missing', 'request client unavailable');
+} else {
+    setDockerFatalBannerModuleStatus('folderviewplus.request.js', 'ok', 'request client ready');
 }
 if (
     !window.FolderViewDockerRuntimeShared
@@ -197,12 +428,21 @@ if (
     || typeof window.FolderViewDockerRuntimeShared.applyFolderDropdownStyle !== 'function'
 ) {
     dockerBootstrapMissingModules.push('docker.runtime.shared.js');
+    setDockerFatalBannerModuleStatus('docker.runtime.shared.js', 'missing', 'shared Docker runtime helpers unavailable');
+} else {
+    setDockerFatalBannerModuleStatus('docker.runtime.shared.js', 'ok', 'shared Docker runtime helpers ready');
 }
 if (dockerBootstrapMissingModules.length > 0) {
+    reportDockerBootstrapDependencyBanner(dockerBootstrapMissingModules);
     const error = new Error(`FolderView Plus Docker runtime bootstrap failed. Missing modules: ${dockerBootstrapMissingModules.join(', ')}`);
-    error.fvplusBannerShown = true;
+    error.fvplusPhase = 'module-load';
+    error.fvplusCategory = 'missing-module';
+    if (fatalBanner) {
+        error.fvplusBannerShown = true;
+    }
     throw error;
 }
+markDockerFatalBannerStep('Docker runtime modules resolved');
 const dockerStorageWriter = typeof utils.createBatchedStorageWriter === 'function'
     ? utils.createBatchedStorageWriter(window.localStorage, {
         defaultDelayMs: 72,
@@ -2312,8 +2552,10 @@ let createFoldersQueued = false;
  */
 const createFolders = async () => {
     dockerPerf.begin('createFolders.total');
+    setDockerFatalBannerPhase('bootstrap-data');
     try {
     ensureDockerExpandedStateLifecycleHooks();
+    markDockerFatalBannerStep('Docker runtime lifecycle hooks ready');
     persistDockerExpandedStateFromDom();
     showDockerRuntimeLoadingRow();
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Entry');
@@ -2321,6 +2563,7 @@ const createFolders = async () => {
     dockerPerf.begin('createFolders.requests');
     const prom = await Promise.all(folderReq);
     dockerPerf.end('createFolders.requests', { requestCount: Array.isArray(folderReq) ? folderReq.length : 0 });
+    markDockerFatalBannerStep('Docker runtime request bundle resolved');
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Promises resolved', prom);
 
     // Parse the results
@@ -2576,6 +2819,15 @@ const createFolders = async () => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Set folderDebugMode (existing) to false.');
 
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Exit');
+    markDockerFatalBannerStep('Docker folders rendered');
+    setDockerFatalBannerPhase('ready');
+    recordDockerFatalBannerAction('Docker folders rendered successfully');
+    } catch (error) {
+    reportDockerFatalRuntimeError(error, {
+        phase: error?.fvplusPhase || 'bootstrap-data',
+        category: error?.fvplusCategory || inferFatalBannerCategory(error, 'runtime-failed')
+    });
+    throw error;
     } finally {
     hideDockerRuntimeLoadingRow();
     dockerPerf.end('createFolders.total', {
@@ -2593,6 +2845,14 @@ const queueCreateFoldersRender = () => {
     createFoldersInFlight = true;
     Promise.resolve()
         .then(() => createFolders())
+        .catch((error) => {
+            if (!error?.fvplusBannerShown) {
+                reportDockerFatalRuntimeError(error, {
+                    phase: error?.fvplusPhase || 'runtime',
+                    category: error?.fvplusCategory || inferFatalBannerCategory(error, 'promise-rejection')
+                });
+            }
+        })
         .finally(() => {
             createFoldersInFlight = false;
             if (createFoldersQueued) {
@@ -4949,6 +5209,16 @@ const addDockerFolderContext = (id) => {
 
 // Patching the original function to make sure the containers are rendered before insering the folder
 window.listview_original = window.listview; // Ensure original is captured
+if (typeof window.listview_original !== 'function') {
+    reportDockerDegradedRuntimeState('Docker host listview hook was unavailable during bootstrap.', {
+        phase: 'hook-install',
+        category: 'host-hook-missing',
+        detailLabel: 'Missing host hooks',
+        details: ['window.listview was not a function when FolderView Plus initialized.']
+    });
+} else {
+    markDockerFatalBannerStep('Docker listview hook captured');
+}
 window.listview = () => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched listview: Entry.');
     if (typeof window.listview_original === 'function') {
@@ -4976,6 +5246,16 @@ window.listview = () => {
 };
 
 window.loadlist_original = window.loadlist; // Ensure original is captured
+if (typeof window.loadlist_original !== 'function') {
+    reportDockerDegradedRuntimeState('Docker host loadlist hook was unavailable during bootstrap.', {
+        phase: 'hook-install',
+        category: 'host-hook-missing',
+        detailLabel: 'Missing host hooks',
+        details: ['window.loadlist was not a function when FolderView Plus initialized.']
+    });
+} else {
+    markDockerFatalBannerStep('Docker loadlist hook captured');
+}
 window.loadlist = () => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: Entry.');
     loadedFolder = false;
@@ -5277,17 +5557,33 @@ window.toggleDockerFolderPin = (id) => toggleDockerFolderPin(id);
 window.toggleDockerFolderLock = (id) => toggleDockerFolderLock(id);
 
 function buildDockerFolderReq() {
-    const safePrefsReq = $.get('/plugins/folderview.plus/server/prefs.php?type=docker')
-        .then((data) => data, () => JSON.stringify({ ok: false, prefs: {} }));
+    const safePrefsReq = createDockerRuntimeRequest('/plugins/folderview.plus/server/prefs.php?type=docker', {
+        source: 'prefs',
+        label: 'Docker preferences',
+        allowFallback: true,
+        fallbackValue: JSON.stringify({ ok: false, prefs: {} })
+    });
     return [
         // Get the folders
-        $.get('/plugins/folderview.plus/server/read.php?type=docker').promise(),
+        createDockerRuntimeRequest('/plugins/folderview.plus/server/read.php?type=docker', {
+            source: 'folders',
+            label: 'Docker folder definitions'
+        }),
         // Get the order as unraid sees it
-        $.get('/plugins/folderview.plus/server/read_order.php?type=docker').promise(),
+        createDockerRuntimeRequest('/plugins/folderview.plus/server/read_order.php?type=docker', {
+            source: 'folder-order',
+            label: 'Docker folder order'
+        }),
         // Get the info on containers, needed for autostart, update and started
-        $.get('/plugins/folderview.plus/server/read_info.php?type=docker').promise(),
+        createDockerRuntimeRequest('/plugins/folderview.plus/server/read_info.php?type=docker', {
+            source: 'runtime-info',
+            label: 'Docker runtime info'
+        }),
         // Get the order that is shown in the webui
-        $.get('/plugins/folderview.plus/server/read_unraid_order.php?type=docker').promise(),
+        createDockerRuntimeRequest('/plugins/folderview.plus/server/read_unraid_order.php?type=docker', {
+            source: 'host-order',
+            label: 'Docker host order'
+        }),
         // Get sort and auto-assignment preferences
         safePrefsReq
     ];
@@ -5295,6 +5591,7 @@ function buildDockerFolderReq() {
 
 // Prime requests for environments where loadlist isn't called first.
 folderReq = buildDockerFolderReq();
+markDockerFatalBannerStep('Docker request bundle primed');
 
 if (FOLDER_VIEW_DEBUG_MODE) {
     console.log('[FV3_DEBUG] Global variables initialized:', {
@@ -5307,9 +5604,11 @@ if (FOLDER_VIEW_DEBUG_MODE) {
 // Add the button for creating a folder
 const createFolderBtn = () => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolderBtn: Clicked. Redirecting.');
+    recordDockerFatalBannerAction('Docker Add Folder clicked');
     clearFolderEditorPrefill();
     location.href = buildDockerFolderEditorUrl();
 };
+window.createFolderBtn = createFolderBtn;
 
 // This is needed because unraid don't like the folder and the number are set incorrectly, this intercept the request and change the numbers to make the order appear right, this is important for the autostart and to draw the folders
 $.ajaxPrefilter((options, originalOptions, jqXHR) => {

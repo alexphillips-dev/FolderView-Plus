@@ -19,6 +19,17 @@ if (!empty($fvplusRuntimeConflicts)) {
 <?php emitNoCacheMetaTags(); ?>
 <?php emitPluginPageVersionSentinelScript('vms'); ?>
 <script>
+    window.FolderViewPlusFatalRuntimeContext = {
+        page: 'VMs',
+        hostSelector: '#fvplus-vm-runtime-banner-host',
+        pluginVersion: <?=json_encode(readInstalledVersion() ?: 'unknown')?>,
+        unraidVersion: <?=json_encode(readUnraidVersionString() ?: 'unknown')?>,
+        channel: 'unknown'
+    };
+</script>
+<script src="<?php autov('/plugins/folderview.plus/scripts/folderviewplus.fatal-banner.js')?>"></script>
+<div id="fvplus-vm-runtime-banner-host" aria-live="polite"></div>
+<script>
     $(document).ready(() => {
         folderi18n = () => {
             $('<input type="button" onclick="createFolderBtn()" value="Add Folder" data-i18n="[value]add-folder">').insertAfter('table#kvm_table');

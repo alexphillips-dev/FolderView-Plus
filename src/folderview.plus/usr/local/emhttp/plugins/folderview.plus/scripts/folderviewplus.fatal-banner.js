@@ -14,7 +14,7 @@
     const PANEL_ID = 'fvplus-fatal-banner';
     const COPY_BUTTON_ID = 'fvplus-fatal-copy-report';
     const DEFAULT_HELP = 'Try a hard refresh. If this persists, reinstall the plugin package to restore missing files.';
-    const DIAGNOSTIC_REQUEST_LIMIT = 8;
+    const DIAGNOSTIC_REQUEST_LIMIT = 16;
     const DIAGNOSTIC_STEP_LIMIT = 10;
     const DIAGNOSTIC_ACTION_LIMIT = 10;
 
@@ -277,6 +277,7 @@
             `migrationApplied: ${state.prefs.migrationApplied === true ? 'yes' : 'no'}`,
             `normalizeError: ${trimString(state.prefs.normalizeError || 'none') || 'none'}`
         ];
+        const affectedAreaLines = toDetailList(activeIssue.details);
         return [
             'FolderView Plus Settings Diagnostics',
             `errorCode: ${trimString(activeIssue.code || 'FVPLUS-SET-RUNTIME-001') || 'FVPLUS-SET-RUNTIME-001'}`,
@@ -289,6 +290,9 @@
             `lastStep: ${trimString(state.lastStep || 'unknown') || 'unknown'}`,
             `lastAction: ${trimString(state.lastAction || 'unknown') || 'unknown'}`,
             `summary: ${trimString(activeIssue.message || activeIssue.summary || 'unknown') || 'unknown'}`,
+            '',
+            '[affected-areas]',
+            ...(affectedAreaLines.length > 0 ? affectedAreaLines : ['none']),
             '',
             '[environment]',
             ...environmentLines,
@@ -450,6 +454,14 @@
     };
 
     const getPanel = () => doc.getElementById(PANEL_ID);
+
+    const clearResolvedIssue = () => {
+        state.activeIssue = null;
+        const panel = getPanel();
+        if (panel && panel.parentNode) {
+            panel.parentNode.removeChild(panel);
+        }
+    };
 
     const renderPanel = (options = {}) => {
         const context = resolveContext(options.context);
@@ -714,6 +726,7 @@ ${listHtml}
 
     const api = Object.freeze({
         renderPanel,
+        clearResolvedIssue,
         reportMissingModules,
         reportFatalError,
         installGlobalHandlers,

@@ -61,7 +61,7 @@ test('lib.php normalizes compose manager and compose project labels', () => {
     assert.match(libPhp, /\$manager\s*=\s*getNormalizedDockerManagerFromLabels\(\$labels\);/);
     assert.match(
         libPhp,
-        /\$ct\['info'\]\['State'\]\['manager'\]\s*=\s*getNormalizedDockerManagerFromLabels\(\$ct\['Labels'\]\s*\?\?\s*\[\]\);/
+        /\$ct\['info'\]\['State'\]\['manager'\]\s*=\s*getNormalizedDockerManagerFromLabels\(\$containerLabels\);/
     );
 });
 

@@ -5329,6 +5329,9 @@
                     continue;
                 }
                 $dom = $lv->domain_get_info($res);
+                if (!is_array($dom)) {
+                    continue;
+                }
                 $state = strtolower(trim((string)$lv->domain_state_translate($dom['state'] ?? '')));
                 if ($state === '') {
                     $state = 'stopped';
@@ -5365,6 +5368,10 @@
             $dockerTemplates = new DockerTemplates();
 
             $cts = $dockerClient->getDockerJSON("/containers/json?all=1");
+            if (!is_array($cts)) {
+                fv3_debug_log("readInfo: Docker container list unavailable.");
+                return [];
+            }
             $autoStartFile = $dockerManPaths['autostart-file'] ?? "/var/lib/docker/unraid-autostart";
             $autoStartLines = @file($autoStartFile, FILE_IGNORE_NEW_LINES) ?: [];
             $autoStart = array_map('var_split', $autoStartLines);
@@ -5384,19 +5391,29 @@
             $allXmlTemplates = getDockerTemplateIndexCached($dockerTemplates);
 
             foreach ($cts as $key => &$ct) {
-                $ct['info'] = $dockerClient->getContainerDetails($ct['Id']);
+                $ct['info'] = $dockerClient->getContainerDetails($ct['Id'] ?? null);
                 if (empty($ct['info'])) { fv3_debug_log("Skipped container due to empty details: ID " . ($ct['Id'] ?? 'N/A')); continue; }
 
-                $containerName = substr($ct['info']['Name'], 1);
+                $containerLabels = is_array($ct['Labels'] ?? null) ? $ct['Labels'] : [];
+                $configLabels = is_array($ct['info']['Config']['Labels'] ?? null) ? $ct['info']['Config']['Labels'] : [];
+                if (empty($containerLabels) && !empty($configLabels)) {
+                    $containerLabels = $configLabels;
+                }
+                $containerName = ltrim((string)($ct['info']['Name'] ?? ''), '/');
+                if ($containerName === '') {
+                    fv3_debug_log("Skipped container due to missing name: ID " . ($ct['Id'] ?? 'N/A'));
+                    continue;
+                }
                 $ct['info']['Name'] = $containerName;
                 fv3_debug_log("Processing Container: $containerName (ID: " . ($ct['Id'] ?? 'N/A') . ")");
 
                 $ct['info']['State']['Autostart'] = in_array($containerName, $autoStart);
-                $ct['info']['Config']['Image'] = DockerUtil::ensureImageTag($ct['info']['Config']['Image']);
-                $ct['info']['State']['Updated'] = $DockerUpdate->getUpdateStatus($ct['info']['Config']['Image']);
-                $ct['info']['State']['manager'] = getNormalizedDockerManagerFromLabels($ct['Labels'] ?? []);
-                $ct['shortId'] = substr(str_replace('sha256:', '', $ct['Id']), 0, 12);
-                $ct['shortImageId'] = substr(str_replace('sha256:', '', $ct['ImageID']), 0, 12);
+                $containerImage = DockerUtil::ensureImageTag((string)($ct['info']['Config']['Image'] ?? ''));
+                $ct['info']['Config']['Image'] = $containerImage;
+                $ct['info']['State']['Updated'] = $containerImage !== '' ? $DockerUpdate->getUpdateStatus($containerImage) : '';
+                $ct['info']['State']['manager'] = getNormalizedDockerManagerFromLabels($containerLabels);
+                $ct['shortId'] = substr(str_replace('sha256:', '', (string)($ct['Id'] ?? '')), 0, 12);
+                $ct['shortImageId'] = substr(str_replace('sha256:', '', (string)($ct['ImageID'] ?? '')), 0, 12);
                 $ct['info']['State']['WebUi'] = ''; $ct['info']['State']['TSWebUi'] = '';
                 $ct['info']['Shell'] = 'sh'; $ct['info']['template'] = null;
                 $rawWebUiString = ''; $rawTsXmlUrl = ''; $tsServeModeFromXml = 'no';
@@ -5411,23 +5428,25 @@
                     $isTailscaleEnabledForContainer = $templateData['TSTailscaleEnabled'];
                     $ct['info']['registry'] = $templateData['registry']; $ct['info']['Support'] = $templateData['Support']; $ct['info']['Project'] = $templateData['Project']; $ct['info']['DonateLink'] = $templateData['DonateLink']; $ct['info']['ReadMe'] = $templateData['ReadMe']; $ct['info']['Shell'] = $templateData['Shell'] ?: 'sh'; $ct['info']['template'] = ['path' => $templateData['path']];
                 } else {
-                    $rawWebUiString = $ct['Labels']['net.unraid.docker.webui'] ?? '';
-                    $rawTsXmlUrl = $ct['Labels']['net.unraid.docker.tailscale.webui'] ?? '';
-                    $tsServeModeFromXml = $ct['Labels']['net.unraid.docker.tailscale.servemode'] ?? ($ct['Labels']['net.unraid.docker.tailscale.funnel'] === 'true' ? 'funnel' : 'no');
-                    $isTailscaleEnabledForContainer = strtolower($ct['Labels']['net.unraid.docker.tailscale.enabled'] ?? 'false') === 'true';
-                    $ct['info']['Shell'] = $ct['Labels']['net.unraid.docker.shell'] ?? 'sh';
+                    $rawWebUiString = (string)($containerLabels['net.unraid.docker.webui'] ?? '');
+                    $rawTsXmlUrl = (string)($containerLabels['net.unraid.docker.tailscale.webui'] ?? '');
+                    $tailscaleFunnelEnabled = strtolower(trim((string)($containerLabels['net.unraid.docker.tailscale.funnel'] ?? 'false'))) === 'true';
+                    $tsServeModeFromXml = (string)($containerLabels['net.unraid.docker.tailscale.servemode'] ?? ($tailscaleFunnelEnabled ? 'funnel' : 'no'));
+                    $isTailscaleEnabledForContainer = strtolower((string)($containerLabels['net.unraid.docker.tailscale.enabled'] ?? 'false')) === 'true';
+                    $ct['info']['Shell'] = (string)($containerLabels['net.unraid.docker.shell'] ?? 'sh');
                 }
                 fv3_debug_log("  $containerName: Using ".($templateData && $ct['info']['State']['manager'] == 'dockerman' ? "XML" : "Label")." data. TailscaleEnabled: " . ($isTailscaleEnabledForContainer ? 'true' : 'false'));
                 fv3_debug_log("    $containerName: Raw WebUI: '$rawWebUiString', Raw TS XML URL: '$rawTsXmlUrl', TS Serve Mode: '$tsServeModeFromXml'");
                 
                 // --- Populate $ct['info']['Ports'] ---
                 $ct['info']['Ports'] = [];
-                $currentNetworkMode = $ct['HostConfig']['NetworkMode'] ?? 'unknown';
+                $currentNetworkMode = $ct['info']['HostConfig']['NetworkMode'] ?? ($ct['HostConfig']['NetworkMode'] ?? 'unknown');
                 $currentNetworkDriver = $driver[$currentNetworkMode] ?? null;
                 
                 $containerIpAddress = null; 
                 if ($currentNetworkMode !== 'host' && $currentNetworkDriver !== 'bridge') {
-                    $containerNetworkSettings = $ct['NetworkSettings']['Networks'][$currentNetworkMode] ?? null;
+                    $containerNetworks = is_array($ct['NetworkSettings']['Networks'] ?? null) ? $ct['NetworkSettings']['Networks'] : [];
+                    $containerNetworkSettings = $containerNetworks[$currentNetworkMode] ?? null;
                     if ($containerNetworkSettings && !empty($containerNetworkSettings['IPAddress'])) { $containerIpAddress = $containerNetworkSettings['IPAddress']; }
                 } elseif ($currentNetworkMode === 'host') {
                     $containerIpAddress = $host; 
@@ -5597,12 +5616,21 @@
                 if (!$lv->connect()) { fv3_debug_log("VM: Libvirt connection failed."); return []; }
             }
             $vms = $lv->get_domains();
-            fv3_debug_log("VM: Found " . count($vms) . " VMs.");
+            $vmCount = is_array($vms) ? count($vms) : 0;
+            fv3_debug_log("VM: Found " . $vmCount . " VMs.");
+            if (!is_array($vms)) {
+                fv3_debug_log("VM: Domain list unavailable.");
+                return [];
+            }
             if (!empty($vms)) {
                 foreach ($vms as $vm) {
                     $res = $lv->get_domain_by_name($vm);
                     if (!$res) { fv3_debug_log("VM: Could not get domain by name for $vm."); continue; }
                     $dom = $lv->domain_get_info($res);
+                    if (!is_array($dom)) {
+                        fv3_debug_log("VM: Could not get domain info for $vm.");
+                        continue;
+                    }
                     $vcpus = (int)($dom['nrVirtCpu'] ?? 0);
                     $memoryKiB = (int)($dom['memory'] ?? 0);
                     if ($memoryKiB <= 0) {
@@ -5635,7 +5663,7 @@
                         'uuid' => $lv->domain_get_uuid($res), 'name' => $vm,
                         'description' => $lv->domain_get_description($res),
                         'autostart' => $lv->domain_get_autostart($res),
-                        'state' => $lv->domain_state_translate($dom['state']),
+                        'state' => $lv->domain_state_translate($dom['state'] ?? ''),
                         'vcpus' => $vcpus,
                         'memoryKiB' => $memoryKiB,
                         'storageBytes' => $storageBytes,

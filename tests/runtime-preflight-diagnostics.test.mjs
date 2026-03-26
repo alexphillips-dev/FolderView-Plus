@@ -60,3 +60,14 @@ test('docker and vm runtimes report host-page structure drift explicitly', () =>
     assert.match(vmJs, /category: 'host-page-structure'/);
     assert.match(vmJs, /markVmFatalBannerStep\('VM host page signature verified'\);/);
 });
+
+test('read_info hardens Docker and VM data reads against missing host fields', () => {
+    assert.match(libPhp, /\$cts = \$dockerClient->getDockerJSON\(\"\/containers\/json\?all=1\"\);[\s\S]*if \(!is_array\(\$cts\)\) \{/);
+    assert.match(libPhp, /\$containerLabels = is_array\(\$ct\['Labels'\] \?\? null\) \? \$ct\['Labels'\] : \[\];/);
+    assert.match(libPhp, /\$configLabels = is_array\(\$ct\['info'\]\['Config'\]\['Labels'\] \?\? null\) \? \$ct\['info'\]\['Config'\]\['Labels'\] : \[\];/);
+    assert.match(libPhp, /\$tailscaleFunnelEnabled = strtolower\(trim\(\(string\)\(\$containerLabels\['net\.unraid\.docker\.tailscale\.funnel'\] \?\? 'false'\)\)\) === 'true';/);
+    assert.match(libPhp, /\$tsServeModeFromXml = \(string\)\(\$containerLabels\['net\.unraid\.docker\.tailscale\.servemode'\] \?\? \(\$tailscaleFunnelEnabled \? 'funnel' : 'no'\)\);/);
+    assert.match(libPhp, /\$vms = \$lv->get_domains\(\);[\s\S]*\$vmCount = is_array\(\$vms\) \? count\(\$vms\) : 0;/);
+    assert.match(libPhp, /if \(!is_array\(\$dom\)\) \{/);
+    assert.match(libPhp, /'state' => \$lv->domain_state_translate\(\$dom\['state'\] \?\? ''\),/);
+});

@@ -87,6 +87,11 @@ const reportFatalBannerDegradedState = (error, options = {}) => {
         fatalBanner.reportDegradedState(error, options);
     }
 };
+const clearFatalBannerResolvedState = () => {
+    if (fatalBanner && typeof fatalBanner.clearResolvedIssue === 'function') {
+        fatalBanner.clearResolvedIssue();
+    }
+};
 const trimFatalBannerDiagnosticString = (value) => String(value ?? '').trim();
 const extractFatalBannerTraceId = (error) => {
     const direct = trimFatalBannerDiagnosticString(error?.traceId);
@@ -8483,6 +8488,12 @@ const renderTable = (type) => {
     enforceNoHorizontalOverflow();
 };
 
+const buildSettingsBootstrapDegradedReason = (type, area, error) => {
+    const prefix = `${String(type || '').toUpperCase()} ${String(area || '').trim()} failed to load`;
+    const message = trimFatalBannerDiagnosticString(error?.message || error);
+    return message ? `${prefix}: ${message}` : prefix;
+};
+
 const refreshType = async (type) => {
     const startedAt = perfNowMs();
     recordFatalBannerAction(`Refresh ${type.toUpperCase()} Settings data`);
@@ -8501,13 +8512,13 @@ const refreshType = async (type) => {
     const rawPrefs = prefsResult.status === 'fulfilled' ? (prefsResult.value || {}) : {};
     const info = infoResult.status === 'fulfilled' ? infoResult.value : {};
     if (foldersResult.status !== 'fulfilled') {
-        degradedReasons.push(`${type.toUpperCase()} folders failed to load`);
+        degradedReasons.push(buildSettingsBootstrapDegradedReason(type, 'folders', foldersResult.reason));
     }
     if (prefsResult.status !== 'fulfilled') {
-        degradedReasons.push(`${type.toUpperCase()} preferences failed to load`);
+        degradedReasons.push(buildSettingsBootstrapDegradedReason(type, 'preferences', prefsResult.reason));
     }
     if (infoResult.status !== 'fulfilled') {
-        degradedReasons.push(`${type.toUpperCase()} runtime info failed to load`);
+        degradedReasons.push(buildSettingsBootstrapDegradedReason(type, 'runtime info', infoResult.reason));
     }
 
     let normalizedPrefs = utils.normalizePrefs({});
@@ -8516,7 +8527,7 @@ const refreshType = async (type) => {
         normalizedPrefs = utils.normalizePrefs(rawPrefs || {});
     } catch (error) {
         normalizeErrorMessage = error?.message || String(error);
-        degradedReasons.push(`${type.toUpperCase()} preferences could not be normalized`);
+        degradedReasons.push(buildSettingsBootstrapDegradedReason(type, 'preferences', error));
         recordFatalBannerAction(`Normalize ${type.toUpperCase()} preferences failed`);
         normalizedPrefs = utils.normalizePrefs({});
         annotateFatalBannerError(error, {
@@ -11038,6 +11049,9 @@ settingsActionSupportModule.registerWindowActions(window, {
             syncRuntimeConflictResolutionBanner();
         });
         settingsUiState.initialized = true;
+        if (bootstrapDegradedReasons.length <= 0) {
+            clearFatalBannerResolvedState();
+        }
         setFatalBannerPhase('ready');
         recordFatalBannerAction('Settings bootstrap completed');
         markFatalBannerStep('Settings bootstrap completed');

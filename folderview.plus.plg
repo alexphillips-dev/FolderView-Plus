@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.29">
-<!ENTITY md5 "c4b9e2b6aeb7e95b6b6f24b88af609ac">
+<!ENTITY version "2026.03.26.30">
+<!ENTITY md5 "a7f216c8cc0bb33e5c931416456c2a00">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.30
+- Fix: Restored legacy folder editor edit detection by adding the missing legacy hydrate helper and removing the broken call path that could leave the page stuck in blank new-folder mode.
+- Fix: Legacy folder edit forms now hydrate the requested folder before member inventory loads, so partial `read_info` failures no longer prevent existing folders from opening in the editor.
+- Quality: Hardened legacy member inventory parsing and expanded route/editor guards so legacy edit bootstrap and fallback member loading stay covered.
+
 
 ###2026.03.26.29
 - Fix: Legacy folder editor now resolves the folder you clicked even when the incoming edit reference is stale or stripped, by falling back across the full bootstrap, resolved-id, and navigation-prefill candidate set.

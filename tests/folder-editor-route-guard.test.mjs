@@ -58,9 +58,15 @@ test('folder editor runtimes accept query and hash bootstrap identity fallbacks'
     assert.match(folderLegacyJs, /const folderEditorHashParams = new URLSearchParams/);
     assert.match(folderLegacyJs, /folderEditorHashParams\.get\('type'\)/);
     assert.match(folderLegacyJs, /folderEditorHashParams\.get\('id'\)/);
+    assert.match(folderLegacyJs, /const getFormField = \(form, fieldName\) =>/);
+    assert.match(folderLegacyJs, /const hydrateCurrentEditFolder = \(folderRecord, folderRecordId, foldersMap = \{\}, options = \{\}\) =>/);
     assert.match(folderLegacyJs, /const requestedFolderRefs = buildFolderEditorRefCandidates\(/);
     assert.match(folderLegacyJs, /for \(const candidateRef of requestedFolderRefs\) \{/);
     assert.match(folderLegacyJs, /currentEditFolderId = String\(\s*resolvedEditFolder\?\.id[\s\S]*\|\| bootstrapFolderId/);
+    assert.match(folderLegacyJs, /hydrateCurrentEditFolder\(currentEditFolder,\s*currentEditFolderId,\s*folders,\s*\{\s*clearPrefill:\s*true\s*\}\);/);
+    assert.match(folderLegacyJs, /let readInfoResponse = \{\};/);
+    assert.match(folderLegacyJs, /console\.error\('\[FolderView Plus\] Legacy folder editor member inventory load failed\.'/);
+    assert.match(folderLegacyJs, /choose = Object\.values\(readInfoResponse && typeof readInfoResponse === 'object' \? readInfoResponse : \{\}\)\s*\.map\(typeFilter\)\s*\.filter\(Boolean\);/);
     assert.match(folderLegacyJs, /sampleRoot:\s*'body'/);
     assert.match(folderEditorChromeJs, /root\.FolderViewPlusReportFolderEditorBootstrap =/);
     assert.match(folderEditorChromeJs, /Folder editor runtime stalled during bootstrap\./);
@@ -83,4 +89,10 @@ test('folder editor URLs duplicate folder identity into the hash for navigation-
     assert.match(dockerJs, /return `\/Docker\/Folder\?\$\{params\.toString\(\)\}#\$\{hashParams\.toString\(\)\}`;/);
     assert.match(vmJs, /return `\/VMs\/Folder\?\$\{params\.toString\(\)\}#\$\{hashParams\.toString\(\)\}`;/);
     assert.match(dashboardJs, /return `\$\{location\.pathname\}\/Folder\?\$\{params\.toString\(\)\}#\$\{hashParams\.toString\(\)\}`;/);
+});
+
+test('legacy editor hydrates existing folder state before member inventory loads', () => {
+    const hydrateIndex = folderLegacyJs.indexOf("hydrateCurrentEditFolder(currentEditFolder, currentEditFolderId, folders, { clearPrefill: true });");
+    const readInfoIndex = folderLegacyJs.indexOf('let readInfoResponse = {};');
+    assert.ok(hydrateIndex !== -1 && readInfoIndex > hydrateIndex, 'legacy editor must hydrate the edit form before requesting member inventory');
 });

@@ -464,6 +464,15 @@ const isLegacyPreviewBorderEnabled = typeof folderContract?.isPreviewBorderEnabl
     });
 
 const getForm = () => $('div.canvas > form')[0];
+const getFormField = (form, fieldName) => {
+    if (!form || !fieldName) {
+        return null;
+    }
+    if (typeof form.elements?.namedItem === 'function') {
+        return form.elements.namedItem(fieldName);
+    }
+    return form.elements?.[fieldName] || null;
+};
 
 const normalizeParentFolderId = (value) => String(value || '').trim();
 
@@ -4795,6 +4804,118 @@ getForm().dropdown_color.value = DEFAULT_DROPDOWN_COLOR;
 getForm().dropdown_hover_color.value = DEFAULT_DROPDOWN_HOVER_COLOR;
 resetStatusColorDefaults();
 
+const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {}, options = {}) => {
+    const safeFolderId = String(folderRecordId || '').trim();
+    const normalizedFolder = normalizeFolderRecordForEditor(folderRecord || {});
+    const folders = foldersMap && typeof foldersMap === 'object' ? { ...foldersMap } : {};
+    if (safeFolderId && Object.prototype.hasOwnProperty.call(folders, safeFolderId)) {
+        delete folders[safeFolderId];
+    }
+
+    currentFolderDescendantIds = safeFolderId
+        ? computeFolderDescendantIds(allFoldersById, safeFolderId)
+        : new Set();
+    currentFolderName = normalizedFolder.name || '';
+
+    const form = getForm();
+    const setFieldValue = (fieldName, value) => {
+        const field = getFormField(form, fieldName);
+        if (field) {
+            $(field).val(value);
+        }
+    };
+    const setFieldChecked = (fieldName, checked) => {
+        const field = getFormField(form, fieldName);
+        if (field) {
+            field.checked = checked === true;
+        }
+    };
+
+    setFieldValue('name', normalizedFolder.name);
+    populateParentFolderOptions(
+        folders,
+        normalizeParentFolderId(normalizedFolder.parentId || ''),
+        safeFolderId ? new Set([safeFolderId, ...Array.from(currentFolderDescendantIds)]) : new Set()
+    );
+    setFieldValue('icon', normalizedFolder.icon);
+    setFieldChecked('folder_webui', normalizedFolder.settings.folder_webui || false);
+    setFieldValue('folder_webui_url', normalizedFolder.settings.folder_webui_url || '');
+    setFieldValue('preview', String(normalizedFolder.settings.preview));
+    setFieldValue('preview_rows', String(normalizePreviewRowLimit(normalizedFolder.settings.preview_rows)));
+    setFieldChecked('preview_hover', normalizedFolder.settings.preview_hover);
+    setFieldChecked('preview_update', normalizedFolder.settings.preview_update);
+    setFieldValue('preview_text_width', normalizedFolder.settings.preview_text_width || '');
+    setFieldChecked('preview_grayscale', normalizedFolder.settings.preview_grayscale);
+    setFieldChecked('preview_webui', normalizedFolder.settings.preview_webui);
+    setFieldChecked('preview_logs', normalizedFolder.settings.preview_logs);
+    setFieldChecked('preview_console', normalizedFolder.settings.preview_console || false);
+    setFieldChecked('preview_vertical_bars', normalizedFolder.settings.preview_vertical_bars || false);
+    setFieldValue('context', normalizedFolder.settings.context?.toString() || '1');
+    setFieldValue('context_trigger', normalizedFolder.settings.context_trigger?.toString() || '0');
+    setFieldValue('context_graph', normalizedFolder.settings.context_graph?.toString() || '1');
+    setFieldValue('context_graph_time', normalizedFolder.settings.context_graph_time?.toString() || '60');
+    setFieldChecked('preview_border', isLegacyPreviewBorderEnabled(normalizedFolder.settings || {}));
+    setFieldValue('preview_border_color', normalizeHexColor(normalizedFolder.settings.preview_border_color, DEFAULT_BORDER_COLOR));
+    setFieldValue('preview_border_width', String(normalizePositiveInt(normalizedFolder.settings.preview_border_width, DEFAULT_PREVIEW_BORDER_WIDTH, 1, 4)));
+    setFieldValue('preview_vertical_bars_color', normalizeHexColor(
+        normalizedFolder.settings.preview_vertical_bars_color || normalizedFolder.settings.preview_border_color,
+        DEFAULT_BORDER_COLOR
+    ));
+    setFieldValue('preview_vertical_bars_width', String(normalizePositiveInt(normalizedFolder.settings.preview_vertical_bars_width, DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH, 1, 4)));
+    setFieldValue('dropdown_style', normalizeDropdownStyle(normalizedFolder.settings, normalizedFolder));
+    setFieldValue('dropdown_color', normalizeHexColor(normalizedFolder.settings.dropdown_color, DEFAULT_DROPDOWN_COLOR));
+    setFieldValue('dropdown_hover_color', normalizeHexColor(normalizedFolder.settings.dropdown_hover_color, DEFAULT_DROPDOWN_HOVER_COLOR));
+    setFieldValue('status_color_started', normalizeHexColor(normalizedFolder.settings.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started));
+    setFieldValue('status_color_paused', normalizeHexColor(normalizedFolder.settings.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused));
+    setFieldValue('status_color_stopped', normalizeHexColor(normalizedFolder.settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped));
+    setFieldValue('health_warn_stopped_percent', normalizedFolder.settings.health_warn_stopped_percent === undefined
+        || normalizedFolder.settings.health_warn_stopped_percent === null
+        || normalizedFolder.settings.health_warn_stopped_percent === ''
+        ? ''
+        : String(normalizedFolder.settings.health_warn_stopped_percent));
+    setFieldValue('health_critical_stopped_percent', normalizedFolder.settings.health_critical_stopped_percent === undefined
+        || normalizedFolder.settings.health_critical_stopped_percent === null
+        || normalizedFolder.settings.health_critical_stopped_percent === ''
+        ? ''
+        : String(normalizedFolder.settings.health_critical_stopped_percent));
+    setFieldValue('health_profile', normalizeOptionalHealthSelect(normalizedFolder.settings.health_profile, FOLDER_HEALTH_PROFILE_VALUES));
+    setFieldValue('health_updates_mode', normalizeOptionalHealthSelect(normalizedFolder.settings.health_updates_mode, FOLDER_HEALTH_UPDATES_MODE_VALUES));
+    setFieldValue('health_all_stopped_mode', normalizeOptionalHealthSelect(normalizedFolder.settings.health_all_stopped_mode, FOLDER_HEALTH_ALL_STOPPED_MODE_VALUES));
+    setFieldValue('status_warn_stopped_percent', normalizedFolder.settings.status_warn_stopped_percent === undefined
+        || normalizedFolder.settings.status_warn_stopped_percent === null
+        || normalizedFolder.settings.status_warn_stopped_percent === ''
+        ? ''
+        : String(normalizedFolder.settings.status_warn_stopped_percent));
+    setFieldChecked('update_column', normalizedFolder.settings.update_column || false);
+    setFieldChecked('default_action', normalizedFolder.settings.default_action || false);
+    setFieldChecked('expand_tab', normalizedFolder.settings.expand_tab);
+    setFieldChecked('override_default_actions', normalizedFolder.settings.override_default_actions);
+    setFieldChecked('expand_dashboard', normalizedFolder.settings.expand_dashboard);
+    setFieldValue('dashboard_overflow', normalizeDashboardOverflowMode(normalizedFolder.settings.dashboard_overflow));
+    setFieldValue('regex', normalizedFolder.regex);
+
+    const customActionWrapper = $('.custom-action-wrapper');
+    if (customActionWrapper.length) {
+        customActionWrapper.empty();
+        normalizedFolder.actions?.forEach((entry, index) => {
+            const safeActionName = escapeHtml(entry?.name || '');
+            customActionWrapper.append(`<div class="custom-action-n-${index}">${safeActionName} <button onclick="return customAction(${index});"><i class="fa fa-pencil" aria-hidden="true"></i></button><button onclick="return rCcustomAction(${index});"><i class="fa fa-trash" aria-hidden="true"></i></button><input type="hidden" name="custom_action[]" value="${btoa(JSON.stringify(entry))}"></div>`);
+        });
+    }
+
+    updateForm();
+    updateRegex(getFormField(form, 'regex'));
+    updateIcon(getFormField(form, 'icon'));
+    if (options.clearPrefill === true) {
+        clearEditorNavigationPrefill();
+    }
+    setParentDefaultsNote('');
+    return {
+        folder: normalizedFolder,
+        id: safeFolderId
+    };
+};
+
 (async () => {
     folderThemeSurfaceBinding?.bind();
     registerBeforeUnloadGuard();
@@ -4841,10 +4962,15 @@ resetStatusColorDefaults();
     let typeFilter;
     if (type === 'docker') {
         typeFilter = (e) => {
-            const labels = e?.info?.Config?.Labels || {};
-            const state = e?.info?.State || e?.State || {};
+            const info = e?.info || {};
+            const labels = info?.Config?.Labels || {};
+            const state = info?.State || e?.State || {};
+            const name = String(info?.Name || e?.Name || e?.name || '').trim();
+            if (!name) {
+                return null;
+            }
             return {
-                'Name': e.info.Name,
+                'Name': name,
                 'Icon': labels['net.unraid.docker.icon'],
                 'Label': getFolderLabelValue(labels),
                 'ComposeProject': getComposeProjectFromLabels(labels),
@@ -4855,15 +4981,17 @@ resetStatusColorDefaults();
         };
     } else if (type === 'vm') {
         typeFilter = (e) => {
+            const name = String(e?.name || e?.Name || '').trim();
+            if (!name) {
+                return null;
+            }
             return {
-                'Name': e.name,
-                'Icon': e.icon,
+                'Name': name,
+                'Icon': e?.icon || '',
                 'Label': undefined
             }
         };
     }
-
-    choose = Object.values(JSON.parse(await $.get(`/plugins/folderview.plus/server/read_info.php?type=${type}&nocache=1&_=${cacheBust}`).promise())).map(typeFilter);
 
     // if editing a folder and not creating one
     const preferredNavigationRef = buildFolderEditorRefCandidates(
@@ -4906,100 +5034,44 @@ resetStatusColorDefaults();
     }
 
     if (currentEditFolder && currentEditFolderId) {
-        // select the folder and delete it from the list
-        const currFolder = normalizeFolderRecordForEditor(currentEditFolder);
-        currentFolderDescendantIds = computeFolderDescendantIds(allFoldersById, currentEditFolderId);
-        currentFolderName = currFolder.name || '';
-        delete folders[currentEditFolderId];
-        clearEditorNavigationPrefill();
-
-        // set the value of the form
-        const form = $('div.canvas > form')[0];
-        form.name.value = currFolder.name;
-        populateParentFolderOptions(
-            folders,
-            normalizeParentFolderId(currFolder.parentId || ''),
-            new Set([currentEditFolderId, ...Array.from(currentFolderDescendantIds)])
-        );
-        form.icon.value = currFolder.icon;
-        form.folder_webui.checked = currFolder.settings.folder_webui || false;
-        form.folder_webui_url.value = currFolder.settings.folder_webui_url || '';
-        form.preview.value = String(currFolder.settings.preview);
-        form.preview_rows.value = String(normalizePreviewRowLimit(currFolder.settings.preview_rows));
-        form.preview_hover.checked = currFolder.settings.preview_hover;
-        form.preview_update.checked = currFolder.settings.preview_update;
-        form.preview_text_width.value = currFolder.settings.preview_text_width || '';
-        form.preview_grayscale.checked = currFolder.settings.preview_grayscale;
-        form.preview_webui.checked = currFolder.settings.preview_webui;
-        form.preview_logs.checked = currFolder.settings.preview_logs;
-        form.preview_console.checked = currFolder.settings.preview_console || false;
-        form.preview_vertical_bars.checked = currFolder.settings.preview_vertical_bars || false;
-        form.context.value = currFolder.settings.context?.toString() || '1';
-        form.context_trigger.value = currFolder.settings.context_trigger?.toString() || '0';
-        form.context_graph.value = currFolder.settings.context_graph?.toString() || '1';
-        form.context_graph_time.value = currFolder.settings.context_graph_time?.toString() || '60';
-        form.preview_border.checked = isLegacyPreviewBorderEnabled(currFolder.settings || {});
-        form.preview_border_color.value = normalizeHexColor(currFolder.settings.preview_border_color, DEFAULT_BORDER_COLOR);
-        form.preview_border_width.value = String(normalizePositiveInt(currFolder.settings.preview_border_width, DEFAULT_PREVIEW_BORDER_WIDTH, 1, 4));
-        form.preview_vertical_bars_color.value = normalizeHexColor(
-            currFolder.settings.preview_vertical_bars_color || currFolder.settings.preview_border_color,
-            DEFAULT_BORDER_COLOR
-        );
-        form.preview_vertical_bars_width.value = String(normalizePositiveInt(currFolder.settings.preview_vertical_bars_width, DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH, 1, 4));
-        form.dropdown_style.value = normalizeDropdownStyle(currFolder.settings, currFolder);
-        form.dropdown_color.value = normalizeHexColor(currFolder.settings.dropdown_color, DEFAULT_DROPDOWN_COLOR);
-        form.dropdown_hover_color.value = normalizeHexColor(currFolder.settings.dropdown_hover_color, DEFAULT_DROPDOWN_HOVER_COLOR);
-        form.status_color_started.value = normalizeHexColor(currFolder.settings.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started);
-        form.status_color_paused.value = normalizeHexColor(currFolder.settings.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused);
-        form.status_color_stopped.value = normalizeHexColor(currFolder.settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped);
-        form.health_warn_stopped_percent.value = currFolder.settings.health_warn_stopped_percent === undefined
-            || currFolder.settings.health_warn_stopped_percent === null
-            || currFolder.settings.health_warn_stopped_percent === ''
-            ? ''
-            : String(currFolder.settings.health_warn_stopped_percent);
-        form.health_critical_stopped_percent.value = currFolder.settings.health_critical_stopped_percent === undefined
-            || currFolder.settings.health_critical_stopped_percent === null
-            || currFolder.settings.health_critical_stopped_percent === ''
-            ? ''
-            : String(currFolder.settings.health_critical_stopped_percent);
-        form.health_profile.value = normalizeOptionalHealthSelect(currFolder.settings.health_profile, FOLDER_HEALTH_PROFILE_VALUES);
-        form.health_updates_mode.value = normalizeOptionalHealthSelect(currFolder.settings.health_updates_mode, FOLDER_HEALTH_UPDATES_MODE_VALUES);
-        form.health_all_stopped_mode.value = normalizeOptionalHealthSelect(currFolder.settings.health_all_stopped_mode, FOLDER_HEALTH_ALL_STOPPED_MODE_VALUES);
-        form.status_warn_stopped_percent.value = currFolder.settings.status_warn_stopped_percent === undefined
-            || currFolder.settings.status_warn_stopped_percent === null
-            || currFolder.settings.status_warn_stopped_percent === ''
-            ? ''
-            : String(currFolder.settings.status_warn_stopped_percent);
-        form.update_column.checked = currFolder.settings.update_column || false;
-        form.default_action.checked = currFolder.settings.default_action || false;
-        form.expand_tab.checked = currFolder.settings.expand_tab;
-        form.override_default_actions.checked = currFolder.settings.override_default_actions;
-        form.expand_dashboard.checked = currFolder.settings.expand_dashboard;
-        form.dashboard_overflow.value = normalizeDashboardOverflowMode(currFolder.settings.dashboard_overflow);
-        form.regex.value = currFolder.regex;
-        for (const ct of currFolder.containers) {
-            const index = choose.findIndex((e) => e.Name === ct);
-            if (index > -1) {
-                selected.push(choose.splice(index, 1)[0]);
-            }
-        };
-
-        currFolder.actions?.forEach((e, i) => {
-            const safeActionName = escapeHtml(e?.name || '');
-            $('.custom-action-wrapper').append(`<div class="custom-action-n-${i}">${safeActionName} <button onclick="return customAction(${i});"><i class="fa fa-pencil" aria-hidden="true"></i></button><button onclick="return rCcustomAction(${i});"><i class="fa fa-trash" aria-hidden="true"></i></button><input type="hidden" name="custom_action[]" value="${btoa(JSON.stringify(e))}"></div>`);
-        });
-
-
-        // make the ui respond to the previus changes
-        updateForm();
-        updateRegex(form.regex);
-        updateIcon(form.icon);
-        setParentDefaultsNote('');
+        hydrateCurrentEditFolder(currentEditFolder, currentEditFolderId, folders, { clearPrefill: true });
     } else {
         clearEditorNavigationPrefill();
         currentFolderDescendantIds = new Set();
         populateParentFolderOptions(folders, '', new Set());
         setParentDefaultsNote('Select a parent to inherit preview/icon defaults automatically.', 'info');
+    }
+
+    let readInfoResponse = {};
+    try {
+        readInfoResponse = JSON.parse(await $.get(`/plugins/folderview.plus/server/read_info.php?type=${type}&nocache=1&_=${cacheBust}`).promise());
+    } catch (error) {
+        console.error('[FolderView Plus] Legacy folder editor member inventory load failed.', error);
+        readInfoResponse = {};
+    }
+    choose = Object.values(readInfoResponse && typeof readInfoResponse === 'object' ? readInfoResponse : {})
+        .map(typeFilter)
+        .filter(Boolean);
+    if (currentEditFolder && currentEditFolderId) {
+        const currFolder = normalizeFolderRecordForEditor(currentEditFolder);
+        for (const ct of currFolder.containers) {
+            const index = choose.findIndex((e) => e.Name === ct);
+            if (index > -1) {
+                selected.push(choose.splice(index, 1)[0]);
+                continue;
+            }
+            if (!selected.some((entry) => entry?.Name === ct)) {
+                selected.push({
+                    Name: String(ct || ''),
+                    Icon: currFolder.icon || ICON_FALLBACK_PATH,
+                    Label: undefined,
+                    ComposeProject: '',
+                    State: {},
+                    RawState: {},
+                    UpdateAvailable: false
+                });
+            }
+        }
     }
 
     // create the *cool* unraid button for the autostart

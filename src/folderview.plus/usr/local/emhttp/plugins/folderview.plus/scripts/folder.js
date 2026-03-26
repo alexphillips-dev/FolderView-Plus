@@ -4885,7 +4885,7 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     };
 };
 
-(async () => {
+const startFolderEditorRuntime = async () => {
     window.FolderViewPlusFolderEditorRuntimeBootStage = 'runtime-start';
     folderThemeSurfaceBinding?.bind();
     registerBeforeUnloadGuard();
@@ -5139,15 +5139,7 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     });
 
     window.addEventListener('resize', enforceLeftAlignedSettingsLayout);
-})().catch((error) => {
-    const safeError = error instanceof Error ? error : new Error(String(error || 'Unknown folder editor bootstrap failure.'));
-    setValidationBannerState(
-        'Folder editor failed to finish loading.',
-        safeError.message || 'Unknown folder editor bootstrap failure.',
-        'invalid'
-    );
-    throw safeError;
-});
+};
 
 /**
  * Update the folder icon when editing the respective field
@@ -6138,4 +6130,13 @@ window.suggestDefaultsFromMembers = suggestDefaultsFromMembers;
 window.setIconAsContainer = setIconAsContainer;
 window.customAction = customAction;
 window.rCcustomAction = rCcustomAction;
+void startFolderEditorRuntime().catch((error) => {
+    const safeError = error instanceof Error ? error : new Error(String(error || 'Unknown folder editor bootstrap failure.'));
+    setValidationBannerState(
+        'Folder editor failed to finish loading.',
+        safeError.message || 'Unknown folder editor bootstrap failure.',
+        'invalid'
+    );
+    throw safeError;
+});
 })(window, window.jQuery || window.$);

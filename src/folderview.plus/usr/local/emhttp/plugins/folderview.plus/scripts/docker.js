@@ -182,223 +182,43 @@ const dockerFatalBannerRuntimeConfig = (window.FolderViewPlusFatalRuntimeContext
     ? window.FolderViewPlusFatalRuntimeContext
     : {};
 const DOCKER_FATAL_BANNER_HOST_SELECTOR = String(dockerFatalBannerRuntimeConfig.hostSelector || '#fvplus-docker-runtime-banner-host').trim() || '#fvplus-docker-runtime-banner-host';
-const trimFatalBannerDiagnosticString = (value) => String(value ?? '').trim();
-const extractFatalBannerTraceId = (error) => {
-    const jqXhrTrace = trimFatalBannerDiagnosticString(
-        typeof error?.jqXHR?.getResponseHeader === 'function'
-            ? error.jqXHR.getResponseHeader('X-FV-Trace')
-            : ''
-    );
-    if (jqXhrTrace) {
-        return jqXhrTrace;
-    }
-    const direct = trimFatalBannerDiagnosticString(error?.traceId);
-    if (direct) {
-        return direct;
-    }
-    const message = trimFatalBannerDiagnosticString(error?.message || error);
-    const match = message.match(/\(trace:\s*([^)]+)\)/i);
-    return match ? trimFatalBannerDiagnosticString(match[1]) : '';
-};
-const extractFatalBannerStatus = (error) => {
-    const direct = Number(error?.jqXHR?.status || error?.status || 0);
-    if (Number.isFinite(direct) && direct > 0) {
-        return String(direct);
-    }
-    const message = trimFatalBannerDiagnosticString(error?.message || error);
-    const match = message.match(/\bHTTP\s+(\d{3})\b/i);
-    return match ? trimFatalBannerDiagnosticString(match[1]) : '';
-};
-const extractFatalBannerResponseSnippet = (error) => {
-    const responseText = trimFatalBannerDiagnosticString(error?.jqXHR?.responseText || error?.responseText || '');
-    if (!responseText) {
-        return '';
-    }
-    const normalized = responseText.replace(/\s+/g, ' ').trim();
-    if (!normalized) {
-        return '';
-    }
-    return normalized.length > 180 ? `${normalized.slice(0, 177)}...` : normalized;
-};
-const inferFatalBannerCategory = (error, fallbackCategory = 'runtime-failed') => {
-    const message = trimFatalBannerDiagnosticString(error?.message || error).toLowerCase();
-    if (!message) {
-        return fallbackCategory;
-    }
-    if (message.includes('missing modules') || message.includes('module did not load')) {
-        return 'missing-module';
-    }
-    if (message.includes('http 401') || message.includes('invalid request token')) {
-        return 'auth-failed';
-    }
-    if (message.includes('http 403') || message.includes('blocked by request guard')) {
-        return 'request-guard';
-    }
-    if (message.includes('http 404')) {
-        return 'missing-endpoint';
-    }
-    if (message.includes('http 5')) {
-        return 'server-error';
-    }
-    if (message.includes('json') && message.includes('parse')) {
-        return 'invalid-response';
-    }
-    return fallbackCategory;
-};
-const setDockerFatalBannerEnvironment = (patch = {}) => {
-    if (fatalBanner && typeof fatalBanner.setEnvironment === 'function') {
-        fatalBanner.setEnvironment({
-            page: 'Docker',
-            pluginVersion: trimFatalBannerDiagnosticString(dockerFatalBannerRuntimeConfig.pluginVersion || 'unknown') || 'unknown',
-            channel: trimFatalBannerDiagnosticString(dockerFatalBannerRuntimeConfig.channel || 'unknown') || 'unknown',
-            unraidVersion: trimFatalBannerDiagnosticString(dockerFatalBannerRuntimeConfig.unraidVersion || 'unknown') || 'unknown',
-            url: trimFatalBannerDiagnosticString(window.location?.href || ''),
-            userAgent: trimFatalBannerDiagnosticString(window.navigator?.userAgent || ''),
-            ...patch
-        });
-    }
-};
-const markDockerFatalBannerStep = (step) => {
-    if (fatalBanner && typeof fatalBanner.markStep === 'function') {
-        fatalBanner.markStep(step);
-    }
-};
-const setDockerFatalBannerPhase = (phase) => {
-    if (fatalBanner && typeof fatalBanner.setPhase === 'function') {
-        fatalBanner.setPhase(phase);
-    }
-};
-const recordDockerFatalBannerAction = (action) => {
-    if (fatalBanner && typeof fatalBanner.recordAction === 'function') {
-        fatalBanner.recordAction(action);
-    }
-};
-const setDockerFatalBannerModuleStatus = (name, status, detail = '') => {
-    if (fatalBanner && typeof fatalBanner.setModuleStatus === 'function') {
-        fatalBanner.setModuleStatus(name, status, detail);
-    }
-};
-const recordDockerFatalBannerRequest = (entry = {}) => {
-    if (fatalBanner && typeof fatalBanner.recordRequest === 'function') {
-        fatalBanner.recordRequest(entry);
-    }
-};
-const reportDockerBootstrapDependencyBanner = (missingModules) => {
-    if (fatalBanner && typeof fatalBanner.reportMissingModules === 'function') {
-        fatalBanner.reportMissingModules(missingModules, {
-            context: 'Docker',
-            hostSelector: DOCKER_FATAL_BANNER_HOST_SELECTOR,
-            message: 'FolderView Plus could not start because required Docker runtime modules failed to load.',
-            code: 'FVPLUS-DKR-BOOT-001',
-            phase: 'module-load'
-        });
-    }
-};
-const reportDockerFatalRuntimeError = (error, options = {}) => {
-    if (fatalBanner && typeof fatalBanner.reportFatalError === 'function') {
-        fatalBanner.reportFatalError(error, {
-            context: 'Docker',
-            hostSelector: DOCKER_FATAL_BANNER_HOST_SELECTOR,
-            title: 'Docker runtime failed',
-            message: 'FolderView Plus could not finish rendering folders on the Docker page.',
-            code: 'FVPLUS-DKR-BOOT-002',
-            phase: options.phase || error?.fvplusPhase || 'runtime',
-            category: options.category || error?.fvplusCategory || inferFatalBannerCategory(error, 'runtime-failed'),
-            ...options
-        });
-    }
-};
-const reportDockerDegradedRuntimeState = (error, options = {}) => {
-    if (fatalBanner && typeof fatalBanner.reportDegradedState === 'function') {
-        fatalBanner.reportDegradedState(error, {
-            context: 'Docker',
-            hostSelector: DOCKER_FATAL_BANNER_HOST_SELECTOR,
-            title: 'Docker page loaded in degraded mode',
-            message: 'FolderView Plus kept the Docker page open, but part of the folder runtime did not load.',
-            code: 'FVPLUS-DKR-BOOT-003',
-            phase: options.phase || error?.fvplusPhase || 'bootstrap-data',
-            category: options.category || error?.fvplusCategory || 'degraded-mode',
-            ...options
-        });
-    }
-};
-const buildDockerRuntimeRequestError = (label, url, jqXHR, textStatus, errorThrown) => {
-    const status = trimFatalBannerDiagnosticString(
-        typeof jqXHR?.status === 'number' && jqXHR.status > 0 ? jqXHR.status : ''
-    );
-    const traceId = trimFatalBannerDiagnosticString(
-        typeof jqXHR?.getResponseHeader === 'function'
-            ? jqXHR.getResponseHeader('X-FV-Trace')
-            : ''
-    );
-    const detail = trimFatalBannerDiagnosticString(errorThrown || textStatus || 'request failed');
-    const messageParts = [`${label} request failed for ${url}`];
-    if (status) {
-        messageParts.push(`HTTP ${status}`);
-    }
-    if (detail && detail.toLowerCase() !== 'error') {
-        messageParts.push(detail);
-    }
-    if (traceId) {
-        messageParts.push(`trace: ${traceId}`);
-    }
-    const error = new Error(messageParts.join(' | '));
-    error.jqXHR = jqXHR;
-    error.status = status;
-    error.traceId = traceId;
-    error.responseText = jqXHR?.responseText || '';
-    error.fvplusPhase = 'bootstrap-data';
-    error.fvplusCategory = inferFatalBannerCategory(error, 'request-failed');
-    return error;
-};
-const createDockerRuntimeRequest = (url, options = {}) => {
-    const method = trimFatalBannerDiagnosticString(options.method || 'GET') || 'GET';
-    const source = trimFatalBannerDiagnosticString(options.source || 'docker-runtime');
-    const detail = trimFatalBannerDiagnosticString(options.detail || '');
-    const label = trimFatalBannerDiagnosticString(options.label || source || url);
-    const allowFallback = options.allowFallback === true;
-    const fallbackValue = options.fallbackValue;
-    return $.get(url).promise().then(
-        (data, _textStatus, jqXHR) => {
-            recordDockerFatalBannerRequest({
-                method,
-                url,
-                source,
-                outcome: 'ok',
-                status: trimFatalBannerDiagnosticString(jqXHR?.status || ''),
-                detail
-            });
-            return data;
-        },
-        (jqXHR, textStatus, errorThrown) => {
-            const error = buildDockerRuntimeRequestError(label, url, jqXHR, textStatus, errorThrown);
-            recordDockerFatalBannerRequest({
-                method,
-                url,
-                source,
-                outcome: allowFallback ? 'fallback' : 'error',
-                status: extractFatalBannerStatus(error),
-                traceId: extractFatalBannerTraceId(error),
-                category: inferFatalBannerCategory(error, allowFallback ? 'degraded-mode' : 'request-failed'),
-                detail: trimFatalBannerDiagnosticString(error.message),
-                responseSnippet: extractFatalBannerResponseSnippet(error)
-            });
-            if (allowFallback) {
-                reportDockerDegradedRuntimeState(error, {
-                    title: 'Docker runtime preferences could not be loaded',
-                    message: 'FolderView Plus kept the Docker page open, but the runtime had to fall back to default Docker folder preferences.',
-                    detailLabel: 'Fallback request',
-                    details: [`${label} request fell back to defaults.`, trimFatalBannerDiagnosticString(error.message)].filter(Boolean)
-                });
-                return fallbackValue;
-            }
-            throw error;
-        }
-    );
-};
-setDockerFatalBannerEnvironment();
-setDockerFatalBannerPhase('bootstrap');
-recordDockerFatalBannerAction('Docker runtime bootstrap started');
+const createDockerRuntimeDiagnosticsBridge = typeof dockerRuntimeShared.createRuntimeDiagnosticsBridge === 'function'
+    ? dockerRuntimeShared.createRuntimeDiagnosticsBridge
+    : null;
+const dockerRuntimeDiagnostics = createDockerRuntimeDiagnosticsBridge
+    ? createDockerRuntimeDiagnosticsBridge({
+        context: 'Docker',
+        hostSelector: DOCKER_FATAL_BANNER_HOST_SELECTOR,
+        runtimeContext: dockerFatalBannerRuntimeConfig,
+        codePrefix: 'FVPLUS-DKR',
+        fatalTitle: 'Docker runtime failed',
+        fatalMessage: 'FolderView Plus could not finish rendering folders on the Docker page.',
+        degradedTitle: 'Docker page loaded in degraded mode',
+        degradedMessage: 'FolderView Plus kept the Docker page open, but part of the folder runtime did not load.'
+    })
+    : Object.freeze({
+        setEnvironment: () => {},
+        markStep: () => {},
+        setPhase: () => {},
+        recordAction: () => {},
+        setModuleStatus: () => {},
+        reportMissingModules: () => {},
+        reportFatalError: () => {},
+        reportDegradedState: () => {},
+        inferCategory: (_error, fallbackCategory = 'runtime-failed') => fallbackCategory,
+        createRequest: (url) => $.get(url).promise()
+    });
+const markDockerFatalBannerStep = (step) => dockerRuntimeDiagnostics.markStep(step);
+const setDockerFatalBannerPhase = (phase) => dockerRuntimeDiagnostics.setPhase(phase);
+const recordDockerFatalBannerAction = (action) => dockerRuntimeDiagnostics.recordAction(action);
+const setDockerFatalBannerModuleStatus = (name, status, detail = '') => dockerRuntimeDiagnostics.setModuleStatus(name, status, detail);
+const reportDockerBootstrapDependencyBanner = (missingModules) => dockerRuntimeDiagnostics.reportMissingModules(missingModules, {
+    message: 'FolderView Plus could not start because required Docker runtime modules failed to load.'
+});
+const reportDockerFatalRuntimeError = (error, options = {}) => dockerRuntimeDiagnostics.reportFatalError(error, options);
+const reportDockerDegradedRuntimeState = (error, options = {}) => dockerRuntimeDiagnostics.reportDegradedState(error, options);
+const inferDockerFatalBannerCategory = (error, fallbackCategory = 'runtime-failed') => dockerRuntimeDiagnostics.inferCategory(error, fallbackCategory);
+const createDockerRuntimeRequest = (url, options = {}) => dockerRuntimeDiagnostics.createRequest(url, options);
 const dockerBootstrapMissingModules = [];
 if (!window.FolderViewPlusUtils || typeof window.FolderViewPlusUtils.normalizePrefs !== 'function') {
     dockerBootstrapMissingModules.push('folderviewplus.utils.js');
@@ -426,6 +246,7 @@ if (
     !window.FolderViewDockerRuntimeShared
     || typeof window.FolderViewDockerRuntimeShared.createAsyncActionBoundary !== 'function'
     || typeof window.FolderViewDockerRuntimeShared.applyFolderDropdownStyle !== 'function'
+    || typeof createDockerRuntimeDiagnosticsBridge !== 'function'
 ) {
     dockerBootstrapMissingModules.push('docker.runtime.shared.js');
     setDockerFatalBannerModuleStatus('docker.runtime.shared.js', 'missing', 'shared Docker runtime helpers unavailable');
@@ -2825,7 +2646,7 @@ const createFolders = async () => {
     } catch (error) {
     reportDockerFatalRuntimeError(error, {
         phase: error?.fvplusPhase || 'bootstrap-data',
-        category: error?.fvplusCategory || inferFatalBannerCategory(error, 'runtime-failed')
+        category: error?.fvplusCategory || inferDockerFatalBannerCategory(error, 'runtime-failed')
     });
     throw error;
     } finally {
@@ -2849,7 +2670,7 @@ const queueCreateFoldersRender = () => {
             if (!error?.fvplusBannerShown) {
                 reportDockerFatalRuntimeError(error, {
                     phase: error?.fvplusPhase || 'runtime',
-                    category: error?.fvplusCategory || inferFatalBannerCategory(error, 'promise-rejection')
+                    category: error?.fvplusCategory || inferDockerFatalBannerCategory(error, 'promise-rejection')
                 });
             }
         })

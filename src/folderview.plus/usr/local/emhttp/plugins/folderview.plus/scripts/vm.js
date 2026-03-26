@@ -187,223 +187,43 @@ const vmFatalBannerRuntimeConfig = (window.FolderViewPlusFatalRuntimeContext && 
     ? window.FolderViewPlusFatalRuntimeContext
     : {};
 const VM_FATAL_BANNER_HOST_SELECTOR = String(vmFatalBannerRuntimeConfig.hostSelector || '#fvplus-vm-runtime-banner-host').trim() || '#fvplus-vm-runtime-banner-host';
-const trimFatalBannerDiagnosticString = (value) => String(value ?? '').trim();
-const extractFatalBannerTraceId = (error) => {
-    const jqXhrTrace = trimFatalBannerDiagnosticString(
-        typeof error?.jqXHR?.getResponseHeader === 'function'
-            ? error.jqXHR.getResponseHeader('X-FV-Trace')
-            : ''
-    );
-    if (jqXhrTrace) {
-        return jqXhrTrace;
-    }
-    const direct = trimFatalBannerDiagnosticString(error?.traceId);
-    if (direct) {
-        return direct;
-    }
-    const message = trimFatalBannerDiagnosticString(error?.message || error);
-    const match = message.match(/\(trace:\s*([^)]+)\)/i);
-    return match ? trimFatalBannerDiagnosticString(match[1]) : '';
-};
-const extractFatalBannerStatus = (error) => {
-    const direct = Number(error?.jqXHR?.status || error?.status || 0);
-    if (Number.isFinite(direct) && direct > 0) {
-        return String(direct);
-    }
-    const message = trimFatalBannerDiagnosticString(error?.message || error);
-    const match = message.match(/\bHTTP\s+(\d{3})\b/i);
-    return match ? trimFatalBannerDiagnosticString(match[1]) : '';
-};
-const extractFatalBannerResponseSnippet = (error) => {
-    const responseText = trimFatalBannerDiagnosticString(error?.jqXHR?.responseText || error?.responseText || '');
-    if (!responseText) {
-        return '';
-    }
-    const normalized = responseText.replace(/\s+/g, ' ').trim();
-    if (!normalized) {
-        return '';
-    }
-    return normalized.length > 180 ? `${normalized.slice(0, 177)}...` : normalized;
-};
-const inferFatalBannerCategory = (error, fallbackCategory = 'runtime-failed') => {
-    const message = trimFatalBannerDiagnosticString(error?.message || error).toLowerCase();
-    if (!message) {
-        return fallbackCategory;
-    }
-    if (message.includes('missing modules') || message.includes('module did not load')) {
-        return 'missing-module';
-    }
-    if (message.includes('http 401') || message.includes('invalid request token')) {
-        return 'auth-failed';
-    }
-    if (message.includes('http 403') || message.includes('blocked by request guard')) {
-        return 'request-guard';
-    }
-    if (message.includes('http 404')) {
-        return 'missing-endpoint';
-    }
-    if (message.includes('http 5')) {
-        return 'server-error';
-    }
-    if (message.includes('json') && message.includes('parse')) {
-        return 'invalid-response';
-    }
-    return fallbackCategory;
-};
-const setVmFatalBannerEnvironment = (patch = {}) => {
-    if (fatalBanner && typeof fatalBanner.setEnvironment === 'function') {
-        fatalBanner.setEnvironment({
-            page: 'VMs',
-            pluginVersion: trimFatalBannerDiagnosticString(vmFatalBannerRuntimeConfig.pluginVersion || 'unknown') || 'unknown',
-            channel: trimFatalBannerDiagnosticString(vmFatalBannerRuntimeConfig.channel || 'unknown') || 'unknown',
-            unraidVersion: trimFatalBannerDiagnosticString(vmFatalBannerRuntimeConfig.unraidVersion || 'unknown') || 'unknown',
-            url: trimFatalBannerDiagnosticString(window.location?.href || ''),
-            userAgent: trimFatalBannerDiagnosticString(window.navigator?.userAgent || ''),
-            ...patch
-        });
-    }
-};
-const markVmFatalBannerStep = (step) => {
-    if (fatalBanner && typeof fatalBanner.markStep === 'function') {
-        fatalBanner.markStep(step);
-    }
-};
-const setVmFatalBannerPhase = (phase) => {
-    if (fatalBanner && typeof fatalBanner.setPhase === 'function') {
-        fatalBanner.setPhase(phase);
-    }
-};
-const recordVmFatalBannerAction = (action) => {
-    if (fatalBanner && typeof fatalBanner.recordAction === 'function') {
-        fatalBanner.recordAction(action);
-    }
-};
-const setVmFatalBannerModuleStatus = (name, status, detail = '') => {
-    if (fatalBanner && typeof fatalBanner.setModuleStatus === 'function') {
-        fatalBanner.setModuleStatus(name, status, detail);
-    }
-};
-const recordVmFatalBannerRequest = (entry = {}) => {
-    if (fatalBanner && typeof fatalBanner.recordRequest === 'function') {
-        fatalBanner.recordRequest(entry);
-    }
-};
-const reportVmBootstrapDependencyBanner = (missingModules) => {
-    if (fatalBanner && typeof fatalBanner.reportMissingModules === 'function') {
-        fatalBanner.reportMissingModules(missingModules, {
-            context: 'VMs',
-            hostSelector: VM_FATAL_BANNER_HOST_SELECTOR,
-            message: 'FolderView Plus could not start because required VM runtime modules failed to load.',
-            code: 'FVPLUS-VM-BOOT-001',
-            phase: 'module-load'
-        });
-    }
-};
-const reportVmFatalRuntimeError = (error, options = {}) => {
-    if (fatalBanner && typeof fatalBanner.reportFatalError === 'function') {
-        fatalBanner.reportFatalError(error, {
-            context: 'VMs',
-            hostSelector: VM_FATAL_BANNER_HOST_SELECTOR,
-            title: 'VM runtime failed',
-            message: 'FolderView Plus could not finish rendering folders on the VMs page.',
-            code: 'FVPLUS-VM-BOOT-002',
-            phase: options.phase || error?.fvplusPhase || 'runtime',
-            category: options.category || error?.fvplusCategory || inferFatalBannerCategory(error, 'runtime-failed'),
-            ...options
-        });
-    }
-};
-const reportVmDegradedRuntimeState = (error, options = {}) => {
-    if (fatalBanner && typeof fatalBanner.reportDegradedState === 'function') {
-        fatalBanner.reportDegradedState(error, {
-            context: 'VMs',
-            hostSelector: VM_FATAL_BANNER_HOST_SELECTOR,
-            title: 'VMs page loaded in degraded mode',
-            message: 'FolderView Plus kept the VMs page open, but part of the folder runtime did not load.',
-            code: 'FVPLUS-VM-BOOT-003',
-            phase: options.phase || error?.fvplusPhase || 'bootstrap-data',
-            category: options.category || error?.fvplusCategory || 'degraded-mode',
-            ...options
-        });
-    }
-};
-const buildVmRuntimeRequestError = (label, url, jqXHR, textStatus, errorThrown) => {
-    const status = trimFatalBannerDiagnosticString(
-        typeof jqXHR?.status === 'number' && jqXHR.status > 0 ? jqXHR.status : ''
-    );
-    const traceId = trimFatalBannerDiagnosticString(
-        typeof jqXHR?.getResponseHeader === 'function'
-            ? jqXHR.getResponseHeader('X-FV-Trace')
-            : ''
-    );
-    const detail = trimFatalBannerDiagnosticString(errorThrown || textStatus || 'request failed');
-    const messageParts = [`${label} request failed for ${url}`];
-    if (status) {
-        messageParts.push(`HTTP ${status}`);
-    }
-    if (detail && detail.toLowerCase() !== 'error') {
-        messageParts.push(detail);
-    }
-    if (traceId) {
-        messageParts.push(`trace: ${traceId}`);
-    }
-    const error = new Error(messageParts.join(' | '));
-    error.jqXHR = jqXHR;
-    error.status = status;
-    error.traceId = traceId;
-    error.responseText = jqXHR?.responseText || '';
-    error.fvplusPhase = 'bootstrap-data';
-    error.fvplusCategory = inferFatalBannerCategory(error, 'request-failed');
-    return error;
-};
-const createVmRuntimeRequest = (url, options = {}) => {
-    const method = trimFatalBannerDiagnosticString(options.method || 'GET') || 'GET';
-    const source = trimFatalBannerDiagnosticString(options.source || 'vm-runtime');
-    const detail = trimFatalBannerDiagnosticString(options.detail || '');
-    const label = trimFatalBannerDiagnosticString(options.label || source || url);
-    const allowFallback = options.allowFallback === true;
-    const fallbackValue = options.fallbackValue;
-    return $.get(url).promise().then(
-        (data, _textStatus, jqXHR) => {
-            recordVmFatalBannerRequest({
-                method,
-                url,
-                source,
-                outcome: 'ok',
-                status: trimFatalBannerDiagnosticString(jqXHR?.status || ''),
-                detail
-            });
-            return data;
-        },
-        (jqXHR, textStatus, errorThrown) => {
-            const error = buildVmRuntimeRequestError(label, url, jqXHR, textStatus, errorThrown);
-            recordVmFatalBannerRequest({
-                method,
-                url,
-                source,
-                outcome: allowFallback ? 'fallback' : 'error',
-                status: extractFatalBannerStatus(error),
-                traceId: extractFatalBannerTraceId(error),
-                category: inferFatalBannerCategory(error, allowFallback ? 'degraded-mode' : 'request-failed'),
-                detail: trimFatalBannerDiagnosticString(error.message),
-                responseSnippet: extractFatalBannerResponseSnippet(error)
-            });
-            if (allowFallback) {
-                reportVmDegradedRuntimeState(error, {
-                    title: 'VM runtime preferences could not be loaded',
-                    message: 'FolderView Plus kept the VMs page open, but the runtime had to fall back to default VM folder preferences.',
-                    detailLabel: 'Fallback request',
-                    details: [`${label} request fell back to defaults.`, trimFatalBannerDiagnosticString(error.message)].filter(Boolean)
-                });
-                return fallbackValue;
-            }
-            throw error;
-        }
-    );
-};
-setVmFatalBannerEnvironment();
-setVmFatalBannerPhase('bootstrap');
-recordVmFatalBannerAction('VM runtime bootstrap started');
+const createVmRuntimeDiagnosticsBridge = typeof runtimeShared.createRuntimeDiagnosticsBridge === 'function'
+    ? runtimeShared.createRuntimeDiagnosticsBridge
+    : null;
+const vmRuntimeDiagnostics = createVmRuntimeDiagnosticsBridge
+    ? createVmRuntimeDiagnosticsBridge({
+        context: 'VMs',
+        hostSelector: VM_FATAL_BANNER_HOST_SELECTOR,
+        runtimeContext: vmFatalBannerRuntimeConfig,
+        codePrefix: 'FVPLUS-VM',
+        fatalTitle: 'VM runtime failed',
+        fatalMessage: 'FolderView Plus could not finish rendering folders on the VMs page.',
+        degradedTitle: 'VMs page loaded in degraded mode',
+        degradedMessage: 'FolderView Plus kept the VMs page open, but part of the folder runtime did not load.'
+    })
+    : Object.freeze({
+        setEnvironment: () => {},
+        markStep: () => {},
+        setPhase: () => {},
+        recordAction: () => {},
+        setModuleStatus: () => {},
+        reportMissingModules: () => {},
+        reportFatalError: () => {},
+        reportDegradedState: () => {},
+        inferCategory: (_error, fallbackCategory = 'runtime-failed') => fallbackCategory,
+        createRequest: (url) => $.get(url).promise()
+    });
+const markVmFatalBannerStep = (step) => vmRuntimeDiagnostics.markStep(step);
+const setVmFatalBannerPhase = (phase) => vmRuntimeDiagnostics.setPhase(phase);
+const recordVmFatalBannerAction = (action) => vmRuntimeDiagnostics.recordAction(action);
+const setVmFatalBannerModuleStatus = (name, status, detail = '') => vmRuntimeDiagnostics.setModuleStatus(name, status, detail);
+const reportVmBootstrapDependencyBanner = (missingModules) => vmRuntimeDiagnostics.reportMissingModules(missingModules, {
+    message: 'FolderView Plus could not start because required VM runtime modules failed to load.'
+});
+const reportVmFatalRuntimeError = (error, options = {}) => vmRuntimeDiagnostics.reportFatalError(error, options);
+const reportVmDegradedRuntimeState = (error, options = {}) => vmRuntimeDiagnostics.reportDegradedState(error, options);
+const inferVmFatalBannerCategory = (error, fallbackCategory = 'runtime-failed') => vmRuntimeDiagnostics.inferCategory(error, fallbackCategory);
+const createVmRuntimeRequest = (url, options = {}) => vmRuntimeDiagnostics.createRequest(url, options);
 const vmBootstrapMissingModules = [];
 if (!window.FolderViewPlusUtils || typeof window.FolderViewPlusUtils.normalizePrefs !== 'function') {
     vmBootstrapMissingModules.push('folderviewplus.utils.js');
@@ -431,6 +251,7 @@ if (
     !window.FolderViewDockerRuntimeShared
     || typeof window.FolderViewDockerRuntimeShared.createAsyncActionBoundary !== 'function'
     || typeof window.FolderViewDockerRuntimeShared.applyFolderDropdownStyle !== 'function'
+    || typeof createVmRuntimeDiagnosticsBridge !== 'function'
 ) {
     vmBootstrapMissingModules.push('docker.runtime.shared.js');
     setVmFatalBannerModuleStatus('docker.runtime.shared.js', 'missing', 'shared runtime helpers unavailable');
@@ -1390,7 +1211,7 @@ const createFolders = async () => {
     } catch (error) {
         reportVmFatalRuntimeError(error, {
             phase: error?.fvplusPhase || 'bootstrap-data',
-            category: error?.fvplusCategory || inferFatalBannerCategory(error, 'runtime-failed')
+            category: error?.fvplusCategory || inferVmFatalBannerCategory(error, 'runtime-failed')
         });
         throw error;
     } finally {
@@ -1414,7 +1235,7 @@ const queueCreateFoldersRender = () => {
             if (!error?.fvplusBannerShown) {
                 reportVmFatalRuntimeError(error, {
                     phase: error?.fvplusPhase || 'runtime',
-                    category: error?.fvplusCategory || inferFatalBannerCategory(error, 'promise-rejection')
+                    category: error?.fvplusCategory || inferVmFatalBannerCategory(error, 'promise-rejection')
                 });
             }
         })

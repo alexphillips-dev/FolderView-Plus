@@ -61,6 +61,7 @@ test('docker shared runtime module binds to the shared folder contract and expor
     assert.match(dockerSharedJs, /const createRuntimePerfTelemetry =/);
     assert.match(dockerSharedJs, /const createSafeUiActionRunner =/);
     assert.match(dockerSharedJs, /const resolveRuntimePerformanceProfile =/);
+    assert.match(dockerSharedJs, /const createRuntimeDiagnosticsBridge = \(options = \{\}\) =>/);
     assert.match(dockerSharedJs, /const applyFolderDropdownStyle =/);
     assert.match(dockerSharedJs, /const runtimeContracts = Object\.freeze\(/);
     assert.match(dockerSharedJs, /window\.FolderViewDockerRuntimeShared =/);
@@ -70,6 +71,7 @@ test('docker runtime consumes shared state store and guarded async action wrappe
     assert.match(dockerJs, /const dockerRuntimeShared = window\.FolderViewDockerRuntimeShared \|\| \{\};/);
     assert.match(dockerJs, /const fatalBanner = window\.FolderViewPlusFatalBanner \|\| null;/);
     assert.match(dockerJs, /const DOCKER_FATAL_BANNER_HOST_SELECTOR = String\(dockerFatalBannerRuntimeConfig\.hostSelector \|\| '#fvplus-docker-runtime-banner-host'\)/);
+    assert.match(dockerJs, /const createDockerRuntimeDiagnosticsBridge = typeof dockerRuntimeShared\.createRuntimeDiagnosticsBridge === 'function'/);
     assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('folderviewplus\.utils\.js'\)/);
     assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('folderviewplus\.request\.js'\)/);
     assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('docker\.runtime\.shared\.js'\)/);

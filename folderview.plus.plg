@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.18">
-<!ENTITY md5 "175d4e6e99374169d1295e448ec17c25">
+<!ENTITY version "2026.03.26.20">
+<!ENTITY md5 "b67ba14670bcaec0aeef0353ce5fe6f0">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.20
+- Fix: Added a top-of-page runtime diagnostics banner on the Docker and VMs pages so bootstrap, request, and render failures now surface with copyable details instead of silently failing.
+- Fix: Bound the Docker and VM `Add Folder` page actions onto the live runtime so inline page buttons still work even when the host page expects global handlers.
+- Quality: Moved the shared runtime diagnostics bridge into the common runtime module and added architecture guards so Docker and VM runtime failures stay visible without tripping the file-size ratchet.
 
 ###2026.03.26.18
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

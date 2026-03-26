@@ -42,6 +42,7 @@ test('vm runtime consumes shared state/perf/action modules and exposes telemetry
     assert.match(vmJs, /const runtimeShared = window\.FolderViewDockerRuntimeShared \|\| \{\};/);
     assert.match(vmJs, /const fatalBanner = window\.FolderViewPlusFatalBanner \|\| null;/);
     assert.match(vmJs, /const VM_FATAL_BANNER_HOST_SELECTOR = String\(vmFatalBannerRuntimeConfig\.hostSelector \|\| '#fvplus-vm-runtime-banner-host'\)/);
+    assert.match(vmJs, /const createVmRuntimeDiagnosticsBridge = typeof runtimeShared\.createRuntimeDiagnosticsBridge === 'function'/);
     assert.match(vmJs, /vmBootstrapMissingModules\.push\('folderviewplus\.utils\.js'\)/);
     assert.match(vmJs, /vmBootstrapMissingModules\.push\('folderviewplus\.request\.js'\)/);
     assert.match(vmJs, /vmBootstrapMissingModules\.push\('docker\.runtime\.shared\.js'\)/);

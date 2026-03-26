@@ -161,6 +161,7 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderPage, /folder\.js/);
     assert.match(folderPage, /folder\.legacy\.js/);
     assert.match(folderChromeJs, /FolderViewPlusRefreshModernEditorChromeLayout/);
+    assert.match(folderChromeJs, /FolderViewPlusRevealModernEditorStage/);
     assert.match(folderChromeJs, /const getModernStage = \(form\) =>/);
     assert.match(folderChromeJs, /const getLegacyScaffold = \(form\) =>/);
     assert.match(folderChromeJs, /id="fvSectionState-\$\{sectionKey\}"/);
@@ -217,6 +218,7 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(settingsJs, /bootstrapMissingModules\.push\('folderviewplus\.settings-table\.js'\)/);
     assert.match(folderCss, /\.canvas form\.folder-editor-form,\s*[\s\S]*#fvEditorChrome\s*\{[\s\S]*--fv-editor-text-primary:\s*var\(--fvplus-editor-text-primary/);
     assert.match(folderCss, /\.fv-modern-editor-stage\s*\{/);
+    assert.match(folderCss, /\.fv-modern-editor-stage\.is-pending > #fvEditorChrome,/);
     assert.match(folderCss, /\.fv-legacy-editor-scaffold\[hidden\]\s*\{/);
     assert.match(folderCss, /\.fv-section-nav > button\s*\{[\s\S]*color:\s*var\(--fv-editor-text-primary\);/);
     assert.match(folderCss, /\.fv-editor-mode > button\s*\{[\s\S]*color:\s*var\(--fv-editor-text-primary\);/);
@@ -478,7 +480,7 @@ test('folder editor page ships the redesign bootstrap and chrome anchors', () =>
     assert.match(folderPage, /<form class="folder-editor-form<\?php echo \$folderEditorPageMode === 'modern' \? ' fv-modern-editor-booting' : ''; \?>"/);
     assert.match(folderPage, /data-fv-page-mode="/);
     assert.match(folderPage, /fv-modern-editor-booting/);
-    assert.match(folderPage, /id="fvModernEditorStage"/);
+    assert.match(folderPage, /id="fvModernEditorStage" class="fv-modern-editor-stage is-pending"/);
     assert.match(folderPage, /id="fvLegacyEditorScaffold"/);
     assert.match(folderPage, /id="fvEditorBootPlaceholder"/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorPageMode =/);
@@ -513,6 +515,7 @@ test('folder editor page ships the redesign bootstrap and chrome anchors', () =>
     assert.match(folderChromeJs, /const bindTopButtons = \(form\) =>/);
     assert.match(folderChromeJs, /const runIfAvailable = \(fnName, fallbackSelector = ''\) =>/);
     assert.match(folderChromeJs, /stage\.insertAdjacentHTML\('afterbegin', buildTopChrome\(\)\);/);
+    assert.match(folderChromeJs, /stage\.classList\.remove\('is-pending'\);/);
     assert.match(folderChromeJs, /form\.classList\.remove\('fv-modern-editor-booting'\);/);
     assert.match(folderChromeJs, /form\.classList\.add\('fv-modern-editor-ready'\);/);
     assert.match(folderChromeJs, /bindButton\('#fvRestoreSavedValues', 'resetUnsavedChanges', '\.folder-btn-reset'\);/);
@@ -524,6 +527,7 @@ test('folder editor page ships the redesign bootstrap and chrome anchors', () =>
     assert.match(folderLegacyJs, /\$\('#fvRegexSimulatorInput'\)\.off\('input'\)\.on\('input', updateRegexSimulator\);/);
     assert.match(folderLegacyJs, /\$\('#fvSuggestDefaults'\)\.off\('click'\)\.on\('click', suggestDefaultsFromMembers\);/);
     assert.doesNotMatch(folderPage, /scripts\/folder\.js[^?]*"\s*defer/);
+    assert.match(folderJs, /if \(modernFolderEditorEnabled && typeof window\.FolderViewPlusRevealModernEditorStage === 'function'\) \{/);
 });
 
 test('prefs endpoint upgrades folder editor mode writes into explicit user choices', () => {

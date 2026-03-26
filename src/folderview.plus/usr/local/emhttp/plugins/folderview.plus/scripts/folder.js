@@ -5162,6 +5162,9 @@ const startFolderEditorRuntime = async () => {
     updateRegexSimulator();
     markCleanState();
     isFormInitialized = true;
+    if (modernFolderEditorEnabled && typeof window.FolderViewPlusRevealModernEditorStage === 'function') {
+        window.FolderViewPlusRevealModernEditorStage();
+    }
 
     const form = getForm();
     lastNameRegexSyncValue = String(form?.name?.value || '').trim();

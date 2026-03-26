@@ -315,7 +315,7 @@ try {
 <div class="canvas">
     <form class="folder-editor-form<?php echo $folderEditorPageMode === 'modern' ? ' fv-modern-editor-booting' : ''; ?>" data-fv-page-mode="<?php echo htmlspecialchars($folderEditorPageMode, ENT_QUOTES); ?>" onsubmit="submitForm(this, false); return false">
         <?php if ($folderEditorPageMode === 'modern'): ?>
-        <div id="fvModernEditorStage" class="fv-modern-editor-stage" aria-live="polite">
+        <div id="fvModernEditorStage" class="fv-modern-editor-stage is-pending" aria-live="polite">
             <div id="fvEditorBootPlaceholder" class="fv-editor-boot-placeholder">
                 <div class="fv-editor-boot-placeholder-copy">
                     <span class="fv-editor-kicker">Folder editor</span>

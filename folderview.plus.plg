@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.25.70">
-<!ENTITY md5 "ff450ce9a080ff3e5676ffc2c4266381">
+<!ENTITY version "2026.03.25.71">
+<!ENTITY md5 "a19dd19535864c64d0e7203b8e2d9e0c">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.25.71
+- Fix: Keep the modern folder editor shell hidden behind the loading placeholder until runtime hydration completes, so existing-folder edits no longer flash the blank generic shell first.
+- Fix: Reveal the modern editor stage only after runtime-ready or on bootstrap failure, which preserves diagnostics while removing the intermediate empty-state repaint during normal loads.
+
 
 ###2026.03.25.70
 - Fix: Finalize the shipped modern folder editor stage/scaffold boot path so the old legacy form no longer flashes before existing-folder hydration completes.

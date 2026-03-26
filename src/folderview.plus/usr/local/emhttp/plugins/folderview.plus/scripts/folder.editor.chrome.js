@@ -54,6 +54,12 @@
         if (debugNode && debug) {
             debugNode.textContent = debug;
         }
+        if (tone === 'invalid') {
+            const form = root.document.querySelector('div.canvas > form.folder-editor-form');
+            if (form instanceof root.HTMLElement) {
+                revealModernStage(form, { preservePlaceholder: false });
+            }
+        }
     };
 
     root.FolderViewPlusReportFolderEditorBootstrap = ({
@@ -296,6 +302,23 @@
         return form.querySelector('#fvLegacyEditorScaffold');
     };
 
+    const revealModernStage = (form, { preservePlaceholder = false } = {}) => {
+        const stage = getModernStage(form);
+        if (!stage) {
+            return;
+        }
+        if (preservePlaceholder !== true) {
+            const bootPlaceholder = stage.querySelector('#fvEditorBootPlaceholder');
+            if (bootPlaceholder) {
+                bootPlaceholder.remove();
+            }
+        }
+        stage.classList.remove('is-pending');
+        stage.classList.add('is-ready');
+        form.classList.remove('fv-modern-editor-booting');
+        form.classList.add('fv-modern-editor-ready');
+    };
+
     const ensureTopChrome = (form) => {
         const stage = getModernStage(form);
         if (!stage) {
@@ -305,12 +328,6 @@
             return;
         }
         stage.insertAdjacentHTML('afterbegin', buildTopChrome());
-        const bootPlaceholder = stage.querySelector('#fvEditorBootPlaceholder');
-        if (bootPlaceholder) {
-            bootPlaceholder.remove();
-        }
-        form.classList.remove('fv-modern-editor-booting');
-        form.classList.add('fv-modern-editor-ready');
         armBootstrapWatchdog();
     };
 
@@ -638,6 +655,13 @@
     };
 
     root.FolderViewPlusRefreshModernEditorChromeLayout = refreshModernEditorChromeLayout;
+    root.FolderViewPlusRevealModernEditorStage = (options = {}) => {
+        const form = root.document && root.document.querySelector('div.canvas > form.folder-editor-form');
+        if (!form) {
+            return;
+        }
+        revealModernStage(form, options);
+    };
 
     const init = () => {
         const form = root.document && root.document.querySelector('div.canvas > form.folder-editor-form');

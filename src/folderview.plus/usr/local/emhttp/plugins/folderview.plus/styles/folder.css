@@ -97,6 +97,13 @@
     gap: 0;
 }
 
+.fv-modern-editor-stage.is-pending > #fvEditorChrome,
+.fv-modern-editor-stage.is-pending > #fvLivePanel,
+.fv-modern-editor-stage.is-pending > .fv-section-shell,
+.fv-modern-editor-stage.is-pending > #fvEditorActionBar {
+    display: none !important;
+}
+
 .fv-legacy-editor-scaffold[hidden] {
     display: none !important;
 }

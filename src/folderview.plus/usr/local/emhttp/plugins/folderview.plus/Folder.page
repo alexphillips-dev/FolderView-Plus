@@ -298,10 +298,10 @@ try {
 <script src="<?autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.switchbutton.css')?>">
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.ui.css')?>">
-<link type="text/css" rel="stylesheet" href="<?autov('/plugins/folderview.plus/styles/folder.css')?>">
 <?php if (file_exists("/usr/local/emhttp/plugins/dynamix.docker.manager/styles/style-{$display['theme']}.css")): ?>
 <link type="text/css" rel="stylesheet" href="<?autov("/plugins/dynamix.docker.manager/styles/style-{$display['theme']}.css")?>">
 <?php endif; ?>
+<link type="text/css" rel="stylesheet" href="<?autov('/plugins/folderview.plus/styles/folder.css')?>">
 <link type="text/css" rel="stylesheet" href="<?autov("/plugins/folderview.plus/styles/include/jquery.multiselect.css")?>">
 <script src="<?autov('/plugins/folderview.plus/scripts/include/jquery.multiselect.js')?>"></script>
 <script src="<?autov('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>"></script>
@@ -313,7 +313,19 @@ try {
 <script src="<?autov('/plugins/folderview.plus/scripts/folder.editor.preview.js')?>"></script>
 
 <div class="canvas">
-    <form class="folder-editor-form" onsubmit="submitForm(this, false); return false">
+    <form class="folder-editor-form<?php echo $folderEditorPageMode === 'modern' ? ' fv-modern-editor-booting' : ''; ?>" data-fv-page-mode="<?php echo htmlspecialchars($folderEditorPageMode, ENT_QUOTES); ?>" onsubmit="submitForm(this, false); return false">
+        <?php if ($folderEditorPageMode === 'modern'): ?>
+        <div id="fvModernEditorStage" class="fv-modern-editor-stage" aria-live="polite">
+            <div id="fvEditorBootPlaceholder" class="fv-editor-boot-placeholder">
+                <div class="fv-editor-boot-placeholder-copy">
+                    <span class="fv-editor-kicker">Folder editor</span>
+                    <strong>Loading modern editor</strong>
+                    <span>Preparing the editor shell and loading the selected folder.</span>
+                </div>
+            </div>
+        </div>
+        <div id="fvLegacyEditorScaffold" class="fv-legacy-editor-scaffold" hidden aria-hidden="true">
+        <?php endif; ?>
         <div class="basic">
             <dl>
                 <dt data-i18n="name">Name:</dt>
@@ -1198,6 +1210,9 @@ try {
                 </p>
             </blockquote>
         </div>
+        <?php if ($folderEditorPageMode === 'modern'): ?>
+        </div>
+        <?php endif; ?>
     </form>
 </div>
 

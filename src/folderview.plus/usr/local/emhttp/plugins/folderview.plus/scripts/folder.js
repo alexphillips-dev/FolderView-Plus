@@ -4120,7 +4120,7 @@ const applyAdvancedMode = () => {
 };
 
 const enforceLeftAlignedSettingsLayout = () => {
-    if (!modernFolderEditorEnabled) {
+    if (modernFolderEditorEnabled) {
         return;
     }
     try {

@@ -163,7 +163,7 @@
                         <img id="fvHeroIcon" src="${DEFAULT_FOLDER_ICON_PATH}" alt="">
                     </div>
                     <div class="fv-editor-hero-copy">
-                        <span class="fv-editor-kicker">Folder editor</span>
+                        <span class="fv-editor-kicker" style="color: var(--fv-editor-accent);">Folder editor</span>
                         <h2 id="fvHeroTitle">Configure folder</h2>
                         <p id="fvHeroSubtitle">A fully grouped folder editor with tabbed sections, live preview, and a dedicated action bar.</p>
                         <div class="fv-hero-meta">
@@ -275,16 +275,51 @@
         </div>
     `;
 
+    const getModernStage = (form) => {
+        if (!(form instanceof root.HTMLElement)) {
+            return null;
+        }
+        let stage = form.querySelector('#fvModernEditorStage');
+        if (!stage) {
+            stage = root.document.createElement('div');
+            stage.id = 'fvModernEditorStage';
+            stage.className = 'fv-modern-editor-stage';
+            form.insertBefore(stage, form.firstChild);
+        }
+        return stage;
+    };
+
+    const getLegacyScaffold = (form) => {
+        if (!(form instanceof root.HTMLElement)) {
+            return null;
+        }
+        return form.querySelector('#fvLegacyEditorScaffold');
+    };
+
     const ensureTopChrome = (form) => {
-        if (form.querySelector('#fvEditorChrome') && form.querySelector('#fvLivePanel')) {
+        const stage = getModernStage(form);
+        if (!stage) {
             return;
         }
-        form.insertAdjacentHTML('afterbegin', buildTopChrome());
+        if (stage.querySelector('#fvEditorChrome') && stage.querySelector('#fvLivePanel')) {
+            return;
+        }
+        stage.insertAdjacentHTML('afterbegin', buildTopChrome());
+        const bootPlaceholder = stage.querySelector('#fvEditorBootPlaceholder');
+        if (bootPlaceholder) {
+            bootPlaceholder.remove();
+        }
+        form.classList.remove('fv-modern-editor-booting');
+        form.classList.add('fv-modern-editor-ready');
         armBootstrapWatchdog();
     };
 
     const ensureActionBar = (form) => {
-        let actionBar = form.querySelector('#fvEditorActionBar');
+        const stage = getModernStage(form);
+        if (!stage) {
+            return;
+        }
+        let actionBar = stage.querySelector('#fvEditorActionBar');
         if (!actionBar) {
             actionBar = root.document.createElement('div');
             actionBar.id = 'fvEditorActionBar';
@@ -296,7 +331,7 @@
                     <span id="fvActionBarHint" class="fv-actionbar-hint">Save, copy, reset, or cancel from here.</span>
                 </div>
             `;
-            form.appendChild(actionBar);
+            stage.appendChild(actionBar);
         }
         const actionBarMain = actionBar.querySelector('.fv-editor-actionbar-main');
         if (!actionBarMain) {
@@ -366,14 +401,18 @@
     });
 
     const ensureSectionShells = (form) => {
+        const stage = getModernStage(form);
+        if (!stage) {
+            return;
+        }
         const sectionRows = collectSectionRows(form);
-        const actionBar = form.querySelector('#fvEditorActionBar');
+        const actionBar = stage.querySelector('#fvEditorActionBar');
         Object.entries(SECTION_META).forEach(([sectionKey, meta]) => {
             const rows = (sectionRows[sectionKey] || []).filter(Boolean);
             if (!rows.length) {
                 return;
             }
-            let shell = form.querySelector(`.fv-section-shell[data-section-shell="${sectionKey}"]`);
+            let shell = stage.querySelector(`.fv-section-shell[data-section-shell="${sectionKey}"]`);
             if (!shell) {
                 shell = root.document.createElement('section');
                 shell.className = `fv-section-shell${meta.advanced ? ' is-advanced-shell' : ''}`;
@@ -386,7 +425,7 @@
                                     <i class="fa ${meta.icon}" aria-hidden="true"></i>
                                     <span>${meta.advanced ? 'Advanced section' : 'Core section'}</span>
                                 </div>
-                                <h3>${meta.title}${meta.advanced ? ' <span class="fv-section-badge">advanced</span>' : ''}</h3>
+                                <h3 style="color: var(--fv-editor-accent);">${meta.title}${meta.advanced ? ' <span class="fv-section-badge">advanced</span>' : ''}</h3>
                                 <p>${meta.description}</p>
                             </div>
                             <div class="fv-section-heading-tools">
@@ -400,9 +439,9 @@
                     <div class="fv-section-shell-body"></div>
                 `;
                 if (actionBar) {
-                    form.insertBefore(shell, actionBar);
+                    stage.insertBefore(shell, actionBar);
                 } else {
-                    form.appendChild(shell);
+                    stage.appendChild(shell);
                 }
             }
             const body = shell.querySelector('.fv-section-shell-body');
@@ -485,11 +524,16 @@
     };
 
     const hideOrphanRows = (form) => {
+        const scaffold = getLegacyScaffold(form);
+        if (scaffold) {
+            scaffold.hidden = true;
+            scaffold.setAttribute('aria-hidden', 'true');
+        }
         Array.from(form.children).forEach((child) => {
             if (!(child instanceof root.HTMLElement)) {
                 return;
             }
-            if (child.id === 'fvEditorChrome' || child.id === 'fvLivePanel' || child.id === 'fvEditorActionBar') {
+            if (child.id === 'fvModernEditorStage' || child.id === 'fvLegacyEditorScaffold') {
                 return;
             }
             if (child.matches('.fv-section-shell')) {

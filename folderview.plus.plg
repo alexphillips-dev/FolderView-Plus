@@ -14,7 +14,9 @@
     <CHANGES>
 
 ###2026.03.25.70
-- Maintenance: Release metadata and packaging sync.
+- Fix: Finalize the shipped modern folder editor stage/scaffold boot path so the old legacy form no longer flashes before existing-folder hydration completes.
+- Fix: Keep modern section titles and field-card layout on the modern theme/layout contract by loading folder editor styles after the host theme and scoping legacy alignment rules to legacy mode only.
+- Quality: Rebuild the packaged dev archive and smoke guards around the mode-scoped modern editor root.
 
 
 ###2026.03.25.69

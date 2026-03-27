@@ -23,6 +23,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup CI environment
+        uses: ./.github/actions/setup-ci-env
+
       - name: Configure git identity
         run: |
           git config user.name "github-actions[bot]"
@@ -31,6 +34,33 @@ jobs:
       - name: Sync main into dev
         run: |
           bash scripts/sync_main_to_dev.sh
+
+      - name: Validate merged dev state before push
+        env:
+          FVPLUS_UNRAID_MATRIX: ${{ secrets.FVPLUS_UNRAID_MATRIX }}
+          FVPLUS_I18N_STRICT: '1'
+          FVPLUS_DEAD_CODE_STRICT: '1'
+          FVPLUS_REQUIRE_PERF_BASELINE: '1'
+          FVPLUS_BROWSER_SMOKE_URL: ${{ secrets.FVPLUS_BROWSER_SMOKE_URL }}
+          FVPLUS_BROWSER_SMOKE_REQUIRED: '0'
+          FVPLUS_BROWSER_SMOKE_TIMEOUT_MS: '90000'
+          FVPLUS_BROWSER_SMOKE_IGNORE_HTTPS: '1'
+          FVPLUS_BROWSER_SMOKE_REQUIRE_FOLDER_EDITOR: '1'
+          FVPLUS_BROWSER_SMOKE_REQUIRE_RUNTIME_ROWS: '1'
+          FVPLUS_BROWSER_SMOKE_RUNTIME_GAP_MAX: '30'
+          FVPLUS_BROWSER_SMOKE_ARTIFACT_DIR: ${{ github.workspace }}/tmp/browser-smoke-artifacts
+          FVPLUS_THEME_MATRIX_URLS: ${{ secrets.FVPLUS_THEME_MATRIX_URLS }}
+          FVPLUS_THEME_MATRIX_REQUIRED: '0'
+          FVPLUS_THEME_REQUIRED_LABELS: 'black,white'
+          FVPLUS_THEME_SMOKE_TIMEOUT_MS: '90000'
+          FVPLUS_THEME_SMOKE_IGNORE_HTTPS: '1'
+          FVPLUS_THEME_SMOKE_BROWSERS: 'chromium,firefox,webkit'
+          FVPLUS_THEME_SMOKE_ZOOMS: '1,1.25,1.5'
+          FVPLUS_THEME_SMOKE_ARTIFACT_DIR: ${{ github.workspace }}/tmp/browser-smoke-artifacts/theme-matrix
+          FVPLUS_PLAYWRIGHT_INSTALL_WITH_DEPS: '1'
+        run: |
+          chmod +x scripts/run_ci_suite.sh
+          bash scripts/run_ci_suite.sh
 
       - name: Push dev when updated
         run: |
@@ -42,3 +72,25 @@ jobs:
             exit 0
           fi
           git push origin dev
+
+      - name: Collect back-merge debug artifacts on failure
+        if: failure()
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p tmp/backmerge-debug
+          git status --short --branch > tmp/backmerge-debug/git-status.txt || true
+          git diff --stat > tmp/backmerge-debug/git-diff-stat.txt || true
+          git log --oneline --decorate -10 > tmp/backmerge-debug/git-log.txt || true
+
+      - name: Upload back-merge debug artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backmerge-debug-${{ github.run_id }}-${{ github.job }}
+          if-no-files-found: ignore
+          path: |
+            tmp/backmerge-debug/**
+            tmp/browser-smoke-artifacts/**
+            *.log
+            scripts/*.log

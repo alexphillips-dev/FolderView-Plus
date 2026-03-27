@@ -91,7 +91,9 @@ probe_with_retry() {
   done
 }
 
-TMP_DIR="$(mktemp -d "${ROOT_DIR}/tmp/remote-publish.XXXXXX")"
+TMP_BASE_DIR="${ROOT_DIR}/tmp"
+mkdir -p "${TMP_BASE_DIR}"
+TMP_DIR="$(mktemp -d "${TMP_BASE_DIR}/remote-publish.XXXXXX")"
 cleanup_tmpdir() {
   rm -rf "${TMP_DIR}"
 }

@@ -181,6 +181,8 @@ test('release_guard checks target blank and update-notes release contract', () =
 test('remote publish guard validates raw manifest, archive, and checksum after push', () => {
     assert.match(remotePublishGuard, /FVPLUS_REMOTE_PUBLISH_ATTEMPTS/);
     assert.match(remotePublishGuard, /FVPLUS_REMOTE_PUBLISH_DELAY_SEC/);
+    assert.match(remotePublishGuard, /mkdir -p "\$\{TMP_BASE_DIR\}"/);
+    assert.match(remotePublishGuard, /TMP_DIR="\$\(mktemp -d "\$\{TMP_BASE_DIR\}\/remote-publish\.XXXXXX"\)"/);
     assert.match(remotePublishGuard, /expand_manifest_url/);
     assert.match(remotePublishGuard, /plugin manifest/);
     assert.match(remotePublishGuard, /archive checksum/);

@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.27.26">
-<!ENTITY md5 "869906888d918c99dcd94f0a7b384494">
+<!ENTITY version "2026.03.27.27">
+<!ENTITY md5 "85adcd6f7a7e4ad63f79d93f6c0a1e19">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.27.27
+- UI/UX: Roll up the promoted `dev` line since main `2026.03.26.47`, rebuilding advanced settings around clearer Diagnostics, Folder Health, Bulk Assignment, Rules, Recovery, and Operations workspaces instead of the older split technical panels and duplicated modules.
+- Fix: Make the advanced settings experience render correctly across white, Azure, and gray themes, including the wizard, diagnostics surfaces, gutters, and the shared settings-module token path so non-dark hosts no longer fall back to broken or unreadable layouts.
+- UI/UX: Simplify settings flow by removing the old diagnostics dumps, maintenance clutter, quick presets, and the save dock, switching the page fully to autosave, remembering Basic versus Advanced view, and modernizing the button, compact-control, and health-card presentation.
+- Quality: Expand settings regression coverage for advanced workspace routing, layout contracts, theme compatibility, workspace persistence, and packaged release validation so the new advanced-settings UX stays stable on both `main` and `dev`.
+
 
 ###2026.03.27.26
 - Maintenance: Tighten recovery policy and history UX.

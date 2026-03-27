@@ -4327,11 +4327,6 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     font-size: 1rem;
 }
 
-.fv-perf-output {
-    min-height: 120px;
-    overflow: auto;
-}
-
 .fv-perf-summary-note {
     font-size: 1.03rem;
     opacity: 0.85;

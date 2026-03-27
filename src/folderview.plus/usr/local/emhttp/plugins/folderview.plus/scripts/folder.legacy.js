@@ -5863,7 +5863,7 @@ const previewChange = (e) => {
 /**
  * Update the setting visibility according to the changin of settings
  */
-const updateForm = () => {
+function updateForm() {
     const form = $('div.canvas > form')[0];
     $('[constraint*="preview-"]').hide();
     $(`[constraint*="preview-${form.preview.value}"]`).show();
@@ -5892,12 +5892,12 @@ const updateForm = () => {
     if (modernFolderEditorEnabled) {
         updateLiveSummary();
     }
-};
+}
 
 /**
  * Create the element select table
  */
-const updateList = () => {
+function updateList() {
     const table = $('.sortable > tbody');
     table.empty();
     const token = ++memberListRenderToken;
@@ -5987,7 +5987,7 @@ const updateList = () => {
         finalizeMemberListRender();
     };
     appendChunk();
-};
+}
 
 /**
  * Handle sthe form submission

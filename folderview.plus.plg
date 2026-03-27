@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.42">
-<!ENTITY md5 "10ecc0c00415ef9bf5b1a18769107c0e">
+<!ENTITY version "2026.03.26.43">
+<!ENTITY md5 "46fd03962e500f8475e30c5d60445d81">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.43
+- Fix: FolderView Plus no longer opens the large preview popup panel when clicking Docker containers in folder previews, eliminating the duplicate click interaction on the Docker page.
+- Fix: Legacy folder editor bootstrap now hoists the form-visibility and member-list helpers so edit hydration no longer rejects with `Cannot access 'updateForm' before initialization`.
+- Quality: Added regression coverage for the disabled Docker preview popup path and the hoisted legacy bootstrap helpers.
+
 
 ###2026.03.26.42
 - Fix: Docker and VM runtime dropdown/context menus now follow the active host theme instead of falling back to the default light menu skin on dark themes like Black.

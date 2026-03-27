@@ -211,12 +211,14 @@ test('tailscale helper calls support cache and running-state guard', () => {
     assert.match(libPhp, /Skipping exec for stopped container/);
 });
 
-test('docker tooltip payload is lazy-built on first open', () => {
+test('docker preview popup runtime is explicitly disabled to avoid click conflicts', () => {
     assert.match(dockerJs, /const buildDockerTooltipContent\s*=\s*\(ct\)\s*=>/);
+    assert.match(dockerJs, /const DOCKER_PREVIEW_POPUP_ENABLED = false;/);
     assert.match(dockerJs, /fvTooltipLazyBuilt/);
     assert.match(dockerJs, /Loading preview\.\.\./);
     assert.match(dockerJs, /const initializeDockerTooltipOnDemand = \(\$target,\s*init\) =>/);
-    assert.match(dockerJs, /one\('mouseenter\.fvLazyTooltip click\.fvLazyTooltip touchstart\.fvLazyTooltip'/);
+    assert.match(dockerJs, /if \(DOCKER_PREVIEW_POPUP_ENABLED !== true\) \{\s*return;\s*\}/);
+    assert.match(dockerJs, /if\(DOCKER_PREVIEW_POPUP_ENABLED && tooltip_trigger_element && tooltip_trigger_element\.length > 0\) \{/);
 });
 
 test('docker first paint keeps a lightweight loading shell and enriches state payload fields', () => {

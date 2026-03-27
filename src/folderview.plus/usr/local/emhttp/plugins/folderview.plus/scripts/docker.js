@@ -1660,6 +1660,9 @@ const buildDockerTooltipContent = (ct) => {
 };
 
 const initializeDockerTooltipOnDemand = ($target, init) => {
+    if (DOCKER_PREVIEW_POPUP_ENABLED !== true) {
+        return;
+    }
     if (!$target || !$target.length || typeof init !== 'function') {
         return;
     }
@@ -1687,6 +1690,9 @@ const initializeDockerTooltipOnDemand = ($target, init) => {
         ensureInitialized(String(event?.type || '').trim().toLowerCase());
     });
 };
+// FolderView preview popups conflict with direct container interactions on the Docker page.
+// Keep the payload builder in place for compatibility, but do not bind/open the popup runtime.
+const DOCKER_PREVIEW_POPUP_ENABLED = false;
 
 const getPrefsOrderedFolderMap = (folders, prefs) => {
     const source = folders && typeof folders === 'object' ? folders : {};
@@ -3394,7 +3400,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
             $(`tr.folder-id-${id} div.folder-preview span.inner > span.appname`).css("width", folder.settings.preview_text_width || '');
             if (FOLDER_VIEW_DEBUG_MODE && folder.settings.preview_text_width) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Set preview text width to ${folder.settings.preview_text_width}.`);
 
-            if(tooltip_trigger_element && tooltip_trigger_element.length > 0) {
+            if(DOCKER_PREVIEW_POPUP_ENABLED && tooltip_trigger_element && tooltip_trigger_element.length > 0) {
                 if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${ct.shortId}: tooltip_trigger_element is valid. Deferring tooltipster initialization until first interaction.`);
                 const triggerMode = folder.settings.context_trigger === 1 && !FOLDER_VIEW_TOUCH_MODE ? 'hover' : 'click';
                 initializeDockerTooltipOnDemand($(tooltip_trigger_element), () => $(tooltip_trigger_element).tooltipster({
@@ -3666,6 +3672,8 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                     },
                     content: $('<div class="fv-tooltip-lazy-loading">Loading preview...</div>')
                 }));
+            } else if (FOLDER_VIEW_DEBUG_MODE && tooltip_trigger_element && tooltip_trigger_element.length > 0) {
+                console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${ct.shortId}: FolderView preview popup runtime is disabled; skipping tooltip initialization.`);
             } else {
                  if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolder (id: ${id}), container ${ct.shortId}: tooltip_trigger_element is NOT valid. Tooltipster NOT initialized. This is likely the problem if folder.settings.context === 2.`);
             }

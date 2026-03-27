@@ -13,7 +13,7 @@ git fetch origin main dev --tags
 release_only_path() {
   local path="${1:-}"
   case "${path}" in
-    folderview.plus.plg|archive/folderview.plus-*.txz|archive/folderview.plus-*.txz.sha256)
+    folderview.plus.plg|folderview.plus.xml|archive/folderview.plus-*.txz|archive/folderview.plus-*.txz.sha256)
       return 0
       ;;
     *)

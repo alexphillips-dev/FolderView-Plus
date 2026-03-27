@@ -1,6 +1,6 @@
 ####FolderView Plus###
-<span id="folderviewplus-desc">FolderView Plus adds powerful folder-based organization to Unraid Docker and VM tabs with nested folder trees, starter templates, smart assignment rules, custom icons, and one-click bulk actions.</span>
-Quick start: Open the Docker or VM tab, click "Add Folder", then move items manually or auto-assign them with rules.
+<span id="folderviewplus-desc">FolderView Plus adds folder-based organization to Unraid Docker, VM, and Dashboard views with nested folders, the Setup Assistant, smart rules, bulk assignment, reusable templates, recovery tools, and copyable diagnostics.</span>
+Quick start: Open `Settings -> FolderView Plus`, stay in `Basic` for normal folder management, and switch to `Advanced` for Bulk Assignment, Rules, Recovery, Operations, and Diagnostics. Changes save automatically.
 <script src="/plugins/folderview.plus/scripts/include/CLDRPluralRuleParser.js"></script>
 <script src="/plugins/folderview.plus/scripts/include/jquery.i18n.js"></script>
 <script src="/plugins/folderview.plus/scripts/include/jquery.i18n.messagestore.js"></script>

@@ -5759,32 +5759,6 @@ h2[data-fv-section].fv-search-match {
     color: var(--fvplus-settings-success);
 }
 
-.fv-quick-presets {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.35rem 0.45rem;
-    margin-top: 0.2rem;
-}
-
-.fv-quick-presets-title {
-    font-size: 1.03rem;
-    opacity: 0.82;
-}
-
-.fv-quick-presets > button {
-    min-width: 0;
-    min-height: 30px;
-    padding: 0.2rem 0.52rem;
-    font-size: 1.03rem;
-}
-
-.fv-quick-presets > button.is-active {
-    border-color: var(--fvplus-settings-accent);
-    background: var(--fvplus-settings-accent-soft);
-    color: #d9ecff;
-}
-
 .folder-quick-filters {
     display: flex;
     flex-wrap: wrap;
@@ -6635,15 +6609,6 @@ tr.is-long-press-active {
     .toolbar-actions > button {
         flex: 1 1 calc(50% - 0.5rem);
         min-width: 0;
-    }
-
-    .fv-quick-presets {
-        width: 100%;
-        justify-content: flex-start;
-    }
-
-    .fv-quick-presets-title {
-        width: 100%;
     }
 
     .fv-toast-host {

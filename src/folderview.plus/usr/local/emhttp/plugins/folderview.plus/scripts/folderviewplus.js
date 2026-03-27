@@ -8515,7 +8515,6 @@ const renderTable = (type) => {
     renderTreeMoveUndoBanner(type);
     applyMobileTreeReorderModeClass(type);
     updateMobileTreePathHint(type);
-    renderQuickProfilePresetButtons();
     renderRulesTable(type);
     renderBulkItemOptions(type);
     renderTemplateRows(type);
@@ -10959,7 +10958,6 @@ settingsActionSupportModule.registerWindowActions(window, {
     openFolderRowQuickActions,
     quickCreateStarterFolder,
     quickCreateStarterTemplates,
-    applyQuickProfilePreset,
     applyRuleTestSample,
     clearActivityFeed,
     refreshPerformanceDiagnostics: renderPerformanceDiagnostics,

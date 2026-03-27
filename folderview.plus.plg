@@ -6,12 +6,24 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.51">
-<!ENTITY md5 "faad3508fc7d5f353a5bcc4b510bd71a">
+<!ENTITY version "2026.03.26.53">
+<!ENTITY md5 "a0366a8f450601d03d76e25022176e81">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.53
+- UX: Remove the Quick profile presets strip from advanced settings so the top settings toolbar stays focused on the real settings actions.
+- Maintenance: Remove the page-only quick-preset runtime hook, export, and styling that only existed for the removed advanced settings preset strip.
+- Quality: Update settings and dashboard regression guards so the advanced settings preset strip stays removed.
+
+
+###2026.03.26.52
+- UX: Remove the Quick profile presets strip from advanced settings so the top settings toolbar stays cleaner and less noisy.
+- Maintenance: Strip the page-only quick-preset runtime wiring, exports, and CSS now that the advanced settings preset buttons are gone.
+- Quality: Add regression coverage to keep the removed advanced settings preset strip from returning.
+
 
 ###2026.03.26.51
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

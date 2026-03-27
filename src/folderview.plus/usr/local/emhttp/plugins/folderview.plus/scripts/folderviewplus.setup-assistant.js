@@ -7,8 +7,6 @@ const SETUP_ASSISTANT_DRAFT_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 14;
 const SETUP_ASSISTANT_PRESETS_MAX = 20;
 const SETUP_ASSISTANT_VERSION = 2;
 
-const QUICK_PRESET_ACTIVE_STORAGE_KEY = 'fv.settings.quickPresetActive.v1';
-
 const SETUP_ASSISTANT_STEPS = ['welcome', 'profile', 'import', 'rules', 'behavior', 'review'];
 const SETUP_ASSISTANT_STEPS_BY_ROUTE = {
     new: ['welcome', 'profile', 'templates', 'rules', 'behavior', 'review'],
@@ -213,112 +211,6 @@ const normalizeQuickProfilePresetId = (value, fallback = 'balanced') => {
         : 'balanced';
 };
 
-const getActiveQuickPresetUi = () => {
-    try {
-        return normalizeQuickProfilePresetId(localStorage.getItem(QUICK_PRESET_ACTIVE_STORAGE_KEY) || '', '');
-    } catch (_error) {
-        return '';
-    }
-};
-
-const setActiveQuickPresetUi = (presetId) => {
-    const key = normalizeQuickProfilePresetId(presetId, '');
-    try {
-        if (!key) {
-            removeSettingsStorage(QUICK_PRESET_ACTIVE_STORAGE_KEY, { delayMs: 40, idle: true });
-            return;
-        }
-        writeSettingsStorage(QUICK_PRESET_ACTIVE_STORAGE_KEY, key, { delayMs: 60, idle: true });
-    } catch (_error) {
-        // Ignore storage failures; runtime still works.
-    }
-};
-
-const renderQuickProfilePresetButtons = () => {
-    const active = getActiveQuickPresetUi();
-    $('.fv-quick-presets [data-fv-quick-preset]').each((_, button) => {
-        const key = normalizeQuickProfilePresetId($(button).attr('data-fv-quick-preset') || '', '');
-        $(button).toggleClass('is-active', Boolean(active) && key === active);
-    });
-};
-
-const applyQuickProfileOverrides = (prefs, overrides = null) => {
-    const source = overrides && typeof overrides === 'object' ? overrides : {};
-    const normalized = utils.normalizePrefs({
-        ...prefs,
-        ...source,
-        badges: {
-            ...(prefs?.badges || {}),
-            ...(source?.badges || {})
-        },
-        health: {
-            ...(prefs?.health || {}),
-            ...(source?.health || {})
-        },
-        status: {
-            ...(prefs?.status || {}),
-            ...(source?.status || {})
-        },
-        dashboard: {
-            ...(prefs?.dashboard || {}),
-            ...(source?.dashboard || {})
-        }
-    });
-    return normalized;
-};
-
-const applyQuickProfilePreset = async (presetId) => {
-    const key = normalizeQuickProfilePresetId(presetId, 'balanced');
-    const preset = QUICK_PROFILE_PRESETS[key] || QUICK_PROFILE_PRESETS.balanced;
-    const profileKey = Object.prototype.hasOwnProperty.call(SETUP_ASSISTANT_PROFILE_PRESETS, preset.profile)
-        ? preset.profile
-        : 'balanced';
-    const envKey = Object.prototype.hasOwnProperty.call(SETUP_ASSISTANT_ENV_PRESETS, preset.environment)
-        ? preset.environment
-        : 'home_lab';
-    const envBehavior = SETUP_ASSISTANT_ENV_PRESETS[envKey]?.behavior || {};
-    const applyToTypes = ['docker', 'vm'];
-
-    swal({
-        title: `Apply ${preset.label} preset?`,
-        text: `${preset.description}\n\nThis updates Docker and VM behavior/runtime defaults in one step.`,
-        type: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Apply preset',
-        cancelButtonText: 'Cancel',
-        showLoaderOnConfirm: true
-    }, async (confirmed) => {
-        if (!confirmed) {
-            return;
-        }
-        try {
-            for (const type of applyToTypes) {
-                const current = utils.normalizePrefs(prefsByType[type] || {});
-                const withProfile = applySetupAssistantProfileToPrefs(current, profileKey);
-                const withEnvironment = applySetupAssistantBehaviorToPrefs(
-                    withProfile,
-                    normalizeSetupAssistantBehaviorFromValue(type, envBehavior[type] || {})
-                );
-                const overrides = preset?.overridesByType?.[type] || null;
-                const next = applyQuickProfileOverrides(withEnvironment, overrides);
-                prefsByType[type] = await postPrefs(type, next);
-            }
-            await Promise.all([refreshType('docker'), refreshType('vm')]);
-            setActiveQuickPresetUi(key);
-            renderQuickProfilePresetButtons();
-            addActivityEntry(`Quick profile preset applied: ${preset.label}.`, 'success');
-            showToastMessage({
-                title: 'Preset applied',
-                message: `${preset.label} preset was applied to Docker and VMs.`,
-                level: 'success',
-                durationMs: 3800
-            });
-        } catch (error) {
-            showError('Preset apply failed', error);
-        }
-    });
-};
-
 Object.assign(window, {
     WIZARD_DONE_STORAGE_KEY,
     SETUP_ASSISTANT_DONE_STORAGE_KEY,
@@ -327,7 +219,6 @@ Object.assign(window, {
     SETUP_ASSISTANT_DRAFT_MAX_AGE_MS,
     SETUP_ASSISTANT_PRESETS_MAX,
     SETUP_ASSISTANT_VERSION,
-    QUICK_PRESET_ACTIVE_STORAGE_KEY,
     SETUP_ASSISTANT_STEPS,
     SETUP_ASSISTANT_STEPS_BY_ROUTE,
     SETUP_ASSISTANT_EXPERIENCE_MODES,
@@ -335,12 +226,7 @@ Object.assign(window, {
     SETUP_ASSISTANT_ENV_PRESETS,
     SETUP_ASSISTANT_PROFILE_PRESETS,
     QUICK_PROFILE_PRESETS,
-    normalizeQuickProfilePresetId,
-    getActiveQuickPresetUi,
-    setActiveQuickPresetUi,
-    renderQuickProfilePresetButtons,
-    applyQuickProfileOverrides,
-    applyQuickProfilePreset
+    normalizeQuickProfilePresetId
 });
 
 window.FolderViewPlusSetupAssistantSupport = Object.freeze({
@@ -351,7 +237,6 @@ window.FolderViewPlusSetupAssistantSupport = Object.freeze({
     SETUP_ASSISTANT_DRAFT_MAX_AGE_MS,
     SETUP_ASSISTANT_PRESETS_MAX,
     SETUP_ASSISTANT_VERSION,
-    QUICK_PRESET_ACTIVE_STORAGE_KEY,
     SETUP_ASSISTANT_STEPS,
     SETUP_ASSISTANT_STEPS_BY_ROUTE,
     SETUP_ASSISTANT_EXPERIENCE_MODES,
@@ -359,11 +244,6 @@ window.FolderViewPlusSetupAssistantSupport = Object.freeze({
     SETUP_ASSISTANT_ENV_PRESETS,
     SETUP_ASSISTANT_PROFILE_PRESETS,
     QUICK_PROFILE_PRESETS,
-    normalizeQuickProfilePresetId,
-    getActiveQuickPresetUi,
-    setActiveQuickPresetUi,
-    renderQuickProfilePresetButtons,
-    applyQuickProfileOverrides,
-    applyQuickProfilePreset
+    normalizeQuickProfilePresetId
 });
 window.FolderViewPlusSetupAssistantSupportModuleLoaded = true;

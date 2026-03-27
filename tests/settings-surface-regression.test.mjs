@@ -74,3 +74,11 @@ test('folder health section uses the simplified summary-card layout', () => {
     assert.doesNotMatch(settingsJs, /folder-health-metrics/);
     assert.doesNotMatch(settingsCss, /\.folder-health-metrics/);
 });
+
+test('advanced settings no longer render quick profile preset strip', () => {
+    assert.doesNotMatch(settingsPage, /Quick profile presets/);
+    assert.doesNotMatch(settingsPage, /data-fv-quick-preset=/);
+    assert.doesNotMatch(settingsJs, /renderQuickProfilePresetButtons/);
+    assert.doesNotMatch(settingsJs, /applyQuickProfilePreset/);
+    assert.doesNotMatch(settingsCss, /\.fv-quick-presets/);
+});

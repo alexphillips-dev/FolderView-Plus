@@ -80,13 +80,6 @@ if (!empty($fvplusRuntimeConflicts)) {
 <button type="button" onclick="showDevForceRefreshHelper()"><i class="fa fa-bolt" aria-hidden="true"></i> Force-refresh install helper</button>
 <button type="button" onclick="createRollbackCheckpoint()"><i class="fa fa-life-ring" aria-hidden="true"></i> Create rollback checkpoint</button>
 <button type="button" onclick="rollbackLatestCheckpoint()"><i class="fa fa-undo" aria-hidden="true"></i> Rollback to previous snapshot</button>
-<div class="fv-quick-presets">
-    <span class="fv-quick-presets-title">Quick profile presets</span>
-    <button type="button" data-fv-quick-preset="balanced" onclick="applyQuickProfilePreset('balanced')"><i class="fa fa-sliders"></i> Balanced</button>
-    <button type="button" data-fv-quick-preset="minimal" onclick="applyQuickProfilePreset('minimal')"><i class="fa fa-leaf"></i> Minimal</button>
-    <button type="button" data-fv-quick-preset="power" onclick="applyQuickProfilePreset('power')"><i class="fa fa-bolt"></i> Power</button>
-    <button type="button" data-fv-quick-preset="media_stack" onclick="applyQuickProfilePreset('media_stack')"><i class="fa fa-play-circle"></i> Media Stack</button>
-</div>
 <div id="fv-first-run-panel" class="fv-first-run-panel" style="display:none;"></div>
 <span id="update-check-status" class="status-line"></span>
 <span id="rollback-status" class="status-line"></span>

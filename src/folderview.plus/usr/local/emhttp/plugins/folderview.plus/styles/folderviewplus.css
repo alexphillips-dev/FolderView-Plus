@@ -3053,6 +3053,10 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     gap: 0.85rem;
 }
 
+.fv-diagnostics-panel > :not(.rules-header) {
+    margin-inline: clamp(8px, 1.15vw, 18px);
+}
+
 .fv-diagnostics-primary-actions {
     margin-bottom: 0;
 }

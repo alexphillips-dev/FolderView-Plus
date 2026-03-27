@@ -142,3 +142,7 @@ test('advanced modules use shared theme-safe surfaces instead of hardcoded dark-
     assert.match(settingsCss, /\.bulk-items-list\s*\{[\s\S]*border:\s*1px solid var\(--fvplus-settings-border-subtle\);[\s\S]*background:\s*var\(--fvplus-settings-surface-strong\);/);
     assert.match(settingsCss, /\.bulk-preview-panel,\s*\.bulk-result-panel\s*\{[\s\S]*border:\s*1px solid var\(--fvplus-settings-border-subtle\);[\s\S]*background:\s*var\(--fvplus-settings-surface-strong\);[\s\S]*color:\s*var\(--fvplus-settings-text-primary\);/);
 });
+
+test('diagnostics tab keeps inner side gutters for summary and workbench modules', () => {
+    assert.match(settingsCss, /\.fv-diagnostics-panel > :not\(\.rules-header\)\s*\{[\s\S]*margin-inline:\s*clamp\(8px,\s*1\.15vw,\s*18px\);/);
+});

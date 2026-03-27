@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.27.16">
-<!ENTITY md5 "68ba0384cb1342a049b8ee3ba6580f4a">
+<!ENTITY version "2026.03.27.17">
+<!ENTITY md5 "8212657ff944e2090c1f9c36922f11b0">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.27.17
+- UI/UX: Add the missing inner side gutters to the Settings Diagnostics tab so the health summary, fix lane, and support lane no longer sit edge-to-edge inside the diagnostics module.
+- Fix: Align the diagnostics tab’s inner module spacing with the rest of Advanced Settings so the white, Azure, gray, and dark themes all keep the same inset layout.
+- Quality: Add regression coverage for the diagnostics tab inner-gutter rule so those inset margins stay locked in.
+
 
 ###2026.03.27.16
 - Fix: Apply the Diagnostics theme-safe surface tokens to the remaining Advanced Settings tabs so Automation, Rules, Recovery, and Operations stay readable on white, Azure, and gray themes.

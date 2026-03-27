@@ -67,6 +67,12 @@ if (!/ci-duration-report/.test(ciWorkflow)) {
 if (!/bash scripts\/build_release_notes\.sh/.test(releaseOnMainWorkflow)) {
   fail('Release On Main workflow must build release notes via scripts/build_release_notes.sh.');
 }
+if (!/Detect release artifact changes/.test(releaseOnMainWorkflow)) {
+  fail('Release On Main workflow must detect whether a main push actually changed release artifacts.');
+}
+if (!/Skip release publish for non-release main pushes/.test(releaseOnMainWorkflow)) {
+  fail('Release On Main workflow must explicitly skip publishing for workflow-only main pushes.');
+}
 if (!/gh release create/.test(releaseOnMainWorkflow) || !/gh release edit/.test(releaseOnMainWorkflow)) {
   fail('Release On Main workflow must own GitHub release publishing.');
 }

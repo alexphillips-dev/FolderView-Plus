@@ -364,6 +364,9 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
 });
 
 test('release-on-main validates remote raw publish artifacts before publishing releases', () => {
+    assert.match(releaseOnMainWorkflow, /Detect release artifact changes/);
+    assert.match(releaseOnMainWorkflow, /should_publish/);
+    assert.match(releaseOnMainWorkflow, /Skip release publish for non-release main pushes/);
     assert.match(releaseOnMainWorkflow, /Validate remote raw publish artifacts/);
     assert.match(releaseOnMainWorkflow, /FVPLUS_REMOTE_PUBLISH_ATTEMPTS:\s*'30'/);
     assert.match(releaseOnMainWorkflow, /FVPLUS_REMOTE_PUBLISH_DELAY_SEC:\s*'10'/);

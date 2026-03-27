@@ -120,7 +120,6 @@
     "el-actions": "Akcje",
     "docker": "Docker",
     "vms": "VM",
-    "file-manager": "Otwórz menedżer plików",
     "custom-actions": "Akcje niestandardowe",
     "custom-actions-folder": "Akcje niestandardowe:",
     "custom-actions-folder-tooltip": "<b>Nazwa:</b> Nazwa akcji.<br><b>Typ:</b> Typ akcji.<br><ul><li><b>Standardowa</b> - zwykła akcja na kontenerach Docker (uruchom, zatrzymaj, ...).</li><li><b>Niestandardowa</b> - uruchomi skrypt User Scripts (wymagany plugin User Scripts).</li></ul><b>Akcja:</b> Akcja do wykonania.<br><ul><li><b>Cykl</b> - przełączanie między dwoma stanami.</li><li><b>Ustaw</b> - ustawienie stanu.</li><li><b>Restart</b> - prosty restart.</li></ul><b>Kontenery:</b> Lista kontenerów oddzielonych przecinkami (,).<br><b>Skrypt:</b> Nazwa skryptu (<b>Nazwy rozróżniają wielkość liter i wymagają spacji</b>).<br><b>Argumenty:</b> Argumenty przekazywane do skryptu.<br><b>Sync:</b> Czy uruchomić skrypt w tle, czy nie.<br><b>Ikona:</b> Ikona akcji, pozostaw puste dla domyślnej.",

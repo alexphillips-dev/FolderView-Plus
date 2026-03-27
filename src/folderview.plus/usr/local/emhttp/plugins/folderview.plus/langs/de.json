@@ -120,7 +120,6 @@
     "el-actions": "Aktionen",
     "docker": "Docker",
     "vms": "VMs",
-    "file-manager": "Datei-Verwaltung öffnen",
     "custom-actions": "Eigene Aktionen",
     "custom-actions-folder": "Eigene Aktionen:",
     "custom-actions-folder-tooltip": "<b>Name:</b> Nur der Name der Aktion.<br><b>Art:</b> Art der Aktion.<br><ul><li><b>Standard</b> - Normale Aktion für Docker-Container (Start, Stopp, ...).</li><li><b>Eigene</b> - Führt ein User-Skript aus (benötigt das User Scripts Plugin).</li></ul><b>Aktion:</b> Auszuführende Aktion.<br><ul><li><b>Wechsel</b> - Wechsel zwischen zwei Zuständen.</li><li><b>Einstellen</b> - Einen Zustand festlegen.</li><li><b>Neustart</b> - Einfacher Neustart.</li></ul><b>Container:</b> Eine durch Komma (,) getrennte Liste von Containern.<br><b>Skript:</b> Nur der Name des Skripts (<b>bei den Namen wird zwischen Groß- und Kleinschreibung unterschieden und es werden Leerzeichen benötigt</b>).<br><b>Argumente:</b> Argumente, die an das Skript übergeben werden.<br><b>Sync:</b> Ob das Skript im Hintergrund ausgeführt werden soll oder nicht.<br><b>Symbol:</b> Symbol der Aktion, leer lassen für Standard.",

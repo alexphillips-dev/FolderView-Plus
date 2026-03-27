@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.27.27">
-<!ENTITY md5 "85adcd6f7a7e4ad63f79d93f6c0a1e19">
+<!ENTITY version "2026.03.27.28">
+<!ENTITY md5 "dffda96fbf031de6b92b2a54d09bfad1">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.27.28
+- Quality: Remove the stale `file-manager` locale key left behind after the advanced-settings cleanup so the language-usage standards guards, CI, and Release On Main workflow pass cleanly again.
+
 
 ###2026.03.27.27
 - UI/UX: Roll up the promoted `dev` line since main `2026.03.26.47`, rebuilding advanced settings around clearer Diagnostics, Folder Health, Bulk Assignment, Rules, Recovery, and Operations workspaces instead of the older split technical panels and duplicated modules.

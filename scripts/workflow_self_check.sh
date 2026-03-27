@@ -82,6 +82,9 @@ if (/gh release create/.test(releaseMainWorkflow) || /gh release edit/.test(rele
 if (!/upload-artifact@v4/.test(backmergeWorkflow)) {
   fail('Back-merge workflow must upload debug artifacts on failure.');
 }
+if (!/FVPLUS_EXPECT_PLUGIN_BRANCH:\s*'dev'/.test(backmergeWorkflow)) {
+  fail('Back-merge workflow must validate merged dev state with FVPLUS_EXPECT_PLUGIN_BRANCH set to dev.');
+}
 
 for (const workflowPath of [
   '.github/workflows/ci.yml',

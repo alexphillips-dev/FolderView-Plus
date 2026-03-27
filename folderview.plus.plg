@@ -5,13 +5,20 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.46">
-<!ENTITY md5 "bd014c936c6c4a01fb62fb421704c3ef">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
+<!ENTITY version "2026.03.26.47">
+<!ENTITY md5 "a65bb231150bda8f07c2ffb77a707337">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.47
+- Fix: Roll up the promoted `dev` line since main `2026.03.26.21`, adding broader Docker, VM, Settings, and Folder Editor diagnostics so bootstrap, request, template-scan, and host-page compatibility failures now surface with actionable copyable details instead of degrading silently.
+- Fix: Stabilize the Docker runtime by improving first-paint performance, preserving edit and page-level actions, resolving Compose Manager script collisions, removing the large Docker preview member popup panel, and keeping runtime menus/theme behavior consistent on dark and light hosts.
+- Fix: Complete the legacy folder editor bootstrap hardening so Docker folder edits now recover the requested target reliably across reused tabs, seeded edit launches, and early hydration, eliminating the chain of legacy bootstrap failures around target recovery, regex or icon helper order, and resolved-folder diagnostics scope.
+- Quality: Promote the expanded regression coverage for browser smoke, runtime architecture, popup-removal contracts, theme/runtime guards, release validation, and legacy editor bootstrap routing so this release line stays stable on both `main` and `dev`.
+
 
 ###2026.03.26.46
 - Fix: Legacy folder editor no longer rejects during bootstrap when diagnostics try to read `resolvedEditFolder` outside the request-resolution branch after a Docker folder edit is loaded.
@@ -3979,7 +3986,7 @@
     </CHANGES>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

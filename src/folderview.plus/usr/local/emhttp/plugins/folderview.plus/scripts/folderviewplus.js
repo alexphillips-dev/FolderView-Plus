@@ -1380,7 +1380,6 @@ const buildSettingsSections = () => {
             toggle.className = 'fv-section-toggle';
             toggle.dataset.sectionToggle = key;
             toggle.setAttribute('aria-label', `Toggle ${title || key}`);
-            toggle.textContent = 'Compact';
             heading.appendChild(toggle);
         }
 
@@ -1639,10 +1638,9 @@ const applySettingsSectionVisibility = () => {
             node.classList.toggle('fv-section-content-hidden', visible && !expanded);
         }
         if (section.toggle) {
-            const toggleLabel = expanded ? 'Compact' : 'Expand';
-            section.toggle.textContent = toggleLabel;
-            section.toggle.title = `${toggleLabel} section`;
-            section.toggle.setAttribute('aria-label', `${toggleLabel} ${section.title || section.key}`);
+            const toggleLabel = expanded ? 'Compact section' : 'Expand section';
+            section.toggle.title = toggleLabel;
+            section.toggle.setAttribute('aria-label', `${toggleLabel}: ${section.title || section.key}`);
             section.toggle.classList.toggle('is-expanded', expanded);
             section.toggle.classList.toggle('is-collapsed', !expanded);
         }

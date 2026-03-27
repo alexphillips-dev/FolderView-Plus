@@ -685,6 +685,9 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /class="health-breakdown-btn"/);
     assert.doesNotMatch(settingsJs, /Advanced sections/);
     assert.match(settingsJs, /id="fv-advanced-compact" class="fv-advanced-compact" title="\$\{escapeHtml\(compactLabel\)\}" aria-label="\$\{escapeHtml\(compactLabel\)\}"/);
+    assert.doesNotMatch(settingsJs, /toggle\.textContent = 'Compact';/);
+    assert.match(settingsJs, /const toggleLabel = expanded \? 'Compact section' : 'Expand section';/);
+    assert.match(settingsJs, /section\.toggle\.setAttribute\('aria-label', `\$\{toggleLabel\}: \$\{section\.title \|\| section\.key\}`\);/);
     assert.match(settingsJs, /const folderMatchesStatusFilter = \(statusFilterMode, countsByState, totalMembers\) =>/);
     assert.match(settingsJs, /const applyColumnVisibility = \(type\) =>/);
     assert.match(settingsJs, /const SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE = Object\.freeze\(/);
@@ -790,8 +793,13 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsCss, /\.fv-setup-quick-preset\s*\{[\s\S]*white-space:\s*normal/);
     assert.match(settingsCss, /--fv-advanced-module-height:\s*clamp\(/);
     assert.match(settingsCss, /h2\[data-fv-advanced="1"\] \+ \.backup-grid \.rules-panel[\s\S]*overflow-y:\s*auto/);
-    assert.match(settingsCss, /\.fv-advanced-compact\s*\{[\s\S]*width:\s*34px/);
+    assert.match(settingsCss, /\.fv-advanced-controls\s*\{[\s\S]*display:\s*inline-flex/);
+    assert.match(settingsCss, /\.fv-advanced-controls\s*\{[\s\S]*width:\s*auto/);
+    assert.match(settingsCss, /\.fv-advanced-compact\s*\{[\s\S]*width:\s*28px/);
     assert.match(settingsCss, /\.fv-advanced-compact\s*\{[\s\S]*font-size:\s*0/);
+    assert.match(settingsCss, /\.fv-section-toggle\s*\{[\s\S]*width:\s*28px/);
+    assert.match(settingsCss, /\.fv-section-toggle\s*\{[\s\S]*font-size:\s*0/);
+    assert.match(settingsCss, /#fv-settings-root :is\([\s\S]*\.fv-section-toggle,[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fvplus-settings-button-quiet-top\),\s*var\(--fvplus-settings-button-quiet-bottom\)\) !important;/);
     assert.match(settingsCss, /\.status-cell-content\s*\{/);
     assert.match(settingsCss, /\.folder-table table td\.status-cell\s*\{[\s\S]*text-align:\s*left/);
     assert.match(settingsCss, /\.folder-table table th\.fv-col-hidden,\s*[\s\S]*\.folder-table table td\.fv-col-hidden\s*\{[\s\S]*display:\s*none !important/);

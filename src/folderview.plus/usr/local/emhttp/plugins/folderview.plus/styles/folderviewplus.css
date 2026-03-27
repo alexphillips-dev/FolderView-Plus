@@ -5520,19 +5520,22 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-advanced-controls {
-    display: flex;
+    display: inline-flex;
+    flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: 0.4rem 0.55rem;
-    width: 100%;
-    min-width: 0;
+    width: auto;
+    max-width: 100%;
+    margin-left: auto;
 }
 
 .fv-advanced-tabs {
-    display: flex;
+    display: inline-flex;
     flex-wrap: wrap;
+    justify-content: flex-end;
     gap: 0.4rem;
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     min-width: 0;
 }
 
@@ -5551,10 +5554,10 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-advanced-compact {
-    width: 34px;
-    height: 34px;
-    min-width: 34px;
-    min-height: 34px;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    min-height: 28px;
     padding: 0 !important;
     border: 0 !important;
     display: inline-flex;
@@ -5566,7 +5569,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-advanced-compact i {
-    font-size: 0.88rem;
+    font-size: 0.82rem;
     line-height: 1;
 }
 
@@ -5634,28 +5637,31 @@ h2[data-fv-section] {
 
 .fv-section-toggle {
     margin-left: auto;
-    min-width: 0;
-    font-size: 1.03rem;
-    line-height: 1.2;
-    padding: 0.14rem 0.38rem;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.05);
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    min-height: 28px;
+    padding: 0 !important;
+    border: 0 !important;
     display: inline-flex;
     align-items: center;
-    gap: 0.28rem;
+    justify-content: center;
     touch-action: manipulation;
+    font-size: 0;
+    line-height: 1;
+    flex: 0 0 auto;
 }
 
 .fv-section-toggle::before {
-    content: "\f068";
+    content: "\f066";
     font-family: FontAwesome;
-    font-size: 1.03rem;
-    opacity: 0.86;
+    font-size: 0.82rem;
+    line-height: 1;
+    opacity: 0.9;
 }
 
 .fv-section-toggle.is-collapsed::before {
-    content: "\f067";
+    content: "\f065";
 }
 
 .fv-section-collapsed .fv-section-toggle {
@@ -6169,6 +6175,7 @@ h2[data-fv-section].fv-search-match {
     .row-order-actions button,
     .folder-table table td.actions-cell .folder-action-btn:not(.folder-overflow-btn),
     .folder-tree-toggle,
+    .fv-section-toggle,
     .fv-advanced-compact,
     .status-breakdown-btn,
     .health-breakdown-btn,
@@ -6184,6 +6191,7 @@ h2[data-fv-section].fv-search-match {
 #fv-settings-root :is(
     .row-order-actions button,
     .folder-table table td.actions-cell .folder-action-btn:not(.folder-overflow-btn),
+    .fv-section-toggle,
     .fv-advanced-compact,
     .updates-chip
 ) {
@@ -6202,6 +6210,7 @@ h2[data-fv-section].fv-search-match {
     .row-order-actions button,
     .folder-table table td.actions-cell .folder-action-btn:not(.folder-overflow-btn),
     .folder-tree-toggle,
+    .fv-section-toggle,
     .fv-advanced-compact,
     .status-breakdown-btn,
     .health-breakdown-btn,
@@ -6211,6 +6220,7 @@ h2[data-fv-section].fv-search-match {
     .row-order-actions button,
     .folder-table table td.actions-cell .folder-action-btn:not(.folder-overflow-btn),
     .folder-tree-toggle,
+    .fv-section-toggle,
     .fv-advanced-compact,
     .status-breakdown-btn,
     .health-breakdown-btn,
@@ -6869,7 +6879,6 @@ tr.is-long-press-active {
     }
 
     .fv-advanced-controls {
-        width: 100%;
         justify-content: flex-start;
         align-items: flex-start;
     }
@@ -6891,10 +6900,10 @@ tr.is-long-press-active {
     }
 
     .fv-advanced-compact {
-        width: 34px;
-        height: 34px;
-        min-width: 34px;
-        min-height: 34px;
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+        min-height: 28px;
         padding: 0 !important;
     }
 
@@ -6911,9 +6920,11 @@ tr.is-long-press-active {
 
     h2[data-fv-section][data-fv-advanced="1"] .fv-section-toggle {
         margin-left: 0;
-        min-height: 34px;
-        padding: 0.28rem 0.58rem;
-        font-size: 1.03rem;
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+        min-height: 28px;
+        padding: 0 !important;
     }
 
     .fv-update-notes-actions {

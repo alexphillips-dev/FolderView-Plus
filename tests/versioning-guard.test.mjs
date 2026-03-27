@@ -321,8 +321,8 @@ test('validation workflows enforce standards guards plus required folder editor 
 test('release workflows validate remote raw publish artifacts before publishing releases', () => {
     for (const workflow of [releaseMainWorkflow, releaseOnMainWorkflow]) {
         assert.match(workflow, /Validate remote raw publish artifacts/);
-        assert.match(workflow, /FVPLUS_REMOTE_PUBLISH_ATTEMPTS:\s*'15'/);
-        assert.match(workflow, /FVPLUS_REMOTE_PUBLISH_DELAY_SEC:\s*'6'/);
+        assert.match(workflow, /FVPLUS_REMOTE_PUBLISH_ATTEMPTS:\s*'30'/);
+        assert.match(workflow, /FVPLUS_REMOTE_PUBLISH_DELAY_SEC:\s*'10'/);
         assert.match(workflow, /bash scripts\/remote_publish_guard\.sh/);
     }
 });

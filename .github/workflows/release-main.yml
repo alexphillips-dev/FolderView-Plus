@@ -144,8 +144,8 @@ jobs:
 
       - name: Validate remote raw publish artifacts
         env:
-          FVPLUS_REMOTE_PUBLISH_ATTEMPTS: '15'
-          FVPLUS_REMOTE_PUBLISH_DELAY_SEC: '6'
+          FVPLUS_REMOTE_PUBLISH_ATTEMPTS: '30'
+          FVPLUS_REMOTE_PUBLISH_DELAY_SEC: '10'
         run: |
           chmod +x scripts/remote_publish_guard.sh
           bash scripts/remote_publish_guard.sh

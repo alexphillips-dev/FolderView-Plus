@@ -581,10 +581,16 @@ let bulkAssignStateByType = {
     docker: createBulkAssignUiState(),
     vm: createBulkAssignUiState()
 };
+let selectedOperationsTemplateIdByType = {
+    docker: '',
+    vm: ''
+};
+let activeOperationsWorkspaceType = 'docker';
 let activeRulesWorkspaceType = 'docker';
 let activeRecoveryWorkspaceType = 'docker';
 
 const UI_MODE_STORAGE_KEY = 'fv.settings.mode.v1';
+const OPERATIONS_WORKSPACE_STORAGE_KEY = 'fv.settings.operationsWorkspace.v1';
 const RULES_WORKSPACE_STORAGE_KEY = 'fv.settings.rulesWorkspace.v1';
 const RECOVERY_WORKSPACE_STORAGE_KEY = 'fv.settings.recoveryWorkspace.v1';
 const UPDATE_NOTES_SEEN_VERSION_STORAGE_KEY = 'fv.settings.updateNotesSeenVersion.v1';
@@ -2253,6 +2259,7 @@ const initSettingsControls = () => {
 
     $('#fv-settings-search').val(settingsUiState.query || '');
     $('#fv-search-all-advanced').prop('checked', settingsUiState.searchAllAdvanced === true);
+    renderOperationsWorkspace();
     syncRecoveryWorkspaceUi();
     syncRulesWorkspaceUi();
     updateRuleValidationHint('docker');
@@ -2288,6 +2295,7 @@ const refreshSettingsUx = () => {
     syncSectionJumpOptions();
     refreshInputInvalidStyles();
     refreshSectionHealthBadges();
+    renderOperationsWorkspace();
     syncRecoveryWorkspaceUi();
     syncRulesWorkspaceUi();
     ADVANCED_MODULE_KEYS.forEach((moduleKey) => {
@@ -8078,7 +8086,7 @@ const buildHealthCardHtml = (type, metrics, healthPrefs) => {
     }
     const summaryDetail = folderCount <= 0
         ? 'Create folders in the Docker or VM table before health tracking can surface issues here.'
-        : `${detailParts.join(' • ')}.`;
+        : `${detailParts.join(' - ')}.`;
     const filterLabelMap = {
         all: `All (${folderCount})`,
         attention: `Attention (${attentionCount})`,
@@ -9148,55 +9156,281 @@ const renderBackupRows = (type) => {
 
 // folderviewplus.import.js provides backup comparison helpers.
 
-const renderTemplateRows = (type) => {
-    const rowsEl = $(`#${type}-templates`);
-    const allTemplates = templatesByType[type] || [];
-    const selected = selectedTemplateIdsByType[type] || new Set();
-    const validSelected = new Set(Array.from(selected).filter((id) => allTemplates.some((template) => String(template.id || '') === id)));
-    selectedTemplateIdsByType[type] = validSelected;
-    const filter = normalizedFilter(filtersByType[type]?.templates);
-    const templates = allTemplates.filter((template) => {
-        if (!filter) {
-            return true;
+const normalizeOperationsWorkspaceType = (value) => (String(value || '').trim().toLowerCase() === 'vm' ? 'vm' : 'docker');
+
+const getActiveOperationsWorkspaceType = () => normalizeOperationsWorkspaceType(activeOperationsWorkspaceType);
+
+const getLatestTemplateForType = (type) => {
+    const resolvedType = normalizeOperationsWorkspaceType(type);
+    const templates = Array.isArray(templatesByType[resolvedType]) ? templatesByType[resolvedType] : [];
+    if (!templates.length) {
+        return null;
+    }
+    return [...templates].sort((left, right) => {
+        const leftTime = Date.parse(String(left?.updatedAt || left?.createdAt || 0));
+        const rightTime = Date.parse(String(right?.updatedAt || right?.createdAt || 0));
+        return rightTime - leftTime;
+    })[0] || null;
+};
+
+const buildOperationsOverviewHtml = (type) => {
+    const resolvedType = normalizeOperationsWorkspaceType(type);
+    const title = resolvedType === 'docker' ? 'Docker' : 'VM';
+    const folders = Object.keys(getFolderMap(resolvedType));
+    const folderCount = folders.length;
+    const templates = Array.isArray(templatesByType[resolvedType]) ? templatesByType[resolvedType] : [];
+    const templateCount = templates.length;
+    const latestTemplate = getLatestTemplateForType(resolvedType);
+    const latestLabel = latestTemplate ? formatTimestamp(latestTemplate.updatedAt || latestTemplate.createdAt || '') : 'Not saved yet';
+    const headline = templateCount
+        ? `${templateCount} saved template${templateCount === 1 ? '' : 's'} ready for ${folderCount} folder${folderCount === 1 ? '' : 's'}.`
+        : `No saved ${title.toLowerCase()} templates yet.`;
+    const copy = folderCount
+        ? `Run live folder actions or reuse a template across ${folderCount} ${title === 'Docker' ? 'Docker folder' : 'VM folder'}${folderCount === 1 ? '' : 's'} from the same workspace.`
+        : `Create your first ${title === 'Docker' ? 'Docker' : 'VM'} folder to unlock runtime actions and reusable templates here.`;
+    return `
+        <div class="fv-operations-overview-head">
+            <div>
+                <span class="fv-operations-source-label">${escapeHtml(title)}</span>
+                <div class="fv-operations-headline">${escapeHtml(headline)}</div>
+                <div class="fv-operations-copy">${escapeHtml(copy)}</div>
+            </div>
+            <span class="fv-recovery-history-badge">${templateCount > 0 ? 'Ready' : 'Needs first template'}</span>
+        </div>
+        <div class="fv-operations-stat-grid">
+            <div class="fv-operations-stat-card">
+                <span class="fv-operations-stat-label">Folders</span>
+                <strong>${escapeHtml(String(folderCount))}</strong>
+                <span>${escapeHtml(`${title} folders available`)}</span>
+            </div>
+            <div class="fv-operations-stat-card">
+                <span class="fv-operations-stat-label">Templates</span>
+                <strong>${escapeHtml(String(templateCount))}</strong>
+                <span>${escapeHtml(templateCount === 1 ? 'Saved preset ready' : 'Saved presets ready')}</span>
+            </div>
+            <div class="fv-operations-stat-card">
+                <span class="fv-operations-stat-label">Live actions</span>
+                <strong>4</strong>
+                <span>Start, stop, pause, resume</span>
+            </div>
+            <div class="fv-operations-stat-card">
+                <span class="fv-operations-stat-label">Latest template</span>
+                <strong>${escapeHtml(latestLabel)}</strong>
+                <span>${escapeHtml(latestTemplate?.name || 'Save one from a folder')}</span>
+            </div>
+        </div>
+    `;
+};
+
+const renderOperationsOverview = (type) => {
+    const resolvedType = normalizeOperationsWorkspaceType(type);
+    const host = $(`#${resolvedType}-operations-overview`);
+    if (!host.length) {
+        return;
+    }
+    host.html(buildOperationsOverviewHtml(resolvedType));
+};
+
+const buildRuntimePreviewHtml = (type, folderId, action, plan, result = null) => {
+    const resolvedType = normalizeOperationsWorkspaceType(type);
+    if (!plan) {
+        return `
+            <div class="fv-recovery-empty-state">
+                <strong>No runtime action preview yet.</strong>
+                <span>Select a ${resolvedType === 'docker' ? 'Docker' : 'VM'} folder and action, then preview the plan before applying it.</span>
+            </div>
+        `;
+    }
+    const folderName = folderNameForId(resolvedType, folderId);
+    const eligiblePreview = plan.eligible.slice(0, 6);
+    const skippedPreview = plan.skipped.slice(0, 6);
+    const eligibleOverflow = Math.max(0, plan.eligible.length - eligiblePreview.length);
+    const skippedOverflow = Math.max(0, plan.skipped.length - skippedPreview.length);
+    const resultCopy = result
+        ? `Applied ${action} to ${result.executed || 0} item(s). ${result.succeeded || 0} succeeded, ${result.failed || 0} failed.`
+        : `Preview which ${resolvedType === 'docker' ? 'containers' : 'VMs'} will change before applying ${action}.`;
+    return `
+        <div class="fv-operations-runtime-summary">
+            <div class="fv-operations-runtime-head">
+                <div>
+                    <div class="fv-operations-runtime-title">${escapeHtml(folderName)} - ${escapeHtml(String(action || '').toUpperCase())}</div>
+                    <div class="fv-operations-runtime-copy">${escapeHtml(resultCopy)}</div>
+                </div>
+                ${result ? `<span class="fv-recovery-history-badge">${(result.failed || 0) > 0 ? 'Completed with warnings' : 'Applied'}</span>` : ''}
+            </div>
+            <div class="fv-operations-stat-grid fv-operations-runtime-stats">
+                <div class="fv-operations-stat-card">
+                    <span class="fv-operations-stat-label">Requested</span>
+                    <strong>${escapeHtml(String(plan.requestedCount || 0))}</strong>
+                    <span>Items in folder</span>
+                </div>
+                <div class="fv-operations-stat-card">
+                    <span class="fv-operations-stat-label">Eligible</span>
+                    <strong>${escapeHtml(String(plan.eligible.length || 0))}</strong>
+                    <span>Can change now</span>
+                </div>
+                <div class="fv-operations-stat-card">
+                    <span class="fv-operations-stat-label">Skipped</span>
+                    <strong>${escapeHtml(String(plan.skipped.length || 0))}</strong>
+                    <span>Already in desired state</span>
+                </div>
+                <div class="fv-operations-stat-card">
+                    <span class="fv-operations-stat-label">State mix</span>
+                    <strong>${escapeHtml(`${plan.countsByState?.started || 0}/${plan.countsByState?.paused || 0}/${plan.countsByState?.stopped || 0}`)}</strong>
+                    <span>started / paused / stopped</span>
+                </div>
+            </div>
+            <div class="fv-operations-runtime-columns">
+                <div class="fv-operations-runtime-list">
+                    <strong>Will change</strong>
+                    ${eligiblePreview.length ? `
+                        <ul>
+                            ${eligiblePreview.map((row) => `<li>${escapeHtml(row.name)} <span>${escapeHtml(row.state || 'unknown')}</span></li>`).join('')}
+                        </ul>
+                        ${eligibleOverflow > 0 ? `<div class="fv-operations-runtime-more">+${eligibleOverflow} more eligible item(s)</div>` : ''}
+                    ` : '<div class="fv-operations-runtime-empty">No eligible items for this action.</div>'}
+                </div>
+                <div class="fv-operations-runtime-list">
+                    <strong>Skipped</strong>
+                    ${skippedPreview.length ? `
+                        <ul>
+                            ${skippedPreview.map((row) => `<li>${escapeHtml(row.name)} <span>${escapeHtml(row.reason || row.state || 'skipped')}</span></li>`).join('')}
+                        </ul>
+                        ${skippedOverflow > 0 ? `<div class="fv-operations-runtime-more">+${skippedOverflow} more skipped item(s)</div>` : ''}
+                    ` : '<div class="fv-operations-runtime-empty">Nothing is being skipped.</div>'}
+                </div>
+            </div>
+        </div>
+    `;
+};
+
+const setRuntimePreviewOutput = (type, html) => {
+    const resolvedType = normalizeOperationsWorkspaceType(type);
+    const host = $(`#${resolvedType}-runtime-preview-output`);
+    if (!host.length) {
+        return;
+    }
+    host.html(String(html || ''));
+};
+
+const renderOperationsWorkspace = () => {
+    const activeType = normalizeOperationsWorkspaceType(activeOperationsWorkspaceType);
+    document.querySelectorAll('[data-fv-operations-source-toggle]').forEach((button) => {
+        if (!(button instanceof HTMLButtonElement)) {
+            return;
         }
-        const haystack = `${String(template.name || '')} ${String(template.id || '')}`.toLowerCase();
-        return haystack.includes(filter);
+        const buttonType = normalizeOperationsWorkspaceType(button.getAttribute('data-fv-operations-source-toggle'));
+        const isActive = buttonType === activeType;
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
     });
-    const folders = getFolderMap(type);
+    document.querySelectorAll('[data-fv-operations-panel]').forEach((panel) => {
+        if (!(panel instanceof HTMLElement)) {
+            return;
+        }
+        const panelType = normalizeOperationsWorkspaceType(panel.getAttribute('data-fv-operations-panel'));
+        const isActive = panelType === activeType;
+        panel.hidden = !isActive;
+        panel.classList.toggle('is-active', isActive);
+    });
+};
+
+const setOperationsWorkspaceType = (type, persist = true) => {
+    activeOperationsWorkspaceType = normalizeOperationsWorkspaceType(type);
+    if (persist) {
+        writeSettingsStorage(OPERATIONS_WORKSPACE_STORAGE_KEY, activeOperationsWorkspaceType, { delayMs: 60, idle: true });
+    }
+    renderOperationsWorkspace();
+};
+
+const selectOperationsTemplate = (type, templateId) => {
+    const resolvedType = normalizeOperationsWorkspaceType(type);
+    selectedOperationsTemplateIdByType[resolvedType] = String(templateId || '').trim();
+    renderTemplateRows(resolvedType);
+};
+
+const exportTemplateEntry = (type, templateId) => {
+    const resolvedType = normalizeOperationsWorkspaceType(type);
+    const template = (templatesByType[resolvedType] || []).find((entry) => String(entry?.id || '') === String(templateId || ''));
+    if (!template) {
+        swal({ title: 'Template not found', text: 'Select a valid template first.', type: 'warning' });
+        return;
+    }
+    const payload = {
+        schemaVersion: 1,
+        exportedAt: new Date().toISOString(),
+        type: resolvedType,
+        mode: 'templates',
+        templates: [template]
+    };
+    downloadFile(`FolderView Plus ${resolvedType.toUpperCase()} Template - ${template.name || template.id}.json`, toPrettyJson(payload));
+};
+
+const renderTemplateRows = (type) => {
+    const resolvedType = normalizeOperationsWorkspaceType(type);
+    const host = $(`#${resolvedType}-operations-template-library`);
+    if (!host.length) {
+        return;
+    }
+    const allTemplates = templatesByType[resolvedType] || [];
+    const folders = getFolderMap(resolvedType);
     const folderOptions = Object.entries(folders).map(([id, folder]) => (
         `<option value="${escapeHtml(id)}">${escapeHtml(folder.name || id)}</option>`
     )).join('');
 
-    if (!templates.length) {
-        const hasFilter = filter.length > 0;
-        const title = hasFilter ? 'No templates match your search.' : 'No templates saved yet.';
-        const help = hasFilter
-            ? 'Try another template search term.'
-            : 'Create a template from an existing folder to reuse icon/settings/actions.';
-        rowsEl.html(buildModuleEmptyTableRow(title, help, 4));
-        $(`#${type}-templates-select-all`).prop('checked', false);
+    if (!allTemplates.length) {
+        selectedOperationsTemplateIdByType[resolvedType] = '';
+        host.html(`
+            <div class="fv-recovery-empty-state">
+                <strong>No saved ${resolvedType === 'docker' ? 'Docker' : 'VM'} templates yet.</strong>
+                <span>Create one from an existing folder to reuse icon, settings, actions, and matching logic faster.</span>
+            </div>
+        `);
         return;
     }
 
-    const rows = templates.map((template) => {
-        const templateId = String(template.id || '');
-        const templateName = String(template.name || templateId);
-        const selectId = `${type}-template-target-${templateId}`;
-        const checked = validSelected.has(templateId) ? 'checked' : '';
-        return `<tr>
-            <td><input type="checkbox" ${checked} onchange="toggleTemplateSelection('${type}','${escapeHtml(templateId)}', this.checked)"></td>
-            <td>${escapeHtml(templateName)}</td>
-            <td>${escapeHtml(formatTimestamp(template.updatedAt || template.createdAt))}</td>
-            <td>
-                <select id="${escapeHtml(selectId)}">${folderOptions}</select>
-                <button type="button" onclick="applyTemplateToFolder('${type}','${escapeHtml(templateId)}','${escapeHtml(selectId)}')"><i class="fa fa-clone"></i> Apply</button>
-                <button type="button" onclick="deleteTemplateEntry('${type}','${escapeHtml(templateId)}')"><i class="fa fa-trash"></i> Delete</button>
-            </td>
-        </tr>`;
-    });
-    rowsEl.html(rows.join(''));
-    const allSelected = templates.every((template) => validSelected.has(String(template.id || '')));
-    $(`#${type}-templates-select-all`).prop('checked', allSelected);
+    const selectedTemplateId = String(selectedOperationsTemplateIdByType[resolvedType] || '').trim();
+    const selectedTemplate = allTemplates.find((template) => String(template?.id || '') === selectedTemplateId) || allTemplates[0];
+    const resolvedTemplateId = String(selectedTemplate?.id || '').trim();
+    selectedOperationsTemplateIdByType[resolvedType] = resolvedTemplateId;
+    const templateSelectOptions = allTemplates.map((template) => {
+        const templateId = String(template?.id || '');
+        const templateName = String(template?.name || templateId);
+        const updated = formatTimestamp(template?.updatedAt || template?.createdAt || '');
+        const selectedAttr = templateId === resolvedTemplateId ? ' selected' : '';
+        const optionLabel = [templateName, updated].filter(Boolean).join(' - ');
+        return `<option value="${escapeHtml(templateId)}"${selectedAttr}>${escapeHtml(optionLabel)}</option>`;
+    }).join('');
+    const targetSelectId = `${resolvedType}-operations-template-target-folder`;
+    const templateUpdated = formatTimestamp(selectedTemplate?.updatedAt || selectedTemplate?.createdAt || '');
+    const templateName = String(selectedTemplate?.name || resolvedTemplateId);
+    const folderCount = Object.keys(folders).length;
+    host.html(`
+        <div class="fv-operations-template-picker-row">
+            <label for="${escapeHtml(`${resolvedType}-operations-template-select`)}">Saved template</label>
+            <select id="${escapeHtml(`${resolvedType}-operations-template-select`)}" onchange="selectOperationsTemplate('${resolvedType}', this.value)">
+                ${templateSelectOptions}
+            </select>
+        </div>
+        <div class="fv-operations-template-card">
+            <div class="fv-operations-template-head">
+                <div>
+                    <div class="fv-operations-template-title">${escapeHtml(templateName)}</div>
+                    <div class="fv-operations-template-copy">Updated ${escapeHtml(templateUpdated)}. Ready to apply across ${escapeHtml(String(folderCount))} folder${folderCount === 1 ? '' : 's'}.</div>
+                </div>
+                <span class="fv-recovery-history-badge">${escapeHtml(selectedTemplate?.id || '')}</span>
+            </div>
+            <div class="fv-operations-template-target-row">
+                <label for="${escapeHtml(targetSelectId)}">Apply to folder</label>
+                <select id="${escapeHtml(targetSelectId)}">${folderOptions}</select>
+            </div>
+            <div class="backup-actions fv-operations-template-actions">
+                <button type="button" onclick="applyTemplateToFolder('${resolvedType}','${escapeHtml(resolvedTemplateId)}','${escapeHtml(targetSelectId)}')"><i class="fa fa-clone"></i> Apply to folder</button>
+                <button type="button" onclick="exportTemplateEntry('${resolvedType}','${escapeHtml(resolvedTemplateId)}')"><i class="fa fa-download"></i> Export</button>
+                <button type="button" onclick="deleteTemplateEntry('${resolvedType}','${escapeHtml(resolvedTemplateId)}')"><i class="fa fa-trash"></i> Delete</button>
+            </div>
+        </div>
+    `);
 };
 
 const renderTable = (type) => {
@@ -9253,7 +9487,9 @@ const renderTable = (type) => {
     renderRulesTable(type);
     syncRulesWorkspaceUi();
     renderBulkItemOptions(type);
+    renderOperationsOverview(type);
     renderTemplateRows(type);
+    renderOperationsWorkspace();
     renderFolderHealthCards();
     renderFirstRunQuickPathPanel();
     updateRuleLiveMatch(type);
@@ -9416,11 +9652,15 @@ const refreshTemplates = async (type, { quiet = false } = {}) => {
         if (!quiet) {
             showError(`Failed to load ${resolvedType.toUpperCase()} templates`, error);
         }
+        renderOperationsOverview(resolvedType);
         renderTemplateRows(resolvedType);
+        renderOperationsWorkspace();
         refreshSettingsUx();
         return false;
     }
+    renderOperationsOverview(resolvedType);
     renderTemplateRows(resolvedType);
+    renderOperationsWorkspace();
     refreshSettingsUx();
     return true;
 };
@@ -10881,30 +11121,43 @@ const assignSelectedItems = async (type, namesOverride = null) => {
 const previewFolderRuntimeAction = (type) => {
     const folderId = String($(`#${type}-runtime-folder`).val() || '');
     const action = String($(`#${type}-runtime-action`).val() || '');
-    const output = $(`#${type}-runtime-preview-output`);
     if (!folderId || !action) {
-        output.text('Select a folder and action first.');
+        setRuntimePreviewOutput(type, `
+            <div class="fv-recovery-empty-state">
+                <strong>Select a folder and action first.</strong>
+                <span>Pick the target folder and the runtime action you want to preview.</span>
+            </div>
+        `);
         return;
     }
     const plan = getRuntimePlanForFolder(type, folderId, action);
-    output.text(runtimePreviewText(type, folderId, action, plan));
+    setRuntimePreviewOutput(type, buildRuntimePreviewHtml(type, folderId, action, plan));
 };
 
 const applyFolderRuntimeAction = (type) => {
     const folderId = String($(`#${type}-runtime-folder`).val() || '');
     const action = String($(`#${type}-runtime-action`).val() || '');
-    const output = $(`#${type}-runtime-preview-output`);
     if (!folderId || !action) {
-        output.text('Select a folder and action first.');
+        setRuntimePreviewOutput(type, `
+            <div class="fv-recovery-empty-state">
+                <strong>Select a folder and action first.</strong>
+                <span>Pick the target folder and the runtime action you want to apply.</span>
+            </div>
+        `);
         return;
     }
     const plan = getRuntimePlanForFolder(type, folderId, action);
     if (!plan) {
-        output.text('No valid action plan was generated.');
+        setRuntimePreviewOutput(type, `
+            <div class="fv-recovery-empty-state">
+                <strong>No valid action plan was generated.</strong>
+                <span>Refresh the source data and try the preview again.</span>
+            </div>
+        `);
         return;
     }
     if (!plan.eligible.length) {
-        output.text(runtimePreviewText(type, folderId, action, plan));
+        setRuntimePreviewOutput(type, buildRuntimePreviewHtml(type, folderId, action, plan));
         swal({
             title: 'Nothing to apply',
             text: 'No eligible items were found for this action.',
@@ -10929,10 +11182,7 @@ const applyFolderRuntimeAction = (type) => {
         try {
             const result = await executeFolderRuntimeAction(type, action, plan.eligible.map((row) => row.name));
             await refreshType(type);
-            output.text(toPrettyJson({
-                preview: plan,
-                result
-            }));
+            setRuntimePreviewOutput(type, buildRuntimePreviewHtml(type, folderId, action, plan, result));
             await trackDiagnosticsEvent({
                 eventType: 'runtime_bulk_action',
                 type,
@@ -11251,7 +11501,9 @@ const createTemplateFromFolder = async (type) => {
             markAdvancedModuleLoadSuccess(`${type}_templates`);
             $(`#${type}-template-name`).val('');
             setInlineValidationHint(`${type}-template-validation`, '', 'info');
+            renderOperationsOverview(type);
             renderTemplateRows(type);
+            renderOperationsWorkspace();
             swal({ title: 'Template saved', text: 'Template created successfully.', type: 'success' });
         } catch (error) {
             markAdvancedModuleLoadError(`${type}_templates`, error);
@@ -11322,7 +11574,9 @@ const deleteTemplateEntry = (type, templateId) => {
             try {
                 templatesByType[type] = await deleteTemplate(type, templateId);
                 markAdvancedModuleLoadSuccess(`${type}_templates`);
+                renderOperationsOverview(type);
                 renderTemplateRows(type);
+                renderOperationsWorkspace();
             } catch (error) {
                 markAdvancedModuleLoadError(`${type}_templates`, error);
                 showError('Template delete failed', error);
@@ -11642,6 +11896,7 @@ settingsActionSupportModule.registerWindowActions(window, {
     filterActiveRecoveryBackups,
     setRecoveryWorkspaceType,
     getActiveRecoveryWorkspaceType,
+    setOperationsWorkspaceType,
     setRulesWorkspaceType,
     addAutoRule,
     toggleAutoRule,
@@ -11680,6 +11935,8 @@ settingsActionSupportModule.registerWindowActions(window, {
     undoLatestChange,
     undoActiveRecoveryChange,
     createTemplateFromFolder,
+    selectOperationsTemplate,
+    exportTemplateEntry,
     applyTemplateToFolder,
     deleteTemplateEntry,
     toggleTemplateSelection,
@@ -11744,6 +12001,7 @@ settingsActionSupportModule.registerWindowActions(window, {
             category: 'bootstrap-state'
         }, async () => {
             settingsUiState.mode = localStorage.getItem(UI_MODE_STORAGE_KEY) === 'advanced' ? 'advanced' : 'basic';
+            activeOperationsWorkspaceType = normalizeOperationsWorkspaceType(localStorage.getItem(OPERATIONS_WORKSPACE_STORAGE_KEY) || 'docker');
             activeRulesWorkspaceType = normalizeRulesWorkspaceType(localStorage.getItem(RULES_WORKSPACE_STORAGE_KEY) || 'docker');
             activeRecoveryWorkspaceType = normalizeRecoveryWorkspaceType(localStorage.getItem(RECOVERY_WORKSPACE_STORAGE_KEY) || 'docker');
             setAdvancedTab(localStorage.getItem(ADVANCED_TAB_STORAGE_KEY) || 'automation', false);
@@ -11888,3 +12146,4 @@ settingsActionSupportModule.registerWindowActions(window, {
         showError('Initialization failed', error);
     }
 })();
+

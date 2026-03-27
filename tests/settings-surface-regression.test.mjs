@@ -156,6 +156,26 @@ test('recovery tab uses a source-switched workspace with overview cards, snapsho
     assert.match(settingsCss, /\.fv-recovery-timeline-card/);
 });
 
+test('operations tab uses one source-switched workspace for runtime actions and templates', () => {
+    assert.match(settingsPage, /<h2 data-fv-section="runtime-actions" data-fv-advanced="1" data-fv-advanced-group="operations">Operations workspace<\/h2>/);
+    assert.match(settingsPage, /class="fv-rules-source-switch fv-operations-source-switch"[\s\S]*setOperationsWorkspaceType\('docker'\)[\s\S]*setOperationsWorkspaceType\('vm'\)/);
+    assert.match(settingsPage, /data-fv-operations-panel="docker"[\s\S]*id="docker-operations-overview"[\s\S]*id="docker-runtime-preview-output"[\s\S]*id="docker-operations-template-library"/);
+    assert.match(settingsPage, /data-fv-operations-panel="vm"[\s\S]*id="vm-operations-overview"[\s\S]*id="vm-runtime-preview-output"[\s\S]*id="vm-operations-template-library"/);
+    assert.doesNotMatch(settingsPage, /<h2 data-fv-section="folder-templates"/);
+    assert.match(settingsJs, /const OPERATIONS_WORKSPACE_STORAGE_KEY = 'fv\.settings\.operationsWorkspace\.v1';/);
+    assert.match(settingsJs, /const buildOperationsOverviewHtml = \(type\) =>/);
+    assert.match(settingsJs, /const renderOperationsWorkspace = \(\) =>/);
+    assert.match(settingsJs, /const setOperationsWorkspaceType = \(type, persist = true\) =>/);
+    assert.match(settingsJs, /const renderTemplateRows = \(type\) => \{/);
+    assert.match(settingsJs, /selectOperationsTemplate\('/);
+    assert.match(settingsJs, /exportTemplateEntry\('/);
+    assert.match(settingsCss, /\.fv-operations-source-switch/);
+    assert.match(settingsCss, /\.fv-operations-stage-grid/);
+    assert.match(settingsCss, /\.fv-operations-runtime-output/);
+    assert.match(settingsCss, /\.fv-operations-template-library/);
+    assert.doesNotMatch(settingsSectionsJs, /'folder-templates':\s*'operations'/);
+});
+
 test('bulk assignment modules reserve equal item-list height and disable outer panel scrolling', () => {
     assert.match(settingsCss, /\.bulk-assign-grid,\s*\.backup-grid,\s*\.template-grid\s*\{[\s\S]*align-items:\s*stretch;/);
     assert.match(settingsCss, /\.bulk-assign-grid > \.rules-panel\s*\{[\s\S]*max-height:\s*none !important;[\s\S]*overflow-y:\s*hidden !important;/);

@@ -20,7 +20,6 @@ const ADVANCED_SECTION_KEYS = new Set([
     'bulk-assignment',
     'runtime-actions',
     'backups',
-    'folder-templates',
     'change-history',
     'folder-health',
     'diagnostics',
@@ -43,7 +42,6 @@ const SECTION_APPLY_BEHAVIOR = Object.freeze({
     'bulk-assignment': 'instant',
     'runtime-actions': 'instant',
     backups: 'instant',
-    'folder-templates': 'instant',
     'change-history': 'instant',
     'folder-health': 'instant',
     diagnostics: 'instant'
@@ -55,7 +53,6 @@ const ADVANCED_GROUP_BY_SECTION = {
     'backups': 'recovery',
     'change-history': 'recovery',
     'runtime-actions': 'operations',
-    'folder-templates': 'operations',
     'folder-health': 'diagnostics',
     'diagnostics': 'diagnostics'
 };

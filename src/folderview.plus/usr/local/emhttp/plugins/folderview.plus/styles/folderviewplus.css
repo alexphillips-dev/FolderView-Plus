@@ -3323,8 +3323,257 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     display: none !important;
 }
 
+.fv-operations-module-wrap > .rules-panel {
+    margin: 0;
+}
+
+.fv-operations-section-body {
+    display: grid;
+    gap: 0.95rem;
+    padding: 0 0.75rem 0.92rem;
+}
+
+.fv-operations-source-switch {
+    justify-content: flex-start;
+}
+
+.fv-operations-source-panel {
+    display: grid;
+    gap: 0.9rem;
+}
+
+.fv-operations-source-panel[hidden] {
+    display: none !important;
+}
+
+.fv-operations-overview {
+    display: grid;
+    gap: 0.75rem;
+    padding: 0.85rem 0.92rem;
+    border: 1px solid var(--fvplus-settings-border-faint);
+    border-radius: 12px;
+    background: var(--fvplus-settings-surface-muted);
+}
+
+.fv-operations-overview-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.8rem;
+    align-items: flex-start;
+}
+
+.fv-operations-source-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-bottom: 0.2rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fvplus-settings-text-muted);
+}
+
+.fv-operations-headline {
+    font-size: 1.03rem;
+    font-weight: 700;
+    color: var(--fvplus-settings-text-primary);
+}
+
+.fv-operations-copy {
+    color: var(--fvplus-settings-text-muted);
+    line-height: 1.45;
+}
+
+.fv-operations-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.72rem;
+}
+
+.fv-operations-stat-card {
+    display: grid;
+    gap: 0.18rem;
+    padding: 0.72rem 0.82rem;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 12px;
+    background: var(--fvplus-settings-surface-strong);
+}
+
+.fv-operations-stat-label {
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fvplus-settings-text-muted);
+}
+
+.fv-operations-stat-card > strong {
+    font-size: 1.04rem;
+    color: var(--fvplus-settings-text-primary);
+}
+
+.fv-operations-stat-card > span:last-child {
+    color: var(--fvplus-settings-text-muted);
+    line-height: 1.4;
+}
+
+.fv-operations-stage-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.8rem;
+    align-items: stretch;
+}
+
+.fv-operations-stage {
+    display: grid;
+    gap: 0.78rem;
+    padding: 0.85rem 0.92rem;
+    border: 1px solid var(--fvplus-settings-border-faint);
+    border-radius: 12px;
+    background: var(--fvplus-settings-surface-muted);
+    align-content: start;
+    height: 100%;
+}
+
+.fv-operations-stage-head {
+    display: grid;
+    gap: 0.14rem;
+}
+
+.fv-operations-stage-head > strong {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--fvplus-settings-text-primary);
+}
+
+.fv-operations-stage-head > span {
+    color: var(--fvplus-settings-text-muted);
+    line-height: 1.45;
+}
+
+.fv-operations-runtime-grid {
+    margin: 0;
+}
+
+.fv-operations-runtime-output {
+    display: grid;
+    gap: 0.72rem;
+    padding: 0.8rem 0.92rem;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 12px;
+    background: var(--fvplus-settings-surface-strong);
+}
+
+.fv-operations-runtime-head,
+.fv-operations-template-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.7rem;
+    align-items: flex-start;
+}
+
+.fv-operations-runtime-title,
+.fv-operations-template-title {
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: var(--fvplus-settings-text-primary);
+}
+
+.fv-operations-runtime-copy,
+.fv-operations-template-copy {
+    color: var(--fvplus-settings-text-muted);
+    line-height: 1.45;
+}
+
+.fv-operations-runtime-stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.fv-operations-runtime-columns {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.72rem;
+}
+
+.fv-operations-runtime-list {
+    display: grid;
+    gap: 0.45rem;
+    padding: 0.7rem 0.78rem;
+    border: 1px solid var(--fvplus-settings-border-faint);
+    border-radius: 10px;
+    background: var(--fvplus-settings-surface-muted);
+}
+
+.fv-operations-runtime-list > strong {
+    color: var(--fvplus-settings-text-primary);
+}
+
+.fv-operations-runtime-list > ul {
+    margin: 0;
+    padding-left: 1rem;
+    display: grid;
+    gap: 0.3rem;
+}
+
+.fv-operations-runtime-list li {
+    color: var(--fvplus-settings-text-primary);
+}
+
+.fv-operations-runtime-list li > span {
+    color: var(--fvplus-settings-text-muted);
+}
+
+.fv-operations-runtime-empty,
+.fv-operations-runtime-more {
+    color: var(--fvplus-settings-text-muted);
+}
+
+.fv-operations-template-create {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(180px, 1fr) auto;
+    gap: 0.55rem;
+    align-items: center;
+}
+
+.fv-operations-template-library {
+    display: grid;
+    gap: 0.72rem;
+}
+
+.fv-operations-template-picker-row,
+.fv-operations-template-target-row {
+    display: grid;
+    grid-template-columns: minmax(96px, auto) minmax(0, 1fr);
+    gap: 0.65rem;
+    align-items: center;
+}
+
+.fv-operations-template-picker-row > label,
+.fv-operations-template-target-row > label {
+    font-weight: 700;
+    color: var(--fvplus-settings-text-primary);
+}
+
+.fv-operations-template-card {
+    display: grid;
+    gap: 0.72rem;
+    padding: 0.8rem 0.92rem;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 12px;
+    background: var(--fvplus-settings-surface-strong);
+}
+
+.fv-operations-template-actions {
+    margin-top: 0.08rem;
+}
+
 @media (max-width: 1100px) {
     .fv-recovery-stage-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .fv-operations-stage-grid {
         grid-template-columns: 1fr;
     }
 }
@@ -3352,6 +3601,22 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
     .fv-recovery-history-actions-row {
         width: 100%;
+    }
+
+    .fv-operations-overview-head,
+    .fv-operations-runtime-head,
+    .fv-operations-template-head {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .fv-operations-runtime-stats,
+    .fv-operations-runtime-columns,
+    .fv-operations-stat-grid,
+    .fv-operations-template-create,
+    .fv-operations-template-picker-row,
+    .fv-operations-template-target-row {
+        grid-template-columns: 1fr;
     }
 }
 

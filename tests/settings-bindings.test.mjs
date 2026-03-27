@@ -171,6 +171,21 @@ test('recovery workspace remembers source and routes generic actions through the
     assert.match(script, /const undoActiveRecoveryChange = \(\) => undoLatestChange\(getActiveRecoveryWorkspaceType\(\)\);/);
 });
 
+test('operations workspace remembers source and exposes the shared runtime-template actions', () => {
+    assert.match(script, /const OPERATIONS_WORKSPACE_STORAGE_KEY = 'fv\.settings\.operationsWorkspace\.v1';/);
+    assert.match(script, /const normalizeOperationsWorkspaceType = \(value\) =>/);
+    assert.match(script, /writeSettingsStorage\(OPERATIONS_WORKSPACE_STORAGE_KEY, activeOperationsWorkspaceType, \{ delayMs: 60, idle: true \}\);/);
+    assert.match(script, /activeOperationsWorkspaceType = normalizeOperationsWorkspaceType\(localStorage\.getItem\(OPERATIONS_WORKSPACE_STORAGE_KEY\) \|\| 'docker'\)/);
+    assert.match(script, /const renderOperationsWorkspace = \(\) => \{/);
+    assert.match(script, /const setOperationsWorkspaceType = \(type, persist = true\) => \{/);
+    assert.match(script, /const selectOperationsTemplate = \(type, templateId\) => \{/);
+    assert.match(script, /const exportTemplateEntry = \(type, templateId\) => \{/);
+    assert.match(script, /const renderTemplateRows = \(type\) => \{/);
+    assert.match(script, /setRuntimePreviewOutput\(type, buildRuntimePreviewHtml\(type, folderId, action, plan\)\);/);
+    assert.match(script, /setRuntimePreviewOutput\(type, buildRuntimePreviewHtml\(type, folderId, action, plan, result\)\);/);
+    assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*setOperationsWorkspaceType[\s\S]*selectOperationsTemplate[\s\S]*exportTemplateEntry[\s\S]*\}\);/);
+});
+
 test('runtime conflict safe mode blocks risky mutations with user-facing guard dialog', () => {
     assert.match(script, /const ensureRuntimeConflictActionAllowed = \(actionLabel = 'This action'\) =>/);
     assert.match(script, /if \(!ensureRuntimeConflictActionAllowed\(`Import \$\{resolvedType === 'docker' \? 'Docker' : 'VM'\} folders`\)\) \{/);

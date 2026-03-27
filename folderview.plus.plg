@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.27.28">
-<!ENTITY md5 "dffda96fbf031de6b92b2a54d09bfad1">
+<!ENTITY version "2026.03.27.29">
+<!ENTITY md5 "b1875c0bcf23a6d9884829a45c4f806e">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.27.29
+- Quality: Remove the orphaned `.fv-perf-output` diagnostics selector left behind after the settings cleanup so the strict dead-code guard, CI, and Release On Main workflow pass cleanly again.
+
 
 ###2026.03.27.28
 - Quality: Remove the stale `file-manager` locale key left behind after the advanced-settings cleanup so the language-usage standards guards, CI, and Release On Main workflow pass cleanly again.

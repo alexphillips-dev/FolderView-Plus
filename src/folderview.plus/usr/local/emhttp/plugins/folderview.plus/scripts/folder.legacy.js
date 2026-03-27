@@ -5436,8 +5436,8 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
         folderId
     );
     let requestedFolderRef = requestedFolderRefs[0] || '';
+    let resolvedEditFolder = null;
     if (requestedFolderRef) {
-        let resolvedEditFolder = null;
         for (const candidateRef of requestedFolderRefs) {
             const resolvedCandidate = resolveCurrentEditFolder(folders, candidateRef);
             if (resolvedCandidate) {

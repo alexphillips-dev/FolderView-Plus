@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.45">
-<!ENTITY md5 "87ef75592e6d09b123abcdb047f259d3">
+<!ENTITY version "2026.03.26.46">
+<!ENTITY md5 "bd014c936c6c4a01fb62fb421704c3ef">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.46
+- Fix: Legacy folder editor no longer rejects during bootstrap when diagnostics try to read `resolvedEditFolder` outside the request-resolution branch after a Docker folder edit is loaded.
+- Fix: The legacy edit-target bootstrap now keeps the resolved folder reference in outer scope, so hydration diagnostics and ready-state reporting can complete without throwing `resolvedEditFolder is not defined`.
+- Quality: Added route-guard coverage for the shared `resolvedEditFolder` bootstrap binding so this scope bug stays caught in test runs.
+
 
 ###2026.03.26.45
 - Fix: Legacy folder editor no longer rejects during seeded Docker edit bootstrap when `hydrateCurrentEditFolder(...)` calls the regex-selection helper before it is initialized.

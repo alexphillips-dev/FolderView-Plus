@@ -118,6 +118,7 @@ test('folder editor runtimes accept query and hash bootstrap identity fallbacks'
     assert.match(folderLegacyJs, /routeTargetRecovered: !folderId && Boolean\(currentEditFolderId\),/);
     assert.match(folderLegacyJs, /routeTargetMismatch: Boolean\(folderId && currentEditFolderId && folderId !== currentEditFolderId\)/);
     assert.match(folderLegacyJs, /const requestedFolderRefs = buildFolderEditorRefCandidates\(/);
+    assert.match(folderLegacyJs, /let resolvedEditFolder = null;/);
     assert.match(folderLegacyJs, /for \(const candidateRef of requestedFolderRefs\) \{/);
     assert.match(folderLegacyJs, /currentEditFolderId = String\(\s*resolvedEditFolder\?\.id[\s\S]*\|\| bootstrapFolderId/);
     assert.match(folderLegacyJs, /hydrateCurrentEditFolder\(currentEditFolder,\s*currentEditFolderId,\s*folders,\s*\{\s*clearPrefill:\s*true\s*\}\);/);

@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.27.06">
-<!ENTITY md5 "d7d7c98ced10e6f1280e873130ad00ce">
+<!ENTITY version "2026.03.27.07">
+<!ENTITY md5 "ae486840c38f33ee9821959d9fab6044">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.27.07
+- UX: Move Conflict inspector into the Rules advanced-settings tab and place it after Auto-assignment rules so Automation stays focused on bulk actions.
+- UI/UX: Wrap Conflict inspector in the same inset module grid as the other Rules sections so its panel width matches the surrounding advanced modules.
+- UI/UX: Restore the desktop two-column bulk-assignment layout so Docker and VM bulk-assignment panels sit side by side again.
+
 
 ###2026.03.27.06
 - UX: Move Auto-assignment rules into a dedicated Rules advanced-settings tab so Automation starts directly with Bulk assignment.

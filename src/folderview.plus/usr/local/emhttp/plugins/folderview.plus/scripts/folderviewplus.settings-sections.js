@@ -41,7 +41,7 @@ const SECTION_APPLY_BEHAVIOR = Object.freeze({
 const ADVANCED_GROUP_BY_SECTION = {
     'auto-assignment': 'rules',
     'bulk-assignment': 'automation',
-    'conflict-inspector': 'automation',
+    'conflict-inspector': 'rules',
     'backups': 'recovery',
     'change-history': 'recovery',
     'runtime-actions': 'operations',

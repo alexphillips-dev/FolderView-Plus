@@ -99,9 +99,23 @@ test('advanced settings no longer render the top maintenance action buttons', ()
 
 test('advanced settings split auto-assignment rules into a dedicated Rules tab', () => {
     assert.match(settingsPage, /<h2 data-fv-section="auto-assignment" data-fv-advanced="1" data-fv-advanced-group="rules">Auto-assignment rules<\/h2>/);
+    assert.match(settingsPage, /<h2 data-fv-section="conflict-inspector" data-fv-advanced="1" data-fv-advanced-group="rules">Conflict inspector<\/h2>/);
     assert.match(settingsPage, /<h2 data-fv-section="bulk-assignment" data-fv-advanced="1" data-fv-advanced-group="automation">Bulk assignment<\/h2>/);
     assert.match(settingsSectionsJs, /const ADVANCED_GROUPS = \['automation', 'rules', 'recovery', 'operations', 'diagnostics'\];/);
     assert.match(settingsSectionsJs, /rules:\s*'Rules'/);
     assert.match(settingsSectionsJs, /'auto-assignment':\s*'rules'/);
+    assert.match(settingsSectionsJs, /'conflict-inspector':\s*'rules'/);
     assert.match(settingsSectionsJs, /rules:\s*Object\.freeze\(\[\]\)/);
+    const autoAssignmentIndex = settingsPage.indexOf('<h2 data-fv-section="auto-assignment" data-fv-advanced="1" data-fv-advanced-group="rules">Auto-assignment rules</h2>');
+    const conflictInspectorIndex = settingsPage.indexOf('<h2 data-fv-section="conflict-inspector" data-fv-advanced="1" data-fv-advanced-group="rules">Conflict inspector</h2>');
+    const bulkAssignmentIndex = settingsPage.indexOf('<h2 data-fv-section="bulk-assignment" data-fv-advanced="1" data-fv-advanced-group="automation">Bulk assignment</h2>');
+    assert.ok(autoAssignmentIndex >= 0, 'auto-assignment section should be present');
+    assert.ok(conflictInspectorIndex > autoAssignmentIndex, 'conflict inspector should render after auto-assignment within the Rules tab');
+    assert.ok(bulkAssignmentIndex > conflictInspectorIndex, 'bulk assignment should remain after the Rules sections');
+});
+
+test('bulk assignment returns to a two-column desktop layout while conflict inspector keeps inset module width', () => {
+    assert.match(settingsPage, /<h2 data-fv-section="conflict-inspector" data-fv-advanced="1" data-fv-advanced-group="rules">Conflict inspector<\/h2>\s*<div class="rules-bottom-grid">/);
+    assert.match(settingsCss, /@media \(min-width: 1080px\) \{\s*\.bulk-assign-grid \{\s*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\) !important;/);
+    assert.doesNotMatch(settingsCss, /@media \(min-width: 1080px\) \{[\s\S]*\.bulk-assign-grid,\s*\.backup-grid,\s*\.template-grid \{\s*grid-template-columns:\s*minmax\(0,\s*1fr\) !important;/);
 });

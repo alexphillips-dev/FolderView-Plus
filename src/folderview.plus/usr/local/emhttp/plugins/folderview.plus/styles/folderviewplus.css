@@ -2400,7 +2400,6 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 /* Keep advanced modules stacked vertically for readability. */
 .rules-bottom-grid,
-.bulk-assign-grid,
 .backup-grid,
 .template-grid {
     grid-template-columns: minmax(0, 1fr) !important;
@@ -6577,7 +6576,10 @@ tr.is-long-press-active {
 }
 
 @media (min-width: 1080px) {
-    .bulk-assign-grid,
+    .bulk-assign-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
     .backup-grid,
     .template-grid {
         grid-template-columns: minmax(0, 1fr) !important;

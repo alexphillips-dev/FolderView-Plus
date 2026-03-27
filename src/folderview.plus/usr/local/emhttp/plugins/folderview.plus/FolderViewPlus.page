@@ -683,6 +683,22 @@ if (!empty($fvplusRuntimeConflicts)) {
 </div>
 <hr>
 
+<h2 data-fv-section="conflict-inspector" data-fv-advanced="1" data-fv-advanced-group="rules">Conflict inspector</h2>
+<div class="rules-bottom-grid">
+    <div class="rules-panel">
+        <div class="rules-header">
+            <h3>Folder membership conflict report</h3>
+            <span class="rules-help">Shows why each item is assigned (manual/regex/label/rule), including overlaps and blocked rules.</span>
+        </div>
+        <div class="backup-actions">
+            <button type="button" onclick="runConflictInspector('docker')"><i class="fa fa-search"></i> Scan Docker conflicts</button>
+            <button type="button" onclick="runConflictInspector('vm')"><i class="fa fa-search"></i> Scan VM conflicts</button>
+        </div>
+        <pre id="conflict-output" class="diagnostics-output">Run a conflict scan to view results.</pre>
+    </div>
+</div>
+<hr>
+
 <h2 data-fv-section="bulk-assignment" data-fv-advanced="1" data-fv-advanced-group="automation">Bulk assignment</h2>
 <div class="bulk-assign-grid">
     <div class="rules-panel">
@@ -1006,19 +1022,6 @@ if (!empty($fvplusRuntimeConflicts)) {
 </div>
 </div>
 <hr>
-
-<h2 data-fv-section="conflict-inspector" data-fv-advanced="1" data-fv-advanced-group="automation">Conflict inspector</h2>
-<div class="rules-panel">
-    <div class="rules-header">
-        <h3>Folder membership conflict report</h3>
-        <span class="rules-help">Shows why each item is assigned (manual/regex/label/rule), including overlaps and blocked rules.</span>
-    </div>
-    <div class="backup-actions">
-        <button type="button" onclick="runConflictInspector('docker')"><i class="fa fa-search"></i> Scan Docker conflicts</button>
-        <button type="button" onclick="runConflictInspector('vm')"><i class="fa fa-search"></i> Scan VM conflicts</button>
-    </div>
-    <pre id="conflict-output" class="diagnostics-output">Run a conflict scan to view results.</pre>
-</div>
 
 <div id="import-preview-dialog" style="display:none;">
     <div class="import-preview-head">

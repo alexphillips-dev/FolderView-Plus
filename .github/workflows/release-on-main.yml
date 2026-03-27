@@ -42,7 +42,7 @@ jobs:
           should_publish=0
           for changed_file in "${changed_files[@]}"; do
             case "${changed_file}" in
-              folderview.plus.plg|folderview.plus.xml|archive/*.txz|archive/*.sha256)
+              folderview.plus.plg|archive/*.txz|archive/*.sha256)
                 should_publish=1
                 break
                 ;;

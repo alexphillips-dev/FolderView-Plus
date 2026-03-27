@@ -977,42 +977,92 @@ if (!empty($fvplusRuntimeConflicts)) {
 <hr>
 
 <h2 data-fv-section="diagnostics" data-fv-advanced="1" data-fv-advanced-group="diagnostics">Diagnostics</h2>
-<div class="rules-panel">
+<div class="rules-panel fv-diagnostics-panel">
     <div class="rules-header">
-        <h3>Health checks and quick repair</h3>
-        <span class="rules-help">Check plugin health, then run one-click repair actions when needed.</span>
+        <h3>Troubleshoot and share</h3>
+        <span class="rules-help">Run one health check, review what actually needs attention, and only then use fixes or support exports.</span>
     </div>
-    <div class="backup-actions">
+    <div class="backup-actions fv-diagnostics-primary-actions">
         <button type="button" onclick="runDiagnostics()"><i class="fa fa-stethoscope"></i> Run health check</button>
-        <button type="button" onclick="runThemeDiagnostics()"><i class="fa fa-paint-brush"></i> Theme diagnostics</button>
-        <button type="button" onclick="runThemeSelfHeal()"><i class="fa fa-magic"></i> Theme self-heal now</button>
-        <button type="button" onclick="repairDiagnostics('sync_docker_order')"><i class="fa fa-sort"></i> Rebuild Docker order index</button>
-        <button type="button" onclick="repairDiagnostics('normalize_prefs')"><i class="fa fa-wrench"></i> Validate and normalize prefs</button>
-        <button type="button" onclick="repairDiagnostics('repair_paths')"><i class="fa fa-folder-open"></i> Repair plugin paths</button>
-        <button type="button" onclick="exportDiagnostics()"><i class="fa fa-download"></i> Export diagnostics JSON</button>
-        <button type="button" onclick="exportSupportBundle()"><i class="fa fa-life-ring"></i> Export support bundle</button>
-        <button type="button" onclick="copyIssueReport()"><i class="fa fa-clipboard"></i> Copy issue report</button>
     </div>
-    <div class="fv-perf-panel">
-        <div class="fv-perf-panel-head">
-            <strong>Performance diagnostics</strong>
-            <button type="button" onclick="refreshPerformanceDiagnostics()"><i class="fa fa-refresh"></i> Refresh panel</button>
+    <div id="fv-diagnostics-summary" class="fv-diagnostics-summary-surface">
+        <div class="fv-diagnostics-empty-state">
+            <strong>Run health check to inspect the plugin state.</strong>
+            <span>The summary will call out Docker, VM, storage, icon, and update issues without dumping raw JSON first.</span>
         </div>
-        <div id="performance-diagnostics-output" class="fv-perf-output">No samples yet. Run refresh/import actions to populate timings.</div>
     </div>
-    <div class="fv-perf-panel">
-        <div class="fv-perf-panel-head">
-            <strong>Folder editor diagnostics</strong>
-            <span class="rules-help">Shows the last folder editor launch request and the last editor bootstrap result captured by this browser.</span>
+    <div class="fv-diagnostics-workbench">
+        <div class="fv-diagnostics-lane">
+            <div class="fv-diagnostics-lane-head">
+                <strong>Suggested fixes</strong>
+                <span class="rules-help">Only actions that match the current health check are shown here.</span>
+            </div>
+            <div id="fv-diagnostics-actions" class="fv-diagnostics-action-list">
+                <div class="fv-diagnostics-empty-state is-compact">
+                    <strong>No recommended fixes yet.</strong>
+                    <span>Run health check first so FolderView Plus can suggest the right repair path.</span>
+                </div>
+            </div>
         </div>
-        <div class="backup-actions">
-            <button type="button" onclick="renderFolderEditorDebugDiagnostics()"><i class="fa fa-refresh"></i> Refresh folder editor debug</button>
-            <button type="button" onclick="copyFolderEditorDebugDiagnostics()"><i class="fa fa-copy"></i> Copy folder editor debug</button>
+        <div class="fv-diagnostics-lane">
+            <div class="fv-diagnostics-lane-head">
+                <strong>Share with support</strong>
+                <span class="rules-help">Use the issue report for quick triage and the support bundle when someone needs the full picture.</span>
+            </div>
+            <div class="backup-actions fv-diagnostics-share-actions">
+                <button type="button" onclick="copyIssueReport()"><i class="fa fa-clipboard"></i> Copy issue report</button>
+                <button type="button" onclick="exportSupportBundle()"><i class="fa fa-life-ring"></i> Export support bundle</button>
+            </div>
+            <div class="fv-diagnostics-share-note">Support bundle exports are sanitized by default. Full raw exports are available under technical details.</div>
         </div>
-        <pre id="folder-editor-diagnostics-output" class="diagnostics-output compact-output">No folder editor debug records have been captured in this browser yet.</pre>
     </div>
-    <pre id="diagnostics-output" class="diagnostics-output">Run health check to view diagnostics.</pre>
-    <pre id="theme-diagnostics-output" class="diagnostics-output compact-output">Run theme diagnostics to inspect active tokens and runtime selectors.</pre>
+    <details id="fv-diagnostics-technical" class="fv-diagnostics-technical">
+        <summary>Technical details</summary>
+        <div class="fv-diagnostics-technical-copy">
+            Raw diagnostics, theme tokens, performance samples, and folder editor bootstrap records are kept here for deeper troubleshooting.
+        </div>
+        <div class="backup-actions fv-diagnostics-technical-actions">
+            <button type="button" onclick="runThemeDiagnostics()"><i class="fa fa-paint-brush"></i> Theme diagnostics</button>
+            <button type="button" onclick="runThemeSelfHeal()"><i class="fa fa-magic"></i> Theme self-heal now</button>
+            <button type="button" onclick="exportDiagnostics()"><i class="fa fa-download"></i> Export sanitized diagnostics</button>
+            <button type="button" onclick="exportFullDiagnostics()"><i class="fa fa-file-code-o"></i> Export full diagnostics</button>
+            <button type="button" onclick="exportFullSupportBundle()"><i class="fa fa-archive"></i> Export full support bundle</button>
+        </div>
+        <div class="fv-perf-panel">
+            <div class="fv-perf-panel-head">
+                <strong>Performance diagnostics</strong>
+                <button type="button" onclick="refreshPerformanceDiagnostics()"><i class="fa fa-refresh"></i> Refresh panel</button>
+            </div>
+            <div id="performance-diagnostics-output" class="fv-perf-output">No samples yet. Run refresh/import actions to populate timings.</div>
+        </div>
+        <div class="fv-perf-panel">
+            <div class="fv-perf-panel-head">
+                <strong>Folder editor diagnostics</strong>
+                <span class="rules-help">Shows the last folder editor launch request and the last editor bootstrap result captured by this browser.</span>
+            </div>
+            <div class="backup-actions">
+                <button type="button" onclick="renderFolderEditorDebugDiagnostics()"><i class="fa fa-refresh"></i> Refresh folder editor debug</button>
+                <button type="button" onclick="copyFolderEditorDebugDiagnostics()"><i class="fa fa-copy"></i> Copy folder editor debug</button>
+            </div>
+            <pre id="folder-editor-diagnostics-output" class="diagnostics-output compact-output">No folder editor debug records have been captured in this browser yet.</pre>
+        </div>
+        <div class="fv-diagnostics-tech-grid">
+            <div class="fv-perf-panel">
+                <div class="fv-perf-panel-head">
+                    <strong>Health snapshot</strong>
+                    <span class="rules-help">Full raw diagnostics payload from the server.</span>
+                </div>
+                <pre id="diagnostics-output" class="diagnostics-output compact-output">Run health check to view diagnostics.</pre>
+            </div>
+            <div class="fv-perf-panel">
+                <div class="fv-perf-panel-head">
+                    <strong>Theme snapshot</strong>
+                    <span class="rules-help">Resolved theme tokens and runtime selector checks for this browser session.</span>
+                </div>
+                <pre id="theme-diagnostics-output" class="diagnostics-output compact-output">Run theme diagnostics to inspect active tokens and runtime selectors.</pre>
+            </div>
+        </div>
+    </div>
 </div>
 <hr>
 

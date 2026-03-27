@@ -28,15 +28,25 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /const renderFolderEditorDebugDiagnostics = \(\) =>/);
     assert.match(diagnosticsJs, /const copyFolderEditorDebugDiagnostics = async \(\) =>/);
     assert.match(diagnosticsJs, /const renderPerformanceDiagnostics = \(\) =>/);
+    assert.match(diagnosticsJs, /const renderDiagnosticsSummary = \(diagnostics\) =>/);
     assert.match(diagnosticsJs, /const collectThemeDiagnostics = \(\) =>/);
     assert.match(diagnosticsJs, /const runThemeDiagnostics = \(\) =>/);
+    assert.match(diagnosticsJs, /const exportFullDiagnostics = \(\) =>/);
+    assert.match(diagnosticsJs, /const exportFullSupportBundle = \(\) =>/);
+    assert.match(settingsPage, /id="fv-diagnostics-summary"/);
+    assert.match(settingsPage, /id="fv-diagnostics-actions"/);
+    assert.match(settingsPage, /id="fv-diagnostics-technical"/);
     assert.match(settingsPage, /id="folder-editor-diagnostics-output"/);
     assert.match(settingsPage, /renderFolderEditorDebugDiagnostics\(\)/);
     assert.match(settingsPage, /copyFolderEditorDebugDiagnostics\(\)/);
+    assert.match(settingsPage, /exportFullDiagnostics\(\)/);
+    assert.match(settingsPage, /exportFullSupportBundle\(\)/);
     assert.match(diagnosticsJs, /window\.FolderViewPlusDiagnostics = Object\.freeze\(\{/);
     assert.match(diagnosticsJs, /collectClientPerformanceTelemetry/);
     assert.match(diagnosticsJs, /collectFolderEditorDebugDiagnostics/);
     assert.match(diagnosticsJs, /runThemeSelfHeal/);
+    assert.doesNotMatch(diagnosticsJs, /cancelButtonText:\s*'Sanitized export'/);
+    assert.doesNotMatch(diagnosticsJs, /confirmButtonText:\s*'Full export'/);
 });
 
 test('wizard apply path records perf telemetry and settings CSS keeps simplified mobile reorder selectors', () => {

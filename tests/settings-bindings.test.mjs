@@ -40,6 +40,8 @@ test('settings page onclick handlers are exported on window', () => {
     const onclickUnique = [...new Set(handlers)];
     const exported = new Set([
         ...[...script.matchAll(/window\.([A-Za-z0-9_]+)\s*=/g)].map((m) => m[1]),
+        ...[...script.matchAll(/Object\.assign\(window,\s*\{([\s\S]*?)\}\);/g)]
+            .flatMap((match) => [...match[1].matchAll(/^\s*([A-Za-z0-9_]+)\s*(?::|,)/gm)].map((entry) => entry[1])),
         ...[...script.matchAll(/registerWindowActions\(window,\s*\{([\s\S]*?)\}\);/g)]
             .flatMap((match) => [...match[1].matchAll(/^\s*([A-Za-z0-9_]+)\s*(?::|,)/gm)].map((entry) => entry[1]))
     ]);

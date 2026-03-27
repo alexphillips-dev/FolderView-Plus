@@ -97,10 +97,27 @@ test('lib.php diagnostics include custom icon storage and usage health', () => {
     assert.match(libPhp, /function diagnosticsCustomIconNameFromIconValue\s*\(/);
     assert.match(libPhp, /function diagnosticsBuildCustomIconUsageMap\s*\(/);
     assert.match(libPhp, /function diagnosticsBuildCustomIconStorage\s*\(/);
-    assert.match(libPhp, /'customIcons'\s*=>\s*diagnosticsBuildCustomIconStorage\(\$privacyMode\)/);
+    assert.match(libPhp, /\$customIcons\s*=\s*diagnosticsBuildCustomIconStorage\(\$privacyMode\);/);
+    assert.match(libPhp, /'customIcons'\s*=>\s*\$customIcons/);
     assert.match(libPhp, /'inUseIconCount'\s*=>/);
     assert.match(libPhp, /'orphanedIconCount'\s*=>/);
     assert.match(libPhp, /'repairHint'\s*=>/);
+});
+
+test('lib.php diagnostics include user-facing summary cards and recommended actions', () => {
+    assert.match(libPhp, /function diagnosticsSummaryStatusFromCounts\s*\(/);
+    assert.match(libPhp, /function diagnosticsBuildSummaryCard\s*\(/);
+    assert.match(libPhp, /function diagnosticsBuildRecommendedActions\s*\(/);
+    assert.match(libPhp, /function diagnosticsBuildOverviewSummary\s*\(/);
+    assert.match(libPhp, /'recommendedActions'\s*=>\s*diagnosticsBuildRecommendedActions\(\$typesData, \$customIcons\)/);
+    assert.match(libPhp, /'summary'\s*=>\s*diagnosticsBuildOverviewSummary\(\$typesData, \$customIcons, \$update\)/);
+    assert.match(libPhp, /foreach\s*\(\['docker'\s*=>\s*'Docker config',\s*'vm'\s*=>\s*'VM config'\]/);
+    assert.match(libPhp, /'Storage and paths'/);
+    assert.match(libPhp, /'Custom icons'/);
+    assert.match(libPhp, /'Update check'/);
+    assert.match(libPhp, /'repair_paths',\s*'Repair plugin paths'/);
+    assert.match(libPhp, /'normalize_prefs',\s*'Validate and normalize prefs'/);
+    assert.match(libPhp, /'sync_docker_order',\s*'Rebuild Docker order index'/);
 });
 
 test('lib.php can resolve requested folder editor context for bootstrap hydration', () => {

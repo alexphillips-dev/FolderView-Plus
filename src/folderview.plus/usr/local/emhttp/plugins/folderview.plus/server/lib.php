@@ -4803,6 +4803,227 @@
         ];
     }
 
+    function diagnosticsSummaryStatusFromCounts(int $errorCount, int $warningCount = 0): string {
+        if ($errorCount > 0) {
+            return 'error';
+        }
+        if ($warningCount > 0) {
+            return 'warning';
+        }
+        return 'healthy';
+    }
+
+    function diagnosticsBuildSummaryCard(string $key, string $label, string $status, string $headline, string $detail = '', array $extra = []): array {
+        return array_merge([
+            'key' => $key,
+            'label' => $label,
+            'status' => in_array($status, ['healthy', 'warning', 'error'], true) ? $status : 'healthy',
+            'headline' => $headline,
+            'detail' => $detail
+        ], $extra);
+    }
+
+    function diagnosticsBuildRecommendedActions(array $typesData, array $customIcons): array {
+        $actions = [];
+        $addAction = static function (string $action, string $label, string $reason) use (&$actions): void {
+            if (isset($actions[$action])) {
+                return;
+            }
+            $actions[$action] = [
+                'action' => $action,
+                'label' => $label,
+                'reason' => $reason
+            ];
+        };
+
+        $dockerIntegrity = is_array($typesData['docker']['integrityChecks'] ?? null)
+            ? $typesData['docker']['integrityChecks']
+            : [];
+        $vmIntegrity = is_array($typesData['vm']['integrityChecks'] ?? null)
+            ? $typesData['vm']['integrityChecks']
+            : [];
+
+        if (((int)($dockerIntegrity['missingManualOrderIds']['count'] ?? 0)) > 0) {
+            $addAction(
+                'sync_docker_order',
+                'Rebuild Docker order index',
+                'Docker manual order still references missing folder ids.'
+            );
+        }
+
+        $prefsNeedCleanup = false;
+        foreach ([$dockerIntegrity, $vmIntegrity] as $integrity) {
+            $prefsNeedCleanup = $prefsNeedCleanup
+                || ((int)($integrity['invalidAutoRules']['count'] ?? 0)) > 0
+                || ((int)($integrity['invalidFolderRegex']['count'] ?? 0)) > 0
+                || ((int)($integrity['invalidFolderIconPaths']['count'] ?? 0)) > 0
+                || ((int)($integrity['missingPinnedFolderIds']['count'] ?? 0)) > 0
+                || ((int)($integrity['missingManualOrderIds']['count'] ?? 0)) > 0;
+            if ($prefsNeedCleanup) {
+                break;
+            }
+        }
+        if ($prefsNeedCleanup) {
+            $addAction(
+                'normalize_prefs',
+                'Validate and normalize prefs',
+                'Folder rules or saved preference ids need cleanup.'
+            );
+        }
+
+        $pathIssues = [];
+        foreach (['docker', 'vm'] as $type) {
+            $integrity = is_array($typesData[$type]['integrityChecks'] ?? null)
+                ? $typesData[$type]['integrityChecks']
+                : [];
+            foreach ((array)($integrity['pathHealth']['issues'] ?? []) as $issue) {
+                $text = trim((string)$issue);
+                if ($text !== '') {
+                    $pathIssues[] = $text;
+                }
+            }
+        }
+        $customIconIssues = array_values(array_filter(array_map('strval', (array)($customIcons['issues'] ?? []))));
+        if (!empty($pathIssues) || !empty($customIconIssues)) {
+            $reason = !empty($pathIssues)
+                ? 'Plugin paths or permissions need repair.'
+                : 'Custom icon storage reported problems.';
+            if (!empty($pathIssues) && !empty($customIconIssues)) {
+                $reason .= ' Custom icon storage also reported problems.';
+            }
+            $addAction(
+                'repair_paths',
+                'Repair plugin paths',
+                $reason
+            );
+        }
+
+        return array_values($actions);
+    }
+
+    function diagnosticsBuildOverviewSummary(array $typesData, array $customIcons, array $update): array {
+        $cards = [];
+        $errorCount = 0;
+        $warningCount = 0;
+        $totalIssues = 0;
+        $pathIssues = [];
+
+        foreach (['docker' => 'Docker config', 'vm' => 'VM config'] as $type => $label) {
+            $typeData = is_array($typesData[$type] ?? null) ? $typesData[$type] : [];
+            $integrity = is_array($typeData['integrityChecks'] ?? null) ? $typeData['integrityChecks'] : [];
+            $issueCount = max(0, (int)($integrity['issuesCount'] ?? 0));
+            $folderCount = max(0, (int)($typeData['folderCount'] ?? 0));
+            $ruleCount = max(0, (int)($typeData['ruleCount'] ?? 0));
+            $backupCount = max(0, (int)($typeData['backupCount'] ?? 0));
+            $typePathIssues = array_values(array_filter(array_map('strval', (array)($integrity['pathHealth']['issues'] ?? []))));
+            $pathIssues = array_merge($pathIssues, $typePathIssues);
+
+            $status = $issueCount > 0 ? 'error' : 'healthy';
+            if ($status === 'error') {
+                $errorCount++;
+                $totalIssues += $issueCount;
+            }
+
+            $cards[] = diagnosticsBuildSummaryCard(
+                $type,
+                $label,
+                $status,
+                $issueCount > 0 ? sprintf('%d issue(s) need attention.', $issueCount) : 'No issues detected.',
+                $issueCount > 0 && count($typePathIssues) > 0
+                    ? $typePathIssues[0]
+                    : sprintf('%d folder(s), %d rule(s), %d backup(s).', $folderCount, $ruleCount, $backupCount),
+                ['count' => $issueCount]
+            );
+        }
+
+        $pathIssues = array_values(array_unique(array_filter(array_map('strval', $pathIssues))));
+        $pathIssueCount = count($pathIssues);
+        if ($pathIssueCount > 0) {
+            $errorCount++;
+        }
+        $cards[] = diagnosticsBuildSummaryCard(
+            'storage',
+            'Storage and paths',
+            $pathIssueCount > 0 ? 'error' : 'healthy',
+            $pathIssueCount > 0 ? sprintf('%d path or permission issue(s) detected.', $pathIssueCount) : 'Paths look healthy.',
+            $pathIssueCount > 0
+                ? implode(' ', array_slice($pathIssues, 0, 2))
+                : 'Folder maps, prefs, and backups look readable and writable.',
+            ['count' => $pathIssueCount]
+        );
+
+        $customIconIssues = array_values(array_filter(array_map('strval', (array)($customIcons['issues'] ?? []))));
+        $customIconIssueCount = count($customIconIssues);
+        $orphanedIconCount = max(0, (int)($customIcons['orphanedIconCount'] ?? 0));
+        $iconStatus = $customIconIssueCount > 0 ? 'error' : ($orphanedIconCount > 0 ? 'warning' : 'healthy');
+        if ($iconStatus === 'error') {
+            $errorCount++;
+            $totalIssues += $customIconIssueCount;
+        } elseif ($iconStatus === 'warning') {
+            $warningCount++;
+        }
+        $cards[] = diagnosticsBuildSummaryCard(
+            'custom_icons',
+            'Custom icons',
+            $iconStatus,
+            $customIconIssueCount > 0
+                ? sprintf('%d storage issue(s) detected.', $customIconIssueCount)
+                : ($orphanedIconCount > 0 ? sprintf('%d orphaned icon(s) found.', $orphanedIconCount) : 'Custom icon storage looks healthy.'),
+            $customIconIssueCount > 0
+                ? implode(' ', array_slice($customIconIssues, 0, 2))
+                : ($orphanedIconCount > 0
+                    ? 'Unused custom icons can be cleaned up later if needed.'
+                    : sprintf('%d icon file(s) tracked.', max(0, (int)($customIcons['fileCount'] ?? 0)))),
+            ['count' => $customIconIssueCount > 0 ? $customIconIssueCount : $orphanedIconCount]
+        );
+
+        $updateOk = (bool)($update['ok'] ?? false);
+        $updateAvailable = (bool)($update['updateAvailable'] ?? false);
+        $updateStatus = !$updateOk ? 'warning' : ($updateAvailable ? 'warning' : 'healthy');
+        if ($updateStatus === 'warning') {
+            $warningCount++;
+        }
+        $cards[] = diagnosticsBuildSummaryCard(
+            'update',
+            'Update check',
+            $updateStatus,
+            !$updateOk
+                ? 'Update check failed.'
+                : ($updateAvailable
+                    ? sprintf('Update available: %s', (string)($update['remoteVersion'] ?? 'unknown'))
+                    : 'Plugin is up to date.'),
+            !$updateOk
+                ? (string)($update['error'] ?? 'Unable to reach the remote manifest.')
+                : ($updateAvailable
+                    ? sprintf('Current %s, remote %s.', (string)($update['currentVersion'] ?? 'unknown'), (string)($update['remoteVersion'] ?? 'unknown'))
+                    : sprintf('Current version %s.', (string)($update['currentVersion'] ?? 'unknown'))),
+            ['count' => $updateAvailable ? 1 : 0]
+        );
+
+        $status = diagnosticsSummaryStatusFromCounts($errorCount, $warningCount);
+        $headline = $totalIssues > 0
+            ? sprintf('Detected %d issue(s) that may affect FolderView Plus.', $totalIssues)
+            : ($warningCount > 0
+                ? 'Plugin is healthy, but there are a few follow-up items.'
+                : 'No major plugin health issues detected.');
+        $detail = $totalIssues > 0
+            ? 'Start with the suggested fixes below. If the problem continues, copy the issue report or export a support bundle.'
+            : ($warningCount > 0
+                ? 'Review the warning cards below, then decide if any follow-up is needed.'
+                : 'Use support exports only if you need to share diagnostics with someone else.');
+
+        return [
+            'status' => $status,
+            'headline' => $headline,
+            'detail' => $detail,
+            'errorCount' => $errorCount,
+            'warningCount' => $warningCount,
+            'totalIssues' => $totalIssues,
+            'cards' => $cards,
+            'recommendedActions' => diagnosticsBuildRecommendedActions($typesData, $customIcons)
+        ];
+    }
+
     function getDiagnosticsSnapshot(string $privacyMode = FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY): array {
         $privacyMode = normalizeDiagnosticsPrivacyMode($privacyMode);
         $types = ['docker', 'vm'];
@@ -4875,6 +5096,8 @@
         }
 
         $historyEvents = readDiagnosticsHistoryEvents(80);
+        $customIcons = diagnosticsBuildCustomIconStorage($privacyMode);
+        $update = checkRemotePluginUpdate();
         return [
             'schemaVersion' => FVPLUS_DIAGNOSTICS_SCHEMA_VERSION,
             'privacyMode' => $privacyMode,
@@ -4882,14 +5105,15 @@
             'pluginVersion' => readInstalledVersion(),
             'environment' => getEnvironmentSnapshot($privacyMode),
             'hashes' => getDiagnosticsKeyFileHashes($privacyMode),
-            'customIcons' => diagnosticsBuildCustomIconStorage($privacyMode),
+            'customIcons' => $customIcons,
             'importExportHistory' => [
                 'retained' => count(readDiagnosticsHistoryEvents(FVPLUS_DIAGNOSTICS_HISTORY_MAX)),
                 'returned' => count($historyEvents),
                 'events' => $historyEvents
             ],
             'recentTimeline' => buildDiagnosticsTimeline($historyEvents, 25),
-            'update' => checkRemotePluginUpdate(),
+            'update' => $update,
+            'summary' => diagnosticsBuildOverviewSummary($typesData, $customIcons, $update),
             'types' => $typesData
         ];
     }

@@ -22,6 +22,34 @@ const applyDiagnosticsThemeTokens = (reason = 'runtime', options = {}) => (
         : buildDiagnosticsThemeSnapshot(options.modeInput ?? null, options)
 );
 let lastDiagnostics = null;
+let lastThemeDiagnostics = null;
+const DIAGNOSTICS_STATUS_CONFIG = Object.freeze({
+    healthy: Object.freeze({ label: 'Healthy', icon: 'fa-check-circle' }),
+    warning: Object.freeze({ label: 'Follow up', icon: 'fa-exclamation-triangle' }),
+    error: Object.freeze({ label: 'Needs action', icon: 'fa-times-circle' })
+});
+const DIAGNOSTICS_ACTION_CONFIG = Object.freeze({
+    sync_docker_order: Object.freeze({
+        label: 'Rebuild Docker order index',
+        icon: 'fa-sort',
+        handler: "repairDiagnostics('sync_docker_order')"
+    }),
+    normalize_prefs: Object.freeze({
+        label: 'Validate and normalize prefs',
+        icon: 'fa-wrench',
+        handler: "repairDiagnostics('normalize_prefs')"
+    }),
+    repair_paths: Object.freeze({
+        label: 'Repair plugin paths',
+        icon: 'fa-folder-open',
+        handler: "repairDiagnostics('repair_paths')"
+    }),
+    run_theme_self_heal: Object.freeze({
+        label: 'Theme self-heal now',
+        icon: 'fa-magic',
+        handler: 'runThemeSelfHeal()'
+    })
+});
 const ACTIVITY_FEED_MAX_ENTRIES = 12;
 const PERF_DIAGNOSTICS_SAMPLE_LIMIT = 30;
 const REQUEST_ERROR_DIAGNOSTICS_LIMIT = 40;
@@ -688,15 +716,188 @@ const refreshChangeHistory = async ({ quiet = false } = {}) => {
     return true;
 };
 
+const normalizeDiagnosticsStatus = (value) => {
+    const status = String(value || '').trim().toLowerCase();
+    return Object.prototype.hasOwnProperty.call(DIAGNOSTICS_STATUS_CONFIG, status) ? status : 'healthy';
+};
+
+const formatCheckedAtLabel = (value) => {
+    const date = new Date(String(value || '').trim());
+    if (Number.isNaN(date.getTime())) {
+        return 'just now';
+    }
+    return date.toLocaleString();
+};
+
+const buildThemeDiagnosticsSummaryCard = () => {
+    if (!lastThemeDiagnostics || typeof lastThemeDiagnostics !== 'object') {
+        return null;
+    }
+    const warnings = Array.isArray(lastThemeDiagnostics.warnings)
+        ? lastThemeDiagnostics.warnings.map((warning) => String(warning || '').trim()).filter(Boolean)
+        : [];
+    const resolver = lastThemeDiagnostics.resolver && typeof lastThemeDiagnostics.resolver === 'object'
+        ? lastThemeDiagnostics.resolver
+        : {};
+    const status = warnings.length > 0 || resolver.autoHealed === true ? 'warning' : 'healthy';
+    const appliedMode = String(resolver.appliedMode || '').trim() || normalizeDiagnosticsThemeMode(lastThemeDiagnostics.modeByType?.effective);
+    return {
+        key: 'theme',
+        label: 'Theme',
+        status,
+        headline: status === 'warning'
+            ? (warnings[0] || `Theme fallback mode ${appliedMode || 'safe'} is active.`)
+            : 'Theme diagnostics look healthy.',
+        detail: appliedMode
+            ? `Effective mode: ${appliedMode}.`
+            : 'Theme compatibility checks did not report any warnings.',
+        count: warnings.length,
+        recommendedAction: status === 'warning' ? 'run_theme_self_heal' : ''
+    };
+};
+
+const resolveDiagnosticsRecommendedActions = (diagnostics) => {
+    const summary = diagnostics?.summary && typeof diagnostics.summary === 'object' ? diagnostics.summary : {};
+    const actions = Array.isArray(summary.recommendedActions) ? [...summary.recommendedActions] : [];
+    const themeCard = buildThemeDiagnosticsSummaryCard();
+    if (themeCard?.recommendedAction) {
+        actions.push({
+            action: themeCard.recommendedAction,
+            label: 'Theme self-heal now',
+            reason: themeCard.headline
+        });
+    }
+    const deduped = [];
+    const seen = new Set();
+    for (const action of actions) {
+        const key = String(action?.action || '').trim();
+        if (!key || seen.has(key)) {
+            continue;
+        }
+        seen.add(key);
+        deduped.push({
+            action: key,
+            label: String(action?.label || DIAGNOSTICS_ACTION_CONFIG[key]?.label || 'Run fix'),
+            reason: String(action?.reason || '').trim()
+        });
+    }
+    return deduped;
+};
+
+const renderDiagnosticsSummary = (diagnostics) => {
+    const summaryHost = $('#fv-diagnostics-summary');
+    const actionHost = $('#fv-diagnostics-actions');
+    if (!summaryHost.length || !actionHost.length) {
+        return;
+    }
+    if (!diagnostics || typeof diagnostics !== 'object') {
+        summaryHost.html(`
+            <div class="fv-diagnostics-empty-state">
+                <strong>Run health check to inspect the plugin state.</strong>
+                <span>The summary will call out Docker, VM, storage, icon, and update issues without dumping raw JSON first.</span>
+            </div>
+        `);
+        actionHost.html(`
+            <div class="fv-diagnostics-empty-state is-compact">
+                <strong>No recommended fixes yet.</strong>
+                <span>Run health check first so FolderView Plus can suggest the right repair path.</span>
+            </div>
+        `);
+        return;
+    }
+
+    const summary = diagnostics.summary && typeof diagnostics.summary === 'object' ? diagnostics.summary : {};
+    const cards = Array.isArray(summary.cards) ? [...summary.cards] : [];
+    const themeCard = buildThemeDiagnosticsSummaryCard();
+    if (themeCard) {
+        cards.push(themeCard);
+    }
+
+    const themeWarningCount = themeCard?.status === 'warning' ? 1 : 0;
+    const themeErrorCount = themeCard?.status === 'error' ? 1 : 0;
+    const errorCount = (Number(summary.errorCount) || 0) + themeErrorCount;
+    const warningCount = (Number(summary.warningCount) || 0) + themeWarningCount;
+    const overallStatus = normalizeDiagnosticsStatus(
+        errorCount > 0 ? 'error' : (warningCount > 0 ? 'warning' : summary.status)
+    );
+    const overallConfig = DIAGNOSTICS_STATUS_CONFIG[overallStatus];
+    const checkedAt = formatCheckedAtLabel(diagnostics.checkedAt);
+    const totalIssues = Number(summary.totalIssues) || 0;
+    const overallHeadline = themeCard?.status === 'warning' && totalIssues <= 0 && (Number(summary.warningCount) || 0) <= 0
+        ? 'Plugin is healthy, but theme follow-up is recommended.'
+        : String(summary.headline || 'Diagnostics summary is ready.');
+    const overallDetail = themeCard?.status === 'warning' && totalIssues <= 0 && (Number(summary.warningCount) || 0) <= 0
+        ? String(themeCard.headline || summary.detail || 'Review the theme warning and apply self-heal if needed.')
+        : String(summary.detail || 'Review the cards below for the current plugin state.');
+    const pills = [
+        totalIssues > 0 ? `${totalIssues} issue${totalIssues === 1 ? '' : 's'}` : '',
+        errorCount > 0 ? `${errorCount} error card${errorCount === 1 ? '' : 's'}` : '',
+        warningCount > 0 ? `${warningCount} warning card${warningCount === 1 ? '' : 's'}` : '',
+        `Checked ${checkedAt}`
+    ].filter(Boolean);
+    const cardsHtml = cards.map((card) => {
+        const status = normalizeDiagnosticsStatus(card?.status);
+        const config = DIAGNOSTICS_STATUS_CONFIG[status];
+        const countValue = Number(card?.count);
+        return `
+            <div class="fv-diagnostics-card is-${status}">
+                <div class="fv-diagnostics-card-top">
+                    <span class="fv-diagnostics-card-label">${escapeHtml(String(card?.label || card?.key || 'Status'))}</span>
+                    <span class="fv-diagnostics-card-badge"><i class="fa ${config.icon}" aria-hidden="true"></i>${escapeHtml(config.label)}</span>
+                </div>
+                <div class="fv-diagnostics-card-headline">${escapeHtml(String(card?.headline || 'No summary available.'))}</div>
+                <div class="fv-diagnostics-card-detail">${escapeHtml(String(card?.detail || ''))}</div>
+                <div class="fv-diagnostics-card-meta">${Number.isFinite(countValue) && countValue > 0 ? `${countValue} related issue${countValue === 1 ? '' : 's'}` : 'No extra action needed'}</div>
+            </div>
+        `;
+    }).join('');
+
+    summaryHost.html(`
+        <div class="fv-diagnostics-overview is-${overallStatus}">
+            <div class="fv-diagnostics-overview-label"><i class="fa ${overallConfig.icon}" aria-hidden="true"></i>${escapeHtml(overallConfig.label)}</div>
+            <div class="fv-diagnostics-overview-headline">${escapeHtml(overallHeadline)}</div>
+            <div class="fv-diagnostics-overview-detail">${escapeHtml(overallDetail)}</div>
+            <div class="fv-diagnostics-overview-meta">${pills.map((pill) => `<span class="fv-diagnostics-pill">${escapeHtml(pill)}</span>`).join('')}</div>
+        </div>
+        <div class="fv-diagnostics-card-grid">${cardsHtml}</div>
+    `);
+
+    const actions = resolveDiagnosticsRecommendedActions(diagnostics);
+    if (!actions.length) {
+        actionHost.html(`
+            <div class="fv-diagnostics-empty-state is-compact">
+                <strong>No repair actions are recommended right now.</strong>
+                <span>The current health check does not suggest any one-click fixes.</span>
+            </div>
+        `);
+        return;
+    }
+
+    actionHost.html(actions.map((action) => {
+        const config = DIAGNOSTICS_ACTION_CONFIG[action.action] || DIAGNOSTICS_ACTION_CONFIG.normalize_prefs;
+        return `
+            <div class="fv-diagnostics-action-card">
+                <div class="fv-diagnostics-action-title">${escapeHtml(action.label)}</div>
+                <div class="fv-diagnostics-action-copy">${escapeHtml(action.reason || 'Recommended based on the latest health check.')}</div>
+                <div class="backup-actions">
+                    <button type="button" onclick="${config.handler}"><i class="fa ${config.icon}"></i> ${escapeHtml(config.label)}</button>
+                </div>
+            </div>
+        `;
+    }).join(''));
+};
+
 const renderDiagnostics = (diagnostics) => {
     lastDiagnostics = diagnostics || null;
     if (!diagnostics) {
         $('#diagnostics-output').text('No diagnostics data.');
+        renderDiagnosticsSummary(null);
         renderChangeHistory(null);
         renderFolderEditorDebugDiagnostics();
         return;
     }
     $('#diagnostics-output').text(toPrettyJson(diagnostics));
+    renderDiagnosticsSummary(diagnostics);
     renderChangeHistory(diagnostics);
     renderFolderEditorDebugDiagnostics();
 };
@@ -778,18 +979,11 @@ const exportDiagnosticsByMode = async (privacy = 'sanitized') => {
 };
 
 const exportDiagnostics = () => {
-    swal({
-        title: 'Export diagnostics',
-        text: 'Choose export mode.\nFull includes all details. Sanitized redacts sensitive fields.',
-        type: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Full export',
-        cancelButtonText: 'Sanitized export',
-        closeOnConfirm: true,
-        closeOnCancel: true
-    }, (useFull) => {
-        void exportDiagnosticsByMode(useFull ? 'full' : 'sanitized');
-    });
+    void exportDiagnosticsByMode('sanitized');
+};
+
+const exportFullDiagnostics = () => {
+    void exportDiagnosticsByMode('full');
 };
 
 const exportSupportBundleByMode = async (privacy = 'sanitized') => {
@@ -819,18 +1013,11 @@ const exportSupportBundleByMode = async (privacy = 'sanitized') => {
 };
 
 const exportSupportBundle = () => {
-    swal({
-        title: 'Export support bundle',
-        text: 'Choose export mode.\nFull includes all details. Sanitized redacts sensitive fields.',
-        type: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Full export',
-        cancelButtonText: 'Sanitized export',
-        closeOnConfirm: true,
-        closeOnCancel: true
-    }, (useFull) => {
-        void exportSupportBundleByMode(useFull ? 'full' : 'sanitized');
-    });
+    void exportSupportBundleByMode('sanitized');
+};
+
+const exportFullSupportBundle = () => {
+    void exportSupportBundleByMode('full');
 };
 
 const issueReportFromDiagnostics = (diagnostics) => {
@@ -889,6 +1076,7 @@ const issueReportFromDiagnostics = (diagnostics) => {
 };
 
 const initializeClientDiagnosticsPanels = () => {
+    renderDiagnosticsSummary(lastDiagnostics);
     renderPerformanceDiagnostics();
     renderFolderEditorDebugDiagnostics();
 };
@@ -1068,7 +1256,11 @@ const collectThemeDiagnostics = () => {
 const runThemeDiagnostics = () => {
     try {
         const diagnostics = collectThemeDiagnostics();
+        lastThemeDiagnostics = diagnostics;
         $('#theme-diagnostics-output').text(toPrettyJson(diagnostics));
+        if (lastDiagnostics) {
+            renderDiagnosticsSummary(lastDiagnostics);
+        }
         return diagnostics;
     } catch (error) {
         showError('Theme diagnostics failed', error);
@@ -1171,10 +1363,13 @@ Object.assign(window, {
     renderDiagnostics,
     runDiagnostics,
     repairDiagnostics,
+    renderDiagnosticsSummary,
     exportDiagnosticsByMode,
     exportDiagnostics,
+    exportFullDiagnostics,
     exportSupportBundleByMode,
     exportSupportBundle,
+    exportFullSupportBundle,
     issueReportFromDiagnostics,
     copyIssueReport,
     collectThemeDiagnostics,
@@ -1202,10 +1397,13 @@ window.FolderViewPlusDiagnostics = Object.freeze({
     renderDiagnostics,
     runDiagnostics,
     repairDiagnostics,
+    renderDiagnosticsSummary,
     exportDiagnosticsByMode,
     exportDiagnostics,
+    exportFullDiagnostics,
     exportSupportBundleByMode,
     exportSupportBundle,
+    exportFullSupportBundle,
     issueReportFromDiagnostics,
     copyIssueReport,
     collectThemeDiagnostics,

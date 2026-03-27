@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.47">
-<!ENTITY md5 "a65bb231150bda8f07c2ffb77a707337">
+<!ENTITY version "2026.03.26.48">
+<!ENTITY md5 "eff88e684355f48a7c1b8f3b4eafc2e2">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.48
+- Fix: Fix remote publish guard temp dir bootstrap.
+- Maintenance: Update workflow retry guard expectations.
+- Maintenance: Increase release raw publish retry window.
+
 
 ###2026.03.26.47
 - Fix: Roll up the promoted `dev` line since main `2026.03.26.21`, adding broader Docker, VM, Settings, and Folder Editor diagnostics so bootstrap, request, template-scan, and host-page compatibility failures now surface with actionable copyable details instead of degrading silently.

@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.27.19">
-<!ENTITY md5 "c82cd67f2f0304e9bc11f1413bad53c9">
+<!ENTITY version "2026.03.27.20">
+<!ENTITY md5 "1108869f0173f1e471d458a60937d3f0">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.27.20
+- Fix: Inset the Diagnostics tab modules so the Folder health and Troubleshoot panels use the same left and right gutter spacing as the rest of Advanced Settings instead of stretching edge to edge.
+- UX: Remember the last Basic or Advanced settings view and reopen Settings in that same mode, while syncing the saved preference so it stays consistent on later loads.
+- Quality: Added regression coverage for diagnostics module spacing and settings mode persistence.
+
 
 ###2026.03.27.19
 - Fix: Add real inset section bodies to the Diagnostics tab so the folder-health cards, health summary, fixes lane, and support lane no longer stretch edge-to-edge inside their modules.

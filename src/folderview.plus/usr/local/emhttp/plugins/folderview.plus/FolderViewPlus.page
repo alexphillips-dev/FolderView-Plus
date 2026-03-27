@@ -1049,58 +1049,62 @@ if (!empty($fvplusRuntimeConflicts)) {
 <hr>
 
 <h2 data-fv-section="folder-health" data-fv-advanced="1" data-fv-advanced-group="diagnostics">Folder health cards</h2>
-<div class="rules-panel">
-    <div class="rules-header">
-        <h3>Simple folder health snapshot</h3>
-        <span class="rules-help">Review which folders need attention, apply a quick filter, and jump to the relevant table or conflict scan.</span>
-    </div>
-    <div class="fv-diagnostics-section-body">
-        <div id="folder-health-content" class="folder-health-grid">
-            <div class="folder-health-empty">Health cards populate after Docker/VM folders finish loading.</div>
+<div class="fv-diagnostics-module-wrap">
+    <div class="rules-panel">
+        <div class="rules-header">
+            <h3>Simple folder health snapshot</h3>
+            <span class="rules-help">Review which folders need attention, apply a quick filter, and jump to the relevant table or conflict scan.</span>
+        </div>
+        <div class="fv-diagnostics-section-body">
+            <div id="folder-health-content" class="folder-health-grid">
+                <div class="folder-health-empty">Health cards populate after Docker/VM folders finish loading.</div>
+            </div>
         </div>
     </div>
 </div>
 <hr>
 
 <h2 data-fv-section="diagnostics" data-fv-advanced="1" data-fv-advanced-group="diagnostics">Diagnostics</h2>
-<div class="rules-panel fv-diagnostics-panel">
-    <div class="rules-header">
-        <h3>Troubleshoot and share</h3>
-        <span class="rules-help">Run one health check, review what actually needs attention, and only then use fixes or support exports.</span>
-    </div>
-    <div class="fv-diagnostics-section-body">
-        <div class="backup-actions fv-diagnostics-primary-actions">
-            <button type="button" onclick="runDiagnostics()"><i class="fa fa-stethoscope"></i> Run health check</button>
+<div class="fv-diagnostics-module-wrap">
+    <div class="rules-panel fv-diagnostics-panel">
+        <div class="rules-header">
+            <h3>Troubleshoot and share</h3>
+            <span class="rules-help">Run one health check, review what actually needs attention, and only then use fixes or support exports.</span>
         </div>
-        <div id="fv-diagnostics-summary" class="fv-diagnostics-summary-surface">
-            <div class="fv-diagnostics-empty-state">
-                <strong>Run health check to inspect the plugin state.</strong>
-                <span>The summary will call out Docker, VM, storage, icon, and update issues without dumping raw JSON first.</span>
+        <div class="fv-diagnostics-section-body">
+            <div class="backup-actions fv-diagnostics-primary-actions">
+                <button type="button" onclick="runDiagnostics()"><i class="fa fa-stethoscope"></i> Run health check</button>
             </div>
-        </div>
-        <div class="fv-diagnostics-workbench">
-            <div class="fv-diagnostics-lane">
-                <div class="fv-diagnostics-lane-head">
-                    <strong>Suggested fixes</strong>
-                    <span class="rules-help">Only actions that match the current health check are shown here.</span>
+            <div id="fv-diagnostics-summary" class="fv-diagnostics-summary-surface">
+                <div class="fv-diagnostics-empty-state">
+                    <strong>Run health check to inspect the plugin state.</strong>
+                    <span>The summary will call out Docker, VM, storage, icon, and update issues without dumping raw JSON first.</span>
                 </div>
-                <div id="fv-diagnostics-actions" class="fv-diagnostics-action-list">
-                    <div class="fv-diagnostics-empty-state is-compact">
-                        <strong>No recommended fixes yet.</strong>
-                        <span>Run health check first so FolderView Plus can suggest the right repair path.</span>
+            </div>
+            <div class="fv-diagnostics-workbench">
+                <div class="fv-diagnostics-lane">
+                    <div class="fv-diagnostics-lane-head">
+                        <strong>Suggested fixes</strong>
+                        <span class="rules-help">Only actions that match the current health check are shown here.</span>
+                    </div>
+                    <div id="fv-diagnostics-actions" class="fv-diagnostics-action-list">
+                        <div class="fv-diagnostics-empty-state is-compact">
+                            <strong>No recommended fixes yet.</strong>
+                            <span>Run health check first so FolderView Plus can suggest the right repair path.</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="fv-diagnostics-lane">
-                <div class="fv-diagnostics-lane-head">
-                    <strong>Share with support</strong>
-                    <span class="rules-help">Use the issue report for quick triage and the support bundle when someone needs the full picture.</span>
+                <div class="fv-diagnostics-lane">
+                    <div class="fv-diagnostics-lane-head">
+                        <strong>Share with support</strong>
+                        <span class="rules-help">Use the issue report for quick triage and the support bundle when someone needs the full picture.</span>
+                    </div>
+                    <div class="backup-actions fv-diagnostics-share-actions">
+                        <button type="button" onclick="copyIssueReport()"><i class="fa fa-clipboard"></i> Copy issue report</button>
+                        <button type="button" onclick="exportSupportBundle()"><i class="fa fa-life-ring"></i> Export support bundle</button>
+                    </div>
+                    <div class="fv-diagnostics-share-note">Support bundle exports are sanitized by default and include the troubleshooting data needed for support.</div>
                 </div>
-                <div class="backup-actions fv-diagnostics-share-actions">
-                    <button type="button" onclick="copyIssueReport()"><i class="fa fa-clipboard"></i> Copy issue report</button>
-                    <button type="button" onclick="exportSupportBundle()"><i class="fa fa-life-ring"></i> Export support bundle</button>
-                </div>
-                <div class="fv-diagnostics-share-note">Support bundle exports are sanitized by default and include the troubleshooting data needed for support.</div>
             </div>
         </div>
     </div>

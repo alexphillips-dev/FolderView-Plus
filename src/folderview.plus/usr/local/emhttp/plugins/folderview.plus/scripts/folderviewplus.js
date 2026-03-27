@@ -1708,7 +1708,8 @@ const scrollToSectionKey = (key) => {
     section.heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
 
-const setSettingsMode = (mode) => {
+const setSettingsMode = (mode, { persistServer = false } = {}) => {
+    const previousMode = settingsUiState.mode === 'advanced' ? 'advanced' : 'basic';
     settingsUiState.mode = mode === 'advanced' ? 'advanced' : 'basic';
     recordFatalBannerAction(`Switch Settings mode to ${settingsUiState.mode}`);
     writeSettingsStorage(UI_MODE_STORAGE_KEY, settingsUiState.mode, { delayMs: 60, idle: true });
@@ -1728,6 +1729,9 @@ const setSettingsMode = (mode) => {
     applySettingsSectionVisibility();
     syncSectionJumpOptions();
     refreshSectionHealthBadges();
+    if (persistServer === true && previousMode !== settingsUiState.mode) {
+        void persistSetupPrefsToServer({ mode: settingsUiState.mode });
+    }
 };
 
 const getServerSettingsMode = () => {
@@ -2075,7 +2079,7 @@ const initSettingsControls = () => {
 
     $('.fv-mode-btn').off('click.fvui').on('click.fvui', (event) => {
         const mode = String($(event.currentTarget).attr('data-mode') || 'basic');
-        setSettingsMode(mode);
+        setSettingsMode(mode, { persistServer: true });
     });
     $('#fv-settings-search').off('input.fvui').on('input.fvui', (event) => {
         setSettingsSearchQuery($(event.currentTarget).val());
@@ -2132,12 +2136,12 @@ const initSettingsControls = () => {
         const type = String($(event.currentTarget).attr('data-fv-health-type') || 'docker');
         const action = String($(event.currentTarget).attr('data-fv-health-action') || '');
         if (action === 'jump-table') {
-            setSettingsMode('basic');
+            setSettingsMode('basic', { persistServer: true });
             scrollToSectionKey(type === 'vm' ? 'vms' : 'docker');
             return;
         }
         if (action === 'scan-conflicts') {
-            setSettingsMode('advanced');
+            setSettingsMode('advanced', { persistServer: true });
             setAdvancedTab('automation');
             scrollToSectionKey('conflict-inspector');
             void runConflictInspector(type);
@@ -11107,14 +11111,19 @@ settingsActionSupportModule.registerWindowActions(window, {
             action: 'Finalize Settings bootstrap',
             category: 'render-failed'
         }, async () => {
+            const storedMode = String(localStorage.getItem(UI_MODE_STORAGE_KEY) || '').trim();
+            const hasLocalModePreference = storedMode === 'advanced' || storedMode === 'basic';
             const serverMode = getServerSettingsMode();
-            if (serverMode) {
+            if (!hasLocalModePreference && serverMode) {
                 settingsUiState.mode = serverMode;
             }
             refreshSettingsUx();
             captureSettingsBaseline();
             if (settingsUiState.mode) {
                 setSettingsMode(settingsUiState.mode);
+            }
+            if (hasLocalModePreference && serverMode && serverMode !== settingsUiState.mode) {
+                void persistSetupPrefsToServer({ mode: settingsUiState.mode });
             }
             if (isWizardCompletedServerSide()) {
                 markSetupAssistantCompletedLocal();

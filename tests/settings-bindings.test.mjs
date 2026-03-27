@@ -322,6 +322,20 @@ test('status detail controls support simple balanced and detailed modes', () => 
     assert.match(script, /const showTrendControl = status\.displayMode === 'detailed';/);
 });
 
+test('settings mode switches persist the user basic or advanced view choice', () => {
+    assert.match(script, /const setSettingsMode = \(mode, \{ persistServer = false \} = \{\}\) => \{/);
+    assert.match(script, /const previousMode = settingsUiState\.mode === 'advanced' \? 'advanced' : 'basic';/);
+    assert.match(script, /writeSettingsStorage\(UI_MODE_STORAGE_KEY, settingsUiState\.mode, \{ delayMs: 60, idle: true \}\);/);
+    assert.match(script, /if \(persistServer === true && previousMode !== settingsUiState\.mode\) \{\s*void persistSetupPrefsToServer\(\{ mode: settingsUiState\.mode \}\);\s*\}/);
+    assert.match(script, /const storedMode = String\(localStorage\.getItem\(UI_MODE_STORAGE_KEY\) \|\| ''\)\.trim\(\);/);
+    assert.match(script, /const hasLocalModePreference = storedMode === 'advanced' \|\| storedMode === 'basic';/);
+    assert.match(script, /if \(!hasLocalModePreference && serverMode\) \{\s*settingsUiState\.mode = serverMode;\s*\}/);
+    assert.match(script, /if \(hasLocalModePreference && serverMode && serverMode !== settingsUiState\.mode\) \{\s*void persistSetupPrefsToServer\(\{ mode: settingsUiState\.mode \}\);\s*\}/);
+    assert.match(script, /setSettingsMode\(mode, \{ persistServer: true \}\);/);
+    assert.match(script, /setSettingsMode\('basic', \{ persistServer: true \}\);/);
+    assert.match(script, /setSettingsMode\('advanced', \{ persistServer: true \}\);/);
+});
+
 test('bulk assignment advanced UX includes filtering, selection helpers, and compatibility-safe fallback', () => {
     assert.match(page, /class="rules-panel bulk-module" data-fv-bulk-type="docker"/);
     assert.match(page, /class="rules-panel bulk-module" data-fv-bulk-type="vm"/);

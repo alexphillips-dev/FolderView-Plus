@@ -131,6 +131,14 @@ test('bulk assignment uses staged workflow cards with summary metrics and hidden
     assert.match(settingsPage, /class="rules-panel bulk-module" data-fv-bulk-type="vm"[\s\S]*class="bulk-step-strip"[\s\S]*id="vm-bulk-target-summary"[\s\S]*id="vm-bulk-action-summary"/);
     assert.match(settingsCss, /\.bulk-step-strip\s*\{[\s\S]*display:\s*flex;[\s\S]*flex-wrap:\s*wrap;/);
     assert.match(settingsCss, /\.bulk-summary-grid\s*\{[\s\S]*grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\);/);
-    assert.match(settingsCss, /\.bulk-stage\s*\{[\s\S]*background:\s*rgba\(255,\s*255,\s*255,\s*0\.018\);/);
+    assert.match(settingsCss, /\.bulk-stage\s*\{[\s\S]*border:\s*1px solid var\(--fvplus-settings-border-faint\);[\s\S]*background:\s*var\(--fvplus-settings-surface-muted\);/);
     assert.match(settingsCss, /\.bulk-result-actions\.is-hidden\s*\{[\s\S]*display:\s*none !important;/);
+});
+
+test('advanced modules use shared theme-safe surfaces instead of hardcoded dark-only colors', () => {
+    assert.match(settingsCss, /\.rules-panel\s*\{[\s\S]*border:\s*1px solid var\(--fvplus-settings-border-subtle\);[\s\S]*background:\s*var\(--fvplus-settings-surface-panel\);[\s\S]*color:\s*var\(--fvplus-settings-text-primary\);/);
+    assert.match(settingsCss, /\.rules-help\s*\{[\s\S]*color:\s*var\(--fvplus-settings-text-muted\);[\s\S]*opacity:\s*1;/);
+    assert.match(settingsCss, /\.bulk-summary-card\s*\{[\s\S]*border:\s*1px solid var\(--fvplus-settings-border-faint\);[\s\S]*background:\s*var\(--fvplus-settings-surface-strong\);/);
+    assert.match(settingsCss, /\.bulk-items-list\s*\{[\s\S]*border:\s*1px solid var\(--fvplus-settings-border-subtle\);[\s\S]*background:\s*var\(--fvplus-settings-surface-strong\);/);
+    assert.match(settingsCss, /\.bulk-preview-panel,\s*\.bulk-result-panel\s*\{[\s\S]*border:\s*1px solid var\(--fvplus-settings-border-subtle\);[\s\S]*background:\s*var\(--fvplus-settings-surface-strong\);[\s\S]*color:\s*var\(--fvplus-settings-text-primary\);/);
 });

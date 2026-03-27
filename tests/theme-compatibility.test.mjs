@@ -102,6 +102,15 @@ test('theme compatibility: light settings surfaces keep readable tree meta and e
     assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\] \.status-breakdown-chip\.is-empty \{[\s\S]*color:\s*#5f6d80 !important;[\s\S]*opacity:\s*1 !important;/);
 });
 
+test('theme compatibility: advanced automation, rules, recovery, and operations modules use shared light-safe tokens', () => {
+    assert.match(settingsCss, /\.rules-panel\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-panel\);[\s\S]*color:\s*var\(--fvplus-settings-text-primary\);/);
+    assert.match(settingsCss, /\.bulk-step-pill\s*\{[\s\S]*border:\s*1px solid var\(--fvplus-settings-border-faint\);[\s\S]*background:\s*var\(--fvplus-settings-surface-muted\);[\s\S]*color:\s*var\(--fvplus-settings-text-muted\);/);
+    assert.match(settingsCss, /\.bulk-summary-value\s*\{[\s\S]*color:\s*var\(--fvplus-settings-text-primary\);/);
+    assert.match(settingsCss, /\.bulk-help-text\s*\{[\s\S]*color:\s*var\(--fvplus-settings-text-muted\);/);
+    assert.match(settingsCss, /\.bulk-result-name\s*\{[\s\S]*color:\s*var\(--fvplus-settings-text-primary\);/);
+    assert.match(settingsCss, /\.schedule-hint\s*\{[\s\S]*color:\s*var\(--fvplus-settings-text-muted\);[\s\S]*opacity:\s*1;/);
+});
+
 test('settings page exports host theme name and stamps theme attributes for resolver consumers', () => {
     assert.match(settingsPage, /window\.FolderViewPlusHostThemeName = <\?php echo json_encode\(\(string\)\(\$display\['theme'\] \?\? ''\), JSON_UNESCAPED_SLASHES \| JSON_UNESCAPED_UNICODE\); \?>;/);
     assert.match(settingsPage, /document\.documentElement\?\.setAttribute\('data-fvplus-host-theme', safeThemeName\);/);

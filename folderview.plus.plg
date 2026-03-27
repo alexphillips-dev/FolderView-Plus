@@ -6,12 +6,24 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.27.14">
-<!ENTITY md5 "be2098b847268f238f5ebf85fbedf6b1">
+<!ENTITY version "2026.03.27.16">
+<!ENTITY md5 "68ba0384cb1342a049b8ee3ba6580f4a">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.27.16
+- Fix: Apply the Diagnostics theme-safe surface tokens to the remaining Advanced Settings tabs so Automation, Rules, Recovery, and Operations stay readable on white, Azure, and gray themes.
+- UI/UX: Convert the shared advanced cards, staged bulk-assignment chrome, preview/result panels, helper copy, and rule modules away from dark-only colors onto the same semantic settings tokens used by the working Diagnostics tab.
+- Quality: Expand theme and settings regression coverage so the non-Diagnostics advanced tabs stay locked to light-safe tokenized surfaces.
+
+
+###2026.03.27.15
+- Fix: Convert the Automation, Rules, Recovery, and Operations advanced-settings modules to the same shared theme-safe surface tokens already used by Diagnostics so white, Azure, and gray themes stay readable.
+- UI/UX: Replace the remaining dark-only advanced module cards, pills, lists, preview panels, and helper copy with theme-aware settings tokens for light and dark hosts.
+- Quality: Add regression coverage to lock the advanced-settings shared modules onto light-safe tokenized surfaces instead of hardcoded dark colors.
+
 
 ###2026.03.27.14
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

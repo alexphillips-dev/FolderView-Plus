@@ -568,133 +568,291 @@ if (!empty($fvplusRuntimeConflicts)) {
 <hr>
 
 <h2 data-fv-section="auto-assignment" data-fv-advanced="1" data-fv-advanced-group="rules">Auto-assignment rules</h2>
-<div class="rules-bottom-grid">
-    <div class="rules-panel">
+<div class="rules-bottom-grid fv-rules-grid">
+    <div class="rules-panel fv-rules-source-panel">
+        <div class="rules-header">
+            <h3>Rules workspace</h3>
+            <span class="rules-help">Choose Docker or VMs, then create, order, and review automatic folder rules in one place.</span>
+        </div>
+        <div class="fv-rules-source-switch" role="tablist" aria-label="Rules source switcher">
+            <button type="button" class="fv-rules-source-btn" data-fv-rules-source-toggle="docker" onclick="setRulesWorkspaceType('docker')"><i class="fa fa-cubes"></i> Docker</button>
+            <button type="button" class="fv-rules-source-btn" data-fv-rules-source-toggle="vm" onclick="setRulesWorkspaceType('vm')"><i class="fa fa-desktop"></i> VMs</button>
+        </div>
+    </div>
+
+    <div class="rules-panel fv-rules-workspace" data-fv-rules-type="docker">
         <div class="rules-header">
             <h3>Docker rules</h3>
-            <span class="rules-help">Automatically place new containers into folders.</span>
+            <span class="rules-help">Set the priority order that decides where new containers go.</span>
         </div>
-        <div class="rules-editor">
-            <select id="docker-rule-folder"></select>
-            <select id="docker-rule-effect">
-                <option value="include">Include</option>
-                <option value="exclude">Exclude</option>
-            </select>
-            <select id="docker-rule-kind" onchange="toggleRuleKindFields('docker')">
-                <option value="name_regex">Name regex</option>
-                <option value="label">Label equals</option>
-                <option value="label_contains">Label contains</option>
-                <option value="label_starts_with">Label starts with</option>
-                <option value="image_regex">Image regex</option>
-                <option value="compose_project_regex">Compose project regex</option>
-            </select>
-            <input id="docker-rule-pattern" type="text" placeholder="Regex pattern (example: ^media-)">
-            <input id="docker-rule-label-key" type="text" placeholder="Label key (example: com.example.stack)" style="display:none;">
-            <input id="docker-rule-label-value" type="text" placeholder="Label value (optional, blank means any value)" style="display:none;">
-            <button type="button" class="rules-add-btn" onclick="addAutoRule('docker')"><i class="fa fa-plus"></i> Add rule</button>
+        <div class="fv-rules-overview">
+            <div class="fv-rules-overview-copy">
+                <span id="docker-rules-status" class="fv-rules-status-chip">No rules yet</span>
+                <strong id="docker-rules-headline" class="fv-rules-headline">No Docker rules yet.</strong>
+                <p id="docker-rules-detail" class="fv-rules-detail">Create your first rule to automatically sort new containers into the right folder.</p>
+            </div>
+            <div class="fv-rules-stat-grid">
+                <div class="fv-rules-stat-card">
+                    <span class="fv-rules-stat-label">Total</span>
+                    <strong id="docker-rules-total" class="fv-rules-stat-value">0</strong>
+                </div>
+                <div class="fv-rules-stat-card">
+                    <span class="fv-rules-stat-label">Active</span>
+                    <strong id="docker-rules-active" class="fv-rules-stat-value">0</strong>
+                </div>
+                <div class="fv-rules-stat-card">
+                    <span class="fv-rules-stat-label">Exclude</span>
+                    <strong id="docker-rules-exclude" class="fv-rules-stat-value">0</strong>
+                </div>
+                <div class="fv-rules-stat-card">
+                    <span class="fv-rules-stat-label">Folders</span>
+                    <strong id="docker-rules-folders" class="fv-rules-stat-value">0</strong>
+                </div>
+            </div>
+            <div id="docker-rules-issues" class="fv-rules-issue-row" hidden></div>
         </div>
-        <div class="rule-tester">
-            <input id="docker-rule-test-name" type="text" placeholder="Test name (example: media-server)">
-            <input id="docker-rule-test-label-key" type="text" placeholder="Test label key (optional)">
-            <input id="docker-rule-test-label-value" type="text" placeholder="Test label value (optional)">
-            <input id="docker-rule-test-image" type="text" placeholder="Test image (optional, example: linuxserver/sonarr)">
-            <input id="docker-rule-test-compose" type="text" placeholder="Test compose project (optional)">
+        <div class="fv-rule-stage">
+            <div class="fv-rule-stage-head">
+                <strong>1. Create rule</strong>
+                <span>Describe what should match, whether it should include or exclude, and which folder should win.</span>
+            </div>
+            <div class="fv-rule-builder-grid">
+                <div class="fv-rule-builder-field">
+                    <label for="docker-rule-folder">Then place it in</label>
+                    <select id="docker-rule-folder"></select>
+                </div>
+                <div class="fv-rule-builder-field">
+                    <label for="docker-rule-effect">Rule effect</label>
+                    <select id="docker-rule-effect">
+                        <option value="include">Include</option>
+                        <option value="exclude">Exclude</option>
+                    </select>
+                </div>
+                <div class="fv-rule-builder-field">
+                    <label for="docker-rule-kind">When this field</label>
+                    <select id="docker-rule-kind" onchange="toggleRuleKindFields('docker')">
+                        <option value="name_regex">Name regex</option>
+                        <option value="label">Label equals</option>
+                        <option value="label_contains">Label contains</option>
+                        <option value="label_starts_with">Label starts with</option>
+                        <option value="image_regex">Image regex</option>
+                        <option value="compose_project_regex">Compose project regex</option>
+                    </select>
+                </div>
+                <div class="fv-rule-builder-field fv-rule-builder-field-wide">
+                    <label for="docker-rule-pattern">Match value</label>
+                    <input id="docker-rule-pattern" type="text" placeholder="Regex pattern (example: ^media-)">
+                </div>
+                <div class="fv-rule-builder-field">
+                    <label for="docker-rule-label-key">Label key</label>
+                    <input id="docker-rule-label-key" type="text" placeholder="Label key (example: com.example.stack)" style="display:none;">
+                </div>
+                <div class="fv-rule-builder-field">
+                    <label for="docker-rule-label-value">Label value</label>
+                    <input id="docker-rule-label-value" type="text" placeholder="Label value (optional, blank means any value)" style="display:none;">
+                </div>
+            </div>
+            <div class="fv-rule-builder-actions">
+                <button type="button" class="rules-add-btn" onclick="addAutoRule('docker')"><i class="fa fa-plus"></i> Add Docker rule</button>
+            </div>
+        </div>
+        <div class="fv-rule-stage">
+            <div class="fv-rule-stage-head">
+                <strong>2. Review rule order</strong>
+                <span>Rules run from top to bottom. The first matching include or exclude rule decides what happens.</span>
+            </div>
+            <div class="fv-rule-toolbar">
+                <input id="docker-rules-filter" type="text" placeholder="Search Docker rules" oninput="setFilterQuery('rules','docker',this.value)">
+                <div class="fv-rule-selection-actions">
+                    <button type="button" onclick="toggleAllRuleSelections('docker', true)"><i class="fa fa-check-square-o"></i> Select all shown</button>
+                    <button type="button" onclick="toggleAllRuleSelections('docker', false)"><i class="fa fa-square-o"></i> Clear selection</button>
+                    <button type="button" onclick="bulkRuleAction('docker','enable')"><i class="fa fa-eye"></i> Enable</button>
+                    <button type="button" onclick="bulkRuleAction('docker','disable')"><i class="fa fa-eye-slash"></i> Disable</button>
+                    <button type="button" onclick="bulkRuleAction('docker','delete')"><i class="fa fa-trash"></i> Delete</button>
+                    <button type="button" onclick="bulkRuleAction('docker','export')"><i class="fa fa-download"></i> Export</button>
+                </div>
+            </div>
+            <div id="docker-rules-selection-summary" class="fv-rule-selection-summary">No Docker rules selected.</div>
+            <div id="docker-rules" class="fv-rule-list" role="list" aria-label="Docker auto-assignment rules"></div>
+        </div>
+    </div>
+
+    <div class="rules-panel fv-rules-workspace" data-fv-rules-type="vm" hidden>
+        <div class="rules-header">
+            <h3>VM rules</h3>
+            <span class="rules-help">Set the priority order that decides where new VMs go.</span>
+        </div>
+        <div class="fv-rules-overview">
+            <div class="fv-rules-overview-copy">
+                <span id="vm-rules-status" class="fv-rules-status-chip">No rules yet</span>
+                <strong id="vm-rules-headline" class="fv-rules-headline">No VM rules yet.</strong>
+                <p id="vm-rules-detail" class="fv-rules-detail">Create your first rule to automatically sort new VMs into the right folder.</p>
+            </div>
+            <div class="fv-rules-stat-grid">
+                <div class="fv-rules-stat-card">
+                    <span class="fv-rules-stat-label">Total</span>
+                    <strong id="vm-rules-total" class="fv-rules-stat-value">0</strong>
+                </div>
+                <div class="fv-rules-stat-card">
+                    <span class="fv-rules-stat-label">Active</span>
+                    <strong id="vm-rules-active" class="fv-rules-stat-value">0</strong>
+                </div>
+                <div class="fv-rules-stat-card">
+                    <span class="fv-rules-stat-label">Exclude</span>
+                    <strong id="vm-rules-exclude" class="fv-rules-stat-value">0</strong>
+                </div>
+                <div class="fv-rules-stat-card">
+                    <span class="fv-rules-stat-label">Folders</span>
+                    <strong id="vm-rules-folders" class="fv-rules-stat-value">0</strong>
+                </div>
+            </div>
+            <div id="vm-rules-issues" class="fv-rules-issue-row" hidden></div>
+        </div>
+        <div class="fv-rule-stage">
+            <div class="fv-rule-stage-head">
+                <strong>1. Create rule</strong>
+                <span>Describe which VM names should match and where those matches should go.</span>
+            </div>
+            <div class="fv-rule-builder-grid">
+                <div class="fv-rule-builder-field">
+                    <label for="vm-rule-folder">Then place it in</label>
+                    <select id="vm-rule-folder"></select>
+                </div>
+                <div class="fv-rule-builder-field">
+                    <label for="vm-rule-effect">Rule effect</label>
+                    <select id="vm-rule-effect">
+                        <option value="include">Include</option>
+                        <option value="exclude">Exclude</option>
+                    </select>
+                </div>
+                <div class="fv-rule-builder-field">
+                    <label for="vm-rule-kind">When this field</label>
+                    <select id="vm-rule-kind">
+                        <option value="name_regex">Name regex</option>
+                    </select>
+                </div>
+                <div class="fv-rule-builder-field fv-rule-builder-field-wide">
+                    <label for="vm-rule-pattern">Match value</label>
+                    <input id="vm-rule-pattern" type="text" placeholder="Regex pattern (example: ^prod-)">
+                </div>
+            </div>
+            <div class="fv-rule-builder-actions">
+                <button type="button" class="rules-add-btn" onclick="addAutoRule('vm')"><i class="fa fa-plus"></i> Add VM rule</button>
+            </div>
+        </div>
+        <div class="fv-rule-stage">
+            <div class="fv-rule-stage-head">
+                <strong>2. Review rule order</strong>
+                <span>Rules run from top to bottom. The first matching include or exclude rule decides what happens.</span>
+            </div>
+            <div class="fv-rule-toolbar">
+                <input id="vm-rules-filter" type="text" placeholder="Search VM rules" oninput="setFilterQuery('rules','vm',this.value)">
+                <div class="fv-rule-selection-actions">
+                    <button type="button" onclick="toggleAllRuleSelections('vm', true)"><i class="fa fa-check-square-o"></i> Select all shown</button>
+                    <button type="button" onclick="toggleAllRuleSelections('vm', false)"><i class="fa fa-square-o"></i> Clear selection</button>
+                    <button type="button" onclick="bulkRuleAction('vm','enable')"><i class="fa fa-eye"></i> Enable</button>
+                    <button type="button" onclick="bulkRuleAction('vm','disable')"><i class="fa fa-eye-slash"></i> Disable</button>
+                    <button type="button" onclick="bulkRuleAction('vm','delete')"><i class="fa fa-trash"></i> Delete</button>
+                    <button type="button" onclick="bulkRuleAction('vm','export')"><i class="fa fa-download"></i> Export</button>
+                </div>
+            </div>
+            <div id="vm-rules-selection-summary" class="fv-rule-selection-summary">No VM rules selected.</div>
+            <div id="vm-rules" class="fv-rule-list" role="list" aria-label="VM auto-assignment rules"></div>
+        </div>
+    </div>
+</div>
+<hr>
+
+<h2 data-fv-section="conflict-inspector" data-fv-advanced="1" data-fv-advanced-group="rules">Rule testing and troubleshooting</h2>
+<div class="rules-bottom-grid fv-rules-grid">
+    <div class="rules-panel fv-rules-source-panel">
+        <div class="rules-header">
+            <h3>Test the current rule set</h3>
+            <span class="rules-help">Use the same source switch here to test one item, preview all assignments, and inspect conflicts.</span>
+        </div>
+        <div class="fv-rules-source-switch" role="tablist" aria-label="Rules troubleshooting source switcher">
+            <button type="button" class="fv-rules-source-btn" data-fv-rules-source-toggle="docker" onclick="setRulesWorkspaceType('docker')"><i class="fa fa-cubes"></i> Docker</button>
+            <button type="button" class="fv-rules-source-btn" data-fv-rules-source-toggle="vm" onclick="setRulesWorkspaceType('vm')"><i class="fa fa-desktop"></i> VMs</button>
+        </div>
+    </div>
+
+    <div class="rules-panel fv-rule-troubleshoot-panel" data-fv-rules-type="docker">
+        <div class="rules-header">
+            <h3>Docker troubleshooting</h3>
+            <span class="rules-help">Check how a single container would be routed, then inspect the whole Docker rule set.</span>
+        </div>
+        <div class="fv-rule-stage">
+            <div class="fv-rule-stage-head">
+                <strong>3. Test one item</strong>
+                <span>Enter a sample container and see which rule would win first.</span>
+            </div>
+            <div class="fv-rule-tester-grid">
+                <input id="docker-rule-test-name" type="text" placeholder="Test container name (example: media-server)">
+                <input id="docker-rule-test-label-key" type="text" placeholder="Test label key (optional)">
+                <input id="docker-rule-test-label-value" type="text" placeholder="Test label value (optional)">
+                <input id="docker-rule-test-image" type="text" placeholder="Test image (optional, example: linuxserver/sonarr)">
+                <input id="docker-rule-test-compose" type="text" placeholder="Test compose project (optional)">
+            </div>
             <div class="rule-test-samples">
                 <button type="button" onclick="applyRuleTestSample('docker','media')"><i class="fa fa-flask"></i> Media sample</button>
                 <button type="button" onclick="applyRuleTestSample('docker','network')"><i class="fa fa-flask"></i> Network sample</button>
                 <button type="button" onclick="applyRuleTestSample('docker','database')"><i class="fa fa-flask"></i> Database sample</button>
             </div>
-            <button type="button" onclick="testAutoRule('docker')"><i class="fa fa-flask"></i> Test rules</button>
-            <button type="button" onclick="runRuleSimulator('docker')"><i class="fa fa-list-alt"></i> Simulate assignments</button>
+            <div class="fv-rule-test-actions">
+                <button type="button" onclick="testAutoRule('docker')"><i class="fa fa-crosshairs"></i> Test rule priority</button>
+                <button type="button" onclick="runRuleSimulator('docker')"><i class="fa fa-list-alt"></i> Preview all assignments</button>
+            </div>
             <div id="docker-rule-validation" class="inline-validation-hint"></div>
-            <div id="docker-rule-test-output" class="rule-test-output"></div>
+            <div id="docker-rule-test-output" class="rule-test-output">Enter a test container name to see which Docker rule wins.</div>
+            <pre id="docker-rule-sim-output" class="diagnostics-output compact-output">Preview all Docker assignments to review the full rule outcome.</pre>
         </div>
-        <input id="docker-rules-filter" type="text" placeholder="Search Docker rules" oninput="setFilterQuery('rules','docker',this.value)">
-        <div class="selection-actions">
-            <button type="button" onclick="bulkRuleAction('docker','enable')"><i class="fa fa-eye"></i> Enable selected</button>
-            <button type="button" onclick="bulkRuleAction('docker','disable')"><i class="fa fa-eye-slash"></i> Disable selected</button>
-            <button type="button" onclick="bulkRuleAction('docker','delete')"><i class="fa fa-trash"></i> Delete selected</button>
-            <button type="button" onclick="bulkRuleAction('docker','export')"><i class="fa fa-download"></i> Export selected</button>
+        <div class="fv-rule-stage">
+            <div class="fv-rule-stage-head">
+                <strong>4. Inspect conflicts</strong>
+                <span>See why Docker items are assigned, where overlaps exist, and which exclude rules are blocking matches.</span>
+            </div>
+            <div class="fv-rule-test-actions">
+                <button type="button" onclick="runConflictInspector('docker')"><i class="fa fa-search"></i> Scan Docker conflicts</button>
+            </div>
+            <pre id="docker-conflict-output" class="diagnostics-output compact-output">Scan Docker conflicts to review overlapping rules and blocked items.</pre>
         </div>
-        <pre id="docker-rule-sim-output" class="diagnostics-output compact-output">Run simulator to preview assignment results for all Docker items.</pre>
-        <table class="rules-table auto-rules-table">
-            <thead>
-                <tr>
-                    <th><input type="checkbox" id="docker-rules-select-all" onchange="toggleAllRuleSelections('docker', this.checked)"></th>
-                    <th>Priority</th>
-                    <th>Folder</th>
-                    <th>Match</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="docker-rules"></tbody>
-        </table>
     </div>
 
-    <div class="rules-panel">
+    <div class="rules-panel fv-rule-troubleshoot-panel" data-fv-rules-type="vm" hidden>
         <div class="rules-header">
-            <h3>VM rules</h3>
-            <span class="rules-help">Automatically place new VMs into folders.</span>
+            <h3>VM troubleshooting</h3>
+            <span class="rules-help">Check how a single VM would be routed, then inspect the whole VM rule set.</span>
         </div>
-        <div class="rules-editor">
-            <select id="vm-rule-folder"></select>
-            <select id="vm-rule-effect">
-                <option value="include">Include</option>
-                <option value="exclude">Exclude</option>
-            </select>
-            <select id="vm-rule-kind">
-                <option value="name_regex">Name regex</option>
-            </select>
-            <input id="vm-rule-pattern" type="text" placeholder="Regex pattern (example: ^prod-)">
-            <button type="button" class="rules-add-btn" onclick="addAutoRule('vm')"><i class="fa fa-plus"></i> Add rule</button>
-        </div>
-        <div class="rule-tester">
-            <input id="vm-rule-test-name" type="text" placeholder="Test VM name (example: prod-db)">
+        <div class="fv-rule-stage">
+            <div class="fv-rule-stage-head">
+                <strong>3. Test one item</strong>
+                <span>Enter a sample VM name and see which rule would win first.</span>
+            </div>
+            <div class="fv-rule-tester-grid">
+                <input id="vm-rule-test-name" type="text" placeholder="Test VM name (example: prod-db)">
+            </div>
             <div class="rule-test-samples">
                 <button type="button" onclick="applyRuleTestSample('vm','production')"><i class="fa fa-flask"></i> Production sample</button>
                 <button type="button" onclick="applyRuleTestSample('vm','desktop')"><i class="fa fa-flask"></i> Desktop sample</button>
             </div>
-            <button type="button" onclick="testAutoRule('vm')"><i class="fa fa-flask"></i> Test rules</button>
-            <button type="button" onclick="runRuleSimulator('vm')"><i class="fa fa-list-alt"></i> Simulate assignments</button>
+            <div class="fv-rule-test-actions">
+                <button type="button" onclick="testAutoRule('vm')"><i class="fa fa-crosshairs"></i> Test rule priority</button>
+                <button type="button" onclick="runRuleSimulator('vm')"><i class="fa fa-list-alt"></i> Preview all assignments</button>
+            </div>
             <div id="vm-rule-validation" class="inline-validation-hint"></div>
-            <div id="vm-rule-test-output" class="rule-test-output"></div>
+            <div id="vm-rule-test-output" class="rule-test-output">Enter a test VM name to see which VM rule wins.</div>
+            <pre id="vm-rule-sim-output" class="diagnostics-output compact-output">Preview all VM assignments to review the full rule outcome.</pre>
         </div>
-        <input id="vm-rules-filter" type="text" placeholder="Search VM rules" oninput="setFilterQuery('rules','vm',this.value)">
-        <div class="selection-actions">
-            <button type="button" onclick="bulkRuleAction('vm','enable')"><i class="fa fa-eye"></i> Enable selected</button>
-            <button type="button" onclick="bulkRuleAction('vm','disable')"><i class="fa fa-eye-slash"></i> Disable selected</button>
-            <button type="button" onclick="bulkRuleAction('vm','delete')"><i class="fa fa-trash"></i> Delete selected</button>
-            <button type="button" onclick="bulkRuleAction('vm','export')"><i class="fa fa-download"></i> Export selected</button>
+        <div class="fv-rule-stage">
+            <div class="fv-rule-stage-head">
+                <strong>4. Inspect conflicts</strong>
+                <span>See why VMs are assigned, where overlaps exist, and which exclude rules are blocking matches.</span>
+            </div>
+            <div class="fv-rule-test-actions">
+                <button type="button" onclick="runConflictInspector('vm')"><i class="fa fa-search"></i> Scan VM conflicts</button>
+            </div>
+            <pre id="vm-conflict-output" class="diagnostics-output compact-output">Scan VM conflicts to review overlapping rules and blocked items.</pre>
         </div>
-        <pre id="vm-rule-sim-output" class="diagnostics-output compact-output">Run simulator to preview assignment results for all VM items.</pre>
-        <table class="rules-table auto-rules-table">
-            <thead>
-                <tr>
-                    <th><input type="checkbox" id="vm-rules-select-all" onchange="toggleAllRuleSelections('vm', this.checked)"></th>
-                    <th>Priority</th>
-                    <th>Folder</th>
-                    <th>Match</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="vm-rules"></tbody>
-        </table>
-    </div>
-</div>
-<hr>
-
-<h2 data-fv-section="conflict-inspector" data-fv-advanced="1" data-fv-advanced-group="rules">Conflict inspector</h2>
-<div class="rules-bottom-grid">
-    <div class="rules-panel">
-        <div class="rules-header">
-            <h3>Folder membership conflict report</h3>
-            <span class="rules-help">Shows why each item is assigned (manual/regex/label/rule), including overlaps and blocked rules.</span>
-        </div>
-        <div class="backup-actions">
-            <button type="button" onclick="runConflictInspector('docker')"><i class="fa fa-search"></i> Scan Docker conflicts</button>
-            <button type="button" onclick="runConflictInspector('vm')"><i class="fa fa-search"></i> Scan VM conflicts</button>
-        </div>
-        <pre id="conflict-output" class="diagnostics-output">Run a conflict scan to view results.</pre>
     </div>
 </div>
 <hr>

@@ -103,7 +103,7 @@ test('advanced settings no longer render the top maintenance action buttons', ()
 
 test('advanced settings split auto-assignment rules into a dedicated Rules tab', () => {
     assert.match(settingsPage, /<h2 data-fv-section="auto-assignment" data-fv-advanced="1" data-fv-advanced-group="rules">Auto-assignment rules<\/h2>/);
-    assert.match(settingsPage, /<h2 data-fv-section="conflict-inspector" data-fv-advanced="1" data-fv-advanced-group="rules">Conflict inspector<\/h2>/);
+    assert.match(settingsPage, /<h2 data-fv-section="conflict-inspector" data-fv-advanced="1" data-fv-advanced-group="rules">Rule testing and troubleshooting<\/h2>/);
     assert.match(settingsPage, /<h2 data-fv-section="bulk-assignment" data-fv-advanced="1" data-fv-advanced-group="automation">Bulk assignment<\/h2>/);
     assert.match(settingsSectionsJs, /const ADVANCED_GROUPS = \['automation', 'rules', 'recovery', 'operations', 'diagnostics'\];/);
     assert.match(settingsSectionsJs, /rules:\s*'Rules'/);
@@ -111,15 +111,22 @@ test('advanced settings split auto-assignment rules into a dedicated Rules tab',
     assert.match(settingsSectionsJs, /'conflict-inspector':\s*'rules'/);
     assert.match(settingsSectionsJs, /rules:\s*Object\.freeze\(\[\]\)/);
     const autoAssignmentIndex = settingsPage.indexOf('<h2 data-fv-section="auto-assignment" data-fv-advanced="1" data-fv-advanced-group="rules">Auto-assignment rules</h2>');
-    const conflictInspectorIndex = settingsPage.indexOf('<h2 data-fv-section="conflict-inspector" data-fv-advanced="1" data-fv-advanced-group="rules">Conflict inspector</h2>');
+    const conflictInspectorIndex = settingsPage.indexOf('<h2 data-fv-section="conflict-inspector" data-fv-advanced="1" data-fv-advanced-group="rules">Rule testing and troubleshooting</h2>');
     const bulkAssignmentIndex = settingsPage.indexOf('<h2 data-fv-section="bulk-assignment" data-fv-advanced="1" data-fv-advanced-group="automation">Bulk assignment</h2>');
     assert.ok(autoAssignmentIndex >= 0, 'auto-assignment section should be present');
     assert.ok(conflictInspectorIndex > autoAssignmentIndex, 'conflict inspector should render after auto-assignment within the Rules tab');
     assert.ok(bulkAssignmentIndex > conflictInspectorIndex, 'bulk assignment should remain after the Rules sections');
 });
 
-test('bulk assignment returns to a two-column desktop layout while conflict inspector keeps inset module width', () => {
-    assert.match(settingsPage, /<h2 data-fv-section="conflict-inspector" data-fv-advanced="1" data-fv-advanced-group="rules">Conflict inspector<\/h2>\s*<div class="rules-bottom-grid">/);
+test('rules tab uses a source-switched workspace and bulk assignment keeps the two-column desktop layout', () => {
+    assert.match(settingsPage, /class="fv-rules-source-switch"[\s\S]*setRulesWorkspaceType\('docker'\)[\s\S]*setRulesWorkspaceType\('vm'\)/);
+    assert.match(settingsPage, /class="rules-panel fv-rules-workspace" data-fv-rules-type="docker"[\s\S]*id="docker-rules-status"[\s\S]*id="docker-rules-selection-summary"[\s\S]*id="docker-rules"/);
+    assert.match(settingsPage, /class="rules-panel fv-rules-workspace" data-fv-rules-type="vm" hidden[\s\S]*id="vm-rules-status"[\s\S]*id="vm-rules-selection-summary"[\s\S]*id="vm-rules"/);
+    assert.match(settingsPage, /class="rules-panel fv-rule-troubleshoot-panel" data-fv-rules-type="docker"[\s\S]*id="docker-rule-test-output"[\s\S]*id="docker-conflict-output"/);
+    assert.match(settingsPage, /class="rules-panel fv-rule-troubleshoot-panel" data-fv-rules-type="vm" hidden[\s\S]*id="vm-rule-test-output"[\s\S]*id="vm-conflict-output"/);
+    assert.match(settingsJs, /const normalizeRulesWorkspaceType = \(value\) =>/);
+    assert.match(settingsJs, /const setRulesWorkspaceType = \(type, persist = true\) =>/);
+    assert.match(settingsJs, /activeRulesWorkspaceType = normalizeRulesWorkspaceType\(localStorage\.getItem\(RULES_WORKSPACE_STORAGE_KEY\) \|\| 'docker'\)/);
     assert.match(settingsCss, /@media \(min-width: 1080px\) \{\s*\.bulk-assign-grid \{\s*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\) !important;/);
     assert.doesNotMatch(settingsCss, /@media \(min-width: 1080px\) \{[\s\S]*\.bulk-assign-grid,\s*\.backup-grid,\s*\.template-grid \{\s*grid-template-columns:\s*minmax\(0,\s*1fr\) !important;/);
 });

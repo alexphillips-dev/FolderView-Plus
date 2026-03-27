@@ -62,7 +62,33 @@
                 blockedRows: blocked
             };
 
-            deps.$?.('#conflict-output').text(deps.toPrettyJson(output));
+            const lines = [
+                `${resolvedType === 'docker' ? 'Docker' : 'VM'} conflict scan`,
+                `Scanned ${report.totalItems} item(s).`,
+                `${report.conflictingItems} conflicting item(s), ${blocked.length} blocked by exclude rule(s).`,
+                ''
+            ];
+            if (!conflicts.length && !blocked.length) {
+                lines.push('No conflicts or blocked items were detected.');
+            } else {
+                conflicts.forEach((row) => {
+                    const folderList = Array.isArray(row.matchedFolders)
+                        ? row.matchedFolders.map((entry) => `${entry.folderName} (${Array.isArray(entry.reasons) ? entry.reasons.join(', ') : '-'})`).join(' ; ')
+                        : '';
+                    lines.push(`CONFLICT | ${row.item || '(unknown)'} | ${folderList || 'No folder details available.'}`);
+                });
+                blocked.forEach((row) => {
+                    const blockInfo = row.blockedByRule
+                        ? `blocked by rule ${row.blockedByRule.id || '(unknown id)'} targeting ${row.blockedByRule.folderId || '(unknown folder)'}`
+                        : 'blocked by an exclude rule';
+                    const folderList = Array.isArray(row.matchedFolders)
+                        ? row.matchedFolders.map((entry) => `${entry.folderName} (${Array.isArray(entry.reasons) ? entry.reasons.join(', ') : '-'})`).join(' ; ')
+                        : '';
+                    lines.push(`BLOCKED | ${row.item || '(unknown)'} | ${blockInfo}${folderList ? ` | matched folders: ${folderList}` : ''}`);
+                });
+            }
+
+            deps.$?.(`#${resolvedType}-conflict-output`).text(lines.join('\n'));
             await deps.trackDiagnosticsEvent?.({
                 eventType: 'conflict_scan',
                 type: resolvedType,

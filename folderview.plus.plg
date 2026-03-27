@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.27.21">
-<!ENTITY md5 "752778ef178435c77c59e29b49f3646e">
+<!ENTITY version "2026.03.27.22">
+<!ENTITY md5 "5cb03b596d792a65d86fed8a75754405">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.27.22
+- UX: Rebuilt the Rules tab into a cleaner source-switched Docker/VM workspace with rule overview cards, a simpler builder, ordered rule cards, and synced testing/troubleshooting panels.
+- UX: Rule previews and conflict scans now produce clearer human-readable summaries, and Settings remembers the last Rules source you were working in.
+
 
 ###2026.03.27.21
 - UX: Rebuilt the Settings Diagnostics folder health cards into a cleaner summary-first layout with three core stats, optional issue chips, quieter filters, and context-aware actions.

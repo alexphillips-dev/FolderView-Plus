@@ -144,5 +144,6 @@ test('advanced modules use shared theme-safe surfaces instead of hardcoded dark-
 });
 
 test('diagnostics tab keeps inner side gutters for summary and workbench modules', () => {
-    assert.match(settingsCss, /\.fv-diagnostics-panel > :not\(\.rules-header\)\s*\{[\s\S]*margin-inline:\s*clamp\(8px,\s*1\.15vw,\s*18px\);/);
+    assert.match(settingsPage, /<div class="fv-diagnostics-section-body">/);
+    assert.match(settingsCss, /\.fv-diagnostics-section-body\s*\{[\s\S]*padding-inline:\s*clamp\(8px,\s*1\.15vw,\s*18px\);/);
 });

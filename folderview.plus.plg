@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.27.18">
-<!ENTITY md5 "b840bb524ead8f2fa705bccb75d8fbbf">
+<!ENTITY version "2026.03.27.19">
+<!ENTITY md5 "c82cd67f2f0304e9bc11f1413bad53c9">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.27.19
+- Fix: Add real inset section bodies to the Diagnostics tab so the folder-health cards, health summary, fixes lane, and support lane no longer stretch edge-to-edge inside their modules.
+- UI/UX: Align the Diagnostics tab body layout with the rest of Advanced Settings by giving both diagnostics sections the same internal side padding treatment instead of relying on stretched full-width panels.
+- Quality: Update the settings surface regression guard to lock the diagnostics body wrapper and padding contract in place.
+
 
 ###2026.03.27.18
 - Fix: Make the Setup Assistant wizard follow the resolved settings theme so white, Azure, gray, and dark hosts no longer force the wizard into a static dark shell.

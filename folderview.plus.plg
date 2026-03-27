@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.44">
-<!ENTITY md5 "21507f0cb313a13accbc3ae2fe7fdfb8">
+<!ENTITY version "2026.03.26.45">
+<!ENTITY md5 "87ef75592e6d09b123abcdb047f259d3">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.45
+- Fix: Legacy folder editor no longer rejects during seeded Docker edit bootstrap when `hydrateCurrentEditFolder(...)` calls the regex-selection helper before it is initialized.
+- Fix: Hoisted the legacy regex and icon update helpers so pre-hydrated edit launches can load saved folder data without hitting `Cannot access 'updateRegex' before initialization` or the same follow-on hazard on icon hydration.
+- Quality: Expanded the legacy route guard so the seeded bootstrap path now requires hoisted regex and icon helpers in test runs.
+
 
 ###2026.03.26.44
 - Fix: Removed the Docker preview member action-sheet module from the Docker page, so clicking Docker containers in folder previews no longer opens the large FolderView Plus popup window.

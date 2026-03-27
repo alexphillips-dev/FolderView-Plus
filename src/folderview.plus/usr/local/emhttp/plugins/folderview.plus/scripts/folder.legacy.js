@@ -5626,12 +5626,12 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
  * Update the folder icon when editing the respective field
  * @param {*} e the element
  */
-const updateIcon = (e) => {
+function updateIcon(e) {
     if (e.previousElementSibling && e.previousElementSibling.tagName === 'IMG') {
         e.previousElementSibling.src = e.value;
     }
     renderBuiltInIconPicker();
-};
+}
 
 const scheduleAnimationFrameTask = (callback) => {
     if (typeof callback !== 'function') {
@@ -5761,7 +5761,7 @@ const mergeMembersByName = (baseMembers, candidateMembers) => {
  * Update the regex selection when editing the respective field
  * @param {*} e the element
  */
-const updateRegex = (e) => {
+function updateRegex(e) {
     syncMemberArraysFromTable();
     choose = choose.concat(selectedRegex);
     const fldName = ($('[name="name"]')[0].value || '').trim();
@@ -5841,7 +5841,7 @@ const updateRegex = (e) => {
     updateList();
     updateRegexSimulator();
     return true;
-};
+}
 
 /**
  * Update the setting visibility according to the preview setting

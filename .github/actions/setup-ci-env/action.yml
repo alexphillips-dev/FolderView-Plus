@@ -1,0 +1,49 @@
+name: Setup CI Environment
+description: Prepare Node, shellcheck, npm cache, and Playwright cache for FolderView Plus workflows.
+
+inputs:
+  node-version:
+    description: Node.js version to install
+    required: false
+    default: '20'
+  cache-key-suffix:
+    description: Extra cache key suffix to allow targeted cache busting
+    required: false
+    default: 'v1'
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Restore npm cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-fvplus-npm-${{ inputs.cache-key-suffix }}-${{ hashFiles('.github/actions/setup-ci-env/action.yml', 'scripts/run_ci_suite.sh') }}
+        restore-keys: |
+          ${{ runner.os }}-fvplus-npm-${{ inputs.cache-key-suffix }}-
+          ${{ runner.os }}-fvplus-npm-
+
+    - name: Restore Playwright browser cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/ms-playwright
+        key: ${{ runner.os }}-fvplus-playwright-${{ inputs.cache-key-suffix }}-${{ hashFiles('.github/actions/setup-ci-env/action.yml', 'scripts/run_ci_suite.sh') }}
+        restore-keys: |
+          ${{ runner.os }}-fvplus-playwright-${{ inputs.cache-key-suffix }}-
+          ${{ runner.os }}-fvplus-playwright-
+
+    - name: Install shellcheck
+      shell: bash
+      run: |
+        set -euo pipefail
+        if command -v shellcheck >/dev/null 2>&1; then
+          shellcheck --version
+          exit 0
+        fi
+        sudo apt-get update
+        sudo apt-get install -y shellcheck

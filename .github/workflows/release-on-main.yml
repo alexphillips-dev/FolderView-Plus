@@ -23,15 +23,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install shellcheck
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y shellcheck
+      - name: Setup CI environment
+        uses: ./.github/actions/setup-ci-env
 
       - name: Resolve release version and archive
         id: release_meta

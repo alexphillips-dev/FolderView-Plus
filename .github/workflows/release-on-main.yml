@@ -28,6 +28,11 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Install shellcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+
       - name: Resolve release version and archive
         id: release_meta
         run: |
@@ -49,17 +54,7 @@ jobs:
           echo "checksum=${CHECKSUM}" >> "$GITHUB_OUTPUT"
           echo "tag=v${VERSION}" >> "$GITHUB_OUTPUT"
 
-      - name: Run release guard
-        run: |
-          chmod +x scripts/release_guard.sh
-          bash scripts/release_guard.sh
-
-      - name: Run install smoke checks
-        run: |
-          chmod +x scripts/install_smoke.sh
-          bash scripts/install_smoke.sh
-
-      - name: Standards guard checks
+      - name: Run release validation suite
         env:
           FVPLUS_UNRAID_MATRIX: ${{ secrets.FVPLUS_UNRAID_MATRIX }}
           FVPLUS_UNRAID_MATRIX_REQUIRED: ${{ secrets.FVPLUS_UNRAID_MATRIX != '' && '1' || '0' }}
@@ -69,100 +64,34 @@ jobs:
           FVPLUS_DEAD_CODE_STRICT: '1'
           FVPLUS_REQUIRE_PERF_BASELINE: '1'
           FVPLUS_MAIN_HISTORY_BASE_REF: ${{ github.event.before }}
-        run: |
-          chmod +x scripts/api_contract_guard.sh scripts/legacy_support_guard.sh scripts/i18n_guard.sh scripts/lang_usage_guard.sh scripts/include_order_guard.sh scripts/theme_scope_guard.sh scripts/theme_runtime_guard.sh scripts/perf_budget_guard.sh scripts/repro_build_guard.sh scripts/dead_code_guard.sh scripts/unraid_matrix_smoke.sh scripts/main_branch_history_guard.sh
-          bash scripts/main_branch_history_guard.sh
-          bash scripts/api_contract_guard.sh
-          bash scripts/legacy_support_guard.sh
-          bash scripts/i18n_guard.sh
-          bash scripts/lang_usage_guard.sh
-          bash scripts/include_order_guard.sh
-          bash scripts/theme_scope_guard.sh
-          bash scripts/theme_runtime_guard.sh
-          bash scripts/dead_code_guard.sh
-          bash scripts/perf_budget_guard.sh
-          bash scripts/repro_build_guard.sh
-          bash scripts/unraid_matrix_smoke.sh
-
-      - name: Run test suite
-        run: |
-          node --test tests/*.mjs
-
-      - name: Browser smoke checks (required on release)
-        env:
           FVPLUS_BROWSER_SMOKE_URL: ${{ secrets.FVPLUS_BROWSER_SMOKE_URL }}
-          FVPLUS_BROWSER_SMOKE_REQUIRED: ${{ secrets.FVPLUS_BROWSER_SMOKE_URL != '' && '1' || '0' }}
+          FVPLUS_BROWSER_SMOKE_REQUIRED: '1'
           FVPLUS_BROWSER_SMOKE_TIMEOUT_MS: '90000'
           FVPLUS_BROWSER_SMOKE_IGNORE_HTTPS: '1'
           FVPLUS_BROWSER_SMOKE_REQUIRE_FOLDER_EDITOR: '1'
           FVPLUS_BROWSER_SMOKE_REQUIRE_RUNTIME_ROWS: '1'
           FVPLUS_BROWSER_SMOKE_RUNTIME_GAP_MAX: '30'
           FVPLUS_BROWSER_SMOKE_ARTIFACT_DIR: ${{ github.workspace }}/tmp/browser-smoke-artifacts
-        run: |
-          if [ -z "${FVPLUS_BROWSER_SMOKE_URL:-}" ]; then
-            echo "Skipping browser smoke checks (FVPLUS_BROWSER_SMOKE_URL not configured)."
-            exit 0
-          fi
-          npm install --no-save playwright
-          npx playwright install --with-deps chromium firefox webkit
-          chmod +x scripts/browser_smoke.sh
-          bash scripts/browser_smoke.sh
-
-      - name: Optional theme matrix smoke checks
-        env:
           FVPLUS_THEME_MATRIX_URLS: ${{ secrets.FVPLUS_THEME_MATRIX_URLS }}
+          FVPLUS_THEME_MATRIX_REQUIRED: '1'
           FVPLUS_THEME_REQUIRED_LABELS: 'black,white'
           FVPLUS_THEME_SMOKE_TIMEOUT_MS: '90000'
           FVPLUS_THEME_SMOKE_IGNORE_HTTPS: '1'
           FVPLUS_THEME_SMOKE_BROWSERS: 'chromium,firefox,webkit'
           FVPLUS_THEME_SMOKE_ZOOMS: '1,1.25,1.5'
           FVPLUS_THEME_SMOKE_ARTIFACT_DIR: ${{ github.workspace }}/tmp/browser-smoke-artifacts/theme-matrix
+          FVPLUS_PLAYWRIGHT_INSTALL_WITH_DEPS: '1'
         run: |
-          if [ -z "${FVPLUS_THEME_MATRIX_URLS:-}" ]; then
-            echo "Skipping theme matrix smoke checks (FVPLUS_THEME_MATRIX_URLS not configured)."
-            exit 0
-          fi
-          npm install --no-save playwright
-          npx playwright install --with-deps chromium firefox webkit
-          chmod +x scripts/theme_matrix_smoke.sh
-          bash scripts/theme_matrix_smoke.sh
+          chmod +x scripts/run_ci_suite.sh
+          bash scripts/run_ci_suite.sh --release
 
       - name: Build release notes from current CHANGES block
         id: notes
         run: |
           set -euo pipefail
           VERSION="${{ steps.release_meta.outputs.version }}"
-          NOTES_BLOCK="$(awk -v version="${VERSION}" '
-            BEGIN { capture = 0 }
-            /^###/ {
-              if (capture) {
-                exit
-              }
-              if ($0 ~ "^###" version "[[:space:]]*$") {
-                capture = 1
-                next
-              }
-            }
-            {
-              if (capture) {
-                print
-              }
-            }
-          ' folderview.plus.plg | sed '/^[[:space:]]*$/d')"
-
-          if [ -z "${NOTES_BLOCK}" ]; then
-            echo "ERROR: Missing CHANGES block for version ${VERSION}" >&2
-            exit 1
-          fi
-
-          {
-            echo "## FolderView Plus ${VERSION}"
-            echo
-            echo "Install URL: \`https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/main/folderview.plus.plg\`"
-            echo
-            echo "### Changes"
-            echo "${NOTES_BLOCK}"
-          } > release_notes.md
+          chmod +x scripts/build_release_notes.sh
+          bash scripts/build_release_notes.sh --version "${VERSION}" --output release_notes.md
 
       - name: Validate remote raw publish artifacts
         env:
@@ -210,7 +139,6 @@ jobs:
             archive/*.txz
             archive/*.sha256
             release_notes.md
-            CHANGELOG-fixes.md
             tmp/browser-smoke-artifacts/**
             *.log
             scripts/*.log

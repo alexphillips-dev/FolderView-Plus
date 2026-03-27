@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - dev
       - reset-main
   pull_request:
 
@@ -27,107 +28,33 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y shellcheck
 
-      - name: Lint shell scripts
-        run: |
-          set -euo pipefail
-          mapfile -d '' files < <(find . -type f \( -name "*.sh" -o -path "./.githooks/pre-push" \) -print0)
-          for f in "${files[@]}"; do
-            shellcheck -x --source-path=SCRIPTDIR "$f"
-          done
-
-      - name: Lint JavaScript syntax
-        run: |
-          set -euo pipefail
-          mapfile -d '' files < <(find src -type f -name "*.js" ! -path "*/scripts/include/*" -print0)
-          for f in "${files[@]}"; do
-            node --check "$f"
-          done
-
-      - name: Lint PHP syntax
-        run: |
-          set -euo pipefail
-          mapfile -d '' files < <(find src -type f -name "*.php" -print0)
-          for f in "${files[@]}"; do
-            php -l "$f"
-          done
-
-      - name: Run mobile guard tests
-        run: |
-          node --test tests/mobile-touch-support.test.mjs tests/mobile-regression-guard.test.mjs
-
-      - name: Run utility tests
-        run: |
-          node --test tests/*.mjs
-
-      - name: Release guard checks
-        run: |
-          chmod +x scripts/release_guard.sh
-          bash scripts/release_guard.sh
-
-      - name: Install smoke checks
-        run: |
-          chmod +x scripts/install_smoke.sh
-          bash scripts/install_smoke.sh
-
-      - name: Standards guard checks
+      - name: Run shared CI validation suite
         env:
           FVPLUS_UNRAID_MATRIX: ${{ secrets.FVPLUS_UNRAID_MATRIX }}
           FVPLUS_I18N_STRICT: '1'
           FVPLUS_DEAD_CODE_STRICT: '1'
           FVPLUS_REQUIRE_PERF_BASELINE: '1'
           FVPLUS_MAIN_HISTORY_BASE_REF: ${{ github.event.before }}
-        run: |
-          chmod +x scripts/api_contract_guard.sh scripts/legacy_support_guard.sh scripts/i18n_guard.sh scripts/lang_usage_guard.sh scripts/include_order_guard.sh scripts/theme_scope_guard.sh scripts/theme_runtime_guard.sh scripts/perf_budget_guard.sh scripts/repro_build_guard.sh scripts/dead_code_guard.sh scripts/unraid_matrix_smoke.sh scripts/main_branch_history_guard.sh
-          bash scripts/main_branch_history_guard.sh
-          bash scripts/api_contract_guard.sh
-          bash scripts/legacy_support_guard.sh
-          bash scripts/i18n_guard.sh
-          bash scripts/lang_usage_guard.sh
-          bash scripts/include_order_guard.sh
-          bash scripts/theme_scope_guard.sh
-          bash scripts/theme_runtime_guard.sh
-          bash scripts/dead_code_guard.sh
-          bash scripts/perf_budget_guard.sh
-          bash scripts/repro_build_guard.sh
-          bash scripts/unraid_matrix_smoke.sh
-
-      - name: Optional browser smoke checks
-        env:
           FVPLUS_BROWSER_SMOKE_URL: ${{ secrets.FVPLUS_BROWSER_SMOKE_URL }}
+          FVPLUS_BROWSER_SMOKE_REQUIRED: '0'
           FVPLUS_BROWSER_SMOKE_TIMEOUT_MS: '90000'
           FVPLUS_BROWSER_SMOKE_IGNORE_HTTPS: '1'
           FVPLUS_BROWSER_SMOKE_REQUIRE_FOLDER_EDITOR: '1'
           FVPLUS_BROWSER_SMOKE_REQUIRE_RUNTIME_ROWS: '1'
           FVPLUS_BROWSER_SMOKE_RUNTIME_GAP_MAX: '30'
           FVPLUS_BROWSER_SMOKE_ARTIFACT_DIR: ${{ github.workspace }}/tmp/browser-smoke-artifacts
-        run: |
-          if [ -z "${FVPLUS_BROWSER_SMOKE_URL:-}" ]; then
-            echo "Skipping browser smoke checks (FVPLUS_BROWSER_SMOKE_URL not configured)."
-            exit 0
-          fi
-          npm install --no-save playwright
-          npx playwright install --with-deps chromium firefox webkit
-          chmod +x scripts/browser_smoke.sh
-          bash scripts/browser_smoke.sh
-
-      - name: Optional theme matrix smoke checks
-        env:
           FVPLUS_THEME_MATRIX_URLS: ${{ secrets.FVPLUS_THEME_MATRIX_URLS }}
+          FVPLUS_THEME_MATRIX_REQUIRED: '0'
           FVPLUS_THEME_REQUIRED_LABELS: 'black,white'
           FVPLUS_THEME_SMOKE_TIMEOUT_MS: '90000'
           FVPLUS_THEME_SMOKE_IGNORE_HTTPS: '1'
           FVPLUS_THEME_SMOKE_BROWSERS: 'chromium,firefox,webkit'
           FVPLUS_THEME_SMOKE_ZOOMS: '1,1.25,1.5'
           FVPLUS_THEME_SMOKE_ARTIFACT_DIR: ${{ github.workspace }}/tmp/browser-smoke-artifacts/theme-matrix
+          FVPLUS_PLAYWRIGHT_INSTALL_WITH_DEPS: '1'
         run: |
-          if [ -z "${FVPLUS_THEME_MATRIX_URLS:-}" ]; then
-            echo "Skipping theme matrix smoke checks (FVPLUS_THEME_MATRIX_URLS not configured)."
-            exit 0
-          fi
-          npm install --no-save playwright
-          npx playwright install --with-deps chromium firefox webkit
-          chmod +x scripts/theme_matrix_smoke.sh
-          bash scripts/theme_matrix_smoke.sh
+          chmod +x scripts/run_ci_suite.sh
+          bash scripts/run_ci_suite.sh
 
       - name: Upload debug artifacts on failure
         if: failure()

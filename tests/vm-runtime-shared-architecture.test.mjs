@@ -76,11 +76,11 @@ test('vm CSS keeps VM-specific gutter tokens while shared stylesheet owns shared
     assert.match(vmCss, /--fvplus-vm-folder-dropdown-right-margin:\s*10px/);
     assert.match(vmCss, /--fvplus-folder-dropdown-right-margin:\s*var\(--fvplus-vm-folder-dropdown-right-margin,\s*10px\)/);
     assert.match(vmCss, /--fvplus-folder-dropdown-icon-size:\s*11px/);
-    assert.match(vmCss, /--fvplus-folder-dropdown-radius:\s*7px/);
-    assert.match(vmCss, /--fvplus-folder-dropdown-shadow:\s*inset 0 1px 0 rgba\(255,\s*255,\s*255,\s*0\.08\), 0 6px 14px rgba\(0,\s*0,\s*0,\s*0\.18\)/);
+    assert.match(vmCss, /--fvplus-folder-dropdown-radius:\s*5px/);
+    assert.match(vmCss, /--fvplus-folder-dropdown-shadow:\s*inset 0 0 0 1px rgba\(255,\s*255,\s*255,\s*0\.05\), 0 1px 3px rgba\(0,\s*0,\s*0,\s*0\.18\)/);
     assert.match(vmCss, /--fvplus-preview-wrapper-margin-top:\s*6px/);
     assert.doesNotMatch(vmCss, /^\.folder-dropdown\s*\{/m);
     assert.match(runtimeSharedCss, /\.folder-preview\s*\{[\s\S]*align-items:\s*center;/);
     assert.match(runtimeSharedCss, /\.folder-preview-wrapper\s*\{[\s\S]*margin-top:\s*var\(--fvplus-preview-wrapper-margin-top,\s*6px\)/);
-    assert.match(runtimeSharedCss, /background:\s*[\s\S]*var\(--fvplus-folder-dropdown-bg,\s*rgba\(255,\s*154,\s*60,\s*0\.1\)\) !important;/);
+    assert.match(runtimeSharedCss, /background:\s*var\(--fvplus-folder-dropdown-bg,\s*rgba\(255,\s*154,\s*60,\s*0\.1\)\) !important;/);
 });

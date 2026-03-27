@@ -110,14 +110,14 @@ test('docker CSS keeps docker-specific layout tokens while shared stylesheet own
     assert.match(dockerCss, /--fvplus-folder-dropdown-hover-color:\s*#ff9a3c/);
     assert.match(dockerCss, /--fvplus-folder-dropdown-hover-bg:\s*rgba\(255,\s*154,\s*60,\s*0\.18\)/);
     assert.match(dockerCss, /--fvplus-folder-dropdown-min-width:\s*12px/);
-    assert.match(dockerCss, /--fvplus-folder-dropdown-radius:\s*7px/);
-    assert.match(dockerCss, /--fvplus-folder-dropdown-shadow:\s*inset 0 1px 0 rgba\(255,\s*255,\s*255,\s*0\.08\), 0 6px 14px rgba\(0,\s*0,\s*0,\s*0\.18\)/);
+    assert.match(dockerCss, /--fvplus-folder-dropdown-radius:\s*5px/);
+    assert.match(dockerCss, /--fvplus-folder-dropdown-shadow:\s*inset 0 0 0 1px rgba\(255,\s*255,\s*255,\s*0\.05\), 0 1px 3px rgba\(0,\s*0,\s*0,\s*0\.18\)/);
     assert.match(dockerCss, /right:\s*var\(--fvplus-docker-folder-right-gutter,\s*28px\)/);
     assert.match(dockerCss, /max-width:\s*calc\(var\(--fvplus-docker-app-column-width\)\s*-\s*var\(--fvplus-docker-folder-outer-reserved-width,\s*106px\)\)/);
     assert.doesNotMatch(dockerCss, /^\.folder-dropdown\s*\{/m);
     assert.match(runtimeSharedCss, /margin:\s*0 var\(--fvplus-folder-dropdown-right-margin,\s*16px\) 0 auto/);
     assert.match(runtimeSharedCss, /border:\s*var\(--fvplus-folder-dropdown-border-width,\s*1px\) solid var\(--fvplus-folder-dropdown-border-color/);
-    assert.match(runtimeSharedCss, /background:\s*[\s\S]*var\(--fvplus-folder-dropdown-bg,\s*rgba\(255,\s*154,\s*60,\s*0\.1\)\) !important;/);
+    assert.match(runtimeSharedCss, /background:\s*var\(--fvplus-folder-dropdown-bg,\s*rgba\(255,\s*154,\s*60,\s*0\.1\)\) !important;/);
     assert.match(runtimeSharedCss, /\.folder-dropdown:hover,\s*[\s\S]*visibility:\s*visible !important/);
     assert.match(runtimeSharedCss, /\.folder-dropdown:hover > i,\s*[\s\S]*opacity:\s*1 !important/);
     assert.match(dockerCss, /border-right:\s*var\(--fvplus-preview-divider-width,\s*1px\) solid/);

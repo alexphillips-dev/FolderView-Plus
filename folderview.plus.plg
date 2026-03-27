@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.55">
-<!ENTITY md5 "cbe5731e08df174e51b0f1510479ae0e">
+<!ENTITY version "2026.03.27.01">
+<!ENTITY md5 "ef9e02840ad68822f2fdb2ca72768883">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.27.01
+- UI/UX: Refine the plugin-wide button system to a cleaner flatter style with tighter corner radii, reduced gloss, and less floaty hover behavior across Settings, the folder editor, dashboard quick actions, and runtime dropdown controls.
+- UX: Keep the newer filled button treatment but make it feel more modern and less bubbly by softening gradients, reducing shadows, and tightening segmented-control chrome.
+- Quality: Update runtime and layout regression guards for the flatter shared button contract.
+
 
 ###2026.03.26.55
 - UI/UX: Replace the old hard-border button chrome with a softer filled button system across Settings, the folder editor, dashboard quick actions, and runtime dropdown controls.

@@ -29,25 +29,25 @@
     --fv-editor-info: var(--fvplus-editor-info, #a6d8ff);
     --fv-editor-hero-icon-border: var(--fvplus-editor-hero-icon-border, var(--fv-editor-border));
     --fv-editor-button-fg: var(--fv-editor-text-primary);
-    --fv-editor-button-bg-top: rgba(255, 255, 255, 0.09);
-    --fv-editor-button-bg-bottom: rgba(255, 255, 255, 0.03);
-    --fv-editor-button-hover-top: rgba(255, 198, 126, 0.24);
-    --fv-editor-button-hover-bottom: rgba(255, 154, 60, 0.12);
-    --fv-editor-button-active-top: rgba(255, 188, 108, 0.4);
-    --fv-editor-button-active-bottom: rgba(255, 154, 60, 0.22);
-    --fv-editor-button-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 10px 22px rgba(0, 0, 0, 0.18);
-    --fv-editor-button-shadow-hover: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 12px 26px rgba(0, 0, 0, 0.22);
-    --fv-editor-button-shadow-active: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 18px rgba(0, 0, 0, 0.2);
+    --fv-editor-button-bg-top: rgba(255, 255, 255, 0.05);
+    --fv-editor-button-bg-bottom: rgba(255, 255, 255, 0.04);
+    --fv-editor-button-hover-top: rgba(255, 191, 123, 0.14);
+    --fv-editor-button-hover-bottom: rgba(255, 191, 123, 0.11);
+    --fv-editor-button-active-top: rgba(255, 165, 74, 0.22);
+    --fv-editor-button-active-bottom: rgba(255, 165, 74, 0.18);
+    --fv-editor-button-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 1px 2px rgba(0, 0, 0, 0.18);
+    --fv-editor-button-shadow-hover: inset 0 0 0 1px rgba(255, 191, 123, 0.12), 0 2px 5px rgba(0, 0, 0, 0.18);
+    --fv-editor-button-shadow-active: inset 0 0 0 1px rgba(255, 191, 123, 0.16), 0 1px 3px rgba(0, 0, 0, 0.16);
     --fv-editor-button-accent-fg: #fff4e8;
-    --fv-editor-button-accent-top: rgba(255, 188, 110, 0.44);
-    --fv-editor-button-accent-bottom: rgba(255, 154, 60, 0.26);
-    --fv-editor-button-accent-shadow: inset 0 1px 0 rgba(255, 241, 223, 0.18), 0 12px 26px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(255, 154, 60, 0.16);
-    --fv-editor-button-quiet-top: rgba(255, 255, 255, 0.06);
-    --fv-editor-button-quiet-bottom: rgba(255, 255, 255, 0.025);
-    --fv-editor-button-quiet-hover-top: rgba(255, 198, 126, 0.16);
-    --fv-editor-button-quiet-hover-bottom: rgba(255, 154, 60, 0.1);
-    --fv-editor-button-quiet-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 6px 14px rgba(0, 0, 0, 0.16);
-    --fv-editor-button-quiet-shadow-hover: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 8px 18px rgba(0, 0, 0, 0.18);
+    --fv-editor-button-accent-top: rgba(255, 171, 91, 0.26);
+    --fv-editor-button-accent-bottom: rgba(255, 171, 91, 0.22);
+    --fv-editor-button-accent-shadow: inset 0 0 0 1px rgba(255, 171, 91, 0.2), 0 2px 5px rgba(0, 0, 0, 0.18);
+    --fv-editor-button-quiet-top: rgba(255, 255, 255, 0.036);
+    --fv-editor-button-quiet-bottom: rgba(255, 255, 255, 0.03);
+    --fv-editor-button-quiet-hover-top: rgba(255, 191, 123, 0.1);
+    --fv-editor-button-quiet-hover-bottom: rgba(255, 191, 123, 0.08);
+    --fv-editor-button-quiet-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03), 0 1px 2px rgba(0, 0, 0, 0.14);
+    --fv-editor-button-quiet-shadow-hover: inset 0 0 0 1px rgba(255, 191, 123, 0.1), 0 2px 4px rgba(0, 0, 0, 0.15);
     color: var(--fv-editor-text-primary);
 }
 
@@ -2849,12 +2849,12 @@ table.sortable td:nth-child(3) {
     .fv-folder-action-dialog .ui-dialog-buttonpane button
 ) {
     border: 0 !important;
-    border-radius: 10px !important;
+    border-radius: 8px !important;
     background: linear-gradient(180deg, var(--fv-editor-button-bg-top), var(--fv-editor-button-bg-bottom)) !important;
     color: var(--fv-editor-button-fg) !important;
     box-shadow: var(--fv-editor-button-shadow) !important;
     text-shadow: none !important;
-    transition: transform 120ms ease, background 120ms ease, box-shadow 120ms ease, color 120ms ease;
+    transition: background 120ms ease, box-shadow 120ms ease, color 120ms ease;
 }
 
 :is(
@@ -2897,7 +2897,6 @@ table.sortable td:nth-child(3) {
 ):focus-visible {
     background: linear-gradient(180deg, var(--fv-editor-button-hover-top), var(--fv-editor-button-hover-bottom)) !important;
     box-shadow: var(--fv-editor-button-shadow-hover) !important;
-    transform: translateY(-1px);
 }
 
 :is(
@@ -2966,7 +2965,7 @@ table.sortable td:nth-child(3) {
 
 .fv-editor-mode {
     border: 0;
-    border-radius: 12px;
+    border-radius: 10px;
     background: linear-gradient(180deg, var(--fv-editor-button-quiet-top), var(--fv-editor-button-quiet-bottom));
     box-shadow: var(--fv-editor-button-quiet-shadow);
 }
@@ -3000,11 +2999,11 @@ table.sortable td:nth-child(3) {
     .folder-status-colors-dd > button
 ) {
     border: 0 !important;
-    border-radius: 8px !important;
+    border-radius: 6px !important;
     background: linear-gradient(180deg, var(--fv-editor-button-quiet-top), var(--fv-editor-button-quiet-bottom)) !important;
     box-shadow: var(--fv-editor-button-quiet-shadow) !important;
     color: var(--fv-editor-accent) !important;
-    transition: transform 120ms ease, background 120ms ease, box-shadow 120ms ease, color 120ms ease;
+    transition: background 120ms ease, box-shadow 120ms ease, color 120ms ease;
 }
 
 :is(
@@ -3042,7 +3041,6 @@ table.sortable td:nth-child(3) {
     background: linear-gradient(180deg, var(--fv-editor-button-quiet-hover-top), var(--fv-editor-button-quiet-hover-bottom)) !important;
     box-shadow: var(--fv-editor-button-quiet-shadow-hover) !important;
     color: var(--fv-editor-text-primary) !important;
-    transform: translateY(-1px);
 }
 
 .fv-modern-field-row.is-actions-list-row .custom-action,

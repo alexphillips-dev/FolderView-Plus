@@ -270,9 +270,11 @@ test('dashboard css includes non-classic controls and overflow rendering modes',
     assert.match(dashboardCss, /\.fv-dashboard-layout-quick-rail\.is-compact-grid/);
     assert.match(dashboardCss, /\.fv-dashboard-quick-action/);
     assert.match(dashboardCss, /\.fv-dashboard-quick-action\s*\{[\s\S]*border:\s*0 !important/);
+    assert.match(dashboardCss, /\.fv-dashboard-quick-action\s*\{[\s\S]*border-radius:\s*5px/);
     assert.match(dashboardCss, /\.fv-dashboard-quick-action\s*\{[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fvplus-dashboard-quick-action-bg-top\),\s*var\(--fvplus-dashboard-quick-action-bg-bottom\)\) !important/);
     assert.match(dashboardCss, /\.fv-dashboard-quick-action\s*\{[\s\S]*box-shadow:\s*var\(--fvplus-dashboard-quick-action-shadow\) !important/);
     assert.match(dashboardCss, /\.fv-dashboard-quick-action:hover,\s*[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fvplus-dashboard-quick-action-hover-top\),\s*var\(--fvplus-dashboard-quick-action-hover-bottom\)\) !important/);
+    assert.doesNotMatch(dashboardCss, /\.fv-dashboard-quick-action:hover,\s*[\s\S]*transform:\s*translateY\(-1px\)/);
     assert.match(dashboardCss, /data-fv-layout="legacy"/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-health-emphasis-enabled/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-density-compact/);

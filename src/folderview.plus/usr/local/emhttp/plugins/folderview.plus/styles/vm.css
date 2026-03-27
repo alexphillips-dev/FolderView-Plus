@@ -25,9 +25,9 @@
     --fvplus-folder-dropdown-min-width: 12px;
     --fvplus-folder-dropdown-height: 16px;
     --fvplus-folder-dropdown-padding: 0 4px;
-    --fvplus-folder-dropdown-radius: 7px;
-    --fvplus-folder-dropdown-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 6px 14px rgba(0, 0, 0, 0.18);
-    --fvplus-folder-dropdown-hover-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 8px 18px rgba(0, 0, 0, 0.22);
+    --fvplus-folder-dropdown-radius: 5px;
+    --fvplus-folder-dropdown-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05), 0 1px 3px rgba(0, 0, 0, 0.18);
+    --fvplus-folder-dropdown-hover-shadow: inset 0 0 0 1px rgba(255, 191, 123, 0.12), 0 2px 5px rgba(0, 0, 0, 0.18);
     --fvplus-folder-dropdown-right-margin: var(--fvplus-vm-folder-dropdown-right-margin, 10px);
     --fvplus-folder-dropdown-icon-size: 11px;
     --fvplus-preview-wrapper-margin-top: 6px;

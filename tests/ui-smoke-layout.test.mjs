@@ -89,7 +89,7 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
     assert.match(settingsPage, /id="fv-setup-assistant-overlay"/);
     assert.match(settingsPage, /id="fv-setup-assistant-dialog"/);
     assert.match(settingsPage, /id="fv-setup-assistant-content"/);
-    assert.match(settingsPage, /id="fv-settings-action-bar"/);
+    assert.doesNotMatch(settingsPage, /id="fv-settings-action-bar"/);
     assert.match(settingsPage, /id="fv-runtime-resolved-panel"/);
     assert.match(settingsPage, /folderviewplus\.request\.js/);
     assert.match(settingsPage, /folderviewplus\.theme-resolver\.js/);
@@ -242,13 +242,11 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderCss, /\.fv-inherited-badge\s*\{[\s\S]*padding:\s*0\.02em 0\.32em;[\s\S]*font-size:\s*0\.68rem;[\s\S]*text-transform:\s*uppercase;/);
 });
 
-test('mobile action bar and import progress keep compact viewport guards', () => {
+test('settings no longer renders a mobile action bar and keeps import progress viewport guards', () => {
     assert.match(settingsCss, /@media \(max-width: 760px\)/);
-    assert.match(settingsCss, /#fv-settings-action-bar\s*\{[\s\S]*max-width:\s*calc\(100%\s*-\s*1rem\)/);
-    assert.doesNotMatch(settingsCss, /#fv-settings-action-bar\s*\{[^}]*max-width:\s*calc\(100vw/);
-    assert.match(settingsCss, /\.fv-settings-action-wrap\s*\{/);
-    assert.match(settingsCss, /#fv-settings-action-bar\.is-hidden/);
-    assert.match(settingsCss, /\.fv-action-buttons\s*\{[\s\S]*overflow-x:\s*auto/);
+    assert.doesNotMatch(settingsCss, /#fv-settings-action-bar/);
+    assert.doesNotMatch(settingsCss, /\.fv-settings-action-wrap\s*\{/);
+    assert.doesNotMatch(settingsCss, /\.fv-action-buttons\s*\{/);
     assert.match(settingsCss, /#import-apply-progress-dialog\s*\{[\s\S]*max-width:\s*min\([0-9]+px,\s*calc\(100vw\s*-\s*1\.5rem\)\)/);
     assert.match(settingsCss, /@media \(max-width: 760px\)\s*\{[\s\S]*#import-apply-progress-dialog/);
 });
@@ -618,7 +616,8 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.doesNotMatch(settingsJs, /fv-save-dock/);
     assert.doesNotMatch(settingsJs, /fv-action-more/);
     assert.doesNotMatch(settingsJs, /fv-action-save-close/);
-    assert.match(settingsJs, /<div class="fv-settings-action-wrap">[\s\S]*id="fv-action-reset-section"/);
+    assert.doesNotMatch(settingsJs, /fv-settings-action-wrap/);
+    assert.doesNotMatch(settingsJs, /fv-action-reset-section/);
     assert.match(settingsJs, /const getTrackedInputs = \(\) => \{/);
     assert.match(settingsJs, /dirtyTracker && typeof dirtyTracker\.getTrackedInputs === 'function'/);
     assert.match(settingsJs, /resolveAffectedFolderIdsFromOperations\(resolvedType, operations\)/);

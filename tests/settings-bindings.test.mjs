@@ -136,8 +136,8 @@ test('settings action dock tracks only explicit/manual fields and excludes insta
     assert.match(script, /togglealltemplateselections\(/);
     assert.match(script, /if \(!handler\) \{\s*\/\/ Inputs without an onchange handler[\s\S]*return true;\s*\}/);
     assert.match(script, /if \(String\(input\.dataset\.fvTrackSave \|\| ''\) === '1'\) \{\s*return false;\s*\}/);
-    assert.match(script, /const cancelActionBarChanges = \(\) =>/);
-    assert.match(script, /\$\('#fv-action-cancel'\)\.off\('click\.fvui'\)\.on\('click\.fvui', \(\) => \{\s*cancelActionBarChanges\(\);/);
+    assert.doesNotMatch(script, /const cancelActionBarChanges = \(\) =>/);
+    assert.doesNotMatch(script, /#fv-action-cancel/);
 });
 
 test('settings table width preset controls are wired as instant-persist inputs', () => {

@@ -202,7 +202,7 @@ test('browser smoke scripts require folder editor coverage and include real edit
     assert.match(browserSmokeShell, /node "\$\{ROOT_DIR\}\/scripts\/browser_smoke\.mjs"/);
     assert.match(browserSmokeNode, /playwright/);
     assert.match(browserSmokeNode, /#fv-settings-topbar/);
-    assert.match(browserSmokeNode, /#fv-settings-action-bar/);
+    assert.match(browserSmokeNode, /#fv-settings-search/);
     assert.match(browserSmokeNode, /#import-preview-dialog/);
     assert.match(browserSmokeNode, /FVPLUS_BROWSER_SMOKE_REQUIRE_FOLDER_EDITOR/);
     assert.match(browserSmokeNode, /FVPLUS_BROWSER_SMOKE_DOCKER_URL/);

@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.27.13">
-<!ENTITY md5 "a5969b65b4c36c6ff0f0507e74325cf2">
+<!ENTITY version "2026.03.27.14">
+<!ENTITY md5 "be2098b847268f238f5ebf85fbedf6b1">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.27.14
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
 
 ###2026.03.27.13
 - Fix: Keep the Settings save dock hidden for operational advanced tools like bulk assignment, runtime actions, backups, templates, conflict scans, health cards, and diagnostics.

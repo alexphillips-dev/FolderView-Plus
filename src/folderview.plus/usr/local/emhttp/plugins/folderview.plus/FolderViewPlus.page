@@ -1179,8 +1179,6 @@ if (!empty($fvplusRuntimeConflicts)) {
     <div id="fv-setup-assistant-content"></div>
 </div>
 <div id="fv-toast-host" class="fv-toast-host" aria-live="polite" aria-atomic="false"></div>
-
-<div id="fv-settings-action-bar"></div>
 </div>
 
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>"></script>

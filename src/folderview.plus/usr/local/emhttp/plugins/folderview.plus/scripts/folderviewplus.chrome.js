@@ -24,19 +24,7 @@
         </div>
     `;
 
-    const getActionBarHtml = () => `
-        <div class="fv-settings-action-wrap">
-            <div class="fv-action-buttons">
-                <button type="button" id="fv-action-save"><i class="fa fa-save"></i> Save</button>
-                <button type="button" id="fv-action-cancel"><i class="fa fa-undo"></i> Cancel</button>
-                <button type="button" id="fv-action-reset-section"><i class="fa fa-refresh"></i> Reset section</button>
-            </div>
-            <span id="fv-action-status" class="fv-action-status" aria-live="polite"></span>
-        </div>
-    `;
-
     window.FolderViewPlusSettingsChrome = Object.freeze({
-        getTopbarHtml,
-        getActionBarHtml
+        getTopbarHtml
     });
 })();

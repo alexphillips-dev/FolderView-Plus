@@ -23,11 +23,11 @@ const wizardCardToplineBlock = (settingsCss.match(/\.fv-setup-card::before\s*\{[
 test('settings page wraps plugin UI in a theme-safe root container', () => {
     assert.match(settingsPage, /<div id="fv-settings-root" class="fv-theme-safe">/);
     assert.match(settingsPage, /<div id="fv-settings-topbar"><\/div>/);
-    assert.match(settingsPage, /<div id="fv-settings-action-bar"><\/div>/);
+    assert.doesNotMatch(settingsPage, /fv-settings-action-bar/);
 });
 
 test('theme compatibility: global focus and body selectors are scoped to plugin root', () => {
-    assert.match(settingsCss, /#fv-settings-root\s*\{\s*[\s\S]*padding-bottom:\s*calc\(64px\s*\+\s*var\(--fv-unraid-bottom-bar-offset\)\s*\+\s*env\(safe-area-inset-bottom,\s*0px\)\)/);
+    assert.match(settingsCss, /#fv-settings-root\s*\{\s*[\s\S]*padding-bottom:\s*calc\(1rem\s*\+\s*env\(safe-area-inset-bottom,\s*0px\)\)/);
     assert.match(settingsCss, /#fv-settings-root button:focus-visible/);
     assert.match(settingsCss, /#fv-settings-root input:focus-visible/);
     assert.match(settingsCss, /#fv-settings-root select:focus-visible/);

@@ -263,7 +263,7 @@ if (window.FolderViewPlusThemeResolverModuleLoaded !== true || !themeResolver) {
 } else {
     setFatalBannerModuleStatus('folderviewplus.theme-resolver.js', 'ok', 'theme resolver ready');
 }
-if (!settingsChrome || typeof settingsChrome.getTopbarHtml !== 'function' || typeof settingsChrome.getActionBarHtml !== 'function') {
+if (!settingsChrome || typeof settingsChrome.getTopbarHtml !== 'function') {
     bootstrapMissingModules.push('folderviewplus.chrome.js');
     setFatalBannerModuleStatus('folderviewplus.chrome.js', 'missing', 'settings chrome exports unavailable');
 } else {
@@ -641,8 +641,7 @@ const settingsUiState = {
     expandedAdvancedSections: new Set(),
     knownAdvancedSections: new Set(),
     hasExpandedAdvancedPreference: false,
-    wizardShown: false,
-    unsavedCount: 0
+    wizardShown: false
 };
 const createAdvancedModuleLoadEntry = () => ({
     loaded: false,
@@ -1273,41 +1272,6 @@ const setAdvancedTab = (tab, persist = true) => {
     }
 };
 
-const setActionBarStatus = (text) => {
-    const status = $('#fv-action-status');
-    if (!status.length) {
-        return;
-    }
-    const message = String(text || '').trim();
-    status.text(message);
-    status.toggleClass('is-visible', message !== '');
-};
-
-const syncActionDockVisibility = () => {
-    const count = Number(settingsUiState.unsavedCount || 0);
-    const bar = $('#fv-settings-action-bar');
-    bar.toggleClass('is-hidden', count <= 0);
-    bar.attr('data-dirty', count > 0 ? '1' : '0');
-};
-
-const updateActionBarSaveState = () => {
-    const changed = getChangedTrackedInputs();
-    const count = changed.length;
-    settingsUiState.unsavedCount = count;
-    const saveButton = $('#fv-action-save');
-    const cancelButton = $('#fv-action-cancel');
-    const resetButton = $('#fv-action-reset-section');
-    saveButton.prop('disabled', count === 0);
-    cancelButton.prop('disabled', count === 0);
-    resetButton.prop('disabled', count === 0);
-    if (count === 0) {
-        setActionBarStatus('');
-    } else {
-        setActionBarStatus(`${count} pending change${count === 1 ? '' : 's'} to save.`);
-    }
-    syncActionDockVisibility();
-};
-
 const captureSettingsBaseline = () => {
     if (dirtyTracker && typeof dirtyTracker.captureBaseline === 'function') {
         dirtyTracker.captureBaseline(
@@ -1321,7 +1285,6 @@ const captureSettingsBaseline = () => {
             settingsUiState.baselineByInputId.set(input.id, getInputSerializedValue(input));
         }
     }
-    updateActionBarSaveState();
 };
 
 const isInputInvalidForUi = (input) => {
@@ -1391,9 +1354,6 @@ const buildSettingsSections = () => {
             }
             // Keep shared modals outside section visibility toggles so dialogs never render blank.
             if (cursor.id === 'import-preview-dialog') {
-                break;
-            }
-            if (cursor.id === 'fv-settings-action-bar') {
                 break;
             }
             nodes.push(cursor);
@@ -1635,7 +1595,6 @@ const toggleAdvancedTabCompactState = () => {
     applySettingsSectionVisibility();
     syncSectionJumpOptions();
     refreshSectionHealthBadges();
-    updateActionBarSaveState();
 };
 
 const toggleAdvancedSectionByKey = (sectionKey) => {
@@ -1660,7 +1619,6 @@ const toggleAdvancedSectionByKey = (sectionKey) => {
     applySettingsSectionVisibility();
     syncSectionJumpOptions();
     refreshSectionHealthBadges();
-    updateActionBarSaveState();
     return true;
 };
 
@@ -1770,7 +1728,6 @@ const setSettingsMode = (mode) => {
     applySettingsSectionVisibility();
     syncSectionJumpOptions();
     refreshSectionHealthBadges();
-    updateActionBarSaveState();
 };
 
 const getServerSettingsMode = () => {
@@ -1835,7 +1792,6 @@ const setSettingsSearchQuery = (query) => {
     applySettingsSectionVisibility();
     syncSectionJumpOptions();
     refreshSectionHealthBadges();
-    updateActionBarSaveState();
 };
 
 const setSearchAllAdvanced = (enabled) => {
@@ -1848,7 +1804,6 @@ const setSearchAllAdvanced = (enabled) => {
     applySettingsSectionVisibility();
     syncSectionJumpOptions();
     refreshSectionHealthBadges();
-    updateActionBarSaveState();
 };
 
 const refreshSectionHealthBadges = () => {
@@ -1891,78 +1846,6 @@ const refreshSectionHealthBadges = () => {
             badge.textContent = 'all good';
         }
     }
-};
-
-const saveActionBarChanges = async () => {
-    const changedInputs = getChangedTrackedInputs();
-    changedInputs.forEach((input) => {
-        $(input).trigger('change');
-    });
-    captureSettingsBaseline();
-    refreshSectionHealthBadges();
-};
-
-const cancelActionBarChanges = () => {
-    const changedInputs = getChangedTrackedInputs();
-    if (changedInputs.length <= 0) {
-        updateActionBarSaveState();
-        return;
-    }
-    const revertedInputs = dirtyTracker && typeof dirtyTracker.applyBaselineValues === 'function'
-        ? dirtyTracker.applyBaselineValues(changedInputs, settingsUiState.baselineByInputId)
-        : changedInputs;
-    for (const input of revertedInputs) {
-        if (!(dirtyTracker && typeof dirtyTracker.applyBaselineValues === 'function')) {
-            const baseline = settingsUiState.baselineByInputId.get(input.id);
-            if (input.type === 'checkbox') {
-                input.checked = baseline === '1';
-            } else {
-                input.value = baseline;
-            }
-        }
-        $(input).trigger('input');
-        $(input).trigger('change');
-    }
-    refreshInputInvalidStyles();
-    refreshSectionHealthBadges();
-    updateActionBarSaveState();
-    setActionBarStatus('');
-};
-
-const resetCurrentSectionToBaseline = () => {
-    if (!settingsUiState.activeSectionKey) {
-        setActionBarStatus('Select a section first.');
-        return;
-    }
-    const section = settingsUiState.sections.find((entry) => entry.key === settingsUiState.activeSectionKey);
-    if (!section) {
-        return;
-    }
-    const seen = new Set();
-    for (const node of section.nodes) {
-        if (!(node instanceof HTMLElement)) {
-            continue;
-        }
-        const inputs = node.querySelectorAll('input[id], select[id], textarea[id]');
-        for (const input of inputs) {
-            if (seen.has(input.id) || !settingsUiState.baselineByInputId.has(input.id)) {
-                continue;
-            }
-            seen.add(input.id);
-            const baseline = settingsUiState.baselineByInputId.get(input.id);
-            if (input.type === 'checkbox') {
-                input.checked = baseline === '1';
-            } else {
-                input.value = baseline;
-            }
-            $(input).trigger('input');
-            $(input).trigger('change');
-        }
-    }
-    refreshInputInvalidStyles();
-    refreshSectionHealthBadges();
-    updateActionBarSaveState();
-    setActionBarStatus(`Reset ${section.title || 'current section'} to saved values.`);
 };
 
 const ensureRegexPresetUi = (type) => {
@@ -2154,8 +2037,7 @@ const initSettingsControls = () => {
         return;
     }
     const controls = $('#fv-settings-topbar');
-    const actionBar = $('#fv-settings-action-bar');
-    if (!controls.length || !actionBar.length) {
+    if (!controls.length) {
         return;
     }
 
@@ -2191,20 +2073,6 @@ const initSettingsControls = () => {
         $('.fv-customizations-header').after('<div id="fv-advanced-nav" class="fv-advanced-nav" style="display:none"></div>');
     }
 
-    const actionBarHtml = settingsChrome && typeof settingsChrome.getActionBarHtml === 'function'
-        ? settingsChrome.getActionBarHtml()
-        : `
-            <div class="fv-settings-action-wrap">
-                <div class="fv-action-buttons">
-                    <button type="button" id="fv-action-save"><i class="fa fa-save"></i> Save</button>
-                    <button type="button" id="fv-action-cancel"><i class="fa fa-undo"></i> Cancel</button>
-                    <button type="button" id="fv-action-reset-section"><i class="fa fa-refresh"></i> Reset section</button>
-                </div>
-                <span id="fv-action-status" class="fv-action-status" aria-live="polite"></span>
-            </div>
-        `;
-    actionBar.html(actionBarHtml);
-
     $('.fv-mode-btn').off('click.fvui').on('click.fvui', (event) => {
         const mode = String($(event.currentTarget).attr('data-mode') || 'basic');
         setSettingsMode(mode);
@@ -2214,15 +2082,6 @@ const initSettingsControls = () => {
     });
     $('#fv-search-all-advanced').off('change.fvui').on('change.fvui', (event) => {
         setSearchAllAdvanced($(event.currentTarget).prop('checked') === true);
-    });
-    $('#fv-action-save').off('click.fvui').on('click.fvui', () => {
-        void saveActionBarChanges();
-    });
-    $('#fv-action-cancel').off('click.fvui').on('click.fvui', () => {
-        cancelActionBarChanges();
-    });
-    $('#fv-action-reset-section').off('click.fvui').on('click.fvui', () => {
-        resetCurrentSectionToBaseline();
     });
     $('#fv-run-wizard').off('click.fvui').on('click.fvui', () => {
         runQuickSetupWizard(true);
@@ -2255,7 +2114,6 @@ const initSettingsControls = () => {
     $(document).off('input.fvhealth change.fvhealth', 'input,select,textarea').on('input.fvhealth change.fvhealth', 'input,select,textarea', () => {
         refreshInputInvalidStyles();
         refreshSectionHealthBadges();
-        updateActionBarSaveState();
     });
 
     $(document).off('click.fvpreset', '.rule-presets button').on('click.fvpreset', '.rule-presets button', (event) => {
@@ -2293,7 +2151,6 @@ const initSettingsControls = () => {
         applySettingsSectionVisibility();
         syncSectionJumpOptions();
         refreshSectionHealthBadges();
-        updateActionBarSaveState();
     });
     $(document).off('click.fvadvretry', '[data-fv-advanced-module-retry]').on('click.fvadvretry', '[data-fv-advanced-module-retry]', (event) => {
         event.preventDefault();
@@ -2409,7 +2266,6 @@ const refreshSettingsUx = () => {
     syncSectionJumpOptions();
     refreshInputInvalidStyles();
     refreshSectionHealthBadges();
-    updateActionBarSaveState();
     ADVANCED_MODULE_KEYS.forEach((moduleKey) => {
         renderAdvancedModuleStatus(moduleKey);
     });

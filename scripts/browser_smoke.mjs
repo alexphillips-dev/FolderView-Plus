@@ -544,7 +544,7 @@ const runDashboardQuickRailSmoke = async (page, { browserName, url }) => {
 
 const waitForSettingsShell = async (page) => {
     await page.locator('#fv-settings-topbar').waitFor({ state: 'visible', timeout: timeoutMs });
-    await page.locator('#fv-settings-action-bar').waitFor({ state: 'visible', timeout: timeoutMs });
+    await page.locator('#fv-settings-search').waitFor({ state: 'visible', timeout: timeoutMs });
 };
 
 const waitForFolderEditorReady = async (page, { type, expectedMode }) => {

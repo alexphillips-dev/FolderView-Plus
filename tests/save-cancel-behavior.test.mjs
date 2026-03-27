@@ -19,19 +19,17 @@ test('dirty tracker module exports reusable staged-save helpers', () => {
     assert.match(dirtyTrackerJs, /const applyBaselineValues = \(inputs, baselineByInputId\) =>/);
 });
 
-test('settings save/cancel flow uses centralized dirty tracking and baseline restore', () => {
+test('settings runtime keeps centralized dirty tracking and baseline capture without a staged save dock', () => {
     assert.match(settingsJs, /const dirtyTracker = window\.FolderViewPlusDirtyTracker \|\| null;/);
     assert.match(settingsJs, /const getSectionBehaviorHint = \(sectionOrKey = null\) =>/);
     assert.match(settingsJs, /const getChangedTrackedInputs = \(\) =>/);
     assert.match(settingsJs, /dirtyTracker\.getChangedInputs\(/);
-    assert.match(settingsJs, /const saveActionBarChanges = async \(\) =>/);
-    assert.match(settingsJs, /const changedInputs = getChangedTrackedInputs\(\);/);
-    assert.match(settingsJs, /const cancelActionBarChanges = \(\) =>/);
-    assert.match(settingsJs, /dirtyTracker && typeof dirtyTracker\.applyBaselineValues === 'function'/);
-    assert.match(settingsJs, /\$\(input\)\.trigger\('input'\);/);
-    assert.match(settingsJs, /\$\(input\)\.trigger\('change'\);/);
     assert.match(settingsJs, /const captureSettingsBaseline = \(\) =>/);
     assert.match(settingsJs, /dirtyTracker\.captureBaseline\(/);
+    assert.doesNotMatch(settingsJs, /const saveActionBarChanges = async \(\) =>/);
+    assert.doesNotMatch(settingsJs, /const cancelActionBarChanges = \(\) =>/);
+    assert.doesNotMatch(settingsJs, /const resetCurrentSectionToBaseline = \(\) =>/);
+    assert.doesNotMatch(settingsJs, /fv-settings-action-bar/);
     assert.doesNotMatch(settingsJs, /fv-action-save-close/);
 });
 
@@ -47,16 +45,13 @@ test('folder reordering remains instant-persist and outside staged save/cancel d
     assert.ok(!/captureSettingsBaseline\(\)/.test(moveBlock), 'moveFolderRow should stay instant-persist.');
 });
 
-test('cancel restores staged fields only and never replays instant reorder mutations', () => {
-    const cancelBlockMatch = settingsJs.match(/const cancelActionBarChanges = \(\) => \{([\s\S]*?)\n\};/);
-    assert.ok(cancelBlockMatch, 'Expected cancelActionBarChanges function block to exist.');
-    const cancelBlock = cancelBlockMatch?.[1] || '';
-    assert.match(cancelBlock, /dirtyTracker && typeof dirtyTracker\.applyBaselineValues === 'function'/);
-    assert.match(cancelBlock, /const changedInputs = getChangedTrackedInputs\(\);/);
-    assert.match(cancelBlock, /\$\(input\)\.trigger\('change'\);/);
-    assert.ok(!/persistManualOrder\(/.test(cancelBlock), 'Cancel should not persist or replay manual order mutations.');
-    assert.ok(!/persistManualOrderFromDom\(/.test(cancelBlock), 'Cancel should not recompute DOM order.');
-    assert.ok(!/moveFolderRow\(/.test(cancelBlock), 'Cancel should not call folder reorder handlers.');
+test('legacy staged-save dock helpers stay removed from the settings runtime', () => {
+    assert.doesNotMatch(settingsJs, /saveActionBarChanges/);
+    assert.doesNotMatch(settingsJs, /cancelActionBarChanges/);
+    assert.doesNotMatch(settingsJs, /resetCurrentSectionToBaseline/);
+    assert.doesNotMatch(settingsJs, /#fv-action-save/);
+    assert.doesNotMatch(settingsJs, /#fv-action-cancel/);
+    assert.doesNotMatch(settingsJs, /#fv-action-reset-section/);
 });
 
 test('bulk assignment helpers stay out of staged save tracking', () => {

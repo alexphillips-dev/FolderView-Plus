@@ -70,18 +70,17 @@ test('settings stylesheet keeps required mobile advanced accordion rules', () =>
     assert.match(settingsCss, /\.fv-settings-right\s*\{[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s*auto\s*auto/);
 });
 
-test('settings action bar reserves space above Unraid bottom status bar', () => {
+test('settings layout keeps toast offset and minimal bottom padding without a save dock', () => {
     assert.match(settingsCss, /--fv-unraid-bottom-bar-offset:\s*36px/);
-    assert.match(settingsCss, /bottom:\s*calc\(var\(--fv-unraid-bottom-bar-offset\)\s*\+\s*env\(safe-area-inset-bottom,\s*0px\)\)/);
-    assert.match(settingsCss, /padding-bottom:\s*calc\(64px\s*\+\s*var\(--fv-unraid-bottom-bar-offset\)\s*\+\s*env\(safe-area-inset-bottom,\s*0px\)\)/);
+    assert.match(settingsCss, /\.fv-toast-host\s*\{[\s\S]*bottom:\s*calc\(var\(--fv-unraid-bottom-bar-offset\)\s*\+\s*0\.8rem\)/);
+    assert.match(settingsCss, /#fv-settings-root\s*\{[\s\S]*padding-bottom:\s*calc\(1rem\s*\+\s*env\(safe-area-inset-bottom,\s*0px\)\)/);
 });
 
-test('mobile action bar stays compact and horizontally scrollable', () => {
+test('settings mobile shell no longer renders the legacy action bar', () => {
     assert.match(settingsCss, /@media \(max-width: 760px\)/);
-    assert.match(settingsCss, /#fv-settings-action-bar\s*\{[\s\S]*max-width:\s*calc\(100%\s*-\s*1rem\)/);
-    assert.match(settingsCss, /\.fv-action-status\s*\{[\s\S]*display:\s*none/);
-    assert.match(settingsCss, /\.fv-settings-action-wrap\s*\{[\s\S]*width:\s*min\(92vw,\s*420px\)/);
-    assert.match(settingsCss, /\.fv-action-buttons\s*\{[\s\S]*flex-wrap:\s*nowrap/);
-    assert.match(settingsCss, /\.fv-action-buttons\s*\{[\s\S]*overflow-x:\s*auto/);
-    assert.match(settingsCss, /\.fv-action-buttons > button\s*\{[\s\S]*flex:\s*0 0 auto/);
+    assert.doesNotMatch(settingsPage, /fv-settings-action-bar/);
+    assert.doesNotMatch(settingsCss, /#fv-settings-action-bar/);
+    assert.doesNotMatch(settingsCss, /\.fv-settings-action-wrap/);
+    assert.doesNotMatch(settingsCss, /\.fv-action-buttons/);
+    assert.doesNotMatch(settingsCss, /\.fv-action-status/);
 });

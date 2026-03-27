@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.43">
-<!ENTITY md5 "46fd03962e500f8475e30c5d60445d81">
+<!ENTITY version "2026.03.26.44">
+<!ENTITY md5 "21507f0cb313a13accbc3ae2fe7fdfb8">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.44
+- Fix: Removed the Docker preview member action-sheet module from the Docker page, so clicking Docker containers in folder previews no longer opens the large FolderView Plus popup window.
+- Fix: Docker runtime now strips stale preview member popup trigger attributes and explicitly unbinds the legacy member-menu click handlers to keep the popup path disabled even after cached or mixed assets.
+- Quality: Updated Docker runtime architecture, overflow, and security guards so the removed preview popup module stays out of the Docker page and runtime.
+
 
 ###2026.03.26.43
 - Fix: FolderView Plus no longer opens the large preview popup panel when clicking Docker containers in folder previews, eliminating the duplicate click interaction on the Docker page.

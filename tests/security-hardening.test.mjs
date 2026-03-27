@@ -104,7 +104,7 @@ test('settings and folder pages load extracted support modules before their main
     assert.match(dashboardPage, /dashboard\.folder-match-cache\.js/);
     assert.match(dashboardPage, /dashboard\.layout-quickrail\.js[\s\S]*dashboard\.folder-match-cache\.js[\s\S]*dashboard\.js/);
     assert.match(dockerPage, /folder\.runtime\.state-observers\.js/);
-    assert.match(dockerPage, /docker\.member-menu\.js/);
+    assert.doesNotMatch(dockerPage, /docker\.member-menu\.js/);
     assert.match(dockerPage, /folder\.runtime\.state-observers\.js[\s\S]*docker\.js/);
     assert.match(vmPage, /folder\.runtime\.state-observers\.js[\s\S]*vm\.js/);
 });

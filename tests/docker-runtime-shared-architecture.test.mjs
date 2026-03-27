@@ -19,7 +19,6 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     const sharedIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.runtime.shared.js');
     const stateObserverIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/folder.runtime.state-observers.js');
     const modulesIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.modules.js');
-    const menuIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.member-menu.js');
     const runtimeIndex = dockerPage.indexOf('/plugins/folderview.plus/scripts/docker.js');
     const sharedCssIndex = dockerPage.indexOf('/plugins/folderview.plus/styles/runtime.shared.css');
     const dockerCssIndex = dockerPage.indexOf('/plugins/folderview.plus/styles/docker.css');
@@ -28,10 +27,10 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(sharedIndex >= 0, 'shared runtime script include is missing');
     assert.ok(stateObserverIndex >= 0, 'runtime state observer script include is missing');
     assert.ok(modulesIndex >= 0, 'docker modules script include is missing');
-    assert.ok(menuIndex >= 0, 'docker member menu script include is missing');
     assert.ok(runtimeIndex >= 0, 'docker runtime script include is missing');
     assert.ok(sharedCssIndex >= 0, 'shared runtime stylesheet include is missing');
     assert.ok(dockerCssIndex >= 0, 'docker stylesheet include is missing');
+    assert.equal(dockerPage.includes('/plugins/folderview.plus/scripts/docker.member-menu.js'), false, 'docker member menu script include should be removed');
     assert.match(dockerPage, /window\.FolderViewPlusFatalRuntimeContext = \{/);
     assert.match(dockerPage, /page:\s*'Docker'/);
     assert.match(dockerPage, /hostSelector:\s*'\.canvas,\s*#fvplus-docker-runtime-banner-host'/);
@@ -41,7 +40,6 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.ok(sharedIndex < modulesIndex, 'shared runtime must load before docker.modules.js');
     assert.ok(sharedIndex < stateObserverIndex, 'shared runtime must load before runtime state observer module');
     assert.ok(stateObserverIndex < runtimeIndex, 'runtime state observer module must load before docker.js');
-    assert.ok(menuIndex < runtimeIndex, 'docker member menu module must load before docker.js');
     assert.ok(sharedIndex < runtimeIndex, 'shared runtime must load before docker.js');
     assert.ok(sharedCssIndex < dockerCssIndex, 'shared runtime stylesheet must load before docker.css');
 });
@@ -82,13 +80,14 @@ test('docker runtime consumes shared state store and guarded async action wrappe
     assert.match(dockerJs, /FolderView Plus Docker runtime bootstrap failed/);
     assert.match(dockerJs, /reportDockerBootstrapDependencyBanner\(dockerBootstrapMissingModules\);/);
     assert.match(dockerJs, /const runtimeStateObserverModule = window\.FolderViewPlusRuntimeStateObservers \|\| null;/);
-    assert.match(dockerJs, /const dockerPreviewMemberMenuModule = window\.FolderViewDockerPreviewMemberMenu \|\| null;/);
     assert.match(dockerJs, /dockerRuntimeShared\.createDebugLogger/);
     assert.match(dockerJs, /const dockerRuntimeStateStore = createDockerRuntimeStateStore\(/);
     assert.match(dockerJs, /const dockerActionBoundary = createDockerAsyncActionBoundary\(/);
     assert.match(dockerJs, /const dockerExpandedStateController = runtimeStateObserverModule/);
     assert.match(dockerJs, /const dockerRuntimeThemeReflowController = runtimeStateObserverModule/);
-    assert.match(dockerJs, /dockerPreviewMemberMenuModule\.createController/);
+    assert.match(dockerJs, /\.off\('click\.fvDockerMemberMenuTrigger'\)/);
+    assert.match(dockerJs, /\.off\('click\.fvDockerMemberMenuAction'\)/);
+    assert.doesNotMatch(dockerJs, /FolderViewDockerPreviewMemberMenu/);
     assert.match(dockerJs, /const runDockerGuardedAction = async \(actionName, action, context = \{\}\) =>/);
     assert.match(dockerJs, /window\.getDockerRuntimePerfTelemetrySnapshot =/);
     assert.match(dockerJs, /window\.hideAllTips = hideAllTips;/);

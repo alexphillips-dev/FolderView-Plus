@@ -11,7 +11,6 @@ const applyDockerThemeResolverTokens = (reason = 'docker-runtime:initial', optio
         ? themeResolver.applyResolvedThemeTokens(reason, options)
         : null
 );
-const dockerPreviewMemberMenuModule = window.FolderViewDockerPreviewMemberMenu || null;
 const localDefaultFolderStatusColors = dockerRuntimeShared.DEFAULT_FOLDER_STATUS_COLORS || {
     started: '#ffffff',
     paused: '#b8860b',
@@ -795,16 +794,14 @@ const layoutFolderPreviewRows = ($preview, settings = {}) => {
     finalizePreviewRows($preview, visibleRows, settings);
 };
 const decorateDockerPreviewMemberTriggers = ($elements, folderId, containerName) => {
-    const safeFolderId = String(folderId || '').trim();
-    const safeContainerName = String(containerName || '').trim();
-    if (!$elements || !$elements.length || !safeFolderId || !safeContainerName) {
+    if (!$elements || !$elements.length) {
         return;
     }
     $elements
-        .addClass('fv-docker-member-menu-trigger')
-        .attr('data-folder-id', safeFolderId)
-        .attr('data-container-name', safeContainerName)
-        .attr('title', 'Open container actions');
+        .removeClass('fv-docker-member-menu-trigger')
+        .removeAttr('data-folder-id')
+        .removeAttr('data-container-name')
+        .removeAttr('title');
 };
 const decorateDockerFolderMemberRow = ($row, folderId, containerName) => {
     if (!$row || !$row.length) {
@@ -816,38 +813,9 @@ const decorateDockerFolderMemberRow = ($row, folderId, containerName) => {
         containerName
     );
 };
-const resolveDockerPreviewMemberEntry = (triggerEl) => {
-    return dockerPreviewMemberMenuController
-        ? dockerPreviewMemberMenuController.resolvePreviewMemberEntry(triggerEl)
-        : null;
-};
-const dockerPreviewMemberMenuController = dockerPreviewMemberMenuModule && typeof dockerPreviewMemberMenuModule.createController === 'function'
-    ? dockerPreviewMemberMenuModule.createController({
-        window,
-        $,
-        getGlobalFolders: () => globalFolders,
-        buildRuntimeContainerEntry: (...args) => buildRuntimeContainerEntry(...args),
-        loadlist: (...args) => loadlist(...args),
-        escapeHtml,
-        sanitizeImageSrc,
-        getPreviewContainerStatusMeta,
-        openTerminal: (...args) => openTerminal(...args),
-        updateContainer: (...args) => updateContainer(...args),
-        swal
-    })
-    : null;
-const clearDockerPreviewMemberMenuRegistry = () => {
-    dockerPreviewMemberMenuController?.clearMenuRegistry();
-};
-const buildDockerPreviewMemberMenuActions = (entry) => {
-    return dockerPreviewMemberMenuController
-        ? dockerPreviewMemberMenuController.buildMenuActions(entry)
-        : [];
-};
-const showDockerPreviewMemberMenu = (entry) => {
-    dockerPreviewMemberMenuController?.showMenu(entry);
-};
-dockerPreviewMemberMenuController?.bindMenu();
+$(document)
+    .off('click.fvDockerMemberMenuTrigger')
+    .off('click.fvDockerMemberMenuAction');
 const clampDockerRuntimeColumnWidth = (value, columnIndex = 0) => {
     const parsed = Number(value);
     if (!Number.isFinite(parsed)) {

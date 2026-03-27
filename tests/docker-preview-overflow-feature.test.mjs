@@ -12,7 +12,6 @@ const folderContractJs = read('src/folderview.plus/usr/local/emhttp/plugins/fold
 const folderEditorSharedJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.shared.js');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 const sharedRuntimeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js');
-const dockerMemberMenuJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.member-menu.js');
 const dockerCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css');
 const runtimeSharedCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/runtime.shared.css');
 
@@ -33,7 +32,7 @@ test('folder editor exposes preview row limit control and persists the setting',
     assert.match(folderJs, /previewRows:\s*normalizedPreviewRows,/);
 });
 
-test('docker runtime applies preview row layout limits and enhanced member action menus', () => {
+test('docker runtime applies preview row layout limits and keeps preview member clicks passive', () => {
     assert.match(sharedRuntimeJs, /const getPreviewRowLimitValue = \(settings = \{\}\) =>/);
     assert.match(sharedRuntimeJs, /settings\?\.preview_rows\s*\?\?\s*settings\?\.previewRows/);
     assert.match(sharedRuntimeJs, /const normalizeFolderPreviewRowLimit = \(settings = \{\}\) =>/);
@@ -71,19 +70,16 @@ test('docker runtime applies preview row layout limits and enhanced member actio
     assert.match(dockerJs, /layoutFolderPreviewRows\(\$preview, folder\?\.settings \|\| \{\}\)/);
     assert.match(dockerJs, /decorateDockerFolderMemberRow\(\$containerTR, id, ct\.info\.Name \|\| container_name_in_folder\)/);
     assert.match(dockerJs, /decorateDockerPreviewMemberTriggers\(/);
-    assert.match(dockerJs, /dockerPreviewMemberMenuModule\.createController\(/);
-    assert.match(dockerJs, /const showDockerPreviewMemberMenu = \(entry\) =>/);
-    assert.match(dockerMemberMenuJs, /\.on\('click\.fvDockerMemberMenuTrigger', '\.fv-docker-member-menu-trigger'/);
-    assert.match(dockerMemberMenuJs, /const eventUrl = String\(deps\.eventURL \|\| win\.eventURL \|\| ''\)\.trim\(\);/);
-    assert.match(dockerMemberMenuJs, /const bindMenu = \(\) =>/);
-    assert.match(dockerMemberMenuJs, /const shouldSuppressPreviewMemberMenu = \(entry\) =>/);
-    assert.match(dockerMemberMenuJs, /const contextMode = Number\(folder\?\.settings\?\.context \?\? -1\);/);
-    assert.match(dockerMemberMenuJs, /const contextTrigger = Number\(folder\?\.settings\?\.context_trigger \?\? 0\);/);
-    assert.match(dockerMemberMenuJs, /return contextMode === 2 && contextTrigger !== 1;/);
-    assert.match(dockerMemberMenuJs, /if \(shouldSuppressPreviewMemberMenu\(entry\)\) \{\s*return;\s*\}/);
+    assert.match(dockerJs, /\.removeClass\('fv-docker-member-menu-trigger'\)/);
+    assert.match(dockerJs, /\.removeAttr\('data-folder-id'\)/);
+    assert.match(dockerJs, /\.removeAttr\('data-container-name'\)/);
+    assert.match(dockerJs, /\.off\('click\.fvDockerMemberMenuTrigger'\)/);
+    assert.match(dockerJs, /\.off\('click\.fvDockerMemberMenuAction'\)/);
+    assert.doesNotMatch(dockerJs, /FolderViewDockerPreviewMemberMenu/);
+    assert.doesNotMatch(dockerJs, /showDockerPreviewMemberMenu/);
 });
 
-test('docker styles support multi-row previews and member action sheet styling', () => {
+test('docker styles support multi-row previews without the removed member action sheet styling', () => {
     assert.match(dockerCss, /\.hover:hover div\.folder-preview div:not\(\.folder-preview-row\):not\(\.folder-preview-divider\) \{/);
     assert.match(dockerCss, /\.hover div\.folder-preview div:not\(\.folder-preview-row\):not\(\.folder-preview-divider\) \{/);
     assert.match(runtimeSharedCss, /\.folder-preview \{/);
@@ -121,8 +117,8 @@ test('docker styles support multi-row previews and member action sheet styling',
     assert.match(dockerCss, /\.folder-preview \.fv-preview-webui-placeholder \{[\s\S]*visibility:\s*hidden/);
     assert.match(dockerCss, /\.folder-preview \.fv-preview-webui-placeholder-icon \{/);
     assert.match(dockerCss, /\.fv-docker-preview-mode-1 \{/);
-    assert.match(dockerCss, /\.fv-docker-member-menu-trigger/);
-    assert.match(dockerCss, /\.fv-docker-member-menu-actions/);
-    assert.match(dockerCss, /\.fv-docker-member-menu-action/);
+    assert.doesNotMatch(dockerCss, /\.fv-docker-member-menu-trigger/);
+    assert.doesNotMatch(dockerCss, /\.fv-docker-member-menu-actions/);
+    assert.doesNotMatch(dockerCss, /\.fv-docker-member-menu-action/);
     assert.doesNotMatch(dockerCss, /tr\.folder > td\[colspan\]/);
 });

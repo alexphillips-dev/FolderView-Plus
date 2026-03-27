@@ -350,6 +350,7 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
     }
 
     assert.match(backmergeWorkflow, /Validate merged dev state before push/);
+    assert.match(backmergeWorkflow, /FVPLUS_EXPECT_PLUGIN_BRANCH:\s*'dev'/);
     assert.match(backmergeWorkflow, /bash scripts\/run_ci_suite\.sh/);
     assert.match(backmergeWorkflow, /Setup CI environment/);
     assert.match(backmergeWorkflow, /uses:\s*\.\/\.github\/actions\/setup-ci-env/);

@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.27.27">
-<!ENTITY md5 "85adcd6f7a7e4ad63f79d93f6c0a1e19">
+<!ENTITY version "2026.03.27.30">
+<!ENTITY md5 "95b1dd4de627c11391069c4000886b5d">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.27.30
+- Docs: Refresh the repository README, bundled plugin README, and troubleshooting guidance so the documented install, settings, rules, recovery, diagnostics, and theme behavior match the current plugin UX.
+- Docs: Update the packaged plugin description strings to reflect Docker, VM, and Dashboard support plus Setup Assistant, bulk assignment, templates, recovery tools, and copyable diagnostics.
+
 
 ###2026.03.27.27
 - UI/UX: Roll up the promoted `dev` line since main `2026.03.26.47`, rebuilding advanced settings around clearer Diagnostics, Folder Health, Bulk Assignment, Rules, Recovery, and Operations workspaces instead of the older split technical panels and duplicated modules.

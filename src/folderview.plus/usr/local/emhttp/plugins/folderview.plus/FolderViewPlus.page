@@ -701,68 +701,148 @@ if (!empty($fvplusRuntimeConflicts)) {
 
 <h2 data-fv-section="bulk-assignment" data-fv-advanced="1" data-fv-advanced-group="automation">Bulk assignment</h2>
 <div class="bulk-assign-grid">
-    <div class="rules-panel">
+    <div class="rules-panel bulk-module" data-fv-bulk-type="docker">
         <div class="rules-header">
             <h3>Docker bulk assignment</h3>
             <span class="rules-help">Move multiple containers to one folder. Existing folder membership is cleaned up automatically.</span>
         </div>
-        <div class="bulk-row bulk-target-row">
-            <label for="docker-bulk-folder">Target folder</label>
-            <select id="docker-bulk-folder"></select>
-            <button id="docker-bulk-assign-btn" type="button" onclick="assignSelectedItems('docker')"><i class="fa fa-share-square-o"></i> Preview &amp; assign</button>
+        <div class="bulk-step-strip" aria-hidden="true">
+            <span class="bulk-step-pill is-active" data-fv-bulk-step="target"><span class="bulk-step-index">1</span><span class="bulk-step-copy">Choose target</span></span>
+            <span class="bulk-step-pill" data-fv-bulk-step="select"><span class="bulk-step-index">2</span><span class="bulk-step-copy">Select items</span></span>
+            <span class="bulk-step-pill" data-fv-bulk-step="review"><span class="bulk-step-index">3</span><span class="bulk-step-copy">Review and apply</span></span>
         </div>
-        <div class="bulk-row bulk-filter-row">
-            <input id="docker-bulk-filter" type="text" placeholder="Filter containers" oninput="filterBulkItems('docker', this.value)">
-            <div class="bulk-selection-actions">
-                <button type="button" onclick="bulkItemSelectionAction('docker','all')"><i class="fa fa-check-square-o"></i> Select visible</button>
-                <button type="button" onclick="bulkItemSelectionAction('docker','none')"><i class="fa fa-square-o"></i> Clear</button>
-                <button type="button" onclick="bulkItemSelectionAction('docker','invert')"><i class="fa fa-random"></i> Invert</button>
+        <div class="bulk-summary-grid">
+            <div class="bulk-summary-card">
+                <span class="bulk-summary-label">Target</span>
+                <strong id="docker-bulk-target-summary" class="bulk-summary-value">Choose a folder</strong>
+            </div>
+            <div class="bulk-summary-card">
+                <span class="bulk-summary-label">Available</span>
+                <strong id="docker-bulk-available-summary" class="bulk-summary-value">0</strong>
+            </div>
+            <div class="bulk-summary-card">
+                <span class="bulk-summary-label">Selected</span>
+                <strong id="docker-bulk-selected-summary" class="bulk-summary-value">0</strong>
+            </div>
+            <div class="bulk-summary-card">
+                <span class="bulk-summary-label">Changes</span>
+                <strong id="docker-bulk-action-summary" class="bulk-summary-value">0</strong>
             </div>
         </div>
-        <div class="bulk-row bulk-meta-row">
-            <span id="docker-bulk-selected-count" class="bulk-selected-count">0 selected</span>
-            <span class="rules-help">Use checkboxes to select items, then review the diff before applying.</span>
+        <div class="bulk-stage">
+            <div class="bulk-stage-heading">
+                <strong>1. Choose target</strong>
+                <span>Pick the folder that should receive the selected containers.</span>
+            </div>
+            <div class="bulk-row bulk-target-row">
+                <label for="docker-bulk-folder">Target folder</label>
+                <select id="docker-bulk-folder"></select>
+                <button id="docker-bulk-assign-btn" type="button" onclick="assignSelectedItems('docker')"><i class="fa fa-list-alt"></i> Preview changes</button>
+            </div>
         </div>
-        <div id="docker-bulk-items-list" class="bulk-items-list" role="listbox" aria-label="Docker items for bulk assignment"></div>
-        <select id="docker-bulk-items" class="bulk-items-legacy" multiple size="10" onchange="updateBulkSelectedCount('docker')"></select>
-        <div id="docker-bulk-preview" class="bulk-preview-panel">Select items to preview folder moves.</div>
-        <div id="docker-bulk-result" class="bulk-result-panel">No bulk action run yet.</div>
-        <div class="bulk-result-actions">
-            <button id="docker-bulk-retry-failed" type="button" class="is-hidden" onclick="retryFailedBulkItems('docker')"><i class="fa fa-repeat"></i> Retry failed</button>
+        <div class="bulk-stage">
+            <div class="bulk-stage-heading">
+                <strong>2. Select items</strong>
+                <span>Filter the list, then choose the containers you want moved into the target folder.</span>
+            </div>
+            <div class="bulk-row bulk-filter-row">
+                <input id="docker-bulk-filter" type="text" placeholder="Search containers" oninput="filterBulkItems('docker', this.value)">
+                <div class="bulk-selection-actions">
+                    <button type="button" onclick="bulkItemSelectionAction('docker','all')"><i class="fa fa-check-square-o"></i> All shown</button>
+                    <button type="button" onclick="bulkItemSelectionAction('docker','none')"><i class="fa fa-square-o"></i> Clear</button>
+                    <button type="button" onclick="bulkItemSelectionAction('docker','invert')"><i class="fa fa-random"></i> Invert</button>
+                </div>
+            </div>
+            <div class="bulk-row bulk-meta-row">
+                <span id="docker-bulk-selected-count" class="bulk-selected-count">0 selected</span>
+                <span class="rules-help">Select the items you want to move. The plan updates live below.</span>
+            </div>
+            <div id="docker-bulk-items-list" class="bulk-items-list" role="listbox" aria-label="Docker items for bulk assignment"></div>
+            <select id="docker-bulk-items" class="bulk-items-legacy" multiple size="10" onchange="updateBulkSelectedCount('docker')"></select>
         </div>
-        <div id="docker-bulk-help" class="bulk-help-text"></div>
+        <div class="bulk-stage bulk-stage-review">
+            <div class="bulk-stage-heading">
+                <strong>3. Review and apply</strong>
+                <span id="docker-bulk-help" class="bulk-help-text">Choose a target and select items to see the plan.</span>
+            </div>
+            <div id="docker-bulk-preview" class="bulk-preview-panel">Choose a target and select items to see the plan.</div>
+            <div id="docker-bulk-result" class="bulk-result-panel" hidden>No bulk action run yet.</div>
+            <div class="bulk-result-actions is-hidden">
+                <button id="docker-bulk-retry-failed" type="button" class="is-hidden" onclick="retryFailedBulkItems('docker')"><i class="fa fa-repeat"></i> Retry failed</button>
+            </div>
+        </div>
     </div>
 
-    <div class="rules-panel">
+    <div class="rules-panel bulk-module" data-fv-bulk-type="vm">
         <div class="rules-header">
             <h3>VM bulk assignment</h3>
             <span class="rules-help">Move multiple VMs to one folder. Existing folder membership is cleaned up automatically.</span>
         </div>
-        <div class="bulk-row bulk-target-row">
-            <label for="vm-bulk-folder">Target folder</label>
-            <select id="vm-bulk-folder"></select>
-            <button id="vm-bulk-assign-btn" type="button" onclick="assignSelectedItems('vm')"><i class="fa fa-share-square-o"></i> Preview &amp; assign</button>
+        <div class="bulk-step-strip" aria-hidden="true">
+            <span class="bulk-step-pill is-active" data-fv-bulk-step="target"><span class="bulk-step-index">1</span><span class="bulk-step-copy">Choose target</span></span>
+            <span class="bulk-step-pill" data-fv-bulk-step="select"><span class="bulk-step-index">2</span><span class="bulk-step-copy">Select items</span></span>
+            <span class="bulk-step-pill" data-fv-bulk-step="review"><span class="bulk-step-index">3</span><span class="bulk-step-copy">Review and apply</span></span>
         </div>
-        <div class="bulk-row bulk-filter-row">
-            <input id="vm-bulk-filter" type="text" placeholder="Filter VMs" oninput="filterBulkItems('vm', this.value)">
-            <div class="bulk-selection-actions">
-                <button type="button" onclick="bulkItemSelectionAction('vm','all')"><i class="fa fa-check-square-o"></i> Select visible</button>
-                <button type="button" onclick="bulkItemSelectionAction('vm','none')"><i class="fa fa-square-o"></i> Clear</button>
-                <button type="button" onclick="bulkItemSelectionAction('vm','invert')"><i class="fa fa-random"></i> Invert</button>
+        <div class="bulk-summary-grid">
+            <div class="bulk-summary-card">
+                <span class="bulk-summary-label">Target</span>
+                <strong id="vm-bulk-target-summary" class="bulk-summary-value">Choose a folder</strong>
+            </div>
+            <div class="bulk-summary-card">
+                <span class="bulk-summary-label">Available</span>
+                <strong id="vm-bulk-available-summary" class="bulk-summary-value">0</strong>
+            </div>
+            <div class="bulk-summary-card">
+                <span class="bulk-summary-label">Selected</span>
+                <strong id="vm-bulk-selected-summary" class="bulk-summary-value">0</strong>
+            </div>
+            <div class="bulk-summary-card">
+                <span class="bulk-summary-label">Changes</span>
+                <strong id="vm-bulk-action-summary" class="bulk-summary-value">0</strong>
             </div>
         </div>
-        <div class="bulk-row bulk-meta-row">
-            <span id="vm-bulk-selected-count" class="bulk-selected-count">0 selected</span>
-            <span class="rules-help">Use checkboxes to select items, then review the diff before applying.</span>
+        <div class="bulk-stage">
+            <div class="bulk-stage-heading">
+                <strong>1. Choose target</strong>
+                <span>Pick the folder that should receive the selected VMs.</span>
+            </div>
+            <div class="bulk-row bulk-target-row">
+                <label for="vm-bulk-folder">Target folder</label>
+                <select id="vm-bulk-folder"></select>
+                <button id="vm-bulk-assign-btn" type="button" onclick="assignSelectedItems('vm')"><i class="fa fa-list-alt"></i> Preview changes</button>
+            </div>
         </div>
-        <div id="vm-bulk-items-list" class="bulk-items-list" role="listbox" aria-label="VM items for bulk assignment"></div>
-        <select id="vm-bulk-items" class="bulk-items-legacy" multiple size="10" onchange="updateBulkSelectedCount('vm')"></select>
-        <div id="vm-bulk-preview" class="bulk-preview-panel">Select items to preview folder moves.</div>
-        <div id="vm-bulk-result" class="bulk-result-panel">No bulk action run yet.</div>
-        <div class="bulk-result-actions">
-            <button id="vm-bulk-retry-failed" type="button" class="is-hidden" onclick="retryFailedBulkItems('vm')"><i class="fa fa-repeat"></i> Retry failed</button>
+        <div class="bulk-stage">
+            <div class="bulk-stage-heading">
+                <strong>2. Select items</strong>
+                <span>Filter the list, then choose the VMs you want moved into the target folder.</span>
+            </div>
+            <div class="bulk-row bulk-filter-row">
+                <input id="vm-bulk-filter" type="text" placeholder="Search VMs" oninput="filterBulkItems('vm', this.value)">
+                <div class="bulk-selection-actions">
+                    <button type="button" onclick="bulkItemSelectionAction('vm','all')"><i class="fa fa-check-square-o"></i> All shown</button>
+                    <button type="button" onclick="bulkItemSelectionAction('vm','none')"><i class="fa fa-square-o"></i> Clear</button>
+                    <button type="button" onclick="bulkItemSelectionAction('vm','invert')"><i class="fa fa-random"></i> Invert</button>
+                </div>
+            </div>
+            <div class="bulk-row bulk-meta-row">
+                <span id="vm-bulk-selected-count" class="bulk-selected-count">0 selected</span>
+                <span class="rules-help">Select the VMs you want to move. The plan updates live below.</span>
+            </div>
+            <div id="vm-bulk-items-list" class="bulk-items-list" role="listbox" aria-label="VM items for bulk assignment"></div>
+            <select id="vm-bulk-items" class="bulk-items-legacy" multiple size="10" onchange="updateBulkSelectedCount('vm')"></select>
         </div>
-        <div id="vm-bulk-help" class="bulk-help-text"></div>
+        <div class="bulk-stage bulk-stage-review">
+            <div class="bulk-stage-heading">
+                <strong>3. Review and apply</strong>
+                <span id="vm-bulk-help" class="bulk-help-text">Choose a target and select items to see the plan.</span>
+            </div>
+            <div id="vm-bulk-preview" class="bulk-preview-panel">Choose a target and select items to see the plan.</div>
+            <div id="vm-bulk-result" class="bulk-result-panel" hidden>No bulk action run yet.</div>
+            <div class="bulk-result-actions is-hidden">
+                <button id="vm-bulk-retry-failed" type="button" class="is-hidden" onclick="retryFailedBulkItems('vm')"><i class="fa fa-repeat"></i> Retry failed</button>
+            </div>
+        </div>
     </div>
 </div>
 <hr>

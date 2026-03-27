@@ -323,6 +323,17 @@ test('status detail controls support simple balanced and detailed modes', () => 
 });
 
 test('bulk assignment advanced UX includes filtering, selection helpers, and compatibility-safe fallback', () => {
+    assert.match(page, /class="rules-panel bulk-module" data-fv-bulk-type="docker"/);
+    assert.match(page, /class="rules-panel bulk-module" data-fv-bulk-type="vm"/);
+    assert.match(page, /class="bulk-step-strip"/);
+    assert.match(page, /id="docker-bulk-target-summary"/);
+    assert.match(page, /id="vm-bulk-target-summary"/);
+    assert.match(page, /id="docker-bulk-available-summary"/);
+    assert.match(page, /id="vm-bulk-available-summary"/);
+    assert.match(page, /id="docker-bulk-selected-summary"/);
+    assert.match(page, /id="vm-bulk-selected-summary"/);
+    assert.match(page, /id="docker-bulk-action-summary"/);
+    assert.match(page, /id="vm-bulk-action-summary"/);
     assert.match(page, /id="docker-bulk-filter"/);
     assert.match(page, /id="vm-bulk-filter"/);
     assert.match(page, /id="docker-bulk-selected-count"/);
@@ -341,6 +352,9 @@ test('bulk assignment advanced UX includes filtering, selection helpers, and com
     assert.match(page, /id="vm-bulk-assign-btn"/);
     assert.match(script, /const getBulkAssignableNames = \(type\) =>/);
     assert.match(script, /const buildBulkAssignmentPlan = \(type, folderId, namesInput = null\) =>/);
+    assert.match(script, /const clearBulkExecutionState = \(type\) =>/);
+    assert.match(script, /const syncBulkWorkflowUi = \(type, planInput = null\) =>/);
+    assert.match(script, /const updateBulkPrimaryAction = \(type, plan\) =>/);
     assert.match(script, /const updateBulkPreviewPanel = \(type\) =>/);
     assert.match(script, /const renderBulkChecklist = \(type, visibleNames\) =>/);
     assert.match(script, /const retryFailedBulkItems = async \(type\) =>/);

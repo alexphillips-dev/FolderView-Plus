@@ -125,3 +125,12 @@ test('bulk assignment modules reserve equal item-list height and disable outer p
     assert.match(settingsCss, /\.bulk-assign-grid > \.rules-panel\s*\{[\s\S]*max-height:\s*none !important;[\s\S]*overflow-y:\s*hidden !important;/);
     assert.match(settingsCss, /\.bulk-items-list\s*\{[\s\S]*grid-auto-rows:\s*max-content;[\s\S]*align-content:\s*start;[\s\S]*min-height:\s*210px;[\s\S]*max-height:\s*210px;/);
 });
+
+test('bulk assignment uses staged workflow cards with summary metrics and hidden retry actions by default', () => {
+    assert.match(settingsPage, /class="rules-panel bulk-module" data-fv-bulk-type="docker"[\s\S]*class="bulk-step-strip"[\s\S]*id="docker-bulk-target-summary"[\s\S]*id="docker-bulk-action-summary"/);
+    assert.match(settingsPage, /class="rules-panel bulk-module" data-fv-bulk-type="vm"[\s\S]*class="bulk-step-strip"[\s\S]*id="vm-bulk-target-summary"[\s\S]*id="vm-bulk-action-summary"/);
+    assert.match(settingsCss, /\.bulk-step-strip\s*\{[\s\S]*display:\s*flex;[\s\S]*flex-wrap:\s*wrap;/);
+    assert.match(settingsCss, /\.bulk-summary-grid\s*\{[\s\S]*grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\);/);
+    assert.match(settingsCss, /\.bulk-stage\s*\{[\s\S]*background:\s*rgba\(255,\s*255,\s*255,\s*0\.018\);/);
+    assert.match(settingsCss, /\.bulk-result-actions\.is-hidden\s*\{[\s\S]*display:\s*none !important;/);
+});

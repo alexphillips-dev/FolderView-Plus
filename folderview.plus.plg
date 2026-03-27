@@ -5,9 +5,9 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
 <!ENTITY version "2026.03.27.30">
-<!ENTITY md5 "3078b157273967ef5072ce1a3ae0cc26">
+<!ENTITY md5 "95b1dd4de627c11391069c4000886b5d">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
@@ -16,18 +16,6 @@
 ###2026.03.27.30
 - Docs: Refresh the repository README, bundled plugin README, and troubleshooting guidance so the documented install, settings, rules, recovery, diagnostics, and theme behavior match the current plugin UX.
 - Docs: Update the packaged plugin description strings to reflect Docker, VM, and Dashboard support plus Setup Assistant, bulk assignment, templates, recovery tools, and copyable diagnostics.
-
-
-###2026.03.27.29
-- UI/UX: Roll up the full promoted `dev` line since main `2026.03.26.47`, rebuilding Advanced Settings around clearer Diagnostics, Folder Health, Bulk Assignment, Rules, Recovery, and Operations workspaces instead of the older split technical panels and duplicated modules.
-- Fix: Make the advanced settings experience render correctly across black, white, Azure, and gray themes, including the wizard, diagnostics gutters, shared module cards, and remembered Basic versus Advanced mode so non-dark hosts no longer fall back to broken or unreadable layouts.
-- UI/UX: Simplify the Settings flow by removing the old diagnostics dumps, quick presets, maintenance clutter, and staged save dock, switching the page fully to autosave, modernizing buttons and compact controls, and making the health, rules, recovery, and operations surfaces more direct to use.
-- Quality: Expand regression coverage and release automation around advanced workspace routing, layout contracts, theme compatibility, packaged release validation, and GitHub release workflow guards so the redesigned settings line stays stable on both `main` and `dev`.
-- Quality: Clean up the stale locale and diagnostics CSS leftovers uncovered during the stable promotion so strict CI and Release On Main standards checks now pass cleanly again on `main`.
-
-
-###2026.03.27.28
-- Quality: Remove the stale `file-manager` locale key left behind after the advanced-settings cleanup so the language-usage standards guards, CI, and Release On Main workflow pass cleanly again.
 
 
 ###2026.03.27.27
@@ -4189,7 +4177,7 @@
     </CHANGES>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

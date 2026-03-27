@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.27.07">
-<!ENTITY md5 "ae486840c38f33ee9821959d9fab6044">
+<!ENTITY version "2026.03.27.08">
+<!ENTITY md5 "c5f3dc6827848f3d5b83fcab8a5be2be">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.27.08
+- UI/UX: Make the Docker and VM bulk-assignment modules reserve the same checklist height so the two panels stay visually aligned.
+- UI/UX: Remove the outer advanced-module scrollbar from bulk assignment while keeping the inner container and VM checklist areas scrollable.
+- Quality: Add regression coverage for the matched-height bulk panels and the no-outer-scroll module layout.
+
 
 ###2026.03.27.07
 - UX: Move Conflict inspector into the Rules advanced-settings tab and place it after Auto-assignment rules so Automation stays focused on bulk actions.

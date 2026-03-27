@@ -70,11 +70,12 @@ test('settings page exposes theme fallback controls and runtime self-heal action
     assert.match(page, /folderviewplus\.theme-resolver\.js/);
     assert.match(page, /changeRuntimePref\('docker', 'themeCompatibilityMode', this\.value\)/);
     assert.match(page, /changeRuntimePref\('vm', 'themeCompatibilityMode', this\.value\)/);
-    assert.match(page, /onclick="runThemeSelfHeal\(\)"/);
+    assert.doesNotMatch(page, /onclick="runThemeSelfHeal\(\)"/);
     assert.match(script, /const resolveThemeCompatibilityMode = \(value\) =>/);
     assert.match(script, /const applyDiagnosticsThemeTokens = \(reason = 'runtime', options = \{\}\) =>/);
     assert.match(script, /const getEffectiveThemeCompatibilityMode = \(\) =>/);
     assert.match(script, /const runThemeSelfHeal = async \(\) =>/);
+    assert.match(script, /run_theme_self_heal/);
     assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*runThemeSelfHeal[\s\S]*\}\);/);
     assert.match(script, /else if \(key === 'themeCompatibilityMode'\) \{/);
 });

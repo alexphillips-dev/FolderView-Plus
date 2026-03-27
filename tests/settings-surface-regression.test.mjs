@@ -35,12 +35,12 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /const exportFullSupportBundle = \(\) =>/);
     assert.match(settingsPage, /id="fv-diagnostics-summary"/);
     assert.match(settingsPage, /id="fv-diagnostics-actions"/);
-    assert.match(settingsPage, /id="fv-diagnostics-technical"/);
-    assert.match(settingsPage, /id="folder-editor-diagnostics-output"/);
-    assert.match(settingsPage, /renderFolderEditorDebugDiagnostics\(\)/);
-    assert.match(settingsPage, /copyFolderEditorDebugDiagnostics\(\)/);
-    assert.match(settingsPage, /exportFullDiagnostics\(\)/);
-    assert.match(settingsPage, /exportFullSupportBundle\(\)/);
+    assert.doesNotMatch(settingsPage, /id="fv-diagnostics-technical"/);
+    assert.doesNotMatch(settingsPage, /id="folder-editor-diagnostics-output"/);
+    assert.doesNotMatch(settingsPage, /renderFolderEditorDebugDiagnostics\(\)/);
+    assert.doesNotMatch(settingsPage, /copyFolderEditorDebugDiagnostics\(\)/);
+    assert.doesNotMatch(settingsPage, /exportFullDiagnostics\(\)/);
+    assert.doesNotMatch(settingsPage, /exportFullSupportBundle\(\)/);
     assert.match(diagnosticsJs, /window\.FolderViewPlusDiagnostics = Object\.freeze\(\{/);
     assert.match(diagnosticsJs, /collectClientPerformanceTelemetry/);
     assert.match(diagnosticsJs, /collectFolderEditorDebugDiagnostics/);

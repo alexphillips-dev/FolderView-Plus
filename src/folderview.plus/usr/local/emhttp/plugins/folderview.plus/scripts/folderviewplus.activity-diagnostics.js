@@ -890,16 +890,12 @@ const renderDiagnosticsSummary = (diagnostics) => {
 const renderDiagnostics = (diagnostics) => {
     lastDiagnostics = diagnostics || null;
     if (!diagnostics) {
-        $('#diagnostics-output').text('No diagnostics data.');
         renderDiagnosticsSummary(null);
         renderChangeHistory(null);
-        renderFolderEditorDebugDiagnostics();
         return;
     }
-    $('#diagnostics-output').text(toPrettyJson(diagnostics));
     renderDiagnosticsSummary(diagnostics);
     renderChangeHistory(diagnostics);
-    renderFolderEditorDebugDiagnostics();
 };
 
 const runDiagnostics = async () => {
@@ -1077,8 +1073,6 @@ const issueReportFromDiagnostics = (diagnostics) => {
 
 const initializeClientDiagnosticsPanels = () => {
     renderDiagnosticsSummary(lastDiagnostics);
-    renderPerformanceDiagnostics();
-    renderFolderEditorDebugDiagnostics();
 };
 
 if (document.readyState === 'loading') {
@@ -1257,7 +1251,6 @@ const runThemeDiagnostics = () => {
     try {
         const diagnostics = collectThemeDiagnostics();
         lastThemeDiagnostics = diagnostics;
-        $('#theme-diagnostics-output').text(toPrettyJson(diagnostics));
         if (lastDiagnostics) {
             renderDiagnosticsSummary(lastDiagnostics);
         }

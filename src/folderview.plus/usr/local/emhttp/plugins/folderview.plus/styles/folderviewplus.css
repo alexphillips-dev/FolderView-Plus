@@ -2033,77 +2033,117 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 
 .folder-health-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 0.7rem;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 0.85rem;
 }
 
 .folder-health-card {
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 6px;
-    background: rgba(255, 255, 255, 0.02);
-    padding: 0.6rem 0.7rem;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 8px;
+    background: var(--fvplus-settings-surface-panel);
+    padding: 0.8rem 0.9rem;
     display: grid;
-    gap: 0.5rem;
+    gap: 0.72rem;
 }
 
 .folder-health-card.is-warning {
-    border-color: rgba(255, 193, 94, 0.58);
+    border-color: var(--fvplus-settings-chip-warning-border);
 }
 
 .folder-health-card.is-danger {
-    border-color: rgba(255, 116, 116, 0.62);
+    border-color: var(--fvplus-settings-chip-danger-border);
+}
+
+.folder-health-card.is-healthy {
+    border-color: var(--fvplus-settings-chip-success-border);
 }
 
 .folder-health-card.is-compact {
-    gap: 0.35rem;
-    padding: 0.5rem 0.6rem;
+    gap: 0.6rem;
+    padding: 0.7rem 0.8rem;
 }
 
-.folder-health-header {
+.folder-health-card-top {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
 }
 
-.folder-health-header h4 {
-    margin: 0;
+.folder-health-card-label {
+    color: var(--fvplus-settings-text-muted);
+    font-size: 0.98rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
 }
 
-.folder-health-state {
-    font-size: 1.03rem;
-    opacity: 0.84;
+.folder-health-card-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.32rem;
+    padding: 0.2rem 0.52rem;
+    border-radius: 999px;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    background: var(--fvplus-settings-surface-strong);
+    font-size: 0.92rem;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.03em;
 }
 
-.folder-health-state.is-warning {
-    color: #ffc15e;
+.folder-health-card.is-healthy .folder-health-card-badge {
+    color: var(--fvplus-settings-chip-success);
+    background: var(--fvplus-settings-chip-success-bg);
+    border-color: var(--fvplus-settings-chip-success-border);
 }
 
-.folder-health-state.is-danger {
-    color: #ff7474;
+.folder-health-card.is-warning .folder-health-card-badge {
+    color: var(--fvplus-settings-chip-warning);
+    background: var(--fvplus-settings-chip-warning-bg);
+    border-color: var(--fvplus-settings-chip-warning-border);
 }
 
-.folder-health-metrics {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(120px, 1fr));
-    gap: 0.35rem 0.7rem;
-    font-size: 1.03rem;
+.folder-health-card.is-danger .folder-health-card-badge {
+    color: var(--fvplus-settings-chip-danger);
+    background: var(--fvplus-settings-chip-danger-bg);
+    border-color: var(--fvplus-settings-chip-danger-border);
 }
 
-.folder-health-metric {
-    display: inline-flex;
-    justify-content: space-between;
-    gap: 0.45rem;
-    opacity: 0.9;
-}
-
-.folder-health-metric > strong {
+.folder-health-card-headline {
+    color: var(--fvplus-settings-text-primary);
+    font-size: 1.14rem;
     font-weight: 700;
 }
 
-.folder-health-filters {
+.folder-health-card-detail {
+    color: var(--fvplus-settings-text-muted);
+    line-height: 1.45;
+}
+
+.folder-health-pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.folder-health-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.38rem;
+    padding: 0.22rem 0.55rem;
+    border-radius: 999px;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    background: var(--fvplus-settings-surface-strong);
+    color: var(--fvplus-settings-text-primary);
+    font-size: 0.95rem;
+}
+
+.folder-health-pill > strong {
+    font-weight: 700;
+}
+
+.folder-health-filter-row {
     display: flex;
     flex-wrap: wrap;
     gap: 0.4rem;
@@ -2111,23 +2151,27 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 
 .folder-health-filter {
     min-width: 0;
-    padding: 0.2rem 0.48rem;
-    border: 1px solid rgba(255, 255, 255, 0.16);
+    padding: 0.22rem 0.55rem;
+    border: 1px solid var(--fvplus-settings-border-subtle);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.04);
-    font-size: 1.03rem;
+    background: var(--fvplus-settings-surface-muted);
+    color: var(--fvplus-settings-text-primary);
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
 }
 
 .folder-health-filter.is-active {
-    border-color: rgba(77, 163, 255, 0.6);
-    background: rgba(77, 163, 255, 0.2);
-    color: #d8ebff;
+    border-color: var(--fvplus-settings-accent);
+    background: var(--fvplus-settings-accent-soft);
+    color: var(--fvplus-settings-text-primary);
 }
 
 .folder-health-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.4rem;
+    gap: 0.45rem;
+    margin: 0.05rem 0 0 0;
 }
 
 .folder-health-actions > button {
@@ -2135,11 +2179,12 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 }
 
 .folder-health-empty {
-    border: 1px dashed rgba(255, 255, 255, 0.2);
-    border-radius: 6px;
-    padding: 0.7rem 0.75rem;
-    opacity: 0.85;
-    font-size: 1.03rem;
+    border: 1px dashed var(--fvplus-settings-border-subtle);
+    border-radius: 8px;
+    padding: 0.8rem 0.9rem;
+    color: var(--fvplus-settings-text-muted);
+    font-size: 1rem;
+    background: var(--fvplus-settings-surface-panel);
 }
 
 .rules-panel {

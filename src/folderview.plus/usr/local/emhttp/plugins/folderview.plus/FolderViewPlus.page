@@ -967,8 +967,8 @@ if (!empty($fvplusRuntimeConflicts)) {
 <h2 data-fv-section="folder-health" data-fv-advanced="1" data-fv-advanced-group="diagnostics">Folder health cards</h2>
 <div class="rules-panel">
     <div class="rules-header">
-        <h3>Folder health overview and quick filters</h3>
-        <span class="rules-help">Track empty/stopped/conflicting folders, then jump directly to fixes.</span>
+        <h3>Simple folder health snapshot</h3>
+        <span class="rules-help">Review which folders need attention, apply a quick filter, and jump to the relevant table or conflict scan.</span>
     </div>
     <div id="folder-health-content" class="folder-health-grid">
         <div class="folder-health-empty">Health cards populate after Docker/VM folders finish loading.</div>

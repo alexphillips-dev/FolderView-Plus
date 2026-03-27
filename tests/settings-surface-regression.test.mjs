@@ -9,6 +9,7 @@ const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath)
 const settingsPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page');
 const settingsCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css');
 const diagnosticsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js');
+const settingsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js');
 const wizardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js');
 
 test('settings page loads smart-detect config before starter templates and diagnostics modules', () => {
@@ -60,4 +61,16 @@ test('settings headings keep dedicated orange title accents across dark themes',
     assert.match(settingsCss, /--fvplus-settings-title-accent:\s*#ff9a3c/);
     assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fvplus-settings-title-accent:\s*#be6b18/);
     assert.match(settingsCss, /#fv-settings-root h2\[data-fv-section\],[\s\S]*#fv-settings-root \.settings-mini-title,[\s\S]*#fv-settings-root \.rules-header h3,[\s\S]*color:\s*var\(--fvplus-settings-title-accent\) !important;/);
+});
+
+test('folder health section uses the simplified summary-card layout', () => {
+    assert.match(settingsPage, /Simple folder health snapshot/);
+    assert.match(settingsJs, /folder-health-card-headline/);
+    assert.match(settingsJs, /folder-health-pill-row/);
+    assert.match(settingsJs, /folder-health-filter-row/);
+    assert.match(settingsCss, /\.folder-health-card-headline/);
+    assert.match(settingsCss, /\.folder-health-pill-row/);
+    assert.match(settingsCss, /\.folder-health-filter-row/);
+    assert.doesNotMatch(settingsJs, /folder-health-metrics/);
+    assert.doesNotMatch(settingsCss, /\.folder-health-metrics/);
 });

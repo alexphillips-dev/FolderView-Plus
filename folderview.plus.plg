@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.26.53">
-<!ENTITY md5 "a0366a8f450601d03d76e25022176e81">
+<!ENTITY version "2026.03.26.54">
+<!ENTITY md5 "91c153e3fba942a0865d6ee287f19058">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.26.54
+- UX: Remove the top advanced-settings maintenance action buttons so the Settings page opens directly into configuration instead of a utility button strip.
+- Maintenance: Keep the first-run helper panel and status lines while stripping the visible File Manager, update check, force-refresh, checkpoint, and rollback buttons from the Settings page chrome.
+- Quality: Add regression coverage so the removed advanced-settings maintenance action buttons stay out of the Settings page markup.
+
 
 ###2026.03.26.53
 - UX: Remove the Quick profile presets strip from advanced settings so the top settings toolbar stays focused on the real settings actions.

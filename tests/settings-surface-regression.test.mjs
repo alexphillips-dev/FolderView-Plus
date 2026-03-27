@@ -82,3 +82,16 @@ test('advanced settings no longer render quick profile preset strip', () => {
     assert.doesNotMatch(settingsJs, /applyQuickProfilePreset/);
     assert.doesNotMatch(settingsCss, /\.fv-quick-presets/);
 });
+
+test('advanced settings no longer render the top maintenance action buttons', () => {
+    assert.doesNotMatch(settingsPage, /Open File Manager/);
+    assert.doesNotMatch(settingsPage, /Check for updates now/);
+    assert.doesNotMatch(settingsPage, /Force-refresh install helper/);
+    assert.doesNotMatch(settingsPage, /Create rollback checkpoint/);
+    assert.doesNotMatch(settingsPage, /Rollback to previous snapshot/);
+    assert.doesNotMatch(settingsPage, /onclick="fileManager\(\)"/);
+    assert.doesNotMatch(settingsPage, /onclick="checkForUpdatesNow\(\)"/);
+    assert.doesNotMatch(settingsPage, /onclick="showDevForceRefreshHelper\(\)"/);
+    assert.doesNotMatch(settingsPage, /onclick="createRollbackCheckpoint\(\)"/);
+    assert.doesNotMatch(settingsPage, /onclick="rollbackLatestCheckpoint\(\)"/);
+});

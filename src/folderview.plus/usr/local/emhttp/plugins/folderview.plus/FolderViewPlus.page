@@ -75,11 +75,6 @@ if (!empty($fvplusRuntimeConflicts)) {
 <div class="fv-customizations-header" data-fv-section-row="1">
     <h2 data-i18n="customizations" data-fv-section="customizations">Customizations</h2>
 </div>
-<button type="button" data-i18n="file-manager" onclick="fileManager()">Open File Manager</button>
-<button type="button" onclick="checkForUpdatesNow()"><i class="fa fa-refresh" aria-hidden="true"></i> Check for updates now</button>
-<button type="button" onclick="showDevForceRefreshHelper()"><i class="fa fa-bolt" aria-hidden="true"></i> Force-refresh install helper</button>
-<button type="button" onclick="createRollbackCheckpoint()"><i class="fa fa-life-ring" aria-hidden="true"></i> Create rollback checkpoint</button>
-<button type="button" onclick="rollbackLatestCheckpoint()"><i class="fa fa-undo" aria-hidden="true"></i> Rollback to previous snapshot</button>
 <div id="fv-first-run-panel" class="fv-first-run-panel" style="display:none;"></div>
 <span id="update-check-status" class="status-line"></span>
 <span id="rollback-status" class="status-line"></span>

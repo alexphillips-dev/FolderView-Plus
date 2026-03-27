@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.27.08">
-<!ENTITY md5 "c5f3dc6827848f3d5b83fcab8a5be2be">
+<!ENTITY version "2026.03.27.09">
+<!ENTITY md5 "298c8c2b12b251f46dac9bee5825e85e">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.27.09
+- UI/UX: Pin sparse bulk-assignment lists to the top of the checklist area so single Docker or VM items no longer appear vertically centered.
+- UI/UX: Apply the same top-alignment rule to both Docker and VM bulk-assignment lists so the two modules behave consistently.
+- Quality: Extend the bulk-assignment layout guard to lock in top-aligned checklist rows for short lists.
+
 
 ###2026.03.27.08
 - UI/UX: Make the Docker and VM bulk-assignment modules reserve the same checklist height so the two panels stay visually aligned.

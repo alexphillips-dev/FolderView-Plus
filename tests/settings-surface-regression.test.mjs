@@ -123,5 +123,5 @@ test('bulk assignment returns to a two-column desktop layout while conflict insp
 test('bulk assignment modules reserve equal item-list height and disable outer panel scrolling', () => {
     assert.match(settingsCss, /\.bulk-assign-grid,\s*\.backup-grid,\s*\.template-grid\s*\{[\s\S]*align-items:\s*stretch;/);
     assert.match(settingsCss, /\.bulk-assign-grid > \.rules-panel\s*\{[\s\S]*max-height:\s*none !important;[\s\S]*overflow-y:\s*hidden !important;/);
-    assert.match(settingsCss, /\.bulk-items-list\s*\{[\s\S]*min-height:\s*210px;[\s\S]*max-height:\s*210px;/);
+    assert.match(settingsCss, /\.bulk-items-list\s*\{[\s\S]*grid-auto-rows:\s*max-content;[\s\S]*align-content:\s*start;[\s\S]*min-height:\s*210px;[\s\S]*max-height:\s*210px;/);
 });

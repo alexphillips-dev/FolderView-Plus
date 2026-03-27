@@ -120,7 +120,6 @@
     "el-actions": "操作",
     "docker": "Docker",
     "vms": "虚拟机",
-    "file-manager": "打开文件管理器",
     "custom-actions": "自定义操作",
     "custom-actions-folder": "自定义操作：",
     "custom-actions-folder-tooltip": "<b>名称：</b>操作名称。<br><b>类型：</b>操作类型。<br><ul><li><b>标准</b> - Docker容器的普通操作（启动、停止……）。</li><li><b>自定义</b> - 执行用户脚本（依赖User Scripts插件）。</li></ul><b>操作：</b>要执行的操作。<br><ul><li><b>循环切换</b> - 循环切换两个状态。</li><li><b>设置为</b> - 设置为一个状态。</li><li><b>重新启动</b> - 简单的重新启动。</li></ul><b>容器：</b>英文逗号（,）分割的容器列表。<br><b>脚本：</b>脚本名称（<b>名称区分大小写</b>）。<br><b>参数：</b>传递给脚本的参数。<br><b>同步执行：</b>是否要将脚本放在后台执行。<br><b>图标：</b>操作的图标，留空使用默认图标。",

@@ -120,7 +120,6 @@
     "el-actions": "Actions",
     "docker": "Docker",
     "vms": "VMs",
-    "file-manager": "Ouvrir l'Explorateur de Fichiers",
     "custom-actions": "Actions personnalisées",
     "custom-actions-folder": "Actions personnalisées :",
     "custom-actions-folder-tooltip": "<b>Nom :</b> Juste le nom de l'action.<br><b>Type :</b> Type de l'action.<br><ul><li><b>Standard</b> - Action normale sur les conteneurs Docker (démarre, arrête, ...).</li><li><b>Custom</b> - executera un script User Scripts (le plugin User Scripts est requis).</li></ul><b>Action:</b> Action à effectuer.<br><ul><li><b>Cycle</b> - bascule entre deux états.</li><li><b>Définir</b> - Définie un état.</li><li><b>Redémarre</b> - redémarrage de base.</li></ul><b>Conteneurs :</b> Une liste CSV de conteneurs.<br><b>Script :</b> Juste le nom du script (<b>Les noms sont sensibles à la case et nécessitent des espaces</b>).<br><b>Arguments :</b> Arguments passés au script.<br><b>Sync :</b> Démarrage du script en tâche de fond ou non.<br><b>Icône :</b> Icône de l'action, laisser vide par défaut.",

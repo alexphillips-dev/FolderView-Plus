@@ -21,10 +21,10 @@ test('dirty tracker module exports reusable staged-save helpers', () => {
 
 test('settings save/cancel flow uses centralized dirty tracking and baseline restore', () => {
     assert.match(settingsJs, /const dirtyTracker = window\.FolderViewPlusDirtyTracker \|\| null;/);
-    assert.match(settingsJs, /const behaviorHint = String\(SECTION_APPLY_BEHAVIOR\?\.\[String\(section\.key \|\| ''\)\.trim\(\)\.toLowerCase\(\)\] \|\| ''\)\.trim\(\)\.toLowerCase\(\);/);
+    assert.match(settingsJs, /const getSectionBehaviorHint = \(sectionOrKey = null\) =>/);
     assert.match(settingsJs, /const getChangedTrackedInputs = \(\) =>/);
     assert.match(settingsJs, /dirtyTracker\.getChangedInputs\(/);
-    assert.match(settingsJs, /const saveActionBarChanges = async \(closeAfterSave = false\) =>/);
+    assert.match(settingsJs, /const saveActionBarChanges = async \(\) =>/);
     assert.match(settingsJs, /const changedInputs = getChangedTrackedInputs\(\);/);
     assert.match(settingsJs, /const cancelActionBarChanges = \(\) =>/);
     assert.match(settingsJs, /dirtyTracker && typeof dirtyTracker\.applyBaselineValues === 'function'/);
@@ -32,6 +32,7 @@ test('settings save/cancel flow uses centralized dirty tracking and baseline res
     assert.match(settingsJs, /\$\(input\)\.trigger\('change'\);/);
     assert.match(settingsJs, /const captureSettingsBaseline = \(\) =>/);
     assert.match(settingsJs, /dirtyTracker\.captureBaseline\(/);
+    assert.doesNotMatch(settingsJs, /fv-action-save-close/);
 });
 
 test('folder reordering remains instant-persist and outside staged save/cancel dock', () => {
@@ -56,4 +57,12 @@ test('cancel restores staged fields only and never replays instant reorder mutat
     assert.ok(!/persistManualOrder\(/.test(cancelBlock), 'Cancel should not persist or replay manual order mutations.');
     assert.ok(!/persistManualOrderFromDom\(/.test(cancelBlock), 'Cancel should not recompute DOM order.');
     assert.ok(!/moveFolderRow\(/.test(cancelBlock), 'Cancel should not call folder reorder handlers.');
+});
+
+test('bulk assignment helpers stay out of staged save tracking', () => {
+    assert.match(dirtyTrackerJs, /String\(input\.dataset\?\.fvTrackSave \|\| ''\) === '0'/);
+    assert.match(settingsJs, /const shouldTrackSettingsInput = \(input, section = null\) =>/);
+    assert.match(settingsJs, /if \(getSectionBehaviorHint\(ownerSection\) === 'instant'\) \{/);
+    assert.match(settingsJs, /shouldTrackInput:\s*shouldTrackSettingsInput/);
+    assert.match(settingsJs, /filter\(\(input\) => shouldTrackSettingsInput\(input, section\)\)/);
 });

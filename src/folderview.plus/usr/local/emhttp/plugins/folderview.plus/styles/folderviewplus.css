@@ -6723,38 +6723,69 @@ tr.is-long-press-active {
 }
 
 .fv-settings-action-wrap {
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 12px;
-    background: rgba(11, 14, 18, 0.96);
-    backdrop-filter: blur(3px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.38);
-    padding: 0.4rem 0.45rem;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 14px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.015)),
+        var(--fvplus-settings-surface-panel);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
+    padding: 0.46rem 0.55rem;
     min-width: 220px;
-    max-width: min(720px, calc(100vw - 1.6rem));
-    display: grid;
-    gap: 0.3rem;
+    max-width: min(640px, calc(100vw - 1.6rem));
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
 }
 
 .fv-action-buttons {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.45rem;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.fv-action-buttons > button {
+    min-height: 34px;
+}
+
+#fv-action-save {
+    background-image: linear-gradient(180deg, var(--fvplus-settings-button-accent-top), var(--fvplus-settings-button-accent-bottom));
+    color: var(--fvplus-settings-button-accent-fg);
+    box-shadow: var(--fvplus-settings-button-accent-shadow);
+}
+
+#fv-action-save:hover:not(:disabled),
+#fv-action-save:focus-visible:not(:disabled) {
+    box-shadow: inset 0 0 0 1px rgba(255, 191, 123, 0.22), 0 3px 8px rgba(0, 0, 0, 0.2);
 }
 
 .fv-action-status {
     font-size: 1.03rem;
-    opacity: 0.95;
-    max-width: min(78ch, calc(100vw - 2.2rem));
+    color: var(--fvplus-settings-text-muted);
+    opacity: 0.92;
+    max-width: min(42ch, calc(100vw - 2.2rem));
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: 8px;
+    background: none;
+    border: 0;
     box-shadow: none;
-    padding: 0.2rem 0.52rem;
+    padding: 0;
     display: none;
     pointer-events: none;
+    align-items: center;
+    gap: 0.42rem;
+}
+
+.fv-action-status::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--fvplus-settings-accent);
+    box-shadow: 0 0 0 3px rgba(255, 168, 92, 0.12);
+    flex: 0 0 6px;
 }
 
 .fv-action-status.is-visible {
@@ -7031,7 +7062,9 @@ tr.is-long-press-active {
         max-width: calc(100vw - 1rem);
         border-radius: 10px;
         padding: 0.35rem 0.4rem;
-        gap: 0.25rem;
+        gap: 0.3rem;
+        flex-direction: column;
+        align-items: stretch;
     }
 
     .fv-action-status {

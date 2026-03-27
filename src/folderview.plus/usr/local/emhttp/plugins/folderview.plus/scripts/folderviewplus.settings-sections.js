@@ -35,8 +35,18 @@ const ADVANCED_GROUP_LABELS = {
     diagnostics: 'Diagnostics'
 };
 const SECTION_APPLY_BEHAVIOR = Object.freeze({
+    customizations: 'instant',
     docker: 'instant',
-    vms: 'instant'
+    vms: 'instant',
+    'auto-assignment': 'instant',
+    'conflict-inspector': 'instant',
+    'bulk-assignment': 'instant',
+    'runtime-actions': 'instant',
+    backups: 'instant',
+    'folder-templates': 'instant',
+    'change-history': 'instant',
+    'folder-health': 'instant',
+    diagnostics: 'instant'
 });
 const ADVANCED_GROUP_BY_SECTION = {
     'auto-assignment': 'rules',

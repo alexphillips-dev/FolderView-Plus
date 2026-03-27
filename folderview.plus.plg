@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.27.10">
-<!ENTITY md5 "4787195765d9640863c7b079ef40ffec">
+<!ENTITY version "2026.03.27.13">
+<!ENTITY md5 "a5969b65b4c36c6ff0f0507e74325cf2">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.27.13
+- Fix: Keep the Settings save dock hidden for operational advanced tools like bulk assignment, runtime actions, backups, templates, conflict scans, health cards, and diagnostics.
+- Fix: Exclude transient bulk-assignment target, filter, and compatibility checklist fields from staged save tracking so selecting Docker containers or VMs no longer triggers the global save pill.
+- UI/UX: Simplify the Settings save dock by removing `Save and Close`, tightening the status copy, and restyling the dock into a cleaner compact action bar.
+
 
 ###2026.03.27.10
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

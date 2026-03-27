@@ -38,6 +38,9 @@
         if (!isElementLike(input)) {
             return false;
         }
+        if (String(input.dataset?.fvTrackSave || '') === '0') {
+            return true;
+        }
         if (String(input.dataset?.fvTrackSave || '') === '1') {
             return false;
         }
@@ -55,9 +58,13 @@
 
     const getTrackedInputs = (root = document, options = {}) => {
         const scope = root && typeof root.querySelectorAll === 'function' ? root : document;
+        const shouldTrackInput = typeof options?.shouldTrackInput === 'function'
+            ? options.shouldTrackInput
+            : null;
         return Array
             .from(scope.querySelectorAll('input[id], select[id], textarea[id]'))
-            .filter((input) => !isInstantPersistInput(input, options));
+            .filter((input) => !isInstantPersistInput(input, options))
+            .filter((input) => (shouldTrackInput ? shouldTrackInput(input) === true : true));
     };
 
     const getChangedInputs = (inputs, baselineByInputId, serializeValue = getInputSerializedValue) => {

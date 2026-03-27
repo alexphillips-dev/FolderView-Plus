@@ -736,7 +736,7 @@ if (!empty($fvplusRuntimeConflicts)) {
             </div>
             <div class="bulk-row bulk-target-row">
                 <label for="docker-bulk-folder">Target folder</label>
-                <select id="docker-bulk-folder"></select>
+                <select id="docker-bulk-folder" data-fv-track-save="0"></select>
                 <button id="docker-bulk-assign-btn" type="button" onclick="assignSelectedItems('docker')"><i class="fa fa-list-alt"></i> Preview changes</button>
             </div>
         </div>
@@ -746,7 +746,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <span>Filter the list, then choose the containers you want moved into the target folder.</span>
             </div>
             <div class="bulk-row bulk-filter-row">
-                <input id="docker-bulk-filter" type="text" placeholder="Search containers" oninput="filterBulkItems('docker', this.value)">
+                <input id="docker-bulk-filter" type="text" placeholder="Search containers" data-fv-track-save="0" oninput="filterBulkItems('docker', this.value)">
                 <div class="bulk-selection-actions">
                     <button type="button" onclick="bulkItemSelectionAction('docker','all')"><i class="fa fa-check-square-o"></i> All shown</button>
                     <button type="button" onclick="bulkItemSelectionAction('docker','none')"><i class="fa fa-square-o"></i> Clear</button>
@@ -758,7 +758,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <span class="rules-help">Select the items you want to move. The plan updates live below.</span>
             </div>
             <div id="docker-bulk-items-list" class="bulk-items-list" role="listbox" aria-label="Docker items for bulk assignment"></div>
-            <select id="docker-bulk-items" class="bulk-items-legacy" multiple size="10" onchange="updateBulkSelectedCount('docker')"></select>
+            <select id="docker-bulk-items" class="bulk-items-legacy" data-fv-track-save="0" multiple size="10" onchange="updateBulkSelectedCount('docker')"></select>
         </div>
         <div class="bulk-stage bulk-stage-review">
             <div class="bulk-stage-heading">
@@ -808,7 +808,7 @@ if (!empty($fvplusRuntimeConflicts)) {
             </div>
             <div class="bulk-row bulk-target-row">
                 <label for="vm-bulk-folder">Target folder</label>
-                <select id="vm-bulk-folder"></select>
+                <select id="vm-bulk-folder" data-fv-track-save="0"></select>
                 <button id="vm-bulk-assign-btn" type="button" onclick="assignSelectedItems('vm')"><i class="fa fa-list-alt"></i> Preview changes</button>
             </div>
         </div>
@@ -818,7 +818,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <span>Filter the list, then choose the VMs you want moved into the target folder.</span>
             </div>
             <div class="bulk-row bulk-filter-row">
-                <input id="vm-bulk-filter" type="text" placeholder="Search VMs" oninput="filterBulkItems('vm', this.value)">
+                <input id="vm-bulk-filter" type="text" placeholder="Search VMs" data-fv-track-save="0" oninput="filterBulkItems('vm', this.value)">
                 <div class="bulk-selection-actions">
                     <button type="button" onclick="bulkItemSelectionAction('vm','all')"><i class="fa fa-check-square-o"></i> All shown</button>
                     <button type="button" onclick="bulkItemSelectionAction('vm','none')"><i class="fa fa-square-o"></i> Clear</button>
@@ -830,7 +830,7 @@ if (!empty($fvplusRuntimeConflicts)) {
                 <span class="rules-help">Select the VMs you want to move. The plan updates live below.</span>
             </div>
             <div id="vm-bulk-items-list" class="bulk-items-list" role="listbox" aria-label="VM items for bulk assignment"></div>
-            <select id="vm-bulk-items" class="bulk-items-legacy" multiple size="10" onchange="updateBulkSelectedCount('vm')"></select>
+            <select id="vm-bulk-items" class="bulk-items-legacy" data-fv-track-save="0" multiple size="10" onchange="updateBulkSelectedCount('vm')"></select>
         </div>
         <div class="bulk-stage bulk-stage-review">
             <div class="bulk-stage-heading">

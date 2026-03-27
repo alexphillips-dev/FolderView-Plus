@@ -617,6 +617,7 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.doesNotMatch(settingsJs, /setActionDockMoreOpen/);
     assert.doesNotMatch(settingsJs, /fv-save-dock/);
     assert.doesNotMatch(settingsJs, /fv-action-more/);
+    assert.doesNotMatch(settingsJs, /fv-action-save-close/);
     assert.match(settingsJs, /<div class="fv-settings-action-wrap">[\s\S]*id="fv-action-reset-section"/);
     assert.match(settingsJs, /const getTrackedInputs = \(\) => \{/);
     assert.match(settingsJs, /dirtyTracker && typeof dirtyTracker\.getTrackedInputs === 'function'/);

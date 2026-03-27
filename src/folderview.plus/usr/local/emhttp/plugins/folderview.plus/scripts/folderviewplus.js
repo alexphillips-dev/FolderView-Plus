@@ -996,6 +996,9 @@ const isInstantPersistInput = (input) => {
     if (!(input instanceof HTMLElement)) {
         return false;
     }
+    if (String(input.dataset.fvTrackSave || '') === '0') {
+        return true;
+    }
     if (String(input.dataset.fvTrackSave || '') === '1') {
         return false;
     }
@@ -1008,15 +1011,61 @@ const isInstantPersistInput = (input) => {
     return INSTANT_PERSIST_ONCHANGE_TOKENS.some((token) => handler.includes(token));
 };
 
+const getSectionBehaviorHint = (sectionOrKey = null) => {
+    const sectionKey = typeof sectionOrKey === 'string'
+        ? sectionOrKey
+        : String(sectionOrKey?.key || '').trim().toLowerCase();
+    if (!sectionKey) {
+        return '';
+    }
+    return String(SECTION_APPLY_BEHAVIOR?.[sectionKey] || '').trim().toLowerCase();
+};
+
+const getInputOwningSection = (input) => {
+    if (!(input instanceof HTMLElement) || !Array.isArray(settingsUiState.sections)) {
+        return null;
+    }
+    for (const section of settingsUiState.sections) {
+        const nodes = Array.isArray(section?.nodes) ? section.nodes : [];
+        for (const node of nodes) {
+            if (!(node instanceof Element)) {
+                continue;
+            }
+            if (node === input || node.contains(input)) {
+                return section;
+            }
+        }
+    }
+    return null;
+};
+
+const shouldTrackSettingsInput = (input, section = null) => {
+    if (!(input instanceof HTMLElement)) {
+        return false;
+    }
+    if (String(input.dataset.fvTrackSave || '') === '0') {
+        return false;
+    }
+    if (isInstantPersistInput(input)) {
+        return false;
+    }
+    const ownerSection = section || getInputOwningSection(input);
+    if (getSectionBehaviorHint(ownerSection) === 'instant') {
+        return false;
+    }
+    return true;
+};
+
 const getTrackedInputs = () => {
     if (dirtyTracker && typeof dirtyTracker.getTrackedInputs === 'function') {
         return dirtyTracker.getTrackedInputs(document, {
-            tokens: INSTANT_PERSIST_ONCHANGE_TOKENS
+            tokens: INSTANT_PERSIST_ONCHANGE_TOKENS,
+            shouldTrackInput: shouldTrackSettingsInput
         });
     }
     return Array
         .from(document.querySelectorAll('input[id], select[id], textarea[id]'))
-        .filter((input) => !isInstantPersistInput(input));
+        .filter((input) => shouldTrackSettingsInput(input));
 };
 
 const getChangedTrackedInputs = () => {
@@ -1247,16 +1296,14 @@ const updateActionBarSaveState = () => {
     settingsUiState.unsavedCount = count;
     const saveButton = $('#fv-action-save');
     const cancelButton = $('#fv-action-cancel');
-    const saveCloseButton = $('#fv-action-save-close');
     const resetButton = $('#fv-action-reset-section');
     saveButton.prop('disabled', count === 0);
     cancelButton.prop('disabled', count === 0);
-    saveCloseButton.prop('disabled', count === 0);
     resetButton.prop('disabled', count === 0);
     if (count === 0) {
         setActionBarStatus('');
     } else {
-        setActionBarStatus(`${count} unsaved field change${count === 1 ? '' : 's'} in this session.`);
+        setActionBarStatus(`${count} pending change${count === 1 ? '' : 's'} to save.`);
     }
     syncActionDockVisibility();
 };
@@ -1406,7 +1453,7 @@ const getSectionApplyMode = (section) => {
     if (!section || !Array.isArray(section.nodes)) {
         return null;
     }
-    const behaviorHint = String(SECTION_APPLY_BEHAVIOR?.[String(section.key || '').trim().toLowerCase()] || '').trim().toLowerCase();
+    const behaviorHint = getSectionBehaviorHint(section);
     if (behaviorHint === 'instant') {
         return null;
     }
@@ -1814,7 +1861,9 @@ const refreshSectionHealthBadges = () => {
             inputs.push(...Array.from(node.querySelectorAll('input[id], select[id], textarea[id]')));
         }
 
-        const uniqueInputs = Array.from(new Map(inputs.map((input) => [input.id, input])).values());
+        const uniqueInputs = Array
+            .from(new Map(inputs.map((input) => [input.id, input])).values())
+            .filter((input) => shouldTrackSettingsInput(input, section));
         let changedCount = 0;
         let invalidCount = 0;
 
@@ -1844,19 +1893,13 @@ const refreshSectionHealthBadges = () => {
     }
 };
 
-const saveActionBarChanges = async (closeAfterSave = false) => {
+const saveActionBarChanges = async () => {
     const changedInputs = getChangedTrackedInputs();
     changedInputs.forEach((input) => {
         $(input).trigger('change');
     });
     captureSettingsBaseline();
     refreshSectionHealthBadges();
-    setActionBarStatus('Saved current settings snapshot.');
-    if (closeAfterSave) {
-        setTimeout(() => {
-            window.history.back();
-        }, 180);
-    }
 };
 
 const cancelActionBarChanges = () => {
@@ -1883,7 +1926,7 @@ const cancelActionBarChanges = () => {
     refreshInputInvalidStyles();
     refreshSectionHealthBadges();
     updateActionBarSaveState();
-    setActionBarStatus('Reverted unsaved field changes.');
+    setActionBarStatus('');
 };
 
 const resetCurrentSectionToBaseline = () => {
@@ -1919,7 +1962,7 @@ const resetCurrentSectionToBaseline = () => {
     refreshInputInvalidStyles();
     refreshSectionHealthBadges();
     updateActionBarSaveState();
-    setActionBarStatus(`Reset section "${section.title}" to baseline snapshot.`);
+    setActionBarStatus(`Reset ${section.title || 'current section'} to saved values.`);
 };
 
 const ensureRegexPresetUi = (type) => {
@@ -2155,7 +2198,6 @@ const initSettingsControls = () => {
                 <div class="fv-action-buttons">
                     <button type="button" id="fv-action-save"><i class="fa fa-save"></i> Save</button>
                     <button type="button" id="fv-action-cancel"><i class="fa fa-undo"></i> Cancel</button>
-                    <button type="button" id="fv-action-save-close"><i class="fa fa-check"></i> Save &amp; Close</button>
                     <button type="button" id="fv-action-reset-section"><i class="fa fa-refresh"></i> Reset section</button>
                 </div>
                 <span id="fv-action-status" class="fv-action-status" aria-live="polite"></span>
@@ -2174,10 +2216,7 @@ const initSettingsControls = () => {
         setSearchAllAdvanced($(event.currentTarget).prop('checked') === true);
     });
     $('#fv-action-save').off('click.fvui').on('click.fvui', () => {
-        void saveActionBarChanges(false);
-    });
-    $('#fv-action-save-close').off('click.fvui').on('click.fvui', () => {
-        void saveActionBarChanges(true);
+        void saveActionBarChanges();
     });
     $('#fv-action-cancel').off('click.fvui').on('click.fvui', () => {
         cancelActionBarChanges();

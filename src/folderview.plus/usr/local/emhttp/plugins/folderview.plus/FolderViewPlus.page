@@ -567,7 +567,7 @@ if (!empty($fvplusRuntimeConflicts)) {
 </div>
 <hr>
 
-<h2 data-fv-section="auto-assignment" data-fv-advanced="1" data-fv-advanced-group="automation">Auto-assignment rules</h2>
+<h2 data-fv-section="auto-assignment" data-fv-advanced="1" data-fv-advanced-group="rules">Auto-assignment rules</h2>
 <div class="rules-bottom-grid">
     <div class="rules-panel">
         <div class="rules-header">

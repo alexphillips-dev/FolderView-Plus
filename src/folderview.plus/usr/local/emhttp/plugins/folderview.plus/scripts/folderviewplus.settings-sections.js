@@ -26,9 +26,10 @@ const ADVANCED_SECTION_KEYS = new Set([
     'diagnostics',
     'conflict-inspector'
 ]);
-const ADVANCED_GROUPS = ['automation', 'recovery', 'operations', 'diagnostics'];
+const ADVANCED_GROUPS = ['automation', 'rules', 'recovery', 'operations', 'diagnostics'];
 const ADVANCED_GROUP_LABELS = {
     automation: 'Automation',
+    rules: 'Rules',
     recovery: 'Recovery',
     operations: 'Operations',
     diagnostics: 'Diagnostics'
@@ -38,7 +39,7 @@ const SECTION_APPLY_BEHAVIOR = Object.freeze({
     vms: 'instant'
 });
 const ADVANCED_GROUP_BY_SECTION = {
-    'auto-assignment': 'automation',
+    'auto-assignment': 'rules',
     'bulk-assignment': 'automation',
     'conflict-inspector': 'automation',
     'backups': 'recovery',
@@ -58,6 +59,7 @@ const ADVANCED_MODULE_KEYS = Object.freeze([
 ]);
 const ADVANCED_MODULE_KEYS_BY_TAB = Object.freeze({
     automation: Object.freeze([]),
+    rules: Object.freeze([]),
     recovery: Object.freeze(['docker_backups', 'vm_backups', 'change_history']),
     operations: Object.freeze(['docker_templates', 'vm_templates']),
     diagnostics: Object.freeze(['change_history'])

@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.27.05">
-<!ENTITY md5 "abcb78a31ef6f31f262e1803f55d52f2">
+<!ENTITY version "2026.03.27.06">
+<!ENTITY md5 "d7d7c98ced10e6f1280e873130ad00ce">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.27.06
+- UX: Move Auto-assignment rules into a dedicated Rules advanced-settings tab so Automation starts directly with Bulk assignment.
+- UI/UX: Keep Bulk assignment as the first section in Automation and add a clearer Rules tab label for rule-based folder assignment controls.
+- Quality: Add regression coverage for the advanced-settings group split so the new Rules tab and Bulk assignment ordering stay stable.
+
 
 ###2026.03.27.05
 - UI/UX: Shrink the advanced settings compact controls to true icon-sized buttons instead of letting host theme button chrome expand them into wide pills.

@@ -10,6 +10,7 @@ const settingsPage = read('src/folderview.plus/usr/local/emhttp/plugins/foldervi
 const settingsCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css');
 const diagnosticsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js');
 const settingsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js');
+const settingsSectionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js');
 const wizardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js');
 
 test('settings page loads smart-detect config before starter templates and diagnostics modules', () => {
@@ -94,4 +95,13 @@ test('advanced settings no longer render the top maintenance action buttons', ()
     assert.doesNotMatch(settingsPage, /onclick="showDevForceRefreshHelper\(\)"/);
     assert.doesNotMatch(settingsPage, /onclick="createRollbackCheckpoint\(\)"/);
     assert.doesNotMatch(settingsPage, /onclick="rollbackLatestCheckpoint\(\)"/);
+});
+
+test('advanced settings split auto-assignment rules into a dedicated Rules tab', () => {
+    assert.match(settingsPage, /<h2 data-fv-section="auto-assignment" data-fv-advanced="1" data-fv-advanced-group="rules">Auto-assignment rules<\/h2>/);
+    assert.match(settingsPage, /<h2 data-fv-section="bulk-assignment" data-fv-advanced="1" data-fv-advanced-group="automation">Bulk assignment<\/h2>/);
+    assert.match(settingsSectionsJs, /const ADVANCED_GROUPS = \['automation', 'rules', 'recovery', 'operations', 'diagnostics'\];/);
+    assert.match(settingsSectionsJs, /rules:\s*'Rules'/);
+    assert.match(settingsSectionsJs, /'auto-assignment':\s*'rules'/);
+    assert.match(settingsSectionsJs, /rules:\s*Object\.freeze\(\[\]\)/);
 });

@@ -3056,6 +3056,305 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     white-space: nowrap;
 }
 
+.fv-recovery-module-wrap > .rules-panel {
+    margin-inline: var(--fv-advanced-side-padding);
+}
+
+.fv-recovery-section-body {
+    display: grid;
+    gap: 0.95rem;
+    padding-inline: clamp(8px, 1.15vw, 18px);
+}
+
+.fv-recovery-source-switch {
+    justify-content: flex-start;
+}
+
+.fv-recovery-overview {
+    display: grid;
+    gap: 0.85rem;
+    padding: 0.85rem 0.95rem;
+    border: 1px solid var(--fvplus-settings-border-faint);
+    border-radius: 12px;
+    background: var(--fvplus-settings-surface-panel);
+}
+
+.fv-recovery-overview-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.8rem;
+    align-items: flex-start;
+}
+
+.fv-recovery-source-label {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.16rem 0.48rem;
+    border-radius: 999px;
+    border: 1px solid var(--fvplus-settings-border-faint);
+    background: var(--fvplus-settings-surface-muted);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fvplus-settings-text-muted);
+}
+
+.fv-recovery-headline {
+    margin-top: 0.38rem;
+    font-size: 1.16rem;
+    font-weight: 700;
+    color: var(--fvplus-settings-text-primary);
+}
+
+.fv-recovery-copy {
+    margin-top: 0.22rem;
+    color: var(--fvplus-settings-text-muted);
+    line-height: 1.5;
+}
+
+.fv-recovery-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.7rem;
+}
+
+.fv-recovery-stat-card {
+    display: grid;
+    gap: 0.2rem;
+    padding: 0.72rem 0.82rem;
+    border: 1px solid var(--fvplus-settings-border-faint);
+    border-radius: 10px;
+    background: var(--fvplus-settings-surface-strong);
+}
+
+.fv-recovery-stat-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fvplus-settings-text-muted);
+}
+
+.fv-recovery-stat-card > strong {
+    font-size: 1.08rem;
+    color: var(--fvplus-settings-text-primary);
+}
+
+.fv-recovery-stat-card > span:last-child {
+    color: var(--fvplus-settings-text-muted);
+    line-height: 1.45;
+}
+
+.fv-recovery-stage-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.8rem;
+    align-items: start;
+}
+
+.fv-recovery-stage {
+    display: grid;
+    gap: 0.78rem;
+    padding: 0.85rem 0.92rem;
+    border: 1px solid var(--fvplus-settings-border-faint);
+    border-radius: 12px;
+    background: var(--fvplus-settings-surface-muted);
+}
+
+.fv-recovery-stage-head {
+    display: grid;
+    gap: 0.14rem;
+}
+
+.fv-recovery-stage-head > strong {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--fvplus-settings-text-primary);
+}
+
+.fv-recovery-stage-head > span {
+    color: var(--fvplus-settings-text-muted);
+    line-height: 1.45;
+}
+
+.fv-recovery-primary-actions > button {
+    min-width: 0;
+}
+
+.fv-recovery-callout {
+    padding: 0.66rem 0.78rem;
+    border: 1px solid var(--fvplus-settings-border-faint);
+    border-radius: 10px;
+    background: var(--fvplus-settings-accent-soft);
+    color: var(--fvplus-settings-text-primary);
+    line-height: 1.45;
+}
+
+.fv-recovery-compare-row {
+    margin: 0;
+}
+
+.fv-recovery-policy {
+    align-content: start;
+}
+
+.fv-recovery-policy-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.7rem;
+    cursor: pointer;
+    list-style: none;
+    font-weight: 700;
+    color: var(--fvplus-settings-text-primary);
+}
+
+.fv-recovery-policy-summary::-webkit-details-marker {
+    display: none;
+}
+
+.fv-recovery-policy[open] .fv-recovery-policy-summary {
+    margin-bottom: 0.2rem;
+}
+
+.fv-recovery-policy-grid {
+    margin: 0;
+}
+
+.fv-recovery-history-stage {
+    padding-block: 0.92rem;
+}
+
+.fv-recovery-history-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    align-items: center;
+}
+
+.fv-recovery-history-toolbar > input[type="text"] {
+    flex: 1 1 240px;
+    min-height: 38px;
+}
+
+.fv-recovery-history-list,
+.fv-recovery-change-history-list {
+    display: grid;
+    gap: 0.72rem;
+}
+
+.fv-recovery-history-card,
+.fv-recovery-timeline-card,
+.fv-recovery-undo-summary {
+    display: grid;
+    gap: 0.5rem;
+    padding: 0.8rem 0.92rem;
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 12px;
+    background: var(--fvplus-settings-surface-strong);
+}
+
+.fv-recovery-history-head,
+.fv-recovery-timeline-head,
+.fv-recovery-undo-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.7rem;
+    align-items: flex-start;
+}
+
+.fv-recovery-history-title,
+.fv-recovery-timeline-title,
+.fv-recovery-undo-title {
+    font-size: 1.02rem;
+    font-weight: 700;
+    color: var(--fvplus-settings-text-primary);
+}
+
+.fv-recovery-history-copy,
+.fv-recovery-timeline-copy,
+.fv-recovery-undo-copy {
+    color: var(--fvplus-settings-text-primary);
+    line-height: 1.45;
+}
+
+.fv-recovery-history-meta,
+.fv-recovery-undo-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem 0.8rem;
+    color: var(--fvplus-settings-text-muted);
+    font-size: 0.95rem;
+}
+
+.fv-recovery-timeline-meta {
+    color: var(--fvplus-settings-text-muted);
+    font-size: 0.95rem;
+}
+
+.fv-recovery-history-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.12rem 0.48rem;
+    border-radius: 999px;
+    border: 1px solid var(--fvplus-settings-chip-info-border);
+    background: var(--fvplus-settings-chip-info-bg);
+    color: var(--fvplus-settings-chip-info);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.fv-recovery-history-actions-row {
+    margin-top: 0.1rem;
+}
+
+.fv-recovery-empty-state {
+    display: grid;
+    gap: 0.18rem;
+    padding: 0.2rem 0;
+}
+
+.fv-recovery-empty-state > strong {
+    color: var(--fvplus-settings-text-primary);
+}
+
+.fv-recovery-empty-state > span {
+    color: var(--fvplus-settings-text-muted);
+    line-height: 1.45;
+}
+
+.fv-recovery-hidden-helpers {
+    display: none !important;
+}
+
+@media (max-width: 1100px) {
+    .fv-recovery-stage-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 760px) {
+    .fv-recovery-overview-head,
+    .fv-recovery-history-head,
+    .fv-recovery-timeline-head,
+    .fv-recovery-undo-head,
+    .fv-recovery-policy-summary {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .fv-recovery-stat-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .fv-recovery-history-actions-row {
+        width: 100%;
+    }
+}
+
 .bulk-row > select,
 .bulk-row > button {
     flex: 1 1 220px;

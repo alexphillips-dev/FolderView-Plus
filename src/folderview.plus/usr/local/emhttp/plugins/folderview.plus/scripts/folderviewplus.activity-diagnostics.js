@@ -675,24 +675,109 @@ const withAdvancedOperationLock = async (type, scope, actionLabel, callback) => 
 };
 
 
-const renderChangeHistory = (diagnostics) => {
-    const timeline = Array.isArray(diagnostics?.recentTimeline) ? diagnostics.recentTimeline : [];
-    if (!timeline.length) {
-        $('#change-history-output').text('No recent changes found.');
+const getCachedDiagnostics = () => lastDiagnostics;
+
+const getRecoveryTimelineStatusClass = (value) => {
+    const normalized = String(value || '').trim().toLowerCase();
+    if (normalized === 'error' || normalized === 'failed' || normalized === 'fatal') {
+        return 'is-danger';
+    }
+    if (normalized === 'warning' || normalized === 'degraded' || normalized === 'partial') {
+        return 'is-warning';
+    }
+    return 'is-healthy';
+};
+
+const renderRecoveryChangeHistoryFromDiagnostics = (diagnostics = lastDiagnostics) => {
+    const summaryHost = $('#fv-recovery-change-history-summary');
+    const listHost = $('#recovery-change-history-list');
+    if (!summaryHost.length || !listHost.length) {
         return;
     }
-    const lines = [];
-    lines.push(`Recent events: ${timeline.length}`);
-    lines.push('');
-    for (const row of timeline.slice(0, 40)) {
-        const ts = row.timestamp || '';
-        const action = row.action || '';
-        const type = row.type || '-';
-        const status = row.status || 'ok';
-        const summary = row.summary ? ` | ${row.summary}` : '';
-        lines.push(`${ts} | ${action} | ${type} | ${status}${summary}`);
+
+    const activeType = (typeof window.getActiveRecoveryWorkspaceType === 'function' && window.getActiveRecoveryWorkspaceType() === 'vm')
+        ? 'vm'
+        : 'docker';
+    const typeLabel = activeType === 'docker' ? 'Docker' : 'VM';
+    const timeline = Array.isArray(diagnostics?.recentTimeline) ? diagnostics.recentTimeline : [];
+    const filteredTimeline = timeline.filter((row) => {
+        const rowType = String(row?.type || '').trim().toLowerCase();
+        return !rowType || rowType === activeType;
+    });
+
+    if (!filteredTimeline.length) {
+        summaryHost.html(`
+            <div class="fv-recovery-empty-state">
+                <strong>No recent ${escapeHtml(typeLabel)} changes found.</strong>
+                <span>Refresh history after a save, import, restore, or undo to review the latest recovery-safe events.</span>
+            </div>
+        `);
+        listHost.html(`
+            <div class="fv-recovery-empty-state">
+                <strong>No timeline entries yet.</strong>
+                <span>Recent change cards will appear here for the selected recovery source.</span>
+            </div>
+        `);
+        return;
     }
-    $('#change-history-output').text(`${lines.join('\n')}\n`);
+
+    const latest = filteredTimeline[0] || {};
+    const latestStatus = String(latest.status || 'ok').trim() || 'ok';
+    const latestAction = String(latest.action || 'Recent change').trim() || 'Recent change';
+    const latestSummary = String(latest.summary || '').trim();
+    summaryHost.html(`
+        <div class="fv-recovery-undo-head">
+            <div>
+                <div class="fv-recovery-undo-title">Latest ${escapeHtml(typeLabel)} change</div>
+                <div class="fv-recovery-undo-copy">${escapeHtml(latestAction)}${latestSummary ? ` - ${escapeHtml(latestSummary)}` : ''}</div>
+            </div>
+            <span class="fv-rules-status-chip ${getRecoveryTimelineStatusClass(latestStatus)}">${escapeHtml(latestStatus)}</span>
+        </div>
+        <div class="fv-recovery-undo-meta">
+            <span>${escapeHtml(formatActivityTimestamp(latest.timestamp || ''))}</span>
+            <span>Undo latest change restores the newest undo-safe backup for ${escapeHtml(typeLabel)}.</span>
+        </div>
+    `);
+
+    listHost.html(filteredTimeline.slice(0, 12).map((row) => {
+        const status = String(row?.status || 'ok').trim() || 'ok';
+        const action = String(row?.action || 'Recent change').trim() || 'Recent change';
+        const summary = String(row?.summary || '').trim();
+        const timestamp = formatActivityTimestamp(row?.timestamp || '');
+        return `
+            <article class="fv-recovery-timeline-card">
+                <div class="fv-recovery-timeline-head">
+                    <div class="fv-recovery-timeline-title">${escapeHtml(action)}</div>
+                    <span class="fv-rules-status-chip ${getRecoveryTimelineStatusClass(status)}">${escapeHtml(status)}</span>
+                </div>
+                <div class="fv-recovery-timeline-meta">${escapeHtml(timestamp)}</div>
+                <div class="fv-recovery-timeline-copy">${escapeHtml(summary || 'No extra detail was recorded for this change.')}</div>
+            </article>
+        `;
+    }).join(''));
+};
+
+const renderChangeHistory = (diagnostics) => {
+    const timeline = Array.isArray(diagnostics?.recentTimeline) ? diagnostics.recentTimeline : [];
+    if ($('#change-history-output').length) {
+        if (!timeline.length) {
+            $('#change-history-output').text('No recent changes found.');
+        } else {
+            const lines = [];
+            lines.push(`Recent events: ${timeline.length}`);
+            lines.push('');
+            for (const row of timeline.slice(0, 40)) {
+                const ts = row.timestamp || '';
+                const action = row.action || '';
+                const type = row.type || '-';
+                const status = row.status || 'ok';
+                const summary = row.summary ? ` | ${row.summary}` : '';
+                lines.push(`${ts} | ${action} | ${type} | ${status}${summary}`);
+            }
+            $('#change-history-output').text(`${lines.join('\n')}\n`);
+        }
+    }
+    renderRecoveryChangeHistoryFromDiagnostics(diagnostics);
 };
 
 const refreshChangeHistory = async ({ quiet = false } = {}) => {
@@ -1352,6 +1437,7 @@ Object.assign(window, {
     releaseAdvancedOperationLock,
     withAdvancedOperationLock,
     renderChangeHistory,
+    renderRecoveryChangeHistoryFromDiagnostics,
     refreshChangeHistory,
     renderDiagnostics,
     runDiagnostics,
@@ -1368,6 +1454,7 @@ Object.assign(window, {
     collectThemeDiagnostics,
     runThemeDiagnostics,
     runThemeSelfHeal,
+    getCachedDiagnostics,
     collectFolderEditorDebugDiagnostics,
     renderFolderEditorDebugDiagnostics,
     copyFolderEditorDebugDiagnostics
@@ -1386,6 +1473,7 @@ window.FolderViewPlusDiagnostics = Object.freeze({
     releaseAdvancedOperationLock,
     withAdvancedOperationLock,
     renderChangeHistory,
+    renderRecoveryChangeHistoryFromDiagnostics,
     refreshChangeHistory,
     renderDiagnostics,
     runDiagnostics,
@@ -1402,6 +1490,7 @@ window.FolderViewPlusDiagnostics = Object.freeze({
     collectThemeDiagnostics,
     runThemeDiagnostics,
     runThemeSelfHeal,
+    getCachedDiagnostics,
     collectFolderEditorDebugDiagnostics,
     renderFolderEditorDebugDiagnostics,
     copyFolderEditorDebugDiagnostics,

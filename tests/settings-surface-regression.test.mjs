@@ -131,6 +131,28 @@ test('rules tab uses a source-switched workspace and bulk assignment keeps the t
     assert.doesNotMatch(settingsCss, /@media \(min-width: 1080px\) \{[\s\S]*\.bulk-assign-grid,\s*\.backup-grid,\s*\.template-grid \{\s*grid-template-columns:\s*minmax\(0,\s*1fr\) !important;/);
 });
 
+test('recovery tab uses a source-switched workspace with overview cards, snapshot history, and undo timeline', () => {
+    assert.match(settingsPage, /<h2 data-fv-section="backups" data-fv-advanced="1" data-fv-advanced-group="recovery">Recovery workspace<\/h2>/);
+    assert.match(settingsPage, /class="fv-rules-source-switch fv-recovery-source-switch"[\s\S]*setRecoveryWorkspaceType\('docker'\)[\s\S]*setRecoveryWorkspaceType\('vm'\)/);
+    assert.match(settingsPage, /id="fv-recovery-overview"/);
+    assert.match(settingsPage, /id="recovery-backups-filter"[\s\S]*oninput="filterActiveRecoveryBackups\(this\.value\)"/);
+    assert.match(settingsPage, /id="fv-recovery-backup-list"/);
+    assert.match(settingsPage, /id="recovery-change-history-list"/);
+    assert.match(settingsPage, /onclick="restoreLatestActiveRecoveryBackup\(\)"/);
+    assert.match(settingsPage, /onclick="createActiveRecoveryBackup\(\)"/);
+    assert.match(settingsPage, /onclick="runActiveRecoveryScheduler\(\)"/);
+    assert.match(settingsPage, /onclick="undoActiveRecoveryChange\(\)"/);
+    assert.match(settingsJs, /const normalizeRecoveryWorkspaceType = \(value\) =>/);
+    assert.match(settingsJs, /const setRecoveryWorkspaceType = \(type, persist = true\) =>/);
+    assert.match(settingsJs, /activeRecoveryWorkspaceType = normalizeRecoveryWorkspaceType\(localStorage\.getItem\(RECOVERY_WORKSPACE_STORAGE_KEY\) \|\| 'docker'\)/);
+    assert.match(diagnosticsJs, /const renderRecoveryChangeHistoryFromDiagnostics = \(diagnostics = lastDiagnostics\) =>/);
+    assert.match(settingsCss, /\.fv-recovery-source-switch/);
+    assert.match(settingsCss, /\.fv-recovery-overview/);
+    assert.match(settingsCss, /\.fv-recovery-stat-grid/);
+    assert.match(settingsCss, /\.fv-recovery-history-list,\s*\.fv-recovery-change-history-list/);
+    assert.match(settingsCss, /\.fv-recovery-timeline-card/);
+});
+
 test('bulk assignment modules reserve equal item-list height and disable outer panel scrolling', () => {
     assert.match(settingsCss, /\.bulk-assign-grid,\s*\.backup-grid,\s*\.template-grid\s*\{[\s\S]*align-items:\s*stretch;/);
     assert.match(settingsCss, /\.bulk-assign-grid > \.rules-panel\s*\{[\s\S]*max-height:\s*none !important;[\s\S]*overflow-y:\s*hidden !important;/);

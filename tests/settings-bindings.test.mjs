@@ -156,6 +156,17 @@ test('settings sections only show section apply badges when save-required fields
     assert.match(script, /const refreshSectionApplyModeBadges = \(\) =>/);
 });
 
+test('recovery workspace remembers source and routes generic actions through the active type', () => {
+    assert.match(script, /const RECOVERY_WORKSPACE_STORAGE_KEY = 'fv\.settings\.recoveryWorkspace\.v1';/);
+    assert.match(script, /const getActiveRecoveryWorkspaceType = \(\) => normalizeRecoveryWorkspaceType\(activeRecoveryWorkspaceType\);/);
+    assert.match(script, /writeSettingsStorage\(RECOVERY_WORKSPACE_STORAGE_KEY, activeRecoveryWorkspaceType, \{ delayMs: 60, idle: true \}\);/);
+    assert.match(script, /const createActiveRecoveryBackup = \(\) => createManualBackup\(getActiveRecoveryWorkspaceType\(\)\);/);
+    assert.match(script, /const restoreLatestActiveRecoveryBackup = \(\) => restoreLatestBackup\(getActiveRecoveryWorkspaceType\(\)\);/);
+    assert.match(script, /const runActiveRecoveryScheduler = \(\) => runScheduledBackupNow\(getActiveRecoveryWorkspaceType\(\)\);/);
+    assert.match(script, /const compareActiveRecoverySnapshots = \(\) => \{/);
+    assert.match(script, /const undoActiveRecoveryChange = \(\) => undoLatestChange\(getActiveRecoveryWorkspaceType\(\)\);/);
+});
+
 test('runtime conflict safe mode blocks risky mutations with user-facing guard dialog', () => {
     assert.match(script, /const ensureRuntimeConflictActionAllowed = \(actionLabel = 'This action'\) =>/);
     assert.match(script, /if \(!ensureRuntimeConflictActionAllowed\(`Import \$\{resolvedType === 'docker' \? 'Docker' : 'VM'\} folders`\)\) \{/);

@@ -578,9 +578,11 @@ let bulkAssignStateByType = {
     vm: createBulkAssignUiState()
 };
 let activeRulesWorkspaceType = 'docker';
+let activeRecoveryWorkspaceType = 'docker';
 
 const UI_MODE_STORAGE_KEY = 'fv.settings.mode.v1';
 const RULES_WORKSPACE_STORAGE_KEY = 'fv.settings.rulesWorkspace.v1';
+const RECOVERY_WORKSPACE_STORAGE_KEY = 'fv.settings.recoveryWorkspace.v1';
 const UPDATE_NOTES_SEEN_VERSION_STORAGE_KEY = 'fv.settings.updateNotesSeenVersion.v1';
 const RUNTIME_CONFLICT_ACTIVE_STORAGE_KEY = 'fv.runtimeConflict.active.v1';
 const RUNTIME_CONFLICT_RESOLVED_PENDING_STORAGE_KEY = 'fv.runtimeConflict.resolvedPending.v1';
@@ -2239,9 +2241,15 @@ const initSettingsControls = () => {
             updateBulkResultActions(type);
             updateBulkPreviewPanel(type);
         });
+    $(document)
+        .off('change.fvrecoverycompare', '#recovery-backup-compare-left, #recovery-backup-compare-right, #recovery-backup-compare-include-prefs')
+        .on('change.fvrecoverycompare', '#recovery-backup-compare-left, #recovery-backup-compare-right, #recovery-backup-compare-include-prefs', () => {
+            syncHiddenRecoveryCompareControls(getActiveRecoveryWorkspaceType());
+        });
 
     $('#fv-settings-search').val(settingsUiState.query || '');
     $('#fv-search-all-advanced').prop('checked', settingsUiState.searchAllAdvanced === true);
+    syncRecoveryWorkspaceUi();
     syncRulesWorkspaceUi();
     updateRuleValidationHint('docker');
     updateRuleValidationHint('vm');
@@ -2276,6 +2284,7 @@ const refreshSettingsUx = () => {
     syncSectionJumpOptions();
     refreshInputInvalidStyles();
     refreshSectionHealthBadges();
+    syncRecoveryWorkspaceUi();
     syncRulesWorkspaceUi();
     ADVANCED_MODULE_KEYS.forEach((moduleKey) => {
         renderAdvancedModuleStatus(moduleKey);
@@ -4145,9 +4154,284 @@ const setFilterQuery = (section, type, value) => {
     }
 };
 
+const normalizeRecoveryWorkspaceType = (value) => (
+    String(value || '').trim().toLowerCase() === 'vm' ? 'vm' : 'docker'
+);
+
 const normalizeRulesWorkspaceType = (value) => (
     String(value || '').trim().toLowerCase() === 'vm' ? 'vm' : 'docker'
 );
+
+const getActiveRecoveryWorkspaceType = () => normalizeRecoveryWorkspaceType(activeRecoveryWorkspaceType);
+
+const getSortedBackupsForType = (type) => {
+    const resolvedType = normalizeRecoveryWorkspaceType(type);
+    return [...(Array.isArray(backupsByType[resolvedType]) ? backupsByType[resolvedType] : [])].sort((left, right) => {
+        const leftTime = new Date(String(left?.createdAt || '')).getTime() || 0;
+        const rightTime = new Date(String(right?.createdAt || '')).getTime() || 0;
+        if (leftTime !== rightTime) {
+            return rightTime - leftTime;
+        }
+        return String(right?.name || '').localeCompare(String(left?.name || ''));
+    });
+};
+
+const formatRecoveryReasonLabel = (value) => {
+    const raw = String(value || '').trim();
+    if (!raw) {
+        return 'Manual';
+    }
+    return raw
+        .replace(/[_-]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .replace(/\b([a-z])/g, (match) => match.toUpperCase());
+};
+
+const buildRecoveryOverviewHtml = (type) => {
+    const resolvedType = normalizeRecoveryWorkspaceType(type);
+    const title = resolvedType === 'docker' ? 'Docker' : 'VMs';
+    const folders = getFolderMap(resolvedType);
+    const backups = getSortedBackupsForType(resolvedType);
+    const prefs = utils.normalizePrefs(prefsByType[resolvedType]);
+    const schedule = prefs.backupSchedule || {};
+    const latest = backups[0] || null;
+    const backupCount = backups.length;
+    const scheduleEnabled = schedule.enabled === true;
+    const retention = Number.isFinite(Number(schedule.retention)) ? Number(schedule.retention) : 25;
+    const interval = Number.isFinite(Number(schedule.intervalHours)) ? Number(schedule.intervalHours) : 24;
+    const latestCreated = latest?.createdAt ? formatTimestamp(latest.createdAt) : 'Not created yet';
+    const latestReason = latest ? formatRecoveryReasonLabel(latest.reason) : 'Create a manual checkpoint first';
+    const folderCount = Object.keys(folders || {}).length;
+    const statusClass = latest
+        ? (scheduleEnabled ? 'is-healthy' : 'is-warning')
+        : 'is-warning';
+    const statusLabel = latest
+        ? (scheduleEnabled ? 'Ready' : 'Watch')
+        : 'No backup yet';
+    const headline = latest
+        ? `Latest ${title} backup is ready to restore.`
+        : `No ${title} backup snapshot is available yet.`;
+    const copy = latest
+        ? `Latest snapshot: ${escapeHtml(latestCreated)}. Restore latest will create a fresh safety backup first.`
+        : `Create a manual backup before making larger changes so you have a safe rollback point.`;
+
+    return `
+        <div class="fv-recovery-overview-head">
+            <div>
+                <span class="fv-recovery-source-label">${escapeHtml(title)}</span>
+                <div class="fv-recovery-headline">${escapeHtml(headline)}</div>
+                <div class="fv-recovery-copy">${copy}</div>
+            </div>
+            <span class="fv-rules-status-chip ${statusClass}">${escapeHtml(statusLabel)}</span>
+        </div>
+        <div class="fv-recovery-stat-grid">
+            <div class="fv-recovery-stat-card">
+                <span class="fv-recovery-stat-label">Latest backup</span>
+                <strong>${escapeHtml(latestCreated)}</strong>
+                <span>${escapeHtml(latestReason)}</span>
+            </div>
+            <div class="fv-recovery-stat-card">
+                <span class="fv-recovery-stat-label">Snapshots kept</span>
+                <strong>${escapeHtml(String(backupCount))}</strong>
+                <span>${escapeHtml(`${folderCount} folder${folderCount === 1 ? '' : 's'} tracked`)}</span>
+            </div>
+            <div class="fv-recovery-stat-card">
+                <span class="fv-recovery-stat-label">Auto backup</span>
+                <strong>${escapeHtml(scheduleEnabled ? `Every ${interval}h` : 'Manual only')}</strong>
+                <span>${escapeHtml(schedule.lastRunAt ? `Last run ${formatTimestamp(schedule.lastRunAt)}` : 'Scheduler has not run yet')}</span>
+            </div>
+            <div class="fv-recovery-stat-card">
+                <span class="fv-recovery-stat-label">Retention</span>
+                <strong>${escapeHtml(`${retention} snapshot${retention === 1 ? '' : 's'}`)}</strong>
+                <span>${escapeHtml(scheduleEnabled ? 'Old backups rotate automatically.' : 'Retention applies after scheduler runs.')}</span>
+            </div>
+        </div>
+    `;
+};
+
+const buildRecoveryBackupHistoryHtml = (type) => {
+    const resolvedType = normalizeRecoveryWorkspaceType(type);
+    const filter = normalizedFilter(filtersByType[resolvedType]?.backups);
+    const backups = getSortedBackupsForType(resolvedType).filter((backup) => {
+        if (!filter) {
+            return true;
+        }
+        const haystack = `${String(backup?.name || '')} ${String(backup?.reason || '')}`.toLowerCase();
+        return haystack.includes(filter);
+    });
+    const summaryEl = $('#fv-recovery-history-summary');
+    const title = resolvedType === 'docker' ? 'Docker' : 'VM';
+    if (!backups.length) {
+        const emptyTitle = filter ? 'No backups match your search.' : `No ${title} backups yet.`;
+        const emptyCopy = filter
+            ? 'Try a different search term or clear the filter.'
+            : 'Create a manual backup or run the scheduler to build recovery history.';
+        summaryEl.text(filter ? 'No backups match the current filter.' : 'No backup snapshots are available yet.');
+        return `
+            <div class="fv-recovery-empty-state">
+                <strong>${escapeHtml(emptyTitle)}</strong>
+                <span>${escapeHtml(emptyCopy)}</span>
+            </div>
+        `;
+    }
+
+    summaryEl.text(`${backups.length} snapshot${backups.length === 1 ? '' : 's'} ready for restore, download, or cleanup.`);
+    return backups.map((backup, index) => {
+        const name = String(backup?.name || '').trim();
+        const created = formatTimestamp(backup?.createdAt || '');
+        const reason = formatRecoveryReasonLabel(backup?.reason);
+        const count = Number.isFinite(Number(backup?.count)) ? Number(backup.count) : 0;
+        const latestBadge = index === 0 ? '<span class="fv-recovery-history-badge">Latest</span>' : '';
+        return `
+            <article class="fv-recovery-history-card">
+                <div class="fv-recovery-history-head">
+                    <div>
+                        <div class="fv-recovery-history-title">${escapeHtml(created)}</div>
+                        <div class="fv-recovery-history-copy">${escapeHtml(reason)}</div>
+                    </div>
+                    ${latestBadge}
+                </div>
+                <div class="fv-recovery-history-meta">
+                    <span>${escapeHtml(`${count} folder${count === 1 ? '' : 's'}`)}</span>
+                    <span>${escapeHtml(name)}</span>
+                </div>
+                <div class="backup-actions fv-recovery-history-actions-row">
+                    <button type="button" onclick="restoreBackupEntry('${resolvedType}','${escapeHtml(name)}')"><i class="fa fa-history"></i> Restore</button>
+                    <button type="button" onclick="downloadBackupEntry('${resolvedType}','${escapeHtml(name)}')"><i class="fa fa-download"></i> Download</button>
+                    <button type="button" onclick="deleteBackupEntry('${resolvedType}','${escapeHtml(name)}')"><i class="fa fa-trash"></i> Delete</button>
+                </div>
+            </article>
+        `;
+    }).join('');
+};
+
+const syncVisibleRecoveryCompareControls = (type) => {
+    const resolvedType = normalizeRecoveryWorkspaceType(type);
+    const visibleLeft = $('#recovery-backup-compare-left');
+    const visibleRight = $('#recovery-backup-compare-right');
+    const visiblePrefs = $('#recovery-backup-compare-include-prefs');
+    const sourceLeft = $(`#${resolvedType}-backup-compare-left`);
+    const sourceRight = $(`#${resolvedType}-backup-compare-right`);
+    const sourcePrefs = $(`#${resolvedType}-backup-compare-include-prefs`);
+    if (!visibleLeft.length || !visibleRight.length || !visiblePrefs.length || !sourceLeft.length || !sourceRight.length || !sourcePrefs.length) {
+        return;
+    }
+
+    visibleLeft.html(sourceLeft.html()).prop('disabled', sourceLeft.prop('disabled'));
+    visibleRight.html(sourceRight.html()).prop('disabled', sourceRight.prop('disabled'));
+    visiblePrefs.prop('checked', sourcePrefs.prop('checked') === true).prop('disabled', sourcePrefs.prop('disabled'));
+    visibleLeft.val(String(sourceLeft.val() || ''));
+    visibleRight.val(String(sourceRight.val() || '__current__'));
+};
+
+const syncHiddenRecoveryCompareControls = (type) => {
+    const resolvedType = normalizeRecoveryWorkspaceType(type);
+    const visibleLeft = $('#recovery-backup-compare-left');
+    const visibleRight = $('#recovery-backup-compare-right');
+    const visiblePrefs = $('#recovery-backup-compare-include-prefs');
+    const sourceLeft = $(`#${resolvedType}-backup-compare-left`);
+    const sourceRight = $(`#${resolvedType}-backup-compare-right`);
+    const sourcePrefs = $(`#${resolvedType}-backup-compare-include-prefs`);
+    if (!visibleLeft.length || !visibleRight.length || !visiblePrefs.length || !sourceLeft.length || !sourceRight.length || !sourcePrefs.length) {
+        return;
+    }
+    sourceLeft.val(String(visibleLeft.val() || ''));
+    sourceRight.val(String(visibleRight.val() || '__current__'));
+    sourcePrefs.prop('checked', visiblePrefs.prop('checked') === true);
+    sourceLeft.triggerHandler('change');
+    sourceRight.triggerHandler('change');
+    sourcePrefs.triggerHandler('change');
+};
+
+const renderRecoveryWorkspace = (type = activeRecoveryWorkspaceType) => {
+    const resolvedType = normalizeRecoveryWorkspaceType(type);
+    const overviewHost = $('#fv-recovery-overview');
+    const listHost = $('#fv-recovery-backup-list');
+    const filterInput = $('#recovery-backups-filter');
+    const policySummary = $('#fv-recovery-policy-summary');
+    const safetyNote = $('#fv-recovery-safety-note');
+    if (!overviewHost.length || !listHost.length) {
+        return;
+    }
+
+    activeRecoveryWorkspaceType = resolvedType;
+    const backups = getSortedBackupsForType(resolvedType);
+    const prefs = utils.normalizePrefs(prefsByType[resolvedType]);
+    const schedule = prefs.backupSchedule || {};
+    const filter = filtersByType[resolvedType]?.backups || '';
+    const latest = backups[0] || null;
+    const title = resolvedType === 'docker' ? 'Docker' : 'VM';
+
+    overviewHost.html(buildRecoveryOverviewHtml(resolvedType));
+    listHost.html(buildRecoveryBackupHistoryHtml(resolvedType));
+    filterInput.val(filter);
+    safetyNote.text(latest
+        ? `Latest ${title} snapshot: ${formatTimestamp(latest.createdAt || '')}. A safety backup is created automatically before restore.`
+        : `No ${title} backup exists yet. Create one now so you have a rollback point before bigger changes.`);
+    policySummary.text(schedule.enabled === true
+        ? `Every ${schedule.intervalHours || 24}h, keep ${schedule.retention || 25}, ${schedule.lastRunAt ? `last run ${formatTimestamp(schedule.lastRunAt)}` : 'waiting for first run'}.`
+        : 'Manual backups only. Enable the scheduler to keep automatic recovery points.');
+    syncVisibleRecoveryCompareControls(resolvedType);
+    window.FolderViewPlusDiagnostics?.renderRecoveryChangeHistoryFromDiagnostics?.();
+};
+
+const syncRecoveryWorkspaceUi = () => {
+    const activeType = normalizeRecoveryWorkspaceType(activeRecoveryWorkspaceType);
+    document.querySelectorAll('[data-fv-recovery-source-toggle]').forEach((button) => {
+        if (!(button instanceof HTMLButtonElement)) {
+            return;
+        }
+        const buttonType = normalizeRecoveryWorkspaceType(button.getAttribute('data-fv-recovery-source-toggle'));
+        const isActive = buttonType === activeType;
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+    renderRecoveryWorkspace(activeType);
+};
+
+const setRecoveryWorkspaceType = (type, persist = true) => {
+    activeRecoveryWorkspaceType = normalizeRecoveryWorkspaceType(type);
+    if (persist) {
+        writeSettingsStorage(RECOVERY_WORKSPACE_STORAGE_KEY, activeRecoveryWorkspaceType, { delayMs: 60, idle: true });
+    }
+    syncRecoveryWorkspaceUi();
+};
+
+const filterActiveRecoveryBackups = (value = '') => {
+    const resolvedType = getActiveRecoveryWorkspaceType();
+    const displayValue = String(value || '');
+    if (!filtersByType[resolvedType]) {
+        filtersByType[resolvedType] = {
+            folders: '',
+            rules: '',
+            backups: '',
+            templates: '',
+            bulk: ''
+        };
+    }
+    filtersByType[resolvedType].backups = normalizedFilter(displayValue);
+    persistTableUiState();
+    renderBackupRows(resolvedType);
+};
+
+const createActiveRecoveryBackup = () => createManualBackup(getActiveRecoveryWorkspaceType());
+
+const restoreLatestActiveRecoveryBackup = () => restoreLatestBackup(getActiveRecoveryWorkspaceType());
+
+const runActiveRecoveryScheduler = () => runScheduledBackupNow(getActiveRecoveryWorkspaceType());
+
+const compareActiveRecoverySnapshots = () => {
+    const resolvedType = getActiveRecoveryWorkspaceType();
+    syncHiddenRecoveryCompareControls(resolvedType);
+    compareBackupSnapshots(resolvedType);
+};
+
+const changeActiveBackupSchedulePref = (key, value) => (
+    changeBackupSchedulePref(getActiveRecoveryWorkspaceType(), key, value)
+);
+
+const undoActiveRecoveryChange = () => undoLatestChange(getActiveRecoveryWorkspaceType());
 
 const syncRulesWorkspaceUi = () => {
     const activeType = normalizeRulesWorkspaceType(activeRulesWorkspaceType);
@@ -7669,6 +7953,12 @@ const renderBackupScheduleControls = (type) => {
     $(`#${type}-backup-retention`).val(String(schedule.retention || 25));
     const lastRunText = schedule.lastRunAt ? `Last scheduled run: ${formatTimestamp(schedule.lastRunAt)}` : 'Last scheduled run: never';
     $(`#${type}-backup-last-run`).text(lastRunText);
+    if (normalizeRecoveryWorkspaceType(activeRecoveryWorkspaceType) === normalizeRecoveryWorkspaceType(type)) {
+        $('#recovery-backup-schedule-enabled').prop('checked', schedule.enabled === true);
+        $('#recovery-backup-interval-hours').val(String(schedule.intervalHours || 24));
+        $('#recovery-backup-retention').val(String(schedule.retention || 25));
+        $('#recovery-backup-last-run').text(lastRunText);
+    }
 };
 
 const renderFilterInputs = (type) => {
@@ -8783,6 +9073,9 @@ const renderBackupRows = (type) => {
             : 'Create a manual backup or run an import/change to generate snapshots.';
         rowsEl.html(buildModuleEmptyTableRow(title, help, 4));
         renderBackupCompareControls(type);
+        if (normalizeRecoveryWorkspaceType(activeRecoveryWorkspaceType) === normalizeRecoveryWorkspaceType(type)) {
+            renderRecoveryWorkspace(type);
+        }
         return;
     }
 
@@ -8804,6 +9097,9 @@ const renderBackupRows = (type) => {
 
     rowsEl.html(rows.join(''));
     renderBackupCompareControls(type);
+    if (normalizeRecoveryWorkspaceType(activeRecoveryWorkspaceType) === normalizeRecoveryWorkspaceType(type)) {
+        renderRecoveryWorkspace(type);
+    }
 };
 
 // folderviewplus.import.js provides backup comparison helpers.
@@ -9947,6 +10243,9 @@ const changeBackupSchedulePref = async (type, key, value) => {
             backupSchedule: schedule
         });
         renderBackupScheduleControls(type);
+        if (normalizeRecoveryWorkspaceType(activeRecoveryWorkspaceType) === normalizeRecoveryWorkspaceType(type)) {
+            renderRecoveryWorkspace(type);
+        }
     } catch (error) {
         showError('Backup schedule save failed', error);
     }
@@ -11294,7 +11593,11 @@ settingsActionSupportModule.registerWindowActions(window, {
     changeDashboardPref,
     changeHealthPref,
     changeBackupSchedulePref,
+    changeActiveBackupSchedulePref,
     setFilterQuery,
+    filterActiveRecoveryBackups,
+    setRecoveryWorkspaceType,
+    getActiveRecoveryWorkspaceType,
     setRulesWorkspaceType,
     addAutoRule,
     toggleAutoRule,
@@ -11312,10 +11615,14 @@ settingsActionSupportModule.registerWindowActions(window, {
     bulkItemSelectionAction,
     updateBulkSelectedCount,
     createManualBackup,
+    createActiveRecoveryBackup,
     refreshBackups,
     runScheduledBackupNow,
+    runActiveRecoveryScheduler,
     restoreLatestBackup,
+    restoreLatestActiveRecoveryBackup,
     compareBackupSnapshots,
+    compareActiveRecoverySnapshots,
     restoreBackupEntry,
     downloadBackupEntry,
     deleteBackupEntry,
@@ -11323,6 +11630,7 @@ settingsActionSupportModule.registerWindowActions(window, {
     applyFolderRuntimeAction,
     refreshChangeHistory,
     undoLatestChange,
+    undoActiveRecoveryChange,
     createTemplateFromFolder,
     applyTemplateToFolder,
     deleteTemplateEntry,
@@ -11389,6 +11697,7 @@ settingsActionSupportModule.registerWindowActions(window, {
         }, async () => {
             settingsUiState.mode = localStorage.getItem(UI_MODE_STORAGE_KEY) === 'advanced' ? 'advanced' : 'basic';
             activeRulesWorkspaceType = normalizeRulesWorkspaceType(localStorage.getItem(RULES_WORKSPACE_STORAGE_KEY) || 'docker');
+            activeRecoveryWorkspaceType = normalizeRecoveryWorkspaceType(localStorage.getItem(RECOVERY_WORKSPACE_STORAGE_KEY) || 'docker');
             setAdvancedTab(localStorage.getItem(ADVANCED_TAB_STORAGE_KEY) || 'automation', false);
             settingsUiState.searchAllAdvanced = localStorage.getItem(SEARCH_ALL_ADVANCED_STORAGE_KEY) === '1';
             settingsUiState.activeSectionKey = String(localStorage.getItem(ADVANCED_SECTION_STORAGE_KEY) || '').trim();

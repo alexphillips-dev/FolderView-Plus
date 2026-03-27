@@ -1047,84 +1047,118 @@ if (!empty($fvplusRuntimeConflicts)) {
 </div>
 <hr>
 
-<h2 data-fv-section="backups" data-fv-advanced="1" data-fv-advanced-group="recovery">Backups</h2>
-<div class="backup-grid">
-    <div class="rules-panel">
+<h2 data-fv-section="backups" data-fv-advanced="1" data-fv-advanced-group="recovery">Recovery workspace</h2>
+<div class="fv-recovery-module-wrap">
+    <div class="rules-panel fv-recovery-panel">
         <div class="rules-header">
-            <h3>Docker backups</h3>
-            <span class="rules-help">Create, restore, download, or delete backup snapshots.</span>
+            <h3>Restore and backup snapshots</h3>
+            <span class="rules-help">Choose Docker or VMs, confirm you are protected, then create, compare, restore, or review snapshots from one place.</span>
         </div>
-        <div class="backup-actions">
-            <button type="button" onclick="createManualBackup('docker')"><i class="fa fa-camera"></i> Create backup now</button>
-            <button type="button" onclick="restoreLatestBackup('docker')"><i class="fa fa-history"></i> Restore latest</button>
-            <button type="button" onclick="refreshBackups('docker')"><i class="fa fa-refresh"></i> Refresh list</button>
-            <button type="button" onclick="runScheduledBackupNow('docker')"><i class="fa fa-clock-o"></i> Run scheduler now</button>
-        </div>
-        <div class="backup-compare-row">
-            <label for="docker-backup-compare-left">Compare</label>
-            <select id="docker-backup-compare-left"></select>
-            <span class="backup-compare-sep">vs</span>
-            <select id="docker-backup-compare-right"></select>
-            <label class="backup-compare-prefs-toggle"><input id="docker-backup-compare-include-prefs" type="checkbox" checked> Include preference changes</label>
-            <button type="button" onclick="compareBackupSnapshots('docker')"><i class="fa fa-exchange"></i> Compare snapshots</button>
-        </div>
-        <input id="docker-backups-filter" type="text" placeholder="Search Docker backups" oninput="setFilterQuery('backups','docker',this.value)">
-        <div class="schedule-row">
-            <label><input id="docker-backup-schedule-enabled" type="checkbox" onchange="changeBackupSchedulePref('docker', 'enabled', this.checked)"> Scheduled backups</label>
-            <label>Interval (hours): <input id="docker-backup-interval-hours" type="number" min="1" max="168" step="1" onchange="changeBackupSchedulePref('docker', 'intervalHours', this.value)"></label>
-            <label>Retention: <input id="docker-backup-retention" type="number" min="1" max="200" step="1" onchange="changeBackupSchedulePref('docker', 'retention', this.value)"></label>
-            <span id="docker-backup-last-run" class="schedule-hint"></span>
-        </div>
-        <table class="rules-table">
-            <thead>
-                <tr>
-                    <th>Created</th>
-                    <th>Reason</th>
-                    <th>Folders</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="docker-backups"></tbody>
-        </table>
-    </div>
+        <div class="fv-recovery-section-body">
+            <div class="fv-rules-source-switch fv-recovery-source-switch" role="tablist" aria-label="Recovery source">
+                <button type="button" class="fv-rules-source-btn" data-fv-recovery-source-toggle="docker" onclick="setRecoveryWorkspaceType('docker')">Docker</button>
+                <button type="button" class="fv-rules-source-btn" data-fv-recovery-source-toggle="vm" onclick="setRecoveryWorkspaceType('vm')">VMs</button>
+            </div>
 
-    <div class="rules-panel">
+            <div id="fv-recovery-overview" class="fv-recovery-overview">
+                <div class="fv-recovery-empty-state">
+                    <strong>Recovery overview will load after backups finish loading.</strong>
+                    <span>Create a manual backup or enable scheduled backups to keep a restore point ready.</span>
+                </div>
+            </div>
+
+            <div class="fv-recovery-stage-grid">
+                <section class="fv-recovery-stage">
+                    <div class="fv-recovery-stage-head">
+                        <strong>Restore and safety</strong>
+                        <span class="rules-help">Restore the latest snapshot, create a manual checkpoint, or compare two restore points before applying anything.</span>
+                    </div>
+                    <div class="backup-actions fv-recovery-primary-actions">
+                        <button type="button" onclick="restoreLatestActiveRecoveryBackup()"><i class="fa fa-history"></i> Restore latest backup</button>
+                        <button type="button" onclick="createActiveRecoveryBackup()"><i class="fa fa-camera"></i> Create backup now</button>
+                        <button type="button" onclick="runActiveRecoveryScheduler()"><i class="fa fa-clock-o"></i> Run scheduler now</button>
+                    </div>
+                    <div id="fv-recovery-safety-note" class="fv-recovery-callout">
+                        Restoring always creates a fresh safety backup first.
+                    </div>
+                    <div class="backup-compare-row fv-recovery-compare-row">
+                        <label for="recovery-backup-compare-left">Compare</label>
+                        <select id="recovery-backup-compare-left"></select>
+                        <span class="backup-compare-sep">vs</span>
+                        <select id="recovery-backup-compare-right"></select>
+                        <label class="backup-compare-prefs-toggle"><input id="recovery-backup-compare-include-prefs" type="checkbox" checked> Include preference changes</label>
+                        <button type="button" onclick="compareActiveRecoverySnapshots()"><i class="fa fa-exchange"></i> Compare snapshots</button>
+                    </div>
+                </section>
+
+                <details class="fv-recovery-stage fv-recovery-policy">
+                    <summary class="fv-recovery-policy-summary">
+                        <span>Backup policy</span>
+                        <span id="fv-recovery-policy-summary" class="rules-help">Manual backups only.</span>
+                    </summary>
+                    <div class="schedule-row fv-recovery-policy-grid">
+                        <label><input id="recovery-backup-schedule-enabled" type="checkbox" onchange="changeActiveBackupSchedulePref('enabled', this.checked)"> Scheduled backups</label>
+                        <label>Interval (hours): <input id="recovery-backup-interval-hours" type="number" min="1" max="168" step="1" onchange="changeActiveBackupSchedulePref('intervalHours', this.value)"></label>
+                        <label>Retention: <input id="recovery-backup-retention" type="number" min="1" max="200" step="1" onchange="changeActiveBackupSchedulePref('retention', this.value)"></label>
+                        <span id="recovery-backup-last-run" class="schedule-hint"></span>
+                    </div>
+                </details>
+            </div>
+
+            <section class="fv-recovery-stage fv-recovery-history-stage">
+                <div class="fv-recovery-stage-head">
+                    <strong>Backup history</strong>
+                    <span id="fv-recovery-history-summary" class="rules-help">Review stored snapshots, then restore, download, or delete individual entries.</span>
+                </div>
+                <div class="fv-recovery-history-toolbar">
+                    <input id="recovery-backups-filter" type="text" placeholder="Search backups" oninput="filterActiveRecoveryBackups(this.value)">
+                </div>
+                <div id="fv-recovery-backup-list" class="fv-recovery-history-list">
+                    <div class="fv-recovery-empty-state">
+                        <strong>No backups loaded yet.</strong>
+                        <span>Create a manual snapshot or run the scheduler once to start building recovery history.</span>
+                    </div>
+                </div>
+            </section>
+
+            <div class="fv-recovery-hidden-helpers" hidden aria-hidden="true">
+                <select id="docker-backup-compare-left"></select>
+                <select id="docker-backup-compare-right"></select>
+                <label><input id="docker-backup-compare-include-prefs" type="checkbox" checked></label>
+                <select id="vm-backup-compare-left"></select>
+                <select id="vm-backup-compare-right"></select>
+                <label><input id="vm-backup-compare-include-prefs" type="checkbox" checked></label>
+            </div>
+        </div>
+    </div>
+</div>
+<hr>
+
+<h2 data-fv-section="change-history" data-fv-advanced="1" data-fv-advanced-group="recovery">Undo and recent changes</h2>
+<div class="fv-recovery-module-wrap">
+    <div class="rules-panel fv-recovery-panel fv-recovery-history-panel">
         <div class="rules-header">
-            <h3>VM backups</h3>
-            <span class="rules-help">Create, restore, download, or delete backup snapshots.</span>
+            <h3>Recent recovery timeline</h3>
+            <span class="rules-help">Refresh the recent change feed, review what happened for the selected source, and undo the latest change if needed.</span>
         </div>
-        <div class="backup-actions">
-            <button type="button" onclick="createManualBackup('vm')"><i class="fa fa-camera"></i> Create backup now</button>
-            <button type="button" onclick="restoreLatestBackup('vm')"><i class="fa fa-history"></i> Restore latest</button>
-            <button type="button" onclick="refreshBackups('vm')"><i class="fa fa-refresh"></i> Refresh list</button>
-            <button type="button" onclick="runScheduledBackupNow('vm')"><i class="fa fa-clock-o"></i> Run scheduler now</button>
+        <div class="fv-recovery-section-body">
+            <div id="fv-recovery-change-history-summary" class="fv-recovery-undo-summary">
+                <div class="fv-recovery-empty-state">
+                    <strong>Recent change history loads when diagnostics refresh.</strong>
+                    <span>Use the undo action only when you want to restore the latest undo-safe backup for the selected source.</span>
+                </div>
+            </div>
+            <div class="backup-actions fv-recovery-history-actions">
+                <button type="button" onclick="refreshChangeHistory()"><i class="fa fa-refresh"></i> Refresh history</button>
+                <button type="button" onclick="undoActiveRecoveryChange()"><i class="fa fa-undo"></i> Undo latest change</button>
+            </div>
+            <div id="recovery-change-history-list" class="fv-recovery-change-history-list">
+                <div class="fv-recovery-empty-state">
+                    <strong>No recent changes loaded yet.</strong>
+                    <span>Refresh history to review the latest actions for the selected source.</span>
+                </div>
+            </div>
         </div>
-        <div class="backup-compare-row">
-            <label for="vm-backup-compare-left">Compare</label>
-            <select id="vm-backup-compare-left"></select>
-            <span class="backup-compare-sep">vs</span>
-            <select id="vm-backup-compare-right"></select>
-            <label class="backup-compare-prefs-toggle"><input id="vm-backup-compare-include-prefs" type="checkbox" checked> Include preference changes</label>
-            <button type="button" onclick="compareBackupSnapshots('vm')"><i class="fa fa-exchange"></i> Compare snapshots</button>
-        </div>
-        <input id="vm-backups-filter" type="text" placeholder="Search VM backups" oninput="setFilterQuery('backups','vm',this.value)">
-        <div class="schedule-row">
-            <label><input id="vm-backup-schedule-enabled" type="checkbox" onchange="changeBackupSchedulePref('vm', 'enabled', this.checked)"> Scheduled backups</label>
-            <label>Interval (hours): <input id="vm-backup-interval-hours" type="number" min="1" max="168" step="1" onchange="changeBackupSchedulePref('vm', 'intervalHours', this.value)"></label>
-            <label>Retention: <input id="vm-backup-retention" type="number" min="1" max="200" step="1" onchange="changeBackupSchedulePref('vm', 'retention', this.value)"></label>
-            <span id="vm-backup-last-run" class="schedule-hint"></span>
-        </div>
-        <table class="rules-table">
-            <thead>
-                <tr>
-                    <th>Created</th>
-                    <th>Reason</th>
-                    <th>Folders</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody id="vm-backups"></tbody>
-        </table>
     </div>
 </div>
 <hr>
@@ -1188,21 +1222,6 @@ if (!empty($fvplusRuntimeConflicts)) {
             <tbody id="vm-templates"></tbody>
         </table>
     </div>
-</div>
-<hr>
-
-<h2 data-fv-section="change-history" data-fv-advanced="1" data-fv-advanced-group="recovery">Change history and undo</h2>
-<div class="rules-panel">
-    <div class="rules-header">
-        <h3>Recent changes</h3>
-        <span class="rules-help">Shows recent config actions from diagnostics history and allows one-click undo to the latest backup transaction.</span>
-    </div>
-    <div class="backup-actions">
-        <button type="button" onclick="refreshChangeHistory()"><i class="fa fa-refresh"></i> Refresh history</button>
-        <button type="button" onclick="undoLatestChange('docker')"><i class="fa fa-undo"></i> Undo latest Docker change</button>
-        <button type="button" onclick="undoLatestChange('vm')"><i class="fa fa-undo"></i> Undo latest VM change</button>
-    </div>
-    <pre id="change-history-output" class="diagnostics-output compact-output">Refresh history to view recent changes.</pre>
 </div>
 <hr>
 

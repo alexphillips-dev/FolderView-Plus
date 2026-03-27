@@ -343,8 +343,8 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
         assert.match(workflow, /uses:\s*\.\/\.github\/actions\/setup-ci-env/);
         assert.match(workflow, /Run release validation suite/);
         assert.match(workflow, /bash scripts\/run_ci_suite\.sh --release/);
-        assert.match(workflow, /FVPLUS_BROWSER_SMOKE_REQUIRED:\s*'1'/);
-        assert.match(workflow, /FVPLUS_THEME_MATRIX_REQUIRED:\s*'1'/);
+        assert.match(workflow, /FVPLUS_BROWSER_SMOKE_REQUIRED:\s*\$\{\{\s*secrets\.FVPLUS_BROWSER_SMOKE_URL != '' && '1' \|\| '0'\s*\}\}/);
+        assert.match(workflow, /FVPLUS_THEME_MATRIX_REQUIRED:\s*\$\{\{\s*secrets\.FVPLUS_THEME_MATRIX_URLS != '' && '1' \|\| '0'\s*\}\}/);
         assert.match(workflow, /FVPLUS_BROWSER_SMOKE_REQUIRE_FOLDER_EDITOR:\s*'1'/);
         assert.match(workflow, /FVPLUS_THEME_REQUIRED_LABELS:\s*'black,white'/);
     }

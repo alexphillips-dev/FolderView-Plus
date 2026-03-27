@@ -336,6 +336,11 @@ test('settings mode switches persist the user basic or advanced view choice', ()
     assert.match(script, /setSettingsMode\('advanced', \{ persistServer: true \}\);/);
 });
 
+test('folder health actions can jump into a filtered basic table view', () => {
+    assert.match(script, /const mode = String\(\$\(event\.currentTarget\)\.attr\('data-fv-health-mode'\) \|\| 'all'\);/);
+    assert.match(script, /setHealthFolderFilter\(type, mode\);/);
+});
+
 test('bulk assignment advanced UX includes filtering, selection helpers, and compatibility-safe fallback', () => {
     assert.match(page, /class="rules-panel bulk-module" data-fv-bulk-type="docker"/);
     assert.match(page, /class="rules-panel bulk-module" data-fv-bulk-type="vm"/);

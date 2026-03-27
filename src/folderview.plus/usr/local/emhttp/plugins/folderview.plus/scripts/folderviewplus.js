@@ -2136,6 +2136,8 @@ const initSettingsControls = () => {
         const type = String($(event.currentTarget).attr('data-fv-health-type') || 'docker');
         const action = String($(event.currentTarget).attr('data-fv-health-action') || '');
         if (action === 'jump-table') {
+            const mode = String($(event.currentTarget).attr('data-fv-health-mode') || 'all');
+            setHealthFolderFilter(type, mode);
             setSettingsMode('basic', { persistServer: true });
             scrollToSectionKey(type === 'vm' ? 'vms' : 'docker');
             return;
@@ -7675,8 +7677,8 @@ const buildHealthCardHtml = (type, metrics, healthPrefs) => {
     const summaryHeadline = folderCount <= 0
         ? `No ${title.toLowerCase()} folders are configured yet.`
         : (attentionCount > 0
-            ? `${attentionCount} ${title.toLowerCase()} folder${attentionCount === 1 ? '' : 's'} need attention.`
-            : `${title} folders look healthy.`);
+            ? `${attentionCount} ${title.toLowerCase()} folder${attentionCount === 1 ? '' : 's'} need review.`
+            : `${folderCount} ${title.toLowerCase()} folder${folderCount === 1 ? '' : 's'} look healthy.`);
     const detailParts = [];
     if (folderCount > 0) {
         detailParts.push(`${folderCount} folder${folderCount === 1 ? '' : 's'} tracked`);
@@ -7746,6 +7748,106 @@ const buildHealthCardHtml = (type, metrics, healthPrefs) => {
     `;
 };
 
+const buildCleanHealthCardHtml = (type, metrics, healthPrefs) => {
+    const resolvedType = type === 'vm' ? 'vm' : 'docker';
+    const title = resolvedType === 'docker' ? 'Docker' : 'VMs';
+    const severityClass = metrics.severity === 'danger'
+        ? 'is-danger'
+        : (metrics.severity === 'warning' ? 'is-warning' : 'is-healthy');
+    const statusText = metrics.severity === 'danger'
+        ? 'Action needed'
+        : (metrics.severity === 'warning' ? 'Watch list' : 'Healthy');
+    const statusIcon = metrics.severity === 'danger'
+        ? 'fa-exclamation-triangle'
+        : (metrics.severity === 'warning' ? 'fa-eye' : 'fa-check-circle');
+    const compactClass = healthPrefs.compact ? 'is-compact' : '';
+    const activeFilter = normalizeHealthFilterMode(healthFilterByType[resolvedType]);
+    const totalRegexIssues = Number(metrics.invalidFolderRegexCount || 0) + Number(metrics.invalidRuleRegexCount || 0);
+    const folderCount = Number(metrics.folderCount) || 0;
+    const attentionCount = Number(metrics.attentionCount) || 0;
+    const emptyCount = Number(metrics.folderStatusTotals?.empty) || 0;
+    const stoppedFolderCount = Number(metrics.folderStatusTotals?.stopped) || 0;
+    const conflictCount = Number(metrics.conflictItemCount) || 0;
+    const stoppedMembers = Number(metrics.memberTotals?.stopped) || 0;
+    const totalMembers = Number(metrics.memberTotals?.total) || 0;
+    const maintenanceCount = Number(metrics.healthSeverityTotals?.maintenance) || 0;
+    const stoppedPercent = `${String(metrics.stoppedPercent ?? 0)}%`;
+    const summaryHeadline = folderCount <= 0
+        ? `No ${title.toLowerCase()} folders are configured yet.`
+        : (attentionCount > 0
+            ? `${attentionCount} ${title.toLowerCase()} folder${attentionCount === 1 ? '' : 's'} need review.`
+            : `${folderCount} ${title.toLowerCase()} folder${folderCount === 1 ? '' : 's'} look healthy.`);
+    const summaryDetail = folderCount <= 0
+        ? 'Create folders in the Docker or VM table to start tracking health here.'
+        : (attentionCount > 0
+            ? 'Use the issue chips or quick filters below to jump straight to the folders that need attention.'
+            : 'No empty, conflicting, or fully stopped folders need action right now.');
+    const coreStats = [
+        ['Folders', String(folderCount)],
+        ['Attention', String(attentionCount)],
+        ['Stopped %', stoppedPercent]
+    ];
+    const issueChips = [
+        emptyCount > 0 ? `${emptyCount} empty` : '',
+        stoppedFolderCount > 0 ? `${stoppedFolderCount} stopped` : '',
+        conflictCount > 0 ? `${conflictCount} conflict${conflictCount === 1 ? '' : 's'}` : '',
+        totalRegexIssues > 0 ? `${totalRegexIssues} invalid regex` : '',
+        totalRegexIssues <= 0 && maintenanceCount > 0 ? `${maintenanceCount} maintenance` : '',
+        totalMembers > 0 && stoppedMembers > 0 ? `${stoppedMembers}/${totalMembers} members stopped` : ''
+    ].filter((value) => value !== '');
+    const filterLabelMap = {
+        all: 'All',
+        attention: 'Attention',
+        empty: 'Empty',
+        stopped: 'Stopped',
+        conflict: 'Conflict'
+    };
+    const filterButton = (mode, label) => {
+        const active = activeFilter === mode ? 'is-active' : '';
+        return `<button type="button" class="folder-health-filter ${active}" data-fv-health-filter="${escapeHtml(mode)}" data-fv-health-type="${escapeHtml(resolvedType)}">${escapeHtml(label)}</button>`;
+    };
+    const secondaryActionHtml = conflictCount > 0
+        ? `<button type="button" data-fv-health-action="scan-conflicts" data-fv-health-type="${escapeHtml(resolvedType)}"><i class="fa fa-search"></i> Review conflicts</button>`
+        : (attentionCount > 0
+            ? `<button type="button" data-fv-health-action="jump-table" data-fv-health-mode="attention" data-fv-health-type="${escapeHtml(resolvedType)}"><i class="fa fa-filter"></i> Show attention</button>`
+            : '');
+
+    return `
+        <section class="folder-health-card ${severityClass} ${compactClass}">
+            <div class="folder-health-card-top">
+                <span class="folder-health-card-label">${escapeHtml(title)}</span>
+                <span class="folder-health-card-badge"><i class="fa ${statusIcon}" aria-hidden="true"></i>${escapeHtml(statusText)}</span>
+            </div>
+            <div class="folder-health-card-headline">${escapeHtml(summaryHeadline)}</div>
+            <div class="folder-health-card-detail">${escapeHtml(summaryDetail)}</div>
+            <div class="folder-health-stat-grid">
+                ${coreStats.map(([label, value]) => `
+                    <div class="folder-health-stat-card">
+                        <span class="folder-health-stat-label">${escapeHtml(label)}</span>
+                        <strong class="folder-health-stat-value">${escapeHtml(value)}</strong>
+                    </div>
+                `).join('')}
+            </div>
+            ${issueChips.length > 0 ? `
+                <div class="folder-health-issue-row">
+                    ${issueChips.map((label) => `<span class="folder-health-issue-chip">${escapeHtml(label)}</span>`).join('')}
+                </div>
+            ` : ''}
+            <div class="folder-health-filter-row">
+                ${filterButton('all', filterLabelMap.all)}
+                ${filterButton('attention', filterLabelMap.attention)}
+                ${filterButton('empty', filterLabelMap.empty)}
+                ${filterButton('stopped', filterLabelMap.stopped)}
+                ${filterButton('conflict', filterLabelMap.conflict)}
+            </div>
+            <div class="backup-actions folder-health-actions">
+                <button type="button" data-fv-health-action="jump-table" data-fv-health-type="${escapeHtml(resolvedType)}"><i class="fa fa-table"></i> Open ${escapeHtml(title)} table</button>
+                ${secondaryActionHtml}
+            </div>
+        </section>
+    `;
+};
+
 const renderFolderHealthCards = () => {
     const container = $('#folder-health-content');
     if (!container.length) {
@@ -7758,7 +7860,7 @@ const renderFolderHealthCards = () => {
             continue;
         }
         const metrics = healthMetricsByType[type] || buildTypeHealthMetrics(type, getFolderMap(type), getEffectiveMemberSnapshot(type, getFolderMap(type)));
-        cards.push(buildHealthCardHtml(type, metrics, healthPrefs));
+        cards.push(buildCleanHealthCardHtml(type, metrics, healthPrefs));
     }
     if (!cards.length) {
         container.html('<div class="folder-health-empty">Health cards are disabled. Enable them in Docker or VM settings cards.</div>');

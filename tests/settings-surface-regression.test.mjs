@@ -67,12 +67,16 @@ test('settings headings keep dedicated orange title accents across dark themes',
 test('folder health section uses the simplified summary-card layout', () => {
     assert.match(settingsPage, /Simple folder health snapshot/);
     assert.match(settingsJs, /folder-health-card-headline/);
-    assert.match(settingsJs, /folder-health-pill-row/);
+    assert.match(settingsJs, /buildCleanHealthCardHtml/);
+    assert.match(settingsJs, /folder-health-stat-grid/);
+    assert.match(settingsJs, /folder-health-issue-row/);
     assert.match(settingsJs, /folder-health-filter-row/);
     assert.match(settingsCss, /\.folder-health-card-headline/);
-    assert.match(settingsCss, /\.folder-health-pill-row/);
+    assert.match(settingsCss, /\.folder-health-stat-grid/);
+    assert.match(settingsCss, /\.folder-health-issue-row/);
     assert.match(settingsCss, /\.folder-health-filter-row/);
     assert.doesNotMatch(settingsJs, /folder-health-metrics/);
+    assert.doesNotMatch(settingsCss, /\.folder-health-pill-row/);
     assert.doesNotMatch(settingsCss, /\.folder-health-metrics/);
 });
 

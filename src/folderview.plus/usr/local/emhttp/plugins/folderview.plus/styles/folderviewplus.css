@@ -2078,11 +2078,11 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 
 .folder-health-card {
     border: 1px solid var(--fvplus-settings-border-subtle);
-    border-radius: 8px;
+    border-radius: 12px;
     background: var(--fvplus-settings-surface-panel);
-    padding: 0.8rem 0.9rem;
+    padding: 0.95rem 1rem;
     display: grid;
-    gap: 0.72rem;
+    gap: 0.8rem;
 }
 
 .folder-health-card.is-warning {
@@ -2098,8 +2098,8 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 }
 
 .folder-health-card.is-compact {
-    gap: 0.6rem;
-    padding: 0.7rem 0.8rem;
+    gap: 0.68rem;
+    padding: 0.8rem 0.88rem;
 }
 
 .folder-health-card-top {
@@ -2151,34 +2151,64 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 
 .folder-health-card-headline {
     color: var(--fvplus-settings-text-primary);
-    font-size: 1.14rem;
+    font-size: 1.16rem;
     font-weight: 700;
+    line-height: 1.25;
 }
 
 .folder-health-card-detail {
     color: var(--fvplus-settings-text-muted);
     line-height: 1.45;
+    max-width: 58ch;
 }
 
-.folder-health-pill-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.45rem;
+.folder-health-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
 }
 
-.folder-health-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.38rem;
-    padding: 0.22rem 0.55rem;
-    border-radius: 999px;
+.folder-health-stat-card {
+    display: grid;
+    gap: 0.18rem;
+    min-height: 62px;
+    padding: 0.58rem 0.68rem;
+    border-radius: 10px;
     border: 1px solid var(--fvplus-settings-border-subtle);
     background: var(--fvplus-settings-surface-strong);
-    color: var(--fvplus-settings-text-primary);
-    font-size: 0.95rem;
 }
 
-.folder-health-pill > strong {
+.folder-health-stat-label {
+    color: var(--fvplus-settings-text-muted);
+    font-size: 0.88rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.folder-health-stat-value {
+    color: var(--fvplus-settings-text-primary);
+    font-size: 1.28rem;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.folder-health-issue-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.42rem;
+}
+
+.folder-health-issue-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.24rem 0.58rem;
+    border-radius: 999px;
+    border: 1px solid var(--fvplus-settings-warning-border);
+    background: var(--fvplus-settings-warning-soft);
+    color: var(--fvplus-settings-title-accent);
+    font-size: 0.94rem;
     font-weight: 700;
 }
 
@@ -2190,12 +2220,12 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 
 .folder-health-filter {
     min-width: 0;
-    padding: 0.22rem 0.55rem;
+    padding: 0.18rem 0.5rem;
     border: 1px solid var(--fvplus-settings-border-subtle);
     border-radius: 999px;
     background: var(--fvplus-settings-surface-muted);
     color: var(--fvplus-settings-text-primary);
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     font-weight: 700;
     letter-spacing: 0.03em;
 }
@@ -2215,6 +2245,12 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 
 .folder-health-actions > button {
     min-width: 0;
+}
+
+@media (max-width: 720px) {
+    .folder-health-stat-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .folder-health-empty {

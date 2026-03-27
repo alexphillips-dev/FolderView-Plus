@@ -5505,9 +5505,9 @@ body.fv-mobile-compact .fv-setup-field-grid {
 
 .fv-advanced-nav {
     margin: 0.4rem 0 0.8rem 0;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 6px;
-    background: rgba(255, 255, 255, 0.015);
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.02);
     padding: 0.5rem 0.65rem;
 }
 
@@ -5515,45 +5515,34 @@ body.fv-mobile-compact .fv-setup-field-grid {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: 0.45rem 0.7rem;
 }
 
-.fv-advanced-nav-label {
-    font-size: 1.03rem;
-    opacity: 0.78;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-}
-
 .fv-advanced-controls {
-    display: inline-flex;
-    flex-wrap: wrap;
+    display: flex;
     align-items: center;
-    justify-content: flex-end;
-    gap: 0.4rem 0.6rem;
+    justify-content: space-between;
+    gap: 0.4rem 0.55rem;
+    width: 100%;
+    min-width: 0;
 }
 
 .fv-advanced-tabs {
-    display: inline-flex;
+    display: flex;
     flex-wrap: wrap;
     gap: 0.4rem;
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 .fv-advanced-tab {
     min-width: 0;
+    min-height: 34px;
     padding: 0.28rem 0.55rem;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.04);
+    border: 0 !important;
     font-size: 1.03rem;
-}
-
-.fv-advanced-tab.is-active {
-    border-color: rgba(77, 163, 255, 0.6);
-    background: rgba(77, 163, 255, 0.2);
-    color: #d8ebff;
+    white-space: nowrap;
 }
 
 .fv-advanced-count {
@@ -5562,20 +5551,23 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-advanced-compact {
-    width: 28px;
-    height: 28px;
-    min-width: 28px;
-    padding: 0;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.04);
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    min-height: 34px;
+    padding: 0 !important;
+    border: 0 !important;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    flex: 0 0 auto;
+    align-self: stretch;
+    font-size: 0;
 }
 
 .fv-advanced-compact i {
-    font-size: 0.95rem;
+    font-size: 0.88rem;
+    line-height: 1;
 }
 
 h2[data-fv-section] {
@@ -5951,6 +5943,7 @@ h2[data-fv-section].fv-search-match {
     #fv-run-wizard,
     .rule-presets > button,
     .fv-activity-feed-head > button,
+    .fv-advanced-tab,
     .folder-quick-filters > button,
     .fv-starter-empty-actions > button,
     .fv-action-buttons > button,
@@ -5997,6 +5990,7 @@ h2[data-fv-section].fv-search-match {
     #fv-run-wizard,
     .rule-presets > button,
     .fv-activity-feed-head > button,
+    .fv-advanced-tab,
     .folder-quick-filters > button,
     .fv-starter-empty-actions > button,
     .fv-action-buttons > button,
@@ -6032,6 +6026,7 @@ h2[data-fv-section].fv-search-match {
     #fv-run-wizard,
     .rule-presets > button,
     .fv-activity-feed-head > button,
+    .fv-advanced-tab,
     .folder-quick-filters > button,
     .fv-starter-empty-actions > button,
     .fv-action-buttons > button,
@@ -6132,6 +6127,7 @@ h2[data-fv-section].fv-search-match {
 #fv-settings-root :is(
     .folder-health-filter.is-active,
     .folder-quick-filters > button.is-active,
+    .fv-advanced-tab.is-active,
     .fv-mini-action-btn.is-active,
     .folder-table table td.actions-cell .folder-overflow-btn
 ),
@@ -6173,6 +6169,7 @@ h2[data-fv-section].fv-search-match {
     .row-order-actions button,
     .folder-table table td.actions-cell .folder-action-btn:not(.folder-overflow-btn),
     .folder-tree-toggle,
+    .fv-advanced-compact,
     .status-breakdown-btn,
     .health-breakdown-btn,
     .updates-chip
@@ -6187,6 +6184,7 @@ h2[data-fv-section].fv-search-match {
 #fv-settings-root :is(
     .row-order-actions button,
     .folder-table table td.actions-cell .folder-action-btn:not(.folder-overflow-btn),
+    .fv-advanced-compact,
     .updates-chip
 ) {
     color: var(--fvplus-settings-title-accent) !important;
@@ -6204,6 +6202,7 @@ h2[data-fv-section].fv-search-match {
     .row-order-actions button,
     .folder-table table td.actions-cell .folder-action-btn:not(.folder-overflow-btn),
     .folder-tree-toggle,
+    .fv-advanced-compact,
     .status-breakdown-btn,
     .health-breakdown-btn,
     .updates-chip
@@ -6212,6 +6211,7 @@ h2[data-fv-section].fv-search-match {
     .row-order-actions button,
     .folder-table table td.actions-cell .folder-action-btn:not(.folder-overflow-btn),
     .folder-tree-toggle,
+    .fv-advanced-compact,
     .status-breakdown-btn,
     .health-breakdown-btn,
     .updates-chip
@@ -6871,6 +6871,7 @@ tr.is-long-press-active {
     .fv-advanced-controls {
         width: 100%;
         justify-content: flex-start;
+        align-items: flex-start;
     }
 
     .fv-advanced-tabs {
@@ -6878,6 +6879,7 @@ tr.is-long-press-active {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 0.35rem;
+        flex: 1 1 100%;
     }
 
     .fv-advanced-tab {
@@ -6889,11 +6891,11 @@ tr.is-long-press-active {
     }
 
     .fv-advanced-compact {
-        width: 30px;
-        height: 30px;
-        min-width: 30px;
-        min-height: 30px;
-        padding: 0;
+        width: 34px;
+        height: 34px;
+        min-width: 34px;
+        min-height: 34px;
+        padding: 0 !important;
     }
 
     h2[data-fv-section] {

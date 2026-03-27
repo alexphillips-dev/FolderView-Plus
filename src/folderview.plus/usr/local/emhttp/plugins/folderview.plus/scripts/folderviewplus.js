@@ -1558,15 +1558,13 @@ const renderAdvancedNav = () => {
     const allExpandedInTab = activeTabSections.length > 0
         && activeTabSections.every((section) => settingsUiState.expandedAdvancedSections.has(section.key));
     const compactLabel = allExpandedInTab ? 'Compact tab' : 'Expand tab';
-    const compactHoverLabel = 'Compact tab';
     const compactIcon = allExpandedInTab ? 'fa-compress' : 'fa-expand';
 
     container.html(`
         <div class="fv-advanced-nav-inner">
-            <span class="fv-advanced-nav-label">Advanced sections</span>
             <div class="fv-advanced-controls">
                 <div class="fv-advanced-tabs">${tabsHtml}</div>
-                <button type="button" id="fv-advanced-compact" class="fv-advanced-compact" title="${escapeHtml(compactHoverLabel)}" aria-label="${escapeHtml(compactLabel)}"><i class="fa ${compactIcon}" aria-hidden="true"></i></button>
+                <button type="button" id="fv-advanced-compact" class="fv-advanced-compact" title="${escapeHtml(compactLabel)}" aria-label="${escapeHtml(compactLabel)}"><i class="fa ${compactIcon}" aria-hidden="true"></i></button>
             </div>
         </div>
     `).show();

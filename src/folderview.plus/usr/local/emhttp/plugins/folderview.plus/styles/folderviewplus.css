@@ -3150,7 +3150,7 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.8rem;
-    align-items: start;
+    align-items: stretch;
 }
 
 .fv-recovery-stage {
@@ -3160,6 +3160,8 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     border: 1px solid var(--fvplus-settings-border-faint);
     border-radius: 12px;
     background: var(--fvplus-settings-surface-muted);
+    align-content: start;
+    height: 100%;
 }
 
 .fv-recovery-stage-head {
@@ -3199,43 +3201,34 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     align-content: start;
 }
 
-.fv-recovery-policy-summary {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 0.7rem;
-    cursor: pointer;
-    list-style: none;
-    font-weight: 700;
-    color: var(--fvplus-settings-text-primary);
-}
-
-.fv-recovery-policy-summary::-webkit-details-marker {
-    display: none;
-}
-
-.fv-recovery-policy[open] .fv-recovery-policy-summary {
-    margin-bottom: 0.2rem;
-}
-
 .fv-recovery-policy-grid {
     margin: 0;
+    align-content: start;
 }
 
 .fv-recovery-history-stage {
     padding-block: 0.92rem;
 }
 
-.fv-recovery-history-toolbar {
+.fv-recovery-history-picker-row {
     display: flex;
     flex-wrap: wrap;
     gap: 0.55rem;
     align-items: center;
 }
 
-.fv-recovery-history-toolbar > input[type="text"] {
-    flex: 1 1 240px;
-    min-height: 38px;
+.fv-recovery-history-picker-row > label {
+    font-weight: 700;
+    color: var(--fvplus-settings-text-primary);
+}
+
+.fv-recovery-history-picker-row > select {
+    flex: 1 1 260px;
+    min-height: 40px;
+}
+
+.fv-recovery-history-selection {
+    gap: 0.65rem;
 }
 
 .fv-recovery-history-list,
@@ -3340,14 +3333,21 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     .fv-recovery-overview-head,
     .fv-recovery-history-head,
     .fv-recovery-timeline-head,
-    .fv-recovery-undo-head,
-    .fv-recovery-policy-summary {
+    .fv-recovery-undo-head {
         flex-direction: column;
         align-items: flex-start;
     }
 
     .fv-recovery-stat-grid {
         grid-template-columns: 1fr;
+    }
+
+    .fv-recovery-history-picker-row {
+        align-items: stretch;
+    }
+
+    .fv-recovery-history-picker-row > select {
+        width: 100%;
     }
 
     .fv-recovery-history-actions-row {

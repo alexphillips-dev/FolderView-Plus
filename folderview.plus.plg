@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.27.23">
-<!ENTITY md5 "465e5aa2de32f7c3e75cd5028c6f0dc0">
+<!ENTITY version "2026.03.27.24">
+<!ENTITY md5 "bb038c113623e432ee373a4b3bbd04a2">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.27.24
+- UX: Made the Recovery tab backup policy a full non-collapsible card that matches the restore-and-safety stage height and layout.
+- UX: Replaced the long Recovery backup history card list with a compact snapshot date selector and one shared Restore, Download, and Delete action row.
+
 
 ###2026.03.27.23
 - UX: Rebuilt the Recovery tab into a cleaner source-switched Docker/VM workspace with a clear overview, restore-and-safety actions, snapshot history cards, and a simpler backup policy panel.

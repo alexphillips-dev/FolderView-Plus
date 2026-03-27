@@ -1091,27 +1091,24 @@ if (!empty($fvplusRuntimeConflicts)) {
                     </div>
                 </section>
 
-                <details class="fv-recovery-stage fv-recovery-policy">
-                    <summary class="fv-recovery-policy-summary">
-                        <span>Backup policy</span>
+                <section class="fv-recovery-stage fv-recovery-policy">
+                    <div class="fv-recovery-stage-head">
+                        <strong>Backup policy</strong>
                         <span id="fv-recovery-policy-summary" class="rules-help">Manual backups only.</span>
-                    </summary>
+                    </div>
                     <div class="schedule-row fv-recovery-policy-grid">
                         <label><input id="recovery-backup-schedule-enabled" type="checkbox" onchange="changeActiveBackupSchedulePref('enabled', this.checked)"> Scheduled backups</label>
                         <label>Interval (hours): <input id="recovery-backup-interval-hours" type="number" min="1" max="168" step="1" onchange="changeActiveBackupSchedulePref('intervalHours', this.value)"></label>
                         <label>Retention: <input id="recovery-backup-retention" type="number" min="1" max="200" step="1" onchange="changeActiveBackupSchedulePref('retention', this.value)"></label>
                         <span id="recovery-backup-last-run" class="schedule-hint"></span>
                     </div>
-                </details>
+                </section>
             </div>
 
             <section class="fv-recovery-stage fv-recovery-history-stage">
                 <div class="fv-recovery-stage-head">
                     <strong>Backup history</strong>
-                    <span id="fv-recovery-history-summary" class="rules-help">Review stored snapshots, then restore, download, or delete individual entries.</span>
-                </div>
-                <div class="fv-recovery-history-toolbar">
-                    <input id="recovery-backups-filter" type="text" placeholder="Search backups" oninput="filterActiveRecoveryBackups(this.value)">
+                    <span id="fv-recovery-history-summary" class="rules-help">Choose one stored snapshot, then restore, download, or delete it.</span>
                 </div>
                 <div id="fv-recovery-backup-list" class="fv-recovery-history-list">
                     <div class="fv-recovery-empty-state">

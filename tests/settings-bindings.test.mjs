@@ -162,6 +162,10 @@ test('recovery workspace remembers source and routes generic actions through the
     assert.match(script, /writeSettingsStorage\(RECOVERY_WORKSPACE_STORAGE_KEY, activeRecoveryWorkspaceType, \{ delayMs: 60, idle: true \}\);/);
     assert.match(script, /const createActiveRecoveryBackup = \(\) => createManualBackup\(getActiveRecoveryWorkspaceType\(\)\);/);
     assert.match(script, /const restoreLatestActiveRecoveryBackup = \(\) => restoreLatestBackup\(getActiveRecoveryWorkspaceType\(\)\);/);
+    assert.match(script, /const selectActiveRecoveryBackup = \(name = ''\) => \{/);
+    assert.match(script, /const restoreSelectedActiveRecoveryBackup = \(\) => \{/);
+    assert.match(script, /const downloadSelectedActiveRecoveryBackup = \(\) => \{/);
+    assert.match(script, /const deleteSelectedActiveRecoveryBackup = \(\) => \{/);
     assert.match(script, /const runActiveRecoveryScheduler = \(\) => runScheduledBackupNow\(getActiveRecoveryWorkspaceType\(\)\);/);
     assert.match(script, /const compareActiveRecoverySnapshots = \(\) => \{/);
     assert.match(script, /const undoActiveRecoveryChange = \(\) => undoLatestChange\(getActiveRecoveryWorkspaceType\(\)\);/);

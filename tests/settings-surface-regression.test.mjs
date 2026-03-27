@@ -135,7 +135,7 @@ test('recovery tab uses a source-switched workspace with overview cards, snapsho
     assert.match(settingsPage, /<h2 data-fv-section="backups" data-fv-advanced="1" data-fv-advanced-group="recovery">Recovery workspace<\/h2>/);
     assert.match(settingsPage, /class="fv-rules-source-switch fv-recovery-source-switch"[\s\S]*setRecoveryWorkspaceType\('docker'\)[\s\S]*setRecoveryWorkspaceType\('vm'\)/);
     assert.match(settingsPage, /id="fv-recovery-overview"/);
-    assert.match(settingsPage, /id="recovery-backups-filter"[\s\S]*oninput="filterActiveRecoveryBackups\(this\.value\)"/);
+    assert.match(settingsPage, /<section class="fv-recovery-stage fv-recovery-policy">[\s\S]*id="fv-recovery-policy-summary"/);
     assert.match(settingsPage, /id="fv-recovery-backup-list"/);
     assert.match(settingsPage, /id="recovery-change-history-list"/);
     assert.match(settingsPage, /onclick="restoreLatestActiveRecoveryBackup\(\)"/);
@@ -144,11 +144,14 @@ test('recovery tab uses a source-switched workspace with overview cards, snapsho
     assert.match(settingsPage, /onclick="undoActiveRecoveryChange\(\)"/);
     assert.match(settingsJs, /const normalizeRecoveryWorkspaceType = \(value\) =>/);
     assert.match(settingsJs, /const setRecoveryWorkspaceType = \(type, persist = true\) =>/);
+    assert.match(settingsJs, /id="recovery-backup-entry-select"[\s\S]*selectActiveRecoveryBackup\(this\.value\)/);
+    assert.match(settingsJs, /restoreSelectedActiveRecoveryBackup\(\)[\s\S]*downloadSelectedActiveRecoveryBackup\(\)[\s\S]*deleteSelectedActiveRecoveryBackup\(\)/);
     assert.match(settingsJs, /activeRecoveryWorkspaceType = normalizeRecoveryWorkspaceType\(localStorage\.getItem\(RECOVERY_WORKSPACE_STORAGE_KEY\) \|\| 'docker'\)/);
     assert.match(diagnosticsJs, /const renderRecoveryChangeHistoryFromDiagnostics = \(diagnostics = lastDiagnostics\) =>/);
     assert.match(settingsCss, /\.fv-recovery-source-switch/);
     assert.match(settingsCss, /\.fv-recovery-overview/);
     assert.match(settingsCss, /\.fv-recovery-stat-grid/);
+    assert.match(settingsCss, /\.fv-recovery-history-picker-row/);
     assert.match(settingsCss, /\.fv-recovery-history-list,\s*\.fv-recovery-change-history-list/);
     assert.match(settingsCss, /\.fv-recovery-timeline-card/);
 });

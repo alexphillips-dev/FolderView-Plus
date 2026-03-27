@@ -394,6 +394,10 @@ let backupsByType = {
     docker: [],
     vm: []
 };
+let recoverySelectedBackupByType = {
+    docker: '',
+    vm: ''
+};
 let templatesByType = {
     docker: [],
     vm: []
@@ -4252,22 +4256,14 @@ const buildRecoveryOverviewHtml = (type) => {
 
 const buildRecoveryBackupHistoryHtml = (type) => {
     const resolvedType = normalizeRecoveryWorkspaceType(type);
-    const filter = normalizedFilter(filtersByType[resolvedType]?.backups);
-    const backups = getSortedBackupsForType(resolvedType).filter((backup) => {
-        if (!filter) {
-            return true;
-        }
-        const haystack = `${String(backup?.name || '')} ${String(backup?.reason || '')}`.toLowerCase();
-        return haystack.includes(filter);
-    });
+    const backups = getSortedBackupsForType(resolvedType);
     const summaryEl = $('#fv-recovery-history-summary');
     const title = resolvedType === 'docker' ? 'Docker' : 'VM';
     if (!backups.length) {
-        const emptyTitle = filter ? 'No backups match your search.' : `No ${title} backups yet.`;
-        const emptyCopy = filter
-            ? 'Try a different search term or clear the filter.'
-            : 'Create a manual backup or run the scheduler to build recovery history.';
-        summaryEl.text(filter ? 'No backups match the current filter.' : 'No backup snapshots are available yet.');
+        recoverySelectedBackupByType[resolvedType] = '';
+        const emptyTitle = `No ${title} backups yet.`;
+        const emptyCopy = 'Create a manual backup or run the scheduler to build recovery history.';
+        summaryEl.text('No backup snapshots are available yet.');
         return `
             <div class="fv-recovery-empty-state">
                 <strong>${escapeHtml(emptyTitle)}</strong>
@@ -4276,34 +4272,49 @@ const buildRecoveryBackupHistoryHtml = (type) => {
         `;
     }
 
-    summaryEl.text(`${backups.length} snapshot${backups.length === 1 ? '' : 's'} ready for restore, download, or cleanup.`);
-    return backups.map((backup, index) => {
+    const selectedName = String(recoverySelectedBackupByType[resolvedType] || '').trim();
+    const selectedBackup = backups.find((backup) => String(backup?.name || '').trim() === selectedName) || backups[0];
+    const resolvedSelectedName = String(selectedBackup?.name || '').trim();
+    recoverySelectedBackupByType[resolvedType] = resolvedSelectedName;
+    const created = formatTimestamp(selectedBackup?.createdAt || '');
+    const reason = formatRecoveryReasonLabel(selectedBackup?.reason);
+    const count = Number.isFinite(Number(selectedBackup?.count)) ? Number(selectedBackup.count) : 0;
+    const latestName = String(backups[0]?.name || '').trim();
+    const latestBadge = resolvedSelectedName === latestName ? '<span class="fv-recovery-history-badge">Latest</span>' : '';
+    const optionsHtml = backups.map((backup, index) => {
         const name = String(backup?.name || '').trim();
-        const created = formatTimestamp(backup?.createdAt || '');
-        const reason = formatRecoveryReasonLabel(backup?.reason);
-        const count = Number.isFinite(Number(backup?.count)) ? Number(backup.count) : 0;
-        const latestBadge = index === 0 ? '<span class="fv-recovery-history-badge">Latest</span>' : '';
-        return `
-            <article class="fv-recovery-history-card">
-                <div class="fv-recovery-history-head">
-                    <div>
-                        <div class="fv-recovery-history-title">${escapeHtml(created)}</div>
-                        <div class="fv-recovery-history-copy">${escapeHtml(reason)}</div>
-                    </div>
-                    ${latestBadge}
-                </div>
-                <div class="fv-recovery-history-meta">
-                    <span>${escapeHtml(`${count} folder${count === 1 ? '' : 's'}`)}</span>
-                    <span>${escapeHtml(name)}</span>
-                </div>
-                <div class="backup-actions fv-recovery-history-actions-row">
-                    <button type="button" onclick="restoreBackupEntry('${resolvedType}','${escapeHtml(name)}')"><i class="fa fa-history"></i> Restore</button>
-                    <button type="button" onclick="downloadBackupEntry('${resolvedType}','${escapeHtml(name)}')"><i class="fa fa-download"></i> Download</button>
-                    <button type="button" onclick="deleteBackupEntry('${resolvedType}','${escapeHtml(name)}')"><i class="fa fa-trash"></i> Delete</button>
-                </div>
-            </article>
-        `;
+        const label = `${formatTimestamp(backup?.createdAt || '')}${index === 0 ? ' (latest)' : ''}`;
+        const selectedAttr = name === resolvedSelectedName ? ' selected' : '';
+        return `<option value="${escapeHtml(name)}"${selectedAttr}>${escapeHtml(label)}</option>`;
     }).join('');
+
+    summaryEl.text(`${backups.length} snapshot${backups.length === 1 ? '' : 's'} available. Select one restore point and use the shared actions below.`);
+    return `
+        <div class="fv-recovery-history-picker-row">
+            <label for="recovery-backup-entry-select">Snapshot date</label>
+            <select id="recovery-backup-entry-select" onchange="selectActiveRecoveryBackup(this.value)">
+                ${optionsHtml}
+            </select>
+        </div>
+        <article class="fv-recovery-history-card fv-recovery-history-selection">
+            <div class="fv-recovery-history-head">
+                <div>
+                    <div class="fv-recovery-history-title">${escapeHtml(created)}</div>
+                    <div class="fv-recovery-history-copy">${escapeHtml(reason)}</div>
+                </div>
+                ${latestBadge}
+            </div>
+            <div class="fv-recovery-history-meta">
+                <span>${escapeHtml(`${count} folder${count === 1 ? '' : 's'}`)}</span>
+                <span>${escapeHtml(resolvedSelectedName)}</span>
+            </div>
+            <div class="backup-actions fv-recovery-history-actions-row">
+                <button type="button" onclick="restoreSelectedActiveRecoveryBackup()"><i class="fa fa-history"></i> Restore</button>
+                <button type="button" onclick="downloadSelectedActiveRecoveryBackup()"><i class="fa fa-download"></i> Download</button>
+                <button type="button" onclick="deleteSelectedActiveRecoveryBackup()"><i class="fa fa-trash"></i> Delete</button>
+            </div>
+        </article>
+    `;
 };
 
 const syncVisibleRecoveryCompareControls = (type) => {
@@ -4348,7 +4359,6 @@ const renderRecoveryWorkspace = (type = activeRecoveryWorkspaceType) => {
     const resolvedType = normalizeRecoveryWorkspaceType(type);
     const overviewHost = $('#fv-recovery-overview');
     const listHost = $('#fv-recovery-backup-list');
-    const filterInput = $('#recovery-backups-filter');
     const policySummary = $('#fv-recovery-policy-summary');
     const safetyNote = $('#fv-recovery-safety-note');
     if (!overviewHost.length || !listHost.length) {
@@ -4359,13 +4369,11 @@ const renderRecoveryWorkspace = (type = activeRecoveryWorkspaceType) => {
     const backups = getSortedBackupsForType(resolvedType);
     const prefs = utils.normalizePrefs(prefsByType[resolvedType]);
     const schedule = prefs.backupSchedule || {};
-    const filter = filtersByType[resolvedType]?.backups || '';
     const latest = backups[0] || null;
     const title = resolvedType === 'docker' ? 'Docker' : 'VM';
 
     overviewHost.html(buildRecoveryOverviewHtml(resolvedType));
     listHost.html(buildRecoveryBackupHistoryHtml(resolvedType));
-    filterInput.val(filter);
     safetyNote.text(latest
         ? `Latest ${title} snapshot: ${formatTimestamp(latest.createdAt || '')}. A safety backup is created automatically before restore.`
         : `No ${title} backup exists yet. Create one now so you have a rollback point before bigger changes.`);
@@ -4398,6 +4406,12 @@ const setRecoveryWorkspaceType = (type, persist = true) => {
     syncRecoveryWorkspaceUi();
 };
 
+const selectActiveRecoveryBackup = (name = '') => {
+    const resolvedType = getActiveRecoveryWorkspaceType();
+    recoverySelectedBackupByType[resolvedType] = String(name || '').trim();
+    renderRecoveryWorkspace(resolvedType);
+};
+
 const filterActiveRecoveryBackups = (value = '') => {
     const resolvedType = getActiveRecoveryWorkspaceType();
     const displayValue = String(value || '');
@@ -4418,6 +4432,36 @@ const filterActiveRecoveryBackups = (value = '') => {
 const createActiveRecoveryBackup = () => createManualBackup(getActiveRecoveryWorkspaceType());
 
 const restoreLatestActiveRecoveryBackup = () => restoreLatestBackup(getActiveRecoveryWorkspaceType());
+
+const restoreSelectedActiveRecoveryBackup = () => {
+    const resolvedType = getActiveRecoveryWorkspaceType();
+    const selectedName = String(recoverySelectedBackupByType[resolvedType] || '').trim();
+    if (!selectedName) {
+        showError('Restore failed', new Error('Select a backup first.'));
+        return;
+    }
+    restoreBackupEntry(resolvedType, selectedName);
+};
+
+const downloadSelectedActiveRecoveryBackup = () => {
+    const resolvedType = getActiveRecoveryWorkspaceType();
+    const selectedName = String(recoverySelectedBackupByType[resolvedType] || '').trim();
+    if (!selectedName) {
+        showError('Download failed', new Error('Select a backup first.'));
+        return;
+    }
+    downloadBackupEntry(resolvedType, selectedName);
+};
+
+const deleteSelectedActiveRecoveryBackup = () => {
+    const resolvedType = getActiveRecoveryWorkspaceType();
+    const selectedName = String(recoverySelectedBackupByType[resolvedType] || '').trim();
+    if (!selectedName) {
+        showError('Delete failed', new Error('Select a backup first.'));
+        return;
+    }
+    deleteBackupEntry(resolvedType, selectedName);
+};
 
 const runActiveRecoveryScheduler = () => runScheduledBackupNow(getActiveRecoveryWorkspaceType());
 
@@ -11621,6 +11665,10 @@ settingsActionSupportModule.registerWindowActions(window, {
     runActiveRecoveryScheduler,
     restoreLatestBackup,
     restoreLatestActiveRecoveryBackup,
+    selectActiveRecoveryBackup,
+    restoreSelectedActiveRecoveryBackup,
+    downloadSelectedActiveRecoveryBackup,
+    deleteSelectedActiveRecoveryBackup,
     compareBackupSnapshots,
     compareActiveRecoverySnapshots,
     restoreBackupEntry,

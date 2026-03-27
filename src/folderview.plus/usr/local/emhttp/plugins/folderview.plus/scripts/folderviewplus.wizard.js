@@ -38,6 +38,7 @@ const SETUP_ASSISTANT_CONTRAST_TARGETS = Object.freeze([
 ]);
 
 let setupAssistantViewportAccessibilityBound = false;
+let setupAssistantThemeSurfaceBinding = null;
 
 const normalizeSetupAssistantContrastPreference = (value) => {
     const normalized = String(value || '').trim().toLowerCase();
@@ -47,6 +48,50 @@ const normalizeSetupAssistantContrastPreference = (value) => {
 const normalizeSetupAssistantContrastTier = (value) => {
     const normalized = String(value || '').trim().toLowerCase();
     return SETUP_ASSISTANT_CONTRAST_TIER_SEQUENCE.includes(normalized) ? normalized : 'normal';
+};
+
+const resolveSetupAssistantThemeMode = () => (
+    typeof getEffectiveThemeCompatibilityMode === 'function'
+        ? getEffectiveThemeCompatibilityMode()
+        : 'auto'
+);
+
+const ensureSetupAssistantThemeSurfaceBinding = () => {
+    if (setupAssistantThemeSurfaceBinding) {
+        return setupAssistantThemeSurfaceBinding;
+    }
+    const resolver = window.FolderViewPlusThemeResolver || null;
+    if (!resolver || typeof resolver.bindThemeAwareSurface !== 'function') {
+        return null;
+    }
+    const dialog = document.getElementById('fv-setup-assistant-dialog');
+    if (!dialog) {
+        return null;
+    }
+    setupAssistantThemeSurfaceBinding = resolver.bindThemeAwareSurface({
+        root: dialog,
+        getMode: resolveSetupAssistantThemeMode,
+        reasonPrefix: 'wizard',
+        applyDelayMs: 48
+    });
+    setupAssistantThemeSurfaceBinding.bind();
+    return setupAssistantThemeSurfaceBinding;
+};
+
+const applySetupAssistantThemeSurface = (reason = 'render') => {
+    const binding = ensureSetupAssistantThemeSurfaceBinding();
+    if (binding && typeof binding.runApply === 'function') {
+        return binding.runApply(reason);
+    }
+    const resolver = window.FolderViewPlusThemeResolver || null;
+    const dialog = document.getElementById('fv-setup-assistant-dialog');
+    if (!resolver || typeof resolver.applyResolvedThemeTokens !== 'function' || !dialog) {
+        return null;
+    }
+    return resolver.applyResolvedThemeTokens(`wizard:${String(reason || 'render')}`, {
+        root: dialog,
+        getMode: resolveSetupAssistantThemeMode
+    });
 };
 
 const isSetupAssistantCompactViewport = () => {
@@ -1349,6 +1394,7 @@ const clearSetupAssistantProgress = () => {
 
 const ensureSetupAssistantDom = () => {
     if ($('#fv-setup-assistant-dialog').length && $('#fv-setup-assistant-overlay').length) {
+        ensureSetupAssistantThemeSurfaceBinding();
         return;
     }
     $('body').append(`
@@ -1357,6 +1403,7 @@ const ensureSetupAssistantDom = () => {
             <div id="fv-setup-assistant-content"></div>
         </div>
     `);
+    ensureSetupAssistantThemeSurfaceBinding();
 };
 
 const getSetupAssistantEffectiveImportMode = (type) => {
@@ -3559,6 +3606,7 @@ const renderSetupAssistant = () => {
         </div>
     `);
 
+    applySetupAssistantThemeSurface('render');
     overlay.show();
     dialog.show().attr('aria-hidden', 'false');
     bindSetupAssistantViewportAccessibilityHandlers();

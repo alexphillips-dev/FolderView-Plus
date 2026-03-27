@@ -12,9 +12,14 @@ const settingsCssPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css'
 );
+const wizardRuntimePath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js'
+);
 
 const settingsPage = fs.readFileSync(settingsPagePath, 'utf8');
 const settingsCss = fs.readFileSync(settingsCssPath, 'utf8');
+const wizardRuntime = fs.readFileSync(wizardRuntimePath, 'utf8');
 const wizardDialogBlocks = Array.from(settingsCss.matchAll(/#fv-setup-assistant-dialog\s*\{[\s\S]*?\n\}/g)).map((match) => match[0]);
 const wizardTokenBlock = wizardDialogBlocks.find((block) => /--fv-wizard-text-primary/.test(block)) || '';
 const wizardCardBlock = (settingsCss.match(/\.fv-setup-card\s*\{[\s\S]*?\n\}/) || [''])[0];
@@ -37,12 +42,12 @@ test('theme compatibility: global focus and body selectors are scoped to plugin 
     assert.doesNotMatch(settingsCss, /\nbutton:focus-visible,\s*\ninput:focus-visible,/);
 });
 
-test('theme compatibility: setup wizard enforces theme-safe dark contrast tokens', () => {
+test('theme compatibility: setup wizard mirrors resolved theme class and light-safe token overrides', () => {
     assert.ok(wizardTokenBlock, 'Wizard token block should exist in settings CSS.');
-    assert.match(wizardTokenBlock, /color-scheme:\s*dark/);
-    assert.match(wizardTokenBlock, /--fv-wizard-text-primary:\s*#e7eef9/);
-    assert.match(wizardTokenBlock, /--fv-wizard-text-muted:\s*#c5d4e8/);
-    assert.match(wizardTokenBlock, /--fv-wizard-text-dim:\s*#a7bad1/);
+    assert.match(wizardTokenBlock, /color:\s*var\(--fv-wizard-text-primary\)/);
+    assert.match(wizardTokenBlock, /--fv-wizard-text-primary:\s*var\(--fvplus-settings-text-primary,\s*#e7eef9\)/);
+    assert.match(wizardTokenBlock, /--fv-wizard-text-muted:\s*var\(--fvplus-settings-text-muted,\s*#c5d4e8\)/);
+    assert.match(wizardTokenBlock, /--fv-wizard-text-dim:\s*var\(--fvplus-settings-text-dim,\s*#a7bad1\)/);
     assert.match(wizardTokenBlock, /--fv-wizard-accent-blue-rgb:\s*77,\s*163,\s*255/);
     assert.match(wizardTokenBlock, /--fv-wizard-accent-amber-rgb:\s*255,\s*170,\s*94/);
     assert.match(wizardTokenBlock, /--fv-wizard-accent-green-rgb:\s*147,\s*225,\s*159/);
@@ -51,12 +56,15 @@ test('theme compatibility: setup wizard enforces theme-safe dark contrast tokens
     assert.match(wizardTokenBlock, /--fv-wizard-color-success-rgb:\s*147,\s*225,\s*159/);
     assert.match(wizardTokenBlock, /--fv-wizard-color-warning-rgb:\s*255,\s*193,\s*94/);
     assert.match(wizardTokenBlock, /--fv-wizard-color-danger-rgb:\s*255,\s*116,\s*116/);
-    assert.doesNotMatch(wizardTokenBlock, /--fv-wizard-text-primary:\s*var\(--fvplus-settings-text-primary\)/);
-    assert.doesNotMatch(wizardTokenBlock, /--fv-wizard-text-primary:\s*var\(--text/);
+    assert.match(wizardTokenBlock, /--fv-wizard-control-bg:\s*rgba\(15,\s*23,\s*35,\s*0\.78\)/);
+    assert.match(settingsCss, /#fv-setup-assistant-dialog\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fv-wizard-text-primary:\s*var\(--fvplus-settings-text-primary,\s*#324253\)/);
+    assert.match(settingsCss, /#fv-setup-assistant-dialog\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fv-wizard-control-bg:\s*rgba\(250,\s*246,\s*240,\s*0\.96\)/);
     assert.match(
         settingsCss,
-        /#fv-setup-assistant-dialog\s+\.fv-setup-assistant-shell button,\s*\n#fv-setup-assistant-dialog\s+\.fv-setup-assistant-shell \.btn\s*\{[\s\S]*color:\s*var\(--fv-wizard-text-primary\)/
+        /#fv-setup-assistant-dialog\s+\.fv-setup-assistant-shell button,\s*\n#fv-setup-assistant-dialog\s+\.fv-setup-assistant-shell \.btn\s*\{[\s\S]*color:\s*var\(--fv-wizard-text-primary\)[\s\S]*background:\s*var\(--fv-wizard-control-bg\)/
     );
+    assert.match(settingsCss, /\.fv-setup-assistant-shell input:not\(\[type="checkbox"\]\):not\(\[type="radio"\]\),[\s\S]*background:\s*var\(--fv-wizard-input-bg\)/);
+    assert.match(settingsCss, /\.fv-setup-step-state\.is-pending\s*\{[\s\S]*color:\s*var\(--fv-wizard-pending-text\);[\s\S]*background:\s*var\(--fv-wizard-pill-bg\);/);
     assert.match(settingsCss, /\.fv-setup-card::before\s*\{/);
     assert.match(settingsCss, /\.fv-setup-card\[data-fv-card-tone="env"\]\s*\{/);
     assert.match(settingsCss, /\.fv-setup-card\[data-fv-card-tone="mode"\]\s*\{/);
@@ -72,6 +80,10 @@ test('theme compatibility: setup wizard enforces theme-safe dark contrast tokens
     assert.ok(wizardCardToplineBlock, 'Wizard card top-line block should exist in settings CSS.');
     assert.doesNotMatch(wizardCardBlock, /rgba\(\d/);
     assert.doesNotMatch(wizardCardToplineBlock, /rgba\(\d/);
+    assert.match(wizardRuntime, /let setupAssistantThemeSurfaceBinding = null;/);
+    assert.match(wizardRuntime, /const ensureSetupAssistantThemeSurfaceBinding = \(\) => \{/);
+    assert.match(wizardRuntime, /reasonPrefix:\s*'wizard'/);
+    assert.match(wizardRuntime, /applySetupAssistantThemeSurface\('render'\);/);
 });
 
 test('theme compatibility: semantic settings tokens use resolver-first fallback chain', () => {

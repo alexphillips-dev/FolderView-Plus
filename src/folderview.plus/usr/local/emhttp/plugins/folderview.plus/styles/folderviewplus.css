@@ -4619,17 +4619,16 @@ body.fv-mobile-compact .fv-setup-field-grid {
     width: min(1180px, calc(100vw - 2rem));
     height: min(82vh, 810px);
     z-index: 5201;
-    border: 1px solid rgba(157, 183, 217, 0.34);
+    border: 1px solid var(--fv-wizard-border-strong);
     border-radius: 12px;
-    background: rgba(8, 12, 18, 0.985);
-    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+    background: var(--fv-wizard-surface-page);
+    box-shadow: var(--fv-wizard-shell-shadow);
     overflow: hidden;
-    /* Keep wizard contrast stable regardless of host Unraid theme tokens. */
     color-scheme: dark;
-    color: #e7eef9;
-    --fv-wizard-text-primary: #e7eef9;
-    --fv-wizard-text-muted: #c5d4e8;
-    --fv-wizard-text-dim: #a7bad1;
+    color: var(--fv-wizard-text-primary);
+    --fv-wizard-text-primary: var(--fvplus-settings-text-primary, #e7eef9);
+    --fv-wizard-text-muted: var(--fvplus-settings-text-muted, #c5d4e8);
+    --fv-wizard-text-dim: var(--fvplus-settings-text-dim, #a7bad1);
     --fv-wizard-font-103: 1.03rem;
     --fv-wizard-font-108: 1.08rem;
     --fv-wizard-font-115: 1.15rem;
@@ -4682,6 +4681,29 @@ body.fv-mobile-compact .fv-setup-field-grid {
     --fv-wizard-card-topline-soft-alpha: 0.34;
     --fv-wizard-card-inset-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.06);
     --fv-wizard-card-shadow: 0 10px 22px rgba(0, 0, 0, 0.24);
+    --fv-wizard-shell-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+    --fv-wizard-control-bg: rgba(15, 23, 35, 0.78);
+    --fv-wizard-control-disabled-fg: rgba(231, 238, 249, 0.68);
+    --fv-wizard-input-bg: rgba(14, 23, 35, 0.78);
+    --fv-wizard-pill-border: rgba(255, 255, 255, 0.2);
+    --fv-wizard-pill-border-strong: rgba(255, 255, 255, 0.22);
+    --fv-wizard-pill-bg: rgba(255, 255, 255, 0.04);
+    --fv-wizard-chip-bg: rgba(14, 23, 35, 0.7);
+    --fv-wizard-chip-toggle-bg: rgba(13, 21, 32, 0.84);
+    --fv-wizard-mode-toggle-bg: rgba(12, 20, 31, 0.84);
+    --fv-wizard-rule-row-bg: rgba(13, 20, 31, 0.72);
+    --fv-wizard-kbd-border: rgba(255, 255, 255, 0.24);
+    --fv-wizard-kbd-bg: rgba(255, 255, 255, 0.08);
+    --fv-wizard-quick-preset-bg: linear-gradient(180deg, rgba(16, 26, 40, 0.74) 0%, rgba(10, 17, 26, 0.82) 100%);
+    --fv-wizard-active-text: #d8ebff;
+    --fv-wizard-selection-active-shadow: inset 0 0 0 1px rgba(var(--fv-wizard-color-info-rgb), 0.45), 0 6px 16px rgba(0, 0, 0, 0.22);
+    --fv-wizard-pending-text: rgba(255, 255, 255, 0.82);
+    --fv-wizard-empty-text: rgba(255, 255, 255, 0.72);
+    --fv-wizard-progress-track-border: rgba(255, 255, 255, 0.14);
+    --fv-wizard-progress-track-bg: rgba(255, 255, 255, 0.04);
+    --fv-wizard-progress-fill-start: #ff8f2a;
+    --fv-wizard-progress-fill-end: #ffd26f;
+    --fv-wizard-focus-outline: rgba(var(--fv-wizard-color-info-rgb), 0.8);
 }
 
 #fv-setup-assistant-dialog[data-fv-wizard-contrast-tier="high"] {
@@ -4706,6 +4728,52 @@ body.fv-mobile-compact .fv-setup-field-grid {
     --fv-wizard-card-tint-alpha: 0.24;
     --fv-wizard-card-topline-strong-alpha: 0.98;
     --fv-wizard-card-topline-soft-alpha: 0.54;
+}
+
+#fv-setup-assistant-dialog[data-fv-theme-class="light"] {
+    color-scheme: light;
+    --fv-wizard-text-primary: var(--fvplus-settings-text-primary, #324253);
+    --fv-wizard-text-muted: var(--fvplus-settings-text-muted, #627284);
+    --fv-wizard-text-dim: var(--fvplus-settings-text-dim, #73839a);
+    --fv-wizard-surface-page: rgba(251, 247, 242, 0.985);
+    --fv-wizard-surface-panel: rgba(255, 255, 255, 0.9);
+    --fv-wizard-surface-card: rgba(255, 255, 255, 0.92);
+    --fv-wizard-surface-card-strong: rgba(248, 242, 234, 0.97);
+    --fv-wizard-border-subtle: var(--fvplus-settings-border-subtle, rgba(122, 102, 72, 0.18));
+    --fv-wizard-border-strong: rgba(122, 102, 72, 0.24);
+    --fv-wizard-shell-sidebar-bg: linear-gradient(180deg, rgba(248, 242, 234, 0.96) 0%, rgba(241, 233, 223, 0.94) 100%);
+    --fv-wizard-shell-head-bg: linear-gradient(180deg, rgba(252, 248, 243, 0.96) 0%, rgba(244, 237, 228, 0.95) 100%);
+    --fv-wizard-shell-strip-bg: rgba(246, 239, 230, 0.96);
+    --fv-wizard-row-bg: rgba(248, 243, 237, 0.92);
+    --fv-wizard-card-border-alpha: 0.24;
+    --fv-wizard-card-tint-alpha: 0.1;
+    --fv-wizard-card-surface-stop: 18%;
+    --fv-wizard-card-base-bg: rgba(255, 255, 255, 0.96);
+    --fv-wizard-card-topline-strong-alpha: 0.72;
+    --fv-wizard-card-topline-soft-alpha: 0.28;
+    --fv-wizard-card-inset-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.92);
+    --fv-wizard-card-shadow: 0 10px 22px rgba(113, 84, 52, 0.1);
+    --fv-wizard-shell-shadow: 0 26px 64px rgba(113, 84, 52, 0.16);
+    --fv-wizard-control-bg: rgba(250, 246, 240, 0.96);
+    --fv-wizard-control-disabled-fg: rgba(111, 124, 139, 0.72);
+    --fv-wizard-input-bg: rgba(255, 255, 255, 0.94);
+    --fv-wizard-pill-border: var(--fvplus-settings-border-subtle, rgba(122, 102, 72, 0.18));
+    --fv-wizard-pill-border-strong: rgba(122, 102, 72, 0.22);
+    --fv-wizard-pill-bg: rgba(102, 115, 133, 0.08);
+    --fv-wizard-chip-bg: rgba(247, 241, 233, 0.92);
+    --fv-wizard-chip-toggle-bg: rgba(246, 240, 232, 0.95);
+    --fv-wizard-mode-toggle-bg: rgba(245, 239, 231, 0.95);
+    --fv-wizard-rule-row-bg: rgba(249, 244, 238, 0.94);
+    --fv-wizard-kbd-border: rgba(122, 102, 72, 0.22);
+    --fv-wizard-kbd-bg: rgba(247, 241, 233, 0.95);
+    --fv-wizard-quick-preset-bg: linear-gradient(180deg, rgba(252, 248, 243, 0.98) 0%, rgba(244, 237, 228, 0.96) 100%);
+    --fv-wizard-active-text: var(--fvplus-settings-chip-info, #2f6ea6);
+    --fv-wizard-selection-active-shadow: inset 0 0 0 1px rgba(var(--fv-wizard-color-info-rgb), 0.3), 0 6px 16px rgba(113, 84, 52, 0.12);
+    --fv-wizard-pending-text: var(--fvplus-settings-text-muted, #627284);
+    --fv-wizard-empty-text: var(--fvplus-settings-text-dim, #73839a);
+    --fv-wizard-progress-track-border: rgba(122, 102, 72, 0.18);
+    --fv-wizard-progress-track-bg: rgba(102, 115, 133, 0.08);
+    --fv-wizard-focus-outline: rgba(var(--fv-wizard-color-info-rgb), 0.72);
 }
 
 .fv-setup-assistant-shell button {
@@ -4740,19 +4808,19 @@ body.fv-mobile-compact .fv-setup-field-grid {
 #fv-setup-assistant-dialog .fv-setup-assistant-shell .btn {
     color: var(--fv-wizard-text-primary);
     border-color: var(--fv-wizard-border-subtle);
-    background: rgba(15, 23, 35, 0.78);
+    background: var(--fv-wizard-control-bg);
 }
 
 #fv-setup-assistant-dialog .fv-setup-assistant-shell button:disabled,
 #fv-setup-assistant-dialog .fv-setup-assistant-shell .btn:disabled {
-    color: rgba(231, 238, 249, 0.68);
+    color: var(--fv-wizard-control-disabled-fg);
 }
 
 .fv-setup-assistant-shell input:not([type="checkbox"]):not([type="radio"]),
 .fv-setup-assistant-shell select,
 .fv-setup-assistant-shell textarea {
     color: var(--fv-wizard-text-primary);
-    background: rgba(14, 23, 35, 0.78);
+    background: var(--fv-wizard-input-bg);
     border-color: var(--fv-wizard-border-subtle);
 }
 
@@ -4907,7 +4975,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
     width: 20px;
     height: 20px;
     border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid var(--fv-wizard-pill-border);
     font-size: var(--fv-wizard-font-103);
 }
 
@@ -4924,7 +4992,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
     align-items: center;
     justify-content: center;
     border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid var(--fv-wizard-pill-border-strong);
     padding: 0.12rem 0.42rem;
     justify-self: end;
     font-size: var(--fv-wizard-font-103);
@@ -4945,9 +5013,9 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-setup-step-state.is-pending {
-    border-color: rgba(255, 255, 255, 0.22);
-    color: rgba(255, 255, 255, 0.82);
-    background: rgba(255, 255, 255, 0.04);
+    border-color: var(--fv-wizard-pill-border-strong);
+    color: var(--fv-wizard-pending-text);
+    background: var(--fv-wizard-pill-bg);
 }
 
 .fv-setup-step-state.is-warn {
@@ -5148,7 +5216,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
     padding: 0.16rem 0.46rem;
     border: 1px solid var(--fv-wizard-border-subtle);
     border-radius: 999px;
-    background: rgba(13, 21, 32, 0.84);
+    background: var(--fv-wizard-chip-toggle-bg);
     color: var(--fv-wizard-text-muted);
     font-size: var(--fv-wizard-font-103);
     line-height: 1.2;
@@ -5166,7 +5234,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
     border-radius: 999px;
     padding: 0.14rem 0.45rem;
     font-size: var(--fv-wizard-font-103);
-    background: rgba(14, 23, 35, 0.7);
+    background: var(--fv-wizard-chip-bg);
 }
 
 .fv-setup-detected-row {
@@ -5216,7 +5284,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
     width: 100%;
     border: 1px solid var(--fv-wizard-border-subtle);
     border-radius: 8px;
-    background: linear-gradient(180deg, rgba(16, 26, 40, 0.74) 0%, rgba(10, 17, 26, 0.82) 100%);
+    background: var(--fv-wizard-quick-preset-bg);
     color: inherit;
     display: grid;
     gap: 0.18rem;
@@ -5229,9 +5297,9 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-setup-quick-preset.is-active {
-    border-color: rgba(77, 163, 255, 0.6);
-    background: rgba(77, 163, 255, 0.16);
-    color: #d8ebff;
+    border-color: rgba(var(--fv-wizard-color-info-rgb), 0.6);
+    background: rgba(var(--fv-wizard-color-info-rgb), 0.16);
+    color: var(--fv-wizard-active-text);
 }
 
 .fv-setup-quick-preset-title {
@@ -5280,13 +5348,13 @@ body.fv-mobile-compact .fv-setup-field-grid {
 .fv-setup-profile-option.is-active {
     border-color: rgba(var(--fv-wizard-color-info-rgb), 0.64);
     background: rgba(var(--fv-wizard-color-info-rgb), 0.2);
-    box-shadow: inset 0 0 0 1px rgba(var(--fv-wizard-color-info-rgb), 0.45), 0 6px 16px rgba(0, 0, 0, 0.22);
+    box-shadow: var(--fv-wizard-selection-active-shadow);
 }
 
 .fv-setup-env-option.is-active {
     border-color: rgba(var(--fv-wizard-color-info-rgb), 0.64);
     background: rgba(var(--fv-wizard-color-info-rgb), 0.2);
-    box-shadow: inset 0 0 0 1px rgba(var(--fv-wizard-color-info-rgb), 0.45), 0 6px 16px rgba(0, 0, 0, 0.22);
+    box-shadow: var(--fv-wizard-selection-active-shadow);
 }
 
 .fv-setup-route-option input,
@@ -5329,7 +5397,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
     border: 1px solid var(--fv-wizard-border-subtle);
     border-radius: 8px;
     overflow: hidden;
-    background: rgba(12, 20, 31, 0.84);
+    background: var(--fv-wizard-mode-toggle-bg);
 }
 
 .fv-setup-mode-toggle button {
@@ -5345,7 +5413,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
 
 .fv-setup-mode-toggle button.is-active {
     background: rgba(var(--fv-wizard-color-info-rgb), 0.24);
-    color: #d8ebff;
+    color: var(--fv-wizard-active-text);
     box-shadow: inset 0 0 0 1px rgba(var(--fv-wizard-color-info-rgb), 0.55);
     font-weight: 700;
 }
@@ -5413,9 +5481,9 @@ body.fv-mobile-compact .fv-setup-field-grid {
     justify-content: center;
     min-width: 1.5em;
     padding: 0.05rem 0.3rem;
-    border: 1px solid rgba(255, 255, 255, 0.24);
+    border: 1px solid var(--fv-wizard-kbd-border);
     border-radius: 6px;
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--fv-wizard-kbd-bg);
     font-size: var(--fv-wizard-font-103);
     line-height: 1.2;
 }
@@ -5445,7 +5513,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
     border: 1px solid var(--fv-wizard-border-subtle);
     border-radius: 8px;
     padding: 0.34rem 0.4rem;
-    background: rgba(13, 20, 31, 0.72);
+    background: var(--fv-wizard-rule-row-bg);
 }
 
 .fv-setup-rule-main,
@@ -5472,7 +5540,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-setup-rule-preview.is-empty {
-    color: rgba(255, 255, 255, 0.72);
+    color: var(--fv-wizard-empty-text);
 }
 
 .fv-setup-rule-preview.is-error {
@@ -5694,9 +5762,9 @@ body.fv-mobile-compact .fv-setup-field-grid {
     width: 100%;
     height: 10px;
     border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    border: 1px solid var(--fv-wizard-progress-track-border);
     overflow: hidden;
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--fv-wizard-progress-track-bg);
 }
 
 .fv-setup-progress-track > span {
@@ -5704,12 +5772,12 @@ body.fv-mobile-compact .fv-setup-field-grid {
     height: 100%;
     width: 0%;
     border-radius: 999px;
-    background: linear-gradient(90deg, #ff8f2a 0%, #ffd26f 100%);
+    background: linear-gradient(90deg, var(--fv-wizard-progress-fill-start) 0%, var(--fv-wizard-progress-fill-end) 100%);
     transition: width 130ms ease;
 }
 
 #fv-setup-assistant-dialog :is(button, input, select, textarea, [tabindex]):focus-visible {
-    outline: 2px solid rgba(77, 163, 255, 0.8);
+    outline: 2px solid var(--fv-wizard-focus-outline);
     outline-offset: 1px;
 }
 

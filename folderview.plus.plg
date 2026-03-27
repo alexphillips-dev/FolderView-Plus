@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.27.17">
-<!ENTITY md5 "8212657ff944e2090c1f9c36922f11b0">
+<!ENTITY version "2026.03.27.18">
+<!ENTITY md5 "b840bb524ead8f2fa705bccb75d8fbbf">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.27.18
+- Fix: Make the Setup Assistant wizard follow the resolved settings theme so white, Azure, gray, and dark hosts no longer force the wizard into a static dark shell.
+- UI/UX: Convert the wizard dialog, controls, chips, step badges, quick presets, progress bar, and focus states onto theme-aware tokens so light themes keep readable surfaces and contrast.
+- Quality: Add wizard theme compatibility coverage for the light-token override path and the runtime theme-surface binding used when the assistant opens.
+
 
 ###2026.03.27.17
 - UI/UX: Add the missing inner side gutters to the Settings Diagnostics tab so the health summary, fix lane, and support lane no longer sit edge-to-edge inside the diagnostics module.

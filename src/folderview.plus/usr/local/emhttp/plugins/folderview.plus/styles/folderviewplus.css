@@ -60,6 +60,26 @@
     --fvplus-settings-chip-empty: rgba(240, 240, 240, 0.86);
     --fvplus-settings-chip-empty-border: rgba(192, 192, 192, 0.45);
     --fvplus-settings-chip-empty-bg: rgba(255, 255, 255, 0.08);
+    --fvplus-settings-button-fg: var(--fvplus-settings-text-primary);
+    --fvplus-settings-button-bg-top: rgba(255, 255, 255, 0.09);
+    --fvplus-settings-button-bg-bottom: rgba(255, 255, 255, 0.04);
+    --fvplus-settings-button-hover-top: rgba(255, 198, 126, 0.24);
+    --fvplus-settings-button-hover-bottom: rgba(255, 154, 60, 0.12);
+    --fvplus-settings-button-active-top: rgba(255, 190, 112, 0.4);
+    --fvplus-settings-button-active-bottom: rgba(255, 154, 60, 0.22);
+    --fvplus-settings-button-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 10px 22px rgba(0, 0, 0, 0.16);
+    --fvplus-settings-button-shadow-hover: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 12px 26px rgba(0, 0, 0, 0.2);
+    --fvplus-settings-button-shadow-active: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 18px rgba(0, 0, 0, 0.18);
+    --fvplus-settings-button-accent-fg: #fff4e8;
+    --fvplus-settings-button-accent-top: rgba(255, 188, 110, 0.44);
+    --fvplus-settings-button-accent-bottom: rgba(255, 154, 60, 0.26);
+    --fvplus-settings-button-accent-shadow: inset 0 1px 0 rgba(255, 241, 223, 0.18), 0 12px 26px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 154, 60, 0.16);
+    --fvplus-settings-button-quiet-top: rgba(255, 255, 255, 0.06);
+    --fvplus-settings-button-quiet-bottom: rgba(255, 255, 255, 0.025);
+    --fvplus-settings-button-quiet-hover-top: rgba(255, 198, 126, 0.16);
+    --fvplus-settings-button-quiet-hover-bottom: rgba(255, 154, 60, 0.1);
+    --fvplus-settings-button-quiet-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 6px 14px rgba(0, 0, 0, 0.14);
+    --fvplus-settings-button-quiet-shadow-hover: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 8px 18px rgba(0, 0, 0, 0.16);
 }
 
 html[data-fvplus-host-theme="white"] #fv-settings-root,
@@ -87,6 +107,25 @@ body[data-fv-host-theme="white"] #fv-settings-root,
     --fvplus-settings-chip-empty: #667385;
     --fvplus-settings-chip-empty-border: rgba(102, 115, 133, 0.32);
     --fvplus-settings-chip-empty-bg: rgba(102, 115, 133, 0.10);
+    --fvplus-settings-button-bg-top: rgba(255, 255, 255, 0.98);
+    --fvplus-settings-button-bg-bottom: rgba(242, 233, 221, 0.94);
+    --fvplus-settings-button-hover-top: rgba(255, 229, 201, 0.98);
+    --fvplus-settings-button-hover-bottom: rgba(247, 209, 167, 0.92);
+    --fvplus-settings-button-active-top: rgba(255, 218, 176, 0.98);
+    --fvplus-settings-button-active-bottom: rgba(244, 191, 131, 0.94);
+    --fvplus-settings-button-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.94), 0 8px 18px rgba(113, 84, 52, 0.12);
+    --fvplus-settings-button-shadow-hover: inset 0 1px 0 rgba(255, 255, 255, 0.98), 0 10px 22px rgba(113, 84, 52, 0.16);
+    --fvplus-settings-button-shadow-active: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 7px 14px rgba(113, 84, 52, 0.14);
+    --fvplus-settings-button-accent-fg: #6a3600;
+    --fvplus-settings-button-accent-top: rgba(255, 214, 168, 0.98);
+    --fvplus-settings-button-accent-bottom: rgba(244, 184, 116, 0.96);
+    --fvplus-settings-button-accent-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.96), 0 10px 22px rgba(126, 84, 24, 0.16), 0 0 0 1px rgba(190, 107, 24, 0.12);
+    --fvplus-settings-button-quiet-top: rgba(255, 255, 255, 0.94);
+    --fvplus-settings-button-quiet-bottom: rgba(238, 231, 223, 0.9);
+    --fvplus-settings-button-quiet-hover-top: rgba(255, 229, 201, 0.94);
+    --fvplus-settings-button-quiet-hover-bottom: rgba(245, 209, 171, 0.88);
+    --fvplus-settings-button-quiet-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 6px 14px rgba(113, 84, 52, 0.1);
+    --fvplus-settings-button-quiet-shadow-hover: inset 0 1px 0 rgba(255, 255, 255, 0.96), 0 8px 18px rgba(113, 84, 52, 0.13);
 }
 
 html[data-fvplus-host-theme="white"] #fv-settings-root .name-cell-breadcrumb,
@@ -5879,6 +5918,313 @@ h2[data-fv-section].fv-search-match {
     min-height: 30px;
     padding: 0.2rem 0.52rem;
     font-size: 1.03rem;
+}
+
+/* Shared settings button system */
+#fv-settings-root :is(
+    .custom-css > button,
+    .toolbar-actions > button,
+    .fv-first-run-actions > button,
+    .tree-visibility-controls > button,
+    .fv-tree-undo-actions > button,
+    .setting-button-row > button,
+    .setting-button-row-compact > button,
+    .folder-health-filter,
+    .folder-health-actions > button,
+    .rules-editor > button,
+    .rules-table td button,
+    .rule-tester > button,
+    .selection-actions > button,
+    .bulk-row > button,
+    .backup-compare-row > button,
+    .bulk-selection-actions > button,
+    .bulk-result-actions > button,
+    .backup-actions > button,
+    .runtime-action-grid > button,
+    .template-controls > button,
+    .import-preset-actions > button,
+    .rule-test-samples > button,
+    .fv-table-pager button,
+    .fv-runtime-resolved-actions > button,
+    .fv-update-notes-actions > button,
+    .fv-mode-toggle button,
+    #fv-run-wizard,
+    .rule-presets > button,
+    .fv-activity-feed-head > button,
+    .folder-quick-filters > button,
+    .fv-starter-empty-actions > button,
+    .fv-action-buttons > button,
+    #fv-settings-action-bar button
+),
+#fv-setup-assistant-dialog .fv-setup-assistant-shell button:not(.fv-setup-step-jump),
+#fv-setup-assistant-dialog .fv-setup-assistant-shell .btn {
+    border: 0 !important;
+    border-radius: 10px !important;
+    background: linear-gradient(180deg, var(--fvplus-settings-button-bg-top), var(--fvplus-settings-button-bg-bottom)) !important;
+    color: var(--fvplus-settings-button-fg) !important;
+    box-shadow: var(--fvplus-settings-button-shadow) !important;
+    text-shadow: none !important;
+    transition: transform 120ms ease, background 120ms ease, box-shadow 120ms ease, color 120ms ease;
+}
+
+#fv-settings-root :is(
+    .custom-css > button,
+    .toolbar-actions > button,
+    .fv-first-run-actions > button,
+    .tree-visibility-controls > button,
+    .fv-tree-undo-actions > button,
+    .setting-button-row > button,
+    .setting-button-row-compact > button,
+    .folder-health-filter,
+    .folder-health-actions > button,
+    .rules-editor > button,
+    .rules-table td button,
+    .rule-tester > button,
+    .selection-actions > button,
+    .bulk-row > button,
+    .backup-compare-row > button,
+    .bulk-selection-actions > button,
+    .bulk-result-actions > button,
+    .backup-actions > button,
+    .runtime-action-grid > button,
+    .template-controls > button,
+    .import-preset-actions > button,
+    .rule-test-samples > button,
+    .fv-table-pager button,
+    .fv-runtime-resolved-actions > button,
+    .fv-update-notes-actions > button,
+    .fv-mode-toggle button,
+    #fv-run-wizard,
+    .rule-presets > button,
+    .fv-activity-feed-head > button,
+    .folder-quick-filters > button,
+    .fv-starter-empty-actions > button,
+    .fv-action-buttons > button,
+    #fv-settings-action-bar button
+):hover,
+#fv-settings-root :is(
+    .custom-css > button,
+    .toolbar-actions > button,
+    .fv-first-run-actions > button,
+    .tree-visibility-controls > button,
+    .fv-tree-undo-actions > button,
+    .setting-button-row > button,
+    .setting-button-row-compact > button,
+    .folder-health-filter,
+    .folder-health-actions > button,
+    .rules-editor > button,
+    .rules-table td button,
+    .rule-tester > button,
+    .selection-actions > button,
+    .bulk-row > button,
+    .backup-compare-row > button,
+    .bulk-selection-actions > button,
+    .bulk-result-actions > button,
+    .backup-actions > button,
+    .runtime-action-grid > button,
+    .template-controls > button,
+    .import-preset-actions > button,
+    .rule-test-samples > button,
+    .fv-table-pager button,
+    .fv-runtime-resolved-actions > button,
+    .fv-update-notes-actions > button,
+    .fv-mode-toggle button,
+    #fv-run-wizard,
+    .rule-presets > button,
+    .fv-activity-feed-head > button,
+    .folder-quick-filters > button,
+    .fv-starter-empty-actions > button,
+    .fv-action-buttons > button,
+    #fv-settings-action-bar button
+):focus-visible,
+#fv-setup-assistant-dialog .fv-setup-assistant-shell button:not(.fv-setup-step-jump):hover,
+#fv-setup-assistant-dialog .fv-setup-assistant-shell button:not(.fv-setup-step-jump):focus-visible,
+#fv-setup-assistant-dialog .fv-setup-assistant-shell .btn:hover,
+#fv-setup-assistant-dialog .fv-setup-assistant-shell .btn:focus-visible {
+    background: linear-gradient(180deg, var(--fvplus-settings-button-hover-top), var(--fvplus-settings-button-hover-bottom)) !important;
+    box-shadow: var(--fvplus-settings-button-shadow-hover) !important;
+    transform: translateY(-1px);
+}
+
+#fv-settings-root :is(
+    .custom-css > button,
+    .toolbar-actions > button,
+    .fv-first-run-actions > button,
+    .tree-visibility-controls > button,
+    .fv-tree-undo-actions > button,
+    .setting-button-row > button,
+    .setting-button-row-compact > button,
+    .folder-health-filter,
+    .folder-health-actions > button,
+    .rules-editor > button,
+    .rules-table td button,
+    .rule-tester > button,
+    .selection-actions > button,
+    .bulk-row > button,
+    .backup-compare-row > button,
+    .bulk-selection-actions > button,
+    .bulk-result-actions > button,
+    .backup-actions > button,
+    .runtime-action-grid > button,
+    .template-controls > button,
+    .import-preset-actions > button,
+    .rule-test-samples > button,
+    .fv-table-pager button,
+    .fv-runtime-resolved-actions > button,
+    .fv-update-notes-actions > button,
+    .fv-mode-toggle button,
+    #fv-run-wizard,
+    .rule-presets > button,
+    .fv-activity-feed-head > button,
+    .folder-quick-filters > button,
+    .fv-starter-empty-actions > button,
+    .fv-action-buttons > button,
+    #fv-settings-action-bar button
+):active,
+#fv-setup-assistant-dialog .fv-setup-assistant-shell button:not(.fv-setup-step-jump):active,
+#fv-setup-assistant-dialog .fv-setup-assistant-shell .btn:active {
+    background: linear-gradient(180deg, var(--fvplus-settings-button-active-top), var(--fvplus-settings-button-active-bottom)) !important;
+    box-shadow: var(--fvplus-settings-button-shadow-active) !important;
+    transform: translateY(0);
+}
+
+#fv-settings-root :is(
+    .custom-css > button,
+    .toolbar-actions > button,
+    .fv-first-run-actions > button,
+    .tree-visibility-controls > button,
+    .fv-tree-undo-actions > button,
+    .setting-button-row > button,
+    .setting-button-row-compact > button,
+    .folder-health-filter,
+    .folder-health-actions > button,
+    .rules-editor > button,
+    .rules-table td button,
+    .rule-tester > button,
+    .selection-actions > button,
+    .bulk-row > button,
+    .backup-compare-row > button,
+    .bulk-selection-actions > button,
+    .bulk-result-actions > button,
+    .backup-actions > button,
+    .runtime-action-grid > button,
+    .template-controls > button,
+    .import-preset-actions > button,
+    .rule-test-samples > button,
+    .fv-table-pager button,
+    .fv-runtime-resolved-actions > button,
+    .fv-update-notes-actions > button,
+    .fv-mode-toggle button,
+    #fv-run-wizard,
+    .rule-presets > button,
+    .fv-activity-feed-head > button,
+    .folder-quick-filters > button,
+    .fv-starter-empty-actions > button,
+    .fv-action-buttons > button,
+    #fv-settings-action-bar button
+):disabled,
+#fv-setup-assistant-dialog .fv-setup-assistant-shell button:not(.fv-setup-step-jump):disabled,
+#fv-setup-assistant-dialog .fv-setup-assistant-shell .btn:disabled {
+    opacity: 0.56;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+#fv-settings-root :is(
+    .folder-health-filter.is-active,
+    .folder-quick-filters > button.is-active,
+    .fv-mini-action-btn.is-active,
+    .folder-table table td.actions-cell .folder-overflow-btn
+),
+#fv-settings-root .fv-mode-toggle button.is-active,
+#fv-setup-assistant-dialog .fv-setup-mode-toggle button.is-active {
+    background: linear-gradient(180deg, var(--fvplus-settings-button-accent-top), var(--fvplus-settings-button-accent-bottom)) !important;
+    color: var(--fvplus-settings-button-accent-fg) !important;
+    box-shadow: var(--fvplus-settings-button-accent-shadow) !important;
+}
+
+#fv-settings-root .fv-mode-toggle,
+#fv-setup-assistant-dialog .fv-setup-mode-toggle {
+    gap: 0.2rem;
+    padding: 0.18rem;
+    border: 0;
+    border-radius: 12px;
+    overflow: visible;
+    background: linear-gradient(180deg, var(--fvplus-settings-button-quiet-top), var(--fvplus-settings-button-quiet-bottom));
+    box-shadow: var(--fvplus-settings-button-quiet-shadow);
+}
+
+#fv-settings-root .fv-mode-toggle button:not(.is-active),
+#fv-setup-assistant-dialog .fv-setup-mode-toggle button:not(.is-active) {
+    border-right: 0;
+    background: transparent !important;
+    color: var(--fvplus-settings-button-fg) !important;
+    box-shadow: none !important;
+}
+
+#fv-settings-root .fv-mode-toggle button:not(.is-active):hover,
+#fv-settings-root .fv-mode-toggle button:not(.is-active):focus-visible,
+#fv-setup-assistant-dialog .fv-setup-mode-toggle button:not(.is-active):hover,
+#fv-setup-assistant-dialog .fv-setup-mode-toggle button:not(.is-active):focus-visible {
+    background: linear-gradient(180deg, var(--fvplus-settings-button-quiet-hover-top), var(--fvplus-settings-button-quiet-hover-bottom)) !important;
+    box-shadow: var(--fvplus-settings-button-quiet-shadow-hover) !important;
+}
+
+#fv-settings-root :is(
+    .row-order-actions button,
+    .folder-table table td.actions-cell .folder-action-btn:not(.folder-overflow-btn),
+    .folder-tree-toggle,
+    .status-breakdown-btn,
+    .health-breakdown-btn,
+    .updates-chip
+) {
+    border: 0 !important;
+    border-radius: 7px !important;
+    background: linear-gradient(180deg, var(--fvplus-settings-button-quiet-top), var(--fvplus-settings-button-quiet-bottom)) !important;
+    box-shadow: var(--fvplus-settings-button-quiet-shadow) !important;
+    transition: transform 120ms ease, background 120ms ease, box-shadow 120ms ease, color 120ms ease;
+}
+
+#fv-settings-root :is(
+    .row-order-actions button,
+    .folder-table table td.actions-cell .folder-action-btn:not(.folder-overflow-btn),
+    .updates-chip
+) {
+    color: var(--fvplus-settings-title-accent) !important;
+}
+
+#fv-settings-root :is(.status-breakdown-btn, .health-breakdown-btn) {
+    color: var(--fvplus-settings-chip-info) !important;
+}
+
+#fv-settings-root .folder-tree-toggle {
+    color: var(--fvplus-settings-text-muted) !important;
+}
+
+#fv-settings-root :is(
+    .row-order-actions button,
+    .folder-table table td.actions-cell .folder-action-btn:not(.folder-overflow-btn),
+    .folder-tree-toggle,
+    .status-breakdown-btn,
+    .health-breakdown-btn,
+    .updates-chip
+):hover,
+#fv-settings-root :is(
+    .row-order-actions button,
+    .folder-table table td.actions-cell .folder-action-btn:not(.folder-overflow-btn),
+    .folder-tree-toggle,
+    .status-breakdown-btn,
+    .health-breakdown-btn,
+    .updates-chip
+):focus-visible {
+    background: linear-gradient(180deg, var(--fvplus-settings-button-quiet-hover-top), var(--fvplus-settings-button-quiet-hover-bottom)) !important;
+    box-shadow: var(--fvplus-settings-button-quiet-shadow-hover) !important;
+    color: var(--fvplus-settings-text-primary) !important;
+    transform: translateY(-1px);
+}
+
+#fv-settings-root :is(.updates-chip.is-filter-active, .health-chip.is-filter-active) {
+    box-shadow: var(--fvplus-settings-button-accent-shadow) !important;
 }
 
 .fv-toast-host {

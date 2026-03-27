@@ -41,11 +41,16 @@ test('status state classes resolve through css variables instead of hardcoded ru
 
 test('dashboard quick action palette is tokenized', () => {
     assert.match(dashboardCss, /--fvplus-dashboard-quick-action-border/);
+    assert.match(dashboardCss, /--fvplus-dashboard-quick-action-bg-top/);
+    assert.match(dashboardCss, /--fvplus-dashboard-quick-action-shadow/);
     assert.match(dashboardCss, /--fvplus-dashboard-accent/);
-    assert.match(dashboardCss, /\.fv-dashboard-quick-action\s*\{[\s\S]*background:\s*transparent !important/);
+    assert.match(dashboardCss, /\.fv-dashboard-quick-action\s*\{[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fvplus-dashboard-quick-action-bg-top\),\s*var\(--fvplus-dashboard-quick-action-bg-bottom\)\) !important/);
+    assert.match(dashboardCss, /\.fv-dashboard-quick-action\s*\{[\s\S]*box-shadow:\s*var\(--fvplus-dashboard-quick-action-shadow\) !important/);
     assert.match(dashboardCss, /\.fv-dashboard-quick-action:hover[\s\S]*var\(--fvplus-dashboard-accent\)/);
     assert.match(settingsCss, /--fvplus-settings-surface-muted/);
     assert.match(settingsCss, /--fvplus-settings-accent/);
+    assert.match(settingsCss, /--fvplus-settings-button-bg-top/);
+    assert.match(settingsCss, /--fvplus-settings-button-accent-top/);
 });
 
 test('runtime context menus follow resolved dark and light theme tokens', () => {

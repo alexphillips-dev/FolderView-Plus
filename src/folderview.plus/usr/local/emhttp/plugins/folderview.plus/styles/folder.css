@@ -28,6 +28,26 @@
     --fv-editor-nav-count-text: var(--fvplus-editor-nav-count-text, #ffd7ab);
     --fv-editor-info: var(--fvplus-editor-info, #a6d8ff);
     --fv-editor-hero-icon-border: var(--fvplus-editor-hero-icon-border, var(--fv-editor-border));
+    --fv-editor-button-fg: var(--fv-editor-text-primary);
+    --fv-editor-button-bg-top: rgba(255, 255, 255, 0.09);
+    --fv-editor-button-bg-bottom: rgba(255, 255, 255, 0.03);
+    --fv-editor-button-hover-top: rgba(255, 198, 126, 0.24);
+    --fv-editor-button-hover-bottom: rgba(255, 154, 60, 0.12);
+    --fv-editor-button-active-top: rgba(255, 188, 108, 0.4);
+    --fv-editor-button-active-bottom: rgba(255, 154, 60, 0.22);
+    --fv-editor-button-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 10px 22px rgba(0, 0, 0, 0.18);
+    --fv-editor-button-shadow-hover: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 12px 26px rgba(0, 0, 0, 0.22);
+    --fv-editor-button-shadow-active: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 18px rgba(0, 0, 0, 0.2);
+    --fv-editor-button-accent-fg: #fff4e8;
+    --fv-editor-button-accent-top: rgba(255, 188, 110, 0.44);
+    --fv-editor-button-accent-bottom: rgba(255, 154, 60, 0.26);
+    --fv-editor-button-accent-shadow: inset 0 1px 0 rgba(255, 241, 223, 0.18), 0 12px 26px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(255, 154, 60, 0.16);
+    --fv-editor-button-quiet-top: rgba(255, 255, 255, 0.06);
+    --fv-editor-button-quiet-bottom: rgba(255, 255, 255, 0.025);
+    --fv-editor-button-quiet-hover-top: rgba(255, 198, 126, 0.16);
+    --fv-editor-button-quiet-hover-bottom: rgba(255, 154, 60, 0.1);
+    --fv-editor-button-quiet-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 6px 14px rgba(0, 0, 0, 0.16);
+    --fv-editor-button-quiet-shadow-hover: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 8px 18px rgba(0, 0, 0, 0.18);
     color: var(--fv-editor-text-primary);
 }
 
@@ -2806,6 +2826,231 @@ table.sortable td:nth-child(3) {
 
 .folder-status-color-item > span {
     min-width: 56px;
+}
+
+/* Shared folder editor button system */
+:is(
+    .fv-editor-hero-actions > button,
+    .fv-section-tool,
+    .fv-section-collapse,
+    #fvEditorActionBar .folder-btn-submit,
+    #fvEditorActionBar .folder-btn-copy,
+    #fvEditorActionBar .folder-btn-reset,
+    #fvEditorActionBar .folder-btn-cancel,
+    .fv-member-tools > button,
+    .fv-smart-defaults-row > button,
+    .fv-icon-input-actions > button,
+    .fv-section-nav > button,
+    .fv-third-party-mode-switch > button,
+    .fv-third-party-presets > button,
+    .fv-third-party-pack-actions-panel > button,
+    .fv-third-party-inline-actions > button,
+    .fv-modern-field-row .custom-action,
+    .fv-folder-action-dialog .ui-dialog-buttonpane button
+) {
+    border: 0 !important;
+    border-radius: 10px !important;
+    background: linear-gradient(180deg, var(--fv-editor-button-bg-top), var(--fv-editor-button-bg-bottom)) !important;
+    color: var(--fv-editor-button-fg) !important;
+    box-shadow: var(--fv-editor-button-shadow) !important;
+    text-shadow: none !important;
+    transition: transform 120ms ease, background 120ms ease, box-shadow 120ms ease, color 120ms ease;
+}
+
+:is(
+    .fv-editor-hero-actions > button,
+    .fv-section-tool,
+    .fv-section-collapse,
+    #fvEditorActionBar .folder-btn-submit,
+    #fvEditorActionBar .folder-btn-copy,
+    #fvEditorActionBar .folder-btn-reset,
+    #fvEditorActionBar .folder-btn-cancel,
+    .fv-member-tools > button,
+    .fv-smart-defaults-row > button,
+    .fv-icon-input-actions > button,
+    .fv-section-nav > button,
+    .fv-third-party-mode-switch > button,
+    .fv-third-party-presets > button,
+    .fv-third-party-pack-actions-panel > button,
+    .fv-third-party-inline-actions > button,
+    .fv-modern-field-row .custom-action,
+    .fv-folder-action-dialog .ui-dialog-buttonpane button
+):hover,
+:is(
+    .fv-editor-hero-actions > button,
+    .fv-section-tool,
+    .fv-section-collapse,
+    #fvEditorActionBar .folder-btn-submit,
+    #fvEditorActionBar .folder-btn-copy,
+    #fvEditorActionBar .folder-btn-reset,
+    #fvEditorActionBar .folder-btn-cancel,
+    .fv-member-tools > button,
+    .fv-smart-defaults-row > button,
+    .fv-icon-input-actions > button,
+    .fv-section-nav > button,
+    .fv-third-party-mode-switch > button,
+    .fv-third-party-presets > button,
+    .fv-third-party-pack-actions-panel > button,
+    .fv-third-party-inline-actions > button,
+    .fv-modern-field-row .custom-action,
+    .fv-folder-action-dialog .ui-dialog-buttonpane button
+):focus-visible {
+    background: linear-gradient(180deg, var(--fv-editor-button-hover-top), var(--fv-editor-button-hover-bottom)) !important;
+    box-shadow: var(--fv-editor-button-shadow-hover) !important;
+    transform: translateY(-1px);
+}
+
+:is(
+    .fv-editor-hero-actions > button,
+    .fv-section-tool,
+    .fv-section-collapse,
+    #fvEditorActionBar .folder-btn-submit,
+    #fvEditorActionBar .folder-btn-copy,
+    #fvEditorActionBar .folder-btn-reset,
+    #fvEditorActionBar .folder-btn-cancel,
+    .fv-member-tools > button,
+    .fv-smart-defaults-row > button,
+    .fv-icon-input-actions > button,
+    .fv-section-nav > button,
+    .fv-third-party-mode-switch > button,
+    .fv-third-party-presets > button,
+    .fv-third-party-pack-actions-panel > button,
+    .fv-third-party-inline-actions > button,
+    .fv-modern-field-row .custom-action,
+    .fv-folder-action-dialog .ui-dialog-buttonpane button
+):active {
+    background: linear-gradient(180deg, var(--fv-editor-button-active-top), var(--fv-editor-button-active-bottom)) !important;
+    box-shadow: var(--fv-editor-button-shadow-active) !important;
+    transform: translateY(0);
+}
+
+:is(
+    .fv-editor-hero-actions > button,
+    .fv-section-tool,
+    .fv-section-collapse,
+    #fvEditorActionBar .folder-btn-submit,
+    #fvEditorActionBar .folder-btn-copy,
+    #fvEditorActionBar .folder-btn-reset,
+    #fvEditorActionBar .folder-btn-cancel,
+    .fv-member-tools > button,
+    .fv-smart-defaults-row > button,
+    .fv-icon-input-actions > button,
+    .fv-section-nav > button,
+    .fv-third-party-mode-switch > button,
+    .fv-third-party-presets > button,
+    .fv-third-party-pack-actions-panel > button,
+    .fv-third-party-inline-actions > button,
+    .fv-modern-field-row .custom-action,
+    .fv-folder-action-dialog .ui-dialog-buttonpane button
+):disabled {
+    opacity: 0.56;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+#fvEditorActionBar .folder-btn-submit,
+.fv-section-nav > button.is-active,
+.fv-editor-mode > button.is-active,
+.fv-third-party-mode-switch > button.is-active,
+#fv-third-party-filter-toggle.is-active,
+#fv-third-party-pack-actions-toggle.is-active {
+    background: linear-gradient(180deg, var(--fv-editor-button-accent-top), var(--fv-editor-button-accent-bottom)) !important;
+    color: var(--fv-editor-button-accent-fg) !important;
+    box-shadow: var(--fv-editor-button-accent-shadow) !important;
+}
+
+.fv-section-nav > button.is-dirty:not(.is-active) {
+    background: linear-gradient(180deg, var(--fv-editor-button-hover-top), var(--fv-editor-button-hover-bottom)) !important;
+    box-shadow: var(--fv-editor-button-shadow-hover) !important;
+}
+
+.fv-editor-mode {
+    border: 0;
+    border-radius: 12px;
+    background: linear-gradient(180deg, var(--fv-editor-button-quiet-top), var(--fv-editor-button-quiet-bottom));
+    box-shadow: var(--fv-editor-button-quiet-shadow);
+}
+
+.fv-editor-mode > button:not(.is-active) {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.fv-editor-mode > button:not(.is-active):hover,
+.fv-editor-mode > button:not(.is-active):focus-visible {
+    background: linear-gradient(180deg, var(--fv-editor-button-quiet-hover-top), var(--fv-editor-button-quiet-hover-bottom)) !important;
+    box-shadow: var(--fv-editor-button-quiet-shadow-hover) !important;
+}
+
+:is(
+    .order-buttons > button,
+    .custom-action-wrapper > div > button,
+    .fv-inline-reset-btn,
+    .fv-icon-picker-pager > button,
+    .fv-custom-icon-actions > button,
+    #fv-third-party-refresh,
+    #fv-custom-icon-refresh,
+    #fv-third-party-search-clear,
+    #fv-third-party-filter-toggle:not(.is-active),
+    #fv-third-party-pack-actions-toggle:not(.is-active),
+    #fv-third-party-tag-clear,
+    #fv-icon-picker-clear,
+    #fv-icon-upload-cancel,
+    .folder-status-colors-dd > button
+) {
+    border: 0 !important;
+    border-radius: 8px !important;
+    background: linear-gradient(180deg, var(--fv-editor-button-quiet-top), var(--fv-editor-button-quiet-bottom)) !important;
+    box-shadow: var(--fv-editor-button-quiet-shadow) !important;
+    color: var(--fv-editor-accent) !important;
+    transition: transform 120ms ease, background 120ms ease, box-shadow 120ms ease, color 120ms ease;
+}
+
+:is(
+    .order-buttons > button,
+    .custom-action-wrapper > div > button,
+    .fv-inline-reset-btn,
+    .fv-icon-picker-pager > button,
+    .fv-custom-icon-actions > button,
+    #fv-third-party-refresh,
+    #fv-custom-icon-refresh,
+    #fv-third-party-search-clear,
+    #fv-third-party-filter-toggle:not(.is-active),
+    #fv-third-party-pack-actions-toggle:not(.is-active),
+    #fv-third-party-tag-clear,
+    #fv-icon-picker-clear,
+    #fv-icon-upload-cancel,
+    .folder-status-colors-dd > button
+):hover,
+:is(
+    .order-buttons > button,
+    .custom-action-wrapper > div > button,
+    .fv-inline-reset-btn,
+    .fv-icon-picker-pager > button,
+    .fv-custom-icon-actions > button,
+    #fv-third-party-refresh,
+    #fv-custom-icon-refresh,
+    #fv-third-party-search-clear,
+    #fv-third-party-filter-toggle:not(.is-active),
+    #fv-third-party-pack-actions-toggle:not(.is-active),
+    #fv-third-party-tag-clear,
+    #fv-icon-picker-clear,
+    #fv-icon-upload-cancel,
+    .folder-status-colors-dd > button
+):focus-visible {
+    background: linear-gradient(180deg, var(--fv-editor-button-quiet-hover-top), var(--fv-editor-button-quiet-hover-bottom)) !important;
+    box-shadow: var(--fv-editor-button-quiet-shadow-hover) !important;
+    color: var(--fv-editor-text-primary) !important;
+    transform: translateY(-1px);
+}
+
+.fv-modern-field-row.is-actions-list-row .custom-action,
+.fv-modern-field-row.is-actions-list-row .custom-action:hover,
+.fv-modern-field-row.is-actions-list-row .custom-action:focus {
+    background: transparent !important;
+    box-shadow: none !important;
+    transform: none !important;
 }
 
 /* Order section - display label above full-width table */

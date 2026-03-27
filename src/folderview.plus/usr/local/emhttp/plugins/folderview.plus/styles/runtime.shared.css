@@ -129,22 +129,27 @@ body ul.dropdown-menu .context-menu-disabled {
     justify-content: center;
     line-height: 1;
     border: var(--fvplus-folder-dropdown-border-width, 1px) solid var(--fvplus-folder-dropdown-border-color, rgba(255, 154, 60, 0.52)) !important;
-    border-radius: var(--fvplus-folder-dropdown-radius, 0px);
-    background: var(--fvplus-folder-dropdown-bg, rgba(255, 154, 60, 0.1)) !important;
-    box-shadow: var(--fvplus-folder-dropdown-shadow, none) !important;
+    border-radius: var(--fvplus-folder-dropdown-radius, 7px);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.02)),
+        var(--fvplus-folder-dropdown-bg, rgba(255, 154, 60, 0.1)) !important;
+    box-shadow: var(--fvplus-folder-dropdown-shadow, inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 6px 14px rgba(0, 0, 0, 0.18)) !important;
     color: var(--fvplus-folder-dropdown-color, #ff9a3c) !important;
-    transition: color 120ms ease, background-color 120ms ease, border-color 120ms ease;
+    transition: color 120ms ease, background 120ms ease, border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
 }
 
 .folder-dropdown:hover,
 .folder-dropdown:focus,
 .folder-dropdown:active {
     border-color: var(--fvplus-folder-dropdown-hover-border-color, rgba(255, 154, 60, 0.82)) !important;
-    background: var(--fvplus-folder-dropdown-hover-bg, rgba(255, 154, 60, 0.18)) !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.04)),
+        var(--fvplus-folder-dropdown-hover-bg, rgba(255, 154, 60, 0.18)) !important;
     box-shadow: var(--fvplus-folder-dropdown-hover-shadow, var(--fvplus-folder-dropdown-shadow, none)) !important;
     color: var(--fvplus-folder-dropdown-hover-color, #ff9a3c) !important;
     visibility: visible !important;
     opacity: 1 !important;
+    transform: translateY(-1px);
 }
 
 .folder-dropdown > i {

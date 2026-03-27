@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.27.04">
-<!ENTITY md5 "a428f3f770126e1359a952df548791fd">
+<!ENTITY version "2026.03.27.05">
+<!ENTITY md5 "abcb78a31ef6f31f262e1803f55d52f2">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.27.05
+- UI/UX: Shrink the advanced settings compact controls to true icon-sized buttons instead of letting host theme button chrome expand them into wide pills.
+- UI/UX: Apply the same hard icon-button sizing and native button reset to both the top advanced compact control and the per-section compact toggles.
+- Quality: Update the advanced settings layout guards for the smaller compact-button size and stricter compact-control reset path.
+
 
 ###2026.03.27.04
 - UI/UX: Dock the advanced settings tab strip back to the right edge and keep the tab controls grouped directly beside the tab compact button.

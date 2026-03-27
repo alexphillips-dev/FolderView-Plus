@@ -795,9 +795,9 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsCss, /h2\[data-fv-advanced="1"\] \+ \.backup-grid \.rules-panel[\s\S]*overflow-y:\s*auto/);
     assert.match(settingsCss, /\.fv-advanced-controls\s*\{[\s\S]*display:\s*inline-flex/);
     assert.match(settingsCss, /\.fv-advanced-controls\s*\{[\s\S]*width:\s*auto/);
-    assert.match(settingsCss, /\.fv-advanced-compact\s*\{[\s\S]*width:\s*28px/);
+    assert.match(settingsCss, /\.fv-advanced-compact\s*\{[\s\S]*width:\s*24px/);
     assert.match(settingsCss, /\.fv-advanced-compact\s*\{[\s\S]*font-size:\s*0/);
-    assert.match(settingsCss, /\.fv-section-toggle\s*\{[\s\S]*width:\s*28px/);
+    assert.match(settingsCss, /\.fv-section-toggle\s*\{[\s\S]*width:\s*24px/);
     assert.match(settingsCss, /\.fv-section-toggle\s*\{[\s\S]*font-size:\s*0/);
     assert.match(settingsCss, /#fv-settings-root :is\([\s\S]*\.fv-section-toggle,[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fvplus-settings-button-quiet-top\),\s*var\(--fvplus-settings-button-quiet-bottom\)\) !important;/);
     assert.match(settingsCss, /\.status-cell-content\s*\{/);

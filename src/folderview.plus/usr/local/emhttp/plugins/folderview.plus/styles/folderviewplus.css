@@ -3993,6 +3993,8 @@ body.fv-mobile-compact .fv-setup-field-grid {
     #fv-settings-root .folder-action-btn,
     #fv-settings-root .folder-overflow-btn,
     #fv-settings-root .folder-tree-toggle,
+    #fv-settings-root .fv-section-toggle,
+    #fv-settings-root .fv-advanced-compact,
     #fv-settings-root .status-breakdown-btn,
     #fv-settings-root .health-breakdown-btn,
     #fv-settings-action-bar button {
@@ -5554,23 +5556,31 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-advanced-compact {
-    width: 28px;
-    height: 28px;
-    min-width: 28px;
-    min-height: 28px;
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    min-height: 24px !important;
+    max-width: 24px !important;
+    max-height: 24px !important;
     padding: 0 !important;
     border: 0 !important;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    flex: 0 0 auto;
-    align-self: stretch;
+    flex: 0 0 24px !important;
+    align-self: center;
     font-size: 0;
+    line-height: 0;
+    overflow: hidden;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    box-sizing: border-box !important;
 }
 
 .fv-advanced-compact i {
-    font-size: 0.82rem;
+    font-size: 0.78rem;
     line-height: 1;
+    pointer-events: none;
 }
 
 h2[data-fv-section] {
@@ -5637,10 +5647,12 @@ h2[data-fv-section] {
 
 .fv-section-toggle {
     margin-left: auto;
-    width: 28px;
-    height: 28px;
-    min-width: 28px;
-    min-height: 28px;
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    min-height: 24px !important;
+    max-width: 24px !important;
+    max-height: 24px !important;
     padding: 0 !important;
     border: 0 !important;
     display: inline-flex;
@@ -5648,14 +5660,18 @@ h2[data-fv-section] {
     justify-content: center;
     touch-action: manipulation;
     font-size: 0;
-    line-height: 1;
-    flex: 0 0 auto;
+    line-height: 0;
+    flex: 0 0 24px !important;
+    overflow: hidden;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    box-sizing: border-box !important;
 }
 
 .fv-section-toggle::before {
     content: "\f066";
     font-family: FontAwesome;
-    font-size: 0.82rem;
+    font-size: 0.78rem;
     line-height: 1;
     opacity: 0.9;
 }
@@ -6900,10 +6916,13 @@ tr.is-long-press-active {
     }
 
     .fv-advanced-compact {
-        width: 28px;
-        height: 28px;
-        min-width: 28px;
-        min-height: 28px;
+        width: 24px !important;
+        height: 24px !important;
+        min-width: 24px !important;
+        min-height: 24px !important;
+        max-width: 24px !important;
+        max-height: 24px !important;
+        flex: 0 0 24px !important;
         padding: 0 !important;
     }
 
@@ -6920,10 +6939,13 @@ tr.is-long-press-active {
 
     h2[data-fv-section][data-fv-advanced="1"] .fv-section-toggle {
         margin-left: 0;
-        width: 28px;
-        height: 28px;
-        min-width: 28px;
-        min-height: 28px;
+        width: 24px !important;
+        height: 24px !important;
+        min-width: 24px !important;
+        min-height: 24px !important;
+        max-width: 24px !important;
+        max-height: 24px !important;
+        flex: 0 0 24px !important;
         padding: 0 !important;
     }
 

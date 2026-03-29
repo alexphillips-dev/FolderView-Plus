@@ -4512,6 +4512,95 @@ const rmFolder = (id) => {
     });
 };
 
+const getLockedDockerBranchFolderIds = (id) => {
+    const branchIds = [id, ...getFolderDescendants(id)];
+    return branchIds.filter((folderId) => isDockerFolderLocked(folderId));
+};
+
+const ensureDockerBranchUnlocked = (id, actionLabel = 'This action') => {
+    const lockedIds = getLockedDockerBranchFolderIds(id);
+    if (!lockedIds.length) {
+        return true;
+    }
+    const previewNames = lockedIds
+        .slice(0, 4)
+        .map((folderId) => escapeHtml(String(globalFolders?.[folderId]?.name || folderId)))
+        .join(', ');
+    const hiddenCount = Math.max(0, lockedIds.length - Math.min(4, lockedIds.length));
+    const lockedLabel = lockedIds.length === 1 ? 'A folder in this branch is locked.' : `${lockedIds.length} folders in this branch are locked.`;
+    const hiddenSuffix = hiddenCount > 0 ? ` (+${hiddenCount} more)` : '';
+    const detailsLine = previewNames ? `<br><strong>Locked:</strong> ${previewNames}${hiddenSuffix}` : '';
+    swal({
+        title: 'Folder branch locked',
+        text: `${escapeHtml(actionLabel)} is blocked while ${lockedLabel}${detailsLine}<br>Unlock the locked folder rows first and try again.`,
+        type: 'info',
+        html: true,
+        confirmButtonText: 'OK'
+    });
+    return false;
+};
+
+const deleteDockerFolderBranch = async (id) => {
+    const deleteIds = [...getFolderDescendants(id)].reverse();
+    deleteIds.push(id);
+    for (const deleteId of deleteIds) {
+        await $.post('/plugins/folderview.plus/server/delete.php', { type: 'docker', id: deleteId }).promise();
+    }
+};
+
+const rmFolderBranch = (id) => {
+    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] rmFolderBranch (id: ${id}): Entry.`);
+    if (!ensureDockerBranchUnlocked(id, 'Delete branch folders')) {
+        return;
+    }
+    const folder = globalFolders[id] || {};
+    const folderName = escapeHtml(String(folder.name || id));
+    const descendantIds = getFolderDescendants(id);
+    const branchIds = [id, ...descendantIds];
+    const previewNames = branchIds
+        .slice(0, 5)
+        .map((folderId) => escapeHtml(String(globalFolders?.[folderId]?.name || folderId)))
+        .join(', ');
+    const hiddenCount = Math.max(0, branchIds.length - Math.min(5, branchIds.length));
+    const impactLines = [
+        `Delete branch folders: ${folderName}`,
+        `This will permanently delete <strong>${branchIds.length}</strong> folder${branchIds.length === 1 ? '' : 's'} in this branch.`,
+        `Nested child folders will be deleted with the root folder and will <strong>not</strong> be re-parented.`
+    ];
+    if (previewNames) {
+        impactLines.push(`<strong>Branch:</strong> ${previewNames}${hiddenCount > 0 ? ` (+${hiddenCount} more)` : ''}`);
+    }
+    swal({
+        title: $.i18n('are-you-sure'),
+        text: impactLines.join('<br>'),
+        type: 'warning',
+        html: true,
+        showCancelButton: true,
+        confirmButtonText: $.i18n('yes-delete'),
+        cancelButtonText: $.i18n('cancel'),
+        showLoaderOnConfirm: true
+    },
+    async (confirmed) => {
+        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] rmFolderBranch (id: ${id}): Swal callback. Confirmed: ${confirmed}`);
+        if (!confirmed) { setTimeout(loadlist, 0); return; }
+        $('div.spinner.fixed').show('slow');
+        try {
+            const result = await runDockerGuardedAction('delete-folder-branch', async () => {
+                await deleteDockerFolderBranch(id);
+                setTimeout(loadlist, 500);
+            }, {
+                userMessage: getDockerMenuLabel('delete-branch-folders-failed', 'Failed to delete branch folders.'),
+                userVisible: true
+            });
+            if (!result.ok) {
+                setTimeout(loadlist, 0);
+            }
+        } finally {
+            $('div.spinner.fixed').hide('slow');
+        }
+    });
+};
+
 /**
  * Redirect to the page to edit the folder
  * @param {string} id the id of the folder
@@ -5483,6 +5572,14 @@ const addDockerFolderContext = (id) => {
                 }
             });
         }
+        branchSubMenu.push({
+            text: 'Delete branch folders',
+            icon: 'fa-trash',
+            action: (evt) => {
+                evt.preventDefault();
+                rmFolderBranch(id);
+            }
+        });
         if (branchSubMenu.length > 0) {
             opts.push({
                 text: 'Branch actions',

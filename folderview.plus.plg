@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.29.10">
-<!ENTITY md5 "c444ec2ee928781929076fd070f76b70">
+<!ENTITY version "2026.03.29.11">
+<!ENTITY md5 "3823ae3651dbae4395f304b29c7c149f">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.29.11
+- Feature: Add `Delete branch folders` under Docker branch actions to remove a root folder and every nested child folder in that branch.
+- Quality: Add behavior-level regression coverage for clone-of-clone branch cloning, deep-copy payload safety, rollback ordering, and branch delete ordering.
 
 ###2026.03.29.10
 - Fix: Restore Docker branch hover submenus by allowing runtime context menus to keep submenu overflow visible.

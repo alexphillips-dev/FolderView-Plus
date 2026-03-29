@@ -40,3 +40,13 @@ test('docker folder context supports clone-folder action flow', () => {
     assert.match(dockerScript, /text:\s*getDockerMenuLabel\('clone-branch',\s*'Clone branch'\)/);
     assert.match(dockerScript, /subMenu:\s*cloneSubMenu/);
 });
+
+test('docker branch actions support deleting whole folder branches without reparenting children', () => {
+    assert.match(dockerScript, /const getLockedDockerBranchFolderIds = \(id\) =>/);
+    assert.match(dockerScript, /const ensureDockerBranchUnlocked = \(id,\s*actionLabel = 'This action'\) =>/);
+    assert.match(dockerScript, /const deleteDockerFolderBranch = async \(id\) =>/);
+    assert.match(dockerScript, /const rmFolderBranch = \(id\) =>/);
+    assert.match(dockerScript, /Nested child folders will be deleted with the root folder and will <strong>not<\/strong> be re-parented\./);
+    assert.match(dockerScript, /text:\s*'Delete branch folders'/);
+    assert.match(dockerScript, /rmFolderBranch\(id\);/);
+});

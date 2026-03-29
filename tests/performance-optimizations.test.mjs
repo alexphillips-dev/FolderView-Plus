@@ -125,6 +125,8 @@ test('runtime refresh uses lightweight state mode checks before re-rendering', (
     assert.match(dashboardJs, /const queueCreateFoldersRender = \(\) =>/);
     assert.match(dockerJs, /const readDockerHostOrderFromDom = \(\) =>/);
     assert.match(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoPromise = null\) =>/);
+    assert.match(dockerJs, /const buildDockerWebuiSignature = \(source\) =>/);
+    assert.match(dockerJs, /if \(previousWebuiSignature !== nextWebuiSignature\) \{/);
     assert.match(dockerJs, /const yieldDockerRenderLoop = async \(processedCount,\s*totalCount\) =>/);
     assert.match(dockerJs, /render:\s*\[[\s\S]*read_info\.php\?type=docker&mode=state/);
     assert.match(dockerJs, /fullInfo:\s*createDockerRuntimeRequest\('\/plugins\/folderview\.plus\/server\/read_info\.php\?type=docker'/);
@@ -211,9 +213,9 @@ test('tailscale helper calls support cache and running-state guard', () => {
     assert.match(libPhp, /Skipping exec for stopped container/);
 });
 
-test('docker preview popup runtime is explicitly disabled to avoid click conflicts', () => {
+test('docker preview popup runtime stays enabled behind lazy advanced-preview initialization', () => {
     assert.match(dockerJs, /const buildDockerTooltipContent\s*=\s*\(ct\)\s*=>/);
-    assert.match(dockerJs, /const DOCKER_PREVIEW_POPUP_ENABLED = false;/);
+    assert.match(dockerJs, /const DOCKER_PREVIEW_POPUP_ENABLED = true;/);
     assert.match(dockerJs, /fvTooltipLazyBuilt/);
     assert.match(dockerJs, /Loading preview\.\.\./);
     assert.match(dockerJs, /const initializeDockerTooltipOnDemand = \(\$target,\s*init\) =>/);

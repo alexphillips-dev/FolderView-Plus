@@ -481,10 +481,16 @@ const buildDockerRuntimeInfoRenderEntry = (name, entry = {}, previousEntry = nul
     const previousInfo = previous?.info && typeof previous.info === 'object' ? previous.info : {};
     const previousState = previousInfo.State && typeof previousInfo.State === 'object' ? previousInfo.State : {};
     const previousConfig = previousInfo.Config && typeof previousInfo.Config === 'object' ? previousInfo.Config : {};
+    const sourceInfo = source?.info && typeof source.info === 'object' ? source.info : {};
+    const sourceState = sourceInfo.State && typeof sourceInfo.State === 'object' ? sourceInfo.State : {};
     const stateKind = String(source.state || '').trim().toLowerCase();
     const running = source.running === true || stateKind === 'running';
     const paused = source.paused === true || stateKind === 'paused';
     const manager = String(source.manager || previousState.manager || '').trim();
+    const labelWebUi = String(labels['net.unraid.docker.webui'] || '').trim();
+    const labelTsWebUi = String(labels['net.unraid.docker.tailscale.webui'] || '').trim();
+    const resolvedWebUi = resolvePreferredWebuiValue(sourceState.WebUi, source.WebUi, source.webui, previousState.WebUi, labelWebUi);
+    const resolvedTsWebUi = resolvePreferredWebuiValue(sourceState.TSWebUi, source.TSWebUi, previousState.TSWebUi, labelTsWebUi);
     const nextEntry = previous ? { ...previous } : {};
     nextEntry.shortId = String(source.id || previous?.shortId || '').trim();
     nextEntry.shortImageId = String(source.shortImageId || previous?.shortImageId || '').trim();
@@ -507,8 +513,8 @@ const buildDockerRuntimeInfoRenderEntry = (name, entry = {}, previousEntry = nul
             Autostart: source.autostart === true,
             Updated: (typeof previousState.Updated === 'boolean') ? previousState.Updated : null,
             manager,
-            WebUi: String(labels['net.unraid.docker.webui'] || previousState.WebUi || '').trim(),
-            TSWebUi: String(labels['net.unraid.docker.tailscale.webui'] || previousState.TSWebUi || '').trim()
+            WebUi: resolvedWebUi,
+            TSWebUi: resolvedTsWebUi
         },
         Ports: Array.isArray(previousInfo.Ports) ? previousInfo.Ports : [],
         template: previousInfo.template || null
@@ -545,6 +551,55 @@ const sanitizeImageSrc = typeof utils.sanitizeImageSrc === 'function'
         }
         return escapeHtml(raw);
     });
+const WEBUI_LINK_REL = 'noopener noreferrer';
+const WEBUI_OPEN_REL = 'noopener';
+const WEBUI_TEMPLATE_TOKEN_REGEX = /\[(?:IP|PORT:[^\]]+|HOSTNAME|MAGICDNS|NOSERVE)\]/i;
+const hasUnresolvedWebuiTemplateTokens = (value) => WEBUI_TEMPLATE_TOKEN_REGEX.test(String(value || '').trim());
+const resolvePreferredWebuiValue = (...candidates) => {
+    for (const candidate of candidates) {
+        const raw = String(candidate || '').trim();
+        if (!raw || /^javascript:/i.test(raw) || hasUnresolvedWebuiTemplateTokens(raw)) {
+            continue;
+        }
+        return raw;
+    }
+    return '';
+};
+const getSafeWebuiUrl = (value) => {
+    const raw = String(value || '').trim();
+    return raw && !/^javascript:/i.test(raw) && !hasUnresolvedWebuiTemplateTokens(raw) ? raw : '';
+};
+const openWebuiInNewTab = (url) => {
+    const safeUrl = getSafeWebuiUrl(url);
+    if (!safeUrl) {
+        return false;
+    }
+    const anchor = document.createElement('a');
+    anchor.href = safeUrl;
+    anchor.target = '_blank';
+    anchor.rel = WEBUI_OPEN_REL;
+    anchor.style.display = 'none';
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    return true;
+};
+const openWebuiPopupWindow = (url, targetName = '_blank') => {
+    const safeUrl = getSafeWebuiUrl(url);
+    if (!safeUrl) {
+        return false;
+    }
+    const popup = window.open(safeUrl, targetName);
+    if (!popup) {
+        return false;
+    }
+    try {
+        popup.opener = null;
+    } catch (_error) {
+        // Cross-origin popup guards can throw after the tab is opened; the launch already succeeded.
+    }
+    return true;
+};
 const getPreviewContainerStatusMeta = (entry = {}) => {
     const running = entry?.state === true;
     const paused = running && entry?.pause === true;
@@ -1553,7 +1608,9 @@ const resolveDockerTooltipRuntimeEntry = (entry) => {
 const buildDockerTooltipContent = (ct) => {
     const runtimeEntry = resolveDockerTooltipRuntimeEntry(ct);
     const labels = runtimeEntry?.Labels && typeof runtimeEntry.Labels === 'object' ? runtimeEntry.Labels : {};
-    return $(`
+    const tooltipWebUiUrl = getSafeWebuiUrl(runtimeEntry?.info?.State?.WebUi);
+    const tooltipTsWebUiUrl = getSafeWebuiUrl(runtimeEntry?.info?.State?.TSWebUi);
+    const $content = $(`
     <div class="preview-outbox preview-outbox-${ct.shortId}">
         <div class="first-row">
             <div class="preview-name">
@@ -1579,8 +1636,8 @@ const buildDockerTooltipContent = (ct) => {
                     <div class="action-left">
                         <ul class="fa-ul">
                             ${(runtimeEntry.info.State.Running && !runtimeEntry.info.State.Paused) ? 
-                                `${runtimeEntry.info.State.WebUi ? `<li><a href="${runtimeEntry.info.State.WebUi}" target="_blank" rel="noopener noreferrer"><i class="fa fa-globe" aria-hidden="true"></i> ${$.i18n('webui')}</a></li>` : ''}
-                                 ${runtimeEntry.info.State.TSWebUi ? `<li><a href="${runtimeEntry.info.State.TSWebUi}" target="_blank" rel="noopener noreferrer"><i class="fa fa-shield" aria-hidden="true"></i> ${$.i18n('tailscale-webui')}</a></li>` : ''}
+                                `${tooltipWebUiUrl ? `<li><a class="fv-runtime-webui-link" href="${tooltipWebUiUrl}" target="_blank" rel="noopener noreferrer"><i class="fa fa-globe" aria-hidden="true"></i> ${$.i18n('webui')}</a></li>` : ''}
+                                 ${tooltipTsWebUiUrl ? `<li><a class="fv-runtime-webui-link" href="${tooltipTsWebUiUrl}" target="_blank" rel="noopener noreferrer"><i class="fa fa-shield" aria-hidden="true"></i> ${$.i18n('tailscale-webui')}</a></li>` : ''}
                                  <li><a onclick="event.preventDefault(); openTerminal('docker', '${runtimeEntry.info.Name}', '${runtimeEntry.info.Shell}');"><i class="fa fa-terminal" aria-hidden="true"></i> ${$.i18n('console')}</a></li>`
                             : ''}
                             ${!runtimeEntry.info.State.Running ? `<li><a onclick="event.preventDefault(); eventControl({action:'start', container:'${ct.shortId}'}, 'loadlist');"><i class="fa fa-play" aria-hidden="true"></i> ${$.i18n('start')}</a></li>` : 
@@ -1622,9 +1679,14 @@ const buildDockerTooltipContent = (ct) => {
                 <div class="info-ports" id="info-ports-${ct.shortId}" style="display: none;">${runtimeEntry.info.Ports?.length > 10 ? (`<span class="info-ports-more" style="display: none;">${runtimeEntry.info.Ports?.map(e=>`${e.PrivateIP ? e.PrivateIP + ':' : ''}${e.PrivatePort}/${e.Type.toUpperCase()} <i class="fa fa-arrows-h"></i> ${e.PublicIP ? e.PublicIP + ':' : ''}${e.PublicPort}`).join('<br>') || ''}<br><a onclick="event.preventDefault(); $(this).parent().css('display', 'none').siblings('.info-ports-less').css('display', 'inline')">${$.i18n('compress')}</a></span><span class="info-ports-less">${runtimeEntry.info.Ports?.slice(0,10).map(e=>`${e.PrivateIP ? e.PrivateIP + ':' : ''}${e.PrivatePort}/${e.Type.toUpperCase()} <i class="fa fa-arrows-h"></i> ${e.PublicIP ? e.PublicIP + ':' : ''}${e.PublicPort}`).join('<br>') || ''}<br><a onclick="event.preventDefault(); $(this).parent().css('display', 'none').siblings('.info-ports-more').css('display', 'inline')">${$.i18n('expand')}</a></span>`) : (`<span class="info-ports-mono">${runtimeEntry.info.Ports?.map(e=>`${e.PrivateIP ? e.PrivateIP + ':' : ''}${e.PrivatePort}/${e.Type.toUpperCase()} <i class="fa fa-arrows-h"></i> ${e.PublicIP ? e.PublicIP + ':' : ''}${e.PublicPort}`).join('<br>') || ''}</span>`)}</div>
                 <div class="info-volumes" id="info-volumes-${ct.shortId}" style="display: none;">${runtimeEntry.Mounts?.filter(e => e.Type==='bind').length > 10 ? (`<span class="info-volumes-more" style="display: none;">${runtimeEntry.Mounts?.filter(e => e.Type==='bind').map(e=>`${e.Destination} <i class="fa fa-arrows-h"></i> ${e.Source}`).join('<br>') || ''}<br><a onclick="event.preventDefault(); $(this).parent().css('display', 'none').siblings('.info-volumes-less').css('display', 'inline')">${$.i18n('compress')}</a></span><span class="info-volumes-less">${runtimeEntry.Mounts?.filter(e => e.Type==='bind').slice(0,10).map(e=>`${e.Destination} <i class="fa fa-arrows-h"></i> ${e.Source}`).join('<br>') || ''}<br><a onclick="event.preventDefault(); $(this).parent().css('display', 'none').siblings('.info-volumes-more').css('display', 'inline')">${$.i18n('expand')}</a></span>`) : (`<span class="info-volumes-mono">${runtimeEntry.Mounts?.filter(e => e.Type==='bind').map(e=>`${e.Destination} <i class="fa fa-arrows-h"></i> ${e.Source}`).join('<br>') || ''}</span>`)}</div>
             </div>
+            </div>
         </div>
-    </div>
-`);
+    `);
+    $content.find('a.fv-runtime-webui-link').on('click', (event) => {
+        event.preventDefault();
+        openWebuiInNewTab(event.currentTarget?.href || '');
+    });
+    return $content;
 };
 
 const initializeDockerTooltipOnDemand = ($target, init) => {
@@ -1658,9 +1720,9 @@ const initializeDockerTooltipOnDemand = ($target, init) => {
         ensureInitialized(String(event?.type || '').trim().toLowerCase());
     });
 };
-// FolderView preview popups conflict with direct container interactions on the Docker page.
-// Keep the payload builder in place for compatibility, but do not bind/open the popup runtime.
-const DOCKER_PREVIEW_POPUP_ENABLED = false;
+// Advanced preview popups are opt-in per folder; keep the runtime lazy so
+// default preview rendering stays lightweight until the user interacts.
+const DOCKER_PREVIEW_POPUP_ENABLED = true;
 
 const getPrefsOrderedFolderMap = (folders, prefs) => {
     const source = folders && typeof folders === 'object' ? folders : {};
@@ -1717,15 +1779,32 @@ const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs) => {
     if (!desiredFolderTokens.length) {
         return order;
     }
-    let desiredIndex = 0;
+    const liveFolderTokens = new Set();
+    order.forEach((entry) => {
+        if (!folderRegex.test(entry)) {
+            return;
+        }
+        const folderId = entry.replace(folderRegex, '');
+        if (Object.prototype.hasOwnProperty.call(folderMap, folderId)) {
+            liveFolderTokens.add(entry);
+        }
+    });
+    const missingDesiredTokens = desiredFolderTokens.filter((token) => !liveFolderTokens.has(token));
+    const usedFolderTokens = new Set();
+    let missingIndex = 0;
     return order.map((entry) => {
         if (!folderRegex.test(entry)) {
             return entry;
         }
-        while (desiredIndex < desiredFolderTokens.length) {
-            const candidate = desiredFolderTokens[desiredIndex++];
-            const candidateId = candidate.replace(folderRegex, '');
-            if (Object.prototype.hasOwnProperty.call(folderMap, candidateId)) {
+        const folderId = entry.replace(folderRegex, '');
+        if (Object.prototype.hasOwnProperty.call(folderMap, folderId) && !usedFolderTokens.has(entry)) {
+            usedFolderTokens.add(entry);
+            return entry;
+        }
+        while (missingIndex < missingDesiredTokens.length) {
+            const candidate = missingDesiredTokens[missingIndex++];
+            if (!usedFolderTokens.has(candidate)) {
+                usedFolderTokens.add(candidate);
                 return candidate;
             }
         }
@@ -2039,7 +2118,7 @@ const buildRuntimeContainerEntry = (name, sourceMeta = null) => {
         id: source.id || String(runtime?.shortId || '').trim(),
         name: String(runtime?.info?.Name || source.name || key).trim() || key,
         icon: source.icon || runtime?.Labels?.['net.unraid.docker.icon'] || '/plugins/dynamix.docker.manager/images/question.png',
-        webui: String(source.webui || runtimeState.WebUi || runtimeState.TSWebUi || '').trim(),
+        webui: resolvePreferredWebuiValue(runtimeState.WebUi, runtimeState.TSWebUi, source.webui),
         shell: source.shell || runtime?.info?.Shell || '/bin/sh',
         pause: hasRuntimePause ? (runtimeState.Paused === true) : (source.pause === true),
         state: hasRuntimeState ? (runtimeState.Running === true) : (source.state === true),
@@ -2057,13 +2136,10 @@ const getFolderRuntimeContainers = (folder) => {
         return {};
     }
     const runtime = folder.runtimeContainers;
-    if (runtime && typeof runtime === 'object' && !Array.isArray(runtime) && Object.keys(runtime).length > 0) {
-        return runtime;
-    }
     const containers = folder.containers;
     const names = readFolderContainerNames(containers);
     if (!names.length) {
-        return {};
+        return (runtime && typeof runtime === 'object' && !Array.isArray(runtime)) ? runtime : {};
     }
     const sourceMap = (containers && typeof containers === 'object' && !Array.isArray(containers)) ? containers : {};
     const collected = {};
@@ -2073,6 +2149,7 @@ const getFolderRuntimeContainers = (folder) => {
         }
         collected[name] = buildRuntimeContainerEntry(name, sourceMap[name]);
     }
+    folder.runtimeContainers = collected;
     return collected;
 };
 
@@ -2563,8 +2640,8 @@ const syncDockerVisibleFoldersFromRuntimeCache = () => {
         const runtimeContainers = folderHasChildren(id)
             ? buildRuntimeContainerMapForFolder(id, true)
             : getFolderRuntimeContainers(folder);
+        folder.runtimeContainers = runtimeContainers;
         if (folderHasChildren(id)) {
-            folder.runtimeContainers = runtimeContainers;
             syncParentFolderVisualState(id, folder?.status?.expanded === true);
         }
         updateFolderRowStatusFromContainers(id, folder, runtimeContainers);
@@ -2572,6 +2649,18 @@ const syncDockerVisibleFoldersFromRuntimeCache = () => {
     renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
     refreshDockerFolderQuickActionStates();
     applyDockerFocusedFolderState();
+};
+
+const buildDockerWebuiSignature = (source) => {
+    const map = source && typeof source === 'object' ? source : {};
+    const names = Object.keys(map).sort((a, b) => a.localeCompare(b));
+    if (!names.length) {
+        return '';
+    }
+    return names.map((name) => {
+        const state = map[name]?.info?.State && typeof map[name].info.State === 'object' ? map[name].info.State : {};
+        return `${name}:${getSafeWebuiUrl(state.WebUi)}|${getSafeWebuiUrl(state.TSWebUi)}`;
+    }).join('|');
 };
 
 const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, fullInfoPromise = null) => {
@@ -2596,12 +2685,18 @@ const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, ful
             if (!parsed || Object.keys(parsed).length <= 0) {
                 return;
             }
+            const previousWebuiSignature = buildDockerWebuiSignature(dockerRuntimeInfoByName);
             dockerRuntimeInfoByName = normalizeDockerRuntimeInfoMap(parsed, dockerRuntimeInfoByName);
+            const nextWebuiSignature = buildDockerWebuiSignature(dockerRuntimeInfoByName);
             if (stateSignature) {
                 lastLiveRefreshStateSignature = stateSignature;
             }
             markDockerFatalBannerStep('Docker runtime details hydrated');
             recordDockerFatalBannerAction('Docker runtime details hydrated');
+            if (previousWebuiSignature !== nextWebuiSignature) {
+                queueLoadlistRefresh();
+                return;
+            }
             syncDockerVisibleFoldersFromRuntimeCache();
         })
         .catch(() => {});
@@ -3704,10 +3799,19 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                 $targetForAppend = $previewElementTarget;
             }
 
-            const previewWebuiUrl = String(newFolder[container_name_in_folder]?.webui || ct.info.State.WebUi || ct.info.State.TSWebUi || '').trim();
+            const previewWebuiUrl = getSafeWebuiUrl(newFolder[container_name_in_folder]?.webui || ct.info.State.WebUi || ct.info.State.TSWebUi || '');
             if (folder.settings.preview_webui && previewWebuiUrl) {
                 if ($targetForAppend.length) {
-                    $targetForAppend.append($(`<span class="folder-element-custom-btn folder-element-webui"><a href="${previewWebuiUrl}" target="_blank" rel="noopener noreferrer"><i class="fa fa-globe" aria-hidden="true"></i></a></span>`));
+                    const $previewWebuiLink = $('<a></a>')
+                        .attr('href', previewWebuiUrl)
+                        .attr('target', '_blank')
+                        .attr('rel', WEBUI_LINK_REL)
+                        .append('<i class="fa fa-globe" aria-hidden="true"></i>')
+                        .on('click', (event) => {
+                            event.preventDefault();
+                            openWebuiInNewTab(previewWebuiUrl);
+                        });
+                    $targetForAppend.append($('<span class="folder-element-custom-btn folder-element-webui"></span>').append($previewWebuiLink));
                     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Appended WebUI icon to preview.`);
                 } else {
                      if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: WebUI icon: Could not find target for append in preview element.`);
@@ -4078,13 +4182,10 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
         return;
     }
     const entries = Object.values(runtimeContainers || {});
-    const nestedParentPreview = folderHasChildren(id);
     const quickActionPrefs = folder?.settings || {};
-    // Compatibility fallback: for nested parent previews, always expose quick actions
-    // so root-level members keep the same operational affordances.
-    const allowWebuiQuickAction = nestedParentPreview || quickActionPrefs.preview_webui === true;
-    const allowConsoleQuickAction = nestedParentPreview || quickActionPrefs.preview_console === true;
-    const allowLogsQuickAction = nestedParentPreview || quickActionPrefs.preview_logs === true;
+    const allowWebuiQuickAction = quickActionPrefs.preview_webui === true;
+    const allowConsoleQuickAction = quickActionPrefs.preview_console === true;
+    const allowLogsQuickAction = quickActionPrefs.preview_logs === true;
     $preview.empty();
     for (const entry of entries) {
         const { $item: item } = buildDockerPreviewItem({
@@ -4100,14 +4201,18 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
             : $inner;
         const containerName = String(entry?.name || '');
         const shellValue = String(entry?.shell || '/bin/sh');
-        const webuiUrl = String(entry?.webui || '').trim();
+        const webuiUrl = getSafeWebuiUrl(entry?.webui);
 
         if (allowWebuiQuickAction && webuiUrl) {
             const $webuiLink = $('<a></a>')
                 .attr('href', webuiUrl)
                 .attr('target', '_blank')
-                .attr('rel', 'noopener noreferrer')
-                .append('<i class="fa fa-globe" aria-hidden="true"></i>');
+                .attr('rel', WEBUI_LINK_REL)
+                .append('<i class="fa fa-globe" aria-hidden="true"></i>')
+                .on('click', (event) => {
+                    event.preventDefault();
+                    openWebuiInNewTab(webuiUrl);
+                });
             $actionsTarget.append($('<span class="folder-element-custom-btn folder-element-webui"></span>').append($webuiLink));
         } else if (shouldRenderPreviewWebuiPlaceholder(folder?.settings || {}, allowWebuiQuickAction)) {
             appendPreviewWebuiPlaceholder($actionsTarget);
@@ -4407,6 +4512,95 @@ const rmFolder = (id) => {
     });
 };
 
+const getLockedDockerBranchFolderIds = (id) => {
+    const branchIds = [id, ...getFolderDescendants(id)];
+    return branchIds.filter((folderId) => isDockerFolderLocked(folderId));
+};
+
+const ensureDockerBranchUnlocked = (id, actionLabel = 'This action') => {
+    const lockedIds = getLockedDockerBranchFolderIds(id);
+    if (!lockedIds.length) {
+        return true;
+    }
+    const previewNames = lockedIds
+        .slice(0, 4)
+        .map((folderId) => escapeHtml(String(globalFolders?.[folderId]?.name || folderId)))
+        .join(', ');
+    const hiddenCount = Math.max(0, lockedIds.length - Math.min(4, lockedIds.length));
+    const lockedLabel = lockedIds.length === 1 ? 'A folder in this branch is locked.' : `${lockedIds.length} folders in this branch are locked.`;
+    const hiddenSuffix = hiddenCount > 0 ? ` (+${hiddenCount} more)` : '';
+    const detailsLine = previewNames ? `<br><strong>Locked:</strong> ${previewNames}${hiddenSuffix}` : '';
+    swal({
+        title: 'Folder branch locked',
+        text: `${escapeHtml(actionLabel)} is blocked while ${lockedLabel}${detailsLine}<br>Unlock the locked folder rows first and try again.`,
+        type: 'info',
+        html: true,
+        confirmButtonText: 'OK'
+    });
+    return false;
+};
+
+const deleteDockerFolderBranch = async (id) => {
+    const deleteIds = [...getFolderDescendants(id)].reverse();
+    deleteIds.push(id);
+    for (const deleteId of deleteIds) {
+        await $.post('/plugins/folderview.plus/server/delete.php', { type: 'docker', id: deleteId }).promise();
+    }
+};
+
+const rmFolderBranch = (id) => {
+    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] rmFolderBranch (id: ${id}): Entry.`);
+    if (!ensureDockerBranchUnlocked(id, 'Delete branch folders')) {
+        return;
+    }
+    const folder = globalFolders[id] || {};
+    const folderName = escapeHtml(String(folder.name || id));
+    const descendantIds = getFolderDescendants(id);
+    const branchIds = [id, ...descendantIds];
+    const previewNames = branchIds
+        .slice(0, 5)
+        .map((folderId) => escapeHtml(String(globalFolders?.[folderId]?.name || folderId)))
+        .join(', ');
+    const hiddenCount = Math.max(0, branchIds.length - Math.min(5, branchIds.length));
+    const impactLines = [
+        `Delete branch folders: ${folderName}`,
+        `This will permanently delete <strong>${branchIds.length}</strong> folder${branchIds.length === 1 ? '' : 's'} in this branch.`,
+        `Nested child folders will be deleted with the root folder and will <strong>not</strong> be re-parented.`
+    ];
+    if (previewNames) {
+        impactLines.push(`<strong>Branch:</strong> ${previewNames}${hiddenCount > 0 ? ` (+${hiddenCount} more)` : ''}`);
+    }
+    swal({
+        title: $.i18n('are-you-sure'),
+        text: impactLines.join('<br>'),
+        type: 'warning',
+        html: true,
+        showCancelButton: true,
+        confirmButtonText: $.i18n('yes-delete'),
+        cancelButtonText: $.i18n('cancel'),
+        showLoaderOnConfirm: true
+    },
+    async (confirmed) => {
+        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] rmFolderBranch (id: ${id}): Swal callback. Confirmed: ${confirmed}`);
+        if (!confirmed) { setTimeout(loadlist, 0); return; }
+        $('div.spinner.fixed').show('slow');
+        try {
+            const result = await runDockerGuardedAction('delete-folder-branch', async () => {
+                await deleteDockerFolderBranch(id);
+                setTimeout(loadlist, 500);
+            }, {
+                userMessage: getDockerMenuLabel('delete-branch-folders-failed', 'Failed to delete branch folders.'),
+                userVisible: true
+            });
+            if (!result.ok) {
+                setTimeout(loadlist, 0);
+            }
+        } finally {
+            $('div.spinner.fixed').hide('slow');
+        }
+    });
+};
+
 /**
  * Redirect to the page to edit the folder
  * @param {string} id the id of the folder
@@ -4552,8 +4746,8 @@ const updateFolder = (id, { includeDescendants = true } = {}) => {
 };
 
 const collectFolderWebuiTargets = (id, includeDescendants = true, runningOnly = true) => Object.values(getScopedRuntimeContainersForFolder(id, includeDescendants) || {}).reduce((out, entry) => {
-    const url = String(entry?.webui || '').trim();
-    if (url && !/^javascript:/i.test(url) && (!runningOnly || (entry?.state === true && entry?.pause !== true))) out.push(url);
+    const url = getSafeWebuiUrl(entry?.webui);
+    if (url && (!runningOnly || (entry?.state === true && entry?.pause !== true))) out.push(url);
     return out;
 }, []);
 
@@ -4617,13 +4811,9 @@ const openFolderWebuisFromMenu = (id, runningOnly = true, includeDescendants = f
         const stamp = Date.now();
         for (let index = 0; index < urls.length; index += 1) {
             try {
-                const popup = window.open('about:blank', `fvw-${stamp}-${index}`);
-                if (!popup) {
+                if (!openWebuiPopupWindow(urls[index], `fvw-${stamp}-${index}`)) {
                     blocked.push(urls[index]);
-                    continue;
                 }
-                popup.opener = null;
-                popup.location.replace(urls[index]);
             } catch {
                 blocked.push(urls[index]);
             }
@@ -4650,21 +4840,10 @@ const cloneDockerFolderFromMenu = async (id) => {
         if (!nextName) {
             return;
         }
-        const clonePayload = {
-            name: nextName,
-            icon: String(source?.icon || ''),
-            parentId: normalizeFolderParentId(source?.parentId || source?.parent_id || ''),
-            settings: JSON.parse(JSON.stringify((source?.settings && typeof source.settings === 'object') ? source.settings : {})),
-            regex: String(source?.regex || ''),
-            containers: Array.isArray(source?.containers) ? [...source.containers] : [],
-            actions: Array.isArray(source?.actions) ? JSON.parse(JSON.stringify(source.actions)) : []
-        };
+        const clonePayload = buildDockerFolderClonePayload(source, { name: nextName });
         $('div.spinner.fixed').show('slow');
         try {
-            await $.post('/plugins/folderview.plus/server/create.php', {
-                type: 'docker',
-                content: JSON.stringify(clonePayload)
-            }).promise();
+            await persistDockerFolderClonePayload(clonePayload);
             await $.post('/plugins/folderview.plus/server/sync_order.php', { type: 'docker' }).promise();
             loadlist();
         } finally {
@@ -4672,6 +4851,169 @@ const cloneDockerFolderFromMenu = async (id) => {
         }
     }, {
         userMessage: getDockerMenuLabel('clone-folder-failed', 'Failed to clone folder.'),
+        userVisible: true
+    });
+};
+
+const buildDockerFolderClonePayload = (source, overrides = {}) => {
+    const sourceName = String(source?.name || '').trim() || 'Folder';
+    const sourceParentId = normalizeFolderParentId(source?.parentId || source?.parent_id || '');
+    const overrideName = overrides && Object.prototype.hasOwnProperty.call(overrides, 'name')
+        ? overrides.name
+        : undefined;
+    const overrideParentId = overrides && Object.prototype.hasOwnProperty.call(overrides, 'parentId')
+        ? overrides.parentId
+        : undefined;
+    const resolvedName = String(overrideName ?? sourceName).trim() || 'Folder';
+    const resolvedParentId = normalizeFolderParentId(overrideParentId ?? sourceParentId);
+    return {
+        name: resolvedName,
+        icon: String(source?.icon || ''),
+        parentId: resolvedParentId,
+        settings: JSON.parse(JSON.stringify((source?.settings && typeof source.settings === 'object') ? source.settings : {})),
+        regex: String(source?.regex || ''),
+        containers: Array.isArray(source?.containers) ? [...source.containers] : [],
+        actions: Array.isArray(source?.actions) ? JSON.parse(JSON.stringify(source.actions)) : []
+    };
+};
+
+const generateDockerFolderCloneId = (reservedIds = new Set()) => {
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const reserved = reservedIds instanceof Set ? reservedIds : new Set();
+    const cryptoObject = window.crypto || window.msCrypto || null;
+    for (let attempt = 0; attempt < 16; attempt += 1) {
+        let nextId = '';
+        if (cryptoObject && typeof cryptoObject.getRandomValues === 'function') {
+            const bytes = new Uint8Array(20);
+            cryptoObject.getRandomValues(bytes);
+            nextId = Array.from(bytes, (value) => alphabet.charAt(value % alphabet.length)).join('');
+        } else {
+            nextId = Array.from({ length: 20 }, () => alphabet.charAt(Math.floor(Math.random() * alphabet.length))).join('');
+        }
+        if (!reserved.has(nextId) && !Object.prototype.hasOwnProperty.call(globalFolders, nextId)) {
+            return nextId;
+        }
+    }
+    return `fvclone${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`.slice(0, 20);
+};
+
+const getDockerFolderBranchCloneOrder = (rootId) => {
+    const orderedIds = [];
+    const seen = new Set();
+    const visit = (folderId) => {
+        const safeFolderId = String(folderId || '').trim();
+        if (!safeFolderId || seen.has(safeFolderId) || !globalFolders[safeFolderId]) {
+            return;
+        }
+        seen.add(safeFolderId);
+        orderedIds.push(safeFolderId);
+        getFolderChildren(safeFolderId).forEach(visit);
+    };
+    visit(rootId);
+    return orderedIds;
+};
+
+const persistDockerFolderClonePayload = async (payload, folderId = '') => {
+    const safeFolderId = String(folderId || '').trim();
+    const request = {
+        type: 'docker',
+        content: JSON.stringify(payload)
+    };
+    if (safeFolderId) {
+        request.id = safeFolderId;
+    }
+    await $.post(
+        safeFolderId
+            ? '/plugins/folderview.plus/server/update.php'
+            : '/plugins/folderview.plus/server/create.php',
+        request
+    ).promise();
+};
+
+const rollbackClonedDockerFolders = async (createdIds = []) => {
+    const ids = Array.isArray(createdIds) ? createdIds.filter((entry) => String(entry || '').trim() !== '') : [];
+    for (const createdId of ids.slice().reverse()) {
+        try {
+            await $.post('/plugins/folderview.plus/server/delete.php', {
+                type: 'docker',
+                id: createdId
+            }).promise();
+        } catch (_error) {
+            // Best-effort rollback only.
+        }
+    }
+    if (ids.length > 0) {
+        try {
+            await $.post('/plugins/folderview.plus/server/sync_order.php', { type: 'docker' }).promise();
+        } catch (_error) {
+            // Best-effort rollback only.
+        }
+    }
+};
+
+const cloneDockerFolderBranchFromMenu = async (id) => {
+    await runDockerGuardedAction('clone-branch', async () => {
+        if (!ensureDockerFolderUnlocked(id, 'Clone branch')) {
+            return;
+        }
+        const source = globalFolders[id];
+        if (!source || typeof source !== 'object') {
+            return;
+        }
+        const branchIds = getDockerFolderBranchCloneOrder(id);
+        if (branchIds.length <= 1) {
+            await cloneDockerFolderFromMenu(id);
+            return;
+        }
+        const defaultName = `${String(source?.name || 'Folder').trim() || 'Folder'} (Copy)`;
+        const nextName = String(window.prompt('Clone branch root name', defaultName) || '').trim();
+        if (!nextName) {
+            return;
+        }
+        const sourceParentId = normalizeFolderParentId(source?.parentId || source?.parent_id || '');
+        const reservedIds = new Set(Object.keys(globalFolders));
+        const cloneIdMap = new Map();
+        branchIds.forEach((sourceId) => {
+            const cloneId = generateDockerFolderCloneId(reservedIds);
+            reservedIds.add(cloneId);
+            cloneIdMap.set(sourceId, cloneId);
+        });
+        const createdIds = [];
+        $('div.spinner.fixed').show('slow');
+        try {
+            for (const sourceId of branchIds) {
+                const sourceFolder = globalFolders[sourceId];
+                if (!sourceFolder || typeof sourceFolder !== 'object') {
+                    continue;
+                }
+                const rawParentId = normalizeFolderParentId(sourceFolder?.parentId || sourceFolder?.parent_id || '');
+                const clonedParentId = sourceId === id
+                    ? sourceParentId
+                    : String(cloneIdMap.get(rawParentId) || '').trim();
+                if (sourceId !== id && !clonedParentId) {
+                    throw new Error(`Clone branch failed because parent mapping was missing for nested folder "${sourceFolder?.name || sourceId}".`);
+                }
+                const clonePayload = buildDockerFolderClonePayload(sourceFolder, {
+                    name: sourceId === id ? nextName : String(sourceFolder?.name || '').trim() || 'Folder',
+                    parentId: clonedParentId
+                });
+                const cloneId = String(cloneIdMap.get(sourceId) || '').trim();
+                if (!cloneId) {
+                    throw new Error(`Clone branch failed because a clone id was not generated for folder "${sourceFolder?.name || sourceId}".`);
+                }
+                await persistDockerFolderClonePayload(clonePayload, cloneId);
+                createdIds.push(cloneId);
+            }
+            await $.post('/plugins/folderview.plus/server/sync_order.php', { type: 'docker' }).promise();
+            loadlist();
+        } catch (error) {
+            await rollbackClonedDockerFolders(createdIds);
+            throw error;
+        } finally {
+            $('div.spinner.fixed').hide('slow');
+        }
+    }, {
+        userMessage: getDockerMenuLabel('clone-branch-failed', 'Failed to clone branch.'),
         userVisible: true
     });
 };
@@ -5092,10 +5434,7 @@ const addDockerFolderContext = (id) => {
             icon: 'fa-globe',
             action: (evt) => {
                 evt.preventDefault();
-                const popup = window.open(folderData.settings.folder_webui_url, '_blank', 'noopener,noreferrer');
-                if (popup) {
-                    popup.opener = null;
-                }
+                openWebuiInNewTab(folderData.settings.folder_webui_url);
             }
         });
         appendDivider();
@@ -5233,6 +5572,14 @@ const addDockerFolderContext = (id) => {
                 }
             });
         }
+        branchSubMenu.push({
+            text: 'Delete branch folders',
+            icon: 'fa-trash',
+            action: (evt) => {
+                evt.preventDefault();
+                rmFolderBranch(id);
+            }
+        });
         if (branchSubMenu.length > 0) {
             opts.push({
                 text: 'Branch actions',
@@ -5262,13 +5609,30 @@ const addDockerFolderContext = (id) => {
         action: (evt) => { evt.preventDefault(); editFolder(id); }
     });
 
-    opts.push({
-        text: getDockerMenuLabel('clone-folder', 'Clone folder'),
-        icon: 'fa-clone',
-        action: (evt) => {
-            evt.preventDefault();
-            cloneDockerFolderFromMenu(id);
+    const cloneSubMenu = [
+        {
+            text: getDockerMenuLabel('clone-folder', 'Clone folder'),
+            icon: 'fa-clone',
+            action: (evt) => {
+                evt.preventDefault();
+                cloneDockerFolderFromMenu(id);
+            }
         }
+    ];
+    if (hasChildren) {
+        cloneSubMenu.push({
+            text: getDockerMenuLabel('clone-branch', 'Clone branch'),
+            icon: 'fa-sitemap',
+            action: (evt) => {
+                evt.preventDefault();
+                cloneDockerFolderBranchFromMenu(id);
+            }
+        });
+    }
+    opts.push({
+        text: getDockerMenuLabel('clone-menu', 'Clone'),
+        icon: 'fa-clone',
+        subMenu: cloneSubMenu
     });
 
     opts.push({

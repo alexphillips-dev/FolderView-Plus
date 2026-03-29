@@ -11,11 +11,13 @@ const dockerScript = fs.readFileSync(
 
 test('docker folder context supports open-all-webui actions with scoped options', () => {
     assert.match(dockerScript, /const collectFolderWebuiTargets = \(id, includeDescendants = true, runningOnly = true\) =>/);
+    assert.match(dockerScript, /const openWebuiPopupWindow = \(url, targetName = '_blank'\) =>/);
     assert.match(dockerScript, /const openFolderWebuisFromMenu = \(id, runningOnly = true, includeDescendants = false\) =>/);
     assert.match(dockerScript, /Open all WebUIs/);
     assert.match(dockerScript, /collectFolderWebuiTargets\(id, false, true\)/);
     assert.match(dockerScript, /entry\?\.state === true && entry\?\.pause !== true/);
-    assert.match(dockerScript, /window\.open\('about:blank', `fvw-\$\{stamp\}-\$\{index\}`\)/);
+    assert.match(dockerScript, /openWebuiPopupWindow\(urls\[index\], `fvw-\$\{stamp\}-\$\{index\}`\)/);
+    assert.doesNotMatch(dockerScript, /window\.open\('about:blank', `fvw-\$\{stamp\}-\$\{index\}`\)/);
     assert.match(dockerScript, /showFolderWebuiPopupWarning/);
     assert.match(dockerScript, /Browser Quick Guide/);
     assert.match(dockerScript, /Blocked WebUIs \(manual open\)/);
@@ -25,7 +27,26 @@ test('docker folder context supports open-all-webui actions with scoped options'
 
 test('docker folder context supports clone-folder action flow', () => {
     assert.match(dockerScript, /const cloneDockerFolderFromMenu = async \(id\) =>/);
+    assert.match(dockerScript, /const cloneDockerFolderBranchFromMenu = async \(id\) =>/);
+    assert.match(dockerScript, /const getDockerFolderBranchCloneOrder = \(rootId\) =>/);
+    assert.match(dockerScript, /const generateDockerFolderCloneId = \(reservedIds = new Set\(\)\) =>/);
+    assert.match(dockerScript, /const rollbackClonedDockerFolders = async \(createdIds = \[\]\) =>/);
     assert.match(dockerScript, /window\.prompt\('Clone folder name'/);
+    assert.match(dockerScript, /window\.prompt\('Clone branch root name'/);
     assert.match(dockerScript, /\/server\/create\.php/);
+    assert.match(dockerScript, /\/server\/update\.php/);
     assert.match(dockerScript, /text:\s*getDockerMenuLabel\('clone-folder',\s*'Clone folder'\)/);
+    assert.match(dockerScript, /text:\s*getDockerMenuLabel\('clone-menu',\s*'Clone'\)/);
+    assert.match(dockerScript, /text:\s*getDockerMenuLabel\('clone-branch',\s*'Clone branch'\)/);
+    assert.match(dockerScript, /subMenu:\s*cloneSubMenu/);
+});
+
+test('docker branch actions support deleting whole folder branches without reparenting children', () => {
+    assert.match(dockerScript, /const getLockedDockerBranchFolderIds = \(id\) =>/);
+    assert.match(dockerScript, /const ensureDockerBranchUnlocked = \(id,\s*actionLabel = 'This action'\) =>/);
+    assert.match(dockerScript, /const deleteDockerFolderBranch = async \(id\) =>/);
+    assert.match(dockerScript, /const rmFolderBranch = \(id\) =>/);
+    assert.match(dockerScript, /Nested child folders will be deleted with the root folder and will <strong>not<\/strong> be re-parented\./);
+    assert.match(dockerScript, /text:\s*'Delete branch folders'/);
+    assert.match(dockerScript, /rmFolderBranch\(id\);/);
 });

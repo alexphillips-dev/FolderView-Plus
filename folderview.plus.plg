@@ -5,29 +5,75 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.27.30">
-<!ENTITY md5 "3078b157273967ef5072ce1a3ae0cc26">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
+<!ENTITY version "2026.03.29.11">
+<!ENTITY md5 "3823ae3651dbae4395f304b29c7c149f">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
 
+###2026.03.29.11
+- Feature: Add `Delete branch folders` under Docker branch actions to remove a root folder and every nested child folder in that branch.
+- Quality: Add behavior-level regression coverage for clone-of-clone branch cloning, deep-copy payload safety, rollback ordering, and branch delete ordering.
+
+###2026.03.29.10
+- Fix: Restore Docker branch hover submenus by allowing runtime context menus to keep submenu overflow visible.
+- Feature: Add a Docker `Clone` submenu with `Clone folder` plus `Clone branch`, including nested branch cloning with preserved parent-child structure.
+
+###2026.03.29.09
+- Fix: Restore modern folder editor module loading after reinstall by replacing short-tag asset includes in Folder.page with explicit PHP autov tags.
+- Quality: Add a regression guard to keep Folder.page shared editor assets on explicit PHP include tags instead of short tags.
+
+
+###2026.03.29.08
+- Fix: Stop nested Docker parent previews from forcing WebUI, console, and logs quick-action icons when those preview actions are disabled.
+- Quality: Add a regression guard that keeps nested preview quick actions aligned with the folder's own preview settings.
+
+
+###2026.03.29.07
+- Fix: Preserve dragged Docker folder order across refreshes instead of re-sorting folder placeholders back to folder definition order.
+- Quality: Add regression coverage for Docker runtime folder-slot repair and server-side order sync placeholder preservation.
+
+
+###2026.03.29.06
+- Fix: Stop Docker WebUI buttons and Open all WebUIs from using unresolved template URLs like http://[IP]:[PORT:80] during the lightweight runtime pass.
+- Maintenance: Rebuild folder runtime WebUI targets after full Docker detail hydration so resolved ports replace stale placeholder values.
+
+
+###2026.03.29.05
+- Fix: Restore Docker WebUI launches for preview icons, tooltip actions, and Open all WebUIs without landing on about:blank#blocked.
+- Maintenance: Keep release-guard-compatible target=_blank markup while routing WebUI clicks through the safe launcher path.
+
+
+###2026.03.29.04
+- Maintenance: Preserve modern editor section across mode switches.
+- Maintenance: Restore Docker advanced preview context popups.
+- Maintenance: Set dev channel release metadata.
+- Fix: Fix release smoke gating.
+- Maintenance: Release 2026.03.27.30.
+- Fix: Fix dev branch validation in back-merge workflow.
+
+
+###2026.03.29.03
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.29.02
+- Fix: Keep the modern folder editor on the current section when switching between Basic and Advanced.
+- Quality: Added a regression guard for modern folder editor section-state sync.
+
+
+###2026.03.29.01
+- Maintenance: Set dev channel release metadata.
+- Fix: Fix release smoke gating.
+- Fix: Restore Docker advanced preview context popups for both click and hover activation modes.
+
+
 ###2026.03.27.30
 - Docs: Refresh the repository README, bundled plugin README, and troubleshooting guidance so the documented install, settings, rules, recovery, diagnostics, and theme behavior match the current plugin UX.
 - Docs: Update the packaged plugin description strings to reflect Docker, VM, and Dashboard support plus Setup Assistant, bulk assignment, templates, recovery tools, and copyable diagnostics.
-
-
-###2026.03.27.29
-- UI/UX: Roll up the full promoted `dev` line since main `2026.03.26.47`, rebuilding Advanced Settings around clearer Diagnostics, Folder Health, Bulk Assignment, Rules, Recovery, and Operations workspaces instead of the older split technical panels and duplicated modules.
-- Fix: Make the advanced settings experience render correctly across black, white, Azure, and gray themes, including the wizard, diagnostics gutters, shared module cards, and remembered Basic versus Advanced mode so non-dark hosts no longer fall back to broken or unreadable layouts.
-- UI/UX: Simplify the Settings flow by removing the old diagnostics dumps, quick presets, maintenance clutter, and staged save dock, switching the page fully to autosave, modernizing buttons and compact controls, and making the health, rules, recovery, and operations surfaces more direct to use.
-- Quality: Expand regression coverage and release automation around advanced workspace routing, layout contracts, theme compatibility, packaged release validation, and GitHub release workflow guards so the redesigned settings line stays stable on both `main` and `dev`.
-- Quality: Clean up the stale locale and diagnostics CSS leftovers uncovered during the stable promotion so strict CI and Release On Main standards checks now pass cleanly again on `main`.
-
-
-###2026.03.27.28
-- Quality: Remove the stale `file-manager` locale key left behind after the advanced-settings cleanup so the language-usage standards guards, CI, and Release On Main workflow pass cleanly again.
 
 
 ###2026.03.27.27
@@ -4189,7 +4235,7 @@
     </CHANGES>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

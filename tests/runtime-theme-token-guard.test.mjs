@@ -61,6 +61,7 @@ test('runtime context menus follow resolved dark and light theme tokens', () => 
     assert.match(runtimeSharedCss, /body ul\.context-menu-list,[\s\S]*body ul\.dropdown-menu \{/);
     assert.match(runtimeSharedCss, /background:\s*var\(--fvplus-runtime-menu-bg\) !important;/);
     assert.match(runtimeSharedCss, /border:\s*1px solid var\(--fvplus-runtime-menu-border\) !important;/);
+    assert.match(runtimeSharedCss, /overflow:\s*visible !important;/);
     assert.match(runtimeSharedCss, /body ul\.context-menu-list > li\.divider,[\s\S]*context-menu-separator/);
     assert.match(runtimeSharedCss, /body ul\.context-menu-list \.dropdown-header,[\s\S]*var\(--fvplus-runtime-menu-header-bg\)/);
     assert.match(dashboardPage, /runtime\.shared\.css/);

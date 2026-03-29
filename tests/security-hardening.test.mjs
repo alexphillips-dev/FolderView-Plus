@@ -73,6 +73,13 @@ test('all plugin page entrypoints emit no-cache document guards', () => {
     assert.match(libPhp, /win\.location\.reload\(\);/);
 });
 
+test('folder editor page uses explicit php autov tags for editor assets', () => {
+    assert.doesNotMatch(folderPage, /<\?autov\(/);
+    assert.match(folderPage, /<script src="<\?php autov\('\/plugins\/folderview\.plus\/scripts\/folderviewplus\.utils\.js'\)\?>"><\/script>/);
+    assert.match(folderPage, /<script src="<\?php autov\('\/plugins\/folderview\.plus\/scripts\/folderviewplus\.request\.js'\)\?>"><\/script>/);
+    assert.match(folderPage, /<script src="<\?php autov\('\/plugins\/folderview\.plus\/scripts\/folderviewplus\.theme-resolver\.js'\)\?>"><\/script>/);
+});
+
 test('live GET endpoints that drive page freshness emit no-cache headers', () => {
     assert.match(versionPhp, /header\('Content-Type: text\/plain'\);/);
     assert.match(versionPhp, /emitNoCachePageHeaders\(\);/);
@@ -154,9 +161,12 @@ test('request guard allows explicit mutation header fallback when token bypass i
 
 test('external links and popup actions enforce noopener protections', () => {
     assert.match(folderPage, /target="_blank" rel="noopener noreferrer"/);
-    assert.match(dockerJs, /target="_blank" rel="noopener noreferrer"/);
-    assert.match(dockerJs, /window\.open\(folderData\.settings\.folder_webui_url, '_blank', 'noopener,noreferrer'\)/);
-    assert.match(dashboardJs, /window\.open\(globalFolders\.docker\[id\]\.settings\.folder_webui_url, '_blank', 'noopener,noreferrer'\)/);
+    assert.match(dockerJs, /const WEBUI_LINK_REL = 'noopener noreferrer';/);
+    assert.match(dockerJs, /const openWebuiInNewTab = \(url\) =>/);
+    assert.match(dockerJs, /openWebuiInNewTab\(folderData\.settings\.folder_webui_url\)/);
+    assert.match(dashboardJs, /const WEBUI_LINK_REL = 'noopener noreferrer';/);
+    assert.match(dashboardJs, /const openWebUiInNewTab = \(url\) =>/);
+    assert.match(dashboardJs, /openWebUiInNewTab\(globalFolders\.docker\[id\]\.settings\.folder_webui_url\)/);
     assert.match(folderViewPlusJs, /window\.open\(UPDATE_NOTES_CHANGELOG_URL, '_blank', 'noopener,noreferrer'\)/);
     assert.match(folderViewPlusJs, /popup\.opener = null;/);
 });

@@ -27,7 +27,16 @@ test('docker folder context supports open-all-webui actions with scoped options'
 
 test('docker folder context supports clone-folder action flow', () => {
     assert.match(dockerScript, /const cloneDockerFolderFromMenu = async \(id\) =>/);
+    assert.match(dockerScript, /const cloneDockerFolderBranchFromMenu = async \(id\) =>/);
+    assert.match(dockerScript, /const getDockerFolderBranchCloneOrder = \(rootId\) =>/);
+    assert.match(dockerScript, /const generateDockerFolderCloneId = \(reservedIds = new Set\(\)\) =>/);
+    assert.match(dockerScript, /const rollbackClonedDockerFolders = async \(createdIds = \[\]\) =>/);
     assert.match(dockerScript, /window\.prompt\('Clone folder name'/);
+    assert.match(dockerScript, /window\.prompt\('Clone branch root name'/);
     assert.match(dockerScript, /\/server\/create\.php/);
+    assert.match(dockerScript, /\/server\/update\.php/);
     assert.match(dockerScript, /text:\s*getDockerMenuLabel\('clone-folder',\s*'Clone folder'\)/);
+    assert.match(dockerScript, /text:\s*getDockerMenuLabel\('clone-menu',\s*'Clone'\)/);
+    assert.match(dockerScript, /text:\s*getDockerMenuLabel\('clone-branch',\s*'Clone branch'\)/);
+    assert.match(dockerScript, /subMenu:\s*cloneSubMenu/);
 });

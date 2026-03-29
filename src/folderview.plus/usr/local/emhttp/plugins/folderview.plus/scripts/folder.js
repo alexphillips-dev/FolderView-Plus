@@ -4888,6 +4888,11 @@ const initEditorChrome = () => {
         if (typeof window.FolderViewPlusRefreshModernEditorChromeLayout === 'function') {
             window.FolderViewPlusRefreshModernEditorChromeLayout();
         }
+        $('.fv-section-nav button')
+            .off('click.fvEditorSectionSync')
+            .on('click.fvEditorSectionSync', function onModernSectionClick() {
+                setActiveEditorSection($(this).data('target'));
+            });
     } else {
         $('.fv-section-heading').remove();
         Object.entries(SECTION_META).forEach(([key, section]) => {

@@ -196,6 +196,8 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderJs, /const getFolderEditorPreviewApi = \(\) =>/);
     assert.match(folderJs, /folderEditorPreviewApi = folderEditorPreview\.createApi\(/);
     assert.match(folderJs, /if \(modernFolderEditorEnabled\) \{[\s\S]*FolderViewPlusRefreshModernEditorChromeLayout/);
+    assert.match(folderJs, /\.off\('click\.fvEditorSectionSync'\)/);
+    assert.match(folderJs, /\.on\('click\.fvEditorSectionSync', function onModernSectionClick\(\) \{\s*setActiveEditorSection\(\$\(this\)\.data\('target'\)\);/);
     assert.match(folderJs, /function updateForm\(\) \{/);
     assert.match(folderJs, /const startFolderEditorRuntime = async \(\) => \{/);
     assert.match(folderJs, /void startFolderEditorRuntime\(\)\.catch\(\(error\) => \{/);

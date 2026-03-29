@@ -348,10 +348,12 @@ test('nested folder expansion avoids duplicate parent previews and keeps child-o
     assert.match(dockerJs, /shell:\s*ct\.info\.Shell \|\| '\/bin\/sh'/);
     assert.match(dockerJs, /openTerminal\('docker', containerName, shellValue\);/);
     assert.match(dockerJs, /openTerminal\('docker', containerName, '\.log'\);/);
-    assert.match(dockerJs, /const nestedParentPreview = folderHasChildren\(id\);/);
-    assert.match(dockerJs, /const allowWebuiQuickAction = nestedParentPreview \|\| quickActionPrefs\.preview_webui === true;/);
-    assert.match(dockerJs, /const allowConsoleQuickAction = nestedParentPreview \|\| quickActionPrefs\.preview_console === true;/);
-    assert.match(dockerJs, /const allowLogsQuickAction = nestedParentPreview \|\| quickActionPrefs\.preview_logs === true;/);
+    assert.match(dockerJs, /const allowWebuiQuickAction = quickActionPrefs\.preview_webui === true;/);
+    assert.match(dockerJs, /const allowConsoleQuickAction = quickActionPrefs\.preview_console === true;/);
+    assert.match(dockerJs, /const allowLogsQuickAction = quickActionPrefs\.preview_logs === true;/);
+    assert.doesNotMatch(dockerJs, /nestedParentPreview \|\| quickActionPrefs\.preview_webui === true/);
+    assert.doesNotMatch(dockerJs, /nestedParentPreview \|\| quickActionPrefs\.preview_console === true/);
+    assert.doesNotMatch(dockerJs, /nestedParentPreview \|\| quickActionPrefs\.preview_logs === true/);
     assert.match(dockerJs, /const shouldRenderPreviewWebuiPlaceholder = \(settings = \{\}, webuiQuickActionEnabled = false\) =>/);
     assert.match(dockerJs, /const appendPreviewWebuiPlaceholder = \(\$target\) =>/);
     assert.match(dockerJs, /const hasUnresolvedWebuiTemplateTokens = \(value\) =>/);

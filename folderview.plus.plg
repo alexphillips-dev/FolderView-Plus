@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.29.07">
-<!ENTITY md5 "0d0c50ec4da1ed297a6d44ac6107bebf">
+<!ENTITY version "2026.03.29.08">
+<!ENTITY md5 "0adecf12cab94dea247535329443d9bb">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.29.08
+- Fix: Stop nested Docker parent previews from forcing WebUI, console, and logs quick-action icons when those preview actions are disabled.
+- Quality: Add a regression guard that keeps nested preview quick actions aligned with the folder's own preview settings.
+
 
 ###2026.03.29.07
 - Fix: Preserve dragged Docker folder order across refreshes instead of re-sorting folder placeholders back to folder definition order.

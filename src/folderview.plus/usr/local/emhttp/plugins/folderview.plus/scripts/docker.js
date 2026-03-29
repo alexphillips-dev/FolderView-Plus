@@ -4182,13 +4182,10 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
         return;
     }
     const entries = Object.values(runtimeContainers || {});
-    const nestedParentPreview = folderHasChildren(id);
     const quickActionPrefs = folder?.settings || {};
-    // Compatibility fallback: for nested parent previews, always expose quick actions
-    // so root-level members keep the same operational affordances.
-    const allowWebuiQuickAction = nestedParentPreview || quickActionPrefs.preview_webui === true;
-    const allowConsoleQuickAction = nestedParentPreview || quickActionPrefs.preview_console === true;
-    const allowLogsQuickAction = nestedParentPreview || quickActionPrefs.preview_logs === true;
+    const allowWebuiQuickAction = quickActionPrefs.preview_webui === true;
+    const allowConsoleQuickAction = quickActionPrefs.preview_console === true;
+    const allowLogsQuickAction = quickActionPrefs.preview_logs === true;
     $preview.empty();
     for (const entry of entries) {
         const { $item: item } = buildDockerPreviewItem({

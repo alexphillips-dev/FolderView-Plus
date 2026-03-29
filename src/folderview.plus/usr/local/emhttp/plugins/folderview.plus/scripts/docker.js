@@ -481,10 +481,16 @@ const buildDockerRuntimeInfoRenderEntry = (name, entry = {}, previousEntry = nul
     const previousInfo = previous?.info && typeof previous.info === 'object' ? previous.info : {};
     const previousState = previousInfo.State && typeof previousInfo.State === 'object' ? previousInfo.State : {};
     const previousConfig = previousInfo.Config && typeof previousInfo.Config === 'object' ? previousInfo.Config : {};
+    const sourceInfo = source?.info && typeof source.info === 'object' ? source.info : {};
+    const sourceState = sourceInfo.State && typeof sourceInfo.State === 'object' ? sourceInfo.State : {};
     const stateKind = String(source.state || '').trim().toLowerCase();
     const running = source.running === true || stateKind === 'running';
     const paused = source.paused === true || stateKind === 'paused';
     const manager = String(source.manager || previousState.manager || '').trim();
+    const labelWebUi = String(labels['net.unraid.docker.webui'] || '').trim();
+    const labelTsWebUi = String(labels['net.unraid.docker.tailscale.webui'] || '').trim();
+    const resolvedWebUi = resolvePreferredWebuiValue(sourceState.WebUi, source.WebUi, source.webui, previousState.WebUi, labelWebUi);
+    const resolvedTsWebUi = resolvePreferredWebuiValue(sourceState.TSWebUi, source.TSWebUi, previousState.TSWebUi, labelTsWebUi);
     const nextEntry = previous ? { ...previous } : {};
     nextEntry.shortId = String(source.id || previous?.shortId || '').trim();
     nextEntry.shortImageId = String(source.shortImageId || previous?.shortImageId || '').trim();
@@ -507,8 +513,8 @@ const buildDockerRuntimeInfoRenderEntry = (name, entry = {}, previousEntry = nul
             Autostart: source.autostart === true,
             Updated: (typeof previousState.Updated === 'boolean') ? previousState.Updated : null,
             manager,
-            WebUi: String(labels['net.unraid.docker.webui'] || previousState.WebUi || '').trim(),
-            TSWebUi: String(labels['net.unraid.docker.tailscale.webui'] || previousState.TSWebUi || '').trim()
+            WebUi: resolvedWebUi,
+            TSWebUi: resolvedTsWebUi
         },
         Ports: Array.isArray(previousInfo.Ports) ? previousInfo.Ports : [],
         template: previousInfo.template || null
@@ -547,9 +553,21 @@ const sanitizeImageSrc = typeof utils.sanitizeImageSrc === 'function'
     });
 const WEBUI_LINK_REL = 'noopener noreferrer';
 const WEBUI_OPEN_REL = 'noopener';
+const WEBUI_TEMPLATE_TOKEN_REGEX = /\[(?:IP|PORT:[^\]]+|HOSTNAME|MAGICDNS|NOSERVE)\]/i;
+const hasUnresolvedWebuiTemplateTokens = (value) => WEBUI_TEMPLATE_TOKEN_REGEX.test(String(value || '').trim());
+const resolvePreferredWebuiValue = (...candidates) => {
+    for (const candidate of candidates) {
+        const raw = String(candidate || '').trim();
+        if (!raw || /^javascript:/i.test(raw) || hasUnresolvedWebuiTemplateTokens(raw)) {
+            continue;
+        }
+        return raw;
+    }
+    return '';
+};
 const getSafeWebuiUrl = (value) => {
     const raw = String(value || '').trim();
-    return raw && !/^javascript:/i.test(raw) ? raw : '';
+    return raw && !/^javascript:/i.test(raw) && !hasUnresolvedWebuiTemplateTokens(raw) ? raw : '';
 };
 const openWebuiInNewTab = (url) => {
     const safeUrl = getSafeWebuiUrl(url);
@@ -2083,7 +2101,7 @@ const buildRuntimeContainerEntry = (name, sourceMeta = null) => {
         id: source.id || String(runtime?.shortId || '').trim(),
         name: String(runtime?.info?.Name || source.name || key).trim() || key,
         icon: source.icon || runtime?.Labels?.['net.unraid.docker.icon'] || '/plugins/dynamix.docker.manager/images/question.png',
-        webui: String(source.webui || runtimeState.WebUi || runtimeState.TSWebUi || '').trim(),
+        webui: resolvePreferredWebuiValue(runtimeState.WebUi, runtimeState.TSWebUi, source.webui),
         shell: source.shell || runtime?.info?.Shell || '/bin/sh',
         pause: hasRuntimePause ? (runtimeState.Paused === true) : (source.pause === true),
         state: hasRuntimeState ? (runtimeState.Running === true) : (source.state === true),
@@ -2101,13 +2119,10 @@ const getFolderRuntimeContainers = (folder) => {
         return {};
     }
     const runtime = folder.runtimeContainers;
-    if (runtime && typeof runtime === 'object' && !Array.isArray(runtime) && Object.keys(runtime).length > 0) {
-        return runtime;
-    }
     const containers = folder.containers;
     const names = readFolderContainerNames(containers);
     if (!names.length) {
-        return {};
+        return (runtime && typeof runtime === 'object' && !Array.isArray(runtime)) ? runtime : {};
     }
     const sourceMap = (containers && typeof containers === 'object' && !Array.isArray(containers)) ? containers : {};
     const collected = {};
@@ -2117,6 +2132,7 @@ const getFolderRuntimeContainers = (folder) => {
         }
         collected[name] = buildRuntimeContainerEntry(name, sourceMap[name]);
     }
+    folder.runtimeContainers = collected;
     return collected;
 };
 
@@ -2607,8 +2623,8 @@ const syncDockerVisibleFoldersFromRuntimeCache = () => {
         const runtimeContainers = folderHasChildren(id)
             ? buildRuntimeContainerMapForFolder(id, true)
             : getFolderRuntimeContainers(folder);
+        folder.runtimeContainers = runtimeContainers;
         if (folderHasChildren(id)) {
-            folder.runtimeContainers = runtimeContainers;
             syncParentFolderVisualState(id, folder?.status?.expanded === true);
         }
         updateFolderRowStatusFromContainers(id, folder, runtimeContainers);
@@ -2616,6 +2632,18 @@ const syncDockerVisibleFoldersFromRuntimeCache = () => {
     renderRuntimeHealthBadge(globalFolders, folderTypePrefs);
     refreshDockerFolderQuickActionStates();
     applyDockerFocusedFolderState();
+};
+
+const buildDockerWebuiSignature = (source) => {
+    const map = source && typeof source === 'object' ? source : {};
+    const names = Object.keys(map).sort((a, b) => a.localeCompare(b));
+    if (!names.length) {
+        return '';
+    }
+    return names.map((name) => {
+        const state = map[name]?.info?.State && typeof map[name].info.State === 'object' ? map[name].info.State : {};
+        return `${name}:${getSafeWebuiUrl(state.WebUi)}|${getSafeWebuiUrl(state.TSWebUi)}`;
+    }).join('|');
 };
 
 const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, fullInfoPromise = null) => {
@@ -2640,12 +2668,18 @@ const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, ful
             if (!parsed || Object.keys(parsed).length <= 0) {
                 return;
             }
+            const previousWebuiSignature = buildDockerWebuiSignature(dockerRuntimeInfoByName);
             dockerRuntimeInfoByName = normalizeDockerRuntimeInfoMap(parsed, dockerRuntimeInfoByName);
+            const nextWebuiSignature = buildDockerWebuiSignature(dockerRuntimeInfoByName);
             if (stateSignature) {
                 lastLiveRefreshStateSignature = stateSignature;
             }
             markDockerFatalBannerStep('Docker runtime details hydrated');
             recordDockerFatalBannerAction('Docker runtime details hydrated');
+            if (previousWebuiSignature !== nextWebuiSignature) {
+                queueLoadlistRefresh();
+                return;
+            }
             syncDockerVisibleFoldersFromRuntimeCache();
         })
         .catch(() => {});

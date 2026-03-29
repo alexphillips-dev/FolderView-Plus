@@ -125,6 +125,8 @@ test('runtime refresh uses lightweight state mode checks before re-rendering', (
     assert.match(dashboardJs, /const queueCreateFoldersRender = \(\) =>/);
     assert.match(dockerJs, /const readDockerHostOrderFromDom = \(\) =>/);
     assert.match(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoPromise = null\) =>/);
+    assert.match(dockerJs, /const buildDockerWebuiSignature = \(source\) =>/);
+    assert.match(dockerJs, /if \(previousWebuiSignature !== nextWebuiSignature\) \{/);
     assert.match(dockerJs, /const yieldDockerRenderLoop = async \(processedCount,\s*totalCount\) =>/);
     assert.match(dockerJs, /render:\s*\[[\s\S]*read_info\.php\?type=docker&mode=state/);
     assert.match(dockerJs, /fullInfo:\s*createDockerRuntimeRequest\('\/plugins\/folderview\.plus\/server\/read_info\.php\?type=docker'/);

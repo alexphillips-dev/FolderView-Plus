@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.29.05">
-<!ENTITY md5 "5baaaec1191be407fc79f10975cbc3fb">
+<!ENTITY version "2026.03.29.06">
+<!ENTITY md5 "fbcbf84f31aa881f80a8d6e684f0b075">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.29.06
+- Fix: Stop Docker WebUI buttons and Open all WebUIs from using unresolved template URLs like http://[IP]:[PORT:80] during the lightweight runtime pass.
+- Maintenance: Rebuild folder runtime WebUI targets after full Docker detail hydration so resolved ports replace stale placeholder values.
+
 
 ###2026.03.29.05
 - Fix: Restore Docker WebUI launches for preview icons, tooltip actions, and Open all WebUIs without landing on about:blank#blocked.

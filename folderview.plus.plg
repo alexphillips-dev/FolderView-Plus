@@ -6,12 +6,31 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.29.02">
-<!ENTITY md5 "bdb4dae51104358c72658f37f5101197">
+<!ENTITY version "2026.03.29.05">
+<!ENTITY md5 "5baaaec1191be407fc79f10975cbc3fb">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.29.05
+- Fix: Restore Docker WebUI launches for preview icons, tooltip actions, and Open all WebUIs without landing on about:blank#blocked.
+- Maintenance: Keep release-guard-compatible target=_blank markup while routing WebUI clicks through the safe launcher path.
+
+
+###2026.03.29.04
+- Maintenance: Preserve modern editor section across mode switches.
+- Maintenance: Restore Docker advanced preview context popups.
+- Maintenance: Set dev channel release metadata.
+- Fix: Fix release smoke gating.
+- Maintenance: Release 2026.03.27.30.
+- Fix: Fix dev branch validation in back-merge workflow.
+
+
+###2026.03.29.03
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
 
 ###2026.03.29.02
 - Fix: Keep the modern folder editor on the current section when switching between Basic and Advanced.

@@ -182,6 +182,27 @@ const sanitizeImageSrc = typeof utils.sanitizeImageSrc === 'function'
         }
         return escapeHtml(raw);
     });
+const WEBUI_LINK_REL = 'noopener noreferrer';
+const WEBUI_OPEN_REL = 'noopener';
+const getSafeWebUiUrl = (value) => {
+    const raw = String(value || '').trim();
+    return raw && !/^javascript:/i.test(raw) ? raw : '';
+};
+const openWebUiInNewTab = (url) => {
+    const safeUrl = getSafeWebUiUrl(url);
+    if (!safeUrl) {
+        return false;
+    }
+    const anchor = document.createElement('a');
+    anchor.href = safeUrl;
+    anchor.target = '_blank';
+    anchor.rel = WEBUI_OPEN_REL;
+    anchor.style.display = 'none';
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    return true;
+};
 const appendDashboardDockerMemberQuickActions = ($containerEl, ct) => {
     if (!$containerEl || !$containerEl.length || !ct || typeof ct !== 'object') {
         return;
@@ -202,7 +223,7 @@ const appendDashboardDockerMemberQuickActions = ($containerEl, ct) => {
         $actionBar.empty();
     }
 
-    const webUiUrl = String(ct?.info?.State?.WebUi || '').trim();
+    const webUiUrl = getSafeWebUiUrl(ct?.info?.State?.WebUi);
     if (webUiUrl) {
         const $web = $(
             '<a class="fv-dashboard-member-action fv-dashboard-member-webui" target="_blank" rel="noopener noreferrer" title="WebUI" aria-label="WebUI">' +
@@ -210,6 +231,10 @@ const appendDashboardDockerMemberQuickActions = ($containerEl, ct) => {
             '</a>'
         );
         $web.attr('href', webUiUrl);
+        $web.on('click', (event) => {
+            event.preventDefault();
+            openWebUiInNewTab(webUiUrl);
+        });
         $actionBar.append($web);
     }
 
@@ -2288,10 +2313,7 @@ const addDockerFolderContext = (id) => {
             icon: 'fa-globe',
             action: (e) => {
                 e.preventDefault();
-                const popup = window.open(globalFolders.docker[id].settings.folder_webui_url, '_blank', 'noopener,noreferrer');
-                if (popup) {
-                    popup.opener = null;
-                }
+                openWebUiInNewTab(globalFolders.docker[id].settings.folder_webui_url);
             }
         });
         opts.push({ divider: true });

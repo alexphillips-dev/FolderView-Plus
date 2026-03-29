@@ -356,7 +356,7 @@ test('nested folder expansion avoids duplicate parent previews and keeps child-o
     assert.match(dockerJs, /const appendPreviewWebuiPlaceholder = \(\$target\) =>/);
     assert.match(dockerJs, /shouldRenderPreviewWebuiPlaceholder\(folder\.settings,\s*folder\.settings\.preview_webui === true\)/);
     assert.match(dockerJs, /shouldRenderPreviewWebuiPlaceholder\(folder\?\.settings \|\| \{\},\s*allowWebuiQuickAction\)/);
-    assert.match(dockerJs, /const previewWebuiUrl = String\(newFolder\[container_name_in_folder\]\?\.webui \|\| ct\.info\.State\.WebUi \|\| ct\.info\.State\.TSWebUi \|\| ''\)\.trim\(\);/);
+    assert.match(dockerJs, /const previewWebuiUrl = getSafeWebuiUrl\(newFolder\[container_name_in_folder\]\?\.webui \|\| ct\.info\.State\.WebUi \|\| ct\.info\.State\.TSWebUi \|\| ''\);/);
     assert.match(dockerJs, /if \(allowWebuiQuickAction && webuiUrl\)/);
     assert.match(dockerJs, /if \(allowConsoleQuickAction\)/);
     assert.match(dockerJs, /if \(allowLogsQuickAction\)/);

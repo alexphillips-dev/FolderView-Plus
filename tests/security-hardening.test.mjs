@@ -154,9 +154,12 @@ test('request guard allows explicit mutation header fallback when token bypass i
 
 test('external links and popup actions enforce noopener protections', () => {
     assert.match(folderPage, /target="_blank" rel="noopener noreferrer"/);
-    assert.match(dockerJs, /target="_blank" rel="noopener noreferrer"/);
-    assert.match(dockerJs, /window\.open\(folderData\.settings\.folder_webui_url, '_blank', 'noopener,noreferrer'\)/);
-    assert.match(dashboardJs, /window\.open\(globalFolders\.docker\[id\]\.settings\.folder_webui_url, '_blank', 'noopener,noreferrer'\)/);
+    assert.match(dockerJs, /const WEBUI_LINK_REL = 'noopener noreferrer';/);
+    assert.match(dockerJs, /const openWebuiInNewTab = \(url\) =>/);
+    assert.match(dockerJs, /openWebuiInNewTab\(folderData\.settings\.folder_webui_url\)/);
+    assert.match(dashboardJs, /const WEBUI_LINK_REL = 'noopener noreferrer';/);
+    assert.match(dashboardJs, /const openWebUiInNewTab = \(url\) =>/);
+    assert.match(dashboardJs, /openWebUiInNewTab\(globalFolders\.docker\[id\]\.settings\.folder_webui_url\)/);
     assert.match(folderViewPlusJs, /window\.open\(UPDATE_NOTES_CHANGELOG_URL, '_blank', 'noopener,noreferrer'\)/);
     assert.match(folderViewPlusJs, /popup\.opener = null;/);
 });

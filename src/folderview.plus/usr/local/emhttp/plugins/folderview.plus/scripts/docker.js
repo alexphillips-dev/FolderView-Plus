@@ -545,6 +545,43 @@ const sanitizeImageSrc = typeof utils.sanitizeImageSrc === 'function'
         }
         return escapeHtml(raw);
     });
+const WEBUI_LINK_REL = 'noopener noreferrer';
+const WEBUI_OPEN_REL = 'noopener';
+const getSafeWebuiUrl = (value) => {
+    const raw = String(value || '').trim();
+    return raw && !/^javascript:/i.test(raw) ? raw : '';
+};
+const openWebuiInNewTab = (url) => {
+    const safeUrl = getSafeWebuiUrl(url);
+    if (!safeUrl) {
+        return false;
+    }
+    const anchor = document.createElement('a');
+    anchor.href = safeUrl;
+    anchor.target = '_blank';
+    anchor.rel = WEBUI_OPEN_REL;
+    anchor.style.display = 'none';
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    return true;
+};
+const openWebuiPopupWindow = (url, targetName = '_blank') => {
+    const safeUrl = getSafeWebuiUrl(url);
+    if (!safeUrl) {
+        return false;
+    }
+    const popup = window.open(safeUrl, targetName);
+    if (!popup) {
+        return false;
+    }
+    try {
+        popup.opener = null;
+    } catch (_error) {
+        // Cross-origin popup guards can throw after the tab is opened; the launch already succeeded.
+    }
+    return true;
+};
 const getPreviewContainerStatusMeta = (entry = {}) => {
     const running = entry?.state === true;
     const paused = running && entry?.pause === true;
@@ -1553,7 +1590,9 @@ const resolveDockerTooltipRuntimeEntry = (entry) => {
 const buildDockerTooltipContent = (ct) => {
     const runtimeEntry = resolveDockerTooltipRuntimeEntry(ct);
     const labels = runtimeEntry?.Labels && typeof runtimeEntry.Labels === 'object' ? runtimeEntry.Labels : {};
-    return $(`
+    const tooltipWebUiUrl = getSafeWebuiUrl(runtimeEntry?.info?.State?.WebUi);
+    const tooltipTsWebUiUrl = getSafeWebuiUrl(runtimeEntry?.info?.State?.TSWebUi);
+    const $content = $(`
     <div class="preview-outbox preview-outbox-${ct.shortId}">
         <div class="first-row">
             <div class="preview-name">
@@ -1579,8 +1618,8 @@ const buildDockerTooltipContent = (ct) => {
                     <div class="action-left">
                         <ul class="fa-ul">
                             ${(runtimeEntry.info.State.Running && !runtimeEntry.info.State.Paused) ? 
-                                `${runtimeEntry.info.State.WebUi ? `<li><a href="${runtimeEntry.info.State.WebUi}" target="_blank" rel="noopener noreferrer"><i class="fa fa-globe" aria-hidden="true"></i> ${$.i18n('webui')}</a></li>` : ''}
-                                 ${runtimeEntry.info.State.TSWebUi ? `<li><a href="${runtimeEntry.info.State.TSWebUi}" target="_blank" rel="noopener noreferrer"><i class="fa fa-shield" aria-hidden="true"></i> ${$.i18n('tailscale-webui')}</a></li>` : ''}
+                                `${tooltipWebUiUrl ? `<li><a class="fv-runtime-webui-link" href="${tooltipWebUiUrl}" target="_blank" rel="noopener noreferrer"><i class="fa fa-globe" aria-hidden="true"></i> ${$.i18n('webui')}</a></li>` : ''}
+                                 ${tooltipTsWebUiUrl ? `<li><a class="fv-runtime-webui-link" href="${tooltipTsWebUiUrl}" target="_blank" rel="noopener noreferrer"><i class="fa fa-shield" aria-hidden="true"></i> ${$.i18n('tailscale-webui')}</a></li>` : ''}
                                  <li><a onclick="event.preventDefault(); openTerminal('docker', '${runtimeEntry.info.Name}', '${runtimeEntry.info.Shell}');"><i class="fa fa-terminal" aria-hidden="true"></i> ${$.i18n('console')}</a></li>`
                             : ''}
                             ${!runtimeEntry.info.State.Running ? `<li><a onclick="event.preventDefault(); eventControl({action:'start', container:'${ct.shortId}'}, 'loadlist');"><i class="fa fa-play" aria-hidden="true"></i> ${$.i18n('start')}</a></li>` : 
@@ -1622,9 +1661,14 @@ const buildDockerTooltipContent = (ct) => {
                 <div class="info-ports" id="info-ports-${ct.shortId}" style="display: none;">${runtimeEntry.info.Ports?.length > 10 ? (`<span class="info-ports-more" style="display: none;">${runtimeEntry.info.Ports?.map(e=>`${e.PrivateIP ? e.PrivateIP + ':' : ''}${e.PrivatePort}/${e.Type.toUpperCase()} <i class="fa fa-arrows-h"></i> ${e.PublicIP ? e.PublicIP + ':' : ''}${e.PublicPort}`).join('<br>') || ''}<br><a onclick="event.preventDefault(); $(this).parent().css('display', 'none').siblings('.info-ports-less').css('display', 'inline')">${$.i18n('compress')}</a></span><span class="info-ports-less">${runtimeEntry.info.Ports?.slice(0,10).map(e=>`${e.PrivateIP ? e.PrivateIP + ':' : ''}${e.PrivatePort}/${e.Type.toUpperCase()} <i class="fa fa-arrows-h"></i> ${e.PublicIP ? e.PublicIP + ':' : ''}${e.PublicPort}`).join('<br>') || ''}<br><a onclick="event.preventDefault(); $(this).parent().css('display', 'none').siblings('.info-ports-more').css('display', 'inline')">${$.i18n('expand')}</a></span>`) : (`<span class="info-ports-mono">${runtimeEntry.info.Ports?.map(e=>`${e.PrivateIP ? e.PrivateIP + ':' : ''}${e.PrivatePort}/${e.Type.toUpperCase()} <i class="fa fa-arrows-h"></i> ${e.PublicIP ? e.PublicIP + ':' : ''}${e.PublicPort}`).join('<br>') || ''}</span>`)}</div>
                 <div class="info-volumes" id="info-volumes-${ct.shortId}" style="display: none;">${runtimeEntry.Mounts?.filter(e => e.Type==='bind').length > 10 ? (`<span class="info-volumes-more" style="display: none;">${runtimeEntry.Mounts?.filter(e => e.Type==='bind').map(e=>`${e.Destination} <i class="fa fa-arrows-h"></i> ${e.Source}`).join('<br>') || ''}<br><a onclick="event.preventDefault(); $(this).parent().css('display', 'none').siblings('.info-volumes-less').css('display', 'inline')">${$.i18n('compress')}</a></span><span class="info-volumes-less">${runtimeEntry.Mounts?.filter(e => e.Type==='bind').slice(0,10).map(e=>`${e.Destination} <i class="fa fa-arrows-h"></i> ${e.Source}`).join('<br>') || ''}<br><a onclick="event.preventDefault(); $(this).parent().css('display', 'none').siblings('.info-volumes-more').css('display', 'inline')">${$.i18n('expand')}</a></span>`) : (`<span class="info-volumes-mono">${runtimeEntry.Mounts?.filter(e => e.Type==='bind').map(e=>`${e.Destination} <i class="fa fa-arrows-h"></i> ${e.Source}`).join('<br>') || ''}</span>`)}</div>
             </div>
+            </div>
         </div>
-    </div>
-`);
+    `);
+    $content.find('a.fv-runtime-webui-link').on('click', (event) => {
+        event.preventDefault();
+        openWebuiInNewTab(event.currentTarget?.href || '');
+    });
+    return $content;
 };
 
 const initializeDockerTooltipOnDemand = ($target, init) => {
@@ -3704,10 +3748,19 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                 $targetForAppend = $previewElementTarget;
             }
 
-            const previewWebuiUrl = String(newFolder[container_name_in_folder]?.webui || ct.info.State.WebUi || ct.info.State.TSWebUi || '').trim();
+            const previewWebuiUrl = getSafeWebuiUrl(newFolder[container_name_in_folder]?.webui || ct.info.State.WebUi || ct.info.State.TSWebUi || '');
             if (folder.settings.preview_webui && previewWebuiUrl) {
                 if ($targetForAppend.length) {
-                    $targetForAppend.append($(`<span class="folder-element-custom-btn folder-element-webui"><a href="${previewWebuiUrl}" target="_blank" rel="noopener noreferrer"><i class="fa fa-globe" aria-hidden="true"></i></a></span>`));
+                    const $previewWebuiLink = $('<a></a>')
+                        .attr('href', previewWebuiUrl)
+                        .attr('target', '_blank')
+                        .attr('rel', WEBUI_LINK_REL)
+                        .append('<i class="fa fa-globe" aria-hidden="true"></i>')
+                        .on('click', (event) => {
+                            event.preventDefault();
+                            openWebuiInNewTab(previewWebuiUrl);
+                        });
+                    $targetForAppend.append($('<span class="folder-element-custom-btn folder-element-webui"></span>').append($previewWebuiLink));
                     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Appended WebUI icon to preview.`);
                 } else {
                      if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: WebUI icon: Could not find target for append in preview element.`);
@@ -4100,14 +4153,18 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
             : $inner;
         const containerName = String(entry?.name || '');
         const shellValue = String(entry?.shell || '/bin/sh');
-        const webuiUrl = String(entry?.webui || '').trim();
+        const webuiUrl = getSafeWebuiUrl(entry?.webui);
 
         if (allowWebuiQuickAction && webuiUrl) {
             const $webuiLink = $('<a></a>')
                 .attr('href', webuiUrl)
                 .attr('target', '_blank')
-                .attr('rel', 'noopener noreferrer')
-                .append('<i class="fa fa-globe" aria-hidden="true"></i>');
+                .attr('rel', WEBUI_LINK_REL)
+                .append('<i class="fa fa-globe" aria-hidden="true"></i>')
+                .on('click', (event) => {
+                    event.preventDefault();
+                    openWebuiInNewTab(webuiUrl);
+                });
             $actionsTarget.append($('<span class="folder-element-custom-btn folder-element-webui"></span>').append($webuiLink));
         } else if (shouldRenderPreviewWebuiPlaceholder(folder?.settings || {}, allowWebuiQuickAction)) {
             appendPreviewWebuiPlaceholder($actionsTarget);
@@ -4552,8 +4609,8 @@ const updateFolder = (id, { includeDescendants = true } = {}) => {
 };
 
 const collectFolderWebuiTargets = (id, includeDescendants = true, runningOnly = true) => Object.values(getScopedRuntimeContainersForFolder(id, includeDescendants) || {}).reduce((out, entry) => {
-    const url = String(entry?.webui || '').trim();
-    if (url && !/^javascript:/i.test(url) && (!runningOnly || (entry?.state === true && entry?.pause !== true))) out.push(url);
+    const url = getSafeWebuiUrl(entry?.webui);
+    if (url && (!runningOnly || (entry?.state === true && entry?.pause !== true))) out.push(url);
     return out;
 }, []);
 
@@ -4617,13 +4674,9 @@ const openFolderWebuisFromMenu = (id, runningOnly = true, includeDescendants = f
         const stamp = Date.now();
         for (let index = 0; index < urls.length; index += 1) {
             try {
-                const popup = window.open('about:blank', `fvw-${stamp}-${index}`);
-                if (!popup) {
+                if (!openWebuiPopupWindow(urls[index], `fvw-${stamp}-${index}`)) {
                     blocked.push(urls[index]);
-                    continue;
                 }
-                popup.opener = null;
-                popup.location.replace(urls[index]);
             } catch {
                 blocked.push(urls[index]);
             }
@@ -5092,10 +5145,7 @@ const addDockerFolderContext = (id) => {
             icon: 'fa-globe',
             action: (evt) => {
                 evt.preventDefault();
-                const popup = window.open(folderData.settings.folder_webui_url, '_blank', 'noopener,noreferrer');
-                if (popup) {
-                    popup.opener = null;
-                }
+                openWebuiInNewTab(folderData.settings.folder_webui_url);
             }
         });
         appendDivider();

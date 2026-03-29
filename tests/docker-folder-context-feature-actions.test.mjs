@@ -11,11 +11,13 @@ const dockerScript = fs.readFileSync(
 
 test('docker folder context supports open-all-webui actions with scoped options', () => {
     assert.match(dockerScript, /const collectFolderWebuiTargets = \(id, includeDescendants = true, runningOnly = true\) =>/);
+    assert.match(dockerScript, /const openWebuiPopupWindow = \(url, targetName = '_blank'\) =>/);
     assert.match(dockerScript, /const openFolderWebuisFromMenu = \(id, runningOnly = true, includeDescendants = false\) =>/);
     assert.match(dockerScript, /Open all WebUIs/);
     assert.match(dockerScript, /collectFolderWebuiTargets\(id, false, true\)/);
     assert.match(dockerScript, /entry\?\.state === true && entry\?\.pause !== true/);
-    assert.match(dockerScript, /window\.open\('about:blank', `fvw-\$\{stamp\}-\$\{index\}`\)/);
+    assert.match(dockerScript, /openWebuiPopupWindow\(urls\[index\], `fvw-\$\{stamp\}-\$\{index\}`\)/);
+    assert.doesNotMatch(dockerScript, /window\.open\('about:blank', `fvw-\$\{stamp\}-\$\{index\}`\)/);
     assert.match(dockerScript, /showFolderWebuiPopupWarning/);
     assert.match(dockerScript, /Browser Quick Guide/);
     assert.match(dockerScript, /Blocked WebUIs \(manual open\)/);

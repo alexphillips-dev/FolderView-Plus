@@ -1779,15 +1779,32 @@ const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs) => {
     if (!desiredFolderTokens.length) {
         return order;
     }
-    let desiredIndex = 0;
+    const liveFolderTokens = new Set();
+    order.forEach((entry) => {
+        if (!folderRegex.test(entry)) {
+            return;
+        }
+        const folderId = entry.replace(folderRegex, '');
+        if (Object.prototype.hasOwnProperty.call(folderMap, folderId)) {
+            liveFolderTokens.add(entry);
+        }
+    });
+    const missingDesiredTokens = desiredFolderTokens.filter((token) => !liveFolderTokens.has(token));
+    const usedFolderTokens = new Set();
+    let missingIndex = 0;
     return order.map((entry) => {
         if (!folderRegex.test(entry)) {
             return entry;
         }
-        while (desiredIndex < desiredFolderTokens.length) {
-            const candidate = desiredFolderTokens[desiredIndex++];
-            const candidateId = candidate.replace(folderRegex, '');
-            if (Object.prototype.hasOwnProperty.call(folderMap, candidateId)) {
+        const folderId = entry.replace(folderRegex, '');
+        if (Object.prototype.hasOwnProperty.call(folderMap, folderId) && !usedFolderTokens.has(entry)) {
+            usedFolderTokens.add(entry);
+            return entry;
+        }
+        while (missingIndex < missingDesiredTokens.length) {
+            const candidate = missingDesiredTokens[missingIndex++];
+            if (!usedFolderTokens.has(candidate)) {
+                usedFolderTokens.add(candidate);
                 return candidate;
             }
         }

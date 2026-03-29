@@ -5183,11 +5183,13 @@
         $newOrder = [];
         $seen = [];
         $folderPlaceholders = array_keys($folderContainers);
+        $orderedFolderPlaceholders = [];
 
-        // Preserve non-folder container order from userprefs, but always rebuild
-        // folder placeholder order from docker.json to avoid stale/reversed order.
         foreach ($currentOrder as $item) {
             if (in_array($item, $folderPlaceholders, true)) {
+                if (!in_array($item, $orderedFolderPlaceholders, true)) {
+                    $orderedFolderPlaceholders[] = $item;
+                }
                 continue;
             }
             if (in_array($item, $assignedContainers, true)) {
@@ -5206,8 +5208,15 @@
             }
         }
 
-        // Append folders in folder definition order.
         foreach ($folderPlaceholders as $placeholder) {
+            if (!in_array($placeholder, $orderedFolderPlaceholders, true)) {
+                $orderedFolderPlaceholders[] = $placeholder;
+            }
+        }
+
+        // Preserve existing folder placeholder order from userprefs and only
+        // fall back to folder definition order for placeholders that are missing.
+        foreach ($orderedFolderPlaceholders as $placeholder) {
             foreach ($folderContainers[$placeholder] as $ct) {
                 if (!in_array($ct, $seen, true)) {
                     $newOrder[] = $ct;

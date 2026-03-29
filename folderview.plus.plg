@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.29.06">
-<!ENTITY md5 "fbcbf84f31aa881f80a8d6e684f0b075">
+<!ENTITY version "2026.03.29.07">
+<!ENTITY md5 "0d0c50ec4da1ed297a6d44ac6107bebf">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.29.07
+- Fix: Preserve dragged Docker folder order across refreshes instead of re-sorting folder placeholders back to folder definition order.
+- Quality: Add regression coverage for Docker runtime folder-slot repair and server-side order sync placeholder preservation.
+
 
 ###2026.03.29.06
 - Fix: Stop Docker WebUI buttons and Open all WebUIs from using unresolved template URLs like http://[IP]:[PORT:80] during the lightweight runtime pass.

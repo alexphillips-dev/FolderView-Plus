@@ -1658,9 +1658,9 @@ const initializeDockerTooltipOnDemand = ($target, init) => {
         ensureInitialized(String(event?.type || '').trim().toLowerCase());
     });
 };
-// FolderView preview popups conflict with direct container interactions on the Docker page.
-// Keep the payload builder in place for compatibility, but do not bind/open the popup runtime.
-const DOCKER_PREVIEW_POPUP_ENABLED = false;
+// Advanced preview popups are opt-in per folder; keep the runtime lazy so
+// default preview rendering stays lightweight until the user interacts.
+const DOCKER_PREVIEW_POPUP_ENABLED = true;
 
 const getPrefsOrderedFolderMap = (folders, prefs) => {
     const source = folders && typeof folders === 'object' ? folders : {};

@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.27.30">
-<!ENTITY md5 "95b1dd4de627c11391069c4000886b5d">
+<!ENTITY version "2026.03.29.01">
+<!ENTITY md5 "244d01bcc43a85e94586681f592d337b">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.29.01
+- Maintenance: Set dev channel release metadata.
+- Fix: Fix release smoke gating.
+- Fix: Restore Docker advanced preview context popups for both click and hover activation modes.
+
 
 ###2026.03.27.30
 - Docs: Refresh the repository README, bundled plugin README, and troubleshooting guidance so the documented install, settings, rules, recovery, diagnostics, and theme behavior match the current plugin UX.

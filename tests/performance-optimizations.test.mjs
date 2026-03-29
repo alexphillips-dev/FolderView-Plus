@@ -211,9 +211,9 @@ test('tailscale helper calls support cache and running-state guard', () => {
     assert.match(libPhp, /Skipping exec for stopped container/);
 });
 
-test('docker preview popup runtime is explicitly disabled to avoid click conflicts', () => {
+test('docker preview popup runtime stays enabled behind lazy advanced-preview initialization', () => {
     assert.match(dockerJs, /const buildDockerTooltipContent\s*=\s*\(ct\)\s*=>/);
-    assert.match(dockerJs, /const DOCKER_PREVIEW_POPUP_ENABLED = false;/);
+    assert.match(dockerJs, /const DOCKER_PREVIEW_POPUP_ENABLED = true;/);
     assert.match(dockerJs, /fvTooltipLazyBuilt/);
     assert.match(dockerJs, /Loading preview\.\.\./);
     assert.match(dockerJs, /const initializeDockerTooltipOnDemand = \(\$target,\s*init\) =>/);

@@ -434,23 +434,23 @@ try {
 </script>
 <?php emitNoCacheMetaTags(); ?>
 <?php emitPluginPageVersionSentinelScript('folder-editor'); ?>
-<script src="<?autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
-<link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.switchbutton.css')?>">
-<link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.ui.css')?>">
+<script src="<?php autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
+<link type="text/css" rel="stylesheet" href="<?php autov('/webGui/styles/jquery.switchbutton.css')?>">
+<link type="text/css" rel="stylesheet" href="<?php autov('/webGui/styles/jquery.ui.css')?>">
 <?php if (file_exists("/usr/local/emhttp/plugins/dynamix.docker.manager/styles/style-{$display['theme']}.css")): ?>
-<link type="text/css" rel="stylesheet" href="<?autov("/plugins/dynamix.docker.manager/styles/style-{$display['theme']}.css")?>">
+<link type="text/css" rel="stylesheet" href="<?php autov("/plugins/dynamix.docker.manager/styles/style-{$display['theme']}.css")?>">
 <?php endif; ?>
-<link type="text/css" rel="stylesheet" href="<?autov('/plugins/folderview.plus/styles/folder.css')?>">
-<link type="text/css" rel="stylesheet" href="<?autov("/plugins/folderview.plus/styles/include/jquery.multiselect.css")?>">
-<script src="<?autov('/plugins/folderview.plus/scripts/include/jquery.multiselect.js')?>"></script>
-<script src="<?autov('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>"></script>
-<script src="<?autov('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>
-<script src="<?autov('/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js')?>"></script>
-<script src="<?autov('/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js')?>"></script>
-<script src="<?autov('/plugins/folderview.plus/scripts/folder.editor.icon-api.js')?>"></script>
-<script src="<?autov('/plugins/folderview.plus/scripts/folder.editor.shared.js')?>"></script>
-<script src="<?autov('/plugins/folderview.plus/scripts/folder.editor.schema.js')?>"></script>
-<script src="<?autov('/plugins/folderview.plus/scripts/folder.editor.preview.js')?>"></script>
+<link type="text/css" rel="stylesheet" href="<?php autov('/plugins/folderview.plus/styles/folder.css')?>">
+<link type="text/css" rel="stylesheet" href="<?php autov("/plugins/folderview.plus/styles/include/jquery.multiselect.css")?>">
+<script src="<?php autov('/plugins/folderview.plus/scripts/include/jquery.multiselect.js')?>"></script>
+<script src="<?php autov('/plugins/folderview.plus/scripts/folderviewplus.utils.js')?>"></script>
+<script src="<?php autov('/plugins/folderview.plus/scripts/folderviewplus.request.js')?>"></script>
+<script src="<?php autov('/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js')?>"></script>
+<script src="<?php autov('/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js')?>"></script>
+<script src="<?php autov('/plugins/folderview.plus/scripts/folder.editor.icon-api.js')?>"></script>
+<script src="<?php autov('/plugins/folderview.plus/scripts/folder.editor.shared.js')?>"></script>
+<script src="<?php autov('/plugins/folderview.plus/scripts/folder.editor.schema.js')?>"></script>
+<script src="<?php autov('/plugins/folderview.plus/scripts/folder.editor.preview.js')?>"></script>
 
 <div class="canvas">
     <form class="folder-editor-form<?php echo $folderEditorPageMode === 'modern' ? ' fv-modern-editor-booting' : ''; ?>" data-fv-page-mode="<?php echo htmlspecialchars($folderEditorPageMode, ENT_QUOTES); ?>" onsubmit="submitForm(this, false); return false">

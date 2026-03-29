@@ -73,6 +73,13 @@ test('all plugin page entrypoints emit no-cache document guards', () => {
     assert.match(libPhp, /win\.location\.reload\(\);/);
 });
 
+test('folder editor page uses explicit php autov tags for editor assets', () => {
+    assert.doesNotMatch(folderPage, /<\?autov\(/);
+    assert.match(folderPage, /<script src="<\?php autov\('\/plugins\/folderview\.plus\/scripts\/folderviewplus\.utils\.js'\)\?>"><\/script>/);
+    assert.match(folderPage, /<script src="<\?php autov\('\/plugins\/folderview\.plus\/scripts\/folderviewplus\.request\.js'\)\?>"><\/script>/);
+    assert.match(folderPage, /<script src="<\?php autov\('\/plugins\/folderview\.plus\/scripts\/folderviewplus\.theme-resolver\.js'\)\?>"><\/script>/);
+});
+
 test('live GET endpoints that drive page freshness emit no-cache headers', () => {
     assert.match(versionPhp, /header\('Content-Type: text\/plain'\);/);
     assert.match(versionPhp, /emitNoCachePageHeaders\(\);/);

@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.29.08">
-<!ENTITY md5 "0adecf12cab94dea247535329443d9bb">
+<!ENTITY version "2026.03.29.09">
+<!ENTITY md5 "a16e5b9afe377656116605ea9a3c286d">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.29.09
+- Fix: Restore modern folder editor module loading after reinstall by replacing short-tag asset includes in Folder.page with explicit PHP autov tags.
+- Quality: Add a regression guard to keep Folder.page shared editor assets on explicit PHP include tags instead of short tags.
+
 
 ###2026.03.29.08
 - Fix: Stop nested Docker parent previews from forcing WebUI, console, and logs quick-action icons when those preview actions are disabled.

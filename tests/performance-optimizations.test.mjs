@@ -228,7 +228,8 @@ test('docker preview popup runtime stays enabled behind lazy advanced-preview in
     assert.match(dockerJs, /const DOCKER_PREVIEW_POPUP_ENABLED = true;/);
     assert.match(dockerJs, /fvTooltipLazyBuilt/);
     assert.match(dockerJs, /Loading preview\.\.\./);
-    assert.match(dockerJs, /const initializeDockerTooltipOnDemand = \(\$target,\s*init\) =>/);
+    assert.match(dockerJs, /const initializeDockerTooltipOnDemand = \(\$target,\s*init,\s*options = \{\}\) =>/);
+    assert.match(dockerJs, /openOnEventTypes: triggerMode === 'hover'/);
     assert.match(dockerJs, /if \(DOCKER_PREVIEW_POPUP_ENABLED !== true\) \{\s*return;\s*\}/);
     assert.match(dockerJs, /if\(DOCKER_PREVIEW_POPUP_ENABLED && tooltip_trigger_element && tooltip_trigger_element\.length > 0\) \{/);
 });

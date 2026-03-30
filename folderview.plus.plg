@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.30.15">
-<!ENTITY md5 "ecf8e0393142976b043da0f21b0b885d">
+<!ENTITY version "2026.03.30.16">
+<!ENTITY md5 "f6601bdadd11448fdc6a1e62c302d0a2">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.30.16
+- Fix: Stop Docker advanced preview context popups configured for click from eager-opening on the first hover interaction.
+- Regression guard: Cover lazy tooltip initialization so click-trigger folders only eager-open on click or touch, while hover-trigger folders still open on hover.
+
 
 ###2026.03.30.15
 - Maintenance: Fold docker update state into hydration signature.

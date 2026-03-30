@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.30.01">
-<!ENTITY md5 "25c8d2f4d5b92b1b5c9dc24b11349b36">
+<!ENTITY version "2026.03.30.02">
+<!ENTITY md5 "74e100e3cf1662fbb519e272412a29bf">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.30.02
+- Fix: Vertically center the normal Docker and VM Application-column content blocks so the icon, name, and started or stopped status no longer sit at the top of taller rows.
+- UX: Keep the Application-column content left-aligned while centering the entire content block within the row height.
+- Regression guard: Cover the host list-row Application-cell centering contract for both Docker and VM runtimes.
+
 
 ###2026.03.30.01
 - UX: Keep the Docker and VM folder row block centered in the Application column while leaving the folder icon, name, and started or stopped text left-aligned inside that block.

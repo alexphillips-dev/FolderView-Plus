@@ -11,6 +11,12 @@ const vmCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus
 const dockerModulesJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.modules.js');
 
 test('docker folder application column centers a left-aligned content block between mover and menu', () => {
+    assert.match(dockerCss, /#docker_list td\.ct-name:not\(\.folder-name\)\s*\{[\s\S]*vertical-align:\s*middle !important/);
+    assert.match(dockerCss, /#docker_list td\.ct-name:not\(\.folder-name\)\s*\{[\s\S]*padding-top:\s*0 !important/);
+    assert.match(dockerCss, /#docker_list td\.ct-name:not\(\.folder-name\) > span\.outer\s*\{[\s\S]*display:\s*inline-flex/);
+    assert.match(dockerCss, /#docker_list td\.ct-name:not\(\.folder-name\) > span\.outer\s*\{[\s\S]*align-items:\s*center/);
+    assert.match(dockerCss, /#docker_list td\.ct-name:not\(\.folder-name\) > span\.outer > span\.inner\s*\{[\s\S]*justify-content:\s*center/);
+    assert.match(dockerCss, /#docker_list td\.ct-name:not\(\.folder-name\) > span\.outer > span\.inner\s*\{[\s\S]*align-items:\s*flex-start/);
     assert.match(dockerCss, /\.folder-name-sub\s*\{[\s\S]*display:\s*grid/);
     assert.match(dockerCss, /\.folder-name-sub\s*\{[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s+auto\s+minmax\(0,\s*1fr\)/);
     assert.match(dockerCss, /\.folder-name-sub > \.folder-outer\s*\{[\s\S]*justify-self:\s*center/);
@@ -24,6 +30,12 @@ test('docker folder application column centers a left-aligned content block betw
 });
 
 test('vm folder application column centers a left-aligned content block between mover and menu', () => {
+    assert.match(vmCss, /#kvm_list td\.vm-name:not\(\.folder-name\)\s*\{[\s\S]*vertical-align:\s*middle !important/);
+    assert.match(vmCss, /#kvm_list td\.vm-name:not\(\.folder-name\)\s*\{[\s\S]*padding-top:\s*0 !important/);
+    assert.match(vmCss, /#kvm_list td\.vm-name:not\(\.folder-name\) > span\.outer\s*\{[\s\S]*display:\s*inline-flex/);
+    assert.match(vmCss, /#kvm_list td\.vm-name:not\(\.folder-name\) > span\.outer\s*\{[\s\S]*align-items:\s*center/);
+    assert.match(vmCss, /#kvm_list td\.vm-name:not\(\.folder-name\) > span\.outer > span\.inner\s*\{[\s\S]*justify-content:\s*center/);
+    assert.match(vmCss, /#kvm_list td\.vm-name:not\(\.folder-name\) > span\.outer > span\.inner\s*\{[\s\S]*align-items:\s*flex-start/);
     assert.match(vmCss, /\.folder-name-sub\s*\{[\s\S]*display:\s*grid/);
     assert.match(vmCss, /\.folder-name-sub\s*\{[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s+auto\s+minmax\(0,\s*1fr\)/);
     assert.match(vmCss, /\.folder-name-sub > \.folder-outer\s*\{[\s\S]*justify-self:\s*center/);

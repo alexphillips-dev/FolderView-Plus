@@ -94,6 +94,25 @@ body.fvplus-performance-mode .hover div.folder-preview div:not(.folder-preview-r
     box-sizing: border-box;
 }
 
+#kvm_list td.vm-name:not(.folder-name) {
+    vertical-align: middle !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+#kvm_list td.vm-name:not(.folder-name) > span.outer {
+    display: inline-flex;
+    align-items: center;
+    min-height: calc(var(--fvplus-preview-row-height, 3.5em) - 0.9em);
+}
+
+#kvm_list td.vm-name:not(.folder-name) > span.outer > span.inner {
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+}
+
 td.vm-name.folder-name {
     position: relative;
     display: table-cell;

@@ -25,6 +25,9 @@ const getFolderStatusColorOverrides = typeof dockerRuntimeShared.getFolderStatus
 const applyFolderStatusColorOverrides = typeof dockerRuntimeShared.applyFolderStatusColorOverrides === 'function'
     ? dockerRuntimeShared.applyFolderStatusColorOverrides
     : (() => {});
+const applyFolderAccentStyle = typeof dockerRuntimeShared.applyFolderAccentStyle === 'function'
+    ? dockerRuntimeShared.applyFolderAccentStyle
+    : (() => {});
 const applyPreviewBorderStyle = typeof dockerRuntimeShared.applyPreviewBorderStyle === 'function'
     ? dockerRuntimeShared.applyPreviewBorderStyle
     : (() => {});
@@ -4065,6 +4068,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     }
     const $folderRow = $(`tr.folder-id-${id}`);
     applyFolderStatusColorOverrides($folderRow, folder.settings);
+    applyFolderAccentStyle($folderRow, folder.settings);
     applyFolderDropdownStyle($folderRow, folder.settings);
     const $folderIcon = $folderRow.find(`i#load-folder-${id}`);
     const $folderState = $folderRow.find('span.folder-state');
@@ -4278,6 +4282,7 @@ const updateFolderRowStatusFromContainers = (id, folder, runtimeContainers) => {
     const total = containerEntries.length;
     const $folderRow = $(`tr.folder-id-${id}`);
     applyFolderStatusColorOverrides($folderRow, folder.settings);
+    applyFolderAccentStyle($folderRow, folder.settings);
     applyFolderDropdownStyle($folderRow, folder.settings);
     const $folderIcon = $folderRow.find(`i#load-folder-${id}`);
     const $folderState = $folderRow.find('span.folder-state');

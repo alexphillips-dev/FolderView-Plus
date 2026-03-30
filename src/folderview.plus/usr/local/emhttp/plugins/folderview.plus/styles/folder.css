@@ -649,10 +649,24 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     border-radius: 14px;
     border: 1px solid transparent;
     background: var(--fv-editor-inset-surface);
+    position: relative;
+    overflow: hidden;
     display: grid;
     grid-template-columns: max-content minmax(0, 1fr);
     gap: 1rem;
     align-items: center;
+}
+
+.fv-live-preview-row.has-accent::before {
+    content: "";
+    position: absolute;
+    top: 0.5rem;
+    bottom: 0.5rem;
+    left: 0.38rem;
+    width: 3px;
+    border-radius: 999px;
+    background: var(--fv-folder-accent-color, #ffca63);
+    pointer-events: none;
 }
 
 .fv-live-preview-row.has-border {

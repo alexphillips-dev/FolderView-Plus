@@ -97,6 +97,18 @@ body[data-fv-theme-class="light"] {
     position: relative;
 }
 
+.folder-showcase-outer.fv-folder-has-accent > span.outer::before {
+    content: "";
+    position: absolute;
+    top: 7px;
+    bottom: 7px;
+    left: 0;
+    width: 3px;
+    border-radius: 999px;
+    background: var(--fv-folder-accent-color, #ffca63);
+    pointer-events: none;
+}
+
 .fv-dashboard-layout-inline-container {
     position: relative;
 }

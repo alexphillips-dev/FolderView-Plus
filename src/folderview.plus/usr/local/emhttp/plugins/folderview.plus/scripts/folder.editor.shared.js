@@ -137,6 +137,12 @@
                     dropdown_hover_color: typeof deps.normalizeHexColor === 'function'
                         ? deps.normalizeHexColor(settings.dropdown_hover_color, deps.defaultDropdownHoverColor || '#111111')
                         : String(settings.dropdown_hover_color || deps.defaultDropdownHoverColor || '#111111'),
+                    folder_accent_enabled: typeof deps.isFolderAccentEnabled === 'function'
+                        ? deps.isFolderAccentEnabled(settings)
+                        : settings.folder_accent_enabled === true,
+                    folder_accent_color: typeof deps.normalizeHexColor === 'function'
+                        ? deps.normalizeHexColor(settings.folder_accent_color, deps.defaultFolderAccentColor || '#ffca63')
+                        : String(settings.folder_accent_color || deps.defaultFolderAccentColor || '#ffca63'),
                     status_color_started: typeof deps.normalizeHexColor === 'function'
                         ? deps.normalizeHexColor(settings.status_color_started, deps.defaultFolderStatusColors?.started || '#ffffff')
                         : String(settings.status_color_started || deps.defaultFolderStatusColors?.started || '#ffffff'),
@@ -199,9 +205,21 @@
             updateLiveSummary();
         };
 
+        const resetFolderAccentDefaults = () => {
+            const form = getForm();
+            if (!form) {
+                return;
+            }
+            form.folder_accent_enabled.checked = false;
+            form.folder_accent_color.value = deps.defaultFolderAccentColor || '#ffca63';
+            afterVisualChange();
+            updateLiveSummary();
+        };
+
         return Object.freeze({
             resetPreviewBorderDefaults,
-            resetDropdownColorDefaults
+            resetDropdownColorDefaults,
+            resetFolderAccentDefaults
         });
     };
 

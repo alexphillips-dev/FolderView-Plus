@@ -21,6 +21,9 @@ const getFolderStatusColorOverrides = typeof runtimeShared.getFolderStatusColorO
 const applyFolderStatusColorOverrides = typeof runtimeShared.applyFolderStatusColorOverrides === 'function'
     ? runtimeShared.applyFolderStatusColorOverrides
     : (() => {});
+const applyFolderAccentStyle = typeof runtimeShared.applyFolderAccentStyle === 'function'
+    ? runtimeShared.applyFolderAccentStyle
+    : (() => {});
 const applyPreviewBorderStyle = typeof runtimeShared.applyPreviewBorderStyle === 'function'
     ? runtimeShared.applyPreviewBorderStyle
     : (() => {});
@@ -1616,6 +1619,7 @@ const createFolder = (folder, id, position, order, vmInfo, foldersDone, matchCac
     }
     const $folderRow = $(`tr.folder-id-${id}`);
     applyFolderStatusColorOverrides($folderRow, folder.settings);
+    applyFolderAccentStyle($folderRow, folder.settings);
     applyFolderDropdownStyle($folderRow, folder.settings);
     const $folderIcon = $folderRow.find(`i#load-folder-${id}`);
     const $folderState = $folderRow.find('span.folder-state');

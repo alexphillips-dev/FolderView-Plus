@@ -442,6 +442,8 @@
             findBasicByFieldName(form, 'dropdown_color')
         ],
         status: [
+            findBasicByFieldName(form, 'folder_accent_enabled'),
+            findBasicByFieldName(form, 'folder_accent_color'),
             findBasicByFieldName(form, 'status_color_started'),
             findBasicByFieldName(form, 'health_warn_stopped_percent'),
             findBasicByFieldName(form, 'health_critical_stopped_percent'),

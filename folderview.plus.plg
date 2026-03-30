@@ -6,12 +6,27 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.29.23">
-<!ENTITY md5 "08ce509605a0ab46fc846153c4f1c818">
+<!ENTITY version "2026.03.29.25">
+<!ENTITY md5 "fa4d247011c7035faa84fa9bfd59e583">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.29.25
+- Fix: Fix folder action restart and reload flows.
+- Fix: Fix docker quick-action pin persistence.
+- Maintenance: Trim docker bootstrap perf budget.
+- Maintenance: Clarify docker refresh release notes.
+- Maintenance: Trim docker no-cache refresh path.
+- Maintenance: Stop docker double refresh shell.
+
+
+###2026.03.29.24
+- Feature: Add a separate per-folder `Accent color` setting in the folder editor with a default-disabled toggle plus custom color picker.
+- Feature: Render the optional accent bar across Docker folders, VM folders, Dashboard cards, and the live folder editor preview without tying it to pinning.
+- Quality: Carry accent defaults through parent smart defaults, starter templates, plugin defaults, and both modern and legacy folder editor save/load paths.
+- Regression guard: Cover accent editor bindings, shared normalization helpers, runtime row styling hooks, dashboard card styling, and starter template defaults.
 
 ###2026.03.29.23
 - Fix: Restore the dashboard Docker folder `Restart` action by wiring it to its own handler instead of falling through a duplicate `Resume` case.

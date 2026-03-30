@@ -107,7 +107,7 @@ if [[ "${CURRENT_VERSION}" == "${BASE_VERSION}" ]]; then
   echo "base=${BASE_REF} version=${BASE_VERSION} current=${CURRENT_VERSION}" >&2
   echo "Changed shipped files:" >&2
   printf '  %s\n' "${RELEASE_RELEVANT_FILES[@]}" >&2
-  echo "HINT: Run 'bash scripts/release_prepare.sh' or 'bash pkg_build.sh', commit the updated manifest/archive artifacts, then push dev again." >&2
+  echo "HINT: Run 'bash scripts/dev_finalize.sh --message \"...\"' or rebuild with 'bash pkg_build.sh', commit the updated manifest/archive artifacts, then push dev again." >&2
   exit 1
 fi
 

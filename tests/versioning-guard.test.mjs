@@ -480,6 +480,8 @@ test('docs metadata guard keeps readme and packaged descriptions aligned', () =>
     assert.match(buildReleaseNotes, /Install URL: \\`https:\/\/raw\.githubusercontent\.com\/alexphillips-dev\/FolderView-Plus\/\$\{INSTALL_BRANCH\}\/folderview\.plus\.plg\\`/);
     assert.match(buildReleaseNotes, /### Changes/);
     assert.match(releaseNotesConsistencyGuard, /Release notes consistency guard passed/);
+    assert.match(releaseNotesConsistencyGuard, /mkdir -p "\$\{ROOT_DIR\}\/tmp"/);
+    assert.match(releaseNotesConsistencyGuard, /TMP_DIR="\$\(mktemp -d "\$\{ROOT_DIR\}\/tmp\/release-notes-guard\.XXXXXX"\)"/);
     assert.match(releaseNotesConsistencyGuard, /build_release_notes\.sh --version/);
     assert.match(releaseNotesConsistencyGuard, /Release On Main workflow is not using scripts\/build_release_notes\.sh/);
     assert.match(workflowSelfCheck, /Workflow self-check passed/);

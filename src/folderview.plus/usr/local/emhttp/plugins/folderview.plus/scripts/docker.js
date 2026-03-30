@@ -5892,8 +5892,6 @@ window.listview = () => {
     }
 
     if (!loadedFolder) {
-        // Some Unraid builds can invoke listview before loadlist.
-        // Ensure requests exist so createFolders has data to render imported folders.
         if (!folderReq || !Array.isArray(folderReq.render) || folderReq.render.length === 0) {
             folderReq = buildDockerFolderReq();
         }

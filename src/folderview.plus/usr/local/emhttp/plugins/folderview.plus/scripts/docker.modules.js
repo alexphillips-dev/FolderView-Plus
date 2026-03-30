@@ -227,12 +227,14 @@
         sub.style.setProperty('position', 'absolute', 'important');
         sub.style.setProperty('top', '50%', 'important');
         sub.style.setProperty('left', '8px', 'important');
-        sub.style.setProperty('right', '8px', 'important');
+        sub.style.setProperty('right', 'var(--fvplus-docker-folder-right-gutter, 28px)', 'important');
         sub.style.setProperty('transform', 'translateY(-50%)', 'important');
-        sub.style.setProperty('display', 'flex', 'important');
+        sub.style.setProperty('display', 'grid', 'important');
+        sub.style.setProperty('grid-template-columns', 'minmax(0, 1fr) auto minmax(0, 1fr)', 'important');
         sub.style.setProperty('align-items', 'center', 'important');
         sub.style.setProperty('min-height', '0', 'important');
-        sub.style.setProperty('width', '100%', 'important');
+        sub.style.setProperty('width', 'auto', 'important');
+        sub.style.setProperty('box-sizing', 'border-box', 'important');
         if (height > 0) {
             sub.style.setProperty('height', `${Math.max(0, height - 2)}px`, 'important');
         } else {

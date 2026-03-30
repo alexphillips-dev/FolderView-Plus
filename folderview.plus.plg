@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.29.25">
-<!ENTITY md5 "fa4d247011c7035faa84fa9bfd59e583">
+<!ENTITY version "2026.03.29.26">
+<!ENTITY md5 "8e60212976678eff8b7f2d09eca7e296">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.29.26
+- UX: Center the Docker and VM folder application-column content block so the folder icon, name, and started or stopped state stay visually centered.
+- Fix: Keep folder quick-action chrome anchored while the centered layout is active by reserving the mover on the left and the menu button on the right.
+- Regression guard: Cover the centered application-column grid contract and Docker runtime row-centering inline style overrides.
+
 
 ###2026.03.29.25
 - Fix: Fix folder action restart and reload flows.

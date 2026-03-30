@@ -103,10 +103,10 @@ td.vm-name.folder-name {
 }
 
 .folder-name-sub {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     position: relative;
     align-items: center;
-    justify-content: flex-start;
     overflow: hidden;
     gap: 4px;
     box-sizing: border-box;
@@ -125,18 +125,35 @@ td.vm-name.folder-name > .folder-name-sub {
     box-sizing: border-box;
 }
 
+.folder-name-sub > .mover {
+    grid-column: 1;
+    justify-self: start;
+}
+
+.folder-name-sub > .folder-outer {
+    grid-column: 2;
+    justify-self: center;
+}
+
+.folder-name-sub > .folder-dropdown {
+    grid-column: 3;
+    justify-self: end;
+    margin: 0 !important;
+}
+
 .folder-outer {
     position: relative;
     display: inline-flex;
     align-items: center;
-    flex: 1 1 auto;
+    justify-content: center;
+    flex: 0 1 auto;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     width: auto;
+    margin: 0 auto;
     max-width: calc(var(--fvplus-vm-app-column-width) - var(--fvplus-vm-folder-outer-reserved-width, 88px));
-    padding-right: var(--fvplus-vm-folder-right-gutter, 18px);
 }
 
 .folder-inner {
@@ -144,7 +161,8 @@ td.vm-name.folder-name > .folder-name-sub {
     flex-direction: column;
     min-width: 0;
     max-width: 100%;
-    align-items: flex-start;
+    align-items: center;
+    text-align: center;
 }
 
 .folder-appname {

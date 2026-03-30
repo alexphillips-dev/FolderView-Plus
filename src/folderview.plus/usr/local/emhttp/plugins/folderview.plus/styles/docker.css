@@ -183,11 +183,13 @@ body.fvplus-performance-mode .hover div.folder-preview div:not(.folder-preview-r
 }
 
 .folder-name-sub {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
     overflow: hidden;
     gap: 6px;
     box-sizing: border-box;
+    width: 100%;
 }
 
 /* Keep folder rows vertically centered against the preview row content */
@@ -215,6 +217,23 @@ td.ct-name.folder-name > .folder-name-sub {
     transform: translateY(-50%);
     min-height: 0;
     width: auto;
+    box-sizing: border-box;
+}
+
+.folder-name-sub > .mover {
+    grid-column: 1;
+    justify-self: start;
+}
+
+.folder-name-sub > .folder-outer {
+    grid-column: 2;
+    justify-self: center;
+}
+
+.folder-name-sub > .folder-dropdown {
+    grid-column: 3;
+    justify-self: end;
+    margin: 0 !important;
 }
 
 .folder-outer {
@@ -222,9 +241,11 @@ td.ct-name.folder-name > .folder-name-sub {
     white-space: nowrap;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
     min-width: 0;
-    flex: 1 1 auto;
+    flex: 0 1 auto;
+    margin: 0 auto;
     max-width: calc(var(--fvplus-docker-app-column-width) - 106px);
     max-width: calc(var(--fvplus-docker-app-column-width) - var(--fvplus-docker-folder-outer-reserved-width, 106px));
     max-width: max(112px, calc(var(--fvplus-docker-app-column-width) - var(--fvplus-docker-folder-outer-reserved-width, 106px)));
@@ -238,7 +259,8 @@ td.ct-name.folder-name > .folder-name-sub {
     display: inline-flex;
     flex-direction: column;
     min-width: 0;
-    align-items: flex-start;
+    align-items: center;
+    text-align: center;
 }
 
 .folder-appname {

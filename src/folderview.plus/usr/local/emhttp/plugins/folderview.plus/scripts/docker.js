@@ -2820,16 +2820,8 @@ const buildDockerWebuiSignature = (source) => {
     }
     return names.map((name) => {
         const state = map[name]?.info?.State && typeof map[name].info.State === 'object' ? map[name].info.State : {};
-        return `${name}:${getSafeWebuiUrl(state.WebUi)}|${getSafeWebuiUrl(state.TSWebUi)}`;
+        return `${name}:${getSafeWebuiUrl(state.WebUi)}|${getSafeWebuiUrl(state.TSWebUi)}|${state.Updated === false ? 'u' : (state.Updated === true ? 'c' : '?')}`;
     }).join('|');
-};
-
-const buildDockerUpdateSignature = (source) => {
-    const map = source && typeof source === 'object' ? source : {};
-    return Object.keys(map)
-        .sort((a, b) => a.localeCompare(b))
-        .map((name) => `${name}:${map[name]?.info?.State?.Updated === false ? 'u' : (map[name]?.info?.State?.Updated === true ? 'c' : '?')}`)
-        .join('|');
 };
 
 const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, fullInfoPromise = null) => {
@@ -2855,16 +2847,14 @@ const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, ful
                 return;
             }
             const previousWebuiSignature = buildDockerWebuiSignature(dockerRuntimeInfoByName);
-            const previousUpdateSignature = buildDockerUpdateSignature(dockerRuntimeInfoByName);
             dockerRuntimeInfoByName = normalizeDockerRuntimeInfoMap(parsed, dockerRuntimeInfoByName);
             const nextWebuiSignature = buildDockerWebuiSignature(dockerRuntimeInfoByName);
-            const nextUpdateSignature = buildDockerUpdateSignature(dockerRuntimeInfoByName);
             if (stateSignature) {
                 lastLiveRefreshStateSignature = stateSignature;
             }
             markDockerFatalBannerStep('Docker runtime details hydrated');
             recordDockerFatalBannerAction('Docker runtime details hydrated');
-            if (previousWebuiSignature !== nextWebuiSignature || previousUpdateSignature !== nextUpdateSignature) {
+            if (previousWebuiSignature !== nextWebuiSignature) {
                 queueLoadlistRefresh();
                 return;
             }

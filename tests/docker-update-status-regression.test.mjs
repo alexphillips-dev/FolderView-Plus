@@ -14,10 +14,10 @@ test('docker runtime preserves hydrated update flags when normalizing partial ru
 });
 
 test('deferred docker runtime hydration rerenders when update availability changes', () => {
-    assert.match(dockerJs, /const buildDockerUpdateSignature = \(source\) =>/);
-    assert.match(dockerJs, /const previousUpdateSignature = buildDockerUpdateSignature\(dockerRuntimeInfoByName\);/);
-    assert.match(dockerJs, /const nextUpdateSignature = buildDockerUpdateSignature\(dockerRuntimeInfoByName\);/);
-    assert.match(dockerJs, /previousWebuiSignature !== nextWebuiSignature \|\| previousUpdateSignature !== nextUpdateSignature/);
+    assert.match(dockerJs, /\|\$\{state\.Updated === false \? 'u' : \(state\.Updated === true \? 'c' : '\?'\)\}/);
+    assert.match(dockerJs, /const previousWebuiSignature = buildDockerWebuiSignature\(dockerRuntimeInfoByName\);/);
+    assert.match(dockerJs, /const nextWebuiSignature = buildDockerWebuiSignature\(dockerRuntimeInfoByName\);/);
+    assert.match(dockerJs, /previousWebuiSignature !== nextWebuiSignature/);
     assert.match(dockerJs, /queueLoadlistRefresh\(\);\s*return;/);
 });
 

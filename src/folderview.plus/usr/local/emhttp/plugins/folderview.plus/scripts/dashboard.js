@@ -2473,7 +2473,7 @@ const actionFolderDocker = async (id, action) => {
             case "resume":
                 pass = ct.state && ct.pause;
                 break;
-            case "resume":
+            case "restart":
                 pass = true;
                 break;
             default:
@@ -2497,9 +2497,9 @@ const actionFolderDocker = async (id, action) => {
             html:true,
             confirmButtonText:'Ok'
         }, loadlist);
+    } else {
+        loadlist();
     }
-
-    loadlist();
     $('div.spinner.fixed').hide('slow');
 }
 
@@ -2792,9 +2792,9 @@ const actionFolderVM = async (id, action) => {
             html:true,
             confirmButtonText:'Ok'
         }, loadlist);
+    } else {
+        loadlist();
     }
-
-    loadlist();
     $('div.spinner.fixed').hide('slow');
 }
 

@@ -6,12 +6,19 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.29.22">
-<!ENTITY md5 "96475edd638e78d0d712ca79de4813d8">
+<!ENTITY version "2026.03.29.23">
+<!ENTITY md5 "08ce509605a0ab46fc846153c4f1c818">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.29.23
+- Fix: Restore the dashboard Docker folder `Restart` action by wiring it to its own handler instead of falling through a duplicate `Resume` case.
+- Fix: Stop dashboard Docker, dashboard VM, and VM runtime folder-action error paths from triggering an immediate second reload after showing the error dialog.
+- Fix: Keep VM folder pin quick actions in-place after saving prefs and cache-bust VM prefs reads so the next runtime refresh cannot revert to stale pinned folder state.
+- Regression guard: Cover dashboard restart routing, single-reload folder-action error handling, and the no-reload VM pin persistence path.
+
 
 ###2026.03.29.22
 - Fix: Keep Docker folder pinning in-place after the quick-action menu saves prefs instead of forcing another runtime reload that could immediately undo the pinned state.

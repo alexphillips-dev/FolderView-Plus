@@ -810,7 +810,7 @@ const toggleVmFolderPin = async (folderId) => {
         const result = await runVmGuardedAction('toggle-folder-pin', async () => {
             const response = await persistVmPinnedFolderIds(nextPinned);
             applyVmPinnedFolderIds(Array.isArray(response?.prefs?.pinnedFolderIds) ? response.prefs.pinnedFolderIds : nextPinned);
-            queueLoadlistRefresh();
+            refreshVmFolderQuickActionStates();
         }, {
             userMessage: 'Failed to update pinned folders.',
             userVisible: false
@@ -2043,9 +2043,9 @@ const actionFolder = async (id, action, { includeDescendants = true } = {}) => {
                         html: true,
                         confirmButtonText: 'Ok'
                     }, loadlist);
+                } else {
+                    loadlist();
                 }
-
-                loadlist();
             } finally {
                 vmRuntimeStateStore.set({ inFlightAction: '' });
                 $('div.spinner.fixed').hide('slow');
@@ -2822,7 +2822,8 @@ window.getVmRuntimePerfTelemetrySnapshot = () => {
 window.getVmRuntimeStateSnapshot = () => vmRuntimeStateStore.getState();
 
 function buildVmFolderReq() {
-    const safePrefsReq = createVmRuntimeRequest('/plugins/folderview.plus/server/prefs.php?type=vm', {
+    const cacheBust = Date.now();
+    const safePrefsReq = createVmRuntimeRequest(`/plugins/folderview.plus/server/prefs.php?type=vm&_=${cacheBust}`, {
         source: 'prefs',
         label: 'VM preferences',
         allowFallback: true,

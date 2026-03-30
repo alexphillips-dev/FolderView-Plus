@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.30.18">
-<!ENTITY md5 "f97e5b9f93849f7058f56b986536b224">
+<!ENTITY version "2026.03.30.19">
+<!ENTITY md5 "b40c1ce2317f502819d859321fabe642">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.30.19
+- Fix: Resolve the remaining Docker page double-reload path during initial bootstrap when Unraid refreshes the staged request bundle while FolderView Plus is still rendering folders.
+- Fix: Replay queued Docker folder renders in place against the newest staged request bundle instead of forcing a second host `loadlist()` cycle after the page has already refreshed.
+- UX: Suppress the extra Docker runtime loading shell during that in-place replay so the Docker page no longer flashes a second reload.
+- Regression guard: Cover the primed-request `listview()`/`loadlist()` bootstrap path and the deferred runtime hydration path so Docker refreshes stay in-place.
 
 ###2026.03.30.18
 - Feature: Add optional per-folder `Accent color` support across Docker folders, VM folders, Dashboard cards, and the folder editor live preview, including smart-default and template inheritance plus the consolidated Accent card and live swatch UX.
@@ -22,7 +28,6 @@
 - Fix: Rebuild collapsed Docker folder and root-folder update status from hydrated runtime data, reuse the shared update-column renderer across first paint and refresh, resolve advanced-list mode locally, prioritize the dedicated Docker runtime banner host, and preserve `State.Updated` through lightweight and full hydration so `Update ready` survives collapsed branches.
 - Fix: Stop Docker advanced preview context popups configured for click from opening on the first hover interaction.
 - Quality: Add the dev version-bump push guard and expand regression coverage for hydration, accent color, folder actions, layout, and tooltip trigger mode changes.
-
 
 ###2026.03.30.17
 - Fix: Stop Docker advanced preview context popups configured for click from eager-opening on the first hover interaction.

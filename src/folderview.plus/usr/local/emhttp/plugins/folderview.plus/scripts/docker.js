@@ -186,7 +186,7 @@ const fatalBanner = window.FolderViewPlusFatalBanner || null;
 const dockerFatalBannerRuntimeConfig = (window.FolderViewPlusFatalRuntimeContext && typeof window.FolderViewPlusFatalRuntimeContext === 'object')
     ? window.FolderViewPlusFatalRuntimeContext
     : {};
-const DOCKER_FATAL_BANNER_HOST_SELECTOR = String(dockerFatalBannerRuntimeConfig.hostSelector || '.canvas, #fvplus-docker-runtime-banner-host').trim() || '.canvas, #fvplus-docker-runtime-banner-host';
+const DOCKER_FATAL_BANNER_HOST_SELECTOR = String(dockerFatalBannerRuntimeConfig.hostSelector || '#fvplus-docker-runtime-banner-host, .canvas').trim() || '#fvplus-docker-runtime-banner-host, .canvas';
 const createDockerRuntimeDiagnosticsBridge = typeof dockerRuntimeShared.createRuntimeDiagnosticsBridge === 'function'
     ? dockerRuntimeShared.createRuntimeDiagnosticsBridge
     : null;
@@ -3195,6 +3195,7 @@ const renderFolderUpdateColumn = (id, $updateColumn, managerTypes, upToDate, man
         return;
     }
 
+    const showAdvanced = $.cookie('docker_listview_mode') == 'advanced';
     const hasDockerMan = managerTypes.has('dockerman');
     const hasCompose = managerTypes.has('composeman');
     const has3rdParty = [...managerTypes].some((type) => type !== 'dockerman' && type !== 'composeman');
@@ -3224,7 +3225,7 @@ const renderFolderUpdateColumn = (id, $updateColumn, managerTypes, upToDate, man
 
     if (!upToDate) {
         $updateColumn.append(
-            $(`<div class="advanced" style="display: ${advanced ? 'block' : 'none'};"><span class="orange-text folder-update-text" style="white-space:nowrap;"><i class="fa fa-flash fa-fw"></i> ${$.i18n('update-ready')}</span></div>`)
+            $(`<div class="advanced" style="display: ${showAdvanced ? 'block' : 'none'};"><span class="orange-text folder-update-text" style="white-space:nowrap;"><i class="fa fa-flash fa-fw"></i> ${$.i18n('update-ready')}</span></div>`)
         );
         $updateColumn.append(
             $(`<a class="exec" onclick="updateFolder('${id}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i> ${$.i18n('apply-update')}</span></a>`)
@@ -3237,7 +3238,7 @@ const renderFolderUpdateColumn = (id, $updateColumn, managerTypes, upToDate, man
     );
     if (managed > 0) {
         $updateColumn.append(
-            $(`<div class="advanced" style="display: ${advanced ? 'block' : 'none'};"><a class="exec" onclick="forceUpdateFolder('${id}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i> ${$.i18n('force-update')}</span></a></div>`)
+            $(`<div class="advanced" style="display: ${showAdvanced ? 'block' : 'none'};"><a class="exec" onclick="forceUpdateFolder('${id}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i> ${$.i18n('force-update')}</span></a></div>`)
         );
     }
 };

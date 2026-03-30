@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.30.11">
-<!ENTITY md5 "87d4aa9d531ad229f168e92452a6d893">
+<!ENTITY version "2026.03.30.12">
+<!ENTITY md5 "97f452c3ba9c0c53d75cfb92851996b3">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.30.12
+- Fix: Restore the Docker page after the collapsed update-summary refactor by resolving advanced-list mode inside the shared folder update-column renderer instead of referencing an out-of-scope runtime variable during bootstrap.
+- Fix: Prioritize the dedicated Docker runtime banner host so fatal runtime diagnostics render at the top of the page instead of dropping to the bottom canvas area.
+- Regression guard: Assert the shared folder update-column renderer reads Docker advanced mode locally, and assert fatal-banner host resolution honors selector priority for the dedicated Docker banner host.
+
 
 ###2026.03.30.11
 - Fix: Reuse one folder update-column renderer across first paint and runtime hydration so collapsed Docker folders and root folders keep surfacing child container updates without regressing the performance budget.

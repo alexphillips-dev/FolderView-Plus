@@ -23,7 +23,7 @@ $fvplusRuntimePreflightHasFatal = runtimePreflightHasFatal($fvplusRuntimePreflig
 <script>
     window.FolderViewPlusFatalRuntimeContext = {
         page: 'Docker',
-        hostSelector: '.canvas, #fvplus-docker-runtime-banner-host',
+        hostSelector: '#fvplus-docker-runtime-banner-host, .canvas',
         pluginVersion: <?=json_encode(readInstalledVersion() ?: 'unknown')?>,
         unraidVersion: <?=json_encode(readUnraidVersionString() ?: 'unknown')?>,
         channel: 'unknown',

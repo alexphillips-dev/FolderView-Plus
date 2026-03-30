@@ -113,6 +113,7 @@ test('runtime refresh uses lightweight state mode checks before re-rendering', (
     assert.match(dashboardJs, /read_info\.php\?type=\$\{type\}&mode=state/);
     assert.match(dockerJs, /const buildDockerRuntimeInfoUrl = \(mode = 'full', cacheBust = Date\.now\(\)\) =>/);
     assert.match(dockerJs, /mode === 'state' \? '&mode=state' : ''\}\&nocache=1&_=\$\{cacheBust \|\| Date\.now\(\)\}/);
+    assert.match(dockerJs, /createDockerRuntimeRequest\(`\/plugins\/folderview\.plus\/server\/prefs\.php\?type=docker&_=\$\{cacheBust\}`,/);
     assert.match(dockerJs, /const queueLoadlistRefresh = \(options = \{\}\) =>/);
     assert.match(vmJs, /queueLoadlistRefresh/);
     assert.match(dashboardJs, /queueLoadlistRefresh/);
@@ -132,7 +133,7 @@ test('runtime refresh uses lightweight state mode checks before re-rendering', (
     assert.match(dockerJs, /const buildDockerWebuiSignature = \(source\) =>/);
     assert.match(dockerJs, /if \(previousWebuiSignature !== nextWebuiSignature\) \{\s*syncDockerVisibleFoldersFromRuntimeCache\(\);\s*return;\s*\}/s);
     assert.doesNotMatch(dockerJs, /if \(previousWebuiSignature !== nextWebuiSignature\) \{\s*queueLoadlistRefresh\(/s);
-    assert.match(dockerJs, /queueLoadlistRefresh\(\{\s*suppressLoadingUi:\s*true\s*\}\);/);
+    assert.doesNotMatch(dockerJs, /applyDockerPinnedFolderIds\(Array\.isArray\(response\?\.prefs\?\.pinnedFolderIds\) \? response\.prefs\.pinnedFolderIds : nextPinned\);\s*syncDockerPinnedFolderUi\(\);\s*queueLoadlistRefresh\(/s);
     assert.match(dockerJs, /const yieldDockerRenderLoop = async \(processedCount,\s*totalCount\) =>/);
     assert.match(dockerJs, /dockerHostLoadOwnsLoadingUi = true;\s*if \(FOLDER_VIEW_DEBUG_MODE\) console\.log\('\[FV3_DEBUG\] Patched listview: loadedFolder is false\. Queueing createFolders render\.'/);
     assert.match(dockerJs, /loadedFolder = false;\s*dockerHostLoadOwnsLoadingUi = true;/);

@@ -2202,7 +2202,6 @@ const toggleDockerFolderPin = async (folderId) => {
             const response = await persistDockerPinnedFolderIds(nextPinned);
             applyDockerPinnedFolderIds(Array.isArray(response?.prefs?.pinnedFolderIds) ? response.prefs.pinnedFolderIds : nextPinned);
             syncDockerPinnedFolderUi();
-            queueLoadlistRefresh({ suppressLoadingUi: true });
         }, {
             userMessage: getDockerMenuLabel('folder-pin-failed', 'Failed to update pinned folders.'),
             userVisible: false
@@ -6287,13 +6286,13 @@ window.toggleDockerFolderPin = (id) => toggleDockerFolderPin(id);
 window.toggleDockerFolderLock = (id) => toggleDockerFolderLock(id);
 
 function buildDockerFolderReq() {
-    const safePrefsReq = createDockerRuntimeRequest('/plugins/folderview.plus/server/prefs.php?type=docker', {
+    const cacheBust = Date.now();
+    const safePrefsReq = createDockerRuntimeRequest(`/plugins/folderview.plus/server/prefs.php?type=docker&_=${cacheBust}`, {
         source: 'prefs',
         label: 'Docker preferences',
         allowFallback: true,
         fallbackValue: JSON.stringify({ ok: false, prefs: {} })
     });
-    const cacheBust = Date.now();
     const generation = ++dockerBootstrapGeneration;
     return {
         generation,

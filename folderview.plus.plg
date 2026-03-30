@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.29.21">
-<!ENTITY md5 "8949317fe408321f4e07b806aba7a245">
+<!ENTITY version "2026.03.29.22">
+<!ENTITY md5 "96475edd638e78d0d712ca79de4813d8">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.29.22
+- Fix: Keep Docker folder pinning in-place after the quick-action menu saves prefs instead of forcing another runtime reload that could immediately undo the pinned state.
+- Fix: Cache-bust Docker runtime prefs reads so the next host refresh picks up the latest pinned folder ids instead of a stale prefs response.
+- Regression guard: Cover the no-reload Docker pin save path and the cache-busted Docker prefs request bundle.
+
 
 ###2026.03.29.21
 - Fix: Let Unraid own the visible Docker tab load cycle by suppressing the extra FolderView Plus loading shell during host-driven refreshes.

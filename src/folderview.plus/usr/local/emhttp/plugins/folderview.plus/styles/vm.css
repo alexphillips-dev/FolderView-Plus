@@ -139,6 +139,10 @@ td.vm-name.folder-name > .folder-name-sub {
     padding-right: var(--fvplus-vm-folder-right-gutter, 18px);
 }
 
+td.vm-name.folder-name > .folder-name-sub > .folder-outer {
+    margin-bottom: 0 !important;
+}
+
 .folder-inner {
     display: inline-flex;
     flex-direction: column;

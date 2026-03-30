@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.30.10">
-<!ENTITY md5 "8106ccbd6b67a8168a4d02fce3488ea0">
+<!ENTITY version "2026.03.30.11">
+<!ENTITY md5 "87d4aa9d531ad229f168e92452a6d893">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.30.11
+- Fix: Reuse one folder update-column renderer across first paint and runtime hydration so collapsed Docker folders and root folders keep surfacing child container updates without regressing the performance budget.
+- Fix: Apply the same host-margin row-centering override to VM folder rows so the VM Application column keeps single-row folder content vertically centered like Docker.
+- Regression guard: Assert the shared folder update-column renderer is used by both folder creation and collapsed runtime refresh, and assert the VM row CSS clears host bottom-margin drift.
+
 
 ###2026.03.30.10
 - Fix: Rebuild collapsed Docker folder update columns from hydrated runtime container data so folder and root-folder rows show `Update ready` when child containers have updates available, even while the branch is collapsed.

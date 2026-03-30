@@ -3190,6 +3190,58 @@ const queueCreateFoldersRender = () => {
         });
 };
 
+const renderFolderUpdateColumn = (id, $updateColumn, managerTypes, upToDate, managed) => {
+    if (!$updateColumn?.length) {
+        return;
+    }
+
+    const hasDockerMan = managerTypes.has('dockerman');
+    const hasCompose = managerTypes.has('composeman');
+    const has3rdParty = [...managerTypes].some((type) => type !== 'dockerman' && type !== 'composeman');
+
+    $updateColumn.empty();
+
+    if (!hasDockerMan && hasCompose && has3rdParty) {
+        $updateColumn.append(
+            $(`<span class="folder-update-text" style="white-space:nowrap;"><i class="fa fa-docker fa-fw"></i> ${$.i18n('compose')}</span><br><span class="folder-update-text" style="white-space:nowrap;"><i class="fa fa-docker fa-fw"></i> ${$.i18n('third-party')}</span>`)
+        );
+        return;
+    }
+
+    if (!hasDockerMan && hasCompose) {
+        $updateColumn.append(
+            $(`<span class="folder-update-text" style="white-space:nowrap;"><i class="fa fa-docker fa-fw"></i> ${$.i18n('compose')}</span>`)
+        );
+        return;
+    }
+
+    if (!hasDockerMan) {
+        $updateColumn.append(
+            $(`<span class="folder-update-text" style="white-space:nowrap;"><i class="fa fa-docker fa-fw"></i> ${$.i18n('third-party')}</span>`)
+        );
+        return;
+    }
+
+    if (!upToDate) {
+        $updateColumn.append(
+            $(`<div class="advanced" style="display: ${advanced ? 'block' : 'none'};"><span class="orange-text folder-update-text" style="white-space:nowrap;"><i class="fa fa-flash fa-fw"></i> ${$.i18n('update-ready')}</span></div>`)
+        );
+        $updateColumn.append(
+            $(`<a class="exec" onclick="updateFolder('${id}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i> ${$.i18n('apply-update')}</span></a>`)
+        );
+        return;
+    }
+
+    $updateColumn.append(
+        $(`<span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i> ${$.i18n('up-to-date')}</span>`)
+    );
+    if (managed > 0) {
+        $updateColumn.append(
+            $(`<div class="advanced" style="display: ${advanced ? 'block' : 'none'};"><a class="exec" onclick="forceUpdateFolder('${id}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i> ${$.i18n('force-update')}</span></a></div>`)
+        );
+    }
+};
+
 /**
  * Handles the creation of one folder
  * @param {object} folder the folder
@@ -4028,37 +4080,8 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
         $(`tr.folder-id-${id} > td.updatecolumn`).next().attr('colspan',6).end().remove();
         if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Handled update_column setting (removed column).`);
     }
-    if(managed === 0) {
-        $(`tr.folder-id-${id} > td.updatecolumn > div.advanced`).remove();
-        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): No managed containers, removed advanced update div.`);
-    }
-
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Setting folder status indicators based on aggregate states. managerTypes:`, Array.from(managerTypes));
-    const hasDockerMan = managerTypes.has('dockerman');
-    const hasCompose = managerTypes.has('composeman');
-    const has3rdParty = [...managerTypes].some(t => t !== 'dockerman' && t !== 'composeman');
-
-    if (!hasDockerMan && hasCompose && has3rdParty) {
-        $(`tr.folder-id-${id} > td.updatecolumn > span`).replaceWith(
-            $(`<span class="folder-update-text" style="white-space:nowrap;"><i class="fa fa-docker fa-fw"></i> ${$.i18n('compose')}</span><br><span class="folder-update-text" style="white-space:nowrap;"><i class="fa fa-docker fa-fw"></i> ${$.i18n('third-party')}</span>`)
-        );
-        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Set stacked 'compose + 3rd party' labels in update column.`);
-    } else if (!hasDockerMan && hasCompose) {
-        $(`tr.folder-id-${id} > td.updatecolumn > span`).replaceWith(
-            $(`<span class="folder-update-text" style="white-space:nowrap;"><i class="fa fa-docker fa-fw"></i> ${$.i18n('compose')}</span>`)
-        );
-        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Set 'compose' label in update column.`);
-    } else if (!hasDockerMan) {
-        $(`tr.folder-id-${id} > td.updatecolumn > span`).replaceWith(
-            $(`<span class="folder-update-text" style="white-space:nowrap;"><i class="fa fa-docker fa-fw"></i> ${$.i18n('third-party')}</span>`)
-        );
-        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Set '3rd party' label in update column.`);
-    } else if (!upToDate) {
-        $(`tr.folder-id-${id} > td.updatecolumn > span`).replaceWith($(`<div class="advanced" style="display: ${advanced ? 'block' : 'none'};"><span class="orange-text folder-update-text" style="white-space:nowrap;"><i class="fa fa-flash fa-fw"></i> ${$.i18n('update-ready')}</span></div>`));
-        $(`tr.folder-id-${id} > td.updatecolumn > div.advanced:has(a)`).remove();
-        $(`tr.folder-id-${id} > td.updatecolumn`).append($(`<a class="exec" onclick="updateFolder('${id}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i> ${$.i18n('apply-update')}</span></a>`));
-        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Set 'update ready' status in update column.`);
-    }
+    renderFolderUpdateColumn(id, $(`tr.folder-id-${id} > td.updatecolumn`), managerTypes, upToDate, managed);
     const total = Object.entries(folder.containers).length;
     if (folderTypePrefs?.hideEmptyFolders === true && total === 0) {
         $(`tr.folder-id-${id}`).remove();
@@ -4301,41 +4324,7 @@ const updateFolderRowStatusFromContainers = (id, folder, runtimeContainers) => {
     }
 
     if ($updateColumn.length && folder?.settings?.update_column !== true) {
-        const hasDockerMan = managerTypes.has('dockerman');
-        const hasCompose = managerTypes.has('composeman');
-        const has3rdParty = [...managerTypes].some((type) => type !== 'dockerman' && type !== 'composeman');
-
-        $updateColumn.empty();
-
-        if (!hasDockerMan && hasCompose && has3rdParty) {
-            $updateColumn.append(
-                $(`<span class="folder-update-text" style="white-space:nowrap;"><i class="fa fa-docker fa-fw"></i> ${$.i18n('compose')}</span><br><span class="folder-update-text" style="white-space:nowrap;"><i class="fa fa-docker fa-fw"></i> ${$.i18n('third-party')}</span>`)
-            );
-        } else if (!hasDockerMan && hasCompose) {
-            $updateColumn.append(
-                $(`<span class="folder-update-text" style="white-space:nowrap;"><i class="fa fa-docker fa-fw"></i> ${$.i18n('compose')}</span>`)
-            );
-        } else if (!hasDockerMan) {
-            $updateColumn.append(
-                $(`<span class="folder-update-text" style="white-space:nowrap;"><i class="fa fa-docker fa-fw"></i> ${$.i18n('third-party')}</span>`)
-            );
-        } else if (!upToDate) {
-            $updateColumn.append(
-                $(`<div class="advanced" style="display: ${advanced ? 'block' : 'none'};"><span class="orange-text folder-update-text" style="white-space:nowrap;"><i class="fa fa-flash fa-fw"></i> ${$.i18n('update-ready')}</span></div>`)
-            );
-            $updateColumn.append(
-                $(`<a class="exec" onclick="updateFolder('${id}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i> ${$.i18n('apply-update')}</span></a>`)
-            );
-        } else {
-            $updateColumn.append(
-                $(`<span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i> ${$.i18n('up-to-date')}</span>`)
-            );
-            if (managed > 0) {
-                $updateColumn.append(
-                    $(`<div class="advanced" style="display: ${advanced ? 'block' : 'none'};"><a class="exec" onclick="forceUpdateFolder('${id}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i> ${$.i18n('force-update')}</span></a></div>`)
-                );
-            }
-        }
+        renderFolderUpdateColumn(id, $updateColumn, managerTypes, upToDate, managed);
     }
 
     const expanded = folder?.status?.expanded === true;

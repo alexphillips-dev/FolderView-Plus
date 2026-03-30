@@ -170,5 +170,7 @@ test('single-row Docker and VM previews stay vertically centered', () => {
     assert.match(runtimeSharedCss, /\.folder-preview-wrapper\s*\{[\s\S]*margin-top:\s*var\(--fvplus-preview-wrapper-margin-top,\s*6px\);[\s\S]*align-items:\s*center;/);
     assert.match(runtimeSharedCss, /\.folder-preview-wrapper > span\.outer\s*\{[\s\S]*display:\s*inline-flex;[\s\S]*align-items:\s*center;/);
     assert.match(dockerCss, /--fvplus-preview-wrapper-margin-top:\s*6px/);
+    assert.match(dockerCss, /td\.ct-name\.folder-name > \.folder-name-sub > \.folder-outer\s*\{[\s\S]*margin-bottom:\s*0 !important/);
     assert.match(vmCss, /--fvplus-preview-wrapper-margin-top:\s*6px/);
+    assert.match(vmCss, /td\.vm-name\.folder-name > \.folder-name-sub > \.folder-outer\s*\{[\s\S]*margin-bottom:\s*0 !important/);
 });

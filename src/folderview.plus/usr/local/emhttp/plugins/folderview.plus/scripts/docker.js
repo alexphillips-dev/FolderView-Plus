@@ -2826,18 +2826,10 @@ const buildDockerWebuiSignature = (source) => {
 
 const buildDockerUpdateSignature = (source) => {
     const map = source && typeof source === 'object' ? source : {};
-    const names = Object.keys(map).sort((a, b) => a.localeCompare(b));
-    if (!names.length) {
-        return '';
-    }
-    return names.map((name) => {
-        const state = map[name]?.info?.State && typeof map[name].info.State === 'object' ? map[name].info.State : {};
-        const manager = String(state.manager || '').trim();
-        const updateToken = typeof state.Updated === 'boolean'
-            ? (state.Updated === false ? 'update-ready' : 'up-to-date')
-            : 'unknown';
-        return `${name}:${manager}:${updateToken}`;
-    }).join('|');
+    return Object.keys(map)
+        .sort((a, b) => a.localeCompare(b))
+        .map((name) => `${name}:${map[name]?.info?.State?.Updated === false ? 'u' : (map[name]?.info?.State?.Updated === true ? 'c' : '?')}`)
+        .join('|');
 };
 
 const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, fullInfoPromise = null) => {

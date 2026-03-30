@@ -241,7 +241,7 @@ td.ct-name.folder-name > .folder-name-sub {
     white-space: nowrap;
     display: inline-flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 6px;
     min-width: 0;
     flex: 0 1 auto;
@@ -259,8 +259,8 @@ td.ct-name.folder-name > .folder-name-sub {
     display: inline-flex;
     flex-direction: column;
     min-width: 0;
-    align-items: center;
-    text-align: center;
+    align-items: flex-start;
+    text-align: left;
 }
 
 .folder-appname {

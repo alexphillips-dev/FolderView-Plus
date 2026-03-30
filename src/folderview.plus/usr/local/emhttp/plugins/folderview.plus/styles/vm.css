@@ -145,7 +145,7 @@ td.vm-name.folder-name > .folder-name-sub {
     position: relative;
     display: inline-flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     flex: 0 1 auto;
     min-width: 0;
     overflow: hidden;
@@ -161,8 +161,8 @@ td.vm-name.folder-name > .folder-name-sub {
     flex-direction: column;
     min-width: 0;
     max-width: 100%;
-    align-items: center;
-    text-align: center;
+    align-items: flex-start;
+    text-align: left;
 }
 
 .folder-appname {

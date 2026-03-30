@@ -127,5 +127,6 @@ test('docker CSS keeps docker-specific layout tokens while shared stylesheet own
 test('docker folder row centering keeps the legacy flex layout but measures real source row height', () => {
     assert.match(dockerCss, /\.folder-name-sub\s*\{[\s\S]*display:\s*flex/);
     assert.match(dockerModulesJs, /sub\.style\.setProperty\('display', 'flex', 'important'\);/);
-    assert.match(dockerModulesJs, /sourceRows\.forEach\(\(row\) => \{[\s\S]*const targetHeight = getRenderedRowHeight\(row\);[\s\S]*applyRowHeight\(row, targetHeight\);[\s\S]*applyFolderCellCentering\(cell, targetHeight\);/);
+    assert.match(dockerModulesJs, /sourceRows\.forEach\(\(row\) => \{[\s\S]*applyRowHeight\(row, 0\);[\s\S]*const targetHeight = getRenderedRowHeight\(row\);[\s\S]*applyFolderCellCentering\(cell, targetHeight\);/);
+    assert.doesNotMatch(dockerModulesJs, /sourceRows\.forEach\(\(row\) => \{[\s\S]*applyRowHeight\(row, targetHeight\);/);
 });

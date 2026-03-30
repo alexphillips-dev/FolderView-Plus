@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.30.05">
-<!ENTITY md5 "9982fcb505dbf8f07bfdb5e08b502d01">
+<!ENTITY version "2026.03.30.06">
+<!ENTITY md5 "3517189a9f1c6c8f529e9703ad014795">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.30.06
+- Fix: Undo the source-row height forcing from the previous build so Docker folder rows no longer balloon vertically or create massive empty spacing in the table.
+- Fix: Center the Docker folder content block by clearing stale forced row heights, measuring the natural rendered row height, and applying that measurement only to the folder name cell centering helper.
+- Regression guard: Assert that Docker source rows keep the legacy flex layout, clear forced row height first, and do not reapply `applyRowHeight(row, targetHeight)` in the source-row centering path.
+
 
 ###2026.03.30.05
 - Fix: Keep the legacy Docker folder row layout intact and center the folder content block by applying the measured rendered row height to real source rows before the centering helper positions `folder-name-sub`.

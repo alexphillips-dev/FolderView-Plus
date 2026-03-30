@@ -166,6 +166,8 @@
             const contextLabel = deps.type === 'docker'
                 ? (deps.contextModeLabels?.[Number(form.context?.value)] || 'Unknown')
                 : 'Not used for VMs';
+            const accentEnabled = isFolderAccentEnabled({ folder_accent_enabled: form.folder_accent_enabled?.checked === true });
+            const accentColor = normalizeHexColor(form.folder_accent_color?.value, deps.defaultFolderAccentColor || '#ffca63');
 
             $('#fvLiveName').text(folderName);
             $('#fvLivePreview').text(previewLabel);

@@ -52,6 +52,7 @@ test('modern and legacy folder editors persist accent color settings end to end'
     assert.match(folderJs, /id="fvAccentSwatchItem" class="fv-swatch-item" style="display:none;"><em>Accent<\/em><i id="fvSwatchAccent"><\/i><\/span>/);
     assert.match(folderPreviewJs, /\$\('#fvSwatchAccent'\)\.css\('background-color', accentColor\);/);
     assert.match(folderPreviewJs, /\$\('#fvAccentSwatchItem'\)\.toggle\(accentEnabled\);/);
+    assert.match(folderPreviewJs, /const updateLiveSummary = \(\) => \{[\s\S]*const accentEnabled = isFolderAccentEnabled\(\{ folder_accent_enabled: form\.folder_accent_enabled\?\.checked === true \}\);[\s\S]*const accentColor = normalizeHexColor\(form\.folder_accent_color\?\.value,\s*deps\.defaultFolderAccentColor \|\| '#ffca63'\);[\s\S]*\$\('#fvSwatchAccent'\)\.css\('background-color', accentColor\);[\s\S]*\$\('#fvAccentSwatchItem'\)\.toggle\(accentEnabled\);/);
     assert.match(folderJs, /defaultFolderAccentColor: DEFAULT_FOLDER_ACCENT_COLOR/);
     assert.match(folderJs, /setFieldChecked\('folder_accent_enabled', isFolderAccentEnabled\(normalizedFolder\.settings \|\| \{\}\)\);/);
     assert.match(folderJs, /setFieldValue\('folder_accent_color', normalizeHexColor\(normalizedFolder\.settings\.folder_accent_color, DEFAULT_FOLDER_ACCENT_COLOR\)\);/);

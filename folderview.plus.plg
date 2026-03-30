@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.30.08">
-<!ENTITY md5 "7f6f9332a444baacd0e8ecba69ebf1c9">
+<!ENTITY version "2026.03.30.09">
+<!ENTITY md5 "4d43c573fee46a6d3402a5bc13729263">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.30.09
+- Fix: Restore the modern folder editor bootstrap after the new accent preview swatch change by defining `accentEnabled` and `accentColor` inside `updateLiveSummary()` before that code touches the live preview chips.
+- Fix: Keep the new accent swatch in the editor live preview insights without crashing hydration when the modern editor loads.
+- Regression guard: Assert that `folder.editor.preview.js` computes the accent values inside `updateLiveSummary()` before updating `#fvSwatchAccent` and `#fvAccentSwatchItem`.
+
 
 ###2026.03.30.08
 - UX: Move the modern folder editor accent color picker into the main `Accent color` card so the toggle and bar color stay together instead of appearing as separate settings blocks.

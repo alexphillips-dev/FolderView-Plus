@@ -862,6 +862,19 @@ test('orderFoldersByPrefs keeps pinned folders at top', () => {
     assert.deepEqual(Object.keys(ordered), ['three', 'one', 'two']);
 });
 
+test('orderFoldersByPrefs promotes a pinned nested child by moving its root branch', () => {
+    const folders = {
+        rootB: { name: 'Beta Root' },
+        rootA: { name: 'Alpha Root' },
+        childA: { name: 'Alpha Child', parentId: 'rootA' }
+    };
+    const ordered = utils.orderFoldersByPrefs(folders, {
+        sortMode: 'created',
+        pinnedFolderIds: ['childA']
+    });
+    assert.deepEqual(Object.keys(ordered), ['rootA', 'childA', 'rootB']);
+});
+
 test('getEffectiveFolderMembers combines manual regex rule and legacy label matches', () => {
     const members = utils.getEffectiveFolderMembers({
         type: 'docker',

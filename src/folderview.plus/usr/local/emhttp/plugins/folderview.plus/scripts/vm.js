@@ -775,6 +775,26 @@ const applyVmPinnedFolderIds = (nextPinnedIds) => {
     });
     vmRuntimeStateStore.set({ pinnedFolderIds: Array.isArray(nextPinnedIds) ? [...nextPinnedIds] : [] });
 };
+const persistVmPinnedFolderIds = async (nextPinnedIds) => {
+    const payload = {
+        type: 'vm',
+        prefs: JSON.stringify({ pinnedFolderIds: nextPinnedIds })
+    };
+    const request = window.FolderViewPlusRequest;
+    if (request && typeof request.postJson === 'function') {
+        try {
+            return await request.postJson('/plugins/folderview.plus/server/prefs.php', payload, {
+                retries: 1,
+                retryDelayMs: 260
+            });
+        } catch (_error) {
+            // Fall through to the legacy POST path so pinning still works if the
+            // runtime request wrapper is late, degraded, or temporarily broken.
+        }
+    }
+    const response = await $.post('/plugins/folderview.plus/server/prefs.php', payload).promise();
+    return parseJsonPayloadSafe(response);
+};
 const toggleVmFolderPin = async (folderId) => {
     const id = String(folderId || '').trim();
     if (!id || !globalFolders[id]) {
@@ -787,19 +807,8 @@ const toggleVmFolderPin = async (folderId) => {
             : [...current, id];
         applyVmPinnedFolderIds(nextPinned);
         refreshVmFolderQuickActionStates();
-        const request = window.FolderViewPlusRequest;
-        if (!request || typeof request.postJson !== 'function') {
-            queueLoadlistRefresh();
-            return;
-        }
         const result = await runVmGuardedAction('toggle-folder-pin', async () => {
-            const response = await request.postJson('/plugins/folderview.plus/server/prefs.php', {
-                type: 'vm',
-                prefs: JSON.stringify({ pinnedFolderIds: nextPinned })
-            }, {
-                retries: 1,
-                retryDelayMs: 260
-            });
+            const response = await persistVmPinnedFolderIds(nextPinned);
             applyVmPinnedFolderIds(Array.isArray(response?.prefs?.pinnedFolderIds) ? response.prefs.pinnedFolderIds : nextPinned);
             queueLoadlistRefresh();
         }, {

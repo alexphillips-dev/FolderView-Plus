@@ -2025,6 +2025,26 @@ const applyDockerPinnedFolderIds = (nextPinnedIds) => {
     });
     dockerRuntimeStateStore.set({ pinnedFolderIds: Array.isArray(nextPinnedIds) ? [...nextPinnedIds] : [] });
 };
+const persistDockerPinnedFolderIds = async (nextPinnedIds) => {
+    const payload = {
+        type: 'docker',
+        prefs: JSON.stringify({ pinnedFolderIds: nextPinnedIds })
+    };
+    const request = window.FolderViewPlusRequest;
+    if (request && typeof request.postJson === 'function') {
+        try {
+            return await request.postJson('/plugins/folderview.plus/server/prefs.php', payload, {
+                retries: 1,
+                retryDelayMs: 260
+            });
+        } catch (_error) {
+            // Fall through to the legacy POST path so pinning still works if the
+            // runtime request wrapper is late, degraded, or temporarily broken.
+        }
+    }
+    const response = await $.post('/plugins/folderview.plus/server/prefs.php', payload).promise();
+    return parseJsonPayloadSafe(response);
+};
 const toggleDockerFolderPin = async (folderId) => {
     const id = String(folderId || '').trim();
     if (!id || !globalFolders[id]) {
@@ -2037,19 +2057,8 @@ const toggleDockerFolderPin = async (folderId) => {
             : [...current, id];
         applyDockerPinnedFolderIds(nextPinned);
         refreshDockerFolderQuickActionStates();
-        const request = window.FolderViewPlusRequest;
-        if (!request || typeof request.postJson !== 'function') {
-            queueLoadlistRefresh();
-            return;
-        }
         const result = await runDockerGuardedAction('toggle-folder-pin', async () => {
-            const response = await request.postJson('/plugins/folderview.plus/server/prefs.php', {
-                type: 'docker',
-                prefs: JSON.stringify({ pinnedFolderIds: nextPinned })
-            }, {
-                retries: 1,
-                retryDelayMs: 260
-            });
+            const response = await persistDockerPinnedFolderIds(nextPinned);
             applyDockerPinnedFolderIds(Array.isArray(response?.prefs?.pinnedFolderIds) ? response.prefs.pinnedFolderIds : nextPinned);
             queueLoadlistRefresh();
         }, {

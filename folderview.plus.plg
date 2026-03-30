@@ -6,12 +6,25 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.29.13">
-<!ENTITY md5 "3823ae3651dbae4395f304b29c7c149f">
+<!ENTITY version "2026.03.29.15">
+<!ENTITY md5 "1d9b5c559559f2bd9f523f1b90147aa4">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.29.15
+- Fix: Make nested folder pinning move the visible branch root to the top so pinning from the runtime folder action menu no longer appears to do nothing.
+- Fix: Add a legacy prefs POST fallback for Docker and VM folder pin saves so pinning still persists if the runtime request wrapper is degraded or loads late.
+- Regression guard: Cover nested pinned branch ordering plus the runtime pin-save fallback contract.
+
+###2026.03.29.14
+- Fix: Fix release notes guard tmp creation in CI.
+- Feature: Add Docker branch folder deletion and clone regression tests.
+- Fix: Fix Docker branch submenu hover and add branch cloning.
+- Fix: Fix folder editor asset boot includes.
+- Fix: Fix nested preview quick actions.
+- Fix: Fix Docker folder order persistence.
 
 ###2026.03.29.13
 - Fix: Create the release-notes consistency guard tmp directory before `mktemp` so Release On Main, back-merge, and CI guard lanes succeed on fresh GitHub Actions checkouts.

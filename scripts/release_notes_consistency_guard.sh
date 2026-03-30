@@ -9,6 +9,7 @@ cd "${ROOT_DIR}"
 fvplus::require_commands bash node awk sed mktemp grep
 
 VERSION="$(fvplus::read_plg_version "${ROOT_DIR}/folderview.plus.plg")"
+mkdir -p "${ROOT_DIR}/tmp"
 TMP_DIR="$(mktemp -d "${ROOT_DIR}/tmp/release-notes-guard.XXXXXX")"
 trap 'rm -rf "${TMP_DIR}"' EXIT
 OUTPUT_FILE="${TMP_DIR}/release_notes.md"

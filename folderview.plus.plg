@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.29.11">
+<!ENTITY version "2026.03.29.13">
 <!ENTITY md5 "3823ae3651dbae4395f304b29c7c149f">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.29.13
+- Fix: Create the release-notes consistency guard tmp directory before `mktemp` so Release On Main, back-merge, and CI guard lanes succeed on fresh GitHub Actions checkouts.
+- Regression guard: Add versioning coverage that requires the release-notes consistency guard to create `tmp/release-notes-guard.*` work directories safely.
+
 
 ###2026.03.29.11
 - Feature: Add `Delete branch folders` under Docker branch actions to remove a root folder and every nested child folder in that branch.

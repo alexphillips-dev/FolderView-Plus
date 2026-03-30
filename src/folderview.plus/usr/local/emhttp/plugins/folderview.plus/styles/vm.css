@@ -94,25 +94,6 @@ body.fvplus-performance-mode .hover div.folder-preview div:not(.folder-preview-r
     box-sizing: border-box;
 }
 
-#kvm_list td.vm-name:not(.folder-name) {
-    vertical-align: middle !important;
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-}
-
-#kvm_list td.vm-name:not(.folder-name) > span.outer {
-    display: inline-flex;
-    align-items: center;
-    min-height: calc(var(--fvplus-preview-row-height, 3.5em) - 0.9em);
-}
-
-#kvm_list td.vm-name:not(.folder-name) > span.outer > span.inner {
-    display: inline-flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: flex-start;
-}
-
 td.vm-name.folder-name {
     position: relative;
     display: table-cell;
@@ -122,10 +103,10 @@ td.vm-name.folder-name {
 }
 
 .folder-name-sub {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    display: flex;
     position: relative;
     align-items: center;
+    justify-content: flex-start;
     overflow: hidden;
     gap: 4px;
     box-sizing: border-box;
@@ -144,35 +125,18 @@ td.vm-name.folder-name > .folder-name-sub {
     box-sizing: border-box;
 }
 
-.folder-name-sub > .mover {
-    grid-column: 1;
-    justify-self: start;
-}
-
-.folder-name-sub > .folder-outer {
-    grid-column: 2;
-    justify-self: center;
-}
-
-.folder-name-sub > .folder-dropdown {
-    grid-column: 3;
-    justify-self: end;
-    margin: 0 !important;
-}
-
 .folder-outer {
     position: relative;
     display: inline-flex;
     align-items: center;
-    justify-content: flex-start;
-    flex: 0 1 auto;
+    flex: 1 1 auto;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     width: auto;
-    margin: 0 auto;
     max-width: calc(var(--fvplus-vm-app-column-width) - var(--fvplus-vm-folder-outer-reserved-width, 88px));
+    padding-right: var(--fvplus-vm-folder-right-gutter, 18px);
 }
 
 .folder-inner {
@@ -181,7 +145,6 @@ td.vm-name.folder-name > .folder-name-sub {
     min-width: 0;
     max-width: 100%;
     align-items: flex-start;
-    text-align: left;
 }
 
 .folder-appname {

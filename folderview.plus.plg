@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.30.03">
-<!ENTITY md5 "a7ce28f1d7ae4391560f3344d1d3e240">
+<!ENTITY version "2026.03.30.04">
+<!ENTITY md5 "706212a79cfe759b4544468b5d0b5a28">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.30.04
+- Fix: Revert the Docker and VM Application-column layout experiment and restore the pre-`2026.03.29.26` folder row structure after the centering changes caused row distortion and column misalignment.
+- Fix: Restore the original Docker folder row centering helper contract in `docker.modules.js`, including the pre-existing CSS gutter pairing for the folder dropdown side.
+- Regression guard: Remove the Application-column centering regression test that only covered the reverted experiment and keep the shared Docker layout contract aligned with the restored CSS.
+
 
 ###2026.03.30.03
 - Fix: Use the measured visible folder-row height when applying the original Docker `folder-name-sub` centering helper instead of resetting source rows to `0`, so the folder icon, name, and started or stopped status center vertically in the row.

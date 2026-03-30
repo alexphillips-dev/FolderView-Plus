@@ -14,9 +14,9 @@
     <CHANGES>
 
 ###2026.03.29.21
-- Fix: Stop the Docker tab from showing a second FolderView Plus loading cycle on top of Unraid's own host refresh.
-- Fix: Force Docker runtime info reads through explicit `nocache=1` URLs so folder state and WebUI metadata stay fresh without another visible runtime reload.
-- Regression guard: Cover host-owned Docker loading UI suppression plus the no-cache runtime info request path.
+- Fix: Let Unraid own the visible Docker tab load cycle by suppressing the extra FolderView Plus loading shell during host-driven refreshes.
+- Fix: Route Docker runtime info fetches through a compact shared no-cache helper so fresh state stays in sync without tripping the Docker script perf budget.
+- Regression guard: Update runtime refresh coverage for helper-based no-cache URLs and host-owned Docker loading UI suppression.
 
 
 ###2026.03.29.20

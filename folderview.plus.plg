@@ -6,12 +6,24 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.30.12">
-<!ENTITY md5 "97f452c3ba9c0c53d75cfb92851996b3">
+<!ENTITY version "2026.03.30.14">
+<!ENTITY md5 "766b427c8533a5b5f933580934268b4f">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.30.14
+- Fix: Preserve Docker `State.Updated` from the hydrated full runtime payload so folder member rows and folder/root-folder summaries stop getting stuck on `up-to-date` while those containers actually have updates available.
+- Fix: Keep lightweight `mode=state` refreshes cheap while still carrying forward the most recent known update state instead of dropping it during Docker runtime info merges.
+- Regression guard: Assert the Docker runtime info merge prefers `source.info.State.Updated` from the full payload and only falls back to the previous cached value when the lightweight state payload omits it.
+
+
+###2026.03.30.13
+- Fix: Preserve Docker `State.Updated` from the hydrated full runtime payload so folder member rows and folder/root-folder summaries stop getting stuck on `up-to-date` when those containers actually have updates available.
+- Fix: Keep lightweight `mode=state` refreshes cheap while still carrying forward the most recent known update state instead of dropping it back to `null` during runtime merges.
+- Regression guard: Assert the Docker runtime info merge prefers `source.info.State.Updated` from the full payload and only falls back to the previous cached value when the lightweight state payload omits it.
+
 
 ###2026.03.30.12
 - Fix: Restore the Docker page after the collapsed update-summary refactor by resolving advanced-list mode inside the shared folder update-column renderer instead of referencing an out-of-scope runtime variable during bootstrap.

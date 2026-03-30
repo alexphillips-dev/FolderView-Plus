@@ -514,7 +514,7 @@ const buildDockerRuntimeInfoRenderEntry = (name, entry = {}, previousEntry = nul
             Paused: paused,
             Status: String(source.status || previousState.Status || '').trim(),
             Autostart: source.autostart === true,
-            Updated: (typeof previousState.Updated === 'boolean') ? previousState.Updated : null,
+            Updated: sourceState.Updated ?? previousState.Updated ?? null,
             manager,
             WebUi: resolvedWebUi,
             TSWebUi: resolvedTsWebUi

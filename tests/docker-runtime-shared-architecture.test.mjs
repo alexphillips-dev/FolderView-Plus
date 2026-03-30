@@ -9,6 +9,7 @@ const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath)
 const dockerPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Docker.page');
 const folderContractJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
 const dockerSharedJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js');
+const dockerModulesJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.modules.js');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 const dockerCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css');
 const runtimeSharedCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/runtime.shared.css');
@@ -121,4 +122,10 @@ test('docker CSS keeps docker-specific layout tokens while shared stylesheet own
     assert.match(runtimeSharedCss, /\.folder-dropdown:hover,\s*[\s\S]*visibility:\s*visible !important/);
     assert.match(runtimeSharedCss, /\.folder-dropdown:hover > i,\s*[\s\S]*opacity:\s*1 !important/);
     assert.match(dockerCss, /border-right:\s*var\(--fvplus-preview-divider-width,\s*1px\) solid/);
+});
+
+test('docker folder row centering keeps the legacy flex layout but measures real source row height', () => {
+    assert.match(dockerCss, /\.folder-name-sub\s*\{[\s\S]*display:\s*flex/);
+    assert.match(dockerModulesJs, /sub\.style\.setProperty\('display', 'flex', 'important'\);/);
+    assert.match(dockerModulesJs, /sourceRows\.forEach\(\(row\) => \{[\s\S]*const targetHeight = getRenderedRowHeight\(row\);[\s\S]*applyRowHeight\(row, targetHeight\);[\s\S]*applyFolderCellCentering\(cell, targetHeight\);/);
 });

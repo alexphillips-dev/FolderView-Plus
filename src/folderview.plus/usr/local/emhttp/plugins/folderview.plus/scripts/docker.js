@@ -3964,16 +3964,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
             const previewWebuiUrl = getSafeWebuiUrl(newFolder[container_name_in_folder]?.webui || ct.info.State.WebUi || ct.info.State.TSWebUi || '');
             if (folder.settings.preview_webui && previewWebuiUrl) {
                 if ($targetForAppend.length) {
-                    const $previewWebuiLink = $('<a></a>')
-                        .attr('href', previewWebuiUrl)
-                        .attr('target', '_blank')
-                        .attr('rel', WEBUI_LINK_REL)
-                        .append('<i class="fa fa-globe" aria-hidden="true"></i>')
-                        .on('click', (event) => {
-                            event.preventDefault();
-                            openWebuiInNewTab(previewWebuiUrl);
-                        });
-                    $targetForAppend.append($('<span class="folder-element-custom-btn folder-element-webui"></span>').append($previewWebuiLink));
+                    $targetForAppend.append(buildDockerPreviewWebuiButton(previewWebuiUrl));
                     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Appended WebUI icon to preview.`);
                 } else {
                      if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: WebUI icon: Could not find target for append in preview element.`);
@@ -3984,7 +3975,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
 
             if (folder.settings.preview_console) {
                 if ($targetForAppend.length) {
-                    $targetForAppend.append($(`<span class="folder-element-custom-btn folder-element-console"><a href="#" onclick="event.preventDefault(); openTerminal('docker', '${ct.info.Name}', '${ct.info.Shell}');"><i class="fa fa-terminal" aria-hidden="true"></i></a></span>`));
+                    $targetForAppend.append(buildDockerPreviewConsoleButton(ct.info.Name, ct.info.Shell));
                     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Appended Console icon to preview.`);
                 } else {
                      if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Console icon: Could not find target for append in preview element.`);
@@ -3993,8 +3984,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
 
             if (folder.settings.preview_logs) {
                 if ($targetForAppend.length) {
-                    // Use ct.info.Name for consistency, as 'container_name_in_folder' is the same.
-                    $targetForAppend.append($(`<span class="folder-element-custom-btn folder-element-logs"><a href="#" onclick="event.preventDefault(); openTerminal('docker', '${ct.info.Name}', '.log');"><i class="fa fa-bars" aria-hidden="true"></i></a></span>`));
+                    $targetForAppend.append(buildDockerPreviewLogsButton(ct.info.Name));
                     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Appended Logs icon to preview.`);
                 } else {
                     if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Logs icon: Could not find target for append in preview element.`);
@@ -4366,38 +4356,17 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
         const webuiUrl = getSafeWebuiUrl(entry?.webui);
 
         if (allowWebuiQuickAction && webuiUrl) {
-            const $webuiLink = $('<a></a>')
-                .attr('href', webuiUrl)
-                .attr('target', '_blank')
-                .attr('rel', WEBUI_LINK_REL)
-                .append('<i class="fa fa-globe" aria-hidden="true"></i>')
-                .on('click', (event) => {
-                    event.preventDefault();
-                    openWebuiInNewTab(webuiUrl);
-                });
-            $actionsTarget.append($('<span class="folder-element-custom-btn folder-element-webui"></span>').append($webuiLink));
+            $actionsTarget.append(buildDockerPreviewWebuiButton(webuiUrl));
         } else if (shouldRenderPreviewWebuiPlaceholder(folder?.settings || {}, allowWebuiQuickAction)) {
             appendPreviewWebuiPlaceholder($actionsTarget);
         }
 
         if (allowConsoleQuickAction) {
-            const $consoleLink = $('<a href="#"></a>')
-                .append('<i class="fa fa-terminal" aria-hidden="true"></i>')
-                .on('click', (event) => {
-                    event.preventDefault();
-                    openTerminal('docker', containerName, shellValue);
-                });
-            $actionsTarget.append($('<span class="folder-element-custom-btn folder-element-console"></span>').append($consoleLink));
+            $actionsTarget.append(buildDockerPreviewConsoleButton(containerName, shellValue));
         }
 
         if (allowLogsQuickAction) {
-            const $logsLink = $('<a href="#"></a>')
-                .append('<i class="fa fa-bars" aria-hidden="true"></i>')
-                .on('click', (event) => {
-                    event.preventDefault();
-                    openTerminal('docker', containerName, '.log');
-                });
-            $actionsTarget.append($('<span class="folder-element-custom-btn folder-element-logs"></span>').append($logsLink));
+            $actionsTarget.append(buildDockerPreviewLogsButton(containerName));
         }
         decorateDockerPreviewMemberTriggers(
             item.find('span.hand, span.inner > span.appname, span.inner > span.appname > a, span.inner > i.fa, span.inner > span.state'),

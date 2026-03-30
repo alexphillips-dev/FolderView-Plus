@@ -111,7 +111,7 @@ test('runtime refresh uses lightweight state mode checks before re-rendering', (
     assert.match(dockerJs, /read_info\.php\?type=docker&mode=state/);
     assert.match(vmJs, /read_info\.php\?type=vm&mode=state/);
     assert.match(dashboardJs, /read_info\.php\?type=\$\{type\}&mode=state/);
-    assert.match(dockerJs, /queueLoadlistRefresh/);
+    assert.match(dockerJs, /const queueLoadlistRefresh = \(options = \{\}\) =>/);
     assert.match(vmJs, /queueLoadlistRefresh/);
     assert.match(dashboardJs, /queueLoadlistRefresh/);
     assert.match(dockerJs, /LOADLIST_REFRESH_MIN_GAP_MS/);
@@ -125,8 +125,10 @@ test('runtime refresh uses lightweight state mode checks before re-rendering', (
     assert.match(dashboardJs, /const queueCreateFoldersRender = \(\) =>/);
     assert.match(dockerJs, /const readDockerHostOrderFromDom = \(\) =>/);
     assert.match(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoPromise = null\) =>/);
+    assert.match(dockerJs, /const shouldSuppressDockerRuntimeLoadingUi = \(\) => nextDockerRenderSuppressLoadingUi \|\| activeDockerRenderSuppressLoadingUi;/);
     assert.match(dockerJs, /const buildDockerWebuiSignature = \(source\) =>/);
     assert.match(dockerJs, /if \(previousWebuiSignature !== nextWebuiSignature\) \{/);
+    assert.match(dockerJs, /queueLoadlistRefresh\(\{\s*suppressLoadingUi:\s*true\s*\}\);/);
     assert.match(dockerJs, /const yieldDockerRenderLoop = async \(processedCount,\s*totalCount\) =>/);
     assert.match(dockerJs, /render:\s*\[[\s\S]*read_info\.php\?type=docker&mode=state/);
     assert.match(dockerJs, /fullInfo:\s*createDockerRuntimeRequest\('\/plugins\/folderview\.plus\/server\/read_info\.php\?type=docker'/);

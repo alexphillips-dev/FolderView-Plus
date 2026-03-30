@@ -1919,6 +1919,13 @@ const isDockerFolderPinned = (folderId) => {
     const pinned = Array.isArray(folderTypePrefs?.pinnedFolderIds) ? folderTypePrefs.pinnedFolderIds : [];
     return pinned.includes(id);
 };
+const readFolderIdFromRow = (row) => {
+    if (!row || !row.className) {
+        return '';
+    }
+    const match = String(row.className).match(/\bfolder-id-([A-Za-z0-9_-]+)\b/);
+    return match && match[1] ? String(match[1] || '').trim() : '';
+};
 const readFolderOwnerFromRow = (row) => {
     if (!row || !row.className) {
         return '';
@@ -1958,6 +1965,140 @@ const applyDockerFolderQuickActionState = (folderId) => {
 const refreshDockerFolderQuickActionStates = () => {
     for (const id of Object.keys(globalFolders || {})) {
         applyDockerFolderQuickActionState(id);
+    }
+};
+const refreshDockerRuntimeSortableRows = () => {
+    const $dockerList = $('#docker_list');
+    if ($dockerList.length && typeof $dockerList.sortable === 'function') {
+        const sortableInstance = $dockerList.data('ui-sortable') || $dockerList.data('sortable');
+        if (sortableInstance) {
+            $dockerList.sortable('refresh');
+        }
+    }
+};
+const reorderVisibleDockerRootFolderBlocks = () => {
+    const tbody = document.querySelector('tbody#docker_list') || document.querySelector('tbody#docker_view');
+    if (!(tbody instanceof HTMLElement)) {
+        return false;
+    }
+    const folders = globalFolders && typeof globalFolders === 'object' ? globalFolders : {};
+    const folderIds = Object.keys(folders);
+    if (folderIds.length < 2) {
+        return false;
+    }
+    const hierarchy = buildFolderHierarchy(folders);
+    const parentById = hierarchy?.parentById || {};
+    const childrenById = hierarchy?.childrenById || {};
+    const collectDescendants = (rootId) => {
+        const descendants = [];
+        const queue = Array.isArray(childrenById[rootId]) ? [...childrenById[rootId]] : [];
+        const seen = new Set();
+        while (queue.length) {
+            const current = queue.shift();
+            if (!current || seen.has(current)) {
+                continue;
+            }
+            seen.add(current);
+            descendants.push(current);
+            const children = Array.isArray(childrenById[current]) ? childrenById[current] : [];
+            queue.push(...children);
+        }
+        return descendants;
+    };
+    const desiredRootIds = Object.keys(getPrefsOrderedFolderMap(folders, folderTypePrefs))
+        .filter((id) => !String(parentById[id] || '').trim());
+    if (desiredRootIds.length < 2) {
+        return false;
+    }
+    const rows = Array.from(tbody.children).filter((row) => row instanceof HTMLElement && row.tagName === 'TR');
+    if (!rows.length) {
+        return false;
+    }
+    const segments = [];
+    for (let index = 0; index < rows.length;) {
+        const row = rows[index];
+        const folderId = readFolderIdFromRow(row);
+        const parentId = folderId ? String(parentById[folderId] || '').trim() : '';
+        if (folderId && !parentId) {
+            const branchSet = new Set([folderId, ...collectDescendants(folderId)]);
+            const blockRows = [row];
+            index++;
+            while (index < rows.length) {
+                const nextRow = rows[index];
+                const nextFolderId = readFolderIdFromRow(nextRow);
+                if (nextFolderId) {
+                    const nextParentId = String(parentById[nextFolderId] || '').trim();
+                    if (!nextParentId || !branchSet.has(nextFolderId)) {
+                        break;
+                    }
+                    blockRows.push(nextRow);
+                    index++;
+                    continue;
+                }
+                const ownerId = readFolderOwnerFromRow(nextRow);
+                if (!ownerId || !branchSet.has(ownerId)) {
+                    break;
+                }
+                blockRows.push(nextRow);
+                index++;
+            }
+            segments.push({
+                kind: 'root-folder-block',
+                rootId: folderId,
+                rows: blockRows
+            });
+            continue;
+        }
+        segments.push({
+            kind: 'passthrough',
+            rows: [row]
+        });
+        index++;
+    }
+    const currentRootIds = segments
+        .filter((segment) => segment.kind === 'root-folder-block')
+        .map((segment) => segment.rootId);
+    if (currentRootIds.length < 2) {
+        return false;
+    }
+    const rootBlocksById = new Map(
+        segments
+            .filter((segment) => segment.kind === 'root-folder-block')
+            .map((segment) => [segment.rootId, segment])
+    );
+    const orderedRootBlocks = desiredRootIds
+        .map((id) => rootBlocksById.get(id))
+        .filter(Boolean);
+    if (orderedRootBlocks.length !== currentRootIds.length) {
+        return false;
+    }
+    const currentSignature = currentRootIds.join('|');
+    const desiredSignature = orderedRootBlocks.map((segment) => segment.rootId).join('|');
+    if (currentSignature === desiredSignature) {
+        return false;
+    }
+    const fragment = document.createDocumentFragment();
+    let orderedRootIndex = 0;
+    segments.forEach((segment) => {
+        const rowsToAppend = segment.kind === 'root-folder-block'
+            ? (orderedRootBlocks[orderedRootIndex++] || segment).rows
+            : segment.rows;
+        rowsToAppend.forEach((rowNode) => fragment.appendChild(rowNode));
+    });
+    tbody.appendChild(fragment);
+    refreshDockerRuntimeSortableRows();
+    queueDockerRuntimeResizerBind();
+    scheduleDockerRuntimeWidthReflow('pin-toggle', 24);
+    return true;
+};
+const syncDockerPinnedFolderUi = () => {
+    const reordered = reorderVisibleDockerRootFolderBlocks();
+    refreshDockerFolderQuickActionStates();
+    applyDockerFocusedFolderState();
+    if (!reordered) {
+        refreshDockerRuntimeSortableRows();
+        queueDockerRuntimeResizerBind();
+        scheduleDockerRuntimeWidthReflow('pin-toggle', 24);
     }
 };
 const applyDockerFocusedFolderState = () => {
@@ -2056,18 +2197,19 @@ const toggleDockerFolderPin = async (folderId) => {
             ? current.filter((entry) => entry !== id)
             : [...current, id];
         applyDockerPinnedFolderIds(nextPinned);
-        refreshDockerFolderQuickActionStates();
+        syncDockerPinnedFolderUi();
         const result = await runDockerGuardedAction('toggle-folder-pin', async () => {
             const response = await persistDockerPinnedFolderIds(nextPinned);
             applyDockerPinnedFolderIds(Array.isArray(response?.prefs?.pinnedFolderIds) ? response.prefs.pinnedFolderIds : nextPinned);
-            queueLoadlistRefresh();
+            syncDockerPinnedFolderUi();
+            queueLoadlistRefresh({ suppressLoadingUi: true });
         }, {
             userMessage: getDockerMenuLabel('folder-pin-failed', 'Failed to update pinned folders.'),
             userVisible: false
         });
         if (!result.ok) {
             applyDockerPinnedFolderIds(current);
-            refreshDockerFolderQuickActionStates();
+            syncDockerPinnedFolderUi();
         }
     });
 };
@@ -2574,6 +2716,9 @@ if (FOLDER_VIEW_TOUCH_MODE) {
 }
 
 const showDockerRuntimeLoadingRow = () => {
+    if (shouldSuppressDockerRuntimeLoadingUi()) {
+        return;
+    }
     const tbody = $('tbody#docker_list');
     if (!tbody.length || tbody.find('tr.fv-runtime-loading-row').length) {
         return;
@@ -2604,6 +2749,9 @@ const ensureDockerRuntimeLoadingOverlay = () => {
 };
 
 const showDockerRuntimeLoadingOverlay = () => {
+    if (shouldSuppressDockerRuntimeLoadingUi()) {
+        return;
+    }
     const overlay = ensureDockerRuntimeLoadingOverlay();
     if (!overlay) {
         return;
@@ -2703,7 +2851,7 @@ const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, ful
             markDockerFatalBannerStep('Docker runtime details hydrated');
             recordDockerFatalBannerAction('Docker runtime details hydrated');
             if (previousWebuiSignature !== nextWebuiSignature) {
-                queueLoadlistRefresh();
+                queueLoadlistRefresh({ suppressLoadingUi: true });
                 return;
             }
             syncDockerVisibleFoldersFromRuntimeCache();
@@ -2724,6 +2872,8 @@ const createFolders = async () => {
     ensureDockerExpandedStateLifecycleHooks();
     markDockerFatalBannerStep('Docker runtime lifecycle hooks ready');
     persistDockerExpandedStateFromDom();
+    activeDockerRenderSuppressLoadingUi = nextDockerRenderSuppressLoadingUi;
+    nextDockerRenderSuppressLoadingUi = false;
     showDockerRuntimeLoadingOverlay();
     showDockerRuntimeLoadingRow();
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] createFolders: Entry');
@@ -3000,6 +3150,7 @@ const createFolders = async () => {
     });
     throw error;
     } finally {
+    activeDockerRenderSuppressLoadingUi = false;
     hideDockerRuntimeLoadingOverlay();
     hideDockerRuntimeLoadingRow();
     dockerPerf.end('createFolders.total', {
@@ -5889,9 +6040,12 @@ let liveRefreshTimer = null;
 let liveRefreshMs = 0;
 let liveRefreshInFlight = false;
 let queuedLoadlistTimer = null;
+let queuedLoadlistOptions = null;
 let queuedLoadlistRequestedAt = 0;
 let lastLiveRefreshStateSignature = '';
 let dockerBootstrapGeneration = 0;
+let nextDockerRenderSuppressLoadingUi = false;
+let activeDockerRenderSuppressLoadingUi = false;
 const LOADLIST_REFRESH_DEBOUNCE_MS = 90;
 const LOADLIST_REFRESH_MIN_GAP_MS = 420;
 const PERFORMANCE_MODE_MIN_REFRESH_SECONDS = 20;
@@ -5910,10 +6064,20 @@ const resolveDockerStrictPerformanceProfile = (prefs, folders, containersInfo) =
     return dockerRuntimePerformanceProfile;
 };
 
-const queueLoadlistRefresh = () => {
+const shouldSuppressDockerRuntimeLoadingUi = () => nextDockerRenderSuppressLoadingUi || activeDockerRenderSuppressLoadingUi;
+const queueLoadlistRefresh = (options = {}) => {
+    const normalizedOptions = {
+        suppressLoadingUi: options?.suppressLoadingUi === true
+    };
     if (queuedLoadlistTimer) {
+        queuedLoadlistOptions = queuedLoadlistOptions && typeof queuedLoadlistOptions === 'object'
+            ? {
+                suppressLoadingUi: queuedLoadlistOptions.suppressLoadingUi === true && normalizedOptions.suppressLoadingUi === true
+            }
+            : normalizedOptions;
         return;
     }
+    queuedLoadlistOptions = normalizedOptions;
     const now = Date.now();
     const elapsed = now - queuedLoadlistRequestedAt;
     const minGapWait = elapsed >= LOADLIST_REFRESH_MIN_GAP_MS
@@ -5921,8 +6085,13 @@ const queueLoadlistRefresh = () => {
         : (LOADLIST_REFRESH_MIN_GAP_MS - elapsed);
     const delayMs = Math.max(LOADLIST_REFRESH_DEBOUNCE_MS, minGapWait);
     queuedLoadlistTimer = setTimeout(() => {
+        const refreshOptions = queuedLoadlistOptions && typeof queuedLoadlistOptions === 'object'
+            ? queuedLoadlistOptions
+            : { suppressLoadingUi: false };
         queuedLoadlistTimer = null;
+        queuedLoadlistOptions = null;
         queuedLoadlistRequestedAt = Date.now();
+        nextDockerRenderSuppressLoadingUi = refreshOptions.suppressLoadingUi === true;
         loadlist();
     }, delayMs);
 };

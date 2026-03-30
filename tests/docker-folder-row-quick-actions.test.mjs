@@ -26,6 +26,14 @@ test('docker context menu keeps focus/pin/lock quick actions at the top', () => 
     assert.doesNotMatch(dockerScript, /fv-folder-row-actions/);
 });
 
+test('docker pin quick action updates visible folder order immediately', () => {
+    assert.match(dockerScript, /const reorderVisibleDockerRootFolderBlocks = \(\) =>/);
+    assert.match(dockerScript, /const syncDockerPinnedFolderUi = \(\) =>/);
+    assert.match(dockerScript, /applyDockerPinnedFolderIds\(nextPinned\);\s*syncDockerPinnedFolderUi\(\);/s);
+    assert.match(dockerScript, /applyDockerPinnedFolderIds\(Array\.isArray\(response\?\.prefs\?\.pinnedFolderIds\) \? response\.prefs\.pinnedFolderIds : nextPinned\);\s*syncDockerPinnedFolderUi\(\);\s*queueLoadlistRefresh\(\{\s*suppressLoadingUi:\s*true\s*\}\);/s);
+    assert.match(dockerScript, /applyDockerPinnedFolderIds\(current\);\s*syncDockerPinnedFolderUi\(\);/s);
+});
+
 test('docker runtime exposes and applies focus\/lock state guards', () => {
     assert.match(dockerScript, /DOCKER_LOCKED_STATE_KEY/);
     assert.match(dockerScript, /applyDockerFocusedFolderState/);

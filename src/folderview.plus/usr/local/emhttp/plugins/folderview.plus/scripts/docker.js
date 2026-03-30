@@ -3152,6 +3152,7 @@ const createFolders = async () => {
     });
     throw error;
     } finally {
+    dockerHostLoadOwnsLoadingUi = false;
     activeDockerRenderSuppressLoadingUi = false;
     hideDockerRuntimeLoadingOverlay();
     hideDockerRuntimeLoadingRow();
@@ -5896,7 +5897,7 @@ window.listview = () => {
         if (!folderReq || !Array.isArray(folderReq.render) || folderReq.render.length === 0) {
             folderReq = buildDockerFolderReq();
         }
-        showDockerRuntimeLoadingOverlay();
+        dockerHostLoadOwnsLoadingUi = true;
         if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched listview: loadedFolder is false. Queueing createFolders render.');
         queueCreateFoldersRender();
         loadedFolder = true;
@@ -5922,9 +5923,9 @@ if (typeof window.loadlist_original !== 'function') {
 window.loadlist = () => {
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: Entry.');
     loadedFolder = false;
+    dockerHostLoadOwnsLoadingUi = true;
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: Set loadedFolder to false.');
     folderReq = buildDockerFolderReq();
-    showDockerRuntimeLoadingOverlay();
     if (FOLDER_VIEW_DEBUG_MODE) console.log('[FV3_DEBUG] Patched loadlist: folderReq initialized with a staged Docker runtime request bundle.');
 
     if (typeof window.loadlist_original === 'function') {
@@ -6085,6 +6086,7 @@ let queuedLoadlistOptions = null;
 let queuedLoadlistRequestedAt = 0;
 let lastLiveRefreshStateSignature = '';
 let dockerBootstrapGeneration = 0;
+let dockerHostLoadOwnsLoadingUi = false;
 let nextDockerRenderSuppressLoadingUi = false;
 let activeDockerRenderSuppressLoadingUi = false;
 const LOADLIST_REFRESH_DEBOUNCE_MS = 90;
@@ -6105,7 +6107,7 @@ const resolveDockerStrictPerformanceProfile = (prefs, folders, containersInfo) =
     return dockerRuntimePerformanceProfile;
 };
 
-const shouldSuppressDockerRuntimeLoadingUi = () => nextDockerRenderSuppressLoadingUi || activeDockerRenderSuppressLoadingUi;
+const shouldSuppressDockerRuntimeLoadingUi = () => dockerHostLoadOwnsLoadingUi || nextDockerRenderSuppressLoadingUi || activeDockerRenderSuppressLoadingUi;
 const queueLoadlistRefresh = (options = {}) => {
     const normalizedOptions = {
         suppressLoadingUi: options?.suppressLoadingUi === true
@@ -6137,8 +6139,15 @@ const queueLoadlistRefresh = (options = {}) => {
     }, delayMs);
 };
 
+const buildDockerRuntimeInfoUrl = (mode = 'full', cacheBust = Date.now()) => {
+    const stamp = encodeURIComponent(String(cacheBust || Date.now()));
+    return mode === 'state'
+        ? `/plugins/folderview.plus/server/read_info.php?type=docker&mode=state&nocache=1&_=${stamp}`
+        : `/plugins/folderview.plus/server/read_info.php?type=docker&nocache=1&_=${stamp}`;
+};
+
 const fetchDockerStateSignature = async () => {
-    const payload = await $.get('/plugins/folderview.plus/server/read_info.php?type=docker&mode=state').promise();
+    const payload = await $.get(buildDockerRuntimeInfoUrl('state')).promise();
     const parsed = parseJsonPayloadSafe(payload);
     return buildDockerStateSignature(parsed, true);
 };
@@ -6289,6 +6298,7 @@ function buildDockerFolderReq() {
         allowFallback: true,
         fallbackValue: JSON.stringify({ ok: false, prefs: {} })
     });
+    const cacheBust = Date.now();
     const generation = ++dockerBootstrapGeneration;
     return {
         generation,
@@ -6301,13 +6311,13 @@ function buildDockerFolderReq() {
                 source: 'folder-order',
                 label: 'Docker folder order'
             }),
-            createDockerRuntimeRequest('/plugins/folderview.plus/server/read_info.php?type=docker&mode=state', {
+            createDockerRuntimeRequest(buildDockerRuntimeInfoUrl('state', cacheBust), {
                 source: 'runtime-info-state',
                 label: 'Docker runtime state'
             }),
             safePrefsReq
         ],
-        fullInfo: createDockerRuntimeRequest('/plugins/folderview.plus/server/read_info.php?type=docker', {
+        fullInfo: createDockerRuntimeRequest(buildDockerRuntimeInfoUrl('full', cacheBust), {
             source: 'runtime-info-full',
             label: 'Docker runtime details',
             allowFallback: true,

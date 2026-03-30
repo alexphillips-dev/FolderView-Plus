@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.29.19">
-<!ENTITY md5 "de05d40b7820e6de6710c75c8032a919">
+<!ENTITY version "2026.03.29.20">
+<!ENTITY md5 "711763cda4e89598a73aea845cc8f2d5">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.29.20
+- Fix: Stop the Docker tab from showing a second FolderView Plus loading cycle on top of Unraid's own host refresh.
+- Fix: Force Docker runtime info reads through explicit `nocache=1` URLs so folder state and WebUI metadata stay fresh without another visible runtime reload.
+- Regression guard: Cover host-owned Docker loading UI suppression plus the no-cache runtime info request path.
 
 ###2026.03.29.19
 - Fix: Remove the extra Docker tab reload during deferred runtime hydration and keep live preview actions updated in place instead.

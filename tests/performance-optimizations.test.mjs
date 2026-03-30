@@ -111,6 +111,8 @@ test('runtime refresh uses lightweight state mode checks before re-rendering', (
     assert.match(dockerJs, /read_info\.php\?type=docker&mode=state/);
     assert.match(vmJs, /read_info\.php\?type=vm&mode=state/);
     assert.match(dashboardJs, /read_info\.php\?type=\$\{type\}&mode=state/);
+    assert.match(dockerJs, /const buildDockerRuntimeInfoUrl = \(mode = 'full', cacheBust = Date\.now\(\)\) =>/);
+    assert.match(dockerJs, /mode === 'state'[\s\S]*nocache=1&_=\$\{stamp\}/);
     assert.match(dockerJs, /const queueLoadlistRefresh = \(options = \{\}\) =>/);
     assert.match(vmJs, /queueLoadlistRefresh/);
     assert.match(dashboardJs, /queueLoadlistRefresh/);
@@ -125,14 +127,18 @@ test('runtime refresh uses lightweight state mode checks before re-rendering', (
     assert.match(dashboardJs, /const queueCreateFoldersRender = \(\) =>/);
     assert.match(dockerJs, /const readDockerHostOrderFromDom = \(\) =>/);
     assert.match(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoPromise = null\) =>/);
-    assert.match(dockerJs, /const shouldSuppressDockerRuntimeLoadingUi = \(\) => nextDockerRenderSuppressLoadingUi \|\| activeDockerRenderSuppressLoadingUi;/);
+    assert.match(dockerJs, /let dockerHostLoadOwnsLoadingUi = false;/);
+    assert.match(dockerJs, /const shouldSuppressDockerRuntimeLoadingUi = \(\) => dockerHostLoadOwnsLoadingUi \|\| nextDockerRenderSuppressLoadingUi \|\| activeDockerRenderSuppressLoadingUi;/);
     assert.match(dockerJs, /const buildDockerWebuiSignature = \(source\) =>/);
     assert.match(dockerJs, /if \(previousWebuiSignature !== nextWebuiSignature\) \{\s*syncDockerVisibleFoldersFromRuntimeCache\(\);\s*return;\s*\}/s);
     assert.doesNotMatch(dockerJs, /if \(previousWebuiSignature !== nextWebuiSignature\) \{\s*queueLoadlistRefresh\(/s);
     assert.match(dockerJs, /queueLoadlistRefresh\(\{\s*suppressLoadingUi:\s*true\s*\}\);/);
     assert.match(dockerJs, /const yieldDockerRenderLoop = async \(processedCount,\s*totalCount\) =>/);
-    assert.match(dockerJs, /render:\s*\[[\s\S]*read_info\.php\?type=docker&mode=state/);
-    assert.match(dockerJs, /fullInfo:\s*createDockerRuntimeRequest\('\/plugins\/folderview\.plus\/server\/read_info\.php\?type=docker'/);
+    assert.match(dockerJs, /dockerHostLoadOwnsLoadingUi = true;\s*if \(FOLDER_VIEW_DEBUG_MODE\) console\.log\('\[FV3_DEBUG\] Patched listview: loadedFolder is false\. Queueing createFolders render\.'/);
+    assert.match(dockerJs, /loadedFolder = false;\s*dockerHostLoadOwnsLoadingUi = true;/);
+    assert.match(dockerJs, /dockerHostLoadOwnsLoadingUi = false;\s*activeDockerRenderSuppressLoadingUi = false;/);
+    assert.match(dockerJs, /render:\s*\[[\s\S]*createDockerRuntimeRequest\(buildDockerRuntimeInfoUrl\('state', cacheBust\),/);
+    assert.match(dockerJs, /fullInfo:\s*createDockerRuntimeRequest\(buildDockerRuntimeInfoUrl\('full', cacheBust\),/);
 });
 
 test('performance mode applies stricter refresh cadence and reduced motion guards', () => {

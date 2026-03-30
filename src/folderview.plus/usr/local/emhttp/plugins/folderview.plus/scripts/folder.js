@@ -4697,7 +4697,7 @@ const applySectionTags = () => {
 
     markSection('div.basic:has([name="folder_accent_enabled"])', 'status');
     markSection('div.basic:has([name="folder_accent_color"])', 'status');
-    markSection('ul[constraint*="accent-color"]', 'status');
+    markSection('div.fv-accent-inline-controls[constraint*="accent-color"]', 'status');
     markSection('div.basic:has([name="status_color_started"])', 'status');
     markSection('div.basic:has([name="health_warn_stopped_percent"])', 'status');
     markSection('div.basic:has([name="health_critical_stopped_percent"])', 'status');
@@ -4866,6 +4866,7 @@ const initEditorChrome = () => {
                             <span class="fv-swatch-item"><em>Started</em><i id="fvSwatchStarted"></i></span>
                             <span class="fv-swatch-item"><em>Paused</em><i id="fvSwatchPaused"></i></span>
                             <span class="fv-swatch-item"><em>Stopped</em><i id="fvSwatchStopped"></i></span>
+                            <span id="fvAccentSwatchItem" class="fv-swatch-item" style="display:none;"><em>Accent</em><i id="fvSwatchAccent"></i></span>
                         </div>
                         <div id="fvDockerSignals" class="fv-docker-signals" style="display:none;">
                             <span id="fvDockerComposeSummary" class="fv-docker-signal-chip">Compose: none detected</span>

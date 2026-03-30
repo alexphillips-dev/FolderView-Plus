@@ -36,8 +36,11 @@ test('accent color contract and editor controls are defined', () => {
     assert.match(folderSharedJs, /const resetFolderAccentDefaults = \(\) =>/);
     assert.match(folderPage, /name="folder_accent_enabled"/);
     assert.match(folderPage, /name="folder_accent_color"/);
-    assert.match(folderPage, /constraint="accent-color"/);
+    assert.match(folderPage, /<dt>Accent color:<\/dt>[\s\S]*name="folder_accent_enabled"[\s\S]*class="fv-accent-inline-controls" constraint="accent-color"[\s\S]*name="folder_accent_color"/);
+    assert.doesNotMatch(folderPage, /<dt>Accent color value:<\/dt>/);
     assert.match(folderPage, /resetFolderAccentDefaults\(\)/);
+    assert.match(folderCss, /\.fv-accent-inline-controls\s*\{/);
+    assert.match(folderCss, /\.fv-accent-inline-label\s*\{/);
 });
 
 test('modern and legacy folder editors persist accent color settings end to end', () => {
@@ -45,6 +48,10 @@ test('modern and legacy folder editors persist accent color settings end to end'
     assert.match(folderPreviewJs, /const accentEnabled = isFolderAccentEnabled\(\{ folder_accent_enabled: form\.folder_accent_enabled\?\.checked === true \}\);/);
     assert.match(folderPreviewJs, /const accentColor = normalizeHexColor\(form\.folder_accent_color\?\.value,\s*deps\.defaultFolderAccentColor \|\| '#ffca63'\);/);
     assert.match(folderPreviewJs, /has-accent/);
+    assert.match(folderChromeJs, /id="fvAccentSwatchItem" class="fv-swatch-item" style="display:none;"><em>Accent<\/em><i id="fvSwatchAccent"><\/i><\/span>/);
+    assert.match(folderJs, /id="fvAccentSwatchItem" class="fv-swatch-item" style="display:none;"><em>Accent<\/em><i id="fvSwatchAccent"><\/i><\/span>/);
+    assert.match(folderPreviewJs, /\$\('#fvSwatchAccent'\)\.css\('background-color', accentColor\);/);
+    assert.match(folderPreviewJs, /\$\('#fvAccentSwatchItem'\)\.toggle\(accentEnabled\);/);
     assert.match(folderJs, /defaultFolderAccentColor: DEFAULT_FOLDER_ACCENT_COLOR/);
     assert.match(folderJs, /setFieldChecked\('folder_accent_enabled', isFolderAccentEnabled\(normalizedFolder\.settings \|\| \{\}\)\);/);
     assert.match(folderJs, /setFieldValue\('folder_accent_color', normalizeHexColor\(normalizedFolder\.settings\.folder_accent_color, DEFAULT_FOLDER_ACCENT_COLOR\)\);/);

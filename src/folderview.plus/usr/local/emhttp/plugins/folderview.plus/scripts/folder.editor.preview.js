@@ -189,6 +189,8 @@
             $('#fvSwatchStarted').css('background-color', normalizeHexColor(form.status_color_started?.value, deps.defaultFolderStatusColors?.started || '#ffffff'));
             $('#fvSwatchPaused').css('background-color', normalizeHexColor(form.status_color_paused?.value, deps.defaultFolderStatusColors?.paused || '#b8860b'));
             $('#fvSwatchStopped').css('background-color', normalizeHexColor(form.status_color_stopped?.value, deps.defaultFolderStatusColors?.stopped || '#ff4d4d'));
+            $('#fvSwatchAccent').css('background-color', accentColor);
+            $('#fvAccentSwatchItem').toggle(accentEnabled);
 
             const dockerSignalsShell = $('#fvDockerSignalsShell');
             const dockerSignals = $('#fvDockerSignals');

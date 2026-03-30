@@ -1092,42 +1092,27 @@ try {
         <div class="basic">
             <dl>
                 <dt>Accent color:</dt>
-                <dd>
+                <dd class="fv-accent-color-dd">
                     <input class="basic-switch" name="folder_accent_enabled" type="checkbox" style="display: none;" onchange="updateForm()" />
+                    <div class="fv-accent-inline-controls" constraint="accent-color" style="display: none;">
+                        <span class="fv-accent-inline-label">Bar color</span>
+                        <div class="fv-inline-control-row">
+                            <input type="color" name="folder_accent_color" style="height:28px;vertical-align:middle;">
+                            <button type="button" class="fv-inline-reset-btn" onclick="event.preventDefault(); resetFolderAccentDefaults();">
+                                <i class="fa fa-repeat" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
                 </dd>
             </dl>
             <blockquote class="inline_help">
                 <p>
                     Adds an optional accent bar on the left side of this folder across Docker, VMs, Dashboard, and the editor preview.
                     <br>
-                    Disabled by default so the folder keeps the standard appearance until you turn it on.
+                    Disabled by default so the folder keeps the standard appearance until you turn it on, then choose the bar color here.
                 </p>
             </blockquote>
         </div>
-        <ul constraint="accent-color" style="display: none;">
-            <li>
-                <div class="basic">
-                    <dl>
-                        <dt>Accent color value:</dt>
-                        <dd>
-                            <div class="fv-inline-control-row">
-                                <input type="color" name="folder_accent_color" style="height:28px;vertical-align:middle;">
-                                <button type="button" class="fv-inline-reset-btn" onclick="event.preventDefault(); resetFolderAccentDefaults();">
-                                    <i class="fa fa-repeat" aria-hidden="true"></i>
-                                </button>
-                            </div>
-                        </dd>
-                    </dl>
-                    <blockquote class="inline_help">
-                        <p>
-                            Choose the accent bar color for this folder.
-                            <br>
-                            The <i class="fa fa-repeat" aria-hidden="true"></i> button disables the accent and restores the default color.
-                        </p>
-                    </blockquote>
-                </div>
-            </li>
-        </ul>
 
         <div class="basic" constraint="docker">
             <dl>

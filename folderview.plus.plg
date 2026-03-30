@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.30.07">
-<!ENTITY md5 "8a4befe383ed170a44e4af034e8d5f4b">
+<!ENTITY version "2026.03.30.08">
+<!ENTITY md5 "7f6f9332a444baacd0e8ecba69ebf1c9">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.30.08
+- UX: Move the modern folder editor accent color picker into the main `Accent color` card so the toggle and bar color stay together instead of appearing as separate settings blocks.
+- UX: Add the folder accent color to the editor live preview insights with its own `Accent` swatch, while keeping the live row accent bar preview in sync.
+- Regression guard: Assert the merged accent editor layout, the live preview accent swatch wiring, and the shared accent color contract across the modern and fallback editor chrome paths.
+
 
 ###2026.03.30.07
 - Fix: Override the Docker folder row wrapper bottom margin to `0 !important` so the host `span.outer` / `.folder-outer` `margin-bottom: 20px` no longer pulls folder rows upward in the Application column.

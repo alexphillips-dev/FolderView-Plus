@@ -989,6 +989,23 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     flex: 0 0 auto;
 }
 
+.fv-accent-color-dd {
+    display: block;
+    width: 100%;
+}
+
+.fv-accent-inline-controls {
+    margin-top: 0.68em;
+    display: grid;
+    gap: 0.34em;
+}
+
+.fv-accent-inline-label {
+    display: block;
+    font-size: 0.95rem;
+    color: var(--fv-editor-muted);
+}
+
 .fv-inline-reset-btn {
     width: auto !important;
     height: auto !important;

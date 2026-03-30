@@ -3962,33 +3962,8 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
             }
 
             const previewWebuiUrl = getSafeWebuiUrl(newFolder[container_name_in_folder]?.webui || ct.info.State.WebUi || ct.info.State.TSWebUi || '');
-            if (folder.settings.preview_webui && previewWebuiUrl) {
-                if ($targetForAppend.length) {
-                    $targetForAppend.append(buildDockerPreviewWebuiButton(previewWebuiUrl));
-                    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Appended WebUI icon to preview.`);
-                } else {
-                     if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: WebUI icon: Could not find target for append in preview element.`);
-                }
-            } else if (shouldRenderPreviewWebuiPlaceholder(folder.settings, folder.settings.preview_webui === true)) {
-                appendPreviewWebuiPlaceholder($targetForAppend);
-            }
-
-            if (folder.settings.preview_console) {
-                if ($targetForAppend.length) {
-                    $targetForAppend.append(buildDockerPreviewConsoleButton(ct.info.Name, ct.info.Shell));
-                    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Appended Console icon to preview.`);
-                } else {
-                     if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Console icon: Could not find target for append in preview element.`);
-                }
-            }
-
-            if (folder.settings.preview_logs) {
-                if ($targetForAppend.length) {
-                    $targetForAppend.append(buildDockerPreviewLogsButton(ct.info.Name));
-                    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Appended Logs icon to preview.`);
-                } else {
-                    if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Logs icon: Could not find target for append in preview element.`);
-                }
+            if ($targetForAppend.length) {
+                appendDockerPreviewActionButtons($targetForAppend, folder.settings, ct.info.Name, ct.info.Shell, previewWebuiUrl);
             }
 
             upToDate = upToDate && !newFolder[container_name_in_folder].update;
@@ -4354,20 +4329,11 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
         const containerName = String(entry?.name || '');
         const shellValue = String(entry?.shell || '/bin/sh');
         const webuiUrl = getSafeWebuiUrl(entry?.webui);
-
-        if (allowWebuiQuickAction && webuiUrl) {
-            $actionsTarget.append(buildDockerPreviewWebuiButton(webuiUrl));
-        } else if (shouldRenderPreviewWebuiPlaceholder(folder?.settings || {}, allowWebuiQuickAction)) {
-            appendPreviewWebuiPlaceholder($actionsTarget);
-        }
-
-        if (allowConsoleQuickAction) {
-            $actionsTarget.append(buildDockerPreviewConsoleButton(containerName, shellValue));
-        }
-
-        if (allowLogsQuickAction) {
-            $actionsTarget.append(buildDockerPreviewLogsButton(containerName));
-        }
+        appendDockerPreviewActionButtons($actionsTarget, {
+            preview_webui: allowWebuiQuickAction,
+            preview_console: allowConsoleQuickAction,
+            preview_logs: allowLogsQuickAction
+        }, containerName, shellValue, webuiUrl);
         decorateDockerPreviewMemberTriggers(
             item.find('span.hand, span.inner > span.appname, span.inner > span.appname > a, span.inner > i.fa, span.inner > span.state'),
             id,
@@ -4436,6 +4402,23 @@ const collectDockerPreviewActionTargets = ($preview, settings = {}) => {
     }
 };
 
+const appendDockerPreviewActionButtons = ($target, settings = {}, containerName = '', shellValue = '/bin/sh', webuiUrl = '') => {
+    if (!$target || !$target.length) {
+        return;
+    }
+    if (settings.preview_webui && webuiUrl) {
+        $target.append(buildDockerPreviewWebuiButton(webuiUrl));
+    } else if (shouldRenderPreviewWebuiPlaceholder(settings, settings.preview_webui === true)) {
+        appendPreviewWebuiPlaceholder($target);
+    }
+    if (settings.preview_console && containerName) {
+        $target.append(buildDockerPreviewConsoleButton(containerName, shellValue));
+    }
+    if (settings.preview_logs && containerName) {
+        $target.append(buildDockerPreviewLogsButton(containerName));
+    }
+};
+
 const syncDockerLeafFolderPreviewActions = (id, folder, runtimeContainers) => {
     const $preview = $(`tr.folder-id-${id} div.folder-preview`);
     if (!$preview.length) {
@@ -4458,17 +4441,7 @@ const syncDockerLeafFolderPreviewActions = (id, folder, runtimeContainers) => {
         const shellValue = String(entry?.shell || '/bin/sh').trim() || '/bin/sh';
         const webuiUrl = getSafeWebuiUrl(entry?.webui);
         $target.children('span.folder-element-webui, span.folder-element-console, span.folder-element-logs, span.fv-preview-webui-placeholder').remove();
-        if (settings.preview_webui && webuiUrl) {
-            $target.append(buildDockerPreviewWebuiButton(webuiUrl));
-        } else if (shouldRenderPreviewWebuiPlaceholder(settings, settings.preview_webui === true)) {
-            appendPreviewWebuiPlaceholder($target);
-        }
-        if (settings.preview_console && containerName) {
-            $target.append(buildDockerPreviewConsoleButton(containerName, shellValue));
-        }
-        if (settings.preview_logs && containerName) {
-            $target.append(buildDockerPreviewLogsButton(containerName));
-        }
+        appendDockerPreviewActionButtons($target, settings, containerName, shellValue, webuiUrl);
     });
     $preview.find('[id^="folder-preview-"]').each((_, node) => {
         $(node).data('fvTooltipLazyBuilt', false);

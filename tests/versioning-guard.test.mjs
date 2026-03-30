@@ -33,11 +33,13 @@ const themeRuntimeGuardPath = path.join(repoRoot, 'scripts/theme_runtime_guard.s
 const perfBudgetGuardPath = path.join(repoRoot, 'scripts/perf_budget_guard.sh');
 const reproBuildGuardPath = path.join(repoRoot, 'scripts/repro_build_guard.sh');
 const mainBranchHistoryGuardPath = path.join(repoRoot, 'scripts/main_branch_history_guard.sh');
+const devVersionBumpGuardPath = path.join(repoRoot, 'scripts/dev_version_bump_guard.sh');
 const pruneArchivesPath = path.join(repoRoot, 'scripts/prune_archives.sh');
 const unraidMatrixSmokePath = path.join(repoRoot, 'scripts/unraid_matrix_smoke.sh');
 const ensureChangesPath = path.join(repoRoot, 'scripts/ensure_plg_changes_entry.sh');
 const doctorPath = path.join(repoRoot, 'scripts/doctor.sh');
 const sharedLibPath = path.join(repoRoot, 'scripts/lib.sh');
+const prePushHookPath = path.join(repoRoot, '.githooks/pre-push');
 const perfBaselinePath = path.join(repoRoot, 'scripts/perf_baseline.json');
 const pkgBuild = fs.readFileSync(pkgBuildPath, 'utf8');
 const stableTemplate = fs.readFileSync(stableTemplatePath, 'utf8');
@@ -69,11 +71,13 @@ const themeRuntimeGuard = fs.readFileSync(themeRuntimeGuardPath, 'utf8');
 const perfBudgetGuard = fs.readFileSync(perfBudgetGuardPath, 'utf8');
 const reproBuildGuard = fs.readFileSync(reproBuildGuardPath, 'utf8');
 const mainBranchHistoryGuard = fs.readFileSync(mainBranchHistoryGuardPath, 'utf8');
+const devVersionBumpGuard = fs.readFileSync(devVersionBumpGuardPath, 'utf8');
 const pruneArchives = fs.readFileSync(pruneArchivesPath, 'utf8');
 const unraidMatrixSmoke = fs.readFileSync(unraidMatrixSmokePath, 'utf8');
 const ensureChanges = fs.readFileSync(ensureChangesPath, 'utf8');
 const doctorScript = fs.readFileSync(doctorPath, 'utf8');
 const sharedLib = fs.readFileSync(sharedLibPath, 'utf8');
+const prePushHook = fs.readFileSync(prePushHookPath, 'utf8');
 const perfBaseline = JSON.parse(fs.readFileSync(perfBaselinePath, 'utf8'));
 
 test('pkg_build computes stable versions per current date only', () => {
@@ -206,6 +210,19 @@ test('remote publish guard validates raw manifest, archive, and checksum after p
     assert.match(remotePublishGuard, /Remote manifest version mismatch/);
     assert.match(remotePublishGuard, /Remote checksum mismatch/);
     assert.match(remotePublishGuard, /remote raw manifest, archive, and checksum match/);
+});
+
+test('dev pushes that change shipped plugin files must bump the manifest version', () => {
+    assert.match(devVersionBumpGuard, /TARGET_BRANCH="\$\(detect_branch\)"/);
+    assert.match(devVersionBumpGuard, /if \[\[ "\$\{TARGET_BRANCH\}" != "dev" \]\]/);
+    assert.match(devVersionBumpGuard, /FVPLUS_DEV_VERSION_BASE_REF/);
+    assert.match(devVersionBumpGuard, /fvplus::read_plg_version "\$\{ROOT_DIR\}\/folderview\.plus\.plg"/);
+    assert.match(devVersionBumpGuard, /git show "\$\{ref_name\}:folderview\.plus\.plg"/);
+    assert.match(devVersionBumpGuard, /src\/folderview\.plus\/\*|folderview\.plus\.plg|folderview\.plus\.xml/);
+    assert.match(devVersionBumpGuard, /change shipped plugin files must bump folderview\.plus\.plg version/);
+    assert.match(devVersionBumpGuard, /bash scripts\/release_prepare\.sh' or 'bash pkg_build\.sh/);
+    assert.match(prePushHook, /echo "\[pre-push\] Running dev version bump guard\.\.\."/);
+    assert.match(prePushHook, /bash scripts\/dev_version_bump_guard\.sh/);
 });
 
 test('browser smoke scripts require folder editor coverage and include real editor interaction smoke', () => {

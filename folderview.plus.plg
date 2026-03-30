@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.29.16">
-<!ENTITY md5 "d5c027f0c12742970d58c406f18464b8">
+<!ENTITY version "2026.03.29.17">
+<!ENTITY md5 "e31d7dcc28b3c987c8e4d5340e8e8327">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.29.17
+- Fix: Remove the extra Docker list reload during deferred runtime hydration and update live folder preview actions in place instead.
+- Fix: Keep preview tooltip payloads fresh after runtime hydration by invalidating lazy-built tooltip content on existing preview triggers.
+- Regression guard: Cover in-place hydration updates so WebUI detail changes do not queue a second Docker tab reload.
 
 ###2026.03.29.16
 - Fix: Stop Docker deferred runtime hydration from showing the visible loading banner twice when the second pass only needs refreshed WebUI details.

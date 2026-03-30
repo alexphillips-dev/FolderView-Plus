@@ -34,6 +34,12 @@ test('docker pin quick action updates visible folder order immediately', () => {
     assert.match(dockerScript, /applyDockerPinnedFolderIds\(current\);\s*syncDockerPinnedFolderUi\(\);/s);
 });
 
+test('docker hydration refreshes existing preview actions in place instead of reloading the list', () => {
+    assert.match(dockerScript, /const syncDockerLeafFolderPreviewActions = \(id,\s*folder,\s*runtimeContainers\) =>/);
+    assert.match(dockerScript, /syncDockerLeafFolderPreviewActions\(id,\s*folder,\s*runtimeContainers\);/);
+    assert.match(dockerScript, /\$preview\.find\('\[id\^="folder-preview-"\]'\)\.each\(\(_,\s*node\) => \{\s*\$\(node\)\.data\('fvTooltipLazyBuilt', false\);/s);
+});
+
 test('docker runtime exposes and applies focus\/lock state guards', () => {
     assert.match(dockerScript, /DOCKER_LOCKED_STATE_KEY/);
     assert.match(dockerScript, /applyDockerFocusedFolderState/);

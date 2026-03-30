@@ -127,7 +127,8 @@ test('runtime refresh uses lightweight state mode checks before re-rendering', (
     assert.match(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoPromise = null\) =>/);
     assert.match(dockerJs, /const shouldSuppressDockerRuntimeLoadingUi = \(\) => nextDockerRenderSuppressLoadingUi \|\| activeDockerRenderSuppressLoadingUi;/);
     assert.match(dockerJs, /const buildDockerWebuiSignature = \(source\) =>/);
-    assert.match(dockerJs, /if \(previousWebuiSignature !== nextWebuiSignature\) \{/);
+    assert.match(dockerJs, /if \(previousWebuiSignature !== nextWebuiSignature\) \{\s*syncDockerVisibleFoldersFromRuntimeCache\(\);\s*return;\s*\}/s);
+    assert.doesNotMatch(dockerJs, /if \(previousWebuiSignature !== nextWebuiSignature\) \{\s*queueLoadlistRefresh\(/s);
     assert.match(dockerJs, /queueLoadlistRefresh\(\{\s*suppressLoadingUi:\s*true\s*\}\);/);
     assert.match(dockerJs, /const yieldDockerRenderLoop = async \(processedCount,\s*totalCount\) =>/);
     assert.match(dockerJs, /render:\s*\[[\s\S]*read_info\.php\?type=docker&mode=state/);

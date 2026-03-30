@@ -2800,6 +2800,8 @@ const syncDockerVisibleFoldersFromRuntimeCache = () => {
         folder.runtimeContainers = runtimeContainers;
         if (folderHasChildren(id)) {
             syncParentFolderVisualState(id, folder?.status?.expanded === true);
+        } else {
+            syncDockerLeafFolderPreviewActions(id, folder, runtimeContainers);
         }
         updateFolderRowStatusFromContainers(id, folder, runtimeContainers);
     });
@@ -2851,7 +2853,7 @@ const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, ful
             markDockerFatalBannerStep('Docker runtime details hydrated');
             recordDockerFatalBannerAction('Docker runtime details hydrated');
             if (previousWebuiSignature !== nextWebuiSignature) {
-                queueLoadlistRefresh({ suppressLoadingUi: true });
+                syncDockerVisibleFoldersFromRuntimeCache();
                 return;
             }
             syncDockerVisibleFoldersFromRuntimeCache();
@@ -4408,6 +4410,103 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
     applyFolderPreviewLayout($preview, folder?.settings || {});
     layoutFolderPreviewRows($preview, folder?.settings || {});
     $preview.find('span.inner > span.appname').css('width', folder?.settings?.preview_text_width || '');
+};
+
+const buildDockerPreviewWebuiButton = (webuiUrl) => $('<span class="folder-element-custom-btn folder-element-webui"></span>').append(
+    $('<a></a>')
+        .attr('href', webuiUrl)
+        .attr('target', '_blank')
+        .attr('rel', WEBUI_LINK_REL)
+        .append('<i class="fa fa-globe" aria-hidden="true"></i>')
+        .on('click', (event) => {
+            event.preventDefault();
+            openWebuiInNewTab(webuiUrl);
+        })
+);
+
+const buildDockerPreviewConsoleButton = (containerName, shellValue) => $('<span class="folder-element-custom-btn folder-element-console"></span>').append(
+    $('<a href="#"></a>')
+        .append('<i class="fa fa-terminal" aria-hidden="true"></i>')
+        .on('click', (event) => {
+            event.preventDefault();
+            openTerminal('docker', containerName, shellValue);
+        })
+);
+
+const buildDockerPreviewLogsButton = (containerName) => $('<span class="folder-element-custom-btn folder-element-logs"></span>').append(
+    $('<a href="#"></a>')
+        .append('<i class="fa fa-bars" aria-hidden="true"></i>')
+        .on('click', (event) => {
+            event.preventDefault();
+            openTerminal('docker', containerName, '.log');
+        })
+);
+
+const collectDockerPreviewActionTargets = ($preview, settings = {}) => {
+    if (!$preview || !$preview.length) {
+        return [];
+    }
+    if (isCompactMultiRowPreview(settings)) {
+        return $preview.find('.fv-preview-actions-compact').get().map((node) => $(node));
+    }
+    const previewMode = Number(settings?.preview || 0);
+    switch (previewMode) {
+        case 2:
+            return $preview.find('span.hand').get().map((node) => $(node));
+        case 3:
+            return $preview.find('span.inner').get().map((node) => $(node));
+        case 4:
+            return $preview.find('span.outer > span.inner').get().map((node) => $(node));
+        case 1:
+        default:
+            return $preview.find('span.outer').get().map((node) => {
+                const $outer = $(node);
+                const $inner = $outer.children('span.inner').last();
+                return $inner.length ? $inner : $outer;
+            });
+    }
+};
+
+const syncDockerLeafFolderPreviewActions = (id, folder, runtimeContainers) => {
+    const $preview = $(`tr.folder-id-${id} div.folder-preview`);
+    if (!$preview.length) {
+        return;
+    }
+    const settings = folder?.settings || {};
+    const previewMode = Number(settings?.preview || 0);
+    if (previewMode <= 0) {
+        $preview.empty();
+        return;
+    }
+    const actionTargets = collectDockerPreviewActionTargets($preview, settings);
+    const entries = Object.values(runtimeContainers || {});
+    actionTargets.forEach(($target, index) => {
+        const entry = entries[index];
+        if (!$target || !$target.length || !entry) {
+            return;
+        }
+        const containerName = String(entry?.name || '').trim();
+        const shellValue = String(entry?.shell || '/bin/sh').trim() || '/bin/sh';
+        const webuiUrl = getSafeWebuiUrl(entry?.webui);
+        $target.children('span.folder-element-webui, span.folder-element-console, span.folder-element-logs, span.fv-preview-webui-placeholder').remove();
+        if (settings.preview_webui && webuiUrl) {
+            $target.append(buildDockerPreviewWebuiButton(webuiUrl));
+        } else if (shouldRenderPreviewWebuiPlaceholder(settings, settings.preview_webui === true)) {
+            appendPreviewWebuiPlaceholder($target);
+        }
+        if (settings.preview_console && containerName) {
+            $target.append(buildDockerPreviewConsoleButton(containerName, shellValue));
+        }
+        if (settings.preview_logs && containerName) {
+            $target.append(buildDockerPreviewLogsButton(containerName));
+        }
+    });
+    $preview.find('[id^="folder-preview-"]').each((_, node) => {
+        $(node).data('fvTooltipLazyBuilt', false);
+    });
+    applyFolderPreviewLayout($preview, settings);
+    layoutFolderPreviewRows($preview, settings);
+    $preview.find('span.inner > span.appname').css('width', settings?.preview_text_width || '');
 };
 
 const syncParentFolderVisualState = (id, expanded) => {

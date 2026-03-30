@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.30.17">
-<!ENTITY md5 "b08a5b0aa4659eef6a3e4eafd57de99c">
+<!ENTITY version "2026.03.30.19">
+<!ENTITY md5 "333b926b727ed81bb85f4140c142f060">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.30.19
+- Fix: Stop Docker bootstrap from forcing a second host reload when Unraid stages a newer request bundle while FolderView Plus is still rendering folders.
+- Fix: Drain queued Docker folder renders in place against the latest staged request bundle instead of scheduling another `loadlist()` cycle after the page has already refreshed.
+- UX: Suppress the extra Docker runtime loading shell when a queued bootstrap render replays in place so the page no longer flashes a second reload.
+- Regression guard: Cover the primed-request `listview()`/`loadlist()` bootstrap path and the deferred runtime hydration path so Docker refreshes stay in-place.
 
 ###2026.03.30.17
 - Fix: Stop Docker advanced preview context popups configured for click from eager-opening on the first hover interaction.

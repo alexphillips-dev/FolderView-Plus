@@ -13,12 +13,10 @@ test('docker runtime preserves hydrated update flags when normalizing partial ru
     assert.match(dockerJs, /Updated:\s*sourceState\.Updated \?\? previousState\.Updated \?\? null/);
 });
 
-test('deferred docker runtime hydration rerenders when update availability changes', () => {
-    assert.match(dockerJs, /\|\$\{state\.Updated === false \? 'u' : \(state\.Updated === true \? 'c' : '\?'\)\}/);
-    assert.match(dockerJs, /const previousWebuiSignature = buildDockerWebuiSignature\(dockerRuntimeInfoByName\);/);
-    assert.match(dockerJs, /const nextWebuiSignature = buildDockerWebuiSignature\(dockerRuntimeInfoByName\);/);
-    assert.match(dockerJs, /previousWebuiSignature !== nextWebuiSignature/);
-    assert.match(dockerJs, /queueLoadlistRefresh\(\);\s*return;/);
+test('deferred docker runtime hydration refreshes visible folder state in place instead of reloading the page', () => {
+    assert.match(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoPromise = null\) => \{[\s\S]*?dockerRuntimeInfoByName = normalizeDockerRuntimeInfoMap\(parsed,\s*dockerRuntimeInfoByName\);[\s\S]*?markDockerFatalBannerStep\('Docker runtime details hydrated'\);[\s\S]*?recordDockerFatalBannerAction\('Docker runtime details hydrated'\);[\s\S]*?syncDockerVisibleFoldersFromRuntimeCache\(\);[\s\S]*?\}\)\s*\.catch\(\(\) => \{\}\);/);
+    assert.doesNotMatch(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoPromise = null\) => \{[\s\S]*?const previousWebuiSignature/);
+    assert.doesNotMatch(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoPromise = null\) => \{[\s\S]*?const nextWebuiSignature/);
 });
 
 test('folder update-column renderer is reused across initial and synced folder state', () => {

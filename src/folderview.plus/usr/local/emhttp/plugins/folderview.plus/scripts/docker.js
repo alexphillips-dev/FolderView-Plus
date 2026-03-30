@@ -2812,18 +2812,6 @@ const syncDockerVisibleFoldersFromRuntimeCache = () => {
     applyDockerFocusedFolderState();
 };
 
-const buildDockerWebuiSignature = (source) => {
-    const map = source && typeof source === 'object' ? source : {};
-    const names = Object.keys(map).sort((a, b) => a.localeCompare(b));
-    if (!names.length) {
-        return '';
-    }
-    return names.map((name) => {
-        const state = map[name]?.info?.State && typeof map[name].info.State === 'object' ? map[name].info.State : {};
-        return `${name}:${getSafeWebuiUrl(state.WebUi)}|${getSafeWebuiUrl(state.TSWebUi)}|${state.Updated === false ? 'u' : (state.Updated === true ? 'c' : '?')}`;
-    }).join('|');
-};
-
 const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, fullInfoPromise = null) => {
     const requestPromise = fullInfoPromise && typeof fullInfoPromise.then === 'function'
         ? fullInfoPromise
@@ -2846,18 +2834,12 @@ const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, ful
             if (!parsed || Object.keys(parsed).length <= 0) {
                 return;
             }
-            const previousWebuiSignature = buildDockerWebuiSignature(dockerRuntimeInfoByName);
             dockerRuntimeInfoByName = normalizeDockerRuntimeInfoMap(parsed, dockerRuntimeInfoByName);
-            const nextWebuiSignature = buildDockerWebuiSignature(dockerRuntimeInfoByName);
             if (stateSignature) {
                 lastLiveRefreshStateSignature = stateSignature;
             }
             markDockerFatalBannerStep('Docker runtime details hydrated');
             recordDockerFatalBannerAction('Docker runtime details hydrated');
-            if (previousWebuiSignature !== nextWebuiSignature) {
-                queueLoadlistRefresh();
-                return;
-            }
             syncDockerVisibleFoldersFromRuntimeCache();
         })
         .catch(() => {});
@@ -3185,7 +3167,10 @@ const queueCreateFoldersRender = () => {
             createFoldersInFlight = false;
             if (createFoldersQueued) {
                 createFoldersQueued = false;
-                queueLoadlistRefresh();
+                // If Unraid queued a newer request bundle mid-render, replay FolderView Plus
+                // against the current DOM instead of forcing another host loadlist() cycle.
+                nextDockerRenderSuppressLoadingUi = true;
+                queueCreateFoldersRender();
             }
         });
 };

@@ -41,6 +41,15 @@ test('docker hydration refreshes existing preview actions in place instead of re
     assert.match(dockerScript, /\$preview\.find\('\[id\^="folder-preview-"\]'\)\.each\(\(_,\s*node\) => \{\s*\$\(node\)\.data\('fvTooltipLazyBuilt', false\);/s);
 });
 
+test('docker hydration refresh updates collapsed folder update columns from runtime cache', () => {
+    assert.match(dockerScript, /const updateFolderRowStatusFromContainers = \(id,\s*folder,\s*runtimeContainers\) => \{[\s\S]*const \$updateColumn = \$folderRow\.find\('td\.updatecolumn'\);/);
+    assert.match(dockerScript, /const updateFolderRowStatusFromContainers = \(id,\s*folder,\s*runtimeContainers\) => \{[\s\S]*if \(\$updateColumn\.length && folder\?\.settings\?\.update_column !== true\) \{/);
+    assert.match(dockerScript, /const updateFolderRowStatusFromContainers = \(id,\s*folder,\s*runtimeContainers\) => \{[\s\S]*updateFolder\('\$\{id\}'\);/);
+    assert.match(dockerScript, /const updateFolderRowStatusFromContainers = \(id,\s*folder,\s*runtimeContainers\) => \{[\s\S]*forceUpdateFolder\('\$\{id\}'\);/);
+    assert.match(dockerScript, /const updateFolderRowStatusFromContainers = \(id,\s*folder,\s*runtimeContainers\) => \{[\s\S]*\$\.i18n\('update-ready'\)/);
+    assert.match(dockerScript, /const updateFolderRowStatusFromContainers = \(id,\s*folder,\s*runtimeContainers\) => \{[\s\S]*\$\.i18n\('up-to-date'\)/);
+});
+
 test('docker runtime exposes and applies focus\/lock state guards', () => {
     assert.match(dockerScript, /DOCKER_LOCKED_STATE_KEY/);
     assert.match(dockerScript, /applyDockerFocusedFolderState/);

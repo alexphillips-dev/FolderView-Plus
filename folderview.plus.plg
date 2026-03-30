@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.30.09">
-<!ENTITY md5 "4d43c573fee46a6d3402a5bc13729263">
+<!ENTITY version "2026.03.30.10">
+<!ENTITY md5 "8106ccbd6b67a8168a4d02fce3488ea0">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.30.10
+- Fix: Rebuild collapsed Docker folder update columns from hydrated runtime container data so folder and root-folder rows show `Update ready` when child containers have updates available, even while the branch is collapsed.
+- Fix: Keep the collapsed-folder refresh path aligned with the existing `apply update` and `force update` folder actions instead of leaving the folder row stuck on the lightweight first-paint `up-to-date` state.
+- Regression guard: Assert the runtime folder-row refresh path owns the update column and refreshes collapsed folder update state from runtime cache without requiring the folder to be expanded.
+
 
 ###2026.03.30.09
 - Fix: Restore the modern folder editor bootstrap after the new accent preview swatch change by defining `accentEnabled` and `accentColor` inside `updateLiveSummary()` before that code touches the live preview chips.

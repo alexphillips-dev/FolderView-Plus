@@ -4284,6 +4284,7 @@ const updateFolderRowStatusFromContainers = (id, folder, runtimeContainers) => {
     applyFolderStatusColorOverrides($folderRow, folder.settings);
     applyFolderAccentStyle($folderRow, folder.settings);
     applyFolderDropdownStyle($folderRow, folder.settings);
+    const $updateColumn = $folderRow.find('td.updatecolumn');
     const $folderIcon = $folderRow.find(`i#load-folder-${id}`);
     const $folderState = $folderRow.find('span.folder-state');
     $folderState.removeClass('fv-folder-state-started fv-folder-state-paused fv-folder-state-stopped');
@@ -4297,6 +4298,44 @@ const updateFolderRowStatusFromContainers = (id, folder, runtimeContainers) => {
     } else {
         $folderIcon.attr('class', 'fa fa-square stopped folder-load-status');
         $folderState.text(`${stopped}/${total} ${$.i18n('stopped')}`).addClass('fv-folder-state-stopped');
+    }
+
+    if ($updateColumn.length && folder?.settings?.update_column !== true) {
+        const hasDockerMan = managerTypes.has('dockerman');
+        const hasCompose = managerTypes.has('composeman');
+        const has3rdParty = [...managerTypes].some((type) => type !== 'dockerman' && type !== 'composeman');
+
+        $updateColumn.empty();
+
+        if (!hasDockerMan && hasCompose && has3rdParty) {
+            $updateColumn.append(
+                $(`<span class="folder-update-text" style="white-space:nowrap;"><i class="fa fa-docker fa-fw"></i> ${$.i18n('compose')}</span><br><span class="folder-update-text" style="white-space:nowrap;"><i class="fa fa-docker fa-fw"></i> ${$.i18n('third-party')}</span>`)
+            );
+        } else if (!hasDockerMan && hasCompose) {
+            $updateColumn.append(
+                $(`<span class="folder-update-text" style="white-space:nowrap;"><i class="fa fa-docker fa-fw"></i> ${$.i18n('compose')}</span>`)
+            );
+        } else if (!hasDockerMan) {
+            $updateColumn.append(
+                $(`<span class="folder-update-text" style="white-space:nowrap;"><i class="fa fa-docker fa-fw"></i> ${$.i18n('third-party')}</span>`)
+            );
+        } else if (!upToDate) {
+            $updateColumn.append(
+                $(`<div class="advanced" style="display: ${advanced ? 'block' : 'none'};"><span class="orange-text folder-update-text" style="white-space:nowrap;"><i class="fa fa-flash fa-fw"></i> ${$.i18n('update-ready')}</span></div>`)
+            );
+            $updateColumn.append(
+                $(`<a class="exec" onclick="updateFolder('${id}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i> ${$.i18n('apply-update')}</span></a>`)
+            );
+        } else {
+            $updateColumn.append(
+                $(`<span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i> ${$.i18n('up-to-date')}</span>`)
+            );
+            if (managed > 0) {
+                $updateColumn.append(
+                    $(`<div class="advanced" style="display: ${advanced ? 'block' : 'none'};"><a class="exec" onclick="forceUpdateFolder('${id}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i> ${$.i18n('force-update')}</span></a></div>`)
+                );
+            }
+        }
     }
 
     const expanded = folder?.status?.expanded === true;

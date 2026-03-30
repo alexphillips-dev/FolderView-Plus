@@ -108,11 +108,11 @@ test('read_info supports cached full/state payload retrieval', () => {
 });
 
 test('runtime refresh uses lightweight state mode checks before re-rendering', () => {
-    assert.match(dockerJs, /read_info\.php\?type=docker&mode=state/);
+    assert.match(dockerJs, /buildDockerRuntimeInfoUrl\('state'/);
     assert.match(vmJs, /read_info\.php\?type=vm&mode=state/);
     assert.match(dashboardJs, /read_info\.php\?type=\$\{type\}&mode=state/);
     assert.match(dockerJs, /const buildDockerRuntimeInfoUrl = \(mode = 'full', cacheBust = Date\.now\(\)\) =>/);
-    assert.match(dockerJs, /mode === 'state'[\s\S]*nocache=1&_=\$\{stamp\}/);
+    assert.match(dockerJs, /mode === 'state' \? '&mode=state' : ''\}\&nocache=1&_=\$\{cacheBust \|\| Date\.now\(\)\}/);
     assert.match(dockerJs, /const queueLoadlistRefresh = \(options = \{\}\) =>/);
     assert.match(vmJs, /queueLoadlistRefresh/);
     assert.match(dashboardJs, /queueLoadlistRefresh/);

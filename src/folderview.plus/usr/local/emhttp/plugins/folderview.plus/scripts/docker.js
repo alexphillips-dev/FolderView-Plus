@@ -6140,10 +6140,7 @@ const queueLoadlistRefresh = (options = {}) => {
 };
 
 const buildDockerRuntimeInfoUrl = (mode = 'full', cacheBust = Date.now()) => {
-    const stamp = encodeURIComponent(String(cacheBust || Date.now()));
-    return mode === 'state'
-        ? `/plugins/folderview.plus/server/read_info.php?type=docker&mode=state&nocache=1&_=${stamp}`
-        : `/plugins/folderview.plus/server/read_info.php?type=docker&nocache=1&_=${stamp}`;
+    return `/plugins/folderview.plus/server/read_info.php?type=docker${mode === 'state' ? '&mode=state' : ''}&nocache=1&_=${cacheBust || Date.now()}`;
 };
 
 const fetchDockerStateSignature = async () => {

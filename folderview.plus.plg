@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.30.02">
-<!ENTITY md5 "74e100e3cf1662fbb519e272412a29bf">
+<!ENTITY version "2026.03.30.03">
+<!ENTITY md5 "a7ce28f1d7ae4391560f3344d1d3e240">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.30.03
+- Fix: Use the measured visible folder-row height when applying the original Docker `folder-name-sub` centering helper instead of resetting source rows to `0`, so the folder icon, name, and started or stopped status center vertically in the row.
+- UX: Keep the original folder-row centering path and adjust those runtime helper lines directly instead of relying on unrelated host-row-only overrides.
+- Regression guard: Cover the Docker source-row centering helper contract in `docker.modules.js`.
+
 
 ###2026.03.30.02
 - Fix: Vertically center the normal Docker and VM Application-column content blocks so the icon, name, and started or stopped status no longer sit at the top of taller rows.

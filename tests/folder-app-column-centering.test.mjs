@@ -27,6 +27,7 @@ test('docker folder application column centers a left-aligned content block betw
     assert.match(dockerModulesJs, /sub\.style\.setProperty\('display', 'grid', 'important'\);/);
     assert.match(dockerModulesJs, /sub\.style\.setProperty\('grid-template-columns', 'minmax\(0, 1fr\) auto minmax\(0, 1fr\)', 'important'\);/);
     assert.match(dockerModulesJs, /sub\.style\.setProperty\('right', 'var\(--fvplus-docker-folder-right-gutter, 28px\)', 'important'\);/);
+    assert.match(dockerModulesJs, /sourceRows\.forEach\(\(row\) => \{[\s\S]*const targetHeight = getRenderedRowHeight\(row\);[\s\S]*applyRowHeight\(row, targetHeight\);[\s\S]*applyFolderCellCentering\(cell, targetHeight\);/);
 });
 
 test('vm folder application column centers a left-aligned content block between mover and menu', () => {

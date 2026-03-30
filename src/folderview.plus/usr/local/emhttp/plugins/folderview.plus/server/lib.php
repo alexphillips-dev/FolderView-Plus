@@ -1208,19 +1208,6 @@
         return $unique;
     }
 
-    function readInstalledManifestPath(): string {
-        global $configDir;
-        $preferred = "$configDir/folderview.plus.plg";
-        if (is_file($preferred)) {
-            return $preferred;
-        }
-        $candidates = readInstalledManifestPathCandidates();
-        if (count($candidates) > 0) {
-            return (string)$candidates[0];
-        }
-        return $preferred;
-    }
-
     function normalizeChangesBlockLines(string $block): array {
         $lines = [];
         foreach (explode("\n", str_replace(["\r\n", "\r"], "\n", $block)) as $line) {
@@ -1531,10 +1518,6 @@
     function readChangesLinesForVersion(string $version, int $maxLines = 14): array {
         $summary = readChangesSummaryForVersion($version, $maxLines);
         return (array)($summary['lines'] ?? []);
-    }
-
-    function readCurrentVersionChanges(int $maxLines = 14): array {
-        return readChangesLinesForVersion(readInstalledVersion(), $maxLines);
     }
 
     function getLegacyConfigDirCandidates(): array {
@@ -4150,23 +4133,6 @@
             return false;
         }
         return @preg_match(diagnosticsBuildRegex($pattern), $subject) === 1;
-    }
-
-    function diagnosticsDockerLabelsForItem($item): array {
-        if (!is_array($item)) {
-            return [];
-        }
-        if (isset($item['Labels']) && is_array($item['Labels'])) {
-            return $item['Labels'];
-        }
-        if (isset($item['info']['Config']['Labels']) && is_array($item['info']['Config']['Labels'])) {
-            return $item['info']['Config']['Labels'];
-        }
-        return [];
-    }
-
-    function diagnosticsAutoRuleMatches(array $rule, string $name, array $infoByName, string $type): bool {
-        return autoRuleMatchesItem($rule, $name, $infoByName, $type);
     }
 
     function diagnosticsFirstMatchingRule(array $rules, string $name, array $infoByName, string $type): ?array {

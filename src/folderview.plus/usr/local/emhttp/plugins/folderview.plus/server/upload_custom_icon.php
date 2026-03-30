@@ -435,32 +435,6 @@ function enforceCustomIconUploadRateLimit(): void {
     writeCustomIconUploadRateBucket($bucketPath, $timestamps);
 }
 
-function countCustomIconsInDirectory(string $directory): int {
-    if (!is_dir($directory)) {
-        return 0;
-    }
-    $count = 0;
-    $items = @scandir($directory) ?: [];
-    foreach ($items as $name) {
-        if ($name === '.' || $name === '..') {
-            continue;
-        }
-        if ($name !== basename($name)) {
-            continue;
-        }
-        $path = "$directory/$name";
-        if (!is_file($path)) {
-            continue;
-        }
-        $extension = strtolower((string)pathinfo($name, PATHINFO_EXTENSION));
-        if ($extension === '' || !in_array($extension, FVPLUS_CUSTOM_ICON_EXTENSIONS, true)) {
-            continue;
-        }
-        $count += 1;
-    }
-    return $count;
-}
-
 function listCustomIconsInDirectory(string $directory): array {
     if (!is_dir($directory)) {
         return [];

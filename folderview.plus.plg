@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.30.19">
-<!ENTITY md5 "333b926b727ed81bb85f4140c142f060">
+<!ENTITY version "2026.03.30.20">
+<!ENTITY md5 "38cea7c15495d1cd5b447c874f33e414">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.30.20
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Fix: Improved backend release-note parsing and category detection for accurate summaries.
+
 
 ###2026.03.30.19
 - Fix: Stop Docker bootstrap from forcing a second host reload when Unraid stages a newer request bundle while FolderView Plus is still rendering folders.

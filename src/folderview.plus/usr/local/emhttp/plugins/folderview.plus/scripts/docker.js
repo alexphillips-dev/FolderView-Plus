@@ -1111,26 +1111,6 @@ const getDockerRuntimePresetAppWidth = () => {
     return clampDockerRuntimeColumnWidth(preset, 1);
 };
 
-const getSavedDockerRuntimeColumnWidths = () => {
-    try {
-        const raw = localStorage.getItem(DOCKER_RUNTIME_COLUMN_WIDTHS_STORAGE_KEY);
-        if (raw) {
-            const parsed = JSON.parse(raw);
-            const normalized = normalizeDockerRuntimeColumnWidthMap(parsed);
-            if (Object.keys(normalized).length > 0) {
-                return normalized;
-            }
-        }
-        const legacy = clampDockerRuntimeColumnWidth(
-            localStorage.getItem(DOCKER_RUNTIME_LEGACY_APP_WIDTH_STORAGE_KEY),
-            1
-        );
-        return legacy ? { 1: legacy } : {};
-    } catch (_error) {
-        return {};
-    }
-};
-
 const persistDockerRuntimeColumnWidths = (widthMap) => {
     const normalized = normalizeDockerRuntimeColumnWidthMap(widthMap);
     try {
@@ -1443,56 +1423,6 @@ const stopDockerRuntimeColumnResize = (persist = true) => {
     }
 };
 
-const beginDockerRuntimeColumnWidthResize = (columnIndex, event) => {
-    // Runtime drag-resize intentionally disabled; app column now auto-sizes from folder names.
-    void columnIndex;
-    void event;
-    return;
-    /*
-    if (event.button !== 0) {
-        return;
-    }
-    const targets = getDockerRuntimeTableTargets();
-    if (!targets || !targets.headers[columnIndex - 1]) {
-        return;
-    }
-    const header = targets.headers[columnIndex - 1];
-    const frozenWidths = captureCurrentDockerRuntimeColumnWidths();
-    const initialWidth = clampDockerRuntimeColumnWidth(header.getBoundingClientRect().width, columnIndex);
-    if (!initialWidth) {
-        return;
-    }
-    const startX = Number(event.clientX || 0);
-    const onMove = (moveEvent) => {
-        const delta = Number(moveEvent.clientX || 0) - startX;
-        const nextWidth = clampDockerRuntimeColumnWidth(initialWidth + delta, columnIndex);
-        if (!nextWidth || !dockerRuntimeColumnResizeSession) {
-            return;
-        }
-        dockerRuntimeColumnResizeSession.widths[columnIndex] = nextWidth;
-        applyDockerRuntimeColumnWidths(dockerRuntimeColumnResizeSession.widths);
-    };
-    const onUp = () => stopDockerRuntimeColumnResize(true);
-    const onCancel = onUp;
-    dockerRuntimeColumnResizeSession = {
-        widths: {
-            ...frozenWidths,
-            [columnIndex]: initialWidth
-        },
-        onMove,
-        onUp,
-        onCancel
-    };
-    applyDockerRuntimeColumnWidths(dockerRuntimeColumnResizeSession.widths);
-    document.body?.classList.add('fvplus-docker-column-resize-active');
-    window.addEventListener('pointermove', onMove, true);
-    window.addEventListener('pointerup', onUp, true);
-    window.addEventListener('pointercancel', onCancel, true);
-    event.preventDefault();
-    event.stopPropagation();
-    */
-};
-
 const dockerRuntimeThemeReflowController = runtimeStateObserverModule && typeof runtimeStateObserverModule.createThemeReflowController === 'function'
     ? runtimeStateObserverModule.createThemeReflowController({
         window,
@@ -1593,6 +1523,12 @@ const bindDockerRuntimeColumnResizers = () => {
         }
     });
     scheduleDockerRuntimeWidthReflow('table-bind', 0);
+};
+
+const beginDockerRuntimeColumnWidthResize = (columnIndex, event) => {
+    // Runtime drag-resize intentionally disabled; app column now auto-sizes from folder names.
+    void columnIndex;
+    void event;
 };
 
 // Backward-compatible aliases used by legacy tests/hooks.
@@ -3946,7 +3882,6 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
 
             const elementForPreviewOpts = $(`tr.folder-id-${id} div.folder-preview > span:last`); // Re-check if this is always correct
             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Preview element for options:`, elementForPreviewOpts[0]);
-            let sel_preview_opt;
             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Applying preview options based on folder.settings:`, JSON.parse(JSON.stringify(folder.settings)));
          
             const $previewElementTarget = $(`tr.folder-id-${id} div.folder-preview > span:last`); // Or elementForPreviewOpts if you prefer

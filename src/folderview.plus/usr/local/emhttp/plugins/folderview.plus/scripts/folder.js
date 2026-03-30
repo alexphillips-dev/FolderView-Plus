@@ -448,21 +448,6 @@ const normalizeComparableValue = (value) => {
 
 const areComparableValuesEqual = (left, right) => JSON.stringify(normalizeComparableValue(left)) === JSON.stringify(normalizeComparableValue(right));
 
-const getFormControlValue = (fieldName) => {
-    const form = getForm();
-    const field = form?.elements?.[fieldName];
-    if (!field) {
-        return undefined;
-    }
-    if (field.type === 'checkbox') {
-        return field.checked;
-    }
-    if (typeof field.length === 'number' && !field.tagName) {
-        return Array.from(field).map((entry) => (entry?.type === 'checkbox' ? entry.checked : $(entry).val()));
-    }
-    return $(field).val();
-};
-
 const setFormControlValue = (fieldName, value) => {
     const form = getForm();
     const field = form?.elements?.[fieldName];

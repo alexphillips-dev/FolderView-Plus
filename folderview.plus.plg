@@ -5,13 +5,26 @@
 <!ENTITY github "alexphillips-dev/FolderView-Plus">
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
-<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.29.11">
-<!ENTITY md5 "3823ae3651dbae4395f304b29c7c149f">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
+<!ENTITY version "2026.03.29.12">
+<!ENTITY md5 "711d35a649fff291f57473b600daaf13">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.29.12
+- Feature: Add Docker branch management actions with nested-aware `Clone branch` support plus `Delete branch folders` to remove a root folder and all of its child folders together.
+- Feature: Add a dedicated Docker `Clone` submenu so `Clone folder` and `Clone branch` are grouped under branch-aware actions.
+- Fix: Restore Docker advanced preview context popups for both click and hover activation modes.
+- Fix: Keep the modern folder editor on the current section when switching between Basic and Advanced modes.
+- Fix: Restore Docker WebUI launches for preview icons, container actions, and `Open all WebUIs` without landing on `about:blank#blocked`.
+- Fix: Stop Docker WebUI actions from using unresolved template URLs so runtime buttons and bulk opens use resolved container ports instead of placeholders like `http://[IP]:[PORT:80]`.
+- Fix: Preserve manually reordered Docker folder order across refreshes instead of snapping placeholders back to definition order.
+- Fix: Stop nested Docker parent previews from forcing WebUI, console, and logs quick-action icons when those preview actions are disabled.
+- Fix: Restore the modern folder editor after reinstall by loading shared editor modules with explicit PHP asset includes instead of short tags.
+- Fix: Restore Docker branch hover submenus so nested branch and clone actions render correctly on hover.
+- Quality: Expand regression coverage for Docker preview context popups, WebUI resolution, folder order persistence, nested preview actions, folder-editor bootstrap, branch cloning, branch deletion, and clone rollback safety.
 
 ###2026.03.29.11
 - Feature: Add `Delete branch folders` under Docker branch actions to remove a root folder and every nested child folder in that branch.
@@ -4235,7 +4248,7 @@
     </CHANGES>
 
     <FILE Name="/boot/config/plugins/&name;/&name;-&version;.txz" Run="upgradepkg --install-new">
-        <URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL>
+        <URL>https://raw.githubusercontent.com/&github;/main/archive/&name;-&version;.txz</URL>
         <MD5>&md5;</MD5>
     </FILE>
 

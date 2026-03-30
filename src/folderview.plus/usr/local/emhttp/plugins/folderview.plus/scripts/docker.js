@@ -2824,6 +2824,22 @@ const buildDockerWebuiSignature = (source) => {
     }).join('|');
 };
 
+const buildDockerUpdateSignature = (source) => {
+    const map = source && typeof source === 'object' ? source : {};
+    const names = Object.keys(map).sort((a, b) => a.localeCompare(b));
+    if (!names.length) {
+        return '';
+    }
+    return names.map((name) => {
+        const state = map[name]?.info?.State && typeof map[name].info.State === 'object' ? map[name].info.State : {};
+        const manager = String(state.manager || '').trim();
+        const updateToken = typeof state.Updated === 'boolean'
+            ? (state.Updated === false ? 'update-ready' : 'up-to-date')
+            : 'unknown';
+        return `${name}:${manager}:${updateToken}`;
+    }).join('|');
+};
+
 const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, fullInfoPromise = null) => {
     const requestPromise = fullInfoPromise && typeof fullInfoPromise.then === 'function'
         ? fullInfoPromise
@@ -2847,15 +2863,17 @@ const queueDockerDeferredRuntimeInfoHydration = (generation, stateSignature, ful
                 return;
             }
             const previousWebuiSignature = buildDockerWebuiSignature(dockerRuntimeInfoByName);
+            const previousUpdateSignature = buildDockerUpdateSignature(dockerRuntimeInfoByName);
             dockerRuntimeInfoByName = normalizeDockerRuntimeInfoMap(parsed, dockerRuntimeInfoByName);
             const nextWebuiSignature = buildDockerWebuiSignature(dockerRuntimeInfoByName);
+            const nextUpdateSignature = buildDockerUpdateSignature(dockerRuntimeInfoByName);
             if (stateSignature) {
                 lastLiveRefreshStateSignature = stateSignature;
             }
             markDockerFatalBannerStep('Docker runtime details hydrated');
             recordDockerFatalBannerAction('Docker runtime details hydrated');
-            if (previousWebuiSignature !== nextWebuiSignature) {
-                syncDockerVisibleFoldersFromRuntimeCache();
+            if (previousWebuiSignature !== nextWebuiSignature || previousUpdateSignature !== nextUpdateSignature) {
+                queueLoadlistRefresh();
                 return;
             }
             syncDockerVisibleFoldersFromRuntimeCache();

@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.30.06">
-<!ENTITY md5 "3517189a9f1c6c8f529e9703ad014795">
+<!ENTITY version "2026.03.30.07">
+<!ENTITY md5 "8a4befe383ed170a44e4af034e8d5f4b">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.30.07
+- Fix: Override the Docker folder row wrapper bottom margin to `0 !important` so the host `span.outer` / `.folder-outer` `margin-bottom: 20px` no longer pulls folder rows upward in the Application column.
+- Fix: Revert the recent Docker source-row centering helper experiment and keep the original legacy flex centering path instead of measuring and reapplying source-row heights.
+- Regression guard: Assert the Docker folder-row margin override is present and that the source-row centering path stays on the stable `applyRowHeight(row, 0)` plus `applyFolderCellCentering(cell, 0)` contract.
+
 
 ###2026.03.30.06
 - Fix: Undo the source-row height forcing from the previous build so Docker folder rows no longer balloon vertically or create massive empty spacing in the table.

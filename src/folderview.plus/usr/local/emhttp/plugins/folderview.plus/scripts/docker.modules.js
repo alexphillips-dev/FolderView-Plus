@@ -274,10 +274,9 @@
 
             sourceRows.forEach((row) => {
                 applyRowHeight(row, 0);
-                const targetHeight = getRenderedRowHeight(row);
                 const cell = getFolderNameCell(row);
                 if (cell) {
-                    applyFolderCellCentering(cell, targetHeight);
+                    applyFolderCellCentering(cell, 0);
                 }
             });
         };

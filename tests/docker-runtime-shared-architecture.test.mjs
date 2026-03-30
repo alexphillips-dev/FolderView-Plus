@@ -124,9 +124,10 @@ test('docker CSS keeps docker-specific layout tokens while shared stylesheet own
     assert.match(dockerCss, /border-right:\s*var\(--fvplus-preview-divider-width,\s*1px\) solid/);
 });
 
-test('docker folder row centering keeps the legacy flex layout but measures real source row height', () => {
+test('docker folder row centering keeps the legacy flex layout and clears host bottom margin drift', () => {
     assert.match(dockerCss, /\.folder-name-sub\s*\{[\s\S]*display:\s*flex/);
+    assert.match(dockerCss, /td\.ct-name\.folder-name > \.folder-name-sub > \.folder-outer\s*\{[\s\S]*margin-bottom:\s*0 !important/);
     assert.match(dockerModulesJs, /sub\.style\.setProperty\('display', 'flex', 'important'\);/);
-    assert.match(dockerModulesJs, /sourceRows\.forEach\(\(row\) => \{[\s\S]*applyRowHeight\(row, 0\);[\s\S]*const targetHeight = getRenderedRowHeight\(row\);[\s\S]*applyFolderCellCentering\(cell, targetHeight\);/);
-    assert.doesNotMatch(dockerModulesJs, /sourceRows\.forEach\(\(row\) => \{[\s\S]*applyRowHeight\(row, targetHeight\);/);
+    assert.match(dockerModulesJs, /sourceRows\.forEach\(\(row\) => \{[\s\S]*applyRowHeight\(row, 0\);[\s\S]*applyFolderCellCentering\(cell, 0\);/);
+    assert.doesNotMatch(dockerModulesJs, /sourceRows\.forEach\(\(row\) => \{[\s\S]*getRenderedRowHeight\(row\);/);
 });

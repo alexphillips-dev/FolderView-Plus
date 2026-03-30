@@ -230,6 +230,10 @@ td.ct-name.folder-name > .folder-name-sub {
     max-width: max(112px, calc(var(--fvplus-docker-app-column-width) - var(--fvplus-docker-folder-outer-reserved-width, 106px)));
 }
 
+td.ct-name.folder-name > .folder-name-sub > .folder-outer {
+    margin-bottom: 0 !important;
+}
+
 .folder-hand {
     flex: 0 0 auto;
 }

@@ -1692,7 +1692,7 @@ const buildDockerTooltipContent = (ct) => {
     return $content;
 };
 
-const initializeDockerTooltipOnDemand = ($target, init, options = {}) => {
+const initializeDockerTooltipOnDemand = ($target, init, hoverOpen = true) => {
     if (DOCKER_PREVIEW_POPUP_ENABLED !== true) {
         return;
     }
@@ -1703,18 +1703,13 @@ const initializeDockerTooltipOnDemand = ($target, init, options = {}) => {
         return;
     }
     $target.data('fvTooltipsterDeferred', true);
-    const eagerOpenEventTypes = new Set(
-        (Array.isArray(options?.openOnEventTypes) ? options.openOnEventTypes : ['mouseenter', 'click', 'touchstart'])
-            .map((eventType) => String(eventType || '').trim().toLowerCase())
-            .filter(Boolean)
-    );
     const ensureInitialized = (eventType = '') => {
         if ($target.data('fvTooltipsterInitialized') === true) {
             return;
         }
         $target.data('fvTooltipsterInitialized', true);
         init();
-        if (eagerOpenEventTypes.has(eventType)) {
+        if (eventType !== 'mouseenter' || hoverOpen) {
             setTimeout(() => {
                 try {
                     $target.tooltipster('open');
@@ -1725,7 +1720,7 @@ const initializeDockerTooltipOnDemand = ($target, init, options = {}) => {
         }
     };
     $target.one('mouseenter.fvLazyTooltip click.fvLazyTooltip touchstart.fvLazyTooltip', (event) => {
-        ensureInitialized(String(event?.type || '').trim().toLowerCase());
+        ensureInitialized(event?.type || '');
     });
 };
 // Advanced preview popups are opt-in per folder; keep the runtime lazy so
@@ -3957,11 +3952,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                         }
                     },
                     content: $('<div class="fv-tooltip-lazy-loading">Loading preview...</div>')
-                }), {
-                    openOnEventTypes: triggerMode === 'hover'
-                        ? ['mouseenter', 'click', 'touchstart']
-                        : ['click', 'touchstart']
-                });
+                }), triggerMode === 'hover');
             } else if (FOLDER_VIEW_DEBUG_MODE && tooltip_trigger_element && tooltip_trigger_element.length > 0) {
                 console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${ct.shortId}: FolderView preview popup runtime is disabled; skipping tooltip initialization.`);
             } else {

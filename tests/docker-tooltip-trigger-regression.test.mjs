@@ -31,13 +31,13 @@ const extractArrowFunctionBody = (source, signature) => {
 
 const initializeDockerTooltipOnDemandBody = extractArrowFunctionBody(
     dockerJs,
-    'const initializeDockerTooltipOnDemand = ($target, init, options = {}) => '
+    'const initializeDockerTooltipOnDemand = ($target, init, hoverOpen = true) => '
 );
 
 const initializeDockerTooltipOnDemand = new Function(
     '$target',
     'init',
-    'options',
+    'hoverOpen',
     'DOCKER_PREVIEW_POPUP_ENABLED',
     'setTimeout',
     initializeDockerTooltipOnDemandBody
@@ -100,7 +100,7 @@ test('docker lazy tooltip init does not eager-open click-trigger tooltips on fir
         () => {
             initCount += 1;
         },
-        { openOnEventTypes: ['click', 'touchstart'] },
+        false,
         true,
         runImmediateTimeout
     );
@@ -121,7 +121,7 @@ test('docker lazy tooltip init still eager-opens hover-trigger tooltips on first
         () => {
             initCount += 1;
         },
-        { openOnEventTypes: ['mouseenter', 'click', 'touchstart'] },
+        true,
         true,
         runImmediateTimeout
     );
@@ -141,7 +141,7 @@ test('docker lazy tooltip init eager-opens click-trigger tooltips on first click
         () => {
             initCount += 1;
         },
-        { openOnEventTypes: ['click', 'touchstart'] },
+        false,
         true,
         runImmediateTimeout
     );

@@ -108,10 +108,13 @@ test('read_info supports cached full/state payload retrieval', () => {
 });
 
 test('runtime refresh uses lightweight state mode checks before re-rendering', () => {
-    assert.match(dockerJs, /read_info\.php\?type=docker&mode=state/);
+    assert.match(dockerJs, /buildDockerRuntimeInfoUrl\('state'/);
     assert.match(vmJs, /read_info\.php\?type=vm&mode=state/);
     assert.match(dashboardJs, /read_info\.php\?type=\$\{type\}&mode=state/);
-    assert.match(dockerJs, /queueLoadlistRefresh/);
+    assert.match(dockerJs, /const buildDockerRuntimeInfoUrl = \(mode = 'full', cacheBust = Date\.now\(\)\) =>/);
+    assert.match(dockerJs, /mode === 'state' \? '&mode=state' : ''\}\&nocache=1&_=\$\{cacheBust \|\| Date\.now\(\)\}/);
+    assert.match(dockerJs, /createDockerRuntimeRequest\(`\/plugins\/folderview\.plus\/server\/prefs\.php\?type=docker&_=\$\{cacheBust\}`,/);
+    assert.match(dockerJs, /const queueLoadlistRefresh = \(options = \{\}\) =>/);
     assert.match(vmJs, /queueLoadlistRefresh/);
     assert.match(dashboardJs, /queueLoadlistRefresh/);
     assert.match(dockerJs, /LOADLIST_REFRESH_MIN_GAP_MS/);
@@ -125,11 +128,18 @@ test('runtime refresh uses lightweight state mode checks before re-rendering', (
     assert.match(dashboardJs, /const queueCreateFoldersRender = \(\) =>/);
     assert.match(dockerJs, /const readDockerHostOrderFromDom = \(\) =>/);
     assert.match(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoPromise = null\) =>/);
+    assert.match(dockerJs, /let dockerHostLoadOwnsLoadingUi = false;/);
+    assert.match(dockerJs, /const shouldSuppressDockerRuntimeLoadingUi = \(\) => dockerHostLoadOwnsLoadingUi \|\| nextDockerRenderSuppressLoadingUi \|\| activeDockerRenderSuppressLoadingUi;/);
     assert.match(dockerJs, /const buildDockerWebuiSignature = \(source\) =>/);
-    assert.match(dockerJs, /if \(previousWebuiSignature !== nextWebuiSignature\) \{/);
+    assert.match(dockerJs, /\|\$\{state\.Updated === false \? 'u' : \(state\.Updated === true \? 'c' : '\?'\)\}/);
+    assert.match(dockerJs, /if \(previousWebuiSignature !== nextWebuiSignature\) \{\s*queueLoadlistRefresh\(\);\s*return;\s*\}/s);
+    assert.doesNotMatch(dockerJs, /applyDockerPinnedFolderIds\(Array\.isArray\(response\?\.prefs\?\.pinnedFolderIds\) \? response\.prefs\.pinnedFolderIds : nextPinned\);\s*syncDockerPinnedFolderUi\(\);\s*queueLoadlistRefresh\(/s);
     assert.match(dockerJs, /const yieldDockerRenderLoop = async \(processedCount,\s*totalCount\) =>/);
-    assert.match(dockerJs, /render:\s*\[[\s\S]*read_info\.php\?type=docker&mode=state/);
-    assert.match(dockerJs, /fullInfo:\s*createDockerRuntimeRequest\('\/plugins\/folderview\.plus\/server\/read_info\.php\?type=docker'/);
+    assert.match(dockerJs, /dockerHostLoadOwnsLoadingUi = true;\s*if \(FOLDER_VIEW_DEBUG_MODE\) console\.log\('\[FV3_DEBUG\] Patched listview: loadedFolder is false\. Queueing createFolders render\.'/);
+    assert.match(dockerJs, /loadedFolder = false;\s*dockerHostLoadOwnsLoadingUi = true;/);
+    assert.match(dockerJs, /dockerHostLoadOwnsLoadingUi = false;\s*activeDockerRenderSuppressLoadingUi = false;/);
+    assert.match(dockerJs, /render:\s*\[[\s\S]*createDockerRuntimeRequest\(buildDockerRuntimeInfoUrl\('state', cacheBust\),/);
+    assert.match(dockerJs, /fullInfo:\s*createDockerRuntimeRequest\(buildDockerRuntimeInfoUrl\('full', cacheBust\),/);
 });
 
 test('performance mode applies stricter refresh cadence and reduced motion guards', () => {
@@ -218,7 +228,9 @@ test('docker preview popup runtime stays enabled behind lazy advanced-preview in
     assert.match(dockerJs, /const DOCKER_PREVIEW_POPUP_ENABLED = true;/);
     assert.match(dockerJs, /fvTooltipLazyBuilt/);
     assert.match(dockerJs, /Loading preview\.\.\./);
-    assert.match(dockerJs, /const initializeDockerTooltipOnDemand = \(\$target,\s*init\) =>/);
+    assert.match(dockerJs, /const initializeDockerTooltipOnDemand = \(\$target,\s*init,\s*hoverOpen = true\) =>/);
+    assert.match(dockerJs, /initializeDockerTooltipOnDemand\(\$\(tooltip_trigger_element\), \(\) => \$\(tooltip_trigger_element\)\.tooltipster\(\{/);
+    assert.match(dockerJs, /\}\), triggerMode === 'hover'\);/);
     assert.match(dockerJs, /if \(DOCKER_PREVIEW_POPUP_ENABLED !== true\) \{\s*return;\s*\}/);
     assert.match(dockerJs, /if\(DOCKER_PREVIEW_POPUP_ENABLED && tooltip_trigger_element && tooltip_trigger_element\.length > 0\) \{/);
 });

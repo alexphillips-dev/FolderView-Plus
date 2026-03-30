@@ -139,6 +139,10 @@ td.vm-name.folder-name > .folder-name-sub {
     padding-right: var(--fvplus-vm-folder-right-gutter, 18px);
 }
 
+td.vm-name.folder-name > .folder-name-sub > .folder-outer {
+    margin-bottom: 0 !important;
+}
+
 .folder-inner {
     display: inline-flex;
     flex-direction: column;
@@ -159,12 +163,55 @@ td.vm-name.folder-name > .folder-name-sub {
     display: none;
 }
 
+td.vm-name.folder-name {
+    position: relative;
+    overflow: hidden;
+}
+
+td.vm-name.folder-name::before,
+td.vm-name.folder-name::after {
+    content: "";
+    position: absolute;
+    top: 6px;
+    bottom: 6px;
+    border-radius: 999px;
+    pointer-events: none;
+}
+
+td.vm-name.folder-name::before {
+    left: 0;
+    width: 3px;
+    background: var(--fv-folder-accent-color, #ffca63);
+    opacity: 0;
+}
+
+td.vm-name.folder-name::after {
+    left: 5px;
+    width: 2px;
+    background: transparent;
+    opacity: 0;
+}
+
+tr.fv-folder-has-accent td.vm-name.folder-name::before {
+    opacity: 1;
+}
+
 tr.fv-folder-focused td.vm-name.folder-name {
-    box-shadow: inset 2px 0 0 rgba(0, 170, 255, 0.85);
+    box-shadow: none;
+}
+
+tr.fv-folder-focused td.vm-name.folder-name::after {
+    background: rgba(0, 170, 255, 0.85);
+    opacity: 1;
 }
 
 tr.fv-folder-pinned td.vm-name.folder-name {
-    box-shadow: inset 2px 0 0 rgba(255, 202, 99, 0.9);
+    box-shadow: none;
+}
+
+tr.fv-folder-pinned td.vm-name.folder-name::after {
+    background: rgba(255, 202, 99, 0.9);
+    opacity: 1;
 }
 
 tr.fv-folder-locked .mover,

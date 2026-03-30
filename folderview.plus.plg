@@ -6,40 +6,209 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.29.14">
-<!ENTITY md5 "711d35a649fff291f57473b600daaf13">
+<!ENTITY version "2026.03.30.18">
+<!ENTITY md5 "f97e5b9f93849f7058f56b986536b224">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
 
+###2026.03.30.18
+- Feature: Add optional per-folder `Accent color` support across Docker folders, VM folders, Dashboard cards, and the folder editor live preview, including smart-default and template inheritance plus the consolidated Accent card and live swatch UX.
+- Fix: Remove the extra Docker reload cycle during deferred runtime hydration by updating preview actions and tooltip payloads in place, suppressing the duplicate FolderView Plus loading shell, and routing runtime info reads through no-cache helpers so fresh state and WebUI metadata stay in sync.
+- Fix: Keep Docker and VM pin quick actions in place after saves with cache-busted prefs reads, restore dashboard Docker `Restart`, and stop dashboard or VM folder-action error paths from triggering a second reload.
+- Fix: Rework Docker and VM Application-column folder-row centering across the full follow-up series so rows stay vertically centered and left-aligned without ballooned heights, column distortion, or Docker bottom-margin drift, including the matching VM host-margin correction.
+- Fix: Restore the modern folder editor after the accent preview refactor so accent live-preview swatches no longer break bootstrap or hydration.
+- Fix: Rebuild collapsed Docker folder and root-folder update status from hydrated runtime data, reuse the shared update-column renderer across first paint and refresh, resolve advanced-list mode locally, prioritize the dedicated Docker runtime banner host, and preserve `State.Updated` through lightweight and full hydration so `Update ready` survives collapsed branches.
+- Fix: Stop Docker advanced preview context popups configured for click from opening on the first hover interaction.
+- Quality: Add the dev version-bump push guard and expand regression coverage for hydration, accent color, folder actions, layout, and tooltip trigger mode changes.
+
+
+###2026.03.30.17
+- Fix: Stop Docker advanced preview context popups configured for click from eager-opening on the first hover interaction.
+- Quality: Trim the lazy tooltip trigger-mode fix so the Docker runtime stays inside the repo perf budget while preserving hover-mode eager-open behavior.
+- Regression guard: Cover lazy tooltip initialization so click-trigger folders only eager-open on click or touch, while hover-trigger folders still open on hover.
+
+
+###2026.03.30.16
+- Fix: Stop Docker advanced preview context popups configured for click from eager-opening on the first hover interaction.
+- Regression guard: Cover lazy tooltip initialization so click-trigger folders only eager-open on click or touch, while hover-trigger folders still open on hover.
+
+
+###2026.03.30.15
+- Maintenance: Fold docker update state into hydration signature.
+- Maintenance: Trim docker update signature helper.
+- Fix: Fix docker update hydration rerender.
+
+
+###2026.03.30.14
+- Fix: Preserve Docker `State.Updated` from the hydrated full runtime payload so folder member rows and folder/root-folder summaries stop getting stuck on `up-to-date` while those containers actually have updates available.
+- Fix: Keep lightweight `mode=state` refreshes cheap while still carrying forward the most recent known update state instead of dropping it during Docker runtime info merges.
+- Regression guard: Assert the Docker runtime info merge prefers `source.info.State.Updated` from the full payload and only falls back to the previous cached value when the lightweight state payload omits it.
+
+
+###2026.03.30.13
+- Fix: Preserve Docker `State.Updated` from the hydrated full runtime payload so folder member rows and folder/root-folder summaries stop getting stuck on `up-to-date` when those containers actually have updates available.
+- Fix: Keep lightweight `mode=state` refreshes cheap while still carrying forward the most recent known update state instead of dropping it back to `null` during runtime merges.
+- Regression guard: Assert the Docker runtime info merge prefers `source.info.State.Updated` from the full payload and only falls back to the previous cached value when the lightweight state payload omits it.
+
+
+###2026.03.30.12
+- Fix: Restore the Docker page after the collapsed update-summary refactor by resolving advanced-list mode inside the shared folder update-column renderer instead of referencing an out-of-scope runtime variable during bootstrap.
+- Fix: Prioritize the dedicated Docker runtime banner host so fatal runtime diagnostics render at the top of the page instead of dropping to the bottom canvas area.
+- Regression guard: Assert the shared folder update-column renderer reads Docker advanced mode locally, and assert fatal-banner host resolution honors selector priority for the dedicated Docker banner host.
+
+
+###2026.03.30.11
+- Fix: Reuse one folder update-column renderer across first paint and runtime hydration so collapsed Docker folders and root folders keep surfacing child container updates without regressing the performance budget.
+- Fix: Apply the same host-margin row-centering override to VM folder rows so the VM Application column keeps single-row folder content vertically centered like Docker.
+- Regression guard: Assert the shared folder update-column renderer is used by both folder creation and collapsed runtime refresh, and assert the VM row CSS clears host bottom-margin drift.
+
+
+###2026.03.30.10
+- Fix: Rebuild collapsed Docker folder update columns from hydrated runtime container data so folder and root-folder rows show `Update ready` when child containers have updates available, even while the branch is collapsed.
+- Fix: Keep the collapsed-folder refresh path aligned with the existing `apply update` and `force update` folder actions instead of leaving the folder row stuck on the lightweight first-paint `up-to-date` state.
+- Regression guard: Assert the runtime folder-row refresh path owns the update column and refreshes collapsed folder update state from runtime cache without requiring the folder to be expanded.
+
+
+###2026.03.30.09
+- Fix: Restore the modern folder editor bootstrap after the new accent preview swatch change by defining `accentEnabled` and `accentColor` inside `updateLiveSummary()` before that code touches the live preview chips.
+- Fix: Keep the new accent swatch in the editor live preview insights without crashing hydration when the modern editor loads.
+- Regression guard: Assert that `folder.editor.preview.js` computes the accent values inside `updateLiveSummary()` before updating `#fvSwatchAccent` and `#fvAccentSwatchItem`.
+
+
+###2026.03.30.08
+- UX: Move the modern folder editor accent color picker into the main `Accent color` card so the toggle and bar color stay together instead of appearing as separate settings blocks.
+- UX: Add the folder accent color to the editor live preview insights with its own `Accent` swatch, while keeping the live row accent bar preview in sync.
+- Regression guard: Assert the merged accent editor layout, the live preview accent swatch wiring, and the shared accent color contract across the modern and fallback editor chrome paths.
+
+
+###2026.03.30.07
+- Fix: Override the Docker folder row wrapper bottom margin to `0 !important` so the host `span.outer` / `.folder-outer` `margin-bottom: 20px` no longer pulls folder rows upward in the Application column.
+- Fix: Revert the recent Docker source-row centering helper experiment and keep the original legacy flex centering path instead of measuring and reapplying source-row heights.
+- Regression guard: Assert the Docker folder-row margin override is present and that the source-row centering path stays on the stable `applyRowHeight(row, 0)` plus `applyFolderCellCentering(cell, 0)` contract.
+
+
+###2026.03.30.06
+- Fix: Undo the source-row height forcing from the previous build so Docker folder rows no longer balloon vertically or create massive empty spacing in the table.
+- Fix: Center the Docker folder content block by clearing stale forced row heights, measuring the natural rendered row height, and applying that measurement only to the folder name cell centering helper.
+- Regression guard: Assert that Docker source rows keep the legacy flex layout, clear forced row height first, and do not reapply `applyRowHeight(row, targetHeight)` in the source-row centering path.
+
+
+###2026.03.30.05
+- Fix: Keep the legacy Docker folder row layout intact and center the folder content block by applying the measured rendered row height to real source rows before the centering helper positions `folder-name-sub`.
+- Fix: Avoid the previous Application-column layout experiment and correct the original centering helper instead, so the row no longer sits at the top without disturbing column alignment.
+- Regression guard: Cover the legacy flex-layout plus measured source-row-height contract in `docker.modules.js`.
+
+
+###2026.03.30.04
+- Fix: Revert the Docker and VM Application-column layout experiment and restore the pre-`2026.03.29.26` folder row structure after the centering changes caused row distortion and column misalignment.
+- Fix: Restore the original Docker folder row centering helper contract in `docker.modules.js`, including the pre-existing CSS gutter pairing for the folder dropdown side.
+- Regression guard: Remove the Application-column centering regression test that only covered the reverted experiment and keep the shared Docker layout contract aligned with the restored CSS.
+
+
+###2026.03.30.03
+- Fix: Use the measured visible folder-row height when applying the original Docker `folder-name-sub` centering helper instead of resetting source rows to `0`, so the folder icon, name, and started or stopped status center vertically in the row.
+- UX: Keep the original folder-row centering path and adjust those runtime helper lines directly instead of relying on unrelated host-row-only overrides.
+- Regression guard: Cover the Docker source-row centering helper contract in `docker.modules.js`.
+
+
+###2026.03.30.02
+- Fix: Vertically center the normal Docker and VM Application-column content blocks so the icon, name, and started or stopped status no longer sit at the top of taller rows.
+- UX: Keep the Application-column content left-aligned while centering the entire content block within the row height.
+- Regression guard: Cover the host list-row Application-cell centering contract for both Docker and VM runtimes.
+
+
+###2026.03.30.01
+- UX: Keep the Docker and VM folder row block centered in the Application column while leaving the folder icon, name, and started or stopped text left-aligned inside that block.
+- Fix: Correct the previous Application-column layout so only the row wrapper is centered, not the inner folder content itself.
+- Regression guard: Cover the centered-wrapper plus left-aligned-content contract for Docker and VM folder rows.
+
+
+###2026.03.29.26
+- UX: Center the Docker and VM folder application-column content block so the folder icon, name, and started or stopped state stay visually centered.
+- Fix: Keep folder quick-action chrome anchored while the centered layout is active by reserving the mover on the left and the menu button on the right.
+- Regression guard: Cover the centered application-column grid contract and Docker runtime row-centering inline style overrides.
+
+
+###2026.03.29.25
+- Fix: Fix folder action restart and reload flows.
+- Fix: Fix docker quick-action pin persistence.
+- Maintenance: Trim docker bootstrap perf budget.
+- Maintenance: Clarify docker refresh release notes.
+- Maintenance: Trim docker no-cache refresh path.
+- Maintenance: Stop docker double refresh shell.
+
+
+###2026.03.29.24
+- Feature: Add a separate per-folder `Accent color` setting in the folder editor with a default-disabled toggle plus custom color picker.
+- Feature: Render the optional accent bar across Docker folders, VM folders, Dashboard cards, and the live folder editor preview without tying it to pinning.
+- Quality: Carry accent defaults through parent smart defaults, starter templates, plugin defaults, and both modern and legacy folder editor save/load paths.
+- Regression guard: Cover accent editor bindings, shared normalization helpers, runtime row styling hooks, dashboard card styling, and starter template defaults.
+
+###2026.03.29.23
+- Fix: Restore the dashboard Docker folder `Restart` action by wiring it to its own handler instead of falling through a duplicate `Resume` case.
+- Fix: Stop dashboard Docker, dashboard VM, and VM runtime folder-action error paths from triggering an immediate second reload after showing the error dialog.
+- Fix: Keep VM folder pin quick actions in-place after saving prefs and cache-bust VM prefs reads so the next runtime refresh cannot revert to stale pinned folder state.
+- Regression guard: Cover dashboard restart routing, single-reload folder-action error handling, and the no-reload VM pin persistence path.
+
+
+###2026.03.29.22
+- Fix: Keep Docker folder pinning in-place after the quick-action menu saves prefs instead of forcing another runtime reload that could immediately undo the pinned state.
+- Fix: Cache-bust Docker runtime prefs reads so the next host refresh picks up the latest pinned folder ids instead of a stale prefs response.
+- Regression guard: Cover the no-reload Docker pin save path and the cache-busted Docker prefs request bundle.
+
+
+###2026.03.29.21
+- Fix: Let Unraid own the visible Docker tab load cycle by suppressing the extra FolderView Plus loading shell during host-driven refreshes.
+- Fix: Route Docker runtime info fetches through a compact shared no-cache helper so fresh state stays in sync without tripping the Docker script perf budget.
+- Regression guard: Update runtime refresh coverage for helper-based no-cache URLs and host-owned Docker loading UI suppression.
+
+
+###2026.03.29.20
+- Fix: Stop the Docker tab from showing a second FolderView Plus loading cycle on top of Unraid's own host refresh.
+- Fix: Force Docker runtime info reads through explicit `nocache=1` URLs so folder state and WebUI metadata stay fresh without another visible runtime reload.
+- Regression guard: Cover host-owned Docker loading UI suppression plus the no-cache runtime info request path.
+
+###2026.03.29.19
+- Fix: Remove the extra Docker tab reload during deferred runtime hydration and keep live preview actions updated in place instead.
+- Fix: Reuse the shared preview-action builders so the final runtime package stays within the Docker script performance budget.
+- Regression guard: Update nested preview layout coverage for the shared in-place hydration preview action path.
+
+
+###2026.03.29.18
+- Fix: Remove the extra Docker tab reload during deferred runtime hydration and update live preview actions in place instead.
+- Fix: Refresh existing preview tooltip payloads after runtime hydration without forcing a second Docker list render.
+- Regression guard: Cover the in-place hydration path so WebUI detail updates do not trigger another Docker `loadlist()`.
+
+
+###2026.03.29.17
+- Fix: Remove the extra Docker list reload during deferred runtime hydration and update live folder preview actions in place instead.
+- Fix: Keep preview tooltip payloads fresh after runtime hydration by invalidating lazy-built tooltip content on existing preview triggers.
+- Regression guard: Cover in-place hydration updates so WebUI detail changes do not queue a second Docker tab reload.
+
+###2026.03.29.16
+- Fix: Stop Docker deferred runtime hydration from showing the visible loading banner twice when the second pass only needs refreshed WebUI details.
+- Fix: Make Docker folder pinning reorder visible root folder rows immediately from the quick-action star instead of waiting on a later full redraw.
+- Regression guard: Cover silent Docker hydration refresh behavior plus the immediate pin-order sync contract.
+
+###2026.03.29.15
+- Fix: Make nested folder pinning move the visible branch root to the top so pinning from the runtime folder action menu no longer appears to do nothing.
+- Fix: Add a legacy prefs POST fallback for Docker and VM folder pin saves so pinning still persists if the runtime request wrapper is degraded or loads late.
+- Regression guard: Cover nested pinned branch ordering plus the runtime pin-save fallback contract.
+
 ###2026.03.29.14
-- Feature: Add Docker branch management actions with nested-aware `Clone branch` support plus `Delete branch folders` to remove a root folder and all of its child folders together.
-- Feature: Add a dedicated Docker `Clone` submenu so `Clone folder` and `Clone branch` are grouped under branch-aware actions.
-- Fix: Restore Docker advanced preview context popups for both click and hover activation modes.
-- Fix: Keep the modern folder editor on the current section when switching between Basic and Advanced modes.
-- Fix: Restore Docker WebUI launches for preview icons, container actions, and `Open all WebUIs` without landing on `about:blank#blocked`.
-- Fix: Stop Docker WebUI actions from using unresolved template URLs so runtime buttons and bulk opens use resolved container ports instead of placeholders like `http://[IP]:[PORT:80]`.
-- Fix: Preserve manually reordered Docker folder order across refreshes instead of snapping placeholders back to definition order.
-- Fix: Stop nested Docker parent previews from forcing WebUI, console, and logs quick-action icons when those preview actions are disabled.
-- Fix: Restore the modern folder editor after reinstall by loading shared editor modules with explicit PHP asset includes instead of short tags.
-- Fix: Restore Docker branch hover submenus so nested branch and clone actions render correctly on hover.
+- Fix: Fix release notes guard tmp creation in CI.
+- Feature: Add Docker branch folder deletion and clone regression tests.
+- Fix: Fix Docker branch submenu hover and add branch cloning.
+- Fix: Fix folder editor asset boot includes.
+- Fix: Fix nested preview quick actions.
+- Fix: Fix Docker folder order persistence.
+
+###2026.03.29.13
 - Fix: Create the release-notes consistency guard tmp directory before `mktemp` so Release On Main, back-merge, and CI guard lanes succeed on fresh GitHub Actions checkouts.
-- Quality: Expand regression coverage for Docker preview context popups, WebUI resolution, folder order persistence, nested preview actions, folder-editor bootstrap, branch cloning, branch deletion, clone rollback safety, and release-notes guard temp-directory creation.
+- Regression guard: Add versioning coverage that requires the release-notes consistency guard to create `tmp/release-notes-guard.*` work directories safely.
 
-
-###2026.03.29.12
-- Feature: Add Docker branch management actions with nested-aware `Clone branch` support plus `Delete branch folders` to remove a root folder and all of its child folders together.
-- Feature: Add a dedicated Docker `Clone` submenu so `Clone folder` and `Clone branch` are grouped under branch-aware actions.
-- Fix: Restore Docker advanced preview context popups for both click and hover activation modes.
-- Fix: Keep the modern folder editor on the current section when switching between Basic and Advanced modes.
-- Fix: Restore Docker WebUI launches for preview icons, container actions, and `Open all WebUIs` without landing on `about:blank#blocked`.
-- Fix: Stop Docker WebUI actions from using unresolved template URLs so runtime buttons and bulk opens use resolved container ports instead of placeholders like `http://[IP]:[PORT:80]`.
-- Fix: Preserve manually reordered Docker folder order across refreshes instead of snapping placeholders back to definition order.
-- Fix: Stop nested Docker parent previews from forcing WebUI, console, and logs quick-action icons when those preview actions are disabled.
-- Fix: Restore the modern folder editor after reinstall by loading shared editor modules with explicit PHP asset includes instead of short tags.
-- Fix: Restore Docker branch hover submenus so nested branch and clone actions render correctly on hover.
-- Quality: Expand regression coverage for Docker preview context popups, WebUI resolution, folder order persistence, nested preview actions, folder-editor bootstrap, branch cloning, branch deletion, and clone rollback safety.
 
 ###2026.03.29.11
 - Feature: Add `Delete branch folders` under Docker branch actions to remove a root folder and every nested child folder in that branch.

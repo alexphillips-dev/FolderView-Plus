@@ -7,6 +7,7 @@
         paused: '#b8860b',
         stopped: '#ff4d4d'
     });
+    const DEFAULT_FOLDER_ACCENT_COLOR = '#ffca63';
     const DEFAULT_PREVIEW_BORDER_COLOR = '#afa89e';
     const DEFAULT_PREVIEW_BORDER_WIDTH = 1;
     const DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH = 1;
@@ -98,6 +99,19 @@
         return true;
     };
 
+    const isFolderAccentEnabled = (settings) => {
+        const source = settings && typeof settings === 'object' ? settings : {};
+        if (!Object.prototype.hasOwnProperty.call(source, 'folder_accent_enabled')) {
+            return false;
+        }
+        const raw = source.folder_accent_enabled;
+        if (typeof raw === 'string') {
+            const normalized = raw.trim().toLowerCase();
+            return normalized === '1' || normalized === 'true' || normalized === 'on' || normalized === 'yes';
+        }
+        return raw === true || raw === 1;
+    };
+
     const extractPreviewRowLimitValue = (value, fallbackSource = null) => {
         const sources = [value, fallbackSource];
         for (const source of sources) {
@@ -127,6 +141,7 @@
 
     window.FolderViewPlusFolderContract = {
         DEFAULT_FOLDER_STATUS_COLORS,
+        DEFAULT_FOLDER_ACCENT_COLOR,
         DEFAULT_PREVIEW_BORDER_COLOR,
         DEFAULT_PREVIEW_BORDER_WIDTH,
         DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH,
@@ -141,6 +156,7 @@
         hexColorToRgba,
         getDropdownStyleTokens,
         isPreviewBorderEnabled,
+        isFolderAccentEnabled,
         extractPreviewRowLimitValue,
         normalizePreviewRowLimit
     };

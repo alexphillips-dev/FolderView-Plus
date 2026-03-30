@@ -222,13 +222,14 @@ test('shared fatal banner runtime is exposed on settings and runtime pages and e
     assert.match(settingsPage, /folderviewplus\.fatal-banner\.js[\s\S]*folderviewplus\.utils\.js/);
     assert.match(dockerPage, /folderviewplus\.fatal-banner\.js[\s\S]*folderviewplus\.utils\.js/);
     assert.match(vmPage, /folderviewplus\.fatal-banner\.js[\s\S]*folderviewplus\.utils\.js/);
-    assert.match(dockerPage, /hostSelector:\s*'\.canvas,\s*#fvplus-docker-runtime-banner-host'/);
+    assert.match(dockerPage, /hostSelector:\s*'#fvplus-docker-runtime-banner-host,\s*\.canvas'/);
     assert.match(vmPage, /hostSelector:\s*'#fvplus-vm-runtime-banner-host'/);
     assert.match(settingsPage, /unraidVersion:/);
     assert.doesNotMatch(folderPage, /folderviewplus\.fatal-banner\.js/);
     assert.doesNotMatch(dashboardPage, /folderviewplus\.fatal-banner\.js/);
     assert.match(fatalBannerScript, /win\.FolderViewPlusFatalBanner = api/);
     assert.match(fatalBannerScript, /win\.FolderViewPlusFatalBannerModuleLoaded = true/);
+    assert.match(fatalBannerScript, /\.flatMap\(\(entry\) => typeof entry === 'string' \? entry\.split\(','\) : \[\]\)/);
     assert.match(fatalBannerScript, /const setEnvironment = \(patch = \{\}\) =>/);
     assert.match(fatalBannerScript, /state\.environment\.pluginVersion = trimString\(config\.pluginVersion \|\| state\.environment\.pluginVersion \|\| 'unknown'\) \|\| 'unknown';/);
     assert.match(fatalBannerScript, /const markStep = \(step\) =>/);

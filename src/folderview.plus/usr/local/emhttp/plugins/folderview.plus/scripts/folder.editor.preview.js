@@ -17,6 +17,9 @@
         const normalizeDropdownStyle = typeof deps.normalizeDropdownStyle === 'function' ? deps.normalizeDropdownStyle : (() => 'minimal');
         const normalizeHexColor = typeof deps.normalizeHexColor === 'function' ? deps.normalizeHexColor : ((value, fallback) => String(value || fallback || ''));
         const normalizePositiveInt = typeof deps.normalizePositiveInt === 'function' ? deps.normalizePositiveInt : ((value, fallback) => Number(value) || fallback || 1);
+        const isFolderAccentEnabled = typeof deps.isFolderAccentEnabled === 'function'
+            ? deps.isFolderAccentEnabled
+            : ((settings) => settings?.folder_accent_enabled === true);
         const getDropdownStyleTokens = typeof deps.getDropdownStyleTokens === 'function' ? deps.getDropdownStyleTokens : (() => ({
             minWidth: '12px',
             height: '16px',
@@ -72,6 +75,8 @@
             const dividerWidth = String(normalizePositiveInt(form.preview_vertical_bars_width?.value, deps.defaultPreviewVerticalBarsWidth || 1, 1, 4));
             const dropdownColor = normalizeHexColor(form.dropdown_color?.value, deps.defaultDropdownColor || '#ff9a3c');
             const dropdownHoverColor = normalizeHexColor(form.dropdown_hover_color?.value, deps.defaultDropdownHoverColor || '#111111');
+            const accentEnabled = isFolderAccentEnabled({ folder_accent_enabled: form.folder_accent_enabled?.checked === true });
+            const accentColor = normalizeHexColor(form.folder_accent_color?.value, deps.defaultFolderAccentColor || '#ffca63');
             const icon = String(form.icon?.value || '').trim() || deps.defaultFolderIconPath || '';
             const name = String(form.name?.value || '').trim() || 'Unnamed folder';
 
@@ -96,11 +101,11 @@
                     : '<div class="fv-live-preview-empty">Select or match at least one member to see how the row preview will render.</div>');
 
             const dropdownTokens = getDropdownStyleTokens(dropdownStyle, dropdownColor, dropdownHoverColor);
-            const rowClass = `fv-live-preview-row preview-${previewMode}${borderEnabled ? ' has-border' : ''} is-${dropdownStyle}${rowsLimit !== 1 ? ' is-multi-row' : ' is-single-row'}`;
+            const rowClass = `fv-live-preview-row preview-${previewMode}${borderEnabled ? ' has-border' : ''}${accentEnabled ? ' has-accent' : ''} is-${dropdownStyle}${rowsLimit !== 1 ? ' is-multi-row' : ' is-single-row'}`;
             const surfaceClass = deps.wrapPreviewSurface === false ? '' : 'fv-live-preview-surface';
             canvas.html(`
                 ${surfaceClass ? `<div class="${surfaceClass}">` : ''}
-                    <div class="${rowClass}" style="--fv-preview-border-color:${borderColor};--fv-preview-border-width:${borderWidth}px;--fv-chevron-color:${dropdownColor};--fv-chevron-hover:${dropdownHoverColor};--fv-live-chevron-min-width:${dropdownTokens.minWidth};--fv-live-chevron-height:${dropdownTokens.height};--fv-live-chevron-padding:${dropdownTokens.padding};--fv-live-chevron-radius:${dropdownTokens.radius};--fv-live-chevron-border:${dropdownTokens.border};--fv-live-chevron-hover-border:${dropdownTokens.hoverBorder};--fv-live-chevron-bg:${dropdownTokens.background};--fv-live-chevron-hover-bg:${dropdownTokens.hoverBackground};--fv-live-chevron-shadow:${dropdownTokens.shadow};--fv-live-chevron-hover-shadow:${dropdownTokens.hoverShadow};">
+                    <div class="${rowClass}" style="--fv-preview-border-color:${borderColor};--fv-preview-border-width:${borderWidth}px;--fv-folder-accent-color:${accentColor};--fv-chevron-color:${dropdownColor};--fv-chevron-hover:${dropdownHoverColor};--fv-live-chevron-min-width:${dropdownTokens.minWidth};--fv-live-chevron-height:${dropdownTokens.height};--fv-live-chevron-padding:${dropdownTokens.padding};--fv-live-chevron-radius:${dropdownTokens.radius};--fv-live-chevron-border:${dropdownTokens.border};--fv-live-chevron-hover-border:${dropdownTokens.hoverBorder};--fv-live-chevron-bg:${dropdownTokens.background};--fv-live-chevron-hover-bg:${dropdownTokens.hoverBackground};--fv-live-chevron-shadow:${dropdownTokens.shadow};--fv-live-chevron-hover-shadow:${dropdownTokens.hoverShadow};">
                         <div class="fv-live-folder-head">
                             <div class="fv-live-folder-anchor">
                                 <img class="fv-live-folder-icon" src="${escapeHtml(icon)}" alt="" onerror="this.src='${deps.defaultFolderIconPath || ''}';">
@@ -161,6 +166,8 @@
             const contextLabel = deps.type === 'docker'
                 ? (deps.contextModeLabels?.[Number(form.context?.value)] || 'Unknown')
                 : 'Not used for VMs';
+            const accentEnabled = isFolderAccentEnabled({ folder_accent_enabled: form.folder_accent_enabled?.checked === true });
+            const accentColor = normalizeHexColor(form.folder_accent_color?.value, deps.defaultFolderAccentColor || '#ffca63');
 
             $('#fvLiveName').text(folderName);
             $('#fvLivePreview').text(previewLabel);
@@ -184,6 +191,8 @@
             $('#fvSwatchStarted').css('background-color', normalizeHexColor(form.status_color_started?.value, deps.defaultFolderStatusColors?.started || '#ffffff'));
             $('#fvSwatchPaused').css('background-color', normalizeHexColor(form.status_color_paused?.value, deps.defaultFolderStatusColors?.paused || '#b8860b'));
             $('#fvSwatchStopped').css('background-color', normalizeHexColor(form.status_color_stopped?.value, deps.defaultFolderStatusColors?.stopped || '#ff4d4d'));
+            $('#fvSwatchAccent').css('background-color', accentColor);
+            $('#fvAccentSwatchItem').toggle(accentEnabled);
 
             const dockerSignalsShell = $('#fvDockerSignalsShell');
             const dockerSignals = $('#fvDockerSignals');

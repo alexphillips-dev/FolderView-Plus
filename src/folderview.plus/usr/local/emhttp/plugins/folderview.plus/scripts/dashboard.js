@@ -3,11 +3,13 @@ if (!window || !$) {
     return;
 }
 
+const folderContract = window.FolderViewPlusFolderContract || null;
 const localDefaultFolderStatusColors = {
     started: '#ffffff',
     paused: '#b8860b',
     stopped: '#ff4d4d'
 };
+const DEFAULT_FOLDER_ACCENT_COLOR = folderContract?.DEFAULT_FOLDER_ACCENT_COLOR || '#ffca63';
 const themeResolver = window.FolderViewPlusThemeResolver || null;
 const applyDashboardResolvedThemeTokens = (reason = 'dashboard:initial') => {
     if (window.FolderViewPlusThemeResolverModuleLoaded !== true || !themeResolver) {
@@ -31,6 +33,20 @@ const normalizeStatusHexColor = (value, fallback) => {
     }
     return trimmed.toLowerCase();
 };
+const isFolderAccentEnabled = typeof folderContract?.isFolderAccentEnabled === 'function'
+    ? folderContract.isFolderAccentEnabled
+    : ((settings) => {
+        const source = settings && typeof settings === 'object' ? settings : {};
+        if (!Object.prototype.hasOwnProperty.call(source, 'folder_accent_enabled')) {
+            return false;
+        }
+        const raw = source.folder_accent_enabled;
+        if (typeof raw === 'string') {
+            const normalized = raw.trim().toLowerCase();
+            return normalized === '1' || normalized === 'true' || normalized === 'on' || normalized === 'yes';
+        }
+        return raw === true || raw === 1;
+    });
 const utils = window.FolderViewPlusUtils || {
     normalizePrefs: () => ({
         sortMode: 'created',
@@ -780,6 +796,16 @@ const applyFolderDashboardCardSettings = (type, id, folder) => {
     $card.toggleClass('fv-dashboard-overflow-expand-row', overflowMode === 'expand_row');
     $card.toggleClass('fv-dashboard-card-expanded', isExpanded);
     $card.toggleClass('fv-dashboard-card-collapsed', !isExpanded);
+    $card.toggleClass('fv-folder-has-accent', isFolderAccentEnabled(folder?.settings || {}));
+    if ($card[0]?.style) {
+        $card[0].style.removeProperty('--fv-folder-accent-color');
+        if (isFolderAccentEnabled(folder?.settings || {})) {
+            $card[0].style.setProperty(
+                '--fv-folder-accent-color',
+                normalizeStatusHexColor(folder?.settings?.folder_accent_color, DEFAULT_FOLDER_ACCENT_COLOR)
+            );
+        }
+    }
     updateExpandToggleIcon($card, isExpanded);
 };
 const getGlobalFoldersForType = (type) => (type === 'vm' ? globalFolders?.vms : globalFolders?.docker);
@@ -2473,7 +2499,7 @@ const actionFolderDocker = async (id, action) => {
             case "resume":
                 pass = ct.state && ct.pause;
                 break;
-            case "resume":
+            case "restart":
                 pass = true;
                 break;
             default:
@@ -2497,9 +2523,9 @@ const actionFolderDocker = async (id, action) => {
             html:true,
             confirmButtonText:'Ok'
         }, loadlist);
+    } else {
+        loadlist();
     }
-
-    loadlist();
     $('div.spinner.fixed').hide('slow');
 }
 
@@ -2792,9 +2818,9 @@ const actionFolderVM = async (id, action) => {
             html:true,
             confirmButtonText:'Ok'
         }, loadlist);
+    } else {
+        loadlist();
     }
-
-    loadlist();
     $('div.spinner.fixed').hide('slow');
 }
 

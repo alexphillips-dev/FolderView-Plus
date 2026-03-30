@@ -354,7 +354,10 @@
             '#fv-settings-root',
             '.canvas',
             'body'
-        ].filter((entry) => typeof entry === 'string' && entry.trim() !== '');
+        ]
+            .flatMap((entry) => typeof entry === 'string' ? entry.split(',') : [])
+            .map((entry) => entry.trim())
+            .filter((entry) => entry !== '');
         for (const selector of selectors) {
             const host = doc.querySelector(selector);
             if (host) {

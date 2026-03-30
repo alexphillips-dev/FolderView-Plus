@@ -7,6 +7,9 @@ cd "${ROOT_DIR}"
 echo "[pre-push] Running main branch history guard..."
 bash scripts/main_branch_history_guard.sh
 
+echo "[pre-push] Running dev version bump guard..."
+bash scripts/dev_version_bump_guard.sh
+
 echo "[pre-push] Running release guard checks..."
 bash scripts/release_guard.sh
 

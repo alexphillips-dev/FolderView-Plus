@@ -803,8 +803,31 @@
     const orderFoldersByPrefs = (folders, prefs) => {
         const normalizedFolders = normalizeFolderMap(folders);
         const normalizedPrefs = normalizePrefs(prefs);
+        const resolvePinnedBranchRootId = (id) => {
+            const safeId = String(id || '').trim();
+            if (!safeId || !Object.prototype.hasOwnProperty.call(normalizedFolders, safeId)) {
+                return safeId;
+            }
+            const seen = new Set([safeId]);
+            let current = safeId;
+            while (current) {
+                const rawParentId = String(normalizedFolders[current]?.parentId || normalizedFolders[current]?.parent_id || '').trim();
+                if (!rawParentId || rawParentId === current || !Object.prototype.hasOwnProperty.call(normalizedFolders, rawParentId) || seen.has(rawParentId)) {
+                    break;
+                }
+                seen.add(rawParentId);
+                current = rawParentId;
+            }
+            return current;
+        };
         const applyPinnedOrder = (orderedMap) => {
-            const pinnedIds = normalizeStringIdList(normalizedPrefs.pinnedFolderIds);
+            // Nested children cannot visually float above their parent, so pinning a
+            // child promotes the visible branch root to keep the move meaningful.
+            const pinnedIds = Array.from(new Set(
+                normalizeStringIdList(normalizedPrefs.pinnedFolderIds)
+                    .map((id) => resolvePinnedBranchRootId(id))
+                    .filter((id) => id !== '')
+            ));
             if (!pinnedIds.length) {
                 return orderedMap;
             }

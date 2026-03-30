@@ -28,6 +28,16 @@ const parityContracts = [
         vm: /const toggleVmFolderPin = async/
     },
     {
+        name: 'pin persistence helper',
+        docker: /const persistDockerPinnedFolderIds = async/,
+        vm: /const persistVmPinnedFolderIds = async/
+    },
+    {
+        name: 'pin persistence fallback',
+        docker: /\$\.post\('\/plugins\/folderview\.plus\/server\/prefs\.php',\s*payload\)\.promise\(\)/,
+        vm: /\$\.post\('\/plugins\/folderview\.plus\/server\/prefs\.php',\s*payload\)\.promise\(\)/
+    },
+    {
         name: 'lock toggle handler',
         docker: /const toggleDockerFolderLock =/,
         vm: /const toggleVmFolderLock =/

@@ -9,6 +9,7 @@ const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath)
 const dockerPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Docker.page');
 const folderContractJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
 const dockerSharedJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js');
+const dockerModulesJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.modules.js');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 const dockerCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css');
 const runtimeSharedCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/runtime.shared.css');
@@ -33,7 +34,7 @@ test('docker runtime page loads shared runtime module before docker modules/runt
     assert.equal(dockerPage.includes('/plugins/folderview.plus/scripts/docker.member-menu.js'), false, 'docker member menu script include should be removed');
     assert.match(dockerPage, /window\.FolderViewPlusFatalRuntimeContext = \{/);
     assert.match(dockerPage, /page:\s*'Docker'/);
-    assert.match(dockerPage, /hostSelector:\s*'\.canvas,\s*#fvplus-docker-runtime-banner-host'/);
+    assert.match(dockerPage, /hostSelector:\s*'#fvplus-docker-runtime-banner-host,\s*\.canvas'/);
     assert.match(dockerPage, /<div id="fvplus-docker-runtime-banner-host" aria-live="polite"><\/div>/);
     assert.ok(fatalBannerIndex < contractIndex, 'docker fatal banner must load before folder contract/runtime scripts');
     assert.ok(contractIndex < sharedIndex, 'shared contract must load before docker.runtime.shared.js');
@@ -68,7 +69,8 @@ test('docker shared runtime module binds to the shared folder contract and expor
 test('docker runtime consumes shared state store and guarded async action wrappers', () => {
     assert.match(dockerJs, /const dockerRuntimeShared = window\.FolderViewDockerRuntimeShared \|\| \{\};/);
     assert.match(dockerJs, /const fatalBanner = window\.FolderViewPlusFatalBanner \|\| null;/);
-    assert.match(dockerJs, /const DOCKER_FATAL_BANNER_HOST_SELECTOR = String\(dockerFatalBannerRuntimeConfig\.hostSelector \|\| '\.canvas, #fvplus-docker-runtime-banner-host'\)/);
+    assert.match(dockerJs, /const DOCKER_FATAL_BANNER_HOST_SELECTOR = String\(dockerFatalBannerRuntimeConfig\.hostSelector \|\| '#fvplus-docker-runtime-banner-host, \.canvas'\)/);
+    assert.match(dockerJs, /Updated:\s*sourceState\.Updated \?\? previousState\.Updated \?\? null,/);
     assert.match(dockerJs, /const createDockerRuntimeDiagnosticsBridge = typeof dockerRuntimeShared\.createRuntimeDiagnosticsBridge === 'function'/);
     assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('folderviewplus\.utils\.js'\)/);
     assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('folderviewplus\.request\.js'\)/);
@@ -121,4 +123,12 @@ test('docker CSS keeps docker-specific layout tokens while shared stylesheet own
     assert.match(runtimeSharedCss, /\.folder-dropdown:hover,\s*[\s\S]*visibility:\s*visible !important/);
     assert.match(runtimeSharedCss, /\.folder-dropdown:hover > i,\s*[\s\S]*opacity:\s*1 !important/);
     assert.match(dockerCss, /border-right:\s*var\(--fvplus-preview-divider-width,\s*1px\) solid/);
+});
+
+test('docker folder row centering keeps the legacy flex layout and clears host bottom margin drift', () => {
+    assert.match(dockerCss, /\.folder-name-sub\s*\{[\s\S]*display:\s*flex/);
+    assert.match(dockerCss, /td\.ct-name\.folder-name > \.folder-name-sub > \.folder-outer\s*\{[\s\S]*margin-bottom:\s*0 !important/);
+    assert.match(dockerModulesJs, /sub\.style\.setProperty\('display', 'flex', 'important'\);/);
+    assert.match(dockerModulesJs, /sourceRows\.forEach\(\(row\) => \{[\s\S]*applyRowHeight\(row, 0\);[\s\S]*applyFolderCellCentering\(cell, 0\);/);
+    assert.doesNotMatch(dockerModulesJs, /sourceRows\.forEach\(\(row\) => \{[\s\S]*getRenderedRowHeight\(row\);/);
 });

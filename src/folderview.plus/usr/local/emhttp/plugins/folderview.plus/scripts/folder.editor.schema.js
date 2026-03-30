@@ -27,7 +27,7 @@
             members: Object.freeze({ title: 'Members', description: 'Search, assign, and order containers or VMs in this folder.', icon: 'fa-th-large', advanced: false, supportsDefaults: false, supportsRevert: false }),
             preview: Object.freeze({ title: 'Preview', description: 'How the folder row, preview layout, borders, and context surface render.', icon: 'fa-eye', advanced: false, supportsDefaults: true, supportsRevert: true }),
             chevron: Object.freeze({ title: 'Chevron', description: 'Chevron style, normal color, hover color, and interaction styling.', icon: 'fa-chevron-down', advanced: false, supportsDefaults: true, supportsRevert: true }),
-            status: Object.freeze({ title: 'Status', description: 'Status palette and optional folder health or status thresholds.', icon: 'fa-heartbeat', advanced: false, supportsDefaults: true, supportsRevert: true }),
+            status: Object.freeze({ title: 'Status', description: 'Status palette, accent styling, and optional folder health or status thresholds.', icon: 'fa-heartbeat', advanced: false, supportsDefaults: true, supportsRevert: true }),
             rules: Object.freeze({ title: 'Rules', description: 'Regex auto-assignment and matching rules that keep the folder populated.', icon: 'fa-code', advanced: true, supportsDefaults: true, supportsRevert: true }),
             actions: Object.freeze({ title: 'Actions', description: 'Quick actions and custom folder actions available from the folder menu.', icon: 'fa-bolt', advanced: true, supportsDefaults: false, supportsRevert: false }),
             advanced: Object.freeze({ title: 'Advanced', description: 'Override behavior, expansion defaults, dashboard behavior, and niche controls.', icon: 'fa-sliders', advanced: true, supportsDefaults: true, supportsRevert: true })
@@ -58,6 +58,8 @@
             ]),
             chevron: Object.freeze(['dropdown_style', 'dropdown_color', 'dropdown_hover_color']),
             status: Object.freeze([
+                'folder_accent_enabled',
+                'folder_accent_color',
                 'status_color_started',
                 'status_color_paused',
                 'status_color_stopped',
@@ -100,6 +102,8 @@
                 dropdown_hover_color: deps.defaultDropdownHoverColor || '#111111'
             }),
             status: Object.freeze({
+                folder_accent_enabled: false,
+                folder_accent_color: deps.defaultFolderAccentColor || '#ffca63',
                 status_color_started: deps.defaultFolderStatusColors?.started || '#ffffff',
                 status_color_paused: deps.defaultFolderStatusColors?.paused || '#b8860b',
                 status_color_stopped: deps.defaultFolderStatusColors?.stopped || '#ff4d4d',
@@ -168,6 +172,8 @@
             dropdown_style: 'Chevron style',
             dropdown_color: 'Chevron color',
             dropdown_hover_color: 'Chevron hover color',
+            folder_accent_enabled: 'Accent color',
+            folder_accent_color: 'Accent color value',
             status_color_started: 'Started status color',
             status_color_paused: 'Paused status color',
             status_color_stopped: 'Stopped status color',

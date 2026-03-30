@@ -315,6 +315,7 @@
                             <span class="fv-swatch-item"><em>Started</em><i id="fvSwatchStarted"></i></span>
                             <span class="fv-swatch-item"><em>Paused</em><i id="fvSwatchPaused"></i></span>
                             <span class="fv-swatch-item"><em>Stopped</em><i id="fvSwatchStopped"></i></span>
+                            <span id="fvAccentSwatchItem" class="fv-swatch-item" style="display:none;"><em>Accent</em><i id="fvSwatchAccent"></i></span>
                         </div>
                     </div>
                     <div id="fvDockerSignalsShell" class="fv-live-chip-panel" style="display:none;">
@@ -442,6 +443,8 @@
             findBasicByFieldName(form, 'dropdown_color')
         ],
         status: [
+            findBasicByFieldName(form, 'folder_accent_enabled'),
+            findBasicByFieldName(form, 'folder_accent_color'),
             findBasicByFieldName(form, 'status_color_started'),
             findBasicByFieldName(form, 'health_warn_stopped_percent'),
             findBasicByFieldName(form, 'health_critical_stopped_percent'),

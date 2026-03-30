@@ -223,6 +223,7 @@ const DEFAULT_FOLDER_STATUS_COLORS = folderContract?.DEFAULT_FOLDER_STATUS_COLOR
     paused: '#b8860b',
     stopped: '#ff4d4d'
 };
+const DEFAULT_FOLDER_ACCENT_COLOR = folderContract?.DEFAULT_FOLDER_ACCENT_COLOR || '#ffca63';
 const DEFAULT_BORDER_COLOR = folderContract?.DEFAULT_PREVIEW_BORDER_COLOR || '#afa89e';
 const DEFAULT_PREVIEW_BORDER_WIDTH = folderContract?.DEFAULT_PREVIEW_BORDER_WIDTH || 1;
 const DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH = folderContract?.DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH || 1;
@@ -230,6 +231,9 @@ const DEFAULT_DROPDOWN_STYLE = folderContract?.DEFAULT_DROPDOWN_STYLE || 'minima
 const DEFAULT_DROPDOWN_COLOR = folderContract?.DEFAULT_DROPDOWN_COLOR || '#ff9a3c';
 const DEFAULT_DROPDOWN_HOVER_COLOR = folderContract?.DEFAULT_DROPDOWN_HOVER_COLOR || '#111111';
 const SUPPORTED_DROPDOWN_STYLES = folderContract?.SUPPORTED_DROPDOWN_STYLES || Object.freeze(['minimal', 'boxed', 'ghost', 'pill', 'filled']);
+const isFolderAccentEnabled = typeof folderContract?.isFolderAccentEnabled === 'function'
+    ? folderContract.isFolderAccentEnabled
+    : ((settings) => settings?.folder_accent_enabled === true);
 const NO_MEMBERS_SELECTED_INFO = 'No members are currently selected in this folder.';
 const EDITOR_PREFILL_MAX_AGE_MS = 10 * 60 * 1000;
 const FOLDER_LABEL_KEYS = ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
@@ -257,7 +261,8 @@ const modernEditorSchema = typeof folderEditorSchema?.createModernSchema === 'fu
         defaultDropdownStyle: DEFAULT_DROPDOWN_STYLE,
         defaultDropdownColor: DEFAULT_DROPDOWN_COLOR,
         defaultDropdownHoverColor: DEFAULT_DROPDOWN_HOVER_COLOR,
-        defaultFolderStatusColors: DEFAULT_FOLDER_STATUS_COLORS
+        defaultFolderStatusColors: DEFAULT_FOLDER_STATUS_COLORS,
+        defaultFolderAccentColor: DEFAULT_FOLDER_ACCENT_COLOR
     })
     : null;
 const SECTION_META = modernEditorSchema?.SECTION_META || Object.freeze({});
@@ -405,6 +410,8 @@ const SMART_DEFAULT_FIELD_NAMES = new Set([
     'dropdown_style',
     'dropdown_color',
     'dropdown_hover_color',
+    'folder_accent_enabled',
+    'folder_accent_color',
     'status_color_started',
     'status_color_paused',
     'status_color_stopped'
@@ -944,6 +951,8 @@ const buildParentSmartDefaults = (parentFolder) => {
         dropdown_style: normalizeDropdownStyle(settings),
         dropdown_color: normalizeHexColor(settings.dropdown_color, DEFAULT_DROPDOWN_COLOR),
         dropdown_hover_color: normalizeHexColor(settings.dropdown_hover_color, DEFAULT_DROPDOWN_HOVER_COLOR),
+        folder_accent_enabled: isFolderAccentEnabled(settings),
+        folder_accent_color: normalizeHexColor(settings.folder_accent_color, DEFAULT_FOLDER_ACCENT_COLOR),
         status_color_started: normalizeHexColor(settings.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started),
         status_color_paused: normalizeHexColor(settings.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused),
         status_color_stopped: normalizeHexColor(settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped)
@@ -3376,13 +3385,15 @@ const getFolderEditorPreviewApi = () => {
         defaultPreviewVerticalBarsWidth: DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH,
         defaultDropdownColor: DEFAULT_DROPDOWN_COLOR,
         defaultDropdownHoverColor: DEFAULT_DROPDOWN_HOVER_COLOR,
+        defaultFolderAccentColor: DEFAULT_FOLDER_ACCENT_COLOR,
         defaultFolderIconPath: DEFAULT_FOLDER_ICON_PATH,
         defaultFolderStatusColors: DEFAULT_FOLDER_STATUS_COLORS,
         iconFallbackPath: ICON_FALLBACK_PATH,
         previewModeLabels: PREVIEW_MODE_LABELS,
         contextModeLabels: CONTEXT_MODE_LABELS,
         supportedDropdownStyles: SUPPORTED_DROPDOWN_STYLES,
-        defaultDividerColor: rgbToHex($('body').css('color'))
+        defaultDividerColor: rgbToHex($('body').css('color')),
+        isFolderAccentEnabled
     });
     return folderEditorPreviewApi;
 };
@@ -3497,6 +3508,7 @@ const folderEditorResetHelpers = typeof folderEditorShared?.createResetHelpers =
         defaultPreviewBorderWidth: DEFAULT_PREVIEW_BORDER_WIDTH,
         defaultDropdownColor: DEFAULT_DROPDOWN_COLOR,
         defaultDropdownHoverColor: DEFAULT_DROPDOWN_HOVER_COLOR,
+        defaultFolderAccentColor: DEFAULT_FOLDER_ACCENT_COLOR,
         afterVisualChange: () => {
             if (typeof scheduleEditorRecalculation === 'function') {
                 scheduleEditorRecalculation(0);
@@ -3541,6 +3553,19 @@ const resetDropdownColorDefaults = typeof folderEditorResetHelpers?.resetDropdow
         updateLiveSummary();
     });
 window.resetDropdownColorDefaults = resetDropdownColorDefaults;
+
+const resetFolderAccentDefaults = typeof folderEditorResetHelpers?.resetFolderAccentDefaults === 'function'
+    ? folderEditorResetHelpers.resetFolderAccentDefaults
+    : (() => {
+        const form = $('div.canvas > form')[0];
+        form.folder_accent_enabled.checked = false;
+        form.folder_accent_color.value = DEFAULT_FOLDER_ACCENT_COLOR;
+        if (typeof scheduleEditorRecalculation === 'function') {
+            scheduleEditorRecalculation(0);
+        }
+        updateLiveSummary();
+    });
+window.resetFolderAccentDefaults = resetFolderAccentDefaults;
 
 const setFieldError = (fieldName, message) => {
     const form = getForm();
@@ -3696,6 +3721,7 @@ const getFolderEditorSharedApi = () => {
         defaultDropdownStyle: DEFAULT_DROPDOWN_STYLE,
         defaultDropdownColor: DEFAULT_DROPDOWN_COLOR,
         defaultDropdownHoverColor: DEFAULT_DROPDOWN_HOVER_COLOR,
+        defaultFolderAccentColor: DEFAULT_FOLDER_ACCENT_COLOR,
         defaultFolderStatusColors: DEFAULT_FOLDER_STATUS_COLORS,
         healthProfileValues: FOLDER_HEALTH_PROFILE_VALUES,
         healthUpdatesModeValues: FOLDER_HEALTH_UPDATES_MODE_VALUES,
@@ -3708,7 +3734,8 @@ const getFolderEditorSharedApi = () => {
         normalizeHexColor,
         normalizePositiveInt,
         normalizeDropdownStyle,
-        isPreviewBorderEnabled: isLegacyPreviewBorderEnabled
+        isPreviewBorderEnabled: isLegacyPreviewBorderEnabled,
+        isFolderAccentEnabled
     });
     return folderEditorSharedApi;
 };
@@ -4668,6 +4695,9 @@ const applySectionTags = () => {
     markSection('div.basic:has([name="dropdown_style"])', 'chevron');
     markSection('div.basic:has([name="dropdown_color"])', 'chevron');
 
+    markSection('div.basic:has([name="folder_accent_enabled"])', 'status');
+    markSection('div.basic:has([name="folder_accent_color"])', 'status');
+    markSection('div.fv-accent-inline-controls[constraint*="accent-color"]', 'status');
     markSection('div.basic:has([name="status_color_started"])', 'status');
     markSection('div.basic:has([name="health_warn_stopped_percent"])', 'status');
     markSection('div.basic:has([name="health_critical_stopped_percent"])', 'status');
@@ -4836,6 +4866,7 @@ const initEditorChrome = () => {
                             <span class="fv-swatch-item"><em>Started</em><i id="fvSwatchStarted"></i></span>
                             <span class="fv-swatch-item"><em>Paused</em><i id="fvSwatchPaused"></i></span>
                             <span class="fv-swatch-item"><em>Stopped</em><i id="fvSwatchStopped"></i></span>
+                            <span id="fvAccentSwatchItem" class="fv-swatch-item" style="display:none;"><em>Accent</em><i id="fvSwatchAccent"></i></span>
                         </div>
                         <div id="fvDockerSignals" class="fv-docker-signals" style="display:none;">
                             <span id="fvDockerComposeSummary" class="fv-docker-signal-chip">Compose: none detected</span>
@@ -5002,6 +5033,8 @@ getForm().preview_vertical_bars_width.value = String(DEFAULT_PREVIEW_VERTICAL_BA
 getForm().dropdown_style.value = DEFAULT_DROPDOWN_STYLE;
 getForm().dropdown_color.value = DEFAULT_DROPDOWN_COLOR;
 getForm().dropdown_hover_color.value = DEFAULT_DROPDOWN_HOVER_COLOR;
+getForm().folder_accent_enabled.checked = false;
+getForm().folder_accent_color.value = DEFAULT_FOLDER_ACCENT_COLOR;
 resetStatusColorDefaults();
 
 const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {}, options = {}) => {
@@ -5065,6 +5098,8 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     setFieldValue('dropdown_style', normalizeDropdownStyle(normalizedFolder.settings, normalizedFolder));
     setFieldValue('dropdown_color', normalizeHexColor(normalizedFolder.settings.dropdown_color, DEFAULT_DROPDOWN_COLOR));
     setFieldValue('dropdown_hover_color', normalizeHexColor(normalizedFolder.settings.dropdown_hover_color, DEFAULT_DROPDOWN_HOVER_COLOR));
+    setFieldChecked('folder_accent_enabled', isFolderAccentEnabled(normalizedFolder.settings || {}));
+    setFieldValue('folder_accent_color', normalizeHexColor(normalizedFolder.settings.folder_accent_color, DEFAULT_FOLDER_ACCENT_COLOR));
     setFieldValue('status_color_started', normalizeHexColor(normalizedFolder.settings.status_color_started, DEFAULT_FOLDER_STATUS_COLORS.started));
     setFieldValue('status_color_paused', normalizeHexColor(normalizedFolder.settings.status_color_paused, DEFAULT_FOLDER_STATUS_COLORS.paused));
     setFieldValue('status_color_stopped', normalizeHexColor(normalizedFolder.settings.status_color_stopped, DEFAULT_FOLDER_STATUS_COLORS.stopped));
@@ -5407,7 +5442,8 @@ const startFolderEditorRuntime = async () => {
         const isLivePreviewColorField = fieldName === 'dropdown_color'
             || fieldName === 'dropdown_hover_color'
             || fieldName === 'preview_border_color'
-            || fieldName === 'preview_vertical_bars_color';
+            || fieldName === 'preview_vertical_bars_color'
+            || fieldName === 'folder_accent_color';
         markSmartDefaultFieldTouched(fieldName);
         if (!folderId && fieldName === 'parent_folder_id' && event.type === 'change') {
             void applySmartDefaultsFromParent(normalizeParentFolderId(form.parent_folder_id?.value || ''));
@@ -5423,7 +5459,8 @@ const startFolderEditorRuntime = async () => {
             scheduleNameDrivenRegexSync('immediate');
         }
         if (fieldName === 'dropdown_style' || fieldName === 'dropdown_color' || fieldName === 'dropdown_hover_color'
-            || fieldName === 'preview_border' || fieldName === 'preview_border_color' || fieldName === 'preview_border_width') {
+            || fieldName === 'preview_border' || fieldName === 'preview_border_color' || fieldName === 'preview_border_width'
+            || fieldName === 'folder_accent_enabled' || fieldName === 'folder_accent_color') {
             if (event.type === 'input' && isLivePreviewColorField) {
                 scheduleEditorPreviewRender();
                 markUnsavedIndicatorDirty();
@@ -5688,6 +5725,7 @@ function updateForm() {
     $('[constraint*="context_graph-"]').hide();
     $('[constraint*="border-color"]').hide();
     $('[constraint*="bars-color"]').hide();
+    $('[constraint*="accent-color"]').hide();
     if (String(form.context.value) === '2') {
         $(`[constraint*="context_graph-${form.context_graph.value}"]`).show();
     }
@@ -5695,6 +5733,7 @@ function updateForm() {
     if(form.preview_vertical_bars.checked) {
         $('[constraint*="bars-color"]').show();
     }
+    if (form.folder_accent_enabled.checked) $('[constraint*="accent-color"]').show();
     $('[constraint*="folder-webui"]').hide();
     if(form.folder_webui.checked) {
         $('[constraint*="folder-webui"]').show();
@@ -6182,6 +6221,8 @@ const submitForm = async (e, saveAsCopy = false) => {
             chevronStyle: normalizedDropdownStyle,
             dropdown_color: normalizeHexColor(e.dropdown_color.value.toString(), DEFAULT_DROPDOWN_COLOR),
             dropdown_hover_color: normalizeHexColor(e.dropdown_hover_color.value.toString(), DEFAULT_DROPDOWN_HOVER_COLOR),
+            folder_accent_enabled: e.folder_accent_enabled.checked,
+            folder_accent_color: normalizeHexColor(e.folder_accent_color.value.toString(), DEFAULT_FOLDER_ACCENT_COLOR),
             status_color_started: normalizeHexColor(e.status_color_started.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.started),
             status_color_paused: normalizeHexColor(e.status_color_paused.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.paused),
             status_color_stopped: normalizeHexColor(e.status_color_stopped.value.toString(), DEFAULT_FOLDER_STATUS_COLORS.stopped),

@@ -486,6 +486,8 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderCss, /\.fv-live-preview-row \.fv-live-chevron\s*\{[\s\S]*appearance:\s*none !important;/);
     assert.match(folderCss, /\.fv-live-preview-row\.is-minimal \.fv-live-chevron\s*\{[\s\S]*color:\s*var\(--fv-live-chevron-color, var\(--fv-chevron-color\)\) !important;/);
     assert.match(folderCss, /\.fv-live-chevron\s*\{[\s\S]*min-width:\s*var\(--fv-live-chevron-min-width, 12px\);[\s\S]*height:\s*var\(--fv-live-chevron-height, 16px\);[\s\S]*padding:\s*var\(--fv-live-chevron-padding, 0 2px\);/);
+    assert.match(folderCss, /\.order-buttons > button,\s*[\s\S]*\.order-buttons > button > i\s*\{[\s\S]*color:\s*var\(--fv-editor-title-accent\) !important;/);
+    assert.match(folderCss, /\.order-buttons > button:hover,\s*[\s\S]*\.order-buttons > button:focus-visible,\s*[\s\S]*\.order-buttons > button:hover > i,\s*[\s\S]*\.order-buttons > button:focus-visible > i\s*\{[\s\S]*color:\s*var\(--fv-editor-title-accent\) !important;/);
     assert.match(folderCss, /\.fv-live-insights\s*\{\s*display:\s*grid;\s*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
     assert.doesNotMatch(folderCss, /\.fv-preview-surface-switch/);
     assert.doesNotMatch(folderCss, /\.fv-preview-surface-btn/);

@@ -3081,6 +3081,18 @@ table.sortable td:nth-child(3) {
     color: var(--fv-editor-text-primary) !important;
 }
 
+.order-buttons > button,
+.order-buttons > button > i {
+    color: var(--fv-editor-title-accent) !important;
+}
+
+.order-buttons > button:hover,
+.order-buttons > button:focus-visible,
+.order-buttons > button:hover > i,
+.order-buttons > button:focus-visible > i {
+    color: var(--fv-editor-title-accent) !important;
+}
+
 .fv-modern-field-row.is-actions-list-row .custom-action,
 .fv-modern-field-row.is-actions-list-row .custom-action:hover,
 .fv-modern-field-row.is-actions-list-row .custom-action:focus {

@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.30.23">
-<!ENTITY md5 "fa25a2c772dd4a31671084f0142db2d7">
+<!ENTITY version "2026.03.30.24">
+<!ENTITY md5 "f3267ff079d122cff8628b853cd3398b">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.30.24
+- UI/UX: Improved dark-theme visibility for folder editor member reorder arrows by matching the section title accent color.
+- Regression guard: Added folder editor smoke coverage for the reorder button accent styling.
+
 
 ###2026.03.30.23
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

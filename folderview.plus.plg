@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.30.36">
-<!ENTITY md5 "8158de89414c8b85cc3036421d17f73f">
+<!ENTITY version "2026.03.30.37">
+<!ENTITY md5 "e302139effdb0daf99cf6edd8a9420ac">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.30.37
+- Feature: Added the new `Folders/Pixel` third-party pack with 32 pixel-style folder icons to the shipped plugin assets.
+- Feature: Added the new `Icons/Pixel` third-party pack with 167 pixel-style file and app icons to the shipped plugin assets.
+- UI/UX: These packs are now available through the existing third-party icon picker as `Folders/Pixel` and `Icons/Pixel`.
+
 
 ###2026.03.30.36
 - UI/UX: Added a dedicated left rail in the modern folder editor General section so the Name and Folder WebUI cards stack independently of the Parent Folder and Icon card heights.

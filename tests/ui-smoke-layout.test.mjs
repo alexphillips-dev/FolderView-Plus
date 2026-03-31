@@ -564,6 +564,7 @@ test('folder editor exposes folder-scoped advanced auto-rules for saved folders'
     assert.match(folderPage, /'\/plugins\/folderview\.plus\/scripts\/folder\.editor\.rules\.js'/);
     assert.match(folderCss, /#fvFolderAutoRulesPanel\.fv-folder-auto-rules-panel/);
     assert.match(folderCss, /#fvFolderAutoRulesPanel\.fv-folder-auto-rules-panel > dl > dd/);
+    assert.match(folderCss, /#fvFolderAutoRulesPanel\.fv-folder-auto-rules-panel\s*\{[\s\S]*max-width:\s*680px/);
     assert.match(folderCss, /\.fv-section-shell\[data-section-shell="rules"\] \.fv-section-shell-body\s*\{[\s\S]*grid-template-columns:\s*minmax\(0,\s*560px\)\s+minmax\(0,\s*1fr\)/);
     assert.match(folderCss, /\.fv-section-shell\[data-section-shell="rules"\] \.fv-modern-group-list\s*\{/);
     assert.match(folderCss, /\.fv-folder-auto-rules-builder\s*\{/);

@@ -2213,9 +2213,10 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 #fvFolderAutoRulesPanel.fv-folder-auto-rules-panel {
-    width: 100% !important;
-    max-width: none !important;
+    width: min(100%, 680px) !important;
+    max-width: 680px !important;
     min-width: 0;
+    justify-self: start !important;
     padding-bottom: 0.72em;
 }
 

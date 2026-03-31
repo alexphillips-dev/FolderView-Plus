@@ -2210,19 +2210,13 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 #fvFolderAutoRulesPanel.fv-folder-auto-rules-panel {
-    flex: 1 1 100%;
-    width: 100%;
-    max-width: none;
-    min-width: min(100%, 560px);
-    margin: 0;
-    padding: 1rem 1.05rem;
-    border: 1px solid var(--fv-editor-block-border);
-    border-radius: 18px;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent), var(--fv-editor-panel);
-    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.18);
+    padding-bottom: 0.72em;
+}
+
+#fvFolderAutoRulesPanel.fv-folder-auto-rules-panel > dl > dd {
     display: flex;
     flex-direction: column;
-    gap: 0.9rem;
+    gap: 0.82rem;
 }
 
 .fv-folder-auto-rules-head {
@@ -2235,27 +2229,20 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 .fv-folder-auto-rules-copy {
     display: flex;
     flex-direction: column;
-    gap: 0.28rem;
+    gap: 0.24rem;
 }
 
-.fv-folder-auto-rules-kicker {
-    color: var(--fv-editor-title-accent);
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-.fv-folder-auto-rules-copy > h4 {
+.fv-folder-auto-rules-copy > strong {
     margin: 0;
     color: var(--fv-editor-text-primary);
-    font-size: 1.08rem;
+    font-size: 0.98rem;
     font-weight: 700;
 }
 
-.fv-folder-auto-rules-copy > p {
+.fv-folder-auto-rules-copy > span {
     margin: 0;
     color: var(--fv-editor-muted);
+    font-size: 0.92rem;
     line-height: 1.45;
 }
 
@@ -2333,7 +2320,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
 .fv-folder-auto-rules-builder {
     display: grid;
-    grid-template-columns: minmax(130px, 0.9fr) minmax(180px, 1.1fr) minmax(220px, 1.8fr) auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.8rem;
     align-items: end;
 }
@@ -2354,13 +2341,19 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-folder-auto-rules-builder-field.is-pattern {
-    min-width: min(100%, 240px);
+    grid-column: 1 / -1;
+    min-width: 0;
 }
 
 .fv-folder-auto-rules-builder input[type="text"],
 .fv-folder-auto-rules-builder select {
     width: 100% !important;
     min-width: 0 !important;
+}
+
+.fv-folder-auto-rules-add {
+    grid-column: 1 / -1;
+    justify-self: start;
 }
 
 .fv-folder-auto-rules-builder input[type="text"][aria-invalid="true"] {
@@ -2399,16 +2392,10 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     cursor: default;
 }
 
-.fv-folder-auto-rules-builder-help {
-    color: var(--fv-editor-muted);
-    font-size: 0.91rem;
-    line-height: 1.5;
-}
-
 .fv-folder-auto-rules-list {
     display: grid;
     gap: 0.78rem;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: 1fr;
 }
 
 .fv-folder-auto-rules-empty,
@@ -2536,6 +2523,11 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
     .fv-folder-auto-rules-builder {
         grid-template-columns: 1fr;
+    }
+
+    .fv-folder-auto-rules-add,
+    .fv-folder-auto-rules-builder-field.is-pattern {
+        grid-column: auto;
     }
 }
 

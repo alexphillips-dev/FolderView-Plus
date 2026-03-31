@@ -236,7 +236,7 @@
                 }
                 panel = rootDocument.createElement('section');
                 panel.id = 'fvFolderAutoRulesPanel';
-                panel.className = 'fv-folder-auto-rules-panel';
+                panel.className = 'basic fv-modern-field-row is-rules-row fv-folder-auto-rules-panel';
                 body.appendChild(panel);
             }
             return panel;
@@ -306,9 +306,6 @@
                         </label>
                         <button type="button" class="fv-folder-auto-rules-add" data-fv-folder-rule-action="add"${busyAttr}><i class="fa fa-plus" aria-hidden="true"></i> Add rule</button>
                     </div>
-                    <div class="fv-folder-auto-rules-builder-help">
-                        These advanced rules use the plugin-wide engine and still run in global priority order. Use the full Rules workspace to reorder rules or build label-based matches.
-                    </div>
                     <div class="fv-folder-auto-rules-list">
                         ${listHtml}
                     </div>
@@ -316,16 +313,23 @@
             }
 
             panel.innerHTML = `
-                <div class="fv-folder-auto-rules-head">
-                    <div class="fv-folder-auto-rules-copy">
-                        <span class="fv-folder-auto-rules-kicker">Advanced auto-rules</span>
-                        <h4>Rules targeting this folder</h4>
-                        <p>Create regex-based plugin rules directly from the folder editor without leaving this page.</p>
-                    </div>
-                    <a class="fv-folder-auto-rules-link" href="/Settings/FolderViewPlus">Open full Rules workspace</a>
-                </div>
-                ${buildFolderAutoRulesPanelStatusHtml()}
-                ${bodyHtml}
+                <dl>
+                    <dt>Advanced auto-rules:</dt>
+                    <dd>
+                        <div class="fv-folder-auto-rules-head">
+                            <div class="fv-folder-auto-rules-copy">
+                                <strong>Rules targeting this folder</strong>
+                                <span>Create regex-based plugin rules directly from the folder editor without leaving this page.</span>
+                            </div>
+                            <a class="fv-folder-auto-rules-link" href="/Settings/FolderViewPlus">Open full Rules workspace</a>
+                        </div>
+                        ${buildFolderAutoRulesPanelStatusHtml()}
+                        ${bodyHtml}
+                    </dd>
+                </dl>
+                <blockquote class="inline_help">
+                    <span>These advanced rules use the plugin-wide engine and still run in global priority order. Use the full Rules workspace to reorder rules or build label-based matches.</span>
+                </blockquote>
             `;
 
             if (!$ || panel.dataset.bound === '1') {

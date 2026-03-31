@@ -4565,7 +4565,10 @@ const buildRegexSuggestionFromNames = (names) => {
 
 const isDockerUpdateAvailableInEditor = (member) => {
     const source = member && typeof member === 'object' ? member : {};
-    const state = source?.State || source?.RawState || {};
+    if (source.UpdateAvailable === true || source.update === true) {
+        return true;
+    }
+    const state = source?.State || source?.RawState || source?.info?.State || {};
     return state?.manager === 'dockerman' && state?.Updated === false;
 };
 

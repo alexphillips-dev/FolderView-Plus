@@ -3014,6 +3014,9 @@ const buildStatusSnapshot = (type, folders, memberSnapshot, infoByName) => {
 
 const isDockerUpdateAvailable = (itemInfo) => {
     const source = itemInfo && typeof itemInfo === 'object' ? itemInfo : {};
+    if (source.UpdateAvailable === true || source.update === true) {
+        return true;
+    }
     const state = source?.info?.State || source?.State || {};
     // Mirror Docker tab behavior exactly:
     // update-ready means manager is dockerman and Updated is strict boolean false.

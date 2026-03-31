@@ -18,8 +18,13 @@ test('docker runtime falls back to the host row update cell when lightweight sta
     assert.match(dockerJs, /const readDockerHostRowUpdatedState = \(name\) => \{/);
     assert.match(dockerJs, /const row = document\.getElementById\(`ct-\$\{safeName\}`\);/);
     assert.match(dockerJs, /const updateCell = row\.querySelector\('td\.updatecolumn'\);/);
+    assert.match(dockerJs, /const normalizedText = String\(updateCell\.textContent \|\| ''\)\.trim\(\)\.toLowerCase\(\);/);
+    assert.match(dockerJs, /const i18nText = \(key, fallback = ''\) => \{/);
+    assert.match(dockerJs, /const hasToken = \(\.\.\.tokens\) => tokens\.some/);
     assert.match(dockerJs, /if \(updateCell\.querySelector\('\.fa-flash'\)\) \{\s*return false;\s*\}/);
     assert.match(dockerJs, /if \(updateCell\.querySelector\('\.fa-check'\)\) \{\s*return true;\s*\}/);
+    assert.match(dockerJs, /if \(hasToken\(i18nText\('update-ready', 'update ready'\), i18nText\('apply-update', 'apply update'\), 'update ready', 'apply update'\)\) \{\s*return false;\s*\}/);
+    assert.match(dockerJs, /if \(hasToken\(i18nText\('up-to-date', 'up-to-date'\), i18nText\('force-update', 'force update'\), 'up-to-date', 'force update'\)\) \{\s*return true;\s*\}/);
     assert.match(dockerJs, /const resolvedUpdated = typeof sourceState\.Updated === 'boolean'[\s\S]*readDockerHostRowUpdatedState\(safeName\)/);
     assert.match(dockerJs, /Updated:\s*resolvedUpdated/);
 });

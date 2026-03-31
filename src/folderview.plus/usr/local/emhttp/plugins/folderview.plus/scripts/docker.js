@@ -486,10 +486,24 @@ const readDockerHostRowUpdatedState = (name) => {
     if (!(updateCell instanceof HTMLElement)) {
         return null;
     }
+    const normalizedText = String(updateCell.textContent || '').trim().toLowerCase();
+    const i18nText = (key, fallback = '') => {
+        if (typeof $?.i18n === 'function') {
+            return String($.i18n(key) || '').trim().toLowerCase();
+        }
+        return String(fallback || '').trim().toLowerCase();
+    };
+    const hasToken = (...tokens) => tokens.some((token) => token && normalizedText.includes(String(token).trim().toLowerCase()));
     if (updateCell.querySelector('.fa-flash')) {
         return false;
     }
     if (updateCell.querySelector('.fa-check')) {
+        return true;
+    }
+    if (hasToken(i18nText('update-ready', 'update ready'), i18nText('apply-update', 'apply update'), 'update ready', 'apply update')) {
+        return false;
+    }
+    if (hasToken(i18nText('up-to-date', 'up-to-date'), i18nText('force-update', 'force update'), 'up-to-date', 'force update')) {
         return true;
     }
     return null;

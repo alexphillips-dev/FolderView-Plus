@@ -10,7 +10,18 @@ const dockerJs = fs.readFileSync(
 );
 
 test('docker runtime preserves hydrated update flags when normalizing partial runtime entries', () => {
-    assert.match(dockerJs, /Updated:\s*sourceState\.Updated \?\? previousState\.Updated \?\? null/);
+    assert.match(dockerJs, /const resolvedUpdated = typeof sourceState\.Updated === 'boolean'/);
+    assert.match(dockerJs, /typeof previousState\.Updated === 'boolean'/);
+});
+
+test('docker runtime falls back to the host row update cell when lightweight state omits update flags', () => {
+    assert.match(dockerJs, /const readDockerHostRowUpdatedState = \(name\) => \{/);
+    assert.match(dockerJs, /const row = document\.getElementById\(`ct-\$\{safeName\}`\);/);
+    assert.match(dockerJs, /const updateCell = row\.querySelector\('td\.updatecolumn'\);/);
+    assert.match(dockerJs, /if \(updateCell\.querySelector\('\.fa-flash'\)\) \{\s*return false;\s*\}/);
+    assert.match(dockerJs, /if \(updateCell\.querySelector\('\.fa-check'\)\) \{\s*return true;\s*\}/);
+    assert.match(dockerJs, /const resolvedUpdated = typeof sourceState\.Updated === 'boolean'[\s\S]*readDockerHostRowUpdatedState\(safeName\)/);
+    assert.match(dockerJs, /Updated:\s*resolvedUpdated/);
 });
 
 test('deferred docker runtime hydration refreshes visible folder state in place instead of reloading the page', () => {

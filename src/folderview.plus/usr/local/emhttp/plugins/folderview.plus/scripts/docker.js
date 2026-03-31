@@ -473,6 +473,27 @@ const buildDockerRuntimeInfoFallbackLabels = (entry = {}, previousEntry = null) 
     }
     return labels;
 };
+const readDockerHostRowUpdatedState = (name) => {
+    const safeName = String(name || '').trim();
+    if (!safeName || typeof document === 'undefined') {
+        return null;
+    }
+    const row = document.getElementById(`ct-${safeName}`);
+    if (!(row instanceof HTMLElement)) {
+        return null;
+    }
+    const updateCell = row.querySelector('td.updatecolumn');
+    if (!(updateCell instanceof HTMLElement)) {
+        return null;
+    }
+    if (updateCell.querySelector('.fa-flash')) {
+        return false;
+    }
+    if (updateCell.querySelector('.fa-check')) {
+        return true;
+    }
+    return null;
+};
 const buildDockerRuntimeInfoRenderEntry = (name, entry = {}, previousEntry = null) => {
     const safeName = String(name || '').trim();
     const source = entry && typeof entry === 'object' ? entry : {};
@@ -494,6 +515,11 @@ const buildDockerRuntimeInfoRenderEntry = (name, entry = {}, previousEntry = nul
     const labelTsWebUi = String(labels['net.unraid.docker.tailscale.webui'] || '').trim();
     const resolvedWebUi = resolvePreferredWebuiValue(sourceState.WebUi, source.WebUi, source.webui, previousState.WebUi, labelWebUi);
     const resolvedTsWebUi = resolvePreferredWebuiValue(sourceState.TSWebUi, source.TSWebUi, previousState.TSWebUi, labelTsWebUi);
+    const resolvedUpdated = typeof sourceState.Updated === 'boolean'
+        ? sourceState.Updated
+        : (typeof previousState.Updated === 'boolean'
+            ? previousState.Updated
+            : (manager === 'dockerman' ? readDockerHostRowUpdatedState(safeName) : null));
     const nextEntry = previous ? { ...previous } : {};
     nextEntry.shortId = String(source.id || previous?.shortId || '').trim();
     nextEntry.shortImageId = String(source.shortImageId || previous?.shortImageId || '').trim();
@@ -514,7 +540,7 @@ const buildDockerRuntimeInfoRenderEntry = (name, entry = {}, previousEntry = nul
             Paused: paused,
             Status: String(source.status || previousState.Status || '').trim(),
             Autostart: source.autostart === true,
-            Updated: sourceState.Updated ?? previousState.Updated ?? null,
+            Updated: resolvedUpdated,
             manager,
             WebUi: resolvedWebUi,
             TSWebUi: resolvedTsWebUi

@@ -2209,6 +2209,336 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     max-width: 100% !important;
 }
 
+#fvFolderAutoRulesPanel.fv-folder-auto-rules-panel {
+    flex: 1 1 100%;
+    width: 100%;
+    max-width: none;
+    min-width: min(100%, 560px);
+    margin: 0;
+    padding: 1rem 1.05rem;
+    border: 1px solid var(--fv-editor-block-border);
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent), var(--fv-editor-panel);
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.18);
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+}
+
+.fv-folder-auto-rules-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.fv-folder-auto-rules-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.28rem;
+}
+
+.fv-folder-auto-rules-kicker {
+    color: var(--fv-editor-title-accent);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.fv-folder-auto-rules-copy > h4 {
+    margin: 0;
+    color: var(--fv-editor-text-primary);
+    font-size: 1.08rem;
+    font-weight: 700;
+}
+
+.fv-folder-auto-rules-copy > p {
+    margin: 0;
+    color: var(--fv-editor-muted);
+    line-height: 1.45;
+}
+
+.fv-folder-auto-rules-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    padding: 0.55rem 0.85rem;
+    border: 1px solid var(--fv-editor-block-border);
+    border-radius: 999px;
+    background: linear-gradient(180deg, var(--fv-editor-button-quiet-top), var(--fv-editor-button-quiet-bottom));
+    color: var(--fv-editor-text-primary) !important;
+    font-size: 0.92rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.fv-folder-auto-rules-link:hover,
+.fv-folder-auto-rules-link:focus-visible {
+    border-color: var(--fv-editor-title-accent);
+    color: var(--fv-editor-title-accent) !important;
+    text-decoration: none;
+}
+
+.fv-folder-auto-rules-status {
+    padding: 0.72rem 0.84rem;
+    border: 1px solid transparent;
+    border-radius: 14px;
+    font-size: 0.94rem;
+    line-height: 1.45;
+}
+
+.fv-folder-auto-rules-status.is-info {
+    border-color: rgba(255, 154, 60, 0.32);
+    background: rgba(255, 154, 60, 0.08);
+    color: var(--fv-editor-text-primary);
+}
+
+.fv-folder-auto-rules-status.is-success {
+    border-color: rgba(88, 186, 122, 0.45);
+    background: rgba(88, 186, 122, 0.12);
+    color: var(--fv-editor-text-primary);
+}
+
+.fv-folder-auto-rules-status.is-warning {
+    border-color: rgba(255, 181, 71, 0.45);
+    background: rgba(255, 181, 71, 0.12);
+    color: var(--fv-editor-text-primary);
+}
+
+.fv-folder-auto-rules-status.is-error {
+    border-color: rgba(255, 92, 92, 0.45);
+    background: rgba(255, 92, 92, 0.12);
+    color: var(--fv-editor-text-primary);
+}
+
+.fv-folder-auto-rules-summary-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+}
+
+.fv-folder-auto-rules-summary-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.34rem 0.68rem;
+    border-radius: 999px;
+    background: var(--fv-editor-control-surface);
+    color: var(--fv-editor-muted);
+    font-size: 0.86rem;
+    font-weight: 600;
+}
+
+.fv-folder-auto-rules-builder {
+    display: grid;
+    grid-template-columns: minmax(130px, 0.9fr) minmax(180px, 1.1fr) minmax(220px, 1.8fr) auto;
+    gap: 0.8rem;
+    align-items: end;
+}
+
+.fv-folder-auto-rules-builder-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.36rem;
+    min-width: 0;
+}
+
+.fv-folder-auto-rules-builder-field > span {
+    color: var(--fv-editor-title-accent);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.fv-folder-auto-rules-builder-field.is-pattern {
+    min-width: min(100%, 240px);
+}
+
+.fv-folder-auto-rules-builder input[type="text"],
+.fv-folder-auto-rules-builder select {
+    width: 100% !important;
+    min-width: 0 !important;
+}
+
+.fv-folder-auto-rules-builder input[type="text"][aria-invalid="true"] {
+    border-color: rgba(255, 92, 92, 0.82) !important;
+    box-shadow: 0 0 0 1px rgba(255, 92, 92, 0.28);
+}
+
+.fv-folder-auto-rules-add,
+.fv-folder-auto-rule-actions > button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    min-height: 38px;
+    padding: 0.6rem 0.92rem;
+    border: 1px solid var(--fv-editor-block-border);
+    border-radius: 12px;
+    background: linear-gradient(180deg, var(--fv-editor-button-quiet-top), var(--fv-editor-button-quiet-bottom));
+    color: var(--fv-editor-text-primary) !important;
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.fv-folder-auto-rules-add:hover,
+.fv-folder-auto-rules-add:focus-visible,
+.fv-folder-auto-rule-actions > button:hover,
+.fv-folder-auto-rule-actions > button:focus-visible {
+    border-color: var(--fv-editor-title-accent);
+    color: var(--fv-editor-title-accent) !important;
+}
+
+.fv-folder-auto-rules-add[disabled],
+.fv-folder-auto-rule-actions > button[disabled] {
+    opacity: 0.58;
+    cursor: default;
+}
+
+.fv-folder-auto-rules-builder-help {
+    color: var(--fv-editor-muted);
+    font-size: 0.91rem;
+    line-height: 1.5;
+}
+
+.fv-folder-auto-rules-list {
+    display: grid;
+    gap: 0.78rem;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.fv-folder-auto-rules-empty,
+.fv-folder-auto-rule-card {
+    border: 1px solid var(--fv-editor-block-border);
+    border-radius: 16px;
+    background: var(--fv-editor-control-surface);
+}
+
+.fv-folder-auto-rules-empty {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.34rem;
+}
+
+.fv-folder-auto-rules-empty > strong {
+    color: var(--fv-editor-text-primary);
+}
+
+.fv-folder-auto-rules-empty > span {
+    color: var(--fv-editor-muted);
+    line-height: 1.45;
+}
+
+.fv-folder-auto-rule-card {
+    padding: 0.95rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.72rem;
+}
+
+.fv-folder-auto-rule-card.is-disabled {
+    opacity: 0.7;
+}
+
+.fv-folder-auto-rule-card.is-invalid {
+    border-color: rgba(255, 92, 92, 0.52);
+}
+
+.fv-folder-auto-rule-card-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.7rem;
+    align-items: center;
+}
+
+.fv-folder-auto-rule-priority {
+    color: var(--fv-editor-title-accent);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.fv-folder-auto-rule-kind {
+    color: var(--fv-editor-muted);
+    font-size: 0.84rem;
+    font-weight: 600;
+}
+
+.fv-folder-auto-rule-summary {
+    color: var(--fv-editor-text-primary);
+    line-height: 1.5;
+}
+
+.fv-folder-auto-rule-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.46rem;
+}
+
+.fv-folder-auto-rule-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0.22rem 0.62rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--fv-editor-muted);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+}
+
+.fv-folder-auto-rule-chip.is-active {
+    background: rgba(88, 186, 122, 0.18);
+    color: #8ce0a5;
+}
+
+.fv-folder-auto-rule-chip.is-info {
+    background: rgba(255, 154, 60, 0.16);
+    color: var(--fv-editor-title-accent);
+}
+
+.fv-folder-auto-rule-chip.is-warning {
+    background: rgba(255, 181, 71, 0.18);
+    color: #ffcc72;
+}
+
+.fv-folder-auto-rule-chip.is-muted {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--fv-editor-muted);
+}
+
+.fv-folder-auto-rule-chip.is-invalid {
+    background: rgba(255, 92, 92, 0.18);
+    color: #ff9d9d;
+}
+
+.fv-folder-auto-rule-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+}
+
+@media (max-width: 920px) {
+    .fv-folder-auto-rules-head {
+        flex-direction: column;
+    }
+
+    .fv-folder-auto-rules-link {
+        width: 100%;
+    }
+
+    .fv-folder-auto-rules-builder {
+        grid-template-columns: 1fr;
+    }
+}
+
 .fv-modern-field-row.is-rules-row,
 .fv-modern-field-row.is-actions-launch-row {
     min-height: 72px;

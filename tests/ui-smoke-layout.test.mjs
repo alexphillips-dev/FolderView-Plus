@@ -593,6 +593,7 @@ test('folder editor uses a searchable parent picker and custom general-section l
     assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-section-shell-body\s*\{[\s\S]*grid-template-columns:\s*minmax\(280px,\s*340px\)\s+minmax\(320px,\s*1fr\)\s+minmax\(360px,\s*440px\)/);
     assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-modern-field-row\.is-parent-row\s*\{/);
     assert.match(folderCss, /\.fv-parent-picker-shell/);
+    assert.match(folderCss, /\.fv-parent-picker-list\s*\{[\s\S]*gap:\s*0;/);
     assert.match(folderCss, /\.fv-parent-picker-option/);
     assert.match(folderCss, /\.fv-parent-picker-search-input/);
 });

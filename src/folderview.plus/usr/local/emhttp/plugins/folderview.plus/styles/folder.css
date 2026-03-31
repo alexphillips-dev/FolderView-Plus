@@ -2392,7 +2392,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
 .fv-parent-picker-list {
     display: grid;
-    gap: 0.55rem;
+    gap: 0;
     max-height: 292px;
     overflow: auto;
     padding-right: 0.16rem;

@@ -489,6 +489,19 @@
         launchHost.appendChild(launchLink);
     };
 
+    const ensureGeneralLeftRail = (body) => {
+        if (!(body instanceof root.HTMLElement)) {
+            return null;
+        }
+        let rail = body.querySelector(':scope > .fv-general-left-rail');
+        if (!(rail instanceof root.HTMLElement)) {
+            rail = root.document.createElement('div');
+            rail.className = 'fv-general-left-rail';
+            body.insertBefore(rail, body.firstChild);
+        }
+        return rail;
+    };
+
     const ensureSectionShells = (form) => {
         const stage = getModernStage(form);
         if (!stage) {
@@ -542,11 +555,26 @@
             shell.classList.toggle('is-compact-shell', sectionKey === 'rules' || sectionKey === 'actions');
             shell.classList.toggle('is-members-shell', sectionKey === 'members');
             body.classList.add('fv-modern-section-grid');
+            const generalLeftRail = sectionKey === 'general' ? ensureGeneralLeftRail(body) : null;
             rows.forEach((row) => {
-                if (row && row.parentElement !== body) {
-                    body.appendChild(row);
+                if (!row) {
+                    return;
+                }
+                const targetParent = sectionKey === 'general'
+                    && generalLeftRail
+                    && (row.querySelector('[name="name"]') || row.querySelector('[name="folder_webui"]'))
+                    ? generalLeftRail
+                    : body;
+                if (row.parentElement !== targetParent) {
+                    targetParent.appendChild(row);
                 }
             });
+            if (sectionKey === 'general' && generalLeftRail && !generalLeftRail.children.length && generalLeftRail.parentElement === body) {
+                generalLeftRail.remove();
+            }
+            if (sectionKey !== 'general') {
+                body.querySelector(':scope > .fv-general-left-rail')?.remove();
+            }
         });
         syncActionLaunchPlacement(form);
     };

@@ -2194,8 +2194,21 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     align-items: start;
 }
 
+.fv-section-shell[data-section-shell="general"] .fv-general-left-rail {
+    display: flex;
+    flex-direction: column;
+    gap: 0.68em;
+    grid-column: 1;
+    grid-row: 1;
+    width: 100%;
+    max-width: 340px;
+    min-width: 0;
+    align-self: start;
+}
+
 .fv-section-shell[data-section-shell="general"] .fv-modern-field-row,
-.canvas form.folder-editor-form .fv-section-shell[data-section-shell="general"] > .fv-section-shell-body > .basic.fv-modern-field-row {
+.canvas form.folder-editor-form .fv-section-shell[data-section-shell="general"] > .fv-section-shell-body > .basic.fv-modern-field-row,
+.canvas form.folder-editor-form .fv-section-shell[data-section-shell="general"] > .fv-section-shell-body > .fv-general-left-rail > .basic.fv-modern-field-row {
     width: 100% !important;
     max-width: none !important;
     margin-left: 0 !important;
@@ -2838,6 +2851,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
         grid-template-columns: 1fr;
     }
 
+    .fv-section-shell[data-section-shell="general"] .fv-general-left-rail,
     .fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-name-row,
     .fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-webui-row,
     .fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-webui-url-row,

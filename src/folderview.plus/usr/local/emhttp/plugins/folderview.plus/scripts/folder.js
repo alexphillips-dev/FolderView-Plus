@@ -4406,7 +4406,7 @@ const enforceLeftAlignedSettingsLayout = () => {
 
         const layoutRows = [
             ...Array.from(form.children),
-            ...Array.from(form.querySelectorAll('.fv-section-shell > .fv-section-shell-body > .basic, .fv-section-shell > .fv-section-shell-body > ul'))
+            ...Array.from(form.querySelectorAll('.fv-section-shell > .fv-section-shell-body > .basic, .fv-section-shell > .fv-section-shell-body > .fv-general-left-rail > .basic, .fv-section-shell > .fv-section-shell-body > ul'))
         ];
         layoutRows.forEach((row) => {
             const isBasicRow = row.classList?.contains('basic') || row.classList?.contains('order-section');

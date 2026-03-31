@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.30.37">
-<!ENTITY md5 "e302139effdb0daf99cf6edd8a9420ac">
+<!ENTITY version "2026.03.30.38">
+<!ENTITY md5 "79f9903f69a0ee62ffd76ae43791a129">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.30.38
+- Fix: Fix docker root folder update status.
+
 
 ###2026.03.30.37
 - Feature: Added the new `Folders/Pixel` third-party pack with 32 pixel-style folder icons to the shipped plugin assets.

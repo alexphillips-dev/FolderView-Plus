@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.30.33">
-<!ENTITY md5 "736c8b5186b6d62a4e5d64e55585788a">
+<!ENTITY version "2026.03.30.34">
+<!ENTITY md5 "35ce139f762ee797b3923a8d997c7219">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.30.34
+- UI/UX: Rebalanced the modern folder editor General section grid so the Name, Parent Folder, and Icon cards sit as a tighter grouped layout instead of stretching apart across wide screens.
+- UI/UX: Capped the icon card width and replaced the elastic middle column with fixed-range tracks so the parent folder module no longer leaves a large visual void beside it.
+- Regression guard: Updated the General section layout coverage for the new fixed-range grid and icon card sizing.
+
 
 ###2026.03.30.33
 - UI/UX: Reduced the modern folder editor parent folder card width so it no longer stretches across empty space in the General section.

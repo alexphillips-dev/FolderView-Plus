@@ -590,8 +590,9 @@ test('folder editor uses a searchable parent picker and custom general-section l
     assert.match(folderPage, /'\/plugins\/folderview\.plus\/scripts\/folder\.editor\.parent-picker\.js'/);
     assert.match(folderChromeJs, /row\.querySelector\('\[name="parent_folder_id"\]'\)/);
     assert.match(folderChromeJs, /row\.classList\.add\('is-parent-row'\)/);
-    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-section-shell-body\s*\{[\s\S]*grid-template-columns:\s*minmax\(280px,\s*340px\)\s+minmax\(320px,\s*1fr\)\s+minmax\(360px,\s*440px\)/);
+    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-section-shell-body\s*\{[\s\S]*grid-template-columns:\s*minmax\(280px,\s*340px\)\s+minmax\(440px,\s*560px\)\s+minmax\(320px,\s*420px\);[\s\S]*justify-content:\s*start;/);
     assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-modern-field-row\.is-parent-row\s*\{[\s\S]*max-width:\s*560px !important;/);
+    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-modern-field-row\.is-icon-row\s*\{[\s\S]*max-width:\s*420px !important;[\s\S]*justify-self:\s*start !important;/);
     assert.match(folderCss, /\.fv-parent-picker-shell/);
     assert.match(folderCss, /\.fv-parent-picker-list\s*\{[\s\S]*display:\s*flex;[\s\S]*border:\s*1px solid rgba\(0,\s*0,\s*0,\s*0\.72\);/);
     assert.match(folderCss, /\.fv-parent-picker-option\s*\{[\s\S]*margin:\s*0 !important;[\s\S]*border-top:\s*1px solid rgba\(0,\s*0,\s*0,\s*0\.58\) !important;/);

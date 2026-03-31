@@ -2188,21 +2188,24 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-section-shell[data-section-shell="rules"] .fv-section-shell-body {
-    display: flex !important;
-    flex-wrap: wrap;
+    display: grid !important;
+    grid-template-columns: minmax(0, 560px) minmax(0, 1fr);
     gap: 0.68em;
-    justify-content: flex-start;
-    align-items: flex-start;
+    align-items: start;
+}
+
+.fv-section-shell[data-section-shell="rules"] .fv-modern-group-list {
+    width: 100%;
+    max-width: 560px;
 }
 
 .fv-section-shell[data-section-shell="rules"] .fv-modern-field-row,
 .canvas form.folder-editor-form .fv-section-shell[data-section-shell="rules"] > .fv-section-shell-body > .basic.fv-modern-field-row {
-    flex: 0 1 560px !important;
-    width: min(100%, 560px) !important;
-    max-width: 560px !important;
+    width: 100% !important;
+    max-width: none !important;
     margin-left: 0 !important;
-    margin-right: auto !important;
-    justify-self: auto !important;
+    margin-right: 0 !important;
+    justify-self: stretch !important;
 }
 
 .fv-section-shell[data-section-shell="rules"] .fv-modern-field-row > blockquote.inline_help {
@@ -2210,6 +2213,9 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 #fvFolderAutoRulesPanel.fv-folder-auto-rules-panel {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0;
     padding-bottom: 0.72em;
 }
 
@@ -2528,6 +2534,16 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     .fv-folder-auto-rules-add,
     .fv-folder-auto-rules-builder-field.is-pattern {
         grid-column: auto;
+    }
+}
+
+@media (max-width: 1180px) {
+    .fv-section-shell[data-section-shell="rules"] .fv-section-shell-body {
+        grid-template-columns: 1fr;
+    }
+
+    .fv-section-shell[data-section-shell="rules"] .fv-modern-group-list {
+        max-width: none;
     }
 }
 

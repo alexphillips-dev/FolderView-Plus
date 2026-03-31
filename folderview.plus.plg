@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.30.27">
-<!ENTITY md5 "f133dd7f37210605382bbd76c8081a22">
+<!ENTITY version "2026.03.30.28">
+<!ENTITY md5 "f26b57ad8f928669a929799e42c20edb">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.30.28
+- UX: Aligned the modern folder editor Rules cards so the advanced auto-rules card sits beside the Regex card instead of drifting across the section.
+- UI/UX: Let the advanced auto-rules card expand across the remaining Rules section width on larger layouts while stacking cleanly on narrower screens.
+- Regression guard: Added smoke coverage for the Rules section two-column layout contract.
+
 
 ###2026.03.30.27
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

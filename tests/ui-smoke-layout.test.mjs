@@ -42,6 +42,10 @@ const folderJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js'
 );
+const folderRulesJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.rules.js'
+);
 const folderLegacyJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.legacy.js'
@@ -66,6 +70,7 @@ const settingsJs = settingsRuntime;
 const folderPage = fs.readFileSync(folderPagePath, 'utf8');
 const folderCss = fs.readFileSync(folderCssPath, 'utf8');
 const folderJs = fs.readFileSync(folderJsPath, 'utf8');
+const folderRulesJs = fs.readFileSync(folderRulesJsPath, 'utf8');
 const folderLegacyJs = fs.readFileSync(folderLegacyJsPath, 'utf8');
 const folderChromeJs = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js'),
@@ -541,15 +546,19 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
 });
 
 test('folder editor exposes folder-scoped advanced auto-rules for saved folders', () => {
-    assert.match(folderJs, /const requestClient = window\.FolderViewPlusRequest \|\| null;/);
-    assert.match(folderJs, /const FOLDER_AUTO_RULE_REGEX_KINDS = type === 'docker'/);
-    assert.match(folderJs, /panel\.id = 'fvFolderAutoRulesPanel';/);
-    assert.match(folderJs, /Save this folder first to create advanced rules\./);
-    assert.match(folderJs, /Open full Rules workspace/);
-    assert.match(folderJs, /Create regex-based plugin rules directly from the folder editor without leaving this page\./);
-    assert.match(folderJs, /\/plugins\/folderview\.plus\/server\/prefs\.php\?type=\$\{encodeURIComponent\(type\)\}/);
-    assert.match(folderJs, /requestClient\.postJson\('\/plugins\/folderview\.plus\/server\/prefs\.php'/);
-    assert.match(folderJs, /href="\/Settings\/FolderViewPlus"/);
+    assert.match(folderJs, /const folderEditorRulesModule = window\.FolderViewPlusFolderEditorRules \|\| null;/);
+    assert.match(folderJs, /const getFolderEditorRulesApi = \(\) =>/);
+    assert.match(folderJs, /folderEditorRulesModule\?\.createApi/);
+    assert.match(folderJs, /refreshFolderAutoRulesPanel = \(options = \{\}\) =>/);
+    assert.match(folderRulesJs, /const ruleRegexKinds = type === 'docker'/);
+    assert.match(folderRulesJs, /panel\.id = 'fvFolderAutoRulesPanel';/);
+    assert.match(folderRulesJs, /Save this folder first to create advanced rules\./);
+    assert.match(folderRulesJs, /Open full Rules workspace/);
+    assert.match(folderRulesJs, /Create regex-based plugin rules directly from the folder editor without leaving this page\./);
+    assert.match(folderRulesJs, /\/plugins\/folderview\.plus\/server\/prefs\.php\?type=\$\{encodeURIComponent\(type\)\}/);
+    assert.match(folderRulesJs, /requestClient\.postJson\('\/plugins\/folderview\.plus\/server\/prefs\.php'/);
+    assert.match(folderRulesJs, /href="\/Settings\/FolderViewPlus"/);
+    assert.match(folderPage, /'\/plugins\/folderview\.plus\/scripts\/folder\.editor\.rules\.js'/);
     assert.match(folderCss, /#fvFolderAutoRulesPanel\.fv-folder-auto-rules-panel/);
     assert.match(folderCss, /\.fv-folder-auto-rules-builder\s*\{/);
     assert.match(folderCss, /\.fv-folder-auto-rules-link\s*\{/);

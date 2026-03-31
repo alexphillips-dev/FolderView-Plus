@@ -301,6 +301,7 @@ try {
                 '/plugins/folderview.plus/scripts/icon-picker.runtime.js',
                 '/plugins/folderview.plus/scripts/folder.editor.hierarchy.js',
                 '/plugins/folderview.plus/scripts/folder.editor.chrome.js',
+                '/plugins/folderview.plus/scripts/folder.editor.rules.js',
                 '/plugins/folderview.plus/scripts/folder.js'
             ]
             : [

@@ -371,6 +371,8 @@ test('nested folder expansion avoids duplicate parent previews and keeps child-o
 test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderJs, /const enforceLeftAlignedSettingsLayout = \(\) =>/);
     assert.match(folderJs, /const setVisibleMemberSelection = \(checked\) =>/);
+    assert.match(folderJs, /const MEMBER_REGEX_SEARCH_FILTER = 'contains_regex';/);
+    assert.match(folderLegacyJs, /const MEMBER_REGEX_SEARCH_FILTER = 'contains_regex';/);
     assert.match(folderJs, /const ensureInheritedFieldControls = \(\) =>/);
     assert.match(folderJs, /id="fvHeroDefaults"/);
     assert.match(folderJs, /id="fvMemberStateFilter"/);
@@ -401,6 +403,18 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderJs, /const buildRegexSuggestionFromNames = \(names\) =>/);
     assert.match(folderJs, /const applyAdvancedMode = \(\) =>/);
     assert.match(folderJs, /const toggleAdvancedSectionCollapse = \(sectionKey\) =>/);
+    assert.match(folderJs, /<option value="contains_regex">Contains regex<\/option>/);
+    assert.match(folderLegacyJs, /<option value="contains_regex">Contains regex<\/option>/);
+    assert.match(folderJs, /new RegExp\(rawQuery, 'i'\)/);
+    assert.match(folderLegacyJs, /new RegExp\(rawQuery, 'i'\)/);
+    assert.match(folderJs, /queryRegex \? queryRegex\.test\(rawName\) : false/);
+    assert.match(folderLegacyJs, /queryRegex \? queryRegex\.test\(rawName\) : false/);
+    assert.match(folderJs, /Regex search members/);
+    assert.match(folderLegacyJs, /Regex search members/);
+    assert.match(folderJs, /Invalid regex: \$\{error\.message\}/);
+    assert.match(folderLegacyJs, /Invalid regex: \$\{error\.message\}/);
+    assert.match(folderJs, /Filter member list/);
+    assert.match(folderLegacyJs, /Filter member list/);
     assert.match(folderJs, /ComposeProject/);
     assert.match(folderJs, /UpdateAvailable/);
     assert.match(folderJs, /id="fvSuggestDefaults"/);
@@ -484,6 +498,7 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderCss, /\.fv-member-tools-main/);
     assert.match(folderCss, /\.fv-member-tools-filters/);
     assert.match(folderCss, /\.fv-member-tools-actions/);
+    assert.match(folderCss, /\.fv-member-tools-filters > input\[type="text"\]\[aria-invalid="true"\]/);
     assert.match(folderCss, /\.fv-member-chip-row/);
     assert.match(folderCss, /\.fv-member-chip/);
     assert.match(folderCss, /\.fv-section-shell\.is-members-shell \.fv-section-shell-body/);

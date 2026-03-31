@@ -253,6 +253,9 @@ test('dev finalize script validates, packages, commits, and pushes dev safely', 
     assert.match(devFinalize, /git diff --cached --name-only --diff-filter=ACMR/);
     assert.match(devFinalize, /git diff --name-only --diff-filter=ACMR/);
     assert.match(devFinalize, /git ls-files --others --exclude-standard/);
+    assert.match(devFinalize, /git diff --cached --name-only --diff-filter=ACMR \|\| true/);
+    assert.match(devFinalize, /git diff --name-only --diff-filter=ACMR \|\| true/);
+    assert.match(devFinalize, /git ls-files --others --exclude-standard \|\| true/);
     assert.match(devFinalize, /Stage the intended source changes before running dev_finalize\.sh/);
     assert.match(devFinalize, /bash pkg_build\.sh/);
     assert.match(devFinalize, /git add folderview\.plus\.plg folderview\.plus\.xml archive\//);

@@ -93,19 +93,19 @@ if [[ "${CURRENT_BRANCH}" != "dev" ]]; then
     fvplus::fail "dev_finalize.sh must run from branch 'dev' (current: ${CURRENT_BRANCH:-detached})."
 fi
 
-mapfile -t STAGED_FILES < <(git diff --cached --name-only --diff-filter=ACMR)
+mapfile -t STAGED_FILES < <(git diff --cached --name-only --diff-filter=ACMR || true)
 if [[ "${#STAGED_FILES[@]}" -eq 0 ]]; then
     fvplus::fail "Stage the intended source changes before running dev_finalize.sh."
 fi
 
-mapfile -t UNSTAGED_FILES < <(git diff --name-only --diff-filter=ACMR)
+mapfile -t UNSTAGED_FILES < <(git diff --name-only --diff-filter=ACMR || true)
 if [[ "${#UNSTAGED_FILES[@]}" -gt 0 ]]; then
     echo "ERROR: dev_finalize.sh requires a clean unstaged worktree. Stage or revert these files first:" >&2
     print_path_list "  " "${UNSTAGED_FILES[@]}"
     exit 1
 fi
 
-mapfile -t UNTRACKED_FILES < <(git ls-files --others --exclude-standard)
+mapfile -t UNTRACKED_FILES < <(git ls-files --others --exclude-standard || true)
 if [[ "${#UNTRACKED_FILES[@]}" -gt 0 ]]; then
     echo "ERROR: dev_finalize.sh requires no untracked files before packaging. Add or remove these paths first:" >&2
     print_path_list "  " "${UNTRACKED_FILES[@]}"

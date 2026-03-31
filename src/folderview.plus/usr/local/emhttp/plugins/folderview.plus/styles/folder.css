@@ -2039,6 +2039,13 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     min-width: 220px;
 }
 
+.fv-member-tools > input[type="text"][aria-invalid="true"],
+.fv-member-tools-main > input[type="text"][aria-invalid="true"],
+.fv-member-tools-filters > input[type="text"][aria-invalid="true"] {
+    border-color: #cf5b3e !important;
+    box-shadow: 0 0 0 1px rgba(207, 91, 62, 0.18);
+}
+
 .fv-member-tools > select,
 .fv-member-tools-main > select,
 .fv-member-tools-filters > select {

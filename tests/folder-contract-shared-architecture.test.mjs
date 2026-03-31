@@ -86,6 +86,7 @@ test('runtime pages and folder editor load the shared contract before their cons
     const folderSchemaIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.schema.js');
     const folderPreviewIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.preview.js');
     const folderHierarchyIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.hierarchy.js');
+    const folderParentPickerIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.parent-picker.js');
     const folderLegacyIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.legacy.js');
     const folderModernIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.js');
     const folderChromeIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.chrome.js');
@@ -122,6 +123,7 @@ test('runtime pages and folder editor load the shared contract before their cons
     assert.ok(folderPreviewIndex >= 0, 'folder editor page missing shared preview include');
     assert.ok(folderBootLoaderIndex >= 0, 'folder editor page missing runtime boot loader');
     assert.ok(folderHierarchyIndex >= 0, 'folder editor page missing hierarchy module include');
+    assert.ok(folderParentPickerIndex >= 0, 'folder editor page missing parent picker module include');
     assert.ok(folderLegacyIndex >= 0, 'folder editor page missing legacy runtime include');
     assert.ok(folderModernIndex >= 0, 'folder editor page missing modern runtime include');
     assert.ok(folderChromeIndex >= 0, 'folder editor page missing chrome runtime include');
@@ -129,8 +131,11 @@ test('runtime pages and folder editor load the shared contract before their cons
     assert.ok(folderContractIndex < folderSharedEditorIndex, 'shared contract must load before folder.editor.shared.js');
     assert.ok(folderSharedEditorIndex < folderSchemaIndex, 'shared editor module must load before folder.editor.schema.js');
     assert.ok(folderSchemaIndex < folderPreviewIndex, 'shared schema must load before folder.editor.preview.js');
+    assert.ok(folderHierarchyIndex < folderParentPickerIndex, 'hierarchy module must load before folder.editor.parent-picker.js');
+    assert.ok(folderParentPickerIndex < folderModernIndex, 'parent picker module must load before folder.js');
     assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/icon-picker.runtime.js'"), 'folder editor page missing boot-loaded icon picker runtime');
     assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.editor.hierarchy.js'"), 'folder editor page missing boot-loaded hierarchy runtime');
+    assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.editor.parent-picker.js'"), 'folder editor page missing boot-loaded parent picker runtime');
     assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.editor.chrome.js'"), 'folder editor page missing boot-loaded chrome runtime');
     assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.js'"), 'folder editor page missing boot-loaded modern runtime');
     assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.legacy.js'"), 'folder editor page missing boot-loaded legacy runtime');

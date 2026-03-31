@@ -217,6 +217,7 @@ const folderThemeSurfaceBinding = bindFolderThemeAwareSurface
 const utils = window.FolderViewPlusUtils || null;
 const folderEditorRulesModule = window.FolderViewPlusFolderEditorRules || null;
 const folderHierarchyModule = window.FolderViewPlusFolderHierarchy || null;
+const folderParentPickerModule = window.FolderViewPlusFolderEditorParentPicker || null;
 const folderIconApiModule = window.FolderViewPlusFolderIconApi || null;
 const modernFolderEditorEnabled = String(window.FolderViewPlusFolderEditorPageMode || 'legacy').trim().toLowerCase() === 'modern';
 const DEFAULT_FOLDER_STATUS_COLORS = folderContract?.DEFAULT_FOLDER_STATUS_COLORS || {
@@ -5130,7 +5131,7 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     };
 
     setFieldValue('name', normalizedFolder.name);
-    populateParentFolderOptions(
+    refreshParentFolderChooser(
         folders,
         normalizeParentFolderId(normalizedFolder.parentId || ''),
         safeFolderId ? new Set([safeFolderId, ...Array.from(folderHierarchyState.currentFolderDescendantIds)]) : new Set()
@@ -5334,7 +5335,7 @@ const startFolderEditorRuntime = async () => {
                 routeTargetMismatch: false
             });
             folderHierarchyState.currentFolderDescendantIds = new Set();
-            populateParentFolderOptions(folders, '', new Set());
+            refreshParentFolderChooser(folders, '', new Set());
             setParentDefaultsNote('Select a parent to inherit preview/icon defaults automatically.', 'info');
         } else {
         if (!resolvedEditFolder && bootstrapFolderRecord) {
@@ -5386,7 +5387,7 @@ const startFolderEditorRuntime = async () => {
         });
         clearEditorNavigationPrefill();
         folderHierarchyState.currentFolderDescendantIds = new Set();
-        populateParentFolderOptions(folders, '', new Set());
+        refreshParentFolderChooser(folders, '', new Set());
         setParentDefaultsNote('Select a parent to inherit preview/icon defaults automatically.', 'info');
     }
 
@@ -5913,6 +5914,35 @@ const createFallbackFolderHierarchyApi = (deps = {}) => {
         }
         return rows;
     };
+    const buildParentFolderEntries = (foldersMap, blockedIds = new Set()) => {
+        const blocked = blockedIds instanceof Set ? blockedIds : new Set();
+        const rows = buildNestedFolderOrder(foldersMap);
+        if (!rows.length) {
+            return [];
+        }
+        const pathById = new Map();
+        const entries = [];
+        for (const row of rows) {
+            const id = normalizeParentFolderId(row?.id || '');
+            if (!id || blocked.has(id)) {
+                continue;
+            }
+            const folder = row?.folder && typeof row.folder === 'object' ? row.folder : {};
+            const name = String(folder?.name || id).trim() || id;
+            const parentId = normalizeParentFolderId(folder?.parentId || folder?.parent_id || '');
+            const parentPath = parentId && pathById.has(parentId) ? String(pathById.get(parentId) || '').trim() : '';
+            const path = parentPath ? `${parentPath} / ${name}` : name;
+            const depth = Math.max(0, Number(row?.depth || 0));
+            pathById.set(id, path);
+            entries.push({
+                id,
+                depth,
+                name,
+                path
+            });
+        }
+        return entries;
+    };
     const populateParentFolderOptions = (foldersMap, selectedParentId = '', blockedIds = new Set()) => {
         const form = getFallbackForm();
         const select = form?.parent_folder_id;
@@ -5921,16 +5951,9 @@ const createFallbackFolderHierarchyApi = (deps = {}) => {
         }
         const selected = normalizeParentFolderId(selectedParentId);
         const blocked = blockedIds instanceof Set ? blockedIds : new Set();
-        const rows = buildNestedFolderOrder(foldersMap);
         const options = ['<option value="">No parent (top level)</option>'];
-        for (const row of rows) {
-            const id = normalizeParentFolderId(row?.id || '');
-            if (!id || blocked.has(id)) {
-                continue;
-            }
-            const depth = Math.max(0, Number(row?.depth || 0));
-            const indent = depth > 0 ? `${'  '.repeat(depth)}- ` : '';
-            options.push(`<option value="${escapeHtmlRef(id)}">${escapeHtmlRef(`${indent}${String(row?.folder?.name || id)}`)}</option>`);
+        for (const entry of buildParentFolderEntries(foldersMap, blocked)) {
+            options.push(`<option value="${escapeHtmlRef(entry.id)}">${escapeHtmlRef(entry.path)}</option>`);
         }
         jq(select).html(options.join(''));
         select.value = (selected && !blocked.has(selected)) ? selected : '';
@@ -6082,6 +6105,7 @@ const createFallbackFolderHierarchyApi = (deps = {}) => {
         normalizeParentFolderId,
         computeFolderDescendantIds,
         buildNestedFolderOrder,
+        buildParentFolderEntries,
         populateParentFolderOptions,
         getSiblingNameCollision,
         suggestSiblingName,
@@ -6124,12 +6148,47 @@ const folderHierarchyState = {
     }
 };
 const computeFolderDescendantIds = (...args) => getFolderHierarchyApi().computeFolderDescendantIds(...args);
+const buildParentFolderEntries = (...args) => getFolderHierarchyApi().buildParentFolderEntries(...args);
 const populateParentFolderOptions = (...args) => getFolderHierarchyApi().populateParentFolderOptions(...args);
 const getSiblingNameCollision = (...args) => getFolderHierarchyApi().getSiblingNameCollision(...args);
 const suggestSiblingName = (...args) => getFolderHierarchyApi().suggestSiblingName(...args);
 const setParentDefaultsNote = (...args) => getFolderHierarchyApi().setParentDefaultsNote(...args);
 const applySmartDefaultsFromParent = (...args) => getFolderHierarchyApi().applySmartDefaultsFromParent(...args);
 const markSmartDefaultFieldTouched = (...args) => getFolderHierarchyApi().markSmartDefaultFieldTouched(...args);
+const getFolderEditorParentPickerApi = (() => {
+    let cachedApi = null;
+    return () => {
+        if (cachedApi) {
+            return cachedApi;
+        }
+        if (typeof folderParentPickerModule?.createApi !== 'function') {
+            return null;
+        }
+        cachedApi = folderParentPickerModule.createApi({
+            window,
+            document,
+            $,
+            getForm,
+            escapeHtml,
+            normalizeParentFolderId
+        });
+        return cachedApi;
+    };
+})();
+const refreshParentFolderChooser = (foldersMap, selectedParentId = '', blockedIds = new Set()) => {
+    populateParentFolderOptions(foldersMap, selectedParentId, blockedIds);
+    if (!modernFolderEditorEnabled) {
+        return;
+    }
+    const parentPickerApi = getFolderEditorParentPickerApi();
+    if (!parentPickerApi || typeof parentPickerApi.render !== 'function') {
+        return;
+    }
+    parentPickerApi.render({
+        entries: buildParentFolderEntries(foldersMap, blockedIds),
+        selectedParentId: normalizeParentFolderId(selectedParentId)
+    });
+};
 
 /**
  * Create the element select table

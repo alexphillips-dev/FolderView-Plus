@@ -2187,6 +2187,285 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     max-width: none;
 }
 
+.fv-section-shell[data-section-shell="general"] .fv-section-shell-body {
+    display: grid !important;
+    grid-template-columns: minmax(280px, 340px) minmax(320px, 1fr) minmax(360px, 440px);
+    gap: 0.68em;
+    align-items: start;
+}
+
+.fv-section-shell[data-section-shell="general"] .fv-modern-field-row,
+.canvas form.folder-editor-form .fv-section-shell[data-section-shell="general"] > .fv-section-shell-body > .basic.fv-modern-field-row {
+    width: 100% !important;
+    max-width: none !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    justify-self: stretch !important;
+}
+
+.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-name-row {
+    grid-column: 1;
+    grid-row: 1;
+    max-width: 340px !important;
+}
+
+.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-webui-row {
+    grid-column: 1;
+    grid-row: 2;
+    max-width: 340px !important;
+}
+
+.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-webui-url-row {
+    grid-column: 1 / span 2;
+    grid-row: 3;
+    width: min(100%, 760px) !important;
+    max-width: 760px !important;
+}
+
+.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-parent-row {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    min-height: 272px;
+}
+
+.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-parent-row > dl > dd {
+    display: flex;
+    flex-direction: column;
+    gap: 0.72rem;
+}
+
+.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-icon-row {
+    grid-column: 3 !important;
+    grid-row: 1 / span 2;
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 272px;
+}
+
+.fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-icon-row .fv-icon-dd {
+    align-items: flex-start;
+}
+
+.fv-parent-picker-native {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    clip-path: inset(50%);
+    overflow: hidden;
+}
+
+#fvParentFolderPicker.fv-parent-picker-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.78rem;
+    width: 100%;
+}
+
+.fv-parent-picker-current {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.9rem;
+    padding: 0.8rem 0.9rem;
+    border: 1px solid var(--fv-editor-block-border);
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent), var(--fv-editor-control-surface);
+}
+
+.fv-parent-picker-current-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 0;
+}
+
+.fv-parent-picker-kicker {
+    color: var(--fv-editor-title-accent);
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.fv-parent-picker-current-copy > strong {
+    color: var(--fv-editor-text-primary);
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.fv-parent-picker-current-copy > span:last-child {
+    color: var(--fv-editor-muted);
+    font-size: 0.92rem;
+    line-height: 1.45;
+    word-break: break-word;
+}
+
+.fv-parent-picker-current-stats {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.45rem;
+}
+
+.fv-parent-picker-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0.24rem 0.62rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--fv-editor-muted);
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.fv-parent-picker-chip.is-accent {
+    background: rgba(255, 154, 60, 0.14);
+    color: var(--fv-editor-title-accent);
+}
+
+.fv-parent-picker-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.75rem;
+    align-items: end;
+}
+
+.fv-parent-picker-search {
+    display: flex;
+    flex-direction: column;
+    gap: 0.34rem;
+    min-width: 0;
+}
+
+.fv-parent-picker-search > span {
+    color: var(--fv-editor-title-accent);
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.fv-parent-picker-search-input {
+    width: 100% !important;
+    min-width: 0 !important;
+}
+
+.fv-parent-picker-clear {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.42rem;
+    min-height: 38px;
+    padding: 0.58rem 0.9rem;
+    border: 1px solid var(--fv-editor-block-border);
+    border-radius: 12px;
+    background: linear-gradient(180deg, var(--fv-editor-button-quiet-top), var(--fv-editor-button-quiet-bottom));
+    color: var(--fv-editor-text-primary) !important;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.fv-parent-picker-clear:hover,
+.fv-parent-picker-clear:focus-visible {
+    border-color: var(--fv-editor-title-accent);
+    color: var(--fv-editor-title-accent) !important;
+}
+
+.fv-parent-picker-clear[disabled] {
+    opacity: 0.56;
+    cursor: default;
+}
+
+.fv-parent-picker-meta {
+    color: var(--fv-editor-muted);
+    font-size: 0.9rem;
+    line-height: 1.45;
+}
+
+.fv-parent-picker-list {
+    display: grid;
+    gap: 0.55rem;
+    max-height: 292px;
+    overflow: auto;
+    padding-right: 0.16rem;
+}
+
+.fv-parent-picker-option {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.85rem;
+    width: 100%;
+    padding: 0.78rem 0.86rem;
+    border: 1px solid var(--fv-editor-block-border);
+    border-radius: 14px;
+    background: var(--fv-editor-control-surface);
+    color: var(--fv-editor-text-primary) !important;
+    text-align: left;
+    cursor: pointer;
+}
+
+.fv-parent-picker-option:hover,
+.fv-parent-picker-option:focus-visible {
+    border-color: rgba(255, 154, 60, 0.52);
+    box-shadow: 0 0 0 1px rgba(255, 154, 60, 0.16);
+}
+
+.fv-parent-picker-option.is-selected {
+    border-color: rgba(255, 154, 60, 0.62);
+    background: linear-gradient(180deg, rgba(255, 154, 60, 0.08), transparent), var(--fv-editor-control-surface-active);
+}
+
+.fv-parent-picker-option-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.18rem;
+    min-width: 0;
+}
+
+.fv-parent-picker-option-name {
+    color: var(--fv-editor-text-primary);
+    font-size: 0.96rem;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.fv-parent-picker-option-path {
+    color: var(--fv-editor-muted);
+    font-size: 0.88rem;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.fv-parent-picker-option-scope {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0.2rem 0.58rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--fv-editor-muted);
+    font-size: 0.77rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.fv-parent-picker-empty {
+    padding: 0.86rem 0.9rem;
+    border: 1px dashed var(--fv-editor-block-border);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.02);
+    color: var(--fv-editor-muted);
+}
+
 .fv-section-shell[data-section-shell="rules"] .fv-section-shell-body {
     display: grid !important;
     grid-template-columns: minmax(0, 560px) minmax(0, 1fr);
@@ -2539,6 +2818,34 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 @media (max-width: 1180px) {
+    .fv-section-shell[data-section-shell="general"] .fv-section-shell-body {
+        grid-template-columns: 1fr;
+    }
+
+    .fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-name-row,
+    .fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-webui-row,
+    .fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-webui-url-row,
+    .fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-parent-row,
+    .fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-icon-row {
+        grid-column: 1 !important;
+        grid-row: auto !important;
+        max-width: none !important;
+        width: 100% !important;
+        min-height: 0;
+    }
+
+    .fv-parent-picker-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    .fv-parent-picker-current {
+        flex-direction: column;
+    }
+
+    .fv-parent-picker-current-stats {
+        justify-content: flex-start;
+    }
+
     .fv-section-shell[data-section-shell="rules"] .fv-section-shell-body {
         grid-template-columns: 1fr;
     }

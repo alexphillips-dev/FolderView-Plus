@@ -34,11 +34,13 @@ const settingsScript = fs.readFileSync(
 );
 
 test('folder editor validates duplicate names within the selected parent path', () => {
+    assert.match(folderHierarchyScript, /const buildParentFolderEntries = \(foldersMap,\s*blockedIds = new Set\(\)\) =>/);
     assert.match(folderHierarchyScript, /const getSiblingNameCollision = \(nameValue, parentId, excludeFolderId = ''\) =>/);
     assert.match(folderHierarchyScript, /const suggestSiblingName = \(baseName, parentId, excludeFolderId = ''\) =>/);
     assert.match(folderEditorScript, /const getFolderHierarchyApi = \(\(\) =>/);
     assert.match(folderEditorScript, /cachedApi = createFolderHierarchyApi\(/);
     assert.match(folderEditorScript, /const createFallbackFolderHierarchyApi = \(deps = \{\}\) =>/);
+    assert.match(folderEditorScript, /const buildParentFolderEntries = \(\.\.\.args\) => getFolderHierarchyApi\(\)\.buildParentFolderEntries\(\.\.\.args\);/);
     assert.match(folderEditorScript, /form\.parent_folder_id\?\.value/);
     assert.match(folderEditorScript, /A sibling with this name already exists under/);
 });

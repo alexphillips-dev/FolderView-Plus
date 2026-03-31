@@ -46,6 +46,10 @@ const folderRulesJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.rules.js'
 );
+const folderParentPickerJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.parent-picker.js'
+);
 const folderLegacyJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.legacy.js'
@@ -71,6 +75,7 @@ const folderPage = fs.readFileSync(folderPagePath, 'utf8');
 const folderCss = fs.readFileSync(folderCssPath, 'utf8');
 const folderJs = fs.readFileSync(folderJsPath, 'utf8');
 const folderRulesJs = fs.readFileSync(folderRulesJsPath, 'utf8');
+const folderParentPickerJs = fs.readFileSync(folderParentPickerJsPath, 'utf8');
 const folderLegacyJs = fs.readFileSync(folderLegacyJsPath, 'utf8');
 const folderChromeJs = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js'),
@@ -440,7 +445,7 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderChromeJs, /if \(row\.querySelector\('\[name="regex"\]'\)\) \{\s*row\.classList\.add\('is-compact-text-row'/);
     assert.match(folderChromeJs, /shell\.classList\.toggle\('is-members-shell', sectionKey === 'members'\)/);
     assert.match(folderChromeJs, /if \(row\.querySelector\('\[name="name"\]'\)\) \{/);
-    assert.match(folderChromeJs, /row\.classList\.remove\('fv-modern-order-row', 'is-wide-row', 'is-icon-row', 'is-status-row', 'is-actions-row', 'is-toggle-row', 'is-color-row', 'is-name-row', 'is-url-row', 'is-compact-text-row', 'is-webui-row', 'is-members-row', 'is-rules-row', 'is-actions-list-row', 'is-actions-launch-row'\);/);
+    assert.match(folderChromeJs, /row\.classList\.remove\('fv-modern-order-row', 'is-wide-row', 'is-icon-row', 'is-status-row', 'is-actions-row', 'is-toggle-row', 'is-color-row', 'is-name-row', 'is-parent-row', 'is-url-row', 'is-webui-url-row', 'is-compact-text-row', 'is-webui-row', 'is-members-row', 'is-rules-row', 'is-actions-list-row', 'is-actions-launch-row'\);/);
     assert.match(folderChromeJs, /if \(row\.querySelector\('\[name="folder_webui"\]'\)\) \{/);
     assert.match(folderChromeJs, /if \(row\.querySelector\('\.custom-action-wrapper'\)\) \{\s*row\.classList\.add\('is-actions-list-row', 'is-wide-row'\);/);
     assert.match(folderChromeJs, /if \(row\.querySelector\('a\.custom-action'\) && !row\.querySelector\('\.custom-action-wrapper'\)\) \{\s*row\.classList\.add\('is-actions-launch-row'\);/);
@@ -571,6 +576,25 @@ test('folder editor exposes folder-scoped advanced auto-rules for saved folders'
     assert.match(folderCss, /\.fv-folder-auto-rules-link\s*\{/);
     assert.match(folderCss, /\.fv-folder-auto-rule-card\s*\{/);
     assert.match(folderCss, /\.fv-folder-auto-rules-builder input\[type="text"\]\[aria-invalid="true"\]/);
+});
+
+test('folder editor uses a searchable parent picker and custom general-section layout', () => {
+    assert.match(folderJs, /const folderParentPickerModule = window\.FolderViewPlusFolderEditorParentPicker \|\| null;/);
+    assert.match(folderJs, /const getFolderEditorParentPickerApi = \(\(\) =>/);
+    assert.match(folderJs, /const refreshParentFolderChooser = \(foldersMap,\s*selectedParentId = '',\s*blockedIds = new Set\(\)\) =>/);
+    assert.match(folderJs, /parentPickerApi\.render\(\{/);
+    assert.match(folderParentPickerJs, /const createApi = \(deps = \{\}\) =>/);
+    assert.match(folderParentPickerJs, /id = 'fvParentFolderPicker'/);
+    assert.match(folderParentPickerJs, /Search folders or full path/);
+    assert.match(folderParentPickerJs, /window\.FolderViewPlusFolderEditorParentPicker = Object\.freeze\(\{/);
+    assert.match(folderPage, /'\/plugins\/folderview\.plus\/scripts\/folder\.editor\.parent-picker\.js'/);
+    assert.match(folderChromeJs, /row\.querySelector\('\[name="parent_folder_id"\]'\)/);
+    assert.match(folderChromeJs, /row\.classList\.add\('is-parent-row'\)/);
+    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-section-shell-body\s*\{[\s\S]*grid-template-columns:\s*minmax\(280px,\s*340px\)\s+minmax\(320px,\s*1fr\)\s+minmax\(360px,\s*440px\)/);
+    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-modern-field-row\.is-parent-row\s*\{/);
+    assert.match(folderCss, /\.fv-parent-picker-shell/);
+    assert.match(folderCss, /\.fv-parent-picker-option/);
+    assert.match(folderCss, /\.fv-parent-picker-search-input/);
 });
 
 test('folder editor page ships the redesign bootstrap and chrome anchors', () => {

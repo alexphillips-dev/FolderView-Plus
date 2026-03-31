@@ -555,7 +555,7 @@
         Array.from(form.querySelectorAll('.fv-section-shell .basic')).forEach((row) => {
             row.classList.add('fv-modern-field-row');
             row.classList.remove('fv-orphan-editor-row');
-            row.classList.remove('fv-modern-order-row', 'is-wide-row', 'is-icon-row', 'is-status-row', 'is-actions-row', 'is-toggle-row', 'is-color-row', 'is-name-row', 'is-url-row', 'is-compact-text-row', 'is-webui-row', 'is-members-row', 'is-rules-row', 'is-actions-list-row', 'is-actions-launch-row');
+            row.classList.remove('fv-modern-order-row', 'is-wide-row', 'is-icon-row', 'is-status-row', 'is-actions-row', 'is-toggle-row', 'is-color-row', 'is-name-row', 'is-parent-row', 'is-url-row', 'is-webui-url-row', 'is-compact-text-row', 'is-webui-row', 'is-members-row', 'is-rules-row', 'is-actions-list-row', 'is-actions-launch-row');
             if (row.classList.contains('order-section')) {
                 row.classList.add('fv-modern-order-row', 'is-wide-row', 'is-members-row');
                 return;
@@ -581,12 +581,15 @@
             if (row.querySelector('[name="name"]')) {
                 row.classList.add('is-name-row');
             }
+            if (row.querySelector('[name="parent_folder_id"]')) {
+                row.classList.add('is-parent-row');
+            }
             if (row.querySelector('[name="folder_webui"]')) {
                 row.classList.add('is-webui-row');
             }
             if (row.querySelector('[name="folder_webui_url"]')) {
                 row.classList.add('is-wide-row');
-                row.classList.add('is-url-row');
+                row.classList.add('is-url-row', 'is-webui-url-row');
             }
             if (row.querySelector('[name="preview_text_width"]')) {
                 row.classList.add('is-compact-text-row');

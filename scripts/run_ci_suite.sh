@@ -56,7 +56,7 @@ while [[ $# -gt 0 ]]; do
   shift
 done
 
-fvplus::require_commands bash node php git find shellcheck
+fvplus::require_commands bash node php git find shellcheck npm npx
 
 chmod +x \
   scripts/api_contract_guard.sh \
@@ -183,6 +183,8 @@ run_lane() {
       run_timed_step shellcheck lint_shell_scripts
       run_timed_step javascript-syntax lint_javascript_syntax
       run_timed_step php-syntax lint_php_syntax
+      run_timed_step javascript-unused-symbols node scripts/js_unused_symbols_guard.mjs
+      run_timed_step php-static-analysis php scripts/php_unused_helpers_guard.php
       ;;
     tests)
       run_timed_step node-mobile-tests node --test tests/mobile-touch-support.test.mjs tests/mobile-regression-guard.test.mjs

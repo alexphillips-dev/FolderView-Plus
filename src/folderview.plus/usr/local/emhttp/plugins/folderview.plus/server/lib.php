@@ -1515,11 +1515,6 @@
         return $summary;
     }
 
-    function readChangesLinesForVersion(string $version, int $maxLines = 14): array {
-        $summary = readChangesSummaryForVersion($version, $maxLines);
-        return (array)($summary['lines'] ?? []);
-    }
-
     function getLegacyConfigDirCandidates(): array {
         $candidates = [];
         foreach (FVPLUS_LEGACY_CONFIG_DIRS as $dir) {

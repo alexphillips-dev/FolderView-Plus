@@ -1,0 +1,330 @@
+{
+  "version": 1,
+  "tool": "eslint@9",
+  "scope": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/**/*.js",
+  "generatedAt": "2026-03-30T23:57:20.883Z",
+  "findings": [
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js",
+      "symbol": "addDockerFolderContext",
+      "line": 2317,
+      "column": 7,
+      "message": "'addDockerFolderContext' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js",
+      "symbol": "addVMFolderContext",
+      "line": 2642,
+      "column": 7,
+      "message": "'addVMFolderContext' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js",
+      "symbol": "applyDashboardLayoutStateForType",
+      "line": 905,
+      "column": 7,
+      "message": "'applyDashboardLayoutStateForType' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js",
+      "symbol": "bindDashboardWidgetVisibilityObserverForType",
+      "line": 923,
+      "column": 7,
+      "message": "'bindDashboardWidgetVisibilityObserverForType' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js",
+      "symbol": "ensureDashboardWidgetInlineHostMountForType",
+      "line": 600,
+      "column": 7,
+      "message": "'ensureDashboardWidgetInlineHostMountForType' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js",
+      "symbol": "ensureDashboardWidgetLayoutQuickSwitchForType",
+      "line": 765,
+      "column": 7,
+      "message": "'ensureDashboardWidgetLayoutQuickSwitchForType' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js",
+      "symbol": "getDashboardFolderCardsForType",
+      "line": 576,
+      "column": 7,
+      "message": "'getDashboardFolderCardsForType' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js",
+      "symbol": "getDashboardWidgetBodyForType",
+      "line": 580,
+      "column": 7,
+      "message": "'getDashboardWidgetBodyForType' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js",
+      "symbol": "getDashboardWidgetUpdatedRowForType",
+      "line": 584,
+      "column": 7,
+      "message": "'getDashboardWidgetUpdatedRowForType' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js",
+      "symbol": "getFirstVisibleDashboardFolderCardForType",
+      "line": 596,
+      "column": 7,
+      "message": "'getFirstVisibleDashboardFolderCardForType' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js",
+      "symbol": "isDashboardNodeVisible",
+      "line": 588,
+      "column": 7,
+      "message": "'isDashboardNodeVisible' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js",
+      "symbol": "isDashboardWidgetCollapsedForType",
+      "line": 592,
+      "column": 7,
+      "message": "'isDashboardWidgetCollapsedForType' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js",
+      "symbol": "syncDashboardWidgetQuickRailFitForType",
+      "line": 604,
+      "column": 7,
+      "message": "'syncDashboardWidgetQuickRailFitForType' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js",
+      "symbol": "WEBUI_LINK_REL",
+      "line": 201,
+      "column": 7,
+      "message": "'WEBUI_LINK_REL' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js",
+      "symbol": "applySavedDockerRuntimeAppWidth",
+      "line": 1536,
+      "column": 7,
+      "message": "'applySavedDockerRuntimeAppWidth' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js",
+      "symbol": "beginDockerRuntimeColumnWidthResize",
+      "line": 1528,
+      "column": 7,
+      "message": "'beginDockerRuntimeColumnWidthResize' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js",
+      "symbol": "captureCurrentDockerRuntimeColumnWidths",
+      "line": 1174,
+      "column": 7,
+      "message": "'captureCurrentDockerRuntimeColumnWidths' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js",
+      "symbol": "cid_name",
+      "line": 5933,
+      "column": 25,
+      "message": "'cid_name' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js",
+      "symbol": "getFolderStatusColorOverrides",
+      "line": 22,
+      "column": 7,
+      "message": "'getFolderStatusColorOverrides' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js",
+      "symbol": "normalizeStatusHexColor",
+      "line": 19,
+      "column": 7,
+      "message": "'normalizeStatusHexColor' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js",
+      "symbol": "persistDockerExpandedStateMap",
+      "line": 2590,
+      "column": 7,
+      "message": "'persistDockerExpandedStateMap' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js",
+      "symbol": "queueDockerRuntimeThemeReflow",
+      "line": 1453,
+      "column": 7,
+      "message": "'queueDockerRuntimeThemeReflow' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js",
+      "symbol": "readDockerExpandedStateFromDom",
+      "line": 2592,
+      "column": 7,
+      "message": "'readDockerExpandedStateFromDom' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js",
+      "symbol": "readDockerExpandedStateMap",
+      "line": 2583,
+      "column": 7,
+      "message": "'readDockerExpandedStateMap' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js",
+      "symbol": "scheduleDockerExpandedStateSync",
+      "line": 2586,
+      "column": 7,
+      "message": "'scheduleDockerExpandedStateSync' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js",
+      "symbol": "stopDockerRuntimeColumnResize",
+      "line": 1411,
+      "column": 7,
+      "message": "'stopDockerRuntimeColumnResize' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js",
+      "symbol": "syncDockerExpandedStateToServer",
+      "line": 2585,
+      "column": 7,
+      "message": "'syncDockerExpandedStateToServer' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js",
+      "symbol": "writeDockerExpandedStateMap",
+      "line": 2584,
+      "column": 7,
+      "message": "'writeDockerExpandedStateMap' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js",
+      "symbol": "writeDockerServerExpandedStateMap",
+      "line": 2556,
+      "column": 7,
+      "message": "'writeDockerServerExpandedStateMap' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js",
+      "symbol": "currentFolderName",
+      "line": 339,
+      "column": 5,
+      "message": "'currentFolderName' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js",
+      "symbol": "editorLayoutPrepared",
+      "line": 398,
+      "column": 5,
+      "message": "'editorLayoutPrepared' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js",
+      "symbol": "folderId",
+      "line": 5381,
+      "column": 17,
+      "message": "'folderId' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js",
+      "symbol": "normalizeBuiltInIconEntry",
+      "line": 1075,
+      "column": 7,
+      "message": "'normalizeBuiltInIconEntry' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js",
+      "symbol": "previewChange",
+      "line": 5688,
+      "column": 7,
+      "message": "'previewChange' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js",
+      "symbol": "readFileAsDataUrl",
+      "line": 1197,
+      "column": 7,
+      "message": "'readFileAsDataUrl' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js",
+      "symbol": "shouldUseInlineUploadFallback",
+      "line": 1198,
+      "column": 7,
+      "message": "'shouldUseInlineUploadFallback' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js",
+      "symbol": "thirdPartyImageObserver",
+      "line": 377,
+      "column": 5,
+      "message": "'thirdPartyImageObserver' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js",
+      "symbol": "uploadCustomIconFileInline",
+      "line": 1199,
+      "column": 7,
+      "message": "'uploadCustomIconFileInline' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.legacy.js",
+      "symbol": "currentFolderName",
+      "line": 563,
+      "column": 5,
+      "message": "'currentFolderName' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.legacy.js",
+      "symbol": "folderId",
+      "line": 5595,
+      "column": 17,
+      "message": "'folderId' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.legacy.js",
+      "symbol": "previewChange",
+      "line": 5888,
+      "column": 7,
+      "message": "'previewChange' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.legacy.js",
+      "symbol": "renderLivePreviewCanvas",
+      "line": 4451,
+      "column": 7,
+      "message": "'renderLivePreviewCanvas' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.legacy.js",
+      "symbol": "thirdPartyImageObserver",
+      "line": 600,
+      "column": 5,
+      "message": "'thirdPartyImageObserver' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.actions-support.js",
+      "symbol": "output",
+      "line": 53,
+      "column": 19,
+      "message": "'output' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js",
+      "symbol": "hasInstantApply",
+      "line": 1461,
+      "column": 17,
+      "message": "'hasInstantApply' is assigned a value but never used."
+    },
+    {
+      "file": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js",
+      "symbol": "barsColor",
+      "line": 395,
+      "column": 11,
+      "message": "'barsColor' is assigned a value but never used."
+    }
+  ]
+}

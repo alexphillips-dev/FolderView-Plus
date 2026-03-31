@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.03.30.32">
-<!ENTITY md5 "51ea174945bfe5144d94793c21f6e60c">
+<!ENTITY version "2026.03.30.33">
+<!ENTITY md5 "736c8b5186b6d62a4e5d64e55585788a">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.03.30.33
+- UI/UX: Reduced the modern folder editor parent folder card width so it no longer stretches across empty space in the General section.
+- UI/UX: Converted the parent folder options into a tight outlined list with no inter-row gaps and thin dark separators instead of orange boxed cards.
+- Regression guard: Added layout coverage for the capped parent card width and stacked parent picker list styling.
+
 
 ###2026.03.30.32
 - UI/UX: Removed the vertical gaps between parent folder options in the new parent picker scroll list for a tighter stacked layout.

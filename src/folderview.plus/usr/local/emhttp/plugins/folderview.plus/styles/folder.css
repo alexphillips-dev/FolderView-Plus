@@ -2225,7 +2225,10 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 .fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-parent-row {
     grid-column: 2;
     grid-row: 1 / span 2;
+    width: min(100%, 560px) !important;
+    max-width: 560px !important;
     min-height: 272px;
+    justify-self: start !important;
 }
 
 .fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-parent-row > dl > dd {
@@ -2391,11 +2394,15 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-parent-picker-list {
-    display: grid;
-    gap: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0 !important;
     max-height: 292px;
     overflow: auto;
-    padding-right: 0.16rem;
+    padding-right: 0;
+    border: 1px solid rgba(0, 0, 0, 0.72);
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.18);
 }
 
 .fv-parent-picker-option {
@@ -2405,23 +2412,31 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     gap: 0.85rem;
     width: 100%;
     padding: 0.78rem 0.86rem;
-    border: 1px solid var(--fv-editor-block-border);
-    border-radius: 14px;
-    background: var(--fv-editor-control-surface);
+    margin: 0 !important;
+    border: 0 !important;
+    border-top: 1px solid rgba(0, 0, 0, 0.58) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
     color: var(--fv-editor-text-primary) !important;
     text-align: left;
     cursor: pointer;
 }
 
+.fv-parent-picker-option:first-child {
+    border-top: 0 !important;
+}
+
 .fv-parent-picker-option:hover,
 .fv-parent-picker-option:focus-visible {
-    border-color: rgba(255, 154, 60, 0.52);
-    box-shadow: 0 0 0 1px rgba(255, 154, 60, 0.16);
+    background: rgba(255, 255, 255, 0.035) !important;
+    box-shadow: none !important;
 }
 
 .fv-parent-picker-option.is-selected {
-    border-color: rgba(255, 154, 60, 0.62);
-    background: linear-gradient(180deg, rgba(255, 154, 60, 0.08), transparent), var(--fv-editor-control-surface-active);
+    background:
+        linear-gradient(90deg, rgba(255, 154, 60, 0.08), transparent 32%),
+        rgba(255, 255, 255, 0.04) !important;
 }
 
 .fv-parent-picker-option-main {

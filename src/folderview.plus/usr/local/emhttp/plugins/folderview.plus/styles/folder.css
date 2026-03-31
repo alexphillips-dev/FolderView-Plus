@@ -2189,10 +2189,9 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
 .fv-section-shell[data-section-shell="general"] .fv-section-shell-body {
     display: grid !important;
-    grid-template-columns: minmax(280px, 340px) minmax(440px, 560px) minmax(320px, 420px);
+    grid-template-columns: minmax(280px, 340px) minmax(440px, 560px) minmax(440px, 1fr);
     gap: 0.68em;
     align-items: start;
-    justify-content: start;
 }
 
 .fv-section-shell[data-section-shell="general"] .fv-modern-field-row,
@@ -2225,7 +2224,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
 .fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-parent-row {
     grid-column: 2;
-    grid-row: 1 / span 2;
+    grid-row: 1;
     width: min(100%, 560px) !important;
     max-width: 560px !important;
     min-height: 272px;
@@ -2240,11 +2239,11 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
 .fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-icon-row {
     grid-column: 3 !important;
-    grid-row: 1 / span 2;
+    grid-row: 1;
     width: 100% !important;
-    max-width: 420px !important;
+    max-width: none !important;
     min-height: 272px;
-    justify-self: start !important;
+    justify-self: stretch !important;
 }
 
 .fv-section-shell[data-section-shell="general"] .fv-modern-field-row.is-icon-row .fv-icon-dd {

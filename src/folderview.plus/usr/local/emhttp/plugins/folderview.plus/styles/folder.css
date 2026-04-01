@@ -437,6 +437,10 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     --fv-editor-nav-count-text: #6d4417;
     --fv-editor-info: #1e5f9f;
     --fv-editor-hero-icon-border: var(--fv-editor-border);
+    --fv-editor-button-accent-fg: #fff8f1;
+    --fv-editor-button-accent-top: #cf7a22;
+    --fv-editor-button-accent-bottom: #b76518;
+    --fv-editor-button-accent-shadow: inset 0 0 0 1px rgba(118, 70, 22, 0.18), 0 2px 5px rgba(34, 41, 51, 0.14);
     color-scheme: light;
 }
 
@@ -3670,6 +3674,15 @@ table.sortable td:nth-child(3) {
     background: linear-gradient(180deg, var(--fv-editor-button-accent-top), var(--fv-editor-button-accent-bottom)) !important;
     color: var(--fv-editor-button-accent-fg) !important;
     box-shadow: var(--fv-editor-button-accent-shadow) !important;
+}
+
+html[data-fvplus-host-theme="white"] #fvEditorActionBar .folder-btn-submit:disabled,
+body[data-fvplus-host-theme="white"] #fvEditorActionBar .folder-btn-submit:disabled,
+#fvEditorActionBar[data-fv-theme-class="light"] .folder-btn-submit:disabled {
+    opacity: 1;
+    background: linear-gradient(180deg, rgba(190, 107, 24, 0.18), rgba(190, 107, 24, 0.12)) !important;
+    color: #764616 !important;
+    box-shadow: inset 0 0 0 1px rgba(190, 107, 24, 0.18) !important;
 }
 
 .fv-section-nav > button.is-dirty:not(.is-active) {

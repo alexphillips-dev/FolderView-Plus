@@ -3657,6 +3657,36 @@
         return $manager === '' ? false : $manager;
     }
 
+    function normalizeDockerUpdatedStateValue($value): ?bool {
+        if (is_bool($value)) {
+            return $value;
+        }
+        if (is_int($value) || is_float($value)) {
+            $numeric = (int)$value;
+            if ($numeric === 1) {
+                return true;
+            }
+            if ($numeric === 0) {
+                return false;
+            }
+            return null;
+        }
+        if (!is_string($value)) {
+            return null;
+        }
+        $normalized = strtolower(trim($value));
+        if ($normalized === '') {
+            return null;
+        }
+        if (in_array($normalized, ['true', '1', 'yes', 'on', 'up-to-date', 'uptodate', 'current'], true)) {
+            return true;
+        }
+        if (in_array($normalized, ['false', '0', 'no', 'off', 'update-ready', 'update ready', 'apply-update', 'apply update', 'update available'], true)) {
+            return false;
+        }
+        return null;
+    }
+
     function serverRegexMatches(string $pattern, string $input): bool {
         if (trim($pattern) === '') {
             return false;
@@ -5618,7 +5648,9 @@
                 $ct['info']['State']['Autostart'] = in_array($containerName, $autoStart);
                 $containerImage = DockerUtil::ensureImageTag((string)($ct['info']['Config']['Image'] ?? ''));
                 $ct['info']['Config']['Image'] = $containerImage;
-                $ct['info']['State']['Updated'] = $containerImage !== '' ? $DockerUpdate->getUpdateStatus($containerImage) : '';
+                $ct['info']['State']['Updated'] = normalizeDockerUpdatedStateValue(
+                    $containerImage !== '' ? $DockerUpdate->getUpdateStatus($containerImage) : null
+                );
                 $ct['info']['State']['manager'] = getNormalizedDockerManagerFromLabels($containerLabels);
                 $ct['shortId'] = substr(str_replace('sha256:', '', (string)($ct['Id'] ?? '')), 0, 12);
                 $ct['shortImageId'] = substr(str_replace('sha256:', '', (string)($ct['ImageID'] ?? '')), 0, 12);

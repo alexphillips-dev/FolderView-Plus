@@ -29,6 +29,15 @@ test('docker runtime falls back to the host row update cell when lightweight sta
     assert.match(dockerJs, /Updated:\s*resolvedUpdated/);
 });
 
+test('docker runtime observes native update-column mutations and reuses them for folder cache sync', () => {
+    assert.match(dockerJs, /let dockerHostUpdateCellObserver = null;/);
+    assert.match(dockerJs, /const syncDockerHostRowUpdateStatesFromDom = \(names = \[\]\) => \{/);
+    assert.match(dockerJs, /const queueDockerHostRowUpdateStateSync = \(names = \[\]\) => \{/);
+    assert.match(dockerJs, /if \(syncDockerHostRowUpdateStatesFromDom\(pendingNames\)\) \{\s*syncDockerVisibleFoldersFromRuntimeCache\(\);\s*\}/);
+    assert.match(dockerJs, /const ensureDockerHostRowUpdateObserver = \(\) => \{[\s\S]*dockerHostUpdateCellObserver = new MutationObserver/);
+    assert.match(dockerJs, /ensureDockerHostRowUpdateObserver\(\);\s*if \(syncDockerHostRowUpdateStatesFromDom\(\)\) \{\s*containersInfo = \{ \.\.\.dockerRuntimeInfoByName \};\s*\}/);
+});
+
 test('deferred docker runtime hydration refreshes visible folder state in place instead of reloading the page', () => {
     assert.match(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoPromise = null\) => \{[\s\S]*?dockerRuntimeInfoByName = normalizeDockerRuntimeInfoMap\(parsed,\s*dockerRuntimeInfoByName\);[\s\S]*?markDockerFatalBannerStep\('Docker runtime details hydrated'\);[\s\S]*?recordDockerFatalBannerAction\('Docker runtime details hydrated'\);[\s\S]*?syncDockerVisibleFoldersFromRuntimeCache\(\);[\s\S]*?\}\)\s*\.catch\(\(\) => \{\}\);/);
     assert.doesNotMatch(dockerJs, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoPromise = null\) => \{[\s\S]*?const previousWebuiSignature/);

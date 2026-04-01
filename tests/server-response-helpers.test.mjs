@@ -57,11 +57,18 @@ test('backup restore validates payload type against requested type', () => {
 test('lib.php normalizes compose manager and compose project labels', () => {
     assert.match(libPhp, /function getComposeProjectValueFromLabels\s*\(/);
     assert.match(libPhp, /function getNormalizedDockerManagerFromLabels\s*\(/);
+    assert.match(libPhp, /function normalizeDockerUpdatedStateValue\(\$value\): \?bool/);
+    assert.match(libPhp, /in_array\(\$normalized, \['true', '1', 'yes', 'on', 'up-to-date', 'uptodate', 'current'\], true\)/);
+    assert.match(libPhp, /in_array\(\$normalized, \['false', '0', 'no', 'off', 'update-ready', 'update ready', 'apply-update', 'apply update', 'update available'\], true\)/);
     assert.match(libPhp, /'composeProject'\s*=>\s*getComposeProjectValueFromLabels\(\$labels\)/);
     assert.match(libPhp, /\$manager\s*=\s*getNormalizedDockerManagerFromLabels\(\$labels\);/);
     assert.match(
         libPhp,
         /\$ct\['info'\]\['State'\]\['manager'\]\s*=\s*getNormalizedDockerManagerFromLabels\(\$containerLabels\);/
+    );
+    assert.match(
+        libPhp,
+        /\$ct\['info'\]\['State'\]\['Updated'\]\s*=\s*normalizeDockerUpdatedStateValue\(\s*\$containerImage !== '' \? \$DockerUpdate->getUpdateStatus\(\$containerImage\) : null\s*\);/
     );
 });
 

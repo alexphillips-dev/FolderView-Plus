@@ -34,9 +34,11 @@ test('shared prefs normalizer keeps expandedFolderState map support', () => {
 
 test('docker runtime keeps server-backed expanded state sync contract', () => {
     assert.match(dockerJs, /const readDockerServerExpandedStateMap = \(\) =>/);
-    assert.match(dockerJs, /const syncDockerExpandedStateToServer = async \(\) =>/);
     assert.match(dockerJs, /createExpandedStateController\(/);
     assert.match(dockerJs, /type:\s*'docker'/);
+    assert.match(dockerJs, /syncDelayMs:\s*DOCKER_EXPANDED_STATE_SYNC_DELAY_MS,/);
+    assert.match(dockerJs, /readServerMap:\s*\(\) => folderTypePrefs\?\.expandedFolderState \|\| \{\},/);
+    assert.match(dockerJs, /writeServerMap:\s*\(map\) => \{/);
     assert.match(runtimeStateObserverJs, /win\.FolderViewPlusRequest/);
     assert.match(runtimeStateObserverJs, /\/plugins\/folderview\.plus\/server\/prefs\.php/);
     assert.match(runtimeStateObserverJs, /expandedFolderState:\s*payloadMap/);

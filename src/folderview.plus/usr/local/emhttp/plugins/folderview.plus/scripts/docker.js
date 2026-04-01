@@ -16,12 +16,6 @@ const localDefaultFolderStatusColors = dockerRuntimeShared.DEFAULT_FOLDER_STATUS
     paused: '#b8860b',
     stopped: '#ff4d4d'
 };
-const normalizeStatusHexColor = typeof dockerRuntimeShared.normalizeStatusHexColor === 'function'
-    ? dockerRuntimeShared.normalizeStatusHexColor
-    : ((value, fallback) => fallback);
-const getFolderStatusColorOverrides = typeof dockerRuntimeShared.getFolderStatusColorOverrides === 'function'
-    ? dockerRuntimeShared.getFolderStatusColorOverrides
-    : (() => ({ started: '', paused: '', stopped: '' }));
 const applyFolderStatusColorOverrides = typeof dockerRuntimeShared.applyFolderStatusColorOverrides === 'function'
     ? dockerRuntimeShared.applyFolderStatusColorOverrides
     : (() => {});
@@ -391,8 +385,6 @@ const getDockerMenuLabel = (key, fallback) => {
 const FOLDER_LABEL_KEYS = Array.isArray(runtimeContracts.folderLabelKeys) && runtimeContracts.folderLabelKeys.length
     ? runtimeContracts.folderLabelKeys.map((entry) => String(entry || '').trim()).filter((entry) => entry !== '')
     : ['folderview.plus', 'folder.view3', 'folder.view2', 'folder.view'];
-const DOCKER_RUNTIME_COLUMN_WIDTHS_STORAGE_KEY = 'fv.runtime.docker.columnWidthsPx.v1';
-const DOCKER_RUNTIME_LEGACY_APP_WIDTH_STORAGE_KEY = 'fv.runtime.docker.appColumnWidthPx.v1';
 const DOCKER_RUNTIME_APP_WIDTH_MIN = 118;
 const DOCKER_RUNTIME_APP_WIDTH_MAX = 1280;
 const DOCKER_RUNTIME_APP_CHROME_WIDTH = 132;
@@ -426,7 +418,6 @@ const dockerRuntimeColumnLayoutEngine = runtimeColumnLayout && typeof runtimeCol
         mobileMin: DOCKER_RUNTIME_APP_WIDTH_MOBILE_MIN
     })
     : null;
-let dockerRuntimeColumnResizeSession = null;
 let lastAppliedRuntimePrefs = null;
 let dockerRuntimeResizerBindTimer = null;
 let dockerRuntimeResizerRetryTimer = null;
@@ -1135,22 +1126,6 @@ const clampDockerRuntimeColumnWidth = (value, columnIndex = 0) => {
     return Math.max(DOCKER_RUNTIME_COLUMN_WIDTH_MIN, Math.min(DOCKER_RUNTIME_COLUMN_WIDTH_MAX, rounded));
 };
 
-const normalizeDockerRuntimeColumnWidthMap = (value) => {
-    const source = value && typeof value === 'object' ? value : {};
-    const normalized = {};
-    Object.keys(source).forEach((rawKey) => {
-        const index = Number.parseInt(String(rawKey), 10);
-        if (!Number.isFinite(index) || index < 1 || index > 32) {
-            return;
-        }
-        const width = clampDockerRuntimeColumnWidth(source[rawKey], index);
-        if (width) {
-            normalized[index] = width;
-        }
-    });
-    return normalized;
-};
-
 const normalizeDockerRuntimeAppColumnMode = (value) => {
     const fallbackNormalize = () => {
         const mode = String(value || '').trim().toLowerCase();
@@ -1357,50 +1332,6 @@ const getDockerRuntimePresetAppWidth = () => {
     return clampDockerRuntimeColumnWidth(preset, 1);
 };
 
-const persistDockerRuntimeColumnWidths = (widthMap) => {
-    const normalized = normalizeDockerRuntimeColumnWidthMap(widthMap);
-    try {
-        if (Object.keys(normalized).length > 0) {
-            if (dockerStorageWriter && typeof dockerStorageWriter.setItem === 'function') {
-                dockerStorageWriter.setItem(
-                    DOCKER_RUNTIME_COLUMN_WIDTHS_STORAGE_KEY,
-                    JSON.stringify(normalized),
-                    { delayMs: 96, idle: true }
-                );
-            } else {
-                localStorage.setItem(DOCKER_RUNTIME_COLUMN_WIDTHS_STORAGE_KEY, JSON.stringify(normalized));
-            }
-            if (normalized[1]) {
-                if (dockerStorageWriter && typeof dockerStorageWriter.setItem === 'function') {
-                    dockerStorageWriter.setItem(
-                        DOCKER_RUNTIME_LEGACY_APP_WIDTH_STORAGE_KEY,
-                        String(normalized[1]),
-                        { delayMs: 96, idle: true }
-                    );
-                } else {
-                    localStorage.setItem(DOCKER_RUNTIME_LEGACY_APP_WIDTH_STORAGE_KEY, String(normalized[1]));
-                }
-            } else {
-                if (dockerStorageWriter && typeof dockerStorageWriter.removeItem === 'function') {
-                    dockerStorageWriter.removeItem(DOCKER_RUNTIME_LEGACY_APP_WIDTH_STORAGE_KEY, { delayMs: 40, idle: true });
-                } else {
-                    localStorage.removeItem(DOCKER_RUNTIME_LEGACY_APP_WIDTH_STORAGE_KEY);
-                }
-            }
-        } else {
-            if (dockerStorageWriter && typeof dockerStorageWriter.removeItem === 'function') {
-                dockerStorageWriter.removeItem(DOCKER_RUNTIME_COLUMN_WIDTHS_STORAGE_KEY, { delayMs: 40, idle: true });
-                dockerStorageWriter.removeItem(DOCKER_RUNTIME_LEGACY_APP_WIDTH_STORAGE_KEY, { delayMs: 40, idle: true });
-            } else {
-                localStorage.removeItem(DOCKER_RUNTIME_COLUMN_WIDTHS_STORAGE_KEY);
-                localStorage.removeItem(DOCKER_RUNTIME_LEGACY_APP_WIDTH_STORAGE_KEY);
-            }
-        }
-    } catch (_error) {
-        // Ignore localStorage quota/privacy failures.
-    }
-};
-
 const getDockerRuntimeTableTargets = () => {
     const tbody = document.querySelector('tbody#docker_list') || document.querySelector('tbody#docker_view');
     if (!tbody) {
@@ -1415,22 +1346,6 @@ const getDockerRuntimeTableTargets = () => {
         return null;
     }
     return { table, headers };
-};
-
-const captureCurrentDockerRuntimeColumnWidths = () => {
-    const targets = getDockerRuntimeTableTargets();
-    if (!targets) {
-        return {};
-    }
-    const widths = {};
-    targets.headers.forEach((header, idx) => {
-        const index = idx + 1;
-        const measured = clampDockerRuntimeColumnWidth(header.getBoundingClientRect().width, index);
-        if (measured) {
-            widths[index] = measured;
-        }
-    });
-    return widths;
 };
 
 const applyDockerRuntimeAppWidthVariables = (desktopWidthPx = null) => {
@@ -1604,10 +1519,6 @@ const applyDockerRuntimeColumnWidths = (_widthMap = null) => {
     return decision.appliedWidth;
 };
 
-const applySavedDockerRuntimeColumnWidths = () => {
-    scheduleDockerRuntimeWidthReflow('apply-saved', 0);
-};
-
 const runDockerRuntimeWidthReflow = (reason = 'direct') => {
     if (dockerRuntimeWidthState.debounceTimer !== null) {
         clearTimeout(dockerRuntimeWidthState.debounceTimer);
@@ -1654,21 +1565,6 @@ const bindDockerRuntimeFontReadyReflow = () => {
     }
 };
 
-const stopDockerRuntimeColumnResize = (persist = true) => {
-    const active = dockerRuntimeColumnResizeSession;
-    if (!active) {
-        return;
-    }
-    window.removeEventListener('pointermove', active.onMove, true);
-    window.removeEventListener('pointerup', active.onUp, true);
-    window.removeEventListener('pointercancel', active.onCancel, true);
-    dockerRuntimeColumnResizeSession = null;
-    document.body?.classList.remove('fvplus-docker-column-resize-active');
-    if (persist) {
-        persistDockerRuntimeColumnWidths(active.widths);
-    }
-};
-
 const dockerRuntimeThemeReflowController = runtimeStateObserverModule && typeof runtimeStateObserverModule.createThemeReflowController === 'function'
     ? runtimeStateObserverModule.createThemeReflowController({
         window,
@@ -1694,10 +1590,6 @@ const applyDockerRuntimeResolvedThemeTokens = (reason = 'docker-runtime:initial'
 
 const bindDockerRuntimeViewportWidthSync = () => {
     dockerRuntimeThemeReflowController?.bindViewportWidthSync();
-};
-
-const queueDockerRuntimeThemeReflow = (reason = 'theme-change') => {
-    dockerRuntimeThemeReflowController?.queueThemeReflow(reason);
 };
 
 const bindDockerRuntimeThemeReflow = () => {
@@ -1771,15 +1663,7 @@ const bindDockerRuntimeColumnResizers = () => {
     scheduleDockerRuntimeWidthReflow('table-bind', 0);
 };
 
-const beginDockerRuntimeColumnWidthResize = (columnIndex, event) => {
-    // Runtime drag-resize intentionally disabled; app column now auto-sizes from folder names.
-    void columnIndex;
-    void event;
-};
-
-// Backward-compatible aliases used by legacy tests/hooks.
 const bindDockerRuntimeAppColumnResizer = () => bindDockerRuntimeColumnResizers();
-const applySavedDockerRuntimeAppWidth = () => applySavedDockerRuntimeColumnWidths();
 
 const resolveDockerTooltipRuntimeEntry = (entry) => {
     const name = String(entry?.info?.Name || entry?.name || '').trim();
@@ -2802,13 +2686,6 @@ const normalizeExpandedStateMap = runtimeStateObserverModule && typeof runtimeSt
         return next;
     });
 const readDockerServerExpandedStateMap = () => normalizeExpandedStateMap(folderTypePrefs?.expandedFolderState || {});
-const writeDockerServerExpandedStateMap = (map) => {
-    const normalized = normalizeExpandedStateMap(map);
-    folderTypePrefs = utils.normalizePrefs({
-        ...(folderTypePrefs || {}),
-        expandedFolderState: normalized
-    });
-};
 const dockerExpandedStateController = runtimeStateObserverModule && typeof runtimeStateObserverModule.createExpandedStateController === 'function'
     ? runtimeStateObserverModule.createExpandedStateController({
         window,
@@ -2829,16 +2706,10 @@ const dockerExpandedStateController = runtimeStateObserverModule && typeof runti
         readFolders: () => globalFolders || {}
     })
     : null;
-const readDockerExpandedStateMap = () => dockerExpandedStateController ? dockerExpandedStateController.readLocalMap() : {};
-const writeDockerExpandedStateMap = (map) => dockerExpandedStateController?.persistStateMap(map, false);
-const syncDockerExpandedStateToServer = async () => dockerExpandedStateController?.syncExpandedStateToServer();
-const scheduleDockerExpandedStateSync = () => dockerExpandedStateController?.scheduleExpandedStateSync();
 const buildDockerExpandedStateMap = (folders, previousFolders = {}, serverMap = {}) => dockerExpandedStateController
     ? dockerExpandedStateController.buildStateMap(folders, previousFolders, serverMap)
     : {};
-const persistDockerExpandedStateMap = (map, syncServer = true) => dockerExpandedStateController?.persistStateMap(map, syncServer);
 const persistDockerExpandedStateFromGlobal = (syncServer = true) => dockerExpandedStateController?.persistStateFromGlobal(syncServer);
-const readDockerExpandedStateFromDom = () => dockerExpandedStateController ? dockerExpandedStateController.readStateFromDom() : {};
 const persistDockerExpandedStateFromDom = () => dockerExpandedStateController?.persistStateFromDom();
 const ensureDockerExpandedStateLifecycleHooks = () => dockerExpandedStateController?.ensureLifecycleHooks();
 const FOLDER_VIEW_PERF_MODE = folderViewPerfFromQuery || folderViewPerfFromStorage;
@@ -6183,7 +6054,7 @@ $.get('/plugins/folderview.plus/server/cpu.php').promise().then((data) => {
                 continue;
             }
 
-            for (const [cid_name, cvalue] of Object.entries(value.containers)) { // cid_name is container name, cvalue is {id, state, ...}
+            for (const cvalue of Object.values(value.containers)) {
                 const containerShortId = cvalue.id;
                 const curLoad = load[containerShortId] || { cpu: '0.00%', mem: ['0B', '0B'] };
                 loadCpu += parseFloat(curLoad.cpu.replace('%', '')) / cpus; // Already per core from SSE

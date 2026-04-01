@@ -13,13 +13,12 @@ const runtimeStateObserverJs = read('src/folderview.plus/usr/local/emhttp/plugin
 test('docker runtime persists expanded/collapsed folder state and restores it during render', () => {
     assert.match(dockerJs, /DOCKER_EXPANDED_STATE_KEY/);
     assert.match(dockerJs, /readDockerServerExpandedStateMap/);
-    assert.match(dockerJs, /syncDockerExpandedStateToServer/);
-    assert.match(dockerJs, /const readDockerExpandedStateMap = \(\) =>/);
     assert.match(dockerJs, /const buildDockerExpandedStateMap = \(folders, previousFolders = \{\}, serverMap = \{\}\) =>/);
     assert.match(dockerJs, /const persistDockerExpandedStateFromGlobal = \([^)]*\) =>/);
     assert.match(dockerJs, /const persistDockerExpandedStateFromDom = \(\) =>/);
     assert.match(dockerJs, /const ensureDockerExpandedStateLifecycleHooks = \(\) =>/);
     assert.match(dockerJs, /createExpandedStateController\(/);
+    assert.match(dockerJs, /syncDelayMs:\s*DOCKER_EXPANDED_STATE_SYNC_DELAY_MS,/);
     assert.match(runtimeStateObserverJs, /win\.addEventListener\('pagehide', persistStateFromDom,\s*\{\s*passive:\s*true\s*\}\)/);
     assert.match(dockerJs, /const expandedStateById = buildDockerExpandedStateMap\(\s*foldersDone,\s*previousFolders,\s*readDockerServerExpandedStateMap\(\)\s*\);/);
     assert.match(dockerJs, /const hasKnownParent = !!\(parentId && Object\.prototype\.hasOwnProperty\.call\(foldersDone, parentId\)\);/);

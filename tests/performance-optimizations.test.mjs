@@ -282,7 +282,9 @@ test('docker runtime app column auto-sizes based on folder names and rebinds aft
     assert.match(dockerJs, /const ensureDockerRuntimeWidthDebugPanel = \(\) =>/);
     assert.match(dockerJs, /window\.toggleDockerRuntimeWidthDebug = \(enabled = true\) =>/);
     assert.match(dockerJs, /const applyDockerRuntimeColumnWidths = \(_widthMap = null\) =>/);
-    assert.match(dockerJs, /auto-sizes from folder names/);
+    assert.match(dockerJs, /estimateFromRows\(\{\s*rows,\s*baseline,/s);
+    assert.match(dockerJs, /nameSelector:\s*'\.folder-appname'/);
+    assert.match(dockerJs, /auxSelectors:\s*\['\.folder-state'\]/);
     assert.match(dockerJs, /tbody#docker_list tr\.folder,\s*tbody#docker_view tr\.folder/);
     assert.match(dockerJs, /tbody#docker_list > tr > td:nth-child\(\$\{index\}\),\s*tbody#docker_view > tr > td:nth-child\(\$\{index\}\)/);
     assert.match(dockerJs, /bindDockerRuntimeAppColumnResizer\(\);/);

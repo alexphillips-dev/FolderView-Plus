@@ -130,13 +130,13 @@ test('runtime folder editor redirects include a cache-busting query marker', () 
     );
     assert.match(dockerScript, /const buildDockerFolderEditorUrl = \(id = ''\) =>/);
     assert.match(vmScript, /const buildVmFolderEditorUrl = \(id = ''\) =>/);
-    assert.match(dashboardScript, /const buildDashboardFolderEditorUrl = \(folderType,\s*id = ''\) =>/);
     assert.match(dockerScript, /const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.persist\.v1';/);
     assert.match(vmScript, /const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.persist\.v1';/);
-    assert.match(dashboardScript, /const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.persist\.v1';/);
     assert.match(dockerScript, /params\.set\('_', String\(Date\.now\(\)\)\);/);
     assert.match(vmScript, /params\.set\('_', String\(Date\.now\(\)\)\);/);
-    assert.match(dashboardScript, /params\.set\('_', String\(Date\.now\(\)\)\);/);
+    assert.doesNotMatch(dashboardScript, /const buildDashboardFolderEditorUrl = \(folderType,\s*id = ''\) =>/);
+    assert.doesNotMatch(dashboardScript, /const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.persist\.v1';/);
+    assert.doesNotMatch(dashboardScript, /params\.set\('_', String\(Date\.now\(\)\)\);/);
 });
 
 test('folder editor includes parent default hint styles', () => {

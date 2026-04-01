@@ -164,9 +164,9 @@ test('external links and popup actions enforce noopener protections', () => {
     assert.match(dockerJs, /const WEBUI_LINK_REL = 'noopener noreferrer';/);
     assert.match(dockerJs, /const openWebuiInNewTab = \(url\) =>/);
     assert.match(dockerJs, /openWebuiInNewTab\(folderData\.settings\.folder_webui_url\)/);
-    assert.match(dashboardJs, /const WEBUI_LINK_REL = 'noopener noreferrer';/);
     assert.match(dashboardJs, /const openWebUiInNewTab = \(url\) =>/);
-    assert.match(dashboardJs, /openWebUiInNewTab\(globalFolders\.docker\[id\]\.settings\.folder_webui_url\)/);
+    assert.match(dashboardJs, /target="_blank" rel="noopener noreferrer" title="WebUI" aria-label="WebUI"/);
+    assert.match(dashboardJs, /openWebUiInNewTab\(webUiUrl\)/);
     assert.match(folderViewPlusJs, /window\.open\(UPDATE_NOTES_CHANGELOG_URL, '_blank', 'noopener,noreferrer'\)/);
     assert.match(folderViewPlusJs, /popup\.opener = null;/);
 });

@@ -325,7 +325,9 @@ test('settings table layout uses preset-driven widths instead of drag-resize con
     assert.match(script, /const buildEffectiveSettingsTableWidths = \(type\) => \{/);
     assert.match(script, /changeSettingsTableColumnWidthPreset = async \(type, key, value\) => \{/);
     assert.match(script, /settingsTableWidthPresetByType\[resolvedType\]\[targetKey\] = normalizeSettingsTableColumnWidthPreset\(value\);/);
-    assert.match(script, /table\.querySelectorAll\('\.fv-col-resizer'\)\.forEach\(\(handle\) => handle\.remove\(\)\);/);
+    assert.match(script, /table\.querySelectorAll\('th\.fv-col-resizable'\)\.forEach\(\(header\) => header\.classList\.remove\('fv-col-resizable'\)\);/);
+    assert.doesNotMatch(script, /const stopActiveTableColumnResize = \(persist = true\) =>/);
+    assert.doesNotMatch(script, /const SETTINGS_TABLE_RESIZE_GUIDE_ID = 'fv-settings-col-resize-guide';/);
     assert.match(script, /table\.style\.setProperty\('table-layout', 'fixed'(,\s*'important')?\);/);
     assert.match(script, /columnWidthsByType\[resolvedType\] = \{\};/);
     assert.match(script, /columnWidthModeByType\[resolvedType\] = 'auto';/);

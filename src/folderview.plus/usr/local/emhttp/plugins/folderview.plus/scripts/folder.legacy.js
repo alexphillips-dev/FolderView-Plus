@@ -560,7 +560,6 @@ const BUILT_IN_ICON_FALLBACK = [{
 
 let allFoldersById = {};
 let currentFolderDescendantIds = new Set();
-let currentFolderName = '';
 let initialSnapshot = '';
 let isFormInitialized = false;
 let suppressUnloadPrompt = false;
@@ -597,7 +596,6 @@ let thirdPartyHiddenFolders = new Set();
 let thirdPartyFolderUsage = {};
 let thirdPartyIconLastUsedByUrl = {};
 let thirdPartyBrokenIconUrls = new Set();
-let thirdPartyImageObserver = null;
 let thirdPartyLongPressTimer = null;
 let thirdPartyPreferencesLoaded = false;
 let thirdPartyRenderedIconMap = new Map();
@@ -4448,10 +4446,6 @@ const folderEditorPreviewApi = typeof folderEditorPreview?.createApi === 'functi
     })
     : null;
 
-const renderLivePreviewCanvas = () => {
-    folderEditorPreviewApi?.renderLivePreviewCanvas();
-};
-
 const MEMBER_REGEX_SEARCH_FILTER = 'contains_regex';
 const MEMBER_SEARCH_PLACEHOLDER = 'Search members';
 const MEMBER_REGEX_SEARCH_PLACEHOLDER = 'Regex search members';
@@ -5325,7 +5319,6 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     currentFolderDescendantIds = safeFolderId
         ? computeFolderDescendantIds(allFoldersById, safeFolderId)
         : new Set();
-    currentFolderName = normalizedFolder.name || '';
 
     const form = getForm();
     const setFieldValue = (fieldName, value) => {
@@ -5644,7 +5637,7 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     $('input.basic-switch').switchButton({ labels_placement: 'right', off_label: $.i18n('off'), on_label: $.i18n('on')});
 
     // iterate over the folders
-    for (const [folderId, value] of Object.entries(folders)) {
+    for (const value of Object.values(folders)) {
         // match the element to the regex
         if (value.regex) {
             const regex = new RegExp(value.regex);
@@ -5937,19 +5930,6 @@ function updateRegex(e) {
  * Update the setting visibility according to the preview setting
  * @param {*} e the element
  */
-const previewChange = (e) => {
-    $('[constraint^="preview-"]').hide();
-    $(`[constraint*="preview-${e.value}"]`).show();
-    if (type !== 'docker') {
-        $('[constraint*="docker"]').hide();
-    }
-
-    applyAdvancedMode();
-    validateForm();
-    updateLiveSummary();
-    updateRegexSimulator();
-};
-
 /**
  * Update the setting visibility according to the changin of settings
  */

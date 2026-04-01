@@ -338,7 +338,6 @@ if (folderEditorBootstrapMissingModules.length > 0) {
 }
 
 let allFoldersById = {};
-let currentFolderName = '';
 let activeFolderEditorFolderId = '';
 let folderEditorRulesApi = null;
 let initialSnapshot = '';
@@ -378,7 +377,6 @@ let thirdPartyHiddenFolders = new Set();
 let thirdPartyFolderUsage = {};
 let thirdPartyIconLastUsedByUrl = {};
 let thirdPartyBrokenIconUrls = new Set();
-let thirdPartyImageObserver = null;
 let thirdPartyLongPressTimer = null;
 let thirdPartyPreferencesLoaded = false;
 let thirdPartyRenderedIconMap = new Map();
@@ -399,8 +397,6 @@ let customIconUploadRequest = null;
 let editorMode = 'basic';
 let activeEditorSection = 'general';
 let advancedSectionCollapsedState = {};
-let editorLayoutPrepared = false;
-
 const SMART_DEFAULT_FIELD_NAMES = new Set([
     'icon',
     'preview',
@@ -1102,7 +1098,6 @@ const filterIconItems = (icons, query) => iconPickerRuntime.filterIconsByQuery(i
 const getOptionalRequestToken = () => folderIconApi.getOptionalRequestToken();
 const buildMutationHeaders = (token) => folderIconApi.buildMutationHeaders(token);
 const securePost = async (url, data = {}) => folderIconApi.securePost(url, data);
-const normalizeBuiltInIconEntry = (entry, basePath) => folderIconApi.normalizeBuiltInIconEntry(entry, basePath);
 const normalizeBuiltInIconManifest = (payload) => folderIconApi.normalizeBuiltInIconManifest(payload);
 
 const queueBackgroundMutationPost = (url, data = {}) => {
@@ -1224,9 +1219,6 @@ const resetIconUploadProgress = () => {
 };
 
 const validateCustomIconFileBeforeUpload = (file) => folderIconApi.validateCustomIconFileBeforeUpload(file);
-const readFileAsDataUrl = (file) => folderIconApi.readFileAsDataUrl(file);
-const shouldUseInlineUploadFallback = (error) => folderIconApi.shouldUseInlineUploadFallback(error);
-const uploadCustomIconFileInline = async (file, token, options = {}) => folderIconApi.uploadCustomIconFileInline(file, token, options);
 const uploadCustomIconFile = async (file, options = {}) => folderIconApi.uploadCustomIconFile(file, {
     ...options,
     setActiveRequest: (request) => {
@@ -5090,7 +5082,6 @@ const initEditorChrome = () => {
     void refreshFolderAutoRulesPanel();
     setTimeout(enforceLeftAlignedSettingsLayout, 50);
     setTimeout(enforceLeftAlignedSettingsLayout, 250);
-    editorLayoutPrepared = true;
 };
 
 getForm().preview_border.checked = true;
@@ -5117,7 +5108,6 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     folderHierarchyState.currentFolderDescendantIds = safeFolderId
         ? computeFolderDescendantIds(allFoldersById, safeFolderId)
         : new Set();
-    currentFolderName = normalizedFolder.name || '';
 
     const form = getForm();
     const setFieldValue = (fieldName, value) => {
@@ -5465,7 +5455,7 @@ const startFolderEditorRuntime = async () => {
     $('input.basic-switch').switchButton({ labels_placement: 'right', off_label: $.i18n('off'), on_label: $.i18n('on')});
 
     // iterate over the folders
-    for (const [folderId, value] of Object.entries(folders)) {
+    for (const value of Object.values(folders)) {
         // match the element to the regex
         if (value.regex) {
             const regex = new RegExp(value.regex);
@@ -5775,19 +5765,6 @@ const updateRegex = (e) => {
  * Update the setting visibility according to the preview setting
  * @param {*} e the element
  */
-const previewChange = (e) => {
-    $('[constraint^="preview-"]').hide();
-    $(`[constraint*="preview-${e.value}"]`).show();
-    if (type !== 'docker') {
-        $('[constraint*="docker"]').hide();
-    }
-
-    applyAdvancedMode();
-    validateForm();
-    updateLiveSummary();
-    updateRegexSimulator();
-};
-
 /**
  * Update the setting visibility according to the changin of settings
  */

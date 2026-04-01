@@ -130,14 +130,10 @@ test('server normalizes compact matrix dashboard layout', () => {
 
 test('dashboard runtime supports layout classes, accordion guards, and overflow metadata', () => {
     assert.match(dashboardScript, /const DASHBOARD_LAYOUT_MODES = Array\.isArray\(utils\.DASHBOARD_LAYOUT_OPTIONS\)/);
-    assert.match(dashboardScript, /const EDITOR_PREFILL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.v1';/);
-    assert.match(dashboardScript, /const EDITOR_DEBUG_LAUNCH_STORAGE_KEY = 'fv\.folder\.editor\.debug\.launch\.v1';/);
-    assert.match(dashboardScript, /const recordDashboardFolderEditorLaunchDebug = \(sourcePage, folderType, id, targetUrl\) =>/);
-    assert.match(dashboardScript, /const seedDashboardFolderEditorPrefill = \(folderType,\s*id\) =>/);
-    assert.match(dashboardScript, /seedDashboardFolderEditorPrefill\('docker', id\);/);
-    assert.match(dashboardScript, /seedDashboardFolderEditorPrefill\('vm', id\);/);
-    assert.match(dashboardScript, /recordDashboardFolderEditorLaunchDebug\('dashboard', 'docker', id, targetUrl\);/);
-    assert.match(dashboardScript, /recordDashboardFolderEditorLaunchDebug\('dashboard', 'vm', id, targetUrl\);/);
+    assert.doesNotMatch(dashboardScript, /const EDITOR_PREFILL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.v1';/);
+    assert.doesNotMatch(dashboardScript, /const EDITOR_DEBUG_LAUNCH_STORAGE_KEY = 'fv\.folder\.editor\.debug\.launch\.v1';/);
+    assert.doesNotMatch(dashboardScript, /const recordDashboardFolderEditorLaunchDebug = \(sourcePage, folderType, id, targetUrl\) =>/);
+    assert.doesNotMatch(dashboardScript, /const seedDashboardFolderEditorPrefill = \(folderType,\s*id\) =>/);
     assert.match(dashboardScript, /DASHBOARD_LAYOUT_OPTIONS: Object\.freeze\(\['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'\]\)/);
     assert.match(dashboardScript, /const DASHBOARD_LAYOUT_LABELS = utils\.DASHBOARD_LAYOUT_LABELS \|\| Object\.freeze\(/);
     assert.match(dashboardScript, /const dashboardLayoutQuickRailModule = window\.FolderViewPlusDashboardLayoutQuickRail \|\| null;/);
@@ -149,11 +145,11 @@ test('dashboard runtime supports layout classes, accordion guards, and overflow 
     assert.match(dashboardScript, /const restoreDashboardNativeRowsForType = async \(type\) =>/);
     assert.match(dashboardScript, /const rerenderDashboardWidgetStructureForType = async \(type\) =>/);
     assert.match(dashboardScript, /const prepareDashboardFolderRequestsForType = \(type\) =>/);
-    assert.match(dashboardScript, /const ensureDashboardWidgetLayoutQuickSwitchForType = \(type\) =>/);
     assert.match(dashboardScript, /const resolveDashboardWidgetInlineHostForType = \(type\) =>/);
-    assert.match(dashboardScript, /const isDashboardWidgetCollapsedForType = \(type\) =>/);
-    assert.match(dashboardScript, /const ensureDashboardWidgetInlineHostMountForType = \(type, hostOverride = null\) =>/);
-    assert.match(dashboardScript, /const syncDashboardWidgetQuickRailFitForType = \(type, parentRect, offsetTop\) =>/);
+    assert.doesNotMatch(dashboardScript, /const ensureDashboardWidgetLayoutQuickSwitchForType = \(type\) =>/);
+    assert.doesNotMatch(dashboardScript, /const isDashboardWidgetCollapsedForType = \(type\) =>/);
+    assert.doesNotMatch(dashboardScript, /const ensureDashboardWidgetInlineHostMountForType = \(type, hostOverride = null\) =>/);
+    assert.doesNotMatch(dashboardScript, /const syncDashboardWidgetQuickRailFitForType = \(type, parentRect, offsetTop\) =>/);
     assert.match(dashboardScript, /const toggleDashboardExpandAllForType = \(type\) =>/);
     assert.match(dashboardScript, /const setDashboardStartedOnlyEnabledForType = \(type, enabled\) =>/);
     assert.match(dashboardScript, /const readDashboardHealthEmphasisStateForType = \(type\) =>/);
@@ -170,7 +166,7 @@ test('dashboard runtime supports layout classes, accordion guards, and overflow 
     assert.match(dashboardScript, /const vmTreeIndex = buildFolderChildrenIndex\(allVmFolders\);/);
     assert.match(dashboardScript, /if \(renderTypes\.has\('docker'\) && \$\('tbody#docker_view'\)\.length > 0\) \{/);
     assert.match(dashboardScript, /if \(renderTypes\.has\('vm'\) && \$\('tbody#vm_view'\)\.length > 0\) \{/);
-    assert.match(dashboardScript, /const applyDashboardLayoutStateForType = \(type\) =>/);
+    assert.doesNotMatch(dashboardScript, /const applyDashboardLayoutStateForType = \(type\) =>/);
     assert.match(dashboardScript, /const scheduleDashboardLayoutApplyForType = \(type\) =>/);
     assert.match(dashboardScript, /const requiresStructureReload = previousDashboard\.layout === 'legacy' \|\| nextLayout === 'legacy';/);
     assert.match(dashboardScript, /if \(requiresStructureReload\) \{\s*dashboardLayoutTransitionInFlightByType\[resolvedType\] = true;/);

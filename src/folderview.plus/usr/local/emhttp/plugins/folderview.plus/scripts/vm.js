@@ -392,7 +392,6 @@ const layoutFolderPreviewRows = ($preview, settings = {}) => {
 
     const rowLimit = normalizeFolderPreviewRowLimit(settings);
     const addDividers = settings?.preview_vertical_bars === true;
-    const barsColor = settings?.preview_vertical_bars_color || settings?.preview_border_color || '';
     const previewElement = $preview.get(0);
     const availableWidth = Math.max(0, Math.floor($preview.innerWidth() || previewElement?.clientWidth || 0) - 12);
     const gapWidth = 8;

@@ -836,15 +836,14 @@ const syncCompactMobileLayoutClass = () => {
     if (document.body) {
         document.body.classList.toggle('fv-mobile-compact', enabled);
     }
-    if (activeTableColumnResize) {
-        stopActiveTableColumnResize(false);
-    }
     try {
         applyColumnWidths('docker');
         applyColumnWidths('vm');
         bindTableColumnResizers('docker');
         bindTableColumnResizers('vm');
-    } catch (_error) {}
+    } catch (_error) {
+        console.warn('[FolderView Plus] Settings compact layout sync failed.', _error);
+    }
 };
 
 const initCompactMobileLayoutGuard = () => {
@@ -1436,7 +1435,6 @@ const getSectionApplyMode = (section) => {
         return { id: 'staged', label: 'Requires Save' };
     }
     const seen = new Set();
-    let hasInstantApply = false;
     let hasStagedApply = false;
     for (const node of section.nodes) {
         if (!(node instanceof HTMLElement)) {
@@ -1457,9 +1455,7 @@ const getSectionApplyMode = (section) => {
             if (!handler) {
                 continue;
             }
-            if (isInstantPersistInput(input)) {
-                hasInstantApply = true;
-            } else {
+            if (!isInstantPersistInput(input)) {
                 hasStagedApply = true;
             }
         }
@@ -3578,9 +3574,6 @@ const TABLE_COLUMN_RESIZE_KEYS_BY_TYPE = settingsTableModule?.TABLE_COLUMN_RESIZ
     vm: Object.freeze([])
 });
 
-let activeTableColumnResize = null;
-const SETTINGS_TABLE_RESIZE_GUIDE_ID = 'fv-settings-col-resize-guide';
-
 const getSettingsTableElement = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     const tbodyId = tableIdByType[resolvedType];
@@ -3924,43 +3917,6 @@ const persistSettingsTableState = async (type, patch = {}, options = {}) => {
         bindTableColumnResizers(resolvedType);
         showError('Settings table preferences save failed', error);
     }
-};
-
-const stopActiveTableColumnResize = (persist = true) => {
-    const active = activeTableColumnResize;
-    if (!active) {
-        return;
-    }
-    document.getElementById(SETTINGS_TABLE_RESIZE_GUIDE_ID)?.remove();
-    document.body.classList.remove('fv-column-resize-active');
-    window.removeEventListener('mousemove', active.onMove, true);
-    window.removeEventListener('mouseup', active.onUp, true);
-    activeTableColumnResize = null;
-    if (persist && active.dragStarted === true) {
-        persistSettingsTableState(active.type, {
-            widthMode: 'custom',
-            preset: 'custom',
-            columnWidths: columnWidthsByType[active.type] || {}
-        });
-    }
-};
-
-const ensureSettingsTableResizeGuide = () => {
-    let guide = document.getElementById(SETTINGS_TABLE_RESIZE_GUIDE_ID);
-    if (!guide) {
-        guide = document.createElement('div');
-        guide.id = SETTINGS_TABLE_RESIZE_GUIDE_ID;
-        guide.className = 'fv-col-resize-guide';
-        document.body.appendChild(guide);
-    }
-    return guide;
-};
-
-const positionSettingsTableResizeGuide = (left, top, height) => {
-    const guide = ensureSettingsTableResizeGuide();
-    guide.style.left = `${Math.round(left)}px`;
-    guide.style.top = `${Math.round(top)}px`;
-    guide.style.height = `${Math.max(0, Math.round(height))}px`;
 };
 
 const bindTableColumnResizers = (type) => {
@@ -9279,9 +9235,6 @@ const renderTemplateRows = (type) => {
 };
 
 const renderTable = (type) => {
-    if (activeTableColumnResize) {
-        stopActiveTableColumnResize(false);
-    }
     const folders = getFolderMap(type);
     const ordered = utils.orderFoldersByPrefs(folders, prefsByType[type]);
     const hierarchyMeta = buildFolderHierarchyMeta(ordered);

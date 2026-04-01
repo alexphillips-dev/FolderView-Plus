@@ -225,9 +225,8 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderLegacyJs, /const folderEditorPreviewApi = typeof folderEditorPreview\?\.createApi === 'function'/);
     assert.match(folderLegacyJs, /window\.FolderViewPlusFolderEditorPageType/);
     assert.match(folderLegacyJs, /window\.FolderViewPlusFolderEditorRequestedId/);
-    assert.match(folderLegacyJs, /const renderLivePreviewCanvas = \(\) =>/);
     assert.match(folderPreviewJs, /#fvLivePreviewCanvas/);
-    assert.match(folderLegacyJs, /renderLivePreviewCanvas\(\);/);
+    assert.doesNotMatch(folderLegacyJs, /const renderLivePreviewCanvas = \(\) =>/);
     assert.match(settingsJs, /const settingsTableModule = window\.FolderViewPlusSettingsTable \|\| null;/);
     assert.match(settingsJs, /bootstrapMissingModules\.push\('folderviewplus\.settings-table\.js'\)/);
     assert.match(folderCss, /\.canvas form\.folder-editor-form,\s*[\s\S]*#fvEditorChrome\s*\{[\s\S]*--fv-editor-text-primary:\s*var\(--fvplus-editor-text-primary/);
@@ -680,7 +679,7 @@ test('runtime folder editor routes defer editor mode resolution to Folder.page s
     assert.doesNotMatch(dashboardJs, /params\.set\(\s*'editor'/);
     assert.match(dockerJs, /params\.set\(\s*'type',\s*'docker'/);
     assert.match(vmJs, /params\.set\(\s*'type',\s*'vm'/);
-    assert.match(dashboardJs, /params\.set\(\s*'type',\s*resolvedType/);
+    assert.doesNotMatch(dashboardJs, /params\.set\(\s*'type',\s*resolvedType/);
 });
 
 test('settings runtime uses extracted chrome module and shared request wrapper', () => {
@@ -827,8 +826,8 @@ test('settings runtime uses extracted chrome module and shared request wrapper',
     assert.match(settingsJs, /if \(settingsUiState\.mode === 'advanced'\) \{[\s\S]*await refreshAll\(\);[\s\S]*\} else \{[\s\S]*await refreshCoreData\(\);[\s\S]*\}/);
     assert.match(settingsCss, /\.folder-action-btn\s*\{/);
     assert.match(settingsCss, /#fv-settings-root :is\([\s\S]*\.folder-table table td\.actions-cell \.folder-action-btn:not\(\.folder-overflow-btn\),[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fvplus-settings-button-quiet-top\),\s*var\(--fvplus-settings-button-quiet-bottom\)\) !important;/);
-    assert.match(settingsCss, /\.fv-col-resizer/);
-    assert.match(settingsCss, /body\.fv-column-resize-active/);
+    assert.doesNotMatch(settingsCss, /\.fv-col-resizer/);
+    assert.doesNotMatch(settingsCss, /body\.fv-column-resize-active/);
     assert.match(settingsCss, /\.fv-runtime-resolved-panel\s*\{/);
     assert.match(settingsCss, /\.fv-runtime-resolved-actions\s*\{/);
     assert.match(settingsCss, /\.updates-chip\s*\{/);

@@ -157,13 +157,13 @@ test('folder editor URLs duplicate folder identity into the hash for navigation-
     assert.match(vmJs, /const EDITOR_DEBUG_LAUNCH_STORAGE_KEY = 'fv\.folder\.editor\.debug\.launch\.v1';/);
     assert.match(vmJs, /const recordFolderEditorLaunchDebug = \(sourcePage, folderType, id, targetUrl\) =>/);
     assert.match(vmJs, /window\.name = `\$\{EDITOR_WINDOW_NAME_PREFIX\}\$\{payload\}`;/);
-    assert.match(dashboardJs, /const EDITOR_WINDOW_NAME_PREFIX = 'fv\.folder\.editor\.v1:'/);
-    assert.match(dashboardJs, /const EDITOR_BOOTSTRAP_COOKIE_NAME = 'fv_folder_editor_bootstrap';/);
-    assert.match(dashboardJs, /const EDITOR_DEBUG_LAUNCH_STORAGE_KEY = 'fv\.folder\.editor\.debug\.launch\.v1';/);
-    assert.match(dashboardJs, /window\.name = `\$\{EDITOR_WINDOW_NAME_PREFIX\}\$\{payload\}`;/);
+    assert.doesNotMatch(dashboardJs, /const EDITOR_WINDOW_NAME_PREFIX = 'fv\.folder\.editor\.v1:'/);
+    assert.doesNotMatch(dashboardJs, /const EDITOR_BOOTSTRAP_COOKIE_NAME = 'fv_folder_editor_bootstrap';/);
+    assert.doesNotMatch(dashboardJs, /const EDITOR_DEBUG_LAUNCH_STORAGE_KEY = 'fv\.folder\.editor\.debug\.launch\.v1';/);
+    assert.doesNotMatch(dashboardJs, /window\.name = `\$\{EDITOR_WINDOW_NAME_PREFIX\}\$\{payload\}`;/);
     assert.match(dockerJs, /return `\/Docker\/Folder\?\$\{params\.toString\(\)\}#\$\{hashParams\.toString\(\)\}`;/);
     assert.match(vmJs, /return `\/VMs\/Folder\?\$\{params\.toString\(\)\}#\$\{hashParams\.toString\(\)\}`;/);
-    assert.match(dashboardJs, /return `\$\{location\.pathname\}\/Folder\?\$\{params\.toString\(\)\}#\$\{hashParams\.toString\(\)\}`;/);
+    assert.doesNotMatch(dashboardJs, /return `\$\{location\.pathname\}\/Folder\?\$\{params\.toString\(\)\}#\$\{hashParams\.toString\(\)\}`;/);
 });
 
 test('legacy editor hydrates existing folder state before member inventory loads', () => {

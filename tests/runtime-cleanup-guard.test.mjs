@@ -21,17 +21,21 @@ test('docker sortable refresh is guarded without an empty catch block', () => {
 });
 
 test('custom action handlers support legacy and corrected container key names', () => {
-    for (const source of [dockerJs, vmJs, dashboardJs]) {
+    for (const source of [dockerJs, vmJs]) {
         assert.match(source, /Array\.isArray\(act\.conatiners\)/);
         assert.match(source, /Array\.isArray\(act\.containers\)/);
     }
+    assert.doesNotMatch(dashboardJs, /Array\.isArray\(act\.conatiners\)/);
+    assert.doesNotMatch(dashboardJs, /Array\.isArray\(act\.containers\)/);
 });
 
 test('custom action handlers do not silently no-op on unsupported action modes', () => {
-    for (const source of [dockerJs, vmJs, dashboardJs]) {
+    for (const source of [dockerJs, vmJs]) {
         assert.doesNotMatch(source, /let ctAction = \(e\) => \{\s*\}/);
         assert.match(source, /let ctAction = null;/);
         assert.match(source, /if \(typeof ctAction === 'function'\)/);
         assert.match(source, /console\.warn\(`folderview\.plus: Unsupported/);
     }
+    assert.doesNotMatch(dashboardJs, /let ctAction = null;/);
+    assert.doesNotMatch(dashboardJs, /console\.warn\(`folderview\.plus: Unsupported/);
 });

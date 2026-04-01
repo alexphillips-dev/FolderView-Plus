@@ -78,7 +78,7 @@ test('runtime scripts avoid inline status color painting and use row-level css v
 });
 
 test('theme-change observers trigger deterministic reflow across runtime and settings surfaces', () => {
-    assert.match(dockerJs, /const queueDockerRuntimeThemeReflow/);
+    assert.match(dockerJs, /const dockerRuntimeThemeReflowController = runtimeStateObserverModule && typeof runtimeStateObserverModule\.createThemeReflowController === 'function'/);
     assert.match(dockerJs, /const bindDockerRuntimeThemeReflow/);
     assert.match(dockerJs, /const applyDockerThemeResolverTokens = \(reason = 'docker-runtime:initial', options = \{\}\) =>/);
     assert.match(vmJs, /const queueVmRuntimeThemeReflow/);

@@ -247,6 +247,9 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderCss, /#fvEditorActionBar\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fv-editor-button-accent-fg:\s*#fff8f1;/);
     assert.match(folderCss, /#fvEditorActionBar\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fv-editor-button-accent-top:\s*#cf7a22;/);
     assert.match(folderCss, /#fvEditorActionBar\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fv-editor-button-accent-bottom:\s*#b76518;/);
+    assert.match(folderCss, /#fvEditorActionBar\[data-fv-theme-class="light"\] \.folder-btn-submit,[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fv-editor-button-bg-top\),\s*var\(--fv-editor-button-bg-bottom\)\) !important;[\s\S]*color:\s*var\(--fv-editor-button-fg\) !important;/);
+    assert.match(folderCss, /#fvEditorActionBar\[data-fv-theme-class="light"\] \.folder-btn-submit:hover,[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fv-editor-button-hover-top\),\s*var\(--fv-editor-button-hover-bottom\)\) !important;/);
+    assert.match(folderCss, /#fvEditorChrome\[data-fv-theme-class="light"\] \.fv-editor-mode > button\.is-active[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fv-editor-button-bg-top\),\s*var\(--fv-editor-button-bg-bottom\)\) !important;[\s\S]*color:\s*var\(--fv-editor-button-fg\) !important;/);
     assert.match(folderCss, /#fvEditorChrome \.fv-editor-kicker,\s*[\s\S]*color:\s*var\(--fv-editor-title-accent\) !important;/);
     assert.match(folderCss, /\.fv-section-heading-copy > h3\s*\{[\s\S]*color:\s*var\(--fv-editor-title-accent\);/);
     assert.match(folderCss, /\.canvas form\.folder-editor-form \.fv-section-heading-copy > h3\s*\{[\s\S]*color:\s*var\(--fv-editor-title-accent\) !important;/);
@@ -255,7 +258,7 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderCss, /\.fv-modern-field-row input\[type="text"\],[\s\S]*background:\s*var\(--fv-editor-input-bg\)/);
     assert.match(folderCss, /\.fv-editor-hero-icon\s*\{[\s\S]*border:\s*1px solid var\(--fv-editor-hero-icon-border\);/);
     assert.match(folderCss, /\.fv-inherited-badge\s*\{[\s\S]*padding:\s*0\.02em 0\.32em;[\s\S]*font-size:\s*0\.68rem;[\s\S]*text-transform:\s*uppercase;/);
-    assert.match(folderCss, /#fvEditorActionBar\[data-fv-theme-class="light"\] \.folder-btn-submit:disabled\s*\{[\s\S]*opacity:\s*1;[\s\S]*color:\s*#764616 !important;/);
+    assert.doesNotMatch(folderCss, /#fvEditorActionBar\[data-fv-theme-class="light"\] \.folder-btn-submit:disabled\s*\{/);
 });
 
 test('settings no longer renders a mobile action bar and keeps import progress viewport guards', () => {

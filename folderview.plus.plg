@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.01.05">
-<!ENTITY md5 "4502169f8f3f3c0c838c7615a1c40556">
+<!ENTITY version "2026.04.01.06">
+<!ENTITY md5 "ba4ade103a562fa4242f352c3e55eede">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.01.06
+- Fix: Aligned the light-theme folder editor Submit button with the other action-bar buttons instead of rendering it as a separate orange primary action.
+- Fix: Aligned the light-theme Basic and Advanced mode toggle active state with the neutral editor button style so the toggle no longer switches to a separate orange accent button.
+- Quality: Added regression coverage for the light-theme action-bar and mode-toggle button contract.
+
 
 ###2026.04.01.05
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

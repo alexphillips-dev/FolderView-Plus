@@ -435,6 +435,12 @@ let dockerRuntimeResizerObserver = null;
 let dockerRuntimeAutoAppWidthFloor = null;
 let dockerRuntimeAutoAppWidthFloorMode = null;
 let dockerRuntimeInfoByName = {};
+let dockerHostUpdateCellObserver = null;
+let dockerHostUpdateRowObserver = null;
+let dockerHostUpdateRowObserverRoot = null;
+let dockerHostUpdateSyncTimer = null;
+const dockerHostUpdateObservedCells = typeof WeakSet === 'function' ? new WeakSet() : null;
+const dockerHostUpdatePendingNames = new Set();
 const DOCKER_RUNTIME_WIDTH_PHASES = Object.freeze({
     idle: 'idle',
     debounce: 'debounce',
@@ -473,6 +479,238 @@ const buildDockerRuntimeInfoFallbackLabels = (entry = {}, previousEntry = null) 
     }
     return labels;
 };
+const readDockerHostRowUpdatedState = (name) => {
+    const safeName = String(name || '').trim();
+    if (!safeName || typeof document === 'undefined') {
+        return null;
+    }
+    const row = document.getElementById(`ct-${safeName}`);
+    if (!(row instanceof HTMLElement)) {
+        return null;
+    }
+    const updateCell = row.querySelector('td.updatecolumn');
+    if (!(updateCell instanceof HTMLElement)) {
+        return null;
+    }
+    const normalizedText = String(updateCell.textContent || '').trim().toLowerCase();
+    const i18nText = (key, fallback = '') => {
+        if (typeof $?.i18n === 'function') {
+            return String($.i18n(key) || '').trim().toLowerCase();
+        }
+        return String(fallback || '').trim().toLowerCase();
+    };
+    const hasToken = (...tokens) => tokens.some((token) => token && normalizedText.includes(String(token).trim().toLowerCase()));
+    if (updateCell.querySelector('.fa-flash')) {
+        return false;
+    }
+    if (updateCell.querySelector('.fa-check')) {
+        return true;
+    }
+    if (hasToken(i18nText('update-ready', 'update ready'), i18nText('apply-update', 'apply update'), 'update ready', 'apply update')) {
+        return false;
+    }
+    if (hasToken(i18nText('up-to-date', 'up-to-date'), i18nText('force-update', 'force update'), 'up-to-date', 'force update')) {
+        return true;
+    }
+    return null;
+};
+const getDockerHostRowContainerName = (value) => {
+    if (!value) {
+        return '';
+    }
+    if (typeof value === 'string') {
+        const raw = value.trim();
+        return raw.startsWith('ct-') ? raw.slice(3).trim() : raw;
+    }
+    const node = value instanceof Node ? value : null;
+    if (!node) {
+        return '';
+    }
+    const parentElement = node instanceof Element ? node : node.parentElement;
+    const row = parentElement && typeof parentElement.closest === 'function'
+        ? parentElement.closest('tr[id^="ct-"]')
+        : null;
+    if (!(row instanceof HTMLElement)) {
+        return '';
+    }
+    const rawId = String(row.id || '').trim();
+    return rawId.startsWith('ct-') ? rawId.slice(3).trim() : '';
+};
+const getDockerWindowRuntimeEntry = (name) => {
+    const safeName = String(name || '').trim();
+    if (!safeName || !Array.isArray(window.docker)) {
+        return null;
+    }
+    return window.docker.find((entry) => String(entry?.info?.Name || '').trim() === safeName) || null;
+};
+const applyDockerRuntimeEntryUpdatedState = (name, updated) => {
+    const safeName = String(name || '').trim();
+    if (!safeName || typeof updated !== 'boolean') {
+        return false;
+    }
+    const previousEntry = (
+        dockerRuntimeInfoByName[safeName]
+        && typeof dockerRuntimeInfoByName[safeName] === 'object'
+        ? dockerRuntimeInfoByName[safeName]
+        : null
+    ) || getDockerWindowRuntimeEntry(safeName);
+    const previousState = previousEntry?.info?.State && typeof previousEntry.info.State === 'object'
+        ? previousEntry.info.State
+        : {};
+    const previousManager = String(previousState.manager || '').trim();
+    if (previousManager && previousManager !== 'dockerman') {
+        return false;
+    }
+    const nextManager = previousManager || 'dockerman';
+    if (previousEntry && previousState.Updated === updated && previousManager === nextManager) {
+        return false;
+    }
+    dockerRuntimeInfoByName[safeName] = {
+        ...(previousEntry && typeof previousEntry === 'object' ? previousEntry : {}),
+        info: {
+            ...((previousEntry?.info && typeof previousEntry.info === 'object') ? previousEntry.info : {}),
+            Name: safeName,
+            Config: {
+                ...((previousEntry?.info?.Config && typeof previousEntry.info.Config === 'object') ? previousEntry.info.Config : {})
+            },
+            State: {
+                ...previousState,
+                manager: nextManager,
+                Updated: updated
+            }
+        },
+        Labels: (previousEntry?.Labels && typeof previousEntry.Labels === 'object') ? previousEntry.Labels : {},
+        Mounts: Array.isArray(previousEntry?.Mounts) ? previousEntry.Mounts : []
+    };
+    const windowEntry = getDockerWindowRuntimeEntry(safeName);
+    if (windowEntry?.info?.State && typeof windowEntry.info.State === 'object') {
+        windowEntry.info.State.manager = String(windowEntry.info.State.manager || nextManager).trim() || nextManager;
+        windowEntry.info.State.Updated = updated;
+    }
+    return true;
+};
+const syncDockerHostRowUpdateStatesFromDom = (names = []) => {
+    const requestedNames = Array.isArray(names)
+        ? names.map((entry) => String(entry || '').trim()).filter((entry) => entry !== '')
+        : [];
+    const targetNames = requestedNames.length > 0
+        ? Array.from(new Set(requestedNames))
+        : Array.from(document.querySelectorAll('#docker_list tr[id^="ct-"], #docker_view tr[id^="ct-"]'))
+            .map((row) => getDockerHostRowContainerName(row))
+            .filter((entry) => entry !== '');
+    let changed = false;
+    targetNames.forEach((entry) => {
+        const updated = readDockerHostRowUpdatedState(entry);
+        if (typeof updated !== 'boolean') {
+            return;
+        }
+        changed = applyDockerRuntimeEntryUpdatedState(entry, updated) || changed;
+    });
+    return changed;
+};
+const queueDockerHostRowUpdateStateSync = (names = []) => {
+    if (Array.isArray(names)) {
+        names.forEach((entry) => {
+            const safeName = String(entry || '').trim();
+            if (safeName) {
+                dockerHostUpdatePendingNames.add(safeName);
+            }
+        });
+    }
+    if (dockerHostUpdateSyncTimer !== null) {
+        return;
+    }
+    dockerHostUpdateSyncTimer = window.setTimeout(() => {
+        dockerHostUpdateSyncTimer = null;
+        const pendingNames = Array.from(dockerHostUpdatePendingNames);
+        dockerHostUpdatePendingNames.clear();
+        if (syncDockerHostRowUpdateStatesFromDom(pendingNames)) {
+            syncDockerVisibleFoldersFromRuntimeCache();
+        }
+    }, 36);
+};
+const bindDockerHostUpdateCellObserver = (cell) => {
+    if (!(cell instanceof HTMLElement) || !(dockerHostUpdateCellObserver instanceof MutationObserver)) {
+        return;
+    }
+    if (dockerHostUpdateObservedCells && dockerHostUpdateObservedCells.has(cell)) {
+        return;
+    }
+    dockerHostUpdateCellObserver.observe(cell, {
+        childList: true,
+        subtree: true,
+        characterData: true
+    });
+    if (dockerHostUpdateObservedCells) {
+        dockerHostUpdateObservedCells.add(cell);
+    }
+};
+const ensureDockerHostRowUpdateObserver = () => {
+    if (typeof MutationObserver !== 'function' || typeof document === 'undefined') {
+        return;
+    }
+    if (!(dockerHostUpdateCellObserver instanceof MutationObserver)) {
+        dockerHostUpdateCellObserver = new MutationObserver((mutations) => {
+            const changedNames = new Set();
+            (mutations || []).forEach((mutation) => {
+                const name = getDockerHostRowContainerName(mutation?.target || null);
+                if (name) {
+                    changedNames.add(name);
+                }
+            });
+            queueDockerHostRowUpdateStateSync(Array.from(changedNames));
+        });
+    }
+    document.querySelectorAll('#docker_list tr[id^="ct-"] td.updatecolumn, #docker_view tr[id^="ct-"] td.updatecolumn').forEach((cell) => {
+        bindDockerHostUpdateCellObserver(cell);
+    });
+    const nextRoot = document.querySelector('tbody#docker_list') || document.querySelector('tbody#docker_view');
+    if (dockerHostUpdateRowObserverRoot !== nextRoot && dockerHostUpdateRowObserver instanceof MutationObserver) {
+        dockerHostUpdateRowObserver.disconnect();
+        dockerHostUpdateRowObserverRoot = null;
+    }
+    if (!(dockerHostUpdateRowObserver instanceof MutationObserver)) {
+        dockerHostUpdateRowObserver = new MutationObserver((mutations) => {
+            const changedNames = new Set();
+            (mutations || []).forEach((mutation) => {
+                if (mutation?.type !== 'childList') {
+                    return;
+                }
+                if (mutation.target instanceof Element && mutation.target.matches('td.updatecolumn')) {
+                    const directName = getDockerHostRowContainerName(mutation.target);
+                    if (directName) {
+                        changedNames.add(directName);
+                    }
+                }
+                Array.from(mutation.addedNodes || []).forEach((node) => {
+                    const name = getDockerHostRowContainerName(node);
+                    if (name) {
+                        changedNames.add(name);
+                    }
+                    if (node instanceof Element) {
+                        if (node.matches?.('td.updatecolumn') && getDockerHostRowContainerName(node)) {
+                            bindDockerHostUpdateCellObserver(node);
+                        }
+                        node.querySelectorAll?.('tr[id^="ct-"] td.updatecolumn').forEach((cell) => {
+                            bindDockerHostUpdateCellObserver(cell);
+                        });
+                    }
+                });
+            });
+            document.querySelectorAll('#docker_list tr[id^="ct-"] td.updatecolumn, #docker_view tr[id^="ct-"] td.updatecolumn').forEach((cell) => {
+                bindDockerHostUpdateCellObserver(cell);
+            });
+            queueDockerHostRowUpdateStateSync(Array.from(changedNames));
+        });
+    }
+    if (nextRoot && dockerHostUpdateRowObserverRoot !== nextRoot) {
+        dockerHostUpdateRowObserver.observe(nextRoot, {
+            childList: true,
+            subtree: true
+        });
+        dockerHostUpdateRowObserverRoot = nextRoot;
+    }
+};
 const buildDockerRuntimeInfoRenderEntry = (name, entry = {}, previousEntry = null) => {
     const safeName = String(name || '').trim();
     const source = entry && typeof entry === 'object' ? entry : {};
@@ -494,6 +732,14 @@ const buildDockerRuntimeInfoRenderEntry = (name, entry = {}, previousEntry = nul
     const labelTsWebUi = String(labels['net.unraid.docker.tailscale.webui'] || '').trim();
     const resolvedWebUi = resolvePreferredWebuiValue(sourceState.WebUi, source.WebUi, source.webui, previousState.WebUi, labelWebUi);
     const resolvedTsWebUi = resolvePreferredWebuiValue(sourceState.TSWebUi, source.TSWebUi, previousState.TSWebUi, labelTsWebUi);
+    const sourceUpdated = typeof sourceState.Updated === 'boolean'
+        ? sourceState.Updated
+        : (typeof source.Updated === 'boolean' ? source.Updated : null);
+    const resolvedUpdated = typeof sourceUpdated === 'boolean'
+        ? sourceUpdated
+        : (typeof previousState.Updated === 'boolean'
+            ? previousState.Updated
+            : (manager === 'dockerman' ? readDockerHostRowUpdatedState(safeName) : null));
     const nextEntry = previous ? { ...previous } : {};
     nextEntry.shortId = String(source.id || previous?.shortId || '').trim();
     nextEntry.shortImageId = String(source.shortImageId || previous?.shortImageId || '').trim();
@@ -514,7 +760,7 @@ const buildDockerRuntimeInfoRenderEntry = (name, entry = {}, previousEntry = nul
             Paused: paused,
             Status: String(source.status || previousState.Status || '').trim(),
             Autostart: source.autostart === true,
-            Updated: sourceState.Updated ?? previousState.Updated ?? null,
+            Updated: resolvedUpdated,
             manager,
             WebUi: resolvedWebUi,
             TSWebUi: resolvedTsWebUi
@@ -1111,26 +1357,6 @@ const getDockerRuntimePresetAppWidth = () => {
     return clampDockerRuntimeColumnWidth(preset, 1);
 };
 
-const getSavedDockerRuntimeColumnWidths = () => {
-    try {
-        const raw = localStorage.getItem(DOCKER_RUNTIME_COLUMN_WIDTHS_STORAGE_KEY);
-        if (raw) {
-            const parsed = JSON.parse(raw);
-            const normalized = normalizeDockerRuntimeColumnWidthMap(parsed);
-            if (Object.keys(normalized).length > 0) {
-                return normalized;
-            }
-        }
-        const legacy = clampDockerRuntimeColumnWidth(
-            localStorage.getItem(DOCKER_RUNTIME_LEGACY_APP_WIDTH_STORAGE_KEY),
-            1
-        );
-        return legacy ? { 1: legacy } : {};
-    } catch (_error) {
-        return {};
-    }
-};
-
 const persistDockerRuntimeColumnWidths = (widthMap) => {
     const normalized = normalizeDockerRuntimeColumnWidthMap(widthMap);
     try {
@@ -1443,56 +1669,6 @@ const stopDockerRuntimeColumnResize = (persist = true) => {
     }
 };
 
-const beginDockerRuntimeColumnWidthResize = (columnIndex, event) => {
-    // Runtime drag-resize intentionally disabled; app column now auto-sizes from folder names.
-    void columnIndex;
-    void event;
-    return;
-    /*
-    if (event.button !== 0) {
-        return;
-    }
-    const targets = getDockerRuntimeTableTargets();
-    if (!targets || !targets.headers[columnIndex - 1]) {
-        return;
-    }
-    const header = targets.headers[columnIndex - 1];
-    const frozenWidths = captureCurrentDockerRuntimeColumnWidths();
-    const initialWidth = clampDockerRuntimeColumnWidth(header.getBoundingClientRect().width, columnIndex);
-    if (!initialWidth) {
-        return;
-    }
-    const startX = Number(event.clientX || 0);
-    const onMove = (moveEvent) => {
-        const delta = Number(moveEvent.clientX || 0) - startX;
-        const nextWidth = clampDockerRuntimeColumnWidth(initialWidth + delta, columnIndex);
-        if (!nextWidth || !dockerRuntimeColumnResizeSession) {
-            return;
-        }
-        dockerRuntimeColumnResizeSession.widths[columnIndex] = nextWidth;
-        applyDockerRuntimeColumnWidths(dockerRuntimeColumnResizeSession.widths);
-    };
-    const onUp = () => stopDockerRuntimeColumnResize(true);
-    const onCancel = onUp;
-    dockerRuntimeColumnResizeSession = {
-        widths: {
-            ...frozenWidths,
-            [columnIndex]: initialWidth
-        },
-        onMove,
-        onUp,
-        onCancel
-    };
-    applyDockerRuntimeColumnWidths(dockerRuntimeColumnResizeSession.widths);
-    document.body?.classList.add('fvplus-docker-column-resize-active');
-    window.addEventListener('pointermove', onMove, true);
-    window.addEventListener('pointerup', onUp, true);
-    window.addEventListener('pointercancel', onCancel, true);
-    event.preventDefault();
-    event.stopPropagation();
-    */
-};
-
 const dockerRuntimeThemeReflowController = runtimeStateObserverModule && typeof runtimeStateObserverModule.createThemeReflowController === 'function'
     ? runtimeStateObserverModule.createThemeReflowController({
         window,
@@ -1593,6 +1769,12 @@ const bindDockerRuntimeColumnResizers = () => {
         }
     });
     scheduleDockerRuntimeWidthReflow('table-bind', 0);
+};
+
+const beginDockerRuntimeColumnWidthResize = (columnIndex, event) => {
+    // Runtime drag-resize intentionally disabled; app column now auto-sizes from folder names.
+    void columnIndex;
+    void event;
 };
 
 // Backward-compatible aliases used by legacy tests/hooks.
@@ -2430,14 +2612,16 @@ const normalizeDockerStateToken = (entry, fromStateMode = false) => {
     if (!entry || typeof entry !== 'object') {
         return 's:0::';
     }
+    const normalizeUpdatedToken = (value) => (value === false ? 'u0' : (value === true ? 'u1' : 'ux'));
     if (fromStateMode) {
         const running = entry.running === true;
         const paused = entry.paused === true;
         const status = running ? (paused ? 'p' : 'r') : 's';
         const autostart = entry.autostart === true ? '1' : '0';
         const manager = String(entry.manager || '').trim();
+        const updated = normalizeUpdatedToken(entry.Updated);
         const label = String(entry.folderLabel || '').trim();
-        return `${status}:${autostart}:${manager}:${label}`;
+        return `${status}:${autostart}:${manager}:${updated}:${label}`;
     }
     const info = entry.info && typeof entry.info === 'object' ? entry.info : {};
     const state = info.State && typeof info.State === 'object' ? info.State : {};
@@ -2447,8 +2631,9 @@ const normalizeDockerStateToken = (entry, fromStateMode = false) => {
     const status = running ? (paused ? 'p' : 'r') : 's';
     const manager = String(state.manager || '').trim();
     const autostart = !(state.Autostart === false) ? '1' : '0';
+    const updated = normalizeUpdatedToken(state.Updated);
     const label = getFolderLabelValue(labels);
-    return `${status}:${autostart}:${manager}:${label}`;
+    return `${status}:${autostart}:${manager}:${updated}:${label}`;
 };
 
 const buildDockerStateSignature = (source, fromStateMode = false) => {
@@ -2877,10 +3062,14 @@ const createFolders = async () => {
     let folders = JSON.parse(prom[0]);
     let unraidOrder = Object.values(JSON.parse(prom[1]));
     const containersStateInfo = parseJsonPayloadSafe(prom[2]);
-    const containersInfo = normalizeDockerRuntimeInfoMap(containersStateInfo);
+    let containersInfo = normalizeDockerRuntimeInfoMap(containersStateInfo);
     dockerRuntimeInfoByName = (containersInfo && typeof containersInfo === 'object' && !Array.isArray(containersInfo))
         ? { ...containersInfo }
         : {};
+    ensureDockerHostRowUpdateObserver();
+    if (syncDockerHostRowUpdateStatesFromDom()) {
+        containersInfo = { ...dockerRuntimeInfoByName };
+    }
     let order = readDockerHostOrderFromDom();
     let prefsResponse = {};
     try {
@@ -3946,7 +4135,6 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
 
             const elementForPreviewOpts = $(`tr.folder-id-${id} div.folder-preview > span:last`); // Re-check if this is always correct
             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Preview element for options:`, elementForPreviewOpts[0]);
-            let sel_preview_opt;
             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${container_name_in_folder}: Applying preview options based on folder.settings:`, JSON.parse(JSON.stringify(folder.settings)));
          
             const $previewElementTarget = $(`tr.folder-id-${id} div.folder-preview > span:last`); // Or elementForPreviewOpts if you prefer

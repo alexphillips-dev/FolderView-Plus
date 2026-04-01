@@ -59,7 +59,7 @@
             const indexById = new Map(ids.map((id, idx) => [id, idx]));
             const childrenByParent = new Map();
             for (const id of ids) {
-                const parentIdRaw = normalizeParentFolderId(source[id]?.parentId || '');
+                const parentIdRaw = normalizeParentFolderId(source[id]?.parentId || source[id]?.parent_id || '');
                 const parentId = parentIdRaw && parentIdRaw !== id && indexById.has(parentIdRaw) ? parentIdRaw : '';
                 const key = parentId || '__root__';
                 if (!childrenByParent.has(key)) {
@@ -95,6 +95,36 @@
             return rows;
         };
 
+        const buildParentFolderEntries = (foldersMap, blockedIds = new Set()) => {
+            const blocked = blockedIds instanceof Set ? blockedIds : new Set();
+            const rows = buildNestedFolderOrder(foldersMap);
+            if (!rows.length) {
+                return [];
+            }
+            const pathById = new Map();
+            const entries = [];
+            for (const row of rows) {
+                const id = normalizeParentFolderId(row?.id || '');
+                if (!id || blocked.has(id)) {
+                    continue;
+                }
+                const folder = row?.folder && typeof row.folder === 'object' ? row.folder : {};
+                const name = String(folder?.name || id).trim() || id;
+                const parentId = normalizeParentFolderId(folder?.parentId || folder?.parent_id || '');
+                const parentPath = parentId && pathById.has(parentId) ? String(pathById.get(parentId) || '').trim() : '';
+                const path = parentPath ? `${parentPath} / ${name}` : name;
+                const depth = Math.max(0, Number(row?.depth || 0));
+                pathById.set(id, path);
+                entries.push({
+                    id,
+                    depth,
+                    name,
+                    path
+                });
+            }
+            return entries;
+        };
+
         const populateParentFolderOptions = (foldersMap, selectedParentId = '', blockedIds = new Set()) => {
             const form = getForm();
             const select = form?.parent_folder_id;
@@ -103,16 +133,9 @@
             }
             const selected = normalizeParentFolderId(selectedParentId);
             const blocked = blockedIds instanceof Set ? blockedIds : new Set();
-            const rows = buildNestedFolderOrder(foldersMap);
             const options = ['<option value="">No parent (top level)</option>'];
-            for (const row of rows) {
-                const id = normalizeParentFolderId(row?.id || '');
-                if (!id || blocked.has(id)) {
-                    continue;
-                }
-                const depth = Math.max(0, Number(row?.depth || 0));
-                const indent = depth > 0 ? `${'  '.repeat(depth)}- ` : '';
-                options.push(`<option value="${escapeHtml(id)}">${escapeHtml(`${indent}${String(row?.folder?.name || id)}`)}</option>`);
+            for (const entry of buildParentFolderEntries(foldersMap, blocked)) {
+                options.push(`<option value="${escapeHtml(entry.id)}">${escapeHtml(entry.path)}</option>`);
             }
             jq(select).html(options.join(''));
             select.value = (selected && !blocked.has(selected)) ? selected : '';
@@ -266,6 +289,7 @@
             normalizeParentFolderId,
             computeFolderDescendantIds,
             buildNestedFolderOrder,
+            buildParentFolderEntries,
             populateParentFolderOptions,
             getSiblingNameCollision,
             suggestSiblingName,

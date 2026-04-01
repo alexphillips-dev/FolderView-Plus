@@ -1208,19 +1208,6 @@
         return $unique;
     }
 
-    function readInstalledManifestPath(): string {
-        global $configDir;
-        $preferred = "$configDir/folderview.plus.plg";
-        if (is_file($preferred)) {
-            return $preferred;
-        }
-        $candidates = readInstalledManifestPathCandidates();
-        if (count($candidates) > 0) {
-            return (string)$candidates[0];
-        }
-        return $preferred;
-    }
-
     function normalizeChangesBlockLines(string $block): array {
         $lines = [];
         foreach (explode("\n", str_replace(["\r\n", "\r"], "\n", $block)) as $line) {
@@ -1526,15 +1513,6 @@
         $summary['categoryLabel'] = (string)($category['label'] ?? 'Bug Fix Update');
         $summary['headline'] = (string)($category['headline'] ?? 'This update includes bug fixes and quality improvements.');
         return $summary;
-    }
-
-    function readChangesLinesForVersion(string $version, int $maxLines = 14): array {
-        $summary = readChangesSummaryForVersion($version, $maxLines);
-        return (array)($summary['lines'] ?? []);
-    }
-
-    function readCurrentVersionChanges(int $maxLines = 14): array {
-        return readChangesLinesForVersion(readInstalledVersion(), $maxLines);
     }
 
     function getLegacyConfigDirCandidates(): array {
@@ -3679,6 +3657,72 @@
         return $manager === '' ? false : $manager;
     }
 
+    function normalizeDockerUpdatedStateValue($value): ?bool {
+        if (is_bool($value)) {
+            return $value;
+        }
+        if (is_int($value) || is_float($value)) {
+            $numeric = (int)$value;
+            if ($numeric === 1) {
+                return true;
+            }
+            if ($numeric === 0) {
+                return false;
+            }
+            return null;
+        }
+        if (!is_string($value)) {
+            return null;
+        }
+        $normalized = strtolower(trim($value));
+        if ($normalized === '') {
+            return null;
+        }
+        if (in_array($normalized, ['true', '1', 'yes', 'on', 'up-to-date', 'uptodate', 'current'], true)) {
+            return true;
+        }
+        if (in_array($normalized, ['false', '0', 'no', 'off', 'update-ready', 'update ready', 'apply-update', 'apply update', 'update available'], true)) {
+            return false;
+        }
+        return null;
+    }
+
+    function readDockerWebuiInfoCache(): array {
+        global $dockerManPaths, $documentRoot;
+        $cachePath = trim((string)($dockerManPaths['webui-info'] ?? ''));
+        if ($cachePath === '') {
+            $safeDocroot = rtrim((string)($documentRoot ?? ($_SERVER['DOCUMENT_ROOT'] ?? '/usr/local/emhttp')), '/\\');
+            $cachePath = $safeDocroot . '/state/plugins/dynamix.docker.manager/docker.json';
+        }
+        if ($cachePath === '' || !class_exists('DockerUtil')) {
+            return [];
+        }
+        $cache = DockerUtil::loadJSON($cachePath);
+        return is_array($cache) ? $cache : [];
+    }
+
+    // Keep FolderView Plus aligned with the native Docker page cache so first paint
+    // and hydrated rows read the same update signal.
+    function resolveDockerCachedUpdatedStateValue(string $containerName, array $dockerWebuiInfo = []): ?bool {
+        $safeName = trim($containerName);
+        if ($safeName === '') {
+            return null;
+        }
+        $cachedUpdated = normalizeDockerUpdatedStateValue($dockerWebuiInfo[$safeName]['updated'] ?? null);
+        return is_bool($cachedUpdated) ? $cachedUpdated : null;
+    }
+
+    function resolveDockerUpdatedStateValue(string $containerName, string $containerImage, array $dockerWebuiInfo = [], $dockerUpdate = null): ?bool {
+        $cachedUpdated = resolveDockerCachedUpdatedStateValue($containerName, $dockerWebuiInfo);
+        if (is_bool($cachedUpdated)) {
+            return $cachedUpdated;
+        }
+        if ($containerImage === '' || !($dockerUpdate instanceof DockerUpdate)) {
+            return null;
+        }
+        return normalizeDockerUpdatedStateValue($dockerUpdate->getUpdateStatus($containerImage));
+    }
+
     function serverRegexMatches(string $pattern, string $input): bool {
         if (trim($pattern) === '') {
             return false;
@@ -4150,23 +4194,6 @@
             return false;
         }
         return @preg_match(diagnosticsBuildRegex($pattern), $subject) === 1;
-    }
-
-    function diagnosticsDockerLabelsForItem($item): array {
-        if (!is_array($item)) {
-            return [];
-        }
-        if (isset($item['Labels']) && is_array($item['Labels'])) {
-            return $item['Labels'];
-        }
-        if (isset($item['info']['Config']['Labels']) && is_array($item['info']['Config']['Labels'])) {
-            return $item['info']['Config']['Labels'];
-        }
-        return [];
-    }
-
-    function diagnosticsAutoRuleMatches(array $rule, string $name, array $infoByName, string $type): bool {
-        return autoRuleMatchesItem($rule, $name, $infoByName, $type);
     }
 
     function diagnosticsFirstMatchingRule(array $rules, string $name, array $infoByName, string $type): ?array {
@@ -5511,6 +5538,7 @@
 
             $autoStartFile = $dockerManPaths['autostart-file'] ?? "/var/lib/docker/unraid-autostart";
             $autoStartLines = @file($autoStartFile, FILE_IGNORE_NEW_LINES) ?: [];
+            $dockerWebuiInfo = readDockerWebuiInfoCache();
             $autoStartSet = [];
             foreach ($autoStartLines as $line) {
                 $trimmed = trim((string)$line);
@@ -5549,6 +5577,7 @@
                     'paused' => $paused,
                     'status' => $statusRaw,
                     'autostart' => isset($autoStartSet[$name]),
+                    'Updated' => $manager === 'dockerman' ? resolveDockerCachedUpdatedStateValue($name, $dockerWebuiInfo) : null,
                     'manager' => $manager,
                     'composeProject' => getComposeProjectValueFromLabels($labels),
                     'folderLabel' => getFolderLabelValueFromLabels($labels)
@@ -5622,6 +5651,7 @@
             $autoStartFile = $dockerManPaths['autostart-file'] ?? "/var/lib/docker/unraid-autostart";
             $autoStartLines = @file($autoStartFile, FILE_IGNORE_NEW_LINES) ?: [];
             $autoStart = array_map('var_split', $autoStartLines);
+            $dockerWebuiInfo = readDockerWebuiInfoCache();
 
             // Remove stale entries from autostart file (containers that no longer exist)
             $allCtNames = array_map(function($c) { return ltrim($c['Names'][0] ?? '', '/'); }, $cts);
@@ -5657,8 +5687,10 @@
                 $ct['info']['State']['Autostart'] = in_array($containerName, $autoStart);
                 $containerImage = DockerUtil::ensureImageTag((string)($ct['info']['Config']['Image'] ?? ''));
                 $ct['info']['Config']['Image'] = $containerImage;
-                $ct['info']['State']['Updated'] = $containerImage !== '' ? $DockerUpdate->getUpdateStatus($containerImage) : '';
                 $ct['info']['State']['manager'] = getNormalizedDockerManagerFromLabels($containerLabels);
+                $ct['info']['State']['Updated'] = $ct['info']['State']['manager'] === 'dockerman'
+                    ? resolveDockerUpdatedStateValue($containerName, $containerImage, $dockerWebuiInfo, $DockerUpdate)
+                    : null;
                 $ct['shortId'] = substr(str_replace('sha256:', '', (string)($ct['Id'] ?? '')), 0, 12);
                 $ct['shortImageId'] = substr(str_replace('sha256:', '', (string)($ct['ImageID'] ?? '')), 0, 12);
                 $ct['info']['State']['WebUi'] = ''; $ct['info']['State']['TSWebUi'] = '';

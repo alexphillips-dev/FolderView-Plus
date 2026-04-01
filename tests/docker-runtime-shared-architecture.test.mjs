@@ -70,7 +70,10 @@ test('docker runtime consumes shared state store and guarded async action wrappe
     assert.match(dockerJs, /const dockerRuntimeShared = window\.FolderViewDockerRuntimeShared \|\| \{\};/);
     assert.match(dockerJs, /const fatalBanner = window\.FolderViewPlusFatalBanner \|\| null;/);
     assert.match(dockerJs, /const DOCKER_FATAL_BANNER_HOST_SELECTOR = String\(dockerFatalBannerRuntimeConfig\.hostSelector \|\| '#fvplus-docker-runtime-banner-host, \.canvas'\)/);
-    assert.match(dockerJs, /Updated:\s*sourceState\.Updated \?\? previousState\.Updated \?\? null,/);
+    assert.match(dockerJs, /const readDockerHostRowUpdatedState = \(name\) => \{/);
+    assert.match(dockerJs, /const sourceUpdated = typeof sourceState\.Updated === 'boolean'/);
+    assert.match(dockerJs, /const resolvedUpdated = typeof sourceUpdated === 'boolean'/);
+    assert.match(dockerJs, /Updated:\s*resolvedUpdated,/);
     assert.match(dockerJs, /const createDockerRuntimeDiagnosticsBridge = typeof dockerRuntimeShared\.createRuntimeDiagnosticsBridge === 'function'/);
     assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('folderviewplus\.utils\.js'\)/);
     assert.match(dockerJs, /dockerBootstrapMissingModules\.push\('folderviewplus\.request\.js'\)/);

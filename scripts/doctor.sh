@@ -17,6 +17,8 @@ REQUIRED_COMMANDS=(
   sha256sum
   php
   node
+  npm
+  npx
   git
   gh
 )

@@ -137,6 +137,8 @@ test('folder editor runtimes accept query and hash bootstrap identity fallbacks'
     assert.match(folderLegacyJs, /window\.FolderViewPlusFolderEditorRuntimeBootStage = 'runtime-ready';/);
     assert.match(folderLegacyJs, /sampleRoot:\s*'body'/);
     assert.match(folderEditorChromeJs, /root\.FolderViewPlusReportFolderEditorBootstrap =/);
+    assert.match(folderEditorChromeJs, /const pageReportFolderEditorBootstrap = typeof root\.FolderViewPlusReportFolderEditorBootstrap === 'function'/);
+    assert.match(folderEditorChromeJs, /pageReportFolderEditorBootstrap\(\{\s*summary,\s*details,\s*debug,\s*tone,\s*stage: String\(root\.FolderViewPlusFolderEditorRuntimeBootStage \|\| ''\)\s*\}\);/);
     assert.match(folderEditorChromeJs, /Folder editor runtime stalled during bootstrap\./);
     assert.match(folderEditorChromeJs, /<details id="fvEditorBootstrapDetails" class="fv-editor-bootstrap-disclosure">/);
     assert.match(folderEditorChromeJs, /<summary id="fvEditorBootstrapSummary" class="fv-editor-bootstrap-summary">Bootstrap diagnostics<\/summary>/);

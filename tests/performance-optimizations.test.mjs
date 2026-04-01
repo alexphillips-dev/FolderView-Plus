@@ -142,6 +142,10 @@ test('runtime refresh uses lightweight state mode checks before re-rendering', (
     assert.match(dockerJs, /dockerHostLoadOwnsLoadingUi = false;\s*activeDockerRenderSuppressLoadingUi = false;/);
     assert.match(dockerJs, /render:\s*\[[\s\S]*createDockerRuntimeRequest\(buildDockerRuntimeInfoUrl\('state', cacheBust\),/);
     assert.match(dockerJs, /fullInfo:\s*createDockerRuntimeRequest\(buildDockerRuntimeInfoUrl\('full', cacheBust\),/);
+    assert.match(dockerJs, /const normalizeUpdatedToken = \(value\) => \(value === false \? 'u0' : \(value === true \? 'u1' : 'ux'\)\);/);
+    assert.match(dockerJs, /const updated = normalizeUpdatedToken\(entry\.Updated\);/);
+    assert.match(dockerJs, /const updated = normalizeUpdatedToken\(state\.Updated\);/);
+    assert.match(dockerJs, /return `\$\{status\}:\$\{autostart\}:\$\{manager\}:\$\{updated\}:\$\{label\}`;/);
 });
 
 test('performance mode applies stricter refresh cadence and reduced motion guards', () => {
@@ -241,6 +245,9 @@ test('docker first paint keeps a lightweight loading shell and enriches state pa
     assert.match(dockerJs, /const ensureDockerRuntimeLoadingOverlay = \(\) =>/);
     assert.match(dockerJs, /showDockerRuntimeLoadingOverlay\(\);/);
     assert.match(dockerCss, /\.fvplus-docker-runtime-loading-overlay\s*\{/);
+    assert.match(libPhp, /\$dockerWebuiInfo = readDockerWebuiInfoCache\(\);/);
+    assert.match(libPhp, /resolveDockerCachedUpdatedStateValue\(string \$containerName, array \$dockerWebuiInfo = \[\]\): \?bool/);
+    assert.match(libPhp, /'Updated'\s*=>\s*\$manager === 'dockerman' \? resolveDockerCachedUpdatedStateValue\(\$name, \$dockerWebuiInfo\) : null,/);
     assert.match(libPhp, /'Labels'\s*=>\s*\$labels/);
     assert.match(libPhp, /'Image'\s*=>\s*trim\(\(string\)\(\$container\['Image'\] \?\? ''\)\)/);
     assert.match(libPhp, /'shortImageId'\s*=>\s*substr\(str_replace\('sha256:', '', \(string\)\(\$container\['ImageID'\] \?\? ''\)\), 0, 12\)/);

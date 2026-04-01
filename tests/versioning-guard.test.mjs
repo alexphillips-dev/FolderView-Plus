@@ -7,6 +7,7 @@ const repoRoot = path.resolve(process.cwd());
 const pkgBuildPath = path.join(repoRoot, 'pkg_build.sh');
 const stableTemplatePath = path.join(repoRoot, 'folderview.plus.xml');
 const releaseGuardPath = path.join(repoRoot, 'scripts/release_guard.sh');
+const devFinalizePath = path.join(repoRoot, 'scripts/dev_finalize.sh');
 const releasePreparePath = path.join(repoRoot, 'scripts/release_prepare.sh');
 const ciWorkflowPath = path.join(repoRoot, '.github/workflows/ci.yml');
 const backmergeWorkflowPath = path.join(repoRoot, '.github/workflows/backmerge-main-to-dev.yml');
@@ -41,9 +42,17 @@ const doctorPath = path.join(repoRoot, 'scripts/doctor.sh');
 const sharedLibPath = path.join(repoRoot, 'scripts/lib.sh');
 const prePushHookPath = path.join(repoRoot, '.githooks/pre-push');
 const perfBaselinePath = path.join(repoRoot, 'scripts/perf_baseline.json');
+const jsUnusedSymbolsGuardPath = path.join(repoRoot, 'scripts/js_unused_symbols_guard.mjs');
+const jsUnusedSymbolsBaselinePath = path.join(repoRoot, 'scripts/js_unused_symbols_baseline.json');
+const eslintUnusedConfigPath = path.join(repoRoot, 'scripts/eslint-unused.config.mjs');
+const phpUnusedHelpersGuardPath = path.join(repoRoot, 'scripts/php_unused_helpers_guard.php');
+const phpUnusedHelpersBaselinePath = path.join(repoRoot, 'scripts/php_unused_helpers_baseline.json');
+const readmePath = path.join(repoRoot, 'README.md');
+const visualRuntimeContractPath = path.join(repoRoot, 'docs/visual-runtime-contract.md');
 const pkgBuild = fs.readFileSync(pkgBuildPath, 'utf8');
 const stableTemplate = fs.readFileSync(stableTemplatePath, 'utf8');
 const releaseGuard = fs.readFileSync(releaseGuardPath, 'utf8');
+const devFinalize = fs.readFileSync(devFinalizePath, 'utf8');
 const releasePrepare = fs.readFileSync(releasePreparePath, 'utf8');
 const ciWorkflow = fs.readFileSync(ciWorkflowPath, 'utf8');
 const backmergeWorkflow = fs.readFileSync(backmergeWorkflowPath, 'utf8');
@@ -79,6 +88,13 @@ const doctorScript = fs.readFileSync(doctorPath, 'utf8');
 const sharedLib = fs.readFileSync(sharedLibPath, 'utf8');
 const prePushHook = fs.readFileSync(prePushHookPath, 'utf8');
 const perfBaseline = JSON.parse(fs.readFileSync(perfBaselinePath, 'utf8'));
+const jsUnusedSymbolsGuard = fs.readFileSync(jsUnusedSymbolsGuardPath, 'utf8');
+const jsUnusedSymbolsBaseline = JSON.parse(fs.readFileSync(jsUnusedSymbolsBaselinePath, 'utf8'));
+const eslintUnusedConfig = fs.readFileSync(eslintUnusedConfigPath, 'utf8');
+const phpUnusedHelpersGuard = fs.readFileSync(phpUnusedHelpersGuardPath, 'utf8');
+const phpUnusedHelpersBaseline = JSON.parse(fs.readFileSync(phpUnusedHelpersBaselinePath, 'utf8'));
+const readme = fs.readFileSync(readmePath, 'utf8');
+const visualRuntimeContract = fs.readFileSync(visualRuntimeContractPath, 'utf8');
 
 test('pkg_build computes stable versions per current date only', () => {
     assert.match(pkgBuild, /next_stable_version_for_date/);
@@ -220,9 +236,39 @@ test('dev pushes that change shipped plugin files must bump the manifest version
     assert.match(devVersionBumpGuard, /git show "\$\{ref_name\}:folderview\.plus\.plg"/);
     assert.match(devVersionBumpGuard, /src\/folderview\.plus\/\*|folderview\.plus\.plg|folderview\.plus\.xml/);
     assert.match(devVersionBumpGuard, /change shipped plugin files must bump folderview\.plus\.plg version/);
-    assert.match(devVersionBumpGuard, /bash scripts\/release_prepare\.sh' or 'bash pkg_build\.sh/);
+    assert.match(devVersionBumpGuard, /bash scripts\/dev_finalize\.sh --message/);
+    assert.match(devVersionBumpGuard, /bash pkg_build\.sh/);
     assert.match(prePushHook, /echo "\[pre-push\] Running dev version bump guard\.\.\."/);
     assert.match(prePushHook, /bash scripts\/dev_version_bump_guard\.sh/);
+});
+
+test('dev finalize script validates, packages, commits, and pushes dev safely', () => {
+    assert.match(devFinalize, /--message TEXT/);
+    assert.match(devFinalize, /--skip-build/);
+    assert.match(devFinalize, /--no-push/);
+    assert.match(devFinalize, /bash scripts\/doctor\.sh/);
+    assert.match(devFinalize, /bash scripts\/run_ci_suite\.sh --lane lint --lane tests/);
+    assert.match(devFinalize, /--message is required unless --skip-build is used/);
+    assert.match(devFinalize, /must run from branch 'dev'/);
+    assert.match(devFinalize, /git diff --cached --name-only --diff-filter=ACMR/);
+    assert.match(devFinalize, /git diff --name-only --diff-filter=ACMR/);
+    assert.match(devFinalize, /git ls-files --others --exclude-standard/);
+    assert.match(devFinalize, /git diff --cached --name-only --diff-filter=ACMR \|\| true/);
+    assert.match(devFinalize, /git diff --name-only --diff-filter=ACMR \|\| true/);
+    assert.match(devFinalize, /git ls-files --others --exclude-standard \|\| true/);
+    assert.match(devFinalize, /Stage the intended source changes before running dev_finalize\.sh/);
+    assert.match(devFinalize, /bash pkg_build\.sh/);
+    assert.match(devFinalize, /git add folderview\.plus\.plg folderview\.plus\.xml archive\//);
+    assert.match(devFinalize, /git commit -m "\$\{COMMIT_MESSAGE\}"/);
+    assert.match(devFinalize, /git push -u origin dev/);
+});
+
+test('docs point dev packaging work to the staged dev finalize workflow', () => {
+    assert.match(readme, /git add <files>/);
+    assert.match(readme, /bash scripts\/dev_finalize\.sh --message "Describe the change" --open-fixture/);
+    assert.match(readme, /bash scripts\/dev_finalize\.sh --open-fixture --skip-build/);
+    assert.match(visualRuntimeContract, /git add <files>/);
+    assert.match(visualRuntimeContract, /bash scripts\/dev_finalize\.sh --message "Describe the fix" --open-fixture/);
 });
 
 test('browser smoke scripts require folder editor coverage and include real editor interaction smoke', () => {
@@ -306,6 +352,8 @@ test('shared ci suite centralizes linting, tests, guards, docs metadata, and smo
     assert.match(runCiSuite, /shellcheck -x --source-path=SCRIPTDIR/);
     assert.match(runCiSuite, /node --check/);
     assert.match(runCiSuite, /php -l/);
+    assert.match(runCiSuite, /node scripts\/js_unused_symbols_guard\.mjs/);
+    assert.match(runCiSuite, /php scripts\/php_unused_helpers_guard\.php/);
     assert.match(runCiSuite, /node --test tests\/mobile-touch-support\.test\.mjs tests\/mobile-regression-guard\.test\.mjs/);
     assert.match(runCiSuite, /node --test tests\/\*\.mjs/);
     assert.match(runCiSuite, /node --test tests\/versioning-guard\.test\.mjs tests\/support-policy-contract\.test\.mjs/);
@@ -485,6 +533,8 @@ test('shared script library and doctor preflight exist with required helpers', (
     assert.match(doctorScript, /source "\$\{ROOT_DIR\}\/scripts\/lib\.sh"/);
     assert.match(doctorScript, /REQUIRED_COMMANDS=\(/);
     assert.match(doctorScript, /gh/);
+    assert.match(doctorScript, /npm/);
+    assert.match(doctorScript, /npx/);
     assert.match(doctorScript, /Tooling doctor passed/);
 });
 
@@ -522,6 +572,18 @@ test('standards guard scripts exist with expected core checks', () => {
     assert.match(themeRuntimeGuard, /Theme runtime guard passed/);
     assert.match(themeRuntimeGuard, /docker inline status color painting/);
     assert.match(themeRuntimeGuard, /scripts loader path boundary check/);
+    assert.match(eslintUnusedConfig, /no-unused-vars/);
+    assert.match(eslintUnusedConfig, /scripts\/include/);
+    assert.match(jsUnusedSymbolsGuard, /eslint@9/);
+    assert.match(jsUnusedSymbolsGuard, /FVPLUS_JS_UNUSED_STRICT/);
+    assert.match(jsUnusedSymbolsGuard, /JS unused-symbol guard passed/);
+    assert.equal(jsUnusedSymbolsBaseline.version, 1);
+    assert.equal(Array.isArray(jsUnusedSymbolsBaseline.findings), true);
+    assert.match(phpUnusedHelpersGuard, /token_get_all/);
+    assert.match(phpUnusedHelpersGuard, /FVPLUS_PHP_UNUSED_STRICT/);
+    assert.match(phpUnusedHelpersGuard, /PHP unused-helper guard passed/);
+    assert.equal(phpUnusedHelpersBaseline.version, 1);
+    assert.equal(Array.isArray(phpUnusedHelpersBaseline.findings), true);
     assert.match(perfBudgetGuard, /Performance budget guard passed/);
     assert.match(perfBudgetGuard, /FVPLUS_MAX_FOLDERVIEWPLUS_JS_BYTES/);
     assert.match(perfBudgetGuard, /FVPLUS_PERF_BASELINE_FILE/);

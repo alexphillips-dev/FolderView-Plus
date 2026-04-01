@@ -1,0 +1,6 @@
+{
+    "version": 1,
+    "scope": "src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/**/*.{php,page}",
+    "generatedAt": "2026-03-30T23:57:47+00:00",
+    "findings": []
+}

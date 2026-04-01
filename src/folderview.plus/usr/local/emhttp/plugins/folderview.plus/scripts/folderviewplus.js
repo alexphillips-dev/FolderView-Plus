@@ -2986,27 +2986,6 @@ const renderFirstRunQuickPathPanel = () => {
     `).show();
 };
 
-const resolveFolderStatusWarnThreshold = (folder, fallbackThreshold) => {
-    const safeFallback = Number.isFinite(Number(fallbackThreshold))
-        ? Math.min(100, Math.max(0, Math.round(Number(fallbackThreshold))))
-        : 60;
-    const settings = (folder && typeof folder.settings === 'object' && folder.settings !== null)
-        ? folder.settings
-        : {};
-    const raw = settings.status_warn_stopped_percent;
-    if (raw === '' || raw === null || raw === undefined) {
-        return { value: safeFallback, source: 'global' };
-    }
-    const parsed = Number(raw);
-    if (!Number.isFinite(parsed)) {
-        return { value: safeFallback, source: 'global' };
-    }
-    return {
-        value: Math.min(100, Math.max(0, Math.round(parsed))),
-        source: 'folder'
-    };
-};
-
 const buildStatusSnapshot = (type, folders, memberSnapshot, infoByName) => {
     const snapshot = {};
     for (const [id] of Object.entries(folders || {})) {
@@ -3035,6 +3014,9 @@ const buildStatusSnapshot = (type, folders, memberSnapshot, infoByName) => {
 
 const isDockerUpdateAvailable = (itemInfo) => {
     const source = itemInfo && typeof itemInfo === 'object' ? itemInfo : {};
+    if (source.UpdateAvailable === true || source.update === true) {
+        return true;
+    }
     const state = source?.info?.State || source?.State || {};
     // Mirror Docker tab behavior exactly:
     // update-ready means manager is dockerman and Updated is strict boolean false.
@@ -3441,36 +3423,6 @@ const getRuntimePlanForFolder = (type, folderId, action) => {
         rules: prefsByType[type]?.autoRules || [],
         action
     });
-};
-
-const runtimePreviewText = (type, folderId, action, plan) => {
-    if (!plan) {
-        return 'No plan available.';
-    }
-    const folderName = folderNameForId(type, folderId);
-    const lines = [];
-    lines.push(`Type: ${type}`);
-    lines.push(`Folder: ${folderName} (${folderId})`);
-    lines.push(`Action: ${action}`);
-    lines.push(`Requested: ${plan.requestedCount}`);
-    lines.push(`Eligible: ${plan.eligible.length}`);
-    lines.push(`Skipped: ${plan.skipped.length}`);
-    lines.push(`State counts: started=${plan.countsByState?.started || 0}, paused=${plan.countsByState?.paused || 0}, stopped=${plan.countsByState?.stopped || 0}`);
-    lines.push('');
-    if (plan.eligible.length) {
-        lines.push(`Eligible items (${plan.eligible.length}):`);
-        for (const row of plan.eligible) {
-            lines.push(`- ${row.name} [${row.state}]${row.reasons?.length ? ` via ${row.reasons.join(', ')}` : ''}`);
-        }
-        lines.push('');
-    }
-    if (plan.skipped.length) {
-        lines.push(`Skipped items (${plan.skipped.length}):`);
-        for (const row of plan.skipped) {
-            lines.push(`- ${row.name} [${row.state}] - ${row.reason}`);
-        }
-    }
-    return `${lines.join('\n')}\n`;
 };
 
 const normalizedFilter = (value) => String(value || '').trim().toLowerCase();
@@ -4009,106 +3961,6 @@ const positionSettingsTableResizeGuide = (left, top, height) => {
     guide.style.left = `${Math.round(left)}px`;
     guide.style.top = `${Math.round(top)}px`;
     guide.style.height = `${Math.max(0, Math.round(height))}px`;
-};
-
-const beginTableColumnResize = (type, key, event) => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    if (shouldUseCompactMobileLayout()) {
-        return;
-    }
-    if (event.button !== 0) {
-        return;
-    }
-    const table = getSettingsTableElement(resolvedType);
-    if (!table) {
-        return;
-    }
-    const config = TABLE_COLUMN_RESIZE_CONFIG_BY_TYPE[resolvedType]?.[key];
-    if (!config) {
-        return;
-    }
-    const startClientX = Number(event.clientX || 0);
-    const header = table.querySelector(config.header);
-    if (!header) {
-        return;
-    }
-    const startWidth = header.getBoundingClientRect().width;
-    const normalizedStart = normalizeSingleColumnWidth(resolvedType, key, startWidth) || startWidth;
-    const tableRect = table.getBoundingClientRect();
-    const headerRect = header.getBoundingClientRect();
-    const startBoundaryX = headerRect.right;
-    let dragStarted = false;
-    let nextWidth = normalizedStart;
-    const startResize = () => {
-        if (dragStarted) {
-            return;
-        }
-        dragStarted = true;
-        const frozenWidths = captureCurrentColumnWidths(resolvedType);
-        if (Object.keys(frozenWidths).length > 0) {
-            columnWidthsByType[resolvedType] = normalizeColumnWidthsForType(resolvedType, {
-                ...(columnWidthsByType[resolvedType] || {}),
-                ...frozenWidths
-            });
-        }
-        columnWidthModeByType[resolvedType] = 'custom';
-        columnPresetByType[resolvedType] = 'custom';
-        columnWidthsByType[resolvedType] = normalizeColumnWidthsForType(resolvedType, {
-            ...(columnWidthsByType[resolvedType] || {}),
-            [key]: normalizedStart
-        });
-        document.body.classList.add('fv-column-resize-active');
-        positionSettingsTableResizeGuide(startBoundaryX, tableRect.top, tableRect.height);
-    };
-    const applyResolvedWidth = () => {
-        columnWidthsByType[resolvedType] = normalizeColumnWidthsForType(resolvedType, {
-            ...(columnWidthsByType[resolvedType] || {}),
-            [key]: nextWidth
-        });
-        applyColumnWidths(resolvedType);
-    };
-    const onMove = (moveEvent) => {
-        if (Number(moveEvent.buttons) === 0) {
-            if (dragStarted) {
-                applyResolvedWidth();
-            }
-            stopActiveTableColumnResize(true);
-            return;
-        }
-        const delta = Number(moveEvent.clientX || 0) - startClientX;
-        if (!dragStarted && Math.abs(delta) < 4) {
-            return;
-        }
-        startResize();
-        const candidateWidth = normalizeSingleColumnWidth(resolvedType, key, normalizedStart + delta);
-        if (candidateWidth === null) {
-            return;
-        }
-        nextWidth = candidateWidth;
-        positionSettingsTableResizeGuide(startBoundaryX + (nextWidth - normalizedStart), tableRect.top, tableRect.height);
-    };
-    const onUp = () => {
-        if (dragStarted) {
-            applyResolvedWidth();
-        }
-        stopActiveTableColumnResize(true);
-    };
-    activeTableColumnResize = {
-        type: resolvedType,
-        dragStarted: false,
-        onMove,
-        onUp
-    };
-    Object.defineProperty(activeTableColumnResize, 'dragStarted', {
-        get: () => dragStarted,
-        set: (value) => {
-            dragStarted = value === true;
-        }
-    });
-    window.addEventListener('mousemove', onMove, true);
-    window.addEventListener('mouseup', onUp, true);
-    event.preventDefault();
-    event.stopPropagation();
 };
 
 const bindTableColumnResizers = (type) => {
@@ -7706,11 +7558,6 @@ const persistManualOrder = async (type, order, { refresh = true } = {}) => {
     }
 };
 
-const persistManualOrderFromDom = async (type) => {
-    const order = currentOrderedIdsFromTable(type);
-    await persistManualOrder(type, order, { refresh: true });
-};
-
 const moveFolderRow = async (type, folderId, direction) => {
     const resolvedType = normalizeManagedType(type);
     if (!ensureRuntimeConflictActionAllowed(`Reorder ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders`)) {
@@ -9157,8 +9004,6 @@ const renderBackupRows = (type) => {
 // folderviewplus.import.js provides backup comparison helpers.
 
 const normalizeOperationsWorkspaceType = (value) => (String(value || '').trim().toLowerCase() === 'vm' ? 'vm' : 'docker');
-
-const getActiveOperationsWorkspaceType = () => normalizeOperationsWorkspaceType(activeOperationsWorkspaceType);
 
 const getLatestTemplateForType = (type) => {
     const resolvedType = normalizeOperationsWorkspaceType(type);

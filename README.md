@@ -347,8 +347,12 @@ Recommended migration path:
 
 - Generate the local runtime fixture when working on Docker or VM row layout:
   - `node scripts/generate_runtime_fixture.mjs`
-- Use the deterministic finalize path for shared runtime or UI work:
-  - `bash scripts/dev_finalize.sh --open-fixture`
+- Stage the intended source changes before using the deterministic dev finalize path:
+  - `git add <files>`
+- Validate shared runtime or UI work and push `dev` in one step:
+  - `bash scripts/dev_finalize.sh --message "Describe the change" --open-fixture`
+- Run validation only without packaging or push:
+  - `bash scripts/dev_finalize.sh --open-fixture --skip-build`
 - Build a package locally:
   - `bash pkg_build.sh`
 - Prepare a release build with checks:

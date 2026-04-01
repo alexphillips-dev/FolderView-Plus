@@ -748,12 +748,8 @@
         const setupWizardCompleted = incoming.setupWizardCompleted === true;
         const settingsMode = incoming.settingsMode === 'advanced' ? 'advanced' : 'basic';
         const incomingSettingsTable = isPlainObject(incoming.settingsTable) ? incoming.settingsTable : {};
-        const normalizedSettingsTableWidthMode = String(incomingSettingsTable.widthMode || '').trim().toLowerCase();
         const normalizedSettingsTablePreset = String(incomingSettingsTable.preset || '').trim().toLowerCase();
         const settingsTableColumns = isPlainObject(incomingSettingsTable.columns) ? { ...incomingSettingsTable.columns } : {};
-        const settingsTableColumnWidths = isPlainObject(incomingSettingsTable.columnWidths)
-            ? { ...incomingSettingsTable.columnWidths }
-            : {};
         const normalizedSettingsTableNameWidth = String(incomingSettingsTable.nameWidth || '').trim().toLowerCase();
         const normalizedSettingsTableActionsWidth = String(incomingSettingsTable.actionsWidth || '').trim().toLowerCase();
         const settingsTable = {

@@ -42,6 +42,14 @@ const folderJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js'
 );
+const folderRulesJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.rules.js'
+);
+const folderParentPickerJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.parent-picker.js'
+);
 const folderLegacyJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.legacy.js'
@@ -66,6 +74,8 @@ const settingsJs = settingsRuntime;
 const folderPage = fs.readFileSync(folderPagePath, 'utf8');
 const folderCss = fs.readFileSync(folderCssPath, 'utf8');
 const folderJs = fs.readFileSync(folderJsPath, 'utf8');
+const folderRulesJs = fs.readFileSync(folderRulesJsPath, 'utf8');
+const folderParentPickerJs = fs.readFileSync(folderParentPickerJsPath, 'utf8');
 const folderLegacyJs = fs.readFileSync(folderLegacyJsPath, 'utf8');
 const folderChromeJs = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js'),
@@ -234,6 +244,12 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderCss, /#fvEditorActionBar\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fv-editor-control-border:\s*var\(--fv-editor-border\);/);
     assert.match(folderCss, /#fvEditorActionBar\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fv-editor-block-border:\s*var\(--fv-editor-border\);/);
     assert.match(folderCss, /#fvEditorActionBar\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fv-editor-hero-icon-border:\s*var\(--fv-editor-border\);/);
+    assert.match(folderCss, /#fvEditorActionBar\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fv-editor-button-accent-fg:\s*#fff8f1;/);
+    assert.match(folderCss, /#fvEditorActionBar\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fv-editor-button-accent-top:\s*#cf7a22;/);
+    assert.match(folderCss, /#fvEditorActionBar\[data-fv-theme-class="light"\]\s*\{[\s\S]*--fv-editor-button-accent-bottom:\s*#b76518;/);
+    assert.match(folderCss, /#fvEditorActionBar\[data-fv-theme-class="light"\] \.folder-btn-submit,[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fv-editor-button-bg-top\),\s*var\(--fv-editor-button-bg-bottom\)\) !important;[\s\S]*color:\s*var\(--fv-editor-button-fg\) !important;/);
+    assert.match(folderCss, /#fvEditorActionBar\[data-fv-theme-class="light"\] \.folder-btn-submit:hover,[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fv-editor-button-hover-top\),\s*var\(--fv-editor-button-hover-bottom\)\) !important;/);
+    assert.match(folderCss, /#fvEditorChrome\[data-fv-theme-class="light"\] \.fv-editor-mode > button\.is-active[\s\S]*background:\s*linear-gradient\(180deg,\s*var\(--fv-editor-button-bg-top\),\s*var\(--fv-editor-button-bg-bottom\)\) !important;[\s\S]*color:\s*var\(--fv-editor-button-fg\) !important;/);
     assert.match(folderCss, /#fvEditorChrome \.fv-editor-kicker,\s*[\s\S]*color:\s*var\(--fv-editor-title-accent\) !important;/);
     assert.match(folderCss, /\.fv-section-heading-copy > h3\s*\{[\s\S]*color:\s*var\(--fv-editor-title-accent\);/);
     assert.match(folderCss, /\.canvas form\.folder-editor-form \.fv-section-heading-copy > h3\s*\{[\s\S]*color:\s*var\(--fv-editor-title-accent\) !important;/);
@@ -242,6 +258,7 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderCss, /\.fv-modern-field-row input\[type="text"\],[\s\S]*background:\s*var\(--fv-editor-input-bg\)/);
     assert.match(folderCss, /\.fv-editor-hero-icon\s*\{[\s\S]*border:\s*1px solid var\(--fv-editor-hero-icon-border\);/);
     assert.match(folderCss, /\.fv-inherited-badge\s*\{[\s\S]*padding:\s*0\.02em 0\.32em;[\s\S]*font-size:\s*0\.68rem;[\s\S]*text-transform:\s*uppercase;/);
+    assert.doesNotMatch(folderCss, /#fvEditorActionBar\[data-fv-theme-class="light"\] \.folder-btn-submit:disabled\s*\{/);
 });
 
 test('settings no longer renders a mobile action bar and keeps import progress viewport guards', () => {
@@ -371,6 +388,8 @@ test('nested folder expansion avoids duplicate parent previews and keeps child-o
 test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderJs, /const enforceLeftAlignedSettingsLayout = \(\) =>/);
     assert.match(folderJs, /const setVisibleMemberSelection = \(checked\) =>/);
+    assert.match(folderJs, /const MEMBER_REGEX_SEARCH_FILTER = 'contains_regex';/);
+    assert.match(folderLegacyJs, /const MEMBER_REGEX_SEARCH_FILTER = 'contains_regex';/);
     assert.match(folderJs, /const ensureInheritedFieldControls = \(\) =>/);
     assert.match(folderJs, /id="fvHeroDefaults"/);
     assert.match(folderJs, /id="fvMemberStateFilter"/);
@@ -401,6 +420,18 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderJs, /const buildRegexSuggestionFromNames = \(names\) =>/);
     assert.match(folderJs, /const applyAdvancedMode = \(\) =>/);
     assert.match(folderJs, /const toggleAdvancedSectionCollapse = \(sectionKey\) =>/);
+    assert.match(folderJs, /<option value="contains_regex">Contains regex<\/option>/);
+    assert.match(folderLegacyJs, /<option value="contains_regex">Contains regex<\/option>/);
+    assert.match(folderJs, /new RegExp\(rawQuery, 'i'\)/);
+    assert.match(folderLegacyJs, /new RegExp\(rawQuery, 'i'\)/);
+    assert.match(folderJs, /queryRegex \? queryRegex\.test\(rawName\) : false/);
+    assert.match(folderLegacyJs, /queryRegex \? queryRegex\.test\(rawName\) : false/);
+    assert.match(folderJs, /Regex search members/);
+    assert.match(folderLegacyJs, /Regex search members/);
+    assert.match(folderJs, /Invalid regex: \$\{error\.message\}/);
+    assert.match(folderLegacyJs, /Invalid regex: \$\{error\.message\}/);
+    assert.match(folderJs, /Filter member list/);
+    assert.match(folderLegacyJs, /Filter member list/);
     assert.match(folderJs, /ComposeProject/);
     assert.match(folderJs, /UpdateAvailable/);
     assert.match(folderJs, /id="fvSuggestDefaults"/);
@@ -421,7 +452,7 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderChromeJs, /if \(row\.querySelector\('\[name="regex"\]'\)\) \{\s*row\.classList\.add\('is-compact-text-row'/);
     assert.match(folderChromeJs, /shell\.classList\.toggle\('is-members-shell', sectionKey === 'members'\)/);
     assert.match(folderChromeJs, /if \(row\.querySelector\('\[name="name"\]'\)\) \{/);
-    assert.match(folderChromeJs, /row\.classList\.remove\('fv-modern-order-row', 'is-wide-row', 'is-icon-row', 'is-status-row', 'is-actions-row', 'is-toggle-row', 'is-color-row', 'is-name-row', 'is-url-row', 'is-compact-text-row', 'is-webui-row', 'is-members-row', 'is-rules-row', 'is-actions-list-row', 'is-actions-launch-row'\);/);
+    assert.match(folderChromeJs, /row\.classList\.remove\('fv-modern-order-row', 'is-wide-row', 'is-icon-row', 'is-status-row', 'is-actions-row', 'is-toggle-row', 'is-color-row', 'is-name-row', 'is-parent-row', 'is-url-row', 'is-webui-url-row', 'is-compact-text-row', 'is-webui-row', 'is-members-row', 'is-rules-row', 'is-actions-list-row', 'is-actions-launch-row'\);/);
     assert.match(folderChromeJs, /if \(row\.querySelector\('\[name="folder_webui"\]'\)\) \{/);
     assert.match(folderChromeJs, /if \(row\.querySelector\('\.custom-action-wrapper'\)\) \{\s*row\.classList\.add\('is-actions-list-row', 'is-wide-row'\);/);
     assert.match(folderChromeJs, /if \(row\.querySelector\('a\.custom-action'\) && !row\.querySelector\('\.custom-action-wrapper'\)\) \{\s*row\.classList\.add\('is-actions-launch-row'\);/);
@@ -472,6 +503,8 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderCss, /\.fv-live-preview-row \.fv-live-chevron\s*\{[\s\S]*appearance:\s*none !important;/);
     assert.match(folderCss, /\.fv-live-preview-row\.is-minimal \.fv-live-chevron\s*\{[\s\S]*color:\s*var\(--fv-live-chevron-color, var\(--fv-chevron-color\)\) !important;/);
     assert.match(folderCss, /\.fv-live-chevron\s*\{[\s\S]*min-width:\s*var\(--fv-live-chevron-min-width, 12px\);[\s\S]*height:\s*var\(--fv-live-chevron-height, 16px\);[\s\S]*padding:\s*var\(--fv-live-chevron-padding, 0 2px\);/);
+    assert.match(folderCss, /\.order-buttons > button,\s*[\s\S]*\.order-buttons > button > i\s*\{[\s\S]*color:\s*var\(--fv-editor-title-accent\) !important;/);
+    assert.match(folderCss, /\.order-buttons > button:hover,\s*[\s\S]*\.order-buttons > button:focus-visible,\s*[\s\S]*\.order-buttons > button:hover > i,\s*[\s\S]*\.order-buttons > button:focus-visible > i\s*\{[\s\S]*color:\s*var\(--fv-editor-title-accent\) !important;/);
     assert.match(folderCss, /\.fv-live-insights\s*\{\s*display:\s*grid;\s*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
     assert.doesNotMatch(folderCss, /\.fv-preview-surface-switch/);
     assert.doesNotMatch(folderCss, /\.fv-preview-surface-btn/);
@@ -484,6 +517,7 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderCss, /\.fv-member-tools-main/);
     assert.match(folderCss, /\.fv-member-tools-filters/);
     assert.match(folderCss, /\.fv-member-tools-actions/);
+    assert.match(folderCss, /\.fv-member-tools-filters > input\[type="text"\]\[aria-invalid="true"\]/);
     assert.match(folderCss, /\.fv-member-chip-row/);
     assert.match(folderCss, /\.fv-member-chip/);
     assert.match(folderCss, /\.fv-section-shell\.is-members-shell \.fv-section-shell-body/);
@@ -521,6 +555,61 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderLegacyJs, /#fvMemberStateFilter/);
     assert.match(folderLegacyJs, /#fvMemberIncludeVisible/);
     assert.match(folderLegacyJs, /All changes saved/);
+});
+
+test('folder editor exposes folder-scoped advanced auto-rules for saved folders', () => {
+    assert.match(folderJs, /const folderEditorRulesModule = window\.FolderViewPlusFolderEditorRules \|\| null;/);
+    assert.match(folderJs, /const getFolderEditorRulesApi = \(\) =>/);
+    assert.match(folderJs, /folderEditorRulesModule\?\.createApi/);
+    assert.match(folderJs, /refreshFolderAutoRulesPanel = \(options = \{\}\) =>/);
+    assert.match(folderRulesJs, /const ruleRegexKinds = type === 'docker'/);
+    assert.match(folderRulesJs, /panel\.id = 'fvFolderAutoRulesPanel';/);
+    assert.match(folderRulesJs, /panel\.className = 'basic fv-modern-field-row is-rules-row fv-folder-auto-rules-panel';/);
+    assert.match(folderRulesJs, /Save this folder first to create advanced rules\./);
+    assert.match(folderRulesJs, /Open full Rules workspace/);
+    assert.match(folderRulesJs, /Create regex-based plugin rules directly from the folder editor without leaving this page\./);
+    assert.match(folderRulesJs, /<dt>Advanced auto-rules:<\/dt>/);
+    assert.match(folderRulesJs, /<blockquote class="inline_help">/);
+    assert.match(folderRulesJs, /\/plugins\/folderview\.plus\/server\/prefs\.php\?type=\$\{encodeURIComponent\(type\)\}/);
+    assert.match(folderRulesJs, /requestClient\.postJson\('\/plugins\/folderview\.plus\/server\/prefs\.php'/);
+    assert.match(folderRulesJs, /href="\/Settings\/FolderViewPlus"/);
+    assert.match(folderPage, /'\/plugins\/folderview\.plus\/scripts\/folder\.editor\.rules\.js'/);
+    assert.match(folderCss, /#fvFolderAutoRulesPanel\.fv-folder-auto-rules-panel/);
+    assert.match(folderCss, /#fvFolderAutoRulesPanel\.fv-folder-auto-rules-panel > dl > dd/);
+    assert.match(folderCss, /#fvFolderAutoRulesPanel\.fv-folder-auto-rules-panel\s*\{[\s\S]*max-width:\s*680px/);
+    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="rules"\] \.fv-section-shell-body\s*\{[\s\S]*grid-template-columns:\s*minmax\(0,\s*560px\)\s+minmax\(0,\s*1fr\)/);
+    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="rules"\] \.fv-modern-group-list\s*\{/);
+    assert.match(folderCss, /\.fv-folder-auto-rules-builder\s*\{/);
+    assert.match(folderCss, /\.fv-folder-auto-rules-link\s*\{/);
+    assert.match(folderCss, /\.fv-folder-auto-rule-card\s*\{/);
+    assert.match(folderCss, /\.fv-folder-auto-rules-builder input\[type="text"\]\[aria-invalid="true"\]/);
+});
+
+test('folder editor uses a searchable parent picker and custom general-section layout', () => {
+    assert.match(folderJs, /const folderParentPickerModule = window\.FolderViewPlusFolderEditorParentPicker \|\| null;/);
+    assert.match(folderJs, /\.fv-section-shell > \.fv-section-shell-body > \.fv-general-left-rail > \.basic/);
+    assert.match(folderJs, /const getFolderEditorParentPickerApi = \(\(\) =>/);
+    assert.match(folderJs, /const refreshParentFolderChooser = \(foldersMap,\s*selectedParentId = '',\s*blockedIds = new Set\(\)\) =>/);
+    assert.match(folderJs, /parentPickerApi\.render\(\{/);
+    assert.match(folderParentPickerJs, /const createApi = \(deps = \{\}\) =>/);
+    assert.match(folderParentPickerJs, /id = 'fvParentFolderPicker'/);
+    assert.match(folderParentPickerJs, /Search folders or full path/);
+    assert.match(folderParentPickerJs, /window\.FolderViewPlusFolderEditorParentPicker = Object\.freeze\(\{/);
+    assert.match(folderPage, /'\/plugins\/folderview\.plus\/scripts\/folder\.editor\.parent-picker\.js'/);
+    assert.match(folderChromeJs, /const ensureGeneralLeftRail = \(body\) =>/);
+    assert.match(folderChromeJs, /rail\.className = 'fv-general-left-rail';/);
+    assert.match(folderChromeJs, /row\.querySelector\('\[name="parent_folder_id"\]'\)/);
+    assert.match(folderChromeJs, /row\.classList\.add\('is-parent-row'\)/);
+    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-section-shell-body\s*\{[\s\S]*grid-template-columns:\s*minmax\(280px,\s*340px\)\s+minmax\(440px,\s*560px\)\s+minmax\(440px,\s*1fr\);/);
+    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-general-left-rail\s*\{[\s\S]*display:\s*flex;[\s\S]*flex-direction:\s*column;[\s\S]*grid-column:\s*1;/);
+    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-modern-field-row\.is-parent-row\s*\{[\s\S]*grid-row:\s*1;[\s\S]*max-width:\s*560px !important;/);
+    assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-modern-field-row\.is-icon-row\s*\{[\s\S]*grid-row:\s*1;[\s\S]*max-width:\s*none !important;[\s\S]*justify-self:\s*stretch !important;/);
+    assert.match(folderCss, /\.fv-parent-picker-shell/);
+    assert.match(folderCss, /\.fv-parent-picker-list\s*\{[\s\S]*display:\s*flex;[\s\S]*border:\s*1px solid var\(--fv-editor-block-border\);[\s\S]*background:\s*var\(--fv-editor-inset-surface\);/);
+    assert.match(folderCss, /\.fv-parent-picker-option\s*\{[\s\S]*margin:\s*0 !important;[\s\S]*border-top:\s*1px solid var\(--fv-editor-block-border\) !important;/);
+    assert.match(folderCss, /\.fv-parent-picker-option:hover,[\s\S]*background:\s*var\(--fv-editor-control-surface-hover\) !important;/);
+    assert.match(folderCss, /\.fv-parent-picker-option\.is-selected\s*\{[\s\S]*linear-gradient\(90deg,\s*var\(--fv-editor-accent-soft\),\s*transparent 32%\),[\s\S]*var\(--fv-editor-control-surface\) !important;/);
+    assert.match(folderCss, /\.fv-parent-picker-search-input/);
 });
 
 test('folder editor page ships the redesign bootstrap and chrome anchors', () => {

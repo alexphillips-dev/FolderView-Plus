@@ -215,7 +215,9 @@ const folderThemeSurfaceBinding = bindFolderThemeAwareSurface
     })
     : null;
 const utils = window.FolderViewPlusUtils || null;
+const folderEditorRulesModule = window.FolderViewPlusFolderEditorRules || null;
 const folderHierarchyModule = window.FolderViewPlusFolderHierarchy || null;
+const folderParentPickerModule = window.FolderViewPlusFolderEditorParentPicker || null;
 const folderIconApiModule = window.FolderViewPlusFolderIconApi || null;
 const modernFolderEditorEnabled = String(window.FolderViewPlusFolderEditorPageMode || 'legacy').trim().toLowerCase() === 'modern';
 const DEFAULT_FOLDER_STATUS_COLORS = folderContract?.DEFAULT_FOLDER_STATUS_COLORS || {
@@ -337,6 +339,8 @@ if (folderEditorBootstrapMissingModules.length > 0) {
 
 let allFoldersById = {};
 let currentFolderName = '';
+let activeFolderEditorFolderId = '';
+let folderEditorRulesApi = null;
 let initialSnapshot = '';
 let isFormInitialized = false;
 let suppressUnloadPrompt = false;
@@ -447,21 +451,6 @@ const normalizeComparableValue = (value) => {
 };
 
 const areComparableValuesEqual = (left, right) => JSON.stringify(normalizeComparableValue(left)) === JSON.stringify(normalizeComparableValue(right));
-
-const getFormControlValue = (fieldName) => {
-    const form = getForm();
-    const field = form?.elements?.[fieldName];
-    if (!field) {
-        return undefined;
-    }
-    if (field.type === 'checkbox') {
-        return field.checked;
-    }
-    if (typeof field.length === 'number' && !field.tagName) {
-        return Array.from(field).map((entry) => (entry?.type === 'checkbox' ? entry.checked : $(entry).val()));
-    }
-    return $(field).val();
-};
 
 const setFormControlValue = (fieldName, value) => {
     const form = getForm();
@@ -1027,6 +1016,32 @@ const extractAjaxErrorMessage = (error, context = 'request') => {
     }
 
     return `Request failed for ${context}.`;
+};
+
+const getFolderEditorRulesApi = () => {
+    if (folderEditorRulesApi || typeof folderEditorRulesModule?.createApi !== 'function') {
+        return folderEditorRulesApi;
+    }
+    folderEditorRulesApi = folderEditorRulesModule.createApi({
+        window,
+        document,
+        $,
+        type,
+        utils,
+        escapeHtml,
+        extractAjaxErrorMessage,
+        shouldRender: () => modernFolderEditorEnabled,
+        getActiveFolderId: () => activeFolderEditorFolderId
+    });
+    return folderEditorRulesApi;
+};
+
+const refreshFolderAutoRulesPanel = (options = {}) => {
+    const api = getFolderEditorRulesApi();
+    if (api && typeof api.refresh === 'function') {
+        return api.refresh(options);
+    }
+    return Promise.resolve();
 };
 
 const fallbackPaginateItems = (items, page, pageSize) => {
@@ -4045,18 +4060,68 @@ const updateMemberStats = () => {
     $('#fvMemberChipAvailable').text(`${available} available`);
 };
 
+const MEMBER_REGEX_SEARCH_FILTER = 'contains_regex';
+const MEMBER_SEARCH_PLACEHOLDER = 'Search members';
+const MEMBER_REGEX_SEARCH_PLACEHOLDER = 'Regex search members';
+const MEMBER_REGEX_SEARCH_HINT = 'Use a regex pattern such as sentry-.* to filter member names.';
+
+const isRegexMemberSearchEnabled = () => ($('#fvMemberFilter').val() || 'all') === MEMBER_REGEX_SEARCH_FILTER;
+
+const setMemberSearchValidationState = (message = '') => {
+    const $search = $('#fvMemberSearch');
+    const input = $search.get(0);
+    if (!input) {
+        return;
+    }
+    const nextMessage = String(message || '').trim();
+    input.setCustomValidity(nextMessage);
+    $search
+        .attr('aria-invalid', nextMessage ? 'true' : 'false')
+        .attr('title', nextMessage || (isRegexMemberSearchEnabled() ? MEMBER_REGEX_SEARCH_HINT : ''));
+};
+
+const syncMemberSearchUiState = () => {
+    const regexSearchEnabled = isRegexMemberSearchEnabled();
+    $('#fvMemberSearch')
+        .attr('placeholder', regexSearchEnabled ? MEMBER_REGEX_SEARCH_PLACEHOLDER : MEMBER_SEARCH_PLACEHOLDER)
+        .attr('aria-label', regexSearchEnabled ? 'Search folder members using a regex' : 'Search folder members')
+        .attr('autocomplete', 'off');
+    if (!regexSearchEnabled) {
+        setMemberSearchValidationState('');
+    }
+};
+
 const applyMemberFilters = () => {
-    const query = ($('#fvMemberSearch').val() || '').trim().toLowerCase();
+    const rawQuery = ($('#fvMemberSearch').val() || '').trim();
+    const query = rawQuery.toLowerCase();
     const filter = $('#fvMemberFilter').val() || 'all';
     const stateFilter = $('#fvMemberStateFilter').val() || 'all';
+    const regexSearchEnabled = filter === MEMBER_REGEX_SEARCH_FILTER;
+    let queryRegex = null;
+
+    syncMemberSearchUiState();
+
+    if (regexSearchEnabled && rawQuery) {
+        try {
+            queryRegex = new RegExp(rawQuery, 'i');
+            setMemberSearchValidationState('');
+        } catch (error) {
+            setMemberSearchValidationState(`Invalid regex: ${error.message}`);
+        }
+    } else {
+        setMemberSearchValidationState('');
+    }
 
     $('table.sortable > tbody > tr').each((_, row) => {
         const $row = $(row);
-        const name = ($row.attr('data-name') || '').toLowerCase();
+        const rawName = String($row.attr('data-name') || '');
+        const name = rawName.toLowerCase();
         const membership = $row.attr('data-membership');
         const included = $row.find('input.container-switch').prop('checked');
         const state = String($row.attr('data-state') || 'stopped').trim().toLowerCase();
-        const matchesQuery = !query || name.includes(query);
+        const matchesQuery = regexSearchEnabled
+            ? (!rawQuery || (queryRegex ? queryRegex.test(rawName) : false))
+            : (!query || name.includes(query));
 
         let matchesFilter = true;
         if (filter === 'included') {
@@ -4341,7 +4406,7 @@ const enforceLeftAlignedSettingsLayout = () => {
 
         const layoutRows = [
             ...Array.from(form.children),
-            ...Array.from(form.querySelectorAll('.fv-section-shell > .fv-section-shell-body > .basic, .fv-section-shell > .fv-section-shell-body > ul'))
+            ...Array.from(form.querySelectorAll('.fv-section-shell > .fv-section-shell-body > .basic, .fv-section-shell > .fv-section-shell-body > .fv-general-left-rail > .basic, .fv-section-shell > .fv-section-shell-body > ul'))
         ];
         layoutRows.forEach((row) => {
             const isBasicRow = row.classList?.contains('basic') || row.classList?.contains('order-section');
@@ -4500,7 +4565,10 @@ const buildRegexSuggestionFromNames = (names) => {
 
 const isDockerUpdateAvailableInEditor = (member) => {
     const source = member && typeof member === 'object' ? member : {};
-    const state = source?.State || source?.RawState || {};
+    if (source.UpdateAvailable === true || source.update === true) {
+        return true;
+    }
+    const state = source?.State || source?.RawState || source?.info?.State || {};
     return state?.manager === 'dockerman' && state?.Updated === false;
 };
 
@@ -4889,6 +4957,7 @@ const initEditorChrome = () => {
                             <option value="included">Included</option>
                             <option value="excluded">Excluded</option>
                             <option value="regex">Regex included</option>
+                            <option value="contains_regex">Contains regex</option>
                             <option value="manual">Manual only</option>
                         </select>
                         <select id="fvMemberStateFilter">
@@ -4975,10 +5044,8 @@ const initEditorChrome = () => {
         applyMemberFilters();
     });
 
-    $('#fvMemberSearch')
-        .attr('aria-label', 'Search folder members')
-        .attr('autocomplete', 'off');
-    $('#fvMemberFilter').attr('aria-label', 'Filter member inclusion');
+    syncMemberSearchUiState();
+    $('#fvMemberFilter').attr('aria-label', 'Filter member list');
     $('#fvMemberStateFilter').attr('aria-label', 'Filter member state');
 
     editorMode = loadEditorModePreference();
@@ -5020,6 +5087,7 @@ const initEditorChrome = () => {
 
     enforceLeftAlignedSettingsLayout();
     ensureInheritedFieldControls();
+    void refreshFolderAutoRulesPanel();
     setTimeout(enforceLeftAlignedSettingsLayout, 50);
     setTimeout(enforceLeftAlignedSettingsLayout, 250);
     editorLayoutPrepared = true;
@@ -5045,6 +5113,7 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
         delete folders[safeFolderId];
     }
 
+    activeFolderEditorFolderId = safeFolderId;
     folderHierarchyState.currentFolderDescendantIds = safeFolderId
         ? computeFolderDescendantIds(allFoldersById, safeFolderId)
         : new Set();
@@ -5065,7 +5134,7 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
     };
 
     setFieldValue('name', normalizedFolder.name);
-    populateParentFolderOptions(
+    refreshParentFolderChooser(
         folders,
         normalizeParentFolderId(normalizedFolder.parentId || ''),
         safeFolderId ? new Set([safeFolderId, ...Array.from(folderHierarchyState.currentFolderDescendantIds)]) : new Set()
@@ -5144,6 +5213,7 @@ const hydrateCurrentEditFolder = (folderRecord, folderRecordId, foldersMap = {},
         clearEditorNavigationPrefill();
     }
     setParentDefaultsNote('');
+    void refreshFolderAutoRulesPanel();
     return {
         folder: normalizedFolder,
         id: safeFolderId
@@ -5249,6 +5319,7 @@ const startFolderEditorRuntime = async () => {
             || ''
         ).trim();
         if (!currentEditFolder || !currentEditFolderId) {
+            activeFolderEditorFolderId = '';
             setValidationBannerState(
                 'Warning: requested folder could not be loaded.',
                 `Folder reference "${requestedFolderRef}" was not found in the saved folder map, server bootstrap context, or recent edit context. The editor stayed in new-folder mode instead of silently hydrating the wrong data.`,
@@ -5267,7 +5338,7 @@ const startFolderEditorRuntime = async () => {
                 routeTargetMismatch: false
             });
             folderHierarchyState.currentFolderDescendantIds = new Set();
-            populateParentFolderOptions(folders, '', new Set());
+            refreshParentFolderChooser(folders, '', new Set());
             setParentDefaultsNote('Select a parent to inherit preview/icon defaults automatically.', 'info');
         } else {
         if (!resolvedEditFolder && bootstrapFolderRecord) {
@@ -5300,6 +5371,7 @@ const startFolderEditorRuntime = async () => {
         });
         }
     } else {
+        activeFolderEditorFolderId = '';
         setValidationBannerState(
             'Folder editor opened without a folder target.',
             'No folder reference was found in query, hash, page bootstrap, storage bootstrap, window.name bootstrap, or recent edit context. The editor stayed in new-folder mode.',
@@ -5318,7 +5390,7 @@ const startFolderEditorRuntime = async () => {
         });
         clearEditorNavigationPrefill();
         folderHierarchyState.currentFolderDescendantIds = new Set();
-        populateParentFolderOptions(folders, '', new Set());
+        refreshParentFolderChooser(folders, '', new Set());
         setParentDefaultsNote('Select a parent to inherit preview/icon defaults automatically.', 'info');
     }
 
@@ -5426,6 +5498,9 @@ const startFolderEditorRuntime = async () => {
     validateForm();
     updateLiveSummary();
     updateRegexSimulator();
+    void refreshFolderAutoRulesPanel({
+        forceReload: Boolean(currentEditFolderId)
+    });
     markCleanState();
     isFormInitialized = true;
     if (modernFolderEditorEnabled && typeof window.FolderViewPlusRevealModernEditorStage === 'function') {
@@ -5842,6 +5917,35 @@ const createFallbackFolderHierarchyApi = (deps = {}) => {
         }
         return rows;
     };
+    const buildParentFolderEntries = (foldersMap, blockedIds = new Set()) => {
+        const blocked = blockedIds instanceof Set ? blockedIds : new Set();
+        const rows = buildNestedFolderOrder(foldersMap);
+        if (!rows.length) {
+            return [];
+        }
+        const pathById = new Map();
+        const entries = [];
+        for (const row of rows) {
+            const id = normalizeParentFolderId(row?.id || '');
+            if (!id || blocked.has(id)) {
+                continue;
+            }
+            const folder = row?.folder && typeof row.folder === 'object' ? row.folder : {};
+            const name = String(folder?.name || id).trim() || id;
+            const parentId = normalizeParentFolderId(folder?.parentId || folder?.parent_id || '');
+            const parentPath = parentId && pathById.has(parentId) ? String(pathById.get(parentId) || '').trim() : '';
+            const path = parentPath ? `${parentPath} / ${name}` : name;
+            const depth = Math.max(0, Number(row?.depth || 0));
+            pathById.set(id, path);
+            entries.push({
+                id,
+                depth,
+                name,
+                path
+            });
+        }
+        return entries;
+    };
     const populateParentFolderOptions = (foldersMap, selectedParentId = '', blockedIds = new Set()) => {
         const form = getFallbackForm();
         const select = form?.parent_folder_id;
@@ -5850,16 +5954,9 @@ const createFallbackFolderHierarchyApi = (deps = {}) => {
         }
         const selected = normalizeParentFolderId(selectedParentId);
         const blocked = blockedIds instanceof Set ? blockedIds : new Set();
-        const rows = buildNestedFolderOrder(foldersMap);
         const options = ['<option value="">No parent (top level)</option>'];
-        for (const row of rows) {
-            const id = normalizeParentFolderId(row?.id || '');
-            if (!id || blocked.has(id)) {
-                continue;
-            }
-            const depth = Math.max(0, Number(row?.depth || 0));
-            const indent = depth > 0 ? `${'  '.repeat(depth)}- ` : '';
-            options.push(`<option value="${escapeHtmlRef(id)}">${escapeHtmlRef(`${indent}${String(row?.folder?.name || id)}`)}</option>`);
+        for (const entry of buildParentFolderEntries(foldersMap, blocked)) {
+            options.push(`<option value="${escapeHtmlRef(entry.id)}">${escapeHtmlRef(entry.path)}</option>`);
         }
         jq(select).html(options.join(''));
         select.value = (selected && !blocked.has(selected)) ? selected : '';
@@ -6011,6 +6108,7 @@ const createFallbackFolderHierarchyApi = (deps = {}) => {
         normalizeParentFolderId,
         computeFolderDescendantIds,
         buildNestedFolderOrder,
+        buildParentFolderEntries,
         populateParentFolderOptions,
         getSiblingNameCollision,
         suggestSiblingName,
@@ -6053,12 +6151,47 @@ const folderHierarchyState = {
     }
 };
 const computeFolderDescendantIds = (...args) => getFolderHierarchyApi().computeFolderDescendantIds(...args);
+const buildParentFolderEntries = (...args) => getFolderHierarchyApi().buildParentFolderEntries(...args);
 const populateParentFolderOptions = (...args) => getFolderHierarchyApi().populateParentFolderOptions(...args);
 const getSiblingNameCollision = (...args) => getFolderHierarchyApi().getSiblingNameCollision(...args);
 const suggestSiblingName = (...args) => getFolderHierarchyApi().suggestSiblingName(...args);
 const setParentDefaultsNote = (...args) => getFolderHierarchyApi().setParentDefaultsNote(...args);
 const applySmartDefaultsFromParent = (...args) => getFolderHierarchyApi().applySmartDefaultsFromParent(...args);
 const markSmartDefaultFieldTouched = (...args) => getFolderHierarchyApi().markSmartDefaultFieldTouched(...args);
+const getFolderEditorParentPickerApi = (() => {
+    let cachedApi = null;
+    return () => {
+        if (cachedApi) {
+            return cachedApi;
+        }
+        if (typeof folderParentPickerModule?.createApi !== 'function') {
+            return null;
+        }
+        cachedApi = folderParentPickerModule.createApi({
+            window,
+            document,
+            $,
+            getForm,
+            escapeHtml,
+            normalizeParentFolderId
+        });
+        return cachedApi;
+    };
+})();
+const refreshParentFolderChooser = (foldersMap, selectedParentId = '', blockedIds = new Set()) => {
+    populateParentFolderOptions(foldersMap, selectedParentId, blockedIds);
+    if (!modernFolderEditorEnabled) {
+        return;
+    }
+    const parentPickerApi = getFolderEditorParentPickerApi();
+    if (!parentPickerApi || typeof parentPickerApi.render !== 'function') {
+        return;
+    }
+    parentPickerApi.render({
+        entries: buildParentFolderEntries(foldersMap, blockedIds),
+        selectedParentId: normalizeParentFolderId(selectedParentId)
+    });
+};
 
 /**
  * Create the element select table

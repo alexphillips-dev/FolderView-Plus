@@ -4452,18 +4452,68 @@ const renderLivePreviewCanvas = () => {
     folderEditorPreviewApi?.renderLivePreviewCanvas();
 };
 
+const MEMBER_REGEX_SEARCH_FILTER = 'contains_regex';
+const MEMBER_SEARCH_PLACEHOLDER = 'Search members';
+const MEMBER_REGEX_SEARCH_PLACEHOLDER = 'Regex search members';
+const MEMBER_REGEX_SEARCH_HINT = 'Use a regex pattern such as sentry-.* to filter member names.';
+
+const isRegexMemberSearchEnabled = () => ($('#fvMemberFilter').val() || 'all') === MEMBER_REGEX_SEARCH_FILTER;
+
+const setMemberSearchValidationState = (message = '') => {
+    const $search = $('#fvMemberSearch');
+    const input = $search.get(0);
+    if (!input) {
+        return;
+    }
+    const nextMessage = String(message || '').trim();
+    input.setCustomValidity(nextMessage);
+    $search
+        .attr('aria-invalid', nextMessage ? 'true' : 'false')
+        .attr('title', nextMessage || (isRegexMemberSearchEnabled() ? MEMBER_REGEX_SEARCH_HINT : ''));
+};
+
+const syncMemberSearchUiState = () => {
+    const regexSearchEnabled = isRegexMemberSearchEnabled();
+    $('#fvMemberSearch')
+        .attr('placeholder', regexSearchEnabled ? MEMBER_REGEX_SEARCH_PLACEHOLDER : MEMBER_SEARCH_PLACEHOLDER)
+        .attr('aria-label', regexSearchEnabled ? 'Search folder members using a regex' : 'Search folder members')
+        .attr('autocomplete', 'off');
+    if (!regexSearchEnabled) {
+        setMemberSearchValidationState('');
+    }
+};
+
 const applyMemberFilters = () => {
-    const query = ($('#fvMemberSearch').val() || '').trim().toLowerCase();
+    const rawQuery = ($('#fvMemberSearch').val() || '').trim();
+    const query = rawQuery.toLowerCase();
     const filter = $('#fvMemberFilter').val() || 'all';
     const stateFilter = $('#fvMemberStateFilter').val() || 'all';
+    const regexSearchEnabled = filter === MEMBER_REGEX_SEARCH_FILTER;
+    let queryRegex = null;
+
+    syncMemberSearchUiState();
+
+    if (regexSearchEnabled && rawQuery) {
+        try {
+            queryRegex = new RegExp(rawQuery, 'i');
+            setMemberSearchValidationState('');
+        } catch (error) {
+            setMemberSearchValidationState(`Invalid regex: ${error.message}`);
+        }
+    } else {
+        setMemberSearchValidationState('');
+    }
 
     $('table.sortable > tbody > tr').each((_, row) => {
         const $row = $(row);
-        const name = ($row.attr('data-name') || '').toLowerCase();
+        const rawName = String($row.attr('data-name') || '');
+        const name = rawName.toLowerCase();
         const membership = $row.attr('data-membership');
         const included = $row.find('input.container-switch').prop('checked');
         const state = String($row.attr('data-state') || 'stopped').trim().toLowerCase();
-        const matchesQuery = !query || name.includes(query);
+        const matchesQuery = regexSearchEnabled
+            ? (!rawQuery || (queryRegex ? queryRegex.test(rawName) : false))
+            : (!query || name.includes(query));
 
         let matchesFilter = true;
         if (filter === 'included') {
@@ -4864,7 +4914,10 @@ const buildRegexSuggestionFromNames = (names) => {
 
 function isDockerUpdateAvailableInEditor(member) {
     const source = member && typeof member === 'object' ? member : {};
-    const state = source?.State || source?.RawState || {};
+    if (source.UpdateAvailable === true || source.update === true) {
+        return true;
+    }
+    const state = source?.State || source?.RawState || source?.info?.State || {};
     return state?.manager === 'dockerman' && state?.Updated === false;
 }
 
@@ -5162,6 +5215,7 @@ const initEditorChrome = () => {
                             <option value="included">Included</option>
                             <option value="excluded">Excluded</option>
                             <option value="regex">Regex included</option>
+                            <option value="contains_regex">Contains regex</option>
                             <option value="manual">Manual only</option>
                         </select>
                         <select id="fvMemberStateFilter">
@@ -5227,10 +5281,8 @@ const initEditorChrome = () => {
         $('#fvMemberStateFilter').val('all');
         applyMemberFilters();
     });
-    $('#fvMemberSearch')
-        .attr('aria-label', 'Search folder members')
-        .attr('autocomplete', 'off');
-    $('#fvMemberFilter').attr('aria-label', 'Filter member inclusion');
+    syncMemberSearchUiState();
+    $('#fvMemberFilter').attr('aria-label', 'Filter member list');
     $('#fvMemberStateFilter').attr('aria-label', 'Filter member state');
 
     editorMode = loadEditorModePreference();

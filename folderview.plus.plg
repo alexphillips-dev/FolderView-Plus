@@ -6,28 +6,181 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.03.30.19">
-<!ENTITY md5 "b40c1ce2317f502819d859321fabe642">
+<!ENTITY version "2026.04.01.09">
+<!ENTITY md5 "484ed37dc1e881ea729bc5be211aac9b">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
 
-###2026.03.30.19
-- Fix: Resolve the remaining Docker page double-reload path during initial bootstrap when Unraid refreshes the staged request bundle while FolderView Plus is still rendering folders.
-- Fix: Replay queued Docker folder renders in place against the newest staged request bundle instead of forcing a second host `loadlist()` cycle after the page has already refreshed.
-- UX: Suppress the extra Docker runtime loading shell during that in-place replay so the Docker page no longer flashes a second reload.
-- Regression guard: Cover the primed-request `listview()`/`loadlist()` bootstrap path and the deferred runtime hydration path so Docker refreshes stay in-place.
+###2026.04.01.09
+- Maintenance: Release rollup since main `2026.03.30.19`; merged all `dev` improvements through `2026.04.01.08` into `main`.
+- Feature: Added folder-scoped advanced auto-rules and regex member-search dropdown controls directly to the modern folder editor Rules section for saved folders.
+- Feature: Added a searchable, path-aware parent folder picker to the modern folder editor and shipped new `Folders/Pixel` and `Icons/Pixel` third-party icon packs in the icon picker.
+- UI/UX: Reworked the modern folder editor General section with a tighter grouped layout, dedicated left rail, improved parent-picker spacing, and stronger reorder-button visibility.
+- UI/UX: Polished white-theme folder editor controls by aligning action buttons and mode toggles, improving submit readability, and making the icon picker and parent picker readable with visible borderless favorite stars.
+- Fix: Restored Docker update detection so container rows, folder rows, root folders, and folder-editor update counts consistently reflect native Unraid update availability without cache-clearing or expanded-branch workarounds.
+- Fix: Kept Docker update signals aligned with native `webui-info` cache data and runtime hydration so lightweight refreshes, collapsed branches, and late refreshes preserve `Update ready` state.
+- Fix: Forwarded modern folder editor bootstrap status back to the page diagnostics banner so stale runtime warnings clear once the editor finishes loading.
+- Refactor: Split the new folder editor rules and parent-picker logic into dedicated modules to keep the modern editor runtime within perf budgets as the new editor tooling expanded.
+- Quality: Added the one-step `dev` finalize workflow, dead-code and unused-symbol guards, refreshed Docker update architecture/perf coverage, and stronger theme/layout regression guards for the new editor paths.
 
-###2026.03.30.18
-- Feature: Add optional per-folder `Accent color` support across Docker folders, VM folders, Dashboard cards, and the folder editor live preview, including smart-default and template inheritance plus the consolidated Accent card and live swatch UX.
-- Fix: Remove the extra Docker reload cycle during deferred runtime hydration by updating preview actions and tooltip payloads in place, suppressing the duplicate FolderView Plus loading shell, and routing runtime info reads through no-cache helpers so fresh state and WebUI metadata stay in sync.
-- Fix: Keep Docker and VM pin quick actions in place after saves with cache-busted prefs reads, restore dashboard Docker `Restart`, and stop dashboard or VM folder-action error paths from triggering a second reload.
-- Fix: Rework Docker and VM Application-column folder-row centering across the full follow-up series so rows stay vertically centered and left-aligned without ballooned heights, column distortion, or Docker bottom-margin drift, including the matching VM host-margin correction.
-- Fix: Restore the modern folder editor after the accent preview refactor so accent live-preview swatches no longer break bootstrap or hydration.
-- Fix: Rebuild collapsed Docker folder and root-folder update status from hydrated runtime data, reuse the shared update-column renderer across first paint and refresh, resolve advanced-list mode locally, prioritize the dedicated Docker runtime banner host, and preserve `State.Updated` through lightweight and full hydration so `Update ready` survives collapsed branches.
-- Fix: Stop Docker advanced preview context popups configured for click from opening on the first hover interaction.
-- Quality: Add the dev version-bump push guard and expand regression coverage for hydration, accent color, folder actions, layout, and tooltip trigger mode changes.
+
+###2026.04.01.08
+- Fix: Switched the folder editor parent-folder picker list, separators, and empty state to shared editor surface tokens so the white theme no longer renders the chooser as a flat gray panel.
+- UI/UX: Updated the parent-picker hover, selected, and scope-chip styling to use the same light/dark theme tokens as the rest of the folder editor.
+- Quality: Updated the folder editor layout smoke test to lock the parent-picker theme-safe surface contract.
+
+
+###2026.04.01.07
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.04.01.06
+- Fix: Aligned the light-theme folder editor Submit button with the other action-bar buttons instead of rendering it as a separate orange primary action.
+- Fix: Aligned the light-theme Basic and Advanced mode toggle active state with the neutral editor button style so the toggle no longer switches to a separate orange accent button.
+- Quality: Added regression coverage for the light-theme action-bar and mode-toggle button contract.
+
+
+###2026.04.01.05
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.04.01.04
+- Fix: Forwarded modern folder editor bootstrap reports back to the page-level diagnostics banner so slow-start editors clear stale runtime warnings once the runtime is ready.
+- Quality: Added regression coverage to keep the modern editor bootstrap reporter chained to the page bootstrap surface.
+
+
+###2026.04.01.03
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Fix: Improved backend release-note parsing and category detection for accurate summaries.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.04.01.02
+- Maintenance: Refresh perf baseline for docker update fix.
+
+
+###2026.04.01.01
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Fix: Improved backend release-note parsing and category detection for accurate summaries.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.31.01
+- Maintenance: Update docker runtime architecture guard.
+
+
+###2026.03.30.38
+- Fix: Fix docker root folder update status.
+
+
+###2026.03.30.37
+- Feature: Added the new `Folders/Pixel` third-party pack with 32 pixel-style folder icons to the shipped plugin assets.
+- Feature: Added the new `Icons/Pixel` third-party pack with 167 pixel-style file and app icons to the shipped plugin assets.
+- UI/UX: These packs are now available through the existing third-party icon picker as `Folders/Pixel` and `Icons/Pixel`.
+
+
+###2026.03.30.36
+- UI/UX: Added a dedicated left rail in the modern folder editor General section so the Name and Folder WebUI cards stack independently of the Parent Folder and Icon card heights.
+- UI/UX: Prevented the Folder WebUI card from being pushed down when the icon picker expands by decoupling the left column from the shared grid row height.
+- Regression guard: Added coverage for the General-section left-rail wrapper and wrapped-row layout selector.
+
+
+###2026.03.30.35
+- UI/UX: Moved the Parent Folder and Icon cards to the first General-section row so Folder WebUI sits directly under Name without the previous forced vertical gap.
+- UI/UX: Expanded the right-side icon column to absorb the remaining section width, removing the trailing blank space while keeping the middle parent picker width stable.
+- Regression guard: Updated the General section layout coverage for the wider icon column and single-row parent/icon placement.
+
+
+###2026.03.30.34
+- UI/UX: Rebalanced the modern folder editor General section grid so the Name, Parent Folder, and Icon cards sit as a tighter grouped layout instead of stretching apart across wide screens.
+- UI/UX: Capped the icon card width and replaced the elastic middle column with fixed-range tracks so the parent folder module no longer leaves a large visual void beside it.
+- Regression guard: Updated the General section layout coverage for the new fixed-range grid and icon card sizing.
+
+
+###2026.03.30.33
+- UI/UX: Reduced the modern folder editor parent folder card width so it no longer stretches across empty space in the General section.
+- UI/UX: Converted the parent folder options into a tight outlined list with no inter-row gaps and thin dark separators instead of orange boxed cards.
+- Regression guard: Added layout coverage for the capped parent card width and stacked parent picker list styling.
+
+
+###2026.03.30.32
+- UI/UX: Removed the vertical gaps between parent folder options in the new parent picker scroll list for a tighter stacked layout.
+- Maintenance: Rebuilt the dev package for the updated parent folder picker presentation.
+
+
+###2026.03.30.31
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.30.30
+- UI/UX: Added a searchable, path-aware parent folder picker to the modern folder editor for large folder trees.
+- UX: Reworked the General section layout so Name and Folder WebUI stack on the left, the parent folder card fills the center, and the icon picker stays aligned on the right.
+- Regression guard: Added coverage for the parent picker module, hierarchy path contract, and General section layout wiring.
+
+
+###2026.03.30.29
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.30.28
+- UX: Aligned the modern folder editor Rules cards so the advanced auto-rules card sits beside the Regex card instead of drifting across the section.
+- UI/UX: Let the advanced auto-rules card expand across the remaining Rules section width on larger layouts while stacking cleanly on narrower screens.
+- Regression guard: Added smoke coverage for the Rules section two-column layout contract.
+
+
+###2026.03.30.27
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.30.26
+- UI/UX: Added folder-scoped advanced auto-rules directly to the modern folder editor Rules section for saved folders.
+- UX: Added save-first guidance plus a direct link back to the full Rules workspace for global ordering and label-based rules.
+- Refactor: Split the new folder editor auto-rules logic into a dedicated `folder.editor.rules.js` module to keep the main editor runtime within perf guard budgets.
+- Regression guard: Added smoke coverage for the new rules module, boot wiring, and modern editor panel styling.
+
+
+###2026.03.30.25
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.30.24
+- UI/UX: Improved dark-theme visibility for folder editor member reorder arrows by matching the section title accent color.
+- Regression guard: Added folder editor smoke coverage for the reorder button accent styling.
+
+
+###2026.03.30.23
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.30.22
+- Fix: Improved backend release-note parsing and category detection for accurate summaries.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.03.30.21
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+- Docs: Updated project documentation to match the latest behavior.
+
+
+###2026.03.30.20
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Fix: Improved backend release-note parsing and category detection for accurate summaries.
+
+
+###2026.03.30.19
+- Fix: Stop Docker bootstrap from forcing a second host reload when Unraid stages a newer request bundle while FolderView Plus is still rendering folders.
+- Fix: Drain queued Docker folder renders in place against the latest staged request bundle instead of scheduling another `loadlist()` cycle after the page has already refreshed.
+- UX: Suppress the extra Docker runtime loading shell when a queued bootstrap render replays in place so the page no longer flashes a second reload.
+- Regression guard: Cover the primed-request `listview()`/`loadlist()` bootstrap path and the deferred runtime hydration path so Docker refreshes stay in-place.
 
 ###2026.03.30.17
 - Fix: Stop Docker advanced preview context popups configured for click from eager-opening on the first hover interaction.

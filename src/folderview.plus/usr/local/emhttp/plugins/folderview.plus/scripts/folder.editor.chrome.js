@@ -24,6 +24,9 @@
     const DEFAULT_FOLDER_ICON_PATH = '/plugins/folderview.plus/images/folder-icon.png';
     const BASIC_MODE = 'basic';
     const ADVANCED_MODE = 'advanced';
+    const pageReportFolderEditorBootstrap = typeof root.FolderViewPlusReportFolderEditorBootstrap === 'function'
+        ? root.FolderViewPlusReportFolderEditorBootstrap.bind(root)
+        : null;
     let currentMode = BASIC_MODE;
     let currentSection = 'general';
     let bootstrapWatchdogArmed = false;
@@ -73,6 +76,15 @@
             root.FolderViewPlusFolderEditorRuntimeBootStage = String(stage);
         }
         setBootstrapSurfaceState({ summary, details, debug, tone });
+        if (typeof pageReportFolderEditorBootstrap === 'function') {
+            pageReportFolderEditorBootstrap({
+                summary,
+                details,
+                debug,
+                tone,
+                stage: String(root.FolderViewPlusFolderEditorRuntimeBootStage || '')
+            });
+        }
     };
 
     const armBootstrapWatchdog = () => {
@@ -489,6 +501,19 @@
         launchHost.appendChild(launchLink);
     };
 
+    const ensureGeneralLeftRail = (body) => {
+        if (!(body instanceof root.HTMLElement)) {
+            return null;
+        }
+        let rail = body.querySelector(':scope > .fv-general-left-rail');
+        if (!(rail instanceof root.HTMLElement)) {
+            rail = root.document.createElement('div');
+            rail.className = 'fv-general-left-rail';
+            body.insertBefore(rail, body.firstChild);
+        }
+        return rail;
+    };
+
     const ensureSectionShells = (form) => {
         const stage = getModernStage(form);
         if (!stage) {
@@ -542,11 +567,26 @@
             shell.classList.toggle('is-compact-shell', sectionKey === 'rules' || sectionKey === 'actions');
             shell.classList.toggle('is-members-shell', sectionKey === 'members');
             body.classList.add('fv-modern-section-grid');
+            const generalLeftRail = sectionKey === 'general' ? ensureGeneralLeftRail(body) : null;
             rows.forEach((row) => {
-                if (row && row.parentElement !== body) {
-                    body.appendChild(row);
+                if (!row) {
+                    return;
+                }
+                const targetParent = sectionKey === 'general'
+                    && generalLeftRail
+                    && (row.querySelector('[name="name"]') || row.querySelector('[name="folder_webui"]'))
+                    ? generalLeftRail
+                    : body;
+                if (row.parentElement !== targetParent) {
+                    targetParent.appendChild(row);
                 }
             });
+            if (sectionKey === 'general' && generalLeftRail && !generalLeftRail.children.length && generalLeftRail.parentElement === body) {
+                generalLeftRail.remove();
+            }
+            if (sectionKey !== 'general') {
+                body.querySelector(':scope > .fv-general-left-rail')?.remove();
+            }
         });
         syncActionLaunchPlacement(form);
     };
@@ -555,7 +595,7 @@
         Array.from(form.querySelectorAll('.fv-section-shell .basic')).forEach((row) => {
             row.classList.add('fv-modern-field-row');
             row.classList.remove('fv-orphan-editor-row');
-            row.classList.remove('fv-modern-order-row', 'is-wide-row', 'is-icon-row', 'is-status-row', 'is-actions-row', 'is-toggle-row', 'is-color-row', 'is-name-row', 'is-url-row', 'is-compact-text-row', 'is-webui-row', 'is-members-row', 'is-rules-row', 'is-actions-list-row', 'is-actions-launch-row');
+            row.classList.remove('fv-modern-order-row', 'is-wide-row', 'is-icon-row', 'is-status-row', 'is-actions-row', 'is-toggle-row', 'is-color-row', 'is-name-row', 'is-parent-row', 'is-url-row', 'is-webui-url-row', 'is-compact-text-row', 'is-webui-row', 'is-members-row', 'is-rules-row', 'is-actions-list-row', 'is-actions-launch-row');
             if (row.classList.contains('order-section')) {
                 row.classList.add('fv-modern-order-row', 'is-wide-row', 'is-members-row');
                 return;
@@ -581,12 +621,15 @@
             if (row.querySelector('[name="name"]')) {
                 row.classList.add('is-name-row');
             }
+            if (row.querySelector('[name="parent_folder_id"]')) {
+                row.classList.add('is-parent-row');
+            }
             if (row.querySelector('[name="folder_webui"]')) {
                 row.classList.add('is-webui-row');
             }
             if (row.querySelector('[name="folder_webui_url"]')) {
                 row.classList.add('is-wide-row');
-                row.classList.add('is-url-row');
+                row.classList.add('is-url-row', 'is-webui-url-row');
             }
             if (row.querySelector('[name="preview_text_width"]')) {
                 row.classList.add('is-compact-text-row');

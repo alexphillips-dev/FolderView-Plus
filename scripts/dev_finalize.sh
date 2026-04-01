@@ -1,78 +1,132 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-RUN_TESTS=true
+# shellcheck source=scripts/lib.sh
+source "${ROOT_DIR}/scripts/lib.sh"
+
 RUN_BUILD=true
 OPEN_FIXTURE=false
-STAGE_ARTIFACTS=false
+PUSH_AFTER_COMMIT=true
+COMMIT_MESSAGE=""
 
 print_usage() {
     cat <<'EOF'
 Usage: scripts/dev_finalize.sh [options]
-  --skip-tests           Skip the targeted test pass
-  --skip-build           Skip pkg_build.sh
+  --message TEXT         Commit message for the finalize commit
   --open-fixture         Regenerate the local runtime fixture before validation
-  --stage-artifacts      git add package artifacts after a successful build
+  --skip-build           Stop after doctor + lint/tests without packaging, commit, or push
+  --no-push              Create the finalize commit locally but do not push dev
   -h, --help             Show this help
 
-This script is the deterministic "finish UI/runtime work" path:
-1. Regenerate the local runtime fixture if requested
-2. Run the contract/layout regression tests
-3. Build package artifacts via pkg_build.sh --no-validate
-4. Optionally stage the generated package files
+This script is the deterministic "finish dev work" path:
+1. Optionally regenerate the local runtime fixture
+2. Run doctor + shared lint/tests
+3. Require a clean unstaged worktree with intended source changes already staged
+4. Rebuild the dev package via pkg_build.sh
+5. Stage generated manifest/archive artifacts
+6. Commit the staged source + generated artifacts
+7. Push dev
 EOF
 }
 
-while [ $# -gt 0 ]; do
+print_path_list() {
+    local prefix="$1"
+    shift
+    local entry=""
+    for entry in "$@"; do
+        printf '%s%s\n' "${prefix}" "${entry}" >&2
+    done
+}
+
+while [[ $# -gt 0 ]]; do
     case "$1" in
-        --skip-tests)
-            RUN_TESTS=false
-            ;;
-        --skip-build)
-            RUN_BUILD=false
+        --message)
+            COMMIT_MESSAGE="${2:-}"
+            if [[ -z "${COMMIT_MESSAGE}" ]]; then
+                fvplus::fail "--message requires a non-empty value."
+            fi
+            shift
             ;;
         --open-fixture)
             OPEN_FIXTURE=true
             ;;
-        --stage-artifacts)
-            STAGE_ARTIFACTS=true
+        --skip-build)
+            RUN_BUILD=false
+            ;;
+        --no-push)
+            PUSH_AFTER_COMMIT=false
             ;;
         -h|--help)
             print_usage
             exit 0
             ;;
         *)
-            echo "ERROR: Unknown option: $1" >&2
-            print_usage >&2
-            exit 1
+            fvplus::fail "Unknown option: $1"
             ;;
     esac
     shift
 done
 
-cd "$ROOT_DIR"
+cd "${ROOT_DIR}"
 
-if [ "$OPEN_FIXTURE" = true ]; then
+fvplus::require_commands bash node git
+
+if [[ "${OPEN_FIXTURE}" == true ]]; then
     node scripts/generate_runtime_fixture.mjs
 fi
 
-if [ "$RUN_TESTS" = true ]; then
-    node --test \
-        tests/folder-contract-shared-architecture.test.mjs \
-        tests/docker-runtime-shared-architecture.test.mjs \
-        tests/vm-runtime-shared-architecture.test.mjs \
-        tests/preview-border-toggle.test.mjs \
-        tests/ui-smoke-layout.test.mjs \
-        tests/vm-mobile-name-alignment-guard.test.mjs
+bash scripts/doctor.sh
+bash scripts/run_ci_suite.sh --lane lint --lane tests
+
+if [[ "${RUN_BUILD}" != true ]]; then
+    echo "dev_finalize.sh validation completed successfully."
+    exit 0
 fi
 
-if [ "$RUN_BUILD" = true ]; then
-    bash pkg_build.sh --no-validate
+if [[ -z "${COMMIT_MESSAGE}" ]]; then
+    fvplus::fail "--message is required unless --skip-build is used."
 fi
 
-if [ "$STAGE_ARTIFACTS" = true ]; then
-    git add folderview.plus.plg folderview.plus.xml archive/
+CURRENT_BRANCH="$(git branch --show-current)"
+if [[ "${CURRENT_BRANCH}" != "dev" ]]; then
+    fvplus::fail "dev_finalize.sh must run from branch 'dev' (current: ${CURRENT_BRANCH:-detached})."
 fi
 
-echo "dev_finalize.sh completed successfully."
+mapfile -t STAGED_FILES < <(git diff --cached --name-only --diff-filter=ACMR || true)
+if [[ "${#STAGED_FILES[@]}" -eq 0 ]]; then
+    fvplus::fail "Stage the intended source changes before running dev_finalize.sh."
+fi
+
+mapfile -t UNSTAGED_FILES < <(git diff --name-only --diff-filter=ACMR || true)
+if [[ "${#UNSTAGED_FILES[@]}" -gt 0 ]]; then
+    echo "ERROR: dev_finalize.sh requires a clean unstaged worktree. Stage or revert these files first:" >&2
+    print_path_list "  " "${UNSTAGED_FILES[@]}"
+    exit 1
+fi
+
+mapfile -t UNTRACKED_FILES < <(git ls-files --others --exclude-standard || true)
+if [[ "${#UNTRACKED_FILES[@]}" -gt 0 ]]; then
+    echo "ERROR: dev_finalize.sh requires no untracked files before packaging. Add or remove these paths first:" >&2
+    print_path_list "  " "${UNTRACKED_FILES[@]}"
+    exit 1
+fi
+
+bash pkg_build.sh
+
+VERSION="$(fvplus::read_plg_version "${ROOT_DIR}/folderview.plus.plg")"
+git add folderview.plus.plg folderview.plus.xml archive/
+
+if git diff --cached --quiet; then
+    fvplus::fail "No staged changes remain to commit after packaging."
+fi
+
+git commit -m "${COMMIT_MESSAGE}"
+
+if [[ "${PUSH_AFTER_COMMIT}" == true ]]; then
+    git push -u origin dev
+    echo "dev_finalize.sh completed successfully: pushed dev @ version ${VERSION}."
+    exit 0
+fi
+
+echo "dev_finalize.sh completed successfully: created local commit for dev @ version ${VERSION}."

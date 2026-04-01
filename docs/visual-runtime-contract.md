@@ -59,7 +59,8 @@ Use this order for UI/runtime work:
 3. Run targeted validation:
    - `bash scripts/dev_finalize.sh --open-fixture --skip-build`
 4. If the fix is ready to package:
-   - `bash scripts/dev_finalize.sh --open-fixture`
+   - `git add <files>`
+   - `bash scripts/dev_finalize.sh --message "Describe the fix" --open-fixture`
 
 ## Review Checklist
 

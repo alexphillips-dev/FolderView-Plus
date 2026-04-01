@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.01.03">
-<!ENTITY md5 "0f35faa56c23790603b6e0a2a927ad7e">
+<!ENTITY version "2026.04.01.04">
+<!ENTITY md5 "d35c6413cf559033d6b6d459554a5aed">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.01.04
+- Fix: Forwarded modern folder editor bootstrap reports back to the page-level diagnostics banner so slow-start editors clear stale runtime warnings once the runtime is ready.
+- Quality: Added regression coverage to keep the modern editor bootstrap reporter chained to the page bootstrap surface.
+
 
 ###2026.04.01.03
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

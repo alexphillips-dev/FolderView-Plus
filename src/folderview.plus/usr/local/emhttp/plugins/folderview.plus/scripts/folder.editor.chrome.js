@@ -24,6 +24,9 @@
     const DEFAULT_FOLDER_ICON_PATH = '/plugins/folderview.plus/images/folder-icon.png';
     const BASIC_MODE = 'basic';
     const ADVANCED_MODE = 'advanced';
+    const pageReportFolderEditorBootstrap = typeof root.FolderViewPlusReportFolderEditorBootstrap === 'function'
+        ? root.FolderViewPlusReportFolderEditorBootstrap.bind(root)
+        : null;
     let currentMode = BASIC_MODE;
     let currentSection = 'general';
     let bootstrapWatchdogArmed = false;
@@ -73,6 +76,15 @@
             root.FolderViewPlusFolderEditorRuntimeBootStage = String(stage);
         }
         setBootstrapSurfaceState({ summary, details, debug, tone });
+        if (typeof pageReportFolderEditorBootstrap === 'function') {
+            pageReportFolderEditorBootstrap({
+                summary,
+                details,
+                debug,
+                tone,
+                stage: String(root.FolderViewPlusFolderEditorRuntimeBootStage || '')
+            });
+        }
     };
 
     const armBootstrapWatchdog = () => {

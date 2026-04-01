@@ -58,17 +58,28 @@ test('lib.php normalizes compose manager and compose project labels', () => {
     assert.match(libPhp, /function getComposeProjectValueFromLabels\s*\(/);
     assert.match(libPhp, /function getNormalizedDockerManagerFromLabels\s*\(/);
     assert.match(libPhp, /function normalizeDockerUpdatedStateValue\(\$value\): \?bool/);
+    assert.match(libPhp, /function readDockerWebuiInfoCache\(\): array/);
+    assert.match(libPhp, /function resolveDockerUpdatedStateValue\(string \$containerName, string \$containerImage, array \$dockerWebuiInfo = \[\], \$dockerUpdate = null\): \?bool/);
     assert.match(libPhp, /in_array\(\$normalized, \['true', '1', 'yes', 'on', 'up-to-date', 'uptodate', 'current'\], true\)/);
     assert.match(libPhp, /in_array\(\$normalized, \['false', '0', 'no', 'off', 'update-ready', 'update ready', 'apply-update', 'apply update', 'update available'\], true\)/);
     assert.match(libPhp, /'composeProject'\s*=>\s*getComposeProjectValueFromLabels\(\$labels\)/);
     assert.match(libPhp, /\$manager\s*=\s*getNormalizedDockerManagerFromLabels\(\$labels\);/);
+    assert.match(libPhp, /\$dockerWebuiInfo = readDockerWebuiInfoCache\(\);/);
     assert.match(
         libPhp,
         /\$ct\['info'\]\['State'\]\['manager'\]\s*=\s*getNormalizedDockerManagerFromLabels\(\$containerLabels\);/
     );
     assert.match(
         libPhp,
-        /\$ct\['info'\]\['State'\]\['Updated'\]\s*=\s*normalizeDockerUpdatedStateValue\(\s*\$containerImage !== '' \? \$DockerUpdate->getUpdateStatus\(\$containerImage\) : null\s*\);/
+        /\$ct\['info'\]\['State'\]\['Updated'\]\s*=\s*\$ct\['info'\]\['State'\]\['manager'\]\s*===\s*'dockerman'[\s\S]*?resolveDockerUpdatedStateValue\(\$containerName, \$containerImage, \$dockerWebuiInfo, \$DockerUpdate\)[\s\S]*?: null;/
+    );
+    assert.match(
+        libPhp,
+        /\$cachedUpdated = normalizeDockerUpdatedStateValue\(\$dockerWebuiInfo\[\$safeName\]\['updated'\] \?\? null\);[\s\S]*?if \(is_bool\(\$cachedUpdated\)\) \{[\s\S]*?return \$cachedUpdated;/
+    );
+    assert.match(
+        libPhp,
+        /return normalizeDockerUpdatedStateValue\(\$dockerUpdate->getUpdateStatus\(\$containerImage\)\);/
     );
 });
 

@@ -3687,6 +3687,34 @@
         return null;
     }
 
+    function readDockerWebuiInfoCache(): array {
+        global $dockerManPaths, $documentRoot;
+        $cachePath = trim((string)($dockerManPaths['webui-info'] ?? ''));
+        if ($cachePath === '') {
+            $safeDocroot = rtrim((string)($documentRoot ?? ($_SERVER['DOCUMENT_ROOT'] ?? '/usr/local/emhttp')), '/\\');
+            $cachePath = $safeDocroot . '/state/plugins/dynamix.docker.manager/docker.json';
+        }
+        if ($cachePath === '' || !class_exists('DockerUtil')) {
+            return [];
+        }
+        $cache = DockerUtil::loadJSON($cachePath);
+        return is_array($cache) ? $cache : [];
+    }
+
+    function resolveDockerUpdatedStateValue(string $containerName, string $containerImage, array $dockerWebuiInfo = [], $dockerUpdate = null): ?bool {
+        $safeName = trim($containerName);
+        if ($safeName !== '') {
+            $cachedUpdated = normalizeDockerUpdatedStateValue($dockerWebuiInfo[$safeName]['updated'] ?? null);
+            if (is_bool($cachedUpdated)) {
+                return $cachedUpdated;
+            }
+        }
+        if ($containerImage === '' || !($dockerUpdate instanceof DockerUpdate)) {
+            return null;
+        }
+        return normalizeDockerUpdatedStateValue($dockerUpdate->getUpdateStatus($containerImage));
+    }
+
     function serverRegexMatches(string $pattern, string $input): bool {
         if (trim($pattern) === '') {
             return false;
@@ -5613,6 +5641,7 @@
             $autoStartFile = $dockerManPaths['autostart-file'] ?? "/var/lib/docker/unraid-autostart";
             $autoStartLines = @file($autoStartFile, FILE_IGNORE_NEW_LINES) ?: [];
             $autoStart = array_map('var_split', $autoStartLines);
+            $dockerWebuiInfo = readDockerWebuiInfoCache();
 
             // Remove stale entries from autostart file (containers that no longer exist)
             $allCtNames = array_map(function($c) { return ltrim($c['Names'][0] ?? '', '/'); }, $cts);
@@ -5648,10 +5677,10 @@
                 $ct['info']['State']['Autostart'] = in_array($containerName, $autoStart);
                 $containerImage = DockerUtil::ensureImageTag((string)($ct['info']['Config']['Image'] ?? ''));
                 $ct['info']['Config']['Image'] = $containerImage;
-                $ct['info']['State']['Updated'] = normalizeDockerUpdatedStateValue(
-                    $containerImage !== '' ? $DockerUpdate->getUpdateStatus($containerImage) : null
-                );
                 $ct['info']['State']['manager'] = getNormalizedDockerManagerFromLabels($containerLabels);
+                $ct['info']['State']['Updated'] = $ct['info']['State']['manager'] === 'dockerman'
+                    ? resolveDockerUpdatedStateValue($containerName, $containerImage, $dockerWebuiInfo, $DockerUpdate)
+                    : null;
                 $ct['shortId'] = substr(str_replace('sha256:', '', (string)($ct['Id'] ?? '')), 0, 12);
                 $ct['shortImageId'] = substr(str_replace('sha256:', '', (string)($ct['ImageID'] ?? '')), 0, 12);
                 $ct['info']['State']['WebUi'] = ''; $ct['info']['State']['TSWebUi'] = '';

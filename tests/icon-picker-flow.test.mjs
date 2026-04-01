@@ -24,10 +24,22 @@ const folderPagePath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page'
 );
+const folderCssPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folder.css'
+);
 const folderScript = fs.readFileSync(folderScriptPath, 'utf8');
 const folderLegacyScript = fs.readFileSync(folderLegacyScriptPath, 'utf8');
 const folderIconApiScript = fs.readFileSync(folderIconApiScriptPath, 'utf8');
 const folderPage = fs.readFileSync(folderPagePath, 'utf8');
+const folderCss = fs.readFileSync(folderCssPath, 'utf8');
+
+function getCssRuleBlock(css, selector) {
+    const escapedSelector = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const match = css.match(new RegExp(`${escapedSelector}\\s*\\{([^}]*)\\}`));
+    assert.ok(match, `Expected CSS block for ${selector}`);
+    return match[1];
+}
 
 test('icon picker runtime: paginateItems clamps page and returns ranges', () => {
     const rows = Array.from({ length: 13 }, (_v, i) => ({ id: i + 1 }));
@@ -157,6 +169,27 @@ test('folder.js third-party icon picker supports advanced filtering and duplicat
     assert.match(folderScript, /#fv-third-party-filter-clear-all/);
     assert.match(folderScript, /list_index/);
     assert.match(folderScript, /pointerdown\.fvthirdparty/);
+});
+
+test('folder editor icon picker uses theme-aware surfaces and borderless favorite toggles', () => {
+    const previewActionBlock = getCssRuleBlock(folderCss, '.fv-third-party-preview-action');
+    const iconFavBlock = getCssRuleBlock(folderCss, '.fv-third-party-icon-fav');
+
+    assert.match(folderCss, /\.fv-icon-picker-panel\s*\{[\s\S]*background:\s*var\(--fv-editor-inset-surface\);/);
+    assert.match(folderCss, /\.fv-icon-picker-item\s*\{[\s\S]*background:\s*var\(--fv-editor-control-surface\);/);
+    assert.match(folderCss, /\.fv-third-party-section\s*\{[\s\S]*background:\s*var\(--fv-editor-inset-surface\);/);
+    assert.match(folderCss, /\.fv-third-party-preview\s*\{[\s\S]*background:\s*var\(--fv-editor-inset-surface\);/);
+    assert.match(folderCss, /\.fv-third-party-icon-item\s*\{[\s\S]*background:\s*var\(--fv-editor-control-surface\);/);
+    assert.match(folderCss, /\.fv-custom-icon-row\s*\{[\s\S]*background:\s*var\(--fv-editor-control-surface\);/);
+    assert.match(previewActionBlock, /border:\s*0 !important;/);
+    assert.match(previewActionBlock, /background:\s*transparent !important;/);
+    assert.match(previewActionBlock, /color:\s*var\(--fv-editor-dim\) !important;/);
+    assert.match(iconFavBlock, /border:\s*0 !important;/);
+    assert.match(iconFavBlock, /background:\s*transparent !important;/);
+    assert.match(iconFavBlock, /opacity:\s*0\.72;/);
+    assert.match(iconFavBlock, /pointer-events:\s*auto;/);
+    assert.doesNotMatch(iconFavBlock, /border:\s*1px solid var\(--fv-editor-block-border\)/);
+    assert.match(folderCss, /\.fv-third-party-preview-action:hover,[\s\S]*\.fv-third-party-icon-fav\.is-active \{[\s\S]*color:\s*var\(--fv-editor-accent\) !important;[\s\S]*opacity:\s*1;/);
 });
 
 test('folder.js icon upload parsing is resilient to empty and noisy endpoint responses', () => {

@@ -1230,7 +1230,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     border: 1px solid var(--fv-editor-block-border);
     border-radius: 8px;
     padding: 0.55em 0.6em;
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--fv-editor-inset-surface);
     display: grid;
     gap: 0.45em;
 }
@@ -1272,7 +1272,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     gap: 0.35em;
     border: 1px solid var(--fv-editor-block-border);
     border-radius: 6px;
-    background: rgba(0, 0, 0, 0.16);
+    background: var(--fv-editor-control-surface);
     min-height: 34px;
     padding: 0.3em 0.4em;
     text-align: left;
@@ -1383,7 +1383,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 .fv-third-party-section {
     border: 1px solid var(--fv-editor-block-border);
     border-radius: 6px;
-    background: rgba(0, 0, 0, 0.12);
+    background: var(--fv-editor-inset-surface);
     padding: 0.4em 0.44em;
     display: grid;
     gap: 0.35em;
@@ -1475,7 +1475,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 .fv-third-party-pack-actions-panel {
     border: 1px solid var(--fv-editor-block-border);
     border-radius: 6px;
-    background: rgba(0, 0, 0, 0.16);
+    background: var(--fv-editor-inset-surface);
     padding: 0.3em;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -1491,7 +1491,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 .fv-third-party-filter-sheet {
     border: 1px solid var(--fv-editor-block-border);
     border-radius: 6px;
-    background: rgba(0, 0, 0, 0.14);
+    background: var(--fv-editor-inset-surface);
     padding: 0.42em 0.46em;
     display: grid;
     gap: 0.42em;
@@ -1578,7 +1578,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 .fv-third-party-preview {
     border: 1px solid var(--fv-editor-block-border);
     border-radius: 6px;
-    background: rgba(0, 0, 0, 0.16);
+    background: var(--fv-editor-inset-surface);
     padding: 0.45em 0.5em;
     min-height: 62px;
     font-size: 1.03rem;
@@ -1622,11 +1622,19 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     min-height: 24px !important;
     height: 24px !important;
     padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    appearance: none !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
     line-height: 1 !important;
     letter-spacing: 0 !important;
+    color: var(--fv-editor-dim) !important;
+    opacity: 0.72;
+    transition: color 120ms ease, opacity 120ms ease, transform 120ms ease;
 }
 
 .fv-third-party-icon-grid {
@@ -1641,7 +1649,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     gap: 0.35em;
     border: 1px solid var(--fv-editor-block-border);
     border-radius: 6px;
-    background: rgba(0, 0, 0, 0.16);
+    background: var(--fv-editor-control-surface);
     min-height: 36px;
     padding: 0.3em 0.36em;
     cursor: pointer;
@@ -1685,9 +1693,11 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     min-height: 24px !important;
     height: 24px !important;
     padding: 0 !important;
-    border: 1px solid var(--fv-editor-block-border);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.02);
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    appearance: none !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -1695,14 +1705,19 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     letter-spacing: 0 !important;
     overflow: hidden !important;
     flex: 0 0 24px !important;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 120ms ease;
+    color: var(--fv-editor-dim) !important;
+    opacity: 0.72;
+    pointer-events: auto;
+    transition: color 120ms ease, opacity 120ms ease, transform 120ms ease;
 }
 
+.fv-third-party-preview-action:hover,
+.fv-third-party-preview-action:focus-visible,
+.fv-third-party-icon-fav:hover,
+.fv-third-party-icon-fav:focus-visible,
+.fv-third-party-preview-action.is-active,
 .fv-third-party-icon-fav.is-active {
-    border-color: rgba(255, 140, 42, 0.9);
-    color: #ffbe76;
+    color: var(--fv-editor-accent) !important;
     opacity: 1;
 }
 
@@ -1742,7 +1757,6 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 .fv-third-party-icon-item:focus-within .fv-third-party-icon-fav,
 .fv-third-party-icon-item.is-selected .fv-third-party-icon-fav {
     opacity: 1;
-    pointer-events: auto;
 }
 
 .fv-custom-icon-panel {
@@ -1777,7 +1791,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     gap: 0.42em;
     border: 1px solid var(--fv-editor-block-border);
     border-radius: 6px;
-    background: rgba(0, 0, 0, 0.16);
+    background: var(--fv-editor-control-surface);
     min-height: 34px;
     padding: 0.3em 0.4em;
 }

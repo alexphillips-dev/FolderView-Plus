@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.01.09">
-<!ENTITY md5 "f3cb79f3aae6f918c246fce555237631">
+<!ENTITY version "2026.04.01.10">
+<!ENTITY md5 "53010522a84685ffef529ffdeeae39e7">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.01.10
+- Fix: Removed host-theme button borders and stretched chrome from dashboard full-width folder expand arrows.
+- UI/UX: Locked the full-width dashboard chevron toggle to the intended compact icon-only styling.
+
 
 ###2026.04.01.09
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

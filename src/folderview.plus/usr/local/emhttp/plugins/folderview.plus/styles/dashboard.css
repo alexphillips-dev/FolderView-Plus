@@ -326,6 +326,28 @@ tbody.fv-dashboard-layout-fullwidth .folder-showcase-outer[expanded="true"] > .f
     grid-template-columns: minmax(0, 1fr);
 }
 
+tbody.fv-dashboard-layout-fullwidth .fv-dashboard-expand-toggle-btn {
+    min-width: 11px !important;
+    max-width: 11px !important;
+    min-height: 11px !important;
+    max-height: 11px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+}
+
+tbody.fv-dashboard-layout-fullwidth .fv-dashboard-expand-toggle-btn:hover,
+tbody.fv-dashboard-layout-fullwidth .fv-dashboard-expand-toggle-btn:focus,
+tbody.fv-dashboard-layout-fullwidth .fv-dashboard-expand-toggle-btn:active {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
 tbody.fv-dashboard-layout-accordion .folder-showcase-outer {
     margin-bottom: 10px;
 }

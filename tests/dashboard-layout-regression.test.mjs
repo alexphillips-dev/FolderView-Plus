@@ -280,6 +280,10 @@ test('dashboard css includes non-classic controls and overflow rendering modes',
     assert.match(dashboardCss, /tbody\.fv-dashboard-greyscale-enabled/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-hide-folder-label/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-layout-fullwidth/);
+    assert.match(dashboardCss, /tbody\.fv-dashboard-layout-fullwidth \.fv-dashboard-expand-toggle-btn \{/);
+    assert.match(dashboardCss, /tbody\.fv-dashboard-layout-fullwidth \.fv-dashboard-expand-toggle-btn \{[\s\S]*border:\s*0 !important/);
+    assert.match(dashboardCss, /tbody\.fv-dashboard-layout-fullwidth \.fv-dashboard-expand-toggle-btn \{[\s\S]*background:\s*transparent !important/);
+    assert.match(dashboardCss, /tbody\.fv-dashboard-layout-fullwidth \.fv-dashboard-expand-toggle-btn \{[\s\S]*min-width:\s*11px !important/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-layout-accordion/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-layout-inset/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-layout-compactmatrix/);

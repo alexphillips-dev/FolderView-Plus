@@ -2432,9 +2432,9 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     max-height: 292px;
     overflow: auto;
     padding-right: 0;
-    border: 1px solid rgba(0, 0, 0, 0.72);
+    border: 1px solid var(--fv-editor-block-border);
     border-radius: 12px;
-    background: rgba(0, 0, 0, 0.18);
+    background: var(--fv-editor-inset-surface);
 }
 
 .fv-parent-picker-option {
@@ -2446,7 +2446,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     padding: 0.78rem 0.86rem;
     margin: 0 !important;
     border: 0 !important;
-    border-top: 1px solid rgba(0, 0, 0, 0.58) !important;
+    border-top: 1px solid var(--fv-editor-block-border) !important;
     border-radius: 0 !important;
     background: transparent !important;
     box-shadow: none !important;
@@ -2461,14 +2461,14 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
 .fv-parent-picker-option:hover,
 .fv-parent-picker-option:focus-visible {
-    background: rgba(255, 255, 255, 0.035) !important;
+    background: var(--fv-editor-control-surface-hover) !important;
     box-shadow: none !important;
 }
 
 .fv-parent-picker-option.is-selected {
     background:
-        linear-gradient(90deg, rgba(255, 154, 60, 0.08), transparent 32%),
-        rgba(255, 255, 255, 0.04) !important;
+        linear-gradient(90deg, var(--fv-editor-accent-soft), transparent 32%),
+        var(--fv-editor-control-surface) !important;
 }
 
 .fv-parent-picker-option-main {
@@ -2498,7 +2498,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     min-height: 28px;
     padding: 0.2rem 0.58rem;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.06);
+    background: var(--fv-editor-control-surface);
     color: var(--fv-editor-muted);
     font-size: 0.77rem;
     font-weight: 700;
@@ -2509,7 +2509,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
     padding: 0.86rem 0.9rem;
     border: 1px dashed var(--fv-editor-block-border);
     border-radius: 14px;
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--fv-editor-inset-surface);
     color: var(--fv-editor-muted);
 }
 

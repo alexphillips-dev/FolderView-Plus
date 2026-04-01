@@ -605,8 +605,10 @@ test('folder editor uses a searchable parent picker and custom general-section l
     assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-modern-field-row\.is-parent-row\s*\{[\s\S]*grid-row:\s*1;[\s\S]*max-width:\s*560px !important;/);
     assert.match(folderCss, /\.fv-section-shell\[data-section-shell="general"\] \.fv-modern-field-row\.is-icon-row\s*\{[\s\S]*grid-row:\s*1;[\s\S]*max-width:\s*none !important;[\s\S]*justify-self:\s*stretch !important;/);
     assert.match(folderCss, /\.fv-parent-picker-shell/);
-    assert.match(folderCss, /\.fv-parent-picker-list\s*\{[\s\S]*display:\s*flex;[\s\S]*border:\s*1px solid rgba\(0,\s*0,\s*0,\s*0\.72\);/);
-    assert.match(folderCss, /\.fv-parent-picker-option\s*\{[\s\S]*margin:\s*0 !important;[\s\S]*border-top:\s*1px solid rgba\(0,\s*0,\s*0,\s*0\.58\) !important;/);
+    assert.match(folderCss, /\.fv-parent-picker-list\s*\{[\s\S]*display:\s*flex;[\s\S]*border:\s*1px solid var\(--fv-editor-block-border\);[\s\S]*background:\s*var\(--fv-editor-inset-surface\);/);
+    assert.match(folderCss, /\.fv-parent-picker-option\s*\{[\s\S]*margin:\s*0 !important;[\s\S]*border-top:\s*1px solid var\(--fv-editor-block-border\) !important;/);
+    assert.match(folderCss, /\.fv-parent-picker-option:hover,[\s\S]*background:\s*var\(--fv-editor-control-surface-hover\) !important;/);
+    assert.match(folderCss, /\.fv-parent-picker-option\.is-selected\s*\{[\s\S]*linear-gradient\(90deg,\s*var\(--fv-editor-accent-soft\),\s*transparent 32%\),[\s\S]*var\(--fv-editor-control-surface\) !important;/);
     assert.match(folderCss, /\.fv-parent-picker-search-input/);
 });
 

@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.01.07">
-<!ENTITY md5 "7b51dc1e618a493f17076e521d48a448">
+<!ENTITY version "2026.04.01.08">
+<!ENTITY md5 "2310ef9424af998ad499d17e679122d6">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.01.08
+- Fix: Switched the folder editor parent-folder picker list, separators, and empty state to shared editor surface tokens so the white theme no longer renders the chooser as a flat gray panel.
+- UI/UX: Updated the parent-picker hover, selected, and scope-chip styling to use the same light/dark theme tokens as the rest of the folder editor.
+- Quality: Updated the folder editor layout smoke test to lock the parent-picker theme-safe surface contract.
+
 
 ###2026.04.01.07
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

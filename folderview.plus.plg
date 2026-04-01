@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.01.02">
-<!ENTITY md5 "b5a39658e21eda9188bc94f999a6b10f">
+<!ENTITY version "2026.04.01.03">
+<!ENTITY md5 "0f35faa56c23790603b6e0a2a927ad7e">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.01.03
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Fix: Improved backend release-note parsing and category detection for accurate summaries.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
 
 ###2026.04.01.02
 - Maintenance: Refresh perf baseline for docker update fix.

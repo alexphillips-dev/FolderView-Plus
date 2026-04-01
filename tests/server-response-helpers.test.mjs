@@ -59,6 +59,7 @@ test('lib.php normalizes compose manager and compose project labels', () => {
     assert.match(libPhp, /function getNormalizedDockerManagerFromLabels\s*\(/);
     assert.match(libPhp, /function normalizeDockerUpdatedStateValue\(\$value\): \?bool/);
     assert.match(libPhp, /function readDockerWebuiInfoCache\(\): array/);
+    assert.match(libPhp, /function resolveDockerCachedUpdatedStateValue\(string \$containerName, array \$dockerWebuiInfo = \[\]\): \?bool/);
     assert.match(libPhp, /function resolveDockerUpdatedStateValue\(string \$containerName, string \$containerImage, array \$dockerWebuiInfo = \[\], \$dockerUpdate = null\): \?bool/);
     assert.match(libPhp, /in_array\(\$normalized, \['true', '1', 'yes', 'on', 'up-to-date', 'uptodate', 'current'\], true\)/);
     assert.match(libPhp, /in_array\(\$normalized, \['false', '0', 'no', 'off', 'update-ready', 'update ready', 'apply-update', 'apply update', 'update available'\], true\)/);
@@ -75,11 +76,19 @@ test('lib.php normalizes compose manager and compose project labels', () => {
     );
     assert.match(
         libPhp,
-        /\$cachedUpdated = normalizeDockerUpdatedStateValue\(\$dockerWebuiInfo\[\$safeName\]\['updated'\] \?\? null\);[\s\S]*?if \(is_bool\(\$cachedUpdated\)\) \{[\s\S]*?return \$cachedUpdated;/
+        /\$cachedUpdated = normalizeDockerUpdatedStateValue\(\$dockerWebuiInfo\[\$safeName\]\['updated'\] \?\? null\);[\s\S]*?return is_bool\(\$cachedUpdated\) \? \$cachedUpdated : null;/
+    );
+    assert.match(
+        libPhp,
+        /\$cachedUpdated = resolveDockerCachedUpdatedStateValue\(\$containerName, \$dockerWebuiInfo\);[\s\S]*?if \(is_bool\(\$cachedUpdated\)\) \{[\s\S]*?return \$cachedUpdated;/
     );
     assert.match(
         libPhp,
         /return normalizeDockerUpdatedStateValue\(\$dockerUpdate->getUpdateStatus\(\$containerImage\)\);/
+    );
+    assert.match(
+        libPhp,
+        /function readInfoState\(string \$type\): array \{[\s\S]*?\$dockerWebuiInfo = readDockerWebuiInfoCache\(\);[\s\S]*?'Updated'\s*=>\s*\$manager === 'dockerman' \? resolveDockerCachedUpdatedStateValue\(\$name, \$dockerWebuiInfo\) : null,/
     );
 });
 

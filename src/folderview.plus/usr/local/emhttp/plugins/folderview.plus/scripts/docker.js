@@ -732,8 +732,11 @@ const buildDockerRuntimeInfoRenderEntry = (name, entry = {}, previousEntry = nul
     const labelTsWebUi = String(labels['net.unraid.docker.tailscale.webui'] || '').trim();
     const resolvedWebUi = resolvePreferredWebuiValue(sourceState.WebUi, source.WebUi, source.webui, previousState.WebUi, labelWebUi);
     const resolvedTsWebUi = resolvePreferredWebuiValue(sourceState.TSWebUi, source.TSWebUi, previousState.TSWebUi, labelTsWebUi);
-    const resolvedUpdated = typeof sourceState.Updated === 'boolean'
+    const sourceUpdated = typeof sourceState.Updated === 'boolean'
         ? sourceState.Updated
+        : (typeof source.Updated === 'boolean' ? source.Updated : null);
+    const resolvedUpdated = typeof sourceUpdated === 'boolean'
+        ? sourceUpdated
         : (typeof previousState.Updated === 'boolean'
             ? previousState.Updated
             : (manager === 'dockerman' ? readDockerHostRowUpdatedState(safeName) : null));
@@ -2609,14 +2612,16 @@ const normalizeDockerStateToken = (entry, fromStateMode = false) => {
     if (!entry || typeof entry !== 'object') {
         return 's:0::';
     }
+    const normalizeUpdatedToken = (value) => (value === false ? 'u0' : (value === true ? 'u1' : 'ux'));
     if (fromStateMode) {
         const running = entry.running === true;
         const paused = entry.paused === true;
         const status = running ? (paused ? 'p' : 'r') : 's';
         const autostart = entry.autostart === true ? '1' : '0';
         const manager = String(entry.manager || '').trim();
+        const updated = normalizeUpdatedToken(entry.Updated);
         const label = String(entry.folderLabel || '').trim();
-        return `${status}:${autostart}:${manager}:${label}`;
+        return `${status}:${autostart}:${manager}:${updated}:${label}`;
     }
     const info = entry.info && typeof entry.info === 'object' ? entry.info : {};
     const state = info.State && typeof info.State === 'object' ? info.State : {};
@@ -2626,8 +2631,9 @@ const normalizeDockerStateToken = (entry, fromStateMode = false) => {
     const status = running ? (paused ? 'p' : 'r') : 's';
     const manager = String(state.manager || '').trim();
     const autostart = !(state.Autostart === false) ? '1' : '0';
+    const updated = normalizeUpdatedToken(state.Updated);
     const label = getFolderLabelValue(labels);
-    return `${status}:${autostart}:${manager}:${label}`;
+    return `${status}:${autostart}:${manager}:${updated}:${label}`;
 };
 
 const buildDockerStateSignature = (source, fromStateMode = false) => {

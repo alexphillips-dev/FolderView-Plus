@@ -10,11 +10,13 @@ const dockerJs = fs.readFileSync(
 );
 
 test('docker runtime preserves hydrated update flags when normalizing partial runtime entries', () => {
-    assert.match(dockerJs, /const resolvedUpdated = typeof sourceState\.Updated === 'boolean'/);
+    assert.match(dockerJs, /const sourceUpdated = typeof sourceState\.Updated === 'boolean'/);
+    assert.match(dockerJs, /typeof source\.Updated === 'boolean' \? source\.Updated : null/);
+    assert.match(dockerJs, /const resolvedUpdated = typeof sourceUpdated === 'boolean'/);
     assert.match(dockerJs, /typeof previousState\.Updated === 'boolean'/);
 });
 
-test('docker runtime falls back to the host row update cell when lightweight state omits update flags', () => {
+test('docker runtime still falls back to the host row update cell when cached state omits update flags', () => {
     assert.match(dockerJs, /const readDockerHostRowUpdatedState = \(name\) => \{/);
     assert.match(dockerJs, /const row = document\.getElementById\(`ct-\$\{safeName\}`\);/);
     assert.match(dockerJs, /const updateCell = row\.querySelector\('td\.updatecolumn'\);/);
@@ -25,7 +27,7 @@ test('docker runtime falls back to the host row update cell when lightweight sta
     assert.match(dockerJs, /if \(updateCell\.querySelector\('\.fa-check'\)\) \{\s*return true;\s*\}/);
     assert.match(dockerJs, /if \(hasToken\(i18nText\('update-ready', 'update ready'\), i18nText\('apply-update', 'apply update'\), 'update ready', 'apply update'\)\) \{\s*return false;\s*\}/);
     assert.match(dockerJs, /if \(hasToken\(i18nText\('up-to-date', 'up-to-date'\), i18nText\('force-update', 'force update'\), 'up-to-date', 'force update'\)\) \{\s*return true;\s*\}/);
-    assert.match(dockerJs, /const resolvedUpdated = typeof sourceState\.Updated === 'boolean'[\s\S]*readDockerHostRowUpdatedState\(safeName\)/);
+    assert.match(dockerJs, /const resolvedUpdated = typeof sourceUpdated === 'boolean'[\s\S]*readDockerHostRowUpdatedState\(safeName\)/);
     assert.match(dockerJs, /Updated:\s*resolvedUpdated/);
 });
 

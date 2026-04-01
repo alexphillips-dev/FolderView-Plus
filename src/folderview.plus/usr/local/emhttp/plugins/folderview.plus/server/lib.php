@@ -3701,13 +3701,21 @@
         return is_array($cache) ? $cache : [];
     }
 
-    function resolveDockerUpdatedStateValue(string $containerName, string $containerImage, array $dockerWebuiInfo = [], $dockerUpdate = null): ?bool {
+    // Keep FolderView Plus aligned with the native Docker page cache so first paint
+    // and hydrated rows read the same update signal.
+    function resolveDockerCachedUpdatedStateValue(string $containerName, array $dockerWebuiInfo = []): ?bool {
         $safeName = trim($containerName);
-        if ($safeName !== '') {
-            $cachedUpdated = normalizeDockerUpdatedStateValue($dockerWebuiInfo[$safeName]['updated'] ?? null);
-            if (is_bool($cachedUpdated)) {
-                return $cachedUpdated;
-            }
+        if ($safeName === '') {
+            return null;
+        }
+        $cachedUpdated = normalizeDockerUpdatedStateValue($dockerWebuiInfo[$safeName]['updated'] ?? null);
+        return is_bool($cachedUpdated) ? $cachedUpdated : null;
+    }
+
+    function resolveDockerUpdatedStateValue(string $containerName, string $containerImage, array $dockerWebuiInfo = [], $dockerUpdate = null): ?bool {
+        $cachedUpdated = resolveDockerCachedUpdatedStateValue($containerName, $dockerWebuiInfo);
+        if (is_bool($cachedUpdated)) {
+            return $cachedUpdated;
         }
         if ($containerImage === '' || !($dockerUpdate instanceof DockerUpdate)) {
             return null;
@@ -5530,6 +5538,7 @@
 
             $autoStartFile = $dockerManPaths['autostart-file'] ?? "/var/lib/docker/unraid-autostart";
             $autoStartLines = @file($autoStartFile, FILE_IGNORE_NEW_LINES) ?: [];
+            $dockerWebuiInfo = readDockerWebuiInfoCache();
             $autoStartSet = [];
             foreach ($autoStartLines as $line) {
                 $trimmed = trim((string)$line);
@@ -5568,6 +5577,7 @@
                     'paused' => $paused,
                     'status' => $statusRaw,
                     'autostart' => isset($autoStartSet[$name]),
+                    'Updated' => $manager === 'dockerman' ? resolveDockerCachedUpdatedStateValue($name, $dockerWebuiInfo) : null,
                     'manager' => $manager,
                     'composeProject' => getComposeProjectValueFromLabels($labels),
                     'folderLabel' => getFolderLabelValueFromLabels($labels)

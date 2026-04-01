@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-03-27T18:13:15.910Z",
+  "generatedAt": "2026-04-01T19:52:35.325Z",
   "notes": "Baseline for perf ratchet guard. Update intentionally when expected growth is accepted.",
   "assets": {
     "scripts/folderviewplus.runtime-parity.js": {
@@ -8,8 +8,8 @@
       "gzipBytes": 508
     },
     "scripts/folderviewplus.settings-sections.js": {
-      "bytes": 3559,
-      "gzipBytes": 858
+      "bytes": 3462,
+      "gzipBytes": 852
     },
     "scripts/folderviewplus.setup-assistant.js": {
       "bytes": 8116,
@@ -20,8 +20,8 @@
       "gzipBytes": 682
     },
     "scripts/folderviewplus.starter-templates.js": {
-      "bytes": 45030,
-      "gzipBytes": 8978
+      "bytes": 45108,
+      "gzipBytes": 9003
     },
     "scripts/folderviewplus.activity-diagnostics.js": {
       "bytes": 61060,
@@ -32,8 +32,8 @@
       "gzipBytes": 7856
     },
     "scripts/folderviewplus.js": {
-      "bytes": 482229,
-      "gzipBytes": 91907
+      "bytes": 504306,
+      "gzipBytes": 94042
     },
     "scripts/folderviewplus.wizard.js": {
       "bytes": 219026,
@@ -44,28 +44,28 @@
       "gzipBytes": 10607
     },
     "styles/folderviewplus.css": {
-      "bytes": 204663,
-      "gzipBytes": 25266
+      "bytes": 210381,
+      "gzipBytes": 25702
     },
     "scripts/docker.js": {
-      "bytes": 293225,
-      "gzipBytes": 58115
+      "bytes": 323512,
+      "gzipBytes": 64297
     },
     "scripts/vm.js": {
-      "bytes": 121103,
-      "gzipBytes": 26293
+      "bytes": 121821,
+      "gzipBytes": 26477
     },
     "scripts/folder.js": {
-      "bytes": 269487,
-      "gzipBytes": 53880
+      "bytes": 277455,
+      "gzipBytes": 55296
     }
   },
   "totals": {
-    "totalJs": 2463826,
-    "totalCss": 351991,
-    "totalJsGzip": 482402,
-    "totalCssGzip": 48780,
-    "settingsRuntimeJs": 910312,
-    "settingsRuntimeJsGzip": 173867
+    "totalJs": 2577457,
+    "totalCss": 377470,
+    "totalJsGzip": 502440,
+    "totalCssGzip": 51485,
+    "settingsRuntimeJs": 932370,
+    "settingsRuntimeJsGzip": 176021
   }
 }

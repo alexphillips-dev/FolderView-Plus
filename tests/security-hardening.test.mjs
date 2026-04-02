@@ -98,9 +98,11 @@ test('dashboard page loads quick-rail controller before dashboard runtime', () =
 });
 
 test('settings and folder pages load extracted support modules before their main runtimes', () => {
+    assert.match(settingsPage, /folderviewplus\.settings-tree\.js/);
     assert.match(settingsPage, /folderviewplus\.row-details\.js/);
     assert.match(settingsPage, /folderviewplus\.wizard-smart-detect\.js/);
     assert.match(settingsPage, /folderviewplus\.actions-support\.js/);
+    assert.match(settingsPage, /folderviewplus\.settings-tree\.js[\s\S]*folderviewplus\.folder-editor\.js[\s\S]*folderviewplus\.row-details\.js/);
     assert.match(settingsPage, /folderviewplus\.row-details\.js[\s\S]*folderviewplus\.wizard-smart-detect\.js[\s\S]*folderviewplus\.wizard\.js/);
     assert.match(settingsPage, /folderviewplus\.actions-support\.js[\s\S]*folderviewplus\.js/);
     assert.match(folderPage, /folder\.editor\.hierarchy\.js/);

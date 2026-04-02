@@ -7,6 +7,8 @@ const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 
 const settingsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js');
+const settingsTreeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-tree.js');
+const settingsRuntimeJs = `${settingsTreeJs}\n${settingsJs}`;
 const dirtyTrackerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.dirty.js');
 
 test('dirty tracker module exports reusable staged-save helpers', () => {
@@ -34,11 +36,11 @@ test('settings runtime keeps centralized dirty tracking and baseline capture wit
 });
 
 test('folder reordering remains instant-persist and outside staged save/cancel dock', () => {
-    assert.match(settingsJs, /const moveFolderRow = async \(type, folderId, direction\) =>/);
-    assert.match(settingsJs, /await persistManualOrder\(resolvedType, nextOrder, \{ refresh: false \}\);/);
-    assert.match(settingsJs, /await refreshType\(resolvedType\);/);
-    assert.match(settingsJs, /await createBackup\(resolvedType, `before-reorder-\$\{safeFolderId\}`\);/);
-    const moveBlockMatch = settingsJs.match(/const moveFolderRow = async \(type, folderId, direction\) => \{([\s\S]*?)\n\};/);
+    assert.match(settingsRuntimeJs, /const moveFolderRow = async \(type, folderId, direction\) =>/);
+    assert.match(settingsRuntimeJs, /await persistManualOrder\(resolvedType, nextOrder, \{ refresh: false \}\);/);
+    assert.match(settingsRuntimeJs, /await refreshType\(resolvedType\);/);
+    assert.match(settingsRuntimeJs, /await createBackup\(resolvedType, `before-reorder-\$\{safeFolderId\}`\);/);
+    const moveBlockMatch = settingsRuntimeJs.match(/const moveFolderRow = async \(type, folderId, direction\) => \{([\s\S]*?)\n\};/);
     assert.ok(moveBlockMatch, 'Expected moveFolderRow function block to exist.');
     const moveBlock = moveBlockMatch?.[1] || '';
     assert.ok(!/updateActionBarSaveState\(\)/.test(moveBlock), 'moveFolderRow should not touch staged save/cancel state.');

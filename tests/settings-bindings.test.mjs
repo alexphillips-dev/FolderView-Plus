@@ -23,6 +23,7 @@ const settingsScriptPaths = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-health.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-workspaces.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-tree.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.actions-support.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
 ].map((relativePath) => path.join(repoRoot, relativePath));
@@ -56,19 +57,22 @@ test('settings page loads extracted settings metadata before the main runtime', 
     assert.match(page, /folderviewplus\.settings-metadata\.js/);
     assert.match(page, /folderviewplus\.settings-sections\.js/);
     assert.match(page, /folderviewplus\.settings-table\.js/);
-    assert.match(page, /folderviewplus\.row-details\.js[\s\S]*folderviewplus\.settings-health\.js[\s\S]*folderviewplus\.settings-workspaces\.js[\s\S]*folderviewplus\.actions-support\.js[\s\S]*folderviewplus\.js/);
+    assert.match(page, /folderviewplus\.settings-tree\.js[\s\S]*folderviewplus\.folder-editor\.js[\s\S]*folderviewplus\.row-details\.js[\s\S]*folderviewplus\.settings-health\.js[\s\S]*folderviewplus\.settings-workspaces\.js[\s\S]*folderviewplus\.actions-support\.js[\s\S]*folderviewplus\.js/);
     assert.match(script, /FolderViewPlusSettingsMetadataModuleLoaded = true/);
     assert.match(script, /FolderViewPlusSettingsTableModuleLoaded = true/);
     assert.match(script, /FolderViewPlusSettingsHealthModuleLoaded = true/);
     assert.match(script, /FolderViewPlusSettingsWorkspacesModuleLoaded = true/);
+    assert.match(script, /FolderViewPlusSettingsTreeModuleLoaded = true/);
     assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.settings-metadata\.js'\)/);
     assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.settings-table\.js'\)/);
     assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.settings-health\.js'\)/);
     assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.settings-workspaces\.js'\)/);
+    assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.settings-tree\.js'\)/);
     assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.actions-support\.js'\)/);
     assert.match(script, /const settingsTableModule = window\.FolderViewPlusSettingsTable \|\| null;/);
     assert.match(script, /const settingsHealthModule = window\.FolderViewPlusSettingsHealth \|\| null;/);
     assert.match(script, /const settingsWorkspacesModule = window\.FolderViewPlusSettingsWorkspaces \|\| null;/);
+    assert.match(script, /const settingsTreeModule = window\.FolderViewPlusSettingsTree \|\| null;/);
 });
 
 test('settings page exposes theme fallback controls and runtime self-heal action', () => {

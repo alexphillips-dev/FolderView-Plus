@@ -6,12 +6,25 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.02.09">
-<!ENTITY md5 "ba5473ebe300e6a501a0d8145b14ef92">
+<!ENTITY version "2026.04.02.11">
+<!ENTITY md5 "a4de1f242db753132bb812bcd2947268">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.02.11
+- Fix: Docker runtime rows, folder state, and container interactions.
+- UX: Folder editor flows, previews, and bootstrap behavior.
+- Refactor: Shared runtime contracts, request plumbing, and cross-page foundations.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
+
+###2026.04.02.10
+- Refactor: Extracted Docker folder action and request helpers into `docker.runtime.actions.js`, including folder edit routes, update actions, WebUI launch fan-out, branch cloning, and branch delete flows.
+- Fix: Preserved branch clone ordering, clone rollback, branch delete descendant ordering, and scoped folder action counts while moving the Docker action seam out of `docker.js`.
+- Quality: Docker module load-order, install smoke, release guard, perf guard, and clone or branch-action regression tests now track the extracted runtime-actions module.
+
 
 ###2026.04.02.09
 - Fix: Docker runtime rows, folder state, and container interactions.

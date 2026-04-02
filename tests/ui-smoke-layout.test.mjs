@@ -67,6 +67,10 @@ const dockerRuntimeHierarchyJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js'
 );
+const dockerRuntimeActionsJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.actions.js'
+);
 const vmJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js'
@@ -108,6 +112,7 @@ const folderPreviewRuntimeJs = fs.readFileSync(
 const dockerJs = fs.readFileSync(dockerJsPath, 'utf8');
 const dockerPreviewActionsJs = fs.readFileSync(dockerPreviewActionsJsPath, 'utf8');
 const dockerRuntimeHierarchyJs = fs.readFileSync(dockerRuntimeHierarchyJsPath, 'utf8');
+const dockerRuntimeActionsJs = fs.readFileSync(dockerRuntimeActionsJsPath, 'utf8');
 const vmJs = fs.readFileSync(vmJsPath, 'utf8');
 const dashboardJs = fs.readFileSync(dashboardJsPath, 'utf8');
 
@@ -667,7 +672,7 @@ test('runtime folder editor routes defer editor mode resolution to Folder.page s
     assert.doesNotMatch(dockerJs, /params\.set\(\s*'editor'/);
     assert.doesNotMatch(vmJs, /params\.set\(\s*'editor'/);
     assert.doesNotMatch(dashboardJs, /params\.set\(\s*'editor'/);
-    assert.match(dockerJs, /params\.set\(\s*'type',\s*'docker'/);
+    assert.match(dockerRuntimeActionsJs, /params\.set\(\s*'type',\s*'docker'/);
     assert.match(vmJs, /params\.set\(\s*'type',\s*'vm'/);
     assert.doesNotMatch(dashboardJs, /params\.set\(\s*'type',\s*resolvedType/);
 });

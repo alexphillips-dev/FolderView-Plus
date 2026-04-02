@@ -36,6 +36,10 @@ const settingsRuntimeActionsScript = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js'),
     'utf8'
 );
+const dockerRuntimeActionsScript = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.actions.js'),
+    'utf8'
+);
 
 test('folder editor validates duplicate names within the selected parent path', () => {
     assert.match(folderHierarchyScript, /const buildParentFolderEntries = \(foldersMap,\s*blockedIds = new Set\(\)\) =>/);
@@ -145,11 +149,12 @@ test('runtime folder editor redirects include a cache-busting query marker', () 
         path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js'),
         'utf8'
     );
-    assert.match(dockerScript, /const buildDockerFolderEditorUrl = \(id = ''\) =>/);
+    assert.match(dockerScript, /const buildDockerFolderEditorUrl = \(id = ''\) => \{/);
+    assert.match(dockerRuntimeActionsScript, /const buildDockerFolderEditorUrl = \(id = ''\) =>/);
     assert.match(vmScript, /const buildVmFolderEditorUrl = \(id = ''\) =>/);
-    assert.match(dockerScript, /const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.persist\.v1';/);
+    assert.match(dockerRuntimeActionsScript, /const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.persist\.v1';/);
     assert.match(vmScript, /const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.persist\.v1';/);
-    assert.match(dockerScript, /params\.set\('_', String\(Date\.now\(\)\)\);/);
+    assert.match(dockerRuntimeActionsScript, /params\.set\('_', String\(Date\.now\(\)\)\);/);
     assert.match(vmScript, /params\.set\('_', String\(Date\.now\(\)\)\);/);
     assert.doesNotMatch(dashboardScript, /const buildDashboardFolderEditorUrl = \(folderType,\s*id = ''\) =>/);
     assert.doesNotMatch(dashboardScript, /const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.persist\.v1';/);

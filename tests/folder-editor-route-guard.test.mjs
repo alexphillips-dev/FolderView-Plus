@@ -8,6 +8,7 @@ const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath)
 
 const folderJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
+const dockerRuntimeActionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.actions.js');
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js');
 const folderPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page');
@@ -80,11 +81,12 @@ test('folder editor runtime accepts query and hash bootstrap identity fallbacks'
 });
 
 test('folder editor URLs duplicate folder identity into the hash for navigation-safe fallback', () => {
-    assert.match(dockerJs, /const EDITOR_WINDOW_NAME_PREFIX = 'fv\.folder\.editor\.v1:'/);
-    assert.match(dockerJs, /const EDITOR_BOOTSTRAP_COOKIE_NAME = 'fv_folder_editor_bootstrap';/);
-    assert.match(dockerJs, /const EDITOR_DEBUG_LAUNCH_STORAGE_KEY = 'fv\.folder\.editor\.debug\.launch\.v1';/);
-    assert.match(dockerJs, /const recordFolderEditorLaunchDebug = \(sourcePage, folderType, id, targetUrl\) =>/);
-    assert.match(dockerJs, /window\.name = `\$\{EDITOR_WINDOW_NAME_PREFIX\}\$\{payload\}`;/);
+    assert.match(dockerRuntimeActionsJs, /const EDITOR_WINDOW_NAME_PREFIX = 'fv\.folder\.editor\.v1:'/);
+    assert.match(dockerRuntimeActionsJs, /const EDITOR_BOOTSTRAP_COOKIE_NAME = 'fv_folder_editor_bootstrap';/);
+    assert.match(dockerRuntimeActionsJs, /const EDITOR_DEBUG_LAUNCH_STORAGE_KEY = 'fv\.folder\.editor\.debug\.launch\.v1';/);
+    assert.match(dockerRuntimeActionsJs, /const recordFolderEditorLaunchDebug = \(sourcePage, folderType, id, targetUrl\) =>/);
+    assert.match(dockerRuntimeActionsJs, /win\.name = `\$\{EDITOR_WINDOW_NAME_PREFIX\}\$\{payload\}`;/);
+    assert.match(dockerJs, /const editFolder = \(id\) => \{[\s\S]*actionsApi\.editFolder\(id\);/);
     assert.match(vmJs, /const EDITOR_WINDOW_NAME_PREFIX = 'fv\.folder\.editor\.v1:'/);
     assert.match(vmJs, /const EDITOR_BOOTSTRAP_COOKIE_NAME = 'fv_folder_editor_bootstrap';/);
     assert.match(vmJs, /const EDITOR_DEBUG_LAUNCH_STORAGE_KEY = 'fv\.folder\.editor\.debug\.launch\.v1';/);
@@ -94,7 +96,8 @@ test('folder editor URLs duplicate folder identity into the hash for navigation-
     assert.doesNotMatch(dashboardJs, /const EDITOR_BOOTSTRAP_COOKIE_NAME = 'fv_folder_editor_bootstrap';/);
     assert.doesNotMatch(dashboardJs, /const EDITOR_DEBUG_LAUNCH_STORAGE_KEY = 'fv\.folder\.editor\.debug\.launch\.v1';/);
     assert.doesNotMatch(dashboardJs, /window\.name = `\$\{EDITOR_WINDOW_NAME_PREFIX\}\$\{payload\}`;/);
-    assert.match(dockerJs, /return `\/Docker\/Folder\?\$\{params\.toString\(\)\}#\$\{hashParams\.toString\(\)\}`;/);
+    assert.match(dockerRuntimeActionsJs, /return `\/Docker\/Folder\?\$\{params\.toString\(\)\}#\$\{hashParams\.toString\(\)\}`;/);
+    assert.match(dockerJs, /const buildDockerFolderEditorUrl = \(id = ''\) => \{[\s\S]*actionsApi\.buildDockerFolderEditorUrl\(id\)/);
     assert.match(vmJs, /return `\/VMs\/Folder\?\$\{params\.toString\(\)\}#\$\{hashParams\.toString\(\)\}`;/);
     assert.doesNotMatch(dashboardJs, /return `\$\{location\.pathname\}\/Folder\?\$\{params\.toString\(\)\}#\$\{hashParams\.toString\(\)\}`;/);
 });

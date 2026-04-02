@@ -161,6 +161,7 @@ fi
 
 SOURCE_FOLDER_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js"
 SOURCE_DOCKER_RUNTIME_HIERARCHY_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js"
+SOURCE_DOCKER_RUNTIME_ACTIONS_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.actions.js"
 SOURCE_FOLDER_CSS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folder.css"
 SOURCE_SETTINGS_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js"
 SOURCE_SETTINGS_DIRTY_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.dirty.js"
@@ -190,6 +191,10 @@ if [[ ! -f "${SOURCE_FOLDER_JS}" ]]; then
 fi
 if [[ ! -f "${SOURCE_DOCKER_RUNTIME_HIERARCHY_JS}" ]]; then
   echo "ERROR: Missing source Docker hierarchy helper script: ${SOURCE_DOCKER_RUNTIME_HIERARCHY_JS}" >&2
+  exit 1
+fi
+if [[ ! -f "${SOURCE_DOCKER_RUNTIME_ACTIONS_JS}" ]]; then
+  echo "ERROR: Missing source Docker action helper script: ${SOURCE_DOCKER_RUNTIME_ACTIONS_JS}" >&2
   exit 1
 fi
 if [[ ! -f "${SOURCE_FOLDER_CSS}" ]]; then
@@ -315,6 +320,7 @@ fi
 REQUIRED_ARCHIVE_PATHS=(
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folder.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.actions.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.dirty.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js"
@@ -509,6 +515,7 @@ fi
 
 TMP_ARCHIVE_FOLDER_JS="$(mktemp)"
 TMP_ARCHIVE_DOCKER_RUNTIME_HIERARCHY_JS="$(mktemp)"
+TMP_ARCHIVE_DOCKER_RUNTIME_ACTIONS_JS="$(mktemp)"
 TMP_ARCHIVE_FOLDER_CSS="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_JS="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_DIRTY_JS="$(mktemp)"
@@ -531,9 +538,10 @@ TMP_ARCHIVE_FOLDER_PAGE="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_PAGE="$(mktemp)"
 TMP_ARCHIVE_SERVER_LIB="$(mktemp)"
 TMP_ARCHIVE_SERVER_UPDATE_NOTES="$(mktemp)"
-trap 'rm -f "${TMP_ARCHIVE_FOLDER_JS}" "${TMP_ARCHIVE_DOCKER_RUNTIME_HIERARCHY_JS}" "${TMP_ARCHIVE_FOLDER_CSS}" "${TMP_ARCHIVE_SETTINGS_JS}" "${TMP_ARCHIVE_SETTINGS_DIRTY_JS}" "${TMP_ARCHIVE_SETTINGS_RUNTIME_PARITY_JS}" "${TMP_ARCHIVE_SETTINGS_SECTIONS_JS}" "${TMP_ARCHIVE_SETTINGS_SETUP_ASSISTANT_JS}" "${TMP_ARCHIVE_SETTINGS_SMART_DETECT_CONFIG_JS}" "${TMP_ARCHIVE_SETTINGS_STARTER_TEMPLATES_JS}" "${TMP_ARCHIVE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS}" "${TMP_ARCHIVE_SETTINGS_TREE_JS}" "${TMP_ARCHIVE_SETTINGS_FOLDER_EDITOR_JS}" "${TMP_ARCHIVE_SETTINGS_HEALTH_JS}" "${TMP_ARCHIVE_SETTINGS_WORKSPACES_JS}" "${TMP_ARCHIVE_SETTINGS_BULK_ASSIGNMENT_JS}" "${TMP_ARCHIVE_SETTINGS_RUNTIME_ACTIONS_JS}" "${TMP_ARCHIVE_SETTINGS_WIZARD_JS}" "${TMP_ARCHIVE_SETTINGS_IMPORT_JS}" "${TMP_ARCHIVE_SETTINGS_CSS}" "${TMP_ARCHIVE_FOLDER_PAGE}" "${TMP_ARCHIVE_SETTINGS_PAGE}" "${TMP_ARCHIVE_SERVER_LIB}" "${TMP_ARCHIVE_SERVER_UPDATE_NOTES}"' EXIT
+trap 'rm -f "${TMP_ARCHIVE_FOLDER_JS}" "${TMP_ARCHIVE_DOCKER_RUNTIME_HIERARCHY_JS}" "${TMP_ARCHIVE_DOCKER_RUNTIME_ACTIONS_JS}" "${TMP_ARCHIVE_FOLDER_CSS}" "${TMP_ARCHIVE_SETTINGS_JS}" "${TMP_ARCHIVE_SETTINGS_DIRTY_JS}" "${TMP_ARCHIVE_SETTINGS_RUNTIME_PARITY_JS}" "${TMP_ARCHIVE_SETTINGS_SECTIONS_JS}" "${TMP_ARCHIVE_SETTINGS_SETUP_ASSISTANT_JS}" "${TMP_ARCHIVE_SETTINGS_SMART_DETECT_CONFIG_JS}" "${TMP_ARCHIVE_SETTINGS_STARTER_TEMPLATES_JS}" "${TMP_ARCHIVE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS}" "${TMP_ARCHIVE_SETTINGS_TREE_JS}" "${TMP_ARCHIVE_SETTINGS_FOLDER_EDITOR_JS}" "${TMP_ARCHIVE_SETTINGS_HEALTH_JS}" "${TMP_ARCHIVE_SETTINGS_WORKSPACES_JS}" "${TMP_ARCHIVE_SETTINGS_BULK_ASSIGNMENT_JS}" "${TMP_ARCHIVE_SETTINGS_RUNTIME_ACTIONS_JS}" "${TMP_ARCHIVE_SETTINGS_WIZARD_JS}" "${TMP_ARCHIVE_SETTINGS_IMPORT_JS}" "${TMP_ARCHIVE_SETTINGS_CSS}" "${TMP_ARCHIVE_FOLDER_PAGE}" "${TMP_ARCHIVE_SETTINGS_PAGE}" "${TMP_ARCHIVE_SERVER_LIB}" "${TMP_ARCHIVE_SERVER_UPDATE_NOTES}"' EXIT
 ARCHIVE_FOLDER_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folder.js"
 ARCHIVE_DOCKER_RUNTIME_HIERARCHY_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js"
+ARCHIVE_DOCKER_RUNTIME_ACTIONS_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.actions.js"
 ARCHIVE_FOLDER_CSS_PATH="./usr/local/emhttp/plugins/folderview.plus/styles/folder.css"
 ARCHIVE_SETTINGS_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js"
 ARCHIVE_SETTINGS_DIRTY_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.dirty.js"
@@ -561,6 +569,9 @@ if ! grep -Fxq "${ARCHIVE_FOLDER_JS_PATH}" <<< "${ARCHIVE_LIST}"; then
 fi
 if ! grep -Fxq "${ARCHIVE_DOCKER_RUNTIME_HIERARCHY_JS_PATH}" <<< "${ARCHIVE_LIST}"; then
   ARCHIVE_DOCKER_RUNTIME_HIERARCHY_JS_PATH="${ARCHIVE_DOCKER_RUNTIME_HIERARCHY_JS_PATH#./}"
+fi
+if ! grep -Fxq "${ARCHIVE_DOCKER_RUNTIME_ACTIONS_JS_PATH}" <<< "${ARCHIVE_LIST}"; then
+  ARCHIVE_DOCKER_RUNTIME_ACTIONS_JS_PATH="${ARCHIVE_DOCKER_RUNTIME_ACTIONS_JS_PATH#./}"
 fi
 if ! grep -Fxq "${ARCHIVE_FOLDER_CSS_PATH}" <<< "${ARCHIVE_LIST}"; then
   ARCHIVE_FOLDER_CSS_PATH="${ARCHIVE_FOLDER_CSS_PATH#./}"
@@ -630,6 +641,7 @@ if ! grep -Fxq "${ARCHIVE_SERVER_UPDATE_NOTES_PATH}" <<< "${ARCHIVE_LIST}"; then
 fi
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_FOLDER_JS_PATH}" > "${TMP_ARCHIVE_FOLDER_JS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_DOCKER_RUNTIME_HIERARCHY_JS_PATH}" > "${TMP_ARCHIVE_DOCKER_RUNTIME_HIERARCHY_JS}"
+tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_DOCKER_RUNTIME_ACTIONS_JS_PATH}" > "${TMP_ARCHIVE_DOCKER_RUNTIME_ACTIONS_JS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_FOLDER_CSS_PATH}" > "${TMP_ARCHIVE_FOLDER_CSS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_JS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_DIRTY_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_DIRTY_JS}"
@@ -664,6 +676,10 @@ fi
 
 if ! text_files_match "${SOURCE_DOCKER_RUNTIME_HIERARCHY_JS}" "${TMP_ARCHIVE_DOCKER_RUNTIME_HIERARCHY_JS}"; then
   fail_packaged_source_mismatch "Packaged docker.runtime.hierarchy.js does not match source docker.runtime.hierarchy.js."
+fi
+
+if ! text_files_match "${SOURCE_DOCKER_RUNTIME_ACTIONS_JS}" "${TMP_ARCHIVE_DOCKER_RUNTIME_ACTIONS_JS}"; then
+  fail_packaged_source_mismatch "Packaged docker.runtime.actions.js does not match source docker.runtime.actions.js."
 fi
 
 if ! text_files_match "${SOURCE_FOLDER_CSS}" "${TMP_ARCHIVE_FOLDER_CSS}"; then

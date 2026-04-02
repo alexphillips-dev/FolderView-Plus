@@ -42,6 +42,7 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /const renderDiagnosticsSummary = \(diagnostics\) =>/);
     assert.match(diagnosticsJs, /const collectThemeDiagnostics = \(\) =>/);
     assert.match(diagnosticsJs, /const runThemeDiagnostics = \(\) =>/);
+    assert.match(diagnosticsJs, /const collectThemeTelemetrySnapshot = \(\) =>/);
     assert.match(diagnosticsJs, /const exportFullDiagnostics = \(\) =>/);
     assert.match(diagnosticsJs, /const exportFullSupportBundle = \(\) =>/);
     assert.match(settingsPage, /id="fv-diagnostics-summary"/);
@@ -55,6 +56,7 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /window\.FolderViewPlusDiagnostics = Object\.freeze\(\{/);
     assert.match(diagnosticsJs, /collectClientPerformanceTelemetry/);
     assert.match(diagnosticsJs, /collectFolderEditorDebugDiagnostics/);
+    assert.match(diagnosticsJs, /existingClientTelemetry\.theme = collectThemeTelemetrySnapshot\(\);/);
     assert.match(diagnosticsJs, /surfaceSummary/);
     assert.match(diagnosticsJs, /Bootstrap banner:/);
     assert.match(diagnosticsJs, /runThemeSelfHeal/);

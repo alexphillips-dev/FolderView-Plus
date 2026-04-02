@@ -1053,6 +1053,7 @@ const exportDiagnosticsByMode = async (privacy = 'sanitized') => {
     existingClientTelemetry.performance = collectClientPerformanceTelemetry();
     existingClientTelemetry.requestErrors = getRequestErrorDiagnosticsSnapshot();
     existingClientTelemetry.folderEditorDebug = collectFolderEditorDebugDiagnostics();
+    existingClientTelemetry.theme = collectThemeTelemetrySnapshot();
     payload.clientTelemetry = existingClientTelemetry;
 
     downloadFile('FolderView Plus Diagnostics.json', toPrettyJson(payload));
@@ -1084,6 +1085,7 @@ const exportSupportBundleByMode = async (privacy = 'sanitized') => {
         existingClientTelemetry.performance = collectClientPerformanceTelemetry();
         existingClientTelemetry.requestErrors = getRequestErrorDiagnosticsSnapshot();
         existingClientTelemetry.folderEditorDebug = collectFolderEditorDebugDiagnostics();
+        existingClientTelemetry.theme = collectThemeTelemetrySnapshot();
         bundle.clientTelemetry = existingClientTelemetry;
         const generatedAt = String(bundle.generatedAt || '').replace(/[:]/g, '-');
         const suffix = generatedAt ? `-${generatedAt}` : '';
@@ -1255,7 +1257,24 @@ const readThemeTokenSnapshot = (styleDeclaration) => {
     return output;
 };
 
+const resolveThemeDiagnosticStatusToken = (tokens, statusName = 'started') => {
+    const source = tokens && typeof tokens === 'object' ? tokens : {};
+    const suffix = String(statusName || 'started').trim() || 'started';
+    for (const token of [
+        `--fvplus-status-${suffix}`,
+        `--fvplus-runtime-status-${suffix}`,
+        `--fvplus-folder-status-${suffix}`
+    ]) {
+        const value = String(source[token] || '').trim();
+        if (value) {
+            return value;
+        }
+    }
+    return '';
+};
+
 const collectThemeDiagnostics = () => {
+    const resolverSnapshot = applyDiagnosticsThemeTokens('diagnostics');
     const html = document.documentElement;
     const body = document.body;
     const root = document.getElementById('fv-settings-root');
@@ -1275,10 +1294,12 @@ const collectThemeDiagnostics = () => {
 
     const warnings = [];
     const htmlTokens = readThemeTokenSnapshot(htmlStyle);
-    if (!htmlTokens['--fvplus-status-started']) {
-        warnings.push('Missing --fvplus-status-started token value on document root.');
+    const startedStatusToken = resolveThemeDiagnosticStatusToken(htmlTokens, 'started');
+    const stoppedStatusToken = resolveThemeDiagnosticStatusToken(htmlTokens, 'stopped');
+    if (!startedStatusToken) {
+        warnings.push('Missing started status token value on document root.');
     }
-    if (htmlTokens['--fvplus-status-started'] && htmlTokens['--fvplus-status-started'] === htmlTokens['--fvplus-status-stopped']) {
+    if (startedStatusToken && stoppedStatusToken && startedStatusToken === stoppedStatusToken) {
         warnings.push('Started and stopped status tokens resolve to the same value.');
     }
     const startedSampleColor = firstStartedState ? window.getComputedStyle(firstStartedState).color : '';
@@ -1286,7 +1307,6 @@ const collectThemeDiagnostics = () => {
     if (startedSampleColor && stoppedSampleColor && startedSampleColor === stoppedSampleColor) {
         warnings.push('Runtime started/stopped state colors currently resolve to the same computed color.');
     }
-    const resolverSnapshot = applyDiagnosticsThemeTokens('diagnostics');
     if (resolverSnapshot?.autoHealed) {
         warnings.push(`Theme resolver auto-heal applied mode ${resolverSnapshot.appliedMode}.`);
     }
@@ -1353,6 +1373,15 @@ const runThemeDiagnostics = () => {
     } catch (error) {
         showError('Theme diagnostics failed', error);
         return null;
+    }
+};
+
+const collectThemeTelemetrySnapshot = () => {
+    try {
+        lastThemeDiagnostics = collectThemeDiagnostics();
+        return lastThemeDiagnostics;
+    } catch (_error) {
+        return lastThemeDiagnostics || null;
     }
 };
 

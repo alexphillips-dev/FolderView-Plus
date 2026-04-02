@@ -96,9 +96,16 @@ test('theme-change observers trigger deterministic reflow across runtime and set
     assert.match(themeResolverJs, /buildResolvedThemeSnapshot,/);
     assert.match(themeResolverJs, /applyResolvedThemeTokens,/);
     assert.match(themeResolverJs, /bindThemeAwareSurface/);
+    assert.match(themeResolverJs, /'--fvplus-status-started':\s*tokens\.statusStarted \|\| ''/);
+    assert.match(themeResolverJs, /'--fvplus-folder-status-started':\s*tokens\.statusStarted \|\| ''/);
     assert.match(themeResolverJs, /window\.FolderViewPlusThemeResolverModuleLoaded = true;/);
     assert.match(diagnosticsJs, /const applyDiagnosticsThemeTokens = \(reason = 'runtime', options = \{\}\) =>/);
     assert.match(diagnosticsJs, /const buildDiagnosticsThemeSnapshot = \(modeInput = null, options = \{\}\) =>/);
+    assert.match(diagnosticsJs, /const resolveThemeDiagnosticStatusToken = \(tokens, statusName = 'started'\) =>/);
+    assert.match(diagnosticsJs, /const resolverSnapshot = applyDiagnosticsThemeTokens\('diagnostics'\);[\s\S]*?const html = document\.documentElement;/);
+    assert.match(diagnosticsJs, /const startedStatusToken = resolveThemeDiagnosticStatusToken\(htmlTokens, 'started'\);/);
+    assert.match(diagnosticsJs, /const stoppedStatusToken = resolveThemeDiagnosticStatusToken\(htmlTokens, 'stopped'\);/);
+    assert.doesNotMatch(diagnosticsJs, /Missing --fvplus-status-started token value on document root\./);
     assert.match(diagnosticsJs, /const runThemeSelfHeal = async \(\) =>/);
 });
 

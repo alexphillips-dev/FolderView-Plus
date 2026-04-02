@@ -56,6 +56,10 @@ const dockerJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js'
 );
+const dockerPreviewActionsJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.preview-actions.js'
+);
 const vmJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js'
@@ -91,6 +95,7 @@ const folderPreviewJs = fs.readFileSync(
     'utf8'
 );
 const dockerJs = fs.readFileSync(dockerJsPath, 'utf8');
+const dockerPreviewActionsJs = fs.readFileSync(dockerPreviewActionsJsPath, 'utf8');
 const vmJs = fs.readFileSync(vmJsPath, 'utf8');
 const dashboardJs = fs.readFileSync(dashboardJsPath, 'utf8');
 
@@ -354,8 +359,8 @@ test('nested folder expansion avoids duplicate parent previews and keeps child-o
     assert.match(dockerJs, /\.addClass\('fv-nested-hidden'\)\.hide\(\);/);
     assert.match(dockerJs, /webui:\s*ct\.info\.State\.WebUi \|\| ct\.info\.State\.TSWebUi \|\| ''/);
     assert.match(dockerJs, /shell:\s*ct\.info\.Shell \|\| '\/bin\/sh'/);
-    assert.match(dockerJs, /openTerminal\('docker', containerName, shellValue\);/);
-    assert.match(dockerJs, /openTerminal\('docker', containerName, '\.log'\);/);
+    assert.match(dockerPreviewActionsJs, /openTerminal\('docker', containerName, shellValue\);/);
+    assert.match(dockerPreviewActionsJs, /openTerminal\('docker', containerName, '\.log'\);/);
     assert.match(dockerJs, /const allowWebuiQuickAction = quickActionPrefs\.preview_webui === true;/);
     assert.match(dockerJs, /const allowConsoleQuickAction = quickActionPrefs\.preview_console === true;/);
     assert.match(dockerJs, /const allowLogsQuickAction = quickActionPrefs\.preview_logs === true;/);
@@ -370,9 +375,9 @@ test('nested folder expansion avoids duplicate parent previews and keeps child-o
     assert.match(dockerJs, /appendDockerPreviewActionButtons\(\$actionsTarget,\s*\{[\s\S]*preview_webui:\s*allowWebuiQuickAction,[\s\S]*preview_console:\s*allowConsoleQuickAction,[\s\S]*preview_logs:\s*allowLogsQuickAction[\s\S]*\},\s*containerName,\s*shellValue,\s*webuiUrl\);/);
     assert.match(dockerJs, /const previewWebuiUrl = getSafeWebuiUrl\(newFolder\[container_name_in_folder\]\?\.webui \|\| ct\.info\.State\.WebUi \|\| ct\.info\.State\.TSWebUi \|\| ''\);/);
     assert.match(dockerJs, /appendDockerPreviewActionButtons\(\$targetForAppend,\s*folder\.settings,\s*ct\.info\.Name,\s*ct\.info\.Shell,\s*previewWebuiUrl\);/);
-    assert.match(dockerJs, /if \(settings\.preview_webui && webuiUrl\)/);
-    assert.match(dockerJs, /if \(settings\.preview_console && containerName\)/);
-    assert.match(dockerJs, /if \(settings\.preview_logs && containerName\)/);
+    assert.match(dockerPreviewActionsJs, /if \(settings\.preview_webui && webuiUrl\)/);
+    assert.match(dockerPreviewActionsJs, /if \(settings\.preview_console && containerName\)/);
+    assert.match(dockerPreviewActionsJs, /if \(settings\.preview_logs && containerName\)/);
     assert.match(vmJs, /const parentId = normalizeFolderParentId\(source\[id\]\?\.parentId \|\| source\[id\]\?\.parent_id \|\| ''\);/);
 });
 

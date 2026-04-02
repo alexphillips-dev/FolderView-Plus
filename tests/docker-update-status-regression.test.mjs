@@ -8,35 +8,39 @@ const dockerJs = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js'),
     'utf8'
 );
+const dockerRuntimeInfoJs = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.info.js'),
+    'utf8'
+);
 
 test('docker runtime preserves hydrated update flags when normalizing partial runtime entries', () => {
-    assert.match(dockerJs, /const sourceUpdated = typeof sourceState\.Updated === 'boolean'/);
-    assert.match(dockerJs, /typeof source\.Updated === 'boolean' \? source\.Updated : null/);
-    assert.match(dockerJs, /const resolvedUpdated = typeof sourceUpdated === 'boolean'/);
-    assert.match(dockerJs, /typeof previousState\.Updated === 'boolean'/);
+    assert.match(dockerRuntimeInfoJs, /const sourceUpdated = typeof sourceState\.Updated === 'boolean'/);
+    assert.match(dockerRuntimeInfoJs, /typeof source\.Updated === 'boolean' \? source\.Updated : null/);
+    assert.match(dockerRuntimeInfoJs, /const resolvedUpdated = typeof sourceUpdated === 'boolean'/);
+    assert.match(dockerRuntimeInfoJs, /typeof previousState\.Updated === 'boolean'/);
 });
 
 test('docker runtime still falls back to the host row update cell when cached state omits update flags', () => {
-    assert.match(dockerJs, /const readDockerHostRowUpdatedState = \(name\) => \{/);
-    assert.match(dockerJs, /const row = document\.getElementById\(`ct-\$\{safeName\}`\);/);
-    assert.match(dockerJs, /const updateCell = row\.querySelector\('td\.updatecolumn'\);/);
-    assert.match(dockerJs, /const normalizedText = String\(updateCell\.textContent \|\| ''\)\.trim\(\)\.toLowerCase\(\);/);
-    assert.match(dockerJs, /const i18nText = \(key, fallback = ''\) => \{/);
-    assert.match(dockerJs, /const hasToken = \(\.\.\.tokens\) => tokens\.some/);
-    assert.match(dockerJs, /if \(updateCell\.querySelector\('\.fa-flash'\)\) \{\s*return false;\s*\}/);
-    assert.match(dockerJs, /if \(updateCell\.querySelector\('\.fa-check'\)\) \{\s*return true;\s*\}/);
-    assert.match(dockerJs, /if \(hasToken\(i18nText\('update-ready', 'update ready'\), i18nText\('apply-update', 'apply update'\), 'update ready', 'apply update'\)\) \{\s*return false;\s*\}/);
-    assert.match(dockerJs, /if \(hasToken\(i18nText\('up-to-date', 'up-to-date'\), i18nText\('force-update', 'force update'\), 'up-to-date', 'force update'\)\) \{\s*return true;\s*\}/);
-    assert.match(dockerJs, /const resolvedUpdated = typeof sourceUpdated === 'boolean'[\s\S]*readDockerHostRowUpdatedState\(safeName\)/);
-    assert.match(dockerJs, /Updated:\s*resolvedUpdated/);
+    assert.match(dockerRuntimeInfoJs, /const readDockerHostRowUpdatedState = \(name\) => \{/);
+    assert.match(dockerRuntimeInfoJs, /const row = doc\.getElementById\(`ct-\$\{safeName\}`\);/);
+    assert.match(dockerRuntimeInfoJs, /const updateCell = row\.querySelector\('td\.updatecolumn'\);/);
+    assert.match(dockerRuntimeInfoJs, /const normalizedText = String\(updateCell\.textContent \|\| ''\)\.trim\(\)\.toLowerCase\(\);/);
+    assert.match(dockerRuntimeInfoJs, /const i18nText = \(key, fallback = ''\) => \{/);
+    assert.match(dockerRuntimeInfoJs, /const hasToken = \(\.\.\.tokens\) => tokens\.some/);
+    assert.match(dockerRuntimeInfoJs, /if \(updateCell\.querySelector\('\.fa-flash'\)\) \{\s*return false;\s*\}/);
+    assert.match(dockerRuntimeInfoJs, /if \(updateCell\.querySelector\('\.fa-check'\)\) \{\s*return true;\s*\}/);
+    assert.match(dockerRuntimeInfoJs, /if \(hasToken\(i18nText\('update-ready', 'update ready'\), i18nText\('apply-update', 'apply update'\), 'update ready', 'apply update'\)\) \{\s*return false;\s*\}/);
+    assert.match(dockerRuntimeInfoJs, /if \(hasToken\(i18nText\('up-to-date', 'up-to-date'\), i18nText\('force-update', 'force update'\), 'up-to-date', 'force update'\)\) \{\s*return true;\s*\}/);
+    assert.match(dockerRuntimeInfoJs, /const resolvedUpdated = typeof sourceUpdated === 'boolean'[\s\S]*readDockerHostRowUpdatedState\(safeName\)/);
+    assert.match(dockerRuntimeInfoJs, /Updated:\s*resolvedUpdated/);
 });
 
 test('docker runtime observes native update-column mutations and reuses them for folder cache sync', () => {
-    assert.match(dockerJs, /let dockerHostUpdateCellObserver = null;/);
-    assert.match(dockerJs, /const syncDockerHostRowUpdateStatesFromDom = \(names = \[\]\) => \{/);
-    assert.match(dockerJs, /const queueDockerHostRowUpdateStateSync = \(names = \[\]\) => \{/);
-    assert.match(dockerJs, /if \(syncDockerHostRowUpdateStatesFromDom\(pendingNames\)\) \{\s*syncDockerVisibleFoldersFromRuntimeCache\(\);\s*\}/);
-    assert.match(dockerJs, /const ensureDockerHostRowUpdateObserver = \(\) => \{[\s\S]*dockerHostUpdateCellObserver = new MutationObserver/);
+    assert.match(dockerRuntimeInfoJs, /let dockerHostUpdateCellObserver = null;/);
+    assert.match(dockerRuntimeInfoJs, /const syncDockerHostRowUpdateStatesFromDom = \(names = \[\]\) => \{/);
+    assert.match(dockerRuntimeInfoJs, /const queueDockerHostRowUpdateStateSync = \(names = \[\]\) => \{/);
+    assert.match(dockerRuntimeInfoJs, /if \(syncDockerHostRowUpdateStatesFromDom\(pendingNames\)\) \{\s*syncDockerVisibleFoldersFromRuntimeCache\(\);\s*\}/);
+    assert.match(dockerRuntimeInfoJs, /const ensureDockerHostRowUpdateObserver = \(\) => \{[\s\S]*dockerHostUpdateCellObserver = new MutationObserver/);
     assert.match(dockerJs, /ensureDockerHostRowUpdateObserver\(\);\s*if \(syncDockerHostRowUpdateStatesFromDom\(\)\) \{\s*containersInfo = \{ \.\.\.dockerRuntimeInfoByName \};\s*\}/);
 });
 

@@ -6,6 +6,8 @@ const FOLDER_VIEW_DEBUG_MODE = false;
 const dockerRuntimeShared = window.FolderViewDockerRuntimeShared || {};
 const runtimeStateObserverModule = window.FolderViewPlusRuntimeStateObservers || null;
 const themeResolver = window.FolderViewPlusThemeResolver || null;
+const dockerRuntimeInfoModule = window.FolderViewPlusDockerRuntimeInfo || null;
+const dockerPreviewActionsModule = window.FolderViewPlusDockerPreviewActions || null;
 const applyDockerThemeResolverTokens = (reason = 'docker-runtime:initial', options = {}) => (
     themeResolver && typeof themeResolver.applyResolvedThemeTokens === 'function'
         ? themeResolver.applyResolvedThemeTokens(reason, options)
@@ -252,6 +254,26 @@ if (
 } else {
     setDockerFatalBannerModuleStatus('docker.runtime.shared.js', 'ok', 'shared Docker runtime helpers ready');
 }
+if (
+    window.FolderViewPlusDockerRuntimeInfoModuleLoaded !== true
+    || !dockerRuntimeInfoModule
+    || typeof dockerRuntimeInfoModule.createApi !== 'function'
+) {
+    dockerBootstrapMissingModules.push('docker.runtime.info.js');
+    setDockerFatalBannerModuleStatus('docker.runtime.info.js', 'missing', 'Docker runtime info helpers unavailable');
+} else {
+    setDockerFatalBannerModuleStatus('docker.runtime.info.js', 'ok', 'Docker runtime info helpers ready');
+}
+if (
+    window.FolderViewPlusDockerPreviewActionsModuleLoaded !== true
+    || !dockerPreviewActionsModule
+    || typeof dockerPreviewActionsModule.createApi !== 'function'
+) {
+    dockerBootstrapMissingModules.push('docker.runtime.preview-actions.js');
+    setDockerFatalBannerModuleStatus('docker.runtime.preview-actions.js', 'missing', 'Docker preview action helpers unavailable');
+} else {
+    setDockerFatalBannerModuleStatus('docker.runtime.preview-actions.js', 'ok', 'Docker preview action helpers ready');
+}
 if (dockerBootstrapMissingModules.length > 0) {
     reportDockerBootstrapDependencyBanner(dockerBootstrapMissingModules);
     const error = new Error(`FolderView Plus Docker runtime bootstrap failed. Missing modules: ${dockerBootstrapMissingModules.join(', ')}`);
@@ -426,12 +448,8 @@ let dockerRuntimeResizerObserver = null;
 let dockerRuntimeAutoAppWidthFloor = null;
 let dockerRuntimeAutoAppWidthFloorMode = null;
 let dockerRuntimeInfoByName = {};
-let dockerHostUpdateCellObserver = null;
-let dockerHostUpdateRowObserver = null;
-let dockerHostUpdateRowObserverRoot = null;
-let dockerHostUpdateSyncTimer = null;
-const dockerHostUpdateObservedCells = typeof WeakSet === 'function' ? new WeakSet() : null;
-const dockerHostUpdatePendingNames = new Set();
+let dockerRuntimeInfoApi = null;
+let dockerPreviewActionsApi = null;
 const DOCKER_RUNTIME_WIDTH_PHASES = Object.freeze({
     idle: 'idle',
     debounce: 'debounce',
@@ -456,323 +474,69 @@ const getFolderLabelValue = (labels) => {
     }
     return '';
 };
-const isDockerRuntimeInfoEntryFull = (entry) => !!(entry && typeof entry === 'object' && entry.info && typeof entry.info === 'object' && entry.info.State && typeof entry.info.State === 'object');
-const buildDockerRuntimeInfoFallbackLabels = (entry = {}, previousEntry = null) => {
-    const source = entry && typeof entry === 'object' ? entry : {};
-    const previous = previousEntry && typeof previousEntry === 'object' ? previousEntry : null;
-    const labels = {
-        ...((previous?.Labels && typeof previous.Labels === 'object') ? previous.Labels : {}),
-        ...((source.Labels && typeof source.Labels === 'object') ? source.Labels : {})
-    };
-    const folderLabel = String(source.folderLabel || '').trim();
-    if (folderLabel && !getFolderLabelValue(labels) && FOLDER_LABEL_KEYS.length > 0) {
-        labels[FOLDER_LABEL_KEYS[0]] = folderLabel;
-    }
-    return labels;
-};
-const readDockerHostRowUpdatedState = (name) => {
-    const safeName = String(name || '').trim();
-    if (!safeName || typeof document === 'undefined') {
-        return null;
-    }
-    const row = document.getElementById(`ct-${safeName}`);
-    if (!(row instanceof HTMLElement)) {
-        return null;
-    }
-    const updateCell = row.querySelector('td.updatecolumn');
-    if (!(updateCell instanceof HTMLElement)) {
-        return null;
-    }
-    const normalizedText = String(updateCell.textContent || '').trim().toLowerCase();
-    const i18nText = (key, fallback = '') => {
-        if (typeof $?.i18n === 'function') {
-            return String($.i18n(key) || '').trim().toLowerCase();
-        }
-        return String(fallback || '').trim().toLowerCase();
-    };
-    const hasToken = (...tokens) => tokens.some((token) => token && normalizedText.includes(String(token).trim().toLowerCase()));
-    if (updateCell.querySelector('.fa-flash')) {
-        return false;
-    }
-    if (updateCell.querySelector('.fa-check')) {
-        return true;
-    }
-    if (hasToken(i18nText('update-ready', 'update ready'), i18nText('apply-update', 'apply update'), 'update ready', 'apply update')) {
-        return false;
-    }
-    if (hasToken(i18nText('up-to-date', 'up-to-date'), i18nText('force-update', 'force update'), 'up-to-date', 'force update')) {
-        return true;
-    }
-    return null;
-};
-const getDockerHostRowContainerName = (value) => {
-    if (!value) {
-        return '';
-    }
-    if (typeof value === 'string') {
-        const raw = value.trim();
-        return raw.startsWith('ct-') ? raw.slice(3).trim() : raw;
-    }
-    const node = value instanceof Node ? value : null;
-    if (!node) {
-        return '';
-    }
-    const parentElement = node instanceof Element ? node : node.parentElement;
-    const row = parentElement && typeof parentElement.closest === 'function'
-        ? parentElement.closest('tr[id^="ct-"]')
-        : null;
-    if (!(row instanceof HTMLElement)) {
-        return '';
-    }
-    const rawId = String(row.id || '').trim();
-    return rawId.startsWith('ct-') ? rawId.slice(3).trim() : '';
-};
-const getDockerWindowRuntimeEntry = (name) => {
-    const safeName = String(name || '').trim();
-    if (!safeName || !Array.isArray(window.docker)) {
-        return null;
-    }
-    return window.docker.find((entry) => String(entry?.info?.Name || '').trim() === safeName) || null;
-};
-const applyDockerRuntimeEntryUpdatedState = (name, updated) => {
-    const safeName = String(name || '').trim();
-    if (!safeName || typeof updated !== 'boolean') {
-        return false;
-    }
-    const previousEntry = (
-        dockerRuntimeInfoByName[safeName]
-        && typeof dockerRuntimeInfoByName[safeName] === 'object'
-        ? dockerRuntimeInfoByName[safeName]
-        : null
-    ) || getDockerWindowRuntimeEntry(safeName);
-    const previousState = previousEntry?.info?.State && typeof previousEntry.info.State === 'object'
-        ? previousEntry.info.State
-        : {};
-    const previousManager = String(previousState.manager || '').trim();
-    if (previousManager && previousManager !== 'dockerman') {
-        return false;
-    }
-    const nextManager = previousManager || 'dockerman';
-    if (previousEntry && previousState.Updated === updated && previousManager === nextManager) {
-        return false;
-    }
-    dockerRuntimeInfoByName[safeName] = {
-        ...(previousEntry && typeof previousEntry === 'object' ? previousEntry : {}),
-        info: {
-            ...((previousEntry?.info && typeof previousEntry.info === 'object') ? previousEntry.info : {}),
-            Name: safeName,
-            Config: {
-                ...((previousEntry?.info?.Config && typeof previousEntry.info.Config === 'object') ? previousEntry.info.Config : {})
+const getDockerRuntimeInfoApi = () => {
+    if (!dockerRuntimeInfoApi && dockerRuntimeInfoModule && typeof dockerRuntimeInfoModule.createApi === 'function') {
+        dockerRuntimeInfoApi = dockerRuntimeInfoModule.createApi({
+            window,
+            document,
+            $,
+            getDockerRuntimeInfoMap: () => dockerRuntimeInfoByName,
+            setDockerRuntimeInfoMap: (next) => {
+                dockerRuntimeInfoByName = next && typeof next === 'object' ? next : {};
+                return dockerRuntimeInfoByName;
             },
-            State: {
-                ...previousState,
-                manager: nextManager,
-                Updated: updated
-            }
-        },
-        Labels: (previousEntry?.Labels && typeof previousEntry.Labels === 'object') ? previousEntry.Labels : {},
-        Mounts: Array.isArray(previousEntry?.Mounts) ? previousEntry.Mounts : []
-    };
-    const windowEntry = getDockerWindowRuntimeEntry(safeName);
-    if (windowEntry?.info?.State && typeof windowEntry.info.State === 'object') {
-        windowEntry.info.State.manager = String(windowEntry.info.State.manager || nextManager).trim() || nextManager;
-        windowEntry.info.State.Updated = updated;
+            syncDockerVisibleFoldersFromRuntimeCache: () => syncDockerVisibleFoldersFromRuntimeCache(),
+            resolvePreferredWebuiValue: (...candidates) => resolvePreferredWebuiValue(...candidates),
+            getFolderLabelValue,
+            folderLabelKeys: FOLDER_LABEL_KEYS,
+            getGlobalFolders: () => globalFolders,
+            getFolderDescendants: (id) => getFolderDescendants(id),
+            folderHasChildren: (id) => folderHasChildren(id)
+        });
     }
-    return true;
+    return dockerRuntimeInfoApi;
+};
+const getDockerPreviewActionsApi = () => {
+    if (!dockerPreviewActionsApi && dockerPreviewActionsModule && typeof dockerPreviewActionsModule.createApi === 'function') {
+        dockerPreviewActionsApi = dockerPreviewActionsModule.createApi({
+            window,
+            $,
+            getSafeWebuiUrl: (value) => getSafeWebuiUrl(value),
+            openWebuiInNewTab: (url) => openWebuiInNewTab(url),
+            openTerminal: (type, containerName, shellValue) => openTerminal(type, containerName, shellValue),
+            shouldRenderPreviewWebuiPlaceholder: (settings, allowWebui) => shouldRenderPreviewWebuiPlaceholder(settings, allowWebui),
+            appendPreviewWebuiPlaceholder: ($target) => appendPreviewWebuiPlaceholder($target),
+            isCompactMultiRowPreview: (settings) => isCompactMultiRowPreview(settings),
+            applyFolderPreviewLayout: ($preview, settings) => applyFolderPreviewLayout($preview, settings),
+            layoutFolderPreviewRows: ($preview, settings) => layoutFolderPreviewRows($preview, settings),
+            webuiLinkRel: WEBUI_LINK_REL
+        });
+    }
+    return dockerPreviewActionsApi;
 };
 const syncDockerHostRowUpdateStatesFromDom = (names = []) => {
-    const requestedNames = Array.isArray(names)
-        ? names.map((entry) => String(entry || '').trim()).filter((entry) => entry !== '')
-        : [];
-    const targetNames = requestedNames.length > 0
-        ? Array.from(new Set(requestedNames))
-        : Array.from(document.querySelectorAll('#docker_list tr[id^="ct-"], #docker_view tr[id^="ct-"]'))
-            .map((row) => getDockerHostRowContainerName(row))
-            .filter((entry) => entry !== '');
-    let changed = false;
-    targetNames.forEach((entry) => {
-        const updated = readDockerHostRowUpdatedState(entry);
-        if (typeof updated !== 'boolean') {
-            return;
-        }
-        changed = applyDockerRuntimeEntryUpdatedState(entry, updated) || changed;
-    });
-    return changed;
-};
-const queueDockerHostRowUpdateStateSync = (names = []) => {
-    if (Array.isArray(names)) {
-        names.forEach((entry) => {
-            const safeName = String(entry || '').trim();
-            if (safeName) {
-                dockerHostUpdatePendingNames.add(safeName);
-            }
-        });
-    }
-    if (dockerHostUpdateSyncTimer !== null) {
-        return;
-    }
-    dockerHostUpdateSyncTimer = window.setTimeout(() => {
-        dockerHostUpdateSyncTimer = null;
-        const pendingNames = Array.from(dockerHostUpdatePendingNames);
-        dockerHostUpdatePendingNames.clear();
-        if (syncDockerHostRowUpdateStatesFromDom(pendingNames)) {
-            syncDockerVisibleFoldersFromRuntimeCache();
-        }
-    }, 36);
-};
-const bindDockerHostUpdateCellObserver = (cell) => {
-    if (!(cell instanceof HTMLElement) || !(dockerHostUpdateCellObserver instanceof MutationObserver)) {
-        return;
-    }
-    if (dockerHostUpdateObservedCells && dockerHostUpdateObservedCells.has(cell)) {
-        return;
-    }
-    dockerHostUpdateCellObserver.observe(cell, {
-        childList: true,
-        subtree: true,
-        characterData: true
-    });
-    if (dockerHostUpdateObservedCells) {
-        dockerHostUpdateObservedCells.add(cell);
-    }
+    const runtimeInfoApi = getDockerRuntimeInfoApi();
+    return runtimeInfoApi && typeof runtimeInfoApi.syncDockerHostRowUpdateStatesFromDom === 'function'
+        ? runtimeInfoApi.syncDockerHostRowUpdateStatesFromDom(names)
+        : false;
 };
 const ensureDockerHostRowUpdateObserver = () => {
-    if (typeof MutationObserver !== 'function' || typeof document === 'undefined') {
-        return;
-    }
-    if (!(dockerHostUpdateCellObserver instanceof MutationObserver)) {
-        dockerHostUpdateCellObserver = new MutationObserver((mutations) => {
-            const changedNames = new Set();
-            (mutations || []).forEach((mutation) => {
-                const name = getDockerHostRowContainerName(mutation?.target || null);
-                if (name) {
-                    changedNames.add(name);
-                }
-            });
-            queueDockerHostRowUpdateStateSync(Array.from(changedNames));
-        });
-    }
-    document.querySelectorAll('#docker_list tr[id^="ct-"] td.updatecolumn, #docker_view tr[id^="ct-"] td.updatecolumn').forEach((cell) => {
-        bindDockerHostUpdateCellObserver(cell);
-    });
-    const nextRoot = document.querySelector('tbody#docker_list') || document.querySelector('tbody#docker_view');
-    if (dockerHostUpdateRowObserverRoot !== nextRoot && dockerHostUpdateRowObserver instanceof MutationObserver) {
-        dockerHostUpdateRowObserver.disconnect();
-        dockerHostUpdateRowObserverRoot = null;
-    }
-    if (!(dockerHostUpdateRowObserver instanceof MutationObserver)) {
-        dockerHostUpdateRowObserver = new MutationObserver((mutations) => {
-            const changedNames = new Set();
-            (mutations || []).forEach((mutation) => {
-                if (mutation?.type !== 'childList') {
-                    return;
-                }
-                if (mutation.target instanceof Element && mutation.target.matches('td.updatecolumn')) {
-                    const directName = getDockerHostRowContainerName(mutation.target);
-                    if (directName) {
-                        changedNames.add(directName);
-                    }
-                }
-                Array.from(mutation.addedNodes || []).forEach((node) => {
-                    const name = getDockerHostRowContainerName(node);
-                    if (name) {
-                        changedNames.add(name);
-                    }
-                    if (node instanceof Element) {
-                        if (node.matches?.('td.updatecolumn') && getDockerHostRowContainerName(node)) {
-                            bindDockerHostUpdateCellObserver(node);
-                        }
-                        node.querySelectorAll?.('tr[id^="ct-"] td.updatecolumn').forEach((cell) => {
-                            bindDockerHostUpdateCellObserver(cell);
-                        });
-                    }
-                });
-            });
-            document.querySelectorAll('#docker_list tr[id^="ct-"] td.updatecolumn, #docker_view tr[id^="ct-"] td.updatecolumn').forEach((cell) => {
-                bindDockerHostUpdateCellObserver(cell);
-            });
-            queueDockerHostRowUpdateStateSync(Array.from(changedNames));
-        });
-    }
-    if (nextRoot && dockerHostUpdateRowObserverRoot !== nextRoot) {
-        dockerHostUpdateRowObserver.observe(nextRoot, {
-            childList: true,
-            subtree: true
-        });
-        dockerHostUpdateRowObserverRoot = nextRoot;
+    const runtimeInfoApi = getDockerRuntimeInfoApi();
+    if (runtimeInfoApi && typeof runtimeInfoApi.ensureDockerHostRowUpdateObserver === 'function') {
+        runtimeInfoApi.ensureDockerHostRowUpdateObserver();
     }
 };
 const buildDockerRuntimeInfoRenderEntry = (name, entry = {}, previousEntry = null) => {
-    const safeName = String(name || '').trim();
-    const source = entry && typeof entry === 'object' ? entry : {};
-    const previous = previousEntry && typeof previousEntry === 'object' ? previousEntry : null;
-    if (isDockerRuntimeInfoEntryFull(source)) {
-        return source;
-    }
-    const labels = buildDockerRuntimeInfoFallbackLabels(source, previous);
-    const previousInfo = previous?.info && typeof previous.info === 'object' ? previous.info : {};
-    const previousState = previousInfo.State && typeof previousInfo.State === 'object' ? previousInfo.State : {};
-    const previousConfig = previousInfo.Config && typeof previousInfo.Config === 'object' ? previousInfo.Config : {};
-    const sourceInfo = source?.info && typeof source.info === 'object' ? source.info : {};
-    const sourceState = sourceInfo.State && typeof sourceInfo.State === 'object' ? sourceInfo.State : {};
-    const stateKind = String(source.state || '').trim().toLowerCase();
-    const running = source.running === true || stateKind === 'running';
-    const paused = source.paused === true || stateKind === 'paused';
-    const manager = String(source.manager || previousState.manager || '').trim();
-    const labelWebUi = String(labels['net.unraid.docker.webui'] || '').trim();
-    const labelTsWebUi = String(labels['net.unraid.docker.tailscale.webui'] || '').trim();
-    const resolvedWebUi = resolvePreferredWebuiValue(sourceState.WebUi, source.WebUi, source.webui, previousState.WebUi, labelWebUi);
-    const resolvedTsWebUi = resolvePreferredWebuiValue(sourceState.TSWebUi, source.TSWebUi, previousState.TSWebUi, labelTsWebUi);
-    const sourceUpdated = typeof sourceState.Updated === 'boolean'
-        ? sourceState.Updated
-        : (typeof source.Updated === 'boolean' ? source.Updated : null);
-    const resolvedUpdated = typeof sourceUpdated === 'boolean'
-        ? sourceUpdated
-        : (typeof previousState.Updated === 'boolean'
-            ? previousState.Updated
-            : (manager === 'dockerman' ? readDockerHostRowUpdatedState(safeName) : null));
-    const nextEntry = previous ? { ...previous } : {};
-    nextEntry.shortId = String(source.id || previous?.shortId || '').trim();
-    nextEntry.shortImageId = String(source.shortImageId || previous?.shortImageId || '').trim();
-    nextEntry.Labels = labels;
-    nextEntry.Mounts = Array.isArray(source.Mounts) ? source.Mounts : (Array.isArray(previous?.Mounts) ? previous.Mounts : []);
-    nextEntry.info = {
-        ...previousInfo,
-        Name: safeName || String(previousInfo.Name || '').trim(),
-        Shell: String(labels['net.unraid.docker.shell'] || previousInfo.Shell || 'sh').trim() || 'sh',
-        Config: {
-            ...previousConfig,
-            Image: String(source.Image || previousConfig.Image || '').trim(),
-            Labels: labels
-        },
-        State: {
-            ...previousState,
-            Running: running,
-            Paused: paused,
-            Status: String(source.status || previousState.Status || '').trim(),
-            Autostart: source.autostart === true,
-            Updated: resolvedUpdated,
-            manager,
-            WebUi: resolvedWebUi,
-            TSWebUi: resolvedTsWebUi
-        },
-        Ports: Array.isArray(previousInfo.Ports) ? previousInfo.Ports : [],
-        template: previousInfo.template || null
-    };
-    return nextEntry;
+    const runtimeInfoApi = getDockerRuntimeInfoApi();
+    return runtimeInfoApi && typeof runtimeInfoApi.buildDockerRuntimeInfoRenderEntry === 'function'
+        ? runtimeInfoApi.buildDockerRuntimeInfoRenderEntry(name, entry, previousEntry)
+        : (entry && typeof entry === 'object' ? entry : {});
 };
 const normalizeDockerRuntimeInfoMap = (source, previousMap = null) => {
-    const rawMap = source && typeof source === 'object' ? source : {};
-    const fallbackMap = previousMap && typeof previousMap === 'object' ? previousMap : dockerRuntimeInfoByName;
-    const normalized = {};
-    Object.entries(rawMap).forEach(([name, entry]) => {
-        const safeName = String(name || '').trim();
-        if (!safeName || !entry || typeof entry !== 'object') {
-            return;
-        }
-        normalized[safeName] = buildDockerRuntimeInfoRenderEntry(safeName, entry, fallbackMap?.[safeName] || null);
-    });
-    return normalized;
+    const runtimeInfoApi = getDockerRuntimeInfoApi();
+    return runtimeInfoApi && typeof runtimeInfoApi.normalizeDockerRuntimeInfoMap === 'function'
+        ? runtimeInfoApi.normalizeDockerRuntimeInfoMap(source, previousMap)
+        : {};
 };
 const escapeHtml = typeof utils.escapeHtml === 'function'
     ? utils.escapeHtml
@@ -2295,16 +2059,6 @@ const ensureDockerFolderUnlocked = (id, actionLabel = 'This action') => {
     return false;
 };
 
-const readFolderContainerNames = (containers) => {
-    if (Array.isArray(containers)) {
-        return Array.from(new Set(containers.map((item) => String(item || '').trim()).filter((item) => item !== '')));
-    }
-    if (containers && typeof containers === 'object') {
-        return Array.from(new Set(Object.keys(containers).map((item) => String(item || '').trim()).filter((item) => item !== '')));
-    }
-    return [];
-};
-
 const getDockerRuntimeContainerInfo = (name) => {
     const key = String(name || '').trim();
     if (!key) {
@@ -2324,63 +2078,18 @@ const getDockerRuntimeContainerInfo = (name) => {
     return null;
 };
 
-const buildRuntimeContainerEntry = (name, sourceMeta = null) => {
-    const key = String(name || '').trim();
-    const source = (sourceMeta && typeof sourceMeta === 'object' && !Array.isArray(sourceMeta)) ? sourceMeta : {};
-    const runtime = getDockerRuntimeContainerInfo(key);
-    const runtimeState = runtime?.info?.State || {};
-    const runtimeManager = String(runtimeState.manager || '').trim();
-    const hasRuntimeState = typeof runtimeState.Running === 'boolean';
-    const hasRuntimePause = typeof runtimeState.Paused === 'boolean';
-    return {
-        ...source,
-        id: source.id || String(runtime?.shortId || '').trim(),
-        name: String(runtime?.info?.Name || source.name || key).trim() || key,
-        icon: source.icon || runtime?.Labels?.['net.unraid.docker.icon'] || '/plugins/dynamix.docker.manager/images/question.png',
-        webui: resolvePreferredWebuiValue(runtimeState.WebUi, runtimeState.TSWebUi, source.webui),
-        shell: source.shell || runtime?.info?.Shell || '/bin/sh',
-        pause: hasRuntimePause ? (runtimeState.Paused === true) : (source.pause === true),
-        state: hasRuntimeState ? (runtimeState.Running === true) : (source.state === true),
-        autostart: typeof runtimeState.Autostart === 'boolean' ? runtimeState.Autostart === true : (source.autostart === true),
-        update: typeof runtimeState.Updated === 'boolean'
-            ? (runtimeState.Updated === false && runtimeManager === 'dockerman')
-            : (source.update === true),
-        managed: runtimeManager ? runtimeManager === 'dockerman' : (source.managed === true),
-        manager: runtimeManager || String(source.manager || '').trim()
-    };
-};
-
 const getFolderRuntimeContainers = (folder) => {
-    if (!folder || typeof folder !== 'object') {
-        return {};
-    }
-    const runtime = folder.runtimeContainers;
-    const containers = folder.containers;
-    const names = readFolderContainerNames(containers);
-    if (!names.length) {
-        return (runtime && typeof runtime === 'object' && !Array.isArray(runtime)) ? runtime : {};
-    }
-    const sourceMap = (containers && typeof containers === 'object' && !Array.isArray(containers)) ? containers : {};
-    const collected = {};
-    for (const name of names) {
-        if (Object.prototype.hasOwnProperty.call(collected, name)) {
-            continue;
-        }
-        collected[name] = buildRuntimeContainerEntry(name, sourceMap[name]);
-    }
-    folder.runtimeContainers = collected;
-    return collected;
+    const runtimeInfoApi = getDockerRuntimeInfoApi();
+    return runtimeInfoApi && typeof runtimeInfoApi.getFolderRuntimeContainers === 'function'
+        ? runtimeInfoApi.getFolderRuntimeContainers(folder)
+        : {};
 };
 
 const getScopedRuntimeContainersForFolder = (folderId, includeDescendants = true) => {
-    const id = String(folderId || '').trim();
-    if (!id || !globalFolders[id]) {
-        return {};
-    }
-    if (folderHasChildren(id)) {
-        return buildRuntimeContainerMapForFolder(id, includeDescendants === true);
-    }
-    return getFolderRuntimeContainers(globalFolders[id]);
+    const runtimeInfoApi = getDockerRuntimeInfoApi();
+    return runtimeInfoApi && typeof runtimeInfoApi.getScopedRuntimeContainersForFolder === 'function'
+        ? runtimeInfoApi.getScopedRuntimeContainersForFolder(folderId, includeDescendants)
+        : {};
 };
 
 const summarizeFolderActionCounts = (containersMap) => {
@@ -4281,24 +3990,10 @@ const getDirectMemberRowsForFolder = (folderId) => {
 };
 
 const buildRuntimeContainerMapForFolder = (folderId, includeDescendants = false) => {
-    const collected = {};
-    const targetIds = includeDescendants ? [folderId, ...getFolderDescendants(folderId)] : [folderId];
-    for (const targetId of targetIds) {
-        const folder = globalFolders[targetId];
-        if (!folder || !folder.containers || typeof folder.containers !== 'object') {
-            continue;
-        }
-        const names = readFolderContainerNames(folder.containers);
-        const sourceMap = !Array.isArray(folder.containers) ? folder.containers : {};
-        for (const name of names) {
-            const key = String(name || '').trim();
-            if (!key || Object.prototype.hasOwnProperty.call(collected, key)) {
-                continue;
-            }
-            collected[key] = buildRuntimeContainerEntry(key, sourceMap?.[key]);
-        }
-    }
-    return collected;
+    const runtimeInfoApi = getDockerRuntimeInfoApi();
+    return runtimeInfoApi && typeof runtimeInfoApi.buildRuntimeContainerMapForFolder === 'function'
+        ? runtimeInfoApi.buildRuntimeContainerMapForFolder(folderId, includeDescendants)
+        : {};
 };
 
 const updateFolderRowStatusFromContainers = (id, folder, runtimeContainers) => {
@@ -4425,108 +4120,18 @@ const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
     $preview.find('span.inner > span.appname').css('width', folder?.settings?.preview_text_width || '');
 };
 
-const buildDockerPreviewWebuiButton = (webuiUrl) => $('<span class="folder-element-custom-btn folder-element-webui"></span>').append(
-    $('<a></a>')
-        .attr('href', webuiUrl)
-        .attr('target', '_blank')
-        .attr('rel', WEBUI_LINK_REL)
-        .append('<i class="fa fa-globe" aria-hidden="true"></i>')
-        .on('click', (event) => {
-            event.preventDefault();
-            openWebuiInNewTab(webuiUrl);
-        })
-);
-
-const buildDockerPreviewConsoleButton = (containerName, shellValue) => $('<span class="folder-element-custom-btn folder-element-console"></span>').append(
-    $('<a href="#"></a>')
-        .append('<i class="fa fa-terminal" aria-hidden="true"></i>')
-        .on('click', (event) => {
-            event.preventDefault();
-            openTerminal('docker', containerName, shellValue);
-        })
-);
-
-const buildDockerPreviewLogsButton = (containerName) => $('<span class="folder-element-custom-btn folder-element-logs"></span>').append(
-    $('<a href="#"></a>')
-        .append('<i class="fa fa-bars" aria-hidden="true"></i>')
-        .on('click', (event) => {
-            event.preventDefault();
-            openTerminal('docker', containerName, '.log');
-        })
-);
-
-const collectDockerPreviewActionTargets = ($preview, settings = {}) => {
-    if (!$preview || !$preview.length) {
-        return [];
-    }
-    if (isCompactMultiRowPreview(settings)) {
-        return $preview.find('.fv-preview-actions-compact').get().map((node) => $(node));
-    }
-    const previewMode = Number(settings?.preview || 0);
-    switch (previewMode) {
-        case 2:
-            return $preview.find('span.hand').get().map((node) => $(node));
-        case 3:
-            return $preview.find('span.inner').get().map((node) => $(node));
-        case 4:
-            return $preview.find('span.outer > span.inner').get().map((node) => $(node));
-        case 1:
-        default:
-            return $preview.find('span.outer').get().map((node) => {
-                const $outer = $(node);
-                const $inner = $outer.children('span.inner').last();
-                return $inner.length ? $inner : $outer;
-            });
-    }
-};
-
 const appendDockerPreviewActionButtons = ($target, settings = {}, containerName = '', shellValue = '/bin/sh', webuiUrl = '') => {
-    if (!$target || !$target.length) {
-        return;
-    }
-    if (settings.preview_webui && webuiUrl) {
-        $target.append(buildDockerPreviewWebuiButton(webuiUrl));
-    } else if (shouldRenderPreviewWebuiPlaceholder(settings, settings.preview_webui === true)) {
-        appendPreviewWebuiPlaceholder($target);
-    }
-    if (settings.preview_console && containerName) {
-        $target.append(buildDockerPreviewConsoleButton(containerName, shellValue));
-    }
-    if (settings.preview_logs && containerName) {
-        $target.append(buildDockerPreviewLogsButton(containerName));
+    const previewActionsApi = getDockerPreviewActionsApi();
+    if (previewActionsApi && typeof previewActionsApi.appendDockerPreviewActionButtons === 'function') {
+        previewActionsApi.appendDockerPreviewActionButtons($target, settings, containerName, shellValue, webuiUrl);
     }
 };
 
 const syncDockerLeafFolderPreviewActions = (id, folder, runtimeContainers) => {
-    const $preview = $(`tr.folder-id-${id} div.folder-preview`);
-    if (!$preview.length) {
-        return;
+    const previewActionsApi = getDockerPreviewActionsApi();
+    if (previewActionsApi && typeof previewActionsApi.syncDockerLeafFolderPreviewActions === 'function') {
+        previewActionsApi.syncDockerLeafFolderPreviewActions(id, folder, runtimeContainers);
     }
-    const settings = folder?.settings || {};
-    const previewMode = Number(settings?.preview || 0);
-    if (previewMode <= 0) {
-        $preview.empty();
-        return;
-    }
-    const actionTargets = collectDockerPreviewActionTargets($preview, settings);
-    const entries = Object.values(runtimeContainers || {});
-    actionTargets.forEach(($target, index) => {
-        const entry = entries[index];
-        if (!$target || !$target.length || !entry) {
-            return;
-        }
-        const containerName = String(entry?.name || '').trim();
-        const shellValue = String(entry?.shell || '/bin/sh').trim() || '/bin/sh';
-        const webuiUrl = getSafeWebuiUrl(entry?.webui);
-        $target.children('span.folder-element-webui, span.folder-element-console, span.folder-element-logs, span.fv-preview-webui-placeholder').remove();
-        appendDockerPreviewActionButtons($target, settings, containerName, shellValue, webuiUrl);
-    });
-    $preview.find('[id^="folder-preview-"]').each((_, node) => {
-        $(node).data('fvTooltipLazyBuilt', false);
-    });
-    applyFolderPreviewLayout($preview, settings);
-    layoutFolderPreviewRows($preview, settings);
-    $preview.find('span.inner > span.appname').css('width', settings?.preview_text_width || '');
 };
 
 const syncParentFolderVisualState = (id, expanded) => {

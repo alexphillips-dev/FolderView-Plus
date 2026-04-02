@@ -8,6 +8,10 @@ const dockerScript = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js'),
     'utf8'
 );
+const dockerPreviewActionsScript = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.preview-actions.js'),
+    'utf8'
+);
 const dockerCss = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css'),
     'utf8'
@@ -36,9 +40,10 @@ test('docker pin quick action updates visible folder order immediately', () => {
 });
 
 test('docker hydration refreshes existing preview actions in place instead of reloading the list', () => {
-    assert.match(dockerScript, /const syncDockerLeafFolderPreviewActions = \(id,\s*folder,\s*runtimeContainers\) =>/);
+    assert.match(dockerPreviewActionsScript, /const syncDockerLeafFolderPreviewActions = \(id,\s*folder,\s*runtimeContainers\) =>/);
+    assert.match(dockerPreviewActionsScript, /\$preview\.find\('\[id\^="folder-preview-"\]'\)\.each\(\(_,\s*node\) => \{\s*jq\(node\)\.data\('fvTooltipLazyBuilt', false\);/s);
+    assert.match(dockerScript, /const syncDockerLeafFolderPreviewActions = \(id,\s*folder,\s*runtimeContainers\) => \{[\s\S]*previewActionsApi\.syncDockerLeafFolderPreviewActions\(id,\s*folder,\s*runtimeContainers\);/s);
     assert.match(dockerScript, /syncDockerLeafFolderPreviewActions\(id,\s*folder,\s*runtimeContainers\);/);
-    assert.match(dockerScript, /\$preview\.find\('\[id\^="folder-preview-"\]'\)\.each\(\(_,\s*node\) => \{\s*\$\(node\)\.data\('fvTooltipLazyBuilt', false\);/s);
     assert.match(dockerScript, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoPromise = null\) => \{[\s\S]*?syncDockerVisibleFoldersFromRuntimeCache\(\);[\s\S]*?\}\)\s*\.catch\(\(\) => \{\}\);/);
     assert.doesNotMatch(dockerScript, /const queueDockerDeferredRuntimeInfoHydration = \(generation,\s*stateSignature,\s*fullInfoPromise = null\) => \{[\s\S]*?const previousWebuiSignature/);
 });

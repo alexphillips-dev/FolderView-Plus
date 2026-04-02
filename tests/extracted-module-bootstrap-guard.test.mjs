@@ -12,6 +12,8 @@ const folderIconApiJs = read('src/folderview.plus/usr/local/emhttp/plugins/folde
 const folderEditorStateJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.state.js');
 const folderEditorMembersJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.members.js');
 const settingsActionSupportJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.actions-support.js');
+const dockerRuntimeInfoJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.info.js');
+const dockerPreviewActionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.preview-actions.js');
 
 test('extracted helper modules use a safe global fallback instead of out-of-scope root references', () => {
     for (const source of [
@@ -20,7 +22,9 @@ test('extracted helper modules use a safe global fallback instead of out-of-scop
         folderIconApiJs,
         folderEditorStateJs,
         folderEditorMembersJs,
-        settingsActionSupportJs
+        settingsActionSupportJs,
+        dockerRuntimeInfoJs,
+        dockerPreviewActionsJs
     ]) {
         assert.match(source, /const fallbackWindow = typeof globalThis !== 'undefined'/);
         assert.doesNotMatch(source, /deps\.window \|\| root/);

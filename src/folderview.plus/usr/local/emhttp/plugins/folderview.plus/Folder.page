@@ -150,33 +150,68 @@ try {
 </script>
 <script>
     (function bootstrapFolderEditorDiagnosticsSurface(win, doc) {
+        const EDITOR_DEBUG_SURFACE_STORAGE_KEY = 'fv.folder.editor.debug.surface.v1';
         const bannerState = {
             summary: 'Folder editor bootstrap diagnostics are idle.',
             details: 'No startup issues have been reported yet.',
             debug: 'Bootstrap: waiting for folder editor runtime.',
             tone: 'info'
         };
-        const buildDiagnosticsText = () => [
-            'FolderView Plus Folder Editor Bootstrap Diagnostics',
-            `summary: ${String(bannerState.summary || '(empty)')}`,
-            `details: ${String(bannerState.details || '(empty)')}`,
-            `severity: ${String(bannerState.tone || '(empty)')}`,
-            '',
-            '[environment]',
-            `pageMode: ${String(win.FolderViewPlusFolderEditorPageMode || '(empty)')}`,
-            `pageType: ${String(win.FolderViewPlusFolderEditorPageType || '(empty)')}`,
-            `requestedId: ${String(win.FolderViewPlusFolderEditorRequestedId || '(empty)')}`,
-            `resolvedId: ${String(win.FolderViewPlusFolderEditorResolvedId || '(empty)')}`,
-            `pluginVersion: ${String(win.FolderViewPlusFolderEditorPageBuildVersion || '(empty)')}`,
-            `runtimeLoaded: ${win.FolderViewPlusFolderEditorRuntimeLoaded === true ? 'yes' : 'no'}`,
-            `runtimeStage: ${String(win.FolderViewPlusFolderEditorRuntimeBootStage || '(empty)')}`,
-            `runtimeState: ${String(win.FolderViewPlusFolderEditorRuntimeScriptState || '(empty)')}`,
-            `runtimeSrc: ${String(win.FolderViewPlusFolderEditorRuntimeScriptSource || '(empty)')}`,
-            `url: ${String(win.location?.href || '(empty)')}`,
-            '',
-            '[debug]',
-            String(bannerState.debug || 'none')
-        ].join('\n');
+        const buildDiagnosticsSnapshot = () => ({
+            checkedAt: new Date().toISOString(),
+            summary: String(bannerState.summary || '(empty)'),
+            details: String(bannerState.details || '(empty)'),
+            tone: String(bannerState.tone || 'info'),
+            debug: String(bannerState.debug || 'none'),
+            environment: {
+                pageMode: String(win.FolderViewPlusFolderEditorPageMode || '(empty)'),
+                pageType: String(win.FolderViewPlusFolderEditorPageType || '(empty)'),
+                requestedId: String(win.FolderViewPlusFolderEditorRequestedId || '(empty)'),
+                resolvedId: String(win.FolderViewPlusFolderEditorResolvedId || '(empty)'),
+                pluginVersion: String(win.FolderViewPlusFolderEditorPageBuildVersion || '(empty)'),
+                runtimeLoaded: win.FolderViewPlusFolderEditorRuntimeLoaded === true ? 'yes' : 'no',
+                runtimeStage: String(win.FolderViewPlusFolderEditorRuntimeBootStage || '(empty)'),
+                runtimeState: String(win.FolderViewPlusFolderEditorRuntimeScriptState || '(empty)'),
+                runtimeSrc: String(win.FolderViewPlusFolderEditorRuntimeScriptSource || '(empty)'),
+                url: String(win.location?.href || '(empty)')
+            }
+        });
+        const buildDiagnosticsText = () => {
+            const snapshot = buildDiagnosticsSnapshot();
+            return [
+                'FolderView Plus Folder Editor Bootstrap Diagnostics',
+                `summary: ${snapshot.summary}`,
+                `details: ${snapshot.details}`,
+                `severity: ${snapshot.tone}`,
+                '',
+                '[environment]',
+                `pageMode: ${snapshot.environment.pageMode}`,
+                `pageType: ${snapshot.environment.pageType}`,
+                `requestedId: ${snapshot.environment.requestedId}`,
+                `resolvedId: ${snapshot.environment.resolvedId}`,
+                `pluginVersion: ${snapshot.environment.pluginVersion}`,
+                `runtimeLoaded: ${snapshot.environment.runtimeLoaded}`,
+                `runtimeStage: ${snapshot.environment.runtimeStage}`,
+                `runtimeState: ${snapshot.environment.runtimeState}`,
+                `runtimeSrc: ${snapshot.environment.runtimeSrc}`,
+                `url: ${snapshot.environment.url}`,
+                '',
+                '[debug]',
+                snapshot.debug
+            ].join('\n');
+        };
+        const persistDiagnosticsSnapshot = () => {
+            try {
+                if (win.localStorage && typeof win.localStorage.setItem === 'function') {
+                    win.localStorage.setItem(EDITOR_DEBUG_SURFACE_STORAGE_KEY, JSON.stringify(buildDiagnosticsSnapshot()));
+                }
+            } catch (_error) {
+                // Bootstrap diagnostics are best-effort only.
+            }
+        };
+        win.FolderViewPlusCollectFolderEditorBootstrapDiagnostics = function collectFolderEditorBootstrapDiagnostics() {
+            return buildDiagnosticsSnapshot();
+        };
         const applySurfaceState = () => {
             const host = doc.getElementById('fvFolderEditorBootstrapBanner');
             const summaryNode = doc.getElementById('fvFolderEditorBootstrapSummary');
@@ -207,6 +242,7 @@ try {
             }
         };
         const syncSurfaceState = () => {
+            persistDiagnosticsSnapshot();
             if (doc.readyState === 'loading') {
                 doc.addEventListener('DOMContentLoaded', applySurfaceState, { once: true });
             } else {
@@ -285,6 +321,7 @@ try {
             event.preventDefault();
             void win.FolderViewPlusCopyFolderEditorBootstrapDiagnostics();
         });
+        syncSurfaceState();
     })(window, document);
 </script>
 <script>

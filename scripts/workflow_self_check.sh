@@ -67,13 +67,13 @@ if (!/ci-duration-report/.test(ciWorkflow)) {
 if (!/bash scripts\/build_release_notes\.sh/.test(releaseOnMainWorkflow)) {
   fail('Release On Main workflow must build release notes via scripts/build_release_notes.sh.');
 }
-if (!/FVPLUS_BROWSER_SMOKE_REQUIRED:\s*\$\{\{\s*secrets\.FVPLUS_BROWSER_SMOKE_URL != '' && '1' \|\| '0'\s*\}\}/.test(releaseMainWorkflow) ||
-    !/FVPLUS_BROWSER_SMOKE_REQUIRED:\s*\$\{\{\s*secrets\.FVPLUS_BROWSER_SMOKE_URL != '' && '1' \|\| '0'\s*\}\}/.test(releaseOnMainWorkflow)) {
-  fail('Release workflows must gate browser smoke enforcement on FVPLUS_BROWSER_SMOKE_URL being configured.');
+if (!/FVPLUS_BROWSER_SMOKE_REQUIRED:\s*'1'/.test(releaseMainWorkflow) ||
+    !/FVPLUS_BROWSER_SMOKE_REQUIRED:\s*'1'/.test(releaseOnMainWorkflow)) {
+  fail('Release workflows must require browser smoke coverage.');
 }
-if (!/FVPLUS_THEME_MATRIX_REQUIRED:\s*\$\{\{\s*secrets\.FVPLUS_THEME_MATRIX_URLS != '' && '1' \|\| '0'\s*\}\}/.test(releaseMainWorkflow) ||
-    !/FVPLUS_THEME_MATRIX_REQUIRED:\s*\$\{\{\s*secrets\.FVPLUS_THEME_MATRIX_URLS != '' && '1' \|\| '0'\s*\}\}/.test(releaseOnMainWorkflow)) {
-  fail('Release workflows must gate theme matrix enforcement on FVPLUS_THEME_MATRIX_URLS being configured.');
+if (!/FVPLUS_THEME_MATRIX_REQUIRED:\s*'1'/.test(releaseMainWorkflow) ||
+    !/FVPLUS_THEME_MATRIX_REQUIRED:\s*'1'/.test(releaseOnMainWorkflow)) {
+  fail('Release workflows must require theme matrix smoke coverage.');
 }
 if (!/Detect release artifact changes/.test(releaseOnMainWorkflow)) {
   fail('Release On Main workflow must detect whether a main push actually changed release artifacts.');

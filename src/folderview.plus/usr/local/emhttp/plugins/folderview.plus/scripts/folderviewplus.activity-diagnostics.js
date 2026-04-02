@@ -63,6 +63,7 @@ const performanceDiagnosticsState = {
 const requestErrorDiagnostics = [];
 const EDITOR_DEBUG_LAUNCH_STORAGE_KEY = 'fv.folder.editor.debug.launch.v1';
 const EDITOR_DEBUG_BOOTSTRAP_STORAGE_KEY = 'fv.folder.editor.debug.bootstrap.v1';
+const EDITOR_DEBUG_SURFACE_STORAGE_KEY = 'fv.folder.editor.debug.surface.v1';
 
 const readClientDiagnosticsStorageRecord = (storageKey) => {
     try {
@@ -83,11 +84,14 @@ const readClientDiagnosticsStorageRecord = (storageKey) => {
 const collectFolderEditorDebugDiagnostics = () => {
     const launch = readClientDiagnosticsStorageRecord(EDITOR_DEBUG_LAUNCH_STORAGE_KEY);
     const bootstrap = readClientDiagnosticsStorageRecord(EDITOR_DEBUG_BOOTSTRAP_STORAGE_KEY);
+    const surface = readClientDiagnosticsStorageRecord(EDITOR_DEBUG_SURFACE_STORAGE_KEY);
     const launchId = String(launch?.id || '').trim();
     const launchType = String(launch?.type || '').trim();
     const bootstrapRouteId = String(bootstrap?.routeFolderId || '').trim();
     const bootstrapEffectiveId = String(bootstrap?.effectiveFolderId || '').trim();
     const bootstrapType = String(bootstrap?.routeType || bootstrap?.pageType || '').trim();
+    const surfaceSummary = String(surface?.summary || '').trim();
+    const surfaceTone = String(surface?.tone || '').trim();
     const launchMatchedBootstrap = Boolean(
         launchId
         && bootstrapEffectiveId
@@ -99,6 +103,7 @@ const collectFolderEditorDebugDiagnostics = () => {
         currentPage: String(location?.href || ''),
         launch,
         bootstrap,
+        surface,
         comparison: {
             launchId,
             launchType,
@@ -106,6 +111,8 @@ const collectFolderEditorDebugDiagnostics = () => {
             bootstrapEffectiveId,
             bootstrapType,
             bootstrapResult: String(bootstrap?.result || '').trim(),
+            surfaceSummary,
+            surfaceTone,
             launchMatchedBootstrap,
             routeTargetRecovered: bootstrap?.routeTargetRecovered === true,
             routeTargetMismatch: bootstrap?.routeTargetMismatch === true,
@@ -1149,6 +1156,9 @@ const issueReportFromDiagnostics = (diagnostics) => {
         lines.push(`- Bootstrap route target: ${comparison.bootstrapType || '?'} / ${comparison.bootstrapRouteId || '(empty)'}`);
         lines.push(`- Bootstrap effective target: ${comparison.bootstrapEffectiveId || '(empty)'}`);
         lines.push(`- Bootstrap result: ${comparison.bootstrapResult || '(empty)'}`);
+        if (folderEditorDebug.surface) {
+            lines.push(`- Bootstrap banner: ${comparison.surfaceTone || '?'} / ${comparison.surfaceSummary || '(empty)'}`);
+        }
     }
     lines.push('');
     lines.push('## Notes');

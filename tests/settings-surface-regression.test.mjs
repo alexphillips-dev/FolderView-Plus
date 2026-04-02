@@ -27,6 +27,8 @@ test('settings page loads smart-detect config before starter templates and diagn
 test('settings diagnostics exports client perf and theme telemetry helpers', () => {
     assert.match(diagnosticsJs, /const collectClientPerformanceTelemetry = \(\) =>/);
     assert.match(diagnosticsJs, /const collectFolderEditorDebugDiagnostics = \(\) =>/);
+    assert.match(diagnosticsJs, /const EDITOR_DEBUG_SURFACE_STORAGE_KEY = 'fv\.folder\.editor\.debug\.surface\.v1';/);
+    assert.match(diagnosticsJs, /const surface = readClientDiagnosticsStorageRecord\(EDITOR_DEBUG_SURFACE_STORAGE_KEY\);/);
     assert.match(diagnosticsJs, /const renderFolderEditorDebugDiagnostics = \(\) =>/);
     assert.match(diagnosticsJs, /const copyFolderEditorDebugDiagnostics = async \(\) =>/);
     assert.match(diagnosticsJs, /const renderPerformanceDiagnostics = \(\) =>/);
@@ -46,6 +48,8 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /window\.FolderViewPlusDiagnostics = Object\.freeze\(\{/);
     assert.match(diagnosticsJs, /collectClientPerformanceTelemetry/);
     assert.match(diagnosticsJs, /collectFolderEditorDebugDiagnostics/);
+    assert.match(diagnosticsJs, /surfaceSummary/);
+    assert.match(diagnosticsJs, /Bootstrap banner:/);
     assert.match(diagnosticsJs, /runThemeSelfHeal/);
     assert.doesNotMatch(diagnosticsJs, /cancelButtonText:\s*'Sanitized export'/);
     assert.doesNotMatch(diagnosticsJs, /confirmButtonText:\s*'Full export'/);

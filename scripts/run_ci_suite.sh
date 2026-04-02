@@ -158,6 +158,9 @@ run_browser_smoke_if_needed() {
     default_required="1"
   fi
   export FVPLUS_BROWSER_SMOKE_REQUIRED="${FVPLUS_BROWSER_SMOKE_REQUIRED:-${default_required}}"
+  if parse_truthy "${FVPLUS_BROWSER_SMOKE_REQUIRED}" && [[ -z "${FVPLUS_BROWSER_SMOKE_URL:-}" ]]; then
+    fvplus::fail "Browser smoke checks are required but FVPLUS_BROWSER_SMOKE_URL is not set."
+  fi
   if [[ -n "${FVPLUS_BROWSER_SMOKE_URL:-}" ]] || parse_truthy "${FVPLUS_BROWSER_SMOKE_REQUIRED}"; then
     prepare_playwright
   fi
@@ -170,6 +173,9 @@ run_theme_matrix_if_needed() {
     default_required="1"
   fi
   export FVPLUS_THEME_MATRIX_REQUIRED="${FVPLUS_THEME_MATRIX_REQUIRED:-${default_required}}"
+  if parse_truthy "${FVPLUS_THEME_MATRIX_REQUIRED}" && [[ -z "${FVPLUS_THEME_MATRIX_URLS:-}" ]]; then
+    fvplus::fail "Theme matrix smoke checks are required but FVPLUS_THEME_MATRIX_URLS is not set."
+  fi
   if [[ -n "${FVPLUS_THEME_MATRIX_URLS:-}" ]] || parse_truthy "${FVPLUS_THEME_MATRIX_REQUIRED}"; then
     prepare_playwright
   fi

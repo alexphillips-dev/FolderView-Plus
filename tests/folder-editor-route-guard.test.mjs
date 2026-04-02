@@ -55,6 +55,10 @@ test('folder editor runtimes accept query and hash bootstrap identity fallbacks'
     assert.match(folderPage, /\$folderEditorCookieType = trim/);
     assert.match(folderPage, /\$folderEditorCookieId = trim/);
     assert.match(folderPage, /win\.FolderViewPlusCopyFolderEditorBootstrapDiagnostics = async function copyFolderEditorBootstrapDiagnostics\(\)/);
+    assert.match(folderPage, /const EDITOR_DEBUG_SURFACE_STORAGE_KEY = 'fv\.folder\.editor\.debug\.surface\.v1';/);
+    assert.match(folderPage, /const buildDiagnosticsSnapshot = \(\) => \(\{/);
+    assert.match(folderPage, /win\.FolderViewPlusCollectFolderEditorBootstrapDiagnostics = function collectFolderEditorBootstrapDiagnostics\(\)/);
+    assert.match(folderPage, /win\.localStorage\.setItem\(EDITOR_DEBUG_SURFACE_STORAGE_KEY,\s*JSON\.stringify\(buildDiagnosticsSnapshot\(\)\)\);/);
     assert.match(folderPage, /win\.FolderViewPlusReportFolderEditorBootstrap = function reportFolderEditorBootstrap\(\{/);
     assert.match(folderPage, /id="fvFolderEditorBootstrapBanner"/);
     assert.match(folderPage, /id="fvFolderEditorBootstrapSummary"/);
@@ -62,6 +66,7 @@ test('folder editor runtimes accept query and hash bootstrap identity fallbacks'
     assert.match(folderPage, /id="fvFolderEditorBootstrapDebug"/);
     assert.match(folderPage, /id="fvFolderEditorBootstrapCopy"/);
     assert.match(folderPage, /id="fvFolderEditorBootstrapDisclosure"/);
+    assert.match(folderPage, /syncSurfaceState\(\);/);
     assert.match(folderLegacyJs, /const readFolderEditorBootstrapSeed = \(\) =>/);
     assert.match(folderLegacyJs, /const readWindowNameFolderEditorBootstrapSeed = \(\) =>/);
     assert.match(folderLegacyJs, /const readCookieFolderEditorBootstrapSeed = \(\) =>/);

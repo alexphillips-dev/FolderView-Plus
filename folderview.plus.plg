@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.01.11">
-<!ENTITY md5 "7ca0767e88a2f575322b41461be5efe1">
+<!ENTITY version "2026.04.01.13">
+<!ENTITY md5 "1e1698160419f6697f2fbab853cc3c1b">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.01.13
+- Quality: Release workflows now require live browser smoke and theme-matrix targets and fail fast when those release-only smoke URLs are missing.
+- Quality: Theme-matrix smoke now validates dashboard expand toggles directly, including contrast, hit target, and borderless transparent chevron styling.
+- Fix: Support bundle exports now include the folder editor bootstrap banner snapshot with the page summary, details, and debug context that appeared during editor startup.
+
 
 ###2026.04.01.11
 - UX: Refined settings and on-screen update messaging for clarity and consistency.

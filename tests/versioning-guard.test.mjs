@@ -335,7 +335,11 @@ test('theme matrix smoke scripts are optional, URL-gated, and include wizard/the
     assert.match(themeMatrixSmokeNode, /#fv-run-wizard/);
     assert.match(themeMatrixSmokeNode, /#fv-setup-assistant-dialog/);
     assert.match(themeMatrixSmokeNode, /button\.folder-dropdown/);
+    assert.match(themeMatrixSmokeNode, /button\.fv-dashboard-expand-toggle-btn/);
     assert.match(themeMatrixSmokeNode, /fv-dashboard-layout-inline-host/);
+    assert.match(themeMatrixSmokeNode, /Dashboard expand toggle border should be removed/);
+    assert.match(themeMatrixSmokeNode, /Dashboard expand toggle background should remain transparent/);
+    assert.match(themeMatrixSmokeNode, /Dashboard expand toggle shadow should be removed/);
     assert.match(themeMatrixSmokeNode, /stage: `\$\{target\.type\}-runtime`/);
     assert.match(themeMatrixSmokeNode, /Focus-visible ring is not present/);
     assert.match(themeMatrixSmokeNode, /horizontal overflow/);
@@ -408,8 +412,8 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
         assert.match(workflow, /uses:\s*\.\/\.github\/actions\/setup-ci-env/);
         assert.match(workflow, /Run release validation suite/);
         assert.match(workflow, /bash scripts\/run_ci_suite\.sh --release/);
-        assert.match(workflow, /FVPLUS_BROWSER_SMOKE_REQUIRED:\s*\$\{\{\s*secrets\.FVPLUS_BROWSER_SMOKE_URL != '' && '1' \|\| '0'\s*\}\}/);
-        assert.match(workflow, /FVPLUS_THEME_MATRIX_REQUIRED:\s*\$\{\{\s*secrets\.FVPLUS_THEME_MATRIX_URLS != '' && '1' \|\| '0'\s*\}\}/);
+        assert.match(workflow, /FVPLUS_BROWSER_SMOKE_REQUIRED:\s*'1'/);
+        assert.match(workflow, /FVPLUS_THEME_MATRIX_REQUIRED:\s*'1'/);
         assert.match(workflow, /FVPLUS_BROWSER_SMOKE_REQUIRE_FOLDER_EDITOR:\s*'1'/);
         assert.match(workflow, /FVPLUS_THEME_REQUIRED_LABELS:\s*'black,white'/);
     }

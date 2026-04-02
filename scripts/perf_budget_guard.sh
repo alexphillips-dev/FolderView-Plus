@@ -175,6 +175,13 @@ const budgets = [
     maxBytes: envInt('FVPLUS_MAX_FOLDER_JS_BYTES', 130000),
     maxGzipBytes: envInt('FVPLUS_MAX_FOLDER_JS_GZIP_BYTES', 28000),
   },
+  {
+    path: 'scripts/folder.editor.icons.js',
+    maxBytesEnv: 'FVPLUS_MAX_FOLDER_EDITOR_ICONS_JS_BYTES',
+    maxGzipBytesEnv: 'FVPLUS_MAX_FOLDER_EDITOR_ICONS_JS_GZIP_BYTES',
+    maxBytes: envInt('FVPLUS_MAX_FOLDER_EDITOR_ICONS_JS_BYTES', 120000),
+    maxGzipBytes: envInt('FVPLUS_MAX_FOLDER_EDITOR_ICONS_JS_GZIP_BYTES', 22000),
+  },
 ];
 
 let totalJsBudget = envInt('FVPLUS_MAX_TOTAL_JS_BYTES', 1115000);

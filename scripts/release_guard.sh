@@ -323,6 +323,7 @@ REQUIRED_ARCHIVE_PATHS=(
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-workspaces.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icons.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js"
   "./usr/local/emhttp/plugins/folderview.plus/styles/folder.css"

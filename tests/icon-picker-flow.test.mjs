@@ -16,6 +16,10 @@ const folderIconApiScriptPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icon-api.js'
 );
+const folderEditorIconsScriptPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icons.js'
+);
 const folderPagePath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page'
@@ -26,6 +30,7 @@ const folderCssPath = path.join(
 );
 const folderScript = fs.readFileSync(folderScriptPath, 'utf8');
 const folderIconApiScript = fs.readFileSync(folderIconApiScriptPath, 'utf8');
+const folderEditorIconsScript = fs.readFileSync(folderEditorIconsScriptPath, 'utf8');
 const folderPage = fs.readFileSync(folderPagePath, 'utf8');
 const folderCss = fs.readFileSync(folderCssPath, 'utf8');
 
@@ -92,8 +97,15 @@ test('icon picker runtime: filterIconsByQuery matches names and tags case-insens
 
 test('folder editor runtime keeps using shared icon picker helpers in the shipped editor path', () => {
     assert.match(folderPage, /folder\.editor\.icon-api\.js/);
+    assert.match(folderPage, /folder\.editor\.icons\.js/);
     assert.match(folderScript, /window\.FolderViewPlusFolderIconApi/);
     assert.match(folderScript, /folderIconApiModule\.createApi/);
+    assert.match(folderScript, /const folderEditorIconsModule = window\.FolderViewPlusFolderEditorIcons \|\| null;/);
+    assert.match(folderScript, /folderEditorIconsApi = folderEditorIconsModule\.createApi\(/);
+    assert.match(folderScript, /getFolderEditorIconsApi\(\)\?\.renderBuiltInIconPicker\(\);/);
+    assert.match(folderScript, /getFolderEditorIconsApi\(\)\?\.bindIconPickerEvents\(\);/);
+    assert.match(folderEditorIconsScript, /root\.FolderViewPlusFolderEditorIcons = factory\(\);/);
+    assert.match(folderEditorIconsScript, /root\.FolderViewPlusFolderEditorIconsModuleLoaded = true;/);
     assert.match(folderPage, /folder\.editor\.chrome\.js[\s\S]*folder\.js/);
     assert.doesNotMatch(folderPage, /folder\.legacy\.js/);
 });
@@ -141,27 +153,27 @@ test('folder editor markup exposes advanced third-party icon controls', () => {
     assert.match(folderPage, /id="fv-third-party-preview"/);
 });
 
-test('folder.js third-party icon picker supports advanced filtering and duplicate workflows', () => {
+test('folder editor icon module supports advanced filtering and duplicate workflows', () => {
     assert.match(folderScript, /const THIRD_PARTY_GRID_CHUNK_SIZE = \d+;/);
     assert.match(folderScript, /const THIRD_PARTY_MIN_TAG_COUNT = \d+;/);
-    assert.match(folderScript, /const loadThirdPartyIconIndex = async \(\) =>/);
-    assert.match(folderScript, /const buildThirdPartyDuplicateCleanupScript = \(\) =>/);
-    assert.match(folderScript, /const renderThirdPartyTagFilters = \(icons\) =>/);
-    assert.match(folderScript, /const renderThirdPartyPreview = \(icon = null\) =>/);
-    assert.match(folderScript, /const getThirdPartyFolderKind = \(folderName\) =>/);
-    assert.match(folderScript, /const setThirdPartyAdvancedMode = \(open\) =>/);
-    assert.match(folderScript, /const getThirdPartyActiveFilterCount = \(\) =>/);
-    assert.match(folderScript, /THIRD_PARTY_ICON_SEARCH_DEBOUNCE_MS/);
+    assert.match(folderEditorIconsScript, /const loadThirdPartyIconIndex = async \(\) =>/);
+    assert.match(folderEditorIconsScript, /const buildThirdPartyDuplicateCleanupScript = \(\) =>/);
+    assert.match(folderEditorIconsScript, /const renderThirdPartyTagFilters = \(icons\) =>/);
+    assert.match(folderEditorIconsScript, /const renderThirdPartyPreview = \(icon = null\) =>/);
+    assert.match(folderEditorIconsScript, /const getThirdPartyFolderKind = \(folderName\) =>/);
+    assert.match(folderEditorIconsScript, /const setThirdPartyAdvancedMode = \(open\) =>/);
+    assert.match(folderEditorIconsScript, /const getThirdPartyActiveFilterCount = \(\) =>/);
+    assert.match(folderEditorIconsScript, /thirdPartyIconSearchDebounceMs/);
     assert.match(folderPage, /value="duplicates"/);
-    assert.match(folderScript, /#fv-third-party-duplicates-cleanup/);
-    assert.match(folderScript, /#fv-third-party-pack-select/);
-    assert.match(folderScript, /#fv-third-party-pack-pin-toggle/);
-    assert.match(folderScript, /#fv-third-party-pack-hide-toggle/);
-    assert.match(folderScript, /#fv-third-party-pack-actions-toggle/);
-    assert.match(folderScript, /#fv-third-party-filter-toggle/);
-    assert.match(folderScript, /#fv-third-party-filter-clear-all/);
-    assert.match(folderScript, /list_index/);
-    assert.match(folderScript, /pointerdown\.fvthirdparty/);
+    assert.match(folderEditorIconsScript, /#fv-third-party-duplicates-cleanup/);
+    assert.match(folderEditorIconsScript, /#fv-third-party-pack-select/);
+    assert.match(folderEditorIconsScript, /#fv-third-party-pack-pin-toggle/);
+    assert.match(folderEditorIconsScript, /#fv-third-party-pack-hide-toggle/);
+    assert.match(folderEditorIconsScript, /#fv-third-party-pack-actions-toggle/);
+    assert.match(folderEditorIconsScript, /#fv-third-party-filter-toggle/);
+    assert.match(folderEditorIconsScript, /#fv-third-party-filter-clear-all/);
+    assert.match(folderEditorIconsScript, /list_index/);
+    assert.match(folderEditorIconsScript, /pointerdown\.fvthirdparty/);
 });
 
 test('folder editor icon picker uses theme-aware surfaces and borderless favorite toggles', () => {
@@ -206,12 +218,12 @@ test('folder.js icon upload parsing is resilient to empty and noisy endpoint res
     assert.match(folderIconApiScript, /replace:\s*options\?\.replace \? '1' : '0'/);
     assert.match(folderIconApiScript, /dedupe:\s*options\?\.dedupe === false \? '0' : '1'/);
     assert.match(folderIconApiScript, /const validateCustomIconFileBeforeUpload = \(file\) =>/);
-    assert.match(folderScript, /customIconUploadRequest\.abort\(/);
-    assert.match(folderScript, /const setCustomIconPickerOpen = \(open\) =>/);
-    assert.match(folderScript, /const refreshCustomIconManager = async \(\) =>/);
+    assert.match(folderEditorIconsScript, /customIconUploadRequest\.abort\(/);
+    assert.match(folderEditorIconsScript, /const setCustomIconPickerOpen = \(open\) =>/);
+    assert.match(folderEditorIconsScript, /const refreshCustomIconManager = async \(\) =>/);
     assert.match(folderScript, /CUSTOM_ICON_PAGE_SIZE/);
-    assert.match(folderScript, /data-action=\"refs\"/);
-    assert.match(folderScript, /requestCustomIconApi\('usage'/);
-    assert.match(folderScript, /requestCustomIconApi\('rename'/);
-    assert.match(folderScript, /requestCustomIconApi\('delete'/);
+    assert.match(folderEditorIconsScript, /data-action=\"refs\"/);
+    assert.match(folderEditorIconsScript, /requestCustomIconApi\('usage'/);
+    assert.match(folderEditorIconsScript, /requestCustomIconApi\('rename'/);
+    assert.match(folderEditorIconsScript, /requestCustomIconApi\('delete'/);
 });

@@ -70,6 +70,7 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorScript, /const folderEditorPreview = window\.FolderViewPlusFolderEditorPreview \|\| null;/);
     assert.match(folderEditorScript, /const folderEditorStateModule = window\.FolderViewPlusFolderEditorState \|\| null;/);
     assert.match(folderEditorScript, /const folderEditorMembersModule = window\.FolderViewPlusFolderEditorMembers \|\| null;/);
+    assert.match(folderEditorScript, /const folderEditorIconsModule = window\.FolderViewPlusFolderEditorIcons \|\| null;/);
     assert.match(folderEditorScript, /let folderEditorSharedApi = null;/);
     assert.match(folderEditorScript, /const getFolderEditorSharedApi = \(\) =>/);
     assert.match(folderEditorScript, /folderEditorSharedApi = folderEditorShared\.createApi\(/);
@@ -80,10 +81,13 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorScript, /folderEditorPreviewApi = folderEditorPreview\.createApi\(/);
     assert.match(folderEditorScript, /let folderEditorStateApi = null;/);
     assert.match(folderEditorScript, /let folderEditorMembersApi = null;/);
+    assert.match(folderEditorScript, /let folderEditorIconsApi = null;/);
     assert.match(folderEditorScript, /const getFolderEditorStateApi = \(\) =>/);
     assert.match(folderEditorScript, /folderEditorStateApi = folderEditorStateModule\.createApi\(/);
     assert.match(folderEditorScript, /const getFolderEditorMembersApi = \(\) =>/);
     assert.match(folderEditorScript, /folderEditorMembersApi = folderEditorMembersModule\.createApi\(/);
+    assert.match(folderEditorScript, /const getFolderEditorIconsApi = \(\) =>/);
+    assert.match(folderEditorScript, /folderEditorIconsApi = folderEditorIconsModule\.createApi\(/);
     assert.match(folderEditorScript, /function updateForm\(\) \{/);
     assert.match(folderEditorScript, /const startFolderEditorRuntime = async \(\) => \{/);
     assert.match(folderEditorScript, /void startFolderEditorRuntime\(\)\.catch\(\(error\) => \{/);

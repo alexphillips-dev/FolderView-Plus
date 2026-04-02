@@ -338,6 +338,7 @@ try {
             '/plugins/folderview.plus/scripts/folder.editor.rules.js',
             '/plugins/folderview.plus/scripts/folder.editor.state.js',
             '/plugins/folderview.plus/scripts/folder.editor.members.js',
+            '/plugins/folderview.plus/scripts/folder.editor.icons.js',
             '/plugins/folderview.plus/scripts/folder.js'
         ];
         const formatDebug = () => [
@@ -484,6 +485,7 @@ try {
 <script src="<?php autov('/plugins/folderview.plus/scripts/folder.editor.shared.js')?>"></script>
 <script src="<?php autov('/plugins/folderview.plus/scripts/folder.editor.schema.js')?>"></script>
 <script src="<?php autov('/plugins/folderview.plus/scripts/folder.editor.preview.js')?>"></script>
+<script src="<?php autov('/plugins/folderview.plus/scripts/folder.editor.icons.js')?>"></script>
 
 <div class="canvas">
     <form class="folder-editor-form fv-modern-editor-booting" data-fv-page-mode="modern" onsubmit="submitForm(this, false); return false">

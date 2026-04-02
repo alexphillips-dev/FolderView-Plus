@@ -219,7 +219,7 @@ const folderEditorRulesModule = window.FolderViewPlusFolderEditorRules || null;
 const folderHierarchyModule = window.FolderViewPlusFolderHierarchy || null;
 const folderParentPickerModule = window.FolderViewPlusFolderEditorParentPicker || null;
 const folderIconApiModule = window.FolderViewPlusFolderIconApi || null;
-const modernFolderEditorEnabled = String(window.FolderViewPlusFolderEditorPageMode || 'legacy').trim().toLowerCase() === 'modern';
+const modernFolderEditorEnabled = String(window.FolderViewPlusFolderEditorPageMode || 'modern').trim().toLowerCase() === 'modern';
 const DEFAULT_FOLDER_STATUS_COLORS = folderContract?.DEFAULT_FOLDER_STATUS_COLORS || {
     started: '#ffffff',
     paused: '#b8860b',

@@ -1,5 +1,5 @@
 (function folderEditorChromeBootstrap(root) {
-    const editorPageMode = String(root.FolderViewPlusFolderEditorPageMode || 'legacy').trim().toLowerCase();
+    const editorPageMode = String(root.FolderViewPlusFolderEditorPageMode || 'modern').trim().toLowerCase();
     if (editorPageMode !== 'modern') {
         return;
     }
@@ -356,13 +356,6 @@
         return stage;
     };
 
-    const getLegacyScaffold = (form) => {
-        if (!(form instanceof root.HTMLElement)) {
-            return null;
-        }
-        return form.querySelector('#fvLegacyEditorScaffold');
-    };
-
     const revealModernStage = (form, { preservePlaceholder = false } = {}) => {
         const stage = getModernStage(form);
         if (!stage) {
@@ -659,16 +652,11 @@
     };
 
     const hideOrphanRows = (form) => {
-        const scaffold = getLegacyScaffold(form);
-        if (scaffold) {
-            scaffold.hidden = true;
-            scaffold.setAttribute('aria-hidden', 'true');
-        }
         Array.from(form.children).forEach((child) => {
             if (!(child instanceof root.HTMLElement)) {
                 return;
             }
-            if (child.id === 'fvModernEditorStage' || child.id === 'fvLegacyEditorScaffold') {
+            if (child.id === 'fvModernEditorStage') {
                 return;
             }
             if (child.matches('.fv-section-shell')) {

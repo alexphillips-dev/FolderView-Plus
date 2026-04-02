@@ -7,7 +7,6 @@ const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 
 const folderJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js');
-const folderLegacyJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.legacy.js');
 const folderPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page');
 const folderCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folder.css');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
@@ -47,27 +46,6 @@ test('folder editor keeps border and chevron reset controls grouped with their f
     assert.match(folderJs, /const resetDropdownColorDefaults = typeof folderEditorResetHelpers\?\.resetDropdownColorDefaults === 'function'/);
     assert.match(folderJs, /form\.dropdown_color\.value = DEFAULT_DROPDOWN_COLOR;/);
     assert.match(folderJs, /form\.dropdown_hover_color\.value = DEFAULT_DROPDOWN_HOVER_COLOR;/);
-});
-
-test('legacy folder editor exposes grouped reset helpers and extended chevron compatibility', () => {
-    assert.match(folderLegacyJs, /const folderEditorResetHelpers = typeof folderEditorShared\?\.createResetHelpers === 'function'/);
-    assert.match(folderLegacyJs, /const resetPreviewBorderDefaults = typeof folderEditorResetHelpers\?\.resetPreviewBorderDefaults === 'function'/);
-    assert.match(folderLegacyJs, /window\.resetPreviewBorderDefaults = resetPreviewBorderDefaults;/);
-    assert.match(folderLegacyJs, /form\.preview_border_color\.value = DEFAULT_BORDER_COLOR;/);
-    assert.match(folderLegacyJs, /form\.preview_border_width\.value = String\(DEFAULT_PREVIEW_BORDER_WIDTH\);/);
-    assert.match(folderLegacyJs, /updateLiveSummary\(\);/);
-    assert.match(folderLegacyJs, /if \(modernFolderEditorEnabled\) \{\s*updateLiveSummary\(\);\s*\}/);
-    assert.match(folderLegacyJs, /const resetDropdownColorDefaults = typeof folderEditorResetHelpers\?\.resetDropdownColorDefaults === 'function'/);
-    assert.match(folderLegacyJs, /window\.resetDropdownColorDefaults = resetDropdownColorDefaults;/);
-    assert.match(folderLegacyJs, /form\.dropdown_color\.value = DEFAULT_DROPDOWN_COLOR;/);
-    assert.match(folderLegacyJs, /form\.dropdown_hover_color\.value = DEFAULT_DROPDOWN_HOVER_COLOR;/);
-    assert.match(folderLegacyJs, /fieldName === 'dropdown_style' \|\| fieldName === 'dropdown_color' \|\| fieldName === 'dropdown_hover_color'/);
-    assert.match(folderLegacyJs, /const extractDropdownStyleValue = typeof folderContract\?\.extractDropdownStyleValue === 'function'/);
-    assert.match(folderLegacyJs, /const SUPPORTED_DROPDOWN_STYLES = folderContract\?\.SUPPORTED_DROPDOWN_STYLES \|\| Object\.freeze\(\['minimal', 'boxed', 'ghost', 'pill', 'filled'\]\);/);
-    assert.match(folderLegacyJs, /const hydrateCurrentEditFolder = \(folderRecord, folderRecordId, foldersMap = \{\}, options = \{\}\) =>/);
-    assert.match(folderLegacyJs, /setFieldValue\('dropdown_style',\s*normalizeDropdownStyle\(normalizedFolder\.settings,\s*normalizedFolder\)\);/);
-    assert.match(folderLegacyJs, /dropdownStyle:\s*normalizeDropdownStyle\(e\.dropdown_style\.value\.toString\(\)\),/);
-    assert.match(folderLegacyJs, /chevron_style:\s*normalizeDropdownStyle\(e\.dropdown_style\.value\.toString\(\)\),/);
 });
 
 test('folder editor normalizes legacy preview border values when loading existing folders', () => {

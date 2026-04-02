@@ -158,10 +158,9 @@ test('lib.php can resolve requested folder editor context for bootstrap hydratio
 test('lib.php centralizes folder editor mode preference resolution', () => {
     assert.match(libPhp, /function resolveFolderEditorModePreference\(array \$prefs\): array/);
     assert.match(libPhp, /function resolveTypeFolderEditorModePreference\(string \$type\): array/);
-    assert.match(libPhp, /'source'\s*=>\s*'explicit'/);
-    assert.match(libPhp, /'source'\s*=>\s*'default-modern'/);
+    assert.match(libPhp, /'source'\s*=>\s*'modern-only'/);
     assert.match(libPhp, /return resolveFolderEditorModePreference\(readTypePrefs\(\$type\)\);/);
     assert.match(libPhp, /\$resolvedFolderEditorMode = resolveFolderEditorModePreference\(\$prefs\);/);
-    assert.match(libPhp, /\$normalized\['folderEditorModeExplicit'\] = \(\$resolvedFolderEditorMode\['source'\] \?\? 'default-modern'\) === 'explicit';/);
+    assert.match(libPhp, /\$normalized\['folderEditorModeExplicit'\] = false;/);
     assert.match(libPhp, /\$normalized\['folderEditorMode'\] = \(string\)\(\$resolvedFolderEditorMode\['mode'\] \?\? 'modern'\);/);
 });

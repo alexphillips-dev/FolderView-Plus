@@ -12,7 +12,6 @@ const folderSharedJs = read('src/folderview.plus/usr/local/emhttp/plugins/folder
 const folderPreviewJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.preview.js');
 const folderChromeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js');
 const folderJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js');
-const folderLegacyJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.legacy.js');
 const folderPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page');
 const folderCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folder.css');
 const sharedRuntimeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js');
@@ -43,7 +42,7 @@ test('accent color contract and editor controls are defined', () => {
     assert.match(folderCss, /\.fv-accent-inline-label\s*\{/);
 });
 
-test('modern and legacy folder editors persist accent color settings end to end', () => {
+test('modern folder editor persists accent color settings end to end', () => {
     assert.match(folderChromeJs, /findBasicByFieldName\(form, 'folder_accent_enabled'\)/);
     assert.match(folderPreviewJs, /const accentEnabled = isFolderAccentEnabled\(\{ folder_accent_enabled: form\.folder_accent_enabled\?\.checked === true \}\);/);
     assert.match(folderPreviewJs, /const accentColor = normalizeHexColor\(form\.folder_accent_color\?\.value,\s*deps\.defaultFolderAccentColor \|\| '#ffca63'\);/);
@@ -61,14 +60,6 @@ test('modern and legacy folder editors persist accent color settings end to end'
     assert.match(folderJs, /\$\('\[constraint\*="accent-color"\]'\)\.hide\(\);/);
     assert.match(folderJs, /if \(form\.folder_accent_enabled\.checked\) \$\('\[constraint\*="accent-color"\]'\)\.show\(\);/);
     assert.match(folderJs, /const resetFolderAccentDefaults = typeof folderEditorResetHelpers\?\.resetFolderAccentDefaults === 'function'/);
-    assert.match(folderLegacyJs, /defaultFolderAccentColor: DEFAULT_FOLDER_ACCENT_COLOR/);
-    assert.match(folderLegacyJs, /setFieldChecked\('folder_accent_enabled', isFolderAccentEnabled\(normalizedFolder\.settings \|\| \{\}\)\);/);
-    assert.match(folderLegacyJs, /setFieldValue\('folder_accent_color', normalizeHexColor\(normalizedFolder\.settings\.folder_accent_color, DEFAULT_FOLDER_ACCENT_COLOR\)\);/);
-    assert.match(folderLegacyJs, /folder_accent_enabled: e\.folder_accent_enabled\.checked,/);
-    assert.match(folderLegacyJs, /folder_accent_color: normalizeHexColor\(e\.folder_accent_color\.value\.toString\(\), DEFAULT_FOLDER_ACCENT_COLOR\),/);
-    assert.match(folderLegacyJs, /\$\('\[constraint\*="accent-color"\]'\)\.hide\(\);/);
-    assert.match(folderLegacyJs, /if \(form\.folder_accent_enabled\.checked\) \$\('\[constraint\*="accent-color"\]'\)\.show\(\);/);
-    assert.match(folderLegacyJs, /const resetFolderAccentDefaults = typeof folderEditorResetHelpers\?\.resetFolderAccentDefaults === 'function'/);
 });
 
 test('accent color renders independently across runtime rows, dashboard cards, and starter defaults', () => {

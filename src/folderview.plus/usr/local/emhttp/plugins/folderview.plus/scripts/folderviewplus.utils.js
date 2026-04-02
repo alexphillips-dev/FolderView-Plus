@@ -411,8 +411,7 @@
     };
 
     const normalizeFolderEditorMode = (value) => {
-        const normalized = String(value || '').trim().toLowerCase();
-        return normalized === 'modern' ? 'modern' : 'legacy';
+        return 'modern';
     };
 
     const normalizeDashboardLayout = (value) => {
@@ -741,10 +740,8 @@
         const expandedFolderState = normalizeExpandedFolderStateMap(incoming.expandedFolderState);
         const hideEmptyFolders = incoming.hideEmptyFolders === true;
         const appColumnWidth = normalizeAppColumnWidth(incoming.appColumnWidth);
-        const folderEditorModeExplicit = incoming.folderEditorModeExplicit === true;
-        const folderEditorMode = folderEditorModeExplicit
-            ? normalizeFolderEditorMode(incoming.folderEditorMode)
-            : 'modern';
+        const folderEditorModeExplicit = false;
+        const folderEditorMode = 'modern';
         const setupWizardCompleted = incoming.setupWizardCompleted === true;
         const settingsMode = incoming.settingsMode === 'advanced' ? 'advanced' : 'basic';
         const incomingSettingsTable = isPlainObject(incoming.settingsTable) ? incoming.settingsTable : {};

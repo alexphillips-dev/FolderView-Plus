@@ -50,10 +50,6 @@ const folderParentPickerJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.parent-picker.js'
 );
-const folderLegacyJsPath = path.join(
-    repoRoot,
-    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.legacy.js'
-);
 const dockerJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js'
@@ -76,7 +72,6 @@ const folderCss = fs.readFileSync(folderCssPath, 'utf8');
 const folderJs = fs.readFileSync(folderJsPath, 'utf8');
 const folderRulesJs = fs.readFileSync(folderRulesJsPath, 'utf8');
 const folderParentPickerJs = fs.readFileSync(folderParentPickerJsPath, 'utf8');
-const folderLegacyJs = fs.readFileSync(folderLegacyJsPath, 'utf8');
 const folderChromeJs = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js'),
     'utf8'
@@ -153,15 +148,15 @@ test('settings page includes smoke-test-critical containers and scripts', () => 
     assert.match(settingsPage, /id="vm-resource-warn-gib"/);
     assert.match(settingsPage, /id="vm-resource-critical-gib"/);
     assert.match(settingsPage, /id="fv-first-run-panel"/);
-    assert.match(settingsPage, /id="docker-folder-editor-modern"/);
-    assert.match(settingsPage, /id="vm-folder-editor-modern"/);
-    assert.match(settingsPage, /Use new folder settings page/);
+    assert.doesNotMatch(settingsPage, /id="docker-folder-editor-modern"/);
+    assert.doesNotMatch(settingsPage, /id="vm-folder-editor-modern"/);
+    assert.doesNotMatch(settingsPage, /Use new folder settings page/);
 });
 
-test('folder page ships separate legacy and modern editor runtimes', () => {
-    assert.match(folderPage, /resolveTypeFolderEditorModePreference\(\$folderEditorPageType\)/);
+test('folder page ships the modern editor runtime only', () => {
     assert.match(folderPage, /\$folderEditorPageBuildVersion = readInstalledVersion\(\);/);
-    assert.match(folderPage, /\$folderEditorAssetVersion = rawurlencode\(\$folderEditorPageBuildVersion\);/);
+    assert.match(folderPage, /\$folderEditorPageMode = 'modern';/);
+    assert.match(folderPage, /\$folderEditorPageModeSource = 'modern-only';/);
     assert.match(folderPage, /folderviewplus\.theme-resolver\.js/);
     assert.match(folderPage, /folder\.editor\.icon-api\.js/);
     assert.match(folderPage, /folder\.editor\.shared\.js/);
@@ -170,11 +165,10 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderPage, /folder\.editor\.hierarchy\.js/);
     assert.match(folderPage, /folder\.editor\.chrome\.js/);
     assert.match(folderPage, /folder\.js/);
-    assert.match(folderPage, /folder\.legacy\.js/);
+    assert.doesNotMatch(folderPage, /folder\.legacy\.js/);
     assert.match(folderChromeJs, /FolderViewPlusRefreshModernEditorChromeLayout/);
     assert.match(folderChromeJs, /FolderViewPlusRevealModernEditorStage/);
     assert.match(folderChromeJs, /const getModernStage = \(form\) =>/);
-    assert.match(folderChromeJs, /const getLegacyScaffold = \(form\) =>/);
     assert.match(folderChromeJs, /id="fvSectionState-\$\{sectionKey\}"/);
     assert.match(folderChromeJs, /data-section-action="revert"/);
     assert.match(folderChromeJs, /data-section-action="defaults"/);
@@ -188,7 +182,8 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderPage, /data-fv-folder-editor-boot-managed="1"/);
     assert.match(folderPage, /icon-picker\.runtime\.js/);
     assert.match(folderPage, /runtime-script-still-pending/);
-    assert.match(folderPage, /scriptQueue = runtimeMode === 'modern'[\s\S]*icon-picker\.runtime\.js[\s\S]*folder\.editor\.hierarchy\.js[\s\S]*folder\.editor\.chrome\.js[\s\S]*folder\.js[\s\S]*folder\.legacy\.js/);
+    assert.match(folderPage, /const runtimeMode = 'modern';/);
+    assert.match(folderPage, /const scriptQueue = \[[\s\S]*icon-picker\.runtime\.js[\s\S]*folder\.editor\.hierarchy\.js[\s\S]*folder\.editor\.chrome\.js[\s\S]*folder\.js/);
     assert.match(folderPage, /boot=\$\{encodeURIComponent\(bootNonce\)\}/);
     assert.match(folderJs, /\(function fvplusFolderEditorRuntimeScope\(window, \$\) \{/);
     assert.match(folderJs, /modernFolderEditorEnabled/);
@@ -213,26 +208,13 @@ test('folder page ships separate legacy and modern editor runtimes', () => {
     assert.match(folderJs, /void startFolderEditorRuntime\(\)\.catch\(\(error\) => \{/);
     assert.match(folderJs, /FolderViewPlusReportFolderEditorBootstrap/);
     assert.match(folderJs, /summary:\s*'Folder editor runtime script loaded\.'/);
-    assert.match(folderLegacyJs, /const modernFolderEditorEnabled = String\(window\.FolderViewPlusFolderEditorPageMode \|\| 'legacy'\)/);
-    assert.match(folderLegacyJs, /\(function fvplusLegacyFolderEditorRuntimeScope\(window, \$\) \{/);
-    assert.match(folderLegacyJs, /const folderEditorShared = window\.FolderViewPlusFolderEditorShared \|\| null;/);
-    assert.match(folderLegacyJs, /const folderEditorSchema = window\.FolderViewPlusFolderEditorSchema \|\| null;/);
-    assert.match(folderLegacyJs, /const folderEditorPreview = window\.FolderViewPlusFolderEditorPreview \|\| null;/);
-    assert.match(folderLegacyJs, /const bindFolderThemeAwareSurface = typeof themeResolver\?\.bindThemeAwareSurface === 'function'/);
-    assert.match(folderLegacyJs, /const folderEditorSharedApi = typeof folderEditorShared\?\.createApi === 'function'/);
-    assert.match(folderLegacyJs, /const folderEditorResetHelpers = typeof folderEditorShared\?\.createResetHelpers === 'function'/);
-    assert.match(folderLegacyJs, /const legacyEditorSchema = typeof folderEditorSchema\?\.createLegacySchema === 'function'/);
-    assert.match(folderLegacyJs, /const folderEditorPreviewApi = typeof folderEditorPreview\?\.createApi === 'function'/);
-    assert.match(folderLegacyJs, /window\.FolderViewPlusFolderEditorPageType/);
-    assert.match(folderLegacyJs, /window\.FolderViewPlusFolderEditorRequestedId/);
     assert.match(folderPreviewJs, /#fvLivePreviewCanvas/);
-    assert.doesNotMatch(folderLegacyJs, /const renderLivePreviewCanvas = \(\) =>/);
     assert.match(settingsJs, /const settingsTableModule = window\.FolderViewPlusSettingsTable \|\| null;/);
     assert.match(settingsJs, /bootstrapMissingModules\.push\('folderviewplus\.settings-table\.js'\)/);
     assert.match(folderCss, /\.canvas form\.folder-editor-form,\s*[\s\S]*#fvEditorChrome\s*\{[\s\S]*--fv-editor-text-primary:\s*var\(--fvplus-editor-text-primary/);
     assert.match(folderCss, /\.fv-modern-editor-stage\s*\{/);
     assert.match(folderCss, /\.fv-modern-editor-stage\.is-pending > #fvEditorChrome,/);
-    assert.match(folderCss, /\.fv-legacy-editor-scaffold\[hidden\]\s*\{/);
+    assert.doesNotMatch(folderCss, /data-fv-page-mode="legacy"/);
     assert.match(folderCss, /\.fv-section-nav > button\s*\{[\s\S]*color:\s*var\(--fv-editor-text-primary\);/);
     assert.match(folderCss, /\.fv-editor-mode > button\s*\{[\s\S]*color:\s*var\(--fv-editor-text-primary\);/);
     assert.match(folderCss, /--fv-editor-control-border:\s*var\(--fvplus-editor-control-border,\s*var\(--fv-editor-border\)\)/);
@@ -388,7 +370,6 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderJs, /const enforceLeftAlignedSettingsLayout = \(\) =>/);
     assert.match(folderJs, /const setVisibleMemberSelection = \(checked\) =>/);
     assert.match(folderJs, /const MEMBER_REGEX_SEARCH_FILTER = 'contains_regex';/);
-    assert.match(folderLegacyJs, /const MEMBER_REGEX_SEARCH_FILTER = 'contains_regex';/);
     assert.match(folderJs, /const ensureInheritedFieldControls = \(\) =>/);
     assert.match(folderJs, /id="fvHeroDefaults"/);
     assert.match(folderJs, /id="fvMemberStateFilter"/);
@@ -411,26 +392,18 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderJs, /const collectValidationWarnings = \(\) =>/);
     assert.match(folderJs, /const NO_MEMBERS_SELECTED_INFO = 'No members are currently selected in this folder\.';/);
     assert.doesNotMatch(folderJs, /Regex is empty, so only manual assignment will be used for this folder\./);
-    assert.doesNotMatch(folderLegacyJs, /Regex is empty, so only manual assignment will be used for this folder\./);
     assert.match(folderJs, /summary\.removeClass\('invalid warning info ready'\)/);
     assert.match(folderJs, /summary\.addClass\('info'\)\.text\(`Info: \$\{infoWarnings\.length\} note/);
-    assert.match(folderLegacyJs, /summary\.addClass\('info'\)\.text\(`Info: \$\{infoWarnings\.length\} note/);
     assert.match(folderJs, /const suggestDefaultsFromMembers = \(\) =>/);
     assert.match(folderJs, /const buildRegexSuggestionFromNames = \(names\) =>/);
     assert.match(folderJs, /const applyAdvancedMode = \(\) =>/);
     assert.match(folderJs, /const toggleAdvancedSectionCollapse = \(sectionKey\) =>/);
     assert.match(folderJs, /<option value="contains_regex">Contains regex<\/option>/);
-    assert.match(folderLegacyJs, /<option value="contains_regex">Contains regex<\/option>/);
     assert.match(folderJs, /new RegExp\(rawQuery, 'i'\)/);
-    assert.match(folderLegacyJs, /new RegExp\(rawQuery, 'i'\)/);
     assert.match(folderJs, /queryRegex \? queryRegex\.test\(rawName\) : false/);
-    assert.match(folderLegacyJs, /queryRegex \? queryRegex\.test\(rawName\) : false/);
     assert.match(folderJs, /Regex search members/);
-    assert.match(folderLegacyJs, /Regex search members/);
     assert.match(folderJs, /Invalid regex: \$\{error\.message\}/);
-    assert.match(folderLegacyJs, /Invalid regex: \$\{error\.message\}/);
     assert.match(folderJs, /Filter member list/);
-    assert.match(folderLegacyJs, /Filter member list/);
     assert.match(folderJs, /ComposeProject/);
     assert.match(folderJs, /UpdateAvailable/);
     assert.match(folderJs, /id="fvSuggestDefaults"/);
@@ -460,14 +433,10 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderJs, /\$\('\[constraint\*="context_graph-"\]'\)\.hide\(\);/);
     assert.match(folderJs, /context_graph-\$\{form\.context_graph\.value\}/);
     assert.match(folderJs, /form\.preview_border\.checked\) \$\('\[constraint\*="border-color"\]'\)\.show\(\);/);
-    assert.match(folderLegacyJs, /\$\('\[constraint\*="context_graph-"\]'\)\.hide\(\);/);
-    assert.match(folderLegacyJs, /context_graph-\$\{form\.context_graph\.value\}/);
-    assert.match(folderLegacyJs, /form\.preview_border\.checked\) \$\('\[constraint\*="border-color"\]'\)\.show\(\);/);
     assert.doesNotMatch(folderPage, /Lasciate ogne speranza/);
     assert.doesNotMatch(folderPage, /Site for testing your regex/);
     assert.doesNotMatch(folderCss, /\.canvas form\.folder-editor-form \.fv-section-shell > \.fv-section-shell-body > \.basic:not\(.order-section\),/);
-    assert.match(folderCss, /\.canvas form\.folder-editor-form\[data-fv-page-mode="legacy"\]\.fv-force-left-v3/);
-    assert.match(folderCss, /Runtime-enforced left alignment guard/);
+    assert.match(folderCss, /\.canvas form\.folder-editor-form\.fv-force-left-v3 \.fv-modern-field-row > dl/);
     assert.match(folderCss, /\.canvas form\.folder-editor-form\[data-fv-page-mode="modern"\]\.fv-modern-editor-booting > \.basic/);
     assert.match(folderCss, /\.fv-editor-boot-placeholder/);
     assert.match(folderCss, /\.fv-editor-mode/);
@@ -495,9 +464,7 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderCss, /\.fv-section-shell\[data-section-shell="rules"\] \.fv-section-shell-body\s*\{[\s\S]*display:\s*flex !important;/);
     assert.match(folderCss, /\.fv-folder-action-dialog \.dialogCustomAction dl\s*\{[\s\S]*flex-direction:\s*column;/);
     assert.match(folderJs, /dialogWidget\.addClass\('fv-folder-action-dialog'\);/);
-    assert.match(folderLegacyJs, /dialogWidget\.addClass\('fv-folder-action-dialog'\);/);
     assert.match(folderJs, /width:\s*420,/);
-    assert.match(folderLegacyJs, /width:\s*420,/);
     assert.match(folderCss, /\.fv-live-preview-row \.fv-live-chevron\s*\{[\s\S]*background:\s*var\(--fv-live-chevron-bg, transparent\) !important;/);
     assert.match(folderCss, /\.fv-live-preview-row \.fv-live-chevron\s*\{[\s\S]*appearance:\s*none !important;/);
     assert.match(folderCss, /\.fv-live-preview-row\.is-minimal \.fv-live-chevron\s*\{[\s\S]*color:\s*var\(--fv-live-chevron-color, var\(--fv-chevron-color\)\) !important;/);
@@ -550,10 +517,6 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderCss, /\.fv-validation-details\.info/);
     assert.match(folderCss, /\.fv-section-nav > button\.is-active/);
     assert.match(folderCss, /\.fv-orphan-editor-row/);
-    assert.match(folderLegacyJs, /const setVisibleMemberSelection = \(checked\) =>/);
-    assert.match(folderLegacyJs, /#fvMemberStateFilter/);
-    assert.match(folderLegacyJs, /#fvMemberIncludeVisible/);
-    assert.match(folderLegacyJs, /All changes saved/);
 });
 
 test('folder editor exposes folder-scoped advanced auto-rules for saved folders', () => {
@@ -612,15 +575,15 @@ test('folder editor uses a searchable parent picker and custom general-section l
 });
 
 test('folder editor page ships the redesign bootstrap and chrome anchors', () => {
-    assert.match(folderPage, /<form class="folder-editor-form<\?php echo \$folderEditorPageMode === 'modern' \? ' fv-modern-editor-booting' : ''; \?>"/);
-    assert.match(folderPage, /data-fv-page-mode="/);
+    assert.match(folderPage, /<form class="folder-editor-form fv-modern-editor-booting" data-fv-page-mode="modern"/);
     assert.match(folderPage, /fv-modern-editor-booting/);
     assert.match(folderPage, /id="fvModernEditorStage" class="fv-modern-editor-stage is-pending"/);
-    assert.match(folderPage, /id="fvLegacyEditorScaffold"/);
+    assert.doesNotMatch(folderPage, /id="fvLegacyEditorScaffold"/);
     assert.match(folderPage, /id="fvEditorBootPlaceholder"/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorPageMode =/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorResolvedMode =/);
     assert.match(folderPage, /window\.FolderViewPlusFolderEditorModeSource =/);
+    assert.match(folderPage, /\$folderEditorPageModeSource = 'modern-only';/);
     assert.doesNotMatch(folderPage, /\$_GET\['editor'\]/);
     assert.doesNotMatch(folderPage, /\$_GET\['editorMode'\]/);
     assert.doesNotMatch(folderPage, /\$_GET\['mode'\]/);
@@ -657,20 +620,17 @@ test('folder editor page ships the redesign bootstrap and chrome anchors', () =>
     assert.match(folderChromeJs, /bindButton\('#fvSuggestDefaults', 'suggestDefaultsFromMembers'\);/);
     assert.match(folderChromeJs, /data-target="\$\{key\}"/);
     assert.match(folderChromeJs, /data-mode="advanced"/);
-    assert.match(folderLegacyJs, /if \(modernFolderEditorEnabled\) \{/);
-    assert.match(folderLegacyJs, /\$\('#fvRegexSimulatorInput'\)\.off\('input'\)\.on\('input', updateRegexSimulator\);/);
-    assert.match(folderLegacyJs, /\$\('#fvSuggestDefaults'\)\.off\('click'\)\.on\('click', suggestDefaultsFromMembers\);/);
     assert.doesNotMatch(folderPage, /scripts\/folder\.js[^?]*"\s*defer/);
     assert.match(folderJs, /if \(modernFolderEditorEnabled && typeof window\.FolderViewPlusRevealModernEditorStage === 'function'\) \{/);
 });
 
-test('prefs endpoint upgrades folder editor mode writes into explicit user choices', () => {
+test('prefs endpoint no longer rewrites retired folder editor mode flags', () => {
     const prefsPhp = fs.readFileSync(
         path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/prefs.php'),
         'utf8'
     );
-    assert.match(prefsPhp, /array_key_exists\('folderEditorMode', \$decoded\)/);
-    assert.match(prefsPhp, /\$decoded\['folderEditorModeExplicit'\] = true;/);
+    assert.doesNotMatch(prefsPhp, /array_key_exists\('folderEditorMode', \$decoded\)/);
+    assert.doesNotMatch(prefsPhp, /\$decoded\['folderEditorModeExplicit'\] = true;/);
 });
 
 test('runtime folder editor routes defer editor mode resolution to Folder.page server prefs', () => {

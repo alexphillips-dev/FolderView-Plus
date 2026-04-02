@@ -24,9 +24,6 @@ fvplus_json_try(function (): array {
         $decoded = $incoming;
     }
     fvplus_assert_prefs_payload_shape($decoded);
-    if (array_key_exists('folderEditorMode', $decoded) && !array_key_exists('folderEditorModeExplicit', $decoded)) {
-        $decoded['folderEditorModeExplicit'] = true;
-    }
 
     $current = readTypePrefs($type);
     $next = normalizeTypePrefs(array_merge($current, $decoded));

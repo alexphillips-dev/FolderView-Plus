@@ -55,7 +55,6 @@ test('shared folder editor schema and preview modules publish the editor-facing 
     assert.match(folderEditorSchemaJs, /^\/\/ @ts-check/m);
     assert.match(folderEditorSchemaJs, /\(function fvplusFolderEditorSchemaScope\(window\) \{/);
     assert.match(folderEditorSchemaJs, /const createModernSchema = \(deps = \{\}\) =>/);
-    assert.match(folderEditorSchemaJs, /const createLegacySchema = \(\) =>/);
     assert.match(folderEditorSchemaJs, /window\.FolderViewPlusFolderEditorSchema = Object\.freeze\(\{/);
     assert.match(folderEditorSchemaJs, /window\.FolderViewPlusFolderEditorSchemaModuleLoaded = true/);
     assert.match(folderEditorPreviewJs, /^\/\/ @ts-check/m);
@@ -87,10 +86,9 @@ test('runtime pages and folder editor load the shared contract before their cons
     const folderPreviewIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.preview.js');
     const folderHierarchyIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.hierarchy.js');
     const folderParentPickerIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.parent-picker.js');
-    const folderLegacyIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.legacy.js');
     const folderModernIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.js');
     const folderChromeIndex = folderPage.indexOf('/plugins/folderview.plus/scripts/folder.editor.chrome.js');
-    const folderBootLoaderIndex = folderPage.indexOf('const scriptQueue = runtimeMode === \'modern\'');
+    const folderBootLoaderIndex = folderPage.indexOf('const scriptQueue = [');
 
     assert.ok(dockerThemeResolverIndex >= 0, 'docker page missing shared theme resolver include');
     assert.ok(dockerContractIndex >= 0, 'docker page missing shared folder contract include');
@@ -124,7 +122,6 @@ test('runtime pages and folder editor load the shared contract before their cons
     assert.ok(folderBootLoaderIndex >= 0, 'folder editor page missing runtime boot loader');
     assert.ok(folderHierarchyIndex >= 0, 'folder editor page missing hierarchy module include');
     assert.ok(folderParentPickerIndex >= 0, 'folder editor page missing parent picker module include');
-    assert.ok(folderLegacyIndex >= 0, 'folder editor page missing legacy runtime include');
     assert.ok(folderModernIndex >= 0, 'folder editor page missing modern runtime include');
     assert.ok(folderChromeIndex >= 0, 'folder editor page missing chrome runtime include');
     assert.ok(folderThemeResolverIndex < folderSharedEditorIndex, 'theme resolver must load before folder.editor.shared.js');
@@ -138,7 +135,7 @@ test('runtime pages and folder editor load the shared contract before their cons
     assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.editor.parent-picker.js'"), 'folder editor page missing boot-loaded parent picker runtime');
     assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.editor.chrome.js'"), 'folder editor page missing boot-loaded chrome runtime');
     assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.js'"), 'folder editor page missing boot-loaded modern runtime');
-    assert.ok(folderPage.includes("'/plugins/folderview.plus/scripts/folder.legacy.js'"), 'folder editor page missing boot-loaded legacy runtime');
+    assert.ok(!folderPage.includes("'/plugins/folderview.plus/scripts/folder.legacy.js'"), 'folder editor page should not boot-load the retired legacy runtime');
 });
 
 test('shared runtime stylesheet owns the common dropdown and preview geometry contract', () => {

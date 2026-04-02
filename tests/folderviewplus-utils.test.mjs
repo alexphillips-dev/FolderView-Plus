@@ -198,7 +198,7 @@ test('normalizePrefs preserves settings table layout preferences', () => {
     assert.equal(prefs.settingsTable.actionsWidth, 'compact');
 });
 
-test('normalizePrefs defaults folder editor to modern and preserves explicit legacy choice', () => {
+test('normalizePrefs forces the folder editor to modern-only mode', () => {
     const defaults = utils.normalizePrefs({});
     const modern = utils.normalizePrefs({ folderEditorMode: 'modern' });
     const fallback = utils.normalizePrefs({ folderEditorMode: 'beta-ish' });
@@ -207,11 +207,11 @@ test('normalizePrefs defaults folder editor to modern and preserves explicit leg
     assert.equal(defaults.folderEditorMode, 'modern');
     assert.equal(modern.folderEditorMode, 'modern');
     assert.equal(fallback.folderEditorMode, 'modern');
-    assert.equal(explicitLegacy.folderEditorMode, 'legacy');
-    assert.equal(explicitLegacy.folderEditorModeExplicit, true);
+    assert.equal(explicitLegacy.folderEditorMode, 'modern');
+    assert.equal(explicitLegacy.folderEditorModeExplicit, false);
     assert.equal(utils.normalizeFolderEditorMode('modern'), 'modern');
-    assert.equal(utils.normalizeFolderEditorMode('legacy'), 'legacy');
-    assert.equal(utils.normalizeFolderEditorMode('broken'), 'legacy');
+    assert.equal(utils.normalizeFolderEditorMode('legacy'), 'modern');
+    assert.equal(utils.normalizeFolderEditorMode('broken'), 'modern');
 });
 
 test('summarizeImport reports creates updates and deletes for replace mode', () => {

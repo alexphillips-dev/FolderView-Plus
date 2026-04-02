@@ -2220,25 +2220,13 @@
     }
 
     function normalizeFolderEditorMode($value): string {
-        $normalized = strtolower(trim((string)$value));
-        if ($normalized === 'modern') {
-            return 'modern';
-        }
-        return 'legacy';
+        return 'modern';
     }
 
     function resolveFolderEditorModePreference(array $prefs): array {
-        $explicit = normalizeBool($prefs['folderEditorModeExplicit'] ?? false, false);
-        if ($explicit) {
-            return [
-                'mode' => normalizeFolderEditorMode($prefs['folderEditorMode'] ?? 'legacy'),
-                'source' => 'explicit'
-            ];
-        }
-
         return [
-            'mode' => 'modern',
-            'source' => 'default-modern'
+            'mode' => normalizeFolderEditorMode('modern'),
+            'source' => 'modern-only'
         ];
     }
 
@@ -2280,7 +2268,7 @@
         $normalized['hideEmptyFolders'] = normalizeBool($prefs['hideEmptyFolders'] ?? false, false);
         $normalized['appColumnWidth'] = normalizeAppColumnWidth($prefs['appColumnWidth'] ?? 'standard');
         $resolvedFolderEditorMode = resolveFolderEditorModePreference($prefs);
-        $normalized['folderEditorModeExplicit'] = ($resolvedFolderEditorMode['source'] ?? 'default-modern') === 'explicit';
+        $normalized['folderEditorModeExplicit'] = false;
         $normalized['folderEditorMode'] = (string)($resolvedFolderEditorMode['mode'] ?? 'modern');
         $normalized['setupWizardCompleted'] = normalizeBool($prefs['setupWizardCompleted'] ?? false, false);
         $settingsMode = (string)($prefs['settingsMode'] ?? 'basic');

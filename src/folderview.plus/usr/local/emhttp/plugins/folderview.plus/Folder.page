@@ -16,12 +16,11 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
 emitNoCachePageHeaders();
 emitRequestTokenMetaTag();
 $folderEditorPageType = '';
-$folderEditorPageMode = 'legacy';
-$folderEditorPageModeSource = 'error';
+$folderEditorPageMode = 'modern';
+$folderEditorPageModeSource = 'modern-only';
 $folderEditorRequestedId = '';
 $folderEditorResolvedId = '';
 $folderEditorPageBuildVersion = readInstalledVersion();
-$folderEditorAssetVersion = rawurlencode($folderEditorPageBuildVersion);
 $folderEditorCookieType = '';
 $folderEditorCookieId = '';
 $folderEditorBootstrapContext = [
@@ -47,7 +46,7 @@ try {
     $folderEditorPageType = ensureType((string)($_GET['type'] ?? $_REQUEST['type'] ?? $folderEditorCookieType ?? ''));
     $folderEditorModePreference = resolveTypeFolderEditorModePreference($folderEditorPageType);
     $folderEditorPageMode = normalizeFolderEditorMode((string)($folderEditorModePreference['mode'] ?? 'modern'));
-    $folderEditorPageModeSource = trim((string)($folderEditorModePreference['source'] ?? 'default-modern')) ?: 'default-modern';
+    $folderEditorPageModeSource = trim((string)($folderEditorModePreference['source'] ?? 'modern-only')) ?: 'modern-only';
     $folderEditorRequestedId = trim((string)(
         $_GET['id']
         ?? $_REQUEST['id']
@@ -66,8 +65,8 @@ try {
     }
 } catch (Throwable $folderEditorPageError) {
     $folderEditorPageType = '';
-    $folderEditorPageMode = 'legacy';
-    $folderEditorPageModeSource = 'error';
+    $folderEditorPageMode = 'modern';
+    $folderEditorPageModeSource = 'modern-only';
     $folderEditorRequestedId = '';
     $folderEditorResolvedId = '';
     $folderEditorBootstrapContext = [
@@ -328,24 +327,17 @@ try {
     (function bootFolderEditorRuntimePage(win, doc) {
         const buildVersion = String(win.FolderViewPlusFolderEditorPageBuildVersion || '').trim() || String(Date.now());
         const assetVersion = encodeURIComponent(buildVersion);
-        const runtimeMode = String(win.FolderViewPlusFolderEditorPageMode || 'legacy').trim().toLowerCase() === 'modern'
-            ? 'modern'
-            : 'legacy';
+        const runtimeMode = 'modern';
         const bootNonce = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
         const managedSelector = 'script[data-fv-folder-editor-boot-managed="1"]';
-        const scriptQueue = runtimeMode === 'modern'
-            ? [
-                '/plugins/folderview.plus/scripts/icon-picker.runtime.js',
-                '/plugins/folderview.plus/scripts/folder.editor.hierarchy.js',
-                '/plugins/folderview.plus/scripts/folder.editor.chrome.js',
-                '/plugins/folderview.plus/scripts/folder.editor.parent-picker.js',
-                '/plugins/folderview.plus/scripts/folder.editor.rules.js',
-                '/plugins/folderview.plus/scripts/folder.js'
-            ]
-            : [
-                '/plugins/folderview.plus/scripts/icon-picker.runtime.js',
-                '/plugins/folderview.plus/scripts/folder.legacy.js'
-            ];
+        const scriptQueue = [
+            '/plugins/folderview.plus/scripts/icon-picker.runtime.js',
+            '/plugins/folderview.plus/scripts/folder.editor.hierarchy.js',
+            '/plugins/folderview.plus/scripts/folder.editor.chrome.js',
+            '/plugins/folderview.plus/scripts/folder.editor.parent-picker.js',
+            '/plugins/folderview.plus/scripts/folder.editor.rules.js',
+            '/plugins/folderview.plus/scripts/folder.js'
+        ];
         const formatDebug = () => [
             'build=' + buildVersion,
             'bootNonce=' + bootNonce,
@@ -492,7 +484,7 @@ try {
 <script src="<?php autov('/plugins/folderview.plus/scripts/folder.editor.preview.js')?>"></script>
 
 <div class="canvas">
-    <form class="folder-editor-form<?php echo $folderEditorPageMode === 'modern' ? ' fv-modern-editor-booting' : ''; ?>" data-fv-page-mode="<?php echo htmlspecialchars($folderEditorPageMode, ENT_QUOTES); ?>" onsubmit="submitForm(this, false); return false">
+    <form class="folder-editor-form fv-modern-editor-booting" data-fv-page-mode="modern" onsubmit="submitForm(this, false); return false">
         <div id="fvFolderEditorBootstrapBanner" class="fv-folder-editor-bootstrap-banner" hidden>
             <div class="fv-editor-status-row">
                 <span id="fvFolderEditorBootstrapSummary" class="fv-validation-summary warning">Folder editor runtime reported a startup problem.</span>
@@ -506,7 +498,6 @@ try {
                 </details>
             </div>
         </div>
-        <?php if ($folderEditorPageMode === 'modern'): ?>
         <div id="fvModernEditorStage" class="fv-modern-editor-stage is-pending" aria-live="polite">
             <div id="fvEditorBootPlaceholder" class="fv-editor-boot-placeholder">
                 <div class="fv-editor-boot-placeholder-copy">
@@ -516,8 +507,6 @@ try {
                 </div>
             </div>
         </div>
-        <div id="fvLegacyEditorScaffold" class="fv-legacy-editor-scaffold" hidden aria-hidden="true">
-        <?php endif; ?>
         <div class="basic">
             <dl>
                 <dt data-i18n="name">Name:</dt>
@@ -1427,9 +1416,6 @@ try {
                 </p>
             </blockquote>
         </div>
-        <?php if ($folderEditorPageMode === 'modern'): ?>
-        </div>
-        <?php endif; ?>
     </form>
 </div>
 

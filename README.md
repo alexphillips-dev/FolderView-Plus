@@ -100,7 +100,7 @@ plugin remove folderview.plus
 - Nested folders with parent/child tree support
 - Manual ordering, pinned folders, and current table controls
 - Folder runtime actions such as `Start`, `Stop`, `Pause`, and `Resume`
-- Modern folder editor with live preview, plus a legacy editor fallback for compatibility
+- Modern folder editor with live preview and shared runtime diagnostics
 
 ### Smarter setup and automation
 
@@ -242,7 +242,7 @@ Template workflow:
 
 - Folder editor opens blank or does not load the folder you clicked:
   - Copy the bootstrap diagnostics shown at the top of the editor.
-  - The modern and legacy editors both expose copyable bootstrap details now.
+  - The modern editor exposes copyable bootstrap details now.
 
 - Folder rendering pauses with a safe-mode banner:
   - FolderView Plus auto-detects conflicting legacy Folder View runtimes.

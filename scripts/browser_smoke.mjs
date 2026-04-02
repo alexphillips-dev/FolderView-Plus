@@ -934,28 +934,7 @@ const runFolderEditorToggleSmoke = async (page, { browserName, settingsUrl, type
         };
     }
 
-    const setting = page.locator(settingId).first();
-    if (await setting.count() === 0) {
-        throw new Error(`Folder editor mode toggle not found for ${type} (${browserName}): ${settingId}`);
-    }
-
     const statesVisited = [];
-    const originalChecked = await setting.isChecked();
-    const setToggleState = async (checked) => {
-        const current = await setting.isChecked();
-        if (current !== checked) {
-            await setting.click({ timeout: timeoutMs });
-            await page.waitForTimeout(500);
-        }
-    };
-    const verifyPersistedState = async (checked) => {
-        await page.goto(settingsUrl, { waitUntil: 'domcontentloaded', timeout: timeoutMs });
-        await waitForSettingsShell(page);
-        const persistedChecked = await page.locator(settingId).first().isChecked();
-        if (persistedChecked !== checked) {
-            throw new Error(`Folder editor toggle did not persist for ${type} (${browserName}). Expected ${checked ? 'checked' : 'unchecked'}.`);
-        }
-    };
     const verifyEditorMode = async (expectedMode) => {
         const editorUrl = `${editorUrlBase}${editorUrlBase.includes('?') ? '&' : '?'}smoke=${Date.now()}`;
         await page.goto(editorUrl, { waitUntil: 'domcontentloaded', timeout: timeoutMs });
@@ -973,42 +952,28 @@ const runFolderEditorToggleSmoke = async (page, { browserName, settingsUrl, type
         return details;
     };
 
-    try {
-        await verifyPersistedState(originalChecked);
-
-        await setToggleState(false);
-        await verifyPersistedState(false);
-        await verifyEditorMode('legacy');
-
-        await verifyPersistedState(false);
-        await setToggleState(true);
-        await verifyPersistedState(true);
-        await verifyEditorMode('modern');
-        const interactionReport = await runFolderEditorInteractionSmoke(page, {
-            browserName,
-            settingsUrl,
-            type: expectedPageType
-        });
-
-        return {
-            browserName,
-            type,
-            skipped: false,
-            pass: true,
-            statesVisited,
-            interactionReport
-        };
-    } finally {
-        await page.goto(settingsUrl, { waitUntil: 'domcontentloaded', timeout: timeoutMs });
-        await waitForSettingsShell(page);
-        const restoreToggle = page.locator(settingId).first();
-        const restoreChecked = await restoreToggle.isChecked();
-        if (restoreChecked !== originalChecked) {
-            await restoreToggle.click({ timeout: timeoutMs });
-            await page.waitForTimeout(500);
-        }
-        await verifyPersistedState(originalChecked);
+    await page.goto(settingsUrl, { waitUntil: 'domcontentloaded', timeout: timeoutMs });
+    await waitForSettingsShell(page);
+    const setting = page.locator(settingId).first();
+    if (await setting.count() !== 0) {
+        throw new Error(`Legacy folder editor toggle should not be present for ${type} (${browserName}): ${settingId}`);
     }
+
+    await verifyEditorMode('modern');
+    const interactionReport = await runFolderEditorInteractionSmoke(page, {
+        browserName,
+        settingsUrl,
+        type: expectedPageType
+    });
+
+    return {
+        browserName,
+        type,
+        skipped: false,
+        pass: true,
+        statesVisited,
+        interactionReport
+    };
 };
 
 const runBrowserSmoke = async (browserName, browserType) => {

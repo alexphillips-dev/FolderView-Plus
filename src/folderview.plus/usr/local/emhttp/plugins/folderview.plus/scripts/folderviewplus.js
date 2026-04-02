@@ -7794,10 +7794,6 @@ const renderVisibilityControls = (type) => {
         ? utils.normalizeAppColumnWidth(prefs.appColumnWidth)
         : (['compact', 'wide'].includes(String(prefs.appColumnWidth || '').toLowerCase()) ? String(prefs.appColumnWidth || '').toLowerCase() : 'standard');
     $(`#${type}-app-column-width`).val(appColumnWidth);
-    const folderEditorMode = typeof utils.normalizeFolderEditorMode === 'function'
-        ? utils.normalizeFolderEditorMode(prefs.folderEditorMode)
-        : (String(prefs.folderEditorMode || '').trim().toLowerCase() === 'modern' ? 'modern' : 'legacy');
-    $(`#${type}-folder-editor-modern`).prop('checked', folderEditorMode === 'modern');
 };
 
 const renderBackupScheduleControls = (type) => {
@@ -9946,11 +9942,6 @@ const changeVisibilityPref = async (type, key, value) => {
         next.appColumnWidth = typeof utils.normalizeAppColumnWidth === 'function'
             ? utils.normalizeAppColumnWidth(value)
             : (['compact', 'wide'].includes(String(value || '').toLowerCase()) ? String(value || '').toLowerCase() : 'standard');
-    } else if (key === 'folderEditorMode') {
-        next.folderEditorMode = typeof utils.normalizeFolderEditorMode === 'function'
-            ? utils.normalizeFolderEditorMode(value)
-            : (String(value || '').trim().toLowerCase() === 'modern' ? 'modern' : 'legacy');
-        next.folderEditorModeExplicit = true;
     } else {
         return;
     }

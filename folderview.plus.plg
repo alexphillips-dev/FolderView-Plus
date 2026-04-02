@@ -6,12 +6,27 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.01.14">
-<!ENTITY md5 "1e1698160419f6697f2fbab853cc3c1b">
+<!ENTITY version "2026.04.01.16">
+<!ENTITY md5 "b940b19dd61689130498f42b025cb8ff">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.01.16
+- Refactor: Retired the legacy folder editor runtime and modern-only schema path.
+- UX: Folder editor routes now always launch the modern editor and removed the old compatibility toggle.
+- Quality: Browser smoke and regression guards now enforce the modern-only editor boot flow.
+
+
+###2026.04.01.15
+- UX: Folder editor flows, previews, and bootstrap behavior.
+- UX: Settings workspace layout, section flows, and table behavior.
+- Feature: Setup Assistant, rules, smart-detect, and starter-template workflows.
+- UX: Icon picker, bundled icon packs, and custom icon management.
+- Refactor: Shared runtime contracts, request plumbing, and cross-page foundations.
+- Fix: Server endpoints, runtime payloads, and persistence or validation paths.
+
 
 ###2026.04.01.14
 - Quality: Release automation, CI smoke coverage, and packaging guards.

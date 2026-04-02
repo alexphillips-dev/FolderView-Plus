@@ -183,6 +183,7 @@ SOURCE_SETTINGS_CSS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/fo
 SOURCE_FOLDER_PAGE="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page"
 SOURCE_SETTINGS_PAGE="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page"
 SOURCE_SERVER_LIB="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php"
+SOURCE_SERVER_LIB_DIAGNOSTICS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.diagnostics.php"
 SOURCE_SERVER_UPDATE_NOTES="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/update_notes.php"
 
 if [[ ! -f "${SOURCE_FOLDER_JS}" ]]; then
@@ -281,6 +282,10 @@ if [[ ! -f "${SOURCE_SERVER_LIB}" ]]; then
   echo "ERROR: Missing source server lib: ${SOURCE_SERVER_LIB}" >&2
   exit 1
 fi
+if [[ ! -f "${SOURCE_SERVER_LIB_DIAGNOSTICS}" ]]; then
+  echo "ERROR: Missing source server diagnostics lib: ${SOURCE_SERVER_LIB_DIAGNOSTICS}" >&2
+  exit 1
+fi
 if [[ ! -f "${SOURCE_SERVER_UPDATE_NOTES}" ]]; then
   echo "ERROR: Missing source server update notes endpoint: ${SOURCE_SERVER_UPDATE_NOTES}" >&2
   exit 1
@@ -344,6 +349,7 @@ REQUIRED_ARCHIVE_PATHS=(
   "./usr/local/emhttp/plugins/folderview.plus/Folder.page"
   "./usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page"
   "./usr/local/emhttp/plugins/folderview.plus/server/lib.php"
+  "./usr/local/emhttp/plugins/folderview.plus/server/lib.diagnostics.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/update_notes.php"
 )
 
@@ -537,8 +543,9 @@ TMP_ARCHIVE_SETTINGS_CSS="$(mktemp)"
 TMP_ARCHIVE_FOLDER_PAGE="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_PAGE="$(mktemp)"
 TMP_ARCHIVE_SERVER_LIB="$(mktemp)"
+TMP_ARCHIVE_SERVER_LIB_DIAGNOSTICS="$(mktemp)"
 TMP_ARCHIVE_SERVER_UPDATE_NOTES="$(mktemp)"
-trap 'rm -f "${TMP_ARCHIVE_FOLDER_JS}" "${TMP_ARCHIVE_DOCKER_RUNTIME_HIERARCHY_JS}" "${TMP_ARCHIVE_DOCKER_RUNTIME_ACTIONS_JS}" "${TMP_ARCHIVE_FOLDER_CSS}" "${TMP_ARCHIVE_SETTINGS_JS}" "${TMP_ARCHIVE_SETTINGS_DIRTY_JS}" "${TMP_ARCHIVE_SETTINGS_RUNTIME_PARITY_JS}" "${TMP_ARCHIVE_SETTINGS_SECTIONS_JS}" "${TMP_ARCHIVE_SETTINGS_SETUP_ASSISTANT_JS}" "${TMP_ARCHIVE_SETTINGS_SMART_DETECT_CONFIG_JS}" "${TMP_ARCHIVE_SETTINGS_STARTER_TEMPLATES_JS}" "${TMP_ARCHIVE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS}" "${TMP_ARCHIVE_SETTINGS_TREE_JS}" "${TMP_ARCHIVE_SETTINGS_FOLDER_EDITOR_JS}" "${TMP_ARCHIVE_SETTINGS_HEALTH_JS}" "${TMP_ARCHIVE_SETTINGS_WORKSPACES_JS}" "${TMP_ARCHIVE_SETTINGS_BULK_ASSIGNMENT_JS}" "${TMP_ARCHIVE_SETTINGS_RUNTIME_ACTIONS_JS}" "${TMP_ARCHIVE_SETTINGS_WIZARD_JS}" "${TMP_ARCHIVE_SETTINGS_IMPORT_JS}" "${TMP_ARCHIVE_SETTINGS_CSS}" "${TMP_ARCHIVE_FOLDER_PAGE}" "${TMP_ARCHIVE_SETTINGS_PAGE}" "${TMP_ARCHIVE_SERVER_LIB}" "${TMP_ARCHIVE_SERVER_UPDATE_NOTES}"' EXIT
+trap 'rm -f "${TMP_ARCHIVE_FOLDER_JS}" "${TMP_ARCHIVE_DOCKER_RUNTIME_HIERARCHY_JS}" "${TMP_ARCHIVE_DOCKER_RUNTIME_ACTIONS_JS}" "${TMP_ARCHIVE_FOLDER_CSS}" "${TMP_ARCHIVE_SETTINGS_JS}" "${TMP_ARCHIVE_SETTINGS_DIRTY_JS}" "${TMP_ARCHIVE_SETTINGS_RUNTIME_PARITY_JS}" "${TMP_ARCHIVE_SETTINGS_SECTIONS_JS}" "${TMP_ARCHIVE_SETTINGS_SETUP_ASSISTANT_JS}" "${TMP_ARCHIVE_SETTINGS_SMART_DETECT_CONFIG_JS}" "${TMP_ARCHIVE_SETTINGS_STARTER_TEMPLATES_JS}" "${TMP_ARCHIVE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS}" "${TMP_ARCHIVE_SETTINGS_TREE_JS}" "${TMP_ARCHIVE_SETTINGS_FOLDER_EDITOR_JS}" "${TMP_ARCHIVE_SETTINGS_HEALTH_JS}" "${TMP_ARCHIVE_SETTINGS_WORKSPACES_JS}" "${TMP_ARCHIVE_SETTINGS_BULK_ASSIGNMENT_JS}" "${TMP_ARCHIVE_SETTINGS_RUNTIME_ACTIONS_JS}" "${TMP_ARCHIVE_SETTINGS_WIZARD_JS}" "${TMP_ARCHIVE_SETTINGS_IMPORT_JS}" "${TMP_ARCHIVE_SETTINGS_CSS}" "${TMP_ARCHIVE_FOLDER_PAGE}" "${TMP_ARCHIVE_SETTINGS_PAGE}" "${TMP_ARCHIVE_SERVER_LIB}" "${TMP_ARCHIVE_SERVER_LIB_DIAGNOSTICS}" "${TMP_ARCHIVE_SERVER_UPDATE_NOTES}"' EXIT
 ARCHIVE_FOLDER_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folder.js"
 ARCHIVE_DOCKER_RUNTIME_HIERARCHY_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js"
 ARCHIVE_DOCKER_RUNTIME_ACTIONS_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.actions.js"
@@ -563,6 +570,7 @@ ARCHIVE_SETTINGS_CSS_PATH="./usr/local/emhttp/plugins/folderview.plus/styles/fol
 ARCHIVE_FOLDER_PAGE_PATH="./usr/local/emhttp/plugins/folderview.plus/Folder.page"
 ARCHIVE_SETTINGS_PAGE_PATH="./usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page"
 ARCHIVE_SERVER_LIB_PATH="./usr/local/emhttp/plugins/folderview.plus/server/lib.php"
+ARCHIVE_SERVER_LIB_DIAGNOSTICS_PATH="./usr/local/emhttp/plugins/folderview.plus/server/lib.diagnostics.php"
 ARCHIVE_SERVER_UPDATE_NOTES_PATH="./usr/local/emhttp/plugins/folderview.plus/server/update_notes.php"
 if ! grep -Fxq "${ARCHIVE_FOLDER_JS_PATH}" <<< "${ARCHIVE_LIST}"; then
   ARCHIVE_FOLDER_JS_PATH="${ARCHIVE_FOLDER_JS_PATH#./}"
@@ -636,6 +644,9 @@ fi
 if ! grep -Fxq "${ARCHIVE_SERVER_LIB_PATH}" <<< "${ARCHIVE_LIST}"; then
   ARCHIVE_SERVER_LIB_PATH="${ARCHIVE_SERVER_LIB_PATH#./}"
 fi
+if ! grep -Fxq "${ARCHIVE_SERVER_LIB_DIAGNOSTICS_PATH}" <<< "${ARCHIVE_LIST}"; then
+  ARCHIVE_SERVER_LIB_DIAGNOSTICS_PATH="${ARCHIVE_SERVER_LIB_DIAGNOSTICS_PATH#./}"
+fi
 if ! grep -Fxq "${ARCHIVE_SERVER_UPDATE_NOTES_PATH}" <<< "${ARCHIVE_LIST}"; then
   ARCHIVE_SERVER_UPDATE_NOTES_PATH="${ARCHIVE_SERVER_UPDATE_NOTES_PATH#./}"
 fi
@@ -663,6 +674,7 @@ tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_CSS_PATH}" > "${TMP_ARCHIVE_SETTI
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_FOLDER_PAGE_PATH}" > "${TMP_ARCHIVE_FOLDER_PAGE}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_PAGE_PATH}" > "${TMP_ARCHIVE_SETTINGS_PAGE}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SERVER_LIB_PATH}" > "${TMP_ARCHIVE_SERVER_LIB}"
+tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SERVER_LIB_DIAGNOSTICS_PATH}" > "${TMP_ARCHIVE_SERVER_LIB_DIAGNOSTICS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SERVER_UPDATE_NOTES_PATH}" > "${TMP_ARCHIVE_SERVER_UPDATE_NOTES}"
 
 if ! grep -q 'fv-force-left-v2 marker' "${TMP_ARCHIVE_FOLDER_JS}"; then
@@ -744,6 +756,9 @@ if ! text_files_match "${SOURCE_SETTINGS_PAGE}" "${TMP_ARCHIVE_SETTINGS_PAGE}"; 
 fi
 if ! text_files_match "${SOURCE_SERVER_LIB}" "${TMP_ARCHIVE_SERVER_LIB}"; then
   fail_packaged_source_mismatch "Packaged server/lib.php does not match source server/lib.php."
+fi
+if ! text_files_match "${SOURCE_SERVER_LIB_DIAGNOSTICS}" "${TMP_ARCHIVE_SERVER_LIB_DIAGNOSTICS}"; then
+  fail_packaged_source_mismatch "Packaged server/lib.diagnostics.php does not match source server/lib.diagnostics.php."
 fi
 if ! text_files_match "${SOURCE_SERVER_UPDATE_NOTES}" "${TMP_ARCHIVE_SERVER_UPDATE_NOTES}"; then
   fail_packaged_source_mismatch "Packaged server/update_notes.php does not match source server/update_notes.php."

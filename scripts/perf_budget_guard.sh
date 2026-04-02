@@ -162,6 +162,13 @@ const budgets = [
     maxGzipBytes: envInt('FVPLUS_MAX_DOCKER_JS_GZIP_BYTES', 45000),
   },
   {
+    path: 'scripts/docker.runtime.hierarchy.js',
+    maxBytesEnv: 'FVPLUS_MAX_DOCKER_RUNTIME_HIERARCHY_JS_BYTES',
+    maxGzipBytesEnv: 'FVPLUS_MAX_DOCKER_RUNTIME_HIERARCHY_JS_GZIP_BYTES',
+    maxBytes: envInt('FVPLUS_MAX_DOCKER_RUNTIME_HIERARCHY_JS_BYTES', 35000),
+    maxGzipBytes: envInt('FVPLUS_MAX_DOCKER_RUNTIME_HIERARCHY_JS_GZIP_BYTES', 9000),
+  },
+  {
     path: 'scripts/vm.js',
     maxBytesEnv: 'FVPLUS_MAX_VM_JS_BYTES',
     maxGzipBytesEnv: 'FVPLUS_MAX_VM_JS_GZIP_BYTES',

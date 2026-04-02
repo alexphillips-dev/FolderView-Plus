@@ -63,6 +63,10 @@ const dockerPreviewActionsJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.preview-actions.js'
 );
+const dockerRuntimeHierarchyJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js'
+);
 const vmJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js'
@@ -103,6 +107,7 @@ const folderPreviewRuntimeJs = fs.readFileSync(
 );
 const dockerJs = fs.readFileSync(dockerJsPath, 'utf8');
 const dockerPreviewActionsJs = fs.readFileSync(dockerPreviewActionsJsPath, 'utf8');
+const dockerRuntimeHierarchyJs = fs.readFileSync(dockerRuntimeHierarchyJsPath, 'utf8');
 const vmJs = fs.readFileSync(vmJsPath, 'utf8');
 const dashboardJs = fs.readFileSync(dashboardJsPath, 'utf8');
 
@@ -352,25 +357,26 @@ test('mobile folder table hides Order column and routes controls to overflow men
 
 test('nested folder expansion avoids duplicate parent previews and keeps child-only reveal path', () => {
     assert.match(dockerJs, /const getDirectMemberRowsForFolder = \(folderId\) =>/);
-    assert.match(dockerJs, /const hasChildren = folderHasChildren\(id\);/);
-    assert.match(dockerJs, /const \$directMemberRows = getDirectMemberRowsForFolder\(id\);/);
-    assert.match(dockerJs, /hideNestedDescendants\(id\);/);
-    assert.match(dockerJs, /showDirectNestedChildren\(id,\s*\$childAnchor\);/);
-    assert.match(dockerJs, /syncParentFolderVisualState\(id,\s*true\);/);
-    assert.match(dockerJs, /syncParentFolderVisualState\(id,\s*false\);/);
-    assert.match(dockerJs, /buildRuntimeContainerMapForFolder\(id,\s*false\)/);
-    assert.match(dockerJs, /const \$rowsToMove = \$directRows\.length \? \$directRows : \$fallbackRows;/);
-    assert.match(dockerJs, /When expanded, keep parent-level containers visible but avoid duplicating descendants\./);
-    assert.match(dockerJs, /\$folderRow\.after\(\$directMemberRows\);/);
-    assert.match(dockerJs, /Expanded parent folder\. Showing direct members, then nested children\./);
-    assert.match(dockerJs, /\.addClass\('fv-nested-hidden'\)\.hide\(\);/);
+    assert.match(dockerJs, /const dropDownButton = \(id,\s*persistState = true\) => \{[\s\S]*hierarchyApi\.dropDownButton\(id,\s*persistState\);/);
+    assert.match(dockerRuntimeHierarchyJs, /const hasChildren = folderHasChildren\(id\);/);
+    assert.match(dockerRuntimeHierarchyJs, /const \$directMemberRows = getDirectMemberRowsForFolder\(id\);/);
+    assert.match(dockerRuntimeHierarchyJs, /hideNestedDescendants\(id\);/);
+    assert.match(dockerRuntimeHierarchyJs, /showDirectNestedChildren\(id,\s*\$childAnchor\);/);
+    assert.match(dockerRuntimeHierarchyJs, /syncParentFolderVisualState\(id,\s*true\);/);
+    assert.match(dockerRuntimeHierarchyJs, /syncParentFolderVisualState\(id,\s*false\);/);
+    assert.match(dockerRuntimeHierarchyJs, /buildRuntimeContainerMapForFolder\(id,\s*false\)/);
+    assert.match(dockerRuntimeHierarchyJs, /const \$rowsToMove = \$directRows\.length \? \$directRows : \$fallbackRows;/);
+    assert.match(dockerRuntimeHierarchyJs, /When expanded, keep parent-level containers visible but avoid duplicating descendants\./);
+    assert.match(dockerRuntimeHierarchyJs, /\$folderRow\.after\(\$directMemberRows\);/);
+    assert.match(dockerRuntimeHierarchyJs, /Expanded parent folder\. Showing direct members, then nested children\./);
+    assert.match(dockerRuntimeHierarchyJs, /\.addClass\('fv-nested-hidden'\)\.hide\(\);/);
     assert.match(dockerJs, /webui:\s*ct\.info\.State\.WebUi \|\| ct\.info\.State\.TSWebUi \|\| ''/);
     assert.match(dockerJs, /shell:\s*ct\.info\.Shell \|\| '\/bin\/sh'/);
     assert.match(dockerPreviewActionsJs, /openTerminal\('docker', containerName, shellValue\);/);
     assert.match(dockerPreviewActionsJs, /openTerminal\('docker', containerName, '\.log'\);/);
-    assert.match(dockerJs, /const allowWebuiQuickAction = quickActionPrefs\.preview_webui === true;/);
-    assert.match(dockerJs, /const allowConsoleQuickAction = quickActionPrefs\.preview_console === true;/);
-    assert.match(dockerJs, /const allowLogsQuickAction = quickActionPrefs\.preview_logs === true;/);
+    assert.match(dockerRuntimeHierarchyJs, /const allowWebuiQuickAction = quickActionPrefs\.preview_webui === true;/);
+    assert.match(dockerRuntimeHierarchyJs, /const allowConsoleQuickAction = quickActionPrefs\.preview_console === true;/);
+    assert.match(dockerRuntimeHierarchyJs, /const allowLogsQuickAction = quickActionPrefs\.preview_logs === true;/);
     assert.doesNotMatch(dockerJs, /nestedParentPreview \|\| quickActionPrefs\.preview_webui === true/);
     assert.doesNotMatch(dockerJs, /nestedParentPreview \|\| quickActionPrefs\.preview_console === true/);
     assert.doesNotMatch(dockerJs, /nestedParentPreview \|\| quickActionPrefs\.preview_logs === true/);
@@ -379,7 +385,7 @@ test('nested folder expansion avoids duplicate parent previews and keeps child-o
     assert.match(dockerJs, /const hasUnresolvedWebuiTemplateTokens = \(value\) =>/);
     assert.match(dockerJs, /const resolvePreferredWebuiValue = \(\.\.\.candidates\) =>/);
     assert.match(dockerJs, /const appendDockerPreviewActionButtons = \(\$target,\s*settings = \{\},\s*containerName = '',\s*shellValue = '\/bin\/sh',\s*webuiUrl = ''\) =>/);
-    assert.match(dockerJs, /appendDockerPreviewActionButtons\(\$actionsTarget,\s*\{[\s\S]*preview_webui:\s*allowWebuiQuickAction,[\s\S]*preview_console:\s*allowConsoleQuickAction,[\s\S]*preview_logs:\s*allowLogsQuickAction[\s\S]*\},\s*containerName,\s*shellValue,\s*webuiUrl\);/);
+    assert.match(dockerRuntimeHierarchyJs, /appendDockerPreviewActionButtons\(\$actionsTarget,\s*\{[\s\S]*preview_webui:\s*allowWebuiQuickAction,[\s\S]*preview_console:\s*allowConsoleQuickAction,[\s\S]*preview_logs:\s*allowLogsQuickAction[\s\S]*\},\s*containerName,\s*shellValue,\s*webuiUrl\);/);
     assert.match(dockerJs, /const previewWebuiUrl = getSafeWebuiUrl\(newFolder\[container_name_in_folder\]\?\.webui \|\| ct\.info\.State\.WebUi \|\| ct\.info\.State\.TSWebUi \|\| ''\);/);
     assert.match(dockerJs, /appendDockerPreviewActionButtons\(\$targetForAppend,\s*folder\.settings,\s*ct\.info\.Name,\s*ct\.info\.Shell,\s*previewWebuiUrl\);/);
     assert.match(dockerPreviewActionsJs, /if \(settings\.preview_webui && webuiUrl\)/);

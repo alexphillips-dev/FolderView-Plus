@@ -18,6 +18,7 @@ const bulkAssignmentJs = read('src/folderview.plus/usr/local/emhttp/plugins/fold
 const settingsRuntimeActionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js');
 const dockerRuntimeInfoJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.info.js');
 const dockerPreviewActionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.preview-actions.js');
+const dockerRuntimeHierarchyJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js');
 
 test('extracted helper modules use a safe global fallback instead of out-of-scope root references', () => {
     for (const source of [
@@ -32,7 +33,8 @@ test('extracted helper modules use a safe global fallback instead of out-of-scop
         bulkAssignmentJs,
         settingsRuntimeActionsJs,
         dockerRuntimeInfoJs,
-        dockerPreviewActionsJs
+        dockerPreviewActionsJs,
+        dockerRuntimeHierarchyJs
     ]) {
         assert.match(source, /const fallbackWindow = typeof globalThis !== 'undefined'/);
         assert.doesNotMatch(source, /deps\.window \|\| root/);

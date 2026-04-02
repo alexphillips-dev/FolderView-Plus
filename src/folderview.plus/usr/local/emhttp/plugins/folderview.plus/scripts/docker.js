@@ -8,6 +8,7 @@ const runtimeStateObserverModule = window.FolderViewPlusRuntimeStateObservers ||
 const themeResolver = window.FolderViewPlusThemeResolver || null;
 const dockerRuntimeInfoModule = window.FolderViewPlusDockerRuntimeInfo || null;
 const dockerPreviewActionsModule = window.FolderViewPlusDockerPreviewActions || null;
+const dockerRuntimeHierarchyModule = window.FolderViewPlusDockerRuntimeHierarchy || null;
 const applyDockerThemeResolverTokens = (reason = 'docker-runtime:initial', options = {}) => (
     themeResolver && typeof themeResolver.applyResolvedThemeTokens === 'function'
         ? themeResolver.applyResolvedThemeTokens(reason, options)
@@ -274,6 +275,16 @@ if (
 } else {
     setDockerFatalBannerModuleStatus('docker.runtime.preview-actions.js', 'ok', 'Docker preview action helpers ready');
 }
+if (
+    window.FolderViewPlusDockerRuntimeHierarchyModuleLoaded !== true
+    || !dockerRuntimeHierarchyModule
+    || typeof dockerRuntimeHierarchyModule.createApi !== 'function'
+) {
+    dockerBootstrapMissingModules.push('docker.runtime.hierarchy.js');
+    setDockerFatalBannerModuleStatus('docker.runtime.hierarchy.js', 'missing', 'Docker hierarchy helpers unavailable');
+} else {
+    setDockerFatalBannerModuleStatus('docker.runtime.hierarchy.js', 'ok', 'Docker hierarchy helpers ready');
+}
 if (dockerBootstrapMissingModules.length > 0) {
     reportDockerBootstrapDependencyBanner(dockerBootstrapMissingModules);
     const error = new Error(`FolderView Plus Docker runtime bootstrap failed. Missing modules: ${dockerBootstrapMissingModules.join(', ')}`);
@@ -450,6 +461,7 @@ let dockerRuntimeAutoAppWidthFloorMode = null;
 let dockerRuntimeInfoByName = {};
 let dockerRuntimeInfoApi = null;
 let dockerPreviewActionsApi = null;
+let dockerRuntimeHierarchyApi = null;
 const DOCKER_RUNTIME_WIDTH_PHASES = Object.freeze({
     idle: 'idle',
     debounce: 'debounce',
@@ -513,6 +525,52 @@ const getDockerPreviewActionsApi = () => {
         });
     }
     return dockerPreviewActionsApi;
+};
+const getDockerRuntimeHierarchyApi = () => {
+    if (
+        !dockerRuntimeHierarchyApi
+        && dockerRuntimeHierarchyModule
+        && typeof dockerRuntimeHierarchyModule.createApi === 'function'
+    ) {
+        dockerRuntimeHierarchyApi = dockerRuntimeHierarchyModule.createApi({
+            window,
+            $,
+            getGlobalFolders: () => globalFolders,
+            getDockerFolderHierarchy: () => dockerFolderHierarchy,
+            setDockerFolderHierarchy: (next) => {
+                dockerFolderHierarchy = next && typeof next === 'object'
+                    ? next
+                    : { ids: [], parentById: {}, childrenById: {} };
+                return dockerFolderHierarchy;
+            },
+            normalizeFolderParentId: (value) => normalizeFolderParentId(value),
+            folderEvents,
+            getDirectMemberRowsForFolder: (id) => getDirectMemberRowsForFolder(id),
+            forceCollapseFolderRow: (id, syncStatus = true) => forceCollapseFolderRow(id, syncStatus),
+            persistExpandedStateFromGlobal: () => persistDockerExpandedStateFromGlobal(),
+            applyFocusedFolderState: () => applyDockerFocusedFolderState(),
+            queueRuntimeResizerBind: () => queueDockerRuntimeResizerBind(),
+            scheduleRuntimeWidthReflow: (reason, delayMs) => scheduleDockerRuntimeWidthReflow(reason, delayMs),
+            buildRuntimeContainerMapForFolder: (folderId, includeDescendants = false) =>
+                buildRuntimeContainerMapForFolder(folderId, includeDescendants),
+            applyFolderStatusColorOverrides: ($row, settings) => applyFolderStatusColorOverrides($row, settings),
+            applyFolderAccentStyle: ($row, settings) => applyFolderAccentStyle($row, settings),
+            applyFolderDropdownStyle: ($row, settings) => applyFolderDropdownStyle($row, settings),
+            applyPreviewBorderStyle: (previewNode, settings) => applyPreviewBorderStyle(previewNode, settings),
+            applyFolderPreviewLayout: ($preview, settings) => applyFolderPreviewLayout($preview, settings),
+            layoutFolderPreviewRows: ($preview, settings) => layoutFolderPreviewRows($preview, settings),
+            buildDockerPreviewItem: (options) => buildDockerPreviewItem(options),
+            appendDockerPreviewActionButtons: ($target, settings, containerName, shellValue, webuiUrl) =>
+                appendDockerPreviewActionButtons($target, settings, containerName, shellValue, webuiUrl),
+            decorateDockerPreviewMemberTriggers: ($targets, folderId, containerName) =>
+                decorateDockerPreviewMemberTriggers($targets, folderId, containerName),
+            getSafeWebuiUrl: (value) => getSafeWebuiUrl(value),
+            isCompactMultiRowPreview: (settings) => isCompactMultiRowPreview(settings),
+            debugEnabled: FOLDER_VIEW_DEBUG_MODE,
+            console: window.console
+        });
+    }
+    return dockerRuntimeHierarchyApi;
 };
 const syncDockerHostRowUpdateStatesFromDom = (names = []) => {
     const runtimeInfoApi = getDockerRuntimeInfoApi();
@@ -1646,64 +1704,39 @@ const reorderFolderSlotsInBaseOrder = (baseOrder, folders, prefs) => {
 };
 
 const buildFolderHierarchy = (folders) => {
-    const source = folders && typeof folders === 'object' ? folders : {};
-    const ids = Object.keys(source);
-    const idSet = new Set(ids);
-    const parentById = {};
-    const childrenById = {};
-    ids.forEach((id) => {
-        childrenById[id] = [];
-    });
-    for (const id of ids) {
-        const rawParent = normalizeFolderParentId(source[id]?.parentId || source[id]?.parent_id || '');
-        const parentId = (rawParent && rawParent !== id && idSet.has(rawParent)) ? rawParent : '';
-        parentById[id] = parentId;
-        if (parentId) {
-            childrenById[parentId].push(id);
-        }
-    }
-    return { ids, parentById, childrenById };
+    const hierarchyApi = getDockerRuntimeHierarchyApi();
+    return hierarchyApi && typeof hierarchyApi.buildFolderHierarchy === 'function'
+        ? hierarchyApi.buildFolderHierarchy(folders)
+        : { ids: [], parentById: {}, childrenById: {} };
 };
 
 const getFolderChildren = (folderId) => {
-    const map = dockerFolderHierarchy?.childrenById || {};
-    return Array.isArray(map[folderId]) ? map[folderId] : [];
+    const hierarchyApi = getDockerRuntimeHierarchyApi();
+    return hierarchyApi && typeof hierarchyApi.getFolderChildren === 'function'
+        ? hierarchyApi.getFolderChildren(folderId)
+        : [];
 };
 
 const getFolderDescendants = (folderId) => {
-    const result = [];
-    const queue = [...getFolderChildren(folderId)];
-    const seen = new Set();
-    while (queue.length) {
-        const current = queue.shift();
-        if (!current || seen.has(current)) {
-            continue;
-        }
-        seen.add(current);
-        result.push(current);
-        queue.push(...getFolderChildren(current));
-    }
-    return result;
+    const hierarchyApi = getDockerRuntimeHierarchyApi();
+    return hierarchyApi && typeof hierarchyApi.getFolderDescendants === 'function'
+        ? hierarchyApi.getFolderDescendants(folderId)
+        : [];
 };
 
 const getFolderAncestors = (folderId) => {
-    const result = [];
-    const parentById = dockerFolderHierarchy?.parentById || {};
-    let current = String(folderId || '').trim();
-    const seen = new Set();
-    while (current && parentById[current] && !seen.has(parentById[current])) {
-        const nextParent = String(parentById[current] || '').trim();
-        if (!nextParent) {
-            break;
-        }
-        seen.add(nextParent);
-        result.push(nextParent);
-        current = nextParent;
-    }
-    return result;
+    const hierarchyApi = getDockerRuntimeHierarchyApi();
+    return hierarchyApi && typeof hierarchyApi.getFolderAncestors === 'function'
+        ? hierarchyApi.getFolderAncestors(folderId)
+        : [];
 };
 
-const folderHasChildren = (folderId) => getFolderChildren(folderId).length > 0;
+const folderHasChildren = (folderId) => {
+    const hierarchyApi = getDockerRuntimeHierarchyApi();
+    return hierarchyApi && typeof hierarchyApi.folderHasChildren === 'function'
+        ? hierarchyApi.folderHasChildren(folderId)
+        : false;
+};
 
 const DOCKER_LOCKED_STATE_KEY = 'fvplus.runtime.locked.docker.v1';
 let dockerFocusedFolderId = String(dockerRuntimeStateStore.get('focusedFolderId', '') || '').trim();
@@ -2139,48 +2172,17 @@ const summarizeFolderActionCounts = (containersMap) => {
 };
 
 const expandFolderBranch = (folderId) => {
-    const id = String(folderId || '').trim();
-    if (!id) {
-        return;
+    const hierarchyApi = getDockerRuntimeHierarchyApi();
+    if (hierarchyApi && typeof hierarchyApi.expandFolderBranch === 'function') {
+        hierarchyApi.expandFolderBranch(folderId);
     }
-    const expandNode = (nodeId) => {
-        const button = $(`.dropDown-${nodeId}`);
-        if (button.length && button.attr('active') !== 'true') {
-            dropDownButton(nodeId, false);
-        }
-        for (const childId of getFolderChildren(nodeId)) {
-            expandNode(childId);
-        }
-    };
-    expandNode(id);
-    persistDockerExpandedStateFromGlobal();
-    queueDockerRuntimeResizerBind();
-    scheduleDockerRuntimeWidthReflow('folder-branch-expand', 24);
 };
 
 const collapseFolderBranch = (folderId) => {
-    const id = String(folderId || '').trim();
-    if (!id) {
-        return;
+    const hierarchyApi = getDockerRuntimeHierarchyApi();
+    if (hierarchyApi && typeof hierarchyApi.collapseFolderBranch === 'function') {
+        hierarchyApi.collapseFolderBranch(folderId);
     }
-    const descendants = getFolderDescendants(id).reverse();
-    for (const descendantId of descendants) {
-        forceCollapseFolderRow(descendantId, true);
-        $(`tr.folder-id-${descendantId}`).addClass('fv-nested-hidden').hide();
-    }
-    const button = $(`.dropDown-${id}`);
-    if (button.length && button.attr('active') === 'true') {
-        dropDownButton(id, false);
-    } else {
-        forceCollapseFolderRow(id, true);
-        hideNestedDescendants(id);
-        if (folderHasChildren(id)) {
-            syncParentFolderVisualState(id, false);
-        }
-    }
-    persistDockerExpandedStateFromGlobal();
-    queueDockerRuntimeResizerBind();
-    scheduleDockerRuntimeWidthReflow('folder-branch-collapse', 24);
 };
 
 const parseJsonPayloadSafe = (payload) => {
@@ -2945,55 +2947,9 @@ const queueCreateFoldersRender = () => {
 };
 
 const renderFolderUpdateColumn = (id, $updateColumn, managerTypes, upToDate, managed) => {
-    if (!$updateColumn?.length) {
-        return;
-    }
-
-    const showAdvanced = $.cookie('docker_listview_mode') == 'advanced';
-    const hasDockerMan = managerTypes.has('dockerman');
-    const hasCompose = managerTypes.has('composeman');
-    const has3rdParty = [...managerTypes].some((type) => type !== 'dockerman' && type !== 'composeman');
-
-    $updateColumn.empty();
-
-    if (!hasDockerMan && hasCompose && has3rdParty) {
-        $updateColumn.append(
-            $(`<span class="folder-update-text" style="white-space:nowrap;"><i class="fa fa-docker fa-fw"></i> ${$.i18n('compose')}</span><br><span class="folder-update-text" style="white-space:nowrap;"><i class="fa fa-docker fa-fw"></i> ${$.i18n('third-party')}</span>`)
-        );
-        return;
-    }
-
-    if (!hasDockerMan && hasCompose) {
-        $updateColumn.append(
-            $(`<span class="folder-update-text" style="white-space:nowrap;"><i class="fa fa-docker fa-fw"></i> ${$.i18n('compose')}</span>`)
-        );
-        return;
-    }
-
-    if (!hasDockerMan) {
-        $updateColumn.append(
-            $(`<span class="folder-update-text" style="white-space:nowrap;"><i class="fa fa-docker fa-fw"></i> ${$.i18n('third-party')}</span>`)
-        );
-        return;
-    }
-
-    if (!upToDate) {
-        $updateColumn.append(
-            $(`<div class="advanced" style="display: ${showAdvanced ? 'block' : 'none'};"><span class="orange-text folder-update-text" style="white-space:nowrap;"><i class="fa fa-flash fa-fw"></i> ${$.i18n('update-ready')}</span></div>`)
-        );
-        $updateColumn.append(
-            $(`<a class="exec" onclick="updateFolder('${id}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i> ${$.i18n('apply-update')}</span></a>`)
-        );
-        return;
-    }
-
-    $updateColumn.append(
-        $(`<span class="green-text folder-update-text"><i class="fa fa-check fa-fw"></i> ${$.i18n('up-to-date')}</span>`)
-    );
-    if (managed > 0) {
-        $updateColumn.append(
-            $(`<div class="advanced" style="display: ${showAdvanced ? 'block' : 'none'};"><a class="exec" onclick="forceUpdateFolder('${id}');"><span style="white-space:nowrap;"><i class="fa fa-cloud-download fa-fw"></i> ${$.i18n('force-update')}</span></a></div>`)
-        );
+    const hierarchyApi = getDockerRuntimeHierarchyApi();
+    if (hierarchyApi && typeof hierarchyApi.renderFolderUpdateColumn === 'function') {
+        hierarchyApi.renderFolderUpdateColumn(id, $updateColumn, managerTypes, upToDate, managed);
     }
 };
 
@@ -3997,127 +3953,10 @@ const buildRuntimeContainerMapForFolder = (folderId, includeDescendants = false)
 };
 
 const updateFolderRowStatusFromContainers = (id, folder, runtimeContainers) => {
-    if (!folder || typeof folder !== 'object') {
-        return;
+    const hierarchyApi = getDockerRuntimeHierarchyApi();
+    if (hierarchyApi && typeof hierarchyApi.updateFolderRowStatusFromContainers === 'function') {
+        hierarchyApi.updateFolderRowStatusFromContainers(id, folder, runtimeContainers);
     }
-    const containerEntries = Object.values(runtimeContainers || {});
-    let upToDate = true;
-    let started = 0;
-    let paused = 0;
-    let stopped = 0;
-    let autostart = 0;
-    let autostartStarted = 0;
-    let managed = 0;
-    const managerTypes = new Set();
-
-    for (const entry of containerEntries) {
-        const state = entry?.state === true;
-        const isPaused = entry?.pause === true;
-        const isManaged = entry?.managed === true;
-        const hasUpdate = entry?.update === true;
-        const manager = String(entry?.manager || '').trim();
-        const isAutostart = entry?.autostart === true;
-
-        upToDate = upToDate && !hasUpdate;
-        if (state) {
-            if (isPaused) {
-                paused += 1;
-            } else {
-                started += 1;
-            }
-        } else {
-            stopped += 1;
-        }
-        if (isAutostart) {
-            autostart += 1;
-            if (state) {
-                autostartStarted += 1;
-            }
-        }
-        if (isManaged) {
-            managed += 1;
-        }
-        if (manager) {
-            managerTypes.add(manager);
-        }
-    }
-
-    const total = containerEntries.length;
-    const $folderRow = $(`tr.folder-id-${id}`);
-    applyFolderStatusColorOverrides($folderRow, folder.settings);
-    applyFolderAccentStyle($folderRow, folder.settings);
-    applyFolderDropdownStyle($folderRow, folder.settings);
-    const $updateColumn = $folderRow.find('td.updatecolumn');
-    const $folderIcon = $folderRow.find(`i#load-folder-${id}`);
-    const $folderState = $folderRow.find('span.folder-state');
-    $folderState.removeClass('fv-folder-state-started fv-folder-state-paused fv-folder-state-stopped');
-    $folderIcon.show();
-    if (started > 0) {
-        $folderIcon.attr('class', 'fa fa-play started folder-load-status');
-        $folderState.text(`${started}/${total} ${$.i18n('started')}`).addClass('fv-folder-state-started');
-    } else if (paused > 0) {
-        $folderIcon.attr('class', 'fa fa-pause paused folder-load-status');
-        $folderState.text(`${paused}/${total} ${$.i18n('paused')}`).addClass('fv-folder-state-paused');
-    } else {
-        $folderIcon.attr('class', 'fa fa-square stopped folder-load-status');
-        $folderState.text(`${stopped}/${total} ${$.i18n('stopped')}`).addClass('fv-folder-state-stopped');
-    }
-
-    if ($updateColumn.length && folder?.settings?.update_column !== true) {
-        renderFolderUpdateColumn(id, $updateColumn, managerTypes, upToDate, managed);
-    }
-
-    const expanded = folder?.status?.expanded === true;
-    folder.status = { upToDate, started, paused, stopped, autostart, autostartStarted, managed, managerTypes: Array.from(managerTypes), expanded };
-};
-
-const renderNestedAggregatePreview = (id, folder, runtimeContainers) => {
-    const $preview = $(`tr.folder-id-${id} div.folder-preview`);
-    if (!$preview.length) {
-        return;
-    }
-    const previewMode = Number(folder?.settings?.preview || 0);
-    if (previewMode <= 0) {
-        $preview.empty();
-        return;
-    }
-    const entries = Object.values(runtimeContainers || {});
-    const quickActionPrefs = folder?.settings || {};
-    const allowWebuiQuickAction = quickActionPrefs.preview_webui === true;
-    const allowConsoleQuickAction = quickActionPrefs.preview_console === true;
-    const allowLogsQuickAction = quickActionPrefs.preview_logs === true;
-    $preview.empty();
-    for (const entry of entries) {
-        const { $item: item } = buildDockerPreviewItem({
-            entry,
-            settings: folder?.settings || {},
-            autostart: entry?.autostart === true
-        });
-        item.addClass('fv-nested-preview-item');
-        const compactMultiRowPreview = isCompactMultiRowPreview(folder?.settings || {});
-        const $inner = item.children('span.inner').last();
-        const $actionsTarget = compactMultiRowPreview
-            ? item.find('.fv-preview-actions-compact').first()
-            : $inner;
-        const containerName = String(entry?.name || '');
-        const shellValue = String(entry?.shell || '/bin/sh');
-        const webuiUrl = getSafeWebuiUrl(entry?.webui);
-        appendDockerPreviewActionButtons($actionsTarget, {
-            preview_webui: allowWebuiQuickAction,
-            preview_console: allowConsoleQuickAction,
-            preview_logs: allowLogsQuickAction
-        }, containerName, shellValue, webuiUrl);
-        decorateDockerPreviewMemberTriggers(
-            item.find('span.hand, span.inner > span.appname, span.inner > span.appname > a, span.inner > i.fa, span.inner > span.state'),
-            id,
-            containerName
-        );
-        $preview.append(item);
-    }
-    $preview.children('span').wrap('<div class="folder-preview-wrapper"></div>');
-    applyFolderPreviewLayout($preview, folder?.settings || {});
-    layoutFolderPreviewRows($preview, folder?.settings || {});
-    $preview.find('span.inner > span.appname').css('width', folder?.settings?.preview_text_width || '');
 };
 
 const appendDockerPreviewActionButtons = ($target, settings = {}, containerName = '', shellValue = '/bin/sh', webuiUrl = '') => {
@@ -4135,81 +3974,16 @@ const syncDockerLeafFolderPreviewActions = (id, folder, runtimeContainers) => {
 };
 
 const syncParentFolderVisualState = (id, expanded) => {
-    if (!folderHasChildren(id)) {
-        return;
-    }
-    const folder = globalFolders[id];
-    if (!folder || typeof folder !== 'object') {
-        return;
-    }
-    const $row = $(`tr.folder-id-${id}`);
-    $row.toggleClass('fv-parent-collapsed', !expanded);
-    $row.toggleClass('fv-parent-expanded', !!expanded);
-
-    if (expanded) {
-        // When expanded, keep parent-level containers visible but avoid duplicating descendants.
-        const directRuntimeContainers = buildRuntimeContainerMapForFolder(id, false);
-        renderNestedAggregatePreview(id, folder, directRuntimeContainers);
-    } else {
-        const runtimeContainers = folder?.runtimeContainers || {};
-        renderNestedAggregatePreview(id, folder, runtimeContainers);
-    }
-    const previewNode = $row.find('div.folder-preview').get(0);
-    applyPreviewBorderStyle(previewNode, folder?.settings || {});
-};
-
-const hideNestedDescendants = (id) => {
-    for (const descendantId of getFolderDescendants(id)) {
-        forceCollapseFolderRow(descendantId, true);
-        $(`tr.folder-id-${descendantId}`).addClass('fv-nested-hidden').hide();
-    }
-};
-
-const showDirectNestedChildren = (id, anchor = null) => {
-    let $insertAfter = anchor && anchor.length ? anchor : $(`tr.folder-id-${id}`);
-    for (const childId of getFolderChildren(id)) {
-        forceCollapseFolderRow(childId, false);
-        const $childRow = $(`tr.folder-id-${childId}`);
-        if ($insertAfter.length && $childRow.length) {
-            $insertAfter.after($childRow);
-            $insertAfter = $childRow;
-        }
-        $childRow.removeClass('fv-nested-hidden').show();
+    const hierarchyApi = getDockerRuntimeHierarchyApi();
+    if (hierarchyApi && typeof hierarchyApi.syncParentFolderVisualState === 'function') {
+        hierarchyApi.syncParentFolderVisualState(id, expanded);
     }
 };
 
 const applyNestedFolderHierarchy = () => {
-    dockerFolderHierarchy = buildFolderHierarchy(globalFolders);
-    const allIds = dockerFolderHierarchy?.ids || [];
-    const parentById = dockerFolderHierarchy?.parentById || {};
-
-    for (const id of allIds) {
-        const parentId = parentById[id] || '';
-        const $row = $(`tr.folder-id-${id}`);
-        $row.attr('data-folder-parent', parentId);
-        $row.toggleClass('fv-folder-is-child', !!parentId);
-        $row.toggleClass('fv-folder-has-children', folderHasChildren(id));
-        if (parentId) {
-            forceCollapseFolderRow(id, false);
-            $row.addClass('fv-nested-hidden').hide();
-        } else {
-            $row.removeClass('fv-nested-hidden').show();
-        }
-    }
-
-    for (const id of allIds) {
-        if (!folderHasChildren(id)) {
-            if (globalFolders[id]) {
-                delete globalFolders[id].runtimeContainers;
-            }
-            continue;
-        }
-        const runtimeContainers = buildRuntimeContainerMapForFolder(id, true);
-        if (globalFolders[id]) {
-            globalFolders[id].runtimeContainers = runtimeContainers;
-            updateFolderRowStatusFromContainers(id, globalFolders[id], runtimeContainers);
-            syncParentFolderVisualState(id, globalFolders[id]?.status?.expanded === true);
-        }
+    const hierarchyApi = getDockerRuntimeHierarchyApi();
+    if (hierarchyApi && typeof hierarchyApi.applyNestedFolderHierarchy === 'function') {
+        hierarchyApi.applyNestedFolderHierarchy();
     }
 };
 
@@ -4277,74 +4051,10 @@ const folderAutostart = async (el) => {
  * @param {string} id the id of the folder
  */
 const dropDownButton = (id, persistState = true) => {
-    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Entry.`);
-    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Dispatching docker-pre-folder-expansion event.`);
-    folderEvents.dispatchEvent(new CustomEvent('docker-pre-folder-expansion', {detail: { id }}));
-    const element = $(`.dropDown-${id}`);
-    const state = element.attr('active') === "true";
-    const hasChildren = folderHasChildren(id);
-    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Current state (active attribute): ${state}.`);
-    if (state) { // Is expanded, so collapse
-        element.children().removeClass('fa-chevron-up').addClass('fa-chevron-down');
-        if (hasChildren) {
-            hideNestedDescendants(id);
-        }
-        $(`tr.folder-id-${id}`).addClass('sortable');
-        const $directRows = getDirectMemberRowsForFolder(id);
-        const $fallbackRows = $(`.folder-${id}-element`);
-        const $rowsToMove = $directRows.length ? $directRows : $fallbackRows;
-        $(`tr.folder-id-${id} .folder-storage`).append($rowsToMove);
-        $rowsToMove.addClass('fv-nested-hidden').hide();
-        if (hasChildren) {
-            syncParentFolderVisualState(id, false);
-        }
-        element.attr('active', 'false');
-        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Collapsed folder. Moved elements to storage.`);
-    } else { // Is collapsed, so expand
-        element.children().removeClass('fa-chevron-down').addClass('fa-chevron-up');
-        $(`tr.folder-id-${id}`).removeClass('sortable').removeClass('ui-sortable-handle').off().css('cursor', '');
-        if (hasChildren) {
-            const $folderRow = $(`tr.folder-id-${id}`);
-            const $directMemberRows = getDirectMemberRowsForFolder(id);
-            let $childAnchor = $folderRow;
-            if ($directMemberRows.length) {
-                $folderRow.after($directMemberRows);
-                $directMemberRows.removeClass('fv-nested-hidden').show();
-                $(`.folder-${id}-element > td > i.fa-arrows-v`).remove();
-                $childAnchor = $directMemberRows.last();
-            } else {
-                $folderRow.find('.folder-storage').append($directMemberRows);
-                $directMemberRows.addClass('fv-nested-hidden').hide();
-            }
-            showDirectNestedChildren(id, $childAnchor);
-            syncParentFolderVisualState(id, true);
-            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Expanded parent folder. Showing direct members, then nested children.`);
-        } else {
-            const $directMemberRows = getDirectMemberRowsForFolder(id);
-            const $fallbackRows = $(`.folder-${id}-element`);
-            const $rowsToShow = $directMemberRows.length ? $directMemberRows : $fallbackRows;
-            $(`tr.folder-id-${id}`).after($rowsToShow);
-            $rowsToShow.removeClass('fv-nested-hidden').show();
-            $rowsToShow.children('td').children('i.fa-arrows-v').remove(); // Remove mover icon from children when expanded
-            if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Expanded leaf folder. Moved elements after folder row.`);
-        }
-        element.attr('active', 'true');
+    const hierarchyApi = getDockerRuntimeHierarchyApi();
+    if (hierarchyApi && typeof hierarchyApi.dropDownButton === 'function') {
+        hierarchyApi.dropDownButton(id, persistState);
     }
-    if(globalFolders[id]) {
-        globalFolders[id].status.expanded = !state;
-        if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Updated globalFolders[${id}].status.expanded to ${!state}.`);
-    } else {
-        if (FOLDER_VIEW_DEBUG_MODE) console.warn(`[FV3_DEBUG] dropDownButton (id: ${id}): globalFolders[${id}] not found to update expanded status.`);
-    }
-    if (persistState) {
-        persistDockerExpandedStateFromGlobal();
-    }
-    applyDockerFocusedFolderState();
-    queueDockerRuntimeResizerBind();
-    scheduleDockerRuntimeWidthReflow('folder-toggle', 24);
-    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Dispatching docker-post-folder-expansion event.`);
-    folderEvents.dispatchEvent(new CustomEvent('docker-post-folder-expansion', {detail: { id }}));
-    if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] dropDownButton (id: ${id}): Exit.`);
 };
 
 /**

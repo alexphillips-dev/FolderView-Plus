@@ -336,6 +336,8 @@ try {
             '/plugins/folderview.plus/scripts/folder.editor.chrome.js',
             '/plugins/folderview.plus/scripts/folder.editor.parent-picker.js',
             '/plugins/folderview.plus/scripts/folder.editor.rules.js',
+            '/plugins/folderview.plus/scripts/folder.editor.state.js',
+            '/plugins/folderview.plus/scripts/folder.editor.members.js',
             '/plugins/folderview.plus/scripts/folder.js'
         ];
         const formatDebug = () => [

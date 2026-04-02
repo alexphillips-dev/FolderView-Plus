@@ -8,6 +8,7 @@ const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath)
 
 const folderJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js');
 const folderPreviewJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.preview.js');
+const folderMembersJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.members.js');
 
 test('folder editor live preview renders members in current checked-table order', () => {
     assert.match(folderPreviewJs, /const memberNames = getIncludedMemberNames\(\);/);
@@ -15,8 +16,10 @@ test('folder editor live preview renders members in current checked-table order'
 });
 
 test('modern folder editor reordering resyncs member arrays and refreshes live preview', () => {
-    const moveBlockMatch = folderJs.match(/const moveMemberRow = \(button, direction\) => \{([\s\S]*?)\n\};/);
-    assert.ok(moveBlockMatch, 'Expected modern moveMemberRow block to exist.');
+    assert.match(folderJs, /const getFolderEditorMembersApi = \(\) =>/);
+    assert.match(folderJs, /const moveMemberRow = \(button, direction\) => \{\s*getFolderEditorMembersApi\(\)\?\.moveMemberRow\(button, direction\);\s*\};/);
+    const moveBlockMatch = folderMembersJs.match(/const moveMemberRow = \(button, direction\) => \{([\s\S]*?)\n        \};/);
+    assert.ok(moveBlockMatch, 'Expected extracted moveMemberRow block to exist.');
     const moveBlock = moveBlockMatch?.[1] || '';
     assert.match(moveBlock, /let moved = false;/);
     assert.match(moveBlock, /moved = true;/);

@@ -17,10 +17,15 @@ const folderJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js'
 );
+const folderStateJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.state.js'
+);
 
 const schemaSource = fs.readFileSync(schemaPath, 'utf8');
 const folderPage = fs.readFileSync(folderPagePath, 'utf8');
 const folderJs = fs.readFileSync(folderJsPath, 'utf8');
+const folderStateJs = fs.readFileSync(folderStateJsPath, 'utf8');
 
 const schemaContext = { window: {} };
 vm.createContext(schemaContext);
@@ -65,8 +70,11 @@ test('modern folder editor load path covers every schema-backed field', () => {
         );
     });
 
-    assert.match(folderJs, /const fieldNames = SECTION_FIELD_NAMES\[sectionKey\] \|\| \[\];[\s\S]*setFormControlValue\(fieldName,\s*baselineSnapshot\.fields\[fieldName\]\);/);
-    assert.match(folderJs, /const defaults = SECTION_DEFAULT_VALUES\[sectionKey\];[\s\S]*Object\.entries\(defaults\)\.forEach\(\(\[fieldName,\s*value\]\) =>/);
+    assert.match(folderJs, /const getFolderEditorStateApi = \(\) =>/);
+    assert.match(folderJs, /const restoreSectionSavedValues = \(sectionKey\) => \{\s*getFolderEditorStateApi\(\)\?\.restoreSectionSavedValues\(sectionKey\);\s*\};/);
+    assert.match(folderJs, /const applySectionDefaults = \(sectionKey\) => \{\s*getFolderEditorStateApi\(\)\?\.applySectionDefaults\(sectionKey\);\s*\};/);
+    assert.match(folderStateJs, /const fieldNames = sectionFieldNames\[sectionKey\] \|\| \[\];[\s\S]*setFormControlValue\(fieldName,\s*baselineSnapshot\.fields\[fieldName\]\);/);
+    assert.match(folderStateJs, /const defaults = sectionDefaultValues\[sectionKey\];[\s\S]*Object\.entries\(defaults\)\.forEach\(\(\[fieldName,\s*value\]\) =>/);
 });
 
 test('modern folder editor save path references every schema-backed field', () => {

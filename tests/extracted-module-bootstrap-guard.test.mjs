@@ -9,6 +9,8 @@ const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath)
 const runtimeStateObserversJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.runtime.state-observers.js');
 const dockerMemberMenuJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.member-menu.js');
 const folderIconApiJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icon-api.js');
+const folderEditorStateJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.state.js');
+const folderEditorMembersJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.members.js');
 const settingsActionSupportJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.actions-support.js');
 
 test('extracted helper modules use a safe global fallback instead of out-of-scope root references', () => {
@@ -16,6 +18,8 @@ test('extracted helper modules use a safe global fallback instead of out-of-scop
         runtimeStateObserversJs,
         dockerMemberMenuJs,
         folderIconApiJs,
+        folderEditorStateJs,
+        folderEditorMembersJs,
         settingsActionSupportJs
     ]) {
         assert.match(source, /const fallbackWindow = typeof globalThis !== 'undefined'/);

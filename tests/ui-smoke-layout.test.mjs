@@ -74,6 +74,14 @@ const folderCss = fs.readFileSync(folderCssPath, 'utf8');
 const folderJs = fs.readFileSync(folderJsPath, 'utf8');
 const folderRulesJs = fs.readFileSync(folderRulesJsPath, 'utf8');
 const folderParentPickerJs = fs.readFileSync(folderParentPickerJsPath, 'utf8');
+const folderStateJs = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.state.js'),
+    'utf8'
+);
+const folderMembersJs = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.members.js'),
+    'utf8'
+);
 const folderChromeJs = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js'),
     'utf8'
@@ -371,7 +379,9 @@ test('nested folder expansion avoids duplicate parent previews and keeps child-o
 test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderJs, /const enforceLeftAlignedSettingsLayout = \(\) =>/);
     assert.match(folderJs, /const setVisibleMemberSelection = \(checked\) =>/);
-    assert.match(folderJs, /const MEMBER_REGEX_SEARCH_FILTER = 'contains_regex';/);
+    assert.match(folderJs, /const getFolderEditorStateApi = \(\) =>/);
+    assert.match(folderJs, /const getFolderEditorMembersApi = \(\) =>/);
+    assert.match(folderMembersJs, /const MEMBER_REGEX_SEARCH_FILTER = 'contains_regex';/);
     assert.match(folderJs, /const ensureInheritedFieldControls = \(\) =>/);
     assert.match(folderJs, /id="fvHeroDefaults"/);
     assert.match(folderJs, /id="fvMemberStateFilter"/);
@@ -379,7 +389,7 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderJs, /id="fvMemberExcludeVisible"/);
     assert.match(folderJs, /id="fvMemberChipIncluded"/);
     assert.match(folderJs, /class="fv-inherit-btn"/);
-    assert.match(folderJs, /actions\.prop\('hidden', isInherited\);/);
+    assert.match(folderStateJs, /actions\.prop\('hidden', isInherited\);/);
     assert.doesNotMatch(folderJs, /Using global/);
     assert.match(folderJs, /fv-force-left-v2 marker/);
     assert.match(folderJs, /fv-force-left-v3 marker/);
@@ -401,10 +411,10 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderJs, /const applyAdvancedMode = \(\) =>/);
     assert.match(folderJs, /const toggleAdvancedSectionCollapse = \(sectionKey\) =>/);
     assert.match(folderJs, /<option value="contains_regex">Contains regex<\/option>/);
-    assert.match(folderJs, /new RegExp\(rawQuery, 'i'\)/);
-    assert.match(folderJs, /queryRegex \? queryRegex\.test\(rawName\) : false/);
-    assert.match(folderJs, /Regex search members/);
-    assert.match(folderJs, /Invalid regex: \$\{error\.message\}/);
+    assert.match(folderMembersJs, /new RegExp\(rawQuery, 'i'\)/);
+    assert.match(folderMembersJs, /queryRegex \? queryRegex\.test\(rawName\) : false/);
+    assert.match(folderMembersJs, /Regex search members/);
+    assert.match(folderMembersJs, /Invalid regex: \$\{error\.message\}/);
     assert.match(folderJs, /Filter member list/);
     assert.match(folderJs, /ComposeProject/);
     assert.match(folderJs, /UpdateAvailable/);

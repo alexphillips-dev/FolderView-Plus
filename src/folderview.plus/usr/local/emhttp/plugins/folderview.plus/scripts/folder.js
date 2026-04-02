@@ -216,6 +216,8 @@ const folderThemeSurfaceBinding = bindFolderThemeAwareSurface
     : null;
 const utils = window.FolderViewPlusUtils || null;
 const folderEditorRulesModule = window.FolderViewPlusFolderEditorRules || null;
+const folderEditorStateModule = window.FolderViewPlusFolderEditorState || null;
+const folderEditorMembersModule = window.FolderViewPlusFolderEditorMembers || null;
 const folderHierarchyModule = window.FolderViewPlusFolderHierarchy || null;
 const folderParentPickerModule = window.FolderViewPlusFolderEditorParentPicker || null;
 const folderIconApiModule = window.FolderViewPlusFolderIconApi || null;
@@ -318,6 +320,12 @@ if (!utils || typeof utils.normalizeDashboardOverflowMode !== 'function') {
 if (!folderIconApiModule || typeof folderIconApiModule.createApi !== 'function') {
     folderEditorBootstrapMissingModules.push('folder.editor.icon-api.js');
 }
+if (!folderEditorStateModule || typeof folderEditorStateModule.createApi !== 'function') {
+    folderEditorBootstrapMissingModules.push('folder.editor.state.js');
+}
+if (!folderEditorMembersModule || typeof folderEditorMembersModule.createApi !== 'function') {
+    folderEditorBootstrapMissingModules.push('folder.editor.members.js');
+}
 if (folderEditorBootstrapMissingModules.length > 0) {
     const error = new Error(`FolderView Plus folder editor bootstrap failed. Missing modules: ${folderEditorBootstrapMissingModules.join(', ')}`);
     error.fvplusBannerShown = true;
@@ -340,6 +348,8 @@ if (folderEditorBootstrapMissingModules.length > 0) {
 let allFoldersById = {};
 let activeFolderEditorFolderId = '';
 let folderEditorRulesApi = null;
+let folderEditorStateApi = null;
+let folderEditorMembersApi = null;
 let initialSnapshot = '';
 let isFormInitialized = false;
 let suppressUnloadPrompt = false;
@@ -3116,217 +3126,68 @@ const computeFormSnapshot = () => {
     return JSON.stringify(state);
 };
 
-const updateUnsavedIndicator = () => {
-    const current = computeFormSnapshot();
-    const dirty = Boolean(initialSnapshot) && current !== initialSnapshot;
-    const changedCount = dirty && typeof getAllChangedItems === 'function' ? getAllChangedItems().length : 0;
-    $('#unsavedIndicator').toggle(dirty);
-    $('#fvActionBarDirty')
-        .toggleClass('is-dirty', dirty)
-        .text(dirty ? `${changedCount || 1} unsaved change${changedCount === 1 ? '' : 's'}` : 'All changes saved');
-    $('#fvActionBarHint')
-        .toggleClass('is-dirty', dirty)
-        .text(
-            dirty
-                ? 'Save or copy this folder when you are ready.'
-                : 'Changes apply live in the preview while saved values stay in sync below.'
-        );
-    return dirty;
+const getFolderEditorStateApi = () => {
+    if (folderEditorStateApi || typeof folderEditorStateModule?.createApi !== 'function') {
+        return folderEditorStateApi;
+    }
+    folderEditorStateApi = folderEditorStateModule.createApi({
+        window,
+        $,
+        modernEditorEnabled: modernFolderEditorEnabled,
+        getForm,
+        getInitialSnapshot: () => initialSnapshot,
+        setInitialSnapshot: (value) => {
+            initialSnapshot = String(value || '');
+        },
+        computeFormSnapshot,
+        getAllChangedItems,
+        getSectionChangeItems,
+        parseSnapshotState,
+        sectionMeta: SECTION_META,
+        sectionFieldNames: SECTION_FIELD_NAMES,
+        sectionDefaultValues: SECTION_DEFAULT_VALUES,
+        inheritedFieldHints: INHERITED_FIELD_HINTS,
+        setFormControlValue,
+        updateForm: () => updateForm(),
+        scheduleEditorRecalculation: (delayMs = 0) => scheduleEditorRecalculation(delayMs),
+        getPreviewVerticalBarsDefaultColor: () => rgbToHex($('body').css('color')),
+        escapeHtml
+    });
+    return folderEditorStateApi;
 };
 
+const updateUnsavedIndicator = () => getFolderEditorStateApi()?.updateUnsavedIndicator() === true;
+
 const markCleanState = () => {
-    initialSnapshot = computeFormSnapshot();
-    updateUnsavedIndicator();
-    updateSectionStateIndicators();
-    updateChangeSummaryPanel();
+    getFolderEditorStateApi()?.markCleanState();
 };
 
 const updateSectionStateIndicators = () => {
-    if (!initialSnapshot) {
-        Object.keys(SECTION_META).forEach((sectionKey) => {
-            const shell = $(`.fv-section-shell[data-section-shell="${sectionKey}"]`);
-            const badge = $(`#fvSectionState-${sectionKey}`);
-            const navButton = $(`.fv-section-nav > button[data-target="${sectionKey}"]`);
-            shell.removeClass('is-dirty').addClass('is-clean');
-            navButton.removeClass('is-dirty');
-            badge.removeClass('is-dirty').addClass('is-clean').text('Saved');
-            navButton.find('.fv-nav-count').text('').hide();
-        });
-        return;
-    }
-    const baselineSnapshot = parseSnapshotState(initialSnapshot);
-    const currentSnapshot = parseSnapshotState(computeFormSnapshot());
-    Object.keys(SECTION_META).forEach((sectionKey) => {
-        const changes = getSectionChangeItems(sectionKey, baselineSnapshot, currentSnapshot);
-        const changedCount = changes.length;
-        const shell = $(`.fv-section-shell[data-section-shell="${sectionKey}"]`);
-        const badge = $(`#fvSectionState-${sectionKey}`);
-        const navButton = $(`.fv-section-nav > button[data-target="${sectionKey}"]`);
-        const navBadge = navButton.find('.fv-nav-count');
-
-        shell.toggleClass('is-dirty', changedCount > 0);
-        shell.toggleClass('is-clean', changedCount === 0);
-        navButton.toggleClass('is-dirty', changedCount > 0);
-
-        if (badge.length) {
-            badge
-                .removeClass('is-dirty is-clean')
-                .addClass(changedCount > 0 ? 'is-dirty' : 'is-clean')
-                .text(changedCount > 0 ? `${changedCount} change${changedCount === 1 ? '' : 's'}` : 'Saved');
-        }
-
-        if (navBadge.length) {
-            navBadge.text(changedCount > 0 ? String(changedCount) : '');
-            navBadge.toggle(changedCount > 0);
-        }
-    });
+    getFolderEditorStateApi()?.updateSectionStateIndicators();
 };
 
 const updateChangeSummaryPanel = () => {
-    if (!initialSnapshot) {
-        $('#fvChangeSummaryLabel').removeClass('is-dirty').text('No pending changes');
-        $('#fvChangeSummaryText').text('This folder currently matches the saved values.');
-        $('#fvChangeSummaryList').empty();
-        $('#fvChangeSummaryOverflow').text('');
-        return;
-    }
-    const changedItems = getAllChangedItems();
-    const dirty = changedItems.length > 0;
-    $('#fvChangeSummaryLabel')
-        .toggleClass('is-dirty', dirty)
-        .text(dirty ? `${changedItems.length} unsaved change${changedItems.length === 1 ? '' : 's'}` : 'No pending changes');
-    $('#fvChangeSummaryText').text(
-        dirty
-            ? 'These folder settings are different from the currently saved version.'
-            : 'This folder currently matches the saved values.'
-    );
-
-    const list = $('#fvChangeSummaryList');
-    if (!list.length) {
-        return;
-    }
-    list.empty();
-    changedItems.slice(0, 6).forEach((label) => {
-        list.append(`<li>${escapeHtml(label)}</li>`);
-    });
-    $('#fvChangeSummaryOverflow').text(
-        changedItems.length > 6
-            ? `+${changedItems.length - 6} more change${changedItems.length - 6 === 1 ? '' : 's'}`
-            : ''
-    );
+    getFolderEditorStateApi()?.updateChangeSummaryPanel();
 };
 
 const updateInheritedFieldIndicators = () => {
-    const form = getForm();
-    if (!form) {
-        return;
-    }
-    let inheritedCount = 0;
-    Object.entries(INHERITED_FIELD_HINTS).forEach(([fieldName, hint]) => {
-        const field = form.elements?.[fieldName];
-        const row = $(form).find(`.basic:has([name="${fieldName}"])`).first();
-        if (!field || !row.length) {
-            return;
-        }
-        const isInherited = field.type === 'checkbox'
-            ? field.checked !== true
-            : String($(field).val() || '').trim() === '';
-        row.toggleClass('fv-using-inherited', isInherited);
-        if (isInherited) {
-            inheritedCount += 1;
-        }
-        let marker = row.find('.fv-inherited-badge').first();
-        if (!marker.length) {
-            marker = $('<span class="fv-inherited-badge"></span>');
-            const dt = row.find('dt').first();
-            if (dt.length) {
-                dt.append(marker);
-            } else {
-                row.prepend(marker);
-            }
-        }
-        marker
-            .toggle(isInherited)
-            .text(isInherited ? 'inherits global default' : '')
-            .attr('title', isInherited ? hint : '');
-        const button = row.find(`.fv-inherit-btn[data-field="${fieldName}"]`).first();
-        if (button.length) {
-            const actions = button.closest('.fv-field-inherit-tools');
-            if (actions.length) {
-                actions.prop('hidden', isInherited);
-            }
-            button.prop('disabled', false);
-            button.removeClass('is-inherited');
-            button.text('Use global');
-            button.attr('title', 'Clear this override and use the global default again.');
-        }
-    });
-    $('#fvHeroDefaults').text(
-        inheritedCount > 0
-            ? `${inheritedCount} inherited default${inheritedCount === 1 ? '' : 's'}`
-            : 'All key fields overridden locally'
-    );
+    getFolderEditorStateApi()?.updateInheritedFieldIndicators();
 };
 
 const restoreSectionSavedValues = (sectionKey) => {
-    const baselineSnapshot = parseSnapshotState(initialSnapshot);
-    const fieldNames = SECTION_FIELD_NAMES[sectionKey] || [];
-    fieldNames.forEach((fieldName) => {
-        setFormControlValue(fieldName, baselineSnapshot.fields[fieldName]);
-    });
-    updateForm();
-    scheduleEditorRecalculation(0);
+    getFolderEditorStateApi()?.restoreSectionSavedValues(sectionKey);
 };
 
 const applySectionDefaults = (sectionKey) => {
-    const defaults = SECTION_DEFAULT_VALUES[sectionKey];
-    if (!defaults) {
-        return;
-    }
-    Object.entries(defaults).forEach(([fieldName, value]) => {
-        if (fieldName === 'preview_vertical_bars_color' && value === '') {
-            setFormControlValue(fieldName, rgbToHex($('body').css('color')));
-            return;
-        }
-        setFormControlValue(fieldName, value);
-    });
-    updateForm();
-    scheduleEditorRecalculation(0);
+    getFolderEditorStateApi()?.applySectionDefaults(sectionKey);
 };
 
 const applyEditorPluginDefaults = () => {
-    ['preview', 'chevron', 'status', 'rules', 'advanced'].forEach((sectionKey) => applySectionDefaults(sectionKey));
-    updateForm();
-    scheduleEditorRecalculation(0);
+    getFolderEditorStateApi()?.applyEditorPluginDefaults();
 };
 
 const buildEditorActionBar = () => {
-    if (!modernFolderEditorEnabled) {
-        return;
-    }
-    const form = $('div.canvas > form');
-    if (!form.length) {
-        return;
-    }
-    if (!$('#fvEditorActionBar').length) {
-        form.append(`
-            <div id="fvEditorActionBar" class="fv-editor-actionbar">
-                <div class="fv-editor-actionbar-main"></div>
-                <div class="fv-editor-actionbar-meta">
-                    <span id="fvActionBarDirty" class="fv-actionbar-dirty">No pending changes</span>
-                    <span id="fvActionBarHint" class="fv-actionbar-hint">Use Restore saved values to discard local edits or Apply plugin defaults to quickly reset display tuning.</span>
-                </div>
-            </div>
-        `);
-    }
-    const shell = $('#fvEditorActionBar .fv-editor-actionbar-main');
-    if (!shell.length) {
-        return;
-    }
-    const controls = $('.folder-btn-submit, .folder-btn-copy, .folder-btn-reset, .folder-btn-cancel, #unsavedIndicator');
-    controls.each((_, element) => {
-        shell.append(element);
-    });
+    getFolderEditorStateApi()?.buildEditorActionBar();
 };
 
 const buildSectionCards = () => {
@@ -4052,166 +3913,46 @@ const updateMemberStats = () => {
     $('#fvMemberChipAvailable').text(`${available} available`);
 };
 
-const MEMBER_REGEX_SEARCH_FILTER = 'contains_regex';
-const MEMBER_SEARCH_PLACEHOLDER = 'Search members';
-const MEMBER_REGEX_SEARCH_PLACEHOLDER = 'Regex search members';
-const MEMBER_REGEX_SEARCH_HINT = 'Use a regex pattern such as sentry-.* to filter member names.';
-
-const isRegexMemberSearchEnabled = () => ($('#fvMemberFilter').val() || 'all') === MEMBER_REGEX_SEARCH_FILTER;
-
-const setMemberSearchValidationState = (message = '') => {
-    const $search = $('#fvMemberSearch');
-    const input = $search.get(0);
-    if (!input) {
-        return;
+const getFolderEditorMembersApi = () => {
+    if (folderEditorMembersApi || typeof folderEditorMembersModule?.createApi !== 'function') {
+        return folderEditorMembersApi;
     }
-    const nextMessage = String(message || '').trim();
-    input.setCustomValidity(nextMessage);
-    $search
-        .attr('aria-invalid', nextMessage ? 'true' : 'false')
-        .attr('title', nextMessage || (isRegexMemberSearchEnabled() ? MEMBER_REGEX_SEARCH_HINT : ''));
+    folderEditorMembersApi = folderEditorMembersModule.createApi({
+        window,
+        $,
+        getAllMembers,
+        setMemberCollections: ({ selected: nextSelected = [], choose: nextChoose = [], selectedRegex: nextSelectedRegex = [] } = {}) => {
+            selected = nextSelected;
+            choose = nextChoose;
+            selectedRegex = nextSelectedRegex;
+        },
+        updateMemberStats: () => updateMemberStats(),
+        validateForm: () => validateForm(),
+        updateUnsavedIndicator: () => updateUnsavedIndicator(),
+        updateLiveSummary: () => updateLiveSummary(),
+        isFormInitialized: () => isFormInitialized === true
+    });
+    return folderEditorMembersApi;
 };
 
 const syncMemberSearchUiState = () => {
-    const regexSearchEnabled = isRegexMemberSearchEnabled();
-    $('#fvMemberSearch')
-        .attr('placeholder', regexSearchEnabled ? MEMBER_REGEX_SEARCH_PLACEHOLDER : MEMBER_SEARCH_PLACEHOLDER)
-        .attr('aria-label', regexSearchEnabled ? 'Search folder members using a regex' : 'Search folder members')
-        .attr('autocomplete', 'off');
-    if (!regexSearchEnabled) {
-        setMemberSearchValidationState('');
-    }
+    getFolderEditorMembersApi()?.syncMemberSearchUiState();
 };
 
 const applyMemberFilters = () => {
-    const rawQuery = ($('#fvMemberSearch').val() || '').trim();
-    const query = rawQuery.toLowerCase();
-    const filter = $('#fvMemberFilter').val() || 'all';
-    const stateFilter = $('#fvMemberStateFilter').val() || 'all';
-    const regexSearchEnabled = filter === MEMBER_REGEX_SEARCH_FILTER;
-    let queryRegex = null;
-
-    syncMemberSearchUiState();
-
-    if (regexSearchEnabled && rawQuery) {
-        try {
-            queryRegex = new RegExp(rawQuery, 'i');
-            setMemberSearchValidationState('');
-        } catch (error) {
-            setMemberSearchValidationState(`Invalid regex: ${error.message}`);
-        }
-    } else {
-        setMemberSearchValidationState('');
-    }
-
-    $('table.sortable > tbody > tr').each((_, row) => {
-        const $row = $(row);
-        const rawName = String($row.attr('data-name') || '');
-        const name = rawName.toLowerCase();
-        const membership = $row.attr('data-membership');
-        const included = $row.find('input.container-switch').prop('checked');
-        const state = String($row.attr('data-state') || 'stopped').trim().toLowerCase();
-        const matchesQuery = regexSearchEnabled
-            ? (!rawQuery || (queryRegex ? queryRegex.test(rawName) : false))
-            : (!query || name.includes(query));
-
-        let matchesFilter = true;
-        if (filter === 'included') {
-            matchesFilter = included;
-        } else if (filter === 'excluded') {
-            matchesFilter = !included;
-        } else if (filter === 'regex') {
-            matchesFilter = membership === 'regex';
-        } else if (filter === 'manual') {
-            matchesFilter = membership === 'manual';
-        }
-
-        let matchesState = true;
-        if (stateFilter !== 'all') {
-            matchesState = state === stateFilter;
-        }
-
-        $row.toggle(matchesQuery && matchesFilter && matchesState);
-    });
-
-    updateMemberStats();
+    getFolderEditorMembersApi()?.applyMemberFilters();
 };
 
 const setVisibleMemberSelection = (checked) => {
-    $('table.sortable > tbody > tr:visible').each((_, row) => {
-        const input = $(row).find('input.container-switch').get(0);
-        if (!input || input.disabled) {
-            return;
-        }
-        input.checked = checked === true;
-        $(input).trigger('change');
-    });
-    applyMemberFilters();
-    if (isFormInitialized) {
-        validateForm();
-        updateUnsavedIndicator();
-    }
+    getFolderEditorMembersApi()?.setVisibleMemberSelection(checked);
 };
 
 const syncMemberArraysFromTable = () => {
-    const rows = $('table.sortable > tbody > tr');
-    if (!rows.length) {
-        return;
-    }
-    const memberMap = new Map(getAllMembers().map((member) => [member.Name, member]));
-    const nextSelected = [];
-    const nextChoose = [];
-    const nextSelectedRegex = [];
-
-    rows.each((_, row) => {
-        const name = $(row).attr('data-name');
-        const member = memberMap.get(name);
-        if (!member) {
-            return;
-        }
-        const membership = $(row).attr('data-membership');
-        const checked = $(row).find('input.container-switch').prop('checked');
-        if (membership === 'regex') {
-            nextSelectedRegex.push(member);
-        } else if (checked) {
-            nextSelected.push(member);
-        } else {
-            nextChoose.push(member);
-        }
-    });
-
-    selected = nextSelected;
-    choose = nextChoose;
-    selectedRegex = nextSelectedRegex;
+    getFolderEditorMembersApi()?.syncMemberArraysFromTable();
 };
 
 const moveMemberRow = (button, direction) => {
-    const row = $(button).closest('tr');
-    if (!row.length) {
-        return;
-    }
-    let moved = false;
-    if (direction === 'up') {
-        const prev = row.prev('tr');
-        if (prev.length) {
-            prev.before(row);
-            moved = true;
-        }
-    } else {
-        const next = row.next('tr');
-        if (next.length) {
-            next.after(row);
-            moved = true;
-        }
-    }
-    if (!moved) {
-        return;
-    }
-    syncMemberArraysFromTable();
-    updateLiveSummary();
-    if (isFormInitialized) {
-        updateUnsavedIndicator();
-    }
+    getFolderEditorMembersApi()?.moveMemberRow(button, direction);
 };
 
 const normalizeEditorMode = (value) => (String(value || '').trim().toLowerCase() === 'advanced' ? 'advanced' : 'basic');

@@ -91,66 +91,339 @@ is_subject_metadata_only() {
   return 1
 }
 
-build_diff_based_notes() {
-  local -a changed_files=()
-  local -a notes=()
-  local has_ui=0
-  local has_backend=0
-  local has_quality=0
-  local has_docs=0
+resolve_changes_anchor_ref() {
+  local previous_version="${1:-}"
+  local anchor_ref=""
 
   if ! command -v git >/dev/null 2>&1 || ! git -C "${ROOT_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     return
   fi
 
-  mapfile -t changed_files < <(
-    {
-      git -C "${ROOT_DIR}" diff --name-only --relative HEAD -- .
-      git -C "${ROOT_DIR}" ls-files --others --exclude-standard
-    } | sed '/^[[:space:]]*$/d' | sort -u
+  if [[ -n "${previous_version}" ]] && git -C "${ROOT_DIR}" rev-parse -q --verify "refs/tags/v${previous_version}^{tag}" >/dev/null 2>&1; then
+    printf 'v%s\n' "${previous_version}"
+    return
+  fi
+
+  if [[ -n "${previous_version}" ]]; then
+    anchor_ref="$(git -C "${ROOT_DIR}" log --no-merges --format=%H -S "###${previous_version}" -- "${PLG_FILE}" | head -n 1 || true)"
+  fi
+
+  if [[ -n "${anchor_ref}" ]]; then
+    printf '%s\n' "${anchor_ref}"
+  fi
+}
+
+collect_changed_files() {
+  local previous_version="${1:-}"
+  local anchor_ref=""
+  local range=""
+
+  if ! command -v git >/dev/null 2>&1 || ! git -C "${ROOT_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    return
+  fi
+
+  anchor_ref="$(resolve_changes_anchor_ref "${previous_version}")"
+  if [[ -n "${anchor_ref}" ]]; then
+    range="${anchor_ref}..HEAD"
+  fi
+
+  {
+    if [[ -n "${range}" ]]; then
+      git -C "${ROOT_DIR}" diff --name-only --relative "${range}" -- .
+    fi
+    git -C "${ROOT_DIR}" diff --name-only --relative HEAD -- .
+    git -C "${ROOT_DIR}" ls-files --others --exclude-standard
+  } | sed '/^[[:space:]]*$/d' | sort -u
+}
+
+classify_changed_path_subsystems() {
+  local changed="${1:-}"
+
+  case "${changed}" in
+    folderview.plus.plg|folderview.plus.xml|archive/*)
+      return
+      ;;
+  esac
+
+  case "${changed}" in
+    README.md|docs/*|CHANGELOG-fixes.md|SECURITY.md|SUPPORT*.md|CONTRIBUTING.md|src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/README.md)
+      printf '%s\n' "docs"
+      return
+      ;;
+  esac
+
+  case "${changed}" in
+    .github/workflows/*|.github/actions/*|.githooks/*|pkg_build.sh|scripts/*)
+      printf '%s\n' "release-tooling"
+      return
+      ;;
+  esac
+
+  case "${changed}" in
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.*|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Docker.page|\
+    tests/docker*)
+      printf '%s\n' "docker-runtime"
+      return
+      ;;
+  esac
+
+  case "${changed}" in
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/vm.css|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.VMs.page|\
+    tests/vm*)
+      printf '%s\n' "vm-runtime"
+      return
+      ;;
+  esac
+
+  case "${changed}" in
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.*|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/dashboard.css|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Dashboard.page|\
+    tests/dashboard*)
+      printf '%s\n' "dashboard"
+      return
+      ;;
+  esac
+
+  case "${changed}" in
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.legacy.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.*|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folder.css|\
+    tests/folder-editor*|tests/folder-accent*|tests/ui-smoke-layout.test.mjs)
+      printf '%s\n' "folder-editor"
+      return
+      ;;
+  esac
+
+  case "${changed}" in
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.fatal-banner.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/diagnostics.php|\
+    tests/runtime-preflight-diagnostics.test.mjs)
+      printf '%s\n' "settings-diagnostics"
+      return
+      ;;
+  esac
+
+  case "${changed}" in
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.chrome.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.dirty.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.row-details.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-*|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.updates.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css|\
+    tests/settings-*|tests/update-notes-category.test.mjs)
+      printf '%s\n' "settings-workspace"
+      return
+      ;;
+  esac
+
+  case "${changed}" in
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard*|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.rules.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/bulk_assign.php|\
+    tests/wizard*|tests/bulk-*|tests/folderviewplus-utils.test.mjs)
+      printf '%s\n' "automation-rules"
+      return
+      ;;
+  esac
+
+  case "${changed}" in
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.actions-support.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/scheduled_backup.php|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/backup.php|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/bulk_folder_action.php|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/templates.php|\
+    tests/backup*|tests/import*|tests/workflow-utils-contract.test.mjs)
+      printf '%s\n' "operations-recovery"
+      return
+      ;;
+  esac
+
+  case "${changed}" in
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/icon-picker.runtime.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icon-api.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/third_party_icons.php|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/upload_custom_icon.php|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/images/*|\
+    tests/icon*)
+      printf '%s\n' "icon-workflows"
+      return
+      ;;
+  esac
+
+  case "${changed}" in
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.runtime.state-observers.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.request.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.utils.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.column-layout.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/runtime.shared.css|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.validation.php|\
+    tests/*shared*|tests/*parity*|tests/request-client-contract.test.mjs|tests/extracted-module-bootstrap-guard.test.mjs)
+      printf '%s\n' "shared-runtime"
+      return
+      ;;
+  esac
+
+  case "${changed}" in
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/*|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/custom.php|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/custom.php|\
+    tests/server*)
+      printf '%s\n' "server-runtime"
+      return
+      ;;
+  esac
+
+  case "${changed}" in
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/*|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/*|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/*.page)
+      printf '%s\n' "settings-workspace"
+      return
+      ;;
+    tests/*)
+      printf '%s\n' "release-tooling"
+      return
+      ;;
+  esac
+}
+
+format_subsystem_note_line() {
+  local subsystem="${1:-}"
+  local category=""
+  local subject=""
+
+  case "${subsystem}" in
+    docker-runtime)
+      category="Fix"
+      subject="Docker runtime rows, folder state, and container interactions"
+      ;;
+    vm-runtime)
+      category="Fix"
+      subject="VM runtime rows, folder state, and VM actions"
+      ;;
+    dashboard)
+      category="UX"
+      subject="Dashboard layouts, quick rails, and folder card interactions"
+      ;;
+    folder-editor)
+      category="UX"
+      subject="Folder editor flows, previews, and bootstrap behavior"
+      ;;
+    settings-workspace)
+      category="UX"
+      subject="Settings workspace layout, section flows, and table behavior"
+      ;;
+    settings-diagnostics)
+      category="Fix"
+      subject="Diagnostics surfaces, issue reports, and support bundle coverage"
+      ;;
+    automation-rules)
+      category="Feature"
+      subject="Setup Assistant, rules, smart-detect, and starter-template workflows"
+      ;;
+    operations-recovery)
+      category="Fix"
+      subject="Runtime actions, templates, import/export, and backup recovery paths"
+      ;;
+    icon-workflows)
+      category="UX"
+      subject="Icon picker, bundled icon packs, and custom icon management"
+      ;;
+    shared-runtime)
+      category="Refactor"
+      subject="Shared runtime contracts, request plumbing, and cross-page foundations"
+      ;;
+    server-runtime)
+      category="Fix"
+      subject="Server endpoints, runtime payloads, and persistence or validation paths"
+      ;;
+    release-tooling)
+      category="Quality"
+      subject="Release automation, CI smoke coverage, and packaging guards"
+      ;;
+    docs)
+      category="Docs"
+      subject="Project documentation and support guidance"
+      ;;
+    *)
+      return
+      ;;
+  esac
+
+  format_change_line "${category}" "${subject}"
+}
+
+build_diff_based_notes() {
+  local previous_version="${1:-}"
+  local -a changed_files=()
+  local -a notes=()
+  local -a subsystem_order=(
+    docker-runtime
+    vm-runtime
+    dashboard
+    folder-editor
+    settings-workspace
+    settings-diagnostics
+    automation-rules
+    operations-recovery
+    icon-workflows
+    shared-runtime
+    server-runtime
+    release-tooling
+    docs
   )
+  local changed=""
+  local subsystem=""
+  local note=""
+  declare -A seen_subsystems=()
+
+  if ! command -v git >/dev/null 2>&1 || ! git -C "${ROOT_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    return
+  fi
+
+  mapfile -t changed_files < <(collect_changed_files "${previous_version}" || true)
 
   if [[ ${#changed_files[@]} -eq 0 ]]; then
     return
   fi
 
   for changed in "${changed_files[@]}"; do
-    case "${changed}" in
-      src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/*|\
-      src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/*.page|\
-      src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/*.js)
-        has_ui=1
-        ;;
-    esac
-    case "${changed}" in
-      src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/*)
-        has_backend=1
-        ;;
-    esac
-    case "${changed}" in
-      tests/*|scripts/*|.github/workflows/*|.githooks/*)
-        has_quality=1
-        ;;
-    esac
-    case "${changed}" in
-      README.md|CHANGELOG-fixes.md|SECURITY.md|SUPPORT.md|CONTRIBUTING.md)
-        has_docs=1
-        ;;
-    esac
+    while IFS= read -r subsystem; do
+      [[ -z "${subsystem}" ]] && continue
+      seen_subsystems["${subsystem}"]=1
+    done < <(classify_changed_path_subsystems "${changed}")
   done
 
-  if (( has_ui )); then
-    notes+=("- UX: Refined settings and on-screen update messaging for clarity and consistency.")
-  fi
-  if (( has_backend )); then
-    notes+=("- Fix: Improved backend release-note parsing and category detection for accurate summaries.")
-  fi
-  if (( has_quality )); then
-    notes+=("- Quality: Strengthened release automation and regression guards to prevent note drift.")
-  fi
-  if (( has_docs )); then
-    notes+=("- Docs: Updated project documentation to match the latest behavior.")
-  fi
+  for subsystem in "${subsystem_order[@]}"; do
+    if [[ -z "${seen_subsystems["${subsystem}"]:-}" ]]; then
+      continue
+    fi
+    note="$(format_subsystem_note_line "${subsystem}")"
+    if [[ -n "${note}" ]]; then
+      notes+=("${note}")
+    fi
+  done
 
   if [[ ${#notes[@]} -eq 0 ]]; then
     return
@@ -167,12 +440,14 @@ build_auto_notes() {
   local anchor_ref=""
   local range=""
 
+  mapfile -t notes < <(build_diff_based_notes "${previous_version}" || true)
+  if [[ ${#notes[@]} -gt 0 ]]; then
+    printf '%s\n' "${notes[@]}"
+    return
+  fi
+
   if command -v git >/dev/null 2>&1 && git -C "${ROOT_DIR}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    if [[ -n "${previous_version}" ]] && git -C "${ROOT_DIR}" rev-parse -q --verify "refs/tags/v${previous_version}^{tag}" >/dev/null 2>&1; then
-      anchor_ref="v${previous_version}"
-    elif [[ -n "${previous_version}" ]]; then
-      anchor_ref="$(git -C "${ROOT_DIR}" log --no-merges --format=%H -S "###${previous_version}" -- "${PLG_FILE}" | head -n 1 || true)"
-    fi
+    anchor_ref="$(resolve_changes_anchor_ref "${previous_version}")"
     if [[ -n "${anchor_ref}" ]]; then
       range="${anchor_ref}..HEAD"
     fi
@@ -184,7 +459,7 @@ build_auto_notes() {
   fi
 
   if [[ ${#subjects[@]} -eq 0 ]]; then
-    mapfile -t notes < <(build_diff_based_notes || true)
+    mapfile -t notes < <(build_diff_based_notes "${previous_version}" || true)
     if [[ ${#notes[@]} -eq 0 ]]; then
       printf -- '- %s\n' "${AUTO_FALLBACK_NOTE}"
     else
@@ -211,7 +486,7 @@ build_auto_notes() {
   done
 
   if [[ ${#notes[@]} -eq 0 ]]; then
-    mapfile -t notes < <(build_diff_based_notes || true)
+    mapfile -t notes < <(build_diff_based_notes "${previous_version}" || true)
   fi
 
   if [[ ${#notes[@]} -eq 0 ]]; then

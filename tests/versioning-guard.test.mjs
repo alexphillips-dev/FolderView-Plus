@@ -510,11 +510,25 @@ test('ensure changes entry seeds category-signaling release note text', () => {
     assert.match(ensureChanges, /VERSION="\$\(fvplus::read_plg_version "\$\{PLG_FILE\}"\)"/);
     assert.match(ensureChanges, /guess_category_from_subject/);
     assert.match(ensureChanges, /is_subject_metadata_only/);
+    assert.match(ensureChanges, /resolve_changes_anchor_ref/);
+    assert.match(ensureChanges, /collect_changed_files/);
+    assert.match(ensureChanges, /classify_changed_path_subsystems/);
+    assert.match(ensureChanges, /format_subsystem_note_line/);
     assert.match(ensureChanges, /build_diff_based_notes/);
+    assert.match(ensureChanges, /git -C "\$\{ROOT_DIR\}" diff --name-only --relative "\$\{range\}" -- \./);
     assert.match(ensureChanges, /git -C "\$\{ROOT_DIR\}" diff --name-only --relative HEAD -- \./);
     assert.match(ensureChanges, /log --no-merges --format=%H -S "###\$\{previous_version\}" -- "\$\{PLG_FILE\}"/);
     assert.match(ensureChanges, /range="\$\{anchor_ref\}\.\.HEAD"/);
+    assert.match(ensureChanges, /docker-runtime/);
+    assert.match(ensureChanges, /folder-editor/);
+    assert.match(ensureChanges, /settings-diagnostics/);
+    assert.match(ensureChanges, /release-tooling/);
+    assert.match(ensureChanges, /Docker runtime rows, folder state, and container interactions/);
+    assert.match(ensureChanges, /Diagnostics surfaces, issue reports, and support bundle coverage/);
+    assert.match(ensureChanges, /Release automation, CI smoke coverage, and packaging guards/);
     assert.match(ensureChanges, /AUTO_FALLBACK_NOTE='Maintenance: Release metadata and packaging sync\.'/);
+    assert.doesNotMatch(ensureChanges, /Refined settings and on-screen update messaging for clarity and consistency/);
+    assert.doesNotMatch(ensureChanges, /Improved backend release-note parsing and category detection for accurate summaries/);
 });
 
 test('release workflows keep checksum assets and metadata changes', () => {

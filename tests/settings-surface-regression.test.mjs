@@ -9,7 +9,11 @@ const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath)
 const settingsPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page');
 const settingsCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css');
 const diagnosticsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js');
-const settingsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js');
+const settingsJs = [
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-health.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-workspaces.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
+].map((relativePath) => read(relativePath)).join('\n');
 const settingsSectionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js');
 const wizardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js');
 
@@ -146,8 +150,9 @@ test('recovery tab uses a source-switched workspace with overview cards, snapsho
     assert.match(settingsPage, /onclick="createActiveRecoveryBackup\(\)"/);
     assert.match(settingsPage, /onclick="runActiveRecoveryScheduler\(\)"/);
     assert.match(settingsPage, /onclick="undoActiveRecoveryChange\(\)"/);
-    assert.match(settingsJs, /const normalizeRecoveryWorkspaceType = \(value\) =>/);
-    assert.match(settingsJs, /const setRecoveryWorkspaceType = \(type, persist = true\) =>/);
+    assert.match(settingsJs, /FolderViewPlusSettingsWorkspacesModuleLoaded = true/);
+    assert.match(settingsJs, /const normalizeRecoveryWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.normalizeRecoveryWorkspaceType\(\.\.\.args\);/);
+    assert.match(settingsJs, /const setRecoveryWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.setRecoveryWorkspaceType\(\.\.\.args\);/);
     assert.match(settingsJs, /id="recovery-backup-entry-select"[\s\S]*selectActiveRecoveryBackup\(this\.value\)/);
     assert.match(settingsJs, /restoreSelectedActiveRecoveryBackup\(\)[\s\S]*downloadSelectedActiveRecoveryBackup\(\)[\s\S]*deleteSelectedActiveRecoveryBackup\(\)/);
     assert.match(settingsJs, /activeRecoveryWorkspaceType = normalizeRecoveryWorkspaceType\(localStorage\.getItem\(RECOVERY_WORKSPACE_STORAGE_KEY\) \|\| 'docker'\)/);
@@ -167,10 +172,10 @@ test('operations tab uses one source-switched workspace for runtime actions and 
     assert.match(settingsPage, /data-fv-operations-panel="vm"[\s\S]*id="vm-operations-overview"[\s\S]*id="vm-runtime-preview-output"[\s\S]*id="vm-operations-template-library"/);
     assert.doesNotMatch(settingsPage, /<h2 data-fv-section="folder-templates"/);
     assert.match(settingsJs, /const OPERATIONS_WORKSPACE_STORAGE_KEY = 'fv\.settings\.operationsWorkspace\.v1';/);
-    assert.match(settingsJs, /const buildOperationsOverviewHtml = \(type\) =>/);
-    assert.match(settingsJs, /const renderOperationsWorkspace = \(\) =>/);
-    assert.match(settingsJs, /const setOperationsWorkspaceType = \(type, persist = true\) =>/);
-    assert.match(settingsJs, /const renderTemplateRows = \(type\) => \{/);
+    assert.match(settingsJs, /const buildOperationsOverviewHtml = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.buildOperationsOverviewHtml\(\.\.\.args\);/);
+    assert.match(settingsJs, /const renderOperationsWorkspace = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.renderOperationsWorkspace\(\.\.\.args\);/);
+    assert.match(settingsJs, /const setOperationsWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.setOperationsWorkspaceType\(\.\.\.args\);/);
+    assert.match(settingsJs, /const renderTemplateRows = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.renderTemplateRows\(\.\.\.args\);/);
     assert.match(settingsJs, /selectOperationsTemplate\('/);
     assert.match(settingsJs, /exportTemplateEntry\('/);
     assert.match(settingsCss, /\.fv-operations-source-switch/);

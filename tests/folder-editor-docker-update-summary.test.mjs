@@ -9,6 +9,9 @@ const folderJs = fs.readFileSync(
     'utf8'
 );
 const settingsJs = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-health.js'),
+    'utf8'
+) + '\n' + fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'),
     'utf8'
 );
@@ -22,4 +25,5 @@ test('modern folder editor update summary accepts normalized update flags from m
 test('shared docker update helper accepts normalized update flags outside the Docker page runtime', () => {
     assert.match(settingsJs, /const isDockerUpdateAvailable = \(itemInfo\) => \{/);
     assert.match(settingsJs, /if \(source\.UpdateAvailable === true \|\| source\.update === true\) \{\s*return true;\s*\}/);
+    assert.match(settingsJs, /const isDockerUpdateAvailable = \(\.\.\.args\) => getSettingsHealthApi\(\)\.isDockerUpdateAvailable\(\.\.\.args\);/);
 });

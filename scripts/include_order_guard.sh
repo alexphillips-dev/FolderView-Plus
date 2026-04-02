@@ -37,6 +37,8 @@ const expectedOrder = [
   'folderviewplus.activity-diagnostics.js',
   'folderviewplus.folder-editor.js',
   'folderviewplus.row-details.js',
+  'folderviewplus.settings-health.js',
+  'folderviewplus.settings-workspaces.js',
   'folderviewplus.wizard-smart-detect.js',
   'folderviewplus.wizard.js',
   'folderviewplus.import.js',

@@ -1395,6 +1395,8 @@ if (!empty($fvplusRuntimeConflicts)) {
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.row-details.js')?>"></script>
+<script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.settings-health.js')?>"></script>
+<script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.settings-workspaces.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.wizard-smart-detect.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.wizard.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.import.js')?>"></script>

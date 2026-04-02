@@ -46,6 +46,8 @@ const settingsMetadata = window.FolderViewPlusSettingsMetadata || null;
 const settingsTableModule = window.FolderViewPlusSettingsTable || null;
 const settingsActionSupportModule = window.FolderViewPlusSettingsActionSupport || null;
 const rowDetailsModule = window.FolderViewPlusRowDetails || null;
+const settingsHealthModule = window.FolderViewPlusSettingsHealth || null;
+const settingsWorkspacesModule = window.FolderViewPlusSettingsWorkspaces || null;
 const fatalBanner = window.FolderViewPlusFatalBanner || null;
 const markFatalBannerStep = (step) => {
     if (fatalBanner && typeof fatalBanner.markStep === 'function') {
@@ -338,6 +340,18 @@ if (!rowDetailsModule || window.FolderViewPlusRowDetailsModuleLoaded !== true ||
     setFatalBannerModuleStatus('folderviewplus.row-details.js', 'missing', 'row detail api unavailable');
 } else {
     setFatalBannerModuleStatus('folderviewplus.row-details.js', 'ok', 'row detail api ready');
+}
+if (!settingsHealthModule || window.FolderViewPlusSettingsHealthModuleLoaded !== true || typeof settingsHealthModule.createApi !== 'function') {
+    bootstrapMissingModules.push('folderviewplus.settings-health.js');
+    setFatalBannerModuleStatus('folderviewplus.settings-health.js', 'missing', 'settings health api unavailable');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.settings-health.js', 'ok', 'settings health api ready');
+}
+if (!settingsWorkspacesModule || window.FolderViewPlusSettingsWorkspacesModuleLoaded !== true || typeof settingsWorkspacesModule.createApi !== 'function') {
+    bootstrapMissingModules.push('folderviewplus.settings-workspaces.js');
+    setFatalBannerModuleStatus('folderviewplus.settings-workspaces.js', 'missing', 'settings workspace api unavailable');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.settings-workspaces.js', 'ok', 'settings workspace api ready');
 }
 if (window.FolderViewPlusWizardSmartDetectModuleLoaded !== true) {
     bootstrapMissingModules.push('folderviewplus.wizard-smart-detect.js');
@@ -2887,6 +2901,92 @@ const getFolderStatusBreakdown = (...args) => getRowDetailsApi().getFolderStatus
 const showFolderStatusBreakdown = (...args) => getRowDetailsApi().showFolderStatusBreakdown(...args);
 const showFolderHealthBreakdown = (...args) => getRowDetailsApi().showFolderHealthBreakdown(...args);
 
+const getSettingsHealthApi = (() => {
+    let cachedApi = null;
+    return () => {
+        if (cachedApi) {
+            return cachedApi;
+        }
+        cachedApi = settingsHealthModule.createApi({
+            $,
+            utils,
+            escapeHtml,
+            formatBytesShort,
+            getPrefsByType: (type) => prefsByType[type === 'vm' ? 'vm' : 'docker'] || {},
+            getInfoByType: (type) => infoByType[type === 'vm' ? 'vm' : 'docker'] || {},
+            normalizeHealthPrefs,
+            getItemRuntimeStateKind,
+            deriveFolderStatusKey,
+            evaluateDockerFolderHealth,
+            valueIsTruthy,
+            getHealthFilterMode: (type) => healthFilterByType[type === 'vm' ? 'vm' : 'docker'] || 'all',
+            getHealthMetrics: (type) => healthMetricsByType[type === 'vm' ? 'vm' : 'docker'] || null,
+            getFolderMap: (type) => getFolderMap(type),
+            getEffectiveMemberSnapshot: (type, folders) => getEffectiveMemberSnapshot(type, folders)
+        });
+        return cachedApi;
+    };
+})();
+
+const getSettingsWorkspacesApi = (() => {
+    let cachedApi = null;
+    return () => {
+        if (cachedApi) {
+            return cachedApi;
+        }
+        cachedApi = settingsWorkspacesModule.createApi({
+            window,
+            document,
+            $,
+            utils,
+            escapeHtml,
+            getFolderMap: (type) => getFolderMap(type),
+            getFolderNameForId: (type, id) => folderNameForId(type, id),
+            getSortedBackupsForType: (type) => getSortedBackupsForType(type),
+            prefsByType,
+            formatTimestamp,
+            writeSettingsStorage,
+            RECOVERY_WORKSPACE_STORAGE_KEY,
+            RULES_WORKSPACE_STORAGE_KEY,
+            OPERATIONS_WORKSPACE_STORAGE_KEY,
+            getActiveRecoveryWorkspaceTypeValue: () => activeRecoveryWorkspaceType,
+            setActiveRecoveryWorkspaceTypeValue: (value) => {
+                activeRecoveryWorkspaceType = value;
+            },
+            recoverySelectedBackupByType,
+            filtersByType,
+            persistTableUiState,
+            renderBackupRows,
+            createManualBackup,
+            restoreLatestBackup,
+            restoreBackupEntry,
+            downloadBackupEntry,
+            deleteBackupEntry,
+            runScheduledBackupNow,
+            compareBackupSnapshots,
+            changeBackupSchedulePref,
+            undoLatestChange,
+            getActiveRulesWorkspaceTypeValue: () => activeRulesWorkspaceType,
+            setActiveRulesWorkspaceTypeValue: (value) => {
+                activeRulesWorkspaceType = value;
+            },
+            renderRulesTable,
+            updateRuleLiveMatch,
+            updateRuleValidationHint,
+            getActiveOperationsWorkspaceTypeValue: () => activeOperationsWorkspaceType,
+            setActiveOperationsWorkspaceTypeValue: (value) => {
+                activeOperationsWorkspaceType = value;
+            },
+            templatesByType,
+            selectedOperationsTemplateIdByType,
+            downloadFile,
+            toPrettyJson,
+            showError
+        });
+        return cachedApi;
+    };
+})();
+
 const setInlineValidationHint = (targetId, text = '', level = 'info') => {
     const hint = $(`#${targetId}`);
     if (!hint.length) {
@@ -2982,408 +3082,16 @@ const renderFirstRunQuickPathPanel = () => {
     `).show();
 };
 
-const buildStatusSnapshot = (type, folders, memberSnapshot, infoByName) => {
-    const snapshot = {};
-    for (const [id] of Object.entries(folders || {})) {
-        const members = Array.isArray(memberSnapshot?.[id]?.members) ? memberSnapshot[id].members : [];
-        const countsByState = { started: 0, paused: 0, stopped: 0 };
-        for (const member of members) {
-            const runtimeState = getItemRuntimeStateKind(type, infoByName[member] || {});
-            if (runtimeState === 'started') {
-                countsByState.started += 1;
-            } else if (runtimeState === 'paused') {
-                countsByState.paused += 1;
-            } else {
-                countsByState.stopped += 1;
-            }
-        }
-        snapshot[String(id)] = {
-            total: members.length,
-            started: countsByState.started,
-            paused: countsByState.paused,
-            stopped: countsByState.stopped,
-            statusKey: deriveFolderStatusKey(countsByState, members.length)
-        };
-    }
-    return snapshot;
-};
-
-const isDockerUpdateAvailable = (itemInfo) => {
-    const source = itemInfo && typeof itemInfo === 'object' ? itemInfo : {};
-    if (source.UpdateAvailable === true || source.update === true) {
-        return true;
-    }
-    const state = source?.info?.State || source?.State || {};
-    // Mirror Docker tab behavior exactly:
-    // update-ready means manager is dockerman and Updated is strict boolean false.
-    return state?.manager === 'dockerman' && state?.Updated === false;
-};
-
-const formatGiBFromKiB = (kibValue) => {
-    const kib = Number(kibValue) || 0;
-    if (kib <= 0) {
-        return '0 GiB';
-    }
-    const gib = kib / (1024 * 1024);
-    const fixed = gib >= 100 ? gib.toFixed(0) : gib.toFixed(1);
-    return `${fixed} GiB`;
-};
-
-const formatVmMemoryLabel = (kibValue) => {
-    const kib = Number(kibValue) || 0;
-    if (kib <= 0) {
-        return '0 GB';
-    }
-    const gib = kib / (1024 * 1024);
-    const rounded = gib >= 100 ? gib.toFixed(0) : gib.toFixed(1);
-    const compact = rounded.endsWith('.0') ? rounded.slice(0, -2) : rounded;
-    return `${compact} GB`;
-};
-
-const collectVmFolderResources = (members, infoByName) => {
-    const list = Array.isArray(members) ? members : [];
-    const info = infoByName && typeof infoByName === 'object' ? infoByName : {};
-    let autostartCount = 0;
-    let vcpusTotal = 0;
-    let memoryKiBTotal = 0;
-    let storageBytesTotal = 0;
-    const autostartMembers = [];
-    for (const member of list) {
-        const vmInfo = info[member] || {};
-        if (valueIsTruthy(vmInfo.autostart)) {
-            autostartCount += 1;
-            autostartMembers.push(String(member));
-        }
-        vcpusTotal += Number(vmInfo.vcpus ?? vmInfo.nrVirtCpu ?? 0) || 0;
-        memoryKiBTotal += Number(vmInfo.memoryKiB ?? vmInfo.memory ?? vmInfo.maxMem ?? 0) || 0;
-        storageBytesTotal += Number(vmInfo.storageBytes ?? vmInfo.storage ?? 0) || 0;
-    }
-    return {
-        membersCount: list.length,
-        autostartCount,
-        autostartMembers,
-        vcpusTotal,
-        memoryKiBTotal,
-        storageBytesTotal
-    };
-};
-
-const evaluateVmResourceBadge = (resourceTotals, healthPrefs) => {
-    const totals = resourceTotals && typeof resourceTotals === 'object' ? resourceTotals : {};
-    const prefs = healthPrefs && typeof healthPrefs === 'object' ? healthPrefs : {};
-    const vcpusTotal = Number(totals.vcpusTotal || 0);
-    const memoryKiBTotal = Number(totals.memoryKiBTotal || 0);
-    const storageBytesTotal = Number(totals.storageBytesTotal || 0);
-    const membersCount = Number(totals.membersCount || 0);
-    const memoryGiBTotal = memoryKiBTotal > 0 ? (memoryKiBTotal / (1024 * 1024)) : 0;
-    const storageText = formatBytesShort(storageBytesTotal) || '0 B';
-    const warnVcpus = Number.isFinite(Number(prefs.vmResourceWarnVcpus)) ? Number(prefs.vmResourceWarnVcpus) : 16;
-    const criticalVcpus = Number.isFinite(Number(prefs.vmResourceCriticalVcpus)) ? Number(prefs.vmResourceCriticalVcpus) : 32;
-    const warnGiB = Number.isFinite(Number(prefs.vmResourceWarnGiB)) ? Number(prefs.vmResourceWarnGiB) : 32;
-    const criticalGiB = Number.isFinite(Number(prefs.vmResourceCriticalGiB)) ? Number(prefs.vmResourceCriticalGiB) : 64;
-    const criticalCpuExceeded = vcpusTotal >= criticalVcpus;
-    const criticalMemoryExceeded = memoryGiBTotal >= criticalGiB;
-    const warnCpuExceeded = vcpusTotal >= warnVcpus;
-    const warnMemoryExceeded = memoryGiBTotal >= warnGiB;
-
-    let severity = 'good';
-    if (membersCount <= 0) {
-        severity = 'empty';
-    } else if (criticalCpuExceeded || criticalMemoryExceeded) {
-        severity = 'critical';
-    } else if (warnCpuExceeded || warnMemoryExceeded) {
-        severity = 'warn';
-    }
-
-    const cpuClass = membersCount <= 0
-        ? 'is-empty'
-        : (criticalCpuExceeded ? 'is-critical' : (warnCpuExceeded ? 'is-warn' : 'is-good'));
-    const memoryClass = membersCount <= 0
-        ? 'is-empty'
-        : (criticalMemoryExceeded ? 'is-critical' : (warnMemoryExceeded ? 'is-warn' : 'is-good'));
-    const storageClass = membersCount <= 0
-        ? 'is-empty'
-        : (storageBytesTotal > 0 ? 'is-good' : 'is-empty');
-    const text = `${vcpusTotal} vCPU | ${formatVmMemoryLabel(memoryKiBTotal)} RAM | ${storageText} storage`;
-    const detailLines = [
-        `Total resources: ${text}`,
-        `Thresholds: warn ${warnVcpus} vCPU / ${warnGiB} GB, critical ${criticalVcpus} vCPU / ${criticalGiB} GB.`
-    ];
-    if (warnCpuExceeded || warnMemoryExceeded) {
-        const reasons = [];
-        if (warnCpuExceeded) {
-            reasons.push(`${vcpusTotal} vCPU >= warn ${warnVcpus}`);
-        }
-        if (warnMemoryExceeded) {
-            reasons.push(`${formatVmMemoryLabel(memoryKiBTotal)} >= warn ${warnGiB} GB`);
-        }
-        detailLines.push(`Warning: ${reasons.join(' | ')}`);
-    }
-    if (criticalCpuExceeded || criticalMemoryExceeded) {
-        const reasons = [];
-        if (criticalCpuExceeded) {
-            reasons.push(`${vcpusTotal} vCPU >= critical ${criticalVcpus}`);
-        }
-        if (criticalMemoryExceeded) {
-            reasons.push(`${formatVmMemoryLabel(memoryKiBTotal)} >= critical ${criticalGiB} GB`);
-        }
-        detailLines.push(`Critical: ${reasons.join(' | ')}`);
-    }
-
-    return {
-        severity,
-        text,
-        title: detailLines.join('\n'),
-        className: severity === 'critical'
-            ? 'is-critical'
-            : (severity === 'warn' ? 'is-warn' : (severity === 'empty' ? 'is-empty' : 'is-good')),
-        chips: {
-            cpu: {
-                text: `${vcpusTotal} vCPU`,
-                className: cpuClass,
-                title: `CPU total: ${vcpusTotal} vCPU\nWarn: ${warnVcpus} vCPU\nCritical: ${criticalVcpus} vCPU`
-            },
-            memory: {
-                text: `${formatVmMemoryLabel(memoryKiBTotal)} RAM`,
-                className: memoryClass,
-                title: `Memory total: ${formatVmMemoryLabel(memoryKiBTotal)}\nWarn: ${warnGiB} GB\nCritical: ${criticalGiB} GB`
-            },
-            storage: {
-                text: `${storageText} Storage`,
-                className: storageClass,
-                title: `Storage total (file-backed disks): ${storageText}`
-            }
-        }
-    };
-};
-
-const hasInvalidFolderRegex = (folder) => {
-    const pattern = String(folder?.regex || '').trim();
-    if (!pattern) {
-        return false;
-    }
-    try {
-        // eslint-disable-next-line no-new
-        new RegExp(pattern);
-        return false;
-    } catch (_error) {
-        return true;
-    }
-};
-
-const buildTypeHealthMetrics = (type, folders, memberSnapshot = {}, prefsOverride = null) => {
-    const normalizedType = type === 'vm' ? 'vm' : 'docker';
-    const folderMap = utils.normalizeFolderMap(folders);
-    const prefs = prefsOverride ? utils.normalizePrefs(prefsOverride) : utils.normalizePrefs(prefsByType[normalizedType]);
-    const healthPrefs = normalizeHealthPrefs(normalizedType, prefs);
-    const info = infoByType[normalizedType] || {};
-    const pinnedSet = new Set(Array.isArray(prefs.pinnedFolderIds) ? prefs.pinnedFolderIds : []);
-    const regexRuleKinds = new Set(['name_regex', 'image_regex', 'compose_project_regex']);
-    const invalidRuleRegexCount = (prefs.autoRules || []).reduce((count, rule) => {
-        if (!regexRuleKinds.has(String(rule?.kind || ''))) {
-            return count;
-        }
-        const pattern = String(rule?.pattern || '').trim();
-        if (!pattern) {
-            return count;
-        }
-        try {
-            // eslint-disable-next-line no-new
-            new RegExp(pattern);
-            return count;
-        } catch (_error) {
-            return count + 1;
-        }
-    }, 0);
-    const conflictReport = utils.getConflictReport({
-        type: normalizedType,
-        folders: folderMap,
-        prefs,
-        infoByName: info
-    });
-    const conflictFolderIds = new Set();
-    for (const row of conflictReport.rows || []) {
-        if (!row?.hasConflict) {
-            continue;
-        }
-        for (const matched of row.matchedFolders || []) {
-            const folderId = String(matched?.folderId || '').trim();
-            if (folderId) {
-                conflictFolderIds.add(folderId);
-            }
-        }
-    }
-
-    const memberTotals = { total: 0, started: 0, paused: 0, stopped: 0 };
-    const folderStatusTotals = { started: 0, paused: 0, stopped: 0, empty: 0 };
-    const folderIssues = {};
-    const healthScoreTotals = {
-        sum: 0,
-        count: 0
-    };
-    const healthSeverityTotals = {
-        good: 0,
-        maintenance: 0,
-        warn: 0,
-        critical: 0,
-        empty: 0
-    };
-    let invalidFolderRegexCount = 0;
-
-    for (const [folderId, folder] of Object.entries(folderMap)) {
-        const members = Array.isArray(memberSnapshot?.[folderId]?.members) ? memberSnapshot[folderId].members : [];
-        let started = 0;
-        let paused = 0;
-        let stopped = 0;
-        for (const name of members) {
-            const state = getItemRuntimeStateKind(normalizedType, info[name] || {});
-            if (state === 'started') {
-                started += 1;
-            } else if (state === 'paused') {
-                paused += 1;
-            } else {
-                stopped += 1;
-            }
-        }
-        memberTotals.total += members.length;
-        memberTotals.started += started;
-        memberTotals.paused += paused;
-        memberTotals.stopped += stopped;
-
-        const isEmpty = members.length === 0;
-        const isStoppedOnly = members.length > 0 && started === 0 && paused === 0;
-        const hasConflict = conflictFolderIds.has(String(folderId));
-        const invalidRegex = hasInvalidFolderRegex(folder);
-        let needsAttention = isEmpty || isStoppedOnly || hasConflict || invalidRegex;
-        let dockerHealth = null;
-        if (normalizedType === 'docker') {
-            let updateCount = 0;
-            for (const member of members) {
-                if (isDockerUpdateAvailable(info[member] || {})) {
-                    updateCount += 1;
-                }
-            }
-            dockerHealth = evaluateDockerFolderHealth(
-                folder,
-                members.length,
-                { started, paused, stopped },
-                updateCount,
-                Number(healthPrefs.warnStoppedPercent) || 60
-            );
-            if (dockerHealth && typeof dockerHealth === 'object') {
-                const score = Number(dockerHealth.score);
-                if (Number.isFinite(score)) {
-                    healthScoreTotals.sum += score;
-                    healthScoreTotals.count += 1;
-                }
-                const severityKey = String(dockerHealth.filterSeverity || dockerHealth.severity || '').trim().toLowerCase();
-                if (Object.prototype.hasOwnProperty.call(healthSeverityTotals, severityKey)) {
-                    healthSeverityTotals[severityKey] += 1;
-                } else if (severityKey === 'warn') {
-                    healthSeverityTotals.warn += 1;
-                }
-                needsAttention = (dockerHealth.severity === 'warn' || dockerHealth.severity === 'critical')
-                    || hasConflict
-                    || invalidRegex;
-            }
-        }
-
-        if (isEmpty) {
-            folderStatusTotals.empty += 1;
-        } else if (started > 0) {
-            folderStatusTotals.started += 1;
-        } else if (paused > 0) {
-            folderStatusTotals.paused += 1;
-        } else {
-            folderStatusTotals.stopped += 1;
-        }
-        if (invalidRegex) {
-            invalidFolderRegexCount += 1;
-        }
-
-        folderIssues[String(folderId)] = {
-            empty: isEmpty,
-            stoppedOnly: isStoppedOnly,
-            conflict: hasConflict,
-            invalidRegex,
-            attention: needsAttention,
-            memberCount: members.length,
-            healthSeverity: dockerHealth?.severity || '',
-            healthFilterSeverity: dockerHealth?.filterSeverity || dockerHealth?.severity || '',
-            healthScore: Number.isFinite(Number(dockerHealth?.score)) ? Number(dockerHealth.score) : null,
-            healthMaintenance: dockerHealth?.isMaintenance === true
-        };
-    }
-
-    const stoppedPercent = memberTotals.total > 0
-        ? Math.round((memberTotals.stopped / memberTotals.total) * 100)
-        : 0;
-    const attentionCount = Object.values(folderIssues).filter((issue) => issue.attention).length;
-    let severity = 'ok';
-    if (invalidFolderRegexCount > 0 || invalidRuleRegexCount > 0 || conflictReport.conflictingItems > 0) {
-        severity = 'danger';
-    } else if (healthSeverityTotals.critical > 0 || healthSeverityTotals.warn > 0 || stoppedPercent >= healthPrefs.warnStoppedPercent || attentionCount > 0) {
-        severity = 'warning';
-    }
-    const averageHealthScore = healthScoreTotals.count > 0
-        ? Math.round(healthScoreTotals.sum / healthScoreTotals.count)
-        : 0;
-
-    return {
-        type: normalizedType,
-        severity,
-        folderCount: Object.keys(folderMap).length,
-        pinnedCount: Array.from(pinnedSet).filter((id) => Object.prototype.hasOwnProperty.call(folderMap, id)).length,
-        ruleCount: (prefs.autoRules || []).length,
-        invalidFolderRegexCount,
-        invalidRuleRegexCount,
-        conflictItemCount: Number(conflictReport.conflictingItems || 0),
-        stoppedPercent,
-        averageHealthScore,
-        memberTotals,
-        folderStatusTotals,
-        attentionCount,
-        healthSeverityTotals,
-        folderIssues
-    };
-};
-
-const folderMatchesHealthFilter = (type, folderId, healthMetrics) => {
-    const mode = normalizeHealthFilterMode(healthFilterByType[type]);
-    if (mode === 'all') {
-        return true;
-    }
-    const issue = healthMetrics?.folderIssues?.[String(folderId)] || {};
-    if (mode === 'attention') {
-        return issue.attention === true;
-    }
-    if (mode === 'empty') {
-        return issue.empty === true;
-    }
-    if (mode === 'stopped') {
-        return issue.stoppedOnly === true;
-    }
-    if (mode === 'conflict') {
-        return issue.conflict === true;
-    }
-    return true;
-};
-
-const getHealthFilterLabel = (mode) => {
-    if (mode === 'attention') {
-        return 'needs attention';
-    }
-    if (mode === 'empty') {
-        return 'empty';
-    }
-    if (mode === 'stopped') {
-        return 'stopped';
-    }
-    if (mode === 'conflict') {
-        return 'conflicts';
-    }
-    return 'all';
-};
+const buildStatusSnapshot = (...args) => getSettingsHealthApi().buildStatusSnapshot(...args);
+const isDockerUpdateAvailable = (...args) => getSettingsHealthApi().isDockerUpdateAvailable(...args);
+const formatGiBFromKiB = (...args) => getSettingsHealthApi().formatGiBFromKiB(...args);
+const formatVmMemoryLabel = (...args) => getSettingsHealthApi().formatVmMemoryLabel(...args);
+const collectVmFolderResources = (...args) => getSettingsHealthApi().collectVmFolderResources(...args);
+const evaluateVmResourceBadge = (...args) => getSettingsHealthApi().evaluateVmResourceBadge(...args);
+const hasInvalidFolderRegex = (...args) => getSettingsHealthApi().hasInvalidFolderRegex(...args);
+const buildTypeHealthMetrics = (...args) => getSettingsHealthApi().buildTypeHealthMetrics(...args);
+const folderMatchesHealthFilter = (...args) => getSettingsHealthApi().folderMatchesHealthFilter(...args);
+const getHealthFilterLabel = (...args) => getSettingsHealthApi().getHealthFilterLabel(...args);
 
 const getEffectiveMemberSnapshot = (type, folders) => {
     const info = infoByType[type] || {};
@@ -3974,15 +3682,11 @@ const setFilterQuery = (section, type, value) => {
     }
 };
 
-const normalizeRecoveryWorkspaceType = (value) => (
-    String(value || '').trim().toLowerCase() === 'vm' ? 'vm' : 'docker'
-);
+const normalizeRecoveryWorkspaceType = (...args) => getSettingsWorkspacesApi().normalizeRecoveryWorkspaceType(...args);
 
-const normalizeRulesWorkspaceType = (value) => (
-    String(value || '').trim().toLowerCase() === 'vm' ? 'vm' : 'docker'
-);
+const normalizeRulesWorkspaceType = (...args) => getSettingsWorkspacesApi().normalizeRulesWorkspaceType(...args);
 
-const getActiveRecoveryWorkspaceType = () => normalizeRecoveryWorkspaceType(activeRecoveryWorkspaceType);
+const getActiveRecoveryWorkspaceType = (...args) => getSettingsWorkspacesApi().getActiveRecoveryWorkspaceType(...args);
 
 const getSortedBackupsForType = (type) => {
     const resolvedType = normalizeRecoveryWorkspaceType(type);
@@ -3996,335 +3700,26 @@ const getSortedBackupsForType = (type) => {
     });
 };
 
-const formatRecoveryReasonLabel = (value) => {
-    const raw = String(value || '').trim();
-    if (!raw) {
-        return 'Manual';
-    }
-    return raw
-        .replace(/[_-]+/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim()
-        .replace(/\b([a-z])/g, (match) => match.toUpperCase());
-};
-
-const buildRecoveryOverviewHtml = (type) => {
-    const resolvedType = normalizeRecoveryWorkspaceType(type);
-    const title = resolvedType === 'docker' ? 'Docker' : 'VMs';
-    const folders = getFolderMap(resolvedType);
-    const backups = getSortedBackupsForType(resolvedType);
-    const prefs = utils.normalizePrefs(prefsByType[resolvedType]);
-    const schedule = prefs.backupSchedule || {};
-    const latest = backups[0] || null;
-    const backupCount = backups.length;
-    const scheduleEnabled = schedule.enabled === true;
-    const retention = Number.isFinite(Number(schedule.retention)) ? Number(schedule.retention) : 25;
-    const interval = Number.isFinite(Number(schedule.intervalHours)) ? Number(schedule.intervalHours) : 24;
-    const latestCreated = latest?.createdAt ? formatTimestamp(latest.createdAt) : 'Not created yet';
-    const latestReason = latest ? formatRecoveryReasonLabel(latest.reason) : 'Create a manual checkpoint first';
-    const folderCount = Object.keys(folders || {}).length;
-    const statusClass = latest
-        ? (scheduleEnabled ? 'is-healthy' : 'is-warning')
-        : 'is-warning';
-    const statusLabel = latest
-        ? (scheduleEnabled ? 'Ready' : 'Watch')
-        : 'No backup yet';
-    const headline = latest
-        ? `Latest ${title} backup is ready to restore.`
-        : `No ${title} backup snapshot is available yet.`;
-    const copy = latest
-        ? `Latest snapshot: ${escapeHtml(latestCreated)}. Restore latest will create a fresh safety backup first.`
-        : `Create a manual backup before making larger changes so you have a safe rollback point.`;
-
-    return `
-        <div class="fv-recovery-overview-head">
-            <div>
-                <span class="fv-recovery-source-label">${escapeHtml(title)}</span>
-                <div class="fv-recovery-headline">${escapeHtml(headline)}</div>
-                <div class="fv-recovery-copy">${copy}</div>
-            </div>
-            <span class="fv-rules-status-chip ${statusClass}">${escapeHtml(statusLabel)}</span>
-        </div>
-        <div class="fv-recovery-stat-grid">
-            <div class="fv-recovery-stat-card">
-                <span class="fv-recovery-stat-label">Latest backup</span>
-                <strong>${escapeHtml(latestCreated)}</strong>
-                <span>${escapeHtml(latestReason)}</span>
-            </div>
-            <div class="fv-recovery-stat-card">
-                <span class="fv-recovery-stat-label">Snapshots kept</span>
-                <strong>${escapeHtml(String(backupCount))}</strong>
-                <span>${escapeHtml(`${folderCount} folder${folderCount === 1 ? '' : 's'} tracked`)}</span>
-            </div>
-            <div class="fv-recovery-stat-card">
-                <span class="fv-recovery-stat-label">Auto backup</span>
-                <strong>${escapeHtml(scheduleEnabled ? `Every ${interval}h` : 'Manual only')}</strong>
-                <span>${escapeHtml(schedule.lastRunAt ? `Last run ${formatTimestamp(schedule.lastRunAt)}` : 'Scheduler has not run yet')}</span>
-            </div>
-            <div class="fv-recovery-stat-card">
-                <span class="fv-recovery-stat-label">Retention</span>
-                <strong>${escapeHtml(`${retention} snapshot${retention === 1 ? '' : 's'}`)}</strong>
-                <span>${escapeHtml(scheduleEnabled ? 'Old backups rotate automatically.' : 'Retention applies after scheduler runs.')}</span>
-            </div>
-        </div>
-    `;
-};
-
-const buildRecoveryBackupHistoryHtml = (type) => {
-    const resolvedType = normalizeRecoveryWorkspaceType(type);
-    const backups = getSortedBackupsForType(resolvedType);
-    const summaryEl = $('#fv-recovery-history-summary');
-    const title = resolvedType === 'docker' ? 'Docker' : 'VM';
-    if (!backups.length) {
-        recoverySelectedBackupByType[resolvedType] = '';
-        const emptyTitle = `No ${title} backups yet.`;
-        const emptyCopy = 'Create a manual backup or run the scheduler to build recovery history.';
-        summaryEl.text('No backup snapshots are available yet.');
-        return `
-            <div class="fv-recovery-empty-state">
-                <strong>${escapeHtml(emptyTitle)}</strong>
-                <span>${escapeHtml(emptyCopy)}</span>
-            </div>
-        `;
-    }
-
-    const selectedName = String(recoverySelectedBackupByType[resolvedType] || '').trim();
-    const selectedBackup = backups.find((backup) => String(backup?.name || '').trim() === selectedName) || backups[0];
-    const resolvedSelectedName = String(selectedBackup?.name || '').trim();
-    recoverySelectedBackupByType[resolvedType] = resolvedSelectedName;
-    const created = formatTimestamp(selectedBackup?.createdAt || '');
-    const reason = formatRecoveryReasonLabel(selectedBackup?.reason);
-    const count = Number.isFinite(Number(selectedBackup?.count)) ? Number(selectedBackup.count) : 0;
-    const latestName = String(backups[0]?.name || '').trim();
-    const latestBadge = resolvedSelectedName === latestName ? '<span class="fv-recovery-history-badge">Latest</span>' : '';
-    const optionsHtml = backups.map((backup, index) => {
-        const name = String(backup?.name || '').trim();
-        const label = `${formatTimestamp(backup?.createdAt || '')}${index === 0 ? ' (latest)' : ''}`;
-        const selectedAttr = name === resolvedSelectedName ? ' selected' : '';
-        return `<option value="${escapeHtml(name)}"${selectedAttr}>${escapeHtml(label)}</option>`;
-    }).join('');
-
-    summaryEl.text(`${backups.length} snapshot${backups.length === 1 ? '' : 's'} available. Select one restore point and use the shared actions below.`);
-    return `
-        <div class="fv-recovery-history-picker-row">
-            <label for="recovery-backup-entry-select">Snapshot date</label>
-            <select id="recovery-backup-entry-select" onchange="selectActiveRecoveryBackup(this.value)">
-                ${optionsHtml}
-            </select>
-        </div>
-        <article class="fv-recovery-history-card fv-recovery-history-selection">
-            <div class="fv-recovery-history-head">
-                <div>
-                    <div class="fv-recovery-history-title">${escapeHtml(created)}</div>
-                    <div class="fv-recovery-history-copy">${escapeHtml(reason)}</div>
-                </div>
-                ${latestBadge}
-            </div>
-            <div class="fv-recovery-history-meta">
-                <span>${escapeHtml(`${count} folder${count === 1 ? '' : 's'}`)}</span>
-                <span>${escapeHtml(resolvedSelectedName)}</span>
-            </div>
-            <div class="backup-actions fv-recovery-history-actions-row">
-                <button type="button" onclick="restoreSelectedActiveRecoveryBackup()"><i class="fa fa-history"></i> Restore</button>
-                <button type="button" onclick="downloadSelectedActiveRecoveryBackup()"><i class="fa fa-download"></i> Download</button>
-                <button type="button" onclick="deleteSelectedActiveRecoveryBackup()"><i class="fa fa-trash"></i> Delete</button>
-            </div>
-        </article>
-    `;
-};
-
-const syncVisibleRecoveryCompareControls = (type) => {
-    const resolvedType = normalizeRecoveryWorkspaceType(type);
-    const visibleLeft = $('#recovery-backup-compare-left');
-    const visibleRight = $('#recovery-backup-compare-right');
-    const visiblePrefs = $('#recovery-backup-compare-include-prefs');
-    const sourceLeft = $(`#${resolvedType}-backup-compare-left`);
-    const sourceRight = $(`#${resolvedType}-backup-compare-right`);
-    const sourcePrefs = $(`#${resolvedType}-backup-compare-include-prefs`);
-    if (!visibleLeft.length || !visibleRight.length || !visiblePrefs.length || !sourceLeft.length || !sourceRight.length || !sourcePrefs.length) {
-        return;
-    }
-
-    visibleLeft.html(sourceLeft.html()).prop('disabled', sourceLeft.prop('disabled'));
-    visibleRight.html(sourceRight.html()).prop('disabled', sourceRight.prop('disabled'));
-    visiblePrefs.prop('checked', sourcePrefs.prop('checked') === true).prop('disabled', sourcePrefs.prop('disabled'));
-    visibleLeft.val(String(sourceLeft.val() || ''));
-    visibleRight.val(String(sourceRight.val() || '__current__'));
-};
-
-const syncHiddenRecoveryCompareControls = (type) => {
-    const resolvedType = normalizeRecoveryWorkspaceType(type);
-    const visibleLeft = $('#recovery-backup-compare-left');
-    const visibleRight = $('#recovery-backup-compare-right');
-    const visiblePrefs = $('#recovery-backup-compare-include-prefs');
-    const sourceLeft = $(`#${resolvedType}-backup-compare-left`);
-    const sourceRight = $(`#${resolvedType}-backup-compare-right`);
-    const sourcePrefs = $(`#${resolvedType}-backup-compare-include-prefs`);
-    if (!visibleLeft.length || !visibleRight.length || !visiblePrefs.length || !sourceLeft.length || !sourceRight.length || !sourcePrefs.length) {
-        return;
-    }
-    sourceLeft.val(String(visibleLeft.val() || ''));
-    sourceRight.val(String(visibleRight.val() || '__current__'));
-    sourcePrefs.prop('checked', visiblePrefs.prop('checked') === true);
-    sourceLeft.triggerHandler('change');
-    sourceRight.triggerHandler('change');
-    sourcePrefs.triggerHandler('change');
-};
-
-const renderRecoveryWorkspace = (type = activeRecoveryWorkspaceType) => {
-    const resolvedType = normalizeRecoveryWorkspaceType(type);
-    const overviewHost = $('#fv-recovery-overview');
-    const listHost = $('#fv-recovery-backup-list');
-    const policySummary = $('#fv-recovery-policy-summary');
-    const safetyNote = $('#fv-recovery-safety-note');
-    if (!overviewHost.length || !listHost.length) {
-        return;
-    }
-
-    activeRecoveryWorkspaceType = resolvedType;
-    const backups = getSortedBackupsForType(resolvedType);
-    const prefs = utils.normalizePrefs(prefsByType[resolvedType]);
-    const schedule = prefs.backupSchedule || {};
-    const latest = backups[0] || null;
-    const title = resolvedType === 'docker' ? 'Docker' : 'VM';
-
-    overviewHost.html(buildRecoveryOverviewHtml(resolvedType));
-    listHost.html(buildRecoveryBackupHistoryHtml(resolvedType));
-    safetyNote.text(latest
-        ? `Latest ${title} snapshot: ${formatTimestamp(latest.createdAt || '')}. A safety backup is created automatically before restore.`
-        : `No ${title} backup exists yet. Create one now so you have a rollback point before bigger changes.`);
-    policySummary.text(schedule.enabled === true
-        ? `Every ${schedule.intervalHours || 24}h, keep ${schedule.retention || 25}, ${schedule.lastRunAt ? `last run ${formatTimestamp(schedule.lastRunAt)}` : 'waiting for first run'}.`
-        : 'Manual backups only. Enable the scheduler to keep automatic recovery points.');
-    syncVisibleRecoveryCompareControls(resolvedType);
-    window.FolderViewPlusDiagnostics?.renderRecoveryChangeHistoryFromDiagnostics?.();
-};
-
-const syncRecoveryWorkspaceUi = () => {
-    const activeType = normalizeRecoveryWorkspaceType(activeRecoveryWorkspaceType);
-    document.querySelectorAll('[data-fv-recovery-source-toggle]').forEach((button) => {
-        if (!(button instanceof HTMLButtonElement)) {
-            return;
-        }
-        const buttonType = normalizeRecoveryWorkspaceType(button.getAttribute('data-fv-recovery-source-toggle'));
-        const isActive = buttonType === activeType;
-        button.classList.toggle('is-active', isActive);
-        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-    });
-    renderRecoveryWorkspace(activeType);
-};
-
-const setRecoveryWorkspaceType = (type, persist = true) => {
-    activeRecoveryWorkspaceType = normalizeRecoveryWorkspaceType(type);
-    if (persist) {
-        writeSettingsStorage(RECOVERY_WORKSPACE_STORAGE_KEY, activeRecoveryWorkspaceType, { delayMs: 60, idle: true });
-    }
-    syncRecoveryWorkspaceUi();
-};
-
-const selectActiveRecoveryBackup = (name = '') => {
-    const resolvedType = getActiveRecoveryWorkspaceType();
-    recoverySelectedBackupByType[resolvedType] = String(name || '').trim();
-    renderRecoveryWorkspace(resolvedType);
-};
-
-const filterActiveRecoveryBackups = (value = '') => {
-    const resolvedType = getActiveRecoveryWorkspaceType();
-    const displayValue = String(value || '');
-    if (!filtersByType[resolvedType]) {
-        filtersByType[resolvedType] = {
-            folders: '',
-            rules: '',
-            backups: '',
-            templates: '',
-            bulk: ''
-        };
-    }
-    filtersByType[resolvedType].backups = normalizedFilter(displayValue);
-    persistTableUiState();
-    renderBackupRows(resolvedType);
-};
-
-const createActiveRecoveryBackup = () => createManualBackup(getActiveRecoveryWorkspaceType());
-
-const restoreLatestActiveRecoveryBackup = () => restoreLatestBackup(getActiveRecoveryWorkspaceType());
-
-const restoreSelectedActiveRecoveryBackup = () => {
-    const resolvedType = getActiveRecoveryWorkspaceType();
-    const selectedName = String(recoverySelectedBackupByType[resolvedType] || '').trim();
-    if (!selectedName) {
-        showError('Restore failed', new Error('Select a backup first.'));
-        return;
-    }
-    restoreBackupEntry(resolvedType, selectedName);
-};
-
-const downloadSelectedActiveRecoveryBackup = () => {
-    const resolvedType = getActiveRecoveryWorkspaceType();
-    const selectedName = String(recoverySelectedBackupByType[resolvedType] || '').trim();
-    if (!selectedName) {
-        showError('Download failed', new Error('Select a backup first.'));
-        return;
-    }
-    downloadBackupEntry(resolvedType, selectedName);
-};
-
-const deleteSelectedActiveRecoveryBackup = () => {
-    const resolvedType = getActiveRecoveryWorkspaceType();
-    const selectedName = String(recoverySelectedBackupByType[resolvedType] || '').trim();
-    if (!selectedName) {
-        showError('Delete failed', new Error('Select a backup first.'));
-        return;
-    }
-    deleteBackupEntry(resolvedType, selectedName);
-};
-
-const runActiveRecoveryScheduler = () => runScheduledBackupNow(getActiveRecoveryWorkspaceType());
-
-const compareActiveRecoverySnapshots = () => {
-    const resolvedType = getActiveRecoveryWorkspaceType();
-    syncHiddenRecoveryCompareControls(resolvedType);
-    compareBackupSnapshots(resolvedType);
-};
-
-const changeActiveBackupSchedulePref = (key, value) => (
-    changeBackupSchedulePref(getActiveRecoveryWorkspaceType(), key, value)
-);
-
-const undoActiveRecoveryChange = () => undoLatestChange(getActiveRecoveryWorkspaceType());
-
-const syncRulesWorkspaceUi = () => {
-    const activeType = normalizeRulesWorkspaceType(activeRulesWorkspaceType);
-    document.querySelectorAll('[data-fv-rules-source-toggle]').forEach((button) => {
-        if (!(button instanceof HTMLButtonElement)) {
-            return;
-        }
-        const buttonType = normalizeRulesWorkspaceType(button.getAttribute('data-fv-rules-source-toggle'));
-        const isActive = buttonType === activeType;
-        button.classList.toggle('is-active', isActive);
-        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-    });
-    document.querySelectorAll('.fv-rules-workspace[data-fv-rules-type], .fv-rule-troubleshoot-panel[data-fv-rules-type]').forEach((panel) => {
-        if (!(panel instanceof HTMLElement)) {
-            return;
-        }
-        const panelType = normalizeRulesWorkspaceType(panel.getAttribute('data-fv-rules-type'));
-        const isActive = panelType === activeType;
-        panel.hidden = !isActive;
-        panel.setAttribute('aria-hidden', isActive ? 'false' : 'true');
-    });
-};
-
-const setRulesWorkspaceType = (type, persist = true) => {
-    activeRulesWorkspaceType = normalizeRulesWorkspaceType(type);
-    if (persist) {
-        writeSettingsStorage(RULES_WORKSPACE_STORAGE_KEY, activeRulesWorkspaceType, { delayMs: 60, idle: true });
-    }
-    syncRulesWorkspaceUi();
-    renderRulesTable(activeRulesWorkspaceType);
-    updateRuleLiveMatch(activeRulesWorkspaceType);
-    updateRuleValidationHint(activeRulesWorkspaceType);
-};
+const buildRecoveryOverviewHtml = (...args) => getSettingsWorkspacesApi().buildRecoveryOverviewHtml(...args);
+const buildRecoveryBackupHistoryHtml = (...args) => getSettingsWorkspacesApi().buildRecoveryBackupHistoryHtml(...args);
+const syncVisibleRecoveryCompareControls = (...args) => getSettingsWorkspacesApi().syncVisibleRecoveryCompareControls(...args);
+const syncHiddenRecoveryCompareControls = (...args) => getSettingsWorkspacesApi().syncHiddenRecoveryCompareControls(...args);
+const renderRecoveryWorkspace = (...args) => getSettingsWorkspacesApi().renderRecoveryWorkspace(...args);
+const syncRecoveryWorkspaceUi = (...args) => getSettingsWorkspacesApi().syncRecoveryWorkspaceUi(...args);
+const setRecoveryWorkspaceType = (...args) => getSettingsWorkspacesApi().setRecoveryWorkspaceType(...args);
+const selectActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi().selectActiveRecoveryBackup(...args);
+const filterActiveRecoveryBackups = (...args) => getSettingsWorkspacesApi().filterActiveRecoveryBackups(...args);
+const createActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi().createActiveRecoveryBackup(...args);
+const restoreLatestActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi().restoreLatestActiveRecoveryBackup(...args);
+const restoreSelectedActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi().restoreSelectedActiveRecoveryBackup(...args);
+const downloadSelectedActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi().downloadSelectedActiveRecoveryBackup(...args);
+const deleteSelectedActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi().deleteSelectedActiveRecoveryBackup(...args);
+const runActiveRecoveryScheduler = (...args) => getSettingsWorkspacesApi().runActiveRecoveryScheduler(...args);
+const compareActiveRecoverySnapshots = (...args) => getSettingsWorkspacesApi().compareActiveRecoverySnapshots(...args);
+const changeActiveBackupSchedulePref = (...args) => getSettingsWorkspacesApi().changeActiveBackupSchedulePref(...args);
+const undoActiveRecoveryChange = (...args) => getSettingsWorkspacesApi().undoActiveRecoveryChange(...args);
+const syncRulesWorkspaceUi = (...args) => getSettingsWorkspacesApi().syncRulesWorkspaceUi(...args);
+const setRulesWorkspaceType = (...args) => getSettingsWorkspacesApi().setRulesWorkspaceType(...args);
 
 const normalizeHealthSeverityFilterMode = (mode) => {
     const normalized = String(mode || '').trim().toLowerCase();
@@ -7834,223 +7229,9 @@ const renderQuickFolderFilters = (type) => {
     });
 };
 
-const buildHealthCardHtml = (type, metrics, healthPrefs) => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const title = resolvedType === 'docker' ? 'Docker' : 'VMs';
-    const severityClass = metrics.severity === 'danger'
-        ? 'is-danger'
-        : (metrics.severity === 'warning' ? 'is-warning' : 'is-healthy');
-    const statusText = metrics.severity === 'danger'
-        ? 'Action needed'
-        : (metrics.severity === 'warning' ? 'Watch list' : 'Healthy');
-    const statusIcon = metrics.severity === 'danger'
-        ? 'fa-exclamation-triangle'
-        : (metrics.severity === 'warning' ? 'fa-eye' : 'fa-check-circle');
-    const compactClass = healthPrefs.compact ? 'is-compact' : '';
-    const activeFilter = normalizeHealthFilterMode(healthFilterByType[resolvedType]);
-    const totalRegexIssues = metrics.invalidFolderRegexCount + metrics.invalidRuleRegexCount;
-    const folderCount = Number(metrics.folderCount) || 0;
-    const attentionCount = Number(metrics.attentionCount) || 0;
-    const emptyCount = Number(metrics.folderStatusTotals?.empty) || 0;
-    const stoppedFolderCount = Number(metrics.folderStatusTotals?.stopped) || 0;
-    const conflictCount = Number(metrics.conflictItemCount) || 0;
-    const stoppedMembers = Number(metrics.memberTotals?.stopped) || 0;
-    const totalMembers = Number(metrics.memberTotals?.total) || 0;
-    const maintenanceCount = Number(metrics.healthSeverityTotals?.maintenance) || 0;
-    const summaryHeadline = folderCount <= 0
-        ? `No ${title.toLowerCase()} folders are configured yet.`
-        : (attentionCount > 0
-            ? `${attentionCount} ${title.toLowerCase()} folder${attentionCount === 1 ? '' : 's'} need review.`
-            : `${folderCount} ${title.toLowerCase()} folder${folderCount === 1 ? '' : 's'} look healthy.`);
-    const detailParts = [];
-    if (folderCount > 0) {
-        detailParts.push(`${folderCount} folder${folderCount === 1 ? '' : 's'} tracked`);
-        if (totalMembers > 0) {
-            detailParts.push(`${stoppedMembers}/${totalMembers} members stopped`);
-        }
-        if (emptyCount > 0) {
-            detailParts.push(`${emptyCount} empty`);
-        }
-        if (stoppedFolderCount > 0) {
-            detailParts.push(`${stoppedFolderCount} fully stopped`);
-        }
-        if (conflictCount > 0) {
-            detailParts.push(`${conflictCount} conflict${conflictCount === 1 ? '' : 's'}`);
-        }
-        if (totalRegexIssues > 0) {
-            detailParts.push(`${totalRegexIssues} invalid regex`);
-        } else if (maintenanceCount > 0) {
-            detailParts.push(`${maintenanceCount} maintenance folder${maintenanceCount === 1 ? '' : 's'}`);
-        }
-    }
-    const summaryDetail = folderCount <= 0
-        ? 'Create folders in the Docker or VM table before health tracking can surface issues here.'
-        : `${detailParts.join(' - ')}.`;
-    const filterLabelMap = {
-        all: `All (${folderCount})`,
-        attention: `Attention (${attentionCount})`,
-        empty: `Empty (${emptyCount})`,
-        stopped: `Stopped (${stoppedFolderCount})`,
-        conflict: `Conflict (${conflictCount})`
-    };
-    const pillItems = [
-        ['Folders', folderCount],
-        ['Attention', attentionCount],
-        ['Stopped %', `${escapeHtml(String(metrics.stoppedPercent ?? 0))}%`],
-        ['Conflicts', conflictCount],
-        ['Regex', totalRegexIssues]
-    ].filter(([, value]) => value !== 0 && value !== '0%' && value !== '0');
-    const filterButton = (mode, label) => {
-        const active = activeFilter === mode ? 'is-active' : '';
-        return `<button type="button" class="folder-health-filter ${active}" data-fv-health-filter="${escapeHtml(mode)}" data-fv-health-type="${escapeHtml(resolvedType)}">${escapeHtml(label)}</button>`;
-    };
-
-    return `
-        <section class="folder-health-card ${severityClass} ${compactClass}">
-            <div class="folder-health-card-top">
-                <span class="folder-health-card-label">${escapeHtml(title)}</span>
-                <span class="folder-health-card-badge"><i class="fa ${statusIcon}" aria-hidden="true"></i>${escapeHtml(statusText)}</span>
-            </div>
-            <div class="folder-health-card-headline">${escapeHtml(summaryHeadline)}</div>
-            <div class="folder-health-card-detail">${escapeHtml(summaryDetail)}</div>
-            <div class="folder-health-pill-row">
-                ${pillItems.map(([label, value]) => `<span class="folder-health-pill"><span>${escapeHtml(label)}</span><strong>${value}</strong></span>`).join('')}
-            </div>
-            <div class="folder-health-filter-row">
-                ${filterButton('all', filterLabelMap.all)}
-                ${filterButton('attention', filterLabelMap.attention)}
-                ${filterButton('empty', filterLabelMap.empty)}
-                ${filterButton('stopped', filterLabelMap.stopped)}
-                ${filterButton('conflict', filterLabelMap.conflict)}
-            </div>
-            <div class="backup-actions folder-health-actions">
-                <button type="button" data-fv-health-action="jump-table" data-fv-health-type="${escapeHtml(resolvedType)}"><i class="fa fa-table"></i> Open ${escapeHtml(title)} table</button>
-                <button type="button" data-fv-health-action="scan-conflicts" data-fv-health-type="${escapeHtml(resolvedType)}"><i class="fa fa-search"></i> Scan conflicts</button>
-            </div>
-        </section>
-    `;
-};
-
-const buildCleanHealthCardHtml = (type, metrics, healthPrefs) => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const title = resolvedType === 'docker' ? 'Docker' : 'VMs';
-    const severityClass = metrics.severity === 'danger'
-        ? 'is-danger'
-        : (metrics.severity === 'warning' ? 'is-warning' : 'is-healthy');
-    const statusText = metrics.severity === 'danger'
-        ? 'Action needed'
-        : (metrics.severity === 'warning' ? 'Watch list' : 'Healthy');
-    const statusIcon = metrics.severity === 'danger'
-        ? 'fa-exclamation-triangle'
-        : (metrics.severity === 'warning' ? 'fa-eye' : 'fa-check-circle');
-    const compactClass = healthPrefs.compact ? 'is-compact' : '';
-    const activeFilter = normalizeHealthFilterMode(healthFilterByType[resolvedType]);
-    const totalRegexIssues = Number(metrics.invalidFolderRegexCount || 0) + Number(metrics.invalidRuleRegexCount || 0);
-    const folderCount = Number(metrics.folderCount) || 0;
-    const attentionCount = Number(metrics.attentionCount) || 0;
-    const emptyCount = Number(metrics.folderStatusTotals?.empty) || 0;
-    const stoppedFolderCount = Number(metrics.folderStatusTotals?.stopped) || 0;
-    const conflictCount = Number(metrics.conflictItemCount) || 0;
-    const stoppedMembers = Number(metrics.memberTotals?.stopped) || 0;
-    const totalMembers = Number(metrics.memberTotals?.total) || 0;
-    const maintenanceCount = Number(metrics.healthSeverityTotals?.maintenance) || 0;
-    const stoppedPercent = `${String(metrics.stoppedPercent ?? 0)}%`;
-    const summaryHeadline = folderCount <= 0
-        ? `No ${title.toLowerCase()} folders are configured yet.`
-        : (attentionCount > 0
-            ? `${attentionCount} ${title.toLowerCase()} folder${attentionCount === 1 ? '' : 's'} need review.`
-            : `${folderCount} ${title.toLowerCase()} folder${folderCount === 1 ? '' : 's'} look healthy.`);
-    const summaryDetail = folderCount <= 0
-        ? 'Create folders in the Docker or VM table to start tracking health here.'
-        : (attentionCount > 0
-            ? 'Use the issue chips or quick filters below to jump straight to the folders that need attention.'
-            : 'No empty, conflicting, or fully stopped folders need action right now.');
-    const coreStats = [
-        ['Folders', String(folderCount)],
-        ['Attention', String(attentionCount)],
-        ['Stopped %', stoppedPercent]
-    ];
-    const issueChips = [
-        emptyCount > 0 ? `${emptyCount} empty` : '',
-        stoppedFolderCount > 0 ? `${stoppedFolderCount} stopped` : '',
-        conflictCount > 0 ? `${conflictCount} conflict${conflictCount === 1 ? '' : 's'}` : '',
-        totalRegexIssues > 0 ? `${totalRegexIssues} invalid regex` : '',
-        totalRegexIssues <= 0 && maintenanceCount > 0 ? `${maintenanceCount} maintenance` : '',
-        totalMembers > 0 && stoppedMembers > 0 ? `${stoppedMembers}/${totalMembers} members stopped` : ''
-    ].filter((value) => value !== '');
-    const filterLabelMap = {
-        all: 'All',
-        attention: 'Attention',
-        empty: 'Empty',
-        stopped: 'Stopped',
-        conflict: 'Conflict'
-    };
-    const filterButton = (mode, label) => {
-        const active = activeFilter === mode ? 'is-active' : '';
-        return `<button type="button" class="folder-health-filter ${active}" data-fv-health-filter="${escapeHtml(mode)}" data-fv-health-type="${escapeHtml(resolvedType)}">${escapeHtml(label)}</button>`;
-    };
-    const secondaryActionHtml = conflictCount > 0
-        ? `<button type="button" data-fv-health-action="scan-conflicts" data-fv-health-type="${escapeHtml(resolvedType)}"><i class="fa fa-search"></i> Review conflicts</button>`
-        : (attentionCount > 0
-            ? `<button type="button" data-fv-health-action="jump-table" data-fv-health-mode="attention" data-fv-health-type="${escapeHtml(resolvedType)}"><i class="fa fa-filter"></i> Show attention</button>`
-            : '');
-
-    return `
-        <section class="folder-health-card ${severityClass} ${compactClass}">
-            <div class="folder-health-card-top">
-                <span class="folder-health-card-label">${escapeHtml(title)}</span>
-                <span class="folder-health-card-badge"><i class="fa ${statusIcon}" aria-hidden="true"></i>${escapeHtml(statusText)}</span>
-            </div>
-            <div class="folder-health-card-headline">${escapeHtml(summaryHeadline)}</div>
-            <div class="folder-health-card-detail">${escapeHtml(summaryDetail)}</div>
-            <div class="folder-health-stat-grid">
-                ${coreStats.map(([label, value]) => `
-                    <div class="folder-health-stat-card">
-                        <span class="folder-health-stat-label">${escapeHtml(label)}</span>
-                        <strong class="folder-health-stat-value">${escapeHtml(value)}</strong>
-                    </div>
-                `).join('')}
-            </div>
-            ${issueChips.length > 0 ? `
-                <div class="folder-health-issue-row">
-                    ${issueChips.map((label) => `<span class="folder-health-issue-chip">${escapeHtml(label)}</span>`).join('')}
-                </div>
-            ` : ''}
-            <div class="folder-health-filter-row">
-                ${filterButton('all', filterLabelMap.all)}
-                ${filterButton('attention', filterLabelMap.attention)}
-                ${filterButton('empty', filterLabelMap.empty)}
-                ${filterButton('stopped', filterLabelMap.stopped)}
-                ${filterButton('conflict', filterLabelMap.conflict)}
-            </div>
-            <div class="backup-actions folder-health-actions">
-                <button type="button" data-fv-health-action="jump-table" data-fv-health-type="${escapeHtml(resolvedType)}"><i class="fa fa-table"></i> Open ${escapeHtml(title)} table</button>
-                ${secondaryActionHtml}
-            </div>
-        </section>
-    `;
-};
-
-const renderFolderHealthCards = () => {
-    const container = $('#folder-health-content');
-    if (!container.length) {
-        return;
-    }
-    const cards = [];
-    for (const type of ['docker', 'vm']) {
-        const healthPrefs = normalizeHealthPrefs(type);
-        if (healthPrefs.cardsEnabled !== true) {
-            continue;
-        }
-        const metrics = healthMetricsByType[type] || buildTypeHealthMetrics(type, getFolderMap(type), getEffectiveMemberSnapshot(type, getFolderMap(type)));
-        cards.push(buildCleanHealthCardHtml(type, metrics, healthPrefs));
-    }
-    if (!cards.length) {
-        container.html('<div class="folder-health-empty">Health cards are disabled. Enable them in Docker or VM settings cards.</div>');
-        return;
-    }
-    container.html(cards.join(''));
-};
+const buildHealthCardHtml = (...args) => getSettingsHealthApi().buildHealthCardHtml(...args);
+const buildCleanHealthCardHtml = (...args) => getSettingsHealthApi().buildCleanHealthCardHtml(...args);
+const renderFolderHealthCards = (...args) => getSettingsHealthApi().renderFolderHealthCards(...args);
 
 const RULE_REGEX_KINDS = Object.freeze(['name_regex', 'image_regex', 'compose_project_regex']);
 const RULE_LABEL_KINDS = Object.freeze(['label', 'label_contains', 'label_starts_with']);
@@ -8955,280 +8136,16 @@ const renderBackupRows = (type) => {
 
 // folderviewplus.import.js provides backup comparison helpers.
 
-const normalizeOperationsWorkspaceType = (value) => (String(value || '').trim().toLowerCase() === 'vm' ? 'vm' : 'docker');
-
-const getLatestTemplateForType = (type) => {
-    const resolvedType = normalizeOperationsWorkspaceType(type);
-    const templates = Array.isArray(templatesByType[resolvedType]) ? templatesByType[resolvedType] : [];
-    if (!templates.length) {
-        return null;
-    }
-    return [...templates].sort((left, right) => {
-        const leftTime = Date.parse(String(left?.updatedAt || left?.createdAt || 0));
-        const rightTime = Date.parse(String(right?.updatedAt || right?.createdAt || 0));
-        return rightTime - leftTime;
-    })[0] || null;
-};
-
-const buildOperationsOverviewHtml = (type) => {
-    const resolvedType = normalizeOperationsWorkspaceType(type);
-    const title = resolvedType === 'docker' ? 'Docker' : 'VM';
-    const folders = Object.keys(getFolderMap(resolvedType));
-    const folderCount = folders.length;
-    const templates = Array.isArray(templatesByType[resolvedType]) ? templatesByType[resolvedType] : [];
-    const templateCount = templates.length;
-    const latestTemplate = getLatestTemplateForType(resolvedType);
-    const latestLabel = latestTemplate ? formatTimestamp(latestTemplate.updatedAt || latestTemplate.createdAt || '') : 'Not saved yet';
-    const headline = templateCount
-        ? `${templateCount} saved template${templateCount === 1 ? '' : 's'} ready for ${folderCount} folder${folderCount === 1 ? '' : 's'}.`
-        : `No saved ${title.toLowerCase()} templates yet.`;
-    const copy = folderCount
-        ? `Run live folder actions or reuse a template across ${folderCount} ${title === 'Docker' ? 'Docker folder' : 'VM folder'}${folderCount === 1 ? '' : 's'} from the same workspace.`
-        : `Create your first ${title === 'Docker' ? 'Docker' : 'VM'} folder to unlock runtime actions and reusable templates here.`;
-    return `
-        <div class="fv-operations-overview-head">
-            <div>
-                <span class="fv-operations-source-label">${escapeHtml(title)}</span>
-                <div class="fv-operations-headline">${escapeHtml(headline)}</div>
-                <div class="fv-operations-copy">${escapeHtml(copy)}</div>
-            </div>
-            <span class="fv-recovery-history-badge">${templateCount > 0 ? 'Ready' : 'Needs first template'}</span>
-        </div>
-        <div class="fv-operations-stat-grid">
-            <div class="fv-operations-stat-card">
-                <span class="fv-operations-stat-label">Folders</span>
-                <strong>${escapeHtml(String(folderCount))}</strong>
-                <span>${escapeHtml(`${title} folders available`)}</span>
-            </div>
-            <div class="fv-operations-stat-card">
-                <span class="fv-operations-stat-label">Templates</span>
-                <strong>${escapeHtml(String(templateCount))}</strong>
-                <span>${escapeHtml(templateCount === 1 ? 'Saved preset ready' : 'Saved presets ready')}</span>
-            </div>
-            <div class="fv-operations-stat-card">
-                <span class="fv-operations-stat-label">Live actions</span>
-                <strong>4</strong>
-                <span>Start, stop, pause, resume</span>
-            </div>
-            <div class="fv-operations-stat-card">
-                <span class="fv-operations-stat-label">Latest template</span>
-                <strong>${escapeHtml(latestLabel)}</strong>
-                <span>${escapeHtml(latestTemplate?.name || 'Save one from a folder')}</span>
-            </div>
-        </div>
-    `;
-};
-
-const renderOperationsOverview = (type) => {
-    const resolvedType = normalizeOperationsWorkspaceType(type);
-    const host = $(`#${resolvedType}-operations-overview`);
-    if (!host.length) {
-        return;
-    }
-    host.html(buildOperationsOverviewHtml(resolvedType));
-};
-
-const buildRuntimePreviewHtml = (type, folderId, action, plan, result = null) => {
-    const resolvedType = normalizeOperationsWorkspaceType(type);
-    if (!plan) {
-        return `
-            <div class="fv-recovery-empty-state">
-                <strong>No runtime action preview yet.</strong>
-                <span>Select a ${resolvedType === 'docker' ? 'Docker' : 'VM'} folder and action, then preview the plan before applying it.</span>
-            </div>
-        `;
-    }
-    const folderName = folderNameForId(resolvedType, folderId);
-    const eligiblePreview = plan.eligible.slice(0, 6);
-    const skippedPreview = plan.skipped.slice(0, 6);
-    const eligibleOverflow = Math.max(0, plan.eligible.length - eligiblePreview.length);
-    const skippedOverflow = Math.max(0, plan.skipped.length - skippedPreview.length);
-    const resultCopy = result
-        ? `Applied ${action} to ${result.executed || 0} item(s). ${result.succeeded || 0} succeeded, ${result.failed || 0} failed.`
-        : `Preview which ${resolvedType === 'docker' ? 'containers' : 'VMs'} will change before applying ${action}.`;
-    return `
-        <div class="fv-operations-runtime-summary">
-            <div class="fv-operations-runtime-head">
-                <div>
-                    <div class="fv-operations-runtime-title">${escapeHtml(folderName)} - ${escapeHtml(String(action || '').toUpperCase())}</div>
-                    <div class="fv-operations-runtime-copy">${escapeHtml(resultCopy)}</div>
-                </div>
-                ${result ? `<span class="fv-recovery-history-badge">${(result.failed || 0) > 0 ? 'Completed with warnings' : 'Applied'}</span>` : ''}
-            </div>
-            <div class="fv-operations-stat-grid fv-operations-runtime-stats">
-                <div class="fv-operations-stat-card">
-                    <span class="fv-operations-stat-label">Requested</span>
-                    <strong>${escapeHtml(String(plan.requestedCount || 0))}</strong>
-                    <span>Items in folder</span>
-                </div>
-                <div class="fv-operations-stat-card">
-                    <span class="fv-operations-stat-label">Eligible</span>
-                    <strong>${escapeHtml(String(plan.eligible.length || 0))}</strong>
-                    <span>Can change now</span>
-                </div>
-                <div class="fv-operations-stat-card">
-                    <span class="fv-operations-stat-label">Skipped</span>
-                    <strong>${escapeHtml(String(plan.skipped.length || 0))}</strong>
-                    <span>Already in desired state</span>
-                </div>
-                <div class="fv-operations-stat-card">
-                    <span class="fv-operations-stat-label">State mix</span>
-                    <strong>${escapeHtml(`${plan.countsByState?.started || 0}/${plan.countsByState?.paused || 0}/${plan.countsByState?.stopped || 0}`)}</strong>
-                    <span>started / paused / stopped</span>
-                </div>
-            </div>
-            <div class="fv-operations-runtime-columns">
-                <div class="fv-operations-runtime-list">
-                    <strong>Will change</strong>
-                    ${eligiblePreview.length ? `
-                        <ul>
-                            ${eligiblePreview.map((row) => `<li>${escapeHtml(row.name)} <span>${escapeHtml(row.state || 'unknown')}</span></li>`).join('')}
-                        </ul>
-                        ${eligibleOverflow > 0 ? `<div class="fv-operations-runtime-more">+${eligibleOverflow} more eligible item(s)</div>` : ''}
-                    ` : '<div class="fv-operations-runtime-empty">No eligible items for this action.</div>'}
-                </div>
-                <div class="fv-operations-runtime-list">
-                    <strong>Skipped</strong>
-                    ${skippedPreview.length ? `
-                        <ul>
-                            ${skippedPreview.map((row) => `<li>${escapeHtml(row.name)} <span>${escapeHtml(row.reason || row.state || 'skipped')}</span></li>`).join('')}
-                        </ul>
-                        ${skippedOverflow > 0 ? `<div class="fv-operations-runtime-more">+${skippedOverflow} more skipped item(s)</div>` : ''}
-                    ` : '<div class="fv-operations-runtime-empty">Nothing is being skipped.</div>'}
-                </div>
-            </div>
-        </div>
-    `;
-};
-
-const setRuntimePreviewOutput = (type, html) => {
-    const resolvedType = normalizeOperationsWorkspaceType(type);
-    const host = $(`#${resolvedType}-runtime-preview-output`);
-    if (!host.length) {
-        return;
-    }
-    host.html(String(html || ''));
-};
-
-const renderOperationsWorkspace = () => {
-    const activeType = normalizeOperationsWorkspaceType(activeOperationsWorkspaceType);
-    document.querySelectorAll('[data-fv-operations-source-toggle]').forEach((button) => {
-        if (!(button instanceof HTMLButtonElement)) {
-            return;
-        }
-        const buttonType = normalizeOperationsWorkspaceType(button.getAttribute('data-fv-operations-source-toggle'));
-        const isActive = buttonType === activeType;
-        button.classList.toggle('is-active', isActive);
-        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-    });
-    document.querySelectorAll('[data-fv-operations-panel]').forEach((panel) => {
-        if (!(panel instanceof HTMLElement)) {
-            return;
-        }
-        const panelType = normalizeOperationsWorkspaceType(panel.getAttribute('data-fv-operations-panel'));
-        const isActive = panelType === activeType;
-        panel.hidden = !isActive;
-        panel.classList.toggle('is-active', isActive);
-    });
-};
-
-const setOperationsWorkspaceType = (type, persist = true) => {
-    activeOperationsWorkspaceType = normalizeOperationsWorkspaceType(type);
-    if (persist) {
-        writeSettingsStorage(OPERATIONS_WORKSPACE_STORAGE_KEY, activeOperationsWorkspaceType, { delayMs: 60, idle: true });
-    }
-    renderOperationsWorkspace();
-};
-
-const selectOperationsTemplate = (type, templateId) => {
-    const resolvedType = normalizeOperationsWorkspaceType(type);
-    selectedOperationsTemplateIdByType[resolvedType] = String(templateId || '').trim();
-    renderTemplateRows(resolvedType);
-};
-
-const exportTemplateEntry = (type, templateId) => {
-    const resolvedType = normalizeOperationsWorkspaceType(type);
-    const template = (templatesByType[resolvedType] || []).find((entry) => String(entry?.id || '') === String(templateId || ''));
-    if (!template) {
-        swal({ title: 'Template not found', text: 'Select a valid template first.', type: 'warning' });
-        return;
-    }
-    const payload = {
-        schemaVersion: 1,
-        exportedAt: new Date().toISOString(),
-        type: resolvedType,
-        mode: 'templates',
-        templates: [template]
-    };
-    downloadFile(`FolderView Plus ${resolvedType.toUpperCase()} Template - ${template.name || template.id}.json`, toPrettyJson(payload));
-};
-
-const renderTemplateRows = (type) => {
-    const resolvedType = normalizeOperationsWorkspaceType(type);
-    const host = $(`#${resolvedType}-operations-template-library`);
-    if (!host.length) {
-        return;
-    }
-    const allTemplates = templatesByType[resolvedType] || [];
-    const folders = getFolderMap(resolvedType);
-    const folderOptions = Object.entries(folders).map(([id, folder]) => (
-        `<option value="${escapeHtml(id)}">${escapeHtml(folder.name || id)}</option>`
-    )).join('');
-
-    if (!allTemplates.length) {
-        selectedOperationsTemplateIdByType[resolvedType] = '';
-        host.html(`
-            <div class="fv-recovery-empty-state">
-                <strong>No saved ${resolvedType === 'docker' ? 'Docker' : 'VM'} templates yet.</strong>
-                <span>Create one from an existing folder to reuse icon, settings, actions, and matching logic faster.</span>
-            </div>
-        `);
-        return;
-    }
-
-    const selectedTemplateId = String(selectedOperationsTemplateIdByType[resolvedType] || '').trim();
-    const selectedTemplate = allTemplates.find((template) => String(template?.id || '') === selectedTemplateId) || allTemplates[0];
-    const resolvedTemplateId = String(selectedTemplate?.id || '').trim();
-    selectedOperationsTemplateIdByType[resolvedType] = resolvedTemplateId;
-    const templateSelectOptions = allTemplates.map((template) => {
-        const templateId = String(template?.id || '');
-        const templateName = String(template?.name || templateId);
-        const updated = formatTimestamp(template?.updatedAt || template?.createdAt || '');
-        const selectedAttr = templateId === resolvedTemplateId ? ' selected' : '';
-        const optionLabel = [templateName, updated].filter(Boolean).join(' - ');
-        return `<option value="${escapeHtml(templateId)}"${selectedAttr}>${escapeHtml(optionLabel)}</option>`;
-    }).join('');
-    const targetSelectId = `${resolvedType}-operations-template-target-folder`;
-    const templateUpdated = formatTimestamp(selectedTemplate?.updatedAt || selectedTemplate?.createdAt || '');
-    const templateName = String(selectedTemplate?.name || resolvedTemplateId);
-    const folderCount = Object.keys(folders).length;
-    host.html(`
-        <div class="fv-operations-template-picker-row">
-            <label for="${escapeHtml(`${resolvedType}-operations-template-select`)}">Saved template</label>
-            <select id="${escapeHtml(`${resolvedType}-operations-template-select`)}" onchange="selectOperationsTemplate('${resolvedType}', this.value)">
-                ${templateSelectOptions}
-            </select>
-        </div>
-        <div class="fv-operations-template-card">
-            <div class="fv-operations-template-head">
-                <div>
-                    <div class="fv-operations-template-title">${escapeHtml(templateName)}</div>
-                    <div class="fv-operations-template-copy">Updated ${escapeHtml(templateUpdated)}. Ready to apply across ${escapeHtml(String(folderCount))} folder${folderCount === 1 ? '' : 's'}.</div>
-                </div>
-                <span class="fv-recovery-history-badge">${escapeHtml(selectedTemplate?.id || '')}</span>
-            </div>
-            <div class="fv-operations-template-target-row">
-                <label for="${escapeHtml(targetSelectId)}">Apply to folder</label>
-                <select id="${escapeHtml(targetSelectId)}">${folderOptions}</select>
-            </div>
-            <div class="backup-actions fv-operations-template-actions">
-                <button type="button" onclick="applyTemplateToFolder('${resolvedType}','${escapeHtml(resolvedTemplateId)}','${escapeHtml(targetSelectId)}')"><i class="fa fa-clone"></i> Apply to folder</button>
-                <button type="button" onclick="exportTemplateEntry('${resolvedType}','${escapeHtml(resolvedTemplateId)}')"><i class="fa fa-download"></i> Export</button>
-                <button type="button" onclick="deleteTemplateEntry('${resolvedType}','${escapeHtml(resolvedTemplateId)}')"><i class="fa fa-trash"></i> Delete</button>
-            </div>
-        </div>
-    `);
-};
+const normalizeOperationsWorkspaceType = (...args) => getSettingsWorkspacesApi().normalizeOperationsWorkspaceType(...args);
+const buildOperationsOverviewHtml = (...args) => getSettingsWorkspacesApi().buildOperationsOverviewHtml(...args);
+const renderOperationsOverview = (...args) => getSettingsWorkspacesApi().renderOperationsOverview(...args);
+const buildRuntimePreviewHtml = (...args) => getSettingsWorkspacesApi().buildRuntimePreviewHtml(...args);
+const setRuntimePreviewOutput = (...args) => getSettingsWorkspacesApi().setRuntimePreviewOutput(...args);
+const renderOperationsWorkspace = (...args) => getSettingsWorkspacesApi().renderOperationsWorkspace(...args);
+const setOperationsWorkspaceType = (...args) => getSettingsWorkspacesApi().setOperationsWorkspaceType(...args);
+const selectOperationsTemplate = (...args) => getSettingsWorkspacesApi().selectOperationsTemplate(...args);
+const exportTemplateEntry = (...args) => getSettingsWorkspacesApi().exportTemplateEntry(...args);
+const renderTemplateRows = (...args) => getSettingsWorkspacesApi().renderTemplateRows(...args);
 
 const renderTable = (type) => {
     const folders = getFolderMap(type);

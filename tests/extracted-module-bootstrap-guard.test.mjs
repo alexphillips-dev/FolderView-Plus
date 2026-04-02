@@ -12,6 +12,7 @@ const folderIconApiJs = read('src/folderview.plus/usr/local/emhttp/plugins/folde
 const folderEditorStateJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.state.js');
 const folderEditorMembersJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.members.js');
 const settingsActionSupportJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.actions-support.js');
+const bulkAssignmentJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js');
 const dockerRuntimeInfoJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.info.js');
 const dockerPreviewActionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.preview-actions.js');
 
@@ -23,6 +24,7 @@ test('extracted helper modules use a safe global fallback instead of out-of-scop
         folderEditorStateJs,
         folderEditorMembersJs,
         settingsActionSupportJs,
+        bulkAssignmentJs,
         dockerRuntimeInfoJs,
         dockerPreviewActionsJs
     ]) {

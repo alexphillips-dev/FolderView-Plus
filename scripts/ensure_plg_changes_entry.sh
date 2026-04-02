@@ -220,6 +220,7 @@ classify_changed_path_subsystems() {
     src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.chrome.js|\
     src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.dirty.js|\
     src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.row-details.js|\
+    src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js|\
     src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-*|\
     src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.updates.js|\
     src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css|\

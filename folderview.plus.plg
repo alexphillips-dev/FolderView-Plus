@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.02.03">
-<!ENTITY md5 "6610d43af2402f087fc5d84bbf6e79bf">
+<!ENTITY version "2026.04.02.04">
+<!ENTITY md5 "15328d7fa4cd8ac94541a422a9e9945c">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.02.04
+- UX: Dashboard layouts, quick rails, and folder card interactions.
+- UX: Folder editor flows, previews, and bootstrap behavior.
+- UX: Settings workspace layout, section flows, and table behavior.
+- Refactor: Shared runtime contracts, request plumbing, and cross-page foundations.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
 
 ###2026.04.02.03
 - UX: Dashboard layouts, quick rails, and folder card interactions.

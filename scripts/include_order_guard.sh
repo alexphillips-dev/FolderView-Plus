@@ -40,6 +40,7 @@ const expectedOrder = [
   'folderviewplus.row-details.js',
   'folderviewplus.settings-health.js',
   'folderviewplus.settings-workspaces.js',
+  'folderviewplus.bulk-assignment.js',
   'folderviewplus.wizard-smart-detect.js',
   'folderviewplus.wizard.js',
   'folderviewplus.import.js',

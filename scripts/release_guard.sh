@@ -173,6 +173,7 @@ SOURCE_SETTINGS_TREE_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugin
 SOURCE_SETTINGS_FOLDER_EDITOR_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js"
 SOURCE_SETTINGS_HEALTH_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-health.js"
 SOURCE_SETTINGS_WORKSPACES_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-workspaces.js"
+SOURCE_SETTINGS_BULK_ASSIGNMENT_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js"
 SOURCE_SETTINGS_WIZARD_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js"
 SOURCE_SETTINGS_IMPORT_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js"
 SOURCE_SETTINGS_CSS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css"
@@ -235,6 +236,10 @@ if [[ ! -f "${SOURCE_SETTINGS_HEALTH_JS}" ]]; then
 fi
 if [[ ! -f "${SOURCE_SETTINGS_WORKSPACES_JS}" ]]; then
   echo "ERROR: Missing source settings workspaces script: ${SOURCE_SETTINGS_WORKSPACES_JS}" >&2
+  exit 1
+fi
+if [[ ! -f "${SOURCE_SETTINGS_BULK_ASSIGNMENT_JS}" ]]; then
+  echo "ERROR: Missing source settings bulk assignment script: ${SOURCE_SETTINGS_BULK_ASSIGNMENT_JS}" >&2
   exit 1
 fi
 if [[ ! -f "${SOURCE_SETTINGS_WIZARD_JS}" ]]; then
@@ -311,6 +316,7 @@ REQUIRED_ARCHIVE_PATHS=(
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-health.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-workspaces.js"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js"
   "./usr/local/emhttp/plugins/folderview.plus/styles/folder.css"
@@ -375,6 +381,10 @@ if ! grep -q 'folderviewplus\.settings-tree\.js' "${SOURCE_SETTINGS_PAGE}"; then
 fi
 if ! grep -q 'folderviewplus\.folder-editor\.js' "${SOURCE_SETTINGS_PAGE}"; then
   echo "ERROR: Source FolderViewPlus.page is missing folderviewplus.folder-editor.js include." >&2
+  exit 1
+fi
+if ! grep -q 'folderviewplus\.bulk-assignment\.js' "${SOURCE_SETTINGS_PAGE}"; then
+  echo "ERROR: Source FolderViewPlus.page is missing folderviewplus.bulk-assignment.js include." >&2
   exit 1
 fi
 if ! grep -q 'folderviewplus\.wizard\.js' "${SOURCE_SETTINGS_PAGE}"; then
@@ -493,6 +503,7 @@ TMP_ARCHIVE_SETTINGS_TREE_JS="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_FOLDER_EDITOR_JS="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_HEALTH_JS="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_WORKSPACES_JS="$(mktemp)"
+TMP_ARCHIVE_SETTINGS_BULK_ASSIGNMENT_JS="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_WIZARD_JS="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_IMPORT_JS="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_CSS="$(mktemp)"
@@ -500,7 +511,7 @@ TMP_ARCHIVE_FOLDER_PAGE="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_PAGE="$(mktemp)"
 TMP_ARCHIVE_SERVER_LIB="$(mktemp)"
 TMP_ARCHIVE_SERVER_UPDATE_NOTES="$(mktemp)"
-trap 'rm -f "${TMP_ARCHIVE_FOLDER_JS}" "${TMP_ARCHIVE_FOLDER_CSS}" "${TMP_ARCHIVE_SETTINGS_JS}" "${TMP_ARCHIVE_SETTINGS_DIRTY_JS}" "${TMP_ARCHIVE_SETTINGS_RUNTIME_PARITY_JS}" "${TMP_ARCHIVE_SETTINGS_SECTIONS_JS}" "${TMP_ARCHIVE_SETTINGS_SETUP_ASSISTANT_JS}" "${TMP_ARCHIVE_SETTINGS_SMART_DETECT_CONFIG_JS}" "${TMP_ARCHIVE_SETTINGS_STARTER_TEMPLATES_JS}" "${TMP_ARCHIVE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS}" "${TMP_ARCHIVE_SETTINGS_TREE_JS}" "${TMP_ARCHIVE_SETTINGS_FOLDER_EDITOR_JS}" "${TMP_ARCHIVE_SETTINGS_HEALTH_JS}" "${TMP_ARCHIVE_SETTINGS_WORKSPACES_JS}" "${TMP_ARCHIVE_SETTINGS_WIZARD_JS}" "${TMP_ARCHIVE_SETTINGS_IMPORT_JS}" "${TMP_ARCHIVE_SETTINGS_CSS}" "${TMP_ARCHIVE_FOLDER_PAGE}" "${TMP_ARCHIVE_SETTINGS_PAGE}" "${TMP_ARCHIVE_SERVER_LIB}" "${TMP_ARCHIVE_SERVER_UPDATE_NOTES}"' EXIT
+trap 'rm -f "${TMP_ARCHIVE_FOLDER_JS}" "${TMP_ARCHIVE_FOLDER_CSS}" "${TMP_ARCHIVE_SETTINGS_JS}" "${TMP_ARCHIVE_SETTINGS_DIRTY_JS}" "${TMP_ARCHIVE_SETTINGS_RUNTIME_PARITY_JS}" "${TMP_ARCHIVE_SETTINGS_SECTIONS_JS}" "${TMP_ARCHIVE_SETTINGS_SETUP_ASSISTANT_JS}" "${TMP_ARCHIVE_SETTINGS_SMART_DETECT_CONFIG_JS}" "${TMP_ARCHIVE_SETTINGS_STARTER_TEMPLATES_JS}" "${TMP_ARCHIVE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS}" "${TMP_ARCHIVE_SETTINGS_TREE_JS}" "${TMP_ARCHIVE_SETTINGS_FOLDER_EDITOR_JS}" "${TMP_ARCHIVE_SETTINGS_HEALTH_JS}" "${TMP_ARCHIVE_SETTINGS_WORKSPACES_JS}" "${TMP_ARCHIVE_SETTINGS_BULK_ASSIGNMENT_JS}" "${TMP_ARCHIVE_SETTINGS_WIZARD_JS}" "${TMP_ARCHIVE_SETTINGS_IMPORT_JS}" "${TMP_ARCHIVE_SETTINGS_CSS}" "${TMP_ARCHIVE_FOLDER_PAGE}" "${TMP_ARCHIVE_SETTINGS_PAGE}" "${TMP_ARCHIVE_SERVER_LIB}" "${TMP_ARCHIVE_SERVER_UPDATE_NOTES}"' EXIT
 ARCHIVE_FOLDER_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folder.js"
 ARCHIVE_FOLDER_CSS_PATH="./usr/local/emhttp/plugins/folderview.plus/styles/folder.css"
 ARCHIVE_SETTINGS_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js"
@@ -515,6 +526,7 @@ ARCHIVE_SETTINGS_TREE_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/script
 ARCHIVE_SETTINGS_FOLDER_EDITOR_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js"
 ARCHIVE_SETTINGS_HEALTH_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-health.js"
 ARCHIVE_SETTINGS_WORKSPACES_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-workspaces.js"
+ARCHIVE_SETTINGS_BULK_ASSIGNMENT_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js"
 ARCHIVE_SETTINGS_WIZARD_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js"
 ARCHIVE_SETTINGS_IMPORT_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js"
 ARCHIVE_SETTINGS_CSS_PATH="./usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css"
@@ -564,6 +576,9 @@ fi
 if ! grep -Fxq "${ARCHIVE_SETTINGS_WORKSPACES_JS_PATH}" <<< "${ARCHIVE_LIST}"; then
   ARCHIVE_SETTINGS_WORKSPACES_JS_PATH="${ARCHIVE_SETTINGS_WORKSPACES_JS_PATH#./}"
 fi
+if ! grep -Fxq "${ARCHIVE_SETTINGS_BULK_ASSIGNMENT_JS_PATH}" <<< "${ARCHIVE_LIST}"; then
+  ARCHIVE_SETTINGS_BULK_ASSIGNMENT_JS_PATH="${ARCHIVE_SETTINGS_BULK_ASSIGNMENT_JS_PATH#./}"
+fi
 if ! grep -Fxq "${ARCHIVE_SETTINGS_WIZARD_JS_PATH}" <<< "${ARCHIVE_LIST}"; then
   ARCHIVE_SETTINGS_WIZARD_JS_PATH="${ARCHIVE_SETTINGS_WIZARD_JS_PATH#./}"
 fi
@@ -599,6 +614,7 @@ tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_TREE_JS_PATH}" > "${TMP_ARCHIVE_S
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_FOLDER_EDITOR_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_FOLDER_EDITOR_JS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_HEALTH_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_HEALTH_JS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_WORKSPACES_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_WORKSPACES_JS}"
+tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_BULK_ASSIGNMENT_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_BULK_ASSIGNMENT_JS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_WIZARD_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_WIZARD_JS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_IMPORT_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_IMPORT_JS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_CSS_PATH}" > "${TMP_ARCHIVE_SETTINGS_CSS}"
@@ -654,6 +670,9 @@ if ! text_files_match "${SOURCE_SETTINGS_HEALTH_JS}" "${TMP_ARCHIVE_SETTINGS_HEA
 fi
 if ! text_files_match "${SOURCE_SETTINGS_WORKSPACES_JS}" "${TMP_ARCHIVE_SETTINGS_WORKSPACES_JS}"; then
   fail_packaged_source_mismatch "Packaged folderviewplus.settings-workspaces.js does not match source folderviewplus.settings-workspaces.js."
+fi
+if ! text_files_match "${SOURCE_SETTINGS_BULK_ASSIGNMENT_JS}" "${TMP_ARCHIVE_SETTINGS_BULK_ASSIGNMENT_JS}"; then
+  fail_packaged_source_mismatch "Packaged folderviewplus.bulk-assignment.js does not match source folderviewplus.bulk-assignment.js."
 fi
 if ! text_files_match "${SOURCE_SETTINGS_WIZARD_JS}" "${TMP_ARCHIVE_SETTINGS_WIZARD_JS}"; then
   fail_packaged_source_mismatch "Packaged folderviewplus.wizard.js does not match source folderviewplus.wizard.js."

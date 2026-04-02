@@ -23,6 +23,7 @@ const settingsScriptPaths = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-health.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-workspaces.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-tree.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.actions-support.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
@@ -57,22 +58,25 @@ test('settings page loads extracted settings metadata before the main runtime', 
     assert.match(page, /folderviewplus\.settings-metadata\.js/);
     assert.match(page, /folderviewplus\.settings-sections\.js/);
     assert.match(page, /folderviewplus\.settings-table\.js/);
-    assert.match(page, /folderviewplus\.settings-tree\.js[\s\S]*folderviewplus\.folder-editor\.js[\s\S]*folderviewplus\.row-details\.js[\s\S]*folderviewplus\.settings-health\.js[\s\S]*folderviewplus\.settings-workspaces\.js[\s\S]*folderviewplus\.actions-support\.js[\s\S]*folderviewplus\.js/);
+    assert.match(page, /folderviewplus\.settings-tree\.js[\s\S]*folderviewplus\.folder-editor\.js[\s\S]*folderviewplus\.row-details\.js[\s\S]*folderviewplus\.settings-health\.js[\s\S]*folderviewplus\.settings-workspaces\.js[\s\S]*folderviewplus\.bulk-assignment\.js[\s\S]*folderviewplus\.actions-support\.js[\s\S]*folderviewplus\.js/);
     assert.match(script, /FolderViewPlusSettingsMetadataModuleLoaded = true/);
     assert.match(script, /FolderViewPlusSettingsTableModuleLoaded = true/);
     assert.match(script, /FolderViewPlusSettingsHealthModuleLoaded = true/);
     assert.match(script, /FolderViewPlusSettingsWorkspacesModuleLoaded = true/);
     assert.match(script, /FolderViewPlusSettingsTreeModuleLoaded = true/);
+    assert.match(script, /FolderViewPlusBulkAssignmentModuleLoaded = true/);
     assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.settings-metadata\.js'\)/);
     assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.settings-table\.js'\)/);
     assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.settings-health\.js'\)/);
     assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.settings-workspaces\.js'\)/);
     assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.settings-tree\.js'\)/);
+    assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.bulk-assignment\.js'\)/);
     assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.actions-support\.js'\)/);
     assert.match(script, /const settingsTableModule = window\.FolderViewPlusSettingsTable \|\| null;/);
     assert.match(script, /const settingsHealthModule = window\.FolderViewPlusSettingsHealth \|\| null;/);
     assert.match(script, /const settingsWorkspacesModule = window\.FolderViewPlusSettingsWorkspaces \|\| null;/);
     assert.match(script, /const settingsTreeModule = window\.FolderViewPlusSettingsTree \|\| null;/);
+    assert.match(script, /const bulkAssignmentModule = window\.FolderViewPlusBulkAssignment \|\| null;/);
 });
 
 test('settings page exposes theme fallback controls and runtime self-heal action', () => {
@@ -433,6 +437,7 @@ test('bulk assignment advanced UX includes filtering, selection helpers, and com
     assert.match(script, /const filterBulkItems = \(type, value = ''\) =>/);
     assert.match(script, /const bulkItemSelectionAction = \(type, action = 'all'\) =>/);
     assert.match(script, /const updateBulkSelectedCount = \(type\) =>/);
+    assert.match(script, /const getBulkAssignmentApi = \(\(\) => \{/);
     assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*retryFailedBulkItems[\s\S]*filterBulkItems[\s\S]*bulkItemSelectionAction[\s\S]*updateBulkSelectedCount[\s\S]*\}\);/);
     assert.match(script, /utils && typeof utils\.normalizeFolderMembers === 'function'/);
     assert.match(script, /utils\.normalizeFolderMembers\(folder\?\.containers \|\| \[\]\)/);

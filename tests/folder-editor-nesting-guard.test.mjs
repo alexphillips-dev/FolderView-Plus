@@ -32,6 +32,10 @@ const settingsScript = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'),
     'utf8'
 );
+const settingsRuntimeActionsScript = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js'),
+    'utf8'
+);
 
 test('folder editor validates duplicate names within the selected parent path', () => {
     assert.match(folderHierarchyScript, /const buildParentFolderEntries = \(foldersMap,\s*blockedIds = new Set\(\)\) =>/);
@@ -155,7 +159,7 @@ test('folder editor includes parent default hint styles', () => {
 
 test('tree integrity scan includes depth and empty-branch signals', () => {
     assert.match(settingsScript, /const TREE_INTEGRITY_DEPTH_WARN_LEVEL = \d+;/);
-    assert.match(settingsScript, /depthWarnings/);
-    assert.match(settingsScript, /emptyBranches/);
-    assert.match(settingsScript, /No repairable link issues/);
+    assert.match(settingsRuntimeActionsScript, /depthWarnings/);
+    assert.match(settingsRuntimeActionsScript, /emptyBranches/);
+    assert.match(settingsRuntimeActionsScript, /No repairable link issues/);
 });

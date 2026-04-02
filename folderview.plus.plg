@@ -6,12 +6,18 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.02.04">
-<!ENTITY md5 "15328d7fa4cd8ac94541a422a9e9945c">
+<!ENTITY version "2026.04.02.05">
+<!ENTITY md5 "3592fcc931bb4566a6013dc9c2e6da2a">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.02.05
+- Refactor: Extracted settings runtime branch actions, tree-integrity scan and repair, and runtime action preview or apply flows into `folderviewplus.runtime-actions.js`.
+- Quality: Settings bootstrap, install smoke, release guard, and perf guard now track the extracted runtime-actions module as a required packaged asset.
+- Quality: Settings architecture and nesting regression tests now verify the extracted runtime-actions module instead of the old in-file implementations.
+
 
 ###2026.04.02.04
 - UX: Dashboard layouts, quick rails, and folder card interactions.

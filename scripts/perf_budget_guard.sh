@@ -127,6 +127,13 @@ const budgets = [
     maxGzipBytes: envInt('FVPLUS_MAX_FOLDERVIEWPLUS_BULK_ASSIGNMENT_JS_GZIP_BYTES', 13000),
   },
   {
+    path: 'scripts/folderviewplus.runtime-actions.js',
+    maxBytesEnv: 'FVPLUS_MAX_FOLDERVIEWPLUS_RUNTIME_ACTIONS_JS_BYTES',
+    maxGzipBytesEnv: 'FVPLUS_MAX_FOLDERVIEWPLUS_RUNTIME_ACTIONS_JS_GZIP_BYTES',
+    maxBytes: envInt('FVPLUS_MAX_FOLDERVIEWPLUS_RUNTIME_ACTIONS_JS_BYTES', 35000),
+    maxGzipBytes: envInt('FVPLUS_MAX_FOLDERVIEWPLUS_RUNTIME_ACTIONS_JS_GZIP_BYTES', 9000),
+  },
+  {
     path: 'scripts/folderviewplus.wizard.js',
     maxBytesEnv: 'FVPLUS_MAX_FOLDERVIEWPLUS_WIZARD_JS_BYTES',
     maxGzipBytesEnv: 'FVPLUS_MAX_FOLDERVIEWPLUS_WIZARD_JS_GZIP_BYTES',
@@ -190,6 +197,7 @@ const settingsRuntimePaths = [
   'scripts/folderviewplus.settings-health.js',
   'scripts/folderviewplus.settings-workspaces.js',
   'scripts/folderviewplus.bulk-assignment.js',
+  'scripts/folderviewplus.runtime-actions.js',
   'scripts/folderviewplus.js',
   'scripts/folderviewplus.wizard.js',
   'scripts/folderviewplus.import.js',

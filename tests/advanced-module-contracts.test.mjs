@@ -17,6 +17,7 @@ const settingsScriptPaths = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-health.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-workspaces.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-tree.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.actions-support.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
@@ -65,6 +66,8 @@ test('split settings modules publish globals for cross-script browser compatibil
     assert.match(script, /FolderViewPlusSettingsWorkspaces = factory\(\)/);
     assert.match(script, /FolderViewPlusBulkAssignmentModuleLoaded = true/);
     assert.match(script, /FolderViewPlusBulkAssignment = factory\(\)/);
+    assert.match(script, /FolderViewPlusSettingsRuntimeActionsModuleLoaded = true/);
+    assert.match(script, /FolderViewPlusSettingsRuntimeActions = factory\(\)/);
     assert.match(script, /FolderViewPlusSettingsTreeModuleLoaded = true/);
     assert.match(script, /FolderViewPlusSettingsTree = Object\.freeze\(\{/);
     assert.match(script, /SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE/);

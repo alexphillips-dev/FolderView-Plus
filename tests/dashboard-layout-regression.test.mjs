@@ -59,6 +59,10 @@ const libPhpPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php'
 );
+const libPrefsPhpPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.prefs.php'
+);
 
 const settingsPage = fs.readFileSync(settingsPagePath, 'utf8');
 const settingsScript = settingsScriptPaths.map((scriptPath) => fs.readFileSync(scriptPath, 'utf8')).join('\n');
@@ -71,6 +75,7 @@ const vmPage = fs.readFileSync(vmPagePath, 'utf8');
 const folderPage = fs.readFileSync(folderPagePath, 'utf8');
 const folderScript = fs.readFileSync(folderScriptPath, 'utf8');
 const libPhp = fs.readFileSync(libPhpPath, 'utf8');
+const libPrefsPhp = fs.readFileSync(libPrefsPhpPath, 'utf8');
 
 test('settings exposes dashboard layout controls for docker and vm', () => {
     assert.match(settingsPage, /id="docker-dashboard-layout"/);
@@ -123,11 +128,12 @@ test('settings runtime persists dashboard prefs and exports handler', () => {
 });
 
 test('server normalizes compact matrix dashboard layout', () => {
-    assert.match(libPhp, /function normalizeDashboardLayout\(\$value\): string/);
-    assert.match(libPhp, /\['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'\]/);
-    assert.match(libPhp, /function normalizeThemeCompatibilityMode\(\$value\): string/);
-    assert.match(libPhp, /\['auto', 'host', 'safe', 'highcontrast'\]/);
-    assert.match(libPhp, /'themeCompatibilityMode'\s*=>\s*'auto'/);
+    assert.match(libPhp, /require_once\(__DIR__ \. '\/lib\.prefs\.php'\);/);
+    assert.match(libPrefsPhp, /function normalizeDashboardLayout\(\$value\): string/);
+    assert.match(libPrefsPhp, /\['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'\]/);
+    assert.match(libPrefsPhp, /function normalizeThemeCompatibilityMode\(\$value\): string/);
+    assert.match(libPrefsPhp, /\['auto', 'host', 'safe', 'highcontrast'\]/);
+    assert.match(libPrefsPhp, /'themeCompatibilityMode'\s*=>\s*'auto'/);
 });
 
 test('dashboard runtime supports layout classes, accordion guards, and overflow metadata', () => {

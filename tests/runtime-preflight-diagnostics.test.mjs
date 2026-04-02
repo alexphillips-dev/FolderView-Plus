@@ -7,6 +7,7 @@ const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 
 const libPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
+const libPreflightPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.preflight.php');
 const dockerPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Docker.page');
 const vmPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.VMs.page');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
@@ -19,14 +20,15 @@ test('server lib safely loads host dependencies and exposes runtime preflight he
     assert.match(libPhp, /fvplus_safe_require_once\('docker', "\$documentRoot\/plugins\/dynamix\.docker\.manager\/include\/DockerClient\.php"\);/);
     assert.match(libPhp, /fvplus_safe_require_once\('libvirt', "\$documentRoot\/plugins\/dynamix\.vm\.manager\/include\/libvirt_helpers\.php"\);/);
     assert.match(libPhp, /if \(!function_exists\('autov'\)\) \{/);
-    assert.match(libPhp, /function collectRuntimeOverrideEntries\(string \$type\): array/);
-    assert.match(libPhp, /function collectRuntimePreflight\(string \$type\): array/);
-    assert.match(libPhp, /function runtimePreflightHasFatal\(array \$preflight\): bool/);
+    assert.match(libPhp, /require_once\(__DIR__ \. '\/lib\.preflight\.php'\);/);
+    assert.match(libPreflightPhp, /function collectRuntimeOverrideEntries\(string \$type\): array/);
+    assert.match(libPreflightPhp, /function collectRuntimePreflight\(string \$type\): array/);
+    assert.match(libPreflightPhp, /function runtimePreflightHasFatal\(array \$preflight\): bool/);
     assert.match(libPhp, /function emitRuntimePreflightBannerBootstrap\(array \$preflight, string \$contextLabel = 'Runtime'\): void/);
-    assert.match(libPhp, /FolderView Plus requires Unraid 7\.0\.0 or newer/);
-    assert.match(libPhp, /Custom FolderView Plus overrides are active/);
-    assert.match(libPhp, /Docker API probe failed/);
-    assert.match(libPhp, /Libvirt connection failed/);
+    assert.match(libPreflightPhp, /FolderView Plus requires Unraid 7\.0\.0 or newer/);
+    assert.match(libPreflightPhp, /Custom FolderView Plus overrides are active/);
+    assert.match(libPreflightPhp, /Docker API probe failed/);
+    assert.match(libPreflightPhp, /Libvirt connection failed/);
 });
 
 test('docker and vm pages seed runtime preflight into the fatal-banner context and stop on fatal preflight', () => {

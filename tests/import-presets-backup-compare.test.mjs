@@ -9,6 +9,7 @@ const jsPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins
 const importJsPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js');
 const cssPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css');
 const libPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
+const libPrefsPath = path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.prefs.php');
 
 const page = fs.readFileSync(pagePath, 'utf8');
 const script = fs.readFileSync(jsPath, 'utf8');
@@ -16,11 +17,13 @@ const importScript = fs.readFileSync(importJsPath, 'utf8');
 const runtimeScript = `${script}\n${importScript}`;
 const css = fs.readFileSync(cssPath, 'utf8');
 const libPhp = fs.readFileSync(libPath, 'utf8');
+const libPrefsPhp = fs.readFileSync(libPrefsPath, 'utf8');
 
 test('type prefs include server-side import presets', () => {
-    assert.match(libPhp, /'importPresets'\s*=>\s*\[/);
-    assert.match(libPhp, /function normalizeTypeImportPresets\(/);
-    assert.match(libPhp, /\$normalized\['importPresets'\]\s*=\s*normalizeTypeImportPresets/);
+    assert.match(libPhp, /require_once\(__DIR__ \. '\/lib\.prefs\.php'\);/);
+    assert.match(libPrefsPhp, /'importPresets'\s*=>\s*\[/);
+    assert.match(libPrefsPhp, /function normalizeTypeImportPresets\(/);
+    assert.match(libPrefsPhp, /\$normalized\['importPresets'\]\s*=\s*normalizeTypeImportPresets/);
 });
 
 test('backup snapshots include prefs payload for compare', () => {

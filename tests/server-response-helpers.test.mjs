@@ -8,7 +8,12 @@ const libPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php'
 );
+const libPrefsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.prefs.php'
+);
 const libPhp = fs.readFileSync(libPath, 'utf8');
+const libPrefsPhp = fs.readFileSync(libPrefsPath, 'utf8');
 
 const endpointsUsingHelpers = [
     'backup.php',
@@ -156,11 +161,12 @@ test('lib.php can resolve requested folder editor context for bootstrap hydratio
 });
 
 test('lib.php centralizes folder editor mode preference resolution', () => {
-    assert.match(libPhp, /function resolveFolderEditorModePreference\(array \$prefs\): array/);
-    assert.match(libPhp, /function resolveTypeFolderEditorModePreference\(string \$type\): array/);
-    assert.match(libPhp, /'source'\s*=>\s*'modern-only'/);
-    assert.match(libPhp, /return resolveFolderEditorModePreference\(readTypePrefs\(\$type\)\);/);
-    assert.match(libPhp, /\$resolvedFolderEditorMode = resolveFolderEditorModePreference\(\$prefs\);/);
-    assert.match(libPhp, /\$normalized\['folderEditorModeExplicit'\] = false;/);
-    assert.match(libPhp, /\$normalized\['folderEditorMode'\] = \(string\)\(\$resolvedFolderEditorMode\['mode'\] \?\? 'modern'\);/);
+    assert.match(libPhp, /require_once\(__DIR__ \. '\/lib\.prefs\.php'\);/);
+    assert.match(libPrefsPhp, /function resolveFolderEditorModePreference\(array \$prefs\): array/);
+    assert.match(libPrefsPhp, /function resolveTypeFolderEditorModePreference\(string \$type\): array/);
+    assert.match(libPrefsPhp, /'source'\s*=>\s*'modern-only'/);
+    assert.match(libPrefsPhp, /return resolveFolderEditorModePreference\(readTypePrefs\(\$type\)\);/);
+    assert.match(libPrefsPhp, /\$resolvedFolderEditorMode = resolveFolderEditorModePreference\(\$prefs\);/);
+    assert.match(libPrefsPhp, /\$normalized\['folderEditorModeExplicit'\] = false;/);
+    assert.match(libPrefsPhp, /\$normalized\['folderEditorMode'\] = \(string\)\(\$resolvedFolderEditorMode\['mode'\] \?\? 'modern'\);/);
 });

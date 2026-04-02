@@ -182,6 +182,13 @@ const budgets = [
     maxBytes: envInt('FVPLUS_MAX_FOLDER_EDITOR_ICONS_JS_BYTES', 120000),
     maxGzipBytes: envInt('FVPLUS_MAX_FOLDER_EDITOR_ICONS_JS_GZIP_BYTES', 22000),
   },
+  {
+    path: 'scripts/folder.editor.preview-runtime.js',
+    maxBytesEnv: 'FVPLUS_MAX_FOLDER_EDITOR_PREVIEW_RUNTIME_JS_BYTES',
+    maxGzipBytesEnv: 'FVPLUS_MAX_FOLDER_EDITOR_PREVIEW_RUNTIME_JS_GZIP_BYTES',
+    maxBytes: envInt('FVPLUS_MAX_FOLDER_EDITOR_PREVIEW_RUNTIME_JS_BYTES', 50000),
+    maxGzipBytes: envInt('FVPLUS_MAX_FOLDER_EDITOR_PREVIEW_RUNTIME_JS_GZIP_BYTES', 12000),
+  },
 ];
 
 let totalJsBudget = envInt('FVPLUS_MAX_TOTAL_JS_BYTES', 1115000);

@@ -36,6 +36,7 @@ const trackedAssets = [
   'styles/folderviewplus.css',
   'scripts/docker.js',
   'scripts/vm.js',
+  'scripts/folder.editor.preview-runtime.js',
   'scripts/folder.editor.icons.js',
   'scripts/folder.js',
 ];

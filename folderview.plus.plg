@@ -6,12 +6,24 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.02.06">
-<!ENTITY md5 "a3dc321a723bf43d6a8ab5e78c8180ae">
+<!ENTITY version "2026.04.02.08">
+<!ENTITY md5 "a3233a3b9bc2c039bf31316fe968c915">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.02.08
+- UX: Folder editor flows, previews, and bootstrap behavior.
+- Refactor: Shared runtime contracts, request plumbing, and cross-page foundations.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
+
+###2026.04.02.07
+- Refactor: Extracted the folder editor preview runtime glue into `folder.editor.preview-runtime.js`, including preview API wiring, constraint visibility updates, and throttled live-preview rerenders.
+- UX: Preserved modern editor preview, context, border, vertical-bar, folder WebUI, and accent visibility behavior while moving that runtime seam out of `folder.js`.
+- Quality: Install smoke, release guard, perf baseline, and architecture tests now track the extracted preview-runtime module as a required editor asset.
+
 
 ###2026.04.02.06
 - UX: Folder editor flows, previews, and bootstrap behavior.

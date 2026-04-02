@@ -97,6 +97,10 @@ const folderPreviewJs = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.preview.js'),
     'utf8'
 );
+const folderPreviewRuntimeJs = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.preview-runtime.js'),
+    'utf8'
+);
 const dockerJs = fs.readFileSync(dockerJsPath, 'utf8');
 const dockerPreviewActionsJs = fs.readFileSync(dockerPreviewActionsJsPath, 'utf8');
 const vmJs = fs.readFileSync(vmJsPath, 'utf8');
@@ -215,9 +219,9 @@ test('folder page ships the modern editor runtime only', () => {
     assert.match(folderJs, /const normalizeParentFolderId = \(value\) => String\(value \|\| ''\)\.trim\(\);/);
     assert.match(folderJs, /const folderEditorResetHelpers = typeof folderEditorShared\?\.createResetHelpers === 'function'/);
     assert.match(folderJs, /const modernEditorSchema = typeof folderEditorSchema\?\.createModernSchema === 'function'/);
-    assert.match(folderJs, /let folderEditorPreviewApi = null;/);
-    assert.match(folderJs, /const getFolderEditorPreviewApi = \(\) =>/);
-    assert.match(folderJs, /folderEditorPreviewApi = folderEditorPreview\.createApi\(/);
+    assert.match(folderJs, /let folderEditorPreviewRuntimeApi = null;/);
+    assert.match(folderJs, /const getFolderEditorPreviewRuntimeApi = \(\) =>/);
+    assert.match(folderJs, /folderEditorPreviewRuntimeApi = folderEditorPreviewRuntimeModule\.createApi\(/);
     assert.match(folderJs, /if \(modernFolderEditorEnabled\) \{[\s\S]*FolderViewPlusRefreshModernEditorChromeLayout/);
     assert.match(folderJs, /\.off\('click\.fvEditorSectionSync'\)/);
     assert.match(folderJs, /\.on\('click\.fvEditorSectionSync', function onModernSectionClick\(\) \{\s*setActiveEditorSection\(\$\(this\)\.data\('target'\)\);/);
@@ -450,9 +454,9 @@ test('folder editor keeps left-alignment runtime and stylesheet guards', () => {
     assert.match(folderChromeJs, /if \(row\.querySelector\('a\.custom-action'\) && !row\.querySelector\('\.custom-action-wrapper'\)\) \{\s*row\.classList\.add\('is-actions-launch-row'\);/);
     assert.doesNotMatch(folderChromeJs, /row\.classList\.add\('is-actions-row', 'is-wide-row'\);/);
     assert.doesNotMatch(folderChromeJs, /if \(row\.querySelector\('\[name="regex"\]'\)\) \{\s*row\.classList\.add\('is-wide-row'\);/);
-    assert.match(folderJs, /\$\('\[constraint\*="context_graph-"\]'\)\.hide\(\);/);
-    assert.match(folderJs, /context_graph-\$\{form\.context_graph\.value\}/);
-    assert.match(folderJs, /form\.preview_border\.checked\) \$\('\[constraint\*="border-color"\]'\)\.show\(\);/);
+    assert.match(folderPreviewRuntimeJs, /\$\('\[constraint\*="context_graph-"\]'\)\.hide\(\);/);
+    assert.match(folderPreviewRuntimeJs, /context_graph-\$\{form\.context_graph\?\.value\}/);
+    assert.match(folderPreviewRuntimeJs, /form\.preview_border\?\.checked === true\) \{/);
     assert.doesNotMatch(folderPage, /Lasciate ogne speranza/);
     assert.doesNotMatch(folderPage, /Site for testing your regex/);
     assert.doesNotMatch(folderCss, /\.canvas form\.folder-editor-form \.fv-section-shell > \.fv-section-shell-body > \.basic:not\(.order-section\),/);

@@ -10,6 +10,7 @@ const folderContractJs = read('src/folderview.plus/usr/local/emhttp/plugins/fold
 const folderSchemaJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.schema.js');
 const folderSharedJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.shared.js');
 const folderPreviewJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.preview.js');
+const folderPreviewRuntimeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.preview-runtime.js');
 const folderChromeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.chrome.js');
 const folderJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js');
 const folderPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page');
@@ -57,8 +58,8 @@ test('modern folder editor persists accent color settings end to end', () => {
     assert.match(folderJs, /setFieldValue\('folder_accent_color', normalizeHexColor\(normalizedFolder\.settings\.folder_accent_color, DEFAULT_FOLDER_ACCENT_COLOR\)\);/);
     assert.match(folderJs, /folder_accent_enabled: e\.folder_accent_enabled\.checked,/);
     assert.match(folderJs, /folder_accent_color: normalizeHexColor\(e\.folder_accent_color\.value\.toString\(\), DEFAULT_FOLDER_ACCENT_COLOR\),/);
-    assert.match(folderJs, /\$\('\[constraint\*="accent-color"\]'\)\.hide\(\);/);
-    assert.match(folderJs, /if \(form\.folder_accent_enabled\.checked\) \$\('\[constraint\*="accent-color"\]'\)\.show\(\);/);
+    assert.match(folderPreviewRuntimeJs, /\$\('\[constraint\*="accent-color"\]'\)\.hide\(\);/);
+    assert.match(folderPreviewRuntimeJs, /if \(form\.folder_accent_enabled\?\.checked === true\) \{/);
     assert.match(folderJs, /const resetFolderAccentDefaults = typeof folderEditorResetHelpers\?\.resetFolderAccentDefaults === 'function'/);
 });
 

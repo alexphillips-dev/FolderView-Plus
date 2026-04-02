@@ -485,6 +485,7 @@ try {
 <script src="<?php autov('/plugins/folderview.plus/scripts/folder.editor.shared.js')?>"></script>
 <script src="<?php autov('/plugins/folderview.plus/scripts/folder.editor.schema.js')?>"></script>
 <script src="<?php autov('/plugins/folderview.plus/scripts/folder.editor.preview.js')?>"></script>
+<script src="<?php autov('/plugins/folderview.plus/scripts/folder.editor.preview-runtime.js')?>"></script>
 <script src="<?php autov('/plugins/folderview.plus/scripts/folder.editor.icons.js')?>"></script>
 
 <div class="canvas">

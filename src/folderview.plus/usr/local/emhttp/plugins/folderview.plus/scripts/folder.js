@@ -201,6 +201,7 @@ const folderContract = window.FolderViewPlusFolderContract || null;
 const folderEditorShared = window.FolderViewPlusFolderEditorShared || null;
 const folderEditorSchema = window.FolderViewPlusFolderEditorSchema || null;
 const folderEditorPreview = window.FolderViewPlusFolderEditorPreview || null;
+const folderEditorPreviewRuntimeModule = window.FolderViewPlusFolderEditorPreviewRuntime || null;
 const themeResolver = window.FolderViewPlusThemeResolver || null;
 const bindFolderThemeAwareSurface = typeof themeResolver?.bindThemeAwareSurface === 'function'
     ? themeResolver.bindThemeAwareSurface.bind(themeResolver)
@@ -321,6 +322,9 @@ if (!utils || typeof utils.normalizeDashboardOverflowMode !== 'function') {
 if (!folderIconApiModule || typeof folderIconApiModule.createApi !== 'function') {
     folderEditorBootstrapMissingModules.push('folder.editor.icon-api.js');
 }
+if (!folderEditorPreviewRuntimeModule || typeof folderEditorPreviewRuntimeModule.createApi !== 'function') {
+    folderEditorBootstrapMissingModules.push('folder.editor.preview-runtime.js');
+}
 if (!folderEditorStateModule || typeof folderEditorStateModule.createApi !== 'function') {
     folderEditorBootstrapMissingModules.push('folder.editor.state.js');
 }
@@ -352,6 +356,7 @@ if (folderEditorBootstrapMissingModules.length > 0) {
 let allFoldersById = {};
 let activeFolderEditorFolderId = '';
 let folderEditorRulesApi = null;
+let folderEditorPreviewRuntimeApi = null;
 let folderEditorStateApi = null;
 let folderEditorMembersApi = null;
 let folderEditorIconsApi = null;
@@ -359,7 +364,6 @@ let initialSnapshot = '';
 let isFormInitialized = false;
 let suppressUnloadPrompt = false;
 let editorRecalcTimer = null;
-let editorPreviewRenderTimer = null;
 let nameRegexSyncTimer = null;
 let lastNameRegexSyncValue = '';
 let memberListRenderToken = 0;
@@ -1334,16 +1338,16 @@ const buildSectionCards = () => {
 
 const normalizeParentFolderId = (value) => String(value || '').trim();
 
-let folderEditorPreviewApi = null;
-const getFolderEditorPreviewApi = () => {
-    if (folderEditorPreviewApi || typeof folderEditorPreview?.createApi !== 'function') {
-        return folderEditorPreviewApi;
+const getFolderEditorPreviewRuntimeApi = () => {
+    if (folderEditorPreviewRuntimeApi || typeof folderEditorPreviewRuntimeModule?.createApi !== 'function') {
+        return folderEditorPreviewRuntimeApi;
     }
-    folderEditorPreviewApi = folderEditorPreview.createApi({
+    folderEditorPreviewRuntimeApi = folderEditorPreviewRuntimeModule.createApi({
+        window,
         $,
+        previewModule: folderEditorPreview,
         type,
-        shouldRender: () => modernFolderEditorEnabled,
-        shouldUpdate: () => modernFolderEditorEnabled,
+        modernEditorEnabled: modernFolderEditorEnabled,
         getForm,
         getIncludedMemberNames,
         getMemberMapByName,
@@ -1358,11 +1362,10 @@ const getFolderEditorPreviewApi = () => {
         isDockerUpdateAvailableInEditor,
         escapeHtml,
         updateMemberStats: () => updateMemberStats(),
-        onAfterSummaryUpdate: () => {
-            updateInheritedFieldIndicators();
-            updateChangeSummaryPanel();
-            updateSectionStateIndicators();
-        },
+        updateInheritedFieldIndicators: () => updateInheritedFieldIndicators(),
+        updateChangeSummaryPanel: () => updateChangeSummaryPanel(),
+        updateSectionStateIndicators: () => updateSectionStateIndicators(),
+        enforceLeftAlignedSettingsLayout: () => enforceLeftAlignedSettingsLayout(),
         defaultBorderColor: DEFAULT_BORDER_COLOR,
         defaultPreviewBorderWidth: DEFAULT_PREVIEW_BORDER_WIDTH,
         defaultPreviewVerticalBarsWidth: DEFAULT_PREVIEW_VERTICAL_BARS_WIDTH,
@@ -1378,11 +1381,7 @@ const getFolderEditorPreviewApi = () => {
         defaultDividerColor: rgbToHex($('body').css('color')),
         isFolderAccentEnabled
     });
-    return folderEditorPreviewApi;
-};
-
-const renderLivePreviewCanvas = () => {
-    getFolderEditorPreviewApi()?.renderLivePreviewCanvas();
+    return folderEditorPreviewRuntimeApi;
 };
 
 const markUnsavedIndicatorDirty = () => {
@@ -1402,23 +1401,7 @@ const runEditorRecalculation = () => {
 };
 
 const scheduleEditorPreviewRender = () => {
-    const run = () => {
-        editorPreviewRenderTimer = null;
-        renderLivePreviewCanvas();
-    };
-    if (editorPreviewRenderTimer !== null) {
-        if (typeof window.cancelAnimationFrame === 'function') {
-            window.cancelAnimationFrame(editorPreviewRenderTimer);
-        } else {
-            clearTimeout(editorPreviewRenderTimer);
-        }
-        editorPreviewRenderTimer = null;
-    }
-    if (typeof window.requestAnimationFrame === 'function') {
-        editorPreviewRenderTimer = window.requestAnimationFrame(run);
-        return;
-    }
-    editorPreviewRenderTimer = setTimeout(run, 16);
+    getFolderEditorPreviewRuntimeApi()?.schedulePreviewRender();
 };
 
 const scheduleEditorRecalculation = (delayMs = 0) => {
@@ -2520,7 +2503,7 @@ const suggestDefaultsFromMembers = () => {
 };
 
 const updateLiveSummary = () => {
-    getFolderEditorPreviewApi()?.updateLiveSummary();
+    getFolderEditorPreviewRuntimeApi()?.updateLiveSummary();
 };
 
 const updateRegexSimulator = () => {
@@ -3625,43 +3608,7 @@ const updateRegex = (e) => {
  * Update the setting visibility according to the changin of settings
  */
 function updateForm() {
-    const form = $('div.canvas > form')[0];
-    $('[constraint*="preview-"]').hide();
-    $(`[constraint*="preview-${form.preview.value}"]`).show();
-    $('[constraint*="context-"]').hide();
-    $(`[constraint*="context-${form.context.value}"]`).show();
-    $('[constraint*="context_graph-"]').hide();
-    $('[constraint*="border-color"]').hide();
-    $('[constraint*="bars-color"]').hide();
-    $('[constraint*="accent-color"]').hide();
-    if (String(form.context.value) === '2') {
-        $(`[constraint*="context_graph-${form.context_graph.value}"]`).show();
-    }
-    if (form.preview.value !== '0' && form.preview_border.checked) $('[constraint*="border-color"]').show();
-    if(form.preview_vertical_bars.checked) {
-        $('[constraint*="bars-color"]').show();
-    }
-    if (form.folder_accent_enabled.checked) $('[constraint*="accent-color"]').show();
-    $('[constraint*="folder-webui"]').hide();
-    if(form.folder_webui.checked) {
-        $('[constraint*="folder-webui"]').show();
-    }
-
-    if (type !== 'docker') {
-        $('[constraint*="docker"]').hide();
-    }
-
-    $('div.canvas > form.folder-editor-form')
-        .toggleClass('fv-preview-disabled', String(form.preview.value) === '0')
-        .toggleClass('fv-preview-border-enabled', form.preview_border.checked === true)
-        .toggleClass('fv-preview-bars-enabled', form.preview_vertical_bars.checked === true)
-        .toggleClass('fv-chevron-boxed', normalizeDropdownStyle(form.dropdown_style.value) === 'boxed');
-    $('.fv-section-shell[data-section-shell="preview"]').toggleClass('is-preview-disabled', String(form.preview.value) === '0');
-    $('.fv-section-shell[data-section-shell="chevron"]').toggleClass('is-boxed', normalizeDropdownStyle(form.dropdown_style.value) === 'boxed');
-
-    enforceLeftAlignedSettingsLayout();
-    updateInheritedFieldIndicators();
-    renderLivePreviewCanvas();
+    getFolderEditorPreviewRuntimeApi()?.updatePreviewConstraints();
 }
 
 const createFallbackFolderHierarchyApi = (deps = {}) => {

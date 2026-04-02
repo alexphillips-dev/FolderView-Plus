@@ -68,6 +68,7 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorScript, /const folderEditorShared = window\.FolderViewPlusFolderEditorShared \|\| null;/);
     assert.match(folderEditorScript, /const folderEditorSchema = window\.FolderViewPlusFolderEditorSchema \|\| null;/);
     assert.match(folderEditorScript, /const folderEditorPreview = window\.FolderViewPlusFolderEditorPreview \|\| null;/);
+    assert.match(folderEditorScript, /const folderEditorPreviewRuntimeModule = window\.FolderViewPlusFolderEditorPreviewRuntime \|\| null;/);
     assert.match(folderEditorScript, /const folderEditorStateModule = window\.FolderViewPlusFolderEditorState \|\| null;/);
     assert.match(folderEditorScript, /const folderEditorMembersModule = window\.FolderViewPlusFolderEditorMembers \|\| null;/);
     assert.match(folderEditorScript, /const folderEditorIconsModule = window\.FolderViewPlusFolderEditorIcons \|\| null;/);
@@ -76,9 +77,9 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorScript, /folderEditorSharedApi = folderEditorShared\.createApi\(/);
     assert.match(folderEditorScript, /const normalizeParentFolderId = \(value\) => String\(value \|\| ''\)\.trim\(\);/);
     assert.match(folderEditorScript, /const modernEditorSchema = typeof folderEditorSchema\?\.createModernSchema === 'function'/);
-    assert.match(folderEditorScript, /let folderEditorPreviewApi = null;/);
-    assert.match(folderEditorScript, /const getFolderEditorPreviewApi = \(\) =>/);
-    assert.match(folderEditorScript, /folderEditorPreviewApi = folderEditorPreview\.createApi\(/);
+    assert.match(folderEditorScript, /let folderEditorPreviewRuntimeApi = null;/);
+    assert.match(folderEditorScript, /const getFolderEditorPreviewRuntimeApi = \(\) =>/);
+    assert.match(folderEditorScript, /folderEditorPreviewRuntimeApi = folderEditorPreviewRuntimeModule\.createApi\(/);
     assert.match(folderEditorScript, /let folderEditorStateApi = null;/);
     assert.match(folderEditorScript, /let folderEditorMembersApi = null;/);
     assert.match(folderEditorScript, /let folderEditorIconsApi = null;/);

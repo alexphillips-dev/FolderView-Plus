@@ -9,6 +9,7 @@ const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath)
 const runtimeStateObserversJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.runtime.state-observers.js');
 const dockerMemberMenuJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.member-menu.js');
 const folderIconApiJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icon-api.js');
+const folderEditorPreviewRuntimeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.preview-runtime.js');
 const folderEditorStateJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.state.js');
 const folderEditorMembersJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.members.js');
 const folderEditorIconsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icons.js');
@@ -23,6 +24,7 @@ test('extracted helper modules use a safe global fallback instead of out-of-scop
         runtimeStateObserversJs,
         dockerMemberMenuJs,
         folderIconApiJs,
+        folderEditorPreviewRuntimeJs,
         folderEditorStateJs,
         folderEditorMembersJs,
         folderEditorIconsJs,

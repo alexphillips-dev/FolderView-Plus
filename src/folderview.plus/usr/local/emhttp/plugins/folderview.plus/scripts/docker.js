@@ -1069,9 +1069,9 @@ const ensureDockerRuntimeWidthDebugPanel = () => {
     panel.style.maxHeight = '45vh';
     panel.style.overflow = 'auto';
     panel.style.padding = '8px 10px';
-    panel.style.border = '1px solid rgba(148, 168, 196, 0.65)';
-    panel.style.background = 'rgba(8, 12, 18, 0.92)';
-    panel.style.color = '#d8e2f2';
+    panel.style.border = '1px solid var(--fvplus-runtime-menu-border, var(--fvplus-theme-border-subtle, currentColor))';
+    panel.style.background = 'var(--fvplus-runtime-menu-bg, var(--fvplus-theme-surface-panel, transparent))';
+    panel.style.color = 'var(--fvplus-runtime-menu-fg, var(--fvplus-theme-foreground, currentColor))';
     panel.style.fontFamily = 'Consolas, Menlo, monospace';
     panel.style.fontSize = '11px';
     panel.style.lineHeight = '1.42';

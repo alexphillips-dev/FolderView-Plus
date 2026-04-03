@@ -553,15 +553,15 @@ tr.folder.fv-parent-expanded div.folder-preview {
 }
 
 .fv-preview-status-started {
-    color: #74d89b !important;
+    color: var(--fvplus-folder-status-started, var(--fvplus-status-started)) !important;
 }
 
 .fv-preview-status-paused {
-    color: #d1a84d !important;
+    color: var(--fvplus-folder-status-paused, var(--fvplus-status-paused)) !important;
 }
 
 .fv-preview-status-stopped {
-    color: #ff6d6d !important;
+    color: var(--fvplus-folder-status-stopped, var(--fvplus-status-stopped)) !important;
 }
 
 .folder-preview-wrapper .inner > span.appname {

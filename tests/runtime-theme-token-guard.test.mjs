@@ -10,15 +10,19 @@ const dockerCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.
 const vmCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/vm.css');
 const dashboardCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/dashboard.css');
 const runtimeSharedCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/runtime.shared.css');
+const folderCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folder.css');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js');
+const dockerRuntimeActionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.actions.js');
+const fatalBannerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.fatal-banner.js');
 const settingsCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css');
 const settingsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js');
 const diagnosticsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js');
 const sharedRuntimeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js');
 const themeResolverJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.theme-resolver.js');
 const dashboardPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/folderview.plus.Dashboard.page');
+const libPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
 
 test('runtime css defines canonical fvplus status tokens and legacy graph aliases', () => {
     assert.match(dockerCss, /--fvplus-theme-foreground:\s*var\(--fvplus-runtime-theme-foreground,\s*var\(--text,\s*currentColor\)\)/);
@@ -75,6 +79,9 @@ test('runtime scripts avoid inline status color painting and use row-level css v
     assert.match(vmJs, /applyFolderStatusColorOverrides\(\$folderRow,\s*folder\.settings\)/);
     assert.doesNotMatch(dockerJs, /\.css\('color',\s*statusColors\./);
     assert.doesNotMatch(vmJs, /\.css\('color',\s*statusColors\./);
+    assert.match(dashboardJs, /const resolveDashboardFolderStatusColors = \(settings\) => \{/);
+    assert.match(dashboardJs, /started:\s*'var\(--fvplus-folder-status-started,\s*var\(--fvplus-status-started,\s*var\(--fvplus-theme-foreground,\s*currentColor\)\)\)'/);
+    assert.match(dashboardJs, /const statusColors = resolveDashboardFolderStatusColors\(folder\.settings\);/);
 });
 
 test('theme-change observers trigger deterministic reflow across runtime and settings surfaces', () => {
@@ -138,4 +145,39 @@ test('theme resolver ignores transparent surfaces and only hard-forces explicit 
     assert.doesNotMatch(themeResolverJs, /normalized\.includes\('azure'\)/);
     assert.doesNotMatch(themeResolverJs, /normalized\.includes\('gray'\)/);
     assert.doesNotMatch(themeResolverJs, /normalized\.includes\('grey'\)/);
+});
+
+test('runtime and settings overlays resolve through theme tokens instead of hardcoded dark chrome', () => {
+    assert.match(dockerCss, /\.fv-preview-status-started\s*\{[^}]*var\(--fvplus-folder-status-started,\s*var\(--fvplus-status-started\)\)/);
+    assert.match(dockerCss, /\.fv-preview-status-paused\s*\{[^}]*var\(--fvplus-folder-status-paused,\s*var\(--fvplus-status-paused\)\)/);
+    assert.match(dockerCss, /\.fv-preview-status-stopped\s*\{[^}]*var\(--fvplus-folder-status-stopped,\s*var\(--fvplus-status-stopped\)\)/);
+    assert.match(dockerRuntimeActionsJs, /const popupTextColor = 'var\(--fvplus-runtime-menu-fg,\s*var\(--fvplus-theme-foreground,\s*currentColor\)\)'/);
+    assert.match(dockerRuntimeActionsJs, /const popupPanelBg = 'var\(--fvplus-runtime-menu-header-bg,\s*transparent\)'/);
+    assert.doesNotMatch(dockerRuntimeActionsJs, /color:\s*#e8edf7/);
+    assert.match(dockerJs, /panel\.style\.background = 'var\(--fvplus-runtime-menu-bg,\s*var\(--fvplus-theme-surface-panel,\s*transparent\)\)'/);
+    assert.match(dockerJs, /panel\.style\.color = 'var\(--fvplus-runtime-menu-fg,\s*var\(--fvplus-theme-foreground,\s*currentColor\)\)'/);
+    assert.match(fatalBannerJs, /border:\s*1px solid var\(--orange,\s*var\(--fvplus-theme-accent,\s*currentColor\)\);/);
+    assert.match(fatalBannerJs, /background:\s*var\(--fvplus-theme-surface-panel,\s*transparent\);/);
+    assert.match(fatalBannerJs, /color:\s*var\(--fvplus-theme-text-primary,\s*currentColor\);/);
+    assert.match(libPhp, /background:transparent;color:var\(--text,\s*currentColor\);/);
+    assert.doesNotMatch(libPhp, /background:linear-gradient\(180deg,\s*rgba\(120,60,0,0\.22\)/);
+    assert.match(folderCss, /\.fv-folder-action-dialog\.ui-dialog\s*\{[^}]*background:\s*var\(--fvplus-editor-bg,\s*var\(--fvplus-theme-surface-panel,\s*transparent\)\);/);
+    assert.match(folderCss, /\.fv-folder-action-dialog \.ui-dialog-content\s*\{[^}]*color:\s*var\(--fvplus-editor-text-primary,\s*var\(--fvplus-theme-text-primary,\s*currentColor\)\);/);
+    assert.match(folderCss, /\.fv-folder-action-dialog \.dialogCustomAction dl > dt\s*\{[^}]*color:\s*var\(--fvplus-editor-title-accent,\s*var\(--fvplus-editor-accent,\s*currentColor\)\);/);
+});
+
+test('settings semantic chips and light-mode overrides use exported settings tokens', () => {
+    assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\] \.name-cell-breadcrumb\s*\{[^}]*var\(--fvplus-settings-breadcrumb-text\)/);
+    assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\] \.name-cell-members-meta\s*\{[^}]*var\(--fvplus-settings-members-meta-text\)/);
+    assert.match(settingsCss, /#fv-settings-root\[data-fv-theme-class="light"\] \.name-cell-nested-meta\s*\{[^}]*var\(--fvplus-settings-nested-meta-text\)/);
+    assert.match(settingsCss, /\.folder-pin-state\.is-pinned\s*\{[^}]*var\(--fvplus-settings-chip-warning-border\)[^}]*var\(--fvplus-settings-chip-warning\)/);
+    assert.match(settingsCss, /#import-preview-dialog \.preview-meta-item,\s*#backup-compare-dialog \.preview-meta-item\s*\{[^}]*background:\s*var\(--fvplus-settings-surface-muted\);/);
+    assert.match(settingsCss, /\.fv-update-notes-category\.is-ui\s*\{[^}]*var\(--fvplus-settings-chip-warning-border\)[^}]*var\(--fvplus-settings-chip-warning\)[^}]*var\(--fvplus-settings-chip-warning-bg\)/);
+    assert.match(settingsCss, /\.fv-section-badge\.is-ok\s*\{[^}]*var\(--fvplus-settings-chip-success-border\)[^}]*var\(--fvplus-settings-chip-success\)/);
+    assert.match(settingsCss, /\.fv-section-mode\.is-instant\s*\{[^}]*var\(--fvplus-settings-chip-info-border\)[^}]*var\(--fvplus-settings-chip-info\)/);
+    assert.match(settingsCss, /\.folder-quick-filters > button\.is-active\s*\{[^}]*color:\s*var\(--fvplus-settings-text-primary\);/);
+    assert.match(settingsCss, /\.fv-setup-swal-chip\s*\{[^}]*border:\s*1px solid var\(--fvplus-settings-border-subtle\);[^}]*background:\s*var\(--fvplus-settings-surface-muted\);/);
+    assert.match(settingsCss, /\.fv-setup-swal-row-value\s*\{[^}]*color:\s*var\(--fvplus-settings-text-primary\);/);
+    assert.doesNotMatch(settingsCss, /\.fv-section-badge\s*\{[^}]*border:\s*1px solid rgba\(255,\s*255,\s*255,\s*0\.2\);/);
+    assert.doesNotMatch(settingsCss, /\.fv-setup-swal-row-value\s*\{[^}]*color:\s*#eaf2ff;/);
 });

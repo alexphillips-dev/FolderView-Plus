@@ -456,9 +456,17 @@
             }, []);
 
         const showFolderWebuiPopupWarning = (openedCount, totalCount, blockedUrls) => {
+            const popupTextColor = 'var(--fvplus-runtime-menu-fg, var(--fvplus-theme-foreground, currentColor))';
+            const popupMutedColor = 'var(--fvplus-runtime-menu-muted, var(--fvplus-runtime-menu-fg, currentColor))';
+            const popupPanelBorder = 'var(--fvplus-runtime-menu-divider, var(--fvplus-runtime-menu-border, currentColor))';
+            const popupPanelBg = 'var(--fvplus-runtime-menu-header-bg, transparent)';
+            const popupLinkColor = 'var(--link, var(--fvplus-status-started, var(--fvplus-runtime-menu-fg, currentColor)))';
+            const popupOpenedColor = 'var(--fvplus-status-started, var(--fvplus-runtime-menu-fg, currentColor))';
+            const popupBlockedColor = 'var(--orange, var(--fvplus-runtime-menu-fg, currentColor))';
+            const popupTotalColor = 'var(--fvplus-runtime-menu-fg, currentColor)';
             const blockedList = Array.isArray(blockedUrls) ? blockedUrls.slice(0, 6) : [];
             const linkHtml = blockedList
-                .map((url) => `<li style="margin:0 0 8px; line-height:1.35;"><a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" style="color:#6aa9ff; text-decoration:none;">${escapeHtml(url)}</a></li>`)
+                .map((url) => `<li style="margin:0 0 8px; line-height:1.35;"><a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" style="color:${popupLinkColor}; text-decoration:none;">${escapeHtml(url)}</a></li>`)
                 .join('');
             const overflowCount = Math.max(0, (blockedUrls?.length || 0) - blockedList.length);
             const overflowHint = overflowCount > 0
@@ -467,17 +475,17 @@
             const host = escapeHtml(String(win?.location?.host || '').trim() || 'this Unraid server');
             const blockedCount = Math.max(0, totalCount - openedCount);
             const popupBody = [
-                `<div style="text-align:left; max-width:640px; margin:0 auto; color:#e8edf7;">`,
+                `<div style="text-align:left; max-width:640px; margin:0 auto; color:${popupTextColor};">`,
                 `<div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:8px 0 12px;">`,
-                `<span style="display:inline-flex; align-items:center; border:1px solid rgba(114, 205, 103, .45); background:rgba(114, 205, 103, .12); color:#b8f0b2; border-radius:999px; padding:4px 10px; font-size:12px; font-weight:600;">Opened ${openedCount}</span>`,
-                `<span style="display:inline-flex; align-items:center; border:1px solid rgba(255, 178, 92, .45); background:rgba(255, 178, 92, .12); color:#ffd6a3; border-radius:999px; padding:4px 10px; font-size:12px; font-weight:600;">Blocked ${blockedCount}</span>`,
-                `<span style="display:inline-flex; align-items:center; border:1px solid rgba(128, 164, 255, .45); background:rgba(128, 164, 255, .12); color:#c8d9ff; border-radius:999px; padding:4px 10px; font-size:12px; font-weight:600;">Total ${totalCount}</span>`,
+                `<span style="display:inline-flex; align-items:center; border:1px solid ${popupOpenedColor}; background:${popupPanelBg}; color:${popupOpenedColor}; border-radius:999px; padding:4px 10px; font-size:12px; font-weight:600;">Opened ${openedCount}</span>`,
+                `<span style="display:inline-flex; align-items:center; border:1px solid ${popupBlockedColor}; background:${popupPanelBg}; color:${popupBlockedColor}; border-radius:999px; padding:4px 10px; font-size:12px; font-weight:600;">Blocked ${blockedCount}</span>`,
+                `<span style="display:inline-flex; align-items:center; border:1px solid ${popupPanelBorder}; background:${popupPanelBg}; color:${popupTotalColor}; border-radius:999px; padding:4px 10px; font-size:12px; font-weight:600;">Total ${totalCount}</span>`,
                 `</div>`,
-                `<div style="border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.03); border-radius:10px; padding:10px 12px; margin:0 0 12px;">`,
-                `<div style="font-size:11px; opacity:.75; text-transform:uppercase; letter-spacing:.08em; margin-bottom:4px;">Current Unraid Host</div>`,
+                `<div style="border:1px solid ${popupPanelBorder}; background:${popupPanelBg}; border-radius:10px; padding:10px 12px; margin:0 0 12px;">`,
+                `<div style="font-size:11px; opacity:.75; text-transform:uppercase; letter-spacing:.08em; margin-bottom:4px; color:${popupMutedColor};">Current Unraid Host</div>`,
                 `<div style="font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px; word-break:break-all;">${host}</div>`,
                 `</div>`,
-                `<div style="border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.03); border-radius:10px; padding:10px 12px; margin:0 0 12px;">`,
+                `<div style="border:1px solid ${popupPanelBorder}; background:${popupPanelBg}; border-radius:10px; padding:10px 12px; margin:0 0 12px;">`,
                 `<div style="font-weight:700; margin:0 0 6px;">Allow Popups Once</div>`,
                 `<ol style="margin:0; padding-left:18px; line-height:1.45;">`,
                 `<li>Click the popup-blocked icon in your browser address bar.</li>`,
@@ -485,7 +493,7 @@
                 `<li>Run <strong>Open all WebUIs</strong> again.</li>`,
                 `</ol>`,
                 `</div>`,
-                `<div style="border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.03); border-radius:10px; padding:10px 12px; margin:0 0 12px;">`,
+                `<div style="border:1px solid ${popupPanelBorder}; background:${popupPanelBg}; border-radius:10px; padding:10px 12px; margin:0 0 12px;">`,
                 `<div style="font-weight:700; margin:0 0 6px;">Browser Quick Guide</div>`,
                 `<ul style="margin:0; padding-left:18px; line-height:1.45;">`,
                 `<li><strong>Chrome / Edge:</strong> address bar popup icon -> <em>Always allow pop-ups and redirects</em>.</li>`,
@@ -494,7 +502,7 @@
                 `</ul>`,
                 `</div>`,
                 linkHtml
-                    ? `<div style="border:1px solid rgba(255,255,255,.08); background:rgba(0,0,0,.18); border-radius:10px; padding:10px 12px;">`
+                    ? `<div style="border:1px solid ${popupPanelBorder}; background:${popupPanelBg}; border-radius:10px; padding:10px 12px;">`
                         + `<div style="font-weight:700; margin:0 0 6px;">Blocked WebUIs (manual open)</div>`
                         + `<ul style="max-height:140px; overflow:auto; margin:0; padding-left:18px;">${linkHtml}</ul>${overflowHint}`
                         + `</div>`

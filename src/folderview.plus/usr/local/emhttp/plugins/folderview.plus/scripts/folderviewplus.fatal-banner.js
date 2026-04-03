@@ -379,24 +379,24 @@
     gap: 0.45rem;
     margin: 0 0 0.85rem;
     padding: 0.8rem 0.95rem;
-    border: 1px solid rgba(255, 190, 84, 0.48);
+    border: 1px solid var(--orange, var(--fvplus-theme-accent, currentColor));
     border-radius: 8px;
-    background: linear-gradient(180deg, rgba(58, 40, 12, 0.92), rgba(35, 23, 7, 0.96));
-    color: #f7e6c5;
+    background: var(--fvplus-theme-surface-panel, transparent);
+    color: var(--fvplus-theme-text-primary, currentColor);
     box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
 }
 #${PANEL_ID}.is-degraded {
-    border-color: rgba(111, 197, 255, 0.46);
-    background: linear-gradient(180deg, rgba(18, 44, 66, 0.92), rgba(10, 26, 41, 0.96));
-    color: #dbefff;
+    border-color: var(--link, var(--fvplus-theme-accent, currentColor));
+    background: var(--fvplus-theme-surface-panel, transparent);
+    color: var(--fvplus-theme-text-primary, currentColor);
 }
 #${PANEL_ID} .fvplus-fatal-title {
     font-size: 1.03rem;
     font-weight: 700;
-    color: #ffd484;
+    color: var(--orange, var(--fvplus-theme-accent, currentColor));
 }
 #${PANEL_ID}.is-degraded .fvplus-fatal-title {
-    color: #9fd7ff;
+    color: var(--link, var(--fvplus-theme-accent, currentColor));
 }
 #${PANEL_ID} .fvplus-fatal-title i {
     margin-right: 0.45rem;
@@ -411,12 +411,12 @@
     margin: 0.1rem 0;
 }
 #${PANEL_ID} .fvplus-fatal-fact {
-    color: #f0d7aa;
+    color: var(--fvplus-theme-text-muted, currentColor);
     font-size: 0.98rem;
 }
 #${PANEL_ID} .fvplus-fatal-list-title {
     font-weight: 600;
-    color: #ffe2a8;
+    color: var(--orange, var(--fvplus-theme-accent, currentColor));
 }
 #${PANEL_ID} .fvplus-fatal-list {
     margin: 0;
@@ -435,7 +435,7 @@
     padding: 0.16rem 0.62rem;
 }
 #${PANEL_ID} details.fvplus-fatal-details {
-    border-top: 1px solid rgba(255, 224, 156, 0.22);
+    border-top: 1px solid var(--fvplus-theme-border-subtle, currentColor);
     padding-top: 0.45rem;
 }
 #${PANEL_ID} .fvplus-fatal-details summary {
@@ -446,8 +446,8 @@
     margin: 0.45rem 0 0;
     padding: 0.65rem 0.75rem;
     border-radius: 6px;
-    background: rgba(0, 0, 0, 0.24);
-    color: #f9e6bf;
+    background: var(--fvplus-theme-surface-muted, transparent);
+    color: var(--fvplus-theme-text-primary, currentColor);
     white-space: pre-wrap;
     word-break: break-word;
     font-size: 0.95rem;

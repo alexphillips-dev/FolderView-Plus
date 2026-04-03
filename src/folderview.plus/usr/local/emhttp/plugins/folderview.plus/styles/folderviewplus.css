@@ -133,7 +133,7 @@ body[data-fvplus-host-theme="white"] #fv-settings-root .name-cell-breadcrumb,
 html[data-fv-host-theme="white"] #fv-settings-root .name-cell-breadcrumb,
 body[data-fv-host-theme="white"] #fv-settings-root .name-cell-breadcrumb,
 #fv-settings-root[data-fv-theme-class="light"] .name-cell-breadcrumb {
-    color: #5a6678 !important;
+    color: var(--fvplus-settings-breadcrumb-text) !important;
     opacity: 1 !important;
 }
 
@@ -141,13 +141,17 @@ html[data-fvplus-host-theme="white"] #fv-settings-root .name-cell-members-meta,
 body[data-fvplus-host-theme="white"] #fv-settings-root .name-cell-members-meta,
 html[data-fv-host-theme="white"] #fv-settings-root .name-cell-members-meta,
 body[data-fv-host-theme="white"] #fv-settings-root .name-cell-members-meta,
-#fv-settings-root[data-fv-theme-class="light"] .name-cell-members-meta,
+#fv-settings-root[data-fv-theme-class="light"] .name-cell-members-meta {
+    color: var(--fvplus-settings-members-meta-text) !important;
+    opacity: 1 !important;
+}
+
 html[data-fvplus-host-theme="white"] #fv-settings-root .name-cell-nested-meta,
 body[data-fvplus-host-theme="white"] #fv-settings-root .name-cell-nested-meta,
 html[data-fv-host-theme="white"] #fv-settings-root .name-cell-nested-meta,
 body[data-fv-host-theme="white"] #fv-settings-root .name-cell-nested-meta,
 #fv-settings-root[data-fv-theme-class="light"] .name-cell-nested-meta {
-    color: #617082 !important;
+    color: var(--fvplus-settings-nested-meta-text) !important;
     opacity: 1 !important;
 }
 
@@ -156,7 +160,7 @@ body[data-fvplus-host-theme="white"] #fv-settings-root .name-cell-content.is-nes
 html[data-fv-host-theme="white"] #fv-settings-root .name-cell-content.is-nested::before,
 body[data-fv-host-theme="white"] #fv-settings-root .name-cell-content.is-nested::before,
 #fv-settings-root[data-fv-theme-class="light"] .name-cell-content.is-nested::before {
-    border-left-color: rgba(129, 140, 154, 0.48) !important;
+    border-left-color: var(--fvplus-settings-tree-guide) !important;
 }
 
 html[data-fvplus-host-theme="white"] #fv-settings-root .folder-tree-toggle,
@@ -164,7 +168,7 @@ body[data-fvplus-host-theme="white"] #fv-settings-root .folder-tree-toggle,
 html[data-fv-host-theme="white"] #fv-settings-root .folder-tree-toggle,
 body[data-fv-host-theme="white"] #fv-settings-root .folder-tree-toggle,
 #fv-settings-root[data-fv-theme-class="light"] .folder-tree-toggle {
-    color: #5a6678 !important;
+    color: var(--fvplus-settings-breadcrumb-text) !important;
 }
 
 html[data-fvplus-host-theme="white"] #fv-settings-root .folder-pin-state,
@@ -177,9 +181,9 @@ body[data-fvplus-host-theme="white"] #fv-settings-root .folder-runtime-status,
 html[data-fv-host-theme="white"] #fv-settings-root .folder-runtime-status,
 body[data-fv-host-theme="white"] #fv-settings-root .folder-runtime-status,
 #fv-settings-root[data-fv-theme-class="light"] .folder-runtime-status {
-    color: #4f5d70 !important;
-    border-color: rgba(102, 115, 133, 0.28) !important;
-    background: rgba(102, 115, 133, 0.08) !important;
+    color: var(--fvplus-settings-chip-empty) !important;
+    border-color: var(--fvplus-settings-chip-empty-border) !important;
+    background: var(--fvplus-settings-chip-empty-bg) !important;
     opacity: 1 !important;
 }
 
@@ -213,9 +217,9 @@ body[data-fvplus-host-theme="white"] #fv-settings-root .status-breakdown-chip.is
 html[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-empty,
 body[data-fv-host-theme="white"] #fv-settings-root .status-breakdown-chip.is-empty,
 #fv-settings-root[data-fv-theme-class="light"] .status-breakdown-chip.is-empty {
-    color: #5f6d80 !important;
-    border-color: rgba(102, 115, 133, 0.34) !important;
-    background: rgba(102, 115, 133, 0.12) !important;
+    color: var(--fvplus-settings-chip-empty) !important;
+    border-color: var(--fvplus-settings-chip-empty-border) !important;
+    background: var(--fvplus-settings-chip-empty-bg) !important;
     opacity: 1 !important;
 }
 
@@ -1588,8 +1592,8 @@ body.fv-mobile-compact #fv-settings-root .status-breakdown-list {
 }
 
 .folder-pin-state.is-pinned {
-    border-color: rgba(255, 210, 77, 0.56);
-    color: #ffd24d;
+    border-color: var(--fvplus-settings-chip-warning-border);
+    color: var(--fvplus-settings-chip-warning);
 }
 
 .folder-metric-chip.is-ok {
@@ -4382,10 +4386,10 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     align-items: center;
     gap: 0.28rem;
     font-size: 1.03rem;
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    border: 1px solid var(--fvplus-settings-border-subtle);
     border-radius: 999px;
     padding: 0.14rem 0.45rem;
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--fvplus-settings-surface-muted);
 }
 
 #import-preview-dialog .preview-meta-item strong,
@@ -4396,20 +4400,20 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
 
 #import-preview-dialog .preview-meta-item.is-trust-trusted,
 #backup-compare-dialog .preview-meta-item.is-trust-trusted {
-    border-color: rgba(102, 210, 136, 0.62);
-    color: #91e6ab;
+    border-color: var(--fvplus-settings-chip-success-border);
+    color: var(--fvplus-settings-chip-success);
 }
 
 #import-preview-dialog .preview-meta-item.is-trust-legacy,
 #backup-compare-dialog .preview-meta-item.is-trust-legacy {
-    border-color: rgba(255, 193, 94, 0.65);
-    color: #ffd083;
+    border-color: var(--fvplus-settings-chip-warning-border);
+    color: var(--fvplus-settings-chip-warning);
 }
 
 #import-preview-dialog .preview-meta-item.is-trust-untrusted,
 #backup-compare-dialog .preview-meta-item.is-trust-untrusted {
-    border-color: rgba(255, 116, 116, 0.7);
-    color: #ff9b9b;
+    border-color: var(--fvplus-settings-chip-danger-border);
+    color: var(--fvplus-settings-chip-danger);
 }
 
 #import-preview-dialog .preview-result {
@@ -4433,46 +4437,46 @@ h2[data-fv-advanced="1"] + .template-grid .rules-panel {
     gap: 0.32rem;
     font-size: 1.03rem;
     border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.16);
+    border: 1px solid var(--fvplus-settings-border-subtle);
     padding: 0.14rem 0.42rem;
-    background: rgba(255, 255, 255, 0.04);
+    background: var(--fvplus-settings-surface-muted);
 }
 
 #import-preview-dialog .import-count-chip.is-create,
 #backup-compare-dialog .import-count-chip.is-create {
-    border-color: rgba(147, 225, 159, 0.52);
-    color: #93e19f;
+    border-color: var(--fvplus-settings-chip-success-border);
+    color: var(--fvplus-settings-chip-success);
 }
 
 #import-preview-dialog .import-count-chip.is-update,
 #backup-compare-dialog .import-count-chip.is-update {
-    border-color: rgba(77, 163, 255, 0.58);
-    color: #b9dcff;
+    border-color: var(--fvplus-settings-chip-info-border);
+    color: var(--fvplus-settings-chip-info);
 }
 
 #import-preview-dialog .import-count-chip.is-delete,
 #backup-compare-dialog .import-count-chip.is-delete {
-    border-color: rgba(255, 116, 116, 0.58);
-    color: #ff8c8c;
+    border-color: var(--fvplus-settings-chip-danger-border);
+    color: var(--fvplus-settings-chip-danger);
 }
 
 #import-preview-dialog .import-count-chip.is-selected,
 #backup-compare-dialog .import-count-chip.is-selected {
-    border-color: rgba(255, 193, 94, 0.58);
-    color: #ffc15e;
+    border-color: var(--fvplus-settings-chip-warning-border);
+    color: var(--fvplus-settings-chip-warning);
 }
 
 #import-preview-dialog .import-count-chip.is-dryrun,
 #backup-compare-dialog .import-count-chip.is-dryrun {
-    border-color: rgba(192, 192, 192, 0.4);
-    color: rgba(255, 255, 255, 0.85);
+    border-color: var(--fvplus-settings-chip-empty-border);
+    color: var(--fvplus-settings-chip-empty);
 }
 
 #import-preview-dialog #import-preview-diff {
     margin: 0;
     max-height: 180px;
     overflow: auto;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid var(--fvplus-settings-border-faint);
     border-radius: 5px;
 }
 
@@ -5290,7 +5294,7 @@ body.fv-mobile-compact .fv-setup-field-grid {
 }
 
 .fv-runtime-resolved-head > i {
-    color: #7ed6a1;
+    color: var(--fvplus-settings-success);
     font-size: 1.06rem;
 }
 
@@ -5375,51 +5379,51 @@ body.fv-mobile-compact .fv-setup-field-grid {
     font-weight: 700;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    border: 1px solid rgba(126, 214, 161, 0.35);
-    color: #7ed6a1;
-    background: rgba(126, 214, 161, 0.12);
+    border: 1px solid var(--fvplus-settings-chip-success-border);
+    color: var(--fvplus-settings-chip-success);
+    background: var(--fvplus-settings-chip-success-bg);
 }
 
 .fv-update-notes-category.is-feature {
-    border-color: rgba(89, 180, 255, 0.35);
-    color: #9fd3ff;
-    background: rgba(89, 180, 255, 0.12);
+    border-color: var(--fvplus-settings-chip-info-border);
+    color: var(--fvplus-settings-chip-info);
+    background: var(--fvplus-settings-chip-info-bg);
 }
 
 .fv-update-notes-category.is-bugfix {
-    border-color: rgba(126, 214, 161, 0.35);
-    color: #7ed6a1;
-    background: rgba(126, 214, 161, 0.12);
+    border-color: var(--fvplus-settings-chip-success-border);
+    color: var(--fvplus-settings-chip-success);
+    background: var(--fvplus-settings-chip-success-bg);
 }
 
 .fv-update-notes-category.is-security {
-    border-color: rgba(255, 108, 108, 0.42);
-    color: #ff8e8e;
-    background: rgba(255, 108, 108, 0.14);
+    border-color: var(--fvplus-settings-chip-danger-border);
+    color: var(--fvplus-settings-chip-danger);
+    background: var(--fvplus-settings-chip-danger-bg);
 }
 
 .fv-update-notes-category.is-performance {
-    border-color: rgba(141, 219, 255, 0.4);
-    color: #8ddbff;
-    background: rgba(141, 219, 255, 0.14);
+    border-color: var(--fvplus-settings-chip-info-border);
+    color: var(--fvplus-settings-chip-info);
+    background: var(--fvplus-settings-chip-info-bg);
 }
 
 .fv-update-notes-category.is-ui {
-    border-color: rgba(255, 181, 96, 0.4);
-    color: #ffbf78;
-    background: rgba(255, 181, 96, 0.14);
+    border-color: var(--fvplus-settings-chip-warning-border);
+    color: var(--fvplus-settings-chip-warning);
+    background: var(--fvplus-settings-chip-warning-bg);
 }
 
 .fv-update-notes-category.is-maintenance {
-    border-color: rgba(198, 198, 198, 0.42);
-    color: #d6d6d6;
-    background: rgba(198, 198, 198, 0.12);
+    border-color: var(--fvplus-settings-chip-empty-border);
+    color: var(--fvplus-settings-chip-empty);
+    background: var(--fvplus-settings-chip-empty-bg);
 }
 
 .fv-update-notes-category.is-mixed {
-    border-color: rgba(196, 151, 255, 0.42);
-    color: #ceb0ff;
-    background: rgba(196, 151, 255, 0.14);
+    border-color: var(--fvplus-settings-border-subtle);
+    color: var(--fvplus-settings-title-accent);
+    background: var(--fvplus-settings-surface-muted);
 }
 
 .fv-update-notes-headline {
@@ -6892,23 +6896,23 @@ h2[data-fv-section] {
     font-size: 1.03rem;
     font-weight: 600;
     letter-spacing: 0.02em;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: rgba(255, 255, 255, 0.85);
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    color: var(--fvplus-settings-text-muted);
 }
 
 .fv-section-badge.is-ok {
-    border-color: rgba(147, 225, 159, 0.55);
-    color: #93e19f;
+    border-color: var(--fvplus-settings-chip-success-border);
+    color: var(--fvplus-settings-chip-success);
 }
 
 .fv-section-badge.is-changed {
-    border-color: rgba(255, 193, 94, 0.58);
-    color: #ffc15e;
+    border-color: var(--fvplus-settings-chip-warning-border);
+    color: var(--fvplus-settings-chip-warning);
 }
 
 .fv-section-badge.is-invalid {
-    border-color: rgba(255, 116, 116, 0.62);
-    color: #ff7474;
+    border-color: var(--fvplus-settings-chip-danger-border);
+    color: var(--fvplus-settings-chip-danger);
 }
 
 .fv-section-mode {
@@ -6919,24 +6923,24 @@ h2[data-fv-section] {
     font-size: 1.03rem;
     font-weight: 600;
     letter-spacing: 0.02em;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: rgba(255, 255, 255, 0.82);
-    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    color: var(--fvplus-settings-text-muted);
+    background: var(--fvplus-settings-surface-muted);
 }
 
 .fv-section-mode.is-instant {
-    border-color: rgba(130, 201, 255, 0.45);
-    color: #8fcdff;
+    border-color: var(--fvplus-settings-chip-info-border);
+    color: var(--fvplus-settings-chip-info);
 }
 
 .fv-section-mode.is-staged {
-    border-color: rgba(255, 193, 94, 0.58);
-    color: #ffc15e;
+    border-color: var(--fvplus-settings-chip-warning-border);
+    color: var(--fvplus-settings-chip-warning);
 }
 
 .fv-section-mode.is-mixed {
-    border-color: rgba(215, 173, 255, 0.52);
-    color: #d6a9ff;
+    border-color: var(--fvplus-settings-border-subtle);
+    color: var(--fvplus-settings-title-accent);
 }
 
 .fv-section-toggle {
@@ -6988,7 +6992,7 @@ h2[data-fv-section] {
 
 h2[data-fv-section].fv-search-match {
     text-decoration: underline;
-    text-decoration-color: rgba(77, 163, 255, 0.55);
+    text-decoration-color: var(--fvplus-settings-chip-info-border);
 }
 
 .rule-live-match {
@@ -7125,7 +7129,7 @@ h2[data-fv-section].fv-search-match {
 .folder-quick-filters > button.is-active {
     border-color: var(--fvplus-settings-accent);
     background: var(--fvplus-settings-accent-soft);
-    color: #d9ecff;
+    color: var(--fvplus-settings-text-primary);
 }
 
 .rule-test-samples {
@@ -7869,8 +7873,8 @@ tr.is-long-press-active {
     gap: 4px;
     padding: 2px 8px;
     border-radius: 999px;
-    border: 1px solid rgba(148, 170, 196, 0.34);
-    background: rgba(18, 28, 42, 0.72);
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    background: var(--fvplus-settings-surface-muted);
     font-size: 11px;
 }
 
@@ -7885,9 +7889,9 @@ tr.is-long-press-active {
     gap: 2px;
     padding: 6px 8px;
     font-size: 1rem;
-    border: 1px solid rgba(148, 170, 196, 0.24);
+    border: 1px solid var(--fvplus-settings-border-faint);
     border-radius: 8px;
-    background: rgba(9, 16, 24, 0.78);
+    background: var(--fvplus-settings-surface-muted);
 }
 
 .fv-setup-swal-row + .fv-setup-swal-row {
@@ -7896,13 +7900,13 @@ tr.is-long-press-active {
 
 .fv-setup-swal-row-label {
     font-weight: 600;
-    color: #bfd4ef;
+    color: var(--fvplus-settings-text-muted);
     font-size: 1.03rem;
 }
 
 .fv-setup-swal-row-value {
     text-align: left;
-    color: #eaf2ff;
+    color: var(--fvplus-settings-text-primary);
     font-weight: 700;
     font-size: 1.03rem;
     line-height: 1.2;
@@ -7917,18 +7921,18 @@ tr.is-long-press-active {
     margin-top: 6px;
     padding: 7px 9px;
     border-radius: 9px;
-    border: 1px solid rgba(148, 170, 196, 0.35);
-    background: rgba(148, 170, 196, 0.1);
+    border: 1px solid var(--fvplus-settings-border-subtle);
+    background: var(--fvplus-settings-surface-muted);
 }
 
 .fv-setup-swal-listbox.is-warning {
-    border-color: rgba(255, 193, 94, 0.44);
-    background: rgba(255, 193, 94, 0.11);
+    border-color: var(--fvplus-settings-chip-warning-border);
+    background: var(--fvplus-settings-chip-warning-bg);
 }
 
 .fv-setup-swal-listbox.is-failure {
-    border-color: rgba(255, 116, 116, 0.5);
-    background: rgba(255, 116, 116, 0.12);
+    border-color: var(--fvplus-settings-chip-danger-border);
+    background: var(--fvplus-settings-chip-danger-bg);
 }
 
 .fv-setup-swal-list-title {
@@ -7952,7 +7956,7 @@ tr.is-long-press-active {
     margin-top: 6px;
     text-align: center;
     font-weight: 600;
-    color: #d7e6fb;
+    color: var(--fvplus-settings-text-muted);
     font-size: 1.03rem;
 }
 

@@ -1096,11 +1096,11 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-icon-upload-status.is-error {
-    color: #ff8f8f;
+    color: var(--fv-editor-danger);
 }
 
 .fv-icon-upload-status.is-success {
-    color: #89e08f;
+    color: var(--fv-editor-success);
 }
 
 .fv-icon-picker-panel {
@@ -1193,12 +1193,12 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-icon-picker-status.is-error {
-    color: #ff8f8f;
+    color: var(--fv-editor-danger);
     opacity: 1;
 }
 
 .fv-icon-picker-status.is-success {
-    color: #89e08f;
+    color: var(--fv-editor-success);
     opacity: 1;
 }
 
@@ -1623,12 +1623,12 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
 .fv-third-party-badge.is-warning {
     border-color: rgba(255, 165, 79, 0.7);
-    color: #ffbe76;
+    color: var(--fv-editor-warning);
 }
 
 .fv-third-party-badge.is-error {
     border-color: rgba(255, 127, 127, 0.78);
-    color: #ff8f8f;
+    color: var(--fv-editor-danger);
 }
 
 .fv-third-party-icon-item:hover .fv-third-party-icon-fav,
@@ -1938,7 +1938,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 .fv-member-tools > input[type="text"][aria-invalid="true"],
 .fv-member-tools-main > input[type="text"][aria-invalid="true"],
 .fv-member-tools-filters > input[type="text"][aria-invalid="true"] {
-    border-color: #cf5b3e !important;
+    border-color: var(--fv-editor-danger) !important;
     box-shadow: 0 0 0 1px rgba(207, 91, 62, 0.18);
 }
 
@@ -2694,7 +2694,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
 .fv-folder-auto-rule-chip.is-active {
     background: rgba(88, 186, 122, 0.18);
-    color: #8ce0a5;
+    color: var(--fv-editor-success);
 }
 
 .fv-folder-auto-rule-chip.is-info {
@@ -2704,7 +2704,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
 .fv-folder-auto-rule-chip.is-warning {
     background: rgba(255, 181, 71, 0.18);
-    color: #ffcc72;
+    color: var(--fv-editor-warning);
 }
 
 .fv-folder-auto-rule-chip.is-muted {
@@ -2714,7 +2714,7 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 
 .fv-folder-auto-rule-chip.is-invalid {
     background: rgba(255, 92, 92, 0.18);
-    color: #ff9d9d;
+    color: var(--fv-editor-danger);
 }
 
 .fv-folder-auto-rule-actions {
@@ -3237,9 +3237,7 @@ table.sortable td:nth-child(3) {
 .fv-folder-action-dialog.ui-dialog {
     border-radius: 16px;
     border: 1px solid var(--fv-editor-block-border);
-    background:
-        linear-gradient(180deg, rgba(28, 24, 20, 0.98), rgba(18, 18, 18, 0.98)),
-        radial-gradient(circle at top right, rgba(255, 154, 60, 0.12), transparent 50%);
+    background: var(--fvplus-editor-bg, var(--fvplus-theme-surface-panel, transparent));
     box-shadow: 0 28px 80px rgba(0, 0, 0, 0.55);
     overflow: hidden;
 }
@@ -3247,13 +3245,13 @@ table.sortable td:nth-child(3) {
 .fv-folder-action-dialog .ui-dialog-titlebar {
     border: 0;
     border-bottom: 1px solid var(--fv-editor-block-border);
-    background: rgba(255, 255, 255, 0.03);
-    color: #f7f1e8;
+    background: var(--fvplus-editor-panel, var(--fvplus-theme-surface-panel, transparent));
+    color: var(--fvplus-editor-text-primary, var(--fvplus-theme-text-primary, currentColor));
     padding: 0.9em 1.1em;
 }
 
 .fv-folder-action-dialog .ui-dialog-title {
-    color: #f7f1e8;
+    color: var(--fvplus-editor-text-primary, var(--fvplus-theme-text-primary, currentColor));
     font-size: 1.08rem;
     font-weight: 700;
     letter-spacing: 0.02em;
@@ -3261,7 +3259,7 @@ table.sortable td:nth-child(3) {
 
 .fv-folder-action-dialog .ui-dialog-content {
     background: transparent;
-    color: rgba(255, 255, 255, 0.9);
+    color: var(--fvplus-editor-text-primary, var(--fvplus-theme-text-primary, currentColor));
     display: flex;
     justify-content: flex-start;
     align-items: flex-start;
@@ -3301,7 +3299,7 @@ table.sortable td:nth-child(3) {
 }
 
 .fv-folder-action-dialog .dialogCustomAction dl > dt {
-    color: #ffd7ab;
+    color: var(--fvplus-editor-title-accent, var(--fvplus-editor-accent, currentColor));
     font-weight: 700;
     width: auto !important;
     text-align: left !important;
@@ -3327,8 +3325,8 @@ table.sortable td:nth-child(3) {
     max-width: 100% !important;
     border-radius: 9px;
     border: 1px solid var(--fv-editor-block-border);
-    background: rgba(10, 10, 10, 0.34);
-    color: #f6f2eb;
+    background: var(--fvplus-editor-input-bg, transparent);
+    color: var(--fvplus-editor-text-primary, var(--fvplus-theme-text-primary, currentColor));
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
@@ -3742,7 +3740,7 @@ body[data-fvplus-host-theme="white"] .fv-editor-mode > button.is-active:active,
 /* Validation + state */
 .fv-field-error {
     margin-top: 0.25em;
-    color: #ff7f7f;
+    color: var(--fv-editor-danger);
     font-size: 1.03rem;
 }
 
@@ -3753,25 +3751,25 @@ body[data-fvplus-host-theme="white"] .fv-editor-mode > button.is-active:active,
 }
 
 .fv-parent-defaults-note.is-info {
-    color: #9bb8d6;
+    color: var(--fv-editor-info);
 }
 
 .fv-parent-defaults-note.is-success {
-    color: #9ed29e;
+    color: var(--fv-editor-success);
 }
 
 .fv-parent-defaults-note.is-warning {
-    color: #ffbe76;
+    color: var(--fv-editor-warning);
 }
 
 .fv-input-error {
-    border-color: #ff7f7f !important;
+    border-color: var(--fv-editor-danger) !important;
 }
 
 .folder-unsaved-indicator {
     display: inline-block;
     margin-left: 0.5em;
-    color: #ffbe76;
+    color: var(--fv-editor-warning);
     font-weight: 600;
 }
 

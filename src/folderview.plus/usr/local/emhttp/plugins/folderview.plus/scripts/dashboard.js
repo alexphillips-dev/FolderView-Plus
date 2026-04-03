@@ -9,6 +9,11 @@ const localDefaultFolderStatusColors = {
     paused: '#b8860b',
     stopped: '#ff4d4d'
 };
+const localResolvedFolderStatusColors = {
+    started: 'var(--fvplus-folder-status-started, var(--fvplus-status-started, var(--fvplus-theme-foreground, currentColor)))',
+    paused: 'var(--fvplus-folder-status-paused, var(--fvplus-status-paused, #b8860b))',
+    stopped: 'var(--fvplus-folder-status-stopped, var(--fvplus-status-stopped, #ff4d4d))'
+};
 const DEFAULT_FOLDER_ACCENT_COLOR = folderContract?.DEFAULT_FOLDER_ACCENT_COLOR || '#ffca63';
 const themeResolver = window.FolderViewPlusThemeResolver || null;
 const applyDashboardResolvedThemeTokens = (reason = 'dashboard:initial') => {
@@ -32,6 +37,22 @@ const normalizeStatusHexColor = (value, fallback) => {
         return `#${trimmed[1]}${trimmed[1]}${trimmed[2]}${trimmed[2]}${trimmed[3]}${trimmed[3]}`.toLowerCase();
     }
     return trimmed.toLowerCase();
+};
+const resolveDashboardFolderStatusColors = (settings) => {
+    const colors = typeof utils.getFolderStatusColors === 'function'
+        ? utils.getFolderStatusColors(settings)
+        : localDefaultFolderStatusColors;
+    return {
+        started: colors.started === localDefaultFolderStatusColors.started
+            ? localResolvedFolderStatusColors.started
+            : colors.started,
+        paused: colors.paused === localDefaultFolderStatusColors.paused
+            ? localResolvedFolderStatusColors.paused
+            : colors.paused,
+        stopped: colors.stopped === localDefaultFolderStatusColors.stopped
+            ? localResolvedFolderStatusColors.stopped
+            : colors.stopped
+    };
 };
 const isFolderAccentEnabled = typeof folderContract?.isFolderAccentEnabled === 'function'
     ? folderContract.isFolderAccentEnabled
@@ -1573,9 +1594,7 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
 
     //temp var
     const sel = $(`tbody#docker_view span#folder-id-${id}`);
-    const statusColors = typeof utils.getFolderStatusColors === 'function'
-        ? utils.getFolderStatusColors(folder.settings)
-        : localDefaultFolderStatusColors;
+    const statusColors = resolveDashboardFolderStatusColors(folder.settings);
     const $statusIcon = sel.next('span.inner').children('i');
     const $statusText = sel.next('span.inner').children('span.state');
     $statusIcon.css('color', statusColors.stopped);
@@ -1857,9 +1876,7 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
     
     //set tehe status of a folder
     const sel = $(`tbody#vm_view span#folder-id-${id}`);
-    const statusColors = typeof utils.getFolderStatusColors === 'function'
-        ? utils.getFolderStatusColors(folder.settings)
-        : localDefaultFolderStatusColors;
+    const statusColors = resolveDashboardFolderStatusColors(folder.settings);
     const $statusIcon = sel.next('span.inner').children('i');
     const $statusText = sel.next('span.inner').children('span.state');
     $statusIcon.css('color', statusColors.stopped);

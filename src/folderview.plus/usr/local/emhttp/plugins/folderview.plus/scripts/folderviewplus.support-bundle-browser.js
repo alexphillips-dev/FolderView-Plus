@@ -25,6 +25,14 @@
             ? deps.storageKeys
             : {};
 
+        const normalizeAssetVersionToken = (value) => {
+            const raw = String(value || '').trim();
+            if (!raw || raw === '0' || raw === 'null' || raw === 'undefined' || raw === 'false') {
+                return '';
+            }
+            return raw;
+        };
+
         const collectBrowserCapabilities = () => ({
             clipboardWrite: Boolean(root?.navigator?.clipboard && typeof root.navigator.clipboard.writeText === 'function'),
             cookieEnabled: root?.navigator?.cookieEnabled !== false,
@@ -58,13 +66,14 @@
             };
         };
 
-        const collectLoadedAssetTelemetry = (uiRedactor) => {
+        const collectLoadedAssetTelemetry = (uiRedactor, options = {}) => {
             const doc = root?.document || null;
             if (!doc || typeof doc.querySelectorAll !== 'function') {
                 return { count: 0, entries: [] };
             }
             const entries = [];
             const seen = new Set();
+            const fallbackVersionToken = normalizeAssetVersionToken(options?.pluginVersion || '');
             doc.querySelectorAll('script[src*="/plugins/folderview.plus/"], link[href*="/plugins/folderview.plus/"]').forEach((node) => {
                 const rawUrl = String(node?.src || node?.href || '').trim();
                 if (!rawUrl || seen.has(rawUrl)) {
@@ -72,21 +81,32 @@
                 }
                 seen.add(rawUrl);
                 let pathname = rawUrl;
+                let rawVersionQuery = '';
                 let versionQuery = '';
                 let bootQuery = '';
+                let versionSource = 'none';
                 try {
                     const parsed = new URL(rawUrl, root?.location?.origin || 'http://fvplus.local');
                     pathname = parsed.pathname || rawUrl;
-                    versionQuery = String(parsed.searchParams.get('v') || '');
+                    rawVersionQuery = String(parsed.searchParams.get('v') || '');
+                    versionQuery = normalizeAssetVersionToken(rawVersionQuery);
                     bootQuery = String(parsed.searchParams.get('boot') || '');
                 } catch (_error) {
                     pathname = rawUrl.replace(/^https?:\/\/[^/?#]+/i, '').replace(/[?#].*$/, '') || rawUrl;
+                }
+                if (versionQuery) {
+                    versionSource = 'query';
+                } else if (fallbackVersionToken) {
+                    versionQuery = fallbackVersionToken;
+                    versionSource = 'bundleMeta.pluginVersion';
                 }
                 entries.push({
                     tag: String(node?.tagName || '').toLowerCase() || 'asset',
                     url: uiRedactor ? uiRedactor.redactUrl(`uiTelemetry.loadedAssets.entries.${entries.length}.url`, rawUrl) : pathname,
                     path: pathname,
+                    rawVersionQuery,
                     versionQuery,
+                    versionSource,
                     bootQuery,
                     async: node?.async === true,
                     defer: node?.defer === true,

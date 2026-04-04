@@ -51,7 +51,10 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(supportBundlePreviewJs, /const buildSupportBundlePreviewSectionCards = \(bundle\) =>/);
     assert.match(supportBundlePreviewJs, /const buildSupportBundleRedactionPreviewHtml = \(bundle\) =>/);
     assert.match(supportBundleBrowserJs, /FolderViewPlusSupportBundleBrowserModuleLoaded = true/);
-    assert.match(supportBundleBrowserJs, /const collectLoadedAssetTelemetry = \(uiRedactor\) =>/);
+    assert.match(supportBundleBrowserJs, /const collectLoadedAssetTelemetry = \(uiRedactor, options = \{\}\) =>/);
+    assert.match(supportBundleBrowserJs, /const fallbackVersionToken = normalizeAssetVersionToken\(options\?\.pluginVersion \|\| ''\);/);
+    assert.match(supportBundleBrowserJs, /rawVersionQuery,/);
+    assert.match(supportBundleBrowserJs, /versionSource,/);
     assert.match(supportBundleBrowserJs, /const collectBrowserConsoleErrors = \(\) =>/);
     assert.match(supportBundleTelemetryJs, /FolderViewPlusSupportBundleTelemetryModuleLoaded = true/);
     assert.match(supportBundleTelemetryJs, /const createApi = \(deps = \{\}\) =>/);
@@ -96,7 +99,8 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.browserCapabilities = collectBrowserCapabilities\(\);/);
     assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.clientStorage = collectClientStorageDiagnostics\(\);/);
     assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.currentPage = collectCurrentPageTelemetry\(uiRedactor\);/);
-    assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.loadedAssets = collectLoadedAssetTelemetry\(uiRedactor\);/);
+    assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.loadedAssets = collectLoadedAssetTelemetry\(uiRedactor, \{/);
+    assert.match(supportBundleTelemetryJs, /pluginVersion: payload\.bundleMeta\?\.pluginVersion \|\| ''/);
     assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.requestErrors = uiRedactor\.sanitizeValue\(/);
     assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.browserConsoleErrors = uiRedactor\.sanitizeValue\(/);
     assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.folderEditorDebug = uiRedactor\.sanitizeValue\(/);

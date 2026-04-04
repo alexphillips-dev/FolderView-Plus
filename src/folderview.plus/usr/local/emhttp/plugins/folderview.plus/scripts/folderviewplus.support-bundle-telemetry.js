@@ -248,7 +248,9 @@
             existingUiTelemetry.browserCapabilities = collectBrowserCapabilities();
             existingUiTelemetry.clientStorage = collectClientStorageDiagnostics();
             existingUiTelemetry.currentPage = collectCurrentPageTelemetry(uiRedactor);
-            existingUiTelemetry.loadedAssets = collectLoadedAssetTelemetry(uiRedactor);
+            existingUiTelemetry.loadedAssets = collectLoadedAssetTelemetry(uiRedactor, {
+                pluginVersion: payload.bundleMeta?.pluginVersion || ''
+            });
             existingUiTelemetry.performance = uiRedactor.sanitizeValue(
                 'uiTelemetry.performance',
                 'performance',

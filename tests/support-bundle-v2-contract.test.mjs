@@ -435,11 +435,13 @@ const loadSupportBundleFixture = () => {
         manifestPath,
         [
             '<!DOCTYPE PLUGIN [',
+            '<!ENTITY name "folderview.plus">',
+            '<!ENTITY version "2026.04.04.10">',
             '<!ENTITY github "alexphillips-dev/FolderView-Plus">',
             '<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">',
             '<!ENTITY md5 "f9d807ddc1613bd63b665e7f9804c6a0">',
             ']>',
-            '<PLUGIN pluginURL="&pluginURL;"><FILE><URL>https://raw.githubusercontent.com/&github;/dev/archive/folderview.plus-2026.04.04.10.txz</URL></FILE></PLUGIN>'
+            '<PLUGIN pluginURL="&pluginURL;"><FILE><URL>https://raw.githubusercontent.com/&github;/dev/archive/&name;-&version;.txz</URL></FILE></PLUGIN>'
         ].join('\n'),
         'utf8'
     );

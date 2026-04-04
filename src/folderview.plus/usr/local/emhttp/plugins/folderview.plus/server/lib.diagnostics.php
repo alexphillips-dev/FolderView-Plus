@@ -1809,8 +1809,17 @@
             $manifestMetadata['manifestPath'] = basename(str_replace('\\', '/', $manifestPath));
             $manifestMetadata['manifestPathHash'] = diagnosticsHashShort($manifestPath);
             $manifestMetadata['manifestSha256'] = @hash_file('sha256', $manifestPath) ?: null;
+            $manifestEntities = [];
             if (preg_match('/<!ENTITY\s+md5\s+"([^"]+)"/i', $contents, $match)) {
                 $manifestMetadata['manifestMd5'] = (string)($match[1] ?? '');
+            }
+            foreach (['name', 'version', 'github', 'pluginURL'] as $entityKey) {
+                if (preg_match('/<!ENTITY\s+' . preg_quote($entityKey, '/') . '\s+"([^"]+)"/i', $contents, $match)) {
+                    $entityValue = html_entity_decode((string)($match[1] ?? ''), ENT_QUOTES | ENT_XML1, 'UTF-8');
+                    if ($entityValue !== '') {
+                        $manifestEntities[$entityKey] = $entityValue;
+                    }
+                }
             }
             if (preg_match('/<!ENTITY\s+github\s+"([^"]+)"/i', $contents, $match)) {
                 $githubRepo = trim((string)($match[1] ?? ''));
@@ -1831,6 +1840,18 @@
                     }
                 }
             }
+            if (!empty($manifestEntities)) {
+                foreach (['manifestUrl', 'archiveUrl'] as $urlKey) {
+                    $urlValue = (string)($manifestMetadata[$urlKey] ?? '');
+                    if ($urlValue === '') {
+                        continue;
+                    }
+                    foreach ($manifestEntities as $entityKey => $entityValue) {
+                        $urlValue = str_replace('&' . $entityKey . ';', (string)$entityValue, $urlValue);
+                    }
+                    $manifestMetadata[$urlKey] = $urlValue;
+                }
+            }
             break;
         }
 
@@ -1843,8 +1864,16 @@
         $sourceCommitSha = trim((string)($buildMetadata['sourceCommitSha'] ?? ''));
         $sourceTreeSha = trim((string)($buildMetadata['sourceTreeSha'] ?? ''));
         $sourceBranch = trim((string)($buildMetadata['sourceBranch'] ?? diagnosticsResolveSupportBundleChannel()));
-        $manifestUrl = trim((string)($manifestMetadata['manifestUrl'] ?? ($buildMetadata['manifestUrl'] ?? '')));
-        $archiveUrl = trim((string)($manifestMetadata['archiveUrl'] ?? ($buildMetadata['archiveUrl'] ?? '')));
+        $buildManifestUrl = trim((string)($buildMetadata['manifestUrl'] ?? ''));
+        $buildArchiveUrl = trim((string)($buildMetadata['archiveUrl'] ?? ''));
+        $resolvedManifestUrl = trim((string)($manifestMetadata['manifestUrl'] ?? ''));
+        $resolvedArchiveUrl = trim((string)($manifestMetadata['archiveUrl'] ?? ''));
+        $manifestUrl = ($resolvedManifestUrl !== '' && strpos($resolvedManifestUrl, '&') === false)
+            ? $resolvedManifestUrl
+            : $buildManifestUrl;
+        $archiveUrl = ($resolvedArchiveUrl !== '' && strpos($resolvedArchiveUrl, '&') === false)
+            ? $resolvedArchiveUrl
+            : $buildArchiveUrl;
 
         return [
             'pluginVersion' => (string)($diagnostics['pluginVersion'] ?? readInstalledVersion()),

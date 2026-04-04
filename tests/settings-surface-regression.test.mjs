@@ -34,6 +34,10 @@ test('settings page loads smart-detect config before starter templates and diagn
 test('settings diagnostics exports client perf and theme telemetry helpers', () => {
     assert.match(diagnosticsJs, /const normalizeSupportBundleV2Payload = \(bundle, privacy = 'sanitized'\) =>/);
     assert.match(diagnosticsJs, /const collectSupportBundleUiTelemetry = \(bundle\) =>/);
+    assert.match(diagnosticsJs, /const buildSupportBundlePreviewSectionCards = \(bundle\) =>/);
+    assert.match(diagnosticsJs, /const buildSupportBundleRedactionPreviewHtml = \(bundle\) =>/);
+    assert.match(diagnosticsJs, /const renderSupportBundlePreview = \(bundle = null\) =>/);
+    assert.match(diagnosticsJs, /const refreshSupportBundlePreview = async \(\{ privacy = 'sanitized', quiet = true \} = \{\}\) =>/);
     assert.match(diagnosticsJs, /const collectClientPerformanceTelemetry = \(\) =>/);
     assert.match(diagnosticsJs, /const collectFolderEditorDebugDiagnostics = \(\) =>/);
     assert.match(diagnosticsJs, /const EDITOR_DEBUG_SURFACE_STORAGE_KEY = 'fv\.folder\.editor\.debug\.surface\.v1';/);
@@ -49,6 +53,7 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /const exportFullSupportBundle = \(\) =>/);
     assert.match(settingsPage, /id="fv-diagnostics-summary"/);
     assert.match(settingsPage, /id="fv-diagnostics-actions"/);
+    assert.match(settingsPage, /id="fv-support-bundle-preview" class="fv-support-bundle-preview"/);
     assert.doesNotMatch(settingsPage, /id="fv-diagnostics-technical"/);
     assert.doesNotMatch(settingsPage, /id="folder-editor-diagnostics-output"/);
     assert.doesNotMatch(settingsPage, /renderFolderEditorDebugDiagnostics\(\)/);
@@ -60,6 +65,8 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /collectFolderEditorDebugDiagnostics/);
     assert.match(diagnosticsJs, /existingUiTelemetry\.theme = collectThemeTelemetrySnapshot\(\);/);
     assert.match(diagnosticsJs, /payload\.uiTelemetry = existingUiTelemetry;/);
+    assert.match(diagnosticsJs, /renderSupportBundlePreview\(lastSupportBundlePreview\);/);
+    assert.match(diagnosticsJs, /void refreshSupportBundlePreview\(\{ privacy: 'sanitized', quiet: true \}\);/);
     assert.match(diagnosticsJs, /const report = normalizeSupportBundleV2Payload\(diagnostics \|\| \{\}, diagnostics\?\.bundleMeta\?\.privacyMode \|\| 'sanitized'\);/);
     assert.match(diagnosticsJs, /report\.bundleMeta\?\.generatedAt/);
     assert.match(diagnosticsJs, /report\.pluginState\?\.\[type\]/);
@@ -229,4 +236,7 @@ test('diagnostics tab keeps inner side gutters for summary and workbench modules
     assert.match(settingsPage, /<div class="fv-diagnostics-section-body">/);
     assert.match(settingsCss, /\.fv-diagnostics-module-wrap\s*>\s*\.rules-panel\s*\{[\s\S]*margin-inline:\s*var\(--fv-advanced-side-padding\);/);
     assert.match(settingsCss, /\.fv-diagnostics-section-body\s*\{[\s\S]*padding-inline:\s*clamp\(8px,\s*1\.15vw,\s*18px\);/);
+    assert.match(settingsCss, /\.fv-support-bundle-preview\s*\{[\s\S]*border:\s*1px solid var\(--fvplus-settings-border-subtle\);[\s\S]*background:\s*var\(--fvplus-settings-surface-strong\);/);
+    assert.match(settingsCss, /\.fv-support-bundle-section-card,[\s\S]*\.fv-support-bundle-redaction-card\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-muted\);/);
+    assert.match(settingsCss, /\.fv-support-bundle-section-card\.is-ready \.fv-support-bundle-section-badge\s*\{[\s\S]*color:\s*var\(--fvplus-settings-chip-success\);/);
 });

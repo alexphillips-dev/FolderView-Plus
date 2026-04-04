@@ -6,12 +6,22 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.04.07">
-<!ENTITY md5 "59850531feab7e0a29b1661143104013">
+<!ENTITY version "2026.04.04.09">
+<!ENTITY md5 "6fa2b813ec3a1525fee8d27ea2959d44">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.04.09
+- UX: Settings workspace layout, section flows, and table behavior.
+- Fix: Diagnostics surfaces, issue reports, and support bundle coverage.
+
+
+###2026.04.04.08
+- UX: Added a support bundle preview panel in Settings / Diagnostics that shows every v2 section included in the export plus the current redaction profile before download.
+- Privacy: Surfaced hashed/masked/omitted/truncated field counts, bundle salt scope, and per-export salt hash metadata so sanitized exports are easier to inspect before sharing.
+
 
 ###2026.04.04.07
 - UX: Settings workspace layout, section flows, and table behavior.

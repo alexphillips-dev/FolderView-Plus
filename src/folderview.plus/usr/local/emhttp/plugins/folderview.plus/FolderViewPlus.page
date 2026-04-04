@@ -1295,6 +1295,12 @@ if (!empty($fvplusRuntimeConflicts)) {
                         <button type="button" onclick="exportSupportBundle()"><i class="fa fa-life-ring"></i> Export support bundle</button>
                     </div>
                     <div class="fv-diagnostics-share-note">Support bundle exports are sanitized by default and include the troubleshooting data needed for support.</div>
+                    <div id="fv-support-bundle-preview" class="fv-support-bundle-preview" aria-live="polite">
+                        <div class="fv-diagnostics-empty-state is-compact">
+                            <strong>Preparing support bundle preview.</strong>
+                            <span>Included sections and redaction categories will appear here before you download the bundle.</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

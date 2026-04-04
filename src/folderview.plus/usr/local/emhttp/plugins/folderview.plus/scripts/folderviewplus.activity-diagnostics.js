@@ -65,6 +65,164 @@ const requestErrorDiagnostics = [];
 const EDITOR_DEBUG_LAUNCH_STORAGE_KEY = 'fv.folder.editor.debug.launch.v1';
 const EDITOR_DEBUG_BOOTSTRAP_STORAGE_KEY = 'fv.folder.editor.debug.bootstrap.v1';
 const EDITOR_DEBUG_SURFACE_STORAGE_KEY = 'fv.folder.editor.debug.surface.v1';
+const SUPPORT_BUNDLE_UI_ID_KEYS = Object.freeze(new Set([
+    'id',
+    'folderId',
+    'launchId',
+    'launchFolderId',
+    'routeFolderId',
+    'resolvedRouteId',
+    'pageRequestedId',
+    'pageResolvedId',
+    'requestedId',
+    'resolvedId',
+    'queryId',
+    'hashId',
+    'seedId',
+    'requestedRef',
+    'requestedRefs',
+    'effectiveFolderId',
+    'navigationPrefillId',
+    'bootstrapRouteId',
+    'bootstrapEffectiveId'
+]));
+const SUPPORT_BUNDLE_UI_NAME_KEYS = Object.freeze(new Set([
+    'folderName',
+    'name'
+]));
+const SUPPORT_BUNDLE_UI_URL_KEYS = Object.freeze(new Set([
+    'currentPage',
+    'currentUrl',
+    'targetUrl',
+    'pageUrl',
+    'url',
+    'href'
+]));
+
+const normalizeSupportBundlePrivacyModeValue = (value) => (
+    String(value || '').trim().toLowerCase() === 'full' ? 'full' : 'sanitized'
+);
+
+const hashSupportBundleUiTelemetryValue = (value, saltSeed = '') => {
+    const input = `${String(saltSeed || '')}|${String(value || '')}`;
+    let hashA = 0x811c9dc5;
+    let hashB = 0x9e3779b9;
+    for (let index = 0; index < input.length; index++) {
+        const code = input.charCodeAt(index);
+        hashA ^= code;
+        hashA = Math.imul(hashA, 0x01000193) >>> 0;
+        hashB ^= (code + index + 1);
+        hashB = Math.imul(hashB, 0x85ebca6b) >>> 0;
+    }
+    return `${hashA.toString(16).padStart(8, '0')}${hashB.toString(16).padStart(8, '0')}`;
+};
+
+const appendSupportBundleRedactionManifestField = (manifest, bucket, fieldPath) => {
+    const safeBucket = String(bucket || '').trim();
+    const safePath = String(fieldPath || '').trim();
+    if (!manifest || typeof manifest !== 'object' || !safeBucket || !safePath) {
+        return;
+    }
+    const list = Array.isArray(manifest[safeBucket]) ? manifest[safeBucket] : [];
+    if (!list.includes(safePath)) {
+        list.push(safePath);
+    }
+    manifest[safeBucket] = list;
+};
+
+const createSupportBundleUiTelemetryRedactor = (bundle, privacy = 'sanitized') => {
+    const mode = normalizeSupportBundlePrivacyModeValue(privacy);
+    const payload = bundle && typeof bundle === 'object' && !Array.isArray(bundle) ? bundle : {};
+    const manifest = payload.redactionManifest && typeof payload.redactionManifest === 'object' && !Array.isArray(payload.redactionManifest)
+        ? payload.redactionManifest
+        : {};
+    payload.redactionManifest = manifest;
+    const saltSeed = String(payload.bundleMeta?.bundleSaltHash || manifest.saltHash || payload.bundleMeta?.generatedAt || Date.now()).trim();
+
+    return {
+        mode,
+        redactId(fieldPath, value) {
+            const raw = String(value || '').trim();
+            if (mode === 'full' || !raw) {
+                return raw;
+            }
+            appendSupportBundleRedactionManifestField(manifest, 'hashedFields', fieldPath);
+            return `ui-${hashSupportBundleUiTelemetryValue(raw, saltSeed)}`;
+        },
+        redactName(fieldPath, value) {
+            const raw = String(value || '').trim();
+            if (mode === 'full') {
+                return raw;
+            }
+            if (raw !== '') {
+                appendSupportBundleRedactionManifestField(manifest, 'hashedFields', fieldPath);
+                return `ui-${hashSupportBundleUiTelemetryValue(raw, saltSeed)}`;
+            }
+            return '';
+        },
+        redactUrl(fieldPath, value) {
+            const raw = String(value || '').trim();
+            if (mode === 'full' || !raw) {
+                return raw;
+            }
+            appendSupportBundleRedactionManifestField(manifest, 'maskedFields', fieldPath);
+            try {
+                const parsed = new URL(raw, window.location.origin || 'http://fvplus.local');
+                return parsed.pathname || '/';
+            } catch (_error) {
+                return raw.replace(/^https?:\/\/[^/?#]+/i, '').replace(/[?#].*$/, '') || '/';
+            }
+        },
+        redactDebugText(fieldPath, value) {
+            const raw = String(value || '');
+            if (mode === 'full' || !raw) {
+                return raw;
+            }
+            appendSupportBundleRedactionManifestField(manifest, 'maskedFields', fieldPath);
+            return raw
+                .replace(/https?:\/\/[^\s"')]+/gi, (match) => {
+                    try {
+                        const parsed = new URL(match);
+                        return parsed.pathname || '/';
+                    } catch (_error) {
+                        return match.replace(/^https?:\/\/[^/?#]+/i, '').replace(/[?#].*$/, '') || '/';
+                    }
+                })
+                .replace(/((?:^|\n)[A-Za-z][A-Za-z0-9]*(?:Id|Ref|Requested|Resolved|Seed|Target)=)([^\n]+)/g, (_match, prefix, secret) => {
+                    const safeSecret = String(secret || '').trim();
+                    return safeSecret ? `${prefix}ui-${hashSupportBundleUiTelemetryValue(safeSecret, saltSeed)}` : prefix;
+                });
+        },
+        sanitizeValue(fieldPath, key, value) {
+            if (Array.isArray(value)) {
+                return value.map((entry, index) => this.sanitizeValue(`${fieldPath}.${index}`, key, entry));
+            }
+            if (value && typeof value === 'object') {
+                const output = {};
+                for (const [childKey, childValue] of Object.entries(value)) {
+                    output[childKey] = this.sanitizeValue(`${fieldPath}.${childKey}`, childKey, childValue);
+                }
+                return output;
+            }
+            if (typeof value !== 'string') {
+                return value;
+            }
+            if (SUPPORT_BUNDLE_UI_URL_KEYS.has(key)) {
+                return this.redactUrl(fieldPath, value);
+            }
+            if (SUPPORT_BUNDLE_UI_ID_KEYS.has(key) || /(?:^|[A-Z])(?:Id|Ref)$/.test(key)) {
+                return this.redactId(fieldPath, value);
+            }
+            if (SUPPORT_BUNDLE_UI_NAME_KEYS.has(key) || key.toLowerCase().endsWith('name')) {
+                return this.redactName(fieldPath, value);
+            }
+            if (key === 'debug') {
+                return this.redactDebugText(fieldPath, value);
+            }
+            return value;
+        }
+    };
+};
 
 const readClientDiagnosticsStorageRecord = (storageKey) => {
     try {
@@ -79,6 +237,14 @@ const readClientDiagnosticsStorageRecord = (storageKey) => {
         return parsed && typeof parsed === 'object' ? parsed : null;
     } catch (_error) {
         return null;
+    }
+};
+
+const clientDiagnosticsStorageIsAvailable = (kind) => {
+    try {
+        return typeof window?.[kind] !== 'undefined';
+    } catch (_error) {
+        return false;
     }
 };
 
@@ -123,6 +289,45 @@ const collectFolderEditorDebugDiagnostics = () => {
                     ? 'Last folder editor launch and bootstrap targets match.'
                     : 'Last folder editor launch and bootstrap targets do not fully match.')
         }
+    };
+};
+
+const collectSupportBundleBrowserCapabilities = () => ({
+    clipboardWrite: Boolean(navigator?.clipboard && typeof navigator.clipboard.writeText === 'function'),
+    cookieEnabled: navigator?.cookieEnabled !== false,
+    fetch: typeof window.fetch === 'function',
+    mutationObserver: typeof window.MutationObserver === 'function',
+    pointerEvent: typeof window.PointerEvent === 'function',
+    resizeObserver: typeof window.ResizeObserver === 'function',
+    touchPoints: Number.isFinite(Number(navigator?.maxTouchPoints)) ? Number(navigator.maxTouchPoints) : 0,
+    viewport: {
+        width: Number.isFinite(Number(window.innerWidth)) ? Number(window.innerWidth) : 0,
+        height: Number.isFinite(Number(window.innerHeight)) ? Number(window.innerHeight) : 0,
+        devicePixelRatio: Number.isFinite(Number(window.devicePixelRatio)) ? Number(window.devicePixelRatio) : 1
+    }
+});
+
+const collectSupportBundleClientStorageDiagnostics = () => {
+    const launch = readClientDiagnosticsStorageRecord(EDITOR_DEBUG_LAUNCH_STORAGE_KEY);
+    const bootstrap = readClientDiagnosticsStorageRecord(EDITOR_DEBUG_BOOTSTRAP_STORAGE_KEY);
+    const surface = readClientDiagnosticsStorageRecord(EDITOR_DEBUG_SURFACE_STORAGE_KEY);
+    return {
+        localStorageAvailable: clientDiagnosticsStorageIsAvailable('localStorage'),
+        sessionStorageAvailable: clientDiagnosticsStorageIsAvailable('sessionStorage'),
+        folderEditorDebug: {
+            launchPresent: Boolean(launch),
+            bootstrapPresent: Boolean(bootstrap),
+            surfacePresent: Boolean(surface)
+        }
+    };
+};
+
+const collectSupportBundleCurrentPageTelemetry = (uiRedactor) => {
+    const pathname = String(window.location?.pathname || '');
+    const href = String(window.location?.href || '');
+    return {
+        path: pathname,
+        href: uiRedactor ? uiRedactor.redactUrl('uiTelemetry.currentPage.href', href) : href
     };
 };
 
@@ -379,12 +584,21 @@ const normalizeSupportBundleV2Payload = (bundle, privacy = 'sanitized') => {
 
 const collectSupportBundleUiTelemetry = (bundle) => {
     const payload = normalizeSupportBundleV2Payload(bundle, bundle?.bundleMeta?.privacyMode || 'sanitized');
+    const privacyMode = normalizeSupportBundlePrivacyModeValue(payload.bundleMeta?.privacyMode || 'sanitized');
+    const uiRedactor = createSupportBundleUiTelemetryRedactor(payload, privacyMode);
     const existingUiTelemetry = (
         payload.uiTelemetry && typeof payload.uiTelemetry === 'object' && !Array.isArray(payload.uiTelemetry)
     ) ? { ...payload.uiTelemetry } : {};
+    existingUiTelemetry.browserCapabilities = collectSupportBundleBrowserCapabilities();
+    existingUiTelemetry.clientStorage = collectSupportBundleClientStorageDiagnostics();
+    existingUiTelemetry.currentPage = collectSupportBundleCurrentPageTelemetry(uiRedactor);
     existingUiTelemetry.performance = collectClientPerformanceTelemetry();
     existingUiTelemetry.requestErrors = getRequestErrorDiagnosticsSnapshot();
-    existingUiTelemetry.folderEditorDebug = collectFolderEditorDebugDiagnostics();
+    existingUiTelemetry.folderEditorDebug = uiRedactor.sanitizeValue(
+        'uiTelemetry.folderEditorDebug',
+        'folderEditorDebug',
+        collectFolderEditorDebugDiagnostics()
+    );
     existingUiTelemetry.theme = collectThemeTelemetrySnapshot();
     payload.uiTelemetry = existingUiTelemetry;
     return payload;

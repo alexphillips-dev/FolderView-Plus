@@ -1102,6 +1102,7 @@
 
     function diagnosticsBuildStateSnapshot(string $type, array $folders, array $prefs, array $infoByName, string $privacyMode): array {
         $validNames = array_keys($infoByName);
+        $validNameSet = array_fill_keys($validNames, true);
         $rules = is_array($prefs['autoRules'] ?? null) ? $prefs['autoRules'] : [];
         $ruleTargetByName = [];
         foreach ($validNames as $name) {
@@ -1114,11 +1115,76 @@
         $showStoppedBadge = array_key_exists('stopped', $badges) && (bool)$badges['stopped'];
         $showUpdateBadge = !array_key_exists('updates', $badges) ? true : (bool)$badges['updates'];
 
+        $parentById = [];
+        foreach ($folders as $folderId => $folder) {
+            $safeFolderId = (string)$folderId;
+            $parentId = normalizeFolderParentIdValue($folder['parentId'] ?? ($folder['parent_id'] ?? ''));
+            $parentById[$safeFolderId] = $parentId !== ''
+                && $parentId !== $safeFolderId
+                && array_key_exists($parentId, $folders)
+                    ? $parentId
+                    : '';
+        }
+
+        $depthById = [];
+        $rootFolderCount = 0;
+        $nestedFolderCount = 0;
+        $maxDepth = 0;
+        foreach (array_keys($folders) as $folderId) {
+            $safeFolderId = (string)$folderId;
+            $depth = 0;
+            $cursor = $safeFolderId;
+            $seen = [$safeFolderId => true];
+            while (($parentById[$cursor] ?? '') !== '') {
+                $parentId = (string)$parentById[$cursor];
+                if (isset($seen[$parentId])) {
+                    break;
+                }
+                $seen[$parentId] = true;
+                $depth++;
+                $cursor = $parentId;
+            }
+            $depthById[$safeFolderId] = $depth;
+            if ($depth > 0) {
+                $nestedFolderCount++;
+            } else {
+                $rootFolderCount++;
+            }
+            if ($depth > $maxDepth) {
+                $maxDepth = $depth;
+            }
+        }
+
         $snapshotFolders = [];
         $folderStatusTotals = ['running' => 0, 'paused' => 0, 'stopped' => 0];
         $memberTotals = ['started' => 0, 'paused' => 0, 'stopped' => 0, 'total' => 0];
+        $entityStateCounts = ['started' => 0, 'paused' => 0, 'stopped' => 0];
+        $updateCounts = ['available' => 0, 'upToDate' => 0, 'unknown' => 0, 'total' => 0];
+        $assignedItemSet = [];
+
+        foreach ($infoByName as $name => $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+            $kind = $type === 'docker' ? diagnosticsStateKindForDockerItem($item) : diagnosticsStateKindForVmItem($item);
+            if (isset($entityStateCounts[$kind])) {
+                $entityStateCounts[$kind]++;
+            }
+            if ($type === 'docker') {
+                $updated = $item['info']['State']['Updated'] ?? null;
+                if ($updated === true) {
+                    $updateCounts['upToDate']++;
+                } elseif ($updated === false) {
+                    $updateCounts['available']++;
+                } else {
+                    $updateCounts['unknown']++;
+                }
+                $updateCounts['total']++;
+            }
+        }
 
         foreach ($folders as $folderId => $folder) {
+            $safeFolderId = (string)$folderId;
             $members = normalizeFolderMembers($folder['containers'] ?? []);
             $regex = (string)($folder['regex'] ?? '');
             if ($regex !== '' && diagnosticsRegexIsValid($regex)) {
@@ -1152,6 +1218,9 @@
                 $item = $infoByName[$name] ?? null;
                 if (!is_array($item)) {
                     continue;
+                }
+                if (isset($validNameSet[$name])) {
+                    $assignedItemSet[$name] = true;
                 }
                 $kind = $type === 'docker' ? diagnosticsStateKindForDockerItem($item) : diagnosticsStateKindForVmItem($item);
                 if ($kind === 'started') {
@@ -1187,10 +1256,12 @@
             $memberTotals['stopped'] += $stopped;
             $memberTotals['total'] += $total;
 
-            $snapshotFolders[$folderId] = [
-                'folderId' => (string)$folderId,
+            $snapshotFolders[$safeFolderId] = [
+                'folderId' => $safeFolderId,
                 'folderName' => normalizeDiagnosticsPrivacyMode($privacyMode) === 'full' ? (string)($folder['name'] ?? $folderId) : null,
                 'folderNameHash' => diagnosticsHashShort((string)($folder['name'] ?? $folderId)),
+                'parentId' => (string)($parentById[$safeFolderId] ?? ''),
+                'depth' => (int)($depthById[$safeFolderId] ?? 0),
                 'members' => [
                     'total' => $total,
                     'started' => $started,
@@ -1207,7 +1278,19 @@
             ];
         }
 
+        $totalItems = count($validNames);
+        $assignedItems = count($assignedItemSet);
+        $unassignedItems = max(0, $totalItems - $assignedItems);
+
         return [
+            'totalItems' => $totalItems,
+            'assignedItems' => $assignedItems,
+            'unassignedItems' => $unassignedItems,
+            'stateCounts' => $entityStateCounts,
+            'rootFolderCount' => $rootFolderCount,
+            'nestedFolderCount' => $nestedFolderCount,
+            'maxDepth' => $maxDepth,
+            'updateCounts' => $type === 'docker' ? $updateCounts : ['available' => 0, 'upToDate' => 0, 'unknown' => 0, 'total' => 0],
             'summary' => [
                 'folderTotalsByStatus' => $folderStatusTotals,
                 'memberTotals' => $memberTotals,
@@ -1466,6 +1549,8 @@
                 'ruleCount' => count($prefs['autoRules'] ?? []),
                 'manualOrderCount' => count($prefs['manualOrder'] ?? []),
                 'pinnedFolderCount' => count($prefs['pinnedFolderIds'] ?? []),
+                'pinnedFolderIds' => normalizeStringIdList($prefs['pinnedFolderIds'] ?? []),
+                'expandedFolderState' => normalizeExpandedStateMap($prefs['expandedFolderState'] ?? []),
                 'hideEmptyFolders' => normalizeBool($prefs['hideEmptyFolders'] ?? false, false),
                 'appColumnWidth' => normalizeAppColumnWidth($prefs['appColumnWidth'] ?? 'standard'),
                 'setupWizardCompleted' => normalizeBool($prefs['setupWizardCompleted'] ?? false, false),
@@ -1477,6 +1562,16 @@
                 'lazyPreviewEnabled' => normalizeBool($prefs['lazyPreviewEnabled'] ?? false, false),
                 'lazyPreviewThreshold' => normalizeIntInRange($prefs['lazyPreviewThreshold'] ?? 30, 10, 200, 30),
                 'themeCompatibilityMode' => normalizeThemeCompatibilityMode($prefs['themeCompatibilityMode'] ?? 'auto'),
+                'dashboard' => [
+                    'layout' => normalizeDashboardLayout($prefs['dashboard']['layout'] ?? 'classic'),
+                    'expandToggle' => !array_key_exists('expandToggle', is_array($prefs['dashboard'] ?? null) ? $prefs['dashboard'] : [])
+                        ? true
+                        : normalizeBool($prefs['dashboard']['expandToggle'] ?? true, true),
+                    'greyscale' => normalizeBool($prefs['dashboard']['greyscale'] ?? false, false),
+                    'folderLabel' => !array_key_exists('folderLabel', is_array($prefs['dashboard'] ?? null) ? $prefs['dashboard'] : [])
+                        ? true
+                        : normalizeBool($prefs['dashboard']['folderLabel'] ?? true, true)
+                ],
                 'health' => [
                     'cardsEnabled' => normalizeBool($prefs['health']['cardsEnabled'] ?? true, true),
                     'runtimeBadgeEnabled' => normalizeBool($prefs['health']['runtimeBadgeEnabled'] ?? false, false),
@@ -1577,6 +1672,9 @@
         return [
             'prefs' => [
                 'sortMode' => (string)($typeData['sortMode'] ?? 'created'),
+                'dashboard' => is_array($typeData['dashboard'] ?? null) ? $typeData['dashboard'] : [],
+                'expandedFolderState' => is_array($typeData['expandedFolderState'] ?? null) ? $typeData['expandedFolderState'] : [],
+                'pinnedFolders' => array_values(is_array($typeData['pinnedFolderIds'] ?? null) ? $typeData['pinnedFolderIds'] : []),
                 'hideEmptyFolders' => (bool)($typeData['hideEmptyFolders'] ?? false),
                 'appColumnWidth' => (string)($typeData['appColumnWidth'] ?? 'standard'),
                 'setupWizardCompleted' => (bool)($typeData['setupWizardCompleted'] ?? false),

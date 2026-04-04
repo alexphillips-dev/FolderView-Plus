@@ -42,6 +42,10 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(supportBundlePreviewJs, /const buildSupportBundlePreviewSectionCards = \(bundle\) =>/);
     assert.match(supportBundlePreviewJs, /const buildSupportBundleRedactionPreviewHtml = \(bundle\) =>/);
     assert.match(diagnosticsJs, /const normalizeSupportBundleV2Payload = \(bundle, privacy = 'sanitized'\) =>/);
+    assert.match(diagnosticsJs, /const createSupportBundleUiTelemetryRedactor = \(bundle, privacy = 'sanitized'\) =>/);
+    assert.match(diagnosticsJs, /const collectSupportBundleBrowserCapabilities = \(\) =>/);
+    assert.match(diagnosticsJs, /const collectSupportBundleClientStorageDiagnostics = \(\) =>/);
+    assert.match(diagnosticsJs, /const collectSupportBundleCurrentPageTelemetry = \(uiRedactor\) =>/);
     assert.match(diagnosticsJs, /const collectSupportBundleUiTelemetry = \(bundle\) =>/);
     assert.match(diagnosticsJs, /const renderSupportBundlePreview = \(bundle = null\) =>/);
     assert.match(diagnosticsJs, /const refreshSupportBundlePreview = async \(\{ privacy = 'sanitized', quiet = true \} = \{\}\) =>/);
@@ -70,6 +74,10 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /window\.FolderViewPlusDiagnostics = Object\.freeze\(\{/);
     assert.match(diagnosticsJs, /collectClientPerformanceTelemetry/);
     assert.match(diagnosticsJs, /collectFolderEditorDebugDiagnostics/);
+    assert.match(diagnosticsJs, /existingUiTelemetry\.browserCapabilities = collectSupportBundleBrowserCapabilities\(\);/);
+    assert.match(diagnosticsJs, /existingUiTelemetry\.clientStorage = collectSupportBundleClientStorageDiagnostics\(\);/);
+    assert.match(diagnosticsJs, /existingUiTelemetry\.currentPage = collectSupportBundleCurrentPageTelemetry\(uiRedactor\);/);
+    assert.match(diagnosticsJs, /existingUiTelemetry\.folderEditorDebug = uiRedactor\.sanitizeValue\(/);
     assert.match(diagnosticsJs, /existingUiTelemetry\.theme = collectThemeTelemetrySnapshot\(\);/);
     assert.match(diagnosticsJs, /payload\.uiTelemetry = existingUiTelemetry;/);
     assert.match(diagnosticsJs, /previewApi \? previewApi\.getLastSupportBundlePreview\(\) : null/);

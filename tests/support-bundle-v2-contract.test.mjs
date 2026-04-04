@@ -176,6 +176,8 @@ $diagnostics = [
             'ruleCount' => 1,
             'manualOrderCount' => 2,
             'pinnedFolderCount' => 1,
+            'pinnedFolderIds' => ['root01'],
+            'expandedFolderState' => ['root01' => true, 'child01' => false],
             'hideEmptyFolders' => false,
             'appColumnWidth' => 'standard',
             'setupWizardCompleted' => true,
@@ -187,6 +189,7 @@ $diagnostics = [
             'lazyPreviewEnabled' => false,
             'lazyPreviewThreshold' => 30,
             'themeCompatibilityMode' => 'auto',
+            'dashboard' => ['layout' => 'full-width', 'expandToggle' => true, 'greyscale' => false, 'folderLabel' => true],
             'health' => ['cardsEnabled' => true],
             'status' => ['displayMode' => 'balanced'],
             'backupSchedule' => ['enabled' => true, 'intervalHours' => 24, 'retention' => 25],
@@ -248,8 +251,8 @@ $diagnostics = [
                 'stateCounts' => ['started' => 2, 'paused' => 0, 'stopped' => 1],
                 'rootFolderCount' => 1,
                 'nestedFolderCount' => 1,
-                'maxDepth' => 2,
-                'updateCounts' => ['updatesAvailable' => 1],
+                'maxDepth' => 1,
+                'updateCounts' => ['available' => 1, 'upToDate' => 1, 'unknown' => 1, 'total' => 3],
                 'folders' => [
                     [
                         'folderId' => 'root01',
@@ -259,6 +262,16 @@ $diagnostics = [
                         'members' => [
                             'count' => 2,
                             'items' => ['PlexMediaServer', 'SonarrStack']
+                        ]
+                    ],
+                    [
+                        'folderId' => 'child01',
+                        'folderName' => 'Child Stack Secret',
+                        'parentId' => 'root01',
+                        'depth' => 1,
+                        'members' => [
+                            'count' => 1,
+                            'items' => ['SonarrStack']
                         ]
                     ]
                 ]
@@ -274,6 +287,8 @@ $diagnostics = [
             'ruleCount' => 0,
             'manualOrderCount' => 0,
             'pinnedFolderCount' => 0,
+            'pinnedFolderIds' => [],
+            'expandedFolderState' => [],
             'hideEmptyFolders' => false,
             'appColumnWidth' => 'standard',
             'setupWizardCompleted' => false,
@@ -285,6 +300,7 @@ $diagnostics = [
             'lazyPreviewEnabled' => false,
             'lazyPreviewThreshold' => 30,
             'themeCompatibilityMode' => 'auto',
+            'dashboard' => ['layout' => 'classic', 'expandToggle' => true, 'greyscale' => false, 'folderLabel' => true],
             'health' => ['cardsEnabled' => true],
             'status' => ['displayMode' => 'balanced'],
             'backupSchedule' => ['enabled' => false, 'intervalHours' => 24, 'retention' => 25],
@@ -400,6 +416,21 @@ test('support bundle v2 fixture exposes the exact top-level contract', () => {
         assert.ok(bundle.pluginState?.docker && bundle.pluginState?.vm);
         assert.ok(bundle.runtimeState?.docker && bundle.runtimeState?.vm);
         assert.ok(bundle.healthAndHistory?.summary && typeof bundle.healthAndHistory.summary === 'object');
+        assert.ok(bundle.pluginState.docker.prefs?.dashboard && typeof bundle.pluginState.docker.prefs.dashboard === 'object');
+        assert.deepEqual(bundle.pluginState.docker.prefs.expandedFolderState, { root01: true, child01: false });
+        assert.deepEqual(bundle.pluginState.docker.prefs.pinnedFolders, ['root01']);
+        assert.equal(bundle.runtimeState.docker.entitySummary.total, 3);
+        assert.equal(bundle.runtimeState.docker.entitySummary.assigned, 2);
+        assert.equal(bundle.runtimeState.docker.entitySummary.unassigned, 1);
+        assert.equal(bundle.runtimeState.docker.folderHierarchySummary.rootFolderCount, 1);
+        assert.equal(bundle.runtimeState.docker.folderHierarchySummary.nestedFolderCount, 1);
+        assert.equal(bundle.runtimeState.docker.folderHierarchySummary.maxDepth, 1);
+        assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[0].parentId, '');
+        assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[0].depth, 0);
+        assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[1].parentId, 'root01');
+        assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[1].depth, 1);
+        assert.equal(bundle.runtimeState.docker.updateStateSummary.available, 1);
+        assert.equal(bundle.runtimeState.docker.updateStateSummary.total, 3);
         assert.equal(Object.prototype.hasOwnProperty.call(bundle, 'diagnostics'), false);
         assert.equal(Object.prototype.hasOwnProperty.call(bundle, 'clientTelemetry'), false);
     }

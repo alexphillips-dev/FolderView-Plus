@@ -75,7 +75,7 @@ test('split settings modules publish globals for cross-script browser compatibil
     assert.match(script, /FolderViewPlusSupportBundlePreviewModuleLoaded = true/);
     assert.match(script, /FolderViewPlusSupportBundlePreview = factory\(\)/);
     assert.match(script, /FolderViewPlusSupportBundleTelemetryModuleLoaded = true/);
-    assert.match(script, /FolderViewPlusSupportBundleTelemetry = factory\(\)/);
+    assert.match(script, /FolderViewPlusSupportBundleTelemetry = factory\(root\)/);
     assert.match(script, /SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE/);
     assert.match(script, /TABLE_COLUMN_SELECTOR_MAP/);
     assert.match(script, /buildEffectiveSettingsTableWidths/);

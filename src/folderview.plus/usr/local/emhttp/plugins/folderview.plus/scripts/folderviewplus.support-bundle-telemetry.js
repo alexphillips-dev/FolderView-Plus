@@ -1,11 +1,11 @@
 (function(root, factory) {
     if (typeof module === 'object' && module.exports) {
-        module.exports = factory();
+        module.exports = factory(root);
         return;
     }
-    root.FolderViewPlusSupportBundleTelemetry = factory();
+    root.FolderViewPlusSupportBundleTelemetry = factory(root);
     root.FolderViewPlusSupportBundleTelemetryModuleLoaded = true;
-}(typeof globalThis !== 'undefined' ? globalThis : this, function() {
+}(typeof globalThis !== 'undefined' ? globalThis : this, function(root) {
     const SUPPORT_BUNDLE_UI_ID_KEYS = Object.freeze(new Set([
         'id',
         'folderId',

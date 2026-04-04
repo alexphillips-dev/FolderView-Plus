@@ -29,3 +29,10 @@ test('readme links to support policy from legacy migration section', () => {
     assert.match(readme, /Legacy CSS\/JS Migration \(FolderView2\/3\)/);
     assert.match(readme, /SUPPORT_POLICY\.md/);
 });
+
+test('readme documents v2 support bundle preview and sanitized redaction defaults', () => {
+    assert.match(readme, /copyable issue report, and a v2 support bundle export preview/);
+    assert.match(readme, /Sanitized support bundles redact names, paths, URLs, IPs, and user-agent values by default/);
+    assert.match(readme, /Review the support bundle preview before export\./);
+    assert.match(readme, /v2 `redactionManifest`/);
+});

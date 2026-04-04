@@ -6,12 +6,17 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.04.11">
+<!ENTITY version "2026.04.04.12">
 <!ENTITY md5 "8fa8ba9f04dd279079ac959b52b53cf8">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.04.12
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+- Docs: Project documentation and support guidance.
+
 
 ###2026.04.04.11
 - Fix: Server endpoints, runtime payloads, and persistence or validation paths.

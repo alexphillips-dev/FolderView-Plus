@@ -123,7 +123,8 @@ plugin remove folderview.plus
 
 - Top-of-page runtime diagnostics on Docker and VMs when folder rendering degrades or fails
 - Folder editor bootstrap diagnostics with copyable output
-- Settings Diagnostics with health check, suggested fixes, issue report, and support bundle export
+- Settings Diagnostics with health check, suggested fixes, copyable issue report, and a v2 support bundle export preview
+- Sanitized support bundles redact names, paths, URLs, IPs, and user-agent values by default, then include a redaction manifest with per-bundle hash metadata
 - Safe-mode conflict handling when legacy Folder View plugins are still installed
 - Legacy import and legacy CSS/JS override compatibility
 
@@ -261,6 +262,12 @@ Template workflow:
 - Import fails validation:
   - Make sure Docker exports are imported into Docker and VM exports into VMs.
   - Re-export with the latest plugin version if the file came from older tooling.
+
+- Sharing a support bundle:
+  - Open `Settings -> FolderView Plus -> Advanced -> Diagnostics`.
+  - Review the support bundle preview before export.
+  - Use the sanitized export by default. It omits or hashes names, paths, URLs, IPs, and user-agent values and records what was redacted in the v2 `redactionManifest`.
+  - Share the full export only if you intentionally need raw troubleshooting fields.
 
 ## Security and Reliability
 

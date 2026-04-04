@@ -231,6 +231,52 @@
         );
     }
 
+    function diagnosticsSupportBundleRedactInlineText(string $text, string $fieldPath, array &$redactor): string {
+        if (($redactor['mode'] ?? 'sanitized') === 'full' || trim($text) === '') {
+            return $text;
+        }
+
+        $redacted = (string)preg_replace_callback(
+            '/\bhttps?:\/\/[^\s<>"\']+/i',
+            static function (array $matches) use (&$redactor, $fieldPath): string {
+                $url = trim((string)($matches[0] ?? ''));
+                $urlHash = diagnosticsSupportBundleHashValue($redactor, $fieldPath . '.urlHash', $url);
+                diagnosticsSupportBundleMarkRedaction($redactor, 'omittedFields', $fieldPath . '.url');
+                return $urlHash ? '[url-hash:' . $urlHash . ']' : '[url-redacted]';
+            },
+            $text
+        );
+
+        $redacted = (string)preg_replace_callback(
+            '/(?:[A-Za-z]:[\\\\\/]|\/)[^\s<>"\']+/',
+            static function (array $matches) use (&$redactor, $fieldPath): string {
+                $pathValue = trim((string)($matches[0] ?? ''));
+                if ($pathValue === '') {
+                    return '';
+                }
+                $basename = basename(str_replace('\\', '/', rtrim($pathValue, '\\/')));
+                $pathHash = diagnosticsSupportBundleHashValue($redactor, $fieldPath . '.pathHash', $pathValue);
+                diagnosticsSupportBundleMarkRedaction($redactor, 'omittedFields', $fieldPath . '.path');
+                if ($basename !== '' && $pathHash) {
+                    return $basename . '[path-hash:' . $pathHash . ']';
+                }
+                return $basename !== '' ? $basename : '[path-redacted]';
+            },
+            $redacted
+        );
+
+        $redacted = (string)preg_replace_callback(
+            '/\b(?:\d{1,3}\.){3}\d{1,3}\b/',
+            static function (array $matches) use (&$redactor, $fieldPath): string {
+                $ipValue = trim((string)($matches[0] ?? ''));
+                return diagnosticsSupportBundleMaskIpValue($redactor, $fieldPath . '.ip', $ipValue);
+            },
+            $redacted
+        );
+
+        return $redacted;
+    }
+
     function diagnosticsSupportBundleRedactEventDetails($value, string $fieldPath, array &$redactor, int $depth = 0) {
         if (($redactor['mode'] ?? 'sanitized') === 'full') {
             return $value;
@@ -284,6 +330,12 @@
 
     function diagnosticsSupportBundleRedactPathHealth(array $pathHealth, string $fieldPath, array &$redactor): array {
         $sanitized = $pathHealth;
+        $sanitized['issues'] = array_values(array_map(
+            static function ($issue) use (&$redactor, $fieldPath): string {
+                return diagnosticsSupportBundleRedactInlineText((string)$issue, $fieldPath . '.issues.*', $redactor);
+            },
+            is_array($sanitized['issues'] ?? null) ? $sanitized['issues'] : []
+        ));
         $paths = is_array($sanitized['paths'] ?? null) ? $sanitized['paths'] : [];
         foreach (['configDir', 'sourceDir', 'folderFile', 'prefsFile', 'backupDir'] as $key) {
             if (!is_array($paths[$key] ?? null)) {

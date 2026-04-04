@@ -1197,4 +1197,212 @@
         ];
     }
 
+    function diagnosticsResolveSupportBundleChannel(): string {
+        foreach (readInstalledManifestPathCandidates() as $manifestPath) {
+            $contents = (string)@file_get_contents($manifestPath);
+            if ($contents === '') {
+                continue;
+            }
+            if (preg_match('/<PLUGINURL>[^<]*\\/FolderView-Plus\\/(dev|main)\\/folderview\\.plus\\.plg<\\/PLUGINURL>/i', $contents, $match)) {
+                return strtolower((string)$match[1]) === 'dev' ? 'dev' : 'main';
+            }
+            if (preg_match('/<!ENTITY\\s+pluginURL\\s+"[^"]*\\/FolderView-Plus\\/(dev|main)\\/folderview\\.plus\\.plg"\\s*>/i', $contents, $match)) {
+                return strtolower((string)$match[1]) === 'dev' ? 'dev' : 'main';
+            }
+        }
+        return 'main';
+    }
+
+    function diagnosticsBuildSupportBundleMetaSection(array $diagnostics, string $privacyMode): array {
+        return [
+            'bundleType' => 'FolderViewPlusSupportBundle',
+            'bundleVersion' => 2,
+            'schemaVersion' => (int)($diagnostics['schemaVersion'] ?? 0),
+            'generatedAt' => gmdate('c'),
+            'pluginVersion' => (string)($diagnostics['pluginVersion'] ?? readInstalledVersion()),
+            'channel' => diagnosticsResolveSupportBundleChannel(),
+            'privacyMode' => normalizeDiagnosticsPrivacyMode($privacyMode),
+            'redactionPolicyVersion' => 1,
+            'bundleSaltScope' => 'static-v1'
+        ];
+    }
+
+    function diagnosticsBuildSupportBundlePluginTypeSection(string $type, array $typeData, array $hashes): array {
+        $backupSchedule = is_array($typeData['backupSchedule'] ?? null) ? $typeData['backupSchedule'] : [];
+        $lastBackup = is_array($typeData['lastBackup'] ?? null) ? $typeData['lastBackup'] : null;
+
+        return [
+            'prefs' => [
+                'sortMode' => (string)($typeData['sortMode'] ?? 'created'),
+                'hideEmptyFolders' => (bool)($typeData['hideEmptyFolders'] ?? false),
+                'appColumnWidth' => (string)($typeData['appColumnWidth'] ?? 'standard'),
+                'setupWizardCompleted' => (bool)($typeData['setupWizardCompleted'] ?? false),
+                'settingsMode' => (string)($typeData['settingsMode'] ?? 'basic'),
+                'runtimePrefsSchema' => (int)($typeData['runtimePrefsSchema'] ?? 0),
+                'liveRefreshEnabled' => (bool)($typeData['liveRefreshEnabled'] ?? false),
+                'liveRefreshSeconds' => (int)($typeData['liveRefreshSeconds'] ?? 0),
+                'performanceMode' => (bool)($typeData['performanceMode'] ?? false),
+                'lazyPreviewEnabled' => (bool)($typeData['lazyPreviewEnabled'] ?? false),
+                'lazyPreviewThreshold' => (int)($typeData['lazyPreviewThreshold'] ?? 0),
+                'themeCompatibilityMode' => (string)($typeData['themeCompatibilityMode'] ?? 'auto'),
+                'health' => is_array($typeData['health'] ?? null) ? $typeData['health'] : [],
+                'status' => is_array($typeData['status'] ?? null) ? $typeData['status'] : [],
+                'backupSchedule' => $backupSchedule
+            ],
+            'folders' => [
+                'path' => (string)($typeData['folderPath'] ?? ''),
+                'exists' => (bool)($typeData['foldersExists'] ?? false),
+                'count' => (int)($typeData['folderCount'] ?? 0),
+                'manualOrderCount' => (int)($typeData['manualOrderCount'] ?? 0),
+                'pinnedFolderCount' => (int)($typeData['pinnedFolderCount'] ?? 0)
+            ],
+            'templates' => [
+                'count' => (int)($typeData['templateCount'] ?? 0)
+            ],
+            'fileHashes' => [
+                'folders' => is_array($hashes[$type . 'Folders'] ?? null) ? $hashes[$type . 'Folders'] : [],
+                'prefs' => is_array($hashes[$type . 'Prefs'] ?? null) ? $hashes[$type . 'Prefs'] : []
+            ],
+            'counts' => [
+                'folders' => (int)($typeData['folderCount'] ?? 0),
+                'rules' => (int)($typeData['ruleCount'] ?? 0),
+                'manualOrder' => (int)($typeData['manualOrderCount'] ?? 0),
+                'pinnedFolders' => (int)($typeData['pinnedFolderCount'] ?? 0),
+                'templates' => (int)($typeData['templateCount'] ?? 0),
+                'backups' => (int)($typeData['backupCount'] ?? 0)
+            ],
+            'lastBackup' => $lastBackup
+        ];
+    }
+
+    function diagnosticsBuildSupportBundlePluginStateSection(array $diagnostics): array {
+        $types = is_array($diagnostics['types'] ?? null) ? $diagnostics['types'] : [];
+        $hashes = is_array($diagnostics['hashes'] ?? null) ? $diagnostics['hashes'] : [];
+        $section = [];
+        foreach (['docker', 'vm'] as $type) {
+            $typeData = is_array($types[$type] ?? null) ? $types[$type] : [];
+            $section[$type] = diagnosticsBuildSupportBundlePluginTypeSection($type, $typeData, $hashes);
+        }
+        return $section;
+    }
+
+    function diagnosticsBuildSupportBundleRuntimeTypeSection(array $typeData): array {
+        $stateSnapshot = is_array($typeData['stateSnapshot'] ?? null) ? $typeData['stateSnapshot'] : [];
+        return [
+            'hostPageDetected' => true,
+            'entitySummary' => [
+                'total' => (int)($stateSnapshot['totalItems'] ?? 0),
+                'assigned' => (int)($stateSnapshot['assignedItems'] ?? 0),
+                'unassigned' => (int)($stateSnapshot['unassignedItems'] ?? 0),
+                'states' => is_array($stateSnapshot['stateCounts'] ?? null) ? $stateSnapshot['stateCounts'] : []
+            ],
+            'folderHierarchySummary' => [
+                'rootFolderCount' => (int)($stateSnapshot['rootFolderCount'] ?? 0),
+                'nestedFolderCount' => (int)($stateSnapshot['nestedFolderCount'] ?? 0),
+                'maxDepth' => (int)($stateSnapshot['maxDepth'] ?? 0),
+                'folders' => array_values(is_array($stateSnapshot['folders'] ?? null) ? $stateSnapshot['folders'] : [])
+            ],
+            'updateStateSummary' => is_array($stateSnapshot['updateCounts'] ?? null) ? $stateSnapshot['updateCounts'] : [],
+            'preflight' => [
+                'foldersPath' => (string)($typeData['folderPath'] ?? ''),
+                'prefsPath' => (string)($typeData['prefsPath'] ?? ''),
+                'foldersExists' => (bool)($typeData['foldersExists'] ?? false),
+                'prefsExists' => (bool)($typeData['prefsExists'] ?? false)
+            ]
+        ];
+    }
+
+    function diagnosticsBuildSupportBundleRuntimeStateSection(array $diagnostics): array {
+        $types = is_array($diagnostics['types'] ?? null) ? $diagnostics['types'] : [];
+        $detectedConflicts = fvplus_detect_runtime_plugin_conflicts();
+        return [
+            'docker' => diagnosticsBuildSupportBundleRuntimeTypeSection(is_array($types['docker'] ?? null) ? $types['docker'] : []),
+            'vm' => diagnosticsBuildSupportBundleRuntimeTypeSection(is_array($types['vm'] ?? null) ? $types['vm'] : []),
+            'conflicts' => [
+                'runtimeSafeMode' => count($detectedConflicts) > 0,
+                'detected' => $detectedConflicts
+            ]
+        ];
+    }
+
+    function diagnosticsBuildSupportBundleSystemSection(array $diagnostics, array $integrityFindings): array {
+        $environment = is_array($diagnostics['environment'] ?? null) ? $diagnostics['environment'] : [];
+        $customIcons = is_array($diagnostics['customIcons'] ?? null) ? $diagnostics['customIcons'] : [];
+        return [
+            'unraidVersion' => $environment['unraidVersion'] ?? null,
+            'phpVersion' => $environment['phpVersion'] ?? null,
+            'kernel' => $environment['os'] ?? null,
+            'timezone' => $environment['timezone'] ?? null,
+            'serverSoftware' => $environment['serverSoftware'] ?? null,
+            'request' => is_array($environment['request'] ?? null) ? $environment['request'] : [],
+            'pathHealth' => [
+                'docker' => is_array($integrityFindings['docker']['pathHealth'] ?? null) ? $integrityFindings['docker']['pathHealth'] : [],
+                'vm' => is_array($integrityFindings['vm']['pathHealth'] ?? null) ? $integrityFindings['vm']['pathHealth'] : [],
+                'customIcons' => $customIcons
+            ],
+            'phpExtensions' => array_values(get_loaded_extensions())
+        ];
+    }
+
+    function diagnosticsBuildSupportBundleHealthAndHistorySection(array $diagnostics, array $integrityFindings): array {
+        $summary = is_array($diagnostics['summary'] ?? null) ? $diagnostics['summary'] : [];
+        $history = is_array($diagnostics['importExportHistory'] ?? null) ? $diagnostics['importExportHistory'] : [];
+        return [
+            'summary' => $summary,
+            'integrityFindings' => $integrityFindings,
+            'recommendedActions' => array_values(is_array($summary['recommendedActions'] ?? null) ? $summary['recommendedActions'] : []),
+            'recentTimeline' => array_values(is_array($diagnostics['recentTimeline'] ?? null) ? $diagnostics['recentTimeline'] : []),
+            'recentMutations' => [
+                'retained' => (int)($history['retained'] ?? 0),
+                'returned' => (int)($history['returned'] ?? 0),
+                'events' => array_values(is_array($history['events'] ?? null) ? $history['events'] : [])
+            ],
+            'update' => is_array($diagnostics['update'] ?? null) ? $diagnostics['update'] : []
+        ];
+    }
+
+    function diagnosticsBuildSupportBundleRedactionManifestSection(string $privacyMode): array {
+        $privacyMode = normalizeDiagnosticsPrivacyMode($privacyMode);
+        return [
+            'mode' => $privacyMode,
+            'hashedFields' => $privacyMode === 'full' ? [] : [
+                'system.request.userAgentHash',
+                'system.request.clientIpHash',
+                'runtimeState.*.folderHierarchySummary.folders.*.folderNameHash'
+            ],
+            'maskedFields' => $privacyMode === 'full' ? [] : [
+                'system.request.clientIp'
+            ],
+            'omittedFields' => $privacyMode === 'full' ? [] : [
+                'system.request.userAgent',
+                'pluginState.*.folders.path',
+                'pluginState.*.fileHashes.*.path'
+            ],
+            'truncatedFields' => [
+                'healthAndHistory.recentTimeline',
+                'healthAndHistory.recentMutations.events',
+                'runtimeState.*.folderHierarchySummary.folders'
+            ]
+        ];
+    }
+
+    function getSupportBundleV2Snapshot(string $privacyMode = FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY): array {
+        $privacyMode = normalizeDiagnosticsPrivacyMode($privacyMode);
+        $diagnostics = getDiagnosticsSnapshot($privacyMode);
+        $types = is_array($diagnostics['types'] ?? null) ? $diagnostics['types'] : [];
+        $integrityFindings = [
+            'docker' => is_array($types['docker']['integrityChecks'] ?? null) ? $types['docker']['integrityChecks'] : [],
+            'vm' => is_array($types['vm']['integrityChecks'] ?? null) ? $types['vm']['integrityChecks'] : []
+        ];
+
+        return [
+            'bundleMeta' => diagnosticsBuildSupportBundleMetaSection($diagnostics, $privacyMode),
+            'system' => diagnosticsBuildSupportBundleSystemSection($diagnostics, $integrityFindings),
+            'pluginState' => diagnosticsBuildSupportBundlePluginStateSection($diagnostics),
+            'runtimeState' => diagnosticsBuildSupportBundleRuntimeStateSection($diagnostics),
+            'uiTelemetry' => new stdClass(),
+            'healthAndHistory' => diagnosticsBuildSupportBundleHealthAndHistorySection($diagnostics, $integrityFindings),
+            'redactionManifest' => diagnosticsBuildSupportBundleRedactionManifestSection($privacyMode)
+        ];
+    }
 

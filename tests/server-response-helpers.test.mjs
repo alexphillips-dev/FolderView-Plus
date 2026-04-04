@@ -183,18 +183,24 @@ test('lib.php centralizes folder editor mode preference resolution', () => {
 });
 
 test('diagnostics endpoint emits support bundle v2 shape only', () => {
-    assert.match(diagnosticsEndpointPhp, /function fvplus_resolve_support_bundle_channel\(\): string/);
-    assert.match(diagnosticsEndpointPhp, /function fvplus_build_support_bundle_v2\(array \$diagnostics, string \$privacyMode\): array/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsResolveSupportBundleChannel\(\): string/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsBuildSupportBundleMetaSection\(array \$diagnostics, string \$privacyMode\): array/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsBuildSupportBundlePluginStateSection\(array \$diagnostics\): array/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsBuildSupportBundleRuntimeStateSection\(array \$diagnostics\): array/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsBuildSupportBundleSystemSection\(array \$diagnostics, array \$integrityFindings\): array/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsBuildSupportBundleHealthAndHistorySection\(array \$diagnostics, array \$integrityFindings\): array/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsBuildSupportBundleRedactionManifestSection\(string \$privacyMode\): array/);
+    assert.match(libDiagnosticsPhp, /function getSupportBundleV2Snapshot\(string \$privacyMode = FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY\): array/);
     assert.match(diagnosticsEndpointPhp, /if \(\$action === 'support_bundle'\) \{/);
-    assert.match(diagnosticsEndpointPhp, /'bundle'\s*=>\s*fvplus_build_support_bundle_v2\(getDiagnosticsSnapshot\(\$privacyMode\), \$privacyMode\)/);
-    assert.match(diagnosticsEndpointPhp, /'bundleMeta'\s*=>\s*\[/);
-    assert.match(diagnosticsEndpointPhp, /'bundleVersion'\s*=>\s*2/);
-    assert.match(diagnosticsEndpointPhp, /'system'\s*=>\s*\[/);
-    assert.match(diagnosticsEndpointPhp, /'pluginState'\s*=>\s*\$pluginState/);
-    assert.match(diagnosticsEndpointPhp, /'runtimeState'\s*=>\s*\[/);
-    assert.match(diagnosticsEndpointPhp, /'uiTelemetry'\s*=>\s*new stdClass\(\)/);
-    assert.match(diagnosticsEndpointPhp, /'healthAndHistory'\s*=>\s*\[/);
-    assert.match(diagnosticsEndpointPhp, /'redactionManifest'\s*=>\s*\[/);
+    assert.match(diagnosticsEndpointPhp, /'bundle'\s*=>\s*getSupportBundleV2Snapshot\(\$privacyMode\)/);
+    assert.match(libDiagnosticsPhp, /'bundleMeta'\s*=>\s*diagnosticsBuildSupportBundleMetaSection\(\$diagnostics, \$privacyMode\)/);
+    assert.match(libDiagnosticsPhp, /'pluginState'\s*=>\s*diagnosticsBuildSupportBundlePluginStateSection\(\$diagnostics\)/);
+    assert.match(libDiagnosticsPhp, /'runtimeState'\s*=>\s*diagnosticsBuildSupportBundleRuntimeStateSection\(\$diagnostics\)/);
+    assert.match(libDiagnosticsPhp, /'system'\s*=>\s*diagnosticsBuildSupportBundleSystemSection\(\$diagnostics, \$integrityFindings\)/);
+    assert.match(libDiagnosticsPhp, /'uiTelemetry'\s*=>\s*new stdClass\(\)/);
+    assert.match(libDiagnosticsPhp, /'healthAndHistory'\s*=>\s*diagnosticsBuildSupportBundleHealthAndHistorySection\(\$diagnostics, \$integrityFindings\)/);
+    assert.match(libDiagnosticsPhp, /'redactionManifest'\s*=>\s*diagnosticsBuildSupportBundleRedactionManifestSection\(\$privacyMode\)/);
+    assert.match(libDiagnosticsPhp, /'bundleVersion'\s*=>\s*2/);
     assert.doesNotMatch(diagnosticsEndpointPhp, /'bundleType'\s*=>\s*'FolderViewPlusSupportBundle',\s*[\r\n]+\s*'bundleVersion'\s*=>\s*1,/);
     assert.doesNotMatch(diagnosticsEndpointPhp, /'diagnostics'\s*=>\s*\$diagnostics/);
 });

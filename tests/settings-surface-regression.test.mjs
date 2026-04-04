@@ -8,6 +8,7 @@ const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath)
 
 const settingsPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page');
 const settingsCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css');
+const supportBundlePreviewJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-preview.js');
 const diagnosticsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js');
 const settingsJs = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-health.js',
@@ -23,19 +24,25 @@ const wizardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.p
 test('settings page loads smart-detect config before starter templates and diagnostics modules', () => {
     const configIndex = settingsPage.indexOf('folderviewplus.smart-detect-config.js');
     const templatesIndex = settingsPage.indexOf('folderviewplus.starter-templates.js');
+    const supportBundlePreviewIndex = settingsPage.indexOf('folderviewplus.support-bundle-preview.js');
     const diagnosticsIndex = settingsPage.indexOf('folderviewplus.activity-diagnostics.js');
     assert.ok(configIndex >= 0, 'smart-detect config include is missing');
     assert.ok(templatesIndex >= 0, 'starter templates include is missing');
+    assert.ok(supportBundlePreviewIndex >= 0, 'support bundle preview include is missing');
     assert.ok(diagnosticsIndex >= 0, 'activity diagnostics include is missing');
     assert.ok(configIndex < templatesIndex, 'smart-detect config must load before starter templates');
+    assert.ok(templatesIndex < supportBundlePreviewIndex, 'starter templates must load before support bundle preview module');
+    assert.ok(supportBundlePreviewIndex < diagnosticsIndex, 'support bundle preview module must load before diagnostics');
     assert.ok(configIndex < diagnosticsIndex, 'smart-detect config must load before diagnostics');
 });
 
 test('settings diagnostics exports client perf and theme telemetry helpers', () => {
+    assert.match(supportBundlePreviewJs, /FolderViewPlusSupportBundlePreviewModuleLoaded = true/);
+    assert.match(supportBundlePreviewJs, /const createApi = \(deps = \{\}\) =>/);
+    assert.match(supportBundlePreviewJs, /const buildSupportBundlePreviewSectionCards = \(bundle\) =>/);
+    assert.match(supportBundlePreviewJs, /const buildSupportBundleRedactionPreviewHtml = \(bundle\) =>/);
     assert.match(diagnosticsJs, /const normalizeSupportBundleV2Payload = \(bundle, privacy = 'sanitized'\) =>/);
     assert.match(diagnosticsJs, /const collectSupportBundleUiTelemetry = \(bundle\) =>/);
-    assert.match(diagnosticsJs, /const buildSupportBundlePreviewSectionCards = \(bundle\) =>/);
-    assert.match(diagnosticsJs, /const buildSupportBundleRedactionPreviewHtml = \(bundle\) =>/);
     assert.match(diagnosticsJs, /const renderSupportBundlePreview = \(bundle = null\) =>/);
     assert.match(diagnosticsJs, /const refreshSupportBundlePreview = async \(\{ privacy = 'sanitized', quiet = true \} = \{\}\) =>/);
     assert.match(diagnosticsJs, /const collectClientPerformanceTelemetry = \(\) =>/);
@@ -65,7 +72,7 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /collectFolderEditorDebugDiagnostics/);
     assert.match(diagnosticsJs, /existingUiTelemetry\.theme = collectThemeTelemetrySnapshot\(\);/);
     assert.match(diagnosticsJs, /payload\.uiTelemetry = existingUiTelemetry;/);
-    assert.match(diagnosticsJs, /renderSupportBundlePreview\(lastSupportBundlePreview\);/);
+    assert.match(diagnosticsJs, /previewApi \? previewApi\.getLastSupportBundlePreview\(\) : null/);
     assert.match(diagnosticsJs, /void refreshSupportBundlePreview\(\{ privacy: 'sanitized', quiet: true \}\);/);
     assert.match(diagnosticsJs, /const report = normalizeSupportBundleV2Payload\(diagnostics \|\| \{\}, diagnostics\?\.bundleMeta\?\.privacyMode \|\| 'sanitized'\);/);
     assert.match(diagnosticsJs, /report\.bundleMeta\?\.generatedAt/);

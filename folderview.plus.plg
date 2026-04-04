@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.04.13">
-<!ENTITY md5 "4b2d546b2de3ed2371e4fce818e4af0e">
+<!ENTITY version "2026.04.04.14">
+<!ENTITY md5 "2d4da99752b7ed94603a91273ea40f63">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.04.14
+- Fix: Sanitized support bundles now redact folder editor debug URLs, folder names, and folder IDs in uiTelemetry.
+- Fix: Support bundle uiTelemetry now includes browser capabilities, client storage, and current page context.
+- Fix: Support bundle plugin prefs now include dashboard, expanded-folder, and pinned-folder state snapshots.
+- Fix: Support bundle Docker/VM runtime summaries now report entity counts, hierarchy depth, and update-state totals.
+- Quality: Split support-bundle telemetry helpers into a dedicated settings module and wired archive/perf guards for it.
+
 
 ###2026.04.04.13
 - UX: Settings workspace layout, section flows, and table behavior.

@@ -13,6 +13,7 @@ const settingsScriptPaths = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-preview.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-telemetry.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-health.js',
@@ -73,6 +74,8 @@ test('split settings modules publish globals for cross-script browser compatibil
     assert.match(script, /FolderViewPlusSettingsTree = Object\.freeze\(\{/);
     assert.match(script, /FolderViewPlusSupportBundlePreviewModuleLoaded = true/);
     assert.match(script, /FolderViewPlusSupportBundlePreview = factory\(\)/);
+    assert.match(script, /FolderViewPlusSupportBundleTelemetryModuleLoaded = true/);
+    assert.match(script, /FolderViewPlusSupportBundleTelemetry = factory\(\)/);
     assert.match(script, /SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE/);
     assert.match(script, /TABLE_COLUMN_SELECTOR_MAP/);
     assert.match(script, /buildEffectiveSettingsTableWidths/);

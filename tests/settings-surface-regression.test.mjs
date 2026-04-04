@@ -9,6 +9,7 @@ const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath)
 const settingsPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page');
 const settingsCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css');
 const supportBundlePreviewJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-preview.js');
+const supportBundleTelemetryJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-telemetry.js');
 const diagnosticsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js');
 const settingsJs = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-health.js',
@@ -25,14 +26,17 @@ test('settings page loads smart-detect config before starter templates and diagn
     const configIndex = settingsPage.indexOf('folderviewplus.smart-detect-config.js');
     const templatesIndex = settingsPage.indexOf('folderviewplus.starter-templates.js');
     const supportBundlePreviewIndex = settingsPage.indexOf('folderviewplus.support-bundle-preview.js');
+    const supportBundleTelemetryIndex = settingsPage.indexOf('folderviewplus.support-bundle-telemetry.js');
     const diagnosticsIndex = settingsPage.indexOf('folderviewplus.activity-diagnostics.js');
     assert.ok(configIndex >= 0, 'smart-detect config include is missing');
     assert.ok(templatesIndex >= 0, 'starter templates include is missing');
     assert.ok(supportBundlePreviewIndex >= 0, 'support bundle preview include is missing');
+    assert.ok(supportBundleTelemetryIndex >= 0, 'support bundle telemetry include is missing');
     assert.ok(diagnosticsIndex >= 0, 'activity diagnostics include is missing');
     assert.ok(configIndex < templatesIndex, 'smart-detect config must load before starter templates');
     assert.ok(templatesIndex < supportBundlePreviewIndex, 'starter templates must load before support bundle preview module');
-    assert.ok(supportBundlePreviewIndex < diagnosticsIndex, 'support bundle preview module must load before diagnostics');
+    assert.ok(supportBundlePreviewIndex < supportBundleTelemetryIndex, 'support bundle preview module must load before support bundle telemetry');
+    assert.ok(supportBundleTelemetryIndex < diagnosticsIndex, 'support bundle telemetry module must load before diagnostics');
     assert.ok(configIndex < diagnosticsIndex, 'smart-detect config must load before diagnostics');
 });
 
@@ -41,11 +45,15 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(supportBundlePreviewJs, /const createApi = \(deps = \{\}\) =>/);
     assert.match(supportBundlePreviewJs, /const buildSupportBundlePreviewSectionCards = \(bundle\) =>/);
     assert.match(supportBundlePreviewJs, /const buildSupportBundleRedactionPreviewHtml = \(bundle\) =>/);
+    assert.match(supportBundleTelemetryJs, /FolderViewPlusSupportBundleTelemetryModuleLoaded = true/);
+    assert.match(supportBundleTelemetryJs, /const createApi = \(deps = \{\}\) =>/);
+    assert.match(supportBundleTelemetryJs, /const createUiTelemetryRedactor = \(bundle, privacy = 'sanitized'\) =>/);
+    assert.match(supportBundleTelemetryJs, /const collectBrowserCapabilities = \(\) =>/);
+    assert.match(supportBundleTelemetryJs, /const collectClientStorageDiagnostics = \(\) =>/);
+    assert.match(supportBundleTelemetryJs, /const collectCurrentPageTelemetry = \(uiRedactor\) =>/);
+    assert.match(supportBundleTelemetryJs, /const collectSupportBundleUiTelemetry = \(bundle\) =>/);
     assert.match(diagnosticsJs, /const normalizeSupportBundleV2Payload = \(bundle, privacy = 'sanitized'\) =>/);
-    assert.match(diagnosticsJs, /const createSupportBundleUiTelemetryRedactor = \(bundle, privacy = 'sanitized'\) =>/);
-    assert.match(diagnosticsJs, /const collectSupportBundleBrowserCapabilities = \(\) =>/);
-    assert.match(diagnosticsJs, /const collectSupportBundleClientStorageDiagnostics = \(\) =>/);
-    assert.match(diagnosticsJs, /const collectSupportBundleCurrentPageTelemetry = \(uiRedactor\) =>/);
+    assert.match(diagnosticsJs, /const getSupportBundleTelemetryApi = \(\) =>/);
     assert.match(diagnosticsJs, /const collectSupportBundleUiTelemetry = \(bundle\) =>/);
     assert.match(diagnosticsJs, /const renderSupportBundlePreview = \(bundle = null\) =>/);
     assert.match(diagnosticsJs, /const refreshSupportBundlePreview = async \(\{ privacy = 'sanitized', quiet = true \} = \{\}\) =>/);
@@ -74,12 +82,14 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /window\.FolderViewPlusDiagnostics = Object\.freeze\(\{/);
     assert.match(diagnosticsJs, /collectClientPerformanceTelemetry/);
     assert.match(diagnosticsJs, /collectFolderEditorDebugDiagnostics/);
-    assert.match(diagnosticsJs, /existingUiTelemetry\.browserCapabilities = collectSupportBundleBrowserCapabilities\(\);/);
-    assert.match(diagnosticsJs, /existingUiTelemetry\.clientStorage = collectSupportBundleClientStorageDiagnostics\(\);/);
-    assert.match(diagnosticsJs, /existingUiTelemetry\.currentPage = collectSupportBundleCurrentPageTelemetry\(uiRedactor\);/);
-    assert.match(diagnosticsJs, /existingUiTelemetry\.folderEditorDebug = uiRedactor\.sanitizeValue\(/);
-    assert.match(diagnosticsJs, /existingUiTelemetry\.theme = collectThemeTelemetrySnapshot\(\);/);
-    assert.match(diagnosticsJs, /payload\.uiTelemetry = existingUiTelemetry;/);
+    assert.match(diagnosticsJs, /supportBundleTelemetryModule && typeof supportBundleTelemetryModule\.createApi === 'function'/);
+    assert.match(diagnosticsJs, /telemetryApi\.collectSupportBundleUiTelemetry\(bundle\)/);
+    assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.browserCapabilities = collectBrowserCapabilities\(\);/);
+    assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.clientStorage = collectClientStorageDiagnostics\(\);/);
+    assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.currentPage = collectCurrentPageTelemetry\(uiRedactor\);/);
+    assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.folderEditorDebug = uiRedactor\.sanitizeValue\(/);
+    assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.theme = collectThemeTelemetrySnapshot\(\);/);
+    assert.match(supportBundleTelemetryJs, /payload\.uiTelemetry = existingUiTelemetry;/);
     assert.match(diagnosticsJs, /previewApi \? previewApi\.getLastSupportBundlePreview\(\) : null/);
     assert.match(diagnosticsJs, /void refreshSupportBundlePreview\(\{ privacy: 'sanitized', quiet: true \}\);/);
     assert.match(diagnosticsJs, /const report = normalizeSupportBundleV2Payload\(diagnostics \|\| \{\}, diagnostics\?\.bundleMeta\?\.privacyMode \|\| 'sanitized'\);/);

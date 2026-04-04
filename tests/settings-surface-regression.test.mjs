@@ -32,6 +32,8 @@ test('settings page loads smart-detect config before starter templates and diagn
 });
 
 test('settings diagnostics exports client perf and theme telemetry helpers', () => {
+    assert.match(diagnosticsJs, /const normalizeSupportBundleV2Payload = \(bundle, privacy = 'sanitized'\) =>/);
+    assert.match(diagnosticsJs, /const collectSupportBundleUiTelemetry = \(bundle\) =>/);
     assert.match(diagnosticsJs, /const collectClientPerformanceTelemetry = \(\) =>/);
     assert.match(diagnosticsJs, /const collectFolderEditorDebugDiagnostics = \(\) =>/);
     assert.match(diagnosticsJs, /const EDITOR_DEBUG_SURFACE_STORAGE_KEY = 'fv\.folder\.editor\.debug\.surface\.v1';/);
@@ -56,10 +58,19 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /window\.FolderViewPlusDiagnostics = Object\.freeze\(\{/);
     assert.match(diagnosticsJs, /collectClientPerformanceTelemetry/);
     assert.match(diagnosticsJs, /collectFolderEditorDebugDiagnostics/);
-    assert.match(diagnosticsJs, /existingClientTelemetry\.theme = collectThemeTelemetrySnapshot\(\);/);
+    assert.match(diagnosticsJs, /existingUiTelemetry\.theme = collectThemeTelemetrySnapshot\(\);/);
+    assert.match(diagnosticsJs, /payload\.uiTelemetry = existingUiTelemetry;/);
+    assert.match(diagnosticsJs, /const report = normalizeSupportBundleV2Payload\(diagnostics \|\| \{\}, diagnostics\?\.bundleMeta\?\.privacyMode \|\| 'sanitized'\);/);
+    assert.match(diagnosticsJs, /report\.bundleMeta\?\.generatedAt/);
+    assert.match(diagnosticsJs, /report\.pluginState\?\.\[type\]/);
+    assert.match(diagnosticsJs, /report\.healthAndHistory\?\.recentTimeline/);
+    assert.match(diagnosticsJs, /report\.uiTelemetry\?\.folderEditorDebug/);
     assert.match(diagnosticsJs, /surfaceSummary/);
     assert.match(diagnosticsJs, /Bootstrap banner:/);
     assert.match(diagnosticsJs, /runThemeSelfHeal/);
+    assert.doesNotMatch(diagnosticsJs, /payload\.clientTelemetry = existingClientTelemetry;/);
+    assert.doesNotMatch(diagnosticsJs, /bundle\.clientTelemetry = existingClientTelemetry;/);
+    assert.doesNotMatch(diagnosticsJs, /report\.clientTelemetry\?\.folderEditorDebug/);
     assert.doesNotMatch(diagnosticsJs, /cancelButtonText:\s*'Sanitized export'/);
     assert.doesNotMatch(diagnosticsJs, /confirmButtonText:\s*'Full export'/);
 });

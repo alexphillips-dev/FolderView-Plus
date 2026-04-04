@@ -181,6 +181,45 @@
         return substr(hash('sha256', $salt . "\n" . $fieldPath . "\n" . $value), 0, 16);
     }
 
+    function diagnosticsSupportBundleRedactFolderIdValue(array &$redactor, string $type, string $fieldPath, string $folderId): string {
+        $normalizedFolderId = trim($folderId);
+        if ($normalizedFolderId === '' || ($redactor['mode'] ?? 'sanitized') === 'full') {
+            return $normalizedFolderId;
+        }
+        diagnosticsSupportBundleMarkRedaction($redactor, 'hashedFields', $fieldPath);
+        $salt = (string)($redactor['salt'] ?? '');
+        return substr(hash('sha256', $salt . "\nfolder-id:" . $type . "\n" . $normalizedFolderId), 0, 16);
+    }
+
+    function diagnosticsSupportBundleRedactFolderIdList(array &$redactor, string $type, string $fieldPath, array $folderIds): array {
+        return array_values(array_map(
+            static function ($folderId) use (&$redactor, $type, $fieldPath): string {
+                return diagnosticsSupportBundleRedactFolderIdValue($redactor, $type, $fieldPath, (string)$folderId);
+            },
+            array_values(array_map('strval', $folderIds))
+        ));
+    }
+
+    function diagnosticsSupportBundleRedactExpandedFolderState(array &$redactor, string $type, string $fieldPath, array $expandedFolderState): array {
+        if (($redactor['mode'] ?? 'sanitized') === 'full') {
+            return $expandedFolderState;
+        }
+        $sanitized = [];
+        foreach ($expandedFolderState as $folderId => $expanded) {
+            $safeFolderId = diagnosticsSupportBundleRedactFolderIdValue(
+                $redactor,
+                $type,
+                $fieldPath . '.*',
+                (string)$folderId
+            );
+            if ($safeFolderId === '') {
+                continue;
+            }
+            $sanitized[$safeFolderId] = (bool)$expanded;
+        }
+        return $sanitized;
+    }
+
     function diagnosticsSupportBundleMaskIpValue(array &$redactor, string $fieldPath, string $value): string {
         if (($redactor['mode'] ?? 'sanitized') === 'full') {
             return $value;
@@ -385,7 +424,12 @@
                 $duplicateExamples[] = [
                     'name' => diagnosticsSupportBundleRedactScalar($redactor, 'healthAndHistory.integrityFindings.' . $type . '.duplicateFolderNames.examples.*.name', $name),
                     'nameHash' => diagnosticsSupportBundleHashValue($redactor, 'healthAndHistory.integrityFindings.' . $type . '.duplicateFolderNames.examples.*.nameHash', $name),
-                    'folderIds' => array_values(array_map('strval', is_array($example['folderIds'] ?? null) ? $example['folderIds'] : []))
+                    'folderIds' => diagnosticsSupportBundleRedactFolderIdList(
+                        $redactor,
+                        $type,
+                        'healthAndHistory.integrityFindings.' . $type . '.duplicateFolderNames.examples.*.folderIds.*',
+                        is_array($example['folderIds'] ?? null) ? $example['folderIds'] : []
+                    )
                 ];
             }
 
@@ -403,7 +447,12 @@
                     );
                 }
                 $orphanedFolders[] = [
-                    'folderId' => (string)($row['folderId'] ?? ''),
+                    'folderId' => diagnosticsSupportBundleRedactFolderIdValue(
+                        $redactor,
+                        $type,
+                        'healthAndHistory.integrityFindings.' . $type . '.orphanedMembers.folders.*.folderId',
+                        (string)($row['folderId'] ?? '')
+                    ),
                     'count' => (int)($row['count'] ?? 0),
                     'items' => (($redactor['mode'] ?? FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY) === 'full')
                         ? array_values(array_map('strval', is_array($row['items'] ?? null) ? $row['items'] : []))
@@ -444,7 +493,12 @@
                             'healthAndHistory.integrityFindings.' . $type . '.duplicateAssignments.' . $groupKey . '.examples.*.itemHash',
                             $item
                         ),
-                        'folderIds' => array_values(array_map('strval', is_array($example['folderIds'] ?? null) ? $example['folderIds'] : [])),
+                        'folderIds' => diagnosticsSupportBundleRedactFolderIdList(
+                            $redactor,
+                            $type,
+                            'healthAndHistory.integrityFindings.' . $type . '.duplicateAssignments.' . $groupKey . '.examples.*.folderIds.*',
+                            is_array($example['folderIds'] ?? null) ? $example['folderIds'] : []
+                        ),
                         'folderCount' => (int)($example['folderCount'] ?? 0)
                     ];
                 }
@@ -1179,8 +1233,10 @@
                 } else {
                     $updateCounts['unknown']++;
                 }
-                $updateCounts['total']++;
+            } else {
+                $updateCounts['unknown']++;
             }
+            $updateCounts['total']++;
         }
 
         foreach ($folders as $folderId => $folder) {
@@ -1290,7 +1346,7 @@
             'rootFolderCount' => $rootFolderCount,
             'nestedFolderCount' => $nestedFolderCount,
             'maxDepth' => $maxDepth,
-            'updateCounts' => $type === 'docker' ? $updateCounts : ['available' => 0, 'upToDate' => 0, 'unknown' => 0, 'total' => 0],
+            'updateCounts' => $updateCounts,
             'summary' => [
                 'folderTotalsByStatus' => $folderStatusTotals,
                 'memberTotals' => $memberTotals,
@@ -1637,10 +1693,10 @@
             if ($contents === '') {
                 continue;
             }
-            if (preg_match('/<PLUGINURL>[^<]*\\/FolderView-Plus\\/(dev|main)\\/folderview\\.plus\\.plg<\\/PLUGINURL>/i', $contents, $match)) {
+            if (preg_match('/<PLUGINURL>[^<]*\\/(dev|main)\\/folderview\\.plus\\.plg<\\/PLUGINURL>/i', $contents, $match)) {
                 return strtolower((string)$match[1]) === 'dev' ? 'dev' : 'main';
             }
-            if (preg_match('/<!ENTITY\\s+pluginURL\\s+"[^"]*\\/FolderView-Plus\\/(dev|main)\\/folderview\\.plus\\.plg"\\s*>/i', $contents, $match)) {
+            if (preg_match('/<!ENTITY\\s+pluginURL\\s+"[^"]*\\/(dev|main)\\/folderview\\.plus\\.plg"\\s*>/i', $contents, $match)) {
                 return strtolower((string)$match[1]) === 'dev' ? 'dev' : 'main';
             }
         }
@@ -1673,8 +1729,18 @@
             'prefs' => [
                 'sortMode' => (string)($typeData['sortMode'] ?? 'created'),
                 'dashboard' => is_array($typeData['dashboard'] ?? null) ? $typeData['dashboard'] : [],
-                'expandedFolderState' => is_array($typeData['expandedFolderState'] ?? null) ? $typeData['expandedFolderState'] : [],
-                'pinnedFolders' => array_values(is_array($typeData['pinnedFolderIds'] ?? null) ? $typeData['pinnedFolderIds'] : []),
+                'expandedFolderState' => diagnosticsSupportBundleRedactExpandedFolderState(
+                    $redactor,
+                    $type,
+                    'pluginState.' . $type . '.prefs.expandedFolderState',
+                    is_array($typeData['expandedFolderState'] ?? null) ? $typeData['expandedFolderState'] : []
+                ),
+                'pinnedFolders' => diagnosticsSupportBundleRedactFolderIdList(
+                    $redactor,
+                    $type,
+                    'pluginState.' . $type . '.prefs.pinnedFolders.*',
+                    is_array($typeData['pinnedFolderIds'] ?? null) ? $typeData['pinnedFolderIds'] : []
+                ),
                 'hideEmptyFolders' => (bool)($typeData['hideEmptyFolders'] ?? false),
                 'appColumnWidth' => (string)($typeData['appColumnWidth'] ?? 'standard'),
                 'setupWizardCompleted' => (bool)($typeData['setupWizardCompleted'] ?? false),
@@ -1736,10 +1802,14 @@
                 continue;
             }
             $fieldPath = 'runtimeState.' . $type . '.folderHierarchySummary.folders.*';
+            $folderId = (string)($folder['folderId'] ?? '');
+            $parentId = (string)($folder['parentId'] ?? '');
             $folderName = (string)($folder['folderName'] ?? '');
             $memberItems = array_values(is_array($folder['members']['items'] ?? null) ? $folder['members']['items'] : []);
+            $folder['folderId'] = diagnosticsSupportBundleRedactFolderIdValue($redactor, $type, $fieldPath . '.folderId', $folderId);
+            $folder['parentId'] = diagnosticsSupportBundleRedactFolderIdValue($redactor, $type, $fieldPath . '.parentId', $parentId);
             $folder['folderName'] = diagnosticsSupportBundleRedactScalar($redactor, $fieldPath . '.folderName', $folderName);
-            $folder['folderNameHash'] = diagnosticsSupportBundleHashValue($redactor, $fieldPath . '.folderNameHash', $folderName !== '' ? $folderName : (string)($folder['folderId'] ?? ''));
+            $folder['folderNameHash'] = diagnosticsSupportBundleHashValue($redactor, $fieldPath . '.folderNameHash', $folderName !== '' ? $folderName : $folderId);
             if (!isset($folder['members']) || !is_array($folder['members'])) {
                 $folder['members'] = [];
             }

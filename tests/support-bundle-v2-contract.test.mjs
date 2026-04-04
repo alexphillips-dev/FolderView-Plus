@@ -13,7 +13,7 @@ const libDiagnosticsPath = path.join(
 
 const phpSingleQuote = (value) => `'${String(value).replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
 
-const buildFixturePhp = () => `<?php
+const buildFixturePhp = (manifestPath) => `<?php
 const FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY = 'sanitized';
 const FVPLUS_DIAGNOSTICS_HISTORY_MAX = 80;
 const FVPLUS_DIAGNOSTICS_SCHEMA_VERSION = 7;
@@ -24,7 +24,7 @@ const FVPLUS_DEFAULT_FOLDER_STATUS_COLORS = [
 ];
 
 function readInstalledManifestPathCandidates(): array {
-    return [];
+    return [${phpSingleQuote(manifestPath)}];
 }
 
 function readInstalledVersion(): string {
@@ -39,6 +39,26 @@ function fvplus_detect_runtime_plugin_conflicts(): array {
             'runtimeDir' => '/usr/local/emhttp/plugins/folder.view3'
         ]
     ];
+}
+
+function normalizeFolderParentIdValue($value): string {
+    return trim((string)$value);
+}
+
+function normalizeFolderMembers($members): array {
+    return array_values(array_map('strval', is_array($members) ? $members : []));
+}
+
+function getFolderLabelValueFromLabels(array $labels): string {
+    return '';
+}
+
+function dockerInfoLabelsForName(array $infoByName, string $name): array {
+    return [];
+}
+
+function autoRuleDecision(array $rules, string $name, array $infoByName, string $type): array {
+    return ['assignedRule' => null];
 }
 
 require_once ${phpSingleQuote(libDiagnosticsPath)};
@@ -328,14 +348,14 @@ $diagnostics = [
                 ]
             ],
             'stateSnapshot' => [
-                'totalItems' => 0,
+                'totalItems' => 1,
                 'assignedItems' => 0,
-                'unassignedItems' => 0,
-                'stateCounts' => ['started' => 0, 'paused' => 0, 'stopped' => 0],
+                'unassignedItems' => 1,
+                'stateCounts' => ['started' => 0, 'paused' => 0, 'stopped' => 1],
                 'rootFolderCount' => 0,
                 'nestedFolderCount' => 0,
                 'maxDepth' => 0,
-                'updateCounts' => [],
+                'updateCounts' => ['available' => 0, 'upToDate' => 0, 'unknown' => 1, 'total' => 1],
                 'folders' => []
             ]
         ]
@@ -368,7 +388,14 @@ $payload = [
         'uiTelemetry' => new stdClass(),
         'healthAndHistory' => diagnosticsBuildSupportBundleHealthAndHistorySection($diagnostics, $integrityFindings, $fullRedactor),
         'redactionManifest' => diagnosticsBuildSupportBundleRedactionManifestSection($fullRedactor)
-    ]
+    ],
+    'vmStateSnapshot' => diagnosticsBuildStateSnapshot(
+        'vm',
+        [],
+        [],
+        ['Orion VM Secret' => ['name' => 'Orion VM Secret', 'state' => 'stopped']],
+        'sanitized'
+    )
 ];
 
 echo json_encode($payload, JSON_UNESCAPED_SLASHES);
@@ -377,7 +404,19 @@ echo json_encode($payload, JSON_UNESCAPED_SLASHES);
 const loadSupportBundleFixture = () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-support-bundle-v2-'));
     const harnessPath = path.join(tempDir, 'fixture.php');
-    fs.writeFileSync(harnessPath, buildFixturePhp(), 'utf8');
+    const manifestPath = path.join(tempDir, 'folderview.plus.plg');
+    fs.writeFileSync(
+        manifestPath,
+        [
+            '<!DOCTYPE PLUGIN [',
+            '<!ENTITY github "alexphillips-dev/FolderView-Plus">',
+            '<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">',
+            ']>',
+            '<PLUGIN pluginURL="&pluginURL;"></PLUGIN>'
+        ].join('\n'),
+        'utf8'
+    );
+    fs.writeFileSync(harnessPath, buildFixturePhp(manifestPath), 'utf8');
     try {
         const raw = execFileSync('php', [harnessPath], {
             cwd: repoRoot,
@@ -409,6 +448,7 @@ test('support bundle v2 fixture exposes the exact top-level contract', () => {
         assert.equal(bundle.bundleMeta.bundleVersion, 2);
         assert.equal(bundle.bundleMeta.schemaVersion, 7);
         assert.equal(bundle.bundleMeta.pluginVersion, '2026.04.04.10');
+        assert.equal(bundle.bundleMeta.channel, 'dev');
         assert.equal(bundle.bundleMeta.privacyMode, mode);
         assert.equal(bundle.redactionManifest.mode, mode);
         assert.equal(bundle.uiTelemetry && typeof bundle.uiTelemetry, 'object');
@@ -417,20 +457,48 @@ test('support bundle v2 fixture exposes the exact top-level contract', () => {
         assert.ok(bundle.runtimeState?.docker && bundle.runtimeState?.vm);
         assert.ok(bundle.healthAndHistory?.summary && typeof bundle.healthAndHistory.summary === 'object');
         assert.ok(bundle.pluginState.docker.prefs?.dashboard && typeof bundle.pluginState.docker.prefs.dashboard === 'object');
-        assert.deepEqual(bundle.pluginState.docker.prefs.expandedFolderState, { root01: true, child01: false });
-        assert.deepEqual(bundle.pluginState.docker.prefs.pinnedFolders, ['root01']);
         assert.equal(bundle.runtimeState.docker.entitySummary.total, 3);
         assert.equal(bundle.runtimeState.docker.entitySummary.assigned, 2);
         assert.equal(bundle.runtimeState.docker.entitySummary.unassigned, 1);
+        assert.equal(bundle.runtimeState.vm.entitySummary.total, 1);
+        assert.equal(bundle.runtimeState.vm.entitySummary.unassigned, 1);
         assert.equal(bundle.runtimeState.docker.folderHierarchySummary.rootFolderCount, 1);
         assert.equal(bundle.runtimeState.docker.folderHierarchySummary.nestedFolderCount, 1);
         assert.equal(bundle.runtimeState.docker.folderHierarchySummary.maxDepth, 1);
         assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[0].parentId, '');
         assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[0].depth, 0);
-        assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[1].parentId, 'root01');
         assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[1].depth, 1);
         assert.equal(bundle.runtimeState.docker.updateStateSummary.available, 1);
         assert.equal(bundle.runtimeState.docker.updateStateSummary.total, 3);
+        assert.equal(bundle.runtimeState.vm.updateStateSummary.unknown, 1);
+        assert.equal(bundle.runtimeState.vm.updateStateSummary.total, 1);
+        if (mode === 'full') {
+            assert.deepEqual(bundle.pluginState.docker.prefs.expandedFolderState, { root01: true, child01: false });
+            assert.deepEqual(bundle.pluginState.docker.prefs.pinnedFolders, ['root01']);
+            assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[0].folderId, 'root01');
+            assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[1].folderId, 'child01');
+            assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[1].parentId, 'root01');
+        } else {
+            const expandedState = bundle.pluginState.docker.prefs.expandedFolderState || {};
+            const expandedKeys = Object.keys(expandedState);
+            assert.equal(expandedKeys.length, 2);
+            for (const key of expandedKeys) {
+                assert.match(key, /^[0-9a-f]{16}$/);
+            }
+            assert.deepEqual(Object.values(expandedState), [true, false]);
+            assert.equal(bundle.pluginState.docker.prefs.pinnedFolders.length, 1);
+            assert.match(bundle.pluginState.docker.prefs.pinnedFolders[0], /^[0-9a-f]{16}$/);
+            assert.equal(
+                bundle.pluginState.docker.prefs.pinnedFolders[0],
+                bundle.runtimeState.docker.folderHierarchySummary.folders[0].folderId
+            );
+            assert.match(bundle.runtimeState.docker.folderHierarchySummary.folders[0].folderId, /^[0-9a-f]{16}$/);
+            assert.match(bundle.runtimeState.docker.folderHierarchySummary.folders[1].folderId, /^[0-9a-f]{16}$/);
+            assert.equal(
+                bundle.runtimeState.docker.folderHierarchySummary.folders[1].parentId,
+                bundle.runtimeState.docker.folderHierarchySummary.folders[0].folderId
+            );
+        }
         assert.equal(Object.prototype.hasOwnProperty.call(bundle, 'diagnostics'), false);
         assert.equal(Object.prototype.hasOwnProperty.call(bundle, 'clientTelemetry'), false);
     }
@@ -446,6 +514,9 @@ test('sanitized support bundle fixture redacts paths, names, URLs, IPs, and user
         'PlexMediaServer',
         'Plex Root Secret',
         'SonarrStack',
+        'root01',
+        'root02',
+        'child01',
         'https://tower-main.local/Docker',
         'Mozilla/5.0 SecretHost-Agent',
         '192.168.6.25'
@@ -466,6 +537,16 @@ test('sanitized support bundle fixture redacts paths, names, URLs, IPs, and user
     assert.equal(bundle.system.pathHealth.customIcons.repairHint, null);
     assert.equal(bundle.pluginState.docker.folders.path, 'docker.folder.json');
     assert.match(bundle.pluginState.docker.folders.pathHash, /^[0-9a-f]{16}$/);
+    assert.match(bundle.pluginState.docker.prefs.pinnedFolders[0], /^[0-9a-f]{16}$/);
+    assert.equal(
+        Object.keys(bundle.pluginState.docker.prefs.expandedFolderState || {}).every((key) => /^[0-9a-f]{16}$/.test(key)),
+        true
+    );
+    assert.match(bundle.runtimeState.docker.folderHierarchySummary.folders[0].folderId, /^[0-9a-f]{16}$/);
+    assert.equal(
+        bundle.runtimeState.docker.folderHierarchySummary.folders[1].parentId,
+        bundle.runtimeState.docker.folderHierarchySummary.folders[0].folderId
+    );
     assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[0].folderName, null);
     assert.match(bundle.runtimeState.docker.folderHierarchySummary.folders[0].folderNameHash, /^[0-9a-f]{16}$/);
     assert.deepEqual(bundle.runtimeState.docker.folderHierarchySummary.folders[0].members.items, []);
@@ -491,6 +572,9 @@ test('sanitized support bundle fixture redacts paths, names, URLs, IPs, and user
     assert.equal(bundle.redactionManifest.saltScope, 'per-bundle');
     assert.match(bundle.redactionManifest.saltHash, /^[0-9a-f]{16}$/);
     assert.equal(bundle.redactionManifest.hashedFields.includes('system.request.userAgentHash'), true);
+    assert.equal(bundle.redactionManifest.hashedFields.includes('pluginState.docker.prefs.expandedFolderState.*'), true);
+    assert.equal(bundle.redactionManifest.hashedFields.includes('runtimeState.docker.folderHierarchySummary.folders.*.folderId'), true);
+    assert.equal(bundle.redactionManifest.hashedFields.includes('healthAndHistory.integrityFindings.docker.orphanedMembers.folders.*.folderId'), true);
     assert.equal(bundle.redactionManifest.maskedFields.includes('system.request.clientIp'), true);
     assert.equal(bundle.redactionManifest.omittedFields.includes('system.pathHealth.customIcons.repairHint'), true);
     assert.equal(
@@ -517,6 +601,10 @@ test('full support bundle fixture keeps raw troubleshooting fields and disables 
     assert.equal(bundle.system.pathHealth.customIcons.topReferences[0].name, 'PlexMediaServer');
     assert.equal(bundle.system.pathHealth.customIcons.repairHint, 'Delete /boot/config/plugins/folderview.plus/images/custom/PlexSecretIcon.png if unused.');
     assert.equal(bundle.pluginState.docker.folders.path, '/boot/config/plugins/folderview.plus/docker.folder.json');
+    assert.deepEqual(bundle.pluginState.docker.prefs.expandedFolderState, { root01: true, child01: false });
+    assert.deepEqual(bundle.pluginState.docker.prefs.pinnedFolders, ['root01']);
+    assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[0].folderId, 'root01');
+    assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[1].parentId, 'root01');
     assert.equal(bundle.runtimeState.docker.folderHierarchySummary.folders[0].folderName, 'Plex Root Secret');
     assert.deepEqual(bundle.runtimeState.docker.folderHierarchySummary.folders[0].members.items, ['PlexMediaServer', 'SonarrStack']);
     assert.equal(bundle.healthAndHistory.integrityFindings.docker.duplicateFolderNames.examples[0].name, 'Plex Root Secret');
@@ -524,4 +612,14 @@ test('full support bundle fixture keeps raw troubleshooting fields and disables 
     assert.equal(bundle.healthAndHistory.recentTimeline[0].summary, 'name=PlexMediaServer, folderId=root01, itemCount=2');
     assert.equal(bundle.healthAndHistory.recentMutations.events[0].details.url, 'https://tower-main.local/Docker');
     assert.equal(bundle.healthAndHistory.recentMutations.events[0].details.ip, '192.168.6.25');
+});
+
+test('vm state snapshot marks all entities as unknown for update totals', () => {
+    assert.equal(fixture.vmStateSnapshot.totalItems, 1);
+    assert.equal(fixture.vmStateSnapshot.unassignedItems, 1);
+    assert.equal(fixture.vmStateSnapshot.stateCounts.stopped, 1);
+    assert.equal(fixture.vmStateSnapshot.updateCounts.available, 0);
+    assert.equal(fixture.vmStateSnapshot.updateCounts.upToDate, 0);
+    assert.equal(fixture.vmStateSnapshot.updateCounts.unknown, 1);
+    assert.equal(fixture.vmStateSnapshot.updateCounts.total, 1);
 });

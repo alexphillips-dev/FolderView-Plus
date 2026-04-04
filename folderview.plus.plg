@@ -6,12 +6,21 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.04.04">
-<!ENTITY md5 "353e7f6ca568039a6617cd65f2a65a7f">
+<!ENTITY version "2026.04.04.06">
+<!ENTITY md5 "74846749ffcdc700356edd5c0c7214b2">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.04.06
+- Fix: Server endpoints, runtime payloads, and persistence or validation paths.
+
+
+###2026.04.04.05
+- Privacy: Added a support-bundle-only redaction layer with per-export salted hashes, path/IP/user-agent scrubbing, and a generated redaction manifest that records what was hashed, masked, omitted, or truncated.
+- Quality: Support bundle v2 now builds from a full diagnostics snapshot and applies one centralized sanitizer so sanitized exports avoid raw paths, names, and request metadata while preserving useful in-bundle correlation hashes.
+
 
 ###2026.04.04.04
 - Fix: Diagnostics surfaces, issue reports, and support bundle coverage.

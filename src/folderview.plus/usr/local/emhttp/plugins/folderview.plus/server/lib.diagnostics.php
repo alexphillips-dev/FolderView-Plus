@@ -134,6 +134,293 @@
         return '[redacted]';
     }
 
+    function diagnosticsCreateSupportBundleRedactor(string $privacyMode): array {
+        $privacyMode = normalizeDiagnosticsPrivacyMode($privacyMode);
+        $salt = '';
+        $saltFingerprint = null;
+        if ($privacyMode !== 'full') {
+            try {
+                $salt = bin2hex(random_bytes(16));
+            } catch (Throwable $exception) {
+                $seed = microtime(true) . ':' . getmypid() . ':' . uniqid('fvplus-support-bundle-', true);
+                $salt = hash('sha256', $seed);
+            }
+            $saltFingerprint = substr(hash('sha256', $salt), 0, 16);
+        }
+
+        return [
+            'mode' => $privacyMode,
+            'salt' => $salt,
+            'saltFingerprint' => $saltFingerprint,
+            'hashedFields' => [],
+            'maskedFields' => [],
+            'omittedFields' => [],
+            'truncatedFields' => []
+        ];
+    }
+
+    function diagnosticsSupportBundleMarkRedaction(array &$redactor, string $bucket, string $fieldPath): void {
+        if (!isset($redactor[$bucket]) || !is_array($redactor[$bucket])) {
+            $redactor[$bucket] = [];
+        }
+        if ($fieldPath === '' || in_array($fieldPath, $redactor[$bucket], true)) {
+            return;
+        }
+        $redactor[$bucket][] = $fieldPath;
+    }
+
+    function diagnosticsSupportBundleHashValue(array &$redactor, string $fieldPath, string $value): ?string {
+        if ($value === '') {
+            return null;
+        }
+        if (($redactor['mode'] ?? 'sanitized') === 'full') {
+            return diagnosticsHashShort($value);
+        }
+        diagnosticsSupportBundleMarkRedaction($redactor, 'hashedFields', $fieldPath);
+        $salt = (string)($redactor['salt'] ?? '');
+        return substr(hash('sha256', $salt . "\n" . $fieldPath . "\n" . $value), 0, 16);
+    }
+
+    function diagnosticsSupportBundleMaskIpValue(array &$redactor, string $fieldPath, string $value): string {
+        if (($redactor['mode'] ?? 'sanitized') === 'full') {
+            return $value;
+        }
+        diagnosticsSupportBundleMarkRedaction($redactor, 'maskedFields', $fieldPath);
+        return diagnosticsMaskIp($value);
+    }
+
+    function diagnosticsSupportBundleRedactScalar(array &$redactor, string $fieldPath, $value, bool $preserveBasename = false) {
+        if (($redactor['mode'] ?? 'sanitized') === 'full') {
+            return $value;
+        }
+        diagnosticsSupportBundleMarkRedaction($redactor, 'omittedFields', $fieldPath);
+        if (!is_string($value) || !$preserveBasename) {
+            return null;
+        }
+        $value = trim($value);
+        return $value === '' ? null : basename(str_replace('\\', '/', $value));
+    }
+
+    function diagnosticsSupportBundleRedactPathDescriptor(array $descriptor, string $fieldPath, array &$redactor): array {
+        $sanitized = $descriptor;
+        $path = (string)($descriptor['path'] ?? '');
+        $sanitized['path'] = diagnosticsSupportBundleRedactScalar($redactor, $fieldPath . '.path', $path, true);
+        $sanitized['pathHash'] = diagnosticsSupportBundleHashValue($redactor, $fieldPath . '.pathHash', $path);
+        return $sanitized;
+    }
+
+    function diagnosticsSupportBundleRedactRecentTimelineSummary(string $summary, array &$redactor): string {
+        if (($redactor['mode'] ?? 'sanitized') === 'full' || trim($summary) === '') {
+            return $summary;
+        }
+        return (string)preg_replace_callback(
+            '/\\b(name|folderId)=([^,]+)/',
+            static function (array $matches) use (&$redactor): string {
+                $label = (string)($matches[1] ?? 'value');
+                $value = trim((string)($matches[2] ?? ''));
+                if ($value === '') {
+                    return $label . '=';
+                }
+                return $label . 'Hash=' . (diagnosticsSupportBundleHashValue(
+                    $redactor,
+                    'healthAndHistory.recentTimeline.*.summary.' . $label . 'Hash',
+                    $value
+                ) ?? '');
+            },
+            $summary
+        );
+    }
+
+    function diagnosticsSupportBundleRedactEventDetails($value, string $fieldPath, array &$redactor, int $depth = 0) {
+        if (($redactor['mode'] ?? 'sanitized') === 'full') {
+            return $value;
+        }
+        if ($depth > 6) {
+            diagnosticsSupportBundleMarkRedaction($redactor, 'truncatedFields', $fieldPath);
+            return null;
+        }
+        if (!is_array($value)) {
+            return $value;
+        }
+
+        $sanitized = [];
+        foreach ($value as $key => $entry) {
+            $key = (string)$key;
+            $entryPath = $fieldPath . '.' . $key;
+            $lowerKey = strtolower($key);
+
+            if (is_array($entry)) {
+                $sanitized[$key] = diagnosticsSupportBundleRedactEventDetails($entry, $entryPath, $redactor, $depth + 1);
+                continue;
+            }
+
+            if (!is_string($entry)) {
+                $sanitized[$key] = $entry;
+                continue;
+            }
+
+            if (in_array($lowerKey, ['name', 'foldername', 'item', 'hostname', 'host', 'url', 'uri', 'useragent'], true)) {
+                $sanitized[$key . 'Hash'] = diagnosticsSupportBundleHashValue($redactor, $entryPath . 'Hash', $entry);
+                $sanitized[$key] = diagnosticsSupportBundleRedactScalar($redactor, $entryPath, $entry);
+                continue;
+            }
+
+            if (in_array($lowerKey, ['path', 'folderpath', 'prefspath'], true)) {
+                $sanitized[$key . 'Hash'] = diagnosticsSupportBundleHashValue($redactor, $entryPath . 'Hash', $entry);
+                $sanitized[$key] = diagnosticsSupportBundleRedactScalar($redactor, $entryPath, $entry, true);
+                continue;
+            }
+
+            if (in_array($lowerKey, ['ip', 'clientip', 'address'], true)) {
+                $sanitized[$key . 'Hash'] = diagnosticsSupportBundleHashValue($redactor, $entryPath . 'Hash', $entry);
+                $sanitized[$key] = diagnosticsSupportBundleMaskIpValue($redactor, $entryPath, $entry);
+                continue;
+            }
+
+            $sanitized[$key] = $entry;
+        }
+        return $sanitized;
+    }
+
+    function diagnosticsSupportBundleRedactPathHealth(array $pathHealth, string $fieldPath, array &$redactor): array {
+        $sanitized = $pathHealth;
+        $paths = is_array($sanitized['paths'] ?? null) ? $sanitized['paths'] : [];
+        foreach (['configDir', 'sourceDir', 'folderFile', 'prefsFile', 'backupDir'] as $key) {
+            if (!is_array($paths[$key] ?? null)) {
+                continue;
+            }
+            $paths[$key] = diagnosticsSupportBundleRedactPathDescriptor(
+                $paths[$key],
+                $fieldPath . '.paths.' . $key,
+                $redactor
+            );
+        }
+        $sanitized['paths'] = $paths;
+
+        $legacyRemnants = [];
+        foreach (array_values(is_array($sanitized['legacyRemnants'] ?? null) ? $sanitized['legacyRemnants'] : []) as $remnant) {
+            if (!is_array($remnant)) {
+                continue;
+            }
+            $path = (string)($remnant['path'] ?? '');
+            $remnant['path'] = diagnosticsSupportBundleRedactScalar(
+                $redactor,
+                $fieldPath . '.legacyRemnants.*.path',
+                $path,
+                true
+            );
+            $remnant['pathHash'] = diagnosticsSupportBundleHashValue(
+                $redactor,
+                $fieldPath . '.legacyRemnants.*.pathHash',
+                $path
+            );
+            $legacyRemnants[] = $remnant;
+        }
+        $sanitized['legacyRemnants'] = $legacyRemnants;
+        return $sanitized;
+    }
+
+    function diagnosticsSupportBundleRedactIntegrityFindings(array $integrityFindings, array &$redactor): array {
+        $sanitized = [];
+        foreach (['docker', 'vm'] as $type) {
+            $integrity = is_array($integrityFindings[$type] ?? null) ? $integrityFindings[$type] : [];
+            $duplicateExamples = [];
+            foreach (array_values(is_array($integrity['duplicateFolderNames']['examples'] ?? null) ? $integrity['duplicateFolderNames']['examples'] : []) as $example) {
+                if (!is_array($example)) {
+                    continue;
+                }
+                $name = (string)($example['name'] ?? '');
+                $duplicateExamples[] = [
+                    'name' => diagnosticsSupportBundleRedactScalar($redactor, 'healthAndHistory.integrityFindings.' . $type . '.duplicateFolderNames.examples.*.name', $name),
+                    'nameHash' => diagnosticsSupportBundleHashValue($redactor, 'healthAndHistory.integrityFindings.' . $type . '.duplicateFolderNames.examples.*.nameHash', $name),
+                    'folderIds' => array_values(array_map('strval', is_array($example['folderIds'] ?? null) ? $example['folderIds'] : []))
+                ];
+            }
+
+            $orphanedFolders = [];
+            foreach (array_values(is_array($integrity['orphanedMembers']['folders'] ?? null) ? $integrity['orphanedMembers']['folders'] : []) as $row) {
+                if (!is_array($row)) {
+                    continue;
+                }
+                $itemHashes = [];
+                foreach (array_values(is_array($row['items'] ?? null) ? $row['items'] : []) as $itemName) {
+                    $itemHashes[] = diagnosticsSupportBundleHashValue(
+                        $redactor,
+                        'healthAndHistory.integrityFindings.' . $type . '.orphanedMembers.folders.*.itemHashes.*',
+                        (string)$itemName
+                    );
+                }
+                $orphanedFolders[] = [
+                    'folderId' => (string)($row['folderId'] ?? ''),
+                    'count' => (int)($row['count'] ?? 0),
+                    'items' => (($redactor['mode'] ?? FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY) === 'full')
+                        ? array_values(array_map('strval', is_array($row['items'] ?? null) ? $row['items'] : []))
+                        : [],
+                    'itemHashes' => (($redactor['mode'] ?? FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY) === 'full')
+                        ? []
+                        : array_values(array_filter($itemHashes, static function ($value): bool {
+                            return is_string($value) && $value !== '';
+                        }))
+                ];
+                if (($redactor['mode'] ?? FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY) !== 'full') {
+                    diagnosticsSupportBundleMarkRedaction(
+                        $redactor,
+                        'omittedFields',
+                        'healthAndHistory.integrityFindings.' . $type . '.orphanedMembers.folders.*.items'
+                    );
+                }
+            }
+
+            $assignmentGroups = [];
+            $duplicateAssignments = is_array($integrity['duplicateAssignments'] ?? null) ? $integrity['duplicateAssignments'] : [];
+            foreach (['explicit', 'regex', 'effective'] as $groupKey) {
+                $group = is_array($duplicateAssignments[$groupKey] ?? null) ? $duplicateAssignments[$groupKey] : [];
+                $examples = [];
+                foreach (array_values(is_array($group['examples'] ?? null) ? $group['examples'] : []) as $example) {
+                    if (!is_array($example)) {
+                        continue;
+                    }
+                    $item = (string)($example['item'] ?? '');
+                    $examples[] = [
+                        'item' => diagnosticsSupportBundleRedactScalar(
+                            $redactor,
+                            'healthAndHistory.integrityFindings.' . $type . '.duplicateAssignments.' . $groupKey . '.examples.*.item',
+                            $item
+                        ),
+                        'itemHash' => diagnosticsSupportBundleHashValue(
+                            $redactor,
+                            'healthAndHistory.integrityFindings.' . $type . '.duplicateAssignments.' . $groupKey . '.examples.*.itemHash',
+                            $item
+                        ),
+                        'folderIds' => array_values(array_map('strval', is_array($example['folderIds'] ?? null) ? $example['folderIds'] : [])),
+                        'folderCount' => (int)($example['folderCount'] ?? 0)
+                    ];
+                }
+                $assignmentGroups[$groupKey] = [
+                    'count' => (int)($group['count'] ?? 0),
+                    'examples' => $examples
+                ];
+            }
+
+            $integrity['duplicateFolderNames'] = [
+                'count' => (int)($integrity['duplicateFolderNames']['count'] ?? 0),
+                'examples' => $duplicateExamples
+            ];
+            $integrity['orphanedMembers'] = [
+                'count' => (int)($integrity['orphanedMembers']['count'] ?? 0),
+                'folders' => $orphanedFolders
+            ];
+            $integrity['duplicateAssignments'] = $assignmentGroups;
+            $integrity['pathHealth'] = diagnosticsSupportBundleRedactPathHealth(
+                is_array($integrity['pathHealth'] ?? null) ? $integrity['pathHealth'] : [],
+                'healthAndHistory.integrityFindings.' . $type . '.pathHealth',
+                $redactor
+            );
+            $sanitized[$type] = $integrity;
+        }
+        return $sanitized;
+    }
+
     function readUnraidVersionString(): ?string {
         $candidates = [
             '/etc/unraid-version',
@@ -1213,7 +1500,7 @@
         return 'main';
     }
 
-    function diagnosticsBuildSupportBundleMetaSection(array $diagnostics, string $privacyMode): array {
+    function diagnosticsBuildSupportBundleMetaSection(array $diagnostics, array $redactor): array {
         return [
             'bundleType' => 'FolderViewPlusSupportBundle',
             'bundleVersion' => 2,
@@ -1221,15 +1508,19 @@
             'generatedAt' => gmdate('c'),
             'pluginVersion' => (string)($diagnostics['pluginVersion'] ?? readInstalledVersion()),
             'channel' => diagnosticsResolveSupportBundleChannel(),
-            'privacyMode' => normalizeDiagnosticsPrivacyMode($privacyMode),
+            'privacyMode' => normalizeDiagnosticsPrivacyMode((string)($redactor['mode'] ?? FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY)),
             'redactionPolicyVersion' => 1,
-            'bundleSaltScope' => 'static-v1'
+            'bundleSaltScope' => normalizeDiagnosticsPrivacyMode((string)($redactor['mode'] ?? FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY)) === 'full' ? 'none' : 'per-bundle',
+            'bundleSaltHash' => $redactor['saltFingerprint'] ?? null
         ];
     }
 
-    function diagnosticsBuildSupportBundlePluginTypeSection(string $type, array $typeData, array $hashes): array {
+    function diagnosticsBuildSupportBundlePluginTypeSection(string $type, array $typeData, array $hashes, array &$redactor): array {
         $backupSchedule = is_array($typeData['backupSchedule'] ?? null) ? $typeData['backupSchedule'] : [];
         $lastBackup = is_array($typeData['lastBackup'] ?? null) ? $typeData['lastBackup'] : null;
+        $folderPath = (string)($typeData['folderPath'] ?? '');
+        $folderFileHash = is_array($hashes[$type . 'Folders'] ?? null) ? $hashes[$type . 'Folders'] : [];
+        $prefsFileHash = is_array($hashes[$type . 'Prefs'] ?? null) ? $hashes[$type . 'Prefs'] : [];
 
         return [
             'prefs' => [
@@ -1250,7 +1541,8 @@
                 'backupSchedule' => $backupSchedule
             ],
             'folders' => [
-                'path' => (string)($typeData['folderPath'] ?? ''),
+                'path' => diagnosticsSupportBundleRedactScalar($redactor, 'pluginState.' . $type . '.folders.path', $folderPath, true),
+                'pathHash' => diagnosticsSupportBundleHashValue($redactor, 'pluginState.' . $type . '.folders.pathHash', $folderPath),
                 'exists' => (bool)($typeData['foldersExists'] ?? false),
                 'count' => (int)($typeData['folderCount'] ?? 0),
                 'manualOrderCount' => (int)($typeData['manualOrderCount'] ?? 0),
@@ -1260,8 +1552,8 @@
                 'count' => (int)($typeData['templateCount'] ?? 0)
             ],
             'fileHashes' => [
-                'folders' => is_array($hashes[$type . 'Folders'] ?? null) ? $hashes[$type . 'Folders'] : [],
-                'prefs' => is_array($hashes[$type . 'Prefs'] ?? null) ? $hashes[$type . 'Prefs'] : []
+                'folders' => diagnosticsSupportBundleRedactPathDescriptor($folderFileHash, 'pluginState.' . $type . '.fileHashes.folders', $redactor),
+                'prefs' => diagnosticsSupportBundleRedactPathDescriptor($prefsFileHash, 'pluginState.' . $type . '.fileHashes.prefs', $redactor)
             ],
             'counts' => [
                 'folders' => (int)($typeData['folderCount'] ?? 0),
@@ -1275,19 +1567,50 @@
         ];
     }
 
-    function diagnosticsBuildSupportBundlePluginStateSection(array $diagnostics): array {
+    function diagnosticsBuildSupportBundlePluginStateSection(array $diagnostics, array &$redactor): array {
         $types = is_array($diagnostics['types'] ?? null) ? $diagnostics['types'] : [];
         $hashes = is_array($diagnostics['hashes'] ?? null) ? $diagnostics['hashes'] : [];
         $section = [];
         foreach (['docker', 'vm'] as $type) {
             $typeData = is_array($types[$type] ?? null) ? $types[$type] : [];
-            $section[$type] = diagnosticsBuildSupportBundlePluginTypeSection($type, $typeData, $hashes);
+            $section[$type] = diagnosticsBuildSupportBundlePluginTypeSection($type, $typeData, $hashes, $redactor);
         }
         return $section;
     }
 
-    function diagnosticsBuildSupportBundleRuntimeTypeSection(array $typeData): array {
+    function diagnosticsBuildSupportBundleRuntimeTypeSection(string $type, array $typeData, array &$redactor): array {
         $stateSnapshot = is_array($typeData['stateSnapshot'] ?? null) ? $typeData['stateSnapshot'] : [];
+        $folders = [];
+        foreach (array_values(is_array($stateSnapshot['folders'] ?? null) ? $stateSnapshot['folders'] : []) as $index => $folder) {
+            if (!is_array($folder)) {
+                continue;
+            }
+            $fieldPath = 'runtimeState.' . $type . '.folderHierarchySummary.folders.*';
+            $folderName = (string)($folder['folderName'] ?? '');
+            $memberItems = array_values(is_array($folder['members']['items'] ?? null) ? $folder['members']['items'] : []);
+            $folder['folderName'] = diagnosticsSupportBundleRedactScalar($redactor, $fieldPath . '.folderName', $folderName);
+            $folder['folderNameHash'] = diagnosticsSupportBundleHashValue($redactor, $fieldPath . '.folderNameHash', $folderName !== '' ? $folderName : (string)($folder['folderId'] ?? ''));
+            if (!isset($folder['members']) || !is_array($folder['members'])) {
+                $folder['members'] = [];
+            }
+            if (($redactor['mode'] ?? FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY) === 'full') {
+                $folder['members']['items'] = array_slice(array_map('strval', $memberItems), 0, 40);
+            } else {
+                $folder['members']['itemHashes'] = array_slice(array_values(array_map(
+                    static function ($name) use (&$redactor, $fieldPath): ?string {
+                        return diagnosticsSupportBundleHashValue($redactor, $fieldPath . '.members.itemHashes.*', (string)$name);
+                    },
+                    $memberItems
+                )), 0, 40);
+                $folder['members']['items'] = [];
+                diagnosticsSupportBundleMarkRedaction($redactor, 'omittedFields', $fieldPath . '.members.items');
+            }
+            $folders[$index] = $folder;
+        }
+
+        $foldersPath = (string)($typeData['folderPath'] ?? '');
+        $prefsPath = (string)($typeData['prefsPath'] ?? '');
+
         return [
             'hostPageDetected' => true,
             'entitySummary' => [
@@ -1300,24 +1623,26 @@
                 'rootFolderCount' => (int)($stateSnapshot['rootFolderCount'] ?? 0),
                 'nestedFolderCount' => (int)($stateSnapshot['nestedFolderCount'] ?? 0),
                 'maxDepth' => (int)($stateSnapshot['maxDepth'] ?? 0),
-                'folders' => array_values(is_array($stateSnapshot['folders'] ?? null) ? $stateSnapshot['folders'] : [])
+                'folders' => $folders
             ],
             'updateStateSummary' => is_array($stateSnapshot['updateCounts'] ?? null) ? $stateSnapshot['updateCounts'] : [],
             'preflight' => [
-                'foldersPath' => (string)($typeData['folderPath'] ?? ''),
-                'prefsPath' => (string)($typeData['prefsPath'] ?? ''),
+                'foldersPath' => diagnosticsSupportBundleRedactScalar($redactor, 'runtimeState.' . $type . '.preflight.foldersPath', $foldersPath, true),
+                'foldersPathHash' => diagnosticsSupportBundleHashValue($redactor, 'runtimeState.' . $type . '.preflight.foldersPathHash', $foldersPath),
+                'prefsPath' => diagnosticsSupportBundleRedactScalar($redactor, 'runtimeState.' . $type . '.preflight.prefsPath', $prefsPath, true),
+                'prefsPathHash' => diagnosticsSupportBundleHashValue($redactor, 'runtimeState.' . $type . '.preflight.prefsPathHash', $prefsPath),
                 'foldersExists' => (bool)($typeData['foldersExists'] ?? false),
                 'prefsExists' => (bool)($typeData['prefsExists'] ?? false)
             ]
         ];
     }
 
-    function diagnosticsBuildSupportBundleRuntimeStateSection(array $diagnostics): array {
+    function diagnosticsBuildSupportBundleRuntimeStateSection(array $diagnostics, array &$redactor): array {
         $types = is_array($diagnostics['types'] ?? null) ? $diagnostics['types'] : [];
         $detectedConflicts = fvplus_detect_runtime_plugin_conflicts();
         return [
-            'docker' => diagnosticsBuildSupportBundleRuntimeTypeSection(is_array($types['docker'] ?? null) ? $types['docker'] : []),
-            'vm' => diagnosticsBuildSupportBundleRuntimeTypeSection(is_array($types['vm'] ?? null) ? $types['vm'] : []),
+            'docker' => diagnosticsBuildSupportBundleRuntimeTypeSection('docker', is_array($types['docker'] ?? null) ? $types['docker'] : [], $redactor),
+            'vm' => diagnosticsBuildSupportBundleRuntimeTypeSection('vm', is_array($types['vm'] ?? null) ? $types['vm'] : [], $redactor),
             'conflicts' => [
                 'runtimeSafeMode' => count($detectedConflicts) > 0,
                 'detected' => $detectedConflicts
@@ -1325,70 +1650,134 @@
         ];
     }
 
-    function diagnosticsBuildSupportBundleSystemSection(array $diagnostics, array $integrityFindings): array {
+    function diagnosticsBuildSupportBundleSystemSection(array $diagnostics, array $integrityFindings, array &$redactor): array {
         $environment = is_array($diagnostics['environment'] ?? null) ? $diagnostics['environment'] : [];
         $customIcons = is_array($diagnostics['customIcons'] ?? null) ? $diagnostics['customIcons'] : [];
+        $request = is_array($environment['request'] ?? null) ? $environment['request'] : [];
+        $userAgent = (string)($request['userAgent'] ?? '');
+        $clientIp = (string)($request['clientIp'] ?? '');
+        $customIconsPath = is_array($customIcons['path'] ?? null) ? $customIcons['path'] : [];
+        $topReferences = [];
+        foreach (array_values(is_array($customIcons['topReferences'] ?? null) ? $customIcons['topReferences'] : []) as $reference) {
+            if (!is_array($reference)) {
+                continue;
+            }
+            $name = (string)($reference['name'] ?? '');
+            $topReferences[] = [
+                'name' => diagnosticsSupportBundleRedactScalar($redactor, 'system.pathHealth.customIcons.topReferences.*.name', $name),
+                'nameHash' => diagnosticsSupportBundleHashValue($redactor, 'system.pathHealth.customIcons.topReferences.*.nameHash', $name),
+                'referenceCount' => (int)($reference['referenceCount'] ?? 0)
+            ];
+        }
+        $customIcons['path'] = diagnosticsSupportBundleRedactPathDescriptor($customIconsPath, 'system.pathHealth.customIcons.path', $redactor);
+        $customIcons['topReferences'] = $topReferences;
+        $customIconsRepairHint = (string)($customIcons['repairHint'] ?? '');
+        $customIcons['repairHint'] = (($redactor['mode'] ?? FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY) === 'full')
+            ? $customIconsRepairHint
+            : null;
+        if (($redactor['mode'] ?? FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY) !== 'full' && $customIconsRepairHint !== '') {
+            diagnosticsSupportBundleMarkRedaction($redactor, 'omittedFields', 'system.pathHealth.customIcons.repairHint');
+        }
         return [
             'unraidVersion' => $environment['unraidVersion'] ?? null,
             'phpVersion' => $environment['phpVersion'] ?? null,
             'kernel' => $environment['os'] ?? null,
             'timezone' => $environment['timezone'] ?? null,
             'serverSoftware' => $environment['serverSoftware'] ?? null,
-            'request' => is_array($environment['request'] ?? null) ? $environment['request'] : [],
+            'request' => [
+                'privacyMode' => normalizeDiagnosticsPrivacyMode((string)($redactor['mode'] ?? FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY)),
+                'userAgent' => diagnosticsSupportBundleRedactScalar($redactor, 'system.request.userAgent', $userAgent),
+                'userAgentHash' => diagnosticsSupportBundleHashValue($redactor, 'system.request.userAgentHash', $userAgent),
+                'clientIp' => diagnosticsSupportBundleMaskIpValue($redactor, 'system.request.clientIp', $clientIp),
+                'clientIpHash' => diagnosticsSupportBundleHashValue($redactor, 'system.request.clientIpHash', $clientIp)
+            ],
             'pathHealth' => [
-                'docker' => is_array($integrityFindings['docker']['pathHealth'] ?? null) ? $integrityFindings['docker']['pathHealth'] : [],
-                'vm' => is_array($integrityFindings['vm']['pathHealth'] ?? null) ? $integrityFindings['vm']['pathHealth'] : [],
+                'docker' => diagnosticsSupportBundleRedactPathHealth(
+                    is_array($integrityFindings['docker']['pathHealth'] ?? null) ? $integrityFindings['docker']['pathHealth'] : [],
+                    'system.pathHealth.docker',
+                    $redactor
+                ),
+                'vm' => diagnosticsSupportBundleRedactPathHealth(
+                    is_array($integrityFindings['vm']['pathHealth'] ?? null) ? $integrityFindings['vm']['pathHealth'] : [],
+                    'system.pathHealth.vm',
+                    $redactor
+                ),
                 'customIcons' => $customIcons
             ],
             'phpExtensions' => array_values(get_loaded_extensions())
         ];
     }
 
-    function diagnosticsBuildSupportBundleHealthAndHistorySection(array $diagnostics, array $integrityFindings): array {
+    function diagnosticsBuildSupportBundleHealthAndHistorySection(array $diagnostics, array $integrityFindings, array &$redactor): array {
         $summary = is_array($diagnostics['summary'] ?? null) ? $diagnostics['summary'] : [];
         $history = is_array($diagnostics['importExportHistory'] ?? null) ? $diagnostics['importExportHistory'] : [];
+        $timelineRows = [];
+        foreach (array_values(is_array($diagnostics['recentTimeline'] ?? null) ? $diagnostics['recentTimeline'] : []) as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+            $timelineRows[] = [
+                'timestamp' => (string)($row['timestamp'] ?? ''),
+                'action' => (string)($row['action'] ?? ''),
+                'type' => $row['type'] ?? null,
+                'status' => (string)($row['status'] ?? 'ok'),
+                'summary' => diagnosticsSupportBundleRedactRecentTimelineSummary((string)($row['summary'] ?? ''), $redactor)
+            ];
+        }
+        if (count($timelineRows) < count(array_values(is_array($diagnostics['recentTimeline'] ?? null) ? $diagnostics['recentTimeline'] : []))) {
+            diagnosticsSupportBundleMarkRedaction($redactor, 'truncatedFields', 'healthAndHistory.recentTimeline');
+        }
+
+        $historyEvents = [];
+        foreach (array_values(is_array($history['events'] ?? null) ? $history['events'] : []) as $event) {
+            if (!is_array($event)) {
+                continue;
+            }
+            $historyEvents[] = [
+                'id' => (string)($event['id'] ?? ''),
+                'timestamp' => (string)($event['timestamp'] ?? ''),
+                'action' => (string)($event['action'] ?? ''),
+                'type' => $event['type'] ?? null,
+                'status' => (string)($event['status'] ?? 'ok'),
+                'source' => (string)($event['source'] ?? 'server'),
+                'details' => diagnosticsSupportBundleRedactEventDetails(
+                    is_array($event['details'] ?? null) ? $event['details'] : [],
+                    'healthAndHistory.recentMutations.events.*.details',
+                    $redactor
+                )
+            ];
+        }
+
         return [
             'summary' => $summary,
-            'integrityFindings' => $integrityFindings,
+            'integrityFindings' => diagnosticsSupportBundleRedactIntegrityFindings($integrityFindings, $redactor),
             'recommendedActions' => array_values(is_array($summary['recommendedActions'] ?? null) ? $summary['recommendedActions'] : []),
-            'recentTimeline' => array_values(is_array($diagnostics['recentTimeline'] ?? null) ? $diagnostics['recentTimeline'] : []),
+            'recentTimeline' => $timelineRows,
             'recentMutations' => [
                 'retained' => (int)($history['retained'] ?? 0),
                 'returned' => (int)($history['returned'] ?? 0),
-                'events' => array_values(is_array($history['events'] ?? null) ? $history['events'] : [])
+                'events' => $historyEvents
             ],
             'update' => is_array($diagnostics['update'] ?? null) ? $diagnostics['update'] : []
         ];
     }
 
-    function diagnosticsBuildSupportBundleRedactionManifestSection(string $privacyMode): array {
-        $privacyMode = normalizeDiagnosticsPrivacyMode($privacyMode);
+    function diagnosticsBuildSupportBundleRedactionManifestSection(array $redactor): array {
+        $privacyMode = normalizeDiagnosticsPrivacyMode((string)($redactor['mode'] ?? FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY));
         return [
             'mode' => $privacyMode,
-            'hashedFields' => $privacyMode === 'full' ? [] : [
-                'system.request.userAgentHash',
-                'system.request.clientIpHash',
-                'runtimeState.*.folderHierarchySummary.folders.*.folderNameHash'
-            ],
-            'maskedFields' => $privacyMode === 'full' ? [] : [
-                'system.request.clientIp'
-            ],
-            'omittedFields' => $privacyMode === 'full' ? [] : [
-                'system.request.userAgent',
-                'pluginState.*.folders.path',
-                'pluginState.*.fileHashes.*.path'
-            ],
-            'truncatedFields' => [
-                'healthAndHistory.recentTimeline',
-                'healthAndHistory.recentMutations.events',
-                'runtimeState.*.folderHierarchySummary.folders'
-            ]
+            'saltScope' => $privacyMode === 'full' ? 'none' : 'per-bundle',
+            'saltHash' => $privacyMode === 'full' ? null : ($redactor['saltFingerprint'] ?? null),
+            'hashedFields' => array_values(array_unique(array_map('strval', is_array($redactor['hashedFields'] ?? null) ? $redactor['hashedFields'] : []))),
+            'maskedFields' => array_values(array_unique(array_map('strval', is_array($redactor['maskedFields'] ?? null) ? $redactor['maskedFields'] : []))),
+            'omittedFields' => array_values(array_unique(array_map('strval', is_array($redactor['omittedFields'] ?? null) ? $redactor['omittedFields'] : []))),
+            'truncatedFields' => array_values(array_unique(array_map('strval', is_array($redactor['truncatedFields'] ?? null) ? $redactor['truncatedFields'] : [])))
         ];
     }
 
     function getSupportBundleV2Snapshot(string $privacyMode = FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY): array {
-        $privacyMode = normalizeDiagnosticsPrivacyMode($privacyMode);
-        $diagnostics = getDiagnosticsSnapshot($privacyMode);
+        $redactor = diagnosticsCreateSupportBundleRedactor($privacyMode);
+        $diagnostics = getDiagnosticsSnapshot('full');
         $types = is_array($diagnostics['types'] ?? null) ? $diagnostics['types'] : [];
         $integrityFindings = [
             'docker' => is_array($types['docker']['integrityChecks'] ?? null) ? $types['docker']['integrityChecks'] : [],
@@ -1396,13 +1785,13 @@
         ];
 
         return [
-            'bundleMeta' => diagnosticsBuildSupportBundleMetaSection($diagnostics, $privacyMode),
-            'system' => diagnosticsBuildSupportBundleSystemSection($diagnostics, $integrityFindings),
-            'pluginState' => diagnosticsBuildSupportBundlePluginStateSection($diagnostics),
-            'runtimeState' => diagnosticsBuildSupportBundleRuntimeStateSection($diagnostics),
+            'bundleMeta' => diagnosticsBuildSupportBundleMetaSection($diagnostics, $redactor),
+            'system' => diagnosticsBuildSupportBundleSystemSection($diagnostics, $integrityFindings, $redactor),
+            'pluginState' => diagnosticsBuildSupportBundlePluginStateSection($diagnostics, $redactor),
+            'runtimeState' => diagnosticsBuildSupportBundleRuntimeStateSection($diagnostics, $redactor),
             'uiTelemetry' => new stdClass(),
-            'healthAndHistory' => diagnosticsBuildSupportBundleHealthAndHistorySection($diagnostics, $integrityFindings),
-            'redactionManifest' => diagnosticsBuildSupportBundleRedactionManifestSection($privacyMode)
+            'healthAndHistory' => diagnosticsBuildSupportBundleHealthAndHistorySection($diagnostics, $integrityFindings, $redactor),
+            'redactionManifest' => diagnosticsBuildSupportBundleRedactionManifestSection($redactor)
         ];
     }
 

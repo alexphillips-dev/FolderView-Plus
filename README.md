@@ -267,6 +267,7 @@ Template workflow:
   - Open `Settings -> FolderView Plus -> Advanced -> Diagnostics`.
   - Review the support bundle preview before export.
   - Use the sanitized export by default. It omits or hashes names, paths, URLs, IPs, and user-agent values and records what was redacted in the v2 `redactionManifest`.
+  - The v2 bundle also includes exact build/package identity, loaded plugin script/style URLs and version queries, recent plugin actions, a bounded FolderView Plus API error-log tail, and browser-side JS error snapshots.
   - Share the full export only if you intentionally need raw troubleshooting fields.
 
 ## Security and Reliability

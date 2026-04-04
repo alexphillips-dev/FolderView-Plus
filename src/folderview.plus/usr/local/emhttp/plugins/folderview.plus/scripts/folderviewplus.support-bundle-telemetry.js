@@ -38,8 +38,17 @@
         'currentUrl',
         'targetUrl',
         'pageUrl',
+        'sourceUrl',
         'url',
         'href'
+    ]));
+
+    const SUPPORT_BUNDLE_UI_DEBUG_TEXT_KEYS = Object.freeze(new Set([
+        'debug',
+        'message',
+        'stack',
+        'detail',
+        'responseSnippet'
     ]));
 
     const normalizePrivacyMode = (value) => (
@@ -142,6 +151,14 @@
                     .replace(/((?:^|\n)[A-Za-z][A-Za-z0-9]*(?:Id|Ref|Requested|Resolved|Seed|Target)=)([^\n]+)/g, (_match, prefix, secret) => {
                         const safeSecret = String(secret || '').trim();
                         return safeSecret ? `${prefix}ui-${hashValue(safeSecret, saltSeed)}` : prefix;
+                    })
+                    .replace(/(?:[A-Za-z]:[\\/]|\/)[^\s"'<>)]*/g, (pathValue) => {
+                        const basename = String(pathValue || '').split(/[\\/]/).filter(Boolean).pop() || '';
+                        return basename ? `${basename}[path-hash:${hashValue(pathValue, saltSeed)}]` : '[path-redacted]';
+                    })
+                    .replace(/\b(?:10|172\.(?:1[6-9]|2\d|3[0-1])|192\.168)\.\d{1,3}\.\d{1,3}\b/g, (ipValue) => {
+                        appendRedactionManifestField(manifest, 'maskedFields', `${fieldPath}.ip`);
+                        return `${String(ipValue || '').split('.').slice(0, 2).join('.')}.x.x`;
                     });
             },
             sanitizeValue(fieldPath, key, value) {
@@ -167,7 +184,7 @@
                 if (SUPPORT_BUNDLE_UI_NAME_KEYS.has(key) || String(key || '').toLowerCase().endsWith('name')) {
                     return this.redactName(fieldPath, value);
                 }
-                if (key === 'debug') {
+                if (SUPPORT_BUNDLE_UI_DEBUG_TEXT_KEYS.has(key)) {
                     return this.redactDebugText(fieldPath, value);
                 }
                 return value;
@@ -232,6 +249,75 @@
             };
         };
 
+        const collectLoadedAssetTelemetry = (uiRedactor) => {
+            const doc = root?.document || null;
+            if (!doc || typeof doc.querySelectorAll !== 'function') {
+                return { count: 0, entries: [] };
+            }
+            const entries = [];
+            const seen = new Set();
+            doc.querySelectorAll('script[src*="/plugins/folderview.plus/"], link[href*="/plugins/folderview.plus/"]').forEach((node) => {
+                const rawUrl = String(node?.src || node?.href || '').trim();
+                if (!rawUrl || seen.has(rawUrl)) {
+                    return;
+                }
+                seen.add(rawUrl);
+                let pathname = rawUrl;
+                let versionQuery = '';
+                let bootQuery = '';
+                try {
+                    const parsed = new URL(rawUrl, root?.location?.origin || 'http://fvplus.local');
+                    pathname = parsed.pathname || rawUrl;
+                    versionQuery = String(parsed.searchParams.get('v') || '');
+                    bootQuery = String(parsed.searchParams.get('boot') || '');
+                } catch (_error) {
+                    pathname = rawUrl.replace(/^https?:\/\/[^/?#]+/i, '').replace(/[?#].*$/, '') || rawUrl;
+                }
+                entries.push({
+                    tag: String(node?.tagName || '').toLowerCase() || 'asset',
+                    url: uiRedactor ? uiRedactor.redactUrl(`uiTelemetry.loadedAssets.entries.${entries.length}.url`, rawUrl) : pathname,
+                    path: pathname,
+                    versionQuery,
+                    bootQuery,
+                    async: node?.async === true,
+                    defer: node?.defer === true,
+                    rel: String(node?.rel || ''),
+                    media: String(node?.media || ''),
+                    loaded: node?.tagName === 'LINK'
+                        ? Boolean(node.sheet)
+                        : true
+                });
+            });
+            return {
+                count: entries.length,
+                entries
+            };
+        };
+
+        const collectBrowserConsoleErrors = () => {
+            const fallbackStorage = readClientDiagnosticsStorageRecord('fv.support.bundle.consoleErrors.v1');
+            const apiSnapshot = (
+                root?.FolderViewPlusFatalBanner
+                && typeof root.FolderViewPlusFatalBanner.getBrowserConsoleErrorSnapshot === 'function'
+            )
+                ? root.FolderViewPlusFatalBanner.getBrowserConsoleErrorSnapshot()
+                : null;
+            const snapshot = apiSnapshot && typeof apiSnapshot === 'object' && !Array.isArray(apiSnapshot)
+                ? apiSnapshot
+                : {
+                    storageKey: 'fv.support.bundle.consoleErrors.v1',
+                    maxEntries: 30,
+                    count: Array.isArray(fallbackStorage) ? fallbackStorage.length : 0,
+                    entries: Array.isArray(fallbackStorage) ? fallbackStorage : []
+                };
+            return {
+                storageKey: String(snapshot.storageKey || 'fv.support.bundle.consoleErrors.v1'),
+                maxEntries: Number.isFinite(Number(snapshot.maxEntries)) ? Number(snapshot.maxEntries) : 30,
+                count: Number.isFinite(Number(snapshot.count)) ? Number(snapshot.count) : 0,
+                entries: Array.isArray(snapshot.entries) ? snapshot.entries.slice(-30) : []
+            };
+        };
+
         const collectSupportBundleUiTelemetry = (bundle) => {
             const payload = normalizeSupportBundleV2Payload(bundle, bundle?.bundleMeta?.privacyMode || 'sanitized');
             const privacyMode = normalizePrivacyMode(payload.bundleMeta?.privacyMode || 'sanitized');
@@ -242,8 +328,22 @@
             existingUiTelemetry.browserCapabilities = collectBrowserCapabilities();
             existingUiTelemetry.clientStorage = collectClientStorageDiagnostics();
             existingUiTelemetry.currentPage = collectCurrentPageTelemetry(uiRedactor);
-            existingUiTelemetry.performance = collectClientPerformanceTelemetry();
-            existingUiTelemetry.requestErrors = getRequestErrorDiagnosticsSnapshot();
+            existingUiTelemetry.loadedAssets = collectLoadedAssetTelemetry(uiRedactor);
+            existingUiTelemetry.performance = uiRedactor.sanitizeValue(
+                'uiTelemetry.performance',
+                'performance',
+                collectClientPerformanceTelemetry()
+            );
+            existingUiTelemetry.requestErrors = uiRedactor.sanitizeValue(
+                'uiTelemetry.requestErrors',
+                'requestErrors',
+                getRequestErrorDiagnosticsSnapshot()
+            );
+            existingUiTelemetry.browserConsoleErrors = uiRedactor.sanitizeValue(
+                'uiTelemetry.browserConsoleErrors',
+                'browserConsoleErrors',
+                collectBrowserConsoleErrors()
+            );
             existingUiTelemetry.folderEditorDebug = uiRedactor.sanitizeValue(
                 'uiTelemetry.folderEditorDebug',
                 'folderEditorDebug',
@@ -259,6 +359,8 @@
             collectBrowserCapabilities,
             collectClientStorageDiagnostics,
             collectCurrentPageTelemetry,
+            collectLoadedAssetTelemetry,
+            collectBrowserConsoleErrors,
             createUiTelemetryRedactor
         });
     };

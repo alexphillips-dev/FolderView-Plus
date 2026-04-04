@@ -189,6 +189,10 @@ test('diagnostics endpoint emits support bundle v2 shape only', () => {
     assert.match(libDiagnosticsPhp, /function diagnosticsSupportBundleMaskIpValue\(array &\$redactor, string \$fieldPath, string \$value\): string/);
     assert.match(libDiagnosticsPhp, /function diagnosticsSupportBundleRedactScalar\(array &\$redactor, string \$fieldPath, \$value, bool \$preserveBasename = false\)/);
     assert.match(libDiagnosticsPhp, /function diagnosticsResolveSupportBundleChannel\(\): string/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsReadSupportBundleBuildMetadata\(\): array/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsBuildSupportBundleBuildIdentitySection\(array \$diagnostics\): array/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsBuildSupportBundleRecentActions\(array \$events, array &\$redactor, int \$limit = 30\): array/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsBuildSupportBundleServerLogTailSection\(array &\$redactor, int \$limit = 40\): array/);
     assert.match(libDiagnosticsPhp, /function diagnosticsBuildSupportBundleMetaSection\(array \$diagnostics, array \$redactor\): array/);
     assert.match(libDiagnosticsPhp, /function diagnosticsBuildSupportBundlePluginStateSection\(array \$diagnostics, array &\$redactor\): array/);
     assert.match(libDiagnosticsPhp, /function diagnosticsBuildSupportBundleRuntimeStateSection\(array \$diagnostics, array &\$redactor\): array/);

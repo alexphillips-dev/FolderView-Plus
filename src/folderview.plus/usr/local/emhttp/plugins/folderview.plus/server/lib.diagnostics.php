@@ -270,6 +270,84 @@
         );
     }
 
+    function diagnosticsSupportBundleActionTargetValue(array $details): string {
+        foreach (['folderId', 'id', 'name', 'folderName', 'item', 'reason'] as $key) {
+            $value = trim((string)($details[$key] ?? ''));
+            if ($value !== '') {
+                return $key . ':' . $value;
+            }
+        }
+        return '';
+    }
+
+    function diagnosticsBuildSupportBundleRecentActions(array $events, array &$redactor, int $limit = 30): array {
+        $rows = [];
+        $maxRows = max(1, $limit);
+        foreach (array_slice(array_values($events), 0, $maxRows) as $event) {
+            if (!is_array($event)) {
+                continue;
+            }
+            $details = is_array($event['details'] ?? null) ? $event['details'] : [];
+            $targetValue = diagnosticsSupportBundleActionTargetValue($details);
+            $row = [
+                'timestamp' => (string)($event['timestamp'] ?? ''),
+                'action' => (string)($event['action'] ?? ''),
+                'type' => $event['type'] ?? null,
+                'status' => (string)($event['status'] ?? 'ok'),
+                'source' => (string)($event['source'] ?? 'server'),
+                'target' => (($redactor['mode'] ?? FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY) === 'full')
+                    ? ($targetValue !== '' ? $targetValue : null)
+                    : null,
+                'targetHash' => $targetValue !== ''
+                    ? diagnosticsSupportBundleHashValue(
+                        $redactor,
+                        'healthAndHistory.recentActions.*.targetHash',
+                        $targetValue
+                    )
+                    : null,
+                'detailKeys' => array_slice(array_values(array_map('strval', array_keys($details))), 0, 24)
+            ];
+            if (($redactor['mode'] ?? FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY) !== 'full' && $targetValue !== '') {
+                diagnosticsSupportBundleMarkRedaction($redactor, 'omittedFields', 'healthAndHistory.recentActions.*.target');
+            }
+            $rows[] = $row;
+        }
+        if (count($rows) < count(array_values($events))) {
+            diagnosticsSupportBundleMarkRedaction($redactor, 'truncatedFields', 'healthAndHistory.recentActions');
+        }
+        return $rows;
+    }
+
+    function diagnosticsBuildSupportBundleServerLogTailSection(array &$redactor, int $limit = 40): array {
+        $logPath = defined('FVPLUS_API_ERROR_LOG') ? (string)FVPLUS_API_ERROR_LOG : '/tmp/folderview.plus.api-error.log';
+        $lines = [];
+        if (is_file($logPath)) {
+            $allLines = @file($logPath, FILE_IGNORE_NEW_LINES);
+            if (is_array($allLines)) {
+                $slice = array_slice($allLines, -max(1, $limit));
+                foreach ($slice as $line) {
+                    $normalized = trim((string)$line);
+                    if ($normalized === '') {
+                        continue;
+                    }
+                    $lines[] = diagnosticsSupportBundleRedactInlineText(
+                        substr($normalized, 0, 600),
+                        'healthAndHistory.serverLogTail.lines.*',
+                        $redactor
+                    );
+                }
+            }
+        }
+        return [
+            'path' => (($redactor['mode'] ?? FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY) === 'full') ? $logPath : basename(str_replace('\\', '/', $logPath)),
+            'pathHash' => diagnosticsSupportBundleHashValue($redactor, 'healthAndHistory.serverLogTail.pathHash', $logPath),
+            'exists' => is_file($logPath),
+            'lineCount' => count($lines),
+            'maxLines' => max(1, $limit),
+            'lines' => $lines
+        ];
+    }
+
     function diagnosticsSupportBundleRedactInlineText(string $text, string $fieldPath, array &$redactor): string {
         if (($redactor['mode'] ?? 'sanitized') === 'full' || trim($text) === '') {
             return $text;
@@ -1703,6 +1781,89 @@
         return 'main';
     }
 
+    function diagnosticsReadSupportBundleBuildMetadata(): array {
+        global $sourceDir;
+        $metadataPath = rtrim((string)($sourceDir ?? ''), '/\\') . '/build-metadata.json';
+        if ($metadataPath === '/build-metadata.json' || !is_file($metadataPath)) {
+            return [];
+        }
+        $decoded = @json_decode((string)@file_get_contents($metadataPath), true);
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    function diagnosticsResolveSupportBundleManifestMetadata(): array {
+        $manifestMetadata = [
+            'manifestPath' => null,
+            'manifestPathHash' => null,
+            'manifestSha256' => null,
+            'manifestMd5' => null,
+            'manifestUrl' => null,
+            'archiveUrl' => null
+        ];
+
+        foreach (readInstalledManifestPathCandidates() as $manifestPath) {
+            $contents = (string)@file_get_contents($manifestPath);
+            if ($contents === '') {
+                continue;
+            }
+            $manifestMetadata['manifestPath'] = basename(str_replace('\\', '/', $manifestPath));
+            $manifestMetadata['manifestPathHash'] = diagnosticsHashShort($manifestPath);
+            $manifestMetadata['manifestSha256'] = @hash_file('sha256', $manifestPath) ?: null;
+            if (preg_match('/<!ENTITY\s+md5\s+"([^"]+)"/i', $contents, $match)) {
+                $manifestMetadata['manifestMd5'] = (string)($match[1] ?? '');
+            }
+            if (preg_match('/<!ENTITY\s+github\s+"([^"]+)"/i', $contents, $match)) {
+                $githubRepo = trim((string)($match[1] ?? ''));
+                $manifestMetadata['githubRepository'] = $githubRepo !== '' ? $githubRepo : null;
+            }
+            if (preg_match('/<!ENTITY\s+pluginURL\s+"([^"]+)"/i', $contents, $match)) {
+                $manifestMetadata['manifestUrl'] = html_entity_decode((string)($match[1] ?? ''), ENT_QUOTES | ENT_XML1, 'UTF-8');
+            }
+            if (preg_match('/<URL>([^<]+)<\/URL>/i', $contents, $match)) {
+                $manifestMetadata['archiveUrl'] = html_entity_decode((string)($match[1] ?? ''), ENT_QUOTES | ENT_XML1, 'UTF-8');
+            }
+            if (!empty($manifestMetadata['githubRepository'])) {
+                $githubEntity = (string)$manifestMetadata['githubRepository'];
+                foreach (['manifestUrl', 'archiveUrl'] as $urlKey) {
+                    $urlValue = (string)($manifestMetadata[$urlKey] ?? '');
+                    if ($urlValue !== '') {
+                        $manifestMetadata[$urlKey] = str_replace('&github;', $githubEntity, $urlValue);
+                    }
+                }
+            }
+            break;
+        }
+
+        return $manifestMetadata;
+    }
+
+    function diagnosticsBuildSupportBundleBuildIdentitySection(array $diagnostics): array {
+        $buildMetadata = diagnosticsReadSupportBundleBuildMetadata();
+        $manifestMetadata = diagnosticsResolveSupportBundleManifestMetadata();
+        $sourceCommitSha = trim((string)($buildMetadata['sourceCommitSha'] ?? ''));
+        $sourceTreeSha = trim((string)($buildMetadata['sourceTreeSha'] ?? ''));
+        $sourceBranch = trim((string)($buildMetadata['sourceBranch'] ?? diagnosticsResolveSupportBundleChannel()));
+        $manifestUrl = trim((string)($manifestMetadata['manifestUrl'] ?? ($buildMetadata['manifestUrl'] ?? '')));
+        $archiveUrl = trim((string)($manifestMetadata['archiveUrl'] ?? ($buildMetadata['archiveUrl'] ?? '')));
+
+        return [
+            'pluginVersion' => (string)($diagnostics['pluginVersion'] ?? readInstalledVersion()),
+            'channel' => in_array($sourceBranch, ['dev', 'main'], true)
+                ? $sourceBranch
+                : diagnosticsResolveSupportBundleChannel(),
+            'sourceBranch' => $sourceBranch !== '' ? $sourceBranch : null,
+            'sourceCommitSha' => $sourceCommitSha !== '' ? $sourceCommitSha : null,
+            'sourceTreeSha' => $sourceTreeSha !== '' ? $sourceTreeSha : null,
+            'packageVersion' => trim((string)($buildMetadata['packageVersion'] ?? '')) ?: (string)($diagnostics['pluginVersion'] ?? readInstalledVersion()),
+            'manifestPath' => $manifestMetadata['manifestPath'] ?? null,
+            'manifestPathHash' => $manifestMetadata['manifestPathHash'] ?? null,
+            'manifestSha256' => $manifestMetadata['manifestSha256'] ?? null,
+            'manifestMd5' => $manifestMetadata['manifestMd5'] ?? null,
+            'manifestUrl' => $manifestUrl !== '' ? $manifestUrl : null,
+            'archiveUrl' => $archiveUrl !== '' ? $archiveUrl : null
+        ];
+    }
+
     function diagnosticsBuildSupportBundleMetaSection(array $diagnostics, array $redactor): array {
         return [
             'bundleType' => 'FolderViewPlusSupportBundle',
@@ -1714,7 +1875,8 @@
             'privacyMode' => normalizeDiagnosticsPrivacyMode((string)($redactor['mode'] ?? FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY)),
             'redactionPolicyVersion' => 1,
             'bundleSaltScope' => normalizeDiagnosticsPrivacyMode((string)($redactor['mode'] ?? FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY)) === 'full' ? 'none' : 'per-bundle',
-            'bundleSaltHash' => $redactor['saltFingerprint'] ?? null
+            'bundleSaltHash' => $redactor['saltFingerprint'] ?? null,
+            'buildIdentity' => diagnosticsBuildSupportBundleBuildIdentitySection($diagnostics)
         ];
     }
 
@@ -1972,13 +2134,19 @@
             'summary' => $summary,
             'integrityFindings' => diagnosticsSupportBundleRedactIntegrityFindings($integrityFindings, $redactor),
             'recommendedActions' => array_values(is_array($summary['recommendedActions'] ?? null) ? $summary['recommendedActions'] : []),
+            'recentActions' => diagnosticsBuildSupportBundleRecentActions(
+                array_values(is_array($history['events'] ?? null) ? $history['events'] : []),
+                $redactor,
+                30
+            ),
             'recentTimeline' => $timelineRows,
             'recentMutations' => [
                 'retained' => (int)($history['retained'] ?? 0),
                 'returned' => (int)($history['returned'] ?? 0),
                 'events' => $historyEvents
             ],
-            'update' => is_array($diagnostics['update'] ?? null) ? $diagnostics['update'] : []
+            'update' => is_array($diagnostics['update'] ?? null) ? $diagnostics['update'] : [],
+            'serverLogTail' => diagnosticsBuildSupportBundleServerLogTailSection($redactor)
         ];
     }
 

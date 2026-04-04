@@ -13,10 +13,13 @@ const libDiagnosticsPath = path.join(
 
 const phpSingleQuote = (value) => `'${String(value).replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
 
-const buildFixturePhp = (manifestPath) => `<?php
+const buildFixturePhp = (manifestPath, sourceDir, apiErrorLogPath) => `<?php
+$sourceDir = ${phpSingleQuote(sourceDir)};
+
 const FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY = 'sanitized';
 const FVPLUS_DIAGNOSTICS_HISTORY_MAX = 80;
 const FVPLUS_DIAGNOSTICS_SCHEMA_VERSION = 7;
+const FVPLUS_API_ERROR_LOG = ${phpSingleQuote(apiErrorLogPath)};
 const FVPLUS_DEFAULT_FOLDER_STATUS_COLORS = [
     'started' => '#00ff00',
     'paused' => '#f5c100',
@@ -405,18 +408,42 @@ const loadSupportBundleFixture = () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fvplus-support-bundle-v2-'));
     const harnessPath = path.join(tempDir, 'fixture.php');
     const manifestPath = path.join(tempDir, 'folderview.plus.plg');
+    const sourceDir = path.join(tempDir, 'plugin-source');
+    const apiErrorLogPath = path.join(tempDir, 'folderview.plus.api-error.log');
+    fs.mkdirSync(sourceDir, { recursive: true });
+    fs.writeFileSync(
+        path.join(sourceDir, 'build-metadata.json'),
+        JSON.stringify({
+            sourceCommitSha: '17429e6caebc02894c461354fcea2ce973adbc72',
+            sourceTreeSha: '91dbe96e1e1f0c149c81cc26ed5e3f05d182df1e',
+            sourceBranch: 'dev',
+            manifestUrl: 'https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/dev/folderview.plus.plg',
+            archiveUrl: 'https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/dev/archive/folderview.plus-2026.04.04.10.txz',
+            packageVersion: '2026.04.04.10'
+        }, null, 2),
+        'utf8'
+    );
+    fs.writeFileSync(
+        apiErrorLogPath,
+        [
+            '[2026-04-04T12:00:00+00:00] [trace:trace-123] RuntimeException in /boot/config/plugins/folderview.plus/docker.folder.json:44 | Failed for 192.168.6.25',
+            '[2026-04-04T12:01:00+00:00] [trace:trace-456] RuntimeException in /usr/local/emhttp/plugins/folderview.plus/server/lib.php:910 | Request failed for https://tower-main.local/Docker'
+        ].join('\n') + '\n',
+        'utf8'
+    );
     fs.writeFileSync(
         manifestPath,
         [
             '<!DOCTYPE PLUGIN [',
             '<!ENTITY github "alexphillips-dev/FolderView-Plus">',
             '<!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">',
+            '<!ENTITY md5 "f9d807ddc1613bd63b665e7f9804c6a0">',
             ']>',
-            '<PLUGIN pluginURL="&pluginURL;"></PLUGIN>'
+            '<PLUGIN pluginURL="&pluginURL;"><FILE><URL>https://raw.githubusercontent.com/&github;/dev/archive/folderview.plus-2026.04.04.10.txz</URL></FILE></PLUGIN>'
         ].join('\n'),
         'utf8'
     );
-    fs.writeFileSync(harnessPath, buildFixturePhp(manifestPath), 'utf8');
+    fs.writeFileSync(harnessPath, buildFixturePhp(manifestPath, sourceDir, apiErrorLogPath), 'utf8');
     try {
         const raw = execFileSync('php', [harnessPath], {
             cwd: repoRoot,
@@ -450,12 +477,30 @@ test('support bundle v2 fixture exposes the exact top-level contract', () => {
         assert.equal(bundle.bundleMeta.pluginVersion, '2026.04.04.10');
         assert.equal(bundle.bundleMeta.channel, 'dev');
         assert.equal(bundle.bundleMeta.privacyMode, mode);
+        assert.ok(bundle.bundleMeta.buildIdentity && typeof bundle.bundleMeta.buildIdentity === 'object');
+        assert.equal(bundle.bundleMeta.buildIdentity.pluginVersion, '2026.04.04.10');
+        assert.equal(bundle.bundleMeta.buildIdentity.channel, 'dev');
+        assert.equal(bundle.bundleMeta.buildIdentity.sourceBranch, 'dev');
+        assert.equal(bundle.bundleMeta.buildIdentity.sourceCommitSha, '17429e6caebc02894c461354fcea2ce973adbc72');
+        assert.equal(bundle.bundleMeta.buildIdentity.sourceTreeSha, '91dbe96e1e1f0c149c81cc26ed5e3f05d182df1e');
+        assert.equal(bundle.bundleMeta.buildIdentity.packageVersion, '2026.04.04.10');
+        assert.equal(bundle.bundleMeta.buildIdentity.manifestPath, 'folderview.plus.plg');
+        assert.match(bundle.bundleMeta.buildIdentity.manifestPathHash, /^[0-9a-f]{12}$/);
+        assert.match(bundle.bundleMeta.buildIdentity.manifestSha256, /^[0-9a-f]{64}$/);
+        assert.equal(bundle.bundleMeta.buildIdentity.manifestMd5, 'f9d807ddc1613bd63b665e7f9804c6a0');
+        assert.equal(bundle.bundleMeta.buildIdentity.manifestUrl, 'https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/dev/folderview.plus.plg');
+        assert.equal(bundle.bundleMeta.buildIdentity.archiveUrl, 'https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/dev/archive/folderview.plus-2026.04.04.10.txz');
         assert.equal(bundle.redactionManifest.mode, mode);
         assert.equal(bundle.uiTelemetry && typeof bundle.uiTelemetry, 'object');
         assert.ok(bundle.system && typeof bundle.system === 'object');
         assert.ok(bundle.pluginState?.docker && bundle.pluginState?.vm);
         assert.ok(bundle.runtimeState?.docker && bundle.runtimeState?.vm);
         assert.ok(bundle.healthAndHistory?.summary && typeof bundle.healthAndHistory.summary === 'object');
+        assert.ok(Array.isArray(bundle.healthAndHistory.recentActions));
+        assert.ok(bundle.healthAndHistory.serverLogTail && typeof bundle.healthAndHistory.serverLogTail === 'object');
+        assert.equal(bundle.healthAndHistory.serverLogTail.exists, true);
+        assert.equal(bundle.healthAndHistory.serverLogTail.lineCount, 2);
+        assert.equal(bundle.healthAndHistory.serverLogTail.maxLines, 40);
         assert.ok(bundle.pluginState.docker.prefs?.dashboard && typeof bundle.pluginState.docker.prefs.dashboard === 'object');
         assert.equal(bundle.runtimeState.docker.entitySummary.total, 3);
         assert.equal(bundle.runtimeState.docker.entitySummary.assigned, 2);
@@ -560,6 +605,14 @@ test('sanitized support bundle fixture redacts paths, names, URLs, IPs, and user
         bundle.healthAndHistory.recentTimeline[0].summary.includes('nameHash='),
         true
     );
+    assert.equal(bundle.healthAndHistory.recentActions[0].target, null);
+    assert.match(bundle.healthAndHistory.recentActions[0].targetHash, /^[0-9a-f]{16}$/);
+    assert.equal(bundle.healthAndHistory.serverLogTail.path, 'folderview.plus.api-error.log');
+    assert.match(bundle.healthAndHistory.serverLogTail.pathHash, /^[0-9a-f]{16}$/);
+    assert.equal(bundle.healthAndHistory.serverLogTail.lines[0].includes('docker.folder.json'), true);
+    assert.equal(bundle.healthAndHistory.serverLogTail.lines[0].includes('[path-hash:'), true);
+    assert.equal(bundle.healthAndHistory.serverLogTail.lines[0].includes('192.168.x.x'), true);
+    assert.equal(bundle.healthAndHistory.serverLogTail.lines[1].includes('[url-hash:'), true);
     assert.equal(
         bundle.healthAndHistory.recentMutations.events[0].details.url,
         null
@@ -575,8 +628,16 @@ test('sanitized support bundle fixture redacts paths, names, URLs, IPs, and user
     assert.equal(bundle.redactionManifest.hashedFields.includes('pluginState.docker.prefs.expandedFolderState.*'), true);
     assert.equal(bundle.redactionManifest.hashedFields.includes('runtimeState.docker.folderHierarchySummary.folders.*.folderId'), true);
     assert.equal(bundle.redactionManifest.hashedFields.includes('healthAndHistory.integrityFindings.docker.orphanedMembers.folders.*.folderId'), true);
+    assert.equal(bundle.redactionManifest.hashedFields.includes('healthAndHistory.recentActions.*.targetHash'), true);
+    assert.equal(bundle.redactionManifest.hashedFields.includes('healthAndHistory.serverLogTail.pathHash'), true);
+    assert.equal(bundle.redactionManifest.hashedFields.includes('healthAndHistory.serverLogTail.lines.*.urlHash'), true);
+    assert.equal(bundle.redactionManifest.hashedFields.includes('healthAndHistory.serverLogTail.lines.*.pathHash'), true);
     assert.equal(bundle.redactionManifest.maskedFields.includes('system.request.clientIp'), true);
+    assert.equal(bundle.redactionManifest.maskedFields.includes('healthAndHistory.serverLogTail.lines.*.ip'), true);
     assert.equal(bundle.redactionManifest.omittedFields.includes('system.pathHealth.customIcons.repairHint'), true);
+    assert.equal(bundle.redactionManifest.omittedFields.includes('healthAndHistory.recentActions.*.target'), true);
+    assert.equal(bundle.redactionManifest.omittedFields.includes('healthAndHistory.serverLogTail.lines.*.url'), true);
+    assert.equal(bundle.redactionManifest.omittedFields.includes('healthAndHistory.serverLogTail.lines.*.path'), true);
     assert.equal(
         bundle.redactionManifest.omittedFields.includes('runtimeState.docker.folderHierarchySummary.folders.*.members.items'),
         true
@@ -610,6 +671,18 @@ test('full support bundle fixture keeps raw troubleshooting fields and disables 
     assert.equal(bundle.healthAndHistory.integrityFindings.docker.duplicateFolderNames.examples[0].name, 'Plex Root Secret');
     assert.deepEqual(bundle.healthAndHistory.integrityFindings.docker.orphanedMembers.folders[0].items, ['PlexMediaServer']);
     assert.equal(bundle.healthAndHistory.recentTimeline[0].summary, 'name=PlexMediaServer, folderId=root01, itemCount=2');
+    assert.equal(bundle.healthAndHistory.recentActions[0].target, 'name:PlexMediaServer');
+    assert.match(bundle.healthAndHistory.recentActions[0].targetHash, /^[0-9a-f]{12}$/);
+    assert.equal(bundle.healthAndHistory.serverLogTail.path.endsWith('folderview.plus.api-error.log'), true);
+    assert.match(bundle.healthAndHistory.serverLogTail.pathHash, /^[0-9a-f]{12}$/);
+    assert.equal(
+        bundle.healthAndHistory.serverLogTail.lines[0],
+        '[2026-04-04T12:00:00+00:00] [trace:trace-123] RuntimeException in /boot/config/plugins/folderview.plus/docker.folder.json:44 | Failed for 192.168.6.25'
+    );
+    assert.equal(
+        bundle.healthAndHistory.serverLogTail.lines[1],
+        '[2026-04-04T12:01:00+00:00] [trace:trace-456] RuntimeException in /usr/local/emhttp/plugins/folderview.plus/server/lib.php:910 | Request failed for https://tower-main.local/Docker'
+    );
     assert.equal(bundle.healthAndHistory.recentMutations.events[0].details.url, 'https://tower-main.local/Docker');
     assert.equal(bundle.healthAndHistory.recentMutations.events[0].details.ip, '192.168.6.25');
 });

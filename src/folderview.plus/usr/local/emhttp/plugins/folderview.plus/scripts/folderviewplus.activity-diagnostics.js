@@ -403,9 +403,22 @@ const collectSupportBundleUiTelemetry = (bundle) => {
         return telemetryApi.collectSupportBundleUiTelemetry(bundle);
     }
     const payload = normalizeSupportBundleV2Payload(bundle, bundle?.bundleMeta?.privacyMode || 'sanitized');
+    const loadedAssetEntries = Array.from(document.querySelectorAll('script[src*="/plugins/folderview.plus/"], link[href*="/plugins/folderview.plus/"]'))
+        .map((node) => ({
+            tag: String(node?.tagName || '').toLowerCase() || 'asset',
+            url: String(node?.src || node?.href || '').replace(/^https?:\/\/[^/?#]+/i, ''),
+            loaded: node?.tagName === 'LINK' ? Boolean(node.sheet) : true
+        }));
     payload.uiTelemetry = {
+        loadedAssets: {
+            count: loadedAssetEntries.length,
+            entries: loadedAssetEntries
+        },
         performance: collectClientPerformanceTelemetry(),
         requestErrors: getRequestErrorDiagnosticsSnapshot(),
+        browserConsoleErrors: fatalBanner && typeof fatalBanner.getBrowserConsoleErrorSnapshot === 'function'
+            ? fatalBanner.getBrowserConsoleErrorSnapshot()
+            : { count: 0, entries: [] },
         folderEditorDebug: collectFolderEditorDebugDiagnostics(),
         theme: collectThemeTelemetrySnapshot()
     };

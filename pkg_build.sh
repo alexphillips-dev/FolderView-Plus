@@ -36,6 +36,22 @@ detect_git_branch() {
     printf '%s' "$detected"
 }
 
+detect_git_commit_sha() {
+    local detected=""
+    if command -v git >/dev/null 2>&1 && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        detected="$(git rev-parse HEAD 2>/dev/null || true)"
+    fi
+    printf '%s' "$detected"
+}
+
+detect_git_tree_sha() {
+    local detected=""
+    if command -v git >/dev/null 2>&1 && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        detected="$(git write-tree 2>/dev/null || true)"
+    fi
+    printf '%s' "$detected"
+}
+
 rewrite_manifest_branch_metadata() {
     local target_file="${1:-}"
     local target_version="${2:-}"
@@ -519,6 +535,22 @@ while IFS= read -r -d '' file; do
 done < <(find . -type f ! \( -iname "pkg_build.sh" -o -iname "sftp-config.json" \) -print0)
 
 apply_branch_channel_messaging "$tmpdir" "$branch"
+
+build_metadata_path="$tmpdir/usr/local/emhttp/plugins/folderview.plus/build-metadata.json"
+build_git_commit_sha="$(detect_git_commit_sha)"
+build_git_tree_sha="$(detect_git_tree_sha)"
+build_manifest_url="https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/${branch}/folderview.plus.plg"
+build_archive_url="https://raw.githubusercontent.com/alexphillips-dev/FolderView-Plus/${branch}/archive/${archive_prefix}-${version}.txz"
+cat > "$build_metadata_path" <<EOF
+{
+  "sourceCommitSha": "${build_git_commit_sha}",
+  "sourceTreeSha": "${build_git_tree_sha}",
+  "sourceBranch": "${branch}",
+  "manifestUrl": "${build_manifest_url}",
+  "archiveUrl": "${build_archive_url}",
+  "packageVersion": "${version}"
+}
+EOF
 
 # Set permissions for Unraid (only in temp dir, not the repo)
 chmod -R 0755 "$tmpdir"

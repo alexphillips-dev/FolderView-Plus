@@ -87,6 +87,9 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.browserCapabilities = collectBrowserCapabilities\(\);/);
     assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.clientStorage = collectClientStorageDiagnostics\(\);/);
     assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.currentPage = collectCurrentPageTelemetry\(uiRedactor\);/);
+    assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.loadedAssets = collectLoadedAssetTelemetry\(uiRedactor\);/);
+    assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.requestErrors = uiRedactor\.sanitizeValue\(/);
+    assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.browserConsoleErrors = uiRedactor\.sanitizeValue\(/);
     assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.folderEditorDebug = uiRedactor\.sanitizeValue\(/);
     assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.theme = collectThemeTelemetrySnapshot\(\);/);
     assert.match(supportBundleTelemetryJs, /payload\.uiTelemetry = existingUiTelemetry;/);

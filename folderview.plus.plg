@@ -6,12 +6,22 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.03.02">
-<!ENTITY md5 "a8ed1eb7898871869220c4155a48af50">
+<!ENTITY version "2026.04.04.02">
+<!ENTITY md5 "6768b049117af77341b1eee2e03ddce4">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.04.02
+- Fix: Diagnostics surfaces, issue reports, and support bundle coverage.
+- Fix: Server endpoints, runtime payloads, and persistence or validation paths.
+
+
+###2026.04.04.01
+- Refactor: Cut the support bundle export endpoint over to the new v2 top-level schema with `bundleMeta`, `system`, `pluginState`, `runtimeState`, `uiTelemetry`, `healthAndHistory`, and `redactionManifest` sections.
+- Quality: Added a server-side contract guard so `support_bundle` returns the v2 bundle shape only and the old top-level v1 `diagnostics` payload does not come back from the endpoint.
+
 
 ###2026.04.03.02
 - Fix: Docker runtime rows, folder state, and container interactions.

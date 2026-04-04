@@ -19,6 +19,11 @@ const libDiagnosticsPath = path.join(
 const libPhp = fs.readFileSync(libPath, 'utf8');
 const libPrefsPhp = fs.readFileSync(libPrefsPath, 'utf8');
 const libDiagnosticsPhp = fs.readFileSync(libDiagnosticsPath, 'utf8');
+const diagnosticsEndpointPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/diagnostics.php'
+);
+const diagnosticsEndpointPhp = fs.readFileSync(diagnosticsEndpointPath, 'utf8');
 
 const endpointsUsingHelpers = [
     'backup.php',
@@ -175,4 +180,21 @@ test('lib.php centralizes folder editor mode preference resolution', () => {
     assert.match(libPrefsPhp, /\$resolvedFolderEditorMode = resolveFolderEditorModePreference\(\$prefs\);/);
     assert.match(libPrefsPhp, /\$normalized\['folderEditorModeExplicit'\] = false;/);
     assert.match(libPrefsPhp, /\$normalized\['folderEditorMode'\] = \(string\)\(\$resolvedFolderEditorMode\['mode'\] \?\? 'modern'\);/);
+});
+
+test('diagnostics endpoint emits support bundle v2 shape only', () => {
+    assert.match(diagnosticsEndpointPhp, /function fvplus_resolve_support_bundle_channel\(\): string/);
+    assert.match(diagnosticsEndpointPhp, /function fvplus_build_support_bundle_v2\(array \$diagnostics, string \$privacyMode\): array/);
+    assert.match(diagnosticsEndpointPhp, /if \(\$action === 'support_bundle'\) \{/);
+    assert.match(diagnosticsEndpointPhp, /'bundle'\s*=>\s*fvplus_build_support_bundle_v2\(getDiagnosticsSnapshot\(\$privacyMode\), \$privacyMode\)/);
+    assert.match(diagnosticsEndpointPhp, /'bundleMeta'\s*=>\s*\[/);
+    assert.match(diagnosticsEndpointPhp, /'bundleVersion'\s*=>\s*2/);
+    assert.match(diagnosticsEndpointPhp, /'system'\s*=>\s*\[/);
+    assert.match(diagnosticsEndpointPhp, /'pluginState'\s*=>\s*\$pluginState/);
+    assert.match(diagnosticsEndpointPhp, /'runtimeState'\s*=>\s*\[/);
+    assert.match(diagnosticsEndpointPhp, /'uiTelemetry'\s*=>\s*new stdClass\(\)/);
+    assert.match(diagnosticsEndpointPhp, /'healthAndHistory'\s*=>\s*\[/);
+    assert.match(diagnosticsEndpointPhp, /'redactionManifest'\s*=>\s*\[/);
+    assert.doesNotMatch(diagnosticsEndpointPhp, /'bundleType'\s*=>\s*'FolderViewPlusSupportBundle',\s*[\r\n]+\s*'bundleVersion'\s*=>\s*1,/);
+    assert.doesNotMatch(diagnosticsEndpointPhp, /'diagnostics'\s*=>\s*\$diagnostics/);
 });

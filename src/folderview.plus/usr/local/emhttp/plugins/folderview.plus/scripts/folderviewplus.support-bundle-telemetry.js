@@ -6,6 +6,7 @@
     root.FolderViewPlusSupportBundleTelemetry = factory(root);
     root.FolderViewPlusSupportBundleTelemetryModuleLoaded = true;
 }(typeof globalThis !== 'undefined' ? globalThis : this, function(root) {
+    const browserModule = root?.FolderViewPlusSupportBundleBrowser || null;
     const SUPPORT_BUNDLE_UI_ID_KEYS = Object.freeze(new Set([
         'id',
         'folderId',
@@ -51,9 +52,7 @@
         'responseSnippet'
     ]));
 
-    const normalizePrivacyMode = (value) => (
-        String(value || '').trim().toLowerCase() === 'full' ? 'full' : 'sanitized'
-    );
+    const normalizePrivacyMode = (value) => (String(value || '').trim().toLowerCase() === 'full' ? 'full' : 'sanitized');
 
     const hashValue = (value, saltSeed = '') => {
         const input = `${String(saltSeed || '')}|${String(value || '')}`;
@@ -80,14 +79,6 @@
             list.push(safePath);
         }
         manifest[safeBucket] = list;
-    };
-
-    const clientStorageIsAvailable = (kind) => {
-        try {
-            return typeof root?.[kind] !== 'undefined';
-        } catch (_error) {
-            return false;
-        }
     };
 
     const createUiTelemetryRedactor = (bundle, privacy = 'sanitized') => {
@@ -215,108 +206,37 @@
             ? deps.storageKeys
             : {};
 
-        const collectBrowserCapabilities = () => ({
-            clipboardWrite: Boolean(root?.navigator?.clipboard && typeof root.navigator.clipboard.writeText === 'function'),
-            cookieEnabled: root?.navigator?.cookieEnabled !== false,
-            fetch: typeof root?.fetch === 'function',
-            mutationObserver: typeof root?.MutationObserver === 'function',
-            pointerEvent: typeof root?.PointerEvent === 'function',
-            resizeObserver: typeof root?.ResizeObserver === 'function',
-            touchPoints: Number.isFinite(Number(root?.navigator?.maxTouchPoints)) ? Number(root.navigator.maxTouchPoints) : 0,
-            viewport: {
-                width: Number.isFinite(Number(root?.innerWidth)) ? Number(root.innerWidth) : 0,
-                height: Number.isFinite(Number(root?.innerHeight)) ? Number(root.innerHeight) : 0,
-                devicePixelRatio: Number.isFinite(Number(root?.devicePixelRatio)) ? Number(root.devicePixelRatio) : 1
-            }
-        });
-
-        const collectClientStorageDiagnostics = () => ({
-            localStorageAvailable: clientStorageIsAvailable('localStorage'),
-            sessionStorageAvailable: clientStorageIsAvailable('sessionStorage'),
+        const browserCollectors = (
+            browserModule
+            && typeof browserModule.createCollectors === 'function'
+        ) ? browserModule.createCollectors({
+            readClientDiagnosticsStorageRecord,
+            storageKeys
+        }) : null;
+        const collectBrowserCapabilities = browserCollectors?.collectBrowserCapabilities || (() => ({}));
+        const collectClientStorageDiagnostics = browserCollectors?.collectClientStorageDiagnostics || (() => ({
+            localStorageAvailable: false,
+            sessionStorageAvailable: false,
             folderEditorDebug: {
-                launchPresent: Boolean(readClientDiagnosticsStorageRecord(storageKeys.launch || '')),
-                bootstrapPresent: Boolean(readClientDiagnosticsStorageRecord(storageKeys.bootstrap || '')),
-                surfacePresent: Boolean(readClientDiagnosticsStorageRecord(storageKeys.surface || ''))
+                launchPresent: false,
+                bootstrapPresent: false,
+                surfacePresent: false
             }
-        });
-
-        const collectCurrentPageTelemetry = (uiRedactor) => {
-            const pathname = String(root?.location?.pathname || '');
+        }));
+        const collectCurrentPageTelemetry = browserCollectors?.collectCurrentPageTelemetry || ((uiRedactor) => {
             const href = String(root?.location?.href || '');
             return {
-                path: pathname,
+                path: String(root?.location?.pathname || ''),
                 href: uiRedactor ? uiRedactor.redactUrl('uiTelemetry.currentPage.href', href) : href
             };
-        };
-
-        const collectLoadedAssetTelemetry = (uiRedactor) => {
-            const doc = root?.document || null;
-            if (!doc || typeof doc.querySelectorAll !== 'function') {
-                return { count: 0, entries: [] };
-            }
-            const entries = [];
-            const seen = new Set();
-            doc.querySelectorAll('script[src*="/plugins/folderview.plus/"], link[href*="/plugins/folderview.plus/"]').forEach((node) => {
-                const rawUrl = String(node?.src || node?.href || '').trim();
-                if (!rawUrl || seen.has(rawUrl)) {
-                    return;
-                }
-                seen.add(rawUrl);
-                let pathname = rawUrl;
-                let versionQuery = '';
-                let bootQuery = '';
-                try {
-                    const parsed = new URL(rawUrl, root?.location?.origin || 'http://fvplus.local');
-                    pathname = parsed.pathname || rawUrl;
-                    versionQuery = String(parsed.searchParams.get('v') || '');
-                    bootQuery = String(parsed.searchParams.get('boot') || '');
-                } catch (_error) {
-                    pathname = rawUrl.replace(/^https?:\/\/[^/?#]+/i, '').replace(/[?#].*$/, '') || rawUrl;
-                }
-                entries.push({
-                    tag: String(node?.tagName || '').toLowerCase() || 'asset',
-                    url: uiRedactor ? uiRedactor.redactUrl(`uiTelemetry.loadedAssets.entries.${entries.length}.url`, rawUrl) : pathname,
-                    path: pathname,
-                    versionQuery,
-                    bootQuery,
-                    async: node?.async === true,
-                    defer: node?.defer === true,
-                    rel: String(node?.rel || ''),
-                    media: String(node?.media || ''),
-                    loaded: node?.tagName === 'LINK'
-                        ? Boolean(node.sheet)
-                        : true
-                });
-            });
-            return {
-                count: entries.length,
-                entries
-            };
-        };
-
-        const collectBrowserConsoleErrors = () => {
-            const fallbackStorage = readClientDiagnosticsStorageRecord('fv.support.bundle.consoleErrors.v1');
-            const apiSnapshot = (
-                root?.FolderViewPlusFatalBanner
-                && typeof root.FolderViewPlusFatalBanner.getBrowserConsoleErrorSnapshot === 'function'
-            )
-                ? root.FolderViewPlusFatalBanner.getBrowserConsoleErrorSnapshot()
-                : null;
-            const snapshot = apiSnapshot && typeof apiSnapshot === 'object' && !Array.isArray(apiSnapshot)
-                ? apiSnapshot
-                : {
-                    storageKey: 'fv.support.bundle.consoleErrors.v1',
-                    maxEntries: 30,
-                    count: Array.isArray(fallbackStorage) ? fallbackStorage.length : 0,
-                    entries: Array.isArray(fallbackStorage) ? fallbackStorage : []
-                };
-            return {
-                storageKey: String(snapshot.storageKey || 'fv.support.bundle.consoleErrors.v1'),
-                maxEntries: Number.isFinite(Number(snapshot.maxEntries)) ? Number(snapshot.maxEntries) : 30,
-                count: Number.isFinite(Number(snapshot.count)) ? Number(snapshot.count) : 0,
-                entries: Array.isArray(snapshot.entries) ? snapshot.entries.slice(-30) : []
-            };
-        };
+        });
+        const collectLoadedAssetTelemetry = browserCollectors?.collectLoadedAssetTelemetry || (() => ({ count: 0, entries: [] }));
+        const collectBrowserConsoleErrors = browserCollectors?.collectBrowserConsoleErrors || (() => ({
+            storageKey: 'fv.support.bundle.consoleErrors.v1',
+            maxEntries: 30,
+            count: 0,
+            entries: []
+        }));
 
         const collectSupportBundleUiTelemetry = (bundle) => {
             const payload = normalizeSupportBundleV2Payload(bundle, bundle?.bundleMeta?.privacyMode || 'sanitized');

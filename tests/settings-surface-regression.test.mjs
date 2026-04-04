@@ -9,6 +9,7 @@ const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath)
 const settingsPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page');
 const settingsCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css');
 const supportBundlePreviewJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-preview.js');
+const supportBundleBrowserJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-browser.js');
 const supportBundleTelemetryJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-telemetry.js');
 const diagnosticsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js');
 const settingsJs = [
@@ -26,15 +27,19 @@ test('settings page loads smart-detect config before starter templates and diagn
     const configIndex = settingsPage.indexOf('folderviewplus.smart-detect-config.js');
     const templatesIndex = settingsPage.indexOf('folderviewplus.starter-templates.js');
     const supportBundlePreviewIndex = settingsPage.indexOf('folderviewplus.support-bundle-preview.js');
+    const supportBundleBrowserIndex = settingsPage.indexOf('folderviewplus.support-bundle-browser.js');
     const supportBundleTelemetryIndex = settingsPage.indexOf('folderviewplus.support-bundle-telemetry.js');
     const diagnosticsIndex = settingsPage.indexOf('folderviewplus.activity-diagnostics.js');
     assert.ok(configIndex >= 0, 'smart-detect config include is missing');
     assert.ok(templatesIndex >= 0, 'starter templates include is missing');
     assert.ok(supportBundlePreviewIndex >= 0, 'support bundle preview include is missing');
+    assert.ok(supportBundleBrowserIndex >= 0, 'support bundle browser include is missing');
     assert.ok(supportBundleTelemetryIndex >= 0, 'support bundle telemetry include is missing');
     assert.ok(diagnosticsIndex >= 0, 'activity diagnostics include is missing');
     assert.ok(configIndex < templatesIndex, 'smart-detect config must load before starter templates');
     assert.ok(templatesIndex < supportBundlePreviewIndex, 'starter templates must load before support bundle preview module');
+    assert.ok(supportBundlePreviewIndex < supportBundleBrowserIndex, 'support bundle preview module must load before support bundle browser helper');
+    assert.ok(supportBundleBrowserIndex < supportBundleTelemetryIndex, 'support bundle browser helper must load before support bundle telemetry');
     assert.ok(supportBundlePreviewIndex < supportBundleTelemetryIndex, 'support bundle preview module must load before support bundle telemetry');
     assert.ok(supportBundleTelemetryIndex < diagnosticsIndex, 'support bundle telemetry module must load before diagnostics');
     assert.ok(configIndex < diagnosticsIndex, 'smart-detect config must load before diagnostics');
@@ -45,12 +50,16 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(supportBundlePreviewJs, /const createApi = \(deps = \{\}\) =>/);
     assert.match(supportBundlePreviewJs, /const buildSupportBundlePreviewSectionCards = \(bundle\) =>/);
     assert.match(supportBundlePreviewJs, /const buildSupportBundleRedactionPreviewHtml = \(bundle\) =>/);
+    assert.match(supportBundleBrowserJs, /FolderViewPlusSupportBundleBrowserModuleLoaded = true/);
+    assert.match(supportBundleBrowserJs, /const collectLoadedAssetTelemetry = \(uiRedactor\) =>/);
+    assert.match(supportBundleBrowserJs, /const collectBrowserConsoleErrors = \(\) =>/);
     assert.match(supportBundleTelemetryJs, /FolderViewPlusSupportBundleTelemetryModuleLoaded = true/);
     assert.match(supportBundleTelemetryJs, /const createApi = \(deps = \{\}\) =>/);
     assert.match(supportBundleTelemetryJs, /const createUiTelemetryRedactor = \(bundle, privacy = 'sanitized'\) =>/);
-    assert.match(supportBundleTelemetryJs, /const collectBrowserCapabilities = \(\) =>/);
-    assert.match(supportBundleTelemetryJs, /const collectClientStorageDiagnostics = \(\) =>/);
-    assert.match(supportBundleTelemetryJs, /const collectCurrentPageTelemetry = \(uiRedactor\) =>/);
+    assert.match(supportBundleTelemetryJs, /const browserModule = root\?\.FolderViewPlusSupportBundleBrowser \|\| null;/);
+    assert.match(supportBundleTelemetryJs, /const collectBrowserCapabilities = browserCollectors\?\.collectBrowserCapabilities \|\| \(\(\) => \(\{\}\)\);/);
+    assert.match(supportBundleTelemetryJs, /const collectClientStorageDiagnostics = browserCollectors\?\.collectClientStorageDiagnostics \|\| \(\(\) => \(\{/);
+    assert.match(supportBundleTelemetryJs, /const collectCurrentPageTelemetry = browserCollectors\?\.collectCurrentPageTelemetry \|\| \(\(uiRedactor\) => \{/);
     assert.match(supportBundleTelemetryJs, /const collectSupportBundleUiTelemetry = \(bundle\) =>/);
     assert.match(diagnosticsJs, /const normalizeSupportBundleV2Payload = \(bundle, privacy = 'sanitized'\) =>/);
     assert.match(diagnosticsJs, /const getSupportBundleTelemetryApi = \(\) =>/);

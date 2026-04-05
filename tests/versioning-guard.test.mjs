@@ -455,6 +455,7 @@ test('release-on-main validates remote raw publish artifacts before publishing r
 test('release notes builder supports curated per-version override files', () => {
     assert.match(buildReleaseNotes, /OVERRIDE_FILE="docs\/releases\/\$\{VERSION\}\.md"/);
     assert.match(buildReleaseNotes, /\[\[ -f "\$\{OVERRIDE_FILE\}" \]\]/);
+    assert.match(buildReleaseNotes, /Install URL:[\s\S]*### Changes[\s\S]*cat "\$\{OVERRIDE_FILE\}"/);
     assert.match(buildReleaseNotes, /cat "\$\{OVERRIDE_FILE\}"/);
 });
 
@@ -594,6 +595,8 @@ test('docs metadata guard keeps readme and packaged descriptions aligned', () =>
     assert.match(buildReleaseNotes, /Install URL: \\`https:\/\/raw\.githubusercontent\.com\/alexphillips-dev\/FolderView-Plus\/\$\{INSTALL_BRANCH\}\/folderview\.plus\.plg\\`/);
     assert.match(buildReleaseNotes, /### Changes/);
     assert.match(releaseNotesConsistencyGuard, /Release notes consistency guard passed/);
+    assert.match(releaseNotesConsistencyGuard, /docs', 'releases', `\$\{version\}\.md`/);
+    assert.match(releaseNotesConsistencyGuard, /Generated release notes are missing the curated override body/);
     assert.match(releaseNotesConsistencyGuard, /mkdir -p "\$\{ROOT_DIR\}\/tmp"/);
     assert.match(releaseNotesConsistencyGuard, /TMP_DIR="\$\(mktemp -d "\$\{ROOT_DIR\}\/tmp\/release-notes-guard\.XXXXXX"\)"/);
     assert.match(releaseNotesConsistencyGuard, /build_release_notes\.sh --version/);

@@ -100,8 +100,22 @@ for (const fullPath of sourceFiles.sort()) {
     }
   }
 
-  const jqueryI18nRegex = /\$\.i18n\(\s*['"]([^'"]+)['"]/g;
-  while ((match = jqueryI18nRegex.exec(source)) !== null) {
+  const i18nCallRegexes = [
+    /\$\.i18n\(\s*['"]([^'"]+)['"]/g,
+    /\bjq\.i18n\(\s*['"]([^'"]+)['"]/g
+  ];
+  for (const i18nCallRegex of i18nCallRegexes) {
+    while ((match = i18nCallRegex.exec(source)) !== null) {
+      const key = match[1].trim();
+      if (!key) continue;
+      const line = lineNumberAt(source, match.index);
+      if (!referencedKeys.has(key)) referencedKeys.set(key, []);
+      referencedKeys.get(key).push(`${relPath}:${line}`);
+    }
+  }
+
+  const i18nWrapperRegex = /\b(?:i18nLabel|i18nText)\(\s*['"]([^'"]+)['"]/g;
+  while ((match = i18nWrapperRegex.exec(source)) !== null) {
     const key = match[1].trim();
     if (!key) continue;
     const line = lineNumberAt(source, match.index);

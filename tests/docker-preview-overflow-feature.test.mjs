@@ -49,9 +49,9 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.match(dockerJs, /const appendPreviewWebuiPlaceholder = \(\$target\) =>/);
     assert.match(dockerJs, /fv-preview-webui-placeholder/);
     assert.match(dockerJs, /const buildDockerPreviewItem = \(\{ entry = \{\}, settings = \{\}, autostart = false \}\) =>/);
-    assert.match(dockerJs, /fv-docker-preview-mode-2 fv-preview-trigger/);
-    assert.match(dockerJs, /fv-docker-preview-mode-\$\{previewMode\} fv-preview-trigger/);
-    assert.match(dockerJs, /fv-docker-preview-mode-1 fv-preview-trigger/);
+    assert.match(dockerJs, /fv-docker-preview-mode-2 fv-preview-trigger fv-preview-tooltip-proxy/);
+    assert.match(dockerJs, /fv-docker-preview-mode-\$\{previewMode\} fv-preview-trigger fv-preview-tooltip-proxy/);
+    assert.match(dockerJs, /fv-docker-preview-mode-1 fv-preview-trigger fv-preview-tooltip-proxy/);
     assert.match(dockerJs, /fv-preview-trigger fv-preview-tooltip-proxy/);
     assert.match(dockerJs, /\$tooltipTrigger:\s*triggerSelector === '\.fv-docker-preview-card'\s*\?\s*\$compactItem/);
     assert.match(dockerJs, /\$target\.data\('fvTooltipEnsureInitialized', ensureInitialized\);/);
@@ -87,7 +87,11 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.match(dockerJs, /\.on\('click\.fvDockerPreviewTooltipProxy', '\.fv-preview-tooltip-proxy', function\(event\) \{/);
     assert.match(dockerJs, /const \$trigger = \$proxy\.closest\('\[id\^="folder-preview-"\]'\);/);
     assert.match(dockerJs, /const ensureInitialized = \$trigger\.data\('fvTooltipEnsureInitialized'\);/);
+    assert.match(dockerJs, /const tooltipInitialized = \$trigger\.data\('fvTooltipsterInitialized'\) === true;/);
+    assert.match(dockerJs, /if \(typeof ensureInitialized === 'function' && tooltipInitialized !== true\) \{/);
     assert.match(dockerJs, /ensureInitialized\('click'\);/);
+    assert.match(dockerJs, /if \(tooltipInitialized === true\) \{/);
+    assert.match(dockerJs, /\$trigger\.tooltipster\('open'\);/);
     assert.doesNotMatch(dockerJs, /FolderViewDockerPreviewMemberMenu/);
     assert.doesNotMatch(dockerJs, /showDockerPreviewMemberMenu/);
     assert.match(dockerPreviewActionsScript, /event\.preventDefault\(\);\s*event\.stopPropagation\(\);\s*openWebuiInNewTab\(webuiUrl\);/s);

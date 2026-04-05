@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.04.23">
-<!ENTITY md5 "cc93a6c240689c0f70a87ea0da80ce92">
+<!ENTITY version "2026.04.04.24">
+<!ENTITY md5 "61c1a2e0c9d6039a38adafa41f1ce576">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.04.24
+- Fix: Docker runtime rows, folder state, and container interactions.
+
 
 ###2026.04.04.23
 - Fix: Multi-row Docker folder previews now proxy clicks from the visible compact card content back to the lazy tooltip trigger, so container menus open again when preview rows are set above 1 or Unlimited.

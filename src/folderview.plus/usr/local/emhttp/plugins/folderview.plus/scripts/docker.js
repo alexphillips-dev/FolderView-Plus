@@ -768,7 +768,7 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
         switch (previewMode) {
             case 2:
                 itemMarkup = `
-                    <span class="outer fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-2 fv-preview-trigger${autostartClass}">
+                    <span class="outer fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-2 fv-preview-trigger fv-preview-tooltip-proxy${autostartClass}">
                         <span class="hand fv-preview-trigger fv-preview-tooltip-proxy"><img src="${safeIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'${imageStyle}></span>
                     </span>
                 `;
@@ -777,7 +777,7 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
             case 3:
             case 4:
                 itemMarkup = `
-                    <span class="outer fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-${previewMode} fv-preview-trigger${autostartClass}">
+                    <span class="outer fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-${previewMode} fv-preview-trigger fv-preview-tooltip-proxy${autostartClass}">
                         <span class="inner fv-preview-trigger fv-preview-tooltip-proxy">
                             <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span>
                             <span class="fv-preview-meta-compact">
@@ -794,7 +794,7 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
             case 1:
             default:
                 itemMarkup = `
-                    <span class="outer fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-1 fv-preview-trigger${autostartClass}">
+                    <span class="outer fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-1 fv-preview-trigger fv-preview-tooltip-proxy${autostartClass}">
                         <span class="hand fv-preview-trigger fv-preview-tooltip-proxy"><img src="${safeIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'${imageStyle}></span>
                         <span class="inner fv-preview-trigger fv-preview-tooltip-proxy">
                             <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span>
@@ -995,11 +995,12 @@ $(document)
         event.preventDefault();
         event.stopPropagation();
         const ensureInitialized = $trigger.data('fvTooltipEnsureInitialized');
-        if (typeof ensureInitialized === 'function') {
+        const tooltipInitialized = $trigger.data('fvTooltipsterInitialized') === true;
+        if (typeof ensureInitialized === 'function' && tooltipInitialized !== true) {
             ensureInitialized('click');
             return;
         }
-        if ($trigger.data('fvTooltipsterInitialized') === true) {
+        if (tooltipInitialized === true) {
             try {
                 $trigger.tooltipster('open');
             } catch (_error) {

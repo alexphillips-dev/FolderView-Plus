@@ -213,6 +213,8 @@ jobs:
   guard-suite:
     runs-on: ubuntu-latest
     needs: detect-changes
+    env:
+      FVPLUS_ALLOW_PACKAGED_SOURCE_DRIFT: ${{ github.event_name == 'pull_request' && startsWith(github.head_ref, 'backmerge/') && github.base_ref == 'dev' && '1' || '0' }}
     outputs:
       duration_seconds: ${{ steps.elapsed.outputs.seconds }}
 

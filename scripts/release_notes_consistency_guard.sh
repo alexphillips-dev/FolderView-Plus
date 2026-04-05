@@ -28,6 +28,9 @@ const plg = fs.readFileSync(path.join(root, 'folderview.plus.plg'), 'utf8');
 const releaseOnMain = fs.readFileSync(path.join(root, '.github/workflows/release-on-main.yml'), 'utf8');
 const releaseMain = fs.readFileSync(path.join(root, '.github/workflows/release-main.yml'), 'utf8');
 const rendered = fs.readFileSync(outputFile, 'utf8');
+const overridePath = path.join(root, 'docs', 'releases', `${version}.md`);
+const hasOverride = fs.existsSync(overridePath);
+const overrideBody = hasOverride ? fs.readFileSync(overridePath, 'utf8').trim() : '';
 
 const fail = (message) => {
   console.error(`ERROR: ${message}`);
@@ -48,9 +51,18 @@ if (!rendered.includes(`## FolderView Plus ${version}`)) {
 if (!rendered.includes('### Changes')) {
   fail('Generated release notes are missing the changes heading.');
 }
-for (const line of notesBlock.split(/\r?\n/).filter(Boolean)) {
-  if (!rendered.includes(line)) {
-    fail(`Generated release notes are missing CHANGES line: ${line}`);
+if (hasOverride) {
+  if (!overrideBody) {
+    fail(`Curated release override ${path.relative(root, overridePath)} is empty.`);
+  }
+  if (!rendered.includes(overrideBody)) {
+    fail(`Generated release notes are missing the curated override body from ${path.relative(root, overridePath)}.`);
+  }
+} else {
+  for (const line of notesBlock.split(/\r?\n/).filter(Boolean)) {
+    if (!rendered.includes(line)) {
+      fail(`Generated release notes are missing CHANGES line: ${line}`);
+    }
   }
 }
 if (!/bash scripts\/build_release_notes\.sh/.test(releaseOnMain)) {

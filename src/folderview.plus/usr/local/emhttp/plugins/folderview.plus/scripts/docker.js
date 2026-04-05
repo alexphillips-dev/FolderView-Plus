@@ -969,6 +969,47 @@ const decorateDockerPreviewMemberTriggers = ($elements, folderId, containerName)
         .removeAttr('data-container-name')
         .removeAttr('title');
 };
+const bindCompactPreviewDefaultContext = ($item, $sourceRow) => {
+    if (!$item || !$item.length || !$sourceRow || !$sourceRow.length) {
+        return;
+    }
+    const $sourceTrigger = $sourceRow.find('td.ct-name > span.outer > span.hand').first();
+    const $fallbackTrigger = $sourceRow.find('td.ct-name > span.outer > span.inner > span.appname > a.exec').first();
+    const $nativeTrigger = $sourceTrigger.length ? $sourceTrigger : $fallbackTrigger;
+    if (!$nativeTrigger.length) {
+        return;
+    }
+    $item
+        .attr('data-fv-default-context-proxy', '1')
+        .off('click.fvDockerCompactDefaultContext')
+        .on('click.fvDockerCompactDefaultContext', (event) => {
+            if ($(event.target).closest('.folder-element-custom-btn').length) {
+                return;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            const nativeTrigger = $nativeTrigger.get(0);
+            if (!nativeTrigger) {
+                return;
+            }
+            const clickEvent = $.Event('click');
+            try {
+                $(nativeTrigger).trigger(clickEvent);
+            } catch (_error) {
+                // Fall back to the native click path below.
+            }
+            if (clickEvent.isDefaultPrevented()) {
+                return;
+            }
+            try {
+                if (typeof nativeTrigger.click === 'function') {
+                    nativeTrigger.click();
+                }
+            } catch (_error) {
+                // Ignore native click fallbacks when the host row rejects programmatic clicks.
+            }
+        });
+};
 const decorateDockerFolderMemberRow = ($row, folderId, containerName) => {
     if (!$row || !$row.length) {
         return;
@@ -3198,13 +3239,17 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     let addPreview;
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Selecting addPreview function based on folder.settings.preview = ${folder.settings.preview}. Context setting: ${folder.settings.context}`);
     const compactMultiRowPreview = isCompactMultiRowPreview(folder.settings);
-    const appendCompactPreview = (folderTrId, ctid, autostart, previewEntry) => {
+    const appendCompactPreview = (folderTrId, ctid, autostart, previewEntry, $sourceRow = null) => {
         const { $item, $tooltipTrigger } = buildDockerPreviewItem({
             entry: previewEntry || {},
             settings: folder.settings,
             autostart
         });
         $(`tr.folder-id-${folderTrId} div.folder-preview`).append($item);
+        if (folder.settings.context === 1) {
+            bindCompactPreviewDefaultContext($item, $sourceRow);
+            return null;
+        }
         if (folder.settings.context === 2 || folder.settings.context === 0) {
             const $triggerTarget = $tooltipTrigger && $tooltipTrigger.length ? $tooltipTrigger : $item.find('.fv-preview-trigger').first();
             if ($triggerTarget.length) {
@@ -3219,10 +3264,10 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     };
     switch (folder.settings.preview) {
         case 1:
-            addPreview = (folderTrId, ctid, autostart, previewEntry) => {
+            addPreview = (folderTrId, ctid, autostart, previewEntry, $sourceRow = null) => {
                 if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addPreview (case 1 for ${folderTrId}): ctid=${ctid}, autostart=${autostart}`);
                 if (compactMultiRowPreview) {
-                    return appendCompactPreview(folderTrId, ctid, autostart, previewEntry);
+                    return appendCompactPreview(folderTrId, ctid, autostart, previewEntry, $sourceRow);
                 }
                 let clone = $(`tr.folder-id-${folderTrId} div.folder-storage > tr > td.ct-name > span.outer:last`).clone();
                 clone.find(`span.state`)[0].innerHTML = clone.find(`span.state`)[0].innerHTML.split("<br>")[0];
@@ -3237,10 +3282,10 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                 }
             }; break;
         case 2:
-            addPreview = (folderTrId, ctid, autostart, previewEntry) => {
+            addPreview = (folderTrId, ctid, autostart, previewEntry, $sourceRow = null) => {
                 if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addPreview (case 2 for ${folderTrId}): ctid=${ctid}, autostart=${autostart}`);
                 if (compactMultiRowPreview) {
-                    return appendCompactPreview(folderTrId, ctid, autostart, previewEntry);
+                    return appendCompactPreview(folderTrId, ctid, autostart, previewEntry, $sourceRow);
                 }
                 $(`tr.folder-id-${folderTrId} div.folder-preview`).append($(`tr.folder-id-${folderTrId} div.folder-storage > tr > td.ct-name > span.outer > span.hand:last`).clone().addClass(`${autostart ? 'autostart' : ''}`));
                 if(folder.settings.context === 2 || folder.settings.context === 0) {
@@ -3251,10 +3296,10 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                 }
             }; break;
         case 3:
-            addPreview = (folderTrId, ctid, autostart, previewEntry) => {
+            addPreview = (folderTrId, ctid, autostart, previewEntry, $sourceRow = null) => {
                 if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addPreview (case 3 for ${folderTrId}): ctid=${ctid}, autostart=${autostart}`);
                 if (compactMultiRowPreview) {
-                    return appendCompactPreview(folderTrId, ctid, autostart, previewEntry);
+                    return appendCompactPreview(folderTrId, ctid, autostart, previewEntry, $sourceRow);
                 }
                 let clone = $(`tr.folder-id-${folderTrId} div.folder-storage > tr > td.ct-name > span.outer > span.inner:last`).clone();
                 clone.find(`span.state`)[0].innerHTML = clone.find(`span.state`)[0].innerHTML.split("<br>")[0];
@@ -3269,10 +3314,10 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                 }
             }; break;
         case 4:
-            addPreview = (folderTrId, ctid, autostart, previewEntry) => {
+            addPreview = (folderTrId, ctid, autostart, previewEntry, $sourceRow = null) => {
                 if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] addPreview (case 4 for ${folderTrId}): ctid=${ctid}, autostart=${autostart}`);
                 if (compactMultiRowPreview) {
-                    return appendCompactPreview(folderTrId, ctid, autostart, previewEntry);
+                    return appendCompactPreview(folderTrId, ctid, autostart, previewEntry, $sourceRow);
                 }
                 let lstSpan = $(`tr.folder-id-${folderTrId} div.folder-preview > span.outer:last`);
                 if(!lstSpan[0] || lstSpan.children().length >= 2) {
@@ -3431,7 +3476,7 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
                  if (FOLDER_VIEW_DEBUG_MODE && charts.length > 0) console.log(`[FV3_DEBUG] graphListener (for ct: ${ct.shortId}): Updated ${charts.length} charts.`);
             };
 
-            const tooltip_trigger_element = addPreview(id, ct.shortId, !(ct.info.State.Autostart === false), newFolder[container_name_in_folder]);
+            const tooltip_trigger_element = addPreview(id, ct.shortId, !(ct.info.State.Autostart === false), newFolder[container_name_in_folder], $containerTR);
             if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}), container ${ct.shortId}: Called addPreview. Returned tooltip_trigger_element:`, tooltip_trigger_element ? tooltip_trigger_element[0] : 'null/undefined');
         
             $(`tr.folder-id-${id} div.folder-preview span.inner > span.appname`).css("width", folder.settings.preview_text_width || '');

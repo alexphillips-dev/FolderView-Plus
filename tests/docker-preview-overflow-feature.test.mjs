@@ -49,11 +49,18 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.match(dockerJs, /const appendPreviewWebuiPlaceholder = \(\$target\) =>/);
     assert.match(dockerJs, /fv-preview-webui-placeholder/);
     assert.match(dockerJs, /const buildDockerPreviewItem = \(\{ entry = \{\}, settings = \{\}, autostart = false \}\) =>/);
+    assert.match(dockerJs, /const bindCompactPreviewDefaultContext = \(\$item, \$sourceRow\) =>/);
+    assert.match(dockerJs, /\$sourceRow\.find\('td\.ct-name > span\.outer > span\.hand'\)\.first\(\)/);
+    assert.match(dockerJs, /\.on\('click\.fvDockerCompactDefaultContext', \(event\) => \{/);
+    assert.match(dockerJs, /\$\(nativeTrigger\)\.trigger\(clickEvent\);/);
     assert.match(dockerJs, /fv-docker-preview-mode-2 fv-preview-trigger fv-preview-tooltip-proxy/);
     assert.match(dockerJs, /fv-docker-preview-mode-\$\{previewMode\} fv-preview-trigger fv-preview-tooltip-proxy/);
     assert.match(dockerJs, /fv-docker-preview-mode-1 fv-preview-trigger fv-preview-tooltip-proxy/);
     assert.match(dockerJs, /fv-preview-trigger fv-preview-tooltip-proxy/);
     assert.match(dockerJs, /\$tooltipTrigger:\s*triggerSelector === '\.fv-docker-preview-card'\s*\?\s*\$compactItem/);
+    assert.match(dockerJs, /const appendCompactPreview = \(folderTrId, ctid, autostart, previewEntry, \$sourceRow = null\) =>/);
+    assert.match(dockerJs, /if \(folder\.settings\.context === 1\) \{/);
+    assert.match(dockerJs, /bindCompactPreviewDefaultContext\(\$item, \$sourceRow\);/);
     assert.match(dockerJs, /\$target\.data\('fvTooltipEnsureInitialized', ensureInitialized\);/);
     assert.match(dockerJs, /const layoutFolderPreviewRows = \(\$preview, settings = \{\}\) =>/);
     assert.match(dockerJs, /const applyFolderPreviewLayout = typeof dockerRuntimeShared\.applyFolderPreviewLayout === 'function'/);
@@ -62,6 +69,7 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.match(dockerJs, /const finalizePreviewRows = typeof dockerRuntimeShared\.finalizePreviewRows === 'function'/);
     assert.match(dockerJs, /let clone = \$\(`tr\.folder-id-\$\{folderTrId\} div\.folder-storage > tr > td\.ct-name > span\.outer:last`\)\.clone\(\)/);
     assert.match(dockerJs, /\$previewElementTarget\.children\('span\.inner'\)\.last\(\)/);
+    assert.match(dockerJs, /const tooltip_trigger_element = addPreview\(id, ct\.shortId, !\(ct\.info\.State\.Autostart === false\), newFolder\[container_name_in_folder\], \$containerTR\);/);
     assert.match(dockerJs, /const maxItemsPerRow = Math\.max\(1,\s*getFolderPreviewItemsPerRow\(settings\)\)/);
     assert.match(dockerJs, /const \$measurement = availableWidth > 0/);
     assert.match(dockerJs, /fv-preview-multirow fv-preview-row-measure/);

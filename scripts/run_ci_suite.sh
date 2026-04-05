@@ -57,6 +57,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 fvplus::require_commands bash node php git find shellcheck npm npx
+export FVPLUS_RELEASE_MODE="${RELEASE_MODE}"
 
 chmod +x \
   scripts/api_contract_guard.sh \
@@ -154,9 +155,6 @@ lint_php_syntax() {
 
 run_browser_smoke_if_needed() {
   local default_required="0"
-  if [[ "${RELEASE_MODE}" -eq 1 ]]; then
-    default_required="1"
-  fi
   export FVPLUS_BROWSER_SMOKE_REQUIRED="${FVPLUS_BROWSER_SMOKE_REQUIRED:-${default_required}}"
   if parse_truthy "${FVPLUS_BROWSER_SMOKE_REQUIRED}" && [[ -z "${FVPLUS_BROWSER_SMOKE_URL:-}" ]]; then
     fvplus::fail "Browser smoke checks are required but FVPLUS_BROWSER_SMOKE_URL is not set."
@@ -169,9 +167,6 @@ run_browser_smoke_if_needed() {
 
 run_theme_matrix_if_needed() {
   local default_required="0"
-  if [[ "${RELEASE_MODE}" -eq 1 ]]; then
-    default_required="1"
-  fi
   export FVPLUS_THEME_MATRIX_REQUIRED="${FVPLUS_THEME_MATRIX_REQUIRED:-${default_required}}"
   if parse_truthy "${FVPLUS_THEME_MATRIX_REQUIRED}" && [[ -z "${FVPLUS_THEME_MATRIX_URLS:-}" ]]; then
     fvplus::fail "Theme matrix smoke checks are required but FVPLUS_THEME_MATRIX_URLS is not set."

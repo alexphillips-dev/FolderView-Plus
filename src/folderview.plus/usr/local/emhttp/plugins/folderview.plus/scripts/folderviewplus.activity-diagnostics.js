@@ -1,6 +1,7 @@
-/* Activity feed and diagnostics helpers extracted from folderviewplus.js. */
 const diagnosticsThemeResolver = window.FolderViewPlusThemeResolver || null;
 const diagnosticsUtils = window.FolderViewPlusUtils || null;
+const supportBundlePreviewModule = window.FolderViewPlusSupportBundlePreview || null;
+const supportBundleTelemetryModule = window.FolderViewPlusSupportBundleTelemetry || null;
 const normalizeDiagnosticsThemeMode = (value) => {
     if (diagnosticsThemeResolver && typeof diagnosticsThemeResolver.normalizeThemeCompatibilityMode === 'function') {
         return diagnosticsThemeResolver.normalizeThemeCompatibilityMode(value);
@@ -23,6 +24,8 @@ const applyDiagnosticsThemeTokens = (reason = 'runtime', options = {}) => (
 );
 let lastDiagnostics = null;
 let lastThemeDiagnostics = null;
+let supportBundlePreviewApi = null;
+let supportBundleTelemetryApi = null;
 const DIAGNOSTICS_STATUS_CONFIG = Object.freeze({
     healthy: Object.freeze({ label: 'Healthy', icon: 'fa-check-circle' }),
     warning: Object.freeze({ label: 'Follow up', icon: 'fa-exclamation-triangle' }),
@@ -63,7 +66,7 @@ const performanceDiagnosticsState = {
 const requestErrorDiagnostics = [];
 const EDITOR_DEBUG_LAUNCH_STORAGE_KEY = 'fv.folder.editor.debug.launch.v1';
 const EDITOR_DEBUG_BOOTSTRAP_STORAGE_KEY = 'fv.folder.editor.debug.bootstrap.v1';
-
+const EDITOR_DEBUG_SURFACE_STORAGE_KEY = 'fv.folder.editor.debug.surface.v1';
 const readClientDiagnosticsStorageRecord = (storageKey) => {
     try {
         if (typeof localStorage === 'undefined') {
@@ -83,11 +86,14 @@ const readClientDiagnosticsStorageRecord = (storageKey) => {
 const collectFolderEditorDebugDiagnostics = () => {
     const launch = readClientDiagnosticsStorageRecord(EDITOR_DEBUG_LAUNCH_STORAGE_KEY);
     const bootstrap = readClientDiagnosticsStorageRecord(EDITOR_DEBUG_BOOTSTRAP_STORAGE_KEY);
+    const surface = readClientDiagnosticsStorageRecord(EDITOR_DEBUG_SURFACE_STORAGE_KEY);
     const launchId = String(launch?.id || '').trim();
     const launchType = String(launch?.type || '').trim();
     const bootstrapRouteId = String(bootstrap?.routeFolderId || '').trim();
     const bootstrapEffectiveId = String(bootstrap?.effectiveFolderId || '').trim();
     const bootstrapType = String(bootstrap?.routeType || bootstrap?.pageType || '').trim();
+    const surfaceSummary = String(surface?.summary || '').trim();
+    const surfaceTone = String(surface?.tone || '').trim();
     const launchMatchedBootstrap = Boolean(
         launchId
         && bootstrapEffectiveId
@@ -99,6 +105,7 @@ const collectFolderEditorDebugDiagnostics = () => {
         currentPage: String(location?.href || ''),
         launch,
         bootstrap,
+        surface,
         comparison: {
             launchId,
             launchType,
@@ -106,6 +113,8 @@ const collectFolderEditorDebugDiagnostics = () => {
             bootstrapEffectiveId,
             bootstrapType,
             bootstrapResult: String(bootstrap?.result || '').trim(),
+            surfaceSummary,
+            surfaceTone,
             launchMatchedBootstrap,
             routeTargetRecovered: bootstrap?.routeTargetRecovered === true,
             routeTargetMismatch: bootstrap?.routeTargetMismatch === true,
@@ -319,7 +328,130 @@ const getSupportBundle = async (privacy = 'sanitized') => {
     if (!response.ok) {
         throw new Error(response.error || 'Support bundle failed.');
     }
-    return response.bundle || {};
+    return normalizeSupportBundleV2Payload(response.bundle || {}, privacy);
+};
+
+const normalizeSupportBundleV2Payload = (bundle, privacy = 'sanitized') => {
+    const payload = (bundle && typeof bundle === 'object' && !Array.isArray(bundle)) ? { ...bundle } : {};
+    const mode = privacy === 'full' ? 'full' : 'sanitized';
+    payload.bundleMeta = (
+        payload.bundleMeta && typeof payload.bundleMeta === 'object' && !Array.isArray(payload.bundleMeta)
+    ) ? { ...payload.bundleMeta } : {};
+    payload.system = (
+        payload.system && typeof payload.system === 'object' && !Array.isArray(payload.system)
+    ) ? { ...payload.system } : {};
+    payload.pluginState = (
+        payload.pluginState && typeof payload.pluginState === 'object' && !Array.isArray(payload.pluginState)
+    ) ? { ...payload.pluginState } : {};
+    payload.runtimeState = (
+        payload.runtimeState && typeof payload.runtimeState === 'object' && !Array.isArray(payload.runtimeState)
+    ) ? { ...payload.runtimeState } : {};
+    payload.uiTelemetry = (
+        payload.uiTelemetry && typeof payload.uiTelemetry === 'object' && !Array.isArray(payload.uiTelemetry)
+    ) ? { ...payload.uiTelemetry } : {};
+    payload.healthAndHistory = (
+        payload.healthAndHistory && typeof payload.healthAndHistory === 'object' && !Array.isArray(payload.healthAndHistory)
+    ) ? { ...payload.healthAndHistory } : {};
+    payload.redactionManifest = (
+        payload.redactionManifest && typeof payload.redactionManifest === 'object' && !Array.isArray(payload.redactionManifest)
+    ) ? { ...payload.redactionManifest } : {};
+    payload.bundleMeta.bundleType = payload.bundleMeta.bundleType || 'FolderViewPlusSupportBundle';
+    payload.bundleMeta.bundleVersion = Number.isFinite(Number(payload.bundleMeta.bundleVersion))
+        ? Number(payload.bundleMeta.bundleVersion)
+        : 2;
+    payload.bundleMeta.schemaVersion = Number.isFinite(Number(payload.bundleMeta.schemaVersion))
+        ? Number(payload.bundleMeta.schemaVersion)
+        : 0;
+    payload.bundleMeta.generatedAt = payload.bundleMeta.generatedAt || new Date().toISOString();
+    payload.bundleMeta.pluginVersion = payload.bundleMeta.pluginVersion || 'unknown';
+    payload.bundleMeta.channel = payload.bundleMeta.channel || 'dev';
+    payload.bundleMeta.privacyMode = payload.bundleMeta.privacyMode === 'full' ? 'full' : mode;
+    payload.healthAndHistory.summary = (
+        payload.healthAndHistory.summary && typeof payload.healthAndHistory.summary === 'object' && !Array.isArray(payload.healthAndHistory.summary)
+    ) ? { ...payload.healthAndHistory.summary } : {};
+    payload.healthAndHistory.recentTimeline = Array.isArray(payload.healthAndHistory.recentTimeline)
+        ? payload.healthAndHistory.recentTimeline.slice(0)
+        : [];
+    payload.system.request = (
+        payload.system.request && typeof payload.system.request === 'object' && !Array.isArray(payload.system.request)
+    ) ? { ...payload.system.request } : {};
+    return payload;
+};
+
+const getSupportBundleTelemetryApi = () => {
+    if (!supportBundleTelemetryApi && supportBundleTelemetryModule && typeof supportBundleTelemetryModule.createApi === 'function') {
+        supportBundleTelemetryApi = supportBundleTelemetryModule.createApi({
+            normalizeSupportBundleV2Payload,
+            collectClientPerformanceTelemetry,
+            getRequestErrorDiagnosticsSnapshot,
+            collectFolderEditorDebugDiagnostics,
+            collectThemeTelemetrySnapshot,
+            readClientDiagnosticsStorageRecord,
+            storageKeys: {
+                launch: EDITOR_DEBUG_LAUNCH_STORAGE_KEY,
+                bootstrap: EDITOR_DEBUG_BOOTSTRAP_STORAGE_KEY,
+                surface: EDITOR_DEBUG_SURFACE_STORAGE_KEY
+            }
+        });
+    }
+    return supportBundleTelemetryApi;
+};
+
+const collectSupportBundleUiTelemetry = (bundle) => {
+    const telemetryApi = getSupportBundleTelemetryApi();
+    if (telemetryApi && typeof telemetryApi.collectSupportBundleUiTelemetry === 'function') {
+        return telemetryApi.collectSupportBundleUiTelemetry(bundle);
+    }
+    const payload = normalizeSupportBundleV2Payload(bundle, bundle?.bundleMeta?.privacyMode || 'sanitized');
+    const loadedAssetEntries = Array.from(document.querySelectorAll('script[src*="/plugins/folderview.plus/"], link[href*="/plugins/folderview.plus/"]'))
+        .map((node) => ({
+            tag: String(node?.tagName || '').toLowerCase() || 'asset',
+            url: String(node?.src || node?.href || '').replace(/^https?:\/\/[^/?#]+/i, ''),
+            loaded: node?.tagName === 'LINK' ? Boolean(node.sheet) : true
+        }));
+    payload.uiTelemetry = {
+        loadedAssets: {
+            count: loadedAssetEntries.length,
+            entries: loadedAssetEntries
+        },
+        performance: collectClientPerformanceTelemetry(),
+        requestErrors: getRequestErrorDiagnosticsSnapshot(),
+        browserConsoleErrors: fatalBanner && typeof fatalBanner.getBrowserConsoleErrorSnapshot === 'function'
+            ? fatalBanner.getBrowserConsoleErrorSnapshot()
+            : { count: 0, entries: [] },
+        folderEditorDebug: collectFolderEditorDebugDiagnostics(),
+        theme: collectThemeTelemetrySnapshot()
+    };
+    return payload;
+};
+
+const getSupportBundlePreviewApi = () => {
+    if (!supportBundlePreviewApi && supportBundlePreviewModule && typeof supportBundlePreviewModule.createApi === 'function') {
+        supportBundlePreviewApi = supportBundlePreviewModule.createApi({
+            $,
+            escapeHtml,
+            formatCheckedAtLabel,
+            normalizeSupportBundleV2Payload,
+            getSupportBundle,
+            showError
+        });
+    }
+    return supportBundlePreviewApi;
+};
+
+const renderSupportBundlePreview = (bundle = null) => {
+    const previewApi = getSupportBundlePreviewApi();
+    if (previewApi) {
+        previewApi.renderSupportBundlePreview(bundle);
+    }
+};
+
+const refreshSupportBundlePreview = async ({ privacy = 'sanitized', quiet = true } = {}) => {
+    const previewApi = getSupportBundlePreviewApi();
+    if (!previewApi) {
+        return null;
+    }
+    return previewApi.refreshSupportBundlePreview({ privacy, quiet });
 };
 
 const runDiagnosticAction = async (action, type, privacy = 'sanitized') => {
@@ -981,6 +1113,7 @@ const renderDiagnostics = (diagnostics) => {
     }
     renderDiagnosticsSummary(diagnostics);
     renderChangeHistory(diagnostics);
+    void refreshSupportBundlePreview({ privacy: 'sanitized', quiet: true });
 };
 
 const runDiagnostics = async () => {
@@ -1014,49 +1147,21 @@ const repairDiagnostics = async (action) => {
 
 const exportDiagnosticsByMode = async (privacy = 'sanitized') => {
     const mode = privacy === 'full' ? 'full' : 'sanitized';
-    let diagnostics = null;
-
-    const cachedMode = (lastDiagnostics?.privacyMode || 'sanitized');
-    if (lastDiagnostics && cachedMode === mode) {
-        diagnostics = lastDiagnostics;
-    }
-
-    if (!diagnostics) {
-        try {
-            diagnostics = await getDiagnostics(mode);
-            renderDiagnostics(diagnostics);
-        } catch (error) {
-            if (lastDiagnostics) {
-                diagnostics = lastDiagnostics;
-            } else {
-                diagnostics = {
-                    schemaVersion: 2,
-                    privacyMode: mode,
-                    checkedAt: new Date().toISOString(),
-                    error: error?.message || String(error)
-                };
+    try {
+        const payload = collectSupportBundleUiTelemetry(await getSupportBundle(mode));
+        downloadFile('FolderView Plus Diagnostics.json', toPrettyJson(payload));
+        await trackDiagnosticsEvent({
+            eventType: 'diagnostics_export',
+            details: {
+                privacyMode: mode,
+                schemaVersion: payload?.bundleMeta?.schemaVersion || null,
+                bundleVersion: payload?.bundleMeta?.bundleVersion || null,
+                requestErrors: payload?.uiTelemetry?.requestErrors?.count || 0
             }
-        }
+        });
+    } catch (error) {
+        showError('Diagnostics export failed', error);
     }
-
-    const payload = (diagnostics && typeof diagnostics === 'object') ? { ...diagnostics } : {};
-    const existingClientTelemetry = (
-        payload.clientTelemetry && typeof payload.clientTelemetry === 'object' && !Array.isArray(payload.clientTelemetry)
-    ) ? { ...payload.clientTelemetry } : {};
-    existingClientTelemetry.performance = collectClientPerformanceTelemetry();
-    existingClientTelemetry.requestErrors = getRequestErrorDiagnosticsSnapshot();
-    existingClientTelemetry.folderEditorDebug = collectFolderEditorDebugDiagnostics();
-    payload.clientTelemetry = existingClientTelemetry;
-
-    downloadFile('FolderView Plus Diagnostics.json', toPrettyJson(payload));
-    trackDiagnosticsEvent({
-        eventType: 'diagnostics_export',
-        details: {
-            privacyMode: mode,
-            schemaVersion: diagnostics?.schemaVersion || null,
-            requestErrors: payload?.clientTelemetry?.requestErrors?.count || 0
-        }
-    });
 };
 
 const exportDiagnostics = () => {
@@ -1070,24 +1175,26 @@ const exportFullDiagnostics = () => {
 const exportSupportBundleByMode = async (privacy = 'sanitized') => {
     const mode = privacy === 'full' ? 'full' : 'sanitized';
     try {
-        const bundle = await getSupportBundle(mode);
-        const existingClientTelemetry = (
-            bundle.clientTelemetry && typeof bundle.clientTelemetry === 'object' && !Array.isArray(bundle.clientTelemetry)
-        ) ? { ...bundle.clientTelemetry } : {};
-        existingClientTelemetry.performance = collectClientPerformanceTelemetry();
-        existingClientTelemetry.requestErrors = getRequestErrorDiagnosticsSnapshot();
-        existingClientTelemetry.folderEditorDebug = collectFolderEditorDebugDiagnostics();
-        bundle.clientTelemetry = existingClientTelemetry;
-        const generatedAt = String(bundle.generatedAt || '').replace(/[:]/g, '-');
+        const bundle = collectSupportBundleUiTelemetry(await getSupportBundle(mode));
+        const generatedAt = String(bundle?.bundleMeta?.generatedAt || '').replace(/[:]/g, '-');
         const suffix = generatedAt ? `-${generatedAt}` : '';
         downloadFile(`FolderView Plus Support Bundle${suffix}.json`, toPrettyJson(bundle));
         await trackDiagnosticsEvent({
             eventType: 'support_bundle_export',
             details: {
                 privacyMode: mode,
-                bundleVersion: bundle?.bundleVersion || null
+                schemaVersion: bundle?.bundleMeta?.schemaVersion || null,
+                bundleVersion: bundle?.bundleMeta?.bundleVersion || null,
+                requestErrors: bundle?.uiTelemetry?.requestErrors?.count || 0
             }
         });
+        if (mode === 'sanitized') {
+            const previewApi = getSupportBundlePreviewApi();
+            if (previewApi) {
+                previewApi.setLastSupportBundlePreview(bundle);
+            }
+            renderSupportBundlePreview(bundle);
+        }
     } catch (error) {
         showError('Support bundle export failed', error);
     }
@@ -1102,33 +1209,37 @@ const exportFullSupportBundle = () => {
 };
 
 const issueReportFromDiagnostics = (diagnostics) => {
-    const report = diagnostics || {};
+    const report = normalizeSupportBundleV2Payload(diagnostics || {}, diagnostics?.bundleMeta?.privacyMode || 'sanitized');
     const lines = [];
     lines.push('# FolderView Plus Issue Report');
-    lines.push(`Generated: ${report.checkedAt || new Date().toISOString()}`);
-    lines.push(`Plugin version: ${report.pluginVersion || 'unknown'}`);
-    lines.push(`Privacy mode: ${report.privacyMode || 'sanitized'}`);
+    lines.push(`Generated: ${report.bundleMeta?.generatedAt || new Date().toISOString()}`);
+    lines.push(`Plugin version: ${report.bundleMeta?.pluginVersion || 'unknown'}`);
+    lines.push(`Bundle version: ${report.bundleMeta?.bundleVersion || 2}`);
+    lines.push(`Privacy mode: ${report.bundleMeta?.privacyMode || 'sanitized'}`);
     lines.push('');
 
-    const env = report.environment || {};
+    const env = report.system || {};
     lines.push('## Environment');
     lines.push(`- Unraid: ${env.unraidVersion || 'unknown'}`);
     lines.push(`- PHP: ${env.phpVersion || 'unknown'}`);
-    lines.push(`- OS: ${env.os || 'unknown'}`);
+    lines.push(`- OS: ${env.kernel || 'unknown'}`);
     lines.push('');
 
     lines.push('## Type Summary');
     for (const type of ['docker', 'vm']) {
-        const typeData = report.types?.[type] || {};
-        const integrity = typeData.integrityChecks || {};
+        const typeData = report.pluginState?.[type] || {};
+        const integrity = report.healthAndHistory?.integrityFindings?.[type] || {};
         const issueCount = Number.isFinite(Number(integrity.issuesCount))
             ? Number(integrity.issuesCount)
             : Number(integrity.issueCount || 0);
-        lines.push(`- ${type.toUpperCase()}: folders=${typeData.folderCount || 0}, rules=${typeData.ruleCount || 0}, backups=${typeData.backupCount || 0}, templates=${typeData.templateCount || 0}, issueCount=${issueCount}`);
+        const counts = typeData.counts || {};
+        lines.push(`- ${type.toUpperCase()}: folders=${counts.folders || 0}, rules=${counts.rules || 0}, backups=${counts.backups || 0}, templates=${counts.templates || 0}, issueCount=${issueCount}`);
     }
     lines.push('');
 
-    const timeline = Array.isArray(report.recentTimeline) ? report.recentTimeline.slice(0, 15) : [];
+    const timeline = Array.isArray(report.healthAndHistory?.recentTimeline)
+        ? report.healthAndHistory.recentTimeline.slice(0, 15)
+        : [];
     lines.push('## Recent Timeline');
     if (!timeline.length) {
         lines.push('- No recent timeline events available.');
@@ -1138,7 +1249,7 @@ const issueReportFromDiagnostics = (diagnostics) => {
         }
     }
     lines.push('');
-    const folderEditorDebug = report.clientTelemetry?.folderEditorDebug || null;
+    const folderEditorDebug = report.uiTelemetry?.folderEditorDebug || null;
     lines.push('## Folder Editor Debug');
     if (!folderEditorDebug) {
         lines.push('- No folder editor debug snapshot available.');
@@ -1149,15 +1260,21 @@ const issueReportFromDiagnostics = (diagnostics) => {
         lines.push(`- Bootstrap route target: ${comparison.bootstrapType || '?'} / ${comparison.bootstrapRouteId || '(empty)'}`);
         lines.push(`- Bootstrap effective target: ${comparison.bootstrapEffectiveId || '(empty)'}`);
         lines.push(`- Bootstrap result: ${comparison.bootstrapResult || '(empty)'}`);
+        if (folderEditorDebug.surface) {
+            lines.push(`- Bootstrap banner: ${comparison.surfaceTone || '?'} / ${comparison.surfaceSummary || '(empty)'}`);
+        }
     }
     lines.push('');
     lines.push('## Notes');
-    lines.push('- Attach `FolderView Plus Diagnostics.json` and support bundle export if available.');
+    lines.push('- Attach the v2 support bundle export if available.');
     return lines.join('\n');
 };
 
 const initializeClientDiagnosticsPanels = () => {
     renderDiagnosticsSummary(lastDiagnostics);
+    const previewApi = getSupportBundlePreviewApi();
+    renderSupportBundlePreview(previewApi ? previewApi.getLastSupportBundlePreview() : null);
+    void refreshSupportBundlePreview({ privacy: 'sanitized', quiet: true });
 };
 
 if (document.readyState === 'loading') {
@@ -1172,12 +1289,8 @@ window.copyFolderEditorDebugDiagnostics = copyFolderEditorDebugDiagnostics;
 
 const copyIssueReport = async () => {
     try {
-        let diagnostics = lastDiagnostics;
-        if (!diagnostics) {
-            diagnostics = await getDiagnostics('sanitized');
-            renderDiagnostics(diagnostics);
-        }
-        const text = issueReportFromDiagnostics(diagnostics);
+        const bundle = collectSupportBundleUiTelemetry(await getSupportBundle('sanitized'));
+        const text = issueReportFromDiagnostics(bundle);
 
         if (navigator.clipboard && navigator.clipboard.writeText) {
             await navigator.clipboard.writeText(text);
@@ -1245,7 +1358,24 @@ const readThemeTokenSnapshot = (styleDeclaration) => {
     return output;
 };
 
+const resolveThemeDiagnosticStatusToken = (tokens, statusName = 'started') => {
+    const source = tokens && typeof tokens === 'object' ? tokens : {};
+    const suffix = String(statusName || 'started').trim() || 'started';
+    for (const token of [
+        `--fvplus-status-${suffix}`,
+        `--fvplus-runtime-status-${suffix}`,
+        `--fvplus-folder-status-${suffix}`
+    ]) {
+        const value = String(source[token] || '').trim();
+        if (value) {
+            return value;
+        }
+    }
+    return '';
+};
+
 const collectThemeDiagnostics = () => {
+    const resolverSnapshot = applyDiagnosticsThemeTokens('diagnostics');
     const html = document.documentElement;
     const body = document.body;
     const root = document.getElementById('fv-settings-root');
@@ -1265,10 +1395,12 @@ const collectThemeDiagnostics = () => {
 
     const warnings = [];
     const htmlTokens = readThemeTokenSnapshot(htmlStyle);
-    if (!htmlTokens['--fvplus-status-started']) {
-        warnings.push('Missing --fvplus-status-started token value on document root.');
+    const startedStatusToken = resolveThemeDiagnosticStatusToken(htmlTokens, 'started');
+    const stoppedStatusToken = resolveThemeDiagnosticStatusToken(htmlTokens, 'stopped');
+    if (!startedStatusToken) {
+        warnings.push('Missing started status token value on document root.');
     }
-    if (htmlTokens['--fvplus-status-started'] && htmlTokens['--fvplus-status-started'] === htmlTokens['--fvplus-status-stopped']) {
+    if (startedStatusToken && stoppedStatusToken && startedStatusToken === stoppedStatusToken) {
         warnings.push('Started and stopped status tokens resolve to the same value.');
     }
     const startedSampleColor = firstStartedState ? window.getComputedStyle(firstStartedState).color : '';
@@ -1276,7 +1408,6 @@ const collectThemeDiagnostics = () => {
     if (startedSampleColor && stoppedSampleColor && startedSampleColor === stoppedSampleColor) {
         warnings.push('Runtime started/stopped state colors currently resolve to the same computed color.');
     }
-    const resolverSnapshot = applyDiagnosticsThemeTokens('diagnostics');
     if (resolverSnapshot?.autoHealed) {
         warnings.push(`Theme resolver auto-heal applied mode ${resolverSnapshot.appliedMode}.`);
     }
@@ -1343,6 +1474,15 @@ const runThemeDiagnostics = () => {
     } catch (error) {
         showError('Theme diagnostics failed', error);
         return null;
+    }
+};
+
+const collectThemeTelemetrySnapshot = () => {
+    try {
+        lastThemeDiagnostics = collectThemeDiagnostics();
+        return lastThemeDiagnostics;
+    } catch (_error) {
+        return lastThemeDiagnostics || null;
     }
 };
 

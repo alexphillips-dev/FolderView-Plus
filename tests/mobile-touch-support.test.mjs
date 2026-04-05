@@ -16,6 +16,10 @@ const folderJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js'
 );
+const folderEditorIconsJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icons.js'
+);
 const dockerCssPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css'
@@ -40,6 +44,7 @@ const settingsCssPath = path.join(
 const dockerJs = fs.readFileSync(dockerJsPath, 'utf8');
 const vmJs = fs.readFileSync(vmJsPath, 'utf8');
 const folderJs = fs.readFileSync(folderJsPath, 'utf8');
+const folderEditorIconsJs = fs.readFileSync(folderEditorIconsJsPath, 'utf8');
 const dockerCss = fs.readFileSync(dockerCssPath, 'utf8');
 const vmCss = fs.readFileSync(vmCssPath, 'utf8');
 const settingsJs = fs.readFileSync(settingsJsPath, 'utf8');
@@ -59,8 +64,9 @@ test('vm runtime includes touch-mode detection and avoids hover-only preview on 
 });
 
 test('folder editor binds outside-click close handler for pointer and touch events', () => {
-    assert.match(folderJs, /pointerdown\.fviconpicker/);
-    assert.match(folderJs, /touchstart\.fviconpicker/);
+    assert.match(folderJs, /await bindIconPickerEvents\(\);/);
+    assert.match(folderEditorIconsJs, /pointerdown\.fviconpicker/);
+    assert.match(folderEditorIconsJs, /touchstart\.fviconpicker/);
 });
 
 test('docker and vm styles include responsive touch/mobile fallbacks', () => {

@@ -1,5 +1,5 @@
 (function folderEditorChromeBootstrap(root) {
-    const editorPageMode = String(root.FolderViewPlusFolderEditorPageMode || 'legacy').trim().toLowerCase();
+    const editorPageMode = String(root.FolderViewPlusFolderEditorPageMode || 'modern').trim().toLowerCase();
     if (editorPageMode !== 'modern') {
         return;
     }
@@ -356,13 +356,6 @@
         return stage;
     };
 
-    const getLegacyScaffold = (form) => {
-        if (!(form instanceof root.HTMLElement)) {
-            return null;
-        }
-        return form.querySelector('#fvLegacyEditorScaffold');
-    };
-
     const revealModernStage = (form, { preservePlaceholder = false } = {}) => {
         const stage = getModernStage(form);
         if (!stage) {
@@ -415,7 +408,7 @@
         if (!actionBarMain) {
             return;
         }
-        Array.from(form.querySelectorAll('.folder-btn-submit, .folder-btn-copy, .folder-btn-reset, .folder-btn-cancel, #unsavedIndicator')).forEach((entry) => {
+        Array.from(form.querySelectorAll('.folder-btn-submit, .folder-btn-apply-settings, .folder-btn-copy, .folder-btn-reset, .folder-btn-cancel, #unsavedIndicator')).forEach((entry) => {
             actionBarMain.appendChild(entry);
         });
     };
@@ -659,22 +652,17 @@
     };
 
     const hideOrphanRows = (form) => {
-        const scaffold = getLegacyScaffold(form);
-        if (scaffold) {
-            scaffold.hidden = true;
-            scaffold.setAttribute('aria-hidden', 'true');
-        }
         Array.from(form.children).forEach((child) => {
             if (!(child instanceof root.HTMLElement)) {
                 return;
             }
-            if (child.id === 'fvModernEditorStage' || child.id === 'fvLegacyEditorScaffold') {
+            if (child.id === 'fvModernEditorStage') {
                 return;
             }
             if (child.matches('.fv-section-shell')) {
                 return;
             }
-            if (child.matches('.folder-btn-submit, .folder-btn-copy, .folder-btn-reset, .folder-btn-cancel, #unsavedIndicator')) {
+            if (child.matches('.folder-btn-submit, .folder-btn-apply-settings, .folder-btn-copy, .folder-btn-reset, .folder-btn-cancel, #unsavedIndicator')) {
                 child.style.display = 'none';
                 return;
             }

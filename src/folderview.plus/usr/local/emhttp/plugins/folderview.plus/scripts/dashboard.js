@@ -9,6 +9,11 @@ const localDefaultFolderStatusColors = {
     paused: '#b8860b',
     stopped: '#ff4d4d'
 };
+const localResolvedFolderStatusColors = {
+    started: 'var(--fvplus-folder-status-started, var(--fvplus-status-started, var(--fvplus-theme-foreground, currentColor)))',
+    paused: 'var(--fvplus-folder-status-paused, var(--fvplus-status-paused, #b8860b))',
+    stopped: 'var(--fvplus-folder-status-stopped, var(--fvplus-status-stopped, #ff4d4d))'
+};
 const DEFAULT_FOLDER_ACCENT_COLOR = folderContract?.DEFAULT_FOLDER_ACCENT_COLOR || '#ffca63';
 const themeResolver = window.FolderViewPlusThemeResolver || null;
 const applyDashboardResolvedThemeTokens = (reason = 'dashboard:initial') => {
@@ -32,6 +37,22 @@ const normalizeStatusHexColor = (value, fallback) => {
         return `#${trimmed[1]}${trimmed[1]}${trimmed[2]}${trimmed[2]}${trimmed[3]}${trimmed[3]}`.toLowerCase();
     }
     return trimmed.toLowerCase();
+};
+const resolveDashboardFolderStatusColors = (settings) => {
+    const colors = typeof utils.getFolderStatusColors === 'function'
+        ? utils.getFolderStatusColors(settings)
+        : localDefaultFolderStatusColors;
+    return {
+        started: colors.started === localDefaultFolderStatusColors.started
+            ? localResolvedFolderStatusColors.started
+            : colors.started,
+        paused: colors.paused === localDefaultFolderStatusColors.paused
+            ? localResolvedFolderStatusColors.paused
+            : colors.paused,
+        stopped: colors.stopped === localDefaultFolderStatusColors.stopped
+            ? localResolvedFolderStatusColors.stopped
+            : colors.stopped
+    };
 };
 const isFolderAccentEnabled = typeof folderContract?.isFolderAccentEnabled === 'function'
     ? folderContract.isFolderAccentEnabled
@@ -198,7 +219,6 @@ const sanitizeImageSrc = typeof utils.sanitizeImageSrc === 'function'
         }
         return escapeHtml(raw);
     });
-const WEBUI_LINK_REL = 'noopener noreferrer';
 const WEBUI_OPEN_REL = 'noopener';
 const getSafeWebUiUrl = (value) => {
     const raw = String(value || '').trim();
@@ -573,40 +593,6 @@ const setDashboardStartedOnlyEnabledForType = (type, enabled) => {
     queueLoadlistRefresh();
     return true;
 };
-const getDashboardFolderCardsForType = (type) => {
-    const controller = getDashboardQuickRailController();
-    return controller ? controller.getDashboardFolderCardsForType(type) : $();
-};
-const getDashboardWidgetBodyForType = (type) => {
-    const controller = getDashboardQuickRailController();
-    return controller ? controller.getDashboardWidgetBodyForType(type) : $();
-};
-const getDashboardWidgetUpdatedRowForType = (type) => {
-    const controller = getDashboardQuickRailController();
-    return controller ? controller.getDashboardWidgetUpdatedRowForType(type) : $();
-};
-const isDashboardNodeVisible = (node) => {
-    const controller = getDashboardQuickRailController();
-    return controller ? controller.isDashboardNodeVisible(node) : false;
-};
-const isDashboardWidgetCollapsedForType = (type) => {
-    const controller = getDashboardQuickRailController();
-    return controller ? controller.isDashboardWidgetCollapsedForType(type) : true;
-};
-const getFirstVisibleDashboardFolderCardForType = (type) => {
-    const controller = getDashboardQuickRailController();
-    return controller ? controller.getFirstVisibleDashboardFolderCardForType(type) : null;
-};
-const ensureDashboardWidgetInlineHostMountForType = (type, hostOverride = null) => {
-    const controller = getDashboardQuickRailController();
-    return controller ? controller.ensureDashboardWidgetInlineHostMountForType(type, hostOverride) : $();
-};
-const syncDashboardWidgetQuickRailFitForType = (type, parentRect, offsetTop) => {
-    const controller = getDashboardQuickRailController();
-    if (controller) {
-        controller.syncDashboardWidgetQuickRailFitForType(type, parentRect, offsetTop);
-    }
-};
 const getDashboardFolderIdsForType = (type) => {
     const controller = getDashboardQuickRailController();
     return controller ? controller.getDashboardFolderIdsForType(type) : [];
@@ -762,12 +748,6 @@ const handleDashboardWidgetLayoutQuickSwitch = async (type, value) => {
         }
     }
 };
-const ensureDashboardWidgetLayoutQuickSwitchForType = (type) => {
-    const controller = getDashboardQuickRailController();
-    if (controller) {
-        controller.ensureDashboardWidgetLayoutQuickSwitchForType(type);
-    }
-};
 const getDashboardCard = (type, id) => {
     const meta = dashboardTypeMeta(type);
     return $(`${meta.tbodySelector} .folder-showcase-outer-${id}`).first();
@@ -902,12 +882,6 @@ const resolveFolderIdFromCard = ($card) => {
     const match = className.match(/folder-showcase-outer-([A-Za-z0-9._-]+)/);
     return match ? String(match[1] || '').trim() : '';
 };
-const applyDashboardLayoutStateForType = (type) => {
-    const controller = getDashboardQuickRailController();
-    if (controller) {
-        controller.applyDashboardLayoutStateForType(type);
-    }
-};
 const scheduleDashboardLayoutApplyForType = (type) => {
     const controller = getDashboardQuickRailController();
     if (controller) {
@@ -918,12 +892,6 @@ const scheduleDashboardWidgetVisibilitySyncForType = (type, delayMs = 40) => {
     const controller = getDashboardQuickRailController();
     if (controller) {
         controller.scheduleDashboardWidgetVisibilitySyncForType(type, delayMs);
-    }
-};
-const bindDashboardWidgetVisibilityObserverForType = (type) => {
-    const controller = getDashboardQuickRailController();
-    if (controller) {
-        controller.bindDashboardWidgetVisibilityObserverForType(type);
     }
 };
 const bindDashboardQuickActionSyncHandlers = () => {
@@ -1626,9 +1594,7 @@ const createFolderDocker = (folder, id, position, order, containersInfo, folders
 
     //temp var
     const sel = $(`tbody#docker_view span#folder-id-${id}`);
-    const statusColors = typeof utils.getFolderStatusColors === 'function'
-        ? utils.getFolderStatusColors(folder.settings)
-        : localDefaultFolderStatusColors;
+    const statusColors = resolveDashboardFolderStatusColors(folder.settings);
     const $statusIcon = sel.next('span.inner').children('i');
     const $statusText = sel.next('span.inner').children('span.state');
     $statusIcon.css('color', statusColors.stopped);
@@ -1910,9 +1876,7 @@ const createFolderVM = (folder, id, position, order, vmInfo, foldersDone, matchC
     
     //set tehe status of a folder
     const sel = $(`tbody#vm_view span#folder-id-${id}`);
-    const statusColors = typeof utils.getFolderStatusColors === 'function'
-        ? utils.getFolderStatusColors(folder.settings)
-        : localDefaultFolderStatusColors;
+    const statusColors = resolveDashboardFolderStatusColors(folder.settings);
     const $statusIcon = sel.next('span.inner').children('i');
     const $statusText = sel.next('span.inner').children('span.state');
     $statusIcon.css('color', statusColors.stopped);
@@ -2057,772 +2021,6 @@ const expandFolderVM = (id, options = {}) => toggleFolderExpansion('vm', id, opt
 // Keep expand handlers on window for inline onclick contracts in dashboard cards.
 window.expandFolderDocker = expandFolderDocker;
 window.expandFolderVM = expandFolderVM;
-
-/**
- * Removie the folder
- * @param {string} id the id of the folder
- */
-const rmDockerFolder = (id) => {
-    // Ask for a confirmation
-    swal({
-        title: $.i18n('are-you-sure'),
-        text: `${$.i18n('remove-folder')}: ${globalFolders.docker[id].name}`,
-        type: 'warning',
-        html: true,
-        showCancelButton: true,
-        confirmButtonText: $.i18n('yes-delete'),
-        cancelButtonText: $.i18n('cancel'),
-        showLoaderOnConfirm: true
-    },
-    async (c) => {
-        if (!c) { setTimeout(loadlist); return; }
-        $('div.spinner.fixed').show('slow');
-        await $.post('/plugins/folderview.plus/server/delete.php', { type: 'docker', id: id }).promise();
-        loadedFolder = false;
-        setTimeout(loadlist, 500)
-    });
-};
-
-/**
- * Removie the folder
- * @param {string} id the id of the folder
- */
-const rmVMFolder = (id) => {
-    // Ask for a confirmation
-    swal({
-        title: $.i18n('are-you-sure'),
-        text: `${$.i18n('remove-folder')}: ${globalFolders.vms[id].name}`,
-        type: 'warning',
-        html: true,
-        showCancelButton: true,
-        confirmButtonText: $.i18n('yes-delete'),
-        cancelButtonText: $.i18n('cancel'),
-        showLoaderOnConfirm: true
-    },
-    async (c) => {
-        if (!c) { setTimeout(loadlist); return; }
-        $('div.spinner.fixed').show('slow');
-        await $.post('/plugins/folderview.plus/server/delete.php', { type: 'vm', id: id }).promise();
-        loadedFolder = false;
-        setTimeout(loadlist, 500)
-    });
-};
-
-/**
- * Redirect to the page to edit the folder
- * @param {string} id the id of the folder
- */
-const EDITOR_PREFILL_STORAGE_KEY = 'fv.folder.editor.prefill.v1';
-const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv.folder.editor.prefill.persist.v1';
-const EDITOR_WINDOW_NAME_PREFIX = 'fv.folder.editor.v1:';
-const EDITOR_BOOTSTRAP_COOKIE_NAME = 'fv_folder_editor_bootstrap';
-const EDITOR_DEBUG_LAUNCH_STORAGE_KEY = 'fv.folder.editor.debug.launch.v1';
-const seedDashboardFolderEditorPrefill = (folderType, id) => {
-    try {
-        const normalizedType = String(folderType || '').trim();
-        const normalizedId = String(id || '').trim();
-        const folderMap = normalizedType === 'vm' ? globalFolders?.vms : globalFolders?.docker;
-        const folder = folderMap && typeof folderMap === 'object' ? folderMap[normalizedId] : null;
-        if (!normalizedType || !normalizedId || !folder) {
-            return;
-        }
-        const payload = JSON.stringify({
-            type: normalizedType,
-            id: normalizedId,
-            folder,
-            storedAt: Date.now()
-        });
-        if (typeof sessionStorage !== 'undefined') {
-            sessionStorage.setItem(EDITOR_PREFILL_STORAGE_KEY, payload);
-        }
-        if (typeof localStorage !== 'undefined') {
-            localStorage.setItem(EDITOR_PREFILL_LOCAL_STORAGE_KEY, payload);
-        }
-        window.name = `${EDITOR_WINDOW_NAME_PREFIX}${payload}`;
-        document.cookie = `${EDITOR_BOOTSTRAP_COOKIE_NAME}=${encodeURIComponent(JSON.stringify({
-            type: normalizedType,
-            id: normalizedId,
-            storedAt: Date.now()
-        }))}; path=/; max-age=900; SameSite=Lax`;
-    } catch (_error) {
-        // Editor prefill is best-effort only.
-    }
-};
-const recordDashboardFolderEditorLaunchDebug = (sourcePage, folderType, id, targetUrl) => {
-    try {
-        if (typeof localStorage === 'undefined') {
-            return;
-        }
-        const resolvedType = String(folderType || '').trim() === 'vm' ? 'vm' : 'docker';
-        const normalizedId = String(id || '').trim();
-        const folderMap = resolvedType === 'vm' ? globalFolders?.vms : globalFolders?.docker;
-        const folder = folderMap && typeof folderMap === 'object' ? folderMap[normalizedId] : null;
-        localStorage.setItem(EDITOR_DEBUG_LAUNCH_STORAGE_KEY, JSON.stringify({
-            storedAt: new Date().toISOString(),
-            source: String(sourcePage || 'dashboard').trim() || 'dashboard',
-            type: resolvedType,
-            id: normalizedId,
-            folderName: String(folder?.name || normalizedId || '').trim(),
-            currentUrl: String(window.location?.href || ''),
-            targetUrl: String(targetUrl || '').trim(),
-            hasFolderRecord: Boolean(folder && typeof folder === 'object'),
-            sessionStorageAvailable: typeof sessionStorage !== 'undefined',
-            localStorageAvailable: typeof localStorage !== 'undefined',
-            cookiePresent: String(document.cookie || '').includes(`${EDITOR_BOOTSTRAP_COOKIE_NAME}=`)
-        }));
-    } catch (_error) {
-        // Folder editor launch diagnostics are best-effort only.
-    }
-};
-const buildDashboardFolderEditorUrl = (folderType, id = '') => {
-    const resolvedType = String(folderType || '').trim() === 'vm' ? 'vm' : 'docker';
-    const params = new URLSearchParams();
-    const hashParams = new URLSearchParams();
-    params.set('type', resolvedType);
-    hashParams.set('type', resolvedType);
-    if (String(id || '').trim()) {
-        params.set('id', String(id || '').trim());
-        hashParams.set('id', String(id || '').trim());
-    }
-    params.set('_', String(Date.now()));
-    return `${location.pathname}/Folder?${params.toString()}#${hashParams.toString()}`;
-};
-const editDockerFolder = (id) => {
-    seedDashboardFolderEditorPrefill('docker', id);
-    const targetUrl = buildDashboardFolderEditorUrl('docker', id);
-    recordDashboardFolderEditorLaunchDebug('dashboard', 'docker', id, targetUrl);
-    location.href = targetUrl;
-};
-
-/**
- * Redirect to the page to edit the folder
- * @param {string} id the id of the folder
- */
-const editVMFolder = (id) => {
-    seedDashboardFolderEditorPrefill('vm', id);
-    const targetUrl = buildDashboardFolderEditorUrl('vm', id);
-    recordDashboardFolderEditorLaunchDebug('dashboard', 'vm', id, targetUrl);
-    location.href = targetUrl;
-};
-
-/**
- * Execute the desired custom action
- * @param {string} id 
- * @param {number} action 
- */
-const folderDockerCustomAction = async (id, action) => {
-    $('div.spinner.fixed').show('slow');
-    const folder = globalFolders.docker[id];
-    let act = folder.actions[action];
-    let prom = [];
-    if(act.type === 0) {
-        const actionContainers = Array.isArray(act.conatiners)
-            ? act.conatiners
-            : (Array.isArray(act.containers) ? act.containers : []);
-        const cts = actionContainers.map(e => folder.containers[e]).filter(e => e);
-        let ctAction = null;
-        if(act.action === 0) {
-
-            if(act.modes === 0) {
-                ctAction = (e) => {
-                    if(e.state) {
-                        prom.push($.post(eventURL, {action: 'stop', container:e.id}, null,'json').promise());
-                    } else {
-                        prom.push($.post(eventURL, {action: 'start', container:e.id}, null,'json').promise());
-                    }
-                };
-            } else if(act.modes === 1) {
-                ctAction = (e) => {
-                    if(e.state) {
-                        if(e.pause) {
-                            prom.push($.post(eventURL, {action: 'resume', container:e.id}, null,'json').promise());
-                        } else {
-                            prom.push($.post(eventURL, {action: 'pause', container:e.id}, null,'json').promise());
-                        }
-                    }
-                };
-            }
-
-        } else if(act.action === 1) {
-
-            if(act.modes === 0) {
-                ctAction = (e) => {
-                    if(!e.state) {
-                        prom.push($.post(eventURL, {action: 'start', container:e.id}, null,'json').promise());
-                    }
-                };
-            } else if(act.modes === 1) {
-                ctAction = (e) => {
-                    if(e.state) {
-                        prom.push($.post(eventURL, {action: 'stop', container:e.id}, null,'json').promise());
-                    }
-                };
-            } else if(act.modes === 2) {
-                ctAction = (e) => {
-                    if(e.state && !e.pause) {
-                        prom.push($.post(eventURL, {action: 'pause', container:e.id}, null,'json').promise());
-                    }
-                };
-            } else if(act.modes === 3) {
-                ctAction = (e) => {
-                    if(e.state && e.pause) {
-                        prom.push($.post(eventURL, {action: 'resume', container:e.id}, null,'json').promise());
-                    }
-                };
-            }
-
-        } else if(act.action === 2) {
-
-            ctAction = (e) => {
-                prom.push($.post(eventURL, {action: 'restart', container:e.id}, null,'json').promise());
-            };
-
-        }
-
-        if (typeof ctAction === 'function') {
-            cts.forEach((e) => {
-                ctAction(e);
-            });
-        } else {
-            const unsupportedLabel = `action=${act.action}, mode=${act.modes}`;
-            console.warn(`folderview.plus: Unsupported Docker dashboard custom action configuration (${unsupportedLabel}) for folder "${folder.name || id}".`);
-        }
-    } else if(act.type === 1) {
-        const args = act.script_args || '';
-        if(act.script_sync) {
-            let scriptVariables = {}
-            let rawVars = await $.post("/plugins/user.scripts/exec.php",{action:'getScriptVariables',script:`/boot/config/plugins/user.scripts/scripts/${act.script}/script`}).promise();
-            rawVars.trim().split('\n').forEach((e) => { const variable = e.split('='); scriptVariables[variable[0]] = variable[1] });
-            if(scriptVariables['directPHP']) {
-                $.post("/plugins/user.scripts/exec.php",{action:'directRunScript',path:`/boot/config/plugins/user.scripts/scripts/${act.script}/script`},function(data) {if(data) { openBox(data,act.name,800,1200, 'loadlist');}})
-            } else {
-                $.post("/plugins/user.scripts/exec.php",{action:'convertScript',path:`/boot/config/plugins/user.scripts/scripts/${act.script}/script`},function(data) {if(data) {openBox('/plugins/user.scripts/startScript.sh&arg1='+data+'&arg2='+args,act.name,800,1200,true, 'loadlist');}});
-            }
-        } else {
-            const cmd = await $.post("/plugins/user.scripts/exec.php",{action:'convertScript', path:`/boot/config/plugins/user.scripts/scripts/${act.script}/script`}).promise();
-            prom.push($.get('/logging.htm?cmd=/plugins/user.scripts/backgroundScript.sh&arg1='+cmd+'&arg2='+args+'&csrf_token='+csrf_token+'&done=Done').promise());
-        }
-    }
-
-    await Promise.all(prom);
-
-    loadlist();
-    $('div.spinner.fixed').hide('slow');
-};
-
-/**
- * Atach the menu when clicking the folder icon
- * @param {string} id the id of the folder
- */
-const addDockerFolderContext = (id) => {
-    // get the expanded status, needed to swap expand/ compress
-    const exp = $(`tbody#docker_view .folder-showcase-outer-${id}`).attr('expanded') === "true";
-    let opts = [];
-    context.settings({
-        right: false,
-        above: false
-    });
-
-    opts.push({
-        text: exp ? $.i18n('compress') : $.i18n('expand'),
-        icon: exp ? 'fa-minus' : 'fa-plus',
-        action: (e) => { e.preventDefault(); expandFolderDocker(id); }
-    });
-
-    opts.push({
-        divider: true
-    });
-
-    if (globalFolders.docker[id].settings.folder_webui && globalFolders.docker[id].settings.folder_webui_url) {
-        opts.push({
-            text: $.i18n('webui'),
-            icon: 'fa-globe',
-            action: (e) => {
-                e.preventDefault();
-                openWebUiInNewTab(globalFolders.docker[id].settings.folder_webui_url);
-            }
-        });
-        opts.push({ divider: true });
-    }
-
-    if(globalFolders.docker[id].settings.override_default_actions && globalFolders.docker[id].actions && globalFolders.docker[id].actions.length) {
-        opts.push(
-            ...globalFolders.docker[id].actions.map((e, i) => {
-                return {
-                    text: e.name,
-                    icon: e.script_icon || "fa-bolt",
-                    action: (e) => { e.preventDefault(); folderCustomAction(id, i); }
-                }
-            })
-        );
-    
-        opts.push({
-            divider: true
-        });
-
-    } else if(!globalFolders.docker[id].settings.default_action) {
-        opts.push({
-            text: $.i18n('start'),
-            icon: 'fa-play',
-            action: (e) => { e.preventDefault(); actionFolderDocker(id, "start"); }
-        });
-        opts.push({
-            text: $.i18n('stop'),
-            icon: 'fa-stop',
-            action: (e) => { e.preventDefault(); actionFolderDocker(id, "stop"); }
-        });
-        
-        opts.push({
-            text: $.i18n('pause'),
-            icon: 'fa-pause',
-            action: (e) => { e.preventDefault(); actionFolderDocker(id, "pause"); }
-        });
-    
-        opts.push({
-            text: $.i18n('resume'),
-            icon: 'fa-play-circle',
-            action: (e) => { e.preventDefault(); actionFolderDocker(id, "resume"); }
-        });
-    
-        opts.push({
-            text: $.i18n('restart'),
-            icon: 'fa-refresh',
-            action: (e) => { e.preventDefault(); actionFolderDocker(id, "restart"); }
-        });
-    
-        opts.push({
-            divider: true
-        });
-    }
-
-    if(globalFolders.docker[id].status.managed > 0) {
-        if(!globalFolders.docker[id].status.upToDate) {
-            opts.push({
-                text: $.i18n('update'),
-                icon: 'fa-cloud-download',
-                action: (e) => { e.preventDefault();  updateFolderDocker(id); }
-            });
-        } else {
-            opts.push({
-                text: $.i18n('update-force'),
-                icon: 'fa-cloud-download',
-                action: (e) => { e.preventDefault(); forceUpdateFolderDocker(id); }
-            });
-        }
-        
-        opts.push({
-            divider: true
-        });
-    }
-
-    opts.push({
-        text: $.i18n('edit'),
-        icon: 'fa-wrench',
-        action: (e) => { e.preventDefault(); editDockerFolder(id); }
-    });
-
-    opts.push({
-        text: $.i18n('remove'),
-        icon: 'fa-trash',
-        action: (e) => { e.preventDefault(); rmDockerFolder(id); }
-    });
-
-    if(!globalFolders.docker[id].settings.override_default_actions && globalFolders.docker[id].actions && globalFolders.docker[id].actions.length) {
-        opts.push({
-            divider: true
-        });
-
-        opts.push({
-            text: $.i18n('custom-actions'),
-            icon: 'fa-bars',
-            subMenu: globalFolders.docker[id].actions.map((e, i) => {
-                return {
-                    text: e.name,
-                    icon: e.script_icon || "fa-bolt",
-                    action: (e) => { e.preventDefault(); folderDockerCustomAction(id, i); }
-                }
-            })
-        });
-    }
-
-    folderEvents.dispatchEvent(new CustomEvent('docker-folder-context', {detail: { id, opts }}));
-
-    context.attach(`#folder-id-${id}`, opts);
-};
-
-/**
- * Force update all the containers inside a folder
- * @param {string} id the id of the folder
- */
-const forceUpdateFolderDocker = (id) => {
-    const folder = globalFolders.docker[id];
-    openDocker('update_container ' + Object.entries(folder.containers).filter(([k, v]) => v.managed).map(e => e[0]).join('*'), $.i18n('updating', folder.name),'','loadlist');
-};
-
-/**
- * Update all the updatable containers inside a folder
- * @param {string} id the id of the folder
- */
-const updateFolderDocker = (id) => {
-    const folder = globalFolders.docker[id];
-    openDocker('update_container ' + Object.entries(folder.containers).filter(([k, v]) => v.managed && v.update).map(e => e[0]).join('*'), $.i18n('updating', folder.name),'','loadlist');
-};
-
-/**
- * Perform an action for the entire folder
- * @param {string} id The id of the folder
- * @param {string} action the desired action
- */
-const actionFolderDocker = async (id, action) => {
-    const folder =  globalFolders.docker[id];
-    const cts = Object.keys(folder.containers);
-    let proms = [];
-    let errors;
-
-    $(`i#load-folder-${id}`).removeClass('fa-play fa-square fa-pause').addClass('fa-refresh fa-spin');
-    $('div.spinner.fixed').show('slow');
-
-    for (let index = 0; index < cts.length; index++) {
-        const ct = folder.containers[cts[index]];
-        const cid = ct.id;
-        let pass;
-        switch (action) {
-            case "start":
-                pass = !ct.state;
-                break;
-            case "stop":
-                pass = ct.state;
-                break;
-            case "pause":
-                pass = ct.state && !ct.pause;
-                break;
-            case "resume":
-                pass = ct.state && ct.pause;
-                break;
-            case "restart":
-                pass = true;
-                break;
-            default:
-                pass = false;
-                break;
-        }
-        if(pass) {
-            proms.push($.post(eventURL, {action: action, container:cid}, null,'json').promise());
-        }
-    }
-
-    proms = await Promise.all(proms);
-    errors = proms.filter(e => e.success !== true);
-    errors = errors.map(e => e.success);
-
-    if(errors.length > 0) {
-        swal({
-            title: $.i18n('exec-error'),
-            text:errors.join('<br>'),
-            type:'error',
-            html:true,
-            confirmButtonText:'Ok'
-        }, loadlist);
-    } else {
-        loadlist();
-    }
-    $('div.spinner.fixed').hide('slow');
-}
-
-/**
- * Execute the desired custom action
- * @param {string} id 
- * @param {number} action 
- */
-const folderVMCustomAction = async (id, action) => {
-    $('div.spinner.fixed').show('slow');
-    const eventURL = '/plugins/dynamix.vm.manager/include/VMajax.php';
-    const folder = globalFolders.vms[id];
-    let act = folder.actions[action];
-    let prom = [];
-    if(act.type === 0) {
-        const actionContainers = Array.isArray(act.conatiners)
-            ? act.conatiners
-            : (Array.isArray(act.containers) ? act.containers : []);
-        const cts = actionContainers.map(e => folder.containers[e]).filter(e => e);
-        let ctAction = null;
-        if(act.action === 0) {
-
-            if(act.modes === 0) {
-                ctAction = (e) => {
-                    if(e.state === "running") {
-                        prom.push($.post(eventURL, {action: 'stop', uuid:e.id}, null,'json').promise());
-                    } else if(e.state !== "running" && e.state !== "pmsuspended" && e.state !== "paused" && e.state !== "unknown"){
-                        prom.push($.post(eventURL, {action: 'domain-start', uuid:e.id}, null,'json').promise());
-                    }
-                };
-            } else if(act.modes === 1) {
-                ctAction = (e) => {
-                    if(e.state === "running") {
-                        prom.push($.post(eventURL, {action: 'domain-pause', uuid:e.id}, null,'json').promise());
-                    } else if(e.state === "paused" || e.state === "unknown") {
-                        prom.push($.post(eventURL, {action: 'domain-resume', uuid:e.id}, null,'json').promise());
-                    }
-                };
-            }
-
-        } else if(act.action === 1) {
-
-            if(act.modes === 0) {
-                ctAction = (e) => {
-                    if(e.state !== "running" && e.state !== "pmsuspended" && e.state !== "paused" && e.state !== "unknown") {
-                        prom.push($.post(eventURL, {action: 'domain-start', uuid:e.id}, null,'json').promise());
-                    }
-                };
-            } else if(act.modes === 1) {
-                ctAction = (e) => {
-                    if(e.state === "running") {
-                        prom.push($.post(eventURL, {action: 'domain-stop', uuid:e.id}, null,'json').promise());
-                    }
-                };
-            } else if(act.modes === 2) {
-                ctAction = (e) => {
-                    if(e.state === "running") {
-                        prom.push($.post(eventURL, {action: 'domain-pause', uuid:e.id}, null,'json').promise());
-                    }
-                };
-            } else if(act.modes === 3) {
-                ctAction = (e) => {
-                    if(e.state === "paused" || e.state === "unknown") {
-                        prom.push($.post(eventURL, {action: 'domain-restart', uuid:e.id}, null,'json').promise());
-                    }
-                };
-            }
-
-        } else if(act.action === 2) {
-
-            ctAction = (e) => {
-                if(e.state === "running") {
-                    prom.push($.post(eventURL, {action: 'domain-pause', uuid:e.id}, null,'json').promise());
-                }
-            };
-
-        }
-
-        if (typeof ctAction === 'function') {
-            cts.forEach((e) => {
-                ctAction(e);
-            });
-        } else {
-            const unsupportedLabel = `action=${act.action}, mode=${act.modes}`;
-            console.warn(`folderview.plus: Unsupported VM dashboard custom action configuration (${unsupportedLabel}) for folder "${folder.name || id}".`);
-        }
-    } else if(act.type === 1) {
-        const args = act.script_args || '';
-        if(act.script_sync) {
-            let scriptVariables = {}
-            let rawVars = await $.post("/plugins/user.scripts/exec.php",{action:'getScriptVariables',script:`/boot/config/plugins/user.scripts/scripts/${act.script}/script`}).promise();
-            rawVars.trim().split('\n').forEach((e) => { const variable = e.split('='); scriptVariables[variable[0]] = variable[1] });
-            if(scriptVariables['directPHP']) {
-                $.post("/plugins/user.scripts/exec.php",{action:'convertScript',path:`/boot/config/plugins/user.scripts/scripts/${act.script}/script`},function(data) {if(data) {openBox('/plugins/user.scripts/startScript.sh&arg1='+data+'&arg2='+args,act.name,800,1200,true, 'loadlist');}});
-            } else {
-                $.post("/plugins/user.scripts/exec.php",{action:'convertScript',path:`/boot/config/plugins/user.scripts/scripts/${act.script}/script`},function(data) {if(data) {openBox('/plugins/user.scripts/startScript.sh&arg1='+data+'&arg2=',act.name,800,1200,true, 'loadlist');}});
-            }
-        } else {
-            const cmd = await $.post("/plugins/user.scripts/exec.php",{action:'convertScript', path:`/boot/config/plugins/user.scripts/scripts/${act.script}/script`}).promise();
-            prom.push($.get('/logging.htm?cmd=/plugins/user.scripts/backgroundScript.sh&arg1='+cmd+'&arg2='+args+'&csrf_token='+csrf_token+'&done=Done').promise());
-        }
-    }
-
-    await Promise.all(prom);
-
-    loadlist();
-    $('div.spinner.fixed').hide('slow');
-};
-
-/**
- * Atach the menu when clicking the folder icon
- * @param {string} id the id of the folder
- */
-const addVMFolderContext = (id) => {
-    // get the expanded status, needed to swap expand/ compress
-    const exp = $(`tbody#vm_view .folder-showcase-outer-${id}`).attr('expanded') === "true";
-    let opts = [];
-    context.settings({
-        right: false,
-        above: false
-    });
-
-    opts.push({
-        text: exp ? $.i18n('compress') : $.i18n('expand'),
-        icon: exp ? 'fa-minus' : 'fa-plus',
-        action: (e) => { e.preventDefault(); expandFolderVM(id); }
-    });
-    
-    opts.push({
-        divider: true
-    });
-
-    if(globalFolders.vms[id].settings.override_default_actions && globalFolders.vms[id].actions && globalFolders.vms[id].actions.length) {
-        opts.push(
-            ...globalFolders.vms[id].actions.map((e, i) => {
-                return {
-                    text: e.name,
-                    icon: e.script_icon || "fa-bolt",
-                    action: (e) => { e.preventDefault(); folderCustomAction(id, i); }
-                }
-            })
-        );
-    
-        opts.push({
-            divider: true
-        });
-
-    } else if(!globalFolders.vms[id].settings.default_action) {
-        opts.push({
-            text: $.i18n('start'),
-            icon: "fa-play",
-            action: (e) => { e.preventDefault(); actionFolderVM(id, 'domain-start'); }
-        });
-    
-        opts.push({
-            text: $.i18n('stop'),
-            icon: "fa-stop",
-            action: (e) => { e.preventDefault(); actionFolderVM(id, 'domain-stop'); }
-        });
-    
-        opts.push({
-            text: $.i18n('pause'),
-            icon: "fa-pause",
-            action: (e) => { e.preventDefault(); actionFolderVM(id, 'domain-pause'); }
-        });
-    
-        opts.push({
-            text: $.i18n('resume'),
-            icon: "fa-play-circle",
-            action: (e) => { e.preventDefault(); actionFolderVM(id, 'domain-resume'); }
-        });
-    
-        opts.push({
-            text: $.i18n('restart'),
-            icon: "fa-refresh",
-            action: (e) => { e.preventDefault(); actionFolderVM(id, 'domain-restart'); }
-        });
-    
-        opts.push({
-            text: $.i18n('hibernate'),
-            icon: "fa-bed",
-            action: (e) => { e.preventDefault(); actionFolderVM(id, 'domain-pmsuspend'); }
-        });
-    
-        opts.push({
-            text: $.i18n('force-stop'),
-            icon: "fa-bomb",
-            action: (e) => { e.preventDefault(); actionFolderVM(id, 'domain-destroy'); }
-        });
-    
-        opts.push({
-            divider: true
-        });
-    }
-
-
-    opts.push({
-        text: $.i18n('edit'),
-        icon: 'fa-wrench',
-        action: (e) => { e.preventDefault(); editVMFolder(id); }
-    });
-
-    opts.push({
-        text: $.i18n('remove'),
-        icon: 'fa-trash',
-        action: (e) => { e.preventDefault(); rmVMFolder(id); }
-    });
-
-    if(!globalFolders.vms[id].settings.override_default_actions && globalFolders.vms[id].actions && globalFolders.vms[id].actions.length) {
-        opts.push({
-            divider: true
-        });
-
-        opts.push({
-            text: $.i18n('custom-actions'),
-            icon: 'fa-bars',
-            subMenu: globalFolders.vms[id].actions.map((e, i) => {
-                return {
-                    text: e.name,
-                    icon: e.script_icon || "fa-bolt",
-                    action: (e) => { e.preventDefault(); folderVMCustomAction(id, i); }
-                }
-            })
-        });
-    }
-
-    folderEvents.dispatchEvent(new CustomEvent('vm-folder-context', {detail: { id, opts }}));
-
-    context.attach(`#folder-id-${id}`, opts);
-};
-
-/**
- * Perform an action for the entire folder
- * @param {string} id The id of the folder
- * @param {string} action the desired action
- */
-const actionFolderVM = async (id, action) => {
-    const folder =  globalFolders.vms[id];
-    const cts = Object.keys(folder.containers);
-    let proms = [];
-    let errors;
-    const oldAction = action;
-
-    $(`i#load-folder-${id}`).removeClass('fa-play fa-square fa-pause').addClass('fa-refresh fa-spin');
-    $('div.spinner.fixed').show('slow');
-
-    for (let index = 0; index < cts.length; index++) {
-        const ct = folder.containers[cts[index]];
-        const cid = ct.id;
-        let pass;
-        action = oldAction;
-        switch (action) {
-            case "domain-start":
-                pass = ct.state !== "running" && ct.state !== "pmsuspended" && ct.state !== "paused" && ct.state !== "unknown";
-                break;
-            case "domain-stop":
-            case "domain-pause":
-            case "domain-restart":
-            case "domain-pmsuspend":
-                pass = ct.state === "running";
-                break;
-            case "domain-resume":
-                pass = ct.state === "paused" || ct.state === "unknown";
-                if(!pass) {
-                    pass = ct.state === "pmsuspended";
-                    action = "domain-pmwakeup";
-                }
-                break;
-            case "domain-destroy":
-                pass = ct.state === "running" || ct.state === "pmsuspended" || ct.state === "paused" || ct.state === "unknown";
-                break;
-            default:
-                pass = false;
-                break;
-        }
-        if(pass) {
-            proms.push($.post('/plugins/dynamix.vm.manager/include/VMajax.php', {action: action, uuid: cid}, null,'json').promise());
-        }
-    }
-
-    proms = await Promise.all(proms);
-    errors = proms.filter(e => e.success !== true);
-    errors = errors.map(e => e.success);
-
-    if(errors.length > 0) {
-        swal({
-            title: $.i18n('exec-error'),
-            text:errors.join('<br>'),
-            type:'error',
-            html:true,
-            confirmButtonText:'Ok'
-        }, loadlist);
-    } else {
-        loadlist();
-    }
-    $('div.spinner.fixed').hide('slow');
-}
 
 // Global variables
 let loadedFolder = false;

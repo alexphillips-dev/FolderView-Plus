@@ -46,6 +46,11 @@ const settingsMetadata = window.FolderViewPlusSettingsMetadata || null;
 const settingsTableModule = window.FolderViewPlusSettingsTable || null;
 const settingsActionSupportModule = window.FolderViewPlusSettingsActionSupport || null;
 const rowDetailsModule = window.FolderViewPlusRowDetails || null;
+const settingsHealthModule = window.FolderViewPlusSettingsHealth || null;
+const settingsWorkspacesModule = window.FolderViewPlusSettingsWorkspaces || null;
+const settingsTreeModule = window.FolderViewPlusSettingsTree || null;
+const bulkAssignmentModule = window.FolderViewPlusBulkAssignment || null;
+const settingsRuntimeActionsModule = window.FolderViewPlusSettingsRuntimeActions || null;
 const fatalBanner = window.FolderViewPlusFatalBanner || null;
 const markFatalBannerStep = (step) => {
     if (fatalBanner && typeof fatalBanner.markStep === 'function') {
@@ -339,6 +344,36 @@ if (!rowDetailsModule || window.FolderViewPlusRowDetailsModuleLoaded !== true ||
 } else {
     setFatalBannerModuleStatus('folderviewplus.row-details.js', 'ok', 'row detail api ready');
 }
+if (!settingsHealthModule || window.FolderViewPlusSettingsHealthModuleLoaded !== true || typeof settingsHealthModule.createApi !== 'function') {
+    bootstrapMissingModules.push('folderviewplus.settings-health.js');
+    setFatalBannerModuleStatus('folderviewplus.settings-health.js', 'missing', 'settings health api unavailable');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.settings-health.js', 'ok', 'settings health api ready');
+}
+if (!settingsWorkspacesModule || window.FolderViewPlusSettingsWorkspacesModuleLoaded !== true || typeof settingsWorkspacesModule.createApi !== 'function') {
+    bootstrapMissingModules.push('folderviewplus.settings-workspaces.js');
+    setFatalBannerModuleStatus('folderviewplus.settings-workspaces.js', 'missing', 'settings workspace api unavailable');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.settings-workspaces.js', 'ok', 'settings workspace api ready');
+}
+if (!settingsTreeModule || window.FolderViewPlusSettingsTreeModuleLoaded !== true) {
+    bootstrapMissingModules.push('folderviewplus.settings-tree.js');
+    setFatalBannerModuleStatus('folderviewplus.settings-tree.js', 'missing', 'settings tree helpers unavailable');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.settings-tree.js', 'ok', 'settings tree helpers ready');
+}
+if (!bulkAssignmentModule || window.FolderViewPlusBulkAssignmentModuleLoaded !== true || typeof bulkAssignmentModule.createApi !== 'function') {
+    bootstrapMissingModules.push('folderviewplus.bulk-assignment.js');
+    setFatalBannerModuleStatus('folderviewplus.bulk-assignment.js', 'missing', 'bulk assignment api unavailable');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.bulk-assignment.js', 'ok', 'bulk assignment api ready');
+}
+if (!settingsRuntimeActionsModule || window.FolderViewPlusSettingsRuntimeActionsModuleLoaded !== true || typeof settingsRuntimeActionsModule.createApi !== 'function') {
+    bootstrapMissingModules.push('folderviewplus.runtime-actions.js');
+    setFatalBannerModuleStatus('folderviewplus.runtime-actions.js', 'missing', 'settings runtime action api unavailable');
+} else {
+    setFatalBannerModuleStatus('folderviewplus.runtime-actions.js', 'ok', 'settings runtime action api ready');
+}
 if (window.FolderViewPlusWizardSmartDetectModuleLoaded !== true) {
     bootstrapMissingModules.push('folderviewplus.wizard-smart-detect.js');
     setFatalBannerModuleStatus('folderviewplus.wizard-smart-detect.js', 'missing');
@@ -567,20 +602,6 @@ let backupCompareSelectionByType = {
         includePrefs: true
     }
 };
-const createBulkAssignUiState = () => ({
-    selected: new Set(),
-    allNames: [],
-    visibleNames: [],
-    failedNames: [],
-    lastTargetFolderId: '',
-    lastResult: null,
-    applying: false,
-    renderToken: 0
-});
-let bulkAssignStateByType = {
-    docker: createBulkAssignUiState(),
-    vm: createBulkAssignUiState()
-};
 let selectedOperationsTemplateIdByType = {
     docker: '',
     vm: ''
@@ -605,9 +626,6 @@ const ROW_FOCUS_HIGHLIGHT_MS = 2200;
 const SETTINGS_TABLE_COLUMN_COUNT = Number.isFinite(Number(settingsMetadata?.SETTINGS_TABLE_COLUMN_COUNT))
     ? Number(settingsMetadata.SETTINGS_TABLE_COLUMN_COUNT)
     : 10;
-const BULK_ASSIGN_CHUNK_SIZE = 40;
-const BULK_ASSIGN_CHUNK_PAUSE_MS = 20;
-const BULK_LIST_RENDER_CHUNK_SIZE = 120;
 const IMPORT_PRESET_BUILTINS = [
     {
         id: 'builtin:merge',
@@ -836,15 +854,14 @@ const syncCompactMobileLayoutClass = () => {
     if (document.body) {
         document.body.classList.toggle('fv-mobile-compact', enabled);
     }
-    if (activeTableColumnResize) {
-        stopActiveTableColumnResize(false);
-    }
     try {
         applyColumnWidths('docker');
         applyColumnWidths('vm');
         bindTableColumnResizers('docker');
         bindTableColumnResizers('vm');
-    } catch (_error) {}
+    } catch (_error) {
+        console.warn('[FolderView Plus] Settings compact layout sync failed.', _error);
+    }
 };
 
 const initCompactMobileLayoutGuard = () => {
@@ -1436,7 +1453,6 @@ const getSectionApplyMode = (section) => {
         return { id: 'staged', label: 'Requires Save' };
     }
     const seen = new Set();
-    let hasInstantApply = false;
     let hasStagedApply = false;
     for (const node of section.nodes) {
         if (!(node instanceof HTMLElement)) {
@@ -1457,9 +1473,7 @@ const getSectionApplyMode = (section) => {
             if (!handler) {
                 continue;
             }
-            if (isInstantPersistInput(input)) {
-                hasInstantApply = true;
-            } else {
+            if (!isInstantPersistInput(input)) {
                 hasStagedApply = true;
             }
         }
@@ -2508,45 +2522,6 @@ const folderNameForId = (type, id) => {
     return folders[id]?.name || id;
 };
 
-const getBulkState = (type) => {
-    const resolvedType = normalizeManagedType(type);
-    if (!bulkAssignStateByType[resolvedType] || typeof bulkAssignStateByType[resolvedType] !== 'object') {
-        bulkAssignStateByType[resolvedType] = createBulkAssignUiState();
-    }
-    return bulkAssignStateByType[resolvedType];
-};
-
-const sanitizeBulkItemName = (value) => String(value || '').trim();
-
-const isValidBulkItemName = (name) => {
-    if (!name) {
-        return false;
-    }
-    if (name.length > 255) {
-        return false;
-    }
-    return !/[\x00-\x1F\x7F]/u.test(name);
-};
-
-const buildFolderPathLabel = (type, folderId, foldersInput = null, hierarchyMeta = null) => {
-    const resolvedType = normalizeManagedType(type);
-    const folders = utils.normalizeFolderMap(foldersInput || getFolderMap(resolvedType));
-    const safeId = String(folderId || '').trim();
-    if (!safeId || !Object.prototype.hasOwnProperty.call(folders, safeId)) {
-        return safeId;
-    }
-    const meta = hierarchyMeta || buildFolderHierarchyMeta(folders);
-    const parts = [];
-    const seen = new Set();
-    let cursor = safeId;
-    while (cursor && !seen.has(cursor)) {
-        seen.add(cursor);
-        parts.unshift(String(folders[cursor]?.name || cursor));
-        cursor = String(meta.parentById?.[cursor] || '').trim();
-    }
-    return parts.join(' / ');
-};
-
 const isFolderPinned = (type, folderId) => {
     const pinned = Array.isArray(prefsByType[type]?.pinnedFolderIds) ? prefsByType[type].pinnedFolderIds : [];
     return pinned.includes(String(folderId || ''));
@@ -2891,6 +2866,173 @@ const getFolderStatusBreakdown = (...args) => getRowDetailsApi().getFolderStatus
 const showFolderStatusBreakdown = (...args) => getRowDetailsApi().showFolderStatusBreakdown(...args);
 const showFolderHealthBreakdown = (...args) => getRowDetailsApi().showFolderHealthBreakdown(...args);
 
+const getSettingsHealthApi = (() => {
+    let cachedApi = null;
+    return () => {
+        if (cachedApi) {
+            return cachedApi;
+        }
+        cachedApi = settingsHealthModule.createApi({
+            $,
+            utils,
+            escapeHtml,
+            formatBytesShort,
+            getPrefsByType: (type) => prefsByType[type === 'vm' ? 'vm' : 'docker'] || {},
+            getInfoByType: (type) => infoByType[type === 'vm' ? 'vm' : 'docker'] || {},
+            normalizeHealthPrefs,
+            getItemRuntimeStateKind,
+            deriveFolderStatusKey,
+            evaluateDockerFolderHealth,
+            valueIsTruthy,
+            getHealthFilterMode: (type) => healthFilterByType[type === 'vm' ? 'vm' : 'docker'] || 'all',
+            getHealthMetrics: (type) => healthMetricsByType[type === 'vm' ? 'vm' : 'docker'] || null,
+            getFolderMap: (type) => getFolderMap(type),
+            getEffectiveMemberSnapshot: (type, folders) => getEffectiveMemberSnapshot(type, folders)
+        });
+        return cachedApi;
+    };
+})();
+
+const getSettingsWorkspacesApi = (() => {
+    let cachedApi = null;
+    return () => {
+        if (cachedApi) {
+            return cachedApi;
+        }
+        cachedApi = settingsWorkspacesModule.createApi({
+            window,
+            document,
+            $,
+            utils,
+            escapeHtml,
+            getFolderMap: (type) => getFolderMap(type),
+            getFolderNameForId: (type, id) => folderNameForId(type, id),
+            getSortedBackupsForType: (type) => getSortedBackupsForType(type),
+            prefsByType,
+            formatTimestamp,
+            writeSettingsStorage,
+            RECOVERY_WORKSPACE_STORAGE_KEY,
+            RULES_WORKSPACE_STORAGE_KEY,
+            OPERATIONS_WORKSPACE_STORAGE_KEY,
+            getActiveRecoveryWorkspaceTypeValue: () => activeRecoveryWorkspaceType,
+            setActiveRecoveryWorkspaceTypeValue: (value) => {
+                activeRecoveryWorkspaceType = value;
+            },
+            recoverySelectedBackupByType,
+            filtersByType,
+            persistTableUiState,
+            renderBackupRows,
+            createManualBackup,
+            restoreLatestBackup,
+            restoreBackupEntry,
+            downloadBackupEntry,
+            deleteBackupEntry,
+            runScheduledBackupNow,
+            compareBackupSnapshots,
+            changeBackupSchedulePref,
+            undoLatestChange,
+            getActiveRulesWorkspaceTypeValue: () => activeRulesWorkspaceType,
+            setActiveRulesWorkspaceTypeValue: (value) => {
+                activeRulesWorkspaceType = value;
+            },
+            renderRulesTable,
+            updateRuleLiveMatch,
+            updateRuleValidationHint,
+            getActiveOperationsWorkspaceTypeValue: () => activeOperationsWorkspaceType,
+            setActiveOperationsWorkspaceTypeValue: (value) => {
+                activeOperationsWorkspaceType = value;
+            },
+            templatesByType,
+            selectedOperationsTemplateIdByType,
+            downloadFile,
+            toPrettyJson,
+            showError
+        });
+        return cachedApi;
+    };
+})();
+
+const getBulkAssignmentApi = (() => {
+    let cachedApi = null;
+    return () => {
+        if (cachedApi) {
+            return cachedApi;
+        }
+        cachedApi = bulkAssignmentModule.createApi({
+            window,
+            document,
+            $,
+            utils,
+            swal,
+            escapeHtml,
+            normalizeManagedType,
+            normalizedFilter,
+            getFolderMap: (type) => getFolderMap(type),
+            getFolderNameForId: (type, id) => folderNameForId(type, id),
+            getInfoByType: (type) => infoByType[type === 'vm' ? 'vm' : 'docker'] || {},
+            filtersByType,
+            persistTableUiState,
+            apiPostJson,
+            assertRuntimeConflictActionAllowed,
+            createBackup,
+            refreshType,
+            refreshBackups,
+            claimAdvancedOperationLock,
+            releaseAdvancedOperationLock,
+            showActionSummaryToast,
+            trackDiagnosticsEvent,
+            offerUndoAction,
+            showError,
+            requestAnimationFrameRef: window.requestAnimationFrame ? window.requestAnimationFrame.bind(window) : null,
+            setTimeoutRef: window.setTimeout ? window.setTimeout.bind(window) : null
+        });
+        return cachedApi;
+    };
+})();
+
+const getSettingsRuntimeActionsApi = (() => {
+    let cachedApi = null;
+    return () => {
+        if (cachedApi) {
+            return cachedApi;
+        }
+        cachedApi = settingsRuntimeActionsModule.createApi({
+            window,
+            $,
+            swal,
+            utils,
+            escapeHtml,
+            normalizeManagedType,
+            getFolderMap: (type) => getFolderMap(type),
+            getFolderNameForId: (type, id) => folderNameForId(type, id),
+            buildFolderHierarchyMeta,
+            getFolderBranchIds,
+            prefsByType,
+            postPrefs,
+            createBackup,
+            refreshType,
+            refreshBackups,
+            offerUndoAction,
+            showToastMessage,
+            showError,
+            downloadFile,
+            toPrettyJson,
+            trackDiagnosticsEvent,
+            getPluginVersion: () => pluginVersion,
+            selectJsonFile,
+            applyImportOperations,
+            saveFolderRecord,
+            ensureRuntimeConflictActionAllowed,
+            TREE_INTEGRITY_DEPTH_WARN_LEVEL,
+            setRuntimePreviewOutput: (...args) => getSettingsWorkspacesApi().setRuntimePreviewOutput(...args),
+            buildRuntimePreviewHtml: (...args) => getSettingsWorkspacesApi().buildRuntimePreviewHtml(...args),
+            getRuntimePlanForFolder,
+            executeFolderRuntimeAction
+        });
+        return cachedApi;
+    };
+})();
+
 const setInlineValidationHint = (targetId, text = '', level = 'info') => {
     const hint = $(`#${targetId}`);
     if (!hint.length) {
@@ -2986,408 +3128,16 @@ const renderFirstRunQuickPathPanel = () => {
     `).show();
 };
 
-const buildStatusSnapshot = (type, folders, memberSnapshot, infoByName) => {
-    const snapshot = {};
-    for (const [id] of Object.entries(folders || {})) {
-        const members = Array.isArray(memberSnapshot?.[id]?.members) ? memberSnapshot[id].members : [];
-        const countsByState = { started: 0, paused: 0, stopped: 0 };
-        for (const member of members) {
-            const runtimeState = getItemRuntimeStateKind(type, infoByName[member] || {});
-            if (runtimeState === 'started') {
-                countsByState.started += 1;
-            } else if (runtimeState === 'paused') {
-                countsByState.paused += 1;
-            } else {
-                countsByState.stopped += 1;
-            }
-        }
-        snapshot[String(id)] = {
-            total: members.length,
-            started: countsByState.started,
-            paused: countsByState.paused,
-            stopped: countsByState.stopped,
-            statusKey: deriveFolderStatusKey(countsByState, members.length)
-        };
-    }
-    return snapshot;
-};
-
-const isDockerUpdateAvailable = (itemInfo) => {
-    const source = itemInfo && typeof itemInfo === 'object' ? itemInfo : {};
-    if (source.UpdateAvailable === true || source.update === true) {
-        return true;
-    }
-    const state = source?.info?.State || source?.State || {};
-    // Mirror Docker tab behavior exactly:
-    // update-ready means manager is dockerman and Updated is strict boolean false.
-    return state?.manager === 'dockerman' && state?.Updated === false;
-};
-
-const formatGiBFromKiB = (kibValue) => {
-    const kib = Number(kibValue) || 0;
-    if (kib <= 0) {
-        return '0 GiB';
-    }
-    const gib = kib / (1024 * 1024);
-    const fixed = gib >= 100 ? gib.toFixed(0) : gib.toFixed(1);
-    return `${fixed} GiB`;
-};
-
-const formatVmMemoryLabel = (kibValue) => {
-    const kib = Number(kibValue) || 0;
-    if (kib <= 0) {
-        return '0 GB';
-    }
-    const gib = kib / (1024 * 1024);
-    const rounded = gib >= 100 ? gib.toFixed(0) : gib.toFixed(1);
-    const compact = rounded.endsWith('.0') ? rounded.slice(0, -2) : rounded;
-    return `${compact} GB`;
-};
-
-const collectVmFolderResources = (members, infoByName) => {
-    const list = Array.isArray(members) ? members : [];
-    const info = infoByName && typeof infoByName === 'object' ? infoByName : {};
-    let autostartCount = 0;
-    let vcpusTotal = 0;
-    let memoryKiBTotal = 0;
-    let storageBytesTotal = 0;
-    const autostartMembers = [];
-    for (const member of list) {
-        const vmInfo = info[member] || {};
-        if (valueIsTruthy(vmInfo.autostart)) {
-            autostartCount += 1;
-            autostartMembers.push(String(member));
-        }
-        vcpusTotal += Number(vmInfo.vcpus ?? vmInfo.nrVirtCpu ?? 0) || 0;
-        memoryKiBTotal += Number(vmInfo.memoryKiB ?? vmInfo.memory ?? vmInfo.maxMem ?? 0) || 0;
-        storageBytesTotal += Number(vmInfo.storageBytes ?? vmInfo.storage ?? 0) || 0;
-    }
-    return {
-        membersCount: list.length,
-        autostartCount,
-        autostartMembers,
-        vcpusTotal,
-        memoryKiBTotal,
-        storageBytesTotal
-    };
-};
-
-const evaluateVmResourceBadge = (resourceTotals, healthPrefs) => {
-    const totals = resourceTotals && typeof resourceTotals === 'object' ? resourceTotals : {};
-    const prefs = healthPrefs && typeof healthPrefs === 'object' ? healthPrefs : {};
-    const vcpusTotal = Number(totals.vcpusTotal || 0);
-    const memoryKiBTotal = Number(totals.memoryKiBTotal || 0);
-    const storageBytesTotal = Number(totals.storageBytesTotal || 0);
-    const membersCount = Number(totals.membersCount || 0);
-    const memoryGiBTotal = memoryKiBTotal > 0 ? (memoryKiBTotal / (1024 * 1024)) : 0;
-    const storageText = formatBytesShort(storageBytesTotal) || '0 B';
-    const warnVcpus = Number.isFinite(Number(prefs.vmResourceWarnVcpus)) ? Number(prefs.vmResourceWarnVcpus) : 16;
-    const criticalVcpus = Number.isFinite(Number(prefs.vmResourceCriticalVcpus)) ? Number(prefs.vmResourceCriticalVcpus) : 32;
-    const warnGiB = Number.isFinite(Number(prefs.vmResourceWarnGiB)) ? Number(prefs.vmResourceWarnGiB) : 32;
-    const criticalGiB = Number.isFinite(Number(prefs.vmResourceCriticalGiB)) ? Number(prefs.vmResourceCriticalGiB) : 64;
-    const criticalCpuExceeded = vcpusTotal >= criticalVcpus;
-    const criticalMemoryExceeded = memoryGiBTotal >= criticalGiB;
-    const warnCpuExceeded = vcpusTotal >= warnVcpus;
-    const warnMemoryExceeded = memoryGiBTotal >= warnGiB;
-
-    let severity = 'good';
-    if (membersCount <= 0) {
-        severity = 'empty';
-    } else if (criticalCpuExceeded || criticalMemoryExceeded) {
-        severity = 'critical';
-    } else if (warnCpuExceeded || warnMemoryExceeded) {
-        severity = 'warn';
-    }
-
-    const cpuClass = membersCount <= 0
-        ? 'is-empty'
-        : (criticalCpuExceeded ? 'is-critical' : (warnCpuExceeded ? 'is-warn' : 'is-good'));
-    const memoryClass = membersCount <= 0
-        ? 'is-empty'
-        : (criticalMemoryExceeded ? 'is-critical' : (warnMemoryExceeded ? 'is-warn' : 'is-good'));
-    const storageClass = membersCount <= 0
-        ? 'is-empty'
-        : (storageBytesTotal > 0 ? 'is-good' : 'is-empty');
-    const text = `${vcpusTotal} vCPU | ${formatVmMemoryLabel(memoryKiBTotal)} RAM | ${storageText} storage`;
-    const detailLines = [
-        `Total resources: ${text}`,
-        `Thresholds: warn ${warnVcpus} vCPU / ${warnGiB} GB, critical ${criticalVcpus} vCPU / ${criticalGiB} GB.`
-    ];
-    if (warnCpuExceeded || warnMemoryExceeded) {
-        const reasons = [];
-        if (warnCpuExceeded) {
-            reasons.push(`${vcpusTotal} vCPU >= warn ${warnVcpus}`);
-        }
-        if (warnMemoryExceeded) {
-            reasons.push(`${formatVmMemoryLabel(memoryKiBTotal)} >= warn ${warnGiB} GB`);
-        }
-        detailLines.push(`Warning: ${reasons.join(' | ')}`);
-    }
-    if (criticalCpuExceeded || criticalMemoryExceeded) {
-        const reasons = [];
-        if (criticalCpuExceeded) {
-            reasons.push(`${vcpusTotal} vCPU >= critical ${criticalVcpus}`);
-        }
-        if (criticalMemoryExceeded) {
-            reasons.push(`${formatVmMemoryLabel(memoryKiBTotal)} >= critical ${criticalGiB} GB`);
-        }
-        detailLines.push(`Critical: ${reasons.join(' | ')}`);
-    }
-
-    return {
-        severity,
-        text,
-        title: detailLines.join('\n'),
-        className: severity === 'critical'
-            ? 'is-critical'
-            : (severity === 'warn' ? 'is-warn' : (severity === 'empty' ? 'is-empty' : 'is-good')),
-        chips: {
-            cpu: {
-                text: `${vcpusTotal} vCPU`,
-                className: cpuClass,
-                title: `CPU total: ${vcpusTotal} vCPU\nWarn: ${warnVcpus} vCPU\nCritical: ${criticalVcpus} vCPU`
-            },
-            memory: {
-                text: `${formatVmMemoryLabel(memoryKiBTotal)} RAM`,
-                className: memoryClass,
-                title: `Memory total: ${formatVmMemoryLabel(memoryKiBTotal)}\nWarn: ${warnGiB} GB\nCritical: ${criticalGiB} GB`
-            },
-            storage: {
-                text: `${storageText} Storage`,
-                className: storageClass,
-                title: `Storage total (file-backed disks): ${storageText}`
-            }
-        }
-    };
-};
-
-const hasInvalidFolderRegex = (folder) => {
-    const pattern = String(folder?.regex || '').trim();
-    if (!pattern) {
-        return false;
-    }
-    try {
-        // eslint-disable-next-line no-new
-        new RegExp(pattern);
-        return false;
-    } catch (_error) {
-        return true;
-    }
-};
-
-const buildTypeHealthMetrics = (type, folders, memberSnapshot = {}, prefsOverride = null) => {
-    const normalizedType = type === 'vm' ? 'vm' : 'docker';
-    const folderMap = utils.normalizeFolderMap(folders);
-    const prefs = prefsOverride ? utils.normalizePrefs(prefsOverride) : utils.normalizePrefs(prefsByType[normalizedType]);
-    const healthPrefs = normalizeHealthPrefs(normalizedType, prefs);
-    const info = infoByType[normalizedType] || {};
-    const pinnedSet = new Set(Array.isArray(prefs.pinnedFolderIds) ? prefs.pinnedFolderIds : []);
-    const regexRuleKinds = new Set(['name_regex', 'image_regex', 'compose_project_regex']);
-    const invalidRuleRegexCount = (prefs.autoRules || []).reduce((count, rule) => {
-        if (!regexRuleKinds.has(String(rule?.kind || ''))) {
-            return count;
-        }
-        const pattern = String(rule?.pattern || '').trim();
-        if (!pattern) {
-            return count;
-        }
-        try {
-            // eslint-disable-next-line no-new
-            new RegExp(pattern);
-            return count;
-        } catch (_error) {
-            return count + 1;
-        }
-    }, 0);
-    const conflictReport = utils.getConflictReport({
-        type: normalizedType,
-        folders: folderMap,
-        prefs,
-        infoByName: info
-    });
-    const conflictFolderIds = new Set();
-    for (const row of conflictReport.rows || []) {
-        if (!row?.hasConflict) {
-            continue;
-        }
-        for (const matched of row.matchedFolders || []) {
-            const folderId = String(matched?.folderId || '').trim();
-            if (folderId) {
-                conflictFolderIds.add(folderId);
-            }
-        }
-    }
-
-    const memberTotals = { total: 0, started: 0, paused: 0, stopped: 0 };
-    const folderStatusTotals = { started: 0, paused: 0, stopped: 0, empty: 0 };
-    const folderIssues = {};
-    const healthScoreTotals = {
-        sum: 0,
-        count: 0
-    };
-    const healthSeverityTotals = {
-        good: 0,
-        maintenance: 0,
-        warn: 0,
-        critical: 0,
-        empty: 0
-    };
-    let invalidFolderRegexCount = 0;
-
-    for (const [folderId, folder] of Object.entries(folderMap)) {
-        const members = Array.isArray(memberSnapshot?.[folderId]?.members) ? memberSnapshot[folderId].members : [];
-        let started = 0;
-        let paused = 0;
-        let stopped = 0;
-        for (const name of members) {
-            const state = getItemRuntimeStateKind(normalizedType, info[name] || {});
-            if (state === 'started') {
-                started += 1;
-            } else if (state === 'paused') {
-                paused += 1;
-            } else {
-                stopped += 1;
-            }
-        }
-        memberTotals.total += members.length;
-        memberTotals.started += started;
-        memberTotals.paused += paused;
-        memberTotals.stopped += stopped;
-
-        const isEmpty = members.length === 0;
-        const isStoppedOnly = members.length > 0 && started === 0 && paused === 0;
-        const hasConflict = conflictFolderIds.has(String(folderId));
-        const invalidRegex = hasInvalidFolderRegex(folder);
-        let needsAttention = isEmpty || isStoppedOnly || hasConflict || invalidRegex;
-        let dockerHealth = null;
-        if (normalizedType === 'docker') {
-            let updateCount = 0;
-            for (const member of members) {
-                if (isDockerUpdateAvailable(info[member] || {})) {
-                    updateCount += 1;
-                }
-            }
-            dockerHealth = evaluateDockerFolderHealth(
-                folder,
-                members.length,
-                { started, paused, stopped },
-                updateCount,
-                Number(healthPrefs.warnStoppedPercent) || 60
-            );
-            if (dockerHealth && typeof dockerHealth === 'object') {
-                const score = Number(dockerHealth.score);
-                if (Number.isFinite(score)) {
-                    healthScoreTotals.sum += score;
-                    healthScoreTotals.count += 1;
-                }
-                const severityKey = String(dockerHealth.filterSeverity || dockerHealth.severity || '').trim().toLowerCase();
-                if (Object.prototype.hasOwnProperty.call(healthSeverityTotals, severityKey)) {
-                    healthSeverityTotals[severityKey] += 1;
-                } else if (severityKey === 'warn') {
-                    healthSeverityTotals.warn += 1;
-                }
-                needsAttention = (dockerHealth.severity === 'warn' || dockerHealth.severity === 'critical')
-                    || hasConflict
-                    || invalidRegex;
-            }
-        }
-
-        if (isEmpty) {
-            folderStatusTotals.empty += 1;
-        } else if (started > 0) {
-            folderStatusTotals.started += 1;
-        } else if (paused > 0) {
-            folderStatusTotals.paused += 1;
-        } else {
-            folderStatusTotals.stopped += 1;
-        }
-        if (invalidRegex) {
-            invalidFolderRegexCount += 1;
-        }
-
-        folderIssues[String(folderId)] = {
-            empty: isEmpty,
-            stoppedOnly: isStoppedOnly,
-            conflict: hasConflict,
-            invalidRegex,
-            attention: needsAttention,
-            memberCount: members.length,
-            healthSeverity: dockerHealth?.severity || '',
-            healthFilterSeverity: dockerHealth?.filterSeverity || dockerHealth?.severity || '',
-            healthScore: Number.isFinite(Number(dockerHealth?.score)) ? Number(dockerHealth.score) : null,
-            healthMaintenance: dockerHealth?.isMaintenance === true
-        };
-    }
-
-    const stoppedPercent = memberTotals.total > 0
-        ? Math.round((memberTotals.stopped / memberTotals.total) * 100)
-        : 0;
-    const attentionCount = Object.values(folderIssues).filter((issue) => issue.attention).length;
-    let severity = 'ok';
-    if (invalidFolderRegexCount > 0 || invalidRuleRegexCount > 0 || conflictReport.conflictingItems > 0) {
-        severity = 'danger';
-    } else if (healthSeverityTotals.critical > 0 || healthSeverityTotals.warn > 0 || stoppedPercent >= healthPrefs.warnStoppedPercent || attentionCount > 0) {
-        severity = 'warning';
-    }
-    const averageHealthScore = healthScoreTotals.count > 0
-        ? Math.round(healthScoreTotals.sum / healthScoreTotals.count)
-        : 0;
-
-    return {
-        type: normalizedType,
-        severity,
-        folderCount: Object.keys(folderMap).length,
-        pinnedCount: Array.from(pinnedSet).filter((id) => Object.prototype.hasOwnProperty.call(folderMap, id)).length,
-        ruleCount: (prefs.autoRules || []).length,
-        invalidFolderRegexCount,
-        invalidRuleRegexCount,
-        conflictItemCount: Number(conflictReport.conflictingItems || 0),
-        stoppedPercent,
-        averageHealthScore,
-        memberTotals,
-        folderStatusTotals,
-        attentionCount,
-        healthSeverityTotals,
-        folderIssues
-    };
-};
-
-const folderMatchesHealthFilter = (type, folderId, healthMetrics) => {
-    const mode = normalizeHealthFilterMode(healthFilterByType[type]);
-    if (mode === 'all') {
-        return true;
-    }
-    const issue = healthMetrics?.folderIssues?.[String(folderId)] || {};
-    if (mode === 'attention') {
-        return issue.attention === true;
-    }
-    if (mode === 'empty') {
-        return issue.empty === true;
-    }
-    if (mode === 'stopped') {
-        return issue.stoppedOnly === true;
-    }
-    if (mode === 'conflict') {
-        return issue.conflict === true;
-    }
-    return true;
-};
-
-const getHealthFilterLabel = (mode) => {
-    if (mode === 'attention') {
-        return 'needs attention';
-    }
-    if (mode === 'empty') {
-        return 'empty';
-    }
-    if (mode === 'stopped') {
-        return 'stopped';
-    }
-    if (mode === 'conflict') {
-        return 'conflicts';
-    }
-    return 'all';
-};
+const buildStatusSnapshot = (...args) => getSettingsHealthApi().buildStatusSnapshot(...args);
+const isDockerUpdateAvailable = (...args) => getSettingsHealthApi().isDockerUpdateAvailable(...args);
+const formatGiBFromKiB = (...args) => getSettingsHealthApi().formatGiBFromKiB(...args);
+const formatVmMemoryLabel = (...args) => getSettingsHealthApi().formatVmMemoryLabel(...args);
+const collectVmFolderResources = (...args) => getSettingsHealthApi().collectVmFolderResources(...args);
+const evaluateVmResourceBadge = (...args) => getSettingsHealthApi().evaluateVmResourceBadge(...args);
+const hasInvalidFolderRegex = (...args) => getSettingsHealthApi().hasInvalidFolderRegex(...args);
+const buildTypeHealthMetrics = (...args) => getSettingsHealthApi().buildTypeHealthMetrics(...args);
+const folderMatchesHealthFilter = (...args) => getSettingsHealthApi().folderMatchesHealthFilter(...args);
+const getHealthFilterLabel = (...args) => getSettingsHealthApi().getHealthFilterLabel(...args);
 
 const getEffectiveMemberSnapshot = (type, folders) => {
     const info = infoByType[type] || {};
@@ -3577,9 +3327,6 @@ const TABLE_COLUMN_RESIZE_KEYS_BY_TYPE = settingsTableModule?.TABLE_COLUMN_RESIZ
     docker: Object.freeze([]),
     vm: Object.freeze([])
 });
-
-let activeTableColumnResize = null;
-const SETTINGS_TABLE_RESIZE_GUIDE_ID = 'fv-settings-col-resize-guide';
 
 const getSettingsTableElement = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
@@ -3926,43 +3673,6 @@ const persistSettingsTableState = async (type, patch = {}, options = {}) => {
     }
 };
 
-const stopActiveTableColumnResize = (persist = true) => {
-    const active = activeTableColumnResize;
-    if (!active) {
-        return;
-    }
-    document.getElementById(SETTINGS_TABLE_RESIZE_GUIDE_ID)?.remove();
-    document.body.classList.remove('fv-column-resize-active');
-    window.removeEventListener('mousemove', active.onMove, true);
-    window.removeEventListener('mouseup', active.onUp, true);
-    activeTableColumnResize = null;
-    if (persist && active.dragStarted === true) {
-        persistSettingsTableState(active.type, {
-            widthMode: 'custom',
-            preset: 'custom',
-            columnWidths: columnWidthsByType[active.type] || {}
-        });
-    }
-};
-
-const ensureSettingsTableResizeGuide = () => {
-    let guide = document.getElementById(SETTINGS_TABLE_RESIZE_GUIDE_ID);
-    if (!guide) {
-        guide = document.createElement('div');
-        guide.id = SETTINGS_TABLE_RESIZE_GUIDE_ID;
-        guide.className = 'fv-col-resize-guide';
-        document.body.appendChild(guide);
-    }
-    return guide;
-};
-
-const positionSettingsTableResizeGuide = (left, top, height) => {
-    const guide = ensureSettingsTableResizeGuide();
-    guide.style.left = `${Math.round(left)}px`;
-    guide.style.top = `${Math.round(top)}px`;
-    guide.style.height = `${Math.max(0, Math.round(height))}px`;
-};
-
 const bindTableColumnResizers = (type) => {
     const resolvedType = type === 'vm' ? 'vm' : 'docker';
     const table = getSettingsTableElement(resolvedType);
@@ -4018,15 +3728,11 @@ const setFilterQuery = (section, type, value) => {
     }
 };
 
-const normalizeRecoveryWorkspaceType = (value) => (
-    String(value || '').trim().toLowerCase() === 'vm' ? 'vm' : 'docker'
-);
+const normalizeRecoveryWorkspaceType = (...args) => getSettingsWorkspacesApi().normalizeRecoveryWorkspaceType(...args);
 
-const normalizeRulesWorkspaceType = (value) => (
-    String(value || '').trim().toLowerCase() === 'vm' ? 'vm' : 'docker'
-);
+const normalizeRulesWorkspaceType = (...args) => getSettingsWorkspacesApi().normalizeRulesWorkspaceType(...args);
 
-const getActiveRecoveryWorkspaceType = () => normalizeRecoveryWorkspaceType(activeRecoveryWorkspaceType);
+const getActiveRecoveryWorkspaceType = (...args) => getSettingsWorkspacesApi().getActiveRecoveryWorkspaceType(...args);
 
 const getSortedBackupsForType = (type) => {
     const resolvedType = normalizeRecoveryWorkspaceType(type);
@@ -4040,335 +3746,26 @@ const getSortedBackupsForType = (type) => {
     });
 };
 
-const formatRecoveryReasonLabel = (value) => {
-    const raw = String(value || '').trim();
-    if (!raw) {
-        return 'Manual';
-    }
-    return raw
-        .replace(/[_-]+/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim()
-        .replace(/\b([a-z])/g, (match) => match.toUpperCase());
-};
-
-const buildRecoveryOverviewHtml = (type) => {
-    const resolvedType = normalizeRecoveryWorkspaceType(type);
-    const title = resolvedType === 'docker' ? 'Docker' : 'VMs';
-    const folders = getFolderMap(resolvedType);
-    const backups = getSortedBackupsForType(resolvedType);
-    const prefs = utils.normalizePrefs(prefsByType[resolvedType]);
-    const schedule = prefs.backupSchedule || {};
-    const latest = backups[0] || null;
-    const backupCount = backups.length;
-    const scheduleEnabled = schedule.enabled === true;
-    const retention = Number.isFinite(Number(schedule.retention)) ? Number(schedule.retention) : 25;
-    const interval = Number.isFinite(Number(schedule.intervalHours)) ? Number(schedule.intervalHours) : 24;
-    const latestCreated = latest?.createdAt ? formatTimestamp(latest.createdAt) : 'Not created yet';
-    const latestReason = latest ? formatRecoveryReasonLabel(latest.reason) : 'Create a manual checkpoint first';
-    const folderCount = Object.keys(folders || {}).length;
-    const statusClass = latest
-        ? (scheduleEnabled ? 'is-healthy' : 'is-warning')
-        : 'is-warning';
-    const statusLabel = latest
-        ? (scheduleEnabled ? 'Ready' : 'Watch')
-        : 'No backup yet';
-    const headline = latest
-        ? `Latest ${title} backup is ready to restore.`
-        : `No ${title} backup snapshot is available yet.`;
-    const copy = latest
-        ? `Latest snapshot: ${escapeHtml(latestCreated)}. Restore latest will create a fresh safety backup first.`
-        : `Create a manual backup before making larger changes so you have a safe rollback point.`;
-
-    return `
-        <div class="fv-recovery-overview-head">
-            <div>
-                <span class="fv-recovery-source-label">${escapeHtml(title)}</span>
-                <div class="fv-recovery-headline">${escapeHtml(headline)}</div>
-                <div class="fv-recovery-copy">${copy}</div>
-            </div>
-            <span class="fv-rules-status-chip ${statusClass}">${escapeHtml(statusLabel)}</span>
-        </div>
-        <div class="fv-recovery-stat-grid">
-            <div class="fv-recovery-stat-card">
-                <span class="fv-recovery-stat-label">Latest backup</span>
-                <strong>${escapeHtml(latestCreated)}</strong>
-                <span>${escapeHtml(latestReason)}</span>
-            </div>
-            <div class="fv-recovery-stat-card">
-                <span class="fv-recovery-stat-label">Snapshots kept</span>
-                <strong>${escapeHtml(String(backupCount))}</strong>
-                <span>${escapeHtml(`${folderCount} folder${folderCount === 1 ? '' : 's'} tracked`)}</span>
-            </div>
-            <div class="fv-recovery-stat-card">
-                <span class="fv-recovery-stat-label">Auto backup</span>
-                <strong>${escapeHtml(scheduleEnabled ? `Every ${interval}h` : 'Manual only')}</strong>
-                <span>${escapeHtml(schedule.lastRunAt ? `Last run ${formatTimestamp(schedule.lastRunAt)}` : 'Scheduler has not run yet')}</span>
-            </div>
-            <div class="fv-recovery-stat-card">
-                <span class="fv-recovery-stat-label">Retention</span>
-                <strong>${escapeHtml(`${retention} snapshot${retention === 1 ? '' : 's'}`)}</strong>
-                <span>${escapeHtml(scheduleEnabled ? 'Old backups rotate automatically.' : 'Retention applies after scheduler runs.')}</span>
-            </div>
-        </div>
-    `;
-};
-
-const buildRecoveryBackupHistoryHtml = (type) => {
-    const resolvedType = normalizeRecoveryWorkspaceType(type);
-    const backups = getSortedBackupsForType(resolvedType);
-    const summaryEl = $('#fv-recovery-history-summary');
-    const title = resolvedType === 'docker' ? 'Docker' : 'VM';
-    if (!backups.length) {
-        recoverySelectedBackupByType[resolvedType] = '';
-        const emptyTitle = `No ${title} backups yet.`;
-        const emptyCopy = 'Create a manual backup or run the scheduler to build recovery history.';
-        summaryEl.text('No backup snapshots are available yet.');
-        return `
-            <div class="fv-recovery-empty-state">
-                <strong>${escapeHtml(emptyTitle)}</strong>
-                <span>${escapeHtml(emptyCopy)}</span>
-            </div>
-        `;
-    }
-
-    const selectedName = String(recoverySelectedBackupByType[resolvedType] || '').trim();
-    const selectedBackup = backups.find((backup) => String(backup?.name || '').trim() === selectedName) || backups[0];
-    const resolvedSelectedName = String(selectedBackup?.name || '').trim();
-    recoverySelectedBackupByType[resolvedType] = resolvedSelectedName;
-    const created = formatTimestamp(selectedBackup?.createdAt || '');
-    const reason = formatRecoveryReasonLabel(selectedBackup?.reason);
-    const count = Number.isFinite(Number(selectedBackup?.count)) ? Number(selectedBackup.count) : 0;
-    const latestName = String(backups[0]?.name || '').trim();
-    const latestBadge = resolvedSelectedName === latestName ? '<span class="fv-recovery-history-badge">Latest</span>' : '';
-    const optionsHtml = backups.map((backup, index) => {
-        const name = String(backup?.name || '').trim();
-        const label = `${formatTimestamp(backup?.createdAt || '')}${index === 0 ? ' (latest)' : ''}`;
-        const selectedAttr = name === resolvedSelectedName ? ' selected' : '';
-        return `<option value="${escapeHtml(name)}"${selectedAttr}>${escapeHtml(label)}</option>`;
-    }).join('');
-
-    summaryEl.text(`${backups.length} snapshot${backups.length === 1 ? '' : 's'} available. Select one restore point and use the shared actions below.`);
-    return `
-        <div class="fv-recovery-history-picker-row">
-            <label for="recovery-backup-entry-select">Snapshot date</label>
-            <select id="recovery-backup-entry-select" onchange="selectActiveRecoveryBackup(this.value)">
-                ${optionsHtml}
-            </select>
-        </div>
-        <article class="fv-recovery-history-card fv-recovery-history-selection">
-            <div class="fv-recovery-history-head">
-                <div>
-                    <div class="fv-recovery-history-title">${escapeHtml(created)}</div>
-                    <div class="fv-recovery-history-copy">${escapeHtml(reason)}</div>
-                </div>
-                ${latestBadge}
-            </div>
-            <div class="fv-recovery-history-meta">
-                <span>${escapeHtml(`${count} folder${count === 1 ? '' : 's'}`)}</span>
-                <span>${escapeHtml(resolvedSelectedName)}</span>
-            </div>
-            <div class="backup-actions fv-recovery-history-actions-row">
-                <button type="button" onclick="restoreSelectedActiveRecoveryBackup()"><i class="fa fa-history"></i> Restore</button>
-                <button type="button" onclick="downloadSelectedActiveRecoveryBackup()"><i class="fa fa-download"></i> Download</button>
-                <button type="button" onclick="deleteSelectedActiveRecoveryBackup()"><i class="fa fa-trash"></i> Delete</button>
-            </div>
-        </article>
-    `;
-};
-
-const syncVisibleRecoveryCompareControls = (type) => {
-    const resolvedType = normalizeRecoveryWorkspaceType(type);
-    const visibleLeft = $('#recovery-backup-compare-left');
-    const visibleRight = $('#recovery-backup-compare-right');
-    const visiblePrefs = $('#recovery-backup-compare-include-prefs');
-    const sourceLeft = $(`#${resolvedType}-backup-compare-left`);
-    const sourceRight = $(`#${resolvedType}-backup-compare-right`);
-    const sourcePrefs = $(`#${resolvedType}-backup-compare-include-prefs`);
-    if (!visibleLeft.length || !visibleRight.length || !visiblePrefs.length || !sourceLeft.length || !sourceRight.length || !sourcePrefs.length) {
-        return;
-    }
-
-    visibleLeft.html(sourceLeft.html()).prop('disabled', sourceLeft.prop('disabled'));
-    visibleRight.html(sourceRight.html()).prop('disabled', sourceRight.prop('disabled'));
-    visiblePrefs.prop('checked', sourcePrefs.prop('checked') === true).prop('disabled', sourcePrefs.prop('disabled'));
-    visibleLeft.val(String(sourceLeft.val() || ''));
-    visibleRight.val(String(sourceRight.val() || '__current__'));
-};
-
-const syncHiddenRecoveryCompareControls = (type) => {
-    const resolvedType = normalizeRecoveryWorkspaceType(type);
-    const visibleLeft = $('#recovery-backup-compare-left');
-    const visibleRight = $('#recovery-backup-compare-right');
-    const visiblePrefs = $('#recovery-backup-compare-include-prefs');
-    const sourceLeft = $(`#${resolvedType}-backup-compare-left`);
-    const sourceRight = $(`#${resolvedType}-backup-compare-right`);
-    const sourcePrefs = $(`#${resolvedType}-backup-compare-include-prefs`);
-    if (!visibleLeft.length || !visibleRight.length || !visiblePrefs.length || !sourceLeft.length || !sourceRight.length || !sourcePrefs.length) {
-        return;
-    }
-    sourceLeft.val(String(visibleLeft.val() || ''));
-    sourceRight.val(String(visibleRight.val() || '__current__'));
-    sourcePrefs.prop('checked', visiblePrefs.prop('checked') === true);
-    sourceLeft.triggerHandler('change');
-    sourceRight.triggerHandler('change');
-    sourcePrefs.triggerHandler('change');
-};
-
-const renderRecoveryWorkspace = (type = activeRecoveryWorkspaceType) => {
-    const resolvedType = normalizeRecoveryWorkspaceType(type);
-    const overviewHost = $('#fv-recovery-overview');
-    const listHost = $('#fv-recovery-backup-list');
-    const policySummary = $('#fv-recovery-policy-summary');
-    const safetyNote = $('#fv-recovery-safety-note');
-    if (!overviewHost.length || !listHost.length) {
-        return;
-    }
-
-    activeRecoveryWorkspaceType = resolvedType;
-    const backups = getSortedBackupsForType(resolvedType);
-    const prefs = utils.normalizePrefs(prefsByType[resolvedType]);
-    const schedule = prefs.backupSchedule || {};
-    const latest = backups[0] || null;
-    const title = resolvedType === 'docker' ? 'Docker' : 'VM';
-
-    overviewHost.html(buildRecoveryOverviewHtml(resolvedType));
-    listHost.html(buildRecoveryBackupHistoryHtml(resolvedType));
-    safetyNote.text(latest
-        ? `Latest ${title} snapshot: ${formatTimestamp(latest.createdAt || '')}. A safety backup is created automatically before restore.`
-        : `No ${title} backup exists yet. Create one now so you have a rollback point before bigger changes.`);
-    policySummary.text(schedule.enabled === true
-        ? `Every ${schedule.intervalHours || 24}h, keep ${schedule.retention || 25}, ${schedule.lastRunAt ? `last run ${formatTimestamp(schedule.lastRunAt)}` : 'waiting for first run'}.`
-        : 'Manual backups only. Enable the scheduler to keep automatic recovery points.');
-    syncVisibleRecoveryCompareControls(resolvedType);
-    window.FolderViewPlusDiagnostics?.renderRecoveryChangeHistoryFromDiagnostics?.();
-};
-
-const syncRecoveryWorkspaceUi = () => {
-    const activeType = normalizeRecoveryWorkspaceType(activeRecoveryWorkspaceType);
-    document.querySelectorAll('[data-fv-recovery-source-toggle]').forEach((button) => {
-        if (!(button instanceof HTMLButtonElement)) {
-            return;
-        }
-        const buttonType = normalizeRecoveryWorkspaceType(button.getAttribute('data-fv-recovery-source-toggle'));
-        const isActive = buttonType === activeType;
-        button.classList.toggle('is-active', isActive);
-        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-    });
-    renderRecoveryWorkspace(activeType);
-};
-
-const setRecoveryWorkspaceType = (type, persist = true) => {
-    activeRecoveryWorkspaceType = normalizeRecoveryWorkspaceType(type);
-    if (persist) {
-        writeSettingsStorage(RECOVERY_WORKSPACE_STORAGE_KEY, activeRecoveryWorkspaceType, { delayMs: 60, idle: true });
-    }
-    syncRecoveryWorkspaceUi();
-};
-
-const selectActiveRecoveryBackup = (name = '') => {
-    const resolvedType = getActiveRecoveryWorkspaceType();
-    recoverySelectedBackupByType[resolvedType] = String(name || '').trim();
-    renderRecoveryWorkspace(resolvedType);
-};
-
-const filterActiveRecoveryBackups = (value = '') => {
-    const resolvedType = getActiveRecoveryWorkspaceType();
-    const displayValue = String(value || '');
-    if (!filtersByType[resolvedType]) {
-        filtersByType[resolvedType] = {
-            folders: '',
-            rules: '',
-            backups: '',
-            templates: '',
-            bulk: ''
-        };
-    }
-    filtersByType[resolvedType].backups = normalizedFilter(displayValue);
-    persistTableUiState();
-    renderBackupRows(resolvedType);
-};
-
-const createActiveRecoveryBackup = () => createManualBackup(getActiveRecoveryWorkspaceType());
-
-const restoreLatestActiveRecoveryBackup = () => restoreLatestBackup(getActiveRecoveryWorkspaceType());
-
-const restoreSelectedActiveRecoveryBackup = () => {
-    const resolvedType = getActiveRecoveryWorkspaceType();
-    const selectedName = String(recoverySelectedBackupByType[resolvedType] || '').trim();
-    if (!selectedName) {
-        showError('Restore failed', new Error('Select a backup first.'));
-        return;
-    }
-    restoreBackupEntry(resolvedType, selectedName);
-};
-
-const downloadSelectedActiveRecoveryBackup = () => {
-    const resolvedType = getActiveRecoveryWorkspaceType();
-    const selectedName = String(recoverySelectedBackupByType[resolvedType] || '').trim();
-    if (!selectedName) {
-        showError('Download failed', new Error('Select a backup first.'));
-        return;
-    }
-    downloadBackupEntry(resolvedType, selectedName);
-};
-
-const deleteSelectedActiveRecoveryBackup = () => {
-    const resolvedType = getActiveRecoveryWorkspaceType();
-    const selectedName = String(recoverySelectedBackupByType[resolvedType] || '').trim();
-    if (!selectedName) {
-        showError('Delete failed', new Error('Select a backup first.'));
-        return;
-    }
-    deleteBackupEntry(resolvedType, selectedName);
-};
-
-const runActiveRecoveryScheduler = () => runScheduledBackupNow(getActiveRecoveryWorkspaceType());
-
-const compareActiveRecoverySnapshots = () => {
-    const resolvedType = getActiveRecoveryWorkspaceType();
-    syncHiddenRecoveryCompareControls(resolvedType);
-    compareBackupSnapshots(resolvedType);
-};
-
-const changeActiveBackupSchedulePref = (key, value) => (
-    changeBackupSchedulePref(getActiveRecoveryWorkspaceType(), key, value)
-);
-
-const undoActiveRecoveryChange = () => undoLatestChange(getActiveRecoveryWorkspaceType());
-
-const syncRulesWorkspaceUi = () => {
-    const activeType = normalizeRulesWorkspaceType(activeRulesWorkspaceType);
-    document.querySelectorAll('[data-fv-rules-source-toggle]').forEach((button) => {
-        if (!(button instanceof HTMLButtonElement)) {
-            return;
-        }
-        const buttonType = normalizeRulesWorkspaceType(button.getAttribute('data-fv-rules-source-toggle'));
-        const isActive = buttonType === activeType;
-        button.classList.toggle('is-active', isActive);
-        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-    });
-    document.querySelectorAll('.fv-rules-workspace[data-fv-rules-type], .fv-rule-troubleshoot-panel[data-fv-rules-type]').forEach((panel) => {
-        if (!(panel instanceof HTMLElement)) {
-            return;
-        }
-        const panelType = normalizeRulesWorkspaceType(panel.getAttribute('data-fv-rules-type'));
-        const isActive = panelType === activeType;
-        panel.hidden = !isActive;
-        panel.setAttribute('aria-hidden', isActive ? 'false' : 'true');
-    });
-};
-
-const setRulesWorkspaceType = (type, persist = true) => {
-    activeRulesWorkspaceType = normalizeRulesWorkspaceType(type);
-    if (persist) {
-        writeSettingsStorage(RULES_WORKSPACE_STORAGE_KEY, activeRulesWorkspaceType, { delayMs: 60, idle: true });
-    }
-    syncRulesWorkspaceUi();
-    renderRulesTable(activeRulesWorkspaceType);
-    updateRuleLiveMatch(activeRulesWorkspaceType);
-    updateRuleValidationHint(activeRulesWorkspaceType);
-};
+const buildRecoveryOverviewHtml = (...args) => getSettingsWorkspacesApi().buildRecoveryOverviewHtml(...args);
+const buildRecoveryBackupHistoryHtml = (...args) => getSettingsWorkspacesApi().buildRecoveryBackupHistoryHtml(...args);
+const syncVisibleRecoveryCompareControls = (...args) => getSettingsWorkspacesApi().syncVisibleRecoveryCompareControls(...args);
+const syncHiddenRecoveryCompareControls = (...args) => getSettingsWorkspacesApi().syncHiddenRecoveryCompareControls(...args);
+const renderRecoveryWorkspace = (...args) => getSettingsWorkspacesApi().renderRecoveryWorkspace(...args);
+const syncRecoveryWorkspaceUi = (...args) => getSettingsWorkspacesApi().syncRecoveryWorkspaceUi(...args);
+const setRecoveryWorkspaceType = (...args) => getSettingsWorkspacesApi().setRecoveryWorkspaceType(...args);
+const selectActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi().selectActiveRecoveryBackup(...args);
+const filterActiveRecoveryBackups = (...args) => getSettingsWorkspacesApi().filterActiveRecoveryBackups(...args);
+const createActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi().createActiveRecoveryBackup(...args);
+const restoreLatestActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi().restoreLatestActiveRecoveryBackup(...args);
+const restoreSelectedActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi().restoreSelectedActiveRecoveryBackup(...args);
+const downloadSelectedActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi().downloadSelectedActiveRecoveryBackup(...args);
+const deleteSelectedActiveRecoveryBackup = (...args) => getSettingsWorkspacesApi().deleteSelectedActiveRecoveryBackup(...args);
+const runActiveRecoveryScheduler = (...args) => getSettingsWorkspacesApi().runActiveRecoveryScheduler(...args);
+const compareActiveRecoverySnapshots = (...args) => getSettingsWorkspacesApi().compareActiveRecoverySnapshots(...args);
+const changeActiveBackupSchedulePref = (...args) => getSettingsWorkspacesApi().changeActiveBackupSchedulePref(...args);
+const undoActiveRecoveryChange = (...args) => getSettingsWorkspacesApi().undoActiveRecoveryChange(...args);
+const syncRulesWorkspaceUi = (...args) => getSettingsWorkspacesApi().syncRulesWorkspaceUi(...args);
+const setRulesWorkspaceType = (...args) => getSettingsWorkspacesApi().setRulesWorkspaceType(...args);
 
 const normalizeHealthSeverityFilterMode = (mode) => {
     const normalized = String(mode || '').trim().toLowerCase();
@@ -5394,19 +4791,6 @@ const applyTemplate = async (type, templateId, folderId) => {
     return response.apply || {};
 };
 
-const bulkAssign = async (type, folderId, items) => {
-    assertRuntimeConflictActionAllowed(`Bulk assign ${type === 'docker' ? 'Docker' : 'VM'} items`);
-    const response = await apiPostJson('/plugins/folderview.plus/server/bulk_assign.php', {
-        type,
-        folderId,
-        items: JSON.stringify(items || [])
-    });
-    if (!response.ok) {
-        throw new Error(response.error || 'Bulk assignment failed.');
-    }
-    return response.result;
-};
-
 const showToastMessage = ({
     title = '',
     message = '',
@@ -6066,199 +5450,6 @@ const applyTreeMoveRedo = async (type) => {
     }
 };
 
-const TREE_MOVE_PLACEMENTS = new Set(['before', 'after', 'inside']);
-
-const normalizeTreeMovePlacement = (value) => (
-    TREE_MOVE_PLACEMENTS.has(String(value || '').trim().toLowerCase())
-        ? String(value || '').trim().toLowerCase()
-        : 'inside'
-);
-
-const buildFolderHierarchyMeta = (foldersInput) => {
-    const folders = utils.normalizeFolderMap(foldersInput || {});
-    const ids = Object.keys(folders);
-    const idSet = new Set(ids);
-    const parentById = {};
-    const childrenById = {};
-    const depthById = {};
-    const descendantsById = {};
-    const indexById = new Map(ids.map((id, index) => [id, index]));
-
-    for (const id of ids) {
-        childrenById[id] = [];
-    }
-
-    for (const id of ids) {
-        const rawParent = String(folders[id]?.parentId || '').trim();
-        const safeParent = (rawParent && rawParent !== id && idSet.has(rawParent)) ? rawParent : '';
-        parentById[id] = safeParent;
-        if (safeParent) {
-            childrenById[safeParent].push(id);
-        }
-    }
-
-    const sortBySourceOrder = (left, right) => (
-        (indexById.get(left) || 0) - (indexById.get(right) || 0)
-    );
-    for (const children of Object.values(childrenById)) {
-        children.sort(sortBySourceOrder);
-    }
-
-    const visitedDepth = new Set();
-    const assignDepth = (id, depth, path = new Set()) => {
-        if (!idSet.has(id) || path.has(id)) {
-            return;
-        }
-        const nextPath = new Set(path);
-        nextPath.add(id);
-        if (!Object.prototype.hasOwnProperty.call(depthById, id)) {
-            depthById[id] = depth;
-        } else {
-            depthById[id] = Math.min(depthById[id], depth);
-        }
-        for (const childId of (childrenById[id] || [])) {
-            assignDepth(childId, depth + 1, nextPath);
-        }
-        visitedDepth.add(id);
-    };
-
-    const rootIds = ids.filter((id) => !parentById[id]);
-    rootIds.sort(sortBySourceOrder);
-    for (const rootId of rootIds) {
-        assignDepth(rootId, 0);
-    }
-    for (const id of ids) {
-        if (!visitedDepth.has(id)) {
-            assignDepth(id, 0);
-        }
-    }
-
-    const collectDescendants = (id, path = new Set()) => {
-        if (!idSet.has(id) || path.has(id)) {
-            return [];
-        }
-        const nextPath = new Set(path);
-        nextPath.add(id);
-        const output = [];
-        for (const childId of (childrenById[id] || [])) {
-            if (!output.includes(childId)) {
-                output.push(childId);
-            }
-            const childDescendants = collectDescendants(childId, nextPath);
-            for (const descendantId of childDescendants) {
-                if (!output.includes(descendantId)) {
-                    output.push(descendantId);
-                }
-            }
-        }
-        return output;
-    };
-
-    for (const id of ids) {
-        descendantsById[id] = collectDescendants(id);
-    }
-
-    return {
-        ids,
-        idSet,
-        parentById,
-        childrenById,
-        depthById,
-        descendantsById
-    };
-};
-
-const areStringSetsEqual = (left, right) => {
-    if (!(left instanceof Set) || !(right instanceof Set)) {
-        return false;
-    }
-    if (left.size !== right.size) {
-        return false;
-    }
-    for (const value of left) {
-        if (!right.has(value)) {
-            return false;
-        }
-    }
-    return true;
-};
-
-const normalizeCollapsedTreeParentsForType = (type, foldersInput = null, hierarchyMeta = null) => {
-    const resolvedType = normalizeManagedType(type);
-    const folders = foldersInput && typeof foldersInput === 'object'
-        ? utils.normalizeFolderMap(foldersInput)
-        : getFolderMap(resolvedType);
-    const meta = hierarchyMeta || buildFolderHierarchyMeta(folders);
-    const source = collapsedTreeParentsByType[resolvedType] instanceof Set
-        ? collapsedTreeParentsByType[resolvedType]
-        : new Set();
-    const normalized = new Set();
-    for (const rawId of source) {
-        const id = String(rawId || '').trim();
-        if (!id || !meta.idSet.has(id)) {
-            continue;
-        }
-        if (Array.isArray(meta.childrenById[id]) && meta.childrenById[id].length > 0) {
-            normalized.add(id);
-        }
-    }
-    return normalized;
-};
-
-const syncCollapsedTreeParentsForType = (type, foldersInput = null, hierarchyMeta = null, { persist = false } = {}) => {
-    const resolvedType = normalizeManagedType(type);
-    const normalized = normalizeCollapsedTreeParentsForType(resolvedType, foldersInput, hierarchyMeta);
-    const previous = collapsedTreeParentsByType[resolvedType] instanceof Set
-        ? collapsedTreeParentsByType[resolvedType]
-        : new Set();
-    const changed = !areStringSetsEqual(previous, normalized);
-    collapsedTreeParentsByType[resolvedType] = normalized;
-    if (persist || changed) {
-        persistTableUiState();
-    }
-    return normalized;
-};
-
-const isFolderHiddenByCollapsedAncestor = (folderId, parentById, collapsedSet) => {
-    const safeFolderId = String(folderId || '').trim();
-    if (!safeFolderId || !(collapsedSet instanceof Set) || collapsedSet.size <= 0) {
-        return false;
-    }
-    const visited = new Set([safeFolderId]);
-    let cursor = String(parentById?.[safeFolderId] || '').trim();
-    while (cursor) {
-        if (collapsedSet.has(cursor)) {
-            return true;
-        }
-        if (visited.has(cursor)) {
-            break;
-        }
-        visited.add(cursor);
-        cursor = String(parentById?.[cursor] || '').trim();
-    }
-    return false;
-};
-
-const canFolderUseTreeMove = (type, sourceFolderId, hierarchyMeta = null) => {
-    const resolvedType = normalizeManagedType(type);
-    const safeFolderId = String(sourceFolderId || '').trim();
-    if (!safeFolderId) {
-        return false;
-    }
-    const folders = getFolderMap(resolvedType);
-    if (!Object.prototype.hasOwnProperty.call(folders, safeFolderId)) {
-        return false;
-    }
-    const meta = hierarchyMeta || buildFolderHierarchyMeta(folders);
-    const blocked = new Set([safeFolderId, ...(meta.descendantsById[safeFolderId] || [])]);
-    for (const candidateId of Object.keys(folders)) {
-        if (!blocked.has(candidateId)) {
-            return true;
-        }
-    }
-    return false;
-};
-
 const scheduleTableRender = (type, { immediate = false } = {}) => {
     const resolvedType = normalizeManagedType(type);
     if (immediate) {
@@ -6312,639 +5503,10 @@ const toggleMobileTreeReorderMode = (type) => {
     setMobileTreeReorderMode(resolvedType, !(mobileTreeReorderModeByType[resolvedType] === true));
 };
 
-const treePathHintSelectorByType = Object.freeze({
-    docker: '#docker-tree-path-hint',
-    vm: '#vm-tree-path-hint'
-});
-
-const updateMobileTreePathHint = (type, folderId = '') => {
-    const resolvedType = normalizeManagedType(type);
-    const selector = treePathHintSelectorByType[resolvedType];
-    const host = selector ? $(selector) : $();
-    if (!host.length) {
-        return;
-    }
-    const id = String(folderId || '').trim();
-    if (!id) {
-        host.text('Path: select a folder');
-        return;
-    }
-    const folders = getFolderMap(resolvedType);
-    if (!Object.prototype.hasOwnProperty.call(folders, id)) {
-        host.text('Path: folder unavailable');
-        return;
-    }
-    const hierarchyMeta = buildFolderHierarchyMeta(folders);
-    const path = buildFolderPathLabel(resolvedType, id, folders, hierarchyMeta);
-    host.text(`Path: ${path}`);
-};
-
-const getFolderBranchIds = (type, folderId, hierarchyMeta = null) => {
-    const resolvedType = normalizeManagedType(type);
-    const sourceId = String(folderId || '').trim();
-    if (!sourceId) {
-        return [];
-    }
-    const folders = getFolderMap(resolvedType);
-    if (!Object.prototype.hasOwnProperty.call(folders, sourceId)) {
-        return [];
-    }
-    const meta = hierarchyMeta || buildFolderHierarchyMeta(folders);
-    return [sourceId, ...(meta.descendantsById[sourceId] || [])];
-};
-
-const setFolderBranchCollapse = (type, folderId, collapse = true) => {
-    const resolvedType = normalizeManagedType(type);
-    const folders = getFolderMap(resolvedType);
-    const hierarchyMeta = buildFolderHierarchyMeta(folders);
-    const branchIds = getFolderBranchIds(resolvedType, folderId, hierarchyMeta);
-    if (!branchIds.length) {
-        return;
-    }
-    const collapsed = syncCollapsedTreeParentsForType(resolvedType, folders, hierarchyMeta);
-    if (collapse) {
-        for (const id of branchIds) {
-            const children = Array.isArray(hierarchyMeta.childrenById[id]) ? hierarchyMeta.childrenById[id] : [];
-            if (children.length > 0) {
-                collapsed.add(id);
-            }
-        }
-    } else {
-        for (const id of branchIds) {
-            collapsed.delete(id);
-        }
-    }
-    collapsedTreeParentsByType[resolvedType] = collapsed;
-    persistTableUiState();
-    scheduleTableRender(resolvedType);
-};
-
-const setFolderBranchPinned = async (type, folderId, pinned = true) => {
-    const resolvedType = normalizeManagedType(type);
-    if (!ensureRuntimeConflictActionAllowed('Pin/unpin folder branch')) {
-        return;
-    }
-    const folders = getFolderMap(resolvedType);
-    const hierarchyMeta = buildFolderHierarchyMeta(folders);
-    const branchIds = getFolderBranchIds(resolvedType, folderId, hierarchyMeta);
-    if (!branchIds.length) {
-        return;
-    }
-    const current = utils.normalizePrefs(prefsByType[resolvedType]);
-    const pinnedSet = new Set(Array.isArray(current.pinnedFolderIds) ? current.pinnedFolderIds : []);
-    if (pinned) {
-        branchIds.forEach((id) => pinnedSet.add(String(id)));
-    } else {
-        branchIds.forEach((id) => pinnedSet.delete(String(id)));
-    }
-    const next = {
-        ...current,
-        pinnedFolderIds: Array.from(pinnedSet)
-    };
-    const branchLabel = `${branchIds.length} folder${branchIds.length === 1 ? '' : 's'}`;
-    let backup = null;
-    try {
-        backup = await createBackup(resolvedType, pinned ? `before-pin-branch-${folderId}` : `before-unpin-branch-${folderId}`);
-        prefsByType[resolvedType] = await postPrefs(resolvedType, next);
-        await refreshType(resolvedType);
-        if (backup?.name) {
-            await offerUndoAction(resolvedType, backup, pinned ? 'Pin branch' : 'Unpin branch');
-        }
-        showToastMessage({
-            title: pinned ? 'Branch pinned' : 'Branch unpinned',
-            message: `${branchLabel} updated.`,
-            level: 'success',
-            durationMs: 3200
-        });
-    } catch (error) {
-        showError('Branch pin update failed', error);
-    }
-};
-
-const exportFolderBranch = async (type, folderId) => {
-    const resolvedType = normalizeManagedType(type);
-    const folders = getFolderMap(resolvedType);
-    const hierarchyMeta = buildFolderHierarchyMeta(folders);
-    const branchIds = getFolderBranchIds(resolvedType, folderId, hierarchyMeta);
-    if (!branchIds.length) {
-        swal({ title: 'Export failed', text: 'Folder branch no longer exists.', type: 'error' });
-        return;
-    }
-    const branchFolders = {};
-    branchIds.forEach((id) => {
-        if (Object.prototype.hasOwnProperty.call(folders, id)) {
-            branchFolders[id] = folders[id];
-        }
-    });
-    const sourceFolder = folders[String(folderId || '').trim()] || {};
-    const payload = utils.buildFullExportPayload({
-        type: resolvedType,
-        folders: branchFolders,
-        pluginVersion
-    });
-    payload.mode = 'branch';
-    payload.branchRootId = String(folderId || '').trim();
-    payload.branchSize = branchIds.length;
-    const baseName = String(sourceFolder.name || folderId || 'folder-branch').trim() || 'folder-branch';
-    downloadFile(`${baseName}-branch.json`, toPrettyJson(payload));
-    await trackDiagnosticsEvent({
-        eventType: 'export',
-        type: resolvedType,
-        details: {
-            mode: 'branch',
-            folderCount: branchIds.length,
-            schemaVersion: utils.EXPORT_SCHEMA_VERSION
-        }
-    });
-};
-
-const buildRawParentMap = (foldersInput = null) => {
-    const folders = utils.normalizeFolderMap(foldersInput || {});
-    const parentMap = {};
-    for (const [id, folder] of Object.entries(folders)) {
-        const rawParent = typeof folder?.parentId === 'string'
-            ? folder.parentId
-            : (typeof folder?.parent_id === 'string' ? folder.parent_id : '');
-        parentMap[id] = String(rawParent || '').trim();
-    }
-    return { folders, parentMap };
-};
-
-const scanFolderTreeIntegrity = (type, foldersInput = null) => {
-    const resolvedType = normalizeManagedType(type);
-    const { folders, parentMap } = buildRawParentMap(foldersInput || getFolderMap(resolvedType));
-    const ids = Object.keys(folders);
-    const idSet = new Set(ids);
-    const selfParents = [];
-    const orphans = [];
-    const cycles = [];
-
-    ids.forEach((id) => {
-        const parentId = String(parentMap[id] || '').trim();
-        if (!parentId) {
-            return;
-        }
-        if (parentId === id) {
-            selfParents.push(id);
-            return;
-        }
-        if (!idSet.has(parentId)) {
-            orphans.push(id);
-        }
-    });
-
-    const visited = new Set();
-    const inPath = new Set();
-    const traverse = (id, chain = []) => {
-        if (inPath.has(id)) {
-            const startIndex = chain.indexOf(id);
-            if (startIndex >= 0) {
-                cycles.push(chain.slice(startIndex).concat(id));
-            }
-            return;
-        }
-        if (visited.has(id)) {
-            return;
-        }
-        visited.add(id);
-        inPath.add(id);
-        const parentId = String(parentMap[id] || '').trim();
-        if (parentId && idSet.has(parentId)) {
-            traverse(parentId, chain.concat(id));
-        }
-        inPath.delete(id);
-    };
-    ids.forEach((id) => traverse(id, []));
-
-    const hierarchyMeta = buildFolderHierarchyMeta(folders);
-    const childrenById = hierarchyMeta?.childrenById && typeof hierarchyMeta.childrenById === 'object'
-        ? hierarchyMeta.childrenById
-        : {};
-    const depthById = hierarchyMeta?.depthById && typeof hierarchyMeta.depthById === 'object'
-        ? hierarchyMeta.depthById
-        : {};
-    const branchMemberCache = {};
-    const getBranchMemberCount = (id, seen = new Set()) => {
-        const safeId = String(id || '').trim();
-        if (!safeId) {
-            return 0;
-        }
-        if (Object.prototype.hasOwnProperty.call(branchMemberCache, safeId)) {
-            return Number(branchMemberCache[safeId] || 0);
-        }
-        if (seen.has(safeId)) {
-            return 0;
-        }
-        seen.add(safeId);
-        const folder = folders[safeId] || {};
-        const directMembers = (utils && typeof utils.normalizeFolderMembers === 'function')
-            ? utils.normalizeFolderMembers(folder?.containers || []).length
-            : (Array.isArray(folder?.containers) ? folder.containers.length : 0);
-        let total = directMembers;
-        const children = Array.isArray(childrenById[safeId]) ? childrenById[safeId] : [];
-        for (const childId of children) {
-            total += getBranchMemberCount(childId, seen);
-        }
-        seen.delete(safeId);
-        branchMemberCache[safeId] = total;
-        return total;
-    };
-    const depthWarnings = [];
-    const emptyBranches = [];
-    let maxDepth = 0;
-    for (const id of ids) {
-        const depth = Math.max(0, Number(depthById[id] || 0));
-        if (depth > maxDepth) {
-            maxDepth = depth;
-        }
-        if (depth > TREE_INTEGRITY_DEPTH_WARN_LEVEL) {
-            depthWarnings.push({
-                id,
-                name: String(folders[id]?.name || id),
-                depth
-            });
-        }
-        const children = Array.isArray(childrenById[id]) ? childrenById[id] : [];
-        if (children.length <= 0) {
-            continue;
-        }
-        const branchMembers = getBranchMemberCount(id);
-        if (branchMembers <= 0) {
-            emptyBranches.push({
-                id,
-                name: String(folders[id]?.name || id),
-                depth
-            });
-        }
-    }
-
-    return {
-        type: resolvedType,
-        totalFolders: ids.length,
-        selfParents,
-        orphans,
-        cycles,
-        maxDepth,
-        depthWarnings,
-        emptyBranches
-    };
-};
-
-const importFolderBranch = async (type, targetFolderId) => {
-    const resolvedType = normalizeManagedType(type);
-    const targetId = String(targetFolderId || '').trim();
-    const folders = getFolderMap(resolvedType);
-    if (!targetId || !Object.prototype.hasOwnProperty.call(folders, targetId)) {
-        swal({ title: 'Import failed', text: 'Target folder is required.', type: 'error' });
-        return;
-    }
-    if (!ensureRuntimeConflictActionAllowed(`Import ${resolvedType === 'docker' ? 'Docker' : 'VM'} branch`)) {
-        return;
-    }
-    let selected;
-    try {
-        selected = await selectJsonFile();
-    } catch (error) {
-        showError('Import failed', error);
-        return;
-    }
-    if (!selected) {
-        return;
-    }
-    let parsedFile;
-    try {
-        parsedFile = JSON.parse(selected.text);
-    } catch (_error) {
-        swal({ title: 'Import failed', text: 'Invalid JSON file.', type: 'error' });
-        return;
-    }
-    const parsed = utils.parseImportPayload(parsedFile, resolvedType);
-    if (!parsed.ok) {
-        swal({ title: 'Import failed', text: parsed.error || 'Invalid branch payload.', type: 'error' });
-        return;
-    }
-
-    const sourceFolders = parsed.mode === 'single'
-        ? { [String(parsed.folderId || `branch-${Date.now()}`)]: parsed.folder }
-        : utils.normalizeFolderMap(parsed.folders || {});
-    const sourceIds = Object.keys(sourceFolders);
-    if (!sourceIds.length) {
-        swal({ title: 'Import failed', text: 'No folders found in selected file.', type: 'error' });
-        return;
-    }
-    const existingIds = new Set(Object.keys(folders || {}));
-    const remapId = {};
-    const uniqueIdFor = (base, index) => {
-        let candidate = String(base || `branch-${index + 1}`).trim() || `branch-${index + 1}`;
-        candidate = candidate.replace(/[^a-zA-Z0-9._-]+/g, '-').replace(/^-+|-+$/g, '') || `branch-${index + 1}`;
-        if (!existingIds.has(candidate) && !Object.values(remapId).includes(candidate)) {
-            return candidate;
-        }
-        let counter = 1;
-        while (existingIds.has(`${candidate}-${counter}`) || Object.values(remapId).includes(`${candidate}-${counter}`)) {
-            counter += 1;
-        }
-        return `${candidate}-${counter}`;
-    };
-    sourceIds.forEach((sourceId, index) => {
-        remapId[sourceId] = uniqueIdFor(sourceId, index);
-    });
-    const sourceSet = new Set(sourceIds);
-    const upserts = sourceIds.map((sourceId) => {
-        const folder = utils.normalizeFolderMap({ [sourceId]: sourceFolders[sourceId] })[sourceId];
-        const mappedId = remapId[sourceId];
-        const sourceParentId = String(folder?.parentId || '').trim();
-        const remappedParentId = sourceSet.has(sourceParentId)
-            ? remapId[sourceParentId]
-            : targetId;
-        return {
-            id: mappedId,
-            folder: {
-                ...(folder || {}),
-                parentId: remappedParentId
-            }
-        };
-    });
-    const operations = {
-        deletes: [],
-        upserts,
-        creates: []
-    };
-    let backup = null;
-    try {
-        backup = await createBackup(resolvedType, `before-branch-import-${targetId}`);
-        await applyImportOperations(resolvedType, operations);
-        await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
-        await offerUndoAction(resolvedType, backup, 'Branch import');
-        showToastMessage({
-            title: 'Branch imported',
-            message: `Imported ${upserts.length} folder${upserts.length === 1 ? '' : 's'} under ${folders[targetId]?.name || targetId}.`,
-            level: 'success',
-            durationMs: 4200
-        });
-    } catch (error) {
-        showError('Branch import failed', error);
-    }
-};
-
-const normalizeTreeIntegrityOptions = (options) => {
-    if (typeof options === 'boolean') {
-        return { repair: options };
-    }
-    if (!options || typeof options !== 'object') {
-        return { repair: false };
-    }
-    return { repair: options.repair === true };
-};
-
-const runTreeIntegrityCheck = async (type, options = {}) => {
-    const normalizedOptions = normalizeTreeIntegrityOptions(options);
-    const repair = normalizedOptions.repair === true;
-    const resolvedType = normalizeManagedType(type);
-    const report = scanFolderTreeIntegrity(resolvedType);
-    const linkIssueCount = report.selfParents.length + report.orphans.length + report.cycles.length;
-    const advisoryIssueCount = report.depthWarnings.length + report.emptyBranches.length;
-    const totalIssues = linkIssueCount + advisoryIssueCount;
-    if (totalIssues <= 0) {
-        swal({
-            title: 'Tree integrity healthy',
-            text: `${resolvedType.toUpperCase()} nested folder structure has no cycle/orphan/depth/empty-branch issues.`,
-            type: 'success'
-        });
-        return;
-    }
-    if (!repair) {
-        const cyclePreview = report.cycles.slice(0, 3).map((cycle) => cycle.join(' -> ')).join('\n');
-        const depthPreview = report.depthWarnings
-            .slice(0, 4)
-            .map((row) => `${row.name} (depth ${row.depth})`)
-            .join('\n');
-        const emptyBranchPreview = report.emptyBranches
-            .slice(0, 4)
-            .map((row) => `${row.name} (depth ${row.depth})`)
-            .join('\n');
-        const details = [
-            `Self-parent links: ${report.selfParents.length}`,
-            `Orphans: ${report.orphans.length}`,
-            `Cycles: ${report.cycles.length}`,
-            `Depth warnings (> ${TREE_INTEGRITY_DEPTH_WARN_LEVEL}): ${report.depthWarnings.length}`,
-            `Empty branches (no members in subtree): ${report.emptyBranches.length}`,
-            `Max depth: ${report.maxDepth}`,
-            cyclePreview ? `\nCycle preview:\n${cyclePreview}` : ''
-            , depthPreview ? `\nDeep branch preview:\n${depthPreview}` : ''
-            , emptyBranchPreview ? `\nEmpty branch preview:\n${emptyBranchPreview}` : ''
-        ].join('\n');
-        swal({
-            title: 'Tree integrity issues found',
-            text: details,
-            type: 'warning'
-        });
-        return;
-    }
-    if (linkIssueCount <= 0) {
-        swal({
-            title: 'No repairable link issues',
-            text: `Detected ${advisoryIssueCount} advisory issue(s) (depth/empty branch), but no orphan/cycle link errors to auto-repair.`,
-            type: 'info'
-        });
-        return;
-    }
-    const folders = getFolderMap(resolvedType);
-    const toRepairSet = new Set([...report.selfParents, ...report.orphans]);
-    report.cycles.forEach((cycle) => {
-        const first = Array.isArray(cycle) ? String(cycle[0] || '').trim() : '';
-        if (first) {
-            toRepairSet.add(first);
-        }
-    });
-    const toRepair = Array.from(toRepairSet).filter((id) => Object.prototype.hasOwnProperty.call(folders, id));
-    if (!toRepair.length) {
-        return;
-    }
-    if (!ensureRuntimeConflictActionAllowed(`Repair ${resolvedType.toUpperCase()} nested tree integrity`)) {
-        return;
-    }
-    const confirmed = await new Promise((resolve) => {
-        swal({
-            title: 'Repair tree integrity?',
-            text: `This will reset parent links to root for ${toRepair.length} folder(s). Advisory depth/empty-branch warnings are reported but not auto-changed.`,
-            type: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Repair',
-            cancelButtonText: 'Cancel'
-        }, (ok) => resolve(ok === true));
-    });
-    if (!confirmed) {
-        return;
-    }
-    let backup = null;
-    try {
-        backup = await createBackup(resolvedType, `before-tree-integrity-repair-${Date.now()}`);
-        for (const id of toRepair) {
-            const folder = folders[id];
-            await saveFolderRecord(resolvedType, id, {
-                ...folder,
-                parentId: ''
-            });
-        }
-        await refreshType(resolvedType);
-        if (backup?.name) {
-            await offerUndoAction(resolvedType, backup, 'Tree integrity repair');
-        }
-        swal({
-            title: 'Repair complete',
-            text: `Fixed ${toRepair.length} folder link${toRepair.length === 1 ? '' : 's'}. Remaining advisory warnings: ${advisoryIssueCount}.`,
-            type: 'success'
-        });
-    } catch (error) {
-        showError('Tree integrity repair failed', error);
-    }
-};
-
-const toggleFolderTreeCollapse = (type, folderId) => {
-    const resolvedType = normalizeManagedType(type);
-    const safeFolderId = String(folderId || '').trim();
-    if (!safeFolderId) {
-        return;
-    }
-    const folders = getFolderMap(resolvedType);
-    if (!Object.prototype.hasOwnProperty.call(folders, safeFolderId)) {
-        return;
-    }
-    const hierarchyMeta = buildFolderHierarchyMeta(folders);
-    const children = Array.isArray(hierarchyMeta.childrenById[safeFolderId])
-        ? hierarchyMeta.childrenById[safeFolderId]
-        : [];
-    if (children.length <= 0) {
-        return;
-    }
-    const collapsed = syncCollapsedTreeParentsForType(resolvedType, folders, hierarchyMeta);
-    if (collapsed.has(safeFolderId)) {
-        collapsed.delete(safeFolderId);
-    } else {
-        collapsed.add(safeFolderId);
-    }
-    collapsedTreeParentsByType[resolvedType] = collapsed;
-    persistTableUiState();
-    scheduleTableRender(resolvedType);
-};
-
-const expandAllFolderTrees = (type) => {
-    const resolvedType = normalizeManagedType(type);
-    collapsedTreeParentsByType[resolvedType] = new Set();
-    persistTableUiState();
-    scheduleTableRender(resolvedType);
-};
-
-const collapseAllFolderTrees = (type) => {
-    const resolvedType = normalizeManagedType(type);
-    const folders = getFolderMap(resolvedType);
-    const hierarchyMeta = buildFolderHierarchyMeta(folders);
-    const collapsed = new Set();
-    Object.entries(hierarchyMeta.childrenById || {}).forEach(([folderId, children]) => {
-        if (Array.isArray(children) && children.length > 0) {
-            collapsed.add(String(folderId || ''));
-        }
-    });
-    collapsedTreeParentsByType[resolvedType] = collapsed;
-    persistTableUiState();
-    scheduleTableRender(resolvedType);
-};
-
-const getOrderedFolderIdsForTreeOps = (type) => {
-    const resolvedType = normalizeManagedType(type);
-    const orderedMap = utils.orderFoldersByPrefs(getFolderMap(resolvedType), prefsByType[resolvedType] || {});
-    return Object.keys(orderedMap);
-};
-
-const findLastMatchingOrderIndex = (orderIds, candidateIds) => {
-    const list = Array.isArray(orderIds) ? orderIds : [];
-    const candidates = new Set(Array.isArray(candidateIds) ? candidateIds : []);
-    for (let index = list.length - 1; index >= 0; index -= 1) {
-        if (candidates.has(String(list[index] || ''))) {
-            return index;
-        }
-    }
-    return -1;
-};
-
-const clearFolderTreeMoveError = (type, folderId, { rerender = true } = {}) => {
-    const resolvedType = normalizeManagedType(type);
-    const safeFolderId = String(folderId || '').trim();
-    if (!safeFolderId) {
-        return;
-    }
-    if (folderTreeMoveErrorTimersByType[resolvedType]?.[safeFolderId]) {
-        window.clearTimeout(folderTreeMoveErrorTimersByType[resolvedType][safeFolderId]);
-        delete folderTreeMoveErrorTimersByType[resolvedType][safeFolderId];
-    }
-    if (folderTreeMoveErrorsByType[resolvedType]?.[safeFolderId]) {
-        delete folderTreeMoveErrorsByType[resolvedType][safeFolderId];
-        if (rerender) {
-            scheduleTableRender(resolvedType);
-        }
-    }
-};
-
-const setFolderTreeMoveError = (type, folderId, message) => {
-    const resolvedType = normalizeManagedType(type);
-    const safeFolderId = String(folderId || '').trim();
-    const safeMessage = String(message || '').trim();
-    if (!safeFolderId || !safeMessage) {
-        return;
-    }
-    folderTreeMoveErrorsByType[resolvedType][safeFolderId] = safeMessage;
-    if (folderTreeMoveErrorTimersByType[resolvedType]?.[safeFolderId]) {
-        window.clearTimeout(folderTreeMoveErrorTimersByType[resolvedType][safeFolderId]);
-    }
-    folderTreeMoveErrorTimersByType[resolvedType][safeFolderId] = window.setTimeout(() => {
-        clearFolderTreeMoveError(resolvedType, safeFolderId);
-    }, 7000);
-    scheduleTableRender(resolvedType);
-};
-
-const getFolderInheritanceFlags = (folder) => {
-    const settings = (folder && typeof folder.settings === 'object' && folder.settings !== null)
-        ? folder.settings
-        : {};
-    return {
-        icon: settings.inherit_parent_icon === true,
-        status: settings.inherit_parent_status === true,
-        runtime: settings.inherit_parent_runtime === true
-    };
-};
-
-const resolveInheritedFolderIcon = (type, folderId, foldersInput = null, hierarchyMeta = null) => {
-    const resolvedType = normalizeManagedType(type);
-    const folders = utils.normalizeFolderMap(foldersInput || getFolderMap(resolvedType));
-    const sourceId = String(folderId || '').trim();
-    if (!sourceId || !Object.prototype.hasOwnProperty.call(folders, sourceId)) {
-        return '/plugins/folderview.plus/images/folder-icon.png';
-    }
-    const meta = hierarchyMeta || buildFolderHierarchyMeta(folders);
-    const sourceFolder = folders[sourceId];
-    const sourceFlags = getFolderInheritanceFlags(sourceFolder);
-    const ownIcon = String(sourceFolder?.icon || '').trim();
-    if (!sourceFlags.icon) {
-        return ownIcon || '/plugins/folderview.plus/images/folder-icon.png';
-    }
-    const visited = new Set([sourceId]);
-    let cursor = String(meta.parentById?.[sourceId] || '').trim();
-    while (cursor && !visited.has(cursor) && Object.prototype.hasOwnProperty.call(folders, cursor)) {
-        visited.add(cursor);
-        const folder = folders[cursor];
-        const icon = String(folder?.icon || '').trim();
-        if (icon) {
-            return icon;
-        }
-        const flags = getFolderInheritanceFlags(folder);
-        if (!flags.icon) {
-            break;
-        }
-        cursor = String(meta.parentById?.[cursor] || '').trim();
-    }
-    return ownIcon || '/plugins/folderview.plus/images/folder-icon.png';
-};
+const setFolderBranchPinned = (...args) => getSettingsRuntimeActionsApi().setFolderBranchPinned(...args);
+const exportFolderBranch = (...args) => getSettingsRuntimeActionsApi().exportFolderBranch(...args);
+const importFolderBranch = (...args) => getSettingsRuntimeActionsApi().importFolderBranch(...args);
+const runTreeIntegrityCheck = (...args) => getSettingsRuntimeActionsApi().runTreeIntegrityCheck(...args);
 
 const resolveFolderStatusWarnThresholdForId = ({
     type,
@@ -7558,174 +6120,6 @@ const persistManualOrder = async (type, order, { refresh = true } = {}) => {
     }
 };
 
-const moveFolderRow = async (type, folderId, direction) => {
-    const resolvedType = normalizeManagedType(type);
-    if (!ensureRuntimeConflictActionAllowed(`Reorder ${resolvedType === 'docker' ? 'Docker' : 'VM'} folders`)) {
-        return;
-    }
-
-    const safeFolderId = String(folderId || '').trim();
-    if (!safeFolderId) {
-        return;
-    }
-
-    let sortMode = prefsByType[resolvedType]?.sortMode || 'created';
-    if (sortMode !== 'manual') {
-        await changeSortMode(resolvedType, 'manual');
-        sortMode = 'manual';
-    }
-
-    if (sortMode !== 'manual') {
-        return;
-    }
-
-    if (direction !== -1 && direction !== 1) {
-        return;
-    }
-
-    const folders = getFolderMap(resolvedType);
-    if (!Object.prototype.hasOwnProperty.call(folders, safeFolderId)) {
-        setFolderTreeMoveError(resolvedType, safeFolderId, 'Folder no longer exists.');
-        return;
-    }
-
-    const hierarchyMeta = buildFolderHierarchyMeta(folders);
-    const parentById = hierarchyMeta.parentById || {};
-    const currentParentId = String(parentById[safeFolderId] || '').trim();
-    const fullOrder = getOrderedFolderIdsForTreeOps(resolvedType);
-    const siblingIds = fullOrder.filter((id) => String(parentById[id] || '').trim() === currentParentId);
-    const sourceSiblingIndex = siblingIds.indexOf(safeFolderId);
-    if (sourceSiblingIndex < 0) {
-        setFolderTreeMoveError(resolvedType, safeFolderId, 'Folder order could not be resolved.');
-        return;
-    }
-
-    const targetSiblingIndex = sourceSiblingIndex + direction;
-    if (targetSiblingIndex < 0 || targetSiblingIndex >= siblingIds.length) {
-        setFolderTreeMoveError(
-            resolvedType,
-            safeFolderId,
-            direction < 0
-                ? 'Already first in this level. Use Tree move to change level.'
-                : 'Already last in this level. Use Tree move to change level.'
-        );
-        return;
-    }
-
-    const targetSiblingId = String(siblingIds[targetSiblingIndex] || '').trim();
-    if (!targetSiblingId) {
-        setFolderTreeMoveError(resolvedType, safeFolderId, 'No sibling found for this move.');
-        return;
-    }
-
-    const sourceSubtreeIds = [safeFolderId, ...(hierarchyMeta.descendantsById[safeFolderId] || [])];
-    const targetSubtreeIds = [targetSiblingId, ...(hierarchyMeta.descendantsById[targetSiblingId] || [])];
-    const sourceSubtreeSet = new Set(sourceSubtreeIds);
-    const orderWithoutSource = fullOrder.filter((id) => !sourceSubtreeSet.has(String(id || '')));
-    let insertIndex = orderWithoutSource.length;
-    if (direction < 0) {
-        const firstTargetIndex = orderWithoutSource.findIndex((id) => targetSubtreeIds.includes(String(id || '')));
-        insertIndex = firstTargetIndex >= 0 ? firstTargetIndex : orderWithoutSource.length;
-    } else {
-        const lastTargetIndex = findLastMatchingOrderIndex(orderWithoutSource, targetSubtreeIds);
-        insertIndex = lastTargetIndex >= 0 ? (lastTargetIndex + 1) : orderWithoutSource.length;
-    }
-    const nextOrder = orderWithoutSource.slice();
-    nextOrder.splice(Math.max(0, Math.min(insertIndex, nextOrder.length)), 0, ...sourceSubtreeIds);
-    const orderChanged = nextOrder.length === fullOrder.length
-        && nextOrder.some((id, index) => String(id || '') !== String(fullOrder[index] || ''));
-    if (!orderChanged) {
-        setFolderTreeMoveError(resolvedType, safeFolderId, 'Folder is already in that position.');
-        return;
-    }
-
-    let backup = null;
-
-    try {
-        clearFolderTreeMoveError(resolvedType, safeFolderId, { rerender: false });
-        backup = await createBackup(resolvedType, `before-reorder-${safeFolderId}`);
-        await persistManualOrder(resolvedType, nextOrder, { refresh: false });
-        await refreshType(resolvedType);
-        if (backup?.name) {
-            await recordTreeMoveHistoryFromBackup(resolvedType, backup.name, 'Reorder folders', safeFolderId);
-        }
-        const sourceName = String(folders[safeFolderId]?.name || safeFolderId);
-        const targetName = String(folders[targetSiblingId]?.name || targetSiblingId);
-        addActivityEntry(`Reordered folder: ${sourceName} ${direction < 0 ? 'before' : 'after'} ${targetName}.`, 'success');
-        focusFolderRow(resolvedType, safeFolderId);
-    } catch (error) {
-        await refreshType(resolvedType);
-        setFolderTreeMoveError(resolvedType, safeFolderId, error?.message || 'Order save failed.');
-        showError('Order save failed', error);
-    }
-};
-
-const handleFolderRowKeydown = (type, folderId, event) => {
-    if (!event) {
-        return;
-    }
-    if (!event.altKey) {
-        return;
-    }
-    if (event.key === 'ArrowUp') {
-        event.preventDefault();
-        void moveFolderRow(type, folderId, -1);
-        return;
-    }
-    if (event.key === 'ArrowDown') {
-        event.preventDefault();
-        void moveFolderRow(type, folderId, 1);
-    }
-};
-
-const renderFolderSelectOptions = (type) => {
-    const folders = getFolderMap(type);
-    const entries = Object.entries(folders);
-    const hasFolders = entries.length > 0;
-    const setOptionsPreserveValue = (selector, html, disabled) => {
-        const select = $(selector);
-        if (!select.length) {
-            return;
-        }
-        const previous = String(select.val() || '').trim();
-        select.html(html).prop('disabled', disabled === true);
-        if (!previous) {
-            return;
-        }
-        const hasPrevious = select.find('option').toArray().some((option) => String(option.value || '') === previous);
-        if (hasPrevious) {
-            select.val(previous);
-        }
-    };
-
-    const simpleOptions = hasFolders
-        ? entries.map(([id, folder]) => `<option value="${escapeHtml(id)}">${escapeHtml(folder.name || id)}</option>`).join('')
-        : '<option value="">(Create a folder first)</option>';
-    let bulkOptions = '<option value="">(Create a folder first)</option>';
-    if (hasFolders) {
-        const hierarchyMeta = buildFolderHierarchyMeta(folders);
-        const orderedIds = getOrderedFolderIdsForTreeOps(type);
-        bulkOptions = orderedIds.map((id) => {
-            if (!Object.prototype.hasOwnProperty.call(folders, id)) {
-                return '';
-            }
-            const depth = Math.max(0, Number(hierarchyMeta.depthById?.[id] || 0));
-            const indent = depth > 0 ? '&nbsp;'.repeat(Math.min(12, depth) * 2) : '';
-            const label = buildFolderPathLabel(type, id, folders, hierarchyMeta);
-            return `<option value="${escapeHtml(id)}">${indent}${escapeHtml(label)}</option>`;
-        }).join('');
-    }
-
-    setOptionsPreserveValue(`#${type}-rule-folder`, simpleOptions, !hasFolders);
-    setOptionsPreserveValue(`#${type}-bulk-folder`, bulkOptions, !hasFolders);
-    setOptionsPreserveValue(`#${type}-template-source-folder`, simpleOptions, !hasFolders);
-    setOptionsPreserveValue(`#${type}-runtime-folder`, simpleOptions, !hasFolders);
-    $(`#${type}-bulk-assign-btn`).prop('disabled', !hasFolders);
-    if (!hasFolders) {
-        $(`#${type}-bulk-help`).text('Create at least one folder first, then assign items here.');
-    }
-};
-
 const renderBadgeToggles = (type) => {
     const badges = prefsByType[type]?.badges || {};
     $(`#${type}-badge-running`).prop('checked', badges.running !== false);
@@ -7838,10 +6232,6 @@ const renderVisibilityControls = (type) => {
         ? utils.normalizeAppColumnWidth(prefs.appColumnWidth)
         : (['compact', 'wide'].includes(String(prefs.appColumnWidth || '').toLowerCase()) ? String(prefs.appColumnWidth || '').toLowerCase() : 'standard');
     $(`#${type}-app-column-width`).val(appColumnWidth);
-    const folderEditorMode = typeof utils.normalizeFolderEditorMode === 'function'
-        ? utils.normalizeFolderEditorMode(prefs.folderEditorMode)
-        : (String(prefs.folderEditorMode || '').trim().toLowerCase() === 'modern' ? 'modern' : 'legacy');
-    $(`#${type}-folder-editor-modern`).prop('checked', folderEditorMode === 'modern');
 };
 
 const renderBackupScheduleControls = (type) => {
@@ -7882,223 +6272,9 @@ const renderQuickFolderFilters = (type) => {
     });
 };
 
-const buildHealthCardHtml = (type, metrics, healthPrefs) => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const title = resolvedType === 'docker' ? 'Docker' : 'VMs';
-    const severityClass = metrics.severity === 'danger'
-        ? 'is-danger'
-        : (metrics.severity === 'warning' ? 'is-warning' : 'is-healthy');
-    const statusText = metrics.severity === 'danger'
-        ? 'Action needed'
-        : (metrics.severity === 'warning' ? 'Watch list' : 'Healthy');
-    const statusIcon = metrics.severity === 'danger'
-        ? 'fa-exclamation-triangle'
-        : (metrics.severity === 'warning' ? 'fa-eye' : 'fa-check-circle');
-    const compactClass = healthPrefs.compact ? 'is-compact' : '';
-    const activeFilter = normalizeHealthFilterMode(healthFilterByType[resolvedType]);
-    const totalRegexIssues = metrics.invalidFolderRegexCount + metrics.invalidRuleRegexCount;
-    const folderCount = Number(metrics.folderCount) || 0;
-    const attentionCount = Number(metrics.attentionCount) || 0;
-    const emptyCount = Number(metrics.folderStatusTotals?.empty) || 0;
-    const stoppedFolderCount = Number(metrics.folderStatusTotals?.stopped) || 0;
-    const conflictCount = Number(metrics.conflictItemCount) || 0;
-    const stoppedMembers = Number(metrics.memberTotals?.stopped) || 0;
-    const totalMembers = Number(metrics.memberTotals?.total) || 0;
-    const maintenanceCount = Number(metrics.healthSeverityTotals?.maintenance) || 0;
-    const summaryHeadline = folderCount <= 0
-        ? `No ${title.toLowerCase()} folders are configured yet.`
-        : (attentionCount > 0
-            ? `${attentionCount} ${title.toLowerCase()} folder${attentionCount === 1 ? '' : 's'} need review.`
-            : `${folderCount} ${title.toLowerCase()} folder${folderCount === 1 ? '' : 's'} look healthy.`);
-    const detailParts = [];
-    if (folderCount > 0) {
-        detailParts.push(`${folderCount} folder${folderCount === 1 ? '' : 's'} tracked`);
-        if (totalMembers > 0) {
-            detailParts.push(`${stoppedMembers}/${totalMembers} members stopped`);
-        }
-        if (emptyCount > 0) {
-            detailParts.push(`${emptyCount} empty`);
-        }
-        if (stoppedFolderCount > 0) {
-            detailParts.push(`${stoppedFolderCount} fully stopped`);
-        }
-        if (conflictCount > 0) {
-            detailParts.push(`${conflictCount} conflict${conflictCount === 1 ? '' : 's'}`);
-        }
-        if (totalRegexIssues > 0) {
-            detailParts.push(`${totalRegexIssues} invalid regex`);
-        } else if (maintenanceCount > 0) {
-            detailParts.push(`${maintenanceCount} maintenance folder${maintenanceCount === 1 ? '' : 's'}`);
-        }
-    }
-    const summaryDetail = folderCount <= 0
-        ? 'Create folders in the Docker or VM table before health tracking can surface issues here.'
-        : `${detailParts.join(' - ')}.`;
-    const filterLabelMap = {
-        all: `All (${folderCount})`,
-        attention: `Attention (${attentionCount})`,
-        empty: `Empty (${emptyCount})`,
-        stopped: `Stopped (${stoppedFolderCount})`,
-        conflict: `Conflict (${conflictCount})`
-    };
-    const pillItems = [
-        ['Folders', folderCount],
-        ['Attention', attentionCount],
-        ['Stopped %', `${escapeHtml(String(metrics.stoppedPercent ?? 0))}%`],
-        ['Conflicts', conflictCount],
-        ['Regex', totalRegexIssues]
-    ].filter(([, value]) => value !== 0 && value !== '0%' && value !== '0');
-    const filterButton = (mode, label) => {
-        const active = activeFilter === mode ? 'is-active' : '';
-        return `<button type="button" class="folder-health-filter ${active}" data-fv-health-filter="${escapeHtml(mode)}" data-fv-health-type="${escapeHtml(resolvedType)}">${escapeHtml(label)}</button>`;
-    };
-
-    return `
-        <section class="folder-health-card ${severityClass} ${compactClass}">
-            <div class="folder-health-card-top">
-                <span class="folder-health-card-label">${escapeHtml(title)}</span>
-                <span class="folder-health-card-badge"><i class="fa ${statusIcon}" aria-hidden="true"></i>${escapeHtml(statusText)}</span>
-            </div>
-            <div class="folder-health-card-headline">${escapeHtml(summaryHeadline)}</div>
-            <div class="folder-health-card-detail">${escapeHtml(summaryDetail)}</div>
-            <div class="folder-health-pill-row">
-                ${pillItems.map(([label, value]) => `<span class="folder-health-pill"><span>${escapeHtml(label)}</span><strong>${value}</strong></span>`).join('')}
-            </div>
-            <div class="folder-health-filter-row">
-                ${filterButton('all', filterLabelMap.all)}
-                ${filterButton('attention', filterLabelMap.attention)}
-                ${filterButton('empty', filterLabelMap.empty)}
-                ${filterButton('stopped', filterLabelMap.stopped)}
-                ${filterButton('conflict', filterLabelMap.conflict)}
-            </div>
-            <div class="backup-actions folder-health-actions">
-                <button type="button" data-fv-health-action="jump-table" data-fv-health-type="${escapeHtml(resolvedType)}"><i class="fa fa-table"></i> Open ${escapeHtml(title)} table</button>
-                <button type="button" data-fv-health-action="scan-conflicts" data-fv-health-type="${escapeHtml(resolvedType)}"><i class="fa fa-search"></i> Scan conflicts</button>
-            </div>
-        </section>
-    `;
-};
-
-const buildCleanHealthCardHtml = (type, metrics, healthPrefs) => {
-    const resolvedType = type === 'vm' ? 'vm' : 'docker';
-    const title = resolvedType === 'docker' ? 'Docker' : 'VMs';
-    const severityClass = metrics.severity === 'danger'
-        ? 'is-danger'
-        : (metrics.severity === 'warning' ? 'is-warning' : 'is-healthy');
-    const statusText = metrics.severity === 'danger'
-        ? 'Action needed'
-        : (metrics.severity === 'warning' ? 'Watch list' : 'Healthy');
-    const statusIcon = metrics.severity === 'danger'
-        ? 'fa-exclamation-triangle'
-        : (metrics.severity === 'warning' ? 'fa-eye' : 'fa-check-circle');
-    const compactClass = healthPrefs.compact ? 'is-compact' : '';
-    const activeFilter = normalizeHealthFilterMode(healthFilterByType[resolvedType]);
-    const totalRegexIssues = Number(metrics.invalidFolderRegexCount || 0) + Number(metrics.invalidRuleRegexCount || 0);
-    const folderCount = Number(metrics.folderCount) || 0;
-    const attentionCount = Number(metrics.attentionCount) || 0;
-    const emptyCount = Number(metrics.folderStatusTotals?.empty) || 0;
-    const stoppedFolderCount = Number(metrics.folderStatusTotals?.stopped) || 0;
-    const conflictCount = Number(metrics.conflictItemCount) || 0;
-    const stoppedMembers = Number(metrics.memberTotals?.stopped) || 0;
-    const totalMembers = Number(metrics.memberTotals?.total) || 0;
-    const maintenanceCount = Number(metrics.healthSeverityTotals?.maintenance) || 0;
-    const stoppedPercent = `${String(metrics.stoppedPercent ?? 0)}%`;
-    const summaryHeadline = folderCount <= 0
-        ? `No ${title.toLowerCase()} folders are configured yet.`
-        : (attentionCount > 0
-            ? `${attentionCount} ${title.toLowerCase()} folder${attentionCount === 1 ? '' : 's'} need review.`
-            : `${folderCount} ${title.toLowerCase()} folder${folderCount === 1 ? '' : 's'} look healthy.`);
-    const summaryDetail = folderCount <= 0
-        ? 'Create folders in the Docker or VM table to start tracking health here.'
-        : (attentionCount > 0
-            ? 'Use the issue chips or quick filters below to jump straight to the folders that need attention.'
-            : 'No empty, conflicting, or fully stopped folders need action right now.');
-    const coreStats = [
-        ['Folders', String(folderCount)],
-        ['Attention', String(attentionCount)],
-        ['Stopped %', stoppedPercent]
-    ];
-    const issueChips = [
-        emptyCount > 0 ? `${emptyCount} empty` : '',
-        stoppedFolderCount > 0 ? `${stoppedFolderCount} stopped` : '',
-        conflictCount > 0 ? `${conflictCount} conflict${conflictCount === 1 ? '' : 's'}` : '',
-        totalRegexIssues > 0 ? `${totalRegexIssues} invalid regex` : '',
-        totalRegexIssues <= 0 && maintenanceCount > 0 ? `${maintenanceCount} maintenance` : '',
-        totalMembers > 0 && stoppedMembers > 0 ? `${stoppedMembers}/${totalMembers} members stopped` : ''
-    ].filter((value) => value !== '');
-    const filterLabelMap = {
-        all: 'All',
-        attention: 'Attention',
-        empty: 'Empty',
-        stopped: 'Stopped',
-        conflict: 'Conflict'
-    };
-    const filterButton = (mode, label) => {
-        const active = activeFilter === mode ? 'is-active' : '';
-        return `<button type="button" class="folder-health-filter ${active}" data-fv-health-filter="${escapeHtml(mode)}" data-fv-health-type="${escapeHtml(resolvedType)}">${escapeHtml(label)}</button>`;
-    };
-    const secondaryActionHtml = conflictCount > 0
-        ? `<button type="button" data-fv-health-action="scan-conflicts" data-fv-health-type="${escapeHtml(resolvedType)}"><i class="fa fa-search"></i> Review conflicts</button>`
-        : (attentionCount > 0
-            ? `<button type="button" data-fv-health-action="jump-table" data-fv-health-mode="attention" data-fv-health-type="${escapeHtml(resolvedType)}"><i class="fa fa-filter"></i> Show attention</button>`
-            : '');
-
-    return `
-        <section class="folder-health-card ${severityClass} ${compactClass}">
-            <div class="folder-health-card-top">
-                <span class="folder-health-card-label">${escapeHtml(title)}</span>
-                <span class="folder-health-card-badge"><i class="fa ${statusIcon}" aria-hidden="true"></i>${escapeHtml(statusText)}</span>
-            </div>
-            <div class="folder-health-card-headline">${escapeHtml(summaryHeadline)}</div>
-            <div class="folder-health-card-detail">${escapeHtml(summaryDetail)}</div>
-            <div class="folder-health-stat-grid">
-                ${coreStats.map(([label, value]) => `
-                    <div class="folder-health-stat-card">
-                        <span class="folder-health-stat-label">${escapeHtml(label)}</span>
-                        <strong class="folder-health-stat-value">${escapeHtml(value)}</strong>
-                    </div>
-                `).join('')}
-            </div>
-            ${issueChips.length > 0 ? `
-                <div class="folder-health-issue-row">
-                    ${issueChips.map((label) => `<span class="folder-health-issue-chip">${escapeHtml(label)}</span>`).join('')}
-                </div>
-            ` : ''}
-            <div class="folder-health-filter-row">
-                ${filterButton('all', filterLabelMap.all)}
-                ${filterButton('attention', filterLabelMap.attention)}
-                ${filterButton('empty', filterLabelMap.empty)}
-                ${filterButton('stopped', filterLabelMap.stopped)}
-                ${filterButton('conflict', filterLabelMap.conflict)}
-            </div>
-            <div class="backup-actions folder-health-actions">
-                <button type="button" data-fv-health-action="jump-table" data-fv-health-type="${escapeHtml(resolvedType)}"><i class="fa fa-table"></i> Open ${escapeHtml(title)} table</button>
-                ${secondaryActionHtml}
-            </div>
-        </section>
-    `;
-};
-
-const renderFolderHealthCards = () => {
-    const container = $('#folder-health-content');
-    if (!container.length) {
-        return;
-    }
-    const cards = [];
-    for (const type of ['docker', 'vm']) {
-        const healthPrefs = normalizeHealthPrefs(type);
-        if (healthPrefs.cardsEnabled !== true) {
-            continue;
-        }
-        const metrics = healthMetricsByType[type] || buildTypeHealthMetrics(type, getFolderMap(type), getEffectiveMemberSnapshot(type, getFolderMap(type)));
-        cards.push(buildCleanHealthCardHtml(type, metrics, healthPrefs));
-    }
-    if (!cards.length) {
-        container.html('<div class="folder-health-empty">Health cards are disabled. Enable them in Docker or VM settings cards.</div>');
-        return;
-    }
-    container.html(cards.join(''));
-};
+const buildHealthCardHtml = (...args) => getSettingsHealthApi().buildHealthCardHtml(...args);
+const buildCleanHealthCardHtml = (...args) => getSettingsHealthApi().buildCleanHealthCardHtml(...args);
+const renderFolderHealthCards = (...args) => getSettingsHealthApi().renderFolderHealthCards(...args);
 
 const RULE_REGEX_KINDS = Object.freeze(['name_regex', 'image_regex', 'compose_project_regex']);
 const RULE_LABEL_KINDS = Object.freeze(['label', 'label_contains', 'label_starts_with']);
@@ -8382,577 +6558,15 @@ const renderRulesTable = (type) => {
     rulesBody.html(cards.join(''));
 };
 
-const getBulkAssignableNames = (type) => {
-    const names = new Set();
-    const infoByName = infoByType[type] || {};
-    for (const name of Object.keys(infoByName || {})) {
-        const safeName = String(name || '').trim();
-        if (safeName) {
-            names.add(safeName);
-        }
-    }
-    const folders = getFolderMap(type);
-    for (const folder of Object.values(folders || {})) {
-        const members = (utils && typeof utils.normalizeFolderMembers === 'function')
-            ? utils.normalizeFolderMembers(folder?.containers || [])
-            : (Array.isArray(folder?.containers) ? folder.containers.map((value) => String(value || '').trim()).filter(Boolean) : []);
-        for (const member of members) {
-            const safeName = String(member || '').trim();
-            if (safeName) {
-                names.add(safeName);
-            }
-        }
-    }
-    return Array.from(names).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true }));
-};
+const getBulkAssignableNames = (...args) => getBulkAssignmentApi().getBulkAssignableNames(...args);
+const clearBulkExecutionState = (...args) => getBulkAssignmentApi().clearBulkExecutionState(...args);
 
-const getBulkItemsFilterQuery = (type) => {
-    const resolvedType = normalizeManagedType(type);
-    const fromState = normalizedFilter(filtersByType[resolvedType]?.bulk);
-    if (fromState) {
-        return fromState;
-    }
-    return normalizedFilter($(`#${resolvedType}-bulk-filter`).val());
-};
+const renderBulkResultPanel = (...args) => getBulkAssignmentApi().renderBulkResultPanel(...args);
+const updateBulkResultActions = (...args) => getBulkAssignmentApi().updateBulkResultActions(...args);
 
-const getBulkMemberFolderLookup = (type, foldersInput = null) => {
-    const resolvedType = normalizeManagedType(type);
-    const folders = utils.normalizeFolderMap(foldersInput || getFolderMap(resolvedType));
-    const byName = {};
-    const conflicts = {};
-    for (const [folderId, folder] of Object.entries(folders || {})) {
-        const members = (utils && typeof utils.normalizeFolderMembers === 'function')
-            ? utils.normalizeFolderMembers(folder?.containers || [])
-            : (Array.isArray(folder?.containers) ? folder.containers.map((value) => String(value || '').trim()).filter(Boolean) : []);
-        for (const member of members) {
-            const safeName = sanitizeBulkItemName(member);
-            if (!safeName) {
-                continue;
-            }
-            const previousFolderId = String(byName[safeName] || '').trim();
-            if (!previousFolderId) {
-                byName[safeName] = folderId;
-                continue;
-            }
-            if (previousFolderId === folderId) {
-                continue;
-            }
-            if (!Array.isArray(conflicts[safeName])) {
-                conflicts[safeName] = [previousFolderId];
-            }
-            if (!conflicts[safeName].includes(folderId)) {
-                conflicts[safeName].push(folderId);
-            }
-        }
-    }
-    return { byName, conflicts };
-};
-
-const normalizeBulkSelectionForType = (type) => {
-    const state = getBulkState(type);
-    const validNames = new Set((state.allNames || []).map((name) => sanitizeBulkItemName(name)).filter(Boolean));
-    const normalized = new Set();
-    for (const value of Array.from(state.selected || [])) {
-        const safeName = sanitizeBulkItemName(value);
-        if (!safeName || !validNames.has(safeName)) {
-            continue;
-        }
-        normalized.add(safeName);
-    }
-    state.selected = normalized;
-};
-
-const syncBulkLegacySelect = (type, names, { disabled = false } = {}) => {
-    const selectEl = document.getElementById(`${type}-bulk-items`);
-    if (!(selectEl instanceof HTMLSelectElement)) {
-        return;
-    }
-    const state = getBulkState(type);
-    const safeNames = Array.isArray(names)
-        ? names.map((name) => sanitizeBulkItemName(name)).filter(Boolean)
-        : [];
-    if (!safeNames.length) {
-        selectEl.innerHTML = '<option value="" disabled>(No items detected yet)</option>';
-        selectEl.disabled = true;
-        return;
-    }
-    const selected = state.selected || new Set();
-    const options = safeNames
-        .map((name) => {
-            const isSelected = selected.has(name) ? ' selected' : '';
-            return `<option value="${escapeHtml(name)}"${isSelected}>${escapeHtml(name)}</option>`;
-        })
-        .join('');
-    selectEl.innerHTML = options;
-    selectEl.disabled = disabled === true;
-};
-
-const clearBulkExecutionState = (type) => {
-    const state = getBulkState(type);
-    state.failedNames = [];
-    state.lastResult = null;
-};
-
-const updateBulkStepState = (type, plan) => {
-    const root = document.querySelector(`.bulk-module[data-fv-bulk-type="${normalizeManagedType(type)}"]`);
-    if (!(root instanceof HTMLElement)) {
-        return;
-    }
-    const state = getBulkState(type);
-    const hasTarget = Boolean(plan?.targetFolderId);
-    const hasSelection = Array.isArray(plan?.selectedNames) && plan.selectedNames.length > 0;
-    const hasResult = !!(state.lastResult && typeof state.lastResult === 'object');
-    const activeStep = !hasTarget ? 'target' : (!hasSelection ? 'select' : 'review');
-    root.setAttribute('data-fv-bulk-active-step', activeStep);
-    root.querySelectorAll('.bulk-step-pill[data-fv-bulk-step]').forEach((pill) => {
-        if (!(pill instanceof HTMLElement)) {
-            return;
-        }
-        const step = String(pill.getAttribute('data-fv-bulk-step') || '').trim().toLowerCase();
-        const isComplete = (step === 'target' && hasTarget)
-            || (step === 'select' && hasSelection)
-            || (step === 'review' && hasResult && state.applying !== true);
-        pill.classList.toggle('is-active', step === activeStep);
-        pill.classList.toggle('is-complete', isComplete);
-    });
-};
-
-const updateBulkSummaryCards = (type, plan) => {
-    const state = getBulkState(type);
-    const availableCount = Array.isArray(state.allNames) ? state.allNames.length : 0;
-    const visibleNames = Array.isArray(state.visibleNames) ? state.visibleNames : [];
-    const visibleSelectedCount = visibleNames.filter((name) => state.selected.has(name)).length;
-    const hiddenSelectedCount = Math.max(0, (plan?.selectedNames || []).length - visibleSelectedCount);
-    const summaryValues = [
-        {
-            id: `${type}-bulk-target-summary`,
-            value: plan?.targetFolderName || 'Choose a folder',
-            title: plan?.targetFolderName || 'Pick a target folder before selecting items.',
-            ready: Boolean(plan?.targetFolderId)
-        },
-        {
-            id: `${type}-bulk-available-summary`,
-            value: String(availableCount),
-            title: `${availableCount} item${availableCount === 1 ? '' : 's'} available for assignment.`,
-            ready: availableCount > 0
-        },
-        {
-            id: `${type}-bulk-selected-summary`,
-            value: String((plan?.selectedNames || []).length),
-            title: hiddenSelectedCount > 0
-                ? `${hiddenSelectedCount} selected item${hiddenSelectedCount === 1 ? '' : 's'} hidden by the current filter.`
-                : `${(plan?.selectedNames || []).length} item${(plan?.selectedNames || []).length === 1 ? '' : 's'} selected.`,
-            ready: (plan?.selectedNames || []).length > 0
-        },
-        {
-            id: `${type}-bulk-action-summary`,
-            value: String((plan?.actionableNames || []).length),
-            title: plan?.targetFolderId
-                ? `${(plan?.actionableNames || []).length} item${(plan?.actionableNames || []).length === 1 ? '' : 's'} will change folders.`
-                : 'Select a target folder to see how many items will change.',
-            ready: (plan?.actionableNames || []).length > 0
-        }
-    ];
-    for (const entry of summaryValues) {
-        const node = document.getElementById(entry.id);
-        if (!(node instanceof HTMLElement)) {
-            continue;
-        }
-        node.textContent = entry.value;
-        node.title = entry.title;
-        const card = node.closest('.bulk-summary-card');
-        if (card instanceof HTMLElement) {
-            card.classList.toggle('is-ready', entry.ready === true);
-            card.classList.toggle('is-empty', entry.ready !== true);
-        }
-    }
-};
-
-const updateBulkPrimaryAction = (type, plan) => {
-    const button = document.getElementById(`${type}-bulk-assign-btn`);
-    if (!(button instanceof HTMLButtonElement)) {
-        return;
-    }
-    const state = getBulkState(type);
-    const folderSelect = document.getElementById(`${type}-bulk-folder`);
-    const folderSelectDisabled = folderSelect instanceof HTMLSelectElement && folderSelect.disabled === true;
-    let icon = 'fa-list-alt';
-    let label = 'Preview changes';
-    let disabled = false;
-    if (state.applying === true) {
-        icon = 'fa-spinner fa-spin';
-        label = 'Applying changes';
-        disabled = true;
-    } else if (folderSelectDisabled) {
-        icon = 'fa-folder-open-o';
-        label = 'Create a folder first';
-        disabled = true;
-    } else if (!plan?.targetFolderId) {
-        icon = 'fa-crosshairs';
-        label = 'Choose target first';
-        disabled = true;
-    } else if (!Array.isArray(plan?.selectedNames) || plan.selectedNames.length <= 0) {
-        icon = 'fa-check-square-o';
-        label = 'Select items first';
-        disabled = true;
-    } else if (!Array.isArray(plan?.actionableNames) || plan.actionableNames.length <= 0) {
-        icon = 'fa-check';
-        label = 'No changes needed';
-        disabled = true;
-    } else {
-        const changeCount = plan.actionableNames.length;
-        icon = 'fa-check';
-        label = `Apply ${changeCount} change${changeCount === 1 ? '' : 's'}`;
-        disabled = false;
-    }
-    button.innerHTML = `<i class="fa ${icon}"></i> ${escapeHtml(label)}`;
-    button.disabled = disabled;
-    button.setAttribute('data-fv-bulk-state', state.applying === true ? 'applying' : (disabled ? 'idle' : 'ready'));
-};
-
-const syncBulkWorkflowUi = (type, planInput = null) => {
-    const resolvedType = normalizeManagedType(type);
-    const folderId = String($(`#${resolvedType}-bulk-folder`).val() || '').trim();
-    const state = getBulkState(resolvedType);
-    const plan = planInput && typeof planInput === 'object'
-        ? planInput
-        : buildBulkAssignmentPlan(resolvedType, folderId, Array.from(state.selected || []));
-    updateBulkSummaryCards(resolvedType, plan);
-    updateBulkStepState(resolvedType, plan);
-    updateBulkPrimaryAction(resolvedType, plan);
-    return plan;
-};
-
-const renderBulkResultPanel = (type, result = null) => {
-    const panel = $(`#${type}-bulk-result`);
-    if (!panel.length) {
-        return;
-    }
-    panel.removeClass('is-success is-warning is-error is-progress');
-    if (!result || typeof result !== 'object') {
-        panel.prop('hidden', true);
-        panel.empty();
-        syncBulkWorkflowUi(type);
-        return;
-    }
-    panel.prop('hidden', false);
-    const level = String(result.level || 'info').toLowerCase();
-    if (level === 'success') {
-        panel.addClass('is-success');
-    } else if (level === 'warning') {
-        panel.addClass('is-warning');
-    } else if (level === 'error') {
-        panel.addClass('is-error');
-    } else if (level === 'progress') {
-        panel.addClass('is-progress');
-    }
-    const lines = Array.isArray(result.lines) ? result.lines.slice(0, 220) : [];
-    if (!lines.length) {
-        panel.html(`<div class="bulk-result-summary">${escapeHtml(String(result.summary || 'No updates.'))}</div>`);
-        syncBulkWorkflowUi(type);
-        return;
-    }
-    const rowHtml = lines.map((line) => {
-        const status = String(line.status || 'info').trim().toLowerCase();
-        const label = status === 'success'
-            ? 'Assigned'
-            : (status === 'skip' ? 'Skipped' : (status === 'invalid' ? 'Invalid' : (status === 'failed' ? 'Failed' : 'Info')));
-        return `<li class="bulk-result-line is-${escapeHtml(status)}">
-            <span class="bulk-result-badge">${escapeHtml(label)}</span>
-            <span class="bulk-result-name">${escapeHtml(String(line.name || ''))}</span>
-            <span class="bulk-result-detail">${escapeHtml(String(line.detail || ''))}</span>
-        </li>`;
-    }).join('');
-    panel.html(`
-        <div class="bulk-result-summary">${escapeHtml(String(result.summary || 'Bulk assignment update'))}</div>
-        <ul class="bulk-result-list">${rowHtml}</ul>
-    `);
-    syncBulkWorkflowUi(type);
-};
-
-const updateBulkResultActions = (type) => {
-    const state = getBulkState(type);
-    const retryButton = $(`#${type}-bulk-retry-failed`);
-    if (!retryButton.length) {
-        return;
-    }
-    const failedCount = Array.isArray(state.failedNames) ? state.failedNames.length : 0;
-    const actionRow = retryButton.closest('.bulk-result-actions');
-    retryButton.toggleClass('is-hidden', failedCount <= 0);
-    actionRow.toggleClass('is-hidden', failedCount <= 0 || !(state.lastResult && typeof state.lastResult === 'object'));
-    retryButton.prop('disabled', state.applying === true);
-    if (failedCount > 0) {
-        retryButton.html(`<i class="fa fa-repeat"></i> Retry failed (${failedCount})`);
-    }
-};
-
-const buildBulkAssignmentPlan = (type, folderId, namesInput = null) => {
-    const resolvedType = normalizeManagedType(type);
-    const folders = getFolderMap(resolvedType);
-    const targetFolderId = String(folderId || '').trim();
-    const targetFolderName = targetFolderId ? String(folderNameForId(resolvedType, targetFolderId) || targetFolderId) : '';
-    const sourceNames = Array.isArray(namesInput) ? namesInput : Array.from(getBulkState(resolvedType).selected || []);
-    const deduped = [];
-    const duplicateNames = [];
-    const seen = new Set();
-    for (const value of sourceNames) {
-        const safeName = sanitizeBulkItemName(value);
-        if (!safeName) {
-            continue;
-        }
-        if (seen.has(safeName)) {
-            duplicateNames.push(safeName);
-            continue;
-        }
-        seen.add(safeName);
-        deduped.push(safeName);
-    }
-    const invalidNames = deduped.filter((name) => !isValidBulkItemName(name));
-    const validNames = deduped.filter((name) => isValidBulkItemName(name));
-    const lookup = getBulkMemberFolderLookup(resolvedType, folders);
-    const creates = [];
-    const moves = [];
-    const unchanged = [];
-    const conflicts = [];
-    for (const name of validNames) {
-        const currentFolderId = String(lookup.byName?.[name] || '').trim();
-        if (Array.isArray(lookup.conflicts?.[name]) && lookup.conflicts[name].length > 1) {
-            conflicts.push(name);
-        }
-        if (currentFolderId && currentFolderId === targetFolderId) {
-            unchanged.push({
-                name,
-                currentFolderId,
-                currentFolderName: folderNameForId(resolvedType, currentFolderId)
-            });
-            continue;
-        }
-        if (currentFolderId) {
-            moves.push({
-                name,
-                currentFolderId,
-                currentFolderName: folderNameForId(resolvedType, currentFolderId)
-            });
-            continue;
-        }
-        creates.push({ name });
-    }
-    return {
-        type: resolvedType,
-        targetFolderId,
-        targetFolderName,
-        selectedNames: deduped,
-        duplicateNames,
-        invalidNames,
-        validNames,
-        creates,
-        moves,
-        unchanged,
-        conflicts,
-        actionableNames: [...creates.map((entry) => entry.name), ...moves.map((entry) => entry.name)]
-    };
-};
-
-const confirmBulkAssignmentPlan = (typeLabel, plan) => new Promise((resolve) => {
-    const summary = [
-        `Target: ${plan.targetFolderName || plan.targetFolderId}`,
-        `Create: ${plan.creates.length}`,
-        `Move: ${plan.moves.length}`,
-        `Unchanged: ${plan.unchanged.length}`,
-        `Invalid: ${plan.invalidNames.length}`,
-        `Duplicates dropped: ${plan.duplicateNames.length}`
-    ].join('\n');
-    swal({
-        title: `Apply ${typeLabel} bulk assignment?`,
-        text: summary,
-        type: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Apply',
-        cancelButtonText: 'Cancel',
-        closeOnConfirm: true
-    }, (confirmed) => {
-        resolve(confirmed === true);
-    });
-});
-
-const updateBulkPreviewPanel = (type) => {
-    const panel = $(`#${type}-bulk-preview`);
-    if (!panel.length) {
-        return;
-    }
-    const folderId = String($(`#${type}-bulk-folder`).val() || '').trim();
-    const plan = syncBulkWorkflowUi(type);
-    if (!folderId) {
-        panel.html('<div class="bulk-preview-empty">Select a target folder to preview planned changes.</div>');
-        return;
-    }
-    if (!plan.selectedNames.length) {
-        panel.html('<div class="bulk-preview-empty">Select one or more items to preview folder moves.</div>');
-        return;
-    }
-    const listLimit = 8;
-    const movePreview = plan.moves.slice(0, listLimit)
-        .map((entry) => `${entry.name} (${entry.currentFolderName} -> ${plan.targetFolderName})`)
-        .join(', ');
-    const createPreview = plan.creates.slice(0, listLimit).map((entry) => entry.name).join(', ');
-    const unchangedPreview = plan.unchanged.slice(0, listLimit).map((entry) => entry.name).join(', ');
-    const previewCounts = [
-        ['Create', plan.creates.length, 'create'],
-        ['Move', plan.moves.length, 'move'],
-        ['Unchanged', plan.unchanged.length, 'skip'],
-        ['Invalid', plan.invalidNames.length, 'invalid']
-    ];
-    if (plan.conflicts.length) {
-        previewCounts.push(['Conflicts', plan.conflicts.length, 'conflict']);
-    }
-    const previewLines = [];
-    previewLines.push(`<div class="bulk-preview-line"><strong>Create</strong><span>${createPreview ? escapeHtml(createPreview) : '<span class="bulk-preview-none">none</span>'}${plan.creates.length > listLimit ? `<span class="bulk-preview-more"> (+${plan.creates.length - listLimit} more)</span>` : ''}</span></div>`);
-    previewLines.push(`<div class="bulk-preview-line"><strong>Move</strong><span>${movePreview ? escapeHtml(movePreview) : '<span class="bulk-preview-none">none</span>'}${plan.moves.length > listLimit ? `<span class="bulk-preview-more"> (+${plan.moves.length - listLimit} more)</span>` : ''}</span></div>`);
-    previewLines.push(`<div class="bulk-preview-line"><strong>Unchanged</strong><span>${unchangedPreview ? escapeHtml(unchangedPreview) : '<span class="bulk-preview-none">none</span>'}${plan.unchanged.length > listLimit ? `<span class="bulk-preview-more"> (+${plan.unchanged.length - listLimit} more)</span>` : ''}</span></div>`);
-    if (plan.duplicateNames.length) {
-        previewLines.push(`<div class="bulk-preview-line"><strong>Duplicates</strong><span>${escapeHtml(`${plan.duplicateNames.length} duplicate selection${plan.duplicateNames.length === 1 ? '' : 's'} dropped automatically.`)}</span></div>`);
-    }
-    if (plan.conflicts.length) {
-        previewLines.push(`<div class="bulk-preview-line"><strong>Conflicts</strong><span>${escapeHtml(`${plan.conflicts.length} selected item${plan.conflicts.length === 1 ? '' : 's'} already match multiple folders.`)}</span></div>`);
-    }
-    panel.html(`
-        <div class="bulk-preview-summary">${escapeHtml(`Target folder: ${plan.targetFolderName || plan.targetFolderId}`)}</div>
-        <div class="bulk-preview-counts">
-            ${previewCounts.map(([label, value, stateClass]) => `<span class="bulk-preview-count is-${escapeHtml(String(stateClass))}"><strong>${escapeHtml(String(value))}</strong><span>${escapeHtml(String(label))}</span></span>`).join('')}
-        </div>
-        <div class="bulk-preview-lists">
-            ${previewLines.join('')}
-        </div>
-    `);
-};
-
-const updateBulkSelectedCount = (type) => {
-    normalizeBulkSelectionForType(type);
-    const state = getBulkState(type);
-    const selectedCount = state.selected.size;
-    const visibleCount = (state.visibleNames || []).length;
-    const hiddenSelectedCount = Math.max(0, selectedCount - (state.visibleNames || []).filter((name) => state.selected.has(name)).length);
-    let label = `${selectedCount} selected`;
-    if (hiddenSelectedCount > 0) {
-        label += ` (${hiddenSelectedCount} hidden by filter)`;
-    } else if (visibleCount && visibleCount !== (state.allNames || []).length) {
-        label += ` (${visibleCount} shown)`;
-    }
-    $(`#${type}-bulk-selected-count`).text(label);
-    syncBulkWorkflowUi(type);
-    updateBulkPreviewPanel(type);
-    return selectedCount;
-};
-
-const updateBulkHelpText = (type, {
-    allCount = 0,
-    visibleCount = 0,
-    filter = ''
-} = {}) => {
-    const help = $(`#${type}-bulk-help`);
-    if (!help.length) {
-        return;
-    }
-    if (!allCount) {
-        help.text('No items detected yet. Refresh the page after Docker/VM inventory loads.');
-        return;
-    }
-    if (filter) {
-        if (!visibleCount) {
-            help.text(`No items match "${filter}". Try a broader filter.`);
-            return;
-        }
-        help.text(`Showing ${visibleCount} of ${allCount} item${allCount === 1 ? '' : 's'} (${BULK_LIST_RENDER_CHUNK_SIZE}/frame render chunks).`);
-        return;
-    }
-    const perfHint = allCount > BULK_LIST_RENDER_CHUNK_SIZE ? ' Rendering is chunked for large inventories.' : '';
-    help.text(`${allCount} item${allCount === 1 ? '' : 's'} available for assignment.${perfHint}`);
-};
-
-const renderBulkChecklist = (type, visibleNames) => {
-    const list = document.getElementById(`${type}-bulk-items-list`);
-    if (!(list instanceof HTMLElement)) {
-        return;
-    }
-    const state = getBulkState(type);
-    state.renderToken += 1;
-    const renderToken = state.renderToken;
-    list.innerHTML = '';
-    if (!Array.isArray(visibleNames) || !visibleNames.length) {
-        list.innerHTML = '<div class="bulk-items-empty">No items match this filter.</div>';
-        return;
-    }
-    const selected = state.selected || new Set();
-    let cursor = 0;
-    const appendChunk = () => {
-        if (renderToken !== state.renderToken) {
-            return;
-        }
-        const end = Math.min(cursor + BULK_LIST_RENDER_CHUNK_SIZE, visibleNames.length);
-        const fragment = document.createDocumentFragment();
-        while (cursor < end) {
-            const name = visibleNames[cursor];
-            cursor += 1;
-            const row = document.createElement('label');
-            row.className = 'bulk-item-row';
-            row.title = name;
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.className = 'bulk-item-checkbox';
-            checkbox.value = name;
-            checkbox.checked = selected.has(name);
-            checkbox.setAttribute('data-fv-bulk-type', type);
-            checkbox.setAttribute('aria-label', `Select ${name}`);
-            const nameNode = document.createElement('span');
-            nameNode.className = 'bulk-item-name';
-            nameNode.textContent = name;
-            row.appendChild(checkbox);
-            row.appendChild(nameNode);
-            fragment.appendChild(row);
-        }
-        list.appendChild(fragment);
-        if (cursor < visibleNames.length) {
-            window.requestAnimationFrame(appendChunk);
-        }
-    };
-    appendChunk();
-};
-
-const renderBulkItemOptions = (type) => {
-    const items = $(`#${type}-bulk-items`);
-    if (!items.length) {
-        return;
-    }
-    const state = getBulkState(type);
-    const hasTargetFolders = $(`#${type}-bulk-folder`).prop('disabled') !== true;
-    const allNames = getBulkAssignableNames(type);
-    const filter = getBulkItemsFilterQuery(type);
-    const visibleNames = filter
-        ? allNames.filter((name) => name.toLowerCase().includes(filter))
-        : allNames;
-    state.allNames = allNames;
-    state.visibleNames = visibleNames;
-    normalizeBulkSelectionForType(type);
-    syncBulkLegacySelect(type, allNames, { disabled: !hasTargetFolders || !allNames.length });
-    if (!allNames.length) {
-        renderBulkChecklist(type, []);
-        renderBulkResultPanel(type, state.lastResult);
-        updateBulkResultActions(type);
-        updateBulkSelectedCount(type);
-        updateBulkHelpText(type, { allCount: 0, visibleCount: 0, filter });
-        return;
-    }
-    renderBulkChecklist(type, visibleNames);
-    updateBulkSelectedCount(type);
-    if (!hasTargetFolders) {
-        updateBulkHelpText(type, { allCount: 0, visibleCount: 0, filter: '' });
-        $(`#${type}-bulk-help`).text('Create a folder first, then assign selected items.');
-    } else {
-        updateBulkHelpText(type, { allCount: allNames.length, visibleCount: visibleNames.length, filter });
-    }
-    renderBulkResultPanel(type, state.lastResult);
-    updateBulkResultActions(type);
-};
+const updateBulkPreviewPanel = (...args) => getBulkAssignmentApi().updateBulkPreviewPanel(...args);
+const updateBulkSelectedCount = (...args) => getBulkAssignmentApi().updateBulkSelectedCount(...args);
+const renderBulkItemOptions = (...args) => getBulkAssignmentApi().renderBulkItemOptions(...args);
 
 const renderBackupRows = (type) => {
     const rowsEl = $(`#${type}-backups`);
@@ -9003,285 +6617,18 @@ const renderBackupRows = (type) => {
 
 // folderviewplus.import.js provides backup comparison helpers.
 
-const normalizeOperationsWorkspaceType = (value) => (String(value || '').trim().toLowerCase() === 'vm' ? 'vm' : 'docker');
-
-const getLatestTemplateForType = (type) => {
-    const resolvedType = normalizeOperationsWorkspaceType(type);
-    const templates = Array.isArray(templatesByType[resolvedType]) ? templatesByType[resolvedType] : [];
-    if (!templates.length) {
-        return null;
-    }
-    return [...templates].sort((left, right) => {
-        const leftTime = Date.parse(String(left?.updatedAt || left?.createdAt || 0));
-        const rightTime = Date.parse(String(right?.updatedAt || right?.createdAt || 0));
-        return rightTime - leftTime;
-    })[0] || null;
-};
-
-const buildOperationsOverviewHtml = (type) => {
-    const resolvedType = normalizeOperationsWorkspaceType(type);
-    const title = resolvedType === 'docker' ? 'Docker' : 'VM';
-    const folders = Object.keys(getFolderMap(resolvedType));
-    const folderCount = folders.length;
-    const templates = Array.isArray(templatesByType[resolvedType]) ? templatesByType[resolvedType] : [];
-    const templateCount = templates.length;
-    const latestTemplate = getLatestTemplateForType(resolvedType);
-    const latestLabel = latestTemplate ? formatTimestamp(latestTemplate.updatedAt || latestTemplate.createdAt || '') : 'Not saved yet';
-    const headline = templateCount
-        ? `${templateCount} saved template${templateCount === 1 ? '' : 's'} ready for ${folderCount} folder${folderCount === 1 ? '' : 's'}.`
-        : `No saved ${title.toLowerCase()} templates yet.`;
-    const copy = folderCount
-        ? `Run live folder actions or reuse a template across ${folderCount} ${title === 'Docker' ? 'Docker folder' : 'VM folder'}${folderCount === 1 ? '' : 's'} from the same workspace.`
-        : `Create your first ${title === 'Docker' ? 'Docker' : 'VM'} folder to unlock runtime actions and reusable templates here.`;
-    return `
-        <div class="fv-operations-overview-head">
-            <div>
-                <span class="fv-operations-source-label">${escapeHtml(title)}</span>
-                <div class="fv-operations-headline">${escapeHtml(headline)}</div>
-                <div class="fv-operations-copy">${escapeHtml(copy)}</div>
-            </div>
-            <span class="fv-recovery-history-badge">${templateCount > 0 ? 'Ready' : 'Needs first template'}</span>
-        </div>
-        <div class="fv-operations-stat-grid">
-            <div class="fv-operations-stat-card">
-                <span class="fv-operations-stat-label">Folders</span>
-                <strong>${escapeHtml(String(folderCount))}</strong>
-                <span>${escapeHtml(`${title} folders available`)}</span>
-            </div>
-            <div class="fv-operations-stat-card">
-                <span class="fv-operations-stat-label">Templates</span>
-                <strong>${escapeHtml(String(templateCount))}</strong>
-                <span>${escapeHtml(templateCount === 1 ? 'Saved preset ready' : 'Saved presets ready')}</span>
-            </div>
-            <div class="fv-operations-stat-card">
-                <span class="fv-operations-stat-label">Live actions</span>
-                <strong>4</strong>
-                <span>Start, stop, pause, resume</span>
-            </div>
-            <div class="fv-operations-stat-card">
-                <span class="fv-operations-stat-label">Latest template</span>
-                <strong>${escapeHtml(latestLabel)}</strong>
-                <span>${escapeHtml(latestTemplate?.name || 'Save one from a folder')}</span>
-            </div>
-        </div>
-    `;
-};
-
-const renderOperationsOverview = (type) => {
-    const resolvedType = normalizeOperationsWorkspaceType(type);
-    const host = $(`#${resolvedType}-operations-overview`);
-    if (!host.length) {
-        return;
-    }
-    host.html(buildOperationsOverviewHtml(resolvedType));
-};
-
-const buildRuntimePreviewHtml = (type, folderId, action, plan, result = null) => {
-    const resolvedType = normalizeOperationsWorkspaceType(type);
-    if (!plan) {
-        return `
-            <div class="fv-recovery-empty-state">
-                <strong>No runtime action preview yet.</strong>
-                <span>Select a ${resolvedType === 'docker' ? 'Docker' : 'VM'} folder and action, then preview the plan before applying it.</span>
-            </div>
-        `;
-    }
-    const folderName = folderNameForId(resolvedType, folderId);
-    const eligiblePreview = plan.eligible.slice(0, 6);
-    const skippedPreview = plan.skipped.slice(0, 6);
-    const eligibleOverflow = Math.max(0, plan.eligible.length - eligiblePreview.length);
-    const skippedOverflow = Math.max(0, plan.skipped.length - skippedPreview.length);
-    const resultCopy = result
-        ? `Applied ${action} to ${result.executed || 0} item(s). ${result.succeeded || 0} succeeded, ${result.failed || 0} failed.`
-        : `Preview which ${resolvedType === 'docker' ? 'containers' : 'VMs'} will change before applying ${action}.`;
-    return `
-        <div class="fv-operations-runtime-summary">
-            <div class="fv-operations-runtime-head">
-                <div>
-                    <div class="fv-operations-runtime-title">${escapeHtml(folderName)} - ${escapeHtml(String(action || '').toUpperCase())}</div>
-                    <div class="fv-operations-runtime-copy">${escapeHtml(resultCopy)}</div>
-                </div>
-                ${result ? `<span class="fv-recovery-history-badge">${(result.failed || 0) > 0 ? 'Completed with warnings' : 'Applied'}</span>` : ''}
-            </div>
-            <div class="fv-operations-stat-grid fv-operations-runtime-stats">
-                <div class="fv-operations-stat-card">
-                    <span class="fv-operations-stat-label">Requested</span>
-                    <strong>${escapeHtml(String(plan.requestedCount || 0))}</strong>
-                    <span>Items in folder</span>
-                </div>
-                <div class="fv-operations-stat-card">
-                    <span class="fv-operations-stat-label">Eligible</span>
-                    <strong>${escapeHtml(String(plan.eligible.length || 0))}</strong>
-                    <span>Can change now</span>
-                </div>
-                <div class="fv-operations-stat-card">
-                    <span class="fv-operations-stat-label">Skipped</span>
-                    <strong>${escapeHtml(String(plan.skipped.length || 0))}</strong>
-                    <span>Already in desired state</span>
-                </div>
-                <div class="fv-operations-stat-card">
-                    <span class="fv-operations-stat-label">State mix</span>
-                    <strong>${escapeHtml(`${plan.countsByState?.started || 0}/${plan.countsByState?.paused || 0}/${plan.countsByState?.stopped || 0}`)}</strong>
-                    <span>started / paused / stopped</span>
-                </div>
-            </div>
-            <div class="fv-operations-runtime-columns">
-                <div class="fv-operations-runtime-list">
-                    <strong>Will change</strong>
-                    ${eligiblePreview.length ? `
-                        <ul>
-                            ${eligiblePreview.map((row) => `<li>${escapeHtml(row.name)} <span>${escapeHtml(row.state || 'unknown')}</span></li>`).join('')}
-                        </ul>
-                        ${eligibleOverflow > 0 ? `<div class="fv-operations-runtime-more">+${eligibleOverflow} more eligible item(s)</div>` : ''}
-                    ` : '<div class="fv-operations-runtime-empty">No eligible items for this action.</div>'}
-                </div>
-                <div class="fv-operations-runtime-list">
-                    <strong>Skipped</strong>
-                    ${skippedPreview.length ? `
-                        <ul>
-                            ${skippedPreview.map((row) => `<li>${escapeHtml(row.name)} <span>${escapeHtml(row.reason || row.state || 'skipped')}</span></li>`).join('')}
-                        </ul>
-                        ${skippedOverflow > 0 ? `<div class="fv-operations-runtime-more">+${skippedOverflow} more skipped item(s)</div>` : ''}
-                    ` : '<div class="fv-operations-runtime-empty">Nothing is being skipped.</div>'}
-                </div>
-            </div>
-        </div>
-    `;
-};
-
-const setRuntimePreviewOutput = (type, html) => {
-    const resolvedType = normalizeOperationsWorkspaceType(type);
-    const host = $(`#${resolvedType}-runtime-preview-output`);
-    if (!host.length) {
-        return;
-    }
-    host.html(String(html || ''));
-};
-
-const renderOperationsWorkspace = () => {
-    const activeType = normalizeOperationsWorkspaceType(activeOperationsWorkspaceType);
-    document.querySelectorAll('[data-fv-operations-source-toggle]').forEach((button) => {
-        if (!(button instanceof HTMLButtonElement)) {
-            return;
-        }
-        const buttonType = normalizeOperationsWorkspaceType(button.getAttribute('data-fv-operations-source-toggle'));
-        const isActive = buttonType === activeType;
-        button.classList.toggle('is-active', isActive);
-        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-    });
-    document.querySelectorAll('[data-fv-operations-panel]').forEach((panel) => {
-        if (!(panel instanceof HTMLElement)) {
-            return;
-        }
-        const panelType = normalizeOperationsWorkspaceType(panel.getAttribute('data-fv-operations-panel'));
-        const isActive = panelType === activeType;
-        panel.hidden = !isActive;
-        panel.classList.toggle('is-active', isActive);
-    });
-};
-
-const setOperationsWorkspaceType = (type, persist = true) => {
-    activeOperationsWorkspaceType = normalizeOperationsWorkspaceType(type);
-    if (persist) {
-        writeSettingsStorage(OPERATIONS_WORKSPACE_STORAGE_KEY, activeOperationsWorkspaceType, { delayMs: 60, idle: true });
-    }
-    renderOperationsWorkspace();
-};
-
-const selectOperationsTemplate = (type, templateId) => {
-    const resolvedType = normalizeOperationsWorkspaceType(type);
-    selectedOperationsTemplateIdByType[resolvedType] = String(templateId || '').trim();
-    renderTemplateRows(resolvedType);
-};
-
-const exportTemplateEntry = (type, templateId) => {
-    const resolvedType = normalizeOperationsWorkspaceType(type);
-    const template = (templatesByType[resolvedType] || []).find((entry) => String(entry?.id || '') === String(templateId || ''));
-    if (!template) {
-        swal({ title: 'Template not found', text: 'Select a valid template first.', type: 'warning' });
-        return;
-    }
-    const payload = {
-        schemaVersion: 1,
-        exportedAt: new Date().toISOString(),
-        type: resolvedType,
-        mode: 'templates',
-        templates: [template]
-    };
-    downloadFile(`FolderView Plus ${resolvedType.toUpperCase()} Template - ${template.name || template.id}.json`, toPrettyJson(payload));
-};
-
-const renderTemplateRows = (type) => {
-    const resolvedType = normalizeOperationsWorkspaceType(type);
-    const host = $(`#${resolvedType}-operations-template-library`);
-    if (!host.length) {
-        return;
-    }
-    const allTemplates = templatesByType[resolvedType] || [];
-    const folders = getFolderMap(resolvedType);
-    const folderOptions = Object.entries(folders).map(([id, folder]) => (
-        `<option value="${escapeHtml(id)}">${escapeHtml(folder.name || id)}</option>`
-    )).join('');
-
-    if (!allTemplates.length) {
-        selectedOperationsTemplateIdByType[resolvedType] = '';
-        host.html(`
-            <div class="fv-recovery-empty-state">
-                <strong>No saved ${resolvedType === 'docker' ? 'Docker' : 'VM'} templates yet.</strong>
-                <span>Create one from an existing folder to reuse icon, settings, actions, and matching logic faster.</span>
-            </div>
-        `);
-        return;
-    }
-
-    const selectedTemplateId = String(selectedOperationsTemplateIdByType[resolvedType] || '').trim();
-    const selectedTemplate = allTemplates.find((template) => String(template?.id || '') === selectedTemplateId) || allTemplates[0];
-    const resolvedTemplateId = String(selectedTemplate?.id || '').trim();
-    selectedOperationsTemplateIdByType[resolvedType] = resolvedTemplateId;
-    const templateSelectOptions = allTemplates.map((template) => {
-        const templateId = String(template?.id || '');
-        const templateName = String(template?.name || templateId);
-        const updated = formatTimestamp(template?.updatedAt || template?.createdAt || '');
-        const selectedAttr = templateId === resolvedTemplateId ? ' selected' : '';
-        const optionLabel = [templateName, updated].filter(Boolean).join(' - ');
-        return `<option value="${escapeHtml(templateId)}"${selectedAttr}>${escapeHtml(optionLabel)}</option>`;
-    }).join('');
-    const targetSelectId = `${resolvedType}-operations-template-target-folder`;
-    const templateUpdated = formatTimestamp(selectedTemplate?.updatedAt || selectedTemplate?.createdAt || '');
-    const templateName = String(selectedTemplate?.name || resolvedTemplateId);
-    const folderCount = Object.keys(folders).length;
-    host.html(`
-        <div class="fv-operations-template-picker-row">
-            <label for="${escapeHtml(`${resolvedType}-operations-template-select`)}">Saved template</label>
-            <select id="${escapeHtml(`${resolvedType}-operations-template-select`)}" onchange="selectOperationsTemplate('${resolvedType}', this.value)">
-                ${templateSelectOptions}
-            </select>
-        </div>
-        <div class="fv-operations-template-card">
-            <div class="fv-operations-template-head">
-                <div>
-                    <div class="fv-operations-template-title">${escapeHtml(templateName)}</div>
-                    <div class="fv-operations-template-copy">Updated ${escapeHtml(templateUpdated)}. Ready to apply across ${escapeHtml(String(folderCount))} folder${folderCount === 1 ? '' : 's'}.</div>
-                </div>
-                <span class="fv-recovery-history-badge">${escapeHtml(selectedTemplate?.id || '')}</span>
-            </div>
-            <div class="fv-operations-template-target-row">
-                <label for="${escapeHtml(targetSelectId)}">Apply to folder</label>
-                <select id="${escapeHtml(targetSelectId)}">${folderOptions}</select>
-            </div>
-            <div class="backup-actions fv-operations-template-actions">
-                <button type="button" onclick="applyTemplateToFolder('${resolvedType}','${escapeHtml(resolvedTemplateId)}','${escapeHtml(targetSelectId)}')"><i class="fa fa-clone"></i> Apply to folder</button>
-                <button type="button" onclick="exportTemplateEntry('${resolvedType}','${escapeHtml(resolvedTemplateId)}')"><i class="fa fa-download"></i> Export</button>
-                <button type="button" onclick="deleteTemplateEntry('${resolvedType}','${escapeHtml(resolvedTemplateId)}')"><i class="fa fa-trash"></i> Delete</button>
-            </div>
-        </div>
-    `);
-};
+const normalizeOperationsWorkspaceType = (...args) => getSettingsWorkspacesApi().normalizeOperationsWorkspaceType(...args);
+const buildOperationsOverviewHtml = (...args) => getSettingsWorkspacesApi().buildOperationsOverviewHtml(...args);
+const renderOperationsOverview = (...args) => getSettingsWorkspacesApi().renderOperationsOverview(...args);
+const buildRuntimePreviewHtml = (...args) => getSettingsWorkspacesApi().buildRuntimePreviewHtml(...args);
+const setRuntimePreviewOutput = (...args) => getSettingsWorkspacesApi().setRuntimePreviewOutput(...args);
+const renderOperationsWorkspace = (...args) => getSettingsWorkspacesApi().renderOperationsWorkspace(...args);
+const setOperationsWorkspaceType = (...args) => getSettingsWorkspacesApi().setOperationsWorkspaceType(...args);
+const selectOperationsTemplate = (...args) => getSettingsWorkspacesApi().selectOperationsTemplate(...args);
+const exportTemplateEntry = (...args) => getSettingsWorkspacesApi().exportTemplateEntry(...args);
+const renderTemplateRows = (...args) => getSettingsWorkspacesApi().renderTemplateRows(...args);
 
 const renderTable = (type) => {
-    if (activeTableColumnResize) {
-        stopActiveTableColumnResize(false);
-    }
     const folders = getFolderMap(type);
     const ordered = utils.orderFoldersByPrefs(folders, prefsByType[type]);
     const hierarchyMeta = buildFolderHierarchyMeta(ordered);
@@ -9993,11 +7340,6 @@ const changeVisibilityPref = async (type, key, value) => {
         next.appColumnWidth = typeof utils.normalizeAppColumnWidth === 'function'
             ? utils.normalizeAppColumnWidth(value)
             : (['compact', 'wide'].includes(String(value || '').toLowerCase()) ? String(value || '').toLowerCase() : 'standard');
-    } else if (key === 'folderEditorMode') {
-        next.folderEditorMode = typeof utils.normalizeFolderEditorMode === 'function'
-            ? utils.normalizeFolderEditorMode(value)
-            : (String(value || '').trim().toLowerCase() === 'modern' ? 'modern' : 'legacy');
-        next.folderEditorModeExplicit = true;
     } else {
         return;
     }
@@ -10683,373 +8025,14 @@ const testAutoRule = (type) => {
     output.text(`Final result: priority #${priority} sends this item to ${folderNameForId(type, firstMatch.folderId)}. ${ruleDescription(firstMatch)}.`);
 };
 
-const filterBulkItems = (type, value = '') => {
-    const resolvedType = normalizeManagedType(type);
-    const displayValue = String(value || '');
-    const normalized = normalizedFilter(displayValue);
-    if (!filtersByType[resolvedType]) {
-        filtersByType[resolvedType] = {
-            folders: '',
-            rules: '',
-            backups: '',
-            templates: '',
-            bulk: ''
-        };
-    }
-    filtersByType[resolvedType].bulk = normalized;
-    const input = $(`#${resolvedType}-bulk-filter`);
-    if (input.length && input.val() !== displayValue) {
-        input.val(displayValue);
-    }
-    persistTableUiState();
-    renderBulkItemOptions(resolvedType);
-};
+const filterBulkItems = (...args) => getBulkAssignmentApi().filterBulkItems(...args);
+const bulkItemSelectionAction = (...args) => getBulkAssignmentApi().bulkItemSelectionAction(...args);
+const setBulkItemChecked = (...args) => getBulkAssignmentApi().setBulkItemChecked(...args);
+const retryFailedBulkItems = (...args) => getBulkAssignmentApi().retryFailedBulkItems(...args);
+const assignSelectedItems = (...args) => getBulkAssignmentApi().assignSelectedItems(...args);
 
-const bulkItemSelectionAction = (type, action = 'all') => {
-    const state = getBulkState(type);
-    if (state.applying === true) {
-        updateBulkSelectedCount(type);
-        return;
-    }
-    const normalizedAction = String(action || '').trim().toLowerCase();
-    const visible = Array.isArray(state.visibleNames) ? state.visibleNames : [];
-    for (const name of visible) {
-        if (!name) {
-            continue;
-        }
-        if (normalizedAction === 'none') {
-            state.selected.delete(name);
-        } else if (normalizedAction === 'invert') {
-            if (state.selected.has(name)) {
-                state.selected.delete(name);
-            } else {
-                state.selected.add(name);
-            }
-        } else {
-            state.selected.add(name);
-        }
-    }
-    clearBulkExecutionState(type);
-    renderBulkResultPanel(type, null);
-    updateBulkResultActions(type);
-    syncBulkLegacySelect(type, state.allNames || [], { disabled: $(`#${type}-bulk-folder`).prop('disabled') === true });
-    renderBulkChecklist(type, state.visibleNames || []);
-    updateBulkSelectedCount(type);
-};
-
-const setBulkItemChecked = (type, name, checked) => {
-    const state = getBulkState(type);
-    if (state.applying === true) {
-        return;
-    }
-    const safeName = sanitizeBulkItemName(name);
-    if (!safeName) {
-        return;
-    }
-    if (checked === true) {
-        state.selected.add(safeName);
-    } else {
-        state.selected.delete(safeName);
-    }
-    clearBulkExecutionState(type);
-    renderBulkResultPanel(type, null);
-    updateBulkResultActions(type);
-    syncBulkLegacySelect(type, state.allNames || [], { disabled: $(`#${type}-bulk-folder`).prop('disabled') === true });
-    updateBulkSelectedCount(type);
-};
-
-const retryFailedBulkItems = async (type) => {
-    const state = getBulkState(type);
-    const failed = Array.isArray(state.failedNames) ? state.failedNames.map((name) => sanitizeBulkItemName(name)).filter(Boolean) : [];
-    if (!failed.length) {
-        swal({
-            title: 'No failed items',
-            text: 'There are no failed items to retry.',
-            type: 'info'
-        });
-        return;
-    }
-    const folderId = state.lastTargetFolderId || String($(`#${type}-bulk-folder`).val() || '').trim();
-    if (!folderId) {
-        swal({
-            title: 'Missing target folder',
-            text: 'Select a target folder before retrying failed items.',
-            type: 'error'
-        });
-        return;
-    }
-    await assignSelectedItems(type, failed);
-};
-
-const assignSelectedItems = async (type, namesOverride = null) => {
-    const resolvedType = normalizeManagedType(type);
-    const state = getBulkState(resolvedType);
-    if (state.applying === true) {
-        return;
-    }
-    const folderId = String($(`#${resolvedType}-bulk-folder`).val() || '');
-    const selectedSource = Array.isArray(namesOverride) ? namesOverride : Array.from(state.selected || []);
-    const plan = buildBulkAssignmentPlan(resolvedType, folderId, selectedSource);
-    const typeLabel = resolvedType === 'docker' ? 'Docker' : 'VM';
-    updateBulkPreviewPanel(resolvedType);
-
-    if (!plan.targetFolderId) {
-        swal({ title: 'Error', text: 'Select a folder for bulk assignment.', type: 'error' });
-        return;
-    }
-    const folders = getFolderMap(resolvedType);
-    if (!Object.prototype.hasOwnProperty.call(folders, plan.targetFolderId)) {
-        swal({ title: 'Error', text: 'Target folder no longer exists. Refresh and try again.', type: 'error' });
-        return;
-    }
-    if (!plan.selectedNames.length) {
-        swal({ title: 'Error', text: 'Select at least one item to assign.', type: 'error' });
-        return;
-    }
-    const resultLines = [];
-    for (const name of plan.invalidNames) {
-        resultLines.push({ status: 'invalid', name, detail: 'Blocked by validation guard.' });
-    }
-    for (const name of plan.unchanged.map((entry) => entry.name)) {
-        resultLines.push({ status: 'skip', name, detail: 'Already assigned to the selected folder.' });
-    }
-    if (plan.duplicateNames.length > 0) {
-        const uniqueDuplicateNames = Array.from(new Set(plan.duplicateNames));
-        for (const name of uniqueDuplicateNames) {
-            resultLines.push({ status: 'skip', name, detail: 'Duplicate selection dropped.' });
-        }
-    }
-    if (!plan.actionableNames.length) {
-        const summary = `No-op: all selected ${typeLabel} items are already assigned or invalid.`;
-        state.lastResult = {
-            level: 'warning',
-            summary,
-            lines: resultLines
-        };
-        state.failedNames = [];
-        renderBulkResultPanel(resolvedType, state.lastResult);
-        updateBulkResultActions(resolvedType);
-        swal({ title: 'Nothing to apply', text: summary, type: 'info' });
-        return;
-    }
-    const confirmed = await confirmBulkAssignmentPlan(typeLabel, plan);
-    if (!confirmed) {
-        return;
-    }
-    if (!claimAdvancedOperationLock(resolvedType, 'bulk', `${typeLabel} bulk assignment`)) {
-        return;
-    }
-    let backup = null;
-    state.applying = true;
-    updateBulkPrimaryAction(resolvedType, plan);
-    updateBulkResultActions(resolvedType);
-    renderBulkResultPanel(resolvedType, {
-        level: 'progress',
-        summary: `Applying ${plan.actionableNames.length} item${plan.actionableNames.length === 1 ? '' : 's'} in chunks...`,
-        lines: []
-    });
-    const failedNames = [];
-    try {
-        backup = await createBackup(resolvedType, 'before-bulk-assign');
-        const chunks = [];
-        for (let index = 0; index < plan.actionableNames.length; index += BULK_ASSIGN_CHUNK_SIZE) {
-            chunks.push(plan.actionableNames.slice(index, index + BULK_ASSIGN_CHUNK_SIZE));
-        }
-        for (let index = 0; index < chunks.length; index += 1) {
-            const chunk = chunks[index];
-            const chunkNumber = index + 1;
-            renderBulkResultPanel(resolvedType, {
-                level: 'progress',
-                summary: `Applying chunk ${chunkNumber}/${chunks.length} (${chunk.length} item${chunk.length === 1 ? '' : 's'})...`,
-                lines: resultLines
-            });
-            try {
-                const result = await bulkAssign(resolvedType, plan.targetFolderId, chunk);
-                const assignedSet = new Set(
-                    (Array.isArray(result?.assigned) ? result.assigned : [])
-                        .map((name) => sanitizeBulkItemName(name))
-                        .filter(Boolean)
-                );
-                const invalidSet = new Set(
-                    (Array.isArray(result?.skippedInvalid) ? result.skippedInvalid : [])
-                        .map((name) => sanitizeBulkItemName(name))
-                        .filter(Boolean)
-                );
-                for (const name of chunk) {
-                    if (assignedSet.has(name)) {
-                        resultLines.push({ status: 'success', name, detail: `Assigned to ${plan.targetFolderName}.` });
-                    } else if (invalidSet.has(name)) {
-                        resultLines.push({ status: 'invalid', name, detail: 'Blocked by request guard validation.' });
-                    } else {
-                        failedNames.push(name);
-                        resultLines.push({ status: 'failed', name, detail: 'Not applied by server response.' });
-                    }
-                }
-            } catch (error) {
-                const message = error?.message || 'Chunk request failed.';
-                for (const name of chunk) {
-                    failedNames.push(name);
-                    resultLines.push({ status: 'failed', name, detail: message });
-                }
-            }
-            if (index < chunks.length - 1) {
-                await new Promise((resolve) => setTimeout(resolve, BULK_ASSIGN_CHUNK_PAUSE_MS));
-            }
-        }
-        await Promise.all([refreshType(resolvedType), refreshBackups(resolvedType)]);
-        const assignedCount = resultLines.filter((row) => row.status === 'success').length;
-        const skippedCount = resultLines.filter((row) => row.status === 'skip').length;
-        const invalidCount = resultLines.filter((row) => row.status === 'invalid').length;
-        const summaryBits = [
-            `${assignedCount} assigned`,
-            `${failedNames.length} failed`,
-            `${skippedCount} skipped`,
-            `${invalidCount} invalid`
-        ];
-        const statusLevel = failedNames.length > 0 ? 'warning' : 'success';
-        const statusMessage = summaryBits.join(' | ');
-        state.failedNames = Array.from(new Set(failedNames));
-        state.lastTargetFolderId = plan.targetFolderId;
-        state.lastResult = {
-            level: statusLevel,
-            summary: statusMessage,
-            lines: resultLines
-        };
-        renderBulkResultPanel(resolvedType, state.lastResult);
-        updateBulkResultActions(resolvedType);
-        state.selected = state.failedNames.length ? new Set(state.failedNames) : new Set();
-        renderBulkItemOptions(resolvedType);
-        showActionSummaryToast({
-            title: `${typeLabel} bulk assignment complete`,
-            message: statusMessage,
-            level: statusLevel,
-            type: resolvedType,
-            focusFolderId: plan.targetFolderId
-        });
-        if (failedNames.length > 0) {
-            swal({
-                title: 'Some items failed',
-                text: `Assigned: ${assignedCount}\nFailed: ${failedNames.length}\n\nUse "Retry failed" to try those items again.`,
-                type: 'warning'
-            });
-        }
-        await trackDiagnosticsEvent({
-            eventType: 'bulk_assign',
-            type: resolvedType,
-            details: {
-                folderId: plan.targetFolderId,
-                itemCount: plan.selectedNames.length,
-                assignedCount,
-                skippedCount: skippedCount,
-                skippedInvalidCount: invalidCount,
-                failedCount: failedNames.length,
-                chunkCount: Math.max(1, Math.ceil(plan.actionableNames.length / BULK_ASSIGN_CHUNK_SIZE))
-            }
-        });
-        await offerUndoAction(resolvedType, backup, 'Bulk assignment');
-    } catch (error) {
-        state.lastResult = {
-            level: 'error',
-            summary: `Bulk assignment failed: ${error?.message || error}`,
-            lines: resultLines
-        };
-        renderBulkResultPanel(resolvedType, state.lastResult);
-        showError('Bulk assignment failed', error);
-    } finally {
-        state.applying = false;
-        releaseAdvancedOperationLock(resolvedType, 'bulk');
-        syncBulkWorkflowUi(resolvedType);
-        updateBulkResultActions(resolvedType);
-    }
-};
-
-const previewFolderRuntimeAction = (type) => {
-    const folderId = String($(`#${type}-runtime-folder`).val() || '');
-    const action = String($(`#${type}-runtime-action`).val() || '');
-    if (!folderId || !action) {
-        setRuntimePreviewOutput(type, `
-            <div class="fv-recovery-empty-state">
-                <strong>Select a folder and action first.</strong>
-                <span>Pick the target folder and the runtime action you want to preview.</span>
-            </div>
-        `);
-        return;
-    }
-    const plan = getRuntimePlanForFolder(type, folderId, action);
-    setRuntimePreviewOutput(type, buildRuntimePreviewHtml(type, folderId, action, plan));
-};
-
-const applyFolderRuntimeAction = (type) => {
-    const folderId = String($(`#${type}-runtime-folder`).val() || '');
-    const action = String($(`#${type}-runtime-action`).val() || '');
-    if (!folderId || !action) {
-        setRuntimePreviewOutput(type, `
-            <div class="fv-recovery-empty-state">
-                <strong>Select a folder and action first.</strong>
-                <span>Pick the target folder and the runtime action you want to apply.</span>
-            </div>
-        `);
-        return;
-    }
-    const plan = getRuntimePlanForFolder(type, folderId, action);
-    if (!plan) {
-        setRuntimePreviewOutput(type, `
-            <div class="fv-recovery-empty-state">
-                <strong>No valid action plan was generated.</strong>
-                <span>Refresh the source data and try the preview again.</span>
-            </div>
-        `);
-        return;
-    }
-    if (!plan.eligible.length) {
-        setRuntimePreviewOutput(type, buildRuntimePreviewHtml(type, folderId, action, plan));
-        swal({
-            title: 'Nothing to apply',
-            text: 'No eligible items were found for this action.',
-            type: 'info'
-        });
-        return;
-    }
-
-    const folderName = folderNameForId(type, folderId);
-    swal({
-        title: 'Apply folder action?',
-        text: `${action.toUpperCase()} on "${folderName}"\nEligible: ${plan.eligible.length}\nSkipped: ${plan.skipped.length}`,
-        type: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Apply',
-        cancelButtonText: 'Cancel',
-        showLoaderOnConfirm: true
-    }, async (confirmed) => {
-        if (!confirmed) {
-            return;
-        }
-        try {
-            const result = await executeFolderRuntimeAction(type, action, plan.eligible.map((row) => row.name));
-            await refreshType(type);
-            setRuntimePreviewOutput(type, buildRuntimePreviewHtml(type, folderId, action, plan, result));
-            await trackDiagnosticsEvent({
-                eventType: 'runtime_bulk_action',
-                type,
-                details: {
-                    action,
-                    folderId,
-                    requested: plan.requestedCount,
-                    eligible: plan.eligible.length,
-                    executed: result.executed || 0,
-                    failed: result.failed || 0
-                }
-            });
-            swal({
-                title: 'Action complete',
-                text: `Executed: ${result.executed || 0}, succeeded: ${result.succeeded || 0}, failed: ${result.failed || 0}, skipped: ${(result.skipped || []).length}`,
-                type: (result.failed || 0) > 0 ? 'warning' : 'success'
-            });
-        } catch (error) {
-            showError('Folder runtime action failed', error);
-        }
-    });
-};
+const previewFolderRuntimeAction = (...args) => getSettingsRuntimeActionsApi().previewFolderRuntimeAction(...args);
+const applyFolderRuntimeAction = (...args) => getSettingsRuntimeActionsApi().applyFolderRuntimeAction(...args);
 
 const undoLatestChange = (type) => {
     let resolvedType;

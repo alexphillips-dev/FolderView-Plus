@@ -9,12 +9,17 @@ const dockerJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js'
 );
+const dockerRuntimeHierarchyJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js'
+);
 const runtimeColumnLayoutPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/runtime.column-layout.js'
 );
 
 const dockerJs = fs.readFileSync(dockerJsPath, 'utf8');
+const dockerRuntimeHierarchyJs = fs.readFileSync(dockerRuntimeHierarchyJsPath, 'utf8');
 const runtimeColumnLayoutJs = fs.readFileSync(runtimeColumnLayoutPath, 'utf8');
 const runtimeStateObserverJs = fs.readFileSync(path.join(
     repoRoot,
@@ -42,7 +47,7 @@ test('docker runtime width reflow keeps refresh and resize trigger contracts', (
     assert.match(runtimeStateObserverJs, /win\.addEventListener\('orientationchange', reapply,\s*\{\s*passive:\s*true\s*\}\)/);
     assert.match(dockerJs, /scheduleDockerRuntimeWidthReflow\('table-bind', 0\)/);
     assert.match(dockerJs, /scheduleDockerRuntimeWidthReflow\('render-complete', 12\)/);
-    assert.match(dockerJs, /scheduleDockerRuntimeWidthReflow\('folder-toggle', 24\)/);
+    assert.match(dockerRuntimeHierarchyJs, /scheduleRuntimeWidthReflow\('folder-toggle', 24\)/);
     assert.match(dockerJs, /scheduleDockerRuntimeWidthReflow\('prefs-change', 0\)/);
     assert.match(dockerJs, /scheduleDockerRuntimeWidthReflow\('font-ready', 20\)/);
 });

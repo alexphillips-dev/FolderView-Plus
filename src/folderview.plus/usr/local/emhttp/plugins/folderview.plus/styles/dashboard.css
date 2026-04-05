@@ -232,26 +232,35 @@ body[data-fv-theme-class="light"] {
     position: absolute;
     right: 6px;
     top: 50%;
-    width: 11px;
-    height: 11px;
+    width: 11px !important;
+    min-width: 11px !important;
+    max-width: 11px !important;
+    height: 11px !important;
+    min-height: 11px !important;
+    max-height: 11px !important;
     transform: translateY(-50%);
-    border: none;
-    border-radius: 0;
-    background: transparent;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
     color: var(--fvplus-dashboard-accent);
     cursor: pointer;
     align-items: center;
     justify-content: center;
     line-height: 1;
-    padding: 0;
+    padding: 0 !important;
     z-index: 2;
     font-size: 10px;
-    box-shadow: none;
+    box-shadow: none !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
 }
 
 .fv-dashboard-expand-toggle-btn:hover,
-.fv-dashboard-expand-toggle-btn:focus {
-    background: transparent;
+.fv-dashboard-expand-toggle-btn:focus,
+.fv-dashboard-expand-toggle-btn:active {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
     color: var(--fvplus-dashboard-warning);
     text-decoration: none;
     outline: none;

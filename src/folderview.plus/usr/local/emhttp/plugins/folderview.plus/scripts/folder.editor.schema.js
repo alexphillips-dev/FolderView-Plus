@@ -202,26 +202,6 @@
         });
     };
 
-    const createLegacySchema = () => {
-        const sectionMeta = Object.freeze({
-            general: Object.freeze({ title: 'General', description: 'Folder identity, icon, and base behavior.', advanced: false }),
-            members: Object.freeze({ title: 'Members', description: 'Assign containers or VMs to this folder.', advanced: false }),
-            preview: Object.freeze({ title: 'Preview', description: 'Control how this folder is rendered in tab views.', advanced: false }),
-            actions: Object.freeze({ title: 'Actions', description: 'Configure quick actions exposed by this folder.', advanced: true }),
-            automation: Object.freeze({ title: 'Automation', description: 'Auto-assign items using name regex.', advanced: true }),
-            advanced: Object.freeze({ title: 'Advanced', description: 'Optional defaults and tab behavior.', advanced: true })
-        });
-        const advancedSectionKeys = Object.freeze(
-            Object.entries(sectionMeta)
-                .filter(([, section]) => section?.advanced === true)
-                .map(([key]) => key)
-        );
-        return Object.freeze({
-            SECTION_META: sectionMeta,
-            ADVANCED_SECTION_KEYS: advancedSectionKeys
-        });
-    };
-
     window.FolderViewPlusFolderEditorSchema = Object.freeze({
         PREVIEW_MODE_LABELS,
         CONTEXT_MODE_LABELS,
@@ -229,8 +209,7 @@
         FOLDER_HEALTH_UPDATES_MODE_VALUES,
         FOLDER_HEALTH_ALL_STOPPED_MODE_VALUES,
         INVALID_FOLDER_NAME_CHAR_REGEX,
-        createModernSchema,
-        createLegacySchema
+        createModernSchema
     });
     window.FolderViewPlusFolderEditorSchemaModuleLoaded = true;
 })(window);

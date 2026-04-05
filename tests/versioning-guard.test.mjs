@@ -335,7 +335,11 @@ test('theme matrix smoke scripts are optional, URL-gated, and include wizard/the
     assert.match(themeMatrixSmokeNode, /#fv-run-wizard/);
     assert.match(themeMatrixSmokeNode, /#fv-setup-assistant-dialog/);
     assert.match(themeMatrixSmokeNode, /button\.folder-dropdown/);
+    assert.match(themeMatrixSmokeNode, /button\.fv-dashboard-expand-toggle-btn/);
     assert.match(themeMatrixSmokeNode, /fv-dashboard-layout-inline-host/);
+    assert.match(themeMatrixSmokeNode, /Dashboard expand toggle border should be removed/);
+    assert.match(themeMatrixSmokeNode, /Dashboard expand toggle background should remain transparent/);
+    assert.match(themeMatrixSmokeNode, /Dashboard expand toggle shadow should be removed/);
     assert.match(themeMatrixSmokeNode, /stage: `\$\{target\.type\}-runtime`/);
     assert.match(themeMatrixSmokeNode, /Focus-visible ring is not present/);
     assert.match(themeMatrixSmokeNode, /horizontal overflow/);
@@ -408,8 +412,8 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
         assert.match(workflow, /uses:\s*\.\/\.github\/actions\/setup-ci-env/);
         assert.match(workflow, /Run release validation suite/);
         assert.match(workflow, /bash scripts\/run_ci_suite\.sh --release/);
-        assert.match(workflow, /FVPLUS_BROWSER_SMOKE_REQUIRED:\s*\$\{\{\s*secrets\.FVPLUS_BROWSER_SMOKE_URL != '' && '1' \|\| '0'\s*\}\}/);
-        assert.match(workflow, /FVPLUS_THEME_MATRIX_REQUIRED:\s*\$\{\{\s*secrets\.FVPLUS_THEME_MATRIX_URLS != '' && '1' \|\| '0'\s*\}\}/);
+        assert.match(workflow, /FVPLUS_BROWSER_SMOKE_REQUIRED:\s*'1'/);
+        assert.match(workflow, /FVPLUS_THEME_MATRIX_REQUIRED:\s*'1'/);
         assert.match(workflow, /FVPLUS_BROWSER_SMOKE_REQUIRE_FOLDER_EDITOR:\s*'1'/);
         assert.match(workflow, /FVPLUS_THEME_REQUIRED_LABELS:\s*'black,white'/);
     }
@@ -506,11 +510,25 @@ test('ensure changes entry seeds category-signaling release note text', () => {
     assert.match(ensureChanges, /VERSION="\$\(fvplus::read_plg_version "\$\{PLG_FILE\}"\)"/);
     assert.match(ensureChanges, /guess_category_from_subject/);
     assert.match(ensureChanges, /is_subject_metadata_only/);
+    assert.match(ensureChanges, /resolve_changes_anchor_ref/);
+    assert.match(ensureChanges, /collect_changed_files/);
+    assert.match(ensureChanges, /classify_changed_path_subsystems/);
+    assert.match(ensureChanges, /format_subsystem_note_line/);
     assert.match(ensureChanges, /build_diff_based_notes/);
+    assert.match(ensureChanges, /git -C "\$\{ROOT_DIR\}" diff --name-only --relative "\$\{range\}" -- \./);
     assert.match(ensureChanges, /git -C "\$\{ROOT_DIR\}" diff --name-only --relative HEAD -- \./);
     assert.match(ensureChanges, /log --no-merges --format=%H -S "###\$\{previous_version\}" -- "\$\{PLG_FILE\}"/);
     assert.match(ensureChanges, /range="\$\{anchor_ref\}\.\.HEAD"/);
+    assert.match(ensureChanges, /docker-runtime/);
+    assert.match(ensureChanges, /folder-editor/);
+    assert.match(ensureChanges, /settings-diagnostics/);
+    assert.match(ensureChanges, /release-tooling/);
+    assert.match(ensureChanges, /Docker runtime rows, folder state, and container interactions/);
+    assert.match(ensureChanges, /Diagnostics surfaces, issue reports, and support bundle coverage/);
+    assert.match(ensureChanges, /Release automation, CI smoke coverage, and packaging guards/);
     assert.match(ensureChanges, /AUTO_FALLBACK_NOTE='Maintenance: Release metadata and packaging sync\.'/);
+    assert.doesNotMatch(ensureChanges, /Refined settings and on-screen update messaging for clarity and consistency/);
+    assert.doesNotMatch(ensureChanges, /Improved backend release-note parsing and category detection for accurate summaries/);
 });
 
 test('release workflows keep checksum assets and metadata changes', () => {

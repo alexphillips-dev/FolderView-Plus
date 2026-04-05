@@ -32,6 +32,14 @@ const settingsScript = fs.readFileSync(
     path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'),
     'utf8'
 );
+const settingsRuntimeActionsScript = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js'),
+    'utf8'
+);
+const dockerRuntimeActionsScript = fs.readFileSync(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.actions.js'),
+    'utf8'
+);
 
 test('folder editor validates duplicate names within the selected parent path', () => {
     assert.match(folderHierarchyScript, /const buildParentFolderEntries = \(foldersMap,\s*blockedIds = new Set\(\)\) =>/);
@@ -64,14 +72,27 @@ test('folder editor normalizes sparse folder payloads before binding controls', 
     assert.match(folderEditorScript, /const folderEditorShared = window\.FolderViewPlusFolderEditorShared \|\| null;/);
     assert.match(folderEditorScript, /const folderEditorSchema = window\.FolderViewPlusFolderEditorSchema \|\| null;/);
     assert.match(folderEditorScript, /const folderEditorPreview = window\.FolderViewPlusFolderEditorPreview \|\| null;/);
+    assert.match(folderEditorScript, /const folderEditorPreviewRuntimeModule = window\.FolderViewPlusFolderEditorPreviewRuntime \|\| null;/);
+    assert.match(folderEditorScript, /const folderEditorStateModule = window\.FolderViewPlusFolderEditorState \|\| null;/);
+    assert.match(folderEditorScript, /const folderEditorMembersModule = window\.FolderViewPlusFolderEditorMembers \|\| null;/);
+    assert.match(folderEditorScript, /const folderEditorIconsModule = window\.FolderViewPlusFolderEditorIcons \|\| null;/);
     assert.match(folderEditorScript, /let folderEditorSharedApi = null;/);
     assert.match(folderEditorScript, /const getFolderEditorSharedApi = \(\) =>/);
     assert.match(folderEditorScript, /folderEditorSharedApi = folderEditorShared\.createApi\(/);
     assert.match(folderEditorScript, /const normalizeParentFolderId = \(value\) => String\(value \|\| ''\)\.trim\(\);/);
     assert.match(folderEditorScript, /const modernEditorSchema = typeof folderEditorSchema\?\.createModernSchema === 'function'/);
-    assert.match(folderEditorScript, /let folderEditorPreviewApi = null;/);
-    assert.match(folderEditorScript, /const getFolderEditorPreviewApi = \(\) =>/);
-    assert.match(folderEditorScript, /folderEditorPreviewApi = folderEditorPreview\.createApi\(/);
+    assert.match(folderEditorScript, /let folderEditorPreviewRuntimeApi = null;/);
+    assert.match(folderEditorScript, /const getFolderEditorPreviewRuntimeApi = \(\) =>/);
+    assert.match(folderEditorScript, /folderEditorPreviewRuntimeApi = folderEditorPreviewRuntimeModule\.createApi\(/);
+    assert.match(folderEditorScript, /let folderEditorStateApi = null;/);
+    assert.match(folderEditorScript, /let folderEditorMembersApi = null;/);
+    assert.match(folderEditorScript, /let folderEditorIconsApi = null;/);
+    assert.match(folderEditorScript, /const getFolderEditorStateApi = \(\) =>/);
+    assert.match(folderEditorScript, /folderEditorStateApi = folderEditorStateModule\.createApi\(/);
+    assert.match(folderEditorScript, /const getFolderEditorMembersApi = \(\) =>/);
+    assert.match(folderEditorScript, /folderEditorMembersApi = folderEditorMembersModule\.createApi\(/);
+    assert.match(folderEditorScript, /const getFolderEditorIconsApi = \(\) =>/);
+    assert.match(folderEditorScript, /folderEditorIconsApi = folderEditorIconsModule\.createApi\(/);
     assert.match(folderEditorScript, /function updateForm\(\) \{/);
     assert.match(folderEditorScript, /const startFolderEditorRuntime = async \(\) => \{/);
     assert.match(folderEditorScript, /void startFolderEditorRuntime\(\)\.catch\(\(error\) => \{/);
@@ -128,15 +149,16 @@ test('runtime folder editor redirects include a cache-busting query marker', () 
         path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/dashboard.js'),
         'utf8'
     );
-    assert.match(dockerScript, /const buildDockerFolderEditorUrl = \(id = ''\) =>/);
+    assert.match(dockerScript, /const buildDockerFolderEditorUrl = \(id = ''\) => \{/);
+    assert.match(dockerRuntimeActionsScript, /const buildDockerFolderEditorUrl = \(id = ''\) =>/);
     assert.match(vmScript, /const buildVmFolderEditorUrl = \(id = ''\) =>/);
-    assert.match(dashboardScript, /const buildDashboardFolderEditorUrl = \(folderType,\s*id = ''\) =>/);
-    assert.match(dockerScript, /const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.persist\.v1';/);
+    assert.match(dockerRuntimeActionsScript, /const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.persist\.v1';/);
     assert.match(vmScript, /const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.persist\.v1';/);
-    assert.match(dashboardScript, /const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.persist\.v1';/);
-    assert.match(dockerScript, /params\.set\('_', String\(Date\.now\(\)\)\);/);
+    assert.match(dockerRuntimeActionsScript, /params\.set\('_', String\(Date\.now\(\)\)\);/);
     assert.match(vmScript, /params\.set\('_', String\(Date\.now\(\)\)\);/);
-    assert.match(dashboardScript, /params\.set\('_', String\(Date\.now\(\)\)\);/);
+    assert.doesNotMatch(dashboardScript, /const buildDashboardFolderEditorUrl = \(folderType,\s*id = ''\) =>/);
+    assert.doesNotMatch(dashboardScript, /const EDITOR_PREFILL_LOCAL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.persist\.v1';/);
+    assert.doesNotMatch(dashboardScript, /params\.set\('_', String\(Date\.now\(\)\)\);/);
 });
 
 test('folder editor includes parent default hint styles', () => {
@@ -147,7 +169,7 @@ test('folder editor includes parent default hint styles', () => {
 
 test('tree integrity scan includes depth and empty-branch signals', () => {
     assert.match(settingsScript, /const TREE_INTEGRITY_DEPTH_WARN_LEVEL = \d+;/);
-    assert.match(settingsScript, /depthWarnings/);
-    assert.match(settingsScript, /emptyBranches/);
-    assert.match(settingsScript, /No repairable link issues/);
+    assert.match(settingsRuntimeActionsScript, /depthWarnings/);
+    assert.match(settingsRuntimeActionsScript, /emptyBranches/);
+    assert.match(settingsRuntimeActionsScript, /No repairable link issues/);
 });

@@ -20,6 +20,10 @@ const dockerJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js'
 );
+const dockerRuntimeHierarchyJsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js'
+);
 const vmJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js'
@@ -60,10 +64,6 @@ const folderEditorJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js'
 );
-const folderEditorLegacyJsPath = path.join(
-    repoRoot,
-    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.legacy.js'
-);
 const settingsImportJsPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js'
@@ -81,6 +81,7 @@ const libPhp = fs.readFileSync(libPath, 'utf8');
 const readInfoPhp = fs.readFileSync(readInfoPath, 'utf8');
 const thirdPartyIconsPhp = fs.readFileSync(thirdPartyIconsPath, 'utf8');
 const dockerJs = fs.readFileSync(dockerJsPath, 'utf8');
+const dockerRuntimeHierarchyJs = fs.readFileSync(dockerRuntimeHierarchyJsPath, 'utf8');
 const vmJs = fs.readFileSync(vmJsPath, 'utf8');
 const dashboardJs = fs.readFileSync(dashboardJsPath, 'utf8');
 const dashboardFolderMatchCacheJs = fs.readFileSync(dashboardFolderMatchCachePath, 'utf8');
@@ -91,7 +92,6 @@ const dockerModulesJs = fs.readFileSync(dockerModulesPath, 'utf8');
 const settingsJs = fs.readFileSync(settingsJsPath, 'utf8');
 const diagnosticsJs = fs.readFileSync(diagnosticsJsPath, 'utf8');
 const folderEditorJs = fs.readFileSync(folderEditorJsPath, 'utf8');
-const folderEditorLegacyJs = fs.readFileSync(folderEditorLegacyJsPath, 'utf8');
 const utilsJs = fs.readFileSync(utilsJsPath, 'utf8');
 const settingsImportJs = fs.readFileSync(settingsImportJsPath, 'utf8');
 const settingsRuntime = `${settingsJs}\n${settingsImportJs}\n${diagnosticsJs}`;
@@ -282,13 +282,15 @@ test('docker runtime app column auto-sizes based on folder names and rebinds aft
     assert.match(dockerJs, /const ensureDockerRuntimeWidthDebugPanel = \(\) =>/);
     assert.match(dockerJs, /window\.toggleDockerRuntimeWidthDebug = \(enabled = true\) =>/);
     assert.match(dockerJs, /const applyDockerRuntimeColumnWidths = \(_widthMap = null\) =>/);
-    assert.match(dockerJs, /auto-sizes from folder names/);
+    assert.match(dockerJs, /estimateFromRows\(\{\s*rows,\s*baseline,/s);
+    assert.match(dockerJs, /nameSelector:\s*'\.folder-appname'/);
+    assert.match(dockerJs, /auxSelectors:\s*\['\.folder-state'\]/);
     assert.match(dockerJs, /tbody#docker_list tr\.folder,\s*tbody#docker_view tr\.folder/);
     assert.match(dockerJs, /tbody#docker_list > tr > td:nth-child\(\$\{index\}\),\s*tbody#docker_view > tr > td:nth-child\(\$\{index\}\)/);
     assert.match(dockerJs, /bindDockerRuntimeAppColumnResizer\(\);/);
     assert.match(dockerJs, /queueDockerRuntimeResizerBind\(\);/);
     assert.match(dockerJs, /scheduleDockerRuntimeWidthReflow\('render-complete', 12\)/);
-    assert.match(dockerJs, /scheduleDockerRuntimeWidthReflow\('folder-toggle', 24\)/);
+    assert.match(dockerRuntimeHierarchyJs, /scheduleRuntimeWidthReflow\('folder-toggle', 24\)/);
     assert.match(dockerJs, /scheduleDockerRuntimeWidthReflow\('prefs-change', 0\)/);
 });
 
@@ -328,18 +330,12 @@ test('folder editor save queues docker order sync off the submit critical path i
     assert.match(folderEditorJs, /const queueBackgroundMutationPost = \(url,\s*data = \{\}\) =>/);
     assert.match(folderEditorJs, /navigator\.sendBeacon/);
     assert.match(folderEditorJs, /keepalive:\s*true/);
-    assert.match(folderEditorJs, /const flushPostSaveDockerSync = async \(\) =>/);
+    assert.match(folderEditorJs, /const shouldSyncDockerOrderAfterSave = \(nextFolder,\s*options = \{\}\) =>/);
+    assert.match(folderEditorJs, /const flushPostSaveDockerSync = async \(options = \{\}\) =>/);
     assert.match(folderEditorJs, /if \(type !== 'docker'\) \{\s*return;\s*\}/);
+    assert.match(folderEditorJs, /if \(!shouldSyncDockerOrderAfterSave\(options\.folder,\s*options\)\) \{\s*return;\s*\}/);
     const modernSubmitBlock = folderEditorJs.match(/const submitForm = async \(e, saveAsCopy = false\) => \{([\s\S]*?)\n\}/)?.[1] || '';
-    assert.match(modernSubmitBlock, /await flushPostSaveDockerSync\(\);/);
+    assert.match(modernSubmitBlock, /const currentFolderId = String\(activeFolderEditorFolderId \|\| folderId \|\| ''\)\.trim\(\);/);
+    assert.match(modernSubmitBlock, /await flushPostSaveDockerSync\(\{[\s\S]*force:\s*saveAsCopy \|\| !currentFolderId,[\s\S]*previousFolder[\s\S]*\}\);/);
     assert.doesNotMatch(modernSubmitBlock, /await securePost\('\/plugins\/folderview\.plus\/server\/sync_order\.php'/);
-
-    assert.match(folderEditorLegacyJs, /const queueBackgroundMutationPost = \(url,\s*data = \{\}\) =>/);
-    assert.match(folderEditorLegacyJs, /navigator\.sendBeacon/);
-    assert.match(folderEditorLegacyJs, /keepalive:\s*true/);
-    assert.match(folderEditorLegacyJs, /const flushPostSaveDockerSync = async \(\) =>/);
-    assert.match(folderEditorLegacyJs, /if \(type !== 'docker'\) \{\s*return;\s*\}/);
-    const legacySubmitBlock = folderEditorLegacyJs.match(/const submitForm = async \(e, saveAsCopy = false\) => \{([\s\S]*?)\n\}/)?.[1] || '';
-    assert.match(legacySubmitBlock, /await flushPostSaveDockerSync\(\);/);
-    assert.doesNotMatch(legacySubmitBlock, /await securePost\('\/plugins\/folderview\.plus\/server\/sync_order\.php'/);
 });

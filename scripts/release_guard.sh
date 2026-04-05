@@ -160,6 +160,9 @@ if [[ -z "${ARCHIVE_SIZE_BYTES}" || "${ARCHIVE_SIZE_BYTES}" -gt "${MAX_ARCHIVE_B
 fi
 
 SOURCE_FOLDER_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.js"
+SOURCE_DOCKER_RUNTIME_HIERARCHY_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js"
+SOURCE_DOCKER_RUNTIME_ACTIONS_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.actions.js"
+SOURCE_FOLDER_SETTINGS_TRANSFER_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.settings-transfer.js"
 SOURCE_FOLDER_CSS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folder.css"
 SOURCE_SETTINGS_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js"
 SOURCE_SETTINGS_DIRTY_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.dirty.js"
@@ -168,18 +171,39 @@ SOURCE_SETTINGS_SECTIONS_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/pl
 SOURCE_SETTINGS_SETUP_ASSISTANT_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js"
 SOURCE_SETTINGS_SMART_DETECT_CONFIG_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js"
 SOURCE_SETTINGS_STARTER_TEMPLATES_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js"
+SOURCE_SETTINGS_SUPPORT_BUNDLE_PREVIEW_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-preview.js"
+SOURCE_SETTINGS_SUPPORT_BUNDLE_TELEMETRY_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-telemetry.js"
 SOURCE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js"
+SOURCE_SETTINGS_TREE_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-tree.js"
 SOURCE_SETTINGS_FOLDER_EDITOR_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js"
+SOURCE_SETTINGS_HEALTH_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-health.js"
+SOURCE_SETTINGS_WORKSPACES_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-workspaces.js"
+SOURCE_SETTINGS_BULK_ASSIGNMENT_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js"
+SOURCE_SETTINGS_RUNTIME_ACTIONS_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js"
 SOURCE_SETTINGS_WIZARD_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js"
 SOURCE_SETTINGS_IMPORT_JS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js"
 SOURCE_SETTINGS_CSS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css"
 SOURCE_FOLDER_PAGE="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/Folder.page"
 SOURCE_SETTINGS_PAGE="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page"
 SOURCE_SERVER_LIB="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php"
+SOURCE_SERVER_LIB_DIAGNOSTICS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.diagnostics.php"
+SOURCE_SERVER_APPLY_FOLDER_SETTINGS="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/apply_folder_settings.php"
 SOURCE_SERVER_UPDATE_NOTES="${ROOT_DIR}/src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/update_notes.php"
 
 if [[ ! -f "${SOURCE_FOLDER_JS}" ]]; then
   echo "ERROR: Missing source folder editor script: ${SOURCE_FOLDER_JS}" >&2
+  exit 1
+fi
+if [[ ! -f "${SOURCE_DOCKER_RUNTIME_HIERARCHY_JS}" ]]; then
+  echo "ERROR: Missing source Docker hierarchy helper script: ${SOURCE_DOCKER_RUNTIME_HIERARCHY_JS}" >&2
+  exit 1
+fi
+if [[ ! -f "${SOURCE_DOCKER_RUNTIME_ACTIONS_JS}" ]]; then
+  echo "ERROR: Missing source Docker action helper script: ${SOURCE_DOCKER_RUNTIME_ACTIONS_JS}" >&2
+  exit 1
+fi
+if [[ ! -f "${SOURCE_FOLDER_SETTINGS_TRANSFER_JS}" ]]; then
+  echo "ERROR: Missing source folder settings transfer script: ${SOURCE_FOLDER_SETTINGS_TRANSFER_JS}" >&2
   exit 1
 fi
 if [[ ! -f "${SOURCE_FOLDER_CSS}" ]]; then
@@ -214,12 +238,40 @@ if [[ ! -f "${SOURCE_SETTINGS_STARTER_TEMPLATES_JS}" ]]; then
   echo "ERROR: Missing source settings starter templates script: ${SOURCE_SETTINGS_STARTER_TEMPLATES_JS}" >&2
   exit 1
 fi
+if [[ ! -f "${SOURCE_SETTINGS_SUPPORT_BUNDLE_PREVIEW_JS}" ]]; then
+  echo "ERROR: Missing source settings support-bundle preview script: ${SOURCE_SETTINGS_SUPPORT_BUNDLE_PREVIEW_JS}" >&2
+  exit 1
+fi
+if [[ ! -f "${SOURCE_SETTINGS_SUPPORT_BUNDLE_TELEMETRY_JS}" ]]; then
+  echo "ERROR: Missing source settings support-bundle telemetry script: ${SOURCE_SETTINGS_SUPPORT_BUNDLE_TELEMETRY_JS}" >&2
+  exit 1
+fi
 if [[ ! -f "${SOURCE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS}" ]]; then
   echo "ERROR: Missing source settings activity/diagnostics script: ${SOURCE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS}" >&2
   exit 1
 fi
+if [[ ! -f "${SOURCE_SETTINGS_TREE_JS}" ]]; then
+  echo "ERROR: Missing source settings tree script: ${SOURCE_SETTINGS_TREE_JS}" >&2
+  exit 1
+fi
 if [[ ! -f "${SOURCE_SETTINGS_FOLDER_EDITOR_JS}" ]]; then
   echo "ERROR: Missing source settings folder editor script: ${SOURCE_SETTINGS_FOLDER_EDITOR_JS}" >&2
+  exit 1
+fi
+if [[ ! -f "${SOURCE_SETTINGS_HEALTH_JS}" ]]; then
+  echo "ERROR: Missing source settings health script: ${SOURCE_SETTINGS_HEALTH_JS}" >&2
+  exit 1
+fi
+if [[ ! -f "${SOURCE_SETTINGS_WORKSPACES_JS}" ]]; then
+  echo "ERROR: Missing source settings workspaces script: ${SOURCE_SETTINGS_WORKSPACES_JS}" >&2
+  exit 1
+fi
+if [[ ! -f "${SOURCE_SETTINGS_BULK_ASSIGNMENT_JS}" ]]; then
+  echo "ERROR: Missing source settings bulk assignment script: ${SOURCE_SETTINGS_BULK_ASSIGNMENT_JS}" >&2
+  exit 1
+fi
+if [[ ! -f "${SOURCE_SETTINGS_RUNTIME_ACTIONS_JS}" ]]; then
+  echo "ERROR: Missing source settings runtime actions script: ${SOURCE_SETTINGS_RUNTIME_ACTIONS_JS}" >&2
   exit 1
 fi
 if [[ ! -f "${SOURCE_SETTINGS_WIZARD_JS}" ]]; then
@@ -244,6 +296,14 @@ if [[ ! -f "${SOURCE_SETTINGS_PAGE}" ]]; then
 fi
 if [[ ! -f "${SOURCE_SERVER_LIB}" ]]; then
   echo "ERROR: Missing source server lib: ${SOURCE_SERVER_LIB}" >&2
+  exit 1
+fi
+if [[ ! -f "${SOURCE_SERVER_LIB_DIAGNOSTICS}" ]]; then
+  echo "ERROR: Missing source server diagnostics lib: ${SOURCE_SERVER_LIB_DIAGNOSTICS}" >&2
+  exit 1
+fi
+if [[ ! -f "${SOURCE_SERVER_APPLY_FOLDER_SETTINGS}" ]]; then
+  echo "ERROR: Missing source server apply-folder-settings endpoint: ${SOURCE_SERVER_APPLY_FOLDER_SETTINGS}" >&2
   exit 1
 fi
 if [[ ! -f "${SOURCE_SERVER_UPDATE_NOTES}" ]]; then
@@ -284,6 +344,9 @@ fi
 
 REQUIRED_ARCHIVE_PATHS=(
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folder.js"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.actions.js"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/folder.settings-transfer.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.dirty.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-parity.js"
@@ -291,8 +354,17 @@ REQUIRED_ARCHIVE_PATHS=(
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-preview.js"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-telemetry.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-tree.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-health.js"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-workspaces.js"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.preview-runtime.js"
+  "./usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.icons.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js"
   "./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js"
   "./usr/local/emhttp/plugins/folderview.plus/styles/folder.css"
@@ -300,6 +372,8 @@ REQUIRED_ARCHIVE_PATHS=(
   "./usr/local/emhttp/plugins/folderview.plus/Folder.page"
   "./usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page"
   "./usr/local/emhttp/plugins/folderview.plus/server/lib.php"
+  "./usr/local/emhttp/plugins/folderview.plus/server/lib.diagnostics.php"
+  "./usr/local/emhttp/plugins/folderview.plus/server/apply_folder_settings.php"
   "./usr/local/emhttp/plugins/folderview.plus/server/update_notes.php"
 )
 
@@ -347,12 +421,32 @@ if ! grep -q 'folderviewplus\.starter-templates\.js' "${SOURCE_SETTINGS_PAGE}"; 
   echo "ERROR: Source FolderViewPlus.page is missing folderviewplus.starter-templates.js include." >&2
   exit 1
 fi
+if ! grep -q 'folderviewplus\.support-bundle-preview\.js' "${SOURCE_SETTINGS_PAGE}"; then
+  echo "ERROR: Source FolderViewPlus.page is missing folderviewplus.support-bundle-preview.js include." >&2
+  exit 1
+fi
+if ! grep -q 'folderviewplus\.support-bundle-telemetry\.js' "${SOURCE_SETTINGS_PAGE}"; then
+  echo "ERROR: Source FolderViewPlus.page is missing folderviewplus.support-bundle-telemetry.js include." >&2
+  exit 1
+fi
 if ! grep -q 'folderviewplus\.activity-diagnostics\.js' "${SOURCE_SETTINGS_PAGE}"; then
   echo "ERROR: Source FolderViewPlus.page is missing folderviewplus.activity-diagnostics.js include." >&2
   exit 1
 fi
+if ! grep -q 'folderviewplus\.settings-tree\.js' "${SOURCE_SETTINGS_PAGE}"; then
+  echo "ERROR: Source FolderViewPlus.page is missing folderviewplus.settings-tree.js include." >&2
+  exit 1
+fi
 if ! grep -q 'folderviewplus\.folder-editor\.js' "${SOURCE_SETTINGS_PAGE}"; then
   echo "ERROR: Source FolderViewPlus.page is missing folderviewplus.folder-editor.js include." >&2
+  exit 1
+fi
+if ! grep -q 'folderviewplus\.bulk-assignment\.js' "${SOURCE_SETTINGS_PAGE}"; then
+  echo "ERROR: Source FolderViewPlus.page is missing folderviewplus.bulk-assignment.js include." >&2
+  exit 1
+fi
+if ! grep -q 'folderviewplus\.runtime-actions\.js' "${SOURCE_SETTINGS_PAGE}"; then
+  echo "ERROR: Source FolderViewPlus.page is missing folderviewplus.runtime-actions.js include." >&2
   exit 1
 fi
 if ! grep -q 'folderviewplus\.wizard\.js' "${SOURCE_SETTINGS_PAGE}"; then
@@ -458,6 +552,9 @@ if ! grep -Eq "${current_version_notes_pattern}" "${SERVER_DIR}/lib.php"; then
 fi
 
 TMP_ARCHIVE_FOLDER_JS="$(mktemp)"
+TMP_ARCHIVE_DOCKER_RUNTIME_HIERARCHY_JS="$(mktemp)"
+TMP_ARCHIVE_DOCKER_RUNTIME_ACTIONS_JS="$(mktemp)"
+TMP_ARCHIVE_FOLDER_SETTINGS_TRANSFER_JS="$(mktemp)"
 TMP_ARCHIVE_FOLDER_CSS="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_JS="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_DIRTY_JS="$(mktemp)"
@@ -466,17 +563,29 @@ TMP_ARCHIVE_SETTINGS_SECTIONS_JS="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_SETUP_ASSISTANT_JS="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_SMART_DETECT_CONFIG_JS="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_STARTER_TEMPLATES_JS="$(mktemp)"
+TMP_ARCHIVE_SETTINGS_SUPPORT_BUNDLE_PREVIEW_JS="$(mktemp)"
+TMP_ARCHIVE_SETTINGS_SUPPORT_BUNDLE_TELEMETRY_JS="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS="$(mktemp)"
+TMP_ARCHIVE_SETTINGS_TREE_JS="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_FOLDER_EDITOR_JS="$(mktemp)"
+TMP_ARCHIVE_SETTINGS_HEALTH_JS="$(mktemp)"
+TMP_ARCHIVE_SETTINGS_WORKSPACES_JS="$(mktemp)"
+TMP_ARCHIVE_SETTINGS_BULK_ASSIGNMENT_JS="$(mktemp)"
+TMP_ARCHIVE_SETTINGS_RUNTIME_ACTIONS_JS="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_WIZARD_JS="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_IMPORT_JS="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_CSS="$(mktemp)"
 TMP_ARCHIVE_FOLDER_PAGE="$(mktemp)"
 TMP_ARCHIVE_SETTINGS_PAGE="$(mktemp)"
 TMP_ARCHIVE_SERVER_LIB="$(mktemp)"
+TMP_ARCHIVE_SERVER_LIB_DIAGNOSTICS="$(mktemp)"
+TMP_ARCHIVE_SERVER_APPLY_FOLDER_SETTINGS="$(mktemp)"
 TMP_ARCHIVE_SERVER_UPDATE_NOTES="$(mktemp)"
-trap 'rm -f "${TMP_ARCHIVE_FOLDER_JS}" "${TMP_ARCHIVE_FOLDER_CSS}" "${TMP_ARCHIVE_SETTINGS_JS}" "${TMP_ARCHIVE_SETTINGS_DIRTY_JS}" "${TMP_ARCHIVE_SETTINGS_RUNTIME_PARITY_JS}" "${TMP_ARCHIVE_SETTINGS_SECTIONS_JS}" "${TMP_ARCHIVE_SETTINGS_SETUP_ASSISTANT_JS}" "${TMP_ARCHIVE_SETTINGS_SMART_DETECT_CONFIG_JS}" "${TMP_ARCHIVE_SETTINGS_STARTER_TEMPLATES_JS}" "${TMP_ARCHIVE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS}" "${TMP_ARCHIVE_SETTINGS_FOLDER_EDITOR_JS}" "${TMP_ARCHIVE_SETTINGS_WIZARD_JS}" "${TMP_ARCHIVE_SETTINGS_IMPORT_JS}" "${TMP_ARCHIVE_SETTINGS_CSS}" "${TMP_ARCHIVE_FOLDER_PAGE}" "${TMP_ARCHIVE_SETTINGS_PAGE}" "${TMP_ARCHIVE_SERVER_LIB}" "${TMP_ARCHIVE_SERVER_UPDATE_NOTES}"' EXIT
+trap 'rm -f "${TMP_ARCHIVE_FOLDER_JS}" "${TMP_ARCHIVE_DOCKER_RUNTIME_HIERARCHY_JS}" "${TMP_ARCHIVE_DOCKER_RUNTIME_ACTIONS_JS}" "${TMP_ARCHIVE_FOLDER_SETTINGS_TRANSFER_JS}" "${TMP_ARCHIVE_FOLDER_CSS}" "${TMP_ARCHIVE_SETTINGS_JS}" "${TMP_ARCHIVE_SETTINGS_DIRTY_JS}" "${TMP_ARCHIVE_SETTINGS_RUNTIME_PARITY_JS}" "${TMP_ARCHIVE_SETTINGS_SECTIONS_JS}" "${TMP_ARCHIVE_SETTINGS_SETUP_ASSISTANT_JS}" "${TMP_ARCHIVE_SETTINGS_SMART_DETECT_CONFIG_JS}" "${TMP_ARCHIVE_SETTINGS_STARTER_TEMPLATES_JS}" "${TMP_ARCHIVE_SETTINGS_SUPPORT_BUNDLE_PREVIEW_JS}" "${TMP_ARCHIVE_SETTINGS_SUPPORT_BUNDLE_TELEMETRY_JS}" "${TMP_ARCHIVE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS}" "${TMP_ARCHIVE_SETTINGS_TREE_JS}" "${TMP_ARCHIVE_SETTINGS_FOLDER_EDITOR_JS}" "${TMP_ARCHIVE_SETTINGS_HEALTH_JS}" "${TMP_ARCHIVE_SETTINGS_WORKSPACES_JS}" "${TMP_ARCHIVE_SETTINGS_BULK_ASSIGNMENT_JS}" "${TMP_ARCHIVE_SETTINGS_RUNTIME_ACTIONS_JS}" "${TMP_ARCHIVE_SETTINGS_WIZARD_JS}" "${TMP_ARCHIVE_SETTINGS_IMPORT_JS}" "${TMP_ARCHIVE_SETTINGS_CSS}" "${TMP_ARCHIVE_FOLDER_PAGE}" "${TMP_ARCHIVE_SETTINGS_PAGE}" "${TMP_ARCHIVE_SERVER_LIB}" "${TMP_ARCHIVE_SERVER_LIB_DIAGNOSTICS}" "${TMP_ARCHIVE_SERVER_APPLY_FOLDER_SETTINGS}" "${TMP_ARCHIVE_SERVER_UPDATE_NOTES}"' EXIT
 ARCHIVE_FOLDER_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folder.js"
+ARCHIVE_DOCKER_RUNTIME_HIERARCHY_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js"
+ARCHIVE_DOCKER_RUNTIME_ACTIONS_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.actions.js"
+ARCHIVE_FOLDER_SETTINGS_TRANSFER_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folder.settings-transfer.js"
 ARCHIVE_FOLDER_CSS_PATH="./usr/local/emhttp/plugins/folderview.plus/styles/folder.css"
 ARCHIVE_SETTINGS_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js"
 ARCHIVE_SETTINGS_DIRTY_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.dirty.js"
@@ -485,17 +594,35 @@ ARCHIVE_SETTINGS_SECTIONS_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/sc
 ARCHIVE_SETTINGS_SETUP_ASSISTANT_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js"
 ARCHIVE_SETTINGS_SMART_DETECT_CONFIG_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js"
 ARCHIVE_SETTINGS_STARTER_TEMPLATES_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js"
+ARCHIVE_SETTINGS_SUPPORT_BUNDLE_PREVIEW_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-preview.js"
+ARCHIVE_SETTINGS_SUPPORT_BUNDLE_TELEMETRY_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-telemetry.js"
 ARCHIVE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js"
+ARCHIVE_SETTINGS_TREE_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-tree.js"
 ARCHIVE_SETTINGS_FOLDER_EDITOR_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js"
+ARCHIVE_SETTINGS_HEALTH_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-health.js"
+ARCHIVE_SETTINGS_WORKSPACES_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-workspaces.js"
+ARCHIVE_SETTINGS_BULK_ASSIGNMENT_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js"
+ARCHIVE_SETTINGS_RUNTIME_ACTIONS_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js"
 ARCHIVE_SETTINGS_WIZARD_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js"
 ARCHIVE_SETTINGS_IMPORT_JS_PATH="./usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.import.js"
 ARCHIVE_SETTINGS_CSS_PATH="./usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css"
 ARCHIVE_FOLDER_PAGE_PATH="./usr/local/emhttp/plugins/folderview.plus/Folder.page"
 ARCHIVE_SETTINGS_PAGE_PATH="./usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page"
 ARCHIVE_SERVER_LIB_PATH="./usr/local/emhttp/plugins/folderview.plus/server/lib.php"
+ARCHIVE_SERVER_LIB_DIAGNOSTICS_PATH="./usr/local/emhttp/plugins/folderview.plus/server/lib.diagnostics.php"
+ARCHIVE_SERVER_APPLY_FOLDER_SETTINGS_PATH="./usr/local/emhttp/plugins/folderview.plus/server/apply_folder_settings.php"
 ARCHIVE_SERVER_UPDATE_NOTES_PATH="./usr/local/emhttp/plugins/folderview.plus/server/update_notes.php"
 if ! grep -Fxq "${ARCHIVE_FOLDER_JS_PATH}" <<< "${ARCHIVE_LIST}"; then
   ARCHIVE_FOLDER_JS_PATH="${ARCHIVE_FOLDER_JS_PATH#./}"
+fi
+if ! grep -Fxq "${ARCHIVE_DOCKER_RUNTIME_HIERARCHY_JS_PATH}" <<< "${ARCHIVE_LIST}"; then
+  ARCHIVE_DOCKER_RUNTIME_HIERARCHY_JS_PATH="${ARCHIVE_DOCKER_RUNTIME_HIERARCHY_JS_PATH#./}"
+fi
+if ! grep -Fxq "${ARCHIVE_DOCKER_RUNTIME_ACTIONS_JS_PATH}" <<< "${ARCHIVE_LIST}"; then
+  ARCHIVE_DOCKER_RUNTIME_ACTIONS_JS_PATH="${ARCHIVE_DOCKER_RUNTIME_ACTIONS_JS_PATH#./}"
+fi
+if ! grep -Fxq "${ARCHIVE_FOLDER_SETTINGS_TRANSFER_JS_PATH}" <<< "${ARCHIVE_LIST}"; then
+  ARCHIVE_FOLDER_SETTINGS_TRANSFER_JS_PATH="${ARCHIVE_FOLDER_SETTINGS_TRANSFER_JS_PATH#./}"
 fi
 if ! grep -Fxq "${ARCHIVE_FOLDER_CSS_PATH}" <<< "${ARCHIVE_LIST}"; then
   ARCHIVE_FOLDER_CSS_PATH="${ARCHIVE_FOLDER_CSS_PATH#./}"
@@ -521,11 +648,32 @@ fi
 if ! grep -Fxq "${ARCHIVE_SETTINGS_STARTER_TEMPLATES_JS_PATH}" <<< "${ARCHIVE_LIST}"; then
   ARCHIVE_SETTINGS_STARTER_TEMPLATES_JS_PATH="${ARCHIVE_SETTINGS_STARTER_TEMPLATES_JS_PATH#./}"
 fi
+if ! grep -Fxq "${ARCHIVE_SETTINGS_SUPPORT_BUNDLE_PREVIEW_JS_PATH}" <<< "${ARCHIVE_LIST}"; then
+  ARCHIVE_SETTINGS_SUPPORT_BUNDLE_PREVIEW_JS_PATH="${ARCHIVE_SETTINGS_SUPPORT_BUNDLE_PREVIEW_JS_PATH#./}"
+fi
+if ! grep -Fxq "${ARCHIVE_SETTINGS_SUPPORT_BUNDLE_TELEMETRY_JS_PATH}" <<< "${ARCHIVE_LIST}"; then
+  ARCHIVE_SETTINGS_SUPPORT_BUNDLE_TELEMETRY_JS_PATH="${ARCHIVE_SETTINGS_SUPPORT_BUNDLE_TELEMETRY_JS_PATH#./}"
+fi
 if ! grep -Fxq "${ARCHIVE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS_PATH}" <<< "${ARCHIVE_LIST}"; then
   ARCHIVE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS_PATH="${ARCHIVE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS_PATH#./}"
 fi
+if ! grep -Fxq "${ARCHIVE_SETTINGS_TREE_JS_PATH}" <<< "${ARCHIVE_LIST}"; then
+  ARCHIVE_SETTINGS_TREE_JS_PATH="${ARCHIVE_SETTINGS_TREE_JS_PATH#./}"
+fi
 if ! grep -Fxq "${ARCHIVE_SETTINGS_FOLDER_EDITOR_JS_PATH}" <<< "${ARCHIVE_LIST}"; then
   ARCHIVE_SETTINGS_FOLDER_EDITOR_JS_PATH="${ARCHIVE_SETTINGS_FOLDER_EDITOR_JS_PATH#./}"
+fi
+if ! grep -Fxq "${ARCHIVE_SETTINGS_HEALTH_JS_PATH}" <<< "${ARCHIVE_LIST}"; then
+  ARCHIVE_SETTINGS_HEALTH_JS_PATH="${ARCHIVE_SETTINGS_HEALTH_JS_PATH#./}"
+fi
+if ! grep -Fxq "${ARCHIVE_SETTINGS_WORKSPACES_JS_PATH}" <<< "${ARCHIVE_LIST}"; then
+  ARCHIVE_SETTINGS_WORKSPACES_JS_PATH="${ARCHIVE_SETTINGS_WORKSPACES_JS_PATH#./}"
+fi
+if ! grep -Fxq "${ARCHIVE_SETTINGS_BULK_ASSIGNMENT_JS_PATH}" <<< "${ARCHIVE_LIST}"; then
+  ARCHIVE_SETTINGS_BULK_ASSIGNMENT_JS_PATH="${ARCHIVE_SETTINGS_BULK_ASSIGNMENT_JS_PATH#./}"
+fi
+if ! grep -Fxq "${ARCHIVE_SETTINGS_RUNTIME_ACTIONS_JS_PATH}" <<< "${ARCHIVE_LIST}"; then
+  ARCHIVE_SETTINGS_RUNTIME_ACTIONS_JS_PATH="${ARCHIVE_SETTINGS_RUNTIME_ACTIONS_JS_PATH#./}"
 fi
 if ! grep -Fxq "${ARCHIVE_SETTINGS_WIZARD_JS_PATH}" <<< "${ARCHIVE_LIST}"; then
   ARCHIVE_SETTINGS_WIZARD_JS_PATH="${ARCHIVE_SETTINGS_WIZARD_JS_PATH#./}"
@@ -545,10 +693,19 @@ fi
 if ! grep -Fxq "${ARCHIVE_SERVER_LIB_PATH}" <<< "${ARCHIVE_LIST}"; then
   ARCHIVE_SERVER_LIB_PATH="${ARCHIVE_SERVER_LIB_PATH#./}"
 fi
+if ! grep -Fxq "${ARCHIVE_SERVER_LIB_DIAGNOSTICS_PATH}" <<< "${ARCHIVE_LIST}"; then
+  ARCHIVE_SERVER_LIB_DIAGNOSTICS_PATH="${ARCHIVE_SERVER_LIB_DIAGNOSTICS_PATH#./}"
+fi
+if ! grep -Fxq "${ARCHIVE_SERVER_APPLY_FOLDER_SETTINGS_PATH}" <<< "${ARCHIVE_LIST}"; then
+  ARCHIVE_SERVER_APPLY_FOLDER_SETTINGS_PATH="${ARCHIVE_SERVER_APPLY_FOLDER_SETTINGS_PATH#./}"
+fi
 if ! grep -Fxq "${ARCHIVE_SERVER_UPDATE_NOTES_PATH}" <<< "${ARCHIVE_LIST}"; then
   ARCHIVE_SERVER_UPDATE_NOTES_PATH="${ARCHIVE_SERVER_UPDATE_NOTES_PATH#./}"
 fi
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_FOLDER_JS_PATH}" > "${TMP_ARCHIVE_FOLDER_JS}"
+tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_DOCKER_RUNTIME_HIERARCHY_JS_PATH}" > "${TMP_ARCHIVE_DOCKER_RUNTIME_HIERARCHY_JS}"
+tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_DOCKER_RUNTIME_ACTIONS_JS_PATH}" > "${TMP_ARCHIVE_DOCKER_RUNTIME_ACTIONS_JS}"
+tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_FOLDER_SETTINGS_TRANSFER_JS_PATH}" > "${TMP_ARCHIVE_FOLDER_SETTINGS_TRANSFER_JS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_FOLDER_CSS_PATH}" > "${TMP_ARCHIVE_FOLDER_CSS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_JS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_DIRTY_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_DIRTY_JS}"
@@ -557,14 +714,23 @@ tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_SECTIONS_JS_PATH}" > "${TMP_ARCHI
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_SETUP_ASSISTANT_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_SETUP_ASSISTANT_JS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_SMART_DETECT_CONFIG_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_SMART_DETECT_CONFIG_JS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_STARTER_TEMPLATES_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_STARTER_TEMPLATES_JS}"
+tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_SUPPORT_BUNDLE_PREVIEW_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_SUPPORT_BUNDLE_PREVIEW_JS}"
+tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_SUPPORT_BUNDLE_TELEMETRY_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_SUPPORT_BUNDLE_TELEMETRY_JS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS}"
+tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_TREE_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_TREE_JS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_FOLDER_EDITOR_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_FOLDER_EDITOR_JS}"
+tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_HEALTH_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_HEALTH_JS}"
+tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_WORKSPACES_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_WORKSPACES_JS}"
+tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_BULK_ASSIGNMENT_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_BULK_ASSIGNMENT_JS}"
+tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_RUNTIME_ACTIONS_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_RUNTIME_ACTIONS_JS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_WIZARD_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_WIZARD_JS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_IMPORT_JS_PATH}" > "${TMP_ARCHIVE_SETTINGS_IMPORT_JS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_CSS_PATH}" > "${TMP_ARCHIVE_SETTINGS_CSS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_FOLDER_PAGE_PATH}" > "${TMP_ARCHIVE_FOLDER_PAGE}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SETTINGS_PAGE_PATH}" > "${TMP_ARCHIVE_SETTINGS_PAGE}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SERVER_LIB_PATH}" > "${TMP_ARCHIVE_SERVER_LIB}"
+tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SERVER_LIB_DIAGNOSTICS_PATH}" > "${TMP_ARCHIVE_SERVER_LIB_DIAGNOSTICS}"
+tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SERVER_APPLY_FOLDER_SETTINGS_PATH}" > "${TMP_ARCHIVE_SERVER_APPLY_FOLDER_SETTINGS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SERVER_UPDATE_NOTES_PATH}" > "${TMP_ARCHIVE_SERVER_UPDATE_NOTES}"
 
 if ! grep -q 'fv-force-left-v2 marker' "${TMP_ARCHIVE_FOLDER_JS}"; then
@@ -574,6 +740,17 @@ fi
 
 if ! text_files_match "${SOURCE_FOLDER_JS}" "${TMP_ARCHIVE_FOLDER_JS}"; then
   fail_packaged_source_mismatch "Packaged folder.js does not match source folder.js."
+fi
+
+if ! text_files_match "${SOURCE_DOCKER_RUNTIME_HIERARCHY_JS}" "${TMP_ARCHIVE_DOCKER_RUNTIME_HIERARCHY_JS}"; then
+  fail_packaged_source_mismatch "Packaged docker.runtime.hierarchy.js does not match source docker.runtime.hierarchy.js."
+fi
+
+if ! text_files_match "${SOURCE_DOCKER_RUNTIME_ACTIONS_JS}" "${TMP_ARCHIVE_DOCKER_RUNTIME_ACTIONS_JS}"; then
+  fail_packaged_source_mismatch "Packaged docker.runtime.actions.js does not match source docker.runtime.actions.js."
+fi
+if ! text_files_match "${SOURCE_FOLDER_SETTINGS_TRANSFER_JS}" "${TMP_ARCHIVE_FOLDER_SETTINGS_TRANSFER_JS}"; then
+  fail_packaged_source_mismatch "Packaged folder.settings-transfer.js does not match source folder.settings-transfer.js."
 fi
 
 if ! text_files_match "${SOURCE_FOLDER_CSS}" "${TMP_ARCHIVE_FOLDER_CSS}"; then
@@ -600,11 +777,32 @@ fi
 if ! text_files_match "${SOURCE_SETTINGS_STARTER_TEMPLATES_JS}" "${TMP_ARCHIVE_SETTINGS_STARTER_TEMPLATES_JS}"; then
   fail_packaged_source_mismatch "Packaged folderviewplus.starter-templates.js does not match source folderviewplus.starter-templates.js."
 fi
+if ! text_files_match "${SOURCE_SETTINGS_SUPPORT_BUNDLE_PREVIEW_JS}" "${TMP_ARCHIVE_SETTINGS_SUPPORT_BUNDLE_PREVIEW_JS}"; then
+  fail_packaged_source_mismatch "Packaged folderviewplus.support-bundle-preview.js does not match source folderviewplus.support-bundle-preview.js."
+fi
+if ! text_files_match "${SOURCE_SETTINGS_SUPPORT_BUNDLE_TELEMETRY_JS}" "${TMP_ARCHIVE_SETTINGS_SUPPORT_BUNDLE_TELEMETRY_JS}"; then
+  fail_packaged_source_mismatch "Packaged folderviewplus.support-bundle-telemetry.js does not match source folderviewplus.support-bundle-telemetry.js."
+fi
 if ! text_files_match "${SOURCE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS}" "${TMP_ARCHIVE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS}"; then
   fail_packaged_source_mismatch "Packaged folderviewplus.activity-diagnostics.js does not match source folderviewplus.activity-diagnostics.js."
 fi
+if ! text_files_match "${SOURCE_SETTINGS_TREE_JS}" "${TMP_ARCHIVE_SETTINGS_TREE_JS}"; then
+  fail_packaged_source_mismatch "Packaged folderviewplus.settings-tree.js does not match source folderviewplus.settings-tree.js."
+fi
 if ! text_files_match "${SOURCE_SETTINGS_FOLDER_EDITOR_JS}" "${TMP_ARCHIVE_SETTINGS_FOLDER_EDITOR_JS}"; then
   fail_packaged_source_mismatch "Packaged folderviewplus.folder-editor.js does not match source folderviewplus.folder-editor.js."
+fi
+if ! text_files_match "${SOURCE_SETTINGS_HEALTH_JS}" "${TMP_ARCHIVE_SETTINGS_HEALTH_JS}"; then
+  fail_packaged_source_mismatch "Packaged folderviewplus.settings-health.js does not match source folderviewplus.settings-health.js."
+fi
+if ! text_files_match "${SOURCE_SETTINGS_WORKSPACES_JS}" "${TMP_ARCHIVE_SETTINGS_WORKSPACES_JS}"; then
+  fail_packaged_source_mismatch "Packaged folderviewplus.settings-workspaces.js does not match source folderviewplus.settings-workspaces.js."
+fi
+if ! text_files_match "${SOURCE_SETTINGS_BULK_ASSIGNMENT_JS}" "${TMP_ARCHIVE_SETTINGS_BULK_ASSIGNMENT_JS}"; then
+  fail_packaged_source_mismatch "Packaged folderviewplus.bulk-assignment.js does not match source folderviewplus.bulk-assignment.js."
+fi
+if ! text_files_match "${SOURCE_SETTINGS_RUNTIME_ACTIONS_JS}" "${TMP_ARCHIVE_SETTINGS_RUNTIME_ACTIONS_JS}"; then
+  fail_packaged_source_mismatch "Packaged folderviewplus.runtime-actions.js does not match source folderviewplus.runtime-actions.js."
 fi
 if ! text_files_match "${SOURCE_SETTINGS_WIZARD_JS}" "${TMP_ARCHIVE_SETTINGS_WIZARD_JS}"; then
   fail_packaged_source_mismatch "Packaged folderviewplus.wizard.js does not match source folderviewplus.wizard.js."
@@ -623,6 +821,12 @@ if ! text_files_match "${SOURCE_SETTINGS_PAGE}" "${TMP_ARCHIVE_SETTINGS_PAGE}"; 
 fi
 if ! text_files_match "${SOURCE_SERVER_LIB}" "${TMP_ARCHIVE_SERVER_LIB}"; then
   fail_packaged_source_mismatch "Packaged server/lib.php does not match source server/lib.php."
+fi
+if ! text_files_match "${SOURCE_SERVER_LIB_DIAGNOSTICS}" "${TMP_ARCHIVE_SERVER_LIB_DIAGNOSTICS}"; then
+  fail_packaged_source_mismatch "Packaged server/lib.diagnostics.php does not match source server/lib.diagnostics.php."
+fi
+if ! text_files_match "${SOURCE_SERVER_APPLY_FOLDER_SETTINGS}" "${TMP_ARCHIVE_SERVER_APPLY_FOLDER_SETTINGS}"; then
+  fail_packaged_source_mismatch "Packaged server/apply_folder_settings.php does not match source server/apply_folder_settings.php."
 fi
 if ! text_files_match "${SOURCE_SERVER_UPDATE_NOTES}" "${TMP_ARCHIVE_SERVER_UPDATE_NOTES}"; then
   fail_packaged_source_mismatch "Packaged server/update_notes.php does not match source server/update_notes.php."

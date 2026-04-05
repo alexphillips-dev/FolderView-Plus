@@ -8,35 +8,83 @@ const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath)
 
 const settingsPage = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/FolderViewPlus.page');
 const settingsCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/folderviewplus.css');
+const supportBundlePreviewJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-preview.js');
+const supportBundleBrowserJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-browser.js');
+const supportBundleTelemetryJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-telemetry.js');
 const diagnosticsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js');
-const settingsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js');
+const settingsJs = [
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-health.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-workspaces.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-tree.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
+].map((relativePath) => read(relativePath)).join('\n');
 const settingsSectionsJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-sections.js');
 const wizardJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.wizard.js');
 
 test('settings page loads smart-detect config before starter templates and diagnostics modules', () => {
     const configIndex = settingsPage.indexOf('folderviewplus.smart-detect-config.js');
     const templatesIndex = settingsPage.indexOf('folderviewplus.starter-templates.js');
+    const supportBundlePreviewIndex = settingsPage.indexOf('folderviewplus.support-bundle-preview.js');
+    const supportBundleBrowserIndex = settingsPage.indexOf('folderviewplus.support-bundle-browser.js');
+    const supportBundleTelemetryIndex = settingsPage.indexOf('folderviewplus.support-bundle-telemetry.js');
     const diagnosticsIndex = settingsPage.indexOf('folderviewplus.activity-diagnostics.js');
     assert.ok(configIndex >= 0, 'smart-detect config include is missing');
     assert.ok(templatesIndex >= 0, 'starter templates include is missing');
+    assert.ok(supportBundlePreviewIndex >= 0, 'support bundle preview include is missing');
+    assert.ok(supportBundleBrowserIndex >= 0, 'support bundle browser include is missing');
+    assert.ok(supportBundleTelemetryIndex >= 0, 'support bundle telemetry include is missing');
     assert.ok(diagnosticsIndex >= 0, 'activity diagnostics include is missing');
     assert.ok(configIndex < templatesIndex, 'smart-detect config must load before starter templates');
+    assert.ok(templatesIndex < supportBundlePreviewIndex, 'starter templates must load before support bundle preview module');
+    assert.ok(supportBundlePreviewIndex < supportBundleBrowserIndex, 'support bundle preview module must load before support bundle browser helper');
+    assert.ok(supportBundleBrowserIndex < supportBundleTelemetryIndex, 'support bundle browser helper must load before support bundle telemetry');
+    assert.ok(supportBundlePreviewIndex < supportBundleTelemetryIndex, 'support bundle preview module must load before support bundle telemetry');
+    assert.ok(supportBundleTelemetryIndex < diagnosticsIndex, 'support bundle telemetry module must load before diagnostics');
     assert.ok(configIndex < diagnosticsIndex, 'smart-detect config must load before diagnostics');
 });
 
 test('settings diagnostics exports client perf and theme telemetry helpers', () => {
+    assert.match(supportBundlePreviewJs, /FolderViewPlusSupportBundlePreviewModuleLoaded = true/);
+    assert.match(supportBundlePreviewJs, /const createApi = \(deps = \{\}\) =>/);
+    assert.match(supportBundlePreviewJs, /const buildSupportBundlePreviewSectionCards = \(bundle\) =>/);
+    assert.match(supportBundlePreviewJs, /const buildSupportBundleRedactionPreviewHtml = \(bundle\) =>/);
+    assert.match(supportBundleBrowserJs, /FolderViewPlusSupportBundleBrowserModuleLoaded = true/);
+    assert.match(supportBundleBrowserJs, /const collectLoadedAssetTelemetry = \(uiRedactor, options = \{\}\) =>/);
+    assert.match(supportBundleBrowserJs, /const fallbackVersionToken = normalizeAssetVersionToken\(options\?\.pluginVersion \|\| ''\);/);
+    assert.match(supportBundleBrowserJs, /rawVersionQuery,/);
+    assert.match(supportBundleBrowserJs, /versionSource,/);
+    assert.match(supportBundleBrowserJs, /const collectBrowserConsoleErrors = \(\) =>/);
+    assert.match(supportBundleTelemetryJs, /FolderViewPlusSupportBundleTelemetryModuleLoaded = true/);
+    assert.match(supportBundleTelemetryJs, /const createApi = \(deps = \{\}\) =>/);
+    assert.match(supportBundleTelemetryJs, /const createUiTelemetryRedactor = \(bundle, privacy = 'sanitized'\) =>/);
+    assert.match(supportBundleTelemetryJs, /const browserModule = root\?\.FolderViewPlusSupportBundleBrowser \|\| null;/);
+    assert.match(supportBundleTelemetryJs, /const collectBrowserCapabilities = browserCollectors\?\.collectBrowserCapabilities \|\| \(\(\) => \(\{\}\)\);/);
+    assert.match(supportBundleTelemetryJs, /const collectClientStorageDiagnostics = browserCollectors\?\.collectClientStorageDiagnostics \|\| \(\(\) => \(\{/);
+    assert.match(supportBundleTelemetryJs, /const collectCurrentPageTelemetry = browserCollectors\?\.collectCurrentPageTelemetry \|\| \(\(uiRedactor\) => \{/);
+    assert.match(supportBundleTelemetryJs, /const collectSupportBundleUiTelemetry = \(bundle\) =>/);
+    assert.match(diagnosticsJs, /const normalizeSupportBundleV2Payload = \(bundle, privacy = 'sanitized'\) =>/);
+    assert.match(diagnosticsJs, /const getSupportBundleTelemetryApi = \(\) =>/);
+    assert.match(diagnosticsJs, /const collectSupportBundleUiTelemetry = \(bundle\) =>/);
+    assert.match(diagnosticsJs, /const renderSupportBundlePreview = \(bundle = null\) =>/);
+    assert.match(diagnosticsJs, /const refreshSupportBundlePreview = async \(\{ privacy = 'sanitized', quiet = true \} = \{\}\) =>/);
     assert.match(diagnosticsJs, /const collectClientPerformanceTelemetry = \(\) =>/);
     assert.match(diagnosticsJs, /const collectFolderEditorDebugDiagnostics = \(\) =>/);
+    assert.match(diagnosticsJs, /const EDITOR_DEBUG_SURFACE_STORAGE_KEY = 'fv\.folder\.editor\.debug\.surface\.v1';/);
+    assert.match(diagnosticsJs, /const surface = readClientDiagnosticsStorageRecord\(EDITOR_DEBUG_SURFACE_STORAGE_KEY\);/);
     assert.match(diagnosticsJs, /const renderFolderEditorDebugDiagnostics = \(\) =>/);
     assert.match(diagnosticsJs, /const copyFolderEditorDebugDiagnostics = async \(\) =>/);
     assert.match(diagnosticsJs, /const renderPerformanceDiagnostics = \(\) =>/);
     assert.match(diagnosticsJs, /const renderDiagnosticsSummary = \(diagnostics\) =>/);
     assert.match(diagnosticsJs, /const collectThemeDiagnostics = \(\) =>/);
     assert.match(diagnosticsJs, /const runThemeDiagnostics = \(\) =>/);
+    assert.match(diagnosticsJs, /const collectThemeTelemetrySnapshot = \(\) =>/);
     assert.match(diagnosticsJs, /const exportFullDiagnostics = \(\) =>/);
     assert.match(diagnosticsJs, /const exportFullSupportBundle = \(\) =>/);
     assert.match(settingsPage, /id="fv-diagnostics-summary"/);
     assert.match(settingsPage, /id="fv-diagnostics-actions"/);
+    assert.match(settingsPage, /id="fv-support-bundle-preview" class="fv-support-bundle-preview"/);
     assert.doesNotMatch(settingsPage, /id="fv-diagnostics-technical"/);
     assert.doesNotMatch(settingsPage, /id="folder-editor-diagnostics-output"/);
     assert.doesNotMatch(settingsPage, /renderFolderEditorDebugDiagnostics\(\)/);
@@ -46,7 +94,31 @@ test('settings diagnostics exports client perf and theme telemetry helpers', () 
     assert.match(diagnosticsJs, /window\.FolderViewPlusDiagnostics = Object\.freeze\(\{/);
     assert.match(diagnosticsJs, /collectClientPerformanceTelemetry/);
     assert.match(diagnosticsJs, /collectFolderEditorDebugDiagnostics/);
+    assert.match(diagnosticsJs, /supportBundleTelemetryModule && typeof supportBundleTelemetryModule\.createApi === 'function'/);
+    assert.match(diagnosticsJs, /telemetryApi\.collectSupportBundleUiTelemetry\(bundle\)/);
+    assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.browserCapabilities = collectBrowserCapabilities\(\);/);
+    assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.clientStorage = collectClientStorageDiagnostics\(\);/);
+    assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.currentPage = collectCurrentPageTelemetry\(uiRedactor\);/);
+    assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.loadedAssets = collectLoadedAssetTelemetry\(uiRedactor, \{/);
+    assert.match(supportBundleTelemetryJs, /pluginVersion: payload\.bundleMeta\?\.pluginVersion \|\| ''/);
+    assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.requestErrors = uiRedactor\.sanitizeValue\(/);
+    assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.browserConsoleErrors = uiRedactor\.sanitizeValue\(/);
+    assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.folderEditorDebug = uiRedactor\.sanitizeValue\(/);
+    assert.match(supportBundleTelemetryJs, /existingUiTelemetry\.theme = collectThemeTelemetrySnapshot\(\);/);
+    assert.match(supportBundleTelemetryJs, /payload\.uiTelemetry = existingUiTelemetry;/);
+    assert.match(diagnosticsJs, /previewApi \? previewApi\.getLastSupportBundlePreview\(\) : null/);
+    assert.match(diagnosticsJs, /void refreshSupportBundlePreview\(\{ privacy: 'sanitized', quiet: true \}\);/);
+    assert.match(diagnosticsJs, /const report = normalizeSupportBundleV2Payload\(diagnostics \|\| \{\}, diagnostics\?\.bundleMeta\?\.privacyMode \|\| 'sanitized'\);/);
+    assert.match(diagnosticsJs, /report\.bundleMeta\?\.generatedAt/);
+    assert.match(diagnosticsJs, /report\.pluginState\?\.\[type\]/);
+    assert.match(diagnosticsJs, /report\.healthAndHistory\?\.recentTimeline/);
+    assert.match(diagnosticsJs, /report\.uiTelemetry\?\.folderEditorDebug/);
+    assert.match(diagnosticsJs, /surfaceSummary/);
+    assert.match(diagnosticsJs, /Bootstrap banner:/);
     assert.match(diagnosticsJs, /runThemeSelfHeal/);
+    assert.doesNotMatch(diagnosticsJs, /payload\.clientTelemetry = existingClientTelemetry;/);
+    assert.doesNotMatch(diagnosticsJs, /bundle\.clientTelemetry = existingClientTelemetry;/);
+    assert.doesNotMatch(diagnosticsJs, /report\.clientTelemetry\?\.folderEditorDebug/);
     assert.doesNotMatch(diagnosticsJs, /cancelButtonText:\s*'Sanitized export'/);
     assert.doesNotMatch(diagnosticsJs, /confirmButtonText:\s*'Full export'/);
 });
@@ -142,8 +214,9 @@ test('recovery tab uses a source-switched workspace with overview cards, snapsho
     assert.match(settingsPage, /onclick="createActiveRecoveryBackup\(\)"/);
     assert.match(settingsPage, /onclick="runActiveRecoveryScheduler\(\)"/);
     assert.match(settingsPage, /onclick="undoActiveRecoveryChange\(\)"/);
-    assert.match(settingsJs, /const normalizeRecoveryWorkspaceType = \(value\) =>/);
-    assert.match(settingsJs, /const setRecoveryWorkspaceType = \(type, persist = true\) =>/);
+    assert.match(settingsJs, /FolderViewPlusSettingsWorkspacesModuleLoaded = true/);
+    assert.match(settingsJs, /const normalizeRecoveryWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.normalizeRecoveryWorkspaceType\(\.\.\.args\);/);
+    assert.match(settingsJs, /const setRecoveryWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.setRecoveryWorkspaceType\(\.\.\.args\);/);
     assert.match(settingsJs, /id="recovery-backup-entry-select"[\s\S]*selectActiveRecoveryBackup\(this\.value\)/);
     assert.match(settingsJs, /restoreSelectedActiveRecoveryBackup\(\)[\s\S]*downloadSelectedActiveRecoveryBackup\(\)[\s\S]*deleteSelectedActiveRecoveryBackup\(\)/);
     assert.match(settingsJs, /activeRecoveryWorkspaceType = normalizeRecoveryWorkspaceType\(localStorage\.getItem\(RECOVERY_WORKSPACE_STORAGE_KEY\) \|\| 'docker'\)/);
@@ -163,10 +236,10 @@ test('operations tab uses one source-switched workspace for runtime actions and 
     assert.match(settingsPage, /data-fv-operations-panel="vm"[\s\S]*id="vm-operations-overview"[\s\S]*id="vm-runtime-preview-output"[\s\S]*id="vm-operations-template-library"/);
     assert.doesNotMatch(settingsPage, /<h2 data-fv-section="folder-templates"/);
     assert.match(settingsJs, /const OPERATIONS_WORKSPACE_STORAGE_KEY = 'fv\.settings\.operationsWorkspace\.v1';/);
-    assert.match(settingsJs, /const buildOperationsOverviewHtml = \(type\) =>/);
-    assert.match(settingsJs, /const renderOperationsWorkspace = \(\) =>/);
-    assert.match(settingsJs, /const setOperationsWorkspaceType = \(type, persist = true\) =>/);
-    assert.match(settingsJs, /const renderTemplateRows = \(type\) => \{/);
+    assert.match(settingsJs, /const buildOperationsOverviewHtml = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.buildOperationsOverviewHtml\(\.\.\.args\);/);
+    assert.match(settingsJs, /const renderOperationsWorkspace = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.renderOperationsWorkspace\(\.\.\.args\);/);
+    assert.match(settingsJs, /const setOperationsWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.setOperationsWorkspaceType\(\.\.\.args\);/);
+    assert.match(settingsJs, /const renderTemplateRows = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.renderTemplateRows\(\.\.\.args\);/);
     assert.match(settingsJs, /selectOperationsTemplate\('/);
     assert.match(settingsJs, /exportTemplateEntry\('/);
     assert.match(settingsCss, /\.fv-operations-source-switch/);
@@ -204,4 +277,10 @@ test('diagnostics tab keeps inner side gutters for summary and workbench modules
     assert.match(settingsPage, /<div class="fv-diagnostics-section-body">/);
     assert.match(settingsCss, /\.fv-diagnostics-module-wrap\s*>\s*\.rules-panel\s*\{[\s\S]*margin-inline:\s*var\(--fv-advanced-side-padding\);/);
     assert.match(settingsCss, /\.fv-diagnostics-section-body\s*\{[\s\S]*padding-inline:\s*clamp\(8px,\s*1\.15vw,\s*18px\);/);
+    assert.match(settingsCss, /\.fv-diagnostics-workbench\s*\{[\s\S]*align-items:\s*start;/);
+    assert.match(settingsCss, /\.fv-diagnostics-lane\s*\{[\s\S]*align-content:\s*start;/);
+    assert.match(settingsCss, /\.fv-diagnostics-action-list\s*\{[\s\S]*align-content:\s*start;/);
+    assert.match(settingsCss, /\.fv-support-bundle-preview\s*\{[\s\S]*border:\s*1px solid var\(--fvplus-settings-border-subtle\);[\s\S]*background:\s*var\(--fvplus-settings-surface-strong\);/);
+    assert.match(settingsCss, /\.fv-support-bundle-section-card,[\s\S]*\.fv-support-bundle-redaction-card\s*\{[\s\S]*background:\s*var\(--fvplus-settings-surface-muted\);/);
+    assert.match(settingsCss, /\.fv-support-bundle-section-card\.is-ready \.fv-support-bundle-section-badge\s*\{[\s\S]*color:\s*var\(--fvplus-settings-chip-success\);/);
 });

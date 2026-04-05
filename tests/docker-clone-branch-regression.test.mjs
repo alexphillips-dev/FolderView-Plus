@@ -1,100 +1,67 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 
 const repoRoot = path.resolve(process.cwd());
-const dockerJs = fs.readFileSync(
-    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js'),
-    'utf8'
+const require = createRequire(import.meta.url);
+const dockerRuntimeActionsModule = require(
+    path.join(repoRoot, 'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.actions.js')
 );
-const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
-
-const extractArrowFunctionBody = (source, signature) => {
-    const startIndex = source.indexOf(signature);
-    assert.ok(startIndex >= 0, `Missing function signature: ${signature}`);
-    const braceStart = source.indexOf('{', startIndex + signature.length);
-    assert.ok(braceStart >= 0, `Missing opening brace for: ${signature}`);
-    let depth = 0;
-    for (let index = braceStart; index < source.length; index += 1) {
-        const char = source[index];
-        if (char === '{') {
-            depth += 1;
-        } else if (char === '}') {
-            depth -= 1;
-            if (depth === 0) {
-                return source.slice(braceStart + 1, index);
-            }
-        }
-    }
-    throw new Error(`Failed to extract function body for: ${signature}`);
-};
 
 const normalizeFolderParentId = (value) => String(value || '').trim();
-const clonePayloadBody = extractArrowFunctionBody(
-    dockerJs,
-    'const buildDockerFolderClonePayload = (source, overrides = {}) => '
-);
-const branchOrderBody = extractArrowFunctionBody(
-    dockerJs,
-    'const getDockerFolderBranchCloneOrder = (rootId) => '
-);
-const rollbackBody = extractArrowFunctionBody(
-    dockerJs,
-    'const rollbackClonedDockerFolders = async (createdIds = []) => '
-);
-const deleteBranchBody = extractArrowFunctionBody(
-    dockerJs,
-    'const deleteDockerFolderBranch = async (id) => '
-);
-const cloneBranchBody = extractArrowFunctionBody(
-    dockerJs,
-    'const cloneDockerFolderBranchFromMenu = async (id) => '
-);
-
-const buildDockerFolderClonePayload = new Function(
-    'source',
-    'overrides',
-    'normalizeFolderParentId',
-    clonePayloadBody
-);
-const getDockerFolderBranchCloneOrder = new Function(
-    'rootId',
-    'globalFolders',
-    'getFolderChildren',
-    branchOrderBody
-);
-const rollbackClonedDockerFolders = new AsyncFunction(
-    'createdIds',
-    '$',
-    rollbackBody
-);
-const deleteDockerFolderBranch = new AsyncFunction(
-    'id',
-    'getFolderDescendants',
-    '$',
-    deleteBranchBody
-);
-const cloneDockerFolderBranchFromMenu = new AsyncFunction(
-    'id',
-    'runDockerGuardedAction',
-    'ensureDockerFolderUnlocked',
-    'globalFolders',
-    'getDockerFolderBranchCloneOrder',
-    'cloneDockerFolderFromMenu',
-    'window',
-    'normalizeFolderParentId',
-    'generateDockerFolderCloneId',
-    'buildDockerFolderClonePayload',
-    'persistDockerFolderClonePayload',
-    'rollbackClonedDockerFolders',
-    '$',
-    'loadlist',
-    'getDockerMenuLabel',
-    cloneBranchBody
-);
-
 const cloneJson = (value) => JSON.parse(JSON.stringify(value));
+
+const createActionsApi = (deps = {}) => dockerRuntimeActionsModule.createApi({
+    window: {
+        prompt: () => '',
+        crypto: null,
+        msCrypto: null,
+        setTimeout: (handler) => {
+            handler();
+            return 0;
+        },
+        ...(deps.window || {})
+    },
+    document: {
+        cookie: '',
+        ...(deps.document || {})
+    },
+    $: Object.assign(
+        () => ({
+            show: () => {},
+            hide: () => {}
+        }),
+        {
+            post: () => ({
+                promise: async () => ({})
+            }),
+            ...(deps.$ || {})
+        }
+    ),
+    swal: deps.swal || (() => {}),
+    openDocker: deps.openDocker || (() => {}),
+    hideAllTips: deps.hideAllTips || (() => {}),
+    getGlobalFolders: deps.getGlobalFolders || (() => ({})),
+    getFolderChildren: deps.getFolderChildren || (() => []),
+    getFolderDescendants: deps.getFolderDescendants || (() => []),
+    isDockerFolderLocked: deps.isDockerFolderLocked || (() => false),
+    ensureDockerFolderUnlocked: deps.ensureDockerFolderUnlocked || (() => true),
+    normalizeFolderParentId,
+    escapeHtml: (value) => String(value ?? ''),
+    getSafeWebuiUrl: deps.getSafeWebuiUrl || ((value) => String(value || '').trim()),
+    openWebuiPopupWindow: deps.openWebuiPopupWindow || (() => true),
+    getScopedRuntimeContainersForFolder: deps.getScopedRuntimeContainersForFolder || (() => ({})),
+    runDockerGuardedAction: deps.runDockerGuardedAction || (async (_actionName, action) => ({ ok: true, value: await action() })),
+    getDockerMenuLabel: deps.getDockerMenuLabel || ((_key, fallback) => fallback),
+    loadlist: deps.loadlist || (() => {}),
+    eventURL: deps.eventURL || '/plugins/dynamix.docker.manager/include/Events.php',
+    generateDockerFolderCloneId: deps.generateDockerFolderCloneId,
+    persistDockerFolderClonePayload: deps.persistDockerFolderClonePayload,
+    rollbackClonedDockerFolders: deps.rollbackClonedDockerFolders,
+    debugEnabled: false,
+    console: deps.console || console
+});
 
 test('docker clone payload builder deep-clones mutable folder fields', () => {
     const source = {
@@ -115,10 +82,11 @@ test('docker clone payload builder deep-clones mutable folder fields', () => {
         ]
     };
 
-    const payload = buildDockerFolderClonePayload(source, {
+    const actionsApi = createActionsApi();
+    const payload = actionsApi.buildDockerFolderClonePayload(source, {
         name: 'Media Copy',
         parentId: ' child-parent '
-    }, normalizeFolderParentId);
+    });
 
     assert.equal(payload.name, 'Media Copy');
     assert.equal(payload.parentId, 'child-parent');
@@ -150,9 +118,12 @@ test('docker branch clone order keeps parent folders ahead of nested descendants
         return parentId === String(folderId || '').trim();
     });
 
-    const order = getDockerFolderBranchCloneOrder('root', folders, getFolderChildren);
+    const actionsApi = createActionsApi({
+        getGlobalFolders: () => folders,
+        getFolderChildren
+    });
 
-    assert.deepEqual(order, ['root', 'childA', 'grand', 'childB']);
+    assert.deepEqual(actionsApi.getDockerFolderBranchCloneOrder('root'), ['root', 'childA', 'grand', 'childB']);
 });
 
 test('docker branch cloning preserves nested hierarchy across clone-of-clone generations', async () => {
@@ -206,72 +177,35 @@ test('docker branch cloning preserves nested hierarchy across clone-of-clone gen
             })
         }
     );
-
-    const persistDockerFolderClonePayload = async (payload, folderId = '') => {
-        const record = {
-            id: String(folderId || '').trim(),
-            payload: cloneJson(payload)
-        };
-        persistCalls.push(record);
-        currentFolders[record.id] = cloneJson(payload);
-    };
-
-    const runDockerGuardedAction = async (_actionKey, action) => action();
-    const generateDockerFolderCloneId = () => {
-        const nextId = generatedIds.shift();
-        assert.ok(nextId, 'expected deterministic clone id');
-        return nextId;
-    };
-    const getBranchOrder = (rootId) => getDockerFolderBranchCloneOrder(rootId, currentFolders, getFolderChildren);
-    const windowStub = {
-        prompt: () => promptResponses.shift(),
-        crypto: null,
-        msCrypto: null
-    };
-
-    await cloneDockerFolderBranchFromMenu(
-        'root',
-        runDockerGuardedAction,
-        () => true,
-        currentFolders,
-        getBranchOrder,
-        async () => {
-            throw new Error('single-folder fallback should not be used for nested branch clones');
+    const actionsApi = createActionsApi({
+        window: {
+            prompt: () => promptResponses.shift(),
+            crypto: null,
+            msCrypto: null
         },
-        windowStub,
-        normalizeFolderParentId,
-        generateDockerFolderCloneId,
-        (source, overrides) => buildDockerFolderClonePayload(source, overrides, normalizeFolderParentId),
-        persistDockerFolderClonePayload,
-        async () => {
-            throw new Error('rollback should not run during successful branch clones');
-        },
+        getGlobalFolders: () => currentFolders,
+        getFolderChildren,
         $,
-        () => { loadlistCalls += 1; },
-        (_key, fallback) => fallback
-    );
+        generateDockerFolderCloneId: () => {
+            const nextId = generatedIds.shift();
+            assert.ok(nextId, 'expected deterministic clone id');
+            return nextId;
+        },
+        persistDockerFolderClonePayload: async (payload, folderId = '') => {
+            const record = {
+                id: String(folderId || '').trim(),
+                payload: cloneJson(payload)
+            };
+            persistCalls.push(record);
+            currentFolders[record.id] = cloneJson(payload);
+        },
+        loadlist: () => {
+            loadlistCalls += 1;
+        }
+    });
 
-    await cloneDockerFolderBranchFromMenu(
-        'copyRoot1',
-        runDockerGuardedAction,
-        () => true,
-        currentFolders,
-        getBranchOrder,
-        async () => {
-            throw new Error('single-folder fallback should not be used for second-generation branch clones');
-        },
-        windowStub,
-        normalizeFolderParentId,
-        generateDockerFolderCloneId,
-        (source, overrides) => buildDockerFolderClonePayload(source, overrides, normalizeFolderParentId),
-        persistDockerFolderClonePayload,
-        async () => {
-            throw new Error('rollback should not run during successful clone-of-clone branches');
-        },
-        $,
-        () => { loadlistCalls += 1; },
-        (_key, fallback) => fallback
-    );
+    await actionsApi.cloneDockerFolderBranchFromMenu('root');
+    await actionsApi.cloneDockerFolderBranchFromMenu('copyRoot1');
 
     assert.equal(loadlistCalls, 2);
     assert.equal(syncCalls.length, 2);
@@ -297,16 +231,19 @@ test('docker branch cloning preserves nested hierarchy across clone-of-clone gen
 
 test('docker branch delete helper deletes descendants before deleting the root folder', async () => {
     const calls = [];
-    const $ = {
-        post: (url, payload) => ({
-            promise: async () => {
-                calls.push({ url, payload: cloneJson(payload) });
-                return {};
-            }
-        })
-    };
+    const actionsApi = createActionsApi({
+        getFolderDescendants: () => ['childA', 'childB', 'grandChild'],
+        $: {
+            post: (url, payload) => ({
+                promise: async () => {
+                    calls.push({ url, payload: cloneJson(payload) });
+                    return {};
+                }
+            })
+        }
+    });
 
-    await deleteDockerFolderBranch('root', () => ['childA', 'childB', 'grandChild'], $);
+    await actionsApi.deleteDockerFolderBranch('root');
 
     assert.deepEqual(
         calls.map((entry) => entry.payload.id),
@@ -317,16 +254,18 @@ test('docker branch delete helper deletes descendants before deleting the root f
 
 test('docker branch clone rollback helper deletes partial clones in reverse order before syncing order', async () => {
     const calls = [];
-    const $ = {
-        post: (url, payload) => ({
-            promise: async () => {
-                calls.push({ url, payload: cloneJson(payload) });
-                return {};
-            }
-        })
-    };
+    const actionsApi = createActionsApi({
+        $: {
+            post: (url, payload) => ({
+                promise: async () => {
+                    calls.push({ url, payload: cloneJson(payload) });
+                    return {};
+                }
+            })
+        }
+    });
 
-    await rollbackClonedDockerFolders(['copyRoot', 'copyChild', 'copyGrand'], $);
+    await actionsApi.rollbackClonedDockerFolders(['copyRoot', 'copyChild', 'copyGrand']);
 
     assert.deepEqual(
         calls.map((entry) => entry.url),
@@ -356,13 +295,6 @@ test('docker branch clone triggers rollback with only the clones created before 
         const parentId = normalizeFolderParentId(currentFolders[candidateId]?.parentId || currentFolders[candidateId]?.parent_id || '');
         return parentId === String(folderId || '').trim();
     });
-    const persistDockerFolderClonePayload = async (payload, folderId = '') => {
-        const safeFolderId = String(folderId || '').trim();
-        if (safeFolderId === 'copyGrand') {
-            throw new Error('Simulated persist failure');
-        }
-        currentFolders[safeFolderId] = cloneJson(payload);
-    };
     const $ = Object.assign(
         () => ({
             show: () => {},
@@ -374,33 +306,34 @@ test('docker branch clone triggers rollback with only the clones created before 
             })
         }
     );
+    const actionsApi = createActionsApi({
+        window: {
+            prompt: () => 'Root Copy',
+            crypto: null,
+            msCrypto: null
+        },
+        getGlobalFolders: () => currentFolders,
+        getFolderChildren,
+        $,
+        generateDockerFolderCloneId: () => {
+            const nextId = generatedIds.shift();
+            assert.ok(nextId, 'expected deterministic clone id');
+            return nextId;
+        },
+        persistDockerFolderClonePayload: async (payload, folderId = '') => {
+            const safeFolderId = String(folderId || '').trim();
+            if (safeFolderId === 'copyGrand') {
+                throw new Error('Simulated persist failure');
+            }
+            currentFolders[safeFolderId] = cloneJson(payload);
+        },
+        rollbackClonedDockerFolders: async (createdIds) => {
+            rollbackCalls.push([...createdIds]);
+        }
+    });
 
     await assert.rejects(
-        cloneDockerFolderBranchFromMenu(
-            'root',
-            async (_actionKey, action) => action(),
-            () => true,
-            currentFolders,
-            (rootId) => getDockerFolderBranchCloneOrder(rootId, currentFolders, getFolderChildren),
-            async () => {
-                throw new Error('single-folder fallback should not run for nested branches');
-            },
-            { prompt: () => 'Root Copy', crypto: null, msCrypto: null },
-            normalizeFolderParentId,
-            () => {
-                const nextId = generatedIds.shift();
-                assert.ok(nextId, 'expected deterministic clone id');
-                return nextId;
-            },
-            (source, overrides) => buildDockerFolderClonePayload(source, overrides, normalizeFolderParentId),
-            persistDockerFolderClonePayload,
-            async (createdIds) => {
-                rollbackCalls.push([...createdIds]);
-            },
-            $,
-            () => {},
-            (_key, fallback) => fallback
-        ),
+        actionsApi.cloneDockerFolderBranchFromMenu('root'),
         /Simulated persist failure/
     );
 

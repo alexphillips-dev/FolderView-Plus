@@ -100,7 +100,7 @@ plugin remove folderview.plus
 - Nested folders with parent/child tree support
 - Manual ordering, pinned folders, and current table controls
 - Folder runtime actions such as `Start`, `Stop`, `Pause`, and `Resume`
-- Modern folder editor with live preview, plus a legacy editor fallback for compatibility
+- Modern folder editor with live preview and shared runtime diagnostics
 
 ### Smarter setup and automation
 
@@ -123,7 +123,8 @@ plugin remove folderview.plus
 
 - Top-of-page runtime diagnostics on Docker and VMs when folder rendering degrades or fails
 - Folder editor bootstrap diagnostics with copyable output
-- Settings Diagnostics with health check, suggested fixes, issue report, and support bundle export
+- Settings Diagnostics with health check, suggested fixes, copyable issue report, and a v2 support bundle export preview
+- Sanitized support bundles redact names, paths, URLs, IPs, and user-agent values by default, then include a redaction manifest with per-bundle hash metadata
 - Safe-mode conflict handling when legacy Folder View plugins are still installed
 - Legacy import and legacy CSS/JS override compatibility
 
@@ -242,7 +243,7 @@ Template workflow:
 
 - Folder editor opens blank or does not load the folder you clicked:
   - Copy the bootstrap diagnostics shown at the top of the editor.
-  - The modern and legacy editors both expose copyable bootstrap details now.
+  - The modern editor exposes copyable bootstrap details now.
 
 - Folder rendering pauses with a safe-mode banner:
   - FolderView Plus auto-detects conflicting legacy Folder View runtimes.
@@ -261,6 +262,13 @@ Template workflow:
 - Import fails validation:
   - Make sure Docker exports are imported into Docker and VM exports into VMs.
   - Re-export with the latest plugin version if the file came from older tooling.
+
+- Sharing a support bundle:
+  - Open `Settings -> FolderView Plus -> Advanced -> Diagnostics`.
+  - Review the support bundle preview before export.
+  - Use the sanitized export by default. It omits or hashes names, paths, URLs, IPs, and user-agent values and records what was redacted in the v2 `redactionManifest`.
+  - The v2 bundle also includes exact build/package identity, loaded plugin script/style URLs and version queries, recent plugin actions, a bounded FolderView Plus API error-log tail, and browser-side JS error snapshots.
+  - Share the full export only if you intentionally need raw troubleshooting fields.
 
 ## Security and Reliability
 

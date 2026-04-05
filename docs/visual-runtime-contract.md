@@ -42,7 +42,7 @@ These are the behaviors that should not change unless the contract itself is int
    - This must not change single-row or multi-row wrap thresholds unexpectedly.
 
 5. Settings/runtime parity
-   - Folder editor, legacy editor, and runtime all normalize:
+   - Folder editor and runtime both normalize:
      - `dropdown_style`
      - `dropdown_color`
      - `dropdown_hover_color`

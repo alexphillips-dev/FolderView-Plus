@@ -16,12 +16,11 @@ require_once('/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
 emitNoCachePageHeaders();
 emitRequestTokenMetaTag();
 $folderEditorPageType = '';
-$folderEditorPageMode = 'legacy';
-$folderEditorPageModeSource = 'error';
+$folderEditorPageMode = 'modern';
+$folderEditorPageModeSource = 'modern-only';
 $folderEditorRequestedId = '';
 $folderEditorResolvedId = '';
 $folderEditorPageBuildVersion = readInstalledVersion();
-$folderEditorAssetVersion = rawurlencode($folderEditorPageBuildVersion);
 $folderEditorCookieType = '';
 $folderEditorCookieId = '';
 $folderEditorBootstrapContext = [
@@ -47,7 +46,7 @@ try {
     $folderEditorPageType = ensureType((string)($_GET['type'] ?? $_REQUEST['type'] ?? $folderEditorCookieType ?? ''));
     $folderEditorModePreference = resolveTypeFolderEditorModePreference($folderEditorPageType);
     $folderEditorPageMode = normalizeFolderEditorMode((string)($folderEditorModePreference['mode'] ?? 'modern'));
-    $folderEditorPageModeSource = trim((string)($folderEditorModePreference['source'] ?? 'default-modern')) ?: 'default-modern';
+    $folderEditorPageModeSource = trim((string)($folderEditorModePreference['source'] ?? 'modern-only')) ?: 'modern-only';
     $folderEditorRequestedId = trim((string)(
         $_GET['id']
         ?? $_REQUEST['id']
@@ -66,8 +65,8 @@ try {
     }
 } catch (Throwable $folderEditorPageError) {
     $folderEditorPageType = '';
-    $folderEditorPageMode = 'legacy';
-    $folderEditorPageModeSource = 'error';
+    $folderEditorPageMode = 'modern';
+    $folderEditorPageModeSource = 'modern-only';
     $folderEditorRequestedId = '';
     $folderEditorResolvedId = '';
     $folderEditorBootstrapContext = [
@@ -150,33 +149,68 @@ try {
 </script>
 <script>
     (function bootstrapFolderEditorDiagnosticsSurface(win, doc) {
+        const EDITOR_DEBUG_SURFACE_STORAGE_KEY = 'fv.folder.editor.debug.surface.v1';
         const bannerState = {
             summary: 'Folder editor bootstrap diagnostics are idle.',
             details: 'No startup issues have been reported yet.',
             debug: 'Bootstrap: waiting for folder editor runtime.',
             tone: 'info'
         };
-        const buildDiagnosticsText = () => [
-            'FolderView Plus Folder Editor Bootstrap Diagnostics',
-            `summary: ${String(bannerState.summary || '(empty)')}`,
-            `details: ${String(bannerState.details || '(empty)')}`,
-            `severity: ${String(bannerState.tone || '(empty)')}`,
-            '',
-            '[environment]',
-            `pageMode: ${String(win.FolderViewPlusFolderEditorPageMode || '(empty)')}`,
-            `pageType: ${String(win.FolderViewPlusFolderEditorPageType || '(empty)')}`,
-            `requestedId: ${String(win.FolderViewPlusFolderEditorRequestedId || '(empty)')}`,
-            `resolvedId: ${String(win.FolderViewPlusFolderEditorResolvedId || '(empty)')}`,
-            `pluginVersion: ${String(win.FolderViewPlusFolderEditorPageBuildVersion || '(empty)')}`,
-            `runtimeLoaded: ${win.FolderViewPlusFolderEditorRuntimeLoaded === true ? 'yes' : 'no'}`,
-            `runtimeStage: ${String(win.FolderViewPlusFolderEditorRuntimeBootStage || '(empty)')}`,
-            `runtimeState: ${String(win.FolderViewPlusFolderEditorRuntimeScriptState || '(empty)')}`,
-            `runtimeSrc: ${String(win.FolderViewPlusFolderEditorRuntimeScriptSource || '(empty)')}`,
-            `url: ${String(win.location?.href || '(empty)')}`,
-            '',
-            '[debug]',
-            String(bannerState.debug || 'none')
-        ].join('\n');
+        const buildDiagnosticsSnapshot = () => ({
+            checkedAt: new Date().toISOString(),
+            summary: String(bannerState.summary || '(empty)'),
+            details: String(bannerState.details || '(empty)'),
+            tone: String(bannerState.tone || 'info'),
+            debug: String(bannerState.debug || 'none'),
+            environment: {
+                pageMode: String(win.FolderViewPlusFolderEditorPageMode || '(empty)'),
+                pageType: String(win.FolderViewPlusFolderEditorPageType || '(empty)'),
+                requestedId: String(win.FolderViewPlusFolderEditorRequestedId || '(empty)'),
+                resolvedId: String(win.FolderViewPlusFolderEditorResolvedId || '(empty)'),
+                pluginVersion: String(win.FolderViewPlusFolderEditorPageBuildVersion || '(empty)'),
+                runtimeLoaded: win.FolderViewPlusFolderEditorRuntimeLoaded === true ? 'yes' : 'no',
+                runtimeStage: String(win.FolderViewPlusFolderEditorRuntimeBootStage || '(empty)'),
+                runtimeState: String(win.FolderViewPlusFolderEditorRuntimeScriptState || '(empty)'),
+                runtimeSrc: String(win.FolderViewPlusFolderEditorRuntimeScriptSource || '(empty)'),
+                url: String(win.location?.href || '(empty)')
+            }
+        });
+        const buildDiagnosticsText = () => {
+            const snapshot = buildDiagnosticsSnapshot();
+            return [
+                'FolderView Plus Folder Editor Bootstrap Diagnostics',
+                `summary: ${snapshot.summary}`,
+                `details: ${snapshot.details}`,
+                `severity: ${snapshot.tone}`,
+                '',
+                '[environment]',
+                `pageMode: ${snapshot.environment.pageMode}`,
+                `pageType: ${snapshot.environment.pageType}`,
+                `requestedId: ${snapshot.environment.requestedId}`,
+                `resolvedId: ${snapshot.environment.resolvedId}`,
+                `pluginVersion: ${snapshot.environment.pluginVersion}`,
+                `runtimeLoaded: ${snapshot.environment.runtimeLoaded}`,
+                `runtimeStage: ${snapshot.environment.runtimeStage}`,
+                `runtimeState: ${snapshot.environment.runtimeState}`,
+                `runtimeSrc: ${snapshot.environment.runtimeSrc}`,
+                `url: ${snapshot.environment.url}`,
+                '',
+                '[debug]',
+                snapshot.debug
+            ].join('\n');
+        };
+        const persistDiagnosticsSnapshot = () => {
+            try {
+                if (win.localStorage && typeof win.localStorage.setItem === 'function') {
+                    win.localStorage.setItem(EDITOR_DEBUG_SURFACE_STORAGE_KEY, JSON.stringify(buildDiagnosticsSnapshot()));
+                }
+            } catch (_error) {
+                // Bootstrap diagnostics are best-effort only.
+            }
+        };
+        win.FolderViewPlusCollectFolderEditorBootstrapDiagnostics = function collectFolderEditorBootstrapDiagnostics() {
+            return buildDiagnosticsSnapshot();
+        };
         const applySurfaceState = () => {
             const host = doc.getElementById('fvFolderEditorBootstrapBanner');
             const summaryNode = doc.getElementById('fvFolderEditorBootstrapSummary');
@@ -207,6 +241,7 @@ try {
             }
         };
         const syncSurfaceState = () => {
+            persistDiagnosticsSnapshot();
             if (doc.readyState === 'loading') {
                 doc.addEventListener('DOMContentLoaded', applySurfaceState, { once: true });
             } else {
@@ -285,30 +320,28 @@ try {
             event.preventDefault();
             void win.FolderViewPlusCopyFolderEditorBootstrapDiagnostics();
         });
+        syncSurfaceState();
     })(window, document);
 </script>
 <script>
     (function bootFolderEditorRuntimePage(win, doc) {
         const buildVersion = String(win.FolderViewPlusFolderEditorPageBuildVersion || '').trim() || String(Date.now());
         const assetVersion = encodeURIComponent(buildVersion);
-        const runtimeMode = String(win.FolderViewPlusFolderEditorPageMode || 'legacy').trim().toLowerCase() === 'modern'
-            ? 'modern'
-            : 'legacy';
+        const runtimeMode = 'modern';
         const bootNonce = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
         const managedSelector = 'script[data-fv-folder-editor-boot-managed="1"]';
-        const scriptQueue = runtimeMode === 'modern'
-            ? [
-                '/plugins/folderview.plus/scripts/icon-picker.runtime.js',
-                '/plugins/folderview.plus/scripts/folder.editor.hierarchy.js',
-                '/plugins/folderview.plus/scripts/folder.editor.chrome.js',
-                '/plugins/folderview.plus/scripts/folder.editor.parent-picker.js',
-                '/plugins/folderview.plus/scripts/folder.editor.rules.js',
-                '/plugins/folderview.plus/scripts/folder.js'
-            ]
-            : [
-                '/plugins/folderview.plus/scripts/icon-picker.runtime.js',
-                '/plugins/folderview.plus/scripts/folder.legacy.js'
-            ];
+        const scriptQueue = [
+            '/plugins/folderview.plus/scripts/icon-picker.runtime.js',
+            '/plugins/folderview.plus/scripts/folder.editor.hierarchy.js',
+            '/plugins/folderview.plus/scripts/folder.editor.chrome.js',
+            '/plugins/folderview.plus/scripts/folder.editor.parent-picker.js',
+            '/plugins/folderview.plus/scripts/folder.editor.rules.js',
+            '/plugins/folderview.plus/scripts/folder.settings-transfer.js',
+            '/plugins/folderview.plus/scripts/folder.editor.state.js',
+            '/plugins/folderview.plus/scripts/folder.editor.members.js',
+            '/plugins/folderview.plus/scripts/folder.editor.icons.js',
+            '/plugins/folderview.plus/scripts/folder.js'
+        ];
         const formatDebug = () => [
             'build=' + buildVersion,
             'bootNonce=' + bootNonce,
@@ -453,9 +486,11 @@ try {
 <script src="<?php autov('/plugins/folderview.plus/scripts/folder.editor.shared.js')?>"></script>
 <script src="<?php autov('/plugins/folderview.plus/scripts/folder.editor.schema.js')?>"></script>
 <script src="<?php autov('/plugins/folderview.plus/scripts/folder.editor.preview.js')?>"></script>
+<script src="<?php autov('/plugins/folderview.plus/scripts/folder.editor.preview-runtime.js')?>"></script>
+<script src="<?php autov('/plugins/folderview.plus/scripts/folder.editor.icons.js')?>"></script>
 
 <div class="canvas">
-    <form class="folder-editor-form<?php echo $folderEditorPageMode === 'modern' ? ' fv-modern-editor-booting' : ''; ?>" data-fv-page-mode="<?php echo htmlspecialchars($folderEditorPageMode, ENT_QUOTES); ?>" onsubmit="submitForm(this, false); return false">
+    <form class="folder-editor-form fv-modern-editor-booting" data-fv-page-mode="modern" onsubmit="submitForm(this, false); return false">
         <div id="fvFolderEditorBootstrapBanner" class="fv-folder-editor-bootstrap-banner" hidden>
             <div class="fv-editor-status-row">
                 <span id="fvFolderEditorBootstrapSummary" class="fv-validation-summary warning">Folder editor runtime reported a startup problem.</span>
@@ -469,7 +504,6 @@ try {
                 </details>
             </div>
         </div>
-        <?php if ($folderEditorPageMode === 'modern'): ?>
         <div id="fvModernEditorStage" class="fv-modern-editor-stage is-pending" aria-live="polite">
             <div id="fvEditorBootPlaceholder" class="fv-editor-boot-placeholder">
                 <div class="fv-editor-boot-placeholder-copy">
@@ -479,8 +513,6 @@ try {
                 </div>
             </div>
         </div>
-        <div id="fvLegacyEditorScaffold" class="fv-legacy-editor-scaffold" hidden aria-hidden="true">
-        <?php endif; ?>
         <div class="basic">
             <dl>
                 <dt data-i18n="name">Name:</dt>
@@ -1357,6 +1389,7 @@ try {
             </blockquote>
         </div>
         <input class="folder-btn-submit" type="submit" value="Submit" data-i18n="[value]submit">
+        <input class="folder-btn-apply-settings" type="button" value="Apply to folders..." onclick="applyFolderSettingsToFolders(); return false;">
         <input class="folder-btn-copy" type="button" value="Save as copy" onclick="submitForm(this.form, true); return false;">
         <input class="folder-btn-reset" type="button" value="Reset unsaved changes" onclick="resetUnsavedChanges(); return false;">
         <input class="folder-btn-cancel" type="button" value="Cancel" data-i18n="[value]cancel" onclick="cancelBtn()">
@@ -1390,9 +1423,6 @@ try {
                 </p>
             </blockquote>
         </div>
-        <?php if ($folderEditorPageMode === 'modern'): ?>
-        </div>
-        <?php endif; ?>
     </form>
 </div>
 

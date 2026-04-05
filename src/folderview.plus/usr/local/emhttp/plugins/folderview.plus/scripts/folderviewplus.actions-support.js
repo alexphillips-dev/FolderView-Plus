@@ -50,17 +50,6 @@
             });
             const conflicts = report.rows.filter((row) => row.hasConflict);
             const blocked = report.rows.filter((row) => row.blockedByRule);
-            const output = {
-                type: resolvedType,
-                scannedAt: new Date().toISOString(),
-                summary: {
-                    totalItems: report.totalItems,
-                    conflictingItems: report.conflictingItems,
-                    blockedByExcludeRules: blocked.length
-                },
-                conflictingRows: conflicts,
-                blockedRows: blocked
-            };
 
             const lines = [
                 `${resolvedType === 'docker' ? 'Docker' : 'VM'} conflict scan`,

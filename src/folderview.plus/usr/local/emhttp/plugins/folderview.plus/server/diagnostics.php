@@ -46,16 +46,8 @@ fvplus_json_try(function (): array {
     }
 
     if ($action === 'support_bundle') {
-        $diagnostics = getDiagnosticsSnapshot($privacyMode);
-        $bundle = [
-            'bundleType' => 'FolderViewPlusSupportBundle',
-            'bundleVersion' => 1,
-            'generatedAt' => gmdate('c'),
-            'privacyMode' => $privacyMode,
-            'diagnostics' => $diagnostics
-        ];
         return [
-            'bundle' => $bundle
+            'bundle' => getSupportBundleV2Snapshot($privacyMode)
         ];
     }
 

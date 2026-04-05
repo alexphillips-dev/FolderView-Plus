@@ -12,8 +12,16 @@ const settingsScriptPaths = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-preview.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-browser.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-telemetry.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-health.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-workspaces.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-tree.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.actions-support.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
 ].map((relativePath) => path.join(repoRoot, relativePath));
@@ -55,6 +63,22 @@ test('split settings modules publish globals for cross-script browser compatibil
     assert.match(script, /FolderViewPlusSettingsMetadata = factory\(\)/);
     assert.match(script, /FolderViewPlusSettingsTableModuleLoaded = true/);
     assert.match(script, /FolderViewPlusSettingsTable = factory\(\)/);
+    assert.match(script, /FolderViewPlusSettingsHealthModuleLoaded = true/);
+    assert.match(script, /FolderViewPlusSettingsHealth = factory\(\)/);
+    assert.match(script, /FolderViewPlusSettingsWorkspacesModuleLoaded = true/);
+    assert.match(script, /FolderViewPlusSettingsWorkspaces = factory\(\)/);
+    assert.match(script, /FolderViewPlusBulkAssignmentModuleLoaded = true/);
+    assert.match(script, /FolderViewPlusBulkAssignment = factory\(\)/);
+    assert.match(script, /FolderViewPlusSettingsRuntimeActionsModuleLoaded = true/);
+    assert.match(script, /FolderViewPlusSettingsRuntimeActions = factory\(\)/);
+    assert.match(script, /FolderViewPlusSettingsTreeModuleLoaded = true/);
+    assert.match(script, /FolderViewPlusSettingsTree = Object\.freeze\(\{/);
+    assert.match(script, /FolderViewPlusSupportBundlePreviewModuleLoaded = true/);
+    assert.match(script, /FolderViewPlusSupportBundlePreview = factory\(\)/);
+    assert.match(script, /FolderViewPlusSupportBundleBrowserModuleLoaded = true/);
+    assert.match(script, /FolderViewPlusSupportBundleBrowser = factory\(root\)/);
+    assert.match(script, /FolderViewPlusSupportBundleTelemetryModuleLoaded = true/);
+    assert.match(script, /FolderViewPlusSupportBundleTelemetry = factory\(root\)/);
     assert.match(script, /SETTINGS_TABLE_COLUMN_SCHEMA_BY_TYPE/);
     assert.match(script, /TABLE_COLUMN_SELECTOR_MAP/);
     assert.match(script, /buildEffectiveSettingsTableWidths/);

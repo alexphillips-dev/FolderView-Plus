@@ -18,6 +18,11 @@ const settingsScriptPaths = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-health.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-workspaces.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-tree.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.actions-support.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
 ].map((relativePath) => path.join(repoRoot, relativePath));
@@ -57,6 +62,10 @@ const libPhpPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php'
 );
+const libPrefsPhpPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.prefs.php'
+);
 
 const settingsPage = fs.readFileSync(settingsPagePath, 'utf8');
 const settingsScript = settingsScriptPaths.map((scriptPath) => fs.readFileSync(scriptPath, 'utf8')).join('\n');
@@ -69,6 +78,7 @@ const vmPage = fs.readFileSync(vmPagePath, 'utf8');
 const folderPage = fs.readFileSync(folderPagePath, 'utf8');
 const folderScript = fs.readFileSync(folderScriptPath, 'utf8');
 const libPhp = fs.readFileSync(libPhpPath, 'utf8');
+const libPrefsPhp = fs.readFileSync(libPrefsPhpPath, 'utf8');
 
 test('settings exposes dashboard layout controls for docker and vm', () => {
     assert.match(settingsPage, /id="docker-dashboard-layout"/);
@@ -121,23 +131,20 @@ test('settings runtime persists dashboard prefs and exports handler', () => {
 });
 
 test('server normalizes compact matrix dashboard layout', () => {
-    assert.match(libPhp, /function normalizeDashboardLayout\(\$value\): string/);
-    assert.match(libPhp, /\['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'\]/);
-    assert.match(libPhp, /function normalizeThemeCompatibilityMode\(\$value\): string/);
-    assert.match(libPhp, /\['auto', 'host', 'safe', 'highcontrast'\]/);
-    assert.match(libPhp, /'themeCompatibilityMode'\s*=>\s*'auto'/);
+    assert.match(libPhp, /require_once\(__DIR__ \. '\/lib\.prefs\.php'\);/);
+    assert.match(libPrefsPhp, /function normalizeDashboardLayout\(\$value\): string/);
+    assert.match(libPrefsPhp, /\['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'\]/);
+    assert.match(libPrefsPhp, /function normalizeThemeCompatibilityMode\(\$value\): string/);
+    assert.match(libPrefsPhp, /\['auto', 'host', 'safe', 'highcontrast'\]/);
+    assert.match(libPrefsPhp, /'themeCompatibilityMode'\s*=>\s*'auto'/);
 });
 
 test('dashboard runtime supports layout classes, accordion guards, and overflow metadata', () => {
     assert.match(dashboardScript, /const DASHBOARD_LAYOUT_MODES = Array\.isArray\(utils\.DASHBOARD_LAYOUT_OPTIONS\)/);
-    assert.match(dashboardScript, /const EDITOR_PREFILL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.v1';/);
-    assert.match(dashboardScript, /const EDITOR_DEBUG_LAUNCH_STORAGE_KEY = 'fv\.folder\.editor\.debug\.launch\.v1';/);
-    assert.match(dashboardScript, /const recordDashboardFolderEditorLaunchDebug = \(sourcePage, folderType, id, targetUrl\) =>/);
-    assert.match(dashboardScript, /const seedDashboardFolderEditorPrefill = \(folderType,\s*id\) =>/);
-    assert.match(dashboardScript, /seedDashboardFolderEditorPrefill\('docker', id\);/);
-    assert.match(dashboardScript, /seedDashboardFolderEditorPrefill\('vm', id\);/);
-    assert.match(dashboardScript, /recordDashboardFolderEditorLaunchDebug\('dashboard', 'docker', id, targetUrl\);/);
-    assert.match(dashboardScript, /recordDashboardFolderEditorLaunchDebug\('dashboard', 'vm', id, targetUrl\);/);
+    assert.doesNotMatch(dashboardScript, /const EDITOR_PREFILL_STORAGE_KEY = 'fv\.folder\.editor\.prefill\.v1';/);
+    assert.doesNotMatch(dashboardScript, /const EDITOR_DEBUG_LAUNCH_STORAGE_KEY = 'fv\.folder\.editor\.debug\.launch\.v1';/);
+    assert.doesNotMatch(dashboardScript, /const recordDashboardFolderEditorLaunchDebug = \(sourcePage, folderType, id, targetUrl\) =>/);
+    assert.doesNotMatch(dashboardScript, /const seedDashboardFolderEditorPrefill = \(folderType,\s*id\) =>/);
     assert.match(dashboardScript, /DASHBOARD_LAYOUT_OPTIONS: Object\.freeze\(\['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'\]\)/);
     assert.match(dashboardScript, /const DASHBOARD_LAYOUT_LABELS = utils\.DASHBOARD_LAYOUT_LABELS \|\| Object\.freeze\(/);
     assert.match(dashboardScript, /const dashboardLayoutQuickRailModule = window\.FolderViewPlusDashboardLayoutQuickRail \|\| null;/);
@@ -149,11 +156,11 @@ test('dashboard runtime supports layout classes, accordion guards, and overflow 
     assert.match(dashboardScript, /const restoreDashboardNativeRowsForType = async \(type\) =>/);
     assert.match(dashboardScript, /const rerenderDashboardWidgetStructureForType = async \(type\) =>/);
     assert.match(dashboardScript, /const prepareDashboardFolderRequestsForType = \(type\) =>/);
-    assert.match(dashboardScript, /const ensureDashboardWidgetLayoutQuickSwitchForType = \(type\) =>/);
     assert.match(dashboardScript, /const resolveDashboardWidgetInlineHostForType = \(type\) =>/);
-    assert.match(dashboardScript, /const isDashboardWidgetCollapsedForType = \(type\) =>/);
-    assert.match(dashboardScript, /const ensureDashboardWidgetInlineHostMountForType = \(type, hostOverride = null\) =>/);
-    assert.match(dashboardScript, /const syncDashboardWidgetQuickRailFitForType = \(type, parentRect, offsetTop\) =>/);
+    assert.doesNotMatch(dashboardScript, /const ensureDashboardWidgetLayoutQuickSwitchForType = \(type\) =>/);
+    assert.doesNotMatch(dashboardScript, /const isDashboardWidgetCollapsedForType = \(type\) =>/);
+    assert.doesNotMatch(dashboardScript, /const ensureDashboardWidgetInlineHostMountForType = \(type, hostOverride = null\) =>/);
+    assert.doesNotMatch(dashboardScript, /const syncDashboardWidgetQuickRailFitForType = \(type, parentRect, offsetTop\) =>/);
     assert.match(dashboardScript, /const toggleDashboardExpandAllForType = \(type\) =>/);
     assert.match(dashboardScript, /const setDashboardStartedOnlyEnabledForType = \(type, enabled\) =>/);
     assert.match(dashboardScript, /const readDashboardHealthEmphasisStateForType = \(type\) =>/);
@@ -170,7 +177,7 @@ test('dashboard runtime supports layout classes, accordion guards, and overflow 
     assert.match(dashboardScript, /const vmTreeIndex = buildFolderChildrenIndex\(allVmFolders\);/);
     assert.match(dashboardScript, /if \(renderTypes\.has\('docker'\) && \$\('tbody#docker_view'\)\.length > 0\) \{/);
     assert.match(dashboardScript, /if \(renderTypes\.has\('vm'\) && \$\('tbody#vm_view'\)\.length > 0\) \{/);
-    assert.match(dashboardScript, /const applyDashboardLayoutStateForType = \(type\) =>/);
+    assert.doesNotMatch(dashboardScript, /const applyDashboardLayoutStateForType = \(type\) =>/);
     assert.match(dashboardScript, /const scheduleDashboardLayoutApplyForType = \(type\) =>/);
     assert.match(dashboardScript, /const requiresStructureReload = previousDashboard\.layout === 'legacy' \|\| nextLayout === 'legacy';/);
     assert.match(dashboardScript, /if \(requiresStructureReload\) \{\s*dashboardLayoutTransitionInFlightByType\[resolvedType\] = true;/);
@@ -281,6 +288,11 @@ test('dashboard css includes non-classic controls and overflow rendering modes',
     assert.match(dashboardCss, /tbody\.fv-dashboard-density-compact/);
     assert.match(dashboardCss, /data-fv-layout="accordion"/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-show-expand-toggle/);
+    assert.match(dashboardCss, /\.fv-dashboard-expand-toggle-btn\s*\{/);
+    assert.match(dashboardCss, /\.fv-dashboard-expand-toggle-btn\s*\{[\s\S]*border:\s*0 !important/);
+    assert.match(dashboardCss, /\.fv-dashboard-expand-toggle-btn\s*\{[\s\S]*background:\s*transparent !important/);
+    assert.match(dashboardCss, /\.fv-dashboard-expand-toggle-btn\s*\{[\s\S]*box-shadow:\s*none !important/);
+    assert.match(dashboardCss, /\.fv-dashboard-expand-toggle-btn\s*\{[\s\S]*min-width:\s*11px !important/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-greyscale-enabled/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-hide-folder-label/);
     assert.match(dashboardCss, /tbody\.fv-dashboard-layout-fullwidth/);

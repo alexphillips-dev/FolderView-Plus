@@ -83,6 +83,38 @@ if (!function_exists('fvplus_assert_folder_payload_shape')) {
     }
 }
 
+if (!function_exists('fvplus_assert_folder_settings_payload_shape')) {
+    function fvplus_assert_folder_settings_payload_shape(array $payload): void {
+        $allowedKeys = ['icon', 'settings', 'actions'];
+        foreach ($payload as $key => $_value) {
+            if (!in_array((string)$key, $allowedKeys, true)) {
+                throw new RuntimeException("Invalid folder settings payload: '$key' is not allowed.");
+            }
+        }
+        if (array_key_exists('icon', $payload) && !fvplus_validation_is_scalarish($payload['icon'])) {
+            throw new RuntimeException('Invalid folder settings payload: icon must be a scalar value.');
+        }
+        if (array_key_exists('settings', $payload) && !is_array($payload['settings'])) {
+            throw new RuntimeException('Invalid folder settings payload: settings must be an object.');
+        }
+        if (array_key_exists('actions', $payload)) {
+            if (!is_array($payload['actions'])) {
+                throw new RuntimeException('Invalid folder settings payload: actions must be an array.');
+            }
+            $actionCount = 0;
+            foreach ($payload['actions'] as $action) {
+                $actionCount += 1;
+                if ($actionCount > 250) {
+                    throw new RuntimeException('Invalid folder settings payload: actions exceed maximum item count.');
+                }
+                if (!is_array($action)) {
+                    throw new RuntimeException('Invalid folder settings payload: each action must be an object.');
+                }
+            }
+        }
+    }
+}
+
 if (!function_exists('fvplus_assert_prefs_payload_shape')) {
     function fvplus_assert_prefs_payload_shape(array $payload): void {
         $scalarKeys = [

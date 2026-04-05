@@ -7,25 +7,27 @@ const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
+const dockerRuntimeHierarchyJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js');
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 const runtimeStateObserverJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.runtime.state-observers.js');
 
 test('docker runtime persists expanded/collapsed folder state and restores it during render', () => {
     assert.match(dockerJs, /DOCKER_EXPANDED_STATE_KEY/);
     assert.match(dockerJs, /readDockerServerExpandedStateMap/);
-    assert.match(dockerJs, /syncDockerExpandedStateToServer/);
-    assert.match(dockerJs, /const readDockerExpandedStateMap = \(\) =>/);
     assert.match(dockerJs, /const buildDockerExpandedStateMap = \(folders, previousFolders = \{\}, serverMap = \{\}\) =>/);
     assert.match(dockerJs, /const persistDockerExpandedStateFromGlobal = \([^)]*\) =>/);
     assert.match(dockerJs, /const persistDockerExpandedStateFromDom = \(\) =>/);
     assert.match(dockerJs, /const ensureDockerExpandedStateLifecycleHooks = \(\) =>/);
     assert.match(dockerJs, /createExpandedStateController\(/);
+    assert.match(dockerJs, /syncDelayMs:\s*DOCKER_EXPANDED_STATE_SYNC_DELAY_MS,/);
     assert.match(runtimeStateObserverJs, /win\.addEventListener\('pagehide', persistStateFromDom,\s*\{\s*passive:\s*true\s*\}\)/);
     assert.match(dockerJs, /const expandedStateById = buildDockerExpandedStateMap\(\s*foldersDone,\s*previousFolders,\s*readDockerServerExpandedStateMap\(\)\s*\);/);
     assert.match(dockerJs, /const hasKnownParent = !!\(parentId && Object\.prototype\.hasOwnProperty\.call\(foldersDone, parentId\)\);/);
     assert.match(dockerJs, /dropDownButton\(id, false\);/);
     assert.match(dockerJs, /const dropDownButton = \(id, persistState = true\) =>/);
-    assert.match(dockerJs, /if \(persistState\) \{\s*persistDockerExpandedStateFromGlobal\(\);\s*\}/);
+    assert.match(dockerJs, /hierarchyApi\.dropDownButton\(id,\s*persistState\);/);
+    assert.match(dockerRuntimeHierarchyJs, /const dropDownButton = \(id,\s*persistState = true\) =>/);
+    assert.match(dockerRuntimeHierarchyJs, /if \(persistState\) \{\s*persistExpandedStateFromGlobal\(\);\s*\}/);
 });
 
 test('vm runtime persists expanded/collapsed folder state and restores it during render', () => {

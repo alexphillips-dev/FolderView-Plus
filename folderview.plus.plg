@@ -6,24 +6,330 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.04.01.09">
-<!ENTITY md5 "484ed37dc1e881ea729bc5be211aac9b">
+<!ENTITY version "2026.04.04.30">
+<!ENTITY md5 "dd1b0fed79fe68ff0a103af91648fa81">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
 
+###2026.04.04.30
+- Feature: Added Copy Folder Settings and Paste Folder Settings to Docker and VM folder menus, plus Apply to folders in the editor to batch-apply the current folder configuration to existing folders without changing names, parents, members, regex, or ids.
+- Feature: Rebuilt the support bundle as v2 with structured troubleshooting sections, sanitized redaction manifests, export preview, build identity, loaded assets, recent actions, browser error snapshots, and richer plugin-specific diagnostics.
+- UX: Retired the legacy folder editor and moved fully to the modern editor with major improvements to parent selection, icon workflows, live preview, rules, diagnostics, and light-theme editor surfaces.
+- UX: Polished the folder editor and settings UI across parent picker, icon picker, diagnostics workbench, dashboard layouts, and chevron/dropdown chrome for dark and light themes.
+- Fix: Docker update detection now stays aligned with native Unraid update state for containers, folders, root folders, and folder-editor update summaries.
+- Fix: Multi-row Docker previews now open the normal container menu from visible preview cards again while keeping WebUI, Console, and Logs quick actions separate.
+- Fix: Theme-token coverage was expanded across runtime menus, dialogs, diagnostics, icon surfaces, parent-picker surfaces, and folder/status tokens to eliminate remaining hardcoded dark-mode regressions.
+- Fix: Diagnostics, issue reports, and support exports now report theme/runtime state correctly, sanitize sensitive fields in sanitized mode, and include the client/server context needed for support.
+- Fix: Docker order sync now runs only when folder membership or order inputs change, uses lightweight runtime state, coalesces concurrent sync requests, and avoids rewriting unchanged Docker order/autostart files.
+- Refactor: Split major monoliths across settings, folder editor, Docker runtime, and server helper modules so the main runtimes act as coordinators instead of carrying most implementation details directly.
+- Quality: Removed dead runtime code, tightened unused-code guards, expanded regression coverage, and strengthened include-order, performance-budget, install-smoke, and release validation.
+- Quality: Hardened release automation with stronger smoke-test enforcement and subsystem-aware release-note generation so stable releases reflect the actual promoted work.
+
+
+###2026.04.04.29
+- UX: Folder editor flows, previews, and bootstrap behavior.
+- Fix: Server endpoints, runtime payloads, and persistence or validation paths.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
+
+###2026.04.04.28
+- Fix: Docker runtime rows, folder state, and container interactions.
+- Fix: VM runtime rows, folder state, and VM actions.
+- UX: Folder editor flows, previews, and bootstrap behavior.
+- UX: Settings workspace layout, section flows, and table behavior.
+- Refactor: Shared runtime contracts, request plumbing, and cross-page foundations.
+- Fix: Server endpoints, runtime payloads, and persistence or validation paths.
+
+
+###2026.04.04.27
+- Fix: Default-context multi-row Docker previews now clone and compact the native container row trigger, so clicking visible preview cards opens the normal Docker menu again when preview rows are set above 1 or Unlimited.
+
+
+###2026.04.04.26
+- Fix: Docker runtime rows, folder state, and container interactions.
+
+
+###2026.04.04.25
+- Fix: Multi-row Docker folder previews now proxy Default context clicks back to the native hidden container trigger, so the Docker menu works again when preview rows are set above 1 or Unlimited.
+
+
+###2026.04.04.24
+- Fix: Docker runtime rows, folder state, and container interactions.
+
+
+###2026.04.04.23
+- Fix: Multi-row Docker folder previews now proxy clicks from the visible compact card content back to the lazy tooltip trigger, so container menus open again when preview rows are set above 1 or Unlimited.
+
+
+###2026.04.04.22
+- Fix: Docker runtime rows, folder state, and container interactions.
+
+
+###2026.04.04.21
+- UX: Diagnostics Suggested fixes and Share with support panels now keep their empty-state copy top-aligned in the workbench layout.
+
+
+###2026.04.04.20
+- UX: Settings workspace layout, section flows, and table behavior.
+
+
+###2026.04.04.19
+- UX: Settings workspace layout, section flows, and table behavior.
+- Fix: Server endpoints, runtime payloads, and persistence or validation paths.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
+
+###2026.04.04.18
+- Feature: Support bundle v2 now exports exact build identity, packaged manifest checksums, source commit metadata, loaded plugin assets, recent plugin actions, plugin-scoped API error log tails, and browser-side FolderView Plus error snapshots.
+- Security: Sanitized support bundles redact the new browser and server troubleshooting fields through the shared redaction pipeline while preserving correlation via per-export hashed values.
+- Quality: Split support-bundle browser collectors into a dedicated settings module and updated include-order, perf-budget, and diagnostics regression guards for the expanded export surface.
+
+
+###2026.04.04.17
+- UX: Settings workspace layout, section flows, and table behavior.
+- Fix: Diagnostics surfaces, issue reports, and support bundle coverage.
+- Fix: Server endpoints, runtime payloads, and persistence or validation paths.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+- Docs: Project documentation and support guidance.
+
+
+###2026.04.04.16
+- Fix: Server endpoints, runtime payloads, and persistence or validation paths.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
+
+###2026.04.04.15
+- UX: Settings workspace layout, section flows, and table behavior.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
+
+###2026.04.04.14
+- Fix: Sanitized support bundles now redact folder editor debug URLs, folder names, and folder IDs in uiTelemetry.
+- Fix: Support bundle uiTelemetry now includes browser capabilities, client storage, and current page context.
+- Fix: Support bundle plugin prefs now include dashboard, expanded-folder, and pinned-folder state snapshots.
+- Fix: Support bundle Docker/VM runtime summaries now report entity counts, hierarchy depth, and update-state totals.
+- Quality: Split support-bundle telemetry helpers into a dedicated settings module and wired archive/perf guards for it.
+
+
+###2026.04.04.13
+- UX: Settings workspace layout, section flows, and table behavior.
+- Fix: Diagnostics surfaces, issue reports, and support bundle coverage.
+- Fix: Server endpoints, runtime payloads, and persistence or validation paths.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
+
+###2026.04.04.12
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+- Docs: Project documentation and support guidance.
+
+
+###2026.04.04.11
+- Fix: Server endpoints, runtime payloads, and persistence or validation paths.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
+
+###2026.04.04.10
+- UX: Settings workspace layout, section flows, and table behavior.
+- Fix: Diagnostics surfaces, issue reports, and support bundle coverage.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
+
+###2026.04.04.09
+- UX: Settings workspace layout, section flows, and table behavior.
+- Fix: Diagnostics surfaces, issue reports, and support bundle coverage.
+
+
+###2026.04.04.08
+- UX: Added a support bundle preview panel in Settings / Diagnostics that shows every v2 section included in the export plus the current redaction profile before download.
+- Privacy: Surfaced hashed/masked/omitted/truncated field counts, bundle salt scope, and per-export salt hash metadata so sanitized exports are easier to inspect before sharing.
+
+
+###2026.04.04.07
+- UX: Settings workspace layout, section flows, and table behavior.
+- Fix: Diagnostics surfaces, issue reports, and support bundle coverage.
+
+
+###2026.04.04.06
+- Fix: Server endpoints, runtime payloads, and persistence or validation paths.
+
+
+###2026.04.04.05
+- Privacy: Added a support-bundle-only redaction layer with per-export salted hashes, path/IP/user-agent scrubbing, and a generated redaction manifest that records what was hashed, masked, omitted, or truncated.
+- Quality: Support bundle v2 now builds from a full diagnostics snapshot and applies one centralized sanitizer so sanitized exports avoid raw paths, names, and request metadata while preserving useful in-bundle correlation hashes.
+
+
+###2026.04.04.04
+- Fix: Diagnostics surfaces, issue reports, and support bundle coverage.
+- Fix: Server endpoints, runtime payloads, and persistence or validation paths.
+
+
+###2026.04.04.03
+- Refactor: Moved support bundle v2 schema assembly into explicit diagnostics-library section builders for `bundleMeta`, `system`, `pluginState`, `runtimeState`, `healthAndHistory`, and `redactionManifest`.
+- Quality: Kept the `support_bundle` endpoint as a thin wrapper around `getSupportBundleV2Snapshot()`, removed a no-op builder parameter, and updated the server contract test for the new helper layout.
+
+
+###2026.04.04.02
+- Fix: Diagnostics surfaces, issue reports, and support bundle coverage.
+- Fix: Server endpoints, runtime payloads, and persistence or validation paths.
+
+
+###2026.04.04.01
+- Refactor: Cut the support bundle export endpoint over to the new v2 top-level schema with `bundleMeta`, `system`, `pluginState`, `runtimeState`, `uiTelemetry`, `healthAndHistory`, and `redactionManifest` sections.
+- Quality: Added a server-side contract guard so `support_bundle` returns the v2 bundle shape only and the old top-level v1 `diagnostics` payload does not come back from the endpoint.
+
+
+###2026.04.03.02
+- Fix: Docker runtime rows, folder state, and container interactions.
+- UX: Dashboard layouts, quick rails, and folder card interactions.
+- UX: Folder editor flows, previews, and bootstrap behavior.
+- UX: Settings workspace layout, section flows, and table behavior.
+- Fix: Diagnostics surfaces, issue reports, and support bundle coverage.
+- Fix: Server endpoints, runtime payloads, and persistence or validation paths.
+
+
+###2026.04.03.01
+- UX: Dashboard layouts, quick rails, and folder card interactions.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
+
+###2026.04.02.13
+- UX: Settings workspace layout, section flows, and table behavior.
+- Fix: Diagnostics surfaces, issue reports, and support bundle coverage.
+- Refactor: Shared runtime contracts, request plumbing, and cross-page foundations.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
+
+###2026.04.02.12
+- Fix: Server endpoints, runtime payloads, and persistence or validation paths.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
+
+###2026.04.02.11
+- Fix: Docker runtime rows, folder state, and container interactions.
+- UX: Folder editor flows, previews, and bootstrap behavior.
+- Refactor: Shared runtime contracts, request plumbing, and cross-page foundations.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
+
+###2026.04.02.10
+- Refactor: Extracted Docker folder action and request helpers into `docker.runtime.actions.js`, including folder edit routes, update actions, WebUI launch fan-out, branch cloning, and branch delete flows.
+- Fix: Preserved branch clone ordering, clone rollback, branch delete descendant ordering, and scoped folder action counts while moving the Docker action seam out of `docker.js`.
+- Quality: Docker module load-order, install smoke, release guard, perf guard, and clone or branch-action regression tests now track the extracted runtime-actions module.
+
+
+###2026.04.02.09
+- Fix: Docker runtime rows, folder state, and container interactions.
+- UX: Folder editor flows, previews, and bootstrap behavior.
+- Refactor: Shared runtime contracts, request plumbing, and cross-page foundations.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
+
+###2026.04.02.08
+- UX: Folder editor flows, previews, and bootstrap behavior.
+- Refactor: Shared runtime contracts, request plumbing, and cross-page foundations.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
+
+###2026.04.02.07
+- Refactor: Extracted the folder editor preview runtime glue into `folder.editor.preview-runtime.js`, including preview API wiring, constraint visibility updates, and throttled live-preview rerenders.
+- UX: Preserved modern editor preview, context, border, vertical-bar, folder WebUI, and accent visibility behavior while moving that runtime seam out of `folder.js`.
+- Quality: Install smoke, release guard, perf baseline, and architecture tests now track the extracted preview-runtime module as a required editor asset.
+
+
+###2026.04.02.06
+- UX: Folder editor flows, previews, and bootstrap behavior.
+- UX: Icon picker, bundled icon packs, and custom icon management.
+- Refactor: Shared runtime contracts, request plumbing, and cross-page foundations.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
+
+###2026.04.02.05
+- Refactor: Extracted settings runtime branch actions, tree-integrity scan and repair, and runtime action preview or apply flows into `folderviewplus.runtime-actions.js`.
+- Quality: Settings bootstrap, install smoke, release guard, and perf guard now track the extracted runtime-actions module as a required packaged asset.
+- Quality: Settings architecture and nesting regression tests now verify the extracted runtime-actions module instead of the old in-file implementations.
+
+
+###2026.04.02.04
+- UX: Dashboard layouts, quick rails, and folder card interactions.
+- UX: Folder editor flows, previews, and bootstrap behavior.
+- UX: Settings workspace layout, section flows, and table behavior.
+- Refactor: Shared runtime contracts, request plumbing, and cross-page foundations.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
+
+###2026.04.02.03
+- UX: Dashboard layouts, quick rails, and folder card interactions.
+- UX: Folder editor flows, previews, and bootstrap behavior.
+- UX: Settings workspace layout, section flows, and table behavior.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
+
+###2026.04.02.02
+- UX: Dashboard layouts, quick rails, and folder card interactions.
+- Fix: Diagnostics surfaces, issue reports, and support bundle coverage.
+- Fix: Runtime actions, templates, import/export, and backup recovery paths.
+- Fix: Server endpoints, runtime payloads, and persistence or validation paths.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
+
+###2026.04.02.01
+- Fix: Docker runtime rows, folder state, and container interactions.
+- UX: Folder editor flows, previews, and bootstrap behavior.
+- Refactor: Shared runtime contracts, request plumbing, and cross-page foundations.
+
+
+###2026.04.01.18
+- UX: Folder editor flows, previews, and bootstrap behavior.
+- Refactor: Shared runtime contracts, request plumbing, and cross-page foundations.
+
+
+###2026.04.01.17
+- UX: Dashboard layouts, quick rails, and folder card interactions.
+- UX: Folder editor flows, previews, and bootstrap behavior.
+- UX: Settings workspace layout, section flows, and table behavior.
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
+
+###2026.04.01.16
+- Refactor: Retired the legacy folder editor runtime and modern-only schema path.
+- UX: Folder editor routes now always launch the modern editor and removed the old compatibility toggle.
+- Quality: Browser smoke and regression guards now enforce the modern-only editor boot flow.
+
+
+###2026.04.01.15
+- UX: Folder editor flows, previews, and bootstrap behavior.
+- UX: Settings workspace layout, section flows, and table behavior.
+- Feature: Setup Assistant, rules, smart-detect, and starter-template workflows.
+- UX: Icon picker, bundled icon packs, and custom icon management.
+- Refactor: Shared runtime contracts, request plumbing, and cross-page foundations.
+- Fix: Server endpoints, runtime payloads, and persistence or validation paths.
+
+
+###2026.04.01.14
+- Quality: Release automation, CI smoke coverage, and packaging guards.
+
+
+###2026.04.01.13
+- Quality: Release workflows now require live browser smoke and theme-matrix targets and fail fast when those release-only smoke URLs are missing.
+- Quality: Theme-matrix smoke now validates dashboard expand toggles directly, including contrast, hit target, and borderless transparent chevron styling.
+- Fix: Support bundle exports now include the folder editor bootstrap banner snapshot with the page summary, details, and debug context that appeared during editor startup.
+
+
+###2026.04.01.11
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
+
+
+###2026.04.01.10
+- Fix: Removed host-theme button borders and stretched chrome from dashboard full-width folder expand arrows.
+- UI/UX: Locked the full-width dashboard chevron toggle to the intended compact icon-only styling.
+
+
 ###2026.04.01.09
-- Maintenance: Release rollup since main `2026.03.30.19`; merged all `dev` improvements through `2026.04.01.08` into `main`.
-- Feature: Added folder-scoped advanced auto-rules and regex member-search dropdown controls directly to the modern folder editor Rules section for saved folders.
-- Feature: Added a searchable, path-aware parent folder picker to the modern folder editor and shipped new `Folders/Pixel` and `Icons/Pixel` third-party icon packs in the icon picker.
-- UI/UX: Reworked the modern folder editor General section with a tighter grouped layout, dedicated left rail, improved parent-picker spacing, and stronger reorder-button visibility.
-- UI/UX: Polished white-theme folder editor controls by aligning action buttons and mode toggles, improving submit readability, and making the icon picker and parent picker readable with visible borderless favorite stars.
-- Fix: Restored Docker update detection so container rows, folder rows, root folders, and folder-editor update counts consistently reflect native Unraid update availability without cache-clearing or expanded-branch workarounds.
-- Fix: Kept Docker update signals aligned with native `webui-info` cache data and runtime hydration so lightweight refreshes, collapsed branches, and late refreshes preserve `Update ready` state.
-- Fix: Forwarded modern folder editor bootstrap status back to the page diagnostics banner so stale runtime warnings clear once the editor finishes loading.
-- Refactor: Split the new folder editor rules and parent-picker logic into dedicated modules to keep the modern editor runtime within perf budgets as the new editor tooling expanded.
-- Quality: Added the one-step `dev` finalize workflow, dead-code and unused-symbol guards, refreshed Docker update architecture/perf coverage, and stronger theme/layout regression guards for the new editor paths.
+- UX: Refined settings and on-screen update messaging for clarity and consistency.
+- Quality: Strengthened release automation and regression guards to prevent note drift.
 
 
 ###2026.04.01.08

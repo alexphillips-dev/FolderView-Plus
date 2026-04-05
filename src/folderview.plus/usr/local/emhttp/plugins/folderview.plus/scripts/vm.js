@@ -392,7 +392,6 @@ const layoutFolderPreviewRows = ($preview, settings = {}) => {
 
     const rowLimit = normalizeFolderPreviewRowLimit(settings);
     const addDividers = settings?.preview_vertical_bars === true;
-    const barsColor = settings?.preview_vertical_bars_color || settings?.preview_border_color || '';
     const previewElement = $preview.get(0);
     const availableWidth = Math.max(0, Math.floor($preview.innerWidth() || previewElement?.clientWidth || 0) - 12);
     const gapWidth = 8;
@@ -854,6 +853,17 @@ const sanitizeImageSrc = typeof utils.sanitizeImageSrc === 'function'
         }
         return escapeHtml(raw);
     });
+const folderSettingsTransferModule = window.FolderViewPlusFolderSettingsTransfer || null;
+const getFolderSettingsTransferApi = (() => {
+    let cachedApi = null;
+    return () => {
+        if (cachedApi || !folderSettingsTransferModule || typeof folderSettingsTransferModule.createApi !== 'function') {
+            return cachedApi;
+        }
+        cachedApi = folderSettingsTransferModule.createApi({ window });
+        return cachedApi;
+    };
+})();
 if (FV_VM_TOUCH_MODE) {
     document.body.classList.add('fv-touch-device');
 }
@@ -945,6 +955,19 @@ const parseJsonPayloadSafe = (payload) => {
         }
     }
     return {};
+};
+
+const postVmJsonWithFallback = async (url, payload, options = {}) => {
+    const request = window.FolderViewPlusRequest;
+    if (request && typeof request.postJson === 'function') {
+        try {
+            return await request.postJson(url, payload, options);
+        } catch (_error) {
+            // Fall through to the legacy POST path if the request client is not ready.
+        }
+    }
+    const response = await $.post(url, payload).promise();
+    return parseJsonPayloadSafe(response);
 };
 
 const normalizeVmStateToken = (entry, fromStateMode = false) => {
@@ -2219,6 +2242,122 @@ const cloneVmFolderFromMenu = async (id) => {
     });
 };
 
+const buildVmFolderSettingsSummaryHtml = (entry) => {
+    const transferApi = getFolderSettingsTransferApi();
+    const summary = transferApi?.summarizeClipboardEntry(entry) || {
+        sourceName: 'Copied folder settings',
+        copiedActionCount: 0,
+        droppedMemberBoundActionCount: 0,
+        labels: ['Folder settings']
+    };
+    const labelHtml = summary.labels.map((label) => `<span class="fv-folder-settings-pill">${escapeHtml(label)}</span>`).join(' ');
+    const skippedHint = summary.droppedMemberBoundActionCount > 0
+        ? `<div style="margin-top:8px;">Skipped ${summary.droppedMemberBoundActionCount} member-bound custom action${summary.droppedMemberBoundActionCount === 1 ? '' : 's'} to avoid copying source-specific targets.</div>`
+        : '';
+    return [
+        `<div><strong>Source:</strong> ${escapeHtml(summary.sourceName)}</div>`,
+        `<div style="margin-top:8px;"><strong>Will apply:</strong> ${labelHtml || '<span class="fv-folder-settings-pill">Folder settings</span>'}</div>`,
+        skippedHint
+    ].join('');
+};
+
+const copyVmFolderSettingsFromMenu = async (id) => {
+    await runVmGuardedAction('copy-folder-settings', async () => {
+        if (!ensureVmFolderUnlocked(id, 'Copy folder settings')) {
+            return;
+        }
+        const transferApi = getFolderSettingsTransferApi();
+        if (!transferApi) {
+            throw new Error('Folder settings transfer module is unavailable.');
+        }
+        const source = globalFolders[id];
+        if (!source || typeof source !== 'object') {
+            return;
+        }
+        const clipboardEntry = transferApi.buildClipboardEntry('vm', source, {
+            sourceId: id,
+            sourceName: String(source?.name || id).trim(),
+            sourceContext: 'vm-runtime'
+        });
+        if (!clipboardEntry || transferApi.writeClipboardEntry(clipboardEntry) !== true) {
+            throw new Error('Unable to copy folder settings into the clipboard.');
+        }
+        swal({
+            title: 'Folder settings copied',
+            text: buildVmFolderSettingsSummaryHtml(clipboardEntry),
+            type: 'success',
+            html: true,
+            confirmButtonText: 'OK'
+        });
+    }, {
+        userMessage: 'Failed to copy folder settings.',
+        userVisible: true
+    });
+};
+
+const pasteVmFolderSettingsFromMenu = async (id) => {
+    await runVmGuardedAction('paste-folder-settings', async () => {
+        if (!ensureVmFolderUnlocked(id, 'Paste folder settings')) {
+            return;
+        }
+        const transferApi = getFolderSettingsTransferApi();
+        if (!transferApi) {
+            throw new Error('Folder settings transfer module is unavailable.');
+        }
+        const targetFolder = globalFolders[id];
+        if (!targetFolder || typeof targetFolder !== 'object') {
+            return;
+        }
+        const clipboardEntry = transferApi.readClipboardEntry('vm');
+        if (!clipboardEntry) {
+            swal({
+                title: 'No folder settings copied',
+                text: 'Copy folder settings from another VM folder first.',
+                type: 'info',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
+        const summaryHtml = [
+            `<div><strong>Target:</strong> ${escapeHtml(String(targetFolder?.name || id).trim() || id)}</div>`,
+            `<div style="margin-top:10px;">${buildVmFolderSettingsSummaryHtml(clipboardEntry)}</div>`
+        ].join('');
+        swal({
+            title: 'Paste folder settings',
+            text: summaryHtml,
+            type: 'warning',
+            html: true,
+            showCancelButton: true,
+            confirmButtonText: 'Paste',
+            cancelButtonText: 'Cancel',
+            closeOnConfirm: false,
+            showLoaderOnConfirm: true
+        }, async (confirmed) => {
+            if (!confirmed) {
+                return;
+            }
+            try {
+                $('div.spinner.fixed').show('slow');
+                await postVmJsonWithFallback('/plugins/folderview.plus/server/apply_folder_settings.php', {
+                    type: 'vm',
+                    targetIds: JSON.stringify([id]),
+                    settings: JSON.stringify(clipboardEntry.payload)
+                }, {
+                    retries: 1,
+                    retryDelayMs: 260
+                });
+                swal.close();
+                loadlist();
+            } finally {
+                $('div.spinner.fixed').hide('slow');
+            }
+        });
+    }, {
+        userMessage: 'Failed to paste folder settings.',
+        userVisible: true
+    });
+};
+
 const VM_CONTEXT_QUICK_ACTION_LABELS = new Set([
     'focus folder',
     'clear focus',
@@ -2483,12 +2622,34 @@ const addVMFolderContext = (id) => {
     });
 
     opts.push({
-        text: 'Clone folder',
+        text: 'Clone',
         icon: 'fa-clone',
-        action: (evt) => {
-            evt.preventDefault();
-            cloneVmFolderFromMenu(id);
-        }
+        subMenu: [
+            {
+                text: 'Clone folder',
+                icon: 'fa-clone',
+                action: (evt) => {
+                    evt.preventDefault();
+                    cloneVmFolderFromMenu(id);
+                }
+            },
+            {
+                text: 'Copy Folder Settings',
+                icon: 'fa-files-o',
+                action: (evt) => {
+                    evt.preventDefault();
+                    copyVmFolderSettingsFromMenu(id);
+                }
+            },
+            {
+                text: 'Paste Folder Settings',
+                icon: 'fa-clipboard',
+                action: (evt) => {
+                    evt.preventDefault();
+                    pasteVmFolderSettingsFromMenu(id);
+                }
+            }
+        ]
     });
 
     opts.push({

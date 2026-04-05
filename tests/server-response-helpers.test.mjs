@@ -8,9 +8,25 @@ const libPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php'
 );
+const libPrefsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.prefs.php'
+);
+const libDiagnosticsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.diagnostics.php'
+);
 const libPhp = fs.readFileSync(libPath, 'utf8');
+const libPrefsPhp = fs.readFileSync(libPrefsPath, 'utf8');
+const libDiagnosticsPhp = fs.readFileSync(libDiagnosticsPath, 'utf8');
+const diagnosticsEndpointPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/diagnostics.php'
+);
+const diagnosticsEndpointPhp = fs.readFileSync(diagnosticsEndpointPath, 'utf8');
 
 const endpointsUsingHelpers = [
+    'apply_folder_settings.php',
     'backup.php',
     'bulk_assign.php',
     'bulk_folder_action.php',
@@ -54,6 +70,17 @@ test('backup restore validates payload type against requested type', () => {
     assert.match(libPhp, /validateBackupPayloadType\(\$decoded, \$type\);/);
 });
 
+test('lib.php supports guarded folder settings transfer for existing folders', () => {
+    assert.match(libPhp, /function normalizeFolderSettingsTransferPayload\(array \$payload\): array/);
+    assert.match(libPhp, /fvplus_assert_folder_settings_payload_shape\(\$payload\);/);
+    assert.match(libPhp, /function applyFolderSettingsPayload\(string \$type, array \$targetIds, array \$settingsPayload\): array/);
+    assert.match(libPhp, /createBackupSnapshot\(\$type, 'before-apply-folder-settings'\)/);
+    assert.match(libPhp, /appendDiagnosticsHistoryEvent\('folder_settings_apply', \$type,/);
+    assert.match(libPhp, /\$existingFolder\['icon'\] = \$normalizedSettings\['icon'\] \?\? '';/);
+    assert.match(libPhp, /\$existingFolder\['settings'\] = is_array\(\$normalizedSettings\['settings'\] \?\? null\) \? \$normalizedSettings\['settings'\] : \[\];/);
+    assert.match(libPhp, /\$existingFolder\['actions'\] = is_array\(\$normalizedSettings\['actions'\] \?\? null\) \? \$normalizedSettings\['actions'\] : \[\];/);
+});
+
 test('lib.php normalizes compose manager and compose project labels', () => {
     assert.match(libPhp, /function getComposeProjectValueFromLabels\s*\(/);
     assert.match(libPhp, /function getNormalizedDockerManagerFromLabels\s*\(/);
@@ -92,6 +119,23 @@ test('lib.php normalizes compose manager and compose project labels', () => {
     );
 });
 
+test('lib.php coalesces docker order sync and uses lightweight state snapshots', () => {
+    assert.match(libPhp, /function dockerSyncOrderLockPath\(\): string/);
+    assert.match(libPhp, /function dockerSyncOrderPendingPath\(\): string/);
+    assert.match(libPhp, /function markDockerSyncOrderPending\(\): void/);
+    assert.match(libPhp, /function clearDockerSyncOrderPending\(\): void/);
+    assert.match(libPhp, /function hasDockerSyncOrderPending\(\): bool/);
+    assert.match(libPhp, /function syncContainerOrderUnlocked\(\): void/);
+    assert.match(libPhp, /\$infoByName = readInfoState\('docker'\);/);
+    assert.match(libPhp, /@flock\(\$lockHandle, LOCK_EX \| LOCK_NB\)/);
+    assert.match(libPhp, /markDockerSyncOrderPending\(\);[\s\S]*?return;/);
+    assert.match(libPhp, /clearDockerSyncOrderPending\(\);[\s\S]*?syncContainerOrderUnlocked\(\);/);
+    assert.match(libPhp, /while \(\$shouldRerun && \$attempt < 3\)/);
+    assert.match(libPhp, /\$currentPrefsRaw = @file_get_contents\(\$prefsFile\);/);
+    assert.match(libPhp, /if \(\(string\)\$currentPrefsRaw !== \$ini\) \{/);
+    assert.match(libPhp, /if \(\(string\)\$currentAutoStartContent !== \$nextAutoStartContent\) \{/);
+});
+
 test('lib.php defines runtime conflict detection and notice helpers', () => {
     assert.match(libPhp, /const FVPLUS_RUNTIME_CONFLICT_PLUGINS\s*=\s*\[/);
     assert.match(libPhp, /'folder\.view3'\s*=>\s*\[/);
@@ -120,31 +164,32 @@ test('lib.php defines runtime conflict detection and notice helpers', () => {
 });
 
 test('lib.php diagnostics include custom icon storage and usage health', () => {
-    assert.match(libPhp, /function diagnosticsCustomIconExtensions\s*\(/);
-    assert.match(libPhp, /function diagnosticsCustomIconNameFromIconValue\s*\(/);
-    assert.match(libPhp, /function diagnosticsBuildCustomIconUsageMap\s*\(/);
-    assert.match(libPhp, /function diagnosticsBuildCustomIconStorage\s*\(/);
-    assert.match(libPhp, /\$customIcons\s*=\s*diagnosticsBuildCustomIconStorage\(\$privacyMode\);/);
-    assert.match(libPhp, /'customIcons'\s*=>\s*\$customIcons/);
-    assert.match(libPhp, /'inUseIconCount'\s*=>/);
-    assert.match(libPhp, /'orphanedIconCount'\s*=>/);
-    assert.match(libPhp, /'repairHint'\s*=>/);
+    assert.match(libPhp, /require_once\(__DIR__ \. '\/lib\.diagnostics\.php'\);/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsCustomIconExtensions\s*\(/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsCustomIconNameFromIconValue\s*\(/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsBuildCustomIconUsageMap\s*\(/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsBuildCustomIconStorage\s*\(/);
+    assert.match(libDiagnosticsPhp, /\$customIcons\s*=\s*diagnosticsBuildCustomIconStorage\(\$privacyMode\);/);
+    assert.match(libDiagnosticsPhp, /'customIcons'\s*=>\s*\$customIcons/);
+    assert.match(libDiagnosticsPhp, /'inUseIconCount'\s*=>/);
+    assert.match(libDiagnosticsPhp, /'orphanedIconCount'\s*=>/);
+    assert.match(libDiagnosticsPhp, /'repairHint'\s*=>/);
 });
 
 test('lib.php diagnostics include user-facing summary cards and recommended actions', () => {
-    assert.match(libPhp, /function diagnosticsSummaryStatusFromCounts\s*\(/);
-    assert.match(libPhp, /function diagnosticsBuildSummaryCard\s*\(/);
-    assert.match(libPhp, /function diagnosticsBuildRecommendedActions\s*\(/);
-    assert.match(libPhp, /function diagnosticsBuildOverviewSummary\s*\(/);
-    assert.match(libPhp, /'recommendedActions'\s*=>\s*diagnosticsBuildRecommendedActions\(\$typesData, \$customIcons\)/);
-    assert.match(libPhp, /'summary'\s*=>\s*diagnosticsBuildOverviewSummary\(\$typesData, \$customIcons, \$update\)/);
-    assert.match(libPhp, /foreach\s*\(\['docker'\s*=>\s*'Docker config',\s*'vm'\s*=>\s*'VM config'\]/);
-    assert.match(libPhp, /'Storage and paths'/);
-    assert.match(libPhp, /'Custom icons'/);
-    assert.match(libPhp, /'Update check'/);
-    assert.match(libPhp, /'repair_paths',\s*'Repair plugin paths'/);
-    assert.match(libPhp, /'normalize_prefs',\s*'Validate and normalize prefs'/);
-    assert.match(libPhp, /'sync_docker_order',\s*'Rebuild Docker order index'/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsSummaryStatusFromCounts\s*\(/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsBuildSummaryCard\s*\(/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsBuildRecommendedActions\s*\(/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsBuildOverviewSummary\s*\(/);
+    assert.match(libDiagnosticsPhp, /'recommendedActions'\s*=>\s*diagnosticsBuildRecommendedActions\(\$typesData, \$customIcons\)/);
+    assert.match(libDiagnosticsPhp, /'summary'\s*=>\s*diagnosticsBuildOverviewSummary\(\$typesData, \$customIcons, \$update\)/);
+    assert.match(libDiagnosticsPhp, /foreach\s*\(\['docker'\s*=>\s*'Docker config',\s*'vm'\s*=>\s*'VM config'\]/);
+    assert.match(libDiagnosticsPhp, /'Storage and paths'/);
+    assert.match(libDiagnosticsPhp, /'Custom icons'/);
+    assert.match(libDiagnosticsPhp, /'Update check'/);
+    assert.match(libDiagnosticsPhp, /'repair_paths',\s*'Repair plugin paths'/);
+    assert.match(libDiagnosticsPhp, /'normalize_prefs',\s*'Validate and normalize prefs'/);
+    assert.match(libDiagnosticsPhp, /'sync_docker_order',\s*'Rebuild Docker order index'/);
 });
 
 test('lib.php can resolve requested folder editor context for bootstrap hydration', () => {
@@ -156,12 +201,49 @@ test('lib.php can resolve requested folder editor context for bootstrap hydratio
 });
 
 test('lib.php centralizes folder editor mode preference resolution', () => {
-    assert.match(libPhp, /function resolveFolderEditorModePreference\(array \$prefs\): array/);
-    assert.match(libPhp, /function resolveTypeFolderEditorModePreference\(string \$type\): array/);
-    assert.match(libPhp, /'source'\s*=>\s*'explicit'/);
-    assert.match(libPhp, /'source'\s*=>\s*'default-modern'/);
-    assert.match(libPhp, /return resolveFolderEditorModePreference\(readTypePrefs\(\$type\)\);/);
-    assert.match(libPhp, /\$resolvedFolderEditorMode = resolveFolderEditorModePreference\(\$prefs\);/);
-    assert.match(libPhp, /\$normalized\['folderEditorModeExplicit'\] = \(\$resolvedFolderEditorMode\['source'\] \?\? 'default-modern'\) === 'explicit';/);
-    assert.match(libPhp, /\$normalized\['folderEditorMode'\] = \(string\)\(\$resolvedFolderEditorMode\['mode'\] \?\? 'modern'\);/);
+    assert.match(libPhp, /require_once\(__DIR__ \. '\/lib\.prefs\.php'\);/);
+    assert.match(libPrefsPhp, /function resolveFolderEditorModePreference\(array \$prefs\): array/);
+    assert.match(libPrefsPhp, /function resolveTypeFolderEditorModePreference\(string \$type\): array/);
+    assert.match(libPrefsPhp, /'source'\s*=>\s*'modern-only'/);
+    assert.match(libPrefsPhp, /return resolveFolderEditorModePreference\(readTypePrefs\(\$type\)\);/);
+    assert.match(libPrefsPhp, /\$resolvedFolderEditorMode = resolveFolderEditorModePreference\(\$prefs\);/);
+    assert.match(libPrefsPhp, /\$normalized\['folderEditorModeExplicit'\] = false;/);
+    assert.match(libPrefsPhp, /\$normalized\['folderEditorMode'\] = \(string\)\(\$resolvedFolderEditorMode\['mode'\] \?\? 'modern'\);/);
+});
+
+test('diagnostics endpoint emits support bundle v2 shape only', () => {
+    assert.match(libDiagnosticsPhp, /function diagnosticsCreateSupportBundleRedactor\(string \$privacyMode\): array/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsSupportBundleMarkRedaction\(array &\$redactor, string \$bucket, string \$fieldPath\): void/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsSupportBundleHashValue\(array &\$redactor, string \$fieldPath, string \$value\): \?string/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsSupportBundleMaskIpValue\(array &\$redactor, string \$fieldPath, string \$value\): string/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsSupportBundleRedactScalar\(array &\$redactor, string \$fieldPath, \$value, bool \$preserveBasename = false\)/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsResolveSupportBundleChannel\(\): string/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsReadSupportBundleBuildMetadata\(\): array/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsBuildSupportBundleBuildIdentitySection\(array \$diagnostics\): array/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsBuildSupportBundleRecentActions\(array \$events, array &\$redactor, int \$limit = 30\): array/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsBuildSupportBundleServerLogTailSection\(array &\$redactor, int \$limit = 40\): array/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsBuildSupportBundleMetaSection\(array \$diagnostics, array \$redactor\): array/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsBuildSupportBundlePluginStateSection\(array \$diagnostics, array &\$redactor\): array/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsBuildSupportBundleRuntimeStateSection\(array \$diagnostics, array &\$redactor\): array/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsBuildSupportBundleSystemSection\(array \$diagnostics, array \$integrityFindings, array &\$redactor\): array/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsBuildSupportBundleHealthAndHistorySection\(array \$diagnostics, array \$integrityFindings, array &\$redactor\): array/);
+    assert.match(libDiagnosticsPhp, /function diagnosticsBuildSupportBundleRedactionManifestSection\(array \$redactor\): array/);
+    assert.match(libDiagnosticsPhp, /function getSupportBundleV2Snapshot\(string \$privacyMode = FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY\): array/);
+    assert.match(diagnosticsEndpointPhp, /if \(\$action === 'support_bundle'\) \{/);
+    assert.match(diagnosticsEndpointPhp, /'bundle'\s*=>\s*getSupportBundleV2Snapshot\(\$privacyMode\)/);
+    assert.match(libDiagnosticsPhp, /'bundleMeta'\s*=>\s*diagnosticsBuildSupportBundleMetaSection\(\$diagnostics, \$redactor\)/);
+    assert.match(libDiagnosticsPhp, /'pluginState'\s*=>\s*diagnosticsBuildSupportBundlePluginStateSection\(\$diagnostics, \$redactor\)/);
+    assert.match(libDiagnosticsPhp, /'runtimeState'\s*=>\s*diagnosticsBuildSupportBundleRuntimeStateSection\(\$diagnostics, \$redactor\)/);
+    assert.match(libDiagnosticsPhp, /'system'\s*=>\s*diagnosticsBuildSupportBundleSystemSection\(\$diagnostics, \$integrityFindings, \$redactor\)/);
+    assert.match(libDiagnosticsPhp, /'uiTelemetry'\s*=>\s*new stdClass\(\)/);
+    assert.match(libDiagnosticsPhp, /'healthAndHistory'\s*=>\s*diagnosticsBuildSupportBundleHealthAndHistorySection\(\$diagnostics, \$integrityFindings, \$redactor\)/);
+    assert.match(libDiagnosticsPhp, /'redactionManifest'\s*=>\s*diagnosticsBuildSupportBundleRedactionManifestSection\(\$redactor\)/);
+    assert.match(libDiagnosticsPhp, /'bundleVersion'\s*=>\s*2/);
+    assert.match(libDiagnosticsPhp, /'bundleSaltScope'\s*=>\s*normalizeDiagnosticsPrivacyMode\(/);
+    assert.match(libDiagnosticsPhp, /'bundleSaltHash'\s*=>\s*\$redactor\['saltFingerprint'\] \?\? null/);
+    assert.match(libDiagnosticsPhp, /'saltScope'\s*=>\s*\$privacyMode === 'full' \? 'none' : 'per-bundle'/);
+    assert.match(libDiagnosticsPhp, /'saltHash'\s*=>\s*\$privacyMode === 'full' \? null : \(\$redactor\['saltFingerprint'\] \?\? null\)/);
+    assert.match(libDiagnosticsPhp, /getDiagnosticsSnapshot\('full'\)/);
+    assert.doesNotMatch(diagnosticsEndpointPhp, /'bundleType'\s*=>\s*'FolderViewPlusSupportBundle',\s*[\r\n]+\s*'bundleVersion'\s*=>\s*1,/);
+    assert.doesNotMatch(diagnosticsEndpointPhp, /'diagnostics'\s*=>\s*\$diagnostics/);
 });

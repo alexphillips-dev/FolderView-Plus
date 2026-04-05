@@ -98,16 +98,21 @@ test('dashboard page loads quick-rail controller before dashboard runtime', () =
 });
 
 test('settings and folder pages load extracted support modules before their main runtimes', () => {
+    assert.match(settingsPage, /folderviewplus\.settings-tree\.js/);
     assert.match(settingsPage, /folderviewplus\.row-details\.js/);
+    assert.match(settingsPage, /folderviewplus\.bulk-assignment\.js/);
+    assert.match(settingsPage, /folderviewplus\.runtime-actions\.js/);
     assert.match(settingsPage, /folderviewplus\.wizard-smart-detect\.js/);
     assert.match(settingsPage, /folderviewplus\.actions-support\.js/);
+    assert.match(settingsPage, /folderviewplus\.settings-tree\.js[\s\S]*folderviewplus\.folder-editor\.js[\s\S]*folderviewplus\.row-details\.js/);
+    assert.match(settingsPage, /folderviewplus\.settings-workspaces\.js[\s\S]*folderviewplus\.bulk-assignment\.js[\s\S]*folderviewplus\.runtime-actions\.js[\s\S]*folderviewplus\.wizard-smart-detect\.js/);
     assert.match(settingsPage, /folderviewplus\.row-details\.js[\s\S]*folderviewplus\.wizard-smart-detect\.js[\s\S]*folderviewplus\.wizard\.js/);
     assert.match(settingsPage, /folderviewplus\.actions-support\.js[\s\S]*folderviewplus\.js/);
     assert.match(folderPage, /folder\.editor\.hierarchy\.js/);
     assert.match(folderPage, /folder\.editor\.chrome\.js/);
     assert.match(folderPage, /folder\.js/);
-    assert.match(folderPage, /folder\.legacy\.js/);
-    assert.match(folderPage, /scriptQueue = runtimeMode === 'modern'[\s\S]*folder\.editor\.hierarchy\.js[\s\S]*folder\.editor\.chrome\.js[\s\S]*folder\.js/);
+    assert.doesNotMatch(folderPage, /folder\.legacy\.js/);
+    assert.match(folderPage, /const scriptQueue = \[[\s\S]*folder\.editor\.hierarchy\.js[\s\S]*folder\.editor\.chrome\.js[\s\S]*folder\.js/);
     assert.match(dashboardPage, /dashboard\.folder-match-cache\.js/);
     assert.match(dashboardPage, /dashboard\.layout-quickrail\.js[\s\S]*dashboard\.folder-match-cache\.js[\s\S]*dashboard\.js/);
     assert.match(dockerPage, /folder\.runtime\.state-observers\.js/);
@@ -164,9 +169,9 @@ test('external links and popup actions enforce noopener protections', () => {
     assert.match(dockerJs, /const WEBUI_LINK_REL = 'noopener noreferrer';/);
     assert.match(dockerJs, /const openWebuiInNewTab = \(url\) =>/);
     assert.match(dockerJs, /openWebuiInNewTab\(folderData\.settings\.folder_webui_url\)/);
-    assert.match(dashboardJs, /const WEBUI_LINK_REL = 'noopener noreferrer';/);
     assert.match(dashboardJs, /const openWebUiInNewTab = \(url\) =>/);
-    assert.match(dashboardJs, /openWebUiInNewTab\(globalFolders\.docker\[id\]\.settings\.folder_webui_url\)/);
+    assert.match(dashboardJs, /target="_blank" rel="noopener noreferrer" title="WebUI" aria-label="WebUI"/);
+    assert.match(dashboardJs, /openWebUiInNewTab\(webUiUrl\)/);
     assert.match(folderViewPlusJs, /window\.open\(UPDATE_NOTES_CHANGELOG_URL, '_blank', 'noopener,noreferrer'\)/);
     assert.match(folderViewPlusJs, /popup\.opener = null;/);
 });

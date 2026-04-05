@@ -7,6 +7,7 @@ const repoRoot = path.resolve(process.cwd());
 const read = (relativePath) => fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 
 const libPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php');
+const libPreflightPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.preflight.php');
 const stylesCustomPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/custom.php');
 const scriptsCustomPhp = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/custom.php');
 
@@ -15,8 +16,9 @@ test('legacy custom override directories remain supported for styles and scripts
         libPhp,
         /const FVPLUS_LEGACY_CONFIG_DIRS = \[[\s\S]*'\/boot\/config\/plugins\/folder\.view3'[\s\S]*'\/boot\/config\/plugins\/folder\.view2'[\s\S]*'\/boot\/config\/plugins\/folder\.view'[\s\S]*\];/
     );
+    assert.match(libPhp, /require_once\(__DIR__ \. '\/lib\.preflight\.php'\);/);
     assert.match(
-        libPhp,
+        libPreflightPhp,
         /function getCustomOverrideDirs\(string \$kind\): array[\s\S]*\$currentDir = "\$configDir\/\$safeKind";[\s\S]*foreach \(getLegacyConfigDirCandidates\(\) as \$legacyDir\)[\s\S]*\$path = "\$legacyDir\/\$safeKind";/
     );
 });

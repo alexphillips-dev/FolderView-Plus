@@ -8,7 +8,12 @@ const libPath = path.join(
     repoRoot,
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.php'
 );
+const prefsPath = path.join(
+    repoRoot,
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/server/lib.prefs.php'
+);
 const libPhp = fs.readFileSync(libPath, 'utf8');
+const libPrefsPhp = fs.readFileSync(prefsPath, 'utf8');
 
 test('legacy labels and legacy config directories remain supported', () => {
     assert.match(
@@ -27,9 +32,10 @@ test('self-heal JSON helpers exist and are used in folder/prefs readers', () => 
     assert.match(libPhp, /function recoverJsonObjectFromLastGood\(string \$path\): \?array/);
     assert.match(libPhp, /function normalizeFolderMapPayload\(\$value\): array/);
     assert.match(libPhp, /function readRawFolderMap\(string \$type\): array[\s\S]*recoverJsonObjectFromLastGood\(\$path\)/);
-    assert.match(libPhp, /function readTypePrefs\(string \$type\): array[\s\S]*recoverJsonObjectFromLastGood\(\$path\)/);
+    assert.match(libPhp, /require_once\(__DIR__ \. '\/lib\.prefs\.php'\);/);
+    assert.match(libPrefsPhp, /function readTypePrefs\(string \$type\): array[\s\S]*recoverJsonObjectFromLastGood\(\$path\)/);
     assert.match(libPhp, /function writeRawFolderMap\(string \$type, array \$folders\): void[\s\S]*writeJsonObjectWithLastGood\(\$path, \$normalized\)/);
-    assert.match(libPhp, /function writeTypePrefs\(string \$type, array \$prefs\): array[\s\S]*writeJsonObjectWithLastGood\(\$path, \$normalized\)/);
+    assert.match(libPrefsPhp, /function writeTypePrefs\(string \$type, array \$prefs\): array[\s\S]*writeJsonObjectWithLastGood\(\$path, \$normalized\)/);
 });
 
 test('legacy migrations keep normalized folder payloads and last-good snapshots', () => {

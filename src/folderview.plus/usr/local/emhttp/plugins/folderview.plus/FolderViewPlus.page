@@ -137,7 +137,6 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <option value="wide">Wide</option>
                         </select>
                     </label>
-                    <label class="setting-toggle"><input id="docker-folder-editor-modern" type="checkbox" onchange="changeVisibilityPref('docker', 'folderEditorMode', this.checked ? 'modern' : 'legacy')"> Use new folder settings page</label>
                     <label class="setting-select" for="docker-status-mode">
                         <span>Status mode</span>
                         <select id="docker-status-mode" onchange="changeStatusPref('docker', 'mode', this.value)">
@@ -372,7 +371,6 @@ if (!empty($fvplusRuntimeConflicts)) {
                             <option value="wide">Wide</option>
                         </select>
                     </label>
-                    <label class="setting-toggle"><input id="vm-folder-editor-modern" type="checkbox" onchange="changeVisibilityPref('vm', 'folderEditorMode', this.checked ? 'modern' : 'legacy')"> Use new folder settings page</label>
                     <label class="setting-select" for="vm-status-mode">
                         <span>Status mode</span>
                         <select id="vm-status-mode" onchange="changeStatusPref('vm', 'mode', this.value)">
@@ -1297,6 +1295,12 @@ if (!empty($fvplusRuntimeConflicts)) {
                         <button type="button" onclick="exportSupportBundle()"><i class="fa fa-life-ring"></i> Export support bundle</button>
                     </div>
                     <div class="fv-diagnostics-share-note">Support bundle exports are sanitized by default and include the troubleshooting data needed for support.</div>
+                    <div id="fv-support-bundle-preview" class="fv-support-bundle-preview" aria-live="polite">
+                        <div class="fv-diagnostics-empty-state is-compact">
+                            <strong>Preparing support bundle preview.</strong>
+                            <span>Included sections and redaction categories will appear here before you download the bundle.</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1394,9 +1398,17 @@ if (!empty($fvplusRuntimeConflicts)) {
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js')?>"></script>
+<script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.support-bundle-preview.js')?>"></script>
+<script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.support-bundle-browser.js')?>"></script>
+<script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.support-bundle-telemetry.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js')?>"></script>
+<script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.settings-tree.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.row-details.js')?>"></script>
+<script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.settings-health.js')?>"></script>
+<script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.settings-workspaces.js')?>"></script>
+<script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js')?>"></script>
+<script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.wizard-smart-detect.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.wizard.js')?>"></script>
 <script src="<?=autov('/plugins/folderview.plus/scripts/folderviewplus.import.js')?>"></script>

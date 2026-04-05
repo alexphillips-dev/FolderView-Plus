@@ -11,7 +11,9 @@ const folderJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.p
 const folderContractJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
 const folderEditorSharedJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.shared.js');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
+const dockerPreviewActionsScript = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.preview-actions.js');
 const sharedRuntimeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js');
+const dockerRuntimeHierarchyJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js');
 const dockerCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css');
 const runtimeSharedCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/runtime.shared.css');
 
@@ -32,7 +34,7 @@ test('folder editor exposes preview row limit control and persists the setting',
     assert.match(folderJs, /previewRows:\s*normalizedPreviewRows,/);
 });
 
-test('docker runtime applies preview row layout limits and keeps preview member clicks passive', () => {
+test('docker runtime applies preview row layout limits and keeps compact preview cards clickable', () => {
     assert.match(sharedRuntimeJs, /const getPreviewRowLimitValue = \(settings = \{\}\) =>/);
     assert.match(sharedRuntimeJs, /settings\?\.preview_rows\s*\?\?\s*settings\?\.previewRows/);
     assert.match(sharedRuntimeJs, /const normalizeFolderPreviewRowLimit = \(settings = \{\}\) =>/);
@@ -47,6 +49,27 @@ test('docker runtime applies preview row layout limits and keeps preview member 
     assert.match(dockerJs, /const appendPreviewWebuiPlaceholder = \(\$target\) =>/);
     assert.match(dockerJs, /fv-preview-webui-placeholder/);
     assert.match(dockerJs, /const buildDockerPreviewItem = \(\{ entry = \{\}, settings = \{\}, autostart = false \}\) =>/);
+    assert.match(dockerJs, /const bindCompactPreviewDefaultContext = \(\$item, \$sourceRow\) =>/);
+    assert.match(dockerJs, /const buildCompactPreviewDefaultContextItem = \(\$sourceRow, settings = \{\}, autostart = false\) =>/);
+    assert.match(dockerJs, /const \$sourceOuter = \$sourceRow\.find\('td\.ct-name > span\.outer'\)\.first\(\)/);
+    assert.match(dockerJs, /const bindCompactPreviewDefaultContextProxy = \(\$item\) =>/);
+    assert.match(dockerJs, /\$menuTrigger\.trigger\('click'\);/);
+    assert.match(dockerJs, /\$sourceRow\.find\('td\.ct-name > span\.outer > span\.hand'\)\.first\(\)/);
+    assert.match(dockerJs, /const inlineClick = String\(\$nativeTrigger\.attr\('onclick'\) \|\| ''\)\.trim\(\);/);
+    assert.match(dockerJs, /const targets = \[/);
+    assert.match(dockerJs, /\$target\.addClass\('hand'\);/);
+    assert.match(dockerJs, /\$target\.attr\('onclick', inlineClick\);/);
+    assert.match(dockerJs, /fv-docker-preview-mode-2 fv-preview-trigger fv-preview-tooltip-proxy/);
+    assert.match(dockerJs, /fv-docker-preview-mode-\$\{previewMode\} fv-preview-trigger fv-preview-tooltip-proxy/);
+    assert.match(dockerJs, /fv-docker-preview-mode-1 fv-preview-trigger fv-preview-tooltip-proxy/);
+    assert.match(dockerJs, /fv-preview-trigger fv-preview-tooltip-proxy/);
+    assert.match(dockerJs, /\$tooltipTrigger:\s*triggerSelector === '\.fv-docker-preview-card'\s*\?\s*\$compactItem/);
+    assert.match(dockerJs, /const appendCompactPreview = \(folderTrId, ctid, autostart, previewEntry, \$sourceRow = null\) =>/);
+    assert.match(dockerJs, /if \(folder\.settings\.context === 1\) \{/);
+    assert.match(dockerJs, /compactPreviewItem = buildCompactPreviewDefaultContextItem\(\$sourceRow, folder\.settings, autostart\);/);
+    assert.match(dockerJs, /bindCompactPreviewDefaultContextProxy\(\$item\);/);
+    assert.match(dockerJs, /bindCompactPreviewDefaultContext\(\$item, \$sourceRow\);/);
+    assert.match(dockerJs, /\$target\.data\('fvTooltipEnsureInitialized', ensureInitialized\);/);
     assert.match(dockerJs, /const layoutFolderPreviewRows = \(\$preview, settings = \{\}\) =>/);
     assert.match(dockerJs, /const applyFolderPreviewLayout = typeof dockerRuntimeShared\.applyFolderPreviewLayout === 'function'/);
     assert.match(dockerJs, /const flattenPreviewWrappers = typeof dockerRuntimeShared\.flattenPreviewWrappers === 'function'/);
@@ -54,6 +77,7 @@ test('docker runtime applies preview row layout limits and keeps preview member 
     assert.match(dockerJs, /const finalizePreviewRows = typeof dockerRuntimeShared\.finalizePreviewRows === 'function'/);
     assert.match(dockerJs, /let clone = \$\(`tr\.folder-id-\$\{folderTrId\} div\.folder-storage > tr > td\.ct-name > span\.outer:last`\)\.clone\(\)/);
     assert.match(dockerJs, /\$previewElementTarget\.children\('span\.inner'\)\.last\(\)/);
+    assert.match(dockerJs, /const tooltip_trigger_element = addPreview\(id, ct\.shortId, !\(ct\.info\.State\.Autostart === false\), newFolder\[container_name_in_folder\], \$containerTR\);/);
     assert.match(dockerJs, /const maxItemsPerRow = Math\.max\(1,\s*getFolderPreviewItemsPerRow\(settings\)\)/);
     assert.match(dockerJs, /const \$measurement = availableWidth > 0/);
     assert.match(dockerJs, /fv-preview-multirow fv-preview-row-measure/);
@@ -67,7 +91,7 @@ test('docker runtime applies preview row layout limits and keeps preview member 
     assert.match(dockerJs, /const wrappers = flattenPreviewWrappers\(\$preview\);/);
     assert.match(dockerJs, /finalizePreviewRows\(\$preview,\s*visibleRows,\s*settings\);/);
     assert.match(dockerJs, /layoutFolderPreviewRows\(\$\(`tr\.folder-id-\$\{id\} div\.folder-preview`\), folder\.settings\)/);
-    assert.match(dockerJs, /layoutFolderPreviewRows\(\$preview, folder\?\.settings \|\| \{\}\)/);
+    assert.match(dockerRuntimeHierarchyJs, /layoutFolderPreviewRows\(\$preview, folder\?\.settings \|\| \{\}\)/);
     assert.match(dockerJs, /decorateDockerFolderMemberRow\(\$containerTR, id, ct\.info\.Name \|\| container_name_in_folder\)/);
     assert.match(dockerJs, /decorateDockerPreviewMemberTriggers\(/);
     assert.match(dockerJs, /\.removeClass\('fv-docker-member-menu-trigger'\)/);
@@ -75,8 +99,20 @@ test('docker runtime applies preview row layout limits and keeps preview member 
     assert.match(dockerJs, /\.removeAttr\('data-container-name'\)/);
     assert.match(dockerJs, /\.off\('click\.fvDockerMemberMenuTrigger'\)/);
     assert.match(dockerJs, /\.off\('click\.fvDockerMemberMenuAction'\)/);
+    assert.match(dockerJs, /\.off\('click\.fvDockerPreviewTooltipProxy'\)/);
+    assert.match(dockerJs, /\.on\('click\.fvDockerPreviewTooltipProxy', '\.fv-preview-tooltip-proxy', function\(event\) \{/);
+    assert.match(dockerJs, /const \$trigger = \$proxy\.closest\('\[id\^="folder-preview-"\]'\);/);
+    assert.match(dockerJs, /const ensureInitialized = \$trigger\.data\('fvTooltipEnsureInitialized'\);/);
+    assert.match(dockerJs, /const tooltipInitialized = \$trigger\.data\('fvTooltipsterInitialized'\) === true;/);
+    assert.match(dockerJs, /if \(typeof ensureInitialized === 'function' && tooltipInitialized !== true\) \{/);
+    assert.match(dockerJs, /ensureInitialized\('click'\);/);
+    assert.match(dockerJs, /if \(tooltipInitialized === true\) \{/);
+    assert.match(dockerJs, /\$trigger\.tooltipster\('open'\);/);
     assert.doesNotMatch(dockerJs, /FolderViewDockerPreviewMemberMenu/);
     assert.doesNotMatch(dockerJs, /showDockerPreviewMemberMenu/);
+    assert.match(dockerPreviewActionsScript, /event\.preventDefault\(\);\s*event\.stopPropagation\(\);\s*openWebuiInNewTab\(webuiUrl\);/s);
+    assert.match(dockerPreviewActionsScript, /event\.preventDefault\(\);\s*event\.stopPropagation\(\);\s*openTerminal\('docker',\s*containerName,\s*shellValue\);/s);
+    assert.match(dockerPreviewActionsScript, /event\.preventDefault\(\);\s*event\.stopPropagation\(\);\s*openTerminal\('docker',\s*containerName,\s*'\.log'\);/s);
 });
 
 test('docker styles support multi-row previews without the removed member action sheet styling', () => {

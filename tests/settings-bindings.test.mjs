@@ -19,8 +19,14 @@ const settingsScriptPaths = [
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.setup-assistant.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.smart-detect-config.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.starter-templates.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.support-bundle-preview.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.activity-diagnostics.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-editor.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-health.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-workspaces.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.bulk-assignment.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.runtime-actions.js',
+    'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.settings-tree.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.actions-support.js',
     'src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.js'
 ].map((relativePath) => path.join(repoRoot, relativePath));
@@ -54,13 +60,28 @@ test('settings page loads extracted settings metadata before the main runtime', 
     assert.match(page, /folderviewplus\.settings-metadata\.js/);
     assert.match(page, /folderviewplus\.settings-sections\.js/);
     assert.match(page, /folderviewplus\.settings-table\.js/);
-    assert.match(page, /folderviewplus\.settings-metadata\.js[\s\S]*folderviewplus\.settings-sections\.js[\s\S]*folderviewplus\.settings-table\.js[\s\S]*folderviewplus\.actions-support\.js[\s\S]*folderviewplus\.js/);
+    assert.match(page, /folderviewplus\.settings-tree\.js[\s\S]*folderviewplus\.folder-editor\.js[\s\S]*folderviewplus\.row-details\.js[\s\S]*folderviewplus\.settings-health\.js[\s\S]*folderviewplus\.settings-workspaces\.js[\s\S]*folderviewplus\.bulk-assignment\.js[\s\S]*folderviewplus\.runtime-actions\.js[\s\S]*folderviewplus\.actions-support\.js[\s\S]*folderviewplus\.js/);
     assert.match(script, /FolderViewPlusSettingsMetadataModuleLoaded = true/);
     assert.match(script, /FolderViewPlusSettingsTableModuleLoaded = true/);
+    assert.match(script, /FolderViewPlusSettingsHealthModuleLoaded = true/);
+    assert.match(script, /FolderViewPlusSettingsWorkspacesModuleLoaded = true/);
+    assert.match(script, /FolderViewPlusSettingsTreeModuleLoaded = true/);
+    assert.match(script, /FolderViewPlusBulkAssignmentModuleLoaded = true/);
+    assert.match(script, /FolderViewPlusSettingsRuntimeActionsModuleLoaded = true/);
     assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.settings-metadata\.js'\)/);
     assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.settings-table\.js'\)/);
+    assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.settings-health\.js'\)/);
+    assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.settings-workspaces\.js'\)/);
+    assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.settings-tree\.js'\)/);
+    assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.bulk-assignment\.js'\)/);
+    assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.runtime-actions\.js'\)/);
     assert.match(script, /bootstrapMissingModules\.push\('folderviewplus\.actions-support\.js'\)/);
     assert.match(script, /const settingsTableModule = window\.FolderViewPlusSettingsTable \|\| null;/);
+    assert.match(script, /const settingsHealthModule = window\.FolderViewPlusSettingsHealth \|\| null;/);
+    assert.match(script, /const settingsWorkspacesModule = window\.FolderViewPlusSettingsWorkspaces \|\| null;/);
+    assert.match(script, /const settingsTreeModule = window\.FolderViewPlusSettingsTree \|\| null;/);
+    assert.match(script, /const bulkAssignmentModule = window\.FolderViewPlusBulkAssignment \|\| null;/);
+    assert.match(script, /const settingsRuntimeActionsModule = window\.FolderViewPlusSettingsRuntimeActions \|\| null;/);
 });
 
 test('settings page exposes theme fallback controls and runtime self-heal action', () => {
@@ -158,29 +179,30 @@ test('settings sections only show section apply badges when save-required fields
 
 test('recovery workspace remembers source and routes generic actions through the active type', () => {
     assert.match(script, /const RECOVERY_WORKSPACE_STORAGE_KEY = 'fv\.settings\.recoveryWorkspace\.v1';/);
-    assert.match(script, /const getActiveRecoveryWorkspaceType = \(\) => normalizeRecoveryWorkspaceType\(activeRecoveryWorkspaceType\);/);
-    assert.match(script, /writeSettingsStorage\(RECOVERY_WORKSPACE_STORAGE_KEY, activeRecoveryWorkspaceType, \{ delayMs: 60, idle: true \}\);/);
-    assert.match(script, /const createActiveRecoveryBackup = \(\) => createManualBackup\(getActiveRecoveryWorkspaceType\(\)\);/);
-    assert.match(script, /const restoreLatestActiveRecoveryBackup = \(\) => restoreLatestBackup\(getActiveRecoveryWorkspaceType\(\)\);/);
+    assert.match(script, /const getSettingsWorkspacesApi = \(\(\) => \{/);
+    assert.match(script, /const getActiveRecoveryWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.getActiveRecoveryWorkspaceType\(\.\.\.args\);/);
+    assert.match(script, /writeSettingsStorage\(RECOVERY_WORKSPACE_STORAGE_KEY, resolvedType, \{ delayMs: 60, idle: true \}\);/);
+    assert.match(script, /const createActiveRecoveryBackup = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.createActiveRecoveryBackup\(\.\.\.args\);/);
+    assert.match(script, /const restoreLatestActiveRecoveryBackup = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.restoreLatestActiveRecoveryBackup\(\.\.\.args\);/);
     assert.match(script, /const selectActiveRecoveryBackup = \(name = ''\) => \{/);
-    assert.match(script, /const restoreSelectedActiveRecoveryBackup = \(\) => \{/);
-    assert.match(script, /const downloadSelectedActiveRecoveryBackup = \(\) => \{/);
-    assert.match(script, /const deleteSelectedActiveRecoveryBackup = \(\) => \{/);
-    assert.match(script, /const runActiveRecoveryScheduler = \(\) => runScheduledBackupNow\(getActiveRecoveryWorkspaceType\(\)\);/);
-    assert.match(script, /const compareActiveRecoverySnapshots = \(\) => \{/);
-    assert.match(script, /const undoActiveRecoveryChange = \(\) => undoLatestChange\(getActiveRecoveryWorkspaceType\(\)\);/);
+    assert.match(script, /const restoreSelectedActiveRecoveryBackup = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.restoreSelectedActiveRecoveryBackup\(\.\.\.args\);/);
+    assert.match(script, /const downloadSelectedActiveRecoveryBackup = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.downloadSelectedActiveRecoveryBackup\(\.\.\.args\);/);
+    assert.match(script, /const deleteSelectedActiveRecoveryBackup = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.deleteSelectedActiveRecoveryBackup\(\.\.\.args\);/);
+    assert.match(script, /const runActiveRecoveryScheduler = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.runActiveRecoveryScheduler\(\.\.\.args\);/);
+    assert.match(script, /const compareActiveRecoverySnapshots = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.compareActiveRecoverySnapshots\(\.\.\.args\);/);
+    assert.match(script, /const undoActiveRecoveryChange = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.undoActiveRecoveryChange\(\.\.\.args\);/);
 });
 
 test('operations workspace remembers source and exposes the shared runtime-template actions', () => {
     assert.match(script, /const OPERATIONS_WORKSPACE_STORAGE_KEY = 'fv\.settings\.operationsWorkspace\.v1';/);
-    assert.match(script, /const normalizeOperationsWorkspaceType = \(value\) =>/);
-    assert.match(script, /writeSettingsStorage\(OPERATIONS_WORKSPACE_STORAGE_KEY, activeOperationsWorkspaceType, \{ delayMs: 60, idle: true \}\);/);
+    assert.match(script, /const normalizeOperationsWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.normalizeOperationsWorkspaceType\(\.\.\.args\);/);
+    assert.match(script, /writeSettingsStorage\(OPERATIONS_WORKSPACE_STORAGE_KEY, resolvedType, \{ delayMs: 60, idle: true \}\);/);
     assert.match(script, /activeOperationsWorkspaceType = normalizeOperationsWorkspaceType\(localStorage\.getItem\(OPERATIONS_WORKSPACE_STORAGE_KEY\) \|\| 'docker'\)/);
-    assert.match(script, /const renderOperationsWorkspace = \(\) => \{/);
-    assert.match(script, /const setOperationsWorkspaceType = \(type, persist = true\) => \{/);
-    assert.match(script, /const selectOperationsTemplate = \(type, templateId\) => \{/);
-    assert.match(script, /const exportTemplateEntry = \(type, templateId\) => \{/);
-    assert.match(script, /const renderTemplateRows = \(type\) => \{/);
+    assert.match(script, /const renderOperationsWorkspace = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.renderOperationsWorkspace\(\.\.\.args\);/);
+    assert.match(script, /const setOperationsWorkspaceType = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.setOperationsWorkspaceType\(\.\.\.args\);/);
+    assert.match(script, /const selectOperationsTemplate = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.selectOperationsTemplate\(\.\.\.args\);/);
+    assert.match(script, /const exportTemplateEntry = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.exportTemplateEntry\(\.\.\.args\);/);
+    assert.match(script, /const renderTemplateRows = \(\.\.\.args\) => getSettingsWorkspacesApi\(\)\.renderTemplateRows\(\.\.\.args\);/);
     assert.match(script, /setRuntimePreviewOutput\(type, buildRuntimePreviewHtml\(type, folderId, action, plan\)\);/);
     assert.match(script, /setRuntimePreviewOutput\(type, buildRuntimePreviewHtml\(type, folderId, action, plan, result\)\);/);
     assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*setOperationsWorkspaceType[\s\S]*selectOperationsTemplate[\s\S]*exportTemplateEntry[\s\S]*\}\);/);
@@ -325,7 +347,9 @@ test('settings table layout uses preset-driven widths instead of drag-resize con
     assert.match(script, /const buildEffectiveSettingsTableWidths = \(type\) => \{/);
     assert.match(script, /changeSettingsTableColumnWidthPreset = async \(type, key, value\) => \{/);
     assert.match(script, /settingsTableWidthPresetByType\[resolvedType\]\[targetKey\] = normalizeSettingsTableColumnWidthPreset\(value\);/);
-    assert.match(script, /table\.querySelectorAll\('\.fv-col-resizer'\)\.forEach\(\(handle\) => handle\.remove\(\)\);/);
+    assert.match(script, /table\.querySelectorAll\('th\.fv-col-resizable'\)\.forEach\(\(header\) => header\.classList\.remove\('fv-col-resizable'\)\);/);
+    assert.doesNotMatch(script, /const stopActiveTableColumnResize = \(persist = true\) =>/);
+    assert.doesNotMatch(script, /const SETTINGS_TABLE_RESIZE_GUIDE_ID = 'fv-settings-col-resize-guide';/);
     assert.match(script, /table\.style\.setProperty\('table-layout', 'fixed'(,\s*'important')?\);/);
     assert.match(script, /columnWidthsByType\[resolvedType\] = \{\};/);
     assert.match(script, /columnWidthModeByType\[resolvedType\] = 'auto';/);
@@ -418,6 +442,7 @@ test('bulk assignment advanced UX includes filtering, selection helpers, and com
     assert.match(script, /const filterBulkItems = \(type, value = ''\) =>/);
     assert.match(script, /const bulkItemSelectionAction = \(type, action = 'all'\) =>/);
     assert.match(script, /const updateBulkSelectedCount = \(type\) =>/);
+    assert.match(script, /const getBulkAssignmentApi = \(\(\) => \{/);
     assert.match(script, /registerWindowActions\(window,\s*\{[\s\S]*retryFailedBulkItems[\s\S]*filterBulkItems[\s\S]*bulkItemSelectionAction[\s\S]*updateBulkSelectedCount[\s\S]*\}\);/);
     assert.match(script, /utils && typeof utils\.normalizeFolderMembers === 'function'/);
     assert.match(script, /utils\.normalizeFolderMembers\(folder\?\.containers \|\| \[\]\)/);

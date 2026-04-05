@@ -10,14 +10,16 @@ const dashboardJs = read('src/folderview.plus/usr/local/emhttp/plugins/foldervie
 const vmJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/vm.js');
 
 test('dashboard docker folder action keeps restart distinct from resume', () => {
-    assert.match(dashboardJs, /actionFolderDocker\(id,\s*"restart"\)/);
-    assert.match(dashboardJs, /case "resume":\s*pass = ct\.state && ct\.pause;\s*break;\s*case "restart":\s*pass = true;\s*break;/s);
-    assert.equal((dashboardJs.match(/case "resume":/g) || []).length, 1);
+    assert.doesNotMatch(dashboardJs, /actionFolderDocker\(/);
+    assert.doesNotMatch(dashboardJs, /case "resume":/);
+    assert.doesNotMatch(dashboardJs, /case "restart":/);
 });
 
 test('dashboard folder action errors do not trigger an immediate second reload', () => {
-    const singleReloadBlocks = dashboardJs.match(/if\(errors\.length > 0\) \{\s*swal\(\{[\s\S]*?\}, loadlist\);\s*\} else \{\s*loadlist\(\);\s*\}\s*\$\('div\.spinner\.fixed'\)\.hide\('slow'\);/g) || [];
-    assert.equal(singleReloadBlocks.length, 2);
+    assert.match(dashboardJs, /window\.loadlist_original = loadlist;/);
+    assert.match(dashboardJs, /\$\.ajaxPrefilter\(\(options,\s*originalOptions,\s*jqXHR\) => \{/);
+    assert.match(dashboardJs, /jqXHR\.promise\(\)\.then\(\(\) => \{\s*queueCreateFoldersRender\(\);\s*\$\('div\.spinner\.fixed'\)\.hide\(\);/s);
+    assert.doesNotMatch(dashboardJs, /if\(errors\.length > 0\) \{\s*swal\(\{/);
     assert.doesNotMatch(dashboardJs, /}, loadlist\);\s*}\s*loadlist\(\);\s*\$\('div\.spinner\.fixed'\)\.hide\('slow'\);/s);
 });
 

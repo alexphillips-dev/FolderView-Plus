@@ -287,6 +287,10 @@
     const FVPLUS_DOCKER_TEMPLATE_CACHE_TTL = 300;
     const FVPLUS_TAILSCALE_EXEC_CACHE_TTL = 20;
 
+    require_once(__DIR__ . '/lib.preflight.php');
+    require_once(__DIR__ . '/lib.prefs.php');
+    require_once(__DIR__ . '/lib.diagnostics.php');
+
     function fvplus_detect_runtime_plugin_conflicts(): array {
         $detected = [];
         foreach (FVPLUS_RUNTIME_CONFLICT_PLUGINS as $id => $meta) {
@@ -350,10 +354,10 @@
         $scope = trim($surfaceLabel) !== ''
             ? htmlspecialchars($surfaceLabel, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
             : 'this page';
-        echo '<div class="fv-runtime-conflict-banner" data-conflict-key="' . $conflictKey . '" data-conflict-plugins="' . $pluginData . '" style="margin:12px 0 16px 0;padding:14px 16px;border:1px solid rgba(255,153,0,0.45);background:linear-gradient(180deg, rgba(120,60,0,0.22), rgba(50,26,0,0.22));border-radius:10px;line-height:1.5;">';
+        echo '<div class="fv-runtime-conflict-banner" data-conflict-key="' . $conflictKey . '" data-conflict-plugins="' . $pluginData . '" style="margin:12px 0 16px 0;padding:14px 16px;border:1px solid var(--orange, #f0a30a);background:transparent;color:var(--text, currentColor);border-radius:10px;line-height:1.5;">';
         echo '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">';
-        echo '<i class="fa fa-exclamation-triangle" aria-hidden="true" style="font-size:1.2rem;color:#ffbf78;"></i>';
-        echo '<div style="font-size:1.34rem;font-weight:800;line-height:1.1;letter-spacing:0.01em;color:#ffd7a2;">Safe mode active</div>';
+        echo '<i class="fa fa-exclamation-triangle" aria-hidden="true" style="font-size:1.2rem;color:var(--orange, #f0a30a);"></i>';
+        echo '<div style="font-size:1.34rem;font-weight:800;line-height:1.1;letter-spacing:0.01em;color:var(--orange, #f0a30a);">Safe mode active</div>';
         echo '</div>';
         if ($isSettingsSurface) {
             echo '<div style="margin-bottom:8px;">Runtime injection is paused because another Folder View plugin is installed. ';
@@ -1114,6 +1118,48 @@
         return $normalized;
     }
 
+    function normalizeFolderSettingsTransferPayload(array $payload): array {
+        fvplus_assert_folder_settings_payload_shape($payload);
+
+        $normalized = [];
+        $normalized['icon'] = truncateUtf8String(trim((string)($payload['icon'] ?? '')), 2048);
+        $normalized['settings'] = [];
+        if (array_key_exists('settings', $payload) && is_array($payload['settings'])) {
+            $settingsCarrier = normalizeFolderContentPayload(['settings' => $payload['settings']]);
+            $normalized['settings'] = is_array($settingsCarrier['settings'] ?? null) ? $settingsCarrier['settings'] : [];
+        }
+
+        $normalizedActions = [];
+        if (array_key_exists('actions', $payload) && is_array($payload['actions'])) {
+            foreach ($payload['actions'] as $action) {
+                if (!is_array($action)) {
+                    continue;
+                }
+                $normalizedAction = normalizeFolderNestedValue($action);
+                if (!is_array($normalizedAction)) {
+                    continue;
+                }
+                $actionType = (int)($normalizedAction['type'] ?? 0);
+                if ($actionType !== 1) {
+                    continue;
+                }
+                if (isset($normalizedAction['containers'])) {
+                    unset($normalizedAction['containers']);
+                }
+                if (isset($normalizedAction['conatiners'])) {
+                    unset($normalizedAction['conatiners']);
+                }
+                $normalizedActions[] = $normalizedAction;
+            }
+        }
+        if (($normalized['settings']['override_default_actions'] ?? false) === true && count($normalizedActions) <= 0) {
+            $normalized['settings']['override_default_actions'] = false;
+        }
+        $normalized['actions'] = array_values($normalizedActions);
+
+        return $normalized;
+    }
+
     function normalizeFolderParentIdValue($value): string {
         if (!is_string($value) && !is_numeric($value)) {
             return '';
@@ -1515,16 +1561,6 @@
         return $summary;
     }
 
-    function getLegacyConfigDirCandidates(): array {
-        $candidates = [];
-        foreach (FVPLUS_LEGACY_CONFIG_DIRS as $dir) {
-            if (is_dir($dir)) {
-                $candidates[] = $dir;
-            }
-        }
-        return $candidates;
-    }
-
     function readJsonObjectFile(string $path): ?array {
         if (!file_exists($path)) {
             return null;
@@ -1751,272 +1787,6 @@
         }
     }
 
-    function getCustomOverrideDirs(string $kind): array {
-        global $configDir;
-        $safeKind = $kind === 'styles' ? 'styles' : 'scripts';
-        $dirs = [];
-
-        $currentDir = "$configDir/$safeKind";
-        if (is_dir($currentDir)) {
-            $dirs[] = $currentDir;
-        }
-
-        foreach (getLegacyConfigDirCandidates() as $legacyDir) {
-            $path = "$legacyDir/$safeKind";
-            if (is_dir($path)) {
-                $dirs[] = $path;
-            }
-        }
-
-        return array_values(array_unique($dirs));
-    }
-
-    function collectRuntimeOverrideEntries(string $type): array {
-        $safeType = ensureType($type);
-        $entries = [];
-        $patterns = [
-            'scripts' => "/\..*{$safeType}.*\.js$/",
-            'styles' => "/\..*{$safeType}.*\.css$/"
-        ];
-
-        foreach ($patterns as $kind => $filePattern) {
-            foreach (getCustomOverrideDirs($kind) as $overrideDir) {
-                $baseDir = realpath($overrideDir);
-                if ($baseDir === false) {
-                    continue;
-                }
-                $files = dirToArrayOfFiles(pathToMultiDimArray($overrideDir), $filePattern, "/.*\.disabled$/");
-                foreach ($files as $file) {
-                    if (!is_array($file) || empty($file['path'])) {
-                        continue;
-                    }
-                    $resolved = realpath($file['path']);
-                    if ($resolved === false || strpos($resolved, $baseDir . '/') !== 0) {
-                        continue;
-                    }
-                    $relativePath = ltrim(substr($resolved, strlen($baseDir)), '/');
-                    $displayPath = ($relativePath === '' || $relativePath === false)
-                        ? basename($resolved)
-                        : str_replace('\\', '/', $relativePath);
-                    $key = $kind . ':' . $resolved;
-                    $entries[$key] = [
-                        'kind' => $kind,
-                        'path' => $displayPath,
-                        'sourceDir' => str_replace('\\', '/', $baseDir)
-                    ];
-                }
-            }
-        }
-
-        return array_values($entries);
-    }
-
-    function appendRuntimePreflightIssue(array &$issues, string $severity, string $code, string $title, string $message, array $details = [], string $category = 'environment'): void {
-        $normalizedSeverity = strtolower(trim($severity));
-        if (!in_array($normalizedSeverity, ['fatal', 'degraded'], true)) {
-            $normalizedSeverity = 'degraded';
-        }
-        $detailLines = [];
-        foreach ($details as $detail) {
-            $normalized = trim((string)$detail);
-            if ($normalized !== '') {
-                $detailLines[] = $normalized;
-            }
-        }
-        $issues[] = [
-            'severity' => $normalizedSeverity,
-            'code' => trim($code),
-            'title' => trim($title),
-            'message' => trim($message),
-            'details' => $detailLines,
-            'category' => trim($category) !== '' ? trim($category) : 'environment'
-        ];
-    }
-
-    function collectRuntimePreflight(string $type): array {
-        $safeType = ensureType($type);
-        $surface = $safeType === 'docker' ? 'Docker' : 'VMs';
-        $codePrefix = $safeType === 'docker' ? 'FVPLUS-DKR' : 'FVPLUS-VM';
-        $issues = [];
-
-        $unraidVersion = readUnraidVersionString();
-        if (is_string($unraidVersion) && trim($unraidVersion) !== '') {
-            if (version_compare($unraidVersion, '7.0.0', '<')) {
-                appendRuntimePreflightIssue(
-                    $issues,
-                    'fatal',
-                    $codePrefix . '-ENV-001',
-                    "$surface runtime is not supported on this Unraid version",
-                    "FolderView Plus requires Unraid 7.0.0 or newer for the $surface runtime.",
-                    ["Detected Unraid version: $unraidVersion"],
-                    'unsupported-unraid-version'
-                );
-            }
-        }
-
-        $dependencyStatus = fvplus_get_host_dependency_status();
-        $dependencyDetails = [];
-        $requiredDependencyLabels = [
-            'helpers' => 'Unraid Helpers.php',
-            'validation' => 'FolderView Plus validation library'
-        ];
-        if ($safeType === 'docker') {
-            $requiredDependencyLabels['docker'] = 'Dynamix Docker helper';
-        } else {
-            $requiredDependencyLabels['libvirt'] = 'Dynamix VM libvirt helper';
-        }
-        foreach ($requiredDependencyLabels as $key => $label) {
-            $entry = is_array($dependencyStatus[$key] ?? null) ? $dependencyStatus[$key] : [];
-            if (($entry['loaded'] ?? false) === true) {
-                continue;
-            }
-            $path = trim((string)($entry['path'] ?? ''));
-            $detail = trim((string)($entry['detail'] ?? 'Dependency did not load.'));
-            $dependencyDetails[] = $path !== ''
-                ? "$label: $detail ($path)"
-                : "$label: $detail";
-        }
-        if (count($dependencyDetails) > 0) {
-            appendRuntimePreflightIssue(
-                $issues,
-                'fatal',
-                $codePrefix . '-ENV-002',
-                "$surface runtime dependencies are unavailable",
-                "FolderView Plus could not load one or more required host dependencies for the $surface runtime.",
-                $dependencyDetails,
-                'missing-host-dependency'
-            );
-        }
-
-        if ($safeType === 'docker') {
-            $missingClasses = [];
-            foreach (['DockerClient', 'DockerUpdate', 'DockerTemplates', 'DockerUtil'] as $className) {
-                if (!class_exists($className)) {
-                    $missingClasses[] = "Missing PHP class: $className";
-                }
-            }
-            if (count($missingClasses) > 0) {
-                appendRuntimePreflightIssue(
-                    $issues,
-                    'fatal',
-                    $codePrefix . '-ENV-003',
-                    'Docker runtime helpers are incomplete',
-                    'FolderView Plus could not find the Unraid Docker runtime classes it needs.',
-                    $missingClasses,
-                    'missing-runtime-class'
-                );
-            } elseif (!array_filter($issues, static fn(array $issue): bool => ($issue['severity'] ?? '') === 'fatal')) {
-                try {
-                    $dockerClient = new DockerClient();
-                    $probe = $dockerClient->getDockerJSON("/containers/json?all=1");
-                    if (!is_array($probe)) {
-                        appendRuntimePreflightIssue(
-                            $issues,
-                            'fatal',
-                            $codePrefix . '-ENV-004',
-                            'Docker API probe failed',
-                            'FolderView Plus could not read Docker container data from the host runtime.',
-                            ['DockerClient::getDockerJSON("/containers/json?all=1") did not return an array.'],
-                            'docker-api-unavailable'
-                        );
-                    }
-                } catch (Throwable $error) {
-                    appendRuntimePreflightIssue(
-                        $issues,
-                        'fatal',
-                        $codePrefix . '-ENV-004',
-                        'Docker API probe failed',
-                        'FolderView Plus could not contact the Docker runtime on this page load.',
-                        [trim((string)$error->getMessage()) ?: 'DockerClient probe threw an unknown error.'],
-                        'docker-api-unavailable'
-                    );
-                }
-            }
-        } else {
-            if (!class_exists('Libvirt')) {
-                appendRuntimePreflightIssue(
-                    $issues,
-                    'fatal',
-                    $codePrefix . '-ENV-003',
-                    'VM runtime helpers are incomplete',
-                    'FolderView Plus could not find the Unraid libvirt runtime class it needs.',
-                    ['Missing PHP class: Libvirt'],
-                    'missing-runtime-class'
-                );
-            } elseif (!array_filter($issues, static fn(array $issue): bool => ($issue['severity'] ?? '') === 'fatal')) {
-                try {
-                    $lv = new Libvirt();
-                    if (!$lv->connect()) {
-                        appendRuntimePreflightIssue(
-                            $issues,
-                            'fatal',
-                            $codePrefix . '-ENV-004',
-                            'Libvirt connection failed',
-                            'FolderView Plus could not connect to the Unraid libvirt service for the VMs runtime.',
-                            ['Libvirt::connect() returned false.'],
-                            'libvirt-unavailable'
-                        );
-                    }
-                } catch (Throwable $error) {
-                    appendRuntimePreflightIssue(
-                        $issues,
-                        'fatal',
-                        $codePrefix . '-ENV-004',
-                        'Libvirt connection failed',
-                        'FolderView Plus could not initialize the libvirt helper for the VMs runtime.',
-                        [trim((string)$error->getMessage()) ?: 'Libvirt probe threw an unknown error.'],
-                        'libvirt-unavailable'
-                    );
-                }
-            }
-        }
-
-        $overrideEntries = collectRuntimeOverrideEntries($safeType);
-        if (count($overrideEntries) > 0) {
-            $overrideDetails = [];
-            $visibleEntries = array_slice($overrideEntries, 0, 8);
-            foreach ($visibleEntries as $entry) {
-                $kind = trim((string)($entry['kind'] ?? 'override'));
-                $path = trim((string)($entry['path'] ?? ''));
-                if ($path === '') {
-                    continue;
-                }
-                $overrideDetails[] = strtoupper(rtrim($kind, 's')) . ': ' . $path;
-            }
-            $remaining = count($overrideEntries) - count($visibleEntries);
-            if ($remaining > 0) {
-                $overrideDetails[] = "... and $remaining more override file(s).";
-            }
-            appendRuntimePreflightIssue(
-                $issues,
-                'degraded',
-                $codePrefix . '-OVR-001',
-                'Custom FolderView Plus overrides are active',
-                "Custom scripts or styles are active on the $surface page and can change or break runtime behavior.",
-                $overrideDetails,
-                'custom-overrides'
-            );
-        }
-
-        return [
-            'type' => $safeType,
-            'surface' => $surface,
-            'issues' => $issues
-        ];
-    }
-
-    function runtimePreflightHasFatal(array $preflight): bool {
-        foreach (($preflight['issues'] ?? []) as $issue) {
-            if (!is_array($issue)) {
-                continue;
-            }
-            if (strtolower(trim((string)($issue['severity'] ?? ''))) === 'fatal') {
-                return true;
-            }
-        }
-        return false;
-    }
-
     function getFolderFilePath(string $type): string {
         global $configDir;
         return "$configDir/$type.json";
@@ -2051,413 +1821,6 @@
         $path = getFolderFilePath($type);
         $normalized = normalizeFolderMapPayload($folders);
         writeJsonObjectWithLastGood($path, $normalized);
-    }
-
-    function getTypePrefsPath(string $type): string {
-        global $configDir;
-        return "$configDir/$type.prefs.json";
-    }
-
-    function defaultTypePrefs(): array {
-        return [
-            'sortMode' => 'created',
-            'manualOrder' => [],
-            'pinnedFolderIds' => [],
-            'expandedFolderState' => [],
-            'hideEmptyFolders' => false,
-            'appColumnWidth' => 'standard',
-            'folderEditorMode' => 'modern',
-            'folderEditorModeExplicit' => false,
-            'setupWizardCompleted' => false,
-            'settingsMode' => 'basic',
-            'autoRules' => [],
-            'badges' => [
-                'running' => true,
-                'stopped' => false,
-                'updates' => true
-            ],
-            'runtimePrefsSchema' => FVPLUS_RUNTIME_PREFS_SCHEMA,
-            'liveRefreshEnabled' => false,
-            'liveRefreshSeconds' => 20,
-            'performanceMode' => false,
-            'lazyPreviewEnabled' => false,
-            'lazyPreviewThreshold' => 30,
-            'themeCompatibilityMode' => 'auto',
-            'dashboard' => [
-                'layout' => 'classic',
-                'expandToggle' => true,
-                'greyscale' => false,
-                'folderLabel' => true
-            ],
-            'health' => [
-                'cardsEnabled' => true,
-                'runtimeBadgeEnabled' => false,
-                'compact' => false,
-                'warnStoppedPercent' => 60,
-                'criticalStoppedPercent' => 90,
-                'profile' => 'balanced',
-                'updatesMode' => 'maintenance',
-                'allStoppedMode' => 'critical'
-            ],
-            'status' => [
-                'mode' => 'summary',
-                'displayMode' => 'balanced',
-                'trendEnabled' => true,
-                'attentionAccent' => true,
-                'warnStoppedPercent' => 60
-            ],
-            'settingsTable' => [
-                'widthMode' => 'auto',
-                'preset' => 'balanced',
-                'columns' => [],
-                'columnWidths' => [],
-                'nameWidth' => 'standard',
-                'actionsWidth' => 'standard'
-            ],
-            'backupSchedule' => [
-                'enabled' => false,
-                'intervalHours' => 24,
-                'retention' => 25,
-                'lastRunAt' => ''
-            ],
-            'importPresets' => [
-                'defaultId' => 'builtin:merge',
-                'custom' => []
-            ]
-        ];
-    }
-
-    function normalizeImportPresetName(string $name): string {
-        $trimmed = trim($name);
-        if ($trimmed === '') {
-            return '';
-        }
-        return truncateUtf8String($trimmed, 64);
-    }
-
-    function normalizeImportPresetMode(string $mode): string {
-        $normalized = strtolower(trim($mode));
-        if ($normalized === 'replace' || $normalized === 'skip') {
-            return $normalized;
-        }
-        return 'merge';
-    }
-
-    function normalizeTypeImportPresets($value): array {
-        $incoming = is_array($value) ? $value : [];
-        $rawCustom = is_array($incoming['custom'] ?? null) ? $incoming['custom'] : [];
-        $custom = [];
-        $seenIds = [];
-
-        foreach ($rawCustom as $row) {
-            if (!is_array($row)) {
-                continue;
-            }
-            $id = trim((string)($row['id'] ?? ''));
-            if ($id === '' || strpos($id, 'builtin:') === 0 || in_array($id, $seenIds, true)) {
-                continue;
-            }
-            $name = normalizeImportPresetName((string)($row['name'] ?? ''));
-            if ($name === '') {
-                continue;
-            }
-            $seenIds[] = $id;
-            $custom[] = [
-                'id' => truncateUtf8String($id, 96),
-                'name' => $name,
-                'mode' => normalizeImportPresetMode((string)($row['mode'] ?? 'merge')),
-                'dryRunOnly' => normalizeBool($row['dryRunOnly'] ?? false, false)
-            ];
-            if (count($custom) >= 30) {
-                break;
-            }
-        }
-
-        $defaultId = trim((string)($incoming['defaultId'] ?? 'builtin:merge'));
-        if ($defaultId === '') {
-            $defaultId = 'builtin:merge';
-        }
-        $defaultAllowed = [
-            'builtin:merge',
-            'builtin:replace',
-            'builtin:skip',
-            'builtin:dryrun'
-        ];
-        if (!in_array($defaultId, $defaultAllowed, true)) {
-            $found = false;
-            foreach ($custom as $row) {
-                if ((string)$row['id'] === $defaultId) {
-                    $found = true;
-                    break;
-                }
-            }
-            if (!$found) {
-                $defaultId = 'builtin:merge';
-            }
-        }
-
-        return [
-            'defaultId' => $defaultId,
-            'custom' => $custom
-        ];
-    }
-
-    function normalizeBadgePrefs($badges): array {
-        $incoming = is_array($badges) ? $badges : [];
-        return [
-            'running' => !array_key_exists('running', $incoming) ? true : (bool)$incoming['running'],
-            'stopped' => !array_key_exists('stopped', $incoming) ? false : (bool)$incoming['stopped'],
-            'updates' => !array_key_exists('updates', $incoming) ? true : (bool)$incoming['updates']
-        ];
-    }
-
-    function normalizeAppColumnWidth($value): string {
-        $normalized = strtolower(trim((string)$value));
-        if (in_array($normalized, ['compact', 'standard', 'wide'], true)) {
-            return $normalized;
-        }
-        return 'standard';
-    }
-
-    function normalizeFolderEditorMode($value): string {
-        $normalized = strtolower(trim((string)$value));
-        if ($normalized === 'modern') {
-            return 'modern';
-        }
-        return 'legacy';
-    }
-
-    function resolveFolderEditorModePreference(array $prefs): array {
-        $explicit = normalizeBool($prefs['folderEditorModeExplicit'] ?? false, false);
-        if ($explicit) {
-            return [
-                'mode' => normalizeFolderEditorMode($prefs['folderEditorMode'] ?? 'legacy'),
-                'source' => 'explicit'
-            ];
-        }
-
-        return [
-            'mode' => 'modern',
-            'source' => 'default-modern'
-        ];
-    }
-
-    function resolveTypeFolderEditorModePreference(string $type): array {
-        return resolveFolderEditorModePreference(readTypePrefs($type));
-    }
-
-    function normalizeDashboardLayout($value): string {
-        $normalized = strtolower(trim((string)$value));
-        if (in_array($normalized, ['classic', 'legacy', 'fullwidth', 'accordion', 'inset', 'compactmatrix'], true)) {
-            return $normalized;
-        }
-        return 'classic';
-    }
-
-    function normalizeThemeCompatibilityMode($value): string {
-        $normalized = strtolower(trim((string)$value));
-        if (in_array($normalized, ['auto', 'host', 'safe', 'highcontrast'], true)) {
-            return $normalized;
-        }
-        return 'auto';
-    }
-
-    function normalizeTypePrefs(array $prefs): array {
-        $normalized = defaultTypePrefs();
-        $sortMode = $prefs['sortMode'] ?? $normalized['sortMode'];
-        if (!in_array($sortMode, ['created', 'manual', 'alpha'], true)) {
-            $sortMode = 'created';
-        }
-        $normalized['sortMode'] = $sortMode;
-
-        $manualOrder = $prefs['manualOrder'] ?? [];
-        if (!is_array($manualOrder)) {
-            $manualOrder = [];
-        }
-        $normalized['manualOrder'] = normalizeStringIdList($manualOrder);
-        $normalized['pinnedFolderIds'] = normalizeStringIdList($prefs['pinnedFolderIds'] ?? []);
-        $normalized['expandedFolderState'] = normalizeExpandedStateMap($prefs['expandedFolderState'] ?? []);
-        $normalized['hideEmptyFolders'] = normalizeBool($prefs['hideEmptyFolders'] ?? false, false);
-        $normalized['appColumnWidth'] = normalizeAppColumnWidth($prefs['appColumnWidth'] ?? 'standard');
-        $resolvedFolderEditorMode = resolveFolderEditorModePreference($prefs);
-        $normalized['folderEditorModeExplicit'] = ($resolvedFolderEditorMode['source'] ?? 'default-modern') === 'explicit';
-        $normalized['folderEditorMode'] = (string)($resolvedFolderEditorMode['mode'] ?? 'modern');
-        $normalized['setupWizardCompleted'] = normalizeBool($prefs['setupWizardCompleted'] ?? false, false);
-        $settingsMode = (string)($prefs['settingsMode'] ?? 'basic');
-        $normalized['settingsMode'] = $settingsMode === 'advanced' ? 'advanced' : 'basic';
-
-        $autoRules = $prefs['autoRules'] ?? [];
-        if (!is_array($autoRules)) {
-            $autoRules = [];
-        }
-        $normalizedRules = [];
-        foreach ($autoRules as $rule) {
-            if (!is_array($rule)) {
-                continue;
-            }
-            $kind = (string)($rule['kind'] ?? 'name_regex');
-            if (!in_array($kind, FVPLUS_RULE_KINDS, true)) {
-                $kind = 'name_regex';
-            }
-            $effect = (string)($rule['effect'] ?? 'include');
-            if (!in_array($effect, FVPLUS_RULE_EFFECTS, true)) {
-                $effect = 'include';
-            }
-            $normalizedRules[] = [
-                'id' => (string)($rule['id'] ?? generateId(12)),
-                'enabled' => (bool)($rule['enabled'] ?? true),
-                'folderId' => (string)($rule['folderId'] ?? ''),
-                'effect' => $effect,
-                'kind' => $kind,
-                'pattern' => (string)($rule['pattern'] ?? ''),
-                'labelKey' => (string)($rule['labelKey'] ?? ''),
-                'labelValue' => (string)($rule['labelValue'] ?? '')
-            ];
-        }
-        $normalized['autoRules'] = $normalizedRules;
-        $normalized['badges'] = normalizeBadgePrefs($prefs['badges'] ?? []);
-        $runtimePrefsSchema = normalizeIntInRange($prefs['runtimePrefsSchema'] ?? 0, 0, FVPLUS_RUNTIME_PREFS_SCHEMA, 0);
-        $runtimePrefsReady = $runtimePrefsSchema >= FVPLUS_RUNTIME_PREFS_SCHEMA;
-        $normalized['runtimePrefsSchema'] = FVPLUS_RUNTIME_PREFS_SCHEMA;
-        $normalized['liveRefreshEnabled'] = $runtimePrefsReady
-            ? normalizeBool($prefs['liveRefreshEnabled'] ?? false, false)
-            : false;
-        $normalized['liveRefreshSeconds'] = normalizeIntInRange($prefs['liveRefreshSeconds'] ?? 20, 10, 300, 20);
-        $normalized['performanceMode'] = $runtimePrefsReady
-            ? normalizeBool($prefs['performanceMode'] ?? false, false)
-            : false;
-        $normalized['lazyPreviewEnabled'] = $runtimePrefsReady
-            ? normalizeBool($prefs['lazyPreviewEnabled'] ?? false, false)
-            : false;
-        $normalized['lazyPreviewThreshold'] = normalizeIntInRange($prefs['lazyPreviewThreshold'] ?? 30, 10, 200, 30);
-        $normalized['themeCompatibilityMode'] = normalizeThemeCompatibilityMode($prefs['themeCompatibilityMode'] ?? 'auto');
-        $dashboardIncoming = is_array($prefs['dashboard'] ?? null) ? $prefs['dashboard'] : [];
-        $normalized['dashboard'] = [
-            'layout' => normalizeDashboardLayout($dashboardIncoming['layout'] ?? 'classic'),
-            'expandToggle' => !array_key_exists('expandToggle', $dashboardIncoming)
-                ? true
-                : normalizeBool($dashboardIncoming['expandToggle'], true),
-            'greyscale' => normalizeBool($dashboardIncoming['greyscale'] ?? false, false),
-            'folderLabel' => !array_key_exists('folderLabel', $dashboardIncoming)
-                ? true
-                : normalizeBool($dashboardIncoming['folderLabel'], true)
-        ];
-        $healthIncoming = is_array($prefs['health'] ?? null) ? $prefs['health'] : [];
-        $healthProfile = strtolower(trim((string)($healthIncoming['profile'] ?? 'balanced')));
-        if (!in_array($healthProfile, ['strict', 'balanced', 'lenient'], true)) {
-            $healthProfile = 'balanced';
-        }
-        $healthUpdatesMode = strtolower(trim((string)($healthIncoming['updatesMode'] ?? 'maintenance')));
-        if (!in_array($healthUpdatesMode, ['maintenance', 'warn', 'ignore'], true)) {
-            $healthUpdatesMode = 'maintenance';
-        }
-        $healthAllStoppedMode = strtolower(trim((string)($healthIncoming['allStoppedMode'] ?? 'critical')));
-        if (!in_array($healthAllStoppedMode, ['critical', 'warn'], true)) {
-            $healthAllStoppedMode = 'critical';
-        }
-        $normalized['health'] = [
-            'cardsEnabled' => !array_key_exists('cardsEnabled', $healthIncoming)
-                ? true
-                : normalizeBool($healthIncoming['cardsEnabled'], true),
-            'runtimeBadgeEnabled' => normalizeBool($healthIncoming['runtimeBadgeEnabled'] ?? false, false),
-            'compact' => normalizeBool($healthIncoming['compact'] ?? false, false),
-            'warnStoppedPercent' => normalizeIntInRange($healthIncoming['warnStoppedPercent'] ?? 60, 0, 100, 60),
-            'criticalStoppedPercent' => normalizeIntInRange($healthIncoming['criticalStoppedPercent'] ?? 90, 0, 100, 90),
-            'profile' => $healthProfile,
-            'updatesMode' => $healthUpdatesMode,
-            'allStoppedMode' => $healthAllStoppedMode
-        ];
-        $statusIncoming = is_array($prefs['status'] ?? null) ? $prefs['status'] : [];
-        $statusMode = strtolower(trim((string)($statusIncoming['mode'] ?? 'summary')));
-        if (!in_array($statusMode, ['summary', 'dominant'], true)) {
-            $statusMode = 'summary';
-        }
-        $statusDisplayMode = strtolower(trim((string)($statusIncoming['displayMode'] ?? 'balanced')));
-        if (!in_array($statusDisplayMode, ['simple', 'balanced', 'detailed'], true)) {
-            $statusDisplayMode = 'balanced';
-        }
-        $normalized['status'] = [
-            'mode' => $statusMode,
-            'displayMode' => $statusDisplayMode,
-            'trendEnabled' => !array_key_exists('trendEnabled', $statusIncoming)
-                ? true
-                : normalizeBool($statusIncoming['trendEnabled'], true),
-            'attentionAccent' => !array_key_exists('attentionAccent', $statusIncoming)
-                ? true
-                : normalizeBool($statusIncoming['attentionAccent'], true),
-            'warnStoppedPercent' => normalizeIntInRange($statusIncoming['warnStoppedPercent'] ?? 60, 0, 100, 60)
-        ];
-        $settingsTableIncoming = is_array($prefs['settingsTable'] ?? null) ? $prefs['settingsTable'] : [];
-        $settingsTableWidthMode = strtolower(trim((string)($settingsTableIncoming['widthMode'] ?? 'auto')));
-        if (!in_array($settingsTableWidthMode, ['auto', 'custom'], true)) {
-            $settingsTableWidthMode = 'auto';
-        }
-        $settingsTablePreset = strtolower(trim((string)($settingsTableIncoming['preset'] ?? 'balanced')));
-        if (!in_array($settingsTablePreset, ['compact', 'balanced', 'detailed', 'custom'], true)) {
-            $settingsTablePreset = 'balanced';
-        }
-        $settingsTableColumns = is_array($settingsTableIncoming['columns'] ?? null) ? $settingsTableIncoming['columns'] : [];
-        $settingsTableNameWidth = strtolower(trim((string)($settingsTableIncoming['nameWidth'] ?? 'standard')));
-        if (!in_array($settingsTableNameWidth, ['compact', 'standard', 'wide'], true)) {
-            $settingsTableNameWidth = 'standard';
-        }
-        $settingsTableActionsWidth = strtolower(trim((string)($settingsTableIncoming['actionsWidth'] ?? 'standard')));
-        if (!in_array($settingsTableActionsWidth, ['compact', 'standard', 'wide'], true)) {
-            $settingsTableActionsWidth = 'standard';
-        }
-        $normalized['settingsTable'] = [
-            'widthMode' => 'auto',
-            'preset' => $settingsTablePreset,
-            'columns' => $settingsTableColumns,
-            'columnWidths' => [],
-            'nameWidth' => $settingsTableNameWidth,
-            'actionsWidth' => $settingsTableActionsWidth
-        ];
-
-        $scheduleIncoming = is_array($prefs['backupSchedule'] ?? null) ? $prefs['backupSchedule'] : [];
-        $normalized['backupSchedule'] = [
-            'enabled' => normalizeBool($scheduleIncoming['enabled'] ?? false, false),
-            'intervalHours' => normalizeIntInRange($scheduleIncoming['intervalHours'] ?? 24, 1, 168, 24),
-            'retention' => normalizeIntInRange($scheduleIncoming['retention'] ?? 25, 1, 200, 25),
-            'lastRunAt' => is_string($scheduleIncoming['lastRunAt'] ?? null) ? (string)$scheduleIncoming['lastRunAt'] : ''
-        ];
-        $normalized['importPresets'] = normalizeTypeImportPresets($prefs['importPresets'] ?? []);
-        return $normalized;
-    }
-
-    function readTypePrefs(string $type): array {
-        $type = ensureType($type);
-        migrateLegacyTypeDataIfNeeded($type, 'prefs');
-        $path = getTypePrefsPath($type);
-        $parent = dirname($path);
-        if (!is_dir($parent)) {
-            @mkdir($parent, 0770, true);
-        }
-        if (!file_exists($path)) {
-            return writeTypePrefs($type, defaultTypePrefs());
-        }
-        $decoded = readJsonObjectFile($path);
-        $recoveredFromLastGood = false;
-        if (!is_array($decoded)) {
-            $decoded = recoverJsonObjectFromLastGood($path);
-            $recoveredFromLastGood = is_array($decoded);
-        }
-        if (!is_array($decoded)) {
-            $decoded = [];
-        }
-        $normalized = normalizeTypePrefs($decoded);
-        if ($recoveredFromLastGood || jsonObjectsDiffer($decoded, $normalized)) {
-            writeTypePrefs($type, $normalized);
-        }
-        return $normalized;
-    }
-
-    function writeTypePrefs(string $type, array $prefs): array {
-        $type = ensureType($type);
-        $path = getTypePrefsPath($type);
-        $normalized = normalizeTypePrefs($prefs);
-        writeJsonObjectWithLastGood($path, $normalized);
-        return $normalized;
     }
 
     function reorderFoldersByIdList(string $type, array $orderedIds): array {
@@ -3947,1213 +3310,44 @@
         ];
     }
 
-    function normalizeDiagnosticsPrivacyMode(string $mode): string {
-        return strtolower(trim($mode)) === 'full' ? 'full' : FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY;
-    }
-
-    function diagnosticsHistoryPath(): string {
-        global $configDir;
-        return "$configDir/diagnostics.history.json";
-    }
-
-    function diagnosticsNormalizeEventDetails($value, int $depth = 0) {
-        if ($depth > 4) {
-            return null;
-        }
-        if (is_array($value)) {
-            $normalized = [];
-            $count = 0;
-            foreach ($value as $key => $item) {
-                if ($count >= 50) {
-                    break;
-                }
-                $normalized[(string)$key] = diagnosticsNormalizeEventDetails($item, $depth + 1);
-                $count++;
-            }
-            return $normalized;
-        }
-        if (is_string($value)) {
-            return substr($value, 0, 256);
-        }
-        if (is_bool($value) || is_int($value) || is_float($value) || is_null($value)) {
-            return $value;
-        }
-        return (string)$value;
-    }
-
-    function readDiagnosticsHistoryEvents(int $limit = 50): array {
-        $path = diagnosticsHistoryPath();
-        if (!file_exists($path)) {
-            return [];
-        }
-        $decoded = @json_decode((string)@file_get_contents($path), true);
-        if (!is_array($decoded)) {
-            return [];
-        }
-        $events = array_values(array_filter($decoded, function($row) {
-            return is_array($row) && !empty($row['timestamp']) && !empty($row['action']);
-        }));
-        usort($events, function($a, $b) {
-            return strcmp((string)($b['timestamp'] ?? ''), (string)($a['timestamp'] ?? ''));
-        });
-        return array_slice($events, 0, max(1, $limit));
-    }
-
-    function buildDiagnosticsTimeline(array $events, int $limit = 25): array {
-        $rows = [];
-        $max = max(1, $limit);
-        $count = 0;
-        foreach ($events as $event) {
-            if (!is_array($event) || $count >= $max) {
-                continue;
-            }
-            $details = is_array($event['details'] ?? null) ? $event['details'] : [];
-            $summaryParts = [];
-            foreach (['reason', 'name', 'folderId', 'folderCount', 'itemCount'] as $key) {
-                if (array_key_exists($key, $details) && $details[$key] !== null && $details[$key] !== '') {
-                    $summaryParts[] = $key . '=' . (is_scalar($details[$key]) ? (string)$details[$key] : json_encode($details[$key]));
-                }
-            }
-            $rows[] = [
-                'timestamp' => (string)($event['timestamp'] ?? ''),
-                'action' => (string)($event['action'] ?? ''),
-                'type' => $event['type'] ?? null,
-                'status' => (string)($event['status'] ?? 'ok'),
-                'summary' => implode(', ', $summaryParts)
-            ];
-            $count++;
-        }
-        return $rows;
-    }
-
-    function appendDiagnosticsHistoryEvent(string $action, ?string $type = null, array $details = [], string $status = 'ok', string $source = 'server'): array {
-        $action = trim($action);
-        if ($action === '') {
-            throw new RuntimeException('Diagnostics event action is required.');
-        }
-
+    function dockerSyncOrderLockPath(): string {
         global $configDir;
         if (!is_dir($configDir)) {
             @mkdir($configDir, 0770, true);
         }
-
-        $path = diagnosticsHistoryPath();
-        $decoded = @json_decode((string)@file_get_contents($path), true);
-        $events = is_array($decoded) ? $decoded : [];
-
-        $event = [
-            'id' => generateId(16),
-            'timestamp' => gmdate('c'),
-            'action' => $action,
-            'type' => $type ? ensureType($type) : null,
-            'status' => trim($status) === '' ? 'ok' : substr(trim($status), 0, 32),
-            'source' => trim($source) === '' ? 'server' : substr(trim($source), 0, 64),
-            'details' => diagnosticsNormalizeEventDetails($details)
-        ];
-
-        $events[] = $event;
-        if (count($events) > FVPLUS_DIAGNOSTICS_HISTORY_MAX) {
-            $events = array_slice($events, -FVPLUS_DIAGNOSTICS_HISTORY_MAX);
-        }
-        @file_put_contents($path, json_encode(array_values($events), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n");
-        return $event;
+        return $configDir . '/docker-sync-order.lock';
     }
 
-    function diagnosticsHashShort(string $value): string {
-        return substr(hash('sha256', $value), 0, 12);
-    }
-
-    function diagnosticsMaskIp(string $ip): string {
-        $ip = trim($ip);
-        if ($ip === '') {
-            return '';
-        }
-        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
-            $parts = explode('.', $ip);
-            if (count($parts) === 4) {
-                return $parts[0] . '.' . $parts[1] . '.x.x';
-            }
-        }
-        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
-            $parts = explode(':', $ip);
-            $head = implode(':', array_slice($parts, 0, 2));
-            return $head . '::';
-        }
-        return '[redacted]';
-    }
-
-    function readUnraidVersionString(): ?string {
-        $candidates = [
-            '/etc/unraid-version',
-            '/etc/unraid-version.txt',
-            '/etc/version'
-        ];
-        foreach ($candidates as $path) {
-            if (!file_exists($path)) {
-                continue;
-            }
-            $raw = trim((string)@file_get_contents($path));
-            if ($raw === '') {
-                continue;
-            }
-            $lines = preg_split('/\R+/', $raw) ?: [];
-            foreach ($lines as $line) {
-                $line = trim((string)$line);
-                if ($line === '') {
-                    continue;
-                }
-                if (preg_match('/([0-9]+\.[0-9]+(?:\.[0-9]+)?(?:[-._a-zA-Z0-9]+)?)/', $line, $match)) {
-                    return (string)$match[1];
-                }
-                return $line;
-            }
-        }
-        return null;
-    }
-
-    function getEnvironmentSnapshot(string $privacyMode): array {
-        $mode = normalizeDiagnosticsPrivacyMode($privacyMode);
-        $userAgent = (string)($_SERVER['HTTP_USER_AGENT'] ?? '');
-        $clientIp = (string)($_SERVER['REMOTE_ADDR'] ?? '');
-        return [
-            'capturedAt' => gmdate('c'),
-            'timezone' => @date_default_timezone_get(),
-            'phpVersion' => PHP_VERSION,
-            'serverSoftware' => (string)($_SERVER['SERVER_SOFTWARE'] ?? ''),
-            'os' => php_uname('s') . ' ' . php_uname('r'),
-            'unraidVersion' => readUnraidVersionString(),
-            'request' => [
-                'privacyMode' => $mode,
-                'userAgent' => $mode === 'full' ? $userAgent : null,
-                'userAgentHash' => $userAgent !== '' ? diagnosticsHashShort($userAgent) : null,
-                'clientIp' => $mode === 'full' ? $clientIp : diagnosticsMaskIp($clientIp),
-                'clientIpHash' => $clientIp !== '' ? diagnosticsHashShort($clientIp) : null
-            ]
-        ];
-    }
-
-    function diagnosticsFileHashSnapshot(string $path, string $privacyMode): array {
-        $exists = file_exists($path);
-        $mode = normalizeDiagnosticsPrivacyMode($privacyMode);
-        $label = basename($path);
-        return [
-            'file' => $label,
-            'path' => $mode === 'full' ? $path : $label,
-            'exists' => $exists,
-            'size' => $exists ? (int)@filesize($path) : 0,
-            'modifiedAt' => $exists ? gmdate('c', (int)@filemtime($path)) : null,
-            'sha256' => $exists ? @hash_file('sha256', $path) : null
-        ];
-    }
-
-    function getDiagnosticsKeyFileHashes(string $privacyMode): array {
-        return [
-            'dockerFolders' => diagnosticsFileHashSnapshot(getFolderFilePath('docker'), $privacyMode),
-            'vmFolders' => diagnosticsFileHashSnapshot(getFolderFilePath('vm'), $privacyMode),
-            'dockerPrefs' => diagnosticsFileHashSnapshot(getTypePrefsPath('docker'), $privacyMode),
-            'vmPrefs' => diagnosticsFileHashSnapshot(getTypePrefsPath('vm'), $privacyMode)
-        ];
-    }
-
-    function diagnosticsNormalizeStatusColor($value, string $fallback): string {
-        $value = is_string($value) ? trim($value) : '';
-        if (!preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $value)) {
-            return $fallback;
-        }
-        if (strlen($value) === 4) {
-            return '#' . strtolower($value[1] . $value[1] . $value[2] . $value[2] . $value[3] . $value[3]);
-        }
-        return strtolower($value);
-    }
-
-    function diagnosticsFolderStatusColors(array $folder): array {
-        $settings = is_array($folder['settings'] ?? null) ? $folder['settings'] : [];
-        return [
-            'started' => diagnosticsNormalizeStatusColor($settings['status_color_started'] ?? null, FVPLUS_DEFAULT_FOLDER_STATUS_COLORS['started']),
-            'paused' => diagnosticsNormalizeStatusColor($settings['status_color_paused'] ?? null, FVPLUS_DEFAULT_FOLDER_STATUS_COLORS['paused']),
-            'stopped' => diagnosticsNormalizeStatusColor($settings['status_color_stopped'] ?? null, FVPLUS_DEFAULT_FOLDER_STATUS_COLORS['stopped'])
-        ];
-    }
-
-    function diagnosticsBuildRegex(string $pattern): string {
-        return '/' . str_replace('/', '\/', $pattern) . '/';
-    }
-
-    function diagnosticsRegexIsValid(string $pattern): bool {
-        if (trim($pattern) === '') {
-            return true;
-        }
-        return @preg_match(diagnosticsBuildRegex($pattern), '') !== false;
-    }
-
-    function diagnosticsRegexMatches(string $pattern, string $subject): bool {
-        if (trim($pattern) === '') {
-            return false;
-        }
-        if (!diagnosticsRegexIsValid($pattern)) {
-            return false;
-        }
-        return @preg_match(diagnosticsBuildRegex($pattern), $subject) === 1;
-    }
-
-    function diagnosticsFirstMatchingRule(array $rules, string $name, array $infoByName, string $type): ?array {
-        $decision = autoRuleDecision($rules, $name, $infoByName, $type);
-        return is_array($decision['assignedRule'] ?? null) ? $decision['assignedRule'] : null;
-    }
-
-    function diagnosticsFormatNames(array $names, string $privacyMode): array {
-        $names = array_values(array_unique(array_map('strval', $names)));
-        if (normalizeDiagnosticsPrivacyMode($privacyMode) === 'full') {
-            return array_slice($names, 0, 30);
-        }
-        return array_slice(array_map('diagnosticsHashShort', $names), 0, 30);
-    }
-
-    function diagnosticsPathDescriptor(string $path, string $privacyMode): array {
-        $exists = file_exists($path);
-        return [
-            'path' => normalizeDiagnosticsPrivacyMode($privacyMode) === 'full' ? $path : basename($path),
-            'exists' => $exists,
-            'isDir' => $exists ? is_dir($path) : false,
-            'isFile' => $exists ? is_file($path) : false,
-            'readable' => $exists ? is_readable($path) : false,
-            'writable' => $exists ? is_writable($path) : false
-        ];
-    }
-
-    function diagnosticsCustomIconExtensions(): array {
-        return ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'ico', 'avif'];
-    }
-
-    function diagnosticsCustomIconNameFromIconValue(string $value): string {
-        $path = trim($value);
-        if ($path === '') {
-            return '';
-        }
-        $hashPos = strpos($path, '#');
-        if ($hashPos !== false) {
-            $path = substr($path, 0, $hashPos);
-        }
-        $queryPos = strpos($path, '?');
-        if ($queryPos !== false) {
-            $path = substr($path, 0, $queryPos);
-        }
-        $decoded = @rawurldecode($path);
-        if (is_string($decoded) && $decoded !== '') {
-            $path = $decoded;
-        }
-        $path = preg_replace('#^https?://[^/]+#i', '', $path);
-        $path = str_replace('\\', '/', trim((string)$path));
-        if ($path === '') {
-            return '';
-        }
-
-        $prefixes = [
-            '/plugins/folderview.plus/images/custom/',
-            '/usr/local/emhttp/plugins/folderview.plus/images/custom/',
-            'plugins/folderview.plus/images/custom/',
-            'usr/local/emhttp/plugins/folderview.plus/images/custom/'
-        ];
-        $candidate = '';
-        foreach ($prefixes as $prefix) {
-            if (strpos($path, $prefix) === 0) {
-                $candidate = basename(substr($path, strlen($prefix)));
-                break;
-            }
-        }
-        if ($candidate === '') {
-            return '';
-        }
-        $safe = basename(trim($candidate));
-        if ($safe === '' || $safe !== $candidate) {
-            return '';
-        }
-        $extension = strtolower((string)pathinfo($safe, PATHINFO_EXTENSION));
-        if ($extension === '' || !in_array($extension, diagnosticsCustomIconExtensions(), true)) {
-            return '';
-        }
-        return $safe;
-    }
-
-    function diagnosticsBuildCustomIconUsageMap(): array {
-        $usage = [];
-        foreach (['docker', 'vm'] as $type) {
-            $folders = readRawFolderMap($type);
-            foreach ($folders as $folderId => $folder) {
-                if (!is_array($folder)) {
-                    continue;
-                }
-                $name = diagnosticsCustomIconNameFromIconValue((string)($folder['icon'] ?? ''));
-                if ($name === '') {
-                    continue;
-                }
-                if (!isset($usage[$name]) || !is_array($usage[$name])) {
-                    $usage[$name] = [];
-                }
-                $usage[$name][] = [
-                    'type' => $type,
-                    'folderId' => (string)$folderId,
-                    'folderName' => trim((string)($folder['name'] ?? (string)$folderId))
-                ];
-            }
-        }
-        return $usage;
-    }
-
-    function diagnosticsBuildCustomIconStorage(string $privacyMode): array {
-        global $sourceDir;
-        $privacyMode = normalizeDiagnosticsPrivacyMode($privacyMode);
-        $directory = "$sourceDir/images/custom";
-        $descriptor = diagnosticsPathDescriptor($directory, $privacyMode);
-        $extensions = diagnosticsCustomIconExtensions();
-        $usageMap = diagnosticsBuildCustomIconUsageMap();
-        $fileCount = 0;
-        $totalBytes = 0;
-        $inUseIconCount = 0;
-        $orphanedIconCount = 0;
-        $referenceCount = 0;
-        $topReferences = [];
-
-        if (is_dir($directory)) {
-            foreach ((array)@scandir($directory) as $name) {
-                if ($name === '.' || $name === '..' || $name !== basename($name)) {
-                    continue;
-                }
-                $path = "$directory/$name";
-                if (!is_file($path)) {
-                    continue;
-                }
-                $extension = strtolower((string)pathinfo($name, PATHINFO_EXTENSION));
-                if ($extension === '' || !in_array($extension, $extensions, true)) {
-                    continue;
-                }
-                $fileCount++;
-                $totalBytes += max(0, (int)@filesize($path));
-                $refs = is_array($usageMap[$name] ?? null) ? $usageMap[$name] : [];
-                $refCount = count($refs);
-                if ($refCount > 0) {
-                    $inUseIconCount++;
-                    $referenceCount += $refCount;
-                    $topReferences[] = [
-                        'name' => $privacyMode === 'full' ? $name : diagnosticsHashShort($name),
-                        'referenceCount' => $refCount
-                    ];
-                } else {
-                    $orphanedIconCount++;
-                }
-            }
-        }
-
-        usort($topReferences, static function (array $a, array $b): int {
-            $cmp = ((int)($b['referenceCount'] ?? 0)) <=> ((int)($a['referenceCount'] ?? 0));
-            if ($cmp !== 0) {
-                return $cmp;
-            }
-            return strcmp((string)($a['name'] ?? ''), (string)($b['name'] ?? ''));
-        });
-
-        $issues = [];
-        if ($descriptor['exists'] !== true) {
-            $issues[] = 'Custom icon directory is missing.';
-        } elseif ($descriptor['isDir'] !== true) {
-            $issues[] = 'Custom icon path is not a directory.';
-        }
-        if ($descriptor['exists'] === true && $descriptor['writable'] !== true) {
-            $issues[] = 'Custom icon directory is not writable.';
-        }
-
-        $repairHint = 'mkdir -p ' . escapeshellarg($directory) . ' && chmod -R 775 ' . escapeshellarg($directory);
-        return [
-            'path' => $descriptor,
-            'fileCount' => $fileCount,
-            'totalBytes' => $totalBytes,
-            'inUseIconCount' => $inUseIconCount,
-            'orphanedIconCount' => $orphanedIconCount,
-            'referenceCount' => $referenceCount,
-            'topReferences' => array_slice($topReferences, 0, 15),
-            'issues' => $issues,
-            'repairHint' => $repairHint
-        ];
-    }
-
-    function diagnosticsBuildPathHealth(string $type, string $privacyMode): array {
-        global $configDir, $sourceDir;
-        $folderPath = getFolderFilePath($type);
-        $prefsPath = getTypePrefsPath($type);
-        $backupDir = getBackupsDirPath();
-        $issues = [];
-
-        $configDesc = diagnosticsPathDescriptor($configDir, $privacyMode);
-        $sourceDesc = diagnosticsPathDescriptor($sourceDir, $privacyMode);
-        $folderDesc = diagnosticsPathDescriptor($folderPath, $privacyMode);
-        $prefsDesc = diagnosticsPathDescriptor($prefsPath, $privacyMode);
-        $backupDesc = diagnosticsPathDescriptor($backupDir, $privacyMode);
-
-        if ($configDesc['exists'] !== true || $configDesc['isDir'] !== true) {
-            $issues[] = 'Config directory is missing.';
-        } elseif ($configDesc['writable'] !== true) {
-            $issues[] = 'Config directory is not writable.';
-        }
-        if ($sourceDesc['exists'] !== true || $sourceDesc['isDir'] !== true) {
-            $issues[] = 'Plugin source directory is missing.';
-        }
-        if ($folderDesc['exists'] === true && $folderDesc['isFile'] !== true) {
-            $issues[] = 'Folder map path is not a file.';
-        }
-        if ($folderDesc['exists'] === true && $folderDesc['writable'] !== true) {
-            $issues[] = 'Folder map file is not writable.';
-        }
-        if ($prefsDesc['exists'] === true && $prefsDesc['isFile'] !== true) {
-            $issues[] = 'Preferences path is not a file.';
-        }
-        if ($prefsDesc['exists'] === true && $prefsDesc['writable'] !== true) {
-            $issues[] = 'Preferences file is not writable.';
-        }
-        if ($backupDesc['exists'] === true && $backupDesc['isDir'] !== true) {
-            $issues[] = 'Backups path is not a directory.';
-        }
-        if ($backupDesc['exists'] === true && $backupDesc['writable'] !== true) {
-            $issues[] = 'Backups directory is not writable.';
-        }
-
-        $legacyRemnants = [];
-        foreach (FVPLUS_LEGACY_CONFIG_DIRS as $legacyDir) {
-            if (!is_dir($legacyDir)) {
-                continue;
-            }
-            $legacyRemnants[] = [
-                'path' => normalizeDiagnosticsPrivacyMode($privacyMode) === 'full' ? $legacyDir : basename($legacyDir),
-                'dockerExists' => file_exists("$legacyDir/docker.json"),
-                'vmExists' => file_exists("$legacyDir/vm.json"),
-                'prefsDockerExists' => file_exists("$legacyDir/docker.prefs.json"),
-                'prefsVmExists' => file_exists("$legacyDir/vm.prefs.json")
-            ];
-        }
-
-        return [
-            'ok' => count($issues) === 0,
-            'issues' => $issues,
-            'paths' => [
-                'configDir' => $configDesc,
-                'sourceDir' => $sourceDesc,
-                'folderFile' => $folderDesc,
-                'prefsFile' => $prefsDesc,
-                'backupDir' => $backupDesc
-            ],
-            'legacyRemnants' => $legacyRemnants
-        ];
-    }
-
-    function diagnosticsBuildIntegrityChecks(string $type, array $folders, array $prefs, array $infoByName, string $privacyMode): array {
-        $validNames = array_keys($infoByName);
-        $validSet = array_fill_keys($validNames, true);
-        $nameBuckets = [];
-        $invalidRegexFolders = [];
-        $invalidIconFolders = [];
-        $orphanedMembers = [];
-        $explicitAssignments = [];
-        $regexAssignments = [];
-        $effectiveAssignments = [];
-
-        foreach ($folders as $folderId => $folder) {
-            $folderName = trim((string)($folder['name'] ?? $folderId));
-            $bucketKey = strtolower($folderName);
-            if (!isset($nameBuckets[$bucketKey])) {
-                $nameBuckets[$bucketKey] = ['name' => $folderName, 'folderIds' => []];
-            }
-            $nameBuckets[$bucketKey]['folderIds'][] = (string)$folderId;
-
-            $members = normalizeFolderMembers($folder['containers'] ?? []);
-            foreach ($members as $member) {
-                $explicitAssignments[$member][] = (string)$folderId;
-                $effectiveAssignments[$member][] = (string)$folderId;
-                if (!isset($validSet[$member])) {
-                    if (!isset($orphanedMembers[$folderId])) {
-                        $orphanedMembers[$folderId] = [];
-                    }
-                    $orphanedMembers[$folderId][] = $member;
-                }
-            }
-
-            $regex = (string)($folder['regex'] ?? '');
-            if ($regex !== '') {
-                if (!diagnosticsRegexIsValid($regex)) {
-                    $invalidRegexFolders[] = (string)$folderId;
-                } else {
-                    foreach ($validNames as $name) {
-                        if (diagnosticsRegexMatches($regex, $name)) {
-                            $regexAssignments[$name][] = (string)$folderId;
-                            if (!in_array((string)$folderId, $effectiveAssignments[$name] ?? [], true)) {
-                                $effectiveAssignments[$name][] = (string)$folderId;
-                            }
-                        }
-                    }
-                }
-            }
-
-            $icon = trim((string)($folder['icon'] ?? ''));
-            if ($icon !== '') {
-                $isLocalPath = strpos($icon, '/') === 0;
-                $isHttpUrl = stripos($icon, 'http://') === 0 || stripos($icon, 'https://') === 0;
-                $isDataUri = stripos($icon, 'data:image/') === 0;
-                if (!$isLocalPath && !$isHttpUrl && !$isDataUri) {
-                    $invalidIconFolders[] = (string)$folderId;
-                }
-            }
-
-            if ($type === 'docker') {
-                $folderName = trim((string)($folder['name'] ?? ''));
-                if ($folderName !== '') {
-                    foreach ($validNames as $name) {
-                        $labelValue = getFolderLabelValueFromLabels(dockerInfoLabelsForName($infoByName, $name));
-                        if ($labelValue === '' || $labelValue !== $folderName) {
-                            continue;
-                        }
-                        if (!in_array((string)$folderId, $effectiveAssignments[$name] ?? [], true)) {
-                            $effectiveAssignments[$name][] = (string)$folderId;
-                        }
-                    }
-                }
-            }
-        }
-
-        $rules = is_array($prefs['autoRules'] ?? null) ? $prefs['autoRules'] : [];
-        $invalidRules = [];
-        foreach ($rules as $idx => $rule) {
-            if (!is_array($rule)) {
-                $invalidRules[] = ['index' => $idx, 'reason' => 'Rule entry is not an object.'];
-                continue;
-            }
-            $folderId = (string)($rule['folderId'] ?? '');
-            $kind = (string)($rule['kind'] ?? 'name_regex');
-            $effect = (string)($rule['effect'] ?? 'include');
-            if ($folderId === '' || !array_key_exists($folderId, $folders)) {
-                $invalidRules[] = ['index' => $idx, 'id' => (string)($rule['id'] ?? ''), 'reason' => 'Rule folder target is missing or invalid.'];
-            }
-            if (!in_array($effect, FVPLUS_RULE_EFFECTS, true)) {
-                $invalidRules[] = ['index' => $idx, 'id' => (string)($rule['id'] ?? ''), 'reason' => 'Rule effect is invalid.'];
-            }
-            if (!in_array($kind, FVPLUS_RULE_KINDS, true)) {
-                $invalidRules[] = ['index' => $idx, 'id' => (string)($rule['id'] ?? ''), 'reason' => 'Rule kind is invalid.'];
-                continue;
-            }
-            if (in_array($kind, ['name_regex', 'image_regex', 'compose_project_regex'], true)) {
-                $pattern = (string)($rule['pattern'] ?? '');
-                if ($pattern === '') {
-                    $invalidRules[] = ['index' => $idx, 'id' => (string)($rule['id'] ?? ''), 'reason' => 'Regex-based rule pattern is empty.'];
-                } elseif (!diagnosticsRegexIsValid($pattern)) {
-                    $invalidRules[] = ['index' => $idx, 'id' => (string)($rule['id'] ?? ''), 'reason' => 'Regex-based rule pattern is invalid.'];
-                }
-            }
-            if (in_array($kind, ['label', 'label_contains', 'label_starts_with'], true)) {
-                if ($type !== 'docker') {
-                    $invalidRules[] = ['index' => $idx, 'id' => (string)($rule['id'] ?? ''), 'reason' => 'Label rules are only valid for docker.'];
-                }
-                $labelKey = (string)($rule['labelKey'] ?? '');
-                if ($labelKey === '') {
-                    $invalidRules[] = ['index' => $idx, 'id' => (string)($rule['id'] ?? ''), 'reason' => 'Label rule key is empty.'];
-                }
-                if (in_array($kind, ['label_contains', 'label_starts_with'], true) && trim((string)($rule['labelValue'] ?? '')) === '') {
-                    $invalidRules[] = ['index' => $idx, 'id' => (string)($rule['id'] ?? ''), 'reason' => 'Label contains/starts-with rule value is empty.'];
-                }
-            }
-        }
-
-        foreach ($validNames as $name) {
-            $rule = diagnosticsFirstMatchingRule($rules, $name, $infoByName, $type);
-            if (!$rule) {
-                continue;
-            }
-            $folderId = (string)($rule['folderId'] ?? '');
-            if ($folderId !== '' && array_key_exists($folderId, $folders)) {
-                if (!in_array($folderId, $effectiveAssignments[$name] ?? [], true)) {
-                    $effectiveAssignments[$name][] = $folderId;
-                }
-            }
-        }
-
-        $duplicateNames = [];
-        foreach ($nameBuckets as $bucket) {
-            $ids = array_values(array_unique(array_map('strval', $bucket['folderIds'] ?? [])));
-            if (count($ids) > 1) {
-                $duplicateNames[] = [
-                    'name' => normalizeDiagnosticsPrivacyMode($privacyMode) === 'full' ? (string)($bucket['name'] ?? '') : null,
-                    'nameHash' => diagnosticsHashShort((string)($bucket['name'] ?? '')),
-                    'folderIds' => $ids
-                ];
-            }
-        }
-
-        $buildConflicts = function(array $assignmentMap) use ($privacyMode): array {
-            $examples = [];
-            $count = 0;
-            foreach ($assignmentMap as $name => $folderIds) {
-                $ids = array_values(array_unique(array_map('strval', $folderIds)));
-                if (count($ids) <= 1) {
-                    continue;
-                }
-                $count++;
-                if (count($examples) < 30) {
-                    $examples[] = [
-                        'item' => normalizeDiagnosticsPrivacyMode($privacyMode) === 'full' ? (string)$name : null,
-                        'itemHash' => diagnosticsHashShort((string)$name),
-                        'folderIds' => $ids,
-                        'folderCount' => count($ids)
-                    ];
-                }
-            }
-            return ['count' => $count, 'examples' => $examples];
-        };
-
-        $missingManualOrderIds = [];
-        foreach (($prefs['manualOrder'] ?? []) as $manualId) {
-            $manualId = (string)$manualId;
-            if ($manualId !== '' && !array_key_exists($manualId, $folders)) {
-                $missingManualOrderIds[] = $manualId;
-            }
-        }
-        $missingPinnedFolderIds = [];
-        foreach (($prefs['pinnedFolderIds'] ?? []) as $pinnedId) {
-            $pinnedId = (string)$pinnedId;
-            if ($pinnedId !== '' && !array_key_exists($pinnedId, $folders)) {
-                $missingPinnedFolderIds[] = $pinnedId;
-            }
-        }
-
-        $pathHealth = diagnosticsBuildPathHealth($type, $privacyMode);
-        $pathIssueCount = count($pathHealth['issues'] ?? []);
-
-        $orphanedCount = 0;
-        $orphanedByFolder = [];
-        foreach ($orphanedMembers as $folderId => $members) {
-            $members = array_values(array_unique(array_map('strval', $members)));
-            $orphanedCount += count($members);
-            $orphanedByFolder[] = [
-                'folderId' => (string)$folderId,
-                'count' => count($members),
-                'items' => diagnosticsFormatNames($members, $privacyMode)
-            ];
-        }
-
-        $issuesCount = count($duplicateNames)
-            + count($invalidRegexFolders)
-            + count($invalidIconFolders)
-            + count($invalidRules)
-            + count($missingManualOrderIds)
-            + count($missingPinnedFolderIds)
-            + $orphanedCount
-            + $buildConflicts($effectiveAssignments)['count']
-            + $pathIssueCount;
-
-        return [
-            'ok' => $issuesCount === 0,
-            'issuesCount' => $issuesCount,
-            'duplicateFolderNames' => [
-                'count' => count($duplicateNames),
-                'examples' => array_slice($duplicateNames, 0, 30)
-            ],
-            'orphanedMembers' => [
-                'count' => $orphanedCount,
-                'folders' => $orphanedByFolder
-            ],
-            'invalidFolderRegex' => [
-                'count' => count($invalidRegexFolders),
-                'folderIds' => array_values(array_unique($invalidRegexFolders))
-            ],
-            'invalidFolderIconPaths' => [
-                'count' => count($invalidIconFolders),
-                'folderIds' => array_values(array_unique($invalidIconFolders))
-            ],
-            'invalidAutoRules' => [
-                'count' => count($invalidRules),
-                'rules' => array_slice($invalidRules, 0, 40)
-            ],
-            'missingManualOrderIds' => [
-                'count' => count($missingManualOrderIds),
-                'ids' => array_values(array_unique($missingManualOrderIds))
-            ],
-            'missingPinnedFolderIds' => [
-                'count' => count($missingPinnedFolderIds),
-                'ids' => array_values(array_unique($missingPinnedFolderIds))
-            ],
-            'duplicateAssignments' => [
-                'explicit' => $buildConflicts($explicitAssignments),
-                'regex' => $buildConflicts($regexAssignments),
-                'effective' => $buildConflicts($effectiveAssignments)
-            ],
-            'pathHealth' => $pathHealth
-        ];
-    }
-
-    function diagnosticsStateKindForDockerItem(array $item): string {
-        $state = is_array($item['info']['State'] ?? null) ? $item['info']['State'] : [];
-        $running = (bool)($state['Running'] ?? false);
-        $paused = (bool)($state['Paused'] ?? false);
-        if ($running && !$paused) {
-            return 'started';
-        }
-        if ($running && $paused) {
-            return 'paused';
-        }
-        return 'stopped';
-    }
-
-    function diagnosticsStateKindForVmItem(array $item): string {
-        $state = strtolower(trim((string)($item['state'] ?? '')));
-        if ($state === 'running') {
-            return 'started';
-        }
-        if (in_array($state, ['paused', 'pmsuspended', 'unknown'], true)) {
-            return 'paused';
-        }
-        return 'stopped';
-    }
-
-    function diagnosticsBuildStateSnapshot(string $type, array $folders, array $prefs, array $infoByName, string $privacyMode): array {
-        $validNames = array_keys($infoByName);
-        $rules = is_array($prefs['autoRules'] ?? null) ? $prefs['autoRules'] : [];
-        $ruleTargetByName = [];
-        foreach ($validNames as $name) {
-            $rule = diagnosticsFirstMatchingRule($rules, $name, $infoByName, $type);
-            $ruleTargetByName[$name] = $rule ? (string)($rule['folderId'] ?? '') : '';
-        }
-
-        $badges = is_array($prefs['badges'] ?? null) ? $prefs['badges'] : [];
-        $showRunningBadge = !array_key_exists('running', $badges) ? true : (bool)$badges['running'];
-        $showStoppedBadge = array_key_exists('stopped', $badges) && (bool)$badges['stopped'];
-        $showUpdateBadge = !array_key_exists('updates', $badges) ? true : (bool)$badges['updates'];
-
-        $snapshotFolders = [];
-        $folderStatusTotals = ['running' => 0, 'paused' => 0, 'stopped' => 0];
-        $memberTotals = ['started' => 0, 'paused' => 0, 'stopped' => 0, 'total' => 0];
-
-        foreach ($folders as $folderId => $folder) {
-            $members = normalizeFolderMembers($folder['containers'] ?? []);
-            $regex = (string)($folder['regex'] ?? '');
-            if ($regex !== '' && diagnosticsRegexIsValid($regex)) {
-                foreach ($validNames as $name) {
-                    if (diagnosticsRegexMatches($regex, $name) && !in_array($name, $members, true)) {
-                        $members[] = $name;
-                    }
-                }
-            }
-            if ($type === 'docker') {
-                $folderName = trim((string)($folder['name'] ?? ''));
-                if ($folderName !== '') {
-                    foreach ($validNames as $name) {
-                        $labelValue = getFolderLabelValueFromLabels(dockerInfoLabelsForName($infoByName, $name));
-                        if ($labelValue !== '' && $labelValue === $folderName && !in_array($name, $members, true)) {
-                            $members[] = $name;
-                        }
-                    }
-                }
-            }
-            foreach ($validNames as $name) {
-                if (($ruleTargetByName[$name] ?? '') === (string)$folderId && !in_array($name, $members, true)) {
-                    $members[] = $name;
-                }
-            }
-
-            $started = 0;
-            $paused = 0;
-            $stopped = 0;
-            foreach ($members as $name) {
-                $item = $infoByName[$name] ?? null;
-                if (!is_array($item)) {
-                    continue;
-                }
-                $kind = $type === 'docker' ? diagnosticsStateKindForDockerItem($item) : diagnosticsStateKindForVmItem($item);
-                if ($kind === 'started') {
-                    $started++;
-                } elseif ($kind === 'paused') {
-                    $paused++;
-                } else {
-                    $stopped++;
-                }
-            }
-
-            $total = count($members);
-            $statusKind = 'stopped';
-            $statusCount = $stopped;
-            if ($started > 0) {
-                $statusKind = 'running';
-                $statusCount = $started;
-            } elseif ($paused > 0) {
-                $statusKind = 'paused';
-                $statusCount = $paused;
-            }
-            $statusText = sprintf('%d/%d %s', $statusCount, $total, $statusKind === 'running' ? 'started' : $statusKind);
-            $badgeVisible = true;
-            if ($statusKind === 'running') {
-                $badgeVisible = $showRunningBadge;
-            } elseif ($statusKind === 'stopped') {
-                $badgeVisible = $showStoppedBadge;
-            }
-
-            $folderStatusTotals[$statusKind]++;
-            $memberTotals['started'] += $started;
-            $memberTotals['paused'] += $paused;
-            $memberTotals['stopped'] += $stopped;
-            $memberTotals['total'] += $total;
-
-            $snapshotFolders[$folderId] = [
-                'folderId' => (string)$folderId,
-                'folderName' => normalizeDiagnosticsPrivacyMode($privacyMode) === 'full' ? (string)($folder['name'] ?? $folderId) : null,
-                'folderNameHash' => diagnosticsHashShort((string)($folder['name'] ?? $folderId)),
-                'members' => [
-                    'total' => $total,
-                    'started' => $started,
-                    'paused' => $paused,
-                    'stopped' => $stopped,
-                    'items' => normalizeDiagnosticsPrivacyMode($privacyMode) === 'full' ? array_slice($members, 0, 40) : []
-                ],
-                'status' => [
-                    'kind' => $statusKind,
-                    'text' => $statusText,
-                    'badgeVisible' => $badgeVisible,
-                    'colors' => diagnosticsFolderStatusColors(is_array($folder) ? $folder : [])
-                ]
-            ];
-        }
-
-        return [
-            'summary' => [
-                'folderTotalsByStatus' => $folderStatusTotals,
-                'memberTotals' => $memberTotals,
-                'badgePrefs' => [
-                    'running' => $showRunningBadge,
-                    'stopped' => $showStoppedBadge,
-                    'updates' => $showUpdateBadge
-                ]
-            ],
-            'folders' => $snapshotFolders
-        ];
-    }
-
-    function diagnosticsSummaryStatusFromCounts(int $errorCount, int $warningCount = 0): string {
-        if ($errorCount > 0) {
-            return 'error';
-        }
-        if ($warningCount > 0) {
-            return 'warning';
-        }
-        return 'healthy';
-    }
-
-    function diagnosticsBuildSummaryCard(string $key, string $label, string $status, string $headline, string $detail = '', array $extra = []): array {
-        return array_merge([
-            'key' => $key,
-            'label' => $label,
-            'status' => in_array($status, ['healthy', 'warning', 'error'], true) ? $status : 'healthy',
-            'headline' => $headline,
-            'detail' => $detail
-        ], $extra);
-    }
-
-    function diagnosticsBuildRecommendedActions(array $typesData, array $customIcons): array {
-        $actions = [];
-        $addAction = static function (string $action, string $label, string $reason) use (&$actions): void {
-            if (isset($actions[$action])) {
-                return;
-            }
-            $actions[$action] = [
-                'action' => $action,
-                'label' => $label,
-                'reason' => $reason
-            ];
-        };
-
-        $dockerIntegrity = is_array($typesData['docker']['integrityChecks'] ?? null)
-            ? $typesData['docker']['integrityChecks']
-            : [];
-        $vmIntegrity = is_array($typesData['vm']['integrityChecks'] ?? null)
-            ? $typesData['vm']['integrityChecks']
-            : [];
-
-        if (((int)($dockerIntegrity['missingManualOrderIds']['count'] ?? 0)) > 0) {
-            $addAction(
-                'sync_docker_order',
-                'Rebuild Docker order index',
-                'Docker manual order still references missing folder ids.'
-            );
-        }
-
-        $prefsNeedCleanup = false;
-        foreach ([$dockerIntegrity, $vmIntegrity] as $integrity) {
-            $prefsNeedCleanup = $prefsNeedCleanup
-                || ((int)($integrity['invalidAutoRules']['count'] ?? 0)) > 0
-                || ((int)($integrity['invalidFolderRegex']['count'] ?? 0)) > 0
-                || ((int)($integrity['invalidFolderIconPaths']['count'] ?? 0)) > 0
-                || ((int)($integrity['missingPinnedFolderIds']['count'] ?? 0)) > 0
-                || ((int)($integrity['missingManualOrderIds']['count'] ?? 0)) > 0;
-            if ($prefsNeedCleanup) {
-                break;
-            }
-        }
-        if ($prefsNeedCleanup) {
-            $addAction(
-                'normalize_prefs',
-                'Validate and normalize prefs',
-                'Folder rules or saved preference ids need cleanup.'
-            );
-        }
-
-        $pathIssues = [];
-        foreach (['docker', 'vm'] as $type) {
-            $integrity = is_array($typesData[$type]['integrityChecks'] ?? null)
-                ? $typesData[$type]['integrityChecks']
-                : [];
-            foreach ((array)($integrity['pathHealth']['issues'] ?? []) as $issue) {
-                $text = trim((string)$issue);
-                if ($text !== '') {
-                    $pathIssues[] = $text;
-                }
-            }
-        }
-        $customIconIssues = array_values(array_filter(array_map('strval', (array)($customIcons['issues'] ?? []))));
-        if (!empty($pathIssues) || !empty($customIconIssues)) {
-            $reason = !empty($pathIssues)
-                ? 'Plugin paths or permissions need repair.'
-                : 'Custom icon storage reported problems.';
-            if (!empty($pathIssues) && !empty($customIconIssues)) {
-                $reason .= ' Custom icon storage also reported problems.';
-            }
-            $addAction(
-                'repair_paths',
-                'Repair plugin paths',
-                $reason
-            );
-        }
-
-        return array_values($actions);
-    }
-
-    function diagnosticsBuildOverviewSummary(array $typesData, array $customIcons, array $update): array {
-        $cards = [];
-        $errorCount = 0;
-        $warningCount = 0;
-        $totalIssues = 0;
-        $pathIssues = [];
-
-        foreach (['docker' => 'Docker config', 'vm' => 'VM config'] as $type => $label) {
-            $typeData = is_array($typesData[$type] ?? null) ? $typesData[$type] : [];
-            $integrity = is_array($typeData['integrityChecks'] ?? null) ? $typeData['integrityChecks'] : [];
-            $issueCount = max(0, (int)($integrity['issuesCount'] ?? 0));
-            $folderCount = max(0, (int)($typeData['folderCount'] ?? 0));
-            $ruleCount = max(0, (int)($typeData['ruleCount'] ?? 0));
-            $backupCount = max(0, (int)($typeData['backupCount'] ?? 0));
-            $typePathIssues = array_values(array_filter(array_map('strval', (array)($integrity['pathHealth']['issues'] ?? []))));
-            $pathIssues = array_merge($pathIssues, $typePathIssues);
-
-            $status = $issueCount > 0 ? 'error' : 'healthy';
-            if ($status === 'error') {
-                $errorCount++;
-                $totalIssues += $issueCount;
-            }
-
-            $cards[] = diagnosticsBuildSummaryCard(
-                $type,
-                $label,
-                $status,
-                $issueCount > 0 ? sprintf('%d issue(s) need attention.', $issueCount) : 'No issues detected.',
-                $issueCount > 0 && count($typePathIssues) > 0
-                    ? $typePathIssues[0]
-                    : sprintf('%d folder(s), %d rule(s), %d backup(s).', $folderCount, $ruleCount, $backupCount),
-                ['count' => $issueCount]
-            );
-        }
-
-        $pathIssues = array_values(array_unique(array_filter(array_map('strval', $pathIssues))));
-        $pathIssueCount = count($pathIssues);
-        if ($pathIssueCount > 0) {
-            $errorCount++;
-        }
-        $cards[] = diagnosticsBuildSummaryCard(
-            'storage',
-            'Storage and paths',
-            $pathIssueCount > 0 ? 'error' : 'healthy',
-            $pathIssueCount > 0 ? sprintf('%d path or permission issue(s) detected.', $pathIssueCount) : 'Paths look healthy.',
-            $pathIssueCount > 0
-                ? implode(' ', array_slice($pathIssues, 0, 2))
-                : 'Folder maps, prefs, and backups look readable and writable.',
-            ['count' => $pathIssueCount]
-        );
-
-        $customIconIssues = array_values(array_filter(array_map('strval', (array)($customIcons['issues'] ?? []))));
-        $customIconIssueCount = count($customIconIssues);
-        $orphanedIconCount = max(0, (int)($customIcons['orphanedIconCount'] ?? 0));
-        $iconStatus = $customIconIssueCount > 0 ? 'error' : ($orphanedIconCount > 0 ? 'warning' : 'healthy');
-        if ($iconStatus === 'error') {
-            $errorCount++;
-            $totalIssues += $customIconIssueCount;
-        } elseif ($iconStatus === 'warning') {
-            $warningCount++;
-        }
-        $cards[] = diagnosticsBuildSummaryCard(
-            'custom_icons',
-            'Custom icons',
-            $iconStatus,
-            $customIconIssueCount > 0
-                ? sprintf('%d storage issue(s) detected.', $customIconIssueCount)
-                : ($orphanedIconCount > 0 ? sprintf('%d orphaned icon(s) found.', $orphanedIconCount) : 'Custom icon storage looks healthy.'),
-            $customIconIssueCount > 0
-                ? implode(' ', array_slice($customIconIssues, 0, 2))
-                : ($orphanedIconCount > 0
-                    ? 'Unused custom icons can be cleaned up later if needed.'
-                    : sprintf('%d icon file(s) tracked.', max(0, (int)($customIcons['fileCount'] ?? 0)))),
-            ['count' => $customIconIssueCount > 0 ? $customIconIssueCount : $orphanedIconCount]
-        );
-
-        $updateOk = (bool)($update['ok'] ?? false);
-        $updateAvailable = (bool)($update['updateAvailable'] ?? false);
-        $updateStatus = !$updateOk ? 'warning' : ($updateAvailable ? 'warning' : 'healthy');
-        if ($updateStatus === 'warning') {
-            $warningCount++;
-        }
-        $cards[] = diagnosticsBuildSummaryCard(
-            'update',
-            'Update check',
-            $updateStatus,
-            !$updateOk
-                ? 'Update check failed.'
-                : ($updateAvailable
-                    ? sprintf('Update available: %s', (string)($update['remoteVersion'] ?? 'unknown'))
-                    : 'Plugin is up to date.'),
-            !$updateOk
-                ? (string)($update['error'] ?? 'Unable to reach the remote manifest.')
-                : ($updateAvailable
-                    ? sprintf('Current %s, remote %s.', (string)($update['currentVersion'] ?? 'unknown'), (string)($update['remoteVersion'] ?? 'unknown'))
-                    : sprintf('Current version %s.', (string)($update['currentVersion'] ?? 'unknown'))),
-            ['count' => $updateAvailable ? 1 : 0]
-        );
-
-        $status = diagnosticsSummaryStatusFromCounts($errorCount, $warningCount);
-        $headline = $totalIssues > 0
-            ? sprintf('Detected %d issue(s) that may affect FolderView Plus.', $totalIssues)
-            : ($warningCount > 0
-                ? 'Plugin is healthy, but there are a few follow-up items.'
-                : 'No major plugin health issues detected.');
-        $detail = $totalIssues > 0
-            ? 'Start with the suggested fixes below. If the problem continues, copy the issue report or export a support bundle.'
-            : ($warningCount > 0
-                ? 'Review the warning cards below, then decide if any follow-up is needed.'
-                : 'Use support exports only if you need to share diagnostics with someone else.');
-
-        return [
-            'status' => $status,
-            'headline' => $headline,
-            'detail' => $detail,
-            'errorCount' => $errorCount,
-            'warningCount' => $warningCount,
-            'totalIssues' => $totalIssues,
-            'cards' => $cards,
-            'recommendedActions' => diagnosticsBuildRecommendedActions($typesData, $customIcons)
-        ];
-    }
-
-    function getDiagnosticsSnapshot(string $privacyMode = FVPLUS_DIAGNOSTICS_DEFAULT_PRIVACY): array {
-        $privacyMode = normalizeDiagnosticsPrivacyMode($privacyMode);
-        $types = ['docker', 'vm'];
-        $typesData = [];
-        foreach ($types as $type) {
-            $folderPath = getFolderFilePath($type);
-            $prefsPath = getTypePrefsPath($type);
-            $folders = readRawFolderMap($type);
-            $prefs = readTypePrefs($type);
-            $backups = listBackupSnapshots($type);
-            $templates = readFolderTemplates($type);
-            $infoByName = readInfo($type);
-            $integrityChecks = diagnosticsBuildIntegrityChecks($type, $folders, $prefs, $infoByName, $privacyMode);
-            $stateSnapshot = diagnosticsBuildStateSnapshot($type, $folders, $prefs, $infoByName, $privacyMode);
-            $typesData[$type] = [
-                'folderPath' => $privacyMode === 'full' ? $folderPath : basename($folderPath),
-                'prefsPath' => $privacyMode === 'full' ? $prefsPath : basename($prefsPath),
-                'foldersExists' => file_exists($folderPath),
-                'prefsExists' => file_exists($prefsPath),
-                'folderCount' => count($folders),
-                'sortMode' => $prefs['sortMode'] ?? 'created',
-                'ruleCount' => count($prefs['autoRules'] ?? []),
-                'manualOrderCount' => count($prefs['manualOrder'] ?? []),
-                'pinnedFolderCount' => count($prefs['pinnedFolderIds'] ?? []),
-                'hideEmptyFolders' => normalizeBool($prefs['hideEmptyFolders'] ?? false, false),
-                'appColumnWidth' => normalizeAppColumnWidth($prefs['appColumnWidth'] ?? 'standard'),
-                'setupWizardCompleted' => normalizeBool($prefs['setupWizardCompleted'] ?? false, false),
-                'settingsMode' => (($prefs['settingsMode'] ?? 'basic') === 'advanced') ? 'advanced' : 'basic',
-                'runtimePrefsSchema' => normalizeIntInRange($prefs['runtimePrefsSchema'] ?? FVPLUS_RUNTIME_PREFS_SCHEMA, 0, FVPLUS_RUNTIME_PREFS_SCHEMA, FVPLUS_RUNTIME_PREFS_SCHEMA),
-                'liveRefreshEnabled' => normalizeBool($prefs['liveRefreshEnabled'] ?? false, false),
-                'liveRefreshSeconds' => normalizeIntInRange($prefs['liveRefreshSeconds'] ?? 20, 10, 300, 20),
-                'performanceMode' => normalizeBool($prefs['performanceMode'] ?? false, false),
-                'lazyPreviewEnabled' => normalizeBool($prefs['lazyPreviewEnabled'] ?? false, false),
-                'lazyPreviewThreshold' => normalizeIntInRange($prefs['lazyPreviewThreshold'] ?? 30, 10, 200, 30),
-                'themeCompatibilityMode' => normalizeThemeCompatibilityMode($prefs['themeCompatibilityMode'] ?? 'auto'),
-                'health' => [
-                    'cardsEnabled' => normalizeBool($prefs['health']['cardsEnabled'] ?? true, true),
-                    'runtimeBadgeEnabled' => normalizeBool($prefs['health']['runtimeBadgeEnabled'] ?? false, false),
-                    'compact' => normalizeBool($prefs['health']['compact'] ?? false, false),
-                    'warnStoppedPercent' => normalizeIntInRange($prefs['health']['warnStoppedPercent'] ?? 60, 0, 100, 60),
-                    'criticalStoppedPercent' => normalizeIntInRange($prefs['health']['criticalStoppedPercent'] ?? 90, 0, 100, 90),
-                    'profile' => in_array(strtolower(trim((string)($prefs['health']['profile'] ?? 'balanced'))), ['strict', 'balanced', 'lenient'], true)
-                        ? strtolower(trim((string)($prefs['health']['profile'] ?? 'balanced')))
-                        : 'balanced',
-                    'updatesMode' => in_array(strtolower(trim((string)($prefs['health']['updatesMode'] ?? 'maintenance'))), ['maintenance', 'warn', 'ignore'], true)
-                        ? strtolower(trim((string)($prefs['health']['updatesMode'] ?? 'maintenance')))
-                        : 'maintenance',
-                    'allStoppedMode' => in_array(strtolower(trim((string)($prefs['health']['allStoppedMode'] ?? 'critical'))), ['critical', 'warn'], true)
-                        ? strtolower(trim((string)($prefs['health']['allStoppedMode'] ?? 'critical')))
-                        : 'critical'
-                ],
-                'status' => [
-                    'mode' => in_array(strtolower(trim((string)($prefs['status']['mode'] ?? 'summary'))), ['summary', 'dominant'], true)
-                        ? strtolower(trim((string)($prefs['status']['mode'] ?? 'summary')))
-                        : 'summary',
-                    'displayMode' => in_array(strtolower(trim((string)($prefs['status']['displayMode'] ?? 'balanced'))), ['simple', 'balanced', 'detailed'], true)
-                        ? strtolower(trim((string)($prefs['status']['displayMode'] ?? 'balanced')))
-                        : 'balanced',
-                    'trendEnabled' => normalizeBool($prefs['status']['trendEnabled'] ?? true, true),
-                    'attentionAccent' => normalizeBool($prefs['status']['attentionAccent'] ?? true, true),
-                    'warnStoppedPercent' => normalizeIntInRange($prefs['status']['warnStoppedPercent'] ?? 60, 0, 100, 60)
-                ],
-                'backupSchedule' => getTypeBackupSchedule($type),
-                'lastBackup' => $backups[0] ?? null,
-                'backupCount' => count($backups),
-                'templateCount' => count($templates),
-                'integrityChecks' => $integrityChecks,
-                'stateSnapshot' => $stateSnapshot
-            ];
-        }
-
-        $historyEvents = readDiagnosticsHistoryEvents(80);
-        $customIcons = diagnosticsBuildCustomIconStorage($privacyMode);
-        $update = checkRemotePluginUpdate();
-        return [
-            'schemaVersion' => FVPLUS_DIAGNOSTICS_SCHEMA_VERSION,
-            'privacyMode' => $privacyMode,
-            'checkedAt' => gmdate('c'),
-            'pluginVersion' => readInstalledVersion(),
-            'environment' => getEnvironmentSnapshot($privacyMode),
-            'hashes' => getDiagnosticsKeyFileHashes($privacyMode),
-            'customIcons' => $customIcons,
-            'importExportHistory' => [
-                'retained' => count(readDiagnosticsHistoryEvents(FVPLUS_DIAGNOSTICS_HISTORY_MAX)),
-                'returned' => count($historyEvents),
-                'events' => $historyEvents
-            ],
-            'recentTimeline' => buildDiagnosticsTimeline($historyEvents, 25),
-            'update' => $update,
-            'summary' => diagnosticsBuildOverviewSummary($typesData, $customIcons, $update),
-            'types' => $typesData
-        ];
-    }
-
-    function syncContainerOrder(string $type): void {
+    function dockerSyncOrderPendingPath(): string {
         global $configDir;
-        fv3_debug_log("syncContainerOrder called for type: $type");
+        if (!is_dir($configDir)) {
+            @mkdir($configDir, 0770, true);
+        }
+        return $configDir . '/docker-sync-order.pending';
+    }
 
-        if ($type !== 'docker') { return; }
+    function markDockerSyncOrderPending(): void {
+        @file_put_contents(dockerSyncOrderPendingPath(), (string)microtime(true));
+    }
+
+    function clearDockerSyncOrderPending(): void {
+        $pendingPath = dockerSyncOrderPendingPath();
+        if (file_exists($pendingPath)) {
+            @unlink($pendingPath);
+        }
+    }
+
+    function hasDockerSyncOrderPending(): bool {
+        return file_exists(dockerSyncOrderPendingPath());
+    }
+
+    function syncContainerOrderUnlocked(): void {
+        global $configDir;
 
         $prefsFile = "/boot/config/plugins/dockerMan/userprefs.cfg";
         if (!file_exists($prefsFile)) { return; }
 
+        $currentPrefsRaw = @file_get_contents($prefsFile);
         $currentPrefs = @parse_ini_file($prefsFile);
         $currentOrder = $currentPrefs ? array_values($currentPrefs) : [];
 
@@ -5161,10 +3355,20 @@
         $folders = file_exists($foldersFile) ? (json_decode(file_get_contents($foldersFile), true) ?: []) : [];
 
         $dockerClient = new DockerClient();
-        $allContainerNames = array_column($dockerClient->getDockerContainers(), 'Name');
+        $allContainerNames = [];
+        foreach ((array)$dockerClient->getDockerContainers() as $containerMeta) {
+            $name = trim((string)($containerMeta['Name'] ?? ''));
+            if ($name === '' || in_array($name, $allContainerNames, true)) {
+                continue;
+            }
+            $allContainerNames[] = $name;
+        }
         $prefs = readTypePrefs('docker');
         $rules = is_array($prefs['autoRules'] ?? null) ? $prefs['autoRules'] : [];
-        $infoByName = readInfo('docker');
+        $infoByName = readInfoState('docker');
+        if (count($allContainerNames) <= 0) {
+            $allContainerNames = array_keys($infoByName);
+        }
         $ruleTargetByName = [];
         $labelTargetByName = [];
         foreach ($allContainerNames as $name) {
@@ -5178,11 +3382,11 @@
         $folderContainers = [];
         $assignedContainers = [];
         foreach ($folders as $folderId => $folder) {
-            $members = $folder['containers'] ?? [];
+            $members = normalizeFolderMembers($folder['containers'] ?? []);
             if (!empty($folder['regex'])) {
                 $regex = '/' . str_replace('/', '\/', $folder['regex']) . '/';
                 foreach ($allContainerNames as $name) {
-                    if (@preg_match($regex, $name) && !in_array($name, $members)) {
+                    if (@preg_match($regex, $name) && !in_array($name, $members, true)) {
                         $members[] = $name;
                     }
                 }
@@ -5260,8 +3464,12 @@
         foreach ($newOrder as $i => $name) {
             $ini .= ($i + 1) . '="' . $name . '"' . "\n";
         }
-        file_put_contents($prefsFile, $ini);
-        fv3_debug_log("syncContainerOrder: wrote userprefs.cfg with " . count($newOrder) . " entries");
+        if ((string)$currentPrefsRaw !== $ini) {
+            file_put_contents($prefsFile, $ini);
+            fv3_debug_log("syncContainerOrder: wrote userprefs.cfg with " . count($newOrder) . " entries");
+        } else {
+            fv3_debug_log("syncContainerOrder: userprefs.cfg already up to date");
+        }
 
         // Reorder autostart file to match new container order
         $dockerManPaths = @parse_ini_file('/boot/config/plugins/dockerMan/dockerMan.cfg') ?: [];
@@ -5294,8 +3502,52 @@
             foreach ($autoStartMap as $line) {
                 $newAutoStart[] = $line;
             }
-            file_put_contents($autoStartFile, implode("\n", $newAutoStart) . "\n");
-            fv3_debug_log("syncContainerOrder: wrote autostart file with " . count($newAutoStart) . " entries");
+            $nextAutoStartContent = count($newAutoStart) > 0
+                ? implode("\n", $newAutoStart) . "\n"
+                : '';
+            $currentAutoStartContent = @file_get_contents($autoStartFile);
+            if ((string)$currentAutoStartContent !== $nextAutoStartContent) {
+                file_put_contents($autoStartFile, $nextAutoStartContent);
+                fv3_debug_log("syncContainerOrder: wrote autostart file with " . count($newAutoStart) . " entries");
+            } else {
+                fv3_debug_log("syncContainerOrder: autostart file already up to date");
+            }
+        }
+    }
+
+    function syncContainerOrder(string $type): void {
+        fv3_debug_log("syncContainerOrder called for type: $type");
+
+        if ($type !== 'docker') { return; }
+
+        $lockHandle = @fopen(dockerSyncOrderLockPath(), 'c+');
+        if (!is_resource($lockHandle)) {
+            fv3_debug_log('syncContainerOrder: unable to open lock file, falling back to unlocked run');
+            syncContainerOrderUnlocked();
+            return;
+        }
+
+        if (!@flock($lockHandle, LOCK_EX | LOCK_NB)) {
+            markDockerSyncOrderPending();
+            fv3_debug_log('syncContainerOrder: coalesced while another sync is already running');
+            @fclose($lockHandle);
+            return;
+        }
+
+        try {
+            $attempt = 0;
+            do {
+                $attempt++;
+                clearDockerSyncOrderPending();
+                $startedAt = microtime(true);
+                syncContainerOrderUnlocked();
+                $durationMs = (int)round((microtime(true) - $startedAt) * 1000);
+                $shouldRerun = hasDockerSyncOrderPending();
+                fv3_debug_log("syncContainerOrder: pass $attempt completed in {$durationMs}ms" . ($shouldRerun ? ' (pending rerun requested)' : ''));
+            } while ($shouldRerun && $attempt < 3);
+        } finally {
+            @flock($lockHandle, LOCK_UN);
+            @fclose($lockHandle);
         }
     }
 
@@ -5350,6 +3602,68 @@
         } catch (Throwable $err) {
             // Keep update flow non-fatal.
         }
+    }
+
+    function applyFolderSettingsPayload(string $type, array $targetIds, array $settingsPayload): array {
+        $type = ensureType($type);
+        $normalizedSettings = normalizeFolderSettingsTransferPayload($settingsPayload);
+        $normalizedTargetIds = [];
+        foreach ($targetIds as $targetId) {
+            $safeTargetId = truncateUtf8String(trim((string)$targetId), 64);
+            if ($safeTargetId === '' || in_array($safeTargetId, $normalizedTargetIds, true)) {
+                continue;
+            }
+            $normalizedTargetIds[] = $safeTargetId;
+        }
+        if (count($normalizedTargetIds) <= 0) {
+            throw new RuntimeException('Select at least one target folder.');
+        }
+
+        $fileData = readRawFolderMap($type);
+        foreach ($normalizedTargetIds as $targetId) {
+            if (!is_array($fileData[$targetId] ?? null)) {
+                throw new RuntimeException('Target folder not found.');
+            }
+        }
+
+        $backup = createBackupSnapshot($type, 'before-apply-folder-settings');
+        $updatedAt = gmdate('c');
+        foreach ($normalizedTargetIds as $targetId) {
+            $existingFolder = normalizeFolderContentPayload((array)$fileData[$targetId]);
+            $createdAt = normalizeIsoTimestamp($existingFolder['createdAt'] ?? '');
+            if ($createdAt === '') {
+                $createdAt = gmdate('c');
+            }
+            $existingFolder['icon'] = $normalizedSettings['icon'] ?? '';
+            $existingFolder['settings'] = is_array($normalizedSettings['settings'] ?? null) ? $normalizedSettings['settings'] : [];
+            $existingFolder['actions'] = is_array($normalizedSettings['actions'] ?? null) ? $normalizedSettings['actions'] : [];
+            $existingFolder['createdAt'] = $createdAt;
+            $existingFolder['updatedAt'] = $updatedAt;
+            $fileData[$targetId] = normalizeFolderContentPayload($existingFolder);
+            $fileData[$targetId]['createdAt'] = $createdAt;
+            $fileData[$targetId]['updatedAt'] = $updatedAt;
+        }
+
+        $fileData = normalizeFolderParentLinks($fileData);
+        writeRawFolderMap($type, $fileData);
+        syncManualOrderWithFolders($type, $fileData);
+        try {
+            appendDiagnosticsHistoryEvent('folder_settings_apply', $type, [
+                'folderIds' => $normalizedTargetIds,
+                'targetCount' => count($normalizedTargetIds),
+                'backupName' => (string)($backup['name'] ?? ''),
+                'sourceScript' => basename((string)($_SERVER['SCRIPT_NAME'] ?? ''))
+            ], 'ok', 'server');
+        } catch (Throwable $err) {
+            // Keep apply flow non-fatal.
+        }
+
+        return [
+            'updatedIds' => $normalizedTargetIds,
+            'updatedCount' => count($normalizedTargetIds),
+            'backup' => $backup,
+            'settings' => $normalizedSettings
+        ];
     }
 
     function deleteFolder(string $type, string $id) : void {

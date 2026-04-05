@@ -102,12 +102,24 @@ jobs:
           EOF
 
           EXISTING_PR="$(gh pr list --state open --base dev --head "${BACKMERGE_BRANCH}" --json number --jq '.[0].number')"
+          set +e
           if [ -n "${EXISTING_PR}" ]; then
             gh pr edit "${EXISTING_PR}" --title "${TITLE}" --body-file "${BODY_FILE}"
-            echo "Updated back-merge PR #${EXISTING_PR}."
+            STATUS=$?
+            if [ "${STATUS}" -eq 0 ]; then
+              echo "Updated back-merge PR #${EXISTING_PR}."
+            fi
           else
             gh pr create --base dev --head "${BACKMERGE_BRANCH}" --title "${TITLE}" --body-file "${BODY_FILE}"
-            echo "Created back-merge PR from ${BACKMERGE_BRANCH} into dev."
+            STATUS=$?
+            if [ "${STATUS}" -eq 0 ]; then
+              echo "Created back-merge PR from ${BACKMERGE_BRANCH} into dev."
+            fi
+          fi
+          set -e
+
+          if [ "${STATUS}" -ne 0 ]; then
+            echo "::warning::Back-merge branch ${BACKMERGE_BRANCH} was pushed, but this workflow token is not permitted to create or update pull requests. Open or refresh the PR manually."
           fi
 
       - name: Collect back-merge debug artifacts on failure

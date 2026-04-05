@@ -50,6 +50,10 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.match(dockerJs, /fv-preview-webui-placeholder/);
     assert.match(dockerJs, /const buildDockerPreviewItem = \(\{ entry = \{\}, settings = \{\}, autostart = false \}\) =>/);
     assert.match(dockerJs, /const bindCompactPreviewDefaultContext = \(\$item, \$sourceRow\) =>/);
+    assert.match(dockerJs, /const buildCompactPreviewDefaultContextItem = \(\$sourceRow, settings = \{\}, autostart = false\) =>/);
+    assert.match(dockerJs, /const \$sourceOuter = \$sourceRow\.find\('td\.ct-name > span\.outer'\)\.first\(\)/);
+    assert.match(dockerJs, /const bindCompactPreviewDefaultContextProxy = \(\$item\) =>/);
+    assert.match(dockerJs, /\$menuTrigger\.trigger\('click'\);/);
     assert.match(dockerJs, /\$sourceRow\.find\('td\.ct-name > span\.outer > span\.hand'\)\.first\(\)/);
     assert.match(dockerJs, /const inlineClick = String\(\$nativeTrigger\.attr\('onclick'\) \|\| ''\)\.trim\(\);/);
     assert.match(dockerJs, /const targets = \[/);
@@ -62,6 +66,8 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.match(dockerJs, /\$tooltipTrigger:\s*triggerSelector === '\.fv-docker-preview-card'\s*\?\s*\$compactItem/);
     assert.match(dockerJs, /const appendCompactPreview = \(folderTrId, ctid, autostart, previewEntry, \$sourceRow = null\) =>/);
     assert.match(dockerJs, /if \(folder\.settings\.context === 1\) \{/);
+    assert.match(dockerJs, /compactPreviewItem = buildCompactPreviewDefaultContextItem\(\$sourceRow, folder\.settings, autostart\);/);
+    assert.match(dockerJs, /bindCompactPreviewDefaultContextProxy\(\$item\);/);
     assert.match(dockerJs, /bindCompactPreviewDefaultContext\(\$item, \$sourceRow\);/);
     assert.match(dockerJs, /\$target\.data\('fvTooltipEnsureInitialized', ensureInitialized\);/);
     assert.match(dockerJs, /const layoutFolderPreviewRows = \(\$preview, settings = \{\}\) =>/);

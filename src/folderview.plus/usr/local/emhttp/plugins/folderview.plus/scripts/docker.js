@@ -1006,6 +1006,98 @@ const bindCompactPreviewDefaultContext = ($item, $sourceRow) => {
         $appLink.attr('href', '#');
     }
 };
+const buildCompactPreviewDefaultContextItem = ($sourceRow, settings = {}, autostart = false) => {
+    if (!$sourceRow || !$sourceRow.length) {
+        return null;
+    }
+    const previewMode = Number(settings?.preview || 0);
+    const autostartClass = autostart ? ' autostart' : '';
+    const $sourceOuter = $sourceRow.find('td.ct-name > span.outer').first();
+    if (!$sourceOuter.length) {
+        return null;
+    }
+    const $item = $sourceOuter.clone();
+    const compactMode = previewMode >= 1 && previewMode <= 4 ? previewMode : 1;
+    $item.addClass(`fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-${compactMode}${autostartClass}`);
+    $item.removeAttr('id');
+    $item.find('br').remove();
+    $item.find('i[id^="load-"]').each((_, node) => {
+        const $node = $(node);
+        const currentId = String($node.attr('id') || '').trim();
+        if (currentId) {
+            $node.attr('id', `folder-${currentId}`);
+        }
+    });
+    const $hand = $item.children('span.hand').first();
+    const $inner = $item.children('span.inner').first();
+    if (!$inner.length) {
+        return $item;
+    }
+    const $appName = $inner.children('span.appname').first();
+    const $meta = $('<span class="fv-preview-meta-compact"></span>');
+    const $status = $('<span class="fv-preview-status-compact"></span>');
+    const $trailingNodes = $appName.length ? $appName.nextAll().detach() : $inner.contents().detach();
+    $trailingNodes.each((_, node) => {
+        const $node = $(node);
+        if ($node.is('.folder-element-custom-btn, .fv-preview-webui-placeholder')) {
+            return;
+        }
+        $status.append($node);
+    });
+    if ($status.children().length) {
+        $meta.append($status);
+    }
+    if (compactMode !== 2) {
+        $meta.append('<span class="fv-preview-actions-compact"></span>');
+    }
+    if (compactMode === 2) {
+        $inner.remove();
+    } else {
+        if (compactMode === 3 || compactMode === 4) {
+            $hand.remove();
+        }
+        $inner.append($meta);
+    }
+    return $item;
+};
+const bindCompactPreviewDefaultContextProxy = ($item) => {
+    if (!$item || !$item.length) {
+        return;
+    }
+    const $menuTrigger = $item.find('span.hand, span.appname > a.exec').filter(function() {
+        return String($(this).attr('onclick') || '').trim().length > 0
+            || String($(this).attr('oncontextmenu') || '').trim().length > 0
+            || $(this).hasClass('hand')
+            || $(this).hasClass('exec');
+    }).first();
+    if (!$menuTrigger.length) {
+        return;
+    }
+    const usingAppNameTrigger = $menuTrigger.is('span.appname > a.exec');
+    const interactiveSelector = usingAppNameTrigger
+        ? 'span.appname, span.appname > a.exec, span.folder-element-custom-btn, span.folder-element-custom-btn > a, .fv-preview-actions-compact, .fv-preview-actions-compact *'
+        : '.hand, span.folder-element-custom-btn, span.folder-element-custom-btn > a, .fv-preview-actions-compact, .fv-preview-actions-compact *';
+    $item
+        .off('.fvCompactDefaultContextProxy')
+        .on('click.fvCompactDefaultContextProxy', function(event) {
+            const $target = $(event.target);
+            if ($target.closest(interactiveSelector).length) {
+                return;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            $menuTrigger.trigger('click');
+        })
+        .on('contextmenu.fvCompactDefaultContextProxy', function(event) {
+            const $target = $(event.target);
+            if ($target.closest(interactiveSelector).length) {
+                return;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            $menuTrigger.trigger('contextmenu');
+        });
+};
 const decorateDockerFolderMemberRow = ($row, folderId, containerName) => {
     if (!$row || !$row.length) {
         return;
@@ -3236,14 +3328,25 @@ const createFolder = (folder, id, positionInMainOrder, liveOrderArray, container
     if (FOLDER_VIEW_DEBUG_MODE) console.log(`[FV3_DEBUG] createFolder (id: ${id}): Selecting addPreview function based on folder.settings.preview = ${folder.settings.preview}. Context setting: ${folder.settings.context}`);
     const compactMultiRowPreview = isCompactMultiRowPreview(folder.settings);
     const appendCompactPreview = (folderTrId, ctid, autostart, previewEntry, $sourceRow = null) => {
-        const { $item, $tooltipTrigger } = buildDockerPreviewItem({
-            entry: previewEntry || {},
-            settings: folder.settings,
-            autostart
-        });
+        let compactPreviewItem = null;
+        if (folder.settings.context === 1) {
+            compactPreviewItem = buildCompactPreviewDefaultContextItem($sourceRow, folder.settings, autostart);
+        }
+        const builtPreview = compactPreviewItem
+            ? { $item: compactPreviewItem, $tooltipTrigger: null }
+            : buildDockerPreviewItem({
+                entry: previewEntry || {},
+                settings: folder.settings,
+                autostart
+            });
+        const { $item, $tooltipTrigger } = builtPreview;
         $(`tr.folder-id-${folderTrId} div.folder-preview`).append($item);
         if (folder.settings.context === 1) {
-            bindCompactPreviewDefaultContext($item, $sourceRow);
+            if (compactPreviewItem) {
+                bindCompactPreviewDefaultContextProxy($item);
+            } else {
+                bindCompactPreviewDefaultContext($item, $sourceRow);
+            }
             return null;
         }
         if (folder.settings.context === 2 || folder.settings.context === 0) {

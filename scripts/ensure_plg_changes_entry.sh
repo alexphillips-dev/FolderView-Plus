@@ -5,17 +5,151 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PLG_FILE="${ROOT_DIR}/folderview.plus.plg"
 MAX_AUTO_LINES="${FVPLUS_AUTO_CHANGE_LINES:-6}"
 AUTO_FALLBACK_NOTE='Maintenance: Release metadata and packaging sync.'
+CHECK_ONLY=0
+VERSION_OVERRIDE="${FVPLUS_TARGET_RELEASE_VERSION:-}"
+REQUIRE_EXPLICIT="${FVPLUS_REQUIRE_EXPLICIT_RELEASE_NOTES:-0}"
 # shellcheck source=scripts/lib.sh
 source "${ROOT_DIR}/scripts/lib.sh"
+
+print_usage() {
+  cat <<'EOF'
+Usage: ensure_plg_changes_entry.sh [options]
+  --version VERSION      Validate or insert notes for VERSION instead of the manifest version
+  --check-only           Validate note availability/content without modifying folderview.plus.plg
+  --require-explicit     Require curated or explicit non-generic release notes instead of auto-generated notes
+  -h, --help             Show this help
+EOF
+}
+
+while [[ $# -gt 0 ]]; do
+  case "${1:-}" in
+    --version)
+      VERSION_OVERRIDE="${2:-}"
+      shift
+      ;;
+    --check-only)
+      CHECK_ONLY=1
+      ;;
+    --require-explicit)
+      REQUIRE_EXPLICIT=1
+      ;;
+    -h|--help)
+      print_usage
+      exit 0
+      ;;
+    *)
+      fvplus::fail "Unknown argument: ${1}"
+      ;;
+  esac
+  shift
+done
 
 if [[ ! -f "${PLG_FILE}" ]]; then
   fvplus::fail "Missing plugin manifest: ${PLG_FILE}"
 fi
 
-VERSION="$(fvplus::read_plg_version "${PLG_FILE}")"
+VERSION="${VERSION_OVERRIDE:-$(fvplus::read_plg_version "${PLG_FILE}")}"
+OVERRIDE_FILE="${ROOT_DIR}/docs/releases/${VERSION}.md"
 
-if grep -q "^###${VERSION}$" "${PLG_FILE}"; then
+normalize_changes_block() {
+  local raw="${1:-}"
+  printf '%s' "${raw}" | sed -E '/^[[:space:]]*$/d; s/[[:space:]]+/ /g; s/^[[:space:]]+|[[:space:]]+$//g'
+}
+
+changes_block_for_version() {
+  local target_version="${1:-}"
+  awk -v version="${target_version}" '
+    BEGIN { capture = 0 }
+    /^###/ {
+      if (capture) {
+        exit
+      }
+      if ($0 ~ "^###" version "[[:space:]]*$") {
+        capture = 1
+        next
+      }
+    }
+    capture {
+      print
+    }
+  ' "${PLG_FILE}" | sed '/^[[:space:]]*$/d'
+}
+
+previous_changes_version() {
+  local target_version="${1:-}"
+  awk -v version="${target_version}" '
+    /^###/ {
+      candidate = $0
+      sub(/^###/, "", candidate)
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", candidate)
+      if (candidate != version) {
+        print candidate
+        exit
+      }
+    }
+  ' "${PLG_FILE}"
+}
+
+is_metadata_only_changes_line() {
+  local line="${1:-}"
+  local lowered=""
+  lowered="$(printf '%s' "${line}" | tr '[:upper:]' '[:lower:]')"
+  [[ "${lowered}" == *"release metadata and packaging sync"* ]] && return 0
+  [[ "${lowered}" == *"automated release metadata update"* ]] && return 0
+  [[ "${lowered}" == *"metadata update"* ]] && return 0
+  [[ "${lowered}" == *"packaging sync"* ]] && return 0
+  [[ "${lowered}" == *"folder editor flows, previews, and bootstrap behavior."* ]] && return 0
+  return 1
+}
+
+block_is_metadata_only() {
+  local block="${1:-}"
+  local line=""
+  local saw_content=0
+  while IFS= read -r line; do
+    [[ -z "${line}" ]] && continue
+    saw_content=1
+    if ! is_metadata_only_changes_line "${line}"; then
+      return 1
+    fi
+  done <<< "${block}"
+  [[ "${saw_content}" -eq 1 ]]
+}
+
+current_block="$(changes_block_for_version "${VERSION}")"
+if [[ -n "${current_block}" ]]; then
+  if [[ "${REQUIRE_EXPLICIT}" == "1" ]]; then
+    if block_is_metadata_only "${current_block}"; then
+      fvplus::fail "CHANGES entry for ${VERSION} contains only generic release-metadata boilerplate. Add explicit release notes or docs/releases/${VERSION}.md."
+    fi
+    previous_version="$(previous_changes_version "${VERSION}")"
+    if [[ -n "${previous_version}" ]]; then
+      previous_block="$(changes_block_for_version "${previous_version}")"
+      if [[ -n "${previous_block}" ]] && [[ "$(normalize_changes_block "${current_block}")" == "$(normalize_changes_block "${previous_block}")" ]]; then
+        fvplus::fail "CHANGES entry for ${VERSION} duplicates the previous release notes block. Add explicit release deltas or docs/releases/${VERSION}.md."
+      fi
+    fi
+  fi
   echo "CHANGES entry already present for ${VERSION}"
+  exit 0
+fi
+
+if [[ -f "${OVERRIDE_FILE}" ]]; then
+  OVERRIDE_NOTES="$(sed '/^[[:space:]]*$/d' "${OVERRIDE_FILE}")"
+  if [[ -z "${OVERRIDE_NOTES}" ]]; then
+    fvplus::fail "Curated release note override is empty: docs/releases/${VERSION}.md"
+  fi
+  if [[ "${CHECK_ONLY}" == "1" ]]; then
+    echo "Validated curated release notes for ${VERSION} from docs/releases/${VERSION}.md"
+    exit 0
+  fi
+  AUTO_NOTES="${OVERRIDE_NOTES}"
+elif [[ "${REQUIRE_EXPLICIT}" == "1" ]]; then
+  fvplus::fail "Explicit release notes are required for ${VERSION}. Add docs/releases/${VERSION}.md or a non-generic CHANGES block before packaging."
+fi
+
+if [[ "${CHECK_ONLY}" == "1" ]]; then
+  echo "Validated auto-generated CHANGES plan for ${VERSION}"
   exit 0
 fi
 
@@ -499,18 +633,13 @@ build_auto_notes() {
   printf '%s\n' "${notes[@]}"
 }
 
-PREVIOUS_VERSION="$(awk '
-  /<CHANGES>/ { in_changes = 1; next }
-  in_changes && /^###/ {
-    gsub(/^###/, "", $0)
-    print
-    exit
-  }
-' "${PLG_FILE}")"
+PREVIOUS_VERSION="$(previous_changes_version "${VERSION}")"
 
-AUTO_NOTES="$(build_auto_notes "${PREVIOUS_VERSION}")"
-if [[ -z "${AUTO_NOTES}" ]]; then
-  AUTO_NOTES="- ${AUTO_FALLBACK_NOTE}"
+if [[ -z "${AUTO_NOTES:-}" ]]; then
+  AUTO_NOTES="$(build_auto_notes "${PREVIOUS_VERSION}")"
+  if [[ -z "${AUTO_NOTES}" ]]; then
+    AUTO_NOTES="- ${AUTO_FALLBACK_NOTE}"
+  fi
 fi
 
 TMP_FILE="$(mktemp)"

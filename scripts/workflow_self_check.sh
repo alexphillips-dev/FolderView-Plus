@@ -33,6 +33,7 @@ for (const relativePath of [
   '.github/actions/setup-ci-env/action.yml',
   'scripts/run_ci_suite.sh',
   'scripts/build_release_notes.sh',
+  'scripts/simulate_main_release.sh',
   'scripts/docs_metadata_guard.sh',
   'scripts/release_notes_consistency_guard.sh',
   'scripts/workflow_self_check.sh'
@@ -86,6 +87,9 @@ if (!/gh release create/.test(releaseOnMainWorkflow) || !/gh release edit/.test(
 }
 if (/gh release create/.test(releaseMainWorkflow) || /gh release edit/.test(releaseMainWorkflow)) {
   fail('Release Main workflow must not publish GitHub releases directly.');
+}
+if (!/bash scripts\/release_prepare\.sh --push-main/.test(releaseMainWorkflow)) {
+  fail('Release Main workflow must use scripts/release_prepare.sh --push-main as the shared release entrypoint.');
 }
 if (!/upload-artifact@v4/.test(backmergeWorkflow)) {
   fail('Back-merge workflow must upload debug artifacts on failure.');

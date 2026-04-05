@@ -363,7 +363,11 @@ Recommended migration path:
   - `bash scripts/dev_finalize.sh --open-fixture --skip-build`
 - Build a package locally:
   - `bash pkg_build.sh`
-- Prepare a release build with checks:
+- Curate stable release notes first:
+  - `docs/releases/<version>.md`
+- Simulate the full `main` release flow safely in a temporary worktree:
+  - `bash scripts/simulate_main_release.sh`
+- Prepare a stable release from `main` with checks:
   - `bash scripts/release_prepare.sh`
 - Run the automated test suite:
   - `node --test tests/*.mjs`

@@ -102,6 +102,7 @@ jobs:
           FVPLUS_I18N_STRICT: '1'
           FVPLUS_DEAD_CODE_STRICT: '1'
           FVPLUS_REQUIRE_PERF_BASELINE: '1'
+          FVPLUS_REQUIRE_EXPLICIT_RELEASE_NOTES: '1'
           FVPLUS_MAIN_HISTORY_BASE_REF: ${{ github.event.before }}
           FVPLUS_BROWSER_SMOKE_URL: ${{ secrets.FVPLUS_BROWSER_SMOKE_URL }}
           FVPLUS_BROWSER_SMOKE_REQUIRED: ${{ secrets.FVPLUS_BROWSER_SMOKE_URL != '' && '1' || '0' }}

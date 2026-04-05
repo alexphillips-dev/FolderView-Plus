@@ -9,6 +9,7 @@ const stableTemplatePath = path.join(repoRoot, 'folderview.plus.xml');
 const releaseGuardPath = path.join(repoRoot, 'scripts/release_guard.sh');
 const devFinalizePath = path.join(repoRoot, 'scripts/dev_finalize.sh');
 const releasePreparePath = path.join(repoRoot, 'scripts/release_prepare.sh');
+const simulateMainReleasePath = path.join(repoRoot, 'scripts/simulate_main_release.sh');
 const ciWorkflowPath = path.join(repoRoot, '.github/workflows/ci.yml');
 const backmergeWorkflowPath = path.join(repoRoot, '.github/workflows/backmerge-main-to-dev.yml');
 const releaseMainWorkflowPath = path.join(repoRoot, '.github/workflows/release-main.yml');
@@ -55,6 +56,7 @@ const stableTemplate = fs.readFileSync(stableTemplatePath, 'utf8');
 const releaseGuard = fs.readFileSync(releaseGuardPath, 'utf8');
 const devFinalize = fs.readFileSync(devFinalizePath, 'utf8');
 const releasePrepare = fs.readFileSync(releasePreparePath, 'utf8');
+const simulateMainRelease = fs.readFileSync(simulateMainReleasePath, 'utf8');
 const ciWorkflow = fs.readFileSync(ciWorkflowPath, 'utf8');
 const backmergeWorkflow = fs.readFileSync(backmergeWorkflowPath, 'utf8');
 const releaseMainWorkflow = fs.readFileSync(releaseMainWorkflowPath, 'utf8');
@@ -413,13 +415,17 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
     for (const workflow of [releaseMainWorkflow, releaseOnMainWorkflow]) {
         assert.match(workflow, /Setup CI environment/);
         assert.match(workflow, /uses:\s*\.\/\.github\/actions\/setup-ci-env/);
-        assert.match(workflow, /Run release validation suite/);
-        assert.match(workflow, /bash scripts\/run_ci_suite\.sh --release/);
         assert.match(workflow, /FVPLUS_BROWSER_SMOKE_REQUIRED:\s*\$\{\{\s*secrets\.FVPLUS_BROWSER_SMOKE_URL\s*!=\s*''\s*&&\s*'1'\s*\|\|\s*'0'\s*\}\}/);
         assert.match(workflow, /FVPLUS_THEME_MATRIX_REQUIRED:\s*\$\{\{\s*secrets\.FVPLUS_THEME_MATRIX_URLS\s*!=\s*''\s*&&\s*'1'\s*\|\|\s*'0'\s*\}\}/);
         assert.match(workflow, /FVPLUS_BROWSER_SMOKE_REQUIRE_FOLDER_EDITOR:\s*'1'/);
         assert.match(workflow, /FVPLUS_THEME_REQUIRED_LABELS:\s*'black,white'/);
+        assert.match(workflow, /FVPLUS_REQUIRE_EXPLICIT_RELEASE_NOTES:\s*'1'/);
     }
+
+    assert.match(releaseMainWorkflow, /Prepare and push stable release/);
+    assert.match(releaseMainWorkflow, /bash scripts\/release_prepare\.sh --push-main/);
+    assert.match(releaseOnMainWorkflow, /Run release validation suite/);
+    assert.match(releaseOnMainWorkflow, /bash scripts\/run_ci_suite\.sh --release/);
 
     assert.match(backmergeWorkflow, /Validate merged dev state before push/);
     assert.match(backmergeWorkflow, /FVPLUS_EXPECT_PLUGIN_BRANCH:\s*'dev'/);
@@ -433,8 +439,8 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
     assert.match(backmergeWorkflow, /Upload back-merge debug artifacts on failure/);
 
     assert.match(releasePrepare, /bash scripts\/doctor\.sh/);
-    assert.match(releasePrepare, /bash pkg_build\.sh --no-validate/);
-    assert.match(releasePrepare, /bash scripts\/run_ci_suite\.sh/);
+    assert.match(releasePrepare, /bash pkg_build\.sh --branch main --no-validate/);
+    assert.match(releasePrepare, /bash scripts\/run_ci_suite\.sh --release/);
     assert.doesNotMatch(releasePrepare, /--beta/);
 });
 
@@ -472,13 +478,13 @@ test('release workflows serialize concurrent runs with shared release concurrenc
 
 test('release workflows avoid failing when no files changed for commit step', () => {
     for (const workflow of [releaseMainWorkflow]) {
-        assert.match(workflow, /git diff --cached --quiet/);
-        assert.match(workflow, /No release file changes to commit/);
+        assert.match(workflow, /bash scripts\/release_prepare\.sh --push-main/);
     }
 });
 
 test('release-main builds and pushes main while release-on-main owns publishing and notes generation', () => {
-    assert.match(releaseMainWorkflow, /Push main/);
+    assert.match(releaseMainWorkflow, /Prepare and push stable release/);
+    assert.match(releaseMainWorkflow, /bash scripts\/release_prepare\.sh --push-main/);
     assert.doesNotMatch(releaseMainWorkflow, /softprops\/action-gh-release/);
     assert.doesNotMatch(releaseMainWorkflow, /Create GitHub Release/);
     assert.match(releaseOnMainWorkflow, /Create or update GitHub release/);
@@ -522,7 +528,9 @@ test('back-merge sync script keeps dev linear and drops stable release artifacts
     assert.match(syncMainToDev, /git diff --name-only --diff-filter=U/);
     assert.match(syncMainToDev, /git checkout --ours -- "\$\{CONFLICT_PATHS\[@\]\}"/);
     assert.match(syncMainToDev, /git cherry-pick --continue/);
-    assert.match(syncMainToDev, /git restore --source=HEAD\^ --staged --worktree folderview\.plus\.plg folderview\.plus\.xml archive/);
+    assert.match(syncMainToDev, /docs\/releases\/\*\.md/);
+    assert.match(syncMainToDev, /restore_release_only_paths_from_previous/);
+    assert.match(syncMainToDev, /git restore --source=HEAD\^ --staged --worktree -- "\$\{restore_paths\[@\]\}"/);
     assert.doesNotMatch(syncMainToDev, /git merge --no-ff --no-commit/);
 });
 
@@ -537,9 +545,19 @@ test('install smoke supports configurable archive directory override', () => {
 
 test('ensure changes entry seeds category-signaling release note text', () => {
     assert.match(ensureChanges, /source "\$\{ROOT_DIR\}\/scripts\/lib\.sh"/);
-    assert.match(ensureChanges, /VERSION="\$\(fvplus::read_plg_version "\$\{PLG_FILE\}"\)"/);
+    assert.match(ensureChanges, /VERSION_OVERRIDE="\$\{FVPLUS_TARGET_RELEASE_VERSION:-\}"/);
+    assert.match(ensureChanges, /VERSION="\$\{VERSION_OVERRIDE:-\$\(fvplus::read_plg_version "\$\{PLG_FILE\}"\)\}"/);
+    assert.match(ensureChanges, /--check-only/);
+    assert.match(ensureChanges, /--require-explicit/);
+    assert.match(ensureChanges, /FVPLUS_TARGET_RELEASE_VERSION/);
+    assert.match(ensureChanges, /FVPLUS_REQUIRE_EXPLICIT_RELEASE_NOTES/);
+    assert.match(ensureChanges, /docs\/releases\/\$\{VERSION\}\.md/);
     assert.match(ensureChanges, /guess_category_from_subject/);
     assert.match(ensureChanges, /is_subject_metadata_only/);
+    assert.match(ensureChanges, /is_metadata_only_changes_line/);
+    assert.match(ensureChanges, /block_is_metadata_only/);
+    assert.match(ensureChanges, /duplicates the previous release notes block/);
+    assert.match(ensureChanges, /Explicit release notes are required/);
     assert.match(ensureChanges, /resolve_changes_anchor_ref/);
     assert.match(ensureChanges, /collect_changed_files/);
     assert.match(ensureChanges, /classify_changed_path_subsystems/);
@@ -559,6 +577,24 @@ test('ensure changes entry seeds category-signaling release note text', () => {
     assert.match(ensureChanges, /AUTO_FALLBACK_NOTE='Maintenance: Release metadata and packaging sync\.'/);
     assert.doesNotMatch(ensureChanges, /Refined settings and on-screen update messaging for clarity and consistency/);
     assert.doesNotMatch(ensureChanges, /Improved backend release-note parsing and category detection for accurate summaries/);
+});
+
+test('release preparation uses dry-run version resolution and explicit notes before stable packaging', () => {
+    assert.match(releasePrepare, /pkg_build\.sh --branch main --dry-run/);
+    assert.match(releasePrepare, /FVPLUS_TARGET_RELEASE_VERSION="\$\{RELEASE_VERSION\}"/);
+    assert.match(releasePrepare, /FVPLUS_REQUIRE_EXPLICIT_RELEASE_NOTES=1/);
+    assert.match(releasePrepare, /ensure_plg_changes_entry\.sh --check-only --require-explicit --version "\$\{RELEASE_VERSION\}"/);
+    assert.match(releasePrepare, /bash pkg_build\.sh --branch main --no-validate/);
+    assert.match(releasePrepare, /bash scripts\/run_ci_suite\.sh --release/);
+    assert.match(releasePrepare, /git commit -m "Stable release \$\{FINAL_VERSION\}"/);
+    assert.match(releasePrepare, /git push origin main/);
+});
+
+test('simulate main release uses a temporary worktree and shared release preparation path', () => {
+    assert.match(simulateMainRelease, /git -C "\$\{ROOT_DIR\}" worktree add --detach "\$\{WORKTREE_DIR\}" HEAD/);
+    assert.match(simulateMainRelease, /git -C "\$\{ROOT_DIR\}" worktree remove --force "\$\{WORKTREE_DIR\}"/);
+    assert.match(simulateMainRelease, /bash scripts\/release_prepare\.sh --notes-output/);
+    assert.match(simulateMainRelease, /release-main-simulation-notes\.md/);
 });
 
 test('release workflows keep checksum assets and metadata changes', () => {

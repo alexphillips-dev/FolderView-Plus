@@ -6,14 +6,14 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/main/folderview.plus.plg">
-<!ENTITY version "2026.04.05.12">
-<!ENTITY md5 "1d0d652eca2259167b6e7f901e490be3">
+<!ENTITY version "2026.04.05.13">
+<!ENTITY md5 "00b9d05e73769e5945b8d637dd710d6d">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
 
-###2026.04.05.12
+###2026.04.05.13
 - Feature: Added a compact `Bulk move` workflow directly to the Folder Editor `Members` tab for both Docker and VM folders, so users can move shown or included members into another folder without leaving the editor.
 - Feature: Bulk move supports the scopes `Shown`, `Included shown`, `Excluded shown`, and `All included`.
 - Feature: Bulk move reuses the guarded server-side bulk assignment path instead of duplicating a second editor-only mover.
@@ -33,6 +33,7 @@
 - Quality: Tightened workflow self-checks, release-note consistency validation, include-order coverage, and related release/package guards around the new release path.
 - Quality: Release runs no longer hard-require browser smoke or theme matrix URLs, so stable merges can proceed even when smoke targets are unavailable.
 - Quality: Remote publish validation now retries until raw GitHub artifacts reflect the pushed release, preventing false failures from raw cache lag.
+- Quality: Back-merge restores now skip missing release-only paths cleanly, preventing archive rename conflicts from failing automation.
 
 
 ###2026.04.05.02

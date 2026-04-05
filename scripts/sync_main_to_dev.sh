@@ -27,7 +27,9 @@ restore_release_only_paths_from_previous() {
   local -a restore_paths=()
   for file in "$@"; do
     if release_only_path "${file}"; then
-      restore_paths+=("${file}")
+      if git cat-file -e "HEAD^:${file}" 2>/dev/null; then
+        restore_paths+=("${file}")
+      fi
     fi
   done
   if [ "${#restore_paths[@]}" -eq 0 ]; then

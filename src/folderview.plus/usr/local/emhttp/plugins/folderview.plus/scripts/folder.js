@@ -4379,6 +4379,12 @@ function syncMemberSnapshotBaseline() {
     const baseline = parseSnapshotState(initialSnapshot || computeFormSnapshot());
     const current = parseSnapshotState(computeFormSnapshot());
     baseline.members = Array.isArray(current.members) ? current.members : [];
+    if (Object.prototype.hasOwnProperty.call(current.fields || {}, 'containers[]')) {
+        baseline.fields = baseline.fields && typeof baseline.fields === 'object' ? baseline.fields : {};
+        baseline.fields['containers[]'] = current.fields['containers[]'];
+    } else if (baseline.fields && typeof baseline.fields === 'object' && Object.prototype.hasOwnProperty.call(baseline.fields, 'containers[]')) {
+        delete baseline.fields['containers[]'];
+    }
     initialSnapshot = JSON.stringify(baseline);
     updateUnsavedIndicator();
     updateSectionStateIndicators();

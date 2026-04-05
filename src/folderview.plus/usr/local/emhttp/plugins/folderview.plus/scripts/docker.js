@@ -1112,6 +1112,7 @@ $(document)
     .off('click.fvDockerMemberMenuTrigger')
     .off('click.fvDockerMemberMenuAction')
     .off('click.fvDockerPreviewTooltipProxy')
+    .off('click.fvDockerPreviewActionFallback')
     .on('click.fvDockerPreviewTooltipProxy', '.fv-preview-tooltip-proxy', function(event) {
         const $proxy = $(event.target).closest('.fv-preview-tooltip-proxy');
         if (!$proxy.length) {
@@ -1136,6 +1137,31 @@ $(document)
                 // Ignore open failures and let the next interaction retry.
             }
         }
+    })
+    .on('click.fvDockerPreviewActionFallback', '.folder-preview .folder-element-webui > a, .folder-preview .folder-element-console > a, .folder-preview .folder-element-logs > a', function(event) {
+        const $link = $(event.target).closest('a');
+        if (!$link.length) {
+            return;
+        }
+        const action = String($link.attr('data-fv-preview-action') || '').trim().toLowerCase();
+        if (!action) {
+            return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        if (action === 'webui') {
+            const webuiUrl = String($link.attr('data-webui-url') || $link.attr('href') || '').trim();
+            if (webuiUrl) {
+                openWebuiInNewTab(webuiUrl);
+            }
+            return;
+        }
+        const containerName = String($link.attr('data-container-name') || '').trim();
+        if (!containerName) {
+            return;
+        }
+        const shellValue = String($link.attr('data-shell-value') || '').trim() || '/bin/sh';
+        openTerminal('docker', containerName, shellValue);
     });
 const clampDockerRuntimeColumnWidth = (value, columnIndex = 0) => {
     const parsed = Number(value);

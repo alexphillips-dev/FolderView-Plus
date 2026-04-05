@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.05.02">
-<!ENTITY md5 "297b483c95a1cb05bfebb43505e99a00">
+<!ENTITY version "2026.04.05.03">
+<!ENTITY md5 "461cc9d7985638873c8346e0bea4541c">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.05.03
+- Fix: Multi-row Docker preview Console and Logs buttons now keep their action wiring after compact preview rendering, so they open the terminal and logs instead of falling back to a top-of-page anchor jump.
+
 
 ###2026.04.05.02
 - Fix: Docker runtime rows, folder state, and container interactions.

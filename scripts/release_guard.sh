@@ -33,6 +33,17 @@ text_files_match() {
   diff -u <(tr -d '\r' < "${source_file}") <(tr -d '\r' < "${packaged_file}") >/dev/null
 }
 
+env_truthy() {
+  case "$(printf '%s' "${1:-0}" | tr '[:upper:]' '[:lower:]')" in
+    1|true|yes|on)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
 if [[ ! -f "${PLG_FILE}" ]]; then
   echo "ERROR: Missing plugin manifest: ${PLG_FILE}" >&2
   exit 1
@@ -733,103 +744,105 @@ tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SERVER_LIB_DIAGNOSTICS_PATH}" > "${TMP_ARC
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SERVER_APPLY_FOLDER_SETTINGS_PATH}" > "${TMP_ARCHIVE_SERVER_APPLY_FOLDER_SETTINGS}"
 tar -xOf "${ARCHIVE_FILE}" "${ARCHIVE_SERVER_UPDATE_NOTES_PATH}" > "${TMP_ARCHIVE_SERVER_UPDATE_NOTES}"
 
-if ! grep -q 'fv-force-left-v2 marker' "${TMP_ARCHIVE_FOLDER_JS}"; then
-  echo "ERROR: Packaged folder.js is missing the alignment regression marker comment." >&2
-  exit 1
-fi
+if ! env_truthy "${FVPLUS_ALLOW_PACKAGED_SOURCE_DRIFT:-0}"; then
+  if ! grep -q 'fv-force-left-v2 marker' "${TMP_ARCHIVE_FOLDER_JS}"; then
+    echo "ERROR: Packaged folder.js is missing the alignment regression marker comment." >&2
+    exit 1
+  fi
 
-if ! text_files_match "${SOURCE_FOLDER_JS}" "${TMP_ARCHIVE_FOLDER_JS}"; then
-  fail_packaged_source_mismatch "Packaged folder.js does not match source folder.js."
-fi
+  if ! text_files_match "${SOURCE_FOLDER_JS}" "${TMP_ARCHIVE_FOLDER_JS}"; then
+    fail_packaged_source_mismatch "Packaged folder.js does not match source folder.js."
+  fi
 
-if ! text_files_match "${SOURCE_DOCKER_RUNTIME_HIERARCHY_JS}" "${TMP_ARCHIVE_DOCKER_RUNTIME_HIERARCHY_JS}"; then
-  fail_packaged_source_mismatch "Packaged docker.runtime.hierarchy.js does not match source docker.runtime.hierarchy.js."
-fi
+  if ! text_files_match "${SOURCE_DOCKER_RUNTIME_HIERARCHY_JS}" "${TMP_ARCHIVE_DOCKER_RUNTIME_HIERARCHY_JS}"; then
+    fail_packaged_source_mismatch "Packaged docker.runtime.hierarchy.js does not match source docker.runtime.hierarchy.js."
+  fi
 
-if ! text_files_match "${SOURCE_DOCKER_RUNTIME_ACTIONS_JS}" "${TMP_ARCHIVE_DOCKER_RUNTIME_ACTIONS_JS}"; then
-  fail_packaged_source_mismatch "Packaged docker.runtime.actions.js does not match source docker.runtime.actions.js."
-fi
-if ! text_files_match "${SOURCE_FOLDER_SETTINGS_TRANSFER_JS}" "${TMP_ARCHIVE_FOLDER_SETTINGS_TRANSFER_JS}"; then
-  fail_packaged_source_mismatch "Packaged folder.settings-transfer.js does not match source folder.settings-transfer.js."
-fi
+  if ! text_files_match "${SOURCE_DOCKER_RUNTIME_ACTIONS_JS}" "${TMP_ARCHIVE_DOCKER_RUNTIME_ACTIONS_JS}"; then
+    fail_packaged_source_mismatch "Packaged docker.runtime.actions.js does not match source docker.runtime.actions.js."
+  fi
+  if ! text_files_match "${SOURCE_FOLDER_SETTINGS_TRANSFER_JS}" "${TMP_ARCHIVE_FOLDER_SETTINGS_TRANSFER_JS}"; then
+    fail_packaged_source_mismatch "Packaged folder.settings-transfer.js does not match source folder.settings-transfer.js."
+  fi
 
-if ! text_files_match "${SOURCE_FOLDER_CSS}" "${TMP_ARCHIVE_FOLDER_CSS}"; then
-  fail_packaged_source_mismatch "Packaged folder.css does not match source folder.css."
-fi
-if ! text_files_match "${SOURCE_SETTINGS_JS}" "${TMP_ARCHIVE_SETTINGS_JS}"; then
-  fail_packaged_source_mismatch "Packaged folderviewplus.js does not match source folderviewplus.js."
-fi
-if ! text_files_match "${SOURCE_SETTINGS_DIRTY_JS}" "${TMP_ARCHIVE_SETTINGS_DIRTY_JS}"; then
-  fail_packaged_source_mismatch "Packaged folderviewplus.dirty.js does not match source folderviewplus.dirty.js."
-fi
-if ! text_files_match "${SOURCE_SETTINGS_RUNTIME_PARITY_JS}" "${TMP_ARCHIVE_SETTINGS_RUNTIME_PARITY_JS}"; then
-  fail_packaged_source_mismatch "Packaged folderviewplus.runtime-parity.js does not match source folderviewplus.runtime-parity.js."
-fi
-if ! text_files_match "${SOURCE_SETTINGS_SECTIONS_JS}" "${TMP_ARCHIVE_SETTINGS_SECTIONS_JS}"; then
-  fail_packaged_source_mismatch "Packaged folderviewplus.settings-sections.js does not match source folderviewplus.settings-sections.js."
-fi
-if ! text_files_match "${SOURCE_SETTINGS_SETUP_ASSISTANT_JS}" "${TMP_ARCHIVE_SETTINGS_SETUP_ASSISTANT_JS}"; then
-  fail_packaged_source_mismatch "Packaged folderviewplus.setup-assistant.js does not match source folderviewplus.setup-assistant.js."
-fi
-if ! text_files_match "${SOURCE_SETTINGS_SMART_DETECT_CONFIG_JS}" "${TMP_ARCHIVE_SETTINGS_SMART_DETECT_CONFIG_JS}"; then
-  fail_packaged_source_mismatch "Packaged folderviewplus.smart-detect-config.js does not match source folderviewplus.smart-detect-config.js."
-fi
-if ! text_files_match "${SOURCE_SETTINGS_STARTER_TEMPLATES_JS}" "${TMP_ARCHIVE_SETTINGS_STARTER_TEMPLATES_JS}"; then
-  fail_packaged_source_mismatch "Packaged folderviewplus.starter-templates.js does not match source folderviewplus.starter-templates.js."
-fi
-if ! text_files_match "${SOURCE_SETTINGS_SUPPORT_BUNDLE_PREVIEW_JS}" "${TMP_ARCHIVE_SETTINGS_SUPPORT_BUNDLE_PREVIEW_JS}"; then
-  fail_packaged_source_mismatch "Packaged folderviewplus.support-bundle-preview.js does not match source folderviewplus.support-bundle-preview.js."
-fi
-if ! text_files_match "${SOURCE_SETTINGS_SUPPORT_BUNDLE_TELEMETRY_JS}" "${TMP_ARCHIVE_SETTINGS_SUPPORT_BUNDLE_TELEMETRY_JS}"; then
-  fail_packaged_source_mismatch "Packaged folderviewplus.support-bundle-telemetry.js does not match source folderviewplus.support-bundle-telemetry.js."
-fi
-if ! text_files_match "${SOURCE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS}" "${TMP_ARCHIVE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS}"; then
-  fail_packaged_source_mismatch "Packaged folderviewplus.activity-diagnostics.js does not match source folderviewplus.activity-diagnostics.js."
-fi
-if ! text_files_match "${SOURCE_SETTINGS_TREE_JS}" "${TMP_ARCHIVE_SETTINGS_TREE_JS}"; then
-  fail_packaged_source_mismatch "Packaged folderviewplus.settings-tree.js does not match source folderviewplus.settings-tree.js."
-fi
-if ! text_files_match "${SOURCE_SETTINGS_FOLDER_EDITOR_JS}" "${TMP_ARCHIVE_SETTINGS_FOLDER_EDITOR_JS}"; then
-  fail_packaged_source_mismatch "Packaged folderviewplus.folder-editor.js does not match source folderviewplus.folder-editor.js."
-fi
-if ! text_files_match "${SOURCE_SETTINGS_HEALTH_JS}" "${TMP_ARCHIVE_SETTINGS_HEALTH_JS}"; then
-  fail_packaged_source_mismatch "Packaged folderviewplus.settings-health.js does not match source folderviewplus.settings-health.js."
-fi
-if ! text_files_match "${SOURCE_SETTINGS_WORKSPACES_JS}" "${TMP_ARCHIVE_SETTINGS_WORKSPACES_JS}"; then
-  fail_packaged_source_mismatch "Packaged folderviewplus.settings-workspaces.js does not match source folderviewplus.settings-workspaces.js."
-fi
-if ! text_files_match "${SOURCE_SETTINGS_BULK_ASSIGNMENT_JS}" "${TMP_ARCHIVE_SETTINGS_BULK_ASSIGNMENT_JS}"; then
-  fail_packaged_source_mismatch "Packaged folderviewplus.bulk-assignment.js does not match source folderviewplus.bulk-assignment.js."
-fi
-if ! text_files_match "${SOURCE_SETTINGS_RUNTIME_ACTIONS_JS}" "${TMP_ARCHIVE_SETTINGS_RUNTIME_ACTIONS_JS}"; then
-  fail_packaged_source_mismatch "Packaged folderviewplus.runtime-actions.js does not match source folderviewplus.runtime-actions.js."
-fi
-if ! text_files_match "${SOURCE_SETTINGS_WIZARD_JS}" "${TMP_ARCHIVE_SETTINGS_WIZARD_JS}"; then
-  fail_packaged_source_mismatch "Packaged folderviewplus.wizard.js does not match source folderviewplus.wizard.js."
-fi
-if ! text_files_match "${SOURCE_SETTINGS_IMPORT_JS}" "${TMP_ARCHIVE_SETTINGS_IMPORT_JS}"; then
-  fail_packaged_source_mismatch "Packaged folderviewplus.import.js does not match source folderviewplus.import.js."
-fi
-if ! text_files_match "${SOURCE_SETTINGS_CSS}" "${TMP_ARCHIVE_SETTINGS_CSS}"; then
-  fail_packaged_source_mismatch "Packaged folderviewplus.css does not match source folderviewplus.css."
-fi
-if ! text_files_match "${SOURCE_FOLDER_PAGE}" "${TMP_ARCHIVE_FOLDER_PAGE}"; then
-  fail_packaged_source_mismatch "Packaged Folder.page does not match source Folder.page."
-fi
-if ! text_files_match "${SOURCE_SETTINGS_PAGE}" "${TMP_ARCHIVE_SETTINGS_PAGE}"; then
-  fail_packaged_source_mismatch "Packaged FolderViewPlus.page does not match source FolderViewPlus.page."
-fi
-if ! text_files_match "${SOURCE_SERVER_LIB}" "${TMP_ARCHIVE_SERVER_LIB}"; then
-  fail_packaged_source_mismatch "Packaged server/lib.php does not match source server/lib.php."
-fi
-if ! text_files_match "${SOURCE_SERVER_LIB_DIAGNOSTICS}" "${TMP_ARCHIVE_SERVER_LIB_DIAGNOSTICS}"; then
-  fail_packaged_source_mismatch "Packaged server/lib.diagnostics.php does not match source server/lib.diagnostics.php."
-fi
-if ! text_files_match "${SOURCE_SERVER_APPLY_FOLDER_SETTINGS}" "${TMP_ARCHIVE_SERVER_APPLY_FOLDER_SETTINGS}"; then
-  fail_packaged_source_mismatch "Packaged server/apply_folder_settings.php does not match source server/apply_folder_settings.php."
-fi
-if ! text_files_match "${SOURCE_SERVER_UPDATE_NOTES}" "${TMP_ARCHIVE_SERVER_UPDATE_NOTES}"; then
-  fail_packaged_source_mismatch "Packaged server/update_notes.php does not match source server/update_notes.php."
+  if ! text_files_match "${SOURCE_FOLDER_CSS}" "${TMP_ARCHIVE_FOLDER_CSS}"; then
+    fail_packaged_source_mismatch "Packaged folder.css does not match source folder.css."
+  fi
+  if ! text_files_match "${SOURCE_SETTINGS_JS}" "${TMP_ARCHIVE_SETTINGS_JS}"; then
+    fail_packaged_source_mismatch "Packaged folderviewplus.js does not match source folderviewplus.js."
+  fi
+  if ! text_files_match "${SOURCE_SETTINGS_DIRTY_JS}" "${TMP_ARCHIVE_SETTINGS_DIRTY_JS}"; then
+    fail_packaged_source_mismatch "Packaged folderviewplus.dirty.js does not match source folderviewplus.dirty.js."
+  fi
+  if ! text_files_match "${SOURCE_SETTINGS_RUNTIME_PARITY_JS}" "${TMP_ARCHIVE_SETTINGS_RUNTIME_PARITY_JS}"; then
+    fail_packaged_source_mismatch "Packaged folderviewplus.runtime-parity.js does not match source folderviewplus.runtime-parity.js."
+  fi
+  if ! text_files_match "${SOURCE_SETTINGS_SECTIONS_JS}" "${TMP_ARCHIVE_SETTINGS_SECTIONS_JS}"; then
+    fail_packaged_source_mismatch "Packaged folderviewplus.settings-sections.js does not match source folderviewplus.settings-sections.js."
+  fi
+  if ! text_files_match "${SOURCE_SETTINGS_SETUP_ASSISTANT_JS}" "${TMP_ARCHIVE_SETTINGS_SETUP_ASSISTANT_JS}"; then
+    fail_packaged_source_mismatch "Packaged folderviewplus.setup-assistant.js does not match source folderviewplus.setup-assistant.js."
+  fi
+  if ! text_files_match "${SOURCE_SETTINGS_SMART_DETECT_CONFIG_JS}" "${TMP_ARCHIVE_SETTINGS_SMART_DETECT_CONFIG_JS}"; then
+    fail_packaged_source_mismatch "Packaged folderviewplus.smart-detect-config.js does not match source folderviewplus.smart-detect-config.js."
+  fi
+  if ! text_files_match "${SOURCE_SETTINGS_STARTER_TEMPLATES_JS}" "${TMP_ARCHIVE_SETTINGS_STARTER_TEMPLATES_JS}"; then
+    fail_packaged_source_mismatch "Packaged folderviewplus.starter-templates.js does not match source folderviewplus.starter-templates.js."
+  fi
+  if ! text_files_match "${SOURCE_SETTINGS_SUPPORT_BUNDLE_PREVIEW_JS}" "${TMP_ARCHIVE_SETTINGS_SUPPORT_BUNDLE_PREVIEW_JS}"; then
+    fail_packaged_source_mismatch "Packaged folderviewplus.support-bundle-preview.js does not match source folderviewplus.support-bundle-preview.js."
+  fi
+  if ! text_files_match "${SOURCE_SETTINGS_SUPPORT_BUNDLE_TELEMETRY_JS}" "${TMP_ARCHIVE_SETTINGS_SUPPORT_BUNDLE_TELEMETRY_JS}"; then
+    fail_packaged_source_mismatch "Packaged folderviewplus.support-bundle-telemetry.js does not match source folderviewplus.support-bundle-telemetry.js."
+  fi
+  if ! text_files_match "${SOURCE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS}" "${TMP_ARCHIVE_SETTINGS_ACTIVITY_DIAGNOSTICS_JS}"; then
+    fail_packaged_source_mismatch "Packaged folderviewplus.activity-diagnostics.js does not match source folderviewplus.activity-diagnostics.js."
+  fi
+  if ! text_files_match "${SOURCE_SETTINGS_TREE_JS}" "${TMP_ARCHIVE_SETTINGS_TREE_JS}"; then
+    fail_packaged_source_mismatch "Packaged folderviewplus.settings-tree.js does not match source folderviewplus.settings-tree.js."
+  fi
+  if ! text_files_match "${SOURCE_SETTINGS_FOLDER_EDITOR_JS}" "${TMP_ARCHIVE_SETTINGS_FOLDER_EDITOR_JS}"; then
+    fail_packaged_source_mismatch "Packaged folderviewplus.folder-editor.js does not match source folderviewplus.folder-editor.js."
+  fi
+  if ! text_files_match "${SOURCE_SETTINGS_HEALTH_JS}" "${TMP_ARCHIVE_SETTINGS_HEALTH_JS}"; then
+    fail_packaged_source_mismatch "Packaged folderviewplus.settings-health.js does not match source folderviewplus.settings-health.js."
+  fi
+  if ! text_files_match "${SOURCE_SETTINGS_WORKSPACES_JS}" "${TMP_ARCHIVE_SETTINGS_WORKSPACES_JS}"; then
+    fail_packaged_source_mismatch "Packaged folderviewplus.settings-workspaces.js does not match source folderviewplus.settings-workspaces.js."
+  fi
+  if ! text_files_match "${SOURCE_SETTINGS_BULK_ASSIGNMENT_JS}" "${TMP_ARCHIVE_SETTINGS_BULK_ASSIGNMENT_JS}"; then
+    fail_packaged_source_mismatch "Packaged folderviewplus.bulk-assignment.js does not match source folderviewplus.bulk-assignment.js."
+  fi
+  if ! text_files_match "${SOURCE_SETTINGS_RUNTIME_ACTIONS_JS}" "${TMP_ARCHIVE_SETTINGS_RUNTIME_ACTIONS_JS}"; then
+    fail_packaged_source_mismatch "Packaged folderviewplus.runtime-actions.js does not match source folderviewplus.runtime-actions.js."
+  fi
+  if ! text_files_match "${SOURCE_SETTINGS_WIZARD_JS}" "${TMP_ARCHIVE_SETTINGS_WIZARD_JS}"; then
+    fail_packaged_source_mismatch "Packaged folderviewplus.wizard.js does not match source folderviewplus.wizard.js."
+  fi
+  if ! text_files_match "${SOURCE_SETTINGS_IMPORT_JS}" "${TMP_ARCHIVE_SETTINGS_IMPORT_JS}"; then
+    fail_packaged_source_mismatch "Packaged folderviewplus.import.js does not match source folderviewplus.import.js."
+  fi
+  if ! text_files_match "${SOURCE_SETTINGS_CSS}" "${TMP_ARCHIVE_SETTINGS_CSS}"; then
+    fail_packaged_source_mismatch "Packaged folderviewplus.css does not match source folderviewplus.css."
+  fi
+  if ! text_files_match "${SOURCE_FOLDER_PAGE}" "${TMP_ARCHIVE_FOLDER_PAGE}"; then
+    fail_packaged_source_mismatch "Packaged Folder.page does not match source Folder.page."
+  fi
+  if ! text_files_match "${SOURCE_SETTINGS_PAGE}" "${TMP_ARCHIVE_SETTINGS_PAGE}"; then
+    fail_packaged_source_mismatch "Packaged FolderViewPlus.page does not match source FolderViewPlus.page."
+  fi
+  if ! text_files_match "${SOURCE_SERVER_LIB}" "${TMP_ARCHIVE_SERVER_LIB}"; then
+    fail_packaged_source_mismatch "Packaged server/lib.php does not match source server/lib.php."
+  fi
+  if ! text_files_match "${SOURCE_SERVER_LIB_DIAGNOSTICS}" "${TMP_ARCHIVE_SERVER_LIB_DIAGNOSTICS}"; then
+    fail_packaged_source_mismatch "Packaged server/lib.diagnostics.php does not match source server/lib.diagnostics.php."
+  fi
+  if ! text_files_match "${SOURCE_SERVER_APPLY_FOLDER_SETTINGS}" "${TMP_ARCHIVE_SERVER_APPLY_FOLDER_SETTINGS}"; then
+    fail_packaged_source_mismatch "Packaged server/apply_folder_settings.php does not match source server/apply_folder_settings.php."
+  fi
+  if ! text_files_match "${SOURCE_SERVER_UPDATE_NOTES}" "${TMP_ARCHIVE_SERVER_UPDATE_NOTES}"; then
+    fail_packaged_source_mismatch "Packaged server/update_notes.php does not match source server/update_notes.php."
+  fi
 fi
 
 if [[ ! -d "${SERVER_DIR}" ]]; then

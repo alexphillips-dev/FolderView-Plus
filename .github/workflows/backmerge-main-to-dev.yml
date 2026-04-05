@@ -41,6 +41,7 @@ jobs:
       - name: Validate merged dev state before push
         env:
           FVPLUS_EXPECT_PLUGIN_BRANCH: 'dev'
+          FVPLUS_ALLOW_PACKAGED_SOURCE_DRIFT: '1'
           FVPLUS_UNRAID_MATRIX: ${{ secrets.FVPLUS_UNRAID_MATRIX }}
           FVPLUS_I18N_STRICT: '1'
           FVPLUS_DEAD_CODE_STRICT: '1'

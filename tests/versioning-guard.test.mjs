@@ -198,6 +198,7 @@ test('release_guard checks debug flags and mutation endpoint guards', () => {
     assert.match(releaseGuard, /FOLDER_VIEW_DEBUG_MODE is enabled in docker\.js/);
     assert.match(releaseGuard, /VM_DEBUG_MODE is enabled in vm\.js/);
     assert.match(releaseGuard, /DASHBOARD_DEBUG_MODE is enabled in dashboard\.js/);
+    assert.match(releaseGuard, /FVPLUS_ALLOW_PACKAGED_SOURCE_DRIFT/);
     assert.match(releaseGuard, /READ_ONLY_ENDPOINTS=\(/);
     assert.match(releaseGuard, /requireMutationRequestGuard\(\)/);
     assert.match(releaseGuard, /Mutating endpoint is missing requireMutationRequestGuard/);
@@ -422,6 +423,7 @@ test('validation workflows delegate to the shared ci suite with dev coverage, fa
 
     assert.match(backmergeWorkflow, /Validate merged dev state before push/);
     assert.match(backmergeWorkflow, /FVPLUS_EXPECT_PLUGIN_BRANCH:\s*'dev'/);
+    assert.match(backmergeWorkflow, /FVPLUS_ALLOW_PACKAGED_SOURCE_DRIFT:\s*'1'/);
     assert.match(backmergeWorkflow, /bash scripts\/run_ci_suite\.sh/);
     assert.match(backmergeWorkflow, /Setup CI environment/);
     assert.match(backmergeWorkflow, /uses:\s*\.\/\.github\/actions\/setup-ci-env/);

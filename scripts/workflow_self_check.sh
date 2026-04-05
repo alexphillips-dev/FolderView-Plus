@@ -93,6 +93,9 @@ if (!/upload-artifact@v4/.test(backmergeWorkflow)) {
 if (!/FVPLUS_EXPECT_PLUGIN_BRANCH:\s*'dev'/.test(backmergeWorkflow)) {
   fail('Back-merge workflow must validate merged dev state with FVPLUS_EXPECT_PLUGIN_BRANCH set to dev.');
 }
+if (!/FVPLUS_ALLOW_PACKAGED_SOURCE_DRIFT:\s*'1'/.test(backmergeWorkflow)) {
+  fail('Back-merge workflow must allow expected packaged/source drift while validating non-release back-merge branches.');
+}
 if (!/pull-requests:\s*write/.test(backmergeWorkflow)) {
   fail('Back-merge workflow must have pull-requests: write permission.');
 }

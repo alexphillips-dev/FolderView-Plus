@@ -6,12 +6,20 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.05.06">
-<!ENTITY md5 "d2ef7d6d5e8bb297624bfaee7b379903">
+<!ENTITY version "2026.04.05.08">
+<!ENTITY md5 "0aa6a00b5a9ebfcfc7ccbbe6a3c172a9">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.05.08
+- UX: Folder editor flows, previews, and bootstrap behavior.
+
+
+###2026.04.05.07
+- Fix: Folder editor startup no longer crashes on bulk-move-enabled builds when hydration reaches the current scope and target helpers before those Members-tab bulk move utilities finish initializing.
+
 
 ###2026.04.05.06
 - UX: Folder editor flows, previews, and bootstrap behavior.

@@ -4329,15 +4329,19 @@ const getFolderSettingsApplyTargets = () => Object.entries(allFoldersById || {})
     })
     .sort((left, right) => left.name.localeCompare(right.name, undefined, { sensitivity: 'base' }));
 
-const getMemberBulkMoveTargets = () => getFolderSettingsApplyTargets();
+function getMemberBulkMoveTargets() {
+    return getFolderSettingsApplyTargets();
+}
 
-const describeMemberBulkMoveScope = (scope) => {
+function describeMemberBulkMoveScope(scope) {
     const normalized = String(scope || '').trim().toLowerCase();
     const match = MEMBER_BULK_SCOPE_OPTIONS.find((entry) => entry.value === normalized);
     return match ? match.label : 'Move shown';
-};
+}
 
-const getCurrentMemberBulkMoveScope = () => String($('#fvMemberBulkScope').val() || 'shown').trim().toLowerCase() || 'shown';
+function getCurrentMemberBulkMoveScope() {
+    return String($('#fvMemberBulkScope').val() || 'shown').trim().toLowerCase() || 'shown';
+}
 
 function collectCurrentMemberBulkMoveScope() {
     const scope = getCurrentMemberBulkMoveScope();
@@ -4369,7 +4373,7 @@ function renderMemberBulkMoveTargets() {
     }
 }
 
-const syncMemberSnapshotBaseline = () => {
+function syncMemberSnapshotBaseline() {
     const baseline = parseSnapshotState(initialSnapshot || computeFormSnapshot());
     const current = parseSnapshotState(computeFormSnapshot());
     baseline.members = Array.isArray(current.members) ? current.members : [];
@@ -4377,7 +4381,7 @@ const syncMemberSnapshotBaseline = () => {
     updateUnsavedIndicator();
     updateSectionStateIndicators();
     updateChangeSummaryPanel();
-};
+}
 
 const applyMemberBulkMoveResultLocally = (targetFolderId, movedNames = []) => {
     const safeTargetFolderId = String(targetFolderId || '').trim();

@@ -51,8 +51,10 @@ test('docker runtime applies preview row layout limits and keeps compact preview
     assert.match(dockerJs, /const buildDockerPreviewItem = \(\{ entry = \{\}, settings = \{\}, autostart = false \}\) =>/);
     assert.match(dockerJs, /const bindCompactPreviewDefaultContext = \(\$item, \$sourceRow\) =>/);
     assert.match(dockerJs, /\$sourceRow\.find\('td\.ct-name > span\.outer > span\.hand'\)\.first\(\)/);
-    assert.match(dockerJs, /\.on\('click\.fvDockerCompactDefaultContext', \(event\) => \{/);
-    assert.match(dockerJs, /\$\(nativeTrigger\)\.trigger\(clickEvent\);/);
+    assert.match(dockerJs, /const inlineClick = String\(\$nativeTrigger\.attr\('onclick'\) \|\| ''\)\.trim\(\);/);
+    assert.match(dockerJs, /const targets = \[/);
+    assert.match(dockerJs, /\$target\.addClass\('hand'\);/);
+    assert.match(dockerJs, /\$target\.attr\('onclick', inlineClick\);/);
     assert.match(dockerJs, /fv-docker-preview-mode-2 fv-preview-trigger fv-preview-tooltip-proxy/);
     assert.match(dockerJs, /fv-docker-preview-mode-\$\{previewMode\} fv-preview-trigger fv-preview-tooltip-proxy/);
     assert.match(dockerJs, /fv-docker-preview-mode-1 fv-preview-trigger fv-preview-tooltip-proxy/);

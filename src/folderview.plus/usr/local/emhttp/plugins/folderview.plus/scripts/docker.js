@@ -979,36 +979,32 @@ const bindCompactPreviewDefaultContext = ($item, $sourceRow) => {
     if (!$nativeTrigger.length) {
         return;
     }
-    $item
-        .attr('data-fv-default-context-proxy', '1')
-        .off('click.fvDockerCompactDefaultContext')
-        .on('click.fvDockerCompactDefaultContext', (event) => {
-            if ($(event.target).closest('.folder-element-custom-btn').length) {
-                return;
-            }
-            event.preventDefault();
-            event.stopPropagation();
-            const nativeTrigger = $nativeTrigger.get(0);
-            if (!nativeTrigger) {
-                return;
-            }
-            const clickEvent = $.Event('click');
-            try {
-                $(nativeTrigger).trigger(clickEvent);
-            } catch (_error) {
-                // Fall back to the native click path below.
-            }
-            if (clickEvent.isDefaultPrevented()) {
-                return;
-            }
-            try {
-                if (typeof nativeTrigger.click === 'function') {
-                    nativeTrigger.click();
-                }
-            } catch (_error) {
-                // Ignore native click fallbacks when the host row rejects programmatic clicks.
-            }
-        });
+    const inlineClick = String($nativeTrigger.attr('onclick') || '').trim();
+    const inlineContextMenu = String($nativeTrigger.attr('oncontextmenu') || '').trim();
+    const title = String($nativeTrigger.attr('title') || '').trim();
+    const targets = [
+        $item,
+        $item.find('.hand').first(),
+        $item.find('.inner').first(),
+        $item.find('span.appname').first(),
+        $item.find('span.appname > a.exec').first()
+    ].filter(($target) => $target && $target.length);
+    targets.forEach(($target) => {
+        $target.addClass('hand');
+        if (inlineClick) {
+            $target.attr('onclick', inlineClick);
+        }
+        if (inlineContextMenu) {
+            $target.attr('oncontextmenu', inlineContextMenu);
+        }
+        if (title) {
+            $target.attr('title', title);
+        }
+    });
+    const $appLink = $item.find('span.appname > a.exec').first();
+    if ($appLink.length && !$appLink.attr('href')) {
+        $appLink.attr('href', '#');
+    }
 };
 const decorateDockerFolderMemberRow = ($row, folderId, containerName) => {
     if (!$row || !$row.length) {

@@ -36,10 +36,15 @@ test('folder editor members tab renders compact bulk move controls and blocks un
     assert.match(folderJs, /renderMemberBulkMoveTargets\(\);/);
     assert.match(folderJs, /applyMemberBulkMoveResultLocally\(plan\.targetFolderId/);
     assert.match(folderJs, /syncMemberSnapshotBaseline\(\);/);
+    assert.match(folderJs, /memberBulkMoveUndoState = \{/);
+    assert.match(folderJs, /id="fvMemberBulkUndo"/);
+    assert.match(folderJs, /void undoEditorMemberBulkMove\(\);/);
+    assert.doesNotMatch(folderJs, /title: 'Bulk move complete'/);
 });
 
 test('folder editor styles include dedicated member bulk move layout hooks', () => {
     assert.match(folderCss, /\.fv-member-bulk-row\s*\{/);
     assert.match(folderCss, /\.fv-member-bulk-controls\s*\{/);
     assert.match(folderCss, /\.fv-member-bulk-summary\s*\{/);
+    assert.match(folderCss, /\.fv-member-bulk-inline-action\s*\{/);
 });

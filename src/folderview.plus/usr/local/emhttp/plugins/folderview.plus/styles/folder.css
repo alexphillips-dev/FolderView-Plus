@@ -1963,9 +1963,30 @@ body[data-fvplus-host-theme="white"] #fvEditorActionBar,
 }
 
 .fv-member-bulk-summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.55em;
     color: var(--fv-editor-muted);
     font-size: 0.96rem;
     line-height: 1.35;
+}
+
+.fv-member-bulk-summary-text {
+    min-width: 0;
+}
+
+.fv-member-bulk-inline-action {
+    border: 0;
+    border-radius: 999px;
+    padding: 0.28em 0.9em;
+    background: linear-gradient(180deg, var(--fv-editor-button-bg-top), var(--fv-editor-button-bg-bottom));
+    color: var(--fv-editor-button-fg);
+    box-shadow: var(--fv-editor-button-shadow);
+    font-size: 0.86rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
 .fv-member-chip {

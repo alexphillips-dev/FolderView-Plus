@@ -388,6 +388,8 @@ let editorMode = 'basic';
 let activeEditorSection = 'general';
 let advancedSectionCollapsedState = {};
 let memberBulkMoveInFlight = false;
+let memberBulkMoveUndoState = null;
+let memberBulkMoveUndoInFlight = false;
 const SMART_DEFAULT_FIELD_NAMES = new Set([
     'icon',
     'preview',
@@ -4383,6 +4385,11 @@ function syncMemberSnapshotBaseline() {
     updateChangeSummaryPanel();
 }
 
+function clearMemberBulkMoveUndoState() {
+    memberBulkMoveUndoState = null;
+    memberBulkMoveUndoInFlight = false;
+}
+
 const applyMemberBulkMoveResultLocally = (targetFolderId, movedNames = []) => {
     const safeTargetFolderId = String(targetFolderId || '').trim();
     const uniqueNames = Array.from(new Set((Array.isArray(movedNames) ? movedNames : []).map((name) => String(name || '').trim()).filter(Boolean)));
@@ -4451,42 +4458,37 @@ const restoreEditorBulkMoveBackup = async (backupName) => {
     return response.restore || {};
 };
 
-const offerMemberBulkMoveUndo = async (backup, successMessage) => {
-    const backupName = String(backup?.name || '').trim();
-    if (!backupName) {
-        swal({
-            title: 'Bulk move complete',
-            text: successMessage,
-            type: 'success'
-        });
-        return;
+function setMemberBulkMoveUndoState(backup, successMessage) {
+    memberBulkMoveUndoState = {
+        backupName: String(backup?.name || '').trim(),
+        message: String(successMessage || '').trim() || 'Bulk move complete.'
+    };
+    memberBulkMoveUndoInFlight = false;
+}
+
+async function undoEditorMemberBulkMove() {
+    const backupName = String(memberBulkMoveUndoState?.backupName || '').trim();
+    if (!backupName || memberBulkMoveUndoInFlight) {
+        return false;
     }
-    swal({
-        title: 'Bulk move complete',
-        text: `${successMessage}\n\nBackup created: ${backupName}\nUndo will reload this editor.`,
-        type: 'success',
-        showCancelButton: true,
-        confirmButtonText: 'Undo',
-        cancelButtonText: 'Close',
-        closeOnConfirm: false,
-        showLoaderOnConfirm: true
-    }, async (confirmed) => {
-        if (!confirmed) {
-            return;
-        }
-        try {
-            await restoreEditorBulkMoveBackup(backupName);
-            suppressUnloadPrompt = true;
-            location.reload();
-        } catch (error) {
-            swal({
-                title: 'Undo failed',
-                text: extractAjaxErrorMessage(error, 'bulk move undo'),
-                type: 'error'
-            });
-        }
-    });
-};
+    memberBulkMoveUndoInFlight = true;
+    updateMemberBulkMoveUi();
+    try {
+        await restoreEditorBulkMoveBackup(backupName);
+        suppressUnloadPrompt = true;
+        location.reload();
+        return true;
+    } catch (error) {
+        memberBulkMoveUndoInFlight = false;
+        updateMemberBulkMoveUi();
+        swal({
+            title: 'Undo failed',
+            text: extractAjaxErrorMessage(error, 'bulk move undo'),
+            type: 'error'
+        });
+        return false;
+    }
+}
 
 async function applyEditorMemberBulkMove() {
     if (memberBulkMoveInFlight) {
@@ -4573,6 +4575,7 @@ async function applyEditorMemberBulkMove() {
             return;
         }
         memberBulkMoveInFlight = true;
+        clearMemberBulkMoveUndoState();
         updateMemberBulkMoveUi();
         try {
             const preludeLines = sharedApi.buildBulkAssignmentPreludeLines(plan, {
@@ -4596,13 +4599,14 @@ async function applyEditorMemberBulkMove() {
             });
             if (executionResult?.cancelled) {
                 $('#fvMemberBulkSummary').text(executionResult.summary || 'Bulk move is already running.');
+                swal.close();
                 return;
             }
+            swal.close();
             applyMemberBulkMoveResultLocally(plan.targetFolderId, executionResult?.lines?.filter((entry) => entry.status === 'success').map((entry) => entry.name) || []);
             const successMessage = executionResult?.summary || `Moved ${plan.actionableNames.length} item${plan.actionableNames.length === 1 ? '' : 's'}.`;
-            $('#fvMemberBulkSummary').text(successMessage);
-            swal.close();
-            await offerMemberBulkMoveUndo(executionResult?.backup || null, successMessage);
+            setMemberBulkMoveUndoState(executionResult?.backup || null, successMessage);
+            updateMemberBulkMoveUi();
         } catch (error) {
             $('#fvMemberBulkSummary').text('Bulk move failed.');
             swal({
@@ -4634,6 +4638,26 @@ function updateMemberBulkMoveUi() {
         return;
     }
     if (memberBulkMoveInFlight) {
+        return;
+    }
+    if (memberBulkMoveUndoState) {
+        const successText = escapeHtml(String(memberBulkMoveUndoState.message || 'Bulk move complete.'));
+        const backupName = escapeHtml(String(memberBulkMoveUndoState.backupName || '').trim());
+        if (memberBulkMoveUndoInFlight && backupName) {
+            summaryNode.html(`<span class="fv-member-bulk-summary-text">${successText} Restoring backup ${backupName}...</span>`);
+            return;
+        }
+        if (backupName) {
+            summaryNode.html(`
+                <span class="fv-member-bulk-summary-text">${successText} Backup created: ${backupName}.</span>
+                <button type="button" id="fvMemberBulkUndo" class="fv-member-bulk-inline-action">Undo</button>
+            `);
+            $('#fvMemberBulkUndo').off('click').on('click', () => {
+                void undoEditorMemberBulkMove();
+            });
+            return;
+        }
+        summaryNode.html(`<span class="fv-member-bulk-summary-text">${successText}</span>`);
         return;
     }
     if ((scopeDetails.movableCount || 0) <= 0) {

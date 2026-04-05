@@ -42,6 +42,7 @@
                 .append('<i class="fa fa-globe" aria-hidden="true"></i>')
                 .on('click', (event) => {
                     event.preventDefault();
+                    event.stopPropagation();
                     openWebuiInNewTab(webuiUrl);
                 })
         );
@@ -51,6 +52,7 @@
                 .append('<i class="fa fa-terminal" aria-hidden="true"></i>')
                 .on('click', (event) => {
                     event.preventDefault();
+                    event.stopPropagation();
                     openTerminal('docker', containerName, shellValue);
                 })
         );
@@ -60,6 +62,7 @@
                 .append('<i class="fa fa-bars" aria-hidden="true"></i>')
                 .on('click', (event) => {
                     event.preventDefault();
+                    event.stopPropagation();
                     openTerminal('docker', containerName, '.log');
                 })
         );

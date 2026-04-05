@@ -6,12 +6,16 @@
 <!ENTITY launch "Settings/FolderViewPlus">
 <!ENTITY plugdir "/usr/local/emhttp/plugins/&name;">
 <!ENTITY pluginURL "https://raw.githubusercontent.com/&github;/dev/folderview.plus.plg">
-<!ENTITY version "2026.04.04.21">
-<!ENTITY md5 "14af06511e1f680176f4e85f52bafcf7">
+<!ENTITY version "2026.04.04.22">
+<!ENTITY md5 "4d14f1c001387ba7a5bae907f4198f61">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" icon="folder-icon.png" support="https://forums.unraid.net/topic/197631-plugin-folderview-plus/" min="7.0.0">
     <CHANGES>
+
+###2026.04.04.22
+- Fix: Docker runtime rows, folder state, and container interactions.
+
 
 ###2026.04.04.21
 - UX: Diagnostics Suggested fixes and Share with support panels now keep their empty-state copy top-aligned in the workbench layout.

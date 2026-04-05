@@ -768,16 +768,16 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
         switch (previewMode) {
             case 2:
                 itemMarkup = `
-                    <span class="outer fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-2${autostartClass}">
+                    <span class="outer fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-2 fv-preview-trigger${autostartClass}">
                         <span class="hand fv-preview-trigger"><img src="${safeIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'${imageStyle}></span>
                     </span>
                 `;
-                triggerSelector = '.hand';
+                triggerSelector = '.fv-docker-preview-card';
                 break;
             case 3:
             case 4:
                 itemMarkup = `
-                    <span class="outer fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-${previewMode}${autostartClass}">
+                    <span class="outer fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-${previewMode} fv-preview-trigger${autostartClass}">
                         <span class="inner fv-preview-trigger">
                             <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span>
                             <span class="fv-preview-meta-compact">
@@ -789,12 +789,12 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
                         </span>
                     </span>
                 `;
-                triggerSelector = '.appname, .fv-preview-status-compact';
+                triggerSelector = '.fv-docker-preview-card';
                 break;
             case 1:
             default:
                 itemMarkup = `
-                    <span class="outer fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-1${autostartClass}">
+                    <span class="outer fv-docker-preview-card fv-docker-preview-card-compact fv-docker-preview-mode-1 fv-preview-trigger${autostartClass}">
                         <span class="hand fv-preview-trigger"><img src="${safeIcon}" class="img folder-img" onerror='this.src="/plugins/dynamix.docker.manager/images/question.png"'${imageStyle}></span>
                         <span class="inner fv-preview-trigger">
                             <span class="appname${updateClass}"${textWidthStyle}><a class="exec${updateClass}">${safeName}</a></span>
@@ -807,13 +807,15 @@ const buildDockerPreviewItem = ({ entry = {}, settings = {}, autostart = false }
                         </span>
                     </span>
                 `;
-                triggerSelector = '.hand, .appname, .fv-preview-status-compact';
+                triggerSelector = '.fv-docker-preview-card';
                 break;
         }
         const $compactItem = $(itemMarkup);
         return {
             $item: $compactItem,
-            $tooltipTrigger: $compactItem.find(triggerSelector).first()
+            $tooltipTrigger: triggerSelector === '.fv-docker-preview-card'
+                ? $compactItem
+                : $compactItem.find(triggerSelector).first()
         };
     }
 

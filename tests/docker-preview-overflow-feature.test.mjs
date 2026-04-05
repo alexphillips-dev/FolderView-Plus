@@ -11,6 +11,7 @@ const folderJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.p
 const folderContractJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folderviewplus.folder-contract.js');
 const folderEditorSharedJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/folder.editor.shared.js');
 const dockerJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.js');
+const dockerPreviewActionsScript = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.preview-actions.js');
 const sharedRuntimeJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.shared.js');
 const dockerRuntimeHierarchyJs = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/scripts/docker.runtime.hierarchy.js');
 const dockerCss = read('src/folderview.plus/usr/local/emhttp/plugins/folderview.plus/styles/docker.css');
@@ -33,7 +34,7 @@ test('folder editor exposes preview row limit control and persists the setting',
     assert.match(folderJs, /previewRows:\s*normalizedPreviewRows,/);
 });
 
-test('docker runtime applies preview row layout limits and keeps preview member clicks passive', () => {
+test('docker runtime applies preview row layout limits and keeps compact preview cards clickable', () => {
     assert.match(sharedRuntimeJs, /const getPreviewRowLimitValue = \(settings = \{\}\) =>/);
     assert.match(sharedRuntimeJs, /settings\?\.preview_rows\s*\?\?\s*settings\?\.previewRows/);
     assert.match(sharedRuntimeJs, /const normalizeFolderPreviewRowLimit = \(settings = \{\}\) =>/);
@@ -48,6 +49,10 @@ test('docker runtime applies preview row layout limits and keeps preview member 
     assert.match(dockerJs, /const appendPreviewWebuiPlaceholder = \(\$target\) =>/);
     assert.match(dockerJs, /fv-preview-webui-placeholder/);
     assert.match(dockerJs, /const buildDockerPreviewItem = \(\{ entry = \{\}, settings = \{\}, autostart = false \}\) =>/);
+    assert.match(dockerJs, /fv-docker-preview-mode-2 fv-preview-trigger/);
+    assert.match(dockerJs, /fv-docker-preview-mode-\$\{previewMode\} fv-preview-trigger/);
+    assert.match(dockerJs, /fv-docker-preview-mode-1 fv-preview-trigger/);
+    assert.match(dockerJs, /\$tooltipTrigger:\s*triggerSelector === '\.fv-docker-preview-card'\s*\?\s*\$compactItem/);
     assert.match(dockerJs, /const layoutFolderPreviewRows = \(\$preview, settings = \{\}\) =>/);
     assert.match(dockerJs, /const applyFolderPreviewLayout = typeof dockerRuntimeShared\.applyFolderPreviewLayout === 'function'/);
     assert.match(dockerJs, /const flattenPreviewWrappers = typeof dockerRuntimeShared\.flattenPreviewWrappers === 'function'/);
@@ -78,6 +83,9 @@ test('docker runtime applies preview row layout limits and keeps preview member 
     assert.match(dockerJs, /\.off\('click\.fvDockerMemberMenuAction'\)/);
     assert.doesNotMatch(dockerJs, /FolderViewDockerPreviewMemberMenu/);
     assert.doesNotMatch(dockerJs, /showDockerPreviewMemberMenu/);
+    assert.match(dockerPreviewActionsScript, /event\.preventDefault\(\);\s*event\.stopPropagation\(\);\s*openWebuiInNewTab\(webuiUrl\);/s);
+    assert.match(dockerPreviewActionsScript, /event\.preventDefault\(\);\s*event\.stopPropagation\(\);\s*openTerminal\('docker',\s*containerName,\s*shellValue\);/s);
+    assert.match(dockerPreviewActionsScript, /event\.preventDefault\(\);\s*event\.stopPropagation\(\);\s*openTerminal\('docker',\s*containerName,\s*'\.log'\);/s);
 });
 
 test('docker styles support multi-row previews without the removed member action sheet styling', () => {

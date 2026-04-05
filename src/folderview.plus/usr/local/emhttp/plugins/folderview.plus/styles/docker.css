@@ -53,12 +53,6 @@ body[data-fvplus-docker-app-width="wide"] {
     --fvplus-docker-app-column-width-mobile: 156px;
 }
 
-body.fvplus-docker-column-resize-active,
-body.fvplus-docker-column-resize-active * {
-    cursor: col-resize !important;
-    user-select: none !important;
-}
-
 th.fvplus-runtime-resizable {
     position: relative;
     overflow: visible !important;
@@ -93,8 +87,7 @@ th.fvplus-runtime-resizable .fvplus-runtime-col-resizer::before {
 }
 
 th.fvplus-runtime-resizable:hover .fvplus-runtime-col-resizer::before,
-th.fvplus-runtime-resizable .fvplus-runtime-col-resizer:focus-visible::before,
-body.fvplus-docker-column-resize-active th.fvplus-runtime-resizable .fvplus-runtime-col-resizer::before {
+th.fvplus-runtime-resizable .fvplus-runtime-col-resizer:focus-visible::before {
     opacity: 0.98;
 }
 
